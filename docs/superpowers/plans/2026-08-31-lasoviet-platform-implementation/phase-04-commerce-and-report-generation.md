@@ -1,0 +1,354 @@
+# Phase 04 Commerce and Report Generation Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> `superpowers:subagent-driven-development` or
+> `superpowers:executing-plans`.
+
+**Goal:** Deliver SePay checkout through immutable evidence-backed identity
+report generation and private HTML viewing.
+
+**Architecture:** Payment confirmation commits order, entitlement, and outbox
+atomically. Worker jobs use IDs and frozen versions. The AI adapter operates
+only on approved facts, evidence, and knowledge.
+
+**Tech Stack:** SePay HTTP/webhook, PostgreSQL, BullMQ, Redis, Zod, OpenAI-
+compatible HTTP API.
+
+**Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
+
+**Task Contracts:** Task N maps to `P04-T0N` in
+`task-contracts-and-test-vectors.md`. Asynchronous edges are normative in
+`workflow-event-contracts.md`.
+
+## Global Constraints
+
+- `ZIWEI-IDENTITY-P0` is the only first paid SKU.
+- Price baseline is VND 79,000.
+- Return URLs do not confirm payment.
+- No double entitlement or report from webhook replay.
+- AI endpoint details are requested only when this phase begins.
+- No draft or critic-failed content is shown as complete.
+
+---
+
+### Task 1 [P04-T01]: Implement orders, SePay adapter, and checkout
+
+**Files:**
+- Create: `packages/contracts/src/commerce.ts`
+- Create: `packages/backend/src/commerce/product-catalog.ts`
+- Create: `packages/backend/src/commerce/order.service.ts`
+- Create: `packages/backend/src/commerce/payment-provider.ts`
+- Create: `packages/backend/src/commerce/sepay-adapter.ts`
+- Create: `packages/database/src/schema/commerce.ts`
+- Create: `apps/api/src/commerce/commerce.controller.ts`
+- Create: `apps/web/src/app/[locale]/app/checkout/[orderId]/page.tsx`
+- Test: `packages/backend/src/commerce/order.service.test.ts`
+
+**Interfaces:**
+- Produces `PaymentProvider.createPayment(order)`.
+- Produces `createOrder(actor, chartId, sku)`.
+- Produces a server-authoritative catalog containing
+  `ZIWEI-IDENTITY-P0` at the approved VND 79,000 baseline.
+- Produces typed checkout states `pending`, `paid`, `expired`, `failed`,
+  `refunded`.
+
+- [ ] **Step 1: Write failing order-policy tests**
+
+Assert SKU/price server authority, chart ownership, entitlement reuse rules,
+unknown-time rejection, and no order for an unsupported SKU.
+
+- [ ] **Step 2: Run tests**
+
+Run: `pnpm vitest run packages/backend/src/commerce/order.service.test.ts`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement provider adapter and checkout**
+
+Use server-side SePay credentials and persist provider reference without
+logging secrets.
+
+- [ ] **Step 4: Run tests**
+
+Run: `pnpm vitest run packages/backend/src/commerce`
+Expected: PASS.
+
+- [ ] **Step 5: Update trackers and commit**
+
+```bash
+git add packages/contracts packages/backend/src/commerce packages/database apps/api/src/commerce apps/web/src/app docs/superpowers/plans
+git commit -m "feat: add SePay checkout"
+```
+
+### Task 2 [P04-T02]: Implement signed webhook, entitlement transaction, and outbox
+
+**Files:**
+- Create: `apps/web/src/app/api/webhooks/sepay/route.ts`
+- Create: `packages/backend/src/commerce/sepay-webhook.service.ts`
+- Create: `packages/backend/src/commerce/entitlement.service.ts`
+- Create: `packages/backend/src/outbox/outbox.dispatcher.ts`
+- Test: `tests/payments/sepay-webhook.integration.test.ts`
+
+**Interfaces:**
+- Consumes raw body and headers.
+- Produces one payment event, paid order, entitlement, reserved report
+  version, and `report.generation.requested.v1` outbox event in one
+  transaction.
+- The outbox dispatcher maps that event to `report.generate.v1` exactly as
+  defined in `workflow-event-contracts.md`.
+
+- [ ] **Step 1: Write failing webhook tests**
+
+Cover valid signature, invalid signature, wrong amount, unknown order, replay,
+out-of-order events, concurrent delivery, and database rollback.
+
+- [ ] **Step 2: Run integration test**
+
+Run: `pnpm vitest run tests/payments/sepay-webhook.integration.test.ts`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement raw ingress and transactional handler**
+
+The Next.js route forwards raw body and required headers. The API verifies
+provider authenticity and business invariants.
+
+- [ ] **Step 4: Implement outbox claiming and dispatch**
+
+Use lease/attempt fields and an idempotent event key. Redis failure leaves the
+outbox event available for retry.
+
+- [ ] **Step 5: Run payment tests**
+
+Run: `pnpm vitest run tests/payments`
+Expected: PASS, including concurrency.
+
+- [ ] **Step 6: Update risk/rule trackers and commit**
+
+```bash
+git add apps/web/src/app/api/webhooks packages/backend/src/commerce packages/backend/src/outbox tests/payments docs/superpowers/plans
+git commit -m "feat: process idempotent SePay webhooks"
+```
+
+### Task 3 [P04-T03]: Build the worker and report state machine
+
+**Files:**
+- Create: `packages/contracts/src/jobs.ts`
+- Create: `packages/backend/src/jobs/queue.registry.ts`
+- Create: `packages/backend/src/reports/report.service.ts`
+- Create: `packages/backend/src/reports/report-state.ts`
+- Create: `packages/database/src/schema/reports.ts`
+- Create: `apps/worker/src/processors/report-generate.processor.ts`
+- Test: `packages/backend/src/reports/report-state.test.ts`
+- Test: `tests/jobs/report-generation.integration.test.ts`
+
+**Interfaces:**
+- Produces `ReportStatus` transitions.
+- Consumes `report.generate.v1` with `ReportGenerationRequestedV1`.
+- Produces `report.pdf.requested.v1` only after deterministic validation
+  commits an immutable HTML report version.
+- Produces `report.fulfillment.failed.v1` only on a terminal generation or
+  validation failure.
+- Produces `WORKER_QUEUES` selection.
+
+- [ ] **Step 1: Write failing state and job tests**
+
+Cover duplicate jobs, crash after claim, retry, terminal failure, and invalid
+state transitions. Assert the exact event-to-job mapping and payload from
+`workflow-event-contracts.md`.
+
+- [ ] **Step 2: Run tests**
+
+Run: `pnpm vitest run packages/backend/src/reports tests/jobs`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement queue registry and persisted state**
+
+Worker restart must resume from database state. Queue state is not the only
+record of progress.
+
+- [ ] **Step 4: Run tests**
+
+Run: `pnpm vitest run packages/backend/src/reports tests/jobs`
+Expected: PASS.
+
+- [ ] **Step 5: Update trackers and commit**
+
+```bash
+git add packages/contracts packages/backend/src/jobs packages/backend/src/reports packages/database apps/worker tests/jobs docs/superpowers/plans
+git commit -m "feat: add durable report workflow"
+```
+
+### Task 4 [P04-T04]: Implement approved knowledge ingestion and retrieval
+
+**Files:**
+- Create: `content/knowledge/vi/ziwei/`
+- Create: `content/knowledge/en/ziwei/`
+- Create: `packages/backend/src/knowledge/knowledge-ingestion.service.ts`
+- Create: `packages/backend/src/knowledge/knowledge-retrieval.service.ts`
+- Create: `packages/database/src/schema/knowledge.ts`
+- Create: `apps/worker/src/processors/knowledge-embed.processor.ts`
+- Test: `packages/backend/src/knowledge/knowledge-retrieval.service.test.ts`
+
+**Interfaces:**
+- Produces versioned approved `KnowledgePassageV1`.
+- Produces metadata-filtered full-text retrieval.
+- Adds vector retrieval only when enabled and indexed.
+
+- [ ] **Step 1: Write failing ingestion/retrieval tests**
+
+Reject unapproved documents, missing source/license metadata, wrong locale,
+wrong discipline, stale version, and excessive context.
+
+- [ ] **Step 2: Run tests**
+
+Run: `pnpm vitest run packages/backend/src/knowledge`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement file ingestion and PostgreSQL full-text retrieval**
+
+Open-web retrieval is absent. Preserve content hash and approval record.
+
+- [ ] **Step 4: Add optional pgvector path**
+
+Disabled mode must pass all non-vector tests.
+
+- [ ] **Step 5: Run tests**
+
+Run: `pnpm vitest run packages/backend/src/knowledge`
+Expected: PASS with vectors disabled and, when configured, enabled.
+
+- [ ] **Step 6: Update trackers and commit**
+
+```bash
+git add content/knowledge packages/backend/src/knowledge packages/database apps/worker docs/superpowers/plans
+git commit -m "feat: add approved knowledge retrieval"
+```
+
+### Task 5 [P04-T05]: Implement AI capability probe, report writer, and critic
+
+**Files:**
+- Create: `docs/compliance/ai-provider-due-diligence.md`
+- Create: `packages/backend/src/ai/ai-provider.ts`
+- Create: `packages/backend/src/ai/openai-compatible-adapter.ts`
+- Create: `packages/backend/src/ai/capability-probe.ts`
+- Create: `packages/backend/src/reports/identity-report-outline.ts`
+- Create: `packages/backend/src/reports/identity-report-writer.ts`
+- Create: `packages/backend/src/reports/report-validator.ts`
+- Create: `packages/backend/src/reports/report-critic.ts`
+- Test: `packages/backend/src/ai/capability-probe.test.ts`
+- Test: `packages/backend/src/reports/report-validator.test.ts`
+- Test: `tests/compliance/ai-provider-gate.test.ts`
+
+**Interfaces:**
+- Produces `AiProvider.generateStructured(request)`.
+- Produces `IdentityReportV1`.
+- Produces validator results with evidence and prohibited-category findings.
+- Production AI calls require a complete approved provider due-diligence
+  record.
+
+- [ ] **Step 1: Obtain phase-specific founder inputs**
+
+Sol asks for base URL and model. API key is placed in the approved secret
+environment, not committed or copied into docs.
+
+- [ ] **Step 2: Record provider privacy and operational due diligence**
+
+Record provider/controller identity, data-processing purpose, retention,
+training use, storage/processing regions, subprocessors, access controls,
+deletion behavior, incident-notification terms, contract/policy source and
+date, reviewer, decision, and required mitigations. Do not record credentials.
+Terra verifies completeness against approved privacy requirements. Missing,
+unsuitable, or materially changed terms stop the phase and return through
+Terra to Sol for a founder decision; Terra does not approve provider privacy
+trade-offs.
+
+- [ ] **Step 3: Write failing capability, provider-gate, and validator tests**
+
+Cover schema support, malformed output, timeout, evidence fabrication, missing
+evidence, absolute accident/death/disease/legal/financial claims, diagnosis,
+fear upsell, unsupported language, and an incomplete/unapproved due-diligence
+record.
+
+- [ ] **Step 4: Run tests**
+
+Run:
+`pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts`
+Expected: FAIL.
+
+- [ ] **Step 5: Implement the capability probe**
+
+If the endpoint cannot satisfy the approved contract, Luna stops. Terra
+reviews evidence and returns it to Sol for founder escalation.
+
+- [ ] **Step 6: Implement deterministic outline and bounded section generation**
+
+Freeze chart, evidence, knowledge, prompt, locale, and model versions before
+generation.
+
+- [ ] **Step 7: Implement deterministic validation and critic**
+
+Reject unsafe or unsupported reports. Do not expose failed drafts.
+
+- [ ] **Step 8: Run tests and a controlled endpoint smoke**
+
+Run:
+`pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts`
+Expected: PASS. Endpoint smoke stores no real user PII.
+
+- [ ] **Step 9: Update risk/rule trackers and commit**
+
+```bash
+git add docs/compliance packages/backend/src/ai packages/backend/src/reports tests/compliance docs/superpowers/plans
+git commit -m "feat: generate evidence-backed identity reports"
+```
+
+### Task 6 [P04-T06]: Persist immutable report versions and render private HTML
+
+**Files:**
+- Create: `packages/contracts/src/identity-report-v1.ts`
+- Create: `packages/backend/src/reports/report-version.repository.ts`
+- Create: `apps/api/src/reports/reports.controller.ts`
+- Create: `apps/web/src/app/[locale]/app/reports/[reportId]/page.tsx`
+- Create: `apps/web/src/features/reports/report-progress.tsx`
+- Create: `apps/web/src/features/reports/identity-report.tsx`
+- Test: `tests/e2e/paid-report-html.spec.ts`
+
+**Interfaces:**
+- Produces immutable version lineage through `supersedesReportId`.
+- Produces owner-authorized status and report queries.
+
+- [ ] **Step 1: Write failing report E2E**
+
+Cover pending refresh, ready report, unauthorized access, noindex, evidence
+drawer, locale, immutable old version, and failed generation state.
+
+- [ ] **Step 2: Run E2E**
+
+Run: `pnpm playwright test tests/e2e/paid-report-html.spec.ts`
+Expected: FAIL.
+
+- [ ] **Step 3: Implement version persistence and private UI**
+
+Do not overwrite a purchased version when prompts, engine, or model change.
+
+- [ ] **Step 4: Run E2E**
+
+Run: `pnpm playwright test tests/e2e/paid-report-html.spec.ts`
+Expected: PASS.
+
+- [ ] **Step 5: Update trackers and commit**
+
+```bash
+git add packages/contracts packages/backend/src/reports apps/api/src/reports apps/web/src/app apps/web/src/features/reports tests/e2e docs/superpowers/plans
+git commit -m "feat: publish immutable private reports"
+```
+
+## Phase Exit Criteria
+
+- Valid SePay payment creates one entitlement and one report lineage.
+- Replay and concurrent webhook tests pass.
+- Redis outage does not lose paid work.
+- Knowledge is approved and versioned.
+- AI capability probe passes with the founder endpoint.
+- Every report claim is evidence-backed and safety-validated.
+- Private HTML report works after refresh and is noindex.
+- Terra has no unresolved `must-fix`.
