@@ -274,6 +274,24 @@ rule instead of adding another version.
 - Keep changes narrowly scoped and preserve unrelated user work.
 - Use English conventional commit messages with no AI references.
 
+### Branch, Pull Request, And Merge Workflow
+
+- This subsection records a founder-approved repository invariant dated
+  2026-08-31.
+- Start every change on a dedicated branch before editing or committing. Never
+  commit new work directly on `master`, and never push directly to `master`.
+- Integrate changes only through this sequence: push the branch, create a pull
+  request targeting `master`, complete any founder-requested review, then merge
+  through the pull request.
+- A separate review between pull request creation and merge is optional and
+  runs only when the founder requests it for that pull request. This does not
+  waive any review already required by an approved planning or implementation
+  workflow.
+- Do not merge a pull request until the founder explicitly authorizes the
+  merge. If unpushed work is accidentally committed on local `master`, preserve
+  it on a dedicated branch before pushing and restore local `master` to the
+  integrated remote state afterward.
+
 ### Docker Compose Web Publishing
 
 - This subsection records a founder-approved deployment invariant dated
