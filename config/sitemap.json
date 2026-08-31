@@ -1,0 +1,39 @@
+{
+  "canonical_origin": "https://lasoviet.vn",
+  "navigation": [
+    {"label": "Xem lá số", "href": "/la-so-tu-vi"},
+    {"label": "Luận giải", "href": "/luan-giai-tu-vi"},
+    {"label": "Khám phá", "href": "/kham-pha"},
+    {"label": "Kiến thức", "href": "/kien-thuc"},
+    {"label": "Về Lá Số Việt", "href": "/gioi-thieu"}
+  ],
+  "primary_cta": {"label": "Lập lá số miễn phí", "href": "/la-so-tu-vi"},
+  "routes": [
+    {"path": "/", "type": "brand", "phase": "P0", "index": true},
+    {"path": "/la-so-tu-vi", "type": "calculator", "phase": "P0", "index": true, "primary_keyword": "lá số tử vi"},
+    {"path": "/luan-giai-tu-vi", "type": "commercial", "phase": "P0", "index": true, "primary_keyword": "luận giải tử vi"},
+    {"path": "/luan-giai-tu-vi/tong-quan-ban-menh", "type": "product", "phase": "P0", "index": true},
+    {"path": "/luan-giai-tu-vi/tinh-duyen-hon-nhan", "type": "product", "phase": "P0", "index": true},
+    {"path": "/luan-giai-tu-vi/cong-viec-tai-loc", "type": "product", "phase": "P0", "index": true},
+    {"path": "/luan-giai-tu-vi/van-trinh-{year}", "type": "product", "phase": "P0", "index": true},
+    {"path": "/la-so-bat-tu", "type": "calculator", "phase": "P1", "index": true, "primary_keyword": "lá số bát tự"},
+    {"path": "/ban-do-sao", "type": "calculator", "phase": "P1", "index": true, "primary_keyword": "bản đồ sao"},
+    {"path": "/gieo-que-kinh-dich", "type": "calculator", "phase": "P1", "index": true, "primary_keyword": "gieo quẻ kinh dịch"},
+    {"path": "/than-so-hoc", "type": "growth_tool", "phase": "P1", "index": true},
+    {"path": "/kien-thuc/tu-vi", "type": "knowledge_hub", "phase": "P0", "index": true},
+    {"path": "/kien-thuc/bat-tu", "type": "knowledge_hub", "phase": "P1", "index": true},
+    {"path": "/kien-thuc/chiem-tinh", "type": "knowledge_hub", "phase": "P1", "index": true},
+    {"path": "/kien-thuc/kinh-dich", "type": "knowledge_hub", "phase": "P1", "index": true},
+    {"path": "/phuong-phap-luan-giai", "type": "trust", "phase": "P0", "index": true},
+    {"path": "/nguon-tri-thuc", "type": "trust", "phase": "P0", "index": true},
+    {"path": "/bao-mat-du-lieu", "type": "trust", "phase": "P0", "index": true},
+    {"path": "/cau-hoi-thuong-gap", "type": "trust", "phase": "P0", "index": true},
+    {"path": "/gioi-thieu", "type": "brand", "phase": "P0", "index": true},
+    {"path": "/tai-khoan", "type": "private", "phase": "P0", "index": false},
+    {"path": "/ho-so-cua-toi", "type": "private", "phase": "P0", "index": false},
+    {"path": "/la-so-da-luu", "type": "private", "phase": "P0", "index": false},
+    {"path": "/bao-cao-cua-toi", "type": "private", "phase": "P0", "index": false},
+    {"path": "/checkout", "type": "private", "phase": "P0", "index": false},
+    {"path": "/bao-cao/{private-id}", "type": "private_report", "phase": "P0", "index": false}
+  ]
+}

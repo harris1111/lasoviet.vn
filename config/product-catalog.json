@@ -1,0 +1,38 @@
+{
+  "currency": "VND",
+  "pricing_status": "hypothesis_to_test",
+  "products": [
+    {
+      "sku": "ZIWEI-IDENTITY-P0",
+      "name": "Bản mệnh & tiềm năng",
+      "method": "ziwei",
+      "price": 79000,
+      "phase": "P0",
+      "sections": ["personal_summary", "strengths", "tensions", "decision_style", "growth_patterns", "actions", "limitations"]
+    },
+    {
+      "sku": "ZIWEI-RELATIONSHIP-P0",
+      "name": "Tình duyên & hôn nhân",
+      "method": "ziwei",
+      "price": 79000,
+      "phase": "P0",
+      "sections": ["relationship_needs", "attachment_expression", "conflict_patterns", "healthy_conditions", "timing", "actions", "limitations"]
+    },
+    {
+      "sku": "ZIWEI-CAREER-P0",
+      "name": "Công việc & tài lộc",
+      "method": "ziwei",
+      "price": 79000,
+      "phase": "P0",
+      "sections": ["career_motivation", "capabilities", "work_environment", "money_patterns", "timing", "actions", "limitations"]
+    },
+    {
+      "sku": "ZIWEI-YEAR-P0",
+      "name": "Vận trình năm",
+      "method": "ziwei",
+      "price": 79000,
+      "phase": "P0",
+      "sections": ["year_theme", "periods", "opportunities", "risks", "observation_checklist", "actions", "limitations"]
+    }
+  ]
+}

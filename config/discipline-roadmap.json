@@ -1,0 +1,43 @@
+{
+  "_source": "docs/11-discipline-expansion-specs.md",
+  "_note": "12 of 27 workbook disciplines selected for VN market fit (popularity + demand). Excluded disciplines listed under 'excluded' with reason.",
+  "batch_0_shipping": [
+    {"discipline": "Tử Vi Đẩu Số", "phase": "P0", "role": "primary_calculator_and_paid_reports", "format": "paid_sku", "engine_candidates": ["SylarLong/iztro", "Brhiza/mingyu"], "license_gate": "MIT preferred", "status": "locked"}
+  ],
+  "batch_1_mingyu": [
+    {"discipline": "Bát Tự / Tứ Trụ", "phase": "P1", "role": "second_chart_system", "format": "paid_sku", "engine_candidates": ["Brhiza/mingyu"], "license_gate": "MIT", "status": "locked", "note": "launch as 1 bundled report, not 4 SKUs"},
+    {"discipline": "Kinh Dịch / Chu Dịch", "phase": "P1", "role": "situational_question_system", "format": "paid_sku", "engine_candidates": ["Brhiza/mingyu"], "license_gate": "MIT", "status": "locked", "note": "question+casting-time input, not birth profile; needs rate-limit"},
+    {"discipline": "Xem Ngày / Chọn Ngày Tốt", "phase": "batch_1", "role": "free_utility", "format": "free_content", "engine_candidates": ["Brhiza/mingyu"], "license_gate": "MIT", "status": "proposed", "note": "promoted from 'sau P0' — high volume, low cost"},
+    {"discipline": "12 Con Giáp", "phase": "batch_1", "role": "top_of_funnel_content", "format": "free_content", "engine_candidates": ["Brhiza/mingyu (partial)"], "license_gate": "MIT", "status": "proposed", "note": "promoted from 'sau P0' — seasonal (Tết) traffic"},
+    {"discipline": "Phong Thủy", "phase": "batch_1", "role": "trust_and_retention_content", "format": "free_content", "engine_candidates": ["Brhiza/mingyu"], "license_gate": "MIT", "status": "proposed", "note": "calculation/content only, D-010 item-commerce ban unchanged"},
+    {"discipline": "Tarot / Bói Bài", "phase": "batch_1", "role": "retention_loop", "format": "free_content", "engine_candidates": ["Brhiza/mingyu", "LindseyB/tarot-api"], "license_gate": "MIT", "status": "proposed", "note": "includes Bói Bài Tây as same page, not separate; daily draw + 3-card; rate-limit needed"}
+  ],
+  "batch_2_western_vedic": [
+    {"discipline": "Bản Đồ Sao / Chiêm Tinh Tây Phương", "phase": "P1", "role": "western_chart_system", "format": "paid_sku", "engine_candidates": ["VedAstro", "commercial Swiss Ephemeris", "g-battaglia/kerykeion (AGPL, last resort)"], "license_gate": "commercial-compatible engine required — 3 options in docs/11 §4.1, unresolved", "status": "locked_position_open_engine"}
+  ],
+  "batch_3_native": [
+    {"discipline": "Thần số học", "phase": "batch_3", "role": "free_acquisition_wedge", "format": "free_content_then_paid", "engine_candidates": ["native (Pythagorean formula)", "Brij-star/numerology-calculator (reference only)"], "license_gate": "no dependency needed", "status": "proposed_reprioritization", "note": "recommend building in parallel with Batch 1, not waiting — see docs/11 §7-D"}
+  ],
+  "content_only": [
+    {"discipline": "Giải Mã Giấc Mơ / Điềm Báo", "phase": "content_only", "role": "long_tail_seo", "format": "free_content", "engine_candidates": [], "license_gate": "none — editorial dictionary", "status": "proposed", "note": "MUST disclaim no lottery/số đề association"}
+  ],
+  "batch_4_biometric": [
+    {"discipline": "Xem Chỉ Tay", "phase": "pilot", "role": "experimental", "format": "free_pilot", "engine_candidates": ["yeonsumia/palmistry (license unverified)", "MediaPipe (Apache-2.0, fallback)"], "license_gate": "audit required before production use", "status": "pilot_approved", "note": "photo upload opt-in, delete after processing, no paid tier yet"},
+    {"discipline": "Nhân Tướng / Xem mặt", "phase": "deferred", "role": "deferred", "format": "none", "engine_candidates": ["darktaoist/aura (license unclear)"], "license_gate": "biometric privacy — deferred", "status": "deferred_condition_gated", "note": "reopen only after Gate 3 + demonstrated brand trust"}
+  ],
+  "excluded": [
+    {"discipline": "Kỳ Môn Độn Giáp", "reason": "low volume (1K-10K), niche even with mingyu coverage"},
+    {"discipline": "Mai Hoa Dịch Số", "reason": "low volume, niche"},
+    {"discipline": "Lục Hào", "reason": "very low volume (100-1K), overlaps Kinh Dịch mechanically"},
+    {"discipline": "Bài Lenormand", "reason": "very low volume, weak VN cultural footprint"},
+    {"discipline": "Chiêm Tinh Vệ Đà (Vedic/Jyotish)", "reason": "engine ready (VedAstro MIT) but zero VN search signal"},
+    {"discipline": "Chiêm Tinh Vấn Sự (Horary)", "reason": "zero VN search signal"},
+    {"discipline": "Bài Oracle", "reason": "low volume, no repo"},
+    {"discipline": "Bói Rune", "reason": "zero VN search signal, no repo"},
+    {"discipline": "Bói Con Lắc", "reason": "zero VN search signal, no repo"},
+    {"discipline": "Bói Cầu Pha Lê", "reason": "zero VN search signal, no repo"},
+    {"discipline": "Scrying / Soi Gương Tiên Tri", "reason": "zero VN search signal, no repo"},
+    {"discipline": "Liuren (Đại Lục Nhâm)", "reason": "not in 27-discipline taxonomy, only in mingyu's text description; zero VN search signal"},
+    {"discipline": "Taiyi (Thái Ất)", "reason": "same as Liuren"}
+  ]
+}

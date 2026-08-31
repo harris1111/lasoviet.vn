@@ -1,0 +1,20 @@
+{
+  "canonical": "https://lasoviet.vn",
+  "domains": {
+    "lasoviet.vn": {"role": "brand_seo_app_commerce", "index": true, "checkout": true},
+    "lasoviet.cloud": {"role": "infrastructure_reserve", "index": false, "checkout": false, "root_action": "301_to_lasoviet.vn"},
+    "lasoviet.xyz": {"role": "defensive_or_lab", "index": false, "checkout": false, "root_action": "301_to_lasoviet.vn"}
+  },
+  "dns": {
+    "registrar": "Mat Bao",
+    "provider": "Cloudflare",
+    "nameservers": ["clayton.ns.cloudflare.com", "stephane.ns.cloudflare.com"]
+  },
+  "rules": [
+    "Only lasoviet.vn may host indexable public content.",
+    "Private reports, accounts and checkout must be noindex.",
+    "Lab/staging must require authentication in addition to noindex.",
+    "Do not proxy email verification records through Cloudflare.",
+    "Enable DNSSEC only after the Cloudflare zone is active and stable."
+  ]
+}

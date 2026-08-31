@@ -1,0 +1,22 @@
+{
+  "privacy_rule": "Never send name, birth date/time/place, chart JSON, evidence text or report content to analytics.",
+  "events": [
+    {"name": "landing_view", "properties": ["page_type", "method", "source_intent", "experiment_ids"]},
+    {"name": "method_selected", "properties": ["method", "entry_page"]},
+    {"name": "birth_form_started", "properties": ["method", "entry_page"]},
+    {"name": "birth_form_error", "properties": ["method", "field_group", "error_code"]},
+    {"name": "chart_created", "properties": ["method", "time_precision", "engine_version"]},
+    {"name": "free_summary_viewed", "properties": ["method", "summary_version"]},
+    {"name": "evidence_opened", "properties": ["method", "claim_category"]},
+    {"name": "paid_topic_selected", "properties": ["sku", "method", "recommendation_source"]},
+    {"name": "paywall_viewed", "properties": ["sku", "price_vnd", "variant"]},
+    {"name": "checkout_started", "properties": ["sku", "price_vnd", "payment_provider"]},
+    {"name": "payment_completed", "properties": ["sku", "price_vnd", "payment_provider"]},
+    {"name": "payment_failed", "properties": ["sku", "payment_provider", "error_code"]},
+    {"name": "report_generation_completed", "properties": ["sku", "method", "duration_bucket", "report_version"]},
+    {"name": "report_opened", "properties": ["sku", "method", "days_since_purchase"]},
+    {"name": "report_downloaded", "properties": ["sku", "format"]},
+    {"name": "support_requested", "properties": ["category", "sku"]},
+    {"name": "profile_deleted", "properties": ["deletion_scope"]}
+  ]
+}
