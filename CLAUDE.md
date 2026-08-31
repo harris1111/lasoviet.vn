@@ -1,18 +1,15 @@
 # CLAUDE.md — Repo-specific instructions
 
-## Git workflow (chốt 2026-08-31)
+## Git workflow (chốt 2026-08-31, superseded cùng ngày bởi bản dưới đây khi nhập `AGENT_HANDOFF.md`)
 
-Quy tắc bắt buộc cho mọi thao tác git trong repo này, áp dụng cho mọi phiên làm việc:
+Nguồn sự thật đầy đủ: `docs/15-collaboration-branch-workflow.md`. Tóm tắt bắt buộc cho mọi phiên làm việc:
 
-- **Không bao giờ push hoặc merge trực tiếp vào `master` bằng git CLI.** Không `git push origin master`, không `git merge` rồi push thẳng vào `master`.
-- Hai branch cố định, dùng xuyên suốt (không tạo mới mỗi việc):
-  - `anh` — branch của user (anh/a), chứa docs/concept/spec updates.
-  - `an-dev` — branch của An (dev), tạo từ `anh`, dùng để code.
-- Flow:
-  1. Anh tạo hoặc cập nhật branch `anh` (docs, concept, spec...) và push lên `origin/anh`.
-  2. An checkout `anh`, tạo/cập nhật `an-dev` từ đó để code.
-  3. Khi anh có update mới trên `anh`, merge `anh` → `an-dev` trước khi An code tiếp.
-  4. Khi An code xong một phần việc, merge `an-dev` → `anh`.
-  5. Khi sẵn sàng release: mở **Pull Request từ `anh` → `master` trên GitHub**, review rồi bấm merge trên GitHub UI. Không merge `master` bằng CLI.
-- Push lên `origin/anh` hoặc `origin/an-dev` được làm tự do (đây là phần "push branch lên git" được cho phép). Chỉ riêng đường vào `master` phải qua PR đã review.
-- Nếu chưa có branch `anh`/`an-dev` trên remote, tạo mới từ `master` tại thời điểm bắt đầu việc tiếp theo.
+- **Không bao giờ commit hoặc push trực tiếp vào `master`.** Mọi thay đổi vào `master` phải qua Pull Request đã review trên GitHub.
+- Vai trò: **Harris/Product** ("anh") — chốt concept, brand, sitemap, UX, acceptance criteria. **An/Development** — code, test, sửa theo review.
+- Hai branch làm việc cố định:
+  - `product/experience-spec-v1` — owner Harris/Product; source of truth cho docs, decisions, acceptance criteria; nhánh integration trước release.
+  - `feature/site-foundation` — owner An/Development; code implementation và test.
+- Flow: Product cập nhật `product/experience-spec-v1` → An merge spec đó vào `feature/site-foundation` trước khi code/trước khi mở PR → An code/test/fix → An mở PR `feature/site-foundation` → `product/experience-spec-v1` → Product review/acceptance → merge vào `product/experience-spec-v1` → Product mở PR `product/experience-spec-v1` → `master` (release PR cuối, cần CI/build/test pass).
+- Ownership khi conflict: brand/copy/sitemap/user flow/acceptance criteria → Harris quyết; implementation/framework/component/test strategy → An quyết; URL/data contract/privacy/analytics/accessibility → cả hai cùng review; conflict giữa conversion và trust/safety → trust/safety thắng.
+- Commit convention: `docs:`, `feat:`, `fix:`, `test:`, `refactor:` — nhỏ, một mục đích, không trộn thay đổi scope với refactor không liên quan.
+- Đọc đầy đủ `docs/15-collaboration-branch-workflow.md` trước khi thao tác branch protection, definition-of-done hoặc PR checklist chi tiết.

@@ -1,0 +1,140 @@
+<div id="lsv-architecture">
+  <style>
+    #lsv-architecture{color-scheme:light;font-family:"Be Vietnam Pro",system-ui,sans-serif;color:#263445;background:transparent;max-width:100%;}
+    #lsv-architecture *{box-sizing:border-box}
+    #lsv-architecture .lsv-tabs{display:flex;gap:4px;overflow:auto;border-bottom:1px solid #d7cdbd;margin-bottom:16px;padding:0 2px}
+    #lsv-architecture .lsv-tab{appearance:none;border:0;background:transparent;color:#5e6873;padding:10px 12px;font:600 13px/1.2 inherit;white-space:nowrap;border-bottom:3px solid transparent;cursor:pointer}
+    #lsv-architecture .lsv-tab[aria-selected="true"]{color:#14263d;border-color:#a63d2f}
+    #lsv-architecture .lsv-panel{display:none}
+    #lsv-architecture .lsv-panel.active{display:block}
+    #lsv-architecture .lsv-site-window{background:#fffdf7;border:1px solid #d7cdbd;min-height:560px;overflow:hidden}
+    #lsv-architecture .lsv-browser{height:28px;background:#f7f1e5;border-bottom:1px solid #d7cdbd;display:flex;align-items:center;gap:5px;padding:0 10px}
+    #lsv-architecture .lsv-dot{width:7px;height:7px;border-radius:50%;background:#958a7c}
+    #lsv-architecture .lsv-url{margin-left:8px;font:500 9px/1 inherit;color:#5e6873}
+    #lsv-architecture .lsv-nav{height:54px;display:flex;align-items:center;gap:22px;padding:0 28px;border-bottom:1px solid #eee5d6;background:#fffdf7}
+    #lsv-architecture .lsv-logo{font:700 16px/1 "Source Serif 4",Georgia,serif;color:#14263d;margin-right:auto}
+    #lsv-architecture .lsv-navlink{font-size:10px;color:#263445}
+    #lsv-architecture .lsv-button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 16px;background:#14263d;color:#fff;border:0;font:700 10px/1 inherit}
+    #lsv-architecture .lsv-button.red{background:#a63d2f}
+    #lsv-architecture .lsv-button.ghost{background:transparent;color:#14263d;border:1px solid #958a7c}
+    #lsv-architecture .lsv-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:34px;padding:52px 52px 38px;align-items:center;background:linear-gradient(110deg,#fffdf7 65%,#f7f1e5 65%)}
+    #lsv-architecture .lsv-eyebrow{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#a63d2f;font-weight:700}
+    #lsv-architecture h2{font:650 36px/1.08 "Source Serif 4",Georgia,serif;color:#14263d;margin:10px 0 12px}
+    #lsv-architecture h3{font:650 18px/1.2 "Source Serif 4",Georgia,serif;color:#14263d;margin:0 0 8px}
+    #lsv-architecture p{font-size:11px;line-height:1.6;margin:0 0 14px;color:#5e6873}
+    #lsv-architecture .lsv-actions{display:flex;gap:8px;flex-wrap:wrap}
+    #lsv-architecture .lsv-form{background:#fff;border:1px solid #d7cdbd;padding:18px;box-shadow:0 10px 28px rgba(20,38,61,.08)}
+    #lsv-architecture .lsv-form-title{font-weight:700;font-size:12px;color:#14263d;margin-bottom:12px}
+    #lsv-architecture .lsv-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+    #lsv-architecture .lsv-field{border:1px solid #958a7c;background:#fffdf7;min-height:38px;padding:8px}
+    #lsv-architecture .lsv-label{font-size:8px;color:#5e6873;display:block;margin-bottom:3px}
+    #lsv-architecture .lsv-value{font-size:10px;color:#263445}
+    #lsv-architecture .lsv-trustbar{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 52px;border-block:1px solid #eee5d6;background:#fff}
+    #lsv-architecture .lsv-trust{font-size:9px;color:#263445;text-align:center;border-right:1px solid #eee5d6}
+    #lsv-architecture .lsv-trust:last-child{border-right:0}
+    #lsv-architecture .lsv-section{padding:34px 52px}
+    #lsv-architecture .lsv-section.alt{background:#f7f1e5}
+    #lsv-architecture .lsv-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    #lsv-architecture .lsv-card{background:#fff;border:1px solid #d7cdbd;padding:15px;min-height:94px}
+    #lsv-architecture .lsv-card strong{display:block;font-size:11px;color:#14263d;margin-bottom:5px}
+    #lsv-architecture .lsv-card span{font-size:9px;line-height:1.45;color:#5e6873}
+    #lsv-architecture .lsv-sitemap{background:#fffdf7;border:1px solid #d7cdbd;padding:18px;min-height:560px}
+    #lsv-architecture .lsv-map-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+    #lsv-architecture .lsv-map-title h3{font-size:22px}
+    #lsv-architecture .lsv-legend{font-size:9px;color:#5e6873}
+    #lsv-architecture .lsv-tree-root{width:max-content;margin:0 auto 16px;padding:10px 20px;background:#14263d;color:#fff;font-weight:700;font-size:11px}
+    #lsv-architecture .lsv-map-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
+    #lsv-architecture .lsv-map-col{border-top:4px solid #14263d;background:#fff;border-inline:1px solid #d7cdbd;border-bottom:1px solid #d7cdbd}
+    #lsv-architecture .lsv-map-col:nth-child(2){border-top-color:#a63d2f}
+    #lsv-architecture .lsv-map-col:nth-child(3){border-top-color:#2f6f57}
+    #lsv-architecture .lsv-map-col:nth-child(4){border-top-color:#8a5a12}
+    #lsv-architecture .lsv-map-head{padding:10px 11px;border-bottom:1px solid #eee5d6;font-size:11px;font-weight:700;color:#14263d}
+    #lsv-architecture .lsv-node{padding:8px 11px;border-bottom:1px solid #eee5d6;font-size:9px;color:#263445}
+    #lsv-architecture .lsv-node small{display:block;color:#5e6873;margin-top:2px;line-height:1.3}
+    #lsv-architecture .lsv-node.private{background:#f3ddd4}
+    #lsv-architecture .lsv-node.future{background:#f7f1e5;color:#5e6873}
+    #lsv-architecture .lsv-flow-note{margin-top:14px;padding:11px 13px;border-left:4px solid #a63d2f;background:#f7f1e5;font-size:10px;line-height:1.5}
+    #lsv-architecture .lsv-product{display:grid;grid-template-columns:230px 1fr;min-height:590px;background:#fffdf7;border:1px solid #d7cdbd}
+    #lsv-architecture .lsv-side{background:#14263d;color:#fff;padding:22px 16px}
+    #lsv-architecture .lsv-side .lsv-logo{color:#fff;margin-bottom:24px}
+    #lsv-architecture .lsv-step{padding:10px 8px;border-left:2px solid rgba(255,255,255,.2);font-size:10px;color:rgba(255,255,255,.65)}
+    #lsv-architecture .lsv-step.on{border-color:#f3ddd4;color:#fff;font-weight:700}
+    #lsv-architecture .lsv-main{padding:28px 34px}
+    #lsv-architecture .lsv-mainhead{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid #eee5d6;padding-bottom:16px;margin-bottom:18px}
+    #lsv-architecture .lsv-chart-layout{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+    #lsv-architecture .lsv-chart{aspect-ratio:1/1;border:1px solid #958a7c;display:grid;grid-template-columns:repeat(4,1fr);background:#fff}
+    #lsv-architecture .lsv-palace{border:1px solid #eee5d6;padding:5px;font-size:7px;color:#5e6873}
+    #lsv-architecture .lsv-palace:nth-child(6){grid-column:2/4;grid-row:2/4;background:#f7f1e5;display:flex;align-items:center;justify-content:center;text-align:center;color:#14263d;font-weight:700}
+    #lsv-architecture .lsv-insight{border-bottom:1px solid #eee5d6;padding:10px 0}
+    #lsv-architecture .lsv-insight strong{font-size:10px;color:#14263d}
+    #lsv-architecture .lsv-insight p{font-size:9px;margin:4px 0 5px}
+    #lsv-architecture .lsv-evidence{font-size:8px;color:#174f7a;text-decoration:underline}
+    #lsv-architecture .lsv-mobile-wrap{display:flex;justify-content:center;padding:12px;background:#eee5d6}
+    #lsv-architecture .lsv-phone{width:360px;min-height:690px;background:#fffdf7;border:8px solid #14263d;border-radius:28px;overflow:hidden;box-shadow:0 14px 32px rgba(20,38,61,.16)}
+    #lsv-architecture .lsv-phonebar{height:24px;background:#14263d;color:#fff;text-align:center;font-size:8px}
+    #lsv-architecture .lsv-mnav{height:48px;display:flex;align-items:center;padding:0 15px;border-bottom:1px solid #eee5d6}
+    #lsv-architecture .lsv-mhero{padding:28px 18px 18px}
+    #lsv-architecture .lsv-mhero h2{font-size:31px}
+    #lsv-architecture .lsv-mform{padding:0 18px 22px}
+    #lsv-architecture .lsv-mform .lsv-row{grid-template-columns:1fr}
+    #lsv-architecture .lsv-msection{padding:20px 18px;border-top:1px solid #eee5d6}
+    #lsv-architecture .lsv-msticky{position:sticky;bottom:0;padding:10px 14px;background:#fff;border-top:1px solid #d7cdbd;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+    #lsv-architecture .lsv-msticky span{font-size:9px;color:#5e6873}
+    @media(max-width:720px){
+      #lsv-architecture .lsv-map-grid{grid-template-columns:1fr 1fr}
+      #lsv-architecture .lsv-navlink{display:none}
+      #lsv-architecture .lsv-hero{grid-template-columns:1fr;padding:34px 24px;background:#fffdf7}
+      #lsv-architecture h2{font-size:32px}
+      #lsv-architecture .lsv-trustbar{padding-inline:20px}
+      #lsv-architecture .lsv-section{padding:28px 24px}
+      #lsv-architecture .lsv-product{grid-template-columns:1fr}
+      #lsv-architecture .lsv-side{display:none}
+      #lsv-architecture .lsv-main{padding:22px 18px}
+      #lsv-architecture .lsv-chart-layout{grid-template-columns:1fr}
+    }
+    @media(max-width:430px){
+      #lsv-architecture .lsv-map-grid{grid-template-columns:1fr}
+      #lsv-architecture .lsv-grid3{grid-template-columns:1fr}
+      #lsv-architecture .lsv-trustbar{grid-template-columns:1fr;gap:7px}
+      #lsv-architecture .lsv-trust{border-right:0;text-align:left}
+      #lsv-architecture .lsv-phone{width:100%;border-radius:20px}
+    }
+  </style>
+  <div class="lsv-tabs" role="tablist" aria-label="Sitemap và wireframe">
+    <button class="lsv-tab" role="tab" aria-selected="true" data-target="map">Sitemap</button>
+    <button class="lsv-tab" role="tab" aria-selected="false" data-target="home">Homepage desktop</button>
+    <button class="lsv-tab" role="tab" aria-selected="false" data-target="mobile">Homepage mobile</button>
+    <button class="lsv-tab" role="tab" aria-selected="false" data-target="result">Kết quả miễn phí</button>
+  </div>
+  <section class="lsv-panel active" id="lsv-map" role="tabpanel">
+    <div class="lsv-sitemap">
+      <div class="lsv-map-title"><div><span class="lsv-eyebrow">Information architecture</span><h3>Sitemap Lá Số Việt — Phase 1</h3></div><div class="lsv-legend">Trắng: index · Hồng: private/noindex · Ngà: phase sau</div></div>
+      <div class="lsv-tree-root">lasoviet.vn</div>
+      <div class="lsv-map-grid">
+        <div class="lsv-map-col"><div class="lsv-map-head">Công cụ</div><div class="lsv-node"><b>/la-so-tu-vi</b><small>Landing + form, intent “lập lá số”</small></div><div class="lsv-node private"><b>/la-so/{private-id}</b><small>Chart + free insight, noindex</small></div><div class="lsv-node future"><b>/la-so-bat-tu</b><small>Phase 2</small></div><div class="lsv-node future"><b>/than-so-hoc</b><small>Acquisition experiment</small></div></div>
+        <div class="lsv-map-col"><div class="lsv-map-head">Luận giải</div><div class="lsv-node"><b>/luan-giai-tu-vi</b><small>Commercial hub</small></div><div class="lsv-node"><b>/tong-quan-ban-menh</b><small>Topic SKU</small></div><div class="lsv-node"><b>/tinh-duyen-hon-nhan</b><small>Topic SKU</small></div><div class="lsv-node"><b>/cong-viec-tai-loc</b><small>Topic SKU</small></div><div class="lsv-node"><b>/van-trinh-2027</b><small>Chỉ index khi nội dung riêng đủ mạnh</small></div><div class="lsv-node private"><b>/checkout · /bao-cao/{id}</b><small>Private/noindex</small></div></div>
+        <div class="lsv-map-col"><div class="lsv-map-head">Thư viện tri thức</div><div class="lsv-node"><b>/kien-thuc/tu-vi</b><small>Pillar hub</small></div><div class="lsv-node"><b>/cach-lap-la-so</b><small>Process intent</small></div><div class="lsv-node"><b>/cach-doc-la-so</b><small>Learning intent</small></div><div class="lsv-node"><b>/12-cung/*</b><small>Entity cluster</small></div><div class="lsv-node"><b>/14-chinh-tinh/*</b><small>Entity cluster</small></div><div class="lsv-node"><b>/khai-niem/*</b><small>Glossary + tooltip source</small></div><div class="lsv-node"><b>/gio-sinh-va-do-chinh-xac</b><small>Trust differentiator</small></div></div>
+        <div class="lsv-map-col"><div class="lsv-map-head">Niềm tin & thương hiệu</div><div class="lsv-node"><b>/phuong-phap/tu-vi</b><small>Rule set, engine, giới hạn</small></div><div class="lsv-node"><b>/phuong-phap/ai-va-can-cu</b><small>AI disclosure + evidence</small></div><div class="lsv-node"><b>/nguon-tri-thuc</b><small>Source registry</small></div><div class="lsv-node"><b>/bao-cao-mau</b><small>Sample thật, ẩn danh</small></div><div class="lsv-node"><b>/gioi-thieu · /faq · /lien-he</b><small>Brand/support</small></div><div class="lsv-node"><b>/quyen-rieng-tu · /dieu-khoan</b><small>Trust/legal</small></div></div>
+      </div>
+      <div class="lsv-flow-note"><b>Canonical conversion path:</b> Search → trang đúng intent → lập lá số miễn phí → thấy 3 insight + căn cứ → chọn chủ đề sâu → xem sample/giá → thanh toán → đọc báo cáo riêng tư.</div>
+    </div>
+  </section>
+  <section class="lsv-panel" id="lsv-home" role="tabpanel">
+    <div class="lsv-site-window"><div class="lsv-browser"><i class="lsv-dot"></i><i class="lsv-dot"></i><i class="lsv-dot"></i><span class="lsv-url">lasoviet.vn</span></div><div class="lsv-nav"><div class="lsv-logo">Lá Số Việt</div><span class="lsv-navlink">Xem lá số</span><span class="lsv-navlink">Luận giải</span><span class="lsv-navlink">Thư viện</span><span class="lsv-navlink">Phương pháp</span><button class="lsv-button">Lập lá số miễn phí</button></div><div class="lsv-hero"><div><span class="lsv-eyebrow">Nền tảng lập và luận giải Tử Vi</span><h2>Lập lá số.<br>Hiểu vận mệnh.</h2><p>Một con người. Nhiều hệ quy chiếu. Một bản luận giải dễ hiểu — gắn với căn cứ trên chính lá số của bạn.</p><div class="lsv-actions"><button class="lsv-button red">Lập lá số miễn phí</button><button class="lsv-button ghost">Xem báo cáo mẫu</button></div></div><div class="lsv-form"><div class="lsv-form-title">Bắt đầu với dữ liệu sinh</div><div class="lsv-row"><div class="lsv-field"><span class="lsv-label">Ngày sinh dương lịch</span><span class="lsv-value">18 / 08 / 1992</span></div><div class="lsv-field"><span class="lsv-label">Giờ sinh</span><span class="lsv-value">09:30</span></div></div><div class="lsv-row"><div class="lsv-field"><span class="lsv-label">Nơi sinh</span><span class="lsv-value">Hà Nội, Việt Nam</span></div><div class="lsv-field"><span class="lsv-label">Nếu không rõ giờ sinh</span><span class="lsv-value">Tiếp tục với giới hạn</span></div></div><button class="lsv-button red" style="width:100%">Tạo lá số</button></div></div><div class="lsv-trustbar"><div class="lsv-trust">Lập lá số miễn phí trước</div><div class="lsv-trust">Mỗi nhận định đều có “Vì sao?”</div><div class="lsv-trust">Dữ liệu riêng tư mặc định</div></div><div class="lsv-section"><span class="lsv-eyebrow">Khác biệt cốt lõi</span><h3>Không chỉ đưa kết quả. Cho bạn thấy căn cứ.</h3><div class="lsv-grid3"><div class="lsv-card"><strong>1. Tính đúng phương pháp</strong><span>Engine, rule set, lịch và timezone được version hóa.</span></div><div class="lsv-card"><strong>2. Giải thích dễ hiểu</strong><span>Thuật ngữ đời thường trước, chuyên môn mở rộng sau.</span></div><div class="lsv-card"><strong>3. Trả quyền lựa chọn</strong><span>Không phán định, không dùng nỗi sợ để bán hàng.</span></div></div></div><div class="lsv-section alt"><span class="lsv-eyebrow">Chiều sâu khi bạn cần</span><h3>Chọn chủ đề, không mua một “gói định mệnh”</h3><div class="lsv-grid3"><div class="lsv-card"><strong>Bản mệnh & tiềm năng</strong><span>Cấu trúc, thế mạnh, điểm dễ mắc kẹt.</span></div><div class="lsv-card"><strong>Tình duyên & hôn nhân</strong><span>Mẫu quan hệ và câu hỏi tự phản chiếu.</span></div><div class="lsv-card"><strong>Công việc & tài lộc</strong><span>Xu hướng vai trò, môi trường và nguồn lực.</span></div></div></div></div>
+  </section>
+  <section class="lsv-panel" id="lsv-mobile" role="tabpanel"><div class="lsv-mobile-wrap"><div class="lsv-phone"><div class="lsv-phonebar">9:41</div><div class="lsv-mnav"><div class="lsv-logo">Lá Số Việt</div><span style="font-size:18px;color:#14263d">☰</span></div><div class="lsv-mhero"><span class="lsv-eyebrow">Lập và luận giải Tử Vi</span><h2>Lập lá số.<br>Hiểu vận mệnh.</h2><p>Nhận lá số miễn phí cùng ba điểm nổi bật và căn cứ dễ hiểu.</p></div><div class="lsv-mform"><div class="lsv-form"><div class="lsv-form-title">Dữ liệu sinh của bạn</div><div class="lsv-row"><div class="lsv-field"><span class="lsv-label">Ngày sinh</span><span class="lsv-value">Ngày / Tháng / Năm</span></div><div class="lsv-field"><span class="lsv-label">Giờ sinh</span><span class="lsv-value">Chọn giờ hoặc “Không rõ”</span></div><div class="lsv-field"><span class="lsv-label">Nơi sinh</span><span class="lsv-value">Tỉnh / Thành phố</span></div></div><button class="lsv-button red" style="width:100%">Lập lá số miễn phí</button></div></div><div class="lsv-msection"><h3>Điều bạn nhận được</h3><div class="lsv-insight"><strong>Sơ đồ lá số đầy đủ</strong><p>Đọc rõ trên mobile, chạm để xem từng cung.</p></div><div class="lsv-insight"><strong>Ba điểm nổi bật</strong><p>Có thể mở “Vì sao?” ngay cạnh nhận định.</p></div><div class="lsv-insight"><strong>Riêng tư mặc định</strong><p>Không index, không công khai dữ liệu sinh.</p></div></div><div class="lsv-msticky"><span>Không cần tạo tài khoản để thử</span><button class="lsv-button red">Bắt đầu</button></div></div></div></section>
+  <section class="lsv-panel" id="lsv-result" role="tabpanel"><div class="lsv-product"><aside class="lsv-side"><div class="lsv-logo">Lá Số Việt</div><div class="lsv-step">01 · Dữ liệu sinh</div><div class="lsv-step on">02 · Lá số miễn phí</div><div class="lsv-step">03 · Chọn chủ đề sâu</div><div class="lsv-step">04 · Báo cáo của tôi</div></aside><main class="lsv-main"><div class="lsv-mainhead"><div><span class="lsv-eyebrow">Lá số Tử Vi · Kết quả miễn phí</span><h3>Nguyễn An · 18.08.1992</h3><p>Giờ sinh đã xác nhận · Rule set TV-1.0</p></div><button class="lsv-button ghost">Sửa dữ liệu</button></div><div class="lsv-chart-layout"><div><div class="lsv-chart"><div class="lsv-palace">Mệnh</div><div class="lsv-palace">Phụ Mẫu</div><div class="lsv-palace">Phúc Đức</div><div class="lsv-palace">Điền Trạch</div><div class="lsv-palace">Quan Lộc</div><div class="lsv-palace">LÁ SỐ<br>chạm một cung để đọc</div><div class="lsv-palace">Nô Bộc</div><div class="lsv-palace">Thiên Di</div><div class="lsv-palace">Tật Ách</div><div class="lsv-palace">Tài Bạch</div><div class="lsv-palace">Tử Tức</div><div class="lsv-palace">Phu Thê</div><div class="lsv-palace">Huynh Đệ</div></div></div><div><span class="lsv-eyebrow">Ba điểm nổi bật</span><div class="lsv-insight"><strong>Thiên hướng tổ chức và dẫn dắt</strong><p>Điểm này rõ hơn khi bạn có quyền chủ động về cách làm.</p><span class="lsv-evidence">Vì sao có nhận định này?</span></div><div class="lsv-insight"><strong>Nhạy với sự thiếu nhất quán</strong><p>Có thể tạo tiêu chuẩn cao, đồng thời tăng áp lực tự thân.</p><span class="lsv-evidence">Căn cứ được sử dụng</span></div><div class="lsv-insight"><strong>Quan hệ là nơi học về ranh giới</strong><p>Đây là góc nhìn tham khảo, không phải kết luận về bạn.</p><span class="lsv-evidence">Khi nào có thể không đúng?</span></div><div style="margin-top:18px;padding:15px;background:#f3ddd4;border-left:4px solid #a63d2f"><strong style="font-size:11px;color:#14263d">Muốn xem sâu hơn?</strong><p style="font-size:9px;margin:5px 0 10px">Chọn đúng chủ đề bạn đang quan tâm. Xem mục lục, mẫu và giá trước khi mua.</p><button class="lsv-button red">Chọn chủ đề luận giải</button></div></div></div></main></div></section>
+  <script>
+    (function(){
+      const root=document.getElementById('lsv-architecture');
+      const tabs=[...root.querySelectorAll('.lsv-tab')];
+      const panels=[...root.querySelectorAll('.lsv-panel')];
+      tabs.forEach(tab=>tab.addEventListener('click',()=>{
+        tabs.forEach(t=>t.setAttribute('aria-selected','false'));
+        panels.forEach(p=>p.classList.remove('active'));
+        tab.setAttribute('aria-selected','true');
+        root.querySelector('#lsv-'+tab.dataset.target).classList.add('active');
+      }));
+    })();
+  </script>
+</div>

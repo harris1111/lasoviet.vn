@@ -1,0 +1,101 @@
+<div id="lsv-complete-map">
+  <style>
+    #lsv-complete-map{color:var(--foreground);background:transparent}
+    #lsv-complete-map .lsv-map-heading{margin-bottom:1rem}
+    #lsv-complete-map .lsv-root{display:flex;justify-content:center;margin:1.25rem 0}
+    #lsv-complete-map .lsv-root strong{background:var(--primary);color:var(--primary-foreground);padding:.7rem 1.1rem;font-weight:500}
+    #lsv-complete-map .lsv-columns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.25rem;align-items:start}
+    #lsv-complete-map .lsv-branch h3{margin-bottom:.35rem}
+    #lsv-complete-map .lsv-system{padding:.75rem 0;border-bottom:1px solid var(--border)}
+    #lsv-complete-map .lsv-system:last-child{border-bottom:0}
+    #lsv-complete-map .lsv-system strong{display:block;font-weight:500}
+    #lsv-complete-map .lsv-system code{display:block;margin:.2rem 0}
+    #lsv-complete-map .lsv-system span{display:block;color:var(--muted-foreground)}
+    #lsv-complete-map .lsv-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem;align-items:center;margin-top:1.25rem}
+    #lsv-complete-map .lsv-flow div{background:var(--muted);color:var(--foreground);padding:.7rem;text-align:center}
+    #lsv-complete-map .lsv-flow b{color:var(--muted-foreground);text-align:center;font-weight:500}
+    #lsv-complete-map .lsv-status{display:flex;gap:.6rem;flex-wrap:wrap;margin:.8rem 0 1.2rem}
+    #lsv-complete-map .lsv-route-table td:first-child{white-space:nowrap}
+    @media(max-width:800px){#lsv-complete-map .lsv-columns{grid-template-columns:1fr 1fr}#lsv-complete-map .lsv-flow{grid-template-columns:1fr}#lsv-complete-map .lsv-flow b{transform:rotate(90deg)}}
+    @media(max-width:430px){#lsv-complete-map .lsv-columns{grid-template-columns:1fr}#lsv-complete-map .lsv-route-table td:first-child{white-space:normal}}
+  </style>
+
+  <div class="lsv-map-heading">
+    <h2>Sitemap Đông–Tây hoàn chỉnh</h2>
+    <div class="lsv-status" aria-label="Chú giải trạng thái">
+      <span class="viz-badge">P0 · live đầu tiên</span>
+      <span class="viz-badge">P1 · đã có cấu trúc</span>
+      <span class="viz-badge">Gate · chưa index</span>
+    </div>
+  </div>
+
+  <div class="nav nav-pills" role="tablist" aria-label="Nhóm sitemap">
+    <button class="nav-link active" id="lsv-all-tab" role="tab" aria-controls="lsv-all-panel" aria-selected="true" type="button">Toàn bộ</button>
+    <button class="nav-link" id="lsv-east-tab" role="tab" aria-controls="lsv-east-panel" aria-selected="false" type="button">Đông phương</button>
+    <button class="nav-link" id="lsv-west-tab" role="tab" aria-controls="lsv-west-panel" aria-selected="false" type="button">Tây phương</button>
+    <button class="nav-link" id="lsv-utility-tab" role="tab" aria-controls="lsv-utility-panel" aria-selected="false" type="button">Tiện ích Việt Nam</button>
+  </div>
+
+  <section id="lsv-all-panel" role="tabpanel" aria-labelledby="lsv-all-tab">
+    <div class="lsv-root"><strong>lasoviet.vn · Một người, nhiều hệ quy chiếu</strong></div>
+    <div class="lsv-columns">
+      <section class="lsv-branch">
+        <h3>Đông phương</h3><hr>
+        <div class="lsv-system"><strong>Tử Vi · P0</strong><code>/la-so-tu-vi</code><span>Calculator + 4 topic reports + knowledge</span></div>
+        <div class="lsv-system"><strong>Bát Tự · P1</strong><code>/la-so-bat-tu</code><span>Calculator + report tổng hợp</span></div>
+        <div class="lsv-system"><strong>Kinh Dịch · P1</strong><code>/gieo-que-kinh-dich</code><span>Question-based flow</span></div>
+      </section>
+      <section class="lsv-branch">
+        <h3>Tây phương</h3><hr>
+        <div class="lsv-system"><strong>Bản đồ sao · P1</strong><code>/ban-do-sao</code><span>Natal chart + interpretation</span></div>
+        <div class="lsv-system"><strong>Horoscope · P1</strong><code>/du-bao-cung-hoang-dao</code><span>Time-based utility, methodology-gated</span></div>
+        <div class="lsv-system"><strong>Thần số học · P1</strong><code>/than-so-hoc</code><span>Free acquisition; paid after WTP</span></div>
+        <div class="lsv-system"><strong>Tarot · P1</strong><code>/boi-bai/tarot</code><span>Free tool + knowledge</span></div>
+      </section>
+      <section class="lsv-branch">
+        <h3>Tiện ích Việt Nam</h3><hr>
+        <div class="lsv-system"><strong>12 con giáp</strong><code>/12-con-giap</code><span>Evergreen + seasonal</span></div>
+        <div class="lsv-system"><strong>Lịch âm & ngày tốt</strong><code>/lich-am · /ngay-tot</code><span>Repeat utility</span></div>
+        <div class="lsv-system"><strong>Phong thủy tính toán</strong><code>/phong-thuy/huong-nha</code><span>Không bán vật phẩm</span></div>
+        <div class="lsv-system"><strong>Giấc mơ</strong><code>/giai-ma-giac-mo</code><span>Không liên hệ lô đề</span></div>
+      </section>
+      <section class="lsv-branch">
+        <h3>Nền tảng chung</h3><hr>
+        <div class="lsv-system"><strong>Phương pháp</strong><code>/phuong-phap/{method}</code><span>Rule, engine, limits</span></div>
+        <div class="lsv-system"><strong>Knowledge</strong><code>/kien-thuc/{method}</code><span>Hub + entity clusters</span></div>
+        <div class="lsv-system"><strong>So sánh</strong><code>/so-sanh/{method-a}-va-{method-b}</code><span>Chỉ khi cả hai hệ live</span></div>
+        <div class="lsv-system"><strong>Private profile</strong><code>/la-so · /bao-cao</code><span>Opaque ID, noindex</span></div>
+      </section>
+    </div>
+    <div class="lsv-flow" aria-label="Trình tự phát hành route">
+      <div>reserved</div><b>→</b><div>preview_noindex</div><b>→</b><div>live_indexable</div>
+    </div>
+  </section>
+
+  <section id="lsv-east-panel" role="tabpanel" aria-labelledby="lsv-east-tab" hidden>
+    <div class="table-responsive"><table class="table lsv-route-table"><thead><tr><th>Hệ</th><th>Calculator</th><th>Commercial</th><th>Knowledge</th><th>Gate</th></tr></thead><tbody>
+      <tr><td>Tử Vi</td><td><code>/la-so-tu-vi</code></td><td><code>/luan-giai-tu-vi/**</code></td><td><code>/kien-thuc/tu-vi/**</code></td><td>P0</td></tr>
+      <tr><td>Bát Tự</td><td><code>/la-so-bat-tu</code></td><td><code>/luan-giai-bat-tu</code></td><td><code>/kien-thuc/bat-tu/**</code></td><td>Engine + evidence</td></tr>
+      <tr><td>Kinh Dịch</td><td><code>/gieo-que-kinh-dich</code></td><td><code>/luan-giai-kinh-dich</code></td><td><code>/kien-thuc/kinh-dich/**</code></td><td>Safety + cooldown</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section id="lsv-west-panel" role="tabpanel" aria-labelledby="lsv-west-tab" hidden>
+    <div class="table-responsive"><table class="table lsv-route-table"><thead><tr><th>Hệ</th><th>Tool</th><th>Commercial</th><th>Knowledge</th><th>Gate</th></tr></thead><tbody>
+      <tr><td>Bản đồ sao</td><td><code>/ban-do-sao</code></td><td><code>/luan-giai-ban-do-sao</code></td><td><code>/kien-thuc/chiem-tinh/**</code></td><td>Ephemeris + license</td></tr>
+      <tr><td>Horoscope</td><td><code>/cung-hoang-dao</code><br><code>/du-bao-cung-hoang-dao</code></td><td>Chưa mở P1</td><td><code>/kien-thuc/chiem-tinh/cung-hoang-dao/**</code></td><td>Không content farm</td></tr>
+      <tr><td>Thần số học</td><td><code>/than-so-hoc</code></td><td><code>/luan-giai-than-so-hoc</code></td><td><code>/kien-thuc/than-so-hoc/**</code></td><td>Paid sau WTP</td></tr>
+      <tr><td>Tarot</td><td><code>/boi-bai/tarot</code></td><td>Chưa mở P1</td><td><code>/kien-thuc/tarot/**</code></td><td>Anti-dependency</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section id="lsv-utility-panel" role="tabpanel" aria-labelledby="lsv-utility-tab" hidden>
+    <div class="table-responsive"><table class="table lsv-route-table"><thead><tr><th>Utility</th><th>Route</th><th>Vai trò</th><th>Ranh giới</th></tr></thead><tbody>
+      <tr><td>12 con giáp</td><td><code>/12-con-giap</code></td><td>Seasonal acquisition</td><td>Không nhân tuổi × năm hàng loạt</td></tr>
+      <tr><td>Lịch âm</td><td><code>/lich-am</code></td><td>Repeat utility</td><td>Version lịch rõ</td></tr>
+      <tr><td>Ngày tốt</td><td><code>/ngay-tot</code></td><td>Tool theo loại việc</td><td>Có lý do, không phán tuyệt đối</td></tr>
+      <tr><td>Phong thủy</td><td><code>/phong-thuy/huong-nha</code></td><td>Calculator nhỏ</td><td>Không bán vật phẩm</td></tr>
+      <tr><td>Giấc mơ</td><td><code>/giai-ma-giac-mo</code></td><td>Knowledge long-tail</td><td>Cấm lô đề</td></tr>
+    </tbody></table></div>
+  </section>
+</div>
