@@ -1,8 +1,10 @@
 ---
 title: Lá Số Việt — Sitemap, SEO & Wireframe Blueprint
 version: 1.1
-status: proposed-for-founder-approval
+status: founder-approved
 date: 2026-08-31
+approved_at: 2026-08-31
+approval_decision: FD-019
 owners: CEO, Product, Design, SEO, Engineering, Content
 depends_on:
   - MASTER_CONCEPT.md
@@ -118,7 +120,7 @@ flowchart TD
     M --> T
 ```
 
-## 3.2 P0 — URL public/indexable
+## 3.2 P0 route registry — public routes and reserved commercial candidates
 
 ### Trang chủ và sản phẩm
 
@@ -127,10 +129,10 @@ flowchart TD
 | `/` | Brand + bắt đầu | Lập lá số miễn phí | Brand/Product |
 | `/la-so-tu-vi` | Calculator: lá số/lập lá số/miễn phí | Bắt đầu form | Product/Method |
 | `/luan-giai-tu-vi` | Commercial hub | Xem sample/chọn chủ đề | Product/Growth |
-| `/luan-giai-tu-vi/tong-quan-ban-menh` | Commercial topic | Chọn lá số | Product/Content |
-| `/luan-giai-tu-vi/tinh-duyen-hon-nhan` | Commercial topic | Chọn lá số | Product/Content |
-| `/luan-giai-tu-vi/cong-viec-tai-loc` | Commercial topic | Chọn lá số | Product/Content |
-| `/luan-giai-tu-vi/van-trinh-2027` | Commercial seasonal | Chọn lá số | Product/Content |
+| `/luan-giai-tu-vi/tong-quan-ban-menh` | First paid commercial topic | Chọn lá số | Product/Content |
+| `/luan-giai-tu-vi/tinh-duyen-hon-nhan` | Reserved commercial topic | Chưa public | Product/Content |
+| `/luan-giai-tu-vi/cong-viec-tai-loc` | Reserved commercial topic | Chưa public | Product/Content |
+| `/luan-giai-tu-vi/van-trinh-{year}` | Reserved seasonal topic | Chưa public | Product/Content |
 | `/bao-cao-mau/tu-vi` | Proof trước mua | Dùng lá số của tôi | Content/Product |
 
 ### Kiến thức nền tảng
@@ -300,7 +302,7 @@ Comparison page dùng để giáo dục, không tuyên bố hệ nào “đúng 
 
 ### 3.4.6 Trạng thái route
 
-Mọi route ở trên được khai báo ngay trong Route Registry nhưng có một trong bốn trạng thái:
+Mọi route ở trên được khai báo ngay trong Route Registry nhưng có một trong năm trạng thái:
 
 | Status | Hành vi |
 |---|---|
@@ -308,6 +310,7 @@ Mọi route ở trên được khai báo ngay trong Route Registry nhưng có m�
 | `preview_noindex` | QA/staging có auth hoặc `noindex`; không xuất hiện trong menu/sitemap |
 | `live_noindex` | Tool thử nghiệm có thể dùng nhưng chưa đủ quality gate |
 | `live_indexable` | Public, canonical, sitemap và navigation |
+| `archived` | Retired route with an explicit 301, 404, or 410 disposition |
 
 Như vậy sitemap sản phẩm là đầy đủ ngay từ đầu, nhưng Google và người dùng chỉ thấy những gì đã đủ chất lượng.
 
@@ -648,7 +651,7 @@ schema_types:
 owner: product
 cms_source: tool_landing
 priority: p0
-status: ready
+status: live_indexable
 ```
 
 Registry sinh hoặc kiểm tra:
@@ -660,7 +663,8 @@ Registry sinh hoặc kiểm tra:
 - redirect map;
 - orphan links;
 - route collision/cannibalization;
-- status `draft / ready / indexable / noindex / archived`.
+- canonical status
+  `reserved / preview_noindex / live_noindex / live_indexable / archived`.
 
 ## 10.2 Content types
 
@@ -800,7 +804,9 @@ Chỉ index từ **8/10**, và không tiêu chí method/safety nào bằng 0. Đ
 
 ## 14.1 Event funnel
 
-`search_landing_viewed → calculator_started → chart_created → evidence_opened → product_viewed → checkout_started → payment_succeeded → report_opened → useful/safe feedback`
+The ordered canonical funnel is versioned in `config/analytics-events.json`.
+This document illustrates that contract but does not define a second event
+order.
 
 Không gửi tên, ngày/giờ/nơi sinh, chart JSON, report text, email hoặc payment reference sang analytics.
 
@@ -884,12 +890,17 @@ Không gửi tên, ngày/giờ/nơi sinh, chart JSON, report text, email hoặc 
 - Toàn bộ IA Đông–Tây được đăng ký từ đầu; trạng thái route quyết định việc deploy/index.
 - Không fake expert/review/scarcity.
 - Trust, privacy, safety và WCAG là release gate.
+- `ZIWEI-IDENTITY-P0` is the only first purchasable SKU. Other Zi Wei
+  commercial routes remain `reserved` until Phase 07 decisions and release
+  gates pass.
 
 ## Standard hệ thống
 
 - Navigation: Lập lá số / Luận giải / Kiến thức / Phương pháp; mega menu P1 nhóm Đông phương / Tây phương / Tiện ích.
 - Route registry là nguồn chuẩn sitemap.
-- P0 chỉ 25–35 indexable pages.
+- Gate 1 launches the core public surface and ten reviewed foundation
+  articles. Gate 3 expands P0 toward 25–35 indexable URLs only after each route
+  passes the quality gate.
 - Content workflow có method/SEO/safety review.
 - Schema sinh từ template, không nhập tay.
 - Paper–Ink–Cinnabar; Source Serif 4 + Be Vietnam Pro.

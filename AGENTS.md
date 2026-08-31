@@ -4,12 +4,23 @@
 
 This file applies to the entire `lasoviet.vn` repository.
 
-Follow this precedence order:
+This file controls how repository sources are resolved. Follow this precedence
+order:
 
-1. Explicit founder decisions and approved scope.
+1. Explicit founder decisions recorded in
+   `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`.
 2. This repository policy.
 3. Approved plans and architecture records.
-4. Existing repository conventions.
+4. Founder-approved experience sources: `docs/13-brand-experience-guideline.md`,
+   `docs/14-sitemap-seo-wireframes.md`, and
+   `docs/15-collaboration-branch-workflow.md`.
+5. Existing repository conventions and older business material.
+
+`docs/10-decision-log.md` is a business-facing summary, not a second binding
+founder-decision register. Blueprint v1.1 may supersede UX, route, and SEO
+material in `MASTER_CONCEPT.md`, `docs/01-*` through `docs/12-*`, and the
+deprecated `config/sitemap.json`. It does not supersede this policy, the
+founder-decision tracker, or approved technical architecture constraints.
 
 Never silently reverse, reinterpret, or weaken a founder-confirmed decision.
 When sources conflict, stop the affected decision, preserve the conflict in the
@@ -281,8 +292,10 @@ rule instead of adding another version.
 - Start every change on a dedicated branch before editing or committing. Never
   commit new work directly on `master`, and never push directly to `master`.
 - Integrate changes only through this sequence: push the branch, create a pull
-  request targeting `master`, complete any founder-requested review, then merge
-  through the pull request.
+  request targeting the integration branch named by the approved workflow,
+  complete any founder-requested review, then merge through the pull request.
+  Feature implementation targets `product/experience-spec-v1`; the accepted
+  product integration branch targets `master` only for release.
 - A separate review between pull request creation and merge is optional and
   runs only when the founder requests it for that pull request. This does not
   waive any review already required by an approved planning or implementation
@@ -304,3 +317,29 @@ rule instead of adding another version.
   once per environment, stored outside Git, and reused across restarts. Port
   randomness is not an access-control boundary.
 - Repository automation must not create or modify host Nginx configuration.
+
+### Canonical Route Registry
+
+- `config/route-registry.yml` is the sole versioned route-definition source.
+- `packages/config/src/route-registry.ts` is a typed loader and validator for
+  that YAML file. It must not contain a second hand-maintained route catalog.
+- Navigation, canonicals, robots policy, sitemap membership, structured-data
+  templates, redirects, route ownership, and lifecycle state derive from the
+  validated registry.
+- The only route states are `reserved`, `preview_noindex`, `live_noindex`,
+  `live_indexable`, and `archived`.
+- A task that creates, exposes, retires, or redirects a route must own the
+  matching `config/route-registry.yml` change and a state/robots/sitemap test in
+  the same task. Route activation must never be left to an unnamed later task.
+
+### Anonymous Chart Retention
+
+- Better Auth anonymous actors may create temporary birth profiles and charts
+  before account registration.
+- Unlinked anonymous profile and chart data must expire and be purged within
+  24 hours of creation. The product must also expose immediate manual deletion.
+- Linking the anonymous actor to a verified account transfers ownership into
+  the normal account retention and deletion policy without duplicating the
+  profile or chart.
+- Anonymous data and identifiers remain subject to the same analytics
+  prohibition as account-owned birth and chart data.
