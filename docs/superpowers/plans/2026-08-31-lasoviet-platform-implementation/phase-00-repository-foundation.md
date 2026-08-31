@@ -5,7 +5,8 @@
 > `superpowers:executing-plans`. Luna implements only Terra-approved tasks.
 
 **Goal:** Create a compilable, testable monorepo foundation with public/private
-runtime boundaries, versioned contracts, VI/EN resources, and baseline CI.
+runtime boundaries, versioned runtime/route/content contracts, VI/EN resources,
+design tokens, privacy-safe analytics, and baseline CI.
 
 **Architecture:** `apps/web`, `apps/api`, and `apps/worker` are thin
 composition roots. Shared runtime-safe code lives in focused packages.
@@ -26,6 +27,8 @@ Playwright, Pino.
 - Web may not import backend implementation modules.
 - API and worker may import `packages/backend`, but browser bundles may not.
 - All user-facing strings begin in JSON i18n resources.
+- Blueprint v1.1 owns UX, canonical routes, route states, and SEO behavior.
+- `ZIWEI-IDENTITY-P0` is the only first purchasable SKU.
 
 ---
 
@@ -167,6 +170,7 @@ git commit -m "feat: add versioned contracts and typed configuration"
 - Create: `apps/web/messages/en/navigation.json`
 - Create: `apps/web/src/i18n/request.ts`
 - Create: `apps/web/src/i18n/routing.ts`
+- Create: `apps/web/src/proxy.ts`
 - Create: `packages/contracts/src/i18n-key.ts`
 - Create: `scripts/check-i18n-parity.mjs`
 - Test: `tests/i18n/message-parity.test.ts`
@@ -174,6 +178,8 @@ git commit -m "feat: add versioned contracts and typed configuration"
 **Interfaces:**
 - Produces `SupportedLocale = "vi" | "en"`.
 - Produces `resolveLocale(pathname, cookieLocale)`.
+- Produces Next.js 16 locale proxy behavior with
+  `localePrefix: "as-needed"`.
 - Produces CI command `pnpm i18n:check`.
 
 - [ ] **Step 1: Write a failing parity test**
@@ -192,8 +198,10 @@ Expected: FAIL before message resources and parity tooling exist.
 - [ ] **Step 3: Implement locale routing and JSON resources**
 
 Vietnamese resolves at canonical root paths. English resolves under `/en`.
-Persist a runtime language preference without turning localized labels into
-domain values.
+Use the Next.js 16 `proxy.ts` convention with next-intl
+`localePrefix: "as-needed"` so the `[locale]` App Router segment is internal
+for Vietnamese and explicit for English. Persist a runtime language preference
+without turning localized labels into domain values.
 
 - [ ] **Step 4: Verify parity and web build**
 
@@ -203,7 +211,7 @@ Expected: PASS.
 - [ ] **Step 5: Update docs/rules and commit**
 
 ```bash
-git add apps/web/messages apps/web/src/i18n packages/contracts scripts tests docs/superpowers/plans
+git add apps/web/messages apps/web/src/i18n apps/web/src/proxy.ts packages/contracts scripts tests docs/superpowers/plans
 git commit -m "feat: establish Vietnamese and English localization"
 ```
 
@@ -267,6 +275,105 @@ git add packages/observability apps/api/src/health apps/web/src/app/health vites
 git commit -m "ci: add health observability and verification gates"
 ```
 
+### Task 5 [P00-T05]: Establish route, content, analytics, and design contracts
+
+**Files:**
+- Create: `packages/contracts/src/route-v1.ts`
+- Create: `packages/contracts/src/public-content-v1.ts`
+- Create: `packages/contracts/src/analytics-event-v1.ts`
+- Create: `config/route-registry.yml`
+- Create: `packages/config/src/route-registry.ts`
+- Create: `packages/config/src/analytics-events.ts`
+- Create: `apps/web/src/styles/tokens.css`
+- Create: `scripts/check-public-content.mjs`
+- Modify: `packages/contracts/src/index.ts`
+- Modify: `packages/config/src/index.ts`
+- Test: `packages/config/src/route-registry.test.ts`
+- Test: `tests/analytics/event-contract.test.ts`
+- Test: `tests/content/public-content-contract.test.ts`
+
+**Interfaces:**
+- Produces
+  `RouteState = "reserved" | "preview_noindex" | "live_noindex" |
+  "live_indexable" | "archived"`.
+- Produces `RouteDefinitionV1` with stable ID, path, locale behavior, owner,
+  intent, template, state, canonical, robots, schema types, and redirect
+  disposition.
+- Produces `PublicContentV1` metadata with route ID, locale, title, summary,
+  reviewer, source references, risk tags, status, and `lastReviewed`.
+- Produces the canonical analytics event union from
+  `config/analytics-events.json`, including its ordered canonical funnel.
+- Produces a typed route loader that validates `config/route-registry.yml`;
+  the TypeScript module contains no duplicate route catalog.
+- Produces Paper, Ink, Cinnabar, typography, spacing, radius, focus, motion,
+  and accessibility CSS tokens from the approved brand guideline.
+
+- [ ] **Step 1: Write failing registry, analytics, and content tests**
+
+```ts
+expect(routeStateSchema.options).toEqual([
+  "reserved",
+  "preview_noindex",
+  "live_noindex",
+  "live_indexable",
+  "archived",
+]);
+expect(routeRegistry.filter((route) => route.purchasable).map((route) => route.sku))
+  .toEqual(["ZIWEI-IDENTITY-P0"]);
+expect(analyticsEventSchema.parse({ name: "payment_completed", properties: {} }))
+  .toBeDefined();
+expect(canonicalFunnel).toEqual(analyticsConfig.canonical_funnel);
+```
+
+Also fail duplicate paths, multiple owners for one canonical intent,
+`live_indexable` routes without content/reviewer metadata, private routes in
+the sitemap, reserved commercial routes marked purchasable, unknown analytics
+properties, and public content without VI/EN route ownership.
+
+- [ ] **Step 2: Run focused contract tests**
+
+Run:
+
+```bash
+pnpm vitest run packages/config/src/route-registry.test.ts tests/analytics/event-contract.test.ts tests/content/public-content-contract.test.ts
+```
+
+Expected: FAIL before the contracts, registry, tokens, and checks exist.
+
+- [ ] **Step 3: Implement the canonical registries**
+
+Register the complete East/West taxonomy in `config/route-registry.yml`
+immediately, but expose only approved Gate 1 routes. Mark relationship, career,
+annual Zi Wei, and every later-wave route `reserved`. Keep private routes
+`live_noindex` only when their owning flow is implemented. The TypeScript
+registry module parses and validates the YAML source. The legacy
+`config/sitemap.json` remains a deprecated snapshot and is never imported.
+
+- [ ] **Step 4: Implement public-content validation and design tokens**
+
+The content checker validates locale, route ownership, source/reviewer fields,
+quality status, and forbidden placeholder text. Tokens implement the approved
+Paper/Ink/Cinnabar palette, Source Serif 4 and Be Vietnam Pro roles, 44px touch
+targets, visible focus, reduced motion, and maximum 8px card radius.
+
+- [ ] **Step 5: Run contract, token, and workspace verification**
+
+Run:
+
+```bash
+pnpm vitest run packages/config tests/analytics tests/content
+pnpm check
+```
+
+Expected: PASS with one canonical registry and no public route/content drift.
+
+- [ ] **Step 6: Update tracking and commit**
+
+```bash
+git add packages/contracts packages/config apps/web/src/styles scripts/check-public-content.mjs tests docs/superpowers/plans
+git commit -m "feat: establish public experience contracts"
+```
+
 ## Phase Exit Criteria
 
 - All workspace packages compile.
@@ -275,5 +382,9 @@ git commit -m "ci: add health observability and verification gates"
 - VI/EN parity is enforced automatically.
 - Health and log-redaction tests pass.
 - CI runs the root `check` command.
+- Canonical route, route-state, public-content, analytics, and design-token
+  contracts pass.
+- Only `ZIWEI-IDENTITY-P0` is purchasable; later routes are registered but
+  reserved.
 - Terra records no unresolved `must-fix`.
 - Trackers contain docs impact and rule-candidate results.

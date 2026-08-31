@@ -224,6 +224,8 @@ git commit -m "feat: add replayable Tarot tools"
 - Create: `apps/web/messages/en/date-selection.json`
 - Create: `apps/web/messages/vi/zodiac.json`
 - Create: `apps/web/messages/en/zodiac.json`
+- Modify: `config/route-registry.yml`
+- Modify: `packages/backend/src/capabilities/capability.registry.ts`
 - Test: `tests/calculation/date-selection-and-zodiac.test.ts`
 - Test: `tests/e2e/date-selection-and-zodiac.spec.ts`
 

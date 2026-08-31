@@ -25,6 +25,7 @@ consent, and deletion policies.
 - Browser-provided user IDs are never trusted.
 - Birth-time uncertainty is preserved.
 - Account deletion immediately revokes access and purges after 30 days.
+- Unlinked anonymous actor data expires and purges within 24 hours.
 
 ---
 
@@ -49,8 +50,9 @@ consent, and deletion policies.
 
 - [ ] **Step 1: Write failing Testcontainers schema tests**
 
-Test unique email/account constraints, consent-version records, profile owner
-foreign keys, deletion state, and outbox lease fields.
+Test unique email/account constraints, consent-version records, account or
+anonymous profile ownership, anonymous expiry, deletion state, and outbox lease
+fields.
 
 - [ ] **Step 2: Run the integration test**
 
@@ -82,44 +84,80 @@ git commit -m "feat: add PostgreSQL schema and migration runner"
 - Create: `apps/web/src/auth/create-internal-actor-token.ts`
 - Create: `apps/api/src/auth/internal-actor.guard.ts`
 - Create: `apps/api/src/auth/current-actor.decorator.ts`
+- Create: `apps/api/src/auth/auth-email.controller.ts`
+- Create: `apps/web/src/auth/auth-email-client.ts`
 - Create: `packages/backend/src/identity/identity.module.ts`
+- Create: `packages/backend/src/notifications/email-provider.ts`
+- Create: `packages/backend/src/notifications/smtp-email-adapter.ts`
+- Create: `packages/backend/src/notifications/auth-email.ts`
+- Create: `apps/web/messages/vi/auth.json`
+- Create: `apps/web/messages/en/auth.json`
+- Test: `packages/backend/src/notifications/smtp-email-adapter.test.ts`
 - Test: `tests/auth/session-and-actor.spec.ts`
 
 **Interfaces:**
 - Produces verified email/password and Google OAuth session flows.
 - Produces `createInternalActorToken(actor, requestId): Promise<string>`.
-- Produces `CurrentActor { userId, sessionId, requestId }`.
+- Produces `CurrentActor` as a discriminated account-or-anonymous actor resolved
+  entirely from the Better Auth session.
+- Produces `EmailProvider.send(message, idempotencyKey)` and localized
+  verification/reset delivery through an internal API command.
 
 - [ ] **Step 1: Write failing auth E2E tests**
 
-Cover unverified email rejection, verified login, password reset token use,
-session revocation, Google account linking with verified email, expired actor
-token, wrong audience, and actor tampering.
+Cover anonymous session creation, anonymous-to-account linking, ownership
+continuity, verification-email delivery, unverified email rejection, verified
+login, password-reset delivery and token use, session revocation, Google
+account linking with verified email, expired actor token, wrong audience,
+actor tampering, retryable SMTP failure, and duplicate-email idempotency.
 
 - [ ] **Step 2: Run auth E2E**
 
-Run: `pnpm playwright test tests/auth/session-and-actor.spec.ts`
+Run:
+
+```bash
+pnpm vitest run packages/backend/src/notifications/smtp-email-adapter.test.ts
+pnpm playwright test tests/auth/session-and-actor.spec.ts
+```
+
 Expected: FAIL.
 
 - [ ] **Step 3: Configure Better Auth and database sessions**
 
+Configure Better Auth's Anonymous plugin and database-backed account linking.
 Keep auth secrets server-only. Do not expose API credentials or internal actor
-secrets to Client Components.
+secrets to Client Components. Better Auth calls a server-only web client that
+sends a signed internal command to the private API; the browser never receives
+SMTP credentials.
 
 - [ ] **Step 4: Implement actor-token verification in API**
 
 Use short expiry, explicit audience, stable algorithm selection, and constant
 time verification from a reviewed library.
 
-- [ ] **Step 5: Run auth tests and security checks**
+- [ ] **Step 5: Implement SMTP verification and reset delivery**
 
-Run: `pnpm playwright test tests/auth/session-and-actor.spec.ts && pnpm typecheck`
-Expected: PASS.
+Use the founder-provided SMTP connection when Phase 01 starts. CI exercises the
+real SMTP protocol against a controlled integration service. Never mark an
+email verified, expose a reset token, or silently disable verification to make
+tests pass.
 
-- [ ] **Step 6: Update trackers and commit**
+- [ ] **Step 6: Run auth tests and security checks**
+
+Run:
 
 ```bash
-git add apps/web/src/auth apps/web/src/app/api/auth apps/api/src/auth packages/backend/src/identity tests/auth docs/superpowers/plans
+pnpm vitest run packages/backend/src/notifications
+pnpm playwright test tests/auth/session-and-actor.spec.ts
+pnpm typecheck
+```
+
+Expected: PASS.
+
+- [ ] **Step 7: Update trackers and commit**
+
+```bash
+git add apps/web/src/auth apps/web/src/app/api/auth apps/web/messages apps/api/src/auth packages/backend/src/identity packages/backend/src/notifications tests/auth docs/superpowers/plans
 git commit -m "feat: add database-backed authentication"
 ```
 
@@ -130,8 +168,10 @@ git commit -m "feat: add database-backed authentication"
 - Create: `packages/backend/src/consent/consent.repository.ts`
 - Create: `packages/backend/src/privacy/deletion.service.ts`
 - Create: `packages/backend/src/privacy/deletion.repository.ts`
+- Create: `packages/backend/src/privacy/anonymous-retention.service.ts`
 - Create: `apps/api/src/privacy/privacy.controller.ts`
 - Test: `packages/backend/src/privacy/deletion.service.test.ts`
+- Test: `packages/backend/src/privacy/anonymous-retention.service.test.ts`
 - Test: `tests/privacy/account-deletion.integration.test.ts`
 
 **Interfaces:**
@@ -139,6 +179,7 @@ git commit -m "feat: add database-backed authentication"
 - Produces `requestAccountDeletion(userId, requestedAt)`.
 - Produces `cancelAccountDeletion(userId, now)`.
 - Produces `purgeExpiredDeletionRequests(now)`.
+- Produces `purgeExpiredAnonymousActors(now)` and immediate anonymous deletion.
 
 - [ ] **Step 1: Write failing policy tests**
 
@@ -154,7 +195,9 @@ Expected: FAIL.
 - [ ] **Step 3: Implement consent and deletion state machines**
 
 Every admin or support action writes an audit record. Purge orchestration emits
-versioned outbox events for later object deletion.
+versioned outbox events for later object deletion. Anonymous profile/chart data
+expires 24 hours after creation unless ownership was transactionally linked to
+a verified account; linking clears anonymous expiry without duplicating rows.
 
 - [ ] **Step 4: Run tests**
 
@@ -202,8 +245,9 @@ limitations. Do not convert a branch-only time into an invented minute.
 
 - [ ] **Step 4: Implement owner-authorized API commands**
 
-Create, read, update, and archive profiles. A calculation-relevant update must
-create a new normalized revision rather than rewriting calculation history.
+Create, read, update, and archive profiles for the server-resolved account or
+anonymous owner. A calculation-relevant update must create a new normalized
+revision rather than rewriting calculation history.
 
 - [ ] **Step 5: Run tests and migration checks**
 
@@ -221,6 +265,10 @@ git commit -m "feat: add canonical birth profile"
 
 - Empty and upgrade migrations pass.
 - Email/password, Google OAuth, verification, reset, and revocation pass.
+- Verification and reset email use the reviewed SMTP adapter through the
+  private API boundary.
+- Anonymous sessions can create temporary profiles, link ownership to a
+  verified account, delete immediately, and purge automatically after 24 hours.
 - API rejects invalid internal actor tokens.
 - Consent is versioned.
 - Account deletion follows the approved 30-day state machine.

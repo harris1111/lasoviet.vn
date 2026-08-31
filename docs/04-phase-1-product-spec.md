@@ -11,7 +11,10 @@ Không cố chứng minh toàn bộ vision Đông–Tây trong MVP.
 ### User/account
 
 - Đăng ký/đăng nhập bằng email hoặc social login.
-- Có thể lập thử trước đăng ký; yêu cầu tài khoản khi lưu/mua.
+- Guests may create and revisit a temporary chart before registration.
+  Unlinked guest profile/chart data is deleted on request or automatically
+  after 24 hours. A verified account is required to retain it beyond that
+  window or to purchase.
 - Một tài khoản có nhiều hồ sơ sinh cho bản thân/gia đình, mỗi hồ sơ có nhãn và consent.
 - Xem, sửa, tải và xóa dữ liệu.
 
@@ -47,16 +50,22 @@ Không cố chứng minh toàn bộ vision Đông–Tây trong MVP.
 
 ### Paid reports
 
-- 4 SKU giá khởi đầu 79.000đ/SKU.
-- Trang bán hàng nêu rõ mục lục, độ dài dự kiến, căn cứ, thời gian tạo và chính sách xử lý sai dữ liệu.
-- Thanh toán nội địa; trạng thái pending/success/failed/idempotent.
-- Tạo báo cáo bất đồng bộ, có progress và email khi hoàn tất.
-- Web report responsive + PDF/print.
-- Report đã mua không bị thay nội dung khi engine/prompt nâng phiên bản; regeneration tạo version mới có lịch sử.
+- `ZIWEI-IDENTITY-P0` is the only first purchasable SKU at the VND 79,000
+  baseline. Relationship, career, and annual Zi Wei SKUs remain reserved for
+  Phase 07.
+- The commercial page states the outline, expected length, evidence basis,
+  generation time, final price, and input-correction policy.
+- Domestic payment supports pending, success, failed, expired, replay, and
+  idempotent states.
+- Report generation is asynchronous with visible progress and completion email.
+- Reports render as responsive HTML and accessible PDF/print.
+- Purchased content is immutable when engine or prompt versions change;
+  approved regeneration creates a linked version instead of overwriting.
 
 ### Operations
 
-- CMS cho landing, FAQ, kiến thức và methodology.
+- Version-controlled content for landing, FAQ, knowledge, and methodology;
+  full editorial CMS UI is deferred.
 - Admin xem đơn hàng, report, lỗi engine, regeneration và support case.
 - Audit log cho thay đổi nội dung trả phí.
 - Analytics events theo config.

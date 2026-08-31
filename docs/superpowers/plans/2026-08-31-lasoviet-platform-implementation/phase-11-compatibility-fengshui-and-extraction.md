@@ -40,38 +40,53 @@ capabilities, Vitest, Playwright.
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/open-decisions.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/risk-register.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+- Test: `tests/evidence/compatibility-readiness.test.ts`
 
 **Interfaces:**
 - Produces a pass/fail readiness record for each candidate source system.
 - Produces the founder-approved system set, SKU scope, and price after OD-005
   closes.
 
-- [ ] **Step 1: Define measurable source-system readiness**
+- [ ] **Step 1: Write the failing readiness-record validator**
+
+Require per-system stability evidence, two-profile consent and revocation,
+source-separated evidence, open-decision status, exact approved SKU scope, and
+Terra/founder dispositions.
+
+- [ ] **Step 2: Run the focused validator**
+
+Run: `pnpm vitest run tests/evidence/compatibility-readiness.test.ts`
+Expected: FAIL before the readiness record exists.
+
+- [ ] **Step 3: Define measurable source-system readiness**
 
 Require approved fixtures, stable normalized contracts, evidence coverage,
 known limitations, support ownership, and no unresolved severity-1 defects for
 every included system.
 
-- [ ] **Step 2: Define two-profile authorization and consent**
+- [ ] **Step 4: Define two-profile authorization and consent**
 
 Record owner, invited participant, consent version, revocation, report access,
 deletion, and support behavior. One user may not silently create a private
 report about another identifiable person.
 
-- [ ] **Step 3: Define per-system compatibility evidence**
+- [ ] **Step 5: Define per-system compatibility evidence**
 
 Each source system must expose relationship evidence independently before any
 cross-system synthesis is permitted.
 
-- [ ] **Step 4: Resolve OD-005**
+- [ ] **Step 6: Resolve OD-005**
 
 Sol presents the stable candidate systems, recommended first SKU, scope, and
 price. Record the founder decision before contracts or checkout are finalized.
 
-- [ ] **Step 5: Obtain Terra review and commit**
+- [ ] **Step 7: Run validation, obtain Terra review, and commit**
+
+Run: `pnpm vitest run tests/evidence/compatibility-readiness.test.ts`
+Expected: PASS before commit.
 
 ```bash
-git add docs/architecture/compatibility-readiness.md packages/backend/src/capabilities docs/superpowers/plans
+git add docs/architecture/compatibility-readiness.md packages/backend/src/capabilities tests/evidence/compatibility-readiness.test.ts docs/superpowers/plans
 git commit -m "docs: define compatibility readiness gates"
 ```
 
@@ -91,7 +106,7 @@ git commit -m "docs: define compatibility readiness gates"
 - Create: `apps/web/messages/vi/compatibility.json`
 - Create: `apps/web/messages/en/compatibility.json`
 - Modify: `packages/backend/src/commerce/product-catalog.ts`
-- Modify: `apps/web/src/routes/route-registry.ts`
+- Modify: `config/route-registry.yml`
 - Test: `packages/backend/src/reports/compatibility-report-validator.test.ts`
 - Test: `tests/e2e/compatibility-flow.spec.ts`
 
@@ -151,7 +166,7 @@ git commit -m "feat: add evidence-backed compatibility"
 - Create: `apps/web/messages/vi/fengshui.json`
 - Create: `apps/web/messages/en/fengshui.json`
 - Modify: `packages/backend/src/capabilities/capability.registry.ts`
-- Modify: `apps/web/src/routes/route-registry.ts`
+- Modify: `config/route-registry.yml`
 - Test: `tests/calculation/fengshui-utilities.test.ts`
 - Test: `tests/e2e/fengshui-utility.spec.ts`
 
@@ -204,36 +219,50 @@ git commit -m "feat: add approved Feng Shui utility"
 - Create: `docs/architecture/workload-extraction-review.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/risk-register.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+- Test: `tests/evidence/workload-extraction-review.test.ts`
 
 **Interfaces:**
 - Produces a founder decision packet for one measured extraction candidate.
 - Produces no service, network contract, deployment file, or data migration.
 
-- [ ] **Step 1: Collect operational evidence**
+- [ ] **Step 1: Write the failing extraction-packet validator**
+
+Require measured operational evidence, one named candidate, private contract,
+data ownership, migration, rollback, costs, failure modes, and an assertion
+that no service/deployment file changed in this task.
+
+- [ ] **Step 2: Run the focused validator**
+
+Run: `pnpm vitest run tests/evidence/workload-extraction-review.test.ts`
+Expected: FAIL before the packet exists.
+
+- [ ] **Step 3: Collect operational evidence**
 
 Record latency, CPU, memory, queue depth, failure isolation, security
 boundary, runtime incompatibility, scaling profile, and deployment lifecycle
 for AI, PDF, embedding, replication, and future image processing.
 
-- [ ] **Step 2: Reject unsupported candidates**
+- [ ] **Step 4: Reject unsupported candidates**
 
 Keep identity, profiles, commerce, and normal calculators in the modular
 monolith unless measured evidence proves a concrete operational problem.
 
-- [ ] **Step 3: Write one candidate extraction packet**
+- [ ] **Step 5: Write one candidate extraction packet**
 
 Document current module, proposed private service, contract, data ownership,
 benefit, operational cost, migration sequence, rollback, and failure mode.
 
-- [ ] **Step 4: Obtain Terra review and founder approval**
+- [ ] **Step 6: Run validation, then obtain Terra review and founder approval**
+
+Run: `pnpm vitest run tests/evidence/workload-extraction-review.test.ts`
 
 No extraction implementation begins from this phase file. An approved
 candidate receives a separate architecture amendment and executable plan.
 
-- [ ] **Step 5: Update trackers and commit**
+- [ ] **Step 7: Update trackers and commit**
 
 ```bash
-git add docs/architecture/workload-extraction-review.md docs/superpowers/plans
+git add docs/architecture/workload-extraction-review.md tests/evidence/workload-extraction-review.test.ts docs/superpowers/plans
 git commit -m "docs: evaluate workload extraction"
 ```
 

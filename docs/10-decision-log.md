@@ -20,17 +20,15 @@
 | D-016 | Dừng thêm Keyword Planner trước MVP | Chốt | 571 keywords/298 có volume đủ để chọn scope; thiếu hụt hiện tại là conversion/WTP | Search thêm khi Search Console phát hiện cluster mới |
 | D-017 | Chọn 12/27 bộ môn trong workbook coverage phù hợp thị trường VN (`docs/11`) | Chốt | Đối chiếu 27 bộ môn với keyword data; 15 bộ môn có repo nhưng gần như không có tín hiệu tìm kiếm VN | Xem lại nếu Search Console phát hiện demand mới cho bộ môn đã loại |
 | D-018 | Tổ chức roadmap mở rộng theo Batch/engine sẵn có, không thuần theo volume | Chốt | Tích hợp `Brhiza/mingyu` (MIT) một lần mở khóa 6 bộ môn trong danh sách 12 cùng lúc | Không xem lại trừ khi engine thay đổi |
-| D-019 | Thần Số Học nâng ưu tiên, build song song Batch 1 thay vì chờ sau Bát Tự | Đề xuất — chờ founder confirm | Volume 500K, long-tail rộng, zero rủi ro license/kỹ thuật (`docs/11 §7-D`) | Không đổi thứ tự SKU trả phí Bát Tự/Bản đồ sao (D-008) |
-| D-020 | Làm rõ phạm vi D-010: tính toán/content phong thủy được phép, bán vật phẩm vẫn cấm | Đề xuất — chờ founder confirm | Cụm từ khóa Phong Thủy (10K–100K) tách biệt rõ khỏi cụm commerce (`vật phẩm`, `vòng`, `đá` phong thủy) (`docs/11 §7-E`) | Không mở lại việc bán hàng ở Phase 1 |
+| D-019 | Thần Số Học nâng ưu tiên, build song song Batch 1 thay vì chờ sau Bát Tự | Chốt theo FD-012 | Volume 500K, long-tail rộng, zero rủi ro license/kỹ thuật (`docs/11 §7-D`) | Không đổi thứ tự SKU trả phí Bát Tự/Bản đồ sao (D-008) |
+| D-020 | Làm rõ phạm vi D-010: tính toán/content phong thủy được phép, bán vật phẩm vẫn cấm | Chốt theo FD-012 | Cụm từ khóa Phong Thủy (10K–100K) tách biệt rõ khỏi cụm commerce (`vật phẩm`, `vòng`, `đá` phong thủy) (`docs/11 §7-E`) | Không mở lại việc bán hàng ở Phase 1 |
+| D-022 | Non-binding business summary of `FD-019`: Blueprint v1.1 is the canonical UX, route, and SEO source; approved technical decisions prevail | Tham chiếu | Binding approval is recorded only in `rules-and-decisions-tracker.md` as `FD-019` | Update only when `FD-019` is explicitly superseded |
 | D-021 | Xem Chỉ Tay: cho phép pilot upload ảnh bàn tay; Xem Mặt: hoãn tới khi đủ uy tín | Chốt | Chỉ tay có demand thực (~5K) và rủi ro sinh trắc học thấp hơn ảnh khuôn mặt; xem mặt hoãn để bảo vệ niềm tin giai đoạn đầu | Xem mặt mở lại sau Gate 3 khi có bằng chứng trust rõ ràng |
 
 ## Open decisions
 
-- Trường phái/rule set Tử Vi chuẩn dùng cho public launch.
-- Payment provider và refund/regeneration policy chi tiết.
-- Western astrology engine/license — 3 lựa chọn cụ thể ở `docs/11 §4.1`, chưa chốt.
 - Mức free preview tối ưu.
-- Chính sách xử lý “không rõ giờ sinh”.
 - Ngưỡng conversion để đầu tư Bát Tự/Bản đồ sao.
 - Audit license thực tế của `yeonsumia/palmistry` trước khi dùng production cho pilot Xem Chỉ Tay.
-- Founder confirm D-019 (Thần Số Học) và D-020 (phạm vi Phong Thủy) — mặc định coi là chấp nhận nếu không có phản hồi khác (`docs/11 §7`).
+- Phase 07–11 commercial and safety decisions tracked in
+  `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/open-decisions.md`.

@@ -175,13 +175,10 @@ git commit -m "feat: replicate and delete cloud report assets"
 ### Task 4 [P05-T04]: Add SMTP report notifications
 
 **Files:**
-- Create: `packages/backend/src/notifications/email-provider.ts`
-- Create: `packages/backend/src/notifications/smtp-email-adapter.ts`
 - Create: `packages/backend/src/notifications/report-ready-email.ts`
 - Create: `apps/worker/src/processors/email-send.processor.ts`
 - Create: `apps/web/messages/vi/email.json`
 - Create: `apps/web/messages/en/email.json`
-- Test: `packages/backend/src/notifications/smtp-email-adapter.test.ts`
 - Test: `tests/jobs/report-delivery-workflow.integration.test.ts`
 
 **Interfaces:**
@@ -189,10 +186,11 @@ git commit -m "feat: replicate and delete cloud report assets"
 - Consumes `email.report-ready.v1` and `email.report-failed.v1`.
 - Produces localized report-ready and generation-failed support messages.
 
-- [ ] **Step 1: Obtain phase-specific SMTP inputs**
+- [ ] **Step 1: Verify the Phase 01 SMTP contract and production inputs**
 
-Sol requests host, port, username, secret, verified sender domain/address, and
-TLS requirements. Secret stays outside Git.
+Reuse the tested `EmailProvider` and SMTP adapter from Phase 01. Confirm the
+host, port, username, secret, verified sender domain/address, and TLS
+requirements remain valid. Secrets stay outside Git.
 
 - [ ] **Step 2: Write failing email tests**
 
@@ -205,7 +203,7 @@ Run:
 `pnpm vitest run packages/backend/src/notifications tests/jobs/report-delivery-workflow.integration.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement SMTP adapter and worker job**
+- [ ] **Step 4: Implement report templates and worker job**
 
 The message links to the authenticated report page; it does not attach the
 private PDF by default.
@@ -223,51 +221,70 @@ git add packages/backend/src/notifications apps/worker/src/processors apps/web/m
 git commit -m "feat: send transactional report email"
 ```
 
-### Task 5 [P05-T05]: Build audited admin and support operations
+### Task 5 [P05-T05]: Build the account center and audited admin/support operations
 
 **Files:**
 - Create: `packages/backend/src/admin/admin.service.ts`
 - Create: `packages/backend/src/support/support.service.ts`
 - Create: `packages/backend/src/reports/regeneration-policy.ts`
 - Create: `apps/api/src/admin/admin.controller.ts`
+- Create: `apps/web/src/app/[locale]/tai-khoan/layout.tsx`
+- Create: `apps/web/src/app/[locale]/tai-khoan/page.tsx`
+- Create: `apps/web/src/app/[locale]/tai-khoan/ho-so/page.tsx`
+- Create: `apps/web/src/app/[locale]/tai-khoan/bao-cao/page.tsx`
+- Create: `apps/web/src/app/[locale]/tai-khoan/don-hang/page.tsx`
+- Create: `apps/web/src/app/[locale]/tai-khoan/quyen-rieng-tu/page.tsx`
 - Create: `apps/web/src/app/[locale]/admin/layout.tsx`
 - Create: `apps/web/src/app/[locale]/admin/orders/page.tsx`
 - Create: `apps/web/src/app/[locale]/admin/reports/page.tsx`
 - Create: `apps/web/src/app/[locale]/admin/support/page.tsx`
+- Modify: `config/route-registry.yml`
+- Modify: `tests/seo/private-route-state.test.ts`
+- Test: `tests/e2e/account-center.spec.ts`
 - Test: `tests/e2e/admin-support.spec.ts`
 
 **Interfaces:**
 - Produces RBAC-protected inspection, refund-case recording, input correction,
   and regeneration commands.
+- Produces authenticated, server-authorized, noindex account/profile/report/
+  order/privacy pages under `/tai-khoan/**`.
+- Promotes implemented `/tai-khoan/**` routes to `live_noindex` while keeping
+  them absent from public navigation and sitemaps.
 - Approved regeneration reserves a new report version and emits
   `report.generation.requested.v1`; it never mutates or directly requeues an
   existing version.
 
 - [ ] **Step 1: Write failing admin E2E**
 
-Cover non-admin denial, order/payment inspection, support reason taxonomy,
-same-person correction within 24 hours, technical regeneration, superseded
-version, and audit record.
+Cover unauthenticated account-page denial, `live_noindex` registry state,
+noindex and sitemap exclusion on every account route, profile/report/order
+ownership, privacy export/delete entry points, non-admin denial, order/payment
+inspection, support reason taxonomy, same-person correction within 24 hours,
+technical regeneration, superseded version, and audit record.
 
 - [ ] **Step 2: Run E2E**
 
-Run: `pnpm playwright test tests/e2e/admin-support.spec.ts`
+Run:
+`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts tests/e2e/admin-support.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement least-privilege admin commands**
+- [ ] **Step 3: Implement the account center and least-privilege admin commands**
 
-No command mutates an existing report version. Refund provider execution may
-remain a recorded manual operation if SePay does not expose an approved API.
+Every `/tai-khoan/**` page resolves the server session before data access and
+uses owner-authorized API queries. No command mutates an existing report
+version. Refund provider execution may remain a recorded manual operation if
+SePay does not expose an approved API.
 
 - [ ] **Step 4: Run E2E**
 
-Run: `pnpm playwright test tests/e2e/admin-support.spec.ts`
+Run:
+`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts tests/e2e/admin-support.spec.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Update trackers and commit**
 
 ```bash
-git add packages/backend/src/admin packages/backend/src/support packages/backend/src/reports apps/api/src/admin apps/web/src/app tests/e2e docs/superpowers/plans
+git add config/route-registry.yml packages/backend/src/admin packages/backend/src/support packages/backend/src/reports apps/api/src/admin apps/web/src/app tests/seo/private-route-state.test.ts tests/e2e docs/superpowers/plans
 git commit -m "feat: add audited report support operations"
 ```
 
@@ -279,4 +296,5 @@ git commit -m "feat: add audited report support operations"
 - Deletion tombstones propagate and reconcile.
 - SMTP retries safely without leaking report content.
 - Admin/support operations are RBAC-protected and audited.
+- Account/profile/report/order/privacy pages are server-authorized and noindex.
 - Terra has no unresolved `must-fix`.

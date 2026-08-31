@@ -8,10 +8,18 @@
 | PostgreSQL source of truth | 01 | Transaction/outbox integration tests |
 | Redis only for async work | 04 | Failure and replay tests |
 | Better Auth database sessions | 01 | Session and authorization E2E |
-| Email/password + Google | 01 | Verification, reset, OAuth E2E |
+| Email/password + Google | 01 | Verification/reset SMTP delivery, session, and OAuth E2E |
+| Guest chart before registration | 01, 03 | Better Auth anonymous session, ownership, linking, and full-flow E2E |
+| Anonymous 24-hour retention | 01, 03, 06 | Expiry, immediate deletion, transactional linking, and purge tests |
 | Consent and deletion | 01, 06 | State-machine and purge tests |
 | Canonical BirthProfile | 01 | Precision/timezone fixtures |
 | Runtime VI/EN switch | 00, 03 | Key parity and locale E2E |
+| Blueprint v1.1 canonical route registry | 00, 03 | YAML/typed-loader parity, registry collision, state, canonical, robots, sitemap index/children, and alternate tests |
+| Paper/Ink/Cinnabar design contract | 00, 03 | Token, contrast, focus, reduced-motion, and responsive UI tests |
+| Gate 1 public trust/product surface | 03, 06 | SSR metadata, structured data, links, indexability, and production smoke |
+| Ten reviewed foundation articles | 03 | Content completeness, source/reviewer, locale, link, and thin-content gates |
+| Knowledge and Zi Wei hubs | 03, 06 | VI/EN content ownership, links, metadata, and production indexability |
+| Privacy-safe canonical analytics funnel | 00, 03 | Ordered config, event schema, and forbidden-property tests |
 | iztro adapter and default rules | 02 | Golden/contract fixtures |
 | Independent Zi Wei validation | 02 | Tianji/trusted-case comparison |
 | Normalized chart contracts | 00, 02 | Schema compatibility tests |
@@ -25,8 +33,8 @@
 | HTML and PDF reports | 04, 05 | Render and download E2E |
 | Garage authoritative storage | 05 | Object lifecycle tests |
 | Optional one-way S3 replica | 05 | Disabled/degraded/recovery tests |
-| Resend SMTP | 05 | Delivery and retry integration tests |
-| Admin/support/audit | 05 | RBAC and audit tests |
+| Resend SMTP | 01, 05 | Auth-email and report-delivery protocol, idempotency, and retry tests |
+| Account center and admin/support/audit | 05 | Server authorization, noindex, ownership, RBAC, and audit tests |
 | Loopback random host port | 06 | Compose config assertion |
 | Stable external port persistence | 06 | Selection/reuse/collision tests |
 | Founder-managed Nginx | 06 | Interface checklist, no repo mutation |
