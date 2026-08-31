@@ -49,6 +49,8 @@ the application.
 - One general BullMQ worker deployable.
 - PostgreSQL, Redis, and Garage on one VPS through Docker Compose.
 - Better Auth with database sessions.
+- Better Auth anonymous sessions for temporary pre-registration charts, with a
+  24-hour purge boundary and transactional account linking.
 - Email/password and Google OAuth.
 - SePay checkout and payment webhooks.
 - Zi Wei calculation through an iztro adapter.
@@ -59,6 +61,11 @@ the application.
   delivery, and optional cloud S3 replication.
 - Operational admin tools for payments, reports, failures, regeneration,
   support, and audit records.
+- Founder-approved Blueprint v1.1 canonical public/private routes, route-state
+  governance, metadata, structured data, and privacy-safe analytics.
+- A Gate 1 public surface with the homepage, Zi Wei calculator landing,
+  identity-report commercial path, anonymized sample, knowledge hubs,
+  trust/policy pages, and ten reviewed foundation articles.
 
 ### 3.2 Explicitly deferred
 
@@ -81,6 +88,10 @@ The design was produced after inspecting:
 - `MASTER_CONCEPT.md`
 - `docs/01-evidence-and-insights.md` through
   `docs/11-discipline-expansion-specs.md`
+- `docs/13-brand-experience-guideline.md`
+- founder-approved `docs/14-sitemap-seo-wireframes.md` v1.1
+- `docs/15-collaboration-branch-workflow.md`
+- `AGENT_HANDOFF.md`
 - all files under `config/`
 - `data/README.md`
 - `data/source_manifest.md`
@@ -187,6 +198,9 @@ The invariant is:
 | Free experience | Full base chart, three evidence-backed insights, one strength/tension pair, and a real 10-15% paid preview |
 | VPS ingress | Existing founder-managed host Nginx |
 | Web host bind | Loopback-only, deployment-selected stable unused port in `49152-65535`; never hard-code host port 3000 |
+| UX, route, and SEO source | Binding decision `FD-019` approves Blueprint v1.1; approved technical decisions prevail where older business material conflicts |
+| Commercial availability | `ZIWEI-IDENTITY-P0` is the only first purchasable SKU; other Zi Wei routes remain reserved until Phase 07 |
+| Anonymous retention | Binding decision `FD-020`: unlinked anonymous profile/chart data purges after 24 hours; linked data follows account policy |
 
 ## 7. Architecture Alternatives
 
@@ -232,6 +246,13 @@ lasoviet.vn/
 │   ├── config/
 │   ├── observability/
 │   └── test-fixtures/
+├── content/
+│   ├── public/
+│   │   ├── vi/
+│   │   └── en/
+│   └── knowledge/
+│       ├── vi/
+│       └── en/
 ├── docs/
 │   └── superpowers/
 └── package.json
@@ -357,7 +378,7 @@ sequenceDiagram
     W->>Auth: Resolve database session
     Auth->>DB: Read session/account
     DB-->>Auth: Session state
-    Auth-->>W: Authenticated actor
+    Auth-->>W: Account or anonymous actor
     W->>W: Create short-lived signed actor token
     W->>A: Private request + actor token + request ID
     A->>A: Verify audience, expiry, actor, authorization
@@ -367,8 +388,10 @@ sequenceDiagram
     W-->>B: SSR/RSC response
 ```
 
-The browser never supplies a trusted user ID. The API performs authorization
-even though it is private.
+The browser never supplies a trusted actor or user ID. Better Auth owns both
+account and anonymous sessions. The web signs a short-lived internal actor
+token containing the server-resolved actor kind and identifier; the API still
+performs authorization even though it is private.
 
 ## 12. Free Chart Calculation Flow
 
@@ -396,6 +419,13 @@ sequenceDiagram
 Calculation failure does not create a partial chart. Repeated submission with
 the same normalized input and engine configuration uses an idempotent
 calculation key.
+
+Guests receive a Better Auth anonymous session before profile persistence. An
+anonymous actor may own a temporary profile, chart, evidence set, and preview.
+Unlinked anonymous data expires and is purged within 24 hours, with immediate
+manual deletion available. Account linking transfers ownership transactionally
+to the verified account without duplicating calculation records; linked data
+then follows the normal account retention and deletion policy.
 
 ## 13. Birth Profile
 
@@ -871,6 +901,13 @@ Required controls:
 - API authorization independent of frontend UI state.
 - RBAC for admin operations.
 
+Email verification and password reset make SMTP a Phase 01 dependency. Phase
+01 establishes the reusable `EmailProvider` port, the SMTP adapter, and auth
+message templates. Phase 05 adds report-delivery templates and queue
+processors using the same adapter. Production SMTP credentials are requested
+when Phase 01 begins; CI uses a controlled SMTP integration service and never
+silently disables verification.
+
 The BFF sends the private API a short-lived signed actor token containing a
 minimum actor identity, session reference, audience, expiry, and request ID.
 
@@ -899,6 +936,8 @@ Use Next.js 16 App Router.
 
 - Vietnamese is the default canonical locale.
 - English routes live under `/en`.
+- Next.js 16 `proxy.ts` uses next-intl `localePrefix: "as-needed"` to map
+  unprefixed Vietnamese URLs and `/en` English URLs into the `[locale]` tree.
 - Public methodology, calculator, and knowledge pages use SSR/RSC as
   appropriate.
 - Client Components are limited to interactive forms, chart navigation,
@@ -909,6 +948,58 @@ Use Next.js 16 App Router.
 
 The sitemap is generated from one route registry. Legacy
 `config/sitemap.json` is not an independent source of truth.
+
+The sole versioned route-definition source is `config/route-registry.yml`.
+`packages/config/src/route-registry.ts` is its typed loader and validator, not a
+second hand-maintained catalog. Navigation, canonical URLs, robots policy, XML
+sitemap membership, structured-data templates, redirects, route ownership,
+and lifecycle state derive from the validated YAML registry.
+
+Canonical Vietnamese private routes are:
+
+```text
+/tao-la-so/tu-vi
+/la-so/{opaque_id}
+/la-so/{opaque_id}/chon-luan-giai
+/thanh-toan/{order_id}
+/bao-cao/{opaque_id}
+/tai-khoan/**
+```
+
+English equivalents use the `/en` prefix. Internal App Router route groups must
+preserve these contracts; `/app/charts`, `/app/checkout`, and `/app/reports`
+are not canonical user-facing paths.
+
+Every route has exactly one lifecycle state:
+
+```text
+reserved | preview_noindex | live_noindex | live_indexable | archived
+```
+
+Only `live_indexable` routes may enter public navigation or XML sitemaps.
+`archived` routes require an explicit 301, 404, or 410 disposition.
+
+The Gate 1 public surface includes:
+
+- `/`, `/la-so-tu-vi`, `/luan-giai-tu-vi`;
+- `/luan-giai-tu-vi/tong-quan-ban-menh`;
+- `/bao-cao-mau/tu-vi`;
+- `/phuong-phap`, `/phuong-phap/tu-vi`,
+  `/phuong-phap/ai-va-can-cu`, and `/nguon-tri-thuc`;
+- `/kien-thuc` and `/kien-thuc/tu-vi`;
+- `/ve-la-so-viet`, `/cau-hoi-thuong-gap`, `/lien-he`,
+  `/chinh-sach-bao-mat`, and `/dieu-khoan`;
+- ten reviewed Zi Wei foundation articles.
+
+The remaining Zi Wei commercial routes are registered as `reserved`. Gate 3
+may expand P0 toward 25-35 indexable URLs after each candidate passes the
+content quality and readiness gates; that expansion does not delay the first
+complete paid flow.
+
+The ordered canonical privacy-safe funnel lives in
+`config/analytics-events.json`. The typed analytics contract validates that
+order and may add operational events, but it must not rename or reorder the
+canonical funnel without a migration and dashboard update.
 
 ### 28.1 Internationalization
 
@@ -1276,13 +1367,14 @@ Engineering integration order and public launch order remain separate.
 ### 36.2 Public launch order
 
 1. Zi Wei free chart and `ZIWEI-IDENTITY-P0`.
-2. Remaining Zi Wei paid topics after quality and reliability gates.
-3. Wave 1.5 acquisition tools, including numerology.
-4. BaZi.
-5. Western natal through Celestine.
-6. Liu Yao/I Ching.
-7. Compatibility after individual systems are stable.
-8. Feng Shui utilities.
+2. Gate 1 public trust/content surface and ten reviewed foundation articles.
+3. Remaining Zi Wei paid topics after quality and reliability gates.
+4. Wave 1.5 acquisition tools, including numerology.
+5. BaZi.
+6. Western natal through Celestine.
+7. Liu Yao/I Ching.
+8. Compatibility after individual systems are stable.
+9. Feng Shui utilities.
 
 ## 37. Risk Register
 
@@ -1315,7 +1407,8 @@ These inputs are intentionally requested only when their implementation phase
 starts:
 
 - OpenAI-compatible base URL, API key, model, and supported capabilities.
-- Resend SMTP host, port, username, password, sender domain, and sender address.
+- Resend SMTP host, port, username, password, sender domain, and sender address
+  when Phase 01 authentication begins.
 - SePay merchant, signing, webhook, and sandbox/production credentials.
 - Optional cloud S3 endpoint, region, bucket, credentials, and lifecycle policy.
 - Stable `WEB_HOST_PORT` selected for each environment.

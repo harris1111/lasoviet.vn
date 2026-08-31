@@ -21,13 +21,19 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Final Sol self-review and Terra review complete; implementation
-remains blocked until explicit founder approval of this package.
+**Status:** Blueprint v1.1 reconciliation is complete and Terra-reviewed with
+no open must-fix on 2026-08-31. The package is ready for founder implementation
+approval; no product code is authorized until that explicit approval.
 
 ## Global Constraints
 
 - This plan does not authorize implementation until the founder explicitly
   approves the completed planning package.
+- Source precedence is controlled by `AGENTS.md`. `FD-019` is the sole binding
+  Blueprint v1.1 approval record. Blueprint route/UX/SEO decisions supersede
+  conflicting material in `MASTER_CONCEPT.md`, `docs/01-*` through
+  `docs/12-*`, and deprecated `config/sitemap.json`; approved technical
+  decisions remain authoritative.
 - Communicate with the founder in Vietnamese; repository artifacts and commits
   are English.
 - Use only Superpowers workflows; do not invoke `/ck` or CK CLI.
@@ -44,6 +50,8 @@ remains blocked until explicit founder approval of this package.
 - All calculation engines are accessed through owned adapters.
 - Zi Wei P0 uses iztro `default`.
 - Unknown or multi-branch birth time cannot buy a Zi Wei report.
+- Unlinked anonymous birth-profile and chart data is purged within 24 hours;
+  account linking transfers ownership without duplicating calculation data.
 - SePay webhook confirmation is authoritative after signature and amount
   validation.
 - AI interprets frozen facts/evidence; it never calculates a chart.
@@ -71,19 +79,20 @@ remains blocked until explicit founder approval of this package.
 | `open-decisions.md` | Deferred founder decisions and exact task blockers |
 | `task-contracts-and-test-vectors.md` | Exact task inputs, outputs, errors, effects, and failing vectors |
 | `workflow-event-contracts.md` | Versioned paid-report event and job map |
-| `reports/terra-final-review.md` | Final reviewer disposition and verification evidence |
+| `reports/terra-final-review.md` | Historical review of the original 51-task package |
+| `reports/terra-blueprint-integration-review.md` | Final 55-task Blueprint reconciliation review |
 
 ## Phase Index
 
 | Phase | Outcome | Depends on |
 |---|---|---|
-| [00](phase-00-repository-foundation.md) | Workspace, contracts, i18n, CI, observability | Plan approval |
+| [00](phase-00-repository-foundation.md) | Workspace, runtime/route/content contracts, design tokens, i18n, CI, observability | Plan approval |
 | [01](phase-01-data-identity-and-birth-profile.md) | PostgreSQL, Better Auth, consent, BirthProfile | 00 |
 | [02](phase-02-ziwei-calculation-and-evidence.md) | iztro adapter, normalized chart, fixtures, evidence | 01 |
-| [03](phase-03-free-web-experience.md) | Localized public funnel and free chart | 02 |
+| [03](phase-03-free-web-experience.md) | Gate 1 public surface, foundational content, private funnel, and free chart | 02 |
 | [04](phase-04-commerce-and-report-generation.md) | SePay, entitlement, worker, knowledge, AI report | 03 |
 | [05](phase-05-storage-delivery-and-admin.md) | PDF, Garage, replication, email, admin/support | 04 |
-| [06](phase-06-production-readiness-and-launch.md) | Compose deployment, security, E2E, release gates | 05 |
+| [06](phase-06-production-readiness-and-launch.md) | Compose deployment, security, E2E, release gates, and Gate 1 indexing | 05 |
 | [07](phase-07-remaining-ziwei-and-wave-1-5.md) | Remaining Zi Wei SKUs and acquisition tools | 06 plus P0 stability evidence |
 | [08](phase-08-bazi-wave-2.md) | BaZi calculator and paid report | 07 public gate; engineering may prepare after 06 |
 | [09](phase-09-western-wave-3.md) | Celestine natal chart and interpretation | 06 for engineering; 08 public gate for launch |

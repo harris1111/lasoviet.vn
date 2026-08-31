@@ -1,4 +1,7 @@
 {
+  "_status": "deprecated",
+  "_superseded_by": "docs/14-sitemap-seo-wireframes.md and the planned versioned route registry",
+  "_warning": "Do not implement routes, navigation, canonicals, or indexing behavior from this legacy snapshot.",
   "canonical_origin": "https://lasoviet.vn",
   "navigation": [
     {"label": "Xem lá số", "href": "/la-so-tu-vi"},

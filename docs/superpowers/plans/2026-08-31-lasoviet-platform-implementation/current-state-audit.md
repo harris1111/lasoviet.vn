@@ -1,7 +1,7 @@
 # Current-State Audit
 
 **Audit date:** 2026-08-31
-**Primary repository:** `harris1111/lasoviet.vn` at `d89bfc1`
+**Primary repository:** `harris1111/lasoviet.vn` at `c0574cc`
 
 ## Starting State
 
@@ -22,7 +22,7 @@
 | Mingyu Zi Wei is independent of iztro | Mingyu delegates Zi Wei to iztro |
 | Western engine unresolved | Celestine approved for Wave 3 |
 | Silence may approve D-019/D-020 | Silence never approves; both are explicitly resolved |
-| `config/sitemap.json` is authoritative | One route registry generates the sitemap |
+| `config/sitemap.json` is authoritative | `config/route-registry.yml` is the sole route-definition source; a typed loader generates crawl/navigation behavior |
 | Cloud S3 may behave as another authority | Garage is authoritative; replication is one-way |
 | Unknown time may receive a default | No silent time default; paid Zi Wei is blocked |
 | Host port may use framework default | Loopback-only stable deployment-selected high port |
@@ -35,8 +35,8 @@
   commerce, privacy, and release gates.
 - `docs/05-report-system.md` defines evidence-backed report structure and the
   quality rubric.
-- `docs/10-decision-log.md` contains stale approval wording that must be
-  corrected when legacy docs are substantively updated.
+- `docs/10-decision-log.md` is a business-facing summary; binding founder
+  approvals live only in `rules-and-decisions-tracker.md`.
 - The decision IDs in workbook material and Markdown are not consistently
   aligned; new tracking uses stable IDs and supersession records.
 
@@ -58,8 +58,22 @@
 
 - AI endpoint URL, key, model, and capability behavior.
 - SMTP connection details and verified sender.
-- SePay sandbox and production credentials.
+- SePay sandbox/production inputs and current provider-contract preflight.
 - Optional cloud S3 configuration.
 - VPS resource inventory, backup target, and selected `WEB_HOST_PORT`.
 - Founder-managed Nginx configuration.
 - Final legal/accounting review of refund and transaction retention wording.
+
+## Post-Audit Founder Decision
+
+- `FD-019` records the binding founder approval of Blueprint v1.1 as the
+  canonical UX, route, and SEO source.
+- `FD-020` records the approved 24-hour retention boundary for unlinked
+  anonymous birth-profile and chart data.
+- Approved technical decisions remain authoritative where legacy business
+  documents conflict, including iztro `default`, SePay, the private API,
+  unknown-time purchase restrictions, and `ZIWEI-IDENTITY-P0` as the only first
+  purchasable SKU.
+- The implementation plan now reconciles route paths/states, YAML route
+  ownership, analytics ordering, guest retention, public content, SMTP auth
+  sequencing, private account routes, and release-indexing tasks before code.

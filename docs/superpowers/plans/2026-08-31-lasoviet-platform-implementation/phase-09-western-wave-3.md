@@ -36,38 +36,52 @@ remain outside the natal contract and require their own approval packet.
 - Create: `docs/dependencies/celestine-natal-first-use.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/dependency-integration-matrix.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+- Test: `tests/evidence/western-method-record.test.ts`
 
 **Interfaces:**
 - Produces the exact natal method configuration used by fixtures and the
   adapter.
 - Produces an explicit supported/deferred capability record.
 
-- [ ] **Step 1: Inspect Celestine's exact natal exports**
+- [ ] **Step 1: Write the failing method-record validator**
+
+Assert the planet/point set, house system, aspect/orb rules, coordinate and
+timezone requirements, polar behavior, supported/deferred capabilities,
+dependency integrity, license evidence, and reviewer disposition.
+
+- [ ] **Step 2: Run the focused validator**
+
+Run: `pnpm vitest run tests/evidence/western-method-record.test.ts`
+Expected: FAIL before both evidence records exist.
+
+- [ ] **Step 3: Inspect Celestine's exact natal exports**
 
 Record tropical/geocentric assumptions, planet and point set, node mode,
 Placidus default, available house systems, aspect definitions/orbs,
 retrograde behavior, required coordinates/timezone, and polar limitations.
 
-- [ ] **Step 2: Write the method record**
+- [ ] **Step 4: Write the method record**
 
 Define the P0 planet/point set, house system, aspects, warning behavior, stable
 IDs, display terminology, and intentionally excluded capabilities. Record
 Solar Return as unsupported.
 
-- [ ] **Step 3: Complete the Celestine first-use gate**
+- [ ] **Step 5: Complete the Celestine first-use gate**
 
 Record resolved package integrity, license/SBOM evidence, transitive runtime
 tree, replacement boundary, and baseline contract snapshot.
 
-- [ ] **Step 4: Obtain Terra method review**
+- [ ] **Step 6: Run the validator and obtain Terra method review**
+
+Run: `pnpm vitest run tests/evidence/western-method-record.test.ts`
 
 Expected: the record has no unsupported capability claim, hidden location
 default, or unresolved polar/time behavior.
 
-- [ ] **Step 5: Update trackers and commit**
+- [ ] **Step 7: Update trackers and commit**
 
 ```bash
-git add docs/architecture/western-method-record.md docs/dependencies/celestine-natal-first-use.md docs/superpowers/plans
+git add docs/architecture/western-method-record.md docs/dependencies/celestine-natal-first-use.md tests/evidence/western-method-record.test.ts docs/superpowers/plans
 git commit -m "docs: define Western natal calculation profile"
 ```
 
@@ -140,7 +154,7 @@ git commit -m "feat: add normalized Western natal calculation"
 - Create: `apps/web/messages/en/western.json`
 - Modify: `packages/backend/src/commerce/product-catalog.ts`
 - Modify: `packages/backend/src/capabilities/capability.registry.ts`
-- Modify: `apps/web/src/routes/route-registry.ts`
+- Modify: `config/route-registry.yml`
 - Test: `packages/backend/src/evidence/western-natal-rules.test.ts`
 - Test: `tests/e2e/western-natal-flow.spec.ts`
 
@@ -195,37 +209,53 @@ git commit -m "feat: add Western natal experience"
 - Create: `docs/architecture/western-predictive-capability-review.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/risk-register.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+- Test: `tests/evidence/western-predictive-capability-review.test.ts`
 
 **Interfaces:**
 - Produces a founder decision packet for transits, secondary progressions, and
   solar arc.
 - Produces no predictive production code or public capability.
 
-- [ ] **Step 1: Collect natal stability evidence**
+- [ ] **Step 1: Write the failing decision-packet validator**
+
+Require measured natal evidence, per-technique support/contracts/fixtures,
+product value, runtime cost, risks, explicit Solar Return exclusion, Terra
+disposition, and founder decision status.
+
+- [ ] **Step 2: Run the focused validator**
+
+Run:
+`pnpm vitest run tests/evidence/western-predictive-capability-review.test.ts`
+Expected: FAIL before the packet exists.
+
+- [ ] **Step 3: Collect natal stability evidence**
 
 Record fixture pass rate, support defects, conversion, report QA, latency, and
 location/time failure patterns after natal launch.
 
-- [ ] **Step 2: Audit each candidate technique**
+- [ ] **Step 4: Audit each candidate technique**
 
 For transits, secondary progressions, and solar arc, record exact Celestine
 support, input/output contract, fixtures, product value, runtime cost, and
 release risk.
 
-- [ ] **Step 3: Keep Solar Return explicitly excluded**
+- [ ] **Step 5: Keep Solar Return explicitly excluded**
 
 Record that it requires a compatible reviewed implementation and a separate
 founder decision because audited Celestine 0.2.1 does not expose it.
 
-- [ ] **Step 4: Obtain Terra review and founder decision**
+- [ ] **Step 6: Run validation, then obtain Terra review and founder decision**
+
+Run:
+`pnpm vitest run tests/evidence/western-predictive-capability-review.test.ts`
 
 No code file, capability flag, or public route is created by this task.
 Approved predictive work receives a separate spec and executable plan.
 
-- [ ] **Step 5: Update trackers and commit the review**
+- [ ] **Step 7: Update trackers and commit the review**
 
 ```bash
-git add docs/architecture/western-predictive-capability-review.md docs/superpowers/plans
+git add docs/architecture/western-predictive-capability-review.md tests/evidence/western-predictive-capability-review.test.ts docs/superpowers/plans
 git commit -m "docs: evaluate Western predictive capabilities"
 ```
 

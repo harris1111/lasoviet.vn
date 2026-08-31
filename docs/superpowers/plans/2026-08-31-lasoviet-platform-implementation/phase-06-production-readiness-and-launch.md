@@ -62,7 +62,8 @@ reuse, occupied-port rejection, repository-path rejection, missing
 
 - [ ] **Step 2: Run deployment tests**
 
-Run: `pnpm vitest run tests/deployment/compose-config.test.ts`
+Run:
+`pnpm vitest run tests/deployment/compose-config.test.ts tests/deployment/web-host-port.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement multi-stage images and Compose**
@@ -82,7 +83,10 @@ Expected: the external file contains one reusable valid `WEB_HOST_PORT`.
 - [ ] **Step 5: Validate configuration**
 
 Run:
-`docker compose --env-file "$DEPLOY_ENV_FILE" -f docker-compose.yml -f docker-compose.production.yml config`
+```bash
+pnpm vitest run tests/deployment/compose-config.test.ts tests/deployment/web-host-port.test.ts
+docker compose --env-file "$DEPLOY_ENV_FILE" -f docker-compose.yml -f docker-compose.production.yml config
+```
 Expected: valid config with only loopback web publication.
 
 - [ ] **Step 6: Build images**
@@ -346,6 +350,78 @@ git add docs/qa docs/compliance docs/release tests/release docs/superpowers/plan
 git commit -m "test: record P0 release evidence"
 ```
 
+### Task 6 [P06-T06]: Activate and verify the Gate 1 public indexing surface
+
+**Files:**
+- Create: `docs/release/p0-public-route-inventory.md`
+- Create: `docs/runbooks/search-console-and-indexing.md`
+- Create: `scripts/verify-public-surface.mjs`
+- Modify: `config/route-registry.yml`
+- Test: `tests/seo/release-indexability.spec.ts`
+- Test: `tests/e2e/production-public-surface.spec.ts`
+
+**Interfaces:**
+- Consumes the production origin, canonical route registry, Gate 1 content
+  evidence, and founder-controlled Search Console access.
+- Produces a signed route inventory with status, HTTP result, canonical,
+  robots, sitemap membership, schema, language alternate, content review, and
+  owner.
+- Produces no automated DNS, Nginx, Cloudflare, or Search Console ownership
+  mutation.
+
+- [ ] **Step 1: Write failing release-indexability tests**
+
+Assert every `live_indexable` route returns 200, self-canonicalizes, has valid
+VI/EN alternates, appears once in the correct child sitemap and index, and has
+content/schema agreement. Include `/kien-thuc` and `/kien-thuc/tu-vi`. Assert
+every private or `live_noindex` route is absent from sitemaps and emits noindex
+plus server-side access control.
+
+- [ ] **Step 2: Run the production-like SEO test**
+
+Run:
+
+```bash
+pnpm vitest run tests/seo/release-indexability.spec.ts
+pnpm playwright test tests/e2e/production-public-surface.spec.ts
+```
+
+Expected: FAIL until release-ready route states and production responses agree.
+
+- [ ] **Step 3: Promote only release-ready Gate 1 routes**
+
+Change a route to `live_indexable` only when its page, reviewed content,
+canonical, schema, navigation links, owner, and readiness evidence pass.
+Keep every later commercial or expansion route `reserved`. Do not publish
+placeholder or roadmap pages.
+
+- [ ] **Step 4: Verify production HTTP, performance, and crawl controls**
+
+Run:
+
+```bash
+node scripts/verify-public-surface.mjs --origin "$PUBLIC_ORIGIN"
+pnpm playwright test tests/e2e/production-public-surface.spec.ts
+```
+
+Verify real mobile LCP/INP/CLS budgets where traffic data exists, or record
+controlled lab evidence before launch. Verify private PDFs use
+`X-Robots-Tag: noindex, noarchive`.
+
+- [ ] **Step 5: Complete founder-owned indexing handoff**
+
+Document sitemap submission, Search Console ownership, URL inspection for
+priority routes, and monitoring responsibilities. The founder performs or
+explicitly authorizes external-account changes; repository automation does not
+claim ownership or submit credentials.
+
+- [ ] **Step 6: Commit the public release evidence**
+
+```bash
+git add config/route-registry.yml scripts/verify-public-surface.mjs tests/seo tests/e2e docs/release docs/runbooks docs/superpowers/plans
+git commit -m "test: verify Gate 1 public indexing"
+```
+
 ## Phase Exit Criteria
 
 - Production images and Compose config pass.
@@ -353,6 +429,8 @@ git commit -m "test: record P0 release evidence"
 - Backup restore drill passes.
 - Security, purge, full-flow, and degraded-mode tests pass.
 - Twenty reports meet the rubric.
+- Gate 1 public routes, ten foundation articles, sitemaps, canonicals, schema,
+  and noindex boundaries pass production verification.
 - No severity-1 release blocker remains.
 - Founder receives the Nginx/Cloudflare handoff and explicitly approves any
   production deployment.

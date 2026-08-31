@@ -1,5 +1,17 @@
 {
   "privacy_rule": "Never send name, birth date/time/place, chart JSON, evidence text or report content to analytics.",
+  "canonical_funnel": [
+    "landing_view",
+    "birth_form_started",
+    "chart_created",
+    "free_summary_viewed",
+    "evidence_opened",
+    "paid_topic_selected",
+    "checkout_started",
+    "payment_completed",
+    "report_opened",
+    "report_feedback_submitted"
+  ],
   "events": [
     {"name": "landing_view", "properties": ["page_type", "method", "source_intent", "experiment_ids"]},
     {"name": "method_selected", "properties": ["method", "entry_page"]},
@@ -16,6 +28,7 @@
     {"name": "report_generation_completed", "properties": ["sku", "method", "duration_bucket", "report_version"]},
     {"name": "report_opened", "properties": ["sku", "method", "days_since_purchase"]},
     {"name": "report_downloaded", "properties": ["sku", "format"]},
+    {"name": "report_feedback_submitted", "properties": ["sku", "helpfulness_rating", "safety_category", "report_version"]},
     {"name": "support_requested", "properties": ["category", "sku"]},
     {"name": "profile_deleted", "properties": ["deletion_scope"]}
   ]

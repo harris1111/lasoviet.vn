@@ -1,10 +1,15 @@
 # Lá Số Việt — Quy trình branch giữa Product và Development
 
+> **Review-policy precedence:** A separate pull-request review cycle runs only
+> when the founder requests it. Explicit founder merge authorization, CI, and
+> every review required by the approved implementation plan remain mandatory.
+
 ## 1. Vai trò
 
 - **Product owner:** Harris — người chốt concept, brand, sitemap, UX và acceptance criteria.
 - **Developer:** An — người triển khai code, test và sửa theo review.
-- **Protected release branch:** `master` — chỉ nhận thay đổi đã được review và chấp nhận.
+- **Protected release branch:** `master` — chỉ nhận thay đổi qua Pull Request,
+  sau khi founder cho phép merge và mọi gate bắt buộc đã pass.
 
 ## 2. Hai branch làm việc
 
@@ -92,7 +97,10 @@ PR phải có:
 - known limitations;
 - checklist acceptance criteria tương ứng.
 
-Product review trên PR. Mọi yêu cầu sửa được An commit tiếp vào `feature/site-foundation`; PR tự cập nhật.
+Only the founder may request a dedicated review cycle on the PR. When requested, An
+commits every accepted correction to `feature/site-foundation`; the PR updates
+automatically. When no separate review is requested, explicit founder
+acceptance may authorize the merge after required CI and plan review gates pass.
 
 ### Bước 6 — Merge implementation vào branch Product
 
@@ -102,7 +110,7 @@ Chỉ merge khi:
 - không còn lỗi release-blocking;
 - docs và implementation không mâu thuẫn;
 - SEO/noindex/privacy/accessibility gates pass;
-- Product approve.
+- Founder explicitly authorizes the merge.
 
 Sau merge, `product/experience-spec-v1` là bản tích hợp gồm cả docs và code đã chấp nhận.
 
@@ -148,7 +156,9 @@ Commit nên nhỏ, có một mục đích và không trộn docs thay đổi sco
 - Cấm direct push.
 - Bắt buộc pull request.
 - Bắt buộc CI/build/test pass.
-- Ít nhất một approval.
+- Explicit founder merge authorization; a separate PR approval review is
+  required only when requested or when the approved implementation plan
+  requires it.
 - Không force-push và không xóa branch.
 
 ### `product/experience-spec-v1`

@@ -30,6 +30,9 @@
 | R-26 | Garage disaster recovery incomplete | 06 | Backup or isolated restore cannot reproduce asset checksums | Independent encrypted backup, metadata snapshot, restore drill | Block deploy |
 | R-27 | VPS capacity insufficient | 06 | Inventory lacks measured staging headroom | Capacity preflight with 30% RAM/disk headroom | Block deploy |
 | R-28 | Garage upload orphan | 05 | Object upload succeeds but asset-state transaction fails | Reserved deterministic key, checksum adoption, orphan reconciliation | Block release if unreconciled |
+| R-29 | Route, content, analytics, or sitemap drift | 00, 03, 06 | A second source defines different path, state, event, canonical, or index behavior | `config/route-registry.yml` plus typed loader, ordered analytics config, deprecated legacy sitemap, contract tests, production route inventory | Block public indexing |
+| R-30 | Authentication email unavailable | 01 | Verification or reset cannot deliver through reviewed SMTP | Establish SMTP port/adapter in Phase 01, protocol integration test, no verification bypass | Block authentication release |
+| R-31 | Anonymous birth data retained too long or orphaned during linking | 01, 03, 06 | Unlinked profile/chart survives 24 hours, manual deletion fails, or account linking duplicates ownership | Better Auth anonymous actor, explicit expiry, transactional ownership transfer, purge/reconciliation tests | Privacy block |
 
 ## Review Protocol
 

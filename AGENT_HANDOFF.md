@@ -8,17 +8,23 @@ Xây dựng Lá Số Việt thành nền tảng lập và luận giải lá số
 
 Không thiết kế như “tiệm bói online”, không dùng nỗi sợ hoặc định mệnh hóa để tăng conversion.
 
-## 2. Hierarchy quyết định
+## 2. Decision hierarchy
 
-Khi có xung đột, áp dụng thứ tự:
+`AGENTS.md` controls source precedence. The binding founder-decision register is
+`docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`.
+Apply this order:
 
-1. Trust, safety, privacy và quyền tự quyết của người dùng.
-2. Brand guideline đã duyệt.
-3. Sitemap/SEO/wireframe blueprint mới nhất.
-4. Acceptance criteria của task hiện tại.
-5. Pattern hoặc sở thích kỹ thuật hiện có trong codebase.
+1. Explicit founder decisions in the binding register.
+2. `AGENTS.md`.
+3. Approved architecture and implementation plans.
+4. Approved brand, Blueprint v1.1, and collaboration workflow documents.
+5. Current task acceptance criteria and repository conventions.
 
-Các nhãn trong guideline:
+Blueprint v1.1 supersedes older UX, route, and SEO material in
+`MASTER_CONCEPT.md`, `docs/01-*` through `docs/12-*`, and deprecated
+`config/sitemap.json`. It does not override approved technical decisions.
+
+Guideline labels:
 
 - `LOCKED`: không thay đổi nếu chưa có quyết định mới của founder.
 - `STANDARD`: mặc định phải tuân thủ; ngoại lệ cần ghi lý do.
@@ -68,6 +74,7 @@ Mỗi route có đúng một trạng thái:
 | `preview_noindex` | Chỉ QA/staging hoặc preview; không menu, không sitemap |
 | `live_noindex` | Public vì cần cho flow nhưng không được index |
 | `live_indexable` | Public, canonical, có trong navigation và XML sitemap |
+| `archived` | Retired route with an explicit 301, 404, or 410 disposition |
 
 ## 4. Ưu tiên sản phẩm
 
@@ -92,10 +99,11 @@ Không chuyển route sang `live_indexable` nếu thiếu một trong các yếu
 
 ## 6. Hạng mục còn mở
 
-- Founder phê duyệt chính thức Blueprint v1.1.
-- Đối chiếu route v1.1 với router/code hiện tại trong repo.
+- Blueprint v1.1 approval is binding through `FD-019`; `docs/10-decision-log.md`
+  contains only a business-facing reference to that decision.
+- Anonymous birth-profile and chart data expires within 24 hours unless linked
+  to a verified account; immediate manual deletion remains available.
 - Quyết định engine/licensing cho Western astrology và ephemeris.
-- Xác nhận taxonomy cuối cho `/lap-la-so/...` so với các route calculator cấp root đang tồn tại.
 - Chuyển wireframe low-fi thành component map/design tokens có thể code.
 - Lập content model, schema và editorial workflow cho từng knowledge hub.
 - Định nghĩa analytics events, consent và privacy retention.
@@ -115,6 +123,11 @@ Không chuyển route sang `live_indexable` nếu thiếu một trong các yếu
 
 - Harris/Product làm việc trên `product/experience-spec-v1`.
 - An/Development làm việc trên `feature/site-foundation`.
-- Product cập nhật spec → An merge spec vào branch dev → code/test/fix → PR dev về branch product → review/acceptance → PR branch product vào `master`.
+- Product updates the spec → Development merges the spec into its branch →
+  code/test/fix → PR Development into Product → acceptance → PR Product into
+  `master`.
 - Không push trực tiếp lên `master`.
+- A separate PR review cycle runs only when the founder requests it. Explicit
+  founder merge authorization and all plan-required Terra review gates still
+  apply.
 
