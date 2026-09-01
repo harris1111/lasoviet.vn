@@ -339,3 +339,19 @@ git commit -m "feat: add canonical birth profile"
 - BirthProfile preserves uncertainty and timezone provenance.
 - Unknown/multi-branch profiles return a typed Zi Wei eligibility error.
 - Terra has no unresolved `must-fix`.
+
+## Phase Exit Verification (2026-09-01)
+
+- Headless auth-email/internal-actor, privacy/deletion/anonymous-retention, and
+  BirthProfile precision/ownership/revision smoke passed: 12 files, 33 tests.
+- Empty and repeat migration acceptance passed: 1 file, 3 tests.
+- Root repository verification passed: 23 files, 105 tests; root typecheck,
+  root build, and i18n parity also passed.
+- One authorized adapter-mediated SMTP smoke used `node --env-file=.env.local`
+  with strict STARTTLS and the fixed idempotency key
+  `phase-01-live-smoke-2026-09-01`. It returned success with provider message
+  ID `<13e55cd6-c231-8595-6b55-8ba559115788@0err.com>`.
+- No live Google OAuth call occurred because credentials are unavailable.
+- Browser/Playwright E2E is not represented as passing. The approved non-visual
+  artifact deferral remains binding; a later authorized browser/runtime gate
+  must cover the visual flow.
