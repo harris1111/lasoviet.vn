@@ -278,7 +278,7 @@ git commit -m "feat: establish Vietnamese and English localization"
 - Create: `apps/api/src/health/health.controller.ts`
 - Create: `apps/web/src/app/health/live/route.ts`
 - Create: `apps/web/src/app/health/ready/route.ts`
-- Create: `vitest.workspace.ts`
+- Create: `vitest.config.ts`
 - Create: `playwright.config.ts`
 - Create: `.github/workflows/ci.yml`
 - Test: `packages/observability/src/logger.test.ts`
@@ -289,22 +289,32 @@ git commit -m "feat: establish Vietnamese and English localization"
 - Produces request context fields `requestId`, `orderId`, `reportId`, `jobId`.
 - Produces `/health/live` and `/health/ready`.
 
-- [ ] **Step 1: Write failing redaction and health tests**
+**Implementation note (2026-09-01):** Vitest 4 uses the supported root
+`vitest.config.ts` filename. The config maps `@lasoviet/contracts` and the
+concretely required `@lasoviet/config` import to absolute current-source
+paths, so focused root tests do not require generated package declarations.
+
+- [x] **Step 1: Write failing redaction and health tests**
 
 Assert that `password`, `apiKey`, `birthProfile`, `reportContent`, and
 `signedUrl` are redacted.
 
-- [ ] **Step 2: Run focused tests**
+- [x] **Step 2: Run focused tests**
 
 Run: `pnpm vitest run packages/observability tests/health`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement Pino logging and health contracts**
+**P00-T04 RED evidence (2026-09-01):** The focused command first failed with
+missing `./logger.js` and `@lasoviet/contracts` modules before implementation.
+After implementation, the source alias correction was required so clean root
+tests resolve current contracts/config source without generated `dist`.
+
+- [x] **Step 3: Implement Pino logging and health contracts**
 
 Readiness checks only required P0 dependencies. Optional AI and cloud S3 report
 degraded status without failing API readiness.
 
-- [ ] **Step 4: Add CI**
+- [x] **Step 4: Add CI**
 
 CI runs:
 
@@ -317,17 +327,34 @@ pnpm test
 pnpm build
 ```
 
-- [ ] **Step 5: Run the complete local gate**
+- [x] **Step 5: Run the complete local gate**
 
 Run: `pnpm check`
 Expected: PASS.
 
-- [ ] **Step 6: Update docs/rules and commit**
+- [x] **Step 6: Update docs/rules and commit**
 
 ```bash
-git add packages/observability apps/api/src/health apps/web/src/app/health vitest.workspace.ts playwright.config.ts .github tests docs/superpowers/plans
+git add packages/observability apps/api/src/health apps/api/src/api.module.ts apps/web/src/app/health vitest.config.ts playwright.config.ts .github tests/health package.json pnpm-lock.yaml docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/phase-00-repository-foundation.md
 git commit -m "ci: add health observability and verification gates"
 ```
+
+**P00-T04 Evidence (2026-09-01):**
+
+- Focused `corepack pnpm@11.25.0 vitest run packages/observability tests/health`
+  passed: 2 files, 3 tests.
+- `corepack pnpm@11.25.0 --filter @lasoviet/api typecheck` passed.
+- `corepack pnpm@11.25.0 check` passed: lint, all workspace typechecks, 6 test
+  files with 59 tests, and all workspace builds.
+- The build produced `/health/live` and `/health/ready` routes.
+- Exact dependencies: `pino@10.3.1` in observability and
+  `@playwright/test@1.62.1` at the root.
+- Existing pnpm build policy was preserved. No new peer or build-policy warning
+  occurred. The known ESLint `9.39.5` deprecation and Vitest config-loader
+  compatibility notice were non-blocking.
+- `vitest.config.ts` is the supported filename deviation recorded above; its
+  absolute aliases cover only the focused tests' concrete internal imports.
+- Docs impact: minor. Rule candidate: none. Open questions: none.
 
 ### Task 5 [P00-T05]: Establish route, content, analytics, and design contracts
 

@@ -1,4 +1,8 @@
 import { Module } from "@nestjs/common";
 
-@Module({})
+import { HealthController } from "./health/health.controller.js";
+
+@Module({
+  controllers: [HealthController],
+})
 export class ApiModule {}
