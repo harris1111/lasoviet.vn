@@ -6,4 +6,12 @@ describe("workspace boundaries", () => {
     const web = JSON.parse(await readFile("apps/web/package.json", "utf8"));
     expect(web.dependencies?.["@lasoviet/backend"]).toBeUndefined();
   });
+
+  it.each(["devDependencies", "peerDependencies", "optionalDependencies"])(
+    "does not expose backend implementation through %s",
+    async (section) => {
+      const web = JSON.parse(await readFile("apps/web/package.json", "utf8"));
+      expect(web[section]?.["@lasoviet/backend"]).toBeUndefined();
+    },
+  );
 });

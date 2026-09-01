@@ -111,14 +111,14 @@ git commit -m "build: establish application workspace"
   and `run check` passed.
 - `corepack pnpm@11.25.0 install --frozen-lockfile` passed and reported the
   workspace already up to date.
-- Commit SHA is recorded in the task implementer report after commit creation.
+- Commit: `ed37d67 build: establish application workspace`.
 - Docs impact: minor
 - Rule candidate: model-metadata availability probe, reviewed by Terra
 - Evidence: `.superpowers/sdd/phase-00-repository-foundation/progress.md`
   (2026-09-01)
 - AGENTS.md action: none; Sol owns any approved policy edit
-- Open questions: the corrected RED command must be explicitly approved before
-  implementation
+- Corrected RED command approval: resolved by Sol on 2026-09-01.
+- Open questions: none.
 
 ### Task 2 [P00-T02]: Add versioned runtime contracts and configuration
 
