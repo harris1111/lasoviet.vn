@@ -50,6 +50,8 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Exact-version integration preflight | P01-T01 repeatedly used unverified Drizzle, Vitest, and Testcontainers integration behavior | Terra approved narrowed task-critical rule | Added to `AGENTS.md`; approved briefs must record only task-relevant exact-version facts |
 | Terra direct-execution workflow | Founder changed the active role model from P01-T02 to reduce implementation latency while preserving milestone review | Direct founder decision | Updated `AGENTS.md`; Terra medium implements/debugs/tests, Sol xhigh reviews milestones, Luna paused |
 | UI artifact branch boundary | Founder reserved visual implementation for a later artifact branch | Direct founder decision | Added to `AGENTS.md`; non-UI branches may implement server routes and headless flows but not visual UI |
+| File-like dynamic route params | P03-T01 tests initially passed an extensionless sitemap key instead of the emitted `.xml` filename | Terra fixed the localized regression and added production-shaped coverage | Not added to `AGENTS.md`; one isolated incident does not meet section 9, and the regression test is the durable guard |
+| BFF error provenance | P03-T01 briefly reclassified missing private API configuration as a caller path error | Terra separated base configuration resolution from caller path validation and added regression coverage | Not added to `AGENTS.md`; one localized defect does not meet section 9 |
 
 ## Per-Task Rule Check
 
@@ -69,6 +71,22 @@ and task history remain in plans/reports, not `AGENTS.md`.
 
 Open founder decisions are tracked in `open-decisions.md`. Package approval
 does not silently close them.
+
+## P03 Non-Visual Slice 1 Evidence
+
+Date: 2026-09-02
+
+- Implemented the server-only private BFF client and registry-derived robots,
+  sitemap index, and section sitemap contracts without modifying visual UI.
+- Corrected production `.xml` route-param handling, canonical English root
+  output, same-origin token confinement, safe non-success error propagation,
+  and current-build browser-boundary verification.
+- Fresh verification passed: web build, web typecheck, and 4 focused files
+  with 14 tests. Commit range `09fa19c..b637891` is pushed.
+- P03-T01 visual layouts, home presentation, navigation, and browser UI checks
+  remain deferred by FD-024.
+- Rule candidates were evaluated above; neither meets the durable-rule
+  threshold. Open questions: none.
 
 ## P01-T02 Evidence
 

@@ -84,6 +84,17 @@ git add config/route-registry.yml packages/config/src/route-registry.ts apps/web
 git commit -m "feat: add localized web and BFF routing"
 ```
 
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: server-only private API client, registry-derived robots policy,
+  sitemap index, section sitemaps, locale URL generation, and browser-boundary
+  verification.
+- Verified: production web build, web typecheck, and 14 focused route/BFF
+  tests.
+- Deferred by FD-024: localized layouts, home route presentation, navigation,
+  and visual/browser checks. P03-T01 remains partially complete until the
+  dedicated UI artifact branch delivers those files.
+
 ### Task 2 [P03-T02]: Build the BirthProfile form and consent flow
 
 **Files:**
