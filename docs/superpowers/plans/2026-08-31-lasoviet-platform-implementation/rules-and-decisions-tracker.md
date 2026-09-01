@@ -52,6 +52,8 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | UI artifact branch boundary | Founder reserved visual implementation for a later artifact branch | Direct founder decision | Added to `AGENTS.md`; non-UI branches may implement server routes and headless flows but not visual UI |
 | File-like dynamic route params | P03-T01 tests initially passed an extensionless sitemap key instead of the emitted `.xml` filename | Terra fixed the localized regression and added production-shaped coverage | Not added to `AGENTS.md`; one isolated incident does not meet section 9, and the regression test is the durable guard |
 | BFF error provenance | P03-T01 briefly reclassified missing private API configuration as a caller path error | Terra separated base configuration resolution from caller path validation and added regression coverage | Not added to `AGENTS.md`; one localized defect does not meet section 9 |
+| Immutable normalized read authority | P03-T02 initially recomputed eligibility from mutable original input instead of the stored normalized revision | Terra added the shared normalized schema and a disagreement regression test | Not added to `AGENTS.md`; the architecture already requires immutable revisions and one localized defect does not meet section 9 |
+| Async session liveness clock | P03-T02 initially reused a timestamp captured before the authoritative session read | Terra moved clock capture to the live-row lookup and added a sequenced-clock regression test | Not added to `AGENTS.md`; one localized TOCTOU defect does not meet section 9 |
 
 ## Per-Task Rule Check
 
@@ -85,6 +87,24 @@ Date: 2026-09-02
   with 14 tests. Commit range `09fa19c..b637891` is pushed.
 - P03-T01 visual layouts, home presentation, navigation, and browser UI checks
   remain deferred by FD-024.
+- Rule candidates were evaluated above; neither meets the durable-rule
+  threshold. Open questions: none.
+
+## P03 Non-Visual Slice 2 Evidence
+
+Date: 2026-09-02
+
+- Implemented authoritative current-actor resolution, consent-first
+  BirthProfile submission, shared Zi Wei eligibility contracts, and strict
+  server result projection without visual UI changes.
+- Stored normalized revisions now remain authoritative on reads; validation,
+  ownership, anonymous expiry, and operational errors preserve distinct
+  contracts.
+- Anonymous actor and Better Auth session expiry are both checked using a fresh
+  lookup clock.
+- Fresh verification passed: 3 focused files with 26 tests plus contracts,
+  backend, and web typechecks. Commit range `9138b15..59c587d` is pushed.
+- P03-T02 visual form/page/message/browser work remains deferred by FD-024.
 - Rule candidates were evaluated above; neither meets the durable-rule
   threshold. Open questions: none.
 

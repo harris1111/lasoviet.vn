@@ -142,6 +142,17 @@ git add apps/web/src/features/birth-profile apps/web/messages tests/e2e docs/sup
 git commit -m "feat: add birth profile and consent flow"
 ```
 
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: authoritative account/anonymous actor resolution, consent-first
+  BirthProfile submission, immutable normalized-read eligibility, strict
+  server response projection, and anonymous expiry handling.
+- Verified: 26 focused headless tests plus contracts, backend, and web
+  typechecks.
+- Deferred by FD-024: form controls, precision fields, localized messages,
+  route page, refresh/browser behavior, and Playwright E2E. P03-T02 remains
+  partially complete until the dedicated UI artifact branch delivers them.
+
 ### Task 3 [P03-T03]: Render the normalized Zi Wei chart and evidence drawer
 
 **Files:**
