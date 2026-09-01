@@ -73,6 +73,33 @@ describe("private API client", () => {
     },
   );
 
+  it.each([
+    {
+      name: "environment loading fails",
+      environment: { ok: false, error: { code: "INVALID_ENV" } },
+    },
+    {
+      name: "private API URL is missing",
+      environment: { ok: true, value: {} },
+    },
+    {
+      name: "private API URL is malformed",
+      environment: { ok: true, value: { privateApiUrl: "not a URL" } },
+    },
+  ])(
+    "preserves PRIVATE_API_UNREACHABLE when $name",
+    async ({ environment }) => {
+      vi.mocked(loadEnvironment).mockReturnValue(environment as never);
+
+      await expect(
+        privateApiClient(actor, "request-1").request("/birth-profiles"),
+      ).rejects.toMatchObject({ code: "PRIVATE_API_UNREACHABLE" });
+
+      expect(createInternalActorToken).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
+    },
+  );
+
   it("preserves a safe API error code and status without provider text", async () => {
     fetchMock.mockResolvedValue(
       new Response(

@@ -34,15 +34,22 @@ function resolvePrivateApiUrl(): string {
   return environment.value.privateApiUrl;
 }
 
+function resolvePrivateApiBaseUrl(): URL {
+  try {
+    return new URL(resolvePrivateApiUrl());
+  } catch {
+    throw new PrivateApiClientError("PRIVATE_API_UNREACHABLE");
+  }
+}
+
 function resolveApplicationPath(path: string): URL {
   if (!path.startsWith("/") || path.startsWith("//")) {
     throw new PrivateApiClientError("PRIVATE_API_PATH_INVALID");
   }
 
-  let privateApiUrl: URL;
+  const privateApiUrl = resolvePrivateApiBaseUrl();
   let requestUrl: URL;
   try {
-    privateApiUrl = new URL(resolvePrivateApiUrl());
     requestUrl = new URL(path, privateApiUrl);
   } catch {
     throw new PrivateApiClientError("PRIVATE_API_PATH_INVALID");

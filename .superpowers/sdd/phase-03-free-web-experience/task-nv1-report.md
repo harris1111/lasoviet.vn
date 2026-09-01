@@ -47,6 +47,40 @@ None.
 
 DONE
 
+## Fix Round 2 Evidence
+
+Requested evidence date: 2026-09-02. This is one day after the applicable
+current date, 2026-09-01.
+
+### Finding Resolved
+
+- N1: Failed environment loading, missing `PRIVATE_API_URL`, and malformed
+  private API base URLs now remain `PRIVATE_API_UNREACHABLE`. Only caller path
+  parsing may produce `PRIVATE_API_PATH_INVALID`.
+
+### Verification
+
+- RED: `pnpm vitest run apps/web/src/api/private-api-client.test.ts` exited 1
+  with the expected reclassification failures.
+- GREEN: the same command passed: 1 file, 8 tests.
+- `pnpm --filter @lasoviet/web typecheck` passed.
+
+### Docs Impact
+
+None. This report is the required delivery evidence; no product documentation
+changed.
+
+### Rule Candidate
+
+Private API base configuration must be resolved before caller path validation
+so configuration failures preserve their operational error contract.
+
+### Unresolved Questions
+
+None.
+
+DONE
+
 ## Fix Round 1 Evidence
 
 Date: 2026-09-02
