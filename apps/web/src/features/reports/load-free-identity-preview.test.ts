@@ -77,4 +77,43 @@ describe("free identity preview server loaders", () => {
       expect.objectContaining({ method: "POST" }),
     );
   });
+
+  it("lets the authorized backend distinguish missing charts from unavailable SKUs", async () => {
+    const subject = dependencies();
+    subject.request
+      .mockResolvedValueOnce({
+        ok: false,
+        error: {
+          code: "CHART_NOT_FOUND",
+          messageKey: "ziwei.chart_not_found",
+          retryable: false,
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        error: {
+          code: "SKU_UNAVAILABLE",
+          messageKey: "ziwei.sku_unavailable",
+          retryable: false,
+        },
+      });
+
+    await expect(createFreeIdentityPreviewLoader(subject).selectTopic("missing-chart", {
+      sku: "ZIWEI-RELATIONSHIP-P0",
+    } as never)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "CHART_NOT_FOUND" },
+    });
+    await expect(createFreeIdentityPreviewLoader(subject).selectTopic("authorized-chart", {
+      sku: "ZIWEI-RELATIONSHIP-P0",
+    } as never)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "SKU_UNAVAILABLE" },
+    });
+    expect(subject.request).toHaveBeenNthCalledWith(
+      1,
+      "/ziwei/charts/missing-chart/topics",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
 });

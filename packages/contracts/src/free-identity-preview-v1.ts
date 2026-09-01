@@ -21,6 +21,15 @@ const offerSchema = z.object({
   sections: z.array(z.string().trim().min(1)).min(1),
 }).strict();
 
+function matchingFacts(
+  first: readonly string[],
+  second: readonly string[],
+): boolean {
+  return first.length === second.length && first.every(
+    (factReference, index) => factReference === second[index],
+  );
+}
+
 export const FreeIdentityPreviewV1Schema = z.object({
   version: z.literal(1),
   chartId: z.string().trim().min(1),
@@ -56,6 +65,32 @@ export const FreeIdentityPreviewV1Schema = z.object({
       !== preview.tensionSignal.evidence.length
   ) {
     context.addIssue({ code: "custom", path: ["tensionSignal", "evidence"], message: "Tension evidence IDs must be unique" });
+  }
+  const insightEvidence = new Map(
+    preview.insights.map((insight) => [insight.evidence.evidenceId, insight.evidence]),
+  );
+  for (const [path, evidence] of [
+    [["strengthSignal", "evidence"], preview.strengthSignal.evidence],
+    ...preview.tensionSignal.evidence.map((item, index) => [
+      ["tensionSignal", "evidence", index],
+      item,
+    ] as const),
+    ...preview.paidPreview.evidence.map((item, index) => [
+      ["paidPreview", "evidence", index],
+      item,
+    ] as const),
+  ] as const) {
+    const matchingInsight = insightEvidence.get(evidence.evidenceId);
+    if (
+      matchingInsight === undefined ||
+      !matchingFacts(matchingInsight.factReferences, evidence.factReferences)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: [...path],
+        message: "Repeated evidence must match an insight evidence reference",
+      });
+    }
   }
 });
 

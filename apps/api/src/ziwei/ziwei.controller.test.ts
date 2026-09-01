@@ -19,6 +19,8 @@ import {
   ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei.controller.js";
+import type { AnalyticsEventV1 } from "@lasoviet/config";
+import { createApiAnalyticsSink } from "../api.module.js";
 
 const serviceSecret = "synthetic-ziwei-secret";
 const secret = new TextEncoder().encode(serviceSecret);
@@ -188,5 +190,26 @@ describe("Zi Wei private HTTP flow", () => {
       "chart-1",
       { sku: "ZIWEI-IDENTITY-P0", userId: "untrusted-account" },
     );
+  });
+});
+
+describe("API analytics sink", () => {
+  it("emits the already validated event through the structured Nest logger", async () => {
+    const logger = { log: vi.fn() };
+    const event: AnalyticsEventV1 = {
+      name: "paid_topic_selected",
+      properties: {
+        sku: "ZIWEI-IDENTITY-P0",
+        method: "ziwei",
+        recommendation_source: "topic_selection",
+      },
+    };
+
+    await createApiAnalyticsSink(logger).write(event);
+
+    expect(logger.log).toHaveBeenCalledWith({
+      event: "analytics_event",
+      analytics: event,
+    });
   });
 });

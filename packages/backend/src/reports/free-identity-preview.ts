@@ -6,9 +6,9 @@ import {
 } from "@lasoviet/contracts";
 
 const canonicalEvidenceIds = [
-  "ziwei.identity.soul",
-  "ziwei.identity.body",
-  "ziwei.identity.configuration",
+  "ziwei.identity.life-palace",
+  "ziwei.identity.body-palace",
+  "ziwei.identity.transformations",
 ] as const;
 
 export type FreeIdentityPreviewError = "INSUFFICIENT_EVIDENCE";
@@ -62,9 +62,9 @@ export function buildFreeIdentityPreview(
   ) {
     return insufficientEvidence();
   }
-  const soul = reference(byId.get("ziwei.identity.soul")!);
-  const body = reference(byId.get("ziwei.identity.body")!);
-  const configuration = reference(byId.get("ziwei.identity.configuration")!);
+  const lifePalace = reference(byId.get("ziwei.identity.life-palace")!);
+  const bodyPalace = reference(byId.get("ziwei.identity.body-palace")!);
+  const transformations = reference(byId.get("ziwei.identity.transformations")!);
   const preview = FreeIdentityPreviewV1Schema.safeParse({
     version: 1,
     chartId: input.chartId,
@@ -72,20 +72,20 @@ export function buildFreeIdentityPreview(
     capabilityId: "ziwei.identity.p0",
     summaryVersion: "ziwei.identity.free.v1",
     insights: [
-      { id: "soul", evidence: soul },
-      { id: "body", evidence: body },
-      { id: "configuration", evidence: configuration },
+      { id: "life-palace", evidence: lifePalace },
+      { id: "body-palace", evidence: bodyPalace },
+      { id: "transformations", evidence: transformations },
     ],
-    strengthSignal: { id: "soul-strength", evidence: soul },
+    strengthSignal: { id: "life-palace-strength", evidence: lifePalace },
     tensionSignal: {
-      id: "body-configuration-tension",
-      evidence: [body, configuration],
+      id: "body-palace-transformations-tension",
+      evidence: [bodyPalace, transformations],
     },
     paidPreview: {
       sku: "ZIWEI-IDENTITY-P0",
       sectionId: "personal_summary",
       coveragePercent: 12,
-      evidence: [soul],
+      evidence: [lifePalace],
     },
   });
   return preview.success

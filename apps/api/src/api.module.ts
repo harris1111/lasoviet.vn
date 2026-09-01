@@ -1,9 +1,10 @@
-import { Module } from "@nestjs/common";
+import { Logger, Module } from "@nestjs/common";
 
 import {
   CONSENT_DOCUMENT_VERSIONS,
 } from "@lasoviet/contracts";
 import { loadEnvironment } from "@lasoviet/config";
+import type { AnalyticsEventV1 } from "@lasoviet/config";
 import {
   IztroAdapter,
   iztroDefaultConfig,
@@ -28,6 +29,7 @@ import {
   createZiweiQueryService,
   type EmailProvider,
 } from "@lasoviet/backend";
+import type { AnalyticsSink } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
 
 import {
@@ -102,6 +104,16 @@ function privacyDatabase() {
     throw new Error("API_DATABASE_CONFIG_INVALID");
   }
   return createDatabase(environment.databaseUrl);
+}
+
+export function createApiAnalyticsSink(
+  logger: Pick<Logger, "log"> = new Logger("Analytics"),
+): AnalyticsSink {
+  return {
+    async write(event: AnalyticsEventV1) {
+      logger.log({ event: "analytics_event", analytics: event });
+    },
+  };
 }
 
 @Module({
@@ -207,9 +219,7 @@ function privacyDatabase() {
       provide: ZIWEI_ANALYTICS_SERVICE,
       useFactory: () =>
         createAnalyticsService({
-          sink: {
-            async write() {},
-          },
+          sink: createApiAnalyticsSink(),
         }),
     },
     {

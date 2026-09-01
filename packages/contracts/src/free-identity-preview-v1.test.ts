@@ -52,6 +52,30 @@ describe("free identity preview contracts", () => {
       ...result.data,
       paidPreview: { ...result.data?.paidPreview, coveragePercent: 15 },
     }).success).toBe(false);
+    expect(FreeIdentityPreviewV1Schema.safeParse({
+      ...result.data,
+      strengthSignal: {
+        ...result.data?.strengthSignal,
+        evidence: { ...evidence, evidenceId: "ziwei.identity.foreign" },
+      },
+    }).success).toBe(false);
+    expect(FreeIdentityPreviewV1Schema.safeParse({
+      ...result.data,
+      tensionSignal: {
+        ...result.data?.tensionSignal,
+        evidence: [
+          { ...evidence, evidenceId: "ziwei.identity.body", factReferences: ["mismatched.fact"] },
+          { ...evidence, evidenceId: "ziwei.identity.configuration" },
+        ],
+      },
+    }).success).toBe(false);
+    expect(FreeIdentityPreviewV1Schema.safeParse({
+      ...result.data,
+      paidPreview: {
+        ...result.data?.paidPreview,
+        evidence: [{ ...evidence, evidenceId: "ziwei.identity.body", factReferences: ["mismatched.fact"] }],
+      },
+    }).success).toBe(false);
   });
 
   it("allows only the identity topic request and one catalog-backed VND offer", () => {

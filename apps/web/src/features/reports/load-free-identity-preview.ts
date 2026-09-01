@@ -2,11 +2,9 @@ import "server-only";
 
 import {
   FreeIdentityPreviewV1Schema,
-  PaidTopicSelectionRequestV1Schema,
   PaidTopicSelectionViewV1Schema,
   type CurrentActor,
   type FreeIdentityPreviewV1,
-  type PaidTopicSelectionRequestV1,
   type PaidTopicSelectionViewV1,
   type Result,
 } from "@lasoviet/contracts";
@@ -136,12 +134,8 @@ export function createFreeIdentityPreviewLoader(
 
     async selectTopic(
       chartId: string,
-      request: PaidTopicSelectionRequestV1,
+      request: unknown,
     ): Promise<Result<PaidTopicSelectionViewV1, TopicLoaderError>> {
-      const selection = PaidTopicSelectionRequestV1Schema.safeParse(request);
-      if (!selection.success) {
-        return failure("SKU_UNAVAILABLE");
-      }
       const actor = await actorFor<TopicLoaderError>(dependencies);
       if ("ok" in actor) {
         return actor;
@@ -151,7 +145,7 @@ export function createFreeIdentityPreviewLoader(
           .request<unknown>(`/ziwei/charts/${encodeURIComponent(chartId)}/topics`, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify(selection.data),
+            body: JSON.stringify(request),
           }),
         PaidTopicSelectionViewV1Schema,
       );

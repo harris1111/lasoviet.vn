@@ -52,7 +52,7 @@ const chart = {
   },
 };
 
-const items = ["soul", "body", "configuration"].map((name) => ({
+const items = ["life-palace", "body-palace", "transformations"].map((name) => ({
   id: `ziwei.identity.${name}`,
   factReferences: ["fact-1"],
   confidence: "high" as const,
@@ -168,7 +168,7 @@ describe("Zi Wei query service", () => {
   it("returns one selected strict evidence item and hides unrelated evidence IDs", async () => {
     const store = repository();
     const service = createZiweiQueryService({ repository: store, now: () => now });
-    await expect(service.readEvidence(account, "chart-1", "ziwei.identity.body")).resolves.toEqual({
+    await expect(service.readEvidence(account, "chart-1", "ziwei.identity.body-palace")).resolves.toEqual({
       ok: true,
       value: {
         version: 1, chartId: "chart-1", chartVersionId: "chart-version-2", evidence: items[1],
