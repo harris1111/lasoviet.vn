@@ -37,6 +37,7 @@ export type AuthEmailDeliveryRecord = {
   idempotencyKey: string;
   kind: AuthEmailKind;
   recipientFingerprint: string;
+  requestPayload: AuthEmailRequest;
   status: NotificationDeliveryStatus;
   sendingLeaseExpiresAt: Date | null;
   attemptCount: number;
@@ -49,7 +50,7 @@ export type AuthEmailDeliveryRecord = {
 
 export type NewAuthEmailDelivery = Pick<
   AuthEmailDeliveryRecord,
-  "idempotencyKey" | "kind" | "recipientFingerprint"
+  "idempotencyKey" | "kind" | "recipientFingerprint" | "requestPayload"
 >;
 
 export interface AuthEmailDeliveryStore {
@@ -77,6 +78,7 @@ export interface AuthEmailDeliveryStore {
     errorCode: string,
     now: Date,
   ): Promise<void>;
+  listRetryable(limit: number): Promise<AuthEmailRequest[]>;
 }
 
 export type AuthEmailDeliveryOutcome = {
@@ -200,6 +202,7 @@ export function createAuthEmailDeliveryService(
             validatedRequest.recipient,
             options.recipientFingerprintSecret,
           ),
+          requestPayload: validatedRequest,
         },
         now,
       );
@@ -254,6 +257,13 @@ export function createAuthEmailDeliveryService(
       record = await options.store.getByIdempotencyKey(idempotencyKey);
       return outcome(record);
     },
+    async retryDue(limit = 25): Promise<number> {
+      const requests = await options.store.listRetryable(limit);
+      for (const request of requests) {
+        await this.send(request);
+      }
+      return requests.length;
+    },
   };
 }
 
@@ -265,6 +275,7 @@ function fromDatabaseRecord(
     idempotencyKey: record.idempotencyKey,
     kind: record.kind,
     recipientFingerprint: record.recipientFingerprint,
+    requestPayload: AuthEmailRequestSchema.parse(record.requestPayload),
     status: record.status,
     sendingLeaseExpiresAt: record.sendingLeaseExpiresAt,
     attemptCount: record.attemptCount,
@@ -289,6 +300,22 @@ export function createDatabaseAuthEmailDeliveryStore(
           updatedAt: now,
         })
         .onConflictDoNothing();
+    },
+    async listRetryable(limit) {
+      const records = await database
+        .select()
+        .from(notificationDeliveries)
+        .where(
+          and(
+            eq(notificationDeliveries.status, "failed_retryable"),
+            lt(notificationDeliveries.attemptCount, 3),
+          ),
+        )
+        .limit(limit);
+      return records.flatMap((record) => {
+        const parsed = AuthEmailRequestSchema.safeParse(record.requestPayload);
+        return parsed.success ? [parsed.data] : [];
+      });
     },
 
     async getByIdempotencyKey(idempotencyKey) {

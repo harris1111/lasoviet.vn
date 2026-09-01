@@ -131,4 +131,27 @@ describe("auth email private HTTP flow", () => {
     });
     expect(send).not.toHaveBeenCalled();
   });
+
+  it("returns a retryable delivery outcome without converting it to success", async () => {
+    send.mockResolvedValueOnce({
+      status: "failed_retryable",
+      attemptCount: 1,
+      providerMessageId: null,
+      errorCode: "SMTP_RETRYABLE",
+    });
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "POST",
+      url: "/internal/auth-email/send",
+      headers: {
+        authorization: `Bearer ${await serviceToken(request)}`,
+      },
+      payload: request,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      status: "failed_retryable",
+      errorCode: "SMTP_RETRYABLE",
+    });
+  });
 });

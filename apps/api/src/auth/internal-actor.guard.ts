@@ -6,6 +6,13 @@ import {
   InternalActorV1Schema,
   type CurrentActor,
 } from "@lasoviet/contracts";
+import {
+  authAnonymousActors,
+  authSessions,
+  deletionRequests,
+  type Database,
+} from "@lasoviet/database";
+import { and, eq, gt, isNull } from "drizzle-orm";
 
 export type ActorTokenErrorCode =
   | "ACTOR_TOKEN_EXPIRED"
@@ -23,6 +30,8 @@ export async function verifyInternalActorToken(
   token: string,
   secret: Uint8Array,
   now = Math.floor(Date.now() / 1000),
+  database?: Database,
+  allowDeletionRecovery = false,
 ): Promise<CurrentActor> {
   try {
     const { payload, protectedHeader } = await jwtVerify(token, secret, {
@@ -45,20 +54,54 @@ export async function verifyInternalActorToken(
       throw new ActorTokenError("ACTOR_TOKEN_INVALID");
     }
 
-    return parsed.data.kind === "account"
+    const actor: CurrentActor = parsed.data.kind === "account"
       ? {
-          kind: "account",
+          kind: "account" as const,
           userId: parsed.data.sub,
           sessionId: parsed.data.sid,
           requestId: parsed.data.requestId,
         }
       : {
-          kind: "anonymous",
+          kind: "anonymous" as const,
           anonymousActorId: parsed.data.sub,
           sessionId: parsed.data.sid,
           requestId: parsed.data.requestId,
           expiresAt: parsed.data.expiresAt,
         };
+    if (database === undefined) {
+      return actor;
+    }
+    const currentTime = new Date(now * 1000);
+    if (actor.kind === "account") {
+      const [session] = await database
+        .select({ id: authSessions.id })
+        .from(authSessions)
+        .where(and(eq(authSessions.id, actor.sessionId), eq(authSessions.userId, actor.userId), gt(authSessions.expiresAt, currentTime)))
+        .limit(1);
+      if (session === undefined) {
+        throw new ActorTokenError("ACTOR_TOKEN_INVALID");
+      }
+      if (!allowDeletionRecovery) {
+        const [deletion] = await database
+          .select({ id: deletionRequests.id })
+          .from(deletionRequests)
+          .where(and(eq(deletionRequests.userId, actor.userId), eq(deletionRequests.status, "requested")))
+          .limit(1);
+        if (deletion !== undefined) {
+          throw new ActorTokenError("ACTOR_TOKEN_INVALID");
+        }
+      }
+    } else {
+      const [anonymousActor] = await database
+        .select({ id: authAnonymousActors.id })
+        .from(authAnonymousActors)
+        .where(and(eq(authAnonymousActors.id, actor.anonymousActorId), isNull(authAnonymousActors.linkedUserId), isNull(authAnonymousActors.deletedAt), gt(authAnonymousActors.expiresAt, currentTime)))
+        .limit(1);
+      if (anonymousActor === undefined) {
+        throw new ActorTokenError("ACTOR_TOKEN_INVALID");
+      }
+    }
+    return actor;
   } catch (error) {
     if (error instanceof ActorTokenError) {
       throw error;

@@ -49,6 +49,10 @@ export const birthProfiles = pgTable(
       "birth_profiles_one_owner",
       sql`num_nonnulls(${table.userId}, ${table.anonymousActorId}) = 1`,
     ),
+    check(
+      "birth_profiles_anonymous_expiry_matches_owner",
+      sql`(${table.userId} IS NOT NULL AND ${table.anonymousActorId} IS NULL AND ${table.anonymousExpiresAt} IS NULL) OR (${table.userId} IS NULL AND ${table.anonymousActorId} IS NOT NULL AND ${table.anonymousExpiresAt} IS NOT NULL)`,
+    ),
     index("birth_profiles_user_id_idx").on(table.userId),
     index("birth_profiles_anonymous_expiry_idx").on(
       table.anonymousActorId,

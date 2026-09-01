@@ -47,13 +47,18 @@ export const consents = pgTable(
       "consents_one_owner",
       sql`num_nonnulls(${table.userId}, ${table.anonymousActorId}) = 1`,
     ),
-    uniqueIndex("consents_owner_document_purpose_unique").on(
+    uniqueIndex("consents_account_document_purpose_unique").on(
       table.userId,
+      table.documentKey,
+      table.documentVersion,
+      table.purpose,
+    ).where(sql`${table.userId} IS NOT NULL`),
+    uniqueIndex("consents_anonymous_document_purpose_unique").on(
       table.anonymousActorId,
       table.documentKey,
       table.documentVersion,
       table.purpose,
-    ),
+    ).where(sql`${table.anonymousActorId} IS NOT NULL`),
     index("consents_document_idx").on(table.documentKey, table.documentVersion),
   ],
 );

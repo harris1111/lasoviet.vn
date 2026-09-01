@@ -156,6 +156,18 @@ describe("account deletion integration", () => {
   it("purges expired anonymous data, permits immediate deletion, and retains linked data", async () => {
     const database = createDatabase(databaseUrl);
     await database.insert(authUsers).values({
+      id: "anonymous-unexpired",
+      name: "Anonymous User",
+      email: "anonymous-unexpired@example.test",
+      isAnonymous: true,
+    });
+    await database.insert(authSessions).values({
+      id: "anonymous-unexpired-session",
+      userId: "anonymous-unexpired",
+      token: "anonymous-unexpired-token",
+      expiresAt: new Date("2026-09-02T00:00:00Z"),
+    });
+    await database.insert(authUsers).values({
       id: "linked-account",
       name: "Linked Account",
       email: "linked-account@example.test",
@@ -216,6 +228,45 @@ describe("account deletion integration", () => {
         .select()
         .from(authAnonymousActors),
     ).toHaveLength(1);
+    expect((await database.select().from(authUsers)).find(
+      (user) => user.id === "anonymous-unexpired",
+    )).toBeUndefined();
+    expect((await database.select().from(authSessions)).find(
+      (session) => session.id === "anonymous-unexpired-session",
+    )).toBeUndefined();
+    await database.$client.end();
+  }, 120_000);
+
+  it("makes purge win over cancellation at the exact recovery deadline", async () => {
+    const database = createDatabase(databaseUrl);
+    const userId = "deadline-account";
+    const requestedAt = new Date("2026-09-01T00:00:00Z");
+    const deadline = new Date("2026-10-01T00:00:00Z");
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Deadline Account",
+      email: "deadline-account@example.test",
+    });
+    const requester = createAccountDeletionService({
+      repository: createDatabaseDeletionRepository(database),
+      now: () => requestedAt,
+    });
+    await requester.request(userId, "deadline-request");
+    const boundary = createAccountDeletionService({
+      repository: createDatabaseDeletionRepository(database),
+      now: () => deadline,
+    });
+
+    const [cancelled, purged] = await Promise.all([
+      boundary.cancel(userId, "deadline-cancel"),
+      boundary.purgeExpired(),
+    ]);
+
+    expect(cancelled).toMatchObject({
+      ok: false,
+      error: { code: "DELETION_RECOVERY_EXPIRED" },
+    });
+    expect(purged).toHaveLength(1);
     await database.$client.end();
   }, 120_000);
 });

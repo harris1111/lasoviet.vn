@@ -307,10 +307,6 @@ export function createBirthProfileService(
       if (anonymousExpired(actor, currentTime)) {
         return serviceError("ANONYMOUS_EXPIRED");
       }
-      const existing = await options.repository.read(actor, profileId, currentTime);
-      if (existing === null) {
-        return serviceError("PROFILE_NOT_FOUND");
-      }
       const result = await normalized(input);
       if (!result.ok) {
         return result;
@@ -318,7 +314,6 @@ export function createBirthProfileService(
       const record = await options.repository.update({
         actor,
         profileId,
-        revisionNumber: existing.revisionNumber + 1,
         originalInput: result.value.originalInput,
         normalized: result.value,
         now: currentTime,

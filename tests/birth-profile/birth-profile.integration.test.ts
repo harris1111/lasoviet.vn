@@ -128,4 +128,56 @@ describe("BirthProfile persistence", () => {
     });
     await database.$client.end();
   }, 120_000);
+
+  it("allocates immutable revisions for concurrent owner-authorized updates", async () => {
+    const database = createDatabase(databaseUrl);
+    await database.insert(authUsers).values({
+      id: "concurrent-account",
+      name: "Concurrent Account",
+      email: "concurrent-account@example.test",
+    });
+    const service = createBirthProfileService({
+      repository: createDatabaseBirthProfileRepository(database),
+      now: () => new Date("2026-09-01T00:00:00Z"),
+    });
+    const actor = {
+      kind: "account" as const,
+      userId: "concurrent-account",
+      sessionId: "concurrent-session",
+      requestId: "concurrent-request",
+    };
+    const created = await service.create(actor, input);
+    expect(created).toMatchObject({ ok: true });
+    if (!created.ok) {
+      return;
+    }
+
+    const results = await Promise.all([
+      service.update(actor, created.value.profileId, {
+        ...input,
+        time: { precision: "branch_only", branch: "si" },
+      }),
+      service.update(actor, created.value.profileId, {
+        ...input,
+        time: { precision: "branch_only", branch: "wu" },
+      }),
+    ]);
+
+    expect(results).toEqual([
+      expect.objectContaining({ ok: true }),
+      expect.objectContaining({ ok: true }),
+    ]);
+    const revisions = (await database
+      .select({
+        profileId: birthProfileRevisions.profileId,
+        revisionNumber: birthProfileRevisions.revisionNumber,
+      })
+      .from(birthProfileRevisions)
+      .orderBy(birthProfileRevisions.revisionNumber))
+      .filter((revision) => revision.profileId === created.value.profileId);
+    expect(revisions.map((revision) => revision.revisionNumber)).toEqual([
+      1, 2, 3,
+    ]);
+    await database.$client.end();
+  }, 120_000);
 });

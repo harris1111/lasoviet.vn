@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, gt, lte } from "drizzle-orm";
 
 import {
   auditLogs,
@@ -101,22 +101,7 @@ export function createDatabaseDeletionRepository(
 
     async cancel(userId, requestId, now) {
       return database.transaction(async (transaction) => {
-        const [existing] = await transaction
-          .select()
-          .from(deletionRequests)
-          .where(eq(deletionRequests.userId, userId))
-          .limit(1);
-        if (
-          existing === undefined ||
-          existing.status !== "requested" ||
-          existing.recoverUntil < now
-        ) {
-          return {
-            ok: false,
-            error: "DELETION_RECOVERY_EXPIRED" as const,
-          };
-        }
-        await transaction
+        const [cancelled] = await transaction
           .update(deletionRequests)
           .set({
             status: "cancelled",
@@ -125,19 +110,27 @@ export function createDatabaseDeletionRepository(
           })
           .where(
             and(
-              eq(deletionRequests.id, existing.id),
+              eq(deletionRequests.userId, userId),
               eq(deletionRequests.status, "requested"),
+              gt(deletionRequests.recoverUntil, now),
             ),
-          );
+          )
+          .returning({ id: deletionRequests.id });
+        if (cancelled === undefined) {
+          return {
+            ok: false,
+            error: "DELETION_RECOVERY_EXPIRED" as const,
+          };
+        }
         await transaction.insert(auditLogs).values({
           actorId: userId,
           action: "account.deletion.cancelled",
           targetType: "account",
           targetId: userId,
           requestId,
-          metadata: { deletionRequestId: existing.id },
+          metadata: { deletionRequestId: cancelled.id },
         });
-        return { ok: true, value: { requestId: existing.id } };
+        return { ok: true, value: { requestId: cancelled.id } };
       });
     },
 

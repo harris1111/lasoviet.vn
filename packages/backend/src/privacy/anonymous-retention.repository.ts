@@ -3,6 +3,7 @@ import { and, eq, isNull, lte } from "drizzle-orm";
 import {
   auditLogs,
   authAnonymousActors,
+  authUsers,
   enqueueOutbox,
   type Database,
 } from "@lasoviet/database";
@@ -23,17 +24,36 @@ async function deleteActor(
 > {
   return database.transaction(async (transaction) => {
     const [actor] = await transaction
-      .select()
-      .from(authAnonymousActors)
-      .where(eq(authAnonymousActors.id, actorId))
-      .limit(1);
+      .delete(authAnonymousActors)
+      .where(
+        and(
+          eq(authAnonymousActors.id, actorId),
+          isNull(authAnonymousActors.linkedUserId),
+          ...(requireExpiry
+            ? [lte(authAnonymousActors.expiresAt, now)]
+            : []),
+        ),
+      )
+      .returning({
+        id: authAnonymousActors.id,
+        expiresAt: authAnonymousActors.expiresAt,
+      });
     if (actor === undefined) {
-      return { ok: true, value: { actorId } };
-    }
-    if (actor.linkedUserId !== null) {
-      return { ok: false, error: "ANONYMOUS_ALREADY_LINKED" };
-    }
-    if (requireExpiry && actor.expiresAt > now) {
+      const [existing] = await transaction
+        .select({
+          id: authAnonymousActors.id,
+          linkedUserId: authAnonymousActors.linkedUserId,
+          expiresAt: authAnonymousActors.expiresAt,
+        })
+        .from(authAnonymousActors)
+        .where(eq(authAnonymousActors.id, actorId))
+        .limit(1);
+      if (existing === undefined) {
+        return { ok: true, value: { actorId } };
+      }
+      if (existing.linkedUserId !== null) {
+        return { ok: false, error: "ANONYMOUS_ALREADY_LINKED" };
+      }
       return { ok: false, error: "ANONYMOUS_NOT_EXPIRED" };
     }
 
@@ -59,8 +79,8 @@ async function deleteActor(
       metadata: { retentionBoundary: requireExpiry ? "expired" : "manual" },
     });
     await transaction
-      .delete(authAnonymousActors)
-      .where(eq(authAnonymousActors.id, actor.id));
+      .delete(authUsers)
+      .where(eq(authUsers.id, actor.id));
     return { ok: true, value: { actorId: actor.id } };
   });
 }

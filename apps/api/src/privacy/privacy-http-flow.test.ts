@@ -16,6 +16,7 @@ import {
   ACCOUNT_DELETION_SERVICE,
   ANONYMOUS_RETENTION_SERVICE,
   CONSENT_SERVICE,
+  PRIVACY_DATABASE,
   PRIVACY_SERVICE_SECRET,
   PrivacyController,
 } from "./privacy.controller.js";
@@ -79,6 +80,10 @@ Module({
     {
       provide: PRIVACY_SERVICE_SECRET,
       useValue: serviceSecret,
+    },
+    {
+      provide: PRIVACY_DATABASE,
+      useValue: undefined,
     },
   ],
 })(PrivacyHttpTestModule);

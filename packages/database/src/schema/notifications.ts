@@ -1,6 +1,7 @@
 import {
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -30,6 +31,9 @@ export const notificationDeliveries = pgTable(
     idempotencyKey: text("idempotency_key").notNull(),
     kind: notificationDeliveryKind("kind").notNull(),
     recipientFingerprint: text("recipient_fingerprint").notNull(),
+    requestPayload: jsonb("request_payload")
+      .$type<Record<string, unknown>>()
+      .notNull(),
     status: notificationDeliveryStatus("status").notNull().default("pending"),
     sendingLeaseExpiresAt: timestamp("sending_lease_expires_at", {
       withTimezone: true,

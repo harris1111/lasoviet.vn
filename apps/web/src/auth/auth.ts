@@ -107,6 +107,7 @@ export function createAuth() {
     : {}),
   plugins: [
     anonymous({
+      disableDeleteAnonymousUser: true,
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         const result = await linkAnonymousActorToAccount(
           database,
@@ -121,4 +122,11 @@ export function createAuth() {
     nextCookies(),
   ],
   });
+}
+
+let authInstance: ReturnType<typeof createAuth> | undefined;
+
+export function getAuth() {
+  authInstance ??= createAuth();
+  return authInstance;
 }

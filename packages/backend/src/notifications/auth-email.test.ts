@@ -138,6 +138,16 @@ class MemoryDeliveryStore implements AuthEmailDeliveryStore {
     }
   }
 
+  async listRetryable(limit: number): Promise<AuthEmailRequest[]> {
+    return [...this.records.values()]
+      .filter(
+        (record) =>
+          record.status === "failed_retryable" && record.attemptCount < 3,
+      )
+      .slice(0, limit)
+      .map((record) => record.requestPayload);
+  }
+
   seed(record: AuthEmailDeliveryRecord): void {
     this.records.set(record.idempotencyKey, { ...record });
   }
@@ -206,6 +216,7 @@ describe("auth email delivery state machine", () => {
       idempotencyKey: request.idempotencyKey,
       kind: request.kind,
       recipientFingerprint: "synthetic-fingerprint",
+      requestPayload: request,
       status: "sending",
       sendingLeaseExpiresAt: new Date("2026-08-31T23:59:59Z"),
       attemptCount: 1,
@@ -227,5 +238,39 @@ describe("auth email delivery state machine", () => {
       status: "delivery_unknown",
     });
     expect(calls.count).toBe(0);
+  });
+
+  it("retries only bounded failed deliveries", async () => {
+    const store = new MemoryDeliveryStore();
+    const calls = { count: 0 };
+    const now = new Date("2026-09-01T00:00:00Z");
+    store.seed({
+      id: "delivery-retryable",
+      idempotencyKey: request.idempotencyKey,
+      kind: request.kind,
+      recipientFingerprint: "synthetic-fingerprint",
+      requestPayload: request,
+      status: "failed_retryable",
+      sendingLeaseExpiresAt: null,
+      attemptCount: 1,
+      lastErrorCode: "SMTP_RETRYABLE",
+      providerMessageId: null,
+      createdAt: now,
+      updatedAt: now,
+      sentAt: null,
+    });
+    const service = createAuthEmailDeliveryService({
+      store,
+      provider: provider({ ok: true, providerMessageId: "retried" }, calls),
+      recipientFingerprintSecret: "synthetic-secret",
+      now: () => now,
+    });
+
+    await expect(service.retryDue(1)).resolves.toBe(1);
+    expect(calls.count).toBe(1);
+    await expect(service.send(request)).resolves.toMatchObject({
+      status: "sent",
+      attemptCount: 2,
+    });
   });
 });

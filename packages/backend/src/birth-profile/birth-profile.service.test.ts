@@ -81,6 +81,25 @@ describe("BirthProfile normalization", () => {
       error: { code: "INVALID_TIMEZONE" },
     });
   });
+
+  it("rejects an inverted same-date birth-time range", () => {
+    expect(
+      normalizeBirthProfile({
+        version: 1,
+        calendar: { kind: "solar", date: "1990-01-01" },
+        time: {
+          precision: "range",
+          startLocalTime: "10:30",
+          endLocalTime: "09:30",
+        },
+        timezone: { offsetMinutes: 420 },
+        consentVersion: "2026-09-01",
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { code: "INVALID_CALENDAR_INPUT" },
+    });
+  });
 });
 
 describe("BirthProfile service", () => {
@@ -156,7 +175,6 @@ describe("BirthProfile service", () => {
         actor: expect.objectContaining({
           anonymousActorId: "anonymous-1",
         }),
-        revisionNumber: 2,
       }),
     ]);
     expect(writes[0]?.normalized).toMatchObject({

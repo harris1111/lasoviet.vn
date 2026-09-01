@@ -73,6 +73,13 @@ export {
   normalizeBirthProfile,
   resolveZiweiTimeIndex,
 } from "./birth-profile/birth-profile.service.js";
+
+export {
+  createPhaseOneMaintenanceRunner,
+} from "./maintenance/phase-one-maintenance.js";
+export type {
+  PhaseOneMaintenanceRunner,
+} from "./maintenance/phase-one-maintenance.js";
 export type {
   BirthProfileNormalizationError,
   BirthProfileServiceError,

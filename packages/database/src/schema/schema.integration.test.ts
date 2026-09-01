@@ -95,6 +95,15 @@ describe("database schema integration", () => {
       documentVersion: "2026-09-01",
       purpose: "birth_profile",
     });
+    await expect(
+      database.insert(consents).values({
+        id: "consent_schema_test_duplicate",
+        userId,
+        documentKey: "privacy",
+        documentVersion: "2026-09-01",
+        purpose: "birth_profile",
+      }),
+    ).rejects.toBeDefined();
     await database.insert(deletionRequests).values({
       id: "deletion_schema_test",
       userId,
@@ -112,6 +121,35 @@ describe("database schema integration", () => {
       anonymousActorId,
       anonymousExpiresAt: new Date("2026-09-02T00:00:00Z"),
     });
+    await expect(
+      database.insert(birthProfiles).values({
+        id: "profile_schema_missing_expiry",
+        anonymousActorId,
+      }),
+    ).rejects.toBeDefined();
+    await expect(
+      database.insert(birthProfiles).values({
+        id: "profile_schema_account_expiry",
+        userId,
+        anonymousExpiresAt: new Date("2026-09-02T00:00:00Z"),
+      }),
+    ).rejects.toBeDefined();
+    await database.insert(consents).values({
+      id: "consent_schema_anonymous",
+      anonymousActorId,
+      documentKey: "privacy",
+      documentVersion: "2026-09-01",
+      purpose: "birth_profile",
+    });
+    await expect(
+      database.insert(consents).values({
+        id: "consent_schema_anonymous_duplicate",
+        anonymousActorId,
+        documentKey: "privacy",
+        documentVersion: "2026-09-01",
+        purpose: "birth_profile",
+      }),
+    ).rejects.toBeDefined();
     await database.insert(birthProfileRevisions).values({
       id: "profile_revision_schema_test",
       profileId,
@@ -170,6 +208,15 @@ describe("database schema integration", () => {
         idempotencyKey: "auth-email:verification:schema-test",
         kind: "email_verification",
         recipientFingerprint: "recipient-fingerprint-schema-test",
+        requestPayload: {
+          version: 1,
+          kind: "email_verification",
+          idempotencyKey: "auth-email:verification:schema-test",
+          recipient: "schema-test@example.test",
+          locale: "en",
+          actionUrl: "https://lasoviet.example/verify",
+          requestId: "schema-test-request",
+        },
       })
       .returning();
 
@@ -238,6 +285,31 @@ describe("database schema integration", () => {
     });
     expect(actor).toMatchObject({ id: anonymousActorId, linkedUserId: userId });
 
+    await database.$client.end();
+  }, 120_000);
+
+  it("refuses to link an expired anonymous actor", async () => {
+    const database = createDatabase(databaseUrl);
+    await database.insert(authUsers).values({
+      id: "user_expired_link_test",
+      name: "Expired Link User",
+      email: "expired-link-user@example.test",
+    });
+    await database.insert(authAnonymousActors).values({
+      id: "anonymous_expired_link_test",
+      expiresAt: new Date("2026-08-31T23:59:59Z"),
+    });
+
+    await expect(
+      linkAnonymousActorToAccount(
+        database,
+        "anonymous_expired_link_test",
+        "user_expired_link_test",
+      ),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "ANONYMOUS_LINK_CONFLICT" },
+    });
     await database.$client.end();
   }, 120_000);
 });

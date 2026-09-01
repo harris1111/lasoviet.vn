@@ -28,6 +28,18 @@ export const AuthEmailRequestSchema = z
   .strict();
 export type AuthEmailRequest = z.infer<typeof AuthEmailRequestSchema>;
 
+export const AuthEmailDeliveryOutcomeSchema = z
+  .object({
+    status: z.literal("sent"),
+    attemptCount: z.number().int().positive(),
+    providerMessageId: z.string().nullable(),
+    errorCode: z.null(),
+  })
+  .strict();
+export type AuthEmailDeliveryOutcome = z.infer<
+  typeof AuthEmailDeliveryOutcomeSchema
+>;
+
 export const AuthEmailServiceClaimsSchema = z
   .object({
     iss: z.literal(AUTH_EMAIL_SERVICE_ISSUER),

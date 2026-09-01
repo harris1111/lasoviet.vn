@@ -22,6 +22,13 @@
       "when": 1788269191651,
       "tag": "0002_typical_captain_universe",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788273000000,
+      "tag": "0003_phase_one_lifecycle_guards",
+      "breakpoints": true
     }
   ]
 }

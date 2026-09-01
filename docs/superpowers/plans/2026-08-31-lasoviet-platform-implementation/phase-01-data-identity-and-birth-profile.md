@@ -143,7 +143,7 @@ pnpm playwright test tests/auth/session-and-actor.spec.ts
 
 Expected: FAIL.
 
-- [ ] **Step 3: Configure Better Auth and database sessions**
+- [x] **Step 3: Configure Better Auth and database sessions**
 
 Configure Better Auth's Anonymous plugin and database-backed account linking.
 Keep auth secrets server-only. Do not expose API credentials or internal actor
@@ -151,12 +151,12 @@ secrets to Client Components. Better Auth calls a server-only web client that
 sends a signed internal command to the private API; the browser never receives
 SMTP credentials.
 
-- [ ] **Step 4: Implement actor-token verification in API**
+- [x] **Step 4: Implement actor-token verification in API**
 
 Use short expiry, explicit audience, stable algorithm selection, and constant
 time verification from a reviewed library.
 
-- [ ] **Step 5: Implement SMTP verification and reset delivery**
+- [x] **Step 5: Implement SMTP verification and reset delivery**
 
 Use the founder-provided SMTP connection when Phase 01 starts. CI exercises the
 real SMTP protocol against a controlled integration service. Never mark an
@@ -355,3 +355,24 @@ git commit -m "feat: add canonical birth profile"
 - Browser/Playwright E2E is not represented as passing. The approved non-visual
   artifact deferral remains binding; a later authorized browser/runtime gate
   must cover the visual flow.
+
+## Phase 01 Correction Wave (2026-09-01)
+
+- Closed M-01 through M-12 from the milestone review without expanding into
+  deferred Phase 02 or UI work.
+- Fresh focused verification passed: 12 files, 39 tests. It covers live
+  PostgreSQL session/deletion-state actor authorization, anonymous expiry and
+  coordinated deletion, constraints, exact cancellation boundary, immutable
+  revision allocation, precision validation, auth-email failure outcomes, and
+  the bounded worker runner.
+- Fresh migration acceptance passed: 1 file, 4 tests. Root verification passed:
+  25 files, 114 tests; root typecheck, root build, and i18n parity passed.
+- Better Auth is instantiated lazily once per web process; its anonymous
+  vendor-delete endpoint is disabled so the private coordinated deletion path
+  owns domain and identity cleanup.
+- The worker executes bounded account-deletion, anonymous-retention, and
+  retryable-auth-email maintenance every 15 minutes. No scheduler platform or
+  deployment configuration was added.
+- Google OAuth remains unexecuted because credentials are unavailable.
+  Browser/Playwright UI verification remains deferred by FD-024 and is not
+  claimed as passed.

@@ -20,6 +20,7 @@ import {
   createAnonymousRetentionService,
   createConsentService,
 } from "@lasoviet/backend";
+import type { Database } from "@lasoviet/database";
 
 import {
   ActorTokenError,
@@ -32,6 +33,7 @@ export const ANONYMOUS_RETENTION_SERVICE = Symbol(
   "ANONYMOUS_RETENTION_SERVICE",
 );
 export const PRIVACY_SERVICE_SECRET = Symbol("PRIVACY_SERVICE_SECRET");
+export const PRIVACY_DATABASE = Symbol("PRIVACY_DATABASE");
 
 function bearerToken(authorization: string | undefined): string {
   if (authorization === undefined || !authorization.startsWith("Bearer ")) {
@@ -59,15 +61,21 @@ export class PrivacyController {
     >,
     @Inject(PRIVACY_SERVICE_SECRET)
     private readonly secret: string,
+    @Inject(PRIVACY_DATABASE)
+    private readonly database: Database,
   ) {}
 
   private async actor(
     authorization: string | undefined,
+    allowDeletionRecovery = false,
   ): Promise<CurrentActor> {
     try {
       return await verifyInternalActorToken(
         bearerToken(authorization),
         new TextEncoder().encode(this.secret),
+        undefined,
+        this.database,
+        allowDeletionRecovery,
       );
     } catch (error) {
       const code =
@@ -111,7 +119,7 @@ export class PrivacyController {
   async cancelAccountDeletion(
     @Headers("authorization") authorization: string | undefined,
   ) {
-    const actor = await this.actor(authorization);
+    const actor = await this.actor(authorization, true);
     if (actor.kind !== "account") {
       throw new ForbiddenException({ code: "ACTOR_TOKEN_INVALID" });
     }

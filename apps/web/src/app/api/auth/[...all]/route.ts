@@ -1,27 +1,30 @@
 import { toNextJsHandler } from "better-auth/next-js";
 
-import { createAuth } from "../../../../auth/auth";
+import { getAuth } from "../../../../auth/auth";
 
-function handler() {
-  return toNextJsHandler(createAuth());
+let handler: ReturnType<typeof toNextJsHandler> | undefined;
+
+function authHandler() {
+  handler ??= toNextJsHandler(getAuth());
+  return handler;
 }
 
 export async function GET(request: Request) {
-  return handler().GET(request);
+  return authHandler().GET(request);
 }
 
 export async function POST(request: Request) {
-  return handler().POST(request);
+  return authHandler().POST(request);
 }
 
 export async function PATCH(request: Request) {
-  return handler().PATCH(request);
+  return authHandler().PATCH(request);
 }
 
 export async function PUT(request: Request) {
-  return handler().PUT(request);
+  return authHandler().PUT(request);
 }
 
 export async function DELETE(request: Request) {
-  return handler().DELETE(request);
+  return authHandler().DELETE(request);
 }

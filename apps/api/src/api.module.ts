@@ -26,6 +26,7 @@ import {
   AuthEmailController,
 } from "./auth/auth-email.controller.js";
 import {
+  BIRTH_PROFILE_DATABASE,
   BIRTH_PROFILE_SERVICE,
   BIRTH_PROFILE_SERVICE_SECRET,
   BirthProfileController,
@@ -35,6 +36,7 @@ import {
   ACCOUNT_DELETION_SERVICE,
   ANONYMOUS_RETENTION_SERVICE,
   CONSENT_SERVICE,
+  PRIVACY_DATABASE,
   PRIVACY_SERVICE_SECRET,
   PrivacyController,
 } from "./privacy/privacy.controller.js";
@@ -140,6 +142,7 @@ function privacyDatabase() {
         return environment.internalActorSecret;
       },
     },
+    { provide: PRIVACY_DATABASE, useFactory: privacyDatabase },
     {
       provide: BIRTH_PROFILE_SERVICE,
       useFactory: () =>
@@ -157,6 +160,7 @@ function privacyDatabase() {
         return environment.internalActorSecret;
       },
     },
+    { provide: BIRTH_PROFILE_DATABASE, useFactory: privacyDatabase },
   ],
 })
 export class ApiModule {}

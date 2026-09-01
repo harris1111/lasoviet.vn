@@ -56,6 +56,7 @@ export {
   AUTH_EMAIL_SERVICE_COMMAND,
   AUTH_EMAIL_SERVICE_ISSUER,
   AUTH_EMAIL_SERVICE_SUBJECT,
+  AuthEmailDeliveryOutcomeSchema,
   AuthEmailKindSchema,
   AuthEmailRequestSchema,
   AuthEmailServiceClaimsSchema,
@@ -63,6 +64,7 @@ export {
 } from "./auth-email.js";
 export type {
   AuthEmailKind,
+  AuthEmailDeliveryOutcome,
   AuthEmailRequest,
   AuthEmailServiceClaims,
 } from "./auth-email.js";

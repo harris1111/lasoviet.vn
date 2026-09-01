@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 
 import type { Result } from "@lasoviet/contracts";
 
@@ -32,20 +32,21 @@ export async function linkAnonymousActorToAccount(
   userId: string,
 ): Promise<AnonymousLinkResult> {
   return database.transaction(async (transaction) => {
+    const now = new Date();
     const [anonymousActor] = await transaction
-      .select({
-        id: authAnonymousActors.id,
-        linkedUserId: authAnonymousActors.linkedUserId,
-      })
-      .from(authAnonymousActors)
-      .where(eq(authAnonymousActors.id, anonymousActorId))
-      .limit(1);
+      .update(authAnonymousActors)
+      .set({ linkedUserId: userId })
+      .where(
+        and(
+          eq(authAnonymousActors.id, anonymousActorId),
+          isNull(authAnonymousActors.linkedUserId),
+          gt(authAnonymousActors.expiresAt, now),
+          isNull(authAnonymousActors.deletedAt),
+        ),
+      )
+      .returning({ id: authAnonymousActors.id });
 
-    if (
-      anonymousActor === undefined ||
-      (anonymousActor.linkedUserId !== null &&
-        anonymousActor.linkedUserId !== userId)
-    ) {
+    if (anonymousActor === undefined) {
       return {
         ok: false,
         error: {
@@ -56,7 +57,7 @@ export async function linkAnonymousActorToAccount(
       };
     }
 
-    await transaction
+    const linked = await transaction
       .update(birthProfiles)
       .set({
         userId,
@@ -68,12 +69,11 @@ export async function linkAnonymousActorToAccount(
           eq(birthProfiles.anonymousActorId, anonymousActorId),
           isNull(birthProfiles.userId),
         ),
-      );
-
-    await transaction
-      .update(authAnonymousActors)
-      .set({ linkedUserId: userId })
-      .where(eq(authAnonymousActors.id, anonymousActorId));
+      )
+      .returning({ id: birthProfiles.id });
+    if (linked.length === 0) {
+      throw new Error("ANONYMOUS_LINK_PROFILE_MISSING");
+    }
 
     return {
       ok: true,

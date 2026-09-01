@@ -16,6 +16,8 @@ import {
   type AuthEmailRequest,
 } from "@lasoviet/contracts";
 
+import { requireSentAuthEmailDelivery } from "./auth-email-delivery-outcome";
+
 function environment() {
   const result = loadEnvironment(process.env);
   if (!result.ok) {
@@ -109,4 +111,5 @@ export async function sendAuthEmail(
   if (!response.ok) {
     throw new Error("AUTH_EMAIL_DELIVERY_FAILED");
   }
+  requireSentAuthEmailDelivery(await response.json());
 }

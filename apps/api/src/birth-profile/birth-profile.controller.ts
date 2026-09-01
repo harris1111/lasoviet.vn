@@ -19,6 +19,7 @@ import {
   type CurrentActor,
 } from "@lasoviet/contracts";
 import { createBirthProfileService } from "@lasoviet/backend";
+import type { Database } from "@lasoviet/database";
 
 import {
   ActorTokenError,
@@ -29,6 +30,7 @@ export const BIRTH_PROFILE_SERVICE = Symbol("BIRTH_PROFILE_SERVICE");
 export const BIRTH_PROFILE_SERVICE_SECRET = Symbol(
   "BIRTH_PROFILE_SERVICE_SECRET",
 );
+export const BIRTH_PROFILE_DATABASE = Symbol("BIRTH_PROFILE_DATABASE");
 
 function bearerToken(authorization: string | undefined): string {
   if (authorization === undefined || !authorization.startsWith("Bearer ")) {
@@ -48,6 +50,8 @@ export class BirthProfileController {
     private readonly service: ReturnType<typeof createBirthProfileService>,
     @Inject(BIRTH_PROFILE_SERVICE_SECRET)
     private readonly secret: string,
+    @Inject(BIRTH_PROFILE_DATABASE)
+    private readonly database: Database,
   ) {}
 
   private async actor(
@@ -57,6 +61,8 @@ export class BirthProfileController {
       return await verifyInternalActorToken(
         bearerToken(authorization),
         new TextEncoder().encode(this.secret),
+        undefined,
+        this.database,
       );
     } catch (error) {
       const code =

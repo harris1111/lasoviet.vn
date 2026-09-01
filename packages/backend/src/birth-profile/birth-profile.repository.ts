@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 
 import type {
   BirthProfileV1,
@@ -28,7 +28,7 @@ export type BirthProfileRecord = {
 export type BirthProfileWriteInput = {
   actor: CurrentActor;
   profileId?: string;
-  revisionNumber: number;
+  revisionNumber?: number;
   originalInput: BirthProfileV1;
   normalized: NormalizedBirthProfileV1;
   now: Date;
@@ -61,26 +61,6 @@ function serializedNormalized(
   return value as Record<string, unknown>;
 }
 
-async function ownedProfile(
-  database: Database,
-  actor: CurrentActor,
-  profileId: string,
-  now: Date,
-) {
-  const [profile] = await database
-    .select({ id: birthProfiles.id })
-    .from(birthProfiles)
-    .where(
-      and(
-        eq(birthProfiles.id, profileId),
-        ownerFilter(actor, now),
-        isNull(birthProfiles.deletedAt),
-      ),
-    )
-    .limit(1);
-  return profile;
-}
-
 async function latestRecord(database: Database, profileId: string) {
   const [revision] = await database
     .select()
@@ -111,18 +91,20 @@ export function createDatabaseBirthProfileRepository(
         let anonymousExpiresAt: Date | null = null;
         if (input.actor.kind === "anonymous") {
           const [anonymousActor] = await transaction
-            .select({
-              linkedUserId: authAnonymousActors.linkedUserId,
-              expiresAt: authAnonymousActors.expiresAt,
+            .update(authAnonymousActors)
+            .set({
+              expiresAt: sql`${authAnonymousActors.expiresAt}`,
             })
-            .from(authAnonymousActors)
-            .where(eq(authAnonymousActors.id, input.actor.anonymousActorId))
-            .limit(1);
-          if (
-            anonymousActor === undefined ||
-            anonymousActor.linkedUserId !== null ||
-            anonymousActor.expiresAt <= input.now
-          ) {
+            .where(
+              and(
+                eq(authAnonymousActors.id, input.actor.anonymousActorId),
+                isNull(authAnonymousActors.linkedUserId),
+                isNull(authAnonymousActors.deletedAt),
+                gt(authAnonymousActors.expiresAt, input.now),
+              ),
+            )
+            .returning({ expiresAt: authAnonymousActors.expiresAt });
+          if (anonymousActor === undefined) {
             return null;
           }
           anonymousExpiresAt = anonymousActor.expiresAt;
@@ -149,7 +131,7 @@ export function createDatabaseBirthProfileRepository(
         await transaction.insert(birthProfileRevisions).values({
           id: revisionId,
           profileId,
-          revisionNumber: input.revisionNumber,
+          revisionNumber: input.revisionNumber ?? 1,
           originalInput: input.originalInput,
           normalizedInput: serializedNormalized(input.normalized),
           normalizationWarnings: input.normalized.normalizationWarnings,
@@ -166,12 +148,12 @@ export function createDatabaseBirthProfileRepository(
           targetType: "birth_profile",
           targetId: profileId,
           requestId: input.actor.requestId,
-          metadata: { revisionId, revisionNumber: input.revisionNumber },
+          metadata: { revisionId, revisionNumber: input.revisionNumber ?? 1 },
         });
         return {
           profileId,
           revisionId,
-          revisionNumber: input.revisionNumber,
+          revisionNumber: input.revisionNumber ?? 1,
           originalInput: input.originalInput,
           normalizedInput: serializedNormalized(input.normalized),
           normalizationWarnings: input.normalized.normalizationWarnings,
@@ -181,24 +163,35 @@ export function createDatabaseBirthProfileRepository(
     },
 
     async update(input) {
-      if (input.profileId === undefined) {
+      const profileId = input.profileId;
+      if (profileId === undefined) {
         return null;
       }
       return database.transaction(async (transaction) => {
-        const profile = await ownedProfile(
-          transaction,
-          input.actor,
-          input.profileId!,
-          input.now,
-        );
+        const [profile] = await transaction
+          .update(birthProfiles)
+          .set({ updatedAt: input.now })
+          .where(
+            and(
+              eq(birthProfiles.id, profileId),
+              ownerFilter(input.actor, input.now),
+              isNull(birthProfiles.deletedAt),
+            ),
+          )
+          .returning({ id: birthProfiles.id });
         if (profile === undefined) {
           return null;
         }
+        const existing = await latestRecord(transaction, profileId);
+        if (existing === null) {
+          throw new Error("BIRTH_PROFILE_REVISION_MISSING");
+        }
+        const revisionNumber = existing.revisionNumber + 1;
         const revisionId = randomUUID();
         await transaction.insert(birthProfileRevisions).values({
           id: revisionId,
-          profileId: input.profileId!,
-          revisionNumber: input.revisionNumber,
+          profileId,
+          revisionNumber,
           originalInput: input.originalInput,
           normalizedInput: serializedNormalized(input.normalized),
           normalizationWarnings: input.normalized.normalizationWarnings,
@@ -206,10 +199,6 @@ export function createDatabaseBirthProfileRepository(
           consentVersion: input.originalInput.consentVersion,
           createdAt: input.now,
         });
-        await transaction
-          .update(birthProfiles)
-          .set({ updatedAt: input.now })
-          .where(eq(birthProfiles.id, input.profileId!));
         await transaction.insert(auditLogs).values({
           actorId:
             input.actor.kind === "account"
@@ -217,14 +206,14 @@ export function createDatabaseBirthProfileRepository(
               : input.actor.anonymousActorId,
           action: "birth_profile.revised",
           targetType: "birth_profile",
-          targetId: input.profileId!,
+          targetId: profileId,
           requestId: input.actor.requestId,
-          metadata: { revisionId, revisionNumber: input.revisionNumber },
+          metadata: { revisionId, revisionNumber },
         });
         return {
-          profileId: input.profileId!,
+          profileId,
           revisionId,
-          revisionNumber: input.revisionNumber,
+          revisionNumber,
           originalInput: input.originalInput,
           normalizedInput: serializedNormalized(input.normalized),
           normalizationWarnings: input.normalized.normalizationWarnings,
@@ -234,20 +223,58 @@ export function createDatabaseBirthProfileRepository(
     },
 
     async read(actor, profileId, now) {
-      const profile = await ownedProfile(database, actor, profileId, now);
-      return profile === undefined ? null : latestRecord(database, profileId);
+      const [record] = await database
+        .select({
+          profileId: birthProfiles.id,
+          revisionId: birthProfileRevisions.id,
+          revisionNumber: birthProfileRevisions.revisionNumber,
+          originalInput: birthProfileRevisions.originalInput,
+          normalizedInput: birthProfileRevisions.normalizedInput,
+          normalizationWarnings: birthProfileRevisions.normalizationWarnings,
+          limitations: birthProfileRevisions.limitations,
+        })
+        .from(birthProfiles)
+        .innerJoin(
+          birthProfileRevisions,
+          and(
+            eq(birthProfileRevisions.profileId, birthProfiles.id),
+            eq(
+              birthProfileRevisions.revisionNumber,
+              sql<number>`(
+                SELECT MAX("revision_number")
+                FROM "birth_profile_revisions"
+                WHERE "profile_id" = ${birthProfiles.id}
+              )`,
+            ),
+          ),
+        )
+        .where(
+          and(
+            eq(birthProfiles.id, profileId),
+            ownerFilter(actor, now),
+            isNull(birthProfiles.deletedAt),
+          ),
+        )
+        .limit(1);
+      return record ?? null;
     },
 
     async archive(actor, profileId, now) {
-      const profile = await ownedProfile(database, actor, profileId, now);
-      if (profile === undefined) {
-        return false;
-      }
-      await database.transaction(async (transaction) => {
-        await transaction
+      return database.transaction(async (transaction) => {
+        const [profile] = await transaction
           .update(birthProfiles)
           .set({ deletedAt: now, updatedAt: now })
-          .where(eq(birthProfiles.id, profileId));
+          .where(
+            and(
+              eq(birthProfiles.id, profileId),
+              ownerFilter(actor, now),
+              isNull(birthProfiles.deletedAt),
+            ),
+          )
+          .returning({ id: birthProfiles.id });
+        if (profile === undefined) {
+          return false;
+        }
         await transaction.insert(auditLogs).values({
           actorId:
             actor.kind === "account" ? actor.userId : actor.anonymousActorId,
@@ -257,8 +284,8 @@ export function createDatabaseBirthProfileRepository(
           requestId: actor.requestId,
           metadata: {},
         });
+        return true;
       });
-      return true;
     },
   };
 }

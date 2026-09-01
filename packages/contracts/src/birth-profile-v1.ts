@@ -52,7 +52,11 @@ export const BirthTimeInputSchema = z.discriminatedUnion("precision", [
       startLocalTime: localTimeSchema,
       endLocalTime: localTimeSchema,
     })
-    .strict(),
+    .strict()
+    .refine(
+      (range) => range.startLocalTime <= range.endLocalTime,
+      "Birth-time ranges use same-date ordering",
+    ),
   z.object({ precision: z.literal("unknown") }).strict(),
 ]);
 export type BirthTimeInput = z.infer<typeof BirthTimeInputSchema>;

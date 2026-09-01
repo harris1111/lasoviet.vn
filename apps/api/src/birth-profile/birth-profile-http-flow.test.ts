@@ -14,6 +14,7 @@ import {
 
 import {
   BIRTH_PROFILE_SERVICE,
+  BIRTH_PROFILE_DATABASE,
   BIRTH_PROFILE_SERVICE_SECRET,
   BirthProfileController,
 } from "./birth-profile.controller.js";
@@ -48,6 +49,7 @@ Module({
   providers: [
     { provide: BIRTH_PROFILE_SERVICE, useValue: { create, read: vi.fn(), update: vi.fn(), archive: vi.fn() } },
     { provide: BIRTH_PROFILE_SERVICE_SECRET, useValue: serviceSecret },
+    { provide: BIRTH_PROFILE_DATABASE, useValue: undefined },
   ],
 })(BirthProfileHttpTestModule);
 
