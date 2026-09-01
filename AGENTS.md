@@ -284,6 +284,12 @@ rule instead of adding another version.
   instructions before planning or editing.
 - Inspect the live repository before asking a question that source inspection
   can answer.
+- Before Luna implements a task-critical external package or CLI integration
+  whose exact-version behavior is unverified, Terra must verify and record only
+  the task-relevant import/export, configuration, command working-directory or
+  root, and lifecycle/build-script facts in the approved brief. Luna must stop
+  if any required fact is unverified or conflicts with local evidence; never
+  rely on remembered or generic examples.
 - Keep upstream/reference repositories read-only unless the founder explicitly
   changes their role.
 - Never commit secrets, credentials, private reports, or unnecessary personal

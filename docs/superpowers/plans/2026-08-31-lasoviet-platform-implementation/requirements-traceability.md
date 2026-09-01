@@ -33,7 +33,7 @@
 | HTML and PDF reports | 04, 05 | Render and download E2E |
 | Garage authoritative storage | 05 | Object lifecycle tests |
 | Optional one-way S3 replica | 05 | Disabled/degraded/recovery tests |
-| Resend SMTP | 01, 05 | Auth-email and report-delivery protocol, idempotency, and retry tests |
+| Founder-provided MXRouting SMTP | 01, 05 | Auth-email and report-delivery protocol, idempotency, and retry tests |
 | Account center and admin/support/audit | 05 | Server authorization, noindex, ownership, RBAC, and audit tests |
 | Loopback random host port | 06 | Compose config assertion |
 | Stable external port persistence | 06 | Selection/reuse/collision tests |
