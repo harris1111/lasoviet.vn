@@ -1,0 +1,710 @@
+<title>Lá Số Việt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400;1,8..60,600&family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<div id="lsv">
+<style>
+  #lsv{
+    /* ===== SƠN MÀI TOKENS — vàng dát trên nền sơn, son làm dấu triện ===== */
+    --lacquer-900:#0F0D0A;   /* nền sâu nhất */
+    --lacquer-800:#15120E;   /* canvas mặc định */
+    --lacquer-700:#1C1813;   /* panel nổi */
+    --lacquer-600:#252019;   /* hover / elevated */
+    --lacquer-line:#3A3227;  /* hairline mặc định */
+
+    --gold-400:#F2DCA0;      /* highlight kim */
+    --gold-500:#C9A44D;      /* vàng đặc — text an toàn, 8.0:1 */
+    --gold-600:#A8842F;      /* vàng trầm */
+    --gold-700:#9A7730;      /* stop tối nhất — 4.6:1 */
+    --gold-line:#6B5526;     /* đường viền vàng mờ */
+    --gold-grad:linear-gradient(103deg,var(--gold-700) 0%,var(--gold-400) 34%,var(--gold-500) 58%,var(--gold-600) 100%);
+
+    --son:#CE5B45;           /* son — dấu triện, 4.7:1 */
+    --son-deep:#9E3D2C;
+
+    --pearl-50:#F6F1E6;      /* text chính — xà cừ */
+    --pearl-200:#DCD4C3;
+    --pearl-400:#A79E8B;     /* text phụ */
+    --pearl-600:#6E6656;     /* muted */
+
+    --success:#6FA98A; --warning:#D6A85A; --error:#E0806E;
+
+    --font-display:"Source Serif 4",Georgia,"DejaVu Serif",serif;
+    --font-ui:"Be Vietnam Pro",system-ui,"DejaVu Sans",sans-serif;
+    --font-mono:"JetBrains Mono","Be Vietnam Pro",ui-monospace,monospace;
+    --sp-4:4px;--sp-8:8px;--sp-12:12px;--sp-16:16px;--sp-24:24px;--sp-32:32px;--sp-48:48px;--sp-64:64px;--sp-96:96px;--sp-128:128px;
+    /* thang em — nhịp co giãn theo cỡ chữ (học từ CHANI) */
+    --e-xxxs:.5em;--e-xxs:.75em;--e-xs:1em;--e-s:1.5em;--e-m:2em;--e-l:3em;--e-xl:4em;--e-xxl:6em;--e-xxxl:8em;
+    --pad-side:10vw;
+    --r-sm:4px;--r-md:8px;--r-lg:12px;--r-pill:999px;
+    --container:1200px;--narrative:720px;
+    --ease:cubic-bezier(.2,.7,.3,1);
+
+    position:relative; background:var(--lacquer-800); color:var(--pearl-200);
+    font-family:var(--font-ui); font-size:16px; line-height:1.5; color-scheme:dark;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  #lsv *{box-sizing:border-box;margin:0;padding:0}
+  #lsv img,#lsv svg,#lsv canvas{display:block;max-width:100%}
+  #lsv a{color:inherit;text-decoration:none}
+  #lsv ul,#lsv ol{list-style:none}
+  #lsv button{font:inherit;cursor:pointer;background:none;border:0;color:inherit}
+  #lsv :focus-visible{outline:2px solid var(--gold-400);outline-offset:3px;border-radius:2px}
+  #lsv .u-wrap{max-width:var(--container);margin-inline:auto;padding-inline:var(--sp-24);position:relative;z-index:1}
+  @media (min-width:900px){#lsv .u-wrap{padding-inline:var(--sp-48)}}
+
+  /* grain sơn mài phủ toàn trang */
+  #lsv .grain{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.5;mix-blend-mode:overlay}
+
+  /* ===== MARQUEE — dải chạy trên đỉnh (học nhịp từ CHANI, đổi sang giọng tri thức) ===== */
+  #lsv .mq{position:relative;z-index:31;background:var(--lacquer-900);border-bottom:1px solid var(--lacquer-line);overflow:hidden;height:36px;display:flex;align-items:center}
+  #lsv .mq__track{display:flex;gap:var(--sp-48);white-space:nowrap;animation:lsv-mq 42s linear infinite;will-change:transform}
+  #lsv .mq:hover .mq__track{animation-play-state:paused}
+  #lsv .mq__i{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pearl-600);flex:none}
+  #lsv .mq__i svg{width:12px;height:12px;color:var(--gold-600);flex:none}
+  #lsv .mq__i b{color:var(--gold-500);font-weight:500}
+  @keyframes lsv-mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ===== SCROLL REVEAL ===== */
+  /* chỉ ẩn khi JS đã chạy — không có JS thì nội dung vẫn hiện bình thường */
+  #lsv.js-on .rv{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+  #lsv.js-on .rv.in{opacity:1;transform:none}
+  #lsv .rv-d1{transition-delay:.08s} #lsv .rv-d2{transition-delay:.16s} #lsv .rv-d3{transition-delay:.24s}
+
+  /* ===== ORNAMENT — mảnh xà cừ / vụn vàng chồng lớp ===== */
+  #lsv .orn{position:absolute;pointer-events:none;z-index:0;opacity:.5}
+  #lsv .orn svg{width:100%;height:100%}
+  #lsv .orn--a{width:120px;height:120px;top:8%;left:-40px;color:var(--gold-700)}
+  #lsv .orn--b{width:76px;height:76px;bottom:14%;right:4%;color:var(--son-deep);opacity:.4}
+  #lsv .orn--c{width:150px;height:150px;top:-40px;right:12%;color:var(--gold-700);opacity:.25}
+
+  /* ===== TYPE ===== */
+  #lsv h1,#lsv h2,#lsv h3,#lsv h4{font-family:var(--font-display);color:var(--pearl-50);font-weight:600;text-wrap:balance;letter-spacing:-.01em}
+  #lsv .t-display{font-size:40px;line-height:1.12;font-weight:600;font-variation-settings:"opsz" 60}
+  #lsv .t-h1{font-size:32px;line-height:1.2;font-variation-settings:"opsz" 40}
+  #lsv .t-h2{font-size:28px;line-height:1.25;font-variation-settings:"opsz" 32}
+  #lsv .t-h3{font-size:22px;line-height:1.35;font-variation-settings:"opsz" 24}
+  #lsv .t-h4{font-size:19px;line-height:1.4;font-variation-settings:"opsz" 20}
+  #lsv .t-lead{font-family:var(--font-display);font-size:19px;line-height:1.65;color:var(--pearl-200);font-variation-settings:"opsz" 20}
+  #lsv .t-body{font-size:15px;line-height:1.7;color:var(--pearl-400)}
+  #lsv .t-small{font-size:13.5px;line-height:1.6;color:var(--pearl-400)}
+  #lsv .t-cap{font-size:12px;line-height:1.5;color:var(--pearl-600)}
+  #lsv .t-eyebrow{font-family:var(--font-mono);font-weight:500;font-size:11px;line-height:1.4;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-500)}
+  #lsv .t-mono{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--pearl-600)}
+  #lsv .gold-text{background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+  #lsv .ital{font-style:italic;font-weight:400}
+  @media (min-width:900px){
+    #lsv .t-display{font-size:64px}
+    #lsv .t-h1{font-size:44px}
+    #lsv .t-h2{font-size:34px}
+    #lsv .t-h3{font-size:24px}
+    #lsv .t-lead{font-size:20px}
+    #lsv .t-body{font-size:16px}
+  }
+
+  /* ===== BUTTONS ===== */
+  #lsv .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 var(--sp-24);border-radius:var(--r-sm);font:600 14px/1 var(--font-ui);letter-spacing:.03em;border:1px solid transparent;transition:all .2s var(--ease);position:relative;overflow:hidden}
+  #lsv .btn-gold{background:var(--gold-grad);background-size:200% 100%;background-position:0% 50%;color:#221A08;font-weight:700}
+  #lsv .btn-gold:hover{background-position:100% 50%;transform:translateY(-1px)}
+  #lsv .btn-outline{border-color:var(--gold-line);color:var(--gold-500)}
+  #lsv .btn-outline:hover{border-color:var(--gold-500);background:rgba(201,164,77,.07)}
+  #lsv .btn-pearl{background:var(--pearl-50);color:var(--lacquer-900);font-weight:700}
+  #lsv .btn-pearl:hover{background:#fff}
+  #lsv .btn-block{width:100%}
+  #lsv .btn svg{width:16px;height:16px;flex:none}
+
+  /* ===== SEAL (signature) ===== */
+  #lsv .seal{display:inline-flex;align-items:center;gap:8px;font:600 13px/1 var(--font-ui);color:var(--son);letter-spacing:.02em;transition:color .18s var(--ease)}
+  #lsv .seal:hover{color:#E0705A}
+  #lsv .seal svg{width:17px;height:17px;flex:none}
+
+  /* ===== HAIRLINE RULE + SEAL DIVIDER ===== */
+  #lsv .rule{display:flex;align-items:center;gap:var(--sp-16);margin-block:var(--sp-64)}
+  #lsv .rule::before,#lsv .rule::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--gold-line),transparent)}
+  #lsv .rule svg{width:20px;height:20px;color:var(--gold-600);flex:none}
+
+  /* ===== IMAGE SLOTS ===== */
+  #lsv .slot{position:relative;overflow:hidden;background:
+      radial-gradient(120% 90% at 30% 20%,rgba(201,164,77,.16),transparent 60%),
+      radial-gradient(90% 80% at 75% 75%,rgba(206,91,69,.10),transparent 55%),
+      linear-gradient(150deg,var(--lacquer-700),var(--lacquer-900));
+    border:1px solid var(--lacquer-line);border-radius:var(--e-xxxs);display:flex;align-items:flex-end}
+  #lsv .slot__tag{position:absolute;top:10px;left:10px;font:600 10px/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-600);border:1px solid var(--gold-line);padding:5px 8px;border-radius:2px;background:rgba(15,13,10,.6)}
+  #lsv .slot__note{padding:var(--sp-16);font:400 12px/1.5 var(--font-ui);color:var(--pearl-600);max-width:46ch}
+
+  /* ===== HEADER ===== */
+  #lsv .hd{position:sticky;top:0;z-index:30;background:rgba(15,13,10,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--lacquer-line)}
+  #lsv .hd__bar{display:flex;align-items:center;justify-content:space-between;height:72px;gap:var(--sp-24)}
+  #lsv .hd__logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:19px;color:var(--pearl-50);letter-spacing:.01em}
+  #lsv .hd__logo svg{width:24px;height:24px;color:var(--gold-500)}
+  #lsv .hd__nav{display:none;align-items:center;gap:var(--sp-32)}
+  #lsv .hd__nav a{font:500 13.5px/1 var(--font-ui);color:var(--pearl-200);letter-spacing:.02em;padding-block:6px;border-bottom:1px solid transparent;transition:.18s var(--ease)}
+  #lsv .hd__nav a:hover{color:var(--gold-500);border-color:var(--gold-line)}
+  #lsv .hd__right{display:flex;align-items:center;gap:var(--sp-16)}
+  #lsv .hd__acct{display:none;font:500 13.5px/1 var(--font-ui);color:var(--pearl-400)}
+  #lsv .hd__burger{display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;border:1px solid var(--lacquer-line);border-radius:var(--r-sm)}
+  #lsv .hd__burger svg{width:18px;height:18px;color:var(--pearl-200)}
+  #lsv #nav-check{position:absolute;opacity:0;pointer-events:none}
+  #lsv .hd__drawer{display:none;position:fixed;inset:0;background:var(--lacquer-900);z-index:29;overflow:auto;padding:calc(72px + var(--sp-24)) var(--sp-24) var(--sp-24)}
+  #lsv .hd__drawer a{display:block;padding:var(--sp-16) 0;font:600 22px/1 var(--font-display);color:var(--pearl-50);border-bottom:1px solid var(--lacquer-line)}
+  #lsv #nav-check:checked ~ .hd__drawer{display:block}
+  @media (min-width:960px){
+    #lsv .hd__nav{display:flex} #lsv .hd__acct{display:inline} #lsv .hd__burger{display:none}
+  }
+
+  /* ===== HERO ===== */
+  #lsv .hero{position:relative;padding-block:var(--sp-64) var(--sp-96);background:radial-gradient(90% 70% at 78% 30%,rgba(201,164,77,.10),transparent 60%),var(--lacquer-800);overflow:hidden}
+  #lsv .hero__bg{position:absolute;inset:0;z-index:0;opacity:.34;
+    background:radial-gradient(100% 80% at 80% 15%,rgba(242,220,160,.20),transparent 55%),
+               radial-gradient(80% 70% at 15% 85%,rgba(206,91,69,.14),transparent 60%),
+               linear-gradient(160deg,#1B1710,#0C0A08)}
+  #lsv .hero__bgtag{position:absolute;top:var(--sp-16);right:var(--sp-16);z-index:2;font:600 10px/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-600);border:1px solid var(--gold-line);padding:5px 8px;border-radius:2px;background:rgba(15,13,10,.55)}
+  #lsv .hero__grid{display:grid;gap:var(--sp-48);align-items:center}
+  #lsv .hero__eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:var(--sp-24)}
+  #lsv .hero__eyebrow::after{content:"";height:1px;width:56px;background:var(--gold-line)}
+  #lsv .hero h1{margin-bottom:var(--sp-16)}
+  #lsv .hero__sup{font-family:var(--font-display);font-style:italic;font-size:17px;line-height:1.6;color:var(--pearl-400);margin-bottom:var(--sp-16)}
+  #lsv .hero .t-lead{max-width:46ch}
+  #lsv .hero__actions{display:flex;flex-wrap:wrap;gap:var(--sp-16);margin-top:var(--sp-32)}
+  #lsv .hero__note{display:flex;align-items:center;gap:8px;margin-top:var(--sp-16);color:var(--pearl-600);font-size:13px}
+  #lsv .hero__note svg{width:14px;height:14px;color:var(--gold-600);flex:none}
+  #lsv .hero__art{position:relative;display:flex;justify-content:center}
+  #lsv .hero__art svg{width:100%;max-width:420px;height:auto}
+  @media (min-width:960px){#lsv .hero__grid{grid-template-columns:1.05fr .95fr}}
+
+  /* ===== SECTION ===== */
+  #lsv .sec{padding-block:var(--sp-96);position:relative}
+  #lsv .sec--tight{padding-block:var(--sp-64)}
+  #lsv .sec__head{max-width:var(--narrative);margin-bottom:var(--sp-48)}
+  #lsv .sec__head .t-eyebrow{display:block;margin-bottom:var(--sp-12)}
+  #lsv .sec__head p{margin-top:var(--sp-16)}
+
+  /* ===== TRUST STRIP ===== */
+  #lsv .trust{border-block:1px solid var(--lacquer-line);background:var(--lacquer-900)}
+  #lsv .trust__grid{display:grid;grid-template-columns:1fr;gap:var(--sp-32);padding-block:var(--sp-32)}
+  #lsv .trust__i{display:flex;gap:var(--sp-16);align-items:flex-start}
+  #lsv .trust__i svg{width:22px;height:22px;flex:none;color:var(--gold-500);margin-top:1px}
+  #lsv .trust__i strong{display:block;font:600 14px/1.4 var(--font-ui);color:var(--pearl-50);margin-bottom:3px}
+  @media (min-width:760px){#lsv .trust__grid{grid-template-columns:repeat(4,1fr)}}
+
+  /* ===== FREE VALUE ===== */
+  #lsv .free{display:grid;gap:var(--sp-48);align-items:center}
+  #lsv .free__chart{position:relative;padding:var(--sp-32);border:1px solid var(--lacquer-line);border-radius:var(--r-lg);background:linear-gradient(150deg,var(--lacquer-700),var(--lacquer-900))}
+  #lsv .free__chart svg{width:100%;height:auto}
+  #lsv .ins{display:flex;gap:var(--sp-16);padding-block:var(--sp-24);border-top:1px solid var(--lacquer-line)}
+  #lsv .ins:first-child{border-top:0;padding-top:0}
+  #lsv .ins__ic{flex:none;width:40px;height:40px;border-radius:var(--r-sm);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;color:var(--gold-500);background:rgba(201,164,77,.05)}
+  #lsv .ins__ic svg{width:19px;height:19px}
+  #lsv .ins h3{margin-bottom:6px}
+  #lsv .ins .seal{margin-top:var(--sp-12)}
+  @media (min-width:960px){#lsv .free{grid-template-columns:.85fr 1.15fr}}
+
+  /* ===== STEPS ===== */
+  #lsv .steps{display:grid;gap:var(--sp-48)}
+  #lsv .step{position:relative;padding-top:var(--sp-24);border-top:1px solid var(--gold-line)}
+  #lsv .step__n{font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:.16em;color:var(--gold-500);display:block;margin-bottom:var(--sp-12)}
+  #lsv .step h3{margin-bottom:var(--sp-8)}
+  @media (min-width:820px){#lsv .steps{grid-template-columns:repeat(3,1fr);gap:var(--sp-32)}}
+
+  /* ===== EVIDENCE ===== */
+  #lsv .ev{max-width:var(--narrative);border:1px solid var(--lacquer-line);border-radius:var(--r-lg);background:var(--lacquer-700);overflow:hidden}
+  #lsv .ev__top{padding:var(--sp-32);display:flex;gap:var(--sp-24);align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+  #lsv .ev__claim{font-family:var(--font-display);font-size:20px;line-height:1.5;color:var(--pearl-50);max-width:42ch}
+  #lsv .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--r-pill);border:1px solid var(--gold-line);font:600 11px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--gold-500);white-space:nowrap}
+  #lsv details.ev__d{border-top:1px solid var(--lacquer-line)}
+  #lsv details.ev__d summary{list-style:none;cursor:pointer;padding:var(--sp-24) var(--sp-32);display:flex;align-items:center;justify-content:space-between;gap:var(--sp-16)}
+  #lsv details.ev__d summary::-webkit-details-marker{display:none}
+  #lsv details.ev__d summary .chev{width:16px;height:16px;color:var(--pearl-600);transition:transform .2s var(--ease)}
+  #lsv details.ev__d[open] summary .chev{transform:rotate(180deg)}
+  #lsv .ev__body{padding:0 var(--sp-32) var(--sp-32);display:grid;gap:var(--sp-16)}
+  #lsv .ev__row{display:grid;gap:4px;padding-bottom:var(--sp-16);border-bottom:1px dashed var(--lacquer-line)}
+  #lsv .ev__row:last-child{border-bottom:0;padding-bottom:0}
+  #lsv .ev__row dt{font:600 11px/1.4 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--gold-600)}
+  #lsv .ev__row dd{font-size:15px;line-height:1.6;color:var(--pearl-200)}
+  @media (min-width:700px){#lsv .ev__row{grid-template-columns:190px 1fr;gap:var(--sp-24);align-items:baseline}}
+
+  /* ===== REPORT TOPICS ===== */
+  #lsv .tops{display:grid;gap:var(--sp-24)}
+  #lsv .top{display:flex;flex-direction:column;gap:var(--sp-8);padding:var(--sp-32);border:1px solid var(--lacquer-line);border-radius:var(--r-lg);background:var(--lacquer-700);transition:border-color .2s var(--ease),transform .2s var(--ease)}
+  #lsv .top:hover{border-color:var(--gold-line);transform:translateY(-2px)}
+  #lsv .top__n{font-family:var(--font-display);font-size:12px;font-weight:600;letter-spacing:.16em;color:var(--gold-600)}
+  #lsv .top__foot{margin-top:auto;padding-top:var(--sp-24);border-top:1px solid var(--lacquer-line);display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-12)}
+  #lsv .top__price{font:600 20px/1 var(--font-mono);color:var(--gold-500);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  #lsv .top--feature{background:var(--pearl-50);border-color:var(--pearl-50)}
+  #lsv .top--feature h3,#lsv .top--feature .top__price{color:var(--lacquer-900)}
+  #lsv .top--feature .t-small{color:#5A5346}
+  #lsv .top--feature .top__n{color:var(--son-deep)}
+  #lsv .top--feature .top__foot{border-top-color:rgba(15,13,10,.14)}
+  #lsv .top--feature .top__link{color:var(--son-deep)}
+  #lsv .top__link{font:600 13px/1 var(--font-ui);color:var(--gold-500);display:inline-flex;align-items:center;gap:6px}
+  #lsv .top__link svg{width:13px;height:13px}
+  @media (min-width:760px){#lsv .tops{grid-template-columns:repeat(2,1fr)}}
+  @media (min-width:1100px){#lsv .tops{grid-template-columns:repeat(4,1fr)}}
+
+  /* ===== TRUST BLOCKS ===== */
+  #lsv .tb{display:grid;gap:var(--sp-32)}
+  #lsv .tb__i{padding-left:var(--sp-24);border-left:1px solid var(--gold-line)}
+  #lsv .tb__i h3{margin-bottom:var(--sp-12)}
+  @media (min-width:820px){#lsv .tb{grid-template-columns:repeat(3,1fr)}}
+
+  /* ===== ARTICLES ===== */
+  #lsv .arts{display:grid;gap:var(--sp-24)}
+  #lsv .art{border:1px solid var(--lacquer-line);border-radius:var(--r-lg);overflow:hidden;background:var(--lacquer-700);transition:border-color .2s var(--ease)}
+  #lsv .art:hover{border-color:var(--gold-line)}
+  #lsv .art .slot{height:150px;border:0;border-bottom:1px solid var(--lacquer-line)}
+  #lsv .art__b{padding:var(--sp-24)}
+  #lsv .art__b h3{margin-bottom:var(--sp-8)}
+  #lsv .art__b .top__link{margin-top:var(--sp-16)}
+  @media (min-width:820px){#lsv .arts{grid-template-columns:repeat(3,1fr)}}
+
+  /* ===== FAQ ===== */
+  #lsv .faq{max-width:var(--narrative)}
+  #lsv details.q{border-bottom:1px solid var(--lacquer-line)}
+  #lsv details.q summary{list-style:none;cursor:pointer;padding-block:var(--sp-24);display:flex;align-items:center;justify-content:space-between;gap:var(--sp-24);font:600 16px/1.5 var(--font-ui);color:var(--pearl-50)}
+  #lsv details.q summary::-webkit-details-marker{display:none}
+  #lsv details.q summary svg{width:15px;height:15px;flex:none;color:var(--gold-500);transition:transform .2s var(--ease)}
+  #lsv details.q[open] summary svg{transform:rotate(45deg)}
+  #lsv .q__b{padding-bottom:var(--sp-24);max-width:62ch}
+
+  /* ===== FINAL CTA ===== */
+  #lsv .final{position:relative;border:1px solid var(--gold-line);border-radius:var(--r-lg);padding:var(--sp-64) var(--sp-32);text-align:center;overflow:hidden;background:radial-gradient(80% 100% at 50% 0%,rgba(201,164,77,.13),transparent 65%),var(--lacquer-900)}
+  #lsv .final h2{margin-bottom:var(--sp-12)}
+  #lsv .final p{margin-inline:auto;max-width:52ch}
+  #lsv .final__a{display:flex;flex-wrap:wrap;gap:var(--sp-16);justify-content:center;margin-top:var(--sp-32)}
+  #lsv .final__seal{width:34px;height:34px;color:var(--son);margin:0 auto var(--sp-24)}
+
+  /* ===== FOOTER ===== */
+  #lsv .ft{border-top:1px solid var(--lacquer-line);background:var(--lacquer-900);padding-block:var(--sp-64) var(--sp-32)}
+  #lsv .ft__g{display:grid;gap:var(--sp-32)}
+  #lsv .ft__c strong{display:block;font:600 11px/1.4 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-600);margin-bottom:var(--sp-16)}
+  #lsv .ft__c ul{display:grid;gap:var(--sp-12)}
+  #lsv .ft__c a{font-size:14px;color:var(--pearl-400);transition:color .18s var(--ease)}
+  #lsv .ft__c a:hover{color:var(--gold-500)}
+  #lsv .ft__brand{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--pearl-50);margin-bottom:var(--sp-12);display:flex;align-items:center;gap:10px}
+  #lsv .ft__brand svg{width:22px;height:22px;color:var(--gold-500)}
+  #lsv .ft__bot{margin-top:var(--sp-64);padding-top:var(--sp-24);border-top:1px solid var(--lacquer-line);display:flex;flex-wrap:wrap;gap:var(--sp-16);justify-content:space-between}
+  @media (min-width:760px){#lsv .ft__g{grid-template-columns:1.6fr repeat(3,1fr)}}
+
+  @media (prefers-reduced-motion:reduce){
+    #lsv *,#lsv *::before,#lsv *::after{transition-duration:.001ms!important}
+    /* marquee dừng hẳn ở vị trí đầu thay vì nhảy tới cuối */
+    #lsv .mq__track{animation:none!important;transform:none!important}
+    #lsv .btn-gold:hover{transform:none}
+    #lsv .top:hover{transform:none}
+  }
+</style>
+
+<!-- ===== ICON SPRITE — bộ icon vẽ riêng, lưới 24px, nét 1.5 ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-thienban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <circle cx="12" cy="12" r="9.2"/><circle cx="12" cy="12" r="4.6"/>
+      <path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/>
+    </symbol>
+    <symbol id="i-trien" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+      <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="2.6"/><rect x="7.2" y="7.2" width="9.6" height="9.6" rx="1.4"/>
+    </symbol>
+    <symbol id="i-cuonthu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <path d="M6.5 3.5h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-11"/><path d="M6.5 3.5a2 2 0 0 0-2 2v1.5h2"/><path d="M6.5 20.5a2 2 0 0 1-2-2V17h2"/><path d="M9 8.5h7M9 12h7M9 15.5h4"/>
+    </symbol>
+    <symbol id="i-lakinh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <circle cx="12" cy="12" r="9.2"/><path d="m15 9-2.1 5-4.9 1.9 2-5.1z"/><circle cx="12" cy="12" r="1"/>
+    </symbol>
+    <symbol id="i-nguyet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <circle cx="12" cy="12" r="9.2"/><path d="M12 2.8a9.2 9.2 0 0 0 0 18.4 6.4 6.4 0 0 1 0-18.4z" fill="currentColor" opacity=".18" stroke="none"/><path d="M12 2.8a6.4 6.4 0 0 0 0 18.4"/>
+    </symbol>
+    <symbol id="i-but" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20c2.6-.4 4-1.6 5.2-3.6"/><path d="m9.6 16.2 8.6-9.7a2.2 2.2 0 0 0-3.2-3L6.2 12.6z"/><path d="m6.2 12.6-.9 4.3 4.3-.7"/>
+    </symbol>
+    <symbol id="i-tangthu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <rect x="3.2" y="4.2" width="17.6" height="15.6" rx="2"/><path d="M3.2 9.4h17.6M3.2 14.6h17.6"/><path d="M10.5 6.8h3M10.5 12h3M10.5 17.2h3"/>
+    </symbol>
+    <symbol id="i-khoa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <rect x="4.2" y="10.2" width="15.6" height="10.6" rx="2.4"/><path d="M8 10.2V7a4 4 0 0 1 8 0v3.2"/><circle cx="12" cy="15.4" r="1.5"/>
+    </symbol>
+    <symbol id="i-can" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3.5v17M6 20.5h12M4 8.5h16M4 8.5 1.8 14a3.2 3.2 0 0 0 4.4 0z M20 8.5 17.8 14a3.2 3.2 0 0 0 4.4 0z"/><circle cx="12" cy="6.4" r="1.2"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+    <symbol id="i-sao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M12 2.5c.6 5 3.9 8.3 8.9 8.9-5 .6-8.3 3.9-8.9 8.9-.6-5-3.9-8.3-8.9-8.9 5-.6 8.3-3.9 8.9-8.9Z"/></symbol>
+    <!-- hoa văn chồng lớp: vòng cung đồng tâm kiểu chạm khắc -->
+    <symbol id="o-arc" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width=".9">
+      <circle cx="60" cy="60" r="58"/><circle cx="60" cy="60" r="44" opacity=".7"/><circle cx="60" cy="60" r="30" opacity=".45"/>
+      <path d="M60 2v116M2 60h116" opacity=".35"/>
+    </symbol>
+    <!-- vụn vàng / mảnh xà cừ rải -->
+    <symbol id="o-flake" viewBox="0 0 120 120" fill="currentColor">
+      <circle cx="24" cy="30" r="2.4"/><circle cx="70" cy="18" r="1.5"/><circle cx="96" cy="52" r="2.8"/>
+      <circle cx="42" cy="74" r="1.8"/><circle cx="84" cy="92" r="2"/><circle cx="16" cy="96" r="1.4"/>
+      <circle cx="58" cy="46" r="1.2"/><circle cx="104" cy="84" r="1.3"/>
+    </symbol>
+  </defs>
+</svg>
+
+<canvas class="grain" id="lsv-grain" aria-hidden="true"></canvas>
+
+<!-- ===== MARQUEE ===== -->
+<div class="mq" aria-label="Thông tin nhanh">
+  <div class="mq__track">
+    <span class="mq__i"><svg><use href="#i-cuonthu"/></svg>Lập lá số Tử Vi <b>miễn phí</b> — không cần tài khoản</span>
+    <span class="mq__i"><svg><use href="#i-can"/></svg>Mỗi nhận định đều mở được <b>căn cứ</b></span>
+    <span class="mq__i"><svg><use href="#i-khoa"/></svg>Lá số của bạn <b>riêng tư</b> theo mặc định</span>
+    <span class="mq__i"><svg><use href="#i-trien"/></svg>Báo cáo <b>thanh toán một lần</b> — không tự động gia hạn</span>
+    <span class="mq__i" aria-hidden="true"><svg><use href="#i-cuonthu"/></svg>Lập lá số Tử Vi <b>miễn phí</b> — không cần tài khoản</span>
+    <span class="mq__i" aria-hidden="true"><svg><use href="#i-can"/></svg>Mỗi nhận định đều mở được <b>căn cứ</b></span>
+    <span class="mq__i" aria-hidden="true"><svg><use href="#i-khoa"/></svg>Lá số của bạn <b>riêng tư</b> theo mặc định</span>
+    <span class="mq__i" aria-hidden="true"><svg><use href="#i-trien"/></svg>Báo cáo <b>thanh toán một lần</b> — không tự động gia hạn</span>
+  </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header class="hd">
+  <div class="u-wrap hd__bar">
+    <a href="#" class="hd__logo"><svg><use href="#i-thienban"/></svg>Lá Số Việt</a>
+    <nav class="hd__nav" aria-label="Điều hướng chính">
+      <a href="#">Lập lá số</a><a href="#">Luận giải</a><a href="#">Kiến thức</a><a href="#">Phương pháp</a>
+    </nav>
+    <div class="hd__right">
+      <a href="#" class="hd__acct">Tài khoản</a>
+      <a href="#" class="btn btn-gold">Lập lá số miễn phí</a>
+      <label class="hd__burger" for="nav-check" aria-label="Mở menu"><svg><use href="#i-menu"/></svg></label>
+    </div>
+  </div>
+  <input type="checkbox" id="nav-check">
+  <nav class="hd__drawer" aria-label="Menu di động">
+    <a href="#">Lập lá số</a><a href="#">Luận giải</a><a href="#">Kiến thức</a><a href="#">Phương pháp</a><a href="#">Tài khoản</a>
+  </nav>
+</header>
+
+<main>
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero__bg" aria-hidden="true"></div>
+    <span class="orn orn--a" aria-hidden="true"><svg><use href="#o-arc"/></svg></span>
+    <span class="orn orn--c" aria-hidden="true"><svg><use href="#o-flake"/></svg></span>
+    <span class="orn orn--b" aria-hidden="true"><svg><use href="#o-flake"/></svg></span>
+    <span class="hero__bgtag">Ảnh 01 — nền hero</span>
+    <div class="u-wrap hero__grid">
+      <div class="rv">
+        <p class="hero__eyebrow"><span class="t-eyebrow">Nền tảng lập và luận giải Tử Vi</span></p>
+        <h1 class="t-display">Lập lá số.<br><span class="gold-text">Hiểu vận mệnh.</span></h1>
+        <p class="hero__sup">Một con người. Nhiều hệ quy chiếu. Một bản luận giải dễ hiểu.</p>
+        <p class="t-lead">Xem lá số Tử Vi miễn phí và khám phá những điểm nổi bật bằng lời giải thích rõ ràng, gắn với căn cứ trên chính lá số của bạn.</p>
+        <div class="hero__actions">
+          <a href="#" class="btn btn-gold">Lập lá số miễn phí <svg><use href="#i-arrow"/></svg></a>
+          <a href="#" class="btn btn-outline">Xem báo cáo mẫu</a>
+        </div>
+        <p class="hero__note"><svg><use href="#i-check"/></svg> Không cần tài khoản để bắt đầu.</p>
+      </div>
+      <div class="hero__art rv rv-d2">
+        <svg viewBox="0 0 400 400" role="img" aria-label="Thiên bàn 12 cung — sơ đồ lá số Tử Vi">
+          <defs>
+            <linearGradient id="g-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#9A7730"/><stop offset="34%" stop-color="#F2DCA0"/>
+              <stop offset="62%" stop-color="#C9A44D"/><stop offset="100%" stop-color="#A8842F"/>
+            </linearGradient>
+            <radialGradient id="g-glow"><stop offset="0%" stop-color="#C9A44D" stop-opacity=".16"/><stop offset="100%" stop-color="#C9A44D" stop-opacity="0"/></radialGradient>
+          </defs>
+          <circle cx="200" cy="200" r="190" fill="url(#g-glow)"/>
+          <circle cx="200" cy="200" r="176" fill="none" stroke="url(#g-gold)" stroke-width="1"/>
+          <circle cx="200" cy="200" r="168" fill="none" stroke="#3A3227" stroke-width="1"/>
+          <circle cx="200" cy="200" r="120" fill="none" stroke="url(#g-gold)" stroke-width=".9"/>
+          <circle cx="200" cy="200" r="62" fill="none" stroke="url(#g-gold)" stroke-width="1.2"/>
+          <circle cx="200" cy="200" r="54" fill="none" stroke="#3A3227" stroke-width="1"/>
+          <g stroke="url(#g-gold)" stroke-width=".8" opacity=".85">
+            <line x1="200" y1="32" x2="200" y2="368"/><line x1="32" y1="200" x2="368" y2="200"/>
+            <line x1="81" y1="81" x2="319" y2="319"/><line x1="319" y1="81" x2="81" y2="319"/>
+            <line x1="200" y1="32" x2="123.4" y2="356.4" opacity=".45"/><line x1="200" y1="32" x2="276.6" y2="356.4" opacity=".45"/>
+            <line x1="32" y1="200" x2="356.4" y2="276.6" opacity=".45"/><line x1="32" y1="200" x2="356.4" y2="123.4" opacity=".45"/>
+          </g>
+          <g fill="#C9A44D" opacity=".9">
+            <circle cx="200" cy="32" r="3.4"/><circle cx="200" cy="368" r="2.2"/><circle cx="32" cy="200" r="2.2"/><circle cx="368" cy="200" r="2.2"/>
+          </g>
+          <circle cx="248" cy="128" r="5" fill="#CE5B45"/>
+          <circle cx="146" cy="238" r="3" fill="#CE5B45" opacity=".7"/>
+          <text x="200" y="196" text-anchor="middle" font-family="Source Serif 4,Georgia,serif" font-size="15" font-style="italic" fill="#C9A44D">Cung Mệnh</text>
+          <text x="200" y="216" text-anchor="middle" font-family="Be Vietnam Pro,sans-serif" font-size="9.5" letter-spacing="2.4" fill="#6E6656">THIÊN BÀN</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TRUST STRIP ===== -->
+  <section class="trust">
+    <div class="u-wrap trust__grid">
+      <div class="trust__i rv"><svg><use href="#i-cuonthu"/></svg><div><strong>Miễn phí trước</strong><p class="t-small">Xem tổng quan lá số trước khi cần trả phí.</p></div></div>
+      <div class="trust__i rv"><svg><use href="#i-can"/></svg><div><strong>Có căn cứ</strong><p class="t-small">Mỗi nhận định gắn với dữ liệu và quy tắc công bố.</p></div></div>
+      <div class="trust__i rv"><svg><use href="#i-khoa"/></svg><div><strong>Riêng tư mặc định</strong><p class="t-small">Lá số của bạn không hiển thị công khai.</p></div></div>
+      <div class="trust__i rv"><svg><use href="#i-check"/></svg><div><strong>Không tự động gia hạn</strong><p class="t-small">Báo cáo là thanh toán một lần.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ===== FREE VALUE ===== -->
+  <section class="sec">
+    <div class="u-wrap">
+      <div class="sec__head rv">
+        <span class="t-eyebrow">Lá số miễn phí</span>
+        <h2 class="t-h2">Bạn nhận được gì ngay từ đầu</h2>
+        <p class="t-body">Toàn bộ sơ đồ lá số, ba điểm nổi bật và một căn cứ mở được — trước khi bạn nghĩ đến việc trả phí.</p>
+      </div>
+      <div class="free">
+        <div class="free__chart">
+          <svg viewBox="0 0 300 300" role="img" aria-label="Sơ đồ 12 cung, minh hoạ">
+            <circle cx="150" cy="150" r="132" fill="none" stroke="url(#g-gold)" stroke-width=".9"/>
+            <circle cx="150" cy="150" r="88" fill="none" stroke="#3A3227" stroke-width="1"/>
+            <circle cx="150" cy="150" r="44" fill="none" stroke="url(#g-gold)" stroke-width="1.1"/>
+            <g stroke="#3A3227" stroke-width=".9">
+              <line x1="150" y1="18" x2="150" y2="282"/><line x1="18" y1="150" x2="282" y2="150"/>
+              <line x1="57" y1="57" x2="243" y2="243"/><line x1="243" y1="57" x2="57" y2="243"/>
+            </g>
+            <circle cx="150" cy="18" r="3" fill="#CE5B45"/>
+            <circle cx="212" cy="88" r="4" fill="#C9A44D"/>
+            <text x="150" y="155" text-anchor="middle" font-family="Source Serif 4,Georgia,serif" font-size="13" font-style="italic" fill="#C9A44D">Mệnh</text>
+          </svg>
+        </div>
+        <div>
+          <div class="ins rv">
+            <span class="ins__ic"><svg><use href="#i-but"/></svg></span>
+            <div>
+              <h3 class="t-h4">Cung Mệnh cho thấy xu hướng chủ động trong giao tiếp.</h3>
+              <p class="t-small">Rõ hơn ở các giai đoạn cần thương lượng hoặc trình bày ý tưởng.</p>
+              <button class="seal" type="button"><svg><use href="#i-trien"/></svg>Vì sao có nhận định này?</button>
+            </div>
+          </div>
+          <div class="ins rv">
+            <span class="ins__ic"><svg><use href="#i-can"/></svg></span>
+            <div>
+              <h3 class="t-h4">Giai đoạn này có thể tăng áp lực về vai trò trong công việc.</h3>
+              <p class="t-small">Một điểm căng thẳng nên quan sát, không phải một cảnh báo chắc chắn.</p>
+              <button class="seal" type="button"><svg><use href="#i-trien"/></svg>Vì sao có nhận định này?</button>
+            </div>
+          </div>
+          <div class="ins rv">
+            <span class="ins__ic"><svg><use href="#i-nguyet"/></svg></span>
+            <div>
+              <h3 class="t-h4">Một điểm đáng theo dõi: nhịp độ tài chính giữa năm.</h3>
+              <p class="t-small">Gợi ý để chuẩn bị, không phải một kết luận về được hay mất.</p>
+              <button class="seal" type="button"><svg><use href="#i-trien"/></svg>Vì sao có nhận định này?</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="u-wrap"><div class="rule"><svg><use href="#i-trien"/></svg></div></div>
+
+  <!-- ===== STEPS ===== -->
+  <section class="sec sec--tight">
+    <div class="u-wrap">
+      <div class="sec__head rv"><span class="t-eyebrow">Quy trình</span><h2 class="t-h2">Cách hoạt động</h2></div>
+      <ol class="steps">
+        <li class="step rv"><span class="step__n">01</span><h3 class="t-h3">Nhập dữ liệu sinh</h3><p class="t-body">Ngày, giờ và nơi sinh. Không rõ giờ sinh vẫn tiếp tục được với kết quả giới hạn.</p></li>
+        <li class="step rv"><span class="step__n">02</span><h3 class="t-h3">Xem lá số miễn phí</h3><p class="t-body">Toàn bộ sơ đồ, ba điểm nổi bật và một căn cứ có thể mở ra xem ngay.</p></li>
+        <li class="step rv"><span class="step__n">03</span><h3 class="t-h3">Chọn chủ đề luận giải sâu</h3><p class="t-body">Xem mục lục, báo cáo mẫu và giá trước khi quyết định — nếu bạn muốn đi sâu hơn.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== EVIDENCE ===== -->
+  <section class="sec">
+    <div class="u-wrap">
+      <div class="sec__head rv">
+        <span class="t-eyebrow">Minh bạch</span>
+        <h2 class="t-h2">Căn cứ nằm ngay cạnh nhận định</h2>
+        <p class="t-body">Mọi kết luận quan trọng đều mở ra được để xem vì sao — ngay tại chỗ, không chôn trong trang phương pháp.</p>
+      </div>
+      <div class="ev rv">
+        <div class="ev__top">
+          <p class="ev__claim">Giai đoạn này có thể tăng áp lực về vai trò trong công việc.</p>
+          <span class="chip">Tin cậy: trung bình</span>
+        </div>
+        <details class="ev__d" open>
+          <summary><span class="seal"><svg><use href="#i-trien"/></svg>Vì sao có nhận định này?</span><svg class="chev"><use href="#i-chev"/></svg></summary>
+          <dl class="ev__body">
+            <div class="ev__row"><dt>Căn cứ được sử dụng</dt><dd>Vận hạn tại Cung Quan Lộc, đối chiếu với chính tinh thủ mệnh.</dd></div>
+            <div class="ev__row"><dt>Mức độ tin cậy</dt><dd>Trung bình — nhạy với giờ sinh.</dd></div>
+            <div class="ev__row"><dt>Ảnh hưởng của giờ sinh</dt><dd>Nếu giờ sinh không chắc chắn, cung này có thể lệch một vị trí liền kề.</dd></div>
+            <div class="ev__row"><dt>Khi nào có thể không đúng</dt><dd>Khi vai trò công việc hiện tại đã ổn định và ít thay đổi trong năm nay.</dd></div>
+            <div class="ev__row"><dt>Điều bạn có thể quan sát</dt><dd>Đối chiếu với khối lượng công việc hoặc trách nhiệm mới trong 1–2 tháng tới.</dd></div>
+          </dl>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== REPORT TOPICS ===== -->
+  <section class="sec">
+    <div class="u-wrap">
+      <div class="sec__head rv">
+        <span class="t-eyebrow">Luận giải chuyên sâu</span>
+        <h2 class="t-h2">Chọn chủ đề khi bạn cần đi sâu hơn</h2>
+        <p class="t-body">Mỗi bản luận giải có mục lục, báo cáo mẫu và giá cuối rõ ràng — thanh toán một lần, không tự động gia hạn.</p>
+      </div>
+      <div class="tops">
+        <article class="top top--feature">
+          <span class="top__n">01</span>
+          <h3 class="t-h3">Bản mệnh &amp; Tiềm năng</h3>
+          <p class="t-small">7 luận điểm · thế mạnh và nguồn lực · khoảng 12 trang.</p>
+          <a href="#" class="top__link">Xem báo cáo mẫu <svg><use href="#i-arrow"/></svg></a>
+          <div class="top__foot"><span class="top__price">79.000 ₫</span><span class="t-cap">Một lần</span></div>
+        </article>
+        <article class="top rv">
+          <span class="top__n">02</span>
+          <h3 class="t-h3">Tình duyên &amp; Hôn nhân</h3>
+          <p class="t-small">Pattern quan hệ · giới hạn · hành động lành mạnh.</p>
+          <a href="#" class="top__link">Xem báo cáo mẫu <svg><use href="#i-arrow"/></svg></a>
+          <div class="top__foot"><span class="top__price">79.000 ₫</span><span class="t-cap">Một lần</span></div>
+        </article>
+        <article class="top rv">
+          <span class="top__n">03</span>
+          <h3 class="t-h3">Công việc &amp; Tài lộc</h3>
+          <p class="t-small">Xu hướng, điều kiện và rủi ro quan sát được.</p>
+          <a href="#" class="top__link">Xem báo cáo mẫu <svg><use href="#i-arrow"/></svg></a>
+          <div class="top__foot"><span class="top__price">79.000 ₫</span><span class="t-cap">Một lần</span></div>
+        </article>
+        <article class="top rv">
+          <span class="top__n">04</span>
+          <h3 class="t-h3">Vận trình năm 2026</h3>
+          <p class="t-small">Cửa sổ thời gian, dấu hiệu và checklist chuẩn bị.</p>
+          <a href="#" class="top__link">Xem báo cáo mẫu <svg><use href="#i-arrow"/></svg></a>
+          <div class="top__foot"><span class="top__price">99.000 ₫</span><span class="t-cap">Một lần</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="u-wrap"><div class="rule"><svg><use href="#i-lakinh"/></svg></div></div>
+
+  <!-- ===== TRUST BLOCKS ===== -->
+  <section class="sec sec--tight">
+    <div class="u-wrap">
+      <div class="sec__head rv"><span class="t-eyebrow">Niềm tin</span><h2 class="t-h2">Cách chúng tôi luận giải</h2></div>
+      <div class="tb">
+        <div class="tb__i rv"><h3 class="t-h3">Phương pháp</h3><p class="t-body">Lá số được lập theo rule set Tử Vi công bố. Cách tính và phiên bản engine đều ghi rõ trong trang phương pháp.</p></div>
+        <div class="tb__i rv"><h3 class="t-h3">Vai trò của AI</h3><p class="t-body">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p></div>
+        <div class="tb__i rv"><h3 class="t-h3">Quyền riêng tư</h3><p class="t-body">Lá số và báo cáo là riêng tư theo mặc định, không xuất hiện trên công cụ tìm kiếm. Bạn xem, sửa hoặc xóa dữ liệu bất cứ lúc nào.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== KNOWLEDGE ===== -->
+  <section class="sec">
+    <div class="u-wrap">
+      <div class="sec__head rv"><span class="t-eyebrow">Thư viện tri thức</span><h2 class="t-h2">Bắt đầu từ đây</h2></div>
+      <div class="arts">
+        <a href="#" class="art rv">
+          <div class="slot"><span class="slot__tag">Ảnh 02</span><p class="slot__note">Trang sách Hán–Nôm cũ, ánh sáng xiên, nền tối.</p></div>
+          <div class="art__b"><h3 class="t-h3">Lá số Tử Vi là gì?</h3><p class="t-small">Định nghĩa, cấu trúc 12 cung và cách một lá số được dựng lên.</p><span class="top__link">Đọc bài viết <svg><use href="#i-arrow"/></svg></span></div>
+        </a>
+        <a href="#" class="art rv">
+          <div class="slot"><span class="slot__tag">Ảnh 03</span><p class="slot__note">Bút lông và nghiên mực trên mặt gỗ sẫm.</p></div>
+          <div class="art__b"><h3 class="t-h3">Cách lập lá số Tử Vi</h3><p class="t-small">Quy trình tính toán từ ngày, giờ, nơi sinh đến vị trí các sao.</p><span class="top__link">Đọc bài viết <svg><use href="#i-arrow"/></svg></span></div>
+        </a>
+        <a href="#" class="art rv">
+          <div class="slot"><span class="slot__tag">Ảnh 04</span><p class="slot__note">Tủ tàng thư gỗ sơn son thếp vàng, cận cảnh.</p></div>
+          <div class="art__b"><h3 class="t-h3">Cách đọc lá số Tử Vi</h3><p class="t-small">Bắt đầu từ Cung Mệnh, sau đó mở rộng sang các cung liên quan.</p><span class="top__link">Đọc bài viết <svg><use href="#i-arrow"/></svg></span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="sec sec--tight">
+    <div class="u-wrap">
+      <div class="sec__head rv"><span class="t-eyebrow">Câu hỏi thường gặp</span><h2 class="t-h2">Trước khi bạn bắt đầu</h2></div>
+      <div class="faq">
+        <details class="q"><summary>Lá Số Việt có dùng AI không?<svg><use href="#i-plus"/></svg></summary><p class="t-body q__b">Có. AI hỗ trợ tổ chức và diễn giải trong giới hạn căn cứ đã cấp — không thay thế dữ liệu và quy tắc tính toán.</p></details>
+        <details class="q"><summary>Tôi không nhớ chính xác giờ sinh thì sao?<svg><use href="#i-plus"/></svg></summary><p class="t-body q__b">Bạn có thể tiếp tục với kết quả giới hạn hoặc bổ sung giờ sinh sau. Chúng tôi nêu rõ phần nào bị ảnh hưởng.</p></details>
+        <details class="q"><summary>Báo cáo trả phí có tự động gia hạn không?<svg><use href="#i-plus"/></svg></summary><p class="t-body q__b">Không. Giá hiển thị là giá thanh toán một lần, không tự động gia hạn.</p></details>
+        <details class="q"><summary>Dữ liệu sinh của tôi được dùng như thế nào?<svg><use href="#i-plus"/></svg></summary><p class="t-body q__b">Chỉ để lập lá số và tạo phần diễn giải này. Lá số riêng tư theo mặc định; bạn có thể kiểm tra, sửa hoặc xóa bất cứ lúc nào.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FINAL CTA ===== -->
+  <section class="sec sec--tight">
+    <div class="u-wrap">
+      <div class="final rv">
+        <svg class="final__seal"><use href="#i-trien"/></svg>
+        <h2 class="t-h2">Bắt đầu với lá số miễn phí của bạn</h2>
+        <p class="t-body">Không phán định tương lai. Không dùng nỗi sợ để bán hàng.</p>
+        <div class="final__a">
+          <a href="#" class="btn btn-gold">Lập lá số miễn phí <svg><use href="#i-arrow"/></svg></a>
+          <a href="#" class="btn btn-outline">Xem báo cáo mẫu</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="ft">
+  <div class="u-wrap">
+    <div class="ft__g">
+      <div class="ft__c">
+        <p class="ft__brand"><svg><use href="#i-thienban"/></svg>Lá Số Việt</p>
+        <p class="t-small" style="max-width:34ch">Thư viện tri thức Việt đương đại — một bàn đọc riêng tư dành cho từng người.</p>
+      </div>
+      <div class="ft__c"><strong>Sản phẩm</strong><ul><li><a href="#">Lập lá số Tử Vi</a></li><li><a href="#">Luận giải Tử Vi</a></li><li><a href="#">Báo cáo mẫu</a></li></ul></div>
+      <div class="ft__c"><strong>Kiến thức</strong><ul><li><a href="#">Lá số Tử Vi là gì?</a></li><li><a href="#">Cách lập lá số</a></li><li><a href="#">Cách đọc lá số</a></li></ul></div>
+      <div class="ft__c"><strong>Công ty &amp; pháp lý</strong><ul><li><a href="#">Phương pháp &amp; trust</a></li><li><a href="#">Quyền riêng tư</a></li><li><a href="#">Liên hệ</a></li></ul></div>
+    </div>
+    <div class="ft__bot">
+      <p class="t-cap">© 2026 Lá Số Việt. Nội dung mang tính tham khảo và tự chiêm nghiệm.</p>
+      <p class="t-cap">lasoviet.vn</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root = document.getElementById('lsv');
+  if(!root) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce && 'IntersectionObserver' in window) root.classList.add('js-on');
+
+  var c = document.getElementById('lsv-grain');
+  function draw(){
+    if(!c) return;
+    var w = 180, h = 180;
+    c.width = w; c.height = h;
+    c.style.width = '100%'; c.style.height = '100%';
+    var ctx = c.getContext('2d');
+    var img = ctx.createImageData(w,h), d = img.data;
+    for(var i=0;i<d.length;i+=4){
+      var v = 118 + (Math.random()*44 - 22);
+      d[i]=v; d[i+1]=v; d[i+2]=v; d[i+3]=26;
+    }
+    ctx.putImageData(img,0,0);
+    root.style.backgroundImage = 'url(' + c.toDataURL() + ')';
+    root.style.backgroundRepeat = 'repeat';
+    c.style.display = 'none';
+  }
+  draw();
+
+  /* ===== scroll reveal — tôn trọng prefers-reduced-motion ===== */
+  if(!root.classList.contains('js-on')) return;
+  var items = root.querySelectorAll('.rv');
+  /* xếp trễ theo thứ tự anh em ruột để nhóm card hiện lần lượt */
+  var groups = new Map();
+  items.forEach(function(el){
+    var p = el.parentNode;
+    var n = groups.get(p) || 0;
+    if(n > 0 && n < 4) el.classList.add('rv-d' + n);
+    groups.set(p, n + 1);
+  });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {rootMargin: '0px 0px -8% 0px', threshold: 0.08});
+  items.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</div>
