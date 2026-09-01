@@ -278,7 +278,7 @@ git commit -m "feat: establish Vietnamese and English localization"
 - Create: `apps/api/src/health/health.controller.ts`
 - Create: `apps/web/src/app/health/live/route.ts`
 - Create: `apps/web/src/app/health/ready/route.ts`
-- Create: `vitest.config.ts`
+- Create: `vitest.config.mts`
 - Create: `playwright.config.ts`
 - Create: `.github/workflows/ci.yml`
 - Test: `packages/observability/src/logger.test.ts`
@@ -290,7 +290,7 @@ git commit -m "feat: establish Vietnamese and English localization"
 - Produces `/health/live` and `/health/ready`.
 
 **Implementation note (2026-09-01):** Vitest 4 uses the supported root
-`vitest.config.ts` filename. The config maps `@lasoviet/contracts` and the
+`vitest.config.mts` filename for this ESM config. The config maps `@lasoviet/contracts` and the
 concretely required `@lasoviet/config` import to absolute current-source
 paths, so focused root tests do not require generated package declarations.
 
@@ -335,7 +335,7 @@ Expected: PASS.
 - [x] **Step 6: Update docs/rules and commit**
 
 ```bash
-git add packages/observability apps/api/src/health apps/api/src/api.module.ts apps/web/src/app/health vitest.config.ts playwright.config.ts .github tests/health package.json pnpm-lock.yaml docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/phase-00-repository-foundation.md
+git add packages/observability apps/api/src/health apps/api/src/api.module.ts apps/web/src/app/health vitest.config.mts playwright.config.ts .github tests/health package.json pnpm-lock.yaml docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/phase-00-repository-foundation.md
 git commit -m "ci: add health observability and verification gates"
 ```
 
@@ -350,9 +350,9 @@ git commit -m "ci: add health observability and verification gates"
 - Exact dependencies: `pino@10.3.1` in observability and
   `@playwright/test@1.62.1` at the root.
 - Existing pnpm build policy was preserved. No new peer or build-policy warning
-  occurred. The known ESLint `9.39.5` deprecation and Vitest config-loader
-  compatibility notice were non-blocking.
-- `vitest.config.ts` is the supported filename deviation recorded above; its
+  occurred. The known ESLint `9.39.5` deprecation was non-blocking; the
+  supported `.mts` config emitted no Vitest config-loader warning.
+- `vitest.config.mts` is the supported filename deviation recorded above; its
   absolute aliases cover only the focused tests' concrete internal imports.
 - Docs impact: minor. Rule candidate: none. Open questions: none.
 
@@ -389,7 +389,7 @@ git commit -m "ci: add health observability and verification gates"
 - Produces Paper, Ink, Cinnabar, typography, spacing, radius, focus, motion,
   and accessibility CSS tokens from the approved brand guideline.
 
-- [ ] **Step 1: Write failing registry, analytics, and content tests**
+- [x] **Step 1: Write failing registry, analytics, and content tests**
 
 ```ts
 expect(routeStateSchema.options).toEqual([
@@ -411,7 +411,7 @@ Also fail duplicate paths, multiple owners for one canonical intent,
 the sitemap, reserved commercial routes marked purchasable, unknown analytics
 properties, and public content without VI/EN route ownership.
 
-- [ ] **Step 2: Run focused contract tests**
+- [x] **Step 2: Run focused contract tests**
 
 Run:
 
@@ -421,7 +421,10 @@ pnpm vitest run packages/config/src/route-registry.test.ts tests/analytics/event
 
 Expected: FAIL before the contracts, registry, tokens, and checks exist.
 
-- [ ] **Step 3: Implement the canonical registries**
+**P00-T05 RED evidence (2026-09-01):** The focused command first failed because
+the new route-registry, analytics, and public-content modules were absent.
+
+- [x] **Step 3: Implement the canonical registries**
 
 Register the complete East/West taxonomy in `config/route-registry.yml`
 immediately, but expose only approved Gate 1 routes. Mark relationship, career,
@@ -430,14 +433,14 @@ annual Zi Wei, and every later-wave route `reserved`. Keep private routes
 registry module parses and validates the YAML source. The legacy
 `config/sitemap.json` remains a deprecated snapshot and is never imported.
 
-- [ ] **Step 4: Implement public-content validation and design tokens**
+- [x] **Step 4: Implement public-content validation and design tokens**
 
 The content checker validates locale, route ownership, source/reviewer fields,
 quality status, and forbidden placeholder text. Tokens implement the approved
 Paper/Ink/Cinnabar palette, Source Serif 4 and Be Vietnam Pro roles, 44px touch
 targets, visible focus, reduced motion, and maximum 8px card radius.
 
-- [ ] **Step 5: Run contract, token, and workspace verification**
+- [x] **Step 5: Run contract, token, and workspace verification**
 
 Run:
 
@@ -448,12 +451,35 @@ pnpm check
 
 Expected: PASS with one canonical registry and no public route/content drift.
 
-- [ ] **Step 6: Update tracking and commit**
+- [x] **Step 6: Update tracking and commit**
 
 ```bash
-git add packages/contracts packages/config apps/web/src/styles scripts/check-public-content.mjs tests docs/superpowers/plans
+git add packages/contracts packages/config apps/web/src/styles scripts/check-public-content.mjs tests/analytics tests/content package.json pnpm-lock.yaml vitest.config.mts docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/phase-00-repository-foundation.md
 git commit -m "feat: establish public experience contracts"
 ```
+
+**P00-T05 Evidence (2026-09-01):**
+
+- Focused `corepack pnpm@11.25.0 vitest run packages/config/src/route-registry.test.ts tests/analytics/event-contract.test.ts tests/content/public-content-contract.test.ts`
+  passed: 3 files, 7 tests.
+- `corepack pnpm@11.25.0 content:check` passed after building the config
+  dependency closure and validated 26 public routes with VI/EN ownership.
+- `corepack pnpm@11.25.0 check` passed lint, all workspace typechecks, 9 test
+  files with 66 tests, and all workspace builds.
+- The route registry is YAML-backed, includes the East/West taxonomy and
+  private routes, and exposes only the approved public states. Exactly
+  `ZIWEI-IDENTITY-P0` is purchasable; reserved commercial routes remain
+  reserved.
+- The analytics schema and canonical funnel are derived from
+  `config/analytics-events.json`; public content checks enforce ownership,
+  review metadata, quality status, and placeholder rejection.
+- Tokens implement the approved Paper/Ink/Cinnabar palette, Source Serif 4,
+  Be Vietnam Pro, spacing, radii, 44px targets, focus, reduced motion, and
+  accessibility behavior.
+- Exact dependency: `yaml@2.9.0` in `@lasoviet/config`. Existing scripts and
+  pnpm policy were preserved. No new peer or build-policy warning occurred.
+- The supported `vitest.config.mts` correction removed the prior config-loader
+  warning. Docs impact: minor. Rule candidate: none. Open questions: none.
 
 ## Phase Exit Criteria
 

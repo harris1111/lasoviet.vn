@@ -13,6 +13,7 @@
     "test": "vitest run",
     "lint": "eslint .",
     "i18n:check": "node scripts/check-i18n-parity.mjs",
+    "content:check": "corepack pnpm@11.25.0 --filter @lasoviet/config... run build && node scripts/check-public-content.mjs",
     "check": "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run test && corepack pnpm@11.25.0 run build"
   },
   "devDependencies": {

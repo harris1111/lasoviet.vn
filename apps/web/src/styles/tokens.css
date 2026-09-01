@@ -1,0 +1,55 @@
+:root {
+  --paper-50: #fffdf7;
+  --paper-100: #f7f1e5;
+  --paper-200: #eee5d6;
+  --paper-300: #d7cdbd;
+  --control-border: #958a7c;
+  --ink-900: #14263d;
+  --ink-800: #263445;
+  --ink-600: #5e6873;
+  --cinnabar-700: #a63d2f;
+  --link-blue: #174f7a;
+  --success: #2f6f57;
+  --warning: #8a5a12;
+  --error: #8f2737;
+
+  --font-display: "Source Serif 4", Georgia, serif;
+  --font-ui: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-body: var(--font-ui);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  --radius-small: 4px;
+  --radius-control: 8px;
+  --radius-card: 8px;
+  --radius-modal: 12px;
+  --touch-target-min: 44px;
+  --focus-ring: 0 0 0 3px #174f7a;
+  --motion-feedback: 120ms;
+  --motion-standard: 180ms;
+  --motion-panel: 240ms;
+}
+
+:focus-visible {
+  outline: 3px solid var(--link-blue);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
