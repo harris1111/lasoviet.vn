@@ -102,3 +102,8 @@ export type {
   ZiweiCalculationError,
   ZiweiCalculationServiceOptions,
 } from "./ziwei/ziwei.service.js";
+export { getCapability, listCapabilities } from "./capabilities/capability.registry.js";
+export { createEvidenceService } from "./evidence/evidence.service.js";
+export { buildZiweiIdentityEvidence } from "./evidence/ziwei-identity-rules.js";
+export type { EvidenceServiceError } from "./evidence/evidence.service.js";
+export type { ZiweiIdentityEvidenceError } from "./evidence/ziwei-identity-rules.js";

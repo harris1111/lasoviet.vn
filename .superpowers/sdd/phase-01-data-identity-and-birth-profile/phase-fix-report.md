@@ -63,7 +63,7 @@ assumptions.
 None. Google OAuth credentials and the FD-024 browser/UI artifact gate remain
 known limitations, not Phase 01 correction blockers.
 
-## Pass 2 — 2026-09-02
+## Pass 2 — 2026-09-01
 
 Closed the final scoped re-review items only.
 

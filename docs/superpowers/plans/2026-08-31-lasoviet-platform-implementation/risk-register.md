@@ -34,13 +34,20 @@
 | R-30 | Authentication email unavailable | 01 | Verification or reset cannot deliver through reviewed SMTP | Establish SMTP port/adapter in Phase 01, protocol integration test, no verification bypass | Block authentication release |
 | R-31 | Anonymous birth data retained too long or orphaned during linking | 01, 03, 06 | Unlinked profile/chart survives 24 hours, manual deletion fails, or account linking duplicates ownership | Better Auth anonymous actor, explicit expiry, transactional ownership transfer, purge/reconciliation tests | Privacy block |
 
-## P02-T03 Evidence (2026-09-02)
+## P02-T03 Evidence (2026-09-01)
 
 R-01 and R-03 remain release-blocking risks. The P0 fixture suite now exercises
 11 approved calendar/time/precision boundaries through the real adapter,
 including unknown-time rejection and late-Zi index handling. The one Tianji
 overlap agrees; all method gaps remain explicit rather than being treated as
 validation.
+
+## P02-T04 Evidence (2026-09-01)
+
+R-02 remains release-blocking. Evidence persistence is now immutable per
+chart-version/rule-version and every identity evidence item is fact-linked and
+bounded, preventing unsupported rules from creating a version. A real
+PostgreSQL concurrency regression verifies reuse without item duplication.
 
 ## Review Protocol
 

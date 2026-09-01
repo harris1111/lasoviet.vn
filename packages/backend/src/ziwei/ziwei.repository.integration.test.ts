@@ -8,12 +8,20 @@ import {
   birthProfiles,
   calculationRuns,
   createDatabase,
+  evidenceItems,
+  evidenceSets,
   runMigrations,
   ziweiChartVersions,
   ziweiCharts,
 } from "@lasoviet/database";
 
 import { createDatabaseZiweiCalculationRepository } from "./ziwei.repository.js";
+import { createEvidenceService } from "../evidence/evidence.service.js";
+
+const palaceIds = [
+  "life", "siblings", "spouse", "children", "wealth", "health",
+  "travel", "friends", "career", "property", "fortune", "parents",
+] as const;
 
 describe("Ziwei calculation repository", () => {
   let container:
@@ -85,12 +93,25 @@ describe("Ziwei calculation repository", () => {
       chart: {
         version: 1,
         systemId: "ziwei",
-        palaces: [],
-        transformations: [],
+        palaces: palaceIds.map((id) => ({
+          id: `ziwei.palace.${id}`,
+          earthlyBranchId: "ziwei.branch.tiger",
+          stars: [],
+        })),
+        transformations: [{
+          starId: "ziwei.star.wuqu",
+          id: "ziwei.transformation.prosperity",
+        }],
         soulPalaceId: "ziwei.palace.life",
-        bodyPalaceId: "ziwei.palace.life",
-        horoscopeCapabilities: [],
-        warnings: [],
+        bodyPalaceId: "ziwei.palace.career",
+        horoscopeCapabilities: [{
+          id: "ziwei.horoscope.annual",
+          supported: true,
+        }],
+        warnings: [{
+          code: "ziwei.warning.no-true-solar-time-correction",
+          severity: "limitation",
+        }],
         provenance: {
           version: 1,
           engineId: "ziwei.iztro",
@@ -127,6 +148,31 @@ describe("Ziwei calculation repository", () => {
     ).toHaveLength(1);
     expect(await database.select().from(ziweiCharts)).toHaveLength(1);
     expect(await database.select().from(ziweiChartVersions)).toHaveLength(1);
+
+    const evidenceService = createEvidenceService(database);
+    const [evidenceFirst, evidenceSecond] = await Promise.all([
+      evidenceService.buildAndPersist(first.chartVersionId, input.chart),
+      evidenceService.buildAndPersist(first.chartVersionId, input.chart),
+    ]);
+    expect(evidenceFirst).toMatchObject({ ok: true });
+    expect(evidenceSecond).toMatchObject({ ok: true });
+    if (!evidenceFirst.ok || !evidenceSecond.ok) {
+      throw new Error("EVIDENCE_PERSISTENCE_FAILED");
+    }
+    expect(evidenceSecond.value).toMatchObject({
+      evidenceSetId: evidenceFirst.value.evidenceSetId,
+      reused: true,
+    });
+    expect(
+      await database.select().from(evidenceSets).where(
+        eq(evidenceSets.chartVersionId, first.chartVersionId),
+      ),
+    ).toHaveLength(1);
+    expect(
+      await database.select().from(evidenceItems).where(
+        eq(evidenceItems.evidenceSetId, evidenceFirst.value.evidenceSetId),
+      ),
+    ).toHaveLength(3);
 
     await database.insert(authUsers).values({
       id: "ziwei-user-other",

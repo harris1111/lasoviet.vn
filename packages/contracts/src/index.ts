@@ -125,3 +125,8 @@ export type {
   ZiweiPalaceId,
   ZiweiStarId,
 } from "./normalized-ziwei-chart-v1.js";
+
+export { CapabilityDefinitionV1Schema } from "./capability.js";
+export type { CapabilityDefinitionV1 } from "./capability.js";
+export { EvidenceItemV1Schema, EvidenceSetV1Schema } from "./evidence.js";
+export type { EvidenceItemV1, EvidenceSetV1 } from "./evidence.js";

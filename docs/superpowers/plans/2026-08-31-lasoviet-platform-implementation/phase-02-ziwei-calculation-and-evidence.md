@@ -69,7 +69,7 @@ git add packages/contracts packages/engine-adapters docs/superpowers/plans
 git commit -m "feat: define Zi Wei engine contracts"
 ```
 
-**P02-T01 Evidence (2026-09-02):**
+**P02-T01 Evidence (2026-09-01):**
 
 - Focused RED confirmed the normalized chart module was absent before
   implementation.
@@ -139,7 +139,7 @@ git add packages/engine-adapters packages/backend/src/ziwei packages/database ap
 git commit -m "feat: add reproducible Zi Wei calculation"
 ```
 
-**P02-T02 Evidence (2026-09-02):**
+**P02-T02 Evidence (2026-09-01):**
 
 - The initial adapter RED failed because the production adapter/config modules
   did not exist. The initial service/controller REDs failed because their
@@ -209,7 +209,7 @@ git add packages/test-fixtures tests/calculation docs/superpowers/plans
 git commit -m "test: add trusted Zi Wei fixtures"
 ```
 
-**P02-T03 Evidence (2026-09-02):**
+**P02-T03 Evidence (2026-09-01):**
 
 - The fixture RED showed that the adapter collapsed `23:30` late Zi into the
   same vendor input as `00:30` early Zi. The adapter now sends iztro
@@ -248,36 +248,55 @@ git commit -m "test: add trusted Zi Wei fixtures"
 - Produces `EvidenceItemV1` and `EvidenceSetV1`.
 - Produces `buildZiweiIdentityEvidence(chart): EvidenceSetV1`.
 
-- [ ] **Step 1: Write failing rule tests**
+- [x] **Step 1: Write failing rule tests**
 
 Each test identifies normalized facts, evidence key, confidence, limitations,
 interpretation bounds, and allowed action categories.
 
-- [ ] **Step 2: Run evidence tests**
+- [x] **Step 2: Run evidence tests**
 
 Run: `pnpm vitest run packages/backend/src/evidence`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the minimum identity-report evidence set**
+- [x] **Step 3: Implement the minimum identity-report evidence set**
 
 Cover only evidence required by the free experience and first paid SKU. Do not
 encode all possible Zi Wei schools or topics.
 
-- [ ] **Step 4: Persist immutable evidence sets**
+- [x] **Step 4: Persist immutable evidence sets**
 
 Evidence versions link to chart version and rule version.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/evidence packages/contracts`
 Expected: PASS.
 
-- [ ] **Step 6: Update docs/rules and commit**
+- [x] **Step 6: Update docs/rules and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/capabilities packages/backend/src/evidence packages/database docs/superpowers/plans
 git commit -m "feat: add Zi Wei capabilities and evidence"
 ```
+
+**P02-T04 Evidence (2026-09-01):**
+
+- Added contract schemas for the controlled P0 capability and immutable
+  evidence items/sets. The registry exposes only `ziwei.identity.p0`, with
+  the approved public and `ZIWEI-IDENTITY-P0` paid availability.
+- The deterministic builder creates exactly three bounded identity facts:
+  life palace, body palace, and transformations. Each item references
+  normalized chart facts and includes confidence, limitations, risk tags,
+  interpretation bounds, and allowed actions.
+- Unsupported rule sets or missing facts return typed errors before persistence.
+  Immutable evidence versions are unique by chart version and rule version;
+  duplicates reuse the existing set without rewriting items.
+- Focused evidence/contracts tests include a real PostgreSQL concurrent
+  idempotency regression: one chart version/rule version retained one evidence
+  set and three immutable items. Migration acceptance passed. Root
+  typecheck/build passed. No AI, prose generation, UI, report preview,
+  commerce workflow, or new calculation school was added. Docs impact: minor.
+  Rule candidate: none. Open questions: none.
 
 ## Phase Exit Criteria
 

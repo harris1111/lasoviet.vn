@@ -17,7 +17,7 @@
 
 No plan/spec conflict blocks P02-T01.
 
-## P02-T01 Implementation — 2026-09-02
+## P02-T01 Implementation — 2026-09-01
 
 | Gate | Exact command | Result |
 |---|---|---|
@@ -32,7 +32,7 @@ Zi Wei v1 contracts, and a dependency-free adapter interface. No vendor
 dependency/import, calculation implementation, UI, AI behavior, or external
 side effect occurred. No durable rule is warranted.
 
-## P02-T02 Implementation — 2026-09-02
+## P02-T02 Implementation — 2026-09-01
 
 | Gate | Exact command | Result |
 |---|---|---|
@@ -53,7 +53,7 @@ idempotency value is `inputHash:engineVersion:adapterVersion:configHash` and
 is unique per immutable profile revision to prevent cross-profile chart-ID
 reuse. No durable rule is warranted.
 
-## P02-T03 Implementation — 2026-09-02
+## P02-T03 Implementation — 2026-09-01
 
 | Gate | Exact command | Result |
 |---|---|---|
@@ -71,3 +71,17 @@ reaches iztro index 12 without changing the public rule set. Tianji is used
 only for the verified lunar/hour/life-palace overlap; non-overlapping school
 and calendar behavior remains explicitly not comparable. Mingyu is excluded.
 No durable rule is warranted.
+
+## P02-T04 Implementation — 2026-09-01
+
+| Gate | Exact command | Result |
+|---|---|---|
+| Evidence/contracts/persistence | `corepack pnpm@11.25.0 exec vitest run packages/backend/src/ziwei/ziwei.repository.integration.test.ts packages/backend/src/evidence packages/contracts/src` | Passed: 4 files, 25 tests; concurrent duplicate persistence reused one set and retained three items. |
+| Migration acceptance | `corepack pnpm@11.25.0 --filter @lasoviet/database run migrate:test` | Passed: 1 file, 5 tests. |
+| Root typecheck | `corepack pnpm@11.25.0 run typecheck` | Passed. |
+| Root build | `corepack pnpm@11.25.0 run build` | Passed. |
+
+P02-T04 provides only the approved Zi Wei identity evidence foundation:
+one controlled capability, three deterministic fact-linked evidence items, and
+immutable idempotent persistence by chart version/rule version. No AI or
+user-facing report behavior exists in this task. No durable rule is warranted.

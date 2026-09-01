@@ -26,6 +26,7 @@ export {
   ziweiChartVersions,
   ziweiCharts,
 } from "./schema/birth-profile.js";
+export { evidenceItems, evidenceSets } from "./schema/evidence.js";
 export {
   deletionRequestStatus,
   deletionRequests,

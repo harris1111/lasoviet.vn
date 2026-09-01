@@ -377,7 +377,7 @@ git commit -m "feat: add canonical birth profile"
   Browser/Playwright UI verification remains deferred by FD-024 and is not
   claimed as passed.
 
-## Phase 01 Correction Pass 2 (2026-09-02)
+## Phase 01 Correction Pass 2 (2026-09-01)
 
 - Closed the final Sol re-review findings: anonymous actor tokens validate
   live Better Auth sessions; deletion and retention queries share the bounded

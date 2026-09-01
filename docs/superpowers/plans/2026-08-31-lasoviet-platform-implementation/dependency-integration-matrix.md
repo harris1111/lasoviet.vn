@@ -47,7 +47,7 @@ Production manifests use exact reviewed resolutions. Upgrades occur in focused
 changes with changelog review, resolved-tree license/SBOM diff, fixture tests,
 and normalized-contract snapshots.
 
-## P02-T02 Iztro First-Use Gate (2026-09-02)
+## P02-T02 Iztro First-Use Gate (2026-09-01)
 
 `@lasoviet/engine-adapters` is the sole production owner of the exact
 `iztro` import. Its manifest pins `iztro` to `2.6.0`; the lockfile resolves
@@ -74,7 +74,7 @@ The committed CycloneDX 1.5 artifact is
 dependency graph. The temporary archive used for integrity inspection is not a
 repository artifact and is removed before staging.
 
-## P02-T03 Fixture and Reference Evidence (2026-09-02)
+## P02-T03 Fixture and Reference Evidence (2026-09-01)
 
 The committed P0 fixture manifest pins the same reviewed `iztro@2.6.0`,
 adapter version `1`, and `ziwei.default` rule set as the first-use gate.

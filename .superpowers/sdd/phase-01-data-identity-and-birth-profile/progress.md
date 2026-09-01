@@ -89,7 +89,7 @@ remains binding. No new durable rule is warranted.
 Google OAuth was not called because credentials are unavailable. Browser or
 Playwright UI verification is not claimed; FD-024 continues to defer it.
 
-## Phase 01 Correction Pass 2 — 2026-09-02
+## Phase 01 Correction Pass 2 — 2026-09-01
 
 | Gate | Exact command | Result |
 |---|---|---|
