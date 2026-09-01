@@ -203,6 +203,13 @@ Terra classifies findings as:
 - `rejected`: unsupported, duplicate, contradicted by verified evidence, or
   inconsistent with founder-approved scope.
 
+Do not schedule routine Terra reviews after every small implementation task.
+Luna may execute consecutive tasks from an already Terra-approved plan without
+an intermediate review. Run Terra review after a complete feature, phase, or
+meaningful milestone, or earlier only when Luna reports an unexpected failure,
+the change crosses a security, privacy, payment, migration, or release
+boundary, or the founder explicitly requests a review.
+
 Only evidence-backed `must-fix` findings return to Luna for correction. Each
 review cycle permits at most two Terra-approved Luna correction passes, with a
 Terra re-review after each pass.
