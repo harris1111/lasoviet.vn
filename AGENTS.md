@@ -300,6 +300,10 @@ rule instead of adding another version.
   `approve-builds` or removed pnpm 10 build-policy settings. Stop for Terra
   review when pnpm adds or changes a workspace manifest policy, release-age
   exception, or build-script decision.
+- Treat a Git for Windows LF/CRLF notice as non-blocking only when its command
+  exits `0`, the exact changed or staged allowlist matches,
+  `git diff --check` passes, and content or hash checks show no unauthorized
+  mutation; otherwise treat it as blocking and escalate.
 
 ### Branch, Pull Request, And Merge Workflow
 
