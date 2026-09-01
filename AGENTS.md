@@ -295,6 +295,11 @@ rule instead of adding another version.
   explicit founder approval.
 - Keep changes narrowly scoped and preserve unrelated user work.
 - Use English conventional commit messages with no AI references.
+- For every delegated Windows repository command, first set the shell location
+  to the resolved absolute assigned worktree and verify `git
+  rev-parse --show-toplevel` matches it. Use absolute paths for required reads;
+  never rely on an inherited controller working directory. A failed read from
+  another directory is blocking and must be corrected by Sol before resuming.
 - For Windows `apply_patch` writes, first identify the tool's actual patch
   root; do not assume the terminal workdir controls it. Use only forward-slash
   headers relative to that root, never drive-qualified or backslash headers.
