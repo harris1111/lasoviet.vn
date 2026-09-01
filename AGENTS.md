@@ -300,6 +300,10 @@ rule instead of adding another version.
   rev-parse --show-toplevel` matches it. Use absolute paths for required reads;
   never rely on an inherited controller working directory. A failed read from
   another directory is blocking and must be corrected by Sol before resuming.
+- Before searching a path that the task is expected to create, check whether it
+  exists. A missing create-target and the resulting no-match search status are
+  expected pre-implementation state, not a blocker. Only a missing source that
+  the task requires as existing context must stop and escalate.
 - For Windows `apply_patch` writes, first identify the tool's actual patch
   root; do not assume the terminal workdir controls it. Use only forward-slash
   headers relative to that root, never drive-qualified or backslash headers.
