@@ -481,6 +481,25 @@ git commit -m "feat: establish public experience contracts"
 - The supported `vitest.config.mts` correction removed the prior config-loader
   warning. Docs impact: minor. Rule candidate: none. Open questions: none.
 
+### P00-T05 Milestone Fix Wave Evidence (2026-09-01)
+
+- Focused runtime i18n, TCP health, and public-content regressions passed:
+  `3` files, `7` tests.
+- `corepack pnpm@11.25.0 content:check` passed with `52` records for `26`
+  public routes.
+- `corepack pnpm@11.25.0 i18n:check` passed.
+- `corepack pnpm@11.25.0 --filter @lasoviet/web build` passed after regenerating
+  stale `.next` route artifacts. The build exposed `/[locale]`,
+  `/health/live`, and `/health/ready`.
+- `corepack pnpm@11.25.0 --filter @lasoviet/web typecheck` passed.
+- Fresh `corepack pnpm@11.25.0 check` passed lint, workspace typechecks,
+  `10` test files with `69` tests, and all workspace builds.
+- Runtime i18n now owns the locale root tree, required dependency readiness uses
+  bounded TCP probes, and `content:check` validates the version-controlled
+  `config/public-content.json` source.
+- Docs impact: minor. Rule candidate: none. Open questions: none.
+- Commit: `fix: complete Phase 00 runtime acceptance`.
+
 ## Phase Exit Criteria
 
 - All workspace packages compile.

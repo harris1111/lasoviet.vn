@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { describe, expect, it } from "vitest";
 
 import { PublicContentV1Schema } from "@lasoviet/contracts";
@@ -29,6 +31,26 @@ const validContent = {
 } as const;
 
 describe("public content contract", () => {
+  it("validates the version-controlled source for every public route and locale", async () => {
+    const records = JSON.parse(
+      await readFile("config/public-content.json", "utf8"),
+    );
+    const publicRoutes = routeRegistry.filter(
+      (route) => route.status === "live_indexable",
+    );
+    const validated = validatePublicContent(records, routeRegistry);
+    const keys = new Set(
+      validated.map((record) => `${record.routeId}:${record.locale}`),
+    );
+
+    expect(validated).toHaveLength(publicRoutes.length * 2);
+    expect(keys.size).toBe(validated.length);
+    for (const route of publicRoutes) {
+      expect(keys).toContain(`${route.id}:vi`);
+      expect(keys).toContain(`${route.id}:en`);
+    }
+  });
+
   it("accepts reviewed content owned by a public route", () => {
     expect(PublicContentV1Schema.parse(validContent)).toMatchObject(validContent);
     expect(validatePublicContent([validContent], routeRegistry)).toEqual([

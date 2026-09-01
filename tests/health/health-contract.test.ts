@@ -1,9 +1,12 @@
+import { createServer } from "node:net";
+
 import { describe, expect, it } from "vitest";
 
 import { HealthV1Schema } from "@lasoviet/contracts";
 
 import {
   HealthController,
+  createTcpConnectionProbe,
   getHealth,
   type HealthProbes,
 } from "../../apps/api/src/health/health.controller.js";
@@ -45,5 +48,37 @@ describe("health contract", () => {
       },
       status: 503,
     });
+  });
+
+  it("probes a local dependency socket and rejects an unreachable endpoint", async () => {
+    const server = createServer();
+    await new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, "127.0.0.1", () => resolve());
+    });
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected an ephemeral TCP address");
+    }
+
+    const reachable = createTcpConnectionProbe(
+      `postgres://127.0.0.1:${address.port}/database`,
+      5432,
+    );
+    await expect(reachable()).resolves.toBe(true);
+
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+
+    const unreachable = createTcpConnectionProbe(
+      `redis://127.0.0.1:${address.port}`,
+      6379,
+    );
+    await expect(unreachable()).resolves.toBe(false);
+    await expect(createTcpConnectionProbe("not-a-url", 5432)()).resolves.toBe(
+      false,
+    );
   });
 });

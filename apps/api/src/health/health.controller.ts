@@ -6,6 +6,7 @@ import {
   Optional,
   ServiceUnavailableException,
 } from "@nestjs/common";
+import { createConnection } from "node:net";
 import { loadEnvironment } from "@lasoviet/config";
 import {
   HealthV1Schema,
@@ -47,6 +48,56 @@ function healthStatus(
     return "unready";
   }
   return degraded.length > 0 ? "degraded" : "ok";
+}
+
+export function createTcpConnectionProbe(
+  urlValue: string | undefined,
+  defaultPort: number,
+): DependencyProbe {
+  return () =>
+    new Promise<boolean>((resolve) => {
+      if (urlValue === undefined) {
+        resolve(false);
+        return;
+      }
+
+      let target: URL;
+      try {
+        target = new URL(urlValue);
+      } catch {
+        resolve(false);
+        return;
+      }
+
+      const port = target.port === "" ? defaultPort : Number(target.port);
+      if (
+        target.hostname === "" ||
+        !Number.isInteger(port) ||
+        port < 1 ||
+        port > 65535
+      ) {
+        resolve(false);
+        return;
+      }
+
+      const socket = createConnection({
+        host: target.hostname,
+        port,
+      });
+      let settled = false;
+      const finish = (result: boolean) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        socket.destroy();
+        resolve(result);
+      };
+
+      socket.setTimeout(1000, () => finish(false));
+      socket.once("connect", () => finish(true));
+      socket.once("error", () => finish(false));
+    });
 }
 
 export async function getHealth(probes: HealthProbes): Promise<HealthV1> {
@@ -97,8 +148,8 @@ function defaultHealthProbes(): HealthProbes {
   const values = environment.ok ? environment.value : undefined;
 
   return {
-    postgres: () => values?.databaseUrl !== undefined,
-    redis: () => values?.redisUrl !== undefined,
+    postgres: createTcpConnectionProbe(values?.databaseUrl, 5432),
+    redis: createTcpConnectionProbe(values?.redisUrl, 6379),
     config: () => environment.ok,
     ...(values?.ai.enabled ? { ai: async () => false } : {}),
     ...(values?.cloudS3.enabled ? { cloudS3: async () => false } : {}),
