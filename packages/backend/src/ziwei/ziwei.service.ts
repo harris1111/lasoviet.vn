@@ -17,7 +17,8 @@ export type ZiweiCalculationError =
   | "PROFILE_FORBIDDEN"
   | "ZIWEI_TIME_INELIGIBLE"
   | "ENGINE_FAILED"
-  | "NORMALIZATION_INVALID";
+  | "NORMALIZATION_INVALID"
+  | "EVIDENCE_PERSISTENCE_FAILED";
 
 type ZiweiEngineWithPrivateSnapshot = {
   calculateWithPrivateSnapshot(
@@ -31,6 +32,9 @@ type ZiweiEngineWithPrivateSnapshot = {
 
 export type ZiweiCalculationServiceOptions = {
   repository: ZiweiCalculationRepository;
+  evidenceService: {
+    buildAndPersist(chartVersionId: string): Promise<{ ok: boolean }>;
+  };
   engine: ZiweiEngineWithPrivateSnapshot;
   config?: EngineConfig;
   now?: () => Date;
@@ -111,6 +115,12 @@ export function createZiweiCalculationService(
         rawSnapshot: calculation.rawSnapshot,
         now: now(),
       });
+      const evidence = await options.evidenceService.buildAndPersist(
+        record.chartVersionId,
+      );
+      if (!evidence.ok) {
+        return error("EVIDENCE_PERSISTENCE_FAILED");
+      }
       return {
         ok: true as const,
         value: {

@@ -133,3 +133,12 @@ export { CapabilityDefinitionV1Schema } from "./capability.js";
 export type { CapabilityDefinitionV1 } from "./capability.js";
 export { EvidenceItemV1Schema, EvidenceSetV1Schema } from "./evidence.js";
 export type { EvidenceItemV1, EvidenceSetV1 } from "./evidence.js";
+
+export {
+  ZiweiChartViewV1Schema,
+  ZiweiEvidenceViewV1Schema,
+} from "./ziwei-view-v1.js";
+export type {
+  ZiweiChartViewV1,
+  ZiweiEvidenceViewV1,
+} from "./ziwei-view-v1.js";

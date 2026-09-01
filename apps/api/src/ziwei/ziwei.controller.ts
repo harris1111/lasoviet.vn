@@ -4,12 +4,16 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Get,
   Param,
   Post,
   UnauthorizedException,
 } from "@nestjs/common";
 
-import { createZiweiCalculationService } from "@lasoviet/backend";
+import {
+  createZiweiCalculationService,
+  createZiweiQueryService,
+} from "@lasoviet/backend";
 import type { CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
 
@@ -23,6 +27,7 @@ export const ZIWEI_CALCULATION_SERVICE_SECRET = Symbol(
   "ZIWEI_CALCULATION_SERVICE_SECRET",
 );
 export const ZIWEI_CALCULATION_DATABASE = Symbol("ZIWEI_CALCULATION_DATABASE");
+export const ZIWEI_QUERY_SERVICE = Symbol("ZIWEI_QUERY_SERVICE");
 
 function bearerToken(authorization: string | undefined): string {
   if (authorization === undefined || !authorization.startsWith("Bearer ")) {
@@ -44,6 +49,8 @@ export class ZiweiController {
     private readonly secret: string,
     @Inject(ZIWEI_CALCULATION_DATABASE)
     private readonly database: Database,
+    @Inject(ZIWEI_QUERY_SERVICE)
+    private readonly queryService: ReturnType<typeof createZiweiQueryService>,
   ) {}
 
   private async actor(
@@ -70,5 +77,26 @@ export class ZiweiController {
     @Param("revisionId") revisionId: string,
   ) {
     return this.service.calculate(await this.actor(authorization), revisionId);
+  }
+
+  @Get("charts/:chartId")
+  async chart(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+  ) {
+    return this.queryService.readChart(await this.actor(authorization), chartId);
+  }
+
+  @Get("charts/:chartId/evidence/:evidenceId")
+  async evidence(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+    @Param("evidenceId") evidenceId: string,
+  ) {
+    return this.queryService.readEvidence(
+      await this.actor(authorization),
+      chartId,
+      evidenceId,
+    );
   }
 }

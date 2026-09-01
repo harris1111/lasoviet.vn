@@ -102,6 +102,21 @@ export type {
   ZiweiCalculationError,
   ZiweiCalculationServiceOptions,
 } from "./ziwei/ziwei.service.js";
+export {
+  createDatabaseZiweiQueryRepository,
+} from "./ziwei/ziwei-query.repository.js";
+export type {
+  AuthorizedZiweiChartRecord,
+  ZiweiQueryRepository,
+} from "./ziwei/ziwei-query.repository.js";
+export {
+  createZiweiQueryService,
+  ZiweiQueryDataError,
+} from "./ziwei/ziwei-query.service.js";
+export type {
+  ZiweiQueryError,
+  ZiweiQueryServiceOptions,
+} from "./ziwei/ziwei-query.service.js";
 export { getCapability, listCapabilities } from "./capabilities/capability.registry.js";
 export { createEvidenceService } from "./evidence/evidence.service.js";
 export { buildZiweiIdentityEvidence } from "./evidence/ziwei-identity-rules.js";

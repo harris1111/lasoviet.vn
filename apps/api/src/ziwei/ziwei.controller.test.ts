@@ -16,6 +16,7 @@ import {
   ZIWEI_CALCULATION_DATABASE,
   ZIWEI_CALCULATION_SERVICE,
   ZIWEI_CALCULATION_SERVICE_SECRET,
+  ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei.controller.js";
 
@@ -24,6 +25,36 @@ const secret = new TextEncoder().encode(serviceSecret);
 const calculate = vi.fn().mockResolvedValue({
   ok: true,
   value: { chartId: "chart-1", chartVersionId: "chart-version-1" },
+});
+const readChart = vi.fn().mockResolvedValue({
+  ok: true,
+  value: {
+    version: 1,
+    chartId: "chart-1",
+    chartVersionId: "chart-version-1",
+    chart: {},
+    evidenceIndex: {
+      version: 1,
+      evidenceSetId: "evidence-set-1",
+      capabilityId: "ziwei.identity.p0",
+      chartVersionId: "chart-version-1",
+      ruleVersion: "ziwei.identity.v1",
+      itemIds: [
+        "ziwei.identity.soul",
+        "ziwei.identity.body",
+        "ziwei.identity.configuration",
+      ],
+    },
+  },
+});
+const readEvidence = vi.fn().mockResolvedValue({
+  ok: true,
+  value: {
+    version: 1,
+    chartId: "chart-1",
+    chartVersionId: "chart-version-1",
+    evidence: { id: "ziwei.identity.soul" },
+  },
 });
 
 async function actorToken(): Promise<string> {
@@ -47,9 +78,10 @@ class ZiweiHttpTestModule {}
 Module({
   controllers: [ZiweiController],
   providers: [
-    { provide: ZIWEI_CALCULATION_SERVICE, useValue: { calculate } },
+    { provide: ZIWEI_CALCULATION_SERVICE, useValue: { calculate, readChart, readEvidence } },
     { provide: ZIWEI_CALCULATION_SERVICE_SECRET, useValue: serviceSecret },
     { provide: ZIWEI_CALCULATION_DATABASE, useValue: undefined },
+    { provide: ZIWEI_QUERY_SERVICE, useValue: { readChart, readEvidence } },
   ],
 })(ZiweiHttpTestModule);
 
@@ -83,6 +115,37 @@ describe("Zi Wei private HTTP flow", () => {
     expect(calculate).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "account", userId: "verified-account" }),
       "revision-1",
+    );
+  });
+
+  it("derives the chart query actor from the bearer token", async () => {
+    readChart.mockClear();
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "GET",
+      url: "/ziwei/charts/chart-1?userId=untrusted-account",
+      headers: { authorization: `Bearer ${await actorToken()}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(readChart).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "account", userId: "verified-account" }),
+      "chart-1",
+    );
+  });
+
+  it("returns only selected evidence through the private evidence endpoint", async () => {
+    readEvidence.mockClear();
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "GET",
+      url: "/ziwei/charts/chart-1/evidence/evidence-row-1",
+      headers: { authorization: `Bearer ${await actorToken()}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(readEvidence).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "account", userId: "verified-account" }),
+      "chart-1",
+      "evidence-row-1",
     );
   });
 });

@@ -20,8 +20,11 @@ import {
   createDatabaseConsentRepository,
   createDatabaseDeletionRepository,
   createDatabaseZiweiCalculationRepository,
+  createDatabaseZiweiQueryRepository,
   createSmtpEmailAdapter,
+  createEvidenceService,
   createZiweiCalculationService,
+  createZiweiQueryService,
   type EmailProvider,
 } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
@@ -50,6 +53,7 @@ import {
   ZIWEI_CALCULATION_DATABASE,
   ZIWEI_CALCULATION_SERVICE,
   ZIWEI_CALCULATION_SERVICE_SECRET,
+  ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei/ziwei.controller.js";
 
@@ -181,6 +185,7 @@ function privacyDatabase() {
           repository: createDatabaseZiweiCalculationRepository(
             privacyDatabase(),
           ),
+          evidenceService: createEvidenceService(privacyDatabase()),
           engine: new IztroAdapter(),
           config: iztroDefaultConfig,
         }),
@@ -196,6 +201,13 @@ function privacyDatabase() {
       },
     },
     { provide: ZIWEI_CALCULATION_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ZIWEI_QUERY_SERVICE,
+      useFactory: () =>
+        createZiweiQueryService({
+          repository: createDatabaseZiweiQueryRepository(privacyDatabase()),
+        }),
+    },
   ],
 })
 export class ApiModule {}

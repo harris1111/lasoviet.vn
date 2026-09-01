@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type {
   CurrentActor,
@@ -46,6 +46,72 @@ const chart = {
 } as unknown as NormalizedZiweiChartV1;
 
 describe("Ziwei calculation service", () => {
+  it("persists identity evidence before returning a successful calculation", async () => {
+    const buildAndPersist = vi.fn(async (chartVersionId: string) => ({
+      ok: true as const,
+      value: { evidenceSetId: `evidence-for-${chartVersionId}`, reused: false },
+    }));
+    const service = createZiweiCalculationService({
+      repository: {
+        async readAuthorizedRevision() {
+          return { profileId: "profile-1", revisionId: "revision-1", normalized: profile };
+        },
+        async create() {
+          return { chartId: "chart-1", chartVersionId: "chart-version-1", reused: false };
+        },
+      },
+      evidenceService: { buildAndPersist },
+      engine: {
+        async calculateWithPrivateSnapshot() {
+          return {
+            result: { ok: true as const, output: chart, provenance: chart.provenance, warnings: [] },
+            rawSnapshot: { vendor: "private" },
+          };
+        },
+      },
+    });
+
+    await expect(service.calculate(actor, "revision-1")).resolves.toMatchObject({
+      ok: true,
+      value: { chartId: "chart-1", chartVersionId: "chart-version-1" },
+    });
+    expect(buildAndPersist).toHaveBeenCalledWith("chart-version-1");
+  });
+
+  it("does not return calculation success when identity evidence persistence fails", async () => {
+    const service = createZiweiCalculationService({
+      repository: {
+        async readAuthorizedRevision() {
+          return { profileId: "profile-1", revisionId: "revision-1", normalized: profile };
+        },
+        async create() {
+          return { chartId: "chart-1", chartVersionId: "chart-version-1", reused: false };
+        },
+      },
+      evidenceService: {
+        async buildAndPersist() {
+          return {
+            ok: false as const,
+            error: { code: "CAPABILITY_UNAVAILABLE", messageKey: "evidence.capability_unavailable", retryable: false },
+          };
+        },
+      },
+      engine: {
+        async calculateWithPrivateSnapshot() {
+          return {
+            result: { ok: true as const, output: chart, provenance: chart.provenance, warnings: [] },
+            rawSnapshot: { vendor: "private" },
+          };
+        },
+      },
+    });
+
+    await expect(service.calculate(actor, "revision-1")).resolves.toMatchObject({
+      ok: false,
+      error: { code: "EVIDENCE_PERSISTENCE_FAILED" },
+    });
+  });
+
   it.each([
     { precision: "unknown" as const },
     {
@@ -71,6 +137,7 @@ describe("Ziwei calculation service", () => {
         },
         create,
       },
+      evidenceService: { async buildAndPersist() { return { ok: true as const, value: { evidenceSetId: "evidence-1", reused: false } }; } },
       engine: { async calculateWithPrivateSnapshot() { return { result: { ok: true, output: chart, provenance: chart.provenance, warnings: [] }, rawSnapshot: {} }; } },
     });
 
@@ -90,6 +157,7 @@ describe("Ziwei calculation service", () => {
           throw new Error("calculation run must not be created");
         },
       },
+      evidenceService: { async buildAndPersist() { return { ok: true as const, value: { evidenceSetId: "evidence-1", reused: false } }; } },
       engine: {
         async calculateWithPrivateSnapshot() {
           throw new Error("engine must not run");
@@ -105,6 +173,10 @@ describe("Ziwei calculation service", () => {
 
   it("reuses the existing immutable chart for the same calculation key", async () => {
     let creates = 0;
+    const buildAndPersist = vi.fn(async () => ({
+      ok: true as const,
+      value: { evidenceSetId: "evidence-set-1", reused: creates > 1 },
+    }));
     const service = createZiweiCalculationService({
       repository: {
         async readAuthorizedRevision() {
@@ -120,6 +192,7 @@ describe("Ziwei calculation service", () => {
           };
         },
       },
+      evidenceService: { buildAndPersist },
       engine: {
         async calculateWithPrivateSnapshot() {
           return {
@@ -147,5 +220,7 @@ describe("Ziwei calculation service", () => {
       value: { chartId: "chart-1", chartVersionId: "chart-version-1" },
     });
     expect(creates).toBe(2);
+    expect(buildAndPersist).toHaveBeenNthCalledWith(1, "chart-version-1");
+    expect(buildAndPersist).toHaveBeenNthCalledWith(2, "chart-version-1");
   });
 });
