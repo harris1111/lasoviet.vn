@@ -131,4 +131,44 @@ describe("current actor resolver", () => {
       new CurrentActorResolutionError("ANONYMOUS_EXPIRED"),
     );
   });
+
+  it("uses a fresh lookup clock after the authoritative session read", async () => {
+    let authoritativeReadComplete = false;
+    const lookupTime = new Date("2026-09-02T00:00:01.000Z");
+    const findLiveAnonymousActor = vi.fn().mockResolvedValue({
+      sessionId: "anonymous-session",
+      expiresAt: new Date("2026-09-03T00:00:00.000Z"),
+      sessionExpiresAt: new Date("2026-09-02T00:00:00.500Z"),
+    });
+    const resolve = createCurrentActorResolver({
+      auth: {
+        api: {
+          getSession: vi.fn(async () => {
+            authoritativeReadComplete = true;
+            return {
+              session: { id: "anonymous-session", userId: "anonymous-1" },
+              user: { id: "anonymous-1", isAnonymous: true },
+            };
+          }),
+          signInAnonymous: vi.fn(),
+        },
+      } as never,
+      headers: new Headers(),
+      findLiveAnonymousActor,
+      now: () =>
+        authoritativeReadComplete
+          ? lookupTime
+          : new Date("2026-09-02T00:00:00.000Z"),
+      requestId: () => "server-request-id",
+    });
+
+    await expect(resolve()).rejects.toEqual(
+      new CurrentActorResolutionError("ANONYMOUS_EXPIRED"),
+    );
+    expect(findLiveAnonymousActor).toHaveBeenCalledWith({
+      anonymousActorId: "anonymous-1",
+      sessionId: "anonymous-session",
+      now: lookupTime,
+    });
+  });
 });

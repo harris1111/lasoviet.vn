@@ -71,14 +71,15 @@ async function liveAnonymousActor(
     anonymousActorId: string;
     sessionId?: string;
     sessionToken?: string;
-    now: Date;
   },
+  now: () => Date,
 ): Promise<CurrentActor> {
-  const live = await find(input);
+  const lookupTime = now();
+  const live = await find({ ...input, now: lookupTime });
   if (
     live === null ||
-    live.expiresAt <= input.now ||
-    live.sessionExpiresAt <= input.now
+    live.expiresAt <= lookupTime ||
+    live.sessionExpiresAt <= lookupTime
   ) {
     return invalidAnonymous();
   }
@@ -96,7 +97,6 @@ export function createCurrentActorResolver(options: CurrentActorResolverOptions)
   const createRequestId = options.requestId ?? randomUUID;
 
   return async (): Promise<CurrentActor> => {
-    const currentTime = now();
     const session = await options.auth.api.getSession({
       headers: options.headers,
       query: { disableCookieCache: true },
@@ -111,8 +111,7 @@ export function createCurrentActorResolver(options: CurrentActorResolverOptions)
       const actor = await liveAnonymousActor(options.findLiveAnonymousActor, {
         anonymousActorId: signedIn.user.id,
         sessionToken: signedIn.token,
-        now: currentTime,
-      });
+      }, now);
       return { ...actor, requestId: createRequestId() };
     }
 
@@ -130,8 +129,7 @@ export function createCurrentActorResolver(options: CurrentActorResolverOptions)
     const actor = await liveAnonymousActor(options.findLiveAnonymousActor, {
       anonymousActorId: session.user.id,
       sessionId: session.session.id,
-      now: currentTime,
-    });
+    }, now);
     return { ...actor, requestId: createRequestId() };
   };
 }

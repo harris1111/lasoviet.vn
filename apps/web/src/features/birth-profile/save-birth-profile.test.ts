@@ -127,7 +127,13 @@ describe("BirthProfile server submission", () => {
       .mockResolvedValueOnce({ ok: true, value: { id: "consent-1" } })
       .mockResolvedValueOnce({
         ok: false,
-        error: { code: "INVALID_TIMEZONE" },
+        error: {
+          code: "INVALID_TIMEZONE",
+          messageKey: "birthProfile.invalid_timezone",
+          retryable: false,
+          field: "timezone.ianaZone",
+          details: { source: "backend" },
+        },
       });
 
     await expect(

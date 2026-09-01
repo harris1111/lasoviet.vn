@@ -132,3 +132,44 @@ None beyond this required task report update.
 ### Unresolved Questions
 
 None.
+
+## Fix Round 2 - 2026-09-02
+
+Status: DONE
+
+### Fixed
+
+- The profile failure response now validates the complete backend `AppError`
+  envelope: safe uppercase code, `messageKey`, `retryable`, and optional
+  `field` and primitive `details`. The action consumes only the validated
+  code and rejects unmodeled provider fields.
+- Anonymous live-row checks now capture the clock immediately before the
+  lookup. That one timestamp drives both database filtering and post-query
+  actor/session expiry validation.
+
+### RED/GREEN Evidence
+
+- RED:
+  - A real backend `INVALID_TIMEZONE` error envelope was rejected as
+    `PRIVATE_API_RESPONSE_INVALID`.
+  - A session that expired after `getSession()` but before lookup still
+    resolved as anonymous.
+- GREEN:
+
+```text
+pnpm vitest run packages/backend/src/birth-profile/birth-profile.service.test.ts apps/web/src/auth/resolve-current-actor.test.ts apps/web/src/features/birth-profile/save-birth-profile.test.ts
+3 passed, 26 passed
+
+pnpm --filter @lasoviet/contracts typecheck
+pnpm --filter @lasoviet/backend typecheck
+pnpm --filter @lasoviet/web typecheck
+all passed
+```
+
+### Docs Impact
+
+None beyond this required task report update.
+
+### Unresolved Questions
+
+None.
