@@ -102,4 +102,13 @@ describe("route registry", () => {
   it("loads the versioned YAML route definitions through the typed loader", () => {
     expect(loadRouteRegistry()).toEqual(routeRegistry);
   });
+
+  it("keeps the canonical topic route private, noindex, and out of sitemaps", () => {
+    expect(routeRegistry.find((route) => route.id === "private.chart.topic")).toMatchObject({
+      path: "/la-so/{opaque_id}/chon-luan-giai",
+      private: true,
+      indexing: "noindex_nofollow",
+      sitemap: false,
+    });
+  });
 });

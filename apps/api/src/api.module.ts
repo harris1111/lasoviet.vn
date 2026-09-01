@@ -10,6 +10,7 @@ import {
 } from "@lasoviet/engine-adapters";
 import {
   createAuthEmailDeliveryService,
+  createAnalyticsService,
   createAccountDeletionService,
   createAnonymousRetentionService,
   createBirthProfileService,
@@ -53,6 +54,7 @@ import {
   ZIWEI_CALCULATION_DATABASE,
   ZIWEI_CALCULATION_SERVICE,
   ZIWEI_CALCULATION_SERVICE_SECRET,
+  ZIWEI_ANALYTICS_SERVICE,
   ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei/ziwei.controller.js";
@@ -202,11 +204,22 @@ function privacyDatabase() {
     },
     { provide: ZIWEI_CALCULATION_DATABASE, useFactory: privacyDatabase },
     {
-      provide: ZIWEI_QUERY_SERVICE,
+      provide: ZIWEI_ANALYTICS_SERVICE,
       useFactory: () =>
+        createAnalyticsService({
+          sink: {
+            async write() {},
+          },
+        }),
+    },
+    {
+      provide: ZIWEI_QUERY_SERVICE,
+      useFactory: (analytics) =>
         createZiweiQueryService({
           repository: createDatabaseZiweiQueryRepository(privacyDatabase()),
+          analytics,
         }),
+      inject: [ZIWEI_ANALYTICS_SERVICE],
     },
   ],
 })

@@ -131,6 +131,40 @@ describe("Zi Wei query service", () => {
     });
   });
 
+  it("authorizes the chart before evaluating a requested reserved SKU", async () => {
+    const store = repository({
+      readAuthorizedChart: vi.fn().mockResolvedValue(null),
+    });
+    const service = createZiweiQueryService({ repository: store, now: () => now });
+
+    await expect(service.selectTopic(account, "another-owner-chart", {
+      sku: "ZIWEI-RELATIONSHIP-P0",
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "CHART_NOT_FOUND" },
+    });
+    expect(store.readAuthorizedChart).toHaveBeenCalledWith(
+      account,
+      "another-owner-chart",
+      now,
+    );
+  });
+
+  it("returns the deterministic preview and rejects reserved topics for an authorized chart", async () => {
+    const service = createZiweiQueryService({ repository: repository(), now: () => now });
+
+    await expect(service.readPreview(account, "chart-1")).resolves.toMatchObject({
+      ok: true,
+      value: { insights: { length: 3 }, paidPreview: { coveragePercent: 12 } },
+    });
+    await expect(service.selectTopic(account, "chart-1", {
+      sku: "ZIWEI-RELATIONSHIP-P0",
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "SKU_UNAVAILABLE" },
+    });
+  });
+
   it("returns one selected strict evidence item and hides unrelated evidence IDs", async () => {
     const store = repository();
     const service = createZiweiQueryService({ repository: store, now: () => now });

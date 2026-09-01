@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Inject,
   Get,
+  Body,
   Param,
   Post,
   UnauthorizedException,
@@ -28,6 +29,7 @@ export const ZIWEI_CALCULATION_SERVICE_SECRET = Symbol(
 );
 export const ZIWEI_CALCULATION_DATABASE = Symbol("ZIWEI_CALCULATION_DATABASE");
 export const ZIWEI_QUERY_SERVICE = Symbol("ZIWEI_QUERY_SERVICE");
+export const ZIWEI_ANALYTICS_SERVICE = Symbol("ZIWEI_ANALYTICS_SERVICE");
 
 function bearerToken(authorization: string | undefined): string {
   if (authorization === undefined || !authorization.startsWith("Bearer ")) {
@@ -97,6 +99,36 @@ export class ZiweiController {
       await this.actor(authorization),
       chartId,
       evidenceId,
+    );
+  }
+
+  @Get("charts/:chartId/preview")
+  async preview(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+  ) {
+    return this.queryService.readPreview(await this.actor(authorization), chartId);
+  }
+
+  @Get("charts/:chartId/topics")
+  async topics(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+  ) {
+    return this.queryService.listTopics(await this.actor(authorization), chartId);
+  }
+
+  @Post("charts/:chartId/topics")
+  @HttpCode(HttpStatus.OK)
+  async selectTopic(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+    @Body() request: unknown,
+  ) {
+    return this.queryService.selectTopic(
+      await this.actor(authorization),
+      chartId,
+      request,
     );
   }
 }

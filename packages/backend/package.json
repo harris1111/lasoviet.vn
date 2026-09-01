@@ -16,6 +16,7 @@
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit"
   },
   "dependencies": {
+    "@lasoviet/config": "workspace:0.0.0",
     "@lasoviet/contracts": "workspace:0.0.0",
     "@lasoviet/database": "workspace:0.0.0",
     "@nestjs/common": "12.0.1",

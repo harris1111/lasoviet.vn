@@ -37,6 +37,7 @@ export type {
 
 export {
   AnalyticsEventV1Schema,
+  AnalyticsPropertyValueSchema,
 } from "./analytics-event-v1.js";
 export type {
   AnalyticsEventV1,
@@ -142,3 +143,14 @@ export type {
   ZiweiChartViewV1,
   ZiweiEvidenceViewV1,
 } from "./ziwei-view-v1.js";
+
+export {
+  FreeIdentityPreviewV1Schema,
+  PaidTopicSelectionRequestV1Schema,
+  PaidTopicSelectionViewV1Schema,
+} from "./free-identity-preview-v1.js";
+export type {
+  FreeIdentityPreviewV1,
+  PaidTopicSelectionRequestV1,
+  PaidTopicSelectionViewV1,
+} from "./free-identity-preview-v1.js";

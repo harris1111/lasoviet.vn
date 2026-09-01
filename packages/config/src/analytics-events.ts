@@ -15,14 +15,12 @@ const eventProperties = new Map(
 );
 const forbiddenProperties = new Set([
   "name",
+  "email",
   "birth_date",
   "birth_time",
   "birth_place",
-  "chart_json",
-  "evidence_text",
-  "report_content",
-  "email",
   "payment_reference",
+  "report_content",
 ]);
 
 export const analyticsEventSchema = BaseAnalyticsEventV1Schema.superRefine(
@@ -43,8 +41,9 @@ export const analyticsEventSchema = BaseAnalyticsEventV1Schema.superRefine(
         !allowed.has(property) ||
         forbiddenProperties.has(normalized) ||
         normalized.startsWith("birth_") ||
-        normalized.includes("report") ||
-        normalized.includes("chart")
+        normalized.includes("chart") ||
+        normalized.includes("evidence") ||
+        normalized.includes("profile")
       ) {
         context.addIssue({
           code: "custom",

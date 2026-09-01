@@ -1,14 +1,23 @@
 import {
   EvidenceItemV1Schema,
   NormalizedZiweiChartV1Schema,
+  PaidTopicSelectionRequestV1Schema,
+  PaidTopicSelectionViewV1Schema,
   type CurrentActor,
+  type FreeIdentityPreviewV1,
+  type PaidTopicSelectionViewV1,
   type Result,
   ZiweiChartViewV1Schema,
   ZiweiEvidenceViewV1Schema,
   type ZiweiChartViewV1,
   type ZiweiEvidenceViewV1,
 } from "@lasoviet/contracts";
+import { productCatalog } from "@lasoviet/config";
 
+import type { AnalyticsService } from "../analytics/analytics.service.js";
+import {
+  buildFreeIdentityPreview,
+} from "../reports/free-identity-preview.js";
 import type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
 
 export type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
@@ -16,11 +25,14 @@ export type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
 export type ZiweiQueryError =
   | "CHART_NOT_FOUND"
   | "EVIDENCE_NOT_FOUND"
-  | "ANONYMOUS_EXPIRED";
+  | "ANONYMOUS_EXPIRED"
+  | "INSUFFICIENT_EVIDENCE"
+  | "SKU_UNAVAILABLE";
 
 export type ZiweiQueryServiceOptions = {
   repository: ZiweiQueryRepository;
   now?: () => Date;
+  analytics?: AnalyticsService;
 };
 
 export class ZiweiQueryDataError extends Error {
@@ -89,6 +101,11 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
   const now = options.now ?? (() => new Date());
 
   async function authorizedChart(actor: CurrentActor, chartId: string) {
+    const record = await authorizedRecord(actor, chartId);
+    return "ok" in record ? record : chartView(record);
+  }
+
+  async function authorizedRecord(actor: CurrentActor, chartId: string) {
     const currentTime = now();
     if (anonymousExpired(actor, currentTime)) {
       return error("ANONYMOUS_EXPIRED");
@@ -98,7 +115,29 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
       chartId,
       currentTime,
     );
-    return record === null ? error("CHART_NOT_FOUND") : chartView(record);
+    return record === null ? error("CHART_NOT_FOUND") : record;
+  }
+
+  function topicView(
+    chartId: string,
+    chartVersionId: string,
+  ): PaidTopicSelectionViewV1 {
+    const view = PaidTopicSelectionViewV1Schema.safeParse({
+      version: 1,
+      chartId,
+      chartVersionId,
+      offers: productCatalog.firstPaidOffers().map((offer) => ({
+        sku: offer.sku,
+        method: offer.method,
+        price: offer.price,
+        currency: offer.currency,
+        sections: offer.sections,
+      })),
+    });
+    if (!view.success) {
+      throw new ZiweiQueryDataError();
+    }
+    return view.data;
   }
 
   return {
@@ -145,6 +184,63 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
         throw new ZiweiQueryDataError();
       }
       return { ok: true, value: view.data };
+    },
+
+    async readPreview(
+      actor: CurrentActor,
+      chartId: string,
+    ): Promise<Result<FreeIdentityPreviewV1, ZiweiQueryError>> {
+      const record = await authorizedRecord(actor, chartId);
+      if ("ok" in record) {
+        return record;
+      }
+      return buildFreeIdentityPreview({
+        chartId: record.chartId,
+        chartVersionId: record.chartVersionId,
+        evidence: record.items.map((item) => item.payload),
+      });
+    },
+
+    async listTopics(
+      actor: CurrentActor,
+      chartId: string,
+    ): Promise<Result<PaidTopicSelectionViewV1, ZiweiQueryError>> {
+      const record = await authorizedRecord(actor, chartId);
+      return "ok" in record
+        ? record
+        : { ok: true, value: topicView(record.chartId, record.chartVersionId) };
+    },
+
+    async selectTopic(
+      actor: CurrentActor,
+      chartId: string,
+      request: unknown,
+    ): Promise<Result<PaidTopicSelectionViewV1, ZiweiQueryError>> {
+      const record = await authorizedRecord(actor, chartId);
+      if ("ok" in record) {
+        return record;
+      }
+      const selection = PaidTopicSelectionRequestV1Schema.safeParse(request);
+      if (
+        !selection.success ||
+        productCatalog.findSelectableOffer(
+          typeof request === "object" && request !== null && "sku" in request
+            ? String(request.sku)
+            : "",
+        ) === undefined
+      ) {
+        return error("SKU_UNAVAILABLE");
+      }
+      const view = topicView(record.chartId, record.chartVersionId);
+      await options.analytics?.emit({
+        name: "paid_topic_selected",
+        properties: {
+          sku: selection.data.sku,
+          method: "ziwei",
+          recommendation_source: "topic_selection",
+        },
+      });
+      return { ok: true, value: view };
     },
   };
 }

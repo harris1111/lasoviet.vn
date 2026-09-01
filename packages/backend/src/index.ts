@@ -122,3 +122,17 @@ export { createEvidenceService } from "./evidence/evidence.service.js";
 export { buildZiweiIdentityEvidence } from "./evidence/ziwei-identity-rules.js";
 export type { EvidenceServiceError } from "./evidence/evidence.service.js";
 export type { ZiweiIdentityEvidenceError } from "./evidence/ziwei-identity-rules.js";
+export {
+  createAnalyticsService,
+} from "./analytics/analytics.service.js";
+export type {
+  AnalyticsService,
+  AnalyticsSink,
+} from "./analytics/analytics.service.js";
+export {
+  buildFreeIdentityPreview,
+} from "./reports/free-identity-preview.js";
+export type {
+  FreeIdentityPreviewError,
+  FreeIdentityPreviewInput,
+} from "./reports/free-identity-preview.js";

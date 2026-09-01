@@ -39,3 +39,12 @@ export {
 export type {
   AnalyticsEventV1,
 } from "./analytics-events.js";
+
+export {
+  productCatalog,
+  validateProductCatalog,
+} from "./product-catalog.js";
+export type {
+  ProductCatalog,
+  ProductCatalogProduct,
+} from "./product-catalog.js";

@@ -56,6 +56,9 @@ const readEvidence = vi.fn().mockResolvedValue({
     evidence: { id: "ziwei.identity.soul" },
   },
 });
+const readPreview = vi.fn().mockResolvedValue({ ok: true, value: { version: 1 } });
+const listTopics = vi.fn().mockResolvedValue({ ok: true, value: { version: 1 } });
+const selectTopic = vi.fn().mockResolvedValue({ ok: true, value: { version: 1 } });
 
 async function actorToken(): Promise<string> {
   return new SignJWT({
@@ -81,7 +84,7 @@ Module({
     { provide: ZIWEI_CALCULATION_SERVICE, useValue: { calculate, readChart, readEvidence } },
     { provide: ZIWEI_CALCULATION_SERVICE_SECRET, useValue: serviceSecret },
     { provide: ZIWEI_CALCULATION_DATABASE, useValue: undefined },
-    { provide: ZIWEI_QUERY_SERVICE, useValue: { readChart, readEvidence } },
+    { provide: ZIWEI_QUERY_SERVICE, useValue: { readChart, readEvidence, readPreview, listTopics, selectTopic } },
   ],
 })(ZiweiHttpTestModule);
 
@@ -146,6 +149,44 @@ describe("Zi Wei private HTTP flow", () => {
       expect.objectContaining({ kind: "account", userId: "verified-account" }),
       "chart-1",
       "evidence-row-1",
+    );
+  });
+
+  it("derives preview and topic actors from the signed token", async () => {
+    readPreview.mockClear();
+    listTopics.mockClear();
+    selectTopic.mockClear();
+    const authorization = `Bearer ${await actorToken()}`;
+
+    await app.getHttpAdapter().getInstance().inject({
+      method: "GET",
+      url: "/ziwei/charts/chart-1/preview?userId=untrusted-account",
+      headers: { authorization },
+    });
+    await app.getHttpAdapter().getInstance().inject({
+      method: "GET",
+      url: "/ziwei/charts/chart-1/topics?userId=untrusted-account",
+      headers: { authorization },
+    });
+    await app.getHttpAdapter().getInstance().inject({
+      method: "POST",
+      url: "/ziwei/charts/chart-1/topics",
+      headers: { authorization },
+      payload: { sku: "ZIWEI-IDENTITY-P0", userId: "untrusted-account" },
+    });
+
+    expect(readPreview).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "account", userId: "verified-account" }),
+      "chart-1",
+    );
+    expect(listTopics).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "account", userId: "verified-account" }),
+      "chart-1",
+    );
+    expect(selectTopic).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "account", userId: "verified-account" }),
+      "chart-1",
+      { sku: "ZIWEI-IDENTITY-P0", userId: "untrusted-account" },
     );
   });
 });
