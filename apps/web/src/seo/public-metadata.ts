@@ -19,14 +19,27 @@ function localizedUrl(path: string, locale: PublicContentV1["locale"]): string {
   return path === "/" ? `${PRODUCTION_ORIGIN}/en` : `${PRODUCTION_ORIGIN}/en${path}`;
 }
 
+function canonicalPath(route: RouteDefinitionV1): string {
+  if (route.canonical === "self") return route.path;
+  if (!route.canonical.startsWith("/")) {
+    throw new Error("PUBLIC_CANONICAL_INVALID");
+  }
+  return route.canonical;
+}
+
 export function buildRobotsPolicy(route: RouteDefinitionV1): RobotsPolicy {
-  if (route.private || route.status !== "live_indexable") {
+  if (route.private) {
     return { index: false, follow: false };
   }
-  return {
-    index: route.robots.includes("index") && !route.robots.includes("noindex"),
-    follow: route.robots.includes("follow") && !route.robots.includes("nofollow"),
-  };
+  switch (route.indexing) {
+    case "index_follow":
+      return { index: true, follow: true };
+    case "noindex_follow":
+      return { index: false, follow: true };
+    case "noindex_nofollow":
+    case "redirect":
+      return { index: false, follow: false };
+  }
 }
 
 export function buildPublicMetadata(
@@ -37,16 +50,17 @@ export function buildPublicMetadata(
   if (content === undefined || route.private || route.status !== "live_indexable") {
     return { robots };
   }
+  const path = canonicalPath(route);
 
   return {
     title: content.title,
     description: content.summary,
     alternates: {
-      canonical: localizedUrl(route.path, content.locale),
+      canonical: localizedUrl(path, content.locale),
       languages: {
-        vi: localizedUrl(route.path, "vi"),
-        en: localizedUrl(route.path, "en"),
-        "x-default": localizedUrl(route.path, "vi"),
+        vi: localizedUrl(path, "vi"),
+        en: localizedUrl(path, "en"),
+        "x-default": localizedUrl(path, "vi"),
       },
     },
     robots,

@@ -9,9 +9,13 @@ export type PublicRouteResolution =
       route: RouteDefinitionV1;
       content: PublicContentV1;
     }
-  | { kind: "not-found"; state: "archived" | "preview_noindex" | "private" | "reserved" | "unknown" }
+  | {
+      kind: "not-found";
+      state: "archived" | "preview_noindex" | "private" | "reserved" | "unknown";
+      code?: "ROUTE_ARCHIVED" | "ROUTE_RESERVED";
+    }
   | { kind: "redirect"; status: 301; target: string }
-  | { kind: "gone"; status: 410 };
+  | { kind: "gone"; status: 410; code: "ROUTE_ARCHIVED" };
 
 type ResolverDependencies = {
   routes: readonly RouteDefinitionV1[];
@@ -37,9 +41,17 @@ function matchesRoute(path: string, routePath: string): boolean {
   const segments = path.split("/").filter(Boolean);
   const routeSegments = routePath.split("/").filter(Boolean);
   if (segments.length !== routeSegments.length) return false;
-  return routeSegments.every((segment, index) =>
-    /^\{[^/{}]+\}$/.test(segment) || segment === segments[index],
-  );
+  return routeSegments.every((segment, index) => {
+    const pattern = segment
+      .split(/(\{[^/{}]+\})/)
+      .map((part) =>
+        /^\{[^/{}]+\}$/.test(part)
+          ? "[^/]+"
+          : part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      )
+      .join("");
+    return new RegExp(`^${pattern}$`).test(segments[index] ?? "");
+  });
 }
 
 function routeForPath(
@@ -62,7 +74,9 @@ export function resolvePublicRoute(
   const route = routeForPath(localized.path, dependencies.routes);
   if (route === undefined) return { kind: "not-found", state: "unknown" };
   if (route.private) return { kind: "not-found", state: "private" };
-  if (route.status === "reserved") return { kind: "not-found", state: "reserved" };
+  if (route.status === "reserved") {
+    return { kind: "not-found", state: "reserved", code: "ROUTE_RESERVED" };
+  }
   if (route.status === "preview_noindex") {
     return { kind: "not-found", state: "preview_noindex" };
   }
@@ -70,8 +84,10 @@ export function resolvePublicRoute(
     if (route.redirect.disposition === "301" && route.redirect.target !== undefined) {
       return { kind: "redirect", status: 301, target: route.redirect.target };
     }
-    if (route.redirect.disposition === "410") return { kind: "gone", status: 410 };
-    return { kind: "not-found", state: "archived" };
+    if (route.redirect.disposition === "410") {
+      return { kind: "gone", status: 410, code: "ROUTE_ARCHIVED" };
+    }
+    return { kind: "not-found", state: "archived", code: "ROUTE_ARCHIVED" };
   }
   if (route.status !== "live_indexable") return { kind: "not-found", state: "unknown" };
 

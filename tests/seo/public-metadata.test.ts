@@ -57,4 +57,37 @@ describe("public metadata", () => {
       robots: { index: false, follow: false },
     });
   });
+
+  it("uses an explicit canonical route path for both locale alternates", () => {
+    const canonicalFixture = {
+      ...homeRoute,
+      id: "canonical-fixture",
+      intent: "canonical-fixture",
+      path: "/duplicate-page",
+      canonical: "/canonical-page",
+    };
+    const content = { ...homeContent, routeId: canonicalFixture.id, locale: "en" as const };
+
+    expect(buildPublicMetadata(canonicalFixture, content)).toMatchObject({
+      alternates: {
+        canonical: "https://lasoviet.vn/en/canonical-page",
+        languages: {
+          vi: "https://lasoviet.vn/canonical-page",
+          en: "https://lasoviet.vn/en/canonical-page",
+          "x-default": "https://lasoviet.vn/canonical-page",
+        },
+      },
+    });
+  });
+
+  it("uses the route indexing policy for noindex-follow routes", () => {
+    expect(
+      buildRobotsPolicy({
+        ...homeRoute,
+        status: "live_noindex",
+        indexing: "noindex_follow",
+        robots: "noindex,follow",
+      }),
+    ).toEqual({ index: false, follow: true });
+  });
 });

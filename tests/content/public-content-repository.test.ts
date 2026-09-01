@@ -13,8 +13,16 @@ const publicRoute = routeRegistry.find(
 );
 const privateRoute = routeRegistry.find((route) => route.private);
 const reservedRoute = routeRegistry.find((route) => route.status === "reserved");
+const reservedYearRoute = routeRegistry.find(
+  (route) => route.id === "commercial.tu-vi.year",
+);
 
-if (publicRoute === undefined || privateRoute === undefined || reservedRoute === undefined) {
+if (
+  publicRoute === undefined ||
+  privateRoute === undefined ||
+  reservedRoute === undefined ||
+  reservedYearRoute === undefined
+) {
   throw new Error("Required route fixtures are missing");
 }
 
@@ -71,13 +79,33 @@ describe("public content repository and route resolver", () => {
         routes: [reservedRoute],
         contentRepository: repository,
       }),
-    ).toEqual({ kind: "not-found", state: "reserved" });
+    ).toEqual({ kind: "not-found", state: "reserved", code: "ROUTE_RESERVED" });
     expect(
       resolvePublicRoute(privateRoute.path, {
         routes: [privateRoute],
         contentRepository: repository,
       }),
     ).toEqual({ kind: "not-found", state: "private" });
+  });
+
+  it("matches embedded registry placeholders for Vietnamese and English reserved paths", () => {
+    const repository = createPublicContentRepository([], [reservedYearRoute]);
+    const dependencies = { routes: [reservedYearRoute], contentRepository: repository };
+
+    expect(resolvePublicRoute("/luan-giai-tu-vi/van-trinh-2027", dependencies)).toEqual({
+      kind: "not-found",
+      state: "reserved",
+      code: "ROUTE_RESERVED",
+    });
+    expect(resolvePublicRoute("/en/luan-giai-tu-vi/van-trinh-2027", dependencies)).toEqual({
+      kind: "not-found",
+      state: "reserved",
+      code: "ROUTE_RESERVED",
+    });
+    expect(resolvePublicRoute("/luan-giai-tu-vi/van-trinh-", dependencies)).toEqual({
+      kind: "not-found",
+      state: "unknown",
+    });
   });
 
   it("uses archived route dispositions from injected registry fixtures", () => {
@@ -103,10 +131,10 @@ describe("public content repository and route resolver", () => {
     ).toEqual({ kind: "redirect", status: 301, target: "/replacement" });
     expect(
       resolvePublicRoute("/archived-404", { routes: archived, contentRepository: repository }),
-    ).toEqual({ kind: "not-found", state: "archived" });
+    ).toEqual({ kind: "not-found", state: "archived", code: "ROUTE_ARCHIVED" });
     expect(
       resolvePublicRoute("/archived-410", { routes: archived, contentRepository: repository }),
-    ).toEqual({ kind: "gone", status: 410 });
+    ).toEqual({ kind: "gone", status: 410, code: "ROUTE_ARCHIVED" });
   });
 
   it("rejects missing and duplicate content records with stable errors", () => {
