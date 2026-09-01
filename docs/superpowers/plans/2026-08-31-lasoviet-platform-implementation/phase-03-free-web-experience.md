@@ -196,6 +196,18 @@ git add apps/web/src/features/ziwei apps/web/src/features/evidence apps/web/src/
 git commit -m "feat: render free Zi Wei chart"
 ```
 
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: evidence-gated calculation success, actor-authorized latest chart
+  reads, selected-evidence reads, strict persisted-data contracts, private API
+  endpoints, and server-only web loaders.
+- Verified: 17 focused tests plus contracts, backend, API, and web typechecks
+  and backend build.
+- Deferred by FD-024: chart/palace/drawer components, localized messages,
+  route page, accessibility, responsive behavior, and visual/browser checks.
+  P03-T03 remains partially complete until the dedicated UI artifact branch
+  delivers them.
+
 ### Task 4 [P03-T04]: Add free insights, paid preview, and analytics contracts
 
 **Files:**

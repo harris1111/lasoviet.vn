@@ -383,6 +383,16 @@ rule instead of adding another version.
   matching `config/route-registry.yml` change and a state/robots/sitemap test in
   the same task. Route activation must never be left to an unnamed later task.
 
+### Calculation Completion And Evidence
+
+- A calculation flow whose consuming contract requires evidence must not return
+  success until the evidence set for the exact calculation/chart version,
+  capability, and rule version is persisted and schema-valid.
+- If evidence persistence fails after immutable calculation output commits,
+  preserve that output, return a non-success result, and make retry reuse the
+  same calculation and evidence identity. Never delete immutable output or
+  claim completion to hide a partial workflow.
+
 ### Anonymous Chart Retention
 
 - Better Auth anonymous actors may create temporary birth profiles and charts

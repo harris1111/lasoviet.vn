@@ -54,6 +54,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | BFF error provenance | P03-T01 briefly reclassified missing private API configuration as a caller path error | Terra separated base configuration resolution from caller path validation and added regression coverage | Not added to `AGENTS.md`; one localized defect does not meet section 9 |
 | Immutable normalized read authority | P03-T02 initially recomputed eligibility from mutable original input instead of the stored normalized revision | Terra added the shared normalized schema and a disagreement regression test | Not added to `AGENTS.md`; the architecture already requires immutable revisions and one localized defect does not meet section 9 |
 | Async session liveness clock | P03-T02 initially reused a timestamp captured before the authoritative session read | Terra moved clock capture to the live-row lookup and added a sequenced-clock regression test | Not added to `AGENTS.md`; one localized TOCTOU defect does not meet section 9 |
+| Evidence-gated calculation completion | P03-T03 found the evidence service existed but successful calculation responses did not ensure required evidence persistence | Terra wired idempotent evidence persistence to calculation completion; the pattern applies to future calculation engines and report consumers | Added to `AGENTS.md` under calculation completion and evidence |
 
 ## Per-Task Rule Check
 
@@ -89,6 +90,25 @@ Date: 2026-09-02
   remain deferred by FD-024.
 - Rule candidates were evaluated above; neither meets the durable-rule
   threshold. Open questions: none.
+
+## P03 Non-Visual Slice 3 Evidence
+
+Date: 2026-09-02
+
+- Implemented evidence-gated Zi Wei calculation completion, actor-authorized
+  latest chart and selected-evidence reads, private API endpoints, and
+  server-only BFF loaders without visual UI changes.
+- Cross-owner and missing chart IDs are indistinguishable; evidence remains
+  bound to the exact latest chart version, capability, and rule version.
+- Strict contracts prevent chart responses from carrying full evidence
+  payloads and prevent evidence responses from carrying unrelated items.
+- Fresh verification passed: 4 focused files with 17 tests plus contracts,
+  backend, API, and web typechecks and backend build. Commit range
+  `6af39a4..f595dc4` is pushed.
+- P03-T03 visual chart/drawer/page/message/browser work remains deferred by
+  FD-024.
+- The evidence-gated completion rule was added to `AGENTS.md`. Open questions:
+  none.
 
 ## P03 Non-Visual Slice 2 Evidence
 
