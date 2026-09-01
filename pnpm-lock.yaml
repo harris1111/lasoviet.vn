@@ -113,8 +113,15 @@ importers:
       '@lasoviet/contracts':
         specifier: workspace:0.0.0
         version: link:../contracts
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
 
-  packages/contracts: {}
+  packages/contracts:
+    dependencies:
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
 
 packages:
 

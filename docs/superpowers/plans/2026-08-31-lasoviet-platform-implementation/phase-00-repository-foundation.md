@@ -138,7 +138,7 @@ git commit -m "build: establish application workspace"
 - Produces `InternalActorV1Schema`.
 - Produces `loadEnvironment(source: NodeJS.ProcessEnv): AppEnvironment`.
 
-- [ ] **Step 1: Write failing schema tests**
+- [x] **Step 1: Write failing schema tests**
 
 ```ts
 expect(() =>
@@ -156,22 +156,22 @@ expect(() =>
 Add a config test proving production rejects missing
 `INTERNAL_ACTOR_SECRET`, `DATABASE_URL`, and `REDIS_URL`.
 
-- [ ] **Step 2: Run focused tests**
+- [x] **Step 2: Run focused tests**
 
 Run: `pnpm vitest run packages/contracts packages/config`
 Expected: FAIL because schemas and loaders do not exist.
 
-- [ ] **Step 3: Implement Zod schemas and redacted configuration errors**
+- [x] **Step 3: Implement Zod schemas and redacted configuration errors**
 
 Configuration errors may name a missing variable but must never print its
 value. Optional AI, SMTP, and cloud S3 groups expose explicit `enabled` state.
 
-- [ ] **Step 4: Run tests and typecheck**
+- [x] **Step 4: Run tests and typecheck**
 
 Run: `pnpm vitest run packages/contracts packages/config && pnpm typecheck`
 Expected: PASS.
 
-- [ ] **Step 5: Record docs/rule impact and commit**
+- [x] **Step 5: Record docs/rule impact and commit**
 
 Rule candidate must be `none` unless a recurring configuration ambiguity is
 verified.
@@ -180,6 +180,21 @@ verified.
 git add packages/contracts packages/config docs/superpowers/plans
 git commit -m "feat: add versioned contracts and typed configuration"
 ```
+
+**P00-T02 Evidence (2026-09-01):**
+
+- Focused contracts/config suite passed with `2` test files and `50/50` tests.
+- `@lasoviet/config` package typecheck and root typecheck passed.
+- Root `check` passed lint, recursive typecheck, test discovery with `54/54`
+  tests, and recursive build.
+- Exact direct dependency pins: `zod: "4.5.4"` in both contracts and config;
+  lockfile importers resolve `4.5.4`.
+- Redaction vector passed; serialized failures contained safe variable
+  metadata without synthetic secret, URL, password, or API-key values.
+- Docs impact: minor
+- Rule candidate: none
+- AGENTS.md action: none
+- Open questions: none.
 
 ### Task 3 [P00-T03]: Establish VI/EN internationalization
 
