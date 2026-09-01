@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <style id="__om-edit-overrides">
+    body { margin: 0; background: var(--lacquer-900); color: var(--pearl-200); font-family: var(--font-ui), sans-serif; }
+    a { color: var(--gold-500); }
+    a:hover { color: var(--gold-400); }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background:var(--lacquer-900);">
+
+  <header style="position:sticky; top:0; z-index:10; background:var(--lacquer-800); border-bottom:1px solid var(--lacquer-line);">
+    <div style="max-width:1200px; margin:0 auto; padding:0 32px; height:72px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
+      <div style="display:flex; align-items:baseline; gap:12px; min-width:0;">
+        <a href="/" style="font-family:var(--font-display); font-size:20px; font-weight:600; background:var(--gradient-gold); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none; flex:none;">Lá Số Việt</a>
+        <span style="color:var(--pearl-600); font-size:14px;">/</span>
+        <span style="font-family:var(--font-ui); font-size:14px; color:var(--pearl-400);">Tài khoản</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:20px; flex:none;">
+        <div style="display:flex; align-items:center; gap:8px; color:var(--pearl-400); font-size:14px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user-circle" size="18" color="var(--pearl-400)" hint-size="18px,18px"></x-import>
+          <span>{{ account.email }}</span>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="link" onClick="{{ noop }}" hint-size="auto,20px">Đăng xuất</x-import>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1200px; margin:0 auto; padding:64px 32px 128px;">
+
+    <div style="max-width:760px;">
+      <div style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold-600);">Tài khoản</div>
+      <h1 style="margin:14px 0 0; font-family:var(--font-display); font-weight:400; font-size:44px; line-height:1.15; color:var(--pearl-50);">Tài khoản và quyền riêng tư</h1>
+      <p style="margin:16px 0 0; font-size:17px; line-height:1.65; color:var(--pearl-200);">Quản lý lá số đã lưu, báo cáo đã mua, và cách dữ liệu của bạn được dùng. Trang này chỉ hiển thị cho bạn.</p>
+    </div>
+
+    <section style="margin-top:96px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+        <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:34px; color:var(--pearl-50);">Lá số &amp; báo cáo của bạn</h2>
+        <a href="/lap-la-so" style="font-size:15px; color:var(--gold-500); text-decoration:underline; text-underline-offset:4px;">+ Lập lá số mới</a>
+      </div>
+      <p style="margin:12px 0 0; font-size:15px; color:var(--pearl-400); max-width:640px;">Không có nhắc xem lại hằng ngày ở đây — chỉ là danh sách lá số và báo cáo bạn đã lưu.</p>
+
+      <div style="margin-top:32px; display:flex; flex-direction:column; gap:16px;">
+        <sc-for list="{{ profiles }}" as="p" hint-placeholder-count="3">
+          <div style="background:var(--lacquer-700); border:1px solid var(--lacquer-line); border-radius:8px; padding:24px 28px; display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+            <div style="min-width:240px; flex:1;">
+              <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <span style="font-family:var(--font-display); font-size:20px; color:var(--pearl-50);">{{ p.name }}</span>
+                <span style="display:inline-flex; align-items:center; padding:4px 11px; border-radius:999px; border:1px solid {{ p.statusBorder }}; font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.09em; text-transform:uppercase; color:{{ p.statusColor }};">{{ p.statusLabel }}</span>
+              </div>
+              <div style="margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-family:var(--font-mono); font-size:13px; color:var(--pearl-400);">
+                <span>{{ p.infoLine }}</span>
+                <button type="button" onClick="{{ p.toggleReveal }}" style="min-height:24px; padding:0; background:none; border:none; color:var(--gold-500); font-size:12.5px; font-family:var(--font-ui); text-decoration:underline; text-underline-offset:3px; cursor:pointer;">{{ p.revealLabel }}</button>
+              </div>
+              <div style="margin-top:4px; font-size:13px; color:var(--pearl-600);">Tạo ngày {{ p.createdLabel }}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex:none;">
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" href="{{ p.viewHref }}" hint-size="auto,44px">Xem lá số</x-import>
+              <sc-if value="{{ p.purchased }}" hint-placeholder-val="{{ true }}">
+                <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{ noop }}" hint-size="auto,44px">Tải báo cáo (PDF)</x-import>
+              </sc-if>
+              <button type="button" aria-label="Đổi tên hồ sơ" onClick="{{ noop }}" style="width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:none; border:1px solid var(--lacquer-line); border-radius:4px; color:var(--pearl-400); cursor:pointer;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="pencil" size="18" hint-size="18px,18px"></x-import>
+              </button>
+              <button type="button" aria-label="Xoá hồ sơ" onClick="{{ p.remove }}" style="width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:none; border:1px solid var(--lacquer-line); border-radius:4px; color:var(--pearl-400); cursor:pointer;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="trash" size="18" hint-size="18px,18px"></x-import>
+              </button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="margin-top:96px;">
+      <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:34px; color:var(--pearl-50);">Quyền riêng tư dữ liệu</h2>
+      <p style="margin:12px 0 0; font-size:15px; color:var(--pearl-400); max-width:680px;">Mỗi mục đích dùng dữ liệu có công tắc riêng. Bật hoặc tắt từng mục không ảnh hưởng đến các mục khác.</p>
+
+      <div style="margin-top:32px;">
+        <sc-for list="{{ consents }}" as="c" hint-placeholder-count="5">
+          <div style="padding:22px 0; border-bottom:1px solid var(--lacquer-line); display:flex; align-items:flex-start; justify-content:space-between; gap:24px;">
+            <div style="display:flex; gap:16px; align-items:flex-start; min-width:0;">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="{{ c.icon }}" size="20" color="var(--gold-500)" style="{{ iconTopStyle }}" hint-size="20px,20px"></x-import>
+              <div>
+                <div style="font-family:var(--font-display); font-size:18px; color:var(--pearl-50);">{{ c.title }}</div>
+                <div style="margin-top:4px; font-size:14.5px; line-height:1.6; color:var(--pearl-400); max-width:560px;">{{ c.desc }}</div>
+                <sc-if value="{{ c.footnote }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:10px; font-size:12.5px; line-height:1.6; color:var(--pearl-600); font-style:italic; max-width:560px;">{{ c.footnote }}</div>
+                </sc-if>
+              </div>
+            </div>
+            <button type="button" role="switch" aria-checked="{{ c.on }}" aria-label="{{ c.title }}" onClick="{{ c.toggle }}" style="{{ c.trackStyle }}">
+              <span style="{{ c.knobStyle }}"></span>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="margin-top:96px;">
+      <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:34px; color:var(--pearl-50);">Dữ liệu của bạn</h2>
+      <div style="margin-top:32px; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:1px; background:var(--lacquer-line); border:1px solid var(--lacquer-line); border-radius:8px; overflow:hidden;">
+        <div style="background:var(--lacquer-700); padding:28px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="download" size="22" color="var(--gold-500)" hint-size="22px,22px"></x-import>
+          <div style="margin-top:14px; font-family:var(--font-display); font-size:19px; color:var(--pearl-50);">Xuất dữ liệu của bạn</div>
+          <p style="margin:8px 0 0; font-size:14.5px; line-height:1.6; color:var(--pearl-400); max-width:420px;">Tải toàn bộ hồ sơ lá số, báo cáo đã mua và lịch sử dùng, dưới dạng một file JSON.</p>
+          <div style="margin-top:18px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{ exportData }}" hint-size="auto,44px">Xuất dữ liệu (.json)</x-import>
+          </div>
+        </div>
+        <div style="background:var(--lacquer-700); padding:28px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="trash" size="22" color="var(--son)" hint-size="22px,22px"></x-import>
+          <div style="margin-top:14px; font-family:var(--font-display); font-size:19px; color:var(--pearl-50);">Xoá dữ liệu của bạn</div>
+          <p style="margin:8px 0 0; font-size:14.5px; line-height:1.6; color:var(--pearl-400); max-width:420px;">Xoá tài khoản, lá số đã lưu và báo cáo. Xem chi tiết những gì được xoá bên dưới.</p>
+          <div style="margin-top:18px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{ scrollToDelete }}" hint-size="auto,44px">Yêu cầu xoá dữ liệu</x-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:96px;">
+      <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:34px; color:var(--pearl-50);">Link đã chia sẻ</h2>
+      <p style="margin:12px 0 0; font-size:15px; color:var(--pearl-400); max-width:680px;">Link xem lá số bạn đã chia sẻ. Mặc định ẩn thông tin cá nhân (ngày giờ sinh) khi xem qua link chia sẻ.</p>
+
+      <sc-if value="{{ hasLinks }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:24px; display:flex; flex-direction:column; gap:1px;">
+          <sc-for list="{{ links }}" as="l" hint-placeholder-count="2">
+            <div style="padding:18px 0; border-bottom:1px solid var(--lacquer-line); display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:14px; min-width:0;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="link" size="18" color="var(--pearl-400)" hint-size="18px,18px"></x-import>
+                <div>
+                  <div style="font-family:var(--font-mono); font-size:13.5px; color:var(--pearl-200);">{{ l.urlDisplay }}</div>
+                  <div style="margin-top:3px; font-size:13px; color:var(--pearl-600);">Lá số "{{ l.profileName }}" · tạo {{ l.createdLabel }} · Ẩn thông tin cá nhân: {{ l.piiLabel }}</div>
+                </div>
+              </div>
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{ l.revoke }}" hint-size="auto,40px">Thu hồi</x-import>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasNoLinks }}" hint-placeholder-val="{{ false }}">
+        <p style="margin-top:20px; font-size:14.5px; color:var(--pearl-600);">Bạn chưa chia sẻ link nào.</p>
+      </sc-if>
+    </section>
+
+    <section id="xoa-du-lieu" style="margin-top:96px;">
+      <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:34px; color:var(--pearl-50);">Khi bạn xoá dữ liệu</h2>
+
+      <div style="margin-top:32px; background:var(--lacquer-700); border:1px solid var(--lacquer-line); border-radius:12px; padding:32px 36px;">
+        <dl style="margin:0; display:grid; grid-template-columns:minmax(0,0.6fr) minmax(0,1.4fr);">
+          <dt style="padding:16px 24px 16px 0; border-bottom:1px solid var(--lacquer-line); font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.09em; text-transform:uppercase; color:var(--pearl-400);">Xoá ngay</dt>
+          <dd style="margin:0; padding:16px 0; border-bottom:1px solid var(--lacquer-line); font-size:15px; line-height:1.65; color:var(--pearl-200);">Hồ sơ lá số, ghi chú, lịch sử xem, và mọi báo cáo đã lưu trong tài khoản.</dd>
+
+          <dt style="padding:16px 24px 16px 0; border-bottom:1px solid var(--lacquer-line); font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.09em; text-transform:uppercase; color:var(--pearl-400);">Xoá trong 30 ngày</dt>
+          <dd style="margin:0; padding:16px 0; border-bottom:1px solid var(--lacquer-line); font-size:15px; line-height:1.65; color:var(--pearl-200);">Bản sao lưu hệ thống còn lưu dữ liệu của bạn tối đa 30 ngày trước khi bị xoá vĩnh viễn.</dd>
+
+          <dt style="padding:16px 24px 0 0; font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.09em; text-transform:uppercase; color:var(--pearl-400);">Bắt buộc phải giữ</dt>
+          <dd style="margin:0; padding:16px 0 0; font-size:15px; line-height:1.65; color:var(--pearl-200);">{{ retentionNote }}</dd>
+        </dl>
+      </div>
+
+      <sc-if value="{{ deleteConfirmOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:20px; background:var(--lacquer-800); border:1px solid var(--son-deep); border-radius:8px; padding:24px 28px;">
+          <p style="margin:0; font-size:15px; line-height:1.6; color:var(--pearl-200);">Bạn sắp yêu cầu xoá toàn bộ hồ sơ lá số và báo cáo. Hành động này không thể hoàn tác sau khi hoàn tất.</p>
+          <label style="margin-top:16px; display:flex; align-items:flex-start; gap:10px; font-size:14px; color:var(--pearl-400); cursor:pointer;">
+            <input type="checkbox" checked="{{ deleteAck }}" onChange="{{ toggleDeleteAck }}" style="margin-top:3px; width:18px; height:18px; accent-color:var(--gold-500);">
+            <span>Tôi hiểu dữ liệu giao dịch liên quan vẫn được giữ lại theo nghĩa vụ kế toán.</span>
+          </label>
+          <div style="margin-top:18px; display:flex; gap:12px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" size="sm" onClick="{{ confirmDelete }}" style="{{ confirmDeleteStyle }}" hint-size="auto,44px">Xác nhận xoá</x-import>
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{ cancelDelete }}" hint-size="auto,44px">Huỷ</x-import>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ deleteConfirmClosed }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:20px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" onClick="{{ requestDelete }}" hint-size="auto,44px">Yêu cầu xoá dữ liệu</x-import>
+        </div>
+      </sc-if>
+    </section>
+
+  </main>
+
+  <footer style="border-top:1px solid var(--lacquer-line); margin-top:64px;">
+    <div style="max-width:1200px; margin:0 auto; padding:32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--pearl-600);">© Lá Số Việt</span>
+      <div style="display:flex; gap:24px;">
+        <a href="/" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Trang chủ</a>
+        <a href="/dieu-khoan" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Điều khoản</a>
+        <a href="/chinh-sach-rieng-tu" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Chính sách riêng tư</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{},&quot;aiImproveDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Đồng ý sử dụng dữ liệu&quot;},&quot;retentionNote&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Hoá đơn và thông tin giao dịch thanh toán, được giữ theo thời hạn lưu trữ chứng từ kế toán quy định trong pháp luật Việt Nam — tách riêng khỏi hồ sơ lá số đã xoá.&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Xoá dữ liệu&quot;}}">
+const TRACK_ON = { width: 44, height: 26, borderRadius: '999px', border: '1px solid transparent', background: 'var(--gradient-gold)', position: 'relative', cursor: 'pointer', flex: 'none', padding: 0, minHeight: 44 };
+const TRACK_OFF = { width: 44, height: 26, borderRadius: '999px', border: '1px solid var(--lacquer-line)', background: 'var(--lacquer-800)', position: 'relative', cursor: 'pointer', flex: 'none', padding: 0, minHeight: 44 };
+const KNOB_BASE = { position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '999px', background: 'var(--pearl-50)', transition: 'left 150ms ease' };
+
+function maskDob(p, revealed) {
+  return revealed ? `${p.dob} · ${p.time} · ${p.place}` : `••/••/•••• · ••:•• · ${p.place}`;
+}
+
+class Component extends DCLogic {
+  state = {
+    account: { email: 'ban@vidu.vn' },
+    profiles: [
+      { id: 'p1', name: 'Của tôi', dob: '15/09/1990', time: '04:20', place: 'Hà Nội', createdLabel: '02/01/2026', purchased: true, statusLabel: 'Đã mua · Bản Toàn diện', revealed: false, removed: false },
+      { id: 'p2', name: 'Mẹ', dob: '28/03/1962', time: '18:00', place: 'Huế', createdLabel: '14/02/2026', purchased: false, statusLabel: 'Chưa mua báo cáo', revealed: false, removed: false },
+      { id: 'p3', name: 'Bạn thân', dob: '09/11/1994', time: '11:35', place: 'Đà Nẵng', createdLabel: '30/04/2026', purchased: true, statusLabel: 'Đã mua · Sự nghiệp', revealed: false, removed: false },
+    ],
+    consents: [
+      { key: 'chart', icon: 'compass', title: 'Tạo lá số', desc: 'Tính toán và lưu lá số Tử Vi từ ngày giờ sinh bạn nhập.', on: true },
+      { key: 'save', icon: 'scroll', title: 'Lưu hồ sơ', desc: 'Lưu hồ sơ lá số vào tài khoản để xem lại, không cần nhập lại mỗi lần.', on: true },
+      { key: 'marketing', icon: 'user-circle', title: 'Marketing', desc: 'Nhận email giới thiệu tính năng mới hoặc ưu đãi cho báo cáo.', on: false },
+      { key: 'analytics', icon: 'search', title: 'Analytics', desc: 'Ghi nhận số liệu sử dụng ẩn danh để cải thiện sản phẩm.', on: false },
+      { key: 'ai', icon: 'shield-lock', title: 'Cải thiện AI', desc: 'Dùng dữ liệu lá số đã ẩn danh để tinh chỉnh cách công cụ diễn giải.',
+        on: this.props.aiImproveDefault ?? false,
+        footnote: 'Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.' },
+    ],
+    links: [
+      { id: 'l1', urlDisplay: 'lasoviet.vn/s/7k2m9q', profileName: 'Của tôi', createdLabel: '10/06/2026', piiHidden: true, removed: false },
+      { id: 'l2', urlDisplay: 'lasoviet.vn/s/x4p1zb', profileName: 'Bạn thân', createdLabel: '22/07/2026', piiHidden: true, removed: false },
+    ],
+    deleteConfirmOpen: false,
+    deleteAck: false,
+  };
+
+  toggleConsent(key) {
+    this.setState(s => ({ consents: s.consents.map(c => c.key === key ? { ...c, on: !c.on } : c) }));
+  }
+
+  toggleReveal(id) {
+    this.setState(s => ({ profiles: s.profiles.map(p => p.id === id ? { ...p, revealed: !p.revealed } : p) }));
+  }
+
+  removeProfile(id) {
+    this.setState(s => ({ profiles: s.profiles.map(p => p.id === id ? { ...p, removed: true } : p) }));
+  }
+
+  revokeLink(id) {
+    this.setState(s => ({ links: s.links.map(l => l.id === id ? { ...l, removed: true } : l) }));
+  }
+
+  exportData() {}
+
+  scrollToDelete() {
+    const el = document.getElementById('xoa-du-lieu');
+    if (el) el.scrollIntoView({ block: 'start' });
+  }
+
+  requestDelete() { this.setState({ deleteConfirmOpen: true }); }
+  cancelDelete() { this.setState({ deleteConfirmOpen: false, deleteAck: false }); }
+  toggleDeleteAck() { this.setState(s => ({ deleteAck: !s.deleteAck })); }
+  confirmDelete() { if (this.state.deleteAck) this.setState({ deleteConfirmOpen: false, deleteAck: false }); }
+
+  renderVals() {
+    const visibleProfiles = this.state.profiles.filter(p => !p.removed).map(p => ({
+      ...p,
+      infoLine: maskDob(p, p.revealed),
+      revealLabel: p.revealed ? 'Ẩn' : 'Hiện',
+      statusColor: p.purchased ? 'var(--gold-400)' : 'var(--pearl-600)',
+      statusBorder: p.purchased ? 'var(--gold-700)' : 'var(--lacquer-line)',
+      viewHref: '#',
+      toggleReveal: () => this.toggleReveal(p.id),
+      remove: () => this.removeProfile(p.id),
+    }));
+
+    const visibleLinks = this.state.links.filter(l => !l.removed).map(l => ({
+      ...l,
+      piiLabel: l.piiHidden ? 'Có' : 'Không',
+      revoke: () => this.revokeLink(l.id),
+    }));
+
+    const consents = this.state.consents.map(c => ({
+      ...c,
+      footnote: c.footnote || false,
+      trackStyle: c.on ? TRACK_ON : TRACK_OFF,
+      knobStyle: { ...KNOB_BASE, left: c.on ? 22 : 3 },
+      toggle: () => this.toggleConsent(c.key),
+    }));
+
+    return {
+      account: this.state.account,
+      profiles: visibleProfiles,
+      consents,
+      links: visibleLinks,
+      hasLinks: visibleLinks.length > 0,
+      hasNoLinks: visibleLinks.length === 0,
+      deleteConfirmOpen: this.state.deleteConfirmOpen,
+      deleteConfirmClosed: !this.state.deleteConfirmOpen,
+      deleteAck: this.state.deleteAck,
+      retentionNote: this.props.retentionNote ?? 'Hoá đơn và thông tin giao dịch thanh toán, được giữ theo thời hạn lưu trữ chứng từ kế toán quy định trong pháp luật Việt Nam — tách riêng khỏi hồ sơ lá số đã xoá.',
+      confirmDeleteStyle: { background: 'var(--son)', color: 'var(--pearl-50)' },
+      iconTopStyle: { marginTop: 2, flex: 'none' },
+      noop: () => {},
+      exportData: () => this.exportData(),
+      scrollToDelete: () => this.scrollToDelete(),
+      requestDelete: () => this.requestDelete(),
+      cancelDelete: () => this.cancelDelete(),
+      toggleDeleteAck: () => this.toggleDeleteAck(),
+      confirmDelete: () => this.confirmDelete(),
+    };
+  }
+}
+</script>
+</body>
+</html>

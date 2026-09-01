@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="index, follow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiến thức Tử Vi · Lá Số Việt</title>
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    input::placeholder { color: var(--text-faint); }
+  </style>
+  <script type="application/ld+json">{{ jsonLdCollection }}</script>
+  <script type="application/ld+json">{{ jsonLdBreadcrumb }}</script>
+</helmet>
+
+<div style="background:var(--surface-canvas);color:var(--text-body);font-family:var(--font-ui);min-height:100vh;">
+
+  <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 40px;height:84px;border-bottom:1px solid var(--border-hairline);background:var(--surface-canvas);flex-wrap:wrap;">
+    <a href="/" style="font-family:var(--font-display);font-size:22px;letter-spacing:0.02em;color:var(--text-heading);text-decoration:none;">Lá Số Việt</a>
+    <nav style="display:flex;align-items:center;gap:32px;font-size:14.5px;flex-wrap:wrap;">
+      <a href="/" style="color:var(--text-body);text-decoration:none;">Trang chủ</a>
+      <a href="/lap-la-so" style="color:var(--text-body);text-decoration:none;">Lập lá số</a>
+      <a href="/kien-thuc/tu-vi" style="color:var(--accent-gold);text-decoration:none;">Kiến thức</a>
+      <a href="/ve-chung-toi" style="color:var(--text-body);text-decoration:none;">Về chúng tôi</a>
+    </nav>
+    <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" size="sm" href="/lap-la-so" hint-size="180px,44px">Lập lá số miễn phí</x-import>
+  </header>
+
+  <div style="max-width:var(--container-max);margin:0 auto;padding:20px 40px 0;display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.04em;color:var(--text-muted);flex-wrap:wrap;">
+    <a href="/" style="color:var(--text-muted);text-decoration:none;">Trang chủ</a>
+    <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="13" color="var(--text-faint)" hint-size="13px,13px"></x-import>
+    <a href="/kien-thuc" style="color:var(--text-muted);text-decoration:none;">Kiến thức</a>
+    <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="13" color="var(--text-faint)" hint-size="13px,13px"></x-import>
+    <span style="color:var(--accent-gold);">Tử Vi</span>
+  </div>
+
+  <section style="max-width:var(--container-max);margin:0 auto;padding:48px 40px 96px;display:grid;grid-template-columns:minmax(280px,560px) minmax(280px,1fr);gap:56px;align-items:center;">
+    <div>
+      <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-600);">Kiến thức · Tử Vi</div>
+      <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:var(--fs-h1);line-height:1.15;color:var(--text-heading);">Tra cứu và tìm hiểu Tử Vi</h1>
+      <p style="margin:18px 0 0;font-size:var(--fs-lead);line-height:1.6;color:var(--text-body);max-width:480px;">Từ khái niệm nền tảng đến cách đọc từng cung, từng sao — trình bày theo phương pháp, không diễn giải định mệnh.</p>
+      <div style="margin-top:32px;position:relative;max-width:460px;">
+        <div style="position:absolute;left:16px;top:0;bottom:0;display:flex;align-items:center;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="search" size="18" color="var(--text-faint)" hint-size="18px,18px"></x-import>
+        </div>
+        <input type="text" value="{{ search }}" oninput="{{ onSearchInput }}" placeholder="Nhập câu hỏi của bạn, ví dụ: “Cung Mệnh là gì?”" style="width:100%;height:52px;padding:0 16px 0 48px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-family:var(--font-ui);font-size:15px;box-sizing:border-box;" />
+      </div>
+    </div>
+    <div>
+      <div style="position:relative;width:100%;padding-top:41%;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);overflow:hidden;">
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 24px;">
+          <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.14em;color:var(--gold-600);">KT01-D · KT01-M</span>
+          <span style="font-size:13px;color:var(--text-muted);max-width:360px;">Ảnh: sách tàng thư và dụng cụ lập lá số cổ trên nền sơn mài, ánh sáng chéo — placeholder chờ ảnh chụp thật.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="max-width:var(--container-max);margin:0 auto;padding:0 40px 96px;">
+    <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-600);">Bắt đầu từ đây</div>
+    <h2 style="margin:12px 0 0;font-family:var(--font-display);font-weight:400;font-size:var(--fs-h2);color:var(--text-heading);">Nếu bạn mới tìm hiểu Tử Vi</h2>
+    <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:var(--text-muted);max-width:640px;">Bốn bài đọc theo thứ tự gợi ý trước khi vào các phần chuyên sâu hơn.</p>
+    <div style="margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);">
+      <sc-for list="{{ starterItems }}" as="it" hint-placeholder-count="4">
+        <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" icon="{{ it.icon }}" num="{{ it.num }}" title="{{ it.title }}" body="{{ it.body }}" bordered="{{ it.bordered }}" hint-size="100%,180px"></x-import>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:var(--container-max);margin:0 auto;padding:0 40px 72px;">
+    <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:var(--fs-h2);color:var(--text-heading);">Duyệt theo nhu cầu của bạn</h2>
+    <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:var(--text-muted);max-width:640px;">Chọn đúng phần bạn cần, thay vì đọc theo thứ tự phương pháp.</p>
+    <div style="margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
+      <sc-for list="{{ needTiles }}" as="t" hint-placeholder-count="4">
+        <button type="button" onclick="{{ t.onClick }}" style="text-align:left;cursor:pointer;background:var(--surface-panel);border:1px solid {{ t.borderColor }};border-radius:var(--radius-md);padding:24px;display:flex;flex-direction:column;gap:14px;color:inherit;font-family:inherit;min-height:44px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="{{ t.icon }}" size="22" color="var(--accent-gold)" hint-size="22px,22px"></x-import>
+          <div style="font-family:var(--font-display);font-size:19px;color:var(--text-heading);">{{ t.label }}</div>
+          <div style="font-size:14px;line-height:1.6;color:var(--text-muted);">{{ t.body }}</div>
+          <div style="margin-top:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--accent-gold);">
+            {{ t.actionLabel }}
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="arrow-right" size="15" color="var(--accent-gold)" hint-size="15px,15px"></x-import>
+          </div>
+        </button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="max-width:var(--container-max);margin:0 auto;padding:0 40px 56px;">
+    <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:20px;color:var(--text-heading);">Duyệt theo phương pháp</h2>
+    <p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:var(--text-muted);">Nếu bạn đã biết thuật ngữ cần tìm.</p>
+    <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;">
+      <sc-for list="{{ methodChips }}" as="m" hint-placeholder-count="5">
+        <button type="button" onclick="{{ m.onClick }}" style="min-height:44px;padding:0 18px;border-radius:var(--radius-pill);font-family:var(--font-ui);font-size:13.5px;cursor:pointer;background:{{ m.bg }};color:{{ m.color }};border:1px solid {{ m.borderColor }};">{{ m.label }}</button>
+      </sc-for>
+    </div>
+    <sc-if value="{{ hasFilter }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:18px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted);">
+        <span>Đang lọc: {{ filterSummary }}</span>
+        <button type="button" onclick="{{ clearFilters }}" style="min-height:44px;background:none;border:none;color:var(--accent-gold);text-decoration:underline;text-underline-offset:4px;cursor:pointer;font-size:13px;padding:0;">Xoá lọc</button>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="max-width:var(--container-max);margin:0 auto;padding:0 40px 40px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border-hairline);padding-top:40px;">
+      <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:var(--fs-h2);color:var(--text-heading);">{{ resultsTitle }}</h2>
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-faint);">{{ resultsCountLabel }}</span>
+    </div>
+
+    <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px 32px;">
+        <sc-for list="{{ articlesPage }}" as="a" hint-placeholder-count="6">
+          <x-import component-from-global-scope="DesignSystem_031f07.ArticleCard" image="{{ a.image }}" alt="{{ a.alt }}" title="{{ a.title }}" body="{{ a.body }}" href="{{ a.href }}" hint-size="100%,360px"></x-import>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ hasNoResults }}" hint-placeholder-val="{{ false }}">
+      <p style="margin-top:36px;font-size:15px;color:var(--text-muted);">Không tìm thấy bài viết phù hợp. Hãy thử xoá lọc hoặc dùng từ khoá khác.</p>
+    </sc-if>
+
+    <sc-if value="{{ showPagination }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:56px;display:flex;justify-content:center;align-items:center;gap:8px;">
+        <button type="button" onclick="{{ prevPage }}" disabled="{{ isFirstPage }}" style="min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-body);cursor:pointer;opacity:{{ prevOpacity }};">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="currentColor" style="transform:rotate(180deg);" hint-size="16px,16px"></x-import>
+        </button>
+        <sc-for list="{{ pageNumbers }}" as="p" hint-placeholder-count="2">
+          <button type="button" onclick="{{ p.onClick }}" style="min-height:44px;min-width:44px;padding:0 4px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:13.5px;cursor:pointer;background:{{ p.bg }};color:{{ p.color }};border:1px solid {{ p.borderColor }};">{{ p.label }}</button>
+        </sc-for>
+        <button type="button" onclick="{{ nextPage }}" disabled="{{ isLastPage }}" style="min-height:44px;min-width:44px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-body);cursor:pointer;opacity:{{ nextOpacity }};">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="currentColor" hint-size="16px,16px"></x-import>
+        </button>
+      </div>
+    </sc-if>
+  </section>
+
+  <section style="max-width:var(--container-max);margin:64px auto 0;padding:40px 40px 96px;border-top:1px dashed var(--border-hairline);">
+    <div style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);">Tiện ích</div>
+    <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;">
+      <a href="/kien-thuc/tu-vi/chu-giai" style="display:flex;align-items:flex-start;gap:16px;text-decoration:none;color:inherit;padding:20px;border:1px solid var(--border-hairline);border-radius:var(--radius-md);">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="book-open" size="22" color="var(--text-muted)" hint-size="22px,22px"></x-import>
+        <div>
+          <div style="font-family:var(--font-display);font-size:17px;color:var(--text-heading);">Chú giải thuật ngữ Tử Vi</div>
+          <div style="margin-top:6px;font-size:13.5px;line-height:1.6;color:var(--text-muted);">Toàn bộ thuật ngữ dùng trên Lá Số Việt, giải thích ngắn gọn.</div>
+        </div>
+      </a>
+      <a href="/kien-thuc/tu-vi/phuong-phap" style="display:flex;align-items:flex-start;gap:16px;text-decoration:none;color:inherit;padding:20px;border:1px solid var(--border-hairline);border-radius:var(--radius-md);">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="compass" size="22" color="var(--text-muted)" hint-size="22px,22px"></x-import>
+        <div>
+          <div style="font-family:var(--font-display);font-size:17px;color:var(--text-heading);">Trang phương pháp luận</div>
+          <div style="margin-top:6px;font-size:13.5px;line-height:1.6;color:var(--text-muted);">Cách Lá Số Việt tính toán và đối chiếu dữ liệu lá số.</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="border-top:1px solid var(--border-hairline);">
+    <div style="max-width:var(--container-max);margin:0 auto;padding:56px 40px 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:40px;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:20px;color:var(--text-heading);">Lá Số Việt</div>
+        <p style="margin-top:12px;font-size:13.5px;line-height:1.6;color:var(--text-muted);max-width:220px;">Thư viện tri thức Tử Vi bằng tiếng Việt.</p>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);">Sản phẩm</div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;font-size:14px;">
+          <a href="/lap-la-so" style="color:var(--text-body);text-decoration:none;">Lập lá số</a>
+          <a href="/bao-cao" style="color:var(--text-body);text-decoration:none;">Báo cáo luận giải</a>
+          <a href="/gia" style="color:var(--text-body);text-decoration:none;">Giá</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);">Kiến thức</div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;font-size:14px;">
+          <a href="/kien-thuc/tu-vi" style="color:var(--text-body);text-decoration:none;">Hub kiến thức</a>
+          <a href="/kien-thuc/tu-vi/chu-giai" style="color:var(--text-body);text-decoration:none;">Chú giải thuật ngữ</a>
+          <a href="/kien-thuc/tu-vi/phuong-phap" style="color:var(--text-body);text-decoration:none;">Phương pháp luận</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);">Pháp lý</div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;font-size:14px;">
+          <a href="/dieu-khoan" style="color:var(--text-body);text-decoration:none;">Điều khoản</a>
+          <a href="/quyen-rieng-tu" style="color:var(--text-body);text-decoration:none;">Quyền riêng tư</a>
+          <a href="/lien-he" style="color:var(--text-body);text-decoration:none;">Liên hệ</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:var(--container-max);margin:0 auto;padding:24px 40px 40px;border-top:1px solid var(--border-hairline);">
+      <p style="margin:0;font-size:12px;line-height:1.7;color:var(--text-faint);max-width:760px;">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+      <p style="margin:16px 0 0;font-size:12px;color:var(--text-faint);">© 2026 Lá Số Việt.</p>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function placeholderImg(code, w, h) {
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='" + w + "' height='" + h + "'>" +
+    "<rect width='100%' height='100%' fill='#1C1813'/>" +
+    "<rect x='0.75' y='0.75' width='" + (w - 1.5) + "' height='" + (h - 1.5) + "' fill='none' stroke='#3A3227' stroke-width='1.5'/>" +
+    "<text x='50%' y='47%' font-family='JetBrains Mono, monospace' font-size='13' letter-spacing='2' fill='#A8842F' text-anchor='middle'>" + code + "</text>" +
+    "<text x='50%' y='59%' font-family='Be Vietnam Pro, sans-serif' font-size='11' fill='#6E6656' text-anchor='middle'>Ảnh minh hoạ bài viết · 3:2</text>" +
+    "</svg>";
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+const NEED_LABELS = {
+  batdau: "Mới bắt đầu tìm hiểu",
+  doclaso: "Đọc lá số của chính mình",
+  tracuu: "Tra nghĩa một sao, một cung",
+  muabaocao: "Trước khi mua báo cáo luận giải"
+};
+
+const METHOD_LABELS = {
+  "cung-menh": "Cung & Mệnh",
+  "chinh-tinh": "Chính tinh & Phụ tinh",
+  "dai-van": "Đại vận · Tiểu vận · Lưu niên",
+  "tu-hoa": "Tứ Hóa",
+  "ngu-hanh": "Ngũ hành & Âm dương"
+};
+
+const STARTER_ITEMS = [
+  { icon: "compass", num: "01", title: "Tử Vi là gì, và không phải là gì", body: "Định vị hệ Tử Vi Đẩu Số trước khi đọc bất kỳ lá số nào." },
+  { icon: "book-open", num: "02", title: "Cách đọc một lá số cơ bản", body: "Trình tự gợi ý khi mở một lá số lần đầu." },
+  { icon: "scroll", num: "03", title: "12 cung và ý nghĩa từng cung", body: "Vai trò của từng cung trong bố cục tổng thể." },
+  { icon: "user-circle", num: "04", title: "Chính tinh là gì", body: "Vì sao nhóm sao này được xem khi đọc lá số.", bordered: false }
+];
+
+const ARTICLES = [
+  { slug: "cung-menh-la-gi", code: "KTA01", title: "Cung Mệnh là gì, và vì sao được xem là cung gốc", body: "Cách xác định cung Mệnh trên lá số và vai trò của cung này khi đọc tổng thể 12 cung.", need: "batdau", method: "cung-menh" },
+  { slug: "tu-vi-dau-so-bat-nguon-tu-dau", code: "KTA02", title: "Tử Vi Đẩu Số bắt nguồn từ đâu", body: "Lược sử hình thành của hệ Tử Vi Đẩu Số và điểm khác biệt so với các hệ chiêm tinh khác.", need: "batdau", method: "cung-menh" },
+  { slug: "14-chinh-tinh-danh-sach-vi-tri-an-sao", code: "KTA03", title: "14 chính tinh: danh sách và vị trí an sao", body: "Danh sách đầy đủ 14 chính tinh và cách chúng được an vào từng cung trên lá số.", need: "tracuu", method: "chinh-tinh" },
+  { slug: "dai-van-la-gi-khac-tieu-van-o-diem-nao", code: "KTA04", title: "Đại vận là gì, khác Tiểu vận ở điểm nào", body: "Phân biệt hai chu kỳ vận hạn thường gặp và cách mỗi chu kỳ được tính từ lá số gốc.", need: "doclaso", method: "dai-van" },
+  { slug: "tu-hoa-hoa-loc-hoa-quyen-hoa-khoa-hoa-ky", code: "KTA05", title: "Tứ Hóa: Hóa Lộc, Hóa Quyền, Hóa Khoa, Hóa Kỵ", body: "Bốn phép hóa cơ bản và cách chúng thay đổi cách đọc một chính tinh theo từng lá số.", need: "tracuu", method: "tu-hoa" },
+  { slug: "ngu-hanh-trong-la-so-doi-chieu-dieu-gi", code: "KTA06", title: "Ngũ hành trong lá số dùng để đối chiếu điều gì", body: "Vai trò của Ngũ hành và Âm dương khi đối chiếu giữa các cung, các sao trên lá số.", need: "doclaso", method: "ngu-hanh" },
+  { slug: "than-cung-va-menh-cung-khac-nhau-ra-sao", code: "KTA07", title: "Thân cung và Mệnh cung khác nhau ra sao", body: "Hai cung dễ nhầm lẫn nhất khi mới đọc lá số, và cách phân định vai trò của từng cung.", need: "batdau", method: "cung-menh" },
+  { slug: "cach-xem-la-so-tu-vi-lan-dau", code: "KTA08", title: "Cách xem một lá số Tử Vi lần đầu, từng bước", body: "Trình tự gợi ý để đọc một lá số mới lập, từ cung Mệnh đến các cung liên quan.", need: "doclaso", method: "cung-menh" },
+  { slug: "vong-thai-tue-va-cac-sao-di-kem", code: "KTA09", title: "Vòng Thái Tuế và các sao đi kèm", body: "Một vòng sao phụ thường gặp, ý nghĩa của từng sao khi xuất hiện cùng chính tinh.", need: "tracuu", method: "chinh-tinh" },
+  { slug: "luu-dai-van-luu-tieu-van-nghia-la-gi", code: "KTA10", title: "Lưu Đại Vận, Lưu Tiểu Vận nghĩa là gì", body: "Cách các vận hạn 'lưu' được tính theo từng năm, khác với vận hạn cố định trên lá số gốc.", need: "doclaso", method: "dai-van" },
+  { slug: "sao-hoa-ky-anh-huong-cung-nao-nhieu-nhat", code: "KTA11", title: "Sao Hóa Kỵ ảnh hưởng đến cung nào nhiều nhất", body: "Cách đối chiếu vị trí Hóa Kỵ với từng cung liên quan, dựa trên dữ liệu lá số cụ thể.", need: "tracuu", method: "tu-hoa" },
+  { slug: "truoc-khi-doc-bao-cao-luan-giai-can-biet-gi", code: "KTA12", title: "Trước khi đọc báo cáo luận giải, cần biết gì", body: "Báo cáo luận giải sẽ trình bày dữ liệu gì, và phần nào người dùng nên tự đối chiếu trước.", need: "muabaocao", method: "ngu-hanh" }
+];
+
+const PER_PAGE = 6;
+
+class Component extends DCLogic {
+  state = { page: 1, needFilter: null, methodFilter: null, search: "" };
+
+  toggleNeed(key) {
+    this.setState(s => ({ needFilter: s.needFilter === key ? null : key, page: 1 }));
+  }
+  toggleMethod(key) {
+    this.setState(s => ({ methodFilter: s.methodFilter === key ? null : key, page: 1 }));
+  }
+  clearFilters() {
+    this.setState({ needFilter: null, methodFilter: null, search: "", page: 1 });
+  }
+  setSearch(v) {
+    this.setState({ search: v, page: 1 });
+  }
+  goToPage(n) {
+    this.setState({ page: n });
+  }
+
+  renderVals() {
+    const { page, needFilter, methodFilter, search } = this.state;
+    const q = search.trim().toLowerCase();
+
+    const filtered = ARTICLES.filter(a => {
+      if (needFilter && a.need !== needFilter) return false;
+      if (methodFilter && a.method !== methodFilter) return false;
+      if (q && !(a.title.toLowerCase().includes(q) || a.body.toLowerCase().includes(q))) return false;
+      return true;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+    const safePage = Math.min(page, totalPages);
+    const start = (safePage - 1) * PER_PAGE;
+    const pageItems = filtered.slice(start, start + PER_PAGE).map(a => ({
+      image: placeholderImg(a.code, 390, 260),
+      alt: "Ảnh minh hoạ bài viết: " + a.title,
+      title: a.title,
+      body: a.body,
+      href: "/kien-thuc/tu-vi/" + a.slug
+    }));
+
+    const needTiles = Object.keys(NEED_LABELS).map(key => {
+      const active = needFilter === key;
+      const icons = { batdau: "compass", doclaso: "user-circle", tracuu: "search", muabaocao: "scroll" };
+      const bodies = {
+        batdau: "Làm quen với các khái niệm nền tảng trước khi đọc lá số của riêng bạn.",
+        doclaso: "Hướng dẫn từng bước để tự tra cứu cung, sao trên lá số đã lập.",
+        tracuu: "Tìm nhanh ý nghĩa của từng thuật ngữ, từng chính tinh, phụ tinh.",
+        muabaocao: "Hiểu báo cáo sẽ phân tích gì, dựa trên dữ liệu nào, trước khi quyết định."
+      };
+      return {
+        key,
+        icon: icons[key],
+        label: NEED_LABELS[key],
+        body: bodies[key],
+        actionLabel: active ? "Đang lọc theo mục này" : "Xem bài viết",
+        borderColor: active ? "var(--accent-gold)" : "var(--border-hairline)",
+        onClick: () => this.toggleNeed(key)
+      };
+    });
+
+    const methodChips = Object.keys(METHOD_LABELS).map(key => {
+      const active = methodFilter === key;
+      return {
+        key,
+        label: METHOD_LABELS[key],
+        bg: active ? "var(--gradient-gold)" : "none",
+        color: active ? "var(--surface-deep)" : "var(--text-body)",
+        borderColor: active ? "transparent" : "var(--border-hairline)",
+        onClick: () => this.toggleMethod(key)
+      };
+    });
+
+    const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1).map(n => ({
+      label: String(n),
+      bg: n === safePage ? "var(--gradient-gold)" : "none",
+      color: n === safePage ? "var(--surface-deep)" : "var(--text-body)",
+      borderColor: n === safePage ? "transparent" : "var(--border-hairline)",
+      onClick: () => this.goToPage(n)
+    }));
+
+    const hasFilter = !!(needFilter || methodFilter);
+    const filterParts = [];
+    if (needFilter) filterParts.push(NEED_LABELS[needFilter]);
+    if (methodFilter) filterParts.push(METHOD_LABELS[methodFilter]);
+
+    return {
+      search,
+      onSearchInput: e => this.setSearch(e.target.value),
+      starterItems: STARTER_ITEMS.map(it => ({ ...it, bordered: it.bordered === undefined })),
+      needTiles,
+      methodChips,
+      hasFilter,
+      filterSummary: filterParts.join(" + "),
+      clearFilters: () => this.clearFilters(),
+      resultsTitle: q ? "Kết quả cho “" + search + "”" : "Tất cả bài viết",
+      resultsCountLabel: "Hiển thị " + pageItems.length + " trong số " + filtered.length + " bài",
+      hasResults: pageItems.length > 0,
+      hasNoResults: pageItems.length === 0,
+      articlesPage: pageItems,
+      showPagination: totalPages > 1,
+      pageNumbers,
+      isFirstPage: safePage === 1,
+      isLastPage: safePage === totalPages,
+      prevOpacity: safePage === 1 ? 0.4 : 1,
+      nextOpacity: safePage === totalPages ? 0.4 : 1,
+      prevPage: () => this.goToPage(Math.max(1, safePage - 1)),
+      nextPage: () => this.goToPage(Math.min(totalPages, safePage + 1)),
+      jsonLdCollection: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Kiến thức Tử Vi",
+        "url": "https://lasoviet.vn/kien-thuc/tu-vi",
+        "isPartOf": { "@type": "WebSite", "name": "Lá Số Việt", "url": "https://lasoviet.vn" },
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": ARTICLES.map((a, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "url": "https://lasoviet.vn/kien-thuc/tu-vi/" + a.slug,
+            "name": a.title
+          }))
+        }
+      }),
+      jsonLdBreadcrumb: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://lasoviet.vn/" },
+          { "@type": "ListItem", "position": 2, "name": "Kiến thức", "item": "https://lasoviet.vn/kien-thuc" },
+          { "@type": "ListItem", "position": 3, "name": "Tử Vi", "item": "https://lasoviet.vn/kien-thuc/tu-vi" }
+        ]
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: var(--lacquer-900); }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    *:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
+    .skip-link { position: absolute; left: 12px; top: -60px; z-index: 200; transition: top 150ms ease; }
+    .skip-link:focus { top: 12px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+    @media print {
+      .no-print { display: none !important; }
+      .print-block { display: block !important; }
+      body { background: #fff; }
+    }
+  </style>
+</helmet>
+
+<a href="#main" class="skip-link no-print" style="background:var(--lacquer-700);color:var(--pearl-50);padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--border-hairline);font-family:var(--font-ui);font-size:14px;text-decoration:none;">Bỏ đến nội dung chính</a>
+
+<div style="background:var(--lacquer-900);min-height:100vh;color:var(--text-body);font-family:var(--font-ui);">
+
+  <!-- HEADER -->
+  <header class="no-print" style="position:sticky;top:0;z-index:100;background:var(--lacquer-800);border-bottom:1px solid var(--border-hairline);">
+    <sc-if value="{{ !isMobile }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:1400px;margin:0 auto;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+        <div style="min-width:0;">
+          <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);">Báo cáo luận giải</div>
+          <h1 style="margin:2px 0 0;font-family:var(--font-display);font-size:20px;font-weight:400;color:var(--text-heading);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Luận giải lá số trọn đời</h1>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;flex:none;">
+          <div style="display:flex;align-items:center;gap:4px;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);padding:4px;" role="group" aria-label="Cỡ chữ">
+            <button type="button" onClick="{{ decFont }}" disabled="{{ !canDec }}" aria-label="Giảm cỡ chữ" style="min-width:36px;min-height:36px;background:none;border:none;color:var(--text-body);font-family:var(--font-ui);font-size:13px;cursor:pointer;border-radius:var(--radius-sm);opacity:{{ canDecOpacity }};">A-</button>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-faint);width:28px;text-align:center;">{{ fontLabel }}</span>
+            <button type="button" onClick="{{ incFont }}" disabled="{{ !canInc }}" aria-label="Tăng cỡ chữ" style="min-width:36px;min-height:36px;background:none;border:none;color:var(--text-body);font-family:var(--font-ui);font-size:17px;cursor:pointer;border-radius:var(--radius-sm);opacity:{{ canIncOpacity }};">A+</button>
+          </div>
+          <button type="button" onClick="{{ toggleBookmark }}" aria-pressed="{{ bookmarked }}" aria-label="Lưu báo cáo" style="display:flex;align-items:center;gap:8px;min-height:44px;background:none;border:none;cursor:pointer;color:{{ bookmarkColor }};font-family:var(--font-ui);font-size:14px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="book-open" size="20" color="{{ bookmarkColor }}" hint-size="20px,20px"></x-import>
+            Lưu
+          </button>
+          <button type="button" onClick="{{ doPrint }}" aria-label="In hoặc xuất PDF" style="display:flex;align-items:center;gap:8px;min-height:44px;background:none;border:none;cursor:pointer;color:var(--text-body);font-family:var(--font-ui);font-size:14px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="download" size="20" color="var(--text-body)" hint-size="20px,20px"></x-import>
+            Tải
+          </button>
+          <button type="button" onClick="{{ openShare }}" aria-label="Chia sẻ báo cáo" style="display:flex;align-items:center;gap:8px;min-height:44px;background:none;border:none;cursor:pointer;color:var(--text-body);font-family:var(--font-ui);font-size:14px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="share" size="20" color="var(--text-body)" hint-size="20px,20px"></x-import>
+            Chia sẻ
+          </button>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:12px 16px;display:flex;align-items:center;gap:12px;">
+        <a href="#" aria-label="Quay lại" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;color:var(--text-body);text-decoration:none;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="22" color="var(--text-body)" style="{{ flipStyle }}" hint-size="22px,22px"></x-import>
+        </a>
+        <h1 style="flex:1;min-width:0;margin:0;font-family:var(--font-display);font-size:17px;font-weight:400;color:var(--text-heading);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Luận giải lá số trọn đời</h1>
+        <button type="button" onClick="{{ openShare }}" aria-label="Chia sẻ" style="width:44px;height:44px;flex:none;background:none;border:none;color:var(--text-body);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="share" size="20" color="var(--text-body)" hint-size="20px,20px"></x-import>
+        </button>
+        <button type="button" onClick="{{ toggleToc }}" aria-expanded="{{ tocOpen }}" aria-label="Mục lục" style="width:44px;height:44px;flex:none;background:none;border:none;color:var(--text-body);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="menu" size="22" color="var(--text-body)" hint-size="22px,22px"></x-import>
+        </button>
+      </div>
+    </sc-if>
+  </header>
+
+  <!-- BODY GRID (desktop) -->
+  <sc-if value="{{ !isMobile }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:1400px;margin:0 auto;display:grid;grid-template-columns:220px minmax(480px,760px) minmax(280px,320px);gap:0;align-items:start;justify-content:center;">
+
+      <!-- TOC RAIL -->
+      <nav aria-label="Mục lục báo cáo" style="position:sticky;top:65px;padding:32px 20px 32px 32px;border-right:1px solid var(--border-hairline);align-self:start;">
+        <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px;">Mục lục</div>
+        <sc-for list="{{ sections }}" as="item" hint-placeholder-count="6">
+          <button type="button" onClick="{{ item.select }}" aria-current="{{ item.current }}" style="display:block;width:100%;text-align:left;background:none;border:none;border-left:2px solid {{ item.barColor }};padding:10px 0 10px 14px;margin-bottom:2px;cursor:pointer;">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--gold-600);">{{ item.numeral }}</div>
+            <div style="font-family:var(--font-display);font-size:14.5px;line-height:1.4;color:{{ item.textColor }};margin-top:2px;">{{ item.title }}</div>
+          </button>
+        </sc-for>
+      </nav>
+
+      <!-- READING COLUMN -->
+      <main id="main" style="padding:48px 40px 96px;min-width:0;">
+        <div style="background:var(--lacquer-700);border:1px solid var(--border-hairline);border-radius:var(--radius-md);aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-faint);">
+          <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;">ẢNH BC01</span>
+          <span style="font-family:var(--font-ui);font-size:13px;text-align:center;padding:0 24px;">Bìa báo cáo — ảnh vật phẩm sơn mài/giấy dó, tỷ lệ 3:2</span>
+        </div>
+
+        <div style="margin-top:32px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;color:var(--text-faint);">BÁO CÁO LUẬN GIẢI · PHIÊN BẢN 1.2</div>
+        <h2 style="margin:8px 0 0;font-family:var(--font-display);font-size:38px;font-weight:400;line-height:1.2;color:var(--text-heading);">Luận giải lá số trọn đời</h2>
+        <div style="margin-top:10px;font-family:var(--font-mono);font-size:12.5px;color:var(--text-muted);">Tạo ngày 12/08/2026 · Dựa trên lá số đã lập</div>
+
+        <p style="margin-top:24px;font-size:13.5px;line-height:1.7;color:var(--text-muted);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline);padding:16px 0;">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+
+        <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="6">
+          <section id="{{ sec.id }}" data-section style="padding:56px 0;border-bottom:1px solid var(--border-hairline);">
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--gold-600);">{{ sec.numeral }}</div>
+            <h3 style="margin:8px 0 0;font-family:var(--font-display);font-size:{{ sizeH3 }}px;font-weight:400;color:var(--text-heading);">{{ sec.title }}</h3>
+            <div style="margin-top:6px;font-size:13px;color:var(--text-muted);">{{ sec.meta }}</div>
+            <p style="margin-top:20px;font-family:var(--font-display);font-style:italic;font-size:{{ sizeLead }}px;line-height:1.55;color:var(--pearl-200);">{{ sec.lead }}</p>
+            <p style="margin-top:18px;font-size:{{ sizeBody }}px;line-height:1.75;color:var(--text-body);">{{ sec.p1 }}</p>
+            <p style="margin-top:16px;font-size:{{ sizeBody }}px;line-height:1.75;color:var(--text-body);">{{ sec.p2 }}</p>
+
+            <div class="print-block" style="display:none;margin-top:24px;">
+              <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" claim="{{ sec.claim }}" confidence="{{ sec.confidence }}" rows="{{ sec.rows }}" open="{{ sec.evOpen }}" onToggle="{{ sec.toggleEv }}" hint-size="100%,auto"></x-import>
+            </div>
+
+            <div style="margin-top:28px;background:var(--lacquer-700);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:24px 26px;display:flex;gap:16px;">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="compass" size="22" color="var(--accent-gold)" hint-size="22px,22px"></x-import>
+              <div>
+                <div style="font-family:var(--font-ui);font-weight:600;font-size:13.5px;color:var(--text-heading);">{{ sec.observation }}</div>
+                <p style="margin:10px 0 0;font-family:var(--font-display);font-style:italic;font-size:15.5px;line-height:1.6;color:var(--text-muted);">{{ sec.reflection }}</p>
+              </div>
+            </div>
+          </section>
+        </sc-for>
+
+        <div style="padding-top:40px;text-align:center;">
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);">Hết báo cáo</div>
+        </div>
+      </main>
+
+      <!-- EVIDENCE RAIL -->
+      <aside aria-label="Cơ sở của nhận định đang xem" style="position:sticky;top:65px;padding:32px 32px 32px 20px;align-self:start;">
+        <div style="height:2px;background:var(--lacquer-line);border-radius:2px;overflow:hidden;margin-bottom:20px;">
+          <div style="height:100%;width:{{ progressPct }}%;background:var(--gradient-gold);"></div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);margin-bottom:14px;">Đang xem · {{ activeSection.numeral }}</div>
+        <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" claim="{{ activeSection.claim }}" confidence="{{ activeSection.confidence }}" rows="{{ activeSection.rows }}" open="{{ true }}" onToggle="{{ noop }}" style="{{ railPanelStyle }}" hint-size="100%,auto"></x-import>
+        <p style="margin-top:20px;font-size:12.5px;line-height:1.6;color:var(--text-faint);">Nhận định dựa trên dữ liệu lá số đã lập. Mức tin cậy phản ánh số lượng yếu tố cùng chỉ về một hướng, không phải xác suất tuyệt đối.</p>
+      </aside>
+    </div>
+  </sc-if>
+
+  <!-- MOBILE LAYOUT -->
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+    <main id="main" style="padding:28px 20px 80px;max-width:680px;margin:0 auto;">
+      <div style="background:var(--lacquer-700);border:1px solid var(--border-hairline);border-radius:var(--radius-md);aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--text-faint);">
+        <span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.1em;">ẢNH BC01</span>
+        <span style="font-family:var(--font-ui);font-size:12.5px;text-align:center;padding:0 20px;">Bìa báo cáo — ảnh vật phẩm sơn mài/giấy dó, 3:2</span>
+      </div>
+
+      <div style="margin-top:24px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.1em;color:var(--text-faint);">BÁO CÁO LUẬN GIẢI · PHIÊN BẢN 1.2</div>
+      <h2 style="margin:8px 0 0;font-family:var(--font-display);font-size:30px;font-weight:400;line-height:1.25;color:var(--text-heading);">Luận giải lá số trọn đời</h2>
+      <div style="margin-top:8px;font-family:var(--font-mono);font-size:12px;color:var(--text-muted);">Tạo ngày 12/08/2026</div>
+
+      <div style="margin-top:8px;display:flex;align-items:center;gap:4px;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);padding:4px;width:fit-content;" role="group" aria-label="Cỡ chữ">
+        <button type="button" onClick="{{ decFont }}" disabled="{{ !canDec }}" aria-label="Giảm cỡ chữ" style="min-width:44px;min-height:40px;background:none;border:none;color:var(--text-body);font-size:13px;cursor:pointer;">A-</button>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-faint);width:28px;text-align:center;">{{ fontLabel }}</span>
+        <button type="button" onClick="{{ incFont }}" disabled="{{ !canInc }}" aria-label="Tăng cỡ chữ" style="min-width:44px;min-height:40px;background:none;border:none;color:var(--text-body);font-size:17px;cursor:pointer;">A+</button>
+      </div>
+
+      <p style="margin-top:20px;font-size:13px;line-height:1.7;color:var(--text-muted);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline);padding:14px 0;">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+
+      <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="6">
+        <section id="{{ sec.id }}" data-section style="padding:40px 0;border-bottom:1px solid var(--border-hairline);">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--gold-600);">{{ sec.numeral }}</div>
+          <h3 style="margin:6px 0 0;font-family:var(--font-display);font-size:24px;font-weight:400;color:var(--text-heading);">{{ sec.title }}</h3>
+          <div style="margin-top:6px;font-size:12.5px;color:var(--text-muted);">{{ sec.meta }}</div>
+          <p style="margin-top:16px;font-family:var(--font-display);font-style:italic;font-size:{{ sizeLead }}px;line-height:1.55;color:var(--pearl-200);">{{ sec.lead }}</p>
+          <p style="margin-top:14px;font-size:{{ sizeBody }}px;line-height:1.75;color:var(--text-body);">{{ sec.p1 }}</p>
+          <p style="margin-top:14px;font-size:{{ sizeBody }}px;line-height:1.75;color:var(--text-body);">{{ sec.p2 }}</p>
+
+          <div style="margin-top:20px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" claim="{{ sec.claim }}" confidence="{{ sec.confidence }}" rows="{{ sec.rows }}" open="{{ sec.evOpen }}" onToggle="{{ sec.toggleEv }}" style="{{ mobileEvidencePadding }}" hint-size="100%,auto"></x-import>
+          </div>
+
+          <div style="margin-top:24px;background:var(--lacquer-700);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:20px;display:flex;gap:14px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="compass" size="20" color="var(--accent-gold)" hint-size="20px,20px"></x-import>
+            <div>
+              <div style="font-weight:600;font-size:13px;color:var(--text-heading);">{{ sec.observation }}</div>
+              <p style="margin:8px 0 0;font-family:var(--font-display);font-style:italic;font-size:15px;line-height:1.6;color:var(--text-muted);">{{ sec.reflection }}</p>
+            </div>
+          </div>
+        </section>
+      </sc-for>
+
+      <div style="padding-top:32px;text-align:center;">
+        <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);">Hết báo cáo</div>
+      </div>
+    </main>
+
+    <!-- TOC BOTTOM SHEET -->
+    <sc-if value="{{ tocOpen }}" hint-placeholder-val="{{ false }}">
+      <div role="dialog" aria-modal="true" aria-label="Mục lục" style="position:fixed;inset:0;z-index:200;">
+        <div onClick="{{ closeToc }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;max-height:70vh;overflow:auto;background:var(--lacquer-800);border-top:1px solid var(--border-hairline);border-radius:16px 16px 0 0;padding:20px 20px 32px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);">Mục lục</div>
+            <button type="button" onClick="{{ closeToc }}" aria-label="Đóng" style="width:44px;height:44px;background:none;border:none;color:var(--text-body);cursor:pointer;">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="close" size="20" color="var(--text-body)" hint-size="20px,20px"></x-import>
+            </button>
+          </div>
+          <sc-for list="{{ sections }}" as="item" hint-placeholder-count="6">
+            <button type="button" onClick="{{ item.select }}" style="display:flex;align-items:baseline;gap:14px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--border-hairline);padding:14px 0;min-height:44px;cursor:pointer;">
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--gold-600);flex:none;">{{ item.numeral }}</span>
+              <span style="font-family:var(--font-display);font-size:16px;color:{{ item.textColor }};">{{ item.title }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- SHARE MODAL -->
+  <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-modal="true" aria-label="Chia sẻ báo cáo" class="no-print" style="position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;padding:20px;">
+      <div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.65);"></div>
+      <div style="position:relative;width:100%;max-width:480px;background:var(--lacquer-800);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:32px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+          <h2 style="margin:0;font-family:var(--font-display);font-size:22px;font-weight:400;color:var(--text-heading);">Chia sẻ báo cáo</h2>
+          <button type="button" onClick="{{ closeShare }}" aria-label="Đóng" style="width:36px;height:36px;flex:none;background:none;border:none;color:var(--text-muted);cursor:pointer;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="close" size="18" color="var(--text-muted)" hint-size="18px,18px"></x-import>
+          </button>
+        </div>
+
+        <sc-if value="{{ !revoked }}" hint-placeholder-val="{{ true }}">
+          <label style="margin-top:24px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+            <span onClick="{{ toggleHidePII }}" role="switch" aria-checked="{{ hidePII }}" tabIndex="0" onKeyDown="{{ toggleHidePIIKey }}" style="width:40px;height:24px;border-radius:999px;background:{{ switchBg }};position:relative;flex:none;transition:background 150ms ease;">
+              <span style="position:absolute;top:3px;left:{{ switchLeft }}px;width:18px;height:18px;border-radius:50%;background:var(--pearl-50);transition:left 150ms ease;"></span>
+            </span>
+            <span style="font-size:14px;color:var(--text-body);">Ẩn tên, ngày giờ và nơi sinh khi chia sẻ</span>
+          </label>
+
+          <div style="margin-top:20px;display:flex;gap:8px;">
+            <div style="flex:1;min-width:0;font-family:var(--font-mono);font-size:12.5px;color:var(--text-muted);background:var(--lacquer-900);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);padding:12px 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ shareLink }}</div>
+            <button type="button" onClick="{{ copyLink }}" style="flex:none;background:none;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);padding:0 16px;color:var(--text-body);font-size:13px;cursor:pointer;">{{ copyLabel }}</button>
+          </div>
+
+          <div style="margin-top:20px;padding:16px 18px;background:var(--lacquer-900);border:1px solid var(--border-hairline);border-radius:var(--radius-md);">
+            <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);">Xem trước bản chia sẻ</div>
+            <div style="margin-top:8px;font-family:var(--font-display);font-size:15px;color:var(--text-heading);">Luận giải lá số trọn đời</div>
+            <div style="margin-top:6px;font-size:13px;color:var(--text-muted);">Tên: {{ previewName }} · Ngày sinh: {{ previewDate }} · Nơi sinh: {{ previewPlace }}</div>
+          </div>
+
+          <button type="button" onClick="{{ revokeLink }}" style="margin-top:20px;display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--son);font-size:13.5px;cursor:pointer;min-height:44px;padding:0;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="trash" size="18" color="var(--son)" hint-size="18px,18px"></x-import>
+            Thu hồi link chia sẻ
+          </button>
+        </sc-if>
+
+        <sc-if value="{{ revoked }}" hint-placeholder-val="{{ false }}">
+          <p style="margin-top:24px;font-size:14px;line-height:1.6;color:var(--text-muted);">Link chia sẻ đã được thu hồi. Người đang giữ link cũ sẽ không xem được báo cáo nữa.</p>
+          <div style="margin-top:16px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" onClick="{{ createNewLink }}" hint-size="auto,44px">Tạo link chia sẻ mới</x-import>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- FOOTER -->
+  <footer class="no-print" style="border-top:1px solid var(--border-hairline);padding:40px 32px;">
+    <div style="max-width:1400px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px 40px;font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);">
+      <div><span style="color:var(--text-muted);">Phương pháp:</span> tính toán lá số theo Tử Vi Đẩu Số truyền thống, đối chiếu bằng AI</div>
+      <div><span style="color:var(--text-muted);">Phiên bản:</span> 1.2</div>
+      <div><span style="color:var(--text-muted);">Cập nhật:</span> 12/08/2026</div>
+      <div><span style="color:var(--text-muted);">Giới hạn:</span> nội dung mang tính tham khảo, không thay thế tư vấn y tế, pháp lý hoặc tài chính</div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SECTIONS_DATA = [
+  { id: "sec-0", numeral: "01", title: "Tổng quan lá số", meta: "Bản chất · xu hướng nổi trội",
+    lead: "Cung Mệnh là nơi bắt đầu của mọi luận giải — nơi thể hiện xu hướng chung trong cách một người nhìn nhận bản thân và được người khác nhìn nhận.",
+    p1: "Cung Mệnh có Tử Vi đơn thủ, đắc địa. Đây là chính tinh mang tính lãnh đạo, có xu hướng khiến người có lá số này quan tâm đến việc được ghi nhận vai trò trong một tập thể, dù lớn hay nhỏ.",
+    p2: "Tả Phù và Hữu Bật hội chiếu cho thấy xu hướng nhận được sự hỗ trợ từ người xung quanh khi cần đưa ra quyết định, thay vì luôn phải tự mình xử lý mọi việc.",
+    claim: "Cung Mệnh có Tử Vi đơn thủ, cho thấy xu hướng đề cao vai trò dẫn dắt và mong muốn được ghi nhận trong tập thể.", confidence: "Cao",
+    rows: [{label:"Cung xét", value:"Mệnh"},{label:"Chính tinh", value:"Tử Vi (đắc địa)"},{label:"Sao phụ", value:"Tả Phù, Hữu Bật hội chiếu"}],
+    observation: "Điều có thể quan sát: cách bạn phản ứng khi được giao vai trò đứng đầu trong một nhóm.",
+    reflection: "Bạn có thường được người khác tìm đến khi cần một quyết định cuối cùng không?" },
+  { id: "sec-1", numeral: "02", title: "Sự nghiệp & tài chính", meta: "Con đường công việc · dòng tiền",
+    lead: "Cung Quan Lộc phản ánh xu hướng trong cách một người tiếp cận công việc — môi trường nào khiến họ thấy an toàn, môi trường nào khiến họ thấy bó buộc.",
+    p1: "Cung Quan có cách Cơ Nguyệt Đồng Lương, thường gắn với xu hướng phù hợp hơn với môi trường có quy trình, cấp bậc rõ ràng, so với việc tự thân khởi nghiệp từ đầu.",
+    p2: "Đại hạn 26–35 tuổi là giai đoạn các sao này phát huy rõ nhất, có thể biểu hiện qua việc thăng tiến ổn định trong một tổ chức hơn là những bước chuyển đột ngột.",
+    claim: "Cung Quan có Cơ Nguyệt Đồng Lương, có xu hướng phù hợp với môi trường ổn định, quy trình rõ ràng hơn là tự thân khởi nghiệp.", confidence: "Trung bình",
+    rows: [{label:"Cung xét", value:"Quan Lộc"},{label:"Cách cục", value:"Cơ Nguyệt Đồng Lương"},{label:"Vận hạn liên quan", value:"Đại hạn 26–35 tuổi"}],
+    observation: "Điều có thể quan sát: mức độ thoải mái khi công việc thay đổi cấu trúc thường xuyên.",
+    reflection: "Giai đoạn nào trong sự nghiệp bạn cảm thấy an tâm nhất — khi có lộ trình rõ, hay khi tự đặt ra lộ trình?" },
+  { id: "sec-2", numeral: "03", title: "Tình duyên & gia đạo", meta: "Cung Phu Thê",
+    lead: "Cung Phu Thê không dự đoán một người cụ thể, mà cho thấy xu hướng trong cách một người bước vào và duy trì một mối quan hệ gắn bó.",
+    p1: "Thiên Đồng tại cung Phu Thê có xu hướng gắn với việc cần thời gian tìm hiểu dài trước khi tiến tới cam kết, thay vì quyết định nhanh trong tình cảm.",
+    p2: "Thiên Riêu hội chiếu có thể biểu hiện qua sự hấp dẫn nhẹ nhàng, ít ồn ào, thường bắt đầu từ những khoảng thời gian trò chuyện kéo dài hơn là ấn tượng ban đầu.",
+    claim: "Cung Phu Thê có Thiên Đồng, có xu hướng gắn với một mối quan hệ cần thời gian tìm hiểu dài trước khi tiến tới cam kết.", confidence: "Trung bình",
+    rows: [{label:"Cung xét", value:"Phu Thê"},{label:"Chính tinh", value:"Thiên Đồng"},{label:"Sao hội chiếu", value:"Thiên Riêu"}],
+    observation: "Điều có thể quan sát: nhịp độ bạn thường chọn khi bắt đầu một mối quan hệ mới.",
+    reflection: "Bạn có nhận ra mình cần thời gian dài hơn người xung quanh để cảm thấy chắc chắn về một mối quan hệ?" },
+  { id: "sec-3", numeral: "04", title: "Sức khỏe & tinh thần", meta: "Cung Tật Ách",
+    lead: "Cung Tật Ách gợi ra những vùng cơ thể hoặc trạng thái có xu hướng chịu ảnh hưởng nhiều hơn khi có căng thẳng kéo dài, không phải một chẩn đoán.",
+    p1: "Cự Môn tại cung Tật Ách có xu hướng liên quan đến vùng tiêu hóa hoặc hô hấp khi áp lực tâm lý tích tụ trong thời gian dài.",
+    p2: "Đây là phần cần đối chiếu với trải nghiệm thực tế của bản thân nhiều nhất trong toàn bộ báo cáo, vì các yếu tố sức khỏe chịu ảnh hưởng của rất nhiều biến số ngoài lá số.",
+    claim: "Cung Tật Ách có Cự Môn, có xu hướng liên quan đến vùng tiêu hóa hoặc hô hấp khi căng thẳng kéo dài.", confidence: "Thấp",
+    rows: [{label:"Cung xét", value:"Tật Ách"},{label:"Chính tinh", value:"Cự Môn"},{label:"Ghi chú", value:"Cần đối chiếu thực tế cá nhân, không thay thế chẩn đoán y khoa"}],
+    observation: "Điều có thể quan sát: những thời điểm căng thẳng có trùng với biểu hiện thể chất cụ thể không.",
+    reflection: "Bạn có nhận thấy mối liên hệ nào giữa áp lực công việc và sức khỏe thể chất trong năm qua?" },
+  { id: "sec-4", numeral: "05", title: "Vận hạn theo giai đoạn", meta: "Đại hạn 10 năm",
+    lead: "Vận hạn không phải một lịch trình cố định, mà là những giai đoạn 10 năm mà một số chủ đề có xu hướng nổi rõ hơn các chủ đề khác.",
+    p1: "Đại hạn 36–45 tuổi rơi vào cung Thiên Di, có xu hướng gắn với thay đổi nơi sống, môi trường làm việc hoặc phạm vi các mối quan hệ.",
+    p2: "Giai đoạn này trùng với vận hạn Thái Tuế năm 2032, một năm có thể biểu hiện rõ hơn các chủ đề di chuyển hoặc mở rộng phạm vi hoạt động.",
+    claim: "Đại hạn 36–45 rơi vào cung Thiên Di, có xu hướng gắn với thay đổi nơi sống, môi trường làm việc hoặc phạm vi quan hệ.", confidence: "Trung bình",
+    rows: [{label:"Giai đoạn", value:"36–45 tuổi"},{label:"Cung đại hạn", value:"Thiên Di"},{label:"Lưu ý", value:"Trùng vận hạn Thái Tuế năm 2032"}],
+    observation: "Điều có thể quan sát: các quyết định về nơi ở hoặc công việc trong khung tuổi này.",
+    reflection: "Có thay đổi lớn nào về môi trường sống hoặc làm việc bạn đang cân nhắc trong vài năm tới?" },
+  { id: "sec-5", numeral: "06", title: "Lời khuyên tổng kết", meta: "Tổng hợp & gợi mở",
+    lead: "Báo cáo này không đưa ra một kết luận duy nhất, mà tập hợp những xu hướng lặp lại ở nhiều cung khác nhau để bạn đối chiếu với trải nghiệm của mình.",
+    p1: "Những cung được nhắc đến nhiều lần trong báo cáo — như vai trò dẫn dắt ở cung Mệnh, hay nhu cầu môi trường ổn định ở cung Quan — thường là nơi đáng quan sát thêm trong thực tế.",
+    p2: "Không có phần nào trong báo cáo này mang tính chắc chắn tuyệt đối. Giá trị của nó nằm ở việc gợi mở góc nhìn, không phải ở việc thay bạn đưa ra quyết định.",
+    claim: "", confidence: "", rows: [],
+    observation: "Điều có thể quan sát: những cung được nhắc lại nhiều lần trong báo cáo này thường là nơi đáng dành thời gian quan sát thêm.",
+    reflection: "Trong các phần trên, phần nào bạn thấy đúng với trải nghiệm của mình nhất — và phần nào chưa?" }
+];
+
+class Component extends DCLogic {
+  state = {
+    isMobile: typeof window !== "undefined" ? window.innerWidth < 1280 : false,
+    activeIdx: 0,
+    tocOpen: false,
+    fontIdx: 1,
+    bookmarked: false,
+    shareOpen: false,
+    hidePII: true,
+    revoked: false,
+    copied: false,
+    evMobileOpen: {},
+    progressPct: 0,
+    reportId: "demo"
+  };
+
+  componentDidMount() {
+    try {
+      const m = window.location.pathname.match(/\/bao-cao\/([^/]+)/);
+      if (m) this.setState({ reportId: m[1] });
+    } catch (e) {}
+
+    this._mq = window.matchMedia("(max-width: 1279px)");
+    this._onMq = (e) => this.setState({ isMobile: e.matches });
+    this._mq.addEventListener ? this._mq.addEventListener("change", this._onMq) : this._mq.addListener(this._onMq);
+
+    this._observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const idx = SECTIONS_DATA.findIndex((s) => s.id === entry.target.id);
+          if (idx !== -1) this.setState({ activeIdx: idx });
+        }
+      });
+    }, { rootMargin: "-30% 0px -60% 0px", threshold: 0 });
+    setTimeout(() => {
+      document.querySelectorAll("[data-section]").forEach((el) => this._observer.observe(el));
+    }, 50);
+
+    this._onScroll = () => {
+      const doc = document.documentElement;
+      const pct = doc.scrollHeight > doc.clientHeight ? (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100 : 0;
+      this.setState({ progressPct: Math.min(100, Math.max(0, pct)) });
+      window.clearTimeout(this._saveTimer);
+      this._saveTimer = window.setTimeout(() => {
+        try { localStorage.setItem("lsv-reader-scroll-" + this.state.reportId, String(pct)); } catch (e) {}
+      }, 200);
+    };
+    window.addEventListener("scroll", this._onScroll, { passive: true });
+
+    try {
+      const saved = localStorage.getItem("lsv-reader-scroll-" + this.state.reportId);
+      if (saved) {
+        setTimeout(() => {
+          const doc = document.documentElement;
+          const top = (parseFloat(saved) / 100) * (doc.scrollHeight - doc.clientHeight);
+          if (top > 0) window.scrollTo({ top });
+        }, 150);
+      }
+    } catch (e) {}
+
+    this._onKey = (e) => {
+      if (e.key === "Escape") this.setState({ shareOpen: false, tocOpen: false });
+    };
+    window.addEventListener("keydown", this._onKey);
+  }
+
+  componentWillUnmount() {
+    if (this._observer) this._observer.disconnect();
+    window.removeEventListener("scroll", this._onScroll);
+    window.removeEventListener("keydown", this._onKey);
+    this._mq && (this._mq.removeEventListener ? this._mq.removeEventListener("change", this._onMq) : this._mq.removeListener(this._onMq));
+  }
+
+  scrollToSection(i) {
+    const el = document.getElementById(SECTIONS_DATA[i].id);
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+    this.setState({ activeIdx: i, tocOpen: false });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const FONT_STEPS = [16, 18, 21];
+    const LEAD_STEPS = [18, 20, 23];
+    const H3_STEPS = [22, 24, 27];
+    const fontIdx = s.fontIdx;
+
+    const sections = SECTIONS_DATA.map((sec, i) => {
+      const current = i === s.activeIdx;
+      return {
+        ...sec,
+        current,
+        barColor: current ? "var(--accent-gold)" : "transparent",
+        textColor: current ? "var(--pearl-50)" : "var(--text-muted)",
+        select: () => this.scrollToSection(i),
+        evOpen: !!s.evMobileOpen[i],
+        toggleEv: () => this.setState({ evMobileOpen: { ...s.evMobileOpen, [i]: !s.evMobileOpen[i] } })
+      };
+    });
+
+    const activeSection = sections[s.activeIdx];
+
+    return {
+      isMobile: s.isMobile,
+      sections,
+      activeSection,
+      tocOpen: s.tocOpen,
+      toggleToc: () => this.setState({ tocOpen: !s.tocOpen }),
+      closeToc: () => this.setState({ tocOpen: false }),
+      flipStyle: { transform: "scaleX(-1)" },
+
+      fontLabel: ["Nhỏ", "Vừa", "Lớn"][fontIdx],
+      sizeBody: FONT_STEPS[fontIdx],
+      sizeLead: LEAD_STEPS[fontIdx],
+      sizeH3: H3_STEPS[fontIdx],
+      canDec: fontIdx > 0,
+      canInc: fontIdx < FONT_STEPS.length - 1,
+      canDecOpacity: fontIdx > 0 ? 1 : 0.35,
+      canIncOpacity: fontIdx < FONT_STEPS.length - 1 ? 1 : 0.35,
+      decFont: () => this.setState({ fontIdx: Math.max(0, fontIdx - 1) }),
+      incFont: () => this.setState({ fontIdx: Math.min(FONT_STEPS.length - 1, fontIdx + 1) }),
+
+      bookmarked: s.bookmarked,
+      bookmarkColor: s.bookmarked ? "var(--accent-gold)" : "var(--text-body)",
+      toggleBookmark: () => this.setState({ bookmarked: !s.bookmarked }),
+
+      doPrint: () => window.print(),
+      progressPct: s.progressPct,
+      noop: () => {},
+      railPanelStyle: {},
+      mobileEvidencePadding: {},
+
+      shareOpen: s.shareOpen,
+      openShare: () => this.setState({ shareOpen: true }),
+      closeShare: () => this.setState({ shareOpen: false }),
+      revoked: s.revoked,
+      revokeLink: () => this.setState({ revoked: true }),
+      createNewLink: () => this.setState({ revoked: false, hidePII: true, copied: false }),
+      hidePII: s.hidePII,
+      toggleHidePII: () => this.setState({ hidePII: !s.hidePII }),
+      toggleHidePIIKey: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this.setState({ hidePII: !s.hidePII }); } },
+      switchBg: s.hidePII ? "var(--accent-gold)" : "var(--lacquer-line)",
+      switchLeft: s.hidePII ? 19 : 3,
+      shareLink: "lasoviet.vn/c/" + s.reportId + "-7f2a91",
+      copyLabel: s.copied ? "Đã sao chép" : "Sao chép",
+      copyLink: () => {
+        try { navigator.clipboard.writeText("https://lasoviet.vn/c/" + s.reportId + "-7f2a91"); } catch (e) {}
+        this.setState({ copied: true });
+        setTimeout(() => this.setState({ copied: false }), 2000);
+      },
+      previewName: s.hidePII ? "•••••" : "Đã ẩn theo mặc định",
+      previewDate: s.hidePII ? "••/••/••••" : "••/••/••••",
+      previewPlace: s.hidePII ? "•••••" : "••••••"
+    };
+  }
+}
+
+</script>
+</body>
+</html>
