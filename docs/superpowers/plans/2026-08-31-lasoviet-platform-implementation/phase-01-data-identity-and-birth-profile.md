@@ -291,34 +291,34 @@ git commit -m "feat: add consent and account deletion workflows"
 - Produces `normalizeBirthProfile(input): NormalizedBirthProfileV1`.
 - Produces `resolveZiweiTimeIndex(profile): Result<number, TimePrecisionError>`.
 
-- [ ] **Step 1: Write failing precision fixtures**
+- [x] **Step 1: Write failing precision fixtures**
 
 Cover exact minute, known traditional branch, a range within one branch, a
 range crossing branches, unknown time, timezone offset, IANA zone, historical
 DST, solar input, and lunar input.
 
-- [ ] **Step 2: Run focused tests**
+- [x] **Step 2: Run focused tests**
 
 Run: `pnpm vitest run packages/backend/src/birth-profile`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement normalization without false precision**
+- [x] **Step 3: Implement normalization without false precision**
 
 Preserve original input, normalized input, timezone provenance, warnings, and
 limitations. Do not convert a branch-only time into an invented minute.
 
-- [ ] **Step 4: Implement owner-authorized API commands**
+- [x] **Step 4: Implement owner-authorized API commands**
 
 Create, read, update, and archive profiles for the server-resolved account or
 anonymous owner. A calculation-relevant update must create a new normalized
 revision rather than rewriting calculation history.
 
-- [ ] **Step 5: Run tests and migration checks**
+- [x] **Step 5: Run tests and migration checks**
 
 Run: `pnpm vitest run packages/backend/src/birth-profile && pnpm --filter @lasoviet/database migrate:test`
 Expected: PASS.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/birth-profile apps/api/src/birth-profile tests/fixtures/birth-profile docs/superpowers/plans

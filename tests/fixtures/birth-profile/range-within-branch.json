@@ -1,0 +1,19 @@
+{
+  "input": {
+    "version": 1,
+    "calendar": { "kind": "solar", "date": "1990-01-01" },
+    "time": {
+      "precision": "range",
+      "startLocalTime": "09:00",
+      "endLocalTime": "10:59"
+    },
+    "timezone": { "offsetMinutes": 420 },
+    "consentVersion": "2026-09-01"
+  },
+  "expected": {
+    "normalized": {
+      "limitations": ["TIME_RANGE_WITHIN_SINGLE_BRANCH"]
+    },
+    "eligibility": { "ok": true, "value": 5 }
+  }
+}

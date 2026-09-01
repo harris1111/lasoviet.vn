@@ -98,3 +98,16 @@ Date: 2026-09-01
   transaction fields and downstream asset deletion.
 - Focused and root verification passed. No external side effect occurred.
 - Rule candidate: none. Existing durable rules cover this implementation.
+
+## P01-T04 Evidence
+
+Date: 2026-09-01
+
+- Implemented the canonical `BirthProfileV1` contract and normalization path
+  without inventing a birth minute for branch-only, ranged, or unknown input.
+- Exact solar minutes preserve UTC derivation and timezone provenance; lunar
+  inputs remain explicitly unconverted pending a reviewed calendar adapter.
+- Profile commands use verified internal actors, append immutable revisions,
+  retain anonymous expiry, and reject browser-provided ownership fields.
+- Focused birth-profile and migration verification passed. No external side
+  effect occurred. Rule candidate: none.

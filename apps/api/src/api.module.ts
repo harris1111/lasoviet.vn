@@ -8,9 +8,11 @@ import {
   createAuthEmailDeliveryService,
   createAccountDeletionService,
   createAnonymousRetentionService,
+  createBirthProfileService,
   createConsentService,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseAnonymousRetentionRepository,
+  createDatabaseBirthProfileRepository,
   createDatabaseConsentRepository,
   createDatabaseDeletionRepository,
   createSmtpEmailAdapter,
@@ -23,6 +25,11 @@ import {
   AUTH_EMAIL_SERVICE_SECRET,
   AuthEmailController,
 } from "./auth/auth-email.controller.js";
+import {
+  BIRTH_PROFILE_SERVICE,
+  BIRTH_PROFILE_SERVICE_SECRET,
+  BirthProfileController,
+} from "./birth-profile/birth-profile.controller.js";
 import { HealthController } from "./health/health.controller.js";
 import {
   ACCOUNT_DELETION_SERVICE,
@@ -78,7 +85,12 @@ function privacyDatabase() {
 }
 
 @Module({
-  controllers: [HealthController, AuthEmailController, PrivacyController],
+  controllers: [
+    HealthController,
+    AuthEmailController,
+    PrivacyController,
+    BirthProfileController,
+  ],
   providers: [
     {
       provide: AUTH_EMAIL_DELIVERY_SERVICE,
@@ -120,6 +132,23 @@ function privacyDatabase() {
     },
     {
       provide: PRIVACY_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
+    {
+      provide: BIRTH_PROFILE_SERVICE,
+      useFactory: () =>
+        createBirthProfileService({
+          repository: createDatabaseBirthProfileRepository(privacyDatabase()),
+        }),
+    },
+    {
+      provide: BIRTH_PROFILE_SERVICE_SECRET,
       useFactory: () => {
         const environment = applicationEnvironment();
         if (environment.internalActorSecret === undefined) {

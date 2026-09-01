@@ -59,3 +59,23 @@ export type {
   AnonymousRetentionError,
   AnonymousRetentionRepository,
 } from "./privacy/anonymous-retention.service.js";
+
+export {
+  createDatabaseBirthProfileRepository,
+} from "./birth-profile/birth-profile.repository.js";
+export type {
+  BirthProfileRecord,
+  BirthProfileRepository,
+  BirthProfileWriteInput,
+} from "./birth-profile/birth-profile.repository.js";
+export {
+  createBirthProfileService,
+  normalizeBirthProfile,
+  resolveZiweiTimeIndex,
+} from "./birth-profile/birth-profile.service.js";
+export type {
+  BirthProfileNormalizationError,
+  BirthProfileServiceError,
+  BirthProfileServiceOptions,
+  TimePrecisionError,
+} from "./birth-profile/birth-profile.service.js";

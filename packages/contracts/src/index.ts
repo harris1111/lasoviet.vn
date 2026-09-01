@@ -82,3 +82,19 @@ export {
   ConsentRequestV1Schema,
 } from "./privacy.js";
 export type { ConsentRequestV1 } from "./privacy.js";
+
+export {
+  BirthCalendarInputSchema,
+  BirthProfileRequestV1Schema,
+  BirthProfileV1Schema,
+  BirthTimeInputSchema,
+  BirthTimezoneInputSchema,
+} from "./birth-profile-v1.js";
+export type {
+  BirthCalendarInput,
+  BirthProfileRequestV1,
+  BirthProfileV1,
+  BirthTimeInput,
+  BirthTimezoneInput,
+  NormalizedBirthProfileV1,
+} from "./birth-profile-v1.js";
