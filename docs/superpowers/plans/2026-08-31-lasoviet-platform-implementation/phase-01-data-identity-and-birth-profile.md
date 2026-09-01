@@ -225,35 +225,55 @@ git commit -m "feat: add database-backed authentication"
 - Produces `purgeExpiredDeletionRequests(now)`.
 - Produces `purgeExpiredAnonymousActors(now)` and immediate anonymous deletion.
 
-- [ ] **Step 1: Write failing policy tests**
+- [x] **Step 1: Write failing policy tests**
 
 Assert immediate session revocation, a 30-day recovery deadline, cancellation
 before deadline, purge eligibility after deadline, and exclusion of legally
 retained transaction fields from the profile purge contract.
 
-- [ ] **Step 2: Run privacy tests**
+- [x] **Step 2: Run privacy tests**
 
 Run: `pnpm vitest run packages/backend/src/privacy tests/privacy`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement consent and deletion state machines**
+- [x] **Step 3: Implement consent and deletion state machines**
 
 Every admin or support action writes an audit record. Purge orchestration emits
 versioned outbox events for later object deletion. Anonymous profile/chart data
 expires 24 hours after creation unless ownership was transactionally linked to
 a verified account; linking clears anonymous expiry without duplicating rows.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/privacy tests/privacy`
 Expected: PASS.
 
-- [ ] **Step 5: Update risk/rule trackers and commit**
+- [x] **Step 5: Update risk/rule trackers and commit**
 
 ```bash
 git add packages/backend/src/consent packages/backend/src/privacy apps/api/src/privacy tests/privacy docs/superpowers/plans
 git commit -m "feat: add consent and account deletion workflows"
 ```
+
+**P01-T03 Evidence (2026-09-01):**
+
+- Focused RED ran before the consent and privacy modules existed.
+- Consent records are version-gated, owner-bound to the verified actor, and
+  audited. The private controller rejects unrecognized contract payloads.
+- Account deletion revokes database sessions in the request transaction,
+  creates a 30-day recovery window, permits timely cancellation, and emits an
+  opaque versioned outbox request only after expiry.
+- Unlinked anonymous actors support immediate deletion, purge after expiry,
+  and reject deletion after account linking. Cascading ownership removes
+  temporary profile data without a duplicate account profile.
+- Focused migration, API, and privacy gates passed: 4 files, 9 tests; the
+  migration acceptance passed 1 file, 3 tests.
+- Root verification passed: 20 files, 92 tests; root typecheck, root build,
+  and i18n parity all passed.
+- No real SMTP, Google, database-production, or other external side effect
+  occurred. No UI files were added.
+- Docs impact: minor. Rule candidate: none. Open questions: none.
+- Commit: `feat: add consent and account deletion workflows`.
 
 ### Task 4 [P01-T04]: Implement canonical BirthProfile normalization
 

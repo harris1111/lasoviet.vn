@@ -76,3 +76,9 @@ export type {
   RouteDefinitionV1,
   RouteState,
 } from "./route-v1.js";
+
+export {
+  CONSENT_DOCUMENT_VERSIONS,
+  ConsentRequestV1Schema,
+} from "./privacy.js";
+export type { ConsentRequestV1 } from "./privacy.js";

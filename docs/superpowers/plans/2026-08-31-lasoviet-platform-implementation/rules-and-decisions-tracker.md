@@ -84,3 +84,17 @@ Date: 2026-09-01
   controlled Next/PostgreSQL runtime at `http://127.0.0.1:3000/`; a later
   authorized runtime must run that gate.
 - No external SMTP send or Google request occurred. Rule candidate: none.
+
+## P01-T03 Evidence
+
+Date: 2026-09-01
+
+- Implemented the approved FD-015 recovery state machine and FD-020 anonymous
+  retention policy through database-backed services and private API routes.
+- Verified actor tokens, not browser-provided identifiers, control account
+  deletion. The headless Fastify boundary test rejects anonymous actors.
+- Purge orchestration writes audits and opaque versioned outbox events; later
+  Phase 06 object-purge work remains responsible for retained legal
+  transaction fields and downstream asset deletion.
+- Focused and root verification passed. No external side effect occurred.
+- Rule candidate: none. Existing durable rules cover this implementation.
