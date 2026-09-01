@@ -294,6 +294,12 @@ rule instead of adding another version.
   Normalize the resulting target and require it to remain under the resolved
   assigned worktree; stop on any containment mismatch or sibling lookalike
   path.
+- For pnpm 11 workspaces, record every build-script decision non-interactively
+  in `pnpm-workspace.yaml` using exact reviewed package-version `allowBuilds`
+  entries. Keep `strictDepBuilds` enabled; do not use interactive
+  `approve-builds` or removed pnpm 10 build-policy settings. Stop for Terra
+  review when pnpm adds or changes a workspace manifest policy, release-age
+  exception, or build-script decision.
 
 ### Branch, Pull Request, And Merge Workflow
 
