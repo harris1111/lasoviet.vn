@@ -52,24 +52,27 @@ planning record, and ask the founder through Sol.
 
 ## 4. Required Roles And Authority
 
-The required authority chain is:
+The active authority chain from P01-T02 onward is:
 
 ```text
 Founder-approved goals and decisions
     -> GPT 5.6 Sol xhigh
-    -> GPT 5.6 Terra xhigh
-    -> GPT 5.6 Luna xhigh
+    -> GPT 5.6 Terra medium
 ```
 
-### Sol: Orchestrator
+The former Sol -> Terra reviewer -> Luna implementor chain applies only through
+P01-T01. Luna is paused and must not be dispatched unless the founder
+explicitly reactivates that role.
+
+### Sol: Orchestrator And Milestone Reviewer
 
 - Sol owns orchestration, scope control, task decomposition, sequencing, and
   founder communication.
-- Sol gives goals and review requests to Terra.
-- Sol coordinates the disposition of Terra's findings within already approved
-  scope.
-- Sol must not silently downgrade, close, or bypass an evidence-backed Terra
-  `must-fix`.
+- Sol gives implementation goals directly to Terra.
+- Sol reviews completed phases, complete features, and meaningful milestones;
+  Sol does not run routine review gates after small tasks.
+- Sol coordinates and reviews Terra's implementation evidence and correction
+  work within already approved scope.
 - Sol asks the founder in Vietnamese whenever founder input is required.
 - Sol must verify the requested model and `xhigh` reasoning level before
   dispatch. Do not silently substitute another model or reasoning level.
@@ -78,35 +81,24 @@ Founder-approved goals and decisions
   model and reasoning level. If the probe fails or cannot run, stop and report
   to Sol; do not substitute a model or effort.
 
-### Terra: Reviewer
+### Terra: Implementor And Debugger
 
-- Terra receives goals from Sol and reviews plans, instructions, implementation,
-  tests, and release evidence.
-- Terra may approve, reject, or return precise instructions for correction.
-- Terra must not guess when a requirement, decision, or acceptable trade-off is
-  unclear.
-- Terra reports every identified problem or uncertainty to Sol with its
-  evidence, impact, and classification.
-- If Terra finds a problem, contradiction, or uncertainty that cannot be
-  resolved from verified repository evidence and approved decisions, Terra must
-  stop that point and return it to Sol.
+- Terra medium receives goals from Sol and directly implements, debugs, and
+  runs focused tests.
+- Terra owns routine technical investigation, compile/test failure correction,
+  and exact-version API verification without an intermediate reviewer.
+- Terra may self-correct implementation defects inside approved scope and must
+  preserve concise evidence in the task report.
+- Terra reports completed milestone evidence and unresolved stop conditions to
+  Sol.
 - Terra must not silently broaden scope or make founder-level product,
   architecture, privacy, licensing, payment, or release decisions.
 
-### Luna: Implementor
+### Luna: Paused
 
-- Luna implements only instructions that Terra has explicitly approved.
-- Luna must stay inside the assigned files, contracts, scope, and acceptance
-  criteria.
-- Luna must not independently debug, diagnose, redesign, or fix an unexpected
-  bug.
-- When implementation differs from the approved instruction, a test fails, an
-  unexpected bug appears, or the repository state is ambiguous, Luna must stop
-  the affected work and report evidence to Terra.
-- Luna resumes only after Terra supplies a reviewed instruction. Terra escalates
-  unresolved matters to Sol.
-- Luna must not use a workaround, mock, fake implementation, weakened check, or
-  skipped test to manufacture a passing result.
+- Do not dispatch Luna from P01-T02 onward.
+- Preserve any Luna work already present when this workflow takes effect.
+- Only an explicit founder instruction may reactivate Luna.
 
 If a required model or reasoning level is unavailable, stop before dispatch and
 ask the founder through Sol. Do not silently collapse or substitute roles.
@@ -147,23 +139,22 @@ affected work.
 
 ## 6. Stop And Escalation Protocol
 
-Stop the affected work immediately when:
+From P01-T02 onward, Terra continues through routine implementation ambiguity,
+compile failures, test failures, dependency integration, and non-destructive
+debugging inside the approved scope. Do not stop merely to request technical
+instructions that repository evidence or focused experiments can resolve.
 
-- a material requirement is missing, contradictory, or unresolved;
-- repository evidence conflicts with an approved assumption;
-- work would deviate from approved scope or acceptance criteria;
-- a destructive or hard-to-reverse operation is required;
-- security, privacy, licensing, payment, data-loss, or production risk is
-  uncertain;
-- a required model, tool, credential, environment, or external service is
-  unavailable;
-- a release gate would need to be waived or weakened;
-- a founder-confirmed decision would need to be changed.
+Stop and ask the founder through Sol only when:
+
+- a product, architecture, or security decision is required and approved
+  sources do not resolve it;
+- credentials or secret material are required;
+- an external side effect lacks explicit authorization;
+- a destructive or hard-to-reverse operation is required.
 
 Preserve completed safe work that is independent of the blocker. Terra reports
-the blocker and evidence to Sol. Sol explains the issue, impact, realistic
-options, and recommendation to the founder in Vietnamese, then waits for an
-explicit answer.
+the exact blocker and evidence to Sol. Sol explains the issue, impact,
+realistic options, and recommendation to the founder in Vietnamese.
 
 ## 7. Implementation And Testing Priorities
 
@@ -194,7 +185,11 @@ flow must work end to end in the target deployment environment.
 
 ## 8. Review Closure
 
-Terra classifies findings as:
+From P01-T02 onward, Terra implements, debugs, self-checks, and runs focused
+tests directly. Sol performs the independent review after a complete phase,
+complete feature, or meaningful milestone.
+
+Sol classifies milestone findings as:
 
 - `must-fix`: verified correctness, security, privacy, acceptance, or release
   issue within approved scope;
@@ -203,16 +198,13 @@ Terra classifies findings as:
 - `rejected`: unsupported, duplicate, contradicted by verified evidence, or
   inconsistent with founder-approved scope.
 
-Do not schedule routine Terra reviews after every small implementation task.
-Luna may execute consecutive tasks from an already Terra-approved plan without
-an intermediate review. Run Terra review after a complete feature, phase, or
-meaningful milestone, or earlier only when Luna reports an unexpected failure,
-the change crosses a security, privacy, payment, migration, or release
-boundary, or the founder explicitly requests a review.
+Do not schedule routine reviews after every small implementation task. Terra
+may execute consecutive tasks in approved scope and self-correct technical
+failures without an intermediate Sol review.
 
-Only evidence-backed `must-fix` findings return to Luna for correction. Each
-review cycle permits at most two Terra-approved Luna correction passes, with a
-Terra re-review after each pass.
+Only evidence-backed `must-fix` findings return to Terra for correction. Each
+milestone review permits at most two Terra correction passes, with a Sol
+re-review after each pass.
 
 If a finding remains after the second correction pass, Sol must choose and
 record one disposition:
@@ -244,8 +236,9 @@ A durable rule is warranted when:
 
 Process:
 
-1. Sol states the reusable failure condition and proposed behavior.
-2. Terra checks the proposal for evidence, duplication, contradictions, scope
+1. Terra states the reusable failure condition and proposed behavior in the
+   task report.
+2. Sol checks the proposal for evidence, duplication, contradictions, scope
    drift, and unintended weakening of existing gates.
 3. Sol adds or edits the smallest applicable rule in this file.
 4. If the rule changes product scope, authority, privacy/security posture,
