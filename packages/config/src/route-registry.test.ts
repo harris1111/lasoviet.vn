@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { routeStateSchema } from "@lasoviet/contracts";
 
-import { routeRegistry, validateRouteRegistry } from "./route-registry.js";
+import {
+  loadRouteRegistry,
+  routeRegistry,
+  validateRouteRegistry,
+} from "./route-registry.js";
 
 const validRoute = {
   id: "test.route",
@@ -93,5 +97,9 @@ describe("route registry", () => {
         },
       ]),
     ).toThrow(/CONTENT_METADATA_INVALID/);
+  });
+
+  it("loads the versioned YAML route definitions through the typed loader", () => {
+    expect(loadRouteRegistry()).toEqual(routeRegistry);
   });
 });
