@@ -59,3 +59,20 @@ Any durable calculation success response must be gated on persistence of the evi
 ## Unresolved Questions
 
 None.
+
+## Fix Round 1 Evidence (2026-09-02)
+
+- Aligned the Zi Wei loader's strict `AppError` parser with the shared envelope:
+  safe code, nonempty message key, retryable, optional nonempty field, and
+  optional primitive-valued details.
+- Preserved strict rejection of unmodeled response fields and provider text.
+- Added chart and evidence error-envelope tests with `field` and `details`;
+  both map to their typed domain results.
+- Repaired the extra-data projection test with an otherwise valid normalized
+  chart fixture, making `leakedEvidence` the only invalid field.
+- RED: the two optional-metadata loader tests failed with
+  `PRIVATE_API_RESPONSE_INVALID`.
+- GREEN: the four focused files passed, 17 tests total:
+  `pnpm vitest run packages/backend/src/ziwei/ziwei.service.test.ts packages/backend/src/ziwei/ziwei-query.service.test.ts apps/api/src/ziwei/ziwei.controller.test.ts apps/web/src/features/ziwei/load-ziwei-chart.test.ts`.
+- Passed `@lasoviet/contracts`, `@lasoviet/backend`, `@lasoviet/api`, and
+  `@lasoviet/web` typechecks plus `@lasoviet/backend` build.

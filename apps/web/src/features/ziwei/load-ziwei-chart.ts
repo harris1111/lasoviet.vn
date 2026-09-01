@@ -36,6 +36,13 @@ const appErrorSchema = z
     code: z.string().regex(/^[A-Z][A-Z0-9_]{1,127}$/),
     messageKey: z.string().trim().min(1),
     retryable: z.boolean(),
+    field: z.string().trim().min(1).optional(),
+    details: z
+      .record(
+        z.string(),
+        z.union([z.string(), z.number(), z.boolean()]),
+      )
+      .optional(),
   })
   .strict();
 

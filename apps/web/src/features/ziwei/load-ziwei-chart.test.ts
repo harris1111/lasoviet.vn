@@ -25,6 +25,44 @@ function dependencies(): ZiweiChartLoaderDependencies & {
 }
 
 describe("Zi Wei chart server loaders", () => {
+  const chart = {
+    version: 1,
+    systemId: "ziwei",
+    palaces: [
+      "life", "siblings", "spouse", "children", "wealth", "health",
+      "travel", "friends", "career", "property", "fortune", "parents",
+    ].map((name) => ({
+      id: `ziwei.palace.${name}`,
+      earthlyBranchId: "ziwei.branch.tiger",
+      stars: [],
+    })),
+    transformations: [{
+      starId: "ziwei.star.wuqu",
+      id: "ziwei.transformation.prosperity",
+    }],
+    soulPalaceId: "ziwei.palace.life",
+    bodyPalaceId: "ziwei.palace.career",
+    horoscopeCapabilities: [{
+      id: "ziwei.horoscope.annual",
+      supported: true,
+    }],
+    warnings: [],
+    provenance: {
+      version: 1,
+      engineId: "ziwei.iztro",
+      engineVersion: "2.6.0",
+      adapterId: "ziwei.iztro-adapter",
+      adapterVersion: "1",
+      schemaId: "ziwei.chart.v1",
+      ruleSetId: "ziwei.default",
+      inputHash: "a".repeat(64),
+      configHash: "b".repeat(64),
+      rawSnapshotHash: "c".repeat(64),
+      calculatedAt: "2026-09-02T00:00:00+00:00",
+      limitations: ["IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION"],
+    },
+  };
+
   it("loads the strict chart view and rejects extra private response data", async () => {
     const subject = dependencies();
     subject.request.mockResolvedValue({
@@ -33,7 +71,7 @@ describe("Zi Wei chart server loaders", () => {
         version: 1,
         chartId: "chart-1",
         chartVersionId: "chart-version-1",
-        chart: {},
+        chart,
         evidenceIndex: {
           version: 1,
           evidenceSetId: "evidence-set-1",
@@ -55,11 +93,17 @@ describe("Zi Wei chart server loaders", () => {
     });
   });
 
-  it("maps private not-found and expired actor outcomes without exposing operational errors", async () => {
+  it("maps a chart error envelope with safe optional metadata", async () => {
     const subject = dependencies();
     subject.request.mockResolvedValue({
       ok: false,
-      error: { code: "CHART_NOT_FOUND", messageKey: "ziwei.chart_not_found", retryable: false },
+      error: {
+        code: "CHART_NOT_FOUND",
+        messageKey: "ziwei.chart_not_found",
+        retryable: false,
+        field: "chartId",
+        details: { source: "backend", attempts: 1, retryable: false },
+      },
     });
     await expect(createZiweiChartLoader(subject).loadChart("chart-1")).resolves.toMatchObject({
       ok: false,
@@ -67,11 +111,17 @@ describe("Zi Wei chart server loaders", () => {
     });
   });
 
-  it("loads one selected evidence item and maps its absence", async () => {
+  it("maps an evidence error envelope with safe optional metadata", async () => {
     const subject = dependencies();
     subject.request.mockResolvedValue({
       ok: false,
-      error: { code: "EVIDENCE_NOT_FOUND", messageKey: "ziwei.evidence_not_found", retryable: false },
+      error: {
+        code: "EVIDENCE_NOT_FOUND",
+        messageKey: "ziwei.evidence_not_found",
+        retryable: false,
+        field: "evidenceId",
+        details: { source: "backend", attempts: 1, retryable: false },
+      },
     });
     await expect(createZiweiChartLoader(subject).loadEvidence("chart-1", "evidence-1")).resolves.toMatchObject({
       ok: false,
