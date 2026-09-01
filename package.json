@@ -1,0 +1,27 @@
+{
+  "name": "@lasoviet/root",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=24.0.0 <25.0.0",
+    "pnpm": "11.25.0"
+  },
+  "scripts": {
+    "build": "corepack pnpm@11.25.0 -r --if-present run build",
+    "typecheck": "corepack pnpm@11.25.0 -r --if-present run typecheck",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "check": "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run test && corepack pnpm@11.25.0 run build"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.4",
+    "typescript": "6.0.3",
+    "vite": "8.2.2",
+    "vitest": "4.1.11"
+  }
+}

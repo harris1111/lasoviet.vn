@@ -54,7 +54,7 @@ Playwright, Pino.
   `@lasoviet/config`.
 - Produces root scripts `build`, `typecheck`, `test`, `lint`, and `check`.
 
-- [ ] **Step 1: Write the failing workspace-boundary test**
+- [x] **Step 1: Write the failing workspace-boundary test**
 
 ```ts
 import { readFile } from "node:fs/promises";
@@ -68,29 +68,29 @@ describe("workspace boundaries", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and confirm the workspace does not exist**
+- [x] **Step 2: Run the test and confirm the workspace does not exist**
 
 Run: `pnpm vitest run tests/workspace/workspace-boundaries.test.ts`
 Expected: FAIL because the root workspace and manifests are absent.
 
-- [ ] **Step 3: Create the root workspace and exact-version installation record**
+- [x] **Step 3: Create the root workspace and exact-version installation record**
 
 Use `pnpm add -E` for every dependency so the manifest records exact versions.
 Resolve Next.js with `next@16` so installation selects the latest stable 16.x
 available on the implementation date.
 
-- [ ] **Step 4: Create thin web, API, and worker bootstraps**
+- [x] **Step 4: Create thin web, API, and worker bootstraps**
 
 The API bootstrap uses `NestFactory.create<NestFastifyApplication>` with
 `FastifyAdapter`. The worker bootstrap creates a Nest application context and
 does not open an HTTP port.
 
-- [ ] **Step 5: Run workspace verification**
+- [x] **Step 5: Run workspace verification**
 
 Run: `pnpm install --frozen-lockfile=false && pnpm typecheck && pnpm test`
 Expected: PASS, with no product endpoints beyond implemented health endpoints.
 
-- [ ] **Step 6: Update tracking and commit**
+- [x] **Step 6: Update tracking and commit**
 
 Update `requirements-traceability.md` and
 `dependency-integration-matrix.md`.
@@ -99,6 +99,26 @@ Update `requirements-traceability.md` and
 git add package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json .npmrc .gitignore apps packages tests docs/superpowers/plans
 git commit -m "build: establish application workspace"
 ```
+
+**P00-T01 Evidence (2026-09-01):**
+
+- Final replacement verification passed: empty `pendingBuilds`, exact
+  `unrs-resolver@1.12.2` approval `True`, and nonzero Windows native binding.
+- `corepack pnpm@11.25.0 peers check` passed with no peer dependency issues.
+- `corepack pnpm@11.25.0 vitest run tests/workspace/workspace-boundaries.test.ts`
+  passed with one test.
+- `corepack pnpm@11.25.0 run typecheck`, `run lint`, `run test`, `run build`,
+  and `run check` passed.
+- `corepack pnpm@11.25.0 install --frozen-lockfile` passed and reported the
+  workspace already up to date.
+- Commit SHA is recorded in the task implementer report after commit creation.
+- Docs impact: minor
+- Rule candidate: model-metadata availability probe, reviewed by Terra
+- Evidence: `.superpowers/sdd/phase-00-repository-foundation/progress.md`
+  (2026-09-01)
+- AGENTS.md action: none; Sol owns any approved policy edit
+- Open questions: the corrected RED command must be explicitly approved before
+  implementation
 
 ### Task 2 [P00-T02]: Add versioned runtime contracts and configuration
 

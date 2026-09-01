@@ -12,6 +12,29 @@ not as a promise of future support.
 | `Brhiza/mingyu` `packages/core` | `https://github.com/Brhiza/mingyu` | `f11b31e69c7e626fe741f8c5f1a3c99b22f74c8f` | 0.2.0 | 2026-08-31 | Package-level MIT | B |
 | `Anonyfox/celestine` | `https://github.com/Anonyfox/celestine` | `954d63315ec00d29ba4becaef3f6a101497946b7` | 0.2.1 | 2026-01-01 | MIT | B |
 
+## P00-T01 Runtime Toolchain (2026-09-01)
+
+| Package | Exact version | Workspace owner | Registry evidence date | Purpose |
+|---|---:|---|---|---|
+| `pnpm` | 11.25.0 | root | 2026-09-01 | Workspace package manager and exact runner |
+| `typescript` | 6.0.3 | root | 2026-09-01 | TypeScript compiler |
+| `vitest` | 4.1.11 | root | 2026-09-01 | Unit and workspace-boundary tests |
+| `vite` | 8.2.2 | root | 2026-09-01 | Vitest peer runtime |
+| `eslint` | 9.39.5 | root | 2026-09-01 | Root linting |
+| `eslint-config-next` | 16.3.4 | root | 2026-09-01 | Next.js flat lint configuration |
+| `@types/node` | 24.13.3 | root | 2026-09-01 | Node.js type declarations |
+| `@types/react` | 19.2.18 | root | 2026-09-01 | React type declarations |
+| `@types/react-dom` | 19.2.5 | root | 2026-09-01 | React DOM type declarations |
+| `next` | 16.3.4 | `@lasoviet/web` | 2026-09-01 | Web App Router runtime and build |
+| `react` | 19.2.8 | `@lasoviet/web` | 2026-09-01 | Web UI runtime |
+| `react-dom` | 19.2.8 | `@lasoviet/web` | 2026-09-01 | React DOM renderer |
+| `@nestjs/common` | 12.0.1 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | NestJS decorators and common runtime |
+| `@nestjs/core` | 12.0.1 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | NestJS application composition |
+| `@nestjs/platform-fastify` | 12.0.1 | `@lasoviet/api` | 2026-09-01 | Fastify NestJS platform adapter |
+| `fastify` | 5.12.1 | `@lasoviet/api` | 2026-09-01 | API HTTP adapter runtime |
+| `reflect-metadata` | 0.2.2 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | Decorator metadata runtime |
+| `rxjs` | 7.8.2 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | NestJS reactive runtime dependency |
+
 ## Production Engines
 
 | Dependency | Used capability | Intentionally ignored | Owned boundary | First-use gate | Replacement |

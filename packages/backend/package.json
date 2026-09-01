@@ -1,0 +1,8 @@
+{
+  "name": "@lasoviet/backend",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@lasoviet/contracts": "workspace:0.0.0"
+  }
+}

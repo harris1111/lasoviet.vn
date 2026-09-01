@@ -4,3 +4,11 @@
 .env
 .env.*
 !.env.example
+node_modules/
+.pnpm-store/
+dist/
+.next/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo

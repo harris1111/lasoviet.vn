@@ -52,6 +52,14 @@
 | Compatibility and Feng Shui | 11 | Source-system stability gates |
 | Deferred founder decisions | 07-11 | `open-decisions.md` gate audit |
 
+## P00-T01 Evidence (2026-09-01)
+
+| Scope | Evidence | Boundary |
+|---|---|---|
+| Next.js web/BFF foundation | `@lasoviet/web` App Router composition root with exact Next.js 16.3.4 dependency; typecheck, lint, test, and build passed. | Records workspace foundation only; does not claim SSR, BFF behavior, or E2E coverage. |
+| Private NestJS/Fastify API foundation | `@lasoviet/api` thin NestJS/Fastify composition root with exact approved dependencies; typecheck and build passed. | No health or product endpoint is claimed. |
+| General worker foundation | `@lasoviet/worker` Nest application-context composition root with exact approved dependencies; typecheck and build passed. | No queue behavior or runtime job processing is claimed. |
+
 ## Update Protocol
 
 After every task:
