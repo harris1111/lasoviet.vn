@@ -243,7 +243,24 @@ function anonymousExpired(actor: CurrentActor, now: Date): boolean {
   return actor.kind === "anonymous" && new Date(actor.expiresAt) <= now;
 }
 
-function profileResult(record: BirthProfileRecord) {
+function ziweiEligibility(
+  normalized: NormalizedBirthProfileV1,
+) {
+  const result = resolveZiweiTimeIndex(normalized);
+  if (result.ok) {
+    return { version: 1, eligible: true, timeIndex: result.value };
+  }
+  return {
+    version: 1,
+    eligible: false,
+    reason: result.error.code,
+  };
+}
+
+function profileResult(
+  record: BirthProfileRecord,
+  normalized: NormalizedBirthProfileV1,
+) {
   return {
     profileId: record.profileId,
     revisionId: record.revisionId,
@@ -252,6 +269,7 @@ function profileResult(record: BirthProfileRecord) {
     normalizedInput: record.normalizedInput,
     normalizationWarnings: record.normalizationWarnings ?? [],
     limitations: record.limitations ?? [],
+    ziweiEligibility: ziweiEligibility(normalized),
   };
 }
 
@@ -288,7 +306,7 @@ export function createBirthProfileService(
       });
       return record === null
         ? serviceError("ANONYMOUS_EXPIRED")
-        : { ok: true as const, value: profileResult(record) };
+        : { ok: true as const, value: profileResult(record, result.value) };
     },
 
     async read(actor: CurrentActor, profileId: string) {
@@ -297,9 +315,14 @@ export function createBirthProfileService(
         return serviceError("ANONYMOUS_EXPIRED");
       }
       const record = await options.repository.read(actor, profileId, currentTime);
-      return record === null
-        ? serviceError("PROFILE_NOT_FOUND")
-        : { ok: true as const, value: profileResult(record) };
+      if (record === null) {
+        return serviceError("PROFILE_NOT_FOUND");
+      }
+      const normalized = normalizeBirthProfile(record.originalInput);
+      if (!normalized.ok) {
+        return serviceError(normalized.error.code);
+      }
+      return { ok: true as const, value: profileResult(record, normalized.value) };
     },
 
     async update(actor: CurrentActor, profileId: string, input: unknown) {
@@ -320,7 +343,7 @@ export function createBirthProfileService(
       });
       return record === null
         ? serviceError("PROFILE_NOT_FOUND")
-        : { ok: true as const, value: profileResult(record) };
+        : { ok: true as const, value: profileResult(record, result.value) };
     },
 
     async archive(actor: CurrentActor, profileId: string) {

@@ -151,13 +151,21 @@ describe("BirthProfile service", () => {
 
     await expect(service.create(actor, testCase.input)).resolves.toMatchObject({
       ok: true,
-      value: { profileId: "profile-1", revisionNumber: 1 },
+      value: {
+        profileId: "profile-1",
+        revisionNumber: 1,
+        ziweiEligibility: { version: 1, eligible: true, timeIndex: 5 },
+      },
     });
     await expect(
       service.update(actor, "profile-1", testCase.input),
     ).resolves.toMatchObject({
       ok: true,
-      value: { profileId: "profile-1", revisionNumber: 2 },
+      value: {
+        profileId: "profile-1",
+        revisionNumber: 2,
+        ziweiEligibility: { version: 1, eligible: true, timeIndex: 5 },
+      },
     });
 
     expect(writes).toEqual([
@@ -179,6 +187,52 @@ describe("BirthProfile service", () => {
     ]);
     expect(writes[0]?.normalized).toMatchObject({
       utcInstant: "1990-01-01T02:30:00.000Z",
+    });
+  });
+
+  it("returns an ineligible Zi Wei state for an unknown birth time", async () => {
+    const service = createBirthProfileService({
+      repository: {
+        async create() {
+          return {
+            profileId: "profile-unknown",
+            revisionId: "revision-unknown",
+            revisionNumber: 1,
+          };
+        },
+        async update() {
+          return null;
+        },
+        async read() {
+          return null;
+        },
+        async archive() {
+          return false;
+        },
+      },
+    });
+    const testCase = await fixture("unknown-time");
+
+    await expect(
+      service.create(
+        {
+          kind: "account",
+          userId: "user-1",
+          sessionId: "session-1",
+          requestId: "request-1",
+        },
+        testCase.input,
+      ),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        profileId: "profile-unknown",
+        ziweiEligibility: {
+          version: 1,
+          eligible: false,
+          reason: "TIME_UNKNOWN",
+        },
+      },
     });
   });
 });

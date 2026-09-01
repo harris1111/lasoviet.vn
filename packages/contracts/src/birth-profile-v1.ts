@@ -94,6 +94,24 @@ export const BirthProfileV1Schema = z
   .strict();
 export type BirthProfileV1 = z.infer<typeof BirthProfileV1Schema>;
 
+export const ZiweiEligibilityV1Schema = z.discriminatedUnion("eligible", [
+  z
+    .object({
+      version: z.literal(1),
+      eligible: z.literal(true),
+      timeIndex: z.number().int().min(0).max(11),
+    })
+    .strict(),
+  z
+    .object({
+      version: z.literal(1),
+      eligible: z.literal(false),
+      reason: z.enum(["TIME_UNKNOWN", "TIME_RANGE_MULTIPLE_BRANCHES"]),
+    })
+    .strict(),
+]);
+export type ZiweiEligibilityV1 = z.infer<typeof ZiweiEligibilityV1Schema>;
+
 export type NormalizedBirthProfileV1 = {
   version: 1;
   originalInput: BirthProfileV1;

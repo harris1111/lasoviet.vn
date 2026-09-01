@@ -37,9 +37,16 @@ function anonymousActorExpiry(): Date {
   return new Date(Date.now() + 24 * 60 * 60 * 1000);
 }
 
+let authDatabase: ReturnType<typeof createDatabase> | undefined;
+
+export function getAuthDatabase() {
+  authDatabase ??= createDatabase(configuration().databaseUrl);
+  return authDatabase;
+}
+
 export function createAuth() {
   const config = configuration();
-  const database = createDatabase(config.databaseUrl);
+  const database = getAuthDatabase();
 
   return betterAuth({
   secret: config.betterAuthSecret,
