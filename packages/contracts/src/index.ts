@@ -24,3 +24,12 @@ export type {
   HealthV1,
   RequiredDependencyHealthV1,
 } from "./health.js";
+
+export {
+  resolveLocale,
+  SUPPORTED_LOCALES,
+} from "./i18n-key.js";
+export type {
+  Locale,
+  SupportedLocale,
+} from "./i18n-key.js";

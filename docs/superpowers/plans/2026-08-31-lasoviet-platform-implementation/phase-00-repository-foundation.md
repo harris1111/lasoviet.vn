@@ -217,7 +217,7 @@ git commit -m "feat: add versioned contracts and typed configuration"
   `localePrefix: "as-needed"`.
 - Produces CI command `pnpm i18n:check`.
 
-- [ ] **Step 1: Write a failing parity test**
+- [x] **Step 1: Write a failing parity test**
 
 ```ts
 expect(flattenKeys(viMessages)).toEqual(flattenKeys(enMessages));
@@ -225,12 +225,12 @@ expect(flattenKeys(viMessages)).toEqual(flattenKeys(enMessages));
 
 Also fail when interpolation tokens differ between locales.
 
-- [ ] **Step 2: Run the parity test**
+- [x] **Step 2: Run the parity test**
 
 Run: `pnpm vitest run tests/i18n/message-parity.test.ts`
 Expected: FAIL before message resources and parity tooling exist.
 
-- [ ] **Step 3: Implement locale routing and JSON resources**
+- [x] **Step 3: Implement locale routing and JSON resources**
 
 Vietnamese resolves at canonical root paths. English resolves under `/en`.
 Use the Next.js 16 `proxy.ts` convention with next-intl
@@ -238,17 +238,36 @@ Use the Next.js 16 `proxy.ts` convention with next-intl
 for Vietnamese and explicit for English. Persist a runtime language preference
 without turning localized labels into domain values.
 
-- [ ] **Step 4: Verify parity and web build**
+- [x] **Step 4: Verify parity and web build**
 
 Run: `pnpm i18n:check && pnpm --filter @lasoviet/web build`
 Expected: PASS.
 
-- [ ] **Step 5: Update docs/rules and commit**
+- [x] **Step 5: Update docs/rules and commit**
 
 ```bash
 git add apps/web/messages apps/web/src/i18n apps/web/src/proxy.ts packages/contracts scripts tests docs/superpowers/plans
 git commit -m "feat: establish Vietnamese and English localization"
 ```
+
+**P00-T03 Evidence (2026-09-01):**
+
+- Focused parity test passed with `1` test file and `2/2` tests.
+- Root `i18n:check` passed.
+- `peers check` passed with no peer dependency issues; `ignored-builds`
+  retained only the approved `@parcel/watcher@2.6.0` and
+  `@swc/core@1.16.1` false decisions.
+- Root lint passed under the pinned `eslint@9.39.5`; its exact registry
+  deprecation notice was accepted by the approved ruling.
+- Contracts and web typechecks passed.
+- Web build passed under Next.js `16.3.4` with the Next 16 `proxy.ts`
+  convention and `localePrefix: "as-needed"`.
+- Exact direct dependency: `next-intl: "4.14.1"` in `@lasoviet/web`;
+  ESLint remains exactly `9.39.5`.
+- Docs impact: minor
+- Rule candidate: none
+- AGENTS.md action: none
+- Open questions: none.
 
 ### Task 4 [P00-T04]: Add logging, health, tests, and CI gates
 

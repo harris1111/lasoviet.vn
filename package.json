@@ -12,6 +12,7 @@
     "typecheck": "corepack pnpm@11.25.0 -r --if-present run typecheck",
     "test": "vitest run",
     "lint": "eslint .",
+    "i18n:check": "node scripts/check-i18n-parity.mjs",
     "check": "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run test && corepack pnpm@11.25.0 run build"
   },
   "devDependencies": {

@@ -1,0 +1,12 @@
+{
+  "app": {
+    "name": "Lá Số Việt",
+    "tagline": "Lập lá số. Hiểu vận mệnh."
+  },
+  "greeting": "Xin chào, {name}!",
+  "language": {
+    "label": "Ngôn ngữ",
+    "vietnamese": "Tiếng Việt",
+    "english": "English"
+  }
+}

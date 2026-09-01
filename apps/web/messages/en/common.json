@@ -1,0 +1,12 @@
+{
+  "app": {
+    "name": "La So Viet",
+    "tagline": "Build your chart. Understand your path."
+  },
+  "greeting": "Hello, {name}!",
+  "language": {
+    "label": "Language",
+    "vietnamese": "Vietnamese",
+    "english": "English"
+  }
+}

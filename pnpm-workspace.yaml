@@ -6,6 +6,8 @@ autoInstallPeers: false
 strictPeerDependencies: true
 strictDepBuilds: true
 allowBuilds:
+  '@parcel/watcher@2.6.0': false
+  '@swc/core@1.16.1': false
   unrs-resolver@1.12.2: true
 minimumReleaseAgeExclude:
   - '@next/env@16.3.4'
