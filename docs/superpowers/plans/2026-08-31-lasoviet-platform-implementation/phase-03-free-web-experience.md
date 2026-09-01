@@ -258,6 +258,22 @@ git add apps/web/src/features/reports packages/contracts packages/backend/src/an
 git commit -m "feat: add evidence-backed free preview"
 ```
 
+#### Non-Visual Delivery Status (2026-09-01)
+
+- Complete: strict free-preview and topic-selection contracts, deterministic
+  evidence-backed preview construction, server-authoritative product catalog,
+  privacy-safe analytics emission, actor-authorized private API operations,
+  and server-only web loaders/actions.
+- Verified: 32 focused tests plus contracts, config, backend, API, and web
+  typechecks. Sol approved the correction pass with zero open
+  Critical/Important findings.
+- Fixed during milestone review: production evidence-ID integration,
+  authorize-before-SKU ordering, relational evidence linkage, and observable
+  analytics emission.
+- Deferred by FD-024: preview and selector components, localized messages,
+  route page, visible copy, and Playwright/browser checks. P03-T04 remains
+  partially complete until the dedicated UI artifact branch delivers them.
+
 ### Task 5 [P03-T05]: Build the public page, metadata, and structured-data renderer
 
 **Files:**

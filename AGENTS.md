@@ -315,6 +315,11 @@ rule instead of adding another version.
   `approve-builds` or removed pnpm 10 build-policy settings. Stop for Terra
   review when pnpm adds or changes a workspace manifest policy, release-age
   exception, or build-script decision.
+- When a changed workspace package is consumed through package exports or
+  generated declarations in `dist`, rebuild that producer from current source
+  before typechecking dependent packages. Run producer builds and consumer
+  typechecks in dependency order; never diagnose stale declarations as a
+  consumer defect or hand-edit generated `dist` output.
 - Treat a Git for Windows LF/CRLF notice as non-blocking only when its command
   exits `0`, the exact changed or staged allowlist matches,
   `git diff --check` passes, and content or hash checks show no unauthorized

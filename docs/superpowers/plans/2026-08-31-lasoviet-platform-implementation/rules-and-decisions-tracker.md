@@ -55,6 +55,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Immutable normalized read authority | P03-T02 initially recomputed eligibility from mutable original input instead of the stored normalized revision | Terra added the shared normalized schema and a disagreement regression test | Not added to `AGENTS.md`; the architecture already requires immutable revisions and one localized defect does not meet section 9 |
 | Async session liveness clock | P03-T02 initially reused a timestamp captured before the authoritative session read | Terra moved clock capture to the live-row lookup and added a sequenced-clock regression test | Not added to `AGENTS.md`; one localized TOCTOU defect does not meet section 9 |
 | Evidence-gated calculation completion | P03-T03 found the evidence service existed but successful calculation responses did not ensure required evidence persistence | Terra wired idempotent evidence persistence to calculation completion; the pattern applies to future calculation engines and report consumers | Added to `AGENTS.md` under calculation completion and evidence |
+| Workspace declaration freshness | P01-T02 and P03-T04 independently encountered dependent typechecks reading stale workspace declarations from producer `dist` output | Sol confirmed the recurring producer-consumer build-order failure and narrowed the action to packages consumed through exports/generated declarations | Added to `AGENTS.md` under repository and operational safety |
 
 ## Per-Task Rule Check
 
@@ -109,6 +110,25 @@ Date: 2026-09-02
   FD-024.
 - The evidence-gated completion rule was added to `AGENTS.md`. Open questions:
   none.
+
+## P03 Non-Visual Slice 4 Evidence
+
+Date: 2026-09-01
+
+- Implemented strict free-preview and topic-selection contracts, deterministic
+  evidence-backed preview construction, server-authoritative product catalog,
+  privacy-safe analytics emission, actor-authorized private API operations,
+  and server-only web loaders/actions without visual UI changes.
+- Milestone review found and corrected production evidence-ID mismatch,
+  authorize-before-SKU ordering, incomplete relational evidence validation,
+  and a no-op production analytics sink.
+- Fresh implementation evidence passed 9 focused files with 32 tests plus
+  contracts, config, backend, API, and web typechecks. Commit range
+  `d050475..11fcda8` is ready to push.
+- Sol scoped re-review approved all four corrections with zero open
+  Critical/Important findings.
+- The repeated workspace declaration freshness failure was added to
+  `AGENTS.md`. Open questions: none.
 
 ## P03 Non-Visual Slice 2 Evidence
 
