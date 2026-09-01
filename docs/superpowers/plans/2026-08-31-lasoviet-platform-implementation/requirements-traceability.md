@@ -20,7 +20,7 @@
 | Ten reviewed foundation articles | 03 | Content completeness, source/reviewer, locale, link, and thin-content gates |
 | Knowledge and Zi Wei hubs | 03, 06 | VI/EN content ownership, links, metadata, and production indexability |
 | Privacy-safe canonical analytics funnel | 00, 03 | Ordered config, event schema, and forbidden-property tests |
-| iztro adapter and default rules | 02 | Golden/contract fixtures |
+| iztro adapter and default rules | 02 | P02-T02 adapter/provenance, PostgreSQL idempotency, authorization, migration, and later golden-fixture tests |
 | Independent Zi Wei validation | 02 | Tianji/trusted-case comparison |
 | Normalized chart contracts | 00, 02 | Schema compatibility tests |
 | Evidence-only claims | 02, 04 | Claim validator tests |

@@ -93,3 +93,100 @@ export const birthProfileRevisions = pgTable(
     index("birth_profile_revisions_profile_id_idx").on(table.profileId),
   ],
 );
+
+export const calculationRuns = pgTable(
+  "calculation_runs",
+  {
+    id: text("id").primaryKey(),
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => birthProfiles.id, { onDelete: "cascade" }),
+    profileRevisionId: text("profile_revision_id")
+      .notNull()
+      .references(() => birthProfileRevisions.id, { onDelete: "cascade" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    engineId: text("engine_id").notNull(),
+    engineVersion: text("engine_version").notNull(),
+    adapterId: text("adapter_id").notNull(),
+    adapterVersion: text("adapter_version").notNull(),
+    schemaId: text("schema_id").notNull(),
+    ruleSetId: text("rule_set_id").notNull(),
+    inputHash: text("input_hash").notNull(),
+    configHash: text("config_hash").notNull(),
+    rawSnapshotHash: text("raw_snapshot_hash").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("calculation_runs_revision_idempotency_key_unique").on(
+      table.profileRevisionId,
+      table.idempotencyKey,
+    ),
+    index("calculation_runs_profile_revision_id_idx").on(
+      table.profileRevisionId,
+    ),
+  ],
+);
+
+export const ziweiCharts = pgTable(
+  "ziwei_charts",
+  {
+    id: text("id").primaryKey(),
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => birthProfiles.id, { onDelete: "cascade" }),
+    profileRevisionId: text("profile_revision_id")
+      .notNull()
+      .references(() => birthProfileRevisions.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("ziwei_charts_profile_revision_unique").on(
+      table.profileRevisionId,
+    ),
+  ],
+);
+
+export const ziweiChartVersions = pgTable(
+  "ziwei_chart_versions",
+  {
+    id: text("id").primaryKey(),
+    chartId: text("chart_id")
+      .notNull()
+      .references(() => ziweiCharts.id, { onDelete: "cascade" }),
+    calculationRunId: text("calculation_run_id")
+      .notNull()
+      .references(() => calculationRuns.id, { onDelete: "cascade" }),
+    normalizedOutput: jsonb("normalized_output")
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    privateRawSnapshot: jsonb("private_raw_snapshot")
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    warnings: jsonb("warnings").$type<string[]>().notNull(),
+    provenance: jsonb("provenance")
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("ziwei_chart_versions_calculation_run_unique").on(
+      table.calculationRunId,
+    ),
+    index("ziwei_chart_versions_chart_id_idx").on(table.chartId),
+  ],
+);

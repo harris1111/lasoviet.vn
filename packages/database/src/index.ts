@@ -22,6 +22,9 @@ export {
 export {
   birthProfileRevisions,
   birthProfiles,
+  calculationRuns,
+  ziweiChartVersions,
+  ziweiCharts,
 } from "./schema/birth-profile.js";
 export {
   deletionRequestStatus,

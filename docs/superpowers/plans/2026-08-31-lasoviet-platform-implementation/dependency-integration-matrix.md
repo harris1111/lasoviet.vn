@@ -47,6 +47,33 @@ Production manifests use exact reviewed resolutions. Upgrades occur in focused
 changes with changelog review, resolved-tree license/SBOM diff, fixture tests,
 and normalized-contract snapshots.
 
+## P02-T02 Iztro First-Use Gate (2026-09-02)
+
+`@lasoviet/engine-adapters` is the sole production owner of the exact
+`iztro` import. Its manifest pins `iztro` to `2.6.0`; the lockfile resolves
+one copy with integrity
+`sha512-0zN7j+z2UX642yEbraFNILRU+hA5hl1SdTHvyopq0CK68hS1wSxL2zLkStCh6EeEwR+NO0j18amDmpB6bwortg==`.
+An independently packed registry archive produced the same SHA-512 integrity.
+
+| Resolved runtime package | Version | License evidence | Result |
+|---|---:|---|---|
+| `iztro` | 2.6.0 | package metadata and included `LICENSE` | MIT |
+| `dayjs` | 1.11.23 | package metadata | MIT |
+| `i18next` | 23.16.8 | package metadata | MIT |
+| `@babel/runtime` | 7.29.7 | package metadata and included `LICENSE` | MIT |
+| `lunar-lite` | 0.2.8 | package metadata | MIT |
+| `lunar-typescript` | 1.8.6 | package metadata | MIT |
+
+The resolved production tree contains six third-party runtime packages,
+including one copy of `iztro`; no unknown, GPL, AGPL, or incompatible runtime
+license was found. The package has no reviewed install/build-script action, so
+`pnpm-workspace.yaml` remains unchanged with `strictDepBuilds: true`.
+
+The committed CycloneDX 1.5 artifact is
+`sbom/iztro-2.6.0.cdx.json`. It records the resolved components and direct
+dependency graph. The temporary archive used for integrity inspection is not a
+repository artifact and is removed before staging.
+
 ## Validation and Reference
 
 | Repository | Source / audited commit / latest commit | Class | Allowed use | Prohibited use |

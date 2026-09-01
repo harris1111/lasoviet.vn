@@ -69,7 +69,7 @@ git add packages/contracts packages/engine-adapters docs/superpowers/plans
 git commit -m "feat: define Zi Wei engine contracts"
 ```
 
-**P02-T01 Evidence (2026-09-01):**
+**P02-T01 Evidence (2026-09-02):**
 
 - Focused RED confirmed the normalized chart module was absent before
   implementation.
@@ -102,42 +102,65 @@ git commit -m "feat: define Zi Wei engine contracts"
   `inputHash + engineVersion + adapterVersion + configHash`.
 - Produces immutable calculation run and chart IDs.
 
-- [ ] **Step 1: Write a failing known-chart adapter test**
+- [x] **Step 1: Write a failing known-chart adapter test**
 
 Use a reviewed fixture and assert palace count, principal star locations,
 transformations, and provenance.
 
-- [ ] **Step 2: Run the adapter test**
+- [x] **Step 2: Run the adapter test**
 
 Run: `pnpm vitest run packages/engine-adapters/src/ziwei/iztro-adapter.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Pass the first-use dependency gate**
+- [x] **Step 3: Pass the first-use dependency gate**
 
 Record the resolved iztro tree, license evidence, SBOM, integrity, and contract
 baseline in `dependency-integration-matrix.md`.
 
-- [ ] **Step 4: Implement mapping and persistence**
+- [x] **Step 4: Implement mapping and persistence**
 
 Set `algorithm: "default"` explicitly. Preserve raw private vendor output for
 adapter audit but expose only normalized output.
 
-- [ ] **Step 5: Verify idempotency**
+- [x] **Step 5: Verify idempotency**
 
 Run the same command twice and assert one calculation result is reused without
 rewriting history.
 
-- [ ] **Step 6: Run focused and integration tests**
+- [x] **Step 6: Run focused and integration tests**
 
 Run: `pnpm vitest run packages/engine-adapters packages/backend/src/ziwei`
 Expected: PASS.
 
-- [ ] **Step 7: Update trackers and commit**
+- [x] **Step 7: Update trackers and commit**
 
 ```bash
 git add packages/engine-adapters packages/backend/src/ziwei packages/database apps/api/src/ziwei docs/superpowers/plans
 git commit -m "feat: add reproducible Zi Wei calculation"
 ```
+
+**P02-T02 Evidence (2026-09-02):**
+
+- The initial adapter RED failed because the production adapter/config modules
+  did not exist. The initial service/controller REDs failed because their
+  modules did not exist.
+- `iztro` is pinned exactly to `2.6.0` in
+  `@lasoviet/engine-adapters`; lockfile and independently packed tarball
+  integrity agree. The resolved runtime tree is MIT-only and recorded in the
+  dependency matrix plus `sbom/iztro-2.6.0.cdx.json`.
+- `IztroAdapter` is the sole `iztro` import owner. It uses explicit
+  `algorithm: "default"`, emits language-neutral normalized IDs/provenance,
+  preserves the private raw vendor snapshot only for persistence, and records
+  no native location, timezone, or true-solar-time correction claim.
+- Owner-authorized calculation reads a specific immutable BirthProfile revision.
+  Unknown or multi-branch time returns `ZIWEI_TIME_INELIGIBLE` before any run
+  is created. The exact idempotency key is scoped to its profile revision so
+  identical private input never returns another profile's chart identifier.
+- Focused adapter/backend/API verification passed: 4 files, 7 tests.
+  Migration acceptance passed: 1 file, 5 tests. Root typecheck and build
+  passed. No UI, AI, public school selector, live vendor call, or other
+  external side effect occurred. Docs impact: minor. Rule candidate: none.
+  Open questions: none.
 
 ### Task 3 [P02-T03]: Build the approved P0 fixture and cross-check suite
 

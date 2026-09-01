@@ -5,6 +5,10 @@ import {
 } from "@lasoviet/contracts";
 import { loadEnvironment } from "@lasoviet/config";
 import {
+  IztroAdapter,
+  iztroDefaultConfig,
+} from "@lasoviet/engine-adapters";
+import {
   createAuthEmailDeliveryService,
   createAccountDeletionService,
   createAnonymousRetentionService,
@@ -15,7 +19,9 @@ import {
   createDatabaseBirthProfileRepository,
   createDatabaseConsentRepository,
   createDatabaseDeletionRepository,
+  createDatabaseZiweiCalculationRepository,
   createSmtpEmailAdapter,
+  createZiweiCalculationService,
   type EmailProvider,
 } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
@@ -40,6 +46,12 @@ import {
   PRIVACY_SERVICE_SECRET,
   PrivacyController,
 } from "./privacy/privacy.controller.js";
+import {
+  ZIWEI_CALCULATION_DATABASE,
+  ZIWEI_CALCULATION_SERVICE,
+  ZIWEI_CALCULATION_SERVICE_SECRET,
+  ZiweiController,
+} from "./ziwei/ziwei.controller.js";
 
 function applicationEnvironment() {
   const result = loadEnvironment(process.env);
@@ -92,6 +104,7 @@ function privacyDatabase() {
     AuthEmailController,
     PrivacyController,
     BirthProfileController,
+    ZiweiController,
   ],
   providers: [
     {
@@ -161,6 +174,28 @@ function privacyDatabase() {
       },
     },
     { provide: BIRTH_PROFILE_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ZIWEI_CALCULATION_SERVICE,
+      useFactory: () =>
+        createZiweiCalculationService({
+          repository: createDatabaseZiweiCalculationRepository(
+            privacyDatabase(),
+          ),
+          engine: new IztroAdapter(),
+          config: iztroDefaultConfig,
+        }),
+    },
+    {
+      provide: ZIWEI_CALCULATION_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
+    { provide: ZIWEI_CALCULATION_DATABASE, useFactory: privacyDatabase },
   ],
 })
 export class ApiModule {}

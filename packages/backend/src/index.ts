@@ -86,3 +86,19 @@ export type {
   BirthProfileServiceOptions,
   TimePrecisionError,
 } from "./birth-profile/birth-profile.service.js";
+
+export {
+  createDatabaseZiweiCalculationRepository,
+} from "./ziwei/ziwei.repository.js";
+export type {
+  AuthorizedZiweiRevision,
+  CreateZiweiCalculationInput,
+  ZiweiCalculationRepository,
+} from "./ziwei/ziwei.repository.js";
+export {
+  createZiweiCalculationService,
+} from "./ziwei/ziwei.service.js";
+export type {
+  ZiweiCalculationError,
+  ZiweiCalculationServiceOptions,
+} from "./ziwei/ziwei.service.js";

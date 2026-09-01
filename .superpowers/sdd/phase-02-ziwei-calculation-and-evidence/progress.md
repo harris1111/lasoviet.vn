@@ -17,7 +17,7 @@
 
 No plan/spec conflict blocks P02-T01.
 
-## P02-T01 Implementation — 2026-09-01
+## P02-T01 Implementation — 2026-09-02
 
 | Gate | Exact command | Result |
 |---|---|---|
@@ -31,3 +31,24 @@ T01 provides generic engine contracts, calculation provenance, normalized
 Zi Wei v1 contracts, and a dependency-free adapter interface. No vendor
 dependency/import, calculation implementation, UI, AI behavior, or external
 side effect occurred. No durable rule is warranted.
+
+## P02-T02 Implementation — 2026-09-02
+
+| Gate | Exact command | Result |
+|---|---|---|
+| Adapter RED | `pnpm vitest run packages/engine-adapters/src/ziwei/iztro-adapter.test.ts` | Expected failure: adapter/config modules absent. |
+| Service/API RED | `pnpm vitest run packages/backend/src/ziwei/ziwei.service.test.ts apps/api/src/ziwei/ziwei.controller.test.ts` | Expected failure: service/controller modules absent. |
+| Dependency gate | `corepack pnpm@11.25.0 --filter @lasoviet/engine-adapters add iztro@2.6.0 --save-exact`; `npm pack iztro@2.6.0 --silent` | One resolved `iztro@2.6.0`; packed archive integrity matched the lockfile; resolved runtime licenses were MIT. |
+| Focused core flow | `pnpm vitest run packages/engine-adapters/src/ziwei/iztro-adapter.test.ts packages/backend/src/ziwei/ziwei.service.test.ts packages/backend/src/ziwei/ziwei.repository.integration.test.ts apps/api/src/ziwei/ziwei.controller.test.ts` | Passed: 4 files, 7 tests. |
+| Migration acceptance | `corepack pnpm@11.25.0 --filter @lasoviet/database run migrate:test` | Passed: 1 file, 5 tests. |
+| Root typecheck | `corepack pnpm@11.25.0 run typecheck` | Passed: 9 workspace projects. |
+| Root build | `corepack pnpm@11.25.0 run build` | Passed: 9 workspace projects. |
+
+The `iztro` import is contained in `@lasoviet/engine-adapters`. The adapter
+uses the approved explicit `default` configuration, maps only language-neutral
+IDs into `NormalizedZiweiChartV1`, and persists the raw vendor snapshot only
+through the private chart-version boundary. Server-resolved actors authorize
+revision reads. Ineligible unknown or multi-branch time writes no run. The
+idempotency value is `inputHash:engineVersion:adapterVersion:configHash` and
+is unique per immutable profile revision to prevent cross-profile chart-ID
+reuse. No durable rule is warranted.
