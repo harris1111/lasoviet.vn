@@ -71,4 +71,58 @@ describe("IztroAdapter", () => {
       ]),
     });
   });
+
+  it("keeps a captured vendor snapshot when normalization fails", async () => {
+    const rawSnapshot = { astrolabe: "malformed-for-normalization" };
+    const adapter = new IztroAdapter(
+      {
+        withOptions: () => ({
+          toJSON: () => rawSnapshot,
+        }),
+      },
+      () => {
+        throw new Error("UNMAPPED_VENDOR_FACT");
+      },
+    );
+
+    await expect(
+      adapter.calculateWithPrivateSnapshot(
+        { birthProfile: profile },
+        iztroDefaultConfig,
+      ),
+    ).resolves.toMatchObject({
+      result: {
+        ok: false,
+        error: {
+          code: "NORMALIZATION_INVALID",
+          retryable: false,
+        },
+      },
+      rawSnapshot,
+    });
+  });
+
+  it("reports vendor execution failures as retryable without a snapshot", async () => {
+    const adapter = new IztroAdapter({
+      withOptions: () => {
+        throw new Error("VENDOR_UNAVAILABLE");
+      },
+    });
+
+    await expect(
+      adapter.calculateWithPrivateSnapshot(
+        { birthProfile: profile },
+        iztroDefaultConfig,
+      ),
+    ).resolves.toMatchObject({
+      result: {
+        ok: false,
+        error: {
+          code: "ENGINE_UNAVAILABLE",
+          retryable: true,
+        },
+      },
+      rawSnapshot: null,
+    });
+  });
 });

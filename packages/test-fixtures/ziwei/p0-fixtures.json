@@ -16,7 +16,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "timezoneSource": "offset",
-        "palaceCount": 12
+        "palaceCount": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.tiger", "bodyPalaceEarthlyBranchId": "ziwei.branch.tiger", "principalStar": { "palaceId": "ziwei.palace.life", "starId": "ziwei.star.wuqu" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "P02-T02 reviewed iztro default chart baseline",
@@ -32,7 +34,9 @@
         "result": "calculated",
         "normalizedPrecision": "branch_only",
         "limitation": "LUNAR_CALENDAR_CONVERSION_DEFERRED",
-        "palaceCount": 12
+        "palaceCount": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.tiger", "bodyPalaceEarthlyBranchId": "ziwei.branch.tiger", "principalStar": { "palaceId": "ziwei.palace.life", "starId": "ziwei.star.qisha" } },
+        "referenceMethod": "trusted-overlap"
       },
       "precision": "branch_only",
       "source": "Phase 01 canonical lunar BirthProfile fixture",
@@ -54,7 +58,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "limitation": "LUNAR_CALENDAR_CONVERSION_DEFERRED",
-        "palaceCount": 12
+        "palaceCount": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.rat", "bodyPalaceEarthlyBranchId": "ziwei.branch.dog", "principalStar": { "palaceId": "ziwei.palace.fortune", "starId": "ziwei.star.tianma" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "iztro 2.6.0 lunar input contract with explicit isLeapMonth",
@@ -76,7 +82,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "timezoneSource": "offset",
-        "palaceCount": 12
+        "palaceCount": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.snake", "bodyPalaceEarthlyBranchId": "ziwei.branch.pig", "principalStar": { "palaceId": "ziwei.palace.children", "starId": "ziwei.star.tianji" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "Iztro default configuration boundary record",
@@ -98,7 +106,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "palaceCount": 12,
-        "adapterTimeIndex": 0
+        "adapterTimeIndex": 0,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.tiger", "bodyPalaceEarthlyBranchId": "ziwei.branch.tiger", "principalStar": { "palaceId": "ziwei.palace.life", "starId": "ziwei.star.wuqu" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "iztro withOptions timeIndex 0 early-Zi contract",
@@ -120,7 +130,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "palaceCount": 12,
-        "adapterTimeIndex": 12
+        "adapterTimeIndex": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.tiger", "bodyPalaceEarthlyBranchId": "ziwei.branch.tiger", "principalStar": { "palaceId": "ziwei.palace.life", "starId": "ziwei.star.wuqu" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "iztro withOptions timeIndex 12 late-Zi contract",
@@ -142,7 +154,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "palaceCount": 12,
-        "adapterTimeIndex": 1
+        "adapterTimeIndex": 1,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.rat", "bodyPalaceEarthlyBranchId": "ziwei.branch.tiger", "principalStar": { "palaceId": "ziwei.palace.fortune", "starId": "ziwei.star.tianji" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "Phase 01 Zi Wei branch-boundary rule",
@@ -158,7 +172,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "timezoneSource": "iana",
-        "palaceCount": 12
+        "palaceCount": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.monkey", "bodyPalaceEarthlyBranchId": "ziwei.branch.horse", "principalStar": { "palaceId": "ziwei.palace.travel", "starId": "ziwei.star.pojun" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "Phase 01 IANA timezone provenance fixture",
@@ -174,7 +190,9 @@
         "result": "calculated",
         "normalizedPrecision": "exact_minute",
         "timezoneSource": "iana",
-        "palaceCount": 12
+        "palaceCount": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.monkey", "bodyPalaceEarthlyBranchId": "ziwei.branch.horse", "principalStar": { "palaceId": "ziwei.palace.health", "starId": "ziwei.star.lianzhen" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "exact_minute",
       "source": "Phase 01 historical IANA timezone fixture",
@@ -204,7 +222,9 @@
         "result": "calculated",
         "normalizedPrecision": "branch_only",
         "limitation": "TIME_BRANCH_ONLY",
-        "palaceCount": 12
+        "palaceCount": 12,
+        "normalizedFacts": { "soulPalaceEarthlyBranchId": "ziwei.branch.monkey", "bodyPalaceEarthlyBranchId": "ziwei.branch.horse", "principalStar": { "palaceId": "ziwei.palace.travel", "starId": "ziwei.star.pojun" } },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "branch_only",
       "source": "Phase 01 traditional branch BirthProfile fixture",

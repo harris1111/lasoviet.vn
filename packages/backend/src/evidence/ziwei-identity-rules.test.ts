@@ -58,10 +58,10 @@ describe("Zi Wei identity evidence", () => {
 
   it("rejects unsupported rule sets and missing normalized facts", () => {
     expect(buildZiweiIdentityEvidence(chart("ziwei.other"), "chart-version-1"))
-      .toMatchObject({ ok: false, error: { code: "UNSUPPORTED_ZIWEI_RULE_SET" } });
+      .toMatchObject({ ok: false, error: { code: "EVIDENCE_RULE_UNSUPPORTED" } });
     const missing = chart();
     missing.transformations = [];
     expect(buildZiweiIdentityEvidence(missing, "chart-version-1"))
-      .toMatchObject({ ok: false, error: { code: "ZIWEI_EVIDENCE_FACT_MISSING" } });
+      .toMatchObject({ ok: false, error: { code: "EVIDENCE_FACT_MISSING" } });
   });
 });

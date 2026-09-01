@@ -151,18 +151,15 @@ describe("Ziwei calculation repository", () => {
 
     const evidenceService = createEvidenceService(database);
     const [evidenceFirst, evidenceSecond] = await Promise.all([
-      evidenceService.buildAndPersist(first.chartVersionId, input.chart),
-      evidenceService.buildAndPersist(first.chartVersionId, input.chart),
+      evidenceService.buildAndPersist(first.chartVersionId),
+      evidenceService.buildAndPersist(first.chartVersionId),
     ]);
     expect(evidenceFirst).toMatchObject({ ok: true });
     expect(evidenceSecond).toMatchObject({ ok: true });
     if (!evidenceFirst.ok || !evidenceSecond.ok) {
       throw new Error("EVIDENCE_PERSISTENCE_FAILED");
     }
-    expect(evidenceSecond.value).toMatchObject({
-      evidenceSetId: evidenceFirst.value.evidenceSetId,
-      reused: true,
-    });
+    expect(evidenceSecond.value.evidenceSetId).toBe(evidenceFirst.value.evidenceSetId);
     expect(
       await database.select().from(evidenceSets).where(
         eq(evidenceSets.chartVersionId, first.chartVersionId),
@@ -173,6 +170,16 @@ describe("Ziwei calculation repository", () => {
         eq(evidenceItems.evidenceSetId, evidenceFirst.value.evidenceSetId),
       ),
     ).toHaveLength(3);
+    expect(evidenceSecond.value.evidence).toEqual(evidenceFirst.value.evidence);
+    const evidenceReused = await evidenceService.buildAndPersist(first.chartVersionId);
+    expect(evidenceReused).toMatchObject({
+      ok: true,
+      value: {
+        evidenceSetId: evidenceFirst.value.evidenceSetId,
+        reused: true,
+        evidence: evidenceFirst.value.evidence,
+      },
+    });
 
     await database.insert(authUsers).values({
       id: "ziwei-user-other",

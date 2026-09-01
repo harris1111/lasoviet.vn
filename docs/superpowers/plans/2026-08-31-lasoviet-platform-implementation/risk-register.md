@@ -49,6 +49,13 @@ chart-version/rule-version and every identity evidence item is fact-linked and
 bounded, preventing unsupported rules from creating a version. A real
 PostgreSQL concurrency regression verifies reuse without item duplication.
 
+## Phase 02 Correction Evidence (2026-09-01)
+
+R-01, R-02, and R-18 retain their release-blocking classifications. Fixture
+expectations now block unexplained normalized-chart drift; evidence derives
+only from its linked immutable chart version; and the validated SBOM graph
+binds the application root to the exact reviewed `iztro` dependency.
+
 ## Review Protocol
 
 - Terra classifies a verified current-scope correctness/security/privacy issue

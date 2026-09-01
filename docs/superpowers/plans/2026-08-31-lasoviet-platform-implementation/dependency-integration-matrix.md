@@ -71,8 +71,10 @@ license was found. The package has no reviewed install/build-script action, so
 
 The committed CycloneDX 1.5 artifact is
 `sbom/iztro-2.6.0.cdx.json`. It records the resolved components and direct
-dependency graph. The temporary archive used for integrity inspection is not a
-repository artifact and is removed before staging.
+dependency graph. On 2026-09-01, the artifact passed official CycloneDX 1.5
+JSON Schema validation with matching component `bom-ref` values and an
+application-root-to-`iztro` edge. The temporary archive used for integrity
+inspection is not a repository artifact and is removed before staging.
 
 ## P02-T03 Fixture and Reference Evidence (2026-09-01)
 

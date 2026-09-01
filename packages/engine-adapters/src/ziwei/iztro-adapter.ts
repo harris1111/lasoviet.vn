@@ -112,7 +112,18 @@ export type IztroCalculationWithPrivateSnapshot = {
   rawSnapshot: Record<string, unknown> | null;
 };
 
+type IztroVendor = {
+  withOptions(options: Parameters<typeof astro.withOptions>[0]): {
+    toJSON(): unknown;
+  };
+};
+
 export class IztroAdapter implements ZiweiEngine {
+  constructor(
+    private readonly vendor: IztroVendor = astro,
+    private readonly normalize = normalizeIztroAstrolabe,
+  ) {}
+
   capabilities() {
     return {
       engineId: "ziwei.iztro",
@@ -142,8 +153,9 @@ export class IztroAdapter implements ZiweiEngine {
     ) {
       return { result: failure("ENGINE_INPUT_INVALID"), rawSnapshot: null };
     }
+    let rawSnapshot: Record<string, unknown>;
     try {
-      const raw = astro.withOptions({
+      const raw = this.vendor.withOptions({
         type: profile.normalizedCalendar.kind,
         dateStr: profile.normalizedCalendar.date,
         timeIndex: resolvedTimeIndex,
@@ -160,7 +172,11 @@ export class IztroAdapter implements ZiweiEngine {
           dayDivide: config.values.dayDivide as "current",
         },
       });
-      const rawSnapshot = raw.toJSON() as Record<string, unknown>;
+      rawSnapshot = raw.toJSON() as Record<string, unknown>;
+    } catch {
+      return { result: failure("ENGINE_UNAVAILABLE"), rawSnapshot: null };
+    }
+    try {
       const provenance: CalculationProvenanceV1 = {
         version: 1,
         engineId: "ziwei.iztro",
@@ -179,7 +195,7 @@ export class IztroAdapter implements ZiweiEngine {
           "IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION",
         ],
       };
-      const output = normalizeIztroAstrolabe(
+      const output = this.normalize(
         rawSnapshot as unknown as RawIztroAstrolabe,
         profile,
         provenance,
@@ -192,7 +208,7 @@ export class IztroAdapter implements ZiweiEngine {
         rawSnapshot,
       };
     } catch {
-      return { result: failure("ENGINE_UNAVAILABLE"), rawSnapshot: null };
+      return { result: failure("NORMALIZATION_INVALID"), rawSnapshot };
     }
   }
 }

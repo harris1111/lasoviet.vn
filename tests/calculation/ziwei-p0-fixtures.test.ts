@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  evaluateZiweiP0Fixtures,
   readZiweiP0FixtureManifest,
   runIztroP0Fixtures,
 } from "../../packages/test-fixtures/ziwei/run-iztro-fixtures.js";
@@ -65,5 +66,12 @@ describe("Zi Wei P0 fixtures", () => {
         );
       }
     }
+
+    const evaluations = evaluateZiweiP0Fixtures(results);
+    expect(evaluations).toHaveLength(11);
+    expect(evaluations.every((evaluation) => evaluation.pass)).toBe(true);
+    expect(evaluations.flatMap((evaluation) => evaluation.differences)).not.toContainEqual(
+      expect.objectContaining({ code: "UNEXPLAINED_MISMATCH" }),
+    );
   });
 });

@@ -1,7 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-import type { BirthProfileV1, NormalizedBirthProfileV1 } from "@lasoviet/contracts";
+import type {
+  BirthProfileV1,
+  NormalizedBirthProfileV1,
+  NormalizedZiweiChartV1,
+} from "@lasoviet/contracts";
 import {
   normalizeBirthProfile,
   resolveZiweiTimeIndex,
@@ -20,6 +24,15 @@ type FixtureExpected = {
   palaceCount?: number;
   adapterTimeIndex?: number;
   timeError?: string;
+  normalizedFacts?: {
+    soulPalaceEarthlyBranchId: string;
+    bodyPalaceEarthlyBranchId: string;
+    principalStar: {
+      palaceId: string;
+      starId: string;
+    };
+  };
+  referenceMethod?: "trusted-overlap" | "method-incompatible";
 };
 
 export type ZiweiP0Fixture = {
@@ -53,6 +66,19 @@ export type ZiweiP0FixtureResult = {
   status: "calculated" | "ineligible";
   timeError?: string;
   chart?: Awaited<ReturnType<IztroAdapter["calculate"]>>;
+};
+
+export type ZiweiP0FixtureDifference = {
+  code: "UNEXPLAINED_MISMATCH" | "REFERENCE_METHOD_INCOMPATIBLE";
+  field: string;
+  expected: string;
+  actual: string;
+};
+
+export type ZiweiP0FixtureEvaluation = {
+  fixtureId: string;
+  pass: boolean;
+  differences: ZiweiP0FixtureDifference[];
 };
 
 const root = new URL("../../../", import.meta.url);
@@ -127,4 +153,71 @@ export async function runIztroP0Fixtures(
 
 export function fixtureSourcePath(relativePath: string): string {
   return fileURLToPath(new URL(relativePath, root));
+}
+
+function palaceBranch(chart: NormalizedZiweiChartV1, palaceId: string): string | undefined {
+  return chart.palaces.find((palace) => palace.id === palaceId)?.earthlyBranchId;
+}
+
+export function evaluateZiweiP0Fixtures(
+  results: ZiweiP0FixtureResult[],
+): ZiweiP0FixtureEvaluation[] {
+  return results.map((result) => {
+    const differences: ZiweiP0FixtureDifference[] = [];
+    const facts = result.fixture.expected.normalizedFacts;
+    if (
+      result.fixture.expected.result === "ineligible"
+      || facts === undefined
+      || result.chart === undefined
+      || !result.chart.ok
+    ) {
+      return {
+        fixtureId: result.fixture.id,
+        pass: result.fixture.expected.result === "ineligible"
+          ? result.status === "ineligible" && result.timeError === result.fixture.expected.timeError
+          : false,
+        differences,
+      };
+    }
+    const actualFacts = {
+      soulPalaceEarthlyBranchId: palaceBranch(
+        result.chart.output,
+        result.chart.output.soulPalaceId,
+      ),
+      bodyPalaceEarthlyBranchId: palaceBranch(
+        result.chart.output,
+        result.chart.output.bodyPalaceId,
+      ),
+      hasPrincipalStar: result.chart.output.palaces
+        .find((palace) => palace.id === facts.principalStar.palaceId)
+        ?.stars.some((star) => star.id === facts.principalStar.starId) ?? false,
+    };
+    if (result.fixture.expected.referenceMethod === "method-incompatible") {
+      differences.push({
+        code: "REFERENCE_METHOD_INCOMPATIBLE",
+        field: "referenceMethod",
+        expected: "trusted-overlap",
+        actual: "method-incompatible",
+      });
+    }
+    for (const [field, expected, actual] of [
+      ["soulPalaceEarthlyBranchId", facts.soulPalaceEarthlyBranchId, actualFacts.soulPalaceEarthlyBranchId],
+      ["bodyPalaceEarthlyBranchId", facts.bodyPalaceEarthlyBranchId, actualFacts.bodyPalaceEarthlyBranchId],
+      ["principalStar", `${facts.principalStar.palaceId}:${facts.principalStar.starId}`, actualFacts.hasPrincipalStar ? `${facts.principalStar.palaceId}:${facts.principalStar.starId}` : "missing"],
+    ] as const) {
+      if (expected !== actual) {
+        differences.push({
+          code: "UNEXPLAINED_MISMATCH",
+          field,
+          expected,
+          actual: actual ?? "missing",
+        });
+      }
+    }
+    return {
+      fixtureId: result.fixture.id,
+      pass: !differences.some((difference) => difference.code === "UNEXPLAINED_MISMATCH"),
+      differences,
+    };
+  });
 }

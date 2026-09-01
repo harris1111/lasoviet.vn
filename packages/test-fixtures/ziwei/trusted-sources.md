@@ -2,8 +2,9 @@
 
 ## Fixture Record
 
-The versioned manifest is the source of executable inputs, expected normalized
-facts, method/rule set, precision, review state, and disclosed differences.
+The versioned manifest is the source of executable inputs, reviewed
+fixture-specific normalized facts, method/rule set, precision, review state,
+and typed difference classifications.
 All fixtures run the real `IztroAdapter` with `ziwei.default` and
 `algorithm: "default"`.
 
@@ -30,7 +31,9 @@ code or output is imported into production packages.
 
 ## Mismatch Policy
 
-An unexplained mismatch blocks a fixture expectation change. First classify it
-as an adapter defect, a source/input defect, or a documented method difference.
-Only a trusted worked source can settle a non-overlapping school difference;
-do not majority-vote engines.
+An unexplained mismatch is emitted as `UNEXPLAINED_MISMATCH` and blocks a
+fixture expectation change. A non-overlapping reference method is emitted as
+`REFERENCE_METHOD_INCOMPATIBLE`; prose alone never accepts a difference. First
+classify a mismatch as an adapter defect, a source/input defect, or a documented
+method difference. Only a trusted worked source can settle a non-overlapping
+school difference; do not majority-vote engines.

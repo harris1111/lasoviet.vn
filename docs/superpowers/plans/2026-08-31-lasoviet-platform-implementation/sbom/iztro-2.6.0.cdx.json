@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cyclonedx.org/schema/bom-1.5.schema.json",
+  "$schema": "http://cyclonedx.org/schema/bom-1.5.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
   "version": 1,
@@ -8,7 +8,8 @@
     "component": {
       "type": "application",
       "name": "@lasoviet/engine-adapters",
-      "version": "0.0.0"
+      "version": "0.0.0",
+      "bom-ref": "pkg:npm/%40lasoviet/engine-adapters@0.0.0"
     }
   },
   "components": [
@@ -16,6 +17,7 @@
       "type": "library",
       "name": "iztro",
       "version": "2.6.0",
+      "bom-ref": "pkg:npm/iztro@2.6.0",
       "purl": "pkg:npm/iztro@2.6.0",
       "hashes": [
         {
@@ -35,6 +37,7 @@
       "type": "library",
       "name": "dayjs",
       "version": "1.11.23",
+      "bom-ref": "pkg:npm/dayjs@1.11.23",
       "purl": "pkg:npm/dayjs@1.11.23",
       "licenses": [
         {
@@ -48,6 +51,7 @@
       "type": "library",
       "name": "i18next",
       "version": "23.16.8",
+      "bom-ref": "pkg:npm/i18next@23.16.8",
       "purl": "pkg:npm/i18next@23.16.8",
       "licenses": [
         {
@@ -61,6 +65,7 @@
       "type": "library",
       "name": "@babel/runtime",
       "version": "7.29.7",
+      "bom-ref": "pkg:npm/%40babel/runtime@7.29.7",
       "purl": "pkg:npm/%40babel/runtime@7.29.7",
       "licenses": [
         {
@@ -74,6 +79,7 @@
       "type": "library",
       "name": "lunar-lite",
       "version": "0.2.8",
+      "bom-ref": "pkg:npm/lunar-lite@0.2.8",
       "purl": "pkg:npm/lunar-lite@0.2.8",
       "licenses": [
         {
@@ -87,6 +93,7 @@
       "type": "library",
       "name": "lunar-typescript",
       "version": "1.8.6",
+      "bom-ref": "pkg:npm/lunar-typescript@1.8.6",
       "purl": "pkg:npm/lunar-typescript@1.8.6",
       "licenses": [
         {
@@ -98,6 +105,12 @@
     }
   ],
   "dependencies": [
+    {
+      "ref": "pkg:npm/%40lasoviet/engine-adapters@0.0.0",
+      "dependsOn": [
+        "pkg:npm/iztro@2.6.0"
+      ]
+    },
     {
       "ref": "pkg:npm/iztro@2.6.0",
       "dependsOn": [

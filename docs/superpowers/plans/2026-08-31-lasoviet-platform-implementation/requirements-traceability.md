@@ -74,6 +74,14 @@
 | Evidence-only claims | Three deterministic Zi Wei identity evidence IDs resolve only to normalized chart facts and attach confidence, limits, risk tags, and action categories. | No generated prose or AI claim is created. |
 | Normalized chart contracts | Unsupported rule sets or missing normalized facts return typed errors and write no evidence set; concurrent duplicate persistence retains one immutable set and three items. | Only `ziwei.default` and `ZIWEI-IDENTITY-P0` are in scope. |
 
+## Phase 02 Correction Evidence (2026-09-01)
+
+| Requirement | Evidence | Boundary |
+|---|---|---|
+| Truthful P0 fixture gate | Eleven fixtures assert normalized life/body/principal-star facts through the real adapter; typed evaluation blocks unexplained mismatches. | Only the trusted lunar early-Zi Tianji overlap is independent; other method gaps are explicit. |
+| Immutable evidence/chart binding | Evidence transactionally parses `ziwei_chart_versions.normalized_output` and returns persisted payloads on reuse. | No caller chart can be linked to another chart version. |
+| Dependency graph evidence | CycloneDX 1.5 BOM has matching `bom-ref` values and an application-to-`iztro` edge; schema validation passed. | No production dependency was added. |
+
 ## Update Protocol
 
 After every task:

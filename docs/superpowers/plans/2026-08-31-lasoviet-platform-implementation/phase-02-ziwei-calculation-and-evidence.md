@@ -298,6 +298,21 @@ git commit -m "feat: add Zi Wei capabilities and evidence"
   commerce workflow, or new calculation school was added. Docs impact: minor.
   Rule candidate: none. Open questions: none.
 
+## Milestone Correction Evidence (2026-09-01)
+
+- MF-01 through MF-05 are closed. The 11-fixture corpus now evaluates
+  fixture-specific normalized life/body/principal-star facts and blocks typed
+  `UNEXPLAINED_MISMATCH` differences. Reference-method incompatibility is
+  explicit and never accepted from free text.
+- Evidence accepts only a chart version ID, transactionally parses immutable
+  normalized output, and returns persisted evidence items on reuse. PostgreSQL
+  concurrency and reuse coverage passed.
+- Vendor and normalization failures are separately typed; approved evidence
+  contract codes are in use. The CycloneDX 1.5 BOM has resolvable graph refs,
+  including the application root to `iztro`, and passed schema validation.
+- Focused tests passed: 4 files, 7 tests. Root typecheck and build passed.
+  Docs impact: minor. Rule candidate: none. Open questions: none.
+
 ## Phase Exit Criteria
 
 - iztro is imported only inside the adapter package.

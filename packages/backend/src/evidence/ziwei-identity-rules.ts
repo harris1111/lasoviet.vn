@@ -6,8 +6,8 @@ import type {
 } from "@lasoviet/contracts";
 
 export type ZiweiIdentityEvidenceError =
-  | "UNSUPPORTED_ZIWEI_RULE_SET"
-  | "ZIWEI_EVIDENCE_FACT_MISSING";
+  | "EVIDENCE_RULE_UNSUPPORTED"
+  | "EVIDENCE_FACT_MISSING";
 
 function error(code: ZiweiIdentityEvidenceError): Result<never, ZiweiIdentityEvidenceError> {
   return { ok: false, error: { code, messageKey: `evidence.${code.toLowerCase()}`, retryable: false } };
@@ -37,12 +37,12 @@ export function buildZiweiIdentityEvidence(
   chartVersionId: string,
 ): Result<EvidenceSetV1, ZiweiIdentityEvidenceError> {
   if (chart.provenance.ruleSetId !== "ziwei.default") {
-    return error("UNSUPPORTED_ZIWEI_RULE_SET");
+    return error("EVIDENCE_RULE_UNSUPPORTED");
   }
   const life = chart.palaces.find((palace) => palace.id === chart.soulPalaceId);
   const body = chart.palaces.find((palace) => palace.id === chart.bodyPalaceId);
   if (life === undefined || body === undefined || chart.transformations.length === 0) {
-    return error("ZIWEI_EVIDENCE_FACT_MISSING");
+    return error("EVIDENCE_FACT_MISSING");
   }
   const limitations = [
     ...chart.provenance.limitations,
