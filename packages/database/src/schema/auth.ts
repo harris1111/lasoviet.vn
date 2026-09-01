@@ -14,6 +14,7 @@ export const authUsers = pgTable(
     name: text("name").notNull(),
     email: text("email").notNull(),
     emailVerified: boolean("email_verified").notNull().default(false),
+    isAnonymous: boolean("is_anonymous").notNull().default(false),
     image: text("image"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -72,9 +73,14 @@ export const authAccounts = pgTable(
       .notNull()
       .references(() => authUsers.id, { onDelete: "cascade" }),
     providerId: text("provider_id").notNull(),
+    issuer: text("issuer").notNull(),
     accountId: text("account_id").notNull(),
     accessToken: text("access_token"),
     refreshToken: text("refresh_token"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
     accessTokenExpiresAt: timestamp("access_token_expires_at", {
       withTimezone: true,
       mode: "date",

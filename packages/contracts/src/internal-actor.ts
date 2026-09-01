@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const INTERNAL_ACTOR_AUDIENCE = "lasoviet-api" as const;
+export const INTERNAL_ACTOR_ISSUER = "lasoviet-web" as const;
 
 export type CurrentActor =
   | {

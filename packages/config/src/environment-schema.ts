@@ -23,8 +23,8 @@ export type SmtpEnvironment =
       port: number;
       username: string;
       password: string;
-      fromDomain: string;
       fromAddress: string;
+      tlsRequired: true;
     };
 
 export type CloudS3Environment =
@@ -43,6 +43,13 @@ export type AppEnvironment = {
   internalActorSecret?: string;
   databaseUrl?: string;
   redisUrl?: string;
+  betterAuthSecret?: string;
+  betterAuthUrl?: string;
+  privateApiUrl?: string;
+  google?: {
+    clientId: string;
+    clientSecret: string;
+  };
   ai: AiEnvironment;
   smtp: SmtpEnvironment;
   cloudS3: CloudS3Environment;
@@ -51,6 +58,16 @@ export type AppEnvironment = {
 const trimmedNonEmpty = z.string().trim().min(1);
 const absoluteUrl = z.string().trim().pipe(z.url());
 const emailAddress = z.string().trim().pipe(z.email());
+const mailboxAddress = z
+  .string()
+  .trim()
+  .min(1)
+  .refine(
+    (value) =>
+      emailAddress.safeParse(value).success ||
+      /^.+<[^<>\s@]+@[^<>\s@]+>$/.test(value),
+    { message: "Expected an email or mailbox-form sender" },
+  );
 
 export const NodeEnvironmentSchema: z.ZodType<NodeEnvironment> = z.enum([
   "development",
@@ -83,8 +100,8 @@ const enabledSmtp = z
     port: z.number().int().min(1).max(65535),
     username: trimmedNonEmpty,
     password: trimmedNonEmpty,
-    fromDomain: trimmedNonEmpty,
-    fromAddress: emailAddress,
+    fromAddress: mailboxAddress,
+    tlsRequired: z.literal(true),
   })
   .strict();
 
@@ -112,6 +129,16 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     internalActorSecret: trimmedNonEmpty.optional(),
     databaseUrl: absoluteUrl.optional(),
     redisUrl: absoluteUrl.optional(),
+    betterAuthSecret: trimmedNonEmpty.optional(),
+    betterAuthUrl: absoluteUrl.optional(),
+    privateApiUrl: absoluteUrl.optional(),
+    google: z
+      .object({
+        clientId: trimmedNonEmpty,
+        clientSecret: trimmedNonEmpty,
+      })
+      .strict()
+      .optional(),
     ai: AiEnvironmentSchema,
     smtp: SmtpEnvironmentSchema,
     cloudS3: CloudS3EnvironmentSchema,

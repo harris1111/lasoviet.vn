@@ -9,6 +9,7 @@ export type {
 
 export {
   INTERNAL_ACTOR_AUDIENCE,
+  INTERNAL_ACTOR_ISSUER,
   InternalActorV1Schema,
 } from "./internal-actor.js";
 export type {
@@ -48,6 +49,23 @@ export {
 export type {
   PublicContentV1,
 } from "./public-content-v1.js";
+
+export {
+  AUTH_EMAIL_BODY_BINDING_PREFIX,
+  AUTH_EMAIL_SERVICE_AUDIENCE,
+  AUTH_EMAIL_SERVICE_COMMAND,
+  AUTH_EMAIL_SERVICE_ISSUER,
+  AUTH_EMAIL_SERVICE_SUBJECT,
+  AuthEmailKindSchema,
+  AuthEmailRequestSchema,
+  AuthEmailServiceClaimsSchema,
+  canonicalizeAuthEmailRequest,
+} from "./auth-email.js";
+export type {
+  AuthEmailKind,
+  AuthEmailRequest,
+  AuthEmailServiceClaims,
+} from "./auth-email.js";
 
 export {
   RouteDefinitionV1Schema,

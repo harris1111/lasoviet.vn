@@ -7,6 +7,7 @@ export default defineConfig({
     "./src/schema/birth-profile.ts",
     "./src/schema/outbox.ts",
     "./src/schema/audit.ts",
+    "./src/schema/notifications.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",

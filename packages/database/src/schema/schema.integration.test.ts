@@ -1,7 +1,11 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { createDatabase } from "../client.js";
+import {
+  createDatabase,
+  linkAnonymousActorToAccount,
+} from "../runtime.js";
 import {
   authAccounts,
   authAnonymousActors,
@@ -15,6 +19,7 @@ import { consents, deletionRequests } from "./privacy.js";
 import { enqueueOutbox, outbox } from "./outbox.js";
 import { auditLogs } from "./audit.js";
 import { runMigrations } from "../migrate.js";
+import { notificationDeliveries } from "./notifications.js";
 
 describe("database schema integration", () => {
   let container:
@@ -71,6 +76,7 @@ describe("database schema integration", () => {
       userId,
       providerId: "credential",
       accountId: "schema-test@example.test",
+      issuer: "local",
     });
 
     await expect(
@@ -158,6 +164,14 @@ describe("database schema integration", () => {
       requestId: "request_schema_test",
       metadata: { source: "integration-test" },
     });
+    const [notification] = await database
+      .insert(notificationDeliveries)
+      .values({
+        idempotencyKey: "auth-email:verification:schema-test",
+        kind: "email_verification",
+        recipientFingerprint: "recipient-fingerprint-schema-test",
+      })
+      .returning();
 
     const [profile] = await database
       .select()
@@ -167,6 +181,62 @@ describe("database schema integration", () => {
       anonymousActorId,
       anonymousExpiresAt: new Date("2026-09-02T00:00:00Z"),
     });
+    expect(notification).toMatchObject({
+      idempotencyKey: "auth-email:verification:schema-test",
+      kind: "email_verification",
+      status: "pending",
+      attemptCount: 0,
+      sendingLeaseExpiresAt: null,
+      sentAt: null,
+    });
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("links an anonymous profile to an account without duplication", async () => {
+    const database = createDatabase(databaseUrl);
+    const userId = "user_link_test";
+    const anonymousActorId = "anonymous_link_test";
+    const profileId = "profile_link_test";
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Linked User",
+      email: "linked-user@example.test",
+    });
+    await database.insert(authAnonymousActors).values({
+      id: anonymousActorId,
+      expiresAt: new Date("2026-09-02T00:00:00Z"),
+    });
+    await database.insert(birthProfiles).values({
+      id: profileId,
+      anonymousActorId,
+      anonymousExpiresAt: new Date("2026-09-02T00:00:00Z"),
+    });
+
+    await expect(
+      linkAnonymousActorToAccount(database, anonymousActorId, userId),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { anonymousActorId, userId },
+    });
+
+    const [profile] = await database
+      .select()
+      .from(birthProfiles)
+      .where(eq(birthProfiles.id, profileId));
+    const [actor] = await database
+      .select()
+      .from(authAnonymousActors)
+      .where(eq(authAnonymousActors.id, anonymousActorId));
+
+    expect(profile).toMatchObject({
+      id: profileId,
+      userId,
+      anonymousActorId: null,
+      anonymousExpiresAt: null,
+    });
+    expect(actor).toMatchObject({ id: anonymousActorId, linkedUserId: userId });
 
     await database.$client.end();
   }, 120_000);

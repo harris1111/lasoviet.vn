@@ -8,6 +8,20 @@
       "when": 1788264624417,
       "tag": "0000_organic_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788269129294,
+      "tag": "0001_jazzy_bushwacker",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788269191651,
+      "tag": "0002_typical_captain_universe",
+      "breakpoints": true
     }
   ]
 }

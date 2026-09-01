@@ -182,6 +182,29 @@ git add apps/web/src/auth apps/web/src/app/api/auth apps/web/messages apps/api/s
 git commit -m "feat: add database-backed authentication"
 ```
 
+**P01-T02 Evidence (2026-09-01):**
+
+- Implemented Better Auth database sessions, anonymous identity persistence,
+  email/password verification and reset callbacks, Google account-linking
+  policy, and server-only internal auth-email delivery.
+- Implemented signed actor verification and a body-bound service command with
+  strict token-domain separation.
+- Implemented durable notification idempotency with a 45-second lease,
+  conditional terminal updates, and a three-attempt retry cap.
+- `corepack pnpm@11.25.0 --filter @lasoviet/database migrate:test` passed:
+  1 file, 3 tests.
+- Focused auth/config/backend checks passed: 6 files, 44 tests. Full
+  repository tests passed: 16 files, 83 tests.
+- Root typecheck and build passed after the required producer declaration
+  rebuild. The web auth route is dynamic and does not bundle migration or Nest
+  runtime modules.
+- The exact Playwright command was executed but did not pass because no
+  controlled Next/PostgreSQL runtime is configured: all three checks reached
+  `net::ERR_CONNECTION_REFUSED` at `http://127.0.0.1:3000/`. This is not
+  represented as an E2E pass. No real SMTP or Google call occurred.
+- Docs impact: minor. Rule candidate: none. Open questions: a later
+  authorized controlled runtime must make the browser flow green.
+
 ### Task 3 [P01-T03]: Implement consent and account deletion policies
 
 **Files:**

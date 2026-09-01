@@ -15,6 +15,11 @@ export {
   auditLogs,
 } from "./schema/audit.js";
 export {
+  notificationDeliveries,
+  notificationDeliveryKind,
+  notificationDeliveryStatus,
+} from "./schema/notifications.js";
+export {
   birthProfileRevisions,
   birthProfiles,
 } from "./schema/birth-profile.js";

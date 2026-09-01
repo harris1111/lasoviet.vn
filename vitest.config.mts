@@ -12,7 +12,11 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["packages/**/*.test.ts", "tests/**/*.test.ts"],
+    include: [
+      "apps/**/*.test.ts",
+      "packages/**/*.test.ts",
+      "tests/**/*.test.ts",
+    ],
     exclude: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
   },
 });

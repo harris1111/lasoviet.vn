@@ -23,8 +23,8 @@ const completeSmtp = {
   SMTP_PORT: "587",
   SMTP_USERNAME: "synthetic-smtp-user",
   SMTP_PASSWORD: "synthetic-smtp-password-never-serialize",
-  SMTP_FROM_DOMAIN: "synthetic-mail.test",
-  SMTP_FROM_ADDRESS: "noreply@synthetic-mail.test",
+  SMTP_FROM_ADDRESS: "La So Viet <noreply@synthetic-mail.test>",
+  SMTP_USE_SSL: "1",
 } as const;
 
 const completeS3 = {
@@ -56,8 +56,8 @@ const validNormalizedProduction = {
     port: 587,
     username: "synthetic-smtp-user",
     password: "synthetic-smtp-password-never-serialize",
-    fromDomain: "synthetic-mail.test",
-    fromAddress: "noreply@synthetic-mail.test",
+    fromAddress: "La So Viet <noreply@synthetic-mail.test>",
+    tlsRequired: true,
   },
   cloudS3: {
     enabled: true,
@@ -84,7 +84,7 @@ function expectInvalid(source: NodeJS.ProcessEnv, variable: string) {
 
 function expectPartial(
   source: NodeJS.ProcessEnv,
-  group: "ai" | "smtp" | "cloudS3",
+  group: "ai" | "smtp" | "cloudS3" | "google",
   variable: string,
 ) {
   expect(loadEnvironment(source)).toEqual({
@@ -175,14 +175,14 @@ describe("environment loading", () => {
     ["SMTP_USERNAME", { ...productionBase, ...completeSmtp, SMTP_USERNAME: " " }, "SMTP_USERNAME"],
     ["SMTP_PASSWORD", { ...productionBase, ...completeSmtp, SMTP_PASSWORD: " " }, "SMTP_PASSWORD"],
     [
-      "SMTP_FROM_DOMAIN",
-      { ...productionBase, ...completeSmtp, SMTP_FROM_DOMAIN: " " },
-      "SMTP_FROM_DOMAIN",
-    ],
-    [
       "SMTP_FROM_ADDRESS",
       { ...productionBase, ...completeSmtp, SMTP_FROM_ADDRESS: "invalid" },
       "SMTP_FROM_ADDRESS",
+    ],
+    [
+      "SMTP_USE_SSL",
+      { ...productionBase, ...completeSmtp, SMTP_USE_SSL: "true" },
+      "SMTP_USE_SSL",
     ],
 
     [
@@ -220,7 +220,29 @@ describe("environment loading", () => {
   it("rejects partial optional groups in declared order", () => {
     expectPartial({ ...productionBase, AI_BASE_URL: completeAi.AI_BASE_URL }, "ai", "AI_API_KEY");
     expectPartial({ ...productionBase, SMTP_HOST: completeSmtp.SMTP_HOST }, "smtp", "SMTP_PORT");
+    expectPartial(
+      { ...productionBase, SMTP_HOST: completeSmtp.SMTP_HOST, SMTP_PORT: completeSmtp.SMTP_PORT },
+      "smtp",
+      "SMTP_USERNAME",
+    );
+    expectPartial(
+      {
+        ...productionBase,
+        SMTP_HOST: completeSmtp.SMTP_HOST,
+        SMTP_PORT: completeSmtp.SMTP_PORT,
+        SMTP_USERNAME: completeSmtp.SMTP_USERNAME,
+        SMTP_PASSWORD: completeSmtp.SMTP_PASSWORD,
+        SMTP_FROM_ADDRESS: completeSmtp.SMTP_FROM_ADDRESS,
+      },
+      "smtp",
+      "SMTP_USE_SSL",
+    );
     expectPartial({ ...productionBase, CLOUD_S3_ENDPOINT: completeS3.CLOUD_S3_ENDPOINT }, "cloudS3", "CLOUD_S3_REGION");
+    expectPartial(
+      { ...productionBase, GOOGLE_CLIENT_ID: "synthetic-google-client" },
+      "google",
+      "GOOGLE_CLIENT_SECRET",
+    );
   });
 
   it("normalizes each complete optional group to its enabled typed shape", () => {

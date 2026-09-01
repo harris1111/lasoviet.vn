@@ -26,7 +26,7 @@ type ParseResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: AppError<EnvironmentErrorCode> };
 
-type OptionalGroup = "ai" | "smtp" | "cloudS3";
+type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google";
 
 const AI_VARIABLES = [
   "AI_BASE_URL",
@@ -43,8 +43,8 @@ const SMTP_VARIABLES = [
   "SMTP_PORT",
   "SMTP_USERNAME",
   "SMTP_PASSWORD",
-  "SMTP_FROM_DOMAIN",
   "SMTP_FROM_ADDRESS",
+  "SMTP_USE_SSL",
 ] as const;
 
 const CLOUD_S3_VARIABLES = [
@@ -55,10 +55,17 @@ const CLOUD_S3_VARIABLES = [
   "CLOUD_S3_SECRET_ACCESS_KEY",
 ] as const;
 
+const GOOGLE_VARIABLES = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const;
+
 const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   internalActorSecret: "INTERNAL_ACTOR_SECRET",
   databaseUrl: "DATABASE_URL",
   redisUrl: "REDIS_URL",
+  betterAuthSecret: "BETTER_AUTH_SECRET",
+  betterAuthUrl: "BETTER_AUTH_URL",
+  privateApiUrl: "PRIVATE_API_URL",
+  "google.clientId": "GOOGLE_CLIENT_ID",
+  "google.clientSecret": "GOOGLE_CLIENT_SECRET",
   "ai.baseUrl": "AI_BASE_URL",
   "ai.apiKey": "AI_API_KEY",
   "ai.model": "AI_MODEL",
@@ -70,8 +77,8 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "smtp.port": "SMTP_PORT",
   "smtp.username": "SMTP_USERNAME",
   "smtp.password": "SMTP_PASSWORD",
-  "smtp.fromDomain": "SMTP_FROM_DOMAIN",
   "smtp.fromAddress": "SMTP_FROM_ADDRESS",
+  "smtp.tlsRequired": "SMTP_USE_SSL",
   "cloudS3.endpoint": "CLOUD_S3_ENDPOINT",
   "cloudS3.region": "CLOUD_S3_REGION",
   "cloudS3.bucket": "CLOUD_S3_BUCKET",
@@ -214,8 +221,8 @@ function loadSmtp(source: NodeJS.ProcessEnv): ParseResult<SmtpEnvironment> {
     port: decimalInteger(source.SMTP_PORT),
     username: source.SMTP_USERNAME,
     password: source.SMTP_PASSWORD,
-    fromDomain: source.SMTP_FROM_DOMAIN,
     fromAddress: source.SMTP_FROM_ADDRESS,
+    tlsRequired: source.SMTP_USE_SSL === "1",
   });
   return parsed.success
     ? { ok: true, value: parsed.data }
@@ -280,6 +287,11 @@ export function loadEnvironment(
     return cloudS3;
   }
 
+  const googleState = optionalGroupState(source, GOOGLE_VARIABLES);
+  if (googleState.state === "partial") {
+    return partialOptionalGroup("google", googleState.missing);
+  }
+
   const normalized: AppEnvironment = {
     nodeEnv: parsedNodeEnv.data as NodeEnvironment,
     ai: ai.value,
@@ -294,6 +306,21 @@ export function loadEnvironment(
   }
   if (source.REDIS_URL !== undefined) {
     normalized.redisUrl = source.REDIS_URL;
+  }
+  if (source.BETTER_AUTH_SECRET !== undefined) {
+    normalized.betterAuthSecret = source.BETTER_AUTH_SECRET;
+  }
+  if (source.BETTER_AUTH_URL !== undefined) {
+    normalized.betterAuthUrl = source.BETTER_AUTH_URL;
+  }
+  if (source.PRIVATE_API_URL !== undefined) {
+    normalized.privateApiUrl = source.PRIVATE_API_URL;
+  }
+  if (googleState.state === "complete") {
+    normalized.google = {
+      clientId: source.GOOGLE_CLIENT_ID as string,
+      clientSecret: source.GOOGLE_CLIENT_SECRET as string,
+    };
   }
 
   const parsedEnvironment = AppEnvironmentSchema.safeParse(normalized);

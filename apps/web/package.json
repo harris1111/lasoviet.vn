@@ -9,7 +9,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@lasoviet/config": "workspace:0.0.0",
     "@lasoviet/contracts": "workspace:0.0.0",
+    "@lasoviet/database": "workspace:0.0.0",
+    "better-auth": "1.7.2",
+    "jose": "6.2.10",
     "next": "16.3.4",
     "next-intl": "4.14.1",
     "react": "19.2.8",

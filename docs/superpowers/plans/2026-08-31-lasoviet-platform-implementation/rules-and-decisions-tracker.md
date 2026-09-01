@@ -69,3 +69,18 @@ and task history remain in plans/reports, not `AGENTS.md`.
 
 Open founder decisions are tracked in `open-decisions.md`. Package approval
 does not silently close them.
+
+## P01-T02 Evidence
+
+Date: 2026-09-01
+
+- Scope: non-visual authentication, identity, SMTP, and API/BFF work only;
+  no pages, forms, components, navigation, layouts, styling, or visual states.
+- Database migration and ownership-transfer acceptance passed: 3 tests.
+- Focused auth/config/backend checks passed: 44 tests. Full repository suite
+  passed: 83 tests. Root typecheck and build passed after rebuilding producer
+  declarations.
+- Browser E2E is not marked green. The exact Playwright command found no
+  controlled Next/PostgreSQL runtime at `http://127.0.0.1:3000/`; a later
+  authorized runtime must run that gate.
+- No external SMTP send or Google request occurred. Rule candidate: none.
