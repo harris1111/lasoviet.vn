@@ -340,6 +340,22 @@ rule instead of adding another version.
   it on a dedicated branch before pushing and restore local `master` to the
   integrated remote state afterward.
 
+### UI Artifact Branch Workflow
+
+- This subsection records a founder-approved repository invariant dated
+  2026-09-01.
+- Do not implement user-facing visual UI in non-UI implementation branches.
+  Pages, forms, components, layouts, navigation presentation, styles, and
+  visual interaction states wait for the dedicated UI artifact branch.
+- The approved artifact on that branch is the binding UI implementation source.
+  Do not invent or pre-empt its visual design in backend, data, auth, engine, or
+  infrastructure tasks.
+- Server-side Next.js BFF/routes, APIs, contracts, localized message data, and
+  headless HTTP/session tests remain allowed when they do not introduce visual
+  UI.
+- When a non-UI task depends on an unresolved visual decision, record the UI
+  artifact dependency and continue independent non-visual work.
+
 ### Docker Compose Web Publishing
 
 - This subsection records a founder-approved deployment invariant dated
