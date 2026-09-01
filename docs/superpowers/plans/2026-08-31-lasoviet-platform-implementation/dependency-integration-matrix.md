@@ -74,6 +74,21 @@ The committed CycloneDX 1.5 artifact is
 dependency graph. The temporary archive used for integrity inspection is not a
 repository artifact and is removed before staging.
 
+## P02-T03 Fixture and Reference Evidence (2026-09-02)
+
+The committed P0 fixture manifest pins the same reviewed `iztro@2.6.0`,
+adapter version `1`, and `ziwei.default` rule set as the first-use gate.
+No new production dependency, import owner, license decision, or SBOM
+component was introduced.
+
+The read-only Tianji reference at audited commit
+`a48cf098bbb4f45ca7848a304ca8d90f50697473` was run only for the overlapping
+lunar `1988-01-15` early-Zi life-palace check. Tianji returned Tiger and
+normalized iztro returned `ziwei.branch.tiger`. Tianji is not used for
+late-Zi, timezone, solar-term, leap-month, or full-star comparisons because
+its method/configuration does not genuinely overlap there. No Tianji code or
+output is imported into a production package.
+
 ## Validation and Reference
 
 | Repository | Source / audited commit / latest commit | Class | Allowed use | Prohibited use |

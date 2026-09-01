@@ -175,39 +175,62 @@ git commit -m "feat: add reproducible Zi Wei calculation"
 - Produces a versioned fixture manifest with source, expected values, rule set,
   precision, and review status.
 
-- [ ] **Step 1: Add failing core fixtures**
+- [x] **Step 1: Add failing core fixtures**
 
 Include solar/lunar conversion, leap month, solar-term boundary, early/late
 Tý hour, branch boundary, timezone difference, historical timezone, unknown
 time rejection, and branch-only precision.
 
-- [ ] **Step 2: Run fixtures**
+- [x] **Step 2: Run fixtures**
 
 Run: `pnpm vitest run tests/calculation/ziwei-p0-fixtures.test.ts`
 Expected: FAIL until the adapter and expected records agree.
 
-- [ ] **Step 3: Cross-check important fixtures**
+- [x] **Step 3: Cross-check important fixtures**
 
 Use Tianji only where methods overlap. For school differences, record the
 difference and compare against a trusted worked example instead of majority
 voting.
 
-- [ ] **Step 4: Resolve every unexplained mismatch**
+- [x] **Step 4: Resolve every unexplained mismatch**
 
 Luna stops on mismatch. Terra reviews whether it is an adapter bug, source
 error, or school difference before Luna changes code or fixture expectations.
 
-- [ ] **Step 5: Run the complete fixture suite**
+- [x] **Step 5: Run the complete fixture suite**
 
 Run: `pnpm vitest run tests/calculation/ziwei-p0-fixtures.test.ts`
 Expected: 100% PASS.
 
-- [ ] **Step 6: Update risk/rule trackers and commit**
+- [x] **Step 6: Update risk/rule trackers and commit**
 
 ```bash
 git add packages/test-fixtures tests/calculation docs/superpowers/plans
 git commit -m "test: add trusted Zi Wei fixtures"
 ```
+
+**P02-T03 Evidence (2026-09-02):**
+
+- The fixture RED showed that the adapter collapsed `23:30` late Zi into the
+  same vendor input as `00:30` early Zi. The adapter now sends iztro
+  `timeIndex: 12` for `23:00-23:59`; its approved current-day division may
+  still produce the same chart facts, so the fixture asserts the real vendor
+  input boundary rather than inventing a chart difference.
+- Manifest v1 covers 11 fixtures across solar/lunar input, leap lunar month,
+  solar-term boundary, early/late Zi, branch boundary, IANA and historical
+  timezone provenance, unknown-time rejection, and branch-only precision.
+  Reused Phase 01 inputs preserve original calendar/time/timezone provenance.
+- The real `IztroAdapter` passed every eligible fixture and the unknown-time
+  fixture returned `ZIWEI_TIME_INELIGIBLE` before an adapter run.
+- Read-only Tianji overlap comparison for lunar `1988-01-15`, early Zi,
+  returned life palace Tiger, agreeing with normalized iztro
+  `ziwei.branch.tiger`. Tianji's late-Zi, timezone, solar-term, leap-month,
+  and complete-star behavior is not comparable and is recorded in the source
+  notes; Mingyu is excluded.
+- Focused fixture and adapter tests, root typecheck, and root build passed.
+  No UI, AI, production reference import, external call, or durable rule was
+  added. Docs impact: minor. Rule
+  candidate: none. Open questions: none.
 
 ### Task 4 [P02-T04]: Implement capability registry and deterministic evidence
 

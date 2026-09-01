@@ -52,3 +52,22 @@ revision reads. Ineligible unknown or multi-branch time writes no run. The
 idempotency value is `inputHash:engineVersion:adapterVersion:configHash` and
 is unique per immutable profile revision to prevent cross-profile chart-ID
 reuse. No durable rule is warranted.
+
+## P02-T03 Implementation — 2026-09-02
+
+| Gate | Exact command | Result |
+|---|---|---|
+| Focused RED | `corepack pnpm@11.25.0 exec vitest run tests/calculation/ziwei-p0-fixtures.test.ts` | Failed as expected: early and late Zi produced the same vendor input/chart before the adapter sent late-Zi index 12. |
+| Focused fixtures | `corepack pnpm@11.25.0 exec vitest run tests/calculation/ziwei-p0-fixtures.test.ts packages/engine-adapters/src/ziwei/iztro-adapter.test.ts` | Passed: 2 files, 2 tests; manifest v1 evaluated 11 fixtures. |
+| Tianji overlap | `PYTHONPATH=G:\Dev\Repos-Windows\tuvi-a-lam\tianji\src ... py -3 -c ...` | Read-only local comparison passed: Tianji and iztro both produced life-palace Tiger for lunar `1988-01-15`, early Zi. |
+| Root typecheck | `corepack pnpm@11.25.0 run typecheck` | Passed. |
+| Root build | `corepack pnpm@11.25.0 run build` | Passed. |
+
+The fixture manifest contains 11 approved P0 records and runs the real
+`IztroAdapter`; it preserves Phase 01 original calendar/time/timezone inputs,
+reuses their precision fixtures, rejects unknown time before calculation, and
+records the `default` rule set and review status for every record. Late Zi now
+reaches iztro index 12 without changing the public rule set. Tianji is used
+only for the verified lunar/hour/life-palace overlap; non-overlapping school
+and calendar behavior remains explicitly not comparable. Mingyu is excluded.
+No durable rule is warranted.

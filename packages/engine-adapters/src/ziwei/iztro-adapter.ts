@@ -69,7 +69,19 @@ function failure(
   };
 }
 
-function timeIndex(profile: NormalizedBirthProfileV1): number | undefined {
+function exactMinuteIndex(localTime: string): number {
+  const hour = Number(localTime.slice(0, 2));
+  if (hour === 23) {
+    return 12;
+  }
+  return Math.floor(
+    (hour * 60 + Number(localTime.slice(3, 5)) + 60) / 120,
+  ) % 12;
+}
+
+export function iztroTimeIndex(
+  profile: NormalizedBirthProfileV1,
+): number | undefined {
   switch (profile.normalizedTime.precision) {
     case "branch_only":
       return [
@@ -87,19 +99,9 @@ function timeIndex(profile: NormalizedBirthProfileV1): number | undefined {
         "hai",
       ].indexOf(profile.normalizedTime.branch);
     case "exact_minute":
-      return Math.floor(
-        (Number(profile.normalizedTime.localTime.slice(0, 2)) * 60 +
-          Number(profile.normalizedTime.localTime.slice(3, 5)) +
-          60) /
-          120,
-      ) % 12;
+      return exactMinuteIndex(profile.normalizedTime.localTime);
     case "range":
-      return Math.floor(
-        (Number(profile.normalizedTime.startLocalTime.slice(0, 2)) * 60 +
-          Number(profile.normalizedTime.startLocalTime.slice(3, 5)) +
-          60) /
-          120,
-      ) % 12;
+      return exactMinuteIndex(profile.normalizedTime.startLocalTime);
     case "unknown":
       return undefined;
   }
@@ -132,7 +134,7 @@ export class IztroAdapter implements ZiweiEngine {
   ): Promise<IztroCalculationWithPrivateSnapshot> {
     const profile = input.birthProfile;
     const resolvedGender = gender(profile);
-    const resolvedTimeIndex = timeIndex(profile);
+    const resolvedTimeIndex = iztroTimeIndex(profile);
     if (
       config.values.algorithm !== "default" ||
       resolvedGender === undefined ||

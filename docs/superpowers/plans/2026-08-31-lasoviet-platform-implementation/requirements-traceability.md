@@ -60,6 +60,13 @@
 | Private NestJS/Fastify API foundation | `@lasoviet/api` thin NestJS/Fastify composition root with exact approved dependencies; typecheck and build passed. | No health or product endpoint is claimed. |
 | General worker foundation | `@lasoviet/worker` Nest application-context composition root with exact approved dependencies; typecheck and build passed. | No queue behavior or runtime job processing is claimed. |
 
+## P02-T03 Evidence (2026-09-02)
+
+| Requirement | Evidence | Boundary |
+|---|---|---|
+| iztro adapter and default rules | Manifest v1 runs 11 approved P0 fixtures through the real `IztroAdapter`, pins `iztro@2.6.0` and `ziwei.default`, and verifies the late-Zi vendor index boundary. | The approved current-day rule may yield the same normalized chart for early/late Zi; no alternate school is inferred. |
+| Independent Zi Wei validation | Read-only Tianji lunar/early-Zi overlap agrees on Tiger life palace for `1988-01-15`; non-overlapping methods are recorded as not comparable. | Tianji is reference-only; Mingyu is not independent validation. |
+
 ## Update Protocol
 
 After every task:

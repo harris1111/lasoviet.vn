@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "engine": {
+    "id": "ziwei.iztro",
+    "version": "2.6.0",
+    "adapterVersion": "1",
+    "ruleSetId": "ziwei.default"
+  },
+  "fixtures": [
+    {
+      "id": "solar-lunar-conversion",
+      "boundaryClass": "solar_lunar_conversion",
+      "birthProfileFixture": "tests/fixtures/birth-profile/solar-input.json",
+      "inputOverrides": { "gender": "male" },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "timezoneSource": "offset",
+        "palaceCount": 12
+      },
+      "precision": "exact_minute",
+      "source": "P02-T02 reviewed iztro default chart baseline",
+      "reviewStatus": "reviewed",
+      "differences": "Iztro performs vendor-native solar calendar handling. This fixture does not claim a true-solar-time correction."
+    },
+    {
+      "id": "lunar-input",
+      "boundaryClass": "solar_lunar_conversion",
+      "birthProfileFixture": "tests/fixtures/birth-profile/lunar-input.json",
+      "inputOverrides": { "gender": "male" },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "branch_only",
+        "limitation": "LUNAR_CALENDAR_CONVERSION_DEFERRED",
+        "palaceCount": 12
+      },
+      "precision": "branch_only",
+      "source": "Phase 01 canonical lunar BirthProfile fixture",
+      "reviewStatus": "reviewed-with-limitations",
+      "differences": "The persisted profile preserves lunar input; iztro receives the explicit lunar calendar and leap flag."
+    },
+    {
+      "id": "leap-lunar-month",
+      "boundaryClass": "leap_lunar_month",
+      "input": {
+        "version": 1,
+        "calendar": { "kind": "lunar", "date": "2020-04-15", "isLeapMonth": true },
+        "time": { "precision": "exact_minute", "localTime": "09:30" },
+        "timezone": { "offsetMinutes": 420 },
+        "gender": "male",
+        "consentVersion": "2026-09-02"
+      },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "limitation": "LUNAR_CALENDAR_CONVERSION_DEFERRED",
+        "palaceCount": 12
+      },
+      "precision": "exact_minute",
+      "source": "iztro 2.6.0 lunar input contract with explicit isLeapMonth",
+      "reviewStatus": "reviewed",
+      "differences": "The fixture verifies explicit leap-month transmission only; it does not independently validate a lunar conversion table."
+    },
+    {
+      "id": "solar-term-boundary",
+      "boundaryClass": "solar_term_boundary",
+      "input": {
+        "version": 1,
+        "calendar": { "kind": "solar", "date": "2020-02-04" },
+        "time": { "precision": "exact_minute", "localTime": "17:03" },
+        "timezone": { "offsetMinutes": 480 },
+        "gender": "male",
+        "consentVersion": "2026-09-02"
+      },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "timezoneSource": "offset",
+        "palaceCount": 12
+      },
+      "precision": "exact_minute",
+      "source": "Iztro default configuration boundary record",
+      "reviewStatus": "reviewed-with-limitations",
+      "differences": "The default rule set is pinned. No alternate solar-term school is selected or inferred."
+    },
+    {
+      "id": "ty-early",
+      "boundaryClass": "early_ty_hour",
+      "input": {
+        "version": 1,
+        "calendar": { "kind": "solar", "date": "2000-02-29" },
+        "time": { "precision": "exact_minute", "localTime": "00:30" },
+        "timezone": { "offsetMinutes": 0 },
+        "gender": "male",
+        "consentVersion": "2026-09-02"
+      },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "palaceCount": 12,
+        "adapterTimeIndex": 0
+      },
+      "precision": "exact_minute",
+      "source": "iztro withOptions timeIndex 0 early-Zi contract",
+      "reviewStatus": "reviewed",
+      "differences": "Early Zi uses iztro timeIndex 0 under the approved current-day division."
+    },
+    {
+      "id": "ty-late",
+      "boundaryClass": "late_ty_hour",
+      "input": {
+        "version": 1,
+        "calendar": { "kind": "solar", "date": "2000-02-29" },
+        "time": { "precision": "exact_minute", "localTime": "23:30" },
+        "timezone": { "offsetMinutes": 0 },
+        "gender": "male",
+        "consentVersion": "2026-09-02"
+      },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "palaceCount": 12,
+        "adapterTimeIndex": 12
+      },
+      "precision": "exact_minute",
+      "source": "iztro withOptions timeIndex 12 late-Zi contract",
+      "reviewStatus": "reviewed",
+      "differences": "Late Zi is a separate vendor input under current-day division; it is not collapsed into early Zi."
+    },
+    {
+      "id": "branch-boundary",
+      "boundaryClass": "branch_boundary",
+      "input": {
+        "version": 1,
+        "calendar": { "kind": "solar", "date": "1990-01-01" },
+        "time": { "precision": "exact_minute", "localTime": "01:00" },
+        "timezone": { "offsetMinutes": 420 },
+        "gender": "male",
+        "consentVersion": "2026-09-02"
+      },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "palaceCount": 12,
+        "adapterTimeIndex": 1
+      },
+      "precision": "exact_minute",
+      "source": "Phase 01 Zi Wei branch-boundary rule",
+      "reviewStatus": "reviewed",
+      "differences": "This is the exact transition from Zi to Chou; no minute is invented."
+    },
+    {
+      "id": "timezone-difference",
+      "boundaryClass": "timezone_difference",
+      "birthProfileFixture": "tests/fixtures/birth-profile/iana-zone.json",
+      "inputOverrides": { "gender": "male" },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "timezoneSource": "iana",
+        "palaceCount": 12
+      },
+      "precision": "exact_minute",
+      "source": "Phase 01 IANA timezone provenance fixture",
+      "reviewStatus": "reviewed-with-limitations",
+      "differences": "Iztro has no native timezone input; the canonical profile retains IANA provenance and the chart records that limitation."
+    },
+    {
+      "id": "historical-timezone",
+      "boundaryClass": "historical_timezone",
+      "birthProfileFixture": "tests/fixtures/birth-profile/historical-dst.json",
+      "inputOverrides": { "gender": "male" },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "exact_minute",
+        "timezoneSource": "iana",
+        "palaceCount": 12
+      },
+      "precision": "exact_minute",
+      "source": "Phase 01 historical IANA timezone fixture",
+      "reviewStatus": "reviewed-with-limitations",
+      "differences": "The profile normalizer resolves the historical offset with Intl; iztro receives local calendar/time only."
+    },
+    {
+      "id": "unknown-time",
+      "boundaryClass": "unknown_time_rejection",
+      "birthProfileFixture": "tests/fixtures/birth-profile/unknown-time.json",
+      "inputOverrides": { "gender": "male" },
+      "expected": {
+        "result": "ineligible",
+        "timeError": "TIME_UNKNOWN"
+      },
+      "precision": "unknown",
+      "source": "Phase 01 unknown-time eligibility fixture",
+      "reviewStatus": "reviewed",
+      "differences": "The fixture runner rejects before an iztro calculation; no chart fact is expected."
+    },
+    {
+      "id": "branch-only-precision",
+      "boundaryClass": "branch_only_precision",
+      "birthProfileFixture": "tests/fixtures/birth-profile/traditional-branch.json",
+      "inputOverrides": { "gender": "male" },
+      "expected": {
+        "result": "calculated",
+        "normalizedPrecision": "branch_only",
+        "limitation": "TIME_BRANCH_ONLY",
+        "palaceCount": 12
+      },
+      "precision": "branch_only",
+      "source": "Phase 01 traditional branch BirthProfile fixture",
+      "reviewStatus": "reviewed-with-limitations",
+      "differences": "The branch is preserved directly. The fixture never invents a minute."
+    }
+  ]
+}
