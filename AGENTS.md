@@ -288,11 +288,12 @@ rule instead of adding another version.
   explicit founder approval.
 - Keep changes narrowly scoped and preserve unrelated user work.
 - Use English conventional commit messages with no AI references.
-- For Windows workspace writes, use only forward-slash paths relative to the
-  resolved assigned worktree in `apply_patch` headers; never use a
-  drive-qualified path there. Before a new-file write, construct the target
-  with `Join-Path` and require its normalized path to remain under that
-  worktree. Stop on any containment mismatch or sibling lookalike path.
+- For Windows `apply_patch` writes, first identify the tool's actual patch
+  root; do not assume the terminal workdir controls it. Use only forward-slash
+  headers relative to that root, never drive-qualified or backslash headers.
+  Normalize the resulting target and require it to remain under the resolved
+  assigned worktree; stop on any containment mismatch or sibling lookalike
+  path.
 
 ### Branch, Pull Request, And Merge Workflow
 
