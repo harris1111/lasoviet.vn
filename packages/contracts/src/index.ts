@@ -100,3 +100,28 @@ export type {
   BirthTimezoneInput,
   NormalizedBirthProfileV1,
 } from "./birth-profile-v1.js";
+
+export type {
+  CalculationEngine,
+  CalculationEngineError,
+  CalculationEngineErrorCode,
+  EngineCapabilities,
+  EngineConfig,
+  EngineResult,
+} from "./engine.js";
+
+export {
+  CalculationProvenanceV1Schema,
+} from "./calculation-provenance.js";
+export type {
+  CalculationProvenanceV1,
+} from "./calculation-provenance.js";
+
+export {
+  NormalizedZiweiChartV1Schema,
+} from "./normalized-ziwei-chart-v1.js";
+export type {
+  NormalizedZiweiChartV1,
+  ZiweiPalaceId,
+  ZiweiStarId,
+} from "./normalized-ziwei-chart-v1.js";

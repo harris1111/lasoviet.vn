@@ -42,32 +42,47 @@ engine/config/input provenance and immutable normalized output.
 - Produces `NormalizedZiweiChartV1Schema`.
 - Produces `CalculationProvenanceV1Schema`.
 
-- [ ] **Step 1: Write failing normalized-schema tests**
+- [x] **Step 1: Write failing normalized-schema tests**
 
 Require 12 unique palaces, language-neutral palace/star IDs, transformations,
 brightness, body/soul metadata, horoscope capability metadata, warnings, and
 provenance.
 
-- [ ] **Step 2: Run contract tests**
+- [x] **Step 2: Run contract tests**
 
 Run: `pnpm vitest run packages/contracts/src/normalized-ziwei-chart-v1.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement schemas and stable IDs**
+- [x] **Step 3: Implement schemas and stable IDs**
 
 Do not store vendor-localized strings as canonical IDs.
 
-- [ ] **Step 4: Run tests and typecheck**
+- [x] **Step 4: Run tests and typecheck**
 
 Run: `pnpm vitest run packages/contracts && pnpm typecheck`
 Expected: PASS.
 
-- [ ] **Step 5: Update traceability and commit**
+- [x] **Step 5: Update traceability and commit**
 
 ```bash
 git add packages/contracts packages/engine-adapters docs/superpowers/plans
 git commit -m "feat: define Zi Wei engine contracts"
 ```
+
+**P02-T01 Evidence (2026-09-01):**
+
+- Focused RED confirmed the normalized chart module was absent before
+  implementation.
+- The contract suite passed: 2 files, 22 tests.
+- `@lasoviet/contracts` and `@lasoviet/engine-adapters` typechecks passed.
+- Root `pnpm typecheck` and `pnpm build` passed with the new adapter package.
+- The contract defines exactly 12 unique canonical palaces, canonical English
+  palace/star/transformation/brightness IDs, body and soul palace metadata,
+  horoscope capability metadata, warnings, provenance hashes, and generic
+  engine error/result semantics.
+- No iztro dependency or import, UI, AI behavior, migration, or external side
+  effect was added. Docs impact: minor. Rule candidate: none. Open questions:
+  none.
 
 ### Task 2 [P02-T02]: Implement IztroAdapter and immutable calculation runs
 
