@@ -1,0 +1,29 @@
+{
+  "name": "@lasoviet/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "drizzle"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "migrate:test": "vitest run --root ../.. packages/database/src/schema/schema.integration.test.ts"
+  },
+  "dependencies": {
+    "@lasoviet/contracts": "workspace:0.0.0",
+    "drizzle-orm": "0.45.2",
+    "postgres": "3.4.9"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "12.1.0",
+    "drizzle-kit": "0.31.10",
+    "testcontainers": "12.1.0"
+  }
+}

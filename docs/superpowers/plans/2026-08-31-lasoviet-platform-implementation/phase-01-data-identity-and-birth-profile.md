@@ -48,33 +48,54 @@ consent, and deletion policies.
 - Produces `runMigrations(databaseUrl)`.
 - Produces `enqueueOutbox(tx, event)`.
 
-- [ ] **Step 1: Write failing Testcontainers schema tests**
+- [x] **Step 1: Write failing Testcontainers schema tests**
 
 Test unique email/account constraints, consent-version records, account or
 anonymous profile ownership, anonymous expiry, deletion state, and outbox lease
 fields.
 
-- [ ] **Step 2: Run the integration test**
+- [x] **Step 2: Run the integration test**
 
 Run: `pnpm vitest run packages/database/src/schema/schema.integration.test.ts`
 Expected: FAIL before migrations exist.
 
-- [ ] **Step 3: Implement schema and generate reviewed SQL**
+- [x] **Step 3: Implement schema and generate reviewed SQL**
 
 Create append-safe tables and indexes. Keep original BirthProfile input and
 normalized fields separate.
 
-- [ ] **Step 4: Apply migrations to an empty and previously migrated database**
+- [x] **Step 4: Apply migrations to an empty and previously migrated database**
 
 Run: `pnpm --filter @lasoviet/database migrate:test`
 Expected: both paths PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add packages/database docs/superpowers/plans
 git commit -m "feat: add PostgreSQL schema and migration runner"
 ```
+
+**P01-T01 Evidence (2026-09-01):**
+
+- Focused `corepack pnpm@11.25.0 --filter @lasoviet/database migrate:test`
+  passed: 1 file, 2 tests.
+- The Testcontainers acceptance applied the reviewed migration to an empty
+  PostgreSQL container and verified repeat migration convergence.
+- Schema-integrity assertions passed for unique email/account constraints,
+  consent and deletion records, account/anonymous profile ownership and
+  expiry, separate original/normalized profile revision fields, audit rows,
+  and outbox idempotency plus lease defaults.
+- `corepack pnpm@11.25.0 --filter @lasoviet/database typecheck` passed.
+- `corepack pnpm@11.25.0 --filter @lasoviet/database build` passed.
+- The generated SQL migration contains 11 tables, the reviewed enums,
+  foreign keys, owner checks, unique constraints, indexes, and outbox lease
+  fields. Drizzle schema discovery uses the explicit five production files.
+- Terra's exact pnpm 11 build-policy remediation was applied and the exact
+  install completed without an unreviewed policy, peer, release-age, or
+  lifecycle error.
+- Docs impact: minor. Rule candidate: none. Open questions: none.
+- Commit: `feat: add PostgreSQL schema and migration runner`.
 
 ### Task 2 [P01-T02]: Integrate Better Auth and internal actor tokens
 

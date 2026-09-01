@@ -1,0 +1,32 @@
+export { createDatabase } from "./client.js";
+export type { Database } from "./client.js";
+
+export { MigrationError, runMigrations } from "./migrate.js";
+export type { MigrationResult } from "./migrate.js";
+
+export {
+  authAccounts,
+  authAnonymousActors,
+  authSessions,
+  authUsers,
+  authVerifications,
+} from "./schema/auth.js";
+export {
+  auditLogs,
+} from "./schema/audit.js";
+export {
+  birthProfileRevisions,
+  birthProfiles,
+} from "./schema/birth-profile.js";
+export {
+  deletionRequestStatus,
+  deletionRequests,
+  consents,
+} from "./schema/privacy.js";
+export {
+  OutboxError,
+  enqueueOutbox,
+  outbox,
+  outboxStatus,
+} from "./schema/outbox.js";
+export type { WorkflowEnvelopeV1 } from "./schema/outbox.js";
