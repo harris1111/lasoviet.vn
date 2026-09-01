@@ -89,7 +89,7 @@ export function createDatabaseAnonymousRetentionRepository(
   database: Database,
 ): AnonymousRetentionRepository {
   return {
-    async purgeExpired(now) {
+    async purgeExpired(now, limit) {
       const actors = await database
         .select({ id: authAnonymousActors.id })
         .from(authAnonymousActors)
@@ -98,7 +98,8 @@ export function createDatabaseAnonymousRetentionRepository(
             isNull(authAnonymousActors.linkedUserId),
             lte(authAnonymousActors.expiresAt, now),
           ),
-        );
+        )
+        .limit(limit);
       const purged: string[] = [];
       for (const actor of actors) {
         const result = await deleteActor(database, actor.id, now, true);

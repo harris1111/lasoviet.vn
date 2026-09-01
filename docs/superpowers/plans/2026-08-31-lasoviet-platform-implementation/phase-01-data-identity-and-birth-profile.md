@@ -376,3 +376,15 @@ git commit -m "feat: add canonical birth profile"
 - Google OAuth remains unexecuted because credentials are unavailable.
   Browser/Playwright UI verification remains deferred by FD-024 and is not
   claimed as passed.
+
+## Phase 01 Correction Pass 2 (2026-09-02)
+
+- Closed the final Sol re-review findings: anonymous actor tokens validate
+  live Better Auth sessions; deletion and retention queries share the bounded
+  maintenance batch; the runner prevents overlap and catches scheduled
+  rejections; duplicate consent requests reuse one record; anonymous linking
+  permits no-profile actors and removes obsolete anonymous identity/sessions.
+- Focused correction verification passed: 4 files, 14 tests. Migration
+  acceptance passed: 1 file, 5 tests. Root typecheck and build passed.
+- No browser/Playwright, Google OAuth, live SMTP, UI work, or external side
+  effect occurred. No durable rule is warranted.

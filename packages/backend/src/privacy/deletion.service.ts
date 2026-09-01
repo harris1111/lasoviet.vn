@@ -67,8 +67,8 @@ export function createAccountDeletionService(
       return result.ok ? result : resultError(result.error);
     },
 
-    async purgeExpired(): Promise<string[]> {
-      return options.repository.purgeExpired(now());
+    async purgeExpired(limit = 25): Promise<string[]> {
+      return options.repository.purgeExpired(now(), limit);
     },
   };
 }

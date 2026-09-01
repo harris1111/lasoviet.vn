@@ -5,7 +5,7 @@ export type AnonymousRetentionError =
   | "ANONYMOUS_ALREADY_LINKED";
 
 export type AnonymousRetentionRepository = {
-  purgeExpired(now: Date): Promise<string[]>;
+  purgeExpired(now: Date, limit: number): Promise<string[]>;
   purgeActor(
     actorId: string,
     now: Date,
@@ -41,8 +41,8 @@ export function createAnonymousRetentionService(options: {
   repository: AnonymousRetentionRepository;
 }) {
   return {
-    async purgeExpired(now: Date): Promise<string[]> {
-      return options.repository.purgeExpired(now);
+    async purgeExpired(now: Date, limit = 25): Promise<string[]> {
+      return options.repository.purgeExpired(now, limit);
     },
 
     async purgeActor(

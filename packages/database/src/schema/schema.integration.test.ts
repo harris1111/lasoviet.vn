@@ -9,6 +9,7 @@ import {
 import {
   authAccounts,
   authAnonymousActors,
+  authSessions,
   authUsers,
 } from "./auth.js";
 import {
@@ -251,9 +252,29 @@ describe("database schema integration", () => {
       name: "Linked User",
       email: "linked-user@example.test",
     });
+    await database.insert(authUsers).values({
+      id: anonymousActorId,
+      name: "Anonymous Link User",
+      email: "anonymous-link-user@example.test",
+      isAnonymous: true,
+    });
     await database.insert(authAnonymousActors).values({
       id: anonymousActorId,
       expiresAt: new Date("2026-09-02T00:00:00Z"),
+    });
+    await database.insert(authSessions).values({
+      id: "anonymous_link_session",
+      userId: anonymousActorId,
+      token: "anonymous-link-token",
+      expiresAt: new Date("2026-09-02T00:00:00Z"),
+    });
+    await database.insert(auditLogs).values({
+      actorId: anonymousActorId,
+      action: "anonymous.profile.created",
+      targetType: "birth_profile",
+      targetId: profileId,
+      requestId: "anonymous-link-request",
+      metadata: {},
     });
     await database.insert(birthProfiles).values({
       id: profileId,
@@ -284,6 +305,23 @@ describe("database schema integration", () => {
       anonymousExpiresAt: null,
     });
     expect(actor).toMatchObject({ id: anonymousActorId, linkedUserId: userId });
+    expect(
+      (await database.select().from(authUsers)).find(
+        (user) => user.id === anonymousActorId,
+      ),
+    ).toBeUndefined();
+    expect(
+      (await database.select().from(authSessions)).find(
+        (session) => session.id === "anonymous_link_session",
+      ),
+    ).toBeUndefined();
+    expect(
+      (await database.select().from(auditLogs)).find(
+        (audit) =>
+          audit.actorId === anonymousActorId &&
+          audit.action === "anonymous.profile.created",
+      ),
+    ).toBeDefined();
 
     await database.$client.end();
   }, 120_000);
@@ -310,6 +348,58 @@ describe("database schema integration", () => {
       ok: false,
       error: { code: "ANONYMOUS_LINK_CONFLICT" },
     });
+    await database.$client.end();
+  }, 120_000);
+
+  it("links an anonymous actor with no profile and removes its old identity", async () => {
+    const database = createDatabase(databaseUrl);
+    const userId = "user_no_profile_link_test";
+    const anonymousActorId = "anonymous_no_profile_link_test";
+    await database.insert(authUsers).values([
+      {
+        id: userId,
+        name: "No Profile Link Account",
+        email: "no-profile-link-account@example.test",
+      },
+      {
+        id: anonymousActorId,
+        name: "No Profile Anonymous User",
+        email: "no-profile-anonymous@example.test",
+        isAnonymous: true,
+      },
+    ]);
+    await database.insert(authAnonymousActors).values({
+      id: anonymousActorId,
+      expiresAt: new Date("2026-09-03T00:00:00Z"),
+    });
+    await database.insert(authSessions).values({
+      id: "anonymous_no_profile_link_session",
+      userId: anonymousActorId,
+      token: "anonymous-no-profile-link-token",
+      expiresAt: new Date("2026-09-03T00:00:00Z"),
+    });
+
+    await expect(
+      linkAnonymousActorToAccount(database, anonymousActorId, userId),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: { anonymousActorId, userId },
+    });
+    const [actor] = await database
+      .select()
+      .from(authAnonymousActors)
+      .where(eq(authAnonymousActors.id, anonymousActorId));
+    expect(actor).toMatchObject({ linkedUserId: userId });
+    expect(
+      (await database.select().from(authUsers)).find(
+        (user) => user.id === anonymousActorId,
+      ),
+    ).toBeUndefined();
+    expect(
+      (await database.select().from(authSessions)).find(
+        (session) => session.id === "anonymous_no_profile_link_session",
+      ),
+    ).toBeUndefined();
     await database.$client.end();
   }, 120_000);
 });

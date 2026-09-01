@@ -1,5 +1,5 @@
 export type PhaseOneMaintenance = {
-  purgeExpired(): Promise<string[]>;
+  purgeExpired(limit: number): Promise<string[]>;
 };
 
 export type PhaseOneMaintenanceRunner = {
@@ -13,18 +13,30 @@ export function createPhaseOneMaintenanceRunner(options: {
   batchSize?: number;
 }): PhaseOneMaintenanceRunner {
   const batchSize = options.batchSize ?? 25;
+  let activeRun: Promise<{
+    accountPurges: number;
+    anonymousPurges: number;
+    retries: number;
+  }> | undefined;
   return {
-    async runOnce() {
-      const [accountPurges, anonymousPurges, retries] = await Promise.all([
-        options.accountDeletion.purgeExpired(),
-        options.anonymousRetention.purgeExpired(),
+    runOnce() {
+      if (activeRun !== undefined) {
+        return activeRun;
+      }
+      activeRun = Promise.all([
+        options.accountDeletion.purgeExpired(batchSize),
+        options.anonymousRetention.purgeExpired(batchSize),
         options.retryAuthEmail(batchSize),
-      ]);
-      return {
-        accountPurges: accountPurges.length,
-        anonymousPurges: anonymousPurges.length,
-        retries,
-      };
+      ])
+        .then(([accountPurges, anonymousPurges, retries]) => ({
+          accountPurges: accountPurges.length,
+          anonymousPurges: anonymousPurges.length,
+          retries,
+        }))
+        .finally(() => {
+          activeRun = undefined;
+        });
+      return activeRun;
     },
   };
 }

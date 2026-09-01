@@ -16,7 +16,10 @@ export { birthProfiles } from "./schema/birth-profile.js";
 export { notificationDeliveries } from "./schema/notifications.js";
 
 import { createDatabase, type Database } from "./client.js";
-import { authAnonymousActors } from "./schema/auth.js";
+import {
+  authAnonymousActors,
+  authUsers,
+} from "./schema/auth.js";
 import { birthProfiles } from "./schema/birth-profile.js";
 
 export type AnonymousLinkErrorCode = "ANONYMOUS_LINK_CONFLICT";
@@ -71,9 +74,7 @@ export async function linkAnonymousActorToAccount(
         ),
       )
       .returning({ id: birthProfiles.id });
-    if (linked.length === 0) {
-      throw new Error("ANONYMOUS_LINK_PROFILE_MISSING");
-    }
+    await transaction.delete(authUsers).where(eq(authUsers.id, anonymousActorId));
 
     return {
       ok: true,

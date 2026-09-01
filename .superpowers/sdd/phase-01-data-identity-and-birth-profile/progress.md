@@ -88,3 +88,17 @@ remains binding. No new durable rule is warranted.
 
 Google OAuth was not called because credentials are unavailable. Browser or
 Playwright UI verification is not claimed; FD-024 continues to defer it.
+
+## Phase 01 Correction Pass 2 — 2026-09-02
+
+| Gate | Exact command | Result |
+|---|---|---|
+| Scoped lifecycle regressions | `pnpm exec vitest run --pool=forks --maxWorkers=1 --no-file-parallelism apps/api/src/auth/internal-actor-live.integration.test.ts packages/backend/src/maintenance/phase-one-maintenance.test.ts tests/privacy/account-deletion.integration.test.ts packages/database/src/schema/schema.integration.test.ts` | Passed: 4 files, 14 tests. |
+| Migration acceptance | `pnpm --filter @lasoviet/database migrate:test` | Passed: 1 file, 5 tests. |
+| Root typecheck | `pnpm typecheck` | Passed. |
+| Root build | `pnpm build` | Passed. |
+
+The pass closes anonymous session binding, bounded non-overlapping maintenance,
+conflict-safe consent reuse, no-profile linking, and post-link anonymous
+identity/session cleanup. No durable rule is warranted. Google and browser/UI
+limitations remain unchanged.

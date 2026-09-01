@@ -1,4 +1,5 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { eq } from "drizzle-orm";
 import { SignJWT } from "jose";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -116,8 +117,20 @@ describe("internal actor live authorization", () => {
   it("requires a live, unlinked, unexpired anonymous actor", async () => {
     const database = createDatabase(databaseUrl);
     const now = issuedAt + 60;
+    await database.insert(authUsers).values({
+      id: "anonymous-actor",
+      name: "Anonymous Actor",
+      email: "anonymous-actor@example.test",
+      isAnonymous: true,
+    });
     await database.insert(authAnonymousActors).values({
       id: "anonymous-actor",
+      expiresAt: new Date("2026-09-02T00:00:00Z"),
+    });
+    await database.insert(authSessions).values({
+      id: "anonymous-actor-session",
+      userId: "anonymous-actor",
+      token: "anonymous-actor-token",
       expiresAt: new Date("2026-09-02T00:00:00Z"),
     });
     const token = await actorToken("anonymous", "anonymous-actor");
@@ -128,8 +141,24 @@ describe("internal actor live authorization", () => {
       anonymousActorId: "anonymous-actor",
     });
     await database
+      .delete(authSessions)
+      .where(eq(authSessions.id, "anonymous-actor-session"));
+    await expect(
+      verifyInternalActorToken(token, secret, now, database),
+    ).rejects.toMatchObject({ code: "ACTOR_TOKEN_INVALID" } satisfies Partial<ActorTokenError>);
+    await database.insert(authSessions).values({
+      id: "anonymous-actor-session",
+      userId: "anonymous-actor",
+      token: "anonymous-actor-token-expired",
+      expiresAt: new Date("2026-08-31T23:59:59Z"),
+    });
+    await expect(
+      verifyInternalActorToken(token, secret, now, database),
+    ).rejects.toMatchObject({ code: "ACTOR_TOKEN_INVALID" } satisfies Partial<ActorTokenError>);
+    await database
       .update(authAnonymousActors)
-      .set({ deletedAt: new Date("2026-09-01T00:00:00Z") });
+      .set({ deletedAt: new Date("2026-09-01T00:00:00Z") })
+      .where(eq(authAnonymousActors.id, "anonymous-actor"));
     await expect(
       verifyInternalActorToken(token, secret, now, database),
     ).rejects.toMatchObject({ code: "ACTOR_TOKEN_INVALID" } satisfies Partial<ActorTokenError>);

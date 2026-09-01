@@ -31,32 +31,39 @@ export function createDatabaseConsentRepository(
           input.actor.kind === "account"
             ? { userId: input.actor.userId, anonymousActorId: null }
             : { userId: null, anonymousActorId: input.actor.anonymousActorId };
-        const [existing] = await transaction
-          .select({ id: consents.id })
-          .from(consents)
-          .where(
-            and(
-              input.actor.kind === "account"
-                ? eq(consents.userId, input.actor.userId)
-                : eq(consents.anonymousActorId, input.actor.anonymousActorId),
-              eq(consents.documentKey, input.documentKey),
-              eq(consents.documentVersion, input.documentVersion),
-              eq(consents.purpose, input.purpose),
-            ),
-          )
-          .limit(1);
-        if (existing !== undefined) {
+        const id = randomUUID();
+        const [inserted] = await transaction
+          .insert(consents)
+          .values({
+            id,
+            ...owner,
+            documentKey: input.documentKey,
+            documentVersion: input.documentVersion,
+            purpose: input.purpose,
+            grantedAt: input.grantedAt,
+          })
+          .onConflictDoNothing()
+          .returning({ id: consents.id });
+        if (inserted === undefined) {
+          const [existing] = await transaction
+            .select({ id: consents.id })
+            .from(consents)
+            .where(
+              and(
+                input.actor.kind === "account"
+                  ? eq(consents.userId, input.actor.userId)
+                  : eq(consents.anonymousActorId, input.actor.anonymousActorId),
+                eq(consents.documentKey, input.documentKey),
+                eq(consents.documentVersion, input.documentVersion),
+                eq(consents.purpose, input.purpose),
+              ),
+            )
+            .limit(1);
+          if (existing === undefined) {
+            throw new Error("CONSENT_CONFLICT_READ_FAILED");
+          }
           return existing;
         }
-        const id = randomUUID();
-        await transaction.insert(consents).values({
-          id,
-          ...owner,
-          documentKey: input.documentKey,
-          documentVersion: input.documentVersion,
-          purpose: input.purpose,
-          grantedAt: input.grantedAt,
-        });
         await transaction.insert(auditLogs).values({
           actorId:
             input.actor.kind === "account"
@@ -64,7 +71,7 @@ export function createDatabaseConsentRepository(
               : input.actor.anonymousActorId,
           action: "consent.recorded",
           targetType: "consent",
-          targetId: id,
+          targetId: inserted.id,
           requestId: input.actor.requestId,
           metadata: {
             documentKey: input.documentKey,
@@ -72,7 +79,7 @@ export function createDatabaseConsentRepository(
             purpose: input.purpose,
           },
         });
-        return { id };
+        return inserted;
       });
     },
   };

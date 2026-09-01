@@ -8,8 +8,12 @@ import { createMaintenanceRunner } from "./worker.module.js";
 async function bootstrap(): Promise<void> {
   await NestFactory.createApplicationContext(WorkerModule);
   const maintenance = createMaintenanceRunner();
-  await maintenance.runOnce();
-  setInterval(() => void maintenance.runOnce(), 15 * 60 * 1000).unref();
+  const runMaintenance = () =>
+    maintenance.runOnce().catch((error: unknown) => {
+      console.error("PHASE_ONE_MAINTENANCE_FAILED", error);
+    });
+  await runMaintenance();
+  setInterval(runMaintenance, 15 * 60 * 1000).unref();
 }
 
 void bootstrap();

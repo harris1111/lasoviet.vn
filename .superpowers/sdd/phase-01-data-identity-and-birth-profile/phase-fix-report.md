@@ -62,3 +62,33 @@ assumptions.
 
 None. Google OAuth credentials and the FD-024 browser/UI artifact gate remain
 known limitations, not Phase 01 correction blockers.
+
+## Pass 2 — 2026-09-02
+
+Closed the final scoped re-review items only.
+
+- M-01: anonymous actor tokens now require a matching live, unexpired
+  Better Auth session owned by the anonymous actor. Revoked and expired
+  anonymous-session replay regressions pass.
+- M-05: account deletion and anonymous retention now accept the same
+  maintenance batch limit as auth-email retry. The runner shares one active
+  promise to prevent interval overlap, and the worker catches maintenance
+  rejection at its scheduling boundary.
+- M-07: consent insertion uses `ON CONFLICT DO NOTHING`, then reuses the
+  committed owner-specific record. Concurrent PostgreSQL requests return one
+  consent ID without a uniqueness exception.
+- Link regression A: linking an anonymous actor with no profile is valid.
+- Link regression B: successful linking preserves the linked domain actor,
+  audit history, and transferred profiles, while deleting the prior anonymous
+  Better Auth user and cascading its old sessions. The public vendor deletion
+  endpoint remains disabled.
+
+Verification:
+
+- Focused command covering the five items passed: 4 files, 14 tests.
+- `pnpm --filter @lasoviet/database migrate:test` passed: 1 file, 5 tests.
+- Root `pnpm typecheck` passed.
+- Root `pnpm build` passed.
+
+No live SMTP, Google, browser, Playwright, push, or other external side effect
+occurred. Rule candidate: none.

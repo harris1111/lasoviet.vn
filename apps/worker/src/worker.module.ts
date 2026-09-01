@@ -41,9 +41,10 @@ export function createMaintenanceRunner() {
       repository: createDatabaseDeletionRepository(database),
     }),
     anonymousRetention: {
-      purgeExpired: () => createAnonymousRetentionService({
-      repository: createDatabaseAnonymousRetentionRepository(database),
-      }).purgeExpired(new Date()),
+      purgeExpired: (limit) =>
+        createAnonymousRetentionService({
+          repository: createDatabaseAnonymousRetentionRepository(database),
+        }).purgeExpired(new Date(), limit),
     },
     retryAuthEmail: (limit) => email.retryDue(limit),
   });

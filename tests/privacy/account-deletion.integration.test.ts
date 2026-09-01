@@ -83,6 +83,44 @@ describe("account deletion integration", () => {
     await database.$client.end();
   });
 
+  it("reuses one consent when concurrent duplicate requests race", async () => {
+    const database = createDatabase(databaseUrl);
+    await database.insert(authUsers).values({
+      id: "consent-race-account",
+      name: "Consent Race Account",
+      email: "consent-race-account@example.test",
+    });
+    const service = createConsentService({
+      repository: createDatabaseConsentRepository(database),
+      documentVersions: { privacy: ["2026-09-01"] },
+      now: () => new Date("2026-09-02T00:00:00Z"),
+    });
+    const actor = {
+      kind: "account" as const,
+      userId: "consent-race-account",
+      sessionId: "consent-race-session",
+      requestId: "consent-race-request",
+    };
+
+    const [first, second] = await Promise.all([
+      service.record(actor, "privacy", "2026-09-01", "birth_profile"),
+      service.record(actor, "privacy", "2026-09-01", "birth_profile"),
+    ]);
+
+    expect(first).toMatchObject({ ok: true });
+    expect(second).toMatchObject({ ok: true });
+    if (!first.ok || !second.ok) {
+      return;
+    }
+    expect(first.value.id).toBe(second.value.id);
+    expect(
+      (await database.select().from(consents)).filter(
+        (consent) => consent.userId === actor.userId,
+      ),
+    ).toHaveLength(1);
+    await database.$client.end();
+  }, 120_000);
+
   it("revokes sessions, allows recovery before 30 days, and emits an opaque purge event", async () => {
     const database = createDatabase(databaseUrl);
     const userId = "deletion-account";

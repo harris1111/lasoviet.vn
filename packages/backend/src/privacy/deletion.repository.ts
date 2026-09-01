@@ -36,7 +36,7 @@ export type DeletionRepository = {
     | { ok: true; value: { requestId: string } }
     | { ok: false; error: DeletionRepositoryError }
   >;
-  purgeExpired(now: Date): Promise<string[]>;
+  purgeExpired(now: Date, limit: number): Promise<string[]>;
 };
 
 export function createDatabaseDeletionRepository(
@@ -134,7 +134,7 @@ export function createDatabaseDeletionRepository(
       });
     },
 
-    async purgeExpired(now) {
+    async purgeExpired(now, limit) {
       const requests = await database
         .select()
         .from(deletionRequests)
@@ -143,7 +143,8 @@ export function createDatabaseDeletionRepository(
             eq(deletionRequests.status, "requested"),
             lte(deletionRequests.purgeAfter, now),
           ),
-        );
+        )
+        .limit(limit);
       const purged: string[] = [];
       for (const request of requests) {
         await database.transaction(async (transaction) => {

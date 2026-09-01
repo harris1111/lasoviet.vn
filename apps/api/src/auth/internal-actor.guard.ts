@@ -95,6 +95,14 @@ export async function verifyInternalActorToken(
       const [anonymousActor] = await database
         .select({ id: authAnonymousActors.id })
         .from(authAnonymousActors)
+        .innerJoin(
+          authSessions,
+          and(
+            eq(authSessions.id, actor.sessionId),
+            eq(authSessions.userId, authAnonymousActors.id),
+            gt(authSessions.expiresAt, currentTime),
+          ),
+        )
         .where(and(eq(authAnonymousActors.id, actor.anonymousActorId), isNull(authAnonymousActors.linkedUserId), isNull(authAnonymousActors.deletedAt), gt(authAnonymousActors.expiresAt, currentTime)))
         .limit(1);
       if (anonymousActor === undefined) {
