@@ -91,6 +91,7 @@ export {
   BirthProfileV1Schema,
   BirthTimeInputSchema,
   BirthTimezoneInputSchema,
+  NormalizedBirthProfileV1Schema,
   ZiweiEligibilityV1Schema,
 } from "./birth-profile-v1.js";
 export type {

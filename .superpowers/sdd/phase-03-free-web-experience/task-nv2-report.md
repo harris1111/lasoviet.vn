@@ -83,3 +83,52 @@ None.
 None.
 
 DONE
+
+## Fix Round 1 - 2026-09-02
+
+Status: DONE
+
+### Fixed
+
+- Read eligibility now parses the stored normalized revision with
+  `NormalizedBirthProfileV1Schema`; it no longer renormalizes mutable source
+  input.
+- Backend and web use the shared `ZiweiEligibilityV1` contract. The web
+  action validates the response fields at runtime and explicitly projects only
+  `profileId`, `revisionId`, `ziweiEligibility`, and anonymous `expiresAt`.
+- `INVALID_TIMEZONE` and `INVALID_CALENDAR_INPUT` now return
+  `VALIDATION_FAILED`; `ANONYMOUS_EXPIRED` remains distinct; only explicit
+  ownership/auth codes return `PROFILE_FORBIDDEN`. Typed operational private
+  API errors still throw.
+- Anonymous actor resolution now requires both anonymous actor expiry and
+  Better Auth session-row expiry to be in the future.
+- Added backend/web typecheck configs that resolve the workspace contracts
+  source, matching the existing config-package pattern and preventing stale
+  ignored declarations from masking shared contract changes.
+
+### RED/GREEN Evidence
+
+- RED:
+  - Stored normalized exact time lost to `originalInput.time = unknown`.
+  - An expired anonymous session row still resolved an actor.
+  - Backend fields crossed the action boundary.
+  - `INVALID_TIMEZONE` returned `PROFILE_FORBIDDEN`.
+- GREEN:
+
+```text
+pnpm vitest run packages/backend/src/birth-profile/birth-profile.service.test.ts apps/web/src/auth/resolve-current-actor.test.ts apps/web/src/features/birth-profile/save-birth-profile.test.ts
+3 passed, 25 passed
+
+pnpm --filter @lasoviet/contracts typecheck
+pnpm --filter @lasoviet/backend typecheck
+pnpm --filter @lasoviet/web typecheck
+all passed
+```
+
+### Docs Impact
+
+None beyond this required task report update.
+
+### Unresolved Questions
+
+None.

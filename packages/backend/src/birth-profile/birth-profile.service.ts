@@ -3,7 +3,9 @@ import {
   BirthProfileV1Schema,
   type BirthProfileV1,
   type NormalizedBirthProfileV1,
+  NormalizedBirthProfileV1Schema,
   type Result,
+  type ZiweiEligibilityV1,
 } from "@lasoviet/contracts";
 
 import {
@@ -245,16 +247,22 @@ function anonymousExpired(actor: CurrentActor, now: Date): boolean {
 
 function ziweiEligibility(
   normalized: NormalizedBirthProfileV1,
-) {
+): ZiweiEligibilityV1 {
   const result = resolveZiweiTimeIndex(normalized);
   if (result.ok) {
     return { version: 1, eligible: true, timeIndex: result.value };
   }
-  return {
-    version: 1,
-    eligible: false,
-    reason: result.error.code,
-  };
+  if (
+    result.error.code === "TIME_UNKNOWN" ||
+    result.error.code === "TIME_RANGE_MULTIPLE_BRANCHES"
+  ) {
+    return {
+      version: 1,
+      eligible: false,
+      reason: result.error.code,
+    };
+  }
+  throw new Error("ZIWEI_ELIGIBILITY_INVALID");
 }
 
 function profileResult(
@@ -318,11 +326,14 @@ export function createBirthProfileService(
       if (record === null) {
         return serviceError("PROFILE_NOT_FOUND");
       }
-      const normalized = normalizeBirthProfile(record.originalInput);
-      if (!normalized.ok) {
-        return serviceError(normalized.error.code);
+      const normalized = NormalizedBirthProfileV1Schema.safeParse({
+        ...(record.normalizedInput ?? {}),
+        originalInput: record.originalInput,
+      });
+      if (!normalized.success) {
+        return serviceError("INVALID_CALENDAR_INPUT");
       }
-      return { ok: true as const, value: profileResult(record, normalized.value) };
+      return { ok: true as const, value: profileResult(record, normalized.data) };
     },
 
     async update(actor: CurrentActor, profileId: string, input: unknown) {

@@ -65,6 +65,11 @@ describe("BirthProfile server submission", () => {
             eligible: false,
             reason: "TIME_UNKNOWN",
           },
+          revisionNumber: 1,
+          originalInput: profile,
+          normalizedInput: { normalizedTime: { precision: "unknown" } },
+          normalizationWarnings: [],
+          limitations: ["TIME_UNKNOWN"],
         },
       });
 
@@ -114,6 +119,29 @@ describe("BirthProfile server submission", () => {
         },
       ],
     ]);
+  });
+
+  it("maps backend normalization failures to validation errors", async () => {
+    const subject = dependencies();
+    subject.request
+      .mockResolvedValueOnce({ ok: true, value: { id: "consent-1" } })
+      .mockResolvedValueOnce({
+        ok: false,
+        error: { code: "INVALID_TIMEZONE" },
+      });
+
+    await expect(
+      createBirthProfileSubmission(subject)({
+        profile: {
+          ...profile,
+          timezone: { ianaZone: "Invalid/Zone" },
+        },
+        explicitConsent: true,
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "VALIDATION_FAILED" },
+    });
   });
 
   it("does not persist a profile after a failed consent response", async () => {

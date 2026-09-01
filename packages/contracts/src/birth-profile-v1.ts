@@ -112,18 +112,35 @@ export const ZiweiEligibilityV1Schema = z.discriminatedUnion("eligible", [
 ]);
 export type ZiweiEligibilityV1 = z.infer<typeof ZiweiEligibilityV1Schema>;
 
-export type NormalizedBirthProfileV1 = {
-  version: 1;
-  originalInput: BirthProfileV1;
-  normalizedCalendar: BirthCalendarInput;
-  normalizedTime: BirthTimeInput;
-  timezoneProvenance:
-    | { source: "offset"; offsetMinutes: number }
-    | { source: "iana"; ianaZone: string; runtime: "Intl" };
-  utcInstant?: string;
-  normalizationWarnings: string[];
-  limitations: string[];
-};
+export const NormalizedBirthProfileV1Schema = z
+  .object({
+    version: z.literal(1),
+    originalInput: BirthProfileV1Schema,
+    normalizedCalendar: BirthCalendarInputSchema,
+    normalizedTime: BirthTimeInputSchema,
+    timezoneProvenance: z.discriminatedUnion("source", [
+      z
+        .object({
+          source: z.literal("offset"),
+          offsetMinutes: z.number().int().min(-840).max(840),
+        })
+        .strict(),
+      z
+        .object({
+          source: z.literal("iana"),
+          ianaZone: z.string().trim().min(1),
+          runtime: z.literal("Intl"),
+        })
+        .strict(),
+    ]),
+    utcInstant: z.iso.datetime({ offset: true }).optional(),
+    normalizationWarnings: z.array(z.string()),
+    limitations: z.array(z.string()),
+  })
+  .strict();
+export type NormalizedBirthProfileV1 = z.infer<
+  typeof NormalizedBirthProfileV1Schema
+>;
 
 export type BirthProfileRequestV1 = BirthProfileV1;
 export const BirthProfileRequestV1Schema = BirthProfileV1Schema;

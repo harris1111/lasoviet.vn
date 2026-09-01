@@ -235,4 +235,66 @@ describe("BirthProfile service", () => {
       },
     });
   });
+
+  it("derives read eligibility from the stored normalized revision", async () => {
+    const service = createBirthProfileService({
+      repository: {
+        async create() {
+          return null;
+        },
+        async update() {
+          return null;
+        },
+        async read(_actor, profileId) {
+          return {
+            profileId,
+            revisionId: "revision-stored",
+            revisionNumber: 1,
+            originalInput: {
+              version: 1,
+              calendar: { kind: "solar", date: "1990-01-01" },
+              time: { precision: "unknown" },
+              timezone: { offsetMinutes: 420 },
+              consentVersion: "2026-09-01",
+            },
+            normalizedInput: {
+              version: 1,
+              normalizedCalendar: { kind: "solar", date: "1990-01-01" },
+              normalizedTime: {
+                precision: "exact_minute",
+                localTime: "11:30",
+              },
+              timezoneProvenance: { source: "offset", offsetMinutes: 420 },
+              utcInstant: "1990-01-01T04:30:00.000Z",
+              normalizationWarnings: [],
+              limitations: [],
+            },
+            normalizationWarnings: [],
+            limitations: [],
+          };
+        },
+        async archive() {
+          return false;
+        },
+      },
+    });
+
+    await expect(
+      service.read(
+        {
+          kind: "account",
+          userId: "user-1",
+          sessionId: "session-1",
+          requestId: "request-1",
+        },
+        "profile-1",
+      ),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        profileId: "profile-1",
+        ziweiEligibility: { version: 1, eligible: true, timeIndex: 6 },
+      },
+    });
+  });
 });

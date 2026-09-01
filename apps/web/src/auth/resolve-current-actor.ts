@@ -26,6 +26,7 @@ type AnonymousSignIn = {
 type LiveAnonymousActor = {
   sessionId: string;
   expiresAt: Date;
+  sessionExpiresAt: Date;
 };
 
 type CurrentActorAuth = {
@@ -74,7 +75,11 @@ async function liveAnonymousActor(
   },
 ): Promise<CurrentActor> {
   const live = await find(input);
-  if (live === null || live.expiresAt <= input.now) {
+  if (
+    live === null ||
+    live.expiresAt <= input.now ||
+    live.sessionExpiresAt <= input.now
+  ) {
     return invalidAnonymous();
   }
   return {
@@ -142,6 +147,7 @@ async function findLiveAnonymousActor(input: {
     .select({
       sessionId: authSessions.id,
       expiresAt: authAnonymousActors.expiresAt,
+      sessionExpiresAt: authSessions.expiresAt,
     })
     .from(authAnonymousActors)
     .innerJoin(
@@ -159,6 +165,7 @@ async function findLiveAnonymousActor(input: {
         isNull(authAnonymousActors.linkedUserId),
         isNull(authAnonymousActors.deletedAt),
         gt(authAnonymousActors.expiresAt, input.now),
+        gt(authSessions.expiresAt, input.now),
       ),
     )
     .limit(1);

@@ -4,10 +4,14 @@ import {
   BirthProfileV1Schema,
   type CurrentActor,
   type Result,
+  ZiweiEligibilityV1Schema,
+  type ZiweiEligibilityV1,
 } from "@lasoviet/contracts";
+import { z } from "zod";
 
 import {
   privateApiClient,
+  PrivateApiClientError,
   type PrivateApiClient,
 } from "../../api/private-api-client";
 import {
@@ -18,13 +22,7 @@ import {
 export type BirthProfileSubmissionValue = {
   profileId: string;
   revisionId: string;
-  ziweiEligibility:
-    | { version: 1; eligible: true; timeIndex: number }
-    | {
-        version: 1;
-        eligible: false;
-        reason: "TIME_UNKNOWN" | "TIME_RANGE_MULTIPLE_BRANCHES";
-      };
+  ziweiEligibility: ZiweiEligibilityV1;
   expiresAt?: string;
 };
 
@@ -42,6 +40,29 @@ export type BirthProfileSubmissionDependencies = {
 type ApiResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: { code: string } };
+
+const profileSuccessValueSchema = z
+  .object({
+    profileId: z.string().trim().min(1),
+    revisionId: z.string().trim().min(1),
+    ziweiEligibility: ZiweiEligibilityV1Schema,
+  })
+  .strict();
+
+const profileResponseSchema = z.discriminatedUnion("ok", [
+  z
+    .object({
+      ok: z.literal(true),
+      value: z.unknown(),
+    })
+    .strict(),
+  z
+    .object({
+      ok: z.literal(false),
+      error: z.object({ code: z.string().trim().min(1) }).strict(),
+    })
+    .strict(),
+]);
 
 function failure(
   code: BirthProfileSubmissionError,
@@ -64,6 +85,48 @@ function actorError(error: unknown): Result<never, BirthProfileSubmissionError> 
     return failure("ANONYMOUS_EXPIRED");
   }
   throw error;
+}
+
+function profileError(code: string): Result<never, BirthProfileSubmissionError> | never {
+  if (code === "INVALID_TIMEZONE" || code === "INVALID_CALENDAR_INPUT") {
+    return failure("VALIDATION_FAILED");
+  }
+  if (code === "ANONYMOUS_EXPIRED") {
+    return failure("ANONYMOUS_EXPIRED");
+  }
+  if (
+    code === "PROFILE_NOT_FOUND" ||
+    code === "ACTOR_TOKEN_INVALID" ||
+    code === "ACTOR_TOKEN_EXPIRED" ||
+    code === "ACTOR_TOKEN_AUDIENCE"
+  ) {
+    return failure("PROFILE_FORBIDDEN");
+  }
+  throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");
+}
+
+function parseProfileResponse(response: unknown): ApiResult<BirthProfileSubmissionValue> {
+  const parsed = profileResponseSchema.safeParse(response);
+  if (!parsed.success) {
+    throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");
+  }
+  if (!parsed.data.ok) {
+    return parsed.data;
+  }
+  const value = parsed.data.value;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");
+  }
+  const responseValue = value as Record<string, unknown>;
+  const selected = profileSuccessValueSchema.safeParse({
+    profileId: responseValue.profileId,
+    revisionId: responseValue.revisionId,
+    ziweiEligibility: responseValue.ziweiEligibility,
+  });
+  if (!selected.success) {
+    throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");
+  }
+  return { ok: true, value: selected.data };
 }
 
 export function createBirthProfileSubmission(
@@ -105,25 +168,23 @@ export function createBirthProfileSubmission(
       return failure("PROFILE_FORBIDDEN");
     }
 
-    const profile = await api.request<ApiResult<BirthProfileSubmissionValue>>(
+    const profile = parseProfileResponse(await api.request<unknown>(
       "/birth-profiles",
       {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(parsed.data),
       },
-    );
+    ));
     if (!profile.ok) {
-      return failure(
-        profile.error.code === "ANONYMOUS_EXPIRED"
-          ? "ANONYMOUS_EXPIRED"
-          : "PROFILE_FORBIDDEN",
-      );
+      return profileError(profile.error.code);
     }
     return {
       ok: true,
       value: {
-        ...profile.value,
+        profileId: profile.value.profileId,
+        revisionId: profile.value.revisionId,
+        ziweiEligibility: profile.value.ziweiEligibility,
         ...(actor.kind === "anonymous" ? { expiresAt: actor.expiresAt } : {}),
       },
     };

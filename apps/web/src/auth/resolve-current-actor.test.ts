@@ -12,7 +12,11 @@ const now = new Date("2026-09-02T00:00:00.000Z");
 function resolverFor(options: {
   session: unknown;
   anonymousSession?: unknown;
-  liveAnonymousActor?: { sessionId: string; expiresAt: Date } | null;
+  liveAnonymousActor?: {
+    sessionId: string;
+    expiresAt: Date;
+    sessionExpiresAt: Date;
+  } | null;
 }) {
   const getSession = vi.fn().mockResolvedValue(options.session);
   const signInAnonymous = vi.fn().mockResolvedValue(options.anonymousSession);
@@ -64,6 +68,7 @@ describe("current actor resolver", () => {
       liveAnonymousActor: {
         sessionId: "session-created",
         expiresAt: new Date("2026-09-03T00:00:00.000Z"),
+        sessionExpiresAt: new Date("2026-09-03T00:00:00.000Z"),
       },
     });
 
@@ -97,7 +102,29 @@ describe("current actor resolver", () => {
       liveAnonymousActor:
         actor === null
           ? null
-          : { sessionId: "anonymous-session", expiresAt: actor },
+          : {
+              sessionId: "anonymous-session",
+              expiresAt: actor,
+              sessionExpiresAt: new Date("2026-09-03T00:00:00.000Z"),
+            },
+    });
+
+    await expect(subject.resolve()).rejects.toEqual(
+      new CurrentActorResolutionError("ANONYMOUS_EXPIRED"),
+    );
+  });
+
+  it("rejects an anonymous session row that expires before the live actor", async () => {
+    const subject = resolverFor({
+      session: {
+        session: { id: "anonymous-session", userId: "anonymous-1" },
+        user: { id: "anonymous-1", isAnonymous: true },
+      },
+      liveAnonymousActor: {
+        sessionId: "anonymous-session",
+        expiresAt: new Date("2026-09-03T00:00:00.000Z"),
+        sessionExpiresAt: new Date("2026-09-01T23:59:59.999Z"),
+      },
     });
 
     await expect(subject.resolve()).rejects.toEqual(
