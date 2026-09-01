@@ -46,3 +46,53 @@ cover this slice.
 None.
 
 DONE
+
+## Fix Round 1 Evidence
+
+Date: 2026-09-02
+
+### Findings Resolved
+
+- C1: Section sitemap params now require and strip the `.xml` suffix before
+  validating the registry section. Tests use the filename value advertised by
+  the sitemap index.
+- I1: The English root sitemap URL is `https://lasoviet.vn/en`; non-root
+  English paths remain under `/en/<path>`.
+- I2: The private client accepts only same-origin application paths and rejects
+  absolute and network-path references before issuing actor credentials.
+- I3: Safe uppercase API error codes and non-2xx status values are preserved
+  without retaining provider text. Transport and malformed JSON keep their
+  local error contracts.
+- I4: Browser-boundary checks require non-empty source and artifact scans,
+  traverse `use client` local dependencies, and ran immediately after a fresh
+  web build.
+
+### Verification
+
+- RED:
+  `pnpm vitest run tests/seo/crawl-controls.test.ts tests/web/no-public-api-reference.test.ts apps/web/src/api/private-api-client.test.ts`
+  exited 1 with the expected English-root, `.xml` route-param, unsafe-path,
+  and safe-error-contract failures.
+- GREEN:
+  `pnpm vitest run tests/seo/crawl-controls.test.ts apps/web/src/api/private-api-client.test.ts`
+  passed: 2 files, 9 tests.
+- `pnpm --filter @lasoviet/web typecheck` passed.
+- `pnpm --filter @lasoviet/web build` passed.
+- `pnpm vitest run tests/web/no-public-api-reference.test.ts` passed
+  immediately after the fresh build: 1 file, 1 test.
+
+### Docs Impact
+
+None. This report is the required delivery evidence; no product documentation
+changed.
+
+### Rule Candidate
+
+Dynamic sitemap route params must be validated as emitted filenames, including
+their extension, before they are mapped to registry section keys.
+
+### Unresolved Questions
+
+None.
+
+DONE

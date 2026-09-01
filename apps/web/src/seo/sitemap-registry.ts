@@ -32,7 +32,7 @@ function sectionForRoute(route: RouteDefinitionV1): SitemapSection {
 function localizedUrls(path: string): SitemapUrlEntry[] {
   return [
     { url: `${PRODUCTION_ORIGIN}${path}` },
-    { url: `${PRODUCTION_ORIGIN}/en${path}` },
+    { url: path === "/" ? `${PRODUCTION_ORIGIN}/en` : `${PRODUCTION_ORIGIN}/en${path}` },
   ];
 }
 

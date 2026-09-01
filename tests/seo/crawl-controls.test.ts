@@ -11,6 +11,12 @@ import {
   getSitemapSectionEntries,
 } from "../../apps/web/src/seo/sitemap-registry";
 
+function englishUrl(path: string): string {
+  return path === "/"
+    ? `${PRODUCTION_ORIGIN}/en`
+    : `${PRODUCTION_ORIGIN}/en${path}`;
+}
+
 describe("crawl controls", () => {
   it("includes both localized URLs for every eligible route from the typed registry", () => {
     const eligibleRoutes = routeRegistry.filter(
@@ -24,9 +30,12 @@ describe("crawl controls", () => {
         `${PRODUCTION_ORIGIN}${route.path}`,
       );
       expect(entries.map((entry) => entry.url)).toContain(
-        `${PRODUCTION_ORIGIN}/en${route.path}`,
+        englishUrl(route.path),
       );
     }
+    expect(entries.map((entry) => entry.url)).not.toContain(
+      `${PRODUCTION_ORIGIN}/en/`,
+    );
   });
 
   it("omits non-indexable routes from every sitemap section", () => {
@@ -42,7 +51,7 @@ describe("crawl controls", () => {
 
     for (const route of excludedRoutes) {
       expect(crawledUrls).not.toContain(`${PRODUCTION_ORIGIN}${route.path}`);
-      expect(crawledUrls).not.toContain(`${PRODUCTION_ORIGIN}/en${route.path}`);
+      expect(crawledUrls).not.toContain(englishUrl(route.path));
     }
   });
 
@@ -53,9 +62,12 @@ describe("crawl controls", () => {
     for (const section of getSitemapSectionEntries()) {
       expect(indexXml).toContain(section.url);
 
+      const sectionParam = new URL(section.url).pathname.split("/").at(-1);
+      expect(sectionParam).toBe(`${section.section}.xml`);
+
       const response = await sitemapSection(
         new Request(`${PRODUCTION_ORIGIN}/sitemaps/${section.section}.xml`),
-        { params: Promise.resolve({ section: section.section }) },
+        { params: Promise.resolve({ section: sectionParam }) },
       );
       expect(response.status).toBe(200);
       expect(await response.text()).toContain("<urlset");
@@ -63,7 +75,7 @@ describe("crawl controls", () => {
 
     const invalidResponse = await sitemapSection(
       new Request(`${PRODUCTION_ORIGIN}/sitemaps/not-a-section.xml`),
-      { params: Promise.resolve({ section: "not-a-section" }) },
+      { params: Promise.resolve({ section: "not-a-section.xml" }) },
     );
     expect(invalidResponse.status).toBe(404);
     await expect(invalidResponse.json()).resolves.toMatchObject({
