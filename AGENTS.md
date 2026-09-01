@@ -73,6 +73,10 @@ Founder-approved goals and decisions
 - Sol asks the founder in Vietnamese whenever founder input is required.
 - Sol must verify the requested model and `xhigh` reasoning level before
   dispatch. Do not silently substitute another model or reasoning level.
+- Before declaring a requested model or reasoning level unavailable solely
+  because current metadata omits it, run one no-file probe with that exact
+  model and reasoning level. If the probe fails or cannot run, stop and report
+  to Sol; do not substitute a model or effort.
 
 ### Terra: Reviewer
 
