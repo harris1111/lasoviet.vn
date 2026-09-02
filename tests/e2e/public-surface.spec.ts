@@ -38,7 +38,7 @@ test("renders canonical locale routes and uses real links", async ({ page }) => 
 
   await expect(page.getByRole("link", { name: "Lập lá số miễn phí" }).first()).toHaveAttribute(
     "href",
-    "/la-so-tu-vi",
+    "/tao-la-so/tu-vi",
   );
   await expect(page.getByRole("link", { name: "English" })).toHaveAttribute(
     "href",

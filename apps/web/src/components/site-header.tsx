@@ -13,7 +13,7 @@ function route(locale: "en" | "vi", path: string) {
 export function SiteHeader({ locale }: SiteHeaderProps) {
   const isVietnamese = locale === "vi";
   const links = [
-    [isVietnamese ? "Lập lá số" : "Build your chart", "/la-so-tu-vi"],
+    [isVietnamese ? "Lập lá số" : "Build your chart", "/tao-la-so/tu-vi"],
     [isVietnamese ? "Luận giải" : "Interpretations", "#luan-giai"],
     [isVietnamese ? "Kiến thức" : "Knowledge", "#kien-thuc"],
     [isVietnamese ? "Phương pháp" : "Method", "#phuong-phap"],
@@ -40,7 +40,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
           </nav>
           <div className="header-actions">
             <Link className="locale-link" href={isVietnamese ? "/en" : "/"}>{isVietnamese ? "English" : "Tiếng Việt"}</Link>
-            <Link className="button button-small" href={route(locale, "/la-so-tu-vi")}>
+            <Link className="button button-small" href={route(locale, "/tao-la-so/tu-vi")}>
               {isVietnamese ? "Lập lá số miễn phí" : "Build your chart"}
             </Link>
             <details className="mobile-menu">
@@ -49,7 +49,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
                 {links.map(([label, href]) => (
                   <Link href={route(locale, href)} key={href}>{label}<Icon name="chevron-right" /></Link>
                 ))}
-                <Link className="button" href={route(locale, "/la-so-tu-vi")}>
+                <Link className="button" href={route(locale, "/tao-la-so/tu-vi")}>
                   {isVietnamese ? "Lập lá số miễn phí" : "Build your chart"}
                 </Link>
               </nav>

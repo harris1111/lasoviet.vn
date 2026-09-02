@@ -37,7 +37,7 @@ export default async function Page() {
             <h1>{t("app.taglinePrefix")}<br /><span className="gold-text">{t("app.taglineHighlight")}</span></h1>
             <p className="hero-lead">{t("home.hero.lead")}</p>
             <p className="hero-copy">{t("home.hero.copy")}</p>
-            <form action={path(locale, "/la-so-tu-vi")} className="birth-cta" method="get">
+            <form action={path(locale, "/tao-la-so/tu-vi")} className="birth-cta" method="get">
               {(["day", "month", "year"] as const).map((name) => (
                 <label key={name}>{t(`home.form.${name}`)}<input aria-label={t(`home.form.${name}`)} className={name === "year" ? "year" : undefined} inputMode="numeric" maxLength={name === "year" ? 4 : 2} name={name} placeholder={name === "year" ? "1994" : name === "day" ? "12" : "04"} /></label>
               ))}
@@ -73,7 +73,7 @@ export default async function Page() {
 
         <section className="section"><div className="container faq"><div><p className="eyebrow">{t("home.faq.eyebrow")}</p></div><div className="faq-list">{(["ai", "time", "payment", "privacy"] as const).map((key) => <details key={key}><summary>{t(`home.faq.${key}.question`)}</summary><p>{t(`home.faq.${key}.answer`)}</p></details>)}</div></div></section>
 
-        <section className="cta"><ArtifactImage alt="" className="cta-image" desktop={image("nguong-mo-menh-thu-cta-background-lasoviet-desktop.webp")} mobile={image("nguong-mo-menh-thu-cta-background-lasoviet-mobile.webp")} /><div className="container cta-content"><h2>{t("home.cta.title")}</h2><p>{t("home.cta.copy")}</p><div className="cta-actions"><Link className="button" href={path(locale, "/la-so-tu-vi")}>{t("home.form.submit")}</Link><Link className="button button-secondary" href="#luan-giai">{t("home.form.sample")}</Link></div></div></section>
+        <section className="cta"><ArtifactImage alt="" className="cta-image" desktop={image("nguong-mo-menh-thu-cta-background-lasoviet-desktop.webp")} mobile={image("nguong-mo-menh-thu-cta-background-lasoviet-mobile.webp")} /><div className="container cta-content"><h2>{t("home.cta.title")}</h2><p>{t("home.cta.copy")}</p><div className="cta-actions"><Link className="button" href={path(locale, "/tao-la-so/tu-vi")}>{t("home.form.submit")}</Link><Link className="button button-secondary" href="#luan-giai">{t("home.form.sample")}</Link></div></div></section>
       </main>
       <SiteFooter locale={locale} />
     </div>

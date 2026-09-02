@@ -11,7 +11,7 @@ function route(locale: "en" | "vi", path: string) {
 export function SiteFooter({ locale }: SiteFooterProps) {
   const vi = locale === "vi";
   const sections = [
-    [vi ? "Sản phẩm" : "Product", [[vi ? "Lập lá số Tử Vi" : "Build a chart", "/la-so-tu-vi"], [vi ? "Luận giải Tử Vi" : "Interpretations", "/luan-giai-tu-vi/tong-quan-ban-menh"]]],
+    [vi ? "Sản phẩm" : "Product", [[vi ? "Lập lá số Tử Vi" : "Build a chart", "/tao-la-so/tu-vi"], [vi ? "Luận giải Tử Vi" : "Interpretations", "/luan-giai-tu-vi/tong-quan-ban-menh"]]],
     [vi ? "Kiến thức" : "Knowledge", [[vi ? "Lá số Tử Vi là gì?" : "What is a chart?", "/kien-thuc/tu-vi/la-so-tu-vi-la-gi"], [vi ? "Cách lập lá số" : "How charts are created", "/kien-thuc/tu-vi"]]],
     [vi ? "Công ty & pháp lý" : "Company & legal", [[vi ? "Phương pháp & niềm tin" : "Method & trust", "/phuong-phap"], [vi ? "Quyền riêng tư" : "Privacy", "/tai-khoan"]]],
   ] as const;
