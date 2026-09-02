@@ -13,6 +13,9 @@ export class StructuredDataError extends Error {
 }
 
 type StructuredDataNode = Record<string, unknown>;
+type SchemaContent = Pick<PublicContentV1, "locale" | "title" | "summary"> & {
+  faqItems?: { question: string; answer: string }[];
+};
 
 function mismatch(): never {
   throw new StructuredDataError("SCHEMA_CONTENT_MISMATCH");
@@ -26,7 +29,7 @@ function routeUrl(route: RouteDefinitionV1, locale: PublicContentV1["locale"]): 
 function pageNode(
   type: string,
   route: RouteDefinitionV1,
-  content: PublicContentV1,
+  content: SchemaContent,
 ): StructuredDataNode {
   return {
     "@context": "https://schema.org",
@@ -40,7 +43,7 @@ function pageNode(
 
 function productNode(
   route: RouteDefinitionV1,
-  content: PublicContentV1,
+  content: SchemaContent,
   catalog: ProductCatalog | undefined,
 ): StructuredDataNode {
   if (route.id !== "commercial.tu-vi.identity" || route.sku === undefined || catalog === undefined) {
@@ -64,7 +67,7 @@ function productNode(
 
 function breadcrumbNode(
   route: RouteDefinitionV1,
-  content: PublicContentV1,
+  content: SchemaContent,
 ): StructuredDataNode {
   return {
     "@context": "https://schema.org",
@@ -81,7 +84,7 @@ function breadcrumbNode(
 function nodeForSchemaType(
   type: string,
   route: RouteDefinitionV1,
-  content: PublicContentV1,
+  content: SchemaContent,
   catalog: ProductCatalog | undefined,
 ): StructuredDataNode {
   switch (type) {
@@ -106,6 +109,17 @@ function nodeForSchemaType(
       return breadcrumbNode(route, content);
     case "Product":
       return productNode(route, content, catalog);
+    case "FAQPage":
+      if (content.faqItems === undefined || content.faqItems.length === 0) return mismatch();
+      return {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: content.faqItems.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: { "@type": "Answer", text: item.answer },
+        })),
+      };
     default:
       return mismatch();
   }
@@ -113,7 +127,7 @@ function nodeForSchemaType(
 
 export function buildStructuredData(
   route: RouteDefinitionV1,
-  content: PublicContentV1,
+  content: SchemaContent,
   catalog?: ProductCatalog,
 ): StructuredDataNode[] {
   if (route.status !== "live_indexable" || route.private) return mismatch();

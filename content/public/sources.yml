@@ -1,0 +1,32 @@
+{
+  "sources": [
+    {
+      "id": "brand-guideline",
+      "path": "docs/13-brand-experience-guideline.md"
+    },
+    {
+      "id": "blueprint-v1-1",
+      "path": "docs/14-sitemap-seo-wireframes.md"
+    },
+    {
+      "id": "phase-one-product-spec",
+      "path": "docs/04-phase-1-product-spec.md"
+    },
+    {
+      "id": "report-system",
+      "path": "docs/05-report-system.md"
+    },
+    {
+      "id": "technical-architecture",
+      "path": "docs/06-technical-architecture.md"
+    },
+    {
+      "id": "architecture-design",
+      "path": "docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md"
+    },
+    {
+      "id": "source-manifest",
+      "path": "config/public-content.json"
+    }
+  ]
+}

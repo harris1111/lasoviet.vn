@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { productCatalog, routeRegistry } from "@lasoviet/config";
+import { loadGateOnePublicContent, productCatalog, routeRegistry } from "@lasoviet/config";
 
 import { buildStructuredData, StructuredDataError } from "../../apps/web/src/seo/structured-data";
 
@@ -94,5 +94,20 @@ describe("structured data", () => {
         content(articleRoute.id),
       ),
     ).toThrow(new StructuredDataError("SCHEMA_CONTENT_MISMATCH"));
+  });
+
+  it("builds FAQPage only from published FAQ items", () => {
+    const faqRoute = route("support.faq");
+    const faqContent = loadGateOnePublicContent().get(faqRoute.id, "en").frontmatter;
+
+    const [faqNode] = buildStructuredData(faqRoute, faqContent);
+
+    expect(faqNode).toMatchObject({
+      "@type": "FAQPage",
+    });
+    expect((faqNode?.mainEntity as { name: string }[])[0]).toMatchObject({
+      "@type": "Question",
+      name: "Does a chart determine the future?",
+    });
   });
 });

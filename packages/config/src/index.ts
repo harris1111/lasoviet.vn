@@ -31,6 +31,16 @@ export type {
 } from "./route-registry.js";
 
 export {
+  loadGateOnePublicContent,
+  validateGateOnePublicContent,
+} from "./gate-one-public-content.js";
+export type {
+  ContentLocale,
+  GateOneDocument,
+  GateOnePublicContent,
+} from "./gate-one-public-content.js";
+
+export {
   analyticsConfig,
   analyticsEventSchema,
   AnalyticsEventV1Schema,
