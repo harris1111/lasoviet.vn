@@ -31,6 +31,11 @@ work. No later phase is marked complete merely because a foundation exists;
 paid-release closure remains blocked by the unimplemented Phase 04/05
 workflows and Phase 05A evidence.
 
+**Active implementation branch:** `feature/paid-flow-admin-operations`.
+Provider-independent Phase 05A implementation is authorized from 2026-09-02.
+SePay-dependent checkout, webhook activation, and external provider smoke
+remain deferred until the founder supplies the required environment values.
+
 ## Global Constraints
 
 - This plan does not authorize implementation until the founder explicitly

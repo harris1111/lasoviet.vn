@@ -31,6 +31,18 @@
 | FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
 | FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
 | FD-027 | 2026-09-02 | Approve Operations Dashboard V1 Option A as dedicated Phase 05A: private server-authorized `/admin/**`, database-backed RBAC/capabilities, redacted inspection, audited compensating domain commands, and no CMS; full CMS/back-office content editing is deferred | Approved | Admin dashboard spec, Phase 05A, Phases 04-06, contracts, risks, and release gates |
+| FD-028 | 2026-09-02 | Rename the active implementation branch to `feature/paid-flow-admin-operations`; implement paid-flow and Admin/Operations work on this branch, begin provider-independent Phase 05A work now, and defer SePay-dependent checkout/webhook activation until the founder supplies the required environment values | Approved | `AGENTS.md`, master plan, Phase 04, Phase 05A |
+
+## FD-028 Execution Boundary
+
+- The prior remote branch `plan/admin-operations-dashboard` was renamed to
+  `feature/paid-flow-admin-operations`.
+- Phase 05A access, RBAC, redaction, audit, route, and provider-independent
+  operational foundations may proceed immediately.
+- Missing SePay environment values block only the SePay adapter, checkout,
+  webhook activation, and external provider smoke. They do not authorize
+  mocks, fake payment success, committed secrets, or unverified defaults.
+- Production payment activation remains a separate founder-controlled gate.
 
 ## FD-027 Planning Evidence
 
@@ -58,6 +70,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 
 | Candidate | Evidence | Terra result | Disposition |
 |---|---|---|---|
+| Normalize line endings in repository-text assertions | Fresh Windows worktree baseline passed 268/269 tests after build; the sole failure compared raw LF against CRLF in `.github/workflows/ci.yml` | Approved technical correction | Added to `AGENTS.md`; baseline fix assigned before P05A-T01 |
 | Superpowers-only workflow | Direct founder instruction | Approved | Added to `AGENTS.md` |
 | Role authority and stop protocol | Direct founder instruction | Approved | Added to `AGENTS.md` |
 | Durable-rule distillation process | Direct founder instruction | Approved | Added to `AGENTS.md` |

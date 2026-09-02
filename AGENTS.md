@@ -182,6 +182,10 @@ Do not use a fixed near-future calendar timestamp when production compares
 against the real current clock; such fixtures become false failures as time
 passes.
 
+Tests that inspect repository text files must normalize CRLF and LF before
+asserting line-oriented content. Do not make a Windows checkout fail solely
+because Git materialized `\r\n` while CI materialized `\n`.
+
 Record genuinely deferred edge cases in English in the relevant later-phase
 plan or backlog, including risk, reason for deferral, and the condition that
 should bring them into scope.
@@ -305,6 +309,12 @@ rule instead of adding another version.
   Missing or fallback-only font faces block release and return to Terra.
 - Never commit secrets, credentials, private reports, or unnecessary personal
   data.
+- When a phase combines provider-dependent and provider-independent work,
+  missing credentials or environment values block only the provider-dependent
+  adapter, activation, and external smoke. Continue approved contracts,
+  domain services, admin tooling, and tests that do not consume those values.
+  Never replace the blocked provider path with fake success, committed
+  credentials, or an unverified production default.
 - When inspecting rendered Compose configuration or runtime service state,
   never print complete environment maps. Query only the required structural
   fields or redact sensitive values before tool output; stop and narrow the
