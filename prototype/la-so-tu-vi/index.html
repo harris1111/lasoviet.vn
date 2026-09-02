@@ -49,6 +49,8 @@
       .ls-marquee-track { animation: none !important; }
     }
     @keyframes ls-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .lsv-ls-hero-figure { aspect-ratio: 12/7; }
+    @media (max-width: 767px) { .lsv-ls-hero-figure { aspect-ratio: 4/5; } }
   </style>
 </helmet>
 
@@ -98,9 +100,11 @@
             <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading)">Lập lá số Tử Vi miễn phí</h1>
             <p style="margin:20px 0 0;max-width:520px;font-size:18px;line-height:1.6;color:var(--text-body)">Nhập ngày, giờ và nơi sinh để xem lá số 12 cung được an sao đầy đủ. Kết quả hiển thị ngay, không cần tạo tài khoản.</p>
 
-            <div style="margin-top:40px;aspect-ratio:12/7;background:var(--surface-panel);border:1px dashed var(--border-hairline);border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:24px">
-              <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;color:var(--text-faint)">LS01-D / LS01-M</span>
-              <span style="font-size:13.5px;color:var(--text-muted);max-width:360px">Ảnh macro thư viện tri thức — sổ lá số cổ mở trên nền sơn mài, ánh sáng chếch một hướng. Crop 12:7 desktop, 4:5 mobile.</span>
+            <div class="lsv-ls-hero-figure" style="margin-top:40px;border-radius:var(--radius-md);overflow:hidden">
+              <picture style="display:block;width:100%;height:100%;">
+                <source media="(max-width: 767px)" srcset="uploads/mo-ban-do-doi-song-la-so-tu-vi-hero-mobile.webp" />
+                <img src="uploads/mo-ban-do-doi-song-la-so-tu-vi-hero-desktop.webp" alt="Sổ lá số Tử Vi cổ mở trên nền sơn mài, ánh sáng chếch một hướng" style="display:block;width:100%;height:100%;object-fit:cover" />
+              </picture>
             </div>
           </div>
 
@@ -233,9 +237,8 @@
           </div>
         </div>
 
-        <div style="margin-top:24px;aspect-ratio:3/2;max-width:520px;background:var(--surface-panel);border:1px dashed var(--border-hairline);border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:24px">
-          <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;color:var(--text-faint)">LS02</span>
-          <span style="font-size:13.5px;color:var(--text-muted);max-width:360px">Ảnh bối cảnh lá số mẫu — trang giấy lá số đặt cạnh la kinh phong thuỷ đồng cũ, ánh sáng chếch, nền sơn mài tối.</span>
+        <div style="margin-top:24px;aspect-ratio:3/2;max-width:520px;border-radius:var(--radius-md);overflow:hidden">
+          <img src="uploads/boi-canh-ban-doc-la-so-mau-co-can-cu.webp" alt="Trang giấy lá số mẫu đặt cạnh la kinh phong thuỷ đồng cũ, ánh sáng chếch, nền sơn mài tối" style="display:block;width:100%;height:100%;object-fit:cover" />
         </div>
       </div>
     </section>
@@ -259,9 +262,8 @@
           </dl>
         </div>
         <div>
-          <div style="aspect-ratio:3/2;background:var(--surface-panel);border:1px dashed var(--border-hairline);border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:24px">
-            <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;color:var(--text-faint)">LS03</span>
-            <span style="font-size:13.5px;color:var(--text-muted);max-width:360px">Ảnh lịch vạn niên hoặc bảng Thiên Can – Địa Chi cổ, dùng minh hoạ quy đổi ngày giờ sinh sang lịch âm.</span>
+          <div style="aspect-ratio:3/2;border-radius:var(--radius-md);overflow:hidden">
+            <img src="uploads/quy-doi-du-lieu-ngay-gio-noi-sinh-la-so-tu-vi.webp" alt="Bảng lịch vạn niên và Thiên Can – Địa Chi cổ dùng minh hoạ quy đổi ngày giờ sinh sang lịch âm" style="display:block;width:100%;height:100%;object-fit:cover" />
           </div>
         </div>
       </div>
