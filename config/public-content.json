@@ -922,5 +922,41 @@
     ],
     "status": "published",
     "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "calculator.horoscope-forecast",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Dự báo cung hoàng đạo",
+    "summary": "Công cụ tham khảo để khám phá các chủ đề theo cung hoàng đạo và thời điểm, với giới hạn phương pháp được nêu rõ; không thay thế quyết định cá nhân.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_limitation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-02"
+  },
+  {
+    "routeId": "calculator.horoscope-forecast",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Horoscope forecast",
+    "summary": "A reference tool for exploring themes by zodiac sign and time period, with method limits stated clearly; it is not a substitute for personal decisions.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_limitation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-02"
   }
 ]

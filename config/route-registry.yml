@@ -549,7 +549,7 @@ routes:
     discipline: horoscope
     owner: product-content
 
-  - <<: *reserved_defaults
+  - <<: *public_defaults
     id: calculator.horoscope-forecast
     path: /du-bao-cung-hoang-dao
     intent: calculator.horoscope-forecast
