@@ -28,6 +28,7 @@
 | FD-022 | 2026-09-01 | Use the founder-provided MXRouting SMTP connection for authentication and report email; port 587 requires reviewed STARTTLS behavior | Approved | Phase 01, Phase 05 |
 | FD-023 | 2026-09-01 | From P01-T02 onward, Terra medium directly implements, debugs, and runs focused tests; Sol xhigh orchestrates and reviews milestones; Luna is paused | Approved | `AGENTS.md`, P01-T02 onward |
 | FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Approved | `AGENTS.md`, current implementation phases |
+| FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
 
 ## Durable Rule Evaluation Log
 
@@ -129,6 +130,25 @@ Date: 2026-09-01
   Critical/Important findings.
 - The repeated workspace declaration freshness failure was added to
   `AGENTS.md`. Open questions: none.
+
+## P03 Non-Visual Slice 5 Evidence
+
+Date: 2026-09-02
+
+- Implemented server-only public-content loading, locale-aware route
+  resolution, canonical/alternate/robots metadata, and pure JSON-LD builders
+  without visual UI changes.
+- Milestone review found and corrected embedded route placeholders, missing
+  stable route errors, ignored explicit canonicals, collapsed robots policy,
+  and an archived redirect targeting a reserved route.
+- FD-025 promoted only `/du-bao-cung-hoang-dao` to `live_indexable`, added
+  published VI/EN metadata, and retained `/horoscope` as a 301 redirect to the
+  now-live canonical. Other Horoscope routes remain reserved.
+- Fresh implementation evidence passed 7 focused files with 25 tests plus
+  config build and web typecheck. Commit range `ea95a8f..5377db9` is ready to
+  push.
+- Sol scoped re-reviews approved all five findings with zero open
+  Critical/Important issues. Rule candidate: none. Open questions: none.
 
 ## P03 Non-Visual Slice 2 Evidence
 

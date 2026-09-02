@@ -347,6 +347,25 @@ git add apps/web/src/features/content apps/web/src/seo apps/web/src/app tests/se
 git commit -m "feat: render canonical public experience"
 ```
 
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: server-only public-content repository, locale-aware route
+  resolution, registry-owned canonical/alternate/robots metadata, and pure
+  JSON-LD builders backed by validated content and product catalog data.
+- Complete by FD-025: `/du-bao-cung-hoang-dao` is a Gate 1
+  `live_indexable` route with published VI/EN metadata; `/horoscope` remains
+  an archived 301 redirect to that live canonical. Other Horoscope routes
+  remain reserved.
+- Verified: 25 focused tests plus config build and web typecheck. Sol approved
+  both correction scopes with zero open Critical/Important findings.
+- Fixed during milestone review: embedded route placeholders, stable route
+  error codes, non-self canonical ownership, authoritative robots policies,
+  and redirect-to-reserved topology.
+- Deferred by FD-024: public page/TSX rendering, visible navigation,
+  responsive/accessibility behavior, and Playwright/browser checks. P03-T05
+  remains partially complete until the dedicated UI artifact branch delivers
+  them.
+
 ### Task 6 [P03-T06]: Publish the Gate 1 trust surface and foundation content
 
 **Files:**
