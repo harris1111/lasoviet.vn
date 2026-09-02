@@ -1,17 +1,18 @@
 :root {
-  --paper-50: #fffdf7;
-  --paper-100: #f7f1e5;
-  --paper-200: #eee5d6;
-  --paper-300: #d7cdbd;
-  --control-border: #958a7c;
-  --ink-900: #14263d;
-  --ink-800: #263445;
-  --ink-600: #5e6873;
-  --cinnabar-700: #a63d2f;
-  --link-blue: #174f7a;
-  --success: #2f6f57;
-  --warning: #8a5a12;
-  --error: #8f2737;
+  --lacquer-900: #0f0d0a;
+  --lacquer-800: #15120e;
+  --lacquer-700: #1c1813;
+  --lacquer-line: #3a3227;
+  --gold-400: #f2dca0;
+  --gold-500: #c9a44d;
+  --gold-600: #a8842f;
+  --gold-700: #9a7730;
+  --son: #ce5b45;
+  --pearl-50: #f6f1e6;
+  --pearl-200: #dcd4c3;
+  --pearl-400: #a79e8b;
+  --pearl-600: #6e6656;
+  --gold-gradient: linear-gradient(103deg, var(--gold-700), var(--gold-400) 34%, var(--gold-500) 58%, var(--gold-600));
 
   --font-display: "Source Serif 4", Georgia, serif;
   --font-ui: "Be Vietnam Pro", system-ui, sans-serif;
@@ -32,15 +33,15 @@
   --radius-card: 8px;
   --radius-modal: 12px;
   --touch-target-min: 44px;
-  --focus-ring: 0 0 0 3px #174f7a;
+  --focus-ring: 0 0 0 3px var(--gold-400);
   --motion-feedback: 120ms;
   --motion-standard: 180ms;
   --motion-panel: 240ms;
 }
 
 :focus-visible {
-  outline: 3px solid var(--link-blue);
-  outline-offset: 2px;
+  outline: 2px solid var(--gold-400);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
