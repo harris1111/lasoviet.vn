@@ -11,7 +11,6 @@ const evidence = {
   factReferences: ["fact.soul"],
   confidence: "high",
   interpretationBounds: ["identity-only"],
-  interpretationBoundCodes: ["reflective_identity_only"],
   limitations: ["birth-time-dependent"],
 };
 
