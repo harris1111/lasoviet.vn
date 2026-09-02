@@ -29,6 +29,7 @@
 | FD-023 | 2026-09-01 | From P01-T02 onward, Terra medium directly implements, debugs, and runs focused tests; Sol xhigh orchestrates and reviews milestones; Luna is paused | Approved | `AGENTS.md`, P01-T02 onward |
 | FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Approved | `AGENTS.md`, current implementation phases |
 | FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
+| FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
 
 ## Durable Rule Evaluation Log
 
@@ -58,6 +59,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Evidence-gated calculation completion | P03-T03 found the evidence service existed but successful calculation responses did not ensure required evidence persistence | Terra wired idempotent evidence persistence to calculation completion; the pattern applies to future calculation engines and report consumers | Added to `AGENTS.md` under calculation completion and evidence |
 | Workspace declaration freshness | P01-T02 and P03-T04 independently encountered dependent typechecks reading stale workspace declarations from producer `dist` output | Sol confirmed the recurring producer-consumer build-order failure and narrowed the action to packages consumed through exports/generated declarations | Added to `AGENTS.md` under repository and operational safety |
 | Generated public-content publication boundaries | P03-T06 initially allowed mixed-locale, encoding-corrupted, unsupported-source, and localized unsafe copy across the Gate 1 corpus | Sol confirmed one severe repository-wide incident and narrowed the rule to deterministic locale integrity plus canonical repository source containment before publication | Added to `AGENTS.md` under repository and operational safety |
+| AI provider privacy production gate | FD-026 confirms a founder-operated provider but retention, training, region, subprocessors, deletion, access, and incident terms remain unknown | Existing architecture sections 18-19, `AGENTS.md` privacy/secret gates, and R-24 already require written due diligence before production use | No `AGENTS.md` change; implement the existing fail-closed gate and retain R-24 |
 
 ## Per-Task Rule Check
 
@@ -77,6 +79,29 @@ and task history remain in plans/reports, not `AGENTS.md`.
 
 Open founder decisions are tracked in `open-decisions.md`. Package approval
 does not silently close them.
+
+## P04 AI Execution Design
+
+Date: 2026-09-02
+
+- The founder selected the provider identity `9router-an` and confirmed that
+  the provider is founder-operated.
+- The implementation uses the existing OpenAI-compatible environment group and
+  raw `fetch`; no OpenAI SDK dependency is added.
+- A synthetic no-PII probe confirmed the configured model, Chat Completions,
+  strict JSON Schema output, and forced tool calling.
+- The probe is operational evidence only. Request retention, training use,
+  processing regions, subprocessors, access controls, deletion behavior, and
+  incident-notification terms remain unknown and block production AI.
+- The current milestone owns pure AI/report contracts and services only.
+  Queue, persistence, private report UI, PDF events, and knowledge retrieval
+  remain with their existing Phase 04 tasks.
+- Fresh implementation evidence passed 8 focused files with 19 tests,
+  contracts/config builds, backend typecheck, backend build, and one controlled
+  synthetic endpoint smoke. Commits `45119e4` and `ba74b4a` contain the
+  foundation and canonical-model-identity correction.
+- Rule candidate: none. The existing privacy gate and R-24 already cover the
+  reusable behavior. Open questions: provider privacy terms remain pending.
 
 ## P03 Non-Visual Slice 1 Evidence
 

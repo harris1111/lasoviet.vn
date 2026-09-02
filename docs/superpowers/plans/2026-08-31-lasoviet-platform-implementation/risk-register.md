@@ -56,6 +56,22 @@ expectations now block unexplained normalized-chart drift; evidence derives
 only from its linked immutable chart version; and the validated SBOM graph
 binds the application root to the exact reviewed `iztro` dependency.
 
+## P04 AI Foundation Evidence (2026-09-02)
+
+- R-04 and R-05 now have first-layer deterministic controls: strict report
+  schema, evidence-ID validation, prohibited-category rejection, Vietnamese
+  language checks, professional-advice disclaimer enforcement, and an LLM
+  critic threshold. Full frozen-fact coverage and internal report QA remain
+  required before release.
+- R-06 remains open. The raw-`fetch` adapter has bounded timeout/retry behavior
+  and a real no-PII capability smoke, but durable worker retry and persisted
+  report state remain with P04-T03/P04-T05 integration.
+- R-24 continues to block production AI. The provider is identified as
+  founder-operated `9router-an`, while retention, training use, regions,
+  subprocessors, access controls, deletion, and incident terms remain pending.
+- R-14 retains its release-blocking classification. Credentials remain only in
+  ignored local environment state and were not committed or logged.
+
 ## Review Protocol
 
 - Terra classifies a verified current-scope correctness/security/privacy issue
