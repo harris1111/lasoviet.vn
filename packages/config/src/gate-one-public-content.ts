@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
-import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { PublicContentV1Schema, type RouteDefinitionV1 } from "@lasoviet/contracts";
@@ -160,6 +160,17 @@ function hasUnsafeCopy(value: string): boolean {
   return unsafeCopy.test(fold(value));
 }
 
+function defaultPublicContentRoot(): string {
+  return resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "..",
+    "content",
+    "public",
+  );
+}
+
 export function assertRepositorySourcePath(repoRoot: string, sourcePath: string): string {
   if (
     sourcePath.includes("\0") ||
@@ -279,7 +290,7 @@ export function validateGateOnePublicContent(content: Omit<GateOnePublicContent,
   };
 }
 
-export function loadGateOnePublicContent(root = fileURLToPath(new URL("../../../content/public/", import.meta.url))): GateOnePublicContent {
+export function loadGateOnePublicContent(root = defaultPublicContentRoot()): GateOnePublicContent {
   const repoRoot = resolve(root, "../..");
   const reviewerRegistry = parse(reviewerRegistrySchema, readJson(join(root, "reviewers.yml")), "invalid reviewer registry");
   const sourceRegistry = parse(sourceRegistrySchema, readJson(join(root, "sources.yml")), "invalid source registry");
