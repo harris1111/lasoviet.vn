@@ -57,6 +57,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Async session liveness clock | P03-T02 initially reused a timestamp captured before the authoritative session read | Terra moved clock capture to the live-row lookup and added a sequenced-clock regression test | Not added to `AGENTS.md`; one localized TOCTOU defect does not meet section 9 |
 | Evidence-gated calculation completion | P03-T03 found the evidence service existed but successful calculation responses did not ensure required evidence persistence | Terra wired idempotent evidence persistence to calculation completion; the pattern applies to future calculation engines and report consumers | Added to `AGENTS.md` under calculation completion and evidence |
 | Workspace declaration freshness | P01-T02 and P03-T04 independently encountered dependent typechecks reading stale workspace declarations from producer `dist` output | Sol confirmed the recurring producer-consumer build-order failure and narrowed the action to packages consumed through exports/generated declarations | Added to `AGENTS.md` under repository and operational safety |
+| Generated public-content publication boundaries | P03-T06 initially allowed mixed-locale, encoding-corrupted, unsupported-source, and localized unsafe copy across the Gate 1 corpus | Sol confirmed one severe repository-wide incident and narrowed the rule to deterministic locale integrity plus canonical repository source containment before publication | Added to `AGENTS.md` under repository and operational safety |
 
 ## Per-Task Rule Check
 

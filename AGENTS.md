@@ -285,6 +285,13 @@ rule instead of adding another version.
   rely on remembered or generic examples.
 - Keep upstream/reference repositories read-only unless the founder explicitly
   changes their role.
+- Before generated public content is marked `published`, require deterministic
+  locale-integrity and approved repository-source-boundary validation. Reject
+  sustained foreign-language or encoding-corrupted prose, prohibited localized
+  claims after Unicode normalization, and source paths that are absolute, UNC,
+  traversing, symlink-escaping, or otherwise resolve outside the canonical
+  repository root. A failed boundary check blocks publication and returns to
+  Terra for correction before milestone review.
 - Never commit secrets, credentials, private reports, or unnecessary personal
   data.
 - Do not run destructive filesystem or Git operations without explicit founder
