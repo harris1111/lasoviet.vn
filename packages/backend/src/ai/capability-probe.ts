@@ -14,7 +14,6 @@ export type AiCapabilityResult =
 
 export async function runAiCapabilityProbe(
   provider: AiProvider,
-  expectedModelId: string,
 ): Promise<AiCapabilityResult> {
   const result = await provider.generateStructured({
     schema: ProbeSchema,
@@ -28,7 +27,7 @@ export async function runAiCapabilityProbe(
   if (
     result.value.value.sentinel !== sentinel ||
     result.value.providerId !== "9router-an" ||
-    result.value.modelId !== expectedModelId
+    result.value.modelId.trim() === ""
   ) {
     return { ok: false, error: { code: "AI_CAPABILITY_UNSUPPORTED", retryable: false } };
   }

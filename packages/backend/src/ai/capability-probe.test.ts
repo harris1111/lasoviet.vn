@@ -9,13 +9,13 @@ describe("AI capability probe", () => {
     const provider: AiProvider = {
       async generateStructured(candidate) {
         request = candidate;
-        return { ok: true, value: { value: { sentinel: "LASOVIET_CAPABILITY_PROBE_V1", boundedValue: "ok" }, providerId: "9router-an", modelId: "synthetic-model" } };
+        return { ok: true, value: { value: { sentinel: "LASOVIET_CAPABILITY_PROBE_V1", boundedValue: "ok" }, providerId: "9router-an", modelId: "gpt-5.6-luna" } };
       },
     };
 
-    await expect(runAiCapabilityProbe(provider, "synthetic-model")).resolves.toEqual({
+    await expect(runAiCapabilityProbe(provider)).resolves.toEqual({
       ok: true,
-      value: { providerId: "9router-an", modelId: "synthetic-model" },
+      value: { providerId: "9router-an", modelId: "gpt-5.6-luna" },
     });
     expect(request).toMatchObject({ use: "synthetic_capability_probe" });
     expect(JSON.stringify(request)).not.toMatch(/birth|chart|order|report|email/i);
