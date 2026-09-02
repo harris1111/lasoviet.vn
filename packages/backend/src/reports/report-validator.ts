@@ -31,7 +31,7 @@ const prohibited = [
   /\b(?:diagnos(?:is|ed)|depression|mental disorder)\b/i,
   /(?:nếu|neu).*(?:không|khong).*(?:mua|buy).*(?:ngay|now)/i,
 ];
-const corruption = /[\u0000-\u001F\u007F]|\uFFFD|(?:Ã.|Â.|â[€™“”–])/u;
+const corruption = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]|\uFFFD|(?:Ã.|Â.|â[€™“”–])/u;
 
 function isVietnamese(text: string): boolean {
   const normalized = text.normalize("NFC");

@@ -84,6 +84,19 @@ describe("identity report validator", () => {
     expect(validateIdentityReport(candidate, { evidence, frozenFacts }).ok).toBe(false);
   });
 
+  it.each([
+    ["line feed", "Bạn nên quan sát bình tĩnh.\nHãy ghi lại điều bạn nhận thấy."],
+    ["CRLF", "Bạn nên quan sát bình tĩnh.\r\nHãy ghi lại điều bạn nhận thấy."],
+    ["tab", "Bạn nên quan sát bình tĩnh.\tHãy ghi lại điều bạn nhận thấy."],
+  ])("accepts valid narrative formatting with %s", (_name, narrative) => {
+    const candidate = report();
+    candidate.sections[0].narrative = narrative;
+    expect(validateIdentityReport(candidate, { evidence, frozenFacts })).toEqual({
+      ok: true,
+      findings: [],
+    });
+  });
+
   it("accepts a genuinely valid report and rejects evidence-bound violations", () => {
     expect(validateIdentityReport(report(), { evidence, frozenFacts })).toEqual({ ok: true, findings: [] });
     const noClaim = report();
