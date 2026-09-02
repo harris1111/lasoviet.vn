@@ -43,13 +43,14 @@
   </script>
   <style>
     body { margin: 0; box-sizing: border-box; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
     * { box-sizing: border-box; }
     a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
 </helmet>
 
-<div style="background:var(--surface-canvas); color:var(--text-body); font-family:var(--font-ui); min-height:100vh;">
+<div class="lsv-bg-texture" style="color:var(--text-body); font-family:var(--font-ui); min-height:100vh;">
 
   <!-- HEADER -->
   <header style="border-bottom:1px solid var(--border-hairline); background:var(--surface-deep);">

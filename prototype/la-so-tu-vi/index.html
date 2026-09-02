@@ -42,6 +42,7 @@
   </script>
   <style>
     body { margin: 0; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
     a { color: var(--accent-gold); }
     a:hover { color: var(--gold-400); }
     @media (prefers-reduced-motion: reduce) {
@@ -51,7 +52,7 @@
   </style>
 </helmet>
 
-<div style="font-family:var(--font-ui);background:var(--surface-canvas);color:var(--text-body);min-height:100vh" data-screen-label="la-so-tu-vi">
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="la-so-tu-vi">
 
   <!-- HEADER -->
   <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">

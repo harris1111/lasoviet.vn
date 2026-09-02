@@ -19,13 +19,14 @@
     @keyframes ls-spin { to { transform: rotate(360deg); } }
     @keyframes ls-pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
     body { margin:0; background:var(--surface-deep); }
+    .lsv-bg-texture { background-color:var(--surface-deep); background-image:linear-gradient(rgba(15,13,10,0.94),rgba(15,13,10,0.94)),url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat:repeat; }
     @media (prefers-reduced-motion: reduce) {
       .ls-spin, .ls-pulse { animation: none !important; }
     }
   </style>
 </helmet>
 
-<div style="min-height:100vh; background:var(--surface-deep); font-family:var(--font-ui); color:var(--text-body);">
+<div class="lsv-bg-texture" style="min-height:100vh; font-family:var(--font-ui); color:var(--text-body);">
 
   <!-- Header -->
   <header style="border-bottom:1px solid var(--border-hairline); background:var(--surface-canvas);">

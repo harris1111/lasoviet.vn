@@ -19,6 +19,7 @@
   <script src="./image-slot.js"></script>
   <style>
     body { margin: 0; background: var(--lacquer-900); }
+    .lsv-bg-texture { background-color: var(--lacquer-900); background-image: linear-gradient(rgba(15,13,10,0.94), rgba(15,13,10,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
     * { box-sizing: border-box; }
     input::placeholder { color: var(--pearl-600); }
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { display: none; }
@@ -29,7 +30,7 @@
   </style>
 </helmet>
 
-<div style="{{ ui.rootStyle }}">
+<div class="lsv-bg-texture" style="{{ ui.rootStyle }}">
 
   <div style="{{ ui.privacyNoteStyle }}">
     <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="14" color="var(--pearl-600)" hint-size="14,14"></x-import>
@@ -610,7 +611,7 @@ class Component extends DCLogic {
     return {
       ui: {
         isMobile, isDesktop: !isMobile,
-        rootStyle: { minHeight: '100vh', background: 'var(--lacquer-900)', color: 'var(--text-body)', fontFamily: 'var(--font-ui)', display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? 96 : 0 },
+        rootStyle: { minHeight: '100vh', color: 'var(--text-body)', fontFamily: 'var(--font-ui)', display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? 96 : 0 },
         privacyNoteStyle: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', background: 'var(--lacquer-800)', borderBottom: '1px solid var(--border-hairline)', fontSize: 12, color: 'var(--pearl-600)' },
         headerStyle: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 64, padding: isMobile ? '0 12px' : '0 40px', borderBottom: '1px solid var(--border-hairline)', position: 'sticky', top: 0, background: 'var(--surface-canvas)', zIndex: 50 },
         logoWrapStyle: { fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--text-heading)' },

@@ -39,10 +39,13 @@
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   }
+  /* Vân sơn mài hình học lá số — texture nền dùng chung, phủ dưới các section màu phẳng để đồng nhất thị giác toàn trang. Không dùng ở hero/luận-giải-sâu/CTA vì các khu đó đã có ảnh riêng. */
+  .lsv-bg-deep { background-color: #0F0D0A; background-image: linear-gradient(rgba(15,13,10,0.94), rgba(15,13,10,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+  .lsv-bg-canvas { background-color: #15120E; background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
 </style>
 </helmet>
 
-<div style="max-width: 100%; overflow-x: hidden; background: #15120E;">
+<div class="lsv-bg-canvas" style="max-width: 100%; overflow-x: hidden;">
 
   <svg aria-hidden="true" focusable="false" width="0" height="0" style="position: absolute; width: 0; height: 0; overflow: hidden;">
     <defs>
@@ -74,7 +77,7 @@
     </defs>
   </svg>
 
-  <div style="border-bottom: 1px solid #3A3227; background: #0F0D0A; overflow: hidden;">
+  <div class="lsv-bg-deep" style="border-bottom: 1px solid #3A3227; overflow: hidden;">
     <div style="display: flex; width: max-content; animation: lsv-marquee 46s linear infinite;">
       <div style="display: flex; align-items: center; gap: 48px; padding: 9px 24px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B; white-space: nowrap;">
         <span>Lập lá số Tử Vi miễn phí — không cần tài khoản</span><span style="color: #6E6656;">·</span>
@@ -164,7 +167,7 @@
     </div>
   </section>
 
-  <section style="background: #15120E; border-bottom: 1px solid #3A3227;">
+  <section class="lsv-bg-canvas" style="border-bottom: 1px solid #3A3227;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
       <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));">
         <div style="padding: 28px 28px 28px 0; border-right: 1px solid #3A3227;">
@@ -191,7 +194,7 @@
     </div>
   </section>
 
-  <section style="background: #15120E; padding: 112px 0 128px; overflow: hidden;">
+  <section class="lsv-bg-canvas" style="padding: 112px 0 128px; overflow: hidden;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
       <div style="max-width: 720px;">
         <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Lá số miễn phí</div>
@@ -225,7 +228,7 @@
     </div>
   </section>
 
-  <section id="phuong-phap" style="background: #0F0D0A; border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 104px 0;">
+  <section id="phuong-phap" class="lsv-bg-deep" style="border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 104px 0;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
       <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Cách hoạt động</div>
       <div style="margin-top: 44px; display: flex; flex-direction: column;">
@@ -272,7 +275,7 @@
     </div>
   </section>
 
-  <section style="background: #15120E; padding: 112px 0;">
+  <section class="lsv-bg-canvas" style="padding: 112px 0;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 72px; align-items: start;">
       <div>
         <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Minh bạch</div>
@@ -377,7 +380,7 @@
     </div>
   </section>
 
-  <section style="background: #15120E; padding: 104px 0;">
+  <section class="lsv-bg-canvas" style="padding: 104px 0;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
       <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Niềm tin</div>
       <h2 style="margin: 18px 0 40px; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.2; color: #F6F1E6;">Cách chúng tôi luận giải</h2>
@@ -396,7 +399,7 @@
     </div>
   </section>
 
-  <section id="kien-thuc" style="background: #0F0D0A; border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 104px 0;">
+  <section id="kien-thuc" class="lsv-bg-deep" style="border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 104px 0;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
       <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Thư viện tri thức</div>
       <h2 style="margin: 18px 0 44px; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.2; color: #F6F1E6;">Bắt đầu từ đây</h2>
@@ -420,7 +423,7 @@
     </div>
   </section>
 
-  <section style="background: #15120E; padding: 104px 0;">
+  <section class="lsv-bg-canvas" style="padding: 104px 0;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr); gap: 64px; align-items: start;">
       <div>
         <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Câu hỏi thường gặp</div>
@@ -458,7 +461,7 @@
     </div>
   </section>
 
-  <footer style="background: #0F0D0A; border-top: 1px solid #3A3227; padding: 72px 0 40px;">
+  <footer class="lsv-bg-deep" style="border-top: 1px solid #3A3227; padding: 72px 0 40px;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
       <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 0.9fr)); gap: 48px;">
         <div>

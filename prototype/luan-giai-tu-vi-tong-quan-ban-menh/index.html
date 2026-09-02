@@ -20,13 +20,14 @@
   <script type="application/ld+json">{{ ldJson }}</script>
   <style>
     body{margin:0;background:var(--surface-canvas);}
+    .lsv-bg-texture{background-color:var(--surface-canvas);background-image:linear-gradient(rgba(21,18,14,0.94),rgba(21,18,14,0.94)),url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp');background-repeat:repeat;}
     a{color:var(--accent-gold);}
     a:hover{color:var(--gold-400);}
     ::selection{background:var(--gold-600);color:var(--lacquer-900);}
   </style>
 </helmet>
 
-<div style="background:var(--surface-canvas);color:var(--text-body);font-family:var(--font-ui);min-height:100vh;">
+<div class="lsv-bg-texture" style="color:var(--text-body);font-family:var(--font-ui);min-height:100vh;">
 
   <!-- HEADER -->
   <header style="border-bottom:1px solid var(--border-hairline);">
