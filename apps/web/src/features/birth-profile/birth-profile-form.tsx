@@ -38,18 +38,34 @@ export function BirthProfileForm({
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("");
   const [timeUnknown, setTimeUnknown] = useState(false);
+  const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   function canContinue() {
-    return step === 1 || (date !== "" && (timeUnknown || (hour !== "" && minute !== "")));
+    return step === 1 || (
+      date !== "" &&
+      gender !== null &&
+      (timeUnknown || (hour !== "" && minute !== ""))
+    );
   }
 
   async function submit() {
+    if (gender === null) {
+      setError(t("errors.gender"));
+      return;
+    }
     setPending(true);
     setError(null);
-    const profile = buildBirthProfile({ date, hour, minute, timeUnknown, locale });
+    const profile = buildBirthProfile({
+      date,
+      hour,
+      minute,
+      timeUnknown,
+      gender,
+      locale,
+    });
     const saved = await submitBirthProfile({ profile, explicitConsent: consent });
     if (!saved.ok) {
       setPending(false);
@@ -116,6 +132,32 @@ export function BirthProfileForm({
             onTimeUnknownChange={setTimeUnknown}
             timeUnknown={timeUnknown}
           />
+          <fieldset aria-describedby="birth-gender-help" className="wizard-fieldset">
+            <legend>{t("birth.gender")}</legend>
+            <p className="wizard-help" id="birth-gender-help">{t("birth.genderHelp")}</p>
+            <div className="wizard-segmented-control">
+              <label className="wizard-segment">
+                <input
+                  checked={gender === "male"}
+                  name="gender"
+                  onChange={() => setGender("male")}
+                  type="radio"
+                  value="male"
+                />
+                <span>{t("birth.male")}</span>
+              </label>
+              <label className="wizard-segment">
+                <input
+                  checked={gender === "female"}
+                  name="gender"
+                  onChange={() => setGender("female")}
+                  type="radio"
+                  value="female"
+                />
+                <span>{t("birth.female")}</span>
+              </label>
+            </div>
+          </fieldset>
           <p className="wizard-help">{t("birth.timezone")}</p>
         </section>
       ) : null}
@@ -126,6 +168,7 @@ export function BirthProfileForm({
           <dl className="wizard-summary">
             <dt>{t("birth.date")}</dt><dd>{date || "-"}</dd>
             <dt>{t("birth.time")}</dt><dd>{timeUnknown ? t("review.unknown") : `${hour}:${minute}`}</dd>
+            <dt>{t("birth.gender")}</dt><dd>{gender === "male" ? t("birth.male") : gender === "female" ? t("birth.female") : "-"}</dd>
             <dt>{t("birth.timezone")}</dt><dd>UTC+7</dd>
           </dl>
           <label className="wizard-check">

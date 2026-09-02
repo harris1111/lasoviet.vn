@@ -55,12 +55,15 @@ test("the founder-run stack delivers registration email and serves the anonymous
   await page.getByLabel("Ngày sinh dương lịch").fill("1990-01-01");
   await page.getByLabel("Giờ", { exact: true }).fill("09");
   await page.getByLabel("Phút", { exact: true }).fill("30");
+  await page.getByLabel("Nam").check();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Lập lá số" }).click();
 
   await expect(page).toHaveURL(/\/la-so\/[^/]+$/);
-  await expect(page.getByTestId("ziwei-palace")).toHaveCount(12);
+  await expect(
+    page.locator(".ziwei-chart-grid").getByTestId("ziwei-palace"),
+  ).toHaveCount(12);
   await expect(page.getByRole("heading", { name: "Ba điểm để tự quan sát" })).toBeVisible();
   await page.getByRole("button", { name: "Xem căn cứ" }).first().click();
   await expect(page.getByRole("dialog", { name: "Căn cứ luận giải" })).toBeVisible();

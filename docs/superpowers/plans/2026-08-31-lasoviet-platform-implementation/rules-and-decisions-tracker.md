@@ -223,7 +223,7 @@ Date: 2026-09-02
 - Rule candidates were evaluated above; neither meets the durable-rule
   threshold. Open questions: none.
 
-## Task 5 Founder-Run MVP Packaging Checkpoint
+## Task 5 Founder-Run MVP Packaging And Gender Correction
 
 Date: 2026-09-02
 
@@ -233,13 +233,15 @@ Date: 2026-09-02
 - Added focused Compose and host-port invariants, a deployment runbook, and a
   real-stack smoke path. Images run as non-root, app services restart unless
   stopped, and Docker logs are capped.
-- The live stack completed migrations and sent the authorized registration
-  email. The browser flow persisted a birth profile but could not start Zi Wei
-  calculation because the form supplies no gender while the engine requires
-  an explicit male or female value.
-- No durable AGENTS.md rule was added: the gap is a product-input decision,
-  not a reusable engineering invariant. Open question: approve a gender input
-  and its UX before claiming the full chart/evidence/free-preview flow green.
+- Founder approved the explicit Zi Wei gender input on 2026-09-02. Step 2 now
+  requires `Nam`/`Nữ`, serializes `male`/`female` without defaulting or
+  inference, explains cycle direction, and shows the selected value in Step 3.
+- Fresh real-stack smoke passed: profile persistence, Zi Wei calculation,
+  chart, evidence drawer, and free identity preview. The founder-authorized
+  registration email remains recorded as sent.
+- No durable AGENTS.md rule was added. This was one corrected product-input
+  omission, not a repeated or repository-wide failure pattern. Open questions:
+  none.
 
 ## P01-T02 Evidence
 

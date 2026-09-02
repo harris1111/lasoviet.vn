@@ -10,6 +10,7 @@ describe("birth profile form payload", () => {
         hour: "09",
         minute: "30",
         timeUnknown: false,
+        gender: "male",
         locale: "vi",
       }),
     ).toEqual({
@@ -17,6 +18,7 @@ describe("birth profile form payload", () => {
       calendar: { kind: "solar", date: "1990-01-01" },
       time: { precision: "exact_minute", localTime: "09:30" },
       timezone: { offsetMinutes: 420 },
+      gender: "male",
       consentVersion: "2026-09-01",
       locale: "vi",
     });
@@ -29,6 +31,7 @@ describe("birth profile form payload", () => {
         hour: "",
         minute: "",
         timeUnknown: true,
+        gender: "female",
         locale: "en",
       }),
     ).toMatchObject({

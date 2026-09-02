@@ -20,7 +20,11 @@
     "unknown": "Birth time unknown",
     "unknownHelp": "You can still save the profile, but an exact Zi Wei chart cannot be calculated yet.",
     "hour": "Hour",
-    "minute": "Minute"
+    "minute": "Minute",
+    "gender": "Gender used to create the chart",
+    "genderHelp": "Zi Wei needs this information to determine the direction of cycles.",
+    "male": "Male",
+    "female": "Female"
   },
   "review": {
     "title": "Review your details",
@@ -34,6 +38,7 @@
   "submitting": "Creating chart...",
   "errors": {
     "profile": "We could not save the birth information. Check it and try again.",
+    "gender": "Select the gender used to create the chart.",
     "timeUnknown": "An exact birth time is needed to create a Zi Wei chart. Return when you can add it.",
     "calculation": "We could not create the chart right now. Please try again."
   }

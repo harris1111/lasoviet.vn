@@ -20,7 +20,11 @@
     "unknown": "Không rõ giờ sinh",
     "unknownHelp": "Bạn vẫn có thể lưu hồ sơ, nhưng chưa thể tính lá số Tử Vi chính xác.",
     "hour": "Giờ",
-    "minute": "Phút"
+    "minute": "Phút",
+    "gender": "Giới tính dùng để lập lá số",
+    "genderHelp": "Tử Vi cần thông tin này để xác định chiều vận.",
+    "male": "Nam",
+    "female": "Nữ"
   },
   "review": {
     "title": "Kiểm tra thông tin",
@@ -34,6 +38,7 @@
   "submitting": "Đang lập lá số...",
   "errors": {
     "profile": "Không thể lưu thông tin sinh. Hãy kiểm tra lại và thử lại.",
+    "gender": "Hãy chọn giới tính dùng để lập lá số.",
     "timeUnknown": "Cần giờ sinh chính xác để lập lá số Tử Vi. Bạn có thể quay lại bổ sung khi biết giờ sinh.",
     "calculation": "Chưa thể lập lá số lúc này. Hãy thử lại sau."
   }

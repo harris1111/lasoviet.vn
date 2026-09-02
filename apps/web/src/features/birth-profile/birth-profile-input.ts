@@ -3,6 +3,7 @@ export type BirthProfileInput = {
   hour: string;
   minute: string;
   timeUnknown: boolean;
+  gender: "male" | "female";
   locale: "en" | "vi";
 };
 
@@ -15,8 +16,9 @@ export function buildBirthProfile(input: BirthProfileInput) {
       : {
           precision: "exact_minute" as const,
           localTime: `${input.hour.padStart(2, "0")}:${input.minute.padStart(2, "0")}`,
-        },
+    },
     timezone: { offsetMinutes: 420 },
+    gender: input.gender,
     consentVersion: "2026-09-01",
     locale: input.locale,
   };
