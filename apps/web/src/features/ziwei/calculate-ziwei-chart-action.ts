@@ -12,3 +12,8 @@ export async function calculateZiweiChart(revisionId: string) {
     privateApiClient,
   })(revisionId);
 }
+
+export async function loadZiweiEvidence(chartId: string, evidenceId: string) {
+  const { loadZiweiChart } = await import("./load-ziwei-chart");
+  return loadZiweiChart.loadEvidence(chartId, evidenceId);
+}
