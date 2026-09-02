@@ -1,0 +1,962 @@
+[
+  {
+    "routeId": "brand.home",
+    "locale": "vi",
+    "contentType": "SeoMetadata",
+    "title": "Lá Số Việt | Lập lá số. Hiểu vận mệnh.",
+    "summary": "Nền tảng lập và luận giải lá số có căn cứ, bắt đầu với Tử Vi và trải nghiệm rõ ràng cho người Việt.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "brand.home",
+    "locale": "en",
+    "contentType": "SeoMetadata",
+    "title": "La So Viet | Build your chart. Understand your path.",
+    "summary": "A grounded chart-building and interpretation platform, beginning with Tu Vi for Vietnamese users.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "calculator.tu-vi",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Lập lá số Tử Vi",
+    "summary": "Tạo lá số Tử Vi miễn phí theo phương pháp công bố, với dữ liệu đầu vào và giới hạn được trình bày rõ.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "calculator.tu-vi",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Build a Tu Vi chart",
+    "summary": "Create a Tu Vi chart with a transparent method, clear inputs, and explicit limits.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "commercial.tu-vi",
+    "locale": "vi",
+    "contentType": "CommercialPage",
+    "title": "Luận giải Tử Vi chuyên sâu",
+    "summary": "Khám phá các chủ đề luận giải Tử Vi có cấu trúc, tách bạch tính toán, căn cứ và diễn giải.",
+    "reviewer": "product-content",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "commercial_claims"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "commercial.tu-vi",
+    "locale": "en",
+    "contentType": "CommercialPage",
+    "title": "In-depth Tu Vi interpretations",
+    "summary": "Explore structured Tu Vi interpretations that separate calculation, evidence, and explanation.",
+    "reviewer": "product-content",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "commercial_claims"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "commercial.tu-vi.identity",
+    "locale": "vi",
+    "contentType": "CommercialPage",
+    "title": "Tổng quan bản mệnh",
+    "summary": "Báo cáo mở đầu giúp bạn đọc các chủ đề bản mệnh từ dữ liệu lá số và phương pháp luận đã công bố.",
+    "reviewer": "product-content",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/05-report-system.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "commercial_claims"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "commercial.tu-vi.identity",
+    "locale": "en",
+    "contentType": "CommercialPage",
+    "title": "Identity and life-pattern overview",
+    "summary": "An opening report that reads identity themes from chart data and the documented interpretation method.",
+    "reviewer": "product-content",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/05-report-system.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "commercial_claims"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "sample-report.tu-vi",
+    "locale": "vi",
+    "contentType": "SampleReport",
+    "title": "Báo cáo mẫu Tử Vi",
+    "summary": "Xem cách một báo cáo Tử Vi trình bày dữ liệu, căn cứ, diễn giải và giới hạn tham khảo.",
+    "reviewer": "report-reviewer",
+    "sourceReferences": [
+      "docs/05-report-system.md",
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "sample_data"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "sample-report.tu-vi",
+    "locale": "en",
+    "contentType": "SampleReport",
+    "title": "Tu Vi sample report",
+    "summary": "See how a Tu Vi report presents chart data, evidence, interpretation, and practical limits.",
+    "reviewer": "report-reviewer",
+    "sourceReferences": [
+      "docs/05-report-system.md",
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "sample_data"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.root",
+    "locale": "vi",
+    "contentType": "KnowledgeHub",
+    "title": "Kiến thức Tử Vi và các phương pháp",
+    "summary": "Tổng hợp kiến thức nền tảng để hiểu thuật ngữ, phương pháp, dữ liệu và cách đọc các loại lá số.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.root",
+    "locale": "en",
+    "contentType": "KnowledgeHub",
+    "title": "Knowledge of Tu Vi and related methods",
+    "summary": "A structured starting point for terms, methods, chart data, and ways to read different chart systems.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi",
+    "locale": "vi",
+    "contentType": "KnowledgeHub",
+    "title": "Kiến thức Tử Vi",
+    "summary": "Lộ trình học Tử Vi từ khái niệm nền tảng đến cách lập, đọc và đối chiếu một lá số.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi",
+    "locale": "en",
+    "contentType": "KnowledgeHub",
+    "title": "Tu Vi knowledge",
+    "summary": "A learning path from Tu Vi foundations to building, reading, and checking a chart.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.definition",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Lá số Tử Vi là gì?",
+    "summary": "Giải thích lá số Tử Vi, các thành phần chính và cách tách dữ liệu tính toán khỏi phần diễn giải.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.definition",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "What is a Tu Vi chart?",
+    "summary": "An introduction to Tu Vi charts, their main parts, and the boundary between calculation and interpretation.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.calculation",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Cách lập lá số Tử Vi",
+    "summary": "Trình bày các bước dữ liệu và quy tắc cần biết khi lập lá số Tử Vi theo phương pháp công bố.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.calculation",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "How a Tu Vi chart is built",
+    "summary": "The key inputs and rules used to build a Tu Vi chart under the documented method.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.reading",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Cách đọc lá số Tử Vi",
+    "summary": "Hướng dẫn trình tự đọc các cung, sao và chu kỳ để giữ phần diễn giải gắn với dữ liệu lá số.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/05-report-system.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.reading",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "How to read a Tu Vi chart",
+    "summary": "A practical reading sequence for palaces, stars, and cycles while keeping interpretation tied to chart data.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/05-report-system.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.palaces",
+    "locale": "vi",
+    "contentType": "KnowledgeHub",
+    "title": "12 cung trong lá số Tử Vi",
+    "summary": "Tra cứu vai trò của mười hai cung và cách chúng tạo thành khung đọc các chủ đề trong lá số.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.palaces",
+    "locale": "en",
+    "contentType": "KnowledgeHub",
+    "title": "The 12 palaces in a Tu Vi chart",
+    "summary": "A reference to the role of twelve palaces and how they frame chart-based interpretation.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.stars",
+    "locale": "vi",
+    "contentType": "KnowledgeHub",
+    "title": "14 chính tinh trong Tử Vi",
+    "summary": "Tổng quan mười bốn chính tinh và cách tiếp cận chúng như dữ liệu trong hệ thống luận giải.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.stars",
+    "locale": "en",
+    "contentType": "KnowledgeHub",
+    "title": "The 14 principal stars in Tu Vi",
+    "summary": "An overview of the fourteen principal stars and their place as chart data in interpretation.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.foundations",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Mệnh, Thân và Cục trong Tử Vi",
+    "summary": "Giải thích ba khái niệm nền tảng để đọc cấu trúc lá số mà không biến thuật ngữ thành lời khẳng định tuyệt đối.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.foundations",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "Menh, Than, and Cuc in Tu Vi",
+    "summary": "An explanation of three foundational concepts for reading chart structure without turning terms into absolute claims.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.cycles",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Đại vận và tiểu vận",
+    "summary": "Tìm hiểu cách các chu kỳ thời gian được dùng để tổ chức câu hỏi và bối cảnh khi đọc lá số.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/05-report-system.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "time_sensitive_interpretation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.cycles",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "Dai van and tieu van cycles",
+    "summary": "How time cycles organize questions and context when reading a Tu Vi chart.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/05-report-system.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "time_sensitive_interpretation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.birth-time",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Giờ sinh ảnh hưởng thế nào đến lá số?",
+    "summary": "Giải thích vai trò của giờ sinh trong dữ liệu đầu vào và vì sao cần nêu rõ độ chính xác cùng giới hạn.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.birth-time",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "How birth time affects a chart",
+    "summary": "The role of birth time in chart inputs and why accuracy and limits should be stated clearly.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.accuracy",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Tử Vi có chính xác không?",
+    "summary": "Đặt câu hỏi về độ chính xác bằng cách phân biệt quy tắc tính toán, diễn giải và giới hạn của nội dung tham khảo.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "epistemic_limits"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.accuracy",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "How accurate is Tu Vi?",
+    "summary": "A careful look at calculation rules, interpretation, and the limits of reflective guidance.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "epistemic_limits"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.schools",
+    "locale": "vi",
+    "contentType": "KnowledgeArticle",
+    "title": "Các trường phái Tử Vi",
+    "summary": "So sánh các cách tiếp cận trong Tử Vi và giải thích vì sao phương pháp sử dụng cần được công bố.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_variation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "knowledge.tu-vi.schools",
+    "locale": "en",
+    "contentType": "KnowledgeArticle",
+    "title": "Schools of Tu Vi",
+    "summary": "A comparison of Tu Vi approaches and why the method used should be made explicit.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_variation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "methodology.root",
+    "locale": "vi",
+    "contentType": "MethodologyPage",
+    "title": "Phương pháp luận",
+    "summary": "Tìm hiểu cách Lá Số Việt tách bạch tính toán, quy tắc diễn giải, AI và căn cứ cho từng nhận định.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "ai_transparency"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "methodology.root",
+    "locale": "en",
+    "contentType": "MethodologyPage",
+    "title": "Our methodology",
+    "summary": "How La So Viet separates calculation, interpretation rules, AI, and evidence behind each statement.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "ai_transparency"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "methodology.tu-vi",
+    "locale": "vi",
+    "contentType": "MethodologyPage",
+    "title": "Phương pháp Tử Vi",
+    "summary": "Các bước tính toán và nguyên tắc đọc được dùng để tạo trải nghiệm Tử Vi có thể truy nguyên.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/06-technical-architecture.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_variation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "methodology.tu-vi",
+    "locale": "en",
+    "contentType": "MethodologyPage",
+    "title": "The Tu Vi method",
+    "summary": "The calculation steps and reading principles behind a traceable Tu Vi experience.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/06-technical-architecture.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_variation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "methodology.ai-evidence",
+    "locale": "vi",
+    "contentType": "MethodologyPage",
+    "title": "AI và căn cứ",
+    "summary": "Giải thích vai trò của AI trong tổ chức và diễn giải nội dung, cùng cách giữ nhận định gắn với dữ liệu.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "ai_transparency",
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "methodology.ai-evidence",
+    "locale": "en",
+    "contentType": "MethodologyPage",
+    "title": "AI and evidence",
+    "summary": "The role of AI in organizing and explaining content, with statements kept tied to chart data.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "ai_transparency",
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "trust.sources",
+    "locale": "vi",
+    "contentType": "SourceReference",
+    "title": "Nguồn tri thức",
+    "summary": "Danh mục các nguồn và căn cứ giúp người đọc truy nguyên phương pháp, thuật ngữ và nội dung được sử dụng.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/06-technical-architecture.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "source_attribution",
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "trust.sources",
+    "locale": "en",
+    "contentType": "SourceReference",
+    "title": "Knowledge sources",
+    "summary": "A source registry for tracing the methods, terms, and evidence used across the public experience.",
+    "reviewer": "trust-reviewer",
+    "sourceReferences": [
+      "docs/06-technical-architecture.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "source_attribution",
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "brand.about",
+    "locale": "vi",
+    "contentType": "SeoMetadata",
+    "title": "Về Lá Số Việt",
+    "summary": "Tìm hiểu định vị, nguyên tắc minh bạch và mục tiêu xây dựng nền tảng lập, luận giải lá số cho người Việt.",
+    "reviewer": "brand-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "brand_claims"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "brand.about",
+    "locale": "en",
+    "contentType": "SeoMetadata",
+    "title": "About La So Viet",
+    "summary": "Our positioning, transparency principles, and goal of building a chart platform for Vietnamese users.",
+    "reviewer": "brand-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "brand_claims"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "support.faq",
+    "locale": "vi",
+    "contentType": "FAQEntry",
+    "title": "Câu hỏi thường gặp",
+    "summary": "Giải đáp các câu hỏi về cách lập lá số, phương pháp, nội dung tham khảo, tài khoản và quyền riêng tư.",
+    "reviewer": "support-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "privacy_boundary"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "support.faq",
+    "locale": "en",
+    "contentType": "FAQEntry",
+    "title": "Frequently asked questions",
+    "summary": "Answers about chart creation, methodology, reflective content, accounts, and privacy.",
+    "reviewer": "support-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "privacy_boundary"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "support.contact",
+    "locale": "vi",
+    "contentType": "SeoMetadata",
+    "title": "Liên hệ Lá Số Việt",
+    "summary": "Kênh liên hệ để gửi câu hỏi về trải nghiệm, nội dung, quyền riêng tư hoặc hỗ trợ tài khoản.",
+    "reviewer": "support-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "privacy_boundary"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "support.contact",
+    "locale": "en",
+    "contentType": "SeoMetadata",
+    "title": "Contact La So Viet",
+    "summary": "A contact channel for questions about the experience, content, privacy, or account support.",
+    "reviewer": "support-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "privacy_boundary"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "trust.privacy",
+    "locale": "vi",
+    "contentType": "SeoMetadata",
+    "title": "Chính sách bảo mật",
+    "summary": "Thông tin về dữ liệu được sử dụng, quyền kiểm soát của người dùng và các ranh giới bảo vệ thông tin nhạy cảm.",
+    "reviewer": "privacy-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "privacy_boundary",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "trust.privacy",
+    "locale": "en",
+    "contentType": "SeoMetadata",
+    "title": "Privacy policy",
+    "summary": "How data is used, how users retain control, and which boundaries protect sensitive information.",
+    "reviewer": "privacy-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/06-technical-architecture.md"
+    ],
+    "riskTags": [
+      "privacy_boundary",
+      "birth_data_sensitivity"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "trust.terms",
+    "locale": "vi",
+    "contentType": "SeoMetadata",
+    "title": "Điều khoản sử dụng",
+    "summary": "Các điều kiện sử dụng nền tảng, phạm vi dịch vụ, trách nhiệm của người dùng và giới hạn nội dung tham khảo.",
+    "reviewer": "legal-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "legal_disclosure",
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "trust.terms",
+    "locale": "en",
+    "contentType": "SeoMetadata",
+    "title": "Terms of use",
+    "summary": "The platform terms, service scope, user responsibilities, and limits of reflective content.",
+    "reviewer": "legal-reviewer",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "legal_disclosure",
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-01"
+  },
+  {
+    "routeId": "calculator.horoscope-forecast",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Dự báo cung hoàng đạo",
+    "summary": "Công cụ tham khảo để khám phá các chủ đề theo cung hoàng đạo và thời điểm, với giới hạn phương pháp được nêu rõ; không thay thế quyết định cá nhân.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_limitation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-02"
+  },
+  {
+    "routeId": "calculator.horoscope-forecast",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Horoscope forecast",
+    "summary": "A reference tool for exploring themes by zodiac sign and time period, with method limits stated clearly; it is not a substitute for personal decisions.",
+    "reviewer": "method-reviewer",
+    "sourceReferences": [
+      "docs/14-sitemap-seo-wireframes.md",
+      "docs/13-brand-experience-guideline.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure",
+      "method_limitation"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-02"
+  }
+]

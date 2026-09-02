@@ -8,6 +8,7 @@
       "method": "ziwei",
       "price": 79000,
       "phase": "P0",
+      "availability": "first_paid_flow",
       "sections": ["personal_summary", "strengths", "tensions", "decision_style", "growth_patterns", "actions", "limitations"]
     },
     {
@@ -15,7 +16,8 @@
       "name": "Tình duyên & hôn nhân",
       "method": "ziwei",
       "price": 79000,
-      "phase": "P0",
+      "phase": "P7",
+      "availability": "reserved",
       "sections": ["relationship_needs", "attachment_expression", "conflict_patterns", "healthy_conditions", "timing", "actions", "limitations"]
     },
     {
@@ -23,7 +25,8 @@
       "name": "Công việc & tài lộc",
       "method": "ziwei",
       "price": 79000,
-      "phase": "P0",
+      "phase": "P7",
+      "availability": "reserved",
       "sections": ["career_motivation", "capabilities", "work_environment", "money_patterns", "timing", "actions", "limitations"]
     },
     {
@@ -31,7 +34,8 @@
       "name": "Vận trình năm",
       "method": "ziwei",
       "price": 79000,
-      "phase": "P0",
+      "phase": "P7",
+      "availability": "reserved",
       "sections": ["year_theme", "periods", "opportunities", "risks", "observation_checklist", "actions", "limitations"]
     }
   ]

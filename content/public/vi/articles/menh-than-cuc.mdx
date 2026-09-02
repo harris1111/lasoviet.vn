@@ -1,0 +1,60 @@
+---
+{
+  "version": 1,
+  "routeId": "knowledge.tu-vi.foundations",
+  "locale": "vi",
+  "contentType": "KnowledgeArticle",
+  "title": "Mệnh, Thân và Cục trong Tử Vi",
+  "summary": "Giải thích ba khái niệm nền tảng để đọc cấu trúc lá số mà không biến thuật ngữ thành lời khẳng định tuyệt đối.",
+  "intent": "knowledge.tu-vi.foundations.vi.public",
+  "authorId": "method-reviewer",
+  "reviewerIds": [
+    "method-reviewer"
+  ],
+  "sourceIds": [
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.cycles",
+    "knowledge.tu-vi.accuracy"
+  ],
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
+  "parentRouteId": "knowledge.tu-vi",
+  "figure": {
+    "id": "gate-one-vi-6",
+    "alt": "Sơ đồ kiểm tra Mệnh, Thân và Cục trong Tử Vi",
+    "caption": "Sơ đồ độc lập cho bài 6, chỉ hiển thị trường và giới hạn đã triển khai."
+  }
+}
+---
+# Mệnh, Thân và Cục trong Tử Vi
+
+## Bài này giải thích
+
+Bài này giải thích trường cung Mệnh, cung Thân và transformations dựa trên ranh giới triển khai đã được version hóa. Hợp đồng chuẩn hóa lưu soulPalaceId và bodyPalaceId là mã phải trỏ tới cung hiện có. Transformations là mảng riêng gồm mã sao và mã biến hóa. Nó không thêm diễn giải truyền thống không có trong nguồn repository.
+
+## Ví dụ độc lập
+
+Trong fixture tháng nhuận, mã cung Mệnh và cung Thân trỏ tới các địa chi khác nhau. Ví dụ chỉ cho thấy các trường có thể khác nhau, không gán ý nghĩa cá nhân.
+
+## Đặc tả hình
+
+Hình 6: Sơ đồ trường dữ liệu cho soulPalaceId, bodyPalaceId, transformations và các mã cung hoặc sao được tham chiếu. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.
+
+## Giới hạn
+
+Ứng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.cycles), [bài liên quan thứ hai](route:knowledge.tu-vi.accuracy).

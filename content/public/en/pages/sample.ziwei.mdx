@@ -1,0 +1,60 @@
+---
+{
+  "version": 1,
+  "routeId": "sample-report.tu-vi",
+  "locale": "en",
+  "contentType": "SampleReport",
+  "title": "Tu Vi sample report",
+  "summary": "See how a Tu Vi report presents chart data, evidence, interpretation, and practical limits.",
+  "intent": "sample-report.tu-vi.en.public",
+  "authorId": "report-reviewer",
+  "reviewerIds": [
+    "report-reviewer"
+  ],
+  "sourceIds": [
+    "report-system",
+    "identity-evidence-rules",
+    "fixture-manifest"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure",
+    "sample_data"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi"
+  ],
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice."
+}
+---
+# Tu Vi sample report
+
+## Sample status
+
+This is a stable anonymized sample, not a customer report. Its purpose is to show the report structure without attaching a real person, a public endorsement, or a personal outcome.
+
+## Input scope
+
+The sample accepts a normalized birth profile with declared time precision, timezone provenance, selected ruleSetId ziwei.default, and a chart containing twelve palaces. Unknown time is ineligible; branch-only precision remains visible as a limitation.
+
+## Observations and evidence
+
+Observation one: the chart exposes soulPalaceId and a corresponding palace field. Evidence key: ziwei.identity.life-palace. Observation two: bodyPalaceId resolves to another recorded palace. Evidence key: ziwei.identity.body-palace. Observation three: transformations are present with provenance.ruleSetId. Evidence key: ziwei.identity.transformations.
+
+## Conditional interpretation
+
+Confidence is moderate. These evidence items can support reflection or exploration of how the report is organized; they cannot establish a fixed identity, a diagnosis, a financial result, or a relationship outcome.
+
+## Observable actions
+
+Check the displayed precision and warnings. Compare each evidence key with its fact references. Record a question you want to revisit after reviewing the method. These are observable actions, not promises.
+
+## Limitations
+
+The sample uses no customer data. It preserves documented limits such as input precision, missing true-solar-time correction, and boundaries between calculation, evidence, and interpretation.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi).

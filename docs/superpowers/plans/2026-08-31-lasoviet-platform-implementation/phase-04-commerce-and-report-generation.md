@@ -34,15 +34,20 @@ compatible HTTP API.
 ### Task 1 [P04-T01]: Implement orders, SePay adapter, and checkout
 
 **Files:**
+- Create: `docs/compliance/sepay-provider-contract.md`
 - Create: `packages/contracts/src/commerce.ts`
 - Create: `packages/backend/src/commerce/product-catalog.ts`
 - Create: `packages/backend/src/commerce/order.service.ts`
 - Create: `packages/backend/src/commerce/payment-provider.ts`
 - Create: `packages/backend/src/commerce/sepay-adapter.ts`
+- Modify: `config/route-registry.yml`
+- Modify: `packages/config/src/environment-schema.ts`
 - Create: `packages/database/src/schema/commerce.ts`
 - Create: `apps/api/src/commerce/commerce.controller.ts`
-- Create: `apps/web/src/app/[locale]/app/checkout/[orderId]/page.tsx`
+- Create: `apps/web/src/app/[locale]/thanh-toan/[orderId]/page.tsx`
 - Test: `packages/backend/src/commerce/order.service.test.ts`
+- Test: `packages/config/src/environment-schema.test.ts`
+- Create: `tests/seo/private-route-state.test.ts`
 
 **Interfaces:**
 - Produces `PaymentProvider.createPayment(order)`.
@@ -51,31 +56,50 @@ compatible HTTP API.
   `ZIWEI-IDENTITY-P0` at the approved VND 79,000 baseline.
 - Produces typed checkout states `pending`, `paid`, `expired`, `failed`,
   `refunded`.
+- Produces a dated, source-linked SePay contract record and complete server-only
+  environment-variable group before adapter implementation.
+- Promotes `/thanh-toan/{order_id}` to `live_noindex` only with the implemented
+  checkout flow and keeps it absent from every sitemap.
 
-- [ ] **Step 1: Write failing order-policy tests**
+- [ ] **Step 1: Complete the SePay implementation preflight**
+
+Sol requests the founder's non-secret environment selection, merchant/account
+identifiers, webhook registration inputs, and approved secret-delivery path.
+Inspect the current provider contract and record exact request fields,
+authentication/signature behavior, required webhook headers, replay semantics,
+acknowledgement response, and environment-variable names. Do not record secret
+values. Any unresolved provider behavior returns through Terra to Sol before
+Luna receives an implementation instruction.
+
+- [ ] **Step 2: Write failing order-policy and environment tests**
 
 Assert SKU/price server authority, chart ownership, entitlement reuse rules,
-unknown-time rejection, and no order for an unsupported SKU.
+unknown-time rejection, no order for an unsupported SKU, and startup rejection
+when any verified SePay server variable is missing. Assert the checkout route
+is `live_noindex`, server-authorized where state requires it, noindex, and
+absent from navigation and sitemaps.
 
-- [ ] **Step 2: Run tests**
+- [ ] **Step 3: Run tests**
 
-Run: `pnpm vitest run packages/backend/src/commerce/order.service.test.ts`
+Run:
+`pnpm vitest run packages/backend/src/commerce/order.service.test.ts packages/config/src/environment-schema.test.ts tests/seo/private-route-state.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement provider adapter and checkout**
+- [ ] **Step 4: Implement provider adapter and checkout**
 
-Use server-side SePay credentials and persist provider reference without
-logging secrets.
+Implement only the verified provider contract. Use server-side SePay
+credentials and persist provider reference without logging secrets.
 
-- [ ] **Step 4: Run tests**
+- [ ] **Step 5: Run tests**
 
-Run: `pnpm vitest run packages/backend/src/commerce`
+Run:
+`pnpm vitest run packages/backend/src/commerce packages/config/src/environment-schema.test.ts tests/seo/private-route-state.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [ ] **Step 6: Update trackers and commit**
 
 ```bash
-git add packages/contracts packages/backend/src/commerce packages/database apps/api/src/commerce apps/web/src/app docs/superpowers/plans
+git add docs/compliance/sepay-provider-contract.md config/route-registry.yml packages/contracts packages/config/src/environment-schema.ts packages/config/src/environment-schema.test.ts packages/backend/src/commerce packages/database apps/api/src/commerce apps/web/src/app tests/seo/private-route-state.test.ts docs/superpowers/plans
 git commit -m "feat: add SePay checkout"
 ```
 
@@ -108,8 +132,9 @@ Expected: FAIL.
 
 - [ ] **Step 3: Implement raw ingress and transactional handler**
 
-The Next.js route forwards raw body and required headers. The API verifies
-provider authenticity and business invariants.
+The Next.js route forwards the raw body and exact headers named by the verified
+SePay contract record. The API verifies provider authenticity and business
+invariants.
 
 - [ ] **Step 4: Implement outbox claiming and dispatch**
 
@@ -138,22 +163,21 @@ git commit -m "feat: process idempotent SePay webhooks"
 - Create: `packages/database/src/schema/reports.ts`
 - Create: `apps/worker/src/processors/report-generate.processor.ts`
 - Test: `packages/backend/src/reports/report-state.test.ts`
-- Test: `tests/jobs/report-generation.integration.test.ts`
+- Test: `tests/jobs/report-worker-state.integration.test.ts`
 
 **Interfaces:**
 - Produces `ReportStatus` transitions.
 - Consumes `report.generate.v1` with `ReportGenerationRequestedV1`.
-- Produces `report.pdf.requested.v1` only after deterministic validation
-  commits an immutable HTML report version.
 - Produces `report.fulfillment.failed.v1` only on a terminal generation or
-  validation failure.
+  worker-state failure.
 - Produces `WORKER_QUEUES` selection.
 
 - [ ] **Step 1: Write failing state and job tests**
 
-Cover duplicate jobs, crash after claim, retry, terminal failure, and invalid
-state transitions. Assert the exact event-to-job mapping and payload from
-`workflow-event-contracts.md`.
+Cover duplicate jobs, crash after claim, retry, terminal worker-state failure,
+and invalid state transitions. Assert the exact event-to-job mapping and
+payload from `workflow-event-contracts.md` without invoking a report writer
+that is not created until P04-T05.
 
 - [ ] **Step 2: Run tests**
 
@@ -234,14 +258,18 @@ git commit -m "feat: add approved knowledge retrieval"
 - Create: `packages/backend/src/reports/identity-report-writer.ts`
 - Create: `packages/backend/src/reports/report-validator.ts`
 - Create: `packages/backend/src/reports/report-critic.ts`
+- Create: `packages/backend/src/reports/report-version.repository.ts`
 - Test: `packages/backend/src/ai/capability-probe.test.ts`
 - Test: `packages/backend/src/reports/report-validator.test.ts`
 - Test: `tests/compliance/ai-provider-gate.test.ts`
+- Test: `tests/jobs/report-generation.integration.test.ts`
 
 **Interfaces:**
 - Produces `AiProvider.generateStructured(request)`.
 - Produces `IdentityReportV1`.
 - Produces validator results with evidence and prohibited-category findings.
+- Commits an immutable validated HTML report version and emits
+  `report.pdf.requested.v1` exactly once.
 - Production AI calls require a complete approved provider due-diligence
   record.
 
@@ -265,13 +293,14 @@ trade-offs.
 
 Cover schema support, malformed output, timeout, evidence fabrication, missing
 evidence, absolute accident/death/disease/legal/financial claims, diagnosis,
-fear upsell, unsupported language, and an incomplete/unapproved due-diligence
-record.
+fear upsell, unsupported language, an incomplete/unapproved due-diligence
+record, duplicate generation jobs, and no PDF event before validated immutable
+HTML commits.
 
 - [ ] **Step 4: Run tests**
 
 Run:
-`pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts`
+`pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts tests/jobs/report-generation.integration.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 5: Implement the capability probe**
@@ -284,14 +313,16 @@ reviews evidence and returns it to Sol for founder escalation.
 Freeze chart, evidence, knowledge, prompt, locale, and model versions before
 generation.
 
-- [ ] **Step 7: Implement deterministic validation and critic**
+- [ ] **Step 7: Implement deterministic validation, persistence, and critic**
 
-Reject unsafe or unsupported reports. Do not expose failed drafts.
+Reject unsafe or unsupported reports. Do not expose failed drafts. Commit the
+validated immutable HTML version before emitting one idempotent
+`report.pdf.requested.v1`; retry must not create a second version or event.
 
 - [ ] **Step 8: Run tests and a controlled endpoint smoke**
 
 Run:
-`pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts`
+`pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts tests/jobs/report-generation.integration.test.ts`
 Expected: PASS. Endpoint smoke stores no real user PII.
 
 - [ ] **Step 9: Update risk/rule trackers and commit**
@@ -301,29 +332,60 @@ git add docs/compliance packages/backend/src/ai packages/backend/src/reports tes
 git commit -m "feat: generate evidence-backed identity reports"
 ```
 
+#### AI-First Foundation Checkpoint (2026-09-02)
+
+- Added the owned raw-`fetch` OpenAI-compatible adapter, strict structured
+  output, synthetic capability probe, and pending-production due-diligence
+  gate for founder-operated provider `9router-an`.
+- Added the strict `IdentityReportV1` contract, deterministic outline,
+  draft-only writer, evidence/safety validator, and threshold critic without
+  introducing visual UI.
+- Final focused evidence passed 10 AI/report files with 37 tests and 14
+  dependent files with 52 tests, plus focused ESLint, contracts/config builds,
+  backend typecheck, backend build, and one no-PII endpoint smoke.
+- The configured routing alias may differ from the canonical returned model
+  identity; the probe records the nonempty returned identity instead of
+  requiring textual equality.
+- Sol approved the completed checkpoint after the writer was bound to a
+  production-shaped PII-free frozen fact snapshot, provenance and the
+  professional-advice disclaimer became server-owned, evidence and rendered
+  text validation became deterministic, the critic consumed the same source
+  snapshot, timeout retries honored their budget, and valid report formatting
+  remained allowed.
+- This checkpoint does not complete P04-T05. Provider privacy approval,
+  P04-T04 knowledge retrieval, P04-T03 worker state, immutable persistence,
+  duplicate-job integration, and `report.pdf.requested.v1` remain required
+  before the task or phase can close.
+
 ### Task 6 [P04-T06]: Persist immutable report versions and render private HTML
 
 **Files:**
 - Create: `packages/contracts/src/identity-report-v1.ts`
-- Create: `packages/backend/src/reports/report-version.repository.ts`
+- Modify: `packages/backend/src/reports/report-version.repository.ts`
 - Create: `apps/api/src/reports/reports.controller.ts`
-- Create: `apps/web/src/app/[locale]/app/reports/[reportId]/page.tsx`
+- Create: `apps/web/src/app/[locale]/bao-cao/[reportId]/page.tsx`
 - Create: `apps/web/src/features/reports/report-progress.tsx`
 - Create: `apps/web/src/features/reports/identity-report.tsx`
+- Modify: `config/route-registry.yml`
+- Modify: `tests/seo/private-route-state.test.ts`
 - Test: `tests/e2e/paid-report-html.spec.ts`
 
 **Interfaces:**
 - Produces immutable version lineage through `supersedesReportId`.
 - Produces owner-authorized status and report queries.
+- Promotes `/bao-cao/{opaque_id}` to `live_noindex` only with the private report
+  flow and keeps it absent from navigation and sitemaps.
 
 - [ ] **Step 1: Write failing report E2E**
 
 Cover pending refresh, ready report, unauthorized access, noindex, evidence
-drawer, locale, immutable old version, and failed generation state.
+drawer, locale, immutable old version, failed generation state, registry state,
+and sitemap exclusion.
 
 - [ ] **Step 2: Run E2E**
 
-Run: `pnpm playwright test tests/e2e/paid-report-html.spec.ts`
+Run:
+`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement version persistence and private UI**
@@ -332,13 +394,14 @@ Do not overwrite a purchased version when prompts, engine, or model change.
 
 - [ ] **Step 4: Run E2E**
 
-Run: `pnpm playwright test tests/e2e/paid-report-html.spec.ts`
+Run:
+`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Update trackers and commit**
 
 ```bash
-git add packages/contracts packages/backend/src/reports apps/api/src/reports apps/web/src/app apps/web/src/features/reports tests/e2e docs/superpowers/plans
+git add config/route-registry.yml packages/contracts packages/backend/src/reports apps/api/src/reports apps/web/src/app apps/web/src/features/reports tests/seo/private-route-state.test.ts tests/e2e docs/superpowers/plans
 git commit -m "feat: publish immutable private reports"
 ```
 

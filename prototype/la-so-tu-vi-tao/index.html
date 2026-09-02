@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <title>Lập lá số — Lá Số Việt</title>
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <script src="./image-slot.js"></script>
+  <style>
+    body { margin: 0; background: var(--lacquer-900); }
+    .lsv-bg-texture { background-color: var(--lacquer-900); background-image: linear-gradient(rgba(15,13,10,0.94), rgba(15,13,10,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    * { box-sizing: border-box; }
+    input::placeholder { color: var(--pearl-600); }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { display: none; }
+    input[type=number] { -moz-appearance: textfield; }
+    *:focus-visible { outline: 2px solid var(--gold-500); outline-offset: 2px; }
+    @keyframes ls-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="{{ ui.rootStyle }}">
+
+  <div style="{{ ui.privacyNoteStyle }}">
+    <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="14" color="var(--pearl-600)" hint-size="14,14"></x-import>
+    <span>Trang riêng tư — không lập chỉ mục, đường dẫn không thể đoán, chia sẻ mặc định ẩn thông tin cá nhân.</span>
+  </div>
+
+  <header style="{{ ui.headerStyle }}">
+    <sc-if value="{{ ui.isMobile }}" hint-placeholder-val="{{ false }}">
+      <button type="button" style="{{ ui.iconBtnStyle }}" onClick="{{ ui.onBack }}" aria-label="Quay lại bước trước" disabled="{{ ui.backDisabled }}">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="20" color="var(--pearl-200)" style="{{ ui.backIconStyle }}" hint-size="20,20"></x-import>
+      </button>
+      <span style="{{ ui.mobileStepLabelStyle }}">{{ ui.mobileHeaderText }}</span>
+      <button type="button" style="{{ ui.iconBtnStyle }}" aria-label="Trợ giúp">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="help-circle" size="20" color="var(--pearl-200)" hint-size="20,20"></x-import>
+      </button>
+    </sc-if>
+    <sc-if value="{{ ui.isDesktop }}" hint-placeholder-val="{{ true }}">
+      <div style="{{ ui.logoWrapStyle }}">Lá Số Việt</div>
+      <div style="{{ ui.headerRightStyle }}">
+        <button type="button" style="{{ ui.textBtnStyle }}" onClick="{{ ui.onExit }}">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="close" size="16" color="var(--pearl-400)" hint-size="16,16"></x-import>
+          <span>Thoát &amp; xoá dữ liệu tạm</span>
+        </button>
+        <button type="button" style="{{ ui.textBtnStyle }}">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="help-circle" size="16" color="var(--pearl-400)" hint-size="16,16"></x-import>
+          <span>Trợ giúp</span>
+        </button>
+      </div>
+    </sc-if>
+  </header>
+
+  <sc-if value="{{ ui.isDesktop }}" hint-placeholder-val="{{ true }}">
+    <nav aria-label="Tiến trình lập lá số" style="{{ ui.stepperNavStyle }}">
+      <sc-for list="{{ stepper.items }}" as="node" hint-placeholder-count="3">
+        <div style="{{ node.rowStyle }}">
+          <div style="{{ node.wrapStyle }}">
+            <div style="{{ node.circleStyle }}">
+              <sc-if value="{{ node.done }}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="check" size="14" color="var(--surface-deep)" hint-size="14,14"></x-import>
+              </sc-if>
+              <sc-if value="{{ node.notDone }}" hint-placeholder-val="{{ true }}">
+                <span>{{ node.numeral }}</span>
+              </sc-if>
+            </div>
+            <span style="{{ node.labelStyle }}">{{ node.label }}</span>
+          </div>
+          <sc-if value="{{ node.hasLine }}" hint-placeholder-val="{{ true }}">
+            <div style="{{ node.lineStyle }}"></div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+  </sc-if>
+  <sc-if value="{{ ui.isMobile }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ ui.mobileProgressWrapStyle }}">
+      <div style="{{ ui.mobileProgressTextStyle }}">{{ stepper.mobileText }}</div>
+      <div style="{{ ui.mobileProgressTrackStyle }}"><div style="{{ ui.mobileProgressFillStyle }}"></div></div>
+    </div>
+  </sc-if>
+
+  <main style="{{ ui.mainStyle }}">
+    <div style="{{ ui.gridStyle }}">
+      <div style="{{ ui.formColStyle }}">
+
+        <sc-if value="{{ s1.active }}" hint-placeholder-val="{{ true }}">
+          <h1 style="{{ ui.stepTitleStyle }}">01 · Người được lập</h1>
+          <p style="{{ ui.stepSubStyle }}">Cho biết bạn đang lập lá số cho ai. Thông tin này chỉ dùng để hiển thị trong báo cáo.</p>
+
+          <div style="{{ ui.fieldGroupStyle }}">
+            <label for="displayName" style="{{ ui.labelStyle }}">Tên hiển thị <span style="{{ ui.optionalTagStyle }}">(không bắt buộc)</span></label>
+            <input id="displayName" type="text" placeholder="Ví dụ: Minh Anh" value="{{ s1.displayName }}" onChange="{{ s1.onNameChange }}" style="{{ s1.nameInputStyle }}">
+          </div>
+
+          <div style="{{ ui.fieldGroupStyle }}">
+            <span style="{{ ui.labelStyle }}">Lập lá số cho</span>
+            <div style="{{ ui.radioRowStyle }}">
+              <button type="button" style="{{ s1.selfBtnStyle }}" onClick="{{ s1.onPickSelf }}" aria-pressed="{{ s1.isSelf }}">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user-circle" size="18" color="{{ s1.selfIconColor }}" hint-size="18,18"></x-import>
+                <span>Cho bản thân</span>
+              </button>
+              <button type="button" style="{{ s1.otherBtnStyle }}" onClick="{{ s1.onPickOther }}" aria-pressed="{{ s1.isOther }}">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user" size="18" color="{{ s1.otherIconColor }}" hint-size="18,18"></x-import>
+                <span>Cho người khác</span>
+              </button>
+            </div>
+          </div>
+
+          <sc-if value="{{ s1.isOther }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ s1.consentBoxStyle }}">
+              <p style="{{ s1.consentTextStyle }}">Bạn đang lập lá số cho người khác. Vui lòng xin phép người này trước khi tiếp tục. Nếu chưa chọn lưu hồ sơ ở bước 3, dữ liệu sẽ chỉ được xử lý tạm thời và không lưu lại.</p>
+              <label style="{{ s1.consentCheckRowStyle }}">
+                <input type="checkbox" checked="{{ s1.consentOther }}" onChange="{{ s1.onToggleConsent }}" style="{{ ui.checkboxStyle }}">
+                <span>Tôi xác nhận đã được người này đồng ý</span>
+              </label>
+              <sc-if value="{{ s1.showConsentError }}" hint-placeholder-val="{{ false }}">
+                <p role="alert" style="{{ ui.errorTextStyle }}">Xác nhận bạn đã được người này đồng ý trước khi tiếp tục.</p>
+              </sc-if>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ s2.active }}" hint-placeholder-val="{{ false }}">
+          <h1 style="{{ ui.stepTitleStyle }}">02 · Ngày, giờ, nơi sinh</h1>
+          <p style="{{ ui.stepSubStyle }}">Nhập theo lịch dương. Nếu không rõ giờ sinh, hãy đánh dấu ô riêng bên dưới.</p>
+
+          <div style="{{ ui.fieldGroupStyle }}">
+            <span style="{{ ui.labelStyle }}">Loại lịch</span>
+            <div style="{{ ui.radioRowStyle }}">
+              <button type="button" style="{{ s2.duongBtnStyle }}" onClick="{{ s2.onPickDuong }}" aria-pressed="{{ s2.isDuong }}">Dương lịch</button>
+              <button type="button" style="{{ s2.amBtnStyle }}" onClick="{{ s2.onPickAm }}" aria-pressed="{{ s2.isAm }}">Âm lịch</button>
+            </div>
+          </div>
+
+          <div style="{{ ui.fieldGroupStyle }}">
+            <span id="dobLabel" style="{{ ui.labelStyle }}">Ngày sinh <span style="{{ ui.optionalTagStyle }}">(định dạng ngày/tháng/năm)</span></span>
+            <div style="{{ s2.dobRowStyle }}">
+              <input aria-labelledby="dobLabel" aria-label="Ngày" inputmode="numeric" maxlength="2" placeholder="NN" value="{{ s2.dobDay }}" onChange="{{ s2.onDayChange }}" onFocus="{{ s2.onDayFocus }}" onBlur="{{ s2.onDayBlur }}" style="{{ s2.dayInputStyle }}">
+              <span style="{{ ui.dobSepStyle }}">/</span>
+              <input aria-labelledby="dobLabel" aria-label="Tháng" inputmode="numeric" maxlength="2" placeholder="TT" value="{{ s2.dobMonth }}" onChange="{{ s2.onMonthChange }}" onFocus="{{ s2.onMonthFocus }}" onBlur="{{ s2.onMonthBlur }}" style="{{ s2.monthInputStyle }}">
+              <span style="{{ ui.dobSepStyle }}">/</span>
+              <input aria-labelledby="dobLabel" aria-label="Năm" inputmode="numeric" maxlength="4" placeholder="NNNN" value="{{ s2.dobYear }}" onChange="{{ s2.onYearChange }}" onFocus="{{ s2.onYearFocus }}" onBlur="{{ s2.onYearBlur }}" style="{{ s2.yearInputStyle }}">
+              <sc-if value="{{ s2.dobValid }}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="check" size="18" color="var(--gold-500)" hint-size="18,18"></x-import>
+              </sc-if>
+            </div>
+            <sc-if value="{{ s2.dobErrorMsg }}" hint-placeholder-val="{{ false }}">
+              <p role="alert" style="{{ ui.errorTextStyle }}">{{ s2.dobErrorMsg }}</p>
+            </sc-if>
+          </div>
+
+          <div style="{{ ui.fieldGroupStyle }}">
+            <label style="{{ s2.timeUnknownRowStyle }}">
+              <input type="checkbox" checked="{{ s2.timeUnknown }}" onChange="{{ s2.onToggleTimeUnknown }}" style="{{ ui.checkboxStyle }}">
+              <span>Không rõ giờ sinh</span>
+            </label>
+            <sc-if value="{{ s2.timeKnown }}" hint-placeholder-val="{{ true }}">
+              <span id="timeLabel" style="{{ ui.labelStyle }}">Giờ sinh (24 giờ)</span>
+              <div style="{{ s2.timeRowStyle }}">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="clock" size="18" color="var(--pearl-400)" hint-size="18,18"></x-import>
+                <input aria-labelledby="timeLabel" aria-label="Giờ" inputmode="numeric" maxlength="2" placeholder="HH" value="{{ s2.hour }}" onChange="{{ s2.onHourChange }}" onFocus="{{ s2.onHourFocus }}" onBlur="{{ s2.onHourBlur }}" style="{{ s2.hourInputStyle }}">
+                <span style="{{ ui.dobSepStyle }}">:</span>
+                <input aria-labelledby="timeLabel" aria-label="Phút" inputmode="numeric" maxlength="2" placeholder="MM" value="{{ s2.minute }}" onChange="{{ s2.onMinuteChange }}" onFocus="{{ s2.onMinuteFocus }}" onBlur="{{ s2.onMinuteBlur }}" style="{{ s2.minuteInputStyle }}">
+              </div>
+              <sc-if value="{{ s2.timeErrorMsg }}" hint-placeholder-val="{{ false }}">
+                <p role="alert" style="{{ ui.errorTextStyle }}">{{ s2.timeErrorMsg }}</p>
+              </sc-if>
+            </sc-if>
+            <sc-if value="{{ s2.timeUnknown }}" hint-placeholder-val="{{ false }}">
+              <p style="{{ ui.helperNoteStyle }}">Giờ sinh có thể ảnh hưởng đến một số nội dung luận giải. Bạn có thể bổ sung sau trong hồ sơ.</p>
+            </sc-if>
+          </div>
+
+          <div style="{{ ui.fieldGroupStyle }}">
+            <label for="birthPlace" style="{{ ui.labelStyle }}">Nơi sinh</label>
+            <div style="{{ s2.placeWrapStyle }}">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="map-pin" size="18" color="var(--pearl-400)" style="{{ s2.placeIconStyle }}" hint-size="18,18"></x-import>
+              <input id="birthPlace" type="text" role="combobox" aria-expanded="{{ s2.showSuggestions }}" placeholder="Nhập tên xã/phường hoặc tỉnh, thành phố" value="{{ s2.placeQuery }}" onChange="{{ s2.onPlaceChange }}" onFocus="{{ s2.onPlaceFocus }}" onBlur="{{ s2.onPlaceBlur }}" style="{{ s2.placeInputStyle }}">
+            </div>
+            <sc-if value="{{ s2.showSuggestions }}" hint-placeholder-val="{{ false }}">
+              <div style="{{ s2.suggestBoxStyle }}">
+                <sc-if value="{{ s2.isAmbiguous }}" hint-placeholder-val="{{ false }}">
+                  <p style="{{ s2.ambiguousNoteStyle }}">Có {{ s2.suggestionCount }} địa danh trùng tên “{{ s2.placeQuery }}”. Chọn đúng nơi sinh để tiếp tục:</p>
+                </sc-if>
+                <sc-for list="{{ s2.suggestions }}" as="place" hint-placeholder-count="2">
+                  <button type="button" style="{{ ui.suggestionRowStyle }}" onClick="{{ place.onPick }}">
+                    <span style="{{ ui.suggestionNameStyle }}">{{ place.name }}</span>
+                    <span style="{{ ui.suggestionProvinceStyle }}">{{ place.province }}</span>
+                  </button>
+                </sc-for>
+                <sc-if value="{{ s2.noResults }}" hint-placeholder-val="{{ false }}">
+                  <p style="{{ ui.helperNoteStyle }}">Không tìm thấy địa danh phù hợp. Thử nhập tên tỉnh, thành phố.</p>
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ s2.placeSelected }}" hint-placeholder-val="{{ false }}">
+              <div style="{{ s2.tzRowStyle }}">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="compass" size="16" color="var(--pearl-400)" hint-size="16,16"></x-import>
+                <span>Múi giờ: {{ s2.tzLabel }}</span>
+                <button type="button" style="{{ ui.linkBtnStyle }}" onClick="{{ s2.onToggleTzOverride }}">{{ s2.tzToggleLabel }}</button>
+              </div>
+              <sc-if value="{{ s2.showTzOverride }}" hint-placeholder-val="{{ false }}">
+                <select value="{{ s2.tzOverride }}" onChange="{{ s2.onTzOverrideChange }}" style="{{ s2.tzSelectStyle }}">
+                  <sc-for list="{{ s2.tzOptions }}" as="tz" hint-placeholder-count="4">
+                    <option value="{{ tz.value }}">{{ tz.label }}</option>
+                  </sc-for>
+                </select>
+              </sc-if>
+            </sc-if>
+            <sc-if value="{{ s2.placeErrorMsg }}" hint-placeholder-val="{{ false }}">
+              <p role="alert" style="{{ ui.errorTextStyle }}">{{ s2.placeErrorMsg }}</p>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ s3.active }}" hint-placeholder-val="{{ false }}">
+          <h1 style="{{ ui.stepTitleStyle }}">03 · Kiểm tra &amp; quyền riêng tư</h1>
+          <p style="{{ ui.stepSubStyle }}">Xem lại toàn bộ thông tin trước khi lập lá số. Bạn có thể sửa lại từng phần.</p>
+
+          <sc-if value="{{ s3.showOffline }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ ui.bannerErrorStyle }}" role="alert">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="refresh-off" size="20" color="var(--son)" hint-size="20,20"></x-import>
+              <div>
+                <p style="{{ ui.bannerTitleStyle }}">Mất kết nối mạng</p>
+                <p style="{{ ui.bannerBodyStyle }}">Không thể kết nối đến máy chủ. Dữ liệu bạn đã nhập vẫn được giữ nguyên — hãy thử lại khi có kết nối.</p>
+              </div>
+              <button type="button" style="{{ ui.retryBtnStyle }}" onClick="{{ s3.onRetry }}">Thử lại</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ s3.showEngineError }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ ui.bannerErrorStyle }}" role="alert">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="help-circle" size="20" color="var(--son)" hint-size="20,20"></x-import>
+              <div>
+                <p style="{{ ui.bannerTitleStyle }}">Không thể tính lá số lúc này</p>
+                <p style="{{ ui.bannerBodyStyle }}">Hệ thống tính toán đang gặp lỗi. Dữ liệu của bạn không bị mất — hãy thử lại sau ít phút.</p>
+              </div>
+              <button type="button" style="{{ ui.retryBtnStyle }}" onClick="{{ s3.onRetry }}">Thử lại</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s3.showSuccess }}" hint-placeholder-val="{{ false }}">
+            <div style="{{ ui.successBoxStyle }}">
+              <x-import component-from-global-scope="DesignSystem_031f07.Seal" size="28" hint-size="28,28"></x-import>
+              <p style="{{ ui.successTitleStyle }}">Đã lập lá số</p>
+              <p style="{{ ui.successBodyStyle }}">Lá số của {{ s3.subjectLabel }} đã được tính xong. Bạn có thể xem kết quả ngay, không cần tạo tài khoản.</p>
+              <button type="button" style="{{ ui.retryBtnStyle }}" onClick="{{ s3.onRestart }}">Lập lá số khác</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s3.showReview }}" hint-placeholder-val="{{ true }}">
+            <div style="{{ ui.reviewSectionStyle }}">
+              <div style="{{ ui.reviewHeadStyle }}">
+                <span style="{{ ui.reviewHeadTitleStyle }}">Người được lập</span>
+                <button type="button" style="{{ ui.editBtnStyle }}" onClick="{{ s3.onEditStep1 }}">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="pencil" size="14" color="var(--accent-gold)" hint-size="14,14"></x-import>
+                  <span>Sửa</span>
+                </button>
+              </div>
+              <dl style="{{ ui.dlStyle }}">
+                <dt style="{{ ui.dtStyle }}">Tên hiển thị</dt><dd style="{{ ui.ddStyle }}">{{ s3.nameSummary }}</dd>
+                <dt style="{{ ui.dtStyle }}">Lập cho</dt><dd style="{{ ui.ddStyle }}">{{ s3.forWhomSummary }}</dd>
+              </dl>
+            </div>
+
+            <div style="{{ ui.reviewSectionStyle }}">
+              <div style="{{ ui.reviewHeadStyle }}">
+                <span style="{{ ui.reviewHeadTitleStyle }}">Ngày, giờ, nơi sinh</span>
+                <button type="button" style="{{ ui.editBtnStyle }}" onClick="{{ s3.onEditStep2 }}">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="pencil" size="14" color="var(--accent-gold)" hint-size="14,14"></x-import>
+                  <span>Sửa</span>
+                </button>
+              </div>
+              <dl style="{{ ui.dlStyle }}">
+                <dt style="{{ ui.dtStyle }}">Ngày sinh (dương lịch)</dt><dd style="{{ ui.ddStyle }}">{{ s3.dobSummary }}</dd>
+                <dt style="{{ ui.dtStyle }}">Tương ứng âm lịch</dt><dd style="{{ ui.ddStyle }}">{{ s3.lunarSummary }}</dd>
+                <dt style="{{ ui.dtStyle }}">Giờ sinh</dt><dd style="{{ ui.ddStyle }}">{{ s3.timeSummary }}</dd>
+                <dt style="{{ ui.dtStyle }}">Nơi sinh</dt><dd style="{{ ui.ddStyle }}">{{ s3.placeSummary }}</dd>
+                <dt style="{{ ui.dtStyle }}">Múi giờ</dt><dd style="{{ ui.ddStyle }}">{{ s3.tzSummary }}</dd>
+              </dl>
+            </div>
+
+            <div style="{{ ui.fieldGroupStyle }}">
+              <span style="{{ ui.labelStyle }}">Chế độ xử lý dữ liệu</span>
+              <div style="{{ ui.saveModeColStyle }}">
+                <button type="button" style="{{ s3.tempBtnStyle }}" onClick="{{ s3.onPickTemp }}" aria-pressed="{{ s3.isTemp }}">
+                  <span style="{{ ui.saveModeTitleStyle }}">Xử lý tạm thời — không lưu</span>
+                  <span style="{{ ui.saveModeBodyStyle }}">Dữ liệu chỉ dùng để tính lần này. Không có bản ghi nào được lưu lại sau khi bạn rời trang.</span>
+                </button>
+                <button type="button" style="{{ s3.saveBtnStyle }}" onClick="{{ s3.onPickSave }}" aria-pressed="{{ s3.isSave }}">
+                  <span style="{{ ui.saveModeTitleStyle }}">Lưu hồ sơ để xem lại sau</span>
+                  <span style="{{ ui.saveModeBodyStyle }}">Lưu lá số này để mở lại, không cần lập lại từ đầu. Bạn có thể tạo tài khoản sau khi xem kết quả.</span>
+                </button>
+              </div>
+              <sc-if value="{{ s3.showSaveModeError }}" hint-placeholder-val="{{ false }}">
+                <p role="alert" style="{{ ui.errorTextStyle }}">Chọn một chế độ xử lý dữ liệu để tiếp tục.</p>
+              </sc-if>
+            </div>
+
+            <div style="{{ ui.disclosureBoxStyle }}">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="16" color="var(--pearl-400)" hint-size="16,16"></x-import>
+              <p style="{{ ui.disclosureTextStyle }}">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+            </div>
+
+            <sc-if value="{{ s3.showDuplicateToast }}" hint-placeholder-val="{{ false }}">
+              <p role="status" style="{{ ui.helperNoteStyle }}">Yêu cầu trước đó đang được xử lý — vui lòng đợi, không bấm thêm.</p>
+            </sc-if>
+          </sc-if>
+        </sc-if>
+
+        <div style="{{ ui.actionsBarStyle }}">
+          <sc-if value="{{ ui.showBackAction }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" onClick="{{ ui.onBack }}" hint-size="120px,44px">Quay lại</x-import>
+          </sc-if>
+          <sc-if value="{{ ui.showBackActionSpacer }}" hint-placeholder-val="{{ true }}"><span></span></sc-if>
+          <sc-if value="{{ ui.showContinueAction }}" hint-placeholder-val="{{ true }}">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" onClick="{{ ui.onContinue }}" hint-size="140px,44px">Tiếp tục</x-import>
+          </sc-if>
+          <sc-if value="{{ ui.showSubmitAction }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" onClick="{{ s3.onSubmit }}" disabled="{{ s3.submitDisabled }}" hint-size="160px,44px">{{ s3.submitLabel }}</x-import>
+          </sc-if>
+        </div>
+      </div>
+
+      <sc-if value="{{ ui.showRail }}" hint-placeholder-val="{{ true }}">
+        <aside style="{{ ui.railStyle }}">
+          <p style="{{ ui.railEyebrowStyle }}">Vì sao cần thông tin này?</p>
+          <p style="{{ ui.railBodyStyle }}">{{ ui.railBody }}</p>
+          <sc-if value="{{ ui.showRailImage }}" hint-placeholder-val="{{ false }}">
+            <img src="uploads/the-dang-ky-noi-sinh-orthogonal-index-cards.webp" alt="Minh hoạ giờ sinh ảnh hưởng vị trí một số cung trong lá số" style="width:100%;aspect-ratio:3/2;display:block;margin-top:20px;border-radius:8px;object-fit:cover" />
+            <p style="{{ ui.railCaptionStyle }}">FM01 — minh hoạ cách giờ sinh ảnh hưởng vị trí cung Thân trong lá số.</p>
+          </sc-if>
+        </aside>
+      </sc-if>
+    </div>
+  </main>
+
+  <div style="{{ ui.demoWrapStyle }}">
+    <button type="button" style="{{ ui.demoToggleStyle }}" onClick="{{ ui.onToggleDemo }}" aria-expanded="{{ demo.open }}">
+      Xem trạng thái thiết kế {{ demo.caret }}
+    </button>
+    <sc-if value="{{ demo.open }}" hint-placeholder-val="{{ false }}">
+      <div style="{{ ui.demoPanelStyle }}" role="group" aria-label="Bảng xem trạng thái — chỉ dùng khi xem thiết kế">
+        <sc-for list="{{ demo.items }}" as="item" hint-placeholder-count="11">
+          <button type="button" style="{{ item.btnStyle }}" onClick="{{ item.onApply }}">{{ item.n }}. {{ item.label }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const CAN = ['Giáp','Ất','Bính','Đinh','Mậu','Kỷ','Canh','Tân','Nhâm','Quý'];
+const CHI = ['Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi','Thân','Dậu','Tuất','Hợi'];
+const LUNAR_MONTHS = ['Giêng','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín','Mười','Mười một','Chạp'];
+const PLACES = [
+  { id: 1, name: 'Phường Phú Xuân', province: 'TP. Huế' },
+  { id: 2, name: 'Phường Phú Xuân', province: 'Ninh Bình' },
+  { id: 3, name: 'Phường Hồng Bàng', province: 'TP. Hải Phòng' },
+  { id: 4, name: 'Xã Đông Anh', province: 'TP. Hà Nội' },
+  { id: 5, name: 'Phường Vị Hoàng', province: 'Ninh Bình' },
+  { id: 6, name: 'Xã Yên Phong', province: 'Bắc Ninh' },
+  { id: 7, name: 'Phường Trần Phú', province: 'TP. Hải Phòng' },
+  { id: 8, name: 'Phường Trần Phú', province: 'TP. Đà Nẵng' },
+  { id: 9, name: 'Xã Kim Sơn', province: 'Ninh Bình' },
+  { id: 10, name: 'Phường Bến Thành', province: 'TP. Hồ Chí Minh' }
+];
+const TZ_OPTIONS = [
+  { value: '+7', label: 'UTC+7 — Việt Nam, Thái Lan' },
+  { value: '+8', label: 'UTC+8 — Singapore, Trung Quốc' },
+  { value: '+9', label: 'UTC+9 — Nhật Bản, Hàn Quốc' },
+  { value: '0', label: 'UTC+0 — Anh (giờ mùa đông)' },
+  { value: '-5', label: 'UTC-5 — Miền Đông Hoa Kỳ' }
+];
+function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+function daysInMonth(m, y) { return [31, isLeap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1]; }
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+class Component extends DCLogic {
+  state = {
+    isMobile: false,
+    step: 1,
+    demoOpen: false,
+    displayName: '', forWhom: null, consentOther: false,
+    calendarType: 'duong',
+    dobDay: '', dobMonth: '', dobYear: '',
+    timeUnknown: false, hour: '', minute: '',
+    placeQuery: '', placeSelected: null, placeFocused: false,
+    tzOverride: null, showTzOverride: false,
+    touched: {}, errors: {}, focusedField: null,
+    saveMode: null,
+    submitState: 'idle',
+    submitAttempts: 0,
+    forceOffline: false, forceEngineError: false, showDuplicateToast: false
+  };
+
+  componentDidMount() {
+    this.checkSize();
+    this._onResize = () => this.checkSize();
+    window.addEventListener('resize', this._onResize);
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._onResize); }
+  checkSize() { const m = window.innerWidth < 760; if (m !== this.state.isMobile) this.setState({ isMobile: m }); }
+
+  setTouched(key) { this.setState(s => ({ touched: { ...s.touched, [key]: true } })); }
+  setField(key, val) { this.setState({ [key]: val }); }
+
+  dobErrorFor(day, month, year) {
+    if (!day && !month && !year) return null;
+    const d = parseInt(day, 10), m = parseInt(month, 10), y = parseInt(year, 10);
+    if (!month || m < 1 || m > 12) return 'Tháng sinh phải từ 01 đến 12.';
+    if (!day || d < 1 || d > 31) return 'Ngày sinh phải từ 01 đến 31.';
+    if (!year || y < 1900 || y > 2026) return 'Năm sinh cần từ 1900 đến 2026.';
+    if (d > daysInMonth(m, y)) return `Tháng ${m} năm ${y} không có ngày ${d}. Vui lòng kiểm tra lại ngày sinh.`;
+    const today = new Date();
+    if (new Date(y, m - 1, d) > today) return 'Ngày sinh không thể ở tương lai. Vui lòng kiểm tra lại.';
+    return null;
+  }
+  timeErrorFor(hour, minute) {
+    if (!hour && !minute) return null;
+    const h = parseInt(hour, 10), mi = parseInt(minute, 10);
+    if (isNaN(h) || h < 0 || h > 23) return 'Giờ nhập từ 00 đến 23.';
+    if (isNaN(mi) || mi < 0 || mi > 59) return 'Phút nhập từ 00 đến 59.';
+    return null;
+  }
+  lunarFor(day, month, year) {
+    const d = parseInt(day, 10), m = parseInt(month, 10), y = parseInt(year, 10);
+    if (!d || !m || !y) return null;
+    const lDay = ((d + m * 2 + y) % 29) + 1;
+    const lMonthIdx = (m - 1 + Math.floor(d / 16)) % 12;
+    const canIdx = ((y - 4) % 10 + 10) % 10;
+    const chiIdx = ((y - 4) % 12 + 12) % 12;
+    return `Ngày ${lDay} tháng ${LUNAR_MONTHS[lMonthIdx]}, năm ${CAN[canIdx]} ${CHI[chiIdx]}`;
+  }
+
+  placeSuggestions(query) {
+    if (!query || query.trim().length < 2) return [];
+    const q = query.trim().toLowerCase();
+    return PLACES.filter(p => p.name.toLowerCase().includes(q) || p.province.toLowerCase().includes(q)).slice(0, 6);
+  }
+
+  goTo(step) { this.setState({ step, submitState: 'idle', forceOffline: false, forceEngineError: false, showDuplicateToast: false }); }
+  goBack() { if (this.state.step > 1) this.goTo(this.state.step - 1); }
+
+  step1Valid() {
+    if (!this.state.forWhom) return false;
+    if (this.state.forWhom === 'other' && !this.state.consentOther) return false;
+    return true;
+  }
+  step2Valid() {
+    const { dobDay, dobMonth, dobYear, timeUnknown, hour, minute, placeSelected } = this.state;
+    if (this.dobErrorFor(dobDay, dobMonth, dobYear) || !dobDay || !dobMonth || !dobYear) return false;
+    if (!timeUnknown && (this.timeErrorFor(hour, minute) || !hour || !minute)) return false;
+    if (!placeSelected) return false;
+    return true;
+  }
+
+  onContinue() {
+    if (this.state.step === 1) {
+      this.setState({ touched: { ...this.state.touched, consentOther: true } });
+      if (this.step1Valid()) this.goTo(2);
+      return;
+    }
+    if (this.state.step === 2) {
+      this.setState({ touched: { ...this.state.touched, dobDay: true, dobMonth: true, dobYear: true, hour: true, minute: true, placeQuery: true } });
+      if (this.step2Valid()) this.goTo(3);
+      return;
+    }
+  }
+
+  onSubmit() {
+    if (this.state.submitState === 'loading') { this.setState({ showDuplicateToast: true }); return; }
+    if (!this.state.saveMode) { this.setState({ touched: { ...this.state.touched, saveMode: true } }); return; }
+    this.setState({ submitState: 'loading', showDuplicateToast: false, submitAttempts: this.state.submitAttempts + 1 });
+    setTimeout(() => {
+      if (this.state.forceOffline) { this.setState({ submitState: 'offline' }); return; }
+      if (this.state.forceEngineError) { this.setState({ submitState: 'engine-error' }); return; }
+      this.setState({ submitState: 'success' });
+    }, 1300);
+  }
+
+  applyDemo(id) {
+    const clean = {
+      demoOpen: true, submitState: 'idle', forceOffline: false, forceEngineError: false, showDuplicateToast: false,
+      touched: {}, focusedField: null,
+      dobDay: '', dobMonth: '', dobYear: '', timeUnknown: false, hour: '', minute: '',
+      placeQuery: '', placeSelected: null, placeFocused: false, showTzOverride: false, tzOverride: null,
+      saveMode: null, displayName: '', forWhom: null, consentOther: false
+    };
+    switch (id) {
+      case 1: this.setState({ ...clean, step: 2 }); break;
+      case 2: this.setState({ ...clean, step: 2, focusedField: 'dobDay' }); break;
+      case 3: this.setState({ ...clean, step: 2, dobDay: '12', dobMonth: '03', dobYear: '1996', touched: { dobDay: true, dobMonth: true, dobYear: true } }); break;
+      case 4: this.setState({ ...clean, step: 2, dobDay: '32', dobMonth: '13', dobYear: '1996', touched: { dobDay: true, dobMonth: true, dobYear: true } }); break;
+      case 5: this.setState({ ...clean, step: 2, placeQuery: 'Phú Xuân', placeFocused: true }); break;
+      case 6: this.setState({ ...clean, step: 2, timeUnknown: true }); break;
+      case 7: this.setState({ ...clean, step: 3, dobDay: '12', dobMonth: '03', dobYear: '1996', placeSelected: PLACES[9], hour: '14', minute: '30' }); break;
+      case 8: this.setState({ ...clean, step: 3, submitState: 'loading', dobDay: '12', dobMonth: '03', dobYear: '1996', placeSelected: PLACES[9], hour: '14', minute: '30', saveMode: 'temp' }); break;
+      case 9: this.setState({ ...clean, step: 3, submitState: 'offline', forceOffline: true, dobDay: '12', dobMonth: '03', dobYear: '1996', placeSelected: PLACES[9], hour: '14', minute: '30', saveMode: 'temp' }); break;
+      case 10: this.setState({ ...clean, step: 3, submitState: 'engine-error', forceEngineError: true, dobDay: '12', dobMonth: '03', dobYear: '1996', placeSelected: PLACES[9], hour: '14', minute: '30', saveMode: 'save' }); break;
+      case 11: this.setState({ ...clean, step: 3, submitState: 'loading', showDuplicateToast: true, dobDay: '12', dobMonth: '03', dobYear: '1996', placeSelected: PLACES[9], hour: '14', minute: '30', saveMode: 'temp' }); break;
+    }
+  }
+
+  inputStyle(key, extra) {
+    const { touched, errors, focusedField } = this.state;
+    const hasError = !!this[key + 'Error'];
+    const base = { minHeight: 44, padding: '0 14px', background: 'var(--lacquer-900)', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-sm)', color: 'var(--text-heading)', fontFamily: 'var(--font-ui)', fontSize: 16, outline: 'none', transition: 'border-color 150ms ease, box-shadow 150ms ease', ...extra };
+    if (hasError && touched[key]) return { ...base, borderColor: 'var(--son)' };
+    if (focusedField === key) return { ...base, borderColor: 'var(--gold-500)', boxShadow: '0 0 0 3px rgba(201,164,77,0.18)' };
+    return base;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const isMobile = s.isMobile;
+    const isOther = s.forWhom === 'other';
+    const isSelf = s.forWhom === 'self';
+    const showConsentError = isOther && !s.consentOther && !!s.touched.consentOther;
+
+    const dobErr = this.dobErrorFor(s.dobDay, s.dobMonth, s.dobYear);
+    const dobShowErr = s.touched.dobDay || s.touched.dobMonth || s.touched.dobYear;
+    const dobValid = !dobErr && s.dobDay && s.dobMonth && s.dobYear;
+    const timeErr = this.timeErrorFor(s.hour, s.minute);
+    const timeShowErr = s.touched.hour || s.touched.minute;
+
+    const suggestions = this.placeSuggestions(s.placeQuery);
+    const showSuggestions = s.placeFocused && !s.placeSelected && s.placeQuery.trim().length >= 2;
+    const nameGroups = {};
+    suggestions.forEach(p => { nameGroups[p.name] = (nameGroups[p.name] || 0) + 1; });
+    const isAmbiguous = Object.values(nameGroups).some(c => c > 1);
+    const placeErrorMsg = s.touched.placeQuery && !s.placeSelected ? 'Chọn một địa danh trong danh sách gợi ý để tiếp tục.' : null;
+
+    const dayIn = (k, v, max) => v === '' || (/^\d+$/.test(v) && parseInt(v, 10) <= max);
+
+    const mkField = (key, err, showErrCond) => ({
+      onFocus: () => this.setState({ focusedField: key }),
+      onBlur: () => { this.setState({ focusedField: null }); this.setTouched(key); },
+    });
+
+    const dobStyleFor = (key) => {
+      const hasErr = !!dobErr && dobShowErr;
+      const st = { width: key === 'dobYear' ? 64 : 48, textAlign: 'center', minHeight: 44, padding: '0 8px', background: 'var(--lacquer-900)', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-sm)', color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', fontSize: 16, outline: 'none', transition: 'border-color 150ms ease, box-shadow 150ms ease' };
+      if (hasErr) return { ...st, borderColor: 'var(--son)' };
+      if (s.focusedField === key) return { ...st, borderColor: 'var(--gold-500)', boxShadow: '0 0 0 3px rgba(201,164,77,0.18)' };
+      if (dobValid) return { ...st, borderColor: 'var(--gold-600)' };
+      return st;
+    };
+    const timeStyleFor = (key) => {
+      const hasErr = !!timeErr && timeShowErr;
+      const st = { width: 48, textAlign: 'center', minHeight: 44, padding: '0 8px', background: 'var(--lacquer-900)', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-sm)', color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', fontSize: 16, outline: 'none', transition: 'border-color 150ms ease, box-shadow 150ms ease' };
+      if (hasErr) return { ...st, borderColor: 'var(--son)' };
+      if (s.focusedField === key) return { ...st, borderColor: 'var(--gold-500)', boxShadow: '0 0 0 3px rgba(201,164,77,0.18)' };
+      return st;
+    };
+    const placeInputStyle = { flex: 1, minHeight: 44, padding: '0 14px 0 40px', background: 'var(--lacquer-900)', border: '1px solid ' + (placeErrorMsg ? 'var(--son)' : (s.placeFocused ? 'var(--gold-500)' : 'var(--border-hairline)')), borderRadius: 'var(--radius-sm)', color: 'var(--text-heading)', fontFamily: 'var(--font-ui)', fontSize: 16, outline: 'none', width: '100%', boxShadow: s.placeFocused ? '0 0 0 3px rgba(201,164,77,0.18)' : 'none' };
+
+    const btnToggle = (active) => ({
+      display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 18px',
+      borderRadius: 'var(--radius-sm)', border: '1px solid ' + (active ? 'var(--gold-500)' : 'var(--border-hairline)'),
+      background: active ? 'rgba(201,164,77,0.12)' : 'transparent', color: active ? 'var(--text-heading)' : 'var(--text-body)',
+      fontFamily: 'var(--font-ui)', fontSize: 15, fontWeight: 500, cursor: 'pointer'
+    });
+    const saveModeCard = (active) => ({
+      display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', padding: '18px 20px',
+      borderRadius: 'var(--radius-md)', border: '1px solid ' + (active ? 'var(--gold-500)' : 'var(--border-hairline)'),
+      background: active ? 'rgba(201,164,77,0.08)' : 'var(--surface-panel)', cursor: 'pointer'
+    });
+
+    const nameSummary = s.displayName.trim() || 'Chưa đặt tên hiển thị';
+    const forWhomSummary = isOther ? 'Người khác (đã xin phép)' : 'Bản thân';
+    const dobSummary = (s.dobDay && s.dobMonth && s.dobYear) ? `${pad2(s.dobDay)}/${pad2(s.dobMonth)}/${s.dobYear}` : '—';
+    const lunarSummary = this.lunarFor(s.dobDay, s.dobMonth, s.dobYear) || '—';
+    const timeSummary = s.timeUnknown ? 'Không rõ giờ sinh' : (s.hour && s.minute ? `${pad2(s.hour)}:${pad2(s.minute)}` : '—');
+    const placeSummary = s.placeSelected ? `${s.placeSelected.name}, ${s.placeSelected.province}` : '—';
+    const tzLabel = s.tzOverride ? (TZ_OPTIONS.find(t => t.value === s.tzOverride) || {}).label : 'UTC+7 (Giờ Việt Nam)';
+
+    const step = s.step;
+    const stepLabels = ['Người được lập', 'Ngày, giờ, nơi sinh', 'Kiểm tra & quyền riêng tư'];
+    const stepperItems = [1, 2, 3].map(n => ({
+      numeral: '0' + n, label: stepLabels[n - 1], done: n < step, notDone: n >= step, hasLine: n < 3,
+      rowStyle: { display: 'flex', alignItems: 'center', flex: n < 3 ? 1 : 'none' },
+      wrapStyle: { display: 'flex', alignItems: 'center', gap: 12, flex: 'none' },
+      circleStyle: { width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', fontFamily: 'var(--font-mono)', fontSize: 12, background: n < step ? 'var(--gradient-gold)' : (n === step ? 'transparent' : 'var(--surface-panel)'), border: n === step ? '1.5px solid var(--gold-500)' : '1px solid var(--border-hairline)', color: n === step ? 'var(--gold-400)' : (n < step ? 'var(--surface-deep)' : 'var(--text-faint)') },
+      labelStyle: { fontSize: 14, fontFamily: 'var(--font-ui)', color: n === step ? 'var(--text-heading)' : 'var(--text-muted)', fontWeight: n === step ? 600 : 400, whiteSpace: 'nowrap' },
+      lineStyle: { flex: 1, height: 1, background: n < step ? 'var(--gold-600)' : 'var(--border-hairline)', margin: '0 16px' }
+    }));
+
+    const demoLabels = ['Rỗng', 'Đang nhập', 'Hợp lệ', 'Lỗi cụ thể', 'Trùng địa danh', 'Không rõ giờ sinh', 'Quy đổi âm lịch', 'Đang xử lý', 'Mất mạng', 'Lỗi hệ thống', 'Chống bấm trùng'];
+    const demoItems = demoLabels.map((label, i) => ({ n: i + 1, label, onApply: () => this.applyDemo(i + 1), btnStyle: { textAlign: 'left', minHeight: 40, padding: '8px 12px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-hairline)', color: 'var(--pearl-200)', fontFamily: 'var(--font-mono)', fontSize: 12, cursor: 'pointer', width: '100%' } }));
+
+    const railBodies = {
+      1: 'Tên hiển thị chỉ dùng để gọi trong báo cáo — không cần là tên thật, không hiển thị công khai.',
+      2: 'Ngày, giờ và nơi sinh dùng để xác định vị trí các cung trong lá số. Giờ sinh có thể ảnh hưởng đến một số cung; nơi sinh dùng để xác định múi giờ chính xác.',
+      3: 'Chọn "xử lý tạm thời" nếu bạn chỉ muốn xem kết quả một lần. Chọn "lưu hồ sơ" nếu muốn mở lại lá số này sau, không cần lập lại từ đầu.'
+    };
+
+    return {
+      ui: {
+        isMobile, isDesktop: !isMobile,
+        rootStyle: { minHeight: '100vh', color: 'var(--text-body)', fontFamily: 'var(--font-ui)', display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? 96 : 0 },
+        privacyNoteStyle: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', background: 'var(--lacquer-800)', borderBottom: '1px solid var(--border-hairline)', fontSize: 12, color: 'var(--pearl-600)' },
+        headerStyle: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 64, padding: isMobile ? '0 12px' : '0 40px', borderBottom: '1px solid var(--border-hairline)', position: 'sticky', top: 0, background: 'var(--surface-canvas)', zIndex: 50 },
+        logoWrapStyle: { fontFamily: 'var(--font-display)', fontSize: 20, color: 'var(--text-heading)' },
+        headerRightStyle: { display: 'flex', alignItems: 'center', gap: 24 },
+        textBtnStyle: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, background: 'none', border: 'none', color: 'var(--pearl-400)', fontFamily: 'var(--font-ui)', fontSize: 14, cursor: 'pointer' },
+        iconBtnStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, background: 'none', border: 'none', cursor: 'pointer' },
+        backIconStyle: { transform: 'rotate(180deg)' },
+        backDisabled: step === 1,
+        mobileStepLabelStyle: { fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--pearl-200)' },
+        mobileHeaderText: `Bước ${step}/3`,
+        stepperNavStyle: { display: 'flex', alignItems: 'center', maxWidth: 1200, margin: '0 auto', width: '100%', padding: '28px 40px', borderBottom: '1px solid var(--border-hairline)' },
+        mobileProgressWrapStyle: { padding: '14px 16px', borderBottom: '1px solid var(--border-hairline)' },
+        mobileProgressTextStyle: { fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 8 },
+        mobileProgressTrackStyle: { height: 3, background: 'var(--lacquer-line)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' },
+        mobileProgressFillStyle: { height: '100%', width: `${(step / 3) * 100}%`, background: 'var(--gradient-gold)', transition: 'width 250ms ease' },
+        mainStyle: { flex: 1, padding: isMobile ? '24px 16px' : '48px 40px 80px' },
+        gridStyle: { display: 'flex', flexWrap: 'wrap', gap: 48, maxWidth: 1200, margin: '0 auto' },
+        formColStyle: { flex: '1 1 600px', minWidth: 0, maxWidth: 720 },
+        railStyle: { flex: '1 1 320px', maxWidth: 380 },
+        showRail: true,
+        showRailImage: step === 2,
+        railEyebrowStyle: { fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-faint)', margin: 0 },
+        railBodyStyle: { marginTop: 12, fontSize: 15, lineHeight: 1.7, color: 'var(--text-muted)' },
+        railBody: railBodies[step],
+        railCaptionStyle: { marginTop: 10, fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-faint)' },
+        stepTitleStyle: { fontFamily: 'var(--font-display)', fontSize: isMobile ? 28 : 34, fontWeight: 400, color: 'var(--text-heading)', margin: '0 0 12px' },
+        stepSubStyle: { fontSize: 15.5, lineHeight: 1.6, color: 'var(--text-muted)', margin: '0 0 36px' },
+        fieldGroupStyle: { marginBottom: 32 },
+        labelStyle: { display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--text-heading)', marginBottom: 10 },
+        optionalTagStyle: { fontWeight: 400, color: 'var(--text-faint)' },
+        radioRowStyle: { display: 'flex', flexWrap: 'wrap', gap: 12 },
+        checkboxStyle: { width: 18, height: 18, accentColor: 'var(--gold-500)', flex: 'none' },
+        errorTextStyle: { marginTop: 8, fontSize: 13.5, lineHeight: 1.5, color: 'var(--son)' },
+        helperNoteStyle: { marginTop: 8, fontSize: 13.5, lineHeight: 1.5, color: 'var(--text-muted)' },
+        dobSepStyle: { fontFamily: 'var(--font-mono)', fontSize: 18, color: 'var(--text-faint)' },
+        linkBtnStyle: { background: 'none', border: 'none', color: 'var(--accent-gold)', fontSize: 13, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer', minHeight: 44, padding: 0 },
+        suggestionRowStyle: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minHeight: 44, padding: '0 14px', background: 'none', border: 'none', borderBottom: '1px solid var(--border-hairline)', cursor: 'pointer', textAlign: 'left' },
+        suggestionNameStyle: { fontSize: 14.5, color: 'var(--text-heading)' },
+        suggestionProvinceStyle: { fontSize: 12.5, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)' },
+        bannerErrorStyle: { display: 'flex', gap: 16, alignItems: 'flex-start', padding: '20px 22px', border: '1px solid var(--son-deep)', background: 'rgba(206,91,69,0.08)', borderRadius: 'var(--radius-md)', marginBottom: 28 },
+        bannerTitleStyle: { margin: '0 0 4px', fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--text-heading)' },
+        bannerBodyStyle: { margin: 0, fontSize: 14.5, lineHeight: 1.6, color: 'var(--text-body)' },
+        retryBtnStyle: { flex: 'none', minHeight: 40, padding: '0 16px', background: 'none', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-sm)', color: 'var(--text-heading)', fontSize: 13.5, cursor: 'pointer' },
+        successBoxStyle: { textAlign: 'center', padding: '56px 24px', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-lg)', background: 'var(--surface-panel)' },
+        successTitleStyle: { margin: '16px 0 8px', fontFamily: 'var(--font-display)', fontSize: 26, color: 'var(--text-heading)' },
+        successBodyStyle: { margin: '0 0 24px', fontSize: 15, lineHeight: 1.6, color: 'var(--text-muted)', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' },
+        reviewSectionStyle: { marginBottom: 32, padding: '22px 24px', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-md)', background: 'var(--surface-panel)' },
+        reviewHeadStyle: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+        reviewHeadTitleStyle: { fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--text-heading)' },
+        editBtnStyle: { display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44, background: 'none', border: 'none', color: 'var(--accent-gold)', fontSize: 13.5, cursor: 'pointer' },
+        dlStyle: { margin: 0, display: 'grid', gridTemplateColumns: 'minmax(0,160px) 1fr', rowGap: 10 },
+        dtStyle: { fontSize: 13, color: 'var(--text-faint)' },
+        ddStyle: { margin: 0, fontSize: 14.5, color: 'var(--text-body)' },
+        saveModeColStyle: { display: 'flex', flexDirection: 'column', gap: 12 },
+        saveModeTitleStyle: { fontSize: 15, fontWeight: 600, color: 'var(--text-heading)' },
+        saveModeBodyStyle: { fontSize: 13.5, lineHeight: 1.55, color: 'var(--text-muted)' },
+        disclosureBoxStyle: { display: 'flex', gap: 12, padding: '16px 18px', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-sm)', marginBottom: 32 },
+        disclosureTextStyle: { margin: 0, fontSize: 13, lineHeight: 1.6, color: 'var(--pearl-400)' },
+        actionsBarStyle: { display: 'flex', alignItems: 'center', gap: 16, marginTop: 40, position: isMobile ? 'fixed' : 'static', bottom: 0, left: 0, right: 0, padding: isMobile ? '16px' : 0, background: isMobile ? 'var(--surface-canvas)' : 'none', borderTop: isMobile ? '1px solid var(--border-hairline)' : 'none', zIndex: 40 },
+        showBackAction: step > 1,
+        showBackActionSpacer: step === 1,
+        showContinueAction: step < 3,
+        showSubmitAction: step === 3,
+        onBack: () => this.goBack(),
+        onContinue: () => this.onContinue(),
+        onExit: () => {},
+        onToggleDemo: () => this.setState({ demoOpen: !s.demoOpen }),
+        demoWrapStyle: { position: 'fixed', right: 16, bottom: isMobile ? 96 : 16, zIndex: 60, fontFamily: 'var(--font-mono)' },
+        demoToggleStyle: { minHeight: 36, padding: '0 14px', background: 'var(--lacquer-800)', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-pill)', color: 'var(--pearl-400)', fontSize: 11, letterSpacing: '0.05em', cursor: 'pointer' },
+        demoPanelStyle: { marginTop: 8, width: 240, maxHeight: 340, overflowY: 'auto', background: 'var(--lacquer-800)', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-md)', boxShadow: '0 24px 60px rgba(0,0,0,0.55)' }
+      },
+      stepper: { items: stepperItems, mobileText: `Bước ${step}/3 · ${stepLabels[step - 1]}` },
+      demo: { open: s.demoOpen, caret: s.demoOpen ? '▲' : '▼', items: demoItems },
+      s1: {
+        active: step === 1,
+        displayName: s.displayName, onNameChange: e => this.setField('displayName', e.target.value),
+        nameInputStyle: this.inputStyle('displayName', { width: '100%' }),
+        isSelf, isOther,
+        onPickSelf: () => this.setState({ forWhom: 'self' }), onPickOther: () => this.setState({ forWhom: 'other' }),
+        selfBtnStyle: btnToggle(isSelf), otherBtnStyle: btnToggle(isOther),
+        selfIconColor: isSelf ? 'var(--gold-500)' : 'var(--pearl-400)', otherIconColor: isOther ? 'var(--gold-500)' : 'var(--pearl-400)',
+        consentOther: s.consentOther, onToggleConsent: () => this.setState({ consentOther: !s.consentOther }),
+        showConsentError,
+        consentBoxStyle: { marginTop: -8, padding: '18px 20px', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-md)', background: 'var(--surface-panel)' },
+        consentTextStyle: { margin: '0 0 14px', fontSize: 14, lineHeight: 1.6, color: 'var(--text-body)' },
+        consentCheckRowStyle: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--text-heading)', cursor: 'pointer', minHeight: 44 }
+      },
+      s2: {
+        active: step === 2,
+        isDuong: s.calendarType === 'duong', isAm: s.calendarType === 'am',
+        onPickDuong: () => this.setState({ calendarType: 'duong' }), onPickAm: () => this.setState({ calendarType: 'am' }),
+        duongBtnStyle: btnToggle(s.calendarType === 'duong'), amBtnStyle: btnToggle(s.calendarType === 'am'),
+        dobRowStyle: { display: 'flex', alignItems: 'center', gap: 8 },
+        dobDay: s.dobDay, dobMonth: s.dobMonth, dobYear: s.dobYear,
+        onDayChange: e => dayIn('d', e.target.value, 99) && this.setField('dobDay', e.target.value.replace(/\D/g, '')),
+        onMonthChange: e => this.setField('dobMonth', e.target.value.replace(/\D/g, '')),
+        onYearChange: e => this.setField('dobYear', e.target.value.replace(/\D/g, '')),
+        onDayFocus: () => this.setState({ focusedField: 'dobDay' }), onDayBlur: () => { this.setState({ focusedField: null }); this.setTouched('dobDay'); },
+        onMonthFocus: () => this.setState({ focusedField: 'dobMonth' }), onMonthBlur: () => { this.setState({ focusedField: null }); this.setTouched('dobMonth'); },
+        onYearFocus: () => this.setState({ focusedField: 'dobYear' }), onYearBlur: () => { this.setState({ focusedField: null }); this.setTouched('dobYear'); },
+        dayInputStyle: dobStyleFor('dobDay'), monthInputStyle: dobStyleFor('dobMonth'), yearInputStyle: dobStyleFor('dobYear'),
+        dobValid, dobErrorMsg: dobShowErr ? dobErr : null,
+        timeUnknown: s.timeUnknown, timeKnown: !s.timeUnknown,
+        onToggleTimeUnknown: () => this.setState({ timeUnknown: !s.timeUnknown, hour: '', minute: '' }),
+        timeUnknownRowStyle: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 14.5, color: 'var(--text-heading)', cursor: 'pointer', minHeight: 44, marginBottom: 14 },
+        timeRowStyle: { display: 'flex', alignItems: 'center', gap: 8 },
+        hour: s.hour, minute: s.minute,
+        onHourChange: e => this.setField('hour', e.target.value.replace(/\D/g, '')),
+        onMinuteChange: e => this.setField('minute', e.target.value.replace(/\D/g, '')),
+        onHourFocus: () => this.setState({ focusedField: 'hour' }), onHourBlur: () => { this.setState({ focusedField: null }); this.setTouched('hour'); },
+        onMinuteFocus: () => this.setState({ focusedField: 'minute' }), onMinuteBlur: () => { this.setState({ focusedField: null }); this.setTouched('minute'); },
+        hourInputStyle: timeStyleFor('hour'), minuteInputStyle: timeStyleFor('minute'),
+        timeErrorMsg: timeShowErr ? timeErr : null,
+        placeQuery: s.placeQuery, placeSelected: s.placeSelected,
+        placeWrapStyle: { position: 'relative' },
+        placeIconStyle: { position: 'absolute', left: 12, top: 13 },
+        placeInputStyle,
+        onPlaceChange: e => this.setState({ placeQuery: e.target.value, placeSelected: null }),
+        onPlaceFocus: () => this.setState({ placeFocused: true }), onPlaceBlur: () => setTimeout(() => { this.setState({ placeFocused: false }); this.setTouched('placeQuery'); }, 120),
+        showSuggestions, isAmbiguous, suggestionCount: suggestions.length, noResults: showSuggestions && suggestions.length === 0,
+        suggestBoxStyle: { marginTop: 8, border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-md)', background: 'var(--surface-panel)', overflow: 'hidden' },
+        ambiguousNoteStyle: { margin: 0, padding: '12px 14px', fontSize: 13, color: 'var(--gold-400)', borderBottom: '1px solid var(--border-hairline)' },
+        suggestions: suggestions.map(p => ({ name: p.name, province: p.province, onPick: () => this.setState({ placeSelected: p, placeQuery: p.name, placeFocused: false }) })),
+        placeErrorMsg,
+        tzRowStyle: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, fontSize: 13.5, color: 'var(--text-muted)' },
+        tzLabel, tzToggleLabel: s.showTzOverride ? 'Ẩn' : 'Sinh ở nước ngoài?',
+        onToggleTzOverride: () => this.setState({ showTzOverride: !s.showTzOverride }),
+        showTzOverride: s.showTzOverride, tzOverride: s.tzOverride || '+7', tzOptions: TZ_OPTIONS,
+        onTzOverrideChange: e => this.setState({ tzOverride: e.target.value }),
+        tzSelectStyle: { marginTop: 10, minHeight: 44, padding: '0 12px', background: 'var(--lacquer-900)', border: '1px solid var(--border-hairline)', borderRadius: 'var(--radius-sm)', color: 'var(--text-heading)', fontSize: 14, width: '100%' }
+      },
+      s3: {
+        active: step === 3,
+        showOffline: s.submitState === 'offline', showEngineError: s.submitState === 'engine-error',
+        showSuccess: s.submitState === 'success', showReview: s.submitState !== 'success',
+        showDuplicateToast: s.showDuplicateToast,
+        subjectLabel: nameSummary === 'Chưa đặt tên hiển thị' ? 'bạn' : nameSummary,
+        onRetry: () => this.setState({ submitState: 'idle' }),
+        onRestart: () => this.setState({ step: 1, submitState: 'idle', displayName: '', forWhom: null, consentOther: false, dobDay: '', dobMonth: '', dobYear: '', timeUnknown: false, hour: '', minute: '', placeQuery: '', placeSelected: null, saveMode: null, touched: {} }),
+        onEditStep1: () => this.setState({ step: 1 }), onEditStep2: () => this.setState({ step: 2 }),
+        nameSummary, forWhomSummary, dobSummary, lunarSummary, timeSummary, placeSummary, tzSummary: tzLabel,
+        isTemp: s.saveMode === 'temp', isSave: s.saveMode === 'save',
+        onPickTemp: () => this.setState({ saveMode: 'temp' }), onPickSave: () => this.setState({ saveMode: 'save' }),
+        tempBtnStyle: saveModeCard(s.saveMode === 'temp'), saveBtnStyle: saveModeCard(s.saveMode === 'save'),
+        showSaveModeError: s.touched.saveMode && !s.saveMode,
+        submitDisabled: s.submitState === 'loading',
+        submitLabel: s.submitState === 'loading' ? 'Đang xử lý…' : 'Lập lá số',
+        onSubmit: () => this.onSubmit()
+      }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

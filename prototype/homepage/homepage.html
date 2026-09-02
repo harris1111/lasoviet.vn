@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lá Số Việt — Lập lá số. Hiểu vận mệnh.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Be+Vietnam+Pro:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html { color-scheme: dark; background: #15120E; }
+  body { margin: 0; background: #15120E; color: #DCD4C3; font-family: "Be Vietnam Pro", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #C9A44D; text-decoration: none; }
+  a:hover { color: #F2DCA0; text-decoration: underline; text-underline-offset: 3px; }
+  *:focus-visible { outline: 2px solid #F2DCA0; outline-offset: 3px; border-radius: 2px; }
+  input, select, button { font: inherit; }
+  summary::-webkit-details-marker { display: none; }
+  .lsv-hero-picture,
+  .lsv-cta-picture { position: absolute; inset: 0; display: block; }
+  .lsv-hero-picture img,
+  .lsv-cta-picture img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .lsv-hero-picture img { object-position: center center; }
+  .lsv-cta-picture img { object-position: center center; }
+  @keyframes lsv-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes lsv-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @media (max-width: 767px) {
+    .lsv-hero-picture img { object-position: center top; }
+    .lsv-process-row { grid-template-columns: minmax(0, 1fr) !important; gap: 20px !important; padding-left: 0 !important; }
+    .lsv-process-figure { grid-column: 1 !important; }
+    .lsv-process-figure img { height: 220px !important; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+  /* Vân sơn mài hình học lá số — texture nền dùng chung, phủ dưới các section màu phẳng để đồng nhất thị giác toàn trang. Không dùng ở hero/luận-giải-sâu/CTA vì các khu đó đã có ảnh riêng. */
+  .lsv-bg-deep { background-color: #0F0D0A; background-image: linear-gradient(rgba(15,13,10,0.94), rgba(15,13,10,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+  .lsv-bg-canvas { background-color: #15120E; background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+</style>
+</helmet>
+
+<div class="lsv-bg-canvas" style="max-width: 100%; overflow-x: hidden;">
+
+  <svg aria-hidden="true" focusable="false" width="0" height="0" style="position: absolute; width: 0; height: 0; overflow: hidden;">
+    <defs>
+      <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17"></path></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 5.5l13 13M18.5 5.5l-13 13"></path></symbol>
+      <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9l6.5 6.5L18.5 9"></path></symbol>
+      <symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5l6.5 6.5L9 18.5"></path></symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12h17M13.5 5l7 7-7 7"></path></symbol>
+      <symbol id="i-external-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.5h6.5V10M20.5 3.5L11 13M18 13.5v5.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H11"></path></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="M15.8 15.8l4.4 4.4"></path></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.8l5.2 5.2L20 6.4"></path></symbol>
+      <symbol id="i-shield-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7.5 3v5.6c0 4.4-3.2 7.1-7.5 8.4-4.3-1.3-7.5-4-7.5-8.4V6L12 3z"></path><path d="M10 12.6h4v3h-4z"></path><path d="M10.9 12.6v-1.2a1.1 1.1 0 0 1 2.2 0v1.2"></path></symbol>
+      <symbol id="i-refresh-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18.9 8.2A8 8 0 1 0 19.6 14"></path><path d="M19.4 3.6v4.8h-4.8"></path><path d="M6.5 17.5L17.5 6.5"></path></symbol>
+      <symbol id="i-calendar-day" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="14.5" rx="2"></rect><path d="M8.5 3.5v4M15.5 3.5v4M4 10.5h16"></path><path d="M11.4 14.8h1.4"></path></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"></circle><path d="M12 7.4v5l3.2 2.1"></path></symbol>
+      <symbol id="i-map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.8s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"></path><circle cx="12" cy="9.8" r="2.5"></circle></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.4" r="3.6"></circle><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"></path></symbol>
+      <symbol id="i-help-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"></circle><path d="M9.7 9.6a2.4 2.4 0 1 1 3.3 2.2c-.7.3-1 .9-1 1.6v.3"></path><path d="M12 16.8h.01"></path></symbol>
+      <symbol id="i-book-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.5 5.1 8.4 4.5 5 4.5v13c3.4 0 5.5.6 7 2 1.5-1.4 3.6-2 7-2v-13c-3.4 0-5.5.6-7 2.1z"></path><path d="M12 6.6v12.9"></path></symbol>
+      <symbol id="i-scroll" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h11.5v13a3 3 0 0 0 3 3H8a3 3 0 0 1-3-3V6"></path><path d="M9.5 8.4h6.5M9.5 12.2h6.5"></path></symbol>
+      <symbol id="i-compass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"></circle><path d="M15 9l-2.1 5.2-5.2 2.1 2.1-5.2L15 9z"></path><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"></circle></symbol>
+      <symbol id="i-user-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.2"></circle><circle cx="12" cy="10" r="2.8"></circle><path d="M6.6 18.6c1.2-2 3.1-3.1 5.4-3.1s4.2 1.1 5.4 3.1"></path></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10.4M8 11l4 4 4-4M4.5 19.5h15"></path></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.2 7V4.8h5.6V7M6.2 7l1 12.2h9.6L17.8 7"></path><path d="M10.4 11v5M13.6 11v5"></path></symbol>
+      <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l3.2-1L18 8.2l-2.2-2.2L5.5 16.3l-1 3.2z"></path><path d="M14.4 7.4l2.2 2.2"></path></symbol>
+      <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5.2" r="2.6"></circle><circle cx="6.4" cy="12" r="2.6"></circle><circle cx="18" cy="18.8" r="2.6"></circle><path d="M15.7 6.6L8.7 10.7M8.7 13.3l7 4.1"></path></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 14a4 4 0 0 1 0-5.7l2.1-2.1a4 4 0 0 1 5.7 5.7l-1 1"></path><path d="M13.8 10a4 4 0 0 1 0 5.7l-2.1 2.1a4 4 0 0 1-5.7-5.7l1-1"></path></symbol>
+      <symbol id="i-trien" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.8" y="2.8" width="18.4" height="18.4" rx="1"></rect><rect x="6.6" y="6.6" width="10.8" height="10.8" rx="0.5"></rect></symbol>
+    </defs>
+  </svg>
+
+  <div class="lsv-bg-deep" style="border-bottom: 1px solid #3A3227; overflow: hidden;">
+    <div style="display: flex; width: max-content; animation: lsv-marquee 46s linear infinite;">
+      <div style="display: flex; align-items: center; gap: 48px; padding: 9px 24px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B; white-space: nowrap;">
+        <span>Lập lá số Tử Vi miễn phí — không cần tài khoản</span><span style="color: #6E6656;">·</span>
+        <span>Mỗi nhận định đều mở được căn cứ</span><span style="color: #6E6656;">·</span>
+        <span>Lá số của bạn riêng tư theo mặc định</span><span style="color: #6E6656;">·</span>
+        <span>Báo cáo thanh toán một lần — không tự động gia hạn</span><span style="color: #6E6656;">·</span>
+      </div>
+      <div aria-hidden="true" style="display: flex; align-items: center; gap: 48px; padding: 9px 24px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B; white-space: nowrap;">
+        <span>Lập lá số Tử Vi miễn phí — không cần tài khoản</span><span style="color: #6E6656;">·</span>
+        <span>Mỗi nhận định đều mở được căn cứ</span><span style="color: #6E6656;">·</span>
+        <span>Lá số của bạn riêng tư theo mặc định</span><span style="color: #6E6656;">·</span>
+        <span>Báo cáo thanh toán một lần — không tự động gia hạn</span><span style="color: #6E6656;">·</span>
+      </div>
+    </div>
+  </div>
+
+  <header style="border-bottom: 1px solid #3A3227; background: rgba(15,13,10,0.86); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 40;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px; height: 74px; display: flex; align-items: center; gap: 40px;">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; color: #F6F1E6; text-decoration: none;">
+        <span style="position: relative; width: 26px; height: 26px; flex: none; border: 1.5px solid #CE5B45; border-radius: 3px; display: block;">
+          <span style="position: absolute; inset: 3px; border: 1px solid #CE5B45; border-radius: 2px; display: block;"></span>
+        </span>
+        <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 20px; letter-spacing: 0.01em;">Lá Số Việt</span>
+      </a>
+      <nav style="display: flex; gap: 28px; margin-left: 12px; font-size: 14.5px;">
+        <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Lập lá số</a>
+        <a href="#luan-giai" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Luận giải</a>
+        <a href="#kien-thuc" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Kiến thức</a>
+        <a href="#phuong-phap" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Phương pháp</a>
+      </nav>
+      <div style="flex: 1;"></div>
+      <a href="#hero-form" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 4px; background: linear-gradient(103deg, #9A7730 0%, #F2DCA0 34%, #C9A44D 58%, #A8842F 100%); color: #0F0D0A; font-weight: 600; font-size: 14.5px; text-decoration: none;" style-hover="filter: brightness(1.08); text-decoration: none;">Lập lá số miễn phí</a>
+    </div>
+  </header>
+
+  <section style="position: relative; background: #0F0D0A; border-bottom: 1px solid #3A3227; overflow: hidden;">
+    <picture class="lsv-hero-picture" aria-hidden="true">
+      <source media="(max-width: 767px)" srcset="uploads/menh-thu-khai-quang-hero-lasoviet-mobile.webp" />
+      <img src="uploads/menh-thu-khai-quang-hero-lasoviet-desktop.webp" alt="" />
+    </picture>
+
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(97deg, rgba(15,13,10,0.985) 0%, rgba(15,13,10,0.95) 34%, rgba(15,13,10,0.74) 58%, rgba(15,13,10,0.28) 100%);"></div>
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(120% 110% at 12% 40%, rgba(15,13,10,0.9) 0%, rgba(15,13,10,0.2) 55%, transparent 75%);"></div>
+
+    <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: 104px 32px 72px;">
+      <div style="max-width: 700px;">
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Nền tảng lập và luận giải Tử Vi</div>
+        <h1 style="margin: 22px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 64px; line-height: 1.06; letter-spacing: -0.015em; color: #F6F1E6;">Lập lá số.<br />
+          <span style="background: linear-gradient(103deg, #9A7730 0%, #F2DCA0 34%, #C9A44D 58%, #A8842F 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Hiểu vận mệnh.</span>
+        </h1>
+        <p style="margin: 20px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 20px; line-height: 1.5; color: #A79E8B;">Một con người. Nhiều hệ quy chiếu. Một bản luận giải dễ hiểu.</p>
+        <p style="margin: 24px 0 0; max-width: 560px; font-size: 16px; line-height: 1.72; color: #DCD4C3;">Xem lá số Tử Vi miễn phí và khám phá những điểm nổi bật bằng lời giải thích rõ ràng, gắn với căn cứ trên chính lá số của bạn.</p>
+      </div>
+
+      <div id="hero-form" style="margin-top: 56px; max-width: 940px; border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 24px 0;">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px;">
+          <label style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #A79E8B;">Ngày</span>
+            <input type="text" inputmode="numeric" maxlength="2" placeholder="12" value="{{ day }}" onChange="{{ onDay }}" style="width: 74px; min-height: 44px; padding: 0 12px; background: #15120E; border: 1px solid #3A3227; border-radius: 4px; color: #F6F1E6; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; text-align: center;" style-focus="border-color: #C9A44D;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #A79E8B;">Tháng</span>
+            <input type="text" inputmode="numeric" maxlength="2" placeholder="04" value="{{ month }}" onChange="{{ onMonth }}" style="width: 74px; min-height: 44px; padding: 0 12px; background: #15120E; border: 1px solid #3A3227; border-radius: 4px; color: #F6F1E6; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; text-align: center;" style-focus="border-color: #C9A44D;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #A79E8B;">Năm</span>
+            <input type="text" inputmode="numeric" maxlength="4" placeholder="1994" value="{{ year }}" onChange="{{ onYear }}" style="width: 104px; min-height: 44px; padding: 0 12px; background: #15120E; border: 1px solid #3A3227; border-radius: 4px; color: #F6F1E6; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 16px; text-align: center;" style-focus="border-color: #C9A44D;" />
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #A79E8B;">Giờ sinh</span>
+            <select value="{{ hour }}" onChange="{{ onHour }}" style="min-height: 44px; padding: 0 12px; background: #15120E; border: 1px solid #3A3227; border-radius: 4px; color: #F6F1E6; font-size: 15px;" style-focus="border-color: #C9A44D;">
+              <option value="">Chưa rõ giờ sinh</option>
+              <sc-for list="{{ hours }}" as="h" hint-placeholder-count="12">
+                <option value="{{ h.value }}">{{ h.label }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <button type="button" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 24px; border: none; border-radius: 4px; background: linear-gradient(103deg, #9A7730 0%, #F2DCA0 34%, #C9A44D 58%, #A8842F 100%); color: #0F0D0A; font-weight: 600; font-size: 15px; cursor: pointer;" style-hover="filter: brightness(1.08);">Lập lá số miễn phí</button>
+          <a href="#luan-giai" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border: 1px solid #3A3227; border-radius: 4px; color: #DCD4C3; font-size: 15px;" style-hover="border-color: #C9A44D; color: #F2DCA0; text-decoration: none;">Xem báo cáo mẫu</a>
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;">
+          <span style="font-size: 13.5px; color: #A79E8B;">Không cần tài khoản để bắt đầu.</span>
+          <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A44D;">Từ dữ liệu sinh đến bản đồ 12 cung</span>
+          <span style="font-size: 13px; color: #6E6656;">Lá số đầy đủ được tính ở bước tiếp theo.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lsv-bg-canvas" style="border-bottom: 1px solid #3A3227;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div style="padding: 28px 28px 28px 0; border-right: 1px solid #3A3227;">
+          <div style="display: flex; align-items: center; gap: 10px;"><svg width="20" height="20" style="color: #C9A44D;" aria-hidden="true"><use href="#i-check"></use></svg><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; color: #A8842F;">01</span></div>
+          <div style="margin-top: 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; color: #F6F1E6;">Miễn phí trước</div>
+          <div style="margin-top: 6px; font-size: 14px; line-height: 1.6; color: #A79E8B;">Xem tổng quan lá số trước khi cần trả phí.</div>
+        </div>
+        <div style="padding: 28px; border-right: 1px solid #3A3227;">
+          <div style="display: flex; align-items: center; gap: 10px;"><svg width="20" height="20" style="color: #CE5B45;" aria-hidden="true"><use href="#i-trien"></use></svg><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; color: #A8842F;">02</span></div>
+          <div style="margin-top: 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; color: #F6F1E6;">Có căn cứ</div>
+          <div style="margin-top: 6px; font-size: 14px; line-height: 1.6; color: #A79E8B;">Mỗi nhận định gắn với dữ liệu và quy tắc công bố.</div>
+        </div>
+        <div style="padding: 28px; border-right: 1px solid #3A3227;">
+          <div style="display: flex; align-items: center; gap: 10px;"><svg width="20" height="20" style="color: #C9A44D;" aria-hidden="true"><use href="#i-shield-lock"></use></svg><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; color: #A8842F;">03</span></div>
+          <div style="margin-top: 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; color: #F6F1E6;">Riêng tư mặc định</div>
+          <div style="margin-top: 6px; font-size: 14px; line-height: 1.6; color: #A79E8B;">Lá số của bạn không hiển thị công khai.</div>
+        </div>
+        <div style="padding: 28px 0 28px 28px;">
+          <div style="display: flex; align-items: center; gap: 10px;"><svg width="20" height="20" style="color: #C9A44D;" aria-hidden="true"><use href="#i-refresh-off"></use></svg><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; color: #A8842F;">04</span></div>
+          <div style="margin-top: 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; color: #F6F1E6;">Không tự động gia hạn</div>
+          <div style="margin-top: 6px; font-size: 14px; line-height: 1.6; color: #A79E8B;">Báo cáo là thanh toán một lần.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lsv-bg-canvas" style="padding: 112px 0 128px; overflow: hidden;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
+      <div style="max-width: 720px;">
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Lá số miễn phí</div>
+        <h2 style="margin: 18px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.2; color: #F6F1E6;">Bạn nhận được gì ngay từ đầu</h2>
+        <p style="margin: 16px 0 0; font-size: 16px; line-height: 1.75; color: #DCD4C3;">Toàn bộ sơ đồ lá số, ba điểm nổi bật và một căn cứ mở được — trước khi bạn nghĩ đến việc trả phí.</p>
+      </div>
+    </div>
+
+    <div style="max-width: 1200px; margin: 56px auto 0; padding: 0 32px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); align-items: center;">
+      <div style="position: relative; margin-left: -80px; background: #12100C; border: 1px solid #3A3227; border-left: none; border-radius: 0 12px 12px 0; padding: 44px 24px 44px 80px;">
+        <div style="position: absolute; top: 18px; left: 80px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #6E6656;">Lá số miễn phí · 12 cung · 3 điểm nổi bật</div>
+        <img src="uploads/la-so-mien-phi-ba-diem-noi-bat-co-can-cu-homepage.webp" alt="Lá số Tử Vi hoàn chỉnh với ba cung được đánh dấu và nối tới các thẻ căn cứ" style="display: block; width: 100%; height: 560px; object-fit: cover; object-position: center; border-radius: 8px;" />
+      </div>
+
+      <div style="position: relative; z-index: 2; margin-left: -56px; display: flex; flex-direction: column; gap: 28px;">
+        <sc-for list="{{ insights }}" as="ins" hint-placeholder-count="3">
+          <div style="position: relative; background: #1C1813; border: 1px solid #3A3227; border-radius: 8px; padding: 24px 26px; box-shadow: 0 24px 60px rgba(0,0,0,0.55);">
+            <div style="position: absolute; top: 24px; left: -1px; width: 2px; height: 34px; background: #C9A44D;"></div>
+            <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #6E6656;">Ghi chú bên lề · {{ ins.num }}</div>
+            <p style="margin: 12px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 19px; line-height: 1.45; color: #F6F1E6;">{{ ins.title }}</p>
+            <p style="margin: 10px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 15.5px; line-height: 1.6; color: #A79E8B;">{{ ins.sub }}</p>
+            <button type="button" onClick="{{ ins.onSeal }}" style="margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px 0 0; background: none; border: none; color: #DCD4C3; font-size: 13.5px; cursor: pointer; text-align: left;" style-hover="color: #F2DCA0;">
+              <span style="position: relative; width: 22px; height: 22px; flex: none; border: 1.5px solid #CE5B45; border-radius: 3px; display: block; transition: transform 220ms ease, opacity 220ms ease; transform: {{ ins.sealScale }}; opacity: {{ ins.sealOpacity }};">
+                <span style="position: absolute; inset: 3px; border: 1px solid #CE5B45; border-radius: 2px; display: block;"></span>
+              </span>
+              <span>Vì sao có nhận định này?</span>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="phuong-phap" class="lsv-bg-deep" style="border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 104px 0;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
+      <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Cách hoạt động</div>
+      <div style="margin-top: 44px; display: flex; flex-direction: column;">
+        <div class="lsv-process-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr) 340px; gap: 32px; padding: 32px 0; border-top: 1px solid #3A3227; align-items: start;">
+          <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 56px; line-height: 1; color: #A8842F;">01</div>
+          <div style="max-width: 620px;">
+            <h3 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 24px; color: #F6F1E6;">Nhập dữ liệu sinh</h3>
+            <p style="margin: 10px 0 0; font-size: 16px; line-height: 1.7; color: #DCD4C3;">Ngày, giờ và nơi sinh. Không rõ giờ sinh vẫn tiếp tục được với kết quả giới hạn.</p>
+            <div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #A79E8B;">
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="17" height="17" style="color: #C9A44D;" aria-hidden="true"><use href="#i-calendar-day"></use></svg>Ngày sinh</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="17" height="17" style="color: #C9A44D;" aria-hidden="true"><use href="#i-clock"></use></svg>Giờ sinh</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="17" height="17" style="color: #C9A44D;" aria-hidden="true"><use href="#i-map-pin"></use></svg>Nơi sinh</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="17" height="17" style="color: #A79E8B;" aria-hidden="true"><use href="#i-help-circle"></use></svg>Không rõ giờ sinh</span>
+            </div>
+          </div>
+          <figure class="lsv-process-figure" style="margin: 0;">
+            <img src="uploads/lich-phap-can-chi-quy-doi-du-lieu-sinh-homepage.webp" alt="Bảng lịch pháp Can–Chi với dụng cụ đo thời khắc dùng để quy đổi dữ liệu sinh" style="display: block; width: 100%; height: 220px; object-fit: cover; object-position: center; border: 1px solid #3A3227; border-radius: 8px;" />
+            <figcaption style="margin-top: 10px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6E6656;">Bảng Can–Chi dùng để quy đổi ngày, giờ sinh</figcaption>
+          </figure>
+        </div>
+        <div class="lsv-process-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr) 340px; gap: 32px; padding: 32px 0; border-top: 1px solid #3A3227; align-items: start;">
+          <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 56px; line-height: 1; color: #A8842F;">02</div>
+          <div style="max-width: 720px;">
+            <h3 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 24px; color: #F6F1E6;">Xem lá số miễn phí</h3>
+            <p style="margin: 10px 0 0; font-size: 16px; line-height: 1.7; color: #DCD4C3;">Toàn bộ sơ đồ, ba điểm nổi bật và một căn cứ có thể mở ra xem ngay.</p>
+          </div>
+          <figure class="lsv-process-figure" style="margin: 0;">
+            <img src="uploads/an-dinh-la-so-tu-vi-12-cung-homepage.webp" alt="Lá số Tử Vi 12 cung được an định trong khung đồng sau khi quy đổi dữ liệu sinh" style="display: block; width: 100%; height: 220px; object-fit: cover; object-position: center; border: 1px solid #3A3227; border-radius: 8px;" />
+            <figcaption style="margin-top: 10px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6E6656;">Dữ liệu được an định vào cấu trúc 12 cung</figcaption>
+          </figure>
+        </div>
+        <div class="lsv-process-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr) 340px; gap: 32px; padding: 32px 0; border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; align-items: start;">
+          <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 56px; line-height: 1; color: #A8842F;">03</div>
+          <div style="max-width: 720px;">
+            <h3 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 24px; color: #F6F1E6;">Chọn chủ đề luận giải sâu</h3>
+            <p style="margin: 10px 0 0; font-size: 16px; line-height: 1.7; color: #DCD4C3;">Xem mục lục, báo cáo mẫu và giá trước khi quyết định — nếu bạn muốn đi sâu hơn.</p>
+          </div>
+          <figure class="lsv-process-figure" style="margin: 0;">
+            <img src="uploads/chon-chu-de-luan-giai-sau-ho-so-tang-thu-homepage.webp" alt="Bốn hồ sơ tàng thư đại diện cho các chủ đề luận giải chuyên sâu" style="display: block; width: 100%; height: 220px; object-fit: cover; object-position: center 48%; border: 1px solid #3A3227; border-radius: 8px;" />
+            <figcaption style="margin-top: 10px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6E6656;">Bốn chủ đề được mở theo nhu cầu của bạn</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lsv-bg-canvas" style="padding: 112px 0;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 72px; align-items: start;">
+      <div>
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Minh bạch</div>
+        <h2 style="margin: 18px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.2; color: #F6F1E6;">Căn cứ nằm ngay cạnh nhận định</h2>
+        <p style="margin: 16px 0 0; font-size: 16px; line-height: 1.75; color: #DCD4C3;">Mọi kết luận quan trọng đều mở ra được để xem vì sao — ngay tại chỗ, không chôn trong trang phương pháp.</p>
+      </div>
+      <div style="background: #1C1813; border: 1px solid #3A3227; border-radius: 12px; padding: 32px 36px;">
+        <div style="display: flex; align-items: flex-start; gap: 16px;">
+          <span style="position: relative; width: 24px; height: 24px; margin-top: 6px; flex: none; border: 1.5px solid #CE5B45; border-radius: 3px; display: block;">
+            <span style="position: absolute; inset: 3px; border: 1px solid #CE5B45; border-radius: 2px; display: block;"></span>
+          </span>
+          <p style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 22px; line-height: 1.42; color: #F6F1E6;">Giai đoạn này có thể tăng áp lực về vai trò trong công việc.</p>
+        </div>
+        <div style="margin: 20px 0 0; padding-left: 40px; display: flex; align-items: center; gap: 16px;">
+          <span style="display: inline-flex; align-items: center; padding: 5px 12px; border: 1px solid #3A3227; border-radius: 999px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #DCD4C3;">Tin cậy: trung bình</span>
+          <button type="button" onClick="{{ toggleEvidence }}" style="min-height: 44px; padding: 0; background: none; border: none; color: #C9A44D; font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px;" style-hover="color: #F2DCA0;">Vì sao có nhận định này?</button>
+        </div>
+        <sc-if value="{{ evidenceOpen }}" hint-placeholder-val="{{ true }}">
+          <dl style="margin: 24px 0 0; padding: 24px 0 0; border-top: 1px solid #3A3227; display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: 0;">
+            <dt style="padding: 14px 24px 14px 0; border-bottom: 1px solid #3A3227; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B;">Căn cứ được sử dụng</dt>
+            <dd style="margin: 0; padding: 14px 0; border-bottom: 1px solid #3A3227; font-size: 15px; line-height: 1.6; color: #DCD4C3;">Vận hạn tại Cung Quan Lộc, đối chiếu với chính tinh thủ mệnh.</dd>
+            <dt style="padding: 14px 24px 14px 0; border-bottom: 1px solid #3A3227; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B;">Mức độ tin cậy</dt>
+            <dd style="margin: 0; padding: 14px 0; border-bottom: 1px solid #3A3227; font-size: 15px; line-height: 1.6; color: #DCD4C3;">Trung bình — nhạy với giờ sinh.</dd>
+            <dt style="padding: 14px 24px 14px 0; border-bottom: 1px solid #3A3227; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B;">Ảnh hưởng của giờ sinh</dt>
+            <dd style="margin: 0; padding: 14px 0; border-bottom: 1px solid #3A3227; font-size: 15px; line-height: 1.6; color: #DCD4C3;">Nếu giờ sinh không chắc chắn, cung này có thể lệch một vị trí liền kề.</dd>
+            <dt style="padding: 14px 24px 14px 0; border-bottom: 1px solid #3A3227; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B;">Khi nào có thể không đúng</dt>
+            <dd style="margin: 0; padding: 14px 0; border-bottom: 1px solid #3A3227; font-size: 15px; line-height: 1.6; color: #DCD4C3;">Khi vai trò công việc hiện tại đã ổn định và ít thay đổi trong năm nay.</dd>
+            <dt style="padding: 14px 24px 0 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A79E8B;">Điều bạn có thể quan sát</dt>
+            <dd style="margin: 0; padding: 14px 0 0; font-size: 15px; line-height: 1.6; color: #DCD4C3;">Đối chiếu với khối lượng công việc hoặc trách nhiệm mới trong 1–2 tháng tới.</dd>
+          </dl>
+        </sc-if>
+      </div>
+    </div>
+  </section>
+
+  <section id="luan-giai" style="position: relative; background: #0F0D0A; border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 104px 0; overflow: hidden;">
+    <img aria-hidden="true" src="uploads/tang-thu-chu-de-luan-giai-sau-background-homepage.webp" alt="" style="position: absolute; top: 0; right: 0; width: 46%; height: 100%; object-fit: cover; object-position: 58% center; opacity: 0.46;" />
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(90deg, #0F0D0A 0%, #0F0D0A 52%, rgba(15,13,10,0.86) 78%, rgba(15,13,10,0.62) 100%);"></div>
+    <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: 0 32px;">
+      <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 24px;">
+        <div style="max-width: 620px;">
+          <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Luận giải chuyên sâu</div>
+          <h2 style="margin: 18px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.2; color: #F6F1E6;">Chọn chủ đề khi bạn cần đi sâu hơn</h2>
+        </div>
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #6E6656;">Mục lục · thanh toán một lần · không tự động gia hạn</div>
+      </div>
+
+      <div style="margin-top: 48px; border-top: 1px solid #3A3227;">
+        <div style="padding: 28px 0; border-bottom: 1px solid #3A3227;">
+          <div style="display: flex; align-items: baseline; gap: 20px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: #A8842F; width: 34px; flex: none;">I</span>
+            <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; color: #F6F1E6;">Bản mệnh &amp; Tiềm năng</span>
+            <span style="flex: 1; min-width: 40px; height: 1px; border-bottom: 1px dotted #3A3227; transform: translateY(-4px);"></span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; color: #F2DCA0;">79.000 ₫</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #A79E8B;">Một lần</span>
+          </div>
+          <div style="margin-top: 10px; padding-left: 54px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px;">
+            <span style="font-size: 15px; color: #DCD4C3;">7 luận điểm · thế mạnh và nguồn lực · khoảng 12 trang</span>
+            <a href="#" style="font-size: 14px;">Xem báo cáo mẫu</a>
+          </div>
+        </div>
+        <div style="padding: 28px 0; border-bottom: 1px solid #3A3227;">
+          <div style="display: flex; align-items: baseline; gap: 20px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: #A8842F; width: 34px; flex: none;">II</span>
+            <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; color: #F6F1E6;">Tình duyên &amp; Hôn nhân</span>
+            <span style="flex: 1; min-width: 40px; height: 1px; border-bottom: 1px dotted #3A3227; transform: translateY(-4px);"></span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; color: #F2DCA0;">79.000 ₫</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #A79E8B;">Một lần</span>
+          </div>
+          <div style="margin-top: 10px; padding-left: 54px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px;">
+            <span style="font-size: 15px; color: #DCD4C3;">Pattern quan hệ · giới hạn · hành động lành mạnh</span>
+            <a href="#" style="font-size: 14px;">Xem báo cáo mẫu</a>
+          </div>
+        </div>
+        <div style="padding: 28px 0; border-bottom: 1px solid #3A3227;">
+          <div style="display: flex; align-items: baseline; gap: 20px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: #A8842F; width: 34px; flex: none;">III</span>
+            <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; color: #F6F1E6;">Công việc &amp; Tài lộc</span>
+            <span style="flex: 1; min-width: 40px; height: 1px; border-bottom: 1px dotted #3A3227; transform: translateY(-4px);"></span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; color: #F2DCA0;">79.000 ₫</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #A79E8B;">Một lần</span>
+          </div>
+          <div style="margin-top: 10px; padding-left: 54px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px;">
+            <span style="font-size: 15px; color: #DCD4C3;">Xu hướng, điều kiện và rủi ro quan sát được</span>
+            <a href="#" style="font-size: 14px;">Xem báo cáo mẫu</a>
+          </div>
+        </div>
+        <div style="padding: 28px 0; border-bottom: 1px solid #3A3227;">
+          <div style="display: flex; align-items: baseline; gap: 20px;">
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13.5px; color: #A8842F; width: 34px; flex: none;">IV</span>
+            <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 24px; color: #F6F1E6;">Vận trình năm 2026</span>
+            <span style="flex: 1; min-width: 40px; height: 1px; border-bottom: 1px dotted #3A3227; transform: translateY(-4px);"></span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; color: #F2DCA0;">99.000 ₫</span>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #A79E8B;">Một lần</span>
+          </div>
+          <div style="margin-top: 10px; padding-left: 54px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px;">
+            <span style="font-size: 15px; color: #DCD4C3;">Cửa sổ thời gian, dấu hiệu và checklist chuẩn bị</span>
+            <a href="#" style="font-size: 14px;">Xem báo cáo mẫu</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lsv-bg-canvas" style="padding: 104px 0;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
+      <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Niềm tin</div>
+      <h2 style="margin: 18px 0 40px; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.2; color: #F6F1E6;">Cách chúng tôi luận giải</h2>
+      <div style="display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 40px; padding: 28px 0; border-top: 1px solid #3A3227;">
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #A8842F;">Phương pháp</div>
+        <p style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; line-height: 1.65; color: #DCD4C3;">Lá số được lập theo rule set Tử Vi công bố. Cách tính và phiên bản engine đều ghi rõ trong trang phương pháp.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 40px; padding: 28px 0; border-top: 1px solid #3A3227;">
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #A8842F;">Vai trò của AI</div>
+        <p style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; line-height: 1.65; color: #DCD4C3;">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 40px; padding: 28px 0; border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227;">
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #A8842F;">Quyền riêng tư</div>
+        <p style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; line-height: 1.65; color: #DCD4C3;">Lá số và báo cáo là riêng tư theo mặc định, không xuất hiện trên công cụ tìm kiếm. Bạn xem, sửa hoặc xóa dữ liệu bất cứ lúc nào.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="kien-thuc" class="lsv-bg-deep" style="border-top: 1px solid #3A3227; border-bottom: 1px solid #3A3227; padding: 104px 0;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
+      <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Thư viện tri thức</div>
+      <h2 style="margin: 18px 0 44px; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.2; color: #F6F1E6;">Bắt đầu từ đây</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; align-items: start;">
+        <a href="#" style="display: block; text-decoration: none; color: inherit;" style-hover="text-decoration: none;">
+          <img src="uploads/cau-truc-la-so-tu-vi-12-cung-la-gi-homepage.webp" alt="Cấu trúc lá số Tử Vi 12 cung với lớp sơ đồ được nâng lên để giải thích cấu tạo" style="display: block; width: 100%; height: 260px; object-fit: cover; object-position: center; border: 1px solid #3A3227; border-radius: 8px;" />
+          <h3 style="margin: 20px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 24px; line-height: 1.3; color: #F6F1E6;">Lá số Tử Vi là gì?</h3>
+          <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #A79E8B;">Định nghĩa, cấu trúc 12 cung và cách một lá số được dựng lên.</p>
+        </a>
+        <a href="#" style="display: block; text-decoration: none; color: inherit; margin-top: 48px;" style-hover="text-decoration: none;">
+          <img src="uploads/quy-trinh-lap-la-so-tu-vi-tu-lich-phap-homepage.webp" alt="Quy trình lập lá số từ lịch pháp qua bút mực đến sơ đồ 12 cung" style="display: block; width: 100%; height: 260px; object-fit: cover; object-position: center; border: 1px solid #3A3227; border-radius: 8px;" />
+          <h3 style="margin: 20px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 24px; line-height: 1.3; color: #F6F1E6;">Cách lập lá số Tử Vi</h3>
+          <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #A79E8B;">Quy trình tính toán từ ngày, giờ, nơi sinh đến vị trí các sao.</p>
+        </a>
+        <a href="#" style="display: block; text-decoration: none; color: inherit; margin-top: 96px;" style-hover="text-decoration: none;">
+          <img src="uploads/cach-doc-moi-lien-he-giua-cac-cung-la-so-tu-vi-homepage.webp" alt="Các cung trên lá số Tử Vi được nối bằng đường tam hợp và đối chiếu" style="display: block; width: 100%; height: 260px; object-fit: cover; object-position: center; border: 1px solid #3A3227; border-radius: 8px;" />
+          <h3 style="margin: 20px 0 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 24px; line-height: 1.3; color: #F6F1E6;">Cách đọc lá số Tử Vi</h3>
+          <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #A79E8B;">Bắt đầu từ Cung Mệnh, sau đó mở rộng sang các cung liên quan.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="lsv-bg-canvas" style="padding: 104px 0;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr); gap: 64px; align-items: start;">
+      <div>
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #C9A44D;">Câu hỏi thường gặp</div>
+      </div>
+      <div style="border-top: 1px solid #3A3227;">
+        <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+          <div style="border-bottom: 1px solid #3A3227;">
+            <button type="button" onClick="{{ f.onToggle }}" style="width: 100%; min-height: 44px; padding: 24px 0; display: flex; align-items: baseline; gap: 20px; background: none; border: none; text-align: left; cursor: pointer; color: #F6F1E6;" style-hover="color: #F2DCA0;">
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #A8842F; flex: none;">{{ f.num }}</span>
+              <span style="flex: 1; font-family: 'Source Serif 4', Georgia, serif; font-size: 20px; line-height: 1.4;">{{ f.q }}</span>
+              <svg width="22" height="22" aria-hidden="true" style="flex: none; color: #C9A44D; transition: transform 220ms ease; transform: {{ f.iconRotate }};"><use href="#i-chevron-down"></use></svg>
+            </button>
+            <sc-if value="{{ f.open }}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; padding: 0 44px 26px; max-width: 720px; font-size: 16px; line-height: 1.7; color: #DCD4C3;">{{ f.a }}</p>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="position: relative; background: #0F0D0A; border-top: 1px solid #3A3227; padding: 120px 0; overflow: hidden;">
+    <picture class="lsv-cta-picture" aria-hidden="true">
+      <source media="(max-width: 767px)" srcset="uploads/nguong-mo-menh-thu-cta-background-lasoviet-mobile.webp" />
+      <img src="uploads/nguong-mo-menh-thu-cta-background-lasoviet-desktop.webp" alt="" />
+    </picture>
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(15,13,10,0.3) 0%, rgba(15,13,10,0.6) 72%, rgba(15,13,10,0.82) 100%);"></div>
+    <div style="position: relative; max-width: 720px; margin: 0 auto; padding: 0 32px; text-align: center;">
+      <h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; font-size: 44px; line-height: 1.14; color: #F6F1E6;">Bắt đầu với lá số miễn phí của bạn</h2>
+      <p style="margin: 18px 0 0; font-size: 16px; line-height: 1.7; color: #A79E8B;">Không phán định tương lai. Không dùng nỗi sợ để bán hàng.</p>
+      <div style="margin-top: 32px; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;">
+        <a href="#hero-form" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 26px; border-radius: 4px; background: linear-gradient(103deg, #9A7730 0%, #F2DCA0 34%, #C9A44D 58%, #A8842F 100%); color: #0F0D0A; font-weight: 600; font-size: 15.5px;" style-hover="filter: brightness(1.08); text-decoration: none;">Lập lá số miễn phí</a>
+        <a href="#luan-giai" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border: 1px solid #3A3227; border-radius: 4px; color: #DCD4C3; font-size: 15.5px;" style-hover="border-color: #C9A44D; color: #F2DCA0; text-decoration: none;">Xem báo cáo mẫu</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="lsv-bg-deep" style="border-top: 1px solid #3A3227; padding: 72px 0 40px;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 32px;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 0.9fr)); gap: 48px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="position: relative; width: 24px; height: 24px; flex: none; border: 1.5px solid #CE5B45; border-radius: 3px; display: block;">
+              <span style="position: absolute; inset: 3px; border: 1px solid #CE5B45; border-radius: 2px; display: block;"></span>
+            </span>
+            <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 19px; color: #F6F1E6;">Lá Số Việt</span>
+          </div>
+          <p style="margin: 16px 0 0; max-width: 340px; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.6; color: #A79E8B;">Lá Số Việt — Thư viện tri thức Việt đương đại — một bàn đọc riêng tư dành cho từng người.</p>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #6E6656;">Sản phẩm</div>
+          <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 14.5px;">
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Lập lá số Tử Vi</a>
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Luận giải Tử Vi</a>
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Báo cáo mẫu</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #6E6656;">Kiến thức</div>
+          <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 14.5px;">
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Lá số Tử Vi là gì?</a>
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Cách lập lá số</a>
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Cách đọc lá số</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #6E6656;">Công ty &amp; pháp lý</div>
+          <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 14.5px;">
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Phương pháp &amp; trust</a>
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Quyền riêng tư</a>
+            <a href="#" style="color: #DCD4C3;" style-hover="color: #F2DCA0;">Liên hệ</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 56px; padding-top: 24px; border-top: 1px solid #3A3227; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.06em; color: #6E6656;">© 2026 Lá Số Việt. Nội dung mang tính tham khảo và tự chiêm nghiệm. · lasoviet.vn</div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;ringMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Chuyển động&quot;},&quot;evidenceOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Nội dung&quot;}}">
+class Component extends DCLogic {
+  CUNG = ["Mệnh", "Phụ Mẫu", "Phúc Đức", "Điền Trạch", "Quan Lộc", "Nô Bộc", "Thiên Di", "Tật Bệnh", "Tài Bạch", "Tử Tức", "Phu Thê", "Huynh Đệ"];
+  HOURS = ["Tý (23–01)", "Sửu (01–03)", "Dần (03–05)", "Mão (05–07)", "Thìn (07–09)", "Tỵ (09–11)", "Ngọ (11–13)", "Mùi (13–15)", "Thân (15–17)", "Dậu (17–19)", "Tuất (19–21)", "Hợi (21–23)"];
+  FAQ = [
+    ["Lá Số Việt có dùng AI không?", "Có. AI hỗ trợ tổ chức và diễn giải trong giới hạn căn cứ đã cấp — không thay thế dữ liệu và quy tắc tính toán."],
+    ["Tôi không nhớ chính xác giờ sinh thì sao?", "Bạn có thể tiếp tục với kết quả giới hạn hoặc bổ sung giờ sinh sau. Chúng tôi nêu rõ phần nào bị ảnh hưởng."],
+    ["Báo cáo trả phí có tự động gia hạn không?", "Không. Giá hiển thị là giá thanh toán một lần, không tự động gia hạn."],
+    ["Dữ liệu sinh của tôi được dùng như thế nào?", "Chỉ để lập lá số và tạo phần diễn giải này. Lá số riêng tư theo mặc định; bạn có thể kiểm tra, sửa hoặc xóa bất cứ lúc nào."]
+  ];
+  INSIGHTS = [
+    ["Cung Mệnh cho thấy xu hướng chủ động trong giao tiếp.", "Rõ hơn ở các giai đoạn cần thương lượng hoặc trình bày ý tưởng."],
+    ["Giai đoạn này có thể tăng áp lực về vai trò trong công việc.", "Một điểm căng thẳng nên quan sát, không phải một cảnh báo chắc chắn."],
+    ["Một điểm đáng theo dõi: nhịp độ tài chính giữa năm.", "Gợi ý để chuẩn bị, không phải một kết luận về được hay mất."]
+  ];
+
+  state = { day: "", month: "", year: "", hour: "", cung: null, openFaq: 0, evidenceOpen: true, stamped: {} };
+
+  pad(n) { return n < 10 ? "0" + n : String(n); }
+
+  digits(v, max) { return String(v).replace(/[^0-9]/g, "").slice(0, max); }
+
+  recompute(next) {
+    const d = parseInt(next.day, 10);
+    const m = parseInt(next.month, 10);
+    const y = parseInt(next.year, 10);
+    let cung = null;
+    if (d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 1900) {
+      const h = next.hour === "" ? 0 : parseInt(next.hour, 10) + 1;
+      cung = (d + m * 2 + h * 3 + (y % 12)) % 12;
+    }
+    this.setState(Object.assign({}, next, { cung: cung }));
+  }
+
+  stamp(i) {
+    const s = Object.assign({}, this.state.stamped);
+    s[i] = true;
+    this.setState({ stamped: s });
+    setTimeout(() => {
+      const t = Object.assign({}, this.state.stamped);
+      delete t[i];
+      this.setState({ stamped: t });
+    }, 260);
+  }
+
+  renderVals() {
+    const cx = 500, cy = 500;
+    const mid = (i) => -90 + i * 30 + 15;
+    const pt = (deg, r) => {
+      const a = (deg * Math.PI) / 180;
+      return { x: Math.round(cx + r * Math.cos(a)), y: Math.round(cy + r * Math.sin(a)) };
+    };
+    const spokes = [];
+    for (let i = 0; i < 12; i++) {
+      const deg = -90 + i * 30;
+      const a = pt(deg, 214), b = pt(deg, 430);
+      spokes.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y });
+    }
+    const cungs = this.CUNG.map((label, i) => {
+      const p = pt(mid(i), 372);
+      const n = pt(mid(i), 246);
+      return { label: label, x: p.x, y: p.y + 7, nx: n.x, ny: n.y + 5, num: this.pad(i + 1) };
+    });
+
+    const active = this.state.cung;
+    let wedgePath = "";
+    if (active !== null) {
+      const s = -90 + active * 30, e = s + 30;
+      const o1 = pt(s, 430), o2 = pt(e, 430), i1 = pt(e, 214), i2 = pt(s, 214);
+      wedgePath = "M " + o1.x + " " + o1.y + " A 430 430 0 0 1 " + o2.x + " " + o2.y +
+        " L " + i1.x + " " + i1.y + " A 214 214 0 0 0 " + i2.x + " " + i2.y + " Z";
+    }
+
+    const needleDeg = active === null ? 0 : mid(active) + 90;
+
+    const set = (key, max) => (e) => {
+      const next = Object.assign({}, { day: this.state.day, month: this.state.month, year: this.state.year, hour: this.state.hour });
+      next[key] = this.digits(e.target.value, max);
+      this.recompute(next);
+    };
+
+    return {
+      spokes: spokes,
+      cungs: cungs,
+      needleTransform: "rotate(" + needleDeg + " 572 313)",
+      needleLabel: active === null ? "chờ dữ liệu sinh" : "Cung " + this.CUNG[active],
+      ringMotionStyle: (this.props.ringMotion ?? true) ? { animation: "lsv-spin 220s linear infinite", transformOrigin: "500px 500px" } : {},
+      day: this.state.day,
+      month: this.state.month,
+      year: this.state.year,
+      hour: this.state.hour,
+      onDay: set("day", 2),
+      onMonth: set("month", 2),
+      onYear: set("year", 4),
+      onHour: (e) => this.recompute({ day: this.state.day, month: this.state.month, year: this.state.year, hour: e.target.value }),
+      hours: this.HOURS.map((label, i) => ({ value: String(i), label: label })),
+      insights: this.INSIGHTS.map((it, i) => ({
+        num: this.pad(i + 1),
+        title: it[0],
+        sub: it[1],
+        onSeal: () => this.stamp(i),
+        sealScale: this.state.stamped[i] ? "scale(0.88) rotate(-3deg)" : "scale(1)",
+        sealOpacity: this.state.stamped[i] ? 0.6 : 1
+      })),
+      evidenceOpen: this.props.evidenceOpen ?? this.state.evidenceOpen,
+      toggleEvidence: () => this.setState({ evidenceOpen: !this.state.evidenceOpen }),
+      faqs: this.FAQ.map((it, i) => ({
+        num: this.pad(i + 1),
+        q: it[0],
+        a: it[1],
+        open: this.state.openFaq === i,
+        iconRotate: this.state.openFaq === i ? "rotate(180deg)" : "rotate(0deg)",
+        onToggle: () => this.setState({ openFaq: this.state.openFaq === i ? -1 : i })
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

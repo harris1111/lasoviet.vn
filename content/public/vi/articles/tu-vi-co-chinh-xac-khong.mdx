@@ -1,0 +1,61 @@
+---
+{
+  "version": 1,
+  "routeId": "knowledge.tu-vi.accuracy",
+  "locale": "vi",
+  "contentType": "KnowledgeArticle",
+  "title": "Tử Vi có chính xác không?",
+  "summary": "Đặt câu hỏi về độ chính xác bằng cách phân biệt quy tắc tính toán, diễn giải và giới hạn của nội dung tham khảo.",
+  "intent": "knowledge.tu-vi.accuracy.vi.public",
+  "authorId": "trust-reviewer",
+  "reviewerIds": [
+    "trust-reviewer"
+  ],
+  "sourceIds": [
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure",
+    "epistemic_limits"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.schools",
+    "knowledge.tu-vi.calculation"
+  ],
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
+  "parentRouteId": "knowledge.tu-vi",
+  "figure": {
+    "id": "gate-one-vi-9",
+    "alt": "Sơ đồ kiểm tra Tử Vi có chính xác không?",
+    "caption": "Sơ đồ độc lập cho bài 9, chỉ hiển thị trường và giới hạn đã triển khai."
+  }
+}
+---
+# Tử Vi có chính xác không?
+
+## Bài này giải thích
+
+Bài này giải thích độ chính xác và giới hạn dựa trên ranh giới triển khai đã được version hóa. Độ chính xác không phải một điểm số duy nhất trong triển khai. Repository tách precision đầu vào, rule set, provenance, trạng thái review fixture, warnings và khác biệt phương pháp đã ghi. Nó không thêm diễn giải truyền thống không có trong nguồn repository.
+
+## Ví dụ độc lập
+
+Fixture khác biệt múi giờ giữ IANA provenance nhưng nêu iztro không có đầu vào múi giờ riêng. Đây là limitation cần hiện cùng đầu ra.
+
+## Đặc tả hình
+
+Hình 9: Khung evidence hiển thị precision đầu vào, ruleSetId, provenance múi giờ, warnings và trạng thái review fixture. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.
+
+## Giới hạn
+
+Ứng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.schools), [bài liên quan thứ hai](route:knowledge.tu-vi.calculation).

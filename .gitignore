@@ -1,1 +1,19 @@
 .DS_Store
+.worktrees/
+.superpowers/
+.env
+.env.*
+!.env.example
+node_modules/
+.pnpm-store/
+dist/
+.next/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# local agent/skill tooling (per-machine, not project content)
+.agents/
+.claude/
+skills-lock.json

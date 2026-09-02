@@ -1,0 +1,45 @@
+{
+  "eyebrow": "Lập lá số Tử Vi",
+  "steps": {
+    "label": "Tiến trình lập lá số",
+    "subject": "Người được lập",
+    "birth": "Ngày, giờ sinh",
+    "review": "Kiểm tra & riêng tư"
+  },
+  "subject": {
+    "title": "Lập lá số cho ai?",
+    "copy": "Bạn có thể lập lá số miễn phí và không cần tài khoản.",
+    "self": "Lập cho bản thân"
+  },
+  "birth": {
+    "title": "Ngày và giờ sinh",
+    "copy": "Giờ sinh chính xác giúp xác định cấu trúc lá số.",
+    "date": "Ngày sinh dương lịch",
+    "time": "Giờ sinh",
+    "timezone": "Múi giờ: UTC+7 (Giờ Việt Nam)",
+    "unknown": "Không rõ giờ sinh",
+    "unknownHelp": "Bạn vẫn có thể lưu hồ sơ, nhưng chưa thể tính lá số Tử Vi chính xác.",
+    "hour": "Giờ",
+    "minute": "Phút",
+    "gender": "Giới tính dùng để lập lá số",
+    "genderHelp": "Tử Vi cần thông tin này để xác định chiều vận.",
+    "male": "Nam",
+    "female": "Nữ"
+  },
+  "review": {
+    "title": "Kiểm tra thông tin",
+    "unknown": "Không rõ giờ sinh",
+    "consent": "Tôi đồng ý để Lá Số Việt xử lý thông tin sinh nhằm lập lá số này.",
+    "privacy": "Lá số riêng tư theo mặc định. Dữ liệu tạm thời của khách sẽ hết hạn sau 24 giờ."
+  },
+  "back": "Quay lại",
+  "continue": "Tiếp tục",
+  "submit": "Lập lá số",
+  "submitting": "Đang lập lá số...",
+  "errors": {
+    "profile": "Không thể lưu thông tin sinh. Hãy kiểm tra lại và thử lại.",
+    "gender": "Hãy chọn giới tính dùng để lập lá số.",
+    "timeUnknown": "Cần giờ sinh chính xác để lập lá số Tử Vi. Bạn có thể quay lại bổ sung khi biết giờ sinh.",
+    "calculation": "Chưa thể lập lá số lúc này. Hãy thử lại sau."
+  }
+}

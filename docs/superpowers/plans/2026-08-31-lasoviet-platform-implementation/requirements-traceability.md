@@ -8,11 +8,19 @@
 | PostgreSQL source of truth | 01 | Transaction/outbox integration tests |
 | Redis only for async work | 04 | Failure and replay tests |
 | Better Auth database sessions | 01 | Session and authorization E2E |
-| Email/password + Google | 01 | Verification, reset, OAuth E2E |
+| Email/password + Google | 01 | Verification/reset SMTP delivery, session, and OAuth E2E |
+| Guest chart before registration | 01, 03 | Better Auth anonymous session, ownership, linking, and full-flow E2E |
+| Anonymous 24-hour retention | 01, 03, 06 | Expiry, immediate deletion, transactional linking, and purge tests |
 | Consent and deletion | 01, 06 | State-machine and purge tests |
 | Canonical BirthProfile | 01 | Precision/timezone fixtures |
 | Runtime VI/EN switch | 00, 03 | Key parity and locale E2E |
-| iztro adapter and default rules | 02 | Golden/contract fixtures |
+| Blueprint v1.1 canonical route registry | 00, 03 | YAML/typed-loader parity, registry collision, state, canonical, robots, sitemap index/children, and alternate tests |
+| Paper/Ink/Cinnabar design contract | 00, 03 | Token, contrast, focus, reduced-motion, and responsive UI tests |
+| Gate 1 public trust/product surface | 03, 06 | SSR metadata, structured data, links, indexability, and production smoke |
+| Ten reviewed foundation articles | 03 | Content completeness, source/reviewer, locale, link, and thin-content gates |
+| Knowledge and Zi Wei hubs | 03, 06 | VI/EN content ownership, links, metadata, and production indexability |
+| Privacy-safe canonical analytics funnel | 00, 03 | Ordered config, event schema, and forbidden-property tests |
+| iztro adapter and default rules | 02 | P02-T02 adapter/provenance, PostgreSQL idempotency, authorization, migration, and later golden-fixture tests |
 | Independent Zi Wei validation | 02 | Tianji/trusted-case comparison |
 | Normalized chart contracts | 00, 02 | Schema compatibility tests |
 | Evidence-only claims | 02, 04 | Claim validator tests |
@@ -25,8 +33,8 @@
 | HTML and PDF reports | 04, 05 | Render and download E2E |
 | Garage authoritative storage | 05 | Object lifecycle tests |
 | Optional one-way S3 replica | 05 | Disabled/degraded/recovery tests |
-| Resend SMTP | 05 | Delivery and retry integration tests |
-| Admin/support/audit | 05 | RBAC and audit tests |
+| Founder-provided MXRouting SMTP | 01, 05 | Auth-email and report-delivery protocol, idempotency, and retry tests |
+| Account center and admin/support/audit | 05 | Server authorization, noindex, ownership, RBAC, and audit tests |
 | Loopback random host port | 06 | Compose config assertion |
 | Stable external port persistence | 06 | Selection/reuse/collision tests |
 | Founder-managed Nginx | 06 | Interface checklist, no repo mutation |
@@ -43,6 +51,36 @@
 | Liu Yao Wave 4 | 10 | Replayable casting and cooldown E2E |
 | Compatibility and Feng Shui | 11 | Source-system stability gates |
 | Deferred founder decisions | 07-11 | `open-decisions.md` gate audit |
+
+## P00-T01 Evidence (2026-09-01)
+
+| Scope | Evidence | Boundary |
+|---|---|---|
+| Next.js web/BFF foundation | `@lasoviet/web` App Router composition root with exact Next.js 16.3.4 dependency; typecheck, lint, test, and build passed. | Records workspace foundation only; does not claim SSR, BFF behavior, or E2E coverage. |
+| Private NestJS/Fastify API foundation | `@lasoviet/api` thin NestJS/Fastify composition root with exact approved dependencies; typecheck and build passed. | No health or product endpoint is claimed. |
+| General worker foundation | `@lasoviet/worker` Nest application-context composition root with exact approved dependencies; typecheck and build passed. | No queue behavior or runtime job processing is claimed. |
+
+## P02-T03 Evidence (2026-09-01)
+
+| Requirement | Evidence | Boundary |
+|---|---|---|
+| iztro adapter and default rules | Manifest v1 runs 11 approved P0 fixtures through the real `IztroAdapter`, pins `iztro@2.6.0` and `ziwei.default`, and verifies the late-Zi vendor index boundary. | The approved current-day rule may yield the same normalized chart for early/late Zi; no alternate school is inferred. |
+| Independent Zi Wei validation | Read-only Tianji lunar/early-Zi overlap agrees on Tiger life palace for `1988-01-15`; non-overlapping methods are recorded as not comparable. | Tianji is reference-only; Mingyu is not independent validation. |
+
+## P02-T04 Evidence (2026-09-01)
+
+| Requirement | Evidence | Boundary |
+|---|---|---|
+| Evidence-only claims | Three deterministic Zi Wei identity evidence IDs resolve only to normalized chart facts and attach confidence, limits, risk tags, and action categories. | No generated prose or AI claim is created. |
+| Normalized chart contracts | Unsupported rule sets or missing normalized facts return typed errors and write no evidence set; concurrent duplicate persistence retains one immutable set and three items. | Only `ziwei.default` and `ZIWEI-IDENTITY-P0` are in scope. |
+
+## Phase 02 Correction Evidence (2026-09-01)
+
+| Requirement | Evidence | Boundary |
+|---|---|---|
+| Truthful P0 fixture gate | Eleven fixtures assert normalized life/body/principal-star facts through the real adapter; typed evaluation blocks unexplained mismatches. | Only the trusted lunar early-Zi Tianji overlap is independent; other method gaps are explicit. |
+| Immutable evidence/chart binding | Evidence transactionally parses `ziwei_chart_versions.normalized_output` and returns persisted payloads on reuse. | No caller chart can be linked to another chart version. |
+| Dependency graph evidence | CycloneDX 1.5 BOM has matching `bom-ref` values and an application-to-`iztro` edge; schema validation passed. | No production dependency was added. |
 
 ## Update Protocol
 

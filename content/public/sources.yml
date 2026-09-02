@@ -1,0 +1,64 @@
+{
+  "sources": [
+    {
+      "id": "brand-guideline",
+      "path": "docs/13-brand-experience-guideline.md",
+      "description": "Approved brand scope, transparency, and product-language boundary."
+    },
+    {
+      "id": "blueprint-v1-1",
+      "path": "docs/14-sitemap-seo-wireframes.md",
+      "description": "Approved public route and canonical content scope."
+    },
+    {
+      "id": "phase-one-product-spec",
+      "path": "docs/04-phase-1-product-spec.md",
+      "description": "Approved Phase 1 product scope, user flow, and acceptance boundaries."
+    },
+    {
+      "id": "report-system",
+      "path": "docs/05-report-system.md",
+      "description": "Report structure and bounded interpretation presentation."
+    },
+    {
+      "id": "technical-architecture",
+      "path": "docs/06-technical-architecture.md",
+      "description": "System boundary for calculation, provenance, and explanation."
+    },
+    {
+      "id": "trusted-fixture-sources",
+      "path": "packages/test-fixtures/ziwei/trusted-sources.md",
+      "description": "Reviewed fixture source boundary and incompatibility policy."
+    },
+    {
+      "id": "normalized-chart-contract",
+      "path": "packages/contracts/src/normalized-ziwei-chart-v1.ts",
+      "description": "Strict normalized chart fields, identifiers, and contract invariants."
+    },
+    {
+      "id": "iztro-mapping",
+      "path": "packages/engine-adapters/src/ziwei/iztro-mapping.ts",
+      "description": "Raw iztro field to canonical identifier mapping and recorded warnings."
+    },
+    {
+      "id": "fixture-manifest",
+      "path": "packages/test-fixtures/ziwei/p0-fixtures.json",
+      "description": "Reviewed iztro 2.6.0 and ziwei.default fixture inputs, boundaries, and limitations."
+    },
+    {
+      "id": "identity-evidence-rules",
+      "path": "packages/backend/src/evidence/ziwei-identity-rules.ts",
+      "description": "Implemented P0 evidence keys, moderate confidence, bounds, and allowed actions."
+    },
+    {
+      "id": "iztro-package",
+      "path": "packages/engine-adapters/package.json",
+      "description": "Repository dependency pin for iztro version 2.6.0."
+    },
+    {
+      "id": "source-manifest",
+      "path": "data/source_manifest.md",
+      "description": "Repository source inventory and limits for supplied research data."
+    }
+  ]
+}

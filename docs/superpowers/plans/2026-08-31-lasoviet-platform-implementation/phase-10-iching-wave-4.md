@@ -37,38 +37,53 @@ Playwright.
 - Create: `docs/dependencies/mingyu-liuyao-first-use.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/open-decisions.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+- Test: `tests/evidence/liuyao-method-and-safety.test.ts`
 
 **Interfaces:**
 - Produces the approved casting-method and replay contract.
 - Produces the founder-approved cooldown state machine after OD-004 closes.
 
-- [ ] **Step 1: Inspect exact Mingyu casting capabilities**
+- [ ] **Step 1: Write the failing method-and-safety validator**
+
+Require casting and replay inputs, line encoding, changed-hexagram behavior,
+safety boundaries, cooldown decision status, dependency integrity, license
+evidence, and Terra disposition.
+
+- [ ] **Step 2: Run the focused validator**
+
+Run: `pnpm vitest run tests/evidence/liuyao-method-and-safety.test.ts`
+Expected: FAIL before both evidence records exist.
+
+- [ ] **Step 3: Inspect exact Mingyu casting capabilities**
 
 Record supported manual and seeded methods, line encoding, moving-line
 behavior, changed-hexagram output, calendar/time dependencies, and replay
 inputs.
 
-- [ ] **Step 2: Write the method and safety record**
+- [ ] **Step 4: Write the method and safety record**
 
 Define normalized-question handling, stored replay data, prior-cast history,
 health/legal/financial/crisis boundaries, and the behavior for unavailable
 interpretation services.
 
-- [ ] **Step 3: Complete the Liu Yao first-use gate**
+- [ ] **Step 5: Complete the Liu Yao first-use gate**
 
 Record package integrity, license/SBOM evidence, exact import path, transitive
 runtime tree, reference cases, and replacement boundary.
 
-- [ ] **Step 4: Resolve OD-004**
+- [ ] **Step 6: Resolve OD-004**
 
 Sol presents cooldown options and recommendation to the founder. Record the
 selected duration, normalized-question match rule, user-facing behavior, and
 admin/support exceptions.
 
-- [ ] **Step 5: Obtain Terra review and commit**
+- [ ] **Step 7: Run validation, obtain Terra review, and commit**
+
+Run: `pnpm vitest run tests/evidence/liuyao-method-and-safety.test.ts`
+Expected: PASS before commit.
 
 ```bash
-git add docs/architecture/liuyao-method-and-safety.md docs/dependencies/mingyu-liuyao-first-use.md docs/superpowers/plans
+git add docs/architecture/liuyao-method-and-safety.md docs/dependencies/mingyu-liuyao-first-use.md tests/evidence/liuyao-method-and-safety.test.ts docs/superpowers/plans
 git commit -m "docs: define Liu Yao casting policy"
 ```
 
@@ -140,7 +155,7 @@ git commit -m "feat: add replayable Liu Yao casting"
 - Create: `apps/web/messages/vi/iching.json`
 - Create: `apps/web/messages/en/iching.json`
 - Modify: `packages/backend/src/capabilities/capability.registry.ts`
-- Modify: `apps/web/src/routes/route-registry.ts`
+- Modify: `config/route-registry.yml`
 - Test: `packages/backend/src/iching/cooldown-policy.test.ts`
 - Test: `packages/backend/src/reports/iching-reading-validator.test.ts`
 - Test: `tests/e2e/iching-flow.spec.ts`

@@ -29,6 +29,16 @@ Tên miền chính: `lasoviet.vn`
 - `docs/08-domain-and-infrastructure.md`: vai trò ba tên miền và DNS/Cloudflare.
 - `docs/09-roadmap-and-metrics.md`: roadmap, KPI, analytics và thí nghiệm.
 - `docs/10-decision-log.md`: các quyết định đã chốt, lý do và điều kiện xem xét lại.
+- `docs/11-discipline-expansion-specs.md`: 12 bộ môn chọn build theo batch/engine, đối chiếu coverage workbook.
+- `docs/12-creative-platform-concepts.md`: brainstorm platform sáng tạo (marketing big idea), chưa chốt.
+- `docs/13-brand-experience-guideline.md`: hiến pháp thương hiệu và trải nghiệm — source of truth, v1.0 approved.
+- `docs/14-sitemap-seo-wireframes.md`: sitemap Đông–Tây, SEO architecture, route states, wireframes — source of truth, v1.1 approved through binding decision `FD-019` on 2026-08-31.
+- `docs/15-collaboration-branch-workflow.md`: quy trình branch/merge giữa Harris (Product) và An (Development) — source of truth.
+- `docs/reference/`: tài liệu đầu vào/trình bày (DOCX/PDF guideline, phân tích UX/IA gốc) — không ghi đè các file source of truth ở trên nếu có xung đột.
+- `docs/visualizations/`: HTML visualization sitemap/wireframe để tham khảo kiến trúc, không phải asset frontend production.
+- `AGENT_HANDOFF.md`: context cô đọng cho agent/dev tiếp theo — trạng thái dự án, decision hierarchy, guardrails.
+- `NEXT_AGENT_PROMPT.md`: prompt khởi động sẵn dùng cho agent tiếp theo.
+- `tools/build_brand_guideline.py`: script tạo lại bản DOCX của brand guideline.
 - `config/`: cấu hình JSON để đội dev có thể dùng làm seed/spec.
 - `data/lasoviet_research_master.xlsx`: workbook chứng cứ đã khử trùng.
 - `data/divination_repo_coverage.xlsx`: workbook coverage/spec nguồn do người dùng cung cấp.

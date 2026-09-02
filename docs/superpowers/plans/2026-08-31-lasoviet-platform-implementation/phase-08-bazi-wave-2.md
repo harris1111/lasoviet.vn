@@ -36,37 +36,51 @@ Playwright.
 - Create: `docs/dependencies/mingyu-bazi-first-use.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/dependency-integration-matrix.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+- Test: `tests/evidence/bazi-method-record.test.ts`
 
 **Interfaces:**
 - Produces the approved BaZi method profile consumed by adapter fixtures.
 - Produces an exact list of used and intentionally excluded Mingyu exports.
 
-- [ ] **Step 1: Inspect the exact Mingyu BaZi exports**
+- [ ] **Step 1: Write the failing method-record validator**
+
+Assert required input assumptions, supported/excluded exports, timezone and
+true-solar behavior, output fields, limitations, fixture sources, dependency
+integrity, license evidence, and reviewer disposition.
+
+- [ ] **Step 2: Run the focused validator**
+
+Run: `pnpm vitest run tests/evidence/bazi-method-record.test.ts`
+Expected: FAIL before both evidence records exist.
+
+- [ ] **Step 3: Inspect the exact Mingyu BaZi exports**
 
 Record import paths, accepted calendar/time/location inputs, timezone and
 true-solar behavior, output fields, luck-cycle behavior, warnings, and rule
 limitations.
 
-- [ ] **Step 2: Write the method record**
+- [ ] **Step 4: Write the method record**
 
 Define language-neutral canonical fields, public limitations, excluded
 capabilities, fixture sources, and the adapter replacement boundary.
 
-- [ ] **Step 3: Complete the production first-use gate**
+- [ ] **Step 5: Complete the production first-use gate**
 
 Record the resolved package tree, integrity, package-level license evidence,
 SBOM result, and duplicate calendar/astronomy dependencies in
 `mingyu-bazi-first-use.md`.
 
-- [ ] **Step 4: Obtain Terra method review**
+- [ ] **Step 6: Run the validator and obtain Terra method review**
+
+Run: `pnpm vitest run tests/evidence/bazi-method-record.test.ts`
 
 Expected: no unresolved method ambiguity, production-license blocker, or
 unsupported public claim.
 
-- [ ] **Step 5: Update trackers and commit**
+- [ ] **Step 7: Update trackers and commit**
 
 ```bash
-git add docs/architecture/bazi-method-record.md docs/dependencies/mingyu-bazi-first-use.md docs/superpowers/plans
+git add docs/architecture/bazi-method-record.md docs/dependencies/mingyu-bazi-first-use.md tests/evidence/bazi-method-record.test.ts docs/superpowers/plans
 git commit -m "docs: define BaZi calculation boundary"
 ```
 
@@ -136,7 +150,7 @@ git commit -m "feat: add normalized BaZi calculation"
 - Create: `apps/web/messages/vi/bazi.json`
 - Create: `apps/web/messages/en/bazi.json`
 - Modify: `packages/backend/src/capabilities/capability.registry.ts`
-- Modify: `apps/web/src/routes/route-registry.ts`
+- Modify: `config/route-registry.yml`
 - Test: `packages/backend/src/evidence/bazi-rules.test.ts`
 - Test: `tests/e2e/bazi-free-flow.spec.ts`
 

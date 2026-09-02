@@ -1,0 +1,17 @@
+{
+  "identity": "Bản mệnh và tiềm năng",
+  "paymentDeferred": "SePay sẽ được mở ở bước tiếp theo.",
+  "preview": {
+    "eyebrow": "Xem trước miễn phí",
+    "title": "Ba điểm để tự quan sát",
+    "strength": "Điểm mạnh",
+    "tension": "Điểm căng cần quan sát",
+    "coverage": "Phần xem trước bao quát {percent}% nội dung của {offer}."
+  },
+  "selection": {
+    "eyebrow": "Luận giải chuyên sâu",
+    "title": "Chọn luận giải chuyên sâu",
+    "available": "Chủ đề đang mở",
+    "oneTime": "Thanh toán một lần. Không tự động gia hạn."
+  }
+}
