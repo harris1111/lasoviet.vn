@@ -136,3 +136,30 @@ export type {
   FreeIdentityPreviewError,
   FreeIdentityPreviewInput,
 } from "./reports/free-identity-preview.js";
+export {
+  createAiProductionGate,
+} from "./ai/ai-provider.js";
+export type {
+  AiProvider,
+  AiProviderError,
+  AiProviderErrorCode,
+  AiProductionGate,
+  AiRequestUse,
+  GenerateStructuredRequest,
+} from "./ai/ai-provider.js";
+export { createOpenAiCompatibleAdapter } from "./ai/openai-compatible-adapter.js";
+export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adapter.js";
+export { runAiCapabilityProbe } from "./ai/capability-probe.js";
+export type { AiCapabilityResult } from "./ai/capability-probe.js";
+export { identityReportOutline } from "./reports/identity-report-outline.js";
+export { writeIdentityReportDraft } from "./reports/identity-report-writer.js";
+export type {
+  ApprovedKnowledgePassage,
+  IdentityReportWriterInput,
+} from "./reports/identity-report-writer.js";
+export { validateIdentityReport } from "./reports/report-validator.js";
+export type {
+  ReportValidationFinding,
+  ReportValidationResult,
+} from "./reports/report-validator.js";
+export { critiqueIdentityReport } from "./reports/report-critic.js";
