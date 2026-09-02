@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { IDENTITY_REPORT_SECTION_IDS, type EvidenceSetV1 } from "@lasoviet/contracts";
+import {
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  IDENTITY_REPORT_SECTION_IDS,
+  type EvidenceSetV1,
+} from "@lasoviet/contracts";
 
 import type { AiProvider } from "../ai/ai-provider.js";
 import { writeIdentityReportDraft } from "./identity-report-writer.js";
@@ -33,7 +37,6 @@ describe("identity report writer", () => {
               })),
               reflectionQuestions: ["Bạn coi trọng điều gì?", "Môi trường nào phù hợp?", "Bước nhỏ nào sẽ thử?"],
               summaryActions: ["Thử một bước nhỏ trong tuần này."],
-              professionalAdviceDisclaimer: "Nội dung không thay thế tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc chuyên môn được cấp phép.",
             },
             providerId: "9router-an",
             modelId: "canonical-model",
@@ -68,7 +71,15 @@ describe("identity report writer", () => {
       provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v1", promptVersion: "prompt.v1", templateVersion: "template.v1" },
       provider,
     });
-    expect(result).toMatchObject({ ok: true, value: { report: { provenance: { chartVersionId: "chart-1", modelId: "canonical-model" } } } });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        report: {
+          provenance: { chartVersionId: "chart-1", modelId: "canonical-model" },
+          professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+        },
+      },
+    });
     expect(JSON.stringify(request)).not.toMatch(/chartVersionId|birth|email|order|persist|publish/i);
     expect(JSON.stringify(request)).toContain("soulPalaceId");
   });

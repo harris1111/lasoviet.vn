@@ -13,6 +13,10 @@ describe("frozen identity report facts", () => {
       facts: {
         soulPalaceId: "ziwei.palace.life",
         "palaces.ziwei.palace.life.earthlyBranchId": "ziwei.branch.tiger",
+        transformations: [{
+          starId: "ziwei.star.wuqu",
+          id: "ziwei.transformation.prosperity",
+        }],
       },
     };
 

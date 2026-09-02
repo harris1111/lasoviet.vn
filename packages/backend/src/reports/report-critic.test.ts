@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { IDENTITY_REPORT_SECTION_IDS, type EvidenceSetV1, type IdentityReportV1 } from "@lasoviet/contracts";
+import {
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  IDENTITY_REPORT_SECTION_IDS,
+  type EvidenceSetV1,
+  type IdentityReportV1,
+} from "@lasoviet/contracts";
 import type { AiProvider } from "../ai/ai-provider.js";
 import { critiqueIdentityReport } from "./report-critic.js";
 
@@ -16,7 +21,7 @@ function report(): IdentityReportV1 {
     })),
     reflectionQuestions: ["Bạn coi trọng điều gì?", "Môi trường nào phù hợp?", "Bước nhỏ nào bạn sẽ thử?"],
     summaryActions: ["Thử một bước nhỏ trong tuần này."],
-    professionalAdviceDisclaimer: "Nội dung không thay thế tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc chuyên môn được cấp phép.",
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   };
 }
 

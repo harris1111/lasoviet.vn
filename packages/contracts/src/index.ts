@@ -151,6 +151,7 @@ export type {
 
 export {
   IDENTITY_REPORT_SECTION_IDS,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
 } from "./identity-report-v1.js";

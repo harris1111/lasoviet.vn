@@ -4,6 +4,10 @@ const factReferenceSchema = z.string()
   .regex(/^(?:[A-Za-z][A-Za-z0-9]*)(?:\.[A-Za-z][A-Za-z0-9-]*)*$/);
 const canonicalFactValueSchema = z.string()
   .regex(/^ziwei\.[a-z0-9.-]+$/);
+const transformationFactSchema = z.object({
+  starId: z.string().regex(/^ziwei\.star\.[a-z0-9-]+$/),
+  id: z.string().regex(/^ziwei\.transformation\.[a-z0-9-]+$/),
+}).strict();
 
 export const FrozenIdentityReportFactsV1Schema = z.object({
   version: z.literal(1),
@@ -16,6 +20,7 @@ export const FrozenIdentityReportFactsV1Schema = z.object({
     z.union([
       canonicalFactValueSchema,
       z.array(canonicalFactValueSchema).min(1).max(24),
+      z.array(transformationFactSchema).min(1).max(24),
     ]),
   ).refine((facts) => Object.keys(facts).length > 0, {
     message: "At least one frozen fact is required",

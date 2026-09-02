@@ -152,6 +152,10 @@ export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adap
 export { runAiCapabilityProbe } from "./ai/capability-probe.js";
 export type { AiCapabilityResult } from "./ai/capability-probe.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
+export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
+export type {
+  FrozenIdentityReportFactsError,
+} from "./reports/frozen-identity-report-facts.js";
 export { writeIdentityReportDraft } from "./reports/identity-report-writer.js";
 export type {
   IdentityReportWriterInput,

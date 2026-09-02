@@ -31,11 +31,11 @@ const prohibited = [
   /\b(?:diagnos(?:is|ed)|depression|mental disorder)\b/i,
   /(?:nếu|neu).*(?:không|khong).*(?:mua|buy).*(?:ngay|now)/i,
 ];
+const corruption = /[\u0000-\u001F\u007F]|\uFFFD|(?:Ã.|Â.|â[€™“”–])/u;
 
 function isVietnamese(text: string): boolean {
   const normalized = text.normalize("NFC");
-  return !normalized.includes("\uFFFD") &&
-    !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(normalized) &&
+  return !corruption.test(normalized) &&
     /[àáảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵ]/i.test(normalized);
 }
 

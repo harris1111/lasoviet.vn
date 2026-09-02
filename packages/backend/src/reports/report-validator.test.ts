@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IDENTITY_REPORT_SECTION_IDS,
   type EvidenceSetV1,
   type IdentityReportV1,
@@ -20,7 +21,7 @@ function report(): IdentityReportV1 {
     })),
     reflectionQuestions: ["Bạn đang coi trọng điều gì?", "Môi trường nào phù hợp?", "Bước nhỏ nào bạn sẽ thử?"],
     summaryActions: ["Thử một bước nhỏ trong tuần này."],
-    professionalAdviceDisclaimer: "Nội dung không thay thế tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc chuyên môn được cấp phép.",
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   };
 }
 
@@ -75,6 +76,8 @@ describe("identity report validator", () => {
     ["summary action", (value: IdentityReportV1) => { value.summaryActions[0] = "Nếu không mua ngay bạn sẽ gặp nguy hiểm."; }],
     ["claim limitation", (value: IdentityReportV1) => { value.sections[0].claims[0].limitations[0] = "This limitation is English."; }],
     ["claim action", (value: IdentityReportV1) => { value.sections[0].claims[0].suggestedActions[0].text = "Bạn chắc chắn sẽ phá sản."; }],
+    ["DEL control", (value: IdentityReportV1) => { value.sections[0].narrative = "Bạn\u007F nên quan sát bình tĩnh."; }],
+    ["mojibake", (value: IdentityReportV1) => { value.sections[0].narrative = "Bạn có nội dung mÃ£ hÃ³a bị lỗi."; }],
   ])("validates safety and locale in every rendered %s", (_name, mutate) => {
     const candidate = report();
     mutate(candidate);

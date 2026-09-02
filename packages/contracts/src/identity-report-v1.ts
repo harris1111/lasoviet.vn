@@ -17,6 +17,8 @@ export const IDENTITY_REPORT_SECTION_IDS = [
   "action_summary",
   "limitations_and_disclaimer",
 ] as const;
+export const CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER =
+  "Nội dung này chỉ nhằm mục đích tham khảo và không thay thế tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc tư vấn chuyên môn được cấp phép khác.";
 
 const sectionIdSchema = z.enum(IDENTITY_REPORT_SECTION_IDS);
 
@@ -55,13 +57,6 @@ export const IdentityReportContentV1Schema = z.object({
   sections: z.array(sectionSchema).length(IDENTITY_REPORT_SECTION_IDS.length),
   reflectionQuestions: z.array(z.string().trim().min(1).max(300)).min(3).max(5),
   summaryActions: z.array(z.string().trim().min(1).max(300)).max(5),
-  professionalAdviceDisclaimer: z.string().trim().min(1).max(1_000)
-    .regex(/(?:không thay thế|khong thay the|does not replace)/i)
-    .regex(/(?:y tế|y te|medical)/i)
-    .regex(/(?:sức khỏe tâm thần|suc khoe tam than|mental health)/i)
-    .regex(/(?:pháp lý|phap ly|legal)/i)
-    .regex(/(?:tài chính|tai chinh|financial)/i)
-    .regex(/(?:chuyên môn được cấp phép|chuyen mon duoc cap phep|licensed)/i),
 }).strict().superRefine((report, context) => {
   report.sections.forEach((section, index) => {
     if (section.id !== IDENTITY_REPORT_SECTION_IDS[index]) {
@@ -87,6 +82,7 @@ export const IdentityReportV1Schema = IdentityReportContentV1Schema.extend({
   capabilityId: z.literal("ziwei.identity.p0"),
   locale: z.literal("vi"),
   provenance: provenanceSchema,
+  professionalAdviceDisclaimer: z.literal(CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER),
 }).strict();
 
 export type IdentityReportV1 = z.infer<typeof IdentityReportV1Schema>;

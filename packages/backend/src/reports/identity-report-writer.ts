@@ -1,4 +1,5 @@
 import {
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
 } from "@lasoviet/contracts";
@@ -54,6 +55,7 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
       promptVersion: input.provenance.promptVersion,
       templateVersion: input.provenance.templateVersion,
     },
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
     ...result.value.value,
   });
   if (!assembled.success) {

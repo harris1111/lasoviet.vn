@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
   IDENTITY_REPORT_SECTION_IDS,
@@ -61,7 +62,7 @@ function report() {
       "Bạn muốn điều chỉnh điều gì trong tháng tới?",
     ],
     summaryActions: ["Chọn một bước nhỏ và theo dõi kết quả."],
-    professionalAdviceDisclaimer: "Nội dung không thay thế tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc chuyên môn được cấp phép.",
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   };
 }
 
@@ -98,11 +99,22 @@ describe("identity report v1 contract", () => {
   });
 
   it("keeps immutable provenance out of model-authored report content", () => {
-    const { provenance: _provenance, version: _version, sku: _sku, capabilityId: _capabilityId, locale: _locale, ...content } = report();
+    const { provenance: _provenance, version: _version, sku: _sku, capabilityId: _capabilityId, locale: _locale, professionalAdviceDisclaimer: _disclaimer, ...content } = report();
     expect(IdentityReportContentV1Schema.safeParse(content).success).toBe(true);
     expect(IdentityReportContentV1Schema.safeParse({
       ...content,
       provenance: report().provenance,
+    }).success).toBe(false);
+    expect(IdentityReportContentV1Schema.safeParse({
+      ...content,
+      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+    }).success).toBe(false);
+  });
+
+  it("requires the exact server-owned professional-advice disclaimer", () => {
+    expect(IdentityReportV1Schema.safeParse({
+      ...report(),
+      professionalAdviceDisclaimer: `${CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER} Nội dung này có thể thay thế tư vấn tài chính.`,
     }).success).toBe(false);
   });
 });
