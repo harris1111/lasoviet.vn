@@ -21,7 +21,7 @@ export type AuthClientAdapter = {
 };
 
 function result(response: { data?: unknown; error?: unknown }) {
-  return response.error === undefined
+  return response.error == null
     ? { ok: true as const, deliveryConfirmation: true as const }
     : { ok: false as const };
 }

@@ -77,7 +77,7 @@ describe("current actor resolver", () => {
       anonymousActorId: "anonymous-1",
       sessionId: "session-created",
       requestId: "server-request-id",
-      expiresAt: "2026-09-03T00:00:00.000Z",
+      expiresAt: "2026-09-03T00:00:00.000+00:00",
     });
     expect(subject.getSession).toHaveBeenCalledTimes(1);
     expect(subject.signInAnonymous).toHaveBeenCalledTimes(1);

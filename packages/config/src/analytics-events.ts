@@ -1,7 +1,23 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { AnalyticsEventV1Schema as BaseAnalyticsEventV1Schema } from "@lasoviet/contracts";
 import { z } from "zod";
 
-import rawAnalyticsConfig from "../../../config/analytics-events.json" with { type: "json" };
+function runtimeConfigFile(name: string): string {
+  const workingDirectoryFile = resolve(process.cwd(), "config", name);
+  if (existsSync(workingDirectoryFile)) {
+    return workingDirectoryFile;
+  }
+  return resolve(process.cwd(), "..", "..", "config", name);
+}
+
+const rawAnalyticsConfig = JSON.parse(
+  readFileSync(runtimeConfigFile("analytics-events.json"), "utf8"),
+) as {
+  canonical_funnel: string[];
+  events: Array<{ name: string; properties: string[] }>;
+};
 
 export const analyticsConfig = rawAnalyticsConfig;
 export const canonicalFunnel = [...rawAnalyticsConfig.canonical_funnel] as const;

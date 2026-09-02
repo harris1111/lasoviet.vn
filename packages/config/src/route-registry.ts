@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -167,7 +167,10 @@ export function validateRouteRegistry(
 }
 
 function readRegistrySource(): string {
-  const sourcePath = resolve(
+  const workingDirectoryPath = resolve(process.cwd(), "config", "route-registry.yml");
+  const sourcePath = existsSync(workingDirectoryPath)
+    ? workingDirectoryPath
+    : resolve(
     dirname(fileURLToPath(import.meta.url)),
     "..",
     "..",

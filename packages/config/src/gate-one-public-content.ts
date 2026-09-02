@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 import { PublicContentV1Schema, type RouteDefinitionV1 } from "@lasoviet/contracts";
 import { z } from "zod";
 
-import rawMetadata from "../../../config/public-content.json" with { type: "json" };
 import { assertPublicContentLocale, type ContentLocale } from "./public-content-locale.js";
 import { routeRegistry } from "./route-registry.js";
 
@@ -86,6 +85,21 @@ export type GateOnePublicContent = {
 
 const unsafeCopy = /todo|tbd|placeholder|lorem ipsum|guaranteed|certified expert|limited time|countdown|testimonial|customer review|99%\s*accurate|fear|urgent|khan cap|chuyen gia duoc chung nhan|cam ket ket qua|dam bao ket qua|bao dam ket qua|loi chung thuc khach hang|danh gia khach hang|phan hoi khach hang/iu;
 const routeLink = /\]\(route:([a-z0-9.-]+)\)/g;
+
+function runtimeConfigFile(name: string): string {
+  const workingDirectoryFile = resolve(process.cwd(), "config", name);
+  if (existsSync(workingDirectoryFile)) {
+    return workingDirectoryFile;
+  }
+  return resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "..",
+    "config",
+    name,
+  );
+}
 
 function invalid(message: string): never {
   throw new Error(`PUBLIC_CONTENT_INVALID: ${message}`);
@@ -253,7 +267,11 @@ function validateDocument(
 
 export function validateGateOnePublicContent(content: Omit<GateOnePublicContent, "get">): GateOnePublicContent {
   const routeById = new Map(routeRegistry.map((route) => [route.id, route]));
-  const metadata = parse(z.array(PublicContentV1Schema), rawMetadata, "invalid metadata");
+  const metadata = parse(
+    z.array(PublicContentV1Schema),
+    readJson(runtimeConfigFile("public-content.json")),
+    "invalid metadata",
+  );
   const metadataByKey = new Map(metadata.map((record) => [key(record.routeId, record.locale), record]));
   const documents = content.documents.map((document) => ({
     ...document,

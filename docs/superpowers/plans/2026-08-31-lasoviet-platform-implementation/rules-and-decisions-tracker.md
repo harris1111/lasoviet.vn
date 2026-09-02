@@ -223,6 +223,24 @@ Date: 2026-09-02
 - Rule candidates were evaluated above; neither meets the durable-rule
   threshold. Open questions: none.
 
+## Task 5 Founder-Run MVP Packaging Checkpoint
+
+Date: 2026-09-02
+
+- Added production-like Docker images and Compose topology for web, API,
+  worker, one-shot migrations, PostgreSQL, and Redis. Only web binds to a
+  configurable loopback host port; service data persists in named volumes.
+- Added focused Compose and host-port invariants, a deployment runbook, and a
+  real-stack smoke path. Images run as non-root, app services restart unless
+  stopped, and Docker logs are capped.
+- The live stack completed migrations and sent the authorized registration
+  email. The browser flow persisted a birth profile but could not start Zi Wei
+  calculation because the form supplies no gender while the engine requires
+  an explicit male or female value.
+- No durable AGENTS.md rule was added: the gap is a product-input decision,
+  not a reusable engineering invariant. Open question: approve a gender input
+  and its UX before claiming the full chart/evidence/free-preview flow green.
+
 ## P01-T02 Evidence
 
 Date: 2026-09-01

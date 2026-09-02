@@ -1,0 +1,111 @@
+name: lasoviet-mvp
+
+x-json-logs: &json-logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-runtime-env: &runtime-env
+  env_file:
+    - ${DEPLOY_ENV_FILE:?Set DEPLOY_ENV_FILE in the external deploy env}
+
+services:
+  postgres:
+    image: postgres:17.8-bookworm
+    restart: unless-stopped
+    <<: *runtime-env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    logging: *json-logs
+
+  redis:
+    image: redis:8.4.0-bookworm
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    logging: *json-logs
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: "no"
+    <<: *runtime-env
+    command: ["node", "node_modules/@lasoviet/database/dist/migrate-cli.js"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *json-logs
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    <<: *runtime-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3001/health/ready').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    logging: *json-logs
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: unless-stopped
+    <<: *runtime-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    logging: *json-logs
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_AUTH_URL: ${BETTER_AUTH_URL}/api/auth
+    restart: unless-stopped
+    <<: *runtime-env
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/health/ready').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    logging: *json-logs
+
+volumes:
+  postgres_data:
+  redis_data:

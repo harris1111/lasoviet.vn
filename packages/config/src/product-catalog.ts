@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import rawProductCatalog from "../../../config/product-catalog.json" with { type: "json" };
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const productSchema = z.object({
   sku: z.string().regex(/^ZIWEI-[A-Z]+-P0$/),
@@ -57,4 +58,14 @@ export function validateProductCatalog(source: unknown): ProductCatalog {
   };
 }
 
-export const productCatalog = validateProductCatalog(rawProductCatalog);
+function runtimeConfigFile(name: string): string {
+  const workingDirectoryFile = resolve(process.cwd(), "config", name);
+  if (existsSync(workingDirectoryFile)) {
+    return workingDirectoryFile;
+  }
+  return resolve(process.cwd(), "..", "..", "config", name);
+}
+
+export const productCatalog = validateProductCatalog(
+  JSON.parse(readFileSync(runtimeConfigFile("product-catalog.json"), "utf8")),
+);

@@ -88,7 +88,7 @@ async function liveAnonymousActor(
     anonymousActorId: input.anonymousActorId,
     sessionId: live.sessionId,
     requestId: "",
-    expiresAt: live.expiresAt.toISOString(),
+    expiresAt: live.expiresAt.toISOString().replace("Z", "+00:00"),
   };
 }
 

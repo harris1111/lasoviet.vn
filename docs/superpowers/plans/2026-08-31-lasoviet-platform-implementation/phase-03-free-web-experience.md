@@ -508,6 +508,18 @@ git commit -m "feat: publish Gate 1 public content"
   P03-T06 non-visual content is complete; Phase 03 remains partial until the
   dedicated UI artifact branch delivers the visual surface.
 
+#### Task 5 Founder-Run Stack Checkpoint (2026-09-02)
+
+- A real Docker Compose stack now provides the web, API, worker, migration,
+  PostgreSQL, and Redis runtime behind a loopback-only web port.
+- Registration email delivery and birth-profile persistence were verified
+  against the running stack. The full free calculation path remains blocked:
+  the current birth-profile input omits gender, and the Zi Wei engine rejects
+  calculations without an explicit male or female value.
+- This is intentionally not defaulted or inferred. A founder-approved gender
+  input decision is required before chart, evidence, and free-preview browser
+  acceptance can pass.
+
 ## Phase Exit Criteria
 
 - VI and EN funnels are complete.
