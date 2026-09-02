@@ -292,6 +292,11 @@ rule instead of adding another version.
   traversing, symlink-escaping, or otherwise resolve outside the canonical
   repository root. A failed boundary check blocks publication and returns to
   Terra for correction before milestone review.
+- Production web typography must not depend on runtime remote CSS imports.
+  Bundle or self-host required fonts, explicitly include Vietnamese glyph
+  coverage for every font role used by localized UI, and gate release with
+  built-app browser evidence that each role resolves to a loaded font face.
+  Missing or fallback-only font faces block release and return to Terra.
 - Never commit secrets, credentials, private reports, or unnecessary personal
   data.
 - Do not run destructive filesystem or Git operations without explicit founder

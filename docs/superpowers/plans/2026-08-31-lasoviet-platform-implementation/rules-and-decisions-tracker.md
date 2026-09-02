@@ -284,3 +284,20 @@ Date: 2026-09-01
   retain anonymous expiry, and reject browser-provided ownership fields.
 - Focused birth-profile and migration verification passed. No external side
   effect occurred. Rule candidate: none.
+
+## MVP Vietnamese Typography Correction
+
+Date: 2026-09-02
+
+- Live production diagnostics confirmed that the remote Google Fonts CSS import
+  produced no registered font faces or font resources, so Vietnamese UI and
+  display text rendered through system and Georgia fallbacks.
+- Replaced the runtime import with Next.js-bundled Be Vietnam Pro, Source Serif
+  4, and JetBrains Mono faces with Vietnamese subsets and role-specific CSS
+  variables.
+- The focused typography regression failed against the previous Compose image,
+  then passed after rebuilding only the web service. Fresh web typecheck and
+  production build also passed.
+- Sol xhigh review found zero Critical or Important issues and marked the fix
+  ready. The production typography rule was added to `AGENTS.md`. Open
+  questions: none.

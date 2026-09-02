@@ -14,8 +14,9 @@
   --pearl-600: #6e6656;
   --gold-gradient: linear-gradient(103deg, var(--gold-700), var(--gold-400) 34%, var(--gold-500) 58%, var(--gold-600));
 
-  --font-display: "Source Serif 4", Georgia, serif;
-  --font-ui: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-display: var(--font-source-serif-4), Georgia, serif;
+  --font-ui: var(--font-be-vietnam-pro), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --font-body: var(--font-ui);
 
   --space-1: 4px;
