@@ -12,3 +12,8 @@ coverage/
 playwright-report/
 test-results/
 *.tsbuildinfo
+
+# local agent/skill tooling (per-machine, not project content)
+.agents/
+.claude/
+skills-lock.json

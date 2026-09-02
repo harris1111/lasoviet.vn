@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--surface-deep);color:var(--text-body);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
+    .lsv-bg-texture{background-color:var(--surface-deep);background-image:linear-gradient(rgba(15,13,10,0.94),rgba(15,13,10,0.94)),url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp');background-repeat:repeat;}
+    a{color:var(--accent-gold);}
+    a:hover{color:var(--gold-400);}
+    *:focus-visible{outline:2px solid var(--gold-400);outline-offset:2px;}
+    @keyframes lsvFadeIn{from{opacity:0;}to{opacity:1;}}
+    @keyframes lsvSlideDown{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+    @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;}}
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="min-height:100vh;display:flex;flex-direction:column;">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline);">
+    <div style="max-width:1200px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span style="font-family:var(--font-display);font-size:20px;color:var(--text-heading);">Lá Số Việt</span>
+        <span style="width:1px;height:16px;background:var(--border-hairline);"></span>
+        <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);">Lá số riêng tư · /la-so/9f3ck1x82jz</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <sc-if value="{{saved}}" hint-placeholder-val="{{false}}">
+          <span style="display:inline-flex;align-items:center;gap:8px;padding:0 14px;height:36px;border:1px solid var(--border-hairline);border-radius:var(--radius-pill);font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;color:var(--text-body);">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="check" size="16" color="var(--accent-gold)" hint-size="16px,16px"></x-import>
+            Đã lưu
+          </span>
+        </sc-if>
+        <sc-if value="{{!saved}}" hint-placeholder-val="{{true}}">
+          <span style="display:inline-flex;align-items:center;gap:8px;padding:0 14px;height:36px;border:1px solid var(--border-hairline);border-radius:var(--radius-pill);font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;color:var(--text-muted);">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="clock" size="16" color="var(--text-muted)" hint-size="16px,16px"></x-import>
+            Chưa lưu — sẽ mất khi đóng tab
+          </span>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{toggleSaved}}" hint-size="auto,44px">Lưu lá số</x-import>
+        </sc-if>
+        <div style="position:relative;">
+          <button type="button" aria-label="Chia sẻ lá số" onClick="{{toggleShare}}" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:none;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);cursor:pointer;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="share" size="18" color="var(--text-body)" hint-size="18px,18px"></x-import>
+          </button>
+          <sc-if value="{{shareOpen}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;top:52px;right:0;width:280px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px;box-shadow:0 24px 60px rgba(0,0,0,0.55);animation:lsvSlideDown 160ms ease;z-index:50;">
+              <p style="margin:0 0 14px;font-size:13.5px;color:var(--text-muted);">Chia sẻ liên kết xem lá số này.</p>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-body);cursor:pointer;margin-bottom:16px;">
+                <input type="checkbox" checked="{{shareHidePII}}" onChange="{{toggleShareHidePII}}" style="width:18px;height:18px;accent-color:var(--gold-500);">
+                Ẩn thông tin cá nhân khi chia sẻ
+              </label>
+              <button type="button" onClick="{{copyLink}}" style="display:inline-flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 14px;background:none;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-body);font-size:14px;cursor:pointer;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="link" size="16" color="var(--accent-gold)" hint-size="16px,16px"></x-import>
+                Sao chép liên kết
+              </button>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex:1;">
+    <div style="max-width:1200px;margin:0 auto;padding:32px 32px 0;">
+      <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:28px 32px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;">
+        <div style="display:flex;gap:16px;align-items:flex-start;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user-circle" size="32" color="var(--accent-gold)" hint-size="32px,32px"></x-import>
+          <div>
+            <h1 style="margin:0;font-family:var(--font-display);font-size:26px;font-weight:400;color:var(--text-heading);">{{personName}}</h1>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-top:10px;font-family:var(--font-mono);font-size:13px;color:var(--text-muted);">
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="calendar-day" size="16" color="var(--text-muted)" hint-size="16px,16px"></x-import>
+                {{birthDateStr}}
+              </span>
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="clock" size="16" color="var(--text-muted)" hint-size="16px,16px"></x-import>
+                <sc-if value="{{timeKnown}}" hint-placeholder-val="{{false}}">Giờ sinh {{birthTime}}</sc-if>
+                <sc-if value="{{!timeKnown}}" hint-placeholder-val="{{true}}">Giờ sinh chưa rõ</sc-if>
+              </span>
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="map-pin" size="16" color="var(--text-muted)" hint-size="16px,16px"></x-import>
+                {{birthPlace}}
+              </span>
+            </div>
+            <sc-if value="{{uncertain}}" hint-placeholder-val="{{false}}">
+              <div style="margin-top:14px;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid var(--accent-seal);border-radius:var(--radius-pill);">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="help-circle" size="15" color="var(--accent-seal)" hint-size="15px,15px"></x-import>
+                <span style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.06em;color:var(--pearl-200);">Độ không chắc chắn: thiếu giờ sinh — một số nhận định có thể ít chính xác hơn</span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{openEdit}}" hint-size="auto,44px">
+          <span style="display:inline-flex;align-items:center;gap:8px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="pencil" size="15" color="var(--text-body)" hint-size="15px,15px"></x-import>
+            Sửa dữ liệu
+          </span>
+        </x-import>
+      </div>
+    </div>
+
+    <div style="max-width:1200px;margin:0 auto;padding:40px 32px 0;">
+      <sc-if value="{{isMobile}}" hint-placeholder-val="{{false}}">
+        <div role="tablist" aria-label="Chế độ xem" style="display:inline-flex;padding:4px;background:var(--lacquer-700);border-radius:var(--radius-pill);margin-bottom:24px;">
+          <button type="button" role="tab" aria-selected="{{isTabNarrative}}" onClick="{{goToNarrativeTab}}" style="min-height:40px;padding:0 20px;border-radius:var(--radius-pill);border:none;background:none;font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;color:var(--text-body);">Tóm tắt</button>
+          <button type="button" role="tab" aria-selected="{{isTabChart}}" onClick="{{goToChartTab}}" style="min-height:40px;padding:0 20px;border-radius:var(--radius-pill);border:none;background:none;font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;color:var(--text-body);">Lá số</button>
+        </div>
+      </sc-if>
+
+      <div id="rail-anchor"></div>
+      <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:32px;align-items:start;">
+
+        <nav aria-label="Mục lục" style="display:{{isMobile ? 'none' : 'block'}};">
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px;">Mục lục</div>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;">
+            <li><a href="#la-so" style="font-size:14px;text-decoration:none;">Lá số 12 cung</a></li>
+            <li><a href="#noi-bat" style="font-size:14px;text-decoration:none;">Ba điểm nổi bật</a></li>
+            <li><a href="#the-manh" style="font-size:14px;text-decoration:none;">Thế mạnh nổi bật</a></li>
+            <li><a href="#can-chu-y" style="font-size:14px;text-decoration:none;">Điểm cần chú ý</a></li>
+            <li><a href="#luan-giai-sau" style="font-size:14px;text-decoration:none;">Luận giải đầy đủ</a></li>
+          </ul>
+        </nav>
+
+        <section id="la-so" style="display:{{isMobile ? (isTabChart ? 'block' : 'none') : 'block'}};">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <h2 style="margin:0;font-family:var(--font-display);font-size:24px;font-weight:400;color:var(--text-heading);">Lá số 12 cung</h2>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button type="button" aria-pressed="{{isViewDiagram}}" onClick="{{setViewDiagram}}" style="min-height:36px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--border-hairline);background:{{isViewDiagram ? 'var(--lacquer-700)' : 'none'}};color:var(--text-body);font-size:13px;cursor:pointer;">Sơ đồ</button>
+              <button type="button" aria-pressed="{{isViewList}}" onClick="{{setViewList}}" style="min-height:36px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--border-hairline);background:{{isViewList ? 'var(--lacquer-700)' : 'none'}};color:var(--text-body);font-size:13px;cursor:pointer;">Danh sách</button>
+            </div>
+          </div>
+
+          <sc-if value="{{isViewDiagram}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <button type="button" aria-label="Thu nhỏ" onClick="{{zoomOut}}" style="width:36px;height:36px;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);background:none;color:var(--text-body);font-size:16px;cursor:pointer;">−</button>
+              <button type="button" aria-label="Phóng to" onClick="{{zoomIn}}" style="width:36px;height:36px;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);background:none;color:var(--text-body);font-size:16px;cursor:pointer;">+</button>
+              <button type="button" onClick="{{zoomReset}}" style="min-height:36px;padding:0 12px;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);background:none;color:var(--text-muted);font-size:13px;cursor:pointer;">Đặt lại</button>
+            </div>
+            <div style="width:100%;max-width:480px;aspect-ratio:1;overflow:auto;border:1px solid var(--border-hairline);border-radius:var(--radius-md);background:var(--surface-panel);touch-action:pan-x pan-y;">
+              <div style="{{chartScaleStyle}}display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:2px;background:var(--lacquer-line);">
+                <sc-for list="{{palaces}}" as="p" hint-placeholder-count="12">
+                  <button type="button" aria-pressed="{{p.selected}}" aria-label="Cung {{p.name}}, sao {{p.star}}" onClick="{{p.onSelect}}"
+                    style="grid-column:{{p.col}};grid-row:{{p.row}};position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:6px 8px;background:var(--surface-panel);border:{{p.borderStyle}};color:var(--text-body);text-align:left;cursor:pointer;font-family:var(--font-ui);min-height:44px;">
+                    <span style="font-family:var(--font-display);font-size:13px;color:var(--text-heading);">{{p.name}}</span>
+                    <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--text-faint);">{{p.star}}</span>
+                    <sc-if value="{{p.highlighted}}" hint-placeholder-val="{{false}}">
+                      <span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:8.5px;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent-gold);">● {{p.tagLabel}}</span>
+                    </sc-if>
+                  </button>
+                </sc-for>
+                <div style="grid-column:2 / 4;grid-row:2 / 4;background:var(--surface-deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px;text-align:center;">
+                  <span style="font-family:var(--font-display);font-size:15px;color:var(--text-heading);">{{personName}}</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);">Mệnh: Kim · Cục: Thủy Nhị Cục</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-faint);">{{birthDateStr}}</span>
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{hasSelection}}" hint-placeholder-val="{{false}}">
+              <div style="margin-top:16px;padding:16px 20px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);max-width:480px;">
+                <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);">Cung {{selectedInfo.name}}</div>
+                <div style="margin-top:6px;font-family:var(--font-display);font-size:16px;color:var(--text-heading);">Chính tinh: {{selectedInfo.star}}</div>
+              </div>
+            </sc-if>
+            <p style="margin-top:12px;font-size:13px;color:var(--text-faint);max-width:480px;">Lá số không chỉ dùng màu để đánh dấu — mỗi cung liên quan luôn có nhãn chữ đi kèm. Xem <a href="#" onClick="{{setViewList}}" style="text-decoration:underline;">dạng danh sách</a> nếu cần đọc bằng trình đọc màn hình.</p>
+          </sc-if>
+
+          <sc-if value="{{isViewList}}" hint-placeholder-val="{{false}}">
+            <table style="width:100%;max-width:640px;border-collapse:collapse;font-size:14px;">
+              <caption style="text-align:left;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;">Danh sách 12 cung trong lá số</caption>
+              <thead>
+                <tr>
+                  <th scope="col" style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-hairline);color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;">Cung</th>
+                  <th scope="col" style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-hairline);color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;">Chính tinh</th>
+                  <th scope="col" style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-hairline);color:var(--text-muted);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;">Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{palaces}}" as="p" hint-placeholder-count="12">
+                  <tr>
+                    <td style="padding:10px 12px;border-bottom:1px solid var(--border-hairline);color:var(--text-heading);font-family:var(--font-display);">{{p.name}}</td>
+                    <td style="padding:10px 12px;border-bottom:1px solid var(--border-hairline);color:var(--text-body);">{{p.star}}</td>
+                    <td style="padding:10px 12px;border-bottom:1px solid var(--border-hairline);color:var(--accent-gold);font-size:12.5px;">{{p.tagLabel}}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </sc-if>
+        </section>
+
+        <aside id="noi-bat" style="display:{{isMobile ? (isTabNarrative ? 'block' : 'none') : 'block'}};">
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px;">Ba điểm nổi bật</div>
+          <sc-if value="{{isMobile}}" hint-placeholder-val="{{false}}">
+            <p style="margin:0 0 20px;font-family:var(--font-display);font-size:17px;line-height:1.5;color:var(--text-body);font-style:italic;">Tóm tắt ba xu hướng rõ nhất từ lá số của bạn — mỗi nhận định đều có thể xem lý do đi kèm.</p>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <sc-for list="{{highlights}}" as="h" hint-placeholder-count="3">
+              <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px 22px;">
+                <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);">Điểm {{h.num}}</div>
+                <p style="margin:10px 0 0;font-family:var(--font-display);font-size:17px;line-height:1.45;color:var(--text-heading);">{{h.claim}}</p>
+                <p style="margin:10px 0 0;font-size:13.5px;line-height:1.6;color:var(--text-muted);">{{h.condition}}</p>
+                <p style="margin:8px 0 0;font-size:13.5px;line-height:1.6;color:var(--text-muted);">{{h.observable}}</p>
+                <button type="button" id="{{h.btnId}}" onClick="{{h.onExplain}}" style="margin-top:14px;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 8px 0 0;background:none;border:none;color:var(--text-body);font-size:13.5px;cursor:pointer;text-align:left;">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Seal" size="20" stamped="{{h.open}}" hint-size="20px,20px"></x-import>
+                  Vì sao có nhận định này?
+                </button>
+                <sc-if value="{{h.open}}" hint-placeholder-val="{{false}}">
+                  <dl style="margin:16px 0 0;padding:16px 0 0;border-top:1px solid var(--border-hairline);display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.4fr);animation:lsvFadeIn 160ms ease;">
+                    <sc-for list="{{h.rows}}" as="row" hint-placeholder-count="7">
+                      <dt style="padding:10px 16px 10px 0;border-bottom:{{row.borderBottom}};font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);">{{row.label}}</dt>
+                      <dd style="margin:0;padding:10px 0;border-bottom:{{row.borderBottom}};font-size:13px;line-height:1.6;color:var(--text-body);">{{row.value}}</dd>
+                    </sc-for>
+                  </dl>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div style="max-width:1200px;margin:0 auto;padding:64px 32px 0;">
+      <div id="the-manh" style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:36px 40px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="compass" size="20" color="var(--accent-gold)" hint-size="20px,20px"></x-import>
+          <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);">Thế mạnh nổi bật</span>
+        </div>
+        <p style="margin:0;max-width:720px;font-family:var(--font-display);font-size:23px;line-height:1.45;color:var(--text-heading);">{{strength.claim}}</p>
+        <p style="margin:16px 0 0;max-width:680px;font-size:15px;line-height:1.65;color:var(--text-body);">{{strength.condition}}</p>
+        <p style="margin:10px 0 0;max-width:680px;font-size:15px;line-height:1.65;color:var(--text-muted);">{{strength.observable}}</p>
+        <button type="button" id="{{strength.btnId}}" onClick="{{strength.onExplain}}" style="margin-top:20px;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 8px 0 0;background:none;border:none;color:var(--text-body);font-size:14px;cursor:pointer;text-align:left;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Seal" size="22" stamped="{{strength.open}}" hint-size="22px,22px"></x-import>
+          Vì sao có nhận định này?
+        </button>
+        <sc-if value="{{strength.open}}" hint-placeholder-val="{{false}}">
+          <div style="margin-top:16px;">
+            <span style="display:inline-flex;align-items:center;padding:5px 12px;border:1px solid var(--border-hairline);border-radius:var(--radius-pill);font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-body);">Tin cậy: {{strength.confidence}}</span>
+          </div>
+          <dl style="margin:20px 0 0;padding:20px 0 0;border-top:1px solid var(--border-hairline);display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.3fr);animation:lsvFadeIn 160ms ease;">
+            <sc-for list="{{strength.rows}}" as="row" hint-placeholder-count="7">
+              <dt style="padding:12px 20px 12px 0;border-bottom:{{row.borderBottom}};font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);">{{row.label}}</dt>
+              <dd style="margin:0;padding:12px 0;border-bottom:{{row.borderBottom}};font-size:14.5px;line-height:1.6;color:var(--text-body);">{{row.value}}</dd>
+            </sc-for>
+          </dl>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="max-width:1200px;margin:0 auto;padding:32px 32px 0;">
+      <div id="can-chu-y" style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:36px 40px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="scroll" size="20" color="var(--accent-gold)" hint-size="20px,20px"></x-import>
+          <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);">Điểm cần chú ý</span>
+        </div>
+        <p style="margin:0;max-width:720px;font-family:var(--font-display);font-size:23px;line-height:1.45;color:var(--text-heading);">{{tension.claim}}</p>
+        <p style="margin:16px 0 0;max-width:680px;font-size:15px;line-height:1.65;color:var(--text-body);">{{tension.condition}}</p>
+        <p style="margin:10px 0 0;max-width:680px;font-size:15px;line-height:1.65;color:var(--text-muted);">{{tension.observable}}</p>
+        <button type="button" id="{{tension.btnId}}" onClick="{{tension.onExplain}}" style="margin-top:20px;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 8px 0 0;background:none;border:none;color:var(--text-body);font-size:14px;cursor:pointer;text-align:left;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Seal" size="22" stamped="{{tension.open}}" hint-size="22px,22px"></x-import>
+          Vì sao có nhận định này?
+        </button>
+        <sc-if value="{{tension.open}}" hint-placeholder-val="{{false}}">
+          <div style="margin-top:16px;">
+            <span style="display:inline-flex;align-items:center;padding:5px 12px;border:1px solid var(--border-hairline);border-radius:var(--radius-pill);font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-body);">Tin cậy: {{tension.confidence}}</span>
+          </div>
+          <dl style="margin:20px 0 0;padding:20px 0 0;border-top:1px solid var(--border-hairline);display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.3fr);animation:lsvFadeIn 160ms ease;">
+            <sc-for list="{{tension.rows}}" as="row" hint-placeholder-count="7">
+              <dt style="padding:12px 20px 12px 0;border-bottom:{{row.borderBottom}};font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);">{{row.label}}</dt>
+              <dd style="margin:0;padding:12px 0;border-bottom:{{row.borderBottom}};font-size:14.5px;line-height:1.6;color:var(--text-body);">{{row.value}}</dd>
+            </sc-for>
+          </dl>
+        </sc-if>
+      </div>
+    </div>
+
+    <div id="luan-giai-sau" style="max-width:1200px;margin:0 auto;padding:80px 32px;">
+      <div style="max-width:720px;">
+        <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);">Muốn hiểu sâu hơn?</span>
+        <h2 style="margin:12px 0 0;font-family:var(--font-display);font-size:30px;font-weight:400;background:var(--gradient-gold);-webkit-background-clip:text;background-clip:text;color:transparent;">Báo cáo luận giải đầy đủ</h2>
+        <p style="margin:14px 0 0;font-size:15.5px;line-height:1.7;color:var(--text-body);">Bốn điểm bạn vừa xem là một phần nhỏ trong lá số. Báo cáo đầy đủ đối chiếu toàn bộ 12 cung, các sao phụ và chu kỳ theo từng giai đoạn, cùng cách đọc chi tiết cho từng nhận định.</p>
+      </div>
+      <div style="margin-top:28px;padding:28px 0;border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline);display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);">Luận giải Tử Vi đầy đủ</span>
+        <span style="flex:1;min-width:40px;height:1px;border-bottom:1px dotted var(--border-hairline);"></span>
+        <span style="font-family:var(--font-mono);font-size:20px;color:var(--gold-400);">299.000đ</span>
+      </div>
+      <div style="margin-top:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" hint-size="auto,44px">Xem báo cáo đầy đủ</x-import>
+        <a href="#" style="font-size:14px;">Xem báo cáo mẫu</a>
+        <span style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint);">Thanh toán một lần · Không tự động gia hạn</span>
+      </div>
+    </div>
+
+    <div style="max-width:1200px;margin:0 auto;padding:0 32px 80px;">
+      <div style="max-width:720px;padding:24px 28px;border:1px solid var(--border-hairline);border-radius:var(--radius-md);display:flex;gap:16px;align-items:flex-start;">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="20" color="var(--text-muted)" hint-size="20px,20px"></x-import>
+        <p style="margin:0;font-size:13px;line-height:1.7;color:var(--text-muted);">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);">
+    <div style="max-width:1200px;margin:0 auto;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <span style="font-family:var(--font-display);font-size:16px;color:var(--text-muted);">Lá Số Việt</span>
+      <span style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint);">Trang riêng tư — không lập chỉ mục công khai</span>
+      <a href="/" style="font-size:13px;">Về trang chủ</a>
+    </div>
+  </footer>
+
+  <sc-if value="{{editOpen}}" hint-placeholder-val="{{false}}">
+    <div role="dialog" aria-modal="true" aria-label="Sửa dữ liệu sinh" onKeyDown="{{closeEdit}}" style="position:fixed;inset:0;background:rgba(15,13,10,0.72);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px;animation:lsvFadeIn 160ms ease;">
+      <div style="width:100%;max-width:440px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:32px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <h2 style="margin:0;font-family:var(--font-display);font-size:20px;color:var(--text-heading);">Sửa dữ liệu sinh</h2>
+          <button type="button" aria-label="Đóng" onClick="{{closeEdit}}" style="width:36px;height:36px;background:none;border:none;color:var(--text-muted);cursor:pointer;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="close" size="18" color="var(--text-muted)" hint-size="18px,18px"></x-import>
+          </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-muted);">
+            Họ tên
+            <input type="text" value="{{draft.name}}" onChange="{{updateName}}" style="min-height:44px;padding:0 12px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-size:15px;">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-muted);">
+            Ngày sinh
+            <input type="text" value="{{draft.date}}" onChange="{{updateDate}}" style="min-height:44px;padding:0 12px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-size:15px;">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-muted);">
+            Nơi sinh
+            <input type="text" value="{{draft.place}}" onChange="{{updatePlace}}" style="min-height:44px;padding:0 12px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-size:15px;">
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-body);cursor:pointer;">
+            <input type="checkbox" checked="{{draft.timeKnown}}" onChange="{{updateTimeKnown}}" style="width:18px;height:18px;accent-color:var(--gold-500);">
+            Tôi biết giờ sinh
+          </label>
+          <sc-if value="{{draft.timeKnown}}" hint-placeholder-val="{{false}}">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-muted);">
+              Giờ sinh
+              <input type="text" value="{{draft.time}}" onChange="{{updateTime}}" placeholder="ví dụ: 06:40" style="min-height:44px;padding:0 12px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-size:15px;">
+            </label>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:28px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" onClick="{{closeEdit}}" hint-size="auto,44px">Huỷ</x-import>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" size="sm" onClick="{{saveEdit}}" hint-size="auto,44px">Lưu thay đổi</x-import>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;hasBirthTime&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Dữ liệu mẫu&quot;},&quot;defaultChartView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;diagram&quot;,&quot;options&quot;:[&quot;diagram&quot;,&quot;list&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Lá số&quot;},&quot;savedDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Dữ liệu mẫu&quot;}}">
+class Component extends DCLogic {
+  state = {
+    isMobile: false,
+    mobileTab: 'narrative',
+    chartView: this.props.defaultChartView === 'list' ? 'list' : 'diagram',
+    zoom: 1,
+    selectedPalace: null,
+    saved: !!this.props.savedDefault,
+    shareOpen: false,
+    shareHidePII: true,
+    editOpen: false,
+    openEvidence: null,
+    personName: 'Nguyễn Văn A',
+    birthDateStr: '14/03/1990 (âm lịch 18/02 Canh Ngọ)',
+    birthPlace: 'Hà Nội',
+    timeKnown: !!this.props.hasBirthTime,
+    birthTime: this.props.hasBirthTime ? '06:40' : '',
+    draft: null,
+  };
+
+  PALACES = [
+    { id: 'menh', name: 'Mệnh', star: 'Tử Vi', col: 1, row: 1, tag: null },
+    { id: 'phumau', name: 'Phụ Mẫu', star: 'Thiên Cơ', col: 2, row: 1, tag: null },
+    { id: 'phucduc', name: 'Phúc Đức', star: 'Thái Dương', col: 3, row: 1, tag: null },
+    { id: 'dientrach', name: 'Điền Trạch', star: 'Vũ Khúc', col: 4, row: 1, tag: null },
+    { id: 'quanloc', name: 'Quan Lộc', star: 'Thiên Đồng', col: 4, row: 2, tag: 'strength' },
+    { id: 'nobo', name: 'Nô Bộc', star: 'Liêm Trinh', col: 4, row: 3, tag: null },
+    { id: 'thiendi', name: 'Thiên Di', star: 'Thiên Phủ', col: 4, row: 4, tag: null },
+    { id: 'tatach', name: 'Tật Ách', star: 'Thái Âm', col: 3, row: 4, tag: null },
+    { id: 'taibach', name: 'Tài Bạch', star: 'Tham Lang', col: 2, row: 4, tag: 'tension' },
+    { id: 'tutuc', name: 'Tử Tức', star: 'Cự Môn', col: 1, row: 4, tag: null },
+    { id: 'phuthe', name: 'Phu Thê', star: 'Thiên Tướng', col: 1, row: 3, tag: null },
+    { id: 'huynhde', name: 'Huynh Đệ', star: 'Thiên Lương', col: 1, row: 2, tag: null },
+  ];
+
+  EVIDENCE = {
+    h1: {
+      claim: 'Bạn có xu hướng gắn bó lâu dài với một hướng công việc, thay vì thay đổi liên tục.',
+      condition: 'Xu hướng này thường rõ hơn khi môi trường làm việc ổn định và có lộ trình rõ ràng.',
+      observable: 'Bạn có thể để ý: mình có xu hướng ở lại giải quyết vấn đề hơn là chuyển việc khi gặp khó khăn.',
+      confidence: 'Trung bình',
+      rows: [
+        { label: 'Yếu tố dễ hiểu', value: 'Cung Quan Lộc (sự nghiệp) có chính tinh Thiên Đồng, một sao thường gắn với tính ổn định và kiên trì.' },
+        { label: 'Vị trí trên lá số', value: 'Cung Quan Lộc — cung thứ 5 tính từ cung Mệnh theo chiều thuận.' },
+        { label: 'Quy tắc ngắn', value: 'Khi chính tinh của Quan Lộc thuộc nhóm ổn định, xu hướng gắn bó lâu dài với một hướng việc thường được ghi nhận nhiều hơn.' },
+        { label: 'Yếu tố hỗ trợ và xung đột', value: 'Được hỗ trợ bởi ngũ hành cung Mệnh; chưa ghi nhận yếu tố xung đột rõ trong lá số này.' },
+        { label: 'Mức tin cậy và giới hạn', value: 'Trung bình — dựa trên chính tinh chủ cung, chưa tính các sao phụ chi tiết.' },
+        { label: 'Ảnh hưởng của giờ sinh', value: 'Nhận định này dựa trên chính tinh của cung, ít phụ thuộc giờ sinh so với các cung khác.' },
+        { label: 'Điều người dùng có thể tự quan sát', value: 'Mình có xu hướng ở lại giải quyết vấn đề hơn là chuyển việc khi gặp khó khăn.' },
+      ],
+    },
+    h2: {
+      claim: 'Tài chính có xu hướng tích lũy chậm nhưng bền, ít biến động lớn trong ngắn hạn.',
+      condition: 'Điều này có thể biểu hiện rõ hơn khi bạn duy trì một khoản tiết kiệm cố định hàng tháng.',
+      observable: 'Bạn có thể để ý: các quyết định tài chính lớn thường được đưa ra sau một thời gian cân nhắc dài.',
+      confidence: 'Trung bình',
+      rows: [
+        { label: 'Yếu tố dễ hiểu', value: 'Cung Tài Bạch có chính tinh Tham Lang kết hợp với ngũ hành bản mệnh tạo nhịp tích lũy chậm.' },
+        { label: 'Vị trí trên lá số', value: 'Cung Tài Bạch — đối cung với Phúc Đức.' },
+        { label: 'Quy tắc ngắn', value: 'Chính tinh Tham Lang tại Tài Bạch thường gắn với biến động thu nhập theo giai đoạn hơn là đều đặn.' },
+        { label: 'Yếu tố hỗ trợ và xung đột', value: 'Hỗ trợ bởi cung Điền Trạch ổn định; có thể xung đột nhẹ với giai đoạn Quan Lộc biến động.' },
+        { label: 'Mức tin cậy và giới hạn', value: 'Trung bình — nhận định ở mức xu hướng chung, không thay cho kế hoạch tài chính cụ thể.' },
+        { label: 'Ảnh hưởng của giờ sinh', value: 'Giờ sinh chưa xác nhận có thể làm lệch nhẹ vị trí các sao phụ tại cung này.' },
+        { label: 'Điều người dùng có thể tự quan sát', value: 'Các quyết định tài chính lớn của mình thường đến sau một thời gian cân nhắc dài.' },
+      ],
+    },
+    h3: {
+      claim: 'Trong quan hệ gần, bạn có xu hướng là người giữ liên lạc và duy trì kết nối lâu dài.',
+      condition: 'Điều này có thể biểu hiện rõ hơn với những người bạn xem là quan trọng, không nhất thiết với mọi mối quan hệ.',
+      observable: 'Bạn có thể để ý: mình thường là người chủ động nhắn trước sau một thời gian dài không liên lạc.',
+      confidence: 'Có giới hạn',
+      rows: [
+        { label: 'Yếu tố dễ hiểu', value: 'Cung Phu Thê có chính tinh Thiên Tướng, thường gắn với xu hướng chủ động giữ gìn quan hệ.' },
+        { label: 'Vị trí trên lá số', value: 'Cung Phu Thê — cung liền kề Huynh Đệ.' },
+        { label: 'Quy tắc ngắn', value: 'Thiên Tướng tại Phu Thê thường được đọc cùng với cung Huynh Đệ để đánh giá xu hướng duy trì quan hệ nói chung.' },
+        { label: 'Yếu tố hỗ trợ và xung đột', value: 'Được hỗ trợ bởi cung Huynh Đệ; chưa đủ dữ liệu giờ sinh để đối chiếu thêm với cung Tật Ách.' },
+        { label: 'Mức tin cậy và giới hạn', value: 'Có giới hạn — nhận định về quan hệ chịu ảnh hưởng nhiều từ giờ sinh chưa xác nhận.' },
+        { label: 'Ảnh hưởng của giờ sinh', value: 'Giờ sinh chưa rõ nên vị trí chi tiết một số sao phụ tại cung Phu Thê chưa được đối chiếu đầy đủ.' },
+        { label: 'Điều người dùng có thể tự quan sát', value: 'Mình thường là người chủ động nhắn trước sau một thời gian dài không liên lạc.' },
+      ],
+    },
+    strength: {
+      claim: 'Con đường sự nghiệp của bạn có xu hướng phát triển bền vững hơn khi được xây dựng theo chiều sâu, thay vì trải rộng nhiều hướng cùng lúc.',
+      condition: 'Có xu hướng biểu hiện rõ khi bạn được giao một phạm vi việc ổn định trong thời gian dài, có không gian để tích lũy chuyên môn.',
+      observable: 'Bạn có thể tự quan sát: những giai đoạn tự tin nhất trong công việc thường trùng với lúc phạm vi việc không thay đổi đột ngột.',
+      confidence: 'Cao',
+      rows: [
+        { label: 'Yếu tố dễ hiểu', value: 'Chính tinh Thiên Đồng tại cung Quan Lộc, kết hợp cùng ngũ hành bản mệnh, tạo xu hướng ổn định theo chiều sâu.' },
+        { label: 'Vị trí trên lá số', value: 'Cung Quan Lộc — cung thứ 5 tính từ Mệnh, tam hợp với Mệnh và Tài Bạch.' },
+        { label: 'Quy tắc ngắn', value: 'Chính tinh nhóm ổn định tại Quan Lộc, khi tam hợp không có sao xung khắc mạnh, thường gắn với phát triển bền theo một hướng.' },
+        { label: 'Yếu tố hỗ trợ và xung đột', value: 'Được hỗ trợ bởi cung Mệnh cùng nhóm ngũ hành; không ghi nhận sao xung khắc mạnh trong tam hợp Quan Lộc.' },
+        { label: 'Mức tin cậy và giới hạn', value: 'Cao — dựa trên chính tinh và cấu trúc tam hợp, ít phụ thuộc vào các sao phụ chi tiết.' },
+        { label: 'Ảnh hưởng của giờ sinh', value: 'Nhận định này dựa chủ yếu vào chính tinh của cung, nên ít bị ảnh hưởng dù giờ sinh chưa được xác nhận.' },
+        { label: 'Điều người dùng có thể tự quan sát', value: 'Những giai đoạn tự tin nhất trong công việc thường trùng với lúc phạm vi việc không thay đổi đột ngột.' },
+      ],
+    },
+    tension: {
+      claim: 'Tài chính có thể chịu áp lực trong giai đoạn thu nhập không cố định, đặc biệt khi có nhiều khoản chi phát sinh cùng lúc.',
+      condition: 'Có xu hướng biểu hiện rõ hơn trong giai đoạn chuyển việc, khởi nghiệp, hoặc khi có thay đổi lớn về nơi sống.',
+      observable: 'Bạn có thể tự quan sát: mức độ căng thẳng tài chính tăng rõ khi không có khoản dự phòng tương đương 3-6 tháng chi tiêu.',
+      confidence: 'Trung bình',
+      rows: [
+        { label: 'Yếu tố dễ hiểu', value: 'Chính tinh Tham Lang tại cung Tài Bạch thường gắn với thu nhập biến động theo giai đoạn hơn là đều đặn.' },
+        { label: 'Vị trí trên lá số', value: 'Cung Tài Bạch — cung thứ 9 tính từ Mệnh, đối cung với Phúc Đức.' },
+        { label: 'Quy tắc ngắn', value: 'Tham Lang tại Tài Bạch khi gặp giai đoạn Quan Lộc thay đổi thường kéo theo áp lực tài chính tạm thời.' },
+        { label: 'Yếu tố hỗ trợ và xung đột', value: 'Xung đột nhẹ với giai đoạn biến động của Quan Lộc; được hỗ trợ phần nào bởi cung Điền Trạch.' },
+        { label: 'Mức tin cậy và giới hạn', value: 'Trung bình — đây là nhận định xu hướng chung, không thay cho đánh giá tài chính cá nhân cụ thể.' },
+        { label: 'Ảnh hưởng của giờ sinh', value: 'Giờ sinh chưa xác nhận có thể làm lệch mức độ chính xác của thời điểm áp lực tài chính rõ nét nhất.' },
+        { label: 'Điều người dùng có thể tự quan sát', value: 'Mức độ căng thẳng tài chính tăng rõ khi không có khoản dự phòng tương đương 3-6 tháng chi tiêu.' },
+      ],
+    },
+  };
+
+  componentDidMount() {
+    this._mq = window.matchMedia('(max-width: 859px)');
+    this._onMq = (e) => this.setState({ isMobile: e.matches });
+    this.setState({ isMobile: this._mq.matches });
+    this._mq.addEventListener('change', this._onMq);
+  }
+  componentWillUnmount() {
+    if (this._mq) this._mq.removeEventListener('change', this._onMq);
+  }
+
+  toggleEvidence = (key, btnId) => {
+    this.setState((s) => ({ openEvidence: s.openEvidence === key ? null : key }), () => {
+      if (this.state.openEvidence === null && btnId) {
+        const el = document.getElementById(btnId);
+        if (el) el.focus();
+      }
+    });
+  };
+
+  setMobileTab = (t) => this.setState({ mobileTab: t });
+  goToNarrativeTab = () => this.setMobileTab('narrative');
+  goToChartTab = () => this.setMobileTab('chart');
+  setChartView = (v) => this.setState({ chartView: v });
+  setViewDiagram = () => this.setChartView('diagram');
+  setViewList = (e) => { if (e && e.preventDefault) e.preventDefault(); this.setChartView('list'); };
+  zoomIn = () => this.setState((s) => ({ zoom: Math.min(2, +(s.zoom + 0.25).toFixed(2)) }));
+  zoomOut = () => this.setState((s) => ({ zoom: Math.max(1, +(s.zoom - 0.25).toFixed(2)) }));
+  zoomReset = () => this.setState({ zoom: 1 });
+  selectPalace = (id) => this.setState((s) => ({ selectedPalace: s.selectedPalace === id ? null : id }));
+
+  toggleSaved = () => this.setState((s) => ({ saved: !s.saved }));
+  toggleShare = () => this.setState((s) => ({ shareOpen: !s.shareOpen }));
+  toggleShareHidePII = () => this.setState((s) => ({ shareHidePII: !s.shareHidePII }));
+  copyLink = () => { if (navigator.clipboard) navigator.clipboard.writeText(window.location.href).catch(() => {}); };
+
+  openEdit = () => this.setState((s) => ({
+    editOpen: true,
+    draft: { name: s.personName, date: s.birthDateStr, place: s.birthPlace, timeKnown: s.timeKnown, time: s.birthTime },
+  }));
+  closeEdit = () => this.setState({ editOpen: false, draft: null });
+  updateName = (e) => this.setState((s) => ({ draft: { ...s.draft, name: e.target.value } }));
+  updateDate = (e) => this.setState((s) => ({ draft: { ...s.draft, date: e.target.value } }));
+  updatePlace = (e) => this.setState((s) => ({ draft: { ...s.draft, place: e.target.value } }));
+  updateTimeKnown = (e) => this.setState((s) => ({ draft: { ...s.draft, timeKnown: e.target.checked } }));
+  updateTime = (e) => this.setState((s) => ({ draft: { ...s.draft, time: e.target.value } }));
+  saveEdit = () => this.setState((s) => ({
+    personName: s.draft.name,
+    birthDateStr: s.draft.date,
+    birthPlace: s.draft.place,
+    timeKnown: s.draft.timeKnown,
+    birthTime: s.draft.timeKnown ? s.draft.time : '',
+    editOpen: false,
+    draft: null,
+  }));
+
+  renderVals() {
+    const s = this.state;
+    const withRows = (obj) => ({
+      ...obj,
+      rows: obj.rows.map((r, i, arr) => ({ ...r, borderBottom: i === arr.length - 1 ? 'none' : '1px solid var(--border-hairline)' })),
+    });
+
+    const palaces = this.PALACES.map((p) => ({
+      ...p,
+      selected: s.selectedPalace === p.id,
+      highlighted: !!p.tag,
+      tagLabel: p.tag === 'strength' ? 'liên quan · thế mạnh' : p.tag === 'tension' ? 'liên quan · điểm cần chú ý' : '',
+      borderStyle: p.tag ? '1px solid var(--accent-gold)' : '1px solid var(--border-hairline)',
+      onSelect: () => this.selectPalace(p.id),
+    }));
+    const selectedInfo = s.selectedPalace ? palaces.find((p) => p.id === s.selectedPalace) : null;
+
+    const evH1 = withRows(this.EVIDENCE.h1);
+    const evH2 = withRows(this.EVIDENCE.h2);
+    const evH3 = withRows(this.EVIDENCE.h3);
+    const evStrength = withRows(this.EVIDENCE.strength);
+    const evTension = withRows(this.EVIDENCE.tension);
+
+    const highlights = [
+      { key: 'h1', num: '01', ...evH1 },
+      { key: 'h2', num: '02', ...evH2 },
+      { key: 'h3', num: '03', ...evH3 },
+    ].map((h) => {
+      const btnId = 'evbtn-' + h.key;
+      return { ...h, open: s.openEvidence === h.key, btnId, onExplain: () => this.toggleEvidence(h.key, btnId) };
+    });
+
+    return {
+      isMobile: s.isMobile,
+      mobileTab: s.mobileTab, goToNarrativeTab: this.goToNarrativeTab, goToChartTab: this.goToChartTab,
+      isTabNarrative: s.mobileTab === 'narrative',
+      isTabChart: s.mobileTab === 'chart',
+      chartView: s.chartView, setViewDiagram: this.setViewDiagram, setViewList: this.setViewList,
+      isViewDiagram: s.chartView === 'diagram',
+      isViewList: s.chartView === 'list',
+      zoom: s.zoom, zoomIn: this.zoomIn, zoomOut: this.zoomOut, zoomReset: this.zoomReset,
+      chartScaleStyle: 'transform:scale(' + s.zoom + ');transform-origin:top left;width:' + (480) + 'px;height:' + (480) + 'px;',
+      palaces,
+      selectedInfo,
+      hasSelection: !!selectedInfo,
+      saved: s.saved, toggleSaved: this.toggleSaved,
+      shareOpen: s.shareOpen, toggleShare: this.toggleShare,
+      shareHidePII: s.shareHidePII, toggleShareHidePII: this.toggleShareHidePII,
+      copyLink: this.copyLink,
+      editOpen: s.editOpen, openEdit: this.openEdit, closeEdit: this.closeEdit,
+      draft: s.draft,
+      updateName: this.updateName, updateDate: this.updateDate, updatePlace: this.updatePlace,
+      updateTimeKnown: this.updateTimeKnown, updateTime: this.updateTime, saveEdit: this.saveEdit,
+      personName: s.personName, birthDateStr: s.birthDateStr, birthPlace: s.birthPlace,
+      timeKnown: s.timeKnown, birthTime: s.birthTime,
+      uncertain: !s.timeKnown,
+      openEvidence: s.openEvidence, toggleEvidence: this.toggleEvidence,
+      highlights,
+      strength: { ...evStrength, open: s.openEvidence === 'strength', btnId: 'evbtn-strength', onExplain: () => this.toggleEvidence('strength', 'evbtn-strength') },
+      tension: { ...evTension, open: s.openEvidence === 'tension', btnId: 'evbtn-tension', onExplain: () => this.toggleEvidence('tension', 'evbtn-tension') },
+    };
+  }
+}
+</script>
+</body>
+</html>

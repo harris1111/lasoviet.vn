@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <meta name="robots" content="index, follow">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Lá số tử vi là gì?",
+        "description": "Tổng quan về lá số Tử Vi — cách lập, cấu trúc 12 cung, và những gì lá số có thể (và không thể) cho biết.",
+        "author": { "@type": "Person", "name": "[Tên tác giả]" },
+        "reviewedBy": { "@type": "Person", "name": "[Tên reviewer]" },
+        "dateModified": "2026-09-02",
+        "publisher": { "@type": "Organization", "name": "Lá Số Việt" },
+        "mainEntityOfPage": "https://lasoviet.vn/kien-thuc/tu-vi/la-so-tu-vi-la-gi"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://lasoviet.vn/" },
+          { "@type": "ListItem", "position": 2, "name": "Kiến thức", "item": "https://lasoviet.vn/kien-thuc" },
+          { "@type": "ListItem", "position": 3, "name": "Tử vi", "item": "https://lasoviet.vn/kien-thuc/tu-vi" },
+          { "@type": "ListItem", "position": 4, "name": "Lá số tử vi là gì", "item": "https://lasoviet.vn/kien-thuc/tu-vi/la-so-tu-vi-la-gi" }
+        ]
+      }
+    ]
+  }
+  </script>
+  <style>
+    body { margin: 0; box-sizing: border-box; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    * { box-sizing: border-box; }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="color:var(--text-body); font-family:var(--font-ui); min-height:100vh;">
+
+  <!-- HEADER -->
+  <header style="border-bottom:1px solid var(--border-hairline); background:var(--surface-deep);">
+    <div style="max-width:1200px; margin:0 auto; padding:0 32px; height:76px; display:flex; align-items:center; justify-content:space-between; gap:32px;">
+      <a href="/" style="font-family:var(--font-display); font-size:22px; color:var(--text-heading); text-decoration:none; letter-spacing:0.01em;">Lá Số Việt</a>
+      <nav aria-label="Điều hướng chính" style="display:flex; align-items:center; gap:32px;">
+        <a href="/kien-thuc" style="font-size:14.5px; color:var(--gold-500); text-decoration:none; font-weight:500;">Kiến thức</a>
+        <a href="/phuong-phap" style="font-size:14.5px; color:var(--text-body); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--text-heading)&quot;}">Phương pháp</a>
+        <a href="/bang-gia" style="font-size:14.5px; color:var(--text-body); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--text-heading)&quot;}">Bảng giá</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" href="/la-so-tu-vi" size="sm" hint-size="180px,44px">Lập lá số miễn phí</x-import>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 01 — BREADCRUMB, H1, DEK, BYLINE -->
+  <div style="max-width:var(--container-reading); margin:0 auto; padding:56px 32px 0;">
+    <nav aria-label="Breadcrumb" style="margin-bottom:28px;">
+      <ol style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; padding:0; list-style:none; font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint);">
+        <li><a href="/" style="color:var(--text-faint); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--text-muted)&quot;}">Trang chủ</a></li>
+        <li aria-hidden="true" style="display:flex;"><x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="13" color="var(--text-faint)" hint-size="13px,13px"></x-import></li>
+        <li><a href="/kien-thuc" style="color:var(--text-faint); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--text-muted)&quot;}">Kiến thức</a></li>
+        <li aria-hidden="true" style="display:flex;"><x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="13" color="var(--text-faint)" hint-size="13px,13px"></x-import></li>
+        <li><a href="/kien-thuc/tu-vi" style="color:var(--text-faint); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--text-muted)&quot;}">Tử vi</a></li>
+        <li aria-hidden="true" style="display:flex;"><x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="13" color="var(--text-faint)" hint-size="13px,13px"></x-import></li>
+        <li aria-current="page" style="color:var(--text-muted);">Lá số tử vi là gì</li>
+      </ol>
+    </nav>
+
+    <h1 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:var(--fs-h1); line-height:1.18; color:var(--text-heading);">Lá số tử vi là gì?</h1>
+    <p style="margin:20px 0 0; font-family:var(--font-display); font-size:var(--fs-lead); line-height:1.55; color:var(--text-muted); max-width:640px;">Tổng quan về lá số Tử Vi — cách lập, cấu trúc 12 cung, và những gì lá số có thể, và không thể, cho biết.</p>
+
+    <div style="margin-top:32px; padding:20px 0; border-top:1px solid var(--border-hairline); border-bottom:1px solid var(--border-hairline); display:flex; flex-wrap:wrap; align-items:center; gap:24px; font-size:13.5px; color:var(--text-muted);">
+      <span style="display:flex; align-items:center; gap:8px;"><x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import>Biên soạn: [Tên tác giả]</span>
+      <span style="display:flex; align-items:center; gap:8px;"><x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import>Rà soát phương pháp: [Tên reviewer]</span>
+      <span style="display:flex; align-items:center; gap:8px;"><x-import component-from-global-scope="DesignSystem_031f07.Icon" name="calendar-day" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import>Rà soát gần nhất: 02/09/2026</span>
+    </div>
+  </div>
+
+  <!-- HERO IMAGE PLACEHOLDER -->
+  <div style="max-width:var(--container-reading); margin:32px auto 0; padding:0 32px;">
+    <div style="position:relative; width:100%; aspect-ratio:3/2; border-radius:var(--radius-md); overflow:hidden;">
+      <img src="uploads/ban-doc-cau-truc-la-so-tu-vi-la-gi.webp" alt="Nghiên bút, giấy cũ và lịch âm dương trên nền sơn mài, ánh sáng chéo" style="display:block;width:100%;height:100%;object-fit:cover" />
+    </div>
+  </div>
+
+  <!-- 02 — TÓM TẮT + MỤC LỤC -->
+  <div style="max-width:var(--container-reading); margin:0 auto; padding:64px 32px 0;">
+    <p style="margin:0; font-family:var(--font-display); font-size:19px; line-height:1.65; color:var(--text-body);">Lá số tử vi là một bản đồ gồm <a href="#chu-giai-cung" style="color:var(--pearl-200); text-decoration:underline dotted; text-decoration-color:var(--text-faint); text-underline-offset:3px;">12 ô, gọi là "cung"</a>, được lập từ giờ, ngày, tháng, năm sinh của một người — quy đổi theo âm lịch. Mỗi cung ứng với một lĩnh vực trong cuộc sống: Cung Mệnh nói về tính cách, Cung Tài Bạc nói về tiền bạc, và tương tự với các cung khác. Trong mỗi cung, các "sao" được an theo quy tắc cố định; vị trí và tổ hợp sao là cơ sở để người luận giải đưa ra nhận định. Lá số không dự đoán một biến cố chắc chắn sẽ xảy ra — nó mô tả các xu hướng, được diễn giải qua một phương pháp và kinh nghiệm truyền thống.</p>
+
+    <div style="margin-top:48px; background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-lg); padding:32px 36px;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="book-open" size="18" color="var(--accent-gold)" hint-size="18px,18px"></x-import>
+        <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted);">Mục lục</span>
+      </div>
+      <ol style="margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:14px;">
+        <li><a href="#cau-truc-12-cung" style="display:flex; align-items:center; justify-content:space-between; color:var(--text-body); text-decoration:none; font-size:16px;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">01. Cấu trúc một lá số: 12 cung là gì<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import></a></li>
+        <li><a href="#lap-la-so" style="display:flex; align-items:center; justify-content:space-between; color:var(--text-body); text-decoration:none; font-size:16px;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">02. Lập lá số: cần thông tin gì<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import></a></li>
+        <li><a href="#sao-va-chinh-tinh" style="display:flex; align-items:center; justify-content:space-between; color:var(--text-body); text-decoration:none; font-size:16px;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">03. Sao trong lá số và vai trò của chính tinh<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import></a></li>
+        <li><a href="#cuc-dai-van" style="display:flex; align-items:center; justify-content:space-between; color:var(--text-body); text-decoration:none; font-size:16px;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">04. Cục và các giai đoạn vận hạn (Đại vận)<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import></a></li>
+        <li><a href="#gioi-han" style="display:flex; align-items:center; justify-content:space-between; color:var(--text-body); text-decoration:none; font-size:16px;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">05. Giới hạn của lá số tử vi<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import></a></li>
+        <li><a href="#chu-giai" style="display:flex; align-items:center; justify-content:space-between; color:var(--text-body); text-decoration:none; font-size:16px;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">06. Chú giải thuật ngữ<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="16" color="var(--text-faint)" hint-size="16px,16px"></x-import></a></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 03 — THÂN BÀI -->
+  <div style="max-width:var(--container-reading); margin:0 auto; padding:88px 32px 0;">
+
+    <!-- Block 1 -->
+    <section id="cau-truc-12-cung" style="scroll-margin-top:24px;">
+      <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; color:var(--gold-600);">01</span>
+      <h2 style="margin:8px 0 0; font-family:var(--font-display); font-weight:400; font-size:var(--fs-h2); color:var(--text-heading);">Cấu trúc một lá số: 12 cung là gì</h2>
+      <p style="margin:20px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Một lá số tử vi hoàn chỉnh chia thành 12 <a id="chu-giai-cung" href="#term-cung" style="color:var(--pearl-200); text-decoration:underline dotted; text-decoration-color:var(--text-faint); text-underline-offset:3px;">cung</a>, mỗi cung đại diện cho một lĩnh vực của đời sống: Mệnh, Phụ Mẫu, Phúc Đức, Điền Trạch, Quan Lộc, Nô Bộc, Thiên Di, Tật Ách, Tài Bạc, Tử Tức, Phu Thê, Huynh Đệ.</p>
+
+      <div style="margin-top:28px;">
+        <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" claim="Thứ tự và tên gọi của 12 cung là quy tắc cố định trong phương pháp Tử Vi — không thay đổi giữa các lá số." confidence="Cao — quy tắc phương pháp" rows="{{ ev1Rows }}" open="{{ ev1Open }}" onToggle="{{ toggleEv1 }}" hint-size="100%,180px"></x-import>
+      </div>
+
+      <p style="margin:24px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Ví dụ: hai người sinh cùng giờ nhưng khác ngày sẽ có 12 cung mang tên giống nhau, nhưng vị trí các sao nằm trong từng cung sẽ khác nhau.</p>
+      <p style="margin:16px 0 0; font-size:14.5px; line-height:1.7; color:var(--text-muted);"><span style="font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint);">Giới hạn — </span>Sơ đồ minh hoạ dưới đây trình bày khái niệm chung về 12 cung; vị trí thật của từng cung phụ thuộc vào giờ sinh cụ thể và không được suy ra chỉ từ sơ đồ này.</p>
+
+      <!-- SVG DIAGRAM -->
+      <figure style="margin:40px 0 0;">
+        <div style="background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-lg); padding:32px; display:flex; justify-content:center;">
+          <svg viewBox="0 0 400 400" width="100%" style="max-width:420px;" role="img" aria-labelledby="svg12cung-title svg12cung-desc">
+            <title id="svg12cung-title">Sơ đồ minh hoạ 12 cung trong thiên bàn</title>
+            <desc id="svg12cung-desc">Lưới 4x4: 12 ô viền ngoài là 12 cung theo thứ tự Mệnh, Phụ Mẫu, Phúc Đức, Điền Trạch, Quan Lộc, Nô Bộc, Thiên Di, Tật Ách, Tài Bạc, Tử Tức, Phu Thê, Huynh Đệ; ô 2x2 ở giữa gộp lại ghi thông tin ngày sinh dùng để lập lá số.</desc>
+            <g fill="none" stroke="var(--border-hairline)" stroke-width="1">
+              <rect x="0.5" y="0.5" width="399" height="399"></rect>
+              <path d="M100.5 0.5V400M200.5 0.5V400M300.5 0.5V400"></path>
+              <path d="M0.5 100.5H400M0.5 200.5H400M0.5 300.5H400"></path>
+            </g>
+            <rect x="101" y="101" width="198" height="198" fill="var(--surface-deep)" stroke="var(--accent-gold)" stroke-width="1"></rect>
+            <text x="200" y="192" text-anchor="middle" fill="var(--gold-400)" font-family="var(--font-display)" font-size="15">Thiên bàn</text>
+            <text x="200" y="214" text-anchor="middle" fill="var(--text-faint)" font-family="var(--font-mono)" font-size="9.5">Giờ · Ngày · Tháng · Năm sinh</text>
+            <g font-family="var(--font-ui)" font-size="11.5" fill="var(--text-body)" text-anchor="middle">
+              <text x="50" y="55">Mệnh</text>
+              <text x="150" y="55">Phụ Mẫu</text>
+              <text x="250" y="55">Phúc Đức</text>
+              <text x="350" y="55">Điền Trạch</text>
+              <text x="365" y="150" transform="rotate(90 365 150)">Quan Lộc</text>
+              <text x="365" y="250" transform="rotate(90 365 250)">Nô Bộc</text>
+              <text x="350" y="355">Thiên Di</text>
+              <text x="250" y="355">Tật Ách</text>
+              <text x="150" y="355">Tài Bạc</text>
+              <text x="50" y="355">Tử Tức</text>
+              <text x="35" y="250" transform="rotate(-90 35 250)">Phu Thê</text>
+              <text x="35" y="150" transform="rotate(-90 35 150)">Huynh Đệ</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption style="margin-top:14px; font-size:13px; line-height:1.6; color:var(--text-faint);">Sơ đồ 1 — Bố cục 12 cung quanh thiên bàn trung tâm. Minh hoạ khái niệm; không phải một lá số thật.</figcaption>
+        <details style="margin-top:12px;">
+          <summary style="cursor:pointer; font-size:13px; color:var(--text-muted);">Xem danh sách 12 cung dạng văn bản (tương đương sơ đồ)</summary>
+          <ol style="margin:12px 0 0; padding-left:20px; font-size:14px; line-height:1.8; color:var(--text-body);">
+            <li>Mệnh</li><li>Phụ Mẫu</li><li>Phúc Đức</li><li>Điền Trạch</li><li>Quan Lộc</li><li>Nô Bộc</li><li>Thiên Di</li><li>Tật Ách</li><li>Tài Bạc</li><li>Tử Tức</li><li>Phu Thê</li><li>Huynh Đệ</li>
+          </ol>
+        </details>
+      </figure>
+    </section>
+
+    <!-- CTA 1 -->
+    <div style="margin:72px 0; padding:36px 40px; background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+      <div>
+        <p style="margin:0; font-family:var(--font-display); font-size:20px; color:var(--text-heading);">Muốn xem 12 cung của chính bạn?</p>
+        <p style="margin:8px 0 0; font-size:14.5px; color:var(--text-muted);">Lập lá số miễn phí — chỉ cần giờ, ngày, tháng, năm sinh.</p>
+      </div>
+      <x-import component-from-global-scope="DesignSystem_031f07.Button" href="/la-so-tu-vi" variant="primary" hint-size="220px,44px">Lập lá số miễn phí<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="arrow-right" size="16" style="{&quot;marginLeft&quot;:&quot;8px&quot;}" hint-size="16px,16px"></x-import></x-import>
+    </div>
+
+    <!-- Block 2 -->
+    <section id="lap-la-so" style="scroll-margin-top:24px;">
+      <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; color:var(--gold-600);">02</span>
+      <h2 style="margin:8px 0 0; font-family:var(--font-display); font-weight:400; font-size:var(--fs-h2); color:var(--text-heading);">Lập lá số: cần thông tin gì</h2>
+      <p style="margin:20px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Để lập một lá số tử vi, cần bốn thông tin: giờ sinh, ngày sinh, tháng sinh, năm sinh — quy đổi theo <a href="#term-am-lich" style="color:var(--pearl-200); text-decoration:underline dotted; text-decoration-color:var(--text-faint); text-underline-offset:3px;">âm lịch</a> — cùng với giới tính.</p>
+
+      <div style="margin-top:28px;">
+        <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" claim="Giờ sinh có tác động lớn nhất đến vị trí Cung Mệnh và cách an toàn bộ các cung còn lại." confidence="Cao" rows="{{ ev2Rows }}" open="{{ ev2Open }}" onToggle="{{ toggleEv2 }}" hint-size="100%,180px"></x-import>
+      </div>
+
+      <p style="margin:24px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Ví dụ: hai người sinh cùng ngày nhưng cách nhau vài giờ có thể có lá số với Cung Mệnh nằm ở hai vị trí khác nhau.</p>
+      <p style="margin:16px 0 0; font-size:14.5px; line-height:1.7; color:var(--text-muted);"><span style="font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint);">Giới hạn — </span>Nếu không rõ giờ sinh chính xác, các nhận định liên quan đến Cung Mệnh và Cung Thân nên được xem là tham khảo, có thể có sai số.</p>
+    </section>
+
+    <!-- Block 3 -->
+    <section id="sao-va-chinh-tinh" style="scroll-margin-top:24px; margin-top:72px;">
+      <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; color:var(--gold-600);">03</span>
+      <h2 style="margin:8px 0 0; font-family:var(--font-display); font-weight:400; font-size:var(--fs-h2); color:var(--text-heading);">Sao trong lá số và vai trò của chính tinh</h2>
+      <p style="margin:20px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Trong mỗi cung có thể xuất hiện một hoặc nhiều sao. 14 <a id="term-chinh-tinh-ref" href="#term-chinh-tinh" style="color:var(--pearl-200); text-decoration:underline dotted; text-decoration-color:var(--text-faint); text-underline-offset:3px;">chính tinh</a> — như Tử Vi, Thiên Cơ, Thái Dương, Vũ Khúc — thường được xem là nhóm sao có ảnh hưởng chính đến cách luận giải một cung.</p>
+
+      <div style="margin-top:28px;">
+        <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" claim="Chính tinh toạ tại một cung thường là yếu tố được xem trước, trước khi xét thêm các sao phụ." confidence="Trung bình — khác biệt theo trường phái" rows="{{ ev3Rows }}" open="{{ ev3Open }}" onToggle="{{ toggleEv3 }}" hint-size="100%,180px"></x-import>
+      </div>
+
+      <p style="margin:24px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Ví dụ: cùng một chính tinh tại Cung Mệnh có thể được diễn giải khác nhau tuỳ vào các sao phụ đi kèm và Cục của lá số.</p>
+      <p style="margin:16px 0 0; font-size:14.5px; line-height:1.7; color:var(--text-muted);"><span style="font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint);">Giới hạn — </span>Số lượng và cách gọi tên các sao phụ có sự khác biệt giữa các trường phái Tử Vi; bài viết này không đi vào so sánh chi tiết giữa các trường phái.</p>
+    </section>
+
+    <!-- Block 4 -->
+    <section id="cuc-dai-van" style="scroll-margin-top:24px; margin-top:72px;">
+      <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; color:var(--gold-600);">04</span>
+      <h2 style="margin:8px 0 0; font-family:var(--font-display); font-weight:400; font-size:var(--fs-h2); color:var(--text-heading);">Cục và các giai đoạn vận hạn (Đại vận)</h2>
+      <p style="margin:20px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Cục xác định điểm khởi đầu để tính <a id="term-dai-van-ref" href="#term-dai-van" style="color:var(--pearl-200); text-decoration:underline dotted; text-decoration-color:var(--text-faint); text-underline-offset:3px;">Đại vận</a> — các giai đoạn khoảng 10 năm dùng để xem xét xu hướng theo từng thời kỳ của cuộc đời.</p>
+
+      <div style="margin-top:28px;">
+        <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" claim="Đại vận chia đời người thành các giai đoạn khoảng 10 năm, mỗi giai đoạn ứng với một cung được xem xét kỹ hơn." confidence="Cao — quy tắc phương pháp" rows="{{ ev4Rows }}" open="{{ ev4Open }}" onToggle="{{ toggleEv4 }}" hint-size="100%,180px"></x-import>
+      </div>
+
+      <p style="margin:24px 0 0; font-size:var(--fs-body); line-height:1.75; color:var(--text-body);">Ví dụ: một người ở giai đoạn Đại vận ứng với Cung Quan Lộc có thể có xu hướng được xem xét kỹ hơn về công việc trong 10 năm đó.</p>
+      <p style="margin:16px 0 0; font-size:14.5px; line-height:1.7; color:var(--text-muted);"><span style="font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint);">Giới hạn — </span>Đại vận cho biết cung nào đang được xem xét và có thể biểu hiện xu hướng ở lĩnh vực nào — không phải một biến cố cụ thể sẽ xảy ra.</p>
+    </section>
+
+    <!-- Block 5 — Giới hạn tổng quát -->
+    <section id="gioi-han" style="scroll-margin-top:24px; margin-top:72px;">
+      <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; color:var(--gold-600);">05</span>
+      <h2 style="margin:8px 0 0; font-family:var(--font-display); font-weight:400; font-size:var(--fs-h2); color:var(--text-heading);">Giới hạn của lá số tử vi</h2>
+      <ul style="margin:20px 0 0; padding-left:20px; font-size:var(--fs-body); line-height:1.8; color:var(--text-body); display:flex; flex-direction:column; gap:10px;">
+        <li>Tử Vi là một khung phương pháp diễn giải truyền thống, không phải một công cụ đã được kiểm chứng khoa học.</li>
+        <li>Các trường phái khác nhau có thể đưa ra cách luận giải khác nhau cho cùng một lá số.</li>
+        <li>Lá số mô tả xu hướng có thể biểu hiện — không thay thế tư vấn y tế, tài chính hay pháp lý chuyên môn.</li>
+      </ul>
+      <p style="margin:28px 0 0; padding:20px 24px; background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-md); font-size:14px; line-height:1.7; color:var(--text-muted);">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+    </section>
+
+    <!-- 04 — GLOSSARY -->
+    <section id="chu-giai" style="scroll-margin-top:24px; margin-top:72px;">
+      <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.14em; color:var(--gold-600);">06</span>
+      <h2 style="margin:8px 0 0; font-family:var(--font-display); font-weight:400; font-size:var(--fs-h2); color:var(--text-heading);">Chú giải thuật ngữ</h2>
+      <dl style="margin:24px 0 0; display:flex; flex-direction:column;">
+        <div id="term-cung" style="padding:20px 0; border-top:1px solid var(--border-hairline); display:grid; grid-template-columns:180px 1fr; gap:24px;">
+          <dt style="font-family:var(--font-display); font-size:17px; color:var(--text-heading);">Cung</dt>
+          <dd style="margin:0; font-size:15px; line-height:1.7; color:var(--text-body);">Một trong 12 ô trên lá số, mỗi ô ứng với một lĩnh vực của đời sống (ví dụ: Mệnh, Tài Bạc, Quan Lộc).</dd>
+        </div>
+        <div id="term-thien-ban" style="padding:20px 0; border-top:1px solid var(--border-hairline); display:grid; grid-template-columns:180px 1fr; gap:24px;">
+          <dt style="font-family:var(--font-display); font-size:17px; color:var(--text-heading);">Thiên bàn</dt>
+          <dd style="margin:0; font-size:15px; line-height:1.7; color:var(--text-body);">Toàn bộ bố cục 12 cung của một lá số, được lập từ giờ, ngày, tháng, năm sinh.</dd>
+        </div>
+        <div id="term-chinh-tinh" style="padding:20px 0; border-top:1px solid var(--border-hairline); display:grid; grid-template-columns:180px 1fr; gap:24px;">
+          <dt style="font-family:var(--font-display); font-size:17px; color:var(--text-heading);">Chính tinh</dt>
+          <dd style="margin:0; font-size:15px; line-height:1.7; color:var(--text-body);">Một trong 14 sao chính được xem là khung nền để luận giải một cung, trước khi xét thêm các sao phụ.</dd>
+        </div>
+        <div id="term-cuc" style="padding:20px 0; border-top:1px solid var(--border-hairline); display:grid; grid-template-columns:180px 1fr; gap:24px;">
+          <dt style="font-family:var(--font-display); font-size:17px; color:var(--text-heading);">Cục</dt>
+          <dd style="margin:0; font-size:15px; line-height:1.7; color:var(--text-body);">Yếu tố xác định từ năm sinh và Cung Mệnh, dùng làm mốc để tính khởi đầu của Đại vận.</dd>
+        </div>
+        <div id="term-dai-van" style="padding:20px 0; border-top:1px solid var(--border-hairline); display:grid; grid-template-columns:180px 1fr; gap:24px;">
+          <dt style="font-family:var(--font-display); font-size:17px; color:var(--text-heading);">Đại vận</dt>
+          <dd style="margin:0; font-size:15px; line-height:1.7; color:var(--text-body);">Các giai đoạn khoảng 10 năm trong đời người, mỗi giai đoạn ứng với một cung được xem xét kỹ hơn.</dd>
+        </div>
+        <div id="term-am-lich" style="padding:20px 0; border-top:1px solid var(--border-hairline); border-bottom:1px solid var(--border-hairline); display:grid; grid-template-columns:180px 1fr; gap:24px;">
+          <dt style="font-family:var(--font-display); font-size:17px; color:var(--text-heading);">Âm lịch</dt>
+          <dd style="margin:0; font-size:15px; line-height:1.7; color:var(--text-body);">Hệ lịch dựa theo chu kỳ mặt trăng, dùng để quy đổi ngày sinh dương lịch trước khi lập lá số.</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- CTA 2 -->
+    <div style="margin:72px 0 0; padding:36px 40px; background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-lg);">
+      <p style="margin:0; font-family:var(--font-display); font-size:20px; color:var(--text-heading);">Muốn bản luận giải đầy đủ, có nguồn cho từng nhận định?</p>
+      <p style="margin:8px 0 0; font-size:14.5px; color:var(--text-muted); max-width:520px;">Báo cáo luận giải đầy đủ đi kèm căn cứ cho từng nhận định — dùng lá số miễn phí bạn vừa xem ở trên.</p>
+      <div style="margin-top:24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" href="/bao-cao-mau" variant="secondary" hint-size="180px,44px">Xem báo cáo mẫu</x-import>
+        <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint);">Thanh toán một lần · Không tự động gia hạn</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 — SOURCES, RELATED, FINAL CTA -->
+  <div style="max-width:var(--container-reading); margin:0 auto; padding:88px 32px 0;">
+    <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:22px; color:var(--text-heading);">Nguồn tham khảo</h2>
+    <ul style="margin:20px 0 0; padding-left:20px; font-size:14.5px; line-height:1.8; color:var(--text-muted); display:flex; flex-direction:column; gap:6px;">
+      <li>[Tên tài liệu / cổ thư tham khảo 1 — cần bổ sung]</li>
+      <li>[Tên tài liệu / cổ thư tham khảo 2 — cần bổ sung]</li>
+      <li>Ghi chú phương pháp luận nội bộ Lá Số Việt — [cần bổ sung liên kết]</li>
+    </ul>
+    <a href="/phuong-phap" style="display:inline-flex; align-items:center; gap:8px; margin-top:20px; font-size:14.5px; color:var(--accent-gold); text-decoration:none;">Xem trang phương pháp luận đầy đủ<x-import component-from-global-scope="DesignSystem_031f07.Icon" name="arrow-right" size="15" hint-size="15px,15px"></x-import></a>
+  </div>
+
+  <div style="max-width:1200px; margin:64px auto 0; padding:0 32px;">
+    <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:22px; color:var(--text-heading);">Bài liên quan</h2>
+    <div style="margin-top:28px; display:grid; grid-template-columns:repeat(3, 1fr); gap:32px;">
+      <a href="/kien-thuc/tu-vi/cach-tinh-cuc" style="display:block; text-decoration:none; color:inherit;">
+        <div style="aspect-ratio:3/2; background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); text-align:center; padding:0 16px;">KT11 — ảnh minh hoạ (3:2)</span></div>
+        <h3 style="margin:16px 0 0; font-family:var(--font-display); font-weight:400; font-size:18px; line-height:1.35; color:var(--text-heading);">Cách tính Cục trong tử vi</h3>
+        <p style="margin:8px 0 0; font-size:14px; line-height:1.6; color:var(--text-muted);">Cục được tính từ đâu, và vì sao nó quyết định điểm khởi đầu Đại vận.</p>
+      </a>
+      <a href="/kien-thuc/tu-vi/12-cung-y-nghia" style="display:block; text-decoration:none; color:inherit;">
+        <div style="aspect-ratio:3/2; background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); text-align:center; padding:0 16px;">KT12 — ảnh minh hoạ (3:2)</span></div>
+        <h3 style="margin:16px 0 0; font-family:var(--font-display); font-weight:400; font-size:18px; line-height:1.35; color:var(--text-heading);">12 cung trong lá số: ý nghĩa từng cung</h3>
+        <p style="margin:8px 0 0; font-size:14px; line-height:1.6; color:var(--text-muted);">Đi sâu vào từng cung, lĩnh vực đời sống mà cung đó thường được dùng để xem xét.</p>
+      </a>
+      <a href="/kien-thuc/tu-vi/chinh-tinh-la-gi" style="display:block; text-decoration:none; color:inherit;">
+        <div style="aspect-ratio:3/2; background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;"><span style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); text-align:center; padding:0 16px;">KT13 — ảnh minh hoạ (3:2)</span></div>
+        <h3 style="margin:16px 0 0; font-family:var(--font-display); font-weight:400; font-size:18px; line-height:1.35; color:var(--text-heading);">Chính tinh là gì? Danh sách 14 chính tinh</h3>
+        <p style="margin:8px 0 0; font-size:14px; line-height:1.6; color:var(--text-muted);">Tên gọi, đặc điểm thường gặp và cách 14 chính tinh được xem xét trong luận giải.</p>
+      </a>
+    </div>
+  </div>
+
+  <div style="max-width:1200px; margin:88px auto 0; padding:0 32px;">
+    <div style="background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-lg); padding:56px; display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;">
+      <div>
+        <p style="margin:0; font-family:var(--font-display); font-size:26px; color:var(--text-heading);">Lập lá số của bạn — miễn phí, chỉ mất 2 phút</p>
+        <p style="margin:10px 0 0; font-size:15px; color:var(--text-muted);">Xem 12 cung, các sao và Đại vận của riêng bạn ngay.</p>
+      </div>
+      <x-import component-from-global-scope="DesignSystem_031f07.Button" href="/la-so-tu-vi" variant="primary" hint-size="220px,44px">Lập lá số miễn phí</x-import>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer style="margin-top:88px; border-top:1px solid var(--border-hairline); background:var(--surface-deep);">
+    <div style="max-width:1200px; margin:0 auto; padding:64px 32px 40px; display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:48px;">
+      <div>
+        <p style="margin:0; font-family:var(--font-display); font-size:20px; color:var(--text-heading);">Lá Số Việt</p>
+        <p style="margin:12px 0 0; font-size:13.5px; line-height:1.65; color:var(--text-faint); max-width:320px;">Thư viện tri thức Tử Vi tiếng Việt. Lập lá số miễn phí, luận giải trả phí một lần.</p>
+      </div>
+      <div>
+        <p style="margin:0 0 14px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint);">Sản phẩm</p>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
+          <a href="/la-so-tu-vi" style="color:var(--text-body); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">Lập lá số miễn phí</a>
+          <a href="/bang-gia" style="color:var(--text-body); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">Bảng giá báo cáo</a>
+          <a href="/phuong-phap" style="color:var(--text-body); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">Phương pháp luận</a>
+        </div>
+      </div>
+      <div>
+        <p style="margin:0 0 14px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint);">Kiến thức</p>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px;">
+          <a href="/kien-thuc/tu-vi" style="color:var(--text-body); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">Thư viện Tử Vi</a>
+          <a href="/kien-thuc/tu-vi/12-cung-y-nghia" style="color:var(--text-body); text-decoration:none;" style-hover="{&quot;color&quot;:&quot;var(--gold-400)&quot;}">12 cung là gì</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1200px; margin:0 auto; padding:0 32px 40px;">
+      <p style="margin:0; padding:24px 0 0; border-top:1px solid var(--border-hairline); font-size:12.5px; line-height:1.7; color:var(--text-faint); max-width:760px;">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+      <p style="margin:16px 0 0; font-size:12px; color:var(--text-faint);">© 2026 Lá Số Việt.</p>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ev1: true, ev2: true, ev3: true, ev4: true };
+  renderVals() {
+    return {
+      ev1Open: this.state.ev1,
+      ev2Open: this.state.ev2,
+      ev3Open: this.state.ev3,
+      ev4Open: this.state.ev4,
+      toggleEv1: () => this.setState(s => ({ ev1: !s.ev1 })),
+      toggleEv2: () => this.setState(s => ({ ev2: !s.ev2 })),
+      toggleEv3: () => this.setState(s => ({ ev3: !s.ev3 })),
+      toggleEv4: () => this.setState(s => ({ ev4: !s.ev4 })),
+      ev1Rows: [
+        { label: "Căn cứ", value: "Quy tắc an cung trong Tử Vi cổ truyền — 12 cung được an cố định quanh Cung Mệnh, xác định bởi giờ, ngày, tháng, năm sinh." },
+        { label: "Áp dụng", value: "Vị trí từng cung khác nhau ở mỗi lá số cá nhân, nhưng tên gọi và số lượng 12 cung luôn giống nhau." }
+      ],
+      ev2Rows: [
+        { label: "Căn cứ", value: "Cung Mệnh được an theo giờ sinh, chia theo 12 giờ Địa Chi; giờ sinh sai lệch có thể đổi toàn bộ vị trí các cung." },
+        { label: "Áp dụng", value: "Nên dùng giờ sinh ghi trên giấy khai sinh, hoặc giờ do người thân trực tiếp ghi nhớ." }
+      ],
+      ev3Rows: [
+        { label: "Căn cứ", value: "Trong phần lớn tài liệu Tử Vi truyền thống, chính tinh được xem là khung nền để đọc một cung; sao phụ bổ sung chi tiết." },
+        { label: "Áp dụng", value: "Một số trường phái luận giải đặt trọng số khác nhau giữa chính tinh và sao phụ — đây không phải quy tắc duy nhất." }
+      ],
+      ev4Rows: [
+        { label: "Căn cứ", value: "Cục (Thuỷ Nhị Cục, Hoả Lục Cục...) được xác định từ năm sinh và vị trí Cung Mệnh, làm mốc tính khởi đầu Đại vận." },
+        { label: "Áp dụng", value: "Đại vận cho biết cung nào đang được xem xét trong một giai đoạn 10 năm — không phải một biến cố cụ thể sẽ xảy ra." }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

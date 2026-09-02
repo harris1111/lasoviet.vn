@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <style>
+    @keyframes ls-spin { to { transform: rotate(360deg); } }
+    @keyframes ls-pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+    body { margin:0; background:var(--surface-deep); }
+    .lsv-bg-texture { background-color:var(--surface-deep); background-image:linear-gradient(rgba(15,13,10,0.94),rgba(15,13,10,0.94)),url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat:repeat; }
+    @media (prefers-reduced-motion: reduce) {
+      .ls-spin, .ls-pulse { animation: none !important; }
+    }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="min-height:100vh; font-family:var(--font-ui); color:var(--text-body);">
+
+  <!-- Header -->
+  <header style="border-bottom:1px solid var(--border-hairline); background:var(--surface-canvas);">
+    <div style="max-width:1200px; margin:0 auto; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+      <a href="#" style-focus="outline:2px solid var(--accent-gold); outline-offset:3px;" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text-heading);">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="arrow-right" size="18" color="var(--text-muted)" style="{{ backArrowStyle }}" hint-size="18px,18px"></x-import>
+        <span style="font-family:var(--font-ui); font-size:14px; color:var(--text-muted);">Quay lại</span>
+      </a>
+      <div style="font-family:var(--font-display); font-size:20px; letter-spacing:0.3px; background:var(--gradient-gold); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:600;">Lá Số Việt</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="16" color="var(--text-muted)" hint-size="16px,16px"></x-import>
+        <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted); letter-spacing:0.02em;">Thanh toán riêng tư</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Design-preview state switcher (not part of the real product UI) -->
+  <div style="background:var(--surface-deep); border-bottom:1px dashed var(--border-hairline); padding:14px 24px;">
+    <div style="max-width:1200px; margin:0 auto;">
+      <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint); letter-spacing:0.05em; margin-bottom:10px; text-transform:uppercase;">Xem trước trạng thái — công cụ dựng thiết kế, không thuộc giao diện thật</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <sc-for list="{{ stateDefs }}" as="s" hint-placeholder-count="7">
+          <button type="button" onClick="{{ s.onSelect }}" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="{{ s.chipStyle }}">{{ s.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main style="max-width:1200px; margin:0 auto; padding:48px 24px 96px;">
+    <h1 style="font-family:var(--font-display); font-size:34px; color:var(--text-heading); margin:0 0 32px; font-weight:600;">Thanh toán</h1>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:32px; align-items:start;">
+
+      <!-- Order summary: first in DOM so it appears before payment on mobile -->
+      <section aria-label="Tóm tắt đơn hàng" style="background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-lg); padding:28px; max-width:440px;">
+        <div style="font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; color:var(--text-faint); text-transform:uppercase; margin-bottom:16px;">Tóm tắt đơn hàng</div>
+
+        <div style="font-family:var(--font-display); font-size:22px; color:var(--text-heading); line-height:1.35; margin-bottom:16px;">{{ reportTitle }}</div>
+
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:14px; background:var(--surface-canvas); border:1px solid var(--border-hairline); border-radius:var(--radius-md); margin-bottom:20px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user" size="18" color="var(--text-muted)" hint-size="18px,18px"></x-import>
+          <div>
+            <div style="font-size:13px; color:var(--text-faint); font-family:var(--font-mono); margin-bottom:3px;">Hồ sơ lá số áp dụng</div>
+            <div style="font-size:14.5px; color:var(--text-body);">{{ profileLine }}</div>
+          </div>
+        </div>
+
+        <div style="height:1px; background:var(--border-hairline); margin:0 0 20px;"></div>
+
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:15px; color:var(--text-body);">Giá cuối</span>
+          <span style="font-family:var(--font-mono); font-size:26px; color:var(--gold-400); font-weight:500;">{{ price }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:24px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="refresh-off" size="15" color="var(--text-faint)" hint-size="15px,15px"></x-import>
+          <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint); letter-spacing:0.02em;">Thanh toán một lần · không tự động gia hạn</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:14px; padding-top:16px; border-top:1px solid var(--border-hairline);">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="18" color="var(--accent-gold)" hint-size="18px,18px"></x-import>
+            <span style="font-size:13.5px; color:var(--text-muted);">Kết nối thanh toán được mã hoá</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="scroll" size="18" color="var(--accent-gold)" hint-size="18px,18px"></x-import>
+            <span style="font-size:13.5px; color:var(--text-muted);">Mã đơn hàng: <span style="font-family:var(--font-mono); color:var(--text-body);">{{ orderCode }}</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Payment panel -->
+      <section aria-label="Thanh toán" style="background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-lg); padding:28px;">
+
+        <!-- STATE: creating order -->
+        <sc-if value="{{ isCreating }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:48px 16px;">
+            <div class="ls-spin" style="width:36px; height:36px; border-radius:50%; border:3px solid var(--border-hairline); border-top-color:var(--accent-gold); animation:ls-spin 900ms linear infinite; margin-bottom:20px;"></div>
+            <div style="font-family:var(--font-display); font-size:19px; color:var(--text-heading); margin-bottom:8px;">Đang tạo đơn hàng…</div>
+            <div style="font-size:14px; color:var(--text-muted); max-width:360px;">Vui lòng đợi trong giây lát. Đừng tải lại trang.</div>
+          </div>
+        </sc-if>
+
+        <!-- STATE: awaiting payment -->
+        <sc-if value="{{ isAwaiting }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="display:flex; gap:8px; margin-bottom:24px;">
+              <button type="button" onClick="{{ selectVietqr }}" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="{{ tabVietqrStyle }}">VietQR</button>
+              <button type="button" onClick="{{ selectCard }}" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="{{ tabCardStyle }}">Thẻ</button>
+              <button type="button" onClick="{{ selectEwallet }}" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="{{ tabEwalletStyle }}">Ví điện tử</button>
+            </div>
+
+            <sc-if value="{{ methodIsVietqr }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; gap:28px; flex-wrap:wrap; margin-bottom:24px;">
+                <div style="flex:none;">
+                  <div role="img" aria-label="Mã QR thanh toán VietQR" style="width:188px; height:188px; border-radius:var(--radius-md); background:var(--pearl-50); padding:10px; display:grid; grid-template-columns:repeat(11,1fr); grid-template-rows:repeat(11,1fr); gap:2px;">
+                    <sc-for list="{{ qrCells }}" as="cell" hint-placeholder-count="121">
+                      <div style="background:{{ cell.color }}; border-radius:1px;"></div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex; gap:8px; margin-top:12px;">
+                    <button type="button" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="display:flex; align-items:center; gap:6px; background:none; border:1px solid var(--border-hairline); border-radius:var(--radius-sm); color:var(--text-body); font-size:13px; padding:8px 12px; cursor:pointer; min-height:44px;">
+                      <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="download" size="16" color="var(--text-muted)" hint-size="16px,16px"></x-import>
+                      Tải mã QR
+                    </button>
+                    <button type="button" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="display:flex; align-items:center; gap:6px; background:none; border:1px solid var(--border-hairline); border-radius:var(--radius-sm); color:var(--text-body); font-size:13px; padding:8px 12px; cursor:pointer; min-height:44px;">
+                      <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="external-link" size="16" color="var(--text-muted)" hint-size="16px,16px"></x-import>
+                      Mở app ngân hàng
+                    </button>
+                  </div>
+                </div>
+                <div style="flex:1; min-width:220px;">
+                  <dl style="margin:0; display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                      <dt style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;">Người nhận</dt>
+                      <dd style="margin:2px 0 0; font-size:15px; color:var(--text-heading);">{{ recipientName }}</dd>
+                    </div>
+                    <div>
+                      <dt style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;">Số tài khoản</dt>
+                      <dd style="margin:2px 0 0; font-family:var(--font-mono); font-size:14px; color:var(--text-body);">{{ recipientAccount }}</dd>
+                    </div>
+                    <div>
+                      <dt style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;">Số tiền</dt>
+                      <dd style="margin:2px 0 0; font-family:var(--font-mono); font-size:18px; color:var(--gold-400);">{{ price }}</dd>
+                    </div>
+                    <div>
+                      <dt style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em;">Nội dung chuyển khoản</dt>
+                      <dd style="margin:2px 0 0; font-family:var(--font-mono); font-size:14px; color:var(--text-body);">{{ orderCode }}</dd>
+                    </div>
+                  </dl>
+                  <div style="display:flex; align-items:center; gap:8px; margin-top:16px;">
+                    <span class="ls-pulse" style="width:8px; height:8px; border-radius:50%; background:var(--accent-gold); animation:ls-pulse 1.6s ease-in-out infinite;"></span>
+                    <span style="font-size:13px; color:var(--text-muted);">Đang chờ xác nhận thanh toán · Hết hạn lúc {{ qrExpiryTime }}</span>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ methodIsCard }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:24px; max-width:420px;">
+                <label style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--text-muted);">Số thẻ
+                  <input type="text" inputmode="numeric" placeholder="0000 0000 0000 0000" style-focus="outline:2px solid var(--accent-gold); outline-offset:1px;" style="background:var(--surface-canvas); border:1px solid var(--border-hairline); border-radius:var(--radius-sm); color:var(--text-body); font-size:15px; padding:12px 14px; min-height:44px;"></input>
+                </label>
+                <div style="display:flex; gap:12px;">
+                  <label style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--text-muted); flex:1;">Ngày hết hạn
+                    <input type="text" placeholder="MM/YY" style-focus="outline:2px solid var(--accent-gold); outline-offset:1px;" style="background:var(--surface-canvas); border:1px solid var(--border-hairline); border-radius:var(--radius-sm); color:var(--text-body); font-size:15px; padding:12px 14px; min-height:44px;"></input>
+                  </label>
+                  <label style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--text-muted); flex:1;">CVV
+                    <input type="text" inputmode="numeric" placeholder="•••" style-focus="outline:2px solid var(--accent-gold); outline-offset:1px;" style="background:var(--surface-canvas); border:1px solid var(--border-hairline); border-radius:var(--radius-sm); color:var(--text-body); font-size:15px; padding:12px 14px; min-height:44px;"></input>
+                  </label>
+                </div>
+                <label style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--text-muted);">Tên chủ thẻ
+                  <input type="text" placeholder="NGUYEN VAN A" style-focus="outline:2px solid var(--accent-gold); outline-offset:1px;" style="background:var(--surface-canvas); border:1px solid var(--border-hairline); border-radius:var(--radius-sm); color:var(--text-body); font-size:15px; padding:12px 14px; min-height:44px;"></input>
+                </label>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ methodIsEwallet }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px; max-width:360px;">
+                <sc-for list="{{ ewallets }}" as="w" hint-placeholder-count="3">
+                  <button type="button" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="display:flex; align-items:center; justify-content:space-between; background:var(--surface-canvas); border:1px solid var(--border-hairline); border-radius:var(--radius-sm); color:var(--text-body); font-size:15px; padding:14px 16px; cursor:pointer; min-height:44px;">
+                    {{ w.name }}
+                    <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="18" color="var(--text-faint)" hint-size="18px,18px"></x-import>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="height:1px; background:var(--border-hairline); margin-bottom:20px;"></div>
+
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+              <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                <input type="checkbox" checked="{{ agreeTerms }}" onChange="{{ toggleAgree }}" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="width:20px; height:20px; margin-top:1px; accent-color:var(--accent-gold); flex:none;"></input>
+                <span style="font-size:13.5px; color:var(--text-body);">Tôi đã đọc và đồng ý với <a href="#" style-focus="outline:2px solid var(--accent-gold);" style="color:var(--accent-gold);">Điều khoản dịch vụ</a> và <a href="#" style-focus="outline:2px solid var(--accent-gold);" style="color:var(--accent-gold);">Chính sách bảo mật</a>. <span style="color:var(--text-faint);">(bắt buộc)</span></span>
+              </label>
+              <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                <input type="checkbox" checked="{{ marketingOptIn }}" onChange="{{ toggleMarketing }}" style-focus="outline:2px solid var(--accent-gold); outline-offset:2px;" style="width:20px; height:20px; margin-top:1px; accent-color:var(--accent-gold); flex:none;"></input>
+                <span style="font-size:13.5px; color:var(--text-muted);">Tôi muốn nhận email về báo cáo mới và ưu đãi. <span style="color:var(--text-faint);">(không bắt buộc)</span></span>
+              </label>
+            </div>
+
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" disabled="{{ payDisabled }}" style="{{ payButtonStyle }}" onClick="{{ noop }}" hint-size="100%,48px">Thanh toán {{ price }}</x-import>
+            <div style="text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--text-faint); margin-top:10px;">Thanh toán một lần · không tự động gia hạn</div>
+          </div>
+        </sc-if>
+
+        <!-- STATE: success confirmed -->
+        <sc-if value="{{ isSuccess }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:24px 8px;">
+            <div style="width:56px; height:56px; border-radius:50%; border:1.5px solid var(--accent-gold); display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="check" size="26" color="var(--accent-gold)" hint-size="26px,26px"></x-import>
+            </div>
+            <div style="font-family:var(--font-display); font-size:22px; color:var(--text-heading); margin-bottom:8px;">Thanh toán thành công</div>
+            <div style="font-size:14.5px; color:var(--text-muted); max-width:380px; margin-bottom:24px;">Hệ thống đã xác nhận khoản thanh toán {{ price }} cho đơn hàng {{ orderCode }}. Báo cáo của bạn đang được chuẩn bị.</div>
+            <div style="width:100%; max-width:360px; background:var(--surface-canvas); border:1px solid var(--border-hairline); border-radius:var(--radius-md); padding:16px; margin-bottom:24px; text-align:left; font-size:13.5px; color:var(--text-body); display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-muted);">Mã đơn hàng</span><span style="font-family:var(--font-mono);">{{ orderCode }}</span></div>
+              <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-muted);">Thời gian xác nhận</span><span style="font-family:var(--font-mono);">{{ confirmedAt }}</span></div>
+              <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-muted);">Số tiền</span><span style="font-family:var(--font-mono); color:var(--gold-400);">{{ price }}</span></div>
+            </div>
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" style="width:100%; max-width:360px;" hint-size="360px,48px">Xem báo cáo của bạn</x-import>
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="link" style="margin-top:14px;" hint-size="auto,20px">Xem hoá đơn</x-import>
+          </div>
+        </sc-if>
+
+        <!-- STATE: failed -->
+        <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:24px 8px;">
+            <div style="width:56px; height:56px; border-radius:50%; border:1.5px solid var(--son); display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="close" size="24" color="var(--son)" hint-size="24px,24px"></x-import>
+            </div>
+            <div style="font-family:var(--font-display); font-size:22px; color:var(--text-heading); margin-bottom:8px;">Thanh toán không thành công</div>
+            <div style="font-size:14.5px; color:var(--text-muted); max-width:380px; margin-bottom:28px;">Ngân hàng hoặc cổng thanh toán đã từ chối giao dịch cho đơn hàng {{ orderCode }}. Bạn chưa bị trừ tiền. Vui lòng thử lại hoặc chọn phương thức khác.</div>
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" style="width:100%; max-width:360px;" onClick="{{ retryToAwaiting }}" hint-size="360px,48px">Thanh toán {{ price }}</x-import>
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="link" style="margin-top:14px;" hint-size="auto,20px">Chọn phương thức khác</x-import>
+          </div>
+        </sc-if>
+
+        <!-- STATE: QR expired -->
+        <sc-if value="{{ isExpired }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; gap:28px; flex-wrap:wrap;">
+            <div style="flex:none; position:relative;">
+              <div style="width:188px; height:188px; border-radius:var(--radius-md); background:var(--pearl-50); padding:10px; display:grid; grid-template-columns:repeat(11,1fr); grid-template-rows:repeat(11,1fr); gap:2px; opacity:0.25;">
+                <sc-for list="{{ qrCells }}" as="cell" hint-placeholder-count="121">
+                  <div style="background:{{ cell.color }}; border-radius:1px;"></div>
+                </sc-for>
+              </div>
+              <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+                <span style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.05em; color:var(--text-heading); background:var(--surface-panel); border:1px solid var(--border-hairline); border-radius:var(--radius-sm); padding:6px 10px;">ĐÃ HẾT HẠN</span>
+              </div>
+            </div>
+            <div style="flex:1; min-width:220px; display:flex; flex-direction:column; justify-content:center;">
+              <div style="font-family:var(--font-display); font-size:20px; color:var(--text-heading); margin-bottom:8px;">Mã QR đã hết hạn</div>
+              <div style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">Mã QR cho đơn hàng {{ orderCode }} chỉ có hiệu lực trong thời gian giới hạn. Bạn chưa bị trừ tiền. Tạo mã mới để tiếp tục thanh toán {{ price }}.</div>
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" style="width:100%; max-width:280px;" onClick="{{ retryToAwaiting }}" hint-size="280px,48px">Tạo mã QR mới</x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- STATE: paid but not confirmed -->
+        <sc-if value="{{ isUnconfirmed }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:16px 8px 24px;">
+              <div style="width:56px; height:56px; border-radius:50%; border:1.5px solid var(--gold-500); display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="clock" size="24" color="var(--gold-400)" hint-size="24px,24px"></x-import>
+              </div>
+              <div style="font-family:var(--font-display); font-size:20px; color:var(--text-heading); margin-bottom:8px;">Đang chờ xác nhận từ hệ thống</div>
+              <div style="font-size:14.5px; color:var(--text-muted); max-width:400px; margin-bottom:8px;">Chúng tôi ghi nhận bạn đã quay lại từ ứng dụng ngân hàng, nhưng chưa nhận được xác nhận thanh toán cho đơn hàng {{ orderCode }}. Đây chưa phải là xác nhận thành công.</div>
+              <div style="font-size:13px; color:var(--text-faint); max-width:400px; margin-bottom:24px;">Xác nhận thường có trong vài phút. Vui lòng không thanh toán lại.</div>
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" style="width:100%; max-width:300px;" hint-size="300px,48px">
+                <span style="display:flex; align-items:center; gap:8px;">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="refresh-off" size="16" color="var(--surface-deep)" hint-size="16px,16px"></x-import>
+                  Kiểm tra lại trạng thái
+                </span>
+              </x-import>
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="link" style="margin-top:14px;" hint-size="auto,20px">Liên hệ hỗ trợ</x-import>
+            </div>
+            <div style="border-top:1px solid var(--border-hairline); padding-top:16px;">
+              <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" num="01" question="Tôi đã chuyển tiền, bao lâu thì được xác nhận?" answer="Xác nhận thanh toán thường có trong vài phút sau khi ngân hàng xử lý giao dịch. Nếu sau 30 phút vẫn chưa thấy xác nhận, vui lòng liên hệ hỗ trợ kèm mã đơn hàng — không cần thanh toán lại." open="{{ faqOpen }}" onToggle="{{ toggleFaq }}" hint-size="100%,60px"></x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- STATE: generating report -->
+        <sc-if value="{{ isGeneratingReport }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:48px 16px;">
+            <div class="ls-spin" style="width:36px; height:36px; border-radius:50%; border:3px solid var(--border-hairline); border-top-color:var(--accent-gold); animation:ls-spin 900ms linear infinite; margin-bottom:20px;"></div>
+            <div style="font-family:var(--font-display); font-size:19px; color:var(--text-heading); margin-bottom:8px;">Thanh toán đã được xác nhận</div>
+            <div style="font-size:14px; color:var(--text-muted); max-width:380px; margin-bottom:4px;">Đang tạo báo cáo cho đơn hàng {{ orderCode }}. Thời gian dự kiến khoảng 1–2 phút.</div>
+            <div style="font-size:13px; color:var(--text-faint); max-width:380px;">Bạn sẽ được chuyển đến báo cáo ngay khi hoàn tất. Có thể an tâm rời trang — chúng tôi sẽ gửi liên kết qua email.</div>
+          </div>
+        </sc-if>
+
+      </section>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline); background:var(--surface-canvas); padding:24px; margin-top:24px;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:center; gap:24px; flex-wrap:wrap; font-family:var(--font-mono); font-size:12px; color:var(--text-faint);">
+      <span>© Lá Số Việt</span>
+      <a href="#" style-hover="color:var(--accent-gold);" style-focus="outline:2px solid var(--accent-gold);" style="color:var(--text-faint); text-decoration:none;">Điều khoản</a>
+      <a href="#" style-hover="color:var(--accent-gold);" style-focus="outline:2px solid var(--accent-gold);" style="color:var(--text-faint); text-decoration:none;">Bảo mật</a>
+      <a href="#" style-hover="color:var(--accent-gold);" style-focus="outline:2px solid var(--accent-gold);" style="color:var(--text-faint); text-decoration:none;">Hỗ trợ</a>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STATES = [
+  { id: 'dang-tao-don', label: 'Đang tạo đơn' },
+  { id: 'cho-thanh-toan', label: 'Chờ thanh toán' },
+  { id: 'thanh-cong', label: 'Thành công' },
+  { id: 'that-bai', label: 'Thất bại' },
+  { id: 'qr-het-han', label: 'QR hết hạn' },
+  { id: 'chua-xac-nhan', label: 'Đã trả, chưa xác nhận' },
+  { id: 'dang-tao-bao-cao', label: 'Đang tạo báo cáo' }
+];
+
+const EWALLETS = ['MoMo', 'ZaloPay', 'ShopeePay'];
+
+function seededCells(seed) {
+  const cells = [];
+  let s = seed;
+  for (let i = 0; i < 121; i++) {
+    s = (s * 9301 + 49297) % 233280;
+    const on = (s / 233280) > 0.52;
+    cells.push({ color: on ? 'var(--lacquer-900)' : 'var(--pearl-50)' });
+  }
+  return cells;
+}
+
+class Component extends DCLogic {
+  state = {
+    view: 'cho-thanh-toan',
+    method: 'vietqr',
+    agreeTerms: false,
+    marketingOptIn: false,
+    faqOpen: true
+  };
+
+  tabStyle(active) {
+    return {
+      background: active ? 'var(--surface-canvas)' : 'none',
+      border: '1px solid ' + (active ? 'var(--accent-gold)' : 'var(--border-hairline)'),
+      borderRadius: 'var(--radius-sm)',
+      color: active ? 'var(--text-heading)' : 'var(--text-muted)',
+      fontSize: 14,
+      fontWeight: 500,
+      padding: '10px 18px',
+      cursor: 'pointer',
+      minHeight: 44
+    };
+  }
+
+  chipStyle(active) {
+    return {
+      background: active ? 'var(--surface-panel)' : 'none',
+      border: '1px solid ' + (active ? 'var(--accent-gold)' : 'var(--border-hairline)'),
+      borderRadius: 'var(--radius-pill)',
+      color: active ? 'var(--gold-400)' : 'var(--text-faint)',
+      fontFamily: 'var(--font-mono)',
+      fontSize: 12,
+      padding: '7px 14px',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap'
+    };
+  }
+
+  renderVals() {
+    const v = this.state.view;
+    const cells = seededCells(42);
+    return {
+      reportTitle: 'Luận giải trọn đời — bản đầy đủ',
+      profileLine: 'Nguyễn Văn A · Nam · 14/03/1998 · 07:20 · Hà Nội',
+      price: '79.000 ₫',
+      orderCode: 'LSV-2K9F7Q',
+      confirmedAt: '02/09/2026 · 09:41',
+      qrExpiryTime: '10:15',
+      recipientName: 'CTY TNHH LÁ SỐ VIỆT',
+      recipientAccount: '0071 0004 8821 · Vietcombank',
+      backArrowStyle: { transform: 'rotate(180deg)' },
+      noop: () => {},
+
+      isCreating: v === 'dang-tao-don',
+      isAwaiting: v === 'cho-thanh-toan',
+      isSuccess: v === 'thanh-cong',
+      isFailed: v === 'that-bai',
+      isExpired: v === 'qr-het-han',
+      isUnconfirmed: v === 'chua-xac-nhan',
+      isGeneratingReport: v === 'dang-tao-bao-cao',
+
+      stateDefs: STATES.map(s => ({
+        label: s.label,
+        chipStyle: this.chipStyle(s.id === v),
+        onSelect: () => this.setState({ view: s.id })
+      })),
+
+      methodIsVietqr: this.state.method === 'vietqr',
+      methodIsCard: this.state.method === 'card',
+      methodIsEwallet: this.state.method === 'ewallet',
+      selectVietqr: () => this.setState({ method: 'vietqr' }),
+      selectCard: () => this.setState({ method: 'card' }),
+      selectEwallet: () => this.setState({ method: 'ewallet' }),
+      tabVietqrStyle: this.tabStyle(this.state.method === 'vietqr'),
+      tabCardStyle: this.tabStyle(this.state.method === 'card'),
+      tabEwalletStyle: this.tabStyle(this.state.method === 'ewallet'),
+      ewallets: EWALLETS.map(name => ({ name })),
+
+      qrCells: cells,
+
+      agreeTerms: this.state.agreeTerms,
+      marketingOptIn: this.state.marketingOptIn,
+      toggleAgree: () => this.setState(s => ({ agreeTerms: !s.agreeTerms })),
+      toggleMarketing: () => this.setState(s => ({ marketingOptIn: !s.marketingOptIn })),
+      payDisabled: !this.state.agreeTerms,
+      payButtonStyle: { width: '100%', opacity: this.state.agreeTerms ? 1 : 0.45, cursor: this.state.agreeTerms ? 'pointer' : 'not-allowed' },
+
+      faqOpen: this.state.faqOpen,
+      toggleFaq: () => this.setState(s => ({ faqOpen: !s.faqOpen })),
+
+      retryToAwaiting: () => this.setState({ view: 'cho-thanh-toan' })
+    };
+  }
+}
+</script>
+</body>
+</html>
