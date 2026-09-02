@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { PublicContentV1Schema, type RouteDefinitionV1 } from "@lasoviet/contracts";
@@ -83,10 +83,23 @@ export type GateOnePublicContent = {
   get(routeId: string, locale: ContentLocale): GateOneDocument;
 };
 
-const unsafeCopy = /todo|tbd|placeholder|lorem ipsum|guaranteed|certified expert|limited time|countdown|testimonial|99%\s*accurate|fear|urgent|khan cap|chuyen gia duoc chung nhan|cam ket ket qua/iu;
+const unsafeCopy = /todo|tbd|placeholder|lorem ipsum|guaranteed|certified expert|limited time|countdown|testimonial|customer review|99%\s*accurate|fear|urgent|khan cap|chuyen gia duoc chung nhan|cam ket ket qua|dam bao ket qua|bao dam ket qua|loi chung thuc khach hang|danh gia khach hang|phan hoi khach hang/iu;
 const routeLink = /\]\(route:([a-z0-9.-]+)\)/g;
-const viContamination = /\b(the|this|build|sources|practical boundary|related reading|next steps)\b/iu;
-const enContamination = /[àáảãạăâđêôơư]/iu;
+const mojibake = /\uFFFD|(?:Ã.|Â.|â[€™“”–])/u;
+const englishWords = new Set([
+  "an", "and", "are", "as", "boundary", "but", "choices", "colleagues",
+  "comparing", "describing", "detailed", "discussing", "english", "explains",
+  "familiar", "for", "from", "has", "in", "is", "many", "multiple",
+  "narrative", "observations", "of", "ordinary", "paragraph", "practical",
+  "several", "situations", "that", "the", "this", "to", "unfamiliar", "uses",
+  "with", "words", "workshop", "wrote",
+]);
+const vietnameseWords = new Set([
+  "anh", "bai", "cach", "chen", "cua", "day", "de", "doan", "du", "duoc",
+  "duong", "dung", "giai", "gioi", "han", "kiem", "khong", "la", "lieu",
+  "ma", "mot", "nguoi", "noi", "phai", "phap", "phuong", "thich", "tieng",
+  "tra", "tu", "van", "vao", "viet",
+]);
 
 function invalid(message: string): never {
   throw new Error(`PUBLIC_CONTENT_INVALID: ${message}`);
@@ -149,6 +162,69 @@ function links(body: string): string[] {
   return [...body.matchAll(routeLink)].map((match) => match[1] ?? "");
 }
 
+function fold(value: string): string {
+  return value.normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replaceAll("đ", "d")
+    .replaceAll("Đ", "D")
+    .toLowerCase();
+}
+
+function proseSegments(value: string): string[] {
+  return value.split(/\r?\n\s*\r?\n/u).map((segment) =>
+    segment.replace(/\]\(route:[a-z0-9.-]+\)/gu, "]").trim(),
+  ).filter((segment) => segment.length >= 40 && !segment.startsWith("#"));
+}
+
+function sustained(segment: string, dictionary: Set<string>): boolean {
+  const words = fold(segment).match(/\p{L}+/gu) ?? [];
+  return words.filter((word) => dictionary.has(word)).length >= 6;
+}
+
+function assertLocaleIntegrity(locale: ContentLocale, body: string): void {
+  if (mojibake.test(body)) invalid("text corruption");
+  for (const segment of proseSegments(body)) {
+    if (locale === "vi" && (
+      sustained(segment, englishWords) ||
+      (/^[\x00-\x7F]+$/u.test(segment) && sustained(segment, vietnameseWords))
+    )) invalid("locale contamination");
+    if (locale === "en" && sustained(segment, vietnameseWords)) {
+      invalid("locale contamination");
+    }
+  }
+}
+
+function hasUnsafeCopy(value: string): boolean {
+  return unsafeCopy.test(fold(value));
+}
+
+export function assertRepositorySourcePath(repoRoot: string, sourcePath: string): string {
+  if (
+    sourcePath.includes("\0") ||
+    /^(?:[a-z]:|[\\/])/iu.test(sourcePath) ||
+    sourcePath.split(/[\\/]+/u).includes("..")
+  ) invalid("invalid source path");
+  let canonicalRoot: string;
+  let canonicalSource: string;
+  try {
+    canonicalRoot = realpathSync(repoRoot);
+    const candidate = resolve(canonicalRoot, sourcePath);
+    if (!existsSync(candidate)) invalid("invalid source path");
+    canonicalSource = realpathSync(candidate);
+  } catch {
+    return invalid("invalid source path");
+  }
+  const relativePath = relative(canonicalRoot, canonicalSource);
+  if (
+    relativePath === "" ||
+    isAbsolute(relativePath) ||
+    relativePath === ".." ||
+    relativePath.startsWith(`..${sep}`) ||
+    relativePath.startsWith("../")
+  ) invalid("invalid source path");
+  return canonicalSource;
+}
+
 function sameMembers(left: string[], right: string[]): boolean {
   return left.length === right.length && left.every((item) => right.includes(item));
 }
@@ -179,9 +255,9 @@ function validateDocument(
   if (frontmatter.contentType !== metadata.contentType || frontmatter.title !== metadata.title || frontmatter.summary !== metadata.summary || frontmatter.status !== metadata.status || frontmatter.lastReviewed !== metadata.lastReviewed) invalid(`metadata mismatch ${frontmatter.routeId}`);
   if (!reviewers.has(frontmatter.authorId) || frontmatter.reviewerIds.some((id) => !reviewers.has(id))) invalid(`unknown reviewer ${frontmatter.routeId}`);
   if (frontmatter.sourceIds.some((id) => !sources.has(id))) invalid(`unknown source ${frontmatter.routeId}`);
-  if (unsafeCopy.test(`${JSON.stringify(frontmatter)}\n${body}`)) invalid(`unsafe copy ${frontmatter.routeId}`);
+  if (hasUnsafeCopy(`${JSON.stringify(frontmatter)}\n${body}`)) invalid(`unsafe copy ${frontmatter.routeId}`);
   if (body.length < (document.kind === "article" ? 850 : 360)) invalid(`thin document ${frontmatter.routeId}`);
-  if ((frontmatter.locale === "vi" && viContamination.test(body)) || (frontmatter.locale === "en" && enContamination.test(body))) invalid(`locale contamination ${frontmatter.routeId}`);
+  assertLocaleIntegrity(frontmatter.locale, body);
   const bodyLinks = [...new Set(links(body))];
   if (!sameMembers([...new Set(frontmatter.relatedRouteIds)], bodyLinks)) invalid(`link parity ${frontmatter.routeId}`);
   if (bodyLinks.some((id) => !isPublicRoute(routeById.get(id)))) invalid(`non-public link ${frontmatter.routeId}`);
@@ -247,10 +323,7 @@ export function loadGateOnePublicContent(root = fileURLToPath(new URL("../../../
   const sourceRegistry = parse(sourceRegistrySchema, readJson(join(root, "sources.yml")), "invalid source registry");
   if (new Set(reviewerRegistry.reviewers.map((reviewer) => reviewer.id)).size !== reviewerRegistry.reviewers.length) invalid("duplicate reviewer");
   if (new Set(sourceRegistry.sources.map((source) => source.id)).size !== sourceRegistry.sources.length) invalid("duplicate source");
-  if (sourceRegistry.sources.some((source) => {
-    const path = resolve(repoRoot, source.path);
-    return relative(repoRoot, path).startsWith("..") || !existsSync(path);
-  })) invalid("invalid source path");
+  for (const source of sourceRegistry.sources) assertRepositorySourcePath(repoRoot, source.path);
   return validateGateOnePublicContent({
     documents: documentFiles(root).map(parseDocument),
     reviewers: new Set(reviewerRegistry.reviewers.map((reviewer) => reviewer.id)),

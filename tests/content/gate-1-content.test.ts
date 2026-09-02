@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  assertRepositorySourcePath,
   loadGateOnePublicContent,
   routeRegistry,
   validateGateOnePublicContent,
@@ -174,5 +175,76 @@ describe("Gate 1 public content", () => {
         ),
       }),
     ).toThrow(/PUBLIC_CONTENT_INVALID/);
+  });
+
+  it("rejects locale corruption and localized unsafe publication copy", () => {
+    const content = loadGateOnePublicContent();
+    const viDocument = content.get("knowledge.tu-vi.definition", "vi");
+    const enDocument = content.get("knowledge.tu-vi.definition", "en");
+    const withBody = (document: typeof viDocument, body: string) => ({
+      ...content,
+      documents: content.documents.map((item) =>
+        item === document ? { ...item, body: `${item.body}\n\n${body}` } : item,
+      ),
+    });
+
+    for (const body of [
+      "An ordinary English paragraph uses many familiar words and explains a local publication boundary without any special heading or route label.",
+      "Several colleagues wrote a detailed English narrative describing an unfamiliar workshop, discussing practical observations, and comparing ordinary choices across multiple situations.",
+      "Day la mot doan van tieng Viet khong dau duoc chen vao noi dung de mo phong loi ma hoa va phai bi tu choi.",
+      "Nguoi dung viet mot doan tieng Viet khong dau de giai thich cach kiem tra du lieu va gioi han cua phuong phap.",
+      "Ná»™i dung b�� l��i mÃ£ hÃ³a.",
+    ]) {
+      expect(() => validateGateOnePublicContent(withBody(viDocument, body))).toThrow(
+        /PUBLIC_CONTENT_INVALID/,
+      );
+    }
+
+    for (const body of [
+      "Chuyên gia được chứng nhận",
+      "Đánh giá khách hàng",
+      "Lời chứng thực khách hàng",
+    ]) {
+      expect(() => validateGateOnePublicContent(withBody(viDocument, body))).toThrow(
+        /PUBLIC_CONTENT_INVALID/,
+      );
+    }
+
+    expect(() =>
+      validateGateOnePublicContent(withBody(
+        viDocument,
+        "Several colleagues wrote a detailed English narrative describing an unfamiliar workshop, discussing practical observations, and comparing ordinary choices across multiple situations. [Xem công cụ](route:calculator.tu-vi)",
+      )),
+    ).toThrow(/PUBLIC_CONTENT_INVALID/);
+
+    expect(() =>
+      validateGateOnePublicContent(withBody(
+        enDocument,
+        "Day la mot doan van tieng Viet khong dau duoc chen vao noi dung tieng Anh va phai bi tu choi.",
+      )),
+    ).toThrow(/PUBLIC_CONTENT_INVALID/);
+    expect(() =>
+      validateGateOnePublicContent(withBody(
+        enDocument,
+        "Nguoi dung viet mot doan tieng Viet khong dau de giai thich cach kiem tra du lieu va gioi han cua phuong phap. [Open tool](route:calculator.tu-vi)",
+      )),
+    ).toThrow(/PUBLIC_CONTENT_INVALID/);
+  });
+
+  it("rejects source paths that escape the repository boundary", () => {
+    const repositoryRoot = process.cwd();
+
+    for (const sourcePath of [
+      "../outside.md",
+      "/etc/passwd",
+      "\\Windows\\win.ini",
+      "C:\\Windows\\win.ini",
+      "C:relative\\source.md",
+      "\\\\server\\share\\source.md",
+    ]) {
+      expect(() => assertRepositorySourcePath(repositoryRoot, sourcePath)).toThrow(
+        /PUBLIC_CONTENT_INVALID/,
+      );
+    }
   });
 });

@@ -31,6 +31,7 @@ export type {
 } from "./route-registry.js";
 
 export {
+  assertRepositorySourcePath,
   loadGateOnePublicContent,
   validateGateOnePublicContent,
 } from "./gate-one-public-content.js";
