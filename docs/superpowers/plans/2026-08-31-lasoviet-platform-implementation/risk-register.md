@@ -59,10 +59,10 @@ binds the application root to the exact reviewed `iztro` dependency.
 ## P04 AI Foundation Evidence (2026-09-02)
 
 - R-04 and R-05 now have first-layer deterministic controls: strict report
-  schema, evidence-ID validation, prohibited-category rejection, Vietnamese
-  language checks, professional-advice disclaimer enforcement, and an LLM
-  critic threshold. Full frozen-fact coverage and internal report QA remain
-  required before release.
+  schema, production-shaped frozen facts, evidence-ID/bound/confidence/action
+  validation, prohibited-category rejection, rendered-text locale/corruption
+  checks, a server-owned professional-advice disclaimer, and an LLM critic
+  threshold. Full internal report QA remains required before release.
 - R-06 remains open. The raw-`fetch` adapter has bounded timeout/retry behavior
   and a real no-PII capability smoke, but durable worker retry and persisted
   report state remain with P04-T03/P04-T05 integration.
@@ -71,6 +71,9 @@ binds the application root to the exact reviewed `iztro` dependency.
   subprocessors, access controls, deletion, and incident terms remain pending.
 - R-14 retains its release-blocking classification. Credentials remain only in
   ignored local environment state and were not committed or logged.
+- Sol's final scoped review found zero open Critical or Important checkpoint
+  findings after the rendered-whitespace correction. This does not change the
+  deferred release effects above.
 
 ## Review Protocol
 

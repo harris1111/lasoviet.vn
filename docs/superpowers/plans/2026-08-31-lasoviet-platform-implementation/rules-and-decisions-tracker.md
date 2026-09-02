@@ -96,12 +96,19 @@ Date: 2026-09-02
 - The current milestone owns pure AI/report contracts and services only.
   Queue, persistence, private report UI, PDF events, and knowledge retrieval
   remain with their existing Phase 04 tasks.
-- Fresh implementation evidence passed 8 focused files with 19 tests,
-  contracts/config builds, backend typecheck, backend build, and one controlled
-  synthetic endpoint smoke. Commits `45119e4` and `ba74b4a` contain the
-  foundation and canonical-model-identity correction.
+- Final implementation evidence passed 10 AI/report files with 37 tests and 14
+  dependent files with 52 tests, focused ESLint, contracts/config builds,
+  backend typecheck/build, and one controlled synthetic endpoint smoke.
+  Commit range `45119e4..8ec6442` contains the foundation and reviewed
+  corrections.
+- Sol's final scoped review approved the checkpoint with zero open Critical or
+  Important findings. P04-T05 remains incomplete only for its explicitly
+  deferred privacy, worker, knowledge, persistence, duplicate-job, and PDF-event
+  dependencies.
 - Rule candidate: none. The existing privacy gate and R-24 already cover the
-  reusable behavior. Open questions: provider privacy terms remain pending.
+  reusable behavior; strict source-snapshot and locale-integrity rules already
+  cover the implementation lessons. Open questions: provider privacy terms
+  remain pending.
 
 ## P03 Non-Visual Slice 1 Evidence
 
