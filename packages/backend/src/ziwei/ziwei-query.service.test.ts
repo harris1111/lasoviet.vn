@@ -57,6 +57,7 @@ const items = ["life-palace", "body-palace", "transformations"].map((name) => ({
   factReferences: ["fact-1"],
   confidence: "high" as const,
   interpretationBounds: ["bound-1"],
+  interpretationBoundCodes: ["reflective_identity_only"],
   limitations: ["limit-1"],
   riskTags: ["identity" as const],
   allowedActionCategories: ["reflect" as const],

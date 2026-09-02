@@ -1,23 +1,18 @@
 import {
+  IdentityReportContentV1Schema,
   IdentityReportV1Schema,
-  type EvidenceSetV1,
-  type IdentityReportV1,
 } from "@lasoviet/contracts";
 
 import type { AiProvider } from "../ai/ai-provider.js";
 import { identityReportOutline } from "./identity-report-outline.js";
+import {
+  boundedKnowledge,
+  isBoundIdentityReportSource,
+  type IdentityReportSource,
+} from "./report-source.js";
 
-export type ApprovedKnowledgePassage = {
-  id: string;
-  content: string;
-};
-
-export type IdentityReportWriterInput = {
-  chartVersionId: string;
-  evidence: EvidenceSetV1;
-  knowledgePassages: readonly ApprovedKnowledgePassage[];
+export type IdentityReportWriterInput = IdentityReportSource & {
   provenance: {
-    evidenceVersion: number;
     knowledgeVersion: string;
     promptVersion: string;
     templateVersion: string;
@@ -26,31 +21,49 @@ export type IdentityReportWriterInput = {
 };
 
 export async function writeIdentityReportDraft(input: IdentityReportWriterInput) {
-  const knowledge = input.knowledgePassages.slice(0, 8).map((passage) => ({
-    id: passage.id,
-    content: passage.content.slice(0, 1_200),
-  }));
+  if (!isBoundIdentityReportSource(input)) {
+    return { ok: false as const, error: { code: "REPORT_EVIDENCE_INVALID", retryable: false } };
+  }
+  const knowledge = boundedKnowledge(input.knowledgePassages);
   const result = await input.provider.generateStructured({
-    schema: IdentityReportV1Schema,
-    schemaName: "identity_report_v1",
+    schema: IdentityReportContentV1Schema,
+    schemaName: "identity_report_content_v1",
     system: "Interpret supplied evidence only. Do not calculate chart facts or invent evidence.",
     user: JSON.stringify({
-      chartVersionId: input.chartVersionId,
       evidence: input.evidence.items,
+      frozenFacts: input.frozenFacts.facts,
       knowledge,
-      provenance: input.provenance,
       outline: identityReportOutline,
     }),
     use: "production_report_generation",
     maxOutputTokens: 4_000,
   });
   if (!result.ok) return result;
-  const report: IdentityReportV1 = result.value.value;
+  const assembled = IdentityReportV1Schema.safeParse({
+    version: 1,
+    sku: "ZIWEI-IDENTITY-P0",
+    capabilityId: "ziwei.identity.p0",
+    locale: "vi",
+    provenance: {
+      chartVersionId: input.frozenFacts.chartVersionId,
+      ruleVersion: input.evidence.ruleVersion,
+      evidenceVersion: input.frozenFacts.evidenceVersion,
+      knowledgeVersion: input.provenance.knowledgeVersion,
+      providerId: result.value.providerId,
+      modelId: result.value.modelId,
+      promptVersion: input.provenance.promptVersion,
+      templateVersion: input.provenance.templateVersion,
+    },
+    ...result.value.value,
+  });
+  if (!assembled.success) {
+    return { ok: false as const, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+  }
   return {
     ok: true as const,
     value: {
       status: "draft" as const,
-      report,
+      report: assembled.data,
       providerId: result.value.providerId,
       modelId: result.value.modelId,
     },

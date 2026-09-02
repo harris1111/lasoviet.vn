@@ -1,17 +1,24 @@
 import { z } from "zod";
 
 const evidenceKey = z.string().regex(/^ziwei\.identity\.[a-z0-9-]+$/);
+export const EvidenceInterpretationBoundCodeSchema = z.enum([
+  "reflective_identity_only",
+]);
+export const EvidenceActionCategorySchema = z.enum([
+  "reflect",
+  "explore",
+  "discuss-with-support",
+]);
 
 export const EvidenceItemV1Schema = z.object({
   id: evidenceKey,
   factReferences: z.array(z.string().min(1)).min(1),
   confidence: z.enum(["high", "moderate"]),
   interpretationBounds: z.array(z.string().min(1)).min(1),
+  interpretationBoundCodes: z.array(EvidenceInterpretationBoundCodeSchema).min(1),
   limitations: z.array(z.string().min(1)).min(1),
   riskTags: z.array(z.enum(["identity", "determinism", "birth-time"])).min(1),
-  allowedActionCategories: z.array(
-    z.enum(["reflect", "explore", "discuss-with-support"]),
-  ).min(1),
+  allowedActionCategories: z.array(EvidenceActionCategorySchema).min(1),
 }).strict();
 
 export const EvidenceSetV1Schema = z.object({

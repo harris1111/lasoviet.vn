@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { IdentityReportV1Schema, IDENTITY_REPORT_SECTION_IDS } from "./identity-report-v1.js";
+import {
+  IdentityReportContentV1Schema,
+  IdentityReportV1Schema,
+  IDENTITY_REPORT_SECTION_IDS,
+} from "./identity-report-v1.js";
 
 const sectionIds = [
   "personal_summary",
@@ -34,26 +38,30 @@ function report() {
     },
     sections: sectionIds.map((id, index) => ({
       id,
-      title: `Muc ${index + 1}`,
-      narrative: "Ban can quan sat va dieu chinh theo cach phu hop.",
+      title: `Mục ${index + 1}`,
+      narrative: "Bạn cần quan sát và điều chỉnh theo cách phù hợp.",
       claims: id === "data_and_method" || id === "reflection_questions" || id === "action_summary" || id === "limitations_and_disclaimer"
         ? []
         : [{
           id: `claim-${index + 1}`,
-          text: "Ban co the xem day la mot goi y de tu phan chieu.",
+          text: "Bạn có thể xem đây là một gợi ý để tự phản chiếu.",
           evidenceIds: ["ziwei.identity.life-palace"],
+          interpretationBoundCode: "reflective_identity_only",
           confidence: "moderate",
-          limitations: ["Phu thuoc vao gio sinh va pham vi bang chung."],
-          suggestedActions: ["Ghi lai quan sat cua ban trong mot vai tuan."],
+          limitations: ["Phụ thuộc vào giờ sinh và phạm vi bằng chứng."],
+          suggestedActions: [{
+            category: "reflect",
+            text: "Ghi lại quan sát của bạn trong một vài tuần.",
+          }],
         }],
     })),
     reflectionQuestions: [
-      "Dieu gi dang giup ban duy tri su can bang?",
-      "Moi truong nao giup ban phat huy the manh?",
-      "Ban muon dieu chinh dieu gi trong thang toi?",
+      "Điều gì đang giúp bạn duy trì sự cân bằng?",
+      "Môi trường nào giúp bạn phát huy thế mạnh?",
+      "Bạn muốn điều chỉnh điều gì trong tháng tới?",
     ],
-    summaryActions: ["Chon mot buoc nho va theo doi ket qua."],
-    professionalAdviceDisclaimer: "Noi dung chi mang tinh tham khao va khong thay the y kien cua chuyen gia y te, tam ly, phap ly, tai chinh.",
+    summaryActions: ["Chọn một bước nhỏ và theo dõi kết quả."],
+    professionalAdviceDisclaimer: "Nội dung không thay thế tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc chuyên môn được cấp phép.",
   };
 }
 
@@ -82,6 +90,19 @@ describe("identity report v1 contract", () => {
     expect(IdentityReportV1Schema.safeParse({
       ...report(),
       professionalAdviceDisclaimer: "Nội dung chỉ mang tính tham khảo.",
+    }).success).toBe(false);
+    expect(IdentityReportV1Schema.safeParse({
+      ...report(),
+      professionalAdviceDisclaimer: "Chuyên gia viết nội dung này.",
+    }).success).toBe(false);
+  });
+
+  it("keeps immutable provenance out of model-authored report content", () => {
+    const { provenance: _provenance, version: _version, sku: _sku, capabilityId: _capabilityId, locale: _locale, ...content } = report();
+    expect(IdentityReportContentV1Schema.safeParse(content).success).toBe(true);
+    expect(IdentityReportContentV1Schema.safeParse({
+      ...content,
+      provenance: report().provenance,
     }).success).toBe(false);
   });
 });

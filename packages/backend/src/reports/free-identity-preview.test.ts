@@ -10,6 +10,7 @@ const item = (id: string) => ({
   factReferences: [`fact.${id}`],
   confidence: "high" as const,
   interpretationBounds: ["identity-only"],
+  interpretationBoundCodes: ["reflective_identity_only"],
   limitations: ["birth-time-dependent"],
   riskTags: ["identity" as const],
   allowedActionCategories: ["reflect" as const],

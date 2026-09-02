@@ -1,8 +1,13 @@
 import {
   IdentityReportV1Schema,
-  type EvidenceItemV1,
   type IdentityReportV1,
 } from "@lasoviet/contracts";
+
+import { identityReportOutline } from "./identity-report-outline.js";
+import {
+  isBoundIdentityReportSource,
+  type IdentityReportSource,
+} from "./report-source.js";
 
 export type ReportValidationFinding = {
   code:
@@ -28,33 +33,69 @@ const prohibited = [
 ];
 
 function isVietnamese(text: string): boolean {
-  return !text.includes("\uFFFD") && /[àáảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵ]/i.test(text);
+  const normalized = text.normalize("NFC");
+  return !normalized.includes("\uFFFD") &&
+    !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(normalized) &&
+    /[àáảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵ]/i.test(normalized);
+}
+
+function confidenceRank(value: "high" | "moderate" | "low"): number {
+  return { low: 1, moderate: 2, high: 3 }[value];
+}
+
+function textFindings(
+  text: string,
+  finding: Omit<ReportValidationFinding, "code">,
+): ReportValidationFinding[] {
+  const normalized = text.normalize("NFC");
+  const findings: ReportValidationFinding[] = [];
+  if (!isVietnamese(normalized)) findings.push({ ...finding, code: "REPORT_LANGUAGE_INVALID" });
+  if (prohibited.some((pattern) => pattern.test(normalized))) {
+    findings.push({ ...finding, code: "REPORT_SAFETY_REJECTED" });
+  }
+  return findings;
 }
 
 export function validateIdentityReport(
   candidate: unknown,
-  evidence: readonly EvidenceItemV1[],
+  source: IdentityReportSource,
 ): ReportValidationResult {
   const parsed = IdentityReportV1Schema.safeParse(candidate);
   if (!parsed.success) return { ok: false, findings: [{ code: "REPORT_SCHEMA_INVALID" }] };
+  if (!isBoundIdentityReportSource(source)) {
+    return { ok: false, findings: [{ code: "REPORT_EVIDENCE_INVALID" }] };
+  }
   const report = parsed.data;
-  const allowedEvidenceIds = new Set(evidence.map((item) => item.id));
+  const evidenceById = new Map(source.evidence.items.map((item) => [item.id, item]));
   const findings: ReportValidationFinding[] = [];
   for (const section of report.sections) {
+    findings.push(...textFindings(section.title, { sectionId: section.id }));
+    findings.push(...textFindings(section.narrative, { sectionId: section.id }));
+    const outline = identityReportOutline.find((item) => item.id === section.id);
+    if (outline?.requiresEvidenceBackedClaims && section.claims.length === 0) {
+      findings.push({ code: "REPORT_EVIDENCE_INVALID", sectionId: section.id });
+    }
     for (const claim of section.claims) {
-      if (!claim.evidenceIds.every((id) => allowedEvidenceIds.has(id))) {
+      const linkedEvidence = claim.evidenceIds.map((id) => evidenceById.get(id));
+      if (linkedEvidence.some((item) => item === undefined)) {
+        findings.push({ code: "REPORT_EVIDENCE_INVALID", sectionId: section.id, claimId: claim.id, evidenceIds: claim.evidenceIds });
+        continue;
+      }
+      const evidence = linkedEvidence as typeof source.evidence.items;
+      if (
+        !evidence.every((item) => item.interpretationBoundCodes.includes(claim.interpretationBoundCode)) ||
+        confidenceRank(claim.confidence) > Math.min(...evidence.map((item) => confidenceRank(item.confidence))) ||
+        !claim.suggestedActions.every((action) => evidence.every((item) => item.allowedActionCategories.includes(action.category)))
+      ) {
         findings.push({ code: "REPORT_EVIDENCE_INVALID", sectionId: section.id, claimId: claim.id, evidenceIds: claim.evidenceIds });
       }
-      if (!isVietnamese(`${claim.text} ${claim.limitations.join(" ")} ${claim.suggestedActions.join(" ")}`)) {
-        findings.push({ code: "REPORT_LANGUAGE_INVALID", sectionId: section.id, claimId: claim.id });
-      }
-      if (prohibited.some((pattern) => pattern.test(`${claim.text} ${claim.suggestedActions.join(" ")}`))) {
-        findings.push({ code: "REPORT_SAFETY_REJECTED", sectionId: section.id, claimId: claim.id, evidenceIds: claim.evidenceIds });
-      }
+      findings.push(...textFindings(claim.text, { sectionId: section.id, claimId: claim.id, evidenceIds: claim.evidenceIds }));
+      claim.limitations.forEach((text) => findings.push(...textFindings(text, { sectionId: section.id, claimId: claim.id, evidenceIds: claim.evidenceIds })));
+      claim.suggestedActions.forEach((action) => findings.push(...textFindings(action.text, { sectionId: section.id, claimId: claim.id, evidenceIds: claim.evidenceIds })));
     }
   }
-  if (!isVietnamese(report.professionalAdviceDisclaimer)) {
-    findings.push({ code: "REPORT_LANGUAGE_INVALID" });
-  }
+  report.reflectionQuestions.forEach((text) => findings.push(...textFindings(text, {})));
+  report.summaryActions.forEach((text) => findings.push(...textFindings(text, {})));
+  findings.push(...textFindings(report.professionalAdviceDisclaimer, {}));
   return findings.length === 0 ? { ok: true, findings: [] } : { ok: false, findings };
 }

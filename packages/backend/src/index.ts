@@ -154,9 +154,12 @@ export type { AiCapabilityResult } from "./ai/capability-probe.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { writeIdentityReportDraft } from "./reports/identity-report-writer.js";
 export type {
-  ApprovedKnowledgePassage,
   IdentityReportWriterInput,
 } from "./reports/identity-report-writer.js";
+export type {
+  ApprovedKnowledgePassage,
+  IdentityReportSource,
+} from "./reports/report-source.js";
 export { validateIdentityReport } from "./reports/report-validator.js";
 export type {
   ReportValidationFinding,

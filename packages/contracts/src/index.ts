@@ -134,15 +134,29 @@ export type {
 
 export { CapabilityDefinitionV1Schema } from "./capability.js";
 export type { CapabilityDefinitionV1 } from "./capability.js";
-export { EvidenceItemV1Schema, EvidenceSetV1Schema } from "./evidence.js";
+export {
+  EvidenceActionCategorySchema,
+  EvidenceInterpretationBoundCodeSchema,
+  EvidenceItemV1Schema,
+  EvidenceSetV1Schema,
+} from "./evidence.js";
 export type { EvidenceItemV1, EvidenceSetV1 } from "./evidence.js";
 
 export {
+  FrozenIdentityReportFactsV1Schema,
+} from "./report-source-snapshot.js";
+export type {
+  FrozenIdentityReportFactsV1,
+} from "./report-source-snapshot.js";
+
+export {
   IDENTITY_REPORT_SECTION_IDS,
+  IdentityReportContentV1Schema,
   IdentityReportV1Schema,
 } from "./identity-report-v1.js";
 export type {
   IdentityReportClaimV1,
+  IdentityReportContentV1,
   IdentityReportSectionId,
   IdentityReportV1,
 } from "./identity-report-v1.js";

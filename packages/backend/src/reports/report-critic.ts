@@ -1,7 +1,8 @@
 import { z, type IdentityReportV1 } from "@lasoviet/contracts";
 
 import type { AiProvider } from "../ai/ai-provider.js";
-import type { ReportValidationResult } from "./report-validator.js";
+import { boundedKnowledge, type IdentityReportSource } from "./report-source.js";
+import { validateIdentityReport } from "./report-validator.js";
 
 const CriticSchema = z.object({
   correctness: z.number().int().min(1).max(5),
@@ -17,9 +18,10 @@ const CriticSchema = z.object({
 
 export async function critiqueIdentityReport(
   report: IdentityReportV1,
-  validation: ReportValidationResult,
+  source: IdentityReportSource,
   provider: AiProvider,
 ) {
+  const validation = validateIdentityReport(report, source);
   if (!validation.ok) {
     return { ok: false as const, error: { code: validation.findings[0]?.code ?? "REPORT_SAFETY_REJECTED", retryable: false } };
   }
@@ -27,7 +29,12 @@ export async function critiqueIdentityReport(
     schema: CriticSchema,
     schemaName: "identity_report_critic_v1",
     system: "Evaluate a Vietnamese evidence-backed report for quality and safety.",
-    user: JSON.stringify({ report }),
+    user: JSON.stringify({
+      report,
+      frozenFacts: source.frozenFacts.facts,
+      evidence: source.evidence.items,
+      knowledge: boundedKnowledge(source.knowledgePassages),
+    }),
     use: "production_report_generation",
     maxOutputTokens: 600,
   });

@@ -113,7 +113,8 @@ export function createOpenAiCompatibleAdapter(
           body,
         }, options.timeoutMs);
         if (result === "timeout") {
-          return failure("AI_TIMEOUT", false);
+          if (attempt < options.retryCount) continue;
+          return failure("AI_TIMEOUT", true);
         }
         if (result === "network") {
           if (attempt < options.retryCount) continue;

@@ -26,6 +26,7 @@ function item(
       "Use only as a reflective identity signal, not a deterministic outcome.",
       "Do not infer health, legal, financial, or relationship outcomes.",
     ],
+    interpretationBoundCodes: ["reflective_identity_only"],
     limitations,
     riskTags: ["identity", "determinism", "birth-time"],
     allowedActionCategories: ["reflect", "explore"],

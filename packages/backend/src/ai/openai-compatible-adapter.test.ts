@@ -110,4 +110,41 @@ describe("OpenAI-compatible adapter", () => {
     });
     await expect(malformed.generateStructured(request)).resolves.toMatchObject({ ok: false, error: { code: "AI_OUTPUT_INVALID" } });
   });
+
+  it("retries a timed-out attempt and returns timeout only after the retry budget is exhausted", async () => {
+    let attempts = 0;
+    const provider = createOpenAiCompatibleAdapter({
+      baseUrl: "https://ai.synthetic.test",
+      apiKey: "not-a-real-secret",
+      modelId: "synthetic-model",
+      timeoutMs: 1,
+      retryCount: 1,
+      productionGate: createAiProductionGate("approved"),
+      fetchImpl: async (_url, init) => {
+        attempts += 1;
+        if (attempts === 2) return jsonResponse(responseBody('{"value":"sentinel"}'));
+        return new Promise((_, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))));
+      },
+    });
+    await expect(provider.generateStructured(request)).resolves.toMatchObject({ ok: true });
+    expect(attempts).toBe(2);
+
+    attempts = 0;
+    const exhausted = createOpenAiCompatibleAdapter({
+      baseUrl: "https://ai.synthetic.test",
+      apiKey: "not-a-real-secret",
+      modelId: "synthetic-model",
+      timeoutMs: 1,
+      retryCount: 1,
+      productionGate: createAiProductionGate("approved"),
+      fetchImpl: async (_url, init) => {
+        attempts += 1;
+        return new Promise((_, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))));
+      },
+    });
+    await expect(exhausted.generateStructured(request)).resolves.toMatchObject({
+      ok: false, error: { code: "AI_TIMEOUT", retryable: true },
+    });
+    expect(attempts).toBe(2);
+  });
 });
