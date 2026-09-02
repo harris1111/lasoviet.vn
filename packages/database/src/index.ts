@@ -15,6 +15,11 @@ export {
   auditLogs,
 } from "./schema/audit.js";
 export {
+  adminAuditLogs,
+  adminCapabilityPolicies,
+  adminRoleAssignments,
+} from "./schema/admin-access.js";
+export {
   notificationDeliveries,
   notificationDeliveryKind,
   notificationDeliveryStatus,

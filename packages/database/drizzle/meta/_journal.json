@@ -43,6 +43,13 @@
       "when": 1788368400000,
       "tag": "0005_immutable_evidence_sets",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788369077145,
+      "tag": "0006_admin_access_controls",
+      "breakpoints": true
     }
   ]
 }

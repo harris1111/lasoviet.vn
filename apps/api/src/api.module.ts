@@ -14,6 +14,10 @@ import {
   createAnalyticsService,
   createAccountDeletionService,
   createAnonymousRetentionService,
+  createAdminAccessService,
+  createAdminAuditService,
+  createDatabaseAdminAccessRepository,
+  createDatabaseAdminAuditRepository,
   createBirthProfileService,
   createConsentService,
   createDatabaseAuthEmailDeliveryStore,
@@ -43,6 +47,13 @@ import {
   BIRTH_PROFILE_SERVICE_SECRET,
   BirthProfileController,
 } from "./birth-profile/birth-profile.controller.js";
+import {
+  ADMIN_ACCESS_DATABASE,
+  ADMIN_ACCESS_SERVICE,
+  ADMIN_ACCESS_SERVICE_SECRET,
+  ADMIN_AUDIT_SERVICE,
+  AdminAccessController,
+} from "./admin-access/admin-access.controller.js";
 import { HealthController } from "./health/health.controller.js";
 import {
   ACCOUNT_DELETION_SERVICE,
@@ -123,6 +134,7 @@ export function createApiAnalyticsSink(
     PrivacyController,
     BirthProfileController,
     ZiweiController,
+    AdminAccessController,
   ],
   providers: [
     {
@@ -174,6 +186,31 @@ export function createApiAnalyticsSink(
       },
     },
     { provide: PRIVACY_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ADMIN_ACCESS_SERVICE,
+      useFactory: () =>
+        createAdminAccessService({
+          repository: createDatabaseAdminAccessRepository(privacyDatabase()),
+        }),
+    },
+    {
+      provide: ADMIN_AUDIT_SERVICE,
+      useFactory: () =>
+        createAdminAuditService({
+          repository: createDatabaseAdminAuditRepository(privacyDatabase()),
+        }),
+    },
+    {
+      provide: ADMIN_ACCESS_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
+    { provide: ADMIN_ACCESS_DATABASE, useFactory: privacyDatabase },
     {
       provide: BIRTH_PROFILE_SERVICE,
       useFactory: () =>

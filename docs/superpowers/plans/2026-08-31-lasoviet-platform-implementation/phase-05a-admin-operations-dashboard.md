@@ -78,7 +78,7 @@ Asynchronous edges are normative in
 - Produces roles `super_admin`, `operations`, `support`, and `read_only`, and
   the capability matrix defined by the Phase 05A spec.
 
-- [ ] **Step 1: Write failing role, route, and audit tests**
+- [x] **Step 1: Write failing role, route, and audit tests**
 
 Write tests proving an anonymous session, an unverified account session, and a
 verified account without an active assignment cannot render or call
@@ -86,7 +86,7 @@ verified account without an active assignment cannot render or call
 revocation, public-navigation absence, every-sitemap exclusion, `noindex`, and
 an audit row for an authorized privileged read.
 
-- [ ] **Step 2: Run the RED tests**
+- [x] **Step 2: Run the RED tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-access/capability.service.test.ts packages/backend/src/admin-access/audit.service.test.ts tests/security/admin-route-boundary.integration.test.ts tests/seo/private-route-state.test.ts`
@@ -94,7 +94,7 @@ Run:
 Expected: FAIL because admin access contracts, schema, API authorization, and
 route entries do not exist.
 
-- [ ] **Step 3: Implement database-backed access and append-only audit**
+- [x] **Step 3: Implement database-backed access and append-only audit**
 
 Add role-assignment, capability-policy, and audit schemas. Resolve active role
 assignments only from PostgreSQL after Better Auth session verification. Make
@@ -102,14 +102,14 @@ role assignment/revocation require `admin.roles.manage`, a reason code,
 request/trace ID, idempotency key, expected assignment version, and an audit
 row. Keep audit payloads redacted and append-only.
 
-- [ ] **Step 4: Implement private route enforcement**
+- [x] **Step 4: Implement private route enforcement**
 
 Add only the implemented `/admin` overview route as `live_noindex`. Resolve
 the session on the server, authorize it through the private API, and return
 not-found-equivalent safe denial for unauthorized routes. Do not add public
 navigation, sitemap, or client role checks as an authority.
 
-- [ ] **Step 5: Run the GREEN tests**
+- [x] **Step 5: Run the GREEN tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-access packages/contracts/src/admin-auth.ts tests/security/admin-route-boundary.integration.test.ts tests/seo/private-route-state.test.ts`
@@ -117,7 +117,7 @@ Run:
 Expected: PASS. Every authorization outcome has a redacted audit record and
 no `/admin/**` route enters a sitemap.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 Record implementation evidence, any new access-control risk, and completion
 state in the plan package. Commit only after phase-authorized implementation:
@@ -126,6 +126,15 @@ state in the plan package. Commit only after phase-authorized implementation:
 git add config/route-registry.yml packages/contracts packages/database packages/backend/src/admin-access apps/api/src/admin-access apps/web/src/app tests/security tests/seo docs/superpowers/plans
 git commit -m "feat: add private admin access controls"
 ```
+
+**Completion evidence (2026-09-02):** Added fail-closed verified-session
+authorization, database-backed active-role resolution, the complete V1
+capability matrix, redacted append-only audit storage, and the first
+server-authorized `/admin` route. The private route is `live_noindex`, absent
+from public navigation and every sitemap. Focused checks passed 11 tests,
+database migration integration passed 5 tests, and the final full suite passed
+280 tests. See
+`.superpowers/sdd/phase-05a-admin-operations-dashboard/task-1-report.md`.
 
 ### Task 2 [P05A-T02]: Add redacted operational projections and overview health
 

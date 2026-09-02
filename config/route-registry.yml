@@ -754,6 +754,13 @@ routes:
     owner: content
 
   - <<: *private_defaults
+    id: admin.overview
+    path: /admin
+    intent: private.admin.overview
+    template: admin-overview
+    owner: operations
+
+  - <<: *private_defaults
     id: wizard.tu-vi
     path: /tao-la-so/tu-vi
     intent: private.wizard.tu-vi

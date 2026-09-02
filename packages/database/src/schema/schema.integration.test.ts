@@ -19,6 +19,10 @@ import {
 import { consents, deletionRequests } from "./privacy.js";
 import { enqueueOutbox, outbox } from "./outbox.js";
 import { auditLogs } from "./audit.js";
+import {
+  adminAuditLogs,
+  adminRoleAssignments,
+} from "./admin-access.js";
 import { runMigrations } from "../migrate.js";
 import { notificationDeliveries } from "./notifications.js";
 
@@ -203,6 +207,36 @@ describe("database schema integration", () => {
       requestId: "request_schema_test",
       metadata: { source: "integration-test" },
     });
+    await database.insert(adminRoleAssignments).values({
+      id: "admin_assignment_schema_test",
+      userId,
+      role: "read_only",
+    });
+    const [adminAudit] = await database
+      .insert(adminAuditLogs)
+      .values({
+        actorId: userId,
+        roleAssignmentId: "admin_assignment_schema_test",
+        capability: "admin.overview.read",
+        operation: "admin.overview.read",
+        targetType: "admin_overview",
+        targetId: "overview",
+        requestId: "admin-request-schema-test",
+        traceId: "admin-trace-schema-test",
+        policyResult: "allowed",
+        redactionLevel: "redacted",
+        resultSummary: { count: 1 },
+      })
+      .returning();
+    await expect(
+      database
+        .update(adminAuditLogs)
+        .set({ operation: "admin.audit.mutated" })
+        .where(eq(adminAuditLogs.id, adminAudit!.id)),
+    ).rejects.toBeDefined();
+    await expect(
+      database.delete(adminAuditLogs).where(eq(adminAuditLogs.id, adminAudit!.id)),
+    ).rejects.toBeDefined();
     const [notification] = await database
       .insert(notificationDeliveries)
       .values({

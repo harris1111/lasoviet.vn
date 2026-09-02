@@ -25,7 +25,8 @@ describe("workspace boundaries", () => {
 
   it("builds web artifacts before running tests in root checks and CI", async () => {
     const root = JSON.parse(await readFile("package.json", "utf8"));
-    const workflow = await readFile(".github/workflows/ci.yml", "utf8");
+    const workflow = (await readFile(".github/workflows/ci.yml", "utf8"))
+      .replace(/\r\n/g, "\n");
 
     expect(root.scripts.check).toBe(
       "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run build && corepack pnpm@11.25.0 run test",

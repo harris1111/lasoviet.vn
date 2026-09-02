@@ -20,6 +20,20 @@ export type {
 } from "./internal-actor.js";
 
 export {
+  ADMIN_CAPABILITIES,
+  AdminAccessV1Schema,
+  AdminAuditTargetSchema,
+  AdminCapabilitySchema,
+  AdminRoleSchema,
+} from "./admin-auth.js";
+export type {
+  AdminAccessV1,
+  AdminAuditTarget,
+  AdminCapability,
+  AdminRole,
+} from "./admin-auth.js";
+
+export {
   HealthV1Schema,
 } from "./health.js";
 export type {

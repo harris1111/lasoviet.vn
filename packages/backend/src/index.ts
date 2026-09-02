@@ -151,6 +151,22 @@ export { createOpenAiCompatibleAdapter } from "./ai/openai-compatible-adapter.js
 export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adapter.js";
 export { runAiCapabilityProbe } from "./ai/capability-probe.js";
 export type { AiCapabilityResult } from "./ai/capability-probe.js";
+export {
+  createAdminAccessService,
+  createDatabaseAdminAccessRepository,
+} from "./admin-access/capability.service.js";
+export type {
+  AdminAccessError,
+  AdminAccessRepository,
+} from "./admin-access/capability.service.js";
+export {
+  createAdminAuditService,
+  createDatabaseAdminAuditRepository,
+} from "./admin-access/audit.service.js";
+export type {
+  AdminAuditEntry,
+  AdminAuditRepository,
+} from "./admin-access/audit.service.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
 export type {
