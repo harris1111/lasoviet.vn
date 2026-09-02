@@ -2,7 +2,7 @@ import "server-only";
 
 import { SignJWT } from "jose";
 
-import { loadEnvironment } from "@lasoviet/config";
+import { loadEnvironment } from "@lasoviet/config/load-environment";
 import {
   INTERNAL_ACTOR_AUDIENCE,
   INTERNAL_ACTOR_ISSUER,

@@ -5,7 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { anonymous } from "better-auth/plugins/anonymous";
 
-import { loadEnvironment } from "@lasoviet/config";
+import { loadEnvironment } from "@lasoviet/config/load-environment";
 import {
   authAccounts,
   authAnonymousActors,

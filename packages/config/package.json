@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./load-environment": {
+      "types": "./dist/load-environment.d.ts",
+      "import": "./dist/load-environment.js"
     }
   },
   "files": [

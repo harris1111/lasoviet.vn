@@ -3,7 +3,7 @@ import "server-only";
 import { createHmac, randomUUID } from "node:crypto";
 import { SignJWT } from "jose";
 
-import { loadEnvironment } from "@lasoviet/config";
+import { loadEnvironment } from "@lasoviet/config/load-environment";
 import {
   AUTH_EMAIL_BODY_BINDING_PREFIX,
   AUTH_EMAIL_SERVICE_AUDIENCE,

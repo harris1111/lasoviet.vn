@@ -1,6 +1,6 @@
 import "server-only";
 
-import { loadEnvironment } from "@lasoviet/config";
+import { loadEnvironment } from "@lasoviet/config/load-environment";
 import type { CurrentActor } from "@lasoviet/contracts";
 
 import { createInternalActorToken } from "../auth/create-internal-actor-token";

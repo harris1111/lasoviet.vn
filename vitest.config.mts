@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@lasoviet/contracts": resolve(root, "packages/contracts/src/index.ts"),
+      "@lasoviet/config/load-environment": resolve(
+        root,
+        "packages/config/src/load-environment.ts",
+      ),
       "@lasoviet/config": resolve(root, "packages/config/src/index.ts"),
     },
   },

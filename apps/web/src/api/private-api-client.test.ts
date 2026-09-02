@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-vi.mock("@lasoviet/config", () => ({ loadEnvironment: vi.fn() }));
+vi.mock("@lasoviet/config/load-environment", () => ({ loadEnvironment: vi.fn() }));
 vi.mock("../auth/create-internal-actor-token", () => ({
   createInternalActorToken: vi.fn(),
 }));
 
-import { loadEnvironment } from "@lasoviet/config";
+import { loadEnvironment } from "@lasoviet/config/load-environment";
 
 import {
   PrivateApiClientError,
