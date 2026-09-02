@@ -1,4 +1,17 @@
 {
   "identity": "Identity and potential",
-  "paymentDeferred": "SePay will open in the next step."
+  "paymentDeferred": "SePay will open in the next step.",
+  "preview": {
+    "eyebrow": "Free preview",
+    "title": "Three points to reflect on",
+    "strength": "Strength",
+    "tension": "Tension to observe",
+    "coverage": "This preview covers {percent}% of the {offer} reading."
+  },
+  "selection": {
+    "eyebrow": "In-depth reading",
+    "title": "Choose an in-depth reading",
+    "available": "Available topic",
+    "oneTime": "One-time payment. No automatic renewal."
+  }
 }

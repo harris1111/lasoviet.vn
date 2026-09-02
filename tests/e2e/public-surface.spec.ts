@@ -47,9 +47,58 @@ test("renders canonical locale routes and uses real links", async ({ page }) => 
 
   await page.goto("/en");
   await expect(page.getByRole("heading", { name: "Build your chart. Understand your path." })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Tiếng Việt" })).toHaveAttribute(
+  await page.getByRole("link", { name: "Tiếng Việt" }).click();
+  await expect(page).toHaveURL("/");
+  await expect
+    .poll(async () => (
+      await page.context().cookies()
+    ).find((cookie) => cookie.name === "NEXT_LOCALE")?.value)
+    .toBe("vi");
+});
+
+test("keeps the homepage capability-honest", async ({ page }) => {
+  await visitVietnameseRoot(page);
+
+  const teaser = page.locator(".birth-cta");
+  await expect(teaser.locator("input, select")).toHaveCount(0);
+  await expect(teaser.getByRole("link", { name: "Lập lá số miễn phí" })).toHaveAttribute(
     "href",
-    "/",
+    "/tao-la-so/tu-vi",
+  );
+
+  await expect(page.locator(".topic")).toHaveCount(1);
+  await expect(page.getByRole("heading", { name: "Bản mệnh & Tiềm năng" })).toBeVisible();
+  await expect(page.getByText("Tình duyên & Hôn nhân")).toHaveCount(0);
+  await expect(page.getByText("Công việc & Tài lộc")).toHaveCount(0);
+  await expect(page.getByText("Vận trình năm 2026")).toHaveCount(0);
+
+  const evidenceLink = page.locator(".insight").first().getByRole("link", {
+    name: "Vì sao có nhận định này?",
+  });
+  await expect(evidenceLink).toHaveAttribute("href", "#can-cu");
+  await evidenceLink.click();
+  await expect(page).toHaveURL(/#can-cu$/);
+  await expect(page.locator("#can-cu details")).toBeVisible();
+
+  await expect(page.getByText(
+    "Bạn có thể lưu dữ liệu sinh khi chưa rõ giờ, nhưng chưa thể lập lá số Tử Vi cho đến khi có giờ sinh chính xác phù hợp.",
+  )).toBeVisible();
+});
+
+test("routes the localized footer privacy link to the public policy", async ({
+  page,
+}) => {
+  await visitVietnameseRoot(page);
+
+  const privacyLink = page.getByRole("link", { name: "Quyền riêng tư" });
+  await expect(privacyLink).toHaveAttribute("href", "/chinh-sach-bao-mat");
+  await privacyLink.click();
+  await expect(page).toHaveURL("/chinh-sach-bao-mat");
+
+  await page.goto("/en");
+  await expect(page.getByRole("link", { name: "Privacy" })).toHaveAttribute(
+    "href",
+    "/en/chinh-sach-bao-mat",
   );
 });
 

@@ -39,7 +39,7 @@ export function SiteHeader({ locale }: SiteHeaderProps) {
             {links.map(([label, href]) => <Link href={route(locale, href)} key={href}>{label}</Link>)}
           </nav>
           <div className="header-actions">
-            <Link className="locale-link" href={isVietnamese ? "/en" : "/"}>{isVietnamese ? "English" : "Tiếng Việt"}</Link>
+            <a className="locale-link" href={isVietnamese ? "/en" : "/vi"}>{isVietnamese ? "English" : "Tiếng Việt"}</a>
             <Link className="button button-small" href={route(locale, "/tao-la-so/tu-vi")}>
               {isVietnamese ? "Lập lá số miễn phí" : "Build your chart"}
             </Link>

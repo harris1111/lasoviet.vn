@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { createAnonymousChart } from "./helpers/create-anonymous-chart";
+
 const recipient = process.env.MVP_TEST_RECIPIENT;
 const password = process.env.MVP_TEST_PASSWORD;
 const signupAlreadySent = process.env.MVP_SIGNUP_ALREADY_SENT === "true";
@@ -67,4 +69,42 @@ test("the founder-run stack delivers registration email and serves the anonymous
   await expect(page.getByRole("heading", { name: "Ba điểm để tự quan sát" })).toBeVisible();
   await page.getByRole("button", { name: "Xem căn cứ" }).first().click();
   await expect(page.getByRole("dialog", { name: "Căn cứ luận giải" })).toBeVisible();
+});
+
+test("the founder-run stack serves the complete English private funnel", async ({
+  page,
+}) => {
+  await createAnonymousChart(page, "en");
+
+  await expect(page.getByRole("heading", { name: "Zi Wei chart" })).toBeVisible();
+  await expect(page.getByText("Private chart")).toBeVisible();
+  const chartGrid = page.locator(".ziwei-chart-grid");
+  await expect(chartGrid.getByRole("heading", { name: "Travel Palace" })).toBeVisible();
+  await expect(chartGrid.getByText("Tiger", { exact: true })).toBeVisible();
+  await expect(chartGrid.getByText("Po Jun", { exact: true })).toBeVisible();
+  await expect(page.getByText("travel", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("tiger", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("pojun", { exact: true })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "View evidence" }).first().click();
+  await expect(
+    page.getByRole("dialog", { name: "Interpretation evidence" }),
+  ).toBeVisible();
+  await expect(page.getByText("Observable actions")).toBeVisible();
+  await expect(page.getByText("Moderate", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Close evidence" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Three points to reflect on" }),
+  ).toBeVisible();
+  await expect(page.getByText("Strength", { exact: true })).toBeVisible();
+  await expect(page.getByText("Tension to observe", { exact: true })).toBeVisible();
+  await expect(page.getByText("ZIWEI-IDENTITY-P0")).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Choose a reading topic" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Choose an in-depth reading" }),
+  ).toBeVisible();
+  await expect(page.getByText("Identity and potential")).toBeVisible();
+  await expect(page.getByText("ZIWEI-IDENTITY-P0")).toHaveCount(0);
 });

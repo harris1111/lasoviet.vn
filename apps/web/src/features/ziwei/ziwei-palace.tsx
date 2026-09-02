@@ -1,31 +1,39 @@
 import type { NormalizedZiweiChartV1 } from "@lasoviet/contracts";
 
+import {
+  ziweiPresentation,
+  type ZiweiPresentationLocale,
+} from "./ziwei-presentation";
+
 type ZiweiPalaceProps = {
   palace: NormalizedZiweiChartV1["palaces"][number];
   bodyPalaceId: string;
   soulPalaceId: string;
+  locale: ZiweiPresentationLocale;
 };
 
-function label(value: string) {
-  return value.split(".").at(-1)?.replaceAll("-", " ") ?? value;
-}
-
-export function ZiweiPalace({ palace, bodyPalaceId, soulPalaceId }: ZiweiPalaceProps) {
+export function ZiweiPalace({
+  palace,
+  bodyPalaceId,
+  soulPalaceId,
+  locale,
+}: ZiweiPalaceProps) {
+  const presentation = ziweiPresentation(locale);
   const markers = [
-    palace.id === soulPalaceId ? "Mệnh" : null,
-    palace.id === bodyPalaceId ? "Thân" : null,
+    palace.id === soulPalaceId ? presentation.chrome.soulMarker : null,
+    palace.id === bodyPalaceId ? presentation.chrome.bodyMarker : null,
   ].filter(Boolean);
 
   return (
     <article className="ziwei-palace" data-testid="ziwei-palace">
       <div className="ziwei-palace-heading">
-        <h3>{label(palace.id)}</h3>
-        <span>{label(palace.earthlyBranchId)}</span>
+        <h3>{presentation.palace(palace.id)}</h3>
+        <span>{presentation.branch(palace.earthlyBranchId)}</span>
       </div>
       {markers.length > 0 ? <p className="ziwei-palace-markers">{markers.join(" · ")}</p> : null}
       <ul>
-        {palace.stars.length === 0 ? <li>Không có sao chính</li> : palace.stars.map((star) => (
-          <li key={star.id}>{label(star.id)}</li>
+        {palace.stars.length === 0 ? <li>{presentation.chrome.noStars}</li> : palace.stars.map((star) => (
+          <li key={star.id}>{presentation.star(star.id)}</li>
         ))}
       </ul>
     </article>

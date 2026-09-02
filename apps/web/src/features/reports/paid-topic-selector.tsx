@@ -1,18 +1,33 @@
 import type { PaidTopicSelectionViewV1 } from "@lasoviet/contracts";
+import { useTranslations } from "next-intl";
 
-export function PaidTopicSelector({ topics }: { topics: PaidTopicSelectionViewV1 }) {
+import {
+  ziweiPresentation,
+  type ZiweiPresentationLocale,
+} from "../ziwei/ziwei-presentation";
+
+export function PaidTopicSelector({
+  locale,
+  topics,
+}: {
+  locale: ZiweiPresentationLocale;
+  topics: PaidTopicSelectionViewV1;
+}) {
+  const t = useTranslations("reports");
+  const presentation = ziweiPresentation(locale);
   const offer = topics.offers[0]!;
+  const price = offer.price.toLocaleString(locale === "en" ? "en-US" : "vi-VN");
 
   return (
     <section className="paid-topic-selector">
-      <p className="eyebrow">Luận giải chuyên sâu</p>
-      <h1>Chọn luận giải chuyên sâu</h1>
+      <p className="eyebrow">{t("selection.eyebrow")}</p>
+      <h1>{t("selection.title")}</h1>
       <article className="paid-topic-offer">
-        <p>{offer.sku}</p>
-        <h2>Bản mệnh và tiềm năng</h2>
-        <p>{offer.price.toLocaleString("vi-VN")} {offer.currency}</p>
-        <p>Thanh toán một lần. Không tự động gia hạn.</p>
-        <p className="topic-deferred">SePay sẽ được mở ở bước tiếp theo.</p>
+        <p>{t("selection.available")}</p>
+        <h2>{presentation.offer(offer.sku)}</h2>
+        <p>{price} {offer.currency}</p>
+        <p>{t("selection.oneTime")}</p>
+        <p className="topic-deferred">{t("paymentDeferred")}</p>
       </article>
     </section>
   );

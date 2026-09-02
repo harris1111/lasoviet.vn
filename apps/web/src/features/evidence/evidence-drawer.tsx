@@ -3,23 +3,31 @@
 import { useState } from "react";
 import type { ZiweiEvidenceViewV1 } from "@lasoviet/contracts";
 
+import {
+  ziweiPresentation,
+  type ZiweiPresentationLocale,
+} from "../ziwei/ziwei-presentation";
+
 type EvidenceDrawerProps = {
   chartId: string;
   evidenceId: string;
+  locale: ZiweiPresentationLocale;
   loadEvidence(chartId: string, evidenceId: string): Promise<
     | { ok: true; value: ZiweiEvidenceViewV1 }
     | { ok: false; error: { code: string } }
   >;
 };
 
-function readable(value: string) {
-  return value.replaceAll(".", " / ").replaceAll("_", " ");
-}
-
-export function EvidenceDrawer({ chartId, evidenceId, loadEvidence }: EvidenceDrawerProps) {
+export function EvidenceDrawer({
+  chartId,
+  evidenceId,
+  locale,
+  loadEvidence,
+}: EvidenceDrawerProps) {
   const [evidence, setEvidence] = useState<ZiweiEvidenceViewV1["evidence"]>();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
+  const presentation = ziweiPresentation(locale);
 
   async function showEvidence() {
     setError(false);
@@ -34,21 +42,20 @@ export function EvidenceDrawer({ chartId, evidenceId, loadEvidence }: EvidenceDr
 
   return (
     <>
-      <button className="evidence-open" onClick={showEvidence} type="button">Xem căn cứ</button>
-      {error ? <p className="form-error" role="alert">Không thể mở căn cứ lúc này.</p> : null}
+      <button className="evidence-open" onClick={showEvidence} type="button">{presentation.chrome.evidenceOpen}</button>
+      {error ? <p className="form-error" role="alert">{presentation.chrome.evidenceError}</p> : null}
       {open && evidence ? (
-        <div aria-label="Căn cứ luận giải" aria-modal="true" className="evidence-drawer" role="dialog">
+        <div aria-label={presentation.chrome.evidenceDialog} aria-modal="true" className="evidence-drawer" role="dialog">
           <div className="evidence-drawer-panel">
-            <button aria-label="Đóng căn cứ" className="evidence-close" onClick={() => setOpen(false)} type="button">Đóng</button>
-            <p className="eyebrow">Căn cứ luận giải</p>
-            <h2>{readable(evidence.id)}</h2>
+            <button aria-label={presentation.chrome.evidenceClose} className="evidence-close" onClick={() => setOpen(false)} type="button">{presentation.chrome.evidenceClose}</button>
+            <p className="eyebrow">{presentation.chrome.evidenceEyebrow}</p>
+            <h2>{presentation.evidence(evidence.id)}</h2>
             <dl className="evidence-detail-list">
-              <dt>Nhận định</dt><dd>Tín hiệu phản chiếu bản mệnh, không phải kết luận tất định.</dd>
-              <dt>Điều kiện</dt><dd>{evidence.interpretationBounds.join(" ")}</dd>
-              <dt>Điều có thể quan sát</dt><dd>{evidence.allowedActionCategories.map(readable).join(", ")}</dd>
-              <dt>Căn cứ</dt><dd>{evidence.factReferences.map(readable).join("; ")}</dd>
-              <dt>Giới hạn</dt><dd>{evidence.limitations.map(readable).join("; ")}</dd>
-              <dt>Độ tin cậy</dt><dd>{evidence.confidence}</dd>
+              <dt>{presentation.chrome.interpretationBounds}</dt><dd>{evidence.interpretationBounds.join(" ")}</dd>
+              <dt>{presentation.chrome.observableActions}</dt><dd>{evidence.allowedActionCategories.map(presentation.action).join(", ")}</dd>
+              <dt>{presentation.chrome.factReferences}</dt><dd>{evidence.factReferences.map(presentation.fact).join("; ")}</dd>
+              <dt>{presentation.chrome.limitations}</dt><dd>{evidence.limitations.map(presentation.limitation).join("; ")}</dd>
+              <dt>{presentation.chrome.confidence}</dt><dd>{presentation.confidence(evidence.confidence)}</dd>
             </dl>
           </div>
         </div>

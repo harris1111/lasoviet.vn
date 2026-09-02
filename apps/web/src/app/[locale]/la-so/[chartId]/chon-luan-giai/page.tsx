@@ -12,11 +12,12 @@ export const dynamic = "force-dynamic";
 export default async function PaidTopicSelectionPage({
   params,
 }: {
-  params: Promise<{ chartId: string }>;
+  params: Promise<{ chartId: string; locale: string }>;
 }) {
-  const { chartId } = await params;
+  const { chartId, locale: requestedLocale } = await params;
+  const locale = requestedLocale === "en" ? "en" : "vi";
   const topics = await freeIdentityPreviewLoader.loadTopics(chartId);
   if (!topics.ok) notFound();
 
-  return <main className="topic-page"><div className="container"><PaidTopicSelector topics={topics.value} /></div></main>;
+  return <main className="topic-page"><div className="container"><PaidTopicSelector locale={locale} topics={topics.value} /></div></main>;
 }

@@ -37,15 +37,11 @@ export default async function Page() {
             <h1>{t("app.taglinePrefix")}<br /><span className="gold-text">{t("app.taglineHighlight")}</span></h1>
             <p className="hero-lead">{t("home.hero.lead")}</p>
             <p className="hero-copy">{t("home.hero.copy")}</p>
-            <form action={path(locale, "/tao-la-so/tu-vi")} className="birth-cta" method="get">
-              {(["day", "month", "year"] as const).map((name) => (
-                <label key={name}>{t(`home.form.${name}`)}<input aria-label={t(`home.form.${name}`)} className={name === "year" ? "year" : undefined} inputMode="numeric" maxLength={name === "year" ? 4 : 2} name={name} placeholder={name === "year" ? "1994" : name === "day" ? "12" : "04"} /></label>
-              ))}
-              <label>{t("home.form.hour")}<select aria-label={t("home.form.hour")} name="hour"><option>{t("home.form.unknownHour")}</option><option>Ty (23-01)</option><option>Ngo (11-13)</option></select></label>
-              <button className="button" type="submit">{t("home.form.submit")}</button>
+            <div className="birth-cta">
+              <Link className="button" href={path(locale, "/tao-la-so/tu-vi")}>{t("home.form.submit")}</Link>
               <Link className="button button-secondary" href="#luan-giai">{t("home.form.sample")}</Link>
               <p className="birth-note">{t("home.form.note")}</p>
-            </form>
+            </div>
           </div>
         </section>
 
@@ -55,7 +51,7 @@ export default async function Page() {
 
         <section className="section"><div className="container section-heading"><p className="eyebrow">{t("home.free.eyebrow")}</p><h2>{t("home.free.title")}</h2><p>{t("home.free.copy")}</p></div>
           <div className="container free-preview"><ArtifactImage alt={t("home.free.imageAlt")} className="free-image" desktop={image("la-so-mien-phi-ba-diem-noi-bat-co-can-cu-homepage.webp")} /><div className="insights">
-            {[1, 2, 3].map((number) => <article className="insight" key={number}><p className="eyebrow">{t("home.free.note")} {String(number).padStart(2, "0")}</p><h3>{t(`home.free.insight${number}.title`)}</h3><p>{t(`home.free.insight${number}.copy`)}</p><button className="text-link" type="button"><span className="seal" aria-hidden="true"><span /></span>{t("home.evidence.action")}</button></article>)}
+            {[1, 2, 3].map((number) => <article className="insight" key={number}><p className="eyebrow">{t("home.free.note")} {String(number).padStart(2, "0")}</p><h3>{t(`home.free.insight${number}.title`)}</h3><p>{t(`home.free.insight${number}.copy`)}</p><Link className="text-link" href="#can-cu"><span className="seal" aria-hidden="true"><span /></span>{t("home.evidence.action")}</Link></article>)}
           </div></div>
         </section>
 
@@ -63,9 +59,9 @@ export default async function Page() {
           {processKeys.map((key, index) => <article className="process-item" key={key}><div className="process-number">{String(index + 1).padStart(2, "0")}</div><div><h3>{t(`home.process.${key}.title`)}</h3><p>{t(`home.process.${key}.copy`)}</p>{index === 0 ? <div className="process-meta"><span><Icon name="calendar-day" />{t("home.process.meta.calendar")}</span><span><Icon name="clock" />{t("home.process.meta.clock")}</span><span><Icon name="map-pin" />{t("home.process.meta.place")}</span></div> : null}</div><figure className="process-figure"><ArtifactImage alt={t(`home.process.${key}.title`)} desktop={image(processImages[index]!)} /><figcaption>{t(`home.process.caption${index + 1}`)}</figcaption></figure></article>)}
         </div></div></section>
 
-        <section className="section"><div className="container evidence"><div className="section-intro"><p className="eyebrow">{t("home.evidence.eyebrow")}</p><h2>{t("home.evidence.title")}</h2><p>{t("home.evidence.copy")}</p></div><article className="evidence-card"><h3>{t("home.evidence.claim")}</h3><details><summary>{t("home.evidence.action")}</summary><dl className="evidence-list"><dt>{t("home.evidence.source")}</dt><dd>{t("home.evidence.sourceCopy")}</dd><dt>{t("home.evidence.confidence")}</dt><dd>{t("home.evidence.confidenceCopy")}</dd><dt>{t("home.evidence.observe")}</dt><dd>{t("home.evidence.observeCopy")}</dd></dl></details></article></div></section>
+        <section className="section" id="can-cu"><div className="container evidence"><div className="section-intro"><p className="eyebrow">{t("home.evidence.eyebrow")}</p><h2>{t("home.evidence.title")}</h2><p>{t("home.evidence.copy")}</p></div><article className="evidence-card"><h3>{t("home.evidence.claim")}</h3><details><summary>{t("home.evidence.action")}</summary><dl className="evidence-list"><dt>{t("home.evidence.source")}</dt><dd>{t("home.evidence.sourceCopy")}</dd><dt>{t("home.evidence.confidence")}</dt><dd>{t("home.evidence.confidenceCopy")}</dd><dt>{t("home.evidence.observe")}</dt><dd>{t("home.evidence.observeCopy")}</dd></dl></details></article></div></section>
 
-        <section className="section image-section" id="luan-giai"><ArtifactImage alt="" className="hero-image" desktop={image("tang-thu-chu-de-luan-giai-sau-background-homepage.webp")} /><div className="container section-overlay"><div className="section-heading"><p className="eyebrow">{t("home.topics.eyebrow")}</p><h2>{t("home.topics.title")}</h2></div><div className="topics">{(["identity", "relationships", "work", "year"] as const).map((key, index) => <article className="topic" key={key}><span className="topic-number">{["I", "II", "III", "IV"][index]}</span><h3>{t(`home.topics.${key}.title`)}</h3><span className="topic-price">{key === "year" ? "99.000 ₫" : "79.000 ₫"}</span><span className="topic-once">{t("home.topics.once")}</span><p>{t(`home.topics.${key}.copy`)} <Link href={path(locale, "/luan-giai-tu-vi/tong-quan-ban-menh")}>{t("home.topics.sample")}</Link></p></article>)}</div></div></section>
+        <section className="section image-section" id="luan-giai"><ArtifactImage alt="" className="hero-image" desktop={image("tang-thu-chu-de-luan-giai-sau-background-homepage.webp")} /><div className="container section-overlay"><div className="section-heading"><p className="eyebrow">{t("home.topics.eyebrow")}</p><h2>{t("home.topics.title")}</h2></div><div className="topics"><article className="topic"><span className="topic-number">I</span><h3>{t("home.topics.identity.title")}</h3><span className="topic-price">79.000 ₫</span><span className="topic-once">{t("home.topics.once")}</span><p>{t("home.topics.identity.copy")} <Link href={path(locale, "/luan-giai-tu-vi/tong-quan-ban-menh")}>{t("home.topics.sample")}</Link></p></article></div></div></section>
 
         <section className="section"><div className="container"><p className="eyebrow">{t("home.trust.eyebrow")}</p><h2>{t("home.trust.title")}</h2>{(["method", "ai", "privacy"] as const).map((key) => <article className="trust-row" key={key}><h3>{t(`home.trust.${key}.label`)}</h3><p>{t(`home.trust.${key}.copy`)}</p></article>)}</div></section>
 

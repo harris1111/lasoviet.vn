@@ -34,6 +34,10 @@ const recordConsent = vi.fn().mockResolvedValue({
   ok: true,
   value: { id: "consent-1" },
 });
+const deleteAnonymous = vi.fn().mockResolvedValue({
+  ok: true,
+  value: { actorId: "anonymous-actor" },
+});
 
 async function actorToken(
   kind: "account" | "anonymous",
@@ -75,7 +79,11 @@ Module({
     },
     {
       provide: ANONYMOUS_RETENTION_SERVICE,
-      useValue: { deleteNow: vi.fn(), purgeActor: vi.fn(), purgeExpired: vi.fn() },
+      useValue: {
+        deleteNow: deleteAnonymous,
+        purgeActor: vi.fn(),
+        purgeExpired: vi.fn(),
+      },
     },
     {
       provide: PRIVACY_SERVICE_SECRET,
@@ -143,5 +151,23 @@ describe("privacy private HTTP flow", () => {
 
     expect(response.statusCode).toBe(403);
     expect(requestDeletion).not.toHaveBeenCalled();
+  });
+
+  it("deletes only the anonymous actor resolved from the signed token", async () => {
+    deleteAnonymous.mockClear();
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "DELETE",
+      url: "/privacy/anonymous",
+      headers: {
+        authorization: `Bearer ${await actorToken(
+          "anonymous",
+          "anonymous-actor",
+          "anonymous-delete-request",
+        )}`,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(deleteAnonymous).toHaveBeenCalledWith("anonymous-actor");
   });
 });
