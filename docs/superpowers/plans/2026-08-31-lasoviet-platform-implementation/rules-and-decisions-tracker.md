@@ -151,6 +151,28 @@ Date: 2026-09-02
 - Sol scoped re-reviews approved all five findings with zero open
   Critical/Important issues. Rule candidate: none. Open questions: none.
 
+## P03 Non-Visual Slice 6 Evidence
+
+Date: 2026-09-02
+
+- Added 54 reviewed VI/EN public documents for all 27 current Gate 1 routes:
+  34 core pages and 20 Zi Wei foundation articles.
+- Initial milestone review rejected mixed-locale/template-thin copy, an
+  incomplete sample report, unsupported sources, and incomplete publication
+  gates. Two correction passes rebuilt the corpus, source registry, schemas,
+  public-link checks, FAQ parity, and canonical source containment.
+- The two-pass breaker kept locale integrity open. Sol replanned with exact
+  `franc-min@6.2.0` trigram detection rather than repeating the wordlist
+  approach. Whole-document, block, heading-free, and rolling-window analysis
+  now rejects linked, heading-prefixed, fragmented, ASCII-stripped, and
+  accent-injected foreign prose while preserving current technical Vietnamese.
+- Fresh focused evidence passed 6 Gate 1 content tests, config build and
+  typecheck, and the checker validated all 54 documents. Sol approved the new
+  detector cycle with zero open Critical/Important findings.
+- The generated public-content publication-boundary rule was added to
+  `AGENTS.md`. Visual rendering and browser checks remain deferred by FD-024.
+  Open questions: none.
+
 ## P03 Non-Visual Slice 2 Evidence
 
 Date: 2026-09-02

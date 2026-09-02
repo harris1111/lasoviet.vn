@@ -487,6 +487,27 @@ git add content/public tests/content tests/e2e docs/superpowers/plans
 git commit -m "feat: publish Gate 1 public content"
 ```
 
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: 54 reviewed VI/EN documents for all 27 current Gate 1
+  `live_indexable` routes, including 20 Zi Wei foundation articles and the
+  FD-025 Horoscope forecast landing.
+- Complete: strict frontmatter, source, reviewer, metadata, public-link,
+  related-route, article, FAQ, commercial-offer, unsafe-copy, duplication,
+  locale-integrity, and canonical repository-source-boundary gates.
+- Complete: anonymized sample reports use implemented identity evidence keys
+  with moderate confidence, conditional interpretation, limitations, and
+  observable actions.
+- Complete: exact `franc-min@6.2.0` runtime language detection replaced the
+  rejected fixture-coupled wordlist heuristic after breaker adjudication.
+- Verified: Gate 1 content tests pass 6/6; config build and typecheck pass;
+  the content checker validates all 54 documents. Sol approved the replan
+  cycle with zero open Critical/Important findings.
+- Deferred by FD-024: visible public rendering, navigation, responsive and
+  accessibility behavior, Playwright link checks, and production web build.
+  P03-T06 non-visual content is complete; Phase 03 remains partial until the
+  dedicated UI artifact branch delivers the visual surface.
+
 ## Phase Exit Criteria
 
 - VI and EN funnels are complete.
