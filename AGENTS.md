@@ -309,6 +309,15 @@ rule instead of adding another version.
   never print complete environment maps. Query only the required structural
   fields or redact sensitive values before tool output; stop and narrow the
   command when an inspection would expose an external deploy environment.
+- Administrative and operational surfaces must be server-authorized private
+  tools, never a database, queue, secret, payment-provider, or CMS console.
+  Admin V1 uses redacted projections only; unredacted sensitive-detail reveal
+  is deferred. Privileged reads require private-API authorization and redacted
+  audit evidence. State-changing operations require an actor, reason code,
+  request/trace ID, idempotency key, expected version where applicable, and an
+  append-only audit record; they call policy-checked domain services and use
+  compensating versions/events plus the outbox rather than direct table edits,
+  immutable-record mutation, or BullMQ requeue.
 - Do not run destructive filesystem or Git operations without explicit founder
   approval.
 - Do not deploy, push production configuration, modify DNS, change payment

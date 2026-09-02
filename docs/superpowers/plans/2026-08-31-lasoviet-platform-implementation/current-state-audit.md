@@ -14,6 +14,22 @@
 - No implementation dependency, migration, runtime service, or infrastructure
   has been created in this planning phase.
 
+## Current Implementation Reconciliation (2026-09-02)
+
+- The original starting-state note is historical. Phase 00 foundations, Phase
+  01 identity/privacy services, Phase 02 calculation/evidence services,
+  the artifact-driven Phase 03 free-MVP experience, the Phase 04 AI/report
+  foundation, and production-like free-MVP Compose smoke evidence now exist.
+- The approved UI artifact was implemented and merged through the dedicated
+  feature branch. FD-024 therefore remains an artifact-first rule for future
+  visual work, not an active blocker on the current MVP interface.
+- The corrected explicit gender flow is approved and real-stack smoke reaches
+  persisted birth profile, Zi Wei calculation, chart, evidence, and free
+  preview. This is not evidence of paid-release readiness.
+- Phase 04 commerce/report completion, Phase 05 storage/delivery/account
+  center, Phase 05A Operations Dashboard, and Phase 06 paid-release gates
+  remain uncompleted unless their task-level records expressly say otherwise.
+
 ## Verified Corrections
 
 | Existing assumption | Corrected planning truth |

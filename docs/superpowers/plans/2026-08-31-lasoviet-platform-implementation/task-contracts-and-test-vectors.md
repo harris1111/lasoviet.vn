@@ -29,6 +29,8 @@ type EntitlementId = Brand<string, "EntitlementId">;
 type ReportId = Brand<string, "ReportId">;
 type ReportVersionId = Brand<string, "ReportVersionId">;
 type AssetId = Brand<string, "AssetId">;
+type AdminAuditId = Brand<string, "AdminAuditId">;
+type RoleAssignmentId = Brand<string, "RoleAssignmentId">;
 
 type Locale = "vi" | "en";
 
@@ -53,6 +55,18 @@ type AppError<TCode extends string> = {
 type Result<T, TCode extends string> =
   | { ok: true; value: T }
   | { ok: false; error: AppError<TCode> };
+
+type AdminCommandContextV1 = {
+  actorId: UserId;
+  roleAssignmentId: RoleAssignmentId;
+  capability: string;
+  reasonCode: string;
+  requestId: string;
+  traceId: string;
+  idempotencyKey: string;
+  expectedVersion?: number;
+  supportCaseId?: string;
+};
 ```
 
 Public/BFF errors expose only `code`, `messageKey`, `retryable`, and safe field
@@ -134,7 +148,18 @@ row, event, job, object, email, or analytics payload was created.
 | P05-T02 | `ReportPdfRequestedV1`, immutable report content, owner download request | PDF-and-Garage processor plus `ObjectStore.put/getMetadata/delete/createSignedDownload`; errors `GARAGE_UNAVAILABLE`, `ASSET_CHECKSUM_MISMATCH`, `ASSET_KEY_CONFLICT`, `ASSET_FORBIDDEN`, `SIGNED_URL_EXPIRED` | Reserved deterministic key stays in PostgreSQL; matching post-upload object is adopted on retry; asset `stored`, report `complete`, `report.asset.stored.v1`; retry exhaustion emits `report.fulfillment.failed.v1` | Post-upload DB failure then retry keeps one Garage object and one event; checksum conflict never overwrites; HTML remains available |
 | P05-T03 | `StorageReplicationV1`, `StorageReconcileV1`, or `AssetDeletionV1` | Replication transition; errors `REPLICA_UNAVAILABLE`, `REPLICA_CHECKSUM_MISMATCH`, `REPLICA_DELETE_FAILED` | Replica state, attempts, tombstone; jobs from workflow map | Cloud outage leaves Garage success intact; retry reaches replicated; reconciliation is idempotent; deletion failure remains visible |
 | P05-T04 | Phase 01 `EmailProvider`; `ReportReadyEmailV1` or `ReportFailedEmailV1`; account email resolved inside worker | Localized report-delivery templates and queued `EmailProvider.send(message, idempotencyKey)`; errors `SMTP_RETRYABLE`, `SMTP_ADDRESS_REJECTED`, `SMTP_CONFIG_INVALID` | Notification state and provider message ID; no report body or internal error in email | Duplicate job sends once; success email contains authenticated report link; failure email contains safe status/support link only |
-| P05-T05 | Account actor for `/tai-khoan/**`; admin actor, reason code, order/report/support IDs, optional corrected profile revision | Server-authorized noindex account views and audited admin commands; errors `ACCOUNT_AUTH_REQUIRED`, `RESOURCE_FORBIDDEN`, `ADMIN_FORBIDDEN`, `REGENERATION_POLICY_DENIED`, `CORRECTION_WINDOW_EXPIRED`, `REFUND_STATE_INVALID` | Implemented account routes become `live_noindex`; account views add no persistence; support case, audit row, optional new report version and workflow event | Unauthenticated or cross-owner access returns no private data; account routes are absent from navigation/sitemaps; non-admin denied |
+| P05-T05 | Account actor for `/tai-khoan/**` | Server-authorized noindex account/profile/report/order/privacy views; errors `ACCOUNT_AUTH_REQUIRED`, `RESOURCE_FORBIDDEN`, `ACCOUNT_RESOURCE_NOT_FOUND` | Implemented account routes become `live_noindex`; account reads add no business persistence | Unauthenticated or cross-owner access returns no private data; account routes are absent from navigation/sitemaps |
+
+## Phase 05A Contracts
+
+| ID | Exact inputs | Outputs and errors | Persistence/events | Required failing vector |
+|---|---|---|---|---|
+| P05A-T01 | Verified Better Auth session and active DB role assignment | `AdminAccessV1`; `ADMIN_AUTH_REQUIRED`, `ADMIN_FORBIDDEN`, `ROLE_ASSIGNMENT_INACTIVE` | Role/capability records and redacted read audit; `/admin/**` `live_noindex` | Anonymous, unverified, revoked, or capability-mismatched caller gets no projection; every admin route is noindex and sitemap-excluded |
+| P05A-T02 | Authorized read context and bounded filters | Redacted overview/health/list projection; `ADMIN_FORBIDDEN`, `ADMIN_FILTER_INVALID`, `ADMIN_PROJECTION_UNAVAILABLE` | Projection-type, target, trace, and redaction audit only | Response contains no secrets, tokens, signed URLs, raw birth/chart data, report body, password hash, raw provider payload, or unredacted reveal path |
+| P05A-T03 | Authorized capability and opaque aggregate target | Redacted inspection; `ADMIN_RESOURCE_NOT_FOUND`, `ADMIN_FORBIDDEN` | Redacted read audit only | Missing and forbidden targets are indistinguishable; list/detail views omit full report/chart bodies; no unredacted reveal capability, endpoint, or UI exists |
+| P05A-T04 | `AdminCommandContextV1` and typed regeneration/retry/reconcile/refund-record/support/same-person-correction/privacy command | Receipt or `ADMIN_FORBIDDEN`, `ADMIN_REASON_CODE_REQUIRED`, `ADMIN_IDEMPOTENCY_CONFLICT`, `ADMIN_EXPECTED_VERSION_CONFLICT`, `REGENERATION_POLICY_DENIED`, `RETRY_POLICY_DENIED`, `REFUND_STATE_INVALID`, `CORRECTION_POLICY_DENIED`, `CORRECTION_WINDOW_EXPIRED`, `PRIVACY_WORKFLOW_INVALID`, `SUPPORT_CASE_REQUIRED` | One transaction: command/idempotency/audit/aggregate transition/outbox; regeneration emits `report.generation.requested.v1`; retry emits `report.retry.requested.v1`; reconciliation emits `storage.reconcile.v1`; correction references a proposed profile revision and reserves new chart/report lineage | Matching replay returns original receipt; retry maps to `report.generate.v1` with `report-generate-retry:{reportVersionId}:{retryRequestId}` only from `retryable_failure`; one same-person correction is allowed within 24 hours; direct DB/BullMQ/provider mutation and immutable edit have no path |
+| P05A-T05 | Role assignment/revocation context, target, expected version | Assignment result or `ROLE_ASSIGNMENT_FORBIDDEN`, `ROLE_ASSIGNMENT_CONFLICT`, `ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED`, `AUDIT_RECORD_INCOMPLETE` | Append-only role history and authorization/result audits | Only super-admin manages roles; self-escalation denied; revocation removes access |
+| P05A-T06 | Production-like stack and controlled admin incident fixture | Release evidence or `RELEASE_EVIDENCE_INCOMPLETE` | Redacted receipt/audit/trace evidence | Non-admin denial, redaction, audit, idempotency, immutable lineage, noindex, sitemap exclusion, and outbox-mediated recovery pass |
 
 ## Phase 06 Contracts
 

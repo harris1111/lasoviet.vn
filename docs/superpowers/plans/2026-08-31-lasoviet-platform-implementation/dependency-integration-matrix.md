@@ -113,3 +113,12 @@ Do not spend P0 effort exhaustively auditing repositories that remain
 reference-only. Do verify the exact resolved production package tree before
 first import, keep required notices, and stop if a production dependency
 introduces an incompatible or unknown runtime license.
+
+## Operations Dashboard Boundary
+
+Phase 05A introduces no new provider, queue, database-console, CMS, or
+deployment dependency. It consumes Better Auth verified sessions, PostgreSQL
+role/capability and audit persistence, existing private API/domain services,
+the transactional outbox, and existing workflow projections. Direct BullMQ,
+provider-payment, secret, arbitrary-SQL, and content-editing integrations are
+prohibited.

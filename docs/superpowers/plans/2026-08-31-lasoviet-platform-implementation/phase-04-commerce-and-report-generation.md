@@ -28,8 +28,36 @@ compatible HTTP API.
 - No double entitlement or report from webhook replay.
 - AI endpoint details are requested only when this phase begins.
 - No draft or critic-failed content is shown as complete.
+- Phase 04 exposes stable, redacted admin-operable domain interfaces and
+  versioned workflow state only; it does not implement an admin UI. Phase 05A
+  consumes these interfaces after its Phase 03 access foundation exists.
+- Support recovery must reserve a new immutable report version or create a
+  policy-checked compensating command. It must never edit a paid report,
+  directly requeue BullMQ, or bypass the outbox.
 
 ---
+
+## Admin-Operable Domain Contract
+
+Phase 04 services provide private API projections for order/payment state,
+entitlement state, immutable report lineage, generation attempts, bounded
+failure codes, and outbox correlation. They accept only domain commands with
+an actor, reason code, request/trace ID, idempotency key, and expected version
+where applicable.
+
+The only Phase 04 recovery effects available to Phase 05A are:
+
+- `requestReportRegeneration`, which applies policy, reserves a new report
+  version, records a support/recovery decision, and emits
+  `report.generation.requested.v1` through the transactional outbox;
+- `requestWorkflowRetry`, which applies policy and emits a versioned retry
+  request through the transactional outbox; and
+- `recordRefundReview` or `recordRefundOutcome`, which changes only approved
+  internal commerce state and does not call a payment provider directly.
+
+Controllers, BFFs, and console components do not access commerce/report tables
+or BullMQ directly. Full payloads, report bodies, provider secrets, and raw
+payment payloads are not admin projections.
 
 ### Task 1 [P04-T01]: Implement orders, SePay adapter, and checkout
 

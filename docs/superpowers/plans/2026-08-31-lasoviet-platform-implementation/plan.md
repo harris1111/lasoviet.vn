@@ -21,9 +21,15 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Blueprint v1.1 reconciliation is complete and Terra-reviewed with
-no open must-fix on 2026-08-31. The package is ready for founder implementation
-approval; no product code is authorized until that explicit approval.
+**Status:** Planning reconciliation is current through 2026-09-02. The
+repository has implemented Phase 00 foundations, Phase 01 identity/privacy
+services, Phase 02 calculation/evidence services, the artifact-driven Phase 03
+free-MVP experience, the Phase 04 AI/report foundation, and production-like
+free-MVP Compose smoke evidence. The FD-024 artifact-first UI gate was
+satisfied by the merged MVP UI branch; it remains the rule for future visual
+work. No later phase is marked complete merely because a foundation exists;
+paid-release closure remains blocked by the unimplemented Phase 04/05
+workflows and Phase 05A evidence.
 
 ## Global Constraints
 
@@ -91,8 +97,9 @@ approval; no product code is authorized until that explicit approval.
 | [02](phase-02-ziwei-calculation-and-evidence.md) | iztro adapter, normalized chart, fixtures, evidence | 01 |
 | [03](phase-03-free-web-experience.md) | Gate 1 public surface, foundational content, private funnel, and free chart | 02 |
 | [04](phase-04-commerce-and-report-generation.md) | SePay, entitlement, worker, knowledge, AI report | 03 |
-| [05](phase-05-storage-delivery-and-admin.md) | PDF, Garage, replication, email, admin/support | 04 |
-| [06](phase-06-production-readiness-and-launch.md) | Compose deployment, security, E2E, release gates, and Gate 1 indexing | 05 |
+| [05](phase-05-storage-delivery-and-account-center.md) | PDF, Garage, replication, email, and owner account center | 04 |
+| [05A](phase-05a-admin-operations-dashboard.md) | Admin and Operations Console: RBAC, redacted inspection, audited recovery commands, and release evidence | Foundation may begin after 03; closure requires 04 and 05 |
+| [06](phase-06-production-readiness-and-launch.md) | Compose deployment, security, E2E, release gates, and Gate 1 indexing | 05 and 05A |
 | [07](phase-07-remaining-ziwei-and-wave-1-5.md) | Remaining Zi Wei SKUs and acquisition tools | 06 plus P0 stability evidence |
 | [08](phase-08-bazi-wave-2.md) | BaZi calculator and paid report | 07 public gate; engineering may prepare after 06 |
 | [09](phase-09-western-wave-3.md) | Celestine natal chart and interpretation | 06 for engineering; 08 public gate for launch |

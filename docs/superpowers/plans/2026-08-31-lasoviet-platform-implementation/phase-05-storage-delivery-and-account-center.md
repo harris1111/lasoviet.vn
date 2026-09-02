@@ -1,17 +1,17 @@
-# Phase 05 Storage, Delivery, and Admin Implementation Plan
+# Phase 05 Storage, Delivery, and Account Center Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:subagent-driven-development` or
 > `superpowers:executing-plans`.
 
 **Goal:** Add PDF delivery, Garage, optional cloud replication, SMTP
-notification, and audited support/admin operations.
+notification, and an owner-authorized account center.
 
 **Architecture:** PostgreSQL owns report and asset metadata. Garage owns
 objects. Separate idempotent jobs render, store, replicate, delete, and email.
 
 **Tech Stack:** Playwright Chromium, AWS S3 SDK, Garage, BullMQ, Nodemailer
-SMTP, Next.js admin UI.
+SMTP, Next.js account UI.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
@@ -26,7 +26,8 @@ SMTP, Next.js admin UI.
 - HTML remains usable when PDF/Garage is degraded.
 - Cloud S3 absence is normal.
 - Replica failure never fails a successful Garage write.
-- Admin never edits immutable report content in place.
+- Staff operations, support workflows, RBAC, audit inspection, and recovery
+  commands belong exclusively to Phase 05A.
 
 ---
 
@@ -221,71 +222,58 @@ git add packages/backend/src/notifications apps/worker/src/processors apps/web/m
 git commit -m "feat: send transactional report email"
 ```
 
-### Task 5 [P05-T05]: Build the account center and audited admin/support operations
+### Task 5 [P05-T05]: Build the owner-authorized account center
 
 **Files:**
-- Create: `packages/backend/src/admin/admin.service.ts`
-- Create: `packages/backend/src/support/support.service.ts`
-- Create: `packages/backend/src/reports/regeneration-policy.ts`
-- Create: `apps/api/src/admin/admin.controller.ts`
+- Create: `packages/backend/src/accounts/account-center.service.ts`
 - Create: `apps/web/src/app/[locale]/tai-khoan/layout.tsx`
 - Create: `apps/web/src/app/[locale]/tai-khoan/page.tsx`
 - Create: `apps/web/src/app/[locale]/tai-khoan/ho-so/page.tsx`
 - Create: `apps/web/src/app/[locale]/tai-khoan/bao-cao/page.tsx`
 - Create: `apps/web/src/app/[locale]/tai-khoan/don-hang/page.tsx`
 - Create: `apps/web/src/app/[locale]/tai-khoan/quyen-rieng-tu/page.tsx`
-- Create: `apps/web/src/app/[locale]/admin/layout.tsx`
-- Create: `apps/web/src/app/[locale]/admin/orders/page.tsx`
-- Create: `apps/web/src/app/[locale]/admin/reports/page.tsx`
-- Create: `apps/web/src/app/[locale]/admin/support/page.tsx`
 - Modify: `config/route-registry.yml`
 - Modify: `tests/seo/private-route-state.test.ts`
 - Test: `tests/e2e/account-center.spec.ts`
-- Test: `tests/e2e/admin-support.spec.ts`
 
 **Interfaces:**
-- Produces RBAC-protected inspection, refund-case recording, input correction,
-  and regeneration commands.
 - Produces authenticated, server-authorized, noindex account/profile/report/
   order/privacy pages under `/tai-khoan/**`.
 - Promotes implemented `/tai-khoan/**` routes to `live_noindex` while keeping
   them absent from public navigation and sitemaps.
-- Approved regeneration reserves a new report version and emits
-  `report.generation.requested.v1`; it never mutates or directly requeues an
-  existing version.
+- Produces owner-authorized account, profile, report, order, and privacy
+  summaries. It does not expose staff support or recovery commands.
 
-- [ ] **Step 1: Write failing admin E2E**
+- [ ] **Step 1: Write failing account-center E2E**
 
 Cover unauthenticated account-page denial, `live_noindex` registry state,
 noindex and sitemap exclusion on every account route, profile/report/order
-ownership, privacy export/delete entry points, non-admin denial, order/payment
-inspection, support reason taxonomy, same-person correction within 24 hours,
-technical regeneration, superseded version, and audit record.
+ownership, owner-only privacy export/delete entry points, safe account
+summaries, and cross-owner denial.
 
 - [ ] **Step 2: Run E2E**
 
 Run:
-`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts tests/e2e/admin-support.spec.ts`
+`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the account center and least-privilege admin commands**
+- [ ] **Step 3: Implement the account center**
 
 Every `/tai-khoan/**` page resolves the server session before data access and
-uses owner-authorized API queries. No command mutates an existing report
-version. Refund provider execution may remain a recorded manual operation if
-SePay does not expose an approved API.
+uses owner-authorized API queries. The account center contains no staff role,
+support, refund, regeneration, queue, or direct report-mutation control.
 
 - [ ] **Step 4: Run E2E**
 
 Run:
-`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts tests/e2e/admin-support.spec.ts`
+`pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Update trackers and commit**
 
 ```bash
-git add config/route-registry.yml packages/backend/src/admin packages/backend/src/support packages/backend/src/reports apps/api/src/admin apps/web/src/app tests/seo/private-route-state.test.ts tests/e2e docs/superpowers/plans
-git commit -m "feat: add audited report support operations"
+git add config/route-registry.yml packages/backend/src/accounts apps/web/src/app tests/seo/private-route-state.test.ts tests/e2e docs/superpowers/plans
+git commit -m "feat: add owner account center"
 ```
 
 ## Phase Exit Criteria
@@ -295,6 +283,7 @@ git commit -m "feat: add audited report support operations"
 - Cloud S3 disabled and outage modes pass.
 - Deletion tombstones propagate and reconcile.
 - SMTP retries safely without leaking report content.
-- Admin/support operations are RBAC-protected and audited.
 - Account/profile/report/order/privacy pages are server-authorized and noindex.
+- Staff support, inspection, audit, and recovery operations are completed only
+  by Phase 05A.
 - Terra has no unresolved `must-fix`.

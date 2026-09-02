@@ -3,8 +3,9 @@
 ## Purpose
 
 This document is the normative asynchronous contract map for paid reports,
-assets, notification, replication, regeneration, and deletion. Phase tasks may
-add fields only through a versioned contract change reviewed by Terra.
+assets, notification, replication, regeneration, deletion, and audited
+operations commands. Phase tasks may add fields only through a versioned
+contract change reviewed by Terra.
 
 ## Common Envelope
 
@@ -16,7 +17,13 @@ type WorkflowEnvelopeV1<TType extends string, TPayload> = {
   occurredAt: string;
   traceId: string;
   actorId: string | null;
-  aggregateType: "order" | "report" | "asset" | "account";
+  aggregateType:
+    | "order"
+    | "report"
+    | "asset"
+    | "account"
+    | "support_case"
+    | "operations_command";
   aggregateId: string;
   payload: TPayload;
 };
@@ -85,7 +92,7 @@ state and writes `attemptCount`, `lastErrorCode`, `nextAttemptAt`, and
 | Edge | Producer | Consumer | Persisted transition | Idempotency key | Retry owner |
 |---|---|---|---|---|---|
 | `report.generation.requested.v1` | SePay confirmation transaction or approved regeneration transaction | PostgreSQL outbox dispatcher | report absent -> `requested` | `report-request:{reportVersionId}` | Outbox dispatcher |
-| `report.generate.v1` | Outbox dispatcher | report generation processor | `requested` -> `generating` -> `validating` -> `html_ready` | `report-generate:{reportVersionId}` | BullMQ worker |
+| `report.generate.v1` | Outbox dispatcher | report generation processor | initial: `requested` -> `generating`; approved retry: `retryable_failure` -> `generating`; then `validating` -> `html_ready` | initial `report-generate:{reportVersionId}`; retry `report-generate-retry:{reportVersionId}:{retryRequestId}` | BullMQ worker |
 | `report.pdf.requested.v1` | successful report validation transaction | Outbox dispatcher | report `html_ready` -> `pdf_pending`; asset -> `render_pending` | `pdf-request:{reportVersionId}:{renderVersion}` | Outbox dispatcher |
 | `report.pdf.render.v1` | Outbox dispatcher | PDF-and-Garage processor | asset `render_pending` -> `rendering` -> `stored`; report -> `complete` | `pdf-render:{assetId}:{renderVersion}` | BullMQ worker |
 | `report.asset.stored.v1` | Garage store transaction | Outbox dispatcher | notification -> `pending`; replica -> `pending` or `disabled` | `asset-stored:{assetId}` | Outbox dispatcher |
@@ -94,6 +101,7 @@ state and writes `attemptCount`, `lastErrorCode`, `nextAttemptAt`, and
 | `report.fulfillment.failed.v1` | terminal report, PDF, or Garage transaction | Outbox dispatcher | failure notification -> `pending` | `report-failed:{reportVersionId}:{failureStage}` | Outbox dispatcher |
 | `email.report-failed.v1` | Outbox dispatcher | email processor | `pending` -> `sending` -> `sent` | `report-failed-email:{reportVersionId}:{recipientAccountId}:{failureStage}` | BullMQ worker |
 | `storage.reconcile.v1` | scheduled operations command or audited admin action | reconciliation processor | repair only the stored state for the scanned asset | `reconcile:{destinationId}:{scanId}:{cursor}` | BullMQ worker |
+| `report.retry.requested.v1` | policy-checked audited operations command | PostgreSQL outbox dispatcher | append retry request for a report in `retryable_failure`; do not mutate a prior job/attempt | `report-retry-request:{reportVersionId}:{retryRequestId}` | Outbox dispatcher |
 | `asset.deletion.requested.v1` | account purge, report lifecycle, or approved admin transaction | Outbox dispatcher | asset -> `delete_pending`; tombstone created | `asset-delete-request:{assetId}:{deletionVersion}` | Outbox dispatcher |
 | `storage.delete-authoritative.v1` | Outbox dispatcher | Garage deletion processor | `delete_pending` -> `authoritative_deleted` | `garage-delete:{assetId}:{deletionVersion}` | BullMQ worker |
 | `asset.authoritative.deleted.v1` | Garage deletion transaction | Outbox dispatcher | replica -> `replica_delete_pending` or asset -> `deleted` if disabled | `garage-deleted:{assetId}:{deletionVersion}` | Outbox dispatcher |
@@ -168,6 +176,15 @@ type AssetDeletionV1 = {
   destinationId: string | null;
   reasonCode: "account_purge" | "report_lifecycle" | "admin_approved";
 };
+
+type ReportRetryRequestedV1 = {
+  retryRequestId: string;
+  reportId: string;
+  reportVersionId: string;
+  expectedReportStateVersion: number;
+  reasonCode: string;
+  supportCaseId: string | null;
+};
 ```
 
 ## Transaction Boundaries
@@ -190,6 +207,19 @@ type AssetDeletionV1 = {
 6. A terminal generation, validation, PDF, or Garage failure creates one
    support case and `report.fulfillment.failed.v1`. The user email contains a
    support link and safe status only, never provider or internal error detail.
+7. An Operations Dashboard command commits its redacted receipt, append-only
+   audit record, compare-and-set aggregate transition, and one outbox event in
+   one transaction. Dashboard/controller code cannot call BullMQ, requeue an
+   existing job, or edit workflow rows directly.
+8. `report.retry.requested.v1` is a new policy-checked compensating request.
+   It is accepted only when the report is in `retryable_failure`. The
+   dispatcher resolves the authoritative `ReportGenerationRequestedV1`
+   payload, then creates a normal `report.generate.v1` queue job with
+   `sourceEventId` set to the retry event and idempotency key
+   `report-generate-retry:{reportVersionId}:{retryRequestId}`. The processor
+   appends a new attempt and compare-and-sets `retryable_failure` to
+   `generating`; it never changes an existing job payload or retry count.
+   Terminal failures require regeneration into a new immutable report version.
 
 ## Garage Upload Recovery
 
@@ -284,3 +314,7 @@ it("adopts a Garage object after a post-upload database failure", async () => {
   expand/contract compatibility period is documented.
 - Queue names are transport configuration; event and job names above are
   domain contracts and must remain stable.
+- Operations-command persistence/audit includes actor, role assignment,
+  capability, reason code, request/trace ID, idempotency key, and expected
+  version where applicable. Event payloads contain only stable IDs, versions,
+  and bounded reason metadata required by asynchronous consumers.

@@ -34,7 +34,8 @@
 | Garage authoritative storage | 05 | Object lifecycle tests |
 | Optional one-way S3 replica | 05 | Disabled/degraded/recovery tests |
 | Founder-provided MXRouting SMTP | 01, 05 | Auth-email and report-delivery protocol, idempotency, and retry tests |
-| Account center and admin/support/audit | 05 | Server authorization, noindex, ownership, RBAC, and audit tests |
+| Owner account center | 05 | Server authorization, noindex, ownership, and privacy-workflow tests |
+| Operations Dashboard V1 | 05A | Verified-session RBAC matrix, noindex/sitemap exclusion, PII redaction, audit completeness, idempotency, immutable-record, and outbox-mediation tests |
 | Loopback random host port | 06 | Compose config assertion |
 | Stable external port persistence | 06 | Selection/reuse/collision tests |
 | Founder-managed Nginx | 06 | Interface checklist, no repo mutation |
@@ -42,7 +43,7 @@
 | Restart and capped Docker logs | 06 | Compose config assertion |
 | PostgreSQL and Garage backup/restore | 06 | Encrypted isolated restore drill |
 | Legal/accounting release approval | 06 | Signed release-evidence gate |
-| Full paid flow | 06 | Playwright release E2E |
+| Full paid flow and admin incident recovery | 06 | Playwright release E2E with Phase 05A evidence gate |
 | Twenty-report rubric | 06 | Signed internal QA record |
 | Remaining Zi Wei SKUs | 07 | Per-SKU report E2E |
 | Numerology Wave 1.5 | 07 | Formula fixtures and free funnel |

@@ -30,6 +30,27 @@
 | FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Approved | `AGENTS.md`, current implementation phases |
 | FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
 | FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
+| FD-027 | 2026-09-02 | Approve Operations Dashboard V1 Option A as dedicated Phase 05A: private server-authorized `/admin/**`, database-backed RBAC/capabilities, redacted inspection, audited compensating domain commands, and no CMS; full CMS/back-office content editing is deferred | Approved | Admin dashboard spec, Phase 05A, Phases 04-06, contracts, risks, and release gates |
+
+## FD-027 Planning Evidence
+
+- The detailed design is
+  `docs/superpowers/specs/2026-09-02-admin-operations-dashboard-design.md`.
+- Phase 05 keeps storage, delivery, and owner account-center scope; Phase 05A
+  owns staff operations, support, RBAC, audit, and recovery.
+- Foundation may begin after Phase 03; closure depends on Phases 04 and 05;
+  Phase 06 paid release depends on Phase 05A.
+- Admin V1 uses redacted projections only. Unredacted sensitive-detail reveal
+  requires a separate founder-approved privacy scope and is deferred.
+- CMS editing, arbitrary SQL, direct BullMQ requeue, secrets display, direct
+  payment mutation, and in-place chart/report mutation remain prohibited.
+
+## FD-024 Completion Evidence
+
+- The approved UI artifact was implemented on a dedicated feature branch and
+  merged to `master` through pull request #3 on 2026-09-02.
+- FD-024 remains the artifact-first rule for future visual work, but it no
+  longer blocks the implemented free-MVP interface.
 
 ## Durable Rule Evaluation Log
 
