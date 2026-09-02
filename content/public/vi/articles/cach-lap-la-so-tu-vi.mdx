@@ -6,14 +6,16 @@
   "contentType": "KnowledgeArticle",
   "title": "Cách lập lá số Tử Vi",
   "summary": "Trình bày các bước dữ liệu và quy tắc cần biết khi lập lá số Tử Vi theo phương pháp công bố.",
-  "intent": "knowledge.tu-vi.calculation.vi",
+  "intent": "knowledge.tu-vi.calculation.vi.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "blueprint-v1-1",
-    "technical-architecture"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -22,26 +24,38 @@
   "status": "published",
   "lastReviewed": "2026-09-01",
   "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
     "knowledge.tu-vi.reading",
-    "knowledge.tu-vi.palaces"
+    "knowledge.tu-vi.stars"
   ],
-  "limitations": "Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
   "parentRouteId": "knowledge.tu-vi",
   "figure": {
-    "id": "ziwei-2-vi",
-    "alt": "Cách lập lá số Tử Vi",
-    "caption": "Trình bày các bước dữ liệu và quy tắc cần biết khi lập lá số Tử Vi theo phương pháp công bố."
+    "id": "gate-one-vi-2",
+    "alt": "Sơ đồ kiểm tra Cách lập lá số Tử Vi",
+    "caption": "Sơ đồ độc lập cho bài 2, chỉ hiển thị trường và giới hạn đã triển khai."
   }
 }
 ---
 # Cách lập lá số Tử Vi
 
-Việc lập lá số bắt đầu bằng ngày, giờ, nơi sinh và mức độ chắc chắn của dữ liệu. Một thay đổi ở giờ sinh có thể dẫn tới cấu trúc khác, vì vậy đầu vào phải được giữ nguyên cùng quy tắc chuyển đổi.
+## Bài này giải thích
 
-## Practical boundary
+Bài này giải thích quy trình lập lá số dựa trên ranh giới triển khai đã được version hóa. Adapter nhận lịch và thời gian đã chuẩn hóa rồi ánh xạ trường iztro thô sang mã canonical. Phương pháp công khai được ghim ở iztro 2.6.0 và ziwei.default. Nó không thêm diễn giải truyền thống không có trong nguồn repository.
 
-Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Ví dụ độc lập
 
-## Sources and next steps
+Ở 23:30, fixture cuối giờ Tý dùng timeIndex 12; fixture đầu giờ Tý lúc 00:30 dùng timeIndex 0. Ví dụ chứng minh cách xử lý đầu vào, không tạo dự báo cá nhân.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and return to the [Tu Vi knowledge hub](route:knowledge.tu-vi). Continue with [a related topic](route:knowledge.tu-vi.reading) or [another related topic](route:knowledge.tu-vi.palaces).
+## Đặc tả hình
+
+Hình 2: Bảng hai dòng so sánh giờ đầu Tý và cuối Tý, chỉ số adapter và limitation được ghi lại. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.
+
+## Giới hạn
+
+Ứng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.reading), [bài liên quan thứ hai](route:knowledge.tu-vi.stars).

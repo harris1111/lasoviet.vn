@@ -6,14 +6,16 @@
   "contentType": "KnowledgeArticle",
   "title": "Dai van and tieu van cycles",
   "summary": "How time cycles organize questions and context when reading a Tu Vi chart.",
-  "intent": "knowledge.tu-vi.cycles.en",
+  "intent": "knowledge.tu-vi.cycles.en.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "blueprint-v1-1",
-    "report-system"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -22,26 +24,38 @@
   "status": "published",
   "lastReviewed": "2026-09-01",
   "relatedRouteIds": [
-    "knowledge.tu-vi.definition",
-    "knowledge.tu-vi.calculation"
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.birth-time",
+    "knowledge.tu-vi.schools"
   ],
-  "limitations": "This content is reflective only; it is not a certain forecast or professional advice.",
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice.",
   "parentRouteId": "knowledge.tu-vi",
   "figure": {
-    "id": "ziwei-7-en",
-    "alt": "Dai van and tieu van cycles",
-    "caption": "How time cycles organize questions and context when reading a Tu Vi chart."
+    "id": "gate-one-en-7",
+    "alt": "Inspection diagram for Dai van and tieu van cycles",
+    "caption": "Independent diagram for article 7, showing only implemented fields and limits."
   }
 }
 ---
 # Dai van and tieu van cycles
 
-Major and minor periods organize questions over time. They do not create certain forecasts; a useful reading notices changing conditions and the choices still available.
+## What this page can establish
 
-## Practical boundary
+This article explains major and minor periods from the versioned implementation boundary. the current contract can list horoscope capabilities as decadal, annual, monthly, and daily with supported flags. It does not itself publish a dated prediction or a schedule of outcomes. It does not add traditional interpretation that is absent from the repository sources.
 
-This content is reflective only; it is not a certain forecast or professional advice. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Independent example
 
-## Sources and next steps
+A viewer can inspect whether a capability is marked supported and then read provenance and limitations before using a time window. That is different from asserting what will happen in a period.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and return to the [Tu Vi knowledge hub](route:knowledge.tu-vi). Continue with [a related topic](route:knowledge.tu-vi.definition) or [another related topic](route:knowledge.tu-vi.calculation).
+## Figure specification
+
+Figure 7: a capability matrix with four period identifiers, supported flags, provenance, and a limitation note. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.
+
+## Limits
+
+The current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.birth-time), [second related article](route:knowledge.tu-vi.schools).

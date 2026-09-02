@@ -6,14 +6,16 @@
   "contentType": "KnowledgeArticle",
   "title": "Đại vận và tiểu vận",
   "summary": "Tìm hiểu cách các chu kỳ thời gian được dùng để tổ chức câu hỏi và bối cảnh khi đọc lá số.",
-  "intent": "knowledge.tu-vi.cycles.vi",
+  "intent": "knowledge.tu-vi.cycles.vi.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "blueprint-v1-1",
-    "report-system"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -22,26 +24,38 @@
   "status": "published",
   "lastReviewed": "2026-09-01",
   "relatedRouteIds": [
-    "knowledge.tu-vi.definition",
-    "knowledge.tu-vi.calculation"
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.birth-time",
+    "knowledge.tu-vi.schools"
   ],
-  "limitations": "Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
   "parentRouteId": "knowledge.tu-vi",
   "figure": {
-    "id": "ziwei-7-vi",
-    "alt": "Đại vận và tiểu vận",
-    "caption": "Tìm hiểu cách các chu kỳ thời gian được dùng để tổ chức câu hỏi và bối cảnh khi đọc lá số."
+    "id": "gate-one-vi-7",
+    "alt": "Sơ đồ kiểm tra Đại vận và tiểu vận",
+    "caption": "Sơ đồ độc lập cho bài 7, chỉ hiển thị trường và giới hạn đã triển khai."
   }
 }
 ---
 # Đại vận và tiểu vận
 
-Đại vận và tiểu vận là khung thời gian để sắp xếp câu hỏi. Chúng không tạo ra dự báo chắc chắn; một cách dùng hợp lý là ghi nhận điều kiện thay đổi và lựa chọn đang có.
+## Bài này giải thích
 
-## Practical boundary
+Bài này giải thích các chu kỳ lớn và nhỏ dựa trên ranh giới triển khai đã được version hóa. Hợp đồng hiện có thể liệt kê capability theo thập niên, năm, tháng và ngày với cờ supported. Bản thân hợp đồng không công bố dự báo theo ngày hay lịch kết quả. Nó không thêm diễn giải truyền thống không có trong nguồn repository.
 
-Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Ví dụ độc lập
 
-## Sources and next steps
+Người xem có thể kiểm tra capability có được đánh dấu hỗ trợ rồi đọc provenance và limitations trước khi dùng một khoảng thời gian. Điều này khác với việc khẳng định điều gì sẽ xảy ra.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and return to the [Tu Vi knowledge hub](route:knowledge.tu-vi). Continue with [a related topic](route:knowledge.tu-vi.definition) or [another related topic](route:knowledge.tu-vi.calculation).
+## Đặc tả hình
+
+Hình 7: Ma trận capability với bốn mã chu kỳ, cờ supported, provenance và ghi chú limitation. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.
+
+## Giới hạn
+
+Ứng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.birth-time), [bài liên quan thứ hai](route:knowledge.tu-vi.schools).

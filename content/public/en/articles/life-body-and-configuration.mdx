@@ -6,14 +6,16 @@
   "contentType": "KnowledgeArticle",
   "title": "Menh, Than, and Cuc in Tu Vi",
   "summary": "An explanation of three foundational concepts for reading chart structure without turning terms into absolute claims.",
-  "intent": "knowledge.tu-vi.foundations.en",
+  "intent": "knowledge.tu-vi.foundations.en.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "blueprint-v1-1",
-    "brand-guideline"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure"
@@ -21,26 +23,38 @@
   "status": "published",
   "lastReviewed": "2026-09-01",
   "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
     "knowledge.tu-vi.cycles",
-    "knowledge.tu-vi.birth-time"
+    "knowledge.tu-vi.accuracy"
   ],
-  "limitations": "This content is reflective only; it is not a certain forecast or professional advice.",
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice.",
   "parentRouteId": "knowledge.tu-vi",
   "figure": {
-    "id": "ziwei-6-en",
-    "alt": "Menh, Than, and Cuc in Tu Vi",
-    "caption": "An explanation of three foundational concepts for reading chart structure without turning terms into absolute claims."
+    "id": "gate-one-en-6",
+    "alt": "Inspection diagram for Menh, Than, and Cuc in Tu Vi",
+    "caption": "Independent diagram for article 6, showing only implemented fields and limits."
   }
 }
 ---
 # Menh, Than, and Cuc in Tu Vi
 
-Menh, Than, and Cuc describe chart structure. They do not establish a fixed essence, but they can be starting points for considering patterns and context.
+## What this page can establish
 
-## Practical boundary
+This article explains life, body, and configuration fields from the versioned implementation boundary. the normalized contract stores soulPalaceId and bodyPalaceId as identifiers that must resolve to existing palace entries. Transformations are a separate array of star and transformation identifiers. It does not add traditional interpretation that is absent from the repository sources.
 
-This content is reflective only; it is not a certain forecast or professional advice. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Independent example
 
-## Sources and next steps
+In the leap-month fixture, life and body identifiers point to different recorded branches. The example shows that the fields can differ without assigning either field a personal meaning.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and return to the [Tu Vi knowledge hub](route:knowledge.tu-vi). Continue with [a related topic](route:knowledge.tu-vi.cycles) or [another related topic](route:knowledge.tu-vi.birth-time).
+## Figure specification
+
+Figure 6: a field map showing soulPalaceId, bodyPalaceId, transformations, and their referenced palace or star identifiers. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.
+
+## Limits
+
+The current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.cycles), [second related article](route:knowledge.tu-vi.accuracy).

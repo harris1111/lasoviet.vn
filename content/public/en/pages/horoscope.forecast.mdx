@@ -6,14 +6,15 @@
   "contentType": "ToolLanding",
   "title": "Horoscope forecast",
   "summary": "A reference tool for exploring themes by zodiac sign and time period, with method limits stated clearly; it is not a substitute for personal decisions.",
-  "intent": "calculator.horoscope-forecast.en",
+  "intent": "calculator.horoscope-forecast.en.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
+    "brand-guideline",
     "blueprint-v1-1",
-    "brand-guideline"
+    "technical-architecture"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -25,17 +26,23 @@
     "calculator.tu-vi",
     "knowledge.tu-vi"
   ],
-  "limitations": "This content is reflective only; it is not a certain forecast or professional advice."
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice."
 }
 ---
 # Horoscope forecast
 
-This page explains the current Gate 1 scope for calculator horoscope-forecast. It distinguishes documented inputs and method from reflective interpretation, avoids promises of personal outcomes, and keeps the reader responsible for decisions. Trang d bo cung hong o m t mt cng c tham kho theo cung v khong thi gian. Gate 1 khng cng b qu cnh hin ti, d bo c nhn ha, d liu thin vn tc thi hay d bo AI hng ngy.
+## Current scope
 
-## Practical boundary
+The horoscope forecast route currently explains the boundary of a planned sign-and-window utility. Gate 1 does not publish current transits, ephemeris output, personalized predictions, or daily AI forecasts.
 
-This content is reflective only; it is not a certain forecast or professional advice. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## How to inspect it
 
-## Related reading
+A future utility can be public only when its input, source data, effective period, and limitations are documented. Until then, this route is not actionable forecast content.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and explore the [Tu Vi knowledge hub](route:knowledge.tu-vi).
+## Limitations
+
+This material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi).

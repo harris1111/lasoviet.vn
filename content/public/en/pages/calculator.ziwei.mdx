@@ -6,7 +6,7 @@
   "contentType": "ToolLanding",
   "title": "Build a Tu Vi chart",
   "summary": "Create a Tu Vi chart with a transparent method, clear inputs, and explicit limits.",
-  "intent": "calculator.tu-vi.en",
+  "intent": "calculator.tu-vi.en.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
@@ -14,7 +14,7 @@
   "sourceIds": [
     "brand-guideline",
     "blueprint-v1-1",
-    "architecture-design"
+    "technical-architecture"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -26,17 +26,23 @@
     "calculator.tu-vi",
     "knowledge.tu-vi"
   ],
-  "limitations": "This content is reflective only; it is not a certain forecast or professional advice."
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice."
 }
 ---
 # Build a Tu Vi chart
 
-This page explains the current Gate 1 scope for calculator tu-vi. It distinguishes documented inputs and method from reflective interpretation, avoids promises of personal outcomes, and keeps the reader responsible for decisions. Cng c lp l s yu cu d liu sinh v mc  chnh xc ph hp. Kt qu nn c xem l bn   t cu hi, khng phi li khng nh v tng lai, sc khe, tin bc hay quyt nh quan trng.
+## Current scope
 
-## Practical boundary
+This calculator produces a normalized chart with twelve palaces, stable star identifiers, transformations, life and body palace identifiers, and calculation provenance. Those are software facts that can be inspected after a calculation.
 
-This content is reflective only; it is not a certain forecast or professional advice. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## How to inspect it
 
-## Related reading
+Time precision remains attached to the input. Fixtures distinguish 00:30 from 23:30 through different adapter indices, while branch-only input remains branch_only. The current method records that it has no true-solar-time correction.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and explore the [Tu Vi knowledge hub](route:knowledge.tu-vi).
+## Limitations
+
+This material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi).

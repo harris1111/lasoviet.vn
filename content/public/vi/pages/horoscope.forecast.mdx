@@ -6,14 +6,15 @@
   "contentType": "ToolLanding",
   "title": "Dự báo cung hoàng đạo",
   "summary": "Công cụ tham khảo để khám phá các chủ đề theo cung hoàng đạo và thời điểm, với giới hạn phương pháp được nêu rõ; không thay thế quyết định cá nhân.",
-  "intent": "calculator.horoscope-forecast.vi",
+  "intent": "calculator.horoscope-forecast.vi.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
+    "brand-guideline",
     "blueprint-v1-1",
-    "brand-guideline"
+    "technical-architecture"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -25,17 +26,23 @@
     "calculator.tu-vi",
     "knowledge.tu-vi"
   ],
-  "limitations": "Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn."
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn."
 }
 ---
 # Dự báo cung hoàng đạo
 
-Trang dự báo cung hoàng đạo mô tả một công cụ tham khảo theo cung và khoảng thời gian. Gate 1 không công bố quá cảnh hiện tại, dự báo cá nhân hóa, dữ liệu thiên văn tức thời hay dự báo AI hằng ngày.
+## Phạm vi hiện tại
 
-## Practical boundary
+Trang dự báo cung hoàng đạo hiện chỉ giải thích ranh giới một utility dự kiến theo cung và khoảng thời gian. Gate 1 không tạo quá cảnh hiện tại, ephemeris, dự báo cá nhân hóa hay câu trả lời AI mỗi ngày.
 
-Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Cách kiểm tra
 
-## Related reading
+Một công cụ về sau chỉ có thể công bố khi đầu vào, nguồn dữ liệu, thời điểm hiệu lực và giới hạn được ghi rõ. Cho đến lúc đó, trang này không nên được đọc như một dự báo hành động.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and explore the [Tu Vi knowledge hub](route:knowledge.tu-vi).
+## Giới hạn
+
+Nội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi).

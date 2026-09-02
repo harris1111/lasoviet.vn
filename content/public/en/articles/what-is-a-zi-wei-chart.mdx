@@ -6,14 +6,16 @@
   "contentType": "KnowledgeArticle",
   "title": "What is a Tu Vi chart?",
   "summary": "An introduction to Tu Vi charts, their main parts, and the boundary between calculation and interpretation.",
-  "intent": "knowledge.tu-vi.definition.en",
+  "intent": "knowledge.tu-vi.definition.en.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "blueprint-v1-1",
-    "technical-architecture"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure"
@@ -21,26 +23,38 @@
   "status": "published",
   "lastReviewed": "2026-09-01",
   "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
     "knowledge.tu-vi.calculation",
-    "knowledge.tu-vi.reading"
+    "knowledge.tu-vi.palaces"
   ],
-  "limitations": "This content is reflective only; it is not a certain forecast or professional advice.",
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice.",
   "parentRouteId": "knowledge.tu-vi",
   "figure": {
-    "id": "ziwei-1-en",
-    "alt": "What is a Tu Vi chart?",
-    "caption": "An introduction to Tu Vi charts, their main parts, and the boundary between calculation and interpretation."
+    "id": "gate-one-en-1",
+    "alt": "Inspection diagram for What is a Tu Vi chart?",
+    "caption": "Independent diagram for article 1, showing only implemented fields and limits."
   }
 }
 ---
 # What is a Tu Vi chart?
 
-A chart is a structured presentation of birth inputs and selected rules. It is most useful when a reader separates checkable placements from reflective interpretation.
+## What this page can establish
 
-## Practical boundary
+This article explains a normalized chart from the versioned implementation boundary. the chart contract requires exactly twelve uniquely identified palaces, a life palace identifier, a body palace identifier, transformations, warnings, and provenance. It does not add traditional interpretation that is absent from the repository sources.
 
-This content is reflective only; it is not a certain forecast or professional advice. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Independent example
 
-## Sources and next steps
+Use the reviewed solar-lunar fixture: its output records twelve palaces and explicit branch identifiers. Inspect those identifiers as fields, not as a statement about a person.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and return to the [Tu Vi knowledge hub](route:knowledge.tu-vi). Continue with [a related topic](route:knowledge.tu-vi.calculation) or [another related topic](route:knowledge.tu-vi.reading).
+## Figure specification
+
+Figure 1: a contract diagram listing twelve palace identifiers, the selected life and body identifiers, transformations, warnings, and provenance. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.
+
+## Limits
+
+The current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.calculation), [second related article](route:knowledge.tu-vi.palaces).

@@ -6,14 +6,16 @@
   "contentType": "MethodologyPage",
   "title": "The Tu Vi method",
   "summary": "The calculation steps and reading principles behind a traceable Tu Vi experience.",
-  "intent": "methodology.tu-vi.en",
+  "intent": "methodology.tu-vi.en.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "technical-architecture",
-    "blueprint-v1-1"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -25,17 +27,23 @@
     "calculator.tu-vi",
     "knowledge.tu-vi"
   ],
-  "limitations": "This content is reflective only; it is not a certain forecast or professional advice."
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice."
 }
 ---
 # The Tu Vi method
 
-This page explains the current Gate 1 scope for methodology tu-vi. It distinguishes documented inputs and method from reflective interpretation, avoids promises of personal outcomes, and keeps the reader responsible for decisions. Phng php T Vi cng b trnh t x l d liu v nguyn tc c, thay v bin mt u ra thnh kt lun tt nh. Sai s u vo hoc khc bit trng phi cn c nu khi chng nh hng ti kt qu.
+## Current scope
 
-## Practical boundary
+The adapter is pinned to iztro 2.6.0 with ruleSetId ziwei.default. It maps raw palace, branch, star, brightness, and mutagen fields into canonical identifiers used by the shared contract.
 
-This content is reflective only; it is not a certain forecast or professional advice. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## How to inspect it
 
-## Related reading
+Fixtures cover calendar conversion, leap months, early and late Zi, branch transitions, and timezone provenance. They document tested current behavior; they do not validate every school or unsupported correction.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and explore the [Tu Vi knowledge hub](route:knowledge.tu-vi).
+## Limitations
+
+This material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi).

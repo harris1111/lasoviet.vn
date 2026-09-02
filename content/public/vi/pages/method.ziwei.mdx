@@ -6,14 +6,16 @@
   "contentType": "MethodologyPage",
   "title": "Phương pháp Tử Vi",
   "summary": "Các bước tính toán và nguyên tắc đọc được dùng để tạo trải nghiệm Tử Vi có thể truy nguyên.",
-  "intent": "methodology.tu-vi.vi",
+  "intent": "methodology.tu-vi.vi.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "technical-architecture",
-    "blueprint-v1-1"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -25,17 +27,23 @@
     "calculator.tu-vi",
     "knowledge.tu-vi"
   ],
-  "limitations": "Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn."
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn."
 }
 ---
 # Phương pháp Tử Vi
 
-Phương pháp Tử Vi công bố trình tự xử lý dữ liệu và nguyên tắc đọc, thay vì biến một đầu ra thành kết luận tất định. Sai số đầu vào hoặc khác biệt trường phái cần được nêu khi chúng ảnh hưởng tới kết quả.
+## Phạm vi hiện tại
 
-## Practical boundary
+Adapter hiện được ghim iztro 2.6.0 với ruleSetId ziwei.default. Nó ánh xạ tên cung, địa chi, sao, brightness và mutagen của dữ liệu thô sang mã canonical dùng chung trong hợp đồng.
 
-Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Cách kiểm tra
 
-## Related reading
+Fixture ghi lại các ca chuyển lịch, tháng nhuận, đầu cuối giờ Tý, biên chi và provenance múi giờ. Chúng chứng minh hành vi đã kiểm thử của cấu hình hiện tại, không xác nhận mọi trường phái hay hiệu chỉnh ngoài phạm vi.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and explore the [Tu Vi knowledge hub](route:knowledge.tu-vi).
+## Giới hạn
+
+Nội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi).

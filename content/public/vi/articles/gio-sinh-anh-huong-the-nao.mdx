@@ -6,14 +6,16 @@
   "contentType": "KnowledgeArticle",
   "title": "Giờ sinh ảnh hưởng thế nào đến lá số?",
   "summary": "Giải thích vai trò của giờ sinh trong dữ liệu đầu vào và vì sao cần nêu rõ độ chính xác cùng giới hạn.",
-  "intent": "knowledge.tu-vi.birth-time.vi",
+  "intent": "knowledge.tu-vi.birth-time.vi.public",
   "authorId": "method-reviewer",
   "reviewerIds": [
     "method-reviewer"
   ],
   "sourceIds": [
-    "blueprint-v1-1",
-    "architecture-design"
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -22,26 +24,38 @@
   "status": "published",
   "lastReviewed": "2026-09-01",
   "relatedRouteIds": [
-    "knowledge.tu-vi.calculation",
-    "knowledge.tu-vi.reading"
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.accuracy",
+    "knowledge.tu-vi.definition"
   ],
-  "limitations": "Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
   "parentRouteId": "knowledge.tu-vi",
   "figure": {
-    "id": "ziwei-8-vi",
-    "alt": "Giờ sinh ảnh hưởng thế nào đến lá số?",
-    "caption": "Giải thích vai trò của giờ sinh trong dữ liệu đầu vào và vì sao cần nêu rõ độ chính xác cùng giới hạn."
+    "id": "gate-one-vi-8",
+    "alt": "Sơ đồ kiểm tra Giờ sinh ảnh hưởng thế nào đến lá số?",
+    "caption": "Sơ đồ độc lập cho bài 8, chỉ hiển thị trường và giới hạn đã triển khai."
   }
 }
 ---
 # Giờ sinh ảnh hưởng thế nào đến lá số?
 
-Giờ sinh là dữ liệu có ảnh hưởng đáng kể trong nhiều quy tắc lập lá số. Khi chỉ nhớ khoảng giờ, kết quả cần được đọc như các khả năng cạnh nhau thay vì một đáp án duy nhất.
+## Bài này giải thích
 
-## Practical boundary
+Bài này giải thích giờ sinh dựa trên ranh giới triển khai đã được version hóa. BirthProfile phân biệt exact_minute, branch_only, range và unknown. Adapter chỉ chạy với đầu vào đủ điều kiện đã chuẩn hóa và giữ lại limitations. Nó không thêm diễn giải truyền thống không có trong nguồn repository.
 
-Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+## Ví dụ độc lập
 
-## Sources and next steps
+Fixture unknown-time không đủ điều kiện trước khi tính; fixture branch-only vẫn tính nhưng ghi TIME_BRANCH_ONLY. So sánh này giải thích vì sao giờ thiếu không bị đổi thành một phút giả định.
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and return to the [Tu Vi knowledge hub](route:knowledge.tu-vi). Continue with [a related topic](route:knowledge.tu-vi.calculation) or [another related topic](route:knowledge.tu-vi.reading).
+## Đặc tả hình
+
+Hình 8: Luồng quyết định cho unknown dừng lại, branch_only giữ limitation và exact_minute giữ local time. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.
+
+## Giới hạn
+
+Ứng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.accuracy), [bài liên quan thứ hai](route:knowledge.tu-vi.definition).

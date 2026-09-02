@@ -6,14 +6,15 @@
   "contentType": "FAQEntry",
   "title": "Câu hỏi thường gặp",
   "summary": "Giải đáp các câu hỏi về cách lập lá số, phương pháp, nội dung tham khảo, tài khoản và quyền riêng tư.",
-  "intent": "support.faq.vi",
+  "intent": "support.faq.vi.public",
   "authorId": "support-reviewer",
   "reviewerIds": [
     "support-reviewer"
   ],
   "sourceIds": [
+    "brand-guideline",
     "blueprint-v1-1",
-    "brand-guideline"
+    "technical-architecture"
   ],
   "riskTags": [
     "uncertainty_disclosure",
@@ -25,27 +26,35 @@
     "calculator.tu-vi",
     "knowledge.tu-vi"
   ],
-  "limitations": "Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
   "faqItems": [
     {
       "question": "Lá số có quyết định tương lai không?",
-      "answer": "Không. Lá số được trình bày như một công cụ tham khảo để đặt câu hỏi và xem bối cảnh, không thay thế lựa chọn hoặc tư vấn chuyên môn."
+      "answer": "Không. Sản phẩm hiện trình bày dữ liệu đã chuẩn hóa, giới hạn phương pháp và nội dung phản tư; nó không quyết định kết quả cá nhân hay thay người dùng lựa chọn."
     },
     {
-      "question": "Vì sao cần giờ sinh?",
-      "answer": "Giờ sinh có thể ảnh hưởng đến quy tắc lập lá số. Khi dữ liệu không chắc chắn, kết quả cần được đọc với giới hạn rõ ràng."
+      "question": "Vì sao độ chính xác giờ sinh quan trọng?",
+      "answer": "exact_minute, branch_only, range và unknown được xử lý khác nhau. unknown không đủ điều kiện, còn branch_only giữ limitation rõ ràng."
     }
   ]
 }
 ---
 # Câu hỏi thường gặp
 
-Các câu hỏi thường gặp tập trung vào dữ liệu sinh, phương pháp, nội dung tham khảo và quyền riêng tư. Câu trả lời mô tả phạm vi hiện có thay vì hứa hẹn tính năng hoặc kết quả chưa được cung cấp.
+## Câu trả lời
 
-## Practical boundary
+### Lá số có quyết định tương lai không?
 
-Nội dung là tham khảo; không phải dự báo chắc chắn hay tư vấn chuyên môn. The documented sources and review roles explain scope; they do not establish expert authority beyond the role stated.
+Không. Sản phẩm hiện trình bày dữ liệu đã chuẩn hóa, giới hạn phương pháp và nội dung phản tư; nó không quyết định kết quả cá nhân hay thay người dùng lựa chọn.
 
-## Related reading
+### Vì sao độ chính xác giờ sinh quan trọng?
 
-[Build a Tu Vi chart](route:calculator.tu-vi) and explore the [Tu Vi knowledge hub](route:knowledge.tu-vi).
+exact_minute, branch_only, range và unknown được xử lý khác nhau. unknown không đủ điều kiện, còn branch_only giữ limitation rõ ràng.
+
+## Phạm vi hỗ trợ
+
+Các câu trả lời chỉ mô tả hành vi và giới hạn đã công bố. Chúng không tạo dự báo, không thay tư vấn chuyên môn và không yêu cầu người dùng gửi dữ liệu sinh không cần thiết.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi).
