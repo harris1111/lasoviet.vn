@@ -21,6 +21,12 @@ reuse it across restarts. It must include:
 - `PRIVATE_API_URL=http://api:3001`
 - `BETTER_AUTH_URL=http://127.0.0.1:<WEB_HOST_PORT>`
 
+The local founder-run value for `BETTER_AUTH_URL` is
+`http://127.0.0.1:<WEB_HOST_PORT>`. For a VPS behind Nginx, set
+`BETTER_AUTH_URL=https://lasoviet.vn` in the external deploy environment.
+Nginx must continue proxying to `http://127.0.0.1:<WEB_HOST_PORT>`; that
+loopback upstream is not a valid VPS value for `BETTER_AUTH_URL`.
+
 For the founder SMTP verification, copy authorized SMTP values from the local
 source into the external deploy file. Translate legacy `SMTP_FROM` to
 `SMTP_FROM_ADDRESS`; omit legacy `SMTP_MAX_SIZE` and `SMTP_SERVER_TYPE`.

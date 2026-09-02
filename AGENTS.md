@@ -299,6 +299,10 @@ rule instead of adding another version.
   Missing or fallback-only font faces block release and return to Terra.
 - Never commit secrets, credentials, private reports, or unnecessary personal
   data.
+- When inspecting rendered Compose configuration or runtime service state,
+  never print complete environment maps. Query only the required structural
+  fields or redact sensitive values before tool output; stop and narrow the
+  command when an inspection would expose an external deploy environment.
 - Do not run destructive filesystem or Git operations without explicit founder
   approval.
 - Do not deploy, push production configuration, modify DNS, change payment
@@ -385,6 +389,12 @@ rule instead of adding another version.
   once per environment, stored outside Git, and reused across restarts. Port
   randomness is not an access-control boundary.
 - Repository automation must not create or modify host Nginx configuration.
+- Never derive a browser-facing public origin from a loopback or private
+  container upstream. Prefer same-origin browser clients; on VPS,
+  `BETTER_AUTH_URL` must be the canonical public HTTPS origin while Nginx
+  proxies to the loopback `WEB_HOST_PORT`. A release is blocked when a public
+  build variable bakes `127.0.0.1`, a Compose service name, or another internal
+  upstream into browser code.
 
 ### Canonical Route Registry
 

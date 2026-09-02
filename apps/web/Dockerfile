@@ -3,9 +3,6 @@ FROM node:24.16.0-bookworm-slim AS build
 WORKDIR /app
 RUN corepack enable
 
-ARG NEXT_PUBLIC_AUTH_URL
-ENV NEXT_PUBLIC_AUTH_URL=$NEXT_PUBLIC_AUTH_URL
-
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm -r --filter @lasoviet/web... run build

@@ -301,3 +301,28 @@ Date: 2026-09-02
 - Sol xhigh review found zero Critical or Important issues and marked the fix
   ready. The production typography rule was added to `AGENTS.md`. Open
   questions: none.
+
+## MVP VPS Release Integration Gate
+
+Date: 2026-09-02
+
+- The release branch was verified as 87 commits ahead and zero commits behind
+  `origin/master` before integration.
+- Fresh Docker builds completed for web, API, worker, and migration images.
+  Compose started PostgreSQL and Redis healthy, completed migrations, started
+  the worker, and gated healthy API and web services in dependency order.
+- Deployment tests confirmed that only web publishes on
+  `127.0.0.1:${WEB_HOST_PORT}`, while API, worker, PostgreSQL, and Redis remain
+  private with persistent data volumes and bounded container logs.
+- Release review found that the web image baked the local Better Auth loopback
+  URL into browser code. The client now uses same-origin auth, the image has no
+  public auth build argument, and VPS guidance requires
+  `BETTER_AUTH_URL=https://lasoviet.vn` while Nginx retains the loopback
+  upstream.
+- A stale E2E chart fixture was replaced with a real anonymous chart flow.
+  Focused no-email release verification passed with five tests and one
+  intentionally skipped registration-email test.
+- The public-origin versus internal-upstream rule was added to `AGENTS.md`.
+  Runtime Compose inspection was also restricted to structural fields so
+  external deploy environments are never emitted wholesale. Open questions:
+  none.

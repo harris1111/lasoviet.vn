@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
@@ -31,6 +32,18 @@ async function composeConfig() {
 }
 
 describe("founder-run Compose topology", () => {
+  it("keeps browser authentication same-origin without a public auth build argument", async () => {
+    const configuration = await composeConfig();
+    const [webDockerfile, authClient] = await Promise.all([
+      readFile(`${root}/apps/web/Dockerfile`, "utf8"),
+      readFile(`${root}/apps/web/src/auth/auth-client.ts`, "utf8"),
+    ]);
+
+    expect(configuration.services.web?.build).not.toHaveProperty("args");
+    expect(webDockerfile).not.toContain("NEXT_PUBLIC_AUTH_URL");
+    expect(authClient).not.toContain("NEXT_PUBLIC_AUTH_URL");
+  });
+
   it("keeps every service except web private and declares the required lifecycle policy", async () => {
     const configuration = await composeConfig();
 
