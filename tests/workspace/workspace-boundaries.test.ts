@@ -14,4 +14,12 @@ describe("workspace boundaries", () => {
       expect(web[section]?.["@lasoviet/backend"]).toBeUndefined();
     },
   );
+
+  it("builds workspace library producers before recursive typechecks", async () => {
+    const root = JSON.parse(await readFile("package.json", "utf8"));
+
+    expect(root.scripts.typecheck).toBe(
+      'corepack pnpm@11.25.0 --filter "{packages/**}" -r --if-present run build && corepack pnpm@11.25.0 -r --if-present run typecheck',
+    );
+  });
 });

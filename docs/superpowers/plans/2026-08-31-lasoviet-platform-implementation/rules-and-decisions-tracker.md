@@ -330,7 +330,13 @@ Date: 2026-09-02
   anonymous-link success fixtures whose fixed expiries had become past dates.
   The assertion now verifies the locale attribute independently of unrelated
   HTML props, and success expiries derive from the captured test clock. The
-  complete Vitest suite passes 267 tests across 68 files.
+  complete Vitest suite passed 267 tests across 68 files at that correction
+  point.
+- GitHub CI then exposed that a clean checkout had no generated package
+  declarations before consumer typechecks. The root typecheck command now
+  builds `packages/**` producers topologically before recursive typechecks.
+  A detached fresh-worktree verification passed without pre-existing `dist`
+  output, and the final full local check passes 268 tests across 68 files.
 - The public-origin versus internal-upstream rule was added to `AGENTS.md`.
   Runtime Compose inspection was also restricted to structural fields so
   external deploy environments are never emitted wholesale. The generated
