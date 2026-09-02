@@ -1,4 +1,6 @@
 import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   PublicContentV1Schema,
@@ -165,10 +167,15 @@ export function validateRouteRegistry(
 }
 
 function readRegistrySource(): string {
-  return readFileSync(
-    new URL("../../../config/route-registry.yml", import.meta.url),
-    "utf8",
+  const sourcePath = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "..",
+    "config",
+    "route-registry.yml",
   );
+  return readFileSync(sourcePath, "utf8");
 }
 
 export function loadRouteRegistry(source = readRegistrySource()): RouteDefinitionV1[] {

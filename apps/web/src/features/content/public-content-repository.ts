@@ -1,10 +1,9 @@
-import { readFileSync } from "node:fs";
-
 import {
   PublicContentV1Schema,
   type PublicContentV1,
   type RouteDefinitionV1,
 } from "@lasoviet/contracts";
+import rawPublicContent from "../../../../../config/public-content.json" with { type: "json" };
 
 export type PublicContentRepositoryErrorCode = "PUBLIC_CONTENT_NOT_FOUND";
 
@@ -66,13 +65,8 @@ export function createPublicContentRepository(
 }
 
 function readPublicContentSource(): unknown[] {
-  const source = readFileSync(
-    new URL("../../../../../config/public-content.json", import.meta.url),
-    "utf8",
-  );
-  const parsed: unknown = JSON.parse(source);
-  if (!Array.isArray(parsed)) invalidContent();
-  return parsed;
+  if (!Array.isArray(rawPublicContent)) invalidContent();
+  return rawPublicContent;
 }
 
 export function loadPublicContentRepository(
