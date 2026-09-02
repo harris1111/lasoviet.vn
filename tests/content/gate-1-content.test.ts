@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertRepositorySourcePath,
+  assertPublicContentLocale,
   loadGateOnePublicContent,
   routeRegistry,
   validateGateOnePublicContent,
@@ -216,6 +217,22 @@ describe("Gate 1 public content", () => {
         "Several colleagues wrote a detailed English narrative describing an unfamiliar workshop, discussing practical observations, and comparing ordinary choices across multiple situations. [Xem công cụ](route:calculator.tu-vi)",
       )),
     ).toThrow(/PUBLIC_CONTENT_INVALID/);
+    expect(() =>
+      validateGateOnePublicContent(withBody(
+        viDocument,
+        [
+          "Learn how chart inputs map.",
+          "They become normalized fields.",
+          "Each result keeps provenance for inspection.",
+        ].join("\n\n"),
+      )),
+    ).toThrow(/PUBLIC_CONTENT_INVALID/);
+    expect(() =>
+      validateGateOnePublicContent(withBody(
+        viDocument,
+        "Learn how chart inputs map cleanly into normalized fields and preserve provenance for later inspection; đó là ví dụ.",
+      )),
+    ).toThrow(/PUBLIC_CONTENT_INVALID/);
 
     expect(() =>
       validateGateOnePublicContent(withBody(
@@ -229,6 +246,36 @@ describe("Gate 1 public content", () => {
         "Nguoi dung viet mot doan tieng Viet khong dau de giai thich cach kiem tra du lieu va gioi han cua phuong phap. [Open tool](route:calculator.tu-vi)",
       )),
     ).toThrow(/PUBLIC_CONTENT_INVALID/);
+  });
+
+  it("detects sustained language across Markdown prose and keeps technical Vietnamese valid", () => {
+    expect(() => assertPublicContentLocale("vi", [
+      "## Bối cảnh",
+      "Learn how chart inputs map cleanly into normalized fields and preserve provenance for later inspection.",
+      "[Mở công cụ](route:calculator.tu-vi)",
+    ].join("\n"))).toThrow(/PUBLIC_CONTENT_INVALID/);
+    expect(() => assertPublicContentLocale("vi", [
+      "Learn how chart inputs map.",
+      "",
+      "They become normalized fields.",
+    ].join("\n"))).toThrow(/PUBLIC_CONTENT_INVALID/);
+    expect(() => assertPublicContentLocale(
+      "vi",
+      "Sinh nhat nhap sai se tao bieu do khac va lam giam do tin cay cua ket qua.",
+    )).toThrow(/PUBLIC_CONTENT_INVALID/);
+    expect(() => assertPublicContentLocale(
+      "en",
+      "Ngay sinh nhap sai co the lam bieu do thay doi va can duoc kiem tra lai.",
+    )).toThrow(/PUBLIC_CONTENT_INVALID/);
+
+    expect(() => assertPublicContentLocale(
+      "vi",
+      "Các evidence key ziwei.identity.life-palace tham chiếu soulPalaceId và provenance.ruleSetId trong biểu đồ đã chuẩn hóa.",
+    )).not.toThrow();
+    expect(() => assertPublicContentLocale(
+      "vi",
+      "[Mở công cụ](route:calculator.tu-vi)",
+    )).not.toThrow();
   });
 
   it("rejects source paths that escape the repository boundary", () => {

@@ -36,10 +36,11 @@ export {
   validateGateOnePublicContent,
 } from "./gate-one-public-content.js";
 export type {
-  ContentLocale,
   GateOneDocument,
   GateOnePublicContent,
 } from "./gate-one-public-content.js";
+export { assertPublicContentLocale } from "./public-content-locale.js";
+export type { ContentLocale } from "./public-content-locale.js";
 
 export {
   analyticsConfig,

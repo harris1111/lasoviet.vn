@@ -6,9 +6,10 @@ import { PublicContentV1Schema, type RouteDefinitionV1 } from "@lasoviet/contrac
 import { z } from "zod";
 
 import rawMetadata from "../../../config/public-content.json" with { type: "json" };
+import { assertPublicContentLocale, type ContentLocale } from "./public-content-locale.js";
 import { routeRegistry } from "./route-registry.js";
 
-export type ContentLocale = "vi" | "en";
+export type { ContentLocale } from "./public-content-locale.js";
 
 const faqItemSchema = z.object({
   question: z.string().trim().min(12),
@@ -85,21 +86,6 @@ export type GateOnePublicContent = {
 
 const unsafeCopy = /todo|tbd|placeholder|lorem ipsum|guaranteed|certified expert|limited time|countdown|testimonial|customer review|99%\s*accurate|fear|urgent|khan cap|chuyen gia duoc chung nhan|cam ket ket qua|dam bao ket qua|bao dam ket qua|loi chung thuc khach hang|danh gia khach hang|phan hoi khach hang/iu;
 const routeLink = /\]\(route:([a-z0-9.-]+)\)/g;
-const mojibake = /\uFFFD|(?:Ã.|Â.|â[€™“”–])/u;
-const englishWords = new Set([
-  "an", "and", "are", "as", "boundary", "but", "choices", "colleagues",
-  "comparing", "describing", "detailed", "discussing", "english", "explains",
-  "familiar", "for", "from", "has", "in", "is", "many", "multiple",
-  "narrative", "observations", "of", "ordinary", "paragraph", "practical",
-  "several", "situations", "that", "the", "this", "to", "unfamiliar", "uses",
-  "with", "words", "workshop", "wrote",
-]);
-const vietnameseWords = new Set([
-  "anh", "bai", "cach", "chen", "cua", "day", "de", "doan", "du", "duoc",
-  "duong", "dung", "giai", "gioi", "han", "kiem", "khong", "la", "lieu",
-  "ma", "mot", "nguoi", "noi", "phai", "phap", "phuong", "thich", "tieng",
-  "tra", "tu", "van", "vao", "viet",
-]);
 
 function invalid(message: string): never {
   throw new Error(`PUBLIC_CONTENT_INVALID: ${message}`);
@@ -170,30 +156,6 @@ function fold(value: string): string {
     .toLowerCase();
 }
 
-function proseSegments(value: string): string[] {
-  return value.split(/\r?\n\s*\r?\n/u).map((segment) =>
-    segment.replace(/\]\(route:[a-z0-9.-]+\)/gu, "]").trim(),
-  ).filter((segment) => segment.length >= 40 && !segment.startsWith("#"));
-}
-
-function sustained(segment: string, dictionary: Set<string>): boolean {
-  const words = fold(segment).match(/\p{L}+/gu) ?? [];
-  return words.filter((word) => dictionary.has(word)).length >= 6;
-}
-
-function assertLocaleIntegrity(locale: ContentLocale, body: string): void {
-  if (mojibake.test(body)) invalid("text corruption");
-  for (const segment of proseSegments(body)) {
-    if (locale === "vi" && (
-      sustained(segment, englishWords) ||
-      (/^[\x00-\x7F]+$/u.test(segment) && sustained(segment, vietnameseWords))
-    )) invalid("locale contamination");
-    if (locale === "en" && sustained(segment, vietnameseWords)) {
-      invalid("locale contamination");
-    }
-  }
-}
-
 function hasUnsafeCopy(value: string): boolean {
   return unsafeCopy.test(fold(value));
 }
@@ -257,7 +219,7 @@ function validateDocument(
   if (frontmatter.sourceIds.some((id) => !sources.has(id))) invalid(`unknown source ${frontmatter.routeId}`);
   if (hasUnsafeCopy(`${JSON.stringify(frontmatter)}\n${body}`)) invalid(`unsafe copy ${frontmatter.routeId}`);
   if (body.length < (document.kind === "article" ? 850 : 360)) invalid(`thin document ${frontmatter.routeId}`);
-  assertLocaleIntegrity(frontmatter.locale, body);
+  assertPublicContentLocale(frontmatter.locale, body);
   const bodyLinks = [...new Set(links(body))];
   if (!sameMembers([...new Set(frontmatter.relatedRouteIds)], bodyLinks)) invalid(`link parity ${frontmatter.routeId}`);
   if (bodyLinks.some((id) => !isPublicRoute(routeById.get(id)))) invalid(`non-public link ${frontmatter.routeId}`);
