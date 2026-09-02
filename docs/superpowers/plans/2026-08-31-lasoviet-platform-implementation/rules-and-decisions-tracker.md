@@ -322,7 +322,17 @@ Date: 2026-09-02
 - A stale E2E chart fixture was replaced with a real anonymous chart flow.
   Focused no-email release verification passed with five tests and one
   intentionally skipped registration-email test.
+- Initial GitHub CI failed because production ESLint rules scanned generated
+  `prototype/**/support.js` bundles. The prototype artifact tree is now excluded
+  from production lint without modifying generated files; local i18n and lint
+  gates pass.
+- The full local CI run then exposed one brittle layout source assertion and
+  anonymous-link success fixtures whose fixed expiries had become past dates.
+  The assertion now verifies the locale attribute independently of unrelated
+  HTML props, and success expiries derive from the captured test clock. The
+  complete Vitest suite passes 267 tests across 68 files.
 - The public-origin versus internal-upstream rule was added to `AGENTS.md`.
   Runtime Compose inspection was also restricted to structural fields so
-  external deploy environments are never emitted wholesale. Open questions:
-  none.
+  external deploy environments are never emitted wholesale. The generated
+  prototype lint-boundary and runtime-clock fixture rules were added as well.
+  Open questions: none.

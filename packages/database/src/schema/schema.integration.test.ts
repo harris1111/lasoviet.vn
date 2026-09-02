@@ -246,6 +246,7 @@ describe("database schema integration", () => {
     const userId = "user_link_test";
     const anonymousActorId = "anonymous_link_test";
     const profileId = "profile_link_test";
+    const futureExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
     await database.insert(authUsers).values({
       id: userId,
@@ -260,13 +261,13 @@ describe("database schema integration", () => {
     });
     await database.insert(authAnonymousActors).values({
       id: anonymousActorId,
-      expiresAt: new Date("2026-09-02T00:00:00Z"),
+      expiresAt: futureExpiry,
     });
     await database.insert(authSessions).values({
       id: "anonymous_link_session",
       userId: anonymousActorId,
       token: "anonymous-link-token",
-      expiresAt: new Date("2026-09-02T00:00:00Z"),
+      expiresAt: futureExpiry,
     });
     await database.insert(auditLogs).values({
       actorId: anonymousActorId,
@@ -279,7 +280,7 @@ describe("database schema integration", () => {
     await database.insert(birthProfiles).values({
       id: profileId,
       anonymousActorId,
-      anonymousExpiresAt: new Date("2026-09-02T00:00:00Z"),
+      anonymousExpiresAt: futureExpiry,
     });
 
     await expect(
@@ -355,6 +356,7 @@ describe("database schema integration", () => {
     const database = createDatabase(databaseUrl);
     const userId = "user_no_profile_link_test";
     const anonymousActorId = "anonymous_no_profile_link_test";
+    const futureExpiry = new Date(Date.now() + 60 * 60 * 1000);
     await database.insert(authUsers).values([
       {
         id: userId,
@@ -370,13 +372,13 @@ describe("database schema integration", () => {
     ]);
     await database.insert(authAnonymousActors).values({
       id: anonymousActorId,
-      expiresAt: new Date("2026-09-03T00:00:00Z"),
+      expiresAt: futureExpiry,
     });
     await database.insert(authSessions).values({
       id: "anonymous_no_profile_link_session",
       userId: anonymousActorId,
       token: "anonymous-no-profile-link-token",
-      expiresAt: new Date("2026-09-03T00:00:00Z"),
+      expiresAt: futureExpiry,
     });
 
     await expect(

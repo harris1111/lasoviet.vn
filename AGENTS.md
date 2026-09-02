@@ -176,6 +176,12 @@ Calendar, timezone, birth-time, payment idempotency, authorization, privacy, and
 engine-normalization cases that affect core correctness are not "niche" merely
 because they are uncommon.
 
+Tests for expiry, retention, leases, or other runtime-clock behavior must use
+an injected/frozen clock or values derived relative to the captured test time.
+Do not use a fixed near-future calendar timestamp when production compares
+against the real current clock; such fixtures become false failures as time
+passes.
+
 Record genuinely deferred edge cases in English in the relevant later-phase
 plan or backlog, including risk, reason for deferral, and the condition that
 should bring them into scope.
@@ -376,6 +382,10 @@ rule instead of adding another version.
   UI.
 - When a non-UI task depends on an unresolved visual decision, record the UI
   artifact dependency and continue independent non-visual work.
+- Generated or exported files under `prototype/` are reference artifacts, not
+  production lint targets. Exclude the prototype tree in repository-wide lint
+  configuration; never edit generated support bundles merely to satisfy
+  application framework rules.
 
 ### Docker Compose Web Publishing
 

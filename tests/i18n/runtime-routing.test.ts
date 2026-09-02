@@ -21,12 +21,16 @@ describe("localized app runtime tree", () => {
     );
     expect(layoutSource).toContain("setRequestLocale");
     expect(layoutSource).toContain("NextIntlClientProvider");
-    expect(layoutSource).toContain("<html lang={locale}>");
+    expect(layoutSource).toContain("lang={locale}");
     expect(pageSource).toContain('getTranslations("common")');
     expect(requestSource).toContain("getRequestConfig");
-    expect(JSON.parse(viMessages).app.tagline).toBe("Lập lá số. Hiểu vận mệnh.");
-    expect(JSON.parse(enMessages).app.tagline).toBe(
-      "Build your chart. Understand your path.",
-    );
+    expect(JSON.parse(viMessages).app).toMatchObject({
+      taglinePrefix: "Lập lá số.",
+      taglineHighlight: "Hiểu vận mệnh.",
+    });
+    expect(JSON.parse(enMessages).app).toMatchObject({
+      taglinePrefix: "Build your chart.",
+      taglineHighlight: "Understand your path.",
+    });
   });
 });
