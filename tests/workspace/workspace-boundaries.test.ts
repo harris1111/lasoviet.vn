@@ -22,4 +22,14 @@ describe("workspace boundaries", () => {
       'corepack pnpm@11.25.0 --filter "{packages/**}" -r --if-present run build && corepack pnpm@11.25.0 -r --if-present run typecheck',
     );
   });
+
+  it("builds web artifacts before running tests in root checks and CI", async () => {
+    const root = JSON.parse(await readFile("package.json", "utf8"));
+    const workflow = await readFile(".github/workflows/ci.yml", "utf8");
+
+    expect(root.scripts.check).toBe(
+      "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run build && corepack pnpm@11.25.0 run test",
+    );
+    expect(workflow).toContain("      - run: pnpm build\n      - run: pnpm test");
+  });
 });

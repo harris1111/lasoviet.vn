@@ -337,6 +337,11 @@ Date: 2026-09-02
   builds `packages/**` producers topologically before recursive typechecks.
   A detached fresh-worktree verification passed without pre-existing `dist`
   output, and the final full local check passes 268 tests across 68 files.
+- The next clean CI run exposed that the browser-boundary test requires current
+  `.next/static` artifacts while both the root check and workflow ran tests
+  before the build. Build now precedes tests in both paths, and a focused
+  workspace regression locks that order. Fresh local verification passes 269
+  tests across 68 files.
 - The public-origin versus internal-upstream rule was added to `AGENTS.md`.
   Runtime Compose inspection was also restricted to structural fields so
   external deploy environments are never emitted wholesale. The generated
