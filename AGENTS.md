@@ -323,11 +323,15 @@ rule instead of adding another version.
   tools, never a database, queue, secret, payment-provider, or CMS console.
   Admin V1 uses redacted projections only; unredacted sensitive-detail reveal
   is deferred. Privileged reads require private-API authorization and redacted
-  audit evidence. State-changing operations require an actor, reason code,
-  request/trace ID, idempotency key, expected version where applicable, and an
-  append-only audit record; they call policy-checked domain services and use
-  compensating versions/events plus the outbox rather than direct table edits,
-  immutable-record mutation, or BullMQ requeue.
+  audit evidence. Authorization denials that occur before a private controller
+  must still use a trusted server-to-private-API path to append bounded,
+  redacted audit evidence; never create an anonymous session or expose a public
+  unauthenticated audit-write endpoint to fill that gap. State-changing
+  operations require an actor, reason code, request/trace ID, idempotency key,
+  expected version where applicable, and an append-only audit record; they call
+  policy-checked domain services and use compensating versions/events plus the
+  outbox rather than direct table edits, immutable-record mutation, or BullMQ
+  requeue.
 - Do not run destructive filesystem or Git operations without explicit founder
   approval.
 - Do not deploy, push production configuration, modify DNS, change payment

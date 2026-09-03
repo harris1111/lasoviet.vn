@@ -127,13 +127,17 @@ git add config/route-registry.yml packages/contracts packages/database packages/
 git commit -m "feat: add private admin access controls"
 ```
 
-**Completion evidence (2026-09-02):** Added fail-closed verified-session
-authorization, database-backed active-role resolution, the complete V1
-capability matrix, redacted append-only audit storage, and the first
-server-authorized `/admin` route. The private route is `live_noindex`, absent
-from public navigation and every sitemap. Focused checks passed 11 tests,
-database migration integration passed 5 tests, and the final full suite passed
-280 tests.
+**Completion evidence (2026-09-03):** Added fail-closed verified-session
+authorization, database-backed active-role and active-policy resolution, the
+approved V1 capability matrix, one-active-assignment enforcement, redacted
+append-only audit storage, and the first server-authorized `/admin` route.
+Trusted preflight denial auditing covers missing, anonymous, and unverified
+sessions without creating anonymous sessions or exposing a public audit-write
+endpoint. The private route is `live_noindex`, absent from public navigation
+and every sitemap. Final focused correction coverage passed 38 tests and Sol
+closed both correction passes with no Critical or Important finding. The
+post-correction migration/full-suite run remains host-blocked at Testcontainers
+startup; all 272 non-container tests in that attempt passed.
 
 ### Task 2 [P05A-T02]: Add redacted operational projections and overview health
 
