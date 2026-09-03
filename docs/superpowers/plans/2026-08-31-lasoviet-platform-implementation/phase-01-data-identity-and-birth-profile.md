@@ -403,4 +403,9 @@ git commit -m "feat: add canonical birth profile"
 - The focused auth action suite failed four assertions before implementation
   and passed all five afterward. Web typecheck, production build, and i18n
   parity passed.
-- Live resend and deployment remain external founder-controlled steps.
+- Commit `d7f85ee` was deployed by rebuilding and replacing only the VPS web
+  service. The container became healthy and the public health route returned
+  HTTP 200.
+- One founder-authorized resend returned HTTP 200. The matching notification
+  delivery reached `sent` on its first attempt with a provider message ID
+  present, and the founder confirmed inbox receipt on 2026-09-03.

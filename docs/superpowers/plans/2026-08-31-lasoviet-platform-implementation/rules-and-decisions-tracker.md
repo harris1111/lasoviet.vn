@@ -349,10 +349,16 @@ Date: 2026-09-03
 - TDD evidence: the focused auth action suite first failed four assertions
   against the previous behavior, then passed all five tests after the
   correction. Web typecheck, production build, and i18n parity also passed.
-- No live resend, deployment, or other external side effect occurred during
-  this correction. The authentication anti-enumeration rule was added to
-  `AGENTS.md`. Open questions: founder authorization is required before
-  deployment and one live resend verification.
+- Commit `d7f85ee` was deployed to the VPS web service while API, worker,
+  PostgreSQL, and Redis remained running. The replacement web container became
+  healthy and the public health route returned HTTP 200.
+- One founder-authorized resend request returned HTTP 200 with
+  `{"status":true}`. The matching verification-delivery count increased from
+  one to two; the new delivery reached `sent` on its first attempt with a
+  provider message ID present. The founder confirmed inbox receipt on
+  2026-09-03.
+- The authentication anti-enumeration rule was added to `AGENTS.md`. Open
+  questions: none.
 
 ## P01-T03 Evidence
 
