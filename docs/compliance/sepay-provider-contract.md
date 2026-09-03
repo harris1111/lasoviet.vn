@@ -39,13 +39,19 @@ raw request body and the bounded `X-Secret-Key` header to the private API. The
 private API verifies `X-Secret-Key` with a timing-safe comparison before parsing
 or mutating business state.
 
-A paid notification must be `ORDER_PAID` and match a pending order using its
-immutable `order_invoice_number`, exact VND amount, and currency. The success
-acknowledgement is returned only after this processing. A matching replay
+A paid notification has `notification_type: ORDER_PAID`; its immutable invoice
+is `order.order_invoice_number`, order currency is `order.order_currency`, and
+amount is decimal string `order.order_amount`. The provider event identity is
+`transaction.transaction_id`; the transaction must be `APPROVED`, have the
+same decimal amount, and use VND. The success acknowledgement is returned only
+after matching this to a pending order. A matching replay
 returns the same success acknowledgement without another entitlement, report
 reservation, or outbox event. Unknown, conflicting, malformed, amount-mismatch,
 or unauthenticated requests fail closed. Provider test/non-paid notifications
-may be acknowledged only after authentication and without business mutation.
+use the documented `TRANSACTION_VOID` non-paid notification path only after
+authentication and without business mutation. The documentation does not define
+the onboarding `Send test` body; deployment must observe it before a special
+acknowledgement is added.
 
 No request body, provider headers, secrets, birth data, chart data, or report
 content is logged.

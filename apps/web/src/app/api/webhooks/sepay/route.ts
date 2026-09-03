@@ -8,17 +8,19 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ ok: false }, { status: 503 });
   }
   const secret = request.headers.get("x-secret-key");
-  if (secret === null || secret.length === 0 || secret.length > MAX_SECRET_HEADER_LENGTH) {
+  const contentType = request.headers.get("content-type");
+  if (secret === null || secret.length === 0 || secret.length > MAX_SECRET_HEADER_LENGTH || contentType === null || contentType.length > 128) {
     return Response.json({ ok: false }, { status: 401 });
   }
-  const rawBody = await request.text();
+  const rawBody = await request.arrayBuffer();
   const response = await fetch(`${environment.value.privateApiUrl}/commerce/webhooks/sepay`, {
     method: "POST",
     headers: {
-      "content-type": "application/json",
+      "content-type": contentType,
       "x-secret-key": secret,
+      "x-internal-ingress-secret": environment.value.internalActorSecret ?? "",
     },
-    body: JSON.stringify({ rawBody }),
+    body: rawBody,
     cache: "no-store",
   });
   return new Response(await response.text(), {

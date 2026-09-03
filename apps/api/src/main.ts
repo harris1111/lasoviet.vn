@@ -12,6 +12,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     ApiModule,
     new FastifyAdapter(),
+    { rawBody: true },
   );
 
   await app.listen(Number(process.env.PORT ?? 3001), "0.0.0.0");

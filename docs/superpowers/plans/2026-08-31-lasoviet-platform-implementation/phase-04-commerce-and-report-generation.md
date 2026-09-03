@@ -23,12 +23,14 @@ compatible HTTP API.
 ## Task 1-2 Evidence (2026-09-03)
 
 - Provider contract, server-only SePay environment validation, catalog/order
-  policy, hosted checkout signature adapter, and raw public ingress are
-  implemented with focused RED/GREEN coverage.
-- Atomic database payment processing, entitlement/reservation/outbox commit,
-  dispatcher, private controller, checkout action/page, and Testcontainers
-  transaction coverage remain required before Sol review; Phase 04 is not
-  complete.
+  policy, hosted checkout signature adapter, raw public ingress, private
+  controller, and checkout action/page are implemented with focused
+  RED/GREEN coverage.
+- Atomic order/payment-event/entitlement/report-reservation/outbox insertion
+  and an outbox lease/dispatch boundary are implemented. Report worker
+  consumption remains Task 3.
+- Task 1-2 are pending Sol review. The Testcontainers transaction suite is
+  committed and loads but needs a container runtime on the verification host.
 
 ## Global Constraints
 

@@ -9,6 +9,7 @@ export default defineConfig({
     "./src/schema/audit.ts",
     "./src/schema/admin-access.ts",
     "./src/schema/notifications.ts",
+    "./src/schema/commerce.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",

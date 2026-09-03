@@ -32,6 +32,7 @@ import {
   createDatabaseDeletionRepository,
   createDatabaseZiweiCalculationRepository,
   createDatabaseZiweiQueryRepository,
+  createDatabaseCommerceRepository,
   createSmtpEmailAdapter,
   createAdminOverviewService,
   createRoleAssignmentService,
@@ -87,6 +88,16 @@ import {
   ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei/ziwei.controller.js";
+import {
+  COMMERCE_ACTOR_SECRET,
+  COMMERCE_DATABASE,
+  COMMERCE_INGRESS_SECRET,
+  COMMERCE_RETURN_ORIGIN,
+  COMMERCE_SEPAY_ENV,
+  COMMERCE_SEPAY_MERCHANT,
+  COMMERCE_SEPAY_SECRET,
+  CommerceController,
+} from "./commerce/commerce.controller.js";
 
 function applicationEnvironment() {
   const result = loadEnvironment(process.env);
@@ -153,6 +164,7 @@ export function createApiAnalyticsSink(
     AdminAccessController,
     AdminRoleAuditController,
     AdminOverviewController,
+    CommerceController,
   ],
   providers: [
     {
@@ -292,6 +304,34 @@ export function createApiAnalyticsSink(
       },
     },
     { provide: ZIWEI_CALCULATION_DATABASE, useFactory: privacyDatabase },
+    { provide: COMMERCE_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: COMMERCE_ACTOR_SECRET,
+      useFactory: () => applicationEnvironment().internalActorSecret
+        ?? (() => { throw new Error("API_ACTOR_SECRET_CONFIG_INVALID"); })(),
+    },
+    {
+      provide: COMMERCE_INGRESS_SECRET,
+      useFactory: () => applicationEnvironment().internalActorSecret
+        ?? (() => { throw new Error("API_INGRESS_SECRET_CONFIG_INVALID"); })(),
+    },
+    {
+      provide: COMMERCE_SEPAY_SECRET,
+      useFactory: () => applicationEnvironment().sepay.secretKey,
+    },
+    {
+      provide: COMMERCE_SEPAY_ENV,
+      useFactory: () => applicationEnvironment().sepay.environment,
+    },
+    {
+      provide: COMMERCE_SEPAY_MERCHANT,
+      useFactory: () => applicationEnvironment().sepay.merchantId,
+    },
+    {
+      provide: COMMERCE_RETURN_ORIGIN,
+      useFactory: () => applicationEnvironment().betterAuthUrl
+        ?? (() => { throw new Error("API_PUBLIC_ORIGIN_CONFIG_INVALID"); })(),
+    },
     {
       provide: ZIWEI_ANALYTICS_SERVICE,
       useFactory: () =>

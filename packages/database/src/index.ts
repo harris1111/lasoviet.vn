@@ -34,6 +34,13 @@ export {
 } from "./schema/birth-profile.js";
 export { evidenceItems, evidenceSets } from "./schema/evidence.js";
 export {
+  commerceEntitlements,
+  commerceOrderStatus,
+  commerceOrders,
+  commercePaymentEvents,
+  reportReservations,
+} from "./schema/commerce.js";
+export {
   deletionRequestStatus,
   deletionRequests,
   consents,
