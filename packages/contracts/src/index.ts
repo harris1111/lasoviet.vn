@@ -25,12 +25,16 @@ export {
   AdminAuditTargetSchema,
   AdminCapabilitySchema,
   AdminRoleSchema,
+  INTERNAL_ADMIN_PREFLIGHT_AUDIT_AUDIENCE,
+  INTERNAL_ADMIN_PREFLIGHT_AUDIT_ISSUER,
+  InternalAdminPreflightAuditV1Schema,
 } from "./admin-auth.js";
 export type {
   AdminAccessV1,
   AdminAuditTarget,
   AdminCapability,
   AdminRole,
+  InternalAdminPreflightAuditV1,
 } from "./admin-auth.js";
 
 export {

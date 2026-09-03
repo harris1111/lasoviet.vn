@@ -4,8 +4,10 @@ import {
   Controller,
   Get,
   Headers,
+  HttpCode,
   Inject,
   NotFoundException,
+  Post,
 } from "@nestjs/common";
 
 import {
@@ -15,10 +17,8 @@ import {
 import type { AdminAccessError, AdminAuditEntry } from "@lasoviet/backend";
 import type { Database } from "@lasoviet/database";
 
-import {
-  ActorTokenError,
-  verifyInternalActorToken,
-} from "../auth/internal-actor.guard.js";
+import { verifyInternalActorToken } from "../auth/internal-actor.guard.js";
+import { verifyAdminPreflightAuditToken } from "./admin-preflight-audit.guard.js";
 
 export const ADMIN_ACCESS_SERVICE = Symbol("ADMIN_ACCESS_SERVICE");
 export const ADMIN_AUDIT_SERVICE = Symbol("ADMIN_AUDIT_SERVICE");
@@ -139,5 +139,34 @@ export class AdminAccessController {
       resultSummary: { role: access.value.role, outcome: "allowed" },
     });
     return { role: access.value.role };
+  }
+
+  @Post("access/preflight-denial")
+  @HttpCode(204)
+  async preflightDenial(
+    @Headers("authorization") authorization: string | undefined,
+    @Headers("x-request-id") requestedId: string | undefined,
+  ): Promise<void> {
+    const requestId = safeCorrelationId(requestedId);
+    try {
+      await verifyAdminPreflightAuditToken(
+        bearerToken(authorization),
+        new TextEncoder().encode(this.secret),
+      );
+    } catch {
+      throw new NotFoundException();
+    }
+    await this.recordAudit({
+      actorId: null,
+      roleAssignmentId: null,
+      capability: "admin.overview.read",
+      operation: "admin.access.preflight_denied",
+      target: { type: "admin_overview", id: "overview" },
+      requestId,
+      traceId: requestId,
+      policyResult: "denied",
+      redactionLevel: "redacted",
+      resultSummary: { outcome: "denied", code: "ADMIN_AUTH_REQUIRED" },
+    });
   }
 }

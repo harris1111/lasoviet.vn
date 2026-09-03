@@ -7,11 +7,11 @@ import {
   ADMIN_ACCESS_SERVICE_SECRET,
   AdminAccessController,
 } from "../../apps/api/src/admin-access/admin-access.controller.js";
+import { verifyAdminPreflightAuditToken } from "../../apps/api/src/admin-access/admin-preflight-audit.guard.js";
 
 const secretValue = "synthetic-admin-secret";
 
 vi.mock("../../apps/api/src/auth/internal-actor.guard.js", () => ({
-  ActorTokenError: class ActorTokenError extends Error {},
   verifyInternalActorToken: vi.fn(async (token: string) => {
     if (token === "invalid") throw new Error("invalid token");
     return {
@@ -21,6 +21,9 @@ vi.mock("../../apps/api/src/auth/internal-actor.guard.js", () => ({
       requestId: "request-1",
     };
   }),
+}));
+vi.mock("../../apps/api/src/admin-access/admin-preflight-audit.guard.js", () => ({
+  verifyAdminPreflightAuditToken: vi.fn(),
 }));
 
 const accessService = createAdminAccessService({
@@ -132,5 +135,43 @@ describe("admin route boundary", () => {
       roleAssignmentId: "assignment-1",
       policyResult: "denied",
     }));
+  });
+
+  it("audits a trusted web preflight denial without accepting public calls", async () => {
+    const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
+    const controller = new AdminAccessController(
+      accessService,
+      { appendAdminAudit },
+      secretValue,
+      undefined as never,
+    );
+
+    await expect(
+      controller.preflightDenial("Bearer trusted-preflight", "request-1"),
+    ).resolves.toBeUndefined();
+    expect(appendAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      actorId: null,
+      roleAssignmentId: null,
+      policyResult: "denied",
+      resultSummary: { outcome: "denied", code: "ADMIN_AUTH_REQUIRED" },
+    }));
+  });
+
+  it("rejects an untrusted preflight request without creating an audit record", async () => {
+    const appendAdminAudit = vi.fn();
+    const controller = new AdminAccessController(
+      accessService,
+      { appendAdminAudit },
+      secretValue,
+      undefined as never,
+    );
+    vi.mocked(verifyAdminPreflightAuditToken).mockRejectedValueOnce(
+      new Error("INVALID_TOKEN"),
+    );
+
+    await expect(
+      controller.preflightDenial("Bearer invalid-preflight", "request-1"),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(appendAdminAudit).not.toHaveBeenCalled();
   });
 });
