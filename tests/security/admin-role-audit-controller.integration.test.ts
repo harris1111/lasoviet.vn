@@ -48,4 +48,73 @@ describe("admin role audit controller", () => {
       resultSummary: { outcome: "denied", code: "ROLE_ASSIGNMENT_CONFLICT" },
     }));
   });
+
+  it("audits a trusted audit-access denial once before returning not found", async () => {
+    const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
+    const controller = new AdminRoleAuditController(
+      {
+        resolveAdminAccess: vi.fn(async () => ({
+          ok: false,
+          error: { code: "ADMIN_FORBIDDEN" },
+        })),
+      } as never,
+      { appendAdminAudit },
+      { assignRole: vi.fn(), revokeRole: vi.fn() } as never,
+      { search: vi.fn() } as never,
+      "synthetic-secret",
+      undefined as never,
+    );
+
+    await expect(controller.auditAccess("Bearer actor", "header-request-id"))
+      .rejects.toMatchObject({ status: 404 });
+    expect(appendAdminAudit).toHaveBeenCalledTimes(1);
+    expect(appendAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      actorId: "admin-1",
+      operation: "admin.audit.access",
+      policyResult: "denied",
+      resultSummary: { outcome: "denied", code: "ADMIN_FORBIDDEN" },
+    }));
+  });
+
+  it("audits a trusted malformed audit cursor once before returning a bounded error", async () => {
+    const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
+    const search = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { code: "ADMIN_FILTER_INVALID" },
+    });
+    const controller = new AdminRoleAuditController(
+      {
+        resolveAdminAccess: vi.fn(async () => ({
+          ok: true,
+          value: {
+            actorId: "admin-1",
+            roleAssignmentId: "assignment-1",
+            role: "super_admin",
+            capabilities: ["admin.audit.read"],
+          },
+        })),
+      } as never,
+      { appendAdminAudit },
+      { assignRole: vi.fn(), revokeRole: vi.fn() } as never,
+      { search } as never,
+      "synthetic-secret",
+      undefined as never,
+    );
+
+    await expect(controller.search("Bearer actor", "header-request-id", {
+      cursor: "not-a-keyset-cursor",
+    })).rejects.toMatchObject({
+      status: 400,
+      response: { code: "ADMIN_FILTER_INVALID" },
+    });
+    expect(search).toHaveBeenCalledWith(expect.anything(), {
+      cursor: "not-a-keyset-cursor",
+      pageSize: 25,
+    });
+    expect(appendAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      operation: "admin.audit.read",
+      policyResult: "denied",
+      resultSummary: { outcome: "denied", code: "ADMIN_FILTER_INVALID" },
+    }));
+  });
 });

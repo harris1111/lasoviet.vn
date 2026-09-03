@@ -13,4 +13,25 @@ describe("audit query repository", () => {
     })).rejects.toThrow("ADMIN_FILTER_INVALID");
     expect(select).not.toHaveBeenCalled();
   });
+
+  it("returns a bounded invalid-filter result when repository cursor parsing fails", async () => {
+    const service = (await import("./audit-query.service.js")).createAuditQueryService({
+      repository: {
+        search: vi.fn().mockRejectedValue(new Error("ADMIN_FILTER_INVALID")),
+      },
+    });
+
+    await expect(service.search({
+      actorId: "admin-1",
+      roleAssignmentId: "assignment-1",
+      role: "super_admin",
+      capabilities: ["admin.audit.read"],
+    }, {
+      pageSize: 25,
+      cursor: "2026-09-03T00:00:00.000Z|not-a-uuid",
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "ADMIN_FILTER_INVALID" },
+    });
+  });
 });

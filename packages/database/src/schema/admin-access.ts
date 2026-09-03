@@ -82,6 +82,7 @@ export const adminRoleMutationRequests = pgTable(
     uniqueIndex("admin_role_mutation_requests_actor_key_unique").on(
       table.actorId,
       table.idempotencyKey,
+      table.requestFingerprint,
     ),
   ],
 );

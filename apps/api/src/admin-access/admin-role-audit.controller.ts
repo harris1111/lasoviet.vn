@@ -142,9 +142,23 @@ export class AdminRoleAuditController {
     @Headers("x-request-id") requestId: string | undefined,
     @Query() query: Record<string, unknown>,
   ): Promise<AdminAuditPageV1> {
-    const filters = parseAdminAuditSearchFiltersV1(query);
-    if (!filters.success) throw new NotFoundException();
     const context = await this.authorized(authorization, requestId);
+    const filters = parseAdminAuditSearchFiltersV1(query);
+    if (!filters.success) {
+      await this.audit.appendAdminAudit({
+        actorId: context.access.actorId,
+        roleAssignmentId: context.access.roleAssignmentId,
+        capability: "admin.audit.read",
+        operation: "admin.audit.read",
+        target: { type: "admin_audit", id: "search" },
+        requestId: context.requestId,
+        traceId: context.traceId,
+        policyResult: "denied",
+        redactionLevel: "redacted",
+        resultSummary: { outcome: "denied", code: "ADMIN_FILTER_INVALID" },
+      });
+      throw new BadRequestException({ code: "ADMIN_FILTER_INVALID" });
+    }
     const result = await this.audits.search(context.access, filters.data);
     if (!result.ok) {
       await this.audit.appendAdminAudit({
@@ -181,7 +195,29 @@ export class AdminRoleAuditController {
     @Headers("authorization") authorization: string | undefined,
     @Headers("x-request-id") requestId: string | undefined,
   ) {
-    const context = await this.authorized(authorization, requestId);
+    const actor = await this.actor(authorization).catch(() => undefined);
+    if (actor === undefined) throw new NotFoundException();
+    const access = await this.access.resolveAdminAccess(actor);
+    if (!access.ok) {
+      await this.audit.appendAdminAudit({
+        actorId: actor.kind === "account" ? actor.userId : null,
+        roleAssignmentId: null,
+        capability: "admin.audit.read",
+        operation: "admin.audit.access",
+        target: { type: "admin_audit", id: "access" },
+        requestId: correlationId(actor.requestId || requestId),
+        traceId: correlationId(actor.requestId),
+        policyResult: "denied",
+        redactionLevel: "redacted",
+        resultSummary: { outcome: "denied", code: access.error.code },
+      });
+      throw new NotFoundException();
+    }
+    const context = {
+      access: access.value,
+      requestId: correlationId(actor.requestId || requestId),
+      traceId: correlationId(actor.requestId),
+    };
     return {
       canReadAudit: context.access.capabilities.includes("admin.audit.read"),
       canManageRoles: context.access.capabilities.includes("admin.roles.manage"),

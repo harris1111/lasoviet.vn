@@ -544,6 +544,22 @@ contracts, database, backend, and API builds plus web typecheck passed, as did
 migration runtime verification remains host-blocked. Task 5 remains in
 progress pending Sol re-review.
 
+**Replan Cycle 1 correction-pass evidence (2026-09-03):** Role outcomes now
+lock and re-resolve active authority before self-target or receipt handling.
+Unknown revokes, idempotency mismatches, stale authority, and self-escalation
+produce bounded exactly-once audit and receipt evidence; stale authority never
+replays an earlier success. The receipt uniqueness now includes request
+fingerprint so a key-reuse conflict is replayable without altering the
+original result. Trusted audit-access and malformed-filter denials append one
+controller audit, while invalid/untrusted tokens remain unaudited. A real
+PostgreSQL Testcontainers suite instantiates the role-assignment repository
+and covers history, active-row integrity, replays, conflicts, authority,
+atomic audits/receipts, and injected rollback. Four focused test files passed
+11 tests; contracts/database/backend builds and API typecheck passed;
+`git diff --check` passed. The container suite compiled but is host-blocked
+because Testcontainers cannot find a working container runtime. Task 5 remains
+in progress pending Sol re-review.
+
 ### Task 6 [P05A-T06]: Prove production-like operational incident workflows and release evidence
 
 **Files:**

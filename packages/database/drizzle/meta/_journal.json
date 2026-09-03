@@ -71,6 +71,13 @@
       "when": 1788402819695,
       "tag": "0009_admin_audit_history_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788405730485,
+      "tag": "0010_admin_role_mutation_outcomes",
+      "breakpoints": true
     }
   ]
 }

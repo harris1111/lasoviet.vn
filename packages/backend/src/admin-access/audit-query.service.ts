@@ -47,6 +47,17 @@ function redactPage(page: AdminAuditPageV1): AdminAuditPageV1 {
   });
 }
 
+function invalidFilter(): Result<never, "ADMIN_FILTER_INVALID"> {
+  return {
+    ok: false,
+    error: {
+      code: "ADMIN_FILTER_INVALID",
+      messageKey: "admin.admin_filter_invalid",
+      retryable: false,
+    },
+  };
+}
+
 export function createAuditQueryService(options: { repository: AuditQueryRepository }) {
   return {
     async search(
@@ -69,7 +80,14 @@ export function createAuditQueryService(options: { repository: AuditQueryReposit
           },
         };
       }
-      return { ok: true, value: redactPage(await options.repository.search(filters.data)) };
+      try {
+        return { ok: true, value: redactPage(await options.repository.search(filters.data)) };
+      } catch (error) {
+        if (error instanceof Error && error.message === "ADMIN_FILTER_INVALID") {
+          return invalidFilter();
+        }
+        throw error;
+      }
     },
   };
 }
