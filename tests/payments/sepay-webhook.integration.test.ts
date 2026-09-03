@@ -238,6 +238,8 @@ describe("SePay payment transaction", () => {
 
   it("dispatches a report event after an earlier unsupported outbox event", async () => {
     const database = createDatabase(databaseUrl);
+    await database.delete(reportQueueJobs);
+    await database.delete(outbox);
     const now = new Date("2026-09-03T00:00:00Z");
     await enqueueOutbox(database, {
       schemaVersion: 1,
@@ -251,7 +253,7 @@ describe("SePay payment transaction", () => {
       idempotencyKey: `anonymous-purge-${randomUUID()}`,
       payload: {},
     });
-    await enqueueOutbox(database, {
+    const reportEvent = await enqueueOutbox(database, {
       schemaVersion: 1,
       type: "report.generation.requested.v1",
       eventId: `report-${randomUUID()}`,
@@ -275,13 +277,25 @@ describe("SePay payment transaction", () => {
       },
     });
     const dispatcher = createOutboxDispatcher({
-      ...createDatabaseOutboxStore(database, "outbox-test", () => now),
+      ...createDatabaseOutboxStore(
+        database,
+        "outbox-test",
+        () => new Date(reportEvent.availableAt.getTime() + 1),
+      ),
       ...createDatabaseReportQueuePublisher(database),
     });
 
     await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: true });
-    expect(await database.select().from(reportQueueJobs)).toHaveLength(1);
-    expect((await database.select().from(outbox)).find(
+    expect(
+      await database
+        .select({ sourceEventId: reportQueueJobs.sourceEventId })
+        .from(reportQueueJobs),
+    ).toEqual([{ sourceEventId: reportEvent.eventId }]);
+    const persistedOutboxEvents = await database.select().from(outbox);
+    expect(
+      persistedOutboxEvents.find((event) => event.id === reportEvent.id),
+    ).toMatchObject({ status: "processed" });
+    expect(persistedOutboxEvents.find(
       (event) => event.eventType === "anonymous.purge.requested.v1",
     )).toMatchObject({ status: "pending" });
     await database.$client.end();

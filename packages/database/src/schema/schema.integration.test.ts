@@ -1,5 +1,5 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -229,6 +229,14 @@ describe("database schema integration", () => {
       requestFingerprint: "fingerprint-1",
       result: { assignmentId: "admin_assignment_schema_test", version: 1 },
     });
+    await database.insert(adminRoleMutationRequests).values({
+      actorId: userId,
+      operation: "admin.role.assigned",
+      targetId: "admin_assignment_schema_test",
+      idempotencyKey: "schema-role-change-1",
+      requestFingerprint: "fingerprint-2",
+      result: { assignmentId: "admin_assignment_schema_test", version: 1 },
+    });
     await expect(
       database.insert(adminRoleMutationRequests).values({
         actorId: userId,
@@ -239,6 +247,33 @@ describe("database schema integration", () => {
         result: { assignmentId: "admin_assignment_schema_test", version: 1 },
       }),
     ).rejects.toBeDefined();
+    expect(
+      await database
+        .select({
+          idempotencyKey: adminRoleMutationRequests.idempotencyKey,
+          requestFingerprint: adminRoleMutationRequests.requestFingerprint,
+        })
+        .from(adminRoleMutationRequests)
+        .where(
+          and(
+            eq(adminRoleMutationRequests.actorId, userId),
+            eq(
+              adminRoleMutationRequests.idempotencyKey,
+              "schema-role-change-1",
+            ),
+          ),
+        )
+        .orderBy(asc(adminRoleMutationRequests.requestFingerprint)),
+    ).toEqual([
+      {
+        idempotencyKey: "schema-role-change-1",
+        requestFingerprint: "fingerprint-1",
+      },
+      {
+        idempotencyKey: "schema-role-change-1",
+        requestFingerprint: "fingerprint-2",
+      },
+    ]);
     expect(
       await database
         .select({ capability: adminCapabilityPolicies.capability })
