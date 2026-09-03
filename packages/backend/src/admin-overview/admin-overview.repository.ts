@@ -1,4 +1,4 @@
-import { count, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 
 import {
   authUsers,
@@ -26,7 +26,10 @@ export function createDatabaseAdminOverviewRepository(
           emailVerified: authUsers.emailVerified,
           isAnonymous: authUsers.isAnonymous,
           createdAt: authUsers.createdAt,
-        }).from(authUsers).limit(filters.pageSize).offset(offset),
+        }).from(authUsers)
+          .orderBy(desc(authUsers.createdAt), desc(authUsers.id))
+          .limit(filters.pageSize)
+          .offset(offset),
       ]);
       return {
         total: totals?.value ?? 0,

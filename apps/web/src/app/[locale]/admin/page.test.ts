@@ -9,6 +9,7 @@ const dependencies = vi.hoisted(() => {
   const recordPreflightDenial = vi.fn();
   const privateApiClient = vi.fn(() => ({ request }));
   const privateAdminAuditClient = vi.fn(() => ({ recordPreflightDenial }));
+  const AdminOverviewTable = vi.fn(() => null);
 
   return {
     notFound,
@@ -17,6 +18,7 @@ const dependencies = vi.hoisted(() => {
     recordPreflightDenial,
     privateApiClient,
     privateAdminAuditClient,
+    AdminOverviewTable,
   };
 });
 
@@ -30,7 +32,7 @@ vi.mock("../../../api/private-api-client", () => ({
   privateAdminAuditClient: dependencies.privateAdminAuditClient,
 }));
 vi.mock("../../../features/admin-overview/admin-overview-table", () => ({
-  AdminOverviewTable: () => null,
+  AdminOverviewTable: dependencies.AdminOverviewTable,
 }));
 
 import AdminPage from "./page";
@@ -54,5 +56,22 @@ describe("admin page", () => {
     expect(dependencies.privateAdminAuditClient).toHaveBeenCalledOnce();
     expect(dependencies.recordPreflightDenial).toHaveBeenCalledOnce();
     expect(dependencies.privateApiClient).not.toHaveBeenCalled();
+  });
+
+  it("renders the safe invalid-filter state without calling the overview API", async () => {
+    dependencies.resolveVerifiedAccountActor.mockResolvedValueOnce({
+      kind: "account",
+      userId: "admin-1",
+      sessionId: "session-1",
+      requestId: "signed-request-id",
+    });
+    dependencies.request.mockResolvedValueOnce({ role: "operations" });
+
+    const element = await AdminPage({
+      searchParams: Promise.resolve({ page: "not-a-number", pageSize: "25" }),
+    });
+
+    expect(dependencies.request).toHaveBeenCalledTimes(1);
+    expect(element.props).toEqual({ error: "invalid_filters" });
   });
 });

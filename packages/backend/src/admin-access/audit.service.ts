@@ -30,6 +30,8 @@ const policyCodes = new Set([
   "ADMIN_AUTH_REQUIRED",
   "ADMIN_FORBIDDEN",
   "ROLE_ASSIGNMENT_INACTIVE",
+  "ADMIN_FILTER_INVALID",
+  "ADMIN_PROJECTION_UNAVAILABLE",
 ]);
 
 function redact(value: Record<string, unknown>): Record<string, unknown> {

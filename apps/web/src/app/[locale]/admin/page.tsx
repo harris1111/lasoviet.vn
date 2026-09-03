@@ -10,6 +10,7 @@ import {
 import { resolveVerifiedAccountActor } from "../../../auth/resolve-current-actor";
 import { loadAdminOverview } from "../../../features/admin-overview/admin-overview-loader";
 import { AdminOverviewTable } from "../../../features/admin-overview/admin-overview-table";
+import { parseAdminOverviewFiltersV1 } from "@lasoviet/contracts";
 
 export const dynamic = "force-dynamic";
 
@@ -36,14 +37,20 @@ export default async function AdminPage(props: {
   } catch {
     notFound();
   }
-  const filters = await searchParams;
+  const parsedFilters = parseAdminOverviewFiltersV1(await searchParams);
+  if (!parsedFilters.success) {
+    return createElement(AdminOverviewTable, {
+      error: "invalid_filters",
+    });
+  }
   let overview;
   try {
-    overview = await loadAdminOverview.load(actor, filters);
+    overview = await loadAdminOverview.load(actor, parsedFilters.data);
   } catch {
     overview = undefined;
   }
-  const page = Number(filters.page) || 1;
-  const pageSize = Number(filters.pageSize) || 25;
-  return createElement(AdminOverviewTable, { overview, page, pageSize });
+  return createElement(AdminOverviewTable, {
+    overview,
+    filters: parsedFilters.data,
+  });
 }

@@ -1,10 +1,17 @@
-import type { AdminOverviewV1 } from "@lasoviet/contracts";
+import { createElement } from "react";
+
+import type {
+  AdminOverviewFiltersV1,
+  AdminOverviewV1,
+} from "@lasoviet/contracts";
 
 type AdminOverviewTableProps = {
   overview?: AdminOverviewV1;
-  page: number;
-  pageSize: number;
+  filters?: AdminOverviewFiltersV1;
+  error?: "invalid_filters";
 };
+
+const h = createElement;
 
 function stateClass(status: string): string {
   return status === "ready" || status === "available"
@@ -14,101 +21,78 @@ function stateClass(status: string): string {
 
 export function AdminOverviewTable({
   overview,
-  page,
-  pageSize,
+  filters,
+  error,
 }: AdminOverviewTableProps) {
   if (overview === undefined) {
-    return <p className="admin-overview-error" role="alert">Overview unavailable.</p>;
+    return h(
+      "p",
+      { className: "admin-overview-error", role: "alert" },
+      error === "invalid_filters" ? "Overview filter is invalid." : "Overview unavailable.",
+    );
   }
 
   const accountPage = overview.accountPage;
-  const previous = Math.max(1, page - 1);
-  const next = accountPage !== null && page * pageSize < accountPage.total
-    ? page + 1
-    : page;
-
-  return (
-    <main className="admin-overview container">
-      <header className="admin-overview-header">
-        <div>
-          <p className="eyebrow">Private operations</p>
-          <h1>Operations overview</h1>
-        </div>
-        <p className={stateClass(overview.health.status)} role="status">
-          {overview.health.status}
-        </p>
-      </header>
-
-      <section aria-labelledby="admin-readiness-heading">
-        <h2 id="admin-readiness-heading">Readiness</h2>
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead><tr><th>Dependency</th><th>Status</th></tr></thead>
-            <tbody>{overview.health.dependencies.map((dependency) => (
-              <tr key={dependency.name}>
-                <td>{dependency.name.replaceAll("_", " ")}</td>
-                <td><span className={stateClass(dependency.status)}>{dependency.status}</span></td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      </section>
-
-      <section aria-labelledby="admin-modules-heading">
-        <h2 id="admin-modules-heading">Authorized modules</h2>
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead><tr><th>Module</th><th>Status</th><th>Summary</th></tr></thead>
-            <tbody>{overview.modules.map((module) => (
-              <tr key={module.id}>
-                <td>{module.id}</td>
-                <td><span className={stateClass(module.status)}>{module.status}</span></td>
-                <td>{module.summary === undefined
-                  ? "Unavailable"
-                  : Object.entries(module.summary).map(([key, value]) =>
-                    `${key}: ${value}`).join(", ")}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      </section>
-
-      {accountPage !== null && (
-        <section aria-labelledby="admin-accounts-heading">
-          <div className="admin-table-heading">
-            <h2 id="admin-accounts-heading">Accounts</h2>
-            <form>
-              <input name="page" type="hidden" value="1" />
-              <label>Rows
-                <select aria-label="Rows per page" defaultValue={pageSize} name="pageSize">
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                </select>
-              </label>
-              <button type="submit">Apply</button>
-            </form>
-          </div>
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead><tr><th>Account</th><th>Verification</th><th>Ownership</th><th>Created</th></tr></thead>
-              <tbody>{accountPage.items.length === 0
-                ? <tr><td colSpan={4}>No account records.</td></tr>
-                : accountPage.items.map((account) => (
-                  <tr key={account.id}>
-                    <td>{account.id}</td><td>{account.verification}</td>
-                    <td>{account.ownership}</td><td>{account.createdAt}</td>
-                  </tr>
-                ))}</tbody>
-            </table>
-          </div>
-          <nav aria-label="Account pages" className="admin-pagination">
-            <a aria-disabled={page === 1} href={`?page=${previous}&pageSize=${pageSize}`}>Previous</a>
-            <span>Page {accountPage.page}</span>
-            <a aria-disabled={next === page} href={`?page=${next}&pageSize=${pageSize}`}>Next</a>
-          </nav>
-        </section>
-      )}
-    </main>
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? 25;
+  const next = accountPage !== null && page * pageSize < accountPage.total ? page + 1 : page;
+  const table = (headers: string[], rows: ReturnType<typeof h>[]) => h(
+    "div",
+    { className: "admin-table-wrap" },
+    h("table", { className: "admin-table" },
+      h("thead", null, h("tr", null, headers.map((header) => h("th", { key: header }, header)))),
+      h("tbody", null, rows)),
   );
+
+  const readiness = table(["Dependency", "Status"], overview.health.dependencies.map(
+    (dependency) => h("tr", { key: dependency.name },
+      h("td", null, dependency.name.replaceAll("_", " ")),
+      h("td", null, h("span", { className: stateClass(dependency.status) }, dependency.status))),
+  ));
+  const modules = table(["Module", "Status", "Summary"], overview.modules.map(
+    (module) => h("tr", { key: module.id },
+      h("td", null, module.id),
+      h("td", null, h("span", { className: stateClass(module.status) }, module.status)),
+      h("td", null, module.status === "unavailable"
+        ? "Unavailable"
+        : Object.entries(module.summary).map(([key, value]) => `${key}: ${value}`).join(", "))),
+  ));
+  const accounts = accountPage === null ? null : h(
+    "section",
+    { "aria-labelledby": "admin-accounts-heading" },
+    h("div", { className: "admin-table-heading" },
+      h("h2", { id: "admin-accounts-heading" }, "Accounts"),
+      h("form", null,
+        h("input", { name: "page", type: "hidden", value: "1" }),
+        h("label", null, "Rows",
+          h("select", { "aria-label": "Rows per page", defaultValue: pageSize, name: "pageSize" },
+            [10, 25, 50].map((value) => h("option", { key: value, value }, value))),
+        h("button", { type: "submit" }, "Apply")))),
+    table(["Account", "Verification", "Ownership", "Created"], accountPage.items.length === 0
+      ? [h("tr", { key: "empty" }, h("td", { colSpan: 4 }, "No account records."))]
+      : accountPage.items.map((account) => h("tr", { key: account.id },
+        h("td", null, account.id), h("td", null, account.verification),
+        h("td", null, account.ownership), h("td", null, account.createdAt)))),
+    h("nav", { "aria-label": "Account pages", className: "admin-pagination" },
+      h("a", {
+        "aria-disabled": page === 1,
+        href: `?page=${Math.max(1, page - 1)}&pageSize=${pageSize}`,
+      }, "Previous"),
+      h("span", null, `Page ${accountPage.page}`),
+      h("a", {
+        "aria-disabled": next === page,
+        href: `?page=${next}&pageSize=${pageSize}`,
+      }, "Next")),
+  );
+
+  return h("main", { className: "admin-overview container" },
+    h("header", { className: "admin-overview-header" },
+      h("div", null, h("p", { className: "eyebrow" }, "Private operations"),
+        h("h1", null, "Operations overview")),
+      h("p", { className: stateClass(overview.health.status), role: "status" }, overview.health.status)),
+    h("section", { "aria-labelledby": "admin-readiness-heading" },
+      h("h2", { id: "admin-readiness-heading" }, "Readiness"), readiness),
+    h("section", { "aria-labelledby": "admin-modules-heading" },
+      h("h2", { id: "admin-modules-heading" }, "Authorized modules"), modules),
+    accounts);
 }

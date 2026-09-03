@@ -222,6 +222,16 @@ because no approved verified-admin fixture or private API topology exists, and
 the test refuses to fabricate one. Task status remains in progress pending Sol
 review.
 
+**Correction pass 1 evidence (2026-09-03):** Corrected trusted request
+correlation, error-path audit completeness, explicit role-scoped projection
+visibility, degraded health semantics, bounded/complete redacted contracts,
+deterministic account ordering, and a single server/web filter parser.
+Focused Task 2 coverage passed 15 tests across backend, security, web page,
+and server-rendered overview states. Contracts/backend builds and API/web
+typechecks passed in dependency order. The fixture-gated Playwright spec
+exited successfully with its one approved skip; no production admin identity
+or topology was invented. Task status remains in progress pending Sol review.
+
 ### Task 3 [P05A-T03]: Expose account, commerce, report, delivery, support, privacy, audit, and readiness inspections
 
 **Files:**

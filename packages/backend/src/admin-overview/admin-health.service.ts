@@ -5,7 +5,8 @@ import {
 import type { Database } from "@lasoviet/database";
 import { sql } from "drizzle-orm";
 
-export type AdminHealthProbe = () => Promise<boolean>;
+export type AdminHealthProbeOutcome = "ready" | "degraded" | "unready";
+export type AdminHealthProbe = () => Promise<AdminHealthProbeOutcome>;
 
 export type AdminHealthDependencies = {
   postgres: AdminHealthProbe;
@@ -19,10 +20,19 @@ export type AdminHealthDependencies = {
 async function status(probe: AdminHealthProbe | undefined) {
   if (probe === undefined) return "unavailable" as const;
   try {
-    return (await probe()) ? "ready" as const : "unready" as const;
+    return await probe();
   } catch {
     return "unready" as const;
   }
+}
+
+function overallStatus(entries: Array<{ status: string }>) {
+  if (entries.every((entry) => entry.status === "unavailable")) {
+    return "unavailable" as const;
+  }
+  if (entries.some((entry) => entry.status === "unready")) return "unready" as const;
+  if (entries.some((entry) => entry.status !== "ready")) return "degraded" as const;
+  return "ready" as const;
 }
 
 function checkedAt(): string {
@@ -50,9 +60,7 @@ export function createAdminHealthService(dependencies: AdminHealthDependencies) 
       })));
       return AdminHealthV1Schema.parse({
         version: 1,
-        status: entries.every((entry) => entry.status === "ready")
-          ? "ready"
-          : "unready",
+        status: overallStatus(entries),
         checkedAt: checkedAt(),
         dependencies: entries,
       });
@@ -64,7 +72,7 @@ export function createDatabaseAdminHealthService(database: Database) {
   return createAdminHealthService({
     postgres: async () => {
       await database.execute(sql`SELECT 1`);
-      return true;
+      return "ready";
     },
   });
 }

@@ -4,6 +4,7 @@ import type {
   AdminOverviewFiltersV1,
   AdminOverviewV1,
   AdminReadContextV1,
+  AdminRole,
   Result,
 } from "@lasoviet/contracts";
 import {
@@ -45,16 +46,32 @@ function error(code: AdminOverviewError): Result<never, AdminOverviewError> {
   };
 }
 
-function module(
-  id: AdminOverviewV1["modules"][number]["id"],
-  capability: AdminAccessV1["capabilities"][number],
-  access: AdminAccessV1,
-  summary?: Record<string, number>,
-) {
-  if (!access.capabilities.includes(capability)) return undefined;
-  return summary === undefined
-    ? { id, status: "unavailable" as const }
-    : { id, status: "available" as const, summary };
+type ModuleId = AdminOverviewV1["modules"][number]["id"];
+
+const moduleReaders = {
+  accounts: ["super_admin", "operations", "support"],
+  commerce: ["super_admin", "support"],
+  reports: ["super_admin", "operations", "support", "read_only"],
+  outbox: ["super_admin", "operations", "read_only"],
+  assets: ["super_admin", "operations"],
+  delivery: ["super_admin", "operations", "support"],
+  support: ["super_admin", "support"],
+  privacy: ["super_admin", "support"],
+  readiness: ["super_admin", "operations", "read_only"],
+} satisfies Record<ModuleId, readonly AdminRole[]>;
+
+function canReadModule(access: AdminAccessV1, id: ModuleId): boolean {
+  return (moduleReaders[id] as readonly AdminRole[]).includes(access.role);
+}
+
+function readinessSummary(health: AdminHealthV1) {
+  return health.dependencies.reduce(
+    (summary, dependency) => ({
+      ...summary,
+      [dependency.status]: summary[dependency.status] + 1,
+    }),
+    { ready: 0, degraded: 0, unready: 0, unavailable: 0 },
+  );
 }
 
 export function createAdminOverviewService(options: {
@@ -72,29 +89,54 @@ export function createAdminOverviewService(options: {
       try {
         const [health, accounts, privacy, outbox] = await Promise.all([
           options.health.readHealth(),
-          context.access.capabilities.includes("admin.accounts.read")
+          canReadModule(context.access, "accounts")
             ? options.repository.readAccounts(filters.data)
             : undefined,
-          context.access.capabilities.includes("admin.privacy.manage")
+          canReadModule(context.access, "privacy")
             ? options.repository.readPrivacy()
             : undefined,
-          context.access.capabilities.includes("admin.workflow.retry")
+          canReadModule(context.access, "outbox")
             ? options.repository.readOutbox()
             : undefined,
         ]);
-        const modules = [
-          module("accounts", "admin.accounts.read", context.access, accounts && {
-            total: accounts.total, verified: accounts.verified, anonymous: accounts.anonymous,
-          }),
-          module("commerce", "admin.commerce.read", context.access),
-          module("reports", "admin.reports.read", context.access),
-          module("outbox", "admin.workflow.retry", context.access, outbox),
-          module("assets", "admin.storage.reconcile", context.access),
-          module("delivery", "admin.support.manage", context.access),
-          module("support", "admin.support.manage", context.access),
-          module("privacy", "admin.privacy.manage", context.access, privacy),
-          module("readiness", "admin.readiness.read", context.access, {}),
-        ].filter((value) => value !== undefined);
+        const modules: AdminOverviewV1["modules"] = [];
+        if (canReadModule(context.access, "accounts")) {
+          if (accounts === undefined) {
+            modules.push({ id: "accounts", status: "unavailable" });
+          } else {
+            modules.push({
+              id: "accounts",
+              status: "available",
+              summary: {
+                total: accounts.total,
+                verified: accounts.verified,
+                anonymous: accounts.anonymous,
+              },
+            });
+          }
+        }
+        for (const id of ["commerce", "reports", "assets", "delivery", "support"] as const) {
+          if (canReadModule(context.access, id)) {
+            modules.push({ id, status: "unavailable" });
+          }
+        }
+        if (canReadModule(context.access, "outbox")) {
+          modules.push(outbox === undefined
+            ? { id: "outbox", status: "unavailable" }
+            : { id: "outbox", status: "available", summary: outbox });
+        }
+        if (canReadModule(context.access, "privacy")) {
+          modules.push(privacy === undefined
+            ? { id: "privacy", status: "unavailable" }
+            : { id: "privacy", status: "available", summary: privacy });
+        }
+        if (canReadModule(context.access, "readiness")) {
+          modules.push({
+            id: "readiness",
+            status: "available",
+            summary: readinessSummary(health),
+          });
+        }
         return {
           ok: true,
           value: AdminOverviewV1Schema.parse({

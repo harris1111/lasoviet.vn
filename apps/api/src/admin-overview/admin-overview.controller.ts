@@ -17,6 +17,7 @@ import {
 import type { AdminAccessError, AdminAuditEntry } from "@lasoviet/backend";
 import {
   AdminOverviewV1Schema,
+  parseAdminOverviewFiltersV1,
   type AdminOverviewV1,
 } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
@@ -35,10 +36,6 @@ function correlationId(value: string | undefined): string {
   return value !== undefined && /^[A-Za-z0-9._:-]{1,128}$/.test(value)
     ? value
     : randomUUID();
-}
-
-function pageValue(value: string | undefined): number {
-  return value === undefined ? 1 : Number(value);
 }
 
 @Controller("admin")
@@ -78,6 +75,25 @@ export class AdminOverviewController {
     throw new NotFoundException();
   }
 
+  private async recordFailure(
+    access: { actorId: string; roleAssignmentId: string },
+    requestId: string,
+    code: "ADMIN_FILTER_INVALID" | "ADMIN_PROJECTION_UNAVAILABLE",
+  ): Promise<void> {
+    await this.auditService.appendAdminAudit({
+      actorId: access.actorId,
+      roleAssignmentId: access.roleAssignmentId,
+      capability: "admin.overview.read",
+      operation: "admin.overview.read",
+      target: { type: "admin_overview", id: "overview" },
+      requestId,
+      traceId: requestId,
+      policyResult: "allowed",
+      redactionLevel: "redacted",
+      resultSummary: { outcome: "allowed", code },
+    });
+  }
+
   @Get("overview")
   async overview(
     @Headers("authorization") authorization: string | undefined,
@@ -85,7 +101,7 @@ export class AdminOverviewController {
     @Query("page") page: string | undefined,
     @Query("pageSize") pageSize: string | undefined,
   ): Promise<AdminOverviewV1> {
-    const requestId = correlationId(requestedId);
+    const headerRequestId = correlationId(requestedId);
     const token = authorization?.startsWith("Bearer ")
       ? authorization.slice("Bearer ".length).trim()
       : "";
@@ -98,8 +114,9 @@ export class AdminOverviewController {
         this.database,
       );
     } catch {
-      return this.deny({ requestId, code: "ADMIN_AUTH_REQUIRED" });
+      return this.deny({ requestId: headerRequestId, code: "ADMIN_AUTH_REQUIRED" });
     }
+    const requestId = correlationId(actor.requestId);
     const access = await this.accessService.resolveAdminAccess(actor);
     if (!access.ok) return this.deny({ requestId, code: access.error.code });
     const authorized = this.accessService.authorizeAdminRead(
@@ -115,11 +132,19 @@ export class AdminOverviewController {
         roleAssignmentId: access.value.roleAssignmentId,
       });
     }
+    const filters = parseAdminOverviewFiltersV1({ page, pageSize });
+    if (!filters.success) {
+      await this.recordFailure(access.value, requestId, "ADMIN_FILTER_INVALID");
+      throw new BadRequestException({ code: "ADMIN_FILTER_INVALID" });
+    }
     const result = await this.overviewService.readOverview(
       { access: access.value, requestId, traceId: requestId },
-      { page: pageValue(page), pageSize: pageValue(pageSize) },
+      filters.data,
     );
-    if (!result.ok) throw new BadRequestException({ code: result.error.code });
+    if (!result.ok) {
+      await this.recordFailure(access.value, requestId, result.error.code);
+      throw new BadRequestException({ code: result.error.code });
+    }
     const overview = AdminOverviewV1Schema.parse(result.value);
     await this.auditService.appendAdminAudit({
       actorId: access.value.actorId,

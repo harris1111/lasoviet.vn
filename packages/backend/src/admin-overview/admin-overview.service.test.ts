@@ -151,6 +151,47 @@ describe("admin overview service", () => {
         accountPage: null,
         modules: [
           { id: "reports", status: "unavailable" },
+          { id: "outbox", status: "available", summary: { pending: 1, failed: 0 } },
+          {
+            id: "readiness",
+            status: "available",
+            summary: { ready: 1, degraded: 0, unready: 0, unavailable: 5 },
+          },
+        ],
+      },
+    });
+  });
+
+  it("uses role-scoped module reads without granting command authority", async () => {
+    const service = createAdminOverviewService({
+      repository: {
+        readAccounts: async () => ({ total: 0, verified: 0, anonymous: 0, records: [] }),
+        readPrivacy: async () => ({ requested: 0, purged: 0 }),
+        readOutbox: async () => ({ pending: 1, failed: 0 }),
+      },
+      health: { readHealth: async () => ({
+        version: 1,
+        status: "unready",
+        checkedAt: "2026-09-03T00:00:00+00:00",
+        dependencies: allDependencies,
+      }) },
+    });
+    const readOnly: AdminAccessV1 = {
+      ...operationsAccess,
+      role: "read_only",
+      capabilities: ["admin.overview.read"],
+    };
+
+    const result = await service.readOverview({
+      access: readOnly, requestId: "request-1", traceId: "trace-1",
+    }, { page: 1, pageSize: 25 });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        modules: [
+          { id: "reports", status: "unavailable" },
+          { id: "outbox", status: "available", summary: { pending: 1, failed: 0 } },
           { id: "readiness", status: "available" },
         ],
       },
