@@ -326,12 +326,16 @@ rule instead of adding another version.
   audit evidence. Authorization denials that occur before a private controller
   must still use a trusted server-to-private-API path to append bounded,
   redacted audit evidence; never create an anonymous session or expose a public
-  unauthenticated audit-write endpoint to fill that gap. State-changing
-  operations require an actor, reason code, request/trace ID, idempotency key,
-  expected version where applicable, and an append-only audit record; they call
-  policy-checked domain services and use compensating versions/events plus the
-  outbox rather than direct table edits, immutable-record mutation, or BullMQ
-  requeue.
+  unauthenticated audit-write endpoint to fill that gap. Aggregate admin
+  projections must authorize entry with an actual active, role-permitted read
+  capability and independently gate every returned module and field by its
+  matching active capability. Removing a capability must also stop the
+  associated source query and omit its data; hiding navigation, a module row,
+  or a label is not authorization. State-changing operations require an actor,
+  reason code, request/trace ID, idempotency key, expected version where
+  applicable, and an append-only audit record; they call policy-checked domain
+  services and use compensating versions/events plus the outbox rather than
+  direct table edits, immutable-record mutation, or BullMQ requeue.
 - Do not run destructive filesystem or Git operations without explicit founder
   approval.
 - Do not deploy, push production configuration, modify DNS, change payment

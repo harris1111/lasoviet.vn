@@ -202,7 +202,7 @@ Run:
 
 Expected: PASS with authorized, redacted data only.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/admin-overview apps/api/src/admin-overview apps/web/src/features/admin-overview apps/web/src/app tests/security tests/e2e docs/superpowers/plans
@@ -256,8 +256,8 @@ preflight uses the same entry authorization, so it cannot reject support
 before the authorized overview request. Contracts/backend
 builds and API/web typechecks passed in producer-consumer order. The existing
 fixture-gated Playwright spec exited successfully with its one approved skip;
-`git diff --check` passed. Task status remains in progress pending Sol
-re-review.
+`git diff --check` passed. Sol approved Replan Cycle 1 on 2026-09-03 with no
+Critical, Important, or must-fix findings. Task 2 is complete.
 
 ### Task 3 [P05A-T03]: Expose account, commerce, report, delivery, support, privacy, audit, and readiness inspections
 
