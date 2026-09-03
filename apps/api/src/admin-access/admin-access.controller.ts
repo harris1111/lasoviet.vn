@@ -112,11 +112,7 @@ export class AdminAccessController {
         actorId: actor.kind === "account" ? actor.userId : undefined,
       });
     }
-    const authorized = this.accessService.authorizeAdminRead(
-      access.value,
-      "admin.overview.read",
-      { type: "admin_overview", id: "overview" },
-    );
+    const authorized = this.accessService.authorizeOverviewEntry(access.value);
     if (!authorized.ok) {
       return this.deny({
         requestId: correlationId,
@@ -129,7 +125,7 @@ export class AdminAccessController {
     await this.recordAudit({
       actorId: access.value.actorId,
       roleAssignmentId: access.value.roleAssignmentId,
-      capability: "admin.overview.read",
+      capability: authorized.value,
       operation: "admin.access.read",
       target: { type: "admin_overview", id: "overview" },
       requestId: correlationId,

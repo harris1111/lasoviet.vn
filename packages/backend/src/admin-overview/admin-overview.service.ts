@@ -101,7 +101,9 @@ export function createAdminOverviewService(options: {
 
       try {
         const [health, accounts, privacy, outbox] = await Promise.all([
-          options.health.readHealth(),
+          canReadModule(context.access, "readiness")
+            ? options.health.readHealth()
+            : undefined,
           canReadModule(context.access, "accounts")
             ? options.repository.readAccounts(filters.data)
             : undefined,
@@ -144,6 +146,9 @@ export function createAdminOverviewService(options: {
             : { id: "privacy", status: "available", summary: privacy });
         }
         if (canReadModule(context.access, "readiness")) {
+          if (health === undefined) {
+            return error("ADMIN_PROJECTION_UNAVAILABLE");
+          }
           modules.push({
             id: "readiness",
             status: "available",
@@ -171,7 +176,7 @@ export function createAdminOverviewService(options: {
               })),
             },
             modules,
-            health,
+            health: health ?? null,
           }),
         };
       } catch {

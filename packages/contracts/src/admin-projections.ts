@@ -141,6 +141,6 @@ export const AdminOverviewV1Schema = z.object({
         context.addIssue({ code: "custom", message: "Module IDs must be unique" });
       }
     }),
-  health: AdminHealthV1Schema,
+  health: AdminHealthV1Schema.nullable(),
 }).strict();
 export type AdminOverviewV1 = z.infer<typeof AdminOverviewV1Schema>;

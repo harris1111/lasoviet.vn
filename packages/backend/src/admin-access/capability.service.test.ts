@@ -137,6 +137,25 @@ describe("admin access service", () => {
     ).toMatchObject({ ok: false, error: { code: "ADMIN_FORBIDDEN" } });
   });
 
+  it("selects the active role-allowed projection capability for overview entry", () => {
+    const service = createAdminAccessService({
+      repository: { findAccountAccess: async () => ({ emailVerified: true }) },
+    });
+
+    expect(service.authorizeOverviewEntry({
+      actorId: account.userId,
+      roleAssignmentId: "support-assignment",
+      role: "support",
+      capabilities: ["admin.commerce.read", "admin.reports.read"],
+    })).toEqual({ ok: true, value: "admin.commerce.read" });
+    expect(service.authorizeOverviewEntry({
+      actorId: account.userId,
+      roleAssignmentId: "support-assignment",
+      role: "support",
+      capabilities: ["admin.support.manage"],
+    })).toMatchObject({ ok: false, error: { code: "ADMIN_FORBIDDEN" } });
+  });
+
   it("narrows access when database policy rows are disabled or missing", async () => {
     const service = createAdminAccessService({
       repository: {

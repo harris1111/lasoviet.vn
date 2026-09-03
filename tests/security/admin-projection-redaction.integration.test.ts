@@ -23,6 +23,90 @@ vi.mock("../../apps/api/src/auth/internal-actor.guard.js", () => ({
 }));
 
 describe("admin projection redaction boundary", () => {
+  it("authorizes support through an active projection capability and audits it", async () => {
+    const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
+    const controller = new AdminOverviewController(
+      {
+        resolveAdminAccess: vi.fn(async () => ({
+          ok: true,
+          value: {
+            actorId: "support-1",
+            roleAssignmentId: "assignment-1",
+            role: "support",
+            capabilities: ["admin.accounts.read"],
+          },
+        })),
+        authorizeAdminRead: vi.fn(),
+        authorizeOverviewEntry: vi.fn(() => ({
+          ok: true,
+          value: "admin.accounts.read",
+        })),
+      } as never,
+      { appendAdminAudit },
+      {
+        readOverview: vi.fn(async () => ({
+          ok: true,
+          value: {
+            version: 1,
+            accountSummary: null,
+            accountPage: null,
+            modules: [{ id: "accounts", status: "available", summary: { total: 0, verified: 0, anonymous: 0 } }],
+            health: null,
+          },
+        })),
+      } as never,
+      "synthetic-admin-secret",
+      undefined as never,
+    );
+
+    await expect(
+      controller.overview("Bearer admin-token", "request-1", "1", "25"),
+    ).resolves.toMatchObject({ modules: [{ id: "accounts" }] });
+    expect(appendAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      capability: "admin.accounts.read",
+      policyResult: "allowed",
+    }));
+  });
+
+  it("denies and audits an overview request without any projection-read capability", async () => {
+    const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
+    const controller = new AdminOverviewController(
+      {
+        resolveAdminAccess: vi.fn(async () => ({
+          ok: true,
+          value: {
+            actorId: "support-1",
+            roleAssignmentId: "assignment-1",
+            role: "support",
+            capabilities: ["admin.support.manage"],
+          },
+        })),
+        authorizeAdminRead: vi.fn(),
+        authorizeOverviewEntry: vi.fn(() => ({
+          ok: false,
+          error: {
+            code: "ADMIN_FORBIDDEN",
+            messageKey: "admin.admin_forbidden",
+            retryable: false,
+          },
+        })),
+      } as never,
+      { appendAdminAudit },
+      { readOverview: vi.fn() } as never,
+      "synthetic-admin-secret",
+      undefined as never,
+    );
+
+    await expect(
+      controller.overview("Bearer admin-token", "request-1", "1", "25"),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(appendAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      policyResult: "denied",
+      redactionLevel: "redacted",
+      resultSummary: { outcome: "denied", code: "ADMIN_FORBIDDEN" },
+    }));
+  });
+
   it("serializes only the approved overview projection after authorization", async () => {
     const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
     const controller = new AdminOverviewController(
@@ -37,6 +121,10 @@ describe("admin projection redaction boundary", () => {
           },
         })),
         authorizeAdminRead: vi.fn(() => ({ ok: true, value: undefined })),
+        authorizeOverviewEntry: vi.fn(() => ({
+          ok: true,
+          value: "admin.overview.read",
+        })),
       } as never,
       { appendAdminAudit },
       {
@@ -114,6 +202,10 @@ describe("admin projection redaction boundary", () => {
           },
         })),
         authorizeAdminRead: vi.fn(() => ({ ok: true, value: undefined })),
+        authorizeOverviewEntry: vi.fn(() => ({
+          ok: true,
+          value: "admin.overview.read",
+        })),
       } as never,
       { appendAdminAudit },
       {

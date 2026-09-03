@@ -43,6 +43,16 @@ const accessService = createAdminAccessService({
             ],
           },
         }
+      : userId === "support-1"
+      ? {
+          emailVerified: true,
+          assignment: {
+            id: "support-assignment-1",
+            role: "support",
+            revokedAt: null,
+            capabilities: ["admin.accounts.read"],
+          },
+        }
       : userId === "revoked-1"
       ? {
           emailVerified: true,
@@ -108,12 +118,29 @@ describe("admin route boundary", () => {
     }));
   });
 
+  it("allows support access through an active projection capability and audits it", async () => {
+    const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
+    const controller = new AdminAccessController(
+      accessService,
+      { appendAdminAudit },
+      secretValue,
+      undefined as never,
+    );
+
+    await expect(controller.access("Bearer support-1"))
+      .resolves.toEqual({ role: "support" });
+    expect(appendAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
+      capability: "admin.accounts.read",
+      policyResult: "allowed",
+    }));
+  });
+
   it("audits a capability denial before returning a not-found-equivalent response", async () => {
     const appendAdminAudit = vi.fn().mockResolvedValue("audit-1");
     const controller = new AdminAccessController(
       {
         ...accessService,
-        authorizeAdminRead: () => ({
+        authorizeOverviewEntry: () => ({
           ok: false as const,
           error: {
             code: "ADMIN_FORBIDDEN" as const,

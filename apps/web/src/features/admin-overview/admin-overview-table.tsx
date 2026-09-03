@@ -44,11 +44,14 @@ export function AdminOverviewTable({
       h("tbody", null, rows)),
   );
 
-  const readiness = table(["Dependency", "Status"], overview.health.dependencies.map(
-    (dependency) => h("tr", { key: dependency.name },
-      h("td", null, dependency.name.replaceAll("_", " ")),
-      h("td", null, h("span", { className: stateClass(dependency.status) }, dependency.status))),
-  ));
+  const readiness = overview.health === null ? null : table(
+    ["Dependency", "Status"],
+    overview.health.dependencies.map(
+      (dependency) => h("tr", { key: dependency.name },
+        h("td", null, dependency.name.replaceAll("_", " ")),
+        h("td", null, h("span", { className: stateClass(dependency.status) }, dependency.status))),
+    ),
+  );
   const modules = table(["Module", "Status", "Summary"], overview.modules.map(
     (module) => h("tr", { key: module.id },
       h("td", null, module.id),
@@ -89,9 +92,13 @@ export function AdminOverviewTable({
     h("header", { className: "admin-overview-header" },
       h("div", null, h("p", { className: "eyebrow" }, "Private operations"),
         h("h1", null, "Operations overview")),
-      h("p", { className: stateClass(overview.health.status), role: "status" }, overview.health.status)),
-    h("section", { "aria-labelledby": "admin-readiness-heading" },
-      h("h2", { id: "admin-readiness-heading" }, "Readiness"), readiness),
+      overview.health === null
+        ? null
+        : h("p", { className: stateClass(overview.health.status), role: "status" }, overview.health.status)),
+    overview.health === null
+      ? null
+      : h("section", { "aria-labelledby": "admin-readiness-heading" },
+        h("h2", { id: "admin-readiness-heading" }, "Readiness"), readiness),
     h("section", { "aria-labelledby": "admin-modules-heading" },
       h("h2", { id: "admin-modules-heading" }, "Authorized modules"), modules),
     accounts);

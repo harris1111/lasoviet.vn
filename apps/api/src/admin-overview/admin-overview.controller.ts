@@ -44,6 +44,7 @@ export class AdminOverviewController {
     @Inject(ADMIN_ACCESS_SERVICE) private readonly accessService: {
       resolveAdminAccess: ReturnType<typeof createAdminAccessService>["resolveAdminAccess"];
       authorizeAdminRead: ReturnType<typeof createAdminAccessService>["authorizeAdminRead"];
+      authorizeOverviewEntry: ReturnType<typeof createAdminAccessService>["authorizeOverviewEntry"];
     },
     @Inject(ADMIN_AUDIT_SERVICE) private readonly auditService: {
       appendAdminAudit: (entry: AdminAuditEntry) => Promise<string>;
@@ -78,12 +79,13 @@ export class AdminOverviewController {
   private async recordFailure(
     access: { actorId: string; roleAssignmentId: string },
     requestId: string,
+    capability: AdminAuditEntry["capability"],
     code: "ADMIN_FILTER_INVALID" | "ADMIN_PROJECTION_UNAVAILABLE",
   ): Promise<void> {
     await this.auditService.appendAdminAudit({
       actorId: access.actorId,
       roleAssignmentId: access.roleAssignmentId,
-      capability: "admin.overview.read",
+      capability,
       operation: "admin.overview.read",
       target: { type: "admin_overview", id: "overview" },
       requestId,
@@ -119,11 +121,7 @@ export class AdminOverviewController {
     const requestId = correlationId(actor.requestId);
     const access = await this.accessService.resolveAdminAccess(actor);
     if (!access.ok) return this.deny({ requestId, code: access.error.code });
-    const authorized = this.accessService.authorizeAdminRead(
-      access.value,
-      "admin.overview.read",
-      { type: "admin_overview", id: "overview" },
-    );
+    const authorized = this.accessService.authorizeOverviewEntry(access.value);
     if (!authorized.ok) {
       return this.deny({
         requestId,
@@ -134,7 +132,12 @@ export class AdminOverviewController {
     }
     const filters = parseAdminOverviewFiltersV1({ page, pageSize });
     if (!filters.success) {
-      await this.recordFailure(access.value, requestId, "ADMIN_FILTER_INVALID");
+      await this.recordFailure(
+        access.value,
+        requestId,
+        authorized.value,
+        "ADMIN_FILTER_INVALID",
+      );
       throw new BadRequestException({ code: "ADMIN_FILTER_INVALID" });
     }
     const result = await this.overviewService.readOverview(
@@ -142,14 +145,19 @@ export class AdminOverviewController {
       filters.data,
     );
     if (!result.ok) {
-      await this.recordFailure(access.value, requestId, result.error.code);
+      await this.recordFailure(
+        access.value,
+        requestId,
+        authorized.value,
+        result.error.code,
+      );
       throw new BadRequestException({ code: result.error.code });
     }
     const overview = AdminOverviewV1Schema.parse(result.value);
     await this.auditService.appendAdminAudit({
       actorId: access.value.actorId,
       roleAssignmentId: access.value.roleAssignmentId,
-      capability: "admin.overview.read",
+      capability: authorized.value,
       operation: "admin.overview.read",
       target: { type: "admin_overview", id: "overview" },
       requestId,

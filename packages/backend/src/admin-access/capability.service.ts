@@ -56,6 +56,32 @@ function forbidden(): Result<never, "ADMIN_FORBIDDEN"> {
   };
 }
 
+const overviewEntryCapabilities = {
+  super_admin: [
+    "admin.overview.read",
+    "admin.accounts.read",
+    "admin.commerce.read",
+    "admin.reports.read",
+    "admin.readiness.read",
+  ],
+  operations: [
+    "admin.overview.read",
+    "admin.accounts.read",
+    "admin.reports.read",
+    "admin.readiness.read",
+  ],
+  support: [
+    "admin.accounts.read",
+    "admin.commerce.read",
+    "admin.reports.read",
+  ],
+  read_only: [
+    "admin.overview.read",
+    "admin.reports.read",
+    "admin.readiness.read",
+  ],
+} satisfies Record<AdminRole, readonly AdminCapability[]>;
+
 export function createAdminAccessService(options: {
   repository: AdminAccessRepository;
 }) {
@@ -91,6 +117,17 @@ export function createAdminAccessService(options: {
       return access.capabilities.includes(capability)
         ? { ok: true, value: undefined }
         : forbidden();
+    },
+
+    authorizeOverviewEntry(
+      access: AdminAccessV1,
+    ): Result<AdminCapability, "ADMIN_FORBIDDEN"> {
+      const capability = overviewEntryCapabilities[access.role].find(
+        (candidate) => access.capabilities.includes(candidate),
+      );
+      return capability === undefined
+        ? forbidden()
+        : { ok: true, value: capability };
     },
   };
 }

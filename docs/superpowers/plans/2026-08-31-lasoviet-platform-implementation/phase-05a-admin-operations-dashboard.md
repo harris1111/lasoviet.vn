@@ -243,6 +243,22 @@ typechecks passed in producer-consumer order, and the fixture-gated Playwright
 spec exited successfully with its one approved skip. Task status remains in
 progress pending Sol re-review.
 
+**Replan cycle 1 evidence (2026-09-03):** Replaced the controller-wide
+`admin.overview.read` gate with explicit overview-entry authorization that
+chooses the actual active role-allowed projection-read capability, preserving
+the approved capability matrix and allowing support's approved subset without
+that aggregate capability. Every module remains role-visible and
+capability-active. Health is nullable and not queried, returned, summarized,
+or rendered when readiness access is absent. Focused database-backed
+repository/resolver-to-overview, controller/security, service, repository,
+and web rendering coverage passed 9 files / 49 tests. The `/admin/access`
+preflight uses the same entry authorization, so it cannot reject support
+before the authorized overview request. Contracts/backend
+builds and API/web typechecks passed in producer-consumer order. The existing
+fixture-gated Playwright spec exited successfully with its one approved skip;
+`git diff --check` passed. Task status remains in progress pending Sol
+re-review.
+
 ### Task 3 [P05A-T03]: Expose account, commerce, report, delivery, support, privacy, audit, and readiness inspections
 
 **Files:**

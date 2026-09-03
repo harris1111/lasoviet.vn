@@ -3,8 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   ADMIN_CAPABILITIES,
   type AdminAccessV1,
+  type CurrentActor,
 } from "@lasoviet/contracts";
 
+import {
+  createAdminAccessService,
+  createDatabaseAdminAccessRepository,
+} from "../admin-access/capability.service.js";
 import { createAdminOverviewService } from "./admin-overview.service.js";
 
 const operationsAccess: AdminAccessV1 = {
@@ -31,6 +36,61 @@ const allDependencies = [
 ] as const;
 
 describe("admin overview service", () => {
+  it("uses database-resolved active policy rows to narrow support projections", async () => {
+    const actor: CurrentActor = {
+      kind: "account",
+      userId: "support-1",
+      sessionId: "session-1",
+      requestId: "request-1",
+    };
+    const query = (result: unknown) => {
+      const builder = {
+        from: () => builder,
+        where: () => builder,
+        orderBy: () => builder,
+        limit: () => builder,
+        then: (resolve: (value: unknown) => unknown) => Promise.resolve(result).then(resolve),
+      };
+      return builder;
+    };
+    const results = [
+      [{ emailVerified: true }],
+      [{ id: "assignment-1", role: "support", revokedAt: null }],
+      [{ capability: "admin.reports.read" }],
+    ];
+    const database = { select: () => query(results.shift()) };
+    const accessService = createAdminAccessService({
+      repository: createDatabaseAdminAccessRepository(database as never),
+    });
+    const access = await accessService.resolveAdminAccess(actor);
+    if (!access.ok) throw new Error("Expected resolved database access");
+    const service = createAdminOverviewService({
+      repository: {
+        readAccounts: async () => ({ total: 1, verified: 1, anonymous: 0, records: [] }),
+        readPrivacy: async () => ({ requested: 1, purged: 0 }),
+        readOutbox: async () => ({ pending: 1, failed: 0 }),
+      },
+      health: { readHealth: async () => {
+        throw new Error("Readiness must not be queried");
+      } },
+    });
+
+    await expect(service.readOverview({
+      access: access.value, requestId: "request-1", traceId: "trace-1",
+    }, { page: 1, pageSize: 25 })).resolves.toMatchObject({
+      ok: true,
+      value: {
+        accountSummary: null,
+        accountPage: null,
+        modules: [
+          { id: "reports", status: "unavailable" },
+          { id: "delivery", status: "unavailable" },
+        ],
+        health: null,
+      },
+    });
+  });
+
   it("projects authoritative account and outbox state without source payloads", async () => {
     const service = createAdminOverviewService({
       repository: {
@@ -292,6 +352,43 @@ describe("admin overview service", () => {
     expect(result).toMatchObject({ ok: true });
     if (!result.ok) throw new Error("Expected overview");
     expect(result.value.modules.map((module) => module.id)).toEqual(expectedIds);
+  });
+
+  it("does not query or return readiness without its active read capability", async () => {
+    const service = createAdminOverviewService({
+      repository: {
+        readAccounts: async () => ({ total: 0, verified: 0, anonymous: 0, records: [] }),
+        readPrivacy: async () => ({ requested: 0, purged: 0 }),
+        readOutbox: async () => ({ pending: 0, failed: 0 }),
+      },
+      health: { readHealth: async () => {
+        throw new Error("Readiness must not be queried");
+      } },
+    });
+
+    await expect(service.readOverview({
+      access: {
+        ...operationsAccess,
+        capabilities: operationsAccess.capabilities.filter(
+          (capability) => capability !== "admin.readiness.read",
+        ),
+      },
+      requestId: "request-1",
+      traceId: "trace-1",
+    }, { page: 1, pageSize: 25 })).resolves.toMatchObject({
+      ok: true,
+      value: {
+        health: null,
+        modules: [
+          { id: "accounts", status: "available" },
+          { id: "reports", status: "unavailable" },
+          { id: "assets", status: "unavailable" },
+          { id: "delivery", status: "unavailable" },
+          { id: "outbox", status: "available" },
+          { id: "privacy", status: "available" },
+        ],
+      },
+    });
   });
 
   it("does not turn command capabilities into overview read visibility", async () => {

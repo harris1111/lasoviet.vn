@@ -61,4 +61,17 @@ describe("admin overview table", () => {
       createElement(AdminOverviewTable, {}),
     )).toContain("Overview unavailable.");
   });
+
+  it("removes the readiness header and dependency states when health is absent", () => {
+    const rendered = renderToStaticMarkup(
+      createElement(AdminOverviewTable, {
+        overview: { ...overview, health: null },
+        filters: { page: 1, pageSize: 25 },
+      }),
+    );
+
+    expect(rendered).not.toContain("Readiness");
+    expect(rendered).not.toContain("postgres");
+    expect(rendered).not.toContain("degraded");
+  });
 });
