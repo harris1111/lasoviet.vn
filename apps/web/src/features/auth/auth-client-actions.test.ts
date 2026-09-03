@@ -3,11 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { createAuthActions } from "./auth-client-actions";
 
 describe("browser auth actions", () => {
-  it("uses Better Auth email sign-up and reports delivery confirmation", async () => {
+  it("uses Better Auth email sign-up without treating generic success as delivery confirmation", async () => {
     const signUp = vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } } });
     const actions = createAuthActions({
       signUp: { email: signUp },
       signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn(),
     });
 
     await expect(
@@ -17,7 +18,7 @@ describe("browser auth actions", () => {
         password: "password-with-enough-length",
         callbackURL: "/tao-la-so/tu-vi",
       }),
-    ).resolves.toEqual({ ok: true, deliveryConfirmation: true });
+    ).resolves.toEqual({ ok: true });
     expect(signUp).toHaveBeenCalledWith({
       name: "Nguyen Van A",
       email: "a@example.com",
@@ -35,6 +36,7 @@ describe("browser auth actions", () => {
         }),
       },
       signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn(),
     });
 
     await expect(
@@ -44,7 +46,7 @@ describe("browser auth actions", () => {
         password: "password-with-enough-length",
         callbackURL: "/tao-la-so/tu-vi",
       }),
-    ).resolves.toEqual({ ok: true, deliveryConfirmation: true });
+    ).resolves.toEqual({ ok: true });
   });
 
   it("uses Better Auth email sign-in and Google redirect with local callback URLs", async () => {
@@ -53,6 +55,7 @@ describe("browser auth actions", () => {
     const actions = createAuthActions({
       signUp: { email: vi.fn() },
       signIn: { email, social },
+      sendVerificationEmail: vi.fn(),
     });
 
     await actions.signIn({
@@ -71,5 +74,47 @@ describe("browser auth actions", () => {
       provider: "google",
       callbackURL: "/tao-la-so/tu-vi",
     });
+  });
+
+  it("uses Better Auth's verification endpoint without exposing account existence", async () => {
+    const sendVerificationEmail = vi.fn().mockResolvedValue({
+      data: { status: true },
+      error: null,
+    });
+    const actions = createAuthActions({
+      signUp: { email: vi.fn() },
+      signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail,
+    });
+
+    await expect(
+      actions.resendVerification({
+        email: "a@example.com",
+        callbackURL: "/tao-la-so/tu-vi",
+      }),
+    ).resolves.toEqual({ ok: true });
+
+    expect(sendVerificationEmail).toHaveBeenCalledWith({
+      email: "a@example.com",
+      callbackURL: "/tao-la-so/tu-vi",
+    });
+  });
+
+  it("returns a generic error when Better Auth rejects a resend request", async () => {
+    const actions = createAuthActions({
+      signUp: { email: vi.fn() },
+      signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn().mockResolvedValue({
+        data: null,
+        error: { code: "UNEXPECTED_ERROR" },
+      }),
+    });
+
+    await expect(
+      actions.resendVerification({
+        email: "a@example.com",
+        callbackURL: "/tao-la-so/tu-vi",
+      }),
+    ).resolves.toEqual({ ok: false });
   });
 });

@@ -309,6 +309,12 @@ rule instead of adding another version.
   Missing or fallback-only font faces block release and return to Terra.
 - Never commit secrets, credentials, private reports, or unnecessary personal
   data.
+- Generic anti-enumeration responses from an authentication provider are not
+  evidence that an account was created or an email was delivered. User-facing
+  sign-up and resend copy must remain conditional and must not disclose account
+  existence. Expose a provider-backed resend-verification command when recovery
+  is needed, and claim delivery only from internal notification or provider
+  delivery evidence.
 - When a phase combines provider-dependent and provider-independent work,
   missing credentials or environment values block only the provider-dependent
   adapter, activation, and external smoke. Continue approved contracts,

@@ -388,3 +388,19 @@ git commit -m "feat: add canonical birth profile"
   acceptance passed: 1 file, 5 tests. Root typecheck and build passed.
 - No browser/Playwright, Google OAuth, live SMTP, UI work, or external side
   effect occurred. No durable rule is warranted.
+
+## Verification Email Resend Correction (2026-09-03)
+
+- Production investigation confirmed that a repeated sign-up for an existing
+  unverified email received Better Auth's intentional anti-enumeration success
+  response without creating a new notification delivery. SMTP DNS and TCP port
+  587 remained reachable, so the failure was in the browser's interpretation
+  of the auth response rather than the SMTP transport.
+- The browser no longer claims that generic sign-up success proves delivery.
+  It presents conditional copy and an explicit Better Auth-backed resend
+  verification command, while avoiding automatic duplicate sends for newly
+  created accounts and preserving account-existence privacy.
+- The focused auth action suite failed four assertions before implementation
+  and passed all five afterward. Web typecheck, production build, and i18n
+  parity passed.
+- Live resend and deployment remain external founder-controlled steps.

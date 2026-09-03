@@ -1,4 +1,8 @@
 export type AuthClientAdapter = {
+  sendVerificationEmail(input: {
+    email: string;
+    callbackURL: string;
+  }): Promise<{ data?: unknown; error?: unknown }>;
   signUp: {
     email(input: {
       name: string;
@@ -22,7 +26,7 @@ export type AuthClientAdapter = {
 
 function result(response: { data?: unknown; error?: unknown }) {
   return response.error == null
-    ? { ok: true as const, deliveryConfirmation: true as const }
+    ? { ok: true as const }
     : { ok: false as const };
 }
 
@@ -47,6 +51,12 @@ export function createAuthActions(client: AuthClientAdapter) {
       return result(
         await client.signIn.social({ provider: "google", callbackURL }),
       );
+    },
+    async resendVerification(input: {
+      email: string;
+      callbackURL: string;
+    }) {
+      return result(await client.sendVerificationEmail(input));
     },
   };
 }

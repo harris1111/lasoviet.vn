@@ -86,6 +86,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Delegated Windows worktree anchoring | Required reads repeatedly resolved from the controller root instead of the assigned worktree, stopping P00-T02 and P00-T03 | Approved recurring invariant | Added to `AGENTS.md`; delegated commands must anchor and verify the absolute worktree |
 | Missing create-target handling | Discovery stopped when `rg` inspected `.github` before the task created it | Approved recurring ambiguity | Added to `AGENTS.md`; absent create-targets are expected, while missing required sources remain blocking |
 | Exact-version integration preflight | P01-T01 repeatedly used unverified Drizzle, Vitest, and Testcontainers integration behavior | Terra approved narrowed task-critical rule | Added to `AGENTS.md`; approved briefs must record only task-relevant exact-version facts |
+| Authentication anti-enumeration success versus delivery | A repeated sign-up for an existing unverified account returned Better Auth's generic success without creating a new notification delivery, while the UI presented that response as proof that verification email was sent | Sol confirmed the provider response intentionally hides account existence and approved an explicit provider-backed resend path with conditional copy | Added to `AGENTS.md` under repository and operational safety |
 | Terra direct-execution workflow | Founder changed the active role model from P01-T02 to reduce implementation latency while preserving milestone review | Direct founder decision | Updated `AGENTS.md`; Terra medium implements/debugs/tests, Sol xhigh reviews milestones, Luna paused |
 | UI artifact branch boundary | Founder reserved visual implementation for a later artifact branch | Direct founder decision | Added to `AGENTS.md`; non-UI branches may implement server routes and headless flows but not visual UI |
 | File-like dynamic route params | P03-T01 tests initially passed an extensionless sitemap key instead of the emitted `.xml` filename | Terra fixed the localized regression and added production-shaped coverage | Not added to `AGENTS.md`; one isolated incident does not meet section 9, and the regression test is the durable guard |
@@ -330,6 +331,28 @@ Date: 2026-09-01
   controlled Next/PostgreSQL runtime at `http://127.0.0.1:3000/`; a later
   authorized runtime must run that gate.
 - No external SMTP send or Google request occurred. Rule candidate: none.
+
+## MVP Verification Email Resend Correction
+
+Date: 2026-09-03
+
+- Production evidence showed that Better Auth returned its intentional generic
+  success for a repeated sign-up using an existing unverified email address,
+  but did not create another notification delivery. SMTP DNS and TCP port 587
+  remained reachable, and the account's earlier verification delivery was
+  recorded as sent.
+- The browser auth adapter no longer treats generic sign-up success as email
+  delivery confirmation. The sign-up panel now uses conditional,
+  enumeration-safe copy and exposes an explicit Better Auth-backed resend
+  verification command without automatically sending a duplicate email for a
+  newly created account.
+- TDD evidence: the focused auth action suite first failed four assertions
+  against the previous behavior, then passed all five tests after the
+  correction. Web typecheck, production build, and i18n parity also passed.
+- No live resend, deployment, or other external side effect occurred during
+  this correction. The authentication anti-enumeration rule was added to
+  `AGENTS.md`. Open questions: founder authorization is required before
+  deployment and one live resend verification.
 
 ## P01-T03 Evidence
 

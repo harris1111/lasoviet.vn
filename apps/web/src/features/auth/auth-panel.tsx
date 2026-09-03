@@ -16,8 +16,9 @@ const actions = createAuthActions(authClient);
 export function AuthPanel({ callbackURL }: AuthPanelProps) {
   const t = useTranslations("auth");
   const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
-  const [notice, setNotice] = useState<"delivery" | "error" | null>(null);
+  const [notice, setNotice] = useState<"verification" | "signedIn" | "resent" | "error" | null>(null);
   const [pending, setPending] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
   async function submit(formData: FormData) {
     setPending(true);
@@ -33,7 +34,33 @@ export function AuthPanel({ callbackURL }: AuthPanelProps) {
         })
       : await actions.signIn({ email, password, callbackURL });
     setPending(false);
-    setNotice(outcome.ok ? "delivery" : "error");
+    if (!outcome.ok) {
+      setNotice("error");
+      return;
+    }
+
+    if (mode === "signUp") {
+      setVerificationEmail(email);
+      setNotice("verification");
+      return;
+    }
+
+    setNotice("signedIn");
+  }
+
+  async function resendVerification() {
+    if (!verificationEmail) {
+      return;
+    }
+
+    setPending(true);
+    setNotice(null);
+    const outcome = await actions.resendVerification({
+      email: verificationEmail,
+      callbackURL,
+    });
+    setPending(false);
+    setNotice(outcome.ok ? "resent" : "error");
   }
 
   async function signInWithGoogle(_callbackURL: string) {
@@ -83,7 +110,16 @@ export function AuthPanel({ callbackURL }: AuthPanelProps) {
         label={t("panel.google")}
         onSignIn={signInWithGoogle}
       />
-      {notice === "delivery" ? <p className="form-notice" role="status">{mode === "signUp" ? t("verification.sent") : t("panel.signedIn")}</p> : null}
+      {notice === "verification" ? (
+        <div className="form-notice" role="status">
+          <p>{t("verification.checkOrResend")}</p>
+          <button className="button" disabled={pending} onClick={() => void resendVerification()} type="button">
+            {pending ? t("panel.pending") : t("verification.resend")}
+          </button>
+        </div>
+      ) : null}
+      {notice === "resent" ? <p className="form-notice" role="status">{t("verification.resent")}</p> : null}
+      {notice === "signedIn" ? <p className="form-notice" role="status">{t("panel.signedIn")}</p> : null}
       {notice === "error" ? <p className="form-error" role="alert">{t("panel.error")}</p> : null}
     </section>
   );
