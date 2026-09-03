@@ -247,6 +247,7 @@ describe("account deletion integration", () => {
       sku: "ZIWEI-IDENTITY-P0",
       amount: 79_000,
       currency: "VND",
+      locale: "vi",
     });
     const service = createAnonymousRetentionService({
       repository: createDatabaseAnonymousRetentionRepository(database),

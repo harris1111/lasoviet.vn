@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createSePayWebhookService } from "./sepay-webhook.service.js";
 
@@ -35,6 +35,72 @@ describe("SePay IPN", () => {
       secretHeader: "synthetic-sepay-secret",
       traceId: "trace",
     })).resolves.toMatchObject({ ok: false, error: { code: "PAYMENT_AMOUNT_MISMATCH" } });
+  });
+
+  it("normalizes documented integer and zero-decimal VND representations before recording", async () => {
+    const recordPaid = vi.fn().mockResolvedValue({ ok: true });
+    const service = createSePayWebhookService({
+      secretKey: "synthetic-sepay-secret",
+      recordPaid,
+    });
+    await expect(service.handle({
+      rawBody: JSON.stringify({
+        notification_type: "ORDER_PAID",
+        order: {
+          order_invoice_number: "LSV-order-1",
+          order_amount: "50000.00",
+          order_currency: "VND",
+          order_status: "CAPTURED",
+        },
+        transaction: {
+          transaction_id: "event-1",
+          transaction_amount: "50000",
+          transaction_currency: "VND",
+          transaction_status: "APPROVED",
+          transaction_type: "PAYMENT",
+        },
+      }),
+      secretHeader: "synthetic-sepay-secret",
+      traceId: "trace",
+    })).resolves.toMatchObject({ ok: true });
+    expect(recordPaid).toHaveBeenCalledWith(expect.objectContaining({ amount: 50_000 }));
+  });
+
+  it.each([
+    "50000.01",
+    "-50000",
+    "5e4",
+    "50000.000",
+    "9007199254740992",
+    "not-an-amount",
+  ])("rejects an unsafe VND amount %s", async (amount) => {
+    const service = createSePayWebhookService({
+      secretKey: "synthetic-sepay-secret",
+      recordPaid: async () => ({ ok: true }),
+    });
+    await expect(service.handle({
+      rawBody: JSON.stringify({
+        notification_type: "ORDER_PAID",
+        order: {
+          order_invoice_number: "LSV-order-1",
+          order_amount: amount,
+          order_currency: "VND",
+          order_status: "CAPTURED",
+        },
+        transaction: {
+          transaction_id: "event-1",
+          transaction_amount: amount,
+          transaction_currency: "VND",
+          transaction_status: "APPROVED",
+          transaction_type: "PAYMENT",
+        },
+      }),
+      secretHeader: "synthetic-sepay-secret",
+      traceId: "trace",
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "SEPAY_PAYLOAD_INVALID" },
+    });
   });
 
   it("rejects paid notifications without captured and approved states", async () => {

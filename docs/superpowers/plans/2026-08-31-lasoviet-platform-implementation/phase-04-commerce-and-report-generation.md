@@ -39,6 +39,11 @@ compatible HTTP API.
   before any checkout order lookup or write. Immutable financial provenance
   keeps opaque chart/version identifiers without foreign keys that could block
   FD-020 anonymous lifecycle purge. Task 1-2 remains pending Sol review.
+- Correction pass 2 consolidates the undeployed commerce/report queue/retention
+  baseline into `0011_commerce_payment_gateway.sql`, normalizes integer VND
+  IPN values, persists the selected `vi|en` locale, filters report-only outbox
+  claims, and schedules dispatch without overlap or unhandled failures. Pending
+  Sol re-review.
 
 ## Global Constraints
 

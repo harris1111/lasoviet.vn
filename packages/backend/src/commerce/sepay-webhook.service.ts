@@ -2,17 +2,19 @@ import { timingSafeEqual } from "node:crypto";
 
 type IpN = {
   notification_type: "ORDER_PAID" | "TRANSACTION_VOID";
-  order: { order_invoice_number: string; order_amount: string; order_currency: "VND"; order_status: string };
-  transaction: { transaction_id: string; transaction_amount: string; transaction_currency: "VND"; transaction_status: string; transaction_type: string };
+  order: { order_invoice_number: string; order_amount: number; order_currency: "VND"; order_status: string };
+  transaction: { transaction_id: string; transaction_amount: number; transaction_currency: "VND"; transaction_status: string; transaction_type: string };
 };
 
 function boundedText(value: unknown, pattern: RegExp, max = 128): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= max && pattern.test(value);
 }
 
-function vndAmount(value: unknown): string | null {
-  if (!boundedText(value, /^(0|[1-9]\d{0,11})(?:\.0{1,2})?$/, 16)) return null;
-  return value;
+function vndAmount(value: unknown): number | null {
+  if (!boundedText(value, /^(0|[1-9]\d{0,15})(?:\.0{1,2})?$/, 19)) return null;
+  const whole = value.split(".", 1)[0];
+  const amount = Number(whole);
+  return Number.isSafeInteger(amount) && amount >= 0 ? amount : null;
 }
 
 function ipn(value: unknown): IpN | null {
@@ -34,8 +36,8 @@ function ipn(value: unknown): IpN | null {
   ) return null;
   return {
     notification_type: body.notification_type,
-    order: { order_invoice_number: order.order_invoice_number, order_amount: String(order.order_amount), order_currency: "VND", order_status: order.order_status },
-    transaction: { transaction_id: transaction.transaction_id, transaction_amount: String(transaction.transaction_amount), transaction_currency: "VND", transaction_status: transaction.transaction_status, transaction_type: transaction.transaction_type },
+    order: { order_invoice_number: order.order_invoice_number, order_amount: vndAmount(order.order_amount)!, order_currency: "VND", order_status: order.order_status },
+    transaction: { transaction_id: transaction.transaction_id, transaction_amount: vndAmount(transaction.transaction_amount)!, transaction_currency: "VND", transaction_status: transaction.transaction_status, transaction_type: transaction.transaction_type },
   };
 }
 
@@ -80,7 +82,7 @@ export function createSePayWebhookService(dependencies: {
       const result = await dependencies.recordPaid({
         invoiceNumber: parsed.order.order_invoice_number,
         providerEventId: parsed.transaction.transaction_id,
-        amount: Number(parsed.order.order_amount),
+        amount: parsed.order.order_amount,
         currency: parsed.order.order_currency,
         traceId: input.traceId,
       });

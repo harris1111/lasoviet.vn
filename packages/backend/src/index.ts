@@ -225,6 +225,6 @@ export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js
 export { createSePayGateway } from "./commerce/sepay-adapter.js";
 export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";
 export { createDatabaseCommerceRepository } from "./commerce/commerce.repository.js";
-export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher } from "./outbox/outbox.dispatcher.js";
-export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, QueueJobV1 } from "./outbox/outbox.dispatcher.js";
+export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
+export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJobV1 } from "./outbox/outbox.dispatcher.js";
 export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";

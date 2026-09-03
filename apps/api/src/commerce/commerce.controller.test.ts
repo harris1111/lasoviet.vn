@@ -36,7 +36,19 @@ describe("SePay controller HTTP contract", () => {
     await expect(controller().create(undefined, {
       chartId: "chart-1",
       sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
     })).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it("rejects a checkout locale outside vi and en before actor resolution", async () => {
+    await expect(controller().create(undefined, {
+      chartId: "chart-1",
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "fr",
+    })).resolves.toEqual({
+      ok: false,
+      error: { code: "COMMERCE_ORDER_INVALID" },
+    });
   });
 
   it("maps ingress and provider authentication failures to 401", async () => {

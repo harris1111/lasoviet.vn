@@ -59,6 +59,27 @@ describe("create checkout order", () => {
     await createCheckoutOrder("chart-1", "en");
 
     expect(privateApiClient).toHaveBeenCalledWith(actor, actor.requestId);
+    expect(vi.mocked(privateApiClient).mock.results[0]?.value.request).toHaveBeenCalledWith(
+      "/commerce/orders",
+      expect.objectContaining({
+        body: JSON.stringify({
+          chartId: "chart-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          locale: "en",
+        }),
+      }),
+    );
     expect(redirect).toHaveBeenCalledWith("/en/thanh-toan/order-1");
+  });
+
+  it("rejects unsupported checkout locales before it calls commerce", async () => {
+    const { createCheckoutOrder } = await import("./create-checkout-order.js");
+
+    await expect(createCheckoutOrder("chart-1", "fr")).rejects.toThrow(
+      "CHECKOUT_LOCALE_INVALID",
+    );
+
+    expect(resolveVerifiedAccountActor).not.toHaveBeenCalled();
+    expect(privateApiClient).not.toHaveBeenCalled();
   });
 });

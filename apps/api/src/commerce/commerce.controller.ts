@@ -53,10 +53,10 @@ export class CommerceController {
   @Post("orders")
   @HttpCode(HttpStatus.OK)
   async create(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
-    if (typeof body !== "object" || body === null || !("chartId" in body) || !("sku" in body) || typeof body.chartId !== "string" || typeof body.sku !== "string") {
+    if (typeof body !== "object" || body === null || !("chartId" in body) || !("sku" in body) || !("locale" in body) || typeof body.chartId !== "string" || typeof body.sku !== "string" || (body.locale !== "vi" && body.locale !== "en")) {
       return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
     }
-    const result = await createDatabaseCommerceRepository(this.database).createOrder(await this.actor(authorization), body.chartId, body.sku);
+    const result = await createDatabaseCommerceRepository(this.database).createOrder(await this.actor(authorization), body.chartId, body.sku, body.locale);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") {
         throw new UnauthorizedException({ code: result.code });

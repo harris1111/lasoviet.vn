@@ -85,27 +85,6 @@
       "when": 1788422400000,
       "tag": "0011_commerce_payment_gateway",
       "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1788508800000,
-      "tag": "0012_report_request_contract",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1788595200000,
-      "tag": "0013_report_queue_jobs",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1788768000000,
-      "tag": "0014_commerce_retention_boundary",
-      "breakpoints": true
     }
   ]
 }

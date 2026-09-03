@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createOutboxDispatcher } from "./outbox.dispatcher.js";
+import {
+  createOutboxDispatcher,
+  createOutboxDispatchSchedule,
+} from "./outbox.dispatcher.js";
 
 describe("outbox dispatcher", () => {
   it("claims one report request and publishes the Task 3 job shape once", async () => {
@@ -43,5 +46,27 @@ describe("outbox dispatcher", () => {
 
     await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: false });
     expect(release).toHaveBeenCalledWith("outbox-1", "OUTBOX_PUBLISH_FAILED");
+  });
+
+  it("does not overlap scheduled dispatch and catches a failed cycle", async () => {
+    let release: (() => void) | undefined;
+    const pending = new Promise<{ dispatched: boolean }>((resolve) => {
+      release = () => resolve({ dispatched: false });
+    });
+    const runOnce = vi.fn().mockReturnValueOnce(pending).mockRejectedValueOnce(
+      new Error("claim failed"),
+    );
+    const reportError = vi.fn();
+    const schedule = createOutboxDispatchSchedule({ runOnce, reportError });
+
+    const first = schedule.run();
+    const second = schedule.run();
+    expect(second).toBe(first);
+    expect(runOnce).toHaveBeenCalledTimes(1);
+    release?.();
+    await first;
+
+    await schedule.run();
+    expect(reportError).toHaveBeenCalledWith(expect.any(Error));
   });
 });

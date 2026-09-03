@@ -23,6 +23,7 @@ export const commerceOrders = pgTable("commerce_orders", {
   sku: text("sku").notNull(),
   amount: integer("amount").notNull(),
   currency: text("currency").notNull(),
+  locale: text("locale").notNull(),
   status: commerceOrderStatus("status").notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   paidAt: timestamp("paid_at", { withTimezone: true, mode: "date" }),

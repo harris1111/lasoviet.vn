@@ -9,6 +9,7 @@ import {
   createDatabaseDeletionRepository,
   createDatabaseOutboxStore,
   createDatabaseReportQueuePublisher,
+  createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
   createPhaseOneMaintenanceRunner,
   createSmtpEmailAdapter,
@@ -59,8 +60,8 @@ export function createOutboxDispatchRunner() {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
-  return createOutboxDispatcher({
+  return createBoundedOutboxDispatchRunner(createOutboxDispatcher({
     ...createDatabaseOutboxStore(database, "worker-outbox"),
     ...createDatabaseReportQueuePublisher(database),
-  });
+  }));
 }

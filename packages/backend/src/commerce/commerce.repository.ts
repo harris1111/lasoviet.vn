@@ -20,6 +20,7 @@ import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 
 type Sku = keyof typeof PRODUCT_CATALOG;
 type OrderRecord = typeof commerceOrders.$inferSelect;
+type CheckoutLocale = "vi" | "en";
 
 function ownerFilter(actor: CurrentActor, now: Date) {
   return actor.kind === "account"
@@ -39,10 +40,21 @@ async function checkoutAccount(
   return checkoutAccountError(actor, account ?? null);
 }
 
-export function createDatabaseCommerceRepository(database: Database) {
+function checkoutLocale(locale: string): CheckoutLocale | null {
+  return locale === "vi" || locale === "en" ? locale : null;
+}
+
+export function createDatabaseCommerceRepository(
+  database: Database,
+  options: {
+    beforePaymentCommit?: () => Promise<void>;
+  } = {},
+) {
   return {
-    async createOrder(actor: CurrentActor, chartId: string, sku: string) {
+    async createOrder(actor: CurrentActor, chartId: string, sku: string, locale: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
+      const selectedLocale = checkoutLocale(locale);
+      if (selectedLocale === null) return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
       const product = PRODUCT_CATALOG[sku as Sku];
       const accountError = await checkoutAccount(database, actor);
       if (accountError !== null) return { ok: false as const, code: accountError };
@@ -69,6 +81,7 @@ export function createDatabaseCommerceRepository(database: Database) {
         sku: product.sku,
         amount: product.amount,
         currency: product.currency,
+        locale: selectedLocale,
       }).onConflictDoNothing().returning();
       if (created !== undefined) return { ok: true as const, value: created, reused: false };
       const [concurrent] = await database.select().from(commerceOrders)
@@ -136,7 +149,7 @@ export function createDatabaseCommerceRepository(database: Database) {
           reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
           evidenceVersionId: evidence.id, knowledgeVersionId: "ziwei.identity.knowledge.v1",
           promptVersion: "ziwei.identity.prompt.v1", reportConfigVersion: "ziwei.identity.report.v1",
-          locale: "vi", sku: paidOrder.sku,
+          locale: paidOrder.locale, sku: paidOrder.sku,
         }).returning();
         if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
         await enqueueOutbox(transaction, {
@@ -151,6 +164,7 @@ export function createDatabaseCommerceRepository(database: Database) {
             reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale, sku: reservation.sku,
           },
         });
+        await options.beforePaymentCommit?.();
         return { ok: true as const, replayed: false };
       });
     },
