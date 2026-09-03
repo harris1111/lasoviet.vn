@@ -67,4 +67,6 @@ CREATE UNIQUE INDEX "commerce_entitlements_order_unique" ON "commerce_entitlemen
 CREATE UNIQUE INDEX "commerce_entitlements_chart_sku_unique" ON "commerce_entitlements" USING btree ("chart_id","sku");--> statement-breakpoint
 CREATE UNIQUE INDEX "report_reservations_entitlement_unique" ON "report_reservations" USING btree ("entitlement_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "report_queue_jobs_source_event_unique" ON "report_queue_jobs" USING btree ("source_event_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "report_queue_jobs_idempotency_unique" ON "report_queue_jobs" USING btree ("idempotency_key");
+CREATE UNIQUE INDEX "report_queue_jobs_idempotency_unique" ON "report_queue_jobs" USING btree ("idempotency_key");--> statement-breakpoint
+CREATE INDEX "outbox_report_pending_claim_idx" ON "outbox" USING btree ("event_type","status","available_at");--> statement-breakpoint
+CREATE INDEX "outbox_report_expired_lease_idx" ON "outbox" USING btree ("event_type","status","leased_until");

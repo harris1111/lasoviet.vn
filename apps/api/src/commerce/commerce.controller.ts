@@ -15,6 +15,15 @@ export const COMMERCE_SEPAY_ENV = Symbol("COMMERCE_SEPAY_ENV");
 export const COMMERCE_SEPAY_MERCHANT = Symbol("COMMERCE_SEPAY_MERCHANT");
 export const COMMERCE_RETURN_ORIGIN = Symbol("COMMERCE_RETURN_ORIGIN");
 
+function checkoutPath(locale: "vi" | "en", orderId: string): string {
+  return locale === "en" ? `/en/thanh-toan/${orderId}` : `/thanh-toan/${orderId}`;
+}
+
+function checkoutLocale(locale: string): "vi" | "en" {
+  if (locale === "vi" || locale === "en") return locale;
+  throw new Error("COMMERCE_ORDER_LOCALE_INVALID");
+}
+
 function equal(a: string | undefined, b: string): boolean {
   if (a === undefined) return false;
   const left = Buffer.from(a); const right = Buffer.from(b);
@@ -42,8 +51,13 @@ export class CommerceController {
     }
   }
 
-  private payment(order: { id: string; invoiceNumber: string; amount: number }) {
-    const path = `/thanh-toan/${order.id}`;
+  private payment(order: {
+    id: string;
+    invoiceNumber: string;
+    amount: number;
+    locale: string;
+  }) {
+    const path = checkoutPath(checkoutLocale(order.locale), order.id);
     return createSePayGateway({ environment: this.sepayEnvironment, merchantId: this.merchantId, secretKey: this.sepaySecret }).createPayment({
       id: order.id, invoiceNumber: order.invoiceNumber, amount: order.amount, currency: "VND",
       description: "Zi Wei identity report", successUrl: `${this.origin}${path}`, errorUrl: `${this.origin}${path}`, cancelUrl: `${this.origin}${path}`,

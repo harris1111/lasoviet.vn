@@ -44,6 +44,10 @@ compatible HTTP API.
   IPN values, persists the selected `vi|en` locale, filters report-only outbox
   claims, and schedules dispatch without overlap or unhandled failures. Pending
   Sol re-review.
+- Replan Cycle 1 adds event-type-aware outbox claim indexes to the clean
+  `0011` baseline and carries the persisted locale through hosted callback
+  paths and canonical private checkout rendering. Task 1-2 remains pending Sol
+  review.
 
 ## Global Constraints
 

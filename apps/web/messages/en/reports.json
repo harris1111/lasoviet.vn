@@ -13,5 +13,17 @@
     "title": "Choose an in-depth reading",
     "available": "Available topic",
     "oneTime": "One-time payment. No automatic renewal."
+  },
+  "checkout": {
+    "eyebrow": "Payment",
+    "title": "Identity reading",
+    "action": "Continue to SePay",
+    "status": {
+      "pending": "Awaiting payment",
+      "paid": "Paid",
+      "expired": "Order expired",
+      "failed": "Payment was not completed",
+      "refunded": "Refunded"
+    }
   }
 }

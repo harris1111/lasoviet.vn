@@ -32,6 +32,33 @@ const nonPaid = Buffer.from(JSON.stringify({
 }));
 
 describe("SePay controller HTTP contract", () => {
+  it.each([
+    ["vi", "https://lasoviet.example/thanh-toan/order-1"],
+    ["en", "https://lasoviet.example/en/thanh-toan/order-1"],
+  ] as const)("builds %s hosted callback paths from the persisted order locale", (locale, callbackUrl) => {
+    const payment = (
+      controller() as unknown as {
+        payment(order: {
+          id: string;
+          invoiceNumber: string;
+          amount: number;
+          locale: "vi" | "en";
+        }): { fields: Record<string, string> };
+      }
+    ).payment({
+      id: "order-1",
+      invoiceNumber: "LSV-order-1",
+      amount: 79_000,
+      locale,
+    });
+
+    expect(payment.fields).toMatchObject({
+      success_url: callbackUrl,
+      error_url: callbackUrl,
+      cancel_url: callbackUrl,
+    });
+  });
+
   it("rejects an unsigned checkout request before it can reach persistence", async () => {
     await expect(controller().create(undefined, {
       chartId: "chart-1",

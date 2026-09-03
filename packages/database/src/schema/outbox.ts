@@ -100,6 +100,16 @@ export const outbox = pgTable(
     uniqueIndex("outbox_idempotency_key_unique").on(table.idempotencyKey),
     index("outbox_claim_idx").on(table.status, table.availableAt),
     index("outbox_lease_idx").on(table.leasedUntil),
+    index("outbox_report_pending_claim_idx").on(
+      table.eventType,
+      table.status,
+      table.availableAt,
+    ),
+    index("outbox_report_expired_lease_idx").on(
+      table.eventType,
+      table.status,
+      table.leasedUntil,
+    ),
   ],
 );
 

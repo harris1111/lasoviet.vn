@@ -13,5 +13,17 @@
     "title": "Chọn luận giải chuyên sâu",
     "available": "Chủ đề đang mở",
     "oneTime": "Thanh toán một lần. Không tự động gia hạn."
+  },
+  "checkout": {
+    "eyebrow": "Thanh toán",
+    "title": "Luận giải bản mệnh",
+    "action": "Đi tới SePay",
+    "status": {
+      "pending": "Đang chờ thanh toán",
+      "paid": "Đã thanh toán",
+      "expired": "Đơn đã hết hạn",
+      "failed": "Thanh toán chưa thành công",
+      "refunded": "Đã hoàn tiền"
+    }
   }
 }
