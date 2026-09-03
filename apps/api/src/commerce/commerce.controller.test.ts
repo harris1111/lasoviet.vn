@@ -32,6 +32,13 @@ const nonPaid = Buffer.from(JSON.stringify({
 }));
 
 describe("SePay controller HTTP contract", () => {
+  it("rejects an unsigned checkout request before it can reach persistence", async () => {
+    await expect(controller().create(undefined, {
+      chartId: "chart-1",
+      sku: "ZIWEI-IDENTITY-P0",
+    })).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
   it("maps ingress and provider authentication failures to 401", async () => {
     await expect(controller().webhook(undefined, "provider-secret", { rawBody: nonPaid }))
       .rejects.toBeInstanceOf(UnauthorizedException);

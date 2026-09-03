@@ -3,10 +3,26 @@
 import { redirect } from "next/navigation";
 
 import { privateApiClient } from "../../api/private-api-client";
-import { resolveCurrentActor } from "../../auth/resolve-current-actor";
+import {
+  VerifiedAccountResolutionError,
+  resolveVerifiedAccountActor,
+} from "../../auth/resolve-current-actor";
 
 export async function createCheckoutOrder(chartId: string, locale: string) {
-  const actor = await resolveCurrentActor();
+  const prefix = locale === "en" ? "/en" : "";
+  let actor;
+  try {
+    actor = await resolveVerifiedAccountActor();
+  } catch (error) {
+    if (error instanceof VerifiedAccountResolutionError) {
+      return redirect(
+        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(
+          `${prefix}/la-so/${chartId}/chon-luan-giai`,
+        )}`,
+      );
+    }
+    throw error;
+  }
   const response = await privateApiClient(actor, actor.requestId).request<{
     ok: boolean;
     value?: { order: { id: string } };
@@ -16,6 +32,5 @@ export async function createCheckoutOrder(chartId: string, locale: string) {
     body: JSON.stringify({ chartId, sku: "ZIWEI-IDENTITY-P0" }),
   });
   if (!response.ok || response.value === undefined) throw new Error("CHECKOUT_ORDER_FAILED");
-  const prefix = locale === "en" ? "/en" : "";
   redirect(`${prefix}/thanh-toan/${response.value.order.id}`);
 }

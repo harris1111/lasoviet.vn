@@ -4,6 +4,7 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import type { CurrentActor } from "@lasoviet/contracts";
 import {
   birthProfiles,
+  authUsers,
   commerceEntitlements,
   commerceOrders,
   commercePaymentEvents,
@@ -15,14 +16,10 @@ import {
   ziweiCharts,
 } from "@lasoviet/database";
 
-import { PRODUCT_CATALOG } from "./order.service.js";
+import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 
 type Sku = keyof typeof PRODUCT_CATALOG;
 type OrderRecord = typeof commerceOrders.$inferSelect;
-
-function ownerId(actor: CurrentActor): string {
-  return actor.kind === "account" ? actor.userId : actor.anonymousActorId;
-}
 
 function ownerFilter(actor: CurrentActor, now: Date) {
   return actor.kind === "account"
@@ -30,11 +27,26 @@ function ownerFilter(actor: CurrentActor, now: Date) {
     : and(eq(birthProfiles.anonymousActorId, actor.anonymousActorId), gt(birthProfiles.anonymousExpiresAt, now));
 }
 
+async function checkoutAccount(
+  database: Database,
+  actor: CurrentActor,
+) {
+  if (actor.kind !== "account") return "CHECKOUT_ACCOUNT_REQUIRED" as const;
+  const [account] = await database.select({
+    emailVerified: authUsers.emailVerified,
+    isAnonymous: authUsers.isAnonymous,
+  }).from(authUsers).where(eq(authUsers.id, actor.userId)).limit(1);
+  return checkoutAccountError(actor, account ?? null);
+}
+
 export function createDatabaseCommerceRepository(database: Database) {
   return {
     async createOrder(actor: CurrentActor, chartId: string, sku: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
       const product = PRODUCT_CATALOG[sku as Sku];
+      const accountError = await checkoutAccount(database, actor);
+      if (accountError !== null) return { ok: false as const, code: accountError };
+      if (actor.kind !== "account") throw new Error("CHECKOUT_ACTOR_INVALID");
       const [chart] = await database.select({
         chartId: ziweiCharts.id, chartVersionId: ziweiChartVersions.id,
       }).from(ziweiCharts)
@@ -53,7 +65,7 @@ export function createDatabaseCommerceRepository(database: Database) {
         invoiceNumber: `LSV-${id}`,
         chartId,
         chartVersionId: chart.chartVersionId,
-        ownerId: ownerId(actor),
+        ownerId: actor.userId,
         sku: product.sku,
         amount: product.amount,
         currency: product.currency,
@@ -66,8 +78,11 @@ export function createDatabaseCommerceRepository(database: Database) {
     },
 
     async readOrder(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
+      if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
+        return null;
+      }
       const [order] = await database.select().from(commerceOrders)
-        .where(and(eq(commerceOrders.id, orderId), eq(commerceOrders.ownerId, ownerId(actor)))).limit(1);
+        .where(and(eq(commerceOrders.id, orderId), eq(commerceOrders.ownerId, actor.userId))).limit(1);
       return order ?? null;
     },
 

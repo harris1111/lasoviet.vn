@@ -35,6 +35,10 @@ compatible HTTP API.
   uses a conditional pending-to-paid transition, persists the complete
   report-request payload, and runs the durable queue-job dispatch boundary in
   the worker. Pending Sol re-review.
+- FD-029 requires a live authenticated, non-anonymous, email-verified account
+  before any checkout order lookup or write. Immutable financial provenance
+  keeps opaque chart/version identifiers without foreign keys that could block
+  FD-020 anonymous lifecycle purge. Task 1-2 remains pending Sol review.
 
 ## Global Constraints
 

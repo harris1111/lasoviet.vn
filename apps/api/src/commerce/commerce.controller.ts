@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 
-import { BadRequestException, Body, ConflictException, Controller, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
 import type { CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
@@ -57,7 +57,15 @@ export class CommerceController {
       return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
     }
     const result = await createDatabaseCommerceRepository(this.database).createOrder(await this.actor(authorization), body.chartId, body.sku);
-    if (!result.ok) return { ok: false, error: { code: result.code } };
+    if (!result.ok) {
+      if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") {
+        throw new UnauthorizedException({ code: result.code });
+      }
+      if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") {
+        throw new ForbiddenException({ code: result.code });
+      }
+      return { ok: false, error: { code: result.code } };
+    }
     return { ok: true, value: { order: result.value, payment: this.payment(result.value) } };
   }
 

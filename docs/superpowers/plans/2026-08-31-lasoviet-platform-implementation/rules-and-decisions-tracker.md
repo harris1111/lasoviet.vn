@@ -32,6 +32,7 @@
 | FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
 | FD-027 | 2026-09-02 | Approve Operations Dashboard V1 Option A as dedicated Phase 05A: private server-authorized `/admin/**`, database-backed RBAC/capabilities, redacted inspection, audited compensating domain commands, and no CMS; full CMS/back-office content editing is deferred | Approved | Admin dashboard spec, Phase 05A, Phases 04-06, contracts, risks, and release gates |
 | FD-028 | 2026-09-02 | Rename the active implementation branch to `feature/paid-flow-admin-operations`; implement paid-flow and Admin/Operations work on this branch, begin provider-independent Phase 05A work now, and defer SePay-dependent checkout/webhook activation until the founder supplies the required environment values | Approved | `AGENTS.md`, master plan, Phase 04, Phase 05A |
+| FD-029 | 2026-09-03 | Paid checkout requires an authenticated account with verified email. Anonymous actors remain free-flow only. Immutable commerce records use the durable account owner and must not reference anonymous/profile/chart lifecycle records with retention-blocking foreign keys. | Approved | Phase 04, `AGENTS.md`, commerce schema and checkout authorization |
 
 ## FD-028 Execution Boundary
 

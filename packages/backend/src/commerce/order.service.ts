@@ -11,6 +11,10 @@ export const PRODUCT_CATALOG = {
 
 type ProductSku = keyof typeof PRODUCT_CATALOG;
 type Chart = { id: string; ownerId: string; eligible: boolean };
+export type CheckoutAccount = {
+  emailVerified: boolean;
+  isAnonymous: boolean;
+} | null;
 type Order = {
   id: string;
   invoiceNumber: string;
@@ -22,14 +26,21 @@ type Order = {
 };
 
 export type OrderServiceDependencies = {
+  findCheckoutAccount(userId: string): Promise<CheckoutAccount>;
   findChart(chartId: string): Promise<Chart | null>;
   findReusableEntitlement(chartId: string, sku: ProductSku): Promise<{ id: string } | null>;
   save(order: Order): Promise<Order>;
   createId(): string;
 };
 
-function actorId(actor: CurrentActor): string {
-  return actor.kind === "account" ? actor.userId : actor.anonymousActorId;
+export function checkoutAccountError(
+  actor: CurrentActor,
+  account: CheckoutAccount,
+): "CHECKOUT_ACCOUNT_REQUIRED" | "CHECKOUT_EMAIL_VERIFICATION_REQUIRED" | null {
+  if (actor.kind !== "account" || account === null || account.isAnonymous) {
+    return "CHECKOUT_ACCOUNT_REQUIRED";
+  }
+  return account.emailVerified ? null : "CHECKOUT_EMAIL_VERIFICATION_REQUIRED";
 }
 
 export function createOrderService(dependencies: OrderServiceDependencies) {
@@ -37,8 +48,17 @@ export function createOrderService(dependencies: OrderServiceDependencies) {
     async create(actor: CurrentActor, chartId: string, sku: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, error: { code: "SKU_UNSUPPORTED" } };
       const product = PRODUCT_CATALOG[sku as ProductSku];
+      if (actor.kind !== "account") {
+        return {
+          ok: false as const,
+          error: { code: "CHECKOUT_ACCOUNT_REQUIRED" },
+        };
+      }
+      const account = await dependencies.findCheckoutAccount(actor.userId);
+      const accountError = checkoutAccountError(actor, account);
+      if (accountError !== null) return { ok: false as const, error: { code: accountError } };
       const chart = await dependencies.findChart(chartId);
-      if (chart === null || chart.ownerId !== actorId(actor)) {
+      if (chart === null || chart.ownerId !== actor.userId) {
         return { ok: false as const, error: { code: "CHART_NOT_FOUND" } };
       }
       if (!chart.eligible) return { ok: false as const, error: { code: "CHART_INELIGIBLE" } };

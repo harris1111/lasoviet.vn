@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { privateApiClient } from "../../../../api/private-api-client";
-import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
+import {
+  VerifiedAccountResolutionError,
+  resolveVerifiedAccountActor,
+} from "../../../../auth/resolve-current-actor";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -11,10 +14,23 @@ export const metadata: Metadata = {
 export default async function CheckoutPage({
   params,
 }: {
-  params: Promise<{ orderId: string }>;
+  params: Promise<{ locale: string; orderId: string }>;
 }) {
-  const { orderId } = await params;
-  const actor = await resolveCurrentActor();
+  const { locale, orderId } = await params;
+  let actor;
+  try {
+    actor = await resolveVerifiedAccountActor();
+  } catch (error) {
+    if (error instanceof VerifiedAccountResolutionError) {
+      const prefix = locale === "en" ? "/en" : "";
+      return redirect(
+        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(
+          `${prefix}/thanh-toan/${orderId}`,
+        )}`,
+      );
+    }
+    throw error;
+  }
   const response = await privateApiClient(actor, actor.requestId).request<{
     ok: boolean;
     value?: {

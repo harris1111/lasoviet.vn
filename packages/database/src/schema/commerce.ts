@@ -10,8 +10,6 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { ziweiChartVersions, ziweiCharts } from "./birth-profile.js";
-
 export const commerceOrderStatus = pgEnum("commerce_order_status", [
   "pending", "paid", "expired", "failed", "refunded",
 ]);
@@ -19,8 +17,8 @@ export const commerceOrderStatus = pgEnum("commerce_order_status", [
 export const commerceOrders = pgTable("commerce_orders", {
   id: uuid("id").defaultRandom().primaryKey(),
   invoiceNumber: text("invoice_number").notNull(),
-  chartId: text("chart_id").notNull().references(() => ziweiCharts.id),
-  chartVersionId: text("chart_version_id").notNull().references(() => ziweiChartVersions.id),
+  chartId: text("chart_id").notNull(),
+  chartVersionId: text("chart_version_id").notNull(),
   ownerId: text("owner_id").notNull(),
   sku: text("sku").notNull(),
   amount: integer("amount").notNull(),
@@ -50,7 +48,7 @@ export const commercePaymentEvents = pgTable("commerce_payment_events", {
 export const commerceEntitlements = pgTable("commerce_entitlements", {
   id: uuid("id").defaultRandom().primaryKey(),
   orderId: uuid("order_id").notNull().references(() => commerceOrders.id),
-  chartId: text("chart_id").notNull().references(() => ziweiCharts.id),
+  chartId: text("chart_id").notNull(),
   sku: text("sku").notNull(),
   ownerId: text("owner_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
@@ -64,7 +62,7 @@ export const reportReservations = pgTable("report_reservations", {
   reportId: uuid("report_id").notNull(),
   reportVersionId: uuid("report_version_id").notNull(),
   entitlementId: uuid("entitlement_id").notNull().references(() => commerceEntitlements.id),
-  chartVersionId: text("chart_version_id").notNull().references(() => ziweiChartVersions.id),
+  chartVersionId: text("chart_version_id").notNull(),
   evidenceVersionId: text("evidence_version_id").notNull(),
   knowledgeVersionId: text("knowledge_version_id").notNull(),
   promptVersion: text("prompt_version").notNull(),

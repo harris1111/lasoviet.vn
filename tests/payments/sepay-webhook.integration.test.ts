@@ -104,4 +104,49 @@ describe("SePay payment transaction", () => {
     expect((await database.select().from(outbox)).filter((event) => event.aggregateId === orderId)).toHaveLength(1);
     await database.$client.end();
   }, 120_000);
+
+  it("does not create commerce rows for anonymous or unverified checkout actors", async () => {
+    const database = createDatabase(databaseUrl);
+    const repository = createDatabaseCommerceRepository(database);
+    const anonymous = {
+      kind: "anonymous" as const,
+      anonymousActorId: `anonymous-${randomUUID()}`,
+      sessionId: "anonymous-session",
+      requestId: "anonymous-request",
+      expiresAt: "2026-09-04T00:00:00+00:00",
+    };
+    const unverifiedId = `unverified-${randomUUID()}`;
+    await database.insert(authUsers).values({
+      id: unverifiedId,
+      name: "Unverified checkout",
+      email: `${unverifiedId}@example.test`,
+      emailVerified: false,
+    });
+
+    await expect(repository.createOrder(
+      anonymous,
+      "not-looked-up",
+      "ZIWEI-IDENTITY-P0",
+    )).resolves.toMatchObject({
+      ok: false,
+      code: "CHECKOUT_ACCOUNT_REQUIRED",
+    });
+    await expect(repository.createOrder(
+      {
+        kind: "account",
+        userId: unverifiedId,
+        sessionId: "unverified-session",
+        requestId: "unverified-request",
+      },
+      "not-looked-up",
+      "ZIWEI-IDENTITY-P0",
+    )).resolves.toMatchObject({
+      ok: false,
+      code: "CHECKOUT_EMAIL_VERIFICATION_REQUIRED",
+    });
+    expect((await database.select().from(commerceOrders)).filter(
+      (order) => order.ownerId === anonymous.anonymousActorId || order.ownerId === unverifiedId,
+    )).toEqual([]);
+    await database.$client.end();
+  }, 120_000);
 });

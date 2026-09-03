@@ -474,3 +474,8 @@ rule instead of adding another version.
   profile or chart.
 - Anonymous data and identifiers remain subject to the same analytics
   prohibition as account-owned birth and chart data.
+- Paid checkout is unavailable to anonymous actors. Before order creation, the
+  server must require a current non-anonymous account with verified email;
+  immutable commerce rows use that durable account owner and must not add
+  retention-blocking foreign keys to anonymous, profile, chart, or chart-version
+  lifecycle records.

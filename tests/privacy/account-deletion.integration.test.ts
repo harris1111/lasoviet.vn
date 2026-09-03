@@ -14,6 +14,7 @@ import {
   authSessions,
   authUsers,
   birthProfiles,
+  commerceOrders,
   consents,
   createDatabase,
   deletionRequests,
@@ -237,6 +238,16 @@ describe("account deletion integration", () => {
         anonymousExpiresAt: new Date("2026-08-31T23:59:59Z"),
       },
     ]);
+    await database.insert(commerceOrders).values({
+      id: "f0c6314b-3a7b-4ad9-b8b8-6e5f6e1f5a0d",
+      invoiceNumber: "LSV-anonymous-legacy",
+      chartId: "anonymous-expired-chart",
+      chartVersionId: "anonymous-expired-chart-version",
+      ownerId: "anonymous-expired",
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+    });
     const service = createAnonymousRetentionService({
       repository: createDatabaseAnonymousRetentionRepository(database),
     });
@@ -272,6 +283,12 @@ describe("account deletion integration", () => {
     expect((await database.select().from(authSessions)).find(
       (session) => session.id === "anonymous-unexpired-session",
     )).toBeUndefined();
+    expect((await database.select().from(commerceOrders)).find(
+      (order) => order.invoiceNumber === "LSV-anonymous-legacy",
+    )).toMatchObject({
+      ownerId: "anonymous-expired",
+      chartId: "anonymous-expired-chart",
+    });
     await database.$client.end();
   }, 120_000);
 

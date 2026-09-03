@@ -99,6 +99,13 @@
       "when": 1788595200000,
       "tag": "0013_report_queue_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788768000000,
+      "tag": "0014_commerce_retention_boundary",
+      "breakpoints": true
     }
   ]
 }
