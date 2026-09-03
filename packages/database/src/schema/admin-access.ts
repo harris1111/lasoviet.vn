@@ -58,6 +58,30 @@ export const adminCapabilityPolicies = pgTable(
   ],
 );
 
+export const adminRoleMutationRequests = pgTable(
+  "admin_role_mutation_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorId: text("actor_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    operation: text("operation").notNull(),
+    targetId: text("target_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    requestFingerprint: text("request_fingerprint").notNull(),
+    result: jsonb("result").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("admin_role_mutation_requests_actor_key_unique").on(
+      table.actorId,
+      table.idempotencyKey,
+    ),
+  ],
+);
+
 export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {

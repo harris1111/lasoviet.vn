@@ -16,9 +16,12 @@ import {
   createAnonymousRetentionService,
   createAdminAccessService,
   createAdminAuditService,
+  createAuditQueryService,
+  createDatabaseAuditQueryRepository,
   createDatabaseAdminHealthService,
   createDatabaseAdminAccessRepository,
   createDatabaseAdminAuditRepository,
+  createDatabaseRoleAssignmentRepository,
   createDatabaseAdminOverviewRepository,
   createBirthProfileService,
   createConsentService,
@@ -31,6 +34,7 @@ import {
   createDatabaseZiweiQueryRepository,
   createSmtpEmailAdapter,
   createAdminOverviewService,
+  createRoleAssignmentService,
   createEvidenceService,
   createZiweiCalculationService,
   createZiweiQueryService,
@@ -57,6 +61,11 @@ import {
   ADMIN_AUDIT_SERVICE,
   AdminAccessController,
 } from "./admin-access/admin-access.controller.js";
+import {
+  ADMIN_AUDIT_QUERY_SERVICE,
+  ADMIN_ROLE_ASSIGNMENT_SERVICE,
+  AdminRoleAuditController,
+} from "./admin-access/admin-role-audit.controller.js";
 import {
   ADMIN_OVERVIEW_SERVICE,
   AdminOverviewController,
@@ -142,6 +151,7 @@ export function createApiAnalyticsSink(
     BirthProfileController,
     ZiweiController,
     AdminAccessController,
+    AdminRoleAuditController,
     AdminOverviewController,
   ],
   providers: [
@@ -219,6 +229,18 @@ export function createApiAnalyticsSink(
       },
     },
     { provide: ADMIN_ACCESS_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ADMIN_ROLE_ASSIGNMENT_SERVICE,
+      useFactory: () => createRoleAssignmentService({
+        repository: createDatabaseRoleAssignmentRepository(privacyDatabase()),
+      }),
+    },
+    {
+      provide: ADMIN_AUDIT_QUERY_SERVICE,
+      useFactory: () => createAuditQueryService({
+        repository: createDatabaseAuditQueryRepository(privacyDatabase()),
+      }),
+    },
     {
       provide: ADMIN_OVERVIEW_SERVICE,
       useFactory: () => {

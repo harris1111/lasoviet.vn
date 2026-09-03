@@ -1,0 +1,56 @@
+import { and, count, desc, eq, gte, lte } from "drizzle-orm";
+
+import type {
+  AdminAuditPageV1,
+  AdminAuditSearchFiltersV1,
+} from "@lasoviet/contracts";
+import { adminAuditLogs, type Database } from "@lasoviet/database";
+
+import type { AuditQueryRepository } from "./audit-query.service.js";
+
+export function createDatabaseAuditQueryRepository(database: Database): AuditQueryRepository {
+  return {
+    async search(filters: AdminAuditSearchFiltersV1): Promise<AdminAuditPageV1> {
+      const conditions = [
+        filters.dateFrom === undefined ? undefined : gte(adminAuditLogs.createdAt, new Date(filters.dateFrom)),
+        filters.dateTo === undefined ? undefined : lte(adminAuditLogs.createdAt, new Date(filters.dateTo)),
+        filters.actorId === undefined ? undefined : eq(adminAuditLogs.actorId, filters.actorId),
+        filters.operation === undefined ? undefined : eq(adminAuditLogs.operation, filters.operation),
+        filters.targetType === undefined ? undefined : eq(adminAuditLogs.targetType, filters.targetType),
+        filters.targetId === undefined ? undefined : eq(adminAuditLogs.targetId, filters.targetId),
+        filters.traceId === undefined ? undefined : eq(adminAuditLogs.traceId, filters.traceId),
+        filters.result === undefined ? undefined : eq(adminAuditLogs.policyResult, filters.result),
+      ].filter((condition): condition is NonNullable<typeof condition> => condition !== undefined);
+      const where = conditions.length === 0 ? undefined : and(...conditions);
+      const rows = await database.select().from(adminAuditLogs).where(where)
+        .orderBy(desc(adminAuditLogs.createdAt), desc(adminAuditLogs.id))
+        .limit(filters.pageSize)
+        .offset((filters.page - 1) * filters.pageSize);
+      const [{ total } = { total: 0 }] = await database
+        .select({ total: count() }).from(adminAuditLogs).where(where);
+      return {
+        page: filters.page,
+        pageSize: filters.pageSize,
+        total: Number(total),
+        items: rows.map((row) => ({
+          id: row.id,
+          actorId: row.actorId,
+          roleAssignmentId: row.roleAssignmentId,
+          capability: row.capability,
+          operation: row.operation,
+          target: { type: row.targetType, id: row.targetId },
+          requestId: row.requestId,
+          traceId: row.traceId,
+          result: row.policyResult as "allowed" | "denied",
+          redactionLevel: "redacted" as const,
+          reasonCode: row.reasonCode as AdminAuditPageV1["items"][number]["reasonCode"],
+          idempotencyKey: row.idempotencyKey,
+          beforeVersion: row.beforeVersion,
+          afterVersion: row.afterVersion,
+          resultSummary: row.resultSummary,
+          createdAt: row.createdAt.toISOString(),
+        })),
+      };
+    },
+  };
+}

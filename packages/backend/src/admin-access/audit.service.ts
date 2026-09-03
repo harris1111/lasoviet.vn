@@ -32,6 +32,9 @@ const policyCodes = new Set([
   "ROLE_ASSIGNMENT_INACTIVE",
   "ADMIN_FILTER_INVALID",
   "ADMIN_PROJECTION_UNAVAILABLE",
+  "ROLE_ASSIGNMENT_FORBIDDEN",
+  "ROLE_ASSIGNMENT_CONFLICT",
+  "ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED",
 ]);
 
 function redact(value: Record<string, unknown>): Record<string, unknown> {
@@ -57,6 +60,15 @@ function redact(value: Record<string, unknown>): Record<string, unknown> {
 export function createAdminAuditService(options: { repository: AdminAuditRepository }) {
   return {
     appendAdminAudit(entry: AdminAuditEntry): Promise<string> {
+      if (
+        entry.operation.trim() === "" ||
+        entry.target.type.trim() === "" ||
+        entry.target.id.trim() === "" ||
+        entry.requestId.trim() === "" ||
+        entry.traceId.trim() === ""
+      ) {
+        throw new Error("AUDIT_RECORD_INCOMPLETE");
+      }
       return options.repository.append({
         ...entry,
         resultSummary: redact(entry.resultSummary),

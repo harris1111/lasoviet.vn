@@ -23,6 +23,7 @@ import {
   adminAuditLogs,
   adminCapabilityPolicies,
   adminRoleAssignments,
+  adminRoleMutationRequests,
 } from "./admin-access.js";
 import { runMigrations } from "../migrate.js";
 import { notificationDeliveries } from "./notifications.js";
@@ -218,6 +219,24 @@ describe("database schema integration", () => {
         id: "admin_assignment_duplicate",
         userId,
         role: "operations",
+      }),
+    ).rejects.toBeDefined();
+    await database.insert(adminRoleMutationRequests).values({
+      actorId: userId,
+      operation: "admin.role.assigned",
+      targetId: "admin_assignment_schema_test",
+      idempotencyKey: "schema-role-change-1",
+      requestFingerprint: "fingerprint-1",
+      result: { assignmentId: "admin_assignment_schema_test", version: 1 },
+    });
+    await expect(
+      database.insert(adminRoleMutationRequests).values({
+        actorId: userId,
+        operation: "admin.role.assigned",
+        targetId: "admin_assignment_schema_test",
+        idempotencyKey: "schema-role-change-1",
+        requestFingerprint: "fingerprint-2",
+        result: { assignmentId: "admin_assignment_schema_test", version: 1 },
       }),
     ).rejects.toBeDefined();
     expect(

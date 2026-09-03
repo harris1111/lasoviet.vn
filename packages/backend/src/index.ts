@@ -168,6 +168,24 @@ export type {
   AdminAuditRepository,
 } from "./admin-access/audit.service.js";
 export {
+  createRoleAssignmentService,
+} from "./admin-access/role-assignment.service.js";
+export type {
+  RoleAssignmentError,
+  RoleAssignmentRepository,
+  RoleMutation,
+} from "./admin-access/role-assignment.service.js";
+export {
+  createDatabaseRoleAssignmentRepository,
+} from "./admin-access/role-assignment.repository.js";
+export {
+  createAuditQueryService,
+} from "./admin-access/audit-query.service.js";
+export type { AuditQueryRepository } from "./admin-access/audit-query.service.js";
+export {
+  createDatabaseAuditQueryRepository,
+} from "./admin-access/audit-query.repository.js";
+export {
   createAdminHealthService,
   createDatabaseAdminHealthService,
 } from "./admin-overview/admin-health.service.js";

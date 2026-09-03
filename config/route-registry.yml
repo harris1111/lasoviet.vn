@@ -761,6 +761,13 @@ routes:
     owner: operations
 
   - <<: *private_defaults
+    id: admin.audit
+    path: /admin/audit
+    intent: private.admin.audit
+    template: admin-audit
+    owner: operations
+
+  - <<: *private_defaults
     id: wizard.tu-vi
     path: /tao-la-so/tu-vi
     intent: private.wizard.tu-vi

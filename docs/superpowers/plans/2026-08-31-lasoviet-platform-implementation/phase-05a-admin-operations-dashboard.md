@@ -462,7 +462,7 @@ git commit -m "feat: add audited operations recovery commands"
 - Produces append-only role-assignment history, capability-policy reference,
   and audit-search projections.
 
-- [ ] **Step 1: Write failing role and audit tests**
+- [x] **Step 1: Write failing role and audit tests**
 
 Assert only `super_admin` with `admin.roles.manage` can assign/revoke a role;
 the actor cannot self-escalate; revoked assignments deny subsequent reads;
@@ -470,27 +470,27 @@ each privileged read and command includes actor, role assignment, capability,
 request/trace ID, target, result, redaction level, and command context where
 applicable. Assert audit search never returns secret or raw payload fields.
 
-- [ ] **Step 2: Run the RED tests**
+- [x] **Step 2: Run the RED tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-access/role-assignment.service.test.ts tests/security/admin-audit-completeness.integration.test.ts && pnpm playwright test tests/e2e/admin-role-and-audit.spec.ts`
 
 Expected: FAIL because role management and full audit evidence are absent.
 
-- [ ] **Step 3: Implement privileged role administration**
+- [x] **Step 3: Implement privileged role administration**
 
 Use a dedicated role-assignment service, optimistic version checks, immutable
 assignment history, exact reason taxonomy, and two independent audit records:
 the authorization decision and the resulting assignment event. Reject
 self-escalation and any role/capability value outside the server policy.
 
-- [ ] **Step 4: Implement audit inspection**
+- [x] **Step 4: Implement audit inspection**
 
 Provide read-only, capability-gated audit filtering by date, actor, operation,
 aggregate, trace ID, and result. Keep filter values bounded and export absent
 from V1. Display redacted summaries only.
 
-- [ ] **Step 5: Run the GREEN tests**
+- [x] **Step 5: Run the GREEN tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-access tests/security/admin-audit-completeness.integration.test.ts && pnpm playwright test tests/e2e/admin-role-and-audit.spec.ts`
@@ -503,6 +503,21 @@ Expected: PASS with complete, append-only audit coverage.
 git add packages/backend/src/admin-access apps/api/src/admin-access apps/web/src/features/admin-access apps/web/src/app tests/security tests/e2e docs/superpowers/plans
 git commit -m "feat: add audited role administration"
 ```
+
+**Implementation evidence (2026-09-03):** Added a private role-mutation
+service that accepts only a resolved active `super_admin` carrying the active
+`admin.roles.manage` capability, rejects actor self-escalation, bounds every
+target, and validates all roles/reasons server-side. The PostgreSQL repository
+serializes target mutations with a transaction advisory lock; it revokes the
+active assignment before creating a replacement row, persists a per-actor
+idempotency receipt, and writes authorization plus resulting-event audit rows
+in the same transaction. Audit search is capability-gated, bounded, redacted,
+and exposed only through `/admin/audit`, a private `live_noindex` route.
+Focused Vitest coverage passed 27 tests; the fixture-gated Playwright spec
+exited successfully with its sole approved skip. Contract/database/backend/API
+builds and web typecheck passed. The migration integration test is
+host-blocked because Testcontainers cannot find a container runtime; Task 5
+remains in progress pending Sol review.
 
 ### Task 6 [P05A-T06]: Prove production-like operational incident workflows and release evidence
 

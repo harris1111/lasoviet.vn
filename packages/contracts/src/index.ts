@@ -29,6 +29,25 @@ export {
   INTERNAL_ADMIN_PREFLIGHT_AUDIT_ISSUER,
   InternalAdminPreflightAuditV1Schema,
 } from "./admin-auth.js";
+export {
+  AdminAuditPageV1Schema,
+  AdminAuditSearchFiltersV1Schema,
+  AdminAuditSummaryV1Schema,
+  AdminRoleMutationContextV1Schema,
+  AssignAdminRoleV1Schema,
+  parseAdminAuditSearchFiltersV1,
+  RevokeAdminRoleV1Schema,
+  RoleMutationReasonCodeSchema,
+} from "./admin-role-audit.js";
+export type {
+  AdminAuditPageV1,
+  AdminAuditSearchFiltersV1,
+  AdminAuditSummaryV1,
+  AdminRoleMutationContextV1,
+  AssignAdminRoleV1,
+  RevokeAdminRoleV1,
+  RoleMutationReasonCode,
+} from "./admin-role-audit.js";
 export type {
   AdminAccessV1,
   AdminAuditTarget,

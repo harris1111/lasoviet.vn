@@ -18,6 +18,7 @@ export {
   adminAuditLogs,
   adminCapabilityPolicies,
   adminRoleAssignments,
+  adminRoleMutationRequests,
 } from "./schema/admin-access.js";
 export {
   notificationDeliveries,
