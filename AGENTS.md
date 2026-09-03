@@ -315,6 +315,11 @@ rule instead of adding another version.
   domain services, admin tooling, and tests that do not consume those values.
   Never replace the blocked provider path with fake success, committed
   credentials, or an unverified production default.
+- Provider hosts and actions must derive from a closed environment enum, never
+  a free-form URL. Success, error, and cancel return URLs are navigation-only
+  and must never mutate or confirm payment; only an authenticated provider
+  notification validated against order identity, state, amount, and currency
+  may do so.
 - When inspecting rendered Compose configuration or runtime service state,
   never print complete environment maps. Query only the required structural
   fields or redact sensitive values before tool output; stop and narrow the

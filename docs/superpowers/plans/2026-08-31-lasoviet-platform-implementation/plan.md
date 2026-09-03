@@ -21,20 +21,23 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Planning reconciliation is current through 2026-09-02. The
+**Status:** Planning reconciliation is current through 2026-09-03. The
 repository has implemented Phase 00 foundations, Phase 01 identity/privacy
 services, Phase 02 calculation/evidence services, the artifact-driven Phase 03
-free-MVP experience, the Phase 04 AI/report foundation, and production-like
-free-MVP Compose smoke evidence. The FD-024 artifact-first UI gate was
-satisfied by the merged MVP UI branch; it remains the rule for future visual
-work. No later phase is marked complete merely because a foundation exists;
-paid-release closure remains blocked by the unimplemented Phase 04/05
-workflows and Phase 05A evidence.
+free-MVP experience, the Phase 04 AI/report foundation, reviewed Phase 04
+SePay Tasks 1-2, and production-like free-MVP Compose smoke evidence. The
+FD-024 artifact-first UI gate was satisfied by the merged MVP UI branch; it
+remains the rule for future visual work. No later phase is marked complete
+merely because a foundation exists; Phase 04 remains incomplete, and
+paid-release closure remains blocked by its remaining workflows, Phase 05
+workflows, and Phase 05A evidence.
 
 **Active implementation branch:** `feature/paid-flow-admin-operations`.
 Provider-independent Phase 05A implementation is authorized from 2026-09-02.
-SePay-dependent checkout, webhook activation, and external provider smoke
-remain deferred until the founder supplies the required environment values.
+SePay checkout and webhook contracts are implemented and reviewed complete for
+Tasks 1-2. The first external sandbox test is approved by FD-030; Docker VPS
+verification of the Testcontainers suite is required before sandbox activation,
+and production payment activation remains founder-controlled.
 
 ## Global Constraints
 
@@ -48,8 +51,9 @@ remain deferred until the founder supplies the required environment values.
 - Communicate with the founder in Vietnamese; repository artifacts and commits
   are English.
 - Use only Superpowers workflows; do not invoke `/ck` or CK CLI.
-- Sol orchestrates, Terra reviews, and Luna implements only Terra-approved
-  instructions.
+- Sol xhigh orchestrates and reviews complete features, phases, and meaningful
+  milestones. Terra medium directly implements, debugs, and runs focused tests.
+  Luna is paused unless the founder explicitly reactivates it.
 - P0 uses Next.js 16 latest stable 16.x at implementation time.
 - P0 uses NestJS with the Fastify adapter.
 - Browser traffic terminates at Next.js; the API remains private.
@@ -114,16 +118,17 @@ remain deferred until the founder supplies the required environment values.
 ## Execution Rules
 
 1. Execute phases in dependency order.
-2. Within a phase, Sol gives Terra the phase goal and acceptance criteria.
-3. Terra converts approved work into exact Luna instructions.
-4. Luna writes only the assigned files and stops on unexpected behavior.
-5. Terra reviews the change and test evidence.
-6. Sol updates phase status, traceability, risk, decision, and rule trackers.
-7. A phase closes only when its exit criteria pass in the intended environment.
-8. No later-wave feature may delay the first complete paid Zi Wei flow.
-9. A task listed in `open-decisions.md` cannot cross its named decision gate
+2. Sol xhigh gives Terra the phase goal and acceptance criteria, and reviews
+   complete features, phases, and meaningful milestones.
+3. Terra medium directly implements, debugs, and runs focused tests within the
+   approved scope.
+4. Luna is paused unless the founder explicitly reactivates it.
+5. Sol updates phase status, traceability, risk, decision, and rule trackers.
+6. A phase closes only when its exit criteria pass in the intended environment.
+7. No later-wave feature may delay the first complete paid Zi Wei flow.
+8. A task listed in `open-decisions.md` cannot cross its named decision gate
    until the founder resolves that decision in writing.
-10. Each phase task and its matching `Pxx-Tyy` record in
+9. Each phase task and its matching `Pxx-Tyy` record in
     `task-contracts-and-test-vectors.md` form one normative implementation
     instruction.
 

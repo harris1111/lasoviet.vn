@@ -14,12 +14,13 @@
 - No implementation dependency, migration, runtime service, or infrastructure
   has been created in this planning phase.
 
-## Current Implementation Reconciliation (2026-09-02)
+## Current Implementation Reconciliation (2026-09-03)
 
 - The original starting-state note is historical. Phase 00 foundations, Phase
   01 identity/privacy services, Phase 02 calculation/evidence services,
   the artifact-driven Phase 03 free-MVP experience, the Phase 04 AI/report
-  foundation, and production-like free-MVP Compose smoke evidence now exist.
+  foundation, reviewed SePay Tasks 1-2, and production-like free-MVP Compose
+  smoke evidence now exist.
 - The approved UI artifact was implemented and merged through the dedicated
   feature branch. FD-024 therefore remains an artifact-first rule for future
   visual work, not an active blocker on the current MVP interface.
@@ -29,6 +30,10 @@
 - Phase 04 commerce/report completion, Phase 05 storage/delivery/account
   center, Phase 05A Operations Dashboard, and Phase 06 paid-release gates
   remain uncompleted unless their task-level records expressly say otherwise.
+- FD-030 approves the first SePay external sandbox test. The Windows host
+  cannot run the ten PostgreSQL Testcontainers tests without a container
+  runtime; Docker VPS verification is the next deployment gate before sandbox
+  activation. Production payment activation remains founder-controlled.
 
 ## Verified Corrections
 
@@ -74,7 +79,8 @@
 
 - AI endpoint URL, key, model, and capability behavior.
 - SMTP connection details and verified sender.
-- SePay sandbox/production inputs and current provider-contract preflight.
+- SePay production activation inputs; the sandbox provider contract and
+  checkout/webhook implementation are complete for Phase 04 Tasks 1-2.
 - Optional cloud S3 configuration.
 - VPS resource inventory, backup target, and selected `WEB_HOST_PORT`.
 - Founder-managed Nginx configuration.

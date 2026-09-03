@@ -24,30 +24,36 @@ compatible HTTP API.
 
 - Provider contract, server-only SePay environment validation, catalog/order
   policy, hosted checkout signature adapter, raw public ingress, private
-  controller, and checkout action/page are implemented with focused
+  controller, and checkout action/page are reviewed complete with focused
   RED/GREEN coverage.
 - Atomic order/payment-event/entitlement/report-reservation/outbox insertion
   and an outbox lease/dispatch boundary are implemented. Report worker
   consumption remains Task 3.
-- Task 1-2 are pending Sol review. The Testcontainers transaction suite is
-  committed and loads but needs a container runtime on the verification host.
+- Implementation commit range: `bbc0540..ed05968`. Sol's scoped review of
+  `baf6e2bed9229b28d5e0d5bfdb7b16041536c993..ed0596841682fe54fce1819fba012731ab80dfe8`
+  returned `SAFE_TO_DEPLOY_SANDBOX_SEND_TEST` with no code findings.
+- Focused verification passed 52 tests, scoped ESLint, i18n parity, affected
+  typechecks and builds, a Next production build, and `git diff --check`.
+  The local controller also reran the three changed test files: 13 tests
+  passed.
+- Ten PostgreSQL Testcontainers tests could not run on the Windows host because
+  no container runtime is available. Docker VPS verification of those tests is
+  the next deployment gate before sandbox activation.
 - Correction pass 1 maps IPN domain failures to bounded non-2xx HTTP outcomes,
   uses a conditional pending-to-paid transition, persists the complete
   report-request payload, and runs the durable queue-job dispatch boundary in
-  the worker. Pending Sol re-review.
+  the worker.
 - FD-029 requires a live authenticated, non-anonymous, email-verified account
   before any checkout order lookup or write. Immutable financial provenance
   keeps opaque chart/version identifiers without foreign keys that could block
-  FD-020 anonymous lifecycle purge. Task 1-2 remains pending Sol review.
+  FD-020 anonymous lifecycle purge.
 - Correction pass 2 consolidates the undeployed commerce/report queue/retention
   baseline into `0011_commerce_payment_gateway.sql`, normalizes integer VND
   IPN values, persists the selected `vi|en` locale, filters report-only outbox
-  claims, and schedules dispatch without overlap or unhandled failures. Pending
-  Sol re-review.
+  claims, and schedules dispatch without overlap or unhandled failures.
 - Replan Cycle 1 adds event-type-aware outbox claim indexes to the clean
   `0011` baseline and carries the persisted locale through hosted callback
-  paths and canonical private checkout rendering. Task 1-2 remains pending Sol
-  review.
+  paths and canonical private checkout rendering.
 
 ## Global Constraints
 
@@ -118,7 +124,7 @@ payment payloads are not admin projections.
 - Promotes `/thanh-toan/{order_id}` to `live_noindex` only with the implemented
   checkout flow and keeps it absent from every sitemap.
 
-- [ ] **Step 1: Complete the SePay implementation preflight**
+- [x] **Step 1: Complete the SePay implementation preflight**
 
 Sol requests the founder's non-secret environment selection, merchant/account
 identifiers, webhook registration inputs, and approved secret-delivery path.
@@ -128,7 +134,7 @@ acknowledgement response, and environment-variable names. Do not record secret
 values. Any unresolved provider behavior returns through Terra to Sol before
 Luna receives an implementation instruction.
 
-- [ ] **Step 2: Write failing order-policy and environment tests**
+- [x] **Step 2: Write failing order-policy and environment tests**
 
 Assert SKU/price server authority, chart ownership, entitlement reuse rules,
 unknown-time rejection, no order for an unsupported SKU, and startup rejection
@@ -136,24 +142,24 @@ when any verified SePay server variable is missing. Assert the checkout route
 is `live_noindex`, server-authorized where state requires it, noindex, and
 absent from navigation and sitemaps.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 `pnpm vitest run packages/backend/src/commerce/order.service.test.ts packages/config/src/environment-schema.test.ts tests/seo/private-route-state.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement provider adapter and checkout**
+- [x] **Step 4: Implement provider adapter and checkout**
 
 Implement only the verified provider contract. Use server-side SePay
 credentials and persist provider reference without logging secrets.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 `pnpm vitest run packages/backend/src/commerce packages/config/src/environment-schema.test.ts tests/seo/private-route-state.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add docs/compliance/sepay-provider-contract.md config/route-registry.yml packages/contracts packages/config/src/environment-schema.ts packages/config/src/environment-schema.test.ts packages/backend/src/commerce packages/database apps/api/src/commerce apps/web/src/app tests/seo/private-route-state.test.ts docs/superpowers/plans
@@ -177,33 +183,33 @@ git commit -m "feat: add SePay checkout"
 - The outbox dispatcher maps that event to `report.generate.v1` exactly as
   defined in `workflow-event-contracts.md`.
 
-- [ ] **Step 1: Write failing webhook tests**
+- [x] **Step 1: Write failing webhook tests**
 
 Cover valid signature, invalid signature, wrong amount, unknown order, replay,
 out-of-order events, concurrent delivery, and database rollback.
 
-- [ ] **Step 2: Run integration test**
+- [x] **Step 2: Run integration test**
 
 Run: `pnpm vitest run tests/payments/sepay-webhook.integration.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement raw ingress and transactional handler**
+- [x] **Step 3: Implement raw ingress and transactional handler**
 
 The Next.js route forwards the raw body and exact headers named by the verified
 SePay contract record. The API verifies provider authenticity and business
 invariants.
 
-- [ ] **Step 4: Implement outbox claiming and dispatch**
+- [x] **Step 4: Implement outbox claiming and dispatch**
 
 Use lease/attempt fields and an idempotent event key. Redis failure leaves the
 outbox event available for retry.
 
-- [ ] **Step 5: Run payment tests**
+- [x] **Step 5: Run payment tests**
 
 Run: `pnpm vitest run tests/payments`
 Expected: PASS, including concurrency.
 
-- [ ] **Step 6: Update risk/rule trackers and commit**
+- [x] **Step 6: Update risk/rule trackers and commit**
 
 ```bash
 git add apps/web/src/app/api/webhooks packages/backend/src/commerce packages/backend/src/outbox tests/payments docs/superpowers/plans
