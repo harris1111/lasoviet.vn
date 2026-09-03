@@ -9,14 +9,15 @@ import { GoogleSignInButton } from "./google-sign-in-button";
 
 type AuthPanelProps = {
   callbackURL: string;
+  forgotPasswordURL: string;
 };
 
 const actions = createAuthActions(authClient);
 
-export function AuthPanel({ callbackURL }: AuthPanelProps) {
+export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
   const t = useTranslations("auth");
   const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
-  const [notice, setNotice] = useState<"verification" | "signedIn" | "resent" | "error" | null>(null);
+  const [notice, setNotice] = useState<"verification" | "signedIn" | "resent" | "invalidCredentials" | "error" | null>(null);
   const [pending, setPending] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
@@ -25,26 +26,34 @@ export function AuthPanel({ callbackURL }: AuthPanelProps) {
     setNotice(null);
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
-    const outcome = mode === "signUp"
-      ? await actions.signUp({
-          name: String(formData.get("name") ?? ""),
-          email,
-          password,
-          callbackURL,
-        })
-      : await actions.signIn({ email, password, callbackURL });
-    setPending(false);
-    if (!outcome.ok) {
-      setNotice("error");
-      return;
-    }
-
     if (mode === "signUp") {
+      const outcome = await actions.signUp({
+        name: String(formData.get("name") ?? ""),
+        email,
+        password,
+        callbackURL,
+      });
+      setPending(false);
+      if (!outcome.ok) {
+        setNotice("error");
+        return;
+      }
       setVerificationEmail(email);
       setNotice("verification");
       return;
     }
 
+    const outcome = await actions.signIn({ email, password, callbackURL });
+    setPending(false);
+    if (!outcome.ok) {
+      if (outcome.reason === "verificationRequired") {
+        setVerificationEmail(email);
+        setNotice("verification");
+        return;
+      }
+      setNotice(outcome.reason === "invalidCredentials" ? "invalidCredentials" : "error");
+      return;
+    }
     setNotice("signedIn");
   }
 
@@ -100,6 +109,7 @@ export function AuthPanel({ callbackURL }: AuthPanelProps) {
         ) : null}
         <label>{t("panel.email")}<input name="email" required type="email" /></label>
         <label>{t("panel.password")}<input minLength={8} name="password" required type="password" /></label>
+        {mode === "signIn" ? <a href={forgotPasswordURL}>{t("panel.forgotPassword")}</a> : null}
         <button className="button" disabled={pending} type="submit">
           {pending ? t("panel.pending") : mode === "signUp" ? t("panel.signUp") : t("panel.signIn")}
         </button>
@@ -120,6 +130,7 @@ export function AuthPanel({ callbackURL }: AuthPanelProps) {
       ) : null}
       {notice === "resent" ? <p className="form-notice" role="status">{t("verification.resent")}</p> : null}
       {notice === "signedIn" ? <p className="form-notice" role="status">{t("panel.signedIn")}</p> : null}
+      {notice === "invalidCredentials" ? <p className="form-error" role="alert">{t("panel.invalidCredentials")}</p> : null}
       {notice === "error" ? <p className="form-error" role="alert">{t("panel.error")}</p> : null}
     </section>
   );

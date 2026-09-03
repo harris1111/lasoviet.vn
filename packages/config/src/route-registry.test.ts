@@ -111,4 +111,40 @@ describe("route registry", () => {
       sitemap: false,
     });
   });
+
+  it("keeps account recovery routes noindex and out of sitemaps", () => {
+    expect(
+      routeRegistry
+        .filter((route) => route.id.startsWith("auth."))
+        .map((route) => ({
+          id: route.id,
+          path: route.path,
+          status: route.status,
+          robots: route.robots,
+          sitemap: route.sitemap,
+        })),
+    ).toEqual([
+      {
+        id: "auth.sign-in",
+        path: "/dang-nhap",
+        status: "live_noindex",
+        robots: "noindex,nofollow",
+        sitemap: false,
+      },
+      {
+        id: "auth.password-reset.request",
+        path: "/quen-mat-khau",
+        status: "live_noindex",
+        robots: "noindex,nofollow",
+        sitemap: false,
+      },
+      {
+        id: "auth.password-reset.complete",
+        path: "/dat-lai-mat-khau",
+        status: "live_noindex",
+        robots: "noindex,nofollow",
+        sitemap: false,
+      },
+    ]);
+  });
 });

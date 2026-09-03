@@ -761,6 +761,30 @@ routes:
     owner: operations
 
   - <<: *private_defaults
+    id: auth.sign-in
+    path: /dang-nhap
+    intent: auth.sign-in
+    template: auth-sign-in
+    owner: identity
+    private: false
+
+  - <<: *private_defaults
+    id: auth.password-reset.request
+    path: /quen-mat-khau
+    intent: auth.password-reset.request
+    template: auth-password-reset-request
+    owner: identity
+    private: false
+
+  - <<: *private_defaults
+    id: auth.password-reset.complete
+    path: /dat-lai-mat-khau
+    intent: auth.password-reset.complete
+    template: auth-password-reset-complete
+    owner: identity
+    private: false
+
+  - <<: *private_defaults
     id: admin.audit
     path: /admin/audit
     intent: private.admin.audit

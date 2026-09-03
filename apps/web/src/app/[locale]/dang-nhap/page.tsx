@@ -1,17 +1,23 @@
 import { getLocale } from "next-intl/server";
+import type { Metadata } from "next";
 
 import { AuthPanel } from "../../../features/auth/auth-panel";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function SignInPage() {
   const locale = (await getLocale()) as "en" | "vi";
   const callbackURL = locale === "en" ? "/en/tao-la-so/tu-vi" : "/tao-la-so/tu-vi";
+  const forgotPasswordURL = locale === "en" ? "/en/quen-mat-khau" : "/quen-mat-khau";
 
   return (
     <main className="auth-page">
       <div className="auth-page-inner">
         <p className="eyebrow">Lá Số Việt</p>
         <h1>{locale === "vi" ? "Đăng nhập để lưu lá số" : "Sign in to save your chart"}</h1>
-        <AuthPanel callbackURL={callbackURL} />
+        <AuthPanel callbackURL={callbackURL} forgotPasswordURL={forgotPasswordURL} />
       </div>
     </main>
   );

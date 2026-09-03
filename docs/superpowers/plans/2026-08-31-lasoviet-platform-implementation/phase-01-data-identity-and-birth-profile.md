@@ -409,3 +409,20 @@ git commit -m "feat: add canonical birth profile"
 - One founder-authorized resend returned HTTP 200. The matching notification
   delivery reached `sent` on its first attempt with a provider message ID
   present, and the founder confirmed inbox receipt on 2026-09-03.
+
+## Auth Recovery Correction (2026-09-03)
+
+- Production evidence separated two failures that the UI had collapsed into
+  one message. Verification resend returned HTTP 400 because an anonymous
+  session cookie selected Better Auth's session-bound email-mismatch branch.
+  After verification completed, sign-in returned HTTP 401 because the supplied
+  password did not match the existing credential.
+- Verification resend now omits ambient browser credentials so Better Auth
+  uses its public constant-time anti-enumeration path. Sign-in uses a safe
+  invalid-credentials message and returns unverified accounts to the existing
+  resend recovery surface without disclosing account existence.
+- Added enumeration-safe password-reset request and completion pages backed by
+  Better Auth 1.7.2. The routes are live noindex, nofollow, and excluded from
+  sitemaps in the canonical registry.
+- Deployment and one live password-reset smoke remain external
+  founder-authorized verification steps.

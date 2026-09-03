@@ -87,6 +87,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Missing create-target handling | Discovery stopped when `rg` inspected `.github` before the task created it | Approved recurring ambiguity | Added to `AGENTS.md`; absent create-targets are expected, while missing required sources remain blocking |
 | Exact-version integration preflight | P01-T01 repeatedly used unverified Drizzle, Vitest, and Testcontainers integration behavior | Terra approved narrowed task-critical rule | Added to `AGENTS.md`; approved briefs must record only task-relevant exact-version facts |
 | Authentication anti-enumeration success versus delivery | A repeated sign-up for an existing unverified account returned Better Auth's generic success without creating a new notification delivery, while the UI presented that response as proof that verification email was sent | Sol confirmed the provider response intentionally hides account existence and approved an explicit provider-backed resend path with conditional copy | Added to `AGENTS.md` under repository and operational safety |
+| Ambient anonymous sessions on public auth recovery | Production resend verification returned HTTP 400 because Better Auth received the anonymous session cookie and switched from its public constant-time anti-enumeration branch to the session-bound email-mismatch branch | Terra verified Better Auth 1.7.2 client and route behavior; recovery calls now omit ambient credentials when public semantics are required | Clarified the existing authentication anti-enumeration rule in `AGENTS.md` |
 | Terra direct-execution workflow | Founder changed the active role model from P01-T02 to reduce implementation latency while preserving milestone review | Direct founder decision | Updated `AGENTS.md`; Terra medium implements/debugs/tests, Sol xhigh reviews milestones, Luna paused |
 | UI artifact branch boundary | Founder reserved visual implementation for a later artifact branch | Direct founder decision | Added to `AGENTS.md`; non-UI branches may implement server routes and headless flows but not visual UI |
 | File-like dynamic route params | P03-T01 tests initially passed an extensionless sitemap key instead of the emitted `.xml` filename | Terra fixed the localized regression and added production-shaped coverage | Not added to `AGENTS.md`; one isolated incident does not meet section 9, and the regression test is the durable guard |
@@ -359,6 +360,26 @@ Date: 2026-09-03
   2026-09-03.
 - The authentication anti-enumeration rule was added to `AGENTS.md`. Open
   questions: none.
+
+## MVP Auth Recovery Correction
+
+Date: 2026-09-03
+
+- Production access logs showed verification resend returned HTTP 400 while
+  the browser carried an anonymous session. Better Auth 1.7.2 source confirmed
+  that the cookie selected its session-bound email-mismatch branch instead of
+  the public constant-time anti-enumeration branch.
+- The account verification callback completed successfully. The subsequent
+  sign-in returned HTTP 401, and server logs identified an invalid password;
+  the account remained verified with a credential account present.
+- Resend verification now omits ambient credentials. Sign-in distinguishes
+  invalid credentials from unverified-account recovery without identifying
+  whether the email or password was wrong. Password reset request and
+  completion routes use Better Auth's existing server configuration, preserve
+  enumeration-safe request copy, and remain noindex and outside sitemaps.
+- Focused implementation verification covers auth actions and canonical route
+  state. Deployment and one live password-reset smoke remain founder-authorized
+  external steps. Open questions: none.
 
 ## P01-T03 Evidence
 

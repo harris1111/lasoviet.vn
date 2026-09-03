@@ -9,6 +9,8 @@ describe("browser auth actions", () => {
       signUp: { email: signUp },
       signIn: { email: vi.fn(), social: vi.fn() },
       sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
     });
 
     await expect(
@@ -37,6 +39,8 @@ describe("browser auth actions", () => {
       },
       signIn: { email: vi.fn(), social: vi.fn() },
       sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
     });
 
     await expect(
@@ -56,6 +60,8 @@ describe("browser auth actions", () => {
       signUp: { email: vi.fn() },
       signIn: { email, social },
       sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
     });
 
     await actions.signIn({
@@ -85,6 +91,8 @@ describe("browser auth actions", () => {
       signUp: { email: vi.fn() },
       signIn: { email: vi.fn(), social: vi.fn() },
       sendVerificationEmail,
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
     });
 
     await expect(
@@ -97,6 +105,7 @@ describe("browser auth actions", () => {
     expect(sendVerificationEmail).toHaveBeenCalledWith({
       email: "a@example.com",
       callbackURL: "/tao-la-so/tu-vi",
+      fetchOptions: { credentials: "omit" },
     });
   });
 
@@ -108,6 +117,8 @@ describe("browser auth actions", () => {
         data: null,
         error: { code: "UNEXPECTED_ERROR" },
       }),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
     });
 
     await expect(
@@ -116,5 +127,103 @@ describe("browser auth actions", () => {
         callbackURL: "/tao-la-so/tu-vi",
       }),
     ).resolves.toEqual({ ok: false });
+  });
+
+  it("maps invalid email credentials without identifying the incorrect field", async () => {
+    const actions = createAuthActions({
+      signUp: { email: vi.fn() },
+      signIn: {
+        email: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: "INVALID_EMAIL_OR_PASSWORD" },
+        }),
+        social: vi.fn(),
+      },
+      sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
+    });
+
+    await expect(
+      actions.signIn({
+        email: "a@example.com",
+        password: "password-with-enough-length",
+        callbackURL: "/tao-la-so/tu-vi",
+      }),
+    ).resolves.toEqual({ ok: false, reason: "invalidCredentials" });
+  });
+
+  it("maps an unverified email sign-in to the verification recovery flow", async () => {
+    const actions = createAuthActions({
+      signUp: { email: vi.fn() },
+      signIn: {
+        email: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: "EMAIL_NOT_VERIFIED" },
+        }),
+        social: vi.fn(),
+      },
+      sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
+    });
+
+    await expect(
+      actions.signIn({
+        email: "a@example.com",
+        password: "password-with-enough-length",
+        callbackURL: "/tao-la-so/tu-vi",
+      }),
+    ).resolves.toEqual({ ok: false, reason: "verificationRequired" });
+  });
+
+  it("requests a password reset without revealing whether the account exists", async () => {
+    const requestPasswordReset = vi.fn().mockResolvedValue({
+      data: { status: true },
+      error: null,
+    });
+    const actions = createAuthActions({
+      signUp: { email: vi.fn() },
+      signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn(),
+      requestPasswordReset,
+      resetPassword: vi.fn(),
+    });
+
+    await expect(
+      actions.requestPasswordReset({
+        email: "a@example.com",
+        redirectTo: "https://lasoviet.vn/dat-lai-mat-khau",
+      }),
+    ).resolves.toEqual({ ok: true });
+    expect(requestPasswordReset).toHaveBeenCalledWith({
+      email: "a@example.com",
+      redirectTo: "https://lasoviet.vn/dat-lai-mat-khau",
+    });
+  });
+
+  it("submits a new password with Better Auth's reset token", async () => {
+    const resetPassword = vi.fn().mockResolvedValue({
+      data: { status: true },
+      error: null,
+    });
+    const actions = createAuthActions({
+      signUp: { email: vi.fn() },
+      signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword,
+    });
+
+    await expect(
+      actions.resetPassword({
+        newPassword: "new-password-with-enough-length",
+        token: "reset-token",
+      }),
+    ).resolves.toEqual({ ok: true });
+    expect(resetPassword).toHaveBeenCalledWith({
+      newPassword: "new-password-with-enough-length",
+      token: "reset-token",
+    });
   });
 });
