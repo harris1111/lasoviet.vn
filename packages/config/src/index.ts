@@ -4,6 +4,7 @@ export {
   CloudS3EnvironmentSchema,
   NodeEnvironmentSchema,
   SmtpEnvironmentSchema,
+  SePayEnvironmentSchema,
 } from "./environment-schema.js";
 export type {
   AiEnvironment,
@@ -11,6 +12,7 @@ export type {
   CloudS3Environment,
   NodeEnvironment,
   SmtpEnvironment,
+  SePayEnvironment,
 } from "./environment-schema.js";
 
 export { loadEnvironment } from "./load-environment.js";

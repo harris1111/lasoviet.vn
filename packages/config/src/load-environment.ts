@@ -5,11 +5,13 @@ import {
   CloudS3EnvironmentSchema,
   NodeEnvironmentSchema,
   SmtpEnvironmentSchema,
+  SePayEnvironmentSchema,
   type AiEnvironment,
   type AppEnvironment,
   type CloudS3Environment,
   type NodeEnvironment,
   type SmtpEnvironment,
+  type SePayEnvironment,
 } from "./environment-schema.js";
 
 export type EnvironmentErrorCode =
@@ -84,6 +86,9 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "cloudS3.bucket": "CLOUD_S3_BUCKET",
   "cloudS3.accessKeyId": "CLOUD_S3_ACCESS_KEY_ID",
   "cloudS3.secretAccessKey": "CLOUD_S3_SECRET_ACCESS_KEY",
+  "sepay.environment": "SEPAY_ENV",
+  "sepay.merchantId": "SEPAY_MERCHANT_ID",
+  "sepay.secretKey": "SEPAY_SECRET_KEY",
 };
 
 function missingRequired(variable: string): ParseResult<never> {
@@ -253,6 +258,20 @@ function loadCloudS3(
     : invalidFromSchema(parsed.error, "CLOUD_S3_ENDPOINT", "cloudS3");
 }
 
+function loadSePay(source: NodeJS.ProcessEnv): ParseResult<SePayEnvironment> {
+  for (const variable of ["SEPAY_ENV", "SEPAY_MERCHANT_ID", "SEPAY_SECRET_KEY"]) {
+    if (source[variable] === undefined) return missingRequired(variable);
+  }
+  const parsed = SePayEnvironmentSchema.safeParse({
+    environment: source.SEPAY_ENV,
+    merchantId: source.SEPAY_MERCHANT_ID,
+    secretKey: source.SEPAY_SECRET_KEY,
+  });
+  return parsed.success
+    ? { ok: true, value: parsed.data }
+    : invalidFromSchema(parsed.error, "SEPAY_ENV", "sepay" as OptionalGroup);
+}
+
 export function loadEnvironment(
   source: NodeJS.ProcessEnv,
 ): EnvironmentLoadResult {
@@ -286,6 +305,8 @@ export function loadEnvironment(
   if (!cloudS3.ok) {
     return cloudS3;
   }
+  const sepay = loadSePay(source);
+  if (!sepay.ok) return sepay;
 
   const googleState = optionalGroupState(source, GOOGLE_VARIABLES);
   if (googleState.state === "partial") {
@@ -297,6 +318,7 @@ export function loadEnvironment(
     ai: ai.value,
     smtp: smtp.value,
     cloudS3: cloudS3.value,
+    sepay: sepay.value,
   };
   if (source.INTERNAL_ACTOR_SECRET !== undefined) {
     normalized.internalActorSecret = source.INTERNAL_ACTOR_SECRET;

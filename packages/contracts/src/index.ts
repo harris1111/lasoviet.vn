@@ -237,3 +237,12 @@ export type {
   PaidTopicSelectionRequestV1,
   PaidTopicSelectionViewV1,
 } from "./free-identity-preview-v1.js";
+
+export {
+  CommerceSkuSchema,
+  OrderStatusSchema,
+} from "./commerce.js";
+export type {
+  CommerceSku,
+  OrderStatus,
+} from "./commerce.js";

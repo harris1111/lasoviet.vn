@@ -6,6 +6,9 @@ const productionBase = {
   INTERNAL_ACTOR_SECRET: "synthetic-actor-secret-never-serialize",
   DATABASE_URL: "https://synthetic-database-url-never-serialize.test/db",
   REDIS_URL: "https://synthetic-redis-url-never-serialize.test",
+  SEPAY_ENV: "sandbox",
+  SEPAY_MERCHANT_ID: "synthetic-sepay-merchant",
+  SEPAY_SECRET_KEY: "synthetic-sepay-secret-never-serialize",
 } as const;
 
 const completeAi = {
@@ -67,6 +70,11 @@ const validNormalizedProduction = {
     accessKeyId: "synthetic-access-key",
     secretAccessKey: "synthetic-s3-secret-never-serialize",
   },
+  sepay: {
+    environment: "sandbox",
+    merchantId: "synthetic-sepay-merchant",
+    secretKey: "synthetic-sepay-secret-never-serialize",
+  },
 } as const;
 
 function expectInvalid(source: NodeJS.ProcessEnv, variable: string) {
@@ -100,6 +108,17 @@ function expectPartial(
 }
 
 describe("environment loading", () => {
+  it.each(["SEPAY_ENV", "SEPAY_MERCHANT_ID", "SEPAY_SECRET_KEY"])(
+    "rejects production without %s",
+    (variable) => {
+      const source = { ...productionBase };
+      delete source[variable as keyof typeof source];
+      expect(loadEnvironment(source)).toMatchObject({
+        ok: false,
+        error: { code: "MISSING_REQUIRED_ENV", field: variable },
+      });
+    },
+  );
   it("loads production with disabled optional groups", () => {
     const result = loadEnvironment(productionBase);
     expect(result).toMatchObject({ ok: true, value: { nodeEnv: "production" } });

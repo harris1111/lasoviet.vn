@@ -220,3 +220,8 @@ export type {
   ReportValidationResult,
 } from "./reports/report-validator.js";
 export { critiqueIdentityReport } from "./reports/report-critic.js";
+
+export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js";
+export { createSePayGateway } from "./commerce/sepay-adapter.js";
+export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";
+export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";

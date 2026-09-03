@@ -9,6 +9,16 @@ import {
 } from "../../apps/web/src/seo/sitemap-registry";
 
 describe("admin private route state", () => {
+  it("registers checkout as a private live_noindex route outside every sitemap", () => {
+    const checkout = routeRegistry.find((route) => route.id === "private.checkout");
+    expect(checkout).toMatchObject({
+      path: "/thanh-toan/{order_id}",
+      status: "live_noindex",
+      private: true,
+      sitemap: false,
+      robots: "noindex,nofollow",
+    });
+  });
   it("registers implemented admin routes as private live_noindex and excludes them from every sitemap", () => {
     const adminRoute = routeRegistry.find((route) => route.id === "admin.overview");
 

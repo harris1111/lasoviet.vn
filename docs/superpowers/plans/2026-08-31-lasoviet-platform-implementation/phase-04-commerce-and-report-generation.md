@@ -20,6 +20,16 @@ compatible HTTP API.
 `task-contracts-and-test-vectors.md`. Asynchronous edges are normative in
 `workflow-event-contracts.md`.
 
+## Task 1-2 Evidence (2026-09-03)
+
+- Provider contract, server-only SePay environment validation, catalog/order
+  policy, hosted checkout signature adapter, and raw public ingress are
+  implemented with focused RED/GREEN coverage.
+- Atomic database payment processing, entitlement/reservation/outbox commit,
+  dispatcher, private controller, checkout action/page, and Testcontainers
+  transaction coverage remain required before Sol review; Phase 04 is not
+  complete.
+
 ## Global Constraints
 
 - `ZIWEI-IDENTITY-P0` is the only first paid SKU.
