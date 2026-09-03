@@ -16,7 +16,7 @@ const context = {
 };
 
 describe("role assignment service", () => {
-  it("allows only a super admin with the active roles capability", async () => {
+  it("passes all authenticated command outcomes to the transactional repository", async () => {
     const mutate = vi.fn().mockResolvedValue({
       ok: true,
       value: { assignmentId: "assignment-2", version: 2, replayed: false },
@@ -33,10 +33,7 @@ describe("role assignment service", () => {
         "read_only",
         1,
       ),
-    ).resolves.toMatchObject({
-      ok: false,
-      error: { code: "ROLE_ASSIGNMENT_FORBIDDEN" },
-    });
+    ).resolves.toMatchObject({ ok: true });
     await expect(
       service.assignRole(
         { ...context, access: { ...context.access, capabilities: [] } },
@@ -44,15 +41,19 @@ describe("role assignment service", () => {
         "read_only",
         1,
       ),
-    ).resolves.toMatchObject({
-      ok: false,
-      error: { code: "ROLE_ASSIGNMENT_FORBIDDEN" },
-    });
-    expect(mutate).toHaveBeenCalledTimes(1);
+    ).resolves.toMatchObject({ ok: true });
+    expect(mutate).toHaveBeenCalledTimes(3);
   });
 
-  it("denies actor self-escalation before persistence", async () => {
-    const mutate = vi.fn();
+  it("delegates actor self-escalation to the transactional repository", async () => {
+    const mutate = vi.fn().mockResolvedValue({
+      ok: false,
+      error: {
+        code: "ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED",
+        messageKey: "admin.role_assignment_self_escalation_denied",
+        retryable: false,
+      },
+    });
     const service = createRoleAssignmentService({ repository: { mutate } });
 
     await expect(
@@ -61,7 +62,13 @@ describe("role assignment service", () => {
       ok: false,
       error: { code: "ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED" },
     });
-    expect(mutate).not.toHaveBeenCalled();
+    expect(mutate).toHaveBeenCalledWith({
+      kind: "assign",
+      context,
+      subjectAccountId: "admin-1",
+      role: "super_admin",
+      expectedVersion: 1,
+    });
   });
 
   it("passes signed command correlation and server-validated role to persistence", async () => {

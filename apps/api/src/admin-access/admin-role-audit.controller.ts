@@ -78,6 +78,24 @@ export class AdminRoleAuditController {
     return { access: access.value, requestId: correlationId(actor.requestId || requestedId), traceId: correlationId(actor.requestId) };
   }
 
+  private async malformedCommand(
+    context: Awaited<ReturnType<AdminRoleAuditController["authorized"]>>,
+  ): Promise<never> {
+    await this.audit.appendAdminAudit({
+      actorId: context.access.actorId,
+      roleAssignmentId: context.access.roleAssignmentId,
+      capability: "admin.roles.manage",
+      operation: "admin.role.malformed_input",
+      target: { type: "admin_role_assignment", id: "command" },
+      requestId: context.requestId,
+      traceId: context.traceId,
+      policyResult: "denied",
+      redactionLevel: "redacted",
+      resultSummary: { outcome: "denied", code: "ROLE_ASSIGNMENT_CONFLICT" },
+    });
+    throw new BadRequestException({ code: "ROLE_ASSIGNMENT_CONFLICT" });
+  }
+
   @Post("roles")
   @HttpCode(200)
   async assign(
@@ -85,9 +103,9 @@ export class AdminRoleAuditController {
     @Headers("x-request-id") requestId: string | undefined,
     @Body() body: unknown,
   ) {
-    const input = AssignAdminRoleV1Schema.safeParse(body);
-    if (!input.success) throw new NotFoundException();
     const context = await this.authorized(authorization, requestId);
+    const input = AssignAdminRoleV1Schema.safeParse(body);
+    if (!input.success) return this.malformedCommand(context);
     const result = await this.roles.assignRole(
       { ...context, idempotencyKey: input.data.idempotencyKey, reasonCode: input.data.reasonCode },
       input.data.subjectAccountId,
@@ -106,9 +124,9 @@ export class AdminRoleAuditController {
     @Param("assignmentId") assignmentId: string,
     @Body() body: unknown,
   ) {
-    const input = RevokeAdminRoleV1Schema.safeParse({ ...(body as object), assignmentId });
-    if (!input.success) throw new NotFoundException();
     const context = await this.authorized(authorization, requestId);
+    const input = RevokeAdminRoleV1Schema.safeParse({ ...(body as object), assignmentId });
+    if (!input.success) return this.malformedCommand(context);
     const result = await this.roles.revokeRole(
       { ...context, idempotencyKey: input.data.idempotencyKey, reasonCode: input.data.reasonCode },
       input.data.assignmentId,

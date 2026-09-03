@@ -7,6 +7,14 @@ import type {
 
 const h = createElement;
 
+function queryString(filters: AdminAuditSearchFiltersV1, cursor: string): string {
+  const values = new URLSearchParams();
+  for (const [key, value] of Object.entries({ ...filters, cursor })) {
+    if (value !== undefined && value !== "") values.set(key, String(value));
+  }
+  return values.toString();
+}
+
 export function AuditLogTable(props: {
   page?: AdminAuditPageV1;
   filters: AdminAuditSearchFiltersV1;
@@ -43,5 +51,11 @@ export function AuditLogTable(props: {
         h("thead", null, h("tr", null,
           ["Time", "Operation", "Target", "Result", "Trace"].map((label) =>
             h("th", { key: label }, label)))),
-        h("tbody", null, rows))));
+        h("tbody", null, rows))),
+    props.page.nextCursor === undefined || props.page.nextCursor === null
+      ? null
+      : h("a", {
+        href: `?${queryString(props.filters, props.page.nextCursor)}`,
+      }, "Next"),
+  );
 }

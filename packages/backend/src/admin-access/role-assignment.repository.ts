@@ -12,10 +12,14 @@ import {
   type Database,
 } from "@lasoviet/database";
 
-import type { RoleAssignmentRepository, RoleMutation } from "./role-assignment.service.js";
+import type {
+  RoleAssignmentError,
+  RoleAssignmentRepository,
+  RoleMutation,
+} from "./role-assignment.service.js";
 
 type MutationResult = { assignmentId: string; version: number; replayed: boolean };
-type MutationError = "ROLE_ASSIGNMENT_FORBIDDEN" | "ROLE_ASSIGNMENT_CONFLICT";
+type MutationError = RoleAssignmentError;
 
 function fingerprint(input: RoleMutation): string {
   return createHash("sha256").update(JSON.stringify({
@@ -48,6 +52,27 @@ export function createDatabaseRoleAssignmentRepository(database: Database): Role
           const subjectId = input.kind === "assign" ? input.subjectAccountId : assignment?.userId;
           if (subjectId === undefined) return failure("ROLE_ASSIGNMENT_CONFLICT");
           await lockSubjects(transaction as Database, [input.context.access.actorId, subjectId]);
+          if (input.kind === "assign" && subjectId === input.context.access.actorId) {
+            await transaction.insert(adminAuditLogs).values({
+              actorId: input.context.access.actorId,
+              roleAssignmentId: null,
+              capability: "admin.roles.manage",
+              operation: "admin.role.authorization",
+              targetType: "admin_account",
+              targetId: subjectId,
+              requestId: input.context.requestId,
+              traceId: input.context.traceId,
+              idempotencyKey: input.context.idempotencyKey,
+              reasonCode: input.context.reasonCode,
+              policyResult: "denied",
+              redactionLevel: "redacted",
+              resultSummary: {
+                outcome: "denied",
+                code: "ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED",
+              },
+            });
+            return failure("ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED");
+          }
 
           const [receipt] = await transaction.select().from(adminRoleMutationRequests)
             .where(and(
@@ -80,7 +105,11 @@ export function createDatabaseRoleAssignmentRepository(database: Database): Role
                 eq(adminCapabilityPolicies.active, true),
               )).limit(1).for("update")
             : [];
-          if (actor?.emailVerified !== true || policy === undefined) {
+          if (
+            actor?.emailVerified !== true
+            || actor.role !== "super_admin"
+            || policy === undefined
+          ) {
             await transaction.insert(adminAuditLogs).values({
               actorId: input.context.access.actorId, roleAssignmentId: actor?.id ?? null,
               capability: "admin.roles.manage", operation: "admin.role.authorization",

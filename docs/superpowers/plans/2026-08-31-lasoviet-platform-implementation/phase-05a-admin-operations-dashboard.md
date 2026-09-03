@@ -531,6 +531,19 @@ fixture-gated Playwright test retained its approved skip, and `git diff
 --check` passed. The container-backed migration test remains host-blocked.
 Task 5 remains in progress pending Sol re-review.
 
+**Replan Cycle 1 evidence (2026-09-03):** Post-authentication role-command
+outcomes now reach the transactional repository, including self-escalation
+denial. Trusted malformed commands append one controller-owned redacted
+denial, while repository-owned command results are not duplicated by the
+controller. Audit data loads only after `/admin/audit/access` confirms
+`canReadAudit`; role controls remain conditional on `canManageRoles`. Audit
+pagination validates its keyset cursor defensively and renders a filter-
+preserving next link. Focused Task 5 coverage passed 9 files / 23 tests;
+contracts, database, backend, and API builds plus web typecheck passed, as did
+`git diff --check`. Docker Desktop was unavailable, so container-backed
+migration runtime verification remains host-blocked. Task 5 remains in
+progress pending Sol re-review.
+
 ### Task 6 [P05A-T06]: Prove production-like operational incident workflows and release evidence
 
 **Files:**

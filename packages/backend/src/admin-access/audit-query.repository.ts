@@ -22,15 +22,22 @@ export function createDatabaseAuditQueryRepository(database: Database): AuditQue
         filters.result === undefined ? undefined : eq(adminAuditLogs.policyResult, filters.result),
       ].filter((condition): condition is NonNullable<typeof condition> => condition !== undefined);
       const cursor = filters.cursor?.split("|");
-      if (cursor?.length === 2) {
-        const createdAt = new Date(cursor[0]!);
-        if (!Number.isNaN(createdAt.getTime())) {
-          const afterCursor = or(
-            lt(adminAuditLogs.createdAt, createdAt),
-            and(eq(adminAuditLogs.createdAt, createdAt), lt(adminAuditLogs.id, cursor[1]!)),
-          );
-          if (afterCursor !== undefined) conditions.push(afterCursor);
+      if (filters.cursor !== undefined) {
+        const createdAt = cursor?.length === 2 ? new Date(cursor[0]!) : undefined;
+        const id = cursor?.[1];
+        if (
+          createdAt === undefined
+          || Number.isNaN(createdAt.getTime())
+          || id === undefined
+          || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+        ) {
+          throw new Error("ADMIN_FILTER_INVALID");
         }
+        const afterCursor = or(
+          lt(adminAuditLogs.createdAt, createdAt),
+          and(eq(adminAuditLogs.createdAt, createdAt), lt(adminAuditLogs.id, id)),
+        );
+        if (afterCursor !== undefined) conditions.push(afterCursor);
       }
       const where = conditions.length === 0 ? undefined : and(...conditions);
       const rows = await database.select().from(adminAuditLogs).where(where)

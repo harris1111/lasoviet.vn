@@ -25,7 +25,7 @@ export type RoleAssignmentRepository = {
     assignmentId: string;
     version: number;
     replayed: boolean;
-  }, "ROLE_ASSIGNMENT_FORBIDDEN" | "ROLE_ASSIGNMENT_CONFLICT">>;
+  }, RoleAssignmentError>>;
 };
 
 function failure(code: RoleAssignmentError): Result<never, RoleAssignmentError> {
@@ -37,11 +37,6 @@ function failure(code: RoleAssignmentError): Result<never, RoleAssignmentError> 
       retryable: false,
     },
   };
-}
-
-function mayManage(context: AdminRoleMutationContextV1): boolean {
-  return context.access.role === "super_admin"
-    && context.access.capabilities.includes("admin.roles.manage");
 }
 
 function boundedId(value: string): boolean {
@@ -60,13 +55,10 @@ export function createRoleAssignmentService(options: {
     ) {
       const parsedContext = AdminRoleMutationContextV1Schema.safeParse(contextInput);
       const role = AdminRoleSchema.safeParse(roleInput);
-      if (!parsedContext.success || !role.success || !mayManage(parsedContext.data)) {
+      if (!parsedContext.success || !role.success) {
         return failure("ROLE_ASSIGNMENT_FORBIDDEN");
       }
       if (!boundedId(subjectAccountId)) return failure("ROLE_ASSIGNMENT_CONFLICT");
-      if (subjectAccountId === parsedContext.data.access.actorId) {
-        return failure("ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED");
-      }
       if (!Number.isInteger(expectedVersion) || expectedVersion < 0) {
         return failure("ROLE_ASSIGNMENT_CONFLICT");
       }
@@ -85,7 +77,7 @@ export function createRoleAssignmentService(options: {
       expectedVersion: number,
     ) {
       const context = AdminRoleMutationContextV1Schema.safeParse(contextInput);
-      if (!context.success || !mayManage(context.data) || !boundedId(assignmentId)
+      if (!context.success || !boundedId(assignmentId)
         || !Number.isInteger(expectedVersion) || expectedVersion < 1) {
         return failure("ROLE_ASSIGNMENT_FORBIDDEN");
       }

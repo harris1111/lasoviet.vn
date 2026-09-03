@@ -43,10 +43,12 @@ export default async function AdminAuditPage(props: {
     filters: { pageSize: 25 },
   }));
   let page;
-  try {
-    page = await loadAdminAudit.load(actor, filters.data);
-  } catch {
-    page = undefined;
+  if (access.canReadAudit) {
+    try {
+      page = await loadAdminAudit.load(actor, filters.data);
+    } catch {
+      page = undefined;
+    }
   }
   return h("main", { className: "admin-overview container" },
     h("header", { className: "admin-overview-header" },
