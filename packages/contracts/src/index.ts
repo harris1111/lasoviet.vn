@@ -38,6 +38,24 @@ export type {
 } from "./admin-auth.js";
 
 export {
+  AdminAccountProjectionV1Schema,
+  AdminHealthV1Schema,
+  AdminListPageV1Schema,
+  AdminOverviewFiltersV1Schema,
+  AdminOverviewV1Schema,
+  AdminReadContextV1Schema,
+  createAdminListPageV1Schema,
+} from "./admin-projections.js";
+export type {
+  AdminAccountProjectionV1,
+  AdminHealthV1,
+  AdminListPageV1,
+  AdminOverviewFiltersV1,
+  AdminOverviewV1,
+  AdminReadContextV1,
+} from "./admin-projections.js";
+
+export {
   HealthV1Schema,
 } from "./health.js";
 export type {

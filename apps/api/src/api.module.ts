@@ -16,8 +16,10 @@ import {
   createAnonymousRetentionService,
   createAdminAccessService,
   createAdminAuditService,
+  createDatabaseAdminHealthService,
   createDatabaseAdminAccessRepository,
   createDatabaseAdminAuditRepository,
+  createDatabaseAdminOverviewRepository,
   createBirthProfileService,
   createConsentService,
   createDatabaseAuthEmailDeliveryStore,
@@ -28,6 +30,7 @@ import {
   createDatabaseZiweiCalculationRepository,
   createDatabaseZiweiQueryRepository,
   createSmtpEmailAdapter,
+  createAdminOverviewService,
   createEvidenceService,
   createZiweiCalculationService,
   createZiweiQueryService,
@@ -54,6 +57,10 @@ import {
   ADMIN_AUDIT_SERVICE,
   AdminAccessController,
 } from "./admin-access/admin-access.controller.js";
+import {
+  ADMIN_OVERVIEW_SERVICE,
+  AdminOverviewController,
+} from "./admin-overview/admin-overview.controller.js";
 import { HealthController } from "./health/health.controller.js";
 import {
   ACCOUNT_DELETION_SERVICE,
@@ -135,6 +142,7 @@ export function createApiAnalyticsSink(
     BirthProfileController,
     ZiweiController,
     AdminAccessController,
+    AdminOverviewController,
   ],
   providers: [
     {
@@ -211,6 +219,16 @@ export function createApiAnalyticsSink(
       },
     },
     { provide: ADMIN_ACCESS_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ADMIN_OVERVIEW_SERVICE,
+      useFactory: () => {
+        const database = privacyDatabase();
+        return createAdminOverviewService({
+          repository: createDatabaseAdminOverviewRepository(database),
+          health: createDatabaseAdminHealthService(database),
+        });
+      },
+    },
     {
       provide: BIRTH_PROFILE_SERVICE,
       useFactory: () =>

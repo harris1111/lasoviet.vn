@@ -164,7 +164,7 @@ startup; all 272 non-container tests in that attempt passed.
 - Returns `ADMIN_FORBIDDEN`, `ADMIN_FILTER_INVALID`, or
   `ADMIN_PROJECTION_UNAVAILABLE`; never exposes source rows on error.
 
-- [ ] **Step 1: Write failing projection and redaction tests**
+- [x] **Step 1: Write failing projection and redaction tests**
 
 Assert overview metrics derive from authoritative PostgreSQL state, health
 uses approved dependency/workflow probes, filters enforce bounded page size,
@@ -173,14 +173,14 @@ projections omit credentials, environment maps, tokens, signed URLs, raw
 birth/chart payloads, report bodies, password hashes, and unbounded provider
 errors.
 
-- [ ] **Step 2: Run the RED tests**
+- [x] **Step 2: Run the RED tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-overview/admin-overview.service.test.ts tests/security/admin-projection-redaction.integration.test.ts && pnpm playwright test tests/e2e/admin-overview.spec.ts`
 
 Expected: FAIL because no redacted projections or operational overview exists.
 
-- [ ] **Step 3: Implement feature-scoped read services**
+- [x] **Step 3: Implement feature-scoped read services**
 
 Implement query services that request only the fields used by each projection.
 Use opaque IDs, masked account references, timestamps, state, bounded error
@@ -188,14 +188,14 @@ codes, and aggregate counts. Record the authorized projection type, target
 aggregate IDs, capability, request/trace ID, and redaction level in the audit
 service without persisting returned private values.
 
-- [ ] **Step 4: Implement compact operational UI**
+- [x] **Step 4: Implement compact operational UI**
 
 Render compact navigation, status text plus accessible color, stable table
 columns, filters, pagination, empty/error states, and responsive overflow.
 Keep the overview operational and unframed; do not create marketing cards,
 content editors, or query consoles.
 
-- [ ] **Step 5: Run the GREEN tests**
+- [x] **Step 5: Run the GREEN tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-overview tests/security/admin-projection-redaction.integration.test.ts && pnpm playwright test tests/e2e/admin-overview.spec.ts`
@@ -208,6 +208,19 @@ Expected: PASS with authorized, redacted data only.
 git add packages/contracts packages/backend/src/admin-overview apps/api/src/admin-overview apps/web/src/features/admin-overview apps/web/src/app tests/security tests/e2e docs/superpowers/plans
 git commit -m "feat: add redacted operations overview"
 ```
+
+**Implementation evidence (2026-09-03):** Added contract-validated,
+capability-limited redacted overview projections from PostgreSQL account,
+privacy, and outbox state. The feature selects no email, names, credentials,
+sessions, report bodies, raw birth/chart data, signed URLs, environment maps,
+or provider errors. Missing Phase 04/05 commerce, report-generation, asset,
+delivery, support, and privacy-workflow inputs are explicit `unavailable`
+states rather than zero/healthy substitutions. Focused coverage passed 7
+Vitest tests across backend/security/web access paths; producer builds and
+consumer typechecks passed. The focused Playwright overview spec was skipped
+because no approved verified-admin fixture or private API topology exists, and
+the test refuses to fabricate one. Task status remains in progress pending Sol
+review.
 
 ### Task 3 [P05A-T03]: Expose account, commerce, report, delivery, support, privacy, audit, and readiness inspections
 

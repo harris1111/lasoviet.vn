@@ -21,12 +21,16 @@ const dependencies = vi.hoisted(() => {
 });
 
 vi.mock("next/navigation", () => ({ notFound: dependencies.notFound }));
+vi.mock("server-only", () => ({}));
 vi.mock("../../../auth/resolve-current-actor", () => ({
   resolveVerifiedAccountActor: dependencies.resolveVerifiedAccountActor,
 }));
 vi.mock("../../../api/private-api-client", () => ({
   privateApiClient: dependencies.privateApiClient,
   privateAdminAuditClient: dependencies.privateAdminAuditClient,
+}));
+vi.mock("../../../features/admin-overview/admin-overview-table", () => ({
+  AdminOverviewTable: () => null,
 }));
 
 import AdminPage from "./page";

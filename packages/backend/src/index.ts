@@ -167,6 +167,22 @@ export type {
   AdminAuditEntry,
   AdminAuditRepository,
 } from "./admin-access/audit.service.js";
+export {
+  createAdminHealthService,
+  createDatabaseAdminHealthService,
+} from "./admin-overview/admin-health.service.js";
+export type { AdminHealthDependencies, AdminHealthProbe } from "./admin-overview/admin-health.service.js";
+export {
+  createAdminOverviewService,
+} from "./admin-overview/admin-overview.service.js";
+export type {
+  AdminHealthReader,
+  AdminOverviewError,
+  AdminOverviewRepository,
+} from "./admin-overview/admin-overview.service.js";
+export {
+  createDatabaseAdminOverviewRepository,
+} from "./admin-overview/admin-overview.repository.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
 export type {
