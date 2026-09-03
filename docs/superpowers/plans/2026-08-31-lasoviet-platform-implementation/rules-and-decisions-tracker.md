@@ -101,6 +101,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Transactional admin command outcome ownership | P05A-T05 repeatedly allowed deterministic post-authentication role-command outcomes to bypass atomic receipt/audit persistence through pre-transaction classification, stale receipt replay, and database-constraint fallthrough | Sol approved authority revalidation before replay plus repository ownership of every deterministic result, with atomic bounded receipt/audit evidence and duplicate-free replay | Added to `AGENTS.md` under administrative and operational surface safety |
 | SePay payment confirmation boundary | Verified SePay contract and Sol review require provider hosts/actions to come from a closed environment enum; hosted return URLs are navigation-only, while only an authenticated provider notification validated against order identity, state, amount, and currency can mutate or confirm payment | Approved combined payment-boundary rule | Added to `AGENTS.md` under repository and operational safety |
 | SePay sandbox VPS gate correction and deployment | Test-only commit `200b852` aligned migration `0010` command receipts and made the outbox fixture use persisted runtime time with row/event isolation; VPS verification then passed focused tests, Compose deployment, structural database checks, health checks, synthetic non-paid IPN probes, and browser callback smoke | Existing workspace producer build-order, runtime-clock fixture, and payment-boundary rules cover the issues | No `AGENTS.md` change; FD-030 already authorizes the first external sandbox test |
+| Unauthenticated provider setup probes | SePay Sandbox `Send test` omitted `X-Secret-Key` before provider-side authentication was configured and received `401`; after configuring `SECRET_KEY`, a real Sandbox card transaction delivered an authenticated `ORDER_PAID` and completed the commerce transaction | A setup probe is not payment verification and must never justify weakening the live webhook | Added to `AGENTS.md` under repository and operational safety |
 
 ## Per-Task Rule Check
 
@@ -144,10 +145,13 @@ Date: 2026-09-03
   existing specs set their locale cookie for `127.0.0.1` and failed before the
   exercised form flow. This is a local-runtime harness limitation, not a
   production defect; no scope expansion is authorized.
-- No real order, paid notification, real-money payment, production payment
-  activation, Nginx/DNS change, or credential output occurred. The sandbox
-  endpoint is deployed. The founder's SePay dashboard `Send test` remains the
-  external step authorized by FD-030; production activation remains separate.
+- A real Sandbox card transaction was completed on 2026-09-03 for 79,000 VND;
+  no real money moved. SePay delivered an authenticated `ORDER_PAID` to the
+  public endpoint and received `200`. PostgreSQL recorded one paid order, one
+  payment event, one entitlement, one report reservation, and a processed
+  `report.generation.requested.v1` outbox event. The published report job remains
+  `waiting`; report-consumer execution is separate follow-up work.
+- Production payment activation remains a separate founder-controlled gate.
 
 ## P04 AI Execution Design
 

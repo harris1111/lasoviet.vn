@@ -49,9 +49,15 @@ returns the same success acknowledgement without another entitlement, report
 reservation, or outbox event. Unknown, conflicting, malformed, amount-mismatch,
 or unauthenticated requests fail closed. Provider test/non-paid notifications
 use the documented `TRANSACTION_VOID` non-paid notification path only after
-authentication and without business mutation. The documentation does not define
-the onboarding `Send test` body; deployment must observe it before a special
-acknowledgement is added.
+authentication and without business mutation.
+
+The Sandbox onboarding `Send test` probe was observed on 2026-09-03 before
+provider-side `SECRET_KEY` authentication was configured. It omitted
+`X-Secret-Key` and correctly received `401`; it must not receive a special
+unauthenticated acknowledgement. After the provider-side secret was configured,
+a real Sandbox card transaction delivered an authenticated `ORDER_PAID`
+notification, received `200`, and created exactly one payment event,
+entitlement, report reservation, and processed outbox event.
 
 No request body, provider headers, secrets, birth data, chart data, or report
 content is logged.

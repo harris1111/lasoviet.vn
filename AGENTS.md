@@ -320,6 +320,11 @@ rule instead of adding another version.
   and must never mutate or confirm payment; only an authenticated provider
   notification validated against order identity, state, amount, and currency
   may do so.
+- A provider setup probe that omits configured authentication is not payment
+  verification. Never weaken the live webhook to satisfy that probe. Complete
+  provider-side authentication, then verify the boundary with a real sandbox
+  transaction. If real callbacks remain unauthenticated, stop payment
+  activation and escalate through Sol.
 - When inspecting rendered Compose configuration or runtime service state,
   never print complete environment maps. Query only the required structural
   fields or redact sensitive values before tool output; stop and narrow the
