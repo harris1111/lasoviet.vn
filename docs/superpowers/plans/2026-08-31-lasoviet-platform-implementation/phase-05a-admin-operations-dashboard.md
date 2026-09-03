@@ -232,6 +232,17 @@ typechecks passed in dependency order. The fixture-gated Playwright spec
 exited successfully with its one approved skip; no production admin identity
 or topology was invented. Task status remains in progress pending Sol review.
 
+**Correction pass 2 evidence (2026-09-03):** Module visibility now requires
+both the approved role-to-module read policy and the active matching read
+capability; command capabilities add no overview visibility. Exact role module
+sets and capability-removal narrowing are executable, including operations'
+redacted privacy deletion/retention counts. Typed health probes now make
+ready, degraded, unready, and all-unavailable aggregates executable. Focused
+Task 2 coverage passed 6 files / 28 tests, contracts/backend builds and API/web
+typechecks passed in producer-consumer order, and the fixture-gated Playwright
+spec exited successfully with its one approved skip. Task status remains in
+progress pending Sol re-review.
+
 ### Task 3 [P05A-T03]: Expose account, commerce, report, delivery, support, privacy, audit, and readiness inspections
 
 **Files:**

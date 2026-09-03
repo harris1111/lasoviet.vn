@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { desc } from "drizzle-orm";
+import { authUsers } from "@lasoviet/database";
 
 import { createDatabaseAdminOverviewRepository } from "./admin-overview.repository.js";
 
@@ -33,7 +35,12 @@ describe("admin overview repository", () => {
 
     expect(queries).toHaveLength(0);
     expect(database.select).toHaveBeenCalledTimes(4);
-    expect((database.select.mock.results[3]?.value as { orderBy: ReturnType<typeof vi.fn> })
-      .orderBy).toHaveBeenCalledOnce();
+    const orderBy = (database.select.mock.results[3]?.value as {
+      orderBy: ReturnType<typeof vi.fn>;
+    }).orderBy;
+    expect(orderBy).toHaveBeenCalledWith(
+      desc(authUsers.createdAt),
+      desc(authUsers.id),
+    );
   });
 });

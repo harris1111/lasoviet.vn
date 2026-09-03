@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { AdminAccessV1 } from "@lasoviet/contracts";
+import {
+  ADMIN_CAPABILITIES,
+  type AdminAccessV1,
+} from "@lasoviet/contracts";
 
 import { createAdminOverviewService } from "./admin-overview.service.js";
 
@@ -179,7 +182,12 @@ describe("admin overview service", () => {
     const readOnly: AdminAccessV1 = {
       ...operationsAccess,
       role: "read_only",
-      capabilities: ["admin.overview.read"],
+      capabilities: [
+        "admin.overview.read",
+        "admin.reports.read",
+        "admin.audit.read",
+        "admin.readiness.read",
+      ],
     };
 
     const result = await service.readOverview({
@@ -196,5 +204,121 @@ describe("admin overview service", () => {
         ],
       },
     });
+  });
+
+  it.each([
+    ["super_admin", ADMIN_CAPABILITIES, [
+      "accounts", "commerce", "reports", "assets", "delivery",
+      "support", "outbox", "privacy", "readiness",
+    ]],
+    ["operations", operationsAccess.capabilities, [
+      "accounts", "reports", "assets", "delivery", "outbox", "privacy", "readiness",
+    ]],
+    ["support", [
+      "admin.accounts.read", "admin.commerce.read", "admin.reports.read",
+    ], ["accounts", "commerce", "reports", "delivery", "privacy"]],
+    ["read_only", [
+      "admin.overview.read", "admin.reports.read", "admin.audit.read",
+      "admin.readiness.read",
+    ], ["reports", "outbox", "readiness"]],
+  ] as const)("returns the exact permitted module IDs for %s", async (
+    role,
+    capabilities,
+    expectedIds,
+  ) => {
+    const service = createAdminOverviewService({
+      repository: {
+        readAccounts: async () => ({ total: 0, verified: 0, anonymous: 0, records: [] }),
+        readPrivacy: async () => ({ requested: 0, purged: 0 }),
+        readOutbox: async () => ({ pending: 0, failed: 0 }),
+      },
+      health: { readHealth: async () => ({
+        version: 1, status: "degraded",
+        checkedAt: "2026-09-03T00:00:00+00:00", dependencies: allDependencies,
+      }) },
+    });
+
+    const result = await service.readOverview({
+      access: { ...operationsAccess, role, capabilities: [...capabilities] },
+      requestId: "request-1",
+      traceId: "trace-1",
+    }, { page: 1, pageSize: 25 });
+
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error("Expected overview");
+    expect(result.value.modules.map((module) => module.id)).toEqual(expectedIds);
+  });
+
+  it.each([
+    [
+      "admin.accounts.read",
+      ["reports", "assets", "delivery", "outbox", "readiness"],
+    ],
+    [
+      "admin.reports.read",
+      ["accounts", "privacy", "readiness"],
+    ],
+    [
+      "admin.readiness.read",
+      ["accounts", "reports", "assets", "delivery", "outbox", "privacy"],
+    ],
+  ] as const)("removes role-permitted modules when active policy capability %s is missing", async (
+    removedCapability,
+    expectedIds,
+  ) => {
+    const service = createAdminOverviewService({
+      repository: {
+        readAccounts: async () => ({ total: 0, verified: 0, anonymous: 0, records: [] }),
+        readPrivacy: async () => ({ requested: 0, purged: 0 }),
+        readOutbox: async () => ({ pending: 0, failed: 0 }),
+      },
+      health: { readHealth: async () => ({
+        version: 1, status: "degraded",
+        checkedAt: "2026-09-03T00:00:00+00:00", dependencies: allDependencies,
+      }) },
+    });
+
+    const result = await service.readOverview({
+      access: {
+        ...operationsAccess,
+        capabilities: operationsAccess.capabilities.filter(
+          (capability) => capability !== removedCapability,
+        ),
+      },
+      requestId: "request-1",
+      traceId: "trace-1",
+    }, { page: 1, pageSize: 25 });
+
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error("Expected overview");
+    expect(result.value.modules.map((module) => module.id)).toEqual(expectedIds);
+  });
+
+  it("does not turn command capabilities into overview read visibility", async () => {
+    const service = createAdminOverviewService({
+      repository: {
+        readAccounts: async () => ({ total: 0, verified: 0, anonymous: 0, records: [] }),
+        readPrivacy: async () => ({ requested: 0, purged: 0 }),
+        readOutbox: async () => ({ pending: 0, failed: 0 }),
+      },
+      health: { readHealth: async () => ({
+        version: 1, status: "degraded",
+        checkedAt: "2026-09-03T00:00:00+00:00", dependencies: allDependencies,
+      }) },
+    });
+
+    const result = await service.readOverview({
+      access: {
+        ...operationsAccess,
+        role: "support",
+        capabilities: ["admin.support.manage", "admin.privacy.manage"],
+      },
+      requestId: "request-1",
+      traceId: "trace-1",
+    }, { page: 1, pageSize: 25 });
+
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error("Expected overview");
+    expect(result.value.modules).toEqual([]);
   });
 });

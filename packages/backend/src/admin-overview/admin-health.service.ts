@@ -5,11 +5,15 @@ import {
 import type { Database } from "@lasoviet/database";
 import { sql } from "drizzle-orm";
 
-export type AdminHealthProbeOutcome = "ready" | "degraded" | "unready";
+export type AdminHealthProbeOutcome =
+  | "ready"
+  | "degraded"
+  | "unready"
+  | "unavailable";
 export type AdminHealthProbe = () => Promise<AdminHealthProbeOutcome>;
 
 export type AdminHealthDependencies = {
-  postgres: AdminHealthProbe;
+  postgres?: AdminHealthProbe;
   commerceWorkflow?: AdminHealthProbe;
   reportGeneration?: AdminHealthProbe;
   assetDelivery?: AdminHealthProbe;

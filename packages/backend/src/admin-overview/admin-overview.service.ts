@@ -55,13 +55,26 @@ const moduleReaders = {
   outbox: ["super_admin", "operations", "read_only"],
   assets: ["super_admin", "operations"],
   delivery: ["super_admin", "operations", "support"],
-  support: ["super_admin", "support"],
-  privacy: ["super_admin", "support"],
+  support: ["super_admin"],
+  privacy: ["super_admin", "operations", "support"],
   readiness: ["super_admin", "operations", "read_only"],
 } satisfies Record<ModuleId, readonly AdminRole[]>;
 
+const moduleReadCapabilities = {
+  accounts: "admin.accounts.read",
+  commerce: "admin.commerce.read",
+  reports: "admin.reports.read",
+  outbox: "admin.reports.read",
+  assets: "admin.reports.read",
+  delivery: "admin.reports.read",
+  support: "admin.overview.read",
+  privacy: "admin.accounts.read",
+  readiness: "admin.readiness.read",
+} satisfies Record<ModuleId, AdminAccessV1["capabilities"][number]>;
+
 function canReadModule(access: AdminAccessV1, id: ModuleId): boolean {
-  return (moduleReaders[id] as readonly AdminRole[]).includes(access.role);
+  return (moduleReaders[id] as readonly AdminRole[]).includes(access.role)
+    && access.capabilities.includes(moduleReadCapabilities[id]);
 }
 
 function readinessSummary(health: AdminHealthV1) {

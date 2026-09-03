@@ -35,4 +35,14 @@ describe("admin health service", () => {
       ]),
     });
   });
+
+  it.each([
+    ["ready", { postgres: async () => "ready", commerceWorkflow: async () => "ready", reportGeneration: async () => "ready", assetDelivery: async () => "ready", supportWorkflow: async () => "ready", privacyWorkflow: async () => "ready" }],
+    ["degraded", { postgres: async () => "ready", commerceWorkflow: async () => "degraded" }],
+    ["unready", { postgres: async () => "unready" }],
+    ["unavailable", {}],
+  ] as const)("derives aggregate %s without inferring absent sources", async (status, dependencies) => {
+    const health = await createAdminHealthService(dependencies).readHealth();
+    expect(health.status).toBe(status);
+  });
 });
