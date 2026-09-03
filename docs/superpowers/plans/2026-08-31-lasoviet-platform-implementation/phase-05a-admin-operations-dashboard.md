@@ -560,6 +560,18 @@ atomic audits/receipts, and injected rollback. Four focused test files passed
 because Testcontainers cannot find a working container runtime. Task 5 remains
 in progress pending Sol re-review.
 
+**Replan Cycle 1 correction pass 2/2 evidence (2026-09-03):** A valid-format
+missing assignment target previously reached the foreign key and returned a
+catch-all conflict without transactional evidence. After stable locks and
+authority revalidation, the repository now locks and verifies the target
+account before mutation; absence follows the existing transactional failure
+path, producing one command-failure audit, one receipt, no assignment, and a
+replay without duplicate audit. The new PostgreSQL test loaded as part of the
+real Testcontainers suite, but its RED and post-change execution remain
+host-blocked because no working container runtime is available. Four focused
+non-container tests passed 11 tests, database/backend builds passed, and
+`git diff --check` passed. Task 5 remains in progress pending Sol re-review.
+
 ### Task 6 [P05A-T06]: Prove production-like operational incident workflows and release evidence
 
 **Files:**

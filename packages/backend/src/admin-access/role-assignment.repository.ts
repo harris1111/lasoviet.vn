@@ -197,6 +197,16 @@ export function createDatabaseRoleAssignmentRepository(database: Database): Role
               "ROLE_ASSIGNMENT_CONFLICT",
             );
           }
+          if (input.kind === "assign") {
+            const [targetAccount] = await transaction.select({ id: authUsers.id })
+              .from(authUsers).where(eq(authUsers.id, subjectId)).limit(1).for("update");
+            if (targetAccount === undefined) {
+              return persistFailure(
+                transaction as Database, input, digest, authority, subjectId,
+                "ROLE_ASSIGNMENT_CONFLICT",
+              );
+            }
+          }
 
           const [active] = await transaction.select().from(adminRoleAssignments)
             .where(and(eq(adminRoleAssignments.userId, subjectId), isNull(adminRoleAssignments.revokedAt)))

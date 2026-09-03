@@ -110,6 +110,35 @@ describe("database role assignment repository", () => {
     await database.$client.end();
   }, 120_000);
 
+  it("records and replays a nonexistent assignment target without mutating roles", async () => {
+    const { database, repository: roles } = await repository();
+    const fixture = await seedRoleMutationFixture(database);
+    const command = {
+      kind: "assign" as const,
+      context: fixture.context,
+      subjectAccountId: "missing-role-subject",
+      role: "operations" as const,
+      expectedVersion: 0,
+    };
+
+    await expect(roles.mutate(command)).resolves.toMatchObject({
+      ok: false, error: { code: "ROLE_ASSIGNMENT_CONFLICT" },
+    });
+    await expect(roles.mutate(command)).resolves.toMatchObject({
+      ok: false, error: { code: "ROLE_ASSIGNMENT_CONFLICT" },
+    });
+    expect(await database.select().from(adminRoleAssignments).where(
+      eq(adminRoleAssignments.userId, command.subjectAccountId),
+    )).toHaveLength(0);
+    expect(await database.select().from(adminAuditLogs).where(
+      eq(adminAuditLogs.actorId, fixture.actorId),
+    )).toHaveLength(1);
+    expect(await database.select().from(adminRoleMutationRequests).where(
+      eq(adminRoleMutationRequests.actorId, fixture.actorId),
+    )).toHaveLength(1);
+    await database.$client.end();
+  }, 120_000);
+
   it("replays self-escalation denial with the active authority references", async () => {
     const { database, repository: roles } = await repository();
     const fixture = await seedRoleMutationFixture(database);
