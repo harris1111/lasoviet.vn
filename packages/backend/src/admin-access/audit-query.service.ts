@@ -58,7 +58,7 @@ export function createAuditQueryService(options: { repository: AuditQueryReposit
       if (!filters.success || (
         filters.data.dateFrom !== undefined
         && filters.data.dateTo !== undefined
-        && filters.data.dateFrom > filters.data.dateTo
+        && new Date(filters.data.dateFrom).getTime() > new Date(filters.data.dateTo).getTime()
       )) {
         return {
           ok: false,

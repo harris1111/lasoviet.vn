@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lt, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, lt, lte, or } from "drizzle-orm";
 
 import type {
   AdminAuditPageV1,
@@ -36,12 +36,8 @@ export function createDatabaseAuditQueryRepository(database: Database): AuditQue
       const rows = await database.select().from(adminAuditLogs).where(where)
         .orderBy(desc(adminAuditLogs.createdAt), desc(adminAuditLogs.id))
         .limit(filters.pageSize + 1);
-      const [{ total } = { total: 0 }] = await database
-        .select({ total: count() }).from(adminAuditLogs).where(where);
       return {
-        page: filters.page,
         pageSize: filters.pageSize,
-        total: Number(total),
         nextCursor: rows.length > filters.pageSize
           ? `${rows[filters.pageSize - 1]!.createdAt.toISOString()}|${rows[filters.pageSize - 1]!.id}`
           : null,

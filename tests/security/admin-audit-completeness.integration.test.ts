@@ -26,9 +26,7 @@ describe("admin audit completeness", () => {
         resultSummary: { role: "support", token: "must-not-leak" },
         createdAt: "2026-09-03T00:00:00.000Z",
       }],
-      page: 1,
       pageSize: 25,
-      total: 1,
     });
     const service = createAuditQueryService({ repository: { search } });
     const access = {
@@ -39,7 +37,6 @@ describe("admin audit completeness", () => {
     };
 
     const result = await service.search(access, {
-      page: 1,
       pageSize: 25,
       traceId: "trace-1",
     });
@@ -59,7 +56,6 @@ describe("admin audit completeness", () => {
     expect(result.value.items[0]).not.toHaveProperty("token");
     expect(result.value.items[0]?.resultSummary).not.toHaveProperty("token");
     expect(search).toHaveBeenCalledWith({
-      page: 1,
       pageSize: 25,
       traceId: "trace-1",
     });
@@ -75,7 +71,7 @@ describe("admin audit completeness", () => {
       roleAssignmentId: "assignment-1",
       role: "super_admin",
       capabilities: ["admin.roles.manage"],
-    }, { page: 1, pageSize: 25 })).resolves.toMatchObject({
+    }, { pageSize: 25 })).resolves.toMatchObject({
       ok: false,
       error: { code: "ADMIN_FORBIDDEN" },
     });
@@ -84,20 +80,19 @@ describe("admin audit completeness", () => {
   it("omits empty filters, normalizes local datetimes, and rejects inverted ranges", () => {
     expect(parseAdminAuditSearchFiltersV1({
       actorId: "",
-      dateFrom: "2026-09-03T09:30",
+      dateFrom: "2026-09-03T09:30:00+07:00",
       dateTo: "",
       pageSize: "25",
     })).toMatchObject({
       success: true,
       data: {
-        page: 1,
         pageSize: 25,
-        dateFrom: "2026-09-03T09:30:00.000Z",
+        dateFrom: "2026-09-03T09:30:00+07:00",
       },
     });
     expect(parseAdminAuditSearchFiltersV1({
-      dateFrom: "2026-09-03T10:00",
-      dateTo: "2026-09-03T09:00",
+      dateFrom: "2026-09-03T10:00:00+07:00",
+      dateTo: "2026-09-03T09:00:00+07:00",
     })).toMatchObject({ success: false });
   });
 });

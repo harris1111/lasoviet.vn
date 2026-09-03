@@ -29,11 +29,10 @@ export default async function AdminAuditPage(props: {
       notFound();
     }
   }
-  let capabilities: string[];
+  let access: { canReadAudit: boolean; canManageRoles: boolean };
   try {
-    const access = await privateApiClient(actor, actor.requestId)
-      .request<{ role: string; capabilities: string[] }>("/admin/access");
-    capabilities = access.capabilities;
+    access = await privateApiClient(actor, actor.requestId)
+      .request("/admin/audit/access");
   } catch {
     notFound();
   }
@@ -41,7 +40,7 @@ export default async function AdminAuditPage(props: {
     props.searchParams ?? Promise.resolve({})
   ));
   if (!filters.success) return h("main", null, h(AuditLogTable, {
-    filters: { page: 1, pageSize: 25 },
+    filters: { pageSize: 25 },
   }));
   let page;
   try {
@@ -53,7 +52,7 @@ export default async function AdminAuditPage(props: {
     h("header", { className: "admin-overview-header" },
       h("div", null, h("p", { className: "eyebrow" }, "Private operations"),
         h("h1", null, "Audit inspection"))),
-    capabilities.includes("admin.roles.manage") ? h(RoleAssignmentForm) : null,
-    page === undefined ? h("p", { role: "alert" }, "Audit records are unavailable.")
+    access.canManageRoles ? h(RoleAssignmentForm) : null,
+    !access.canReadAudit ? null : page === undefined ? h("p", { role: "alert" }, "Audit records are unavailable.")
       : h(AuditLogTable, { page, filters: filters.data }));
 }

@@ -71,14 +71,14 @@ export function createDatabaseRoleAssignmentRepository(database: Database): Role
               eq(adminRoleAssignments.userId, input.context.access.actorId),
               eq(adminRoleAssignments.id, input.context.access.roleAssignmentId),
               isNull(adminRoleAssignments.revokedAt),
-            )).limit(1);
+            )).limit(1).for("update");
           const [policy] = actor?.role === "super_admin"
             ? await transaction.select({ id: adminCapabilityPolicies.id })
               .from(adminCapabilityPolicies).where(and(
                 eq(adminCapabilityPolicies.role, "super_admin"),
                 eq(adminCapabilityPolicies.capability, "admin.roles.manage"),
                 eq(adminCapabilityPolicies.active, true),
-              )).limit(1)
+              )).limit(1).for("update")
             : [];
           if (actor?.emailVerified !== true || policy === undefined) {
             await transaction.insert(adminAuditLogs).values({
@@ -95,7 +95,7 @@ export function createDatabaseRoleAssignmentRepository(database: Database): Role
 
           const [active] = await transaction.select().from(adminRoleAssignments)
             .where(and(eq(adminRoleAssignments.userId, subjectId), isNull(adminRoleAssignments.revokedAt)))
-            .limit(1);
+            .limit(1).for("update");
           const [{ version: latestVersion } = { version: null }] = await transaction
             .select({ version: max(adminRoleAssignments.assignmentVersion) })
             .from(adminRoleAssignments).where(eq(adminRoleAssignments.userId, subjectId));

@@ -94,23 +94,7 @@ export class AdminRoleAuditController {
       input.data.role,
       input.data.expectedVersion,
     );
-    if (!result.ok) {
-      await this.audit.appendAdminAudit({
-        actorId: context.access.actorId,
-        roleAssignmentId: context.access.roleAssignmentId,
-        capability: "admin.roles.manage",
-        operation: "admin.role.authorization",
-        target: { type: "admin_account", id: input.data.subjectAccountId },
-        requestId: context.requestId,
-        traceId: context.traceId,
-        idempotencyKey: input.data.idempotencyKey,
-        reasonCode: input.data.reasonCode,
-        policyResult: "denied",
-        redactionLevel: "redacted",
-        resultSummary: { outcome: "denied", code: result.error.code },
-      });
-      throw new BadRequestException({ code: result.error.code });
-    }
+    if (!result.ok) throw new BadRequestException({ code: result.error.code });
     return result.value;
   }
 
@@ -130,23 +114,7 @@ export class AdminRoleAuditController {
       input.data.assignmentId,
       input.data.expectedVersion,
     );
-    if (!result.ok) {
-      await this.audit.appendAdminAudit({
-        actorId: context.access.actorId,
-        roleAssignmentId: context.access.roleAssignmentId,
-        capability: "admin.roles.manage",
-        operation: "admin.role.authorization",
-        target: { type: "admin_role_assignment", id: input.data.assignmentId },
-        requestId: context.requestId,
-        traceId: context.traceId,
-        idempotencyKey: input.data.idempotencyKey,
-        reasonCode: input.data.reasonCode,
-        policyResult: "denied",
-        redactionLevel: "redacted",
-        resultSummary: { outcome: "denied", code: result.error.code },
-      });
-      throw new BadRequestException({ code: result.error.code });
-    }
+    if (!result.ok) throw new BadRequestException({ code: result.error.code });
     return result.value;
   }
 
@@ -188,5 +156,17 @@ export class AdminRoleAuditController {
       resultSummary: { outcome: "allowed", count: result.value.items.length },
     });
     return result.value;
+  }
+
+  @Get("audit/access")
+  async auditAccess(
+    @Headers("authorization") authorization: string | undefined,
+    @Headers("x-request-id") requestId: string | undefined,
+  ) {
+    const context = await this.authorized(authorization, requestId);
+    return {
+      canReadAudit: context.access.capabilities.includes("admin.audit.read"),
+      canManageRoles: context.access.capabilities.includes("admin.roles.manage"),
+    };
   }
 }

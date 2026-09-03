@@ -43,7 +43,6 @@ export const RevokeAdminRoleV1Schema = z.object({
 export type RevokeAdminRoleV1 = z.infer<typeof RevokeAdminRoleV1Schema>;
 
 export const AdminAuditSearchFiltersV1Schema = z.object({
-  page: z.number().int().min(1).max(100_000),
   pageSize: z.number().int().min(1).max(50),
   cursor: z.string().trim().min(1).max(256).optional(),
   dateFrom: z.iso.datetime({ offset: true }).optional(),
@@ -66,16 +65,9 @@ export function parseAdminAuditSearchFiltersV1(input: Record<string, unknown>) {
       : value ?? fallback;
   const optional = (value: unknown) =>
     typeof value === "string" && value.trim() === "" ? undefined : value;
-  const instant = (value: unknown) => {
-    const normalized = optional(value);
-    if (typeof normalized !== "string") return normalized;
-    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)
-      ? `${normalized}:00.000Z`
-      : normalized;
-  };
+  const instant = optional;
   const parsed = AdminAuditSearchFiltersV1Schema.safeParse({
     ...Object.fromEntries(Object.entries(input).map(([key, value]) => [key, optional(value)])),
-    page: numeric(input.page, 1),
     pageSize: numeric(input.pageSize, 25),
     dateFrom: instant(input.dateFrom),
     dateTo: instant(input.dateTo),
@@ -117,9 +109,7 @@ export const AdminAuditSummaryV1Schema = z.object({
 export type AdminAuditSummaryV1 = z.infer<typeof AdminAuditSummaryV1Schema>;
 
 export const AdminAuditPageV1Schema = z.object({
-  page: z.number().int().min(1),
   pageSize: z.number().int().min(1).max(50),
-  total: z.number().int().min(0).max(100_000),
   nextCursor: z.string().trim().min(1).max(256).nullable().optional(),
   items: z.array(AdminAuditSummaryV1Schema).max(50),
 }).strict();
