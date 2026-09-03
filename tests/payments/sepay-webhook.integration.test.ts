@@ -10,6 +10,7 @@ import {
   commerceEntitlements,
   commerceOrders,
   createDatabase,
+  evidenceSets,
   outbox,
   reportReservations,
   runMigrations,
@@ -59,6 +60,12 @@ describe("SePay payment transaction", () => {
     await database.insert(ziweiChartVersions).values({
       id: versionId, chartId, calculationRunId: runId, normalizedOutput: {}, privateRawSnapshot: {}, warnings: [], provenance: {},
     });
+    await database.insert(evidenceSets).values({
+      id: `evidence-${randomUUID()}`,
+      chartVersionId: versionId,
+      capabilityId: "ziwei.identity.p0",
+      ruleVersion: "ziwei.identity.v1",
+    });
     await database.insert(commerceOrders).values({
       id: orderId, invoiceNumber: "LSV-integration-order", chartId, chartVersionId: versionId,
       ownerId: userId, sku: "ZIWEI-IDENTITY-P0", amount: 79_000, currency: "VND",
@@ -66,18 +73,32 @@ describe("SePay payment transaction", () => {
     const repository = createDatabaseCommerceRepository(database);
     await expect(repository.recordPaid({
       invoiceNumber: "LSV-integration-order",
-      providerEventId: "sandbox-event-1",
+      providerEventId: "sandbox-event-wrong-amount",
+      amount: 1,
+      currency: "VND",
+      traceId: "integration-trace",
+    })).resolves.toMatchObject({ ok: false, code: "PAYMENT_AMOUNT_MISMATCH" });
+    await expect(repository.recordPaid({
+      invoiceNumber: "LSV-unknown-order",
+      providerEventId: "sandbox-event-unknown-order",
       amount: 79_000,
       currency: "VND",
       traceId: "integration-trace",
-    })).resolves.toMatchObject({ ok: true, replayed: false });
-    await expect(repository.recordPaid({
+    })).resolves.toMatchObject({ ok: false, code: "ORDER_NOT_FOUND" });
+    const replay = {
       invoiceNumber: "LSV-integration-order",
       providerEventId: "sandbox-event-1",
       amount: 79_000,
       currency: "VND",
       traceId: "integration-trace",
-    })).resolves.toMatchObject({ ok: true, replayed: true });
+    };
+    const results = await Promise.all([repository.recordPaid(replay), repository.recordPaid(replay)]);
+    expect(results).toContainEqual({ ok: true, replayed: false });
+    expect(results).toContainEqual({ ok: true, replayed: true });
+    await expect(repository.recordPaid({
+      ...replay,
+      providerEventId: "sandbox-event-out-of-order",
+    })).resolves.toMatchObject({ ok: false, code: "PAYMENT_STATE_CONFLICT" });
     expect((await database.select().from(commerceEntitlements)).filter((entitlement) => entitlement.orderId === orderId)).toHaveLength(1);
     expect(await database.select().from(reportReservations)).toHaveLength(1);
     expect((await database.select().from(outbox)).filter((event) => event.aggregateId === orderId)).toHaveLength(1);

@@ -31,6 +31,10 @@ compatible HTTP API.
   consumption remains Task 3.
 - Task 1-2 are pending Sol review. The Testcontainers transaction suite is
   committed and loads but needs a container runtime on the verification host.
+- Correction pass 1 maps IPN domain failures to bounded non-2xx HTTP outcomes,
+  uses a conditional pending-to-paid transition, persists the complete
+  report-request payload, and runs the durable queue-job dispatch boundary in
+  the worker. Pending Sol re-review.
 
 ## Global Constraints
 

@@ -7,6 +7,9 @@ import {
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseDeletionRepository,
+  createDatabaseOutboxStore,
+  createDatabaseReportQueuePublisher,
+  createOutboxDispatcher,
   createPhaseOneMaintenanceRunner,
   createSmtpEmailAdapter,
 } from "@lasoviet/backend";
@@ -47,5 +50,17 @@ export function createMaintenanceRunner() {
         }).purgeExpired(new Date(), limit),
     },
     retryAuthEmail: (limit) => email.retryDue(limit),
+  });
+}
+
+export function createOutboxDispatchRunner() {
+  const environment = loadEnvironment(process.env);
+  if (!environment.ok || environment.value.databaseUrl === undefined) {
+    throw new Error("WORKER_CONFIG_INVALID");
+  }
+  const database = createDatabase(environment.value.databaseUrl);
+  return createOutboxDispatcher({
+    ...createDatabaseOutboxStore(database, "worker-outbox"),
+    ...createDatabaseReportQueuePublisher(database),
   });
 }

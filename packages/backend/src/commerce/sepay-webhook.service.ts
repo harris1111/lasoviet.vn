@@ -2,9 +2,18 @@ import { timingSafeEqual } from "node:crypto";
 
 type IpN = {
   notification_type: "ORDER_PAID" | "TRANSACTION_VOID";
-  order: { order_invoice_number: string; order_amount: string; order_currency: "VND" };
-  transaction: { transaction_id: string; transaction_amount: string; transaction_currency: "VND"; transaction_status: string };
+  order: { order_invoice_number: string; order_amount: string; order_currency: "VND"; order_status: string };
+  transaction: { transaction_id: string; transaction_amount: string; transaction_currency: "VND"; transaction_status: string; transaction_type: string };
 };
+
+function boundedText(value: unknown, pattern: RegExp, max = 128): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= max && pattern.test(value);
+}
+
+function vndAmount(value: unknown): string | null {
+  if (!boundedText(value, /^(0|[1-9]\d{0,11})(?:\.0{1,2})?$/, 16)) return null;
+  return value;
+}
 
 function ipn(value: unknown): IpN | null {
   if (typeof value !== "object" || value === null) return null;
@@ -14,15 +23,19 @@ function ipn(value: unknown): IpN | null {
   if (
     (body.notification_type !== "ORDER_PAID" && body.notification_type !== "TRANSACTION_VOID") ||
     order === undefined || transaction === undefined ||
-    typeof order.order_invoice_number !== "string" || !/^\d+(\.\d+)?$/.test(String(order.order_amount)) ||
-    order.order_currency !== "VND" || typeof transaction.transaction_id !== "string" ||
-    !/^\d+(\.\d+)?$/.test(String(transaction.transaction_amount)) ||
-    transaction.transaction_currency !== "VND" || typeof transaction.transaction_status !== "string"
+    !boundedText(order.order_invoice_number, /^[A-Za-z0-9_-]+$/) ||
+    vndAmount(order.order_amount) === null || order.order_currency !== "VND" ||
+    !boundedText(order.order_status, /^(CAPTURED|CANCELLED|AUTHENTICATION_NOT_NEEDED)$/) ||
+    !boundedText(transaction.transaction_id, /^[A-Za-z0-9_-]+$/) ||
+    vndAmount(transaction.transaction_amount) === null ||
+    transaction.transaction_currency !== "VND" ||
+    !boundedText(transaction.transaction_status, /^(APPROVED|DECLINED)$/) ||
+    !boundedText(transaction.transaction_type, /^(PAYMENT|REFUND)$/)
   ) return null;
   return {
     notification_type: body.notification_type,
-    order: { order_invoice_number: order.order_invoice_number, order_amount: String(order.order_amount), order_currency: "VND" },
-    transaction: { transaction_id: transaction.transaction_id, transaction_amount: String(transaction.transaction_amount), transaction_currency: "VND", transaction_status: transaction.transaction_status },
+    order: { order_invoice_number: order.order_invoice_number, order_amount: String(order.order_amount), order_currency: "VND", order_status: order.order_status },
+    transaction: { transaction_id: transaction.transaction_id, transaction_amount: String(transaction.transaction_amount), transaction_currency: "VND", transaction_status: transaction.transaction_status, transaction_type: transaction.transaction_type },
   };
 }
 
@@ -59,6 +72,8 @@ export function createSePayWebhookService(dependencies: {
       }
       if (
         parsed.transaction.transaction_status !== "APPROVED" ||
+        parsed.transaction.transaction_type !== "PAYMENT" ||
+        parsed.order.order_status !== "CAPTURED" ||
         parsed.transaction.transaction_amount !== parsed.order.order_amount ||
         parsed.transaction.transaction_currency !== parsed.order.order_currency
       ) return { ok: false as const, error: { code: "SEPAY_PAYLOAD_INVALID" } };

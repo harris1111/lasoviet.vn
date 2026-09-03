@@ -1,5 +1,11 @@
+import { and, eq, lte, or, sql } from "drizzle-orm";
+import { outbox, reportQueueJobs, type Database } from "@lasoviet/database";
+
 export type ClaimedOutboxEvent = {
   id: string;
+  eventId: string;
+  traceId: string;
+  idempotencyKey: string;
   eventType: string;
   payload: unknown;
 };
@@ -8,25 +14,37 @@ export type OutboxDispatcherDependencies = {
   claim(): Promise<ClaimedOutboxEvent | null>;
   markProcessed(id: string): Promise<void>;
   release(id: string, code: string): Promise<void>;
-  publish(type: "report.generate.v1", payload: {
-    reportReservationId: string;
-    reportVersionId: string;
-  }): Promise<void>;
+  publish(job: QueueJobV1): Promise<void>;
 };
 
-function reportJob(payload: unknown): {
-  reportReservationId: string;
+type ReportGenerationRequestedV1 = {
+  reportId: string;
   reportVersionId: string;
-} | null {
+  entitlementId: string;
+  chartVersionId: string;
+  evidenceVersionId: string;
+  knowledgeVersionId: string;
+  promptVersion: string;
+  reportConfigVersion: string;
+  locale: "vi" | "en";
+  sku: string;
+};
+
+export type QueueJobV1 = {
+  schemaVersion: 1;
+  name: "report.generate.v1";
+  sourceEventId: string;
+  traceId: string;
+  idempotencyKey: string;
+  payload: ReportGenerationRequestedV1;
+};
+
+function reportJob(payload: unknown): ReportGenerationRequestedV1 | null {
   if (typeof payload !== "object" || payload === null) return null;
   const value = payload as Record<string, unknown>;
-  return typeof value.reportReservationId === "string" &&
-    typeof value.reportVersionId === "string"
-    ? {
-        reportReservationId: value.reportReservationId,
-        reportVersionId: value.reportVersionId,
-      }
-    : null;
+  const keys = ["reportId", "reportVersionId", "entitlementId", "chartVersionId", "evidenceVersionId", "knowledgeVersionId", "promptVersion", "reportConfigVersion", "locale", "sku"];
+  if (!keys.every((key) => typeof value[key] === "string") || (value.locale !== "vi" && value.locale !== "en")) return null;
+  return value as unknown as ReportGenerationRequestedV1;
 }
 
 export function createOutboxDispatcher(dependencies: OutboxDispatcherDependencies) {
@@ -42,7 +60,14 @@ export function createOutboxDispatcher(dependencies: OutboxDispatcherDependencie
         return { dispatched: false };
       }
       try {
-        await dependencies.publish("report.generate.v1", payload);
+        await dependencies.publish({
+          schemaVersion: 1,
+          name: "report.generate.v1",
+          sourceEventId: event.eventId,
+          traceId: event.traceId,
+          idempotencyKey: `report-generate:${payload.reportVersionId}`,
+          payload,
+        });
         await dependencies.markProcessed(event.id);
         return { dispatched: true };
       } catch {
@@ -85,7 +110,7 @@ export function createDatabaseOutboxStore(
         )).returning();
         return claimed === undefined
           ? null
-          : { id: claimed.id, eventType: claimed.eventType, payload: claimed.payload };
+          : { id: claimed.id, eventId: claimed.eventId, traceId: claimed.traceId, idempotencyKey: claimed.idempotencyKey, eventType: claimed.eventType, payload: claimed.payload };
       });
     },
     async markProcessed(id: string): Promise<void> {
@@ -102,5 +127,18 @@ export function createDatabaseOutboxStore(
     },
   };
 }
-import { and, eq, lte, or, sql } from "drizzle-orm";
-import { outbox, type Database } from "@lasoviet/database";
+
+export function createDatabaseReportQueuePublisher(database: Database) {
+  return {
+    async publish(job: QueueJobV1): Promise<void> {
+      await database.insert(reportQueueJobs).values({
+        id: job.idempotencyKey,
+        name: job.name,
+        sourceEventId: job.sourceEventId,
+        traceId: job.traceId,
+        idempotencyKey: job.idempotencyKey,
+        payload: job.payload,
+      }).onConflictDoNothing();
+    },
+  };
+}

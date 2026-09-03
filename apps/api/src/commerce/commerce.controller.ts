@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 
-import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Inject, Param, Post, Req, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
 import type { CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
@@ -74,10 +74,21 @@ export class CommerceController {
   async webhook(@Headers("x-internal-ingress-secret") ingress: string | undefined, @Headers("x-secret-key") secret: string | undefined, @Req() request: { rawBody?: Buffer }) {
     if (!equal(ingress, this.ingressSecret)) throw new UnauthorizedException({ code: "INGRESS_AUTH_INVALID" });
     const rawBody = request.rawBody?.toString("utf8");
-    if (rawBody === undefined) return { ok: false, error: { code: "SEPAY_RAW_BODY_MISSING" } };
-    return createSePayWebhookService({
+    if (rawBody === undefined) throw new BadRequestException({ code: "SEPAY_RAW_BODY_MISSING" });
+    const result = await createSePayWebhookService({
       secretKey: this.sepaySecret,
       recordPaid: (input) => createDatabaseCommerceRepository(this.database).recordPaid(input),
     }).handle({ rawBody, secretHeader: secret, traceId: "sepay-ipn" });
+    if (result.ok) return { success: true };
+    switch (result.error.code) {
+      case "SEPAY_SIGNATURE_INVALID":
+        throw new UnauthorizedException({ code: result.error.code });
+      case "SEPAY_PAYLOAD_INVALID":
+        throw new BadRequestException({ code: result.error.code });
+      case "ORDER_NOT_FOUND":
+        throw new NotFoundException({ code: result.error.code });
+      default:
+        throw new ConflictException({ code: result.error.code });
+    }
   }
 }

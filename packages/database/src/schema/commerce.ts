@@ -65,8 +65,28 @@ export const reportReservations = pgTable("report_reservations", {
   reportVersionId: uuid("report_version_id").notNull(),
   entitlementId: uuid("entitlement_id").notNull().references(() => commerceEntitlements.id),
   chartVersionId: text("chart_version_id").notNull().references(() => ziweiChartVersions.id),
+  evidenceVersionId: text("evidence_version_id").notNull(),
+  knowledgeVersionId: text("knowledge_version_id").notNull(),
+  promptVersion: text("prompt_version").notNull(),
+  reportConfigVersion: text("report_config_version").notNull(),
+  locale: text("locale").notNull(),
+  sku: text("sku").notNull(),
   status: text("status").notNull().default("requested"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex("report_reservations_entitlement_unique").on(table.entitlementId),
+]);
+
+export const reportQueueJobs = pgTable("report_queue_jobs", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  sourceEventId: text("source_event_id").notNull(),
+  traceId: text("trace_id").notNull(),
+  idempotencyKey: text("idempotency_key").notNull(),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+  status: text("status").notNull().default("waiting"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("report_queue_jobs_source_event_unique").on(table.sourceEventId),
+  uniqueIndex("report_queue_jobs_idempotency_unique").on(table.idempotencyKey),
 ]);

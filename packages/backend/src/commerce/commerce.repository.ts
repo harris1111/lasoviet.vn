@@ -88,7 +88,17 @@ export function createDatabaseCommerceRepository(database: Database) {
             ? { ok: true as const, replayed: true }
             : { ok: false as const, code: "PAYMENT_EVENT_CONFLICT" };
         }
-        if (order.status !== "pending") return { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
+        const [paidOrder] = await transaction.update(commerceOrders)
+          .set({ status: "paid", paidAt: new Date() })
+          .where(and(eq(commerceOrders.id, order.id), eq(commerceOrders.status, "pending")))
+          .returning();
+        if (paidOrder === undefined) {
+          const [replayed] = await transaction.select().from(commercePaymentEvents)
+            .where(eq(commercePaymentEvents.providerEventId, input.providerEventId)).limit(1);
+          return replayed?.orderId === order.id
+            ? { ok: true as const, replayed: true }
+            : { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
+        }
         const [event] = await transaction.insert(commercePaymentEvents).values({
           orderId: order.id, providerEventId: input.providerEventId, amount: input.amount, currency: input.currency, status: "ORDER_PAID",
         }).onConflictDoNothing().returning();
@@ -98,22 +108,33 @@ export function createDatabaseCommerceRepository(database: Database) {
           if (replayed?.orderId === order.id) return { ok: true as const, replayed: true };
           throw new Error("PAYMENT_EVENT_CONFLICT");
         }
-        await transaction.update(commerceOrders).set({ status: "paid", paidAt: new Date() })
-          .where(eq(commerceOrders.id, order.id));
+        const [evidence] = await transaction.select({ id: evidenceSets.id })
+          .from(evidenceSets)
+          .where(and(eq(evidenceSets.chartVersionId, paidOrder.chartVersionId), eq(evidenceSets.capabilityId, "ziwei.identity.p0")))
+          .limit(1);
+        if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
-          orderId: order.id, chartId: order.chartId, sku: order.sku, ownerId: order.ownerId,
+          orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
         const [reservation] = await transaction.insert(reportReservations).values({
-          reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: order.chartVersionId,
+          reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
+          evidenceVersionId: evidence.id, knowledgeVersionId: "ziwei.identity.knowledge.v1",
+          promptVersion: "ziwei.identity.prompt.v1", reportConfigVersion: "ziwei.identity.report.v1",
+          locale: "vi", sku: paidOrder.sku,
         }).returning();
         if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
         await enqueueOutbox(transaction, {
           schemaVersion: 1, type: "report.generation.requested.v1", eventId: randomUUID(),
-          occurredAt: new Date().toISOString(), traceId: input.traceId, actorId: order.ownerId,
-          aggregateType: "order", aggregateId: order.id,
+          occurredAt: new Date().toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
+          aggregateType: "order", aggregateId: paidOrder.id,
           idempotencyKey: `report-request:${reservation.reportVersionId}`,
-          payload: { reportReservationId: reservation.id, reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id, chartVersionId: order.chartVersionId },
+          payload: {
+            reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
+            chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
+            knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
+            reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale, sku: reservation.sku,
+          },
         });
         return { ok: true as const, replayed: false };
       });
