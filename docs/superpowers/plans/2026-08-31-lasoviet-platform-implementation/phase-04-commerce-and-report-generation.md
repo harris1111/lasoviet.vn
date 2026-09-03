@@ -29,16 +29,36 @@ compatible HTTP API.
 - Atomic order/payment-event/entitlement/report-reservation/outbox insertion
   and an outbox lease/dispatch boundary are implemented. Report worker
   consumption remains Task 3.
-- Implementation commit range: `bbc0540..ed05968`. Sol's scoped review of
-  `baf6e2bed9229b28d5e0d5bfdb7b16041536c993..ed0596841682fe54fce1819fba012731ab80dfe8`
-  returned `SAFE_TO_DEPLOY_SANDBOX_SEND_TEST` with no code findings.
+- Test-only correction commit
+  `200b85222a8b6eedb4692a76f31aed27c73bd214` aligned migration `0010`
+  actor/key/fingerprint receipts and fixed the outbox-claim fixture to derive
+  time from persisted `availableAt`, isolate rows, and bind dispatch
+  assertions to the target event. Sol's scoped re-review returned
+  `SAFE_TO_PUSH_AND_RERUN_VPS_GATE` with no open findings.
 - Focused verification passed 52 tests, scoped ESLint, i18n parity, affected
   typechecks and builds, a Next production build, and `git diff --check`.
   The local controller also reran the three changed test files: 13 tests
   passed.
-- Ten PostgreSQL Testcontainers tests could not run on the Windows host because
-  no container runtime is available. Docker VPS verification of those tests is
-  the next deployment gate before sandbox activation.
+- The Docker VPS gate passed: the workspace producer build passed; the focused
+  gate ran four test files with 18 tests and zero failures; and Compose
+  deployment completed with migrations exiting `0`, healthy PostgreSQL, Redis,
+  API, and web services, and a running worker.
+- The deployed database reports 12 applied migrations, the requested
+  commerce/report tables, and both report outbox indexes. Loopback and public
+  HTTPS health checks returned `200`; the sandbox endpoint is deployed.
+- Public synthetic SePay IPN probes returned `401` for a wrong secret and the
+  exact HTTP `200` success acknowledgement for an authenticated non-paid
+  `TRANSACTION_VOID`, without changing commerce aggregate counts. No real
+  order, paid notification, real-money payment, production payment activation,
+  Nginx/DNS change, or credential output occurred.
+- Browser smoke rendered live VI/EN home pages and preserved locale-specific
+  checkout login callbacks. Existing live Playwright specs remain
+  local-runtime-oriented because their locale cookie domain is `127.0.0.1`;
+  direct production execution failed before the tested form flow. This is a
+  harness limitation, not passing evidence or a production defect.
+- The remaining external step is the founder clicking SePay dashboard `Send
+  test`; production payment activation remains a separate founder-controlled
+  gate.
 - Correction pass 1 maps IPN domain failures to bounded non-2xx HTTP outcomes,
   uses a conditional pending-to-paid transition, persists the complete
   report-request payload, and runs the durable queue-job dispatch boundary in

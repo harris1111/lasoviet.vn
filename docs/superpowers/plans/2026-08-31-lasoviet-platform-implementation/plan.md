@@ -36,8 +36,9 @@ workflows, and Phase 05A evidence.
 Provider-independent Phase 05A implementation is authorized from 2026-09-02.
 SePay checkout and webhook contracts are implemented and reviewed complete for
 Tasks 1-2. The first external sandbox test is approved by FD-030; Docker VPS
-verification of the Testcontainers suite is required before sandbox activation,
-and production payment activation remains founder-controlled.
+verification passed and the sandbox endpoint is deployed. The remaining
+external step is the founder clicking SePay dashboard `Send test`; production
+payment activation remains founder-controlled.
 
 ## Global Constraints
 

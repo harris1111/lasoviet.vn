@@ -31,9 +31,12 @@
   center, Phase 05A Operations Dashboard, and Phase 06 paid-release gates
   remain uncompleted unless their task-level records expressly say otherwise.
 - FD-030 approves the first SePay external sandbox test. The Windows host
-  cannot run the ten PostgreSQL Testcontainers tests without a container
-  runtime; Docker VPS verification is the next deployment gate before sandbox
-  activation. Production payment activation remains founder-controlled.
+  cannot run the PostgreSQL Testcontainers suite without a container runtime,
+  but the Docker VPS gate passed on
+  `200b85222a8b6eedb4692a76f31aed27c73bd214` and the sandbox endpoint is
+  deployed. The remaining external step is the founder clicking SePay
+  dashboard `Send test`; production payment activation remains
+  founder-controlled.
 
 ## Verified Corrections
 

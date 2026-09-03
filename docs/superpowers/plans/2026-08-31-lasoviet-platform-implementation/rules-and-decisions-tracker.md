@@ -100,6 +100,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Aggregate admin projection capability enforcement | P05A-T02 twice allowed aggregate data to outlive or bypass active database capability narrowing: first through role-only module visibility, then through unconditional readiness data | Sol required a new projection-boundary cycle with active entry capability selection plus per-field/module query and response gating | Added to `AGENTS.md` under administrative and operational surface safety |
 | Transactional admin command outcome ownership | P05A-T05 repeatedly allowed deterministic post-authentication role-command outcomes to bypass atomic receipt/audit persistence through pre-transaction classification, stale receipt replay, and database-constraint fallthrough | Sol approved authority revalidation before replay plus repository ownership of every deterministic result, with atomic bounded receipt/audit evidence and duplicate-free replay | Added to `AGENTS.md` under administrative and operational surface safety |
 | SePay payment confirmation boundary | Verified SePay contract and Sol review require provider hosts/actions to come from a closed environment enum; hosted return URLs are navigation-only, while only an authenticated provider notification validated against order identity, state, amount, and currency can mutate or confirm payment | Approved combined payment-boundary rule | Added to `AGENTS.md` under repository and operational safety |
+| SePay sandbox VPS gate correction and deployment | Test-only commit `200b852` aligned migration `0010` command receipts and made the outbox fixture use persisted runtime time with row/event isolation; VPS verification then passed focused tests, Compose deployment, structural database checks, health checks, synthetic non-paid IPN probes, and browser callback smoke | Existing workspace producer build-order, runtime-clock fixture, and payment-boundary rules cover the issues | No `AGENTS.md` change; FD-030 already authorizes the first external sandbox test |
 
 ## Per-Task Rule Check
 
@@ -119,6 +120,34 @@ and task history remain in plans/reports, not `AGENTS.md`.
 
 Open founder decisions are tracked in `open-decisions.md`. Package approval
 does not silently close them.
+
+## FD-030 Sandbox Deployment Evidence
+
+Date: 2026-09-03
+
+- Branch `feature/paid-flow-admin-operations` deployed at
+  `200b85222a8b6eedb4692a76f31aed27c73bd214` after Sol's scoped re-review
+  verdict `SAFE_TO_PUSH_AND_RERUN_VPS_GATE` with no open findings.
+- The verified PostgreSQL pre-deploy backup existed before deployment. The
+  workspace producer build passed; the focused Docker VPS gate passed four
+  files, 18 tests, and zero failures.
+- Compose deployment succeeded: migration exited `0`; PostgreSQL, Redis, API,
+  and web were healthy; and the worker was running. The database reported 12
+  applied migrations, requested commerce/report tables, and both report
+  outbox indexes. Loopback and public HTTPS health returned `200`.
+- Public synthetic IPN probes rejected a wrong secret with `401` and
+  acknowledged an authenticated non-paid `TRANSACTION_VOID` with exact HTTP
+  `200` success without changing commerce order, payment, entitlement, or
+  reservation aggregate counts.
+- Browser smoke rendered live VI/EN home pages and kept EN and VI checkout
+  login callbacks locale-correct. Production Playwright was not a pass: the
+  existing specs set their locale cookie for `127.0.0.1` and failed before the
+  exercised form flow. This is a local-runtime harness limitation, not a
+  production defect; no scope expansion is authorized.
+- No real order, paid notification, real-money payment, production payment
+  activation, Nginx/DNS change, or credential output occurred. The sandbox
+  endpoint is deployed. The founder's SePay dashboard `Send test` remains the
+  external step authorized by FD-030; production activation remains separate.
 
 ## P04 AI Execution Design
 
