@@ -519,6 +519,18 @@ builds and web typecheck passed. The migration integration test is
 host-blocked because Testcontainers cannot find a container runtime; Task 5
 remains in progress pending Sol review.
 
+**Correction pass 1/2 evidence (2026-09-03):** Role mutation now acquires
+stable actor/target transaction locks, revalidates the actor's verified active
+`super_admin` assignment and active `admin.roles.manage` policy inside the
+mutation transaction, and checks the idempotency receipt after locking.
+Historical assignment versions are monotonic and unique per account. Success
+persists receipt plus authorization/result audits atomically with a policy
+reference; replays append no duplicate success evidence. Focused correction
+coverage passed 26 tests, producer builds and web typecheck passed, the
+fixture-gated Playwright test retained its approved skip, and `git diff
+--check` passed. The container-backed migration test remains host-blocked.
+Task 5 remains in progress pending Sol re-review.
+
 ### Task 6 [P05A-T06]: Prove production-like operational incident workflows and release evidence
 
 **Files:**

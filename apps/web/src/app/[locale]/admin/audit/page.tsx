@@ -29,8 +29,11 @@ export default async function AdminAuditPage(props: {
       notFound();
     }
   }
+  let capabilities: string[];
   try {
-    await privateApiClient(actor, actor.requestId).request<{ role: string }>("/admin/access");
+    const access = await privateApiClient(actor, actor.requestId)
+      .request<{ role: string; capabilities: string[] }>("/admin/access");
+    capabilities = access.capabilities;
   } catch {
     notFound();
   }
@@ -50,6 +53,7 @@ export default async function AdminAuditPage(props: {
     h("header", { className: "admin-overview-header" },
       h("div", null, h("p", { className: "eyebrow" }, "Private operations"),
         h("h1", null, "Audit inspection"))),
-    h(RoleAssignmentForm),
-    h(AuditLogTable, { page, filters: filters.data }));
+    capabilities.includes("admin.roles.manage") ? h(RoleAssignmentForm) : null,
+    page === undefined ? h("p", { role: "alert" }, "Audit records are unavailable.")
+      : h(AuditLogTable, { page, filters: filters.data }));
 }

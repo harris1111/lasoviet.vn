@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import {
   Body,
+  BadRequestException,
   Controller,
   Get,
   Headers,
@@ -108,7 +109,7 @@ export class AdminRoleAuditController {
         redactionLevel: "redacted",
         resultSummary: { outcome: "denied", code: result.error.code },
       });
-      throw new NotFoundException();
+      throw new BadRequestException({ code: result.error.code });
     }
     return result.value;
   }
@@ -144,7 +145,7 @@ export class AdminRoleAuditController {
         redactionLevel: "redacted",
         resultSummary: { outcome: "denied", code: result.error.code },
       });
-      throw new NotFoundException();
+      throw new BadRequestException({ code: result.error.code });
     }
     return result.value;
   }
@@ -172,7 +173,7 @@ export class AdminRoleAuditController {
         redactionLevel: "redacted",
         resultSummary: { outcome: "denied", code: result.error.code },
       });
-      throw new NotFoundException();
+      throw new BadRequestException({ code: result.error.code });
     }
     await this.audit.appendAdminAudit({
       actorId: context.access.actorId,

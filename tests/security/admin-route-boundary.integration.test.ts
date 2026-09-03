@@ -108,7 +108,10 @@ describe("admin route boundary", () => {
     );
 
     await expect(controller.access("Bearer admin-1"))
-      .resolves.toEqual({ role: "read_only" });
+      .resolves.toMatchObject({
+        role: "read_only",
+        capabilities: expect.arrayContaining(["admin.audit.read"]),
+      });
     await expect(controller.access(undefined)).rejects.toMatchObject({ status: 404 });
     expect(appendAdminAudit).toHaveBeenCalledTimes(2);
     expect(appendAdminAudit).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -128,7 +131,7 @@ describe("admin route boundary", () => {
     );
 
     await expect(controller.access("Bearer support-1"))
-      .resolves.toEqual({ role: "support" });
+      .resolves.toMatchObject({ role: "support" });
     expect(appendAdminAudit).toHaveBeenCalledWith(expect.objectContaining({
       capability: "admin.accounts.read",
       policyResult: "allowed",

@@ -36,6 +36,10 @@ export const adminRoleAssignments = pgTable(
     uniqueIndex("admin_role_assignments_one_active_unique")
       .on(table.userId)
       .where(sql`${table.revokedAt} IS NULL`),
+    uniqueIndex("admin_role_assignments_user_version_unique").on(
+      table.userId,
+      table.assignmentVersion,
+    ),
   ],
 );
 
@@ -93,6 +97,10 @@ export const adminAuditLogs = pgTable(
       () => adminRoleAssignments.id,
       { onDelete: "restrict" },
     ),
+    capabilityPolicyId: text("capability_policy_id").references(
+      () => adminCapabilityPolicies.id,
+      { onDelete: "restrict" },
+    ),
     capability: text("capability").notNull(),
     operation: text("operation").notNull(),
     targetType: text("target_type").notNull(),
@@ -115,5 +123,8 @@ export const adminAuditLogs = pgTable(
     index("admin_audit_logs_actor_idx").on(table.actorId),
     index("admin_audit_logs_target_idx").on(table.targetType, table.targetId),
     index("admin_audit_logs_trace_idx").on(table.traceId),
+    index("admin_audit_logs_created_id_idx").on(table.createdAt, table.id),
+    index("admin_audit_logs_operation_idx").on(table.operation),
+    index("admin_audit_logs_result_idx").on(table.policyResult),
   ],
 );

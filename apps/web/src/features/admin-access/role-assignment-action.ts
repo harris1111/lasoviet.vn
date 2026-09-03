@@ -13,16 +13,16 @@ import { resolveVerifiedAccountActor } from "../../auth/resolve-current-actor";
 export async function submitRoleAssignment(formData: FormData): Promise<void> {
   const actor = await resolveVerifiedAccountActor();
   const operation = formData.get("operation");
-  const payload = {
-    subjectAccountId: String(formData.get("subjectAccountId") ?? ""),
-    assignmentId: String(formData.get("assignmentId") ?? ""),
-    role: formData.get("role"),
+  const shared = {
     expectedVersion: Number(formData.get("expectedVersion")),
     idempotencyKey: String(formData.get("idempotencyKey") || randomUUID()),
     reasonCode: formData.get("reasonCode"),
   };
   if (operation === "revoke") {
-    const body = RevokeAdminRoleV1Schema.safeParse(payload);
+    const body = RevokeAdminRoleV1Schema.safeParse({
+      assignmentId: String(formData.get("assignmentId") ?? ""),
+      ...shared,
+    });
     if (!body.success) throw new Error("ROLE_ASSIGNMENT_INVALID");
     await privateApiClient(actor, actor.requestId).request(
       `/admin/roles/${encodeURIComponent(body.data.assignmentId)}/revoke`,
@@ -30,7 +30,11 @@ export async function submitRoleAssignment(formData: FormData): Promise<void> {
     );
     return;
   }
-  const body = AssignAdminRoleV1Schema.safeParse(payload);
+  const body = AssignAdminRoleV1Schema.safeParse({
+    subjectAccountId: String(formData.get("subjectAccountId") ?? ""),
+    role: formData.get("role"),
+    ...shared,
+  });
   if (!body.success) throw new Error("ROLE_ASSIGNMENT_INVALID");
   await privateApiClient(actor, actor.requestId).request("/admin/roles", {
     method: "POST",

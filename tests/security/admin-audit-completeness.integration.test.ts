@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
+import {
+  parseAdminAuditSearchFiltersV1,
+} from "@lasoviet/contracts";
 import { createAuditQueryService } from "../../packages/backend/src/admin-access/audit-query.service.js";
 
 describe("admin audit completeness", () => {
@@ -76,5 +79,25 @@ describe("admin audit completeness", () => {
       ok: false,
       error: { code: "ADMIN_FORBIDDEN" },
     });
+  });
+
+  it("omits empty filters, normalizes local datetimes, and rejects inverted ranges", () => {
+    expect(parseAdminAuditSearchFiltersV1({
+      actorId: "",
+      dateFrom: "2026-09-03T09:30",
+      dateTo: "",
+      pageSize: "25",
+    })).toMatchObject({
+      success: true,
+      data: {
+        page: 1,
+        pageSize: 25,
+        dateFrom: "2026-09-03T09:30:00.000Z",
+      },
+    });
+    expect(parseAdminAuditSearchFiltersV1({
+      dateFrom: "2026-09-03T10:00",
+      dateTo: "2026-09-03T09:00",
+    })).toMatchObject({ success: false });
   });
 });

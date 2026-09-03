@@ -64,6 +64,13 @@
       "when": 1788401213389,
       "tag": "0008_admin_role_mutation_idempotency",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788402819695,
+      "tag": "0009_admin_audit_history_hardening",
+      "breakpoints": true
     }
   ]
 }

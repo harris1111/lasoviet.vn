@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lte } from "drizzle-orm";
+import { and, count, desc, eq, gte, lt, lte, or } from "drizzle-orm";
 
 import type {
   AdminAuditPageV1,
@@ -21,18 +21,31 @@ export function createDatabaseAuditQueryRepository(database: Database): AuditQue
         filters.traceId === undefined ? undefined : eq(adminAuditLogs.traceId, filters.traceId),
         filters.result === undefined ? undefined : eq(adminAuditLogs.policyResult, filters.result),
       ].filter((condition): condition is NonNullable<typeof condition> => condition !== undefined);
+      const cursor = filters.cursor?.split("|");
+      if (cursor?.length === 2) {
+        const createdAt = new Date(cursor[0]!);
+        if (!Number.isNaN(createdAt.getTime())) {
+          const afterCursor = or(
+            lt(adminAuditLogs.createdAt, createdAt),
+            and(eq(adminAuditLogs.createdAt, createdAt), lt(adminAuditLogs.id, cursor[1]!)),
+          );
+          if (afterCursor !== undefined) conditions.push(afterCursor);
+        }
+      }
       const where = conditions.length === 0 ? undefined : and(...conditions);
       const rows = await database.select().from(adminAuditLogs).where(where)
         .orderBy(desc(adminAuditLogs.createdAt), desc(adminAuditLogs.id))
-        .limit(filters.pageSize)
-        .offset((filters.page - 1) * filters.pageSize);
+        .limit(filters.pageSize + 1);
       const [{ total } = { total: 0 }] = await database
         .select({ total: count() }).from(adminAuditLogs).where(where);
       return {
         page: filters.page,
         pageSize: filters.pageSize,
         total: Number(total),
-        items: rows.map((row) => ({
+        nextCursor: rows.length > filters.pageSize
+          ? `${rows[filters.pageSize - 1]!.createdAt.toISOString()}|${rows[filters.pageSize - 1]!.id}`
+          : null,
+        items: rows.slice(0, filters.pageSize).map((row) => ({
           id: row.id,
           actorId: row.actorId,
           roleAssignmentId: row.roleAssignmentId,

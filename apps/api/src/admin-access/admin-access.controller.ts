@@ -134,7 +134,7 @@ export class AdminAccessController {
       redactionLevel: "redacted",
       resultSummary: { role: access.value.role, outcome: "allowed" },
     });
-    return { role: access.value.role };
+    return { role: access.value.role, capabilities: access.value.capabilities };
   }
 
   @Post("access/preflight-denial")

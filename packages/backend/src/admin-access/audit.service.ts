@@ -8,6 +8,7 @@ import { adminAuditLogs, type Database } from "@lasoviet/database";
 export type AdminAuditEntry = {
   actorId: string | null;
   roleAssignmentId: string | null;
+  capabilityPolicyId?: string | null;
   capability: AdminCapability;
   operation: string;
   target: AdminAuditTarget;
@@ -85,6 +86,7 @@ export function createDatabaseAdminAuditRepository(
       const [created] = await database.insert(adminAuditLogs).values({
         actorId: entry.actorId,
         roleAssignmentId: entry.roleAssignmentId,
+        capabilityPolicyId: entry.capabilityPolicyId ?? null,
         capability: entry.capability,
         operation: entry.operation,
         targetType: entry.target.type,

@@ -25,7 +25,7 @@ export type RoleAssignmentRepository = {
     assignmentId: string;
     version: number;
     replayed: boolean;
-  }, "ROLE_ASSIGNMENT_CONFLICT">>;
+  }, "ROLE_ASSIGNMENT_FORBIDDEN" | "ROLE_ASSIGNMENT_CONFLICT">>;
 };
 
 function failure(code: RoleAssignmentError): Result<never, RoleAssignmentError> {
