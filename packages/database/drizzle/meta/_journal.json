@@ -50,6 +50,13 @@
       "when": 1788369077145,
       "tag": "0006_admin_access_controls",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788393680802,
+      "tag": "0007_admin_access_policy_corrections",
+      "breakpoints": true
     }
   ]
 }

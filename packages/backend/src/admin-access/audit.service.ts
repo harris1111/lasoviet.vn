@@ -1,9 +1,13 @@
-import type { AdminAuditTarget, AdminCapability } from "@lasoviet/contracts";
+import {
+  AdminRoleSchema,
+  type AdminAuditTarget,
+  type AdminCapability,
+} from "@lasoviet/contracts";
 import { adminAuditLogs, type Database } from "@lasoviet/database";
 
 export type AdminAuditEntry = {
-  actorId: string;
-  roleAssignmentId: string;
+  actorId: string | null;
+  roleAssignmentId: string | null;
   capability: AdminCapability;
   operation: string;
   target: AdminAuditTarget;
@@ -22,16 +26,30 @@ export type AdminAuditRepository = {
   append(entry: AdminAuditEntry): Promise<string>;
 };
 
-const sensitiveKey = /email|full.?name|token|secret|password|signed.?url|report.?body|raw.?payload|birth.?profile|chart.?payload|provider.?error/i;
+const policyCodes = new Set([
+  "ADMIN_AUTH_REQUIRED",
+  "ADMIN_FORBIDDEN",
+  "ROLE_ASSIGNMENT_INACTIVE",
+]);
 
-function redact(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(redact);
-  if (value === null || typeof value !== "object") return value;
-  return Object.fromEntries(
-    Object.entries(value).flatMap(([key, child]) =>
-      sensitiveKey.test(key) ? [] : [[key, redact(child)]],
-    ),
-  );
+function redact(value: Record<string, unknown>): Record<string, unknown> {
+  const summary: Record<string, unknown> = {};
+  if (AdminRoleSchema.safeParse(value.role).success) summary.role = value.role;
+  if (value.outcome === "allowed" || value.outcome === "denied") {
+    summary.outcome = value.outcome;
+  }
+  if (typeof value.code === "string" && policyCodes.has(value.code)) {
+    summary.code = value.code;
+  }
+  if (
+    typeof value.count === "number" &&
+    Number.isInteger(value.count) &&
+    value.count >= 0 &&
+    value.count <= 100_000
+  ) {
+    summary.count = value.count;
+  }
+  return summary;
 }
 
 export function createAdminAuditService(options: { repository: AdminAuditRepository }) {
@@ -39,7 +57,7 @@ export function createAdminAuditService(options: { repository: AdminAuditReposit
     appendAdminAudit(entry: AdminAuditEntry): Promise<string> {
       return options.repository.append({
         ...entry,
-        resultSummary: redact(entry.resultSummary) as Record<string, unknown>,
+        resultSummary: redact(entry.resultSummary),
       });
     },
   };

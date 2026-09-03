@@ -1,5 +1,5 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -21,6 +21,7 @@ import { enqueueOutbox, outbox } from "./outbox.js";
 import { auditLogs } from "./audit.js";
 import {
   adminAuditLogs,
+  adminCapabilityPolicies,
   adminRoleAssignments,
 } from "./admin-access.js";
 import { runMigrations } from "../migrate.js";
@@ -212,6 +213,25 @@ describe("database schema integration", () => {
       userId,
       role: "read_only",
     });
+    await expect(
+      database.insert(adminRoleAssignments).values({
+        id: "admin_assignment_duplicate",
+        userId,
+        role: "operations",
+      }),
+    ).rejects.toBeDefined();
+    expect(
+      await database
+        .select({ capability: adminCapabilityPolicies.capability })
+        .from(adminCapabilityPolicies)
+        .where(eq(adminCapabilityPolicies.role, "read_only"))
+        .orderBy(asc(adminCapabilityPolicies.capability)),
+    ).toEqual([
+      { capability: "admin.audit.read" },
+      { capability: "admin.overview.read" },
+      { capability: "admin.readiness.read" },
+      { capability: "admin.reports.read" },
+    ]);
     const [adminAudit] = await database
       .insert(adminAuditLogs)
       .values({
@@ -237,6 +257,21 @@ describe("database schema integration", () => {
     await expect(
       database.delete(adminAuditLogs).where(eq(adminAuditLogs.id, adminAudit!.id)),
     ).rejects.toBeDefined();
+    await expect(
+      database.insert(adminAuditLogs).values({
+        actorId: null,
+        roleAssignmentId: null,
+        capability: "admin.overview.read",
+        operation: "admin.access.read",
+        targetType: "admin_overview",
+        targetId: "overview",
+        requestId: "admin-denied-request",
+        traceId: "admin-denied-trace",
+        policyResult: "denied",
+        redactionLevel: "redacted",
+        resultSummary: { outcome: "denied" },
+      }),
+    ).resolves.toBeDefined();
     const [notification] = await database
       .insert(notificationDeliveries)
       .values({

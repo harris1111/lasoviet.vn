@@ -1,4 +1,6 @@
+import { sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -31,7 +33,9 @@ export const adminRoleAssignments = pgTable(
   },
   (table) => [
     index("admin_role_assignments_user_idx").on(table.userId),
-    index("admin_role_assignments_active_idx").on(table.userId, table.revokedAt),
+    uniqueIndex("admin_role_assignments_one_active_unique")
+      .on(table.userId)
+      .where(sql`${table.revokedAt} IS NULL`),
   ],
 );
 
@@ -41,7 +45,7 @@ export const adminCapabilityPolicies = pgTable(
     id: text("id").primaryKey(),
     role: text("role").notNull(),
     capability: text("capability").notNull(),
-    active: integer("active").notNull().default(1),
+    active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
       .notNull()
       .defaultNow(),
@@ -58,12 +62,13 @@ export const adminAuditLogs = pgTable(
   "admin_audit_logs",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    actorId: text("actor_id")
-      .notNull()
-      .references(() => authUsers.id, { onDelete: "restrict" }),
-    roleAssignmentId: text("role_assignment_id")
-      .notNull()
-      .references(() => adminRoleAssignments.id, { onDelete: "restrict" }),
+    actorId: text("actor_id").references(() => authUsers.id, {
+      onDelete: "restrict",
+    }),
+    roleAssignmentId: text("role_assignment_id").references(
+      () => adminRoleAssignments.id,
+      { onDelete: "restrict" },
+    ),
     capability: text("capability").notNull(),
     operation: text("operation").notNull(),
     targetType: text("target_type").notNull(),

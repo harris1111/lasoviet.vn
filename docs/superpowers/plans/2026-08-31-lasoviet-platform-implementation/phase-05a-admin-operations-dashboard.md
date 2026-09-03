@@ -133,8 +133,7 @@ capability matrix, redacted append-only audit storage, and the first
 server-authorized `/admin` route. The private route is `live_noindex`, absent
 from public navigation and every sitemap. Focused checks passed 11 tests,
 database migration integration passed 5 tests, and the final full suite passed
-280 tests. See
-`.superpowers/sdd/phase-05a-admin-operations-dashboard/task-1-report.md`.
+280 tests.
 
 ### Task 2 [P05A-T02]: Add redacted operational projections and overview health
 

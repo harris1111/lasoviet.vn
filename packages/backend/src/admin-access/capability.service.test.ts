@@ -34,8 +34,6 @@ const roleExpectations = {
   ],
   read_only: [
     "admin.overview.read",
-    "admin.accounts.read",
-    "admin.commerce.read",
     "admin.reports.read",
     "admin.audit.read",
     "admin.readiness.read",
@@ -54,6 +52,7 @@ describe("admin access service", () => {
               id: "assignment-1",
               role: role as keyof typeof roleExpectations,
               revokedAt: null,
+              capabilities,
             },
           }),
         },
@@ -90,6 +89,7 @@ describe("admin access service", () => {
               id: "revoked-assignment",
               role: "read_only",
               revokedAt: new Date("2026-09-02T00:00:00Z"),
+              capabilities: [],
             },
           };
         },
@@ -133,6 +133,40 @@ describe("admin access service", () => {
       service.authorizeAdminRead(access, "admin.support.manage", {
         type: "support_case",
         id: "case-1",
+      }),
+    ).toMatchObject({ ok: false, error: { code: "ADMIN_FORBIDDEN" } });
+  });
+
+  it("narrows access when database policy rows are disabled or missing", async () => {
+    const service = createAdminAccessService({
+      repository: {
+        findAccountAccess: async () => ({
+          emailVerified: true,
+          assignment: {
+            id: "assignment-1",
+            role: "read_only",
+            revokedAt: null,
+            capabilities: ["admin.overview.read"],
+          },
+        }),
+      },
+    });
+
+    const resolved = await service.resolveAdminAccess(account);
+    expect(resolved).toEqual({
+      ok: true,
+      value: {
+        actorId: account.userId,
+        roleAssignmentId: "assignment-1",
+        role: "read_only",
+        capabilities: ["admin.overview.read"],
+      },
+    });
+    if (!resolved.ok) throw new Error("Expected access");
+    expect(
+      service.authorizeAdminRead(resolved.value, "admin.audit.read", {
+        type: "admin_audit",
+        id: "audit-1",
       }),
     ).toMatchObject({ ok: false, error: { code: "ADMIN_FORBIDDEN" } });
   });

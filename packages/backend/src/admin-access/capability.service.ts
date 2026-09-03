@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import type {
   AdminAccessV1,
@@ -9,6 +9,11 @@ import type {
   Result,
 } from "@lasoviet/contracts";
 import {
+  AdminCapabilitySchema,
+  AdminRoleSchema,
+} from "@lasoviet/contracts";
+import {
+  adminCapabilityPolicies,
   adminRoleAssignments,
   authUsers,
   type Database,
@@ -25,32 +30,12 @@ type AccountAccess = {
     id: string;
     role: AdminRole;
     revokedAt: Date | null;
+    capabilities: readonly AdminCapability[];
   };
 };
 
 export type AdminAccessRepository = {
   findAccountAccess(userId: string): Promise<AccountAccess | null>;
-};
-
-const capabilityPolicy: Record<AdminRole, readonly AdminCapability[]> = {
-  super_admin: [
-    "admin.roles.manage", "admin.overview.read", "admin.accounts.read",
-    "admin.commerce.read", "admin.support.manage", "admin.reports.read",
-    "admin.reports.regenerate", "admin.workflow.retry", "admin.storage.reconcile",
-    "admin.privacy.manage", "admin.audit.read", "admin.readiness.read",
-  ],
-  operations: [
-    "admin.overview.read", "admin.accounts.read", "admin.reports.read",
-    "admin.workflow.retry", "admin.storage.reconcile", "admin.readiness.read",
-  ],
-  support: [
-    "admin.accounts.read", "admin.commerce.read", "admin.support.manage",
-    "admin.reports.read", "admin.reports.regenerate", "admin.privacy.manage",
-  ],
-  read_only: [
-    "admin.overview.read", "admin.accounts.read", "admin.commerce.read",
-    "admin.reports.read", "admin.audit.read", "admin.readiness.read",
-  ],
 };
 
 function failure(code: AdminAccessError): Result<never, AdminAccessError> {
@@ -93,7 +78,7 @@ export function createAdminAccessService(options: {
           actorId: actor.userId,
           roleAssignmentId: account.assignment.id,
           role: account.assignment.role,
-          capabilities: [...capabilityPolicy[account.assignment.role]],
+          capabilities: [...account.assignment.capabilities],
         },
       };
     },
@@ -116,32 +101,73 @@ export function createDatabaseAdminAccessRepository(
   return {
     async findAccountAccess(userId) {
       const [account] = await database
+        .select({ emailVerified: authUsers.emailVerified })
+        .from(authUsers)
+        .where(eq(authUsers.id, userId))
+        .limit(1);
+      if (account === undefined) return null;
+      const [activeAssignment] = await database
         .select({
-          emailVerified: authUsers.emailVerified,
-          assignmentId: adminRoleAssignments.id,
+          id: adminRoleAssignments.id,
           role: adminRoleAssignments.role,
           revokedAt: adminRoleAssignments.revokedAt,
         })
-        .from(authUsers)
-        .leftJoin(
-          adminRoleAssignments,
-          eq(adminRoleAssignments.userId, authUsers.id),
-        )
-        .where(eq(authUsers.id, userId))
-        .orderBy(desc(adminRoleAssignments.assignedAt))
+        .from(adminRoleAssignments)
+        .where(and(
+          eq(adminRoleAssignments.userId, userId),
+          isNull(adminRoleAssignments.revokedAt),
+        ))
         .limit(1);
-      if (account === undefined) return null;
-      if (account.assignmentId === null || account.role === null) {
+      if (activeAssignment === undefined) {
+        const [revokedAssignment] = await database
+          .select({
+            id: adminRoleAssignments.id,
+            role: adminRoleAssignments.role,
+            revokedAt: adminRoleAssignments.revokedAt,
+          })
+          .from(adminRoleAssignments)
+          .where(eq(adminRoleAssignments.userId, userId))
+          .orderBy(desc(adminRoleAssignments.revokedAt), desc(adminRoleAssignments.assignedAt))
+          .limit(1);
+        if (revokedAssignment === undefined) {
+          return { emailVerified: account.emailVerified };
+        }
+        const role = AdminRoleSchema.safeParse(revokedAssignment.role);
+        if (!role.success || revokedAssignment.revokedAt === null) {
+          return { emailVerified: account.emailVerified };
+        }
+        return {
+          emailVerified: account.emailVerified,
+          assignment: {
+            id: revokedAssignment.id,
+            role: role.data,
+            revokedAt: revokedAssignment.revokedAt,
+            capabilities: [],
+          },
+        };
+      }
+      const role = AdminRoleSchema.safeParse(activeAssignment.role);
+      if (!role.success) {
         return { emailVerified: account.emailVerified };
       }
-      const parsedRole = capabilityPolicy[account.role as AdminRole];
-      if (parsedRole === undefined) return { emailVerified: account.emailVerified };
+      const policyRows = await database
+        .select({ capability: adminCapabilityPolicies.capability })
+        .from(adminCapabilityPolicies)
+        .where(and(
+          eq(adminCapabilityPolicies.role, role.data),
+          eq(adminCapabilityPolicies.active, true),
+        ));
+      const capabilities = policyRows.flatMap(({ capability }) => {
+        const parsed = AdminCapabilitySchema.safeParse(capability);
+        return parsed.success ? [parsed.data] : [];
+      });
       return {
         emailVerified: account.emailVerified,
         assignment: {
-          id: account.assignmentId,
-          role: account.role as AdminRole,
-          revokedAt: account.revokedAt,
+          id: activeAssignment.id,
+          role: role.data,
+          revokedAt: null,
+          capabilities,
         },
       };
     },
