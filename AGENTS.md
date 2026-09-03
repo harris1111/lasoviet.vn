@@ -333,9 +333,15 @@ rule instead of adding another version.
   associated source query and omit its data; hiding navigation, a module row,
   or a label is not authorization. State-changing operations require an actor,
   reason code, request/trace ID, idempotency key, expected version where
-  applicable, and an append-only audit record; they call policy-checked domain
-  services and use compensating versions/events plus the outbox rather than
-  direct table edits, immutable-record mutation, or BullMQ requeue.
+  applicable, and an append-only audit record. After trusted authentication,
+  the transactional command repository must revalidate active authority before
+  receipt replay or outcome classification and must own every deterministic
+  command result. Persist the bounded result receipt and required audit
+  evidence atomically; matching retries replay without duplicate audits, and
+  expected domain conflicts must be classified before they can fall through to
+  storage constraint errors. State-changing operations call policy-checked
+  domain services and use compensating versions/events plus the outbox rather
+  than direct table edits, immutable-record mutation, or BullMQ requeue.
 - Do not run destructive filesystem or Git operations without explicit founder
   approval.
 - Do not deploy, push production configuration, modify DNS, change payment

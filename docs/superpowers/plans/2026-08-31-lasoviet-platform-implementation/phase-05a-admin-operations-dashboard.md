@@ -497,7 +497,7 @@ Run:
 
 Expected: PASS with complete, append-only audit coverage.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add packages/backend/src/admin-access apps/api/src/admin-access apps/web/src/features/admin-access apps/web/src/app tests/security tests/e2e docs/superpowers/plans
@@ -570,7 +570,16 @@ replay without duplicate audit. The new PostgreSQL test loaded as part of the
 real Testcontainers suite, but its RED and post-change execution remain
 host-blocked because no working container runtime is available. Four focused
 non-container tests passed 11 tests, database/backend builds passed, and
-`git diff --check` passed. Task 5 remains in progress pending Sol re-review.
+`git diff --check` passed.
+
+**Closure (2026-09-03):** Sol approved Replan Cycle 1 after both correction
+passes with no remaining Critical or Important findings. The committed
+PostgreSQL-backed suite exercises the production repository for history,
+active-row integrity, deterministic conflicts, replay, stale authority,
+atomic audit/receipt persistence, and rollback injection. Runtime execution
+remains host-blocked by the unavailable container engine and is classified as
+environment evidence only. The transactional admin-command outcome rule was
+distilled into `AGENTS.md` and the rules tracker. Task 5 is complete.
 
 ### Task 6 [P05A-T06]: Prove production-like operational incident workflows and release evidence
 
