@@ -60,14 +60,18 @@
   <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
     <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
       <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
-      <nav style="display:flex;gap:32px;font-size:15px" class="ls-nav-links">
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap" class="ls-nav-links">
         <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
-        <a href="/tu-vi" style="color:var(--gold-400);text-decoration:none;border-bottom:1px solid var(--gold-500);padding-bottom:2px">Lập lá số</a>
-        <a href="/luan-giai-mau" style="color:var(--text-body);text-decoration:none">Luận giải mẫu</a>
+        <a href="/tu-vi" style="color:var(--gold-400);text-decoration:none;border-bottom:1px solid var(--gold-500);padding-bottom:2px">Tử Vi</a>
+        <a href="/bat-tu" style="color:var(--text-body);text-decoration:none">Bát Tự</a>
+        <a href="/kinh-dich" style="color:var(--text-body);text-decoration:none">Kinh Dịch</a>
+        <a href="/chiem-tinh" style="color:var(--text-body);text-decoration:none">Chiêm Tinh</a>
+        <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
         <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
-        <a href="/ve-chung-toi" style="color:var(--text-body);text-decoration:none">Về chúng tôi</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
       </nav>
       <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
         <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="#form">Lập lá số ngay</x-import>
         <button type="button" aria-label="Mở menu" onClick="{{ toggleNav }}" style="display:none;background:none;border:none;color:var(--text-heading);cursor:pointer;padding:8px;min-height:44px;min-width:44px" class="ls-nav-toggle">
           <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="menu" size="24"></x-import>
