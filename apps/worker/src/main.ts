@@ -1,12 +1,12 @@
 import "reflect-metadata";
 
 import { NestFactory } from "@nestjs/core";
-import { createOutboxDispatchSchedule, resolveWorkerQueues } from "@lasoviet/backend";
+import { resolveWorkerQueues } from "@lasoviet/backend";
 
 import { WorkerModule } from "./worker.module.js";
 import { createMaintenanceRunner, createOutboxDispatchRunner } from "./worker.module.js";
 import { createReportGenerateRunner } from "./worker.module.js";
-import { writeWorkerHeartbeat } from "./health/worker-heartbeat.js";
+import { executeWorkerPollingCycle, writeWorkerHeartbeat } from "./health/worker-heartbeat.js";
 
 async function bootstrap(): Promise<void> {
   await NestFactory.createApplicationContext(WorkerModule);
@@ -17,35 +17,35 @@ async function bootstrap(): Promise<void> {
   const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);
   const configuredQueues = queuesResult.ok ? queuesResult.value : [];
 
-  const updateHeartbeat = async () => {
-    try {
-      await writeWorkerHeartbeat({ queues: configuredQueues });
-    } catch (error) {
-      console.error("WORKER_HEARTBEAT_WRITE_FAILED", error);
-    }
-  };
-
-  const reportSchedule = createOutboxDispatchSchedule({
-    runOnce: () => reportRunner.runOnce(),
-    reportError(error) {
-      console.error("REPORT_GENERATE_RUNNER_FAILED", error);
-    },
-  });
-
-  const outboxSchedule = createOutboxDispatchSchedule({
-    runOnce: () => outbox.runOnce(),
-    reportError(error) {
-      console.error("OUTBOX_DISPATCH_FAILED", error);
-    },
-  });
   const runMaintenance = () =>
     maintenance.runOnce().catch((error: unknown) => {
       console.error("PHASE_ONE_MAINTENANCE_FAILED", error);
     });
 
-  const runQueueCycle = async () => {
-    await Promise.all([outboxSchedule.run(), reportSchedule.run()]);
-    await updateHeartbeat();
+  let activeCycle: Promise<void> | undefined;
+  const runQueueCycle = (): Promise<void> => {
+    if (activeCycle !== undefined) return activeCycle;
+
+    activeCycle = executeWorkerPollingCycle({
+      runOutbox: () => outbox.runOnce(),
+      runReport: () => reportRunner.runOnce(),
+      writeHeartbeat: () => writeWorkerHeartbeat({ queues: configuredQueues }),
+      onOutboxError(error) {
+        console.error("OUTBOX_DISPATCH_FAILED", error);
+      },
+      onReportError(error) {
+        console.error("REPORT_GENERATE_RUNNER_FAILED", error);
+      },
+    })
+      .catch((error: unknown) => {
+        console.error("WORKER_HEARTBEAT_WRITE_FAILED", error);
+      })
+      .then(() => undefined)
+      .finally(() => {
+        activeCycle = undefined;
+      });
+
+    return activeCycle;
   };
 
   await runMaintenance();

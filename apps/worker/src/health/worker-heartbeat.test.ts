@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_WORKER_HEARTBEAT_PATH,
   validateWorkerHealth,
+  executeWorkerPollingCycle,
   writeWorkerHeartbeat,
   type WorkerHeartbeatV1,
 } from "./worker-heartbeat.js";
@@ -312,5 +313,85 @@ describe("worker heartbeat and progress probe", () => {
       ok: false,
       code: "WORKER_REDIS_UNREACHABLE",
     });
+  });
+  it("does not write heartbeat when one poll fails", async () => {
+    let heartbeatWritten = false;
+    let outboxError: unknown;
+    let reportError: unknown;
+
+    const result = await executeWorkerPollingCycle({
+      runOutbox: async () => {
+        throw new Error("outbox failed");
+      },
+      runReport: async () => ({ processed: 1 }),
+      writeHeartbeat: async () => {
+        heartbeatWritten = true;
+      },
+      onOutboxError: (err) => {
+        outboxError = err;
+      },
+      onReportError: (err) => {
+        reportError = err;
+      },
+    });
+
+    expect(result).toBe(false);
+    expect(heartbeatWritten).toBe(false);
+    expect(outboxError).toBeInstanceOf(Error);
+    expect(reportError).toBeUndefined();
+  });
+
+  it("does not write heartbeat when both polls fail", async () => {
+    let heartbeatWritten = false;
+    let outboxError: unknown;
+    let reportError: unknown;
+
+    const result = await executeWorkerPollingCycle({
+      runOutbox: async () => {
+        throw new Error("outbox failed");
+      },
+      runReport: async () => {
+        throw new Error("report failed");
+      },
+      writeHeartbeat: async () => {
+        heartbeatWritten = true;
+      },
+      onOutboxError: (err) => {
+        outboxError = err;
+      },
+      onReportError: (err) => {
+        reportError = err;
+      },
+    });
+
+    expect(result).toBe(false);
+    expect(heartbeatWritten).toBe(false);
+    expect(outboxError).toBeInstanceOf(Error);
+    expect(reportError).toBeInstanceOf(Error);
+  });
+
+  it("writes heartbeat exactly once when both polls succeed", async () => {
+    let heartbeatWriteCount = 0;
+    let outboxError: unknown;
+    let reportError: unknown;
+
+    const result = await executeWorkerPollingCycle({
+      runOutbox: async () => ({ dispatched: 2 }),
+      runReport: async () => ({ processed: 1 }),
+      writeHeartbeat: async () => {
+        heartbeatWriteCount += 1;
+      },
+      onOutboxError: (err) => {
+        outboxError = err;
+      },
+      onReportError: (err) => {
+        reportError = err;
+      },
+    });
+
+    expect(result).toBe(true);
+    expect(heartbeatWriteCount).toBe(1);
+    expect(outboxError).toBeUndefined();
+    expect(reportError).toBeUndefined();
   });
 });

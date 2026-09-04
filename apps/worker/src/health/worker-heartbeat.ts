@@ -139,3 +139,37 @@ export async function validateWorkerHealth(
 
   return { ok: true };
 }
+
+export type ExecuteWorkerPollingCycleDependencies = {
+  runOutbox(): Promise<unknown>;
+  runReport(): Promise<unknown>;
+  writeHeartbeat(): Promise<void>;
+  onOutboxError?(error: unknown): void;
+  onReportError?(error: unknown): void;
+};
+
+export async function executeWorkerPollingCycle(
+  dependencies: ExecuteWorkerPollingCycleDependencies,
+): Promise<boolean> {
+  const [outboxSettled, reportSettled] = await Promise.allSettled([
+    Promise.resolve().then(() => dependencies.runOutbox()),
+    Promise.resolve().then(() => dependencies.runReport()),
+  ]);
+
+  if (outboxSettled.status === "rejected") {
+    dependencies.onOutboxError?.(outboxSettled.reason);
+  }
+  if (reportSettled.status === "rejected") {
+    dependencies.onReportError?.(reportSettled.reason);
+  }
+
+  if (
+    outboxSettled.status === "fulfilled" &&
+    reportSettled.status === "fulfilled"
+  ) {
+    await dependencies.writeHeartbeat();
+    return true;
+  }
+
+  return false;
+}
