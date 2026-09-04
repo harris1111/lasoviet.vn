@@ -6,7 +6,6 @@ import {
 } from "@lasoviet/contracts";
 import {
   completeReportGeneratingHandoff,
-  extractCandidateReportVersionId,
   parseReportGenerateJob,
   transitionReportToGenerating,
 } from "./report-state.js";
@@ -220,13 +219,5 @@ describe("report worker state and queue contracts", () => {
       ...validFailed,
       unknownField: 123,
     }).success).toBe(false);
-  });
-
-  it("extracts candidate reportVersionId from payload or idempotencyKey", () => {
-    expect(extractCandidateReportVersionId({ reportVersionId: "v1" })).toBe("v1");
-    expect(extractCandidateReportVersionId({}, "report-generate:v2")).toBe("v2");
-    expect(extractCandidateReportVersionId(null, "report-generate:v3")).toBe("v3");
-    expect(extractCandidateReportVersionId(null, "other-key")).toBeNull();
-    expect(extractCandidateReportVersionId({}, "")).toBeNull();
   });
 });

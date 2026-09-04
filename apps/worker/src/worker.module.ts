@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { randomUUID } from "node:crypto";
 import { loadEnvironment } from "@lasoviet/config";
 import {
   createAccountDeletionService,
@@ -85,11 +86,12 @@ export function createReportGenerateRunner() {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
+  const workerId = `report-worker-${randomUUID()}`;
   const processor = createReportGenerateProcessor({
     database,
     reportService: createReportService(database),
-    queueStore: createDatabaseReportQueueStore(database, "report-worker"),
-    workerId: "report-worker",
+    queueStore: createDatabaseReportQueueStore(database, workerId),
+    workerId,
   });
 
   let activeRun: Promise<{ processed: number }> | undefined;

@@ -203,14 +203,6 @@ export function createDatabaseReportQueueStore(
 
 export function createReportService(database: Database) {
   return {
-    async findReservation(reportVersionId: string) {
-      const [reservation] = await database
-        .select()
-        .from(reportReservations)
-        .where(eq(reportReservations.reportVersionId, reportVersionId));
-      return reservation ?? null;
-    },
-
     async startGenerating(params: {
       reportVersionId: string;
       jobId: string;
@@ -232,7 +224,9 @@ export function createReportService(database: Database) {
                 eq(reportQueueJobs.leasedBy, params.workerId),
                 gt(reportQueueJobs.leasedUntil, current),
               ),
-            );
+            )
+            .limit(1)
+            .for("update");
           if (!job) return { ok: false, code: "LEASE_LOST" };
         }
 
@@ -292,7 +286,6 @@ export function createReportService(database: Database) {
       workerId: string;
       errorCode: string;
       failureStage?: "generation" | "validation" | "pdf" | "garage";
-      allowRequested?: boolean;
       expectedStateVersion?: number;
     }): Promise<
       | { ok: true }
@@ -333,18 +326,10 @@ export function createReportService(database: Database) {
           return { ok: false, code: "REPORT_NOT_FOUND" };
         }
 
-        const statusMatch = params.allowRequested
-          ? or(
-              and(
-                eq(reportReservations.status, "generating"),
-                eq(reportReservations.activeJobId, params.jobId),
-              ),
-              eq(reportReservations.status, "requested"),
-            )
-          : and(
-              eq(reportReservations.status, "generating"),
-              eq(reportReservations.activeJobId, params.jobId),
-            );
+        const statusMatch = and(
+          eq(reportReservations.status, "generating"),
+          eq(reportReservations.activeJobId, params.jobId),
+        );
 
         const versionMatch = params.expectedStateVersion !== undefined
           ? eq(reportReservations.stateVersion, params.expectedStateVersion)

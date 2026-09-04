@@ -214,7 +214,8 @@ describe("report worker state integration and lease recovery", () => {
       reportConfigVersion: "config-v1",
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
-      status: "requested",
+      status: "generating",
+      activeJobId: jobId,
       stateVersion: 1,
     });
 
@@ -247,7 +248,6 @@ describe("report worker state integration and lease recovery", () => {
       reportVersionId,
       attemptCount: 3,
       errorCode: "UPSTREAM_UNAVAILABLE",
-      allowRequested: true,
     });
     expect(result).toEqual({ ok: false, code: "JOB_RETRY_EXHAUSTED" });
 
@@ -315,6 +315,222 @@ describe("report worker state integration and lease recovery", () => {
       (e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === jobId,
     );
     expect(failedEvents).toHaveLength(0);
+    await database.$client.end();
+  });
+
+  it("fences a malformed payload containing existing reportVersionId at attempt 3 without emitting outbox", async () => {
+    const database = createDatabase(databaseUrl);
+    await database.delete(reportQueueJobs);
+    await database.delete(outbox);
+    const reportService = createReportService(database);
+    const queueStore = createDatabaseReportQueueStore(database, "malformed-existing-worker");
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: "malformed-existing-worker",
+    });
+
+    const userId = `user-${randomUUID()}`;
+    const orderId = randomUUID();
+    const entitlementId = randomUUID();
+    const reportId = randomUUID();
+    const reportVersionId = randomUUID();
+    const jobId = `job-malformed-${randomUUID()}`;
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Malformed Existing User",
+      email: `${userId}@example.test`,
+      emailVerified: true,
+    });
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: `INV-${orderId}`,
+      chartId: `chart-${orderId}`,
+      chartVersionId: `chart-v-${orderId}`,
+      ownerId: userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.insert(commerceEntitlements).values({
+      id: entitlementId,
+      orderId,
+      chartId: `chart-${orderId}`,
+      sku: "ZIWEI-IDENTITY-P0",
+      ownerId: userId,
+    });
+    await database.insert(reportReservations).values({
+      id: randomUUID(),
+      reportId,
+      reportVersionId,
+      entitlementId,
+      chartVersionId: `chart-v-${orderId}`,
+      evidenceVersionId: "evidence-v1",
+      knowledgeVersionId: "knowledge-v1",
+      promptVersion: "prompt-v1",
+      reportConfigVersion: "config-v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      status: "requested",
+      stateVersion: 1,
+    });
+
+    await database.insert(reportQueueJobs).values({
+      id: jobId,
+      name: "report.generate.v1",
+      sourceEventId: `evt-${randomUUID()}`,
+      traceId: `trace-${randomUUID()}`,
+      idempotencyKey: `idemp-${jobId}`,
+      payload: { reportVersionId, broken: true },
+      status: "waiting",
+      attemptCount: 2,
+      availableAt: new Date(Date.now() - 1_000),
+    });
+
+    const processed = await processor.processNext();
+    expect(processed).toEqual({ processed: false });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const [fencedJob] = allJobs.filter((j) => j.id === jobId);
+    expect(fencedJob.status).toBe("terminal_failure");
+    expect(fencedJob.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+
+    const allReservations = await database.select().from(reportReservations);
+    const [reservation] = allReservations.filter((r) => r.reportVersionId === reportVersionId);
+    expect(reservation.status).toBe("requested");
+    expect(reservation.stateVersion).toBe(1);
+
+    const allOutboxEvents = await database.select().from(outbox);
+    const failedEvents = allOutboxEvents.filter(
+      (e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === reportVersionId,
+    );
+    expect(failedEvents).toHaveLength(0);
+    await database.$client.end();
+  });
+
+  it("prevents stale worker from mutating job or transitioning report after lease expires and worker B reclaims", async () => {
+    const database = createDatabase(databaseUrl);
+    await database.delete(reportQueueJobs);
+    await database.delete(outbox);
+    const reportService = createReportService(database);
+    const queueStoreA = createDatabaseReportQueueStore(database, "worker-A");
+    const queueStoreB = createDatabaseReportQueueStore(database, "worker-B");
+
+    const userId = `user-${randomUUID()}`;
+    const orderId = randomUUID();
+    const entitlementId = randomUUID();
+    const reportId = randomUUID();
+    const reportVersionId = randomUUID();
+    const jobId = `job-race-${randomUUID()}`;
+    const initialTime = new Date();
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Race Test User",
+      email: `${userId}@example.test`,
+      emailVerified: true,
+    });
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: `INV-${orderId}`,
+      chartId: `chart-${orderId}`,
+      chartVersionId: `chart-v-${orderId}`,
+      ownerId: userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.insert(commerceEntitlements).values({
+      id: entitlementId,
+      orderId,
+      chartId: `chart-${orderId}`,
+      sku: "ZIWEI-IDENTITY-P0",
+      ownerId: userId,
+    });
+    await database.insert(reportReservations).values({
+      id: randomUUID(),
+      reportId,
+      reportVersionId,
+      entitlementId,
+      chartVersionId: `chart-v-${orderId}`,
+      evidenceVersionId: "evidence-v1",
+      knowledgeVersionId: "knowledge-v1",
+      promptVersion: "prompt-v1",
+      reportConfigVersion: "config-v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      status: "requested",
+      stateVersion: 1,
+    });
+
+    await database.insert(reportQueueJobs).values({
+      id: jobId,
+      name: "report.generate.v1",
+      sourceEventId: `evt-${randomUUID()}`,
+      traceId: `trace-${randomUUID()}`,
+      idempotencyKey: `idemp-${jobId}`,
+      payload: {
+        reportId,
+        reportVersionId,
+        entitlementId,
+        chartVersionId: `chart-v-${orderId}`,
+        evidenceVersionId: "evidence-v1",
+        knowledgeVersionId: "knowledge-v1",
+        promptVersion: "prompt-v1",
+        reportConfigVersion: "config-v1",
+        locale: "vi",
+        sku: "ZIWEI-IDENTITY-P0",
+      },
+      status: "leased",
+      leasedBy: "worker-A",
+      leasedUntil: new Date(initialTime.getTime() - 1000),
+      attemptCount: 1,
+    });
+
+    const claimTime = new Date();
+    const claimedByB = await queueStoreB.claimNext(claimTime);
+    expect(claimedByB).not.toBeNull();
+    expect(claimedByB?.id).toBe(jobId);
+    expect(claimedByB?.leasedBy).toBe("worker-B");
+
+    const retryResultA = await queueStoreA.recordRetryableFailure(
+      jobId,
+      "ERROR",
+      new Date(Date.now() + 1000),
+    );
+    expect(retryResultA).toEqual({ ok: false, code: "LEASE_LOST" });
+
+    const markResultA = await queueStoreA.markProcessed(jobId);
+    expect(markResultA).toEqual({ ok: false, code: "LEASE_LOST" });
+
+    const terminalResultA = await queueStoreA.recordTerminalFailure(jobId, "ERROR");
+    expect(terminalResultA).toEqual({ ok: false, code: "LEASE_LOST" });
+
+    const startResultA = await reportService.startGenerating({
+      reportVersionId,
+      jobId,
+      workerId: "worker-A",
+    });
+    expect(startResultA).toEqual({ ok: false, code: "LEASE_LOST" });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const [jobAfterRace] = allJobs.filter((j) => j.id === jobId);
+    expect(jobAfterRace.status).toBe("leased");
+    expect(jobAfterRace.leasedBy).toBe("worker-B");
+
+    const allReservations = await database.select().from(reportReservations);
+    const [reservationAfterRace] = allReservations.filter(
+      (r) => r.reportVersionId === reportVersionId,
+    );
+    expect(reservationAfterRace.status).toBe("requested");
+    expect(reservationAfterRace.stateVersion).toBe(1);
+
     await database.$client.end();
   });
 });

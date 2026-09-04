@@ -1,6 +1,5 @@
 import type { Database } from "@lasoviet/database";
 import {
-  extractCandidateReportVersionId,
   parseReportGenerateJob,
   type createReportService,
   type ReportJobQueueStore,
@@ -18,7 +17,6 @@ export function createReportGenerateProcessor(dependencies: {
       reportVersionId: string | undefined;
       attemptCount: number;
       errorCode: string;
-      allowRequested?: boolean;
       expectedStateVersion?: number;
     }): Promise<{ ok: true } | { ok: false; code: string }> {
       if (params.attemptCount >= 3) {
@@ -29,7 +27,6 @@ export function createReportGenerateProcessor(dependencies: {
             workerId: dependencies.workerId,
             errorCode: "JOB_RETRY_EXHAUSTED",
             failureStage: "generation",
-            allowRequested: params.allowRequested,
             expectedStateVersion: params.expectedStateVersion,
           });
           if (!terminalResult.ok) return terminalResult;
@@ -68,19 +65,11 @@ export function createReportGenerateProcessor(dependencies: {
       });
 
       if (!parsed.ok) {
-        const candidateId = extractCandidateReportVersionId(job.payload, job.idempotencyKey);
-        let trustworthyReportVersionId: string | undefined;
-        if (candidateId) {
-          const reservation = await dependencies.reportService.findReservation(candidateId);
-          if (reservation) trustworthyReportVersionId = candidateId;
-        }
-
         const failureResult = await this.processJobFailure({
           jobId: job.id,
-          reportVersionId: trustworthyReportVersionId,
+          reportVersionId: undefined,
           attemptCount: job.attemptCount,
           errorCode: "JOB_PAYLOAD_INVALID",
-          allowRequested: true,
         });
         if (!failureResult.ok) return { processed: false };
         return { processed: false };
@@ -94,12 +83,14 @@ export function createReportGenerateProcessor(dependencies: {
       });
 
       if (!startResult.ok) {
-        return this.processJobFailure({
+        const failureResult = await this.processJobFailure({
           jobId: job.id,
           reportVersionId,
           attemptCount: job.attemptCount,
           errorCode: startResult.code,
-        }).then(() => ({ processed: false }));
+        });
+        if (!failureResult.ok) return { processed: false };
+        return { processed: false };
       }
 
       const markResult = await dependencies.queueStore.markProcessed(job.id);
