@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ReportFulfillmentFailedV1Schema,
+  ReportGenerationRequestedV1Schema,
+} from "@lasoviet/contracts";
+import {
   completeReportGeneratingHandoff,
+  extractCandidateReportVersionId,
   parseReportGenerateJob,
   transitionReportToGenerating,
 } from "./report-state.js";
@@ -42,6 +47,29 @@ describe("report worker state and queue contracts", () => {
       payload: { ...validPayload, locale: "fr" },
     });
     expect(invalidLocaleResult).toEqual({
+      ok: false,
+      code: "JOB_PAYLOAD_INVALID",
+    });
+
+    const unknownFieldPayloadResult = parseReportGenerateJob({
+      ...validJobEnvelope,
+      payload: { ...validPayload, unknownExtraField: "disallowed" },
+    });
+    expect(unknownFieldPayloadResult).toEqual({
+      ok: false,
+      code: "JOB_PAYLOAD_INVALID",
+    });
+
+    expect(ReportGenerationRequestedV1Schema.safeParse({
+      ...validPayload,
+      extraField: "bad",
+    }).success).toBe(false);
+
+    const unknownFieldEnvelopeResult = parseReportGenerateJob({
+      ...validJobEnvelope,
+      extraRootField: "disallowed",
+    });
+    expect(unknownFieldEnvelopeResult).toEqual({
       ok: false,
       code: "JOB_PAYLOAD_INVALID",
     });
@@ -178,5 +206,27 @@ describe("report worker state and queue contracts", () => {
       queueJobStatus: "processed",
       invokedWriter: false,
     });
+  });
+
+  it("strictly validates ReportFulfillmentFailedV1Schema rejecting unknown extra fields", () => {
+    const validFailed = {
+      reportId: "00000000-0000-0000-0000-000000000001",
+      reportVersionId: "00000000-0000-0000-0000-000000000002",
+      failureStage: "generation" as const,
+      errorCode: "JOB_RETRY_EXHAUSTED",
+    };
+    expect(ReportFulfillmentFailedV1Schema.safeParse(validFailed).success).toBe(true);
+    expect(ReportFulfillmentFailedV1Schema.safeParse({
+      ...validFailed,
+      unknownField: 123,
+    }).success).toBe(false);
+  });
+
+  it("extracts candidate reportVersionId from payload or idempotencyKey", () => {
+    expect(extractCandidateReportVersionId({ reportVersionId: "v1" })).toBe("v1");
+    expect(extractCandidateReportVersionId({}, "report-generate:v2")).toBe("v2");
+    expect(extractCandidateReportVersionId(null, "report-generate:v3")).toBe("v3");
+    expect(extractCandidateReportVersionId(null, "other-key")).toBeNull();
+    expect(extractCandidateReportVersionId({}, "")).toBeNull();
   });
 });

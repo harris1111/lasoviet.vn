@@ -1,5 +1,6 @@
 import type { Database } from "@lasoviet/database";
 import {
+  extractCandidateReportVersionId,
   parseReportGenerateJob,
   type createReportService,
   type ReportJobQueueStore,
@@ -14,26 +15,42 @@ export function createReportGenerateProcessor(dependencies: {
   return {
     async processJobFailure(params: {
       jobId: string;
-      reportVersionId: string;
+      reportVersionId: string | undefined;
       attemptCount: number;
       errorCode: string;
+      allowRequested?: boolean;
+      expectedStateVersion?: number;
     }): Promise<{ ok: true } | { ok: false; code: string }> {
       if (params.attemptCount >= 3) {
-        await dependencies.reportService.recordTerminalFailure({
-          reportVersionId: params.reportVersionId,
-          jobId: params.jobId,
-          errorCode: "JOB_RETRY_EXHAUSTED",
-          failureStage: "generation",
-        });
+        if (params.reportVersionId) {
+          const terminalResult = await dependencies.reportService.recordTerminalFailure({
+            reportVersionId: params.reportVersionId,
+            jobId: params.jobId,
+            workerId: dependencies.workerId,
+            errorCode: "JOB_RETRY_EXHAUSTED",
+            failureStage: "generation",
+            allowRequested: params.allowRequested,
+            expectedStateVersion: params.expectedStateVersion,
+          });
+          if (!terminalResult.ok) return terminalResult;
+          return { ok: false, code: "JOB_RETRY_EXHAUSTED" };
+        }
+
+        const fenceResult = await dependencies.queueStore.recordTerminalFailure(
+          params.jobId,
+          "JOB_RETRY_EXHAUSTED",
+        );
+        if (!fenceResult.ok) return fenceResult;
         return { ok: false, code: "JOB_RETRY_EXHAUSTED" };
       }
 
       const nextAttemptAt = new Date(Date.now() + 30_000);
-      await dependencies.queueStore.recordRetryableFailure(
+      const retryResult = await dependencies.queueStore.recordRetryableFailure(
         params.jobId,
         params.errorCode,
         nextAttemptAt,
       );
+      if (!retryResult.ok) return retryResult;
       return { ok: true };
     },
 
@@ -51,11 +68,21 @@ export function createReportGenerateProcessor(dependencies: {
       });
 
       if (!parsed.ok) {
-        await dependencies.queueStore.recordRetryableFailure(
-          job.id,
-          "JOB_PAYLOAD_INVALID",
-          new Date(Date.now() + 60_000),
-        );
+        const candidateId = extractCandidateReportVersionId(job.payload, job.idempotencyKey);
+        let trustworthyReportVersionId: string | undefined;
+        if (candidateId) {
+          const reservation = await dependencies.reportService.findReservation(candidateId);
+          if (reservation) trustworthyReportVersionId = candidateId;
+        }
+
+        const failureResult = await this.processJobFailure({
+          jobId: job.id,
+          reportVersionId: trustworthyReportVersionId,
+          attemptCount: job.attemptCount,
+          errorCode: "JOB_PAYLOAD_INVALID",
+          allowRequested: true,
+        });
+        if (!failureResult.ok) return { processed: false };
         return { processed: false };
       }
 
@@ -63,6 +90,7 @@ export function createReportGenerateProcessor(dependencies: {
       const startResult = await dependencies.reportService.startGenerating({
         reportVersionId,
         jobId: job.id,
+        workerId: dependencies.workerId,
       });
 
       if (!startResult.ok) {
@@ -74,7 +102,8 @@ export function createReportGenerateProcessor(dependencies: {
         }).then(() => ({ processed: false }));
       }
 
-      await dependencies.queueStore.markProcessed(job.id);
+      const markResult = await dependencies.queueStore.markProcessed(job.id);
+      if (!markResult.ok) return { processed: false };
       return { processed: true };
     },
   };

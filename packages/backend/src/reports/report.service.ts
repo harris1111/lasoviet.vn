@@ -1,4 +1,4 @@
-import { and, eq, lte, or, sql } from "drizzle-orm";
+import { and, eq, gt, lte, or, sql } from "drizzle-orm";
 import {
   enqueueOutbox,
   reportQueueJobs,
@@ -18,8 +18,18 @@ import {
 export type ReportJobQueueStore = {
   enqueue(job: QueueJobV1): Promise<void>;
   claimNext(now?: Date): Promise<typeof reportQueueJobs.$inferSelect | null>;
-  recordRetryableFailure(id: string, code: string, nextAttemptAt: Date): Promise<void>;
-  markProcessed(id: string): Promise<void>;
+  recordRetryableFailure(
+    id: string,
+    code: string,
+    nextAttemptAt: Date,
+    now?: Date,
+  ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }>;
+  markProcessed(id: string, now?: Date): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }>;
+  recordTerminalFailure(
+    id: string,
+    code: string,
+    now?: Date,
+  ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }>;
 };
 
 export function createDatabaseReportQueueStore(
@@ -108,9 +118,9 @@ export function createDatabaseReportQueueStore(
       id: string,
       code: string,
       nextAttemptAt: Date,
-    ): Promise<void> {
-      const current = new Date();
-      await database
+      now: Date = new Date(),
+    ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }> {
+      const [updated] = await database
         .update(reportQueueJobs)
         .set({
           status: "retryable_failure",
@@ -118,37 +128,114 @@ export function createDatabaseReportQueueStore(
           availableAt: nextAttemptAt,
           leasedBy: null,
           leasedUntil: null,
-          updatedAt: current,
+          updatedAt: now,
         })
-        .where(eq(reportQueueJobs.id, id));
+        .where(
+          and(
+            eq(reportQueueJobs.id, id),
+            eq(reportQueueJobs.status, "leased"),
+            eq(reportQueueJobs.leasedBy, workerId),
+            gt(reportQueueJobs.leasedUntil, now),
+          ),
+        )
+        .returning();
+
+      if (!updated) return { ok: false, code: "LEASE_LOST" };
+      return { ok: true };
     },
 
-    async markProcessed(id: string): Promise<void> {
-      const current = new Date();
-      await database
+    async markProcessed(
+      id: string,
+      now: Date = new Date(),
+    ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }> {
+      const [updated] = await database
         .update(reportQueueJobs)
         .set({
           status: "processed",
-          processedAt: current,
+          processedAt: now,
           leasedBy: null,
           leasedUntil: null,
-          updatedAt: current,
+          updatedAt: now,
         })
-        .where(eq(reportQueueJobs.id, id));
+        .where(
+          and(
+            eq(reportQueueJobs.id, id),
+            eq(reportQueueJobs.status, "leased"),
+            eq(reportQueueJobs.leasedBy, workerId),
+            gt(reportQueueJobs.leasedUntil, now),
+          ),
+        )
+        .returning();
+
+      if (!updated) return { ok: false, code: "LEASE_LOST" };
+      return { ok: true };
+    },
+
+    async recordTerminalFailure(
+      id: string,
+      code: string,
+      now: Date = new Date(),
+    ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }> {
+      const [updated] = await database
+        .update(reportQueueJobs)
+        .set({
+          status: "terminal_failure",
+          lastErrorCode: code,
+          leasedBy: null,
+          leasedUntil: null,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(reportQueueJobs.id, id),
+            eq(reportQueueJobs.status, "leased"),
+            eq(reportQueueJobs.leasedBy, workerId),
+            gt(reportQueueJobs.leasedUntil, now),
+          ),
+        )
+        .returning();
+
+      if (!updated) return { ok: false, code: "LEASE_LOST" };
+      return { ok: true };
     },
   };
 }
 
 export function createReportService(database: Database) {
   return {
+    async findReservation(reportVersionId: string) {
+      const [reservation] = await database
+        .select()
+        .from(reportReservations)
+        .where(eq(reportReservations.reportVersionId, reportVersionId));
+      return reservation ?? null;
+    },
+
     async startGenerating(params: {
       reportVersionId: string;
       jobId: string;
+      workerId?: string;
     }): Promise<
       | { ok: true; report: typeof reportReservations.$inferSelect }
-      | { ok: false; code: "REPORT_NOT_FOUND" | "WORKFLOW_STATE_CONFLICT" }
+      | { ok: false; code: "REPORT_NOT_FOUND" | "WORKFLOW_STATE_CONFLICT" | "LEASE_LOST" }
     > {
       return database.transaction(async (tx) => {
+        const current = new Date();
+        if (params.workerId) {
+          const [job] = await tx
+            .select({ id: reportQueueJobs.id })
+            .from(reportQueueJobs)
+            .where(
+              and(
+                eq(reportQueueJobs.id, params.jobId),
+                eq(reportQueueJobs.status, "leased"),
+                eq(reportQueueJobs.leasedBy, params.workerId),
+                gt(reportQueueJobs.leasedUntil, current),
+              ),
+            );
+          if (!job) return { ok: false, code: "LEASE_LOST" };
+        }
+
         const [existing] = await tx
           .select()
           .from(reportReservations)
@@ -172,7 +259,6 @@ export function createReportService(database: Database) {
           return { ok: false, code: transition.code };
         }
 
-        const current = new Date();
         const [updated] = await tx
           .update(reportReservations)
           .set({
@@ -187,6 +273,7 @@ export function createReportService(database: Database) {
             and(
               eq(reportReservations.id, existing.id),
               eq(reportReservations.stateVersion, existing.stateVersion),
+              eq(reportReservations.status, existing.status),
             ),
           )
           .returning();
@@ -202,28 +289,19 @@ export function createReportService(database: Database) {
     async recordTerminalFailure(params: {
       reportVersionId: string;
       jobId: string;
+      workerId: string;
       errorCode: string;
       failureStage?: "generation" | "validation" | "pdf" | "garage";
-    }): Promise<{ ok: boolean }> {
+      allowRequested?: boolean;
+      expectedStateVersion?: number;
+    }): Promise<
+      | { ok: true }
+      | { ok: false; code: "LEASE_LOST" | "REPORT_NOT_FOUND" | "WORKFLOW_STATE_CONFLICT" }
+    > {
       return database.transaction(async (tx) => {
         const current = new Date();
-        const [reservation] = await tx
-          .select()
-          .from(reportReservations)
-          .where(eq(reportReservations.reportVersionId, params.reportVersionId));
 
-        if (reservation) {
-          await tx
-            .update(reportReservations)
-            .set({
-              status: "terminal_failure",
-              lastErrorCode: params.errorCode,
-              updatedAt: current,
-            })
-            .where(eq(reportReservations.id, reservation.id));
-        }
-
-        await tx
+        const [fencedJob] = await tx
           .update(reportQueueJobs)
           .set({
             status: "terminal_failure",
@@ -232,10 +310,69 @@ export function createReportService(database: Database) {
             leasedUntil: null,
             updatedAt: current,
           })
-          .where(eq(reportQueueJobs.id, params.jobId));
+          .where(
+            and(
+              eq(reportQueueJobs.id, params.jobId),
+              eq(reportQueueJobs.status, "leased"),
+              eq(reportQueueJobs.leasedBy, params.workerId),
+              gt(reportQueueJobs.leasedUntil, current),
+            ),
+          )
+          .returning();
+
+        if (!fencedJob) {
+          return { ok: false, code: "LEASE_LOST" };
+        }
+
+        const [reservation] = await tx
+          .select()
+          .from(reportReservations)
+          .where(eq(reportReservations.reportVersionId, params.reportVersionId));
+
+        if (!reservation) {
+          return { ok: false, code: "REPORT_NOT_FOUND" };
+        }
+
+        const statusMatch = params.allowRequested
+          ? or(
+              and(
+                eq(reportReservations.status, "generating"),
+                eq(reportReservations.activeJobId, params.jobId),
+              ),
+              eq(reportReservations.status, "requested"),
+            )
+          : and(
+              eq(reportReservations.status, "generating"),
+              eq(reportReservations.activeJobId, params.jobId),
+            );
+
+        const versionMatch = params.expectedStateVersion !== undefined
+          ? eq(reportReservations.stateVersion, params.expectedStateVersion)
+          : eq(reportReservations.stateVersion, reservation.stateVersion);
+
+        const [updatedReservation] = await tx
+          .update(reportReservations)
+          .set({
+            status: "terminal_failure",
+            lastErrorCode: params.errorCode,
+            stateVersion: reservation.stateVersion + 1,
+            updatedAt: current,
+          })
+          .where(
+            and(
+              eq(reportReservations.id, reservation.id),
+              statusMatch,
+              versionMatch,
+            ),
+          )
+          .returning();
+
+        if (!updatedReservation) {
+          return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+        }
 
         const failedPayload: ReportFulfillmentFailedV1 = {
-          reportId: reservation ? reservation.reportId : params.reportVersionId,
+          reportId: reservation.reportId,
           reportVersionId: params.reportVersionId,
           failureStage: params.failureStage ?? "generation",
           errorCode: params.errorCode,

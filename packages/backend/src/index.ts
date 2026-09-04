@@ -237,6 +237,7 @@ export type { RegisteredQueue, ResolveWorkerQueuesResult } from "./jobs/queue.re
 
 export {
   completeReportGeneratingHandoff,
+  extractCandidateReportVersionId,
   parseReportGenerateJob,
   transitionReportToGenerating,
 } from "./reports/report-state.js";

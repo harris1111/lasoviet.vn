@@ -16,6 +16,23 @@ export function parseReportGenerateJob(input: unknown): ParseReportGenerateJobRe
   return { ok: true, value: result.data };
 }
 
+export function extractCandidateReportVersionId(
+  payload: unknown,
+  idempotencyKey?: string,
+): string | null {
+  if (typeof payload === "object" && payload !== null) {
+    const candidate = (payload as Record<string, unknown>).reportVersionId;
+    if (typeof candidate === "string" && candidate.trim() !== "") {
+      return candidate.trim();
+    }
+  }
+  if (typeof idempotencyKey === "string" && idempotencyKey.startsWith("report-generate:")) {
+    const candidate = idempotencyKey.slice("report-generate:".length).trim();
+    if (candidate !== "") return candidate;
+  }
+  return null;
+}
+
 export type ReportStateSnapshot = {
   id: string;
   status: ReportStatus;

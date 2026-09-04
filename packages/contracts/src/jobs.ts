@@ -32,7 +32,7 @@ export const ReportGenerationRequestedV1Schema = z.object({
   reportConfigVersion: z.string().min(1),
   locale: z.enum(["vi", "en"]),
   sku: z.string().min(1),
-});
+}).strict();
 export type ReportGenerationRequestedV1 = z.infer<typeof ReportGenerationRequestedV1Schema>;
 
 export const ReportGenerateJobEnvelopeV1Schema = z.object({
@@ -42,7 +42,7 @@ export const ReportGenerateJobEnvelopeV1Schema = z.object({
   traceId: z.string().min(1),
   idempotencyKey: z.string().min(1),
   payload: ReportGenerationRequestedV1Schema,
-});
+}).strict();
 export type ReportGenerateJobEnvelopeV1 = z.infer<typeof ReportGenerateJobEnvelopeV1Schema>;
 export type QueueJobV1 = ReportGenerateJobEnvelopeV1;
 
@@ -52,5 +52,5 @@ export const ReportFulfillmentFailedV1Schema = z.object({
   failureStage: z.enum(["generation", "validation", "pdf", "garage"]),
   errorCode: z.string().min(1),
   supportCaseId: z.string().nullable().optional(),
-});
+}).strict();
 export type ReportFulfillmentFailedV1 = z.infer<typeof ReportFulfillmentFailedV1Schema>;

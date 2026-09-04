@@ -24,17 +24,13 @@ describe("report worker state integration and lease recovery", () => {
   let databaseUrl = "";
 
   beforeAll(async () => {
-    try {
-      container = await new PostgreSqlContainer("postgres:16-alpine")
-        .withDatabase("lasoviet_test")
-        .withUsername("lasoviet")
-        .withPassword("lasoviet")
-        .start();
-      databaseUrl = container.getConnectionUri();
-      await runMigrations(databaseUrl);
-    } catch (error) {
-      console.warn("PostgreSQL container unavailable:", error);
-    }
+    container = await new PostgreSqlContainer("postgres:16-alpine")
+      .withDatabase("lasoviet_test")
+      .withUsername("lasoviet")
+      .withPassword("lasoviet")
+      .start();
+    databaseUrl = container.getConnectionUri();
+    await runMigrations(databaseUrl);
   }, 120_000);
 
   afterAll(async () => {
@@ -42,7 +38,6 @@ describe("report worker state integration and lease recovery", () => {
   }, 30_000);
 
   it("preserves single reservation and queue row on duplicate job enqueue", async () => {
-    if (!container) return;
     const database = createDatabase(databaseUrl);
     const userId = `user-${randomUUID()}`;
     const orderId = randomUUID();
@@ -125,8 +120,9 @@ describe("report worker state integration and lease recovery", () => {
   });
 
   it("reclaims an expired lease and schedules retry on retryable failure", async () => {
-    if (!container) return;
     const database = createDatabase(databaseUrl);
+    await database.delete(reportQueueJobs);
+    await database.delete(outbox);
     const queueStore = createDatabaseReportQueueStore(database, "recovering-worker");
     const now = new Date();
     const expiredTime = new Date(now.getTime() - 60_000);
@@ -164,7 +160,6 @@ describe("report worker state integration and lease recovery", () => {
   });
 
   it("marks terminal failure and emits report.fulfillment.failed.v1 upon third failed attempt", async () => {
-    if (!container) return;
     const database = createDatabase(databaseUrl);
     const reportService = createReportService(database);
     const queueStore = createDatabaseReportQueueStore(database, "terminal-worker");
@@ -220,6 +215,7 @@ describe("report worker state integration and lease recovery", () => {
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
       status: "requested",
+      stateVersion: 1,
     });
 
     await database.insert(reportQueueJobs).values({
@@ -242,6 +238,7 @@ describe("report worker state integration and lease recovery", () => {
       },
       status: "leased",
       leasedBy: "terminal-worker",
+      leasedUntil: new Date(Date.now() + 60_000),
       attemptCount: 3,
     });
 
@@ -250,6 +247,7 @@ describe("report worker state integration and lease recovery", () => {
       reportVersionId,
       attemptCount: 3,
       errorCode: "UPSTREAM_UNAVAILABLE",
+      allowRequested: true,
     });
     expect(result).toEqual({ ok: false, code: "JOB_RETRY_EXHAUSTED" });
 
@@ -262,6 +260,7 @@ describe("report worker state integration and lease recovery", () => {
     const [failedReservation] = allReservations.filter((r) => r.reportVersionId === reportVersionId);
     expect(failedReservation.status).toBe("terminal_failure");
     expect(failedReservation.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(failedReservation.stateVersion).toBe(2);
 
     const allOutboxEvents = await database.select().from(outbox);
     const failedEvents = allOutboxEvents.filter((e) => e.eventType === "report.fulfillment.failed.v1");
@@ -270,6 +269,52 @@ describe("report worker state integration and lease recovery", () => {
 
     const pdfEvents = allOutboxEvents.filter((e) => e.eventType === "report.pdf.requested.v1");
     expect(pdfEvents).toHaveLength(0);
+    await database.$client.end();
+  });
+
+  it("fences a malformed untrusted identity job at attempt 3 without emitting outbox", async () => {
+    const database = createDatabase(databaseUrl);
+    const reportService = createReportService(database);
+    const queueStore = createDatabaseReportQueueStore(database, "untrusted-worker");
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: "untrusted-worker",
+    });
+
+    const jobId = `job-untrusted-${randomUUID()}`;
+    await database.insert(reportQueueJobs).values({
+      id: jobId,
+      name: "report.generate.v1",
+      sourceEventId: `evt-${randomUUID()}`,
+      traceId: `trace-${randomUUID()}`,
+      idempotencyKey: `idemp-${jobId}`,
+      payload: { garbage: true },
+      status: "leased",
+      leasedBy: "untrusted-worker",
+      leasedUntil: new Date(Date.now() + 60_000),
+      attemptCount: 3,
+    });
+
+    const result = await processor.processJobFailure({
+      jobId,
+      reportVersionId: undefined,
+      attemptCount: 3,
+      errorCode: "JOB_PAYLOAD_INVALID",
+    });
+    expect(result).toEqual({ ok: false, code: "JOB_RETRY_EXHAUSTED" });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const [fencedJob] = allJobs.filter((j) => j.id === jobId);
+    expect(fencedJob.status).toBe("terminal_failure");
+    expect(fencedJob.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+
+    const allOutboxEvents = await database.select().from(outbox);
+    const failedEvents = allOutboxEvents.filter(
+      (e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === jobId,
+    );
+    expect(failedEvents).toHaveLength(0);
     await database.$client.end();
   });
 });
