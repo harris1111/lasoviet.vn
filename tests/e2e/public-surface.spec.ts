@@ -32,6 +32,13 @@ const locales = [
     finalCta: "Lập lá số miễn phí ngay",
     chartPath: "/tao-la-so/tu-vi",
     menuLabel: "Mở điều hướng",
+    brandName: "Lá Số Việt",
+    anchors: [
+      "/#hero-form",
+      "/#he-quy-chieu",
+      "/#kien-thuc",
+      "/#phuong-phap",
+    ],
   },
   {
     code: "en",
@@ -45,6 +52,13 @@ const locales = [
     finalCta: "Build your free chart now",
     chartPath: "/en/tao-la-so/tu-vi",
     menuLabel: "Open navigation",
+    brandName: "La So Viet",
+    anchors: [
+      "/en#hero-form",
+      "/en#he-quy-chieu",
+      "/en#kien-thuc",
+      "/en#phuong-phap",
+    ],
   },
 ] as const;
 
@@ -73,6 +87,7 @@ async function visitLocalizedHome(
 
 for (const viewport of [
   { name: "mobile", width: 320, height: 720 },
+  { name: "desktop-1280x972", width: 1280, height: 972 },
   { name: "desktop", width: 1440, height: 900 },
 ]) {
   for (const locale of locales) {
@@ -93,6 +108,34 @@ for (const viewport of [
         ),
       ).toBe(true);
 
+      if (viewport.name === "desktop-1280x972") {
+        // Complete 4-column trust strip is visible
+        await expect(page.locator(".commitment")).toHaveCount(4);
+        // Next problem block eyebrow begins before viewport bottom
+        const problem = page.locator('[data-home-block="problem"]');
+        await expect(problem).toBeVisible();
+        const box = await problem.boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.y).toBeLessThan(972);
+      }
+
+      if (viewport.name === "mobile") {
+        // Header height within 64px range
+        const header = page.locator(".site-header");
+        const headerBox = await header.boundingBox();
+        expect(headerBox).not.toBeNull();
+        expect(headerBox!.height).toBeLessThanOrEqual(66);
+
+        // Inputs >= 44px
+        const inputs = page.locator("#hero-form input, #hero-form select, #hero-form button");
+        for (const input of await inputs.all()) {
+          const b = await input.boundingBox();
+          if (b) {
+            expect(b.height).toBeGreaterThanOrEqual(44);
+          }
+        }
+      }
+
       await page.screenshot({
         fullPage: true,
         path: testInfo.outputPath(`homepage-${locale.code}-${viewport.name}.png`),
@@ -107,11 +150,35 @@ test("uses exact localized routes and keeps planned offers inert", async ({
   for (const locale of locales) {
     await visitLocalizedHome(page, locale);
 
-    await expect(
-      page
-        .locator('[data-home-block="hero"]')
-        .getByRole("link", { name: locale.cta }),
-    ).toHaveAttribute("href", locale.chartPath);
+    // Hero form presence
+    const heroForm = page.locator("#hero-form");
+    await expect(heroForm).toBeVisible();
+    await expect(heroForm.getByRole("button", { name: locale.cta })).toBeVisible();
+    await expect(heroForm.locator('a[href="#luan-giai"]')).toBeVisible();
+
+    // Closed time select shows unknown plus all 12 canonical branches
+    const timeSelect = heroForm.locator("select");
+    await expect(timeSelect).toBeVisible();
+    await expect(timeSelect.locator("option")).toHaveCount(13);
+    const branchValues = await timeSelect
+      .locator("option")
+      .evaluateAll((options) => options.map((opt) => (opt as HTMLOptionElement).value));
+    expect(branchValues).toEqual([
+      "",
+      "zi",
+      "chou",
+      "yin",
+      "mao",
+      "chen",
+      "si",
+      "wu",
+      "wei",
+      "shen",
+      "you",
+      "xu",
+      "hai",
+    ]);
+
     await expect(
       page.getByRole("link", { name: locale.finalCta }),
     ).toHaveAttribute("href", locale.chartPath);
@@ -164,25 +231,43 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
       "href",
       /apple-icon\.png/,
     );
-    const brandLogos = page.locator("img.brand-logo");
-    await expect(brandLogos).toHaveCount(2);
-    await expect(brandLogos.first()).toHaveAttribute(
+
+    // Header has 26x26 CSS seal and localized brand name, no SVG brand image
+    const headerBrand = page.locator("header .brand");
+    await expect(headerBrand).toBeVisible();
+    await expect(headerBrand.locator(".seal")).toBeVisible();
+    await expect(headerBrand).toContainText(locale.brandName);
+
+    // Header anchors resolve to localized homepage anchors
+    const navLinks = page.locator("nav.desktop-nav a");
+    await expect(navLinks).toHaveCount(4);
+    for (let i = 0; i < 4; i++) {
+      await expect(navLinks.nth(i)).toHaveAttribute("href", locale.anchors[i]!);
+    }
+
+    // Marquee has two identical groups; second is aria-hidden
+    const marqueeGroups = page.locator(".marquee-group");
+    await expect(marqueeGroups).toHaveCount(2);
+    await expect(marqueeGroups.nth(1)).toHaveAttribute("aria-hidden", "true");
+
+    // Footer retains the SVG brand logo
+    const footerBrandLogo = page.locator("footer img.brand-logo");
+    await expect(footerBrandLogo).toHaveCount(1);
+    await expect(footerBrandLogo).toHaveAttribute(
       "src",
       /lasoviet-logo-ngang-vang-son\.svg/,
     );
-    for (const logo of await brandLogos.all()) {
-      await logo.scrollIntoViewIfNeeded();
-      await expect
-        .poll(() =>
-          logo.evaluate(
-            (image) =>
-              image instanceof HTMLImageElement &&
-              image.complete &&
-              image.naturalWidth > 0,
-          ),
-        )
-        .toBe(true);
-    }
+    await footerBrandLogo.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() =>
+        footerBrandLogo.evaluate(
+          (image) =>
+            image instanceof HTMLImageElement &&
+            image.complete &&
+            image.naturalWidth > 0,
+        ),
+      )
+      .toBe(true);
   }
 });
 

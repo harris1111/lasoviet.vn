@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { buildBirthProfile } from "./birth-profile-input";
+import {
+  buildBirthProfile,
+  type BirthTimeState,
+} from "./birth-profile-input";
+import {
+  consumeHomepageBirthPrefill,
+  getBranchOptionLabel,
+} from "./homepage-birth-prefill";
 import { TimePrecisionFields } from "./time-precision-fields";
 
 type BirthProfileFormProps = {
@@ -35,20 +42,62 @@ export function BirthProfileForm({
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [date, setDate] = useState("");
-  const [hour, setHour] = useState("");
-  const [minute, setMinute] = useState("");
-  const [timeUnknown, setTimeUnknown] = useState(false);
+  const [timeState, setTimeState] = useState<BirthTimeState>({
+    precision: "exact_minute",
+    hour: "",
+    minute: "",
+  });
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    const prefill = consumeHomepageBirthPrefill();
+    if (prefill) {
+      queueMicrotask(() => {
+        if (!active) return;
+        setDate(prefill.date);
+        if (prefill.time.precision === "branch_only") {
+          setTimeState({
+            precision: "branch_only",
+            branch: prefill.time.branch,
+          });
+        } else if (prefill.time.precision === "unknown") {
+          setTimeState({ precision: "unknown" });
+        }
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, []);
+
   function canContinue() {
-    return step === 1 || (
-      date !== "" &&
-      gender !== null &&
-      (timeUnknown || (hour !== "" && minute !== ""))
-    );
+    if (step === 1) return true;
+    if (step === 2) {
+      if (date === "" || gender === null) return false;
+      if (timeState.precision === "unknown") return true;
+      if (timeState.precision === "branch_only") {
+        return timeState.branch !== undefined;
+      }
+      if (timeState.precision === "exact_minute") {
+        return timeState.hour.trim() !== "" && timeState.minute.trim() !== "";
+      }
+      return false;
+    }
+    return true;
+  }
+
+  function formatReviewTime(state: BirthTimeState) {
+    if (state.precision === "unknown") {
+      return t("review.unknown");
+    }
+    if (state.precision === "branch_only") {
+      return getBranchOptionLabel(state.branch, locale);
+    }
+    return `${state.hour}:${state.minute}`;
   }
 
   async function submit() {
@@ -60,9 +109,7 @@ export function BirthProfileForm({
     setError(null);
     const profile = buildBirthProfile({
       date,
-      hour,
-      minute,
-      timeUnknown,
+      time: timeState,
       gender,
       locale,
     });
@@ -118,19 +165,20 @@ export function BirthProfileForm({
           <p>{t("birth.copy")}</p>
           <label>{t("birth.date")}<input onChange={(event) => setDate(event.target.value)} required type="date" value={date} /></label>
           <TimePrecisionFields
-            hour={hour}
             labels={{
               title: t("birth.time"),
               unknown: t("birth.unknown"),
               unknownHelp: t("birth.unknownHelp"),
               hour: t("birth.hour"),
               minute: t("birth.minute"),
+              exactMode: t("birth.exactMode"),
+              branchMode: t("birth.branchMode"),
+              branch: t("birth.branch"),
+              branchHelp: t("birth.branchHelp"),
             }}
-            minute={minute}
-            onHourChange={setHour}
-            onMinuteChange={setMinute}
-            onTimeUnknownChange={setTimeUnknown}
-            timeUnknown={timeUnknown}
+            locale={locale}
+            onTimeStateChange={setTimeState}
+            timeState={timeState}
           />
           <fieldset aria-describedby="birth-gender-help" className="wizard-fieldset">
             <legend>{t("birth.gender")}</legend>
@@ -167,7 +215,7 @@ export function BirthProfileForm({
           <h1>{t("review.title")}</h1>
           <dl className="wizard-summary">
             <dt>{t("birth.date")}</dt><dd>{date || "-"}</dd>
-            <dt>{t("birth.time")}</dt><dd>{timeUnknown ? t("review.unknown") : `${hour}:${minute}`}</dd>
+            <dt>{t("birth.time")}</dt><dd>{formatReviewTime(timeState)}</dd>
             <dt>{t("birth.gender")}</dt><dd>{gender === "male" ? t("birth.male") : gender === "female" ? t("birth.female") : "-"}</dd>
             <dt>{t("birth.timezone")}</dt><dd>UTC+7</dd>
           </dl>
