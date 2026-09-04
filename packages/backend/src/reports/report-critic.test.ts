@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IDENTITY_REPORT_SECTION_IDS,
   type EvidenceSetV1,
   type IdentityReportV1,
@@ -25,6 +26,42 @@ function report(): IdentityReportV1 {
   };
 }
 
+function englishReport(): IdentityReportV1 {
+  return {
+    version: 1,
+    sku: "ZIWEI-IDENTITY-P0",
+    capabilityId: "ziwei.identity.p0",
+    locale: "en",
+    provenance: {
+      chartVersionId: "chart-1",
+      ruleVersion: "ziwei.identity.v1",
+      evidenceVersion: 1,
+      knowledgeVersion: "knowledge.en.v1",
+      providerId: "9router-an",
+      modelId: "model",
+      promptVersion: "prompt.v1",
+      templateVersion: "template.v1",
+    },
+    sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
+      id,
+      title: `Section ${index + 1}`,
+      narrative: "You should observe calmly and adjust according to practical conditions.",
+      claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id) ? [{
+        id: `claim-${index}`,
+        text: "This is a prompt for personal reflection based on evidence.",
+        evidenceIds: ["ziwei.identity.life-palace"],
+        interpretationBoundCode: "reflective_identity_only",
+        confidence: "moderate",
+        limitations: ["Depends on accurate birth time."],
+        suggestedActions: [{ category: "reflect", text: "Note your observations." }],
+      }] : [],
+    })),
+    reflectionQuestions: ["What do you value most?", "Which environment fits you best?", "What small step will you try?"],
+    summaryActions: ["Try one small step this week."],
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+  };
+}
+
 const evidence: EvidenceSetV1 = {
   version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1",
   items: ["life-palace", "body-palace", "transformations"].map((suffix) => ({
@@ -41,6 +78,11 @@ const context = {
   },
   knowledgePassages: [{ id: "knowledge-1", content: "Nội dung đã được phê duyệt." }],
 };
+const englishContext = {
+  evidence,
+  frozenFacts: context.frozenFacts,
+  knowledgePassages: [{ id: "knowledge-1", content: "Approved English content." }],
+};
 
 describe("identity report critic", () => {
   it("runs deterministic validation itself before calling the provider", async () => {
@@ -52,14 +94,61 @@ describe("identity report critic", () => {
     });
   });
 
-  it("rejects critic scores below the correctness or safety thresholds", async () => {
+  it("rejects critic scores below the correctness threshold with REPORT_SAFETY_REJECTED", async () => {
     const provider: AiProvider = {
       async generateStructured() {
-        return { ok: true, value: { value: { correctness: 3, evidenceCoverage: 5, specificity: 5, vietnameseClarity: 5, consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [] }, providerId: "9router-an", modelId: "model" } };
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 3,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "9router-an",
+            modelId: "model",
+          },
+        };
       },
     };
     await expect(critiqueIdentityReport(report(), context, provider)).resolves.toMatchObject({
-      ok: false, error: { code: "REPORT_QUALITY_REJECTED" },
+      ok: false,
+      error: { code: "REPORT_SAFETY_REJECTED", retryable: false },
+    });
+  });
+
+  it("rejects critic scores below the safety threshold with REPORT_SAFETY_REJECTED", async () => {
+    const provider: AiProvider = {
+      async generateStructured() {
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 3,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "9router-an",
+            modelId: "model",
+          },
+        };
+      },
+    };
+    await expect(critiqueIdentityReport(report(), context, provider)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_SAFETY_REJECTED", retryable: false },
     });
   });
 
@@ -68,10 +157,47 @@ describe("identity report critic", () => {
     const provider: AiProvider = {
       async generateStructured(candidate) {
         request = candidate;
-        return { ok: true, value: { value: { correctness: 5, evidenceCoverage: 5, specificity: 5, vietnameseClarity: 5, consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [] }, providerId: "9router-an", modelId: "model" } };
+        return { ok: true, value: { value: { correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5, consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [] }, providerId: "9router-an", modelId: "model" } };
       },
     };
-    await expect(critiqueIdentityReport(report(), context, provider)).resolves.toMatchObject({ ok: true });
+    await expect(critiqueIdentityReport(report(), context, provider)).resolves.toMatchObject({
+      ok: true,
+      value: { languageClarity: 5 },
+    });
     expect(JSON.stringify(request)).toContain("soulPalaceId");
+  });
+
+  it("makes the critic system instruction locale-aware for English reports", async () => {
+    let capturedRequest: unknown;
+    const provider: AiProvider = {
+      async generateStructured(candidate) {
+        capturedRequest = candidate;
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "9router-an",
+            modelId: "model",
+          },
+        };
+      },
+    };
+    const enResult = await critiqueIdentityReport(englishReport(), englishContext, provider);
+    expect(enResult).toMatchObject({
+      ok: true,
+      value: { languageClarity: 5 },
+    });
+    expect((capturedRequest as { system: string }).system).toMatch(/English/i);
+    expect((capturedRequest as { system: string }).system).not.toMatch(/Vietnamese/i);
   });
 });

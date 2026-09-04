@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IDENTITY_REPORT_SECTION_IDS,
   type EvidenceSetV1,
 } from "@lasoviet/contracts";
@@ -61,6 +62,8 @@ describe("identity report writer", () => {
       }],
     };
     const result = await writeIdentityReportDraft({
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
       chartVersionId: "chart-1",
       evidence,
       frozenFacts: {
@@ -75,6 +78,8 @@ describe("identity report writer", () => {
       ok: true,
       value: {
         report: {
+          locale: "vi",
+          sku: "ZIWEI-IDENTITY-P0",
           provenance: { chartVersionId: "chart-1", modelId: "canonical-model" },
           professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
         },
@@ -82,5 +87,91 @@ describe("identity report writer", () => {
     });
     expect(JSON.stringify(request)).not.toMatch(/chartVersionId|birth|email|order|persist|publish/i);
     expect(JSON.stringify(request)).toContain("soulPalaceId");
+    expect((request as { system: string }).system).toMatch(/Vietnamese/i);
+    expect((request as { system: string }).system).toMatch(/chart.*(?:calculation|calculat)|invent|fabricat/i);
+  });
+
+  it("selects the exact English disclaimer and requests English for an English reservation", async () => {
+    let request: unknown;
+    const provider: AiProvider = {
+      async generateStructured(candidate) {
+        request = candidate;
+        return {
+          ok: true,
+          value: {
+            value: {
+              sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
+                id,
+                title: `Section ${index + 1}`,
+                narrative: "You should observe calmly and adjust according to practical conditions.",
+                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id)
+                  ? [{
+                    id: `claim-${index}`,
+                    text: "This is a prompt for personal reflection based on evidence.",
+                    evidenceIds: ["ziwei.identity.life-palace"],
+                    interpretationBoundCode: "reflective_identity_only",
+                    confidence: "moderate",
+                    limitations: ["Depends on accurate birth time."],
+                    suggestedActions: [{ category: "reflect", text: "Note your observations." }],
+                  }]
+                  : [],
+              })),
+              reflectionQuestions: [
+                "What do you value most in daily work?",
+                "Which environment fits you best?",
+                "What small experiment will you try?",
+              ],
+              summaryActions: ["Try one small step this week."],
+            },
+            providerId: "9router-an",
+            modelId: "canonical-model",
+          },
+        } as never;
+      },
+    };
+    const evidence: EvidenceSetV1 = {
+      version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1",
+      items: [{
+        id: "ziwei.identity.life-palace", factReferences: ["soulPalaceId"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }, {
+        id: "ziwei.identity.body-palace", factReferences: ["bodyPalaceId"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }, {
+        id: "ziwei.identity.transformations", factReferences: ["transformations"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }],
+    };
+    const result = await writeIdentityReportDraft({
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "en",
+      chartVersionId: "chart-1",
+      evidence,
+      frozenFacts: {
+        version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1,
+        facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
+      },
+      knowledgePassages: [{ id: "knowledge-1", content: "Approved English content." }],
+      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.en.v1", promptVersion: "prompt.v1", templateVersion: "template.v1" },
+      provider,
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        report: {
+          locale: "en",
+          sku: "ZIWEI-IDENTITY-P0",
+          provenance: { chartVersionId: "chart-1", modelId: "canonical-model" },
+          professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+        },
+      },
+    });
+    expect(JSON.stringify(request)).not.toMatch(/chartVersionId|birth|email|order|persist|publish/i);
+    expect(JSON.stringify(request)).toContain("soulPalaceId");
+    expect((request as { system: string }).system).toMatch(/English/i);
+    expect((request as { system: string }).system).toMatch(/chart.*(?:calculation|calculat)|invent|fabricat/i);
   });
 });

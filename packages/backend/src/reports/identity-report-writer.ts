@@ -1,5 +1,6 @@
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
 } from "@lasoviet/contracts";
@@ -13,6 +14,8 @@ import {
 } from "./report-source.js";
 
 export type IdentityReportWriterInput = IdentityReportSource & {
+  locale: "vi" | "en";
+  sku: "ZIWEI-IDENTITY-P0";
   provenance: {
     knowledgeVersion: string;
     promptVersion: string;
@@ -26,10 +29,13 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
     return { ok: false as const, error: { code: "REPORT_EVIDENCE_INVALID", retryable: false } };
   }
   const knowledge = boundedKnowledge(input.knowledgePassages);
+  const languageInstruction = input.locale === "en"
+    ? "Respond strictly in clear, natural English."
+    : "Respond strictly in clear, natural Vietnamese.";
   const result = await input.provider.generateStructured({
     schema: IdentityReportContentV1Schema,
     schemaName: "identity_report_content_v1",
-    system: "Interpret supplied evidence only. Do not calculate chart facts or invent evidence.",
+    system: `Interpret supplied evidence only. ${languageInstruction} Do not calculate chart facts or invent evidence.`,
     user: JSON.stringify({
       evidence: input.evidence.items,
       frozenFacts: input.frozenFacts.facts,
@@ -40,11 +46,14 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
     maxOutputTokens: 4_000,
   });
   if (!result.ok) return result;
+  const disclaimer = input.locale === "en"
+    ? CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN
+    : CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER;
   const assembled = IdentityReportV1Schema.safeParse({
     version: 1,
-    sku: "ZIWEI-IDENTITY-P0",
+    sku: input.sku,
     capabilityId: "ziwei.identity.p0",
-    locale: "vi",
+    locale: input.locale,
     provenance: {
       chartVersionId: input.frozenFacts.chartVersionId,
       ruleVersion: input.evidence.ruleVersion,
@@ -55,7 +64,7 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
       promptVersion: input.provenance.promptVersion,
       templateVersion: input.provenance.templateVersion,
     },
-    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+    professionalAdviceDisclaimer: disclaimer,
     ...result.value.value,
   });
   if (!assembled.success) {

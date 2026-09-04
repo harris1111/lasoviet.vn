@@ -220,6 +220,7 @@ export type {
   ReportValidationResult,
 } from "./reports/report-validator.js";
 export { critiqueIdentityReport } from "./reports/report-critic.js";
+export { renderIdentityReportHtml } from "./reports/identity-report-html.js";
 
 export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js";
 export { createSePayGateway } from "./commerce/sepay-adapter.js";
