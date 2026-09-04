@@ -131,7 +131,6 @@ if [ "$1" = "compose" ]; then
         exit 0
         ;;
       ps)
-        # compose ps --status running --services
         if [ "\${SIMULATE_WORKER_NOT_RUNNING:-0}" = "1" ]; then
           echo "postgres"
           echo "redis"
@@ -169,10 +168,13 @@ if [ "$1" = "compose" ]; then
           exit 0
         fi
         if [ "$service" = "worker" ]; then
-          if [ "$1" = "test" ]; then
-            # Test if dist/health/worker-health-cli.js exists
-            if [ "\${SIMULATE_LEGACY_WORKER:-0}" = "1" ]; then
+          if [ "$1" = "sh" ]; then
+            # Sentinel test for worker-health-cli.js: 'test ! -f dist/health/worker-health-cli.js && exit 42; exit 0'
+            if [ "\${SIMULATE_WORKER_EXEC_GENERIC_FAIL:-0}" = "1" ]; then
               exit 1
+            fi
+            if [ "\${SIMULATE_LEGACY_WORKER:-0}" = "1" ]; then
+              exit 42
             fi
             exit 0
           fi
@@ -213,13 +215,52 @@ exit 0
 `;
   writeFileSync(path.join(fakeBinDir, "curl"), curlScript, { mode: 0o755 });
 
-  // Fake flock
-  const flockScript = `#!/bin/sh
-echo "FLOCK: $@" >> "${posixLog}"
+  // Cross-process file lock implementation: atomic lock indicator that automatically frees when PID terminates
+  const flockScript = `#!/usr/bin/env bash
+nonblocking=0
+target=""
+cmd=()
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -n)
+      nonblocking=1
+      shift
+      ;;
+    *)
+      if [ -z "$target" ]; then
+        target="$1"
+      else
+        cmd+=("$1")
+      fi
+      shift
+      ;;
+  esac
+done
+
 if [ "\${SIMULATE_LOCK_BUSY:-0}" = "1" ]; then
   exit 1
 fi
-exit 0
+
+LOCK_DIR="\${STATE_DIR:-/tmp}/real_flock_concurrency.held"
+if mkdir "$LOCK_DIR" 2>/dev/null; then
+  p=$PPID
+  (
+    while kill -0 "$p" 2>/dev/null; do
+      /usr/bin/sleep 0.05 2>/dev/null || sleep 1
+    done
+    rm -rf "$LOCK_DIR" 2>/dev/null
+  ) &
+  if [ "\${#cmd[@]}" -gt 0 ]; then
+    "\${cmd[@]}"
+    rc=$?
+    rm -rf "$LOCK_DIR" 2>/dev/null
+    exit "$rc"
+  fi
+  exit 0
+else
+  exit 1
+fi
 `;
   writeFileSync(path.join(fakeBinDir, "flock"), flockScript, { mode: 0o755 });
 
@@ -431,16 +472,13 @@ describe("deployment shell contracts", () => {
     });
 
     expect(res.status).toBe(0);
-    const commands = readFileSync(ctx.commandsLog, "utf8");
-    expect(commands).toContain("FLOCK: -n 9");
-    expect(commands).not.toContain("DOCKER: pull ghcr.io/harris1111/lasoviet-release:production");
+    expect(readFileSync(ctx.commandsLog, "utf8")).not.toContain("DOCKER: pull ghcr.io/harris1111/lasoviet-release:production");
   });
 
-  it("serializes concurrent poll processes and prevents second deploy while first is blocked", async () => {
+  it("serializes concurrent poll processes and prevents second deploy while first is blocked without SIMULATE_LOCK_BUSY", async () => {
     const barrierFile = path.join(ctx.tempDir, "barrier.block");
     writeFileSync(barrierFile, "wait");
 
-    // Process 1 has blocked barrier file in environment
     const scriptPath = toPosixPath(path.join(projectRoot, "scripts", "deployment", "poll-release.sh"));
     const env1 = {
       ...process.env,
@@ -450,7 +488,7 @@ describe("deployment shell contracts", () => {
       POLL_BARRIER_FILE: toPosixPath(barrierFile),
     };
 
-    // Update fake docker script to wait on barrier during pull
+    // Update fake docker to pause while POLL_BARRIER_FILE exists
     const dockerWithBarrier = `#!/bin/sh
 if [ -n "\${POLL_BARRIER_FILE:-}" ]; then
   echo "WAITING_BARRIER" >> "${toPosixPath(ctx.commandsLog)}"
@@ -465,7 +503,7 @@ exit 0
     // Launch poll 1
     const p1 = spawn(bashExecutable, [scriptPath], { env: env1, stdio: ["pipe", "pipe", "pipe"] });
 
-    // Wait until p1 has acquired lock and entered barrier
+    // Wait until poll 1 is holding lock and reached barrier
     let waited = 0;
     while (waited < 3000) {
       if (existsSync(ctx.commandsLog) && readFileSync(ctx.commandsLog, "utf8").includes("WAITING_BARRIER")) {
@@ -476,16 +514,12 @@ exit 0
     }
 
     try {
-      // Launch poll 2 while poll 1 holds lock
-      const res2 = runScript(ctx, "poll-release.sh", [], {
-        SIMULATE_LOCK_BUSY: "1",
-      });
+      // Launch poll 2 with identical config and NO SIMULATE_LOCK_BUSY flag
+      const res2 = runScript(ctx, "poll-release.sh", []);
       expect(res2.status).toBe(0);
 
-      // Release barrier
+      // Release barrier so poll 1 completes
       rmSync(barrierFile, { force: true });
-
-      // Await poll 1
       await new Promise((resolve) => p1.on("close", resolve));
     } finally {
       rmSync(barrierFile, { force: true });
@@ -550,7 +584,7 @@ exit 0
     expect(state.LAST_FAILURE_CODE).toBe("");
   });
 
-  it("supports legacy worker during preflight when worker CLI is absent but service is running", () => {
+  it("supports legacy worker during preflight when worker CLI sentinel is 42 and worker service is running", () => {
     writeState(ctx, {
       CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
       PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
@@ -565,20 +599,37 @@ exit 0
     expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CANDIDATE);
   });
 
-  it("fails preflight when legacy worker is not listed as running", () => {
+  it("fails preflight when worker service is not running", () => {
     writeState(ctx, {
       CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
       PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
     });
 
     const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
-      SIMULATE_LEGACY_WORKER: "1",
       SIMULATE_WORKER_NOT_RUNNING: "1",
     });
     expect(res.status).not.toBe(0);
 
     const state = readState(ctx);
-    expect(state.LAST_FAILURE_CODE).toBe("PREFLIGHT_WORKER_UNHEALTHY");
+    expect(state.LAST_FAILURE_CODE).toBe("CURRENT_SERVICES_UNHEALTHY");
+  });
+
+  it("fails preflight when worker sentinel returns generic exec failure before backup", () => {
+    writeState(ctx, {
+      CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
+      PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
+    });
+
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
+      SIMULATE_WORKER_EXEC_GENERIC_FAIL: "1",
+    });
+    expect(res.status).not.toBe(0);
+
+    const commands = readFileSync(ctx.commandsLog, "utf8");
+    expect(commands).not.toContain("SHA256:");
+
+    const state = readState(ctx);
+    expect(state.LAST_FAILURE_CODE).toBe("CURRENT_SERVICES_UNHEALTHY");
   });
 
   it("fails deploy during preflight when df output is unparseable or disk full", () => {

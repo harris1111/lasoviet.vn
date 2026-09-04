@@ -38,42 +38,58 @@ check_disk_space
 check_current_services() {
   # 1. postgres
   if ! "${COMPOSE_CMD[@]}" exec -T postgres pg_isready >/dev/null 2>&1; then
-    record_failure "PREFLIGHT_POSTGRES_UNHEALTHY"
+    record_failure "CURRENT_SERVICES_UNHEALTHY"
     exit 1
   fi
   # 2. redis PONG
   local redis_pong
   redis_pong="$("${COMPOSE_CMD[@]}" exec -T redis redis-cli ping 2>/dev/null | tr -d ' \r\n')"
   if [ "$redis_pong" != "PONG" ]; then
-    record_failure "PREFLIGHT_REDIS_UNHEALTHY"
+    record_failure "CURRENT_SERVICES_UNHEALTHY"
     exit 1
   fi
   # 3. API internal
   if ! "${COMPOSE_CMD[@]}" exec -T api node -e "fetch('http://127.0.0.1:3001/health/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" >/dev/null 2>&1; then
-    record_failure "PREFLIGHT_API_UNHEALTHY"
+    record_failure "CURRENT_SERVICES_UNHEALTHY"
     exit 1
   fi
   # 4. Web internal
   if ! "${COMPOSE_CMD[@]}" exec -T web node -e "fetch('http://127.0.0.1:3000/health/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" >/dev/null 2>&1; then
-    record_failure "PREFLIGHT_WEB_UNHEALTHY"
+    record_failure "CURRENT_SERVICES_UNHEALTHY"
     exit 1
   fi
-  # 5. Worker legacy-aware health check:
-  # First test if dist/health/worker-health-cli.js exists inside container
-  if "${COMPOSE_CMD[@]}" exec -T worker test -f dist/health/worker-health-cli.js >/dev/null 2>&1; then
-    if ! "${COMPOSE_CMD[@]}" exec -T worker node dist/health/worker-health-cli.js >/dev/null 2>&1; then
-      record_failure "PREFLIGHT_WORKER_UNHEALTHY"
-      exit 1
-    fi
-  else
-    # Legacy image: verify worker service is running via compose ps
-    local running_workers
-    running_workers="$("${COMPOSE_CMD[@]}" ps --status running --services 2>/dev/null | grep -E '^worker$' || true)"
-    if [ -z "$running_workers" ]; then
-      record_failure "PREFLIGHT_WORKER_UNHEALTHY"
-      exit 1
-    fi
+  # 5. Worker running check: first require appearing in running services list
+  local running_workers
+  running_workers="$("${COMPOSE_CMD[@]}" ps --status running --services 2>/dev/null | grep -E '^worker$' || true)"
+  if [ -z "$running_workers" ]; then
+    record_failure "CURRENT_SERVICES_UNHEALTHY"
+    exit 1
   fi
+
+  # Exact sentinel check for worker CLI existence
+  local test_status=0
+  set +e
+  "${COMPOSE_CMD[@]}" exec -T worker sh -c 'test ! -f dist/health/worker-health-cli.js && exit 42; exit 0' >/dev/null 2>&1
+  test_status=$?
+  set -e
+
+  case "$test_status" in
+    0)
+      # CLI exists, require health CLI probe success
+      if ! "${COMPOSE_CMD[@]}" exec -T worker node dist/health/worker-health-cli.js >/dev/null 2>&1; then
+        record_failure "CURRENT_SERVICES_UNHEALTHY"
+        exit 1
+      fi
+      ;;
+    42)
+      # Legacy image without CLI, running-state fallback accepted
+      ;;
+    *)
+      # Any other status: execution/container failure, preflight fails
+      record_failure "CURRENT_SERVICES_UNHEALTHY"
+      exit 1
+      ;;
+  esac
 }
 check_current_services
 
