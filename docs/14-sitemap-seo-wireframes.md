@@ -13,6 +13,17 @@ depends_on:
 
 # Lá Số Việt — Sitemap, SEO & Wireframe Blueprint v1.1
 
+> **Cập nhật 2026-09-04:** §2 (Navigation, mega-menu model) và khung sitemap ở
+> §3.1 đã được thay thế bởi `docs/19-sitemap-v2-discipline-pages.md` — nav
+> phẳng, mỗi bộ môn flagship có 1 trang riêng, tiện ích miễn phí gộp vào
+> `/cong-cu-mien-phi`. Trong §3.4.2–3.4.3, slug chính chuyển từ
+> `/gieo-que-kinh-dich` → `/kinh-dich` và `/ban-do-sao` → `/chiem-tinh` (dùng
+> làm URL flagship); các bảng route con (kiến thức/luận giải theo bộ môn),
+> §3.2–3.3 route registry, §3.5 entity pages, route-status system (§3.4.6) và
+> mọi phần khác của tài liệu này (wireframe, SEO template, technical SEO,
+> structured data) **không** bị thay thế — `docs/19` tái sử dụng nguyên các
+> route con này bên dưới từng trang flagship.
+
 > **Mục tiêu:** tạo một kiến trúc website có khả năng cạnh tranh nhóm đầu tìm kiếm tại Việt Nam, dễ vận hành dài hạn, thân thiện với người dùng và thể hiện đúng định vị “thư viện tri thức Việt đương đại”.
 
 ## 0. Kết luận điều hành

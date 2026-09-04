@@ -262,3 +262,11 @@ khóa · cân · check · mũi tên · cộng · chevron · menu · sao.
 - [ ] Cập nhật `docs/13-brand-experience-guideline.md` §5.2/§5.5/§5.8 sang hệ sơn mài.
 - [ ] Ghi entry decision log cho việc đổi LOCKED palette.
 - [ ] Kiểm contrast thực tế sau khi ảnh thật vào chỗ (ảnh sáng hơn dự kiến sẽ phá contrast chữ hero).
+- [ ] **Mới (2026-09-04, xem `docs/19` §5.3–5.4):** ảnh hero/homepage hiện tại
+      code cứng theo Tử Vi/Đông phương (sách tàng thư, la kinh) — cần 1 đợt ảnh
+      mới theo hướng "tàng thư vũ trụ" phổ quát Đông-Tây cho riêng homepage,
+      nhường lại hiện vật đặc trưng (la kinh...) cho trang `/la-so-tu-vi`. Ảnh
+      dự phòng "khí cụ thiên văn đồng" ở mục 3 là ứng viên chính cho homepage
+      thay vì chỉ dùng cho trang bộ môn. Đồng thời §2 (cấm ảnh tarot/hoàng đạo)
+      có ngoại lệ có kiểm soát cho `/boi-bai` và `/chiem-tinh` — xem `docs/19`
+      §5.4 trước khi gen ảnh cho hai trang đó.

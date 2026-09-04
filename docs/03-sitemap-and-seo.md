@@ -1,5 +1,11 @@
 # 03 — Sitemap, Information Architecture & SEO
 
+> **Cập nhật 2026-09-04:** §1 (Navigation) và cách nhóm route theo bộ môn ở §2
+> đã được thay thế bởi `docs/19-sitemap-v2-discipline-pages.md` (nav phẳng,
+> mỗi bộ môn flagship 1 trang riêng, nhóm tiện ích miễn phí gộp vào
+> `/cong-cu-mien-phi`). Phần còn lại của tài liệu này (SEO priorities, page
+> template, technical SEO rules, editorial quality gate) vẫn có hiệu lực.
+
 ## 1. Navigation
 
 - Xem lá số
