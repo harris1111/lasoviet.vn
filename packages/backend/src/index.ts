@@ -211,6 +211,24 @@ export type {
   IdentityReportWriterInput,
 } from "./reports/identity-report-writer.js";
 export type {
+  ReportGenerationSourceInput,
+  ReportGenerationSourceRepository,
+} from "./reports/report-generation.repository.js";
+export {
+  createDatabaseReportGenerationSourceRepository,
+} from "./reports/report-generation.repository.js";
+export type {
+  CommitImmutableVersionInput,
+  ImmutableReportVersionRecord,
+  ReportGenerationAttemptRecord,
+  ReportVersionConflictCode,
+  ReportVersionRepository,
+  StartOrReuseAttemptInput,
+} from "./reports/report-version.repository.js";
+export {
+  createDatabaseReportVersionRepository,
+} from "./reports/report-version.repository.js";
+export type {
   ApprovedKnowledgePassage,
   IdentityReportSource,
 } from "./reports/report-source.js";
