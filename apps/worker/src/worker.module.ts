@@ -3,20 +3,27 @@ import { randomUUID } from "node:crypto";
 import { loadEnvironment } from "@lasoviet/config";
 import {
   createAccountDeletionService,
+  createAiProductionGate,
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseDeletionRepository,
   createDatabaseOutboxStore,
+  createDatabaseReportGenerationSourceRepository,
   createDatabaseReportQueuePublisher,
   createDatabaseReportQueueStore,
+  createDatabaseReportVersionRepository,
+  createKnowledgeRetrievalService,
   createReportService,
   createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
   createPhaseOneMaintenanceRunner,
+  createReportGenerationService,
   createSmtpEmailAdapter,
   resolveWorkerQueues,
+  type AiProductionGate,
+  type AiProvider,
 } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
 import { createReportGenerateProcessor } from "./processors/report-generate.processor.js";
@@ -71,9 +78,21 @@ export function createOutboxDispatchRunner() {
   }));
 }
 
-export function createReportGenerateRunner() {
+export function createReportGenerateRunner(options?: {
+  gate?: AiProductionGate;
+  provider?: AiProvider;
+}) {
   const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);
   if (!queuesResult.ok || !queuesResult.value.includes("report.generate")) {
+    return {
+      async runOnce() {
+        return { processed: 0 };
+      },
+    };
+  }
+
+  const gate = options?.gate ?? createAiProductionGate("pending");
+  if (!gate.allows("production_report_generation")) {
     return {
       async runOnce() {
         return { processed: 0 };
@@ -87,11 +106,32 @@ export function createReportGenerateRunner() {
   }
   const database = createDatabase(environment.value.databaseUrl);
   const workerId = `report-worker-${randomUUID()}`;
+  const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+  const sourceRepository = createDatabaseReportGenerationSourceRepository({
+    database,
+    knowledgeRetrieval,
+  });
+  const versionRepository = createDatabaseReportVersionRepository(database);
+  const provider = options?.provider ?? {
+    async generateStructured() {
+      return {
+        ok: false as const,
+        error: { code: "AI_CAPABILITY_UNSUPPORTED" as const, retryable: false },
+      };
+    },
+  };
+  const generationService = createReportGenerationService({
+    sourceRepository,
+    versionRepository,
+    gate,
+    provider,
+  });
   const processor = createReportGenerateProcessor({
     database,
     reportService: createReportService(database),
     queueStore: createDatabaseReportQueueStore(database, workerId),
     workerId,
+    generationService,
   });
 
   let activeRun: Promise<{ processed: number }> | undefined;

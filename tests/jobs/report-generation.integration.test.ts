@@ -31,12 +31,19 @@ import {
   ziweiCharts,
 } from "../../packages/database/src/index.js";
 import {
+  createAiProductionGate,
   createDatabaseReportGenerationSourceRepository,
+  createDatabaseReportQueueStore,
   createDatabaseReportVersionRepository,
   createKnowledgeIngestionService,
   createKnowledgeRetrievalService,
+  createReportGenerationService,
+  createReportService,
+  type AiProvider,
   type KnowledgeManifestV1,
 } from "../../packages/backend/src/index.js";
+import { createReportGenerateProcessor } from "../../apps/worker/src/processors/report-generate.processor.js";
+import { createReportGenerateRunner } from "../../apps/worker/src/worker.module.js";
 
 const palaceIds = [
   "life", "siblings", "spouse", "children", "wealth", "health",
@@ -1137,6 +1144,911 @@ describe("immutable report version repository integration", () => {
     const queueJobRow = allJobs.find((j) => j.id === fixture.jobId);
     expect(queueJobRow?.status).toBe("leased");
     expect(queueJobRow?.processedAt).toBeNull();
+
+    await database.$client.end();
+  });
+});
+
+describe("report generation orchestration and worker integration (Slice B)", () => {
+  let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
+  let databaseUrl = "";
+  const repoRoot = resolve(process.cwd());
+
+  beforeAll(async () => {
+    container = await new PostgreSqlContainer("postgres:16-alpine")
+      .withDatabase("lasoviet_report_orchestration_test")
+      .withUsername("lasoviet")
+      .withPassword("lasoviet")
+      .start();
+    databaseUrl = container.getConnectionUri();
+    await runMigrations(databaseUrl);
+
+    const database = createDatabase(databaseUrl);
+    const ingestion = createKnowledgeIngestionService({
+      database,
+      repositoryRoot: repoRoot,
+    });
+    const viRaw = await readFile(
+      resolve(repoRoot, "content/knowledge/vi/ziwei/identity-report-foundation.v1.json"),
+      "utf8",
+    );
+    const enRaw = await readFile(
+      resolve(repoRoot, "content/knowledge/en/ziwei/identity-report-foundation.v1.json"),
+      "utf8",
+    );
+    await ingestion.ingestKnowledge(JSON.parse(viRaw) as KnowledgeManifestV1);
+    await ingestion.ingestKnowledge(JSON.parse(enRaw) as KnowledgeManifestV1);
+    await database.$client.end();
+  }, 120_000);
+
+  afterAll(async () => {
+    await container?.stop();
+  }, 30_000);
+
+  async function seedFullOrchestrationFixture(
+    database: ReturnType<typeof createDatabase>,
+    suffix: string,
+    options?: {
+      jobLeaseStatus?: "leased" | "waiting";
+      leasedBy?: string;
+      leasedUntil?: Date;
+      reservationStatus?: string;
+      attemptCount?: number;
+      locale?: "vi" | "en";
+    },
+  ) {
+    const fixtureNow = new Date();
+    const now = new Date("2026-09-04T00:00:00.000Z");
+    const userId = `user-orch-${suffix}`;
+    const orderId = randomUUID();
+    const entitlementId = randomUUID();
+    const reportId = randomUUID();
+    const reportVersionId = randomUUID();
+    const jobId = `job-orch-${suffix}`;
+    const workerId = options?.leasedBy ?? "orch-worker-1";
+    const chartVersionId = `chart-ver-orch-${suffix}`;
+    const evidenceVersionId = `evidence-ver-orch-${suffix}`;
+    const knowledgeVersionId = "ziwei.identity.knowledge.v1";
+    const locale = options?.locale ?? "vi";
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Orchestration Test User",
+      email: `${userId}@example.test`,
+      emailVerified: true,
+    });
+    await database.insert(birthProfiles).values({
+      id: `profile-${suffix}`,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await database.insert(birthProfileRevisions).values({
+      id: `rev-${suffix}`,
+      profileId: `profile-${suffix}`,
+      revisionNumber: 1,
+      originalInput: {
+        version: 1,
+        calendar: { kind: "solar", date: "1990-01-01" },
+        time: { precision: "exact_minute", localTime: "12:00" },
+        timezone: { offsetMinutes: 420 },
+        consentVersion: "2026-09-01",
+      },
+      normalizedInput: {
+        version: 1,
+        normalizedCalendar: { kind: "solar", date: "1990-01-01" },
+        normalizedTime: { precision: "exact_minute", localTime: "12:00" },
+        timezoneProvenance: { source: "offset", offsetMinutes: 420 },
+        utcInstant: "1990-01-01T05:00:00.000Z",
+        normalizationWarnings: [],
+        limitations: [],
+      },
+      normalizationWarnings: [],
+      limitations: [],
+      consentVersion: "2026-09-01",
+      createdAt: now,
+    });
+    await database.insert(calculationRuns).values({
+      id: `run-${suffix}`,
+      profileId: `profile-${suffix}`,
+      profileRevisionId: `rev-${suffix}`,
+      idempotencyKey: `run-key-${suffix}`,
+      engineId: "ziwei.iztro",
+      engineVersion: "2.6.0",
+      adapterId: "ziwei.iztro-adapter",
+      adapterVersion: "1",
+      schemaId: "ziwei.chart.v1",
+      ruleSetId: "ziwei.default",
+      inputHash: "a".repeat(64),
+      configHash: "b".repeat(64),
+      rawSnapshotHash: "c".repeat(64),
+      createdAt: now,
+    });
+    await database.insert(ziweiCharts).values({
+      id: `chart-${suffix}`,
+      profileId: `profile-${suffix}`,
+      profileRevisionId: `rev-${suffix}`,
+      createdAt: now,
+    });
+    await database.insert(ziweiChartVersions).values({
+      id: chartVersionId,
+      chartId: `chart-${suffix}`,
+      calculationRunId: `run-${suffix}`,
+      normalizedOutput: sampleChart(),
+      privateRawSnapshot: {},
+      warnings: [],
+      provenance: {},
+      createdAt: now,
+    });
+    await database.insert(evidenceSets).values({
+      id: evidenceVersionId,
+      chartVersionId,
+      capabilityId: "ziwei.identity.p0",
+      ruleVersion: "ziwei.identity.v1",
+      createdAt: now,
+    });
+    await database.insert(evidenceItems).values([
+      {
+        id: `item-1-${suffix}`,
+        evidenceSetId: evidenceVersionId,
+        evidenceKey: "ziwei.identity.life-palace",
+        payload: {
+          id: "ziwei.identity.life-palace",
+          factReferences: ["palaces.ziwei.palace.life.earthlyBranchId", "soulPalaceId"],
+          confidence: "moderate",
+          interpretationBounds: ["Bound 1"],
+          interpretationBoundCodes: ["reflective_identity_only"],
+          limitations: ["Limitation 1"],
+          riskTags: ["identity", "determinism", "birth-time"],
+          allowedActionCategories: ["reflect", "explore"],
+        },
+        createdAt: now,
+      },
+      {
+        id: `item-2-${suffix}`,
+        evidenceSetId: evidenceVersionId,
+        evidenceKey: "ziwei.identity.body-palace",
+        payload: {
+          id: "ziwei.identity.body-palace",
+          factReferences: ["palaces.ziwei.palace.career.earthlyBranchId", "bodyPalaceId"],
+          confidence: "moderate",
+          interpretationBounds: ["Bound 2"],
+          interpretationBoundCodes: ["reflective_identity_only"],
+          limitations: ["Limitation 2"],
+          riskTags: ["identity", "determinism", "birth-time"],
+          allowedActionCategories: ["reflect", "explore"],
+        },
+        createdAt: now,
+      },
+      {
+        id: `item-3-${suffix}`,
+        evidenceSetId: evidenceVersionId,
+        evidenceKey: "ziwei.identity.transformations",
+        payload: {
+          id: "ziwei.identity.transformations",
+          factReferences: ["transformations", "provenance.ruleSetId"],
+          confidence: "moderate",
+          interpretationBounds: ["Bound 3"],
+          interpretationBoundCodes: ["reflective_identity_only"],
+          limitations: ["Limitation 3"],
+          riskTags: ["identity", "determinism", "birth-time"],
+          allowedActionCategories: ["reflect", "explore"],
+        },
+        createdAt: now,
+      },
+    ]);
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: `INV-ORCH-${suffix}`,
+      chartId: `chart-${suffix}`,
+      chartVersionId,
+      ownerId: userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale,
+      status: "paid",
+      createdAt: now,
+    });
+    await database.insert(commerceEntitlements).values({
+      id: entitlementId,
+      orderId,
+      chartId: `chart-${suffix}`,
+      sku: "ZIWEI-IDENTITY-P0",
+      ownerId: userId,
+      createdAt: now,
+    });
+    await database.insert(reportReservations).values({
+      id: randomUUID(),
+      reportId,
+      reportVersionId,
+      entitlementId,
+      chartVersionId,
+      evidenceVersionId,
+      knowledgeVersionId,
+      promptVersion: "identity-report-prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      locale,
+      sku: "ZIWEI-IDENTITY-P0",
+      status: options?.reservationStatus ?? "requested",
+      stateVersion: 1,
+      attemptCount: options?.attemptCount ?? 0,
+      activeJobId: options?.reservationStatus === "generating" ? jobId : null,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await database.insert(reportQueueJobs).values({
+      id: jobId,
+      name: "report.generate.v1",
+      sourceEventId: `evt-orch-${suffix}`,
+      traceId: `trace-orch-${suffix}`,
+      idempotencyKey: `report-generate:${reportVersionId}`,
+      payload: {
+        reportId,
+        reportVersionId,
+        entitlementId,
+        chartVersionId,
+        evidenceVersionId,
+        knowledgeVersionId,
+        promptVersion: "identity-report-prompt.v1",
+        reportConfigVersion: "identity-report-config.v1",
+        locale,
+        sku: "ZIWEI-IDENTITY-P0",
+      },
+      status: options?.jobLeaseStatus ?? "waiting",
+      attemptCount: options?.attemptCount ?? 0,
+      availableAt: fixtureNow,
+      leasedBy: options?.jobLeaseStatus === "leased" ? workerId : null,
+      leasedUntil: options?.leasedUntil ?? (options?.jobLeaseStatus === "leased" ? new Date(fixtureNow.getTime() + 300_000) : null),
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return {
+      userId,
+      orderId,
+      entitlementId,
+      reportId,
+      reportVersionId,
+      jobId,
+      workerId,
+      chartVersionId,
+      evidenceVersionId,
+      knowledgeVersionId,
+      locale,
+    };
+  }
+
+  function createDeterministicMockProvider(overrides?: {
+    writerResponse?: (req: any) => any;
+    criticResponse?: (req: any) => any;
+  }): AiProvider & { writerCalls: number; criticCalls: number } {
+    let writerCalls = 0;
+    let criticCalls = 0;
+    return {
+      get writerCalls() {
+        return writerCalls;
+      },
+      get criticCalls() {
+        return criticCalls;
+      },
+      async generateStructured(req) {
+        if (req.schemaName === "identity_report_content_v1") {
+          writerCalls++;
+          if (overrides?.writerResponse) return overrides.writerResponse(req);
+          const full = sampleVietnameseReport();
+          return {
+            ok: true as const,
+            value: {
+              value: {
+                sections: full.sections,
+                reflectionQuestions: full.reflectionQuestions,
+                summaryActions: full.summaryActions,
+              },
+              providerId: "mock-provider",
+              modelId: "mock-model",
+            },
+          };
+        }
+        if (req.schemaName === "identity_report_critic_v1") {
+          criticCalls++;
+          if (overrides?.criticResponse) return overrides.criticResponse(req);
+          return {
+            ok: true as const,
+            value: {
+              value: {
+                correctness: 5,
+                evidenceCoverage: 5,
+                specificity: 5,
+                languageClarity: 5,
+                consistency: 5,
+                actionability: 5,
+                safety: 5,
+                repetitionControl: 5,
+                notes: ["Approved by critic"],
+              },
+              providerId: "mock-provider",
+              modelId: "mock-model",
+            },
+          };
+        }
+        throw new Error(`Unexpected schemaName: ${req.schemaName}`);
+      },
+    };
+  }
+
+  it("approved deterministic generation persists one immutable output and one PDF event", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-approved", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider();
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: true });
+
+    const allVersions = await database.select().from(reportVersions);
+    const matchingVersions = allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId);
+    expect(matchingVersions).toHaveLength(1);
+    expect(matchingVersions[0].contentHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(matchingVersions[0].renderVersion).toBe("identity-report-pdf.v1");
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("html_ready");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("succeeded");
+    expect(attempt?.errorCode).toBeNull();
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("processed");
+
+    const allOutbox = await database.select().from(outbox);
+    const pdfEvents = allOutbox.filter((e) => e.eventType === "report.pdf.requested.v1" && e.aggregateId === fixture.reportVersionId);
+    expect(pdfEvents).toHaveLength(1);
+    expect(pdfEvents[0].payload).toMatchObject({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      renderVersion: "identity-report-pdf.v1",
+    });
+
+    const failedEvents = allOutbox.filter((e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === fixture.reportVersionId);
+    expect(failedEvents).toHaveLength(0);
+
+    await database.$client.end();
+  });
+
+  it("fabricated evidence persists no output/PDF event and becomes terminal failure with REPORT_EVIDENCE_INVALID", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-fabricated", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const full = sampleVietnameseReport();
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: true as const,
+        value: {
+          value: {
+            sections: full.sections.map((s) => ({
+              ...s,
+              claims: [
+                {
+                  ...s.claims[0],
+                  evidenceIds: ["ziwei.identity.fabricated-evidence-key"],
+                },
+              ],
+            })),
+            reflectionQuestions: full.reflectionQuestions,
+            summaryActions: full.summaryActions,
+          },
+          providerId: "mock-provider",
+          modelId: "mock-model",
+        },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allVersions = await database.select().from(reportVersions);
+    expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(0);
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("terminal_failure");
+    expect(reservation?.lastErrorCode).toBe("REPORT_EVIDENCE_INVALID");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("REPORT_EVIDENCE_INVALID");
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("terminal_failure");
+    expect(job?.lastErrorCode).toBe("REPORT_EVIDENCE_INVALID");
+
+    const allOutbox = await database.select().from(outbox);
+    expect(allOutbox.filter((e) => e.eventType === "report.pdf.requested.v1" && e.aggregateId === fixture.reportVersionId)).toHaveLength(0);
+
+    const failedEvents = allOutbox.filter((e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === fixture.reportVersionId);
+    expect(failedEvents).toHaveLength(1);
+    expect(failedEvents[0].payload).toMatchObject({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      errorCode: "REPORT_EVIDENCE_INVALID",
+      failureStage: "generation",
+    });
+
+    await database.$client.end();
+  });
+
+  it("unsafe content rejected by critic persists no output/PDF event and becomes terminal failure with REPORT_SAFETY_REJECTED", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-unsafe", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      criticResponse: () => ({
+        ok: true as const,
+        value: {
+          value: {
+            correctness: 5,
+            evidenceCoverage: 5,
+            specificity: 5,
+            languageClarity: 5,
+            consistency: 5,
+            actionability: 5,
+            safety: 1,
+            repetitionControl: 5,
+            notes: ["Dangerous fear-mongering content"],
+          },
+          providerId: "mock-provider",
+          modelId: "mock-model",
+        },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allVersions = await database.select().from(reportVersions);
+    expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(0);
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("terminal_failure");
+    expect(reservation?.lastErrorCode).toBe("REPORT_SAFETY_REJECTED");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("REPORT_SAFETY_REJECTED");
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("terminal_failure");
+    expect(job?.lastErrorCode).toBe("REPORT_SAFETY_REJECTED");
+
+    const allOutbox = await database.select().from(outbox);
+    expect(allOutbox.filter((e) => e.eventType === "report.pdf.requested.v1" && e.aggregateId === fixture.reportVersionId)).toHaveLength(0);
+
+    const failedEvents = allOutbox.filter((e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === fixture.reportVersionId);
+    expect(failedEvents).toHaveLength(1);
+    expect(failedEvents[0].payload).toMatchObject({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      errorCode: "REPORT_SAFETY_REJECTED",
+      failureStage: "generation",
+    });
+
+    await database.$client.end();
+  });
+
+  it("provider timeout is retryable and releases the queue lease", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-timeout", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: false as const,
+        error: { code: "AI_TIMEOUT" as const, retryable: true },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allVersions = await database.select().from(reportVersions);
+    expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(0);
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("retryable_failure");
+    expect(job?.lastErrorCode).toBe("AI_TIMEOUT");
+    expect(job?.leasedBy).toBeNull();
+    expect(job?.leasedUntil).toBeNull();
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("generating");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("AI_TIMEOUT");
+
+    const allOutbox = await database.select().from(outbox);
+    expect(allOutbox.filter((e) => e.aggregateId === fixture.reportVersionId)).toHaveLength(0);
+
+    await database.$client.end();
+  });
+
+  it("malformed output is terminal AI_OUTPUT_INVALID", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-malformed", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: false as const,
+        error: { code: "AI_OUTPUT_INVALID" as const, retryable: false },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allVersions = await database.select().from(reportVersions);
+    expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(0);
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("terminal_failure");
+    expect(reservation?.lastErrorCode).toBe("AI_OUTPUT_INVALID");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("AI_OUTPUT_INVALID");
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("terminal_failure");
+    expect(job?.lastErrorCode).toBe("AI_OUTPUT_INVALID");
+
+    const allOutbox = await database.select().from(outbox);
+    const failedEvents = allOutbox.filter((e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === fixture.reportVersionId);
+    expect(failedEvents).toHaveLength(1);
+    expect(failedEvents[0].payload).toMatchObject({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      errorCode: "AI_OUTPUT_INVALID",
+      failureStage: "generation",
+    });
+
+    await database.$client.end();
+  });
+
+  it("unsupported or unapproved AI capability returns terminal AI_CAPABILITY_UNSUPPORTED", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "unapproved-gate", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("pending");
+    const provider = createDeterministicMockProvider();
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allVersions = await database.select().from(reportVersions);
+    expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(0);
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("terminal_failure");
+    expect(reservation?.lastErrorCode).toBe("AI_CAPABILITY_UNSUPPORTED");
+
+    const allOutbox = await database.select().from(outbox);
+    const failedEvents = allOutbox.filter((e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === fixture.reportVersionId);
+    expect(failedEvents).toHaveLength(1);
+    expect(failedEvents[0].payload).toMatchObject({
+      errorCode: "AI_CAPABILITY_UNSUPPORTED",
+      failureStage: "generation",
+    });
+
+    await database.$client.end();
+  });
+
+  it("duplicate/crash replay calls neither source loader nor provider and creates no second output/event", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-replay", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    let loadSourceCalls = 0;
+    const realKnowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const realSourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval: realKnowledgeRetrieval,
+    });
+    const sourceRepository = {
+      async loadSource(params: any) {
+        loadSourceCalls++;
+        return realSourceRepository.loadSource(params);
+      },
+    };
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider();
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const firstResult = await processor.processNext();
+    expect(firstResult).toEqual({ processed: true });
+    expect(loadSourceCalls).toBe(1);
+    expect(provider.writerCalls).toBe(1);
+    expect(provider.criticCalls).toBe(1);
+
+    const replayJobId = `replay-job-${randomUUID()}`;
+    await database.insert(reportQueueJobs).values({
+      id: replayJobId,
+      name: "report.generate.v1",
+      sourceEventId: `evt-replay-${randomUUID()}`,
+      traceId: `trace-replay-${randomUUID()}`,
+      idempotencyKey: `report-generate-replay:${fixture.reportVersionId}`,
+      payload: {
+        reportId: fixture.reportId,
+        reportVersionId: fixture.reportVersionId,
+        entitlementId: fixture.entitlementId,
+        chartVersionId: fixture.chartVersionId,
+        evidenceVersionId: fixture.evidenceVersionId,
+        knowledgeVersionId: fixture.knowledgeVersionId,
+        promptVersion: "identity-report-prompt.v1",
+        reportConfigVersion: "identity-report-config.v1",
+        locale: "vi",
+        sku: "ZIWEI-IDENTITY-P0",
+      },
+      status: "waiting",
+      attemptCount: 0,
+      availableAt: new Date(),
+    });
+
+    loadSourceCalls = 0;
+    const initialWriterCalls = provider.writerCalls;
+    const initialCriticCalls = provider.criticCalls;
+
+    const replayResult = await processor.processNext();
+    expect(replayResult).toEqual({ processed: true });
+
+    expect(loadSourceCalls).toBe(0);
+    expect(provider.writerCalls).toBe(initialWriterCalls);
+    expect(provider.criticCalls).toBe(initialCriticCalls);
+
+    const allVersions = await database.select().from(reportVersions);
+    expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(1);
+
+    const allOutbox = await database.select().from(outbox);
+    expect(allOutbox.filter((e) => e.eventType === "report.pdf.requested.v1" && e.aggregateId === fixture.reportVersionId)).toHaveLength(1);
+
+    await database.$client.end();
+  });
+
+  it("pending default runtime returns zero without claiming a job or calling a provider", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "pending-runner", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+
+    const previousEnv = process.env.WORKER_QUEUES;
+    process.env.WORKER_QUEUES = "report.generate";
+
+    try {
+      const runner = createReportGenerateRunner();
+      const result = await runner.runOnce();
+      expect(result).toEqual({ processed: 0 });
+
+      const allJobs = await database.select().from(reportQueueJobs);
+      const job = allJobs.find((j) => j.id === fixture.jobId);
+      expect(job?.status).toBe("waiting");
+      expect(job?.leasedBy).toBeNull();
+      expect(job?.attemptCount).toBe(0);
+
+      const allVersions = await database.select().from(reportVersions);
+      expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(0);
+    } finally {
+      process.env.WORKER_QUEUES = previousEnv;
+      await database.delete(reportQueueJobs);
+      await database.$client.end();
+    }
+  });
+
+  it("existing P04-T03 compatibility behavior remains compatible when no generation dependency is supplied", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "p04-t03-compat", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: true });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("processed");
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("generating");
+
+    const allVersions = await database.select().from(reportVersions);
+    expect(allVersions.filter((v) => v.reportVersionId === fixture.reportVersionId)).toHaveLength(0);
+
+    const allOutbox = await database.select().from(outbox);
+    expect(allOutbox.filter((e) => e.aggregateId === fixture.reportVersionId)).toHaveLength(0);
 
     await database.$client.end();
   });

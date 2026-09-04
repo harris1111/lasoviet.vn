@@ -2,6 +2,7 @@ import type { Database } from "@lasoviet/database";
 import {
   parseReportGenerateJob,
   type createReportService,
+  type ReportGenerationService,
   type ReportJobQueueStore,
 } from "@lasoviet/backend";
 
@@ -10,6 +11,7 @@ export function createReportGenerateProcessor(dependencies: {
   reportService: ReturnType<typeof createReportService>;
   queueStore: ReportJobQueueStore;
   workerId: string;
+  generationService?: ReportGenerationService;
 }) {
   return {
     async processJobFailure(params: {
@@ -76,6 +78,45 @@ export function createReportGenerateProcessor(dependencies: {
       }
 
       const reportVersionId = parsed.value.payload.reportVersionId;
+
+      if (!dependencies.generationService) {
+        const startResult = await dependencies.reportService.startGenerating({
+          reportVersionId,
+          jobId: job.id,
+          workerId: dependencies.workerId,
+        });
+
+        if (!startResult.ok) {
+          const failureResult = await this.processJobFailure({
+            jobId: job.id,
+            reportVersionId,
+            attemptCount: job.attemptCount,
+            errorCode: startResult.code,
+          });
+          if (!failureResult.ok) return { processed: false };
+          return { processed: false };
+        }
+
+        const markResult = await dependencies.queueStore.markProcessed(job.id);
+        if (!markResult.ok) return { processed: false };
+        return { processed: true };
+      }
+
+      const replayResult = await dependencies.generationService.replayExisting({
+        job: parsed.value,
+        jobId: job.id,
+        attemptNumber: job.attemptCount,
+        workerId: dependencies.workerId,
+      });
+
+      if (!replayResult.ok) {
+        return { processed: false };
+      }
+
+      if (replayResult.value !== null) {
+        return { processed: true };
+      }
+
       const startResult = await dependencies.reportService.startGenerating({
         reportVersionId,
         jobId: job.id,
@@ -93,9 +134,39 @@ export function createReportGenerateProcessor(dependencies: {
         return { processed: false };
       }
 
-      const markResult = await dependencies.queueStore.markProcessed(job.id);
-      if (!markResult.ok) return { processed: false };
-      return { processed: true };
+      const genResult = await dependencies.generationService.generateReport({
+        job: parsed.value,
+        jobId: job.id,
+        attemptNumber: job.attemptCount,
+        workerId: dependencies.workerId,
+      });
+
+      if (genResult.ok) {
+        return { processed: true };
+      }
+
+      if (genResult.error.code === "REPORT_VERSION_CONFLICT") {
+        return { processed: false };
+      }
+
+      if (genResult.error.retryable) {
+        const nextAttemptAt = new Date(Date.now() + 30_000);
+        await dependencies.queueStore.recordRetryableFailure(
+          job.id,
+          genResult.error.code,
+          nextAttemptAt,
+        );
+        return { processed: false };
+      }
+
+      await dependencies.reportService.recordTerminalFailure({
+        reportVersionId,
+        jobId: job.id,
+        workerId: dependencies.workerId,
+        errorCode: genResult.error.code,
+        failureStage: "generation",
+      });
+      return { processed: false };
     },
   };
 }
