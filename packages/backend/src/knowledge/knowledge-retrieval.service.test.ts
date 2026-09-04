@@ -533,4 +533,59 @@ describe("knowledge retrieval service", () => {
       await expect(ingestionService.ingestKnowledge(validManifest)).rejects.toThrow(infraError);
     });
 
+
+    it("finding pass 4: propagates PostgreSQL 23505 with missing constraint without mapping to metadata error", async () => {
+      const missingConstraintError = Object.assign(
+        new Error("duplicate key value violates unique constraint"),
+        {
+          code: "23505",
+        },
+      );
+
+      const mockDb = {
+        select: () => ({
+          from: () => ({
+            where: () => {
+              const res: any = Promise.resolve([]);
+              res.limit = async () => [];
+              return res;
+            },
+          }),
+        }),
+        transaction: async () => {
+          throw missingConstraintError;
+        },
+      } as any;
+
+      const ingestionService = createKnowledgeIngestionService({ database: mockDb });
+      await expect(ingestionService.ingestKnowledge(validManifest)).rejects.toThrow(missingConstraintError);
+    });
+
+    it("finding pass 4: propagates PostgreSQL 23505 with unrelated constraint without mapping to metadata error", async () => {
+      const unrelatedConstraintError = Object.assign(
+        new Error("duplicate key value violates unique constraint"),
+        {
+          code: "23505",
+          constraint_name: "unrelated_knowledge_chunks_constraint",
+        },
+      );
+
+      const mockDb = {
+        select: () => ({
+          from: () => ({
+            where: () => {
+              const res: any = Promise.resolve([]);
+              res.limit = async () => [];
+              return res;
+            },
+          }),
+        }),
+        transaction: async () => {
+          throw unrelatedConstraintError;
+        },
+      } as any;
+
+      const ingestionService = createKnowledgeIngestionService({ database: mockDb });
+      await expect(ingestionService.ingestKnowledge(validManifest)).rejects.toThrow(unrelatedConstraintError);
+    });
 });

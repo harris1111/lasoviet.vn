@@ -248,10 +248,10 @@ export function isKnowledgeChunkUniqueViolation(err: unknown): boolean {
   const pgError = err as { code?: unknown; constraint_name?: unknown; constraint?: unknown };
   if (pgError.code !== "23505") return false;
   const constraint = String(pgError.constraint_name ?? pgError.constraint ?? "");
-  if (constraint.length > 0) {
-    return constraint.includes("knowledge_chunks");
-  }
-  return true;
+  return (
+    constraint === "knowledge_chunks_version_passage_unique" ||
+    constraint === "knowledge_chunks_pkey"
+  );
 }
 
 export function createKnowledgeIngestionService(dependencies: {
