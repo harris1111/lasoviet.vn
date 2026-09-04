@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #0F0D0A; }
+  a { color: #C9A44D; }
+  a:hover { color: #F2DCA0; }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#0F0D0A;color:#C9A44D;font-family:'Source Serif 4',Georgia,serif;padding:80px 72px 120px;display:flex;flex-direction:column;gap:96px">
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="lsvGold5" x1="0" y1="0.28" x2="1" y2="0.72">
+        <stop offset="0%" stop-color="#9A7730"></stop>
+        <stop offset="34%" stop-color="#F2DCA0"></stop>
+        <stop offset="58%" stop-color="#C9A44D"></stop>
+        <stop offset="100%" stop-color="#A8842F"></stop>
+      </linearGradient>
+      <g id="lsv5">
+        <path fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="butt" d="M89.27 42.37A40 40 0 1 1 10.73 42.37"></path>
+        <path fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="butt" d="M28.51 16.26A40 40 0 0 1 71.49 16.26"></path>
+        <path fill="currentColor" d="M8.53 41.94C9.03 39.39 9.93 38.28 12.18 36.98C13.15 39.39 13.44 40.25 12.94 42.8Z"></path>
+        <path fill="currentColor" d="M91.47 41.94C90.97 39.39 90.07 38.28 87.82 36.98C86.85 39.39 86.56 40.25 87.06 42.8Z"></path>
+        <path fill="currentColor" d="M27.3 14.37C25.11 15.77 24.02 16.98 24.02 19.58C26.62 19.58 27.53 19.56 29.72 18.16Z"></path>
+        <path fill="currentColor" d="M72.7 14.37C74.89 15.77 75.98 16.98 75.98 19.58C73.38 19.58 72.47 19.56 70.28 18.16Z"></path>
+        <path fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="butt" d="M25.21 38.25C28.45 43.06 36.58 58.47 45.51 76.79A5 5 0 0 0 54.49 76.79C63.42 58.47 71.55 43.06 74.79 38.25"></path>
+        <path fill="currentColor" d="M16.26 24.99C15.91 28.32 16.33 31.52 17.31 32.97C18.71 35.04 21.95 37.44 23.35 39.51L27.08 36.99C25.68 34.92 23.85 31.58 22.45 29.51C21.54 28.17 19.07 26.36 16.26 24.99Z"></path>
+        <path fill="currentColor" d="M83.74 24.99C82.79 28.81 79.95 34.62 76.65 39.51L72.92 36.99C76.66 31.44 80.99 26.64 83.74 24.99Z"></path>
+        <path fill="{{ veinFill }}" d="M18.22 27.89C18.75 31.36 20.52 33.98 23.53 35.77C23 32.3 21.23 29.68 18.22 27.89Z"></path>
+      </g>
+      <g id="lsv5s">
+        <path fill="none" stroke="currentColor" stroke-width="5.2" stroke-linecap="butt" d="M89.27 42.37A40 40 0 1 1 10.73 42.37"></path>
+        <path fill="none" stroke="currentColor" stroke-width="5.2" stroke-linecap="butt" d="M28.51 16.26A40 40 0 0 1 71.49 16.26"></path>
+        <path fill="currentColor" d="M8.18 41.87C8.68 39.32 9.93 38.28 12.18 36.98C13.15 39.39 13.79 40.31 13.29 42.86Z"></path>
+        <path fill="currentColor" d="M91.82 41.87C91.32 39.32 90.07 38.28 87.82 36.98C86.85 39.39 86.21 40.31 86.71 42.86Z"></path>
+        <path fill="currentColor" d="M27.11 14.07C24.92 15.47 24.02 16.98 24.02 19.58C26.62 19.58 27.72 19.86 29.91 18.46Z"></path>
+        <path fill="currentColor" d="M72.89 14.07C75.08 15.47 75.98 16.98 75.98 19.58C73.38 19.58 72.28 19.86 70.09 18.46Z"></path>
+        <path fill="none" stroke="currentColor" stroke-width="5.2" stroke-linecap="butt" d="M25.21 38.25C28.45 43.06 36.58 58.47 45.51 76.79A5 5 0 0 0 54.49 76.79C63.42 58.47 71.55 43.06 74.79 38.25"></path>
+        <path fill="currentColor" d="M16.26 24.99C15.91 28.32 16.33 31.52 17.31 32.97C18.71 35.04 21.66 37.63 23.06 39.7L27.36 36.8C25.96 34.73 23.85 31.58 22.45 29.51C21.54 28.17 19.07 26.36 16.26 24.99Z"></path>
+        <path fill="currentColor" d="M83.74 24.99C82.79 28.81 78.34 37.63 76.94 39.7L72.64 36.8C74.04 34.73 80.99 26.64 83.74 24.99Z"></path>
+        <path fill="{{ veinFill }}" d="M18.22 27.89C17.92 31.92 19.69 34.54 23.53 35.77C23.83 31.74 22.06 29.12 18.22 27.89Z"></path>
+      </g>
+      <g id="lsv5g">
+        <path fill="none" stroke="url(#lsvGold5)" stroke-width="4.5" stroke-linecap="butt" d="M89.27 42.37A40 40 0 1 1 10.73 42.37"></path>
+        <path fill="none" stroke="url(#lsvGold5)" stroke-width="4.5" stroke-linecap="butt" d="M28.51 16.26A40 40 0 0 1 71.49 16.26"></path>
+        <path fill="url(#lsvGold5)" d="M8.53 41.94C9.03 39.39 9.93 38.28 12.18 36.98C13.15 39.39 13.44 40.25 12.94 42.8Z"></path>
+        <path fill="url(#lsvGold5)" d="M91.47 41.94C90.97 39.39 90.07 38.28 87.82 36.98C86.85 39.39 86.56 40.25 87.06 42.8Z"></path>
+        <path fill="url(#lsvGold5)" d="M27.3 14.37C25.11 15.77 24.02 16.98 24.02 19.58C26.62 19.58 27.53 19.56 29.72 18.16Z"></path>
+        <path fill="url(#lsvGold5)" d="M72.7 14.37C74.89 15.77 75.98 16.98 75.98 19.58C73.38 19.58 72.47 19.56 70.28 18.16Z"></path>
+        <path fill="none" stroke="url(#lsvGold5)" stroke-width="4.5" stroke-linecap="butt" d="M25.21 38.25C28.45 43.06 36.58 58.47 45.51 76.79A5 5 0 0 0 54.49 76.79C63.42 58.47 71.55 43.06 74.79 38.25"></path>
+        <path fill="url(#lsvGold5)" d="M16.26 24.99C15.91 28.32 16.33 31.52 17.31 32.97C18.71 35.04 21.95 37.44 23.35 39.51L27.08 36.99C25.68 34.92 23.85 31.58 22.45 29.51C21.54 28.17 19.07 26.36 16.26 24.99Z"></path>
+        <path fill="url(#lsvGold5)" d="M83.74 24.99C82.79 28.81 79.95 34.62 76.65 39.51L72.92 36.99C76.66 31.44 80.99 26.64 83.74 24.99Z"></path>
+        <path fill="{{ veinFill }}" d="M18.22 27.89C18.75 31.36 20.52 33.98 23.53 35.77C23 32.3 21.23 29.68 18.22 27.89Z"></path>
+      </g>
+    </defs>
+  </svg>
+
+  <header style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid rgba(201,164,77,0.18);padding-bottom:20px">
+    <div style="font-size:15px;letter-spacing:0.28em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;color:#8A7440">Colophon · vòng khuyết hai cung</div>
+    <div style="font-size:15px;font-family:'IBM Plex Mono',monospace;color:#8A7440">Lá Số Việt · logomark v5</div>
+  </header>
+
+  <section style="display:grid;grid-template-columns:340px 1fr;gap:72px;align-items:center">
+    <div style="width:300px;height:300px;color:#C9A44D">
+      <svg viewBox="0 0 100 100" width="300" height="300" role="img" aria-label="Lá Số Việt logomark"><use href="#lsv5"></use></svg>
+    </div>
+    <div style="max-width:560px;display:flex;flex-direction:column;gap:24px">
+      <h1 style="margin:0;font-weight:300;font-size:38px;line-height:1.2;letter-spacing:0.01em;color:#E8D9AE;text-wrap:pretty">Vòng còn nguyên, khuyết đúng hai cung</h1>
+      <p style="margin:0;font-size:19px;line-height:1.7;color:#B49A63;text-wrap:pretty">Chữ V dựng cân: hai cánh cùng độ dài, mở 26° ở đáy và bung tới 34° ở đầu, gặp nhau ở một đỉnh bo bán kính 5 — vẫn là đỉnh nhọn, không phải lòng chảo. Hai đầu cánh dừng đúng ở mép ngoài vòng thiên bàn; vòng khuyết hai cung 30° ở đúng hai chỗ đó và không khuyết chỗ nào khác, nên 299° còn lại vẫn đóng thành vòng.</p>
+      <div style="border:1px solid rgba(201,164,77,0.28);padding:20px 22px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:#8A7440">Ngôn ngữ đầu nét đã chọn</div>
+        <div style="font-size:22px;color:#E8D9AE">Vuốt nhọn — toàn bộ mark</div>
+        <div style="font-size:16px;line-height:1.6;color:#B49A63;text-wrap:pretty">Tám đầu nét hở đều thu về một điểm: đầu lá, đầu cánh phải, bốn đầu khuyết của vòng, hai đầu sống lá. Không có đầu cắt phẳng hay bo tròn nào.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:32px">
+    <div style="font-size:14px;letter-spacing:0.22em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;color:#8A7440">Bản dựng hình</div>
+    <div style="display:flex;gap:56px;align-items:flex-start;flex-wrap:wrap">
+      <svg viewBox="0 0 100 100" width="520" height="520" style="background:#131108;border:1px solid rgba(201,164,77,0.14)">
+        <g stroke="#C9A44D" stroke-width="0.16" opacity="0.45" fill="none">
+          <circle cx="50" cy="50" r="40"></circle>
+          <circle cx="50" cy="50" r="37.75"></circle>
+          <circle cx="50" cy="50" r="42.25"></circle>
+          <line x1="4" y1="50" x2="96" y2="50"></line>
+          <line x1="50" y1="4" x2="50" y2="96"></line>
+          <circle cx="50" cy="74.6" r="5"></circle>
+          <path d="M23.7 32.07 L50 86 L76.3 32.07"></path>
+          <path d="M16.26 24.99 L30.8 46.55"></path>
+          <path d="M83.74 24.99 L69.2 46.55"></path>
+          <line x1="50" y1="50" x2="12.18" y2="36.98"></line>
+          <line x1="50" y1="50" x2="24.02" y2="19.58"></line>
+          <line x1="50" y1="50" x2="87.82" y2="36.98"></line>
+          <line x1="50" y1="50" x2="75.98" y2="19.58"></line>
+        </g>
+        <g opacity="0.55" color="#C9A44D"><use href="#lsv5"></use></g>
+        <g fill="none" stroke="#F2DCA0" stroke-width="0.32">
+          <rect x="24.11" y="37.15" width="2.2" height="2.2"></rect>
+          <rect x="44.41" y="75.69" width="2.2" height="2.2"></rect>
+          <rect x="53.39" y="75.69" width="2.2" height="2.2"></rect>
+          <rect x="73.69" y="37.15" width="2.2" height="2.2"></rect>
+          <rect x="15.16" y="23.89" width="2.2" height="2.2"></rect>
+          <rect x="82.64" y="23.89" width="2.2" height="2.2"></rect>
+          <rect x="11.08" y="35.88" width="2.2" height="2.2"></rect>
+          <rect x="86.72" y="35.88" width="2.2" height="2.2"></rect>
+          <rect x="22.92" y="18.48" width="2.2" height="2.2"></rect>
+          <rect x="74.88" y="18.48" width="2.2" height="2.2"></rect>
+        </g>
+        <g font-family="'IBM Plex Mono',monospace" font-size="2.5" fill="#8A7440">
+          <text x="52" y="8">R = 40</text>
+          <text x="52" y="70">ρ = 5</text>
+          <text x="30" y="12">26° → 34°</text>
+          <text x="4" y="30">khuyết 30°</text>
+        </g>
+      </svg>
+      <div style="display:flex;flex-direction:column;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.85;color:#B49A63;max-width:290px">
+        <div style="color:#E8D9AE;letter-spacing:0.14em;text-transform:uppercase;font-size:12px">Hệ tỉ lệ</div>
+        <div>vòng: R 40 · bề rộng nét 4.5, đều tuyệt đối</div>
+        <div>cánh chữ: 26° ở đáy, 34° ở đầu — bung 8°</div>
+        <div>đỉnh chữ: bo ρ 5, tiếp tuyến hai đầu</div>
+        <div>vòng khuyết 2 × 30° tại φ 199–229.5° và gương</div>
+        <div>mỗi đầu khuyết vuốt nhọn qua 8° cung</div>
+        <div>hai đầu cánh dừng đúng ở r = 42, mép ngoài vòng</div>
+        <div>lá: dài 16 trên trục 34°, ngang lớn nhất 6.2</div>
+        <div style="border-top:1px solid rgba(201,164,77,0.18);padding-top:14px;color:#8A7440">Đối xứng gương tuyệt đối qua trục x = 50, trừ hình lá và sống lá. Mọi tay nắm được giải từ giao điểm hai tiếp tuyến nên dãy hướng đơn điệu — không có khấc.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:32px">
+    <div style="font-size:14px;letter-spacing:0.22em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;color:#8A7440">Thang cỡ · nền #0F0D0A</div>
+    <div style="display:flex;gap:60px;align-items:flex-end;flex-wrap:wrap;color:#C9A44D">
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="300" height="300"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">300</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="120" height="120"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">120</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="64" height="64"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">64</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="32" height="32"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">32</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="24" height="24"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">24</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="120" height="120"><use href="#lsv5g"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">120 · chuyển sắc</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:32px">
+    <div style="font-size:14px;letter-spacing:0.22em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;color:#8A7440">Phóng 800% · kiểm tra đường bao</div>
+    <div style="display:flex;gap:40px;flex-wrap:wrap;color:#C9A44D">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <svg viewBox="8 24 20 20" width="480" height="480" style="background:#0F0D0A;border:1px solid rgba(201,164,77,0.14)"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">hình lá và đầu khuyết trái của vòng</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <svg viewBox="40 70 20 20" width="480" height="480" style="background:#0F0D0A;border:1px solid rgba(201,164,77,0.14)"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">đỉnh chữ V, bo ρ 5</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <svg viewBox="72 16 20 20" width="480" height="480" style="background:#0F0D0A;border:1px solid rgba(201,164,77,0.14)"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">đầu cánh phải và hai đầu khuyết</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:32px">
+    <div style="font-size:14px;letter-spacing:0.22em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;color:#8A7440">Biến thể cỡ nhỏ · tương phản ~3 : 1</div>
+    <div style="display:flex;gap:72px;align-items:flex-end;flex-wrap:wrap;color:#C9A44D">
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="120" height="120"><use href="#lsv5s"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">120 · bản nhỏ</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="32" height="32"><use href="#lsv5s"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">32 · bản nhỏ</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <svg viewBox="0 0 100 100" width="24" height="24"><use href="#lsv5s"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">24 · bản nhỏ</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center;opacity:0.5">
+        <svg viewBox="0 0 100 100" width="24" height="24"><use href="#lsv5"></use></svg>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A7440">24 · bản chuẩn</span>
+      </div>
+      <p style="margin:0;font-size:17px;line-height:1.65;color:#B49A63;max-width:340px;text-wrap:pretty">Bố cục, tọa độ, bán kính giữ nguyên. Chỉ đổi bề rộng: nét chính 4.5 → 5.2, sống lá 1.4 → 2.6, chân lá mở theo nét. Tương phản mảnh/đậm từ 4.4 : 1 còn 2.4 : 1 nên ở 24px sống lá không biến mất.</p>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:32px">
+    <div style="font-size:14px;letter-spacing:0.22em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;color:#8A7440">Lockup</div>
+    <div style="display:flex;gap:72px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:12px;color:#C9A44D">
+        <svg viewBox="0 0 100 100" width="28" height="28"><use href="#lsv5s"></use></svg>
+        <span style="font-size:20px;letter-spacing:0.07em;color:#E8D9AE">Lá Số Việt</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#C9A44D">
+        <svg viewBox="0 0 100 100" width="48" height="48"><use href="#lsv5"></use></svg>
+        <span style="font-size:15px;letter-spacing:0.3em;text-transform:uppercase;color:#B49A63">Lá Số Việt</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:#E8DFCB;color:#0F0D0A;padding:16px 22px">
+        <svg viewBox="0 0 100 100" width="28" height="28"><use href="#lsv5s"></use></svg>
+        <span style="font-size:20px;letter-spacing:0.07em">Lá Số Việt</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:48px;border-top:1px solid rgba(201,164,77,0.18);padding-top:44px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#8A7440">Lớp chữ</div>
+      <p style="margin:0;font-size:17px;line-height:1.65;color:#B49A63;text-wrap:pretty">V của “Việt”: hai cánh cân nhau, cùng độ dài, cùng góc gương, bung dần khi đi lên nên đọc là dải cong chứ không phải hai thanh thẳng. Đầu cánh trái nở thành hình lá — L của “Lá”.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#8A7440">Lớp ngành</div>
+      <p style="margin:0;font-size:17px;line-height:1.65;color:#B49A63;text-wrap:pretty">Vòng thiên bàn giữ nguyên 299°, chỉ khuyết hai cung 30° đối xứng — đúng hai chỗ đầu cánh chữ chạm tới. Khuyết cung là ký hiệu có thật của thiên bàn, và ở đây nó có nguyên do: chữ đi qua.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#8A7440">Điểm son</div>
+      <p style="margin:0;font-size:17px;line-height:1.65;color:#B49A63;text-wrap:pretty">Son là sống lá nằm trong lòng lá, chạy theo đúng trục nét chính, hai đầu cũng vuốt nhọn. Tắt son đi mark vẫn đứng được.</p>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;veinAccent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Mark&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      veinFill: (this.props.veinAccent ?? true) ? "#CE5B45" : "currentColor"
+    };
+  }
+}
+</script>
+</body>
+</html>
