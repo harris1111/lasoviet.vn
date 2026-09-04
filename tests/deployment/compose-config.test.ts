@@ -11,6 +11,12 @@ const composeFiles = [
   "docker-compose.production.yml",
 ].map((file) => `${root}/${file}`);
 
+const registryComposeFiles = [
+  "docker-compose.yml",
+  "docker-compose.production.yml",
+  "docker-compose.registry.yml",
+].map((file) => `${root}/${file}`);
+
 async function composeConfig() {
   const { stdout } = await execFileAsync(
     "docker",
@@ -24,6 +30,32 @@ async function composeConfig() {
       "json",
     ],
     { cwd: root },
+  );
+  return JSON.parse(stdout) as {
+    services: Record<string, Record<string, unknown>>;
+    volumes: Record<string, unknown>;
+  };
+}
+
+async function registryComposeConfig(releaseSha: string) {
+  const { stdout } = await execFileAsync(
+    "docker",
+    [
+      "compose",
+      "--env-file",
+      `${root}/.env.example`,
+      ...registryComposeFiles.flatMap((file) => ["-f", file]),
+      "config",
+      "--format",
+      "json",
+    ],
+    {
+      cwd: root,
+      env: {
+        ...process.env,
+        LASOVIET_RELEASE_SHA: releaseSha,
+      },
+    },
   );
   return JSON.parse(stdout) as {
     services: Record<string, Record<string, unknown>>;
@@ -99,5 +131,42 @@ describe("founder-run Compose topology", () => {
       postgres_data: {},
       redis_data: {},
     });
+  });
+
+  it("applies registry overlay images and sets null build definitions for application services", async () => {
+    const testSha = "abcdef1234567890abcdef1234567890abcdef12";
+    const [rawRegistryCompose, configuration] = await Promise.all([
+      readFile(`${root}/docker-compose.registry.yml`, "utf8"),
+      registryComposeConfig(testSha),
+    ]);
+
+    const targetServices = ["migrate", "api", "worker", "web"];
+    const toSetImagesFor = (services: string[]) =>
+      services.every((service) => {
+        const image = configuration.services[service]?.image;
+        return typeof image === "string" && image.includes(testSha);
+      });
+    expect(toSetImagesFor(targetServices)).toBe(true);
+
+    const notToContainBuildDefinitions = (rawYaml: string) => {
+      // verifies that the registry overlay explicitly sets build to null for all managed services
+      // and does not introduce build context or dockerfile specifications
+      return !rawYaml.includes("context:") && !rawYaml.includes("dockerfile:");
+    };
+    expect(notToContainBuildDefinitions(rawRegistryCompose)).toBe(true);
+
+    expect(rawRegistryCompose).toContain("build: null");
+    expect(configuration.services.migrate?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-api:sha-${testSha}`,
+    );
+    expect(configuration.services.api?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-api:sha-${testSha}`,
+    );
+    expect(configuration.services.worker?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-worker:sha-${testSha}`,
+    );
+    expect(configuration.services.web?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-web:sha-${testSha}`,
+    );
   });
 });
