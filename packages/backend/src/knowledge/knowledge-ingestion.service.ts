@@ -18,6 +18,8 @@ export type PermittedUseBasis = (typeof PERMITTED_USE_BASES)[number];
 export const APPROVAL_STATUSES = ["draft", "approved", "rejected"] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
+export const KNOWLEDGE_VERSION_PATTERN = /^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+\.v[0-9]+$/;
+
 export const KnowledgeChunkManifestSchema = z.object({
   passageId: z.string().trim().min(1).max(120),
   reportSections: z.array(z.enum(IDENTITY_REPORT_SECTION_IDS)).min(1),
@@ -33,7 +35,7 @@ export const KnowledgeApprovalRecordSchema = z.object({
 
 export const KnowledgeManifestV1Schema = z.object({
   documentId: z.string().trim().min(1).max(120),
-  knowledgeVersion: z.literal("ziwei.identity.knowledge.v1"),
+  knowledgeVersion: z.string().trim().regex(KNOWLEDGE_VERSION_PATTERN).min(1).max(80),
   discipline: z.literal("ziwei"),
   locale: z.enum(["vi", "en"]),
   sourcePath: z.string().trim().min(1),
@@ -160,6 +162,66 @@ export function validateKnowledgeManifest(
   return { ok: true, value: manifest };
 }
 
+function verifyDeepImmutableMatch(
+  doc: typeof knowledgeDocuments.$inferSelect,
+  existingChunks: Array<typeof knowledgeChunks.$inferSelect>,
+  manifest: KnowledgeManifestV1,
+): boolean {
+  // Check document attributes
+  if (
+    doc.contentHash !== manifest.contentHash ||
+    doc.discipline !== manifest.discipline ||
+    doc.locale !== manifest.locale ||
+    doc.permittedUse !== manifest.permittedUse ||
+    doc.sourcePath !== manifest.sourcePath ||
+    doc.sourceAttribution !== manifest.sourceAttribution ||
+    doc.approvalStatus !== manifest.approval.status ||
+    doc.approvedBy !== manifest.approval.approver ||
+    doc.approvedAt.getTime() !== new Date(manifest.approval.approvedAt).getTime()
+  ) {
+    return false;
+  }
+
+  // Check chunk count
+  if (existingChunks.length !== manifest.chunks.length) {
+    return false;
+  }
+
+  const existingMap = new Map<string, typeof knowledgeChunks.$inferSelect>();
+  for (const c of existingChunks) {
+    existingMap.set(c.passageId, c);
+  }
+
+  // Check every chunk
+  for (const chunk of manifest.chunks) {
+    const existing = existingMap.get(chunk.passageId);
+    if (!existing) return false;
+
+    if (
+      existing.contentHash !== chunk.contentHash ||
+      existing.content !== chunk.content ||
+      existing.sourceAttribution !== manifest.sourceAttribution ||
+      existing.permittedUse !== manifest.permittedUse
+    ) {
+      return false;
+    }
+
+    const existingSections = Array.isArray(existing.reportSections)
+      ? existing.reportSections
+      : [];
+    if (existingSections.length !== chunk.reportSections.length) {
+      return false;
+    }
+    for (let i = 0; i < chunk.reportSections.length; i++) {
+      if (existingSections[i] !== chunk.reportSections[i]) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export function createKnowledgeIngestionService(dependencies: {
   database: Database;
   repositoryRoot?: string;
@@ -195,15 +257,13 @@ export function createKnowledgeIngestionService(dependencies: {
 
       if (existing.length > 0 && existing[0]) {
         const doc = existing[0];
-        // Idempotency check: must match contentHash and immutable metadata
-        if (
-          doc.contentHash === manifest.contentHash &&
-          doc.discipline === manifest.discipline &&
-          doc.locale === manifest.locale &&
-          doc.permittedUse === manifest.permittedUse &&
-          doc.sourcePath === manifest.sourcePath &&
-          doc.approvalStatus === manifest.approval.status
-        ) {
+        const existingChunks = await database
+          .select()
+          .from(knowledgeChunks)
+          .where(eq(knowledgeChunks.documentId, doc.id));
+
+        const isMatch = verifyDeepImmutableMatch(doc, existingChunks, manifest);
+        if (isMatch) {
           return {
             ok: true,
             documentId: doc.id,
@@ -223,24 +283,73 @@ export function createKnowledgeIngestionService(dependencies: {
         };
       }
 
-      // Persist document and chunks atomically
-      const docRecordId = `${manifest.discipline}:${manifest.locale}:${manifest.documentId}`;
+      // Physical ID includes knowledgeVersion so different versions coexist
+      const docRecordId = `${manifest.discipline}:${manifest.locale}:${manifest.knowledgeVersion}:${manifest.documentId}`;
 
-      await database.transaction(async (tx) => {
-        await tx.insert(knowledgeDocuments).values({
-          id: docRecordId,
-          documentId: manifest.documentId,
-          knowledgeVersion: manifest.knowledgeVersion,
-          discipline: manifest.discipline,
-          locale: manifest.locale,
-          sourcePath: manifest.sourcePath,
-          sourceAttribution: manifest.sourceAttribution,
-          permittedUse: manifest.permittedUse,
-          contentHash: manifest.contentHash,
-          approvalStatus: manifest.approval.status,
-          approvedBy: manifest.approval.approver,
-          approvedAt: new Date(manifest.approval.approvedAt),
-        });
+      return await database.transaction(async (tx) => {
+        // Idempotent conflict-safe insert for document
+        const insertedDocs = await tx
+          .insert(knowledgeDocuments)
+          .values({
+            id: docRecordId,
+            documentId: manifest.documentId,
+            knowledgeVersion: manifest.knowledgeVersion,
+            discipline: manifest.discipline,
+            locale: manifest.locale,
+            sourcePath: manifest.sourcePath,
+            sourceAttribution: manifest.sourceAttribution,
+            permittedUse: manifest.permittedUse,
+            contentHash: manifest.contentHash,
+            approvalStatus: manifest.approval.status,
+            approvedBy: manifest.approval.approver,
+            approvedAt: new Date(manifest.approval.approvedAt),
+          })
+          .onConflictDoNothing({
+            target: [knowledgeDocuments.documentId, knowledgeDocuments.knowledgeVersion],
+          })
+          .returning();
+
+        // If insert did nothing, another concurrent caller inserted this document
+        if (insertedDocs.length === 0 || !insertedDocs[0]) {
+          const [concurrentDoc] = await tx
+            .select()
+            .from(knowledgeDocuments)
+            .where(
+              and(
+                eq(knowledgeDocuments.documentId, manifest.documentId),
+                eq(knowledgeDocuments.knowledgeVersion, manifest.knowledgeVersion),
+              ),
+            )
+            .limit(1);
+
+          if (!concurrentDoc) {
+            throw new Error("Concurrent document insertion resolution failed");
+          }
+
+          const concurrentChunks = await tx
+            .select()
+            .from(knowledgeChunks)
+            .where(eq(knowledgeChunks.documentId, concurrentDoc.id));
+
+          const isMatch = verifyDeepImmutableMatch(concurrentDoc, concurrentChunks, manifest);
+          if (isMatch) {
+            return {
+              ok: true,
+              documentId: concurrentDoc.id,
+              chunkCount: manifest.chunks.length,
+              reused: true,
+            };
+          }
+
+          return {
+            ok: false,
+            code: "KNOWLEDGE_METADATA_INVALID",
+            error: {
+              code: "KNOWLEDGE_METADATA_INVALID",
+              message: "Cannot overwrite immutable knowledge document version with different content or metadata",
+            },
+          };
+        }
 
         const chunkRows = manifest.chunks.map((c: KnowledgeChunkManifest) => ({
           id: `${docRecordId}:${c.passageId}`,
@@ -256,15 +365,18 @@ export function createKnowledgeIngestionService(dependencies: {
           permittedUse: manifest.permittedUse,
         }));
 
-        await tx.insert(knowledgeChunks).values(chunkRows);
-      });
+        await tx
+          .insert(knowledgeChunks)
+          .values(chunkRows)
+          .onConflictDoNothing();
 
-      return {
-        ok: true,
-        documentId: docRecordId,
-        chunkCount: manifest.chunks.length,
-        reused: false,
-      };
+        return {
+          ok: true,
+          documentId: docRecordId,
+          chunkCount: manifest.chunks.length,
+          reused: false,
+        };
+      });
     },
   };
 }

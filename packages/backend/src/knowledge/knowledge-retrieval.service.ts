@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import {
   IDENTITY_REPORT_SECTION_IDS,
   type IdentityReportSectionId,
@@ -60,6 +60,29 @@ export class KnowledgeError extends Error {
   }
 }
 
+function validateIntegerLimit(
+  val: number | undefined,
+  defaultValue: number,
+  min: number,
+  max: number,
+  name: string,
+): number {
+  if (val === undefined) return defaultValue;
+  if (
+    typeof val !== "number" ||
+    !Number.isFinite(val) ||
+    !Number.isInteger(val) ||
+    val < min ||
+    val > max
+  ) {
+    throw new KnowledgeError(
+      "KNOWLEDGE_CONTEXT_LIMIT",
+      `${name} must be a finite integer between ${min} and ${max}`,
+    );
+  }
+  return val;
+}
+
 export function createKnowledgeRetrievalService(dependencies: {
   database: Database;
   vectorRetrieval?: VectorRetrievalDependency;
@@ -115,29 +138,27 @@ export function createKnowledgeRetrievalService(dependencies: {
         );
       }
 
-      const maxPassages = query.maxPassages ?? 8;
-      if (maxPassages < 1 || maxPassages > 8) {
-        throw new KnowledgeError(
-          "KNOWLEDGE_CONTEXT_LIMIT",
-          "Passage limit must be between 1 and 8",
-        );
-      }
-
-      const maxCharsPerPassage = query.maxCharsPerPassage ?? 1_200;
-      if (maxCharsPerPassage < 1 || maxCharsPerPassage > 1_200) {
-        throw new KnowledgeError(
-          "KNOWLEDGE_CONTEXT_LIMIT",
-          "Max chars per passage must be between 1 and 1,200",
-        );
-      }
-
-      const maxTotalChars = query.maxTotalChars ?? 9_600;
-      if (maxTotalChars < 1 || maxTotalChars > 9_600) {
-        throw new KnowledgeError(
-          "KNOWLEDGE_CONTEXT_LIMIT",
-          "Max total characters must be between 1 and 9,600",
-        );
-      }
+      const maxPassages = validateIntegerLimit(
+        query.maxPassages,
+        8,
+        1,
+        8,
+        "maxPassages",
+      );
+      const maxCharsPerPassage = validateIntegerLimit(
+        query.maxCharsPerPassage,
+        1_200,
+        1,
+        1_200,
+        "maxCharsPerPassage",
+      );
+      const maxTotalChars = validateIntegerLimit(
+        query.maxTotalChars,
+        9_600,
+        1,
+        9_600,
+        "maxTotalChars",
+      );
 
       // Extract words for fallback OR search query
       const words = query.text
@@ -149,33 +170,6 @@ export function createKnowledgeRetrievalService(dependencies: {
       const orQueryTokens = words
         .map((w) => `'${w.replace(/'/g, "''")}'`)
         .join(" | ");
-
-      // Optional vector retrieval check
-      let vectorScores = new Map<string, number>();
-      if (
-        query.enableVector === true &&
-        query.vectorQuery !== undefined &&
-        dependencies.vectorRetrieval
-      ) {
-        const ready = await dependencies.vectorRetrieval.isIndexReady();
-        if (ready) {
-          try {
-            const vectorResults = await dependencies.vectorRetrieval.query({
-              vectorQuery: query.vectorQuery,
-              discipline: query.discipline,
-              locale: query.locale,
-              reportSection: query.reportSection,
-              knowledgeVersion: query.knowledgeVersion,
-              limit: maxPassages,
-            });
-            for (const item of vectorResults) {
-              vectorScores.set(item.passageId, item.score);
-            }
-          } catch {
-            // Silently fall back to full-text search
-          }
-        }
-      }
 
       // Full-text search with simple configuration in PostgreSQL
       const querySectionJson = JSON.stringify([query.reportSection]);
@@ -196,7 +190,7 @@ export function createKnowledgeRetrievalService(dependencies: {
       }>(
         orQueryTokens.length > 0
           ? sql`
-              SELECT 
+              SELECT
                 c.id,
                 c.passage_id,
                 c.document_id,
@@ -220,14 +214,14 @@ export function createKnowledgeRetrievalService(dependencies: {
                   to_tsvector('simple', c.content) @@ plainto_tsquery('simple', ${query.text})
                   OR to_tsvector('simple', c.content) @@ to_tsquery('simple', ${orQueryTokens})
                 )
-              ORDER BY 
+              ORDER BY
                 ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text})) DESC,
                 ts_rank(to_tsvector('simple', c.content), to_tsquery('simple', ${orQueryTokens})) DESC,
                 c.passage_id ASC
               LIMIT ${maxPassages * 2}
             `
           : sql`
-              SELECT 
+              SELECT
                 c.id,
                 c.passage_id,
                 c.document_id,
@@ -253,10 +247,9 @@ export function createKnowledgeRetrievalService(dependencies: {
             `,
       );
 
-      const candidates: KnowledgePassageV1[] = [];
+      const ftsCandidates: KnowledgePassageV1[] = [];
       const seenIds = new Set<string>();
 
-      // Convert rows to typed passages
       for (const row of rowsResult) {
         if (seenIds.has(row.passage_id)) continue;
         seenIds.add(row.passage_id);
@@ -267,7 +260,7 @@ export function createKnowledgeRetrievalService(dependencies: {
             ? JSON.parse(row.report_sections)
             : [];
 
-        candidates.push({
+        ftsCandidates.push({
           id: row.id,
           passageId: row.passage_id,
           documentId: row.document_id,
@@ -282,21 +275,136 @@ export function createKnowledgeRetrievalService(dependencies: {
         });
       }
 
-      // If vector scores exist, optionally re-sort candidates
-      if (vectorScores.size > 0) {
-        candidates.sort((a, b) => {
-          const scoreA = vectorScores.get(a.passageId) ?? 0;
-          const scoreB = vectorScores.get(b.passageId) ?? 0;
-          if (scoreB !== scoreA) return scoreB - scoreA;
-          return a.passageId.localeCompare(b.passageId);
-        });
+      // Optional vector augmentation: vector results NEVER replace FTS order.
+      // Vector can only append non-FTS candidates after FTS candidates, subject to all filters.
+      const vectorAugmentedCandidates: KnowledgePassageV1[] = [];
+
+      if (
+        query.enableVector === true &&
+        query.vectorQuery !== undefined &&
+        dependencies.vectorRetrieval
+      ) {
+        const ready = await dependencies.vectorRetrieval.isIndexReady();
+        if (ready) {
+          try {
+            const vectorResults = await dependencies.vectorRetrieval.query({
+              vectorQuery: query.vectorQuery,
+              discipline: query.discipline,
+              locale: query.locale,
+              reportSection: query.reportSection,
+              knowledgeVersion: query.knowledgeVersion,
+              limit: maxPassages,
+            });
+
+            // Find vector candidates not already found by FTS
+            const vectorOnlyItems = vectorResults.filter(
+              (item) => !seenIds.has(item.passageId),
+            );
+
+            if (vectorOnlyItems.length > 0) {
+              const vectorOnlyIds = vectorOnlyItems.map((v) => v.passageId);
+              const vectorScoreMap = new Map(
+                vectorOnlyItems.map((v) => [v.passageId, v.score]),
+              );
+
+              const extraRows = await dependencies.database.execute<{
+                id: string;
+                passage_id: string;
+                document_id: string;
+                discipline: "ziwei";
+                locale: "vi" | "en";
+                report_sections: string[] | string;
+                knowledge_version: string;
+                content: string;
+                content_hash: string;
+                source_attribution: string;
+                permitted_use: PermittedUseBasis;
+              }>(
+                sql`
+                  SELECT
+                    c.id,
+                    c.passage_id,
+                    c.document_id,
+                    c.discipline,
+                    c.locale,
+                    c.report_sections,
+                    c.knowledge_version,
+                    c.content,
+                    c.content_hash,
+                    c.source_attribution,
+                    c.permitted_use
+                  FROM knowledge_chunks c
+                  INNER JOIN knowledge_documents d ON d.id = c.document_id
+                  WHERE d.approval_status = 'approved'
+                    AND c.discipline = ${query.discipline}
+                    AND c.locale = ${query.locale}
+                    AND c.knowledge_version = ${query.knowledgeVersion}
+                    AND c.report_sections @> ${querySectionJson}::jsonb
+                    AND c.passage_id = ANY(${vectorOnlyIds}::text[])
+                `,
+              );
+
+              const extraCandidates: Array<{
+                passage: KnowledgePassageV1;
+                score: number;
+              }> = [];
+
+              for (const row of extraRows) {
+                if (seenIds.has(row.passage_id)) continue;
+                seenIds.add(row.passage_id);
+
+                const sections = Array.isArray(row.report_sections)
+                  ? row.report_sections
+                  : typeof row.report_sections === "string"
+                    ? JSON.parse(row.report_sections)
+                    : [];
+
+                extraCandidates.push({
+                  passage: {
+                    id: row.id,
+                    passageId: row.passage_id,
+                    documentId: row.document_id,
+                    discipline: row.discipline,
+                    locale: row.locale,
+                    reportSections: sections,
+                    knowledgeVersion: row.knowledge_version,
+                    content: row.content,
+                    contentHash: row.content_hash,
+                    sourceAttribution: row.source_attribution,
+                    permittedUse: row.permitted_use,
+                  },
+                  score: vectorScoreMap.get(row.passage_id) ?? 0,
+                });
+              }
+
+              // Sort extra vector candidates by score DESC, passageId ASC
+              extraCandidates.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.passage.passageId.localeCompare(b.passage.passageId);
+              });
+
+              for (const item of extraCandidates) {
+                vectorAugmentedCandidates.push(item.passage);
+              }
+            }
+          } catch {
+            // Silently fall back to full-text only
+          }
+        }
       }
 
-      // Context truncation without splitting mid-passage
+      // Preserve strict FTS rank-descending, passageId-ascending order first,
+      // followed by any vector-only additions
+      const allOrderedCandidates = [
+        ...ftsCandidates,
+        ...vectorAugmentedCandidates,
+      ];
+
+      // Truncate according to context limits without splitting mid-passage
       const boundedPassages: KnowledgePassageV1[] = [];
       let totalChars = 0;
 
-      for (const passage of candidates) {
+      for (const passage of allOrderedCandidates) {
         if (boundedPassages.length >= maxPassages) break;
         if (passage.content.length > maxCharsPerPassage) continue;
         if (totalChars + passage.content.length > maxTotalChars) break;

@@ -85,7 +85,7 @@ export function createKnowledgeEmbedProcessor(
         };
       }
 
-      // Input validation
+      // Input validation on request params
       if (
         !params.documentId ||
         params.documentId.trim().length === 0 ||
@@ -104,13 +104,45 @@ export function createKnowledgeEmbedProcessor(
 
       const rawChunks = params.chunks ?? [];
 
-      // Filter to approved chunks only
-      const approvedChunks = rawChunks.filter(
-        (chunk) => !chunk.approvalStatus || chunk.approvalStatus === "approved",
-      );
+      // Validate every chunk:
+      // Must require approvalStatus === 'approved', and exact documentId and knowledgeVersion match
+      for (const chunk of rawChunks) {
+        if (chunk.approvalStatus !== "approved") {
+          return {
+            ok: false,
+            code: "KNOWLEDGE_METADATA_INVALID",
+            error: {
+              code: "KNOWLEDGE_METADATA_INVALID",
+              message: `Chunk ${chunk.passageId} must have approvalStatus 'approved'`,
+            },
+          };
+        }
+
+        if (chunk.documentId !== params.documentId) {
+          return {
+            ok: false,
+            code: "KNOWLEDGE_METADATA_INVALID",
+            error: {
+              code: "KNOWLEDGE_METADATA_INVALID",
+              message: `Chunk ${chunk.passageId} documentId (${chunk.documentId}) does not match request documentId (${params.documentId})`,
+            },
+          };
+        }
+
+        if (chunk.knowledgeVersion !== params.knowledgeVersion) {
+          return {
+            ok: false,
+            code: "KNOWLEDGE_METADATA_INVALID",
+            error: {
+              code: "KNOWLEDGE_METADATA_INVALID",
+              message: `Chunk ${chunk.passageId} knowledgeVersion (${chunk.knowledgeVersion}) does not match request knowledgeVersion (${params.knowledgeVersion})`,
+            },
+          };
+        }
+      }
 
       // Deduplicate against already processed chunks for idempotency
-      const chunksToEmbed = approvedChunks.filter(
+      const chunksToEmbed = rawChunks.filter(
         (chunk) => !processedChunkIds.has(chunk.id),
       );
 
@@ -126,7 +158,7 @@ export function createKnowledgeEmbedProcessor(
         id: chunk.id,
         passageId: chunk.passageId,
         content: chunk.content,
-        knowledgeVersion: chunk.knowledgeVersion ?? params.knowledgeVersion,
+        knowledgeVersion: chunk.knowledgeVersion!,
       }));
 
       const embedResult = await dependencies.dependency.embedChunks(embedInput);

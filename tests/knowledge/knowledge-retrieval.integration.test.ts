@@ -222,4 +222,74 @@ describe("knowledge ingestion and retrieval integration", () => {
 
     await database.$client.end();
   });
+
+  it("finding 2: concurrent identical ingestion returns reused: true without throwing unique index violation", async () => {
+    const database = createDatabase(databaseUrl);
+    const ingestionService = createKnowledgeIngestionService({
+      database,
+      repositoryRoot: repoRoot,
+    });
+
+    const viRaw = await readFile(
+      resolve(repoRoot, "content/knowledge/vi/ziwei/identity-report-foundation.v1.json"),
+      "utf8",
+    );
+    const viManifest: KnowledgeManifestV1 = JSON.parse(viRaw);
+
+    // Run 5 concurrent ingestions of the exact same manifest
+    const results = await Promise.all([
+      ingestionService.ingestKnowledge(viManifest),
+      ingestionService.ingestKnowledge(viManifest),
+      ingestionService.ingestKnowledge(viManifest),
+      ingestionService.ingestKnowledge(viManifest),
+      ingestionService.ingestKnowledge(viManifest),
+    ]);
+
+    for (const res of results) {
+      expect(res.ok).toBe(true);
+      if (!res.ok) throw new Error("Expected concurrent ingestion to succeed");
+      expect(res.documentId).toBeDefined();
+    }
+
+    // At least one or all concurrent calls return reused: true or first returns false and subsequent return true
+    const reusedCount = results.filter((r) => r.ok && r.reused).length;
+    expect(reusedCount).toBeGreaterThanOrEqual(1);
+
+    await database.$client.end();
+  });
+
+  it("finding 3: physical document and chunk IDs include knowledgeVersion so versions coexist", async () => {
+    const database = createDatabase(databaseUrl);
+    const ingestionService = createKnowledgeIngestionService({
+      database,
+      repositoryRoot: repoRoot,
+    });
+
+    const viRaw = await readFile(
+      resolve(repoRoot, "content/knowledge/vi/ziwei/identity-report-foundation.v1.json"),
+      "utf8",
+    );
+    const viManifest: KnowledgeManifestV1 = JSON.parse(viRaw);
+
+    const docResult = await ingestionService.ingestKnowledge(viManifest);
+    expect(docResult.ok).toBe(true);
+    if (!docResult.ok) throw new Error("Expected docResult to be ok");
+
+    expect(docResult.documentId).toContain("ziwei.identity.knowledge.v1");
+
+    const allDocs = await database.select().from(knowledgeDocuments);
+    const matchedDoc = allDocs.find((d) => d.id === docResult.documentId);
+    expect(matchedDoc).toBeDefined();
+    expect(matchedDoc?.id).toContain("ziwei.identity.knowledge.v1");
+
+    const allChunks = await database.select().from(knowledgeChunks);
+    const matchedChunks = allChunks.filter((c) => c.documentId === docResult.documentId);
+    expect(matchedChunks.length).toBeGreaterThan(0);
+    for (const c of matchedChunks) {
+      expect(c.id).toContain("ziwei.identity.knowledge.v1");
+    }
+
+    await database.$client.end();
+  });
+
 });
