@@ -455,4 +455,22 @@ describe("knowledge retrieval service", () => {
     });
   });
 
+
+    it("finding pass 2 item 3: rejects duplicate passageId in one manifest before persistence", async () => {
+      const duplicateChunkManifest: KnowledgeManifestV1 = {
+        ...validManifest,
+        chunks: [
+          validManifest.chunks[0],
+          { ...validManifest.chunks[0] },
+        ],
+      };
+
+      const mockDb = {} as any;
+      const ingestionService = createKnowledgeIngestionService({ database: mockDb });
+      const result = await ingestionService.ingestKnowledge(duplicateChunkManifest);
+
+      expect(result.ok).toBe(false);
+      expect((result as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
+    });
+
 });

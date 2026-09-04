@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { isAbsolute, normalize, resolve, sep } from "node:path";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   IDENTITY_REPORT_SECTION_IDS,
   z,
@@ -90,6 +90,19 @@ export function validateKnowledgeManifest(
   }
 
   const manifest = parsed.data;
+
+  // Reject duplicate passageId in one manifest before persistence
+  const seenPassageIds = new Set<string>();
+  for (const chunk of manifest.chunks) {
+    if (seenPassageIds.has(chunk.passageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Duplicate passageId in manifest: ${chunk.passageId}`,
+      };
+    }
+    seenPassageIds.add(chunk.passageId);
+  }
 
   // Verify approval status
   if (
@@ -192,12 +205,19 @@ function verifyDeepImmutableMatch(
     existingMap.set(c.passageId, c);
   }
 
-  // Check every chunk
+  // Compare every persisted chunk field against values derived from the manifest/document
   for (const chunk of manifest.chunks) {
     const existing = existingMap.get(chunk.passageId);
     if (!existing) return false;
 
+    const expectedChunkId = `${doc.id}:${chunk.passageId}`;
     if (
+      existing.id !== expectedChunkId ||
+      existing.documentId !== doc.id ||
+      existing.passageId !== chunk.passageId ||
+      existing.knowledgeVersion !== manifest.knowledgeVersion ||
+      existing.discipline !== manifest.discipline ||
+      existing.locale !== manifest.locale ||
       existing.contentHash !== chunk.contentHash ||
       existing.content !== chunk.content ||
       existing.sourceAttribution !== manifest.sourceAttribution ||
@@ -286,97 +306,138 @@ export function createKnowledgeIngestionService(dependencies: {
       // Physical ID includes knowledgeVersion so different versions coexist
       const docRecordId = `${manifest.discipline}:${manifest.locale}:${manifest.knowledgeVersion}:${manifest.documentId}`;
 
-      return await database.transaction(async (tx) => {
-        // Idempotent conflict-safe insert for document
-        const insertedDocs = await tx
-          .insert(knowledgeDocuments)
-          .values({
-            id: docRecordId,
-            documentId: manifest.documentId,
-            knowledgeVersion: manifest.knowledgeVersion,
-            discipline: manifest.discipline,
-            locale: manifest.locale,
-            sourcePath: manifest.sourcePath,
-            sourceAttribution: manifest.sourceAttribution,
-            permittedUse: manifest.permittedUse,
-            contentHash: manifest.contentHash,
-            approvalStatus: manifest.approval.status,
-            approvedBy: manifest.approval.approver,
-            approvedAt: new Date(manifest.approval.approvedAt),
-          })
-          .onConflictDoNothing({
-            target: [knowledgeDocuments.documentId, knowledgeDocuments.knowledgeVersion],
-          })
-          .returning();
+      // Pre-check: any passage collision with existing chunks under same knowledgeVersion across other documents
+      const chunkPassageIds = manifest.chunks.map((c) => c.passageId);
+      const collidingChunks = await database
+        .select({ id: knowledgeChunks.id, documentId: knowledgeChunks.documentId })
+        .from(knowledgeChunks)
+        .where(
+          and(
+            eq(knowledgeChunks.knowledgeVersion, manifest.knowledgeVersion),
+            inArray(knowledgeChunks.passageId, chunkPassageIds),
+          ),
+        );
 
-        // If insert did nothing, another concurrent caller inserted this document
-        if (insertedDocs.length === 0 || !insertedDocs[0]) {
-          const [concurrentDoc] = await tx
-            .select()
-            .from(knowledgeDocuments)
-            .where(
-              and(
-                eq(knowledgeDocuments.documentId, manifest.documentId),
-                eq(knowledgeDocuments.knowledgeVersion, manifest.knowledgeVersion),
-              ),
-            )
-            .limit(1);
+      if (
+        collidingChunks.length > 0 &&
+        collidingChunks.some((c) => c.documentId !== docRecordId)
+      ) {
+        return {
+          ok: false,
+          code: "KNOWLEDGE_METADATA_INVALID",
+          error: {
+            code: "KNOWLEDGE_METADATA_INVALID",
+            message: "Passage collision across knowledge documents",
+          },
+        };
+      }
 
-          if (!concurrentDoc) {
-            throw new Error("Concurrent document insertion resolution failed");
-          }
+      try {
+        return await database.transaction(async (tx) => {
+          // Idempotent conflict-safe insert for document
+          const insertedDocs = await tx
+            .insert(knowledgeDocuments)
+            .values({
+              id: docRecordId,
+              documentId: manifest.documentId,
+              knowledgeVersion: manifest.knowledgeVersion,
+              discipline: manifest.discipline,
+              locale: manifest.locale,
+              sourcePath: manifest.sourcePath,
+              sourceAttribution: manifest.sourceAttribution,
+              permittedUse: manifest.permittedUse,
+              contentHash: manifest.contentHash,
+              approvalStatus: manifest.approval.status,
+              approvedBy: manifest.approval.approver,
+              approvedAt: new Date(manifest.approval.approvedAt),
+            })
+            .onConflictDoNothing({
+              target: [knowledgeDocuments.documentId, knowledgeDocuments.knowledgeVersion],
+            })
+            .returning();
 
-          const concurrentChunks = await tx
-            .select()
-            .from(knowledgeChunks)
-            .where(eq(knowledgeChunks.documentId, concurrentDoc.id));
+          // If insert did nothing, another concurrent caller inserted this document
+          if (insertedDocs.length === 0 || !insertedDocs[0]) {
+            const [concurrentDoc] = await tx
+              .select()
+              .from(knowledgeDocuments)
+              .where(
+                and(
+                  eq(knowledgeDocuments.documentId, manifest.documentId),
+                  eq(knowledgeDocuments.knowledgeVersion, manifest.knowledgeVersion),
+                ),
+              )
+              .limit(1);
 
-          const isMatch = verifyDeepImmutableMatch(concurrentDoc, concurrentChunks, manifest);
-          if (isMatch) {
+            if (!concurrentDoc) {
+              throw new Error("Concurrent document insertion resolution failed");
+            }
+
+            const concurrentChunks = await tx
+              .select()
+              .from(knowledgeChunks)
+              .where(eq(knowledgeChunks.documentId, concurrentDoc.id));
+
+            const isMatch = verifyDeepImmutableMatch(concurrentDoc, concurrentChunks, manifest);
+            if (isMatch) {
+              return {
+                ok: true,
+                documentId: concurrentDoc.id,
+                chunkCount: manifest.chunks.length,
+                reused: true,
+              };
+            }
+
             return {
-              ok: true,
-              documentId: concurrentDoc.id,
-              chunkCount: manifest.chunks.length,
-              reused: true,
+              ok: false,
+              code: "KNOWLEDGE_METADATA_INVALID",
+              error: {
+                code: "KNOWLEDGE_METADATA_INVALID",
+                message: "Cannot overwrite immutable knowledge document version with different content or metadata",
+              },
             };
           }
 
+          const chunkRows = manifest.chunks.map((c: KnowledgeChunkManifest) => ({
+            id: `${docRecordId}:${c.passageId}`,
+            passageId: c.passageId,
+            documentId: docRecordId,
+            knowledgeVersion: manifest.knowledgeVersion,
+            discipline: manifest.discipline,
+            locale: manifest.locale,
+            reportSections: c.reportSections,
+            content: c.content,
+            contentHash: c.contentHash,
+            sourceAttribution: manifest.sourceAttribution,
+            permittedUse: manifest.permittedUse,
+          }));
+
+          const insertedChunks = await tx
+            .insert(knowledgeChunks)
+            .values(chunkRows)
+            .returning({ id: knowledgeChunks.id });
+
+          if (insertedChunks.length !== manifest.chunks.length) {
+            throw new Error("KNOWLEDGE_METADATA_INVALID: Incomplete chunk persistence");
+          }
+
           return {
-            ok: false,
-            code: "KNOWLEDGE_METADATA_INVALID",
-            error: {
-              code: "KNOWLEDGE_METADATA_INVALID",
-              message: "Cannot overwrite immutable knowledge document version with different content or metadata",
-            },
+            ok: true,
+            documentId: docRecordId,
+            chunkCount: manifest.chunks.length,
+            reused: false,
           };
-        }
-
-        const chunkRows = manifest.chunks.map((c: KnowledgeChunkManifest) => ({
-          id: `${docRecordId}:${c.passageId}`,
-          passageId: c.passageId,
-          documentId: docRecordId,
-          knowledgeVersion: manifest.knowledgeVersion,
-          discipline: manifest.discipline,
-          locale: manifest.locale,
-          reportSections: c.reportSections,
-          content: c.content,
-          contentHash: c.contentHash,
-          sourceAttribution: manifest.sourceAttribution,
-          permittedUse: manifest.permittedUse,
-        }));
-
-        await tx
-          .insert(knowledgeChunks)
-          .values(chunkRows)
-          .onConflictDoNothing();
-
+        });
+      } catch (err) {
         return {
-          ok: true,
-          documentId: docRecordId,
-          chunkCount: manifest.chunks.length,
-          reused: false,
+          ok: false,
+          code: "KNOWLEDGE_METADATA_INVALID",
+          error: {
+            code: "KNOWLEDGE_METADATA_INVALID",
+            message: `Failed to persist knowledge chunks: ${err instanceof Error ? err.message : String(err)}`,
+          },
         };
-      });
+      }
     },
   };
 }

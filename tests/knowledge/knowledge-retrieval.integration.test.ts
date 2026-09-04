@@ -292,4 +292,166 @@ describe("knowledge ingestion and retrieval integration", () => {
     await database.$client.end();
   });
 
+
+  it("finding pass 2 item 1: tampering persisted chunk metadata (locale, discipline, knowledgeVersion, or id) returns KNOWLEDGE_METADATA_INVALID on reuse", async () => {
+    const database = createDatabase(databaseUrl);
+    const ingestionService = createKnowledgeIngestionService({
+      database,
+      repositoryRoot: repoRoot,
+    });
+
+    const viRaw = await readFile(
+      resolve(repoRoot, "content/knowledge/vi/ziwei/identity-report-foundation.v1.json"),
+      "utf8",
+    );
+    const viManifest: KnowledgeManifestV1 = JSON.parse(viRaw);
+
+    const initialResult = await ingestionService.ingestKnowledge(viManifest);
+    expect(initialResult.ok).toBe(true);
+
+    // Tamper one chunk's locale in the database
+    const allChunks = await database.select().from(knowledgeChunks);
+    const targetChunk = allChunks.find((c) => c.documentId === (initialResult as any).documentId);
+    expect(targetChunk).toBeDefined();
+
+    await database.$client.unsafe("UPDATE knowledge_chunks SET locale = 'en' WHERE id = '" + targetChunk.id + "'");
+
+    // Re-ingestion must detect the chunk metadata discrepancy and return KNOWLEDGE_METADATA_INVALID, never reused=true
+    const reuseResult = await ingestionService.ingestKnowledge(viManifest);
+    expect(reuseResult.ok).toBe(false);
+    expect((reuseResult as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
+
+    // Restore for subsequent tests
+    await database.$client.unsafe("UPDATE knowledge_chunks SET locale = 'vi' WHERE id = '" + targetChunk.id + "'");
+
+    await database.$client.end();
+  });
+
+  it("finding pass 2 item 2: tie-order sorts deterministically by stable passage_id ASC when FTS ranks are identical", async () => {
+    const database = createDatabase(databaseUrl);
+    const retrievalService = createKnowledgeRetrievalService({ database });
+
+    // Query for a word that appears across multiple passages or results in equal rank
+    const passages = await retrievalService.retrieveKnowledge({
+      discipline: "ziwei",
+      locale: "vi",
+      reportSection: "data_and_method",
+      knowledgeVersion: "ziwei.identity.knowledge.v1",
+      text: "báo cáo",
+    });
+
+    if (passages.length >= 2) {
+      // If ranks are equal, passageId must be strictly ascending
+      for (let i = 0; i < passages.length - 1; i++) {
+        // Assert stable deterministic ordering
+        expect(passages[i].passageId.localeCompare(passages[i + 1].passageId)).toBeLessThan(0);
+      }
+    }
+
+    await database.$client.end();
+  });
+
+  it("finding pass 2 item 3: duplicate passageId in manifest is rejected and persists nothing", async () => {
+    const database = createDatabase(databaseUrl);
+    const ingestionService = createKnowledgeIngestionService({
+      database,
+      repositoryRoot: repoRoot,
+    });
+
+    const duplicateManifest: KnowledgeManifestV1 = {
+      documentId: "doc-dup-passage-test",
+      knowledgeVersion: "ziwei.identity.knowledge.v1",
+      discipline: "ziwei",
+      locale: "vi",
+      sourcePath: "docs/05-report-system.md",
+      sourceAttribution: "Editorial Board",
+      permittedUse: "first_party",
+      contentHash: "hash",
+      approval: {
+        status: "approved",
+        approver: "method-reviewer",
+        approvedAt: "2026-09-01T00:00:00.000Z",
+      },
+      chunks: [
+        {
+          passageId: "same-passage-id",
+          reportSections: ["data_and_method"],
+          content: "Content 1",
+          contentHash: "2b9fd9f6bc0e854936d8da7cb2fe4d73aa4e672721ab7ff909477e48b88d8b2d",
+        },
+        {
+          passageId: "same-passage-id",
+          reportSections: ["personal_summary"],
+          content: "Content 2",
+          contentHash: "2b9fd9f6bc0e854936d8da7cb2fe4d73aa4e672721ab7ff909477e48b88d8b2d",
+        },
+      ],
+    };
+
+    const result = await ingestionService.ingestKnowledge(duplicateManifest);
+    expect(result.ok).toBe(false);
+    expect((result as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
+
+    const allDocs = await database.select().from(knowledgeDocuments);
+    expect(allDocs.some((d) => d.documentId === "doc-dup-passage-test")).toBe(false);
+
+    await database.$client.end();
+  });
+
+  it("finding pass 2 item 3: cross-document passage collision rolls back entire new document and returns KNOWLEDGE_METADATA_INVALID", async () => {
+    const database = createDatabase(databaseUrl);
+    const ingestionService = createKnowledgeIngestionService({
+      database,
+      repositoryRoot: repoRoot,
+    });
+
+    const viRaw = await readFile(
+      resolve(repoRoot, "content/knowledge/vi/ziwei/identity-report-foundation.v1.json"),
+      "utf8",
+    );
+    const viManifest: KnowledgeManifestV1 = JSON.parse(viRaw);
+
+    // Initial doc is persisted with vi-ziwei-foundation-001
+    await ingestionService.ingestKnowledge(viManifest);
+
+    // Create another document that collides on vi-ziwei-foundation-001 under the same knowledgeVersion
+    const collidingChunkContent = "Colliding content for passage 001.";
+    const { createHash } = await import("node:crypto");
+    const collidingHash = createHash("sha256").update(collidingChunkContent).digest("hex").toLowerCase();
+
+    const collidingManifest: KnowledgeManifestV1 = {
+      documentId: "doc-colliding-test",
+      knowledgeVersion: "ziwei.identity.knowledge.v1",
+      discipline: "ziwei",
+      locale: "vi",
+      sourcePath: "docs/05-report-system.md",
+      sourceAttribution: "Editorial Board",
+      permittedUse: "first_party",
+      contentHash: collidingHash,
+      approval: {
+        status: "approved",
+        approver: "method-reviewer",
+        approvedAt: "2026-09-01T00:00:00.000Z",
+      },
+      chunks: [
+        {
+          passageId: "vi-ziwei-foundation-001", // Collides with existing chunk
+          reportSections: ["data_and_method"],
+          content: collidingChunkContent,
+          contentHash: collidingHash,
+        },
+      ],
+    };
+
+    const result = await ingestionService.ingestKnowledge(collidingManifest);
+    expect(result.ok).toBe(false);
+    expect((result as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
+
+    // Verify complete rollback: doc-colliding-test was NOT persisted
+    const allDocs = await database.select().from(knowledgeDocuments);
+    expect(allDocs.some((d) => d.documentId === "doc-colliding-test")).toBe(false);
+
+    await database.$client.end();
+  });
+
 });

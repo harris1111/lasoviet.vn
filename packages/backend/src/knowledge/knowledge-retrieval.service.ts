@@ -202,7 +202,10 @@ export function createKnowledgeRetrievalService(dependencies: {
                 c.content_hash,
                 c.source_attribution,
                 c.permitted_use,
-                ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text})) AS rank
+                GREATEST(
+                  ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text})),
+                  ts_rank(to_tsvector('simple', c.content), to_tsquery('simple', ${orQueryTokens}))
+                ) AS rank
               FROM knowledge_chunks c
               INNER JOIN knowledge_documents d ON d.id = c.document_id
               WHERE d.approval_status = 'approved'
@@ -214,10 +217,7 @@ export function createKnowledgeRetrievalService(dependencies: {
                   to_tsvector('simple', c.content) @@ plainto_tsquery('simple', ${query.text})
                   OR to_tsvector('simple', c.content) @@ to_tsquery('simple', ${orQueryTokens})
                 )
-              ORDER BY
-                ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text})) DESC,
-                ts_rank(to_tsvector('simple', c.content), to_tsquery('simple', ${orQueryTokens})) DESC,
-                c.passage_id ASC
+              ORDER BY rank DESC, c.passage_id ASC
               LIMIT ${maxPassages * 2}
             `
           : sql`
