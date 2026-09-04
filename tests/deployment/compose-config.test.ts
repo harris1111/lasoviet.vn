@@ -133,7 +133,7 @@ describe("founder-run Compose topology", () => {
     });
   });
 
-  it("applies registry overlay images and sets null build definitions for application services", async () => {
+  it("applies registry overlay images and clears build definitions from rendered configuration", async () => {
     const testSha = "abcdef1234567890abcdef1234567890abcdef12";
     const [rawRegistryCompose, configuration] = await Promise.all([
       readFile(`${root}/docker-compose.registry.yml`, "utf8"),
@@ -141,21 +141,11 @@ describe("founder-run Compose topology", () => {
     ]);
 
     const targetServices = ["migrate", "api", "worker", "web"];
-    const toSetImagesFor = (services: string[]) =>
-      services.every((service) => {
-        const image = configuration.services[service]?.image;
-        return typeof image === "string" && image.includes(testSha);
-      });
-    expect(toSetImagesFor(targetServices)).toBe(true);
+    for (const service of targetServices) {
+      expect(configuration.services[service]?.build).toBeUndefined();
+    }
 
-    const notToContainBuildDefinitions = (rawYaml: string) => {
-      // verifies that the registry overlay explicitly sets build to null for all managed services
-      // and does not introduce build context or dockerfile specifications
-      return !rawYaml.includes("context:") && !rawYaml.includes("dockerfile:");
-    };
-    expect(notToContainBuildDefinitions(rawRegistryCompose)).toBe(true);
-
-    expect(rawRegistryCompose).toContain("build: null");
+    expect(rawRegistryCompose).toContain("build: !reset null");
     expect(configuration.services.migrate?.image).toBe(
       `ghcr.io/harris1111/lasoviet-api:sha-${testSha}`,
     );
