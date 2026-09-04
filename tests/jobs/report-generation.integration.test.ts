@@ -5,8 +5,9 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
-  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_VI,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IDENTITY_REPORT_SECTION_IDS,
+  IdentityReportV1Schema,
   type IdentityReportV1,
   type NormalizedZiweiChartV1,
 } from "@lasoviet/contracts";
@@ -77,31 +78,37 @@ function sampleChart(): NormalizedZiweiChartV1 {
 }
 
 function sampleVietnameseReport(): IdentityReportV1 {
-  return {
+  return IdentityReportV1Schema.parse({
     version: 1,
-    locale: "vi",
     sku: "ZIWEI-IDENTITY-P0",
-    title: "Bản sắc cá nhân Tử Vi Đẩu Số",
-    subtitle: "Báo cáo phân tích định vị bản sắc cá nhân",
-    metadata: {
-      calculatedAt: "2026-09-02T00:00:00+00:00",
-      rulesetVersion: "ziwei.identity.v1",
-      evidenceCount: 3,
+    capabilityId: "ziwei.identity.p0",
+    locale: "vi",
+    provenance: {
+      chartVersionId: "chart-1",
+      ruleVersion: "ziwei.identity.v1",
+      evidenceVersion: 1,
+      knowledgeVersion: "knowledge.vi.v1",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      promptVersion: "identity-report-prompt.v1",
+      templateVersion: "identity-report-html.v1",
     },
-    sections: IDENTITY_REPORT_SECTION_IDS.map((id) => ({
+    sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
       id,
-      title: `Tiêu đề mục ${id}`,
+      title: `Tiêu đề mục ${index + 1}`,
       narrative: `Nội dung diễn giải chi tiết cho phần ${id} mang tính chất phản chiếu và hỗ trợ định hướng cá nhân.`,
       claims: [
         {
+          id: `claim-${index + 1}`,
           text: `Nhận định cốt lõi cho mục ${id} gắn với các chỉ dấu trong lá số tử vi.`,
           confidence: "moderate",
           evidenceIds: ["ziwei.identity.life-palace"],
+          interpretationBoundCode: "reflective_identity_only",
           limitations: ["Nhận định mang tính tham khảo và tự chiêm nghiệm."],
           suggestedActions: [
             {
               text: "Xem xét kỹ phản ứng của bản thân trong các bối cảnh quan trọng.",
-              category: "reflect",
+              category: "reflect" as const,
             },
           ],
         },
@@ -109,12 +116,15 @@ function sampleVietnameseReport(): IdentityReportV1 {
     })),
     reflectionQuestions: [
       "Bạn nhận thấy điều gì phản ánh đúng nhất cách bạn phản ứng trước áp lực?",
+      "Môi trường nào giúp bạn duy trì trạng thái tập trung và điềm tĩnh nhất?",
+      "Bước thử nghiệm thực tế nào bạn có thể bắt đầu ngay trong tuần này?",
     ],
     summaryActions: [
       "Dành thời gian quan sát thói quen ra quyết định trong tuần này.",
+      "Ghi lại những khoảnh khắc cảm xúc bị kích hoạt mạnh.",
     ],
-    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_VI,
-  };
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  });
 }
 
 describe("report generation source loading integration", () => {
@@ -662,7 +672,7 @@ describe("immutable report version repository integration", () => {
     expect(startAttemptResult.ok).toBe(true);
 
     const structuredContent = sampleVietnameseReport();
-    const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>${structuredContent.title}</title></head><body><h1>${structuredContent.title}</h1></body></html>`;
+    const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>${structuredContent.sections[0].title}</title></head><body><h1>${structuredContent.sections[0].title}</h1></body></html>`;
     const expectedHash = createHash("sha256").update(Buffer.from(htmlContent, "utf8")).digest("hex").toLowerCase();
     expect(expectedHash).toMatch(/^[a-f0-9]{64}$/);
 
@@ -922,6 +932,211 @@ describe("immutable report version repository integration", () => {
     const allVersions = await database.select().from(reportVersions);
     const versionRow = allVersions.find((v) => v.reportVersionId === fixture.reportVersionId);
     expect(versionRow?.contentHash).toBe(initialHash);
+
+    await database.$client.end();
+  });
+
+  it("rolls back with REPORT_VERSION_CONFLICT when no running attempt exists for (jobId, attemptNumber)", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedReservationAndJobFixture(database, "missing-attempt");
+    const repository = createDatabaseReportVersionRepository(database);
+
+    // Intentionally do NOT start an attempt row for (fixture.jobId, 1)
+    const structuredContent = sampleVietnameseReport();
+    const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>No Attempt</title></head><body><h1>No Attempt</h1></body></html>`;
+
+    const result = await repository.commitImmutableVersion({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      entitlementId: fixture.entitlementId,
+      chartVersionId: fixture.chartVersionId,
+      evidenceVersionId: fixture.evidenceVersionId,
+      knowledgeVersionId: fixture.knowledgeVersionId,
+      promptVersion: "identity-report-prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent,
+      htmlContent,
+      jobId: fixture.jobId,
+      workerId: fixture.workerId,
+      attemptNumber: 1,
+      traceId: `trace-${fixture.jobId}`,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_VERSION_CONFLICT",
+        messageKey: "reports.report_version_conflict",
+        retryable: false,
+      },
+    });
+
+    const allVersions = await database.select().from(reportVersions);
+    const versionRow = allVersions.find((v) => v.reportVersionId === fixture.reportVersionId);
+    expect(versionRow).toBeUndefined();
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservationRow = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservationRow?.status).toBe("generating");
+    expect(reservationRow?.stateVersion).toBe(1);
+
+    const allOutbox = await database.select().from(outbox);
+    const matchingOutbox = allOutbox.filter((o) => o.aggregateId === fixture.reportVersionId);
+    expect(matchingOutbox.length).toBe(0);
+
+    await database.$client.end();
+  });
+
+  it("rolls back with REPORT_VERSION_CONFLICT when replay has matching html and source metadata but mismatched structured content", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedReservationAndJobFixture(database, "struct-conflict");
+    const repository = createDatabaseReportVersionRepository(database);
+
+    await repository.startOrReuseAttempt({
+      jobId: fixture.jobId,
+      attemptNumber: 1,
+      reportVersionId: fixture.reportVersionId,
+      providerId: "openai",
+      modelId: "gpt-4o",
+    });
+
+    const originalContent = sampleVietnameseReport();
+    const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>Same HTML</title></head><body><h1>Same HTML</h1></body></html>`;
+    const baseParams = {
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      entitlementId: fixture.entitlementId,
+      chartVersionId: fixture.chartVersionId,
+      evidenceVersionId: fixture.evidenceVersionId,
+      knowledgeVersionId: fixture.knowledgeVersionId,
+      promptVersion: "identity-report-prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      renderVersion: "identity-report-pdf.v1" as const,
+      locale: "vi" as const,
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      htmlContent,
+      jobId: fixture.jobId,
+      workerId: fixture.workerId,
+      attemptNumber: 1,
+      traceId: `trace-${fixture.jobId}`,
+    };
+
+    const firstCommit = await repository.commitImmutableVersion({
+      ...baseParams,
+      structuredContent: originalContent,
+    });
+    expect(firstCommit.ok).toBe(true);
+
+    const conflictingStructuredContent = {
+      ...originalContent,
+      sections: [
+        {
+          ...originalContent.sections[0],
+          narrative: "Nội dung mục 1 đã bị thay đổi trái phép so với bản gốc.",
+        },
+        ...originalContent.sections.slice(1),
+      ],
+    };
+
+    const replayWithMismatch = await repository.commitImmutableVersion({
+      ...baseParams,
+      structuredContent: conflictingStructuredContent,
+    });
+
+    expect(replayWithMismatch).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_VERSION_CONFLICT",
+        messageKey: "reports.report_version_conflict",
+        retryable: false,
+      },
+    });
+
+    const allVersions = await database.select().from(reportVersions);
+    const versionRow = allVersions.find((v) => v.reportVersionId === fixture.reportVersionId);
+    expect((versionRow?.structuredContent as IdentityReportV1).sections[0].narrative).toBe(originalContent.sections[0].narrative);
+
+    await database.$client.end();
+  });
+
+  it("rolls back with REPORT_VERSION_CONFLICT and does not process queue job when replay lease is expired", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedReservationAndJobFixture(database, "replay-expired-lease", {
+      leasedUntil: new Date("2026-09-03T00:00:00.000Z"),
+    });
+    const repository = createDatabaseReportVersionRepository(database);
+
+    const structuredContent = sampleVietnameseReport();
+    const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>Replay Expired</title></head><body><h1>Replay Expired</h1></body></html>`;
+    const initialHash = createHash("sha256").update(Buffer.from(htmlContent, "utf8")).digest("hex").toLowerCase();
+
+    await database.insert(reportVersions).values({
+      id: randomUUID(),
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      entitlementId: fixture.entitlementId,
+      chartVersionId: fixture.chartVersionId,
+      evidenceVersionId: fixture.evidenceVersionId,
+      knowledgeVersionId: fixture.knowledgeVersionId,
+      promptVersion: "identity-report-prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent,
+      htmlContent,
+      contentHash: initialHash,
+      pdfAssetId: randomUUID(),
+      renderVersion: "identity-report-pdf.v1",
+    });
+
+    const result = await repository.commitImmutableVersion({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      entitlementId: fixture.entitlementId,
+      chartVersionId: fixture.chartVersionId,
+      evidenceVersionId: fixture.evidenceVersionId,
+      knowledgeVersionId: fixture.knowledgeVersionId,
+      promptVersion: "identity-report-prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent,
+      htmlContent,
+      jobId: fixture.jobId,
+      workerId: fixture.workerId,
+      attemptNumber: 1,
+      traceId: `trace-${fixture.jobId}`,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_VERSION_CONFLICT",
+        messageKey: "reports.report_version_conflict",
+        retryable: false,
+      },
+    });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const queueJobRow = allJobs.find((j) => j.id === fixture.jobId);
+    expect(queueJobRow?.status).toBe("leased");
+    expect(queueJobRow?.processedAt).toBeNull();
 
     await database.$client.end();
   });

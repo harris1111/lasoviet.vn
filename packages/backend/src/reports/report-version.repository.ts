@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { and, eq, gt, sql } from "drizzle-orm";
 
 import type { IdentityReportV1, Result } from "@lasoviet/contracts";
@@ -146,12 +147,31 @@ export function createDatabaseReportVersionRepository(database: Database): Repor
               existing.modelId === input.modelId &&
               existing.contentHash === computedHash &&
               existing.renderVersion === input.renderVersion;
-            if (!matches) throw new ConflictError();
+            if (!matches || !isDeepStrictEqual(existing.structuredContent, input.structuredContent)) {
+              throw new ConflictError();
+            }
 
-            await tx
+            const [queueRow] = await tx
+              .select({
+                status: reportQueueJobs.status,
+                leasedBy: reportQueueJobs.leasedBy,
+                leasedUntil: reportQueueJobs.leasedUntil,
+              })
+              .from(reportQueueJobs)
+              .where(eq(reportQueueJobs.id, input.jobId))
+              .limit(1);
+            if (!queueRow) throw new ConflictError();
+
+            if (queueRow.status === "processed") {
+              return { ok: true, value: existing };
+            }
+
+            const [fencedReplayJob] = await tx
               .update(reportQueueJobs)
               .set({ status: "processed", leasedBy: null, leasedUntil: null, processedAt: now, updatedAt: now })
-              .where(and(eq(reportQueueJobs.id, input.jobId), eq(reportQueueJobs.status, "leased"), eq(reportQueueJobs.leasedBy, input.workerId)));
+              .where(and(eq(reportQueueJobs.id, input.jobId), eq(reportQueueJobs.status, "leased"), eq(reportQueueJobs.leasedBy, input.workerId), gt(reportQueueJobs.leasedUntil, now)))
+              .returning();
+            if (!fencedReplayJob) throw new ConflictError();
             return { ok: true, value: existing };
           }
 
@@ -237,10 +257,19 @@ export function createDatabaseReportVersionRepository(database: Database): Repor
             availableAt: now,
           });
 
-          await tx
+          const [updatedAttempt] = await tx
             .update(reportGenerationAttempts)
             .set({ status: "succeeded", completedAt: now })
-            .where(and(eq(reportGenerationAttempts.jobId, input.jobId), eq(reportGenerationAttempts.attemptNumber, input.attemptNumber)));
+            .where(
+              and(
+                eq(reportGenerationAttempts.jobId, input.jobId),
+                eq(reportGenerationAttempts.attemptNumber, input.attemptNumber),
+                eq(reportGenerationAttempts.reportVersionId, input.reportVersionId),
+                eq(reportGenerationAttempts.status, "running"),
+              ),
+            )
+            .returning();
+          if (!updatedAttempt) throw new ConflictError();
 
           const [jobProcessed] = await tx
             .update(reportQueueJobs)
