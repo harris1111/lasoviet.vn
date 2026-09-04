@@ -35,7 +35,7 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
   const result = await input.provider.generateStructured({
     schema: IdentityReportContentV1Schema,
     schemaName: "identity_report_content_v1",
-    system: `Interpret supplied evidence only. ${languageInstruction} Do not calculate chart facts or invent evidence.`,
+    system: `Interpret supplied evidence only and produce evidence-bounded reflective content. ${languageInstruction} Do not calculate chart facts or invent evidence.`,
     user: JSON.stringify({
       evidence: input.evidence.items,
       frozenFacts: input.frozenFacts.facts,

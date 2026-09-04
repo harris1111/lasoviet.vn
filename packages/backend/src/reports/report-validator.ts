@@ -55,11 +55,11 @@ function textFindings(
   locale: "vi" | "en",
   finding: Omit<ReportValidationFinding, "code">,
 ): ReportValidationFinding[] {
-  const normalized = text.normalize("NFC");
   const findings: ReportValidationFinding[] = [];
-  const validLanguage = locale === "en" ? isEnglish(normalized) : isVietnamese(normalized);
+  const isNfc = text === text.normalize("NFC");
+  const validLanguage = isNfc && (locale === "en" ? isEnglish(text) : isVietnamese(text));
   if (!validLanguage) findings.push({ ...finding, code: "REPORT_LANGUAGE_INVALID" });
-  if (prohibited.some((pattern) => pattern.test(normalized))) {
+  if (prohibited.some((pattern) => pattern.test(text))) {
     findings.push({ ...finding, code: "REPORT_SAFETY_REJECTED" });
   }
   return findings;

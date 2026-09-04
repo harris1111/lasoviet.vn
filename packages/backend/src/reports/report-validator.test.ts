@@ -162,6 +162,15 @@ describe("identity report validator", () => {
     });
   });
 
+  it("rejects non-NFC normalized text in Vietnamese report", () => {
+    const candidate = report();
+    candidate.sections[0].narrative = "Bạn nên quan sát bình tĩnh.".normalize("NFD");
+    expect(validateIdentityReport(candidate, { evidence, frozenFacts })).toMatchObject({
+      ok: false,
+      findings: expect.arrayContaining([expect.objectContaining({ code: "REPORT_LANGUAGE_INVALID", sectionId: "personal_summary" })]),
+    });
+  });
+
   it.each([
     ["section narrative", (value: IdentityReportV1) => { value.sections[0].narrative = "Bạn nên quan sát bình tĩnh."; }],
     ["section title", (value: IdentityReportV1) => { value.sections[0].title = "Mục 1"; }],

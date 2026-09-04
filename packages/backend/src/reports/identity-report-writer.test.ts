@@ -87,6 +87,7 @@ describe("identity report writer", () => {
     });
     expect(JSON.stringify(request)).not.toMatch(/chartVersionId|birth|email|order|persist|publish/i);
     expect(JSON.stringify(request)).toContain("soulPalaceId");
+    expect((request as { system: string }).system).toMatch(/reflective|self-reflection/i);
     expect((request as { system: string }).system).toMatch(/Vietnamese/i);
     expect((request as { system: string }).system).toMatch(/chart.*(?:calculation|calculat)|invent|fabricat/i);
   });
@@ -171,6 +172,7 @@ describe("identity report writer", () => {
     });
     expect(JSON.stringify(request)).not.toMatch(/chartVersionId|birth|email|order|persist|publish/i);
     expect(JSON.stringify(request)).toContain("soulPalaceId");
+    expect((request as { system: string }).system).toMatch(/reflective|self-reflection/i);
     expect((request as { system: string }).system).toMatch(/English/i);
     expect((request as { system: string }).system).toMatch(/chart.*(?:calculation|calculat)|invent|fabricat/i);
   });
