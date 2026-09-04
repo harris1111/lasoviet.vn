@@ -242,6 +242,18 @@ function verifyDeepImmutableMatch(
   return true;
 }
 
+
+export function isKnowledgeChunkUniqueViolation(err: unknown): boolean {
+  if (typeof err !== "object" || err === null) return false;
+  const pgError = err as { code?: unknown; constraint_name?: unknown; constraint?: unknown };
+  if (pgError.code !== "23505") return false;
+  const constraint = String(pgError.constraint_name ?? pgError.constraint ?? "");
+  if (constraint.length > 0) {
+    return constraint.includes("knowledge_chunks");
+  }
+  return true;
+}
+
 export function createKnowledgeIngestionService(dependencies: {
   database: Database;
   repositoryRoot?: string;
@@ -429,14 +441,17 @@ export function createKnowledgeIngestionService(dependencies: {
           };
         });
       } catch (err) {
-        return {
-          ok: false,
-          code: "KNOWLEDGE_METADATA_INVALID",
-          error: {
+        if (isKnowledgeChunkUniqueViolation(err)) {
+          return {
+            ok: false,
             code: "KNOWLEDGE_METADATA_INVALID",
-            message: `Failed to persist knowledge chunks: ${err instanceof Error ? err.message : String(err)}`,
-          },
-        };
+            error: {
+              code: "KNOWLEDGE_METADATA_INVALID",
+              message: "Knowledge chunk passage collision detected",
+            },
+          };
+        }
+        throw err;
       }
     },
   };

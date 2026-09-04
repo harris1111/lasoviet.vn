@@ -473,4 +473,64 @@ describe("knowledge retrieval service", () => {
       expect((result as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
     });
 
+
+    it("finding pass 3: maps expected PostgreSQL chunk unique violation (23505) to fixed non-sensitive KNOWLEDGE_METADATA_INVALID", async () => {
+      const mockDb = {
+        select: () => ({
+          from: () => ({
+            where: () => {
+              const res: any = Promise.resolve([]);
+              res.limit = async () => [];
+              return res;
+            },
+          }),
+        }),
+        transaction: async () => {
+          const pgError = Object.assign(new Error("duplicate key value violates unique constraint"), {
+            code: "23505",
+            constraint_name: "knowledge_chunks_version_passage_unique",
+            table: "knowledge_chunks",
+          });
+          throw pgError;
+        },
+      } as any;
+
+      const ingestionService = createKnowledgeIngestionService({ database: mockDb });
+      const result = await ingestionService.ingestKnowledge(validManifest);
+
+      expect(result.ok).toBe(false);
+      expect((result as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
+      const message = (result as any).error?.message;
+      expect(message).toBe("Knowledge chunk passage collision detected");
+      expect(message).not.toContain("duplicate");
+      expect(message).not.toContain("unique");
+      expect(message).not.toContain("knowledge_chunks");
+    });
+
+    it("finding pass 3: propagates non-unique infrastructure failures without mapping to metadata error", async () => {
+      const infraError = Object.assign(new Error("connection terminated unexpectedly"), {
+        code: "08006",
+      });
+
+      const mockDb = {
+        select: () => ({
+          from: () => ({
+            where: () => {
+              const res: any = Promise.resolve([]);
+              res.limit = async () => [];
+              return res;
+            },
+          }),
+        }),
+        transaction: async () => {
+          throw infraError;
+        },
+      } as any;
+
+      const ingestionService = createKnowledgeIngestionService({ database: mockDb });
+
+      // Must propagate the infrastructure error instead of returning KNOWLEDGE_METADATA_INVALID
+      await expect(ingestionService.ingestKnowledge(validManifest)).rejects.toThrow(infraError);
+    });
+
 });
