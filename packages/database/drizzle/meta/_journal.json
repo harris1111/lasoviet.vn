@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788264624417,
+      "tag": "0000_organic_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788269129294,
+      "tag": "0001_jazzy_bushwacker",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788269191651,
+      "tag": "0002_typical_captain_universe",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788273000000,
+      "tag": "0003_phase_one_lifecycle_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788282000000,
+      "tag": "0004_immutable_ziwei_calculations",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788368400000,
+      "tag": "0005_immutable_evidence_sets",
+      "breakpoints": true
+    }
+  ]
+}

@@ -434,3 +434,20 @@ git commit -m "test: verify Gate 1 public indexing"
 - No severity-1 release blocker remains.
 - Founder receives the Nginx/Cloudflare handoff and explicitly approves any
   production deployment.
+
+## Task 5 Founder-Run MVP Packaging Checkpoint
+
+Date: 2026-09-02
+
+- Completed production-like Compose packaging for web, API, worker, migration,
+  PostgreSQL, and Redis. Only web is published on a selected loopback port;
+  API, worker, database, and cache stay private.
+- Verified multi-stage non-root images, migration ordering, health-gated
+  dependencies, persistent database/cache volumes, restart policy, capped
+  Docker logs, Compose rendering, and live readiness.
+- The founder-authorized registration email was triggered successfully. The
+  browser smoke reached persisted birth-profile creation, then stopped because
+  the engine requires an explicit gender that the current UI does not collect.
+- The packaging scope is delivered, but Phase 06 full-flow readiness remains
+  open pending a founder-approved gender-input UX and a rerun of chart,
+  evidence, and free-preview acceptance.

@@ -1,0 +1,15 @@
+{
+  "input": {
+    "version": 1,
+    "calendar": { "kind": "solar", "date": "1990-01-01" },
+    "time": { "precision": "unknown" },
+    "timezone": { "offsetMinutes": 420 },
+    "consentVersion": "2026-09-01"
+  },
+  "expected": {
+    "normalized": {
+      "limitations": ["TIME_UNKNOWN"]
+    },
+    "eligibility": { "ok": false, "code": "TIME_UNKNOWN" }
+  }
+}

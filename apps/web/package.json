@@ -1,0 +1,24 @@
+{
+  "name": "@lasoviet/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.typecheck.json --noEmit"
+  },
+  "dependencies": {
+    "@lasoviet/config": "workspace:0.0.0",
+    "@lasoviet/contracts": "workspace:0.0.0",
+    "@lasoviet/database": "workspace:0.0.0",
+    "better-auth": "1.7.2",
+    "drizzle-orm": "0.45.2",
+    "jose": "6.2.10",
+    "next": "16.3.4",
+    "next-intl": "4.14.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.4"
+  }
+}

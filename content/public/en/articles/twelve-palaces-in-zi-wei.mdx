@@ -1,0 +1,60 @@
+---
+{
+  "version": 1,
+  "routeId": "knowledge.tu-vi.palaces",
+  "locale": "en",
+  "contentType": "KnowledgeHub",
+  "title": "The 12 palaces in a Tu Vi chart",
+  "summary": "A reference to the role of twelve palaces and how they frame chart-based interpretation.",
+  "intent": "knowledge.tu-vi.palaces.en.public",
+  "authorId": "method-reviewer",
+  "reviewerIds": [
+    "method-reviewer"
+  ],
+  "sourceIds": [
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.stars",
+    "knowledge.tu-vi.cycles"
+  ],
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice.",
+  "parentRouteId": "knowledge.tu-vi",
+  "figure": {
+    "id": "gate-one-en-4",
+    "alt": "Inspection diagram for The 12 palaces in a Tu Vi chart",
+    "caption": "Independent diagram for article 4, showing only implemented fields and limits."
+  }
+}
+---
+# The 12 palaces in a Tu Vi chart
+
+## What this page can establish
+
+This article explains twelve palaces from the versioned implementation boundary. the contract defines twelve canonical palace identifiers and requires each identifier to be unique in a normalized chart. It does not attach a traditional personality meaning to the identifiers. It does not add traditional interpretation that is absent from the repository sources.
+
+## Independent example
+
+The fixture manifest checks palaceCount equals 12. A useful inspection is to count the normalized palace entries and confirm that soulPalaceId and bodyPalaceId point to entries in that list.
+
+## Figure specification
+
+Figure 4: a twelve-slot grid labelled only with canonical palace identifiers and arrows from soulPalaceId and bodyPalaceId. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.
+
+## Limits
+
+The current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.stars), [second related article](route:knowledge.tu-vi.cycles).

@@ -1,0 +1,61 @@
+---
+{
+  "version": 1,
+  "routeId": "knowledge.tu-vi.calculation",
+  "locale": "en",
+  "contentType": "KnowledgeArticle",
+  "title": "How a Tu Vi chart is built",
+  "summary": "The key inputs and rules used to build a Tu Vi chart under the documented method.",
+  "intent": "knowledge.tu-vi.calculation.en.public",
+  "authorId": "method-reviewer",
+  "reviewerIds": [
+    "method-reviewer"
+  ],
+  "sourceIds": [
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure",
+    "birth_data_sensitivity"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.reading",
+    "knowledge.tu-vi.stars"
+  ],
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice.",
+  "parentRouteId": "knowledge.tu-vi",
+  "figure": {
+    "id": "gate-one-en-2",
+    "alt": "Inspection diagram for How a Tu Vi chart is built",
+    "caption": "Independent diagram for article 2, showing only implemented fields and limits."
+  }
+}
+---
+# How a Tu Vi chart is built
+
+## What this page can establish
+
+This article explains chart construction from the versioned implementation boundary. the adapter receives normalized calendar and time input, then maps raw iztro fields into canonical identifiers. The public method is pinned to iztro 2.6.0 and ziwei.default. It does not add traditional interpretation that is absent from the repository sources.
+
+## Independent example
+
+At 23:30 the late-Zi fixture uses adapter timeIndex 12, while the early-Zi fixture at 00:30 uses timeIndex 0. The example demonstrates input handling rather than a personal forecast.
+
+## Figure specification
+
+Figure 2: a two-row fixture table comparing early-Zi and late-Zi input times, adapter indices, and recorded limitations. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.
+
+## Limits
+
+The current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.reading), [second related article](route:knowledge.tu-vi.stars).

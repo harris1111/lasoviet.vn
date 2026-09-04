@@ -42,32 +42,47 @@ engine/config/input provenance and immutable normalized output.
 - Produces `NormalizedZiweiChartV1Schema`.
 - Produces `CalculationProvenanceV1Schema`.
 
-- [ ] **Step 1: Write failing normalized-schema tests**
+- [x] **Step 1: Write failing normalized-schema tests**
 
 Require 12 unique palaces, language-neutral palace/star IDs, transformations,
 brightness, body/soul metadata, horoscope capability metadata, warnings, and
 provenance.
 
-- [ ] **Step 2: Run contract tests**
+- [x] **Step 2: Run contract tests**
 
 Run: `pnpm vitest run packages/contracts/src/normalized-ziwei-chart-v1.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement schemas and stable IDs**
+- [x] **Step 3: Implement schemas and stable IDs**
 
 Do not store vendor-localized strings as canonical IDs.
 
-- [ ] **Step 4: Run tests and typecheck**
+- [x] **Step 4: Run tests and typecheck**
 
 Run: `pnpm vitest run packages/contracts && pnpm typecheck`
 Expected: PASS.
 
-- [ ] **Step 5: Update traceability and commit**
+- [x] **Step 5: Update traceability and commit**
 
 ```bash
 git add packages/contracts packages/engine-adapters docs/superpowers/plans
 git commit -m "feat: define Zi Wei engine contracts"
 ```
+
+**P02-T01 Evidence (2026-09-01):**
+
+- Focused RED confirmed the normalized chart module was absent before
+  implementation.
+- The contract suite passed: 2 files, 22 tests.
+- `@lasoviet/contracts` and `@lasoviet/engine-adapters` typechecks passed.
+- Root `pnpm typecheck` and `pnpm build` passed with the new adapter package.
+- The contract defines exactly 12 unique canonical palaces, canonical English
+  palace/star/transformation/brightness IDs, body and soul palace metadata,
+  horoscope capability metadata, warnings, provenance hashes, and generic
+  engine error/result semantics.
+- No iztro dependency or import, UI, AI behavior, migration, or external side
+  effect was added. Docs impact: minor. Rule candidate: none. Open questions:
+  none.
 
 ### Task 2 [P02-T02]: Implement IztroAdapter and immutable calculation runs
 
@@ -87,42 +102,65 @@ git commit -m "feat: define Zi Wei engine contracts"
   `inputHash + engineVersion + adapterVersion + configHash`.
 - Produces immutable calculation run and chart IDs.
 
-- [ ] **Step 1: Write a failing known-chart adapter test**
+- [x] **Step 1: Write a failing known-chart adapter test**
 
 Use a reviewed fixture and assert palace count, principal star locations,
 transformations, and provenance.
 
-- [ ] **Step 2: Run the adapter test**
+- [x] **Step 2: Run the adapter test**
 
 Run: `pnpm vitest run packages/engine-adapters/src/ziwei/iztro-adapter.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Pass the first-use dependency gate**
+- [x] **Step 3: Pass the first-use dependency gate**
 
 Record the resolved iztro tree, license evidence, SBOM, integrity, and contract
 baseline in `dependency-integration-matrix.md`.
 
-- [ ] **Step 4: Implement mapping and persistence**
+- [x] **Step 4: Implement mapping and persistence**
 
 Set `algorithm: "default"` explicitly. Preserve raw private vendor output for
 adapter audit but expose only normalized output.
 
-- [ ] **Step 5: Verify idempotency**
+- [x] **Step 5: Verify idempotency**
 
 Run the same command twice and assert one calculation result is reused without
 rewriting history.
 
-- [ ] **Step 6: Run focused and integration tests**
+- [x] **Step 6: Run focused and integration tests**
 
 Run: `pnpm vitest run packages/engine-adapters packages/backend/src/ziwei`
 Expected: PASS.
 
-- [ ] **Step 7: Update trackers and commit**
+- [x] **Step 7: Update trackers and commit**
 
 ```bash
 git add packages/engine-adapters packages/backend/src/ziwei packages/database apps/api/src/ziwei docs/superpowers/plans
 git commit -m "feat: add reproducible Zi Wei calculation"
 ```
+
+**P02-T02 Evidence (2026-09-01):**
+
+- The initial adapter RED failed because the production adapter/config modules
+  did not exist. The initial service/controller REDs failed because their
+  modules did not exist.
+- `iztro` is pinned exactly to `2.6.0` in
+  `@lasoviet/engine-adapters`; lockfile and independently packed tarball
+  integrity agree. The resolved runtime tree is MIT-only and recorded in the
+  dependency matrix plus `sbom/iztro-2.6.0.cdx.json`.
+- `IztroAdapter` is the sole `iztro` import owner. It uses explicit
+  `algorithm: "default"`, emits language-neutral normalized IDs/provenance,
+  preserves the private raw vendor snapshot only for persistence, and records
+  no native location, timezone, or true-solar-time correction claim.
+- Owner-authorized calculation reads a specific immutable BirthProfile revision.
+  Unknown or multi-branch time returns `ZIWEI_TIME_INELIGIBLE` before any run
+  is created. The exact idempotency key is scoped to its profile revision so
+  identical private input never returns another profile's chart identifier.
+- Focused adapter/backend/API verification passed: 4 files, 7 tests.
+  Migration acceptance passed: 1 file, 5 tests. Root typecheck and build
+  passed. No UI, AI, public school selector, live vendor call, or other
+  external side effect occurred. Docs impact: minor. Rule candidate: none.
+  Open questions: none.
 
 ### Task 3 [P02-T03]: Build the approved P0 fixture and cross-check suite
 
@@ -137,39 +175,62 @@ git commit -m "feat: add reproducible Zi Wei calculation"
 - Produces a versioned fixture manifest with source, expected values, rule set,
   precision, and review status.
 
-- [ ] **Step 1: Add failing core fixtures**
+- [x] **Step 1: Add failing core fixtures**
 
 Include solar/lunar conversion, leap month, solar-term boundary, early/late
 Tý hour, branch boundary, timezone difference, historical timezone, unknown
 time rejection, and branch-only precision.
 
-- [ ] **Step 2: Run fixtures**
+- [x] **Step 2: Run fixtures**
 
 Run: `pnpm vitest run tests/calculation/ziwei-p0-fixtures.test.ts`
 Expected: FAIL until the adapter and expected records agree.
 
-- [ ] **Step 3: Cross-check important fixtures**
+- [x] **Step 3: Cross-check important fixtures**
 
 Use Tianji only where methods overlap. For school differences, record the
 difference and compare against a trusted worked example instead of majority
 voting.
 
-- [ ] **Step 4: Resolve every unexplained mismatch**
+- [x] **Step 4: Resolve every unexplained mismatch**
 
 Luna stops on mismatch. Terra reviews whether it is an adapter bug, source
 error, or school difference before Luna changes code or fixture expectations.
 
-- [ ] **Step 5: Run the complete fixture suite**
+- [x] **Step 5: Run the complete fixture suite**
 
 Run: `pnpm vitest run tests/calculation/ziwei-p0-fixtures.test.ts`
 Expected: 100% PASS.
 
-- [ ] **Step 6: Update risk/rule trackers and commit**
+- [x] **Step 6: Update risk/rule trackers and commit**
 
 ```bash
 git add packages/test-fixtures tests/calculation docs/superpowers/plans
 git commit -m "test: add trusted Zi Wei fixtures"
 ```
+
+**P02-T03 Evidence (2026-09-01):**
+
+- The fixture RED showed that the adapter collapsed `23:30` late Zi into the
+  same vendor input as `00:30` early Zi. The adapter now sends iztro
+  `timeIndex: 12` for `23:00-23:59`; its approved current-day division may
+  still produce the same chart facts, so the fixture asserts the real vendor
+  input boundary rather than inventing a chart difference.
+- Manifest v1 covers 11 fixtures across solar/lunar input, leap lunar month,
+  solar-term boundary, early/late Zi, branch boundary, IANA and historical
+  timezone provenance, unknown-time rejection, and branch-only precision.
+  Reused Phase 01 inputs preserve original calendar/time/timezone provenance.
+- The real `IztroAdapter` passed every eligible fixture and the unknown-time
+  fixture returned `ZIWEI_TIME_INELIGIBLE` before an adapter run.
+- Read-only Tianji overlap comparison for lunar `1988-01-15`, early Zi,
+  returned life palace Tiger, agreeing with normalized iztro
+  `ziwei.branch.tiger`. Tianji's late-Zi, timezone, solar-term, leap-month,
+  and complete-star behavior is not comparable and is recorded in the source
+  notes; Mingyu is excluded.
+- Focused fixture and adapter tests, root typecheck, and root build passed.
+  No UI, AI, production reference import, external call, or durable rule was
+  added. Docs impact: minor. Rule
+  candidate: none. Open questions: none.
 
 ### Task 4 [P02-T04]: Implement capability registry and deterministic evidence
 
@@ -187,36 +248,70 @@ git commit -m "test: add trusted Zi Wei fixtures"
 - Produces `EvidenceItemV1` and `EvidenceSetV1`.
 - Produces `buildZiweiIdentityEvidence(chart): EvidenceSetV1`.
 
-- [ ] **Step 1: Write failing rule tests**
+- [x] **Step 1: Write failing rule tests**
 
 Each test identifies normalized facts, evidence key, confidence, limitations,
 interpretation bounds, and allowed action categories.
 
-- [ ] **Step 2: Run evidence tests**
+- [x] **Step 2: Run evidence tests**
 
 Run: `pnpm vitest run packages/backend/src/evidence`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the minimum identity-report evidence set**
+- [x] **Step 3: Implement the minimum identity-report evidence set**
 
 Cover only evidence required by the free experience and first paid SKU. Do not
 encode all possible Zi Wei schools or topics.
 
-- [ ] **Step 4: Persist immutable evidence sets**
+- [x] **Step 4: Persist immutable evidence sets**
 
 Evidence versions link to chart version and rule version.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/evidence packages/contracts`
 Expected: PASS.
 
-- [ ] **Step 6: Update docs/rules and commit**
+- [x] **Step 6: Update docs/rules and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/capabilities packages/backend/src/evidence packages/database docs/superpowers/plans
 git commit -m "feat: add Zi Wei capabilities and evidence"
 ```
+
+**P02-T04 Evidence (2026-09-01):**
+
+- Added contract schemas for the controlled P0 capability and immutable
+  evidence items/sets. The registry exposes only `ziwei.identity.p0`, with
+  the approved public and `ZIWEI-IDENTITY-P0` paid availability.
+- The deterministic builder creates exactly three bounded identity facts:
+  life palace, body palace, and transformations. Each item references
+  normalized chart facts and includes confidence, limitations, risk tags,
+  interpretation bounds, and allowed actions.
+- Unsupported rule sets or missing facts return typed errors before persistence.
+  Immutable evidence versions are unique by chart version and rule version;
+  duplicates reuse the existing set without rewriting items.
+- Focused evidence/contracts tests include a real PostgreSQL concurrent
+  idempotency regression: one chart version/rule version retained one evidence
+  set and three immutable items. Migration acceptance passed. Root
+  typecheck/build passed. No AI, prose generation, UI, report preview,
+  commerce workflow, or new calculation school was added. Docs impact: minor.
+  Rule candidate: none. Open questions: none.
+
+## Milestone Correction Evidence (2026-09-01)
+
+- MF-01 through MF-05 are closed. The 11-fixture corpus now evaluates
+  fixture-specific normalized life/body/principal-star facts and blocks typed
+  `UNEXPLAINED_MISMATCH` differences. Reference-method incompatibility is
+  explicit and never accepted from free text.
+- Evidence accepts only a chart version ID, transactionally parses immutable
+  normalized output, and returns persisted evidence items on reuse. PostgreSQL
+  concurrency and reuse coverage passed.
+- Vendor and normalization failures are separately typed; approved evidence
+  contract codes are in use. The CycloneDX 1.5 BOM has resolvable graph refs,
+  including the application root to `iztro`, and passed schema validation.
+- Focused tests passed: 4 files, 7 tests. Root typecheck and build passed.
+  Docs impact: minor. Rule candidate: none. Open questions: none.
 
 ## Phase Exit Criteria
 
