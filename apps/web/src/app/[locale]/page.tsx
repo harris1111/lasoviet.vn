@@ -1,75 +1,59 @@
-import Link from "next/link";
-import { getLocale, getTranslations } from "next-intl/server";
+import { routeRegistry } from "@lasoviet/config";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-import { ArtifactImage } from "../../components/artifact-image";
-import { Icon } from "../../components/icon";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
+import { loadPublicContentRepository } from "../../features/content/public-content-repository";
+import { HomepageCategoryComparison } from "../../features/homepage/homepage-category-comparison";
+import { HomepageChatbotComparison } from "../../features/homepage/homepage-chatbot-comparison";
+import { HomepageEvidence } from "../../features/homepage/homepage-evidence";
+import { HomepageFaq } from "../../features/homepage/homepage-faq";
+import { HomepageFinalCta } from "../../features/homepage/homepage-final-cta";
+import { HomepageFreeValue } from "../../features/homepage/homepage-free-value";
+import { HomepageHero } from "../../features/homepage/homepage-hero";
+import { HomepageKnowledge } from "../../features/homepage/homepage-knowledge";
+import { HomepageLenses } from "../../features/homepage/homepage-lenses";
+import { HomepageMethod } from "../../features/homepage/homepage-method";
+import { HomepageProblem } from "../../features/homepage/homepage-problem";
+import { HomepageProcess } from "../../features/homepage/homepage-process";
+import { HomepageTrustSpecs } from "../../features/homepage/homepage-trust-specs";
+import { HomepageTrustStrip } from "../../features/homepage/homepage-trust-strip";
+import { HomepageValueLadder } from "../../features/homepage/homepage-value-ladder";
+import { buildPublicMetadata } from "../../seo/public-metadata";
 
-const image = (name: string) => `/images/lasoviet/${name}`;
-const path = (locale: "en" | "vi", value: string) =>
-  locale === "en" ? `/en${value}` : value;
+type PageProps = { params: Promise<{ locale: "en" | "vi" }> };
 
-export default async function Page() {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const route = routeRegistry.find((entry) => entry.id === "brand.home");
+  if (!route) return { robots: { index: false, follow: false } };
+  const content = loadPublicContentRepository(routeRegistry).get(route.id, locale);
+  return buildPublicMetadata(route, content);
+}
+
+export default async function Page({ params }: PageProps) {
+  const { locale } = await params;
   const t = await getTranslations("common");
-  const locale = (await getLocale()) as "en" | "vi";
-  const commitmentKeys = ["free", "evidence", "private", "once"] as const;
-  const processKeys = ["one", "two", "three"] as const;
-  const processImages = [
-    "lich-phap-can-chi-quy-doi-du-lieu-sinh-homepage.webp",
-    "an-dinh-la-so-tu-vi-12-cung-homepage.webp",
-    "chon-chu-de-luan-giai-sau-ho-so-tang-thu-homepage.webp",
-  ];
-  const knowledge = [
-    ["chart", "cau-truc-la-so-tu-vi-12-cung-la-gi-homepage.webp", "/kien-thuc/tu-vi/la-so-tu-vi-la-gi"],
-    ["create", "quy-trinh-lap-la-so-tu-vi-tu-lich-phap-homepage.webp", "/kien-thuc/tu-vi"],
-    ["read", "cach-doc-moi-lien-he-giua-cac-cung-la-so-tu-vi-homepage.webp", "/kien-thuc/tu-vi"],
-  ] as const;
-
   return (
     <div className="home">
-      <SiteHeader locale={locale} />
-      <main>
-        <section className="hero">
-          <ArtifactImage alt="" className="hero-image" desktop={image("menh-thu-khai-quang-hero-lasoviet-desktop.webp")} mobile={image("menh-thu-khai-quang-hero-lasoviet-mobile.webp")} />
-          <div className="container hero-content">
-            <p className="eyebrow">{t("home.hero.eyebrow")}</p>
-            <h1>{t("app.taglinePrefix")}<br /><span className="gold-text">{t("app.taglineHighlight")}</span></h1>
-            <p className="hero-lead">{t("home.hero.lead")}</p>
-            <p className="hero-copy">{t("home.hero.copy")}</p>
-            <div className="birth-cta">
-              <Link className="button" href={path(locale, "/tao-la-so/tu-vi")}>{t("home.form.submit")}</Link>
-              <Link className="button button-secondary" href="#luan-giai">{t("home.form.sample")}</Link>
-              <p className="birth-note">{t("home.form.note")}</p>
-            </div>
-          </div>
-        </section>
-
-        <section><div className="container commitments">
-          {commitmentKeys.map((key, index) => <article className="commitment" key={key}><div className="commitment-top"><Icon name={key === "free" ? "check" : key === "evidence" ? "trien" : key === "private" ? "shield-lock" : "refresh-off"} /><span>{String(index + 1).padStart(2, "0")}</span></div><h3>{t(`home.commitments.${key}.title`)}</h3><p>{t(`home.commitments.${key}.copy`)}</p></article>)}
-        </div></section>
-
-        <section className="section"><div className="container section-heading"><p className="eyebrow">{t("home.free.eyebrow")}</p><h2>{t("home.free.title")}</h2><p>{t("home.free.copy")}</p></div>
-          <div className="container free-preview"><ArtifactImage alt={t("home.free.imageAlt")} className="free-image" desktop={image("la-so-mien-phi-ba-diem-noi-bat-co-can-cu-homepage.webp")} /><div className="insights">
-            {[1, 2, 3].map((number) => <article className="insight" key={number}><p className="eyebrow">{t("home.free.note")} {String(number).padStart(2, "0")}</p><h3>{t(`home.free.insight${number}.title`)}</h3><p>{t(`home.free.insight${number}.copy`)}</p><Link className="text-link" href="#can-cu"><span className="seal" aria-hidden="true"><span /></span>{t("home.evidence.action")}</Link></article>)}
-          </div></div>
-        </section>
-
-        <section className="section section-deep" id="phuong-phap"><div className="container"><p className="eyebrow">{t("home.process.eyebrow")}</p><div className="process">
-          {processKeys.map((key, index) => <article className="process-item" key={key}><div className="process-number">{String(index + 1).padStart(2, "0")}</div><div><h3>{t(`home.process.${key}.title`)}</h3><p>{t(`home.process.${key}.copy`)}</p>{index === 0 ? <div className="process-meta"><span><Icon name="calendar-day" />{t("home.process.meta.calendar")}</span><span><Icon name="clock" />{t("home.process.meta.clock")}</span><span><Icon name="map-pin" />{t("home.process.meta.place")}</span></div> : null}</div><figure className="process-figure"><ArtifactImage alt={t(`home.process.${key}.title`)} desktop={image(processImages[index]!)} /><figcaption>{t(`home.process.caption${index + 1}`)}</figcaption></figure></article>)}
-        </div></div></section>
-
-        <section className="section" id="can-cu"><div className="container evidence"><div className="section-intro"><p className="eyebrow">{t("home.evidence.eyebrow")}</p><h2>{t("home.evidence.title")}</h2><p>{t("home.evidence.copy")}</p></div><article className="evidence-card"><h3>{t("home.evidence.claim")}</h3><details><summary>{t("home.evidence.action")}</summary><dl className="evidence-list"><dt>{t("home.evidence.source")}</dt><dd>{t("home.evidence.sourceCopy")}</dd><dt>{t("home.evidence.confidence")}</dt><dd>{t("home.evidence.confidenceCopy")}</dd><dt>{t("home.evidence.observe")}</dt><dd>{t("home.evidence.observeCopy")}</dd></dl></details></article></div></section>
-
-        <section className="section image-section" id="luan-giai"><ArtifactImage alt="" className="hero-image" desktop={image("tang-thu-chu-de-luan-giai-sau-background-homepage.webp")} /><div className="container section-overlay"><div className="section-heading"><p className="eyebrow">{t("home.topics.eyebrow")}</p><h2>{t("home.topics.title")}</h2></div><div className="topics"><article className="topic"><span className="topic-number">I</span><h3>{t("home.topics.identity.title")}</h3><span className="topic-price">79.000 ₫</span><span className="topic-once">{t("home.topics.once")}</span><p>{t("home.topics.identity.copy")} <Link href={path(locale, "/luan-giai-tu-vi/tong-quan-ban-menh")}>{t("home.topics.sample")}</Link></p></article></div></div></section>
-
-        <section className="section"><div className="container"><p className="eyebrow">{t("home.trust.eyebrow")}</p><h2>{t("home.trust.title")}</h2>{(["method", "ai", "privacy"] as const).map((key) => <article className="trust-row" key={key}><h3>{t(`home.trust.${key}.label`)}</h3><p>{t(`home.trust.${key}.copy`)}</p></article>)}</div></section>
-
-        <section className="section section-deep" id="kien-thuc"><div className="container"><p className="eyebrow">{t("home.knowledge.eyebrow")}</p><h2>{t("home.knowledge.title")}</h2><div className="knowledge-grid">{knowledge.map(([key, asset, href]) => <Link href={path(locale, href)} key={key}><ArtifactImage alt={t(`home.knowledge.${key}.title`)} desktop={image(asset)} /><h3>{t(`home.knowledge.${key}.title`)}</h3><p>{t(`home.knowledge.${key}.copy`)}</p></Link>)}</div></div></section>
-
-        <section className="section"><div className="container faq"><div><p className="eyebrow">{t("home.faq.eyebrow")}</p></div><div className="faq-list">{(["ai", "time", "payment", "privacy"] as const).map((key) => <details key={key}><summary>{t(`home.faq.${key}.question`)}</summary><p>{t(`home.faq.${key}.answer`)}</p></details>)}</div></div></section>
-
-        <section className="cta"><ArtifactImage alt="" className="cta-image" desktop={image("nguong-mo-menh-thu-cta-background-lasoviet-desktop.webp")} mobile={image("nguong-mo-menh-thu-cta-background-lasoviet-mobile.webp")} /><div className="container cta-content"><h2>{t("home.cta.title")}</h2><p>{t("home.cta.copy")}</p><div className="cta-actions"><Link className="button" href={path(locale, "/tao-la-so/tu-vi")}>{t("home.form.submit")}</Link><Link className="button button-secondary" href="#luan-giai">{t("home.form.sample")}</Link></div></div></section>
+      <div data-home-block="header"><SiteHeader locale={locale} /></div>
+      <main aria-label={t("app.name")}>
+        <section className="hero" data-home-block="hero"><HomepageHero locale={locale} /></section>
+        <section data-home-block="trust-strip"><HomepageTrustStrip /></section>
+        <section data-home-block="problem"><HomepageProblem /></section>
+        <section data-home-block="lenses" id="he-quy-chieu"><HomepageLenses locale={locale} /></section>
+        <section data-home-block="chatbot-comparison"><HomepageChatbotComparison /></section>
+        <section data-home-block="category-comparison"><HomepageCategoryComparison /></section>
+        <section data-home-block="about-method" id="phuong-phap"><HomepageMethod /></section>
+        <section className="section section-deep" data-home-block="process"><HomepageProcess /></section>
+        <section data-home-block="free-value"><HomepageFreeValue /></section>
+        <section className="section" data-home-block="evidence" id="can-cu"><HomepageEvidence /></section>
+        <section className="section image-section" data-home-block="value-ladder" id="luan-giai"><HomepageValueLadder locale={locale} /></section>
+        <section data-home-block="trust-specs"><HomepageTrustSpecs /></section>
+        <section className="section section-deep" data-home-block="knowledge" id="kien-thuc"><HomepageKnowledge locale={locale} /></section>
+        <section className="section" data-home-block="faq"><HomepageFaq /></section>
+        <section className="cta" data-home-block="final-cta"><HomepageFinalCta locale={locale} /></section>
       </main>
       <SiteFooter locale={locale} />
     </div>

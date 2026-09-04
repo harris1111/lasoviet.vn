@@ -1,51 +1,82 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-const vietnameseSample =
-  "Lập lá số. Hiểu vận mệnh. Quyền riêng tư. Luận giải.";
+const locales = [
+  {
+    code: "vi",
+    path: "/",
+    acceptLanguage: "vi-VN,vi;q=0.9",
+    sample: "Lập lá số. Hiểu vận mệnh. Quyền riêng tư. Luận giải.",
+  },
+  {
+    code: "en",
+    path: "/en",
+    acceptLanguage: "en-US,en;q=0.9",
+    sample: "Build your chart. Understand your path. Privacy. Interpretation.",
+  },
+] as const;
 
-test("loads bundled Vietnamese font faces for UI, display, and mono typography", async ({
-  page,
-}) => {
+async function visitLocalizedHome(
+  page: Page,
+  locale: (typeof locales)[number],
+) {
+  const baseURL = test.info().project.use.baseURL;
+  if (typeof baseURL !== "string") {
+    throw new Error("PLAYWRIGHT_BASE_URL is required");
+  }
+  const base = new URL(baseURL);
+  const target = new URL(locale.path, base);
   await page.context().addCookies([
     {
       name: "NEXT_LOCALE",
-      value: "vi",
-      domain: "127.0.0.1",
-      path: "/",
+      value: locale.code,
+      url: new URL("/", base).toString(),
     },
   ]);
-  await page.goto("/");
+  await page.setExtraHTTPHeaders({
+    "Accept-Language": locale.acceptLanguage,
+  });
+  await page.goto(target.toString());
+}
 
-  const loadedFontRoles = await page.evaluate(async (sample) => {
-    await document.fonts.ready;
+for (const locale of locales) {
+  test(`loads bundled UI, display, and mono fonts in ${locale.code}`, async ({
+    page,
+  }) => {
+    await visitLocalizedHome(page, locale);
 
-    const loadedFamilies = Array.from(document.fonts)
-      .filter((font) => font.status === "loaded")
-      .map((font) => font.family.replaceAll('"', ""));
+    const loadedFontRoles = await page.evaluate(async (sample) => {
+      await document.fonts.ready;
 
-    return [
-      ["body", "body"],
-      ["display", "h1"],
-      ["mono", ".eyebrow"],
-    ].map(([role, selector]) => {
-      const family = getComputedStyle(document.querySelector(selector)!).fontFamily;
-      const loadedFamily = loadedFamilies.find((candidate) =>
-        family.includes(candidate),
-      );
+      const loadedFamilies = Array.from(document.fonts)
+        .filter((font) => font.status === "loaded")
+        .map((font) => font.family.replaceAll('"', ""));
 
-      return {
-        role,
-        family,
-        loaded:
-          loadedFamily !== undefined &&
-          document.fonts.check(`16px "${loadedFamily}"`, sample),
-      };
-    });
-  }, vietnameseSample);
+      return [
+        ["ui", "body"],
+        ["display", "h1"],
+        ["mono", ".eyebrow"],
+      ].map(([role, selector]) => {
+        const family = getComputedStyle(
+          document.querySelector(selector)!,
+        ).fontFamily;
+        const loadedFamily = loadedFamilies.find((candidate) =>
+          family.includes(candidate),
+        );
 
-  expect(loadedFontRoles).toEqual([
-    expect.objectContaining({ role: "body", loaded: true }),
-    expect.objectContaining({ role: "display", loaded: true }),
-    expect.objectContaining({ role: "mono", loaded: true }),
-  ]);
-});
+        return {
+          role,
+          family,
+          loaded:
+            loadedFamily !== undefined &&
+            document.fonts.check(`16px "${loadedFamily}"`, sample),
+        };
+      });
+    }, locale.sample);
+
+    expect(loadedFontRoles).toEqual([
+      expect.objectContaining({ role: "ui", loaded: true }),
+      expect.objectContaining({ role: "display", loaded: true }),
+      expect.objectContaining({ role: "mono", loaded: true }),
+    ]);
+  });
+}
