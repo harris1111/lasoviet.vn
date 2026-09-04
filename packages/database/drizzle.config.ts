@@ -10,6 +10,7 @@ export default defineConfig({
     "./src/schema/admin-access.ts",
     "./src/schema/notifications.ts",
     "./src/schema/commerce.ts",
+    "./src/schema/reports.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",

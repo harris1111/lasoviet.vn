@@ -1,5 +1,12 @@
 import { and, eq, lte, or, sql } from "drizzle-orm";
+import {
+  ReportGenerationRequestedV1Schema,
+  type QueueJobV1,
+  type ReportGenerationRequestedV1,
+} from "@lasoviet/contracts";
 import { outbox, reportQueueJobs, type Database } from "@lasoviet/database";
+
+export type { QueueJobV1, ReportGenerationRequestedV1 };
 
 export type ClaimedOutboxEvent = {
   id: string;
@@ -17,38 +24,13 @@ export type OutboxDispatcherDependencies = {
   publish(job: QueueJobV1): Promise<void>;
 };
 
-type ReportGenerationRequestedV1 = {
-  reportId: string;
-  reportVersionId: string;
-  entitlementId: string;
-  chartVersionId: string;
-  evidenceVersionId: string;
-  knowledgeVersionId: string;
-  promptVersion: string;
-  reportConfigVersion: string;
-  locale: "vi" | "en";
-  sku: string;
-};
-
-export type QueueJobV1 = {
-  schemaVersion: 1;
-  name: "report.generate.v1";
-  sourceEventId: string;
-  traceId: string;
-  idempotencyKey: string;
-  payload: ReportGenerationRequestedV1;
-};
-
 export type OutboxDispatchRunner = {
   runOnce(): Promise<{ dispatched: number }>;
 };
 
 function reportJob(payload: unknown): ReportGenerationRequestedV1 | null {
-  if (typeof payload !== "object" || payload === null) return null;
-  const value = payload as Record<string, unknown>;
-  const keys = ["reportId", "reportVersionId", "entitlementId", "chartVersionId", "evidenceVersionId", "knowledgeVersionId", "promptVersion", "reportConfigVersion", "locale", "sku"];
-  if (!keys.every((key) => typeof value[key] === "string") || (value.locale !== "vi" && value.locale !== "en")) return null;
-  return value as unknown as ReportGenerationRequestedV1;
+  const result = ReportGenerationRequestedV1Schema.safeParse(payload);
+  return result.success ? result.data : null;
 }
 
 export function createOutboxDispatcher(dependencies: OutboxDispatcherDependencies) {

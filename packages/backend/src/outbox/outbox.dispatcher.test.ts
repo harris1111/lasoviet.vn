@@ -69,4 +69,24 @@ describe("outbox dispatcher", () => {
     await schedule.run();
     expect(reportError).toHaveBeenCalledWith(expect.any(Error));
   });
+
+  it("releases an invalid report generation requested payload as OUTBOX_EVENT_INVALID", async () => {
+    const release = vi.fn().mockResolvedValue(undefined);
+    const dispatcher = createOutboxDispatcher({
+      claim: async () => ({
+        id: "outbox-invalid",
+        eventId: "event-bad",
+        traceId: "trace-bad",
+        idempotencyKey: "report-request:bad",
+        eventType: "report.generation.requested.v1",
+        payload: { reportId: "" },
+      }),
+      markProcessed: async () => undefined,
+      release,
+      publish: async () => undefined,
+    });
+
+    await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: false });
+    expect(release).toHaveBeenCalledWith("outbox-invalid", "OUTBOX_EVENT_INVALID");
+  });
 });

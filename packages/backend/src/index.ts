@@ -228,3 +228,18 @@ export { createDatabaseCommerceRepository } from "./commerce/commerce.repository
 export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
 export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJobV1 } from "./outbox/outbox.dispatcher.js";
 export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";
+
+export {
+  REGISTERED_QUEUES,
+  resolveWorkerQueues,
+} from "./jobs/queue.registry.js";
+export type { RegisteredQueue, ResolveWorkerQueuesResult } from "./jobs/queue.registry.js";
+
+export {
+  completeReportGeneratingHandoff,
+  parseReportGenerateJob,
+  transitionReportToGenerating,
+} from "./reports/report-state.js";
+export type { ReportStateSnapshot, TransitionReportToGeneratingResult } from "./reports/report-state.js";
+export { createDatabaseReportQueueStore, createReportService } from "./reports/report.service.js";
+export type { ReportJobQueueStore } from "./reports/report.service.js";

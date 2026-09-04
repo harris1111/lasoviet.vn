@@ -38,9 +38,11 @@ export {
   commerceOrderStatus,
   commerceOrders,
   commercePaymentEvents,
-  reportReservations,
-  reportQueueJobs,
 } from "./schema/commerce.js";
+export {
+  reportQueueJobs,
+  reportReservations,
+} from "./schema/reports.js";
 export {
   deletionRequestStatus,
   deletionRequests,

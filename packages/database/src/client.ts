@@ -8,6 +8,7 @@ import * as birthProfile from "./schema/birth-profile.js";
 import * as commerce from "./schema/commerce.js";
 import * as outbox from "./schema/outbox.js";
 import * as privacy from "./schema/privacy.js";
+import * as reports from "./schema/reports.js";
 
 const schema = {
   ...auth,
@@ -17,6 +18,7 @@ const schema = {
   ...commerce,
   ...outbox,
   ...privacy,
+  ...reports,
 };
 
 export type Database = PostgresJsDatabase<typeof schema>;

@@ -85,6 +85,13 @@
       "when": 1788422400000,
       "tag": "0011_commerce_payment_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788508800000,
+      "tag": "0012_report_worker_state",
+      "breakpoints": true
     }
   ]
 }

@@ -255,24 +255,24 @@ git commit -m "feat: process idempotent SePay webhooks"
   worker-state failure.
 - Produces `WORKER_QUEUES` selection.
 
-- [ ] **Step 1: Write failing state and job tests**
+- [x] **Step 1: Write failing state and job tests**
 
 Cover duplicate jobs, crash after claim, retry, terminal worker-state failure,
 and invalid state transitions. Assert the exact event-to-job mapping and
 payload from `workflow-event-contracts.md` without invoking a report writer
 that is not created until P04-T05.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/reports tests/jobs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement queue registry and persisted state**
+- [x] **Step 3: Implement queue registry and persisted state**
 
 Worker restart must resume from database state. Queue state is not the only
 record of progress.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/reports tests/jobs`
 Expected: PASS.

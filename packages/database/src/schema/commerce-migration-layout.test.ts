@@ -28,6 +28,7 @@ describe("commerce migration layout", () => {
     const journal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
 
     expect(journal).toContain('"tag": "0011_commerce_payment_gateway"');
+    expect(journal).toContain('"tag": "0012_report_worker_state"');
     expect(journal).not.toContain("0012_report_request_contract");
     expect(journal).not.toContain("0013_report_queue_jobs");
     expect(journal).not.toContain("0014_commerce_retention_boundary");
@@ -63,5 +64,17 @@ describe("commerce migration layout", () => {
     );
     expect(dispatcher).toContain("lte(outbox.availableAt, current)");
     expect(dispatcher).toContain("lte(outbox.leasedUntil, current)");
+  });
+
+  it("keeps report worker state migration additive and aligned", async () => {
+    const migration = await readFile(
+      new URL("0012_report_worker_state.sql", migrationRoot),
+      "utf8",
+    );
+    expect(migration).toContain('ALTER TABLE "report_reservations" ADD COLUMN "state_version"');
+    expect(migration).toContain('ALTER TABLE "report_reservations" ADD COLUMN "attempt_count"');
+    expect(migration).toContain('ALTER TABLE "report_queue_jobs" ADD COLUMN "attempt_count"');
+    expect(migration).toContain('ALTER TABLE "report_queue_jobs" ADD COLUMN "available_at"');
+    expect(migration).toContain('CREATE INDEX "report_queue_jobs_waiting_claim_idx"');
   });
 });

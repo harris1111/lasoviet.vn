@@ -246,3 +246,19 @@ export type {
   CommerceSku,
   OrderStatus,
 } from "./commerce.js";
+
+export {
+  ReportFulfillmentFailedV1Schema,
+  ReportGenerateJobEnvelopeV1Schema,
+  ReportGenerationRequestedV1Schema,
+  ReportQueueJobStatusSchema,
+  ReportStatusSchema,
+} from "./jobs.js";
+export type {
+  QueueJobV1,
+  ReportFulfillmentFailedV1,
+  ReportGenerateJobEnvelopeV1,
+  ReportGenerationRequestedV1,
+  ReportQueueJobStatus,
+  ReportStatus,
+} from "./jobs.js";
