@@ -82,12 +82,32 @@ validate_sha() {
   return 0
 }
 
+validate_status_code() {
+  local code="$1"
+  if [[ ! "$code" =~ ^[A-Z][A-Z0-9_]{0,63}$ ]]; then
+    return 1
+  fi
+  return 0
+}
+
+validate_timestamp() {
+  local ts="$1"
+  if [[ ! "$ts" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]; then
+    return 1
+  fi
+  return 0
+}
+
 log_status() {
   local code="$1"
+  if ! validate_status_code "$code"; then
+    echo "ERROR: invalid status code format: $code" >&2
+    return 1
+  fi
   local log_file="${LOG_DIR:-/tmp}/deploy.log"
   local timestamp
   timestamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-  echo "${timestamp} ${code}" >> "$log_file"
+  printf '%s %s\n' "$timestamp" "$code" >> "$log_file"
 }
 
 get_state_file() {
@@ -122,14 +142,19 @@ read_state() {
 }
 
 write_state() {
-  local cur="${1:-$CURRENT_RELEASE_SHA}"
-  local prev="${2:-$PREVIOUS_RELEASE_SHA}"
-  local last_att="${3:-$LAST_ATTEMPTED_RELEASE_SHA}"
-  local last_succ="${4:-$LAST_SUCCESSFUL_DEPLOYMENT_AT}"
-  local fail_code="${5:-$LAST_FAILURE_CODE}"
-  local fail_at="${6:-$LAST_FAILURE_AT}"
+  if [ "$#" -ne 6 ]; then
+    echo "ERROR: write_state requires exactly 6 explicit arguments" >&2
+    return 1
+  fi
 
-  # Validate SHAs if non-empty
+  local cur="$1"
+  local prev="$2"
+  local last_att="$3"
+  local last_succ="$4"
+  local fail_code="$5"
+  local fail_at="$6"
+
+  # Validate non-empty values
   if [ -n "$cur" ] && ! validate_sha "$cur"; then
     echo "ERROR: invalid CURRENT_RELEASE_SHA format" >&2
     return 1
@@ -142,10 +167,26 @@ write_state() {
     echo "ERROR: invalid LAST_ATTEMPTED_RELEASE_SHA format" >&2
     return 1
   fi
+  if [ -n "$last_succ" ] && ! validate_timestamp "$last_succ"; then
+    echo "ERROR: invalid LAST_SUCCESSFUL_DEPLOYMENT_AT format" >&2
+    return 1
+  fi
+  if [ -n "$fail_code" ] && ! validate_status_code "$fail_code"; then
+    echo "ERROR: invalid LAST_FAILURE_CODE format" >&2
+    return 1
+  fi
+  if [ -n "$fail_at" ] && ! validate_timestamp "$fail_at"; then
+    echo "ERROR: invalid LAST_FAILURE_AT format" >&2
+    return 1
+  fi
 
   local state_file
   state_file="$(get_state_file)"
   local tmp_file="${state_file}.tmp.$$"
+
+  local old_umask
+  old_umask="$(umask)"
+  umask 077
 
   cat <<EOF > "$tmp_file"
 CURRENT_RELEASE_SHA="${cur}"
@@ -156,8 +197,9 @@ LAST_FAILURE_CODE="${fail_code}"
 LAST_FAILURE_AT="${fail_at}"
 EOF
 
-  chmod 600 "$tmp_file" 2>/dev/null || true
+  chmod 600 "$tmp_file"
   mv -f "$tmp_file" "$state_file"
+  umask "$old_umask"
 }
 
 record_failure() {

@@ -16,14 +16,9 @@ for arg in "$@"; do
 done
 
 LOCK_FILE="${STATE_DIR}/poll.lock"
+exec 9>"$LOCK_FILE"
 
-# Non-blocking lock using flock -n <lock_file> <cmd...> or flock -n 200
-# Test environment uses flock -n 200 or flock -n "$LOCK_FILE"
-set +e
-flock -n "$LOCK_FILE" echo -n "" >/dev/null 2>&1
-flock_status=$?
-set -e
-if [ "$flock_status" -ne 0 ]; then
+if ! flock -n 9; then
   # Lock contention is quiet exit 0
   exit 0
 fi
@@ -65,5 +60,5 @@ if [ "$DRY_RUN" -eq 1 ]; then
   exit 0
 fi
 
-# Invoke deployment
+# Invoke deployment, keeping inherited FD 9 lock
 exec "${SCRIPT_DIR}/deploy-release.sh" "$revision"

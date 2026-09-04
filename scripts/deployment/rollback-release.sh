@@ -14,8 +14,11 @@ if [ -z "$TARGET_SHA" ] || ! validate_sha "$TARGET_SHA"; then
   exit 1
 fi
 
+OLD_CURRENT="$CURRENT_RELEASE_SHA"
+OLD_PREVIOUS="$PREVIOUS_RELEASE_SHA"
+
 # Rollback accepts only a SHA equal to recorded CURRENT_RELEASE_SHA or PREVIOUS_RELEASE_SHA
-if [ "$TARGET_SHA" != "$CURRENT_RELEASE_SHA" ] && [ "$TARGET_SHA" != "$PREVIOUS_RELEASE_SHA" ]; then
+if [ "$TARGET_SHA" != "$OLD_CURRENT" ] && [ "$TARGET_SHA" != "$OLD_PREVIOUS" ]; then
   echo "ERROR: rollback target must equal current or previous release SHA" >&2
   exit 1
 fi
@@ -54,8 +57,10 @@ check_readiness() {
       ok=0
     fi
 
-    # 2. redis ping
-    if [ "$ok" -eq 1 ] && ! "${COMPOSE_CMD[@]}" exec -T redis redis-cli ping >/dev/null 2>&1; then
+    # 2. redis ping exact PONG
+    local pong
+    pong="$("${COMPOSE_CMD[@]}" exec -T redis redis-cli ping 2>/dev/null | tr -d ' \r\n')"
+    if [ "$pong" != "PONG" ]; then
       ok=0
     fi
 
@@ -64,13 +69,23 @@ check_readiness() {
       ok=0
     fi
 
-    # 4. loopback curl
-    if [ "$ok" -eq 1 ] && ! curl -sf -o /dev/null "$LOOPBACK_READY_URL" >/dev/null 2>&1; then
+    # 4. api internal
+    if [ "$ok" -eq 1 ] && ! "${COMPOSE_CMD[@]}" exec -T api node -e "fetch('http://127.0.0.1:3001/health/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" >/dev/null 2>&1; then
       ok=0
     fi
 
-    # 5. public curl
-    if [ "$ok" -eq 1 ] && ! curl -sf -o /dev/null "$PUBLIC_READY_URL" >/dev/null 2>&1; then
+    # 5. web internal
+    if [ "$ok" -eq 1 ] && ! "${COMPOSE_CMD[@]}" exec -T web node -e "fetch('http://127.0.0.1:3000/health/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" >/dev/null 2>&1; then
+      ok=0
+    fi
+
+    # 6. loopback curl
+    if [ "$ok" -eq 1 ] && ! curl --fail --silent --show-error --connect-timeout 5 --max-time 10 "$LOOPBACK_READY_URL" >/dev/null 2>&1; then
+      ok=0
+    fi
+
+    # 7. public curl
+    if [ "$ok" -eq 1 ] && ! curl --fail --silent --show-error --connect-timeout 5 --max-time 10 "$PUBLIC_READY_URL" >/dev/null 2>&1; then
       ok=0
     fi
 
@@ -90,10 +105,15 @@ if ! check_readiness; then
   exit 1
 fi
 
-# Consistently update state
-# If rollback succeeded, target SHA becomes current release
-# Previous release remains or is cleared if target was previous
+# Rollback state update:
+# If target equals previous: CURRENT=target, PREVIOUS=old current
+# If target equals current: CURRENT=target, PREVIOUS=old previous
+NEW_PREVIOUS="$OLD_PREVIOUS"
+if [ "$TARGET_SHA" = "$OLD_PREVIOUS" ]; then
+  NEW_PREVIOUS="$OLD_CURRENT"
+fi
+
 NOW="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-write_state "$TARGET_SHA" "" "$LAST_ATTEMPTED_RELEASE_SHA" "$NOW" "" ""
+write_state "$TARGET_SHA" "$NEW_PREVIOUS" "$LAST_ATTEMPTED_RELEASE_SHA" "$NOW" "" ""
 log_status "ROLLBACK_SUCCESSFUL"
 exit 0

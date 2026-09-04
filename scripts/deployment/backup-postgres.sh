@@ -47,6 +47,7 @@ PARTIAL_CHECKSUM="${FINAL_CHECKSUM}.partial"
 cleanup_failure() {
   if [ -f "$PARTIAL_ARCHIVE" ]; then
     if [ -s "$PARTIAL_ARCHIVE" ]; then
+      chmod 600 "$PARTIAL_ARCHIVE" 2>/dev/null || true
       mv -f "$PARTIAL_ARCHIVE" "$FAILED_ARCHIVE" 2>/dev/null || true
     else
       rm -f "$PARTIAL_ARCHIVE" 2>/dev/null || true
@@ -63,8 +64,10 @@ DUMP_SCRIPT="set -euo pipefail; trap 'rm -f ${CONTAINER_TEMP}' EXIT; pg_dump -U 
 
 rm -f "$PARTIAL_ARCHIVE" "$PARTIAL_CHECKSUM"
 
+# Enforce umask 077 before creating any host partial
+umask 077
+
 # Stream backup from container
-# Suppress stderr to avoid leaking sensitive connection data
 if ! "${COMPOSE_CMD[@]}" exec -T postgres sh -c "$DUMP_SCRIPT" > "$PARTIAL_ARCHIVE" 2>/dev/null; then
   echo "ERROR: postgres container dump failed" >&2
   cleanup_failure
@@ -84,42 +87,68 @@ fi
   sha256sum "$(basename "$PARTIAL_ARCHIVE")" | sed "s|$(basename "$PARTIAL_ARCHIVE")|${BASE_NAME}.dump|" > "$PARTIAL_CHECKSUM"
 )
 
-chmod 600 "$PARTIAL_ARCHIVE" "$PARTIAL_CHECKSUM" 2>/dev/null || true
+# Chmod must succeed
+chmod 600 "$PARTIAL_ARCHIVE"
+chmod 600 "$PARTIAL_CHECKSUM"
 
 # Atomic rename
 mv -f "$PARTIAL_ARCHIVE" "$FINAL_ARCHIVE"
 mv -f "$PARTIAL_CHECKSUM" "$FINAL_CHECKSUM"
-chmod 600 "$FINAL_ARCHIVE" "$FINAL_CHECKSUM" 2>/dev/null || true
+chmod 600 "$FINAL_ARCHIVE"
+chmod 600 "$FINAL_CHECKSUM"
 
-# Prune retention
-prune_backups() {
-  local prefix="$1"
+# Strict retention pruning
+prune_pairs() {
+  local prefix_type="$1" # daily or pre-deploy
   local keep_count="$2"
 
-  local matching_dumps=()
-  local prev_shopt
-  prev_shopt="$(shopt -p nullglob || true)"
-  shopt -s nullglob
+  local valid_dumps=()
 
-  for f in $(printf '%s\n' "${BACKUP_DIR}/${prefix}"*.dump | sort -r); do
-    [ -f "$f" ] && matching_dumps+=("$f")
-  done
+  while IFS= read -r -d '' dump_path; do
+    local fname
+    fname="$(basename "$dump_path")"
+    local base="${fname%.dump}"
+    local is_match=0
 
-  eval "$prev_shopt"
+    if [ "$prefix_type" = "daily" ]; then
+      if [[ "$base" =~ ^daily-[0-9]{8}T[0-9]{6}Z$ ]]; then
+        is_match=1
+      fi
+    elif [ "$prefix_type" = "pre-deploy" ]; then
+      if [[ "$base" =~ ^pre-deploy-[0-9a-f]{40}-[0-9]{8}T[0-9]{6}Z$ ]]; then
+        is_match=1
+      fi
+    fi
 
-  local total="${#matching_dumps[@]}"
+    if [ "$is_match" -eq 1 ]; then
+      if [ -f "${dump_path}.sha256" ]; then
+        valid_dumps+=("$dump_path")
+      fi
+    fi
+  done < <(find "$BACKUP_DIR" -maxdepth 1 -name "*.dump" -print0)
+
+  if [ "${#valid_dumps[@]}" -eq 0 ]; then
+    return 0
+  fi
+
+  local sorted_dumps=()
+  while IFS= read -r line; do
+    [ -n "$line" ] && sorted_dumps+=("$line")
+  done < <(printf "%s\n" "${valid_dumps[@]}" | sort -r)
+
+  local total="${#sorted_dumps[@]}"
   if [ "$total" -gt "$keep_count" ]; then
     local idx=0
-    for dump_path in "${matching_dumps[@]}"; do
+    for d in "${sorted_dumps[@]}"; do
       idx=$((idx + 1))
       if [ "$idx" -gt "$keep_count" ]; then
-        rm -f "$dump_path" "${dump_path}.sha256" 2>/dev/null || true
+        rm -f "$d" "${d}.sha256"
       fi
     done
   fi
 }
 
-prune_backups "daily-" 7
-prune_backups "pre-deploy-" 10
+prune_pairs "daily" 7
+prune_pairs "pre-deploy" 10
 
 exit 0
