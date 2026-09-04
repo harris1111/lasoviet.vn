@@ -92,6 +92,13 @@
       "when": 1788508800000,
       "tag": "0012_report_worker_state",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788595200000,
+      "tag": "0013_approved_knowledge",
+      "breakpoints": true
     }
   ]
 }

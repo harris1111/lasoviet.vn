@@ -243,3 +243,30 @@ export {
 export type { ReportStateSnapshot, TransitionReportToGeneratingResult } from "./reports/report-state.js";
 export { createDatabaseReportQueueStore, createReportService } from "./reports/report.service.js";
 export type { ReportJobQueueStore } from "./reports/report.service.js";
+
+export {
+  createKnowledgeIngestionService,
+  validateKnowledgeManifest,
+  computeChunkContentHash,
+  computeDocumentContentHash,
+} from "./knowledge/knowledge-ingestion.service.js";
+export type {
+  ApprovalStatus,
+  IngestKnowledgeErrorCode,
+  IngestKnowledgeResult,
+  IngestKnowledgeSuccess,
+  KnowledgeChunkManifest,
+  KnowledgeManifestV1,
+  PermittedUseBasis,
+} from "./knowledge/knowledge-ingestion.service.js";
+
+export {
+  createKnowledgeRetrievalService,
+  KnowledgeError,
+} from "./knowledge/knowledge-retrieval.service.js";
+export type {
+  KnowledgeErrorCode,
+  KnowledgePassageV1,
+  RetrieveKnowledgeQuery,
+  VectorRetrievalDependency,
+} from "./knowledge/knowledge-retrieval.service.js";

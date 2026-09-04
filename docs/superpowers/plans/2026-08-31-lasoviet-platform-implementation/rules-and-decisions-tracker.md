@@ -144,6 +144,18 @@ Date: 2026-09-04
   child agent.
 - Luna remains paused. Open questions: none.
 
+## P04-T04 Approved Knowledge Retrieval Evidence
+
+Date: 2026-09-04
+
+- Implemented approved repository knowledge manifests (`content/knowledge/vi/ziwei/identity-report-foundation.v1.json` and `content/knowledge/en/ziwei/identity-report-foundation.v1.json`) using exact version `ziwei.identity.knowledge.v1` and repository-relative method guidance covering all 11 identity report sections.
+- Created `packages/database/src/schema/knowledge.ts` with immutable `knowledge_documents` and `knowledge_chunks` tables, registered in `client.ts`, `index.ts`, `drizzle.config.ts`, and migration `0013_approved_knowledge.sql` with journal entry `idx: 13`.
+- Implemented `packages/backend/src/knowledge/knowledge-ingestion.service.ts` with Zod validation, content hash recomputation, source path containment verification, approval verification, idempotent re-ingestion, and fail-closed immutable protection.
+- Implemented `packages/backend/src/knowledge/knowledge-retrieval.service.ts` with PostgreSQL `simple` text search, metadata filtering (discipline, locale, report section, exact version), rank desc and passageId asc deterministic ordering, hard limit enforcement (8 passages, 1,200 chars/passage, 9,600 total chars, 512 query chars, no mid-passage splitting), and silent fallback for unindexed/disabled vector dependency.
+- Implemented `apps/worker/src/processors/knowledge-embed.processor.ts` skipping with no side effect when disabled or unindexed, validating input, and embedding approved versioned chunks idempotently when enabled.
+- Focused verification passed 26 tests across 4 test files (`knowledge-retrieval.service.test.ts`, `knowledge-migration-layout.test.ts`, `knowledge-embed.processor.test.ts`, `knowledge-retrieval.integration.test.ts`). Real PostgreSQL integration verified with Testcontainers. Builds (`@lasoviet/database`, `@lasoviet/backend`), worker typecheck, scoped ESLint, and `git diff --check` all passed clean.
+- Rule candidate: none. Open questions: none.
+
 ## FD-030 Sandbox Deployment Evidence
 
 Date: 2026-09-03

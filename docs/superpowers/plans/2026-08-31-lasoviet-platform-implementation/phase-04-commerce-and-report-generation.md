@@ -308,35 +308,43 @@ git commit -m "feat: add durable report workflow"
 - Produces metadata-filtered full-text retrieval.
 - Adds vector retrieval only when enabled and indexed.
 
-- [ ] **Step 1: Write failing ingestion/retrieval tests**
+- [x] **Step 1: Write failing ingestion/retrieval tests**
 
 Reject unapproved documents, missing source/license metadata, wrong locale,
 wrong discipline, stale version, and excessive context.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/knowledge`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement file ingestion and PostgreSQL full-text retrieval**
+- [x] **Step 3: Implement file ingestion and PostgreSQL full-text retrieval**
 
 Open-web retrieval is absent. Preserve content hash and approval record.
 
-- [ ] **Step 4: Add optional pgvector path**
+- [x] **Step 4: Add optional pgvector path**
 
 Disabled mode must pass all non-vector tests.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/knowledge`
 Expected: PASS with vectors disabled and, when configured, enabled.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add content/knowledge packages/backend/src/knowledge packages/database apps/worker docs/superpowers/plans
 git commit -m "feat: add approved knowledge retrieval"
 ```
+
+#### Completion Evidence (2026-09-04)
+- Implemented approved repository knowledge manifests (`content/knowledge/vi/ziwei/identity-report-foundation.v1.json` and `content/knowledge/en/ziwei/identity-report-foundation.v1.json`) using exact version `ziwei.identity.knowledge.v1` and repository-relative method guidance covering all 11 identity report sections.
+- Created `packages/database/src/schema/knowledge.ts` with immutable `knowledge_documents` and `knowledge_chunks` tables, registered in `client.ts`, `index.ts`, `drizzle.config.ts`, and migration `0013_approved_knowledge.sql` with journal entry `idx: 13`.
+- Implemented `packages/backend/src/knowledge/knowledge-ingestion.service.ts` with Zod validation, content hash recomputation, source path containment verification, approval verification, idempotent re-ingestion, and fail-closed immutable protection.
+- Implemented `packages/backend/src/knowledge/knowledge-retrieval.service.ts` with PostgreSQL `simple` text search, metadata filtering (discipline, locale, report section, exact version), rank desc and passageId asc deterministic ordering, hard limit enforcement (8 passages, 1,200 chars/passage, 9,600 total chars, 512 query chars, no mid-passage splitting), and silent fallback for unindexed/disabled vector dependency.
+- Implemented `apps/worker/src/processors/knowledge-embed.processor.ts` skipping with no side effect when disabled or unindexed, validating input, and embedding approved versioned chunks idempotently when enabled.
+- Focused verification passed 26 tests across 4 test files (`knowledge-retrieval.service.test.ts`, `knowledge-migration-layout.test.ts`, `knowledge-embed.processor.test.ts`, `knowledge-retrieval.integration.test.ts`). Real PostgreSQL integration verified with Testcontainers. Builds (`@lasoviet/database`, `@lasoviet/backend`), worker typecheck, scoped ESLint, and `git diff --check` all passed clean.
 
 ### Task 5 [P04-T05]: Implement AI capability probe, report writer, and critic
 

@@ -55,3 +55,8 @@ export {
   outboxStatus,
 } from "./schema/outbox.js";
 export type { WorkflowEnvelopeV1 } from "./schema/outbox.js";
+
+export {
+  knowledgeChunks,
+  knowledgeDocuments,
+} from "./schema/knowledge.js";

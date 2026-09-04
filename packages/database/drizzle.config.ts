@@ -11,6 +11,7 @@ export default defineConfig({
     "./src/schema/notifications.ts",
     "./src/schema/commerce.ts",
     "./src/schema/reports.ts",
+    "./src/schema/knowledge.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",

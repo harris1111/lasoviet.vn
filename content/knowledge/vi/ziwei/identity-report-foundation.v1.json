@@ -1,0 +1,105 @@
+{
+  "documentId": "ziwei-identity-foundation-vi",
+  "knowledgeVersion": "ziwei.identity.knowledge.v1",
+  "discipline": "ziwei",
+  "locale": "vi",
+  "sourcePath": "content/knowledge/vi/ziwei/identity-report-foundation.v1.json",
+  "sourceAttribution": "Ban Biên Tập Phương Pháp Lá Số Việt",
+  "permittedUse": "first_party",
+  "contentHash": "7d48ea006cabcbeded475a28613e76d469522e658745ede36b66df1c5124b9cb",
+  "approval": {
+    "status": "approved",
+    "approver": "editorial-lead",
+    "approvedAt": "2026-09-01T00:00:00.000Z"
+  },
+  "chunks": [
+    {
+      "passageId": "vi-ziwei-foundation-001",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Phương pháp lập và luận giải lá số Tử Vi tại Lá Số Việt bắt đầu từ việc chuẩn hóa giờ sinh theo múi giờ địa phương và lịch thiên văn chính xác. Hệ thống chuyển đổi can chi và tính toán 12 cung chức cùng hệ thống các sao căn cứ trên thuật toán đã được kiểm chứng. Mọi kết luận suy diễn đều tách bạch giữa dữ liệu gốc, các dấu hiệu chiêm tinh học và tầng diễn giải mang tính tham vấn định hướng.",
+      "contentHash": "a528f1077d7de9a57d71d73ff1ea359add85e7e6a33e76ce28dee6f94ca92889"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-002",
+      "reportSections": [
+        "personal_summary"
+      ],
+      "content": "Tổng quan bản sắc cá nhân được xây dựng trên sự tương tác giữa cung Mệnh và cung Thân. Mệnh phản ánh xu hướng tính cách bẩm sinh, tiềm năng nền tảng và cách phản ứng nguyên bản với môi trường. Thân đại diện cho hành động thực tế, phương thức ứng xử trưởng thành và hướng chuyển dịch sau khi tích lũy kinh nghiệm sống. Sự kết hợp này mang lại cái nhìn tổng thể về căn tính mà không áp đặt định mệnh bất biến.",
+      "contentHash": "620b920211793423ee1b49acb0b0959cdd5aacdd439bea9eeed6815b313c9cde"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-003",
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Chứng cứ trọng tâm trong báo cáo bản sắc là vị trí đắc hãm của các chính tinh tại tam phương tứ chính Mệnh, Tài, Quan, Thiên Di. Chính tinh đại diện cho động lực cốt lõi, trong khi phụ tinh và các sao trợ tinh đóng vai trò là chất xúc tác hoặc điều kiện môi trường. Việc phân tích luôn dựa trên mối liên kết logic giữa các tổ hợp sao thay vì suy đoán rời rạc.",
+      "contentHash": "49a8e42d6897e688bb81156dd19048b2358c4a0cd391b62ba6872a534fa5ee2a"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-004",
+      "reportSections": [
+        "strengths_and_resources"
+      ],
+      "content": "Nguồn lực và thế mạnh của một cá nhân được nhận diện thông qua các cát tinh như Hóa Khoa, Hóa Quyền, Hóa Lộc cùng Tả Phụ, Hữu Bật, Văn Xương, Văn Khúc. Các cấu trúc này biểu thị năng lực tư duy, khả năng lãnh đạo, kỹ năng chuyên môn hoặc sự hỗ trợ từ mạng lưới xã hội. Báo cáo định hướng người đọc cách phát huy tối đa các nguồn lực sẵn có này vào công việc và phát triển bản thân.",
+      "contentHash": "2e16fa70c3edc4166ab0563fa63efae4d52db58fc6a393c2edc90518e51c334d"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-005",
+      "reportSections": [
+        "tensions_and_blind_spots"
+      ],
+      "content": "Các thách thức nội tâm và điểm mù tâm lý thường xuất hiện khi có sự hiện diện của sát tinh như Kình Dương, Đà La, Hỏa Tinh, Linh Tinh hoặc Hóa Kỵ. Trong phương pháp luận hiện đại, các yếu tố này không bị coi là tai họa bất khả kháng, mà là tín hiệu cảnh báo về căng thẳng cảm xúc, sự cố chấp hoặc thiếu kiên nhẫn. Nhận biết rõ các điểm mù này là bước đầu tiên để rèn luyện khả năng tự điều chỉnh.",
+      "contentHash": "2071f1bdb65b72e714ce7d89d42245748a3842da9d50c3f95f0bc5b096865d01"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-006",
+      "reportSections": [
+        "identity_analysis"
+      ],
+      "content": "Phân tích bản sắc đào sâu vào động lực nội tại, giá trị sống và xu hướng hành vi của cá nhân trong các bối cảnh xã hội đa dạng. Việc tích hợp các nguyên lý âm dương ngũ hành giúp làm rõ phong cách giao tiếp, phương thức xử lý áp lực và mong muốn tiềm ẩn. Bản sắc không phải là một khuôn mẫu cố định mà là một hệ thống sống liên tục tương tác và tiến hóa cùng trải nghiệm.",
+      "contentHash": "d4c4d8735a958b5484ec4eebcdc653cdb0ffa28a1e0a93283a421777def9fa18"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-007",
+      "reportSections": [
+        "cycles_and_timing"
+      ],
+      "content": "Chu kỳ vận hạn trong Tử Vi bao gồm Đại vận 10 năm và Lưu niên hàng năm. Thay vì đưa ra các dự đoán mang tính định đoạt tương lai, hệ thống xem vận hạn là bối cảnh thời gian với các cơ hội và rủi ro tương ứng. Hiểu được xu thế chu kỳ giúp cá nhân chủ động chuẩn bị nguồn lực, biết lúc nào nên bứt phá mở rộng và lúc nào cần củng cố nội lực.",
+      "contentHash": "3277660ed3dff3943ecf153cee55684c805e142cd1162a3bbbbdfec849912e68"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-008",
+      "reportSections": [
+        "within_control"
+      ],
+      "content": "Trọng tâm triết lý của Lá Số Việt là làm nổi bật vùng kiểm soát của mỗi cá nhân. Cổ nhân có câu 'Đức năng thắng số' nhằm nhấn mạnh ý chí tự do, nhận thức đạo đức và nỗ lực học tập luôn có thể thay đổi kết quả thực tế. Bản đồ Tử Vi chỉ cung cấp bản đồ địa hình; việc chọn bước đi, tốc độ và thái độ sống hoàn toàn thuộc quyền quyết định của chính bạn.",
+      "contentHash": "8bcaf062ea996e210eb779f779209e29d270084ee430b4c70f3b1dce0ae3d23a"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-009",
+      "reportSections": [
+        "reflection_questions"
+      ],
+      "content": "Hệ thống câu hỏi tự chiêm nghiệm được thiết kế nhằm khuyến khích người đọc tự soi chiếu hành vi và niềm tin cá nhân. Những câu hỏi này đóng vai trò cầu nối giữa các biểu tượng chiêm tinh và trải nghiệm thực tế đời thường, giúp biến các nhận định mang tính lý thuyết thành những suy ngẫm sâu sắc và quyết định hành động sáng suốt.",
+      "contentHash": "379d6d49356397639c4cf13a265b6a19fc1f5b3e3c8d9807684abd74c9f3cd34"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-010",
+      "reportSections": [
+        "action_summary"
+      ],
+      "content": "Bản tóm tắt hành động chuyển hóa các phát hiện phân tích thành những bước đi cụ thể, khả thi và có thể đo lường trong cuộc sống hàng ngày. Các gợi ý hành động tập trung vào việc cân bằng thói quen sinh hoạt, tối ưu hóa phong cách làm việc và củng cố các mối quan hệ then chốt mà không phụ thuộc vào bất kỳ yếu tố huyền bí nào.",
+      "contentHash": "16e9bdefe8d182c03b8c179bb967ad543bf28fba1ce4af0f52d65913e83fa8f2"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-011",
+      "reportSections": [
+        "limitations_and_disclaimer"
+      ],
+      "content": "Mọi nội dung trong báo cáo phân tích bản sắc chỉ mang tính chất tham khảo, hỗ trợ thấu hiểu bản thân và định hướng cá nhân. Báo cáo hoàn toàn không thay thế cho các chẩn đoán y tế, tư vấn sức khỏe tâm thần, dịch vụ pháp lý hay kế hoạch tài chính chuyên nghiệp. Người dùng luôn tự chịu trách nhiệm cuối cùng đối với các lựa chọn và quyết định trong cuộc sống.",
+      "contentHash": "77185906889919a8c49b8e17fa8bd914799e7ca7c0414527427eb0047ad1660e"
+    }
+  ]
+}

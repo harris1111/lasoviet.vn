@@ -1,0 +1,105 @@
+{
+  "documentId": "ziwei-identity-foundation-en",
+  "knowledgeVersion": "ziwei.identity.knowledge.v1",
+  "discipline": "ziwei",
+  "locale": "en",
+  "sourcePath": "content/knowledge/en/ziwei/identity-report-foundation.v1.json",
+  "sourceAttribution": "Lá Số Việt Method Editorial Board",
+  "permittedUse": "first_party",
+  "contentHash": "c173fc849a5d884a96d73c336ce1e181deaf84b763cd2ab9a59864685e150b52",
+  "approval": {
+    "status": "approved",
+    "approver": "editorial-lead",
+    "approvedAt": "2026-09-01T00:00:00.000Z"
+  },
+  "chunks": [
+    {
+      "passageId": "en-ziwei-foundation-001",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "The Zi Wei Dou Shu analytical methodology at Lá Số Việt begins with normalizing birth time against local civil timezones and precise astronomical ephemerides. Palace assignments and star placements follow validated calculation algorithms. Interpretative deductions maintain rigorous separation between deterministic chart data, astrological indicators, and reflective personal development guidance.",
+      "contentHash": "5fc41b1caa49735d8f4f672b9bbf498b5d5d544adf33cf01a53feead5bacfd70"
+    },
+    {
+      "passageId": "en-ziwei-foundation-002",
+      "reportSections": [
+        "personal_summary"
+      ],
+      "content": "Personal identity synthesis relies on the dynamic relationship between the Life Palace (Ming) and the Body Palace (Shen). The Life Palace reveals innate temperament, foundational cognitive predispositions, and initial reactions to environmental stimuli. The Body Palace reflects tangible actions, mature behavior patterns, and developmental evolution through accumulated life experience.",
+      "contentHash": "db3c834f746c04e390f300a31e154bbd2584c24fc6957bad2b9509d70c912f98"
+    },
+    {
+      "passageId": "en-ziwei-foundation-003",
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Primary evidence within the identity framework is established by evaluating the brightness and structural combinations of major stars across the cardinal palaces: Life, Wealth, Career, and Travel. Major stars represent primary behavioral drivers, while auxiliary and catalyst stars modify operational intensity. Evidence evaluation strictly rejects unsupported assertions.",
+      "contentHash": "e6273e5ff2ac645698e1b1def6c4065be12d51ec324ec15ccc8440ab1e4dbc7b"
+    },
+    {
+      "passageId": "en-ziwei-foundation-004",
+      "reportSections": [
+        "strengths_and_resources"
+      ],
+      "content": "Individual assets and innate resources are identified through auspicious star formations including the Catalyst transformations (Hua Lu, Hua Quan, Hua Ke) and key assistants such as Zuo Fu, You Bi, Wen Chang, and Wen Qu. These configurations illuminate intellectual clarity, strategic influence, technical mastery, and social reciprocity to be proactively leveraged.",
+      "contentHash": "9cd2c027ae738a868e3b927bd292dc03daff945583d860005c414ad06e432d9c"
+    },
+    {
+      "passageId": "en-ziwei-foundation-005",
+      "reportSections": [
+        "tensions_and_blind_spots"
+      ],
+      "content": "Internal frictions, behavioral tensions, and cognitive blind spots are pinpointed through challenge stars like Qing Yang, Tuo Luo, Huo Xing, Ling Xing, or Hua Ji. In contemporary analysis, these factors represent developmental friction points and emotional vulnerabilities rather than inevitable misfortunes, serving as valuable catalysts for disciplined self-regulation.",
+      "contentHash": "9997057055b545779a885f2d1dbc842337c5af26f1ca21fa9475ba0c1b66c31d"
+    },
+    {
+      "passageId": "en-ziwei-foundation-006",
+      "reportSections": [
+        "identity_analysis"
+      ],
+      "content": "Identity analysis examines deep intrinsic motivation, foundational life values, and contextual behavioral adaptation. Integrating classical yin-yang and five-element dynamics clarifies interpersonal communication styles, stress resilience mechanisms, and subconscious aspirations. Identity is addressed as an adaptable personal framework rather than an immutable script.",
+      "contentHash": "661246e349b315164a0c4c197d31b684d081a500a02eac55060b7effb9cfb73e"
+    },
+    {
+      "passageId": "en-ziwei-foundation-007",
+      "reportSections": [
+        "cycles_and_timing"
+      ],
+      "content": "Temporal cycles in Zi Wei Dou Shu comprise ten-year Major Cycles (Da Yun) and annual cycles (Liu Nian). Rejecting fatalistic prediction, the analytical model treats these intervals as evolving environmental contexts with distinct opportunities and constraints, enabling structured preparation, timely initiative, or strategic internal consolidation.",
+      "contentHash": "8ebb72bd421b48ccc692aa5ae8d12d1b37c7005626e7cefd272683e83526a218"
+    },
+    {
+      "passageId": "en-ziwei-foundation-008",
+      "reportSections": [
+        "within_control"
+      ],
+      "content": "A fundamental tenet of the Lá Số Việt ethos is highlighting the sphere of personal agency. Traditional philosophy affirms that virtuous action and self-cultivation transcend rigid fate. The astrological blueprint outlines contextual topography; the direction, velocity, ethical standards, and deliberate choices remain entirely within individual sovereignty.",
+      "contentHash": "414b3df1b9860bdda8574f86c690903ab00f5db97fde405f93006a31b4592cbe"
+    },
+    {
+      "passageId": "en-ziwei-foundation-009",
+      "reportSections": [
+        "reflection_questions"
+      ],
+      "content": "Structured inquiry and reflection questions are engineered to facilitate critical self-awareness and intentional introspection. These prompts bridge astrological symbolism with daily practical challenges, empowering the reader to transform conceptual observations into profound self-understanding and constructive life decisions.",
+      "contentHash": "9693d85ceb4d5a3d7b389ee92189b179248e0838addc1654454e06331a587005"
+    },
+    {
+      "passageId": "en-ziwei-foundation-010",
+      "reportSections": [
+        "action_summary"
+      ],
+      "content": "The action summary synthesizes analytical insights into tangible, grounded, and measurable developmental steps. Recommended practices prioritize sustainable habit cultivation, communication optimization, and strategic alignment of professional endeavors without reliance on superstitious remedies.",
+      "contentHash": "0f8433a2b88eb1f89f6f0501a58138d154a4ea3e8b35a6feaad43209ef0ebbd5"
+    },
+    {
+      "passageId": "en-ziwei-foundation-011",
+      "reportSections": [
+        "limitations_and_disclaimer"
+      ],
+      "content": "All observations and guidance provided within this identity evaluation report are intended exclusively for educational, self-reflective, and personal exploration purposes. They do not constitute and cannot replace certified medical, psychiatric, legal, or professional financial advisory services. The recipient retains complete autonomy and responsibility for all life decisions.",
+      "contentHash": "947564cdcff5ab3b31ca5c677071feee15cf1ddee10512bdf6ebcd625204bfcb"
+    }
+  ]
+}
