@@ -21,7 +21,7 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Planning reconciliation is current through 2026-09-03. The
+**Status:** Planning reconciliation is current through 2026-09-04. The
 repository has implemented Phase 00 foundations, Phase 01 identity/privacy
 services, Phase 02 calculation/evidence services, the artifact-driven Phase 03
 free-MVP experience, the Phase 04 AI/report foundation, reviewed Phase 04
@@ -35,10 +35,11 @@ workflows, and Phase 05A evidence.
 **Active implementation branch:** `feature/paid-flow-admin-operations`.
 Provider-independent Phase 05A implementation is authorized from 2026-09-02.
 SePay checkout and webhook contracts are implemented and reviewed complete for
-Tasks 1-2. The first external sandbox test is approved by FD-030; Docker VPS
-verification passed and the sandbox endpoint is deployed. The remaining
-external step is the founder clicking SePay dashboard `Send test`; production
-payment activation remains founder-controlled.
+Tasks 1-2. Docker VPS verification passed, and a real authenticated sandbox
+payment completed the order, payment-event, entitlement, report-reservation,
+and outbox transaction. The resulting report job remains `waiting` because the
+P04-T03 report worker consumer is not connected. Production payment activation
+remains founder-controlled.
 
 ## Global Constraints
 
@@ -54,7 +55,9 @@ payment activation remains founder-controlled.
 - Use only Superpowers workflows; do not invoke `/ck` or CK CLI.
 - Sol xhigh orchestrates and reviews complete features, phases, and meaningful
   milestones. Terra medium directly implements, debugs, and runs focused tests.
-  Luna is paused unless the founder explicitly reactivates it.
+  Global Flash Executor uses `ag/gemini-3.8-flash-high` at `high` for literal,
+  bounded Sol/Terra briefs only. Luna remains paused unless the founder
+  explicitly reactivates it.
 - P0 uses Next.js 16 latest stable 16.x at implementation time.
 - P0 uses NestJS with the Fastify adapter.
 - Browser traffic terminates at Next.js; the API remains private.
@@ -78,8 +81,9 @@ payment activation remains founder-controlled.
   calculation/payment/privacy defects, and twenty internally reviewed reports.
 - Highly niche tests may be deferred only when they do not affect calculation,
   payment, authorization, privacy, or data integrity.
-- Every task ends with tests, Terra review evidence, docs impact, and a focused
-  English conventional commit.
+- Every task ends with focused verification, docs impact, and a focused English
+  conventional commit. Sol review remains milestone-based rather than a routine
+  gate after every small task.
 
 ## Plan Package
 
@@ -123,13 +127,16 @@ payment activation remains founder-controlled.
    complete features, phases, and meaningful milestones.
 3. Terra medium directly implements, debugs, and runs focused tests within the
    approved scope.
-4. Luna is paused unless the founder explicitly reactivates it.
-5. Sol updates phase status, traceability, risk, decision, and rule trackers.
-6. A phase closes only when its exit criteria pass in the intended environment.
-7. No later-wave feature may delay the first complete paid Zi Wei flow.
-8. A task listed in `open-decisions.md` cannot cross its named decision gate
+4. Sol or Terra may dispatch global Flash Executor only with an exact bounded
+   brief naming owned files, behavior, acceptance criteria, and focused checks.
+   Flash Executor does not plan, propose, broaden scope, or debug deeply.
+5. Luna is paused unless the founder explicitly reactivates it.
+6. Sol updates phase status, traceability, risk, decision, and rule trackers.
+7. A phase closes only when its exit criteria pass in the intended environment.
+8. No later-wave feature may delay the first complete paid Zi Wei flow.
+9. A task listed in `open-decisions.md` cannot cross its named decision gate
    until the founder resolves that decision in writing.
-9. Each phase task and its matching `Pxx-Tyy` record in
+10. Each phase task and its matching `Pxx-Tyy` record in
     `task-contracts-and-test-vectors.md` form one normative implementation
     instruction.
 

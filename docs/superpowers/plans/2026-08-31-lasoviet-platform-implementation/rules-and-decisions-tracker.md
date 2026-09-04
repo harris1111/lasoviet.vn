@@ -34,6 +34,7 @@
 | FD-028 | 2026-09-02 | Rename the active implementation branch to `feature/paid-flow-admin-operations`; implement paid-flow and Admin/Operations work on this branch, begin provider-independent Phase 05A work now, and defer SePay-dependent checkout/webhook activation until the founder supplies the required environment values | Approved | `AGENTS.md`, master plan, Phase 04, Phase 05A |
 | FD-029 | 2026-09-03 | Paid checkout requires an authenticated account with verified email. Anonymous actors remain free-flow only. Immutable commerce records use the durable account owner and must not reference anonymous/profile/chart lifecycle records with retention-blocking foreign keys. | Approved | Phase 04, `AGENTS.md`, commerce schema and checkout authorization |
 | FD-030 | 2026-09-03 | Approve the Payment Gateway Sandbox for the first SePay external test. Hosted checkout omits `payment_method`, so SePay presents merchant-enabled methods such as VietQR or cards. Production payment activation remains a separate founder-controlled gate. | Approved | Phase 04 sandbox activation gate |
+| FD-031 | 2026-09-04 | Add global Flash Executor on `ag/gemini-3.8-flash-high` with `high` reasoning as an execution-only subagent. It accepts exact bounded briefs from Sol or Terra, does not plan, propose, broaden scope, or debug deeply, and stops when work exceeds one direct local correction. Luna remains paused. | Approved | Global Codex configuration, `AGENTS.md`, master plan |
 
 ## FD-028 Execution Boundary
 
@@ -89,6 +90,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Authentication anti-enumeration success versus delivery | A repeated sign-up for an existing unverified account returned Better Auth's generic success without creating a new notification delivery, while the UI presented that response as proof that verification email was sent | Sol confirmed the provider response intentionally hides account existence and approved an explicit provider-backed resend path with conditional copy | Added to `AGENTS.md` under repository and operational safety |
 | Ambient anonymous sessions on public auth recovery | Production resend verification returned HTTP 400 because Better Auth received the anonymous session cookie and switched from its public constant-time anti-enumeration branch to the session-bound email-mismatch branch | Terra verified Better Auth 1.7.2 client and route behavior; recovery calls now omit ambient credentials when public semantics are required | Clarified the existing authentication anti-enumeration rule in `AGENTS.md` |
 | Terra direct-execution workflow | Founder changed the active role model from P01-T02 to reduce implementation latency while preserving milestone review | Direct founder decision | Updated `AGENTS.md`; Terra medium implements/debugs/tests, Sol xhigh reviews milestones, Luna paused |
+| Global bounded execution subagent | Founder requested a reusable fast coding role that cannot self-assign, infer scope, propose changes, or debug deeply | Direct founder decision plus exact-model no-file probe | Added to `AGENTS.md`; global `flash_executor` uses `ag/gemini-3.8-flash-high` at `high` and returns ambiguous work to Sol or Terra |
 | UI artifact branch boundary | Founder reserved visual implementation for a later artifact branch | Direct founder decision | Added to `AGENTS.md`; non-UI branches may implement server routes and headless flows but not visual UI |
 | File-like dynamic route params | P03-T01 tests initially passed an extensionless sitemap key instead of the emitted `.xml` filename | Terra fixed the localized regression and added production-shaped coverage | Not added to `AGENTS.md`; one isolated incident does not meet section 9, and the regression test is the durable guard |
 | BFF error provenance | P03-T01 briefly reclassified missing private API configuration as a caller path error | Terra separated base configuration resolution from caller path validation and added regression coverage | Not added to `AGENTS.md`; one localized defect does not meet section 9 |
@@ -123,6 +125,24 @@ and task history remain in plans/reports, not `AGENTS.md`.
 
 Open founder decisions are tracked in `open-decisions.md`. Package approval
 does not silently close them.
+
+## FD-031 Global Flash Executor Evidence
+
+Date: 2026-09-04
+
+- Added a global `flash_executor` Codex role outside project-specific
+  configuration. Its model is `ag/gemini-3.8-flash-high` with `high` reasoning.
+- The role reuses the existing global `custom` provider. No provider credential,
+  base URL, or secret was copied into the agent file or this repository.
+- The execution contract requires an explicit Sol or Terra brief, exact file
+  ownership, literal implementation, focused checks, and a stop after at most
+  one direct local correction.
+- A read-only ephemeral no-file CLI probe selected the exact model, global
+  provider, and `high` reasoning, then returned `FLASH_EXECUTOR_MODEL_OK`.
+- A second no-file CLI probe invoked the registered `flash_executor` role,
+  recorded an actual `spawn_agent` call, and received `FLASH_ROLE_OK` from the
+  child agent.
+- Luna remains paused. Open questions: none.
 
 ## FD-030 Sandbox Deployment Evidence
 

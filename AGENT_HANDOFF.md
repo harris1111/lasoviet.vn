@@ -1,133 +1,176 @@
-# Lá Số Việt — Context bàn giao cho agent
+# La So Viet Engineering Handoff
 
-## 1. Mục tiêu dự án
+**Updated:** 2026-09-04
+**Repository:** `harris1111/lasoviet.vn`
+**Worktree:** `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan`
+**Active branch:** `feature/paid-flow-admin-operations`
+**Audited HEAD:** `8393f4a3fda31ff6aa50c5ad4390bcc4e5bf9e3c`
 
-Xây dựng Lá Số Việt thành nền tảng lập và luận giải lá số dành cho người Việt, có trải nghiệm chuẩn quốc tế nhưng phù hợp hành vi địa phương. Định vị đã chốt:
+## Start Here
 
-> **Thư viện tri thức Việt đương đại — tĩnh, sáng rõ, có căn cứ và trả quyền lựa chọn về cho người dùng.**
+Read these sources before planning or editing:
 
-Không thiết kế như “tiệm bói online”, không dùng nỗi sợ hoặc định mệnh hóa để tăng conversion.
+1. `AGENTS.md`
+2. `README.md`
+3. `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/plan.md`
+4. `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+5. The phase file and task contract for the task being executed
+6. `docs/reports/2026-09-04-project-status-and-next-steps.md`
 
-## 2. Decision hierarchy
+Use Superpowers only. Do not invoke `/ck` or the CK CLI.
 
-`AGENTS.md` controls source precedence. The binding founder-decision register is
-`docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`.
-Apply this order:
+## Git State
 
-1. Explicit founder decisions in the binding register.
-2. `AGENTS.md`.
-3. Approved architecture and implementation plans.
-4. Approved brand, Blueprint v1.1, and collaboration workflow documents.
-5. Current task acceptance criteria and repository conventions.
+A fresh `origin` fetch on 2026-09-04 established:
 
-Blueprint v1.1 supersedes older UX, route, and SEO material in
-`MASTER_CONCEPT.md`, `docs/01-*` through `docs/12-*`, and deprecated
-`config/sitemap.json`. It does not override approved technical decisions.
+- Worktree clean at audit start.
+- Branch matches `origin/feature/paid-flow-admin-operations`.
+- Branch is 31 commits ahead and 0 behind `origin/master`.
+- `origin/master` is `b5ac65b63a11d5be1f11d9d1855f21d2a4f69b37`.
+- No pull request exists for the active branch.
+- The documentation commit created from this audit is expected to make the next
+  task's actual HEAD newer than the audited implementation baseline above.
+- Never push directly to `master`.
+- Do not merge, create a PR, or deploy without an explicit founder request.
 
-Guideline labels:
+## Active Agent Roles
 
-- `LOCKED`: không thay đổi nếu chưa có quyết định mới của founder.
-- `STANDARD`: mặc định phải tuân thủ; ngoại lệ cần ghi lý do.
-- `HYPOTHESIS`: cần test bằng research hoặc dữ liệu, không coi là sự thật.
+- **Sol xhigh:** orchestrates, controls scope, communicates with the founder in
+  Vietnamese, and reviews complete features, phases, or meaningful milestones.
+- **Terra medium:** implements, performs real debugging, corrects focused
+  failures, and runs focused checks inside approved scope.
+- **Flash Executor high:** global execution-only subagent using
+  `ag/gemini-3.8-flash-high`. It accepts only exact bounded briefs from Sol or
+  Terra, modifies assigned files, performs focused checks, and stops instead of
+  planning, proposing, expanding scope, or debugging deeply.
+- **Luna:** paused until explicitly reactivated by the founder.
 
-## 3. Quyết định đã khóa
+Repository documents and commit messages are English. Founder communication is
+Vietnamese.
 
-### Brand và giao diện
+## Verified Product State
 
-- Mood: tĩnh, trí tuệ, ấm, có chiều sâu, đương đại.
-- Hệ hình ảnh: Paper — Ink — Cinnabar.
-- Font định hướng: Source Serif 4 cho nội dung/editorial; Be Vietnam Pro cho UI và dữ liệu.
-- Không dùng visual “vũ trụ tím”, neon, animation thần bí, biểu tượng mê tín rập khuôn hoặc giao diện dashboard dày đặc.
-- Giá trị và kết quả sơ bộ xuất hiện trước yêu cầu tạo tài khoản.
-- Mỗi luận điểm quan trọng phải có cách truy ngược “Vì sao có nhận định này?”.
+### Completed or Functionally Delivered
 
-### Kiến trúc sản phẩm
+- **Phase 00:** repository, monorepo, contracts, i18n, CI, health, route,
+  analytics, content, and design foundations are complete.
+- **Phase 01:** PostgreSQL identity/privacy, Better Auth, SMTP verification and
+  recovery, consent, deletion policies, and canonical birth profiles are
+  implemented. The phase file still has stale unchecked P01-T02 bookkeeping.
+- **Phase 02:** Zi Wei normalized calculation, iztro adapter, fixtures,
+  immutable runs, capability registry, and deterministic evidence are complete.
+- **Phase 03:** the artifact-driven free MVP is implemented and deployed. The
+  phase file still contains pre-merge unchecked UI steps and must not be read as
+  proof that the free MVP is absent.
+- **Phase 06 foundation:** Docker images, Compose topology, loopback-only web
+  publication, and production-like free-MVP smoke evidence exist. This does not
+  close the full release phase.
 
-- Tách “thư viện công khai” có thể index khỏi “bàn đọc riêng tư” chứa dữ liệu sinh và báo cáo cá nhân.
-- Dữ liệu cá nhân và trang kết quả riêng tư phải `noindex`; URL không tuần tự và không đoán được.
-- Một intent tìm kiếm có một URL canonical chịu trách nhiệm.
-- Không tạo content farm, thin pages hoặc hàng loạt bài AI kiểu “12 cung × 365 ngày”.
-- Các bộ môn Đông và Tây được đăng ký trong IA ngay từ đầu, nhưng chỉ public/index theo mức sẵn sàng.
+### In Progress
 
-### Hệ bộ môn
+- **Phase 04:** AI/report foundations and SePay Tasks 1-2 are implemented.
+  A real authenticated sandbox payment created one paid order, payment event,
+  entitlement, report reservation, and processed report outbox event.
+  The report job remains `waiting` because P04-T03 worker consumption is not
+  connected.
+- **Phase 05A:** T01 admin access/RBAC/audit, T02 redacted operations overview,
+  and T05 role administration/audit inspection are complete. T03, T04, and T06
+  remain open.
 
-**Đông phương:** Tử Vi, Bát Tự, Kinh Dịch.
+### Remaining
 
-**Tây phương:** Bản đồ sao, Horoscope/Cung hoàng đạo, Thần số học, Tarot.
+- **P04-T03:** report worker and durable report state machine.
+- **P04-T04:** approved knowledge ingestion and retrieval.
+- **P04-T05:** production AI privacy approval plus complete generation,
+  persistence, validation, and critic integration.
+- **P04-T06:** immutable report versions and private HTML report.
+- **Phase 05:** PDF, Garage, optional replication, report email delivery, and
+  owner account center.
+- **P05A-T03/T04/T06:** redacted detailed inspections, compensating commands,
+  and production-like incident evidence.
+- **Phase 06:** security, purge execution, metrics, backup/restore drills, paid
+  E2E, twenty-report QA, legal/accounting gates, and indexing activation.
+- **Phases 07-11:** later product waves.
 
-**Tiện ích văn hóa Việt:** 12 con giáp, lịch âm, ngày tốt, phong thủy.
+## Immediate Next Execution
 
-Phân biệt rõ:
+The recommended next coding task is **P04-T03: Build the worker and report state
+machine**.
 
-- `/ban-do-sao`: natal chart cá nhân dựa trên ngày, giờ và nơi sinh.
-- `/cung-hoang-dao`: evergreen hub cho 12 cung.
-- `/du-bao-cung-hoang-dao`: Horoscope theo thời gian; chỉ mở khi có ephemeris, methodology và lịch biên tập thật.
-- `/horoscope` nếu dùng cho campaign phải 301 về canonical tiếng Việt, không index song song.
+Why it is first:
 
-### Route governance
+- A real sandbox payment already publishes `report.generation.requested.v1`.
+- The corresponding report job is waiting.
+- P04-T03 is the first missing runtime consumer and unblocks the rest of the
+  paid report pipeline.
 
-Mỗi route có đúng một trạng thái:
+After P04-T03, proceed in this order:
 
-| Trạng thái | Ý nghĩa |
-|---|---|
-| `reserved` | Giữ taxonomy/ownership trong config, chưa deploy public URL |
-| `preview_noindex` | Chỉ QA/staging hoặc preview; không menu, không sitemap |
-| `live_noindex` | Public vì cần cho flow nhưng không được index |
-| `live_indexable` | Public, canonical, có trong navigation và XML sitemap |
-| `archived` | Retired route with an explicit 301, 404, or 410 disposition |
+1. P04-T04 knowledge ingestion and retrieval.
+2. Complete P04-T05 against the worker and knowledge boundaries.
+3. P04-T06 immutable persistence and private HTML.
+4. Phase 05 storage, PDF, email delivery, and account center.
+5. P05A-T03 and P05A-T04 against the completed domain workflows.
+6. P05A-T06 and Phase 06 production-like release evidence.
 
-## 4. Ưu tiên sản phẩm
+## External And Founder Gates
 
-Ba intent cần sở hữu trước:
+- Production payment activation is founder-controlled. The current provider
+  configuration is sandbox-only.
+- Production AI remains blocked until provider privacy and operational terms
+  are documented and approved.
+- Google OAuth exists but has not been formally exercised in the recorded Phase
+  01 evidence.
+- A password-reset email was delivered after the auth recovery fix. The founder
+  has not yet recorded successful reset completion and sign-in.
+- Credentials and runtime secrets already exist outside Git. Never print,
+  duplicate, or commit them.
 
-1. Lập lá số Tử Vi miễn phí.
-2. Luận giải lá số Tử Vi có chiều sâu.
-3. Hiểu và tự đọc lá số qua thư viện kiến thức.
+## Deployment Context
 
-Đây là thứ tự đầu tư, **không phải giới hạn sitemap**. IA đầy đủ bao gồm cả hệ phương Tây ngay từ Phase 1; việc index phụ thuộc readiness gate.
+The latest repository evidence records:
 
-## 5. Readiness gate trước khi index
+- VPS repository: `/home/debian/projects/lasoviet.vn`
+- External environment file: `/home/debian/projects/.lasoviet-mvp.env`
+- Public domain: `https://lasoviet.vn`
+- Web publication: `127.0.0.1:63423`
+- Nginx remains founder-managed.
+- PostgreSQL, Redis, API, and web were healthy; the worker container was running.
+- Deployed HEAD matched `8393f4a` in the latest recorded auth recovery evidence.
 
-Không chuyển route sang `live_indexable` nếu thiếu một trong các yếu tố áp dụng:
+This handoff did not re-probe the VPS. Treat these as the latest recorded
+deployment facts and verify them before a new production action.
 
-- Engine/rule set hoạt động và có test.
-- Methodology, nguồn và giới hạn được công bố.
-- Nội dung tạo giá trị độc lập, không phải trang placeholder.
-- Canonical, metadata, schema, internal link và sitemap được cấu hình.
-- Owner chịu trách nhiệm duy trì nội dung/dữ liệu.
-- Với sản phẩm trả phí: có sample, giá, phạm vi deliverable và chính sách rõ.
+## Guardrails
 
-## 6. Hạng mục còn mở
+- Trust, privacy, payment integrity, authorization, and deterministic
+  calculation evidence take priority over speed.
+- AI interprets frozen facts and evidence; it never calculates the chart.
+- Only an authenticated verified account may enter paid checkout.
+- Only an authenticated SePay notification validated against order identity,
+  state, amount, and currency may confirm payment.
+- Private birth data, charts, and reports remain owner-authorized and noindex.
+- Do not weaken production boundaries to make a synthetic provider probe pass.
+- Keep testing focused on the core flow; defer only genuinely niche cases that
+  cannot affect payment, authorization, privacy, calculation, or data integrity.
+- Distill a new `AGENTS.md` rule only for a recurring or severe reusable failure
+  condition, and record the decision in the tracker.
 
-- Blueprint v1.1 approval is binding through `FD-019`; `docs/10-decision-log.md`
-  contains only a business-facing reference to that decision.
-- Anonymous birth-profile and chart data expires within 24 hours unless linked
-  to a verified account; immediate manual deletion remains available.
-- Quyết định engine/licensing cho Western astrology và ephemeris.
-- Chuyển wireframe low-fi thành component map/design tokens có thể code.
-- Lập content model, schema và editorial workflow cho từng knowledge hub.
-- Định nghĩa analytics events, consent và privacy retention.
-- Xây acceptance criteria theo từng phase và từng route.
+## First Task Brief Template
 
-## 7. Quy tắc làm việc của agent tiếp theo
+For P04-T03, Sol or Terra should produce an exact brief containing:
 
-1. Đọc đầy đủ ba source-of-truth trước khi sửa code hoặc tài liệu.
-2. Rà `AGENTS.md`, README, framework, router và conventions thật trong repo.
-3. Không tự thay đổi quyết định `LOCKED`.
-4. Nếu code hiện tại mâu thuẫn với blueprint, ghi rõ xung đột và đề xuất migration; không âm thầm đổi taxonomy.
-5. Mọi route mới phải khai báo intent, canonical, index state, owner và readiness gate.
-6. Mọi suy luận về “hành vi người Việt” phải được ghi là hypothesis cho tới khi có research/dữ liệu.
-7. Khi hoàn tất, cập nhật docs và decision log cùng code để tránh lệch source of truth.
+- Assigned files from the P04-T03 phase section.
+- Required state transitions and idempotency behavior.
+- The existing `report.generation.requested.v1` input contract.
+- Focused test commands and minimum compile/typecheck command.
+- Explicit exclusions for P04-T04, P04-T05, P04-T06, deployment, and external
+  side effects.
 
-## 8. Git workflow bắt buộc
+Flash Executor may implement bounded slices only after this brief is complete.
+Terra retains investigation and debugging ownership.
 
-- Harris/Product làm việc trên `product/experience-spec-v1`.
-- An/Development làm việc trên `feature/site-foundation`.
-- Product updates the spec → Development merges the spec into its branch →
-  code/test/fix → PR Development into Product → acceptance → PR Product into
-  `master`.
-- Không push trực tiếp lên `master`.
-- A separate PR review cycle runs only when the founder requests it. Explicit
-  founder merge authorization and all plan-required Terra review gates still
-  apply.
+## Open Questions
 
+None for starting P04-T03. Production AI approval, production payment
+activation, and release activation remain explicit later founder gates.

@@ -57,18 +57,21 @@ The active authority chain from P01-T02 onward is:
 ```text
 Founder-approved goals and decisions
     -> GPT 5.6 Sol xhigh
-    -> GPT 5.6 Terra medium
+        -> GPT 5.6 Terra medium
+        -> Flash Executor high for bounded execution only
 ```
 
 The former Sol -> Terra reviewer -> Luna implementor chain applies only through
 P01-T01. Luna is paused and must not be dispatched unless the founder
-explicitly reactivates that role.
+explicitly reactivates that role. Flash Executor is a separate global Codex
+role and does not reactivate or inherit Luna's authority.
 
 ### Sol: Orchestrator And Milestone Reviewer
 
 - Sol owns orchestration, scope control, task decomposition, sequencing, and
   founder communication.
-- Sol gives implementation goals directly to Terra.
+- Sol gives implementation goals directly to Terra and may give Flash Executor
+  a fully specified, bounded execution brief.
 - Sol reviews completed phases, complete features, and meaningful milestones;
   Sol does not run routine review gates after small tasks.
 - Sol coordinates and reviews Terra's implementation evidence and correction
@@ -91,8 +94,31 @@ explicitly reactivates that role.
   preserve concise evidence in the task report.
 - Terra reports completed milestone evidence and unresolved stop conditions to
   Sol.
+- Terra may dispatch Flash Executor for literal implementation work after Terra
+  has resolved the required technical decisions and written the exact file,
+  behavior, acceptance, and focused-check boundaries.
 - Terra must not silently broaden scope or make founder-level product,
   architecture, privacy, licensing, payment, or release decisions.
+
+### Flash Executor: Global Bounded Implementor
+
+- Flash Executor uses `ag/gemini-3.8-flash-high` with `high` reasoning and is
+  available globally across Codex projects.
+- Flash Executor works only from an explicit brief assigned by Sol or Terra.
+- Every brief must name the owned files, exact behavior, acceptance criteria,
+  and focused checks. Flash Executor must not infer missing scope.
+- Flash Executor implements literally, preserves unrelated work, and does not
+  propose product, architecture, security, UX, dependency, or process changes.
+- Flash Executor does not self-assign follow-up work, broaden scope, perform
+  speculative refactors, or conduct deep debugging.
+- Flash Executor may make one direct local correction when an immediate syntax,
+  type, or focused-test failure is clearly caused by its assigned edit.
+- If that correction fails, evidence conflicts, instructions are ambiguous, or
+  investigation would exceed the brief, Flash Executor stops with `BLOCKED` or
+  `NEEDS_CONTEXT` and returns evidence to the assigning Sol or Terra.
+- Flash Executor must not commit, push, merge, deploy, access production,
+  trigger external side effects, or run destructive operations unless the brief
+  explicitly assigns that exact operation.
 
 ### Luna: Paused
 
@@ -143,6 +169,10 @@ From P01-T02 onward, Terra continues through routine implementation ambiguity,
 compile failures, test failures, dependency integration, and non-destructive
 debugging inside the approved scope. Do not stop merely to request technical
 instructions that repository evidence or focused experiments can resolve.
+
+Flash Executor does not inherit Terra's debugging autonomy. It must return an
+ambiguous or non-local failure to the assigning Sol or Terra after the one
+bounded correction allowed by section 4.
 
 Stop and ask the founder through Sol only when:
 
@@ -287,12 +317,13 @@ rule instead of adding another version.
   instructions before planning or editing.
 - Inspect the live repository before asking a question that source inspection
   can answer.
-- Before Luna implements a task-critical external package or CLI integration
-  whose exact-version behavior is unverified, Terra must verify and record only
-  the task-relevant import/export, configuration, command working-directory or
-  root, and lifecycle/build-script facts in the approved brief. Luna must stop
-  if any required fact is unverified or conflicts with local evidence; never
-  rely on remembered or generic examples.
+- Before Flash Executor implements a task-critical external package or CLI
+  integration whose exact-version behavior is unverified, Sol or Terra must
+  verify and record only the task-relevant import/export, configuration,
+  command working-directory or root, and lifecycle/build-script facts in the
+  approved brief. Flash Executor must stop if any required fact is unverified
+  or conflicts with local evidence; never rely on remembered or generic
+  examples.
 - Keep upstream/reference repositories read-only unless the founder explicitly
   changes their role.
 - Before generated public content is marked `published`, require deterministic
