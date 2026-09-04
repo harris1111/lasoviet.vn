@@ -58,10 +58,21 @@ check_current_services() {
     record_failure "PREFLIGHT_WEB_UNHEALTHY"
     exit 1
   fi
-  # 5. Worker container running
-  if ! "${COMPOSE_CMD[@]}" exec -T worker true >/dev/null 2>&1; then
-    record_failure "PREFLIGHT_WORKER_UNHEALTHY"
-    exit 1
+  # 5. Worker legacy-aware health check:
+  # First test if dist/health/worker-health-cli.js exists inside container
+  if "${COMPOSE_CMD[@]}" exec -T worker test -f dist/health/worker-health-cli.js >/dev/null 2>&1; then
+    if ! "${COMPOSE_CMD[@]}" exec -T worker node dist/health/worker-health-cli.js >/dev/null 2>&1; then
+      record_failure "PREFLIGHT_WORKER_UNHEALTHY"
+      exit 1
+    fi
+  else
+    # Legacy image: verify worker service is running via compose ps
+    local running_workers
+    running_workers="$("${COMPOSE_CMD[@]}" ps --status running --services 2>/dev/null | grep -E '^worker$' || true)"
+    if [ -z "$running_workers" ]; then
+      record_failure "PREFLIGHT_WORKER_UNHEALTHY"
+      exit 1
+    fi
   fi
 }
 check_current_services
@@ -92,7 +103,6 @@ fi
 
 # Rollback eligibility: once we attempt application replacement, any failure invokes rollback
 # to PREV_CURRENT if PREV_CURRENT is a valid SHA.
-# Crucial: original failure code must be preserved after rollback!
 ROLLBACK_ELIGIBLE=1
 
 perform_rollback_if_eligible() {
@@ -118,7 +128,6 @@ fi
 
 # Step 6: Post-deploy readiness checks
 check_readiness() {
-  if [ "${SIMULATE_HEALTH_FAIL:-0}" = "1" ]; then return 1; fi
   local timeout="${DEPLOY_TEST_TIMEOUT:-120}"
   local interval="${DEPLOY_TEST_INTERVAL:-5}"
   local elapsed=0

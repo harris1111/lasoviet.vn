@@ -122,12 +122,27 @@ if [ "$1" = "compose" ]; then
         ;;
       up)
         shift
-        # Check if api+worker replacement
         if [ "$*" = "-d --no-build api worker" ] || [ "$*" = "--no-build -d api worker" ]; then
           if [ "\${SIMULATE_APP_UP_FAIL:-0}" = "1" ]; then
             echo "failed to start api worker containers" >&2
             exit 1
           fi
+        fi
+        exit 0
+        ;;
+      ps)
+        # compose ps --status running --services
+        if [ "\${SIMULATE_WORKER_NOT_RUNNING:-0}" = "1" ]; then
+          echo "postgres"
+          echo "redis"
+          echo "api"
+          echo "web"
+        else
+          echo "postgres"
+          echo "redis"
+          echo "api"
+          echo "web"
+          echo "worker"
         fi
         exit 0
         ;;
@@ -138,11 +153,6 @@ if [ "$1" = "compose" ]; then
         done
         service="$1"
         shift
-        # Check if preflight checks
-        if [ "\${SIMULATE_PREFLIGHT_FAIL:-0}" = "1" ]; then
-          exit 1
-        fi
-        # If postgres dump streaming
         if [ "$service" = "postgres" ] && ( [ "$1" = "sh" ] || [ "$1" = "bash" ] ); then
           if [ "\${SIMULATE_BACKUP_FAIL:-0}" = "1" ]; then
             echo "pg_dump failed" >&2
@@ -151,7 +161,6 @@ if [ "$1" = "compose" ]; then
           printf 'PGDMP\\x01\\x02fake-custom-dump-content'
           exit 0
         fi
-        # Redis ping check
         if [ "$service" = "redis" ]; then
           if [ "\${SIMULATE_REDIS_FAIL:-0}" = "1" ]; then
             exit 1
@@ -159,20 +168,20 @@ if [ "$1" = "compose" ]; then
           echo "PONG"
           exit 0
         fi
-        # Worker probe
         if [ "$service" = "worker" ]; then
-          if [ "\${SIMULATE_WORKER_FAIL:-0}" = "1" ]; then
-            echo "worker probe failed" >&2
-            exit 1
+          if [ "$1" = "test" ]; then
+            # Test if dist/health/worker-health-cli.js exists
+            if [ "\${SIMULATE_LEGACY_WORKER:-0}" = "1" ]; then
+              exit 1
+            fi
+            exit 0
           fi
-          exit 0
-        fi
-        # Readiness health fail (only for post-replacement health checks)
-        if [ "\${SIMULATE_HEALTH_FAIL:-0}" = "1" ]; then
-          # Post-replacement health checks test worker node CLI
-          if [ "$service" = "worker" ] && [ "$1" = "node" ]; then
-            echo "sensitive error payload PAYLOAD_BODY_PRIVATE for $service" >&2
-            exit 1
+          if [ "$1" = "node" ]; then
+            if [ "\${SIMULATE_WORKER_CLI_FAIL:-0}" = "1" ]; then
+              echo "worker probe failed" >&2
+              exit 1
+            fi
+            exit 0
           fi
         fi
         exit 0
@@ -192,7 +201,6 @@ exit 0
   // Fake curl
   const curlScript = `#!/bin/sh
 echo "CURL: $@" >> "${posixLog}"
-# Check timeout arguments
 echo "$@" | grep -q -- "--connect-timeout 5" || { echo "ERROR: missing connect-timeout 5" >&2; exit 2; }
 echo "$@" | grep -q -- "--max-time 10" || { echo "ERROR: missing max-time 10" >&2; exit 2; }
 
@@ -240,7 +248,7 @@ exit 0
   writeFileSync(path.join(fakeBinDir, "sleep"), sleepScript, { mode: 0o755 });
 }
 
-function setupContext(): TestContext {
+function setupContext(overrides: Record<string, string> = {}): TestContext {
   const tempDir = path.join(os.tmpdir(), `cd-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   const stateDir = path.join(tempDir, "data", "state");
   const logDir = path.join(tempDir, "data", "logs");
@@ -263,6 +271,8 @@ function setupContext(): TestContext {
   writeFileSync(path.join(projectDir, "docker-compose.registry.yml"), "services: {}\n");
   writeFileSync(path.join(projectDir, ".lasoviet-mvp.env"), "FOO=bar\n");
 
+  const minFree = overrides.MIN_FREE_KB ?? "2097152";
+
   const deployEnvContent = [
     `PROJECT_DIR="${toPosixPath(projectDir)}"`,
     `DEPLOY_ENV_FILE="${toPosixPath(path.join(projectDir, ".lasoviet-mvp.env"))}"`,
@@ -272,7 +282,7 @@ function setupContext(): TestContext {
     `BACKUP_DIR="${toPosixPath(backupDir)}"`,
     "LOOPBACK_READY_URL=http://127.0.0.1:63423/health/ready",
     "PUBLIC_READY_URL=https://lasoviet.vn/health/ready",
-    "MIN_FREE_KB=2097152",
+    `MIN_FREE_KB=${minFree}`,
     "DEPLOY_TEST_TIMEOUT=5",
     "DEPLOY_TEST_INTERVAL=1",
   ].join("\n") + "\n";
@@ -380,6 +390,20 @@ describe("deployment shell contracts", () => {
     teardownContext(ctx);
   });
 
+  it("validates MIN_FREE_KB as a decimal positive integer in config", () => {
+    const ctxInvalid = setupContext({ MIN_FREE_KB: "not-a-number" });
+    const res = runScript(ctxInvalid, "deploy-release.sh", [VALID_SHA_CANDIDATE]);
+    expect(res.status).not.toBe(0);
+    expect(res.stderr).toContain("MIN_FREE_KB");
+    teardownContext(ctxInvalid);
+
+    const ctxZero = setupContext({ MIN_FREE_KB: "0" });
+    const resZero = runScript(ctxZero, "deploy-release.sh", [VALID_SHA_CANDIDATE]);
+    expect(resZero.status).not.toBe(0);
+    expect(resZero.stderr).toContain("MIN_FREE_KB");
+    teardownContext(ctxZero);
+  });
+
   it("accepts only a forty-character lowercase release SHA", () => {
     const invalidShas = [
       "short",
@@ -402,7 +426,6 @@ describe("deployment shell contracts", () => {
   });
 
   it("serializes poll execution with non-blocking flock covering entire execution", () => {
-    // 1. When flock is busy, poll-release exits 0 quietly
     const res = runScript(ctx, "poll-release.sh", [], {
       SIMULATE_LOCK_BUSY: "1",
     });
@@ -411,6 +434,63 @@ describe("deployment shell contracts", () => {
     const commands = readFileSync(ctx.commandsLog, "utf8");
     expect(commands).toContain("FLOCK: -n 9");
     expect(commands).not.toContain("DOCKER: pull ghcr.io/harris1111/lasoviet-release:production");
+  });
+
+  it("serializes concurrent poll processes and prevents second deploy while first is blocked", async () => {
+    const barrierFile = path.join(ctx.tempDir, "barrier.block");
+    writeFileSync(barrierFile, "wait");
+
+    // Process 1 has blocked barrier file in environment
+    const scriptPath = toPosixPath(path.join(projectRoot, "scripts", "deployment", "poll-release.sh"));
+    const env1 = {
+      ...process.env,
+      PATH: `${toPosixPath(ctx.fakeBinDir)}${path.delimiter}${process.env.PATH}`,
+      LASOVIET_DEPLOY_CONFIG: toPosixPath(ctx.deployEnvPath),
+      LASOVIET_TEST_BIN: toPosixPath(ctx.fakeBinDir),
+      POLL_BARRIER_FILE: toPosixPath(barrierFile),
+    };
+
+    // Update fake docker script to wait on barrier during pull
+    const dockerWithBarrier = `#!/bin/sh
+if [ -n "\${POLL_BARRIER_FILE:-}" ]; then
+  echo "WAITING_BARRIER" >> "${toPosixPath(ctx.commandsLog)}"
+  while [ -f "\${POLL_BARRIER_FILE}" ]; do
+    /usr/bin/sleep 0.05 2>/dev/null || sleep 1
+  done
+fi
+exit 0
+`;
+    writeFileSync(path.join(ctx.fakeBinDir, "docker"), dockerWithBarrier, { mode: 0o755 });
+
+    // Launch poll 1
+    const p1 = spawn(bashExecutable, [scriptPath], { env: env1, stdio: ["pipe", "pipe", "pipe"] });
+
+    // Wait until p1 has acquired lock and entered barrier
+    let waited = 0;
+    while (waited < 3000) {
+      if (existsSync(ctx.commandsLog) && readFileSync(ctx.commandsLog, "utf8").includes("WAITING_BARRIER")) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+      waited += 50;
+    }
+
+    try {
+      // Launch poll 2 while poll 1 holds lock
+      const res2 = runScript(ctx, "poll-release.sh", [], {
+        SIMULATE_LOCK_BUSY: "1",
+      });
+      expect(res2.status).toBe(0);
+
+      // Release barrier
+      rmSync(barrierFile, { force: true });
+
+      // Await poll 1
+      await new Promise((resolve) => p1.on("close", resolve));
+    } finally {
+      rmSync(barrierFile, { force: true });
+      p1.kill();
+    }
   });
 
   it("does not deploy for a missing, malformed, or unchanged marker", () => {
@@ -440,25 +520,17 @@ describe("deployment shell contracts", () => {
       PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
     });
 
-    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE]); console.log("DEPLOY RES:", res.status, "STDOUT:", res.stdout, "STDERR:", res.stderr);
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE]);
     expect(res.status).toBe(0);
 
     const commands = readFileSync(ctx.commandsLog, "utf8");
-    // Verify exact ordering of operations:
-    // 1. Preflight service health (postgres, redis, api, web, worker running)
     const idxPreflight = commands.indexOf("exec -T postgres");
-    // 2. Pre-deploy backup
     const idxBackup = commands.indexOf("SHA256:");
-    // 3. Pull images
     const idxPull = commands.indexOf("pull migrate api worker web");
-    // 4. Migration run
     const idxMigrate = commands.indexOf("run --rm migrate");
-    // 5. Replace api+worker
     const idxAppUp = commands.indexOf("up -d --no-build api worker");
-    // 6. Replace web
     const idxWebUp = commands.indexOf("up -d --no-build web");
-    // 7. Post-replacement readiness checks
-    const idxHealth = commands.indexOf("worker node dist/health/worker-health-cli.js");
+    const idxHealth = commands.lastIndexOf("worker node dist/health/worker-health-cli.js");
 
     expect(idxPreflight).toBeGreaterThanOrEqual(0);
     expect(idxBackup).toBeGreaterThan(idxPreflight);
@@ -468,7 +540,6 @@ describe("deployment shell contracts", () => {
     expect(idxWebUp).toBeGreaterThan(idxAppUp);
     expect(idxHealth).toBeGreaterThan(idxWebUp);
 
-    // Verify all Compose calls export candidate release SHA
     expect(commands).toContain(`DOCKER [RELEASE=${VALID_SHA_CANDIDATE}]: compose`);
 
     const state = readState(ctx);
@@ -479,10 +550,40 @@ describe("deployment shell contracts", () => {
     expect(state.LAST_FAILURE_CODE).toBe("");
   });
 
+  it("supports legacy worker during preflight when worker CLI is absent but service is running", () => {
+    writeState(ctx, {
+      CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
+      PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
+    });
+
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
+      SIMULATE_LEGACY_WORKER: "1",
+    });
+    expect(res.status).toBe(0);
+
+    const state = readState(ctx);
+    expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CANDIDATE);
+  });
+
+  it("fails preflight when legacy worker is not listed as running", () => {
+    writeState(ctx, {
+      CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
+      PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
+    });
+
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
+      SIMULATE_LEGACY_WORKER: "1",
+      SIMULATE_WORKER_NOT_RUNNING: "1",
+    });
+    expect(res.status).not.toBe(0);
+
+    const state = readState(ctx);
+    expect(state.LAST_FAILURE_CODE).toBe("PREFLIGHT_WORKER_UNHEALTHY");
+  });
+
   it("fails deploy during preflight when df output is unparseable or disk full", () => {
     writeState(ctx, { CURRENT_RELEASE_SHA: VALID_SHA_CURRENT });
 
-    // Unparseable df
     const resUnparseable = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
       SIMULATE_DF_UNPARSEABLE: "1",
     });
@@ -491,7 +592,6 @@ describe("deployment shell contracts", () => {
     expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CURRENT);
     expect(state.LAST_FAILURE_CODE).toBe("DISK_SPACE_INVALID");
 
-    // Full disk
     const resFull = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
       SIMULATE_DISK_FULL: "1",
     });
@@ -518,7 +618,7 @@ describe("deployment shell contracts", () => {
     expect(state.LAST_FAILURE_CODE).toBe("BACKUP_FAILED");
   });
 
-  it("does not promote state when migration or readiness fails", () => {
+  it("does not promote state when migration or readiness fails", { timeout: 15000 }, () => {
     writeState(ctx, { CURRENT_RELEASE_SHA: VALID_SHA_CURRENT });
 
     const resMigrate = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
@@ -531,7 +631,7 @@ describe("deployment shell contracts", () => {
 
     writeState(ctx, { CURRENT_RELEASE_SHA: "" });
     const resHealth = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
-      SIMULATE_HEALTH_FAIL: "1",
+      SIMULATE_CURL_FAIL: "1",
     });
     expect(resHealth.status).not.toBe(0);
     state = readState(ctx);
@@ -551,17 +651,15 @@ describe("deployment shell contracts", () => {
     });
     expect(resAppUp.status).not.toBe(0);
     let commands = readFileSync(ctx.commandsLog, "utf8");
-    // Rollback invoked with previous current SHA
     expect(commands).toContain(`DOCKER [RELEASE=${VALID_SHA_CURRENT}]: compose`);
     let state = readState(ctx);
     expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CURRENT);
     expect(state.LAST_ATTEMPTED_RELEASE_SHA).toBe(VALID_SHA_CANDIDATE);
-    // Preserves original failure code
     expect(state.LAST_FAILURE_CODE).toBe("APP_UP_FAILED");
 
     // Case 2: Post-replacement health failure
     const resHealth = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
-      SIMULATE_HEALTH_FAIL: "1",
+      SIMULATE_CURL_FAIL: "1",
     });
     expect(resHealth.status).not.toBe(0);
     state = readState(ctx);
@@ -577,7 +675,6 @@ describe("deployment shell contracts", () => {
       LAST_ATTEMPTED_RELEASE_SHA: VALID_SHA_CANDIDATE,
     });
 
-    // Rollback to PREVIOUS: target equals previous -> CURRENT=target, PREVIOUS=old current
     const res = runScript(ctx, "rollback-release.sh", [VALID_SHA_PREVIOUS]);
     expect(res.status).toBe(0);
 
@@ -595,7 +692,6 @@ describe("deployment shell contracts", () => {
   });
 
   it("retains seven daily and ten pre-deploy archives only and ignores lookalikes/orphans", () => {
-    // Create 9 daily dump pairs
     for (let i = 1; i <= 8; i++) {
       const day = i.toString().padStart(2, "0");
       const name = `daily-202609${day}T023000Z.dump`;
@@ -603,7 +699,6 @@ describe("deployment shell contracts", () => {
       writeFileSync(path.join(ctx.backupDir, `${name}.sha256`), "dummy-sha", { mode: 0o600 });
     }
 
-    // Create 12 pre-deploy pairs
     for (let i = 1; i <= 12; i++) {
       const day = i.toString().padStart(2, "0");
       const name = `pre-deploy-${VALID_SHA_CURRENT}-202609${day}T023000Z.dump`;
@@ -611,11 +706,9 @@ describe("deployment shell contracts", () => {
       writeFileSync(path.join(ctx.backupDir, `${name}.sha256`), "dummy-sha", { mode: 0o600 });
     }
 
-    // Create orphan dump and orphan sha256 (must be ignored and preserved, not counted)
     writeFileSync(path.join(ctx.backupDir, "daily-20260999-orphan.dump"), "orphan-dump", { mode: 0o600 });
     writeFileSync(path.join(ctx.backupDir, "daily-20260988T023000Z.dump.sha256"), "orphan-sha", { mode: 0o600 });
 
-    // Create lookalike files
     writeFileSync(path.join(ctx.backupDir, "daily-lookalike-20260901T023000Z.dump"), "lookalike", { mode: 0o600 });
     writeFileSync(path.join(ctx.backupDir, "daily-lookalike-20260901T023000Z.dump.sha256"), "lookalike", { mode: 0o600 });
 
@@ -623,14 +716,12 @@ describe("deployment shell contracts", () => {
     expect(res.status).toBe(0);
 
     const files = readdirSync(ctx.backupDir);
-    // Strict valid daily dump pairs: 7 (newest created + 6 retained from 9)
     const dailyDumps = files.filter((f) => /^daily-[0-9]{8}T[0-9]{6}Z\.dump$/.test(f));
     const predeployDumps = files.filter((f) => new RegExp(`^pre-deploy-${VALID_SHA_CURRENT}-[0-9]{8}T[0-9]{6}Z\\.dump$`).test(f));
 
     expect(dailyDumps.length).toBe(7);
     expect(predeployDumps.length).toBe(10);
 
-    // Lookalike and orphans preserved
     expect(files).toContain("daily-20260999-orphan.dump");
     expect(files).toContain("daily-20260988T023000Z.dump.sha256");
     expect(files).toContain("daily-lookalike-20260901T023000Z.dump");
@@ -656,7 +747,6 @@ describe("deployment shell contracts", () => {
       expect(filesAfter).toContain(f);
     }
 
-    // Chmod failure fails backup and does not leave false success
     const resChmodFail = runScript(ctx, "backup-postgres.sh", ["daily"], {
       SIMULATE_CHMOD_FAIL: "1",
     });

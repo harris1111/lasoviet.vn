@@ -69,6 +69,10 @@ validate_config() {
   fi
 
   MIN_FREE_KB="${MIN_FREE_KB:-2097152}"
+  if [[ ! "$MIN_FREE_KB" =~ ^[1-9][0-9]*$ ]]; then
+    echo "ERROR: MIN_FREE_KB must be a positive decimal integer" >&2
+    exit 1
+  fi
 
   mkdir -p "$STATE_DIR" "$LOG_DIR" "$BACKUP_DIR"
   chmod 700 "$STATE_DIR" "$LOG_DIR" "$BACKUP_DIR" 2>/dev/null || true
