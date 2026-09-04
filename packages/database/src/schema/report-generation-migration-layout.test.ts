@@ -36,6 +36,7 @@ describe("report generation migration layout", () => {
     expect(migration).toContain('CREATE UNIQUE INDEX "report_versions_pdf_asset_unique" ON "report_versions" USING btree ("pdf_asset_id")');
     expect(migration).toContain('CREATE INDEX "report_versions_report_idx" ON "report_versions" USING btree ("report_id","created_at")');
     expect(migration).toContain('CREATE INDEX "report_versions_entitlement_idx" ON "report_versions" USING btree ("entitlement_id")');
+    expect(migration).toContain('CONSTRAINT "report_versions_content_hash_format" CHECK ("content_hash" ~ \'^[a-f0-9]{64}$\')');
 
     expect(migration).toContain('"attempt_number" integer NOT NULL');
     expect(migration).toContain('"job_id" text NOT NULL');

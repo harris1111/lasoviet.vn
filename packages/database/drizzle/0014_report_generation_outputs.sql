@@ -19,7 +19,8 @@ CREATE TABLE "report_versions" (
 	"pdf_asset_id" uuid NOT NULL,
 	"render_version" text NOT NULL,
 	"supersedes_report_version_id" uuid,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "report_versions_content_hash_format" CHECK ("content_hash" ~ '^[a-f0-9]{64}$')
 );
 --> statement-breakpoint
 CREATE TABLE "report_generation_attempts" (

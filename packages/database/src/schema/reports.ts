@@ -1,4 +1,6 @@
+import { sql } from "drizzle-orm";
 import {
+  check,
   index,
   integer,
   jsonb,
@@ -85,6 +87,10 @@ export const reportVersions = pgTable("report_versions", {
   uniqueIndex("report_versions_pdf_asset_unique").on(table.pdfAssetId),
   index("report_versions_report_idx").on(table.reportId, table.createdAt),
   index("report_versions_entitlement_idx").on(table.entitlementId),
+  check(
+    "report_versions_content_hash_format",
+    sql`${table.contentHash} ~ '^[a-f0-9]{64}$'`,
+  ),
 ]);
 
 export const reportGenerationAttempts = pgTable("report_generation_attempts", {
