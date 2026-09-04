@@ -133,11 +133,30 @@ export function createReportGenerationService(
     }
 
     async function failAttempt(code: ReportGenerationServiceErrorCode, retryable: boolean): Promise<ReportGenerationServiceResult> {
-      await dependencies.versionRepository.recordFailedAttempt({
-        jobId,
-        attemptNumber,
-        errorCode: code,
-      }).catch(() => undefined);
+      try {
+        const recordResult = await dependencies.versionRepository.recordFailedAttempt({
+          jobId,
+          attemptNumber,
+          errorCode: code,
+        });
+        if (!recordResult.ok) {
+          return {
+            ok: false,
+            error: {
+              code: "REPORT_VERSION_CONFLICT",
+              retryable: false,
+            },
+          };
+        }
+      } catch {
+        return {
+          ok: false,
+          error: {
+            code: "REPORT_VERSION_CONFLICT",
+            retryable: false,
+          },
+        };
+      }
       return {
         ok: false,
         error: {
@@ -159,21 +178,26 @@ export function createReportGenerationService(
     }
     const source = sourceResult.value;
 
-    const writerResult = await writeIdentityReportDraft({
-      ...source,
-      locale: payload.locale,
-      sku: payload.sku as "ZIWEI-IDENTITY-P0",
-      provenance: {
-        knowledgeVersion: payload.knowledgeVersionId,
-        promptVersion: payload.promptVersion,
-        templateVersion: "identity-report-html.v1",
-      },
-      provider: dependencies.provider,
-    });
+    let writerResult: Awaited<ReturnType<typeof writeIdentityReportDraft>>;
+    try {
+      writerResult = await writeIdentityReportDraft({
+        ...source,
+        locale: payload.locale,
+        sku: payload.sku as "ZIWEI-IDENTITY-P0",
+        provenance: {
+          knowledgeVersion: payload.knowledgeVersionId,
+          promptVersion: payload.promptVersion,
+          templateVersion: "identity-report-html.v1",
+        },
+        provider: dependencies.provider,
+      });
+    } catch {
+      return failAttempt("AI_TIMEOUT", true);
+    }
 
     if (!writerResult.ok) {
       const errCode = writerResult.error.code;
-      if (errCode === "AI_TIMEOUT") {
+      if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
         return failAttempt("AI_TIMEOUT", true);
       }
       if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
@@ -199,10 +223,15 @@ export function createReportGenerationService(
       return failAttempt("REPORT_EVIDENCE_INVALID", false);
     }
 
-    const criticResult = await critiqueIdentityReport(draft.report, source, dependencies.provider);
+    let criticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
+    try {
+      criticResult = await critiqueIdentityReport(draft.report, source, dependencies.provider);
+    } catch {
+      return failAttempt("AI_TIMEOUT", true);
+    }
     if (!criticResult.ok) {
       const errCode = criticResult.error.code;
-      if (errCode === "AI_TIMEOUT") {
+      if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && criticResult.error.retryable)) {
         return failAttempt("AI_TIMEOUT", true);
       }
       if (errCode === "REPORT_SAFETY_REJECTED") {

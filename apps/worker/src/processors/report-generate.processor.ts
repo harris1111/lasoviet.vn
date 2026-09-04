@@ -150,12 +150,12 @@ export function createReportGenerateProcessor(dependencies: {
       }
 
       if (genResult.error.retryable) {
-        const nextAttemptAt = new Date(Date.now() + 30_000);
-        await dependencies.queueStore.recordRetryableFailure(
-          job.id,
-          genResult.error.code,
-          nextAttemptAt,
-        );
+        await this.processJobFailure({
+          jobId: job.id,
+          reportVersionId,
+          attemptCount: job.attemptCount,
+          errorCode: genResult.error.code,
+        });
         return { processed: false };
       }
 

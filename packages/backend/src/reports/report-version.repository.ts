@@ -259,7 +259,12 @@ export function createDatabaseReportVersionRepository(database: Database): Repor
 
           const [updatedAttempt] = await tx
             .update(reportGenerationAttempts)
-            .set({ status: "succeeded", completedAt: now })
+            .set({
+              status: "succeeded",
+              providerId: input.providerId,
+              modelId: input.modelId,
+              completedAt: now,
+            })
             .where(
               and(
                 eq(reportGenerationAttempts.jobId, input.jobId),

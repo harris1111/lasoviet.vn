@@ -1524,6 +1524,8 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
     expect(attempt?.status).toBe("succeeded");
     expect(attempt?.errorCode).toBeNull();
+    expect(attempt?.providerId).toBe("mock-provider");
+    expect(attempt?.modelId).toBe("mock-model");
 
     const allJobs = await database.select().from(reportQueueJobs);
     const job = allJobs.find((j) => j.id === fixture.jobId);
@@ -1776,6 +1778,240 @@ describe("report generation orchestration and worker integration (Slice B)", () 
 
     const allOutbox = await database.select().from(outbox);
     expect(allOutbox.filter((e) => e.aggregateId === fixture.reportVersionId)).toHaveLength(0);
+
+    await database.$client.end();
+  });
+
+  it("uncaught provider exception from writer or critic is classified as retryable AI_TIMEOUT and releases lease", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-thrown-exception", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => {
+        throw new Error("network socket hung up or ETIMEDOUT");
+      },
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("retryable_failure");
+    expect(job?.lastErrorCode).toBe("AI_TIMEOUT");
+    expect(job?.leasedBy).toBeNull();
+    expect(job?.leasedUntil).toBeNull();
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("generating");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("AI_TIMEOUT");
+
+    await database.$client.end();
+  });
+
+  it("retryable AI_PROVIDER_REQUEST_FAILED is classified as AI_TIMEOUT and enters retry path", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-provider-req-failed", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: false as const,
+        error: { code: "AI_PROVIDER_REQUEST_FAILED" as const, retryable: true },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("retryable_failure");
+    expect(job?.lastErrorCode).toBe("AI_TIMEOUT");
+    expect(job?.leasedBy).toBeNull();
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("generating");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("AI_TIMEOUT");
+
+    await database.$client.end();
+  });
+
+  it("generation timeout on attempt 3 terminates with JOB_RETRY_EXHAUSTED via terminal failure transaction", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-attempt3-timeout", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+      attemptCount: 2,
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(database);
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: false as const,
+        error: { code: "AI_TIMEOUT" as const, retryable: true },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("terminal_failure");
+    expect(job?.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(job?.attemptCount).toBe(3);
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("terminal_failure");
+    expect(reservation?.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(reservation?.stateVersion).toBe(3);
+
+    const allOutbox = await database.select().from(outbox);
+    const failedEvents = allOutbox.filter((e) => e.eventType === "report.fulfillment.failed.v1" && e.aggregateId === fixture.reportVersionId);
+    expect(failedEvents).toHaveLength(1);
+    expect(failedEvents[0].payload).toMatchObject({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failureStage: "generation",
+    });
+
+    await database.$client.end();
+  });
+
+  it("surfaces REPORT_VERSION_CONFLICT when recordFailedAttempt fails and prevents incorrect queue mutation", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-failed-attempt-conflict", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const realVersionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = {
+      ...realVersionRepository,
+      recordFailedAttempt: async () => ({
+        ok: false as const,
+        error: {
+          code: "REPORT_VERSION_CONFLICT" as const,
+          messageKey: "reports.report_version_conflict",
+          retryable: false,
+        },
+      }),
+    };
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: false as const,
+        error: { code: "AI_TIMEOUT" as const, retryable: true },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("leased");
+    expect(job?.leasedBy).toBe(fixture.workerId);
+    expect(job?.lastErrorCode).toBeNull();
 
     await database.$client.end();
   });
