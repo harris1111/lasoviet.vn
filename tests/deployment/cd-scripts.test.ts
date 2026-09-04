@@ -619,10 +619,10 @@ describe("deployment shell contracts", () => {
     writeFileSync(path.join(ctx.backupDir, "daily-lookalike-20260901T023000Z.dump"), "lookalike", { mode: 0o600 });
     writeFileSync(path.join(ctx.backupDir, "daily-lookalike-20260901T023000Z.dump.sha256"), "lookalike", { mode: 0o600 });
 
-    const res = runScript(ctx, "backup-postgres.sh", ["daily"]); 
+    const res = runScript(ctx, "backup-postgres.sh", ["daily"]);
     expect(res.status).toBe(0);
 
-    const files = readdirSync(ctx.backupDir); 
+    const files = readdirSync(ctx.backupDir);
     // Strict valid daily dump pairs: 7 (newest created + 6 retained from 9)
     const dailyDumps = files.filter((f) => /^daily-[0-9]{8}T[0-9]{6}Z\.dump$/.test(f));
     const predeployDumps = files.filter((f) => new RegExp(`^pre-deploy-${VALID_SHA_CURRENT}-[0-9]{8}T[0-9]{6}Z\\.dump$`).test(f));
@@ -648,7 +648,7 @@ describe("deployment shell contracts", () => {
       writeFileSync(path.join(ctx.backupDir, f), "precious-content", { mode: 0o600 });
     }
 
-    const res = runScript(ctx, "backup-postgres.sh", ["daily"]); 
+    const res = runScript(ctx, "backup-postgres.sh", ["daily"]);
     expect(res.status).toBe(0);
 
     const filesAfter = readdirSync(ctx.backupDir);
