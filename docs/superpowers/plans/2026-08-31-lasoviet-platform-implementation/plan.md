@@ -37,9 +37,12 @@ Provider-independent Phase 05A implementation is authorized from 2026-09-02.
 SePay checkout and webhook contracts are implemented and reviewed complete for
 Tasks 1-2. Docker VPS verification passed, and a real authenticated sandbox
 payment completed the order, payment-event, entitlement, report-reservation,
-and outbox transaction. The resulting report job remains `waiting` because the
-P04-T03 report worker consumer is not connected. Production payment activation
-remains founder-controlled.
+and outbox transaction. The durable P04-T03 report worker consumer is now
+implemented and reviewed complete on the active
+`feature/paid-flow-admin-operations` branch. Operationally, the previously
+published sandbox report job on the Docker VPS remains `waiting` until a
+separately authorized deployment; production payment activation remains
+founder-controlled, and Phase 04 remains incomplete pending later tasks.
 
 ## Global Constraints
 

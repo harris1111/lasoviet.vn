@@ -171,8 +171,12 @@ Date: 2026-09-03
   no real money moved. SePay delivered an authenticated `ORDER_PAID` to the
   public endpoint and received `200`. PostgreSQL recorded one paid order, one
   payment event, one entitlement, one report reservation, and a processed
-  `report.generation.requested.v1` outbox event. The published report job remains
-  `waiting`; report-consumer execution is separate follow-up work.
+  `report.generation.requested.v1` outbox event. The durable report worker
+  consumer (P04-T03) was implemented and approved on the active branch on
+  2026-09-04 (commits `2f9ef12`, `d585bba`, `d2c64f7`; 21 tests, 6 real
+  PostgreSQL integration scenarios, Terra APPROVED). The previously published
+  sandbox report job on the remote Docker VPS remains `waiting` pending a
+  separately authorized deployment.
 - Production payment activation remains a separate founder-controlled gate.
 
 ## P04 AI Execution Design

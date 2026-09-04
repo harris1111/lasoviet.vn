@@ -277,12 +277,20 @@ record of progress.
 Run: `pnpm vitest run packages/backend/src/reports tests/jobs`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/jobs packages/backend/src/reports packages/database apps/worker tests/jobs docs/superpowers/plans
 git commit -m "feat: add durable report workflow"
 ```
+
+#### Completion Evidence (2026-09-04)
+- Implemented and verified across commits `2f9ef12` (initial workflow), `d585bba` (round 1 corrections), and `d2c64f7` (round 2 lease fencing and process isolation).
+- Focused verification: 4 test files passed with 21 tests (`packages/backend/src/reports/report-state.test.ts`, `packages/backend/src/outbox/outbox.dispatcher.test.ts`, `packages/database/src/schema/commerce-migration-layout.test.ts`, `tests/jobs/report-worker-state.integration.test.ts`).
+- Real PostgreSQL integration suite verified via Testcontainers with 6 test cases (duplicate enqueue idempotency, lease reclaim on retryable failure, third attempt terminal failure with `report.fulfillment.failed.v1` outbox emission, parse-invalid untrusted failure fencing without outbox emission, malformed payload with existing ID fencing without outbox emission, and stale-worker lease-lost rejection after reclaim).
+- Packages built cleanly: `@lasoviet/contracts`, `@lasoviet/database`, `@lasoviet/backend`, `@lasoviet/worker`. Worker typecheck clean (`tsc -p tsconfig.json --noEmit`). Scoped ESLint clean. `git diff --check` clean.
+- Independent Terra high review verdict: APPROVED with all round 2 findings addressed and zero open findings.
+- P04-T03 scope concludes at the `generating` state handoff; retrieval (P04-T04), AI generation (P04-T05), and immutable private HTML persistence (P04-T06) remain excluded and will be implemented in their respective tasks.
 
 ### Task 4 [P04-T04]: Implement approved knowledge ingestion and retrieval
 
