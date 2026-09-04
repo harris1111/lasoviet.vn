@@ -54,3 +54,11 @@ export const ReportFulfillmentFailedV1Schema = z.object({
   supportCaseId: z.string().nullable().optional(),
 }).strict();
 export type ReportFulfillmentFailedV1 = z.infer<typeof ReportFulfillmentFailedV1Schema>;
+
+export const ReportPdfRequestedV1Schema = z.object({
+  reportId: z.string().trim().min(1),
+  reportVersionId: z.string().trim().min(1),
+  assetId: z.string().trim().min(1),
+  renderVersion: z.string().trim().min(1),
+}).strict();
+export type ReportPdfRequestedV1 = z.infer<typeof ReportPdfRequestedV1Schema>;

@@ -40,8 +40,10 @@ export {
   commercePaymentEvents,
 } from "./schema/commerce.js";
 export {
+  reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,
+  reportVersions,
 } from "./schema/reports.js";
 export {
   deletionRequestStatus,

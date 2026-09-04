@@ -19,6 +19,8 @@ export const IDENTITY_REPORT_SECTION_IDS = [
 ] as const;
 export const CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER =
   "Nội dung này chỉ nhằm mục đích tham khảo và không thay thế tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc tư vấn chuyên môn được cấp phép khác.";
+export const CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN =
+  "This content is for reference and self-reflection only. It does not replace medical, mental health, legal, financial, or other licensed professional advice.";
 
 const sectionIdSchema = z.enum(IDENTITY_REPORT_SECTION_IDS);
 
@@ -76,15 +78,29 @@ export const IdentityReportContentV1Schema = z.object({
   }
 });
 
-export const IdentityReportV1Schema = IdentityReportContentV1Schema.extend({
+const baseIdentityReportSchema = IdentityReportContentV1Schema.extend({
   version: z.literal(1),
   sku: z.literal("ZIWEI-IDENTITY-P0"),
   capabilityId: z.literal("ziwei.identity.p0"),
-  locale: z.literal("vi"),
   provenance: provenanceSchema,
+});
+
+const viIdentityReportSchema = baseIdentityReportSchema.extend({
+  locale: z.literal("vi"),
   professionalAdviceDisclaimer: z.literal(CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER),
 }).strict();
 
+const enIdentityReportSchema = baseIdentityReportSchema.extend({
+  locale: z.literal("en"),
+  professionalAdviceDisclaimer: z.literal(CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN),
+}).strict();
+
+export const IdentityReportV1Schema = z.discriminatedUnion("locale", [
+  viIdentityReportSchema,
+  enIdentityReportSchema,
+]);
+
+export type IdentityReportLocale = "vi" | "en";
 export type IdentityReportV1 = z.infer<typeof IdentityReportV1Schema>;
 export type IdentityReportContentV1 = z.infer<typeof IdentityReportContentV1Schema>;
 export type IdentityReportSectionId = z.infer<typeof sectionIdSchema>;

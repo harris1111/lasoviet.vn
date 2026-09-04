@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
   IDENTITY_REPORT_SECTION_IDS,
 } from "./identity-report-v1.js";
+import { ReportPdfRequestedV1Schema } from "./jobs.js";
 
 const sectionIds = [
   "personal_summary",
@@ -116,5 +118,39 @@ describe("identity report v1 contract", () => {
       ...report(),
       professionalAdviceDisclaimer: `${CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER} Nội dung này có thể thay thế tư vấn tài chính.`,
     }).success).toBe(false);
+  });
+
+  it("supports discriminated en locale with the exact english disclaimer", () => {
+    const enReport = {
+      ...report(),
+      locale: "en",
+      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+    };
+    expect(IdentityReportV1Schema.safeParse(enReport).success).toBe(true);
+    expect(IdentityReportV1Schema.safeParse({
+      ...enReport,
+      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+    }).success).toBe(false);
+    expect(IdentityReportV1Schema.safeParse({
+      ...report(),
+      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+    }).success).toBe(false);
+  });
+});
+
+describe("report pdf requested v1 contract", () => {
+  it("validates trimmed non-empty fields", () => {
+    const valid = {
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      assetId: "asset-1",
+      renderVersion: "identity-report-pdf.v1",
+    };
+    expect(ReportPdfRequestedV1Schema.safeParse(valid).success).toBe(true);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, reportId: "   " }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, reportVersionId: "" }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, assetId: "" }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, renderVersion: "   " }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, extra: "unknown" }).success).toBe(false);
   });
 });

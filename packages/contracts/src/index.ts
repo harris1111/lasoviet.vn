@@ -208,12 +208,14 @@ export type {
 export {
   IDENTITY_REPORT_SECTION_IDS,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
 } from "./identity-report-v1.js";
 export type {
   IdentityReportClaimV1,
   IdentityReportContentV1,
+  IdentityReportLocale,
   IdentityReportSectionId,
   IdentityReportV1,
 } from "./identity-report-v1.js";
@@ -251,6 +253,7 @@ export {
   ReportFulfillmentFailedV1Schema,
   ReportGenerateJobEnvelopeV1Schema,
   ReportGenerationRequestedV1Schema,
+  ReportPdfRequestedV1Schema,
   ReportQueueJobStatusSchema,
   ReportStatusSchema,
 } from "./jobs.js";
@@ -259,6 +262,7 @@ export type {
   ReportFulfillmentFailedV1,
   ReportGenerateJobEnvelopeV1,
   ReportGenerationRequestedV1,
+  ReportPdfRequestedV1,
   ReportQueueJobStatus,
   ReportStatus,
 } from "./jobs.js";
