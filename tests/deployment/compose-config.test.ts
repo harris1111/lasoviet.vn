@@ -88,6 +88,13 @@ describe("founder-run Compose topology", () => {
     });
     expect(configuration.services.postgres?.healthcheck).toBeDefined();
     expect(configuration.services.redis?.healthcheck).toBeDefined();
+    expect(configuration.services.worker?.healthcheck).toMatchObject({
+      test: ["CMD", "node", "dist/health/worker-health-cli.js"],
+      interval: "10s",
+      timeout: "5s",
+      retries: 6,
+      start_period: "15s",
+    });
     expect(configuration.volumes).toMatchObject({
       postgres_data: {},
       redis_data: {},
