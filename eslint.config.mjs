@@ -21,5 +21,6 @@ export default defineConfig([
     "playwright-report",
     "test-results",
     "prototype/**",
+    "brand/logo/source/**",
   ]),
 ]);
