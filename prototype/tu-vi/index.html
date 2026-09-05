@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Lập lá số Tử Vi miễn phí — Lá Số Việt</title>
+  <meta name="description" content="Lập lá số Tử Vi miễn phí theo ngày, giờ, nơi sinh. Xem lá số 12 cung đầy đủ, cung Mệnh, ngũ hành bản mệnh — không cần tài khoản.">
+  <meta name="robots" content="index, follow">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "Lập lá số Tử Vi miễn phí — Lá Số Việt",
+        "url": "https://lasoviet.vn/tu-vi",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "VND" },
+        "description": "Công cụ lập lá số Tử Vi miễn phí theo ngày, giờ, nơi sinh."
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Trang chủ", "item": "https://lasoviet.vn/" },
+          { "@type": "ListItem", "position": 2, "name": "Lập lá số Tử Vi", "item": "https://lasoviet.vn/tu-vi" }
+        ]
+      }
+    ]
+  }
+  </script>
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    @media (prefers-reduced-motion: reduce) {
+      .ls-marquee-track { animation: none !important; }
+    }
+    @keyframes ls-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .lsv-ls-hero-figure { aspect-ratio: 12/7; }
+    @media (max-width: 767px) { .lsv-ls-hero-figure { aspect-ratio: 4/5; } }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="la-so-tu-vi">
+
+  <!-- HEADER -->
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap" class="ls-nav-links">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--gold-400);text-decoration:none;border-bottom:1px solid var(--gold-500);padding-bottom:2px">Tử Vi</a>
+        <a href="/bat-tu" style="color:var(--text-body);text-decoration:none">Bát Tự</a>
+        <a href="/kinh-dich" style="color:var(--text-body);text-decoration:none">Kinh Dịch</a>
+        <a href="/chiem-tinh" style="color:var(--text-body);text-decoration:none">Chiêm Tinh</a>
+        <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="#form">Lập lá số ngay</x-import>
+        <button type="button" aria-label="Mở menu" onClick="{{ toggleNav }}" style="display:none;background:none;border:none;color:var(--text-heading);cursor:pointer;padding:8px;min-height:44px;min-width:44px" class="ls-nav-toggle">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="menu" size="24"></x-import>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div style="border-bottom:1px solid var(--border-hairline);background:var(--surface-deep);overflow:hidden;padding:12px 0" aria-hidden="true">
+    <div class="ls-marquee-track" style="display:flex;width:max-content;gap:48px;animation:ls-marquee 38s linear infinite;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap">
+      <span>AN SAO 12 CUNG · CUNG MỆNH · CUNG THÂN · NGŨ HÀNH BẢN MỆNH · THIÊN CAN ĐỊA CHI · TỬ VI ĐẨU SỐ ·</span>
+      <span>AN SAO 12 CUNG · CUNG MỆNH · CUNG THÂN · NGŨ HÀNH BẢN MỆNH · THIÊN CAN ĐỊA CHI · TỬ VI ĐẨU SỐ ·</span>
+    </div>
+  </div>
+
+  <main>
+    <!-- 01 HERO / FORM -->
+    <section style="padding:clamp(48px,8vw,96px) 0 clamp(56px,9vw,104px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:32px">
+          <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <span style="color:var(--text-muted)">Lập lá số Tử Vi miễn phí</span>
+        </nav>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:start">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">Công cụ miễn phí</div>
+            <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading)">Lập lá số Tử Vi miễn phí</h1>
+            <p style="margin:20px 0 0;max-width:520px;font-size:18px;line-height:1.6;color:var(--text-body)">Nhập ngày, giờ và nơi sinh để xem lá số 12 cung được an sao đầy đủ. Kết quả hiển thị ngay, không cần tạo tài khoản.</p>
+
+            <div class="lsv-ls-hero-figure" style="margin-top:40px;border-radius:var(--radius-md);overflow:hidden">
+              <picture style="display:block;width:100%;height:100%;">
+                <source media="(max-width: 767px)" srcset="uploads/mo-ban-do-doi-song-la-so-tu-vi-hero-mobile.webp" />
+                <img src="uploads/mo-ban-do-doi-song-la-so-tu-vi-hero-desktop.webp" alt="Sổ lá số Tử Vi cổ mở trên nền sơn mài, ánh sáng chếch một hướng" style="display:block;width:100%;height:100%;object-fit:cover" />
+              </picture>
+            </div>
+          </div>
+
+          <form id="form" aria-label="Lập lá số Tử Vi" style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:36px">
+            <div style="display:grid;gap:20px">
+              <div>
+                <label for="f-date" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-muted);margin-bottom:8px">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="calendar-day" size="16" color="var(--gold-500)"></x-import>
+                  Ngày sinh
+                </label>
+                <input id="f-date" type="date" required="{{ true }}" style="width:100%;box-sizing:border-box;min-height:44px;padding:0 14px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-family:var(--font-ui);font-size:15px" />
+                <div role="radiogroup" aria-label="Loại lịch" style="display:flex;gap:20px;margin-top:10px;font-size:13.5px;color:var(--text-muted)">
+                  <label style="display:flex;align-items:center;gap:6px"><input type="radio" name="calendar-type" value="duong" defaultChecked="{{ true }}" /> Lịch dương</label>
+                  <label style="display:flex;align-items:center;gap:6px"><input type="radio" name="calendar-type" value="am" /> Lịch âm</label>
+                </div>
+              </div>
+
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <label for="f-time" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-muted)">
+                    <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="clock" size="16" color="var(--gold-500)"></x-import>
+                    Giờ sinh
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-faint)">
+                    <input type="checkbox" checked="{{ unknownTime }}" onChange="{{ toggleUnknownTime }}" />
+                    Không rõ giờ sinh
+                  </label>
+                </div>
+                <input id="f-time" type="time" disabled="{{ unknownTime }}" style="width:100%;box-sizing:border-box;min-height:44px;padding:0 14px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-family:var(--font-ui);font-size:15px;opacity:{{ timeInputOpacity }}" />
+                <sc-if value="{{ unknownTime }}" hint-placeholder-val="{{ false }}">
+                  <p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:var(--text-faint)">Vẫn lập được lá số. Cung Thân và một vài sao an theo giờ sẽ không hiển thị — xem chi tiết ở phần "Không rõ giờ sinh" dưới đây.</p>
+                </sc-if>
+              </div>
+
+              <div>
+                <label for="f-place" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-muted);margin-bottom:8px">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="map-pin" size="16" color="var(--gold-500)"></x-import>
+                  Nơi sinh
+                </label>
+                <input id="f-place" type="text" placeholder="Tỉnh, thành phố hoặc quốc gia" style="width:100%;box-sizing:border-box;min-height:44px;padding:0 14px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-family:var(--font-ui);font-size:15px" />
+              </div>
+
+              <div>
+                <label for="f-gender" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-muted);margin-bottom:8px">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="user" size="16" color="var(--gold-500)"></x-import>
+                  Giới tính
+                </label>
+                <select id="f-gender" style="width:100%;box-sizing:border-box;min-height:44px;padding:0 14px;background:var(--surface-deep);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-heading);font-family:var(--font-ui);font-size:15px">
+                  <option>Nam</option>
+                  <option>Nữ</option>
+                </select>
+                <p style="margin:8px 0 0;font-size:12.5px;line-height:1.5;color:var(--text-faint)">Một số sao được an khác nhau theo giới tính trong phương pháp Tử Vi truyền thống.</p>
+              </div>
+
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="100%,48px" variant="primary" style="width:100%;margin-top:8px">Lập lá số <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="18px,18px" name="arrow-right" size="18" style="margin-left:8px"></x-import></x-import>
+              <p style="margin:0;text-align:center;font-size:12.5px;color:var(--text-faint)">Miễn phí · Không cần tài khoản · Kết quả hiển thị ngay</p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 VÌ SAO TIN ĐƯỢC KẾT QUẢ NÀY -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-vi-sao-tin-duoc">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="34px,34px" name="compass" size="34" color="var(--son)" style="flex:none;margin-top:4px"></x-import>
+          <div style="max-width:680px">
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">02 · Trước khi bạn xem kết quả</div>
+            <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Vì sao có thể tin kết quả này</h2>
+            <p style="margin:16px 0 0;font-size:16px;line-height:1.65;color:var(--text-muted)">Chúng tôi không xin bạn tin bằng lời hứa. Đây là bốn điều bạn có thể tự kiểm chứng trước khi đọc bất kỳ nhận định nào — không phải rating, không phải lượt theo dõi.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:44px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ proofItems }}" as="item" hint-placeholder-count="4">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,200px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+        <p style="margin:28px 0 0;max-width:720px;font-size:13px;line-height:1.7;color:var(--text-faint)">Cơ quan chức năng đã nhiều lần cảnh báo về lừa đảo dưới danh nghĩa xem bói online. Đây là lý do Lá Số Việt công khai phương pháp và không dùng chứng thực ẩn danh để tạo uy tín.</p>
+      </div>
+    </section>
+
+    <!-- 03 KẾT QUẢ MIỄN PHÍ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="03-ket-qua-mien-phi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">03 · Không mất phí</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Kết quả miễn phí bạn nhận được</h2>
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ freeResults }}" as="item" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,160px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 SAMPLE CHART -->
+    <section id="la-so-mau" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="04-la-so-mau">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">04 · Lá số mẫu</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Lá số Tử Vi trông như thế nào</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây là một hồ sơ mẫu, không phải dữ liệu người dùng thật — dùng để minh hoạ cách lá số của bạn sẽ hiển thị.</p>
+
+        <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:48px;align-items:start">
+          <div>
+            <figure style="margin:0">
+              <div role="group" aria-label="Lá số Tử Vi mẫu gồm 12 cung được an sao, cung Mệnh phía trên bên trái, cung Thân trùng cung Quan Lộc. Bấm một cung để xem chi tiết." style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);aspect-ratio:1/1;overflow:hidden">
+                <sc-for list="{{ chartCells }}" as="cell" hint-placeholder-count="12">
+                  <button type="button" aria-pressed="{{ cell.selected }}" onClick="{{ cell.onSelect }}" style="{{ cell.cellStyle }}">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:4px">
+                      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:{{ cell.nameColor }}">{{ cell.name }}</span>
+                      <sc-if value="{{ cell.badge }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:{{ cell.badgeColor }};border:1px solid {{ cell.badgeColor }};border-radius:var(--radius-pill);padding:1px 5px">{{ cell.badge }}</span>
+                      </sc-if>
+                    </div>
+                    <span style="font-size:11.5px;line-height:1.35;color:{{ cell.starsColor }};text-align:left">{{ cell.stars }}</span>
+                  </button>
+                </sc-for>
+                <div style="grid-column:2 / 4;grid-row:2 / 4;background:var(--surface-deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px">
+                  <span style="font-family:var(--font-display);font-size:17px;color:var(--text-heading)">Hồ sơ mẫu</span>
+                  <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">Nữ · 12/08 Âm lịch</span>
+                  <span style="font-family:var(--font-mono);font-size:11px;color:var(--gold-500)">Bản mệnh: Thuỷ</span>
+                </div>
+              </div>
+            </figure>
+            <p style="margin:12px 0 0;font-size:12.5px;color:var(--text-faint)">Sơ đồ minh hoạ — bấm một cung (hoặc dùng phím Tab + Enter) để đồng bộ với bảng danh sách bên cạnh.</p>
+          </div>
+
+          <div>
+            <h3 style="margin:0 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Danh sách 12 cung (dạng đọc)</h3>
+            <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border-hairline)">
+                  <th scope="col" style="text-align:left;padding:8px 8px 8px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Cung</th>
+                  <th scope="col" style="text-align:left;padding:8px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Sao chính</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ chartRows }}" as="row" hint-placeholder-count="12">
+                  <tr style="border-bottom:1px solid var(--border-hairline);background:{{ row.rowBg }}">
+                    <td style="padding:9px 8px 9px 0;color:{{ row.textColor }};vertical-align:top;white-space:nowrap">
+                      <button type="button" aria-pressed="{{ row.selected }}" onClick="{{ row.onSelect }}" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer">{{ row.name }}</button>
+                      <sc-if value="{{ row.badge }}" hint-placeholder-val="{{ false }}"><span style="color:{{ row.textColor }};font-family:var(--font-mono);font-size:10.5px"> · {{ row.badge }}</span></sc-if>
+                    </td>
+                    <td style="padding:9px 0;color:{{ row.textColor }}">{{ row.stars }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+
+            <div style="margin-top:24px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px 24px" aria-live="polite">
+              <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-600)">Đang xem: Cung {{ selectedPalace.name }}</div>
+              <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ selectedPalace.note }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;aspect-ratio:3/2;max-width:520px;border-radius:var(--radius-md);overflow:hidden">
+          <img src="uploads/boi-canh-ban-doc-la-so-mau-co-can-cu.webp" alt="Trang giấy lá số mẫu đặt cạnh la kinh phong thuỷ đồng cũ, ánh sáng chếch, nền sơn mài tối" style="display:block;width:100%;height:100%;object-fit:cover" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 THUẬT NGỮ CỐT LÕI -->
+    <section style="padding:clamp(56px,9vw,104px) 0;border-top:1px solid var(--border-hairline)" data-screen-label="05-thuat-ngu-cot-loi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">05 · Thuật ngữ cốt lõi</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Đọc lá số mà không bị ngợp thuật ngữ</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Năm khái niệm nền — không cần thuộc lòng, chỉ cần biết tra khi cần trong lúc đọc lá số mẫu ở trên.</p>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ glossaryItems }}" as="g" hint-placeholder-count="5">
+            <div style="background:var(--surface-panel);padding:28px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="{{ g.icon }}" size="24" color="var(--gold-500)"></x-import>
+              <div style="margin-top:16px;font-family:var(--font-display);font-size:18px;line-height:1.35;color:var(--text-heading)">{{ g.term }}</div>
+              <p style="margin:10px 0 0;font-size:14px;line-height:1.65;color:var(--text-body)">{{ g.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 CÁC TRƯỜNG DÙNG ĐỂ LÀM GÌ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="06-truong-du-lieu">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:start">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">06 · Vì sao cần các trường này</div>
+          <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Ngày, giờ, nơi sinh dùng để làm gì</h2>
+          <dl style="margin:32px 0 0">
+            <sc-for list="{{ fieldExplainers }}" as="f" hint-placeholder-count="4">
+              <div style="padding:20px 0;border-top:1px solid var(--border-hairline)">
+                <dt style="display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:18px;color:var(--text-heading)">
+                  <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="18px,18px" name="{{ f.icon }}" size="18" color="var(--gold-500)"></x-import>
+                  {{ f.label }}
+                </dt>
+                <dd style="margin:8px 0 0;font-size:15px;line-height:1.65;color:var(--text-body)">{{ f.body }}</dd>
+              </div>
+            </sc-for>
+          </dl>
+        </div>
+        <div>
+          <div style="aspect-ratio:3/2;border-radius:var(--radius-md);overflow:hidden">
+            <img src="uploads/quy-doi-du-lieu-ngay-gio-noi-sinh-la-so-tu-vi.webp" alt="Bảng lịch vạn niên và Thiên Can – Địa Chi cổ dùng minh hoạ quy đổi ngày giờ sinh sang lịch âm" style="display:block;width:100%;height:100%;object-fit:cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 UNKNOWN TIME MODE -->
+    <section id="unknown-time" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="07-khong-ro-gio-sinh">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">07 · Không rõ giờ sinh</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Không rõ giờ sinh vẫn lập được lá số</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Bạn có thể bỏ trống giờ sinh và tiếp tục. Bảng dưới đây cho biết phần nào giữ nguyên và phần nào bị ảnh hưởng.</p>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <div style="background:var(--surface-panel);padding:28px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="20px,20px" name="check" size="20" color="var(--gold-500)"></x-import>
+              <span style="font-family:var(--font-display);font-size:18px;color:var(--text-heading)">Không đổi</span>
+            </div>
+            <ul style="margin:16px 0 0;padding:0;list-style:none;display:grid;gap:12px">
+              <sc-for list="{{ unaffectedItems }}" as="it" hint-placeholder-count="4">
+                <li style="font-size:14.5px;line-height:1.55;color:var(--text-body);padding-left:16px;border-left:2px solid var(--border-hairline)">{{ it }}</li>
+              </sc-for>
+            </ul>
+          </div>
+          <div style="background:var(--surface-panel);padding:28px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="20px,20px" name="help-circle" size="20" color="var(--son)"></x-import>
+              <span style="font-family:var(--font-display);font-size:18px;color:var(--text-heading)">Có thể bị ảnh hưởng</span>
+            </div>
+            <ul style="margin:16px 0 0;padding:0;list-style:none;display:grid;gap:12px">
+              <sc-for list="{{ affectedItems }}" as="it" hint-placeholder-count="4">
+                <li style="font-size:14.5px;line-height:1.55;color:var(--text-body);padding-left:16px;border-left:2px solid var(--son-deep)">{{ it }}</li>
+              </sc-for>
+            </ul>
+          </div>
+        </div>
+        <p style="margin:20px 0 0;max-width:680px;font-size:13.5px;line-height:1.6;color:var(--text-faint)">Nếu biết giờ sinh chính xác sau này, bạn có thể lập lại lá số bất cứ lúc nào để cập nhật các phần này.</p>
+      </div>
+    </section>
+
+    <!-- 08 CÁCH TÍNH -->
+    <section id="cach-tinh" style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="08-cach-tinh">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">08 · Minh bạch phương pháp</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Cách tính, bộ quy tắc và phiên bản engine</h2>
+
+        <div style="margin-top:40px;max-width:760px">
+          <sc-for list="{{ methodRows }}" as="m" hint-placeholder-count="4">
+            <div style="display:flex;gap:24px;padding:20px 0;border-top:1px solid var(--border-hairline);align-items:baseline">
+              <span style="flex:none;width:180px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)">{{ m.label }}</span>
+              <span style="font-size:15px;line-height:1.6;color:var(--text-body)">{{ m.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:40px;max-width:760px">
+          <x-import component-from-global-scope="DesignSystem_031f07.EvidenceDrawer" hint-size="100%,220px" claim="AI được dùng để tổ chức và diễn giải lá số bằng tiếng Việt, không dùng để tạo ra dữ liệu lá số." confidence="Cố định theo quy tắc" rows="{{ engineRows }}" open="{{ engineOpen }}" onToggle="{{ toggleEngine }}"></x-import>
+        </div>
+
+        <p style="margin:32px 0 0;max-width:760px;font-size:14px;line-height:1.7;color:var(--text-muted);border-top:1px solid var(--border-hairline);padding-top:24px">Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.</p>
+      </div>
+    </section>
+
+    <!-- 09 GIỚI HẠN & SAFETY -->
+    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="09-gioi-han-safety">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
+        <div style="display:flex;align-items:center;gap:14px">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--gold-500)"></x-import>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">09 · Giới hạn</div>
+            <h2 style="margin:8px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,30px);color:var(--text-heading)">Nội dung tham khảo, không thay thế chuyên môn</h2>
+          </div>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:16px">
+          <sc-for list="{{ limitItems }}" as="li" hint-placeholder-count="5">
+            <li style="display:flex;gap:12px;font-size:15px;line-height:1.65;color:var(--text-body);padding-bottom:16px;border-bottom:1px solid var(--border-hairline)">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="18px,18px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:4px"></x-import>
+              <span>{{ li }}</span>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 10 CLUSTER + FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="10-kien-thuc-faq">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">10 · Đọc thêm</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Bài kiến thức liên quan</h2>
+        <div style="margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px">
+          <sc-for list="{{ articles }}" as="a" hint-placeholder-count="3">
+            <a href="{{ a.href }}" style="display:block;text-decoration:none;color:inherit">
+              <div style="aspect-ratio:16/10;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center">
+                <span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.1em;color:var(--text-faint)">{{ a.code }}</span>
+              </div>
+              <h3 style="margin:18px 0 0;font-family:var(--font-display);font-weight:400;font-size:20px;line-height:1.35;color:var(--text-heading)">{{ a.title }}</h3>
+              <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:var(--text-muted)">{{ a.body }}</p>
+            </a>
+          </sc-for>
+        </div>
+
+        <h2 style="margin:88px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Câu hỏi thường gặp</h2>
+        <div style="margin-top:24px;max-width:760px">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" hint-size="100%,64px" num="{{ f.num }}" question="{{ f.q }}" answer="{{ f.a }}" open="{{ f.open }}" onToggle="{{ f.toggle }}"></x-import>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:88px;padding:56px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+          <div style="max-width:520px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,2.8vw,30px);color:var(--text-heading)">Xem lá số của bạn ngay</h2>
+            <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:var(--text-muted)">Miễn phí, không cần tài khoản. Sau khi xem lá số, bạn có thể chọn mua báo cáo luận giải chi tiết — thanh toán một lần, không tự động gia hạn.</p>
+          </div>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="#form">Lập lá số miễn phí</x-import>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer style="border-top:1px solid var(--border-hairline);padding:64px 0 40px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:48px">
+        <div>
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--text-heading)">Lá Số Việt</div>
+          <p style="margin:12px 0 0;max-width:320px;font-size:13.5px;line-height:1.65;color:var(--text-faint)">Thư viện tri thức Việt đương đại về Tử Vi — lập và luận giải lá số dựa trên dữ liệu và phương pháp có thể kiểm chứng.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Sản phẩm</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Lập lá số Tử Vi</a>
+            <a href="/luan-giai-mau" style="color:var(--text-body);text-decoration:none">Báo cáo luận giải mẫu</a>
+            <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức Tử Vi</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Pháp lý</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/dieu-khoan" style="color:var(--text-body);text-decoration:none">Điều khoản sử dụng</a>
+            <a href="/quyen-rieng-tu" style="color:var(--text-body);text-decoration:none">Quyền riêng tư</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border-hairline);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+        <span style="font-size:12.5px;color:var(--text-faint)">Engine v1.4.0 · Bộ quy tắc an sao v2.3</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    navOpen: false,
+    unknownTime: false,
+    selectedPalaceIndex: 0,
+    engineOpen: true,
+    faqOpen: { 0: true }
+  };
+
+  toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
+  toggleUnknownTime = () => this.setState(s => ({ unknownTime: !s.unknownTime }));
+  selectPalace = (i) => this.setState({ selectedPalaceIndex: i });
+  toggleEngine = () => this.setState(s => ({ engineOpen: !s.engineOpen }));
+  toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+
+  renderVals() {
+    const freeResults = [
+      { num: '01', icon: 'compass', title: 'Lá số 12 cung đầy đủ', body: 'An đủ chính tinh và phụ tinh tại từng cung, hiển thị dạng sơ đồ và dạng danh sách.' },
+      { num: '02', icon: 'user-circle', title: 'Cung Mệnh, cung Thân', body: 'Xác định hai cung trung tâm cùng ngũ hành bản mệnh của bạn.' },
+      { num: '03', icon: 'calendar-day', title: 'Thiên Can – Địa Chi', body: 'Quy đổi năm, tháng, ngày, giờ sinh sang lịch âm và bộ Can Chi tương ứng.' },
+      { num: '04', icon: 'book-open', title: 'Tóm tắt tính cách', body: 'Diễn giải ngắn dựa trên chính tinh tại cung Mệnh, kèm nút xem căn cứ.' },
+      { num: '05', icon: 'scroll', title: 'Danh sách sao theo cung', body: 'Tên và vị trí từng sao chiếu tại 12 cung, không chỉ hiển thị bằng màu.' },
+      { num: '06', icon: 'share', title: 'Lưu và chia sẻ lá số', body: 'Đường liên kết riêng cho lá số của bạn, ẩn thông tin cá nhân theo mặc định.', bordered: false }
+    ];
+
+    const proofItems = [
+      { num: '01', icon: 'book-open', title: 'Phương pháp công khai', body: 'Bộ quy tắc an sao và phiên bản engine được công bố ở mục "Cách tính" bên dưới — không giấu sau một "thầy" ẩn danh.' },
+      { num: '02', icon: 'scroll', title: 'Mỗi nhận định mở được căn cứ', body: 'Nút "Vì sao có nhận định này?" cho xem đúng sao, đúng cung, đúng quy tắc đã dùng — không phải một câu chung chung áp cho mọi người.' },
+      { num: '03', icon: 'shield-lock', title: 'AI không tạo ra dữ liệu lá số', body: 'AI chỉ diễn giải kết quả engine đã tính. Khi văn bản diễn giải và engine lệch nhau, engine luôn là căn cứ đúng.' },
+      { num: '04', icon: 'check', title: 'Không rating, không chứng thực giả', body: 'Chúng tôi không dùng lượt theo dõi hay lời "ai cũng khen" để chứng minh uy tín — chỉ dùng phương pháp và dữ liệu bạn có thể tự kiểm tra.', bordered: false }
+    ];
+
+    const glossaryItems = [
+      { icon: 'compass', term: 'Cung', body: 'Lá số chia đời sống thành 12 khu vực gọi là cung — mỗi cung nói về một phương diện: sự nghiệp, tình cảm, tài chính, sức khoẻ...' },
+      { icon: 'scroll', term: 'Chính tinh & phụ tinh', body: 'Chính tinh là sao chủ chốt được an vào từng cung theo ngày giờ sinh; phụ tinh bổ sung sắc thái. Tên và vị trí sao là dữ liệu — ý nghĩa là phần luận giải.' },
+      { icon: 'user-circle', term: 'Cung Mệnh & Cung Thân', body: 'Cung Mệnh thể hiện bản chất cốt lõi; Cung Thân thể hiện phần biểu hiện ra ngoài. Đây là hai cung được xem đầu tiên khi đọc một lá số.' },
+      { icon: 'calendar-day', term: 'Ngũ hành bản mệnh', body: 'Kim – Mộc – Thuỷ – Hoả – Thổ được gán theo năm sinh, dùng để đối chiếu với ngũ hành của sao và cung khi luận giải.' },
+      { icon: 'clock', term: 'Đại vận', body: 'Mỗi 10 năm ứng với một cung khác được kích hoạt — cách Tử Vi nhìn một giai đoạn cụ thể, không phải một lời phán cho cả đời.' }
+    ];
+
+    const chartFacts = [
+      { col: 1, row: 1, name: 'Mệnh', badge: 'MỆNH', stars: 'Cự Môn, Hoá Quyền', note: 'Cung Mệnh — Cự Môn, Hoá Quyền. Đây là cung trung tâm, thể hiện bản chất cốt lõi, được xem đầu tiên khi đọc lá số.' },
+      { col: 2, row: 1, name: 'Tử Tức', stars: 'Thiên Cơ', note: 'Cung Tử Tức — Thiên Cơ. Nói về con cái và các mối quan hệ mang tính truyền thụ, sáng tạo.' },
+      { col: 3, row: 1, name: 'Phu Thê', stars: 'Thiên Đồng, Văn Xương', note: 'Cung Phu Thê — Thiên Đồng, Văn Xương. Nói về hôn nhân và cách cư xử trong quan hệ đôi lứa.' },
+      { col: 4, row: 1, name: 'Huynh Đệ', stars: 'Vũ Khúc, Thiên Phủ', note: 'Cung Huynh Đệ — Vũ Khúc, Thiên Phủ. Nói về anh chị em và các mối quan hệ ngang hàng, hỗ trợ lẫn nhau.' },
+      { col: 1, row: 2, name: 'Quan Lộc', badge: 'THÂN', stars: 'Thái Dương', note: 'Cung Quan Lộc — Thái Dương. Nói về sự nghiệp và con đường công danh. Trong hồ sơ mẫu này, cung Thân trùng với cung Quan Lộc.' },
+      { col: 4, row: 2, name: 'Phụ Mẫu', stars: 'Thái Âm, Văn Khúc', note: 'Cung Phụ Mẫu — Thái Âm, Văn Khúc. Nói về cha mẹ và mối quan hệ với người đi trước, người bảo trợ.' },
+      { col: 1, row: 3, name: 'Nô Bộc', stars: 'Thất Sát', note: 'Cung Nô Bộc (Giao Hữu) — Thất Sát. Nói về bạn bè, đồng nghiệp và các mối quan hệ ngang vai không cùng huyết thống.' },
+      { col: 4, row: 3, name: 'Phúc Đức', stars: 'Tham Lang', note: 'Cung Phúc Đức — Tham Lang. Nói về đời sống tinh thần, phúc phần và nền tảng thừa hưởng.' },
+      { col: 1, row: 4, name: 'Thiên Di', stars: 'Thiên Lương', note: 'Cung Thiên Di — Thiên Lương. Nói về việc di chuyển, thay đổi môi trường sống và cách thích nghi xa nhà.' },
+      { col: 2, row: 4, name: 'Tật Ách', stars: 'Liêm Trinh, Đà La', note: 'Cung Tật Ách — Liêm Trinh, Đà La. Nói về sức khoẻ và các xu hướng cần lưu ý về thể chất.' },
+      { col: 3, row: 4, name: 'Điền Trạch', stars: 'Phá Quân', note: 'Cung Điền Trạch — Phá Quân. Nói về nhà cửa, đất đai và tài sản cố định.' },
+      { col: 4, row: 4, name: 'Tài Bạch', stars: 'Tả Phụ, Hữu Bật', note: 'Cung Tài Bạch — Tả Phụ, Hữu Bật. Nói về tiền bạc, cách kiếm và giữ tài chính.' }
+    ];
+    const selectedIdx = this.state.selectedPalaceIndex;
+    const chartCells = chartFacts.map((c, i) => {
+      const selected = i === selectedIdx;
+      return {
+        ...c,
+        selected,
+        onSelect: () => this.selectPalace(i),
+        nameColor: selected ? 'var(--surface-canvas)' : 'var(--text-muted)',
+        starsColor: selected ? 'var(--surface-canvas)' : 'var(--text-body)',
+        badgeColor: selected ? 'var(--surface-canvas)' : 'var(--gold-500)',
+        cellStyle: `grid-column:${c.col};grid-row:${c.row};background:${selected ? 'var(--gold-500)' : 'var(--surface-panel)'};padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden;text-align:left;font:inherit;border:none;cursor:pointer`
+      };
+    });
+    const chartRows = chartCells.map((c, i) => ({
+      name: c.name, badge: c.badge, stars: c.stars,
+      selected: i === selectedIdx,
+      onSelect: () => this.selectPalace(i),
+      rowBg: i === selectedIdx ? 'var(--gold-500)' : 'transparent',
+      textColor: i === selectedIdx ? 'var(--surface-canvas)' : 'var(--text-heading)'
+    }));
+    const selectedPalace = chartFacts[selectedIdx];
+
+    const fieldExplainers = [
+      { icon: 'calendar-day', label: 'Ngày sinh', body: 'Dùng để tính năm, tháng, ngày theo lịch âm và xác định bộ Thiên Can – Địa Chi làm nền cho việc an chính tinh tại 12 cung.' },
+      { icon: 'clock', label: 'Giờ sinh', body: 'Xác định Địa Chi của giờ sinh, ảnh hưởng trực tiếp đến vị trí cung Thân và một số sao chỉ an theo giờ.' },
+      { icon: 'map-pin', label: 'Nơi sinh', body: 'Dùng để quy đổi giờ sinh về giờ chuẩn theo kinh độ nơi sinh trước khi tính Địa Chi giờ.' },
+      { icon: 'user', label: 'Giới tính', body: 'Một số sao trong phương pháp Tử Vi truyền thống được an theo chiều thuận hoặc nghịch khác nhau giữa nam và nữ.' }
+    ];
+
+    const unaffectedItems = [
+      'Cung Mệnh và ngũ hành bản mệnh',
+      'Bộ Thiên Can – Địa Chi của năm, tháng, ngày sinh',
+      'Hầu hết chính tinh an theo tháng và ngày sinh',
+      'Danh sách 12 cung và tên các cung'
+    ];
+    const affectedItems = [
+      'Vị trí cung Thân',
+      'Các sao chỉ an theo giờ sinh, ví dụ Văn Xương, Văn Khúc, Địa Không, Địa Kiếp',
+      'Một phần diễn giải liên quan trực tiếp đến cung Thân',
+      'Mức độ chi tiết của một vài nhận định trong báo cáo luận giải'
+    ];
+
+    const methodRows = [
+      { label: 'Phương pháp', value: 'An sao theo cách tính Tử Vi Đẩu Số cổ điển, dựa trên bộ quy tắc Thiên Can – Địa Chi và lịch âm.' },
+      { label: 'Bộ quy tắc', value: 'Bộ quy tắc an sao v2.3 — quy định vị trí và điều kiện an của toàn bộ chính tinh, phụ tinh.' },
+      { label: 'Phiên bản engine', value: 'Công cụ tính toán v1.4.0, cập nhật lần gần nhất 08/2026.' },
+      { label: 'Vai trò của AI', value: 'Tổ chức, đối chiếu và diễn giải kết quả an sao bằng tiếng Việt — không tạo ra hoặc thay đổi dữ liệu lá số.' }
+    ];
+    const engineRows = [
+      { label: 'Dữ liệu vào', value: 'Ngày, giờ, nơi sinh và giới tính do bạn nhập.' },
+      { label: 'Bước tính toán', value: 'Quy đổi lịch, xác định Can Chi, an 12 cung và toàn bộ sao theo bộ quy tắc cố định.' },
+      { label: 'Vai trò AI', value: 'Chuyển kết quả an sao thành diễn giải bằng tiếng Việt, có dẫn chiếu đến dữ liệu lá số cụ thể.' }
+    ];
+
+    const limitItems = [
+      'Lá số Tử Vi mang tính tham khảo văn hoá, phản ánh các xu hướng có thể xảy ra — không phải dự đoán chắc chắn về sự kiện cụ thể.',
+      'Không thay thế tư vấn y tế: các nhận định về sức khoẻ chỉ mang tính xu hướng chung.',
+      'Không thay thế tư vấn pháp lý hoặc tài chính: mọi quyết định quan trọng nên tham khảo chuyên gia phù hợp.',
+      'Kết quả có thể khác nhau giữa các trường phái Tử Vi khác nhau; Lá Số Việt công khai rõ bộ quy tắc đang sử dụng.',
+      'Nếu thông tin ngày, giờ, nơi sinh không chính xác, các nhận định liên quan có thể không còn phù hợp.'
+    ];
+
+    const articles = [
+      { code: 'BÀI 01', title: 'Cung Mệnh là gì và vì sao nó quan trọng nhất trong lá số', body: 'Vai trò của cung Mệnh trong việc đọc tổng quan một lá số Tử Vi.', href: '/kien-thuc/cung-menh-la-gi' },
+      { code: 'BÀI 02', title: 'Tử Vi Đẩu Số là gì — nguồn gốc và cách vận hành cơ bản', body: 'Tổng quan về hệ thống Tử Vi Đẩu Số và các thành phần chính của một lá số.', href: '/kien-thuc/tu-vi-dau-so-la-gi' },
+      { code: 'BÀI 03', title: 'Cách đọc 12 cung trong lá số cho người mới bắt đầu', body: 'Hướng dẫn từng bước đọc ý nghĩa của 12 cung và các sao chiếu.', href: '/kien-thuc/cach-doc-12-cung' }
+    ];
+
+    const faqData = [
+      { q: 'Lập lá số Tử Vi có mất phí không?', a: 'Lập lá số và xem các kết quả cơ bản hoàn toàn miễn phí, không cần tạo tài khoản. Báo cáo luận giải chi tiết là sản phẩm trả phí riêng, thanh toán một lần.' },
+      { q: 'Không rõ giờ sinh thì lá số có còn dùng được không?', a: 'Có. Bạn vẫn xem được cung Mệnh, ngũ hành bản mệnh và hầu hết chính tinh. Chỉ cung Thân và một vài sao an theo giờ sẽ không hiển thị — xem chi tiết ở phần "Không rõ giờ sinh".' },
+      { q: 'Tôi nên nhập lịch dương hay lịch âm?', a: 'Nhập theo loại lịch ghi trên giấy khai sinh của bạn và chọn đúng tuỳ chọn lịch dương hoặc lịch âm trong form — hệ thống sẽ tự quy đổi.' },
+      { q: 'Nơi sinh có cần chính xác tuyệt đối không?', a: 'Nên chọn địa danh gần nhất với nơi sinh thật. Nơi sinh dùng để quy đổi giờ sinh theo kinh độ, sai lệch trong phạm vi một tỉnh thường không ảnh hưởng đến kết quả.' },
+      { q: 'Lá số Tử Vi có thể dùng để quyết định việc quan trọng không?', a: 'Không nên. Nội dung mang tính tham khảo văn hoá và phản ánh xu hướng có thể xảy ra, không thay thế tư vấn y tế, pháp lý hoặc tài chính từ chuyên gia.' },
+      { q: 'Nếu lá số hoặc một cung nào đó có nhận định không tích cực thì sao?', a: 'Lá Số Việt không xếp một cung hay một giai đoạn là "xấu" tuyệt đối. Mỗi nhận định đi kèm điều kiện (ví dụ có bị sát tinh hãm địa hay không) và mức độ tin cậy, để bạn thấy đây là một xu hướng cần quan sát — không phải một lời phán về số phận đã định. Với sức khoẻ, tài chính hay pháp lý, kết quả không thay thế tư vấn chuyên môn.' },
+      { q: 'Làm sao biết một nhận định dựa trên căn cứ gì?', a: 'Các nhận định quan trọng đều có nút "Vì sao có nhận định này?" kèm dấu triện, mở ra phần dữ liệu lá số đã được dùng để đưa ra nhận định đó.' }
+    ];
+    const faqs = faqData.map((f, i) => ({
+      num: String(i + 1).padStart(2, '0'),
+      q: f.q,
+      a: f.a,
+      open: !!this.state.faqOpen[i],
+      toggle: () => this.toggleFaq(i)
+    }));
+
+    return {
+      unknownTime: this.state.unknownTime,
+      timeInputOpacity: this.state.unknownTime ? 0.45 : 1,
+      toggleUnknownTime: this.toggleUnknownTime,
+      toggleNav: this.toggleNav,
+      engineOpen: this.state.engineOpen,
+      toggleEngine: this.toggleEngine,
+      freeResults, proofItems, glossaryItems, chartCells, chartRows, selectedPalace, fieldExplainers,
+      unaffectedItems, affectedItems, methodRows, engineRows,
+      limitItems, articles, faqs
+    };
+  }
+}
+
+</script>
+</body>
+</html>

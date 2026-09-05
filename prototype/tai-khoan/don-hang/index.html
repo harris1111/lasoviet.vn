@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Đơn hàng &amp; hỗ trợ — Tài khoản · Lá Số Việt</title>
+  <style id="__om-edit-overrides">
+    body { margin: 0; background: var(--lacquer-900); color: var(--pearl-200); font-family: var(--font-ui), sans-serif; }
+    .lsv-bg-texture { background-color: var(--lacquer-900); background-image: linear-gradient(rgba(15,13,10,0.94), rgba(15,13,10,0.94)), url('../uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--gold-500); }
+    a:hover { color: var(--gold-400); }
+    .acc-tab { padding:12px 4px; margin-right:28px; font-size:14.5px; text-decoration:none; border-bottom:2px solid transparent; color:var(--pearl-400); }
+    .acc-tab.active { color:var(--pearl-50); border-bottom-color:var(--gold-500); }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="min-height:100vh;">
+
+  <header style="position:sticky; top:0; z-index:10; background:var(--lacquer-800); border-bottom:1px solid var(--lacquer-line);">
+    <div style="max-width:1200px; margin:0 auto; padding:0 32px; height:72px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
+      <div style="display:flex; align-items:baseline; gap:12px; min-width:0;">
+        <a href="/" style="font-family:var(--font-display); font-size:20px; font-weight:600; background:var(--gradient-gold); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none; flex:none;">Lá Số Việt</a>
+        <span style="color:var(--pearl-600); font-size:14px;">/</span>
+        <a href="/tai-khoan" style="font-family:var(--font-ui); font-size:14px; color:var(--pearl-400); text-decoration:none;">Tài khoản</a>
+      </div>
+      <div style="display:flex; align-items:center; gap:20px; flex:none;">
+        <div style="display:flex; align-items:center; gap:8px; color:var(--pearl-400); font-size:14px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user-circle" size="18" color="var(--pearl-400)" hint-size="18px,18px"></x-import>
+          <span>ban@vidu.vn</span>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="link" onClick="{{ noop }}" hint-size="auto,20px">Đăng xuất</x-import>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1200px; margin:0 auto; padding:48px 32px 128px;">
+
+    <div style="max-width:760px;">
+      <h1 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:38px; line-height:1.2; color:var(--pearl-50);">Tài khoản</h1>
+    </div>
+
+    <nav aria-label="Điều hướng tài khoản" style="margin-top:24px; display:flex; gap:0; border-bottom:1px solid var(--lacquer-line); flex-wrap:wrap;">
+      <a href="/tai-khoan" class="acc-tab">Tổng quan</a>
+      <a href="/tai-khoan/ho-so" class="acc-tab">Lá số &amp; hồ sơ</a>
+      <a href="/tai-khoan/bao-cao" class="acc-tab">Báo cáo đã mua</a>
+      <a href="/tai-khoan/don-hang" class="acc-tab active">Đơn hàng &amp; hỗ trợ</a>
+      <a href="/tai-khoan/quyen-rieng-tu" class="acc-tab">Quyền riêng tư</a>
+    </nav>
+
+    <section style="margin-top:48px;">
+      <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:30px; color:var(--pearl-50);">Lịch sử đơn hàng</h2>
+      <p style="margin:12px 0 0; font-size:15px; color:var(--pearl-400); max-width:640px;">Mọi giao dịch mua báo cáo, kèm trạng thái thanh toán — không ẩn phí hay tự động gia hạn.</p>
+
+      <div style="margin-top:32px; overflow-x:auto;">
+        <table style="width:100%; min-width:640px; border-collapse:collapse; font-size:13.5px;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--lacquer-line);">
+              <th scope="col" style="text-align:left; padding:10px 12px 10px 0; color:var(--pearl-600); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Mã đơn</th>
+              <th scope="col" style="text-align:left; padding:10px 12px; color:var(--pearl-600); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Nội dung</th>
+              <th scope="col" style="text-align:left; padding:10px 12px; color:var(--pearl-600); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Ngày</th>
+              <th scope="col" style="text-align:left; padding:10px 12px; color:var(--pearl-600); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Số tiền</th>
+              <th scope="col" style="text-align:left; padding:10px 0; color:var(--pearl-600); font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{ orders }}" as="o" hint-placeholder-count="3">
+              <tr style="border-bottom:1px solid var(--lacquer-line);">
+                <td style="padding:12px 12px 12px 0; color:var(--pearl-200); white-space:nowrap; font-family:var(--font-mono);">{{ o.id }}</td>
+                <td style="padding:12px; color:var(--pearl-200);">{{ o.description }}</td>
+                <td style="padding:12px; color:var(--pearl-400); white-space:nowrap;">{{ o.dateLabel }}</td>
+                <td style="padding:12px; color:var(--pearl-200); white-space:nowrap;">{{ o.amount }}</td>
+                <td style="padding:12px 0; color:{{ o.statusColor }}; white-space:nowrap;">{{ o.status }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section style="margin-top:80px;">
+      <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:30px; color:var(--pearl-50);">Hỗ trợ</h2>
+      <p style="margin:12px 0 0; font-size:15px; color:var(--pearl-400); max-width:640px;">Cần hỗ trợ về một đơn hàng, báo cáo hoặc vấn đề tài khoản? Gửi yêu cầu, chúng tôi phản hồi trong vòng 1-2 ngày làm việc.</p>
+
+      <div style="margin-top:28px; background:var(--lacquer-700); border:1px solid var(--lacquer-line); border-radius:8px; padding:28px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="20" color="var(--gold-500)" hint-size="20px,20px"></x-import>
+          <span style="font-family:var(--font-display); font-size:18px; color:var(--pearl-50);">Chưa có ticket hỗ trợ nào</span>
+        </div>
+        <p style="margin:10px 0 0; font-size:14px; color:var(--pearl-400); max-width:520px;">Nếu bạn cần hỗ trợ, hãy liên hệ trực tiếp — yêu cầu của bạn sẽ hiển thị ở đây kèm trạng thái xử lý khi tính năng theo dõi ticket ra mắt.</p>
+        <div style="margin-top:18px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" href="/lien-he" hint-size="auto,44px">Liên hệ hỗ trợ</x-import>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer style="border-top:1px solid var(--lacquer-line); margin-top:64px;">
+    <div style="max-width:1200px; margin:0 auto; padding:32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--pearl-600);">© Lá Số Việt</span>
+      <div style="display:flex; gap:24px;">
+        <a href="/" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Trang chủ</a>
+        <a href="/dieu-khoan" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Điều khoản</a>
+        <a href="/quyen-rieng-tu" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Chính sách riêng tư</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    orders: [
+      { id: 'LSV-20260103-0091', description: 'Báo cáo Tử Vi — Bản Toàn diện (Của tôi)', dateLabel: '03/01/2026', amount: '199.000đ', status: 'Đã thanh toán', statusColor: 'var(--gold-400)' },
+      { id: 'LSV-20260501-0114', description: 'Báo cáo Tử Vi — Sự nghiệp (Bạn thân)', dateLabel: '01/05/2026', amount: '79.000đ', status: 'Đã thanh toán', statusColor: 'var(--gold-400)' },
+    ],
+  };
+
+  renderVals() {
+    return { orders: this.state.orders, noop: () => {} };
+  }
+}
+</script>
+</body>
+</html>

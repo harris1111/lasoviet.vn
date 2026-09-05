@@ -4,12 +4,14 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const productSchema = z.object({
-  sku: z.string().regex(/^ZIWEI-[A-Z]+-P0$/),
+  sku: z.string().regex(/^(?:ZIWEI|BAZI|WESTERN)-[A-Z]+-P0$/),
   name: z.string().trim().min(1),
-  method: z.literal("ziwei"),
+  method: z.enum(["ziwei", "bazi", "western_astrology"]),
   price: z.number().int().positive(),
   phase: z.string().trim().min(1),
   availability: z.enum(["first_paid_flow", "reserved"]),
+  decision_ref: z.string().trim().min(1).optional(),
+  note: z.string().trim().min(1).optional(),
   sections: z.array(z.string().trim().min(1)).min(1),
 }).strict();
 

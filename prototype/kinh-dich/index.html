@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Kinh Dịch / Chu Dịch — Sắp ra mắt · Lá Số Việt</title>
+  <meta name="description" content="Kinh Dịch tại Lá Số Việt đang được hoàn thiện: đặt một câu hỏi, gieo quẻ ảo, xem quẻ chủ, hào động và quẻ biến. Xem trước phương pháp và một quẻ mẫu.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    :root { --bronze: #8A7450; --bronze-deep: #46392A; --bronze-tint: rgba(138,116,80,0.16); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    @media (prefers-reduced-motion: reduce) { .ls-marquee-track { animation: none !important; } }
+    @keyframes ls-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .id-line { height: 12px; border-radius: 2px; background: var(--pearl-200); }
+    .id-line.yin { background: transparent; display: flex; gap: 14%; }
+    .id-line.yin span { flex: 1; height: 12px; border-radius: 2px; background: var(--pearl-200); }
+    .id-line.moving { background: var(--son); }
+    .id-line.yin.moving span { background: var(--son); }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="kinh-dich">
+
+  <!-- HEADER -->
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap" class="ls-nav-links">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
+        <a href="/bat-tu" style="color:var(--text-body);text-decoration:none">Bát Tự</a>
+        <a href="/kinh-dich" style="color:var(--bronze);text-decoration:none;border-bottom:1px solid var(--bronze);padding-bottom:2px">Kinh Dịch</a>
+        <a href="/chiem-tinh" style="color:var(--text-body);text-decoration:none">Chiêm Tinh</a>
+        <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+        <button type="button" aria-label="Mở menu" onClick="{{ toggleNav }}" style="display:none;background:none;border:none;color:var(--text-heading);cursor:pointer;padding:8px;min-height:44px;min-width:44px" class="ls-nav-toggle">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="menu" size="24"></x-import>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div style="border-bottom:1px solid var(--border-hairline);background:var(--surface-deep);overflow:hidden;padding:12px 0" aria-hidden="true">
+    <div class="ls-marquee-track" style="display:flex;width:max-content;gap:48px;animation:ls-marquee 38s linear infinite;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap">
+      <span>QUẺ CHỦ · HÀO ĐỘNG · QUẺ BIẾN · THƯỢNG HẠ QUÁI · ÂM DƯƠNG · KINH DỊCH ĐANG HOÀN THIỆN ·</span>
+      <span>QUẺ CHỦ · HÀO ĐỘNG · QUẺ BIẾN · THƯỢNG HẠ QUÁI · ÂM DƯƠNG · KINH DỊCH ĐANG HOÀN THIỆN ·</span>
+    </div>
+  </div>
+
+  <main>
+    <!-- 01 HERO -->
+    <section style="padding:clamp(48px,8vw,96px) 0 clamp(56px,9vw,104px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:32px">
+          <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <span style="color:var(--text-muted)">Kinh Dịch / Chu Dịch</span>
+        </nav>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,0.95fr);gap:64px;align-items:start">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bronze);border:1px solid var(--bronze-deep);border-radius:var(--radius-pill);padding:6px 14px;background:var(--bronze-tint)">Sắp ra mắt</div>
+            <h1 style="margin:20px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading)">Kinh Dịch / Chu Dịch</h1>
+            <p style="margin:20px 0 0;max-width:540px;font-size:18px;line-height:1.6;color:var(--text-body)">Kinh Dịch không cần ngày giờ sinh. Bạn đặt một câu hỏi cụ thể, gieo quẻ theo một thời điểm, và nhận về quẻ chủ, hào động và quẻ biến — ba lớp dữ liệu để đọc một tình huống, không phải một lời phán về tương lai.</p>
+            <p style="margin:16px 0 0;max-width:540px;font-size:15px;line-height:1.6;color:var(--text-muted)">Lá Số Việt đang hoàn thiện cách gieo quẻ ảo, chính sách cooldown và bộ căn cứ diễn giải trước khi phát hành.</p>
+
+            <div style="margin-top:36px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+              <a href="#cach-gieo-que" style="display:inline-flex"><x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary">Xem cách gieo quẻ</x-import></a>
+              <a href="/tu-vi" style="display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--text-body)">Xem lá số Tử Vi miễn phí <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16"></x-import></a>
+            </div>
+            <p style="margin:20px 0 0;font-size:12.5px;color:var(--text-faint)">Chưa có công cụ gieo quẻ trực tiếp — trang này giới thiệu phương pháp và một quẻ minh hoạ, không phải kết quả gieo thật.</p>
+          </div>
+
+          <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:36px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="26px,26px" name="scroll" size="26" color="var(--bronze)"></x-import>
+              <span style="font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Xây quẻ từ dưới lên</span>
+            </div>
+            <div style="margin-top:24px;display:flex;flex-direction:column-reverse;gap:10px">
+              <sc-for list="{{ heroLines }}" as="ln" hint-placeholder-count="6">
+                <sc-if value="{{ ln.yin }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:16%"><span style="flex:1;height:10px;border-radius:2px;background:{{ ln.color }}"></span><span style="flex:1;height:10px;border-radius:2px;background:{{ ln.color }}"></span></div>
+                </sc-if>
+                <sc-if value="{{ ln.yang }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:10px;border-radius:2px;background:{{ ln.color }}"></div>
+                </sc-if>
+              </sc-for>
+            </div>
+            <p style="margin:20px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Hào 1 (dưới cùng) được gieo trước; hào có màu son là hào động — xem ví dụ đầy đủ ở mục "Quẻ mẫu" bên dưới.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 NHẬN ĐƯỢC GÌ KHI RA MẮT -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-nhan-duoc-gi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bronze)">02 · Khi ra mắt</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Một lượt gieo quẻ sẽ cho bạn những gì</h2>
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ freeResults }}" as="item" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,160px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 QUẺ MẪU -->
+    <section id="que-mau" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="03-que-mau">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bronze)">03 · Ví dụ minh hoạ</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Một quẻ trông như thế nào</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây minh hoạ đúng cấu trúc quẻ Kinh Dịch cổ điển — không phải kết quả gieo từ một câu hỏi thật.</p>
+
+        <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:32px;align-items:center">
+          <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:28px">
+            <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)">Quẻ chủ</div>
+            <div style="margin-top:6px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">01 · Thuần Càn</div>
+            <div style="margin-top:20px;display:flex;flex-direction:column-reverse;gap:10px">
+              <sc-for list="{{ primaryLines }}" as="ln" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="flex:none;width:26px;font-family:var(--font-mono);font-size:10px;color:var(--text-faint)">{{ ln.num }}</span>
+                  <sc-if value="{{ ln.yin }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1;display:flex;gap:16%"><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span></div>
+                  </sc-if>
+                  <sc-if value="{{ ln.yang }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></div>
+                  </sc-if>
+                  <span style="flex:none;font-family:var(--font-mono);font-size:9.5px;color:{{ ln.stateColor }}">{{ ln.stateLabel }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:16px;font-size:12.5px;color:var(--text-faint)">Thượng quái: Càn (☰) · Hạ quái: Càn (☰)</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-faint)">
+            <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="22px,22px" name="chevron-right" size="22" color="var(--son)"></x-import>
+            <span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase">1 hào động</span>
+          </div>
+
+          <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:28px">
+            <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)">Quẻ biến</div>
+            <div style="margin-top:6px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">10 · Thiên Trạch Lý</div>
+            <div style="margin-top:20px;display:flex;flex-direction:column-reverse;gap:10px">
+              <sc-for list="{{ changedLines }}" as="ln" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="flex:none;width:26px;font-family:var(--font-mono);font-size:10px;color:var(--text-faint)">{{ ln.num }}</span>
+                  <sc-if value="{{ ln.yin }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1;display:flex;gap:16%"><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span></div>
+                  </sc-if>
+                  <sc-if value="{{ ln.yang }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></div>
+                  </sc-if>
+                  <span style="flex:none;font-family:var(--font-mono);font-size:9.5px;color:{{ ln.stateColor }}">{{ ln.stateLabel }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:16px;font-size:12.5px;color:var(--text-faint)">Thượng quái: Càn (☰) · Hạ quái: Đoài (☱)</div>
+          </div>
+        </div>
+
+        <div style="margin-top:40px;max-width:680px">
+          <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Hào 3" title="Hào động nằm ở vị trí thứ ba (từ dưới lên) — nơi quẻ chủ chuyển thành quẻ biến." sub="Bản diễn giải đầy đủ sẽ tách rõ ý nghĩa quẻ chủ, ý nghĩa riêng của hào động và ý nghĩa quẻ biến — không gộp thành một đoạn văn chung." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 THUẬT NGỮ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;border-top:1px solid var(--border-hairline)" data-screen-label="04-thuat-ngu">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bronze)">04 · Thuật ngữ cốt lõi</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Đọc một quẻ mà không bị ngợp thuật ngữ</h2>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ glossaryItems }}" as="g" hint-placeholder-count="5">
+            <div style="background:var(--surface-panel);padding:28px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="{{ g.icon }}" size="24" color="var(--bronze)"></x-import>
+              <div style="margin-top:16px;font-family:var(--font-display);font-size:18px;line-height:1.35;color:var(--text-heading)">{{ g.term }}</div>
+              <p style="margin:10px 0 0;font-size:14px;line-height:1.65;color:var(--text-body)">{{ g.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 CÁCH GIEO QUẺ -->
+    <section id="cach-gieo-que" style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="05-cach-gieo-que">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bronze)">05 · Minh bạch phương pháp</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Cách gieo quẻ sẽ hoạt động</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Kinh Dịch dễ bị dùng sai theo hướng "gieo lại đến khi ra quẻ mình thích". Lá Số Việt thiết kế ngược lại: một câu hỏi có một quẻ, có thể xem lại nhưng không gieo lại âm thầm.</p>
+
+        <div style="margin-top:40px;max-width:760px">
+          <sc-for list="{{ methodRows }}" as="m" hint-placeholder-count="4">
+            <div style="display:flex;gap:24px;padding:20px 0;border-top:1px solid var(--border-hairline);align-items:baseline">
+              <span style="flex:none;width:200px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)">{{ m.label }}</span>
+              <span style="font-size:15px;line-height:1.6;color:var(--text-body)">{{ m.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <p style="margin:32px 0 0;max-width:760px;font-size:14px;line-height:1.7;color:var(--text-muted);border-top:1px solid var(--border-hairline);padding-top:24px">Khi ra mắt, AI tại Lá Số Việt chỉ diễn giải quẻ đã gieo — không tự ý gieo lại hoặc chỉnh sửa kết quả để "khớp" với câu hỏi.</p>
+      </div>
+    </section>
+
+    <!-- 06 GIỚI HẠN -->
+    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="06-gioi-han">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
+        <div style="display:flex;align-items:center;gap:14px">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--bronze)"></x-import>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bronze)">06 · Giới hạn</div>
+            <h2 style="margin:8px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,30px);color:var(--text-heading)">Một góc nhìn để suy ngẫm, không phải lời phán</h2>
+          </div>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:16px">
+          <sc-for list="{{ limitItems }}" as="li" hint-placeholder-count="5">
+            <li style="display:flex;gap:12px;font-size:15px;line-height:1.65;color:var(--text-body);padding-bottom:16px;border-bottom:1px solid var(--border-hairline)">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="18px,18px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:4px"></x-import>
+              <span>{{ li }}</span>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 07 KIẾN THỨC + FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="07-kien-thuc-faq">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bronze)">07 · Đọc thêm</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Trong lúc chờ Kinh Dịch</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Kiến thức riêng cho Kinh Dịch đang được biên soạn. Trong lúc chờ, bạn có thể tìm hiểu cách Lá Số Việt tách bạch tính toán, quy tắc diễn giải và AI qua lá số Tử Vi đã hoạt động.</p>
+        <div style="margin-top:28px">
+          <a href="/kien-thuc/tu-vi" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--bronze)">Xem thư viện kiến thức Tử Vi <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--bronze)"></x-import></a>
+        </div>
+
+        <h2 style="margin:80px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Câu hỏi thường gặp</h2>
+        <div style="margin-top:24px;max-width:760px">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" hint-size="100%,64px" num="{{ f.num }}" question="{{ f.q }}" answer="{{ f.a }}" open="{{ f.open }}" onToggle="{{ f.toggle }}"></x-import>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:88px;padding:56px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+          <div style="max-width:520px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,2.8vw,30px);color:var(--text-heading)">Trong lúc chờ, xem lá số Tử Vi miễn phí</h2>
+            <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:var(--text-muted)">Miễn phí, không cần tài khoản. Cùng cách tiếp cận: tách bạch tính toán, quy tắc và diễn giải.</p>
+          </div>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer style="border-top:1px solid var(--border-hairline);padding:64px 0 40px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:48px">
+        <div>
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--text-heading)">Lá Số Việt</div>
+          <p style="margin:12px 0 0;max-width:320px;font-size:13.5px;line-height:1.65;color:var(--text-faint)">Thư viện tri thức Việt đương đại — lập và luận giải lá số dựa trên dữ liệu và phương pháp có thể kiểm chứng.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Sản phẩm</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Lập lá số Tử Vi</a>
+            <a href="/kinh-dich" style="color:var(--text-body);text-decoration:none">Kinh Dịch (sắp ra mắt)</a>
+            <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Pháp lý</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/dieu-khoan" style="color:var(--text-body);text-decoration:none">Điều khoản sử dụng</a>
+            <a href="/quyen-rieng-tu" style="color:var(--text-body);text-decoration:none">Quyền riêng tư</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border-hairline);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+        <span style="font-size:12.5px;color:var(--text-faint)">Kinh Dịch: đang xây dựng — chưa có engine/phiên bản chính thức</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    navOpen: false,
+    insightStamped: false,
+    faqOpen: { 0: true }
+  };
+
+  toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
+  toggleInsight = () => this.setState(s => ({ insightStamped: !s.insightStamped }));
+  toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+
+  renderVals() {
+    // Quẻ Thuần Càn (01) với hào 3 (từ dưới lên) động, biến thành quẻ Thiên Trạch Lý (10):
+    // thượng quái Càn (☰) không đổi, hạ quái đổi từ Càn (☰) sang Đoài (☱) vì hào 3 (Dương) hoá Âm.
+    // Mảng liệt kê từ hào 1 (dưới cùng, gieo trước) đến hào 6 (trên cùng) để giữ đúng thứ tự đọc
+    // DOM/màn hình đọc — bắt buộc theo yêu cầu accessibility (đọc hào 1→6 bất kể cách vẽ trên màn
+    // hình). flex-direction: column-reverse lật hiển thị để hào 1 nằm dưới cùng, hào 6 trên cùng,
+    // đúng quy ước vẽ quẻ cổ điển, mà không phải đảo thứ tự DOM.
+    const lineState = (yang, moving) => ({
+      yang, yin: !yang, moving: !!moving,
+      color: moving ? 'var(--son)' : (yang ? 'var(--gold-500)' : 'var(--pearl-200)'),
+      stateColor: moving ? 'var(--son)' : 'var(--text-faint)',
+      stateLabel: `${yang ? 'Dương' : 'Âm'}${moving ? ' · Động' : ''}`
+    });
+    const numbered = (arr) => arr.map((line, i) => ({ ...line, num: `H${i + 1}` }));
+
+    const heroLines = numbered([
+      lineState(true, false),
+      lineState(true, false),
+      lineState(true, true),
+      lineState(true, false),
+      lineState(true, false),
+      lineState(true, false)
+    ]);
+
+    const primaryLines = numbered([
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, true) },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' }
+    ]);
+
+    const changedLines = numbered([
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(false, false), color: 'var(--pearl-200)', stateLabel: 'Âm · Đã đổi', stateColor: 'var(--son)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' }
+    ]);
+
+    const freeResults = [
+      { num: '01', icon: 'scroll', title: 'Một lượt gieo cho một câu hỏi', body: 'Đặt một câu hỏi cụ thể, gieo quẻ ảo theo thời điểm — không cần ngày giờ sinh.' },
+      { num: '02', icon: 'compass', title: 'Quẻ chủ đầy đủ 6 hào', body: 'Toàn bộ 6 hào xây từ dưới lên, kèm thượng quái và hạ quái.' },
+      { num: '03', icon: 'book-open', title: 'Hào động và quẻ biến', body: 'Xác định rõ hào nào đang chuyển động và quẻ sẽ biến thành gì.' },
+      { num: '04', icon: 'shield-lock', title: 'Cơ chế chống gieo lại', body: 'Một câu hỏi tương ứng một quẻ trong thời gian cooldown — không cho gieo lại để "săn" kết quả tốt.' },
+      { num: '05', icon: 'user-circle', title: 'Diễn giải theo lớp', body: 'Ý nghĩa quẻ chủ, ý nghĩa hào động và ý nghĩa quẻ biến được tách riêng, không gộp chung.' },
+      { num: '06', icon: 'calendar-day', title: 'Lịch sử các lượt gieo', body: 'Xem lại câu hỏi, quẻ và thời điểm đã gieo trước đó.', bordered: false }
+    ];
+
+    const glossaryItems = [
+      { icon: 'book-open', term: 'Hào', body: 'Một trong sáu vạch tạo nên một quẻ — vạch liền là Dương, vạch đứt là Âm.' },
+      { icon: 'scroll', term: 'Hào động', body: 'Hào đang trong trạng thái chuyển đổi Âm ↔ Dương, khiến quẻ chủ biến thành quẻ biến. Có thể không có, có một hoặc nhiều hào động.' },
+      { icon: 'compass', term: 'Thượng quái & Hạ quái', body: 'Mỗi quẻ 6 hào gồm hai nhóm 3 hào: hạ quái (3 hào dưới) và thượng quái (3 hào trên), mỗi nhóm ứng với một trong 8 quẻ đơn (Bát Quái).' },
+      { icon: 'user-circle', term: 'Quẻ chủ & Quẻ biến', body: 'Quẻ chủ là quẻ gieo được ban đầu; quẻ biến là quẻ sau khi các hào động đã đổi Âm ↔ Dương.' },
+      { icon: 'help-circle', term: 'Âm & Dương', body: 'Hai trạng thái đối lập và bổ sung cho nhau — nền tảng của toàn bộ hệ thống Kinh Dịch, không mang nghĩa tốt/xấu cố định.' }
+    ];
+
+    const methodRows = [
+      { label: 'Phương pháp gieo quẻ', value: 'Gieo quẻ ảo theo phương pháp cổ điển (tương đương gieo 3 đồng tiền 6 lần) — quy tắc chính xác sẽ công bố trước khi ra mắt.' },
+      { label: 'Giới hạn lượt gieo', value: 'Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ. Gieo lại cùng câu hỏi trong 24 giờ đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới.' },
+      { label: 'Khả năng xem lại', value: 'Mỗi lượt gieo sẽ lưu lại đầy đủ để xem lại đúng quẻ đã ra, không được gieo lại âm thầm.' },
+      { label: 'Vai trò của AI', value: 'Tổ chức và diễn giải quẻ đã gieo bằng tiếng Việt — không tự chọn hoặc thay đổi kết quả gieo.' }
+    ];
+
+    const limitItems = [
+      'Kết quả một quẻ là một góc nhìn để suy ngẫm về tình huống hiện tại, không phải câu trả lời chắc chắn hay "lời của trời".',
+      'Không khuyến khích gieo lặp lại cùng một câu hỏi để tìm kết quả dễ chịu hơn.',
+      'Không thay thế tư vấn y tế, pháp lý, tài chính hoặc tâm lý chuyên môn.',
+      'Văn bản nguồn cổ điển, dữ liệu quẻ đã gieo và phần diễn giải hiện đại sẽ luôn được tách biệt rõ ràng.',
+      'Quẻ mẫu ở trên chỉ minh hoạ cấu trúc, không phải kết quả gieo từ một câu hỏi thật.'
+    ];
+
+    const faqData = [
+      { q: 'Kinh Dịch có cần nhập ngày giờ sinh không?', a: 'Không. Kinh Dịch chỉ cần một câu hỏi cụ thể và thời điểm gieo quẻ — không dùng chung hồ sơ sinh với Tử Vi hay Bát Tự.' },
+      { q: 'Vì sao không thể gieo lại nếu chưa thích kết quả?', a: 'Kinh Dịch có giá trị khi bạn đối diện với câu trả lời của lần gieo đầu, không phải chọn quẻ mình muốn nghe. Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ — gieo lại trong thời gian đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới.' },
+      { q: 'Khi nào Kinh Dịch ra mắt?', a: 'Chưa có ngày cụ thể. Lá Số Việt đang hoàn thiện cách gieo quẻ ảo và bộ căn cứ diễn giải trước khi phát hành công khai.' },
+      { q: 'Kết quả một quẻ có phải là câu trả lời chắc chắn không?', a: 'Không. Đây là một góc nhìn có điều kiện để suy ngẫm về tình huống bạn đang hỏi, không phải một lời tiên tri tuyệt đối.' },
+      { q: 'Hào động là gì và vì sao quan trọng?', a: 'Hào động là hào đang chuyển đổi Âm sang Dương hoặc ngược lại, cho thấy phần nào của tình huống đang thay đổi. Quẻ biến — kết quả sau khi hào động đổi — thường được đọc cùng quẻ chủ để thấy xu hướng.' },
+      { q: 'Tôi có thể đăng ký nhận thông báo khi Kinh Dịch ra mắt không?', a: 'Hiện trang này chưa có form đăng ký nhận thông báo. Bạn có thể quay lại trang này hoặc theo dõi trang chủ để biết thời điểm ra mắt.' }
+    ];
+    const faqs = faqData.map((f, i) => ({
+      num: String(i + 1).padStart(2, '0'),
+      q: f.q,
+      a: f.a,
+      open: !!this.state.faqOpen[i],
+      toggle: () => this.toggleFaq(i)
+    }));
+
+    return {
+      toggleNav: this.toggleNav,
+      insightStamped: this.state.insightStamped,
+      toggleInsight: this.toggleInsight,
+      heroLines, primaryLines, changedLines, freeResults, glossaryItems, methodRows, limitItems, faqs
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Kiến thức — Lá Số Việt</title>
+  <meta name="description" content="Thư viện kiến thức Lá Số Việt: khái niệm, phương pháp và thuật ngữ cho Tử Vi, Bát Tự, Kinh Dịch, Chiêm Tinh, Thần Số Học và Tarot, độc lập với việc lập lá số.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="kien-thuc">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/kien-thuc" style="color:var(--gold-400);text-decoration:none;border-bottom:1px solid var(--gold-500);padding-bottom:2px">Kiến thức</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 01 HERO -->
+    <section style="padding:clamp(48px,8vw,88px) 0 clamp(48px,7vw,72px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">Thư viện kiến thức</div>
+        <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading);max-width:680px">Kiến thức</h1>
+        <p style="margin:20px 0 0;max-width:640px;font-size:18px;line-height:1.6;color:var(--text-body)">Khái niệm, phương pháp và thuật ngữ cho từng bộ môn — đọc độc lập với việc lập lá số, không cần nhập ngày giờ sinh để xem.</p>
+      </div>
+    </section>
+
+    <!-- 02 THEO BỘ MÔN -->
+    <section style="padding:0 0 clamp(56px,9vw,96px)" data-screen-label="02-theo-bo-mon">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;flex-direction:column;gap:56px">
+        <sc-for list="{{ disciplines }}" as="d" hint-placeholder-count="6">
+          <div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--border-hairline);padding-bottom:16px">
+              <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:24px;color:{{ d.color }}">{{ d.title }}</h2>
+              <a href="{{ d.hubHref }}" style="font-size:13.5px;color:var(--text-muted);text-decoration:none">Xem tất cả bài viết {{ d.title }} →</a>
+            </div>
+            <div style="margin-top:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);overflow:hidden">
+              <sc-for list="{{ d.articles }}" as="a" hint-placeholder-count="4">
+                <a href="{{ a.href }}" style="display:block;background:var(--surface-panel);padding:18px 20px;text-decoration:none;color:var(--text-body);font-size:14px;line-height:1.5">{{ a.title }}</a>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);padding:48px 0 32px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+      <a href="/cong-cu-mien-phi" style="font-size:12.5px;color:var(--text-faint)">Tất cả công cụ miễn phí →</a>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const disciplines = [
+      {
+        title: 'Tử Vi', color: 'var(--gold-500)', hubHref: '/kien-thuc/tu-vi',
+        articles: [
+          { title: 'Lá số Tử Vi là gì?', href: '/kien-thuc/tu-vi/la-so-tu-vi-la-gi' },
+          { title: 'Cách lập lá số Tử Vi', href: '/kien-thuc/tu-vi/cach-lap-la-so-tu-vi' },
+          { title: 'Cách đọc lá số Tử Vi', href: '/kien-thuc/tu-vi/cach-doc-la-so-tu-vi' },
+          { title: '12 cung trong lá số Tử Vi', href: '/kien-thuc/tu-vi/12-cung-trong-la-so-tu-vi' }
+        ]
+      },
+      {
+        title: 'Bát Tự', color: 'var(--jade, #4F7A68)', hubHref: '/kien-thuc/bat-tu',
+        articles: [
+          { title: 'Bát Tự là gì?', href: '/kien-thuc/bat-tu/bat-tu-la-gi' },
+          { title: 'Cách lập lá số Bát Tự', href: '/kien-thuc/bat-tu/cach-lap-la-so-bat-tu' },
+          { title: 'Thiên Can, Địa Chi', href: '/kien-thuc/bat-tu/thien-can-dia-chi' },
+          { title: 'Ngũ hành và Nhật Chủ', href: '/kien-thuc/bat-tu/ngu-hanh-va-nhat-chu' }
+        ]
+      },
+      {
+        title: 'Kinh Dịch', color: 'var(--bronze, #8A7450)', hubHref: '/kien-thuc/kinh-dich',
+        articles: [
+          { title: 'Kinh Dịch là gì?', href: '/kien-thuc/kinh-dich/kinh-dich-la-gi' },
+          { title: 'Cách đặt câu hỏi', href: '/kien-thuc/kinh-dich/cach-dat-cau-hoi' },
+          { title: 'Quẻ chủ, quẻ biến', href: '/kien-thuc/kinh-dich/que-chu-que-bien' },
+          { title: 'Vì sao không nên gieo quẻ lặp lại?', href: '/kien-thuc/kinh-dich/vi-sao-khong-nen-gieo-que-lap-lai' }
+        ]
+      },
+      {
+        title: 'Chiêm Tinh', color: 'var(--mineral, #6E93AC)', hubHref: '/kien-thuc/chiem-tinh',
+        articles: [
+          { title: 'Bản đồ sao là gì?', href: '/kien-thuc/chiem-tinh/ban-do-sao-la-gi' },
+          { title: 'Mặt Trời, Mặt Trăng, Cung Mọc', href: '/kien-thuc/chiem-tinh/mat-troi-mat-trang-cung-moc' },
+          { title: '12 cung hoàng đạo', href: '/kien-thuc/chiem-tinh/12-cung-hoang-dao' },
+          { title: 'Góc chiếu', href: '/kien-thuc/chiem-tinh/goc-chieu' }
+        ]
+      },
+      {
+        title: 'Thần Số Học', color: 'var(--indigo, #7A82A0)', hubHref: '/kien-thuc/than-so-hoc',
+        articles: [
+          { title: 'Thần Số Học là gì?', href: '/kien-thuc/than-so-hoc/than-so-hoc-la-gi' },
+          { title: 'Cách tính số chủ đạo', href: '/kien-thuc/than-so-hoc/cach-tinh-so-chu-dao' },
+          { title: 'Chỉ số Linh Hồn', href: '/kien-thuc/than-so-hoc/chi-so-linh-hon' },
+          { title: 'Chỉ số Sứ Mệnh', href: '/kien-thuc/than-so-hoc/chi-so-su-menh' }
+        ]
+      },
+      {
+        title: 'Tarot', color: 'var(--oxblood, #9B6358)', hubHref: '/kien-thuc/tarot',
+        articles: [
+          { title: 'Tarot là gì?', href: '/kien-thuc/tarot/tarot-la-gi' },
+          { title: 'Bộ bài 78 lá', href: '/kien-thuc/tarot/bo-bai-78-la' },
+          { title: 'Cách đặt câu hỏi', href: '/kien-thuc/tarot/cach-dat-cau-hoi' },
+          { title: 'Giới hạn của việc rút bài lặp lại', href: '/kien-thuc/tarot/gioi-han-cua-viec-rut-bai-lap-lai' }
+        ]
+      }
+    ];
+    return { disciplines };
+  }
+}
+</script>
+</body>
+</html>

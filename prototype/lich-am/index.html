@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Lịch Âm — Sắp ra mắt · Lá Số Việt</title>
+  <meta name="description" content="Lịch Âm tại Lá Số Việt: xem ngày âm–dương song song, can chi ngày, tiết khí và quy đổi lịch. Đang hoàn thiện — xem trước phương pháp và một tháng mẫu.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    :root { --teal: #6E9C97; --teal-deep: #33504C; --teal-tint: rgba(85,119,115,0.16); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="lich-am">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal);padding-bottom:2px">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 01 HERO -->
+    <section style="padding:clamp(48px,8vw,88px) 0 clamp(48px,7vw,72px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:32px">
+          <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <a href="/cong-cu-mien-phi" style="color:var(--text-faint);text-decoration:none">Công cụ miễn phí</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <span style="color:var(--text-muted)">Lịch Âm</span>
+        </nav>
+        <div style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal);border:1px solid var(--teal-deep);border-radius:var(--radius-pill);padding:6px 14px;background:var(--teal-tint)">Sắp ra mắt</div>
+        <h1 style="margin:20px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading)">Lịch Âm</h1>
+        <p style="margin:20px 0 0;max-width:600px;font-size:18px;line-height:1.6;color:var(--text-body)">Xem ngày âm và ngày dương song song, can chi của ngày, tiết khí và quy đổi hai chiều — không cần lật lịch giấy hay nhớ công thức quy đổi.</p>
+        <div style="margin-top:32px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+          <a href="#thang-mau" style="display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--text-body)">Xem tháng mẫu <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16"></x-import></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 NHẬN ĐƯỢC GÌ -->
+    <section style="padding:clamp(48px,8vw,88px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-nhan-duoc-gi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal)">02 · Khi ra mắt</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Bạn sẽ nhận được gì</h2>
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ freeResults }}" as="item" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,150px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 THÁNG MẪU -->
+    <section id="thang-mau" style="padding:clamp(56px,9vw,96px) 0" data-screen-label="03-thang-mau">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal)">03 · Ví dụ minh hoạ</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Một tháng lịch trông như thế nào</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Lưới tháng minh hoạ dưới đây — số lớn là ngày dương, số nhỏ là ngày âm tương ứng. Không phải quy đổi từ một tháng thật. Bấm hoặc dùng phím Tab + Enter trên một ngày để xem chi tiết bên phải.</p>
+
+        <div style="margin-top:32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:12px">
+            <button type="button" disabled title="Điều hướng tháng sẽ hoạt động khi ra mắt" style="background:none;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-faint);width:32px;height:32px;cursor:not-allowed">‹</button>
+            <span style="font-family:var(--font-display);font-size:18px;color:var(--text-heading)">Tháng 3 · 1990 (minh hoạ)</span>
+            <button type="button" disabled title="Điều hướng tháng sẽ hoạt động khi ra mắt" style="background:none;border:1px solid var(--border-hairline);border-radius:var(--radius-sm);color:var(--text-faint);width:32px;height:32px;cursor:not-allowed">›</button>
+          </div>
+          <button type="button" onClick="{{ goToToday }}" style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--teal);background:var(--teal-tint);border:1px solid var(--teal-deep);border-radius:var(--radius-pill);padding:8px 16px;cursor:pointer">Hôm nay</button>
+        </div>
+
+        <div style="margin-top:20px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr);gap:40px;align-items:start">
+          <div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);overflow:hidden">
+              <sc-for list="{{ weekdayLabels }}" as="w" hint-placeholder-count="7">
+                <div style="background:var(--surface-deep);padding:8px;text-align:center;font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">{{ w }}</div>
+              </sc-for>
+              <sc-for list="{{ monthCells }}" as="c" hint-placeholder-count="35">
+                <button type="button" disabled="{{ c.disabled }}" aria-pressed="{{ c.selected }}" onClick="{{ c.onSelect }}" style="{{ c.cellStyle }}">
+                  <span style="font-family:var(--font-display);font-size:15px;color:{{ c.solarColor }}">{{ c.solar }}</span>
+                  <span style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint)">{{ c.lunar }}</span>
+                  <sc-if value="{{ c.isToday }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.04em;text-transform:uppercase;color:var(--gold-500)">Hôm nay</span>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:20px;flex-wrap:wrap;font-size:11.5px;color:var(--text-faint)">
+              <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--teal-tint);border:1px solid var(--teal-deep);vertical-align:middle;margin-right:6px"></span>Cuối tuần</span>
+              <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--surface-panel);border:1px solid var(--gold-500);vertical-align:middle;margin-right:6px"></span>Hôm nay</span>
+              <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gold-500);vertical-align:middle;margin-right:6px"></span>Đang chọn</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin:0 0 14px;font-family:var(--font-display);font-size:18px;color:var(--text-heading)">Chi tiết ngày đang chọn (minh hoạ)</h3>
+            <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:24px;display:grid;gap:12px" aria-live="polite">
+              <sc-for list="{{ dayDetailRows }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;justify-content:space-between;font-size:13.5px;padding-bottom:10px;border-bottom:1px solid var(--border-hairline)">
+                  <span style="color:var(--text-faint)">{{ r.label }}</span>
+                  <span style="color:var(--text-heading)">{{ r.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <h3 style="margin:28px 0 12px;font-family:var(--font-display);font-size:16px;color:var(--text-heading)">Giờ hoàng đạo (minh hoạ hình dạng bảng)</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
+              <sc-for list="{{ hourStrip }}" as="h" hint-placeholder-count="12">
+                <div style="background:{{ h.bg }};border:1px solid var(--border-hairline);border-radius:var(--radius-sm);padding:6px 4px;text-align:center">
+                  <div style="font-family:var(--font-display);font-size:12.5px;color:var(--text-heading)">{{ h.branch }}</div>
+                  <div style="margin-top:2px;font-family:var(--font-mono);font-size:8.5px;color:{{ h.labelColor }}">{{ h.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:12px 0 0;font-size:11.5px;line-height:1.6;color:var(--text-faint)">Chỉ minh hoạ hình dạng bảng 12 giờ — cách tính giờ hoàng đạo/hắc đạo thật sẽ công bố cùng thuật toán quy đổi khi ra mắt.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 THUẬT NGỮ -->
+    <section style="padding:clamp(48px,8vw,88px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="04-thuat-ngu">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal)">04 · Thuật ngữ cốt lõi</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Đọc lịch mà không bị ngợp thuật ngữ</h2>
+        <div style="margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ glossaryItems }}" as="g" hint-placeholder-count="4">
+            <div style="background:var(--surface-panel);padding:26px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="22px,22px" name="{{ g.icon }}" size="22" color="var(--teal)"></x-import>
+              <div style="margin-top:14px;font-family:var(--font-display);font-size:17px;color:var(--text-heading)">{{ g.term }}</div>
+              <p style="margin:8px 0 0;font-size:13.5px;line-height:1.6;color:var(--text-body)">{{ g.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 PHƯƠNG PHÁP & GIỚI HẠN -->
+    <section style="padding:clamp(56px,9vw,96px) 0" data-screen-label="05-phuong-phap-gioi-han">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal)">05 · Minh bạch phương pháp</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Cơ sở quy đổi và giới hạn</h2>
+        <div style="margin-top:36px;max-width:760px">
+          <sc-for list="{{ methodRows }}" as="m" hint-placeholder-count="3">
+            <div style="display:flex;gap:24px;padding:18px 0;border-top:1px solid var(--border-hairline);align-items:baseline">
+              <span style="flex:none;width:180px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)">{{ m.label }}</span>
+              <span style="font-size:15px;line-height:1.6;color:var(--text-body)">{{ m.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <ul style="margin:32px 0 0;padding:0;list-style:none;display:grid;gap:14px;max-width:760px;border-top:1px solid var(--border-hairline);padding-top:24px">
+          <sc-for list="{{ limitItems }}" as="li" hint-placeholder-count="3">
+            <li style="display:flex;gap:12px;font-size:14.5px;line-height:1.6;color:var(--text-body)"><x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:3px"></x-import><span>{{ li }}</span></li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 06 FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,96px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="06-faq-cta">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Câu hỏi thường gặp</h2>
+        <div style="margin-top:24px;max-width:760px">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+            <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" hint-size="100%,64px" num="{{ f.num }}" question="{{ f.q }}" answer="{{ f.a }}" open="{{ f.open }}" onToggle="{{ f.toggle }}"></x-import>
+          </sc-for>
+        </div>
+        <div style="margin-top:72px;padding:48px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+          <div style="max-width:520px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(22px,2.6vw,28px);color:var(--text-heading)">Trong lúc chờ, xem lá số Tử Vi miễn phí</h2>
+            <p style="margin:10px 0 0;font-size:14.5px;line-height:1.6;color:var(--text-muted)">Miễn phí, không cần tài khoản.</p>
+          </div>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);padding:48px 0 32px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+      <a href="/cong-cu-mien-phi" style="font-size:12.5px;color:var(--text-faint)">← Tất cả công cụ miễn phí</a>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { faqOpen: { 0: true }, selectedSolarDay: 15 };
+  toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+  selectDay = (solarDay) => this.setState({ selectedSolarDay: solarDay });
+  goToToday = () => this.setState({ selectedSolarDay: 15 });
+
+  renderVals() {
+    const CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
+    const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
+    // Ngày dương 1 của tháng mẫu neo vào "Giáp Tý" (vị trí 0 của chu kỳ Can Chi 60 ngày) chỉ để
+    // minh hoạ chu kỳ đúng cách — không phải can chi thật của một ngày dương lịch cụ thể.
+    const canChiForOffset = (offsetFromDay1) => {
+      const n = ((offsetFromDay1 % 60) + 60) % 60;
+      return `${CAN[n % 10]} ${CHI[n % 12]}`;
+    };
+    const TODAY_SOLAR_DAY = 15;
+    const freeResults = [
+      { num: '01', icon: 'calendar-day', title: 'Âm–dương song song', body: 'Mỗi ngày hiển thị cả ngày dương và ngày âm tương ứng, không cần tra riêng.' },
+      { num: '02', icon: 'compass', title: 'Can chi ngày', body: 'Xem cặp Thiên Can – Địa Chi của bất kỳ ngày nào trong lưới tháng.' },
+      { num: '03', icon: 'scroll', title: 'Quy đổi hai chiều', body: 'Nhập một ngày dương để ra ngày âm, hoặc ngược lại.' },
+      { num: '04', icon: 'book-open', title: 'Tiết khí trong năm', body: '24 tiết khí hiển thị đúng ngày rơi vào, dùng chung với Bát Tự.' },
+      { num: '05', icon: 'map-pin', title: 'Theo đúng múi giờ Việt Nam', body: 'Quy đổi tính theo múi giờ GMT+7, nêu rõ nếu có ngoại lệ lịch sử.' },
+      { num: '06', icon: 'share', title: 'In và chia sẻ một ngày', body: 'Xuất một ngày cụ thể kèm đầy đủ căn cứ quy đổi.', bordered: false }
+    ];
+
+    const weekdayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const weekdayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const lunarSeq = [18,19,20,21,22,23,24,25,26,27,28,29,30,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+    const selectedSolarDay = this.state.selectedSolarDay;
+    const monthCells = [];
+    for (let i = 0; i < 35; i++) {
+      const solarDay = i - 2;
+      const inMonth = solarDay >= 1 && solarDay <= 30;
+      const weekdayIndex = i % 7;
+      const isWeekend = weekdayIndex === 0 || weekdayIndex === 6;
+      const isToday = inMonth && solarDay === TODAY_SOLAR_DAY;
+      const isSelected = inMonth && solarDay === selectedSolarDay;
+      let bg = inMonth ? (isWeekend ? 'var(--teal-tint)' : 'var(--surface-panel)') : 'var(--surface-deep)';
+      let border = '1px solid transparent';
+      if (isSelected) { bg = 'var(--gold-500)'; }
+      else if (isToday) { border = '1px solid var(--gold-500)'; }
+      monthCells.push({
+        solar: inMonth ? String(solarDay) : '',
+        lunar: inMonth ? lunarSeq[i] : '',
+        solarColor: isSelected ? 'var(--surface-canvas)' : (inMonth ? 'var(--text-heading)' : 'var(--text-faint)'),
+        disabled: !inMonth,
+        selected: isSelected,
+        isToday,
+        onSelect: inMonth ? (() => this.selectDay(solarDay)) : null,
+        cellStyle: `background:${bg};border:${border};padding:10px 8px;min-height:64px;display:flex;flex-direction:column;gap:2px;text-align:left;font:inherit;cursor:${inMonth ? 'pointer' : 'default'}`
+      });
+    }
+
+    const selectedIndex = monthCells.findIndex(c => c.selected);
+    const selectedWeekdayIndex = selectedIndex >= 0 ? selectedIndex % 7 : 6;
+    const selectedLunarDay = selectedIndex >= 0 ? lunarSeq[selectedIndex] : lunarSeq[TODAY_SOLAR_DAY + 2];
+    const dayDetailRows = [
+      { label: 'Ngày dương', value: `${weekdayNames[selectedWeekdayIndex]}, ${selectedSolarDay}/3 (minh hoạ)` },
+      { label: 'Ngày âm', value: `${selectedLunarDay} (minh hoạ)` },
+      { label: 'Can chi ngày', value: canChiForOffset(selectedSolarDay - 1) },
+      { label: 'Tiết khí', value: 'Không rơi đúng tiết khí (minh hoạ)' },
+      { label: 'Múi giờ', value: 'GMT+7 (Việt Nam)' }
+    ];
+
+    const hourBranches = ['Tý (23h-1h)', 'Sửu (1h-3h)', 'Dần (3h-5h)', 'Mão (5h-7h)', 'Thìn (7h-9h)', 'Tỵ (9h-11h)', 'Ngọ (11h-13h)', 'Mùi (13h-15h)', 'Thân (15h-17h)', 'Dậu (17h-19h)', 'Tuất (19h-21h)', 'Hợi (21h-23h)'];
+    const auspiciousSet = new Set([0, 2, 4, 6, 8, 10]);
+    const hourStrip = hourBranches.map((branch, i) => ({
+      branch,
+      label: auspiciousSet.has(i) ? 'Hoàng đạo' : 'Hắc đạo',
+      labelColor: auspiciousSet.has(i) ? 'var(--gold-500)' : 'var(--text-faint)',
+      bg: auspiciousSet.has(i) ? 'var(--teal-tint)' : 'var(--surface-panel)'
+    }));
+
+    const glossaryItems = [
+      { icon: 'compass', term: 'Can chi ngày', body: 'Mỗi ngày mang một cặp Thiên Can – Địa Chi lặp lại theo chu kỳ 60 ngày, dùng để đối chiếu hợp/xung và luận giải Bát Tự.' },
+      { icon: 'calendar-day', term: 'Tiết khí', body: '24 mốc thời gian trong năm dương lịch (Lập Xuân, Xuân Phân...) dùng làm ranh giới tháng trong nhiều cách tính Bát Tự.' },
+      { icon: 'scroll', term: 'Tháng nhuận', body: 'Lịch âm thỉnh thoảng có một tháng lặp lại (tháng nhuận) để đồng bộ với chu kỳ mặt trời — không phải lỗi hiển thị.' },
+      { icon: 'help-circle', term: 'Lịch âm–dương song song', body: 'Cách trình bày một ngày theo cả lịch dương (mặt trời) và lịch âm (mặt trăng) cùng lúc, phổ biến trong lịch Việt Nam truyền thống.' }
+    ];
+
+    const methodRows = [
+      { label: 'Cơ sở quy đổi', value: 'Thuật toán quy đổi âm–dương lịch chuẩn, tính theo múi giờ Việt Nam (GMT+7).' },
+      { label: 'Phạm vi hỗ trợ', value: 'Dự kiến hỗ trợ quy đổi cho khoảng thời gian hiện đại; giới hạn cụ thể sẽ công bố khi ra mắt.' },
+      { label: 'Vai trò của AI', value: 'Trình bày kết quả quy đổi bằng tiếng Việt — không tự suy luận ngày âm khi chưa qua thuật toán.' }
+    ];
+
+    const limitItems = [
+      'Lưới tháng ở trên là ví dụ minh hoạ cách hiển thị, không phải kết quả quy đổi từ một tháng thật.',
+      'Quy đổi âm–dương lịch có thể khác nhau giữa các nguồn với quy ước tính múi giờ khác nhau — Lá Số Việt sẽ công bố rõ quy ước đang dùng.',
+      'Không có gợi ý ngày tốt/xấu trong công cụ này — muốn xem ngày phù hợp cho một việc cụ thể, dùng công cụ Xem Ngày Tốt riêng.'
+    ];
+
+    const faqData = [
+      { q: 'Lịch Âm khác Xem Ngày Tốt ở điểm nào?', a: 'Lịch Âm chỉ hiển thị và quy đổi ngày tháng, can chi, tiết khí — không đánh giá ngày nào phù hợp cho việc gì. Xem Ngày Tốt là công cụ riêng để lọc ngày theo mục đích cụ thể.' },
+      { q: 'Tháng mẫu ở trên có đúng với tháng thật không?', a: 'Không. Đây là ví dụ minh hoạ cách hiển thị lưới tháng và quy đổi, không phải kết quả tính từ một tháng dương lịch thật.' },
+      { q: 'Khi nào Lịch Âm ra mắt?', a: 'Chưa có ngày cụ thể. Lá Số Việt đang hoàn thiện thuật toán quy đổi trước khi phát hành.' },
+      { q: 'Lịch Âm có tính đúng cho các năm trước 1900 không?', a: 'Phạm vi hỗ trợ chính xác sẽ được công bố cụ thể khi ra mắt — không giả định hỗ trợ cho mọi khoảng thời gian.' }
+    ];
+    const faqs = faqData.map((f, i) => ({ num: String(i + 1).padStart(2, '0'), q: f.q, a: f.a, open: !!this.state.faqOpen[i], toggle: () => this.toggleFaq(i) }));
+
+    return { goToToday: this.goToToday, weekdayLabels, monthCells, dayDetailRows, hourStrip, freeResults, glossaryItems, methodRows, limitItems, faqs };
+  }
+}
+</script>
+</body>
+</html>

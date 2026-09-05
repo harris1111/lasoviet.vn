@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Bảng giá — Lá Số Việt</title>
+  <meta name="description" content="Bảng giá Lá Số Việt: lập lá số và các công cụ miễn phí không giới hạn, báo cáo luận giải chuyên sâu tính theo từng chủ đề, thanh toán một lần.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    .price-card { background: var(--surface-panel); border: 1px solid var(--border-hairline); border-radius: var(--radius-lg); padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+    .price-card.is-reserved { border-style: dashed; opacity: 0.72; }
+  </style>
+</helmet>
+
+<div style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+    </div>
+  </header>
+
+  <main>
+    <section style="padding:clamp(48px,8vw,88px) 0 clamp(48px,7vw,72px)">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">Bảng giá</div>
+        <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading);max-width:640px">Lập lá số và công cụ miễn phí — báo cáo tính theo từng chủ đề</h1>
+        <p style="margin:20px 0 0;max-width:640px;font-size:17px;line-height:1.6;color:var(--text-body)">Không có gói thuê bao. Bạn chỉ trả tiền khi chọn một báo cáo luận giải chuyên sâu cụ thể, thanh toán một lần, không tự động gia hạn.</p>
+      </div>
+    </section>
+
+    <section style="padding:0 0 clamp(56px,9vw,96px);background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline);padding-top:clamp(48px,8vw,72px)">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:26px;color:var(--text-heading)">Miễn phí</h2>
+        <div style="margin-top:28px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px">
+          <sc-for list="{{ freeItems }}" as="f" hint-placeholder-count="4">
+            <div class="price-card">
+              <span style="font-family:var(--font-display);font-size:19px;color:var(--text-heading)">{{ f.title }}</span>
+              <span style="font-family:var(--font-mono);font-size:22px;color:var(--gold-400)">0đ</span>
+              <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--text-muted);flex:1">{{ f.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding:clamp(56px,9vw,96px) 0">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:26px;color:var(--text-heading)">Báo cáo luận giải theo chủ đề</h2>
+        <p style="margin:12px 0 0;max-width:640px;font-size:15px;line-height:1.65;color:var(--text-muted)">Mỗi báo cáo là một luận giải riêng, gắn với một hồ sơ lá số cụ thể. Giá hiển thị là giả thuyết đang thử nghiệm, có thể thay đổi trước khi ra mắt chính thức.</p>
+        <div style="margin-top:28px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px">
+          <sc-for list="{{ reportItems }}" as="r" hint-placeholder-count="6">
+            <div class="{{ r.cardClass }}">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">{{ r.method }}</span>
+                <sc-if value="{{ r.reserved }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border-hairline);border-radius:var(--radius-pill);padding:2px 7px">Chưa mở</span>
+                </sc-if>
+              </div>
+              <span style="font-family:var(--font-display);font-size:18px;color:var(--text-heading)">{{ r.name }}</span>
+              <span style="font-family:var(--font-mono);font-size:20px;color:var(--gold-400)">{{ r.priceLabel }}</span>
+              <p style="margin:0;font-size:13px;line-height:1.6;color:var(--text-muted);flex:1">{{ r.note }}</p>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin:24px 0 0;font-size:12.5px;color:var(--text-faint)">Xem chi tiết từng chủ đề tại <a href="/la-so/chon-luan-giai">chọn chủ đề luận giải</a> sau khi lập lá số.</p>
+      </div>
+    </section>
+
+    <section style="padding:0 0 clamp(56px,9vw,96px)">
+      <div style="max-width:760px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:24px;color:var(--text-heading)">Câu hỏi thường gặp về giá</h2>
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:20px">
+          <sc-for list="{{ priceFaqs }}" as="pf" hint-placeholder-count="3">
+            <div>
+              <div style="font-family:var(--font-display);font-size:16px;color:var(--text-heading)">{{ pf.q }}</div>
+              <p style="margin:6px 0 0;font-size:14px;line-height:1.6;color:var(--text-muted)">{{ pf.a }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);padding:32px 0">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt.</span>
+      <div style="display:flex;gap:20px">
+        <a href="/dieu-khoan" style="font-size:12.5px;color:var(--text-faint)">Điều khoản sử dụng</a>
+        <a href="/faq" style="font-size:12.5px;color:var(--text-faint)">FAQ</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const freeItems = [
+      { title: 'Lập lá số Tử Vi', body: 'Xem cấu trúc 12 cung, sao chính, trạng thái — không giới hạn số lần.' },
+      { title: '5 công cụ xem trước', body: 'Bát Tự, Chiêm Tinh, Kinh Dịch, Thần Số Học, Tarot — xem phương pháp và ví dụ minh hoạ.' },
+      { title: '7 tiện ích miễn phí', body: 'Lịch Âm, Xem Ngày Tốt, 12 Con Giáp, Giải Mã Giấc Mơ và các công cụ khác.' },
+      { title: 'Thư viện kiến thức', body: 'Khái niệm và thuật ngữ cho từng bộ môn, đọc không cần lập lá số.' }
+    ];
+
+    const reportFacts = [
+      { method: 'Tử Vi', name: 'Bản mệnh & tiềm năng', price: 79000, reserved: false, note: 'Đang mở — báo cáo Tử Vi đầu tiên.' },
+      { method: 'Tử Vi', name: 'Tình duyên & hôn nhân', price: 79000, reserved: true, note: 'Ra mắt từng chủ đề một, sau Bản mệnh.' },
+      { method: 'Tử Vi', name: 'Công việc & tài lộc', price: 79000, reserved: true, note: 'Ra mắt từng chủ đề một, sau Bản mệnh.' },
+      { method: 'Tử Vi', name: 'Vận trình năm', price: 79000, reserved: true, note: 'Ra mắt từng chủ đề một, sau Bản mệnh.' },
+      { method: 'Bát Tự', name: 'Luận giải Bát Tự toàn diện', price: 79000, reserved: true, note: 'Chờ báo cáo qua kiểm tra chất lượng nội bộ.' },
+      { method: 'Chiêm Tinh', name: 'Luận giải bản đồ sao đầy đủ', price: 79000, reserved: true, note: 'Chờ fixture bản đồ sao và QA 20 báo cáo.' }
+    ];
+    const reportItems = reportFacts.map(r => ({
+      ...r,
+      priceLabel: `${r.price.toLocaleString('vi-VN')}đ`,
+      cardClass: r.reserved ? 'price-card is-reserved' : 'price-card'
+    }));
+
+    const priceFaqs = [
+      { q: 'Lập lá số có mất phí không?', a: 'Không. Lập lá số Tử Vi và xem cấu trúc 12 cung luôn miễn phí, không giới hạn số lần.' },
+      { q: 'Báo cáo có tự động gia hạn không?', a: 'Không. Mỗi báo cáo thanh toán một lần, không có gói thuê bao hay tự động trừ tiền định kỳ.' },
+      { q: 'Giá 79.000đ có cố định không?', a: 'Đây là mức giá giả thuyết đang thử nghiệm, có thể thay đổi trước khi ra mắt chính thức cho từng chủ đề.' }
+    ];
+
+    return { freeItems, reportItems, priceFaqs };
+  }
+}
+</script>
+</body>
+</html>

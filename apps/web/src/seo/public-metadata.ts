@@ -47,7 +47,9 @@ export function buildPublicMetadata(
   content: PublicContentV1 | undefined,
 ): PublicMetadata {
   const robots = buildRobotsPolicy(route);
-  if (content === undefined || route.private || route.status !== "live_indexable") {
+  const isRenderable =
+    route.status === "live_indexable" || route.status === "live_noindex";
+  if (content === undefined || route.private || !isRenderable) {
     return { robots };
   }
   const path = canonicalPath(route);

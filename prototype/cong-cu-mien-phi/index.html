@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Công cụ miễn phí — Lá Số Việt</title>
+  <meta name="description" content="7 công cụ miễn phí của Lá Số Việt: Xem Ngày Tốt, 12 Con Giáp, Phong Thủy hướng nhà, Giải Mã Giấc Mơ, Tarot/Bói Bài, Lịch Âm và Xem Chỉ Tay.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    .tool-card { display: flex; flex-direction: column; gap: 14px; background: var(--surface-panel); border: 1px solid var(--border-hairline); border-radius: var(--radius-lg); padding: 28px; text-decoration: none; transition: border-color 120ms ease; }
+    .tool-card.is-available:hover { border-color: var(--gold-600); }
+    .tool-card.is-muted { border-style: dashed; opacity: 0.72; }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="cong-cu-mien-phi">
+
+  <!-- HEADER -->
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap" class="ls-nav-links">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
+        <a href="/bat-tu" style="color:var(--text-body);text-decoration:none">Bát Tự</a>
+        <a href="/kinh-dich" style="color:var(--text-body);text-decoration:none">Kinh Dịch</a>
+        <a href="/chiem-tinh" style="color:var(--text-body);text-decoration:none">Chiêm Tinh</a>
+        <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--gold-400);text-decoration:none;border-bottom:1px solid var(--gold-500);padding-bottom:2px">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+        <button type="button" aria-label="Mở menu" onClick="{{ toggleNav }}" style="display:none;background:none;border:none;color:var(--text-heading);cursor:pointer;padding:8px;min-height:44px;min-width:44px" class="ls-nav-toggle">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="menu" size="24"></x-import>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 01 HERO -->
+    <section style="padding:clamp(48px,8vw,88px) 0 clamp(48px,7vw,72px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:32px">
+          <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <span style="color:var(--text-muted)">Công cụ miễn phí</span>
+        </nav>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">7 công cụ</div>
+        <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading);max-width:680px">Công cụ miễn phí</h1>
+        <p style="margin:20px 0 0;max-width:600px;font-size:18px;line-height:1.6;color:var(--text-body)">Bảy tiện ích văn hoá Việt không cần lập hồ sơ sinh đầy đủ — mỗi công cụ giải quyết một câu hỏi hẹp, công khai phương pháp, và không dùng điểm số may rủi tổng hợp.</p>
+      </div>
+    </section>
+
+    <!-- 02 LƯỚI 7 CÔNG CỤ THEO TÁC VỤ -->
+    <section style="padding:0 0 clamp(56px,9vw,96px)" data-screen-label="02-luoi-cong-cu">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <sc-for list="{{ toolGroups }}" as="grp" hint-placeholder-count="4">
+          <div style="margin-bottom:48px">
+            <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px">{{ grp.label }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px">
+              <sc-for list="{{ grp.tools }}" as="t" hint-placeholder-count="3">
+                <a href="{{ t.href }}" class="{{ t.cardClass }}">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="26px,26px" name="{{ t.icon }}" size="26" color="{{ t.iconColor }}"></x-import>
+                    <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.iconColor }};border:1px solid {{ t.iconColor }};border-radius:var(--radius-pill);padding:2px 9px;opacity:0.85">{{ t.status }}</span>
+                  </div>
+                  <div style="font-family:var(--font-display);font-size:19px;color:var(--text-heading)">{{ t.title }}</div>
+                  <p style="margin:0;font-size:14px;line-height:1.6;color:var(--text-muted);flex:1">{{ t.body }}</p>
+                  <div style="display:grid;gap:4px;font-size:12px;color:var(--text-faint);border-top:1px solid var(--border-hairline);padding-top:12px">
+                    <span><strong style="color:var(--text-muted)">Cần nhập:</strong> {{ t.inputNeeded }}</span>
+                    <span><strong style="color:var(--text-muted)">Nhận được:</strong> {{ t.output }}</span>
+                    <span><strong style="color:var(--text-muted)">Thời gian:</strong> {{ t.timeEstimate }}</span>
+                  </div>
+                  <span style="display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-body)">{{ t.cta }} <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="14px,14px" name="chevron-right" size="14"></x-import></span>
+                </a>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- 03 GHI CHÚ -->
+    <section style="padding:clamp(48px,8vw,80px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="03-ghi-chu">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
+        <div style="display:flex;align-items:center;gap:14px">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--gold-500)"></x-import>
+          <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(22px,2.6vw,26px);color:var(--text-heading)">Nguyên tắc chung cho cả 7 công cụ</h2>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:14px">
+          <li style="display:flex;gap:12px;font-size:15px;line-height:1.6;color:var(--text-body)"><x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:3px"></x-import><span>Không dùng điểm số "may/rủi" gộp chung nhiều yếu tố khác nhau — mỗi kết quả nêu lý do/quy tắc cụ thể thay vì một con số duy nhất.</span></li>
+          <li style="display:flex;gap:12px;font-size:15px;line-height:1.6;color:var(--text-body)"><x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:3px"></x-import><span>Không bán vật phẩm phong thuỷ, bùa hộ mệnh hay sản phẩm hoá giải kèm theo kết quả.</span></li>
+          <li style="display:flex;gap:12px;font-size:15px;line-height:1.6;color:var(--text-body)"><x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:3px"></x-import><span>Công cụ nào cần dùng đến hồ sơ sinh sẽ dùng chung mô hình dữ liệu với Tử Vi — không có form nhập liệu riêng lẻ chồng chéo.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 04 FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,96px) 0" data-screen-label="04-faq-cta">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Câu hỏi thường gặp</h2>
+        <div style="margin-top:24px;max-width:760px">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+            <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" hint-size="100%,64px" num="{{ f.num }}" question="{{ f.q }}" answer="{{ f.a }}" open="{{ f.open }}" onToggle="{{ f.toggle }}"></x-import>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:80px;padding:56px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+          <div style="max-width:520px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,2.8vw,30px);color:var(--text-heading)">Muốn một bức tranh đầy đủ hơn?</h2>
+            <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:var(--text-muted)">Lập lá số Tử Vi miễn phí để xem cấu trúc 12 cung đầy đủ — không cần tài khoản.</p>
+          </div>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer style="border-top:1px solid var(--border-hairline);padding:64px 0 40px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:48px">
+        <div>
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--text-heading)">Lá Số Việt</div>
+          <p style="margin:12px 0 0;max-width:320px;font-size:13.5px;line-height:1.65;color:var(--text-faint)">Thư viện tri thức Việt đương đại — lập và luận giải lá số dựa trên dữ liệu và phương pháp có thể kiểm chứng.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Sản phẩm</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Lập lá số Tử Vi</a>
+            <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+            <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Pháp lý</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/dieu-khoan" style="color:var(--text-body);text-decoration:none">Điều khoản sử dụng</a>
+            <a href="/quyen-rieng-tu" style="color:var(--text-body);text-decoration:none">Quyền riêng tư</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border-hairline);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    navOpen: false,
+    faqOpen: { 0: true }
+  };
+
+  toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
+  toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+
+  renderVals() {
+    const toolFacts = [
+      { group: 'Tra cứu thời gian', icon: 'calendar-day', color: 'var(--gold-500)', status: 'Xem trước', title: 'Xem Ngày Tốt', body: 'Chọn loại việc và khoảng thời gian, xem ngày phù hợp kèm lý do — không chấm điểm tổng hợp.', href: '/ngay-tot', cta: 'Xem phương pháp', inputNeeded: 'Loại việc + khoảng ngày', output: 'Danh sách ngày kèm lý do', timeEstimate: '< 1 phút' },
+      { group: 'Tra cứu thời gian', icon: 'compass', color: 'var(--gold-500)', status: 'Xem trước', title: '12 Con Giáp', body: 'Tra cứu con giáp, ngũ hành và chu kỳ theo năm sinh, kèm mốc giao thừa âm lịch.', href: '/12-con-giap', cta: 'Xem phương pháp', inputNeeded: 'Năm sinh dương lịch', output: 'Con giáp, Can Chi, ngũ hành', timeEstimate: '< 1 phút' },
+      { group: 'Tra cứu thời gian', icon: 'calendar-day', color: '#6E8C89', status: 'Xem trước', title: 'Lịch Âm', body: 'Xem ngày âm–dương song song, can chi và quy đổi lịch cho một ngày bất kỳ.', href: '/lich-am', cta: 'Xem phương pháp', inputNeeded: 'Một ngày dương hoặc âm', output: 'Ngày quy đổi, Can Chi, giờ hoàng đạo', timeEstimate: '< 1 phút' },
+      { group: 'Tự chiêm nghiệm', icon: 'book-open', color: 'var(--gold-500)', status: 'Xem trước', title: 'Giải Mã Giấc Mơ', body: 'Tra cứu biểu tượng giấc mơ theo góc nhìn dân gian và biểu tượng — không phải dự đoán số.', href: '/giai-ma-giac-mo', cta: 'Xem thư viện', inputNeeded: 'Từ khoá biểu tượng giấc mơ', output: 'Hai góc đọc: dân gian + biểu tượng', timeEstimate: '2-3 phút' },
+      { group: 'Tự chiêm nghiệm', icon: 'user-circle', color: '#8A8172', status: 'Thử nghiệm', title: 'Xem Chỉ Tay', body: 'Pilot nhận diện đường chỉ tay qua ảnh, cần sự đồng ý riêng cho dữ liệu sinh trắc học — chưa mở.', href: '/xem-chi-tay', cta: 'Xem trạng thái', inputNeeded: 'Ảnh lòng bàn tay (chưa mở)', output: 'Chưa xác định — đang chờ duyệt', timeEstimate: 'Chưa mở' },
+      { group: 'Đặt một câu hỏi', icon: 'scroll', color: '#9B6358', status: 'Xem trước', title: 'Tarot / Bói Bài', body: 'Một lá hôm nay hoặc ba lá cho một câu hỏi — đang hoàn thiện trước khi ra mắt.', href: '/boi-bai', cta: 'Xem phương pháp', inputNeeded: 'Một câu hỏi cụ thể', output: 'Trải bài 1 hoặc 3 lá kèm ý nghĩa', timeEstimate: '3-5 phút' },
+      { group: 'Không gian sống', icon: 'map-pin', color: '#7C8A6E', status: 'Xem trước', title: 'Phong Thủy hướng nhà', body: 'So khớp hướng nhà với cung mệnh theo Bát Trạch — utility đã chốt, công thức đang chờ chuyên gia rà soát.', href: '/phong-thuy/huong-nha', cta: 'Xem phương pháp', inputNeeded: 'Năm sinh, giới tính + hướng nhà đo được', output: 'La bàn 8 hướng + bảng phân loại kèm mã quy tắc', timeEstimate: '< 1 phút' }
+    ];
+    const tools = toolFacts.map(t => {
+      const isAvailablePreview = t.status === 'Xem trước';
+      return {
+        ...t,
+        iconColor: isAvailablePreview ? t.color : 'var(--text-faint)',
+        cardClass: isAvailablePreview ? 'tool-card is-available' : 'tool-card is-muted'
+      };
+    });
+    const groupOrder = ['Tra cứu thời gian', 'Tự chiêm nghiệm', 'Đặt một câu hỏi', 'Không gian sống'];
+    const toolGroups = groupOrder.map(label => ({ label, tools: tools.filter(t => t.group === label) })).filter(g => g.tools.length > 0);
+
+    const faqData = [
+      { q: 'Các công cụ này có cần tạo tài khoản không?', a: 'Không. Cả 7 công cụ đều dùng được ngay mà không cần tài khoản. Một số công cụ có tuỳ chọn lưu vào hồ sơ nếu bạn đã đăng nhập.' },
+      { q: 'Vì sao Xem Chỉ Tay ghi "Thử nghiệm" thay vì "Xem trước"?', a: 'Xem Chỉ Tay là một pilot dùng ảnh sinh trắc học, cần hoàn thiện cơ chế đồng ý riêng trước khi mở, kể cả ở dạng miễn phí.' },
+      { q: 'Các công cụ có bán vật phẩm phong thuỷ hoặc vật phẩm hoá giải không?', a: 'Không. Lá Số Việt không bán vật phẩm phong thuỷ, bùa hộ mệnh hay bất kỳ sản phẩm "hoá giải vận hạn" nào ở bất kỳ công cụ nào.' },
+      { q: 'Giải Mã Giấc Mơ có liên quan đến số đề hay lô đề không?', a: 'Không, và sẽ không bao giờ có. Nội dung chỉ trình bày góc nhìn dân gian và biểu tượng, không gợi ý hay liên kết tới bất kỳ hình thức số đề nào.' }
+    ];
+    const faqs = faqData.map((f, i) => ({
+      num: String(i + 1).padStart(2, '0'),
+      q: f.q,
+      a: f.a,
+      open: !!this.state.faqOpen[i],
+      toggle: () => this.toggleFaq(i)
+    }));
+
+    return {
+      toggleNav: this.toggleNav,
+      toolGroups, faqs
+    };
+  }
+}
+</script>
+</body>
+</html>

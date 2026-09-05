@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Lá số &amp; hồ sơ — Tài khoản · Lá Số Việt</title>
+  <style id="__om-edit-overrides">
+    body { margin: 0; background: var(--lacquer-900); color: var(--pearl-200); font-family: var(--font-ui), sans-serif; }
+    .lsv-bg-texture { background-color: var(--lacquer-900); background-image: linear-gradient(rgba(15,13,10,0.94), rgba(15,13,10,0.94)), url('../uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--gold-500); }
+    a:hover { color: var(--gold-400); }
+    .acc-tab { padding:12px 4px; margin-right:28px; font-size:14.5px; text-decoration:none; border-bottom:2px solid transparent; color:var(--pearl-400); }
+    .acc-tab.active { color:var(--pearl-50); border-bottom-color:var(--gold-500); }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="min-height:100vh;">
+
+  <header style="position:sticky; top:0; z-index:10; background:var(--lacquer-800); border-bottom:1px solid var(--lacquer-line);">
+    <div style="max-width:1200px; margin:0 auto; padding:0 32px; height:72px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
+      <div style="display:flex; align-items:baseline; gap:12px; min-width:0;">
+        <a href="/" style="font-family:var(--font-display); font-size:20px; font-weight:600; background:var(--gradient-gold); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none; flex:none;">Lá Số Việt</a>
+        <span style="color:var(--pearl-600); font-size:14px;">/</span>
+        <a href="/tai-khoan" style="font-family:var(--font-ui); font-size:14px; color:var(--pearl-400); text-decoration:none;">Tài khoản</a>
+      </div>
+      <div style="display:flex; align-items:center; gap:20px; flex:none;">
+        <div style="display:flex; align-items:center; gap:8px; color:var(--pearl-400); font-size:14px;">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="user-circle" size="18" color="var(--pearl-400)" hint-size="18px,18px"></x-import>
+          <span>ban@vidu.vn</span>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="link" onClick="{{ noop }}" hint-size="auto,20px">Đăng xuất</x-import>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width:1200px; margin:0 auto; padding:48px 32px 128px;">
+
+    <div style="max-width:760px;">
+      <h1 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:38px; line-height:1.2; color:var(--pearl-50);">Tài khoản</h1>
+    </div>
+
+    <nav aria-label="Điều hướng tài khoản" style="margin-top:24px; display:flex; gap:0; border-bottom:1px solid var(--lacquer-line); flex-wrap:wrap;">
+      <a href="/tai-khoan" class="acc-tab">Tổng quan</a>
+      <a href="/tai-khoan/ho-so" class="acc-tab active">Lá số &amp; hồ sơ</a>
+      <a href="/tai-khoan/bao-cao" class="acc-tab">Báo cáo đã mua</a>
+      <a href="/tai-khoan/don-hang" class="acc-tab">Đơn hàng &amp; hỗ trợ</a>
+      <a href="/tai-khoan/quyen-rieng-tu" class="acc-tab">Quyền riêng tư</a>
+    </nav>
+
+    <section style="margin-top:48px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+        <h2 style="margin:0; font-family:var(--font-display); font-weight:400; font-size:30px; color:var(--pearl-50);">Lá số &amp; hồ sơ của bạn</h2>
+        <a href="/lap-la-so" style="font-size:15px; color:var(--gold-500); text-decoration:underline; text-underline-offset:4px;">+ Lập lá số mới</a>
+      </div>
+      <p style="margin:12px 0 0; font-size:15px; color:var(--pearl-400); max-width:640px;">Mỗi hồ sơ dùng chung cho mọi bộ môn (Tử Vi, Bát Tự, Bản đồ sao...) khi tính năng đó ra mắt — không cần nhập lại ngày, giờ, nơi sinh.</p>
+
+      <div style="margin-top:32px; display:flex; flex-direction:column; gap:16px;">
+        <sc-for list="{{ profiles }}" as="p" hint-placeholder-count="3">
+          <div style="background:var(--lacquer-700); border:1px solid var(--lacquer-line); border-radius:8px; padding:24px 28px; display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+            <div style="min-width:240px; flex:1;">
+              <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <span style="font-family:var(--font-display); font-size:20px; color:var(--pearl-50);">{{ p.name }}</span>
+                <span style="display:inline-flex; align-items:center; padding:4px 11px; border-radius:999px; border:1px solid {{ p.statusBorder }}; font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.09em; text-transform:uppercase; color:{{ p.statusColor }};">{{ p.statusLabel }}</span>
+              </div>
+              <div style="margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-family:var(--font-mono); font-size:13px; color:var(--pearl-400);">
+                <span>{{ p.infoLine }}</span>
+                <button type="button" onClick="{{ p.toggleReveal }}" style="min-height:24px; padding:0; background:none; border:none; color:var(--gold-500); font-size:12.5px; font-family:var(--font-ui); text-decoration:underline; text-underline-offset:3px; cursor:pointer;">{{ p.revealLabel }}</button>
+              </div>
+              <div style="margin-top:4px; font-size:13px; color:var(--pearl-600);">Tạo ngày {{ p.createdLabel }}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex:none;">
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="secondary" size="sm" href="{{ p.viewHref }}" hint-size="auto,44px">Xem lá số</x-import>
+              <sc-if value="{{ p.purchased }}" hint-placeholder-val="{{ true }}">
+                <a href="/tai-khoan/bao-cao" style="font-size:13px; color:var(--gold-500); text-decoration:underline; text-underline-offset:3px;">Xem báo cáo →</a>
+              </sc-if>
+              <button type="button" aria-label="Đổi tên hồ sơ" onClick="{{ noop }}" style="width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:none; border:1px solid var(--lacquer-line); border-radius:4px; color:var(--pearl-400); cursor:pointer;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="pencil" size="18" hint-size="18px,18px"></x-import>
+              </button>
+              <button type="button" aria-label="Xoá hồ sơ" onClick="{{ p.remove }}" style="width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; background:none; border:1px solid var(--lacquer-line); border-radius:4px; color:var(--pearl-400); cursor:pointer;">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="trash" size="18" hint-size="18px,18px"></x-import>
+              </button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasNoProfiles }}" hint-placeholder-val="{{ false }}">
+        <p style="margin-top:24px; font-size:14.5px; color:var(--pearl-600);">Bạn chưa có hồ sơ nào. <a href="/lap-la-so">Lập lá số đầu tiên</a> để bắt đầu.</p>
+      </sc-if>
+    </section>
+
+  </main>
+
+  <footer style="border-top:1px solid var(--lacquer-line); margin-top:64px;">
+    <div style="max-width:1200px; margin:0 auto; padding:32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--pearl-600);">© Lá Số Việt</span>
+      <div style="display:flex; gap:24px;">
+        <a href="/" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Trang chủ</a>
+        <a href="/dieu-khoan" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Điều khoản</a>
+        <a href="/quyen-rieng-tu" style="font-size:13px; color:var(--pearl-400); text-decoration:none;">Chính sách riêng tư</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+function maskDob(p, revealed) {
+  return revealed ? `${p.dob} · ${p.time} · ${p.place}` : `••/••/•••• · ••:•• · ${p.place}`;
+}
+
+class Component extends DCLogic {
+  state = {
+    profiles: [
+      { id: 'p1', name: 'Của tôi', dob: '15/09/1990', time: '04:20', place: 'Hà Nội', createdLabel: '02/01/2026', purchased: true, statusLabel: 'Đã mua · Bản Toàn diện', revealed: false, removed: false },
+      { id: 'p2', name: 'Mẹ', dob: '28/03/1962', time: '18:00', place: 'Huế', createdLabel: '14/02/2026', purchased: false, statusLabel: 'Chưa mua báo cáo', revealed: false, removed: false },
+      { id: 'p3', name: 'Bạn thân', dob: '09/11/1994', time: '11:35', place: 'Đà Nẵng', createdLabel: '30/04/2026', purchased: true, statusLabel: 'Đã mua · Sự nghiệp', revealed: false, removed: false },
+    ],
+  };
+
+  toggleReveal(id) {
+    this.setState(s => ({ profiles: s.profiles.map(p => p.id === id ? { ...p, revealed: !p.revealed } : p) }));
+  }
+
+  removeProfile(id) {
+    this.setState(s => ({ profiles: s.profiles.map(p => p.id === id ? { ...p, removed: true } : p) }));
+  }
+
+  renderVals() {
+    const visibleProfiles = this.state.profiles.filter(p => !p.removed).map(p => ({
+      ...p,
+      infoLine: maskDob(p, p.revealed),
+      revealLabel: p.revealed ? 'Ẩn' : 'Hiện',
+      statusColor: p.purchased ? 'var(--gold-400)' : 'var(--pearl-600)',
+      statusBorder: p.purchased ? 'var(--gold-700)' : 'var(--lacquer-line)',
+      viewHref: '#',
+      toggleReveal: () => this.toggleReveal(p.id),
+      remove: () => this.removeProfile(p.id),
+    }));
+
+    return {
+      profiles: visibleProfiles,
+      hasNoProfiles: visibleProfiles.length === 0,
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

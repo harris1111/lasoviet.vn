@@ -18,6 +18,7 @@
       "price": 79000,
       "phase": "P7",
       "availability": "reserved",
+      "decision_ref": "OD-001",
       "sections": ["relationship_needs", "attachment_expression", "conflict_patterns", "healthy_conditions", "timing", "actions", "limitations"]
     },
     {
@@ -27,6 +28,7 @@
       "price": 79000,
       "phase": "P7",
       "availability": "reserved",
+      "decision_ref": "OD-001",
       "sections": ["career_motivation", "capabilities", "work_environment", "money_patterns", "timing", "actions", "limitations"]
     },
     {
@@ -36,7 +38,30 @@
       "price": 79000,
       "phase": "P7",
       "availability": "reserved",
+      "decision_ref": "OD-001",
       "sections": ["year_theme", "periods", "opportunities", "risks", "observation_checklist", "actions", "limitations"]
+    },
+    {
+      "sku": "BAZI-COMPREHENSIVE-P0",
+      "name": "Luận giải Bát Tự toàn diện",
+      "method": "bazi",
+      "price": 79000,
+      "phase": "P8",
+      "availability": "reserved",
+      "decision_ref": "OD-002",
+      "sections": ["day_master_summary", "five_elements_balance", "ten_gods_relationships", "branch_relationships", "luck_pillars_overview", "actions", "limitations"],
+      "note": "Founder-resolved 2026-09-05 (OD-002, Option A): one comprehensive report at this price, contingent on the report passing the common release QA gate. Checkout enablement still blocked on Phase 08 Task 4."
+    },
+    {
+      "sku": "WESTERN-NATAL-P0",
+      "name": "Luận giải bản đồ sao đầy đủ",
+      "method": "western_astrology",
+      "price": 79000,
+      "phase": "P9",
+      "availability": "reserved",
+      "decision_ref": "OD-003",
+      "sections": ["planets_and_signs", "houses", "major_aspects", "method_and_provenance", "actions", "limitations"],
+      "note": "Founder-resolved 2026-09-05 (OD-003, Option A): one interpretation covering planets, angles, houses, and aspects at this price, contingent on natal fixtures and twenty-report QA passing. Checkout enablement still blocked on Phase 09 Task 3."
     }
   ]
 }

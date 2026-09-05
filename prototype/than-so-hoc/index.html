@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Thần Số Học — Sắp ra mắt · Lá Số Việt</title>
+  <meta name="description" content="Thần Số Học tại Lá Số Việt đang được hoàn thiện: xem trước công thức Pythagorean, cách tính Số Đường Đời và bảng số 3×3. Công thức thuần, không phụ thuộc thư viện ngoài.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    :root { --indigo: #7A82A0; --indigo-deep: #363B4C; --indigo-tint: rgba(89,97,127,0.18); --ochre: #B08A4A; }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    @media (prefers-reduced-motion: reduce) { .ls-marquee-track { animation: none !important; } }
+    @keyframes ls-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="than-so-hoc">
+
+  <!-- HEADER -->
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap" class="ls-nav-links">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
+        <a href="/bat-tu" style="color:var(--text-body);text-decoration:none">Bát Tự</a>
+        <a href="/kinh-dich" style="color:var(--text-body);text-decoration:none">Kinh Dịch</a>
+        <a href="/chiem-tinh" style="color:var(--text-body);text-decoration:none">Chiêm Tinh</a>
+        <a href="/than-so-hoc" style="color:var(--indigo);text-decoration:none;border-bottom:1px solid var(--indigo);padding-bottom:2px">Thần Số Học</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+        <button type="button" aria-label="Mở menu" onClick="{{ toggleNav }}" style="display:none;background:none;border:none;color:var(--text-heading);cursor:pointer;padding:8px;min-height:44px;min-width:44px" class="ls-nav-toggle">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="menu" size="24"></x-import>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div style="border-bottom:1px solid var(--border-hairline);background:var(--surface-deep);overflow:hidden;padding:12px 0" aria-hidden="true">
+    <div class="ls-marquee-track" style="display:flex;width:max-content;gap:48px;animation:ls-marquee 38s linear infinite;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap">
+      <span>SỐ ĐƯỜNG ĐỜI · SỐ CHỦ · RÚT GỌN · BẢNG SỐ 3×3 · THẦN SỐ HỌC ĐANG HOÀN THIỆN ·</span>
+      <span>SỐ ĐƯỜNG ĐỜI · SỐ CHỦ · RÚT GỌN · BẢNG SỐ 3×3 · THẦN SỐ HỌC ĐANG HOÀN THIỆN ·</span>
+    </div>
+  </div>
+
+  <main>
+    <!-- 01 HERO -->
+    <section style="padding:clamp(48px,8vw,96px) 0 clamp(56px,9vw,104px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:32px">
+          <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <span style="color:var(--text-muted)">Thần Số Học</span>
+        </nav>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,0.95fr);gap:64px;align-items:start">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--indigo);border:1px solid var(--indigo-deep);border-radius:var(--radius-pill);padding:6px 14px;background:var(--indigo-tint)">Sắp ra mắt</div>
+            <h1 style="margin:20px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading)">Thần Số Học</h1>
+            <p style="margin:20px 0 0;max-width:540px;font-size:18px;line-height:1.6;color:var(--text-body)">Thần Số Học quy họ tên và ngày sinh của bạn về các con số bằng công thức Pythagorean, rồi rút gọn từng bước để tìm Số Đường Đời, Số Ngày Sinh và các số cốt lõi khác. Mỗi con số đều truy được về đúng chữ cái hoặc chữ số đã tạo ra nó.</p>
+            <p style="margin:16px 0 0;max-width:540px;font-size:15px;line-height:1.6;color:var(--text-muted)">Công thức thuần, tự xây, không phụ thuộc thư viện tính toán bên ngoài — sẽ miễn phí ngay khi ra mắt.</p>
+
+            <div style="margin-top:36px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+              <a href="#vi-du-tinh" style="display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--text-body)">Xem ví dụ tính số <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16"></x-import></a>
+            </div>
+            <p style="margin:20px 0 0;font-size:12.5px;color:var(--text-faint)">Chưa có công cụ tính trực tiếp — trang này giới thiệu công thức và một ví dụ minh hoạ, không phải kết quả tính từ tên và ngày sinh thật của bạn.</p>
+          </div>
+
+          <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:36px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="26px,26px" name="scroll" size="26" color="var(--indigo)"></x-import>
+              <span style="font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Mỗi số đều truy được nguồn gốc</span>
+            </div>
+            <div style="margin-top:24px;display:grid;gap:10px;font-family:var(--font-mono);font-size:13px;color:var(--text-body)">
+              <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface-deep);border-radius:var(--radius-sm)"><span>Ngày sinh 15 → 1 + 5</span><span style="color:var(--ochre)">= 6</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface-deep);border-radius:var(--radius-sm)"><span>15 + 03 + 1990 → 2 + 8</span><span style="color:var(--ochre)">= 10</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface-deep);border-radius:var(--radius-sm)"><span>1 + 0</span><span style="color:var(--indigo)">= Số Đường Đời 1</span></div>
+            </div>
+            <p style="margin:20px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Minh hoạ cách rút gọn — xem ví dụ đầy đủ gồm cả họ tên ở mục "Ví dụ tính số" bên dưới.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 NHẬN ĐƯỢC GÌ KHI RA MẮT -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-nhan-duoc-gi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--indigo)">02 · Khi ra mắt</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Bạn sẽ nhận được gì, miễn phí ngay từ đầu</h2>
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ freeResults }}" as="item" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,160px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 VÍ DỤ TÍNH SỐ -->
+    <section id="vi-du-tinh" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="03-vi-du-tinh">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--indigo)">03 · Ví dụ minh hoạ</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Một phép tính đầy đủ trông như thế nào</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây dùng tên và ngày sinh giả định để minh hoạ đúng công thức Pythagorean — không phải dữ liệu người dùng thật.</p>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ coreNumbers }}" as="n" hint-placeholder-count="4">
+            <div style="background:var(--surface-panel);padding:22px 18px;text-align:center">
+              <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">{{ n.label }}</div>
+              <div style="margin-top:10px;font-family:var(--font-display);font-size:30px;color:{{ n.color }}">{{ n.value }}</div>
+              <div style="margin-top:6px;font-size:12px;line-height:1.5;color:var(--text-muted)">{{ n.source }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin:14px 0 0;font-size:12.5px;color:var(--text-faint)">Số Nhân Cách rơi vào 11 — một Số Chủ — nên giữ nguyên thay vì rút gọn tiếp thành 2, đúng quy tắc đã nêu ở trên, không phải một huy hiệu đặc biệt.</p>
+
+        <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:48px;align-items:start">
+          <div>
+            <h3 style="margin:0 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Bảng chữ cái → số (Pythagorean)</h3>
+            <div style="display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-sm);overflow:hidden;font-family:var(--font-mono);font-size:12px;text-align:center">
+              <sc-for list="{{ letterMap }}" as="col" hint-placeholder-count="9">
+                <div style="background:var(--surface-panel);padding:8px 4px">
+                  <div style="color:var(--ochre)">{{ col.n }}</div>
+                  <div style="margin-top:4px;color:var(--text-muted)">{{ col.letters }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <h3 style="margin:32px 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Số Đường Đời — từ ngày sinh 15/03/1990</h3>
+            <div style="display:grid;gap:8px;font-family:var(--font-mono);font-size:13px;color:var(--text-body)">
+              <sc-for list="{{ lifePathRows }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-sm)">
+                  <span>{{ t.label }}</span>
+                  <span style="color:var(--indigo)">{{ t.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:12px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Cộng toàn bộ chữ số ngày-tháng-năm rồi rút gọn — không tách riêng ngày/tháng/năm trước khi cộng.</p>
+
+            <h3 style="margin:32px 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Số Sứ Mệnh — chuẩn hoá và cộng dồn "NGUYỄN VĂN AN"</h3>
+            <div style="display:grid;gap:8px;font-family:var(--font-mono);font-size:13px;color:var(--text-body)">
+              <sc-for list="{{ traceRows }}" as="t" hint-placeholder-count="4">
+                <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-sm)">
+                  <span>{{ t.label }}</span>
+                  <span style="color:var(--indigo)">{{ t.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:28px">
+              <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Số Sứ Mệnh" title="Với ví dụ trên, họ tên rút gọn về số 3 — chỉ minh hoạ cách cộng dồn, chưa phải kết quả thật." sub="Bản đầy đủ sẽ hiển thị từng bước chuẩn hoá dấu tiếng Việt trước khi quy đổi sang số, và giữ nguyên Số Chủ 11, 22, 33 nếu xuất hiện thay vì rút gọn tiếp." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin:0 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Bảng số 3×3 (từ ngày sinh 15/03/1990)</h3>
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:1/1">
+              <sc-for list="{{ gridCells }}" as="c" hint-placeholder-count="9">
+                <div style="background:var(--surface-panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                  <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-faint)">{{ c.n }}</span>
+                  <span style="font-family:var(--font-display);font-size:20px;color:{{ c.color }}">{{ c.marks }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:16px 0 0;font-size:12.5px;color:var(--text-faint)">Ô có dấu ● là chữ số xuất hiện trong ngày sinh; ô trống là chữ số vắng mặt — chỉ để minh hoạ cách đọc bảng, không phải nhận định tính cách.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 THUẬT NGỮ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;border-top:1px solid var(--border-hairline)" data-screen-label="04-thuat-ngu">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--indigo)">04 · Thuật ngữ cốt lõi</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Đọc kết quả mà không bị ngợp thuật ngữ</h2>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ glossaryItems }}" as="g" hint-placeholder-count="5">
+            <div style="background:var(--surface-panel);padding:28px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="{{ g.icon }}" size="24" color="var(--indigo)"></x-import>
+              <div style="margin-top:16px;font-family:var(--font-display);font-size:18px;line-height:1.35;color:var(--text-heading)">{{ g.term }}</div>
+              <p style="margin:10px 0 0;font-size:14px;line-height:1.65;color:var(--text-body)">{{ g.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 CÁCH TÍNH -->
+    <section id="cach-tinh" style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="05-cach-tinh">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--indigo)">05 · Minh bạch phương pháp</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Công thức, phiên bản và giới hạn</h2>
+
+        <div style="margin-top:40px;max-width:760px">
+          <sc-for list="{{ methodRows }}" as="m" hint-placeholder-count="4">
+            <div style="display:flex;gap:24px;padding:20px 0;border-top:1px solid var(--border-hairline);align-items:baseline">
+              <span style="flex:none;width:200px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)">{{ m.label }}</span>
+              <span style="font-size:15px;line-height:1.6;color:var(--text-body)">{{ m.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <p style="margin:32px 0 0;max-width:760px;font-size:14px;line-height:1.7;color:var(--text-muted);border-top:1px solid var(--border-hairline);padding-top:24px">Giống các bộ môn khác, AI tại Lá Số Việt chỉ tổ chức và diễn giải các con số đã tính — không tự chọn hoặc làm tròn số theo ý muốn.</p>
+      </div>
+    </section>
+
+    <!-- 06 GIỚI HẠN -->
+    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="06-gioi-han">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
+        <div style="display:flex;align-items:center;gap:14px">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--indigo)"></x-import>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--indigo)">06 · Giới hạn</div>
+            <h2 style="margin:8px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,30px);color:var(--text-heading)">Một công cụ tự chiêm nghiệm, không phải phép đo tính cách</h2>
+          </div>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:16px">
+          <sc-for list="{{ limitItems }}" as="li" hint-placeholder-count="5">
+            <li style="display:flex;gap:12px;font-size:15px;line-height:1.65;color:var(--text-body);padding-bottom:16px;border-bottom:1px solid var(--border-hairline)">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="18px,18px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:4px"></x-import>
+              <span>{{ li }}</span>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 07 KIẾN THỨC + FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="07-kien-thuc-faq">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--indigo)">07 · Đọc thêm</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Trong lúc chờ Thần Số Học</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Kiến thức riêng cho Thần Số Học đang được biên soạn. Trong lúc chờ, bạn có thể tìm hiểu cách Lá Số Việt tách bạch tính toán, quy tắc diễn giải và AI qua lá số Tử Vi đã hoạt động.</p>
+        <div style="margin-top:28px">
+          <a href="/kien-thuc/tu-vi" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--indigo)">Xem thư viện kiến thức Tử Vi <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--indigo)"></x-import></a>
+        </div>
+
+        <h2 style="margin:80px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Câu hỏi thường gặp</h2>
+        <div style="margin-top:24px;max-width:760px">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" hint-size="100%,64px" num="{{ f.num }}" question="{{ f.q }}" answer="{{ f.a }}" open="{{ f.open }}" onToggle="{{ f.toggle }}"></x-import>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:88px;padding:56px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+          <div style="max-width:520px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,2.8vw,30px);color:var(--text-heading)">Trong lúc chờ, xem lá số Tử Vi miễn phí</h2>
+            <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:var(--text-muted)">Miễn phí, không cần tài khoản. Cùng cách tiếp cận: công thức công khai, mỗi kết quả truy được nguồn gốc.</p>
+          </div>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer style="border-top:1px solid var(--border-hairline);padding:64px 0 40px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:48px">
+        <div>
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--text-heading)">Lá Số Việt</div>
+          <p style="margin:12px 0 0;max-width:320px;font-size:13.5px;line-height:1.65;color:var(--text-faint)">Thư viện tri thức Việt đương đại — lập và luận giải lá số dựa trên dữ liệu và phương pháp có thể kiểm chứng.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Sản phẩm</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Lập lá số Tử Vi</a>
+            <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học (sắp ra mắt)</a>
+            <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Pháp lý</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/dieu-khoan" style="color:var(--text-body);text-decoration:none">Điều khoản sử dụng</a>
+            <a href="/quyen-rieng-tu" style="color:var(--text-body);text-decoration:none">Quyền riêng tư</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border-hairline);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+        <span style="font-size:12.5px;color:var(--text-faint)">Thần Số Học: đang xây dựng — chưa có phiên bản chính thức</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    navOpen: false,
+    insightStamped: false,
+    faqOpen: { 0: true }
+  };
+
+  toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
+  toggleInsight = () => this.setState(s => ({ insightStamped: !s.insightStamped }));
+  toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+
+  renderVals() {
+    const letterMap = [
+      { n: '1', letters: 'A J S' },
+      { n: '2', letters: 'B K T' },
+      { n: '3', letters: 'C L U' },
+      { n: '4', letters: 'D M V' },
+      { n: '5', letters: 'E N W' },
+      { n: '6', letters: 'F O X' },
+      { n: '7', letters: 'G P Y' },
+      { n: '8', letters: 'H Q Z' },
+      { n: '9', letters: 'I R' }
+    ];
+
+    const lifePathRows = [
+      { label: 'Cộng toàn bộ chữ số 15-03-1990: 1+5+0+3+1+9+9+0', value: '= 28' },
+      { label: '2 + 8', value: '= 10' },
+      { label: '1 + 0', value: '= Số Đường Đời 1' }
+    ];
+
+    const traceRows = [
+      { label: 'Chuẩn hoá dấu: NGUYỄN → NGUYEN, VĂN → VAN, AN → AN', value: '' },
+      { label: 'NGUYEN = 5+7+3+7+5+5', value: '= 32' },
+      { label: 'VAN = 4+1+5  ·  AN = 1+5', value: '= 10 · 6' },
+      { label: '32 + 10 + 6 = 48 → 4+8 = 12 → 1+2', value: '= Số Sứ Mệnh 3' }
+    ];
+
+    // Nguyên âm (A, E, I, O, U) → Số Linh Hồn; phụ âm còn lại → Số Nhân Cách.
+    // NGUYEN: nguyên âm U+E=3+5=8; phụ âm N+G+Y+N=5+7+7+5=24.
+    // VAN: nguyên âm A=1; phụ âm V+N=4+5=9. AN: nguyên âm A=1; phụ âm N=5.
+    // Tổng nguyên âm 8+1+1=10 → 1+0=1. Tổng phụ âm 24+9+5=38 → 3+8=11 (Số Chủ, giữ nguyên).
+    const coreNumbers = [
+      { label: 'Số Đường Đời', value: '1', color: 'var(--indigo)', source: 'từ ngày sinh 15/03/1990' },
+      { label: 'Số Sứ Mệnh', value: '3', color: 'var(--indigo)', source: 'từ toàn bộ họ tên' },
+      { label: 'Số Linh Hồn', value: '1', color: 'var(--indigo)', source: 'từ nguyên âm trong họ tên' },
+      { label: 'Số Nhân Cách', value: '11', color: 'var(--ochre)', source: 'từ phụ âm — là Số Chủ, giữ nguyên' }
+    ];
+
+    const gridCells = [
+      { n: '3', marks: '●' }, { n: '6', marks: '' }, { n: '9', marks: '● ●' },
+      { n: '2', marks: '' }, { n: '5', marks: '●' }, { n: '8', marks: '' },
+      { n: '1', marks: '● ●' }, { n: '4', marks: '' }, { n: '7', marks: '' }
+    ].map(c => ({ ...c, color: c.marks ? 'var(--ochre)' : 'var(--text-faint)' }));
+
+    const freeResults = [
+      { num: '01', icon: 'compass', title: 'Số Đường Đời', body: 'Con số nền tảng nhất, tính từ toàn bộ ngày sinh.' },
+      { num: '02', icon: 'calendar-day', title: 'Số Ngày Sinh & Thái Độ', body: 'Hai con số bổ sung, tính riêng từ ngày sinh và từ ngày–tháng sinh.' },
+      { num: '03', icon: 'scroll', title: 'Bảng chữ cái → số đầy đủ', body: 'Xem chính xác từng chữ trong họ tên quy đổi thành số nào.' },
+      { num: '04', icon: 'book-open', title: 'Toàn bộ bước rút gọn', body: 'Không chỉ hiện kết quả cuối — mọi phép cộng và rút gọn đều hiển thị.' },
+      { num: '05', icon: 'user-circle', title: 'Giữ nguyên Số Chủ 11, 22, 33', body: 'Không rút gọn tiếp các số này thành số đơn như một số công cụ khác.' },
+      { num: '06', icon: 'shield-lock', title: 'Miễn phí ngay khi ra mắt', body: 'Gói chuyên sâu trả phí chỉ mở khi có tín hiệu nhu cầu thật, không thu phí ngay từ đầu.', bordered: false }
+    ];
+
+    const glossaryItems = [
+      { icon: 'compass', term: 'Số Đường Đời', body: 'Con số quan trọng nhất trong Thần Số Học, tính bằng cách cộng dồn và rút gọn toàn bộ chữ số của ngày sinh.' },
+      { icon: 'user-circle', term: 'Số Chủ (Master Number)', body: '11, 22 và 33 là ba số đặc biệt — khi xuất hiện trong quá trình rút gọn, được giữ nguyên thay vì cộng tiếp thành một chữ số.' },
+      { icon: 'scroll', term: 'Rút gọn', body: 'Quá trình cộng các chữ số của một số nhiều chữ số lại với nhau, lặp lại cho tới khi còn một chữ số (trừ Số Chủ).' },
+      { icon: 'book-open', term: 'Chuẩn hoá tên', body: 'Bước chuyển họ tên có dấu tiếng Việt về dạng không dấu theo một bảng quy đổi công khai, trước khi tra bảng chữ cái → số.' },
+      { icon: 'help-circle', term: 'Ô số Pythagoras (3×3)', body: 'Bảng 9 ô xếp các chữ số 1–9 theo một trật tự cố định, dùng để xem chữ số nào xuất hiện nhiều hay vắng mặt trong ngày sinh.' }
+    ];
+
+    const methodRows = [
+      { label: 'Công thức', value: 'Pythagorean numerology thuần — công thức tự xây, không phụ thuộc thư viện tính toán bên ngoài.' },
+      { label: 'Chuẩn hoá đầu vào', value: 'Họ tên có dấu tiếng Việt được chuẩn hoá về không dấu theo một bảng quy đổi công khai trước khi quy sang số.' },
+      { label: 'Số Chủ', value: '11, 22, 33 được giữ nguyên trong quá trình rút gọn thay vì cộng tiếp thành một chữ số.' },
+      { label: 'Vai trò của AI', value: 'Tổ chức và diễn giải các con số đã tính bằng tiếng Việt — không tự chọn hoặc làm tròn số.' }
+    ];
+
+    const limitItems = [
+      'Thần Số Học là một công cụ tự chiêm nghiệm dựa trên công thức toán học, không phải phép đo tính cách hay năng lực khoa học.',
+      'Không gán cứng một nghề nghiệp, tính cách hoặc vận mệnh cố định cho bất kỳ con số nào.',
+      'Không thay thế tư vấn y tế, pháp lý hoặc tài chính từ chuyên gia.',
+      'Gói luận giải chuyên sâu trả phí sẽ chỉ mở khi có tín hiệu nhu cầu thật qua traffic — không thu phí ngay khi ra mắt.',
+      'Ví dụ tính số ở trên dùng tên và ngày sinh giả định, không phải dữ liệu người dùng thật.'
+    ];
+
+    const faqData = [
+      { q: 'Thần Số Học có cần đầy đủ hồ sơ sinh như Tử Vi không?', a: 'Không nhất thiết. Thần Số Học chỉ cần họ tên và ngày sinh, có thể dùng cách nhập gọn — nhưng vẫn dùng chung mô hình dữ liệu với hồ sơ sinh nếu bạn đã có.' },
+      { q: 'Số Chủ 11, 22, 33 là gì, có bị rút gọn tiếp không?', a: 'Đây là ba con số đặc biệt trong Thần Số Học. Khi xuất hiện trong quá trình cộng dồn, Lá Số Việt sẽ giữ nguyên và hiển thị rõ, không rút gọn tiếp thành một chữ số như các số khác.' },
+      { q: 'Tên tiếng Việt có dấu thì tính như thế nào?', a: 'Họ tên được chuẩn hoá về dạng không dấu theo một bảng quy đổi công khai trước khi tra bảng chữ cái → số. Bước chuẩn hoá này sẽ luôn hiển thị để bạn kiểm tra lại.' },
+      { q: 'Khi nào Thần Số Học ra mắt?', a: 'Chưa có ngày cụ thể, nhưng đây là một trong những tính năng được ưu tiên xây dựng sớm vì công thức thuần, không phụ thuộc thư viện hay license bên ngoài.' },
+      { q: 'Thần Số Học có tính phí không?', a: 'Bản tính số cơ bản sẽ miễn phí ngay khi ra mắt. Gói luận giải chuyên sâu trả phí chỉ được cân nhắc mở sau khi có tín hiệu nhu cầu thật.' },
+      { q: 'Ví dụ tính số ở trên có dùng tên và ngày sinh thật của tôi không?', a: 'Không. Đây là ví dụ minh hoạ công thức, không phải kết quả tính từ dữ liệu bạn nhập.' }
+    ];
+    const faqs = faqData.map((f, i) => ({
+      num: String(i + 1).padStart(2, '0'),
+      q: f.q,
+      a: f.a,
+      open: !!this.state.faqOpen[i],
+      toggle: () => this.toggleFaq(i)
+    }));
+
+    return {
+      toggleNav: this.toggleNav,
+      insightStamped: this.state.insightStamped,
+      toggleInsight: this.toggleInsight,
+      letterMap, coreNumbers, lifePathRows, traceRows, gridCells, freeResults, glossaryItems, methodRows, limitItems, faqs
+    };
+  }
+}
+</script>
+</body>
+</html>

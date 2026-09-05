@@ -1,0 +1,193 @@
+import type { DisciplinePageContent } from "./discipline-page-model";
+
+export const THAN_SO_HOC_CONTENT_VI: DisciplinePageContent = {
+  key: "than-so-hoc",
+  locale: "vi",
+  marquee: [
+    "SỐ ĐƯỜNG ĐỜI · SỐ CHỦ · RÚT GỌN · BẢNG SỐ 3×3 · THẦN SỐ HỌC ĐANG HOÀN THIỆN ·",
+    "SỐ ĐƯỜNG ĐỜI · SỐ CHỦ · RÚT GỌN · BẢNG SỐ 3×3 · THẦN SỐ HỌC ĐANG HOÀN THIỆN ·",
+  ],
+  hero: {
+    eyebrow: "Sắp ra mắt",
+    title: "Thần Số Học",
+    subtitle:
+      "Thần Số Học quy họ tên và ngày sinh của bạn về các con số bằng công thức Pythagorean, rồi rút gọn từng bước để tìm Số Đường Đời, Số Ngày Sinh và các số cốt lõi khác. Mỗi con số đều truy được về đúng chữ cái hoặc chữ số đã tạo ra nó.",
+    note: "Công thức thuần, tự xây, không phụ thuộc thư viện tính toán bên ngoài — sẽ miễn phí ngay khi ra mắt.",
+    ctaPrimaryText: "Lập lá số Tử Vi miễn phí",
+    ctaPrimaryHref: "/tu-vi",
+    ctaSecondaryText: "Xem ví dụ tính số",
+    ctaSecondaryHref: "#vi-du-tinh",
+    previewDisclaimer:
+      "Chưa có công cụ tính trực tiếp — trang này giới thiệu công thức và một ví dụ minh hoạ, không phải kết quả tính từ tên và ngày sinh thật của bạn.",
+    previewBadge: "Mỗi số đều truy được nguồn gốc",
+  },
+  freeValue: {
+    eyebrow: "02 · Khi ra mắt",
+    title: "Bạn sẽ nhận được gì, miễn phí ngay từ đầu",
+    items: [
+      { num: "01", icon: "compass", title: "Số Đường Đời", body: "Con số nền tảng nhất, tính từ toàn bộ ngày sinh." },
+      { num: "02", icon: "calendar-day", title: "Số Ngày Sinh & Thái Độ", body: "Hai con số bổ sung, tính riêng từ ngày sinh và từ ngày–tháng sinh." },
+      { num: "03", icon: "scroll", title: "Bảng chữ cái → số đầy đủ", body: "Xem chính xác từng chữ trong họ tên quy đổi thành số nào." },
+      { num: "04", icon: "book-open", title: "Toàn bộ bước rút gọn", body: "Không chỉ hiện kết quả cuối — mọi phép cộng và rút gọn đều hiển thị." },
+      { num: "05", icon: "user-circle", title: "Giữ nguyên Số Chủ 11, 22, 33", body: "Không rút gọn tiếp các số này thành số đơn như một số công cụ khác." },
+      { num: "06", icon: "shield-lock", title: "Miễn phí ngay khi ra mắt", body: "Gói chuyên sâu trả phí chỉ mở khi có tín hiệu nhu cầu thật, không thu phí ngay từ đầu." },
+    ],
+  },
+  sampleResult: {
+    eyebrow: "03 · Ví dụ minh hoạ",
+    title: "Một phép tính đầy đủ trông như thế nào",
+    note: "Ví dụ dưới đây dùng tên và ngày sinh giả định để minh hoạ đúng công thức Pythagorean — không phải dữ liệu người dùng thật.",
+    disclosure: "Ví dụ tính số minh họa phương pháp, không phải kết quả tính từ dữ liệu thật.",
+    subnote: "Ô có dấu ● là chữ số xuất hiện trong ngày sinh; ô trống là chữ số vắng mặt — chỉ để minh hoạ cách đọc bảng, không phải nhận định tính cách.",
+  },
+  glossary: {
+    eyebrow: "04 · Thuật ngữ cốt lõi",
+    title: "Đọc kết quả mà không bị ngợp thuật ngữ",
+    items: [
+      { icon: "compass", term: "Số Đường Đời", body: "Con số quan trọng nhất trong Thần Số Học, tính bằng cách cộng dồn và rút gọn toàn bộ chữ số của ngày sinh." },
+      { icon: "user-circle", term: "Số Chủ (Master Number)", body: "11, 22 và 33 là ba số đặc biệt — khi xuất hiện trong quá trình rút gọn, được giữ nguyên thay vì cộng tiếp thành một chữ số." },
+      { icon: "scroll", term: "Rút gọn", body: "Quá trình cộng các chữ số của một số nhiều chữ số lại với nhau, lặp lại cho tới khi còn một chữ số (trừ Số Chủ)." },
+      { icon: "book-open", term: "Chuẩn hoá tên", body: "Bước chuyển họ tên có dấu tiếng Việt về dạng không dấu theo một bảng quy đổi công khai, trước khi tra bảng chữ cái → số." },
+      { icon: "help-circle", term: "Ô số Pythagoras (3×3)", body: "Bảng 9 ô xếp các chữ số 1–9 theo một trật tự cố định, dùng để xem chữ số nào xuất hiện nhiều hay vắng mặt trong ngày sinh." },
+    ],
+  },
+  method: {
+    eyebrow: "05 · Minh bạch phương pháp",
+    title: "Công thức, phiên bản và giới hạn",
+    note: "Pythagorean numerology thuần — công thức tự xây, không phụ thuộc thư viện tính toán bên ngoài.",
+    rows: [
+      { label: "Công thức", value: "Pythagorean numerology thuần — công thức tự xây, không phụ thuộc thư viện tính toán bên ngoài." },
+      { label: "Chuẩn hoá đầu vào", value: "Họ tên có dấu tiếng Việt được chuẩn hoá về không dấu theo một bảng quy đổi công khai trước khi quy sang số." },
+      { label: "Số Chủ", value: "11, 22, 33 được giữ nguyên trong quá trình rút gọn thay vì cộng tiếp thành một chữ số." },
+      { label: "Vai trò của AI", value: "Tổ chức và diễn giải các con số đã tính bằng tiếng Việt — không tự chọn hoặc làm tròn số." },
+    ],
+    footnote: "Giống các bộ môn khác, AI tại Lá Số Việt chỉ tổ chức và diễn giải các con số đã tính — không tự chọn hoặc làm tròn số theo ý muốn.",
+  },
+  limitations: {
+    eyebrow: "06 · Giới hạn",
+    title: "Một công cụ tự chiêm nghiệm, không phải phép đo tính cách",
+    items: [
+      "Thần Số Học là một công cụ tự chiêm nghiệm dựa trên công thức toán học, không phải phép đo tính cách hay năng lực khoa học.",
+      "Không gán cứng một nghề nghiệp, tính cách hoặc vận mệnh cố định cho bất kỳ con số nào.",
+      "Không thay thế tư vấn y tế, pháp lý hoặc tài chính từ chuyên gia.",
+      "Gói luận giải chuyên sâu trả phí sẽ chỉ mở khi có tín hiệu nhu cầu thật qua traffic — không thu phí ngay khi ra mắt.",
+      "Ví dụ tính số ở trên dùng tên và ngày sinh giả định, không phải dữ liệu người dùng thật.",
+    ],
+  },
+  knowledgeFaq: {
+    eyebrow: "07 · Đọc thêm",
+    title: "Trong lúc chờ Thần Số Học",
+    note: "Kiến thức riêng cho Thần Số Học đang được biên soạn. Trong lúc chờ, bạn có thể tìm hiểu cách Lá Số Việt tách bạch tính toán, quy tắc diễn giải và AI qua lá số Tử Vi đã hoạt động.",
+    linkText: "Xem thư viện kiến thức Tử Vi",
+    linkHref: "/kien-thuc/tu-vi",
+    faqHeading: "Câu hỏi thường gặp",
+    faqs: [
+      { num: "01", q: "Thần Số Học có cần đầy đủ hồ sơ sinh như Tử Vi không?", a: "Không nhất thiết. Thần Số Học chỉ cần họ tên và ngày sinh, có thể dùng cách nhập gọn — nhưng vẫn dùng chung mô hình dữ liệu với hồ sơ sinh nếu bạn đã có." },
+      { num: "02", q: "Số Chủ 11, 22, 33 là gì, có bị rút gọn tiếp không?", a: "Đây là ba con số đặc biệt trong Thần Số Học. Khi xuất hiện trong quá trình cộng dồn, Lá Số Việt sẽ giữ nguyên và hiển thị rõ, không rút gọn tiếp thành một chữ số như các số khác." },
+      { num: "03", q: "Tên tiếng Việt có dấu thì tính như thế nào?", a: "Họ tên được chuẩn hoá về dạng không dấu theo một bảng quy đổi công khai trước khi tra bảng chữ cái → số. Bước chuẩn hoá này sẽ luôn hiển thị để bạn kiểm tra lại." },
+      { num: "04", q: "Khi nào Thần Số Học ra mắt?", a: "Chưa có ngày cụ thể, nhưng đây là một trong những tính năng được ưu tiên xây dựng sớm vì công thức thuần, không phụ thuộc thư viện hay license bên ngoài." },
+      { num: "05", q: "Thần Số Học có tính phí không?", a: "Bản tính số cơ bản sẽ miễn phí ngay khi ra mắt. Gói luận giải chuyên sâu trả phí chỉ được cân nhắc mở sau khi có tín hiệu nhu cầu thật." },
+      { num: "06", q: "Ví dụ tính số ở trên có dùng tên và ngày sinh thật của tôi không?", a: "Không. Đây là ví dụ minh hoạ công thức, không phải kết quả tính từ dữ liệu bạn nhập." },
+    ],
+    ctaHeading: "Trong lúc chờ, xem lá số Tử Vi miễn phí",
+    ctaBody: "Miễn phí, không cần tài khoản. Cùng cách tiếp cận: công thức công khai, mỗi kết quả truy được nguồn gốc.",
+    ctaButtonText: "Lập lá số Tử Vi miễn phí",
+    ctaButtonHref: "/tu-vi",
+  },
+};
+
+export const THAN_SO_HOC_CONTENT_EN: DisciplinePageContent = {
+  key: "than-so-hoc",
+  locale: "en",
+  marquee: [
+    "LIFE PATH NUMBER · MASTER NUMBERS · REDUCTION · 3×3 GRID · NUMEROLOGY COMING SOON ·",
+    "LIFE PATH NUMBER · MASTER NUMBERS · REDUCTION · 3×3 GRID · NUMEROLOGY COMING SOON ·",
+  ],
+  hero: {
+    eyebrow: "Coming soon",
+    title: "Numerology / Pythagorean System",
+    subtitle:
+      "Numerology maps your full name and date of birth to numeric patterns through the Pythagorean system, reducing them step by step to determine your Life Path, Birthday, and core numbers. Every number traces back to its exact originating character or digit.",
+    note: "Pure mathematical formula, custom built with no external library dependencies — free upon release.",
+    ctaPrimaryText: "Build free Zi Wei chart",
+    ctaPrimaryHref: "/en/tu-vi",
+    ctaSecondaryText: "View sample calculation",
+    ctaSecondaryHref: "#vi-du-tinh",
+    previewDisclaimer:
+      "Direct calculation is not yet live — this page introduces the formula with an illustrative sample, not calculated from personal data.",
+    previewBadge: "Every Number Traceable to Its Origin",
+  },
+  freeValue: {
+    eyebrow: "02 · At launch",
+    title: "What you receive in the free Numerology preview",
+    items: [
+      { num: "01", icon: "compass", title: "Life Path Number", body: "The primary foundational number calculated from your full birth date." },
+      { num: "02", icon: "calendar-day", title: "Birth Day & Attitude Numbers", body: "Two auxiliary figures derived separately from birth day and month." },
+      { num: "03", icon: "scroll", title: "Full alphabet-to-number mapping", body: "Exact character-by-character conversion table for your full name." },
+      { num: "04", icon: "book-open", title: "Transparent reduction steps", body: "Every intermediate addition step is displayed, not just the end number." },
+      { num: "05", icon: "user-circle", title: "Master numbers 11, 22, 33 preserved", body: "Preserved without reducing to single digits prematurely." },
+      { num: "06", icon: "shield-lock", title: "Free upon initial launch", body: "Core calculations will be open and free with no initial paywall." },
+    ],
+  },
+  sampleResult: {
+    eyebrow: "03 · Sample calculation",
+    title: "What a complete calculation looks like",
+    note: "The example below uses assumed names and dates to illustrate Pythagorean formulas — not real user data.",
+    disclosure: "Illustrative calculation sample demonstrating method, not real user data.",
+    subnote: "Marked cells show numbers appearing in birth dates; blank cells indicate absences for chart reading.",
+  },
+  glossary: {
+    eyebrow: "04 · Core terms",
+    title: "Reading results without jargon overload",
+    items: [
+      { icon: "compass", term: "Life Path Number", body: "The core number in Numerology, obtained by summing and reducing all birth date digits." },
+      { icon: "user-circle", term: "Master Numbers", body: "11, 22, and 33 are special frequencies preserved rather than reduced to single digits." },
+      { icon: "scroll", term: "Digit Reduction", body: "Iteratively adding multi-digit numbers until a single digit or Master Number is reached." },
+      { icon: "book-open", term: "Name Normalization", body: "Converting diacritic characters to base letters via a public conversion table." },
+      { icon: "help-circle", term: "Pythagorean 3×3 Grid", body: "A 9-cell grid arranging numbers 1–9 to visualize frequency and missing digits." },
+    ],
+  },
+  method: {
+    eyebrow: "05 · Method transparency",
+    title: "Formulas, versions, and boundaries",
+    note: "Pure Pythagorean numerology — proprietary implementation independent of black-box libraries.",
+    rows: [
+      { label: "Calculation formula", value: "Pure Pythagorean numerology built from classical arithmetic definitions." },
+      { label: "Input normalization", value: "Diacritic names normalized to plain Latin script prior to numeric conversion." },
+      { label: "Master numbers", value: "11, 22, and 33 preserved throughout iterative reduction stages." },
+      { label: "Role of AI", value: "Synthesizes and articulates calculated numbers without guessing or rounding." },
+    ],
+    footnote: "Like all disciplines, AI at La So Viet organizes and explains computed values — never inventing numbers.",
+  },
+  limitations: {
+    eyebrow: "06 · Limitations",
+    title: "A contemplative mirror, not an empirical psychological test",
+    items: [
+      "Numerology is a reflective tool based on symbolic arithmetic, not an empirical psychometric exam.",
+      "Does not assign rigid careers, destinies, or character labels to any numeric vibration.",
+      "Never replaces clinical, psychiatric, legal, or financial professional counsel.",
+      "Advanced interpretive modules will only launch based on validated user interest.",
+      "Calculation samples shown use hypothetical inputs, not actual personal data.",
+    ],
+  },
+  knowledgeFaq: {
+    eyebrow: "07 · Further reading",
+    title: "While waiting for Numerology",
+    note: "Numerology knowledge guides are currently in development. In the meantime, explore our methodology in Zi Wei.",
+    linkText: "Explore Zi Wei knowledge library",
+    linkHref: "/en/kien-thuc/tu-vi",
+    faqHeading: "Frequently asked questions",
+    faqs: [
+      { num: "01", q: "Does Numerology need full birth time?", a: "No, Numerology only requires your full name and solar birth date." },
+      { num: "02", q: "Are Master Numbers 11, 22, 33 reduced further?", a: "No, Master Numbers are recognized as distinct and preserved without further reduction." },
+      { num: "03", q: "How are accented names normalized?", a: "Names are converted into unaccented Latin characters using an explicit public translation matrix." },
+      { num: "04", q: "When will Numerology launch?", a: "It is prioritized for early release due to its pure formula design and zero external dependencies." },
+      { num: "05", q: "Is Numerology calculation free?", a: "Foundational calculation and number mapping are completely free upon launch." },
+      { num: "06", q: "Does the sample calculation use my personal details?", a: "No, it uses hypothetical reference data to illustrate formula mechanics." },
+    ],
+    ctaHeading: "While waiting, explore free Zi Wei charts",
+    ctaBody: "Free of charge, no account required. Same verified approach: open formulas and traceable outputs.",
+    ctaButtonText: "Build free Zi Wei chart",
+    ctaButtonHref: "/en/tu-vi",
+  },
+};

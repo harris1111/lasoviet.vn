@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Về chúng tôi — Lá Số Việt</title>
+  <meta name="description" content="Lá Số Việt là nền tảng lập và luận giải lá số cho người Việt, xây trên nguyên tắc minh bạch phương pháp, không dùng nỗi sợ để bán hàng.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+  </style>
+</helmet>
+
+<div style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+    </div>
+  </header>
+
+  <main style="max-width:760px;margin:0 auto;padding:clamp(48px,8vw,88px) clamp(20px,5vw,32px) 96px">
+    <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">Về chúng tôi</div>
+    <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(30px,4vw,42px);line-height:1.2;color:var(--text-heading)">Lập lá số. Hiểu vận mệnh.</h1>
+    <p style="margin:20px 0 0;font-size:17px;line-height:1.7;color:var(--text-body)">Lá Số Việt là nền tảng lập và luận giải lá số cho người Việt — không định vị như "thầy bói AI". Chúng tôi tin rằng tri thức văn hoá Đông–Tây (Tử Vi, Bát Tự, Kinh Dịch, Chiêm Tinh, Thần Số Học, Tarot) xứng đáng được trình bày với cùng mức độ minh bạch mà bạn mong đợi ở bất kỳ công cụ nào khác: công khai phương pháp, nêu rõ căn cứ, và không giấu giới hạn.</p>
+
+    <div style="margin-top:48px;display:flex;flex-direction:column;gap:32px">
+      <sc-for list="{{ principles }}" as="p" hint-placeholder-count="5">
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="{{ p.icon }}" size="22" color="var(--gold-500)" style="flex:none;margin-top:2px" hint-size="22px,22px"></x-import>
+          <div>
+            <div style="font-family:var(--font-display);font-size:18px;color:var(--text-heading)">{{ p.title }}</div>
+            <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ p.body }}</p>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:56px;padding:28px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg)">
+      <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:19px;color:var(--text-heading)">Vai trò của AI</h2>
+      <p style="margin:12px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">AI tại Lá Số Việt đứng sau quy trình tính toán–tổng hợp–diễn giải: tổ chức và trình bày kết quả đã tính từ engine hoặc công thức theo phương pháp, bằng tiếng Việt dễ hiểu. AI không tự tạo ra dữ liệu lá số, không tự suy luận vận mệnh ngoài căn cứ đã có, và không chi phối tên miền hay thông điệp thương hiệu.</p>
+    </div>
+
+    <p style="margin:48px 0 0;font-size:13px;line-height:1.7;color:var(--text-faint);border-top:1px solid var(--border-hairline);padding-top:24px">Muốn góp ý hoặc hợp tác? <a href="/lien-he">Liên hệ chúng tôi</a>.</p>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);padding:32px 0">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt.</span>
+      <div style="display:flex;gap:20px">
+        <a href="/dieu-khoan" style="font-size:12.5px;color:var(--text-faint)">Điều khoản sử dụng</a>
+        <a href="/quyen-rieng-tu" style="font-size:12.5px;color:var(--text-faint)">Quyền riêng tư</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const principles = [
+      { icon: 'scroll', title: 'Minh bạch phương pháp', body: 'Mỗi bộ môn công bố rõ công thức, phiên bản engine và giới hạn — không giấu cách tính đằng sau một "trực giác AI" mơ hồ.' },
+      { icon: 'compass', title: 'Không dùng nỗi sợ để bán hàng', body: 'Không có điểm số "vận xấu hôm nay", không cảnh báo hoạ để thúc giục mua báo cáo hay vật phẩm.' },
+      { icon: 'shield-lock', title: 'Quyền riêng tư theo mặc định', body: 'Ngày giờ sinh của bạn không dùng cho quảng cáo nhắm mục tiêu. Bạn kiểm soát xuất, sửa và xoá dữ liệu bất kỳ lúc nào.' },
+      { icon: 'user-circle', title: 'Nhiều góc nhìn, không một lời phán', body: 'Tử Vi xem cấu trúc hoàn cảnh, Bát Tự xem năng lượng ngũ hành, Chiêm Tinh soi tâm lý chiều sâu, Thần Số Học chỉ ra bài học đường đời — đặt cạnh nhau để bạn tự cân nhắc, không thay bạn quyết định.' },
+      { icon: 'help-circle', title: 'Không bán vật phẩm hoá giải', body: 'Không bán vật phẩm phong thuỷ, bùa hộ mệnh hay dịch vụ "hoá giải vận hạn" dưới bất kỳ hình thức nào.' }
+    ];
+    return { principles };
+  }
+}
+</script>
+</body>
+</html>

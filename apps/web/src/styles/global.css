@@ -4,6 +4,9 @@
 @import "./homepage-conversion.css";
 @import "./birth-profile-wizard.css";
 @import "./vietqr-checkout.css";
+@import "./discipline-pages-foundation.css";
+@import "./discipline-pages-components.css";
+@import "./discipline-pages-results.css";
 
 * { box-sizing: border-box; }
 html { background: var(--lacquer-800); color-scheme: dark; }
