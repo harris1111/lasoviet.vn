@@ -23,7 +23,8 @@
     .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
     a { color: var(--accent-gold); }
     a:hover { color: var(--gold-400); }
-    .tarot-card { aspect-ratio: 2/3; border: 1px solid var(--oxblood-deep); border-radius: var(--radius-md); background: linear-gradient(160deg, var(--surface-panel), var(--surface-deep)); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; text-align: center; gap: 8px; }
+    .tarot-card { aspect-ratio: 2/3; border: 1px solid var(--oxblood-deep); border-radius: var(--radius-md); background: linear-gradient(160deg, var(--surface-panel), var(--surface-deep)); overflow: hidden; }
+    .tarot-card img { width: 100%; height: 100%; object-fit: contain; display: block; }
   </style>
 </helmet>
 
@@ -84,20 +85,24 @@
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
         <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--oxblood)">03 · Ví dụ minh hoạ</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Ba lá cho một câu hỏi trông như thế nào</h2>
-        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây minh hoạ cấu trúc trải bài ba vị trí — tên lá và ý nghĩa chỉ mang tính minh hoạ, không phải kết quả rút bài thật.</p>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây minh hoạ cấu trúc trải bài ba vị trí — vị trí gán cho từng lá chỉ mang tính minh hoạ, không phải kết quả rút bài thật. Hình ảnh là đúng bộ bài Rider–Waite–Smith 1909 (đã hết hạn bản quyền, thuộc phạm vi công cộng).</p>
 
         <div style="margin-top:44px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
           <sc-for list="{{ spreadCards }}" as="card" hint-placeholder-count="3">
             <div>
               <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px;text-align:center">{{ card.position }}</div>
               <div class="tarot-card">
-                <span style="font-family:var(--font-mono);font-size:10px;color:var(--oxblood)">{{ card.orientation }}</span>
-                <span style="font-family:var(--font-display);font-size:18px;color:var(--text-heading)">{{ card.name }}</span>
+                <img src="{{ card.image }}" alt="{{ card.alt }}" style="transform:{{ card.imgTransform }}">
               </div>
-              <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--text-muted)">{{ card.meaning }}</p>
+              <div style="margin-top:10px;display:flex;align-items:baseline;justify-content:center;gap:8px">
+                <span style="font-family:var(--font-display);font-size:16px;color:var(--text-heading)">{{ card.name }}</span>
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--oxblood)">{{ card.orientation }}</span>
+              </div>
+              <p style="margin:10px 0 0;font-size:13px;line-height:1.6;color:var(--text-muted)">{{ card.meaning }}</p>
             </div>
           </sc-for>
         </div>
+        <p style="margin:16px 0 0;font-size:11.5px;color:var(--text-faint)">Nguồn hình ảnh: bộ bài Rider–Waite–Smith (1909, phạm vi công cộng), đóng gói lại dưới giấy phép CC0 bởi Luciella Elisabeth Scarlett.</p>
 
         <div style="margin-top:40px;max-width:680px">
           <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Tổng hợp" title="Ba lá cho thấy một giai đoạn cần tạm dừng trước khi quyết định, với xu hướng cải thiện nếu chọn đúng thời điểm." sub="Bản diễn giải đầy đủ sẽ tách rõ ý nghĩa từng lá theo đúng vị trí, không gộp thành một câu phán chung." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
@@ -188,11 +193,17 @@ class Component extends DCLogic {
       { num: '06', icon: 'calendar-day', title: 'Lưu vào nhật ký cá nhân', body: 'Xem lại các lượt rút trước đó cùng ghi chú riêng của bạn.', bordered: false }
     ];
 
-    const spreadCards = [
-      { position: 'Tình huống hiện tại', name: 'Người Treo Ngược', orientation: 'Xuôi', meaning: 'Gợi ý một giai đoạn cần tạm dừng và nhìn vấn đề từ góc khác trước khi hành động.' },
-      { position: 'Hành động khả thi', name: 'Bánh Xe Số Mệnh', orientation: 'Ngược', meaning: 'Cho thấy một chu kỳ đang chuyển đổi — có thể cần thời gian trước khi rõ ràng hơn.' },
-      { position: 'Xu hướng kết quả', name: 'Ngôi Sao', orientation: 'Xuôi', meaning: 'Xu hướng tích cực nếu giữ được sự kiên nhẫn qua giai đoạn chuyển tiếp.' }
+    const spreadCardFacts = [
+      { position: 'Tình huống hiện tại', name: 'Người Treo Ngược', image: 'uploads/tarot/TheHangedMan.png', reversed: false, meaning: 'Gợi ý một giai đoạn cần tạm dừng và nhìn vấn đề từ góc khác trước khi hành động.' },
+      { position: 'Hành động khả thi', name: 'Bánh Xe Số Mệnh', image: 'uploads/tarot/WheelOfFortune.png', reversed: true, meaning: 'Cho thấy một chu kỳ đang chuyển đổi — có thể cần thời gian trước khi rõ ràng hơn.' },
+      { position: 'Xu hướng kết quả', name: 'Ngôi Sao', image: 'uploads/tarot/TheStar.png', reversed: false, meaning: 'Xu hướng tích cực nếu giữ được sự kiên nhẫn qua giai đoạn chuyển tiếp.' }
     ];
+    const spreadCards = spreadCardFacts.map(c => ({
+      ...c,
+      orientation: c.reversed ? 'Ngược' : 'Xuôi',
+      imgTransform: c.reversed ? 'rotate(180deg)' : 'none',
+      alt: `Lá ${c.name}, rút ${c.reversed ? 'ngược' : 'xuôi'} — vị trí ${c.position} (minh hoạ)`
+    }));
 
     const glossaryItems = [
       { icon: 'scroll', term: 'Trải bài (Spread)', body: 'Cách sắp xếp các lá bài theo những vị trí có ý nghĩa cố định — Lá Số Việt chỉ dùng hai trải bài: một lá và ba lá.' },
@@ -201,7 +212,7 @@ class Component extends DCLogic {
     ];
 
     const methodRows = [
-      { label: 'Bộ bài', value: 'Bộ Tarot 78 lá tiêu chuẩn (Rider–Waite), tên lá theo bản dịch tiếng Việt phổ biến.' },
+      { label: 'Bộ bài', value: 'Bộ Tarot 78 lá Rider–Waite–Smith (1909, phạm vi công cộng) — không dùng ảnh bộ bài đương đại còn bản quyền; tên lá theo bản dịch tiếng Việt phổ biến.' },
       { label: 'Cách rút', value: 'Rút ngẫu nhiên có lưu seed để có thể xem lại chính xác lượt rút đã thực hiện.' },
       { label: 'Giới hạn rút lại', value: 'Một lá hôm nay chỉ rút một lần mỗi ngày; ba lá cho một câu hỏi lưu lại lịch sử, không cho rút lại âm thầm.' },
       { label: 'Vai trò của AI', value: 'Diễn giải lá đã rút theo đúng vị trí bằng tiếng Việt — không tự chọn lại lá để "khớp" câu hỏi.' }
