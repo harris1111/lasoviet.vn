@@ -124,11 +124,11 @@
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
         <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--jade)">03 · Cấu trúc mẫu</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Tứ Trụ trông như thế nào</h2>
-        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Hồ sơ dưới đây là ví dụ minh hoạ cấu trúc — không phải dữ liệu người dùng thật và chưa qua engine tính toán.</p>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Hồ sơ dưới đây là ví dụ minh hoạ cấu trúc — không phải dữ liệu người dùng thật và chưa qua engine tính toán. Bấm hoặc dùng phím Tab + Enter trên một trụ để xem chi tiết bên dưới.</p>
 
         <div style="margin-top:48px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
           <sc-for list="{{ pillars }}" as="p" hint-placeholder-count="4">
-            <div style="background:var(--surface-panel);padding:24px 16px;display:flex;flex-direction:column;gap:14px">
+            <button type="button" aria-pressed="{{ p.selected }}" onClick="{{ p.onSelect }}" style="{{ p.cardStyle }}">
               <div style="display:flex;align-items:baseline;justify-content:space-between">
                 <span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)">{{ p.label }}</span>
                 <sc-if value="{{ p.isDay }}" hint-placeholder-val="{{ false }}">
@@ -141,17 +141,48 @@
                 <div style="margin-top:14px;font-family:var(--font-display);font-size:26px;color:var(--text-heading)">{{ p.branch }}</div>
                 <div style="margin-top:4px;font-family:var(--font-mono);font-size:11px;color:var(--text-faint)">{{ p.branchElement }}</div>
               </div>
-              <div>
+              <div style="text-align:left">
                 <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">Tàng can</div>
                 <div style="margin-top:6px;font-size:13px;line-height:1.5;color:var(--text-body)">{{ p.hidden }}</div>
               </div>
-            </div>
+              <div style="text-align:left;border-top:1px solid var(--border-hairline);padding-top:12px">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">Thập Thần</div>
+                <div style="margin-top:6px;font-size:13px;line-height:1.5;color:{{ p.thapThanColor }}">{{ p.thapThanLabel }}</div>
+              </div>
+            </button>
           </sc-for>
         </div>
-        <p style="margin:16px 0 0;font-size:12.5px;color:var(--text-faint)">Thập Thần (Ten Gods) và bảng quan hệ hình – xung – hợp – hại sẽ hiển thị cạnh bốn trụ khi tính năng luận giải ra mắt.</p>
 
-        <div style="margin-top:40px;max-width:680px">
-          <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Ngũ hành" title="Bốn can lộ trong hồ sơ mẫu: 1 Mộc, 1 Thổ, 1 Kim, 1 Hoả — chưa tính tàng can và trọng số." sub="Bản đầy đủ sẽ cộng thêm tàng can và áp trọng số theo phương pháp, không chỉ đếm số lượng can lộ." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
+        <div style="margin-top:24px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px 24px" aria-live="polite">
+          <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--jade)">Đang xem: {{ selectedPillar.label }}</div>
+          <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ selectedPillar.note }}</p>
+        </div>
+
+        <p style="margin:16px 0 0;font-size:12.5px;color:var(--text-faint)">Bảng quan hệ hình – xung – hợp – hại đầy đủ sẽ hiển thị khi tính năng luận giải ra mắt.</p>
+
+        <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:start">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)">Ngũ hành (can lộ)</div>
+            <div style="margin-top:16px;display:grid;gap:10px">
+              <sc-for list="{{ elementBars }}" as="e" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="flex:none;width:56px;font-size:13px;color:var(--text-body)">{{ e.label }}</span>
+                  <div style="flex:1;height:10px;background:var(--border-hairline);border-radius:var(--radius-pill);overflow:hidden">
+                    <div style="height:100%;width:{{ e.width }};background:{{ e.color }}"></div>
+                  </div>
+                  <span style="flex:none;width:18px;text-align:right;font-family:var(--font-mono);font-size:12px;color:var(--text-faint)">{{ e.count }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:14px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Chỉ đếm can lộ (Thiên Can) của 4 trụ trong hồ sơ mẫu — chưa cộng tàng can hay áp trọng số theo phương pháp. Đây là bảng đếm thành phần, không phải điểm số hay xếp hạng.</p>
+          </div>
+          <div style="background:var(--surface-panel);border:1px dashed var(--border-hairline);border-radius:var(--radius-md);padding:24px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="20px,20px" name="calendar-day" size="20" color="var(--text-faint)"></x-import>
+              <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)">Đại vận (Luck Pillars)</span>
+            </div>
+            <p style="margin:12px 0 0;font-size:13.5px;line-height:1.65;color:var(--text-muted)">Dòng thời gian đại vận cần tuổi khởi vận và chiều thuận/nghịch tính từ engine thật. Chưa hiển thị ở bản minh hoạ này để tránh suy diễn sai — sẽ mở khi engine được duyệt.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -280,12 +311,12 @@
 class Component extends DCLogic {
   state = {
     navOpen: false,
-    insightStamped: false,
+    selectedPillarIndex: 2,
     faqOpen: { 0: true }
   };
 
   toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
-  toggleInsight = () => this.setState(s => ({ insightStamped: !s.insightStamped }));
+  selectPillar = (i) => this.setState({ selectedPillarIndex: i });
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
 
   renderVals() {
@@ -296,12 +327,45 @@ class Component extends DCLogic {
       { label: 'Giờ', stem: 'Bính', branch: 'Dần', color: 'var(--text-heading)' }
     ];
 
-    const pillars = [
-      { label: 'Trụ Năm', stem: 'Canh', stemElement: 'Dương Kim', branch: 'Ngọ', branchElement: 'Dương Hoả', hidden: 'Đinh, Kỷ', isDay: false, stemColor: 'var(--text-heading)' },
-      { label: 'Trụ Tháng', stem: 'Kỷ', stemElement: 'Âm Thổ', branch: 'Mão', branchElement: 'Âm Mộc', hidden: 'Ất', isDay: false, stemColor: 'var(--text-heading)' },
-      { label: 'Trụ Ngày', stem: 'Giáp', stemElement: 'Dương Mộc', branch: 'Tý', branchElement: 'Dương Thuỷ', hidden: 'Quý', isDay: true, stemColor: 'var(--jade)' },
-      { label: 'Trụ Giờ', stem: 'Bính', stemElement: 'Dương Hoả', branch: 'Dần', branchElement: 'Dương Mộc', hidden: 'Giáp, Bính, Mậu', isDay: false, stemColor: 'var(--text-heading)' }
+    const pillarFacts = [
+      {
+        label: 'Trụ Năm', stem: 'Canh', stemElement: 'Dương Kim', branch: 'Ngọ', branchElement: 'Dương Hoả', hidden: 'Đinh, Kỷ', isDay: false, stemColor: 'var(--text-heading)',
+        thapThanLabel: 'Thất Sát', thapThanColor: 'var(--text-body)',
+        note: 'Trụ Năm — Canh (Dương Kim) / Ngọ (Dương Hoả), tàng can Đinh và Kỷ. Thập Thần Thất Sát: Kim khắc Mộc (Nhật Chủ), cùng cực Dương.'
+      },
+      {
+        label: 'Trụ Tháng', stem: 'Kỷ', stemElement: 'Âm Thổ', branch: 'Mão', branchElement: 'Âm Mộc', hidden: 'Ất', isDay: false, stemColor: 'var(--text-heading)',
+        thapThanLabel: 'Chính Tài', thapThanColor: 'var(--text-body)',
+        note: 'Trụ Tháng — Kỷ (Âm Thổ) / Mão (Âm Mộc), tàng can Ất. Thập Thần Chính Tài: Nhật Chủ (Mộc) khắc Thổ, khác cực Âm/Dương.'
+      },
+      {
+        label: 'Trụ Ngày', stem: 'Giáp', stemElement: 'Dương Mộc', branch: 'Tý', branchElement: 'Dương Thuỷ', hidden: 'Quý', isDay: true, stemColor: 'var(--jade)',
+        thapThanLabel: '— (Nhật Chủ)', thapThanColor: 'var(--jade)',
+        note: 'Trụ Ngày — Giáp (Dương Mộc) / Tý (Dương Thuỷ), tàng can Quý. Đây là Nhật Chủ: điểm quy chiếu để luận toàn bộ lá số, không tính Thập Thần cho chính nó.'
+      },
+      {
+        label: 'Trụ Giờ', stem: 'Bính', stemElement: 'Dương Hoả', branch: 'Dần', branchElement: 'Dương Mộc', hidden: 'Giáp, Bính, Mậu', isDay: false, stemColor: 'var(--text-heading)',
+        thapThanLabel: 'Thực Thần', thapThanColor: 'var(--text-body)',
+        note: 'Trụ Giờ — Bính (Dương Hoả) / Dần (Dương Mộc), tàng can Giáp, Bính, Mậu. Thập Thần Thực Thần: Nhật Chủ (Mộc) sinh Hoả, cùng cực Dương.'
+      }
     ];
+    const pillars = pillarFacts.map((p, i) => ({
+      ...p,
+      selected: i === this.state.selectedPillarIndex,
+      onSelect: () => this.selectPillar(i),
+      cardStyle: `background:var(--surface-panel);padding:24px 16px;display:flex;flex-direction:column;gap:14px;text-align:left;font-family:inherit;cursor:pointer;border:none;border-bottom:3px solid ${i === this.state.selectedPillarIndex ? 'var(--jade)' : 'transparent'}`
+    }));
+    const selectedPillar = pillars[this.state.selectedPillarIndex];
+
+    const elementCounts = [
+      { label: 'Mộc', count: 1, color: '#5C8A5A' },
+      { label: 'Hoả', count: 1, color: '#B5533C' },
+      { label: 'Thổ', count: 1, color: '#A8842F' },
+      { label: 'Kim', count: 1, color: '#8C8C94' },
+      { label: 'Thuỷ', count: 0, color: '#4A7A9C' }
+    ];
+    const elementMax = 4;
+    const elementBars = elementCounts.map(e => ({ ...e, width: `${Math.round((e.count / elementMax) * 100)}%` }));
 
     const freeResults = [
       { num: '01', icon: 'scroll', title: 'Bốn trụ Năm – Tháng – Ngày – Giờ', body: 'Thiên Can và Địa Chi của từng trụ, quy đổi từ chính hồ sơ sinh bạn đã có ở Tử Vi.' },
@@ -353,9 +417,7 @@ class Component extends DCLogic {
 
     return {
       toggleNav: this.toggleNav,
-      insightStamped: this.state.insightStamped,
-      toggleInsight: this.toggleInsight,
-      pillarPreview, pillars, freeResults, glossaryItems, methodRows, limitItems, faqs
+      pillarPreview, pillars, selectedPillar, elementBars, freeResults, glossaryItems, methodRows, limitItems, faqs
     };
   }
 }
