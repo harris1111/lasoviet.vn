@@ -48,8 +48,9 @@ export function startVietQrCheckoutPolling(
   options: VietQrCheckoutPollingOptions,
 ): () => void {
   const timers = options.timers ?? {
-    setInterval: globalThis.setInterval,
-    clearInterval: globalThis.clearInterval,
+    setInterval: (callback, delayMs) =>
+      globalThis.setInterval(callback, delayMs),
+    clearInterval: (handle) => globalThis.clearInterval(handle),
   };
   let currentStatus = options.initialStatus;
   let timer: TimerHandle | null = null;

@@ -231,6 +231,48 @@ describe("VietQR checkout polling", () => {
     await vi.advanceTimersByTimeAsync(10_000);
     expect(fetchStatus).not.toHaveBeenCalled();
   });
+
+  it("invokes default timers with the global receiver to prevent illegal invocation", () => {
+    const originalSetInterval = globalThis.setInterval;
+    const originalClearInterval = globalThis.clearInterval;
+    let setIntervalReceiver: unknown;
+    let clearIntervalReceiver: unknown;
+
+    globalThis.setInterval = function (
+      this: unknown,
+      callback: () => void,
+      delayMs?: number,
+    ) {
+      setIntervalReceiver = this;
+      if (this !== globalThis) throw new TypeError("Illegal invocation");
+      return originalSetInterval.call(globalThis, callback, delayMs);
+    } as typeof globalThis.setInterval;
+
+    globalThis.clearInterval = function (
+      this: unknown,
+      handle?: ReturnType<typeof setInterval>,
+    ) {
+      clearIntervalReceiver = this;
+      if (this !== globalThis) throw new TypeError("Illegal invocation");
+      return originalClearInterval.call(globalThis, handle);
+    } as typeof globalThis.clearInterval;
+
+    try {
+      const cleanup = startVietQrCheckoutPolling({
+        initialStatus: checkoutStatus(),
+        fetchStatus: vi.fn().mockResolvedValue(checkoutStatus()),
+        deliverStatus: vi.fn(),
+        navigate: vi.fn(),
+        visibility: visibilityHarness(),
+      });
+      expect(setIntervalReceiver).toBe(globalThis);
+      cleanup();
+      expect(clearIntervalReceiver).toBe(globalThis);
+    } finally {
+      globalThis.setInterval = originalSetInterval;
+      globalThis.clearInterval = originalClearInterval;
+    }
+  });
 });
 
 describe("VietQR checkout remaining time", () => {
