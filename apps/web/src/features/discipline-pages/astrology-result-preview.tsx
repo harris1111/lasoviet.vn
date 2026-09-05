@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 export type AstrologyResultPreviewProps = {
   locale: "vi" | "en";

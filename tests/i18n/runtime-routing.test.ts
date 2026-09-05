@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import { routing } from "../../apps/web/src/i18n/routing";
+import { isExplicitVietnamesePath } from "../../apps/web/src/routing/explicit-vietnamese-path";
 import { resolveLegacyAliasRedirect } from "../../apps/web/src/routing/legacy-alias";
 
 describe("localized app runtime tree", () => {
@@ -81,5 +82,12 @@ describe("localized app runtime tree", () => {
       taglinePrefix: "Build your chart.",
       taglineHighlight: "Understand your path.",
     });
+  });
+
+  it("detects explicit Vietnamese paths for proxy bypass", () => {
+    expect(isExplicitVietnamesePath("/vi")).toBe(true);
+    expect(isExplicitVietnamesePath("/vi/bat-tu")).toBe(true);
+    expect(isExplicitVietnamesePath("/bat-tu")).toBe(false);
+    expect(isExplicitVietnamesePath("/en/bat-tu")).toBe(false);
   });
 });
