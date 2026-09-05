@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Câu hỏi thường gặp — Lá Số Việt</title>
+  <meta name="description" content="Câu hỏi thường gặp về Lá Số Việt: độ chính xác, vai trò AI, quyền riêng tư, giá, tài khoản và ranh giới an toàn nội dung.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+  </style>
+</helmet>
+
+<div style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+    </div>
+  </header>
+
+  <main style="max-width:800px;margin:0 auto;padding:clamp(48px,8vw,88px) clamp(20px,5vw,32px) 96px">
+    <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">Hỗ trợ</div>
+    <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(30px,4vw,40px);line-height:1.2;color:var(--text-heading)">Câu hỏi thường gặp</h1>
+    <p style="margin:16px 0 0;font-size:16px;line-height:1.6;color:var(--text-muted)">Câu hỏi chung về Lá Số Việt. Mỗi bộ môn (Tử Vi, Bát Tự, Kinh Dịch...) còn có FAQ riêng ngay trên trang của bộ môn đó.</p>
+
+    <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:10px">
+      <sc-for list="{{ categories }}" as="c" hint-placeholder-count="4">
+        <a href="#{{ c.id }}" style="font-size:13px;padding:6px 14px;border-radius:var(--radius-pill);border:1px solid var(--border-hairline);background:var(--surface-panel);color:var(--text-body);text-decoration:none">{{ c.label }}</a>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:48px;display:flex;flex-direction:column;gap:56px">
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+        <div id="{{ g.id }}">
+          <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:22px;color:var(--text-heading)">{{ g.label }}</h2>
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:24px">
+            <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="4">
+              <div>
+                <div style="font-family:var(--font-display);font-size:16.5px;color:var(--text-heading)">{{ i.q }}</div>
+                <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ i.a }}</p>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <p style="margin:48px 0 0;font-size:13px;line-height:1.7;color:var(--text-faint);border-top:1px solid var(--border-hairline);padding-top:24px">Không tìm thấy câu trả lời? <a href="/lien-he">Liên hệ chúng tôi</a>.</p>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);padding:32px 0">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt.</span>
+      <div style="display:flex;gap:20px">
+        <a href="/dieu-khoan" style="font-size:12.5px;color:var(--text-faint)">Điều khoản sử dụng</a>
+        <a href="/quyen-rieng-tu" style="font-size:12.5px;color:var(--text-faint)">Quyền riêng tư</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const groups = [
+      {
+        id: 'chung', label: 'Về Lá Số Việt',
+        items: [
+          { q: 'Lá Số Việt là gì?', a: 'Một nền tảng lập và luận giải lá số cho người Việt, gồm Tử Vi, Bát Tự, Kinh Dịch, Chiêm Tinh Tây phương, Thần Số Học, Tarot và các tiện ích văn hoá liên quan (Lịch Âm, Xem Ngày Tốt, 12 Con Giáp...).' },
+          { q: 'Lá Số Việt có phải "thầy bói AI" không?', a: 'Không. AI chỉ tổ chức, đối chiếu và diễn giải kết quả đã tính từ engine/phương pháp — không tự đặt ra dữ liệu lá số hay tự suy luận vận mệnh ngoài căn cứ đã có.' },
+          { q: 'Kết quả có chính xác 100% không?', a: 'Phần tính toán (vị trí sao, Can Chi, ngày âm...) theo đúng công thức đã công bố. Phần diễn giải mang tính tham khảo văn hoá, có thể khác nhau giữa các trường phái — không phải một sự thật khoa học tuyệt đối.' }
+        ]
+      },
+      {
+        id: 'gia-tai-khoan', label: 'Giá và tài khoản',
+        items: [
+          { q: 'Dùng thử có mất phí không?', a: 'Không. Lập lá số Tử Vi và các công cụ xem trước đều miễn phí, không giới hạn số lần, không cần tài khoản cho nhiều tính năng.' },
+          { q: 'Báo cáo trả phí tính giá thế nào?', a: 'Theo từng chủ đề luận giải cụ thể, thanh toán một lần, không tự động gia hạn. Xem chi tiết tại trang Bảng giá.' },
+          { q: 'Tôi có thể xoá tài khoản và dữ liệu không?', a: 'Có. Vào Tài khoản → Quyền riêng tư để xuất hoặc yêu cầu xoá dữ liệu bất kỳ lúc nào.' }
+        ]
+      },
+      {
+        id: 'an-toan', label: 'An toàn nội dung',
+        items: [
+          { q: 'Lá Số Việt có liên quan đến số đề/lô đề không?', a: 'Không, và sẽ không bao giờ có. Đây là ranh giới an toàn bắt buộc trên toàn bộ nền tảng.' },
+          { q: 'Lá Số Việt có bán vật phẩm phong thuỷ hay bùa hộ mệnh không?', a: 'Không. Không có sản phẩm "hoá giải vận hạn" nào được bán đi kèm bất kỳ kết quả nào.' },
+          { q: 'Nếu tôi thấy lo lắng sau khi xem kết quả thì sao?', a: 'Nội dung tại Lá Số Việt là tham khảo văn hoá và tự chiêm nghiệm, không thay thế chẩn đoán hay tư vấn từ chuyên gia y tế, pháp lý hoặc tài chính. Nếu cảm thấy lo lắng kéo dài, hãy trao đổi với người bạn tin cậy hoặc chuyên gia phù hợp.' }
+        ]
+      },
+      {
+        id: 'ky-thuat', label: 'Kỹ thuật và dữ liệu',
+        items: [
+          { q: 'Tôi có cần nhập lại thông tin cho mỗi bộ môn không?', a: 'Không. Các bộ môn dùng hồ sơ sinh (ngày, giờ, nơi sinh) dùng chung một mô hình dữ liệu — bạn chỉ cần bổ sung thông tin đặc thù (như nơi sinh chính xác cho Chiêm Tinh) khi tính năng đó ra mắt.' },
+          { q: 'Không nhớ chính xác giờ sinh có dùng được không?', a: 'Được với hầu hết bộ môn — hệ thống sẽ nêu rõ phần nào giữ nguyên và phần nào bị ảnh hưởng khi thiếu giờ sinh.' }
+        ]
+      }
+    ];
+    const categories = groups.map(g => ({ id: g.id, label: g.label }));
+    return { categories, groups };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Quyền riêng tư — Lá Số Việt</title>
+  <meta name="description" content="Chính sách quyền riêng tư Lá Số Việt: dữ liệu thu thập, mục đích sử dụng, thời gian lưu trữ, quyền xuất/xoá dữ liệu và chính sách hồ sơ ẩn danh.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+  </style>
+</helmet>
+
+<div style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+    </div>
+  </header>
+
+  <main style="max-width:760px;margin:0 auto;padding:clamp(48px,8vw,88px) clamp(20px,5vw,32px) 96px">
+    <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">Pháp lý</div>
+    <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(30px,4vw,40px);line-height:1.2;color:var(--text-heading)">Quyền riêng tư</h1>
+    <p style="margin:16px 0 0;font-size:14px;color:var(--text-faint)">Cập nhật lần cuối: 05/09/2026 (bản nháp)</p>
+
+    <div style="margin-top:24px;padding:16px 20px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);display:flex;align-items:flex-start;gap:12px">
+      <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="shield-lock" size="18" color="var(--gold-500)" style="flex:none;margin-top:2px" hint-size="18px,18px"></x-import>
+      <span style="font-size:13.5px;line-height:1.6;color:var(--text-muted)">Đây là bản nháp cấu trúc nội dung, chưa phải văn bản pháp lý chính thức đã qua rà soát luật sư. Không dùng bản này làm căn cứ pháp lý cho tới khi được duyệt chính thức. Ngày sinh, giờ sinh và nơi sinh được xem là dữ liệu nhạy cảm và xử lý theo nguyên tắc tối thiểu hoá thu thập.</span>
+    </div>
+
+    <div style="margin-top:48px;display:flex;flex-direction:column;gap:40px">
+      <sc-for list="{{ sections }}" as="s" hint-placeholder-count="8">
+        <div>
+          <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:20px;color:var(--text-heading)">{{ s.title }}</h2>
+          <p style="margin:12px 0 0;font-size:15px;line-height:1.7;color:var(--text-body)">{{ s.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+
+    <p style="margin:48px 0 0;font-size:13px;line-height:1.7;color:var(--text-faint);border-top:1px solid var(--border-hairline);padding-top:24px">Muốn xuất, xoá dữ liệu hoặc thu hồi link đã chia sẻ ngay? Vào <a href="/tai-khoan/quyen-rieng-tu">Quyền riêng tư trong tài khoản</a>. Có câu hỏi khác? <a href="/lien-he">Liên hệ chúng tôi</a>.</p>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);padding:32px 0">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt.</span>
+      <div style="display:flex;gap:20px">
+        <a href="/dieu-khoan" style="font-size:12.5px;color:var(--text-faint)">Điều khoản sử dụng</a>
+        <a href="/" style="font-size:12.5px;color:var(--text-faint)">Trang chủ</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const sections = [
+      { title: '1. Dữ liệu chúng tôi thu thập', body: 'Thông tin tài khoản (email); dữ liệu lá số (ngày, giờ, nơi sinh) bạn nhập để lập lá số; nội dung báo cáo đã mua; và, nếu bạn đồng ý, dữ liệu sử dụng ẩn danh để cải thiện sản phẩm. Chúng tôi không thu thập nhiều hơn mức cần thiết cho từng tính năng.' },
+      { title: '2. Mục đích sử dụng', body: 'Tính toán và hiển thị lá số; lưu hồ sơ để bạn xem lại; xử lý thanh toán báo cáo; và, chỉ khi bạn bật đồng ý riêng, gửi email giới thiệu sản phẩm hoặc dùng dữ liệu ẩn danh để tinh chỉnh cách AI diễn giải. Mỗi mục đích có công tắc đồng ý riêng, độc lập với các mục khác.' },
+      { title: '3. Hồ sơ tạo khi chưa đăng nhập', body: 'Nếu bạn lập lá số trước khi tạo tài khoản, hồ sơ và lá số đó được lưu tạm thời và tự động xoá trong vòng 24 giờ nếu không được gắn vào một tài khoản đã đăng nhập. Bạn cũng có thể yêu cầu xoá ngay lập tức bất kỳ lúc nào.' },
+      { title: '4. Thời gian lưu trữ và xoá dữ liệu', body: 'Khi bạn yêu cầu xoá dữ liệu: hồ sơ lá số, ghi chú, lịch sử xem và báo cáo đã lưu bị xoá ngay lập tức trong tài khoản của bạn; bản sao lưu hệ thống lưu thêm tối đa 30 ngày trước khi xoá vĩnh viễn; hoá đơn và thông tin giao dịch thanh toán được giữ riêng theo thời hạn lưu trữ chứng từ kế toán quy định trong pháp luật Việt Nam.' },
+      { title: '5. Chia sẻ dữ liệu', body: 'Chúng tôi không bán dữ liệu cá nhân. Link chia sẻ lá số do bạn tạo mặc định ẩn thông tin ngày giờ sinh; bạn có thể thu hồi link bất kỳ lúc nào. Dữ liệu lá số và báo cáo không được dùng cho quảng cáo nhắm mục tiêu.' },
+      { title: '6. Quyền của bạn', body: 'Bạn có thể xem, xuất (định dạng JSON), sửa hoặc yêu cầu xoá dữ liệu của mình bất kỳ lúc nào tại Tài khoản → Quyền riêng tư, không cần liên hệ hỗ trợ.' },
+      { title: '7. Dữ liệu tương hợp (Tương Hợp)', body: 'Với các tính năng cần dữ liệu của nhiều người (như Tương Hợp), chúng tôi chỉ xử lý khi tất cả các bên liên quan đã xác nhận đồng ý. Một bên thu hồi quyền truy cập hoặc xoá hồ sơ sẽ vô hiệu hoá kết quả liên quan ngay lập tức.' },
+      { title: '8. Thay đổi chính sách', body: 'Chính sách này có thể được cập nhật theo thời gian. Thay đổi quan trọng sẽ được thông báo trên trang này kèm ngày cập nhật.' }
+    ];
+    return { sections };
+  }
+}
+</script>
+</body>
+</html>

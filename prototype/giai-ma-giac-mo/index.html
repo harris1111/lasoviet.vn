@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Giải Mã Giấc Mơ — Lá Số Việt</title>
+  <meta name="description" content="Tra cứu ý nghĩa biểu tượng giấc mơ theo góc nhìn dân gian và biểu tượng/tâm lý. Nội dung tham khảo văn hoá, không phải dự đoán số hay chẩn đoán.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    body { margin: 0; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(21,18,14,0.94), rgba(21,18,14,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    .cat-chip { font-family: var(--font-ui); font-size: 13.5px; padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border-hairline); background: var(--surface-panel); color: var(--text-body); cursor: pointer; min-height: 40px; }
+    .cat-chip.active { border-color: var(--gold-500); color: var(--gold-400); background: rgba(201,164,77,0.12); }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="giai-ma-giac-mo">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--gold-400);text-decoration:none;border-bottom:1px solid var(--gold-500);padding-bottom:2px">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 01 HERO -->
+    <section style="padding:clamp(48px,8vw,88px) 0 clamp(48px,7vw,72px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:32px">
+          <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <a href="/cong-cu-mien-phi" style="color:var(--text-faint);text-decoration:none">Công cụ miễn phí</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <span style="color:var(--text-muted)">Giải Mã Giấc Mơ</span>
+        </nav>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">Thư viện biểu tượng</div>
+        <h1 style="margin:16px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading)">Giải Mã Giấc Mơ</h1>
+        <p style="margin:20px 0 0;max-width:620px;font-size:18px;line-height:1.6;color:var(--text-body)">Tra cứu một biểu tượng giấc mơ để xem hai góc nhìn song song: cách dân gian Việt Nam vẫn kể, và một góc nhìn biểu tượng/tâm lý trung lập hơn — không phải dự đoán số hay chẩn đoán.</p>
+        <div style="margin-top:24px;padding:14px 20px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);display:inline-flex;align-items:center;gap:10px;max-width:620px">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="18px,18px" name="shield-lock" size="18" color="var(--son)"></x-import>
+          <span style="font-size:13.5px;line-height:1.5;color:var(--text-body)">Nội dung không gợi ý, liên kết hay nhắc tới số lô đề dưới bất kỳ hình thức nào.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 LƯỚI BIỂU TƯỢNG -->
+    <section style="padding:0 0 clamp(56px,9vw,88px)" data-screen-label="02-luoi-bieu-tuong">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="max-width:480px;margin-bottom:20px">
+          <input type="text" value="{{ searchQuery }}" oninput="{{ onSearchInput }}" placeholder="Tìm biểu tượng: rắn, nước, răng rụng..." aria-label="Tìm biểu tượng giấc mơ" style="width:100%;box-sizing:border-box;padding:12px 16px;font-size:14.5px;font-family:var(--font-ui);color:var(--text-heading);background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md)">
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px">
+          <sc-for list="{{ categoryChips }}" as="c" hint-placeholder-count="5">
+            <button type="button" class="{{ c.className }}" onClick="{{ c.onClick }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ hasNoResults }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:14.5px;color:var(--text-faint)">Không tìm thấy biểu tượng khớp với "{{ searchQuery }}" trong thư viện hiện tại.</p>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px">
+          <sc-for list="{{ visibleSymbols }}" as="s" hint-placeholder-count="6">
+            <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:24px">
+              <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint)">{{ s.category }}</div>
+              <div style="margin-top:10px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">{{ s.title }}</div>
+              <p style="margin:10px 0 0;font-size:13.5px;line-height:1.6;color:var(--text-muted)"><strong style="color:var(--text-body)">Dân gian:</strong> {{ s.folk }}</p>
+              <p style="margin:8px 0 0;font-size:13.5px;line-height:1.6;color:var(--text-muted)"><strong style="color:var(--text-body)">Biểu tượng/tâm lý:</strong> {{ s.symbolic }}</p>
+              <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--text-body);font-style:italic">Điều gì trong giấc mơ khiến bạn chú ý nhất — chi tiết đó thường quan trọng hơn bản thân biểu tượng.</p>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-hairline)">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">Biểu tượng liên quan</div>
+                <div style="margin-top:6px;font-size:13px;color:var(--text-muted)">{{ s.relatedText }}</div>
+              </div>
+              <p style="margin:10px 0 0;font-size:11px;color:var(--text-faint)">Biên tập nội bộ Lá Số Việt, tổng hợp quan niệm dân gian phổ biến — không phải trích dẫn từ một nguồn học thuật duy nhất.</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 AN TOÀN -->
+    <section style="padding:clamp(48px,8vw,80px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="03-an-toan">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
+        <div style="display:flex;align-items:center;gap:14px">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--gold-500)"></x-import>
+          <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(22px,2.6vw,26px);color:var(--text-heading)">Giới hạn của nội dung này</h2>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:14px">
+          <sc-for list="{{ limitItems }}" as="li" hint-placeholder-count="4">
+            <li style="display:flex;gap:12px;font-size:15px;line-height:1.6;color:var(--text-body)"><x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:3px"></x-import><span>{{ li }}</span></li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 04 FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,96px) 0" data-screen-label="04-faq-cta">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Câu hỏi thường gặp</h2>
+        <div style="margin-top:24px;max-width:760px">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="4">
+            <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" hint-size="100%,64px" num="{{ f.num }}" question="{{ f.q }}" answer="{{ f.a }}" open="{{ f.open }}" onToggle="{{ f.toggle }}"></x-import>
+          </sc-for>
+        </div>
+        <div style="margin-top:72px;padding:48px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+          <div style="max-width:520px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(22px,2.6vw,28px);color:var(--text-heading)">Muốn hiểu bản thân sâu hơn?</h2>
+            <p style="margin:10px 0 0;font-size:14.5px;line-height:1.6;color:var(--text-muted)">Lập lá số Tử Vi miễn phí để xem cấu trúc 12 cung — không cần tài khoản.</p>
+          </div>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);padding:48px 0 32px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+      <a href="/cong-cu-mien-phi" style="font-size:12.5px;color:var(--text-faint)">← Tất cả công cụ miễn phí</a>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { category: 'all', searchQuery: '', faqOpen: { 0: true } };
+
+  setCategory = (c) => this.setState({ category: c });
+  setSearch = (v) => this.setState({ searchQuery: v });
+  toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+
+  renderVals() {
+    const categories = [
+      { key: 'all', label: 'Tất cả' },
+      { key: 'animal', label: 'Con vật' },
+      { key: 'nature', label: 'Hiện tượng tự nhiên' },
+      { key: 'people', label: 'Con người & mối quan hệ' },
+      { key: 'event', label: 'Sự kiện đời sống' }
+    ];
+    const categoryChips = categories.map(c => ({
+      label: c.label,
+      className: c.key === this.state.category ? 'cat-chip active' : 'cat-chip',
+      onClick: () => this.setCategory(c.key)
+    }));
+
+    const symbols = [
+      { key: 'animal', category: 'Con vật', title: 'Mơ thấy rắn', synonyms: 'con rắn, rắn cắn, rắn quấn', folk: 'Dân gian Việt Nam thường gắn hình ảnh con rắn với sự thay đổi hoặc một điều bất ngờ sắp đến, tuỳ vùng miền có cách kể khác nhau.', symbolic: 'Trong nhiều truyền thống biểu tượng, rắn gắn với sự lột xác, chuyển tiếp hoặc một nỗi lo chưa gọi tên được.' },
+      { key: 'nature', category: 'Hiện tượng tự nhiên', title: 'Mơ thấy nước, lũ lụt', synonyms: 'nước lớn, ngập lụt, sông nước', folk: 'Nước lớn trong giấc mơ dân gian thường được kể là dấu hiệu của cảm xúc dâng trào hoặc một biến động sắp tới.', symbolic: 'Nước thường được xem là biểu tượng của cảm xúc và tiềm thức — lũ lụt có thể phản ánh cảm giác quá tải trong đời sống thực.' },
+      { key: 'people', category: 'Con người & mối quan hệ', title: 'Mơ thấy răng rụng', synonyms: 'rụng răng, gãy răng, mất răng', folk: 'Đây là một trong những giấc mơ được kể lại nhiều nhất trong dân gian, thường gắn với lo lắng về sức khoẻ hoặc người thân.', symbolic: 'Về mặt tâm lý, mơ răng rụng thường liên quan đến cảm giác mất kiểm soát, lo âu về ngoại hình hoặc một giai đoạn nhiều áp lực.' },
+      { key: 'event', category: 'Sự kiện đời sống', title: 'Mơ thấy bay', synonyms: 'bay lên, bay lượn, tự bay', folk: 'Giấc mơ bay lên thường được dân gian kể như một dấu hiệu của sự nhẹ nhõm hoặc một giai đoạn thuận lợi sắp tới.', symbolic: 'Bay trong giấc mơ thường gắn với cảm giác tự do, thoát khỏi giới hạn hoặc mong muốn kiểm soát một tình huống.' },
+      { key: 'people', category: 'Con người & mối quan hệ', title: 'Mơ thấy người đã mất', synonyms: 'người chết, người thân đã khuất, ông bà đã mất', folk: 'Nhiều gia đình Việt kể lại đây là dấu hiệu người thân "về thăm", thường đi kèm cảm giác bình yên hơn là sợ hãi.', symbolic: 'Đây là một chủ đề giấc mơ phổ biến khi đang xử lý nỗi nhớ hoặc chưa hoàn tất cảm xúc với người đã khuất.' },
+      { key: 'event', category: 'Sự kiện đời sống', title: 'Mơ thấy đám cưới', synonyms: 'cưới hỏi, kết hôn, lấy chồng lấy vợ', folk: 'Dân gian thường kể giấc mơ đám cưới gắn với một khởi đầu mới, không nhất thiết liên quan đến chuyện tình cảm thật.', symbolic: 'Đám cưới trong giấc mơ thường tượng trưng cho sự kết hợp, cam kết hoặc một quyết định quan trọng đang đến gần.' }
+    ];
+    const bySameCategory = symbols.reduce((acc, s) => {
+      (acc[s.key] = acc[s.key] || []).push(s.title);
+      return acc;
+    }, {});
+    const symbolsWithRelated = symbols.map(s => ({
+      ...s,
+      relatedText: bySameCategory[s.key].filter(t => t !== s.title).join(' · ') || 'Chưa có biểu tượng liên quan trong danh mục này.'
+    }));
+
+    const category = this.state.category;
+    const query = this.state.searchQuery.trim().toLowerCase();
+    const byCategory = category === 'all' ? symbolsWithRelated : symbolsWithRelated.filter(s => s.key === category);
+    const visibleSymbols = !query ? byCategory : byCategory.filter(s =>
+      s.title.toLowerCase().includes(query) ||
+      s.synonyms.toLowerCase().includes(query) ||
+      s.folk.toLowerCase().includes(query) ||
+      s.symbolic.toLowerCase().includes(query)
+    );
+    const hasNoResults = visibleSymbols.length === 0;
+
+    const limitItems = [
+      'Nội dung mang tính tham khảo văn hoá và biểu tượng, không phải chẩn đoán tâm lý hay dự đoán sự kiện cụ thể.',
+      'Không có "điểm số giấc mơ" hay xếp hạng may rủi nào đi kèm với bất kỳ biểu tượng nào.',
+      'Nội dung không gợi ý, liên kết hay nhắc tới số lô đề dưới bất kỳ hình thức nào — đây là ranh giới an toàn bắt buộc, không có ngoại lệ.',
+      'Nếu giấc mơ gây lo lắng kéo dài, hãy trao đổi với người bạn tin cậy hoặc chuyên gia sức khoẻ tâm thần phù hợp.'
+    ];
+
+    const faqData = [
+      { q: 'Giải Mã Giấc Mơ có liên quan đến số đề hay lô đề không?', a: 'Không, và sẽ không bao giờ có. Đây là ranh giới an toàn bắt buộc tại Lá Số Việt — nội dung không gợi ý, liên kết hay nhắc tới bất kỳ con số xổ số/lô đề nào.' },
+      { q: 'Vì sao mỗi biểu tượng có hai cách giải thích?', a: 'Để tách rõ điều dân gian vẫn kể (một phần văn hoá) khỏi một góc nhìn biểu tượng/tâm lý trung lập hơn — bạn tự đối chiếu, không bị áp một kết luận duy nhất.' },
+      { q: 'Tôi có thể gửi thêm biểu tượng muốn tra cứu không?', a: 'Thư viện biểu tượng sẽ tiếp tục mở rộng. Hiện tại trang chỉ hiển thị một số biểu tượng phổ biến nhất.' },
+      { q: 'Nội dung này có thay thế tư vấn tâm lý không?', a: 'Không. Đây là nội dung tham khảo văn hoá và tự chiêm nghiệm, không thay thế chẩn đoán hoặc điều trị từ chuyên gia sức khoẻ tâm thần.' }
+    ];
+    const faqs = faqData.map((f, i) => ({ num: String(i + 1).padStart(2, '0'), q: f.q, a: f.a, open: !!this.state.faqOpen[i], toggle: () => this.toggleFaq(i) }));
+
+    return {
+      categoryChips, visibleSymbols, hasNoResults,
+      searchQuery: this.state.searchQuery, onSearchInput: e => this.setSearch(e.target.value),
+      limitItems, faqs
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Bản đồ sao / Chiêm tinh Tây phương — Sắp ra mắt · Lá Số Việt</title>
+  <meta name="description" content="Bản đồ sao (Chiêm tinh Tây phương) tại Lá Số Việt đang được hoàn thiện: Mặt Trời, Mặt Trăng, Cung Mọc, nhà và góc chiếu. Xem trước phương pháp và một bản đồ sao mẫu.">
+  <meta name="robots" content="noindex, follow">
+  <style>
+    /* Chiêm tinh dùng hệ mặt midnight navy + mineral blue riêng — khác lacquer ấm của các trang Đông phương, vẫn giữ font/spacing/gold dùng chung. */
+    :root {
+      --surface-canvas: #0A121D;
+      --surface-deep: #0E1826;
+      --surface-panel: #131F30;
+      --border-hairline: #253347;
+      --mineral: #6E93AC;
+      --mineral-deep: #2E4356;
+      --mineral-tint: rgba(79,112,138,0.18);
+    }
+    body { margin: 0; background: var(--surface-canvas); }
+    .lsv-bg-texture { background-color: var(--surface-canvas); background-image: linear-gradient(rgba(10,18,29,0.94), rgba(10,18,29,0.94)), url('uploads/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp'); background-repeat: repeat; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    @media (prefers-reduced-motion: reduce) { .ls-marquee-track { animation: none !important; } }
+    @keyframes ls-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  </style>
+</helmet>
+
+<div class="lsv-bg-texture" style="font-family:var(--font-ui);color:var(--text-body);min-height:100vh" data-screen-label="chiem-tinh">
+
+  <!-- HEADER -->
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-deep);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:22px;color:var(--text-heading);text-decoration:none;letter-spacing:0.01em">Lá Số Việt</a>
+      <nav style="display:flex;gap:24px;font-size:14px;flex-wrap:wrap" class="ls-nav-links">
+        <a href="/" style="color:var(--text-body);text-decoration:none">Trang chủ</a>
+        <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
+        <a href="/bat-tu" style="color:var(--text-body);text-decoration:none">Bát Tự</a>
+        <a href="/kinh-dich" style="color:var(--text-body);text-decoration:none">Kinh Dịch</a>
+        <a href="/chiem-tinh" style="color:var(--mineral);text-decoration:none;border-bottom:1px solid var(--mineral);padding-bottom:2px">Chiêm Tinh</a>
+        <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
+        <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+        <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
+        <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,40px" variant="primary" size="sm" href="/tu-vi">Lập lá số Tử Vi</x-import>
+        <button type="button" aria-label="Mở menu" onClick="{{ toggleNav }}" style="display:none;background:none;border:none;color:var(--text-heading);cursor:pointer;padding:8px;min-height:44px;min-width:44px" class="ls-nav-toggle">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="menu" size="24"></x-import>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div style="border-bottom:1px solid var(--border-hairline);background:var(--surface-deep);overflow:hidden;padding:12px 0" aria-hidden="true">
+    <div class="ls-marquee-track" style="display:flex;width:max-content;gap:48px;animation:ls-marquee 38s linear infinite;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap">
+      <span>MẶT TRỜI · MẶT TRĂNG · CUNG MỌC · NHÀ · GÓC CHIẾU · BẢN ĐỒ SAO ĐANG HOÀN THIỆN ·</span>
+      <span>MẶT TRỜI · MẶT TRĂNG · CUNG MỌC · NHÀ · GÓC CHIẾU · BẢN ĐỒ SAO ĐANG HOÀN THIỆN ·</span>
+    </div>
+  </div>
+
+  <main>
+    <!-- 01 HERO -->
+    <section style="padding:clamp(48px,8vw,96px) 0 clamp(56px,9vw,104px)" data-screen-label="01-hero">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:32px">
+          <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="14" color="var(--text-faint)"></x-import>
+          <span style="color:var(--text-muted)">Bản đồ sao / Chiêm tinh Tây phương</span>
+        </nav>
+
+        <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,0.95fr);gap:64px;align-items:start">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mineral);border:1px solid var(--mineral-deep);border-radius:var(--radius-pill);padding:6px 14px;background:var(--mineral-tint)">Sắp ra mắt</div>
+            <h1 style="margin:20px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.2vw,44px);line-height:1.15;color:var(--text-heading)">Bản đồ sao / Chiêm tinh Tây phương</h1>
+            <p style="margin:20px 0 0;max-width:540px;font-size:18px;line-height:1.6;color:var(--text-body)">Bản đồ sao ghi lại vị trí Mặt Trời, Mặt Trăng và các hành tinh vào đúng thời điểm và nơi bạn sinh ra, sắp vào 12 cung hoàng đạo và 12 nhà. Vì nhà và Cung Mọc phụ thuộc trực tiếp vào toạ độ nơi sinh, đây là bộ môn duy nhất tại Lá Số Việt bắt buộc phải có nơi sinh chính xác.</p>
+            <p style="margin:16px 0 0;max-width:540px;font-size:15px;line-height:1.6;color:var(--text-muted)">Bản đồ sao sẽ dùng chung hồ sơ sinh với Tử Vi — bạn chỉ cần bổ sung nơi sinh chính xác khi tính năng này ra mắt.</p>
+
+            <div style="margin-top:36px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+              <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+              <a href="#ban-do-sao-mau" style="display:inline-flex;align-items:center;gap:8px;font-size:14.5px;color:var(--text-body)">Xem bản đồ sao mẫu <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16"></x-import></a>
+            </div>
+            <p style="margin:20px 0 0;font-size:12.5px;color:var(--text-faint)">Chưa có công cụ lập bản đồ sao trực tiếp — trang này giới thiệu phương pháp và một hồ sơ minh hoạ, không phải kết quả tính từ dữ liệu thật.</p>
+          </div>
+
+          <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:36px;text-align:center">
+            <svg viewBox="0 0 300 300" role="img" aria-label="Sơ đồ minh hoạ bản đồ sao hình tròn với 12 cung hoàng đạo" style="width:100%;max-width:280px;margin:0 auto;display:block">
+              <circle cx="150" cy="150" r="140" fill="none" stroke="var(--border-hairline)" stroke-width="1.5" />
+              <circle cx="150" cy="150" r="95" fill="none" stroke="var(--border-hairline)" stroke-width="1" />
+              <circle cx="150" cy="150" r="4" fill="var(--gold-500)" />
+              <g stroke="var(--border-hairline)" stroke-width="1">
+                <line x1="150" y1="55" x2="150" y2="10" />
+                <line x1="197.5" y1="67.7" x2="220" y2="28.8" />
+                <line x1="232.3" y1="102.5" x2="271.2" y2="80" />
+                <line x1="245" y1="150" x2="290" y2="150" />
+                <line x1="232.3" y1="197.5" x2="271.2" y2="220" />
+                <line x1="197.5" y1="232.3" x2="220" y2="271.2" />
+                <line x1="150" y1="245" x2="150" y2="290" />
+                <line x1="102.5" y1="232.3" x2="80" y2="271.2" />
+                <line x1="67.7" y1="197.5" x2="28.8" y2="220" />
+                <line x1="55" y1="150" x2="10" y2="150" />
+                <line x1="67.7" y1="102.5" x2="28.8" y2="80" />
+                <line x1="102.5" y1="67.7" x2="80" y2="28.8" />
+              </g>
+              <g text-anchor="middle" dominant-baseline="middle" font-size="15" fill="var(--gold-500)">
+                <text x="180" y="36">♈</text>
+                <text x="233" y="67">♉</text>
+                <text x="264" y="120">♊</text>
+                <text x="264" y="181">♋</text>
+                <text x="233" y="233">♌</text>
+                <text x="181" y="264">♍</text>
+                <text x="120" y="264">♎</text>
+                <text x="67" y="233">♏</text>
+                <text x="36" y="181">♐</text>
+                <text x="36" y="120">♑</text>
+                <text x="67" y="67">♒</text>
+                <text x="120" y="36">♓</text>
+              </g>
+              <line x1="10" y1="150" x2="55" y2="150" stroke="var(--mineral)" stroke-width="2" />
+              <line x1="150" y1="10" x2="150" y2="55" stroke="var(--mineral)" stroke-width="2" />
+            </svg>
+            <p style="margin:16px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Minh hoạ cấu trúc 12 cung hoàng đạo — xem hồ sơ mẫu đầy đủ ở mục "Bản đồ sao trông như thế nào" bên dưới.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 NHẬN ĐƯỢC GÌ KHI RA MẮT -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-nhan-duoc-gi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mineral)">02 · Khi ra mắt</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Bạn sẽ nhận được gì trong bản đồ sao miễn phí</h2>
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ freeResults }}" as="item" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,160px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 BẢN ĐỒ SAO MẪU -->
+    <section id="ban-do-sao-mau" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="03-ban-do-sao-mau">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mineral)">03 · Cấu trúc mẫu</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Bản đồ sao trông như thế nào</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Hồ sơ dưới đây là ví dụ minh hoạ cấu trúc — không phải dữ liệu người dùng thật và chưa qua engine tính toán thiên văn.</p>
+
+        <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);gap:48px;align-items:center">
+          <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:32px;text-align:center">
+            <svg viewBox="0 0 300 300" role="img" aria-label="Bản đồ sao mẫu hình tròn với 12 cung hoàng đạo, vị trí Mặt Trời, Mặt Trăng, Cung Mọc và Thiên Đỉnh" style="width:100%;max-width:320px;margin:0 auto;display:block">
+              <circle cx="150" cy="150" r="140" fill="none" stroke="var(--border-hairline)" stroke-width="1.5" />
+              <circle cx="150" cy="150" r="95" fill="none" stroke="var(--border-hairline)" stroke-width="1" />
+              <circle cx="150" cy="150" r="4" fill="var(--gold-500)" />
+              <g stroke="var(--border-hairline)" stroke-width="1">
+                <line x1="150" y1="55" x2="150" y2="10" />
+                <line x1="197.5" y1="67.7" x2="220" y2="28.8" />
+                <line x1="232.3" y1="102.5" x2="271.2" y2="80" />
+                <line x1="245" y1="150" x2="290" y2="150" />
+                <line x1="232.3" y1="197.5" x2="271.2" y2="220" />
+                <line x1="197.5" y1="232.3" x2="220" y2="271.2" />
+                <line x1="150" y1="245" x2="150" y2="290" />
+                <line x1="102.5" y1="232.3" x2="80" y2="271.2" />
+                <line x1="67.7" y1="197.5" x2="28.8" y2="220" />
+                <line x1="55" y1="150" x2="10" y2="150" />
+                <line x1="67.7" y1="102.5" x2="28.8" y2="80" />
+                <line x1="102.5" y1="67.7" x2="80" y2="28.8" />
+              </g>
+              <g text-anchor="middle" dominant-baseline="middle" font-size="16" fill="var(--gold-500)">
+                <text x="180" y="36">♈</text>
+                <text x="233" y="67">♉</text>
+                <text x="264" y="120">♊</text>
+                <text x="264" y="181">♋</text>
+                <text x="233" y="233">♌</text>
+                <text x="181" y="264">♍</text>
+                <text x="120" y="264">♎</text>
+                <text x="67" y="233">♏</text>
+                <text x="36" y="181">♐</text>
+                <text x="36" y="120">♑</text>
+                <text x="67" y="67">♒</text>
+                <text x="120" y="36">♓</text>
+              </g>
+              <line x1="10" y1="150" x2="272" y2="150" stroke="var(--mineral)" stroke-width="1.5" stroke-dasharray="2 4" />
+              <line x1="150" y1="10" x2="150" y2="290" stroke="var(--mineral)" stroke-width="1.5" stroke-dasharray="2 4" />
+              <line x1="203" y1="203" x2="97" y2="97" stroke="var(--gold-500)" stroke-width="1" stroke-dasharray="1 3" opacity="0.55" />
+              <text x="26" y="140" font-size="10.5" font-family="var(--font-mono)" style="fill:{{ pointStyles.asc.textColor }}">ASC</text>
+              <text x="140" y="24" font-size="10.5" font-family="var(--font-mono)" style="fill:{{ pointStyles.mc.textColor }}">MC</text>
+
+              <circle cx="203" cy="203" r="14" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.sun.halo }}" />
+              <circle cx="203" cy="203" r="9" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
+              <text x="203" y="204" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="var(--text-heading)">☉</text>
+
+              <circle cx="97" cy="97" r="14" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.moon.halo }}" />
+              <circle cx="97" cy="97" r="9" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
+              <text x="97" y="98" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="var(--text-heading)">☽</text>
+
+              <circle cx="65" cy="128" r="12" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.venus.halo }}" />
+              <circle cx="65" cy="128" r="8" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
+              <text x="65" y="129" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="var(--text-heading)">♀</text>
+
+              <circle cx="228" cy="122" r="12" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.mercury.halo }}" />
+              <circle cx="228" cy="122" r="8" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
+              <text x="228" y="123" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="var(--text-heading)">☿</text>
+            </svg>
+            <p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:var(--text-faint)">☉ Mặt Trời · ☽ Mặt Trăng · ♀ Kim Tinh · ☿ Thuỷ Tinh · ASC Cung Mọc · MC Thiên Đỉnh. Đường chấm vàng nối Mặt Trời–Mặt Trăng minh hoạ một góc chiếu (aspect), không phải góc thật.</p>
+          </div>
+
+          <div>
+            <h3 style="margin:0 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Bảng hành tinh (dạng đọc)</h3>
+            <p style="margin:0 0 16px;font-size:13px;color:var(--text-faint)">Bấm hoặc dùng phím Tab + Enter trên một dòng để đồng bộ với bản đồ sao bên trái.</p>
+            <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border-hairline)">
+                  <th scope="col" style="text-align:left;padding:8px 8px 8px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Điểm</th>
+                  <th scope="col" style="text-align:left;padding:8px 8px 8px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Cung</th>
+                  <th scope="col" style="text-align:left;padding:8px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase">Nhà</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ planetRows }}" as="row" hint-placeholder-count="6">
+                  <tr style="border-bottom:1px solid var(--border-hairline);background:{{ row.rowBg }}">
+                    <td style="padding:0 8px 0 0;color:var(--text-heading);white-space:nowrap">
+                      <button type="button" aria-pressed="{{ row.selected }}" onClick="{{ row.onSelect }}" style="width:100%;text-align:left;background:none;border:none;color:inherit;font:inherit;padding:9px 0;cursor:pointer">{{ row.point }}</button>
+                    </td>
+                    <td style="padding:9px 8px 9px 0;color:var(--text-body)">{{ row.sign }}</td>
+                    <td style="padding:9px 0;color:var(--text-body)">{{ row.house }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+
+            <div style="margin-top:24px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px 24px" aria-live="polite">
+              <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--mineral)">Đang xem: {{ selectedPoint.point }}</div>
+              <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ selectedPoint.note }}</p>
+            </div>
+            <p style="margin:14px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Bản tính thật sẽ dùng đúng ngày, giờ, nơi sinh và một hệ nhà (house system) được công bố rõ, không phải số liệu cố định như trên.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 THUẬT NGỮ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;border-top:1px solid var(--border-hairline)" data-screen-label="04-thuat-ngu">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mineral)">04 · Thuật ngữ cốt lõi</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Đọc bản đồ sao mà không bị ngợp thuật ngữ</h2>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ glossaryItems }}" as="g" hint-placeholder-count="5">
+            <div style="background:var(--surface-panel);padding:28px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="{{ g.icon }}" size="24" color="var(--mineral)"></x-import>
+              <div style="margin-top:16px;font-family:var(--font-display);font-size:18px;line-height:1.35;color:var(--text-heading)">{{ g.term }}</div>
+              <p style="margin:10px 0 0;font-size:14px;line-height:1.65;color:var(--text-body)">{{ g.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 CƠ SỞ TÍNH TOÁN -->
+    <section id="cach-tinh" style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="05-cach-tinh">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mineral)">05 · Minh bạch phương pháp</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Cơ sở tính toán sẽ được công bố khi ra mắt</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Bản đồ sao có nhiều lựa chọn kỹ thuật khác nhau (hệ nhà, cách xử lý điểm Node...). Lá Số Việt đang đánh giá engine tính toán thiên văn phù hợp trước khi chốt các quy ước dưới đây.</p>
+
+        <div style="margin-top:40px;max-width:760px">
+          <sc-for list="{{ methodRows }}" as="m" hint-placeholder-count="4">
+            <div style="display:flex;gap:24px;padding:20px 0;border-top:1px solid var(--border-hairline);align-items:baseline">
+              <span style="flex:none;width:220px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)">{{ m.label }}</span>
+              <span style="font-size:15px;line-height:1.6;color:var(--text-body)">{{ m.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <p style="margin:32px 0 0;max-width:760px;font-size:14px;line-height:1.7;color:var(--text-muted);border-top:1px solid var(--border-hairline);padding-top:24px">Giống các bộ môn khác, AI tại Lá Số Việt sẽ chỉ tổ chức và diễn giải toạ độ đã tính — không tự suy ra vị trí hành tinh.</p>
+      </div>
+    </section>
+
+    <!-- 06 GIỚI HẠN -->
+    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="06-gioi-han">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
+        <div style="display:flex;align-items:center;gap:14px">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--mineral)"></x-import>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mineral)">06 · Giới hạn</div>
+            <h2 style="margin:8px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,30px);color:var(--text-heading)">Nội dung tham khảo, không thay thế chuyên môn</h2>
+          </div>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:16px">
+          <sc-for list="{{ limitItems }}" as="li" hint-placeholder-count="6">
+            <li style="display:flex;gap:12px;font-size:15px;line-height:1.65;color:var(--text-body);padding-bottom:16px;border-bottom:1px solid var(--border-hairline)">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="18px,18px" name="chevron-right" size="16" color="var(--text-faint)" style="flex:none;margin-top:4px"></x-import>
+              <span>{{ li }}</span>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 07 KIẾN THỨC + FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="07-kien-thuc-faq">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mineral)">07 · Đọc thêm</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Trong lúc chờ Bản đồ sao</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Kiến thức riêng cho Bản đồ sao đang được biên soạn. Trong lúc chờ, bạn có thể tìm hiểu cách Lá Số Việt tách bạch tính toán, quy tắc diễn giải và AI qua lá số Tử Vi đã hoạt động.</p>
+        <div style="margin-top:28px">
+          <a href="/kien-thuc/tu-vi" style="display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--mineral)">Xem thư viện kiến thức Tử Vi <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="16px,16px" name="chevron-right" size="16" color="var(--mineral)"></x-import></a>
+        </div>
+
+        <h2 style="margin:80px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Câu hỏi thường gặp</h2>
+        <div style="margin-top:24px;max-width:760px">
+          <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+            <x-import component-from-global-scope="DesignSystem_031f07.FaqItem" hint-size="100%,64px" num="{{ f.num }}" question="{{ f.q }}" answer="{{ f.a }}" open="{{ f.open }}" onToggle="{{ f.toggle }}"></x-import>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:88px;padding:56px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap">
+          <div style="max-width:520px">
+            <h2 style="margin:0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,2.8vw,30px);color:var(--text-heading)">Bắt đầu với lá số Tử Vi miễn phí</h2>
+            <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:var(--text-muted)">Hồ sơ sinh bạn tạo hôm nay sẽ dùng lại được cho Bản đồ sao khi tính năng này ra mắt — chỉ cần bổ sung nơi sinh chính xác.</p>
+          </div>
+          <x-import component-from-global-scope="DesignSystem_031f07.Button" hint-size="auto,48px" variant="primary" href="/tu-vi">Lập lá số Tử Vi miễn phí</x-import>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer style="border-top:1px solid var(--border-hairline);padding:64px 0 40px" data-screen-label="footer">
+    <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:48px">
+        <div>
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--text-heading)">Lá Số Việt</div>
+          <p style="margin:12px 0 0;max-width:320px;font-size:13.5px;line-height:1.65;color:var(--text-faint)">Thư viện tri thức Việt đương đại — lập và luận giải lá số dựa trên dữ liệu và phương pháp có thể kiểm chứng.</p>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Sản phẩm</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Lập lá số Tử Vi</a>
+            <a href="/chiem-tinh" style="color:var(--text-body);text-decoration:none">Bản đồ sao (sắp ra mắt)</a>
+            <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">Pháp lý</div>
+          <div style="margin-top:14px;display:grid;gap:10px;font-size:14px">
+            <a href="/dieu-khoan" style="color:var(--text-body);text-decoration:none">Điều khoản sử dụng</a>
+            <a href="/quyen-rieng-tu" style="color:var(--text-body);text-decoration:none">Quyền riêng tư</a>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border-hairline);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn.</span>
+        <span style="font-size:12.5px;color:var(--text-faint)">Bản đồ sao: đang xây dựng — chưa chốt engine/phiên bản chính thức</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    navOpen: false,
+    selectedPointIndex: 0,
+    faqOpen: { 0: true }
+  };
+
+  toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
+  selectPoint = (i) => this.setState({ selectedPointIndex: i });
+  toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+
+  renderVals() {
+    // Vòng hoàng đạo 12 cung trong SVG là hình học cố định, được viết tĩnh trực tiếp trong
+    // markup (không qua sc-for/{{ }}) vì công cụ template không nội suy được vào thuộc tính
+    // hình học SVG như x1/y1/x2/y2/x/y.
+    const pointFacts = [
+      { key: 'sun', point: 'Mặt Trời ☉', sign: 'Sư Tử', house: 'Nhà 11', note: 'Mặt Trời ☉ — Sư Tử, Nhà 11 (minh hoạ). Điểm khởi đầu để đọc bản đồ sao, thường gắn với năng lượng cốt lõi và cách thể hiện bản thân.' },
+      { key: 'moon', point: 'Mặt Trăng ☽', sign: 'Bọ Cạp', house: 'Nhà 4', note: 'Mặt Trăng ☽ — Bọ Cạp, Nhà 4 (minh hoạ). Thường gắn với đời sống cảm xúc, nhu cầu an toàn và phản ứng bản năng.' },
+      { key: 'asc', point: 'Cung Mọc (ASC)', sign: 'Xử Nữ', house: 'Nhà 1', note: 'Cung Mọc (ASC) — Xử Nữ, Nhà 1 (minh hoạ). Phụ thuộc trực tiếp vào giờ và nơi sinh chính xác — sai giờ sinh vài phút có thể đổi cung này.' },
+      { key: 'mc', point: 'Thiên Đỉnh (MC)', sign: 'Song Tử', house: 'Nhà 10', note: 'Thiên Đỉnh (MC) — Song Tử, Nhà 10 (minh hoạ). Thường gắn với hình ảnh nghề nghiệp và vị trí xã hội.' },
+      { key: 'venus', point: 'Kim Tinh', sign: 'Xử Nữ', house: 'Nhà 1', note: 'Kim Tinh ♀ — Xử Nữ, Nhà 1 (minh hoạ). Thường gắn với giá trị quan hệ, gu thẩm mỹ và cách thể hiện tình cảm.' },
+      { key: 'mercury', point: 'Thuỷ Tinh', sign: 'Sư Tử', house: 'Nhà 12', note: 'Thuỷ Tinh ☿ — Sư Tử, Nhà 12 (minh hoạ). Thường gắn với cách tư duy, giao tiếp và xử lý thông tin.' }
+    ];
+    const planetRows = pointFacts.map((p, i) => ({
+      ...p,
+      selected: i === this.state.selectedPointIndex,
+      onSelect: () => this.selectPoint(i),
+      rowBg: i === this.state.selectedPointIndex ? 'var(--mineral-tint)' : 'transparent'
+    }));
+    const selectedPoint = planetRows[this.state.selectedPointIndex];
+    const pointStyles = {};
+    pointFacts.forEach((p, i) => {
+      const isSelected = i === this.state.selectedPointIndex;
+      pointStyles[p.key] = { halo: isSelected ? 1 : 0, textColor: isSelected ? 'var(--gold-500)' : 'var(--mineral)' };
+    });
+
+    const freeResults = [
+      { num: '01', icon: 'compass', title: 'Mặt Trời, Mặt Trăng, Cung Mọc', body: 'Ba điểm nền tảng nhất để bắt đầu đọc một bản đồ sao.' },
+      { num: '02', icon: 'user-circle', title: 'Bảng đầy đủ các hành tinh', body: 'Cung, độ chính xác và nhà của từng hành tinh, không chỉ hiển thị bằng hình vẽ.' },
+      { num: '03', icon: 'scroll', title: 'Bảng 12 nhà', body: 'Cung tại mỗi đỉnh nhà (cusp) và các hành tinh trú tại từng nhà.' },
+      { num: '04', icon: 'book-open', title: 'Bảng góc chiếu (aspect)', body: 'Các góc chiếu giữa hành tinh kèm độ lệch (orb) chính xác, có thể lọc theo loại.' },
+      { num: '05', icon: 'map-pin', title: 'Phiếu dữ liệu đầu vào', body: 'Ngày, giờ, nơi sinh và toạ độ quy đổi hiển thị rõ cạnh kết quả.' },
+      { num: '06', icon: 'shield-lock', title: 'Giới hạn được nêu rõ', body: 'Không có Solar Return, vận trình (transit) hay chấm điểm ngũ hành/tính chất ngay từ đầu.', bordered: false }
+    ];
+
+    const glossaryItems = [
+      { icon: 'compass', term: 'Cung hoàng đạo', body: '12 cung (Bạch Dương, Kim Ngưu...) chia đều vòng hoàng đạo 360° — vị trí Mặt Trời, Mặt Trăng và các hành tinh đều rơi vào một cung.' },
+      { icon: 'scroll', term: 'Nhà (House)', body: '12 khu vực cuộc sống chia theo giờ và nơi sinh — khác với cung hoàng đạo, nhà gắn với địa điểm và thời điểm cụ thể, không chỉ ngày sinh.' },
+      { icon: 'book-open', term: 'Góc chiếu (Aspect)', body: 'Khoảng cách góc giữa hai hành tinh (ví dụ 90°, 120°) cho thấy hai năng lượng đang hỗ trợ hay tạo căng thẳng với nhau.' },
+      { icon: 'user-circle', term: 'ASC & MC', body: 'ASC (Cung Mọc) là cung mọc lên đường chân trời đúng thời điểm sinh; MC (Thiên Đỉnh) là điểm cao nhất bầu trời — cả hai phụ thuộc trực tiếp vào nơi sinh.' },
+      { icon: 'help-circle', term: 'Nghịch hành (Retrograde)', body: 'Trạng thái một hành tinh trông như di chuyển ngược khi quan sát từ Trái Đất — là hiện tượng quang học, không phải hành tinh thực sự đảo chiều.' }
+    ];
+
+    const methodRows = [
+      { label: 'Hệ toạ độ', value: 'Hoàng đạo nhiệt đới (tropical), nhìn từ Trái Đất (geocentric) — đã chốt hướng tiếp cận.' },
+      { label: 'Hệ nhà (house system)', value: 'Chưa chốt — sẽ công bố cụ thể khi engine tính toán thiên văn được chọn.' },
+      { label: 'Điểm Node & nghịch hành', value: 'Cách xử lý điểm Node và hiển thị nghịch hành sẽ công bố cùng lúc với hệ nhà.' },
+      { label: 'Vai trò của AI', value: 'Tổ chức, đối chiếu và diễn giải toạ độ đã tính bằng tiếng Việt — không tự suy luận vị trí hành tinh.' }
+    ];
+
+    const limitItems = [
+      'Bản đồ sao mang tính tham khảo văn hoá và tâm lý, phản ánh xu hướng có thể xảy ra — không phải dự đoán chắc chắn về sự kiện cụ thể.',
+      'Chưa hỗ trợ Solar Return, vận trình (transit), tiến trình (progression) hoặc các kỹ thuật dự báo khác cho tới khi có phê duyệt riêng.',
+      'Không chấm điểm ngũ hành/tính chất (dignity, element, modality) khi chưa có phương pháp được duyệt.',
+      'Nơi sinh gần cực Trái Đất có thể khiến một số nhà không tính được rõ ràng — hệ thống sẽ nêu rõ giới hạn này khi xảy ra.',
+      'Không thay thế tư vấn y tế, pháp lý hoặc tài chính từ chuyên gia.',
+      'Bản đồ sao mẫu ở trên chỉ minh hoạ cấu trúc, không phải kết quả tính từ dữ liệu người dùng thật.'
+    ];
+
+    const faqData = [
+      { q: 'Bản đồ sao có bắt buộc phải biết nơi sinh không?', a: 'Có. Nhà, Cung Mọc (ASC) và Thiên Đỉnh (MC) phụ thuộc trực tiếp vào toạ độ nơi sinh — nếu không có nơi sinh chính xác, các phần này sẽ không tính được.' },
+      { q: 'Bản đồ sao có dùng chung hồ sơ sinh với Tử Vi không?', a: 'Có. Bản đồ sao dùng chung hồ sơ sinh (ngày, giờ, nơi sinh) với Tử Vi — bạn chỉ cần bổ sung nơi sinh chính xác nếu chưa có.' },
+      { q: 'Khi nào Bản đồ sao ra mắt?', a: 'Chưa có ngày cụ thể. Lá Số Việt đang đánh giá engine tính toán thiên văn phù hợp trước khi phát hành.' },
+      { q: 'Có xem được vận trình (transit) theo ngày không?', a: 'Chưa. Phiên bản đầu tiên chỉ có bản đồ sao gốc (natal). Vận trình, tiến trình và các kỹ thuật dự báo khác cần một quyết định phê duyệt riêng.' },
+      { q: 'Bản đồ sao mẫu ở trên có chính xác không?', a: 'Không. Đây là hồ sơ minh hoạ để giải thích cấu trúc vòng tròn 12 cung và bảng hành tinh, không phải kết quả tính từ dữ liệu bạn nhập.' },
+      { q: 'Tôi có thể đăng ký nhận thông báo khi Bản đồ sao ra mắt không?', a: 'Hiện trang này chưa có form đăng ký nhận thông báo. Bạn có thể quay lại trang này hoặc theo dõi trang chủ để biết thời điểm ra mắt.' }
+    ];
+    const faqs = faqData.map((f, i) => ({
+      num: String(i + 1).padStart(2, '0'),
+      q: f.q,
+      a: f.a,
+      open: !!this.state.faqOpen[i],
+      toggle: () => this.toggleFaq(i)
+    }));
+
+    return {
+      toggleNav: this.toggleNav,
+      planetRows, selectedPoint, pointStyles, freeResults, glossaryItems, methodRows, limitItems, faqs
+    };
+  }
+}
+</script>
+</body>
+</html>

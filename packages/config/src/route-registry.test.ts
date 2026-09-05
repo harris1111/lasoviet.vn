@@ -4,6 +4,7 @@ import { routeStateSchema } from "@lasoviet/contracts";
 import {
   loadRouteRegistry,
   routeRegistry,
+  validatePublicContent,
   validateRouteRegistry,
 } from "./route-registry.js";
 
@@ -109,6 +110,77 @@ describe("route registry", () => {
       private: true,
       indexing: "noindex_nofollow",
       sitemap: false,
+    });
+  });
+  it("validates live_noindex preview route definitions and enforces validPublicContent rules", () => {
+    const previewRoute = {
+      ...validRoute,
+      id: "calculator.bat-tu",
+      path: "/bat-tu",
+      status: "live_noindex",
+      indexing: "noindex_follow",
+      robots: "noindex,follow",
+      sitemap: false,
+      private: false,
+      purchasable: false,
+      content: "reviewed",
+      reviewer: "content-team",
+    } as const;
+
+    expect(validateRouteRegistry([previewRoute])).toEqual([previewRoute]);
+    const sampleContent = {
+      routeId: "preview.bat-tu",
+      locale: "vi",
+      contentType: "ToolLanding",
+      title: "Bát Tự / Tứ Trụ — Sắp ra mắt · Lá Số Việt",
+      summary: "Xem trước Bát Tự",
+      reviewer: "content-team",
+      sourceReferences: ["docs/13-brand-experience-guideline.md"],
+      riskTags: ["uncertainty_disclosure"],
+      status: "published",
+      lastReviewed: "2026-09-05",
+    };
+
+    expect(validatePublicContent([sampleContent], [{ ...previewRoute, id: "preview.bat-tu" }])).toEqual([sampleContent]);
+
+    expect(() =>
+      validatePublicContent(
+        [sampleContent],
+        [{ ...previewRoute, id: "preview.bat-tu", status: "reserved" }],
+      ),
+    ).toThrow(/CONTENT_METADATA_INVALID/);
+
+    expect(() =>
+      validatePublicContent(
+        [sampleContent],
+        [{ ...previewRoute, id: "preview.bat-tu", status: "preview_noindex" }],
+      ),
+    ).toThrow(/CONTENT_METADATA_INVALID/);
+
+    expect(() =>
+      validatePublicContent(
+        [sampleContent],
+        [{ ...previewRoute, id: "preview.bat-tu", status: "live_noindex", private: true }],
+      ),
+    ).toThrow(/CONTENT_METADATA_INVALID/);
+
+    expect(() =>
+      validatePublicContent(
+        [sampleContent],
+        [{ ...previewRoute, id: "preview.bat-tu", status: "archived" }],
+      ),
+    ).toThrow(/CONTENT_METADATA_INVALID/);
+
+    // Should fail until updated in Task 1A
+    expect(routeRegistry.find((route) => route.id === "calculator.bat-tu")).toMatchObject({
+      path: "/bat-tu",
+      status: "live_noindex",
+      template: "discipline-flagship",
+      indexing: "noindex_follow",
+      robots: "noindex,follow",
+      sitemap: false,
+      private: false,
+      purchasable: false,
     });
   });
 });

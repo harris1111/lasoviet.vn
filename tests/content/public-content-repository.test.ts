@@ -16,12 +16,16 @@ const reservedRoute = routeRegistry.find((route) => route.status === "reserved")
 const reservedYearRoute = routeRegistry.find(
   (route) => route.id === "commercial.tu-vi.year",
 );
+const liveNoindexRoute = routeRegistry.find(
+  (route) => route.status === "live_noindex" && !route.private,
+);
 
 if (
   publicRoute === undefined ||
   privateRoute === undefined ||
   reservedRoute === undefined ||
-  reservedYearRoute === undefined
+  reservedYearRoute === undefined ||
+  liveNoindexRoute === undefined
 ) {
   throw new Error("Required route fixtures are missing");
 }
@@ -34,6 +38,19 @@ const contentRecord = {
   summary: "Published route summary.",
   reviewer: "content-reviewer",
   sourceReferences: ["source:one"],
+  riskTags: [],
+  status: "published" as const,
+  lastReviewed: "2026-09-01",
+};
+
+const liveNoindexContentRecord = {
+  routeId: liveNoindexRoute.id,
+  locale: "vi" as const,
+  contentType: "ToolLanding" as const,
+  title: "Preview route title",
+  summary: "Preview route summary.",
+  reviewer: "content-reviewer",
+  sourceReferences: ["source:preview"],
   riskTags: [],
   status: "published" as const,
   lastReviewed: "2026-09-01",
@@ -68,6 +85,47 @@ describe("public content repository and route resolver", () => {
       locale: "en",
       route: { id: publicRoute.id },
       content: { title: "English title" },
+    });
+  });
+
+  it("resolves and renders public live_noindex preview routes while rejecting private or reserved states", () => {
+    const repository = createPublicContentRepository(
+      [
+        liveNoindexContentRecord,
+        { ...liveNoindexContentRecord, locale: "en", title: "English preview title" },
+      ],
+      [liveNoindexRoute, reservedRoute, privateRoute],
+    );
+
+    expect(repository.get(liveNoindexRoute.id, "vi")).toMatchObject(
+      liveNoindexContentRecord,
+    );
+    expect(repository.get(liveNoindexRoute.id, "en")).toMatchObject({
+      title: "English preview title",
+    });
+
+    expect(
+      resolvePublicRoute(liveNoindexRoute.path, {
+        routes: [liveNoindexRoute],
+        contentRepository: repository,
+      }),
+    ).toMatchObject({
+      kind: "render",
+      locale: "vi",
+      route: { id: liveNoindexRoute.id, status: "live_noindex" },
+      content: liveNoindexContentRecord,
+    });
+
+    expect(
+      resolvePublicRoute(`/en${liveNoindexRoute.path}`, {
+        routes: [liveNoindexRoute],
+        contentRepository: repository,
+      }),
+    ).toMatchObject({
+      kind: "render",
+      locale: "en",
+      route: { id: liveNoindexRoute.id, status: "live_noindex" },
+      content: { title: "English preview title" },
     });
   });
 

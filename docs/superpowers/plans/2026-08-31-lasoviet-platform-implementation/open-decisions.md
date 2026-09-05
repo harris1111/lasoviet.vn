@@ -8,12 +8,12 @@ current evidence and recommendation in Vietnamese; silence is never approval.
 
 | ID | Decision gate | Blocks | Status |
 |---|---|---|---|
-| OD-001 | Remaining Zi Wei SKU launch prices and enablement order | Phase 07 Task 1 checkout enablement | Open |
-| OD-002 | BaZi paid SKU name, scope, and launch price | Phase 08 Task 4 checkout enablement | Open |
-| OD-003 | Western natal paid SKU name, scope, and launch price | Phase 09 Task 3 checkout enablement | Open |
-| OD-004 | Liu Yao cooldown and repeated-question policy | Phase 10 Task 3 public release | Open |
-| OD-005 | First compatibility systems, SKU scope, and price | Phase 11 Tasks 1-2 | Open |
-| OD-006 | First public Feng Shui utility | Phase 11 Task 3 | Open |
+| OD-001 | Remaining Zi Wei SKU launch prices and enablement order | Phase 07 Task 1 checkout enablement | Resolved (2026-09-05): Option A |
+| OD-002 | BaZi paid SKU name, scope, and launch price | Phase 08 Task 4 checkout enablement | Resolved (2026-09-05): Option A |
+| OD-003 | Western natal paid SKU name, scope, and launch price | Phase 09 Task 3 checkout enablement | Resolved (2026-09-05): Option A |
+| OD-004 | Liu Yao cooldown and repeated-question policy | Phase 10 Task 3 public release | Resolved (2026-09-05): Option A |
+| OD-005 | First compatibility systems, SKU scope, and price | Phase 11 Tasks 1-2 | Resolved (2026-09-05): Option C (overrides recommendation) |
+| OD-006 | First public Feng Shui utility | Phase 11 Task 3 | Resolved (2026-09-05): Option A |
 
 ## OD-001: Remaining Zi Wei Commercial Sequence
 
@@ -38,6 +38,11 @@ shows a clear reason to change the price.
 **Blocks implementation?** No for evidence/report preparation; yes for public
 checkout enablement.
 
+**Resolved (2026-09-05):** Option A. Founder confirmed one topic at a time at
+VND 79,000 each. See `rules-and-decisions-tracker.md` "Open Decisions OD-001
+Through OD-006 Resolved" for the full record. Checkout enablement remains
+blocked on Phase 07 Task 1.
+
 ## OD-002: BaZi Paid Offer
 
 **Decision:** Confirm the first BaZi paid SKU name, report scope, and launch
@@ -58,6 +63,11 @@ gate; otherwise Option C.
 
 **Blocks implementation?** No for method, calculation, evidence, or free UI;
 yes for paid checkout enablement.
+
+**Resolved (2026-09-05):** Option A. Founder confirmed one comprehensive BaZi
+report at VND 79,000, contingent on the report passing the common release QA
+gate. See `rules-and-decisions-tracker.md`. Checkout enablement remains
+blocked on Phase 08 Task 4.
 
 ## OD-003: Western Natal Paid Offer
 
@@ -80,6 +90,12 @@ founder-selected validation price.
 **Blocks implementation?** No for natal calculation, evidence, or free UI; yes
 for paid checkout enablement.
 
+**Resolved (2026-09-05):** Option A. Founder confirmed one natal interpretation
+covering planets, angles, houses, and aspects at VND 79,000, contingent on
+natal fixtures and twenty-report QA passing. See
+`rules-and-decisions-tracker.md`. Checkout enablement remains blocked on
+Phase 09 Task 3.
+
 ## OD-004: Liu Yao Cooldown
 
 **Decision:** Select the cooldown and repeated-question policy.
@@ -100,6 +116,12 @@ the non-compulsive product principle.
 
 **Blocks implementation?** No for adapter and replay fixtures; yes for public
 casting release.
+
+**Resolved (2026-09-05):** Option A. Founder confirmed one active cast per
+normalized question every 24 hours, with the previous cast shown instead of
+rerolling. See `rules-and-decisions-tracker.md`. Public casting release
+remains blocked on Phase 10 Task 3 (the casting engine is not yet built); the
+public-facing Kinh Dich page copy may now state this policy concretely.
 
 ## OD-005: Compatibility Launch Scope
 
@@ -122,6 +144,18 @@ meet stability gates.
 **Blocks implementation?** Yes for compatibility contract finalization,
 synthesis, and public offer.
 
+**Resolved (2026-09-05):** Founder chose **Option C**, diverging from this
+document's Option A recommendation — launch Zi Wei plus BaZi compatibility
+synthesis together rather than staging one system first. This was shown to
+the founder as a deviation before confirming. See
+`rules-and-decisions-tracker.md` for the full record. This resolution unblocks
+UI planning and contract design work only; compatibility contract
+finalization, synthesis implementation, and both source systems' individual
+stability gates remain the actual implementation blocker. A second written
+sign-off before compatibility contract work begins in the real implementation
+phases is recommended given the divergence from the documented
+recommendation.
+
 ## OD-006: First Feng Shui Utility
 
 **Decision:** Select the first public utility.
@@ -141,6 +175,13 @@ output contract. Kitchen direction can follow after method review.
 
 **Blocks implementation?** Yes for the Phase 11 Feng Shui contract, fixtures,
 and public page.
+
+**Resolved (2026-09-05):** Option A. Founder confirmed the house-direction
+utility as the first public Feng Shui utility; kitchen direction may follow
+after method review. See `rules-and-decisions-tracker.md`. The Phase 11
+contract, fixtures, and real calculation remain blocked; the flagship
+preview page may now be built as a real L0 page instead of a placeholder
+stub, since a method scope is confirmed.
 
 ## Closure Protocol
 

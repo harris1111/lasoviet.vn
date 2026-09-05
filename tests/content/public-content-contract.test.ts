@@ -36,7 +36,9 @@ describe("public content contract", () => {
       await readFile("config/public-content.json", "utf8"),
     );
     const publicRoutes = routeRegistry.filter(
-      (route) => route.status === "live_indexable",
+      (route) =>
+        (route.status === "live_indexable" || route.status === "live_noindex") &&
+        !route.private,
     );
     const validated = validatePublicContent(records, routeRegistry);
     const keys = new Set(
@@ -82,5 +84,34 @@ describe("public content contract", () => {
         ],
       ),
     ).toThrow(/CONTENT_METADATA_INVALID/);
+  });
+  it("validates published records for live_noindex preview routes", async () => {
+    const records = JSON.parse(
+      await readFile("config/public-content.json", "utf8"),
+    );
+    const requiredPreviewRouteIds = [
+      "calculator.bat-tu",
+      "calculator.kinh-dich",
+      "calculator.western-natal",
+      "calculator.numerology",
+      "utility.root",
+      "utility.good-days",
+      "utility.zodiac",
+      "content.dream-symbols",
+      "calculator.tarot",
+      "utility.lunar-calendar",
+      "utility.feng-shui",
+      "utility.palmistry",
+    ];
+
+    const validated = validatePublicContent(records, routeRegistry);
+    for (const id of requiredPreviewRouteIds) {
+      const vi = validated.find((r) => r.routeId === id && r.locale === "vi");
+      const en = validated.find((r) => r.routeId === id && r.locale === "en");
+      expect(vi).toBeDefined();
+      expect(en).toBeDefined();
+      expect(vi?.status).toBe("published");
+      expect(en?.status).toBe("published");
+    }
   });
 });

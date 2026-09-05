@@ -3,6 +3,17 @@ import type { PublicContentV1, RouteDefinitionV1 } from "@lasoviet/contracts";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { buildStructuredData, StructuredDataError } from "../../seo/structured-data";
+import { getDisciplinePageProvider } from "../discipline-pages/discipline-page-provider";
+import { DisciplinePageShell } from "../discipline-pages/discipline-page-shell";
+import { DreamSymbolPreview } from "../free-tools/dream-symbol-preview";
+import { FreeToolsHub } from "../free-tools/free-tools-hub";
+import type { FreeToolKey } from "../free-tools/free-tools-page-model";
+import { getFreeToolsPageProvider } from "../free-tools/free-tools-page-provider";
+import { GatedToolPreview, type GatedToolKind } from "../free-tools/gated-tool-preview";
+import { GoodDaysPreview } from "../free-tools/good-days-preview";
+import { LunarCalendarPreview } from "../free-tools/lunar-calendar-preview";
+import { TarotPreview } from "../free-tools/tarot-preview";
+import { ZodiacPreview } from "../free-tools/zodiac-preview";
 import { CommercialTopicPage } from "./commercial-topic-page";
 import { KnowledgeArticle } from "./knowledge-article";
 import { KnowledgeHub } from "./knowledge-hub";
@@ -46,6 +57,29 @@ function CalculatorLanding({ content, locale }: Pick<PublicContentPageProps, "co
   );
 }
 
+function UtilityToolDispatcher({
+  toolKey,
+  locale,
+}: {
+  toolKey: FreeToolKey;
+  locale: "vi" | "en";
+}) {
+  switch (toolKey) {
+    case "good-days":
+      return <GoodDaysPreview locale={locale} />;
+    case "zodiac":
+      return <ZodiacPreview locale={locale} />;
+    case "dream-symbols":
+      return <DreamSymbolPreview locale={locale} />;
+    case "tarot":
+      return <TarotPreview locale={locale} />;
+    case "lunar-calendar":
+      return <LunarCalendarPreview locale={locale} />;
+    default:
+      return null;
+  }
+}
+
 function StructuredData({ content, route }: Pick<PublicContentPageProps, "content" | "route">) {
   try {
     return buildStructuredData(route, content, productCatalog).map((node, index) => (
@@ -62,6 +96,68 @@ function StructuredData({ content, route }: Pick<PublicContentPageProps, "conten
 }
 
 export function PublicContentPage(props: PublicContentPageProps) {
+  if (props.route.template === "discipline-flagship") {
+    const disciplineModel = getDisciplinePageProvider().resolve({
+      route: props.route,
+      locale: props.locale,
+    });
+    if (disciplineModel) {
+      return (
+        <div className="public-content">
+          <DisciplinePageShell model={disciplineModel} />
+          <StructuredData content={props.content} route={props.route} />
+        </div>
+      );
+    }
+  }
+
+  if (props.route.template === "free-tools-hub") {
+    const freeToolsModel = getFreeToolsPageProvider().resolve({
+      route: props.route,
+      locale: props.locale,
+    });
+    if (freeToolsModel && freeToolsModel.kind === "hub") {
+      return (
+        <div className="public-content">
+          <FreeToolsHub model={freeToolsModel} />
+          <StructuredData content={props.content} route={props.route} />
+        </div>
+      );
+    }
+  }
+
+  if (props.route.template === "utility-preview") {
+    const freeToolsModel = getFreeToolsPageProvider().resolve({
+      route: props.route,
+      locale: props.locale,
+    });
+    if (freeToolsModel && freeToolsModel.kind === "utility-preview") {
+      return (
+        <div className="public-content">
+          <UtilityToolDispatcher toolKey={freeToolsModel.toolKey} locale={props.locale} />
+          <StructuredData content={props.content} route={props.route} />
+        </div>
+      );
+    }
+  }
+
+  if (props.route.template === "gated-preview") {
+    const freeToolsModel = getFreeToolsPageProvider().resolve({
+      route: props.route,
+      locale: props.locale,
+    });
+    if (freeToolsModel && freeToolsModel.kind === "gated-preview") {
+      const gatedKind: GatedToolKind =
+        freeToolsModel.toolKey === "feng-shui" ? "huong-nha" : "xem-chi-tay";
+      return (
+        <div className="public-content">
+          <GatedToolPreview kind={gatedKind} locale={props.locale} />
+          <StructuredData content={props.content} route={props.route} />
+        </div>
+      );
+    }
+  }
+
   const template = (() => {
     switch (props.route.template) {
       case "calculator-landing":
