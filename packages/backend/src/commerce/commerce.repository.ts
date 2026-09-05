@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lte } from "drizzle-orm";
 import type { CurrentActor } from "@lasoviet/contracts";
 import {
   birthProfiles,
@@ -19,8 +19,18 @@ import {
 import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 
 type Sku = keyof typeof PRODUCT_CATALOG;
-type OrderRecord = typeof commerceOrders.$inferSelect;
 type CheckoutLocale = "vi" | "en";
+
+export type CommerceRepositoryOptions = {
+  now?: () => Date;
+  orderTtlSeconds?: number;
+  beforePaymentCommit?: () => Promise<void>;
+};
+
+export type OwnedOrderProjection = {
+  order: typeof commerceOrders.$inferSelect;
+  reportId: string | null;
+};
 
 function ownerFilter(actor: CurrentActor, now: Date) {
   return actor.kind === "account"
@@ -46,10 +56,11 @@ function checkoutLocale(locale: string): CheckoutLocale | null {
 
 export function createDatabaseCommerceRepository(
   database: Database,
-  options: {
-    beforePaymentCommit?: () => Promise<void>;
-  } = {},
+  options: CommerceRepositoryOptions = {},
 ) {
+  const orderTtlSeconds = options.orderTtlSeconds ?? 900;
+  const getNow = options.now ?? (() => new Date());
+
   return {
     async createOrder(actor: CurrentActor, chartId: string, sku: string, locale: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
@@ -59,22 +70,47 @@ export function createDatabaseCommerceRepository(
       const accountError = await checkoutAccount(database, actor);
       if (accountError !== null) return { ok: false as const, code: accountError };
       if (actor.kind !== "account") throw new Error("CHECKOUT_ACTOR_INVALID");
+
+      const currentNow = getNow();
+      const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+
       const [chart] = await database.select({
         chartId: ziweiCharts.id, chartVersionId: ziweiChartVersions.id,
       }).from(ziweiCharts)
         .innerJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
         .innerJoin(ziweiChartVersions, eq(ziweiChartVersions.chartId, ziweiCharts.id))
-        .where(and(eq(ziweiCharts.id, chartId), ownerFilter(actor, new Date()), isNull(birthProfiles.deletedAt)))
+        .where(and(eq(ziweiCharts.id, chartId), ownerFilter(actor, currentNow), isNull(birthProfiles.deletedAt)))
         .orderBy(desc(ziweiChartVersions.createdAt))
         .limit(1);
       if (chart === undefined) return { ok: false as const, code: "CHART_NOT_FOUND" };
+
       const [existing] = await database.select().from(commerceOrders)
         .where(and(eq(commerceOrders.chartId, chartId), eq(commerceOrders.sku, product.sku))).limit(1);
-      if (existing !== undefined) return { ok: true as const, value: existing, reused: true };
+      if (existing !== undefined) {
+        if (
+          existing.status === "expired" ||
+          existing.status === "failed" ||
+          (existing.status === "pending" && existing.createdAt.getTime() <= cutoff.getTime())
+        ) {
+          const [reopened] = await database.update(commerceOrders)
+            .set({
+              status: "pending",
+              paidAt: null,
+              createdAt: currentNow,
+              chartVersionId: chart.chartVersionId,
+              locale: selectedLocale,
+            })
+            .where(eq(commerceOrders.id, existing.id))
+            .returning();
+          return { ok: true as const, value: reopened ?? existing, reused: true };
+        }
+        return { ok: true as const, value: existing, reused: true };
+      }
+
       const id = randomUUID();
       const [created] = await database.insert(commerceOrders).values({
         id,
-        invoiceNumber: `LSV-${id}`,
+        invoiceNumber: "LSV-" + id,
         chartId,
         chartVersionId: chart.chartVersionId,
         ownerId: actor.userId,
@@ -82,27 +118,83 @@ export function createDatabaseCommerceRepository(
         amount: product.amount,
         currency: product.currency,
         locale: selectedLocale,
+        createdAt: currentNow,
       }).onConflictDoNothing().returning();
       if (created !== undefined) return { ok: true as const, value: created, reused: false };
+
       const [concurrent] = await database.select().from(commerceOrders)
         .where(and(eq(commerceOrders.chartId, chartId), eq(commerceOrders.sku, product.sku))).limit(1);
       if (concurrent === undefined) throw new Error("COMMERCE_ORDER_CREATE_FAILED");
+      if (
+        concurrent.status === "expired" ||
+        concurrent.status === "failed" ||
+        (concurrent.status === "pending" && concurrent.createdAt.getTime() <= cutoff.getTime())
+      ) {
+        const [reopened] = await database.update(commerceOrders)
+          .set({
+            status: "pending",
+            paidAt: null,
+            createdAt: currentNow,
+            chartVersionId: chart.chartVersionId,
+            locale: selectedLocale,
+          })
+          .where(eq(commerceOrders.id, concurrent.id))
+          .returning();
+        return { ok: true as const, value: reopened ?? concurrent, reused: true };
+      }
       return { ok: true as const, value: concurrent, reused: true };
     },
 
-    async readOrder(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
+    async readOrder(actor: CurrentActor, orderId: string): Promise<OwnedOrderProjection | null> {
       if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
         return null;
       }
-      const [order] = await database.select().from(commerceOrders)
+      let [order] = await database.select().from(commerceOrders)
         .where(and(eq(commerceOrders.id, orderId), eq(commerceOrders.ownerId, actor.userId))).limit(1);
-      return order ?? null;
+      if (order === undefined) return null;
+
+      const currentNow = getNow();
+      const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+      if (order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime()) {
+        const [expired] = await database.update(commerceOrders)
+          .set({ status: "expired" })
+          .where(and(
+            eq(commerceOrders.id, order.id),
+            eq(commerceOrders.status, "pending"),
+            lte(commerceOrders.createdAt, cutoff),
+          ))
+          .returning();
+        if (expired !== undefined) {
+          order = expired;
+        } else {
+          const [fresh] = await database.select().from(commerceOrders)
+            .where(eq(commerceOrders.id, order.id)).limit(1);
+          if (fresh !== undefined) {
+            order = fresh;
+          }
+        }
+      }
+
+      let reportId: string | null = null;
+      if (order.status === "paid") {
+        const [reservation] = await database.select({ reportId: reportReservations.reportId })
+          .from(commerceEntitlements)
+          .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+          .where(and(eq(commerceEntitlements.orderId, order.id), eq(commerceEntitlements.ownerId, actor.userId)))
+          .limit(1);
+        reportId = reservation?.reportId ?? null;
+      }
+
+      return { order, reportId };
     },
 
     async recordPaid(input: {
       invoiceNumber: string; providerEventId: string; amount: number; currency: string; traceId: string;
     }) {
       return database.transaction(async (transaction) => {
+        const currentNow = getNow();
+        const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+
         const [order] = await transaction.select().from(commerceOrders)
           .where(eq(commerceOrders.invoiceNumber, input.invoiceNumber)).limit(1);
         if (order === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
@@ -116,9 +208,27 @@ export function createDatabaseCommerceRepository(
             ? { ok: true as const, replayed: true }
             : { ok: false as const, code: "PAYMENT_EVENT_CONFLICT" };
         }
+
+        if (order.status !== "pending" || order.createdAt.getTime() <= cutoff.getTime()) {
+          if (order.status === "pending") {
+            await transaction.update(commerceOrders)
+              .set({ status: "expired" })
+              .where(and(
+                eq(commerceOrders.id, order.id),
+                eq(commerceOrders.status, "pending"),
+                lte(commerceOrders.createdAt, cutoff),
+              ));
+          }
+          return { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
+        }
+
         const [paidOrder] = await transaction.update(commerceOrders)
-          .set({ status: "paid", paidAt: new Date() })
-          .where(and(eq(commerceOrders.id, order.id), eq(commerceOrders.status, "pending")))
+          .set({ status: "paid", paidAt: currentNow })
+          .where(and(
+            eq(commerceOrders.id, order.id),
+            eq(commerceOrders.status, "pending"),
+            gt(commerceOrders.createdAt, cutoff),
+          ))
           .returning();
         if (paidOrder === undefined) {
           const [replayed] = await transaction.select().from(commercePaymentEvents)
@@ -129,6 +239,7 @@ export function createDatabaseCommerceRepository(
         }
         const [event] = await transaction.insert(commercePaymentEvents).values({
           orderId: order.id, providerEventId: input.providerEventId, amount: input.amount, currency: input.currency, status: "ORDER_PAID",
+          createdAt: currentNow,
         }).onConflictDoNothing().returning();
         if (event === undefined) {
           const [replayed] = await transaction.select().from(commercePaymentEvents)
@@ -143,6 +254,7 @@ export function createDatabaseCommerceRepository(
         if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
           orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
+          createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
         const [reservation] = await transaction.insert(reportReservations).values({
@@ -150,13 +262,14 @@ export function createDatabaseCommerceRepository(
           evidenceVersionId: evidence.id, knowledgeVersionId: "ziwei.identity.knowledge.v1",
           promptVersion: "ziwei.identity.prompt.v1", reportConfigVersion: "ziwei.identity.report.v1",
           locale: paidOrder.locale, sku: paidOrder.sku,
+          createdAt: currentNow, updatedAt: currentNow,
         }).returning();
         if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
         await enqueueOutbox(transaction, {
           schemaVersion: 1, type: "report.generation.requested.v1", eventId: randomUUID(),
-          occurredAt: new Date().toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
+          occurredAt: currentNow.toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
           aggregateType: "order", aggregateId: paidOrder.id,
-          idempotencyKey: `report-request:${reservation.reportVersionId}`,
+          idempotencyKey: "report-request:" + reservation.reportVersionId,
           payload: {
             reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
             chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,

@@ -45,6 +45,51 @@ describe("SePay payment transaction", () => {
     await container?.stop();
   }, 30_000);
 
+  async function createChartFixture(database: ReturnType<typeof createDatabase>, overrides: {
+    userId?: string;
+    emailVerified?: boolean;
+  } = {}) {
+    const userId = overrides.userId ?? ("user-" + randomUUID());
+    const profileId = "profile-" + randomUUID();
+    const revisionId = "revision-" + randomUUID();
+    const runId = randomUUID();
+    const chartId = "chart-" + randomUUID();
+    const versionId = "version-" + randomUUID();
+    const evidenceId = "evidence-" + randomUUID();
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Fixture user",
+      email: userId + "@example.test",
+      emailVerified: overrides.emailVerified ?? true,
+    });
+    await database.insert(birthProfiles).values({ id: profileId, userId });
+    await database.insert(birthProfileRevisions).values({
+      id: revisionId, profileId, revisionNumber: 1, originalInput: {}, normalizedInput: {}, consentVersion: "test",
+    });
+    await database.insert(calculationRuns).values({
+      id: runId, profileId, profileRevisionId: revisionId, idempotencyKey: "run-" + runId,
+      engineId: "test", engineVersion: "1", adapterId: "test", adapterVersion: "1", schemaId: "test",
+      ruleSetId: "test", inputHash: "test", configHash: "test", rawSnapshotHash: "test",
+    });
+    await database.insert(ziweiCharts).values({ id: chartId, profileId, profileRevisionId: revisionId });
+    await database.insert(ziweiChartVersions).values({
+      id: versionId, chartId, calculationRunId: runId, normalizedOutput: {}, privateRawSnapshot: {}, warnings: [], provenance: {},
+    });
+    await database.insert(evidenceSets).values({
+      id: evidenceId,
+      chartVersionId: versionId,
+      capabilityId: "ziwei.identity.p0",
+      ruleVersion: "ziwei.identity.v1",
+    });
+    const actor = {
+      kind: "account" as const,
+      userId,
+      sessionId: "session-" + randomUUID(),
+      requestId: "request-" + randomUUID(),
+    };
+    return { userId, actor, chartId, versionId, evidenceId };
+  }
+
   it("commits one paid order, entitlement, reservation, and outbox event for replayed delivery", async () => {
     const database = createDatabase(databaseUrl);
     const userId = `user-${randomUUID()}`;
@@ -101,8 +146,11 @@ describe("SePay payment transaction", () => {
       value: { id: orderId, locale: "en" },
     });
     await expect(repository.readOrder(actor, orderId)).resolves.toMatchObject({
-      id: orderId,
-      locale: "en",
+      order: {
+        id: orderId,
+        locale: "en",
+      },
+      reportId: null,
     });
     await expect(repository.recordPaid({
       invoiceNumber: "LSV-integration-order",
@@ -138,6 +186,28 @@ describe("SePay payment transaction", () => {
     expect((await database.select().from(outbox)).filter((event) => event.aggregateId === orderId)).toMatchObject([
       { payload: expect.objectContaining({ locale: "en" }) },
     ]);
+    const [reservationRecord] = await database.select().from(reportReservations);
+    await expect(repository.readOrder(actor, orderId)).resolves.toMatchObject({
+      order: {
+        id: orderId,
+        status: "paid",
+        locale: "en",
+      },
+      reportId: reservationRecord.reportId,
+    });
+    const crossOwnerActor = {
+      kind: "account" as const,
+      userId: "cross-" + randomUUID(),
+      sessionId: "cross-session",
+      requestId: "cross-request",
+    };
+    await database.insert(authUsers).values({
+      id: crossOwnerActor.userId,
+      name: "Cross owner",
+      email: crossOwnerActor.userId + "@example.test",
+      emailVerified: true,
+    });
+    await expect(repository.readOrder(crossOwnerActor, orderId)).resolves.toBeNull();
     await database.$client.end();
   }, 120_000);
 
@@ -345,6 +415,177 @@ describe("SePay payment transaction", () => {
     expect((await database.select().from(commerceOrders)).filter(
       (order) => order.ownerId === anonymous.anonymousActorId || order.ownerId === unverifiedId,
     )).toEqual([]);
+    await database.$client.end();
+  }, 120_000);
+  it("keeps pending orders pending at 14:59 and transitions them to expired at 15:00", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+    const initialRepo = createDatabaseCommerceRepository(database, {
+      now: () => t0,
+      orderTtlSeconds: 900,
+    });
+    const createResult = await initialRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(createResult.ok).toBe(true);
+    if (!createResult.ok) throw new Error("ORDER_CREATE_FAILED");
+    const orderId = createResult.value.id;
+
+    // pending at 14:59 remains pending
+    const t1459 = new Date("2026-09-05T10:14:59.000Z");
+    const repo1459 = createDatabaseCommerceRepository(database, {
+      now: () => t1459,
+      orderTtlSeconds: 900,
+    });
+    await expect(repo1459.readOrder(actor, orderId)).resolves.toMatchObject({
+      order: { id: orderId, status: "pending" },
+      reportId: null,
+    });
+    const orderAt1459 = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(orderAt1459?.status).toBe("pending");
+
+    // pending at 15:00 atomically becomes expired
+    const t1500 = new Date("2026-09-05T10:15:00.000Z");
+    const repo1500 = createDatabaseCommerceRepository(database, {
+      now: () => t1500,
+      orderTtlSeconds: 900,
+    });
+    await expect(repo1500.readOrder(actor, orderId)).resolves.toMatchObject({
+      order: { id: orderId, status: "expired" },
+      reportId: null,
+    });
+    const orderAt1500 = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(orderAt1500?.status).toBe("expired");
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("rejects late payment after 15:00 with PAYMENT_STATE_CONFLICT and creates no side effects", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+    const initialRepo = createDatabaseCommerceRepository(database, {
+      now: () => t0,
+      orderTtlSeconds: 900,
+    });
+    const createResult = await initialRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
+    expect(createResult.ok).toBe(true);
+    if (!createResult.ok) throw new Error("ORDER_CREATE_FAILED");
+    const order = createResult.value;
+
+    const tLate = new Date("2026-09-05T10:15:01.000Z");
+    const repoLate = createDatabaseCommerceRepository(database, {
+      now: () => tLate,
+      orderTtlSeconds: 900,
+    });
+    const latePaidResult = await repoLate.recordPaid({
+      invoiceNumber: order.invoiceNumber,
+      providerEventId: "late-event-" + randomUUID(),
+      amount: order.amount,
+      currency: order.currency,
+      traceId: "late-trace",
+    });
+    expect(latePaidResult).toMatchObject({
+      ok: false,
+      code: "PAYMENT_STATE_CONFLICT",
+    });
+
+    // No side effects created
+    expect(
+      (await database.select().from(commercePaymentEvents)).filter((event) => event.orderId === order.id),
+    ).toEqual([]);
+    expect(
+      (await database.select().from(commerceEntitlements)).filter((entitlement) => entitlement.orderId === order.id),
+    ).toEqual([]);
+    expect(
+      (await database.select().from(reportReservations)).filter((reservation) => reservation.chartVersionId === versionId),
+    ).toEqual([]);
+    expect(
+      (await database.select().from(outbox)).filter((event) => event.aggregateId === order.id),
+    ).toEqual([]);
+
+    const persistedOrder = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(persistedOrder?.status).not.toBe("paid");
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("reopens expired and failed orders on createOrder but never reopens paid or refunded orders", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const orderId = randomUUID();
+    const invoiceNumber = "LSV-reopen-" + orderId;
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+
+    // 1. Expired order is reopened
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber,
+      chartId,
+      chartVersionId: versionId,
+      ownerId: actor.userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "expired",
+      createdAt: t0,
+    });
+
+    const tReopenExpired = new Date("2026-09-05T10:20:00.000Z");
+    const repoReopenExpired = createDatabaseCommerceRepository(database, {
+      now: () => tReopenExpired,
+      orderTtlSeconds: 900,
+    });
+    const reopenExpiredResult = await repoReopenExpired.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
+    expect(reopenExpiredResult).toMatchObject({
+      ok: true,
+      reused: true,
+      value: {
+        id: orderId,
+        invoiceNumber,
+        status: "pending",
+        paidAt: null,
+      },
+    });
+    const reopenedExpiredOrder = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(reopenedExpiredOrder?.status).toBe("pending");
+    expect(reopenedExpiredOrder?.paidAt).toBeNull();
+    expect(reopenedExpiredOrder?.createdAt.getTime()).toBe(tReopenExpired.getTime());
+
+    // 2. Failed order is reopened
+    await database.$client.unsafe("UPDATE commerce_orders SET status = \x27failed\x27 WHERE id = \x27" + orderId + "\x27");
+    const tReopenFailed = new Date("2026-09-05T10:30:00.000Z");
+    const repoReopenFailed = createDatabaseCommerceRepository(database, {
+      now: () => tReopenFailed,
+      orderTtlSeconds: 900,
+    });
+    const reopenFailedResult = await repoReopenFailed.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(reopenFailedResult).toMatchObject({
+      ok: true,
+      reused: true,
+      value: {
+        id: orderId,
+        status: "pending",
+        paidAt: null,
+      },
+    });
+    const reopenedFailedOrder = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(reopenedFailedOrder?.status).toBe("pending");
+    expect(reopenedFailedOrder?.createdAt.getTime()).toBe(tReopenFailed.getTime());
+
+    // 3. Paid order is never reopened
+    const tPaid = new Date("2026-09-05T10:35:00.000Z");
+    await database.$client.unsafe("UPDATE commerce_orders SET status = \x27paid\x27, paid_at = \x27" + tPaid.toISOString() + "\x27 WHERE id = \x27" + orderId + "\x27");
+    const repoPaid = createDatabaseCommerceRepository(database, { now: () => new Date("2026-09-05T10:40:00.000Z"), orderTtlSeconds: 900 });
+    const paidResult = await repoPaid.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(paidResult).toMatchObject({ ok: true, reused: true, value: { id: orderId, status: "paid" } });
+
+    // 4. Refunded order is never reopened
+    await database.$client.unsafe("UPDATE commerce_orders SET status = \x27refunded\x27 WHERE id = \x27" + orderId + "\x27");
+    const repoRefunded = createDatabaseCommerceRepository(database, { now: () => new Date("2026-09-05T10:45:00.000Z"), orderTtlSeconds: 900 });
+    const refundedResult = await repoRefunded.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(refundedResult).toMatchObject({ ok: true, reused: true, value: { id: orderId, status: "refunded" } });
+
     await database.$client.end();
   }, 120_000);
 });
