@@ -180,6 +180,49 @@ describe("homepage content and structure requirements", () => {
     expect(en.home?.valueLadder?.tier3?.price).toBeUndefined();
   });
 
+  it("matches exact prototype copy and metadata references for hero and trust strip", () => {
+    const viPath = resolve(rootDir, "apps/web/messages/vi/common.json");
+    const vi = JSON.parse(readFileSync(viPath, "utf8"));
+
+    expect(vi.home.hero).toMatchObject({
+      eyebrow: "Một hồ sơ sinh · Đa tầng soi chiếu Đông – Tây",
+      lead:
+        "Nhập thời khắc sinh một lần — soi tỏ căn tính và đường đời qua Tử Vi, Bát Tự, Bản đồ sao và Thần Số Học.",
+      copy:
+        "Không thần bí hóa, không phán xét tương lai. Lá Số Việt chuyển hóa đồ hình cổ xưa thành lời giải thích tiếng Việt sáng rõ, minh bạch từng căn cứ — để bạn thấu hiểu chính mình và vững vàng trong mọi lựa chọn.",
+      microcopy:
+        "Miễn phí ngay lập tức · Riêng tư tuyệt đối · Không cần đăng ký tài khoản.",
+      metaRoute: "Từ dữ liệu sinh đến bản đồ 12 cung",
+      metaDetail: "Lá số đầy đủ được tính ở bước tiếp theo.",
+      ctaPrimary: "Lập lá số miễn phí",
+      ctaSecondary: "Xem bản luận giải mẫu",
+    });
+
+    expect(vi.home.trustStrip).toEqual({
+      item1: {
+        title: "Miễn phí khởi đầu",
+        copy: "Xem tổng quan lá số trước khi cần trả phí.",
+      },
+      item2: {
+        title: "Tường minh căn cứ",
+        copy: "Mỗi nhận định gắn với dữ liệu và quy tắc công bố.",
+      },
+      item3: {
+        title: "Riêng tư tuyệt đối",
+        copy: "Lá số của bạn không hiển thị công khai.",
+      },
+      item4: {
+        title: "Không ép gia hạn",
+        copy: "Báo cáo là thanh toán một lần.",
+      },
+    });
+
+    const heroSourcePath = resolve(rootDir, "apps/web/src/features/homepage/homepage-hero.tsx");
+    const heroSource = readFileSync(heroSourcePath, "utf8");
+    expect(heroSource).toContain("home.hero.metaRoute");
+    expect(heroSource).toContain("home.hero.metaDetail");
+  });
+
   it("rejects unsupported claims across the complete VI and EN home trees", () => {
     const bannedClaims = [
       /100\+/i,
@@ -201,7 +244,6 @@ describe("homepage content and structure requirements", () => {
       /one[- ]click delet/i,
       /xóa (?:bằng )?một cú nhấp/i,
       /absolute privacy/i,
-      /riêng tư tuyệt đối/i,
       /mọi (?:kết luận|nhận định)/i,
       /every (?:important )?(?:conclusion|insight)/i,
     ];

@@ -55,8 +55,10 @@ h1 { max-width: 700px; margin: 20px 0 0; font-size: 64px; line-height: 1.06; let
 .hero-form-time select { min-width: 176px; }
 .hero-form-inputs .button { min-height: 44px; padding: 0 22px; font-size: 14.5px; }
 .hero-form-inputs .button-secondary { min-height: 44px; padding: 0 18px; font-size: 14.5px; }
-.hero-form-meta { margin-top: 14px; }
-.birth-note { width: 100%; margin: 0; color: var(--pearl-400); font-size: 13px; }
+.hero-form-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline; margin-top: 20px; }
+.birth-note { margin: 0; color: var(--pearl-400); font-size: 13.5px; }
+.hero-meta-route { color: var(--gold-500); font: 11.5px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+.hero-meta-detail { color: var(--pearl-600); font-size: 13px; }
 .wizard-precision-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
 .wizard-branch-input { display: grid; gap: 8px; max-width: 320px; }
 .wizard-branch-input select { min-height: 46px; border: 1px solid var(--lacquer-line); border-radius: 4px; background: var(--lacquer-800); color: var(--pearl-50); padding: 0 12px; }

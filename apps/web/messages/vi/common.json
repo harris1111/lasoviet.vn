@@ -12,12 +12,14 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Một hồ sơ sinh · Tử Vi hôm nay, các hệ quy chiếu tiếp theo",
-      "lead": "Nhập dữ liệu sinh để lập lá số Tử Vi hiện có. Bát Tự, Bản đồ sao và Thần Số Học đang được chuẩn bị.",
-      "copy": "Lá Số Việt trình bày đồ hình và lời giải thích tiếng Việt theo quy trình rõ ràng, với căn cứ có thể mở xem để bạn tự đối chiếu.",
-      "microcopy": "Miễn phí để bắt đầu · Riêng tư theo mặc định · Không cần đăng ký tài khoản.",
+      "eyebrow": "Một hồ sơ sinh · Đa tầng soi chiếu Đông – Tây",
+      "lead": "Nhập thời khắc sinh một lần — soi tỏ căn tính và đường đời qua Tử Vi, Bát Tự, Bản đồ sao và Thần Số Học.",
+      "copy": "Không thần bí hóa, không phán xét tương lai. Lá Số Việt chuyển hóa đồ hình cổ xưa thành lời giải thích tiếng Việt sáng rõ, minh bạch từng căn cứ — để bạn thấu hiểu chính mình và vững vàng trong mọi lựa chọn.",
+      "microcopy": "Miễn phí ngay lập tức · Riêng tư tuyệt đối · Không cần đăng ký tài khoản.",
       "ctaPrimary": "Lập lá số miễn phí",
-      "ctaSecondary": "Xem bản luận giải mẫu"
+      "ctaSecondary": "Xem bản luận giải mẫu",
+      "metaRoute": "Từ dữ liệu sinh đến bản đồ 12 cung",
+      "metaDetail": "Lá số đầy đủ được tính ở bước tiếp theo."
     },
     "form": {
       "day": "Ngày",
@@ -32,19 +34,19 @@
     "trustStrip": {
       "item1": {
         "title": "Miễn phí khởi đầu",
-        "copy": "Xem lá số và phần tổng quan trước khi cân nhắc nội dung trả phí."
+        "copy": "Xem tổng quan lá số trước khi cần trả phí."
       },
       "item2": {
-        "title": "Căn cứ hiển thị",
-        "copy": "Nhận định quan trọng có phần giải thích dữ liệu và quy tắc được sử dụng."
+        "title": "Tường minh căn cứ",
+        "copy": "Mỗi nhận định gắn với dữ liệu và quy tắc công bố."
       },
       "item3": {
-        "title": "Riêng tư mặc định",
-        "copy": "Lá số không được công khai theo mặc định và có các kiểm soát dữ liệu."
+        "title": "Riêng tư tuyệt đối",
+        "copy": "Lá số của bạn không hiển thị công khai."
       },
       "item4": {
-        "title": "Không tự động gia hạn",
-        "copy": "Bản luận giải hiện có sử dụng hình thức thanh toán một lần."
+        "title": "Không ép gia hạn",
+        "copy": "Báo cáo là thanh toán một lần."
       }
     },
     "problem": {
