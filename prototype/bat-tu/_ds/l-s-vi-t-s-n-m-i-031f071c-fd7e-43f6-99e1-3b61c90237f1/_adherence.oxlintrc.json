@@ -1,0 +1,257 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "ds_src/Lá Số Việt hero update/components/cards/**",
+              "ds_src/Lá Số Việt hero update/components/core/**",
+              "ds_src/Lá Số Việt hero update/components/disclosure/**",
+              "ds_src/Lá Số Việt hero update/components/lists/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Source Serif 4|Be Vietnam Pro|JetBrains Mono))/i]",
+        "message": "Font not provided by the design system. Available: Source Serif 4, Be Vietnam Pro, JetBrains Mono."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ArticleCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:image|alt|title|body|href|style|key|ref|className|style|children)$/]",
+        "message": "<ArticleCard> doesn't accept that prop. Declared props: image, alt, title, body, href, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|href|onClick|children|style|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, href, onClick, children, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|secondary|link)$/]",
+        "message": "<Button> variant must be one of 'primary' | 'secondary' | 'link'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='EvidenceRow'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|value|key|ref|className|style|children)$/]",
+        "message": "<EvidenceRow> doesn't accept that prop. Declared props: label, value."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='FaqItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:num|question|answer|open|onToggle|style|key|ref|className|style|children)$/]",
+        "message": "<FaqItem> doesn't accept that prop. Declared props: num, question, answer, open, onToggle, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Icon'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|size|color|style|key|ref|className|style|children)$/]",
+        "message": "<Icon> doesn't accept that prop. Declared props: name, size, color, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Icon'] > JSXAttribute[name.name='name'] > Literal[value!=/^(?:menu|close|chevron-down|chevron-right|arrow-right|external-link|search|check|shield-lock|refresh-off|calendar-day|clock|map-pin|user|help-circle|book-open|scroll|compass|user-circle|download|trash|pencil|share|link)$/]",
+        "message": "<Icon> name must be one of 'menu' | 'close' | 'chevron-down' | 'chevron-right' | 'arrow-right' | 'external-link' | 'search' | 'check' | 'shield-lock' | 'refresh-off' | 'calendar-day' | 'clock' | 'map-pin' | 'user' | 'help-circle' | 'book-open' | 'scroll' | 'compass' | 'user-circle' | 'download' | 'trash' | 'pencil' | 'share' | 'link'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='InsightCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:num|title|sub|stamped|onExplain|style|key|ref|className|style|children)$/]",
+        "message": "<InsightCard> doesn't accept that prop. Declared props: num, title, sub, stamped, onExplain, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Seal'] > JSXAttribute > JSXIdentifier[name!=/^(?:size|stamped|style|key|ref|className|style|children)$/]",
+        "message": "<Seal> doesn't accept that prop. Declared props: size, stamped, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TocRow'] > JSXAttribute > JSXIdentifier[name!=/^(?:numeral|title|meta|price|priceNote|sampleHref|style|key|ref|className|style|children)$/]",
+        "message": "<TocRow> doesn't accept that prop. Declared props: numeral, title, meta, price, priceNote, sampleHref, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TrustItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:icon|iconColor|num|title|body|bordered|style|key|ref|className|style|children)$/]",
+        "message": "<TrustItem> doesn't accept that prop. Declared props: icon, iconColor, num, title, body, bordered, style."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "ArticleCard": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "EvidenceRow": {
+        "replaces": []
+      },
+      "FaqItem": {
+        "replaces": []
+      },
+      "Icon": {
+        "replaces": []
+      },
+      "InsightCard": {
+        "replaces": []
+      },
+      "Seal": {
+        "replaces": []
+      },
+      "TocRow": {
+        "replaces": []
+      },
+      "TrustItem": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--accent-gold",
+      "--accent-seal",
+      "--border-hairline",
+      "--container-max",
+      "--container-reading",
+      "--font-display",
+      "--font-mono",
+      "--font-ui",
+      "--fs-body",
+      "--fs-body-mobile",
+      "--fs-display",
+      "--fs-display-mobile",
+      "--fs-h1",
+      "--fs-h1-mobile",
+      "--fs-h2",
+      "--fs-h2-mobile",
+      "--fs-h3",
+      "--fs-h3-mobile",
+      "--fs-lead",
+      "--fs-lead-mobile",
+      "--fs-small",
+      "--gold-400",
+      "--gold-500",
+      "--gold-600",
+      "--gold-700",
+      "--gradient-gold",
+      "--lacquer-700",
+      "--lacquer-800",
+      "--lacquer-900",
+      "--lacquer-line",
+      "--pearl-200",
+      "--pearl-400",
+      "--pearl-50",
+      "--pearl-600",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-pill",
+      "--radius-sm",
+      "--son",
+      "--son-deep",
+      "--space-1",
+      "--space-10",
+      "--space-2",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-7",
+      "--space-8",
+      "--space-9",
+      "--surface-canvas",
+      "--surface-deep",
+      "--surface-panel",
+      "--text-body",
+      "--text-faint",
+      "--text-heading",
+      "--text-muted"
+    ],
+    "tokenKinds": {
+      "--lacquer-900": "color",
+      "--lacquer-800": "color",
+      "--lacquer-700": "color",
+      "--lacquer-line": "color",
+      "--gold-400": "color",
+      "--gold-500": "color",
+      "--gold-600": "color",
+      "--gold-700": "color",
+      "--son": "color",
+      "--son-deep": "color",
+      "--pearl-50": "color",
+      "--pearl-200": "color",
+      "--pearl-400": "color",
+      "--pearl-600": "color",
+      "--surface-canvas": "color",
+      "--surface-deep": "color",
+      "--surface-panel": "color",
+      "--border-hairline": "color",
+      "--text-heading": "font",
+      "--text-body": "font",
+      "--text-muted": "font",
+      "--text-faint": "font",
+      "--accent-gold": "color",
+      "--accent-seal": "color",
+      "--gradient-gold": "color",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-pill": "radius",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-7": "spacing",
+      "--space-8": "spacing",
+      "--space-9": "spacing",
+      "--space-10": "spacing",
+      "--container-max": "spacing",
+      "--container-reading": "spacing",
+      "--font-display": "font",
+      "--font-ui": "font",
+      "--font-mono": "font",
+      "--fs-display": "spacing",
+      "--fs-h1": "spacing",
+      "--fs-h2": "spacing",
+      "--fs-h3": "spacing",
+      "--fs-lead": "spacing",
+      "--fs-body": "spacing",
+      "--fs-small": "spacing",
+      "--fs-display-mobile": "spacing",
+      "--fs-h1-mobile": "spacing",
+      "--fs-h2-mobile": "spacing",
+      "--fs-h3-mobile": "spacing",
+      "--fs-lead-mobile": "spacing",
+      "--fs-body-mobile": "spacing"
+    },
+    "fontFamilies": [
+      "Be Vietnam Pro",
+      "JetBrains Mono",
+      "Source Serif 4"
+    ]
+  }
+}
