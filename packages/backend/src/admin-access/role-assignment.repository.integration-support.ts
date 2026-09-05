@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import { and, eq } from "drizzle-orm";
+
 import {
   adminCapabilityPolicies,
   adminRoleAssignments,
@@ -16,7 +18,6 @@ export async function seedRoleMutationFixture(database: Database) {
   const actorId = `role-actor-${suffix}`;
   const subjectId = `role-subject-${suffix}`;
   const actorAssignmentId = `role-actor-assignment-${suffix}`;
-  const policyId = `role-policy-${suffix}`;
 
   await database.insert(authUsers).values([
     {
@@ -38,12 +39,22 @@ export async function seedRoleMutationFixture(database: Database) {
     role: "super_admin",
     assignmentVersion: 1,
   });
-  await database.insert(adminCapabilityPolicies).values({
-    id: policyId,
-    role: "super_admin",
-    capability: "admin.roles.manage",
-    active: true,
-  });
+  const [policy] = await database
+    .select({ id: adminCapabilityPolicies.id })
+    .from(adminCapabilityPolicies)
+    .where(
+      and(
+        eq(adminCapabilityPolicies.role, "super_admin"),
+        eq(adminCapabilityPolicies.capability, "admin.roles.manage"),
+        eq(adminCapabilityPolicies.active, true),
+      ),
+    )
+    .limit(1);
+
+  if (policy === undefined) {
+    throw new Error("ROLE_MUTATION_TEST_POLICY_MISSING");
+  }
+  const policyId = policy.id;
 
   const context: AdminRoleMutationContextV1 = {
     access: {
