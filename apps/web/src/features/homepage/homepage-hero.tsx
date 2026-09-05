@@ -69,7 +69,7 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
       <div className="container hero-content">
         <p className="eyebrow">{t("home.hero.eyebrow")}</p>
         <h1>
-          {t("app.taglinePrefix")}
+          {t("app.taglinePrefix")}{" "}
           <br />
           <span className="gold-text">{t("app.taglineHighlight")}</span>
         </h1>
@@ -158,6 +158,8 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
           ) : null}
           <div className="hero-form-meta">
             <p className="birth-note">{t("home.hero.microcopy")}</p>
+            <span className="hero-meta-route">{t("home.hero.metaRoute")}</span>
+            <span className="hero-meta-detail">{t("home.hero.metaDetail")}</span>
           </div>
         </form>
       </div>
