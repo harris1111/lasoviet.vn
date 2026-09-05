@@ -7,7 +7,7 @@ import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
 } from "../../../../auth/resolve-current-actor.js";
-import type { CheckoutStatus } from "../../../../features/commerce/checkout-status.js";
+import { safeParseCheckoutStatus } from "../../../../features/commerce/checkout-status.js";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -41,10 +41,12 @@ export default async function CheckoutPage({
   }
   const response = await privateApiClient(actor, actor.requestId).request<{
     ok: boolean;
-    value?: CheckoutStatus;
+    value?: unknown;
   }>(`/commerce/orders/${encodeURIComponent(orderId)}`);
   if (!response.ok || response.value === undefined) notFound();
-  const { order, paymentInstructions } = response.value;
+  const parsed = safeParseCheckoutStatus(response.value);
+  if (!parsed.ok) notFound();
+  const { order, paymentInstructions } = parsed.value;
   if (order.locale !== "vi" && order.locale !== "en") notFound();
   if (order.locale !== routeLocale) return redirect(checkoutPath(order.locale, order.id));
   const t = await getTranslations({ locale: order.locale, namespace: "reports" });

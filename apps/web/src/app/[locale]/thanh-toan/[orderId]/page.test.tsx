@@ -9,7 +9,9 @@ import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 vi.mock("next/navigation", () => ({
-  notFound: vi.fn(),
+  notFound: vi.fn(() => {
+    throw new Error("NEXT_NOT_FOUND");
+  }),
   redirect: vi.fn(),
 }));
 vi.mock("next-intl/server", () => ({ getTranslations: vi.fn() }));
@@ -89,6 +91,55 @@ describe("checkout page", () => {
     expect(html).toContain("VCB - 123456789");
     expect(html).toContain("LA SO VIET");
     expect(html).toContain("LSV-order-1");
+  });
+
+
+  it("triggers notFound when private API returns ok: true but malformed payload without paymentInstructions", async () => {
+    const { notFound } = await import("next/navigation");
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          order: {
+            id: "order-1",
+            status: "pending",
+            amount: 79_000,
+            currency: "VND",
+            locale: "vi",
+          },
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+
+    await expect(CheckoutPage({
+      params: Promise.resolve({ locale: "vi", orderId: "order-1" }),
+    })).rejects.toThrow("NEXT_NOT_FOUND");
+
+    expect(notFound).toHaveBeenCalled();
+  });
+
+  it("triggers notFound when private API returns payload with invalid QR origin", async () => {
+    const { notFound } = await import("next/navigation");
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          ...sampleCheckoutStatus("vi"),
+          paymentInstructions: {
+            ...sampleCheckoutStatus("vi").paymentInstructions,
+            qrUrl: "https://evil.example.com/img?acc=123",
+          },
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+
+    await expect(CheckoutPage({
+      params: Promise.resolve({ locale: "vi", orderId: "order-1" }),
+    })).rejects.toThrow("NEXT_NOT_FOUND");
+
+    expect(notFound).toHaveBeenCalled();
   });
 
   it("redirects a mismatched route locale to the authoritative checkout route", async () => {
