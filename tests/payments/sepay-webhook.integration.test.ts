@@ -1,5 +1,6 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { randomUUID } from "node:crypto";
+import { eq } from "../../packages/backend/node_modules/drizzle-orm/index.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -146,6 +147,10 @@ describe("SePay payment transaction", () => {
       value: { id: orderId, locale: "en" },
     });
     await expect(repository.readOrder(actor, orderId)).resolves.toMatchObject({
+      id: orderId,
+      locale: "en",
+    });
+    await expect(repository.readOrderProjection(actor, orderId)).resolves.toMatchObject({
       order: {
         id: orderId,
         locale: "en",
@@ -188,6 +193,11 @@ describe("SePay payment transaction", () => {
     ]);
     const [reservationRecord] = await database.select().from(reportReservations);
     await expect(repository.readOrder(actor, orderId)).resolves.toMatchObject({
+      id: orderId,
+      status: "paid",
+      locale: "en",
+    });
+    await expect(repository.readOrderProjection(actor, orderId)).resolves.toMatchObject({
       order: {
         id: orderId,
         status: "paid",
@@ -208,6 +218,7 @@ describe("SePay payment transaction", () => {
       emailVerified: true,
     });
     await expect(repository.readOrder(crossOwnerActor, orderId)).resolves.toBeNull();
+    await expect(repository.readOrderProjection(crossOwnerActor, orderId)).resolves.toBeNull();
     await database.$client.end();
   }, 120_000);
 
@@ -437,6 +448,10 @@ describe("SePay payment transaction", () => {
       orderTtlSeconds: 900,
     });
     await expect(repo1459.readOrder(actor, orderId)).resolves.toMatchObject({
+      id: orderId,
+      status: "pending",
+    });
+    await expect(repo1459.readOrderProjection(actor, orderId)).resolves.toMatchObject({
       order: { id: orderId, status: "pending" },
       reportId: null,
     });
@@ -450,6 +465,10 @@ describe("SePay payment transaction", () => {
       orderTtlSeconds: 900,
     });
     await expect(repo1500.readOrder(actor, orderId)).resolves.toMatchObject({
+      id: orderId,
+      status: "expired",
+    });
+    await expect(repo1500.readOrderProjection(actor, orderId)).resolves.toMatchObject({
       order: { id: orderId, status: "expired" },
       reportId: null,
     });
@@ -472,7 +491,7 @@ describe("SePay payment transaction", () => {
     if (!createResult.ok) throw new Error("ORDER_CREATE_FAILED");
     const order = createResult.value;
 
-    const tLate = new Date("2026-09-05T10:15:01.000Z");
+    const tLate = new Date(t0.getTime() + 900 * 1000);
     const repoLate = createDatabaseCommerceRepository(database, {
       now: () => tLate,
       orderTtlSeconds: 900,
@@ -587,5 +606,133 @@ describe("SePay payment transaction", () => {
     expect(refundedResult).toMatchObject({ ok: true, reused: true, value: { id: orderId, status: "refunded" } });
 
     await database.$client.end();
+  }, 120_000);
+
+  it("atomically aborts reopen without corrupting paid state when racing recordPaid", async () => {
+    const db1 = createDatabase(databaseUrl);
+    const db2 = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(db1);
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+    const initialRepo = createDatabaseCommerceRepository(db1, {
+      now: () => t0,
+      orderTtlSeconds: 900,
+    });
+    const createResult = await initialRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(createResult.ok).toBe(true);
+    if (!createResult.ok) throw new Error("ORDER_CREATE_FAILED");
+    const order = createResult.value;
+
+    let reopenPromise: Promise<unknown> | undefined;
+
+    // db1 starts recordPaid within valid TTL (t0 + 800s)
+    const payingRepo = createDatabaseCommerceRepository(db1, {
+      now: () => new Date(t0.getTime() + 800 * 1000),
+      orderTtlSeconds: 900,
+      beforePaymentCommit: async () => {
+        // Inside transaction: paid CAS succeeded, side effects written, row is locked.
+        // Race a concurrent reopen attempt from db2 with clock past expiry.
+        reopenPromise = (async () => {
+          const reopeningRepo = createDatabaseCommerceRepository(db2, {
+            now: () => new Date(t0.getTime() + 960 * 1000),
+            orderTtlSeconds: 900,
+          });
+          return reopeningRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
+        })();
+        // Yield to allow reopen query to execute and encounter row lock / evaluated WHERE clause
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      },
+    });
+
+    const paidResult = await payingRepo.recordPaid({
+      invoiceNumber: order.invoiceNumber,
+      providerEventId: "race-event-" + randomUUID(),
+      amount: order.amount,
+      currency: order.currency,
+      traceId: "race-trace",
+    });
+    expect(paidResult).toMatchObject({ ok: true, replayed: false });
+
+    const reopenResult = await reopenPromise;
+    expect(reopenResult).toMatchObject({
+      ok: true,
+      reused: true,
+      value: {
+        id: order.id,
+        status: "paid",
+      },
+    });
+
+    // Verify row in database: still paid, paidAt preserved, entitlement and outbox intact
+    const finalOrder = (await db1.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(finalOrder?.status).toBe("paid");
+    expect(finalOrder?.paidAt).not.toBeNull();
+    expect((await db1.select().from(commerceEntitlements)).filter((e) => e.orderId === order.id)).toHaveLength(1);
+    expect((await db1.select().from(reportReservations)).filter((r) => r.chartVersionId === versionId)).toHaveLength(1);
+
+    await db1.$client.end();
+    await db2.$client.end();
+  }, 120_000);
+
+  it("atomically aborts reopen without corrupting terminal refunded state when racing refund update", async () => {
+    const db1 = createDatabase(databaseUrl);
+    const db2 = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(db1);
+    const orderId = randomUUID();
+    const invoiceNumber = "LSV-refund-race-" + orderId;
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+
+    await db1.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber,
+      chartId,
+      chartVersionId: versionId,
+      ownerId: actor.userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "expired",
+      createdAt: t0,
+    });
+
+    let releaseTx: () => void;
+    const holdTx = new Promise<void>((resolve) => { releaseTx = resolve; });
+
+    // db1 starts a transaction that updates order to refunded and holds lock
+    const refundTxPromise = db1.transaction(async (tx) => {
+      await tx.update(commerceOrders).set({ status: "refunded" }).where(eq(commerceOrders.id, orderId));
+      await holdTx;
+    });
+
+    // While db1 holds row lock, db2 attempts reopen
+    const reopenPromise = (async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const repo2 = createDatabaseCommerceRepository(db2, {
+        now: () => new Date(t0.getTime() + 1000 * 1000),
+        orderTtlSeconds: 900,
+      });
+      return repo2.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    })();
+
+    // Allow db2 update to queue on the row lock, then release db1
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    releaseTx!();
+    await refundTxPromise;
+
+    const reopenResult = await reopenPromise;
+    expect(reopenResult).toMatchObject({
+      ok: true,
+      reused: true,
+      value: {
+        id: orderId,
+        status: "refunded",
+      },
+    });
+
+    const finalOrder = (await db1.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(finalOrder?.status).toBe("refunded");
+
+    await db1.$client.end();
+    await db2.$client.end();
   }, 120_000);
 });

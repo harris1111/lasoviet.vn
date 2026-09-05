@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, gt, isNull, lte } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, lte, or } from "drizzle-orm";
 import type { CurrentActor } from "@lasoviet/contracts";
 import {
   birthProfiles,
@@ -19,6 +19,7 @@ import {
 import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 
 type Sku = keyof typeof PRODUCT_CATALOG;
+type OrderRecord = typeof commerceOrders.$inferSelect;
 type CheckoutLocale = "vi" | "en";
 
 export type CommerceRepositoryOptions = {
@@ -61,6 +62,38 @@ export function createDatabaseCommerceRepository(
   const orderTtlSeconds = options.orderTtlSeconds ?? 900;
   const getNow = options.now ?? (() => new Date());
 
+  async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
+    if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
+      return null;
+    }
+    let [order] = await database.select().from(commerceOrders)
+      .where(and(eq(commerceOrders.id, orderId), eq(commerceOrders.ownerId, actor.userId))).limit(1);
+    if (order === undefined) return null;
+
+    const currentNow = getNow();
+    const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+    if (order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime()) {
+      const [expired] = await database.update(commerceOrders)
+        .set({ status: "expired" })
+        .where(and(
+          eq(commerceOrders.id, order.id),
+          eq(commerceOrders.status, "pending"),
+          lte(commerceOrders.createdAt, cutoff),
+        ))
+        .returning();
+      if (expired !== undefined) {
+        order = expired;
+      } else {
+        const [fresh] = await database.select().from(commerceOrders)
+          .where(eq(commerceOrders.id, order.id)).limit(1);
+        if (fresh !== undefined) {
+          order = fresh;
+        }
+      }
+    }
+    return order;
+  }
+
   return {
     async createOrder(actor: CurrentActor, chartId: string, sku: string, locale: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
@@ -100,9 +133,21 @@ export function createDatabaseCommerceRepository(
               chartVersionId: chart.chartVersionId,
               locale: selectedLocale,
             })
-            .where(eq(commerceOrders.id, existing.id))
+            .where(and(
+              eq(commerceOrders.id, existing.id),
+              or(
+                inArray(commerceOrders.status, ["expired", "failed"]),
+                and(eq(commerceOrders.status, "pending"), lte(commerceOrders.createdAt, cutoff)),
+              ),
+            ))
             .returning();
-          return { ok: true as const, value: reopened ?? existing, reused: true };
+          if (reopened !== undefined) {
+            return { ok: true as const, value: reopened, reused: true };
+          }
+          const [current] = await database.select().from(commerceOrders)
+            .where(eq(commerceOrders.id, existing.id)).limit(1);
+          if (current === undefined) throw new Error("COMMERCE_ORDER_CREATE_FAILED");
+          return { ok: true as const, value: current, reused: true };
         }
         return { ok: true as const, value: existing, reused: true };
       }
@@ -138,49 +183,39 @@ export function createDatabaseCommerceRepository(
             chartVersionId: chart.chartVersionId,
             locale: selectedLocale,
           })
-          .where(eq(commerceOrders.id, concurrent.id))
+          .where(and(
+            eq(commerceOrders.id, concurrent.id),
+            or(
+              inArray(commerceOrders.status, ["expired", "failed"]),
+              and(eq(commerceOrders.status, "pending"), lte(commerceOrders.createdAt, cutoff)),
+            ),
+          ))
           .returning();
-        return { ok: true as const, value: reopened ?? concurrent, reused: true };
+        if (reopened !== undefined) {
+          return { ok: true as const, value: reopened, reused: true };
+        }
+        const [current] = await database.select().from(commerceOrders)
+          .where(eq(commerceOrders.id, concurrent.id)).limit(1);
+        if (current === undefined) throw new Error("COMMERCE_ORDER_CREATE_FAILED");
+        return { ok: true as const, value: current, reused: true };
       }
       return { ok: true as const, value: concurrent, reused: true };
     },
 
-    async readOrder(actor: CurrentActor, orderId: string): Promise<OwnedOrderProjection | null> {
-      if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
-        return null;
-      }
-      let [order] = await database.select().from(commerceOrders)
-        .where(and(eq(commerceOrders.id, orderId), eq(commerceOrders.ownerId, actor.userId))).limit(1);
-      if (order === undefined) return null;
+    async readOrder(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
+      return getOwnedOrderWithExpiry(actor, orderId);
+    },
 
-      const currentNow = getNow();
-      const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
-      if (order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime()) {
-        const [expired] = await database.update(commerceOrders)
-          .set({ status: "expired" })
-          .where(and(
-            eq(commerceOrders.id, order.id),
-            eq(commerceOrders.status, "pending"),
-            lte(commerceOrders.createdAt, cutoff),
-          ))
-          .returning();
-        if (expired !== undefined) {
-          order = expired;
-        } else {
-          const [fresh] = await database.select().from(commerceOrders)
-            .where(eq(commerceOrders.id, order.id)).limit(1);
-          if (fresh !== undefined) {
-            order = fresh;
-          }
-        }
-      }
+    async readOrderProjection(actor: CurrentActor, orderId: string): Promise<OwnedOrderProjection | null> {
+      const order = await getOwnedOrderWithExpiry(actor, orderId);
+      if (order === null) return null;
 
       let reportId: string | null = null;
       if (order.status === "paid") {
         const [reservation] = await database.select({ reportId: reportReservations.reportId })
           .from(commerceEntitlements)
           .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
-          .where(and(eq(commerceEntitlements.orderId, order.id), eq(commerceEntitlements.ownerId, actor.userId)))
+          .where(and(eq(commerceEntitlements.orderId, order.id), eq(commerceEntitlements.ownerId, order.ownerId)))
           .limit(1);
         reportId = reservation?.reportId ?? null;
       }
