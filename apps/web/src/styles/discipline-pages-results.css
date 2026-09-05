@@ -59,3 +59,423 @@
   border-radius: var(--radius-md);
   padding: 32px;
 }
+
+/* ==========================================================================
+   Base Frame Responsive Rules & Overflow Guards
+   ========================================================================== */
+
+.discipline-result-frame {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+.discipline-disclosure-badge,
+.discipline-backend-provenance {
+  max-width: 100%;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.discipline-backend-provenance {
+  word-break: break-all;
+}
+
+@media (max-width: 768px) {
+  .discipline-result-frame {
+    margin-top: 32px;
+    padding: 24px 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .discipline-result-frame {
+    padding: 18px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .discipline-disclosure-badge {
+    font-size: 12px;
+    padding: 8px 12px;
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .discipline-result-frame {
+    padding: 14px 10px;
+  }
+}
+
+/* ==========================================================================
+   01. Bát Tự (Four Pillars Preview)
+   ========================================================================== */
+
+[data-discipline-preview="bat-tu"],
+[data-discipline="bat-tu"] .discipline-result-frame {
+  --bazi-accent: var(--jade, #4F7A68);
+  --bazi-accent-deep: var(--jade-deep, #33463D);
+  --bazi-accent-tint: var(--jade-tint, rgba(79, 122, 104, 0.14));
+}
+
+/* Pillars 4-Column Grid */
+[data-discipline-preview="bat-tu"] > div:first-child {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 860px) {
+  [data-discipline-preview="bat-tu"] > div:first-child {
+    margin-top: 28px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 440px) {
+  [data-discipline-preview="bat-tu"] > div:first-child {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Individual Pillar Cards */
+[data-discipline-preview="bat-tu"] > div:first-child > div {
+  box-sizing: border-box;
+  transition: background var(--motion-feedback, 120ms) ease;
+}
+
+@media (max-width: 480px) {
+  [data-discipline-preview="bat-tu"] > div:first-child > div {
+    padding: 18px 12px !important;
+    gap: 10px !important;
+  }
+}
+
+/* Day Master Badge */
+[data-discipline-preview="bat-tu"] span[style*="--jade"] {
+  border-color: var(--bazi-accent-deep) !important;
+  color: var(--bazi-accent) !important;
+}
+
+/* Subnote & Note Text */
+[data-discipline-preview="bat-tu"] > p {
+  max-width: 100%;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   02. Kinh Dịch (Hexagrams Preview)
+   ========================================================================== */
+
+[data-discipline-preview="kinh-dich"],
+[data-discipline="kinh-dich"] .discipline-result-frame {
+  --iching-accent: var(--bronze, #8A7450);
+  --iching-accent-deep: var(--bronze-deep, #46392A);
+  --iching-accent-tint: var(--bronze-tint, rgba(138, 116, 80, 0.16));
+  --iching-line-color: var(--pearl-200, #DCD4C3);
+  --iching-moving-color: var(--son, #CE5B45);
+}
+
+/* Hexagram Grid: Primary · Indicator · Changed */
+[data-discipline-preview="kinh-dich"] > div:first-child {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  [data-discipline-preview="kinh-dich"] > div:first-child {
+    margin-top: 28px !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Transition Indicator in Vertical Flow */
+  [data-discipline-preview="kinh-dich"] > div:first-child > div:nth-child(2) {
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 4px 0 !important;
+  }
+
+  /* Rotate Chevron to Point Downward in Mobile Stack */
+  [data-discipline-preview="kinh-dich"] > div:first-child > div:nth-child(2) svg {
+    transform: rotate(90deg);
+  }
+}
+
+/* Hexagram Cards */
+@media (max-width: 480px) {
+  [data-discipline-preview="kinh-dich"] > div:first-child > div:first-child,
+  [data-discipline-preview="kinh-dich"] > div:first-child > div:last-child {
+    padding: 20px 14px !important;
+  }
+}
+
+/* Prototype Hexagram Line Geometry Classes (id-line) */
+.id-line {
+  height: 12px;
+  border-radius: 2px;
+  background: var(--pearl-200);
+}
+
+.id-line.yin {
+  background: transparent;
+  display: flex;
+  gap: 14%;
+}
+
+.id-line.yin span {
+  flex: 1;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--pearl-200);
+}
+
+.id-line.moving {
+  background: var(--son);
+}
+
+.id-line.yin.moving span {
+  background: var(--son);
+}
+
+/* Changing Line Tag */
+[data-discipline-preview="kinh-dich"] span[style*="--son"] {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--iching-moving-color) !important;
+}
+
+/* ==========================================================================
+   03. Chiêm Tinh (Astrology Natal Wheel & Planetary Table)
+   ========================================================================== */
+
+.discipline-astrology-preview,
+[data-discipline="chiem-tinh"] .discipline-result-frame {
+  --astro-accent: var(--mineral, #6E93AC);
+  --astro-accent-deep: var(--mineral-deep, #2E4356);
+  --astro-accent-tint: var(--mineral-tint, rgba(79, 112, 138, 0.18));
+}
+
+.discipline-astrology-preview {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 820px) {
+  .discipline-astrology-preview {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+}
+
+/* Wheel Container Card */
+.discipline-astrology-preview > div:first-child {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .discipline-astrology-preview > div:first-child {
+    padding: 20px 14px !important;
+  }
+}
+
+/* Scalable Natal Chart SVG */
+.discipline-astrology-preview svg {
+  width: 100% !important;
+  max-width: 280px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+@media (max-width: 360px) {
+  .discipline-astrology-preview svg {
+    max-width: 230px !important;
+  }
+}
+
+/* Planetary Table */
+.discipline-astrology-preview table {
+  width: 100% !important;
+  border-collapse: collapse;
+  table-layout: auto;
+  box-sizing: border-box;
+}
+
+.discipline-astrology-preview th,
+.discipline-astrology-preview td {
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .discipline-astrology-preview th {
+    padding: 6px 4px !important;
+    font-size: 10px !important;
+  }
+
+  .discipline-astrology-preview td {
+    padding: 8px 4px !important;
+    font-size: 12.5px !important;
+  }
+}
+
+@media (max-width: 340px) {
+  .discipline-astrology-preview th {
+    padding: 5px 2px !important;
+    font-size: 9.5px !important;
+  }
+
+  .discipline-astrology-preview td {
+    padding: 7px 2px !important;
+    font-size: 11.5px !important;
+  }
+}
+
+/* ==========================================================================
+   04. Thần Số Học (Numerology Pythagorean Chart, Trace & 3x3 Grid)
+   ========================================================================== */
+
+.discipline-numerology-preview,
+[data-discipline="than-so-hoc"] .discipline-result-frame {
+  --num-accent: var(--indigo, #7A82A0);
+  --num-accent-deep: var(--indigo-deep, #363B4C);
+  --num-accent-tint: var(--indigo-tint, rgba(89, 97, 127, 0.18));
+  --num-ochre: var(--ochre, #B08A4A);
+}
+
+.discipline-numerology-preview {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 820px) {
+  .discipline-numerology-preview {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+}
+
+/* Alphabet to Number 9-Column Chart */
+.discipline-numerology-preview > div:first-child > div:nth-of-type(1) {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(1) {
+    font-size: 10.5px !important;
+  }
+
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(1) > div {
+    padding: 6px 2px !important;
+  }
+
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(1) > div > div:last-child {
+    font-size: 9.5px !important;
+    letter-spacing: -0.02em;
+  }
+}
+
+@media (max-width: 350px) {
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(1) {
+    font-size: 9.5px !important;
+  }
+
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(1) > div {
+    padding: 5px 1px !important;
+  }
+
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(1) > div > div:last-child {
+    font-size: 8.5px !important;
+  }
+}
+
+/* Reduction Trace Rows */
+.discipline-numerology-preview > div:first-child > div:nth-of-type(2) {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.discipline-numerology-preview > div:first-child > div:nth-of-type(2) > div {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(2) > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(2) > div > span:first-child {
+    word-break: break-word;
+  }
+
+  .discipline-numerology-preview > div:first-child > div:nth-of-type(2) > div > span:last-child {
+    align-self: flex-end;
+  }
+}
+
+/* 3x3 Number Grid */
+.discipline-numerology-preview > div:last-child > div:first-of-type {
+  max-width: 320px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 440px) {
+  .discipline-numerology-preview > div:last-child > div:first-of-type {
+    max-width: 260px !important;
+  }
+
+  .discipline-numerology-preview > div:last-child > div:first-of-type > div {
+    min-height: 72px !important;
+  }
+}
+
+@media (max-width: 340px) {
+  .discipline-numerology-preview > div:last-child > div:first-of-type {
+    max-width: 220px !important;
+  }
+
+  .discipline-numerology-preview > div:last-child > div:first-of-type > div {
+    min-height: 60px !important;
+  }
+}
+
+/* ==========================================================================
+   Insight Cards / Marginalia Notes (Shared by all 4 components)
+   ========================================================================== */
+
+.discipline-result-frame [style*="boxShadow"],
+.discipline-result-frame [style*="box-shadow"] {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 480px) {
+  .discipline-result-frame [style*="boxShadow"],
+  .discipline-result-frame [style*="box-shadow"] {
+    padding: 18px 14px !important;
+    margin-top: 24px !important;
+  }
+
+  .discipline-result-frame [style*="boxShadow"] p,
+  .discipline-result-frame [style*="box-shadow"] p {
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 360px) {
+  .discipline-result-frame [style*="boxShadow"],
+  .discipline-result-frame [style*="box-shadow"] {
+    padding: 14px 10px !important;
+  }
+}

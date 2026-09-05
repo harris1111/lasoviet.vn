@@ -3,6 +3,8 @@ import type { PublicContentV1, RouteDefinitionV1 } from "@lasoviet/contracts";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { buildStructuredData, StructuredDataError } from "../../seo/structured-data";
+import { getDisciplinePageProvider } from "../discipline-pages/discipline-page-provider";
+import { DisciplinePageShell } from "../discipline-pages/discipline-page-shell";
 import { CommercialTopicPage } from "./commercial-topic-page";
 import { KnowledgeArticle } from "./knowledge-article";
 import { KnowledgeHub } from "./knowledge-hub";
@@ -62,6 +64,21 @@ function StructuredData({ content, route }: Pick<PublicContentPageProps, "conten
 }
 
 export function PublicContentPage(props: PublicContentPageProps) {
+  if (props.route.template === "discipline-flagship") {
+    const disciplineModel = getDisciplinePageProvider().resolve({
+      route: props.route,
+      locale: props.locale,
+    });
+    if (disciplineModel) {
+      return (
+        <div className="public-content">
+          <DisciplinePageShell model={disciplineModel} />
+          <StructuredData content={props.content} route={props.route} />
+        </div>
+      );
+    }
+  }
+
   const template = (() => {
     switch (props.route.template) {
       case "calculator-landing":
