@@ -91,7 +91,8 @@ export class CommerceController {
     if (typeof body !== "object" || body === null || !("chartId" in body) || !("sku" in body) || !("locale" in body) || typeof body.chartId !== "string" || typeof body.sku !== "string" || (body.locale !== "vi" && body.locale !== "en")) {
       return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
     }
-    const result = await this.repository().createOrder(await this.actor(authorization), body.chartId, body.sku, body.locale);
+    const actor = await this.actor(authorization);
+    const result = await this.repository().createOrder(actor, body.chartId, body.sku, body.locale);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") {
         throw new UnauthorizedException({ code: result.code });
@@ -101,18 +102,22 @@ export class CommerceController {
       }
       return { ok: false, error: { code: result.code } };
     }
+    const projection = await this.repository().readOrderProjection(actor, result.value.id);
+    if (projection === null) {
+      return { ok: false, error: { code: "COMMERCE_ORDER_CREATE_FAILED" } };
+    }
     return {
       ok: true,
       value: {
         order: {
-          id: result.value.id,
-          status: result.value.status,
-          amount: result.value.amount,
-          currency: result.value.currency,
-          locale: result.value.locale,
+          id: projection.order.id,
+          status: projection.order.status,
+          amount: projection.order.amount,
+          currency: projection.order.currency,
+          locale: projection.order.locale,
         },
-        paymentInstructions: this.buildPaymentInstructions(result.value),
-        reportId: null,
+        paymentInstructions: this.buildPaymentInstructions(projection.order),
+        reportId: projection.reportId,
       },
     };
   }

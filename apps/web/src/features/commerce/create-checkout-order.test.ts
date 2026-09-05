@@ -104,6 +104,28 @@ describe("create checkout order", () => {
     expect(privateApiClient).not.toHaveBeenCalled();
   });
 
+
+  it("encodes order ID containing path-special characters in the redirect URL", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          ...validCheckoutStatus,
+          order: {
+            ...validCheckoutStatus.order,
+            id: "order/special#1?foo=bar",
+          },
+        },
+      }),
+    });
+    const { createCheckoutOrder } = await import("./create-checkout-order.js");
+
+    await createCheckoutOrder("chart-1", "en");
+
+    expect(redirect).toHaveBeenCalledWith("/en/thanh-toan/order%2Fspecial%231%3Ffoo%3Dbar");
+  });
+
   it("throws CHECKOUT_ORDER_FAILED when create response fails schema parsing", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     vi.mocked(privateApiClient).mockReturnValue({

@@ -40,5 +40,5 @@ export async function createCheckoutOrder(chartId: string, locale: string) {
   } catch {
     throw new Error("CHECKOUT_ORDER_FAILED");
   }
-  redirect(`${prefix}/thanh-toan/${checkoutStatus.order.id}`);
+  redirect(`${prefix}/thanh-toan/${encodeURIComponent(checkoutStatus.order.id)}`);
 }

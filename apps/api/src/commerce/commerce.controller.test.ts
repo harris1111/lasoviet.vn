@@ -94,7 +94,10 @@ describe("SePay controller HTTP contract", () => {
         reused: false,
       }),
       readOrder: vi.fn(),
-      readOrderProjection: vi.fn(),
+      readOrderProjection: vi.fn().mockResolvedValue({
+        order: orderRecord,
+        reportId: null,
+      }),
       recordPaid: vi.fn(),
     } as never);
 
@@ -126,6 +129,111 @@ describe("SePay controller HTTP contract", () => {
           },
           reportId: null,
         },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+
+  it("returns reportId on order creation when reusing an already-paid order", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const paidOrderRecord = {
+      id: "order-paid-1",
+      invoiceNumber: "LSV-order-paid-1",
+      ownerId: "user-1",
+      chartId: "chart-1",
+      chartVersionId: "chart-v1",
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+      paidAt: new Date("2026-09-05T00:05:00.000Z"),
+      createdAt: new Date("2026-09-05T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: true,
+        value: paidOrderRecord,
+        reused: true,
+      }),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn().mockResolvedValue({
+        order: paidOrderRecord,
+        reportId: "report-res-123",
+      }),
+      recordPaid: vi.fn(),
+    } as never);
+
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      });
+      expect(result).toEqual({
+        ok: true,
+        value: {
+          order: {
+            id: "order-paid-1",
+            status: "paid",
+            amount: 79000,
+            currency: "VND",
+            locale: "vi",
+          },
+          paymentInstructions: {
+            bankCode: "VCB",
+            accountNumber: "123456789",
+            accountHolder: "LA SO VIET",
+            amount: 79000,
+            currency: "VND",
+            transferDescription: "LSV-order-paid-1",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSV-order-paid-1&template=compact",
+            expiresAt: "2026-09-05T00:15:00.000Z",
+          },
+          reportId: "report-res-123",
+        },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("handles impossible null projection after createOrder as stable failure", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { id: "order-1" },
+        reused: false,
+      }),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn().mockResolvedValue(null),
+      recordPaid: vi.fn(),
+    } as never);
+
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      });
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "COMMERCE_ORDER_CREATE_FAILED" },
       });
     } finally {
       authSpy.mockRestore();
