@@ -104,6 +104,8 @@ import {
   COMMERCE_SEPAY_ENV,
   COMMERCE_SEPAY_MERCHANT,
   COMMERCE_SEPAY_SECRET,
+  COMMERCE_ORDER_TTL_SECONDS,
+  COMMERCE_SEPAY_WEBHOOK_SECRET,
   CommerceController,
 } from "./commerce/commerce.controller.js";
 
@@ -335,6 +337,14 @@ export function createApiAnalyticsSink(
     {
       provide: COMMERCE_SEPAY_MERCHANT,
       useFactory: () => applicationEnvironment().sepay.merchantId,
+    },
+    {
+      provide: COMMERCE_ORDER_TTL_SECONDS,
+      useFactory: () => applicationEnvironment().sepay.orderTtlSeconds,
+    },
+    {
+      provide: COMMERCE_SEPAY_WEBHOOK_SECRET,
+      useFactory: () => applicationEnvironment().sepay.webhookSecret,
     },
     {
       provide: COMMERCE_RETURN_ORIGIN,

@@ -1,17 +1,27 @@
 import { BadRequestException, ConflictException, UnauthorizedException } from "@nestjs/common";
 import { describe, expect, it } from "vitest";
+import { createHmac } from "node:crypto";
 
 import { CommerceController } from "./commerce.controller.js";
 
-function controller() {
+function controller(options: {
+  orderTtlSeconds?: number;
+  webhookSecret?: string;
+  recordPaidResult?: { ok: boolean; replayed?: boolean; code?: string };
+} = {}) {
+  const database = {
+    transaction: async (cb: (tx: unknown) => Promise<unknown>) => cb({}),
+  };
   return new CommerceController(
-    {} as never,
+    database as never,
     "internal-secret",
     "provider-secret",
     "ingress-secret",
     "sandbox",
     "merchant",
     "https://lasoviet.example",
+    options.orderTtlSeconds ?? 900,
+    options.webhookSecret ?? "synthetic-webhook-secret",
   );
 }
 
@@ -79,19 +89,89 @@ describe("SePay controller HTTP contract", () => {
   });
 
   it("maps ingress and provider authentication failures to 401", async () => {
-    await expect(controller().webhook(undefined, "provider-secret", { rawBody: nonPaid }))
+    await expect(controller().webhook(undefined, "provider-secret", undefined, undefined, { rawBody: nonPaid }))
       .rejects.toBeInstanceOf(UnauthorizedException);
-    await expect(controller().webhook("ingress-secret", "wrong", { rawBody: nonPaid }))
+    await expect(controller().webhook("ingress-secret", "wrong", undefined, undefined, { rawBody: nonPaid }))
       .rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it("maps malformed provider data to 400", async () => {
-    await expect(controller().webhook("ingress-secret", "provider-secret", { rawBody: Buffer.from("{}") }))
+    await expect(controller().webhook("ingress-secret", "provider-secret", undefined, undefined, { rawBody: Buffer.from("{}") }))
       .rejects.toBeInstanceOf(BadRequestException);
   });
 
   it("returns exactly the documented acknowledgement for authenticated non-paid notifications", async () => {
-    await expect(controller().webhook("ingress-secret", "provider-secret", { rawBody: nonPaid }))
+    await expect(controller().webhook("ingress-secret", "provider-secret", undefined, undefined, { rawBody: nonPaid }))
       .resolves.toEqual({ success: true });
+  });
+
+  it("rejects invalid HMAC bank webhook with 401", async () => {
+    const bankTransfer = {
+      id: 92704,
+      gateway: "Vietcombank",
+      transactionDate: "2026-09-05 10:00:00",
+      accountNumber: "123456789",
+      subAccount: "",
+      code: "LSV-order-1",
+      content: "LSV-order-1 chuyen tien",
+      transferType: "in",
+      description: "NGUYEN VAN A chuyen tien",
+      transferAmount: 79000,
+      accumulated: 1000000,
+      referenceCode: "FT24012345678",
+    };
+    const rawBody = Buffer.from(JSON.stringify(bankTransfer));
+    await expect(controller().webhook("ingress-secret", undefined, "sha256=wrong", "1757066400", { rawBody }))
+      .rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it("rejects transferType 'out' with 400", async () => {
+    const bankTransfer = {
+      id: 92704,
+      gateway: "Vietcombank",
+      transactionDate: "2026-09-05 10:00:00",
+      accountNumber: "123456789",
+      subAccount: "",
+      code: "LSV-order-1",
+      content: "LSV-order-1 chuyen tien",
+      transferType: "out",
+      description: "NGUYEN VAN A chuyen tien",
+      transferAmount: 79000,
+      accumulated: 1000000,
+      referenceCode: "FT24012345678",
+    };
+    const rawBody = Buffer.from(JSON.stringify(bankTransfer));
+    const nowEpochSeconds = Math.floor(Date.now() / 1000);
+    const hmac = createHmac("sha256", "synthetic-webhook-secret");
+    hmac.update(String(nowEpochSeconds) + "." + rawBody.toString("utf8"));
+    const signature = "sha256=" + hmac.digest("hex");
+
+    await expect(controller().webhook("ingress-secret", undefined, signature, String(nowEpochSeconds), { rawBody }))
+      .rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("accepts valid HMAC bank webhook through controller boundary and authenticates", async () => {
+    const bankTransfer = {
+      id: 92704,
+      gateway: "Vietcombank",
+      transactionDate: "2026-09-05 10:00:00",
+      accountNumber: "123456789",
+      subAccount: "",
+      code: "LSV-order-1",
+      content: "LSV-order-1 chuyen tien",
+      transferType: "in",
+      description: "NGUYEN VAN A chuyen tien",
+      transferAmount: 79000,
+      accumulated: 1000000,
+      referenceCode: "FT24012345678",
+    };
+    const rawBody = Buffer.from(JSON.stringify(bankTransfer));
+    const nowEpochSeconds = Math.floor(Date.now() / 1000);
+    const hmac = createHmac("sha256", "synthetic-webhook-secret");
+    hmac.update(String(nowEpochSeconds) + "." + rawBody.toString("utf8"));
+    const signature = "sha256=" + hmac.digest("hex");
+
+    await expect(controller().webhook("ingress-secret", undefined, signature, String(nowEpochSeconds), { rawBody }))
+      .rejects.not.toBeInstanceOf(UnauthorizedException);
   });
 });

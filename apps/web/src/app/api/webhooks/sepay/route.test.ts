@@ -40,4 +40,59 @@ describe("SePay public ingress", () => {
       "x-internal-ingress-secret": "synthetic-internal-secret",
     });
   });
+  it("forwards byte-identical provider body with HMAC headers when signature and timestamp are present", async () => {
+    vi.stubEnv("SEPAY_ENV", "sandbox");
+    vi.stubEnv("SEPAY_MERCHANT_ID", "synthetic-merchant");
+    vi.stubEnv("SEPAY_SECRET_KEY", "synthetic-secret");
+    vi.stubEnv("SEPAY_BANK_CODE", "VCB");
+    vi.stubEnv("SEPAY_ACCOUNT_NUMBER", "123456789");
+    vi.stubEnv("SEPAY_ACCOUNT_HOLDER", "LA SO VIET");
+    vi.stubEnv("SEPAY_ORDER_TTL_SECONDS", "900");
+    vi.stubEnv("SEPAY_WEBHOOK_SECRET", "synthetic-webhook-secret");
+    vi.stubEnv("PRIVATE_API_URL", "https://private-api.example.test");
+    vi.stubEnv("INTERNAL_ACTOR_SECRET", "synthetic-internal-secret");
+    const fetch = vi.fn(async (_url: string, init: RequestInit) => new Response(
+      JSON.stringify({ ok: true }),
+      { headers: { "content-type": "application/json" } },
+    ));
+    vi.stubGlobal("fetch", fetch);
+    const bytes = new Uint8Array([10, 20, 30, 40]);
+
+    await expect(POST(new Request("https://lasoviet.example/api/webhooks/sepay", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-sepay-signature": "sha256=abcdef123456",
+        "x-sepay-timestamp": "1757066400",
+      },
+      body: bytes,
+    }))).resolves.toMatchObject({ status: 200 });
+
+    const init = fetch.mock.calls[0]![1] as RequestInit;
+    expect(new Uint8Array(init.body as ArrayBuffer)).toEqual(bytes);
+    expect(init.headers).toEqual({
+      "content-type": "application/json",
+      "x-sepay-signature": "sha256=abcdef123456",
+      "x-sepay-timestamp": "1757066400",
+      "x-internal-ingress-secret": "synthetic-internal-secret",
+    });
+  });
+
+  it("rejects when no auth headers are provided", async () => {
+    vi.stubEnv("SEPAY_ENV", "sandbox");
+    vi.stubEnv("SEPAY_MERCHANT_ID", "synthetic-merchant");
+    vi.stubEnv("SEPAY_SECRET_KEY", "synthetic-secret");
+    vi.stubEnv("SEPAY_BANK_CODE", "VCB");
+    vi.stubEnv("SEPAY_ACCOUNT_NUMBER", "123456789");
+    vi.stubEnv("SEPAY_ACCOUNT_HOLDER", "LA SO VIET");
+    vi.stubEnv("SEPAY_ORDER_TTL_SECONDS", "900");
+    vi.stubEnv("SEPAY_WEBHOOK_SECRET", "synthetic-webhook-secret");
+    vi.stubEnv("PRIVATE_API_URL", "https://private-api.example.test");
+    vi.stubEnv("INTERNAL_ACTOR_SECRET", "synthetic-internal-secret");
+    await expect(POST(new Request("https://lasoviet.example/api/webhooks/sepay", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: new Uint8Array([1, 2, 3]),
+    }))).resolves.toMatchObject({ status: 401 });
+  });
 });

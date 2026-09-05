@@ -14,6 +14,8 @@ export const COMMERCE_INGRESS_SECRET = Symbol("COMMERCE_INGRESS_SECRET");
 export const COMMERCE_SEPAY_ENV = Symbol("COMMERCE_SEPAY_ENV");
 export const COMMERCE_SEPAY_MERCHANT = Symbol("COMMERCE_SEPAY_MERCHANT");
 export const COMMERCE_RETURN_ORIGIN = Symbol("COMMERCE_RETURN_ORIGIN");
+export const COMMERCE_ORDER_TTL_SECONDS = Symbol("COMMERCE_ORDER_TTL_SECONDS");
+export const COMMERCE_SEPAY_WEBHOOK_SECRET = Symbol("COMMERCE_SEPAY_WEBHOOK_SECRET");
 
 function checkoutPath(locale: "vi" | "en", orderId: string): string {
   return locale === "en" ? `/en/thanh-toan/${orderId}` : `/thanh-toan/${orderId}`;
@@ -40,7 +42,15 @@ export class CommerceController {
     @Inject(COMMERCE_SEPAY_ENV) private readonly sepayEnvironment: "sandbox" | "production",
     @Inject(COMMERCE_SEPAY_MERCHANT) private readonly merchantId: string,
     @Inject(COMMERCE_RETURN_ORIGIN) private readonly origin: string,
+    @Inject(COMMERCE_ORDER_TTL_SECONDS) private readonly orderTtlSeconds: number,
+    @Inject(COMMERCE_SEPAY_WEBHOOK_SECRET) private readonly sepayWebhookSecret: string,
   ) {}
+
+  private repository() {
+    return createDatabaseCommerceRepository(this.database, {
+      orderTtlSeconds: this.orderTtlSeconds,
+    });
+  }
 
   private async actor(authorization: string | undefined): Promise<CurrentActor> {
     if (!authorization?.startsWith("Bearer ")) throw new UnauthorizedException({ code: "ACTOR_TOKEN_INVALID" });
@@ -70,7 +80,7 @@ export class CommerceController {
     if (typeof body !== "object" || body === null || !("chartId" in body) || !("sku" in body) || !("locale" in body) || typeof body.chartId !== "string" || typeof body.sku !== "string" || (body.locale !== "vi" && body.locale !== "en")) {
       return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
     }
-    const result = await createDatabaseCommerceRepository(this.database).createOrder(await this.actor(authorization), body.chartId, body.sku, body.locale);
+    const result = await this.repository().createOrder(await this.actor(authorization), body.chartId, body.sku, body.locale);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") {
         throw new UnauthorizedException({ code: result.code });
@@ -85,7 +95,7 @@ export class CommerceController {
 
   @Get("orders/:orderId")
   async read(@Headers("authorization") authorization: string | undefined, @Param("orderId") orderId: string) {
-    const order = await createDatabaseCommerceRepository(this.database).readOrder(await this.actor(authorization), orderId);
+    const order = await this.repository().readOrder(await this.actor(authorization), orderId);
     return order === null
       ? { ok: false, error: { code: "ORDER_NOT_FOUND" } }
       : { ok: true, value: { order, payment: this.payment(order) } };
@@ -93,14 +103,27 @@ export class CommerceController {
 
   @Post("webhooks/sepay")
   @HttpCode(HttpStatus.OK)
-  async webhook(@Headers("x-internal-ingress-secret") ingress: string | undefined, @Headers("x-secret-key") secret: string | undefined, @Req() request: { rawBody?: Buffer }) {
+  async webhook(
+    @Headers("x-internal-ingress-secret") ingress: string | undefined,
+    @Headers("x-secret-key") secret: string | undefined,
+    @Headers("x-sepay-signature") signature: string | undefined,
+    @Headers("x-sepay-timestamp") timestamp: string | undefined,
+    @Req() request: { rawBody?: Buffer },
+  ) {
     if (!equal(ingress, this.ingressSecret)) throw new UnauthorizedException({ code: "INGRESS_AUTH_INVALID" });
     const rawBody = request.rawBody?.toString("utf8");
     if (rawBody === undefined) throw new BadRequestException({ code: "SEPAY_RAW_BODY_MISSING" });
     const result = await createSePayWebhookService({
       secretKey: this.sepaySecret,
-      recordPaid: (input) => createDatabaseCommerceRepository(this.database).recordPaid(input),
-    }).handle({ rawBody, secretHeader: secret, traceId: "sepay-ipn" });
+      webhookSecret: this.sepayWebhookSecret,
+      recordPaid: (input) => this.repository().recordPaid(input),
+    }).handle({
+      rawBody,
+      secretHeader: secret,
+      signatureHeader: signature,
+      timestampHeader: timestamp,
+      traceId: "sepay-webhook",
+    });
     if (result.ok) return { success: true };
     switch (result.error.code) {
       case "SEPAY_SIGNATURE_INVALID":
