@@ -171,10 +171,31 @@
       </div>
     </section>
 
-    <!-- 02 KẾT QUẢ MIỄN PHÍ -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-ket-qua-mien-phi">
+    <!-- 02 VÌ SAO TIN ĐƯỢC KẾT QUẢ NÀY -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-vi-sao-tin-duoc">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">02 · Không mất phí</div>
+        <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="34px,34px" name="compass" size="34" color="var(--son)" style="flex:none;margin-top:4px"></x-import>
+          <div style="max-width:680px">
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">02 · Trước khi bạn xem kết quả</div>
+            <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Vì sao có thể tin kết quả này</h2>
+            <p style="margin:16px 0 0;font-size:16px;line-height:1.65;color:var(--text-muted)">Chúng tôi không xin bạn tin bằng lời hứa. Đây là bốn điều bạn có thể tự kiểm chứng trước khi đọc bất kỳ nhận định nào — không phải rating, không phải lượt theo dõi.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:44px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ proofItems }}" as="item" hint-placeholder-count="4">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,200px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+        <p style="margin:28px 0 0;max-width:720px;font-size:13px;line-height:1.7;color:var(--text-faint)">Cơ quan chức năng đã nhiều lần cảnh báo về lừa đảo dưới danh nghĩa xem bói online. Đây là lý do Lá Số Việt công khai phương pháp và không dùng chứng thực ẩn danh để tạo uy tín.</p>
+      </div>
+    </section>
+
+    <!-- 03 KẾT QUẢ MIỄN PHÍ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="03-ket-qua-mien-phi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">03 · Không mất phí</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Kết quả miễn phí bạn nhận được</h2>
         <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
           <sc-for list="{{ freeResults }}" as="item" hint-placeholder-count="6">
@@ -184,10 +205,10 @@
       </div>
     </section>
 
-    <!-- 03 SAMPLE CHART -->
-    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="03-la-so-mau">
+    <!-- 04 SAMPLE CHART -->
+    <section id="la-so-mau" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="04-la-so-mau">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">03 · Lá số mẫu</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">04 · Lá số mẫu</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Lá số Tử Vi trông như thế nào</h2>
         <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây là một hồ sơ mẫu, không phải dữ liệu người dùng thật — dùng để minh hoạ cách lá số của bạn sẽ hiển thị.</p>
 
@@ -247,11 +268,30 @@
       </div>
     </section>
 
-    <!-- 04 CÁC TRƯỜNG DÙNG ĐỂ LÀM GÌ -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="04-truong-du-lieu">
+    <!-- 05 THUẬT NGỮ CỐT LÕI -->
+    <section style="padding:clamp(56px,9vw,104px) 0;border-top:1px solid var(--border-hairline)" data-screen-label="05-thuat-ngu-cot-loi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">05 · Thuật ngữ cốt lõi</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Đọc lá số mà không bị ngợp thuật ngữ</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Năm khái niệm nền — không cần thuộc lòng, chỉ cần biết tra khi cần trong lúc đọc lá số mẫu ở trên.</p>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ glossaryItems }}" as="g" hint-placeholder-count="5">
+            <div style="background:var(--surface-panel);padding:28px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="{{ g.icon }}" size="24" color="var(--gold-500)"></x-import>
+              <div style="margin-top:16px;font-family:var(--font-display);font-size:18px;line-height:1.35;color:var(--text-heading)">{{ g.term }}</div>
+              <p style="margin:10px 0 0;font-size:14px;line-height:1.65;color:var(--text-body)">{{ g.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 CÁC TRƯỜNG DÙNG ĐỂ LÀM GÌ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="06-truong-du-lieu">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:start">
         <div>
-          <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">04 · Vì sao cần các trường này</div>
+          <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">06 · Vì sao cần các trường này</div>
           <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Ngày, giờ, nơi sinh dùng để làm gì</h2>
           <dl style="margin:32px 0 0">
             <sc-for list="{{ fieldExplainers }}" as="f" hint-placeholder-count="4">
@@ -273,10 +313,10 @@
       </div>
     </section>
 
-    <!-- 05 UNKNOWN TIME MODE -->
-    <section id="unknown-time" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="05-khong-ro-gio-sinh">
+    <!-- 07 UNKNOWN TIME MODE -->
+    <section id="unknown-time" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="07-khong-ro-gio-sinh">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">05 · Không rõ giờ sinh</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">07 · Không rõ giờ sinh</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Không rõ giờ sinh vẫn lập được lá số</h2>
         <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Bạn có thể bỏ trống giờ sinh và tiếp tục. Bảng dưới đây cho biết phần nào giữ nguyên và phần nào bị ảnh hưởng.</p>
 
@@ -308,10 +348,10 @@
       </div>
     </section>
 
-    <!-- 06 CÁCH TÍNH -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="06-cach-tinh">
+    <!-- 08 CÁCH TÍNH -->
+    <section id="cach-tinh" style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="08-cach-tinh">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">06 · Minh bạch phương pháp</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">08 · Minh bạch phương pháp</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Cách tính, bộ quy tắc và phiên bản engine</h2>
 
         <div style="margin-top:40px;max-width:760px">
@@ -331,13 +371,13 @@
       </div>
     </section>
 
-    <!-- 07 GIỚI HẠN & SAFETY -->
-    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="07-gioi-han-safety">
+    <!-- 09 GIỚI HẠN & SAFETY -->
+    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="09-gioi-han-safety">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
         <div style="display:flex;align-items:center;gap:14px">
           <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--gold-500)"></x-import>
           <div>
-            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">07 · Giới hạn</div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">09 · Giới hạn</div>
             <h2 style="margin:8px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,30px);color:var(--text-heading)">Nội dung tham khảo, không thay thế chuyên môn</h2>
           </div>
         </div>
@@ -352,10 +392,10 @@
       </div>
     </section>
 
-    <!-- 08 CLUSTER + FAQ + CTA -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="08-kien-thuc-faq">
+    <!-- 10 CLUSTER + FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="10-kien-thuc-faq">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">08 · Đọc thêm</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">10 · Đọc thêm</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Bài kiến thức liên quan</h2>
         <div style="margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px">
           <sc-for list="{{ articles }}" as="a" hint-placeholder-count="3">
@@ -446,6 +486,21 @@ class Component extends DCLogic {
       { num: '06', icon: 'share', title: 'Lưu và chia sẻ lá số', body: 'Đường liên kết riêng cho lá số của bạn, ẩn thông tin cá nhân theo mặc định.', bordered: false }
     ];
 
+    const proofItems = [
+      { num: '01', icon: 'book-open', title: 'Phương pháp công khai', body: 'Bộ quy tắc an sao và phiên bản engine được công bố ở mục "Cách tính" bên dưới — không giấu sau một "thầy" ẩn danh.' },
+      { num: '02', icon: 'scroll', title: 'Mỗi nhận định mở được căn cứ', body: 'Nút "Vì sao có nhận định này?" cho xem đúng sao, đúng cung, đúng quy tắc đã dùng — không phải một câu chung chung áp cho mọi người.' },
+      { num: '03', icon: 'shield-lock', title: 'AI không tạo ra dữ liệu lá số', body: 'AI chỉ diễn giải kết quả engine đã tính. Khi văn bản diễn giải và engine lệch nhau, engine luôn là căn cứ đúng.' },
+      { num: '04', icon: 'check', title: 'Không rating, không chứng thực giả', body: 'Chúng tôi không dùng lượt theo dõi hay lời "ai cũng khen" để chứng minh uy tín — chỉ dùng phương pháp và dữ liệu bạn có thể tự kiểm tra.', bordered: false }
+    ];
+
+    const glossaryItems = [
+      { icon: 'compass', term: 'Cung', body: 'Lá số chia đời sống thành 12 khu vực gọi là cung — mỗi cung nói về một phương diện: sự nghiệp, tình cảm, tài chính, sức khoẻ...' },
+      { icon: 'scroll', term: 'Chính tinh & phụ tinh', body: 'Chính tinh là sao chủ chốt được an vào từng cung theo ngày giờ sinh; phụ tinh bổ sung sắc thái. Tên và vị trí sao là dữ liệu — ý nghĩa là phần luận giải.' },
+      { icon: 'user-circle', term: 'Cung Mệnh & Cung Thân', body: 'Cung Mệnh thể hiện bản chất cốt lõi; Cung Thân thể hiện phần biểu hiện ra ngoài. Đây là hai cung được xem đầu tiên khi đọc một lá số.' },
+      { icon: 'calendar-day', term: 'Ngũ hành bản mệnh', body: 'Kim – Mộc – Thuỷ – Hoả – Thổ được gán theo năm sinh, dùng để đối chiếu với ngũ hành của sao và cung khi luận giải.' },
+      { icon: 'clock', term: 'Đại vận', body: 'Mỗi 10 năm ứng với một cung khác được kích hoạt — cách Tử Vi nhìn một giai đoạn cụ thể, không phải một lời phán cho cả đời.' }
+    ];
+
     const chartCells = [
       { col: 1, row: 1, name: 'Tài Bạch', badge: 'MỆNH', stars: 'Cự Môn, Hoá Quyền' },
       { col: 2, row: 1, name: 'Tử Tức', stars: 'Thiên Cơ' },
@@ -514,6 +569,7 @@ class Component extends DCLogic {
       { q: 'Tôi nên nhập lịch dương hay lịch âm?', a: 'Nhập theo loại lịch ghi trên giấy khai sinh của bạn và chọn đúng tuỳ chọn lịch dương hoặc lịch âm trong form — hệ thống sẽ tự quy đổi.' },
       { q: 'Nơi sinh có cần chính xác tuyệt đối không?', a: 'Nên chọn địa danh gần nhất với nơi sinh thật. Nơi sinh dùng để quy đổi giờ sinh theo kinh độ, sai lệch trong phạm vi một tỉnh thường không ảnh hưởng đến kết quả.' },
       { q: 'Lá số Tử Vi có thể dùng để quyết định việc quan trọng không?', a: 'Không nên. Nội dung mang tính tham khảo văn hoá và phản ánh xu hướng có thể xảy ra, không thay thế tư vấn y tế, pháp lý hoặc tài chính từ chuyên gia.' },
+      { q: 'Nếu lá số hoặc một cung nào đó có nhận định không tích cực thì sao?', a: 'Lá Số Việt không xếp một cung hay một giai đoạn là "xấu" tuyệt đối. Mỗi nhận định đi kèm điều kiện (ví dụ có bị sát tinh hãm địa hay không) và mức độ tin cậy, để bạn thấy đây là một xu hướng cần quan sát — không phải một lời phán về số phận đã định. Với sức khoẻ, tài chính hay pháp lý, kết quả không thay thế tư vấn chuyên môn.' },
       { q: 'Làm sao biết một nhận định dựa trên căn cứ gì?', a: 'Các nhận định quan trọng đều có nút "Vì sao có nhận định này?" kèm dấu triện, mở ra phần dữ liệu lá số đã được dùng để đưa ra nhận định đó.' }
     ];
     const faqs = faqData.map((f, i) => ({
@@ -533,7 +589,7 @@ class Component extends DCLogic {
       toggleInsight: this.toggleInsight,
       engineOpen: this.state.engineOpen,
       toggleEngine: this.toggleEngine,
-      freeResults, chartCells, chartRows, fieldExplainers,
+      freeResults, proofItems, glossaryItems, chartCells, chartRows, fieldExplainers,
       unaffectedItems, affectedItems, methodRows, engineRows,
       limitItems, articles, faqs
     };
