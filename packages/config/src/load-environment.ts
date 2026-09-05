@@ -28,7 +28,7 @@ type ParseResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: AppError<EnvironmentErrorCode> };
 
-type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google";
+type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google" | "sepay";
 
 const AI_VARIABLES = [
   "AI_BASE_URL",
@@ -89,6 +89,11 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "sepay.environment": "SEPAY_ENV",
   "sepay.merchantId": "SEPAY_MERCHANT_ID",
   "sepay.secretKey": "SEPAY_SECRET_KEY",
+  "sepay.bankCode": "SEPAY_BANK_CODE",
+  "sepay.accountNumber": "SEPAY_ACCOUNT_NUMBER",
+  "sepay.accountHolder": "SEPAY_ACCOUNT_HOLDER",
+  "sepay.orderTtlSeconds": "SEPAY_ORDER_TTL_SECONDS",
+  "sepay.webhookSecret": "SEPAY_WEBHOOK_SECRET",
 };
 
 function missingRequired(variable: string): ParseResult<never> {
@@ -259,17 +264,31 @@ function loadCloudS3(
 }
 
 function loadSePay(source: NodeJS.ProcessEnv): ParseResult<SePayEnvironment> {
-  for (const variable of ["SEPAY_ENV", "SEPAY_MERCHANT_ID", "SEPAY_SECRET_KEY"]) {
+  for (const variable of [
+    "SEPAY_ENV",
+    "SEPAY_MERCHANT_ID",
+    "SEPAY_SECRET_KEY",
+    "SEPAY_BANK_CODE",
+    "SEPAY_ACCOUNT_NUMBER",
+    "SEPAY_ACCOUNT_HOLDER",
+    "SEPAY_ORDER_TTL_SECONDS",
+    "SEPAY_WEBHOOK_SECRET",
+  ]) {
     if (source[variable] === undefined) return missingRequired(variable);
   }
   const parsed = SePayEnvironmentSchema.safeParse({
     environment: source.SEPAY_ENV,
     merchantId: source.SEPAY_MERCHANT_ID,
     secretKey: source.SEPAY_SECRET_KEY,
+    bankCode: source.SEPAY_BANK_CODE,
+    accountNumber: source.SEPAY_ACCOUNT_NUMBER,
+    accountHolder: source.SEPAY_ACCOUNT_HOLDER,
+    orderTtlSeconds: decimalInteger(source.SEPAY_ORDER_TTL_SECONDS),
+    webhookSecret: source.SEPAY_WEBHOOK_SECRET,
   });
   return parsed.success
     ? { ok: true, value: parsed.data }
-    : invalidFromSchema(parsed.error, "SEPAY_ENV", "sepay" as OptionalGroup);
+    : invalidFromSchema(parsed.error, "SEPAY_ENV", "sepay");
 }
 
 export function loadEnvironment(

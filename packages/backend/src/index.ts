@@ -249,6 +249,8 @@ export type {
   ReportGenerationServiceResult,
 } from "./reports/report-generation.service.js";
 
+export { createPaymentInstructions } from "./commerce/payment-instructions.js";
+export type { PaymentInstructions } from "./commerce/payment-instructions.js";
 export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js";
 export { createSePayGateway } from "./commerce/sepay-adapter.js";
 export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";

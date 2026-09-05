@@ -42,6 +42,11 @@ export type SePayEnvironment = {
   environment: "sandbox" | "production";
   merchantId: string;
   secretKey: string;
+  bankCode: string;
+  accountNumber: string;
+  accountHolder: string;
+  orderTtlSeconds: number;
+  webhookSecret: string;
 };
 
 export type AppEnvironment = {
@@ -135,6 +140,11 @@ export const SePayEnvironmentSchema: z.ZodType<SePayEnvironment> = z
     environment: z.enum(["sandbox", "production"]),
     merchantId: trimmedNonEmpty,
     secretKey: trimmedNonEmpty,
+    bankCode: trimmedNonEmpty.max(64),
+    accountNumber: trimmedNonEmpty.max(64),
+    accountHolder: trimmedNonEmpty.max(128),
+    orderTtlSeconds: z.number().int().positive(),
+    webhookSecret: trimmedNonEmpty.max(256),
   })
   .strict();
 
