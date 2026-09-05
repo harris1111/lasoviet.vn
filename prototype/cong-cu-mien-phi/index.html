@@ -23,7 +23,8 @@
     a { color: var(--accent-gold); }
     a:hover { color: var(--gold-400); }
     .tool-card { display: flex; flex-direction: column; gap: 14px; background: var(--surface-panel); border: 1px solid var(--border-hairline); border-radius: var(--radius-lg); padding: 28px; text-decoration: none; transition: border-color 120ms ease; }
-    .tool-card:hover { border-color: var(--gold-600); }
+    .tool-card.is-available:hover { border-color: var(--gold-600); }
+    .tool-card.is-muted { border-style: dashed; opacity: 0.72; }
   </style>
 </helmet>
 
@@ -68,22 +69,32 @@
       </div>
     </section>
 
-    <!-- 02 LƯỚI 7 CÔNG CỤ -->
+    <!-- 02 LƯỚI 7 CÔNG CỤ THEO TÁC VỤ -->
     <section style="padding:0 0 clamp(56px,9vw,96px)" data-screen-label="02-luoi-cong-cu">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px">
-          <sc-for list="{{ tools }}" as="t" hint-placeholder-count="7">
-            <a href="{{ t.href }}" class="tool-card">
-              <div style="display:flex;align-items:center;justify-content:space-between">
-                <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="26px,26px" name="{{ t.icon }}" size="26" color="{{ t.color }}"></x-import>
-                <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.color }};border:1px solid {{ t.color }};border-radius:var(--radius-pill);padding:2px 9px;opacity:0.85">{{ t.status }}</span>
-              </div>
-              <div style="font-family:var(--font-display);font-size:19px;color:var(--text-heading)">{{ t.title }}</div>
-              <p style="margin:0;font-size:14px;line-height:1.6;color:var(--text-muted);flex:1">{{ t.body }}</p>
-              <span style="display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-body)">{{ t.cta }} <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="14px,14px" name="chevron-right" size="14"></x-import></span>
-            </a>
-          </sc-for>
-        </div>
+        <sc-for list="{{ toolGroups }}" as="grp" hint-placeholder-count="4">
+          <div style="margin-bottom:48px">
+            <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px">{{ grp.label }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px">
+              <sc-for list="{{ grp.tools }}" as="t" hint-placeholder-count="3">
+                <a href="{{ t.href }}" class="{{ t.cardClass }}">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="26px,26px" name="{{ t.icon }}" size="26" color="{{ t.iconColor }}"></x-import>
+                    <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.iconColor }};border:1px solid {{ t.iconColor }};border-radius:var(--radius-pill);padding:2px 9px;opacity:0.85">{{ t.status }}</span>
+                  </div>
+                  <div style="font-family:var(--font-display);font-size:19px;color:var(--text-heading)">{{ t.title }}</div>
+                  <p style="margin:0;font-size:14px;line-height:1.6;color:var(--text-muted);flex:1">{{ t.body }}</p>
+                  <div style="display:grid;gap:4px;font-size:12px;color:var(--text-faint);border-top:1px solid var(--border-hairline);padding-top:12px">
+                    <span><strong style="color:var(--text-muted)">Cần nhập:</strong> {{ t.inputNeeded }}</span>
+                    <span><strong style="color:var(--text-muted)">Nhận được:</strong> {{ t.output }}</span>
+                    <span><strong style="color:var(--text-muted)">Thời gian:</strong> {{ t.timeEstimate }}</span>
+                  </div>
+                  <span style="display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-body)">{{ t.cta }} <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="14px,14px" name="chevron-right" size="14"></x-import></span>
+                </a>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
       </div>
     </section>
 
@@ -166,15 +177,25 @@ class Component extends DCLogic {
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
 
   renderVals() {
-    const tools = [
-      { icon: 'calendar-day', color: 'var(--gold-500)', status: 'Xem trước', title: 'Xem Ngày Tốt', body: 'Chọn loại việc và khoảng thời gian, xem ngày phù hợp kèm lý do — không chấm điểm tổng hợp.', href: '/ngay-tot', cta: 'Xem phương pháp' },
-      { icon: 'compass', color: 'var(--gold-500)', status: 'Xem trước', title: '12 Con Giáp', body: 'Tra cứu con giáp, ngũ hành và chu kỳ theo năm sinh, kèm mốc giao thừa âm lịch.', href: '/12-con-giap', cta: 'Xem phương pháp' },
-      { icon: 'map-pin', color: '#7C8A6E', status: 'Đang chờ', title: 'Phong Thủy hướng nhà', body: 'Công cụ hướng nhà hợp tuổi đang chờ chốt phương pháp trước khi công bố — chưa mở.', href: '/phong-thuy/huong-nha', cta: 'Xem trạng thái' },
-      { icon: 'book-open', color: 'var(--gold-500)', status: 'Xem trước', title: 'Giải Mã Giấc Mơ', body: 'Tra cứu biểu tượng giấc mơ theo góc nhìn dân gian và biểu tượng — không phải dự đoán số.', href: '/giai-ma-giac-mo', cta: 'Xem thư viện' },
-      { icon: 'scroll', color: '#9B6358', status: 'Xem trước', title: 'Tarot / Bói Bài', body: 'Một lá hôm nay hoặc ba lá cho một câu hỏi — đang hoàn thiện trước khi ra mắt.', href: '/boi-bai', cta: 'Xem phương pháp' },
-      { icon: 'calendar-day', color: '#6E8C89', status: 'Xem trước', title: 'Lịch Âm', body: 'Xem ngày âm–dương song song, can chi và quy đổi lịch cho một ngày bất kỳ.', href: '/lich-am', cta: 'Xem phương pháp' },
-      { icon: 'user-circle', color: '#8A8172', status: 'Thử nghiệm', title: 'Xem Chỉ Tay', body: 'Pilot nhận diện đường chỉ tay qua ảnh, cần sự đồng ý riêng cho dữ liệu sinh trắc học — chưa mở.', href: '/xem-chi-tay', cta: 'Xem trạng thái' }
+    const toolFacts = [
+      { group: 'Tra cứu thời gian', icon: 'calendar-day', color: 'var(--gold-500)', status: 'Xem trước', title: 'Xem Ngày Tốt', body: 'Chọn loại việc và khoảng thời gian, xem ngày phù hợp kèm lý do — không chấm điểm tổng hợp.', href: '/ngay-tot', cta: 'Xem phương pháp', inputNeeded: 'Loại việc + khoảng ngày', output: 'Danh sách ngày kèm lý do', timeEstimate: '< 1 phút' },
+      { group: 'Tra cứu thời gian', icon: 'compass', color: 'var(--gold-500)', status: 'Xem trước', title: '12 Con Giáp', body: 'Tra cứu con giáp, ngũ hành và chu kỳ theo năm sinh, kèm mốc giao thừa âm lịch.', href: '/12-con-giap', cta: 'Xem phương pháp', inputNeeded: 'Năm sinh dương lịch', output: 'Con giáp, Can Chi, ngũ hành', timeEstimate: '< 1 phút' },
+      { group: 'Tra cứu thời gian', icon: 'calendar-day', color: '#6E8C89', status: 'Xem trước', title: 'Lịch Âm', body: 'Xem ngày âm–dương song song, can chi và quy đổi lịch cho một ngày bất kỳ.', href: '/lich-am', cta: 'Xem phương pháp', inputNeeded: 'Một ngày dương hoặc âm', output: 'Ngày quy đổi, Can Chi, giờ hoàng đạo', timeEstimate: '< 1 phút' },
+      { group: 'Tự chiêm nghiệm', icon: 'book-open', color: 'var(--gold-500)', status: 'Xem trước', title: 'Giải Mã Giấc Mơ', body: 'Tra cứu biểu tượng giấc mơ theo góc nhìn dân gian và biểu tượng — không phải dự đoán số.', href: '/giai-ma-giac-mo', cta: 'Xem thư viện', inputNeeded: 'Từ khoá biểu tượng giấc mơ', output: 'Hai góc đọc: dân gian + biểu tượng', timeEstimate: '2-3 phút' },
+      { group: 'Tự chiêm nghiệm', icon: 'user-circle', color: '#8A8172', status: 'Thử nghiệm', title: 'Xem Chỉ Tay', body: 'Pilot nhận diện đường chỉ tay qua ảnh, cần sự đồng ý riêng cho dữ liệu sinh trắc học — chưa mở.', href: '/xem-chi-tay', cta: 'Xem trạng thái', inputNeeded: 'Ảnh lòng bàn tay (chưa mở)', output: 'Chưa xác định — đang chờ duyệt', timeEstimate: 'Chưa mở' },
+      { group: 'Đặt một câu hỏi', icon: 'scroll', color: '#9B6358', status: 'Xem trước', title: 'Tarot / Bói Bài', body: 'Một lá hôm nay hoặc ba lá cho một câu hỏi — đang hoàn thiện trước khi ra mắt.', href: '/boi-bai', cta: 'Xem phương pháp', inputNeeded: 'Một câu hỏi cụ thể', output: 'Trải bài 1 hoặc 3 lá kèm ý nghĩa', timeEstimate: '3-5 phút' },
+      { group: 'Không gian sống', icon: 'map-pin', color: '#7C8A6E', status: 'Đang chờ', title: 'Phong Thủy hướng nhà', body: 'Công cụ hướng nhà hợp tuổi đang chờ chốt phương pháp trước khi công bố — chưa mở.', href: '/phong-thuy/huong-nha', cta: 'Xem trạng thái', inputNeeded: 'Năm sinh + hướng nhà (chưa mở)', output: 'Chưa xác định — đang chờ duyệt', timeEstimate: 'Chưa mở' }
     ];
+    const tools = toolFacts.map(t => {
+      const isAvailablePreview = t.status === 'Xem trước';
+      return {
+        ...t,
+        iconColor: isAvailablePreview ? t.color : 'var(--text-faint)',
+        cardClass: isAvailablePreview ? 'tool-card is-available' : 'tool-card is-muted'
+      };
+    });
+    const groupOrder = ['Tra cứu thời gian', 'Tự chiêm nghiệm', 'Đặt một câu hỏi', 'Không gian sống'];
+    const toolGroups = groupOrder.map(label => ({ label, tools: tools.filter(t => t.group === label) })).filter(g => g.tools.length > 0);
 
     const faqData = [
       { q: 'Các công cụ này có cần tạo tài khoản không?', a: 'Không. Cả 7 công cụ đều dùng được ngay mà không cần tài khoản. Một số công cụ có tuỳ chọn lưu vào hồ sơ nếu bạn đã đăng nhập.' },
@@ -192,7 +213,7 @@ class Component extends DCLogic {
 
     return {
       toggleNav: this.toggleNav,
-      tools, faqs
+      toolGroups, faqs
     };
   }
 }
