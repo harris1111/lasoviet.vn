@@ -34,4 +34,29 @@ describe("product catalog", () => {
       ],
     })).toThrow("PRODUCT_CATALOG_INVALID");
   });
+
+  it("keeps reserved Bazi and Western products unselectable without payment activation", () => {
+    expect(productCatalog.findSelectableOffer("BAZI-COMPREHENSIVE-P0")).toBeUndefined();
+    expect(productCatalog.findSelectableOffer("WESTERN-NATAL-P0")).toBeUndefined();
+  });
+
+  it("rejects non-ZiWei first paid flow offers or unauthorized first paid SKU changes", () => {
+    const baziAsFirstPaid = {
+      currency: "VND",
+      pricing_status: "hypothesis_to_test",
+      products: [
+        {
+          sku: "BAZI-COMPREHENSIVE-P0",
+          name: "Luận giải Bát Tự toàn diện",
+          method: "bazi",
+          price: 79000,
+          phase: "P8",
+          availability: "first_paid_flow",
+          decision_ref: "OD-002",
+          sections: ["day_master_summary"],
+        },
+      ],
+    };
+    expect(() => validateProductCatalog(baziAsFirstPaid)).toThrow("PRODUCT_CATALOG_INVALID");
+  });
 });

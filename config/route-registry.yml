@@ -45,6 +45,23 @@ private_defaults: &private_defaults
   private: true
   purchasable: false
 
+preview_defaults: &preview_defaults
+  locale_behavior: vi_default_en_explicit
+  locale_owners: [vi, en]
+  owner: product
+  indexing: noindex_follow
+  canonical: self
+  robots: noindex,follow
+  schema_types: [WebPage, BreadcrumbList]
+  redirect: { disposition: none }
+  priority: p1
+  status: live_noindex
+  sitemap: false
+  private: false
+  purchasable: false
+  content: reviewed
+  reviewer: content-team
+
 archived_defaults: &archived_defaults
   locale_behavior: vi_default_en_explicit
   locale_owners: [vi, en]
@@ -70,7 +87,7 @@ routes:
 
   - <<: *public_defaults
     id: calculator.tu-vi
-    path: /la-so-tu-vi
+    path: /tu-vi
     intent: calculator.tu-vi
     template: calculator-landing
     discipline: tu-vi
@@ -333,11 +350,11 @@ routes:
     template: reference-collection
     owner: product
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: calculator.bat-tu
-    path: /la-so-bat-tu
+    path: /bat-tu
     intent: calculator.bat-tu
-    template: calculator-landing
+    template: discipline-flagship
     discipline: bat-tu
     owner: product-method
 
@@ -405,11 +422,11 @@ routes:
     discipline: bat-tu
     owner: content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: calculator.kinh-dich
-    path: /gieo-que-kinh-dich
+    path: /kinh-dich
     intent: calculator.kinh-dich
-    template: calculator-landing
+    template: discipline-flagship
     discipline: kinh-dich
     owner: product-method
 
@@ -461,11 +478,11 @@ routes:
     discipline: kinh-dich
     owner: content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: calculator.western-natal
-    path: /ban-do-sao
+    path: /chiem-tinh
     intent: calculator.western-natal
-    template: calculator-landing
+    template: discipline-flagship
     discipline: western-natal
     owner: product-method
 
@@ -557,11 +574,11 @@ routes:
     discipline: horoscope
     owner: product-content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: calculator.numerology
     path: /than-so-hoc
     intent: calculator.numerology
-    template: calculator-landing
+    template: discipline-flagship
     discipline: numerology
     owner: product-content
 
@@ -621,11 +638,11 @@ routes:
     discipline: numerology
     owner: content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: calculator.tarot
-    path: /boi-bai/tarot
+    path: /boi-bai
     intent: calculator.tarot
-    template: utility-landing
+    template: utility-preview
     discipline: tarot
     owner: product-content
 
@@ -677,36 +694,51 @@ routes:
     discipline: tarot
     owner: content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
+    id: utility.root
+    path: /cong-cu-mien-phi
+    intent: utility.root
+    template: free-tools-hub
+    owner: product-content
+
+  - <<: *preview_defaults
     id: utility.zodiac
     path: /12-con-giap
     intent: utility.zodiac
-    template: utility-landing
+    template: utility-preview
     discipline: zodiac
     owner: product-content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: utility.lunar-calendar
     path: /lich-am
     intent: utility.lunar-calendar
-    template: utility-landing
+    template: utility-preview
     discipline: lunar-calendar
     owner: product-content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: utility.good-days
     path: /ngay-tot
     intent: utility.good-days
-    template: utility-landing
+    template: utility-preview
     discipline: good-days
     owner: product-content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: utility.feng-shui
     path: /phong-thuy/huong-nha
     intent: utility.feng-shui
-    template: calculator-landing
+    template: gated-preview
     discipline: feng-shui
+    owner: product-content
+
+  - <<: *preview_defaults
+    id: utility.palmistry
+    path: /xem-chi-tay
+    intent: utility.palmistry
+    template: gated-preview
+    discipline: palmistry
     owner: product-content
 
   - <<: *reserved_defaults
@@ -717,11 +749,11 @@ routes:
     discipline: feng-shui
     owner: content
 
-  - <<: *reserved_defaults
+  - <<: *preview_defaults
     id: content.dream-symbols
     path: /giai-ma-giac-mo
     intent: content.dream-symbols
-    template: knowledge-landing
+    template: utility-preview
     discipline: dream-symbols
     owner: content
 
@@ -831,3 +863,38 @@ routes:
     intent: redirect.horoscope
     template: redirect
     redirect: { disposition: "301", target: /du-bao-cung-hoang-dao }
+
+  - <<: *archived_defaults
+    id: redirect.legacy-tu-vi
+    path: /la-so-tu-vi
+    intent: redirect.legacy-tu-vi
+    template: redirect
+    redirect: { disposition: "301", target: /tu-vi }
+
+  - <<: *archived_defaults
+    id: redirect.legacy-bat-tu
+    path: /la-so-bat-tu
+    intent: redirect.legacy-bat-tu
+    template: redirect
+    redirect: { disposition: "301", target: /bat-tu }
+
+  - <<: *archived_defaults
+    id: redirect.legacy-kinh-dich
+    path: /gieo-que-kinh-dich
+    intent: redirect.legacy-kinh-dich
+    template: redirect
+    redirect: { disposition: "301", target: /kinh-dich }
+
+  - <<: *archived_defaults
+    id: redirect.legacy-western-natal
+    path: /ban-do-sao
+    intent: redirect.legacy-western-natal
+    template: redirect
+    redirect: { disposition: "301", target: /chiem-tinh }
+
+  - <<: *archived_defaults
+    id: redirect.legacy-tarot
+    path: /boi-bai/tarot
+    intent: redirect.legacy-tarot
+    template: redirect
+    redirect: { disposition: "301", target: /boi-bai }

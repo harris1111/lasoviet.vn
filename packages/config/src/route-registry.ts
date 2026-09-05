@@ -214,10 +214,14 @@ export function validatePublicContent(
       );
     }
     const route = routeById.get(result.data.routeId);
+    const isAllowedPublicRoute =
+      route !== undefined &&
+      !route.private &&
+      (route.status === "live_indexable" || route.status === "live_noindex");
     if (
       route === undefined ||
       !route.localeOwners.includes(result.data.locale) ||
-      route.status !== "live_indexable"
+      !isAllowedPublicRoute
     ) {
       throw registryError(
         "CONTENT_METADATA_INVALID",
