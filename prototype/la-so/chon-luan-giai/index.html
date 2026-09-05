@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../../_shared/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <title>Chọn chủ đề luận giải — Lá Số Việt</title>
+  <style>
+    body { margin: 0; background: var(--surface-deep); color: var(--text-body); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent-gold); }
+    a:hover { color: var(--gold-400); }
+    .topic-card { display: flex; flex-direction: column; gap: 14px; background: var(--surface-panel); border: 1px solid var(--border-hairline); border-radius: var(--radius-lg); padding: 28px; }
+    .topic-card.is-open { border-color: var(--border-hairline); }
+    .topic-card.is-reserved { border-style: dashed; opacity: 0.7; }
+  </style>
+</helmet>
+
+<div style="min-height:100vh;">
+
+  <header style="position:sticky;top:0;z-index:40;background:var(--surface-canvas);border-bottom:1px solid var(--border-hairline)">
+    <div style="max-width:1000px;margin:0 auto;padding:0 32px;height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="/" style="font-family:var(--font-display);font-size:20px;color:var(--text-heading);text-decoration:none">Lá Số Việt</a>
+      <a href="/la-so-ket-qua" style="font-size:14px;color:var(--text-muted);text-decoration:none">← Xem lại lá số</a>
+    </div>
+  </header>
+
+  <main style="max-width:1000px;margin:0 auto;padding:56px 32px 128px">
+
+    <nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-faint);margin-bottom:24px">
+      <a href="/" style="color:var(--text-faint);text-decoration:none">Trang chủ</a>
+      <span>›</span>
+      <a href="/tai-khoan/ho-so" style="color:var(--text-faint);text-decoration:none">Lá số của bạn</a>
+      <span>›</span>
+      <span style="color:var(--text-muted)">Chọn luận giải</span>
+    </nav>
+
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);font-size:13.5px;color:var(--text-muted)">
+      <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="scroll" size="18" color="var(--gold-500)" hint-size="18px,18px"></x-import>
+      <span>Lá số {{ chartRef.id }} · {{ chartRef.profileName }} · {{ chartRef.discipline }}</span>
+    </div>
+
+    <h1 style="margin:32px 0 0;font-family:var(--font-display);font-weight:400;font-size:36px;line-height:1.2;color:var(--text-heading)">Chọn chủ đề luận giải</h1>
+    <p style="margin:16px 0 0;max-width:640px;font-size:16px;line-height:1.65;color:var(--text-muted)">Mỗi chủ đề là một báo cáo riêng, luận giải sâu một khía cạnh cụ thể từ chính lá số này. Không có gói "xem hết mọi thứ" duy nhất, và không chủ đề nào được trình bày như một cảnh báo cần hành động gấp.</p>
+
+    <div style="margin-top:40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">
+      <sc-for list="{{ topics }}" as="t" hint-placeholder-count="4">
+        <div class="{{ t.cardClass }}">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:var(--font-display);font-size:19px;color:var(--text-heading)">{{ t.name }}</span>
+            <sc-if value="{{ t.available }}" hint-placeholder-val="{{ true }}">
+              <span style="font-family:var(--font-mono);font-size:15px;color:var(--gold-400)">{{ t.priceLabel }}</span>
+            </sc-if>
+            <sc-if value="{{ t.reserved }}" hint-placeholder-val="{{ false }}">
+              <span style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border-hairline);border-radius:var(--radius-pill);padding:2px 8px">Chưa mở</span>
+            </sc-if>
+          </div>
+          <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;flex:1">
+            <sc-for list="{{ t.sections }}" as="sec" hint-placeholder-count="5">
+              <li style="display:flex;gap:8px;font-size:13px;line-height:1.5;color:var(--text-muted)">
+                <x-import component-from-global-scope="DesignSystem_031f07.Icon" name="chevron-right" size="13" color="var(--text-faint)" style="flex:none;margin-top:3px" hint-size="13px,13px"></x-import>
+                <span>{{ sec }}</span>
+              </li>
+            </sc-for>
+          </ul>
+          <sc-if value="{{ t.available }}" hint-placeholder-val="{{ true }}">
+            <x-import component-from-global-scope="DesignSystem_031f07.Button" variant="primary" href="/thanh-toan" hint-size="100%,44px">Mua báo cáo này</x-import>
+          </sc-if>
+          <sc-if value="{{ t.reserved }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:12.5px;color:var(--text-faint)">Dự kiến mở ở giai đoạn sau — chưa có ngày cụ thể.</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <p style="margin:40px 0 0;font-size:12.5px;line-height:1.7;color:var(--text-faint);border-top:1px solid var(--border-hairline);padding-top:24px">Mỗi báo cáo là bất biến sau khi phát hành — thay đổi hồ sơ sinh không cập nhật ngược báo cáo đã mua. Giá hiển thị là giả thuyết đang thử nghiệm, có thể thay đổi trước khi ra mắt chính thức.</p>
+
+  </main>
+
+  <footer style="border-top:1px solid var(--border-hairline);background:var(--surface-canvas);padding:24px">
+    <div style="max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <span style="font-size:12.5px;color:var(--text-faint)">© 2026 Lá Số Việt.</span>
+      <a href="/tai-khoan/bao-cao" style="font-size:12.5px;color:var(--text-faint)">Xem báo cáo đã mua →</a>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const chartRef = { id: '#LSV-2026-0091', profileName: 'Của tôi', discipline: 'Tử Vi' };
+
+    const topicFacts = [
+      { name: 'Bản mệnh & tiềm năng', price: 79000, available: true, sections: ['Tóm lược bản thân', 'Điểm mạnh', 'Điểm cần lưu ý (căng thẳng)', 'Phong cách ra quyết định', 'Khuôn mẫu phát triển', 'Hành động gợi ý', 'Giới hạn của báo cáo'] },
+      { name: 'Tình duyên & hôn nhân', price: 79000, available: false, sections: ['Nhu cầu trong quan hệ', 'Cách thể hiện tình cảm', 'Khuôn mẫu xung đột', 'Điều kiện cho quan hệ lành mạnh', 'Thời điểm đáng lưu ý', 'Hành động gợi ý', 'Giới hạn của báo cáo'] },
+      { name: 'Công việc & tài lộc', price: 79000, available: false, sections: ['Động lực công việc', 'Năng lực nổi bật', 'Môi trường phù hợp', 'Khuôn mẫu tài chính', 'Thời điểm đáng lưu ý', 'Hành động gợi ý', 'Giới hạn của báo cáo'] },
+      { name: 'Vận trình năm', price: 79000, available: false, sections: ['Chủ đề của năm', 'Các giai đoạn trong năm', 'Cơ hội', 'Rủi ro cần quan sát', 'Danh sách tự theo dõi', 'Hành động gợi ý', 'Giới hạn của báo cáo'] }
+    ];
+    const topics = topicFacts.map(t => ({
+      ...t,
+      reserved: !t.available,
+      priceLabel: `${t.price.toLocaleString('vi-VN')}đ`,
+      cardClass: t.available ? 'topic-card is-open' : 'topic-card is-reserved'
+    }));
+
+    return { chartRef, topics };
+  }
+}
+</script>
+</body>
+</html>
