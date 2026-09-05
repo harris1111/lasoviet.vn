@@ -8,6 +8,7 @@ import {
   resolveVerifiedAccountActor,
 } from "../../../../auth/resolve-current-actor.js";
 import { safeParseCheckoutStatus } from "../../../../features/commerce/checkout-status.js";
+import { VietQrCheckout } from "../../../../features/commerce/vietqr-checkout.js";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -46,26 +47,40 @@ export default async function CheckoutPage({
   if (!response.ok || response.value === undefined) notFound();
   const parsed = safeParseCheckoutStatus(response.value);
   if (!parsed.ok) notFound();
-  const { order, paymentInstructions } = parsed.value;
+  const { order } = parsed.value;
   if (order.locale !== "vi" && order.locale !== "en") notFound();
   if (order.locale !== routeLocale) return redirect(checkoutPath(order.locale, order.id));
   const t = await getTranslations({ locale: order.locale, namespace: "reports" });
-  const priceLocale = order.locale === "en" ? "en-US" : "vi-VN";
 
   return (
-    <main className="topic-page">
-      <section className="container paid-topic-selector">
+    <main className="topic-page vietqr-checkout-page">
+      <section className="container">
         <p className="eyebrow">{t("checkout.eyebrow")}</p>
         <h1>{t("checkout.title")}</h1>
-        <article className="paid-topic-offer">
-          <p>{paymentInstructions.amount.toLocaleString(priceLocale)} {paymentInstructions.currency}</p>
-          <p>{t(`checkout.status.${order.status}`)}</p>
-          <div className="payment-placeholder">
-            <p>{paymentInstructions.bankCode} - {paymentInstructions.accountNumber}</p>
-            <p>{paymentInstructions.accountHolder}</p>
-            <p>{paymentInstructions.transferDescription}</p>
-          </div>
-        </article>
+        <VietQrCheckout
+          initialStatus={parsed.value}
+          labels={{
+            instructionsTitle: t("checkout.instructions_title"),
+            bankCode: t("checkout.bank_code"),
+            accountNumber: t("checkout.account_number"),
+            accountHolder: t("checkout.account_holder"),
+            amount: t("checkout.amount"),
+            transferDescription: t("checkout.transfer_description"),
+            remainingTime: t("checkout.remaining_time"),
+            qrAlt: t("checkout.qr_alt"),
+            copyAccountNumber: t("checkout.copy_account_number"),
+            copyAmount: t("checkout.copy_amount"),
+            copyTransferDescription: t("checkout.copy_transfer_description"),
+            copied: t("checkout.copied"),
+            status: {
+              pending: t("checkout.status.pending"),
+              paid: t("checkout.status.paid"),
+              expired: t("checkout.status.expired"),
+              failed: t("checkout.status.failed"),
+              refunded: t("checkout.status.refunded"),
+            },
+          }}
+        />
       </section>
     </main>
   );

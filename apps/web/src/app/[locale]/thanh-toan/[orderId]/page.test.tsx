@@ -32,12 +32,44 @@ const copy = {
   vi: {
     "checkout.eyebrow": "Thanh toán",
     "checkout.title": "Luận giải bản mệnh",
+    "checkout.instructions_title": "Thông tin chuyển khoản",
+    "checkout.bank_code": "Ngân hàng",
+    "checkout.account_number": "Số tài khoản",
+    "checkout.account_holder": "Chủ tài khoản",
+    "checkout.amount": "Số tiền",
+    "checkout.transfer_description": "Nội dung chuyển khoản",
+    "checkout.remaining_time": "Thời gian còn lại",
+    "checkout.qr_alt": "Mã VietQR thanh toán",
+    "checkout.copy_account_number": "Sao chép số tài khoản",
+    "checkout.copy_amount": "Sao chép số tiền",
+    "checkout.copy_transfer_description": "Sao chép nội dung chuyển khoản",
+    "checkout.copied": "Đã sao chép",
     "checkout.status.pending": "Đang chờ thanh toán",
+    "checkout.status.paid": "Đã thanh toán",
+    "checkout.status.expired": "Đơn đã hết hạn",
+    "checkout.status.failed": "Thanh toán chưa thành công",
+    "checkout.status.refunded": "Đã hoàn tiền",
   },
   en: {
     "checkout.eyebrow": "Payment",
     "checkout.title": "Identity reading",
+    "checkout.instructions_title": "Bank transfer details",
+    "checkout.bank_code": "Bank",
+    "checkout.account_number": "Account number",
+    "checkout.account_holder": "Account holder",
+    "checkout.amount": "Amount",
+    "checkout.transfer_description": "Transfer description",
+    "checkout.remaining_time": "Remaining time",
+    "checkout.qr_alt": "VietQR payment code",
+    "checkout.copy_account_number": "Copy account number",
+    "checkout.copy_amount": "Copy amount",
+    "checkout.copy_transfer_description": "Copy transfer description",
+    "checkout.copied": "Copied",
     "checkout.status.pending": "Awaiting payment",
+    "checkout.status.paid": "Paid",
+    "checkout.status.expired": "Order expired",
+    "checkout.status.failed": "Payment was not completed",
+    "checkout.status.refunded": "Refunded",
   },
 };
 
@@ -88,9 +120,14 @@ describe("checkout page", () => {
     }));
 
     expect(html).toContain(eyebrow);
-    expect(html).toContain("VCB - 123456789");
+    expect(html).toContain("https://vietqr.app/img?acc=123456789");
+    expect(html).toContain("VCB");
+    expect(html).toContain("123456789");
     expect(html).toContain("LA SO VIET");
+    expect(html).toContain("79");
+    expect(html).toContain("000");
     expect(html).toContain("LSV-order-1");
+    expect(html.match(/<button/g)).toHaveLength(3);
   });
 
 

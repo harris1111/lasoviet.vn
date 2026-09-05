@@ -3,6 +3,7 @@
 @import "./homepage-content.css";
 @import "./homepage-conversion.css";
 @import "./birth-profile-wizard.css";
+@import "./vietqr-checkout.css";
 
 * { box-sizing: border-box; }
 html { background: var(--lacquer-800); color-scheme: dark; }
