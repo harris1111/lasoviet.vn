@@ -1,3 +1,4 @@
+import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, UnauthorizedException } from "@nestjs/common";
@@ -16,6 +17,9 @@ export const COMMERCE_SEPAY_MERCHANT = Symbol("COMMERCE_SEPAY_MERCHANT");
 export const COMMERCE_RETURN_ORIGIN = Symbol("COMMERCE_RETURN_ORIGIN");
 export const COMMERCE_ORDER_TTL_SECONDS = Symbol("COMMERCE_ORDER_TTL_SECONDS");
 export const COMMERCE_SEPAY_WEBHOOK_SECRET = Symbol("COMMERCE_SEPAY_WEBHOOK_SECRET");
+export const COMMERCE_SEPAY_BANK_CODE = Symbol("COMMERCE_SEPAY_BANK_CODE");
+export const COMMERCE_SEPAY_ACCOUNT_NUMBER = Symbol("COMMERCE_SEPAY_ACCOUNT_NUMBER");
+export const COMMERCE_SEPAY_ACCOUNT_HOLDER = Symbol("COMMERCE_SEPAY_ACCOUNT_HOLDER");
 
 function checkoutPath(locale: "vi" | "en", orderId: string): string {
   return locale === "en" ? `/en/thanh-toan/${orderId}` : `/thanh-toan/${orderId}`;
@@ -44,6 +48,9 @@ export class CommerceController {
     @Inject(COMMERCE_RETURN_ORIGIN) private readonly origin: string,
     @Inject(COMMERCE_ORDER_TTL_SECONDS) private readonly orderTtlSeconds: number,
     @Inject(COMMERCE_SEPAY_WEBHOOK_SECRET) private readonly sepayWebhookSecret: string,
+    @Inject(COMMERCE_SEPAY_BANK_CODE) private readonly bankCode: string,
+    @Inject(COMMERCE_SEPAY_ACCOUNT_NUMBER) private readonly accountNumber: string,
+    @Inject(COMMERCE_SEPAY_ACCOUNT_HOLDER) private readonly accountHolder: string,
   ) {}
 
   private repository() {
@@ -61,16 +68,20 @@ export class CommerceController {
     }
   }
 
-  private payment(order: {
-    id: string;
+  private buildPaymentInstructions(order: {
     invoiceNumber: string;
     amount: number;
-    locale: string;
-  }) {
-    const path = checkoutPath(checkoutLocale(order.locale), order.id);
-    return createSePayGateway({ environment: this.sepayEnvironment, merchantId: this.merchantId, secretKey: this.sepaySecret }).createPayment({
-      id: order.id, invoiceNumber: order.invoiceNumber, amount: order.amount, currency: "VND",
-      description: "Zi Wei identity report", successUrl: `${this.origin}${path}`, errorUrl: `${this.origin}${path}`, cancelUrl: `${this.origin}${path}`,
+    createdAt: Date;
+  }): PaymentInstructions {
+    return createPaymentInstructions({
+      bankCode: this.bankCode,
+      accountNumber: this.accountNumber,
+      accountHolder: this.accountHolder,
+      amount: order.amount,
+      currency: "VND",
+      invoiceNumber: order.invoiceNumber,
+      createdAt: order.createdAt,
+      orderTtlSeconds: this.orderTtlSeconds,
     });
   }
 
@@ -90,15 +101,41 @@ export class CommerceController {
       }
       return { ok: false, error: { code: result.code } };
     }
-    return { ok: true, value: { order: result.value, payment: this.payment(result.value) } };
+    return {
+      ok: true,
+      value: {
+        order: {
+          id: result.value.id,
+          status: result.value.status,
+          amount: result.value.amount,
+          currency: result.value.currency,
+          locale: result.value.locale,
+        },
+        paymentInstructions: this.buildPaymentInstructions(result.value),
+        reportId: null,
+      },
+    };
   }
 
   @Get("orders/:orderId")
   async read(@Headers("authorization") authorization: string | undefined, @Param("orderId") orderId: string) {
-    const order = await this.repository().readOrder(await this.actor(authorization), orderId);
-    return order === null
+    const projection = await this.repository().readOrderProjection(await this.actor(authorization), orderId);
+    return projection === null
       ? { ok: false, error: { code: "ORDER_NOT_FOUND" } }
-      : { ok: true, value: { order, payment: this.payment(order) } };
+      : {
+          ok: true,
+          value: {
+            order: {
+              id: projection.order.id,
+              status: projection.order.status,
+              amount: projection.order.amount,
+              currency: projection.order.currency,
+              locale: projection.order.locale,
+            },
+            paymentInstructions: this.buildPaymentInstructions(projection.order),
+            reportId: projection.reportId,
+          },
+        };
   }
 
   @Post("webhooks/sepay")

@@ -1,3 +1,4 @@
+import * as internalGuard from "../auth/internal-actor.guard.js";
 import { BadRequestException, ConflictException, UnauthorizedException } from "@nestjs/common";
 import { describe, expect, it, vi } from "vitest";
 import { createHmac } from "node:crypto";
@@ -6,6 +7,9 @@ import * as backend from "@lasoviet/backend";
 import { CommerceController } from "./commerce.controller.js";
 
 function controller(options: {
+  bankCode?: string;
+  accountNumber?: string;
+  accountHolder?: string;
   orderTtlSeconds?: number;
   webhookSecret?: string;
 } = {}) {
@@ -20,6 +24,9 @@ function controller(options: {
     "https://lasoviet.example",
     options.orderTtlSeconds ?? 900,
     options.webhookSecret ?? "synthetic-webhook-secret",
+    options.bankCode ?? "VCB",
+    options.accountNumber ?? "123456789",
+    options.accountHolder ?? "LA SO VIET",
   );
 }
 
@@ -40,33 +47,6 @@ const nonPaid = Buffer.from(JSON.stringify({
 }));
 
 describe("SePay controller HTTP contract", () => {
-  it.each([
-    ["vi", "https://lasoviet.example/thanh-toan/order-1"],
-    ["en", "https://lasoviet.example/en/thanh-toan/order-1"],
-  ] as const)("builds %s hosted callback paths from the persisted order locale", (locale, callbackUrl) => {
-    const payment = (
-      controller() as unknown as {
-        payment(order: {
-          id: string;
-          invoiceNumber: string;
-          amount: number;
-          locale: "vi" | "en";
-        }): { fields: Record<string, string> };
-      }
-    ).payment({
-      id: "order-1",
-      invoiceNumber: "LSV-order-1",
-      amount: 79_000,
-      locale,
-    });
-
-    expect(payment.fields).toMatchObject({
-      success_url: callbackUrl,
-      error_url: callbackUrl,
-      cancel_url: callbackUrl,
-    });
-  });
-
   it("rejects an unsigned checkout request before it can reach persistence", async () => {
     await expect(controller().create(undefined, {
       chartId: "chart-1",
@@ -84,6 +64,105 @@ describe("SePay controller HTTP contract", () => {
       ok: false,
       error: { code: "COMMERCE_ORDER_INVALID" },
     });
+  });
+
+  it("returns CheckoutStatus projection on order creation", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const orderRecord = {
+      id: "order-1",
+      invoiceNumber: "LSV-order-1",
+      ownerId: "user-1",
+      chartId: "chart-1",
+      chartVersionId: "chart-v1",
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79000,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-05T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: true,
+        value: orderRecord,
+        reused: false,
+      }),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn(),
+    } as never);
+
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      });
+      expect(result).toEqual({
+        ok: true,
+        value: {
+          order: {
+            id: "order-1",
+            status: "pending",
+            amount: 79000,
+            currency: "VND",
+            locale: "vi",
+          },
+          paymentInstructions: {
+            bankCode: "VCB",
+            accountNumber: "123456789",
+            accountHolder: "LA SO VIET",
+            amount: 79000,
+            currency: "VND",
+            transferDescription: "LSV-order-1",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSV-order-1&template=compact",
+            expiresAt: "2026-09-05T00:15:00.000Z",
+          },
+          reportId: null,
+        },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns CheckoutStatus projection on owner order read using readOrderProjection", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn().mockResolvedValue(null),
+      recordPaid: vi.fn(),
+    } as never);
+
+    try {
+      const result = await controller().read("Bearer valid-token", "order-nonexistent");
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "ORDER_NOT_FOUND" },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("rejects read without valid authorization", async () => {
+    await expect(controller().read(undefined, "order-1")).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
   });
 
   it("maps ingress and provider authentication failures to 401", async () => {

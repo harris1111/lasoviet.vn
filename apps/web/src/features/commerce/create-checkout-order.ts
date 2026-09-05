@@ -2,11 +2,12 @@
 
 import { redirect } from "next/navigation";
 
-import { privateApiClient } from "../../api/private-api-client";
+import { privateApiClient } from "../../api/private-api-client.js";
 import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
-} from "../../auth/resolve-current-actor";
+} from "../../auth/resolve-current-actor.js";
+import { parseCheckoutStatus } from "./checkout-status.js";
 
 export async function createCheckoutOrder(chartId: string, locale: string) {
   if (locale !== "vi" && locale !== "en") throw new Error("CHECKOUT_LOCALE_INVALID");
@@ -26,12 +27,18 @@ export async function createCheckoutOrder(chartId: string, locale: string) {
   }
   const response = await privateApiClient(actor, actor.requestId).request<{
     ok: boolean;
-    value?: { order: { id: string } };
+    value?: unknown;
   }>("/commerce/orders", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ chartId, sku: "ZIWEI-IDENTITY-P0", locale }),
   });
   if (!response.ok || response.value === undefined) throw new Error("CHECKOUT_ORDER_FAILED");
-  redirect(`${prefix}/thanh-toan/${response.value.order.id}`);
+  let checkoutStatus;
+  try {
+    checkoutStatus = parseCheckoutStatus(response.value);
+  } catch {
+    throw new Error("CHECKOUT_ORDER_FAILED");
+  }
+  redirect(`${prefix}/thanh-toan/${checkoutStatus.order.id}`);
 }

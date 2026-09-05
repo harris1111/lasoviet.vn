@@ -106,6 +106,9 @@ import {
   COMMERCE_SEPAY_SECRET,
   COMMERCE_ORDER_TTL_SECONDS,
   COMMERCE_SEPAY_WEBHOOK_SECRET,
+  COMMERCE_SEPAY_BANK_CODE,
+  COMMERCE_SEPAY_ACCOUNT_NUMBER,
+  COMMERCE_SEPAY_ACCOUNT_HOLDER,
   CommerceController,
 } from "./commerce/commerce.controller.js";
 
@@ -345,6 +348,18 @@ export function createApiAnalyticsSink(
     {
       provide: COMMERCE_SEPAY_WEBHOOK_SECRET,
       useFactory: () => applicationEnvironment().sepay.webhookSecret,
+    },
+    {
+      provide: COMMERCE_SEPAY_BANK_CODE,
+      useFactory: () => applicationEnvironment().sepay.bankCode,
+    },
+    {
+      provide: COMMERCE_SEPAY_ACCOUNT_NUMBER,
+      useFactory: () => applicationEnvironment().sepay.accountNumber,
+    },
+    {
+      provide: COMMERCE_SEPAY_ACCOUNT_HOLDER,
+      useFactory: () => applicationEnvironment().sepay.accountHolder,
     },
     {
       provide: COMMERCE_RETURN_ORIGIN,
