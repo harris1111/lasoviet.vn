@@ -216,17 +216,17 @@
         <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:48px;align-items:start">
           <div>
             <figure style="margin:0">
-              <div role="img" aria-label="Lá số Tử Vi mẫu gồm 12 cung được an sao, cung Mệnh tại cung Tài Bạch phía trên bên phải, cung Thân trùng cung Quan Lộc." style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);aspect-ratio:1/1;overflow:hidden">
+              <div role="group" aria-label="Lá số Tử Vi mẫu gồm 12 cung được an sao, cung Mệnh phía trên bên trái, cung Thân trùng cung Quan Lộc. Bấm một cung để xem chi tiết." style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);aspect-ratio:1/1;overflow:hidden">
                 <sc-for list="{{ chartCells }}" as="cell" hint-placeholder-count="12">
-                  <div style="grid-column:{{ cell.col }};grid-row:{{ cell.row }};background:var(--surface-panel);padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden">
+                  <button type="button" aria-pressed="{{ cell.selected }}" onClick="{{ cell.onSelect }}" style="{{ cell.cellStyle }}">
                     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:4px">
-                      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)">{{ cell.name }}</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:{{ cell.nameColor }}">{{ cell.name }}</span>
                       <sc-if value="{{ cell.badge }}" hint-placeholder-val="{{ false }}">
-                        <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:var(--gold-500);border:1px solid var(--gold-700);border-radius:var(--radius-pill);padding:1px 5px">{{ cell.badge }}</span>
+                        <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:{{ cell.badgeColor }};border:1px solid {{ cell.badgeColor }};border-radius:var(--radius-pill);padding:1px 5px">{{ cell.badge }}</span>
                       </sc-if>
                     </div>
-                    <span style="font-size:11.5px;line-height:1.35;color:var(--text-body)">{{ cell.stars }}</span>
-                  </div>
+                    <span style="font-size:11.5px;line-height:1.35;color:{{ cell.starsColor }};text-align:left">{{ cell.stars }}</span>
+                  </button>
                 </sc-for>
                 <div style="grid-column:2 / 4;grid-row:2 / 4;background:var(--surface-deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px">
                   <span style="font-family:var(--font-display);font-size:17px;color:var(--text-heading)">Hồ sơ mẫu</span>
@@ -235,7 +235,7 @@
                 </div>
               </div>
             </figure>
-            <p style="margin:12px 0 0;font-size:12.5px;color:var(--text-faint)">Sơ đồ minh hoạ — xem bảng danh sách tương đương bên cạnh để đọc không cần nhìn hình.</p>
+            <p style="margin:12px 0 0;font-size:12.5px;color:var(--text-faint)">Sơ đồ minh hoạ — bấm một cung (hoặc dùng phím Tab + Enter) để đồng bộ với bảng danh sách bên cạnh.</p>
           </div>
 
           <div>
@@ -249,16 +249,20 @@
               </thead>
               <tbody>
                 <sc-for list="{{ chartRows }}" as="row" hint-placeholder-count="12">
-                  <tr style="border-bottom:1px solid var(--border-hairline)">
-                    <td style="padding:9px 8px 9px 0;color:var(--text-heading);vertical-align:top;white-space:nowrap">{{ row.name }} <sc-if value="{{ row.badge }}" hint-placeholder-val="{{ false }}"><span style="color:var(--gold-500);font-family:var(--font-mono);font-size:10.5px"> · {{ row.badge }}</span></sc-if></td>
-                    <td style="padding:9px 0;color:var(--text-body)">{{ row.stars }}</td>
+                  <tr style="border-bottom:1px solid var(--border-hairline);background:{{ row.rowBg }}">
+                    <td style="padding:9px 8px 9px 0;color:{{ row.textColor }};vertical-align:top;white-space:nowrap">
+                      <button type="button" aria-pressed="{{ row.selected }}" onClick="{{ row.onSelect }}" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer">{{ row.name }}</button>
+                      <sc-if value="{{ row.badge }}" hint-placeholder-val="{{ false }}"><span style="color:{{ row.textColor }};font-family:var(--font-mono);font-size:10.5px"> · {{ row.badge }}</span></sc-if>
+                    </td>
+                    <td style="padding:9px 0;color:{{ row.textColor }}">{{ row.stars }}</td>
                   </tr>
                 </sc-for>
               </tbody>
             </table>
 
-            <div style="margin-top:28px">
-              <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Cung Mệnh" title="Người có Cự Môn thủ Mệnh có xu hướng ăn nói sắc sảo, thích phân tích trước khi quyết định." sub="Đây là một xu hướng nền, không phải khẳng định về tính cách cố định." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
+            <div style="margin-top:24px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px 24px" aria-live="polite">
+              <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-600)">Đang xem: Cung {{ selectedPalace.name }}</div>
+              <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ selectedPalace.note }}</p>
             </div>
           </div>
         </div>
@@ -466,14 +470,14 @@ class Component extends DCLogic {
   state = {
     navOpen: false,
     unknownTime: false,
-    insightStamped: false,
+    selectedPalaceIndex: 0,
     engineOpen: true,
     faqOpen: { 0: true }
   };
 
   toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
   toggleUnknownTime = () => this.setState(s => ({ unknownTime: !s.unknownTime }));
-  toggleInsight = () => this.setState(s => ({ insightStamped: !s.insightStamped }));
+  selectPalace = (i) => this.setState({ selectedPalaceIndex: i });
   toggleEngine = () => this.setState(s => ({ engineOpen: !s.engineOpen }));
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
 
@@ -502,21 +506,41 @@ class Component extends DCLogic {
       { icon: 'clock', term: 'Đại vận', body: 'Mỗi 10 năm ứng với một cung khác được kích hoạt — cách Tử Vi nhìn một giai đoạn cụ thể, không phải một lời phán cho cả đời.' }
     ];
 
-    const chartCells = [
-      { col: 1, row: 1, name: 'Tài Bạch', badge: 'MỆNH', stars: 'Cự Môn, Hoá Quyền' },
-      { col: 2, row: 1, name: 'Tử Tức', stars: 'Thiên Cơ' },
-      { col: 3, row: 1, name: 'Phu Thê', stars: 'Thiên Đồng, Văn Xương' },
-      { col: 4, row: 1, name: 'Huynh Đệ', stars: 'Vũ Khúc, Thiên Phủ' },
-      { col: 1, row: 2, name: 'Quan Lộc', badge: 'THÂN', stars: 'Thái Dương' },
-      { col: 4, row: 2, name: 'Phụ Mẫu', stars: 'Thái Âm, Văn Khúc' },
-      { col: 1, row: 3, name: 'Nô Bộc', stars: 'Thất Sát' },
-      { col: 4, row: 3, name: 'Phúc Đức', stars: 'Tham Lang' },
-      { col: 1, row: 4, name: 'Thiên Di', stars: 'Thiên Lương' },
-      { col: 2, row: 4, name: 'Tật Ách', stars: 'Liêm Trinh, Đà La' },
-      { col: 3, row: 4, name: 'Điền Trạch', stars: 'Phá Quân' },
-      { col: 4, row: 4, name: 'Bào (dự phòng)', stars: 'Tả Phụ, Hữu Bật' }
+    const chartFacts = [
+      { col: 1, row: 1, name: 'Mệnh', badge: 'MỆNH', stars: 'Cự Môn, Hoá Quyền', note: 'Cung Mệnh — Cự Môn, Hoá Quyền. Đây là cung trung tâm, thể hiện bản chất cốt lõi, được xem đầu tiên khi đọc lá số.' },
+      { col: 2, row: 1, name: 'Tử Tức', stars: 'Thiên Cơ', note: 'Cung Tử Tức — Thiên Cơ. Nói về con cái và các mối quan hệ mang tính truyền thụ, sáng tạo.' },
+      { col: 3, row: 1, name: 'Phu Thê', stars: 'Thiên Đồng, Văn Xương', note: 'Cung Phu Thê — Thiên Đồng, Văn Xương. Nói về hôn nhân và cách cư xử trong quan hệ đôi lứa.' },
+      { col: 4, row: 1, name: 'Huynh Đệ', stars: 'Vũ Khúc, Thiên Phủ', note: 'Cung Huynh Đệ — Vũ Khúc, Thiên Phủ. Nói về anh chị em và các mối quan hệ ngang hàng, hỗ trợ lẫn nhau.' },
+      { col: 1, row: 2, name: 'Quan Lộc', badge: 'THÂN', stars: 'Thái Dương', note: 'Cung Quan Lộc — Thái Dương. Nói về sự nghiệp và con đường công danh. Trong hồ sơ mẫu này, cung Thân trùng với cung Quan Lộc.' },
+      { col: 4, row: 2, name: 'Phụ Mẫu', stars: 'Thái Âm, Văn Khúc', note: 'Cung Phụ Mẫu — Thái Âm, Văn Khúc. Nói về cha mẹ và mối quan hệ với người đi trước, người bảo trợ.' },
+      { col: 1, row: 3, name: 'Nô Bộc', stars: 'Thất Sát', note: 'Cung Nô Bộc (Giao Hữu) — Thất Sát. Nói về bạn bè, đồng nghiệp và các mối quan hệ ngang vai không cùng huyết thống.' },
+      { col: 4, row: 3, name: 'Phúc Đức', stars: 'Tham Lang', note: 'Cung Phúc Đức — Tham Lang. Nói về đời sống tinh thần, phúc phần và nền tảng thừa hưởng.' },
+      { col: 1, row: 4, name: 'Thiên Di', stars: 'Thiên Lương', note: 'Cung Thiên Di — Thiên Lương. Nói về việc di chuyển, thay đổi môi trường sống và cách thích nghi xa nhà.' },
+      { col: 2, row: 4, name: 'Tật Ách', stars: 'Liêm Trinh, Đà La', note: 'Cung Tật Ách — Liêm Trinh, Đà La. Nói về sức khoẻ và các xu hướng cần lưu ý về thể chất.' },
+      { col: 3, row: 4, name: 'Điền Trạch', stars: 'Phá Quân', note: 'Cung Điền Trạch — Phá Quân. Nói về nhà cửa, đất đai và tài sản cố định.' },
+      { col: 4, row: 4, name: 'Tài Bạch', stars: 'Tả Phụ, Hữu Bật', note: 'Cung Tài Bạch — Tả Phụ, Hữu Bật. Nói về tiền bạc, cách kiếm và giữ tài chính.' }
     ];
-    const chartRows = chartCells.map(c => ({ name: c.name, badge: c.badge, stars: c.stars }));
+    const selectedIdx = this.state.selectedPalaceIndex;
+    const chartCells = chartFacts.map((c, i) => {
+      const selected = i === selectedIdx;
+      return {
+        ...c,
+        selected,
+        onSelect: () => this.selectPalace(i),
+        nameColor: selected ? 'var(--surface-canvas)' : 'var(--text-muted)',
+        starsColor: selected ? 'var(--surface-canvas)' : 'var(--text-body)',
+        badgeColor: selected ? 'var(--surface-canvas)' : 'var(--gold-500)',
+        cellStyle: `grid-column:${c.col};grid-row:${c.row};background:${selected ? 'var(--gold-500)' : 'var(--surface-panel)'};padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden;text-align:left;font:inherit;border:none;cursor:pointer`
+      };
+    });
+    const chartRows = chartCells.map((c, i) => ({
+      name: c.name, badge: c.badge, stars: c.stars,
+      selected: i === selectedIdx,
+      onSelect: () => this.selectPalace(i),
+      rowBg: i === selectedIdx ? 'var(--gold-500)' : 'transparent',
+      textColor: i === selectedIdx ? 'var(--surface-canvas)' : 'var(--text-heading)'
+    }));
+    const selectedPalace = chartFacts[selectedIdx];
 
     const fieldExplainers = [
       { icon: 'calendar-day', label: 'Ngày sinh', body: 'Dùng để tính năm, tháng, ngày theo lịch âm và xác định bộ Thiên Can – Địa Chi làm nền cho việc an chính tinh tại 12 cung.' },
@@ -586,11 +610,9 @@ class Component extends DCLogic {
       timeInputOpacity: this.state.unknownTime ? 0.45 : 1,
       toggleUnknownTime: this.toggleUnknownTime,
       toggleNav: this.toggleNav,
-      insightStamped: this.state.insightStamped,
-      toggleInsight: this.toggleInsight,
       engineOpen: this.state.engineOpen,
       toggleEngine: this.toggleEngine,
-      freeResults, proofItems, glossaryItems, chartCells, chartRows, fieldExplainers,
+      freeResults, proofItems, glossaryItems, chartCells, chartRows, selectedPalace, fieldExplainers,
       unaffectedItems, affectedItems, methodRows, engineRows,
       limitItems, articles, faqs
     };
