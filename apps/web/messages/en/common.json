@@ -17,7 +17,9 @@
       "copy": "Lá Số Việt presents the chart and a clear explanation, with evidence that can be opened for your own review.",
       "microcopy": "Free to start · Private by default · No account required.",
       "ctaPrimary": "Build your chart for free",
-      "ctaSecondary": "View sample reading"
+      "ctaSecondary": "View sample reading",
+      "metaRoute": "From birth data to the twelve-palace chart",
+      "metaDetail": "The full chart is calculated in the next step."
     },
     "form": {
       "day": "Day",
