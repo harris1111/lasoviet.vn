@@ -1,0 +1,61 @@
+---
+{
+  "version": 1,
+  "routeId": "knowledge.tu-vi.birth-time",
+  "locale": "vi",
+  "contentType": "KnowledgeArticle",
+  "title": "Giờ sinh ảnh hưởng thế nào đến lá số?",
+  "summary": "Giải thích vai trò của giờ sinh trong dữ liệu đầu vào và vì sao cần nêu rõ độ chính xác cùng giới hạn.",
+  "intent": "knowledge.tu-vi.birth-time.vi.public",
+  "authorId": "method-reviewer",
+  "reviewerIds": [
+    "method-reviewer"
+  ],
+  "sourceIds": [
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure",
+    "birth_data_sensitivity"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.accuracy",
+    "knowledge.tu-vi.definition"
+  ],
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn.",
+  "parentRouteId": "knowledge.tu-vi",
+  "figure": {
+    "id": "gate-one-vi-8",
+    "alt": "Sơ đồ kiểm tra Giờ sinh ảnh hưởng thế nào đến lá số?",
+    "caption": "Sơ đồ độc lập cho bài 8, chỉ hiển thị trường và giới hạn đã triển khai."
+  }
+}
+---
+# Giờ sinh ảnh hưởng thế nào đến lá số?
+
+## Bài này giải thích
+
+Bài này giải thích giờ sinh dựa trên ranh giới triển khai đã được version hóa. BirthProfile phân biệt exact_minute, branch_only, range và unknown. Adapter chỉ chạy với đầu vào đủ điều kiện đã chuẩn hóa và giữ lại limitations. Nó không thêm diễn giải truyền thống không có trong nguồn repository.
+
+## Ví dụ độc lập
+
+Fixture unknown-time không đủ điều kiện trước khi tính; fixture branch-only vẫn tính nhưng ghi TIME_BRANCH_ONLY. So sánh này giải thích vì sao giờ thiếu không bị đổi thành một phút giả định.
+
+## Đặc tả hình
+
+Hình 8: Luồng quyết định cho unknown dừng lại, branch_only giữ limitation và exact_minute giữ local time. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.
+
+## Giới hạn
+
+Ứng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.accuracy), [bài liên quan thứ hai](route:knowledge.tu-vi.definition).

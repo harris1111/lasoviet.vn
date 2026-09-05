@@ -1,0 +1,54 @@
+{
+  "reviewers": [
+    {
+      "id": "content-team",
+      "kind": "internal_role",
+      "label": "Internal content team"
+    },
+    {
+      "id": "method-reviewer",
+      "kind": "internal_role",
+      "label": "Internal method reviewer"
+    },
+    {
+      "id": "product-content",
+      "kind": "internal_role",
+      "label": "Internal product content"
+    },
+    {
+      "id": "report-reviewer",
+      "kind": "internal_role",
+      "label": "Internal report reviewer"
+    },
+    {
+      "id": "trust-reviewer",
+      "kind": "internal_role",
+      "label": "Internal trust reviewer"
+    },
+    {
+      "id": "brand-reviewer",
+      "kind": "internal_role",
+      "label": "Internal brand reviewer"
+    },
+    {
+      "id": "support-reviewer",
+      "kind": "internal_role",
+      "label": "Internal support reviewer"
+    },
+    {
+      "id": "privacy-reviewer",
+      "kind": "internal_role",
+      "label": "Internal privacy reviewer"
+    },
+    {
+      "id": "legal-reviewer",
+      "kind": "internal_role",
+      "label": "Internal legal reviewer"
+    },
+    {
+      "id": "harris1111",
+      "kind": "person",
+      "label": "Founder and product reviewer"
+    }
+  ]
+}

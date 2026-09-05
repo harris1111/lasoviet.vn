@@ -1,0 +1,30 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+saveExact: true
+autoInstallPeers: false
+strictPeerDependencies: true
+strictDepBuilds: true
+allowBuilds:
+  '@parcel/watcher@2.6.0': false
+  '@swc/core@1.16.1': false
+  'cpu-features@0.0.10': false
+  'esbuild@0.18.20': true
+  'esbuild@0.25.12': true
+  'esbuild@0.28.2': true
+  'protobufjs@7.6.6': false
+  'ssh2@1.17.0': false
+  unrs-resolver@1.12.2: true
+minimumReleaseAgeExclude:
+  - '@next/env@16.3.4'
+  - '@next/eslint-plugin-next@16.3.4'
+  - '@next/swc-darwin-arm64@16.3.4'
+  - '@next/swc-darwin-x64@16.3.4'
+  - '@next/swc-linux-arm64-gnu@16.3.4'
+  - '@next/swc-linux-arm64-musl@16.3.4'
+  - '@next/swc-linux-x64-gnu@16.3.4'
+  - '@next/swc-linux-x64-musl@16.3.4'
+  - '@next/swc-win32-arm64-msvc@16.3.4'
+  - '@next/swc-win32-x64-msvc@16.3.4'
+  - eslint-config-next@16.3.4
+  - next@16.3.4

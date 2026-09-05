@@ -1,0 +1,19 @@
+{
+  "input": {
+    "version": 1,
+    "calendar": { "kind": "solar", "date": "1990-01-01" },
+    "time": { "precision": "exact_minute", "localTime": "09:30" },
+    "timezone": { "ianaZone": "Asia/Ho_Chi_Minh" },
+    "consentVersion": "2026-09-01"
+  },
+  "expected": {
+    "normalized": {
+      "utcInstant": "1990-01-01T02:30:00.000Z",
+      "timezoneProvenance": {
+        "source": "iana",
+        "ianaZone": "Asia/Ho_Chi_Minh"
+      }
+    },
+    "eligibility": { "ok": true, "value": 5 }
+  }
+}

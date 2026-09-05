@@ -34,6 +34,47 @@
 | R-30 | Authentication email unavailable | 01 | Verification or reset cannot deliver through reviewed SMTP | Establish SMTP port/adapter in Phase 01, protocol integration test, no verification bypass | Block authentication release |
 | R-31 | Anonymous birth data retained too long or orphaned during linking | 01, 03, 06 | Unlinked profile/chart survives 24 hours, manual deletion fails, or account linking duplicates ownership | Better Auth anonymous actor, explicit expiry, transactional ownership transfer, purge/reconciliation tests | Privacy block |
 
+## P02-T03 Evidence (2026-09-01)
+
+R-01 and R-03 remain release-blocking risks. The P0 fixture suite now exercises
+11 approved calendar/time/precision boundaries through the real adapter,
+including unknown-time rejection and late-Zi index handling. The one Tianji
+overlap agrees; all method gaps remain explicit rather than being treated as
+validation.
+
+## P02-T04 Evidence (2026-09-01)
+
+R-02 remains release-blocking. Evidence persistence is now immutable per
+chart-version/rule-version and every identity evidence item is fact-linked and
+bounded, preventing unsupported rules from creating a version. A real
+PostgreSQL concurrency regression verifies reuse without item duplication.
+
+## Phase 02 Correction Evidence (2026-09-01)
+
+R-01, R-02, and R-18 retain their release-blocking classifications. Fixture
+expectations now block unexplained normalized-chart drift; evidence derives
+only from its linked immutable chart version; and the validated SBOM graph
+binds the application root to the exact reviewed `iztro` dependency.
+
+## P04 AI Foundation Evidence (2026-09-02)
+
+- R-04 and R-05 now have first-layer deterministic controls: strict report
+  schema, production-shaped frozen facts, evidence-ID/bound/confidence/action
+  validation, prohibited-category rejection, rendered-text locale/corruption
+  checks, a server-owned professional-advice disclaimer, and an LLM critic
+  threshold. Full internal report QA remains required before release.
+- R-06 remains open. The raw-`fetch` adapter has bounded timeout/retry behavior
+  and a real no-PII capability smoke, but durable worker retry and persisted
+  report state remain with P04-T03/P04-T05 integration.
+- R-24 continues to block production AI. The provider is identified as
+  founder-operated `9router-an`, while retention, training use, regions,
+  subprocessors, access controls, deletion, and incident terms remain pending.
+- R-14 retains its release-blocking classification. Credentials remain only in
+  ignored local environment state and were not committed or logged.
+- Sol's final scoped review found zero open Critical or Important checkpoint
+  findings after the rendered-whitespace correction. This does not change the
+  deferred release effects above.
+
 ## Review Protocol
 
 - Terra classifies a verified current-scope correctness/security/privacy issue

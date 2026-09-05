@@ -1,0 +1,16 @@
+{
+  "input": {
+    "version": 1,
+    "calendar": { "kind": "solar", "date": "1990-01-01" },
+    "time": { "precision": "exact_minute", "localTime": "09:30" },
+    "timezone": { "offsetMinutes": 420 },
+    "consentVersion": "2026-09-01"
+  },
+  "expected": {
+    "normalized": {
+      "utcInstant": "1990-01-01T02:30:00.000Z",
+      "timezoneProvenance": { "source": "offset", "offsetMinutes": 420 }
+    },
+    "eligibility": { "ok": true, "value": 5 }
+  }
+}

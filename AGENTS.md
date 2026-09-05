@@ -52,57 +52,53 @@ planning record, and ask the founder through Sol.
 
 ## 4. Required Roles And Authority
 
-The required authority chain is:
+The active authority chain from P01-T02 onward is:
 
 ```text
 Founder-approved goals and decisions
     -> GPT 5.6 Sol xhigh
-    -> GPT 5.6 Terra xhigh
-    -> GPT 5.6 Luna xhigh
+    -> GPT 5.6 Terra medium
 ```
 
-### Sol: Orchestrator
+The former Sol -> Terra reviewer -> Luna implementor chain applies only through
+P01-T01. Luna is paused and must not be dispatched unless the founder
+explicitly reactivates that role.
+
+### Sol: Orchestrator And Milestone Reviewer
 
 - Sol owns orchestration, scope control, task decomposition, sequencing, and
   founder communication.
-- Sol gives goals and review requests to Terra.
-- Sol coordinates the disposition of Terra's findings within already approved
-  scope.
-- Sol must not silently downgrade, close, or bypass an evidence-backed Terra
-  `must-fix`.
+- Sol gives implementation goals directly to Terra.
+- Sol reviews completed phases, complete features, and meaningful milestones;
+  Sol does not run routine review gates after small tasks.
+- Sol coordinates and reviews Terra's implementation evidence and correction
+  work within already approved scope.
 - Sol asks the founder in Vietnamese whenever founder input is required.
 - Sol must verify the requested model and `xhigh` reasoning level before
   dispatch. Do not silently substitute another model or reasoning level.
+- Before declaring a requested model or reasoning level unavailable solely
+  because current metadata omits it, run one no-file probe with that exact
+  model and reasoning level. If the probe fails or cannot run, stop and report
+  to Sol; do not substitute a model or effort.
 
-### Terra: Reviewer
+### Terra: Implementor And Debugger
 
-- Terra receives goals from Sol and reviews plans, instructions, implementation,
-  tests, and release evidence.
-- Terra may approve, reject, or return precise instructions for correction.
-- Terra must not guess when a requirement, decision, or acceptable trade-off is
-  unclear.
-- Terra reports every identified problem or uncertainty to Sol with its
-  evidence, impact, and classification.
-- If Terra finds a problem, contradiction, or uncertainty that cannot be
-  resolved from verified repository evidence and approved decisions, Terra must
-  stop that point and return it to Sol.
+- Terra medium receives goals from Sol and directly implements, debugs, and
+  runs focused tests.
+- Terra owns routine technical investigation, compile/test failure correction,
+  and exact-version API verification without an intermediate reviewer.
+- Terra may self-correct implementation defects inside approved scope and must
+  preserve concise evidence in the task report.
+- Terra reports completed milestone evidence and unresolved stop conditions to
+  Sol.
 - Terra must not silently broaden scope or make founder-level product,
   architecture, privacy, licensing, payment, or release decisions.
 
-### Luna: Implementor
+### Luna: Paused
 
-- Luna implements only instructions that Terra has explicitly approved.
-- Luna must stay inside the assigned files, contracts, scope, and acceptance
-  criteria.
-- Luna must not independently debug, diagnose, redesign, or fix an unexpected
-  bug.
-- When implementation differs from the approved instruction, a test fails, an
-  unexpected bug appears, or the repository state is ambiguous, Luna must stop
-  the affected work and report evidence to Terra.
-- Luna resumes only after Terra supplies a reviewed instruction. Terra escalates
-  unresolved matters to Sol.
-- Luna must not use a workaround, mock, fake implementation, weakened check, or
-  skipped test to manufacture a passing result.
+- Do not dispatch Luna from P01-T02 onward.
+- Preserve any Luna work already present when this workflow takes effect.
+- Only an explicit founder instruction may reactivate Luna.
 
 If a required model or reasoning level is unavailable, stop before dispatch and
 ask the founder through Sol. Do not silently collapse or substitute roles.
@@ -143,23 +139,22 @@ affected work.
 
 ## 6. Stop And Escalation Protocol
 
-Stop the affected work immediately when:
+From P01-T02 onward, Terra continues through routine implementation ambiguity,
+compile failures, test failures, dependency integration, and non-destructive
+debugging inside the approved scope. Do not stop merely to request technical
+instructions that repository evidence or focused experiments can resolve.
 
-- a material requirement is missing, contradictory, or unresolved;
-- repository evidence conflicts with an approved assumption;
-- work would deviate from approved scope or acceptance criteria;
-- a destructive or hard-to-reverse operation is required;
-- security, privacy, licensing, payment, data-loss, or production risk is
-  uncertain;
-- a required model, tool, credential, environment, or external service is
-  unavailable;
-- a release gate would need to be waived or weakened;
-- a founder-confirmed decision would need to be changed.
+Stop and ask the founder through Sol only when:
+
+- a product, architecture, or security decision is required and approved
+  sources do not resolve it;
+- credentials or secret material are required;
+- an external side effect lacks explicit authorization;
+- a destructive or hard-to-reverse operation is required.
 
 Preserve completed safe work that is independent of the blocker. Terra reports
-the blocker and evidence to Sol. Sol explains the issue, impact, realistic
-options, and recommendation to the founder in Vietnamese, then waits for an
-explicit answer.
+the exact blocker and evidence to Sol. Sol explains the issue, impact,
+realistic options, and recommendation to the founder in Vietnamese.
 
 ## 7. Implementation And Testing Priorities
 
@@ -181,6 +176,12 @@ Calendar, timezone, birth-time, payment idempotency, authorization, privacy, and
 engine-normalization cases that affect core correctness are not "niche" merely
 because they are uncommon.
 
+Tests for expiry, retention, leases, or other runtime-clock behavior must use
+an injected/frozen clock or values derived relative to the captured test time.
+Do not use a fixed near-future calendar timestamp when production compares
+against the real current clock; such fixtures become false failures as time
+passes.
+
 Record genuinely deferred edge cases in English in the relevant later-phase
 plan or backlog, including risk, reason for deferral, and the condition that
 should bring them into scope.
@@ -190,7 +191,11 @@ flow must work end to end in the target deployment environment.
 
 ## 8. Review Closure
 
-Terra classifies findings as:
+From P01-T02 onward, Terra implements, debugs, self-checks, and runs focused
+tests directly. Sol performs the independent review after a complete phase,
+complete feature, or meaningful milestone.
+
+Sol classifies milestone findings as:
 
 - `must-fix`: verified correctness, security, privacy, acceptance, or release
   issue within approved scope;
@@ -199,9 +204,13 @@ Terra classifies findings as:
 - `rejected`: unsupported, duplicate, contradicted by verified evidence, or
   inconsistent with founder-approved scope.
 
-Only evidence-backed `must-fix` findings return to Luna for correction. Each
-review cycle permits at most two Terra-approved Luna correction passes, with a
-Terra re-review after each pass.
+Do not schedule routine reviews after every small implementation task. Terra
+may execute consecutive tasks in approved scope and self-correct technical
+failures without an intermediate Sol review.
+
+Only evidence-backed `must-fix` findings return to Terra for correction. Each
+milestone review permits at most two Terra correction passes, with a Sol
+re-review after each pass.
 
 If a finding remains after the second correction pass, Sol must choose and
 record one disposition:
@@ -233,8 +242,9 @@ A durable rule is warranted when:
 
 Process:
 
-1. Sol states the reusable failure condition and proposed behavior.
-2. Terra checks the proposal for evidence, duplication, contradictions, scope
+1. Terra states the reusable failure condition and proposed behavior in the
+   task report.
+2. Sol checks the proposal for evidence, duplication, contradictions, scope
    drift, and unintended weakening of existing gates.
 3. Sol adds or edits the smallest applicable rule in this file.
 4. If the rule changes product scope, authority, privacy/security posture,
@@ -273,10 +283,32 @@ rule instead of adding another version.
   instructions before planning or editing.
 - Inspect the live repository before asking a question that source inspection
   can answer.
+- Before Luna implements a task-critical external package or CLI integration
+  whose exact-version behavior is unverified, Terra must verify and record only
+  the task-relevant import/export, configuration, command working-directory or
+  root, and lifecycle/build-script facts in the approved brief. Luna must stop
+  if any required fact is unverified or conflicts with local evidence; never
+  rely on remembered or generic examples.
 - Keep upstream/reference repositories read-only unless the founder explicitly
   changes their role.
+- Before generated public content is marked `published`, require deterministic
+  locale-integrity and approved repository-source-boundary validation. Reject
+  sustained foreign-language or encoding-corrupted prose, prohibited localized
+  claims after Unicode normalization, and source paths that are absolute, UNC,
+  traversing, symlink-escaping, or otherwise resolve outside the canonical
+  repository root. A failed boundary check blocks publication and returns to
+  Terra for correction before milestone review.
+- Production web typography must not depend on runtime remote CSS imports.
+  Bundle or self-host required fonts, explicitly include Vietnamese glyph
+  coverage for every font role used by localized UI, and gate release with
+  built-app browser evidence that each role resolves to a loaded font face.
+  Missing or fallback-only font faces block release and return to Terra.
 - Never commit secrets, credentials, private reports, or unnecessary personal
   data.
+- When inspecting rendered Compose configuration or runtime service state,
+  never print complete environment maps. Query only the required structural
+  fields or redact sensitive values before tool output; stop and narrow the
+  command when an inspection would expose an external deploy environment.
 - Do not run destructive filesystem or Git operations without explicit founder
   approval.
 - Do not deploy, push production configuration, modify DNS, change payment
@@ -284,6 +316,36 @@ rule instead of adding another version.
   explicit founder approval.
 - Keep changes narrowly scoped and preserve unrelated user work.
 - Use English conventional commit messages with no AI references.
+- For every delegated Windows repository command, first set the shell location
+  to the resolved absolute assigned worktree and verify `git
+  rev-parse --show-toplevel` matches it. Use absolute paths for required reads;
+  never rely on an inherited controller working directory. A failed read from
+  another directory is blocking and must be corrected by Sol before resuming.
+- Before searching a path that the task is expected to create, check whether it
+  exists. A missing create-target and the resulting no-match search status are
+  expected pre-implementation state, not a blocker. Only a missing source that
+  the task requires as existing context must stop and escalate.
+- For Windows `apply_patch` writes, first identify the tool's actual patch
+  root; do not assume the terminal workdir controls it. Use only forward-slash
+  headers relative to that root, never drive-qualified or backslash headers.
+  Normalize the resulting target and require it to remain under the resolved
+  assigned worktree; stop on any containment mismatch or sibling lookalike
+  path.
+- For pnpm 11 workspaces, record every build-script decision non-interactively
+  in `pnpm-workspace.yaml` using exact reviewed package-version `allowBuilds`
+  entries. Keep `strictDepBuilds` enabled; do not use interactive
+  `approve-builds` or removed pnpm 10 build-policy settings. Stop for Terra
+  review when pnpm adds or changes a workspace manifest policy, release-age
+  exception, or build-script decision.
+- When a changed workspace package is consumed through package exports or
+  generated declarations in `dist`, rebuild that producer from current source
+  before typechecking dependent packages. Run producer builds and consumer
+  typechecks in dependency order; never diagnose stale declarations as a
+  consumer defect or hand-edit generated `dist` output.
+- Treat a Git for Windows LF/CRLF notice as non-blocking only when its command
+  exits `0`, the exact changed or staged allowlist matches,
+  `git diff --check` passes, and content or hash checks show no unauthorized
+  mutation; otherwise treat it as blocking and escalate.
 
 ### Branch, Pull Request, And Merge Workflow
 
@@ -305,6 +367,26 @@ rule instead of adding another version.
   it on a dedicated branch before pushing and restore local `master` to the
   integrated remote state afterward.
 
+### UI Artifact Branch Workflow
+
+- This subsection records a founder-approved repository invariant dated
+  2026-09-01.
+- Do not implement user-facing visual UI in non-UI implementation branches.
+  Pages, forms, components, layouts, navigation presentation, styles, and
+  visual interaction states wait for the dedicated UI artifact branch.
+- The approved artifact on that branch is the binding UI implementation source.
+  Do not invent or pre-empt its visual design in backend, data, auth, engine, or
+  infrastructure tasks.
+- Server-side Next.js BFF/routes, APIs, contracts, localized message data, and
+  headless HTTP/session tests remain allowed when they do not introduce visual
+  UI.
+- When a non-UI task depends on an unresolved visual decision, record the UI
+  artifact dependency and continue independent non-visual work.
+- Generated or exported files under `prototype/` are reference artifacts, not
+  production lint targets. Exclude the prototype tree in repository-wide lint
+  configuration; never edit generated support bundles merely to satisfy
+  application framework rules.
+
 ### Docker Compose Web Publishing
 
 - This subsection records a founder-approved deployment invariant dated
@@ -317,6 +399,12 @@ rule instead of adding another version.
   once per environment, stored outside Git, and reused across restarts. Port
   randomness is not an access-control boundary.
 - Repository automation must not create or modify host Nginx configuration.
+- Never derive a browser-facing public origin from a loopback or private
+  container upstream. Prefer same-origin browser clients; on VPS,
+  `BETTER_AUTH_URL` must be the canonical public HTTPS origin while Nginx
+  proxies to the loopback `WEB_HOST_PORT`. A release is blocked when a public
+  build variable bakes `127.0.0.1`, a Compose service name, or another internal
+  upstream into browser code.
 
 ### Canonical Route Registry
 
@@ -331,6 +419,16 @@ rule instead of adding another version.
 - A task that creates, exposes, retires, or redirects a route must own the
   matching `config/route-registry.yml` change and a state/robots/sitemap test in
   the same task. Route activation must never be left to an unnamed later task.
+
+### Calculation Completion And Evidence
+
+- A calculation flow whose consuming contract requires evidence must not return
+  success until the evidence set for the exact calculation/chart version,
+  capability, and rule version is persisted and schema-valid.
+- If evidence persistence fails after immutable calculation output commits,
+  preserve that output, return a non-success result, and make retry reuse the
+  same calculation and evidence identity. Never delete immutable output or
+  claim completion to hide a partial workflow.
 
 ### Anonymous Chart Retention
 

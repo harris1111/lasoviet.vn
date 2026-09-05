@@ -1,0 +1,20 @@
+{
+  "title": "Lá số Tử Vi",
+  "private": "Lá số riêng tư",
+  "heroCopy": "12 cung được tính từ dữ liệu sinh của bạn. Mỗi nhận định có căn cứ để mở và tự kiểm tra.",
+  "evidence": {
+    "eyebrow": "Căn cứ",
+    "heading": "Đọc nhận định trong giới hạn của lá số"
+  },
+  "topicLink": "Chọn chủ đề luận giải",
+  "deletion": {
+    "title": "Quyền riêng tư",
+    "description": "Xóa dữ liệu lá số ẩn danh",
+    "begin": "Xóa dữ liệu lá số",
+    "confirmation": "Thao tác này xóa ngay hồ sơ sinh và lá số tạm thời của bạn.",
+    "cancel": "Giữ lại dữ liệu",
+    "confirm": "Xác nhận xóa",
+    "pending": "Đang xóa",
+    "error": "Không thể xóa dữ liệu lúc này. Vui lòng thử lại."
+  }
+}

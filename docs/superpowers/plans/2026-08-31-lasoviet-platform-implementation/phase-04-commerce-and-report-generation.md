@@ -332,6 +332,31 @@ git add docs/compliance packages/backend/src/ai packages/backend/src/reports tes
 git commit -m "feat: generate evidence-backed identity reports"
 ```
 
+#### AI-First Foundation Checkpoint (2026-09-02)
+
+- Added the owned raw-`fetch` OpenAI-compatible adapter, strict structured
+  output, synthetic capability probe, and pending-production due-diligence
+  gate for founder-operated provider `9router-an`.
+- Added the strict `IdentityReportV1` contract, deterministic outline,
+  draft-only writer, evidence/safety validator, and threshold critic without
+  introducing visual UI.
+- Final focused evidence passed 10 AI/report files with 37 tests and 14
+  dependent files with 52 tests, plus focused ESLint, contracts/config builds,
+  backend typecheck, backend build, and one no-PII endpoint smoke.
+- The configured routing alias may differ from the canonical returned model
+  identity; the probe records the nonempty returned identity instead of
+  requiring textual equality.
+- Sol approved the completed checkpoint after the writer was bound to a
+  production-shaped PII-free frozen fact snapshot, provenance and the
+  professional-advice disclaimer became server-owned, evidence and rendered
+  text validation became deterministic, the critic consumed the same source
+  snapshot, timeout retries honored their budget, and valid report formatting
+  remained allowed.
+- This checkpoint does not complete P04-T05. Provider privacy approval,
+  P04-T04 knowledge retrieval, P04-T03 worker state, immutable persistence,
+  duplicate-job integration, and `report.pdf.requested.v1` remain required
+  before the task or phase can close.
+
 ### Task 6 [P04-T06]: Persist immutable report versions and render private HTML
 
 **Files:**

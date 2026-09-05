@@ -84,6 +84,17 @@ git add config/route-registry.yml packages/config/src/route-registry.ts apps/web
 git commit -m "feat: add localized web and BFF routing"
 ```
 
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: server-only private API client, registry-derived robots policy,
+  sitemap index, section sitemaps, locale URL generation, and browser-boundary
+  verification.
+- Verified: production web build, web typecheck, and 14 focused route/BFF
+  tests.
+- Deferred by FD-024: localized layouts, home route presentation, navigation,
+  and visual/browser checks. P03-T01 remains partially complete until the
+  dedicated UI artifact branch delivers those files.
+
 ### Task 2 [P03-T02]: Build the BirthProfile form and consent flow
 
 **Files:**
@@ -131,6 +142,17 @@ git add apps/web/src/features/birth-profile apps/web/messages tests/e2e docs/sup
 git commit -m "feat: add birth profile and consent flow"
 ```
 
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: authoritative account/anonymous actor resolution, consent-first
+  BirthProfile submission, immutable normalized-read eligibility, strict
+  server response projection, and anonymous expiry handling.
+- Verified: 26 focused headless tests plus contracts, backend, and web
+  typechecks.
+- Deferred by FD-024: form controls, precision fields, localized messages,
+  route page, refresh/browser behavior, and Playwright E2E. P03-T02 remains
+  partially complete until the dedicated UI artifact branch delivers them.
+
 ### Task 3 [P03-T03]: Render the normalized Zi Wei chart and evidence drawer
 
 **Files:**
@@ -173,6 +195,18 @@ Expected: PASS without overlap at approved viewports.
 git add apps/web/src/features/ziwei apps/web/src/features/evidence apps/web/src/app apps/web/messages tests/e2e docs/superpowers/plans
 git commit -m "feat: render free Zi Wei chart"
 ```
+
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: evidence-gated calculation success, actor-authorized latest chart
+  reads, selected-evidence reads, strict persisted-data contracts, private API
+  endpoints, and server-only web loaders.
+- Verified: 17 focused tests plus contracts, backend, API, and web typechecks
+  and backend build.
+- Deferred by FD-024: chart/palace/drawer components, localized messages,
+  route page, accessibility, responsive behavior, and visual/browser checks.
+  P03-T03 remains partially complete until the dedicated UI artifact branch
+  delivers them.
 
 ### Task 4 [P03-T04]: Add free insights, paid preview, and analytics contracts
 
@@ -223,6 +257,22 @@ Expected: PASS.
 git add apps/web/src/features/reports packages/contracts packages/backend/src/analytics apps/web/messages tests docs/superpowers/plans
 git commit -m "feat: add evidence-backed free preview"
 ```
+
+#### Non-Visual Delivery Status (2026-09-01)
+
+- Complete: strict free-preview and topic-selection contracts, deterministic
+  evidence-backed preview construction, server-authoritative product catalog,
+  privacy-safe analytics emission, actor-authorized private API operations,
+  and server-only web loaders/actions.
+- Verified: 32 focused tests plus contracts, config, backend, API, and web
+  typechecks. Sol approved the correction pass with zero open
+  Critical/Important findings.
+- Fixed during milestone review: production evidence-ID integration,
+  authorize-before-SKU ordering, relational evidence linkage, and observable
+  analytics emission.
+- Deferred by FD-024: preview and selector components, localized messages,
+  route page, visible copy, and Playwright/browser checks. P03-T04 remains
+  partially complete until the dedicated UI artifact branch delivers them.
 
 ### Task 5 [P03-T05]: Build the public page, metadata, and structured-data renderer
 
@@ -296,6 +346,25 @@ navigation.
 git add apps/web/src/features/content apps/web/src/seo apps/web/src/app tests/seo tests/e2e docs/superpowers/plans
 git commit -m "feat: render canonical public experience"
 ```
+
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: server-only public-content repository, locale-aware route
+  resolution, registry-owned canonical/alternate/robots metadata, and pure
+  JSON-LD builders backed by validated content and product catalog data.
+- Complete by FD-025: `/du-bao-cung-hoang-dao` is a Gate 1
+  `live_indexable` route with published VI/EN metadata; `/horoscope` remains
+  an archived 301 redirect to that live canonical. Other Horoscope routes
+  remain reserved.
+- Verified: 25 focused tests plus config build and web typecheck. Sol approved
+  both correction scopes with zero open Critical/Important findings.
+- Fixed during milestone review: embedded route placeholders, stable route
+  error codes, non-self canonical ownership, authoritative robots policies,
+  and redirect-to-reserved topology.
+- Deferred by FD-024: public page/TSX rendering, visible navigation,
+  responsive/accessibility behavior, and Playwright/browser checks. P03-T05
+  remains partially complete until the dedicated UI artifact branch delivers
+  them.
 
 ### Task 6 [P03-T06]: Publish the Gate 1 trust surface and foundation content
 
@@ -417,6 +486,38 @@ foundation articles available in both locales.
 git add content/public tests/content tests/e2e docs/superpowers/plans
 git commit -m "feat: publish Gate 1 public content"
 ```
+
+#### Non-Visual Delivery Status (2026-09-02)
+
+- Complete: 54 reviewed VI/EN documents for all 27 current Gate 1
+  `live_indexable` routes, including 20 Zi Wei foundation articles and the
+  FD-025 Horoscope forecast landing.
+- Complete: strict frontmatter, source, reviewer, metadata, public-link,
+  related-route, article, FAQ, commercial-offer, unsafe-copy, duplication,
+  locale-integrity, and canonical repository-source-boundary gates.
+- Complete: anonymized sample reports use implemented identity evidence keys
+  with moderate confidence, conditional interpretation, limitations, and
+  observable actions.
+- Complete: exact `franc-min@6.2.0` runtime language detection replaced the
+  rejected fixture-coupled wordlist heuristic after breaker adjudication.
+- Verified: Gate 1 content tests pass 6/6; config build and typecheck pass;
+  the content checker validates all 54 documents. Sol approved the replan
+  cycle with zero open Critical/Important findings.
+- Deferred by FD-024: visible public rendering, navigation, responsive and
+  accessibility behavior, Playwright link checks, and production web build.
+  P03-T06 non-visual content is complete; Phase 03 remains partial until the
+  dedicated UI artifact branch delivers the visual surface.
+
+#### Task 5 Founder-Run Stack And Gender Correction (2026-09-02)
+
+- A real Docker Compose stack now provides the web, API, worker, migration,
+  PostgreSQL, and Redis runtime behind a loopback-only web port.
+- Founder-approved Step 2 radio choices require `Nam`/`Nữ` before advancing,
+  pass `male`/`female` to the birth profile without defaulting or inference,
+  explain why Zi Wei needs the value, and show it in the Step 3 review.
+- Fresh browser evidence passes the free path through birth-profile creation,
+  Zi Wei calculation, chart rendering, evidence, and the identity-only free
+  preview. Registration email delivery remains recorded as sent.
 
 ## Phase Exit Criteria
 
