@@ -185,7 +185,7 @@ class Component extends DCLogic {
       { group: 'Tự chiêm nghiệm', icon: 'book-open', color: 'var(--gold-500)', status: 'Xem trước', title: 'Giải Mã Giấc Mơ', body: 'Tra cứu biểu tượng giấc mơ theo góc nhìn dân gian và biểu tượng — không phải dự đoán số.', href: '/giai-ma-giac-mo', cta: 'Xem thư viện', inputNeeded: 'Từ khoá biểu tượng giấc mơ', output: 'Hai góc đọc: dân gian + biểu tượng', timeEstimate: '2-3 phút' },
       { group: 'Tự chiêm nghiệm', icon: 'user-circle', color: '#8A8172', status: 'Thử nghiệm', title: 'Xem Chỉ Tay', body: 'Pilot nhận diện đường chỉ tay qua ảnh, cần sự đồng ý riêng cho dữ liệu sinh trắc học — chưa mở.', href: '/xem-chi-tay', cta: 'Xem trạng thái', inputNeeded: 'Ảnh lòng bàn tay (chưa mở)', output: 'Chưa xác định — đang chờ duyệt', timeEstimate: 'Chưa mở' },
       { group: 'Đặt một câu hỏi', icon: 'scroll', color: '#9B6358', status: 'Xem trước', title: 'Tarot / Bói Bài', body: 'Một lá hôm nay hoặc ba lá cho một câu hỏi — đang hoàn thiện trước khi ra mắt.', href: '/boi-bai', cta: 'Xem phương pháp', inputNeeded: 'Một câu hỏi cụ thể', output: 'Trải bài 1 hoặc 3 lá kèm ý nghĩa', timeEstimate: '3-5 phút' },
-      { group: 'Không gian sống', icon: 'map-pin', color: '#7C8A6E', status: 'Đang chờ', title: 'Phong Thủy hướng nhà', body: 'Công cụ hướng nhà hợp tuổi đang chờ chốt phương pháp trước khi công bố — chưa mở.', href: '/phong-thuy/huong-nha', cta: 'Xem trạng thái', inputNeeded: 'Năm sinh + hướng nhà (chưa mở)', output: 'Chưa xác định — đang chờ duyệt', timeEstimate: 'Chưa mở' }
+      { group: 'Không gian sống', icon: 'map-pin', color: '#7C8A6E', status: 'Xem trước', title: 'Phong Thủy hướng nhà', body: 'So khớp hướng nhà với cung mệnh theo Bát Trạch — utility đã chốt, công thức đang chờ chuyên gia rà soát.', href: '/phong-thuy/huong-nha', cta: 'Xem phương pháp', inputNeeded: 'Năm sinh, giới tính + hướng nhà đo được', output: 'La bàn 8 hướng + bảng phân loại kèm mã quy tắc', timeEstimate: '< 1 phút' }
     ];
     const tools = toolFacts.map(t => {
       const isAvailablePreview = t.status === 'Xem trước';
@@ -200,7 +200,7 @@ class Component extends DCLogic {
 
     const faqData = [
       { q: 'Các công cụ này có cần tạo tài khoản không?', a: 'Không. Cả 7 công cụ đều dùng được ngay mà không cần tài khoản. Một số công cụ có tuỳ chọn lưu vào hồ sơ nếu bạn đã đăng nhập.' },
-      { q: 'Vì sao một số công cụ ghi "Đang chờ" hoặc "Thử nghiệm" thay vì "Xem trước"?', a: 'Phong Thủy hướng nhà đang chờ chốt đúng một phương pháp trước khi công bố công khai. Xem Chỉ Tay là một pilot dùng ảnh sinh trắc học, cần hoàn thiện cơ chế đồng ý riêng trước khi mở, kể cả ở dạng miễn phí.' },
+      { q: 'Vì sao Xem Chỉ Tay ghi "Thử nghiệm" thay vì "Xem trước"?', a: 'Xem Chỉ Tay là một pilot dùng ảnh sinh trắc học, cần hoàn thiện cơ chế đồng ý riêng trước khi mở, kể cả ở dạng miễn phí.' },
       { q: 'Các công cụ có bán vật phẩm phong thuỷ hoặc vật phẩm hoá giải không?', a: 'Không. Lá Số Việt không bán vật phẩm phong thuỷ, bùa hộ mệnh hay bất kỳ sản phẩm "hoá giải vận hạn" nào ở bất kỳ công cụ nào.' },
       { q: 'Giải Mã Giấc Mơ có liên quan đến số đề hay lô đề không?', a: 'Không, và sẽ không bao giờ có. Nội dung chỉ trình bày góc nhìn dân gian và biểu tượng, không gợi ý hay liên kết tới bất kỳ hình thức số đề nào.' }
     ];
