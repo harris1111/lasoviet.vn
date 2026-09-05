@@ -222,6 +222,45 @@ Date: 2026-09-02
   cover the implementation lessons. Open questions: provider privacy terms
   remain pending.
 
+## P04 Tasks 1-5 In-Page VietQR Flow Evidence
+
+Date: 2026-09-05
+
+- Implemented an in-page VietQR payment experience on the checkout route
+  (`/[locale]/thanh-toan/[orderId]`), superseding the hosted SePay redirect flow
+  while preserving backward-compatible hosted IPN handling.
+- Added five server-only environment variables (`SEPAY_BANK_CODE`,
+  `SEPAY_ACCOUNT_NUMBER`, `SEPAY_ACCOUNT_HOLDER`, `SEPAY_ORDER_TTL_SECONDS`,
+  `SEPAY_WEBHOOK_SECRET`) with strict schema validation. Bank code, account
+  number, and account holder are intentionally projected to the authenticated
+  owner on checkout to display transfer instructions, while webhook and gateway
+  secrets remain strictly server-only and redacted from client bundles and logs.
+- Enforced an initial order time-to-live (TTL) of exactly 900 seconds (15
+  minutes) with deterministic database compare-and-set transitions to `expired`
+  and rejection of late payments via `PAYMENT_STATE_CONFLICT`.
+- Added dual-mode webhook authentication at `/api/webhooks/sepay`:
+  - Bank webhook: `X-SePay-Signature: sha256=<hex>`, `X-SePay-Timestamp`,
+    canonical `<unix-seconds>.<raw-body>`, constant-time comparison, and maximum
+    drift of 300 seconds.
+  - Hosted IPN: `X-Secret-Key` verified with constant-time comparison against
+    `SEPAY_SECRET_KEY`.
+  - Modes are mutually exclusive and fail closed.
+- Implemented owner-only checkout status projection (`GET /api/commerce/orders/[orderId]/status`)
+  with `cache-control: no-store`, strict client parsing, and 2500 ms
+  polling while pending and visible. Polling pauses on document hide, refreshes
+  immediately upon visibility, and terminates on `expired`, `failed`, or
+  `refunded`.
+- When order status becomes `paid` with a valid `reportId`, checkout navigates to
+  the localized private report route (`/[locale]/bao-cao/[reportId]`).
+- `recordPaid` remains the single atomic payment-event, entitlement,
+  report-reservation, and `report.generation.requested.v1` handoff across all
+  payment paths.
+- Task 5 review evidence: commit `9543450`, 19/19 focused tests, web typecheck,
+  i18n parity, scoped ESLint, and diff check passed; Terra high reported spec
+  PASS and quality APPROVED with no findings.
+- Local Compose validation remains synthetic-only and must not send a payment or
+  call SePay. Production payment activation remains a separate founder gate.
+
 ## P04 Tasks 3-6 Implementation Evidence
 
 Date: 2026-09-05

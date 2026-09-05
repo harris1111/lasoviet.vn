@@ -13,6 +13,44 @@ Credentials are intentionally not recorded here.
   from the environment.
 - Sandbox credentials and data are isolated from Production.
 
+## In-page VietQR payment instructions
+
+The application supports an in-page VietQR checkout flow alongside legacy hosted
+IPN compatibility. The server resolves payment configuration and provides safe
+instructions for the authenticated owner without exposing provider secrets.
+
+- Server-only configuration keys: `SEPAY_BANK_CODE`, `SEPAY_ACCOUNT_NUMBER`,
+  `SEPAY_ACCOUNT_HOLDER`, `SEPAY_ORDER_TTL_SECONDS`, `SEPAY_WEBHOOK_SECRET`.
+- Bank code, account number, and account holder values are intentionally
+  projected to the authenticated owner on checkout to render bank transfer
+  instructions. Only secrets (`SEPAY_SECRET_KEY`, `SEPAY_WEBHOOK_SECRET`) and
+  internal tokens remain strictly unexposed to the client.
+- Initial order time-to-live (TTL) is 900 seconds (15 minutes). Overdue pending
+  orders transition deterministically to `expired`, and late incoming webhooks
+  are rejected with `PAYMENT_STATE_CONFLICT`.
+- Status projection: the same-origin endpoint
+  `GET /api/commerce/orders/[orderId]/status` is restricted to the authenticated
+  order owner and returns `cache-control: no-store`.
+- The checkout client polls order status every 2500ms while visible and pending,
+  pauses on document hide, refreshes immediately on visibility, and terminates
+  polling on `expired`, `failed`, or `refunded`.
+- Paid navigation: upon reaching `paid` status with a valid `reportId`, checkout
+  redirects to `/bao-cao/<encoded reportId>` (Vietnamese) or
+  `/en/bao-cao/<encoded reportId>` (English).
+- Bank webhook authentication: incoming bank notifications to
+  `/api/webhooks/sepay` require:
+  - `X-SePay-Signature: sha256=<hex>`
+  - `X-SePay-Timestamp: <unix-seconds>`
+  - Canonical signing string: `<unix-seconds>.<raw-body>`
+  - Timing-safe HMAC-SHA256 comparison against `SEPAY_WEBHOOK_SECRET`
+  - Maximum timestamp drift: 300 seconds
+- Hosted IPN compatibility: requests presenting `X-Secret-Key` continue to be
+  authenticated via constant-time comparison against `SEPAY_SECRET_KEY`. Modes
+  are mutually exclusive and fail closed.
+- Both webhook flows hand off to `recordPaid`, which performs atomic payment
+  event persistence, entitlement creation, report reservation, and outbox event
+  dispatch (`report.generation.requested.v1`).
+
 ## Hosted checkout form
 
 The server POSTs an HTML form to the derived hosted checkout action. Required

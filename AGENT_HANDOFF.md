@@ -4,7 +4,7 @@
 **Repository:** `harris1111/lasoviet.vn`
 **Worktree:** `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan\.worktrees\phase04-report-generation`
 **Active branch:** `feature/phase04-report-generation`
-**Audited implementation HEAD:** `c702a91`
+**Audited implementation HEAD:** `9543450`
 
 ## Start Here
 
@@ -23,13 +23,12 @@ Use Superpowers only. Do not invoke `/ck` or the CK CLI.
 
 A fresh `origin` fetch on 2026-09-05 established:
 
-- Audited implementation commit: `c702a9123224e3ee92f8eb49169c784d7310d8d4`.
-- `origin/master` is `a51ce174dadbc8daf05d7829c0ee6ac8ac1c27ab`.
-- The active branch is 50 commits ahead and 14 commits behind `origin/master`.
+- Audited implementation commit: `9543450b37087164c031ec715d01e40db6abd3bb`.
+- `origin/master` is `be0d2601dc5d3caa5197d19d9029358d256fa1c7`.
+- The active branch is 65 commits ahead and 0 commits behind `origin/master`.
 - No remote `feature/phase04-report-generation` branch exists.
 - The documentation commit created after this audit makes the next task's
   actual HEAD newer than the implementation baseline above.
-- Reconcile the 14 upstream commits before any eventual integration.
 - Never push directly to `master`.
 - Do not merge, create a PR, or deploy without an explicit founder request.
 
@@ -64,13 +63,16 @@ Vietnamese.
 - **Phase 04 implementation:** SePay Tasks 1-2, the durable report worker,
   approved knowledge retrieval, evidence-backed immutable generation, and the
   owner-authorized private HTML reader are implemented and reviewed on
-  `feature/phase04-report-generation`.
+  `feature/phase04-report-generation`. In-page VietQR Tasks 1-5 are complete.
 - **Phase 06 foundation:** Docker images, Compose topology, loopback-only web
   publication, and production-like free-MVP smoke evidence exist. This does not
   close the full release phase.
 
 ### In Progress
 
+- **In-page VietQR Task 6:** full verification, local synthetic Compose/browser
+  checks, and final Terra high review remain. Local Compose validation remains
+  synthetic-only; no SePay call or payment.
 - **Phase 04 closure:** production AI remains fail-closed pending provider
   privacy approval. Seven private-report Playwright cases require controlled
   owner/other/pending/ready/failed fixtures, and two lineage integration cases
@@ -93,8 +95,12 @@ Vietnamese.
 
 ## Immediate Next Execution
 
-The next coding phase is **Phase 05: PDF, Garage storage, report email
-delivery, and owner account center**. Before claiming Phase 04 closed in the
+The immediate execution task is **In-page VietQR Task 6: full verification,
+local synthetic Compose/browser checks, and final Terra high review**. Local
+Compose remains synthetic-only; no SePay call or payment.
+
+Following that milestone, the next coding phase is **Phase 05: PDF, Garage storage,
+report email delivery, and owner account center**. Before claiming Phase 04 closed in the
 intended environment:
 
 1. Record and approve provider privacy due diligence.
