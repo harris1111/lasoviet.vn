@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { Icon } from "../../../../components/icon";
 import { BirthProfileForm } from "../../../../features/birth-profile/birth-profile-form";
 import { submitBirthProfile } from "../../../../features/birth-profile/birth-profile-actions";
 import { calculateZiweiChart } from "../../../../features/ziwei/calculate-ziwei-chart-action";
@@ -9,15 +10,15 @@ export default async function ZiweiBirthProfilePage() {
   const t = await getTranslations("profile");
   return (
     <main className="wizard-page">
-      <div className="wizard-privacy">{t("review.privacy")}</div>
-      <div className="wizard-shell">
-        <p className="wizard-brand">Lá Số Việt</p>
-        <BirthProfileForm
-          calculateZiweiChart={calculateZiweiChart}
-          locale={locale}
-          submitBirthProfile={submitBirthProfile}
-        />
+      <div className="wizard-privacy">
+        <Icon name="shield-lock" />
+        {t("nav.privacy")}
       </div>
+      <BirthProfileForm
+        calculateZiweiChart={calculateZiweiChart}
+        locale={locale}
+        submitBirthProfile={submitBirthProfile}
+      />
     </main>
   );
 }
