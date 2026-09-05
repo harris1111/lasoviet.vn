@@ -1,0 +1,349 @@
+{
+  "app": {
+    "name": "La So Viet",
+    "taglinePrefix": "Build your chart.",
+    "taglineHighlight": "Understand your path."
+  },
+  "greeting": "Hello, {name}!",
+  "language": {
+    "label": "Language",
+    "vietnamese": "Vietnamese",
+    "english": "English"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "One birth profile · Zi Wei now, more lenses planned",
+      "lead": "Enter your birth data to create the Zi Wei chart available today. BaZi, Natal Astrology, and Numerology are planned.",
+      "copy": "Lá Số Việt presents the chart and a clear explanation, with evidence that can be opened for your own review.",
+      "microcopy": "Free to start · Private by default · No account required.",
+      "ctaPrimary": "Build your chart for free",
+      "ctaSecondary": "View sample reading",
+      "metaRoute": "From birth data to the twelve-palace chart",
+      "metaDetail": "The full chart is calculated in the next step."
+    },
+    "form": {
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "hour": "Birth time",
+      "unknownHour": "Birth time unknown",
+      "submit": "Build your chart",
+      "sample": "View a sample report",
+      "note": "No account needed to start."
+    },
+    "trustStrip": {
+      "item1": {
+        "title": "Free first",
+        "copy": "Review the chart and overview before considering paid content."
+      },
+      "item2": {
+        "title": "Visible evidence",
+        "copy": "Important insights can show the data and rules used."
+      },
+      "item3": {
+        "title": "Private by default",
+        "copy": "Charts are not public by default and include data controls."
+      },
+      "item4": {
+        "title": "No automatic renewal",
+        "copy": "The currently available reading uses a one-time payment."
+      }
+    },
+    "problem": {
+      "eyebrow": "When looking for answers",
+      "title": "One question can be viewed through different frameworks",
+      "lead": "References can differ in scope, terminology, and presentation. What matters is knowing which data is used and how an insight is formed.",
+      "point1": {
+        "title": "Different scope",
+        "copy": "Each framework focuses on its own structure and group of questions."
+      },
+      "point2": {
+        "title": "Different language",
+        "copy": "Classical or specialist terms need clear explanation in a modern context."
+      },
+      "point3": {
+        "title": "Hard to compare",
+        "copy": "An insight is more useful when readers can inspect the related data and rule."
+      },
+      "bridge": "Lá Số Việt starts with Zi Wei and organizes the chart, evidence, and stated limits for personal reflection."
+    },
+    "lenses": {
+      "eyebrow": "Multiple reference frameworks",
+      "title": "One birth profile. Zi Wei is available; three lenses are planned.",
+      "lead": "Zi Wei is the active framework. BaZi, Natal Astrology, and Numerology are shown as planned and have no usage links.",
+      "tuVi": {
+        "title": "Zi Wei Dou Shu",
+        "subtitle": "Available now",
+        "copy": "Create a twelve-palace chart from supported birth data, then review the overview and related evidence.",
+        "action": "View Zi Wei chart",
+        "status": "Available"
+      },
+      "batTu": {
+        "title": "BaZi / Four Pillars",
+        "subtitle": "Five elements and four pillars",
+        "copy": "A planned framework for the birth profile in a later product stage.",
+        "action": "Explore BaZi",
+        "status": "Planned"
+      },
+      "astrology": {
+        "title": "Natal Astrology",
+        "subtitle": "Western astrology",
+        "copy": "A planned framework for presenting celestial positions from a birth profile.",
+        "action": "Explore natal chart",
+        "status": "Planned"
+      },
+      "numerology": {
+        "title": "Numerology",
+        "subtitle": "Life path rhythms",
+        "copy": "A planned framework based on birth date and name.",
+        "action": "Explore numerology",
+        "status": "Planned"
+      }
+    },
+    "chatbotComparison": {
+      "eyebrow": "A workflow comparison",
+      "title": "How does a conversation differ from a chart workflow?",
+      "point1": {
+        "title": "1. Input has a defined boundary",
+        "copy": "The Zi Wei workflow checks required birth data and states when calculation conditions are not met."
+      },
+      "point2": {
+        "title": "2. Calculation is separate from interpretation",
+        "copy": "The Zi Wei chart is produced first; the language layer only organizes and explains available data."
+      },
+      "point3": {
+        "title": "3. Evidence sits beside an insight",
+        "copy": "Readers can open the related data, rule, and limitation rather than receiving only a response paragraph."
+      },
+      "point4": {
+        "title": "4. The profile includes data controls",
+        "copy": "Charts are private by default, with available controls to view, correct, or delete data."
+      }
+    },
+    "categoryComparison": {
+      "eyebrow": "Comparative view",
+      "title": "Where can three approaches differ?",
+      "criteria": "Criterion",
+      "currentWeb": "Separate reference content",
+      "traditional": "Consultation conversation",
+      "lasoviet": "Lá Số Việt today",
+      "row1": {
+        "criterion": "Workflow",
+        "currentWeb": "Read separate articles or tools.",
+        "traditional": "Discuss the question within a consultation.",
+        "lasoviet": "Enter birth data, create a Zi Wei chart, then read its explanation."
+      },
+      "row2": {
+        "criterion": "Language",
+        "currentWeb": "Terminology varies by source.",
+        "traditional": "Wording varies with the conversation.",
+        "lasoviet": "Clear language with explanations for necessary terms."
+      },
+      "row3": {
+        "criterion": "Evidence",
+        "currentWeb": "Detail varies by content.",
+        "traditional": "Explained during the conversation.",
+        "lasoviet": "Evidence can be opened beside important insights."
+      },
+      "row4": {
+        "criterion": "Scope",
+        "currentWeb": "May cover separate topics.",
+        "traditional": "Depends on each consultation.",
+        "lasoviet": "Zi Wei is available; three other frameworks are planned."
+      },
+      "row5": {
+        "criterion": "Reader role",
+        "currentWeb": "Combine information from sources.",
+        "traditional": "Ask questions and discuss directly.",
+        "lasoviet": "Compare the chart, evidence, and stated limits."
+      },
+      "row6": {
+        "criterion": "Data & price",
+        "currentWeb": "Depends on each source policy.",
+        "traditional": "Depends on each consultation agreement.",
+        "lasoviet": "Private by default; the available paid item shows its price in advance."
+      }
+    },
+    "aboutMethod": {
+      "eyebrow": "About Lá Số Việt",
+      "title": "From birth data to an evidence-linked explanation",
+      "lead": "Lá Số Việt separates input handling, Zi Wei calculation, and interpretation so readers can see what comes from rules and what comes from the language layer.",
+      "pillar1": {
+        "title": "Published input boundary",
+        "copy": "Date, time, and place of birth are checked against the supported conditions of the current Zi Wei flow."
+      },
+      "pillar2": {
+        "title": "A separate Zi Wei calculation flow",
+        "copy": "Eligible data is converted into a twelve-palace structure before explanations are generated."
+      },
+      "pillar3": {
+        "title": "Bounded interpretation",
+        "copy": "AI helps organize language within supplied data and evidence; it does not replace chart calculation."
+      }
+    },
+    "process": {
+      "eyebrow": "How it works",
+      "one": {
+        "title": "Enter birth data",
+        "copy": "You can save birth data when the time is unknown, but a Zi Wei chart cannot be calculated until the birth time is within the supported input boundary."
+      },
+      "two": {
+        "title": "View the free chart",
+        "copy": "See the full diagram, three highlights, and an evidence source immediately."
+      },
+      "three": {
+        "title": "Choose a deeper reading",
+        "copy": "Review the table of contents, sample report, and price before deciding whether to go deeper."
+      },
+      "meta": {
+        "calendar": "Birth date",
+        "clock": "Birth time",
+        "place": "Birth place"
+      },
+      "caption1": "Can-Chi reference used to convert birth data",
+      "caption2": "Data arranged into the twelve-palace structure",
+      "caption3": "The Identity and Potential topic is available when you want to go deeper"
+    },
+    "freeValue": {
+      "eyebrow": "Starting value",
+      "title": "Review free value before considering cost",
+      "lead": "The current flow provides a Zi Wei chart, three highlights, and one evidence section that can be opened.",
+      "item1": {
+        "title": "Zi Wei chart",
+        "copy": "A twelve-palace structure created from supported birth data."
+      },
+      "item2": {
+        "title": "Three highlights",
+        "copy": "Short observations that help readers begin exploring the chart."
+      },
+      "item3": {
+        "title": "One openable evidence section",
+        "copy": "The explanation shows related data, rules, and limitations."
+      },
+      "imageAlt": "Zi Wei chart with three highlighted palaces connected to evidence cards",
+      "note": "Note",
+      "insight1": {
+        "title": "The Life Palace can show a proactive communication tendency.",
+        "copy": "It may be clearer when negotiating or presenting ideas."
+      },
+      "insight2": {
+        "title": "This period may bring more pressure around work responsibilities.",
+        "copy": "A point to observe, not a certain warning."
+      },
+      "insight3": {
+        "title": "One thing to watch: the pace of finances in mid-year.",
+        "copy": "A prompt to prepare, not a conclusion about gain or loss."
+      }
+    },
+    "evidence": {
+      "eyebrow": "Transparency",
+      "title": "Evidence sits beside each insight",
+      "copy": "Important insights can be opened to review related data, rules, and limitations in context.",
+      "claim": "This period may bring more pressure around work responsibilities.",
+      "action": "Why is this insight made?",
+      "source": "Evidence used",
+      "sourceCopy": "A work-period reading compared with the principal star in the Life Palace.",
+      "confidence": "Confidence",
+      "confidenceCopy": "Moderate - sensitive to birth time.",
+      "observe": "What you can observe",
+      "observeCopy": "Compare it with workload or new responsibilities over the next one to two months."
+    },
+    "valueLadder": {
+      "eyebrow": "Interpretation depth",
+      "title": "One topic is available; later tiers are planned",
+      "tier1": {
+        "tag": "OPENING CHAPTER",
+        "title": "Identity & Potential",
+        "price": "79,000 VND",
+        "once": "One-time",
+        "copy": "A topic reading for Identity & Potential, with a table of contents and sample available before purchase.",
+        "sampleLink": "View sample",
+        "status": "Available"
+      },
+      "tier2": {
+        "tag": "FULL PROFILE",
+        "title": "Four areas of life",
+        "once": "One-time",
+        "copy": "This expanded content tier is planned and is not currently for sale.",
+        "sampleLink": "View sample",
+        "status": "Planned"
+      },
+      "tier3": {
+        "tag": "LIFE JOURNEY",
+        "title": "Long-term companion guide",
+        "once": "One-time",
+        "copy": "This long-term content tier is planned and is not currently for sale.",
+        "sampleLink": "View sample",
+        "status": "Planned"
+      },
+      "action": "Explore the available reading",
+      "microcopy": "The table of contents, sample content, and price are shown before a decision."
+    },
+    "trustSpecs": {
+      "eyebrow": "Trust facts",
+      "title": "Five facts about the current scope and workflow",
+      "spec1": {
+        "title": "Supported birth-input boundary",
+        "copy": "The Zi Wei flow requires birth data within supported input conditions; without an eligible birth time, the chart is not calculated."
+      },
+      "spec2": {
+        "title": "Current Zi Wei calculation flow",
+        "copy": "Eligible data is converted into a twelve-palace chart before interpretation content is created."
+      },
+      "spec3": {
+        "title": "Evidence visibility",
+        "copy": "Important insights can include the related data, rule, and sensitivity to input."
+      },
+      "spec4": {
+        "title": "Bounded AI role",
+        "copy": "AI helps organize and explain supplied evidence; it does not replace calculation data or rules."
+      },
+      "spec5": {
+        "title": "Privacy and data controls",
+        "copy": "Charts are private by default, with current controls to view, correct, and delete data."
+      }
+    },
+    "knowledge": {
+      "eyebrow": "Knowledge library",
+      "title": "Start here",
+      "chart": {
+        "title": "What is a Zi Wei chart?",
+        "copy": "A definition, the twelve-palace structure, and how a chart is created."
+      },
+      "create": {
+        "title": "How a Zi Wei chart is made",
+        "copy": "The calculation path from birth details to star placements."
+      },
+      "read": {
+        "title": "How to read a Zi Wei chart",
+        "copy": "Start with the Life Palace, then expand into related palaces."
+      }
+    },
+    "faq": {
+      "eyebrow": "Frequently asked questions",
+      "ai": {
+        "question": "Does Lá Số Việt use AI?",
+        "answer": "Yes. AI helps organize and interpret within the available evidence; it does not replace the underlying calculation data and rules."
+      },
+      "time": {
+        "question": "What if I do not know my exact birth time?",
+        "answer": "You can save the birth data and add the time later. A Zi Wei chart is calculated only when an exact eligible birth time is available."
+      },
+      "payment": {
+        "question": "Do paid reports renew automatically?",
+        "answer": "No. The displayed price is a one-time payment with no automatic renewal."
+      },
+      "privacy": {
+        "question": "How is my birth data used?",
+        "answer": "In the current flow, birth data is used to create the chart and interpretation. Charts are private by default, and available controls let you view, correct, or delete data."
+      }
+    },
+    "finalCta": {
+      "title": "Take a quiet moment to understand yourself",
+      "copy": "Start with the free Zi Wei chart, review the overview, and open the evidence when you want to compare the reasoning.",
+      "ctaPrimary": "Build your free chart now",
+      "ctaSecondary": "View sample reading",
+      "closing": "Understand yourself to make more deliberate choices."
+    }
+  }
+}

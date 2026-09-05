@@ -12,6 +12,29 @@ not as a promise of future support.
 | `Brhiza/mingyu` `packages/core` | `https://github.com/Brhiza/mingyu` | `f11b31e69c7e626fe741f8c5f1a3c99b22f74c8f` | 0.2.0 | 2026-08-31 | Package-level MIT | B |
 | `Anonyfox/celestine` | `https://github.com/Anonyfox/celestine` | `954d63315ec00d29ba4becaef3f6a101497946b7` | 0.2.1 | 2026-01-01 | MIT | B |
 
+## P00-T01 Runtime Toolchain (2026-09-01)
+
+| Package | Exact version | Workspace owner | Registry evidence date | Purpose |
+|---|---:|---|---|---|
+| `pnpm` | 11.25.0 | root | 2026-09-01 | Workspace package manager and exact runner |
+| `typescript` | 6.0.3 | root | 2026-09-01 | TypeScript compiler |
+| `vitest` | 4.1.11 | root | 2026-09-01 | Unit and workspace-boundary tests |
+| `vite` | 8.2.2 | root | 2026-09-01 | Vitest peer runtime |
+| `eslint` | 9.39.5 | root | 2026-09-01 | Root linting |
+| `eslint-config-next` | 16.3.4 | root | 2026-09-01 | Next.js flat lint configuration |
+| `@types/node` | 24.13.3 | root | 2026-09-01 | Node.js type declarations |
+| `@types/react` | 19.2.18 | root | 2026-09-01 | React type declarations |
+| `@types/react-dom` | 19.2.5 | root | 2026-09-01 | React DOM type declarations |
+| `next` | 16.3.4 | `@lasoviet/web` | 2026-09-01 | Web App Router runtime and build |
+| `react` | 19.2.8 | `@lasoviet/web` | 2026-09-01 | Web UI runtime |
+| `react-dom` | 19.2.8 | `@lasoviet/web` | 2026-09-01 | React DOM renderer |
+| `@nestjs/common` | 12.0.1 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | NestJS decorators and common runtime |
+| `@nestjs/core` | 12.0.1 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | NestJS application composition |
+| `@nestjs/platform-fastify` | 12.0.1 | `@lasoviet/api` | 2026-09-01 | Fastify NestJS platform adapter |
+| `fastify` | 5.12.1 | `@lasoviet/api` | 2026-09-01 | API HTTP adapter runtime |
+| `reflect-metadata` | 0.2.2 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | Decorator metadata runtime |
+| `rxjs` | 7.8.2 | `@lasoviet/api`, `@lasoviet/worker` | 2026-09-01 | NestJS reactive runtime dependency |
+
 ## Production Engines
 
 | Dependency | Used capability | Intentionally ignored | Owned boundary | First-use gate | Replacement |
@@ -23,6 +46,50 @@ not as a promise of future support.
 Production manifests use exact reviewed resolutions. Upgrades occur in focused
 changes with changelog review, resolved-tree license/SBOM diff, fixture tests,
 and normalized-contract snapshots.
+
+## P02-T02 Iztro First-Use Gate (2026-09-01)
+
+`@lasoviet/engine-adapters` is the sole production owner of the exact
+`iztro` import. Its manifest pins `iztro` to `2.6.0`; the lockfile resolves
+one copy with integrity
+`sha512-0zN7j+z2UX642yEbraFNILRU+hA5hl1SdTHvyopq0CK68hS1wSxL2zLkStCh6EeEwR+NO0j18amDmpB6bwortg==`.
+An independently packed registry archive produced the same SHA-512 integrity.
+
+| Resolved runtime package | Version | License evidence | Result |
+|---|---:|---|---|
+| `iztro` | 2.6.0 | package metadata and included `LICENSE` | MIT |
+| `dayjs` | 1.11.23 | package metadata | MIT |
+| `i18next` | 23.16.8 | package metadata | MIT |
+| `@babel/runtime` | 7.29.7 | package metadata and included `LICENSE` | MIT |
+| `lunar-lite` | 0.2.8 | package metadata | MIT |
+| `lunar-typescript` | 1.8.6 | package metadata | MIT |
+
+The resolved production tree contains six third-party runtime packages,
+including one copy of `iztro`; no unknown, GPL, AGPL, or incompatible runtime
+license was found. The package has no reviewed install/build-script action, so
+`pnpm-workspace.yaml` remains unchanged with `strictDepBuilds: true`.
+
+The committed CycloneDX 1.5 artifact is
+`sbom/iztro-2.6.0.cdx.json`. It records the resolved components and direct
+dependency graph. On 2026-09-01, the artifact passed official CycloneDX 1.5
+JSON Schema validation with matching component `bom-ref` values and an
+application-root-to-`iztro` edge. The temporary archive used for integrity
+inspection is not a repository artifact and is removed before staging.
+
+## P02-T03 Fixture and Reference Evidence (2026-09-01)
+
+The committed P0 fixture manifest pins the same reviewed `iztro@2.6.0`,
+adapter version `1`, and `ziwei.default` rule set as the first-use gate.
+No new production dependency, import owner, license decision, or SBOM
+component was introduced.
+
+The read-only Tianji reference at audited commit
+`a48cf098bbb4f45ca7848a304ca8d90f50697473` was run only for the overlapping
+lunar `1988-01-15` early-Zi life-palace check. Tianji returned Tiger and
+normalized iztro returned `ziwei.branch.tiger`. Tianji is not used for
+late-Zi, timezone, solar-term, leap-month, or full-star comparisons because
+its method/configuration does not genuinely overlap there. No Tianji code or
+output is imported into a production package.
 
 ## Validation and Reference
 

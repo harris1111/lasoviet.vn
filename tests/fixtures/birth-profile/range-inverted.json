@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "calendar": { "kind": "solar", "date": "1990-01-01" },
+  "time": {
+    "precision": "range",
+    "startLocalTime": "10:30",
+    "endLocalTime": "09:30"
+  },
+  "timezone": { "offsetMinutes": 420 },
+  "consentVersion": "2026-09-01"
+}

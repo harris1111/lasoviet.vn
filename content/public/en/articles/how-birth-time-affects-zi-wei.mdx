@@ -1,0 +1,61 @@
+---
+{
+  "version": 1,
+  "routeId": "knowledge.tu-vi.birth-time",
+  "locale": "en",
+  "contentType": "KnowledgeArticle",
+  "title": "How birth time affects a chart",
+  "summary": "The role of birth time in chart inputs and why accuracy and limits should be stated clearly.",
+  "intent": "knowledge.tu-vi.birth-time.en.public",
+  "authorId": "method-reviewer",
+  "reviewerIds": [
+    "method-reviewer"
+  ],
+  "sourceIds": [
+    "normalized-chart-contract",
+    "iztro-mapping",
+    "fixture-manifest",
+    "trusted-fixture-sources"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure",
+    "birth_data_sensitivity"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi",
+    "knowledge.tu-vi.accuracy",
+    "knowledge.tu-vi.definition"
+  ],
+  "limitations": "This material is limited to repository-backed data and documented boundaries; it is not a certain forecast or professional advice.",
+  "parentRouteId": "knowledge.tu-vi",
+  "figure": {
+    "id": "gate-one-en-8",
+    "alt": "Inspection diagram for How birth time affects a chart",
+    "caption": "Independent diagram for article 8, showing only implemented fields and limits."
+  }
+}
+---
+# How birth time affects a chart
+
+## What this page can establish
+
+This article explains birth time from the versioned implementation boundary. the birth profile distinguishes exact_minute, branch_only, range, and unknown precision. The adapter only runs for eligible normalized input and preserves limitations. It does not add traditional interpretation that is absent from the repository sources.
+
+## Independent example
+
+The unknown-time fixture is ineligible before calculation, while the branch-only fixture calculates with TIME_BRANCH_ONLY. This contrast explains why missing time is not silently converted into an exact minute.
+
+## Figure specification
+
+Figure 8: a decision flow showing unknown input stopping, branch-only input retaining a limitation, and exact-minute input carrying its local time. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.
+
+## Limits
+
+The current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.
+
+## Continue
+
+[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.accuracy), [second related article](route:knowledge.tu-vi.definition).

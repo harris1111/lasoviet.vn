@@ -1,0 +1,833 @@
+public_defaults: &public_defaults
+  locale_behavior: vi_default_en_explicit
+  locale_owners: [vi, en]
+  owner: product
+  indexing: index_follow
+  canonical: self
+  robots: index,follow
+  schema_types: [WebPage, BreadcrumbList]
+  redirect: { disposition: none }
+  priority: p0
+  status: live_indexable
+  sitemap: true
+  private: false
+  purchasable: false
+  content: reviewed
+  reviewer: content-team
+
+reserved_defaults: &reserved_defaults
+  locale_behavior: vi_default_en_explicit
+  locale_owners: [vi, en]
+  owner: product
+  indexing: noindex_nofollow
+  canonical: self
+  robots: noindex,nofollow
+  schema_types: [WebPage, BreadcrumbList]
+  redirect: { disposition: none }
+  priority: p1
+  status: reserved
+  sitemap: false
+  private: false
+  purchasable: false
+
+private_defaults: &private_defaults
+  locale_behavior: vi_default_en_explicit
+  locale_owners: [vi, en]
+  owner: product
+  indexing: noindex_nofollow
+  canonical: self
+  robots: noindex,nofollow
+  schema_types: [WebPage]
+  redirect: { disposition: none }
+  priority: p0
+  status: live_noindex
+  sitemap: false
+  private: true
+  purchasable: false
+
+archived_defaults: &archived_defaults
+  locale_behavior: vi_default_en_explicit
+  locale_owners: [vi, en]
+  owner: product
+  indexing: redirect
+  canonical: self
+  robots: noindex,nofollow
+  schema_types: []
+  priority: p1
+  status: archived
+  sitemap: false
+  private: false
+  purchasable: false
+
+routes:
+  - <<: *public_defaults
+    id: brand.home
+    path: /
+    intent: brand.home
+    template: brand-home
+    owner: brand-product
+    schema_types: [Organization, WebSite]
+
+  - <<: *public_defaults
+    id: calculator.tu-vi
+    path: /la-so-tu-vi
+    intent: calculator.tu-vi
+    template: calculator-landing
+    discipline: tu-vi
+    owner: product-method
+    schema_types: [WebApplication, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: commercial.tu-vi
+    path: /luan-giai-tu-vi
+    intent: commercial.tu-vi
+    template: commercial-hub
+    owner: product-growth
+    schema_types: [CollectionPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: commercial.tu-vi.identity
+    path: /luan-giai-tu-vi/tong-quan-ban-menh
+    intent: commercial.tu-vi.identity
+    template: commercial-page
+    discipline: tu-vi
+    owner: product-content
+    schema_types: [Product, BreadcrumbList]
+    purchasable: true
+    sku: ZIWEI-IDENTITY-P0
+
+  - <<: *public_defaults
+    id: sample-report.tu-vi
+    path: /bao-cao-mau/tu-vi
+    intent: sample-report.tu-vi
+    template: sample-report
+    discipline: tu-vi
+    owner: content-product
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.root
+    path: /kien-thuc
+    intent: knowledge.root
+    template: knowledge-root
+    owner: content
+    schema_types: [CollectionPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi
+    path: /kien-thuc/tu-vi
+    intent: knowledge.tu-vi
+    template: knowledge-hub
+    discipline: tu-vi
+    owner: content
+    schema_types: [CollectionPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.definition
+    path: /kien-thuc/tu-vi/la-so-tu-vi-la-gi
+    intent: knowledge.tu-vi.definition
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.calculation
+    path: /kien-thuc/tu-vi/cach-lap-la-so-tu-vi
+    intent: knowledge.tu-vi.calculation
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.reading
+    path: /kien-thuc/tu-vi/cach-doc-la-so-tu-vi
+    intent: knowledge.tu-vi.reading
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.palaces
+    path: /kien-thuc/tu-vi/12-cung-trong-la-so-tu-vi
+    intent: knowledge.tu-vi.palaces
+    template: knowledge-hub
+    discipline: tu-vi
+    owner: content
+    schema_types: [CollectionPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.stars
+    path: /kien-thuc/tu-vi/14-chinh-tinh
+    intent: knowledge.tu-vi.stars
+    template: knowledge-hub
+    discipline: tu-vi
+    owner: content
+    schema_types: [CollectionPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.foundations
+    path: /kien-thuc/tu-vi/menh-than-cuc
+    intent: knowledge.tu-vi.foundations
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.cycles
+    path: /kien-thuc/tu-vi/dai-van-tieu-van
+    intent: knowledge.tu-vi.cycles
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.birth-time
+    path: /kien-thuc/tu-vi/gio-sinh-anh-huong-the-nao
+    intent: knowledge.tu-vi.birth-time
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.accuracy
+    path: /kien-thuc/tu-vi/tu-vi-co-chinh-xac-khong
+    intent: knowledge.tu-vi.accuracy
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: knowledge.tu-vi.schools
+    path: /kien-thuc/tu-vi/cac-truong-phai-tu-vi
+    intent: knowledge.tu-vi.schools
+    template: knowledge-article
+    discipline: tu-vi
+    owner: content
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: methodology.root
+    path: /phuong-phap
+    intent: methodology.root
+    template: methodology-hub
+    owner: product-trust
+    schema_types: [AboutPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: methodology.tu-vi
+    path: /phuong-phap/tu-vi
+    intent: methodology.tu-vi
+    template: methodology-page
+    discipline: tu-vi
+    owner: method
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: methodology.ai-evidence
+    path: /phuong-phap/ai-va-can-cu
+    intent: methodology.ai-evidence
+    template: methodology-page
+    owner: product-trust
+    schema_types: [Article, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: trust.sources
+    path: /nguon-tri-thuc
+    intent: trust.sources
+    template: source-registry
+    owner: content-trust
+    schema_types: [CollectionPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: brand.about
+    path: /ve-la-so-viet
+    intent: brand.about
+    template: about-page
+    owner: brand
+    schema_types: [AboutPage, Organization, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: support.faq
+    path: /cau-hoi-thuong-gap
+    intent: support.faq
+    template: faq-page
+    owner: support
+    schema_types: [FAQPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: support.contact
+    path: /lien-he
+    intent: support.contact
+    template: contact-page
+    owner: support
+    schema_types: [ContactPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: trust.privacy
+    path: /chinh-sach-bao-mat
+    intent: trust.privacy
+    template: policy-page
+    owner: legal
+    schema_types: [WebPage, BreadcrumbList]
+
+  - <<: *public_defaults
+    id: trust.terms
+    path: /dieu-khoan
+    intent: trust.terms
+    template: policy-page
+    owner: legal
+    schema_types: [WebPage, BreadcrumbList]
+
+  - <<: *reserved_defaults
+    id: commercial.tu-vi.relationship
+    path: /luan-giai-tu-vi/tinh-duyen-hon-nhan
+    intent: commercial.tu-vi.relationship
+    template: commercial-page
+    discipline: tu-vi
+    owner: product-content
+    priority: p0
+
+  - <<: *reserved_defaults
+    id: commercial.tu-vi.career
+    path: /luan-giai-tu-vi/cong-viec-tai-loc
+    intent: commercial.tu-vi.career
+    template: commercial-page
+    discipline: tu-vi
+    owner: product-content
+    priority: p0
+
+  - <<: *reserved_defaults
+    id: commercial.tu-vi.year
+    path: "/luan-giai-tu-vi/van-trinh-{year}"
+    intent: commercial.tu-vi.year
+    template: commercial-page
+    discipline: tu-vi
+    owner: product-content
+    priority: p0
+
+  - <<: *reserved_defaults
+    id: reference.hub
+    path: /he-quy-chieu
+    intent: reference.hub
+    template: reference-hub
+    owner: product
+
+  - <<: *reserved_defaults
+    id: reference.east
+    path: /he-quy-chieu/dong-phuong
+    intent: reference.east
+    template: reference-collection
+    owner: product
+
+  - <<: *reserved_defaults
+    id: reference.west
+    path: /he-quy-chieu/tay-phuong
+    intent: reference.west
+    template: reference-collection
+    owner: product
+
+  - <<: *reserved_defaults
+    id: calculator.bat-tu
+    path: /la-so-bat-tu
+    intent: calculator.bat-tu
+    template: calculator-landing
+    discipline: bat-tu
+    owner: product-method
+
+  - <<: *reserved_defaults
+    id: commercial.bat-tu
+    path: /luan-giai-bat-tu
+    intent: commercial.bat-tu
+    template: commercial-hub
+    discipline: bat-tu
+    owner: product-growth
+
+  - <<: *reserved_defaults
+    id: knowledge.bat-tu
+    path: /kien-thuc/bat-tu
+    intent: knowledge.bat-tu
+    template: knowledge-hub
+    discipline: bat-tu
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.bat-tu.definition
+    path: /kien-thuc/bat-tu/bat-tu-la-gi
+    intent: knowledge.bat-tu.definition
+    template: knowledge-article
+    discipline: bat-tu
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.bat-tu.calculation
+    path: /kien-thuc/bat-tu/cach-lap-la-so-bat-tu
+    intent: knowledge.bat-tu.calculation
+    template: knowledge-article
+    discipline: bat-tu
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.bat-tu.stems-branches
+    path: /kien-thuc/bat-tu/thien-can-dia-chi
+    intent: knowledge.bat-tu.stems-branches
+    template: knowledge-article
+    discipline: bat-tu
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.bat-tu.elements
+    path: /kien-thuc/bat-tu/ngu-hanh-va-nhat-chu
+    intent: knowledge.bat-tu.elements
+    template: knowledge-article
+    discipline: bat-tu
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.bat-tu.ten-gods
+    path: /kien-thuc/bat-tu/thap-than
+    intent: knowledge.bat-tu.ten-gods
+    template: knowledge-article
+    discipline: bat-tu
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.bat-tu.cycles
+    path: /kien-thuc/bat-tu/dai-van
+    intent: knowledge.bat-tu.cycles
+    template: knowledge-article
+    discipline: bat-tu
+    owner: content
+
+  - <<: *reserved_defaults
+    id: calculator.kinh-dich
+    path: /gieo-que-kinh-dich
+    intent: calculator.kinh-dich
+    template: calculator-landing
+    discipline: kinh-dich
+    owner: product-method
+
+  - <<: *reserved_defaults
+    id: commercial.kinh-dich
+    path: /luan-giai-kinh-dich
+    intent: commercial.kinh-dich
+    template: commercial-hub
+    discipline: kinh-dich
+    owner: product-growth
+
+  - <<: *reserved_defaults
+    id: knowledge.kinh-dich.definition
+    path: /kien-thuc/kinh-dich/kinh-dich-la-gi
+    intent: knowledge.kinh-dich.definition
+    template: knowledge-article
+    discipline: kinh-dich
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.kinh-dich.questions
+    path: /kien-thuc/kinh-dich/cach-dat-cau-hoi
+    intent: knowledge.kinh-dich.questions
+    template: knowledge-article
+    discipline: kinh-dich
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.kinh-dich.hexagrams
+    path: /kien-thuc/kinh-dich/que-chu-que-bien
+    intent: knowledge.kinh-dich.hexagrams
+    template: knowledge-article
+    discipline: kinh-dich
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.kinh-dich.changing-lines
+    path: /kien-thuc/kinh-dich/hao-dong
+    intent: knowledge.kinh-dich.changing-lines
+    template: knowledge-article
+    discipline: kinh-dich
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.kinh-dich.repeat-casting
+    path: /kien-thuc/kinh-dich/vi-sao-khong-nen-gieo-que-lap-lai
+    intent: knowledge.kinh-dich.repeat-casting
+    template: knowledge-article
+    discipline: kinh-dich
+    owner: content
+
+  - <<: *reserved_defaults
+    id: calculator.western-natal
+    path: /ban-do-sao
+    intent: calculator.western-natal
+    template: calculator-landing
+    discipline: western-natal
+    owner: product-method
+
+  - <<: *reserved_defaults
+    id: commercial.western-natal
+    path: /luan-giai-ban-do-sao
+    intent: commercial.western-natal
+    template: commercial-hub
+    discipline: western-natal
+    owner: product-growth
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.definition
+    path: /kien-thuc/chiem-tinh/ban-do-sao-la-gi
+    intent: knowledge.western-natal.definition
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.calculation
+    path: /kien-thuc/chiem-tinh/cach-lap-ban-do-sao
+    intent: knowledge.western-natal.calculation
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.planets
+    path: /kien-thuc/chiem-tinh/mat-troi-mat-trang-cung-moc
+    intent: knowledge.western-natal.planets
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.signs
+    path: /kien-thuc/chiem-tinh/12-cung-hoang-dao
+    intent: knowledge.western-natal.signs
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.houses
+    path: /kien-thuc/chiem-tinh/12-nha
+    intent: knowledge.western-natal.houses
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.planets-detail
+    path: /kien-thuc/chiem-tinh/cac-hanh-tinh
+    intent: knowledge.western-natal.planets-detail
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.aspects
+    path: /kien-thuc/chiem-tinh/goc-chieu
+    intent: knowledge.western-natal.aspects
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.western-natal.rising
+    path: /kien-thuc/chiem-tinh/gio-sinh-va-cung-moc
+    intent: knowledge.western-natal.rising
+    template: knowledge-article
+    discipline: western-natal
+    owner: content
+
+  - <<: *reserved_defaults
+    id: calculator.horoscope-signs
+    path: /cung-hoang-dao
+    intent: calculator.horoscope-signs
+    template: utility-landing
+    discipline: horoscope
+    owner: product-content
+
+  - <<: *public_defaults
+    id: calculator.horoscope-forecast
+    path: /du-bao-cung-hoang-dao
+    intent: calculator.horoscope-forecast
+    template: utility-landing
+    discipline: horoscope
+    owner: product-content
+
+  - <<: *reserved_defaults
+    id: calculator.numerology
+    path: /than-so-hoc
+    intent: calculator.numerology
+    template: calculator-landing
+    discipline: numerology
+    owner: product-content
+
+  - <<: *reserved_defaults
+    id: commercial.numerology
+    path: /luan-giai-than-so-hoc
+    intent: commercial.numerology
+    template: commercial-hub
+    discipline: numerology
+    owner: product-growth
+
+  - <<: *reserved_defaults
+    id: knowledge.numerology.definition
+    path: /kien-thuc/than-so-hoc/than-so-hoc-la-gi
+    intent: knowledge.numerology.definition
+    template: knowledge-article
+    discipline: numerology
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.numerology.life-path
+    path: /kien-thuc/than-so-hoc/cach-tinh-so-chu-dao
+    intent: knowledge.numerology.life-path
+    template: knowledge-article
+    discipline: numerology
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.numerology.soul-urge
+    path: /kien-thuc/than-so-hoc/chi-so-linh-hon
+    intent: knowledge.numerology.soul-urge
+    template: knowledge-article
+    discipline: numerology
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.numerology.destiny
+    path: /kien-thuc/than-so-hoc/chi-so-su-menh
+    intent: knowledge.numerology.destiny
+    template: knowledge-article
+    discipline: numerology
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.numerology.personal-year
+    path: /kien-thuc/than-so-hoc/nam-ca-nhan
+    intent: knowledge.numerology.personal-year
+    template: knowledge-article
+    discipline: numerology
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.numerology.pythagorean
+    path: /kien-thuc/than-so-hoc/pitago-va-cac-truong-phai
+    intent: knowledge.numerology.pythagorean
+    template: knowledge-article
+    discipline: numerology
+    owner: content
+
+  - <<: *reserved_defaults
+    id: calculator.tarot
+    path: /boi-bai/tarot
+    intent: calculator.tarot
+    template: utility-landing
+    discipline: tarot
+    owner: product-content
+
+  - <<: *reserved_defaults
+    id: knowledge.tarot.definition
+    path: /kien-thuc/tarot/tarot-la-gi
+    intent: knowledge.tarot.definition
+    template: knowledge-article
+    discipline: tarot
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.tarot.deck
+    path: /kien-thuc/tarot/bo-bai-78-la
+    intent: knowledge.tarot.deck
+    template: knowledge-article
+    discipline: tarot
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.tarot.major-arcana
+    path: /kien-thuc/tarot/major-arcana
+    intent: knowledge.tarot.major-arcana
+    template: knowledge-article
+    discipline: tarot
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.tarot.minor-arcana
+    path: /kien-thuc/tarot/minor-arcana
+    intent: knowledge.tarot.minor-arcana
+    template: knowledge-article
+    discipline: tarot
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.tarot.questions
+    path: /kien-thuc/tarot/cach-dat-cau-hoi
+    intent: knowledge.tarot.questions
+    template: knowledge-article
+    discipline: tarot
+    owner: content
+
+  - <<: *reserved_defaults
+    id: knowledge.tarot.repeat-draw
+    path: /kien-thuc/tarot/gioi-han-cua-viec-rut-bai-lap-lai
+    intent: knowledge.tarot.repeat-draw
+    template: knowledge-article
+    discipline: tarot
+    owner: content
+
+  - <<: *reserved_defaults
+    id: utility.zodiac
+    path: /12-con-giap
+    intent: utility.zodiac
+    template: utility-landing
+    discipline: zodiac
+    owner: product-content
+
+  - <<: *reserved_defaults
+    id: utility.lunar-calendar
+    path: /lich-am
+    intent: utility.lunar-calendar
+    template: utility-landing
+    discipline: lunar-calendar
+    owner: product-content
+
+  - <<: *reserved_defaults
+    id: utility.good-days
+    path: /ngay-tot
+    intent: utility.good-days
+    template: utility-landing
+    discipline: good-days
+    owner: product-content
+
+  - <<: *reserved_defaults
+    id: utility.feng-shui
+    path: /phong-thuy/huong-nha
+    intent: utility.feng-shui
+    template: calculator-landing
+    discipline: feng-shui
+    owner: product-content
+
+  - <<: *reserved_defaults
+    id: knowledge.feng-shui
+    path: /kien-thuc/phong-thuy/{slug}
+    intent: knowledge.feng-shui
+    template: knowledge-article
+    discipline: feng-shui
+    owner: content
+
+  - <<: *reserved_defaults
+    id: content.dream-symbols
+    path: /giai-ma-giac-mo
+    intent: content.dream-symbols
+    template: knowledge-landing
+    discipline: dream-symbols
+    owner: content
+
+  - <<: *reserved_defaults
+    id: comparison.tu-vi-bat-tu
+    path: /so-sanh/tu-vi-va-bat-tu
+    intent: comparison.tu-vi-bat-tu
+    template: comparison-page
+    owner: content
+
+  - <<: *reserved_defaults
+    id: comparison.tu-vi-western
+    path: /so-sanh/tu-vi-va-ban-do-sao
+    intent: comparison.tu-vi-western
+    template: comparison-page
+    owner: content
+
+  - <<: *reserved_defaults
+    id: comparison.tu-vi-numerology
+    path: /so-sanh/tu-vi-va-than-so-hoc
+    intent: comparison.tu-vi-numerology
+    template: comparison-page
+    owner: content
+
+  - <<: *reserved_defaults
+    id: comparison.western-numerology
+    path: /so-sanh/ban-do-sao-va-than-so-hoc
+    intent: comparison.western-numerology
+    template: comparison-page
+    owner: content
+
+  - <<: *private_defaults
+    id: wizard.tu-vi
+    path: /tao-la-so/tu-vi
+    intent: private.wizard.tu-vi
+    template: birth-profile-wizard
+    discipline: tu-vi
+
+  - <<: *private_defaults
+    id: private.chart
+    path: "/la-so/{opaque_id}"
+    intent: private.chart
+    template: chart-reader
+    discipline: tu-vi
+
+  - <<: *private_defaults
+    id: private.chart.topic
+    path: "/la-so/{opaque_id}/chon-luan-giai"
+    intent: private.chart.topic
+    template: report-topic-selector
+    discipline: tu-vi
+
+  - <<: *private_defaults
+    id: private.checkout
+    path: "/thanh-toan/{order_id}"
+    intent: private.checkout
+    template: checkout
+    discipline: tu-vi
+
+  - <<: *private_defaults
+    id: private.report
+    path: "/bao-cao/{opaque_id}"
+    intent: private.report
+    template: report-reader
+    discipline: tu-vi
+
+  - <<: *private_defaults
+    id: private.account
+    path: /tai-khoan
+    intent: private.account
+    template: account-dashboard
+
+  - <<: *private_defaults
+    id: private.account.profiles
+    path: /tai-khoan/ho-so-sinh
+    intent: private.account.profiles
+    template: account-birth-profiles
+
+  - <<: *private_defaults
+    id: private.account.reports
+    path: /tai-khoan/bao-cao
+    intent: private.account.reports
+    template: account-reports
+
+  - <<: *private_defaults
+    id: private.account.orders
+    path: /tai-khoan/don-hang
+    intent: private.account.orders
+    template: account-orders
+
+  - <<: *private_defaults
+    id: private.account.privacy
+    path: /tai-khoan/quyen-rieng-tu
+    intent: private.account.privacy
+    template: account-privacy
+
+  - <<: *archived_defaults
+    id: redirect.legacy-privacy
+    path: /bao-mat-du-lieu
+    intent: redirect.legacy-privacy
+    template: redirect
+    redirect: { disposition: "301", target: /chinh-sach-bao-mat }
+
+  - <<: *archived_defaults
+    id: redirect.horoscope
+    path: /horoscope
+    intent: redirect.horoscope
+    template: redirect
+    redirect: { disposition: "301", target: /du-bao-cung-hoang-dao }

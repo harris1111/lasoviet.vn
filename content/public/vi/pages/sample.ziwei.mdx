@@ -1,0 +1,60 @@
+---
+{
+  "version": 1,
+  "routeId": "sample-report.tu-vi",
+  "locale": "vi",
+  "contentType": "SampleReport",
+  "title": "Báo cáo mẫu Tử Vi",
+  "summary": "Xem cách một báo cáo Tử Vi trình bày dữ liệu, căn cứ, diễn giải và giới hạn tham khảo.",
+  "intent": "sample-report.tu-vi.vi.public",
+  "authorId": "report-reviewer",
+  "reviewerIds": [
+    "report-reviewer"
+  ],
+  "sourceIds": [
+    "report-system",
+    "identity-evidence-rules",
+    "fixture-manifest"
+  ],
+  "riskTags": [
+    "uncertainty_disclosure",
+    "sample_data"
+  ],
+  "status": "published",
+  "lastReviewed": "2026-09-01",
+  "relatedRouteIds": [
+    "calculator.tu-vi",
+    "knowledge.tu-vi"
+  ],
+  "limitations": "Nội dung chỉ dựa trên dữ liệu và giới hạn đã công bố trong repository; không phải dự báo chắc chắn hay tư vấn chuyên môn."
+}
+---
+# Báo cáo mẫu Tử Vi
+
+## Trạng thái mẫu
+
+Đây là mẫu ẩn danh ổn định, không phải báo cáo khách hàng. Mục đích là cho thấy cấu trúc báo cáo mà không gắn với một người thật, lời chứng thực hay kết quả cá nhân.
+
+## Phạm vi đầu vào
+
+Mẫu nhận BirthProfile đã chuẩn hóa với độ chính xác thời gian, provenance múi giờ, ruleSetId ziwei.default và biểu đồ có mười hai cung. Giờ chưa biết không đủ điều kiện; branch_only vẫn được hiển thị như limitation.
+
+## Quan sát và evidence
+
+Quan sát một: biểu đồ có soulPalaceId và trường cung tương ứng. Evidence key: ziwei.identity.life-palace. Quan sát hai: bodyPalaceId trỏ tới một cung đã ghi nhận. Evidence key: ziwei.identity.body-palace. Quan sát ba: transformations có mặt cùng provenance.ruleSetId. Evidence key: ziwei.identity.transformations.
+
+## Diễn giải có điều kiện
+
+Mức tin cậy là moderate. Các evidence item có thể hỗ trợ phản tư hoặc khám phá cách báo cáo được tổ chức; chúng không xác lập bản mệnh cố định, chẩn đoán, kết quả tài chính hay quan hệ.
+
+## Hành động quan sát được
+
+Kiểm tra precision và warnings đang hiển thị. Đối chiếu từng evidence key với factReferences. Ghi lại một câu hỏi để xem lại sau khi đọc phương pháp. Đây là hành động quan sát được, không phải lời hứa.
+
+## Giới hạn
+
+Mẫu không dùng dữ liệu khách hàng. Nó giữ các giới hạn đã ghi, gồm precision đầu vào, không có hiệu chỉnh giờ mặt trời thật và ranh giới giữa tính toán, evidence, diễn giải.
+
+## Tiếp tục
+
+[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi).

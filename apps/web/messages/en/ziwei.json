@@ -1,0 +1,20 @@
+{
+  "title": "Zi Wei chart",
+  "private": "Private chart",
+  "heroCopy": "The twelve palaces are calculated from your birth data. Each insight has evidence you can open and review.",
+  "evidence": {
+    "eyebrow": "Evidence",
+    "heading": "Read each insight within the chart's limits"
+  },
+  "topicLink": "Choose a reading topic",
+  "deletion": {
+    "title": "Privacy",
+    "description": "Delete anonymous chart data",
+    "begin": "Delete chart data",
+    "confirmation": "This immediately deletes your temporary birth profile and chart.",
+    "cancel": "Keep my data",
+    "confirm": "Confirm deletion",
+    "pending": "Deleting",
+    "error": "Your data could not be deleted right now. Please try again."
+  }
+}

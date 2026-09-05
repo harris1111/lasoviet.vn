@@ -1,0 +1,349 @@
+{
+  "app": {
+    "name": "Lá Số Việt",
+    "taglinePrefix": "Lập lá số.",
+    "taglineHighlight": "Hiểu vận mệnh."
+  },
+  "greeting": "Xin chào, {name}!",
+  "language": {
+    "label": "Ngôn ngữ",
+    "vietnamese": "Tiếng Việt",
+    "english": "English"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Một hồ sơ sinh · Đa tầng soi chiếu Đông – Tây",
+      "lead": "Nhập thời khắc sinh một lần — soi tỏ căn tính và đường đời qua Tử Vi, Bát Tự, Bản đồ sao và Thần Số Học.",
+      "copy": "Không thần bí hóa, không phán xét tương lai. Lá Số Việt chuyển hóa đồ hình cổ xưa thành lời giải thích tiếng Việt sáng rõ, minh bạch từng căn cứ — để bạn thấu hiểu chính mình và vững vàng trong mọi lựa chọn.",
+      "microcopy": "Miễn phí ngay lập tức · Riêng tư tuyệt đối · Không cần đăng ký tài khoản.",
+      "ctaPrimary": "Lập lá số miễn phí",
+      "ctaSecondary": "Xem bản luận giải mẫu",
+      "metaRoute": "Từ dữ liệu sinh đến bản đồ 12 cung",
+      "metaDetail": "Lá số đầy đủ được tính ở bước tiếp theo."
+    },
+    "form": {
+      "day": "Ngày",
+      "month": "Tháng",
+      "year": "Năm",
+      "hour": "Giờ sinh",
+      "unknownHour": "Chưa rõ giờ sinh",
+      "submit": "Lập lá số miễn phí",
+      "sample": "Xem báo cáo mẫu",
+      "note": "Không cần tài khoản để bắt đầu."
+    },
+    "trustStrip": {
+      "item1": {
+        "title": "Miễn phí khởi đầu",
+        "copy": "Xem tổng quan lá số trước khi cần trả phí."
+      },
+      "item2": {
+        "title": "Tường minh căn cứ",
+        "copy": "Mỗi nhận định gắn với dữ liệu và quy tắc công bố."
+      },
+      "item3": {
+        "title": "Riêng tư tuyệt đối",
+        "copy": "Lá số của bạn không hiển thị công khai."
+      },
+      "item4": {
+        "title": "Không ép gia hạn",
+        "copy": "Báo cáo là thanh toán một lần."
+      }
+    },
+    "problem": {
+      "eyebrow": "Khi bạn đi tìm câu trả lời",
+      "title": "Một câu hỏi có thể được nhìn từ nhiều hệ quy chiếu",
+      "lead": "Các nguồn tham khảo thường khác nhau về phạm vi, thuật ngữ và cách trình bày. Điều quan trọng là biết dữ liệu nào được dùng và nhận định được hình thành ra sao.",
+      "point1": {
+        "title": "Khác phạm vi",
+        "copy": "Mỗi hệ quy chiếu tập trung vào một cấu trúc và nhóm câu hỏi riêng."
+      },
+      "point2": {
+        "title": "Khác ngôn ngữ",
+        "copy": "Thuật ngữ cổ hoặc chuyên môn cần được diễn giải rõ trong bối cảnh hiện đại."
+      },
+      "point3": {
+        "title": "Khó đối chiếu",
+        "copy": "Một nhận định sẽ hữu ích hơn khi người đọc có thể xem dữ liệu và quy tắc liên quan."
+      },
+      "bridge": "Lá Số Việt bắt đầu với Tử Vi và tổ chức nội dung để bạn đọc đồ hình, mở căn cứ và tự chiêm nghiệm theo phạm vi được công bố."
+    },
+    "lenses": {
+      "eyebrow": "Hệ quy chiếu đa chiều",
+      "title": "Một hồ sơ sinh. Tử Vi hiện có, ba lăng kính đang được chuẩn bị.",
+      "lead": "Tử Vi là hệ quy chiếu đang hoạt động. Bát Tự, Bản đồ sao và Thần Số Học được hiển thị ở trạng thái sắp ra mắt, chưa có liên kết sử dụng.",
+      "tuVi": {
+        "title": "Tử Vi Đẩu Số",
+        "subtitle": "Đang khả dụng",
+        "copy": "Lập đồ hình 12 cung từ dữ liệu sinh thuộc phạm vi hỗ trợ, sau đó xem phần tổng quan và căn cứ liên quan.",
+        "action": "Xem lá số Tử Vi",
+        "status": "Khả dụng"
+      },
+      "batTu": {
+        "title": "Bát Tự / Tứ Trụ",
+        "subtitle": "Ngũ hành và bốn trụ",
+        "copy": "Một hệ quy chiếu dự kiến cho hồ sơ sinh trong giai đoạn mở rộng sản phẩm.",
+        "action": "Khám phá Bát Tự",
+        "status": "Sắp ra mắt"
+      },
+      "astrology": {
+        "title": "Bản Đồ Sao",
+        "subtitle": "Chiêm tinh phương Tây",
+        "copy": "Một hệ quy chiếu dự kiến để trình bày các vị trí thiên thể theo hồ sơ sinh.",
+        "action": "Khám phá Bản đồ sao",
+        "status": "Sắp ra mắt"
+      },
+      "numerology": {
+        "title": "Thần Số Học",
+        "subtitle": "Nhịp điệu đường đời",
+        "copy": "Một hệ quy chiếu dự kiến dựa trên ngày sinh và tên gọi.",
+        "action": "Khám phá Thần số học",
+        "status": "Sắp ra mắt"
+      }
+    },
+    "chatbotComparison": {
+      "eyebrow": "Một so sánh về quy trình",
+      "title": "Một cuộc trò chuyện và một quy trình lập lá số khác nhau thế nào?",
+      "point1": {
+        "title": "1. Dữ liệu đầu vào có phạm vi",
+        "copy": "Quy trình Tử Vi kiểm tra dữ liệu sinh cần thiết và thông báo khi chưa đủ điều kiện tính."
+      },
+      "point2": {
+        "title": "2. Tính toán tách khỏi diễn giải",
+        "copy": "Đồ hình Tử Vi được tạo trước; lớp ngôn ngữ chỉ tổ chức và diễn giải dữ liệu đã có."
+      },
+      "point3": {
+        "title": "3. Căn cứ nằm cạnh nhận định",
+        "copy": "Người đọc có thể mở phần dữ liệu, quy tắc và giới hạn liên quan thay vì chỉ nhận một đoạn trả lời."
+      },
+      "point4": {
+        "title": "4. Hồ sơ có kiểm soát dữ liệu",
+        "copy": "Lá số được giữ riêng tư theo mặc định và người dùng có các thao tác xem, sửa hoặc xóa dữ liệu phù hợp."
+      }
+    },
+    "categoryComparison": {
+      "eyebrow": "Góc nhìn đối chiếu",
+      "title": "Ba cách tiếp cận có thể khác nhau ở đâu?",
+      "criteria": "Tiêu chí",
+      "currentWeb": "Nội dung tham khảo rời rạc",
+      "traditional": "Trao đổi tư vấn",
+      "lasoviet": "Lá Số Việt hiện tại",
+      "row1": {
+        "criterion": "Quy trình",
+        "currentWeb": "Đọc từng bài hoặc công cụ riêng.",
+        "traditional": "Trao đổi theo phiên và bối cảnh của người tư vấn.",
+        "lasoviet": "Nhập dữ liệu sinh, lập lá số Tử Vi, rồi đọc phần giải thích."
+      },
+      "row2": {
+        "criterion": "Ngôn ngữ",
+        "currentWeb": "Cách dùng thuật ngữ tùy từng nguồn.",
+        "traditional": "Cách diễn đạt tùy cuộc trao đổi.",
+        "lasoviet": "Tiếng Việt rõ ràng, kèm giải thích thuật ngữ cần thiết."
+      },
+      "row3": {
+        "criterion": "Căn cứ",
+        "currentWeb": "Mức độ chi tiết tùy từng nội dung.",
+        "traditional": "Được giải thích trong cuộc trao đổi.",
+        "lasoviet": "Có thể mở căn cứ cạnh nhận định quan trọng."
+      },
+      "row4": {
+        "criterion": "Phạm vi",
+        "currentWeb": "Có thể bao gồm nhiều chủ đề riêng lẻ.",
+        "traditional": "Phụ thuộc nội dung của từng phiên.",
+        "lasoviet": "Tử Vi đang khả dụng; ba hệ quy chiếu khác đang được chuẩn bị."
+      },
+      "row5": {
+        "criterion": "Vai trò người đọc",
+        "currentWeb": "Tự tổng hợp từ các nguồn.",
+        "traditional": "Đặt câu hỏi và trao đổi trực tiếp.",
+        "lasoviet": "Tự đối chiếu đồ hình, căn cứ và giới hạn được nêu."
+      },
+      "row6": {
+        "criterion": "Dữ liệu & phí",
+        "currentWeb": "Tùy chính sách của từng nguồn.",
+        "traditional": "Tùy thỏa thuận của từng phiên.",
+        "lasoviet": "Riêng tư theo mặc định; giá của nội dung đang bán được hiển thị trước."
+      }
+    },
+    "aboutMethod": {
+      "eyebrow": "Về Lá Số Việt",
+      "title": "Từ dữ liệu sinh đến lời giải thích có căn cứ",
+      "lead": "Lá Số Việt tách rõ bước tiếp nhận dữ liệu, tính lá số Tử Vi và diễn giải để người đọc biết phần nào đến từ quy tắc, phần nào là lớp ngôn ngữ.",
+      "pillar1": {
+        "title": "Phạm vi đầu vào được công bố",
+        "copy": "Ngày, giờ và nơi sinh được kiểm tra theo điều kiện hỗ trợ của luồng Tử Vi hiện tại."
+      },
+      "pillar2": {
+        "title": "Luồng tính Tử Vi riêng",
+        "copy": "Dữ liệu đủ điều kiện được chuyển thành cấu trúc 12 cung trước khi tạo phần giải thích."
+      },
+      "pillar3": {
+        "title": "Diễn giải có giới hạn",
+        "copy": "AI hỗ trợ tổ chức ngôn ngữ trong phạm vi dữ liệu và căn cứ được cung cấp, không thay thế bước tính lá số."
+      }
+    },
+    "process": {
+      "eyebrow": "Cách hoạt động",
+      "one": {
+        "title": "Nhập dữ liệu sinh",
+        "copy": "Bạn có thể lưu dữ liệu sinh khi chưa rõ giờ, nhưng chưa thể lập lá số Tử Vi cho đến khi có giờ sinh thuộc phạm vi hỗ trợ."
+      },
+      "two": {
+        "title": "Xem lá số miễn phí",
+        "copy": "Toàn bộ sơ đồ, ba điểm nổi bật và một căn cứ có thể mở ra xem ngay."
+      },
+      "three": {
+        "title": "Chọn chủ đề luận giải sâu",
+        "copy": "Xem mục lục, báo cáo mẫu và giá trước khi quyết định - nếu bạn muốn đi sâu hơn."
+      },
+      "meta": {
+        "calendar": "Ngày sinh",
+        "clock": "Giờ sinh",
+        "place": "Nơi sinh"
+      },
+      "caption1": "Bảng Can-Chi dùng để quy đổi ngày, giờ sinh",
+      "caption2": "Dữ liệu được an định vào cấu trúc 12 cung",
+      "caption3": "Chủ đề Bản mệnh và Tiềm năng được mở theo nhu cầu của bạn"
+    },
+    "freeValue": {
+      "eyebrow": "Giá trị khởi đầu",
+      "title": "Xem phần giá trị miễn phí trước khi cân nhắc chi phí",
+      "lead": "Luồng hiện tại cung cấp đồ hình Tử Vi, ba điểm nổi bật và một căn cứ có thể mở xem.",
+      "item1": {
+        "title": "Đồ hình lá số Tử Vi",
+        "copy": "Cấu trúc 12 cung được dựng từ dữ liệu sinh thuộc phạm vi hỗ trợ."
+      },
+      "item2": {
+        "title": "Ba điểm nổi bật",
+        "copy": "Các nhận định ngắn giúp bạn bắt đầu đọc cấu trúc bản mệnh."
+      },
+      "item3": {
+        "title": "Một căn cứ mở được",
+        "copy": "Phần giải thích cho biết dữ liệu, quy tắc và giới hạn liên quan."
+      },
+      "imageAlt": "Lá số Tử Vi với ba cung được đánh dấu và nối tới các thẻ căn cứ",
+      "note": "Ghi chú",
+      "insight1": {
+        "title": "Cung Mệnh cho thấy xu hướng chủ động trong giao tiếp.",
+        "copy": "Rõ hơn ở các giai đoạn cần thương lượng hoặc trình bày ý tưởng."
+      },
+      "insight2": {
+        "title": "Giai đoạn này có thể tăng áp lực về vai trò trong công việc.",
+        "copy": "Một điểm căng thẳng nên quan sát, không phải một cảnh báo chắc chắn."
+      },
+      "insight3": {
+        "title": "Một điểm đáng theo dõi: nhịp độ tài chính giữa năm.",
+        "copy": "Gợi ý để chuẩn bị, không phải một kết luận về được hay mất."
+      }
+    },
+    "evidence": {
+      "eyebrow": "Minh bạch",
+      "title": "Căn cứ nằm ngay cạnh nhận định",
+      "copy": "Nhận định quan trọng có thể mở ra để xem dữ liệu, quy tắc và giới hạn liên quan ngay tại chỗ.",
+      "claim": "Giai đoạn này có thể tăng áp lực về vai trò trong công việc.",
+      "action": "Vì sao có nhận định này?",
+      "source": "Căn cứ được sử dụng",
+      "sourceCopy": "Vận hạn tại Cung Quan Lộc, đối chiếu với chính tinh thủ mệnh.",
+      "confidence": "Mức độ tin cậy",
+      "confidenceCopy": "Trung bình - nhạy với giờ sinh.",
+      "observe": "Điều bạn có thể quan sát",
+      "observeCopy": "Đối chiếu với khối lượng công việc hoặc trách nhiệm mới trong 1-2 tháng tới."
+    },
+    "valueLadder": {
+      "eyebrow": "Chiều sâu luận giải",
+      "title": "Một chủ đề đang khả dụng, các tầng tiếp theo đang được chuẩn bị",
+      "tier1": {
+        "tag": "CHƯƠNG KHAI MỞ",
+        "title": "Bản mệnh & Tiềm năng",
+        "price": "79.000 ₫",
+        "once": "Một lần",
+        "copy": "Bản luận giải theo chủ đề Bản mệnh & Tiềm năng, với mục lục và bản mẫu để xem trước.",
+        "sampleLink": "Xem bản mẫu",
+        "status": "Khả dụng"
+      },
+      "tier2": {
+        "tag": "HỒ SƠ TOÀN CẢNH",
+        "title": "Bốn phương diện cuộc đời",
+        "once": "Một lần",
+        "copy": "Tầng nội dung mở rộng đang được chuẩn bị và chưa mở bán.",
+        "sampleLink": "Xem bản mẫu",
+        "status": "Sắp ra mắt"
+      },
+      "tier3": {
+        "tag": "MỆNH THƯ HÀNH TRÌNH",
+        "title": "Cẩm nang đồng hành dài hạn",
+        "once": "Một lần",
+        "copy": "Tầng nội dung dài hạn đang được chuẩn bị và chưa mở bán.",
+        "sampleLink": "Xem bản mẫu",
+        "status": "Sắp ra mắt"
+      },
+      "action": "Khám phá bản luận giải đang khả dụng",
+      "microcopy": "Mục lục, nội dung mẫu và giá được hiển thị trước khi quyết định."
+    },
+    "trustSpecs": {
+      "eyebrow": "Điểm tựa niềm tin",
+      "title": "Năm thông tin về phạm vi và cách vận hành hiện tại",
+      "spec1": {
+        "title": "Phạm vi dữ liệu sinh",
+        "copy": "Luồng Tử Vi cần dữ liệu sinh thuộc các điều kiện đầu vào được hỗ trợ; khi thiếu giờ sinh phù hợp, hệ thống chưa tính lá số."
+      },
+      "spec2": {
+        "title": "Luồng tính Tử Vi hiện tại",
+        "copy": "Dữ liệu đủ điều kiện được chuyển thành đồ hình 12 cung trước khi tạo nội dung diễn giải."
+      },
+      "spec3": {
+        "title": "Căn cứ hiển thị",
+        "copy": "Nhận định quan trọng có thể đi kèm dữ liệu, quy tắc và mức độ nhạy với đầu vào."
+      },
+      "spec4": {
+        "title": "Vai trò AI có giới hạn",
+        "copy": "AI hỗ trợ tổ chức và diễn giải trong phạm vi căn cứ đã cấp, không thay thế dữ liệu và quy tắc tính."
+      },
+      "spec5": {
+        "title": "Riêng tư và kiểm soát dữ liệu",
+        "copy": "Lá số được giữ riêng tư theo mặc định; người dùng có các thao tác xem, sửa và xóa dữ liệu theo luồng hiện có."
+      }
+    },
+    "knowledge": {
+      "eyebrow": "Thư viện tri thức",
+      "title": "Bắt đầu từ đây",
+      "chart": {
+        "title": "Lá số Tử Vi là gì?",
+        "copy": "Định nghĩa, cấu trúc 12 cung và cách một lá số được dựng lên."
+      },
+      "create": {
+        "title": "Cách lập lá số Tử Vi",
+        "copy": "Quy trình tính toán từ ngày, giờ, nơi sinh đến vị trí các sao."
+      },
+      "read": {
+        "title": "Cách đọc lá số Tử Vi",
+        "copy": "Bắt đầu từ Cung Mệnh, sau đó mở rộng sang các cung liên quan."
+      }
+    },
+    "faq": {
+      "eyebrow": "Câu hỏi thường gặp",
+      "ai": {
+        "question": "Lá Số Việt có dùng AI không?",
+        "answer": "Có. AI hỗ trợ tổ chức và diễn giải trong giới hạn căn cứ đã cấp - không thay thế dữ liệu và quy tắc tính toán."
+      },
+      "time": {
+        "question": "Tôi không nhớ chính xác giờ sinh thì sao?",
+        "answer": "Bạn vẫn có thể lưu dữ liệu sinh và bổ sung giờ sau. Lá số Tử Vi chỉ được tính khi có giờ sinh chính xác thuộc phạm vi đủ điều kiện."
+      },
+      "payment": {
+        "question": "Báo cáo trả phí có tự động gia hạn không?",
+        "answer": "Không. Giá hiển thị là giá thanh toán một lần, không tự động gia hạn."
+      },
+      "privacy": {
+        "question": "Dữ liệu sinh của tôi được dùng như thế nào?",
+        "answer": "Trong luồng hiện tại, dữ liệu sinh được dùng để lập lá số và tạo phần diễn giải. Lá số riêng tư theo mặc định; bạn có thể xem, sửa hoặc xóa dữ liệu bằng các kiểm soát được cung cấp."
+      }
+    },
+    "finalCta": {
+      "title": "Lắng lại một chút, để hiểu thêm về chính mình",
+      "copy": "Bắt đầu với lá số Tử Vi miễn phí, đọc phần tổng quan và mở căn cứ khi cần đối chiếu.",
+      "ctaPrimary": "Lập lá số miễn phí ngay",
+      "ctaSecondary": "Xem bản luận giải mẫu",
+      "closing": "Hiểu mình để lựa chọn chủ động hơn."
+    }
+  }
+}

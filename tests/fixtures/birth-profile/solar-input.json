@@ -1,0 +1,16 @@
+{
+  "input": {
+    "version": 1,
+    "calendar": { "kind": "solar", "date": "2000-02-29" },
+    "time": { "precision": "exact_minute", "localTime": "23:30" },
+    "timezone": { "offsetMinutes": 0 },
+    "consentVersion": "2026-09-01"
+  },
+  "expected": {
+    "normalized": {
+      "normalizedCalendar": { "kind": "solar", "date": "2000-02-29" },
+      "utcInstant": "2000-02-29T23:30:00.000Z"
+    },
+    "eligibility": { "ok": true, "value": 0 }
+  }
+}
