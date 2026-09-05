@@ -528,17 +528,67 @@ describe("SePay payment transaction", () => {
     await database.$client.end();
   }, 120_000);
 
+  it("rejects delayed payment on original invoice after order expiry and reopen without mutating pending attempt", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+    const initialRepo = createDatabaseCommerceRepository(database, {
+      now: () => t0,
+      orderTtlSeconds: 900,
+    });
+    const createResult = await initialRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(createResult.ok).toBe(true);
+    if (!createResult.ok) throw new Error("ORDER_CREATE_FAILED");
+    const orderId = createResult.value.id;
+    const originalInvoice = createResult.value.invoiceNumber;
+
+    const tReopen = new Date("2026-09-05T10:20:00.000Z");
+    const reopenRepo = createDatabaseCommerceRepository(database, {
+      now: () => tReopen,
+      orderTtlSeconds: 900,
+    });
+    const reopenResult = await reopenRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
+    expect(reopenResult.ok).toBe(true);
+    if (!reopenResult.ok) throw new Error("REOPEN_FAILED");
+    expect(reopenResult.value.id).toBe(orderId);
+    expect(reopenResult.value.invoiceNumber).not.toBe(originalInvoice);
+
+    // Deliver delayed payment event using original invoice inside the reopened window
+    const delayedPaidResult = await reopenRepo.recordPaid({
+      invoiceNumber: originalInvoice,
+      providerEventId: "delayed-event-" + randomUUID(),
+      amount: createResult.value.amount,
+      currency: createResult.value.currency,
+      traceId: "delayed-trace",
+    });
+    expect(delayedPaidResult.ok).toBe(false);
+
+    // Proves no payment event, entitlement, report reservation, or outbox event is created
+    expect((await database.select().from(commercePaymentEvents)).filter((e) => e.orderId === orderId)).toEqual([]);
+    expect((await database.select().from(commerceEntitlements)).filter((e) => e.orderId === orderId)).toEqual([]);
+    expect((await database.select().from(reportReservations)).filter((r) => r.chartVersionId === versionId)).toEqual([]);
+    expect((await database.select().from(outbox)).filter((e) => e.aggregateId === orderId)).toEqual([]);
+
+    // Proves the reopened order remains pending with the new invoice
+    const persisted = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(persisted?.status).toBe("pending");
+    expect(persisted?.invoiceNumber).toBe(reopenResult.value.invoiceNumber);
+    expect(persisted?.paidAt).toBeNull();
+
+    await database.$client.end();
+  }, 120_000);
+
   it("reopens expired and failed orders on createOrder but never reopens paid or refunded orders", async () => {
     const database = createDatabase(databaseUrl);
     const { actor, chartId, versionId } = await createChartFixture(database);
     const orderId = randomUUID();
-    const invoiceNumber = "LSV-reopen-" + orderId;
+    const initialInvoiceNumber = "LSV-reopen-" + orderId;
     const t0 = new Date("2026-09-05T10:00:00.000Z");
 
     // 1. Expired order is reopened
     await database.insert(commerceOrders).values({
       id: orderId,
-      invoiceNumber,
+      invoiceNumber: initialInvoiceNumber,
       chartId,
       chartVersionId: versionId,
       ownerId: actor.userId,
@@ -561,13 +611,17 @@ describe("SePay payment transaction", () => {
       reused: true,
       value: {
         id: orderId,
-        invoiceNumber,
         status: "pending",
         paidAt: null,
       },
     });
+    if (!reopenExpiredResult.ok) throw new Error("REOPEN_EXPIRED_FAILED");
+    expect(reopenExpiredResult.value.invoiceNumber).not.toBe(initialInvoiceNumber);
+    expect(reopenExpiredResult.value.invoiceNumber).toMatch(/^LSV-[0-9a-f-]{36}$/);
+
     const reopenedExpiredOrder = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
     expect(reopenedExpiredOrder?.status).toBe("pending");
+    expect(reopenedExpiredOrder?.invoiceNumber).toBe(reopenExpiredResult.value.invoiceNumber);
     expect(reopenedExpiredOrder?.paidAt).toBeNull();
     expect(reopenedExpiredOrder?.createdAt.getTime()).toBe(tReopenExpired.getTime());
 
@@ -588,8 +642,14 @@ describe("SePay payment transaction", () => {
         paidAt: null,
       },
     });
+    if (!reopenFailedResult.ok) throw new Error("REOPEN_FAILED_FAILED");
+    expect(reopenFailedResult.value.invoiceNumber).not.toBe(initialInvoiceNumber);
+    expect(reopenFailedResult.value.invoiceNumber).not.toBe(reopenExpiredResult.value.invoiceNumber);
+    expect(reopenFailedResult.value.invoiceNumber).toMatch(/^LSV-[0-9a-f-]{36}$/);
+
     const reopenedFailedOrder = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
     expect(reopenedFailedOrder?.status).toBe("pending");
+    expect(reopenedFailedOrder?.invoiceNumber).toBe(reopenFailedResult.value.invoiceNumber);
     expect(reopenedFailedOrder?.createdAt.getTime()).toBe(tReopenFailed.getTime());
 
     // 3. Paid order is never reopened

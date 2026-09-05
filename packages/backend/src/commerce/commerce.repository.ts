@@ -127,6 +127,7 @@ export function createDatabaseCommerceRepository(
         ) {
           const [reopened] = await database.update(commerceOrders)
             .set({
+              invoiceNumber: "LSV-" + randomUUID(),
               status: "pending",
               paidAt: null,
               createdAt: currentNow,
@@ -177,6 +178,7 @@ export function createDatabaseCommerceRepository(
       ) {
         const [reopened] = await database.update(commerceOrders)
           .set({
+            invoiceNumber: "LSV-" + randomUUID(),
             status: "pending",
             paidAt: null,
             createdAt: currentNow,

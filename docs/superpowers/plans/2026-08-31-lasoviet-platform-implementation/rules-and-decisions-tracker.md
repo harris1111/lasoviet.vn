@@ -255,6 +255,12 @@ Date: 2026-09-05
 - `recordPaid` remains the single atomic payment-event, entitlement,
   report-reservation, and `report.generation.requested.v1` handoff across all
   payment paths.
+- Reopened expired and failed orders retain their stable order ID but receive a
+  fresh transfer description/invoice (`LSV-<uuid>`) so stale attempt
+  references cannot confirm the reopened order.
+- Public webhook bodies at `/api/webhooks/sepay` are capped at 64 KiB (65,536
+  bytes) before private API forwarding; oversized or malformed declared
+  content lengths fail closed with 413 or 400 without private API forwarding.
 - Task 5 review evidence: commit `9543450`, 19/19 focused tests, web typecheck,
   i18n parity, scoped ESLint, and diff check passed; Terra high reported spec
   PASS and quality APPROVED with no findings.

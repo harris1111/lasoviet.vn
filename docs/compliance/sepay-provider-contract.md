@@ -50,6 +50,12 @@ instructions for the authenticated owner without exposing provider secrets.
 - Both webhook flows hand off to `recordPaid`, which performs atomic payment
   event persistence, entitlement creation, report reservation, and outbox event
   dispatch (`report.generation.requested.v1`).
+- Reopening expired or failed orders retains the stable order ID but issues a
+  fresh transfer description/invoice (`LSV-<uuid>`). Stale attempt references
+  cannot confirm the reopened order.
+- Public webhook bodies at `/api/webhooks/sepay` are capped at 64 KiB (65,536
+  bytes) before private API forwarding; oversized or malformed declared content
+  lengths fail closed with 413 or 400 without calling the private API.
 
 ## Hosted checkout form
 
