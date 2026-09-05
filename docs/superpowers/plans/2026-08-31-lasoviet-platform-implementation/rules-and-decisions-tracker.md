@@ -251,7 +251,7 @@ Date: 2026-09-05
   immediately upon visibility, and terminates on `expired`, `failed`, or
   `refunded`.
 - When order status becomes `paid` with a valid `reportId`, checkout navigates to
-  the localized private report route (`/[locale]/bao-cao/[reportId]`).
+  the localized private report route: VI `/bao-cao/<encoded reportId>` and EN `/en/bao-cao/<encoded reportId>`.
 - `recordPaid` remains the single atomic payment-event, entitlement,
   report-reservation, and `report.generation.requested.v1` handoff across all
   payment paths.

@@ -2,12 +2,12 @@
 
 import { redirect } from "next/navigation";
 
-import { privateApiClient } from "../../api/private-api-client.js";
+import { privateApiClient } from "../../api/private-api-client";
 import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
-} from "../../auth/resolve-current-actor.js";
-import { parseCheckoutStatus } from "./checkout-status.js";
+} from "../../auth/resolve-current-actor";
+import { parseCheckoutStatus } from "./checkout-status";
 
 export async function createCheckoutOrder(chartId: string, locale: string) {
   if (locale !== "vi" && locale !== "en") throw new Error("CHECKOUT_LOCALE_INVALID");

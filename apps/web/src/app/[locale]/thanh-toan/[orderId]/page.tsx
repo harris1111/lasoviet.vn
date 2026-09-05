@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { privateApiClient } from "../../../../api/private-api-client.js";
+import { privateApiClient } from "../../../../api/private-api-client";
 import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
-} from "../../../../auth/resolve-current-actor.js";
-import { safeParseCheckoutStatus } from "../../../../features/commerce/checkout-status.js";
-import { VietQrCheckout } from "../../../../features/commerce/vietqr-checkout.js";
+} from "../../../../auth/resolve-current-actor";
+import { safeParseCheckoutStatus } from "../../../../features/commerce/checkout-status";
+import { VietQrCheckout } from "../../../../features/commerce/vietqr-checkout";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

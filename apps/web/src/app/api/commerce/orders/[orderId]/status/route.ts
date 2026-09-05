@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { privateApiClient, PrivateApiClientError } from "../../../../../../api/private-api-client.js";
+import { privateApiClient, PrivateApiClientError } from "../../../../../../api/private-api-client";
 import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
-} from "../../../../../../auth/resolve-current-actor.js";
-import { type CheckoutStatus, safeParseCheckoutStatus } from "../../../../../../features/commerce/checkout-status.js";
+} from "../../../../../../auth/resolve-current-actor";
+import { type CheckoutStatus, safeParseCheckoutStatus } from "../../../../../../features/commerce/checkout-status";
 
 const NO_STORE_HEADERS = {
   "cache-control": "no-store",

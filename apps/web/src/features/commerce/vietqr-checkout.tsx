@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { Icon } from "../../components/icon.js";
+import { Icon } from "../../components/icon";
 import {
   parseCheckoutStatus,
   type CheckoutStatus,
-} from "./checkout-status.js";
+} from "./checkout-status";
 
 const POLL_INTERVAL_MS = 2_500;
 
