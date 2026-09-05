@@ -239,7 +239,7 @@ export function SiteHeader({
           ),
           React.createElement(
             Link,
-            { className: "button button-small", href: route(locale, "/tu-vi") },
+            { className: "button button-small", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
             isVietnamese ? "Lập lá số Tử Vi" : "Build Zi Wei chart",
           ),
           React.createElement(
@@ -279,7 +279,7 @@ export function SiteHeader({
                   ),
               React.createElement(
                 Link,
-                { className: "button", href: route(locale, "/tu-vi") },
+                { className: "button", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
                 isVietnamese ? "Lập lá số Tử Vi" : "Build Zi Wei chart",
               ),
             ),

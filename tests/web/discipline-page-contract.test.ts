@@ -92,4 +92,35 @@ describe('discipline page contract', () => {
       { label: 'Free tools', href: '/en/cong-cu-mien-phi', active: false },
     ]);
   });
+  it("routes default CTA to the chart form and discipline variant CTA to /tu-vi", () => {
+    function extractCtaHrefs(element: any): string[] {
+      const hrefs: string[] = [];
+      function walk(node: any) {
+        if (!node || typeof node !== "object") return;
+        if (node.props?.className?.includes("button") && typeof node.props?.href === "string") {
+          hrefs.push(node.props.href);
+        }
+        if (node.props?.children) {
+          const children = Array.isArray(node.props.children)
+            ? node.props.children
+            : [node.props.children];
+          children.forEach(walk);
+        }
+      }
+      walk(element);
+      return hrefs;
+    }
+
+    const defaultVi = SiteHeader({ locale: "vi" });
+    expect(extractCtaHrefs(defaultVi)).toEqual(["/tao-la-so/tu-vi", "/tao-la-so/tu-vi"]);
+
+    const defaultEn = SiteHeader({ locale: "en" });
+    expect(extractCtaHrefs(defaultEn)).toEqual(["/en/tao-la-so/tu-vi", "/en/tao-la-so/tu-vi"]);
+
+    const disciplineVi = SiteHeader({ locale: "vi", variant: "discipline" });
+    expect(extractCtaHrefs(disciplineVi)).toEqual(["/tu-vi", "/tu-vi"]);
+
+    const disciplineEn = SiteHeader({ locale: "en", variant: "discipline" });
+    expect(extractCtaHrefs(disciplineEn)).toEqual(["/en/tu-vi", "/en/tu-vi"]);
+  });
 });
