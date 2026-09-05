@@ -1,0 +1,267 @@
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
+
+import { CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER } from "@lasoviet/contracts";
+
+import { PrivateApiClientError } from "../../api/private-api-client";
+import { VerifiedAccountResolutionError } from "../../auth/resolve-current-actor";
+import { createReportLoader } from "./load-report";
+
+const mockActor = {
+  kind: "account" as const,
+  userId: "user-1",
+  sessionId: "session-1",
+  requestId: "req-1",
+};
+
+const sampleSections = [
+  "personal_summary",
+  "data_and_method",
+  "primary_evidence",
+  "strengths_and_resources",
+  "tensions_and_blind_spots",
+  "identity_analysis",
+  "cycles_and_timing",
+  "within_control",
+  "reflection_questions",
+  "action_summary",
+  "limitations_and_disclaimer",
+].map((id, index) => ({
+  id: id as (typeof import("@lasoviet/contracts").IDENTITY_REPORT_SECTION_IDS)[number],
+  title: `Mục ${index + 1}`,
+  narrative: `Nội dung mục ${index + 1}`,
+  claims: id === "data_and_method" || id === "reflection_questions" || id === "action_summary" || id === "limitations_and_disclaimer"
+    ? []
+    : [{
+      id: `claim-${index + 1}`,
+      text: `Nhận định ${index + 1}`,
+      evidenceIds: ["ziwei.identity.life-palace"],
+      interpretationBoundCode: "reflective_identity_only" as const,
+      confidence: "moderate" as const,
+      limitations: ["Phụ thuộc vào giờ sinh."],
+      suggestedActions: [{
+        category: "reflect" as const,
+        text: "Quan sát bản thân.",
+      }],
+    }],
+}));
+
+const sampleEvidence = [
+  {
+    id: "ziwei.identity.life-palace",
+    factReferences: ["soulPalaceId"],
+    confidence: "high" as const,
+    interpretationBounds: ["Giới hạn diễn giải"],
+    interpretationBoundCodes: ["reflective_identity_only" as const],
+    limitations: ["TIME_BRANCH_ONLY"],
+    riskTags: ["identity" as const],
+    allowedActionCategories: ["reflect" as const],
+  },
+];
+
+const validPendingView = {
+  version: 1 as const,
+  state: "pending" as const,
+  reportId: "rep-1",
+  reportVersionId: "rep-ver-1",
+  locale: "vi" as const,
+  sku: "ZIWEI-IDENTITY-P0" as const,
+  fulfillmentStatus: "generating" as const,
+  refreshAfterMs: 5000 as const,
+};
+
+const validReadyView = {
+  version: 1 as const,
+  state: "ready" as const,
+  reportId: "rep-2",
+  reportVersionId: "rep-ver-2",
+  locale: "vi" as const,
+  sku: "ZIWEI-IDENTITY-P0" as const,
+  fulfillmentStatus: "complete" as const,
+  content: {
+    sections: sampleSections,
+    reflectionQuestions: ["Câu hỏi 1", "Câu hỏi 2", "Câu hỏi 3"],
+    summaryActions: ["Hành động 1"],
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  },
+  evidence: sampleEvidence,
+  lineage: {
+    supersedesReportVersionId: null,
+  },
+  provenance: {
+    method: "ziwei" as const,
+    ruleVersion: "1.0",
+    evidenceVersion: 1,
+    knowledgeVersion: "1.0",
+    templateVersion: "identity-report-html.v1",
+    createdAt: "2026-09-05T00:00:00.000+07:00",
+  },
+};
+
+const validFailedView = {
+  version: 1 as const,
+  state: "failed" as const,
+  reportId: "rep-3",
+  reportVersionId: "rep-ver-3",
+  locale: "vi" as const,
+  sku: "ZIWEI-IDENTITY-P0" as const,
+  fulfillmentStatus: "terminal_failure" as const,
+};
+
+describe("createReportLoader", () => {
+  it("maps VerifiedAccountResolutionError to REPORT_AUTH_REQUIRED", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockRejectedValue(
+      new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"),
+    );
+    const privateApiClient = vi.fn();
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    const result = await loader.loadReport("rep-1");
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_AUTH_REQUIRED",
+        messageKey: "reports.auth_required",
+        retryable: false,
+      },
+    });
+    expect(privateApiClient).not.toHaveBeenCalled();
+  });
+
+  it("propagates unexpected actor resolution errors", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockRejectedValue(new Error("Database disconnected"));
+    const privateApiClient = vi.fn();
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-1")).rejects.toThrow("Database disconnected");
+  });
+
+  it("loads report through privateApiClient for verified account actor", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: validPendingView,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    const result = await loader.loadReport("rep-test/1");
+    expect(privateApiClient).toHaveBeenCalledWith(mockActor, mockActor.requestId);
+    expect(request).toHaveBeenCalledWith("/reports/rep-test%2F1");
+    expect(result).toEqual({
+      ok: true,
+      value: validPendingView,
+    });
+  });
+
+  it("handles outward REPORT_NOT_FOUND in response envelope", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: false,
+      error: {
+        code: "REPORT_NOT_FOUND",
+        messageKey: "reports.report_not_found",
+        retryable: false,
+      },
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    const result = await loader.loadReport("rep-missing");
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_NOT_FOUND",
+        messageKey: "reports.report_not_found",
+        retryable: false,
+      },
+    });
+  });
+
+  it("handles PrivateApiClientError with code REPORT_NOT_FOUND", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockRejectedValue(
+      new PrivateApiClientError("REPORT_NOT_FOUND", 404),
+    );
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    const result = await loader.loadReport("rep-missing");
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_NOT_FOUND",
+        messageKey: "reports.report_not_found",
+        retryable: false,
+      },
+    });
+  });
+
+  it("loads ready report view and validates contract", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: validReadyView,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    const result = await loader.loadReport("rep-ready");
+    expect(result).toEqual({
+      ok: true,
+      value: validReadyView,
+    });
+  });
+
+  it("loads failed report view and validates contract", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: validFailedView,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    const result = await loader.loadReport("rep-failed");
+    expect(result).toEqual({
+      ok: true,
+      value: validFailedView,
+    });
+  });
+
+  it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) when payload fails schema validation", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        ...validReadyView,
+        extraSecretField: "leaked_secret",
+      },
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-invalid")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
+  });
+
+  it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) on unknown error code", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: false,
+      error: {
+        code: "UNKNOWN_INTERNAL_ERROR",
+        messageKey: "some.key",
+        retryable: false,
+      },
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-unknown-err")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
+  });
+});

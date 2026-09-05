@@ -9,6 +9,23 @@ import {
 } from "../../apps/web/src/seo/sitemap-registry";
 
 describe("admin private route state", () => {
+  it("registers private.report as a private live_noindex route outside every sitemap", () => {
+    const reportRoute = routeRegistry.find((route) => route.id === "private.report");
+    expect(reportRoute).toMatchObject({
+      path: "/bao-cao/{opaque_id}",
+      status: "live_noindex",
+      private: true,
+      sitemap: false,
+      robots: "noindex,nofollow",
+    });
+    expect(getSitemapIndexEntries().map((entry) => entry.url)).not.toContain(
+      "https://lasoviet.vn/bao-cao",
+    );
+    expect(getSitemapIndexEntries().map((entry) => entry.url)).not.toContain(
+      "https://lasoviet.vn/en/bao-cao",
+    );
+  });
+
   it("registers checkout as a private live_noindex route outside every sitemap", () => {
     const checkout = routeRegistry.find((route) => route.id === "private.checkout");
     expect(checkout).toMatchObject({
@@ -19,6 +36,7 @@ describe("admin private route state", () => {
       robots: "noindex,nofollow",
     });
   });
+
   it("registers implemented admin routes as private live_noindex and excludes them from every sitemap", () => {
     const adminRoute = routeRegistry.find((route) => route.id === "admin.overview");
 
@@ -52,5 +70,6 @@ describe("admin private route state", () => {
     );
 
     expect(header).not.toContain('"/admin"');
+    expect(header).not.toContain('"/bao-cao"');
   });
 });

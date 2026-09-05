@@ -298,3 +298,20 @@ export type {
   RetrieveKnowledgeQuery,
   VectorRetrievalDependency,
 } from "./knowledge/knowledge-retrieval.service.js";
+
+export {
+  createDatabaseReportQueryRepository,
+} from "./reports/report-query.repository.js";
+export type {
+  AuthorizedReportQueryRecord,
+  ReportQueryRepository,
+} from "./reports/report-query.repository.js";
+
+export {
+  createReportQueryService,
+  ReportQueryDataError,
+} from "./reports/report-query.service.js";
+export type {
+  ReportQueryError,
+  ReportQueryService,
+} from "./reports/report-query.service.js";

@@ -266,3 +266,23 @@ export type {
   ReportQueueJobStatus,
   ReportStatus,
 } from "./jobs.js";
+
+export {
+  REPORT_VIEW_REFRESH_MS,
+  REPORT_PENDING_STATUSES,
+  REPORT_READY_STATUSES,
+  ReportPublicContentV1Schema,
+  ReportSafeProvenanceV1Schema,
+  ReportPendingViewV1Schema,
+  ReportReadyViewV1Schema,
+  ReportFailedViewV1Schema,
+  ReportViewV1Schema,
+} from "./identity-report-v1.js";
+export type {
+  ReportPublicContentV1,
+  ReportSafeProvenanceV1,
+  ReportPendingViewV1,
+  ReportReadyViewV1,
+  ReportFailedViewV1,
+  ReportViewV1,
+} from "./identity-report-v1.js";
