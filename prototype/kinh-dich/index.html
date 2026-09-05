@@ -379,7 +379,7 @@ class Component extends DCLogic {
 
     const methodRows = [
       { label: 'Phương pháp gieo quẻ', value: 'Gieo quẻ ảo theo phương pháp cổ điển (tương đương gieo 3 đồng tiền 6 lần) — quy tắc chính xác sẽ công bố trước khi ra mắt.' },
-      { label: 'Giới hạn lượt gieo', value: 'Dự kiến giới hạn theo câu hỏi và có thời gian cooldown, tránh gieo lặp lại để tìm kết quả mong muốn.' },
+      { label: 'Giới hạn lượt gieo', value: 'Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ. Gieo lại cùng câu hỏi trong 24 giờ đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới.' },
       { label: 'Khả năng xem lại', value: 'Mỗi lượt gieo sẽ lưu lại đầy đủ để xem lại đúng quẻ đã ra, không được gieo lại âm thầm.' },
       { label: 'Vai trò của AI', value: 'Tổ chức và diễn giải quẻ đã gieo bằng tiếng Việt — không tự chọn hoặc thay đổi kết quả gieo.' }
     ];
@@ -394,7 +394,7 @@ class Component extends DCLogic {
 
     const faqData = [
       { q: 'Kinh Dịch có cần nhập ngày giờ sinh không?', a: 'Không. Kinh Dịch chỉ cần một câu hỏi cụ thể và thời điểm gieo quẻ — không dùng chung hồ sơ sinh với Tử Vi hay Bát Tự.' },
-      { q: 'Vì sao không thể gieo lại nếu chưa thích kết quả?', a: 'Kinh Dịch có giá trị khi bạn đối diện với câu trả lời của lần gieo đầu, không phải chọn quẻ mình muốn nghe. Vì vậy hệ thống sẽ giới hạn gieo lại theo cooldown cho cùng một câu hỏi.' },
+      { q: 'Vì sao không thể gieo lại nếu chưa thích kết quả?', a: 'Kinh Dịch có giá trị khi bạn đối diện với câu trả lời của lần gieo đầu, không phải chọn quẻ mình muốn nghe. Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ — gieo lại trong thời gian đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới.' },
       { q: 'Khi nào Kinh Dịch ra mắt?', a: 'Chưa có ngày cụ thể. Lá Số Việt đang hoàn thiện cách gieo quẻ ảo và bộ căn cứ diễn giải trước khi phát hành công khai.' },
       { q: 'Kết quả một quẻ có phải là câu trả lời chắc chắn không?', a: 'Không. Đây là một góc nhìn có điều kiện để suy ngẫm về tình huống bạn đang hỏi, không phải một lời tiên tri tuyệt đối.' },
       { q: 'Hào động là gì và vì sao quan trọng?', a: 'Hào động là hào đang chuyển đổi Âm sang Dương hoặc ngược lại, cho thấy phần nào của tình huống đang thay đổi. Quẻ biến — kết quả sau khi hào động đổi — thường được đọc cùng quẻ chủ để thấy xu hướng.' },
