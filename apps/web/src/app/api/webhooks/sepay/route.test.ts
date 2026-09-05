@@ -12,6 +12,11 @@ describe("SePay public ingress", () => {
     vi.stubEnv("SEPAY_ENV", "sandbox");
     vi.stubEnv("SEPAY_MERCHANT_ID", "synthetic-merchant");
     vi.stubEnv("SEPAY_SECRET_KEY", "synthetic-secret");
+    vi.stubEnv("SEPAY_BANK_CODE", "VCB");
+    vi.stubEnv("SEPAY_ACCOUNT_NUMBER", "123456789");
+    vi.stubEnv("SEPAY_ACCOUNT_HOLDER", "LA SO VIET");
+    vi.stubEnv("SEPAY_ORDER_TTL_SECONDS", "900");
+    vi.stubEnv("SEPAY_WEBHOOK_SECRET", "synthetic-webhook-secret");
     vi.stubEnv("PRIVATE_API_URL", "https://private-api.example.test");
     vi.stubEnv("INTERNAL_ACTOR_SECRET", "synthetic-internal-secret");
     const fetch = vi.fn(async (_url: string, init: RequestInit) => new Response(
