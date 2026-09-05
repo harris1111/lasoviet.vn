@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="../_shared/support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
-  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
   <title>12 Con Giáp — Tra cứu năm sinh · Lá Số Việt</title>
   <meta name="description" content="Tra cứu con giáp, Thiên Can – Địa Chi và ngũ hành theo năm sinh. Bảng đầy đủ 12 con giáp kèm giải thích ranh giới Tết Nguyên Đán.">
   <meta name="robots" content="noindex, follow">
@@ -79,6 +79,18 @@
               <span>Địa Chi: {{ result.chi }}</span>
               <span>Ngũ hành theo Can: {{ result.element }}</span>
             </div>
+          </div>
+        </div>
+
+        <div style="margin-top:40px">
+          <div style="font-size:13px;color:var(--text-faint);margin-bottom:12px">Vòng 12 con giáp (bấm một con giáp để nhảy tới năm gần nhất tương ứng):</div>
+          <div style="display:flex;gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);overflow:hidden;overflow-x:auto">
+            <sc-for list="{{ cycleRail }}" as="r" hint-placeholder-count="12">
+              <button type="button" aria-pressed="{{ r.active }}" onClick="{{ r.onClick }}" style="{{ r.style }}">
+                <span style="font-family:var(--font-display);font-size:14px">{{ r.animal }}</span>
+                <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.04em;text-transform:uppercase;opacity:0.75">{{ r.chi }}</span>
+              </button>
+            </sc-for>
           </div>
         </div>
       </div>
@@ -201,6 +213,31 @@ class Component extends DCLogic {
 
     const result = this.computeZodiac(this.state.selectedYear);
 
+    const zodiacTableRaw = [
+      { chi: 'Tý', animal: 'Chuột', recentYears: [2020, 2008, 1996] },
+      { chi: 'Sửu', animal: 'Trâu', recentYears: [2021, 2009, 1997] },
+      { chi: 'Dần', animal: 'Hổ', recentYears: [2022, 2010, 1998] },
+      { chi: 'Mão', animal: 'Mèo', recentYears: [2023, 2011, 1999] },
+      { chi: 'Thìn', animal: 'Rồng', recentYears: [2024, 2012, 2000] },
+      { chi: 'Tỵ', animal: 'Rắn', recentYears: [2025, 2013, 2001] },
+      { chi: 'Ngọ', animal: 'Ngựa', recentYears: [2026, 2014, 2002] },
+      { chi: 'Mùi', animal: 'Dê', recentYears: [2027, 2015, 2003] },
+      { chi: 'Thân', animal: 'Khỉ', recentYears: [2016, 2004, 1992] },
+      { chi: 'Dậu', animal: 'Gà', recentYears: [2017, 2005, 1993] },
+      { chi: 'Tuất', animal: 'Chó', recentYears: [2018, 2006, 1994] },
+      { chi: 'Hợi', animal: 'Lợn', recentYears: [2019, 2007, 1995] }
+    ];
+    const cycleRail = zodiacTableRaw.map(z => {
+      const active = z.chi === result.chi;
+      return {
+        chi: z.chi,
+        animal: z.animal,
+        active,
+        onClick: () => this.selectYear(z.recentYears[0]),
+        style: `flex:1;min-width:64px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;background:${active ? 'var(--gold-500)' : 'var(--surface-panel)'};color:${active ? 'var(--surface-canvas)' : 'var(--text-body)'};border:none;cursor:pointer`
+      };
+    });
+
     const zodiacTable = [
       { chi: 'Tý', animal: 'Chuột', recentYear: '2020, 2008, 1996' },
       { chi: 'Sửu', animal: 'Trâu', recentYear: '2021, 2009, 1997' },
@@ -236,7 +273,7 @@ class Component extends DCLogic {
     ];
     const faqs = faqData.map((f, i) => ({ num: String(i + 1).padStart(2, '0'), q: f.q, a: f.a, open: !!this.state.faqOpen[i], toggle: () => this.toggleFaq(i) }));
 
-    return { yearChips, result, zodiacTable, glossaryItems, limitItems, faqs };
+    return { yearChips, result, cycleRail, zodiacTable, glossaryItems, limitItems, faqs };
   }
 }
 </script>

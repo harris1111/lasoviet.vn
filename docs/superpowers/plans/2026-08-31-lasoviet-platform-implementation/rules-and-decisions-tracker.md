@@ -349,3 +349,55 @@ Date: 2026-09-02
   external deploy environments are never emitted wholesale. The generated
   prototype lint-boundary and runtime-clock fixture rules were added as well.
   Open questions: none.
+
+## Open Decisions OD-001 Through OD-006 Resolved
+
+Date: 2026-09-05
+
+- The founder resolved all six items in `open-decisions.md` directly, in
+  Vietnamese, through the founder-facing Claude Code session (no Sol/Terra/Luna
+  dispatch was used for this resolution round; the founder answered each gate
+  explicitly rather than through silence or a status change).
+- OD-001 (remaining Zi Wei SKUs): Option A. Launch
+  `ZIWEI-RELATIONSHIP-P0`, `ZIWEI-CAREER-P0`, `ZIWEI-YEAR-P0` one topic at a
+  time at VND 79,000 each, matching the existing hypothesis price. Still
+  blocked on Phase 07 Task 1 checkout enablement; this only fixes price/order.
+- OD-002 (BaZi paid offer): Option A. One comprehensive BaZi report at VND
+  79,000, contingent on the report passing the common release QA gate. Still
+  blocked on Phase 08 Task 4 checkout enablement.
+- OD-003 (Western natal paid offer): Option A. One natal interpretation
+  covering planets, angles, houses, and aspects at VND 79,000, contingent on
+  natal fixtures and twenty-report QA passing. Still blocked on Phase 09 Task 3
+  checkout enablement.
+- OD-004 (Liu Yao cooldown): Option A. One active cast per normalized question
+  every 24 hours; recasting within the window shows the existing cast instead
+  of generating a new one. Still blocked on Phase 10 Task 3 public release
+  (the casting engine itself is not built), but the policy language may now be
+  stated concretely in the public-facing Kinh Dich page instead of "chua chot"
+  (undecided).
+- OD-005 (compatibility launch scope): **Founder chose Option C**, diverging
+  from the doc's Option A recommendation — launch Zi Wei plus BaZi
+  compatibility synthesis together rather than staging one system first. This
+  is a deliberate, informed override: the founder was shown the recommendation
+  and its rationale (smallest independently reviewable launch) before
+  deciding. Still blocked on compatibility contract finalization, synthesis
+  implementation, and both source systems' individual stability gates per the
+  original blocking condition — resolving this decision unblocks UI planning
+  and contract design work, not implementation or public launch.
+- OD-006 (first Feng Shui utility): Option A. House-direction utility. Still
+  blocked on the Phase 11 Feng Shui contract, fixtures, and public page, but
+  the flagship preview page's stub may now be built as a real L0 page instead
+  of a 40-line placeholder, since a method scope is confirmed.
+- Immediate follow-on prototype work from this resolution: add BaZi and
+  Western natal SKUs to `config/product-catalog.json` at `reserved`
+  availability (pricing recorded, not yet launched); firm up the Kinh Dich
+  cooldown copy; build `/phong-thuy/huong-nha` as a real flagship preview; and
+  scope a Compatibility flagship preview reflecting the two-source-system
+  choice. None of this enables paid checkout or public release for any of the
+  six gates — those remain blocked on their stated implementation-phase
+  conditions. Open questions: whether the OD-005 override needs a second,
+  written sign-off before compatibility contract work begins in the real
+  implementation phases (recommended given it diverges from the documented
+  recommendation), and the production BaZi/Western SKU display names shown to
+  users (currently reusing the report scope description, not a marketed
+  product name).

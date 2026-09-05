@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="../_shared/support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
-  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
   <title>Xem Ngày Tốt — Sắp ra mắt · Lá Số Việt</title>
   <meta name="description" content="Công cụ Xem Ngày Tốt tại Lá Số Việt: chọn loại việc và khoảng thời gian, xem ngày phù hợp kèm lý do cụ thể — không chấm điểm may rủi tổng hợp.">
   <meta name="robots" content="noindex, follow">
@@ -36,6 +36,7 @@
         <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
         <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
         <a href="/cong-cu-mien-phi" style="color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal);padding-bottom:2px">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
       </nav>
       <div style="display:flex;align-items:center;gap:16px">
         <a href="/dang-nhap" style="color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
@@ -85,23 +86,43 @@
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Danh sách ngày ứng viên trông như thế nào</h2>
         <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây minh hoạ cho việc "cưới hỏi" — tên ngày và lý do là minh hoạ, không phải kết quả tính từ lịch thật.</p>
 
-        <div style="margin-top:40px;overflow-x:auto">
-          <table style="width:100%;min-width:640px;border-collapse:collapse;font-size:13.5px">
+        <div style="margin-top:24px;display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted);background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-pill);padding:8px 16px">
+          <span style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--teal)">Đang xem việc</span>
+          <span style="color:var(--text-heading)">Cưới hỏi</span>
+          <span style="color:var(--text-faint)">· Đổi loại việc/khoảng ngày sẽ hoạt động khi ra mắt</span>
+        </div>
+
+        <p style="margin:28px 0 0;font-size:13px;color:var(--text-faint)">Chọn tối đa 3 ngày (nút "+ So sánh") để đưa vào bảng so sánh bên dưới.</p>
+        <div style="margin-top:12px;overflow-x:auto">
+          <table style="width:100%;min-width:720px;border-collapse:collapse;font-size:13.5px">
             <thead>
               <tr style="border-bottom:1px solid var(--border-hairline)">
-                <th scope="col" style="text-align:left;padding:10px 12px 10px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Ngày</th>
+                <th scope="col" style="text-align:left;padding:10px 12px 10px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;position:sticky;left:0;background:var(--surface-canvas)">Ngày</th>
+                <th scope="col" style="text-align:left;padding:10px 12px;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Âm lịch</th>
                 <th scope="col" style="text-align:left;padding:10px 12px;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Can chi ngày</th>
                 <th scope="col" style="text-align:left;padding:10px 12px;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Hoàng/Hắc Đạo</th>
-                <th scope="col" style="text-align:left;padding:10px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Lý do</th>
+                <th scope="col" style="text-align:left;padding:10px 12px;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Lý do</th>
+                <th scope="col" style="text-align:left;padding:10px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">So sánh</th>
               </tr>
             </thead>
             <tbody>
               <sc-for list="{{ candidateDays }}" as="d" hint-placeholder-count="4">
                 <tr style="border-bottom:1px solid var(--border-hairline)">
-                  <td style="padding:12px 12px 12px 0;color:var(--text-heading);white-space:nowrap">{{ d.label }}</td>
+                  <td style="padding:12px 12px 12px 0;color:var(--text-heading);white-space:nowrap;position:sticky;left:0;background:var(--surface-canvas)">{{ d.label }}</td>
+                  <td style="padding:12px;color:var(--text-body);white-space:nowrap">{{ d.lunar }}</td>
                   <td style="padding:12px;color:var(--text-body);white-space:nowrap">{{ d.canchi }}</td>
                   <td style="padding:12px;color:{{ d.statusColor }};white-space:nowrap">{{ d.status }}</td>
-                  <td style="padding:12px 0;color:var(--text-body)">{{ d.reason }}</td>
+                  <td style="padding:12px;color:var(--text-body)">
+                    {{ d.reason }}
+                    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+                      <sc-for list="{{ d.ruleTags }}" as="rt" hint-placeholder-count="2">
+                        <span style="font-family:var(--font-mono);font-size:9.5px;padding:2px 6px;border-radius:var(--radius-sm);background:var(--surface-panel);border:1px solid var(--border-hairline);color:{{ rt.color }}">{{ rt.text }}</span>
+                      </sc-for>
+                    </div>
+                  </td>
+                  <td style="padding:12px 0">
+                    <button type="button" aria-pressed="{{ d.compareSelected }}" disabled="{{ d.compareDisabled }}" onClick="{{ d.onToggleCompare }}" style="{{ d.compareBtnStyle }}">{{ d.compareBtnLabel }}</button>
+                  </td>
                 </tr>
               </sc-for>
             </tbody>
@@ -112,29 +133,34 @@
           <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Ngày ứng viên 1" title="Phù hợp hơn trong bộ quy tắc này: Ngày Hoàng Đạo, không rơi vào Tam Nương." sub="Đây là cách diễn đạt bắt buộc tại Lá Số Việt — không dùng &quot;chắc chắn tốt&quot; hay &quot;đảm bảo may mắn&quot; cho bất kỳ ngày nào." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
         </div>
 
-        <h3 style="margin:56px 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">So sánh tối đa 3 ngày</h3>
-        <div style="overflow-x:auto">
-          <table style="width:100%;min-width:640px;border-collapse:collapse;font-size:13.5px">
-            <thead>
-              <tr style="border-bottom:1px solid var(--border-hairline)">
-                <th scope="col" style="text-align:left;padding:10px 12px 10px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">Tiêu chí</th>
-                <sc-for list="{{ compareCols }}" as="c" hint-placeholder-count="3">
-                  <th scope="col" style="text-align:left;padding:10px 12px;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">{{ c }}</th>
-                </sc-for>
-              </tr>
-            </thead>
-            <tbody>
-              <sc-for list="{{ compareRows }}" as="r" hint-placeholder-count="4">
+        <h3 style="margin:56px 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">So sánh {{ compareCount }} ngày đã chọn</h3>
+        <sc-if value="{{ hasComparison }}" hint-placeholder-val="{{ true }}">
+          <div style="overflow-x:auto">
+            <table style="width:100%;min-width:640px;border-collapse:collapse;font-size:13.5px">
+              <thead>
                 <tr style="border-bottom:1px solid var(--border-hairline)">
-                  <td style="padding:12px 12px 12px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase">{{ r.label }}</td>
-                  <sc-for list="{{ r.values }}" as="v" hint-placeholder-count="3">
-                    <td style="padding:12px;color:var(--text-body)">{{ v }}</td>
+                  <th scope="col" style="text-align:left;padding:10px 12px 10px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;position:sticky;left:0;background:var(--surface-canvas)">Tiêu chí</th>
+                  <sc-for list="{{ compareCols }}" as="c" hint-placeholder-count="3">
+                    <th scope="col" style="text-align:left;padding:10px 12px;color:var(--text-faint);font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase">{{ c }}</th>
                   </sc-for>
                 </tr>
-              </sc-for>
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                <sc-for list="{{ compareRows }}" as="r" hint-placeholder-count="4">
+                  <tr style="border-bottom:1px solid var(--border-hairline)">
+                    <td style="padding:12px 12px 12px 0;color:var(--text-faint);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;position:sticky;left:0;background:var(--surface-canvas)">{{ r.label }}</td>
+                    <sc-for list="{{ r.values }}" as="v" hint-placeholder-count="3">
+                      <td style="padding:12px;color:var(--text-body)">{{ v }}</td>
+                    </sc-for>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noComparison }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:0;font-size:14px;color:var(--text-faint);border-top:1px solid var(--border-hairline);padding-top:20px">Chưa chọn ngày nào để so sánh — bấm "+ So sánh" trên tối đa 3 dòng trong bảng ở trên.</p>
+        </sc-if>
       </div>
     </section>
 
@@ -207,9 +233,15 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { insightStamped: false, faqOpen: { 0: true } };
+  state = { insightStamped: false, faqOpen: { 0: true }, compareIds: ['d1', 'd2', 'd4'] };
   toggleInsight = () => this.setState(s => ({ insightStamped: !s.insightStamped }));
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
+  toggleCompare = (id) => this.setState(s => {
+    const already = s.compareIds.includes(id);
+    if (already) return { compareIds: s.compareIds.filter(x => x !== id) };
+    if (s.compareIds.length >= 3) return s;
+    return { compareIds: [...s.compareIds, id] };
+  });
 
   renderVals() {
     const freeResults = [
@@ -221,19 +253,35 @@ class Component extends DCLogic {
       { num: '06', icon: 'shield-lock', title: 'Không chấm điểm tổng hợp', body: 'Không có điểm số "tốt/xấu" duy nhất cho một ngày.', bordered: false }
     ];
 
-    const candidateDays = [
-      { label: 'Ngày ứng viên 1', canchi: 'Giáp Tý', status: 'Hoàng Đạo', statusColor: 'var(--teal)', reason: 'Không rơi vào Tam Nương; hợp tuổi Tý, Ngọ.' },
-      { label: 'Ngày ứng viên 2', canchi: 'Bính Dần', status: 'Hoàng Đạo', statusColor: 'var(--teal)', reason: 'Ngày Hoàng Đạo; cần lưu ý nếu gia chủ tuổi Thân.' },
-      { label: 'Ngày ứng viên 3', canchi: 'Kỷ Tỵ', status: 'Hắc Đạo', statusColor: 'var(--son)', reason: 'Rơi vào Tam Nương — loại khỏi danh sách đề xuất.' },
-      { label: 'Ngày ứng viên 4', canchi: 'Canh Ngọ', status: 'Hoàng Đạo', statusColor: 'var(--teal)', reason: 'Ngày Hoàng Đạo; không xung khắc với các tuổi phổ biến.' }
+    const candidateFacts = [
+      { id: 'd1', label: 'Ngày ứng viên 1', lunar: '12/2 ÂL', canchi: 'Giáp Tý', status: 'Hoàng Đạo', statusColor: 'var(--teal)', reason: 'Không rơi vào Tam Nương; hợp tuổi Tý, Ngọ.', tamNuong: 'Không', tuoiNote: 'Không có', ruleTags: [{ text: 'HD-01 Đạt', color: 'var(--teal)' }, { text: 'TN-00 Đạt', color: 'var(--teal)' }] },
+      { id: 'd2', label: 'Ngày ứng viên 2', lunar: '15/2 ÂL', canchi: 'Bính Dần', status: 'Hoàng Đạo', statusColor: 'var(--teal)', reason: 'Ngày Hoàng Đạo; cần lưu ý nếu gia chủ tuổi Thân.', tamNuong: 'Không', tuoiNote: 'Tuổi Thân nên cân nhắc', ruleTags: [{ text: 'HD-01 Đạt', color: 'var(--teal)' }, { text: 'XT-02 Cảnh báo', color: 'var(--gold-500)' }] },
+      { id: 'd3', label: 'Ngày ứng viên 3', lunar: '18/2 ÂL', canchi: 'Kỷ Tỵ', status: 'Hắc Đạo', statusColor: 'var(--son)', reason: 'Rơi vào Tam Nương — loại khỏi danh sách đề xuất.', tamNuong: 'Có — loại trừ', tuoiNote: 'Không đánh giá (đã loại)', ruleTags: [{ text: 'TN-00 Không đạt', color: 'var(--son)' }] },
+      { id: 'd4', label: 'Ngày ứng viên 4', lunar: '20/2 ÂL', canchi: 'Canh Ngọ', status: 'Hoàng Đạo', statusColor: 'var(--teal)', reason: 'Ngày Hoàng Đạo; không xung khắc với các tuổi phổ biến.', tamNuong: 'Không', tuoiNote: 'Không có', ruleTags: [{ text: 'HD-01 Đạt', color: 'var(--teal)' }, { text: 'TN-00 Đạt', color: 'var(--teal)' }] }
     ];
+    const compareIds = this.state.compareIds;
+    const candidateDays = candidateFacts.map(d => {
+      const selected = compareIds.includes(d.id);
+      return {
+        ...d,
+        compareSelected: selected,
+        compareDisabled: !selected && compareIds.length >= 3,
+        onToggleCompare: (!selected && compareIds.length >= 3) ? null : (() => this.toggleCompare(d.id)),
+        compareBtnLabel: selected ? 'Đã chọn ✕' : '+ So sánh',
+        compareBtnStyle: `font-family:var(--font-mono);font-size:11px;padding:6px 10px;border-radius:var(--radius-sm);cursor:${(!selected && compareIds.length >= 3) ? 'not-allowed' : 'pointer'};background:${selected ? 'var(--teal-tint)' : 'transparent'};border:1px solid ${selected ? 'var(--teal-deep)' : 'var(--border-hairline)'};color:${selected ? 'var(--teal)' : 'var(--text-faint)'}`
+      };
+    });
 
-    const compareCols = ['Ngày ứng viên 1', 'Ngày ứng viên 2', 'Ngày ứng viên 4'];
+    const selectedCandidates = candidateFacts.filter(d => compareIds.includes(d.id));
+    const compareCols = selectedCandidates.map(d => d.label);
+    const compareCount = selectedCandidates.length;
+    const hasComparison = compareCount > 0;
+    const noComparison = compareCount === 0;
     const compareRows = [
-      { label: 'Can chi ngày', values: ['Giáp Tý', 'Bính Dần', 'Canh Ngọ'] },
-      { label: 'Hoàng/Hắc Đạo', values: ['Hoàng Đạo', 'Hoàng Đạo', 'Hoàng Đạo'] },
-      { label: 'Tam Nương', values: ['Không', 'Không', 'Không'] },
-      { label: 'Lưu ý tuổi', values: ['Không có', 'Tuổi Thân nên cân nhắc', 'Không có'] }
+      { label: 'Can chi ngày', values: selectedCandidates.map(d => d.canchi) },
+      { label: 'Hoàng/Hắc Đạo', values: selectedCandidates.map(d => d.status) },
+      { label: 'Tam Nương', values: selectedCandidates.map(d => d.tamNuong) },
+      { label: 'Lưu ý tuổi', values: selectedCandidates.map(d => d.tuoiNote) }
     ];
 
     const glossaryItems = [
@@ -267,7 +315,7 @@ class Component extends DCLogic {
 
     return {
       insightStamped: this.state.insightStamped, toggleInsight: this.toggleInsight,
-      candidateDays, compareCols, compareRows, freeResults, glossaryItems, methodRows, limitItems, faqs
+      candidateDays, compareCols, compareRows, compareCount, hasComparison, noComparison, freeResults, glossaryItems, methodRows, limitItems, faqs
     };
   }
 }

@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="../_shared/support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
-  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
   <title>Thần Số Học — Sắp ra mắt · Lá Số Việt</title>
   <meta name="description" content="Thần Số Học tại Lá Số Việt đang được hoàn thiện: xem trước công thức Pythagorean, cách tính Số Đường Đời và bảng số 3×3. Công thức thuần, không phụ thuộc thư viện ngoài.">
   <meta name="robots" content="noindex, follow">
@@ -43,6 +43,7 @@
         <a href="/than-so-hoc" style="color:var(--indigo);text-decoration:none;border-bottom:1px solid var(--indigo);padding-bottom:2px">Thần Số Học</a>
         <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
         <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
       </nav>
       <div style="display:flex;align-items:center;gap:16px">
         <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
@@ -122,6 +123,17 @@
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Một phép tính đầy đủ trông như thế nào</h2>
         <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây dùng tên và ngày sinh giả định để minh hoạ đúng công thức Pythagorean — không phải dữ liệu người dùng thật.</p>
 
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ coreNumbers }}" as="n" hint-placeholder-count="4">
+            <div style="background:var(--surface-panel);padding:22px 18px;text-align:center">
+              <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">{{ n.label }}</div>
+              <div style="margin-top:10px;font-family:var(--font-display);font-size:30px;color:{{ n.color }}">{{ n.value }}</div>
+              <div style="margin-top:6px;font-size:12px;line-height:1.5;color:var(--text-muted)">{{ n.source }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin:14px 0 0;font-size:12.5px;color:var(--text-faint)">Số Nhân Cách rơi vào 11 — một Số Chủ — nên giữ nguyên thay vì rút gọn tiếp thành 2, đúng quy tắc đã nêu ở trên, không phải một huy hiệu đặc biệt.</p>
+
         <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:48px;align-items:start">
           <div>
             <h3 style="margin:0 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Bảng chữ cái → số (Pythagorean)</h3>
@@ -134,7 +146,18 @@
               </sc-for>
             </div>
 
-            <h3 style="margin:32px 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Chuẩn hoá và cộng dồn — "NGUYỄN VĂN AN"</h3>
+            <h3 style="margin:32px 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Số Đường Đời — từ ngày sinh 15/03/1990</h3>
+            <div style="display:grid;gap:8px;font-family:var(--font-mono);font-size:13px;color:var(--text-body)">
+              <sc-for list="{{ lifePathRows }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-sm)">
+                  <span>{{ t.label }}</span>
+                  <span style="color:var(--indigo)">{{ t.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:12px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Cộng toàn bộ chữ số ngày-tháng-năm rồi rút gọn — không tách riêng ngày/tháng/năm trước khi cộng.</p>
+
+            <h3 style="margin:32px 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Số Sứ Mệnh — chuẩn hoá và cộng dồn "NGUYỄN VĂN AN"</h3>
             <div style="display:grid;gap:8px;font-family:var(--font-mono);font-size:13px;color:var(--text-body)">
               <sc-for list="{{ traceRows }}" as="t" hint-placeholder-count="4">
                 <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-sm)">
@@ -309,6 +332,12 @@ class Component extends DCLogic {
       { n: '9', letters: 'I R' }
     ];
 
+    const lifePathRows = [
+      { label: 'Cộng toàn bộ chữ số 15-03-1990: 1+5+0+3+1+9+9+0', value: '= 28' },
+      { label: '2 + 8', value: '= 10' },
+      { label: '1 + 0', value: '= Số Đường Đời 1' }
+    ];
+
     const traceRows = [
       { label: 'Chuẩn hoá dấu: NGUYỄN → NGUYEN, VĂN → VAN, AN → AN', value: '' },
       { label: 'NGUYEN = 5+7+3+7+5+5', value: '= 32' },
@@ -316,8 +345,19 @@ class Component extends DCLogic {
       { label: '32 + 10 + 6 = 48 → 4+8 = 12 → 1+2', value: '= Số Sứ Mệnh 3' }
     ];
 
+    // Nguyên âm (A, E, I, O, U) → Số Linh Hồn; phụ âm còn lại → Số Nhân Cách.
+    // NGUYEN: nguyên âm U+E=3+5=8; phụ âm N+G+Y+N=5+7+7+5=24.
+    // VAN: nguyên âm A=1; phụ âm V+N=4+5=9. AN: nguyên âm A=1; phụ âm N=5.
+    // Tổng nguyên âm 8+1+1=10 → 1+0=1. Tổng phụ âm 24+9+5=38 → 3+8=11 (Số Chủ, giữ nguyên).
+    const coreNumbers = [
+      { label: 'Số Đường Đời', value: '1', color: 'var(--indigo)', source: 'từ ngày sinh 15/03/1990' },
+      { label: 'Số Sứ Mệnh', value: '3', color: 'var(--indigo)', source: 'từ toàn bộ họ tên' },
+      { label: 'Số Linh Hồn', value: '1', color: 'var(--indigo)', source: 'từ nguyên âm trong họ tên' },
+      { label: 'Số Nhân Cách', value: '11', color: 'var(--ochre)', source: 'từ phụ âm — là Số Chủ, giữ nguyên' }
+    ];
+
     const gridCells = [
-      { n: '3', marks: '' }, { n: '6', marks: '' }, { n: '9', marks: '● ●' },
+      { n: '3', marks: '●' }, { n: '6', marks: '' }, { n: '9', marks: '● ●' },
       { n: '2', marks: '' }, { n: '5', marks: '●' }, { n: '8', marks: '' },
       { n: '1', marks: '● ●' }, { n: '4', marks: '' }, { n: '7', marks: '' }
     ].map(c => ({ ...c, color: c.marks ? 'var(--ochre)' : 'var(--text-faint)' }));
@@ -374,7 +414,7 @@ class Component extends DCLogic {
       toggleNav: this.toggleNav,
       insightStamped: this.state.insightStamped,
       toggleInsight: this.toggleInsight,
-      letterMap, traceRows, gridCells, freeResults, glossaryItems, methodRows, limitItems, faqs
+      letterMap, coreNumbers, lifePathRows, traceRows, gridCells, freeResults, glossaryItems, methodRows, limitItems, faqs
     };
   }
 }

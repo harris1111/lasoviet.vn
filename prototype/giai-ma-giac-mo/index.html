@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="../_shared/support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
-  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
   <title>Giải Mã Giấc Mơ — Lá Số Việt</title>
   <meta name="description" content="Tra cứu ý nghĩa biểu tượng giấc mơ theo góc nhìn dân gian và biểu tượng/tâm lý. Nội dung tham khảo văn hoá, không phải dự đoán số hay chẩn đoán.">
   <meta name="robots" content="noindex, follow">
@@ -37,6 +37,7 @@
         <a href="/tu-vi" style="color:var(--text-body);text-decoration:none">Tử Vi</a>
         <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
         <a href="/cong-cu-mien-phi" style="color:var(--gold-400);text-decoration:none;border-bottom:1px solid var(--gold-500);padding-bottom:2px">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
       </nav>
       <div style="display:flex;align-items:center;gap:16px">
         <a href="/dang-nhap" style="color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
@@ -69,11 +70,17 @@
     <!-- 02 LƯỚI BIỂU TƯỢNG -->
     <section style="padding:0 0 clamp(56px,9vw,88px)" data-screen-label="02-luoi-bieu-tuong">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="max-width:480px;margin-bottom:20px">
+          <input type="text" value="{{ searchQuery }}" oninput="{{ onSearchInput }}" placeholder="Tìm biểu tượng: rắn, nước, răng rụng..." aria-label="Tìm biểu tượng giấc mơ" style="width:100%;box-sizing:border-box;padding:12px 16px;font-size:14.5px;font-family:var(--font-ui);color:var(--text-heading);background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md)">
+        </div>
         <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px">
           <sc-for list="{{ categoryChips }}" as="c" hint-placeholder-count="5">
             <button type="button" class="{{ c.className }}" onClick="{{ c.onClick }}">{{ c.label }}</button>
           </sc-for>
         </div>
+        <sc-if value="{{ hasNoResults }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:14.5px;color:var(--text-faint)">Không tìm thấy biểu tượng khớp với "{{ searchQuery }}" trong thư viện hiện tại.</p>
+        </sc-if>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px">
           <sc-for list="{{ visibleSymbols }}" as="s" hint-placeholder-count="6">
             <div style="background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);padding:24px">
@@ -81,6 +88,12 @@
               <div style="margin-top:10px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">{{ s.title }}</div>
               <p style="margin:10px 0 0;font-size:13.5px;line-height:1.6;color:var(--text-muted)"><strong style="color:var(--text-body)">Dân gian:</strong> {{ s.folk }}</p>
               <p style="margin:8px 0 0;font-size:13.5px;line-height:1.6;color:var(--text-muted)"><strong style="color:var(--text-body)">Biểu tượng/tâm lý:</strong> {{ s.symbolic }}</p>
+              <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--text-body);font-style:italic">Điều gì trong giấc mơ khiến bạn chú ý nhất — chi tiết đó thường quan trọng hơn bản thân biểu tượng.</p>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-hairline)">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-faint)">Biểu tượng liên quan</div>
+                <div style="margin-top:6px;font-size:13px;color:var(--text-muted)">{{ s.relatedText }}</div>
+              </div>
+              <p style="margin:10px 0 0;font-size:11px;color:var(--text-faint)">Biên tập nội bộ Lá Số Việt, tổng hợp quan niệm dân gian phổ biến — không phải trích dẫn từ một nguồn học thuật duy nhất.</p>
             </div>
           </sc-for>
         </div>
@@ -133,9 +146,10 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { category: 'all', faqOpen: { 0: true } };
+  state = { category: 'all', searchQuery: '', faqOpen: { 0: true } };
 
   setCategory = (c) => this.setState({ category: c });
+  setSearch = (v) => this.setState({ searchQuery: v });
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
 
   renderVals() {
@@ -153,14 +167,32 @@ class Component extends DCLogic {
     }));
 
     const symbols = [
-      { key: 'animal', category: 'Con vật', title: 'Mơ thấy rắn', folk: 'Dân gian Việt Nam thường gắn hình ảnh con rắn với sự thay đổi hoặc một điều bất ngờ sắp đến, tuỳ vùng miền có cách kể khác nhau.', symbolic: 'Trong nhiều truyền thống biểu tượng, rắn gắn với sự lột xác, chuyển tiếp hoặc một nỗi lo chưa gọi tên được.' },
-      { key: 'nature', category: 'Hiện tượng tự nhiên', title: 'Mơ thấy nước, lũ lụt', folk: 'Nước lớn trong giấc mơ dân gian thường được kể là dấu hiệu của cảm xúc dâng trào hoặc một biến động sắp tới.', symbolic: 'Nước thường được xem là biểu tượng của cảm xúc và tiềm thức — lũ lụt có thể phản ánh cảm giác quá tải trong đời sống thực.' },
-      { key: 'people', category: 'Con người & mối quan hệ', title: 'Mơ thấy răng rụng', folk: 'Đây là một trong những giấc mơ được kể lại nhiều nhất trong dân gian, thường gắn với lo lắng về sức khoẻ hoặc người thân.', symbolic: 'Về mặt tâm lý, mơ răng rụng thường liên quan đến cảm giác mất kiểm soát, lo âu về ngoại hình hoặc một giai đoạn nhiều áp lực.' },
-      { key: 'event', category: 'Sự kiện đời sống', title: 'Mơ thấy bay', folk: 'Giấc mơ bay lên thường được dân gian kể như một dấu hiệu của sự nhẹ nhõm hoặc một giai đoạn thuận lợi sắp tới.', symbolic: 'Bay trong giấc mơ thường gắn với cảm giác tự do, thoát khỏi giới hạn hoặc mong muốn kiểm soát một tình huống.' },
-      { key: 'people', category: 'Con người & mối quan hệ', title: 'Mơ thấy người đã mất', folk: 'Nhiều gia đình Việt kể lại đây là dấu hiệu người thân "về thăm", thường đi kèm cảm giác bình yên hơn là sợ hãi.', symbolic: 'Đây là một chủ đề giấc mơ phổ biến khi đang xử lý nỗi nhớ hoặc chưa hoàn tất cảm xúc với người đã khuất.' },
-      { key: 'event', category: 'Sự kiện đời sống', title: 'Mơ thấy đám cưới', folk: 'Dân gian thường kể giấc mơ đám cưới gắn với một khởi đầu mới, không nhất thiết liên quan đến chuyện tình cảm thật.', symbolic: 'Đám cưới trong giấc mơ thường tượng trưng cho sự kết hợp, cam kết hoặc một quyết định quan trọng đang đến gần.' }
+      { key: 'animal', category: 'Con vật', title: 'Mơ thấy rắn', synonyms: 'con rắn, rắn cắn, rắn quấn', folk: 'Dân gian Việt Nam thường gắn hình ảnh con rắn với sự thay đổi hoặc một điều bất ngờ sắp đến, tuỳ vùng miền có cách kể khác nhau.', symbolic: 'Trong nhiều truyền thống biểu tượng, rắn gắn với sự lột xác, chuyển tiếp hoặc một nỗi lo chưa gọi tên được.' },
+      { key: 'nature', category: 'Hiện tượng tự nhiên', title: 'Mơ thấy nước, lũ lụt', synonyms: 'nước lớn, ngập lụt, sông nước', folk: 'Nước lớn trong giấc mơ dân gian thường được kể là dấu hiệu của cảm xúc dâng trào hoặc một biến động sắp tới.', symbolic: 'Nước thường được xem là biểu tượng của cảm xúc và tiềm thức — lũ lụt có thể phản ánh cảm giác quá tải trong đời sống thực.' },
+      { key: 'people', category: 'Con người & mối quan hệ', title: 'Mơ thấy răng rụng', synonyms: 'rụng răng, gãy răng, mất răng', folk: 'Đây là một trong những giấc mơ được kể lại nhiều nhất trong dân gian, thường gắn với lo lắng về sức khoẻ hoặc người thân.', symbolic: 'Về mặt tâm lý, mơ răng rụng thường liên quan đến cảm giác mất kiểm soát, lo âu về ngoại hình hoặc một giai đoạn nhiều áp lực.' },
+      { key: 'event', category: 'Sự kiện đời sống', title: 'Mơ thấy bay', synonyms: 'bay lên, bay lượn, tự bay', folk: 'Giấc mơ bay lên thường được dân gian kể như một dấu hiệu của sự nhẹ nhõm hoặc một giai đoạn thuận lợi sắp tới.', symbolic: 'Bay trong giấc mơ thường gắn với cảm giác tự do, thoát khỏi giới hạn hoặc mong muốn kiểm soát một tình huống.' },
+      { key: 'people', category: 'Con người & mối quan hệ', title: 'Mơ thấy người đã mất', synonyms: 'người chết, người thân đã khuất, ông bà đã mất', folk: 'Nhiều gia đình Việt kể lại đây là dấu hiệu người thân "về thăm", thường đi kèm cảm giác bình yên hơn là sợ hãi.', symbolic: 'Đây là một chủ đề giấc mơ phổ biến khi đang xử lý nỗi nhớ hoặc chưa hoàn tất cảm xúc với người đã khuất.' },
+      { key: 'event', category: 'Sự kiện đời sống', title: 'Mơ thấy đám cưới', synonyms: 'cưới hỏi, kết hôn, lấy chồng lấy vợ', folk: 'Dân gian thường kể giấc mơ đám cưới gắn với một khởi đầu mới, không nhất thiết liên quan đến chuyện tình cảm thật.', symbolic: 'Đám cưới trong giấc mơ thường tượng trưng cho sự kết hợp, cam kết hoặc một quyết định quan trọng đang đến gần.' }
     ];
-    const visibleSymbols = this.state.category === 'all' ? symbols : symbols.filter(s => s.key === this.state.category);
+    const bySameCategory = symbols.reduce((acc, s) => {
+      (acc[s.key] = acc[s.key] || []).push(s.title);
+      return acc;
+    }, {});
+    const symbolsWithRelated = symbols.map(s => ({
+      ...s,
+      relatedText: bySameCategory[s.key].filter(t => t !== s.title).join(' · ') || 'Chưa có biểu tượng liên quan trong danh mục này.'
+    }));
+
+    const category = this.state.category;
+    const query = this.state.searchQuery.trim().toLowerCase();
+    const byCategory = category === 'all' ? symbolsWithRelated : symbolsWithRelated.filter(s => s.key === category);
+    const visibleSymbols = !query ? byCategory : byCategory.filter(s =>
+      s.title.toLowerCase().includes(query) ||
+      s.synonyms.toLowerCase().includes(query) ||
+      s.folk.toLowerCase().includes(query) ||
+      s.symbolic.toLowerCase().includes(query)
+    );
+    const hasNoResults = visibleSymbols.length === 0;
 
     const limitItems = [
       'Nội dung mang tính tham khảo văn hoá và biểu tượng, không phải chẩn đoán tâm lý hay dự đoán sự kiện cụ thể.',
@@ -177,7 +209,11 @@ class Component extends DCLogic {
     ];
     const faqs = faqData.map((f, i) => ({ num: String(i + 1).padStart(2, '0'), q: f.q, a: f.a, open: !!this.state.faqOpen[i], toggle: () => this.toggleFaq(i) }));
 
-    return { categoryChips, visibleSymbols, limitItems, faqs };
+    return {
+      categoryChips, visibleSymbols, hasNoResults,
+      searchQuery: this.state.searchQuery, onSearchInput: e => this.setSearch(e.target.value),
+      limitItems, faqs
+    };
   }
 }
 </script>

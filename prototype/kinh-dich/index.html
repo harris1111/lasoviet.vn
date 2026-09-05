@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="../_shared/support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
-  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
   <title>Kinh Dịch / Chu Dịch — Sắp ra mắt · Lá Số Việt</title>
   <meta name="description" content="Kinh Dịch tại Lá Số Việt đang được hoàn thiện: đặt một câu hỏi, gieo quẻ ảo, xem quẻ chủ, hào động và quẻ biến. Xem trước phương pháp và một quẻ mẫu.">
   <meta name="robots" content="noindex, follow">
@@ -48,6 +48,7 @@
         <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
         <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
         <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
       </nav>
       <div style="display:flex;align-items:center;gap:16px">
         <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
@@ -139,15 +140,14 @@
             <div style="margin-top:20px;display:flex;flex-direction:column-reverse;gap:10px">
               <sc-for list="{{ primaryLines }}" as="ln" hint-placeholder-count="6">
                 <div style="display:flex;align-items:center;gap:10px">
+                  <span style="flex:none;width:26px;font-family:var(--font-mono);font-size:10px;color:var(--text-faint)">{{ ln.num }}</span>
                   <sc-if value="{{ ln.yin }}" hint-placeholder-val="{{ false }}">
                     <div style="flex:1;display:flex;gap:16%"><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span></div>
                   </sc-if>
                   <sc-if value="{{ ln.yang }}" hint-placeholder-val="{{ false }}">
                     <div style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></div>
                   </sc-if>
-                  <sc-if value="{{ ln.moving }}" hint-placeholder-val="{{ false }}">
-                    <span style="flex:none;font-family:var(--font-mono);font-size:9.5px;color:var(--son)">HÀO ĐỘNG</span>
-                  </sc-if>
+                  <span style="flex:none;font-family:var(--font-mono);font-size:9.5px;color:{{ ln.stateColor }}">{{ ln.stateLabel }}</span>
                 </div>
               </sc-for>
             </div>
@@ -164,12 +164,16 @@
             <div style="margin-top:6px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">10 · Thiên Trạch Lý</div>
             <div style="margin-top:20px;display:flex;flex-direction:column-reverse;gap:10px">
               <sc-for list="{{ changedLines }}" as="ln" hint-placeholder-count="6">
-                <sc-if value="{{ ln.yin }}" hint-placeholder-val="{{ false }}">
-                  <div style="display:flex;gap:16%"><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span></div>
-                </sc-if>
-                <sc-if value="{{ ln.yang }}" hint-placeholder-val="{{ false }}">
-                  <div style="height:12px;border-radius:2px;background:{{ ln.color }}"></div>
-                </sc-if>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="flex:none;width:26px;font-family:var(--font-mono);font-size:10px;color:var(--text-faint)">{{ ln.num }}</span>
+                  <sc-if value="{{ ln.yin }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1;display:flex;gap:16%"><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span><span style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></span></div>
+                  </sc-if>
+                  <sc-if value="{{ ln.yang }}" hint-placeholder-val="{{ false }}">
+                    <div style="flex:1;height:12px;border-radius:2px;background:{{ ln.color }}"></div>
+                  </sc-if>
+                  <span style="flex:none;font-family:var(--font-mono);font-size:9.5px;color:{{ ln.stateColor }}">{{ ln.stateLabel }}</span>
+                </div>
               </sc-for>
             </div>
             <div style="margin-top:16px;font-size:12.5px;color:var(--text-faint)">Thượng quái: Càn (☰) · Hạ quái: Đoài (☱)</div>
@@ -315,35 +319,46 @@ class Component extends DCLogic {
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
 
   renderVals() {
-    // Quẻ Thuần Càn (01) với hào 3 (từ dưới lên) động, biến thành quẻ Thiên Trạch Lý (10).
-    // Mảng liệt kê từ hào 6 (trên) xuống hào 1 (dưới) để hiển thị đúng chiều đọc trên màn hình;
-    // flex-direction: column-reverse lật lại để hào 1 vẽ trước, ở dưới cùng.
-    const heroLines = [
-      { yang: true, color: 'var(--gold-500)' },
-      { yang: true, color: 'var(--gold-500)' },
-      { yang: true, color: 'var(--gold-500)' },
-      { yang: true, color: 'var(--son)' },
-      { yang: true, color: 'var(--gold-500)' },
-      { yang: true, color: 'var(--gold-500)' }
-    ];
+    // Quẻ Thuần Càn (01) với hào 3 (từ dưới lên) động, biến thành quẻ Thiên Trạch Lý (10):
+    // thượng quái Càn (☰) không đổi, hạ quái đổi từ Càn (☰) sang Đoài (☱) vì hào 3 (Dương) hoá Âm.
+    // Mảng liệt kê từ hào 1 (dưới cùng, gieo trước) đến hào 6 (trên cùng) để giữ đúng thứ tự đọc
+    // DOM/màn hình đọc — bắt buộc theo yêu cầu accessibility (đọc hào 1→6 bất kể cách vẽ trên màn
+    // hình). flex-direction: column-reverse lật hiển thị để hào 1 nằm dưới cùng, hào 6 trên cùng,
+    // đúng quy ước vẽ quẻ cổ điển, mà không phải đảo thứ tự DOM.
+    const lineState = (yang, moving) => ({
+      yang, yin: !yang, moving: !!moving,
+      color: moving ? 'var(--son)' : (yang ? 'var(--gold-500)' : 'var(--pearl-200)'),
+      stateColor: moving ? 'var(--son)' : 'var(--text-faint)',
+      stateLabel: `${yang ? 'Dương' : 'Âm'}${moving ? ' · Động' : ''}`
+    });
+    const numbered = (arr) => arr.map((line, i) => ({ ...line, num: `H${i + 1}` }));
 
-    const primaryLines = [
-      { yang: true, moving: false, color: 'var(--pearl-200)' },
-      { yang: true, moving: false, color: 'var(--pearl-200)' },
-      { yang: true, moving: false, color: 'var(--pearl-200)' },
-      { yang: true, moving: true, color: 'var(--son)' },
-      { yang: true, moving: false, color: 'var(--pearl-200)' },
-      { yang: true, moving: false, color: 'var(--pearl-200)' }
-    ];
+    const heroLines = numbered([
+      lineState(true, false),
+      lineState(true, false),
+      lineState(true, true),
+      lineState(true, false),
+      lineState(true, false),
+      lineState(true, false)
+    ]);
 
-    const changedLines = [
-      { yang: true, color: 'var(--pearl-200)' },
-      { yang: true, color: 'var(--pearl-200)' },
-      { yin: true, color: 'var(--pearl-200)' },
-      { yang: true, color: 'var(--pearl-200)' },
-      { yang: true, color: 'var(--pearl-200)' },
-      { yang: true, color: 'var(--pearl-200)' }
-    ];
+    const primaryLines = numbered([
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, true) },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' }
+    ]);
+
+    const changedLines = numbered([
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(false, false), color: 'var(--pearl-200)', stateLabel: 'Âm · Đã đổi', stateColor: 'var(--son)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' },
+      { ...lineState(true, false), color: 'var(--pearl-200)' }
+    ]);
 
     const freeResults = [
       { num: '01', icon: 'scroll', title: 'Một lượt gieo cho một câu hỏi', body: 'Đặt một câu hỏi cụ thể, gieo quẻ ảo theo thời điểm — không cần ngày giờ sinh.' },
@@ -364,7 +379,7 @@ class Component extends DCLogic {
 
     const methodRows = [
       { label: 'Phương pháp gieo quẻ', value: 'Gieo quẻ ảo theo phương pháp cổ điển (tương đương gieo 3 đồng tiền 6 lần) — quy tắc chính xác sẽ công bố trước khi ra mắt.' },
-      { label: 'Giới hạn lượt gieo', value: 'Dự kiến giới hạn theo câu hỏi và có thời gian cooldown, tránh gieo lặp lại để tìm kết quả mong muốn.' },
+      { label: 'Giới hạn lượt gieo', value: 'Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ. Gieo lại cùng câu hỏi trong 24 giờ đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới.' },
       { label: 'Khả năng xem lại', value: 'Mỗi lượt gieo sẽ lưu lại đầy đủ để xem lại đúng quẻ đã ra, không được gieo lại âm thầm.' },
       { label: 'Vai trò của AI', value: 'Tổ chức và diễn giải quẻ đã gieo bằng tiếng Việt — không tự chọn hoặc thay đổi kết quả gieo.' }
     ];
@@ -379,7 +394,7 @@ class Component extends DCLogic {
 
     const faqData = [
       { q: 'Kinh Dịch có cần nhập ngày giờ sinh không?', a: 'Không. Kinh Dịch chỉ cần một câu hỏi cụ thể và thời điểm gieo quẻ — không dùng chung hồ sơ sinh với Tử Vi hay Bát Tự.' },
-      { q: 'Vì sao không thể gieo lại nếu chưa thích kết quả?', a: 'Kinh Dịch có giá trị khi bạn đối diện với câu trả lời của lần gieo đầu, không phải chọn quẻ mình muốn nghe. Vì vậy hệ thống sẽ giới hạn gieo lại theo cooldown cho cùng một câu hỏi.' },
+      { q: 'Vì sao không thể gieo lại nếu chưa thích kết quả?', a: 'Kinh Dịch có giá trị khi bạn đối diện với câu trả lời của lần gieo đầu, không phải chọn quẻ mình muốn nghe. Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ — gieo lại trong thời gian đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới.' },
       { q: 'Khi nào Kinh Dịch ra mắt?', a: 'Chưa có ngày cụ thể. Lá Số Việt đang hoàn thiện cách gieo quẻ ảo và bộ căn cứ diễn giải trước khi phát hành công khai.' },
       { q: 'Kết quả một quẻ có phải là câu trả lời chắc chắn không?', a: 'Không. Đây là một góc nhìn có điều kiện để suy ngẫm về tình huống bạn đang hỏi, không phải một lời tiên tri tuyệt đối.' },
       { q: 'Hào động là gì và vì sao quan trọng?', a: 'Hào động là hào đang chuyển đổi Âm sang Dương hoặc ngược lại, cho thấy phần nào của tình huống đang thay đổi. Quẻ biến — kết quả sau khi hào động đổi — thường được đọc cùng quẻ chủ để thấy xu hướng.' },

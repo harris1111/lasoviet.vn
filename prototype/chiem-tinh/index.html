@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="../_shared/support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
-  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
   <title>Bản đồ sao / Chiêm tinh Tây phương — Sắp ra mắt · Lá Số Việt</title>
   <meta name="description" content="Bản đồ sao (Chiêm tinh Tây phương) tại Lá Số Việt đang được hoàn thiện: Mặt Trời, Mặt Trăng, Cung Mọc, nhà và góc chiếu. Xem trước phương pháp và một bản đồ sao mẫu.">
   <meta name="robots" content="noindex, follow">
@@ -52,6 +52,7 @@
         <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
         <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
         <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
       </nav>
       <div style="display:flex;align-items:center;gap:16px">
         <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
@@ -193,17 +194,32 @@
               </g>
               <line x1="10" y1="150" x2="272" y2="150" stroke="var(--mineral)" stroke-width="1.5" stroke-dasharray="2 4" />
               <line x1="150" y1="10" x2="150" y2="290" stroke="var(--mineral)" stroke-width="1.5" stroke-dasharray="2 4" />
-              <text x="26" y="140" font-size="10.5" fill="var(--mineral)" font-family="var(--font-mono)">ASC</text>
-              <text x="140" y="24" font-size="10.5" fill="var(--mineral)" font-family="var(--font-mono)">MC</text>
+              <line x1="203" y1="203" x2="97" y2="97" stroke="var(--gold-500)" stroke-width="1" stroke-dasharray="1 3" opacity="0.55" />
+              <text x="26" y="140" font-size="10.5" font-family="var(--font-mono)" style="fill:{{ pointStyles.asc.textColor }}">ASC</text>
+              <text x="140" y="24" font-size="10.5" font-family="var(--font-mono)" style="fill:{{ pointStyles.mc.textColor }}">MC</text>
+
+              <circle cx="203" cy="203" r="14" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.sun.halo }}" />
               <circle cx="203" cy="203" r="9" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
               <text x="203" y="204" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="var(--text-heading)">☉</text>
+
+              <circle cx="97" cy="97" r="14" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.moon.halo }}" />
               <circle cx="97" cy="97" r="9" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
               <text x="97" y="98" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="var(--text-heading)">☽</text>
+
+              <circle cx="65" cy="128" r="12" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.venus.halo }}" />
+              <circle cx="65" cy="128" r="8" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
+              <text x="65" y="129" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="var(--text-heading)">♀</text>
+
+              <circle cx="228" cy="122" r="12" fill="none" stroke="var(--gold-500)" stroke-width="2" style="opacity:{{ pointStyles.mercury.halo }}" />
+              <circle cx="228" cy="122" r="8" fill="var(--surface-deep)" stroke="var(--mineral)" stroke-width="1.5" />
+              <text x="228" y="123" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="var(--text-heading)">☿</text>
             </svg>
+            <p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:var(--text-faint)">☉ Mặt Trời · ☽ Mặt Trăng · ♀ Kim Tinh · ☿ Thuỷ Tinh · ASC Cung Mọc · MC Thiên Đỉnh. Đường chấm vàng nối Mặt Trời–Mặt Trăng minh hoạ một góc chiếu (aspect), không phải góc thật.</p>
           </div>
 
           <div>
             <h3 style="margin:0 0 16px;font-family:var(--font-display);font-size:19px;color:var(--text-heading)">Bảng hành tinh (dạng đọc)</h3>
+            <p style="margin:0 0 16px;font-size:13px;color:var(--text-faint)">Bấm hoặc dùng phím Tab + Enter trên một dòng để đồng bộ với bản đồ sao bên trái.</p>
             <table style="width:100%;border-collapse:collapse;font-size:13.5px">
               <thead>
                 <tr style="border-bottom:1px solid var(--border-hairline)">
@@ -214,8 +230,10 @@
               </thead>
               <tbody>
                 <sc-for list="{{ planetRows }}" as="row" hint-placeholder-count="6">
-                  <tr style="border-bottom:1px solid var(--border-hairline)">
-                    <td style="padding:9px 8px 9px 0;color:var(--text-heading);white-space:nowrap">{{ row.point }}</td>
+                  <tr style="border-bottom:1px solid var(--border-hairline);background:{{ row.rowBg }}">
+                    <td style="padding:0 8px 0 0;color:var(--text-heading);white-space:nowrap">
+                      <button type="button" aria-pressed="{{ row.selected }}" onClick="{{ row.onSelect }}" style="width:100%;text-align:left;background:none;border:none;color:inherit;font:inherit;padding:9px 0;cursor:pointer">{{ row.point }}</button>
+                    </td>
                     <td style="padding:9px 8px 9px 0;color:var(--text-body)">{{ row.sign }}</td>
                     <td style="padding:9px 0;color:var(--text-body)">{{ row.house }}</td>
                   </tr>
@@ -223,9 +241,11 @@
               </tbody>
             </table>
 
-            <div style="margin-top:28px">
-              <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Mặt Trời" title="Trong hồ sơ mẫu, Mặt Trời ở cung Sư Tử, nhà 11 — chỉ mang tính minh hoạ cấu trúc bảng." sub="Bản tính thật sẽ dùng đúng ngày, giờ, nơi sinh và một hệ nhà (house system) được công bố rõ, không phải số liệu cố định như trên." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
+            <div style="margin-top:24px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px 24px" aria-live="polite">
+              <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--mineral)">Đang xem: {{ selectedPoint.point }}</div>
+              <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ selectedPoint.note }}</p>
             </div>
+            <p style="margin:14px 0 0;font-size:12.5px;line-height:1.6;color:var(--text-faint)">Bản tính thật sẽ dùng đúng ngày, giờ, nơi sinh và một hệ nhà (house system) được công bố rõ, không phải số liệu cố định như trên.</p>
           </div>
         </div>
       </div>
@@ -355,26 +375,38 @@
 class Component extends DCLogic {
   state = {
     navOpen: false,
-    insightStamped: false,
+    selectedPointIndex: 0,
     faqOpen: { 0: true }
   };
 
   toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
-  toggleInsight = () => this.setState(s => ({ insightStamped: !s.insightStamped }));
+  selectPoint = (i) => this.setState({ selectedPointIndex: i });
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
 
   renderVals() {
     // Vòng hoàng đạo 12 cung trong SVG là hình học cố định, được viết tĩnh trực tiếp trong
     // markup (không qua sc-for/{{ }}) vì công cụ template không nội suy được vào thuộc tính
     // hình học SVG như x1/y1/x2/y2/x/y.
-    const planetRows = [
-      { point: 'Mặt Trời ☉', sign: 'Sư Tử', house: 'Nhà 11' },
-      { point: 'Mặt Trăng ☽', sign: 'Bọ Cạp', house: 'Nhà 4' },
-      { point: 'Cung Mọc (ASC)', sign: 'Xử Nữ', house: 'Nhà 1' },
-      { point: 'Thiên Đỉnh (MC)', sign: 'Song Tử', house: 'Nhà 10' },
-      { point: 'Kim Tinh', sign: 'Xử Nữ', house: 'Nhà 1' },
-      { point: 'Thuỷ Tinh', sign: 'Sư Tử', house: 'Nhà 12' }
+    const pointFacts = [
+      { key: 'sun', point: 'Mặt Trời ☉', sign: 'Sư Tử', house: 'Nhà 11', note: 'Mặt Trời ☉ — Sư Tử, Nhà 11 (minh hoạ). Điểm khởi đầu để đọc bản đồ sao, thường gắn với năng lượng cốt lõi và cách thể hiện bản thân.' },
+      { key: 'moon', point: 'Mặt Trăng ☽', sign: 'Bọ Cạp', house: 'Nhà 4', note: 'Mặt Trăng ☽ — Bọ Cạp, Nhà 4 (minh hoạ). Thường gắn với đời sống cảm xúc, nhu cầu an toàn và phản ứng bản năng.' },
+      { key: 'asc', point: 'Cung Mọc (ASC)', sign: 'Xử Nữ', house: 'Nhà 1', note: 'Cung Mọc (ASC) — Xử Nữ, Nhà 1 (minh hoạ). Phụ thuộc trực tiếp vào giờ và nơi sinh chính xác — sai giờ sinh vài phút có thể đổi cung này.' },
+      { key: 'mc', point: 'Thiên Đỉnh (MC)', sign: 'Song Tử', house: 'Nhà 10', note: 'Thiên Đỉnh (MC) — Song Tử, Nhà 10 (minh hoạ). Thường gắn với hình ảnh nghề nghiệp và vị trí xã hội.' },
+      { key: 'venus', point: 'Kim Tinh', sign: 'Xử Nữ', house: 'Nhà 1', note: 'Kim Tinh ♀ — Xử Nữ, Nhà 1 (minh hoạ). Thường gắn với giá trị quan hệ, gu thẩm mỹ và cách thể hiện tình cảm.' },
+      { key: 'mercury', point: 'Thuỷ Tinh', sign: 'Sư Tử', house: 'Nhà 12', note: 'Thuỷ Tinh ☿ — Sư Tử, Nhà 12 (minh hoạ). Thường gắn với cách tư duy, giao tiếp và xử lý thông tin.' }
     ];
+    const planetRows = pointFacts.map((p, i) => ({
+      ...p,
+      selected: i === this.state.selectedPointIndex,
+      onSelect: () => this.selectPoint(i),
+      rowBg: i === this.state.selectedPointIndex ? 'var(--mineral-tint)' : 'transparent'
+    }));
+    const selectedPoint = planetRows[this.state.selectedPointIndex];
+    const pointStyles = {};
+    pointFacts.forEach((p, i) => {
+      const isSelected = i === this.state.selectedPointIndex;
+      pointStyles[p.key] = { halo: isSelected ? 1 : 0, textColor: isSelected ? 'var(--gold-500)' : 'var(--mineral)' };
+    });
 
     const freeResults = [
       { num: '01', icon: 'compass', title: 'Mặt Trời, Mặt Trăng, Cung Mọc', body: 'Ba điểm nền tảng nhất để bắt đầu đọc một bản đồ sao.' },
@@ -427,9 +459,7 @@ class Component extends DCLogic {
 
     return {
       toggleNav: this.toggleNav,
-      insightStamped: this.state.insightStamped,
-      toggleInsight: this.toggleInsight,
-      planetRows, freeResults, glossaryItems, methodRows, limitItems, faqs
+      planetRows, selectedPoint, pointStyles, freeResults, glossaryItems, methodRows, limitItems, faqs
     };
   }
 }

@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
+<script src="../_shared/support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
-  <link rel="stylesheet" href="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
-  <script src="_ds/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/radii.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/spacing.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+  <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/styles.css">
+  <script src="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/_ds_bundle.js"></script>
   <title>Lập lá số Tử Vi miễn phí — Lá Số Việt</title>
   <meta name="description" content="Lập lá số Tử Vi miễn phí theo ngày, giờ, nơi sinh. Xem lá số 12 cung đầy đủ, cung Mệnh, ngũ hành bản mệnh — không cần tài khoản.">
   <meta name="robots" content="index, follow">
@@ -69,6 +69,7 @@
         <a href="/than-so-hoc" style="color:var(--text-body);text-decoration:none">Thần Số Học</a>
         <a href="/kien-thuc" style="color:var(--text-body);text-decoration:none">Kiến thức</a>
         <a href="/cong-cu-mien-phi" style="color:var(--text-body);text-decoration:none">Công cụ miễn phí</a>
+        <a href="/lien-he" style="color:var(--text-body);text-decoration:none">Liên hệ</a>
       </nav>
       <div style="display:flex;align-items:center;gap:16px">
         <a href="/dang-nhap" style="display:flex;align-items:center;gap:6px;color:var(--text-body);text-decoration:none;font-size:14px">Đăng nhập</a>
@@ -171,10 +172,31 @@
       </div>
     </section>
 
-    <!-- 02 KẾT QUẢ MIỄN PHÍ -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-ket-qua-mien-phi">
+    <!-- 02 VÌ SAO TIN ĐƯỢC KẾT QUẢ NÀY -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="02-vi-sao-tin-duoc">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">02 · Không mất phí</div>
+        <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+          <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="34px,34px" name="compass" size="34" color="var(--son)" style="flex:none;margin-top:4px"></x-import>
+          <div style="max-width:680px">
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">02 · Trước khi bạn xem kết quả</div>
+            <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Vì sao có thể tin kết quả này</h2>
+            <p style="margin:16px 0 0;font-size:16px;line-height:1.65;color:var(--text-muted)">Chúng tôi không xin bạn tin bằng lời hứa. Đây là bốn điều bạn có thể tự kiểm chứng trước khi đọc bất kỳ nhận định nào — không phải rating, không phải lượt theo dõi.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:44px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
+          <sc-for list="{{ proofItems }}" as="item" hint-placeholder-count="4">
+            <x-import component-from-global-scope="DesignSystem_031f07.TrustItem" hint-size="100%,200px" icon="{{ item.icon }}" num="{{ item.num }}" title="{{ item.title }}" body="{{ item.body }}" bordered="{{ item.bordered }}" style="{{ item.style }}"></x-import>
+          </sc-for>
+        </div>
+        <p style="margin:28px 0 0;max-width:720px;font-size:13px;line-height:1.7;color:var(--text-faint)">Cơ quan chức năng đã nhiều lần cảnh báo về lừa đảo dưới danh nghĩa xem bói online. Đây là lý do Lá Số Việt công khai phương pháp và không dùng chứng thực ẩn danh để tạo uy tín.</p>
+      </div>
+    </section>
+
+    <!-- 03 KẾT QUẢ MIỄN PHÍ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="03-ket-qua-mien-phi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">03 · Không mất phí</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Kết quả miễn phí bạn nhận được</h2>
         <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border-hairline)">
           <sc-for list="{{ freeResults }}" as="item" hint-placeholder-count="6">
@@ -184,27 +206,27 @@
       </div>
     </section>
 
-    <!-- 03 SAMPLE CHART -->
-    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="03-la-so-mau">
+    <!-- 04 SAMPLE CHART -->
+    <section id="la-so-mau" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="04-la-so-mau">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">03 · Lá số mẫu</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">04 · Lá số mẫu</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Lá số Tử Vi trông như thế nào</h2>
         <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Ví dụ dưới đây là một hồ sơ mẫu, không phải dữ liệu người dùng thật — dùng để minh hoạ cách lá số của bạn sẽ hiển thị.</p>
 
         <div style="margin-top:48px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:48px;align-items:start">
           <div>
             <figure style="margin:0">
-              <div role="img" aria-label="Lá số Tử Vi mẫu gồm 12 cung được an sao, cung Mệnh tại cung Tài Bạch phía trên bên phải, cung Thân trùng cung Quan Lộc." style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);aspect-ratio:1/1;overflow:hidden">
+              <div role="group" aria-label="Lá số Tử Vi mẫu gồm 12 cung được an sao, cung Mệnh phía trên bên trái, cung Thân trùng cung Quan Lộc. Bấm một cung để xem chi tiết." style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-md);aspect-ratio:1/1;overflow:hidden">
                 <sc-for list="{{ chartCells }}" as="cell" hint-placeholder-count="12">
-                  <div style="grid-column:{{ cell.col }};grid-row:{{ cell.row }};background:var(--surface-panel);padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden">
+                  <button type="button" aria-pressed="{{ cell.selected }}" onClick="{{ cell.onSelect }}" style="{{ cell.cellStyle }}">
                     <div style="display:flex;align-items:baseline;justify-content:space-between;gap:4px">
-                      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)">{{ cell.name }}</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:{{ cell.nameColor }}">{{ cell.name }}</span>
                       <sc-if value="{{ cell.badge }}" hint-placeholder-val="{{ false }}">
-                        <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:var(--gold-500);border:1px solid var(--gold-700);border-radius:var(--radius-pill);padding:1px 5px">{{ cell.badge }}</span>
+                        <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:{{ cell.badgeColor }};border:1px solid {{ cell.badgeColor }};border-radius:var(--radius-pill);padding:1px 5px">{{ cell.badge }}</span>
                       </sc-if>
                     </div>
-                    <span style="font-size:11.5px;line-height:1.35;color:var(--text-body)">{{ cell.stars }}</span>
-                  </div>
+                    <span style="font-size:11.5px;line-height:1.35;color:{{ cell.starsColor }};text-align:left">{{ cell.stars }}</span>
+                  </button>
                 </sc-for>
                 <div style="grid-column:2 / 4;grid-row:2 / 4;background:var(--surface-deep);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px">
                   <span style="font-family:var(--font-display);font-size:17px;color:var(--text-heading)">Hồ sơ mẫu</span>
@@ -213,7 +235,7 @@
                 </div>
               </div>
             </figure>
-            <p style="margin:12px 0 0;font-size:12.5px;color:var(--text-faint)">Sơ đồ minh hoạ — xem bảng danh sách tương đương bên cạnh để đọc không cần nhìn hình.</p>
+            <p style="margin:12px 0 0;font-size:12.5px;color:var(--text-faint)">Sơ đồ minh hoạ — bấm một cung (hoặc dùng phím Tab + Enter) để đồng bộ với bảng danh sách bên cạnh.</p>
           </div>
 
           <div>
@@ -227,16 +249,20 @@
               </thead>
               <tbody>
                 <sc-for list="{{ chartRows }}" as="row" hint-placeholder-count="12">
-                  <tr style="border-bottom:1px solid var(--border-hairline)">
-                    <td style="padding:9px 8px 9px 0;color:var(--text-heading);vertical-align:top;white-space:nowrap">{{ row.name }} <sc-if value="{{ row.badge }}" hint-placeholder-val="{{ false }}"><span style="color:var(--gold-500);font-family:var(--font-mono);font-size:10.5px"> · {{ row.badge }}</span></sc-if></td>
-                    <td style="padding:9px 0;color:var(--text-body)">{{ row.stars }}</td>
+                  <tr style="border-bottom:1px solid var(--border-hairline);background:{{ row.rowBg }}">
+                    <td style="padding:9px 8px 9px 0;color:{{ row.textColor }};vertical-align:top;white-space:nowrap">
+                      <button type="button" aria-pressed="{{ row.selected }}" onClick="{{ row.onSelect }}" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer">{{ row.name }}</button>
+                      <sc-if value="{{ row.badge }}" hint-placeholder-val="{{ false }}"><span style="color:{{ row.textColor }};font-family:var(--font-mono);font-size:10.5px"> · {{ row.badge }}</span></sc-if>
+                    </td>
+                    <td style="padding:9px 0;color:{{ row.textColor }}">{{ row.stars }}</td>
                   </tr>
                 </sc-for>
               </tbody>
             </table>
 
-            <div style="margin-top:28px">
-              <x-import component-from-global-scope="DesignSystem_031f07.InsightCard" hint-size="100%,180px" num="Cung Mệnh" title="Người có Cự Môn thủ Mệnh có xu hướng ăn nói sắc sảo, thích phân tích trước khi quyết định." sub="Đây là một xu hướng nền, không phải khẳng định về tính cách cố định." stamped="{{ insightStamped }}" onExplain="{{ toggleInsight }}"></x-import>
+            <div style="margin-top:24px;background:var(--surface-panel);border:1px solid var(--border-hairline);border-radius:var(--radius-md);padding:20px 24px" aria-live="polite">
+              <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold-600)">Đang xem: Cung {{ selectedPalace.name }}</div>
+              <p style="margin:8px 0 0;font-size:14.5px;line-height:1.65;color:var(--text-body)">{{ selectedPalace.note }}</p>
             </div>
           </div>
         </div>
@@ -247,11 +273,30 @@
       </div>
     </section>
 
-    <!-- 04 CÁC TRƯỜNG DÙNG ĐỂ LÀM GÌ -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="04-truong-du-lieu">
+    <!-- 05 THUẬT NGỮ CỐT LÕI -->
+    <section style="padding:clamp(56px,9vw,104px) 0;border-top:1px solid var(--border-hairline)" data-screen-label="05-thuat-ngu-cot-loi">
+      <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">05 · Thuật ngữ cốt lõi</div>
+        <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:640px">Đọc lá số mà không bị ngợp thuật ngữ</h2>
+        <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Năm khái niệm nền — không cần thuộc lòng, chỉ cần biết tra khi cần trong lúc đọc lá số mẫu ở trên.</p>
+
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-hairline);border:1px solid var(--border-hairline);border-radius:var(--radius-lg);overflow:hidden">
+          <sc-for list="{{ glossaryItems }}" as="g" hint-placeholder-count="5">
+            <div style="background:var(--surface-panel);padding:28px">
+              <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="24px,24px" name="{{ g.icon }}" size="24" color="var(--gold-500)"></x-import>
+              <div style="margin-top:16px;font-family:var(--font-display);font-size:18px;line-height:1.35;color:var(--text-heading)">{{ g.term }}</div>
+              <p style="margin:10px 0 0;font-size:14px;line-height:1.65;color:var(--text-body)">{{ g.body }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 CÁC TRƯỜNG DÙNG ĐỂ LÀM GÌ -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="06-truong-du-lieu">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:start">
         <div>
-          <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">04 · Vì sao cần các trường này</div>
+          <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">06 · Vì sao cần các trường này</div>
           <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Ngày, giờ, nơi sinh dùng để làm gì</h2>
           <dl style="margin:32px 0 0">
             <sc-for list="{{ fieldExplainers }}" as="f" hint-placeholder-count="4">
@@ -273,10 +318,10 @@
       </div>
     </section>
 
-    <!-- 05 UNKNOWN TIME MODE -->
-    <section id="unknown-time" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="05-khong-ro-gio-sinh">
+    <!-- 07 UNKNOWN TIME MODE -->
+    <section id="unknown-time" style="padding:clamp(56px,9vw,104px) 0" data-screen-label="07-khong-ro-gio-sinh">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">05 · Không rõ giờ sinh</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">07 · Không rõ giờ sinh</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Không rõ giờ sinh vẫn lập được lá số</h2>
         <p style="margin:16px 0 0;max-width:680px;font-size:16px;line-height:1.65;color:var(--text-muted)">Bạn có thể bỏ trống giờ sinh và tiếp tục. Bảng dưới đây cho biết phần nào giữ nguyên và phần nào bị ảnh hưởng.</p>
 
@@ -308,10 +353,10 @@
       </div>
     </section>
 
-    <!-- 06 CÁCH TÍNH -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="06-cach-tinh">
+    <!-- 08 CÁCH TÍNH -->
+    <section id="cach-tinh" style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline);border-bottom:1px solid var(--border-hairline)" data-screen-label="08-cach-tinh">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">06 · Minh bạch phương pháp</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">08 · Minh bạch phương pháp</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading);max-width:680px">Cách tính, bộ quy tắc và phiên bản engine</h2>
 
         <div style="margin-top:40px;max-width:760px">
@@ -331,13 +376,13 @@
       </div>
     </section>
 
-    <!-- 07 GIỚI HẠN & SAFETY -->
-    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="07-gioi-han-safety">
+    <!-- 09 GIỚI HẠN & SAFETY -->
+    <section style="padding:clamp(56px,9vw,104px) 0" data-screen-label="09-gioi-han-safety">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px);display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1fr);gap:48px;align-items:start">
         <div style="display:flex;align-items:center;gap:14px">
           <x-import component-from-global-scope="DesignSystem_031f07.Icon" hint-size="28px,28px" name="shield-lock" size="28" color="var(--gold-500)"></x-import>
           <div>
-            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">07 · Giới hạn</div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">09 · Giới hạn</div>
             <h2 style="margin:8px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(24px,3vw,30px);color:var(--text-heading)">Nội dung tham khảo, không thay thế chuyên môn</h2>
           </div>
         </div>
@@ -352,10 +397,10 @@
       </div>
     </section>
 
-    <!-- 08 CLUSTER + FAQ + CTA -->
-    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="08-kien-thuc-faq">
+    <!-- 10 CLUSTER + FAQ + CTA -->
+    <section style="padding:clamp(56px,9vw,104px) 0;background:var(--surface-deep);border-top:1px solid var(--border-hairline)" data-screen-label="10-kien-thuc-faq">
       <div style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,32px)">
-        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">08 · Đọc thêm</div>
+        <div style="font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-600)">10 · Đọc thêm</div>
         <h2 style="margin:14px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(26px,3.2vw,34px);color:var(--text-heading)">Bài kiến thức liên quan</h2>
         <div style="margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px">
           <sc-for list="{{ articles }}" as="a" hint-placeholder-count="3">
@@ -425,14 +470,14 @@ class Component extends DCLogic {
   state = {
     navOpen: false,
     unknownTime: false,
-    insightStamped: false,
+    selectedPalaceIndex: 0,
     engineOpen: true,
     faqOpen: { 0: true }
   };
 
   toggleNav = () => this.setState(s => ({ navOpen: !s.navOpen }));
   toggleUnknownTime = () => this.setState(s => ({ unknownTime: !s.unknownTime }));
-  toggleInsight = () => this.setState(s => ({ insightStamped: !s.insightStamped }));
+  selectPalace = (i) => this.setState({ selectedPalaceIndex: i });
   toggleEngine = () => this.setState(s => ({ engineOpen: !s.engineOpen }));
   toggleFaq = (i) => this.setState(s => ({ faqOpen: { ...s.faqOpen, [i]: !s.faqOpen[i] } }));
 
@@ -446,21 +491,56 @@ class Component extends DCLogic {
       { num: '06', icon: 'share', title: 'Lưu và chia sẻ lá số', body: 'Đường liên kết riêng cho lá số của bạn, ẩn thông tin cá nhân theo mặc định.', bordered: false }
     ];
 
-    const chartCells = [
-      { col: 1, row: 1, name: 'Tài Bạch', badge: 'MỆNH', stars: 'Cự Môn, Hoá Quyền' },
-      { col: 2, row: 1, name: 'Tử Tức', stars: 'Thiên Cơ' },
-      { col: 3, row: 1, name: 'Phu Thê', stars: 'Thiên Đồng, Văn Xương' },
-      { col: 4, row: 1, name: 'Huynh Đệ', stars: 'Vũ Khúc, Thiên Phủ' },
-      { col: 1, row: 2, name: 'Quan Lộc', badge: 'THÂN', stars: 'Thái Dương' },
-      { col: 4, row: 2, name: 'Phụ Mẫu', stars: 'Thái Âm, Văn Khúc' },
-      { col: 1, row: 3, name: 'Nô Bộc', stars: 'Thất Sát' },
-      { col: 4, row: 3, name: 'Phúc Đức', stars: 'Tham Lang' },
-      { col: 1, row: 4, name: 'Thiên Di', stars: 'Thiên Lương' },
-      { col: 2, row: 4, name: 'Tật Ách', stars: 'Liêm Trinh, Đà La' },
-      { col: 3, row: 4, name: 'Điền Trạch', stars: 'Phá Quân' },
-      { col: 4, row: 4, name: 'Bào (dự phòng)', stars: 'Tả Phụ, Hữu Bật' }
+    const proofItems = [
+      { num: '01', icon: 'book-open', title: 'Phương pháp công khai', body: 'Bộ quy tắc an sao và phiên bản engine được công bố ở mục "Cách tính" bên dưới — không giấu sau một "thầy" ẩn danh.' },
+      { num: '02', icon: 'scroll', title: 'Mỗi nhận định mở được căn cứ', body: 'Nút "Vì sao có nhận định này?" cho xem đúng sao, đúng cung, đúng quy tắc đã dùng — không phải một câu chung chung áp cho mọi người.' },
+      { num: '03', icon: 'shield-lock', title: 'AI không tạo ra dữ liệu lá số', body: 'AI chỉ diễn giải kết quả engine đã tính. Khi văn bản diễn giải và engine lệch nhau, engine luôn là căn cứ đúng.' },
+      { num: '04', icon: 'check', title: 'Không rating, không chứng thực giả', body: 'Chúng tôi không dùng lượt theo dõi hay lời "ai cũng khen" để chứng minh uy tín — chỉ dùng phương pháp và dữ liệu bạn có thể tự kiểm tra.', bordered: false }
     ];
-    const chartRows = chartCells.map(c => ({ name: c.name, badge: c.badge, stars: c.stars }));
+
+    const glossaryItems = [
+      { icon: 'compass', term: 'Cung', body: 'Lá số chia đời sống thành 12 khu vực gọi là cung — mỗi cung nói về một phương diện: sự nghiệp, tình cảm, tài chính, sức khoẻ...' },
+      { icon: 'scroll', term: 'Chính tinh & phụ tinh', body: 'Chính tinh là sao chủ chốt được an vào từng cung theo ngày giờ sinh; phụ tinh bổ sung sắc thái. Tên và vị trí sao là dữ liệu — ý nghĩa là phần luận giải.' },
+      { icon: 'user-circle', term: 'Cung Mệnh & Cung Thân', body: 'Cung Mệnh thể hiện bản chất cốt lõi; Cung Thân thể hiện phần biểu hiện ra ngoài. Đây là hai cung được xem đầu tiên khi đọc một lá số.' },
+      { icon: 'calendar-day', term: 'Ngũ hành bản mệnh', body: 'Kim – Mộc – Thuỷ – Hoả – Thổ được gán theo năm sinh, dùng để đối chiếu với ngũ hành của sao và cung khi luận giải.' },
+      { icon: 'clock', term: 'Đại vận', body: 'Mỗi 10 năm ứng với một cung khác được kích hoạt — cách Tử Vi nhìn một giai đoạn cụ thể, không phải một lời phán cho cả đời.' }
+    ];
+
+    const chartFacts = [
+      { col: 1, row: 1, name: 'Mệnh', badge: 'MỆNH', stars: 'Cự Môn, Hoá Quyền', note: 'Cung Mệnh — Cự Môn, Hoá Quyền. Đây là cung trung tâm, thể hiện bản chất cốt lõi, được xem đầu tiên khi đọc lá số.' },
+      { col: 2, row: 1, name: 'Tử Tức', stars: 'Thiên Cơ', note: 'Cung Tử Tức — Thiên Cơ. Nói về con cái và các mối quan hệ mang tính truyền thụ, sáng tạo.' },
+      { col: 3, row: 1, name: 'Phu Thê', stars: 'Thiên Đồng, Văn Xương', note: 'Cung Phu Thê — Thiên Đồng, Văn Xương. Nói về hôn nhân và cách cư xử trong quan hệ đôi lứa.' },
+      { col: 4, row: 1, name: 'Huynh Đệ', stars: 'Vũ Khúc, Thiên Phủ', note: 'Cung Huynh Đệ — Vũ Khúc, Thiên Phủ. Nói về anh chị em và các mối quan hệ ngang hàng, hỗ trợ lẫn nhau.' },
+      { col: 1, row: 2, name: 'Quan Lộc', badge: 'THÂN', stars: 'Thái Dương', note: 'Cung Quan Lộc — Thái Dương. Nói về sự nghiệp và con đường công danh. Trong hồ sơ mẫu này, cung Thân trùng với cung Quan Lộc.' },
+      { col: 4, row: 2, name: 'Phụ Mẫu', stars: 'Thái Âm, Văn Khúc', note: 'Cung Phụ Mẫu — Thái Âm, Văn Khúc. Nói về cha mẹ và mối quan hệ với người đi trước, người bảo trợ.' },
+      { col: 1, row: 3, name: 'Nô Bộc', stars: 'Thất Sát', note: 'Cung Nô Bộc (Giao Hữu) — Thất Sát. Nói về bạn bè, đồng nghiệp và các mối quan hệ ngang vai không cùng huyết thống.' },
+      { col: 4, row: 3, name: 'Phúc Đức', stars: 'Tham Lang', note: 'Cung Phúc Đức — Tham Lang. Nói về đời sống tinh thần, phúc phần và nền tảng thừa hưởng.' },
+      { col: 1, row: 4, name: 'Thiên Di', stars: 'Thiên Lương', note: 'Cung Thiên Di — Thiên Lương. Nói về việc di chuyển, thay đổi môi trường sống và cách thích nghi xa nhà.' },
+      { col: 2, row: 4, name: 'Tật Ách', stars: 'Liêm Trinh, Đà La', note: 'Cung Tật Ách — Liêm Trinh, Đà La. Nói về sức khoẻ và các xu hướng cần lưu ý về thể chất.' },
+      { col: 3, row: 4, name: 'Điền Trạch', stars: 'Phá Quân', note: 'Cung Điền Trạch — Phá Quân. Nói về nhà cửa, đất đai và tài sản cố định.' },
+      { col: 4, row: 4, name: 'Tài Bạch', stars: 'Tả Phụ, Hữu Bật', note: 'Cung Tài Bạch — Tả Phụ, Hữu Bật. Nói về tiền bạc, cách kiếm và giữ tài chính.' }
+    ];
+    const selectedIdx = this.state.selectedPalaceIndex;
+    const chartCells = chartFacts.map((c, i) => {
+      const selected = i === selectedIdx;
+      return {
+        ...c,
+        selected,
+        onSelect: () => this.selectPalace(i),
+        nameColor: selected ? 'var(--surface-canvas)' : 'var(--text-muted)',
+        starsColor: selected ? 'var(--surface-canvas)' : 'var(--text-body)',
+        badgeColor: selected ? 'var(--surface-canvas)' : 'var(--gold-500)',
+        cellStyle: `grid-column:${c.col};grid-row:${c.row};background:${selected ? 'var(--gold-500)' : 'var(--surface-panel)'};padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden;text-align:left;font:inherit;border:none;cursor:pointer`
+      };
+    });
+    const chartRows = chartCells.map((c, i) => ({
+      name: c.name, badge: c.badge, stars: c.stars,
+      selected: i === selectedIdx,
+      onSelect: () => this.selectPalace(i),
+      rowBg: i === selectedIdx ? 'var(--gold-500)' : 'transparent',
+      textColor: i === selectedIdx ? 'var(--surface-canvas)' : 'var(--text-heading)'
+    }));
+    const selectedPalace = chartFacts[selectedIdx];
 
     const fieldExplainers = [
       { icon: 'calendar-day', label: 'Ngày sinh', body: 'Dùng để tính năm, tháng, ngày theo lịch âm và xác định bộ Thiên Can – Địa Chi làm nền cho việc an chính tinh tại 12 cung.' },
@@ -514,6 +594,7 @@ class Component extends DCLogic {
       { q: 'Tôi nên nhập lịch dương hay lịch âm?', a: 'Nhập theo loại lịch ghi trên giấy khai sinh của bạn và chọn đúng tuỳ chọn lịch dương hoặc lịch âm trong form — hệ thống sẽ tự quy đổi.' },
       { q: 'Nơi sinh có cần chính xác tuyệt đối không?', a: 'Nên chọn địa danh gần nhất với nơi sinh thật. Nơi sinh dùng để quy đổi giờ sinh theo kinh độ, sai lệch trong phạm vi một tỉnh thường không ảnh hưởng đến kết quả.' },
       { q: 'Lá số Tử Vi có thể dùng để quyết định việc quan trọng không?', a: 'Không nên. Nội dung mang tính tham khảo văn hoá và phản ánh xu hướng có thể xảy ra, không thay thế tư vấn y tế, pháp lý hoặc tài chính từ chuyên gia.' },
+      { q: 'Nếu lá số hoặc một cung nào đó có nhận định không tích cực thì sao?', a: 'Lá Số Việt không xếp một cung hay một giai đoạn là "xấu" tuyệt đối. Mỗi nhận định đi kèm điều kiện (ví dụ có bị sát tinh hãm địa hay không) và mức độ tin cậy, để bạn thấy đây là một xu hướng cần quan sát — không phải một lời phán về số phận đã định. Với sức khoẻ, tài chính hay pháp lý, kết quả không thay thế tư vấn chuyên môn.' },
       { q: 'Làm sao biết một nhận định dựa trên căn cứ gì?', a: 'Các nhận định quan trọng đều có nút "Vì sao có nhận định này?" kèm dấu triện, mở ra phần dữ liệu lá số đã được dùng để đưa ra nhận định đó.' }
     ];
     const faqs = faqData.map((f, i) => ({
@@ -529,11 +610,9 @@ class Component extends DCLogic {
       timeInputOpacity: this.state.unknownTime ? 0.45 : 1,
       toggleUnknownTime: this.toggleUnknownTime,
       toggleNav: this.toggleNav,
-      insightStamped: this.state.insightStamped,
-      toggleInsight: this.toggleInsight,
       engineOpen: this.state.engineOpen,
       toggleEngine: this.toggleEngine,
-      freeResults, chartCells, chartRows, fieldExplainers,
+      freeResults, proofItems, glossaryItems, chartCells, chartRows, selectedPalace, fieldExplainers,
       unaffectedItems, affectedItems, methodRows, engineRows,
       limitItems, articles, faqs
     };
