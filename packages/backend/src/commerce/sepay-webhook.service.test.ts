@@ -137,13 +137,13 @@ describe("SePay Bank Webhook (HMAC)", () => {
   const nowClock = () => new Date(nowEpochSeconds * 1000);
   const webhookSecret = "synthetic-webhook-secret";
 
-  function sign(timestamp, body, secret = webhookSecret) {
+  function sign(timestamp: number | string, body: string, secret = webhookSecret) {
     const hmac = createHmac("sha256", secret);
-    hmac.update(timestamp + "." + body);
+    hmac.update(String(timestamp) + "." + body);
     return "sha256=" + hmac.digest("hex");
   }
 
-  it("accepts valid HMAC and maps id to string providerEventId", async () => {
+  it("accepts valid HMAC and maps numeric id 92704 exactly to string providerEventId '92704'", async () => {
     const recordPaid = vi.fn().mockResolvedValue({ ok: true, replayed: false });
     const service = createSePayWebhookService({
       secretKey: "synthetic-sepay-secret",
@@ -170,6 +170,40 @@ describe("SePay Bank Webhook (HMAC)", () => {
       currency: "VND",
       traceId: "bank-trace-1",
     });
+  });
+
+  it.each([
+    ["null", null],
+    ["object", {}],
+    ["array", [92704]],
+    ["string numeric", "92704"],
+    ["empty string", ""],
+    ["non-integer float", 92704.5],
+    ["zero", 0],
+    ["negative", -92704],
+    ["unsafe integer", Number.MAX_SAFE_INTEGER + 1],
+  ])("rejects invalid bank id boundary case: %s", async (_label, invalidId) => {
+    const recordPaid = vi.fn();
+    const service = createSePayWebhookService({
+      secretKey: "synthetic-sepay-secret",
+      webhookSecret,
+      now: nowClock,
+      recordPaid,
+    });
+    const payload = { ...bankTransfer, id: invalidId };
+    const rawBody = JSON.stringify(payload);
+    const timestamp = String(nowEpochSeconds);
+    const signature = sign(timestamp, rawBody);
+
+    const result = await service.handle({
+      rawBody,
+      signatureHeader: signature,
+      timestampHeader: timestamp,
+      traceId: "bank-trace-invalid-id",
+    });
+
+    expect(result).toEqual({ ok: false, error: { code: "SEPAY_PAYLOAD_INVALID" } });
+    expect(recordPaid).not.toHaveBeenCalled();
   });
 
   it("normalizes payment code falling back to content first token", async () => {

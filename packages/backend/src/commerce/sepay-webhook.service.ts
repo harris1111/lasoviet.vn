@@ -173,7 +173,9 @@ export function createSePayWebhookService(dependencies: {
       const bank = payload as Record<string, unknown>;
 
       if (
-        bank.id === undefined ||
+        typeof bank.id !== "number" ||
+        !Number.isSafeInteger(bank.id) ||
+        bank.id <= 0 ||
         bank.transferType !== "in" ||
         typeof bank.transferAmount !== "number" ||
         !Number.isSafeInteger(bank.transferAmount) ||
@@ -182,10 +184,7 @@ export function createSePayWebhookService(dependencies: {
         return { ok: false as const, error: { code: "SEPAY_PAYLOAD_INVALID" } };
       }
 
-      const idStr = String(bank.id).trim();
-      if (!idStr || idStr.length > 128) {
-        return { ok: false as const, error: { code: "SEPAY_PAYLOAD_INVALID" } };
-      }
+      const idStr = String(bank.id);
 
       const rawCode = typeof bank.code === "string" ? bank.code.trim() : "";
       const rawContent = typeof bank.content === "string" ? bank.content.trim() : "";

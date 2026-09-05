@@ -1,19 +1,17 @@
 import { BadRequestException, ConflictException, UnauthorizedException } from "@nestjs/common";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createHmac } from "node:crypto";
+import * as backend from "@lasoviet/backend";
 
 import { CommerceController } from "./commerce.controller.js";
 
 function controller(options: {
   orderTtlSeconds?: number;
   webhookSecret?: string;
-  recordPaidResult?: { ok: boolean; replayed?: boolean; code?: string };
 } = {}) {
-  const database = {
-    transaction: async (cb: (tx: unknown) => Promise<unknown>) => cb({}),
-  };
+  const database = {} as never;
   return new CommerceController(
-    database as never,
+    database,
     "internal-secret",
     "provider-secret",
     "ingress-secret",
@@ -150,7 +148,15 @@ describe("SePay controller HTTP contract", () => {
       .rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it("accepts valid HMAC bank webhook through controller boundary and authenticates", async () => {
+  it("accepts valid HMAC bank webhook through controller boundary and acknowledges payment", async () => {
+    const recordPaidSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: recordPaidSpy,
+    } as never);
+
     const bankTransfer = {
       id: 92704,
       gateway: "Vietcombank",
@@ -171,7 +177,25 @@ describe("SePay controller HTTP contract", () => {
     hmac.update(String(nowEpochSeconds) + "." + rawBody.toString("utf8"));
     const signature = "sha256=" + hmac.digest("hex");
 
-    await expect(controller().webhook("ingress-secret", undefined, signature, String(nowEpochSeconds), { rawBody }))
-      .rejects.not.toBeInstanceOf(UnauthorizedException);
+    try {
+      const result = await controller().webhook(
+        "ingress-secret",
+        undefined,
+        signature,
+        String(nowEpochSeconds),
+        { rawBody },
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(recordPaidSpy).toHaveBeenCalledWith({
+        invoiceNumber: "LSV-order-1",
+        providerEventId: "92704",
+        amount: 79000,
+        currency: "VND",
+        traceId: "sepay-webhook",
+      });
+    } finally {
+      repoSpy.mockRestore();
+    }
   });
 });
