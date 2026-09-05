@@ -21,28 +21,26 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Planning reconciliation is current through 2026-09-04. The
+**Status:** Planning reconciliation is current through 2026-09-05. The
 repository has implemented Phase 00 foundations, Phase 01 identity/privacy
 services, Phase 02 calculation/evidence services, the artifact-driven Phase 03
-free-MVP experience, the Phase 04 AI/report foundation, reviewed Phase 04
-SePay Tasks 1-2, and production-like free-MVP Compose smoke evidence. The
+free-MVP experience, all provider-independent Phase 04 commerce/report tasks,
+and production-like free-MVP Compose smoke evidence. The
 FD-024 artifact-first UI gate was satisfied by the merged MVP UI branch; it
 remains the rule for future visual work. No later phase is marked complete
-merely because a foundation exists; Phase 04 remains incomplete, and
-paid-release closure remains blocked by its remaining workflows, Phase 05
-workflows, and Phase 05A evidence.
+merely because implementation exists. Phase 04 implementation is complete on
+the isolated report-generation branch, while phase closure remains blocked by
+provider privacy approval and fixture-backed private-report browser acceptance.
+Paid-release closure also requires Phase 05 workflows and Phase 05A evidence.
 
-**Active implementation branch:** `feature/paid-flow-admin-operations`.
+**Active implementation branch:** `feature/phase04-report-generation`.
 Provider-independent Phase 05A implementation is authorized from 2026-09-02.
-SePay checkout and webhook contracts are implemented and reviewed complete for
-Tasks 1-2. Docker VPS verification passed, and a real authenticated sandbox
-payment completed the order, payment-event, entitlement, report-reservation,
-The durable P04-T03 report worker consumer and P04-T04 approved knowledge
-ingestion and retrieval are now implemented and reviewed complete on the active
-`feature/paid-flow-admin-operations` branch. Operationally, the previously
-published sandbox report job on the Docker VPS remains `waiting` until a
-separately authorized deployment; production payment activation remains
-founder-controlled, and Phase 04 remains incomplete pending later tasks.
+SePay Tasks 1-2, the durable P04-T03 worker, P04-T04 approved knowledge
+retrieval, P04-T05 immutable evidence-backed generation, and P04-T06
+owner-authorized private HTML reading are implemented and reviewed. The
+previously published sandbox report job on the Docker VPS remains `waiting`
+until a separately authorized deployment. Production payment activation and
+production AI activation remain founder-controlled.
 
 ## Global Constraints
 
@@ -56,11 +54,11 @@ founder-controlled, and Phase 04 remains incomplete pending later tasks.
 - Communicate with the founder in Vietnamese; repository artifacts and commits
   are English.
 - Use only Superpowers workflows; do not invoke `/ck` or CK CLI.
-- Sol xhigh orchestrates and reviews complete features, phases, and meaningful
-  milestones. Terra medium directly implements, debugs, and runs focused tests.
-  Global Flash Executor uses `ag/gemini-3.8-flash-high` at `high` for literal,
-  bounded Sol/Terra briefs only. Luna remains paused unless the founder
-  explicitly reactivates it.
+- Sol high orchestrates and adjudicates. Global Flash Executor uses
+  `ag/gemini-3.8-flash-high` at `high` as the coder for literal, bounded Sol
+  briefs. Terra high independently reviews complete features, phases, and
+  meaningful milestones. Luna remains paused unless the founder explicitly
+  reactivates it.
 - P0 uses Next.js 16 latest stable 16.x at implementation time.
 - P0 uses NestJS with the Fastify adapter.
 - Browser traffic terminates at Next.js; the API remains private.
@@ -126,20 +124,22 @@ founder-controlled, and Phase 04 remains incomplete pending later tasks.
 ## Execution Rules
 
 1. Execute phases in dependency order.
-2. Sol xhigh gives Terra the phase goal and acceptance criteria, and reviews
-   complete features, phases, and meaningful milestones.
-3. Terra medium directly implements, debugs, and runs focused tests within the
-   approved scope.
-4. Sol or Terra may dispatch global Flash Executor only with an exact bounded
+2. Sol high owns scope, sequencing, exact implementation briefs, and founder
+   communication.
+3. Global Flash Executor implements and runs the focused checks in Sol's exact
+   bounded brief.
+4. Terra high independently reviews meaningful milestones and scoped correction
+   passes.
+5. Sol may dispatch global Flash Executor only with an exact bounded
    brief naming owned files, behavior, acceptance criteria, and focused checks.
    Flash Executor does not plan, propose, broaden scope, or debug deeply.
-5. Luna is paused unless the founder explicitly reactivates it.
-6. Sol updates phase status, traceability, risk, decision, and rule trackers.
-7. A phase closes only when its exit criteria pass in the intended environment.
-8. No later-wave feature may delay the first complete paid Zi Wei flow.
-9. A task listed in `open-decisions.md` cannot cross its named decision gate
-   until the founder resolves that decision in writing.
-10. Each phase task and its matching `Pxx-Tyy` record in
+6. Luna is paused unless the founder explicitly reactivates it.
+7. Sol updates phase status, traceability, risk, decision, and rule trackers.
+8. A phase closes only when its exit criteria pass in the intended environment.
+9. No later-wave feature may delay the first complete paid Zi Wei flow.
+10. A task listed in `open-decisions.md` cannot cross its named decision gate
+    until the founder resolves that decision in writing.
+11. Each phase task and its matching `Pxx-Tyy` record in
     `task-contracts-and-test-vectors.md` form one normative implementation
     instruction.
 

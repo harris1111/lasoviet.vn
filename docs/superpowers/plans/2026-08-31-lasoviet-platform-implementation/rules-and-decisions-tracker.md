@@ -26,7 +26,7 @@
 | FD-020 | 2026-08-31 | Purge unlinked anonymous birth-profile and chart data after 24 hours; preserve it under account policy only after verified account linking | Approved | `AGENTS.md`, Phase 01, Phase 03 |
 | FD-021 | 2026-09-01 | Review complete features, phases, or meaningful milestones instead of every small implementation task; keep focused core-flow verification | Approved | `AGENTS.md` |
 | FD-022 | 2026-09-01 | Use the founder-provided MXRouting SMTP connection for authentication and report email; port 587 requires reviewed STARTTLS behavior | Approved | Phase 01, Phase 05 |
-| FD-023 | 2026-09-01 | From P01-T02 onward, Terra medium directly implements, debugs, and runs focused tests; Sol xhigh orchestrates and reviews milestones; Luna is paused | Approved | `AGENTS.md`, P01-T02 onward |
+| FD-023 | 2026-09-01 | From P01-T02 onward, Terra medium directly implements, debugs, and runs focused tests; Sol xhigh orchestrates and reviews milestones; Luna is paused | Superseded by FD-032 | Historical P01-T02 through P05A work |
 | FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Approved | `AGENTS.md`, current implementation phases |
 | FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
 | FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
@@ -35,6 +35,7 @@
 | FD-029 | 2026-09-03 | Paid checkout requires an authenticated account with verified email. Anonymous actors remain free-flow only. Immutable commerce records use the durable account owner and must not reference anonymous/profile/chart lifecycle records with retention-blocking foreign keys. | Approved | Phase 04, `AGENTS.md`, commerce schema and checkout authorization |
 | FD-030 | 2026-09-03 | Approve the Payment Gateway Sandbox for the first SePay external test. Hosted checkout omits `payment_method`, so SePay presents merchant-enabled methods such as VietQR or cards. Production payment activation remains a separate founder-controlled gate. | Approved | Phase 04 sandbox activation gate |
 | FD-031 | 2026-09-04 | Add global Flash Executor on `ag/gemini-3.8-flash-high` with `high` reasoning as an execution-only subagent. It accepts exact bounded briefs from Sol or Terra, does not plan, propose, broaden scope, or debug deeply, and stops when work exceeds one direct local correction. Luna remains paused. | Approved | Global Codex configuration, `AGENTS.md`, master plan |
+| FD-032 | 2026-09-05 | Use Sol high as orchestrator/adjudicator, Gemini Flash high as the bounded coder, and Terra high as the independent milestone reviewer. Luna remains paused. | Approved | `AGENTS.md`, master plan, P04-T06 onward |
 
 ## FD-028 Execution Boundary
 
@@ -220,6 +221,36 @@ Date: 2026-09-02
   reusable behavior; strict source-snapshot and locale-integrity rules already
   cover the implementation lessons. Open questions: provider privacy terms
   remain pending.
+
+## P04 Tasks 3-6 Implementation Evidence
+
+Date: 2026-09-05
+
+- P04-T03 added the durable PostgreSQL report consumer and state machine,
+  ending at the authoritative `generating` handoff. Terra high approved 21
+  focused tests, including 6 PostgreSQL integration scenarios.
+- P04-T04 added approved, versioned repository knowledge ingestion and bounded
+  PostgreSQL retrieval with optional vector augmentation disabled by default.
+  Terra high approved 43 focused tests.
+- P04-T05 connected the worker to frozen evidence/knowledge, bounded AI
+  generation, deterministic validation and critic checks, immutable structured
+  and escaped HTML persistence, replay fencing, and one idempotent
+  `report.pdf.requested.v1` event. Production AI remains fail-closed while
+  provider privacy due diligence is pending.
+- P04-T06 added strict private report views, owner-filtered repository/API/BFF
+  reads, pending/failed state rendering, artifact-backed responsive HTML,
+  report-bound evidence disclosure, locale authority, noindex coverage,
+  reduced-motion behavior, and mobile keyboard focus management.
+- P04-T06 implementation commit is `c702a91`. Terra high approved the final
+  correction with no open Critical or Important finding.
+- Fresh local verification passed contracts, database, and backend builds; API
+  and web typechecks; 55 non-container tests; i18n parity; scoped ESLint; asset
+  hash/size; and `git diff --check`. Seven Playwright tests were collected but
+  fixture-skipped. The two new PostgreSQL lineage cases collected successfully
+  but could not execute because the local Docker daemon was unavailable.
+- Phase 04 implementation is complete. Phase closure and production activation
+  remain blocked by provider privacy approval, fixture-backed private-report
+  browser acceptance, and separately authorized deployment/activation.
 
 ## P03 Non-Visual Slice 1 Evidence
 

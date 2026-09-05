@@ -372,7 +372,7 @@ git commit -m "feat: add approved knowledge retrieval"
 - Production AI calls require a complete approved provider due-diligence
   record.
 
-- [ ] **Step 1: Obtain phase-specific founder inputs**
+- [x] **Step 1: Obtain phase-specific founder inputs**
 
 Sol asks for base URL and model. API key is placed in the approved secret
 environment, not committed or copied into docs.
@@ -388,7 +388,7 @@ unsuitable, or materially changed terms stop the phase and return through
 Terra to Sol for a founder decision; Terra does not approve provider privacy
 trade-offs.
 
-- [ ] **Step 3: Write failing capability, provider-gate, and validator tests**
+- [x] **Step 3: Write failing capability, provider-gate, and validator tests**
 
 Cover schema support, malformed output, timeout, evidence fabrication, missing
 evidence, absolute accident/death/disease/legal/financial claims, diagnosis,
@@ -396,35 +396,35 @@ fear upsell, unsupported language, an incomplete/unapproved due-diligence
 record, duplicate generation jobs, and no PDF event before validated immutable
 HTML commits.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run:
 `pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts tests/jobs/report-generation.integration.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 5: Implement the capability probe**
+- [x] **Step 5: Implement the capability probe**
 
 If the endpoint cannot satisfy the approved contract, Luna stops. Terra
 reviews evidence and returns it to Sol for founder escalation.
 
-- [ ] **Step 6: Implement deterministic outline and bounded section generation**
+- [x] **Step 6: Implement deterministic outline and bounded section generation**
 
 Freeze chart, evidence, knowledge, prompt, locale, and model versions before
 generation.
 
-- [ ] **Step 7: Implement deterministic validation, persistence, and critic**
+- [x] **Step 7: Implement deterministic validation, persistence, and critic**
 
 Reject unsafe or unsupported reports. Do not expose failed drafts. Commit the
 validated immutable HTML version before emitting one idempotent
 `report.pdf.requested.v1`; retry must not create a second version or event.
 
-- [ ] **Step 8: Run tests and a controlled endpoint smoke**
+- [x] **Step 8: Run tests and a controlled endpoint smoke**
 
 Run:
 `pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts tests/jobs/report-generation.integration.test.ts`
 Expected: PASS. Endpoint smoke stores no real user PII.
 
-- [ ] **Step 9: Update risk/rule trackers and commit**
+- [x] **Step 9: Update risk/rule trackers and commit**
 
 ```bash
 git add docs/compliance packages/backend/src/ai packages/backend/src/reports tests/compliance docs/superpowers/plans
@@ -456,26 +456,52 @@ git commit -m "feat: generate evidence-backed identity reports"
   duplicate-job integration, and `report.pdf.requested.v1` remain required
   before the task or phase can close.
 
+#### Provider-Independent Completion Evidence (2026-09-05)
+
+- P04-T03 and P04-T04 now provide the durable generating-state handoff and
+  exact approved knowledge snapshot required by this task.
+- P04-T05 now owns immutable validated structured content and escaped HTML,
+  replay-safe generation attempts, report-version conflict fencing, and one
+  `report.pdf.requested.v1` event.
+- Terra high approved the combined generation implementation through commit
+  `7ee0e16` with no open Critical or Important finding.
+- The production provider gate remains intentionally fail-closed because Step
+  2 privacy due diligence is not approved. This blocks production activation,
+  not the completed provider-independent implementation.
+
 ### Task 6 [P04-T06]: Persist immutable report versions and render private HTML
 
 **Files:**
-- Create: `packages/contracts/src/identity-report-v1.ts`
-- Modify: `packages/backend/src/reports/report-version.repository.ts`
+- Modify: `packages/contracts/src/identity-report-v1.ts`
+- Modify: `packages/contracts/src/index.ts`
+- Create: `packages/backend/src/reports/report-query.repository.ts`
+- Create: `packages/backend/src/reports/report-query.service.ts`
+- Create: `packages/backend/src/reports/report-query.service.test.ts`
+- Modify: `packages/backend/src/index.ts`
 - Create: `apps/api/src/reports/reports.controller.ts`
-- Create: `apps/web/src/app/[locale]/bao-cao/[reportId]/page.tsx`
+- Create: `apps/api/src/reports/reports.controller.test.ts`
+- Modify: `apps/api/src/api.module.ts`
+- Create: `apps/web/src/features/reports/load-report.ts`
+- Create: `apps/web/src/features/reports/load-report.test.ts`
 - Create: `apps/web/src/features/reports/report-progress.tsx`
-- Create: `apps/web/src/features/reports/identity-report.tsx`
-- Modify: `config/route-registry.yml`
+- Modify: `apps/web/src/features/reports/report-reader.tsx`
+- Modify: `apps/web/src/app/[locale]/bao-cao/[reportId]/page.tsx`
+- Create: `apps/web/src/app/[locale]/bao-cao/[reportId]/page.test.tsx`
+- Modify: `apps/web/messages/vi/reports.json`
+- Modify: `apps/web/messages/en/reports.json`
+- Modify: `apps/web/src/styles/global.css`
+- Create: `apps/web/public/images/lasoviet/frontispiece-bao-cao-luan-giai-tu-vi.webp`
+- Test: `tests/reports/report-query.integration.test.ts`
 - Modify: `tests/seo/private-route-state.test.ts`
 - Test: `tests/e2e/paid-report-html.spec.ts`
 
 **Interfaces:**
-- Produces immutable version lineage through `supersedesReportId`.
+- Produces immutable version lineage through `supersedesReportVersionId`.
 - Produces owner-authorized status and report queries.
-- Promotes `/bao-cao/{opaque_id}` to `live_noindex` only with the private report
-  flow and keeps it absent from navigation and sitemaps.
+- Preserves `/bao-cao/{opaque_id}` as `live_noindex` and keeps it absent from
+  navigation and sitemaps.
 
-- [ ] **Step 1: Write failing report E2E**
+- [x] **Step 1: Write failing report E2E**
 
 Cover pending refresh, ready report, unauthorized access, noindex, evidence
 drawer, locale, immutable old version, failed generation state, registry state,
@@ -487,7 +513,7 @@ Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement version persistence and private UI**
+- [x] **Step 3: Implement version persistence and private UI**
 
 Do not overwrite a purchased version when prompts, engine, or model change.
 
@@ -497,12 +523,33 @@ Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add config/route-registry.yml packages/contracts packages/backend/src/reports apps/api/src/reports apps/web/src/app apps/web/src/features/reports tests/seo/private-route-state.test.ts tests/e2e docs/superpowers/plans
 git commit -m "feat: publish immutable private reports"
 ```
+
+#### Implementation Completion Evidence (2026-09-05)
+
+- Live Task 5 persistence remains authoritative. Task 6 adds a separate
+  read-only owner-filtered report repository/service, private API controller,
+  strict BFF loader, locale-authoritative route, and pending/failed/ready UI.
+- The public view projects only strict structured report content, exact
+  report-bound evidence, safe provenance, and immutable
+  `supersedesReportVersionId` lineage. Stored HTML and provider/model/prompt
+  internals are never returned or rendered.
+- The artifact-backed reader includes desktop and mobile layouts, localized
+  report copy, three remembered font sizes, remembered reading progress,
+  evidence details, reduced-motion behavior, and keyboard-managed mobile TOC.
+- Terra high approved implementation commit `c702a91` after three bounded
+  correction rounds with no open Critical or Important finding.
+- Fresh local verification passed five builds/typechecks, 55 non-container
+  tests, i18n parity, scoped ESLint, exact frontispiece hash/size, Playwright
+  collection, and `git diff --check`.
+- Step 4 remains open because the seven controlled-fixture Playwright cases
+  were fixture-skipped. Two PostgreSQL lineage tests also await re-execution
+  when Docker is available; their module collection succeeds.
 
 ## Phase Exit Criteria
 
@@ -514,3 +561,9 @@ git commit -m "feat: publish immutable private reports"
 - Every report claim is evidence-backed and safety-validated.
 - Private HTML report works after refresh and is noindex.
 - Terra has no unresolved `must-fix`.
+
+Implementation status: complete. Intended-environment phase closure remains
+open until provider privacy due diligence is approved and the controlled
+private-report Playwright fixture suite passes. Production payment, production
+AI, deployment, PDF/storage, email delivery, and account-center activation are
+not authorized by this phase implementation commit.

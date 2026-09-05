@@ -56,55 +56,50 @@ The active authority chain from P01-T02 onward is:
 
 ```text
 Founder-approved goals and decisions
-    -> GPT 5.6 Sol xhigh
-        -> GPT 5.6 Terra medium
-        -> Flash Executor high for bounded execution only
+    -> GPT 5.6 Sol high
+        -> Flash Executor high for bounded implementation
+        -> GPT 5.6 Terra high for milestone review
 ```
 
-The former Sol -> Terra reviewer -> Luna implementor chain applies only through
-P01-T01. Luna is paused and must not be dispatched unless the founder
-explicitly reactivates that role. Flash Executor is a separate global Codex
-role and does not reactivate or inherit Luna's authority.
+The former Sol -> Terra implementor/reviewer -> Luna chain is superseded.
+Luna is paused and must not be dispatched unless the founder explicitly
+reactivates that role. Flash Executor is the coder only when Sol provides an
+exact bounded brief; Terra independently reviews meaningful milestones.
 
-### Sol: Orchestrator And Milestone Reviewer
+### Sol: Orchestrator And Adjudicator
 
 - Sol owns orchestration, scope control, task decomposition, sequencing, and
   founder communication.
-- Sol gives implementation goals directly to Terra and may give Flash Executor
-  a fully specified, bounded execution brief.
-- Sol reviews completed phases, complete features, and meaningful milestones;
-  Sol does not run routine review gates after small tasks.
-- Sol coordinates and reviews Terra's implementation evidence and correction
-  work within already approved scope.
+- Sol gives Flash Executor a fully specified, bounded implementation brief and
+  gives Terra the matching independent milestone-review brief.
+- Sol adjudicates review findings against founder decisions, binding plans, and
+  live repository evidence.
+- Sol does not write feature code or replace Terra's independent review.
 - Sol asks the founder in Vietnamese whenever founder input is required.
-- Sol must verify the requested model and `xhigh` reasoning level before
+- Sol must verify the requested model and `high` reasoning level before
   dispatch. Do not silently substitute another model or reasoning level.
 - Before declaring a requested model or reasoning level unavailable solely
   because current metadata omits it, run one no-file probe with that exact
   model and reasoning level. If the probe fails or cannot run, stop and report
   to Sol; do not substitute a model or effort.
 
-### Terra: Implementor And Debugger
+### Terra: Independent Milestone Reviewer
 
-- Terra medium receives goals from Sol and directly implements, debugs, and
-  runs focused tests.
-- Terra owns routine technical investigation, compile/test failure correction,
-  and exact-version API verification without an intermediate reviewer.
-- Terra may self-correct implementation defects inside approved scope and must
-  preserve concise evidence in the task report.
-- Terra reports completed milestone evidence and unresolved stop conditions to
-  Sol.
-- Terra may dispatch Flash Executor for literal implementation work after Terra
-  has resolved the required technical decisions and written the exact file,
-  behavior, acceptance, and focused-check boundaries.
+- Terra high independently reviews complete features, phases, and meaningful
+  milestones after Gemini implementation.
+- Terra validates scope, behavior, security/privacy boundaries, tests, and
+  exclusions against binding sources and live code.
+- Terra reports evidence-backed `must-fix`, optional, or rejected findings to
+  Sol and performs scoped re-review after each correction pass.
+- Terra does not implement the reviewed milestone or dispatch coding work.
 - Terra must not silently broaden scope or make founder-level product,
   architecture, privacy, licensing, payment, or release decisions.
 
-### Flash Executor: Global Bounded Implementor
+### Flash Executor: Global Bounded Coder
 
 - Flash Executor uses `ag/gemini-3.8-flash-high` with `high` reasoning and is
   available globally across Codex projects.
-- Flash Executor works only from an explicit brief assigned by Sol or Terra.
+- Flash Executor works only from an explicit brief assigned by Sol.
 - Every brief must name the owned files, exact behavior, acceptance criteria,
   and focused checks. Flash Executor must not infer missing scope.
 - Flash Executor implements literally, preserves unrelated work, and does not
@@ -115,7 +110,7 @@ role and does not reactivate or inherit Luna's authority.
   type, or focused-test failure is clearly caused by its assigned edit.
 - If that correction fails, evidence conflicts, instructions are ambiguous, or
   investigation would exceed the brief, Flash Executor stops with `BLOCKED` or
-  `NEEDS_CONTEXT` and returns evidence to the assigning Sol or Terra.
+  `NEEDS_CONTEXT` and returns evidence to Sol.
 - Flash Executor must not commit, push, merge, deploy, access production,
   trigger external side effects, or run destructive operations unless the brief
   explicitly assigns that exact operation.
@@ -165,13 +160,12 @@ affected work.
 
 ## 6. Stop And Escalation Protocol
 
-From P01-T02 onward, Terra continues through routine implementation ambiguity,
-compile failures, test failures, dependency integration, and non-destructive
-debugging inside the approved scope. Do not stop merely to request technical
-instructions that repository evidence or focused experiments can resolve.
+Flash Executor implements only the exact bounded brief. Sol resolves routine
+implementation ambiguity from repository evidence and may issue one narrowed
+correction brief after a focused failure or Terra finding.
 
-Flash Executor does not inherit Terra's debugging autonomy. It must return an
-ambiguous or non-local failure to the assigning Sol or Terra after the one
+Flash Executor does not inherit broad debugging autonomy. It must return an
+ambiguous or non-local failure to Sol after the one
 bounded correction allowed by section 4.
 
 Stop and ask the founder through Sol only when:
@@ -182,8 +176,8 @@ Stop and ask the founder through Sol only when:
 - an external side effect lacks explicit authorization;
 - a destructive or hard-to-reverse operation is required.
 
-Preserve completed safe work that is independent of the blocker. Terra reports
-the exact blocker and evidence to Sol. Sol explains the issue, impact,
+Preserve completed safe work that is independent of the blocker. Gemini or
+Terra reports the exact blocker and evidence to Sol. Sol explains the issue, impact,
 realistic options, and recommendation to the founder in Vietnamese.
 
 ## 7. Implementation And Testing Priorities
@@ -225,11 +219,11 @@ flow must work end to end in the target deployment environment.
 
 ## 8. Review Closure
 
-From P01-T02 onward, Terra implements, debugs, self-checks, and runs focused
-tests directly. Sol performs the independent review after a complete phase,
-complete feature, or meaningful milestone.
+Gemini implements and runs the focused checks named by Sol's bounded brief.
+Terra high performs the independent review after a complete phase, complete
+feature, or meaningful milestone. Sol adjudicates the findings.
 
-Sol classifies milestone findings as:
+Terra proposes milestone finding classifications; Sol adjudicates them as:
 
 - `must-fix`: verified correctness, security, privacy, acceptance, or release
   issue within approved scope;
@@ -238,16 +232,15 @@ Sol classifies milestone findings as:
 - `rejected`: unsupported, duplicate, contradicted by verified evidence, or
   inconsistent with founder-approved scope.
 
-Do not schedule routine reviews after every small implementation task. Terra
-may execute consecutive tasks in approved scope and self-correct technical
-failures without an intermediate Sol review.
+Do not schedule routine reviews after every small implementation task. Sol may
+give Gemini consecutive bounded slices before a meaningful Terra review.
 
-Only evidence-backed `must-fix` findings return to Terra for correction. Each
-milestone review permits at most two Terra correction passes, with a Sol
-re-review after each pass.
+Only evidence-backed `must-fix` findings return to Gemini through a narrowed Sol
+brief. Each milestone review permits bounded correction passes with a Terra
+scoped re-review after each pass.
 
-If a finding remains after the second correction pass, Sol must choose and
-record one disposition:
+If a finding remains after the active Superpowers workflow's bounded correction
+cap, Sol must choose and record one disposition:
 
 - replan with a materially different approach and begin a new explicit review
   cycle;
@@ -318,7 +311,7 @@ rule instead of adding another version.
 - Inspect the live repository before asking a question that source inspection
   can answer.
 - Before Flash Executor implements a task-critical external package or CLI
-  integration whose exact-version behavior is unverified, Sol or Terra must
+  integration whose exact-version behavior is unverified, Sol must
   verify and record only the task-relevant import/export, configuration,
   command working-directory or root, and lifecycle/build-script facts in the
   approved brief. Flash Executor must stop if any required fact is unverified

@@ -1,10 +1,10 @@
 # La So Viet Engineering Handoff
 
-**Updated:** 2026-09-04
+**Updated:** 2026-09-05
 **Repository:** `harris1111/lasoviet.vn`
-**Worktree:** `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan`
-**Active branch:** `feature/paid-flow-admin-operations`
-**Audited HEAD:** `8393f4a3fda31ff6aa50c5ad4390bcc4e5bf9e3c`
+**Worktree:** `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan\.worktrees\phase04-report-generation`
+**Active branch:** `feature/phase04-report-generation`
+**Audited implementation HEAD:** `c702a91`
 
 ## Start Here
 
@@ -21,28 +21,27 @@ Use Superpowers only. Do not invoke `/ck` or the CK CLI.
 
 ## Git State
 
-A fresh `origin` fetch on 2026-09-04 established:
+A fresh `origin` fetch on 2026-09-05 established:
 
-- Worktree clean at audit start.
-- Branch matches `origin/feature/paid-flow-admin-operations`.
-- Branch is 31 commits ahead and 0 behind `origin/master`.
-- `origin/master` is `b5ac65b63a11d5be1f11d9d1855f21d2a4f69b37`.
-- No pull request exists for the active branch.
-- The documentation commit created from this audit is expected to make the next
-  task's actual HEAD newer than the audited implementation baseline above.
+- Audited implementation commit: `c702a9123224e3ee92f8eb49169c784d7310d8d4`.
+- `origin/master` is `a51ce174dadbc8daf05d7829c0ee6ac8ac1c27ab`.
+- The active branch is 50 commits ahead and 14 commits behind `origin/master`.
+- No remote `feature/phase04-report-generation` branch exists.
+- The documentation commit created after this audit makes the next task's
+  actual HEAD newer than the implementation baseline above.
+- Reconcile the 14 upstream commits before any eventual integration.
 - Never push directly to `master`.
 - Do not merge, create a PR, or deploy without an explicit founder request.
 
 ## Active Agent Roles
 
-- **Sol xhigh:** orchestrates, controls scope, communicates with the founder in
-  Vietnamese, and reviews complete features, phases, or meaningful milestones.
-- **Terra medium:** implements, performs real debugging, corrects focused
-  failures, and runs focused checks inside approved scope.
-- **Flash Executor high:** global execution-only subagent using
-  `ag/gemini-3.8-flash-high`. It accepts only exact bounded briefs from Sol or
-  Terra, modifies assigned files, performs focused checks, and stops instead of
-  planning, proposing, expanding scope, or debugging deeply.
+- **Sol high:** orchestrates, controls scope, adjudicates findings, and
+  communicates with the founder in Vietnamese.
+- **Flash Executor high:** bounded coder using `ag/gemini-3.8-flash-high`. It
+  accepts exact Sol briefs, modifies assigned files, performs focused checks,
+  and stops instead of planning, broadening scope, or debugging deeply.
+- **Terra high:** independently reviews complete features, phases, and
+  meaningful milestones, then re-reviews bounded corrections.
 - **Luna:** paused until explicitly reactivated by the founder.
 
 Repository documents and commit messages are English. Founder communication is
@@ -62,28 +61,28 @@ Vietnamese.
 - **Phase 03:** the artifact-driven free MVP is implemented and deployed. The
   phase file still contains pre-merge unchecked UI steps and must not be read as
   proof that the free MVP is absent.
+- **Phase 04 implementation:** SePay Tasks 1-2, the durable report worker,
+  approved knowledge retrieval, evidence-backed immutable generation, and the
+  owner-authorized private HTML reader are implemented and reviewed on
+  `feature/phase04-report-generation`.
 - **Phase 06 foundation:** Docker images, Compose topology, loopback-only web
   publication, and production-like free-MVP smoke evidence exist. This does not
   close the full release phase.
 
 ### In Progress
 
-- **Phase 04:** AI/report foundations and SePay Tasks 1-2 are implemented.
-  A real authenticated sandbox payment created one paid order, payment event,
-  entitlement, report reservation, and processed report outbox event.
-  The report job remains `waiting` because P04-T03 worker consumption is not
-  connected.
+- **Phase 04 closure:** production AI remains fail-closed pending provider
+  privacy approval. Seven private-report Playwright cases require controlled
+  owner/other/pending/ready/failed fixtures, and two lineage integration cases
+  require a running Docker daemon.
 - **Phase 05A:** T01 admin access/RBAC/audit, T02 redacted operations overview,
   and T05 role administration/audit inspection are complete. T03, T04, and T06
   remain open.
 
 ### Remaining
 
-- **P04-T03:** report worker and durable report state machine.
-- **P04-T04:** approved knowledge ingestion and retrieval.
-- **P04-T05:** production AI privacy approval plus complete generation,
-  persistence, validation, and critic integration.
-- **P04-T06:** immutable report versions and private HTML report.
+- **P04 external gates:** provider privacy approval, controlled private-report
+  browser acceptance, and separately authorized deployment/activation.
 - **Phase 05:** PDF, Garage, optional replication, report email delivery, and
   owner account center.
 - **P05A-T03/T04/T06:** redacted detailed inspections, compensating commands,
@@ -94,24 +93,14 @@ Vietnamese.
 
 ## Immediate Next Execution
 
-The recommended next coding task is **P04-T03: Build the worker and report state
-machine**.
+The next coding phase is **Phase 05: PDF, Garage storage, report email
+delivery, and owner account center**. Before claiming Phase 04 closed in the
+intended environment:
 
-Why it is first:
-
-- A real sandbox payment already publishes `report.generation.requested.v1`.
-- The corresponding report job is waiting.
-- P04-T03 is the first missing runtime consumer and unblocks the rest of the
-  paid report pipeline.
-
-After P04-T03, proceed in this order:
-
-1. P04-T04 knowledge ingestion and retrieval.
-2. Complete P04-T05 against the worker and knowledge boundaries.
-3. P04-T06 immutable persistence and private HTML.
-4. Phase 05 storage, PDF, email delivery, and account center.
-5. P05A-T03 and P05A-T04 against the completed domain workflows.
-6. P05A-T06 and Phase 06 production-like release evidence.
+1. Record and approve provider privacy due diligence.
+2. Run the seven controlled private-report Playwright cases.
+3. Re-run the two PostgreSQL lineage cases with Docker available.
+4. Deploy or activate only after a separate explicit founder instruction.
 
 ## External And Founder Gates
 
@@ -156,21 +145,19 @@ deployment facts and verify them before a new production action.
 - Distill a new `AGENTS.md` rule only for a recurring or severe reusable failure
   condition, and record the decision in the tracker.
 
-## First Task Brief Template
+## Current Continuation Boundary
 
-For P04-T03, Sol or Terra should produce an exact brief containing:
-
-- Assigned files from the P04-T03 phase section.
-- Required state transitions and idempotency behavior.
-- The existing `report.generation.requested.v1` input contract.
-- Focused test commands and minimum compile/typecheck command.
-- Explicit exclusions for P04-T04, P04-T05, P04-T06, deployment, and external
-  side effects.
-
-Flash Executor may implement bounded slices only after this brief is complete.
-Terra retains investigation and debugging ownership.
+- Keep the Phase 04 implementation commits local until the founder explicitly
+  authorizes push, merge, or deployment.
+- Do not activate production AI until provider privacy due diligence is
+  complete and founder-approved.
+- Do not claim intended-environment Phase 04 closure until the controlled
+  private-report Playwright suite and Docker-backed lineage tests pass.
+- Phase 05 is the next coding phase. Sol writes each exact bounded brief,
+  Gemini codes it, and Terra high reviews the meaningful milestone.
 
 ## Open Questions
 
-None for starting P04-T03. Production AI approval, production payment
-activation, and release activation remain explicit later founder gates.
+Provider privacy terms and controlled private-report fixture execution remain
+open. Production AI approval, production payment activation, deployment, and
+release activation remain explicit founder gates.
