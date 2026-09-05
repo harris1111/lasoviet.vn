@@ -30,6 +30,8 @@
 | FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Approved | `AGENTS.md`, current implementation phases |
 | FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
 | FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
+| FD-027 | 2026-09-05 | For the production discipline-page integration, use Sol high for orchestration, Gemini Flash strict for implementation, and one Terra xhigh milestone review after the complete batch; the implementation PR targets `product/discipline-flagship-pages` | Approved | `docs/superpowers/plans/2026-09-05-production-discipline-flagship-pages.md` |
+| FD-028 | 2026-09-05 | Port every completed page and gated state from `product/discipline-flagship-pages`; keep Vietnamese prototype copy unchanged, expose previews as public `live_noindex`, preserve legacy routes with locale-aware HTTP 301 redirects, and leave the private Tử Vi wizard unchanged | Approved | `docs/19-sitemap-v2-discipline-pages.md`, production discipline-page plan |
 
 ## Durable Rule Evaluation Log
 
