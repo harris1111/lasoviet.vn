@@ -1,7 +1,7 @@
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
-import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
 import type { CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
@@ -41,21 +41,21 @@ export class CommerceController {
   constructor(
     @Inject(COMMERCE_DATABASE) private readonly database: Database,
     @Inject(COMMERCE_ACTOR_SECRET) private readonly actorSecret: string,
-    @Inject(COMMERCE_SEPAY_SECRET) private readonly sepaySecret: string,
+    @Inject(COMMERCE_SEPAY_SECRET) private readonly sepaySecret: string | undefined,
     @Inject(COMMERCE_INGRESS_SECRET) private readonly ingressSecret: string,
-    @Inject(COMMERCE_SEPAY_ENV) private readonly sepayEnvironment: "sandbox" | "production",
-    @Inject(COMMERCE_SEPAY_MERCHANT) private readonly merchantId: string,
+    @Inject(COMMERCE_SEPAY_ENV) private readonly sepayEnvironment: "disabled" | "sandbox" | "production",
+    @Inject(COMMERCE_SEPAY_MERCHANT) private readonly merchantId: string | undefined,
     @Inject(COMMERCE_RETURN_ORIGIN) private readonly origin: string,
-    @Inject(COMMERCE_ORDER_TTL_SECONDS) private readonly orderTtlSeconds: number,
-    @Inject(COMMERCE_SEPAY_WEBHOOK_SECRET) private readonly sepayWebhookSecret: string,
-    @Inject(COMMERCE_SEPAY_BANK_CODE) private readonly bankCode: string,
-    @Inject(COMMERCE_SEPAY_ACCOUNT_NUMBER) private readonly accountNumber: string,
-    @Inject(COMMERCE_SEPAY_ACCOUNT_HOLDER) private readonly accountHolder: string,
+    @Inject(COMMERCE_ORDER_TTL_SECONDS) private readonly orderTtlSeconds: number | undefined,
+    @Inject(COMMERCE_SEPAY_WEBHOOK_SECRET) private readonly sepayWebhookSecret: string | undefined,
+    @Inject(COMMERCE_SEPAY_BANK_CODE) private readonly bankCode: string | undefined,
+    @Inject(COMMERCE_SEPAY_ACCOUNT_NUMBER) private readonly accountNumber: string | undefined,
+    @Inject(COMMERCE_SEPAY_ACCOUNT_HOLDER) private readonly accountHolder: string | undefined,
   ) {}
 
   private repository() {
     return createDatabaseCommerceRepository(this.database, {
-      orderTtlSeconds: this.orderTtlSeconds,
+      orderTtlSeconds: this.orderTtlSeconds ?? 900,
     });
   }
 
@@ -74,14 +74,14 @@ export class CommerceController {
     createdAt: Date;
   }): PaymentInstructions {
     return createPaymentInstructions({
-      bankCode: this.bankCode,
-      accountNumber: this.accountNumber,
-      accountHolder: this.accountHolder,
+      bankCode: this.bankCode ?? "",
+      accountNumber: this.accountNumber ?? "",
+      accountHolder: this.accountHolder ?? "",
       amount: order.amount,
       currency: "VND",
       invoiceNumber: order.invoiceNumber,
       createdAt: order.createdAt,
-      orderTtlSeconds: this.orderTtlSeconds,
+      orderTtlSeconds: this.orderTtlSeconds ?? 900,
     });
   }
 
@@ -102,6 +102,39 @@ export class CommerceController {
       }
       return { ok: false, error: { code: result.code } };
     }
+    if (this.sepayEnvironment === "disabled") {
+      if (result.value.status === "pending") {
+        const paidResult = await this.repository().recordPaid({
+          invoiceNumber: result.value.invoiceNumber,
+          providerEventId: `disabled-autopay:${result.value.id}`,
+          amount: result.value.amount,
+          currency: result.value.currency,
+          traceId: actor.requestId,
+        });
+        if (!paidResult.ok) {
+          return { ok: false, error: { code: "COMMERCE_AUTO_PAYMENT_FAILED" } };
+        }
+      }
+      const projection = await this.repository().readOrderProjection(actor, result.value.id);
+      if (projection === null) {
+        return { ok: false, error: { code: "COMMERCE_AUTO_PAYMENT_FAILED" } };
+      }
+      return {
+        ok: true,
+        value: {
+          order: {
+            id: projection.order.id,
+            status: projection.order.status,
+            amount: projection.order.amount,
+            currency: projection.order.currency,
+            locale: projection.order.locale,
+          },
+          paymentInstructions: null,
+          reportId: projection.reportId,
+        },
+      };
+    }
+
     const projection = await this.repository().readOrderProjection(actor, result.value.id);
     if (projection === null) {
       return { ok: false, error: { code: "COMMERCE_ORDER_CREATE_FAILED" } };
@@ -137,7 +170,9 @@ export class CommerceController {
               currency: projection.order.currency,
               locale: projection.order.locale,
             },
-            paymentInstructions: this.buildPaymentInstructions(projection.order),
+            paymentInstructions: this.sepayEnvironment === "disabled"
+              ? null
+              : this.buildPaymentInstructions(projection.order),
             reportId: projection.reportId,
           },
         };
@@ -152,12 +187,15 @@ export class CommerceController {
     @Headers("x-sepay-timestamp") timestamp: string | undefined,
     @Req() request: { rawBody?: Buffer },
   ) {
+    if (this.sepayEnvironment === "disabled") {
+      throw new ServiceUnavailableException({ code: "SEPAY_DISABLED" });
+    }
     if (!equal(ingress, this.ingressSecret)) throw new UnauthorizedException({ code: "INGRESS_AUTH_INVALID" });
     const rawBody = request.rawBody?.toString("utf8");
     if (rawBody === undefined) throw new BadRequestException({ code: "SEPAY_RAW_BODY_MISSING" });
     const result = await createSePayWebhookService({
-      secretKey: this.sepaySecret,
-      webhookSecret: this.sepayWebhookSecret,
+      secretKey: this.sepaySecret ?? "",
+      webhookSecret: this.sepayWebhookSecret ?? "",
       recordPaid: (input) => this.repository().recordPaid(input),
     }).handle({
       rawBody,

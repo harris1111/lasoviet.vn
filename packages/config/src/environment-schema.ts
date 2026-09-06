@@ -38,7 +38,11 @@ export type CloudS3Environment =
       secretAccessKey: string;
     };
 
-export type SePayEnvironment = {
+export type DisabledSePayEnvironment = {
+  environment: "disabled";
+};
+
+export type ActiveSePayEnvironment = {
   environment: "sandbox" | "production";
   merchantId: string;
   secretKey: string;
@@ -48,6 +52,10 @@ export type SePayEnvironment = {
   orderTtlSeconds: number;
   webhookSecret: string;
 };
+
+export type SePayEnvironment =
+  | DisabledSePayEnvironment
+  | ActiveSePayEnvironment;
 
 export type AppEnvironment = {
   nodeEnv: NodeEnvironment;
@@ -135,7 +143,8 @@ const enabledCloudS3 = z
 export const CloudS3EnvironmentSchema: z.ZodType<CloudS3Environment> =
   z.discriminatedUnion("enabled", [disabledCloudS3, enabledCloudS3]);
 
-export const SePayEnvironmentSchema: z.ZodType<SePayEnvironment> = z
+const disabledSePay = z.object({ environment: z.literal("disabled") }).strict();
+const activeSePay = z
   .object({
     environment: z.enum(["sandbox", "production"]),
     merchantId: trimmedNonEmpty,
@@ -147,6 +156,9 @@ export const SePayEnvironmentSchema: z.ZodType<SePayEnvironment> = z
     webhookSecret: trimmedNonEmpty.max(256),
   })
   .strict();
+
+export const SePayEnvironmentSchema: z.ZodType<SePayEnvironment> =
+  z.discriminatedUnion("environment", [disabledSePay, activeSePay]);
 
 export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
   .object({

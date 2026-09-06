@@ -331,7 +331,10 @@ export function createApiAnalyticsSink(
     },
     {
       provide: COMMERCE_SEPAY_SECRET,
-      useFactory: () => applicationEnvironment().sepay.secretKey,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.secretKey;
+      },
     },
     {
       provide: COMMERCE_SEPAY_ENV,
@@ -339,27 +342,45 @@ export function createApiAnalyticsSink(
     },
     {
       provide: COMMERCE_SEPAY_MERCHANT,
-      useFactory: () => applicationEnvironment().sepay.merchantId,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.merchantId;
+      },
     },
     {
       provide: COMMERCE_ORDER_TTL_SECONDS,
-      useFactory: () => applicationEnvironment().sepay.orderTtlSeconds,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.orderTtlSeconds;
+      },
     },
     {
       provide: COMMERCE_SEPAY_WEBHOOK_SECRET,
-      useFactory: () => applicationEnvironment().sepay.webhookSecret,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.webhookSecret;
+      },
     },
     {
       provide: COMMERCE_SEPAY_BANK_CODE,
-      useFactory: () => applicationEnvironment().sepay.bankCode,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.bankCode;
+      },
     },
     {
       provide: COMMERCE_SEPAY_ACCOUNT_NUMBER,
-      useFactory: () => applicationEnvironment().sepay.accountNumber,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.accountNumber;
+      },
     },
     {
       provide: COMMERCE_SEPAY_ACCOUNT_HOLDER,
-      useFactory: () => applicationEnvironment().sepay.accountHolder,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.accountHolder;
+      },
     },
     {
       provide: COMMERCE_RETURN_ORIGIN,

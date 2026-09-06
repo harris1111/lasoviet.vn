@@ -197,4 +197,25 @@ describe("SePay public ingress", () => {
     await expect(response.json()).resolves.toEqual({ ok: false });
     expect(fetch).not.toHaveBeenCalled();
   });
+  it("rejects with 503 SEPAY_DISABLED when SEPAY_ENV is disabled without calling private API", async () => {
+    vi.stubEnv("SEPAY_ENV", "disabled");
+    vi.stubEnv("PRIVATE_API_URL", "https://private-api.example.test");
+    vi.stubEnv("INTERNAL_ACTOR_SECRET", "synthetic-internal-secret");
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+
+    const response = await POST(new Request("https://lasoviet.example/api/webhooks/sepay", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-secret-key": "synthetic-secret",
+      },
+      body: new Uint8Array([1, 2, 3]),
+    }));
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({ ok: false, code: "SEPAY_DISABLED" });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
 });

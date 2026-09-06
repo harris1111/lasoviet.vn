@@ -124,4 +124,65 @@ describe("parseCheckoutStatus", () => {
       }),
     ).toThrow();
   });
+  it("parses valid paid checkout status with null paymentInstructions", () => {
+    const paidNull = {
+      order: {
+        id: "order-1",
+        status: "paid" as const,
+        amount: 79000,
+        currency: "VND" as const,
+        locale: "vi" as const,
+      },
+      paymentInstructions: null,
+      reportId: "report-123",
+    };
+    const result = parseCheckoutStatus(paidNull);
+    expect(result).toEqual(paidNull);
+  });
+
+  it.each(["expired", "failed", "refunded"] as const)(
+    "parses valid %s checkout status with null paymentInstructions",
+    (status) => {
+      const nonPendingNull = {
+        order: {
+          id: "order-1",
+          status,
+          amount: 79000,
+          currency: "VND" as const,
+          locale: "vi" as const,
+        },
+        paymentInstructions: null,
+        reportId: null,
+      };
+      const result = parseCheckoutStatus(nonPendingNull);
+      expect(result).toEqual(nonPendingNull);
+    },
+  );
+
+  it("rejects pending order with null paymentInstructions", () => {
+    expect(() =>
+      parseCheckoutStatus({
+        ...validCheckoutStatus,
+        paymentInstructions: null,
+      }),
+    ).toThrow();
+  });
+
+  it("rejects extra fields in root when paymentInstructions is null", () => {
+    expect(() =>
+      parseCheckoutStatus({
+        order: {
+          id: "order-1",
+          status: "paid",
+          amount: 79000,
+          currency: "VND",
+          locale: "vi",
+        },
+        paymentInstructions: null,
+        reportId: "report-123",
+        extraField: "not-allowed",
+      }),
+    ).toThrow();
+  });
+
 });

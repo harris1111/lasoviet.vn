@@ -195,4 +195,83 @@ describe("checkout page", () => {
     expect(redirect).toHaveBeenCalledWith("/thanh-toan/order-1");
     expect(getTranslations).not.toHaveBeenCalled();
   });
+  it("server-redirects a paid order with reportId to the locale-correct report route for vi", async () => {
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          order: {
+            id: "order-1",
+            status: "paid",
+            amount: 79_000,
+            currency: "VND",
+            locale: "vi",
+          },
+          paymentInstructions: null,
+          reportId: "report-auto-1",
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+
+    await CheckoutPage({
+      params: Promise.resolve({ locale: "vi", orderId: "order-1" }),
+    });
+
+    expect(redirect).toHaveBeenCalledWith("/bao-cao/report-auto-1");
+  });
+
+  it("server-redirects a paid order with reportId to the locale-correct report route for en", async () => {
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          order: {
+            id: "order-1",
+            status: "paid",
+            amount: 79_000,
+            currency: "VND",
+            locale: "en",
+          },
+          paymentInstructions: null,
+          reportId: "report-auto-2",
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+
+    await CheckoutPage({
+      params: Promise.resolve({ locale: "en", orderId: "order-1" }),
+    });
+
+    expect(redirect).toHaveBeenCalledWith("/en/bao-cao/report-auto-2");
+  });
+
+  it("triggers notFound when no redirect occurs and paymentInstructions is null", async () => {
+    const { notFound } = await import("next/navigation");
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          order: {
+            id: "order-1",
+            status: "paid",
+            amount: 79_000,
+            currency: "VND",
+            locale: "vi",
+          },
+          paymentInstructions: null,
+          reportId: null,
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+
+    await expect(CheckoutPage({
+      params: Promise.resolve({ locale: "vi", orderId: "order-1" }),
+    })).rejects.toThrow("NEXT_NOT_FOUND");
+
+    expect(notFound).toHaveBeenCalled();
+  });
+
 });

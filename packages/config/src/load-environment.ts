@@ -264,8 +264,18 @@ function loadCloudS3(
 }
 
 function loadSePay(source: NodeJS.ProcessEnv): ParseResult<SePayEnvironment> {
+  if (source.SEPAY_ENV === undefined) {
+    return missingRequired("SEPAY_ENV");
+  }
+  if (source.SEPAY_ENV === "disabled") {
+    const parsed = SePayEnvironmentSchema.safeParse({
+      environment: "disabled",
+    });
+    return parsed.success
+      ? { ok: true, value: parsed.data }
+      : invalidFromSchema(parsed.error, "SEPAY_ENV", "sepay");
+  }
   for (const variable of [
-    "SEPAY_ENV",
     "SEPAY_MERCHANT_ID",
     "SEPAY_SECRET_KEY",
     "SEPAY_BANK_CODE",

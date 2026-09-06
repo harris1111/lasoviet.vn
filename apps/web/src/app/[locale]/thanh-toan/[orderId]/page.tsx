@@ -49,6 +49,13 @@ export default async function CheckoutPage({
   if (!parsed.ok) notFound();
   const { order } = parsed.value;
   if (order.locale !== "vi" && order.locale !== "en") notFound();
+  if (order.status === "paid" && parsed.value.reportId !== null) {
+    const prefix = order.locale === "en" ? "/en" : "";
+    return redirect(`${prefix}/bao-cao/${encodeURIComponent(parsed.value.reportId)}`);
+  }
+  if (parsed.value.paymentInstructions === null) {
+    notFound();
+  }
   if (order.locale !== routeLocale) return redirect(checkoutPath(order.locale, order.id));
   const t = await getTranslations({ locale: order.locale, namespace: "reports" });
 

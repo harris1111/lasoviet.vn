@@ -162,6 +162,9 @@ export async function copyCheckoutField(
   onCopied: (field: CheckoutCopyField) => void,
 ): Promise<boolean> {
   const instructions = status.paymentInstructions;
+  if (instructions === null) {
+    return false;
+  }
   const values: Record<CheckoutCopyField, string> = {
     accountNumber: instructions.accountNumber,
     amount: String(instructions.amount),
@@ -205,8 +208,15 @@ export function VietQrCheckout({
   const [status, setStatus] = useState(initialStatus);
   const [copiedField, setCopiedField] = useState<CheckoutCopyField | null>(null);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const lastInstructionsRef = useRef(initialStatus.paymentInstructions);
+  if (status.paymentInstructions !== null) {
+    lastInstructionsRef.current = status.paymentInstructions;
+  }
+  const instructions = status.paymentInstructions ?? lastInstructionsRef.current;
+
   const [remainingTime, setRemainingTime] = useState(() =>
-    formatCheckoutRemainingTime(initialStatus.paymentInstructions.expiresAt)
+    instructions ? formatCheckoutRemainingTime(instructions.expiresAt) : ""
   );
 
   useEffect(() => {
@@ -233,16 +243,16 @@ export function VietQrCheckout({
     });
   }, [initialStatus]);
 
+  const expiresAt = instructions?.expiresAt;
   useEffect(() => {
+    if (!expiresAt) return;
     const update = () => {
-      setRemainingTime(
-        formatCheckoutRemainingTime(status.paymentInstructions.expiresAt),
-      );
+      setRemainingTime(formatCheckoutRemainingTime(expiresAt));
     };
     update();
     const timer = window.setInterval(update, 1_000);
     return () => window.clearInterval(timer);
-  }, [status.paymentInstructions.expiresAt]);
+  }, [expiresAt]);
 
   useEffect(() => () => {
     if (feedbackTimer.current !== null) clearTimeout(feedbackTimer.current);
@@ -257,7 +267,10 @@ export function VietQrCheckout({
     });
   }
 
-  const instructions = status.paymentInstructions;
+  if (instructions === null) {
+    return null;
+  }
+
   const priceLocale = status.order.locale === "en" ? "en-US" : "vi-VN";
   const copyLabels: Record<CheckoutCopyField, string> = {
     accountNumber: labels.copyAccountNumber,
