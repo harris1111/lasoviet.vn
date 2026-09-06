@@ -4,7 +4,7 @@
 **Repository:** `harris1111/lasoviet.vn`
 **Worktree:** `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan\.worktrees\phase04-report-generation`
 **Active branch:** `feature/phase04-report-generation`
-**Audited implementation baseline:** `3b7f8d7899bdd951ac96865851fe92370d809e20`
+**Audited implementation baseline:** `63f3823c7d630f690588e23de45ad03bec1e2559`
 
 ## Start Here
 
@@ -23,12 +23,11 @@ Use Superpowers only. Do not invoke `/ck` or the CK CLI.
 
 A fresh `origin` fetch on 2026-09-05 established:
 
-- Audited implementation baseline: `3b7f8d7899bdd951ac96865851fe92370d809e20`.
-- Prior documentation commit HEAD before this documentation fix round: `35f2eb9a78a0159d0db3ef0d8fbac5dde0cdea00`.
+- Audited implementation baseline: `63f3823c7d630f690588e23de45ad03bec1e2559` (`fix(web): prevent private report locale redirect loops`).
 - Current branch HEAD includes subsequent documentation commits beyond the audited implementation baseline (recording verification evidence and handoff updates).
 - Verified current `origin/master`: `9280954429fd2f123eebaf94ec04fa70ee4ea7c7`.
 - Merged current `origin/master` (`9280954429fd2f123eebaf94ec04fa70ee4ea7c7`) via merge commit `d6f500528f54bb6d6768d7b119e7a7d22ddc69e8`.
-- Ahead/behind status against `origin/master`: 0 behind; ahead count was 72 at implementation baseline `3b7f8d7` and 74 at prior documentation commit `35f2eb9`, incrementing with subsequent documentation commits on this branch (re-derive dynamically via `git rev-list --left-right --count origin/master...HEAD`).
+- Ahead/behind status against `origin/master`: 0 behind; ahead count was 72 at prior implementation baseline `3b7f8d7`, 74 at prior documentation commit `35f2eb9`, and 77 at audited implementation baseline `63f3823`, incrementing with subsequent documentation commits on this branch (re-derive dynamically via `git rev-list --left-right --count origin/master...HEAD`).
 - No remote `feature/phase04-report-generation` branch exists.
 - Never push directly to `master`.
 - Do not merge, create a PR, or deploy without an explicit founder request.
@@ -65,8 +64,13 @@ Vietnamese.
   approved knowledge retrieval, evidence-backed immutable generation, and the
   owner-authorized private HTML reader are implemented and reviewed on
   `feature/phase04-report-generation`. In-page VietQR Tasks 1-6 are complete.
+  Controlled browser acceptance for private reports is complete (7 passed, 0 failed).
   Controller-verified evidence on 2026-09-06:
-  `corepack pnpm@11.25.0 vitest run`: 121 test files passed, 722 tests passed, 0 failed, 0 skipped; duration 16.00s on 2026-09-06.
+  `corepack pnpm@11.25.0 vitest run`: 121 test files passed, 723 tests passed, 0 failed, 0 skipped; duration 16.00s on 2026-09-06.
+  Controlled browser acceptance: `corepack pnpm@11.25.0 playwright test tests/e2e/paid-report-html.spec.ts --fully-parallel --workers=7`: 7 passed, 0 failed, 0 skipped, duration 11.2s on 2026-09-06. Covered signed-out redirect, cross-owner/missing 404 equivalence, VI evidence/noindex/canonical locale, EN locale, pending-to-ready refresh retaining path, safe static failed state, mobile TOC focus lifecycle.
+  Fixture harness safety: 16 passed, 0 failed (12 pure + 4 command-level); loopback-only base URL enforcement; duplicate setup refusal; manifest/path/ID validation and DB ownership validation before promote/reset/cleanup. Terra final scoped review: SPEC PASS / QUALITY APPROVED.
+  Final fixture cleanup: synthetic users, report reservations, report versions, outbox, and report queue counts verified zero; storage states and manifest absent. No real SePay, payment, AI, PDF/storage, email delivery, or deployment activity.
+  Repository verification: workspace typecheck PASS, workspace production build PASS, i18n parity PASS, repository ESLint PASS, git diff check PASS.
   Compose services: web healthy on 127.0.0.1:55453, API healthy, PostgreSQL healthy, Redis healthy, worker running; migration completed successfully during rebuild.
   HTTP smoke: `/`, `/health/live`, `/health/ready` through http://127.0.0.1:55453 each returned HTTP 200.
   Oversized SePay webhook: 65,537-byte request with valid synthetic ingress auth returned HTTP 413 and `{"ok":false}`; no real provider/payment activity.
@@ -78,16 +82,19 @@ Vietnamese.
 ### In Progress
 
 - **Phase 04 closure:** production AI remains fail-closed pending provider
-  privacy approval. Seven private-report Playwright cases require controlled
-  owner/other/pending/ready/failed fixtures.
+  privacy approval. Controlled private-report Playwright acceptance is complete
+  (7/7 passed). Provider privacy due diligence approval is the sole remaining
+  Phase 04 closure decision gate.
 - **Phase 05A:** T01 admin access/RBAC/audit, T02 redacted operations overview,
   and T05 role administration/audit inspection are complete. T03, T04, and T06
   remain open.
 
 ### Remaining
 
-- **P04 external gates:** provider privacy approval, controlled private-report
-  browser acceptance, and separately authorized deployment/activation.
+- **P04 external gates:** provider privacy due diligence approval remains the
+  sole Phase 04 closure decision gate; production payment activation,
+  production AI activation, and production deployment remain separately
+  authorized founder gates.
 - **Phase 05:** PDF, Garage, optional replication, report email delivery, and
   owner account center.
 - **P05A-T03/T04/T06:** redacted detailed inspections, compensating commands,
@@ -98,12 +105,13 @@ Vietnamese.
 
 ## Immediate Next Execution
 
-With In-page VietQR Task 6 complete and verified, the immediate execution focus
-points only to the remaining Phase 04 closure gates:
+With In-page VietQR Task 6, full Vitest suite (121 files, 723 tests), and
+controlled private-report browser acceptance (7/7 Playwright cases) complete and
+verified, the immediate execution focus points only to the sole remaining Phase
+04 closure gate:
 
 1. Record and approve provider privacy due diligence.
-2. Run the seven controlled private-report Playwright cases.
-3. Deploy or activate only after a separate explicit founder instruction.
+2. Deploy or activate only after a separate explicit founder instruction.
 
 Following those gates, the next coding phase is **Phase 05: PDF, Garage storage,
 report email delivery, and owner account center**.
@@ -157,13 +165,14 @@ deployment facts and verify them before a new production action.
   authorizes push, merge, or deployment.
 - Do not activate production AI until provider privacy due diligence is
   complete and founder-approved.
-- Do not claim intended-environment Phase 04 closure until the controlled
-  private-report Playwright suite passes.
+- Controlled private-report browser acceptance is complete; intended-environment
+  Phase 04 closure remains open only for provider privacy approval. Do not claim
+  production activation.
 - Phase 05 is the next coding phase. Sol writes each exact bounded brief,
   Gemini codes it, and Terra high reviews the meaningful milestone.
 
 ## Open Questions
 
-Provider privacy terms and controlled private-report fixture execution remain
-open. Production AI approval, production payment activation, deployment, and
-release activation remain explicit founder gates.
+Provider privacy due diligence approval remains the sole open Phase 04 closure
+decision gate. Production AI approval, production payment activation,
+deployment, and release activation remain explicit founder gates.

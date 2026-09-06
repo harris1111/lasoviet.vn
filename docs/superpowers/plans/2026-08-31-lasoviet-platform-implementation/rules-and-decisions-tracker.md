@@ -269,9 +269,9 @@ Date: 2026-09-05
 - Local Compose validation remains synthetic-only and must not send a payment or
   call SePay. Production payment activation remains a separate founder gate.
 
-## P04 Tasks 3-6 Implementation Evidence
+## P04 Tasks 3-6 Implementation and Browser Acceptance Evidence
 
-Date: 2026-09-05
+Date: 2026-09-05 (updated 2026-09-06)
 
 - P04-T03 added the durable PostgreSQL report consumer and state machine,
   ending at the authoritative `generating` handoff. Terra high approved 21
@@ -287,17 +287,37 @@ Date: 2026-09-05
 - P04-T06 added strict private report views, owner-filtered repository/API/BFF
   reads, pending/failed state rendering, artifact-backed responsive HTML,
   report-bound evidence disclosure, locale authority, noindex coverage,
-  reduced-motion behavior, and mobile keyboard focus management.
-- P04-T06 implementation commit is `c702a91`. Terra high approved the final
-  correction with no open Critical or Important finding.
-- Fresh local verification passed contracts, database, and backend builds; API
-  and web typechecks; 55 non-container tests; i18n parity; scoped ESLint; asset
-  hash/size; and `git diff --check`. Seven Playwright tests were collected but
-  fixture-skipped. The two new PostgreSQL lineage cases collected successfully
-  but could not execute because the local Docker daemon was unavailable.
-- Phase 04 implementation is complete. Phase closure and production activation
-  remain blocked by provider privacy approval, fixture-backed private-report
-  browser acceptance, and separately authorized deployment/activation.
+  reduced-motion behavior, and mobile keyboard focus management. Initial
+  implementation was approved in commit `c702a91` by Terra high.
+- Browser test execution (RED) with controlled fixtures exposed two issues:
+  persisted-VI wrong-locale redirect loop on English private reports and a broad
+  failed-alert selector.
+- Final code fix commit `63f3823c7d630f690588e23de45ad03bec1e2559` (`fix(web): prevent private report locale redirect loops`)
+  was independently reviewed and approved by Terra high: SPEC PASS, QUALITY
+  APPROVED, with zero open Critical or Important findings.
+- Controlled browser acceptance:
+  `corepack pnpm@11.25.0 playwright test tests/e2e/paid-report-html.spec.ts --fully-parallel --workers=7`
+  passed with 7 passed, 0 failed, 0 skipped, duration 11.2s on 2026-09-06.
+  Covered signed-out redirect, cross-owner/missing 404 equivalence, VI
+  evidence/noindex/canonical locale, EN locale, pending-to-ready refresh
+  retaining path, safe static failed state, and mobile TOC focus lifecycle.
+- Fixture harness safety: 16 passed, 0 failed (12 pure + 4 command-level tests);
+  loopback-only base URL enforcement; duplicate setup refusal; manifest, path,
+  and ID validation; and PostgreSQL ownership verification before promote,
+  reset, or cleanup mutations. Terra final scoped review: SPEC PASS / QUALITY
+  APPROVED.
+- Fixture cleanup: synthetic users, report reservations, report versions, outbox,
+  and report queue counts all verified zero; temporary storage states and
+  manifest absent. No real SePay, payment, AI, PDF/storage, email delivery, or
+  deployment activity.
+- Full repository verification after code fix: workspace typecheck PASS;
+  workspace production build PASS; full Vitest 121/121 files and 723/723 tests
+  PASS; i18n parity PASS; repository ESLint PASS; `git diff --check` PASS.
+- Revised remaining gate: Phase 04 implementation and controlled browser
+  acceptance are complete. Provider privacy due diligence approval remains the
+  sole phase closure decision gate. Production payment activation, production AI
+  activation, and production deployment remain separately authorized
+  founder-controlled gates.
 
 ## P03 Non-Visual Slice 1 Evidence
 

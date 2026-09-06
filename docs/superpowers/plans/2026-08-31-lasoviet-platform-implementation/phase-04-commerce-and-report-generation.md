@@ -507,7 +507,7 @@ Cover pending refresh, ready report, unauthorized access, noindex, evidence
 drawer, locale, immutable old version, failed generation state, registry state,
 and sitemap exclusion.
 
-- [ ] **Step 2: Run E2E**
+- [x] **Step 2: Run E2E**
 
 Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
@@ -517,7 +517,7 @@ Expected: FAIL.
 
 Do not overwrite a purchased version when prompts, engine, or model change.
 
-- [ ] **Step 4: Run E2E**
+- [x] **Step 4: Run E2E**
 
 Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
@@ -530,7 +530,7 @@ git add config/route-registry.yml packages/contracts packages/backend/src/report
 git commit -m "feat: publish immutable private reports"
 ```
 
-#### Implementation Completion Evidence (2026-09-05)
+#### Implementation and Browser Acceptance Evidence (2026-09-05, updated 2026-09-06)
 
 - Live Task 5 persistence remains authoritative. Task 6 adds a separate
   read-only owner-filtered report repository/service, private API controller,
@@ -544,12 +544,32 @@ git commit -m "feat: publish immutable private reports"
   evidence details, reduced-motion behavior, and keyboard-managed mobile TOC.
 - Terra high approved implementation commit `c702a91` after three bounded
   correction rounds with no open Critical or Important finding.
-- Fresh local verification passed five builds/typechecks, 55 non-container
-  tests, i18n parity, scoped ESLint, exact frontispiece hash/size, Playwright
-  collection, and `git diff --check`.
-- Step 4 remains open only because the seven controlled-fixture Playwright cases
-  remain skipped. The two PostgreSQL lineage tests were re-executed successfully
-  as part of the full 121-file/722-test Vitest run on 2026-09-06.
+- Initial browser test execution (RED) with controlled fixtures exposed two real
+  issues: a persisted-VI wrong-locale redirect loop on English private reports
+  and a broad failed-alert selector.
+- Code fix commit `63f3823c7d630f690588e23de45ad03bec1e2559` (`fix(web): prevent private report locale redirect loops`)
+  was independently reviewed and approved by Terra high: SPEC PASS, QUALITY
+  APPROVED, no open Critical or Important findings.
+- Final single-invocation controlled browser acceptance:
+  `corepack pnpm@11.25.0 playwright test tests/e2e/paid-report-html.spec.ts --fully-parallel --workers=7`
+  passed with 7 passed, 0 failed, 0 skipped, duration 11.2s on 2026-09-06.
+  Covered signed-out redirect, cross-owner/missing 404 equivalence, VI
+  evidence/noindex/canonical locale, EN locale, pending-to-ready refresh
+  retaining path, safe static failed state, and mobile TOC focus lifecycle.
+- Fixture harness safety: 16 passed, 0 failed (12 pure + 4 command-level tests);
+  strict loopback-only base URL enforcement; duplicate setup refusal;
+  manifest/path/ID validation and PostgreSQL ownership validation before
+  promote, reset, or cleanup. Terra final scoped review: SPEC PASS / QUALITY
+  APPROVED.
+- Final fixture cleanup: synthetic users, report reservations, report versions,
+  outbox, and report queue counts all verified zero; temporary storage states
+  and manifest confirmed absent. No real SePay, payment, AI, PDF/storage,
+  email delivery, or deployment activity.
+- Final repository verification after code fix: workspace typecheck PASS;
+  workspace production build PASS; full Vitest 121/121 files and 723/723 tests
+  PASS; i18n parity PASS; repository ESLint PASS; `git diff --check` PASS.
+- Steps 2 and 4 are complete. All seven controlled-fixture Playwright cases pass
+  cleanly on local Compose.
 
 ## Phase Exit Criteria
 
@@ -562,8 +582,8 @@ git commit -m "feat: publish immutable private reports"
 - Private HTML report works after refresh and is noindex.
 - Terra has no unresolved `must-fix`.
 
-Implementation status: complete. Intended-environment phase closure remains
-open until provider privacy due diligence is approved and the controlled
-private-report Playwright fixture suite passes. Production payment, production
-AI, deployment, PDF/storage, email delivery, and account-center activation are
-not authorized by this phase implementation commit.
+Implementation and controlled browser acceptance status: complete.
+Intended-environment phase closure remains open only until provider privacy due
+diligence is approved. Production payment, production AI, deployment,
+PDF/storage, email delivery, and account-center activation are not authorized by
+this phase implementation commit and remain separate founder-controlled gates.

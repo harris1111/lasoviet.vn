@@ -21,26 +21,28 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Planning reconciliation is current through 2026-09-05. The
+**Status:** Planning reconciliation is current through 2026-09-06. The
 repository has implemented Phase 00 foundations, Phase 01 identity/privacy
 services, Phase 02 calculation/evidence services, the artifact-driven Phase 03
 free-MVP experience, all provider-independent Phase 04 commerce/report tasks,
 and production-like free-MVP Compose smoke evidence. The
 FD-024 artifact-first UI gate was satisfied by the merged MVP UI branch; it
 remains the rule for future visual work. No later phase is marked complete
-merely because implementation exists. Phase 04 implementation is complete on
-the isolated report-generation branch, while phase closure remains blocked by
-provider privacy approval and fixture-backed private-report browser acceptance.
-Paid-release closure also requires Phase 05 workflows and Phase 05A evidence.
+merely because implementation exists. Phase 04 implementation and controlled
+browser acceptance are complete on the isolated report-generation branch, while
+provider privacy approval remains the sole phase closure decision gate.
+Paid-release closure also requires later phases (Phase 05 workflows and Phase
+05A evidence) and founder activation.
 
 **Active implementation branch:** `feature/phase04-report-generation`.
 Provider-independent Phase 05A implementation is authorized from 2026-09-02.
 SePay Tasks 1-2, the durable P04-T03 worker, P04-T04 approved knowledge
-retrieval, P04-T05 immutable evidence-backed generation, and P04-T06
-owner-authorized private HTML reading are implemented and reviewed. The
-previously published sandbox report job on the Docker VPS remains `waiting`
-until a separately authorized deployment. Production payment activation and
-production AI activation remain founder-controlled.
+retrieval, P04-T05 immutable evidence-backed generation, P04-T06
+owner-authorized private HTML reading, and 7/7 controlled browser acceptance
+tests are implemented and reviewed. The previously published sandbox report job
+on the Docker VPS remains `waiting` until a separately authorized deployment.
+Production payment activation and production AI activation remain
+founder-controlled.
 
 ## Global Constraints
 
