@@ -79,8 +79,7 @@ Vietnamese.
 
 - **Phase 04 closure:** production AI remains fail-closed pending provider
   privacy approval. Seven private-report Playwright cases require controlled
-  owner/other/pending/ready/failed fixtures, and two lineage integration cases
-  require a running Docker daemon.
+  owner/other/pending/ready/failed fixtures.
 - **Phase 05A:** T01 admin access/RBAC/audit, T02 redacted operations overview,
   and T05 role administration/audit inspection are complete. T03, T04, and T06
   remain open.
@@ -104,8 +103,7 @@ points only to the remaining Phase 04 closure gates:
 
 1. Record and approve provider privacy due diligence.
 2. Run the seven controlled private-report Playwright cases.
-3. Re-run the two PostgreSQL lineage cases with Docker available.
-4. Deploy or activate only after a separate explicit founder instruction.
+3. Deploy or activate only after a separate explicit founder instruction.
 
 Following those gates, the next coding phase is **Phase 05: PDF, Garage storage,
 report email delivery, and owner account center**.
@@ -160,7 +158,7 @@ deployment facts and verify them before a new production action.
 - Do not activate production AI until provider privacy due diligence is
   complete and founder-approved.
 - Do not claim intended-environment Phase 04 closure until the controlled
-  private-report Playwright suite and Docker-backed lineage tests pass.
+  private-report Playwright suite passes.
 - Phase 05 is the next coding phase. Sol writes each exact bounded brief,
   Gemini codes it, and Terra high reviews the meaningful milestone.
 

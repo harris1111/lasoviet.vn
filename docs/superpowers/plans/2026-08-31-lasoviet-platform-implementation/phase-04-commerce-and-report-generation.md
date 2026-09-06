@@ -547,9 +547,9 @@ git commit -m "feat: publish immutable private reports"
 - Fresh local verification passed five builds/typechecks, 55 non-container
   tests, i18n parity, scoped ESLint, exact frontispiece hash/size, Playwright
   collection, and `git diff --check`.
-- Step 4 remains open because the seven controlled-fixture Playwright cases
-  were fixture-skipped. Two PostgreSQL lineage tests also await re-execution
-  when Docker is available; their module collection succeeds.
+- Step 4 remains open only because the seven controlled-fixture Playwright cases
+  remain skipped. The two PostgreSQL lineage tests were re-executed successfully
+  as part of the full 121-file/722-test Vitest run on 2026-09-06.
 
 ## Phase Exit Criteria
 
