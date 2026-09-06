@@ -13,6 +13,7 @@ export type AiEnvironment =
       maxRetries: number;
       featureJsonSchema: boolean;
       featureToolCalling: boolean;
+      productionEnabled: boolean;
     };
 
 export type SmtpEnvironment =
@@ -106,8 +107,19 @@ const enabledAi = z
     maxRetries: z.number().int().nonnegative(),
     featureJsonSchema: z.boolean(),
     featureToolCalling: z.boolean(),
+    productionEnabled: z.boolean(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, context) => {
+    if (data.productionEnabled && !data.featureJsonSchema) {
+      context.addIssue({
+        code: "custom",
+        path: ["featureJsonSchema"],
+        message:
+          "AI_FEATURE_JSON_SCHEMA must be enabled when AI_PRODUCTION_ENABLED is true",
+      });
+    }
+  });
 
 export const AiEnvironmentSchema: z.ZodType<AiEnvironment> =
   z.discriminatedUnion("enabled", [disabledAi, enabledAi]);
