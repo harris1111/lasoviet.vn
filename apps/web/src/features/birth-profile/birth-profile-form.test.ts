@@ -164,7 +164,7 @@ describe("wizard state helpers (TDD)", () => {
     });
   });
   it("rejects future dates against deterministic reference date", () => {
-    const referenceDate = new Date("2026-09-05T00:00:00+07:00");
+    const referenceDate = new Date(2026, 8, 5);
     expect(validateWizardDate("5", "9", "2026", referenceDate)).toEqual({
       valid: true,
       isoDate: "2026-09-05",
