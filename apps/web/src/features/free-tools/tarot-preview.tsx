@@ -18,8 +18,11 @@ type TrustItem = {
 type SpreadCard = {
   position: string;
   name: string;
+  image: string;
+  reversed: boolean;
   orientation: string;
   meaning: string;
+  alt: string;
 };
 
 type GlossaryItem = {
@@ -58,15 +61,63 @@ const FREE_RESULTS_EN: readonly TrustItem[] = [
 ];
 
 const SPREAD_CARDS_VI: readonly SpreadCard[] = [
-  { position: "Tình huống hiện tại", name: "Người Treo Ngược", orientation: "Xuôi", meaning: "Gợi ý một giai đoạn cần tạm dừng và nhìn vấn đề từ góc khác trước khi hành động." },
-  { position: "Hành động khả thi", name: "Bánh Xe Số Mệnh", orientation: "Ngược", meaning: "Cho thấy một chu kỳ đang chuyển đổi — có thể cần thời gian trước khi rõ ràng hơn." },
-  { position: "Xu hướng kết quả", name: "Ngôi Sao", orientation: "Xuôi", meaning: "Xu hướng tích cực nếu giữ được sự kiên nhẫn qua giai đoạn chuyển tiếp." },
+  {
+    position: "Tình huống hiện tại",
+    name: "Người Treo Ngược",
+    image: "/uploads/tarot/TheHangedMan.png",
+    reversed: false,
+    orientation: "Xuôi",
+    meaning: "Gợi ý một giai đoạn cần tạm dừng và nhìn vấn đề từ góc khác trước khi hành động.",
+    alt: "Lá Người Treo Ngược, rút xuôi — vị trí Tình huống hiện tại (minh hoạ)",
+  },
+  {
+    position: "Hành động khả thi",
+    name: "Bánh Xe Số Mệnh",
+    image: "/uploads/tarot/WheelOfFortune.png",
+    reversed: true,
+    orientation: "Ngược",
+    meaning: "Cho thấy một chu kỳ đang chuyển đổi — có thể cần thời gian trước khi rõ ràng hơn.",
+    alt: "Lá Bánh Xe Số Mệnh, rút ngược — vị trí Hành động khả thi (minh hoạ)",
+  },
+  {
+    position: "Xu hướng kết quả",
+    name: "Ngôi Sao",
+    image: "/uploads/tarot/TheStar.png",
+    reversed: false,
+    orientation: "Xuôi",
+    meaning: "Xu hướng tích cực nếu giữ được sự kiên nhẫn qua giai đoạn chuyển tiếp.",
+    alt: "Lá Ngôi Sao, rút xuôi — vị trí Xu hướng kết quả (minh hoạ)",
+  },
 ];
 
 const SPREAD_CARDS_EN: readonly SpreadCard[] = [
-  { position: "Current situation", name: "The Hanged Man", orientation: "Upright", meaning: "Suggests a phase calling for pause and viewing the situation from another perspective before acting." },
-  { position: "Actionable step", name: "Wheel of Fortune", orientation: "Reversed", meaning: "Indicates a transitional cycle — time may be needed before clarity emerges." },
-  { position: "Outcome trajectory", name: "The Star", orientation: "Upright", meaning: "A positive trajectory if patience is maintained through the transition phase." },
+  {
+    position: "Current situation",
+    name: "The Hanged Man",
+    image: "/uploads/tarot/TheHangedMan.png",
+    reversed: false,
+    orientation: "Upright",
+    meaning: "Suggests a phase calling for pause and viewing the situation from another perspective before acting.",
+    alt: "The Hanged Man, drawn upright — Current situation position (illustrative)",
+  },
+  {
+    position: "Actionable step",
+    name: "Wheel of Fortune",
+    image: "/uploads/tarot/WheelOfFortune.png",
+    reversed: true,
+    orientation: "Reversed",
+    meaning: "Indicates a transitional cycle — time may be needed before clarity emerges.",
+    alt: "Wheel of Fortune, drawn reversed — Actionable step position (illustrative)",
+  },
+  {
+    position: "Outcome trajectory",
+    name: "The Star",
+    image: "/uploads/tarot/TheStar.png",
+    reversed: false,
+    orientation: "Upright",
+    meaning: "A positive trajectory if patience is maintained through the transition phase.",
+    alt: "The Star, drawn upright — Outcome trajectory position (illustrative)",
+  },
 ];
 
 const GLOSSARY_ITEMS_VI: readonly GlossaryItem[] = [
@@ -82,14 +133,14 @@ const GLOSSARY_ITEMS_EN: readonly GlossaryItem[] = [
 ];
 
 const METHOD_ROWS_VI: readonly MethodRow[] = [
-  { label: "Bộ bài", value: "Bộ Tarot 78 lá tiêu chuẩn (Rider–Waite), tên lá theo bản dịch tiếng Việt phổ biến." },
+  { label: "Bộ bài", value: "Bộ Tarot 78 lá Rider–Waite–Smith (1909, phạm vi công cộng) — không dùng ảnh bộ bài đương đại còn bản quyền; tên lá theo bản dịch tiếng Việt phổ biến." },
   { label: "Cách rút", value: "Rút ngẫu nhiên có lưu seed để có thể xem lại chính xác lượt rút đã thực hiện." },
   { label: "Giới hạn rút lại", value: "Một lá hôm nay chỉ rút một lần mỗi ngày; ba lá cho một câu hỏi lưu lại lịch sử, không cho rút lại âm thầm." },
   { label: "Vai trò của AI", value: "Diễn giải lá đã rút theo đúng vị trí bằng tiếng Việt — không tự chọn lại lá để \"khớp\" câu hỏi." },
 ];
 
 const METHOD_ROWS_EN: readonly MethodRow[] = [
-  { label: "Deck", value: "Standard 78-card Rider–Waite deck, using widely accepted Vietnamese naming conventions." },
+  { label: "Deck", value: "Standard 78-card Rider–Waite–Smith deck (1909, public domain) — avoids contemporary copyrighted decks; card names follow standard Vietnamese translations." },
   { label: "Draw mechanism", value: "Randomized draw with recorded seed to guarantee exact audit and review of each session." },
   { label: "Redraw limits", value: "One card today allows one draw per day; three cards for a question logs full history without silent redraws." },
   { label: "Role of AI", value: "Interprets drawn cards strictly according to their assigned positions — never swaps cards to fit a question." },
@@ -467,8 +518,8 @@ export function TarotPreview({ locale, className }: TarotPreviewProps) {
             </h2>
             <p style={{ margin: "16px 0 0", maxWidth: "680px", fontSize: "16px", lineHeight: 1.65, color: "var(--text-muted, #A79E8B)" }}>
               {isVi
-                ? "Ví dụ dưới đây minh hoạ cấu trúc trải bài ba vị trí — tên lá và ý nghĩa chỉ mang tính minh hoạ, không phải kết quả rút bài thật."
-                : "The example below illustrates the three-position spread structure — card names and meanings are strictly illustrative, not an actual reading."}
+                ? "Ví dụ dưới đây minh hoạ cấu trúc trải bài ba vị trí — vị trí gán cho từng lá chỉ mang tính minh hoạ, không phải kết quả rút bài thật. Hình ảnh là đúng bộ bài Rider–Waite–Smith 1909 (đã hết hạn bản quyền, thuộc phạm vi công cộng)."
+                : "The example below illustrates the three-position spread structure — assigned positions are strictly illustrative, not an actual draw. Images are from the authentic Rider–Waite–Smith 1909 deck (copyright expired, public domain)."}
             </p>
             <div style={{ marginTop: "44px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "24px" }}>
               {spreadCards.map((card, idx) => (
@@ -476,14 +527,32 @@ export function TarotPreview({ locale, className }: TarotPreviewProps) {
                   <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "10.5px", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-faint, #6E6656)", marginBottom: "10px", textAlign: "center" }}>
                     {card.position}
                   </div>
-                  <div style={{ aspectRatio: "2 / 3", border: "1px solid var(--oxblood-deep, #4A2E29)", borderRadius: "var(--radius-md, 8px)", background: "linear-gradient(160deg, var(--surface-panel, #1C1813), var(--surface-deep, #0F0D0A))", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px", textAlign: "center", gap: "8px", boxShadow: "0 18px 40px rgba(0, 0, 0, 0.4)" }}>
-                    <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--oxblood, #9B6358)" }}>{card.orientation}</span>
-                    <span style={{ fontFamily: "var(--font-display, Georgia, serif)", fontSize: "18px", color: "var(--text-heading, #F6F1E6)" }}>{card.name}</span>
+                  <div className="tarot-card" style={{ boxShadow: "0 18px 40px rgba(0, 0, 0, 0.4)" }}>
+                    <img
+                      src={card.image}
+                      alt={card.alt}
+                      style={{
+                        transform: card.reversed ? "rotate(180deg)" : "none",
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                      }}
+                    />
                   </div>
-                  <p style={{ margin: "12px 0 0", fontSize: "13px", lineHeight: 1.6, color: "var(--text-muted, #A79E8B)" }}>{card.meaning}</p>
+                  <div style={{ marginTop: "10px", display: "flex", alignItems: "baseline", justifyContent: "center", gap: "8px" }}>
+                    <span style={{ fontFamily: "var(--font-display, Georgia, serif)", fontSize: "16px", color: "var(--text-heading, #F6F1E6)" }}>{card.name}</span>
+                    <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "10px", color: "var(--oxblood, #9B6358)" }}>{card.orientation}</span>
+                  </div>
+                  <p style={{ margin: "10px 0 0", fontSize: "13px", lineHeight: 1.6, color: "var(--text-muted, #A79E8B)" }}>{card.meaning}</p>
                 </div>
               ))}
             </div>
+            <p style={{ margin: "16px 0 0", fontSize: "11.5px", color: "var(--text-faint, #6E6656)" }}>
+              {isVi
+                ? "Nguồn hình ảnh: bộ bài Rider–Waite–Smith (1909, phạm vi công cộng), đóng gói lại dưới giấy phép CC0 bởi Luciella Elisabeth Scarlett."
+                : "Image source: Rider–Waite–Smith deck (1909, public domain), repackaged under CC0 license by Luciella Elisabeth Scarlett."}
+            </p>
             <div style={{ marginTop: "40px", maxWidth: "680px", background: "var(--surface-panel, #1C1813)", border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-md, 8px)", padding: "24px 26px", position: "relative", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.55)" }}>
               <div style={{ position: "absolute", top: 24, left: -1, width: 2, height: 34, background: "var(--oxblood, #9B6358)" }} />
               <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "10.5px", letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--text-faint, #6E6656)" }}>{isVi ? "Tổng hợp" : "Synthesis"}</div>

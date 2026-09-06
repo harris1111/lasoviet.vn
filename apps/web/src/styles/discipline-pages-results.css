@@ -156,6 +156,19 @@
   color: var(--bazi-accent) !important;
 }
 
+/* Bát Tự Elements & Luck Pillars Grid */
+.discipline-bazi-elements-grid {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 860px) {
+  .discipline-bazi-elements-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+}
+
 /* Subnote & Note Text */
 [data-discipline-preview="bat-tu"] > p {
   max-width: 100%;
@@ -355,6 +368,25 @@
   .discipline-numerology-preview {
     grid-template-columns: 1fr !important;
     gap: 32px !important;
+  }
+}
+
+/* Core Numbers 4-Column Band */
+.discipline-numerology-core-band {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .discipline-numerology-core-band {
+    margin-top: 28px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .discipline-numerology-core-band {
+    grid-template-columns: 1fr !important;
   }
 }
 

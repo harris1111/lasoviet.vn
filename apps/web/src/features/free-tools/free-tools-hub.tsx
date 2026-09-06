@@ -91,6 +91,14 @@ export function FreeToolsHub({ model }: FreeToolsHubProps) {
     setOpenFaq((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
+  const groupOrder = isVi
+    ? ["Tra cứu thời gian", "Tự chiêm nghiệm", "Đặt một câu hỏi", "Không gian sống"]
+    : ["Time Lookup", "Self-Reflection", "Ask a Question", "Living Space"];
+  const toolGroups = groupOrder.map((label) => ({
+    label,
+    tools: content.tools.filter((t) => t.group === label),
+  })).filter((g) => g.tools.length > 0);
+
   return (
     <div
       className="free-tools-hub-root"
@@ -173,89 +181,134 @@ export function FreeToolsHub({ model }: FreeToolsHubProps) {
           </div>
         </section>
 
-        {/* 02 LƯỚI 7 CÔNG CỤ */}
+        {/* 02 LƯỚI 7 CÔNG CỤ THEO TÁC VỤ */}
         <section
           style={{ padding: "0 0 clamp(56px, 9vw, 96px)" }}
           data-screen-label="02-luoi-cong-cu"
         >
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "24px",
-              }}
-            >
-              {content.tools.map((t: ToolCardItem) => (
-                <Link
-                  key={t.key}
-                  href={t.href}
-                  className="tool-card"
+            {toolGroups.map((grp) => (
+              <div key={grp.label} style={{ marginBottom: "48px" }}>
+                <div
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "14px",
-                    background: "var(--surface-panel)",
-                    border: "1px solid var(--border-hairline)",
-                    borderRadius: "var(--radius-lg, 8px)",
-                    padding: "28px",
-                    textDecoration: "none",
-                    transition: "border-color 120ms ease",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "11px",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "var(--text-faint)",
+                    marginBottom: "16px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <HubIcon name={t.icon} color={t.color} />
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "10px",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        color: t.color,
-                        border: `1px solid ${t.color}`,
-                        borderRadius: "var(--radius-pill, 9999px)",
-                        padding: "2px 9px",
-                        opacity: 0.85,
-                      }}
-                    >
-                      {t.status}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "19px",
-                      color: "var(--text-heading)",
-                    }}
-                  >
-                    {t.title}
-                  </div>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "14px",
-                      lineHeight: 1.6,
-                      color: "var(--text-muted)",
-                      flex: 1,
-                    }}
-                  >
-                    {t.body}
-                  </p>
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontSize: "13.5px",
-                      color: "var(--text-body)",
-                    }}
-                  >
-                    {t.cta}
-                    <HubIcon name="chevron-right" color="var(--text-body)" />
-                  </span>
-                </Link>
-              ))}
-            </div>
+                  {grp.label}
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                    gap: "24px",
+                  }}
+                >
+                  {grp.tools.map((t: ToolCardItem) => {
+                    const isAvailable = t.status === (isVi ? "Xem trước" : "Preview");
+                    const cardClass = isAvailable ? "tool-card is-available" : "tool-card is-muted";
+                    const iconColor = isAvailable ? t.color : "var(--text-faint)";
+                    return (
+                      <Link
+                        key={t.key}
+                        href={t.href}
+                        className={cardClass}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "14px",
+                          background: "var(--surface-panel)",
+                          border: isAvailable ? "1px solid var(--border-hairline)" : "1px dashed var(--border-hairline)",
+                          borderRadius: "var(--radius-lg, 8px)",
+                          padding: "28px",
+                          textDecoration: "none",
+                          transition: "border-color 120ms ease",
+                          opacity: isAvailable ? 1 : 0.72,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <HubIcon name={t.icon} color={iconColor} />
+                          <span
+                            style={{
+                              fontFamily: "var(--font-mono)",
+                              fontSize: "10px",
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                              color: iconColor,
+                              border: `1px solid ${iconColor}`,
+                              borderRadius: "var(--radius-pill, 9999px)",
+                              padding: "2px 9px",
+                              opacity: 0.85,
+                            }}
+                          >
+                            {t.status}
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: "19px",
+                            color: "var(--text-heading)",
+                          }}
+                        >
+                          {t.title}
+                        </div>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: "14px",
+                            lineHeight: 1.6,
+                            color: "var(--text-muted)",
+                            flex: 1,
+                          }}
+                        >
+                          {t.body}
+                        </p>
+                        <div
+                          style={{
+                            display: "grid",
+                            gap: "4px",
+                            fontSize: "12px",
+                            color: "var(--text-faint)",
+                            borderTop: "1px solid var(--border-hairline)",
+                            paddingTop: "12px",
+                          }}
+                        >
+                          <span>
+                            <strong style={{ color: "var(--text-muted)" }}>{isVi ? "Cần nhập:" : "Inputs:"}</strong>{" "}
+                            {t.inputNeeded}
+                          </span>
+                          <span>
+                            <strong style={{ color: "var(--text-muted)" }}>{isVi ? "Nhận được:" : "Outputs:"}</strong>{" "}
+                            {t.output}
+                          </span>
+                          <span>
+                            <strong style={{ color: "var(--text-muted)" }}>{isVi ? "Thời gian:" : "Time:"}</strong>{" "}
+                            {t.timeEstimate}
+                          </span>
+                        </div>
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            fontSize: "13.5px",
+                            color: "var(--text-body)",
+                          }}
+                        >
+                          {t.cta}
+                          <HubIcon name="chevron-right" color="var(--text-body)" />
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

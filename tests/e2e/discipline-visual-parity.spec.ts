@@ -2,7 +2,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 type DisciplineRouteCase = {
   path: string;
-  category: "discipline" | "free-tools-hub" | "utility-preview" | "gated-preview";
+  category: "discipline" | "free-tools-hub" | "utility-preview" | "flagship-preview" | "gated-preview";
   heading: string;
 };
 
@@ -59,8 +59,8 @@ const ROUTES: readonly DisciplineRouteCase[] = [
   },
   {
     path: "/phong-thuy/huong-nha",
-    category: "gated-preview",
-    heading: "Phong Thủy Hướng Nhà",
+    category: "flagship-preview",
+    heading: "Phong Thủy hướng nhà",
   },
   {
     path: "/xem-chi-tay",
@@ -159,6 +159,27 @@ for (const route of ROUTES) {
           bodyText.includes("dữ kiện lịch pháp, không phải") ||
           (bodyText.includes("tham khảo văn hoá") && bodyText.includes("không phải dự đoán"));
         expect(containsDisclosure).toBe(true);
+      }
+
+      if (route.category === "flagship-preview") {
+        const bodyText = await page.locator("main").innerText();
+        const containsDisclosure =
+          bodyText.includes("minh hoạ") ||
+          bodyText.includes("minh họa") ||
+          bodyText.includes("không phải kết quả tính từ dữ liệu thật") ||
+          bodyText.includes("chưa có công cụ tính trực tiếp");
+        expect(containsDisclosure).toBe(true);
+
+        const uploadAction = page.locator('input[type="file"]:not([disabled])');
+        await expect(uploadAction).toHaveCount(0);
+
+        const activeCamera = page.locator('video, button:has-text("Chụp ảnh"):not([disabled])');
+        await expect(activeCamera).toHaveCount(0);
+
+        const computeAction = page.locator(
+          'button:has-text("Tính toán"):not([disabled]), button:has-text("Tra cứu"):not([disabled])',
+        );
+        await expect(computeAction).toHaveCount(0);
       }
 
       if (route.category === "gated-preview") {
