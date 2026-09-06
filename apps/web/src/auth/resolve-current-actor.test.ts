@@ -4,7 +4,9 @@ vi.mock("server-only", () => ({}));
 
 import {
   CurrentActorResolutionError,
+  VerifiedAccountResolutionError,
   createCurrentActorResolver,
+  createVerifiedAccountResolver,
 } from "./resolve-current-actor";
 
 const now = new Date("2026-09-02T00:00:00.000Z");
@@ -40,6 +42,70 @@ function resolverFor(options: {
 }
 
 describe("current actor resolver", () => {
+  it("rejects an unauthenticated admin visit without creating an anonymous session", async () => {
+    const getSession = vi.fn().mockResolvedValue(null);
+    const signInAnonymous = vi.fn();
+    const resolve = createVerifiedAccountResolver({
+      auth: { api: { getSession, signInAnonymous } } as never,
+      headers: new Headers(),
+      requestId: () => "admin-request-id",
+    });
+
+    await expect(resolve()).rejects.toEqual(
+      new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"),
+    );
+    expect(signInAnonymous).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      name: "an anonymous session",
+      session: {
+        session: { id: "session-1", userId: "account-1" },
+        user: { id: "account-1", isAnonymous: true, emailVerified: true },
+      },
+    },
+    {
+      name: "an unverified account session",
+      session: {
+        session: { id: "session-1", userId: "account-1" },
+        user: { id: "account-1", isAnonymous: false, emailVerified: false },
+      },
+    },
+  ])("rejects $name for admin access", async ({ session }) => {
+    const getSession = vi.fn().mockResolvedValue(session);
+    const signInAnonymous = vi.fn();
+    const resolve = createVerifiedAccountResolver({
+      auth: { api: { getSession, signInAnonymous } } as never,
+      headers: new Headers(),
+      requestId: () => "admin-request-id",
+    });
+
+    await expect(resolve()).rejects.toEqual(
+      new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"),
+    );
+    expect(signInAnonymous).not.toHaveBeenCalled();
+  });
+
+  it("resolves a verified non-anonymous account session for admin access", async () => {
+    const getSession = vi.fn().mockResolvedValue({
+      session: { id: "session-1", userId: "account-1" },
+      user: { id: "account-1", isAnonymous: false, emailVerified: true },
+    });
+    const resolve = createVerifiedAccountResolver({
+      auth: { api: { getSession, signInAnonymous: vi.fn() } } as never,
+      headers: new Headers(),
+      requestId: () => "admin-request-id",
+    });
+
+    await expect(resolve()).resolves.toEqual({
+      kind: "account",
+      userId: "account-1",
+      sessionId: "session-1",
+      requestId: "admin-request-id",
+    });
+  });
+
   it("resolves an account actor from the authoritative session", async () => {
     const subject = resolverFor({
       session: {

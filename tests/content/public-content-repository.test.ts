@@ -17,7 +17,10 @@ const reservedYearRoute = routeRegistry.find(
   (route) => route.id === "commercial.tu-vi.year",
 );
 const liveNoindexRoute = routeRegistry.find(
-  (route) => route.status === "live_noindex" && !route.private,
+  (route) =>
+    route.status === "live_noindex" &&
+    !route.private &&
+    route.content === "reviewed",
 );
 
 if (
@@ -193,6 +196,18 @@ describe("public content repository and route resolver", () => {
     expect(
       resolvePublicRoute("/archived-410", { routes: archived, contentRepository: repository }),
     ).toEqual({ kind: "gone", status: 410, code: "ROUTE_ARCHIVED" });
+  });
+
+  it("rejects content records for public routes without reviewed content marker", () => {
+    const authRoute = routeRegistry.find((route) => route.id === "auth.sign-in");
+    if (authRoute === undefined) throw new Error("auth.sign-in fixture missing");
+    const authRecord = {
+      ...contentRecord,
+      routeId: authRoute.id,
+    };
+    expect(() =>
+      createPublicContentRepository([authRecord], [authRoute]),
+    ).toThrow(new PublicContentRepositoryError("PUBLIC_CONTENT_NOT_FOUND"));
   });
 
   it("rejects missing and duplicate content records with stable errors", () => {

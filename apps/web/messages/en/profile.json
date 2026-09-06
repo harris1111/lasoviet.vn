@@ -9,7 +9,17 @@
   "subject": {
     "title": "Who is this chart for?",
     "copy": "You can create a free chart without an account.",
-    "self": "Create my own chart"
+    "self": "Create my own chart",
+    "stepTitle": "Chart subject",
+    "stepSub": "Select who this chart is for and the gender used for chart orientation.",
+    "nameLabel": "Display name",
+    "nameOptional": "(optional)",
+    "namePlaceholder": "Only used to recognize this current form",
+    "targetLabel": "This chart is for",
+    "other": "Someone else",
+    "otherConsent": "When creating for someone else, confirm you have their consent to enter birth details in this session (no account or persistence promise).",
+    "consentCheck": "I confirm I have permission to create this chart",
+    "consentError": "Please confirm you have permission before continuing."
   },
   "birth": {
     "title": "Birth date and time",
@@ -28,13 +38,41 @@
     "gender": "Gender used to create the chart",
     "genderHelp": "Zi Wei needs this information to determine the direction of cycles.",
     "male": "Male",
-    "female": "Female"
+    "female": "Female",
+    "stepTitle": "Birth date, time & place",
+    "stepSub": "Enter birth date and time to calculate the chart. Birth place is optional context.",
+    "calendarType": "Calendar type",
+    "solar": "Solar calendar",
+    "lunar": "Lunar calendar",
+    "lunarNotice": "Lunar calendar input is coming soon. Please enter your corresponding solar birth date.",
+    "dayLabel": "Day",
+    "monthLabel": "Month",
+    "yearLabel": "Year",
+    "formatHint": "(DD / MM / YYYY)",
+    "placeLabel": "Birth place",
+    "placePlaceholder": "City, province, or region",
+    "placeNote": "Birth place is optional screen-only context in this current flow, not persisted and not used for calculation; UTC+7 is used."
   },
   "review": {
     "title": "Review your details",
     "unknown": "Birth time unknown",
     "consent": "I agree that Lá Số Việt may process this birth information to create this chart.",
-    "privacy": "Charts are private by default. Guest data expires after 24 hours."
+    "privacy": "Charts are private by default. Guest data expires after 24 hours.",
+    "stepTitle": "Review & privacy",
+    "stepSub": "Review all entered information before calculating and generating the chart.",
+    "edit": "Edit",
+    "displayName": "Display name",
+    "noName": "No name provided (current form only)",
+    "forWhom": "Chart for",
+    "self": "Myself",
+    "otherPermitted": "Someone else (permission confirmed)",
+    "solarDate": "Solar birth date",
+    "birthTime": "Birth time",
+    "birthPlace": "Birth place",
+    "timezone": "Calculation timezone",
+    "disclosure": "Birth information is processed only for the current chart session under default privacy settings.",
+    "guestNotice": "Guest data expires after 24 hours. No permanent persistence is promised.",
+    "duplicateNotice": "Creating chart, please do not submit again."
   },
   "heroForm": {
     "invalidDate": "Invalid or impossible birth date. Please check and try again.",
@@ -77,5 +115,20 @@
     "gender": "Select the gender used to create the chart.",
     "timeUnknown": "An exact birth time is needed to create a Zi Wei chart. Return when you can add it.",
     "calculation": "We could not create the chart right now. Please try again."
+  },
+  "nav": {
+    "privacy": "Private by default. Guest data expires after 24 hours.",
+    "back": "Back to previous step",
+    "exit": "Exit to home",
+    "help": "Help creating chart",
+    "step": "Step {current}",
+    "stepFull": "Step {current}/3: {title}"
+  },
+  "rail": {
+    "eyebrow": "Chart context",
+    "step1": "Select the chart subject and gender. In Zi Wei, gender determines the direction of major cycles and star placements.",
+    "step2": "Birth date and time calculate the chart. Birth place is on-screen context only and does not affect calculation (standard UTC+7).",
+    "step3": "Carefully review details before creating the chart. Guest data expires after 24 hours with no permanent persistence promise.",
+    "caption": "Archival birth registry cards used as reference context."
   }
 }

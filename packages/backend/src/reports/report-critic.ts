@@ -8,7 +8,7 @@ const CriticSchema = z.object({
   correctness: z.number().int().min(1).max(5),
   evidenceCoverage: z.number().int().min(1).max(5),
   specificity: z.number().int().min(1).max(5),
-  vietnameseClarity: z.number().int().min(1).max(5),
+  languageClarity: z.number().int().min(1).max(5),
   consistency: z.number().int().min(1).max(5),
   actionability: z.number().int().min(1).max(5),
   safety: z.number().int().min(1).max(5),
@@ -25,10 +25,12 @@ export async function critiqueIdentityReport(
   if (!validation.ok) {
     return { ok: false as const, error: { code: validation.findings[0]?.code ?? "REPORT_SAFETY_REJECTED", retryable: false } };
   }
+  const languageName = report.locale === "en" ? "English" : "Vietnamese";
+  const system = `Evaluate an ${languageName} evidence-backed report for quality and safety.`;
   const result = await provider.generateStructured({
     schema: CriticSchema,
     schemaName: "identity_report_critic_v1",
-    system: "Evaluate a Vietnamese evidence-backed report for quality and safety.",
+    system,
     user: JSON.stringify({
       report,
       frozenFacts: source.frozenFacts.facts,
@@ -40,7 +42,7 @@ export async function critiqueIdentityReport(
   });
   if (!result.ok) return result;
   if (result.value.value.correctness < 4 || result.value.value.safety < 4) {
-    return { ok: false as const, error: { code: "REPORT_QUALITY_REJECTED", retryable: false } };
+    return { ok: false as const, error: { code: "REPORT_SAFETY_REJECTED", retryable: false } };
   }
   return { ok: true as const, value: result.value.value };
 }

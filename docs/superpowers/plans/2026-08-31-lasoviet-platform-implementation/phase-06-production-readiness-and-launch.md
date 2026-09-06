@@ -25,6 +25,9 @@ backup/restore, operational smoke, and internal report review.
 - Optional AI/cloud failures degrade report work without taking down free
   calculation.
 - No launch with an open severity-1 calculation/payment/privacy defect.
+- Paid-release closure depends on Phase 05A Admin and Operations Console
+  closure, including its RBAC, redaction, audit, idempotency, and mediated
+  incident-workflow evidence.
 
 ---
 
@@ -231,6 +234,8 @@ git commit -m "ops: add metrics backup and incident runbooks"
 - Test: `tests/e2e/full-paid-flow.spec.ts`
 - Test: `tests/e2e/degraded-services.spec.ts`
 - Test: `tests/e2e/account-lifecycle.spec.ts`
+- Test: `tests/e2e/admin-incident-workflow.spec.ts`
+- Test: `tests/e2e/admin-non-admin-denial.spec.ts`
 - Create: `scripts/run-release-smoke.mjs`
 
 **Interfaces:**
@@ -261,7 +266,16 @@ landing
 Cover AI unavailable, Redis unavailable/recovered, Garage unavailable,
 optional cloud unavailable, repeated webhook, and SMTP unavailable.
 
-- [ ] **Step 3: Start the production-like stack**
+- [ ] **Step 3: Add admin incident E2E**
+
+Cover non-admin denial, `/admin/**` noindex and sitemap exclusion, a redacted
+failed-report inspection, support-case creation, policy-checked regeneration,
+outbox-mediated recovery, storage-reconciliation visibility, and a complete
+redacted audit trail. Assert the console cannot reveal secrets, signed URLs,
+raw birth/chart payloads, report bodies, direct queue controls, or provider
+payment mutations.
+
+- [ ] **Step 4: Start the production-like stack**
 
 Run:
 
@@ -271,12 +285,12 @@ docker compose --env-file "$DEPLOY_ENV_FILE" -f docker-compose.yml -f docker-com
 
 Expected: all required readiness checks pass.
 
-- [ ] **Step 4: Run E2E and smoke**
+- [ ] **Step 5: Run E2E and smoke**
 
-Run: `pnpm playwright test tests/e2e/full-paid-flow.spec.ts tests/e2e/degraded-services.spec.ts tests/e2e/account-lifecycle.spec.ts`
+Run: `pnpm playwright test tests/e2e/full-paid-flow.spec.ts tests/e2e/degraded-services.spec.ts tests/e2e/account-lifecycle.spec.ts tests/e2e/admin-incident-workflow.spec.ts tests/e2e/admin-non-admin-denial.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [ ] **Step 6: Update trackers and commit**
 
 ```bash
 git add tests/e2e scripts/run-release-smoke.mjs docs/superpowers/plans
@@ -290,6 +304,7 @@ git commit -m "test: verify the complete paid report flow"
 - Create: `docs/qa/p0-report-review-log.md`
 - Create: `docs/compliance/release-legal-accounting-approval.md`
 - Create: `docs/release/p0-release-checklist.md`
+- Create: `docs/release/admin-operations-evidence.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/risk-register.md`
 - Modify: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/requirements-traceability.md`
 - Test: `tests/release/release-evidence-gate.test.ts`
@@ -303,7 +318,10 @@ git commit -m "test: verify the complete paid report flow"
 
 Assert release is blocked when the AI provider due-diligence record,
 refund/regeneration wording approval, transaction-retention approval, or
-payment/accounting confirmation is missing or unsigned.
+payment/accounting confirmation is missing or unsigned. Assert it is also
+blocked when Phase 05A RBAC-matrix, noindex/sitemap, PII-redaction,
+audit-completeness, idempotency, immutable-record, or queue/outbox-mediation
+evidence is missing.
 
 - [ ] **Step 2: Generate twenty controlled internal reports**
 
@@ -428,6 +446,8 @@ git commit -m "test: verify Gate 1 public indexing"
 - Only web publishes a loopback host port.
 - Backup restore drill passes.
 - Security, purge, full-flow, and degraded-mode tests pass.
+- Admin incident, non-admin denial, redaction, audit, and mediated-command
+  release evidence pass.
 - Twenty reports meet the rubric.
 - Gate 1 public routes, ten foundation articles, sitemaps, canonicals, schema,
   and noindex boundaries pass production verification.
@@ -435,7 +455,7 @@ git commit -m "test: verify Gate 1 public indexing"
 - Founder receives the Nginx/Cloudflare handoff and explicitly approves any
   production deployment.
 
-## Task 5 Founder-Run MVP Packaging Checkpoint
+## Founder-Run Free-MVP Packaging Checkpoint
 
 Date: 2026-09-02
 
@@ -445,9 +465,10 @@ Date: 2026-09-02
 - Verified multi-stage non-root images, migration ordering, health-gated
   dependencies, persistent database/cache volumes, restart policy, capped
   Docker logs, Compose rendering, and live readiness.
-- The founder-authorized registration email was triggered successfully. The
-  browser smoke reached persisted birth-profile creation, then stopped because
-  the engine requires an explicit gender that the current UI does not collect.
-- The packaging scope is delivered, but Phase 06 full-flow readiness remains
-  open pending a founder-approved gender-input UX and a rerun of chart,
-  evidence, and free-preview acceptance.
+- The founder-authorized registration email was triggered successfully.
+- The founder approved explicit gender collection on 2026-09-02. The corrected
+  browser smoke passed persisted birth-profile creation, Zi Wei calculation,
+  chart rendering, evidence access, and the free identity preview.
+- This is free-MVP deployment evidence only. It does not close the paid-release
+  gate, which still requires unfinished Phase 04 commerce/report, Phase 05
+  delivery, Phase 05A admin-operations, and Phase 06 release evidence.

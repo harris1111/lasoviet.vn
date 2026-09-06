@@ -15,6 +15,12 @@ export {
   auditLogs,
 } from "./schema/audit.js";
 export {
+  adminAuditLogs,
+  adminCapabilityPolicies,
+  adminRoleAssignments,
+  adminRoleMutationRequests,
+} from "./schema/admin-access.js";
+export {
   notificationDeliveries,
   notificationDeliveryKind,
   notificationDeliveryStatus,
@@ -28,6 +34,18 @@ export {
 } from "./schema/birth-profile.js";
 export { evidenceItems, evidenceSets } from "./schema/evidence.js";
 export {
+  commerceEntitlements,
+  commerceOrderStatus,
+  commerceOrders,
+  commercePaymentEvents,
+} from "./schema/commerce.js";
+export {
+  reportGenerationAttempts,
+  reportQueueJobs,
+  reportReservations,
+  reportVersions,
+} from "./schema/reports.js";
+export {
   deletionRequestStatus,
   deletionRequests,
   consents,
@@ -39,3 +57,8 @@ export {
   outboxStatus,
 } from "./schema/outbox.js";
 export type { WorkflowEnvelopeV1 } from "./schema/outbox.js";
+
+export {
+  knowledgeChunks,
+  knowledgeDocuments,
+} from "./schema/knowledge.js";

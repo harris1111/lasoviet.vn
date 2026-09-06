@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:subagent-driven-development`. Gemini `flash_executor` implements
 > the approved packets. Terra xhigh performs one milestone review after the
-> complete batch, per FD-021 and FD-027.
+> complete batch, per FD-021 and FD-033.
 
 **Goal:** Port the approved discipline and free-tool prototype pages into the
 production Next.js web app with exact Vietnamese copy, close visual parity, and

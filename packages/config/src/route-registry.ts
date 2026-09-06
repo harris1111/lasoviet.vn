@@ -217,7 +217,8 @@ export function validatePublicContent(
     const isAllowedPublicRoute =
       route !== undefined &&
       !route.private &&
-      (route.status === "live_indexable" || route.status === "live_noindex");
+      (route.status === "live_indexable" || route.status === "live_noindex") &&
+      route.content === "reviewed";
     if (
       route === undefined ||
       !route.localeOwners.includes(result.data.locale) ||

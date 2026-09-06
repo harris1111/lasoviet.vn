@@ -1,0 +1,105 @@
+{
+  "documentId": "ziwei-identity-foundation-vi",
+  "knowledgeVersion": "ziwei.identity.knowledge.v1",
+  "discipline": "ziwei",
+  "locale": "vi",
+  "sourcePath": "docs/05-report-system.md",
+  "sourceAttribution": "Lá Số Việt Method Editorial Board",
+  "permittedUse": "first_party",
+  "contentHash": "90b47dfbbf05d8c2b1ee35b4076535d343d5f5aa7cbb2ec95c90e505a7da4fbf",
+  "approval": {
+    "status": "approved",
+    "approver": "method-reviewer",
+    "approvedAt": "2026-09-01T00:00:00.000Z"
+  },
+  "chunks": [
+    {
+      "passageId": "vi-ziwei-foundation-001",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Phương pháp luận báo cáo tại Lá Số Việt bắt đầu từ việc chuẩn hóa dữ liệu đầu vào theo múi giờ địa phương và quy chuẩn tính toán đã kiểm chứng. Hệ thống phân định rõ ràng ba tầng: dữ liệu gốc của lá số, tầng quy tắc chọn bằng chứng, và tầng tổng hợp ngôn ngữ định hướng. Báo cáo không tự ý suy diễn ngoài các bằng chứng đã được xác lập một cách minh bạch.",
+      "contentHash": "704cb2fae109c8b9cc760ad12736881a63a9542875934a374db92f5a51b2ed34"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-002",
+      "reportSections": [
+        "personal_summary"
+      ],
+      "content": "Tóm tắt bản sắc cá nhân tập trung làm rõ cấu trúc khí chất nền tảng, xu hướng hành vi nổi bật và phương thức ra quyết định của người xem. Thay vì đưa ra các nhận định chung chung, phần tóm tắt liên kết trực tiếp các điểm đặc trưng với các chỉ dấu trọng tâm trong lá số, giúp người đọc nhận diện rõ nét bức tranh tổng thể về bản thân.",
+      "contentHash": "1dc0e7fff98beef5d293d64de659f0363a7569cd28e38ee29c691252f4af7957"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-003",
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Căn cứ chính của báo cáo được chọn lọc thông qua hệ thống quy tắc đối chiếu giữa các cung chức và các nhóm sao then chốt. Mỗi luận điểm trong báo cáo đều gắn liền với bằng chứng cụ thể trên lá số, cho phép người đọc tra cứu nguyên nhân và mức độ tin cậy của từng nhận định thông qua giao diện minh bạch.",
+      "contentHash": "8bf60babe1132891c907dfbca95178b5a4abca1457b16766f175a879e4302d19"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-004",
+      "reportSections": [
+        "strengths_and_resources"
+      ],
+      "content": "Mục thế mạnh và nguồn lực mô tả các biểu hiện tích cực có điều kiện của cá nhân trong công việc và cuộc sống. Các nguồn lực này không phải là sự bảo đảm tự động cho thành công, mà là những khuynh hướng tiềm năng đòi hỏi sự rèn luyện, môi trường phù hợp và nỗ lực chủ động để phát huy hiệu quả.",
+      "contentHash": "6223ef800b003aacfaa3ebd747dc518bfca1e12f7d6b208ae250f980e3765638"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-005",
+      "reportSections": [
+        "tensions_and_blind_spots"
+      ],
+      "content": "Mục mâu thuẫn và điểm dễ mắc kẹt nhận diện các xung đột nội tâm, xu hướng phản ứng dưới áp lực và những điểm mù trong nhận thức. Thay vì phán xét hay gán nhãn tiêu cực, phương pháp tiếp cận hướng đến việc mô tả khách quan các điểm nghẽn hành vi để người đọc nâng cao khả năng tự quan sát.",
+      "contentHash": "60fa46c5bbc6865dd9245ed961defa94c4eec7c736651c01089b2d207153f0ac"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-006",
+      "reportSections": [
+        "identity_analysis"
+      ],
+      "content": "Phân tích bản sắc đào sâu vào động lực hành động, giá trị cốt lõi và phong cách tương tác xã hội. Việc phân tích tôn trọng tính đa chiều của tính cách, giúp cá nhân thấu hiểu các xung lực đối lập bên trong và định hình hướng phát triển phù hợp với bản chất tự nhiên.",
+      "contentHash": "8256fe4eeb38db64ed3a910223fe4a246b55023413cd29003b6219c414479105"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-007",
+      "reportSections": [
+        "cycles_and_timing"
+      ],
+      "content": "Phần chu kỳ và thời điểm cung cấp các cửa sổ thời gian mang tính xác suất nhằm hỗ trợ lập kế hoạch dài hạn và ngắn hạn. Hệ thống tuyệt đối không tuyên bố các sự kiện cố định hay dự đoán tương lai mang tính áp đặt, mà tập trung vào việc chuẩn bị tâm thế và nguồn lực thích ứng.",
+      "contentHash": "8b0d3691b40b1e85691eb4267b9e7a9e9ae88d60cd583c34e73ebce5b8abbb1e"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-008",
+      "reportSections": [
+        "within_control"
+      ],
+      "content": "Trọng tâm phương pháp luận của Lá Số Việt là làm rõ những yếu tố nằm trong vùng kiểm soát của người đọc. Mọi thông tin biểu tượng chỉ đóng vai trò tham chiếu; nhận thức cá nhân, nỗ lực tự thân và những lựa chọn có trách nhiệm mới là yếu tố quyết định kết quả cuộc sống.",
+      "contentHash": "8dd27adfef2faf9d253d86b524ce8a677dfa7691f33d4b9621eac913e3c98c7a"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-009",
+      "reportSections": [
+        "reflection_questions"
+      ],
+      "content": "Hệ thống câu hỏi tự phản chiếu được thiết kế từ ba đến năm câu hỏi gợi mở, giúp người đọc đối thoại với chính mình. Những câu hỏi này giúp chuyển hóa các phân tích cấu trúc thành suy ngẫm thực tế về các mối quan hệ, thói quen và mục tiêu phát triển cá nhân.",
+      "contentHash": "2928a7b6460f99efbfd4521a03671bfd58cbbbf5089a4ff7ac6acf83e2af15e4"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-010",
+      "reportSections": [
+        "action_summary"
+      ],
+      "content": "Tóm tắt hành động đúc kết tối đa năm bước gợi ý cụ thể và thực tế. Các hành động được thiết kế nhằm giúp người đọc áp dụng ngay vào đời sống hàng ngày, tập trung vào việc phát huy thế mạnh và hạn chế tác động của các điểm mù nhận thức.",
+      "contentHash": "8e687a62c51fc3d8526c940973e65e7d60708034620f5905286ad0cfd15178c1"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-011",
+      "reportSections": [
+        "limitations_and_disclaimer"
+      ],
+      "content": "Nội dung báo cáo chỉ nhằm mục đích tham khảo, hỗ trợ thấu hiểu bản thân và hoàn toàn không thay thế cho tư vấn y tế, sức khỏe tâm thần, pháp lý, tài chính hoặc tư vấn chuyên môn được cấp phép khác. Người dùng giữ toàn quyền tự chủ và chịu trách nhiệm đối với mọi quyết định của mình.",
+      "contentHash": "c2c3466767b43d12b5788a11bf555f634336f2865f0e65f9e789dd7cbad59295"
+    }
+  ]
+}

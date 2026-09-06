@@ -11,6 +11,12 @@ const composeFiles = [
   "docker-compose.production.yml",
 ].map((file) => `${root}/${file}`);
 
+const registryComposeFiles = [
+  "docker-compose.yml",
+  "docker-compose.production.yml",
+  "docker-compose.registry.yml",
+].map((file) => `${root}/${file}`);
+
 async function composeConfig() {
   const { stdout } = await execFileAsync(
     "docker",
@@ -24,6 +30,32 @@ async function composeConfig() {
       "json",
     ],
     { cwd: root },
+  );
+  return JSON.parse(stdout) as {
+    services: Record<string, Record<string, unknown>>;
+    volumes: Record<string, unknown>;
+  };
+}
+
+async function registryComposeConfig(releaseSha: string) {
+  const { stdout } = await execFileAsync(
+    "docker",
+    [
+      "compose",
+      "--env-file",
+      `${root}/.env.example`,
+      ...registryComposeFiles.flatMap((file) => ["-f", file]),
+      "config",
+      "--format",
+      "json",
+    ],
+    {
+      cwd: root,
+      env: {
+        ...process.env,
+        LASOVIET_RELEASE_SHA: releaseSha,
+      },
+    },
   );
   return JSON.parse(stdout) as {
     services: Record<string, Record<string, unknown>>;
@@ -88,9 +120,43 @@ describe("founder-run Compose topology", () => {
     });
     expect(configuration.services.postgres?.healthcheck).toBeDefined();
     expect(configuration.services.redis?.healthcheck).toBeDefined();
+    expect(configuration.services.worker?.healthcheck).toMatchObject({
+      test: ["CMD", "node", "dist/health/worker-health-cli.js"],
+      interval: "10s",
+      timeout: "5s",
+      retries: 6,
+      start_period: "15s",
+    });
     expect(configuration.volumes).toMatchObject({
       postgres_data: {},
       redis_data: {},
     });
+  });
+
+  it("applies registry overlay images and clears build definitions from rendered configuration", async () => {
+    const testSha = "abcdef1234567890abcdef1234567890abcdef12";
+    const [rawRegistryCompose, configuration] = await Promise.all([
+      readFile(`${root}/docker-compose.registry.yml`, "utf8"),
+      registryComposeConfig(testSha),
+    ]);
+
+    const targetServices = ["migrate", "api", "worker", "web"];
+    for (const service of targetServices) {
+      expect(configuration.services[service]?.build).toBeUndefined();
+    }
+
+    expect(rawRegistryCompose).toContain("build: !reset null");
+    expect(configuration.services.migrate?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-api:sha-${testSha}`,
+    );
+    expect(configuration.services.api?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-api:sha-${testSha}`,
+    );
+    expect(configuration.services.worker?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-worker:sha-${testSha}`,
+    );
+    expect(configuration.services.web?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-web:sha-${testSha}`,
+    );
   });
 });

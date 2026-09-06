@@ -38,7 +38,8 @@ describe("public content contract", () => {
     const publicRoutes = routeRegistry.filter(
       (route) =>
         (route.status === "live_indexable" || route.status === "live_noindex") &&
-        !route.private,
+        !route.private &&
+        route.content === "reviewed",
     );
     const validated = validatePublicContent(records, routeRegistry);
     const keys = new Set(
@@ -85,6 +86,29 @@ describe("public content contract", () => {
       ),
     ).toThrow(/CONTENT_METADATA_INVALID/);
   });
+  it("rejects public content records targeting public routes without reviewed content marker", () => {
+    const authRoute = routeRegistry.find((route) => route.id === "auth.sign-in");
+    expect(authRoute).toBeDefined();
+    if (authRoute === undefined) throw new Error("auth.sign-in fixture missing");
+
+    const authContent = {
+      routeId: authRoute.id,
+      locale: "vi" as const,
+      contentType: "ToolLanding" as const,
+      title: "Đăng nhập",
+      summary: "Trang đăng nhập",
+      reviewer: "content-reviewer",
+      sourceReferences: ["source:auth"],
+      riskTags: [],
+      status: "published" as const,
+      lastReviewed: "2026-09-01",
+    };
+
+    expect(() =>
+      validatePublicContent([authContent], routeRegistry),
+    ).toThrow(/CONTENT_METADATA_INVALID/);
+  });
+
   it("validates published records for live_noindex preview routes", async () => {
     const records = JSON.parse(
       await readFile("config/public-content.json", "utf8"),

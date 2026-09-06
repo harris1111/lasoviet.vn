@@ -15,7 +15,7 @@ import { getAuth, getAuthDatabase } from "./auth";
 
 type AuthoritativeSession = {
   session: { id: string; userId: string };
-  user: { id: string; isAnonymous: boolean };
+  user: { id: string; isAnonymous: boolean; emailVerified?: boolean };
 };
 
 type AnonymousSignIn = {
@@ -58,6 +58,13 @@ export class CurrentActorResolutionError extends Error {
   constructor(readonly code: "ANONYMOUS_EXPIRED") {
     super(code);
     this.name = "CurrentActorResolutionError";
+  }
+}
+
+export class VerifiedAccountResolutionError extends Error {
+  constructor(readonly code: "ADMIN_AUTH_REQUIRED") {
+    super(code);
+    this.name = "VerifiedAccountResolutionError";
   }
 }
 
@@ -134,6 +141,34 @@ export function createCurrentActorResolver(options: CurrentActorResolverOptions)
   };
 }
 
+export function createVerifiedAccountResolver(options: Pick<
+  CurrentActorResolverOptions,
+  "auth" | "headers" | "requestId"
+>) {
+  const createRequestId = options.requestId ?? randomUUID;
+
+  return async (): Promise<Extract<CurrentActor, { kind: "account" }>> => {
+    const session = await options.auth.api.getSession({
+      headers: options.headers,
+      query: { disableCookieCache: true },
+    });
+    if (
+      session === null ||
+      session.session.userId !== session.user.id ||
+      session.user.isAnonymous ||
+      session.user.emailVerified !== true
+    ) {
+      throw new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED");
+    }
+    return {
+      kind: "account",
+      userId: session.user.id,
+      sessionId: session.session.id,
+      requestId: createRequestId(),
+    };
+  };
+}
+
 async function findLiveAnonymousActor(input: {
   anonymousActorId: string;
   sessionId?: string;
@@ -175,5 +210,14 @@ export async function resolveCurrentActor(): Promise<CurrentActor> {
     auth: getAuth() as unknown as CurrentActorAuth,
     headers: await requestHeaders(),
     findLiveAnonymousActor,
+  })();
+}
+
+export async function resolveVerifiedAccountActor(): Promise<
+  Extract<CurrentActor, { kind: "account" }>
+> {
+  return createVerifiedAccountResolver({
+    auth: getAuth() as unknown as CurrentActorAuth,
+    headers: await requestHeaders(),
   })();
 }

@@ -20,6 +20,62 @@ export type {
 } from "./internal-actor.js";
 
 export {
+  ADMIN_CAPABILITIES,
+  AdminAccessV1Schema,
+  AdminAuditTargetSchema,
+  AdminCapabilitySchema,
+  AdminRoleSchema,
+  INTERNAL_ADMIN_PREFLIGHT_AUDIT_AUDIENCE,
+  INTERNAL_ADMIN_PREFLIGHT_AUDIT_ISSUER,
+  InternalAdminPreflightAuditV1Schema,
+} from "./admin-auth.js";
+export {
+  AdminAuditPageV1Schema,
+  AdminAuditSearchFiltersV1Schema,
+  AdminAuditSummaryV1Schema,
+  AdminRoleMutationContextV1Schema,
+  AssignAdminRoleV1Schema,
+  parseAdminAuditSearchFiltersV1,
+  RevokeAdminRoleV1Schema,
+  RoleMutationReasonCodeSchema,
+} from "./admin-role-audit.js";
+export type {
+  AdminAuditPageV1,
+  AdminAuditSearchFiltersV1,
+  AdminAuditSummaryV1,
+  AdminRoleMutationContextV1,
+  AssignAdminRoleV1,
+  RevokeAdminRoleV1,
+  RoleMutationReasonCode,
+} from "./admin-role-audit.js";
+export type {
+  AdminAccessV1,
+  AdminAuditTarget,
+  AdminCapability,
+  AdminRole,
+  InternalAdminPreflightAuditV1,
+} from "./admin-auth.js";
+
+export {
+  AdminAccountProjectionV1Schema,
+  AdminHealthV1Schema,
+  AdminListPageV1Schema,
+  AdminOverviewFiltersV1Schema,
+  AdminOverviewV1Schema,
+  AdminReadContextV1Schema,
+  createAdminListPageV1Schema,
+  parseAdminOverviewFiltersV1,
+} from "./admin-projections.js";
+export type {
+  AdminAccountProjectionV1,
+  AdminHealthV1,
+  AdminListPageV1,
+  AdminOverviewFiltersV1,
+  AdminOverviewV1,
+  AdminReadContextV1,
+} from "./admin-projections.js";
+
+export {
   HealthV1Schema,
 } from "./health.js";
 export type {
@@ -152,12 +208,14 @@ export type {
 export {
   IDENTITY_REPORT_SECTION_IDS,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
 } from "./identity-report-v1.js";
 export type {
   IdentityReportClaimV1,
   IdentityReportContentV1,
+  IdentityReportLocale,
   IdentityReportSectionId,
   IdentityReportV1,
 } from "./identity-report-v1.js";
@@ -181,3 +239,50 @@ export type {
   PaidTopicSelectionRequestV1,
   PaidTopicSelectionViewV1,
 } from "./free-identity-preview-v1.js";
+
+export {
+  CommerceSkuSchema,
+  OrderStatusSchema,
+} from "./commerce.js";
+export type {
+  CommerceSku,
+  OrderStatus,
+} from "./commerce.js";
+
+export {
+  ReportFulfillmentFailedV1Schema,
+  ReportGenerateJobEnvelopeV1Schema,
+  ReportGenerationRequestedV1Schema,
+  ReportPdfRequestedV1Schema,
+  ReportQueueJobStatusSchema,
+  ReportStatusSchema,
+} from "./jobs.js";
+export type {
+  QueueJobV1,
+  ReportFulfillmentFailedV1,
+  ReportGenerateJobEnvelopeV1,
+  ReportGenerationRequestedV1,
+  ReportPdfRequestedV1,
+  ReportQueueJobStatus,
+  ReportStatus,
+} from "./jobs.js";
+
+export {
+  REPORT_VIEW_REFRESH_MS,
+  REPORT_PENDING_STATUSES,
+  REPORT_READY_STATUSES,
+  ReportPublicContentV1Schema,
+  ReportSafeProvenanceV1Schema,
+  ReportPendingViewV1Schema,
+  ReportReadyViewV1Schema,
+  ReportFailedViewV1Schema,
+  ReportViewV1Schema,
+} from "./identity-report-v1.js";
+export type {
+  ReportPublicContentV1,
+  ReportSafeProvenanceV1,
+  ReportPendingViewV1,
+  ReportReadyViewV1,
+  ReportFailedViewV1,
+  ReportViewV1,
+} from "./identity-report-v1.js";

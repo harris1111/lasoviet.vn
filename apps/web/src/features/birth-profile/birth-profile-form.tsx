@@ -1,6 +1,77 @@
 "use client";
 
-import { useEffect, useState } from "react";
+
+export type WizardSubmitStateInput = {
+  step: number;
+  pending: boolean;
+  consent: boolean;
+  forWhom: "self" | "other" | null;
+  consentOther: boolean;
+  dateValid: boolean;
+  gender: "male" | "female" | null;
+  timeState: BirthTimeState;
+};
+
+export function getWizardSubmitGuard(input: WizardSubmitStateInput): {
+  canSubmit: boolean;
+  buttonDisabled: boolean;
+  canExecuteSubmit: boolean;
+} {
+  const eligible = canSubmitWizard(input);
+  return {
+    canSubmit: eligible,
+    buttonDisabled: !eligible,
+    canExecuteSubmit: eligible,
+  };
+}
+
+export type WizardSubmitAction =
+  | { kind: "ABORT_PENDING" }
+  | { kind: "ADVANCE_STEP_1" }
+  | { kind: "ADVANCE_STEP_2" }
+  | { kind: "ERROR_CONSENT_OTHER" }
+  | { kind: "ERROR_GENDER" }
+  | { kind: "ERROR_INVALID_DATE" }
+  | { kind: "ERROR_PROFILE" }
+  | { kind: "PROCEED" };
+
+export function resolveWizardSubmitAction(
+  input: WizardSubmitStateInput,
+): WizardSubmitAction {
+  if (input.pending) {
+    return { kind: "ABORT_PENDING" };
+  }
+  if (input.step === 1) {
+    return { kind: "ADVANCE_STEP_1" };
+  }
+  if (input.step === 2) {
+    return { kind: "ADVANCE_STEP_2" };
+  }
+  if (!canAdvanceStep1({ forWhom: input.forWhom, consentOther: input.consentOther })) {
+    return { kind: "ERROR_CONSENT_OTHER" };
+  }
+  if (input.gender === null) {
+    return { kind: "ERROR_GENDER" };
+  }
+  if (!input.dateValid) {
+    return { kind: "ERROR_INVALID_DATE" };
+  }
+  if (
+    !canAdvanceStep2({
+      dateValid: input.dateValid,
+      gender: input.gender,
+      timeState: input.timeState,
+    })
+  ) {
+    return { kind: "ERROR_PROFILE" };
+  }
+  if (!input.consent) {
+    return { kind: "ERROR_PROFILE" };
+  }
+  return { kind: "PROCEED" };
+}
+import { useEffect, useState, type FormEvent } from "react";
+
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -10,9 +81,25 @@ import {
 } from "./birth-profile-input";
 import {
   consumeHomepageBirthPrefill,
-  getBranchOptionLabel,
+  HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
 } from "./homepage-birth-prefill";
-import { TimePrecisionFields } from "./time-precision-fields";
+import {
+  BirthWizardContextRail,
+  BirthWizardHeader,
+  BirthWizardProgress,
+} from "./birth-wizard-chrome";
+import { BirthWizardSubjectStep } from "./birth-wizard-subject-step";
+import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
+import { BirthWizardReviewStep } from "./birth-wizard-review-step";
+import {
+  canAdvanceStep1,
+  canAdvanceStep2,
+  canSubmitWizard,
+  formatDateSummary,
+  formatReviewTimeSummary,
+  splitIsoDateToParts,
+  validateWizardDate,
+} from "./birth-wizard-state";
 
 type BirthProfileFormProps = {
   locale: "en" | "vi";
@@ -38,19 +125,26 @@ export function BirthProfileForm({
   submitBirthProfile,
   calculateZiweiChart,
 }: BirthProfileFormProps) {
-  const t = useTranslations("profile");
+  const t = useTranslations("profile" as never);
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [date, setDate] = useState("");
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [displayName, setDisplayName] = useState("");
+  const [forWhom, setForWhom] = useState<"self" | "other">("self");
+  const [consentOther, setConsentOther] = useState(false);
+  const [gender, setGender] = useState<"male" | "female" | null>(null);
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
   const [timeState, setTimeState] = useState<BirthTimeState>({
     precision: "exact_minute",
     hour: "",
     minute: "",
   });
-  const [gender, setGender] = useState<"male" | "female" | null>(null);
+  const [place, setPlace] = useState("");
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [step1Attempted, setStep1Attempted] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -58,7 +152,10 @@ export function BirthProfileForm({
     if (prefill) {
       queueMicrotask(() => {
         if (!active) return;
-        setDate(prefill.date);
+        const parts = splitIsoDateToParts(prefill.date);
+        setDay(parts.day);
+        setMonth(parts.month);
+        setYear(parts.year);
         if (prefill.time.precision === "branch_only") {
           setTimeState({
             precision: "branch_only",
@@ -74,162 +171,484 @@ export function BirthProfileForm({
     };
   }, []);
 
-  function canContinue() {
-    if (step === 1) return true;
-    if (step === 2) {
-      if (date === "" || gender === null) return false;
-      if (timeState.precision === "unknown") return true;
-      if (timeState.precision === "branch_only") {
-        return timeState.branch !== undefined;
-      }
-      if (timeState.precision === "exact_minute") {
-        return timeState.hour.trim() !== "" && timeState.minute.trim() !== "";
-      }
-      return false;
-    }
-    return true;
+  function handleDisplayNameChange(value: string) {
+    setDisplayName(value.slice(0, 80));
   }
 
-  function formatReviewTime(state: BirthTimeState) {
-    if (state.precision === "unknown") {
-      return t("review.unknown");
-    }
-    if (state.precision === "branch_only") {
-      return getBranchOptionLabel(state.branch, locale);
-    }
-    return `${state.hour}:${state.minute}`;
+  function handleForWhomChange(value: "self" | "other") {
+    setForWhom(value);
   }
 
-  async function submit() {
+  function handleConsentOtherChange(value: boolean) {
+    setConsentOther(value);
+  }
+
+  function handleGenderChange(value: "male" | "female") {
+    setGender(value);
+    if (error === t("errors.gender")) {
+      setError(null);
+    }
+  }
+
+  function handleDayChange(value: string) {
+    setDay(value.replace(/\D/g, "").slice(0, 2));
+    if (error === t("heroForm.invalidDate")) {
+      setError(null);
+    }
+  }
+
+  function handleMonthChange(value: string) {
+    setMonth(value.replace(/\D/g, "").slice(0, 2));
+    if (error === t("heroForm.invalidDate")) {
+      setError(null);
+    }
+  }
+
+  function handleYearChange(value: string) {
+    setYear(value.replace(/\D/g, "").slice(0, 4));
+    if (error === t("heroForm.invalidDate")) {
+      setError(null);
+    }
+  }
+
+  function handleTimeStateChange(value: BirthTimeState) {
+    setTimeState(value);
+    if (error === t("errors.profile")) {
+      setError(null);
+    }
+  }
+
+  function handlePlaceChange(value: string) {
+    setPlace(value.slice(0, 120));
+  }
+
+  function handleContinueStep1() {
+    if (pending) return;
+    const permitted = canAdvanceStep1({ forWhom, consentOther });
+    if (!permitted) {
+      setStep1Attempted(true);
+    }
     if (gender === null) {
       setError(t("errors.gender"));
       return;
     }
-    setPending(true);
+    if (!permitted) {
+      return;
+    }
     setError(null);
-    const profile = buildBirthProfile({
-      date,
-      time: timeState,
-      gender,
-      locale,
-    });
-    const saved = await submitBirthProfile({ profile, explicitConsent: consent });
-    if (!saved.ok) {
-      setPending(false);
+    setStep(2);
+  }
+
+  function handleContinueStep2() {
+    if (pending) return;
+    const dateResult = validateWizardDate(day, month, year);
+    if (!dateResult.valid) {
+      setError(t("heroForm.invalidDate"));
+      return;
+    }
+    if (!canAdvanceStep2({ dateValid: true, gender, timeState })) {
       setError(t("errors.profile"));
       return;
     }
-    if (!saved.value?.ziweiEligibility.eligible || saved.value.revisionId === undefined) {
-      setPending(false);
-      setError(t("errors.timeUnknown"));
-      return;
-    }
-    const calculated = await calculateZiweiChart(saved.value.revisionId);
-    setPending(false);
-    if (!calculated.ok) {
-      setError(
-        calculated.error?.code === "ZIWEI_TIME_INELIGIBLE"
-          ? t("errors.timeUnknown")
-          : t("errors.calculation"),
-      );
-      return;
-    }
-    if (calculated.value?.chartId === undefined) {
-      setError(t("errors.calculation"));
-      return;
-    }
-    router.push(locale === "en" ? `/en/la-so/${calculated.value.chartId}` : `/la-so/${calculated.value.chartId}`);
+    setError(null);
+    setStep(3);
   }
 
+  function handleContinue() {
+    if (pending) return;
+    if (step === 1) {
+      handleContinueStep1();
+    } else if (step === 2) {
+      handleContinueStep2();
+    }
+  }
+
+  function handleBack() {
+    if (pending) return;
+    if (step > 1) {
+      setStep((prev) => (prev - 1) as 1 | 2);
+      setError(null);
+    }
+  }
+
+  function handleEditSubject() {
+    if (pending) return;
+    setStep(1);
+    setError(null);
+  }
+
+  function handleEditBirth() {
+    if (pending) return;
+    setStep(2);
+    setError(null);
+  }
+
+  function handleExit() {
+    if (pending) return;
+    setStep(1);
+    setDisplayName("");
+    setForWhom("self");
+    setConsentOther(false);
+    setGender(null);
+    setDay("");
+    setMonth("");
+    setYear("");
+    setTimeState({ precision: "exact_minute", hour: "", minute: "" });
+    setPlace("");
+    setConsent(false);
+    setError(null);
+    setPending(false);
+    setStep1Attempted(false);
+
+    try {
+      if (typeof window !== "undefined" && window.sessionStorage) {
+        window.sessionStorage.removeItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
+      }
+    } catch {
+      // Storage access may be restricted
+    }
+
+    const homeHref = locale === "en" ? "/en" : "/";
+    router.push(homeHref);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) {
+      return;
+    }
+
+    const dateResult = validateWizardDate(day, month, year);
+    const action = resolveWizardSubmitAction({
+      step,
+      pending,
+      consent,
+      forWhom,
+      consentOther,
+      dateValid: dateResult.valid,
+      gender,
+      timeState,
+    });
+
+    if (action.kind === "ABORT_PENDING") {
+      return;
+    }
+    if (action.kind === "ADVANCE_STEP_1") {
+      handleContinueStep1();
+      return;
+    }
+    if (action.kind === "ADVANCE_STEP_2") {
+      handleContinueStep2();
+      return;
+    }
+    if (action.kind === "ERROR_GENDER") {
+      setError(t("errors.gender"));
+      return;
+    }
+    if (action.kind === "ERROR_INVALID_DATE") {
+      setError(t("heroForm.invalidDate"));
+      return;
+    }
+    if (action.kind === "ERROR_CONSENT_OTHER") {
+      setStep1Attempted(true);
+      setError(t("subject.consentError"));
+      return;
+    }
+    if (action.kind === "ERROR_PROFILE") {
+      setError(t("errors.profile"));
+      return;
+    }
+    if (!dateResult.valid) {
+      setError(t("heroForm.invalidDate"));
+      return;
+    }
+    if (gender === null) {
+      setError(t("errors.gender"));
+      return;
+    }
+
+    let navigating = false;
+    try {
+      setPending(true);
+      setError(null);
+
+      const profile = buildBirthProfile({
+        date: dateResult.isoDate,
+        time: timeState,
+        gender,
+        locale,
+      });
+
+      const saved = await submitBirthProfile({
+        profile,
+        explicitConsent: consent,
+      });
+
+      if (!saved.ok) {
+        setError(t("errors.profile"));
+        return;
+      }
+
+      if (
+        !saved.value?.ziweiEligibility.eligible ||
+        !saved.value.revisionId
+      ) {
+        setError(t("errors.timeUnknown"));
+        return;
+      }
+
+      const calculated = await calculateZiweiChart(saved.value.revisionId);
+
+      if (!calculated.ok) {
+        setError(
+          calculated.error?.code === "ZIWEI_TIME_INELIGIBLE"
+            ? t("errors.timeUnknown")
+            : t("errors.calculation"),
+        );
+        return;
+      }
+
+      if (!calculated.value?.chartId) {
+        setError(t("errors.calculation"));
+        return;
+      }
+
+      navigating = true;
+      const chartPath =
+        locale === "en"
+          ? `/en/la-so/${calculated.value.chartId}`
+          : `/la-so/${calculated.value.chartId}`;
+      router.push(chartPath);
+    } catch {
+      setError(t("errors.calculation"));
+    } finally {
+      if (!navigating) {
+        setPending(false);
+      }
+    }
+  }
+
+
+  const dateResultForRender = validateWizardDate(day, month, year);
+  const submitGuard = getWizardSubmitGuard({
+    step,
+    pending,
+    consent,
+    forWhom,
+    consentOther,
+    dateValid: dateResultForRender.valid,
+    gender,
+    timeState,
+  });
+
+  const stepTitles = [
+    t("steps.subject"),
+    t("steps.birth"),
+    t("steps.review"),
+  ] as const;
+  const currentStepTitle = stepTitles[step - 1] ?? "";
+  const mobileStepText = t("nav.stepFull", {
+    current: step,
+    title: currentStepTitle,
+  });
+
+  const railBody =
+    step === 1
+      ? t("rail.step1")
+      : step === 2
+        ? t("rail.step2")
+        : t("rail.step3");
+
   return (
-    <form action={submit} className="birth-wizard">
-      <ol aria-label={t("steps.label")} className="wizard-steps">
-        {[t("steps.subject"), t("steps.birth"), t("steps.review")].map((label, index) => (
-          <li className={index + 1 === step ? "current" : index + 1 < step ? "complete" : ""} key={label}>
-            <span>{`0${index + 1}`}</span>{label}
-          </li>
-        ))}
-      </ol>
-      {step === 1 ? (
-        <section className="wizard-section">
-          <p className="eyebrow">{t("eyebrow")}</p>
-          <h1>{t("subject.title")}</h1>
-          <p>{t("subject.copy")}</p>
-          <label className="wizard-check"><input defaultChecked type="radio" />{t("subject.self")}</label>
-        </section>
-      ) : null}
-      {step === 2 ? (
-        <section className="wizard-section">
-          <p className="eyebrow">{t("eyebrow")}</p>
-          <h1>{t("birth.title")}</h1>
-          <p>{t("birth.copy")}</p>
-          <label>{t("birth.date")}<input onChange={(event) => setDate(event.target.value)} required type="date" value={date} /></label>
-          <TimePrecisionFields
-            labels={{
-              title: t("birth.time"),
-              unknown: t("birth.unknown"),
-              unknownHelp: t("birth.unknownHelp"),
-              hour: t("birth.hour"),
-              minute: t("birth.minute"),
-              exactMode: t("birth.exactMode"),
-              branchMode: t("birth.branchMode"),
-              branch: t("birth.branch"),
-              branchHelp: t("birth.branchHelp"),
-            }}
-            locale={locale}
-            onTimeStateChange={setTimeState}
-            timeState={timeState}
-          />
-          <fieldset aria-describedby="birth-gender-help" className="wizard-fieldset">
-            <legend>{t("birth.gender")}</legend>
-            <p className="wizard-help" id="birth-gender-help">{t("birth.genderHelp")}</p>
-            <div className="wizard-segmented-control">
-              <label className="wizard-segment">
-                <input
-                  checked={gender === "male"}
-                  name="gender"
-                  onChange={() => setGender("male")}
-                  type="radio"
-                  value="male"
-                />
-                <span>{t("birth.male")}</span>
-              </label>
-              <label className="wizard-segment">
-                <input
-                  checked={gender === "female"}
-                  name="gender"
-                  onChange={() => setGender("female")}
-                  type="radio"
-                  value="female"
-                />
-                <span>{t("birth.female")}</span>
-              </label>
+    <form className="birth-wizard" onSubmit={handleSubmit}>
+      <BirthWizardHeader
+        backLabel={t("nav.back")}
+        exitDisabled={pending}
+        exitLabel={t("nav.exit")}
+        helpLabel={t("nav.help")}
+        locale={locale}
+        onBack={handleBack}
+        onExit={handleExit}
+        step={step}
+        stepLabel={t("nav.step", { current: step })}
+      />
+
+      <BirthWizardProgress
+        ariaLabel={t("steps.label")}
+        labels={[t("steps.subject"), t("steps.birth"), t("steps.review")]}
+        mobileText={mobileStepText}
+        step={step}
+      />
+
+      <div className="wizard-main-shell">
+        <div className="wizard-main-grid">
+          <div className="wizard-form-column">
+            {step === 1 ? (
+              <BirthWizardSubjectStep
+                consentOther={consentOther}
+                displayName={displayName}
+                femaleLabel={t("birth.female")}
+                forWhom={forWhom}
+                gender={gender}
+                genderHelp={t("birth.genderHelp")}
+                genderLabel={t("birth.gender")}
+                maleLabel={t("birth.male")}
+                nameLabel={t("subject.nameLabel")}
+                nameOptional={t("subject.nameOptional")}
+                namePlaceholder={t("subject.namePlaceholder")}
+                onConsentOtherChange={handleConsentOtherChange}
+                onDisplayNameChange={handleDisplayNameChange}
+                onForWhomChange={handleForWhomChange}
+                onGenderChange={handleGenderChange}
+                otherConsentCopy={t("subject.otherConsent")}
+                otherConsentError={t("subject.consentError")}
+                otherConsentLabel={t("subject.consentCheck")}
+                otherLabel={t("subject.other")}
+                selfLabel={t("subject.self")}
+                showConsentError={
+                  step1Attempted && forWhom === "other" && !consentOther
+                }
+                subtitle={t("subject.stepSub")}
+                targetLabel={t("subject.targetLabel")}
+                title={t("subject.stepTitle")}
+              />
+            ) : null}
+
+            {step === 2 ? (
+              <BirthWizardBirthStep
+                calendarLabel={t("birth.calendarType")}
+                dateError={error === t("heroForm.invalidDate") ? error : null}
+                dateLabel={t("birth.date")}
+                day={day}
+                dayLabel={t("birth.dayLabel")}
+                formatHint={t("birth.formatHint")}
+                locale={locale}
+                lunarLabel={t("birth.lunar")}
+                lunarNotice={t("birth.lunarNotice")}
+                month={month}
+                monthLabel={t("birth.monthLabel")}
+                onDayChange={handleDayChange}
+                onMonthChange={handleMonthChange}
+                onPlaceChange={handlePlaceChange}
+                onTimeStateChange={handleTimeStateChange}
+                onYearChange={handleYearChange}
+                place={place}
+                placeLabel={t("birth.placeLabel")}
+                placeNote={t("birth.placeNote")}
+                placePlaceholder={t("birth.placePlaceholder")}
+                solarLabel={t("birth.solar")}
+                subtitle={t("birth.stepSub")}
+                timeLabels={{
+                  hour: t("birth.hour"),
+                  minute: t("birth.minute"),
+                  title: t("birth.time"),
+                  unknown: t("birth.unknown"),
+                  unknownHelp: t("birth.unknownHelp"),
+                  exactMode: t("birth.exactMode"),
+                  branchMode: t("birth.branchMode"),
+                  branch: t("birth.branch"),
+                  branchHelp: t("birth.branchHelp"),
+                }}
+                timeState={timeState}
+                timezoneText={t("birth.timezone")}
+                title={t("birth.stepTitle")}
+                year={year}
+                yearLabel={t("birth.yearLabel")}
+              />
+            ) : null}
+
+            {step === 3 ? (
+              <BirthWizardReviewStep
+                birthSectionTitle={t("steps.birth")}
+                disabled={pending}
+                consent={consent}
+                consentLabel={t("review.consent")}
+                date={formatDateSummary(day, month, year)}
+                dateLabel={t("review.solarDate")}
+                disclosure={t("review.disclosure")}
+                displayName={
+                  displayName.trim() ? displayName.trim() : t("review.noName")
+                }
+                displayNameLabel={t("review.displayName")}
+                duplicateNotice={t("review.duplicateNotice")}
+                editLabel={t("review.edit")}
+                forWhom={
+                  forWhom === "other"
+                    ? t("review.otherPermitted")
+                    : t("review.self")
+                }
+                forWhomLabel={t("review.forWhom")}
+                gender={
+                  gender === "male"
+                    ? t("birth.male")
+                    : gender === "female"
+                      ? t("birth.female")
+                      : "—"
+                }
+                genderLabel={t("birth.gender")}
+                guestNotice={t("review.guestNotice")}
+                onConsentChange={setConsent}
+                onEditBirth={handleEditBirth}
+                onEditSubject={handleEditSubject}
+                pending={pending}
+                place={place.trim() ? place.trim() : "—"}
+                placeLabel={t("review.birthPlace")}
+                subjectSectionTitle={t("steps.subject")}
+                subtitle={t("review.stepSub")}
+                time={formatReviewTimeSummary(timeState, locale)}
+                timeLabel={t("review.birthTime")}
+                timezone="UTC+7"
+                timezoneLabel={t("review.timezone")}
+                title={t("review.stepTitle")}
+              />
+            ) : null}
+
+            {error && !(step === 2 && error === t("heroForm.invalidDate")) ? (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="wizard-actions">
+              {step > 1 ? (
+                <button
+                  className="button button-secondary wizard-action-back"
+                  disabled={pending}
+                  onClick={handleBack}
+                  type="button"
+                >
+                  {t("back")}
+                </button>
+              ) : (
+                <span />
+              )}
+              {step < 3 ? (
+                <button
+                  className="button wizard-action-continue"
+                  onClick={handleContinue}
+                  type="button"
+                >
+                  {t("continue")}
+                </button>
+              ) : (
+                <button
+                  className="button wizard-action-submit"
+                  disabled={submitGuard.buttonDisabled}
+                  type="submit"
+                >
+                  {pending ? t("submitting") : t("submit")}
+                </button>
+              )}
             </div>
-          </fieldset>
-          <p className="wizard-help">{t("birth.timezone")}</p>
-        </section>
-      ) : null}
-      {step === 3 ? (
-        <section className="wizard-section">
-          <p className="eyebrow">{t("eyebrow")}</p>
-          <h1>{t("review.title")}</h1>
-          <dl className="wizard-summary">
-            <dt>{t("birth.date")}</dt><dd>{date || "-"}</dd>
-            <dt>{t("birth.time")}</dt><dd>{formatReviewTime(timeState)}</dd>
-            <dt>{t("birth.gender")}</dt><dd>{gender === "male" ? t("birth.male") : gender === "female" ? t("birth.female") : "-"}</dd>
-            <dt>{t("birth.timezone")}</dt><dd>UTC+7</dd>
-          </dl>
-          <label className="wizard-check">
-            <input checked={consent} onChange={(event) => setConsent(event.target.checked)} required type="checkbox" />
-            {t("review.consent")}
-          </label>
-          <p className="wizard-help">{t("review.privacy")}</p>
-        </section>
-      ) : null}
-      {error ? <p className="form-error" role="alert">{error}</p> : null}
-      <div className="wizard-actions">
-        {step > 1 ? <button className="button button-secondary" onClick={() => setStep(step - 1)} type="button">{t("back")}</button> : <span />}
-        {step < 3 ? <button className="button" disabled={!canContinue()} onClick={() => setStep(step + 1)} type="button">{t("continue")}</button> : <button className="button" disabled={!consent || pending} type="submit">{pending ? t("submitting") : t("submit")}</button>}
+          </div>
+
+          <BirthWizardContextRail
+            body={railBody}
+            caption={t("rail.caption")}
+            eyebrow={t("rail.eyebrow")}
+            step={step}
+          />
+        </div>
       </div>
     </form>
   );

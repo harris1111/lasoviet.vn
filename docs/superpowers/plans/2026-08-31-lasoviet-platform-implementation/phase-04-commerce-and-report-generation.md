@@ -20,6 +20,61 @@ compatible HTTP API.
 `task-contracts-and-test-vectors.md`. Asynchronous edges are normative in
 `workflow-event-contracts.md`.
 
+## Task 1-2 Evidence (2026-09-03)
+
+- Provider contract, server-only SePay environment validation, catalog/order
+  policy, hosted checkout signature adapter, raw public ingress, private
+  controller, and checkout action/page are reviewed complete with focused
+  RED/GREEN coverage.
+- Atomic order/payment-event/entitlement/report-reservation/outbox insertion
+  and an outbox lease/dispatch boundary are implemented. Report worker
+  consumption remains Task 3.
+- Test-only correction commit
+  `200b85222a8b6eedb4692a76f31aed27c73bd214` aligned migration `0010`
+  actor/key/fingerprint receipts and fixed the outbox-claim fixture to derive
+  time from persisted `availableAt`, isolate rows, and bind dispatch
+  assertions to the target event. Sol's scoped re-review returned
+  `SAFE_TO_PUSH_AND_RERUN_VPS_GATE` with no open findings.
+- Focused verification passed 52 tests, scoped ESLint, i18n parity, affected
+  typechecks and builds, a Next production build, and `git diff --check`.
+  The local controller also reran the three changed test files: 13 tests
+  passed.
+- The Docker VPS gate passed: the workspace producer build passed; the focused
+  gate ran four test files with 18 tests and zero failures; and Compose
+  deployment completed with migrations exiting `0`, healthy PostgreSQL, Redis,
+  API, and web services, and a running worker.
+- The deployed database reports 12 applied migrations, the requested
+  commerce/report tables, and both report outbox indexes. Loopback and public
+  HTTPS health checks returned `200`; the sandbox endpoint is deployed.
+- Public synthetic SePay IPN probes returned `401` for a wrong secret and the
+  exact HTTP `200` success acknowledgement for an authenticated non-paid
+  `TRANSACTION_VOID`, without changing commerce aggregate counts. No real
+  order, paid notification, real-money payment, production payment activation,
+  Nginx/DNS change, or credential output occurred.
+- Browser smoke rendered live VI/EN home pages and preserved locale-specific
+  checkout login callbacks. Existing live Playwright specs remain
+  local-runtime-oriented because their locale cookie domain is `127.0.0.1`;
+  direct production execution failed before the tested form flow. This is a
+  harness limitation, not passing evidence or a production defect.
+- The remaining external step is the founder clicking SePay dashboard `Send
+  test`; production payment activation remains a separate founder-controlled
+  gate.
+- Correction pass 1 maps IPN domain failures to bounded non-2xx HTTP outcomes,
+  uses a conditional pending-to-paid transition, persists the complete
+  report-request payload, and runs the durable queue-job dispatch boundary in
+  the worker.
+- FD-029 requires a live authenticated, non-anonymous, email-verified account
+  before any checkout order lookup or write. Immutable financial provenance
+  keeps opaque chart/version identifiers without foreign keys that could block
+  FD-020 anonymous lifecycle purge.
+- Correction pass 2 consolidates the undeployed commerce/report queue/retention
+  baseline into `0011_commerce_payment_gateway.sql`, normalizes integer VND
+  IPN values, persists the selected `vi|en` locale, filters report-only outbox
+  claims, and schedules dispatch without overlap or unhandled failures.
+- Replan Cycle 1 adds event-type-aware outbox claim indexes to the clean
+  `0011` baseline and carries the persisted locale through hosted callback
+  paths and canonical private checkout rendering.
+
 ## Global Constraints
 
 - `ZIWEI-IDENTITY-P0` is the only first paid SKU.
@@ -28,8 +83,36 @@ compatible HTTP API.
 - No double entitlement or report from webhook replay.
 - AI endpoint details are requested only when this phase begins.
 - No draft or critic-failed content is shown as complete.
+- Phase 04 exposes stable, redacted admin-operable domain interfaces and
+  versioned workflow state only; it does not implement an admin UI. Phase 05A
+  consumes these interfaces after its Phase 03 access foundation exists.
+- Support recovery must reserve a new immutable report version or create a
+  policy-checked compensating command. It must never edit a paid report,
+  directly requeue BullMQ, or bypass the outbox.
 
 ---
+
+## Admin-Operable Domain Contract
+
+Phase 04 services provide private API projections for order/payment state,
+entitlement state, immutable report lineage, generation attempts, bounded
+failure codes, and outbox correlation. They accept only domain commands with
+an actor, reason code, request/trace ID, idempotency key, and expected version
+where applicable.
+
+The only Phase 04 recovery effects available to Phase 05A are:
+
+- `requestReportRegeneration`, which applies policy, reserves a new report
+  version, records a support/recovery decision, and emits
+  `report.generation.requested.v1` through the transactional outbox;
+- `requestWorkflowRetry`, which applies policy and emits a versioned retry
+  request through the transactional outbox; and
+- `recordRefundReview` or `recordRefundOutcome`, which changes only approved
+  internal commerce state and does not call a payment provider directly.
+
+Controllers, BFFs, and console components do not access commerce/report tables
+or BullMQ directly. Full payloads, report bodies, provider secrets, and raw
+payment payloads are not admin projections.
 
 ### Task 1 [P04-T01]: Implement orders, SePay adapter, and checkout
 
@@ -61,7 +144,7 @@ compatible HTTP API.
 - Promotes `/thanh-toan/{order_id}` to `live_noindex` only with the implemented
   checkout flow and keeps it absent from every sitemap.
 
-- [ ] **Step 1: Complete the SePay implementation preflight**
+- [x] **Step 1: Complete the SePay implementation preflight**
 
 Sol requests the founder's non-secret environment selection, merchant/account
 identifiers, webhook registration inputs, and approved secret-delivery path.
@@ -71,7 +154,7 @@ acknowledgement response, and environment-variable names. Do not record secret
 values. Any unresolved provider behavior returns through Terra to Sol before
 Luna receives an implementation instruction.
 
-- [ ] **Step 2: Write failing order-policy and environment tests**
+- [x] **Step 2: Write failing order-policy and environment tests**
 
 Assert SKU/price server authority, chart ownership, entitlement reuse rules,
 unknown-time rejection, no order for an unsupported SKU, and startup rejection
@@ -79,24 +162,24 @@ when any verified SePay server variable is missing. Assert the checkout route
 is `live_noindex`, server-authorized where state requires it, noindex, and
 absent from navigation and sitemaps.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 `pnpm vitest run packages/backend/src/commerce/order.service.test.ts packages/config/src/environment-schema.test.ts tests/seo/private-route-state.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement provider adapter and checkout**
+- [x] **Step 4: Implement provider adapter and checkout**
 
 Implement only the verified provider contract. Use server-side SePay
 credentials and persist provider reference without logging secrets.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 `pnpm vitest run packages/backend/src/commerce packages/config/src/environment-schema.test.ts tests/seo/private-route-state.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add docs/compliance/sepay-provider-contract.md config/route-registry.yml packages/contracts packages/config/src/environment-schema.ts packages/config/src/environment-schema.test.ts packages/backend/src/commerce packages/database apps/api/src/commerce apps/web/src/app tests/seo/private-route-state.test.ts docs/superpowers/plans
@@ -120,33 +203,33 @@ git commit -m "feat: add SePay checkout"
 - The outbox dispatcher maps that event to `report.generate.v1` exactly as
   defined in `workflow-event-contracts.md`.
 
-- [ ] **Step 1: Write failing webhook tests**
+- [x] **Step 1: Write failing webhook tests**
 
 Cover valid signature, invalid signature, wrong amount, unknown order, replay,
 out-of-order events, concurrent delivery, and database rollback.
 
-- [ ] **Step 2: Run integration test**
+- [x] **Step 2: Run integration test**
 
 Run: `pnpm vitest run tests/payments/sepay-webhook.integration.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement raw ingress and transactional handler**
+- [x] **Step 3: Implement raw ingress and transactional handler**
 
 The Next.js route forwards the raw body and exact headers named by the verified
 SePay contract record. The API verifies provider authenticity and business
 invariants.
 
-- [ ] **Step 4: Implement outbox claiming and dispatch**
+- [x] **Step 4: Implement outbox claiming and dispatch**
 
 Use lease/attempt fields and an idempotent event key. Redis failure leaves the
 outbox event available for retry.
 
-- [ ] **Step 5: Run payment tests**
+- [x] **Step 5: Run payment tests**
 
 Run: `pnpm vitest run tests/payments`
 Expected: PASS, including concurrency.
 
-- [ ] **Step 6: Update risk/rule trackers and commit**
+- [x] **Step 6: Update risk/rule trackers and commit**
 
 ```bash
 git add apps/web/src/app/api/webhooks packages/backend/src/commerce packages/backend/src/outbox tests/payments docs/superpowers/plans
@@ -172,34 +255,42 @@ git commit -m "feat: process idempotent SePay webhooks"
   worker-state failure.
 - Produces `WORKER_QUEUES` selection.
 
-- [ ] **Step 1: Write failing state and job tests**
+- [x] **Step 1: Write failing state and job tests**
 
 Cover duplicate jobs, crash after claim, retry, terminal worker-state failure,
 and invalid state transitions. Assert the exact event-to-job mapping and
 payload from `workflow-event-contracts.md` without invoking a report writer
 that is not created until P04-T05.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/reports tests/jobs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement queue registry and persisted state**
+- [x] **Step 3: Implement queue registry and persisted state**
 
 Worker restart must resume from database state. Queue state is not the only
 record of progress.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/reports tests/jobs`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/jobs packages/backend/src/reports packages/database apps/worker tests/jobs docs/superpowers/plans
 git commit -m "feat: add durable report workflow"
 ```
+
+#### Completion Evidence (2026-09-04)
+- Implemented and verified across commits `2f9ef12` (initial workflow), `d585bba` (round 1 corrections), and `d2c64f7` (round 2 lease fencing and process isolation).
+- Focused verification: 4 test files passed with 21 tests (`packages/backend/src/reports/report-state.test.ts`, `packages/backend/src/outbox/outbox.dispatcher.test.ts`, `packages/database/src/schema/commerce-migration-layout.test.ts`, `tests/jobs/report-worker-state.integration.test.ts`).
+- Real PostgreSQL integration suite verified via Testcontainers with 6 test cases (duplicate enqueue idempotency, lease reclaim on retryable failure, third attempt terminal failure with `report.fulfillment.failed.v1` outbox emission, parse-invalid untrusted failure fencing without outbox emission, malformed payload with existing ID fencing without outbox emission, and stale-worker lease-lost rejection after reclaim).
+- Packages built cleanly: `@lasoviet/contracts`, `@lasoviet/database`, `@lasoviet/backend`, `@lasoviet/worker`. Worker typecheck clean (`tsc -p tsconfig.json --noEmit`). Scoped ESLint clean. `git diff --check` clean.
+- Independent Terra high review verdict: APPROVED with all round 2 findings addressed and zero open findings.
+- P04-T03 scope concludes at the `generating` state handoff; retrieval (P04-T04), AI generation (P04-T05), and immutable private HTML persistence (P04-T06) remain excluded and will be implemented in their respective tasks.
 
 ### Task 4 [P04-T04]: Implement approved knowledge ingestion and retrieval
 
@@ -217,35 +308,43 @@ git commit -m "feat: add durable report workflow"
 - Produces metadata-filtered full-text retrieval.
 - Adds vector retrieval only when enabled and indexed.
 
-- [ ] **Step 1: Write failing ingestion/retrieval tests**
+- [x] **Step 1: Write failing ingestion/retrieval tests**
 
 Reject unapproved documents, missing source/license metadata, wrong locale,
 wrong discipline, stale version, and excessive context.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/knowledge`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement file ingestion and PostgreSQL full-text retrieval**
+- [x] **Step 3: Implement file ingestion and PostgreSQL full-text retrieval**
 
 Open-web retrieval is absent. Preserve content hash and approval record.
 
-- [ ] **Step 4: Add optional pgvector path**
+- [x] **Step 4: Add optional pgvector path**
 
 Disabled mode must pass all non-vector tests.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/knowledge`
 Expected: PASS with vectors disabled and, when configured, enabled.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add content/knowledge packages/backend/src/knowledge packages/database apps/worker docs/superpowers/plans
 git commit -m "feat: add approved knowledge retrieval"
 ```
+
+#### Completion Evidence (2026-09-04)
+- Implemented approved repository knowledge manifests (`content/knowledge/vi/ziwei/identity-report-foundation.v1.json` and `content/knowledge/en/ziwei/identity-report-foundation.v1.json`) using exact version `ziwei.identity.knowledge.v1` and repository-relative method guidance covering all 11 identity report sections.
+- Created `packages/database/src/schema/knowledge.ts` with immutable `knowledge_documents` and `knowledge_chunks` tables, registered in `client.ts`, `index.ts`, `drizzle.config.ts`, and migration `0013_approved_knowledge.sql` with journal entry `idx: 13`.
+- Implemented `packages/backend/src/knowledge/knowledge-ingestion.service.ts` with Zod validation, content hash recomputation, source path containment verification, approval verification, idempotent re-ingestion, and fail-closed immutable protection.
+- Implemented `packages/backend/src/knowledge/knowledge-retrieval.service.ts` with PostgreSQL `simple` text search, metadata filtering (discipline, locale, report section, exact version), rank desc and passageId asc deterministic ordering, hard limit enforcement (8 passages, 1,200 chars/passage, 9,600 total chars, 512 query chars, no mid-passage splitting), and silent fallback for unindexed/disabled vector dependency.
+- Implemented `apps/worker/src/processors/knowledge-embed.processor.ts` skipping with no side effect when disabled or unindexed, validating input, and embedding approved versioned chunks idempotently when enabled.
+- Focused verification passed 26 tests across 4 test files (`knowledge-retrieval.service.test.ts`, `knowledge-migration-layout.test.ts`, `knowledge-embed.processor.test.ts`, `knowledge-retrieval.integration.test.ts`). Real PostgreSQL integration verified with Testcontainers. Builds (`@lasoviet/database`, `@lasoviet/backend`), worker typecheck, scoped ESLint, and `git diff --check` all passed clean.
 
 ### Task 5 [P04-T05]: Implement AI capability probe, report writer, and critic
 
@@ -273,12 +372,12 @@ git commit -m "feat: add approved knowledge retrieval"
 - Production AI calls require a complete approved provider due-diligence
   record.
 
-- [ ] **Step 1: Obtain phase-specific founder inputs**
+- [x] **Step 1: Obtain phase-specific founder inputs**
 
 Sol asks for base URL and model. API key is placed in the approved secret
 environment, not committed or copied into docs.
 
-- [ ] **Step 2: Record provider privacy and operational due diligence**
+- [x] **Step 2: Record provider privacy and operational due diligence**
 
 Record provider/controller identity, data-processing purpose, retention,
 training use, storage/processing regions, subprocessors, access controls,
@@ -289,7 +388,7 @@ unsuitable, or materially changed terms stop the phase and return through
 Terra to Sol for a founder decision; Terra does not approve provider privacy
 trade-offs.
 
-- [ ] **Step 3: Write failing capability, provider-gate, and validator tests**
+- [x] **Step 3: Write failing capability, provider-gate, and validator tests**
 
 Cover schema support, malformed output, timeout, evidence fabrication, missing
 evidence, absolute accident/death/disease/legal/financial claims, diagnosis,
@@ -297,35 +396,35 @@ fear upsell, unsupported language, an incomplete/unapproved due-diligence
 record, duplicate generation jobs, and no PDF event before validated immutable
 HTML commits.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run:
 `pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts tests/jobs/report-generation.integration.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 5: Implement the capability probe**
+- [x] **Step 5: Implement the capability probe**
 
 If the endpoint cannot satisfy the approved contract, Luna stops. Terra
 reviews evidence and returns it to Sol for founder escalation.
 
-- [ ] **Step 6: Implement deterministic outline and bounded section generation**
+- [x] **Step 6: Implement deterministic outline and bounded section generation**
 
 Freeze chart, evidence, knowledge, prompt, locale, and model versions before
 generation.
 
-- [ ] **Step 7: Implement deterministic validation, persistence, and critic**
+- [x] **Step 7: Implement deterministic validation, persistence, and critic**
 
 Reject unsafe or unsupported reports. Do not expose failed drafts. Commit the
 validated immutable HTML version before emitting one idempotent
 `report.pdf.requested.v1`; retry must not create a second version or event.
 
-- [ ] **Step 8: Run tests and a controlled endpoint smoke**
+- [x] **Step 8: Run tests and a controlled endpoint smoke**
 
 Run:
 `pnpm vitest run packages/backend/src/ai packages/backend/src/reports tests/compliance/ai-provider-gate.test.ts tests/jobs/report-generation.integration.test.ts`
 Expected: PASS. Endpoint smoke stores no real user PII.
 
-- [ ] **Step 9: Update risk/rule trackers and commit**
+- [x] **Step 9: Update risk/rule trackers and commit**
 
 ```bash
 git add docs/compliance packages/backend/src/ai packages/backend/src/reports tests/compliance docs/superpowers/plans
@@ -352,58 +451,143 @@ git commit -m "feat: generate evidence-backed identity reports"
   text validation became deterministic, the critic consumed the same source
   snapshot, timeout retries honored their budget, and valid report formatting
   remained allowed.
-- This checkpoint does not complete P04-T05. Provider privacy approval,
+- This checkpoint did not complete P04-T05 (historical; subsequent tasks and FD-035 completed these requirements). Provider privacy approval,
   P04-T04 knowledge retrieval, P04-T03 worker state, immutable persistence,
   duplicate-job integration, and `report.pdf.requested.v1` remain required
   before the task or phase can close.
 
+#### Provider-Independent Completion Evidence (2026-09-05)
+
+- P04-T03 and P04-T04 now provide the durable generating-state handoff and
+  exact approved knowledge snapshot required by this task.
+- P04-T05 now owns immutable validated structured content and escaped HTML,
+  replay-safe generation attempts, report-version conflict fencing, and one
+  `report.pdf.requested.v1` event.
+- Terra high approved the combined generation implementation through commit
+  `7ee0e16` with no open Critical or Important finding.
+- The production provider gate previously remained fail-closed because Step 2
+  privacy due diligence was not approved (superseded on 2026-09-06 by FD-035:
+  founder approved the privacy gate; production AI activation remains a separate
+  founder-controlled gate).
+
+#### Provider Privacy Due Diligence Approval Evidence (2026-09-06)
+
+- On 2026-09-06, the founder formally approved the provider privacy
+  due-diligence gate for self-hosted/founder-operated `9router-an` (FD-035).
+- The founder waived separate contractual enumeration (retention, training,
+  regions, subprocessors, access, deletion, incident notification) and
+  explicitly accepted operational and privacy responsibility for this provider
+  as configured.
+- Terra high completed the due-diligence record completeness review in
+  `docs/compliance/ai-provider-due-diligence.md` on 2026-09-06 with
+  `SPEC PASS / QUALITY APPROVED`.
+- Scope boundary: This approval closes the Phase 04 provider privacy decision
+  gate only. It does not authorize production AI activation, production payment
+  activation, deployment, merge, push, or release activation, which remain
+  separate founder-controlled operations.
+- Task 5 Step 2 is complete.
+
 ### Task 6 [P04-T06]: Persist immutable report versions and render private HTML
 
 **Files:**
-- Create: `packages/contracts/src/identity-report-v1.ts`
-- Modify: `packages/backend/src/reports/report-version.repository.ts`
+- Modify: `packages/contracts/src/identity-report-v1.ts`
+- Modify: `packages/contracts/src/index.ts`
+- Create: `packages/backend/src/reports/report-query.repository.ts`
+- Create: `packages/backend/src/reports/report-query.service.ts`
+- Create: `packages/backend/src/reports/report-query.service.test.ts`
+- Modify: `packages/backend/src/index.ts`
 - Create: `apps/api/src/reports/reports.controller.ts`
-- Create: `apps/web/src/app/[locale]/bao-cao/[reportId]/page.tsx`
+- Create: `apps/api/src/reports/reports.controller.test.ts`
+- Modify: `apps/api/src/api.module.ts`
+- Create: `apps/web/src/features/reports/load-report.ts`
+- Create: `apps/web/src/features/reports/load-report.test.ts`
 - Create: `apps/web/src/features/reports/report-progress.tsx`
-- Create: `apps/web/src/features/reports/identity-report.tsx`
-- Modify: `config/route-registry.yml`
+- Modify: `apps/web/src/features/reports/report-reader.tsx`
+- Modify: `apps/web/src/app/[locale]/bao-cao/[reportId]/page.tsx`
+- Create: `apps/web/src/app/[locale]/bao-cao/[reportId]/page.test.tsx`
+- Modify: `apps/web/messages/vi/reports.json`
+- Modify: `apps/web/messages/en/reports.json`
+- Modify: `apps/web/src/styles/global.css`
+- Create: `apps/web/public/images/lasoviet/frontispiece-bao-cao-luan-giai-tu-vi.webp`
+- Test: `tests/reports/report-query.integration.test.ts`
 - Modify: `tests/seo/private-route-state.test.ts`
 - Test: `tests/e2e/paid-report-html.spec.ts`
 
 **Interfaces:**
-- Produces immutable version lineage through `supersedesReportId`.
+- Produces immutable version lineage through `supersedesReportVersionId`.
 - Produces owner-authorized status and report queries.
-- Promotes `/bao-cao/{opaque_id}` to `live_noindex` only with the private report
-  flow and keeps it absent from navigation and sitemaps.
+- Preserves `/bao-cao/{opaque_id}` as `live_noindex` and keeps it absent from
+  navigation and sitemaps.
 
-- [ ] **Step 1: Write failing report E2E**
+- [x] **Step 1: Write failing report E2E**
 
 Cover pending refresh, ready report, unauthorized access, noindex, evidence
 drawer, locale, immutable old version, failed generation state, registry state,
 and sitemap exclusion.
 
-- [ ] **Step 2: Run E2E**
+- [x] **Step 2: Run E2E**
 
 Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement version persistence and private UI**
+- [x] **Step 3: Implement version persistence and private UI**
 
 Do not overwrite a purchased version when prompts, engine, or model change.
 
-- [ ] **Step 4: Run E2E**
+- [x] **Step 4: Run E2E**
 
 Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/paid-report-html.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add config/route-registry.yml packages/contracts packages/backend/src/reports apps/api/src/reports apps/web/src/app apps/web/src/features/reports tests/seo/private-route-state.test.ts tests/e2e docs/superpowers/plans
 git commit -m "feat: publish immutable private reports"
 ```
+
+#### Implementation and Browser Acceptance Evidence (2026-09-05, updated 2026-09-06)
+
+- Live Task 5 persistence remains authoritative. Task 6 adds a separate
+  read-only owner-filtered report repository/service, private API controller,
+  strict BFF loader, locale-authoritative route, and pending/failed/ready UI.
+- The public view projects only strict structured report content, exact
+  report-bound evidence, safe provenance, and immutable
+  `supersedesReportVersionId` lineage. Stored HTML and provider/model/prompt
+  internals are never returned or rendered.
+- The artifact-backed reader includes desktop and mobile layouts, localized
+  report copy, three remembered font sizes, remembered reading progress,
+  evidence details, reduced-motion behavior, and keyboard-managed mobile TOC.
+- Terra high approved implementation commit `c702a91` after three bounded
+  correction rounds with no open Critical or Important finding.
+- Initial browser test execution (RED) with controlled fixtures exposed two real
+  issues: a persisted-VI wrong-locale redirect loop on English private reports
+  and a broad failed-alert selector.
+- Code fix commit `63f3823c7d630f690588e23de45ad03bec1e2559` (`fix(web): prevent private report locale redirect loops`)
+  was independently reviewed and approved by Terra high: SPEC PASS, QUALITY
+  APPROVED, no open Critical or Important findings.
+- Final single-invocation controlled browser acceptance:
+  `corepack pnpm@11.25.0 playwright test tests/e2e/paid-report-html.spec.ts --fully-parallel --workers=7`
+  passed with 7 passed, 0 failed, 0 skipped, duration 11.2s on 2026-09-06.
+  Covered signed-out redirect, cross-owner/missing 404 equivalence, VI
+  evidence/noindex/canonical locale, EN locale, pending-to-ready refresh
+  retaining path, safe static failed state, and mobile TOC focus lifecycle.
+- Fixture harness safety: 16 passed, 0 failed (12 pure + 4 command-level tests);
+  strict loopback-only base URL enforcement; duplicate setup refusal;
+  manifest/path/ID validation and PostgreSQL ownership validation before
+  promote, reset, or cleanup. Terra final scoped review: SPEC PASS / QUALITY
+  APPROVED.
+- Final fixture cleanup: synthetic users, report reservations, report versions,
+  outbox, and report queue counts all verified zero; temporary storage states
+  and manifest confirmed absent. No real SePay, payment, AI, PDF/storage,
+  email delivery, or deployment activity.
+- Final repository verification after code fix: workspace typecheck PASS;
+  workspace production build PASS; full Vitest 121/121 files and 723/723 tests
+  PASS; i18n parity PASS; repository ESLint PASS; `git diff --check` PASS.
+- Steps 2 and 4 are complete. All seven controlled-fixture Playwright cases pass
+  cleanly on local Compose.
 
 ## Phase Exit Criteria
 
@@ -415,3 +599,11 @@ git commit -m "feat: publish immutable private reports"
 - Every report claim is evidence-backed and safety-validated.
 - Private HTML report works after refresh and is noindex.
 - Terra has no unresolved `must-fix`.
+
+Implementation, controlled browser acceptance, and provider privacy due
+diligence approval (FD-035) are complete. Phase 04 is closed on the isolated
+implementation branch. Production payment activation, production AI
+activation, deployment, merge, push, and release activation are not authorized
+by this phase closure and remain separate founder-controlled operations. Phase
+05 PDF generation, Garage storage, email delivery, and owner account center
+scope remain the next planned phase.

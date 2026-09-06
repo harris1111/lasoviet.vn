@@ -6,6 +6,14 @@ const productionBase = {
   INTERNAL_ACTOR_SECRET: "synthetic-actor-secret-never-serialize",
   DATABASE_URL: "https://synthetic-database-url-never-serialize.test/db",
   REDIS_URL: "https://synthetic-redis-url-never-serialize.test",
+  SEPAY_ENV: "sandbox",
+  SEPAY_MERCHANT_ID: "synthetic-sepay-merchant",
+  SEPAY_SECRET_KEY: "synthetic-sepay-secret-never-serialize",
+  SEPAY_BANK_CODE: "VCB",
+  SEPAY_ACCOUNT_NUMBER: "123456789",
+  SEPAY_ACCOUNT_HOLDER: "LA SO VIET",
+  SEPAY_ORDER_TTL_SECONDS: "900",
+  SEPAY_WEBHOOK_SECRET: "synthetic-sepay-webhook-secret-never-serialize",
 } as const;
 
 const completeAi = {
@@ -67,6 +75,16 @@ const validNormalizedProduction = {
     accessKeyId: "synthetic-access-key",
     secretAccessKey: "synthetic-s3-secret-never-serialize",
   },
+  sepay: {
+    environment: "sandbox",
+    merchantId: "synthetic-sepay-merchant",
+    secretKey: "synthetic-sepay-secret-never-serialize",
+    bankCode: "VCB",
+    accountNumber: "123456789",
+    accountHolder: "LA SO VIET",
+    orderTtlSeconds: 900,
+    webhookSecret: "synthetic-sepay-webhook-secret-never-serialize",
+  },
 } as const;
 
 function expectInvalid(source: NodeJS.ProcessEnv, variable: string) {
@@ -100,6 +118,26 @@ function expectPartial(
 }
 
 describe("environment loading", () => {
+  it.each([
+    "SEPAY_ENV",
+    "SEPAY_MERCHANT_ID",
+    "SEPAY_SECRET_KEY",
+    "SEPAY_BANK_CODE",
+    "SEPAY_ACCOUNT_NUMBER",
+    "SEPAY_ACCOUNT_HOLDER",
+    "SEPAY_ORDER_TTL_SECONDS",
+    "SEPAY_WEBHOOK_SECRET",
+  ])(
+    "rejects production without %s",
+    (variable) => {
+      const source = { ...productionBase };
+      delete source[variable as keyof typeof source];
+      expect(loadEnvironment(source)).toMatchObject({
+        ok: false,
+        error: { code: "MISSING_REQUIRED_ENV", field: variable },
+      });
+    },
+  );
   it("loads production with disabled optional groups", () => {
     const result = loadEnvironment(productionBase);
     expect(result).toMatchObject({ ok: true, value: { nodeEnv: "production" } });
@@ -146,6 +184,33 @@ describe("environment loading", () => {
     ["NODE_ENV", { ...productionBase, NODE_ENV: "preview" }, "NODE_ENV"],
     ["DATABASE_URL", { ...productionBase, DATABASE_URL: "not-a-url" }, "DATABASE_URL"],
     ["INTERNAL_ACTOR_SECRET", { ...productionBase, INTERNAL_ACTOR_SECRET: "  " }, "INTERNAL_ACTOR_SECRET"],
+    ["SEPAY_ENV", { ...productionBase, SEPAY_ENV: "invalid" }, "SEPAY_ENV"],
+    ["SEPAY_MERCHANT_ID", { ...productionBase, SEPAY_MERCHANT_ID: " " }, "SEPAY_MERCHANT_ID"],
+    ["SEPAY_SECRET_KEY", { ...productionBase, SEPAY_SECRET_KEY: " " }, "SEPAY_SECRET_KEY"],
+    ["SEPAY_BANK_CODE", { ...productionBase, SEPAY_BANK_CODE: " " }, "SEPAY_BANK_CODE"],
+    ["SEPAY_ACCOUNT_NUMBER", { ...productionBase, SEPAY_ACCOUNT_NUMBER: " " }, "SEPAY_ACCOUNT_NUMBER"],
+    ["SEPAY_ACCOUNT_HOLDER", { ...productionBase, SEPAY_ACCOUNT_HOLDER: " " }, "SEPAY_ACCOUNT_HOLDER"],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "0" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "-900" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "900.5" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "not-an-integer" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    ["SEPAY_WEBHOOK_SECRET", { ...productionBase, SEPAY_WEBHOOK_SECRET: " " }, "SEPAY_WEBHOOK_SECRET"],
   ] as const)(
     "rejects invalid base environment value %s",
     (_name, source, variable) => {

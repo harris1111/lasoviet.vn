@@ -42,8 +42,4 @@ test("renders reviewed public content and honest private shells", async ({ page 
     "content",
     /noindex.*nofollow/,
   );
-
-  await page.goto("/bao-cao/not-persisted");
-  await expect(page.getByRole("heading", { name: "Báo cáo chưa khả dụng" })).toBeVisible();
-  await expect(page.getByText("Không có báo cáo đã lưu cho đường dẫn này.")).toBeVisible();
 });

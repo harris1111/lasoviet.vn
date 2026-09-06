@@ -5,7 +5,7 @@ export function HomepageFaq() {
   const keys = ["ai", "time", "payment", "privacy"] as const;
 
   return (
-    <div className="container faq">
+    <div className="container faq" id="faq">
       <div>
         <p className="eyebrow">{t("home.faq.eyebrow")}</p>
       </div>

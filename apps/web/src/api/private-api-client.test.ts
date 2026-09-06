@@ -5,14 +5,19 @@ vi.mock("@lasoviet/config/load-environment", () => ({ loadEnvironment: vi.fn() }
 vi.mock("../auth/create-internal-actor-token", () => ({
   createInternalActorToken: vi.fn(),
 }));
+vi.mock("../auth/create-internal-admin-preflight-audit-token", () => ({
+  createInternalAdminPreflightAuditToken: vi.fn(),
+}));
 
 import { loadEnvironment } from "@lasoviet/config/load-environment";
 
 import {
   PrivateApiClientError,
+  privateAdminAuditClient,
   privateApiClient,
 } from "./private-api-client";
 import { createInternalActorToken } from "../auth/create-internal-actor-token";
+import { createInternalAdminPreflightAuditToken } from "../auth/create-internal-admin-preflight-audit-token";
 
 const actor = {
   kind: "account" as const,
@@ -31,6 +36,9 @@ beforeEach(() => {
     value: { privateApiUrl: privateApiOrigin },
   } as never);
   vi.mocked(createInternalActorToken).mockResolvedValue("actor-token");
+  vi.mocked(createInternalAdminPreflightAuditToken).mockResolvedValue(
+    "preflight-token",
+  );
   vi.stubGlobal("fetch", fetchMock);
 });
 
@@ -59,6 +67,22 @@ describe("private API client", () => {
       "Bearer actor-token",
     );
     expect(new Headers(init.headers).get("x-request-id")).toBe("request-1");
+  });
+
+  it("uses a purpose-bound server credential for preflight denial audits", async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+
+    await expect(
+      privateAdminAuditClient("request-preflight").recordPreflightDenial(),
+    ).resolves.toBeUndefined();
+
+    const [url, init] = fetchMock.mock.calls[0] as [URL, RequestInit];
+    expect(url.origin).toBe(privateApiOrigin);
+    expect(url.pathname).toBe("/admin/access/preflight-denial");
+    expect(init.method).toBe("POST");
+    expect(new Headers(init.headers).get("authorization")).toBe(
+      "Bearer preflight-token",
+    );
   });
 
   it.each(["https://attacker.example/steal", "//attacker.example/steal"])(

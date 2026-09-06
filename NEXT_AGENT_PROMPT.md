@@ -1,39 +1,40 @@
-# Prompt khởi động cho agent tiếp theo
+# Next Agent Prompt
 
-Sao chép phần dưới đây làm yêu cầu mở đầu trong agent mới:
+Continue the `harris1111/lasoviet.vn` project from:
 
----
+- Worktree: `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan`
+- Branch: `feature/paid-flow-admin-operations`
+- Audited implementation baseline:
+  `8393f4a3fda31ff6aa50c5ad4390bcc4e5bf9e3c`
 
-Bạn đang tiếp tục dự án `harris1111/lasoviet.vn`.
+Before changing anything:
 
-Trước khi thực hiện bất kỳ thay đổi nào:
+1. Read `AGENT_HANDOFF.md`.
+2. Read `AGENTS.md` and `README.md`.
+3. Read the master plan, decision tracker, P04-T03 phase section, and matching
+   task contract.
+4. Fetch `origin`, verify the actual branch/HEAD/worktree state, and report any
+   drift from the handoff.
+5. Summarize the exact files, behavior, checks, and exclusions for P04-T03.
 
-1. Đọc `AGENT_HANDOFF.md`.
-2. Đọc đầy đủ:
-   - `docs/13-brand-experience-guideline.md`
-   - `docs/14-sitemap-seo-wireframes.md`
-   - `docs/15-collaboration-branch-workflow.md`
-3. Rà `AGENTS.md`, README, package manifest, framework, router, schema dữ liệu và trạng thái Git thực tế.
-4. Tóm tắt ngắn:
-   - branch hiện tại;
-   - những gì đã có trong code;
-   - điểm lệch giữa code và source of truth;
-   - các file dự kiến thay đổi;
-   - cách kiểm chứng.
+Use Superpowers only; never invoke `/ck` or CK CLI. Communicate with the founder
+in Vietnamese. Keep repository documents and commit messages in English.
 
-Các nguyên tắc không được tự ý phá vỡ:
+Agent roles:
 
-- Brand là “Thư viện tri thức Việt đương đại”, không phải website bói toán giật gân.
-- Trust/safety/privacy thắng conversion.
-- Hệ Đông và Tây đều tồn tại trong IA; chỉ index route khi đạt readiness gate.
-- Phân biệt natal chart, cung hoàng đạo evergreen và Horoscope theo thời gian.
-- Không tạo thin pages/content farm.
-- Trang cá nhân chứa dữ liệu sinh hoặc luận giải riêng tư phải `noindex`.
-- Không commit hoặc push trực tiếp vào `master`.
+- Sol xhigh orchestrates and reviews meaningful milestones.
+- Terra medium implements, debugs, and runs focused checks.
+- Global Flash Executor high (`ag/gemini-3.8-flash-high`) may execute only an
+  exact bounded Sol/Terra brief. It must not plan, propose, infer scope, or debug
+  deeply.
+- Luna remains paused.
 
-Nếu yêu cầu mới mâu thuẫn với quyết định `LOCKED`, dừng và nêu rõ quyết định cần founder xác nhận. Nếu chỉ là `HYPOTHESIS`, đề xuất cách test và tiêu chí thành công.
+Primary task: implement **P04-T03 report worker and report state machine** so the
+existing `report.generation.requested.v1` path has a durable consumer. Do not
+expand into P04-T04 knowledge retrieval, full P04-T05 AI generation, P04-T06
+HTML persistence, deployment, production payment activation, or production AI
+activation.
 
-Nhiệm vụ tiếp theo của bạn là: **[ĐIỀN TASK CỤ THỂ Ở ĐÂY]**
-
----
-
+Do not push to `master`. Do not create a PR, merge, deploy, expose credentials,
+or trigger external side effects unless the founder explicitly requests that
+operation.

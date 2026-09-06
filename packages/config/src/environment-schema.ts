@@ -38,6 +38,17 @@ export type CloudS3Environment =
       secretAccessKey: string;
     };
 
+export type SePayEnvironment = {
+  environment: "sandbox" | "production";
+  merchantId: string;
+  secretKey: string;
+  bankCode: string;
+  accountNumber: string;
+  accountHolder: string;
+  orderTtlSeconds: number;
+  webhookSecret: string;
+};
+
 export type AppEnvironment = {
   nodeEnv: NodeEnvironment;
   internalActorSecret?: string;
@@ -53,6 +64,7 @@ export type AppEnvironment = {
   ai: AiEnvironment;
   smtp: SmtpEnvironment;
   cloudS3: CloudS3Environment;
+  sepay: SePayEnvironment;
 };
 
 const trimmedNonEmpty = z.string().trim().min(1);
@@ -123,6 +135,19 @@ const enabledCloudS3 = z
 export const CloudS3EnvironmentSchema: z.ZodType<CloudS3Environment> =
   z.discriminatedUnion("enabled", [disabledCloudS3, enabledCloudS3]);
 
+export const SePayEnvironmentSchema: z.ZodType<SePayEnvironment> = z
+  .object({
+    environment: z.enum(["sandbox", "production"]),
+    merchantId: trimmedNonEmpty,
+    secretKey: trimmedNonEmpty,
+    bankCode: trimmedNonEmpty.max(64),
+    accountNumber: trimmedNonEmpty.max(64),
+    accountHolder: trimmedNonEmpty.max(128),
+    orderTtlSeconds: z.number().int().positive(),
+    webhookSecret: trimmedNonEmpty.max(256),
+  })
+  .strict();
+
 export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
   .object({
     nodeEnv: NodeEnvironmentSchema,
@@ -142,6 +167,7 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     ai: AiEnvironmentSchema,
     smtp: SmtpEnvironmentSchema,
     cloudS3: CloudS3EnvironmentSchema,
+    sepay: SePayEnvironmentSchema,
   })
   .strict()
   .superRefine((environment, context) => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IDENTITY_REPORT_SECTION_IDS,
   type EvidenceSetV1,
   type IdentityReportV1,
@@ -22,6 +23,48 @@ function report(): IdentityReportV1 {
     reflectionQuestions: ["Bạn đang coi trọng điều gì?", "Môi trường nào phù hợp?", "Bước nhỏ nào bạn sẽ thử?"],
     summaryActions: ["Thử một bước nhỏ trong tuần này."],
     professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  };
+}
+
+function englishReport(): IdentityReportV1 {
+  return {
+    version: 1,
+    sku: "ZIWEI-IDENTITY-P0",
+    capabilityId: "ziwei.identity.p0",
+    locale: "en",
+    provenance: {
+      chartVersionId: "chart-1",
+      ruleVersion: "ziwei.identity.v1",
+      evidenceVersion: 1,
+      knowledgeVersion: "knowledge.en.v1",
+      providerId: "9router-an",
+      modelId: "model",
+      promptVersion: "prompt.v1",
+      templateVersion: "template.v1",
+    },
+    sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
+      id,
+      title: `Section ${index + 1}`,
+      narrative: "You should observe calmly and adjust according to practical conditions.",
+      claims: ["data_and_method", "reflection_questions", "action_summary", "limitations_and_disclaimer"].includes(id)
+        ? []
+        : [{
+          id: `claim-${index}`,
+          text: "This is a prompt for personal reflection based on evidence.",
+          evidenceIds: ["ziwei.identity.life-palace"],
+          interpretationBoundCode: "reflective_identity_only",
+          confidence: "moderate",
+          limitations: ["Depends on accurate birth time."],
+          suggestedActions: [{ category: "reflect", text: "Note your observations." }],
+        }],
+    })),
+    reflectionQuestions: [
+      "What do you value most in your daily work?",
+      "Which environment best supports your natural rhythm?",
+      "What small experiment will you run this week?",
+    ],
+    summaryActions: ["Try one small step this week."],
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   };
 }
 
@@ -110,5 +153,66 @@ describe("identity report validator", () => {
     const disallowedAction = report();
     disallowedAction.sections[0].claims[0].suggestedActions = [{ category: "discuss-with-support", text: "Bạn nên trao đổi thêm." }];
     expect(validateIdentityReport(disallowedAction, { evidence, frozenFacts })).toMatchObject({ ok: false });
+  });
+
+  it("accepts a genuinely valid English report", () => {
+    expect(validateIdentityReport(englishReport(), { evidence, frozenFacts })).toEqual({
+      ok: true,
+      findings: [],
+    });
+  });
+
+  it("rejects non-NFC normalized text in Vietnamese report", () => {
+    const candidate = report();
+    candidate.sections[0].narrative = "Bạn nên quan sát bình tĩnh.".normalize("NFD");
+    expect(validateIdentityReport(candidate, { evidence, frozenFacts })).toMatchObject({
+      ok: false,
+      findings: expect.arrayContaining([expect.objectContaining({ code: "REPORT_LANGUAGE_INVALID", sectionId: "personal_summary" })]),
+    });
+  });
+
+  it.each([
+    ["section narrative", (value: IdentityReportV1) => { value.sections[0].narrative = "Bạn nên quan sát bình tĩnh."; }],
+    ["section title", (value: IdentityReportV1) => { value.sections[0].title = "Mục 1"; }],
+    ["claim text", (value: IdentityReportV1) => { value.sections[0].claims[0].text = "Đây là gợi ý để bạn tự phản chiếu."; }],
+    ["claim limitation", (value: IdentityReportV1) => { value.sections[0].claims[0].limitations[0] = "Phụ thuộc vào giờ sinh."; }],
+    ["claim action", (value: IdentityReportV1) => { value.sections[0].claims[0].suggestedActions[0].text = "Ghi lại quan sát của bạn."; }],
+    ["reflection question", (value: IdentityReportV1) => { value.reflectionQuestions[0] = "Bạn đang coi trọng điều gì?"; }],
+    ["summary action", (value: IdentityReportV1) => { value.summaryActions[0] = "Thử một bước nhỏ trong tuần này."; }],
+  ])("rejects Vietnamese text in English report %s", (_name, mutate) => {
+    const candidate = englishReport();
+    mutate(candidate);
+    expect(validateIdentityReport(candidate, { evidence, frozenFacts })).toMatchObject({
+      ok: false,
+      findings: expect.arrayContaining([expect.objectContaining({ code: "REPORT_LANGUAGE_INVALID" })]),
+    });
+  });
+
+  it.each([
+    ["unsafe absolute claim", (value: IdentityReportV1) => { value.sections[0].claims[0].text = "You will definitely suffer a bankruptcy in career."; }, "REPORT_SAFETY_REJECTED"],
+    ["psychological diagnosis", (value: IdentityReportV1) => { value.sections[0].claims[0].text = "You have diagnosed depression."; }, "REPORT_SAFETY_REJECTED"],
+    ["fear upsell", (value: IdentityReportV1) => { value.sections[0].claims[0].text = "If you do not buy now, you will lose everything."; }, "REPORT_SAFETY_REJECTED"],
+    ["DEL control character", (value: IdentityReportV1) => { value.sections[0].narrative = "You\u007F should observe calmly."; }, "REPORT_LANGUAGE_INVALID"],
+    ["mojibake", (value: IdentityReportV1) => { value.sections[0].narrative = "Corrupted text with Ã£ and â€™ encoding errors."; }, "REPORT_LANGUAGE_INVALID"],
+  ])("rejects invalid or unsafe content in English report: %s", (_name, mutate, code) => {
+    const candidate = englishReport();
+    mutate(candidate);
+    expect(validateIdentityReport(candidate, { evidence, frozenFacts })).toMatchObject({
+      ok: false,
+      findings: expect.arrayContaining([expect.objectContaining({ code })]),
+    });
+  });
+
+  it.each([
+    ["line feed", "You should observe calmly.\nNote what you discover."],
+    ["CRLF", "You should observe calmly.\r\nNote what you discover."],
+    ["tab", "You should observe calmly.\tNote what you discover."],
+  ])("accepts valid English narrative formatting with %s", (_name, narrative) => {
+    const candidate = englishReport();
+    candidate.sections[0].narrative = narrative;
+    expect(validateIdentityReport(candidate, { evidence, frozenFacts })).toEqual({
+      ok: true,
+      findings: [],
+    });
   });
 });

@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IdentityReportContentV1Schema,
   IdentityReportV1Schema,
   IDENTITY_REPORT_SECTION_IDS,
 } from "./identity-report-v1.js";
+import { ReportPdfRequestedV1Schema } from "./jobs.js";
 
 const sectionIds = [
   "personal_summary",
@@ -116,5 +118,234 @@ describe("identity report v1 contract", () => {
       ...report(),
       professionalAdviceDisclaimer: `${CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER} Nội dung này có thể thay thế tư vấn tài chính.`,
     }).success).toBe(false);
+  });
+
+  it("supports discriminated en locale with the exact english disclaimer", () => {
+    const enReport = {
+      ...report(),
+      locale: "en",
+      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+    };
+    expect(IdentityReportV1Schema.safeParse(enReport).success).toBe(true);
+    expect(IdentityReportV1Schema.safeParse({
+      ...enReport,
+      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+    }).success).toBe(false);
+    expect(IdentityReportV1Schema.safeParse({
+      ...report(),
+      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+    }).success).toBe(false);
+  });
+});
+
+describe("report pdf requested v1 contract", () => {
+  it("validates trimmed non-empty fields", () => {
+    const valid = {
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      assetId: "asset-1",
+      renderVersion: "identity-report-pdf.v1",
+    };
+    expect(ReportPdfRequestedV1Schema.safeParse(valid).success).toBe(true);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, reportId: "   " }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, reportVersionId: "" }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, assetId: "" }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, renderVersion: "   " }).success).toBe(false);
+    expect(ReportPdfRequestedV1Schema.safeParse({ ...valid, extra: "unknown" }).success).toBe(false);
+  });
+});
+
+import {
+  REPORT_VIEW_REFRESH_MS,
+  REPORT_PENDING_STATUSES,
+  REPORT_READY_STATUSES,
+  ReportViewV1Schema,
+} from "./identity-report-v1.js";
+
+describe("report view v1 contract", () => {
+  it("rejects malformed evidence items in ready view", () => {
+    const readyWithMalformedEvidence = {
+      version: 1,
+      state: "ready",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: readyReportContent,
+      evidence: [
+        {
+          id: "ziwei.identity.life-palace",
+          // missing required factReferences, confidence, etc.
+          title: "Mệnh Cung",
+        },
+      ],
+      lineage: { supersedesReportVersionId: null },
+      provenance: safeProvenance,
+    };
+    expect(ReportViewV1Schema.safeParse(readyWithMalformedEvidence).success).toBe(false);
+  });
+
+  const readyReportContent = {
+    sections: report().sections,
+    reflectionQuestions: report().reflectionQuestions,
+    summaryActions: report().summaryActions,
+    professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
+  };
+
+  const safeProvenance = {
+    method: "ziwei",
+    ruleVersion: "ziwei.identity.v1",
+    evidenceVersion: 1,
+    knowledgeVersion: "knowledge.vi.v1",
+    templateVersion: "identity-report-template.v1",
+    createdAt: "2026-09-05T00:00:00+07:00",
+  };
+
+  const sampleEvidence = [
+    {
+      id: "ziwei.identity.life-palace",
+      factReferences: ["life palace fact"],
+      confidence: "high" as const,
+      interpretationBounds: ["Reflective bound"],
+      interpretationBoundCodes: ["reflective_identity_only" as const],
+      limitations: ["Hours offset"],
+      riskTags: ["identity" as const],
+      allowedActionCategories: ["reflect" as const],
+    },
+  ];
+
+  it("exports expected constants", () => {
+    expect(REPORT_VIEW_REFRESH_MS).toBe(5000);
+    expect(REPORT_PENDING_STATUSES).toEqual([
+      "requested",
+      "generating",
+      "validating",
+      "retryable_failure",
+    ]);
+    expect(REPORT_READY_STATUSES).toEqual([
+      "html_ready",
+      "pdf_pending",
+      "complete",
+    ]);
+  });
+
+  it("parses all three states (pending, ready, failed)", () => {
+    const pending = {
+      version: 1,
+      state: "pending",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "generating",
+      refreshAfterMs: 5000,
+    };
+    expect(ReportViewV1Schema.safeParse(pending).success).toBe(true);
+
+    const ready = {
+      version: 1,
+      state: "ready",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: readyReportContent,
+      evidence: sampleEvidence,
+      lineage: {
+        supersedesReportVersionId: "version-0",
+      },
+      provenance: safeProvenance,
+    };
+    expect(ReportViewV1Schema.safeParse(ready).success).toBe(true);
+
+    const failed = {
+      version: 1,
+      state: "failed",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "terminal_failure",
+    };
+    expect(ReportViewV1Schema.safeParse(failed).success).toBe(true);
+  });
+
+  it("rejects extra fields on all states", () => {
+    const pending = {
+      version: 1,
+      state: "pending",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "generating",
+      refreshAfterMs: 5000,
+      extraField: "bad",
+    };
+    expect(ReportViewV1Schema.safeParse(pending).success).toBe(false);
+  });
+
+  it("rejects leaked provider/model/prompt/config/HTML fields in ready view", () => {
+    const ready = {
+      version: 1,
+      state: "ready",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: readyReportContent,
+      evidence: sampleEvidence,
+      lineage: { supersedesReportVersionId: null },
+      provenance: safeProvenance,
+      htmlContent: "<script>alert(1)</script>",
+      providerId: "open-router",
+    };
+    expect(ReportViewV1Schema.safeParse(ready).success).toBe(false);
+  });
+
+  it("rejects VI/EN disclaimer and locale mismatches", () => {
+    const readyMismatched = {
+      version: 1,
+      state: "ready",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: {
+        ...readyReportContent,
+        professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+      },
+      evidence: sampleEvidence,
+      lineage: { supersedesReportVersionId: null },
+      provenance: safeProvenance,
+    };
+    expect(ReportViewV1Schema.safeParse(readyMismatched).success).toBe(false);
+  });
+
+  it("allows nullable supersedesReportVersionId and rejects legacy supersedesReportId", () => {
+    const readyWithNullLineage = {
+      version: 1,
+      state: "ready",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: readyReportContent,
+      evidence: sampleEvidence,
+      lineage: { supersedesReportVersionId: null },
+      provenance: safeProvenance,
+    };
+    expect(ReportViewV1Schema.safeParse(readyWithNullLineage).success).toBe(true);
+
+    const readyWithLegacyField = {
+      ...readyWithNullLineage,
+      lineage: { supersedesReportVersionId: null, supersedesReportId: "old-id" },
+    };
+    expect(ReportViewV1Schema.safeParse(readyWithLegacyField).success).toBe(false);
   });
 });

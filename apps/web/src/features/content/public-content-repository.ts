@@ -46,7 +46,8 @@ export function createPublicContentRepository(
     const isAllowedPublicRoute =
       route !== undefined &&
       !route.private &&
-      (route.status === "live_indexable" || route.status === "live_noindex");
+      (route.status === "live_indexable" || route.status === "live_noindex") &&
+      route.content === "reviewed";
 
     if (
       !isAllowedPublicRoute ||

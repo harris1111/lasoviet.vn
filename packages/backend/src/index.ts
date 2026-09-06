@@ -151,6 +151,56 @@ export { createOpenAiCompatibleAdapter } from "./ai/openai-compatible-adapter.js
 export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adapter.js";
 export { runAiCapabilityProbe } from "./ai/capability-probe.js";
 export type { AiCapabilityResult } from "./ai/capability-probe.js";
+export {
+  createAdminAccessService,
+  createDatabaseAdminAccessRepository,
+} from "./admin-access/capability.service.js";
+export type {
+  AdminAccessError,
+  AdminAccessRepository,
+} from "./admin-access/capability.service.js";
+export {
+  createAdminAuditService,
+  createDatabaseAdminAuditRepository,
+} from "./admin-access/audit.service.js";
+export type {
+  AdminAuditEntry,
+  AdminAuditRepository,
+} from "./admin-access/audit.service.js";
+export {
+  createRoleAssignmentService,
+} from "./admin-access/role-assignment.service.js";
+export type {
+  RoleAssignmentError,
+  RoleAssignmentRepository,
+  RoleMutation,
+} from "./admin-access/role-assignment.service.js";
+export {
+  createDatabaseRoleAssignmentRepository,
+} from "./admin-access/role-assignment.repository.js";
+export {
+  createAuditQueryService,
+} from "./admin-access/audit-query.service.js";
+export type { AuditQueryRepository } from "./admin-access/audit-query.service.js";
+export {
+  createDatabaseAuditQueryRepository,
+} from "./admin-access/audit-query.repository.js";
+export {
+  createAdminHealthService,
+  createDatabaseAdminHealthService,
+} from "./admin-overview/admin-health.service.js";
+export type { AdminHealthDependencies, AdminHealthProbe } from "./admin-overview/admin-health.service.js";
+export {
+  createAdminOverviewService,
+} from "./admin-overview/admin-overview.service.js";
+export type {
+  AdminHealthReader,
+  AdminOverviewError,
+  AdminOverviewRepository,
+} from "./admin-overview/admin-overview.service.js";
+export {
+  createDatabaseAdminOverviewRepository,
+} from "./admin-overview/admin-overview.repository.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
 export type {
@@ -161,6 +211,24 @@ export type {
   IdentityReportWriterInput,
 } from "./reports/identity-report-writer.js";
 export type {
+  ReportGenerationSourceInput,
+  ReportGenerationSourceRepository,
+} from "./reports/report-generation.repository.js";
+export {
+  createDatabaseReportGenerationSourceRepository,
+} from "./reports/report-generation.repository.js";
+export type {
+  CommitImmutableVersionInput,
+  ImmutableReportVersionRecord,
+  ReportGenerationAttemptRecord,
+  ReportVersionConflictCode,
+  ReportVersionRepository,
+  StartOrReuseAttemptInput,
+} from "./reports/report-version.repository.js";
+export {
+  createDatabaseReportVersionRepository,
+} from "./reports/report-version.repository.js";
+export type {
   ApprovedKnowledgePassage,
   IdentityReportSource,
 } from "./reports/report-source.js";
@@ -170,3 +238,82 @@ export type {
   ReportValidationResult,
 } from "./reports/report-validator.js";
 export { critiqueIdentityReport } from "./reports/report-critic.js";
+export { renderIdentityReportHtml } from "./reports/identity-report-html.js";
+export { createReportGenerationService } from "./reports/report-generation.service.js";
+export type {
+  GenerateReportInput,
+  ReportGenerationService,
+  ReportGenerationServiceDependencies,
+  ReportGenerationServiceError,
+  ReportGenerationServiceErrorCode,
+  ReportGenerationServiceResult,
+} from "./reports/report-generation.service.js";
+
+export { createPaymentInstructions } from "./commerce/payment-instructions.js";
+export type { PaymentInstructions } from "./commerce/payment-instructions.js";
+export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js";
+export { createSePayGateway } from "./commerce/sepay-adapter.js";
+export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";
+export { createDatabaseCommerceRepository } from "./commerce/commerce.repository.js";
+export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
+export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJobV1 } from "./outbox/outbox.dispatcher.js";
+export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";
+
+export {
+  REGISTERED_QUEUES,
+  resolveWorkerQueues,
+} from "./jobs/queue.registry.js";
+export type { RegisteredQueue, ResolveWorkerQueuesResult } from "./jobs/queue.registry.js";
+
+export {
+  completeReportGeneratingHandoff,
+  parseReportGenerateJob,
+  transitionReportToGenerating,
+} from "./reports/report-state.js";
+export type { ReportStateSnapshot, TransitionReportToGeneratingResult } from "./reports/report-state.js";
+export { createDatabaseReportQueueStore, createReportService } from "./reports/report.service.js";
+export type { ReportJobQueueStore } from "./reports/report.service.js";
+
+export {
+  createKnowledgeIngestionService,
+  validateKnowledgeManifest,
+  computeChunkContentHash,
+  computeDocumentContentHash,
+} from "./knowledge/knowledge-ingestion.service.js";
+export type {
+  ApprovalStatus,
+  IngestKnowledgeErrorCode,
+  IngestKnowledgeResult,
+  IngestKnowledgeSuccess,
+  KnowledgeChunkManifest,
+  KnowledgeManifestV1,
+  PermittedUseBasis,
+} from "./knowledge/knowledge-ingestion.service.js";
+
+export {
+  createKnowledgeRetrievalService,
+  KnowledgeError,
+} from "./knowledge/knowledge-retrieval.service.js";
+export type {
+  KnowledgeErrorCode,
+  KnowledgePassageV1,
+  RetrieveKnowledgeQuery,
+  VectorRetrievalDependency,
+} from "./knowledge/knowledge-retrieval.service.js";
+
+export {
+  createDatabaseReportQueryRepository,
+} from "./reports/report-query.repository.js";
+export type {
+  AuthorizedReportQueryRecord,
+  ReportQueryRepository,
+} from "./reports/report-query.repository.js";
+
+export {
+  createReportQueryService,
+  ReportQueryDataError,
+} from "./reports/report-query.service.js";
+export type {
+  ReportQueryError,
+  ReportQueryService,
+} from "./reports/report-query.service.js";
