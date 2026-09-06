@@ -6,6 +6,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/lib/common.sh"
 
 load_deploy_config
+
+if ! acquire_release_lock; then
+  # Lock contention is quiet exit 0
+  exit 0
+fi
+
 read_state
 
 DRY_RUN=0
@@ -14,14 +20,6 @@ for arg in "$@"; do
     DRY_RUN=1
   fi
 done
-
-LOCK_FILE="${STATE_DIR}/poll.lock"
-exec 9>"$LOCK_FILE"
-
-if ! flock -n 9; then
-  # Lock contention is quiet exit 0
-  exit 0
-fi
 
 MARKER_IMAGE="ghcr.io/harris1111/lasoviet-release:production"
 

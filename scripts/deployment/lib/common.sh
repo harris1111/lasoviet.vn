@@ -78,6 +78,28 @@ validate_config() {
   chmod 700 "$STATE_DIR" "$LOG_DIR" "$BACKUP_DIR" 2>/dev/null || true
 }
 
+acquire_release_lock() {
+  if [ "${LASOVIET_RELEASE_LOCK_HELD:-0}" = "1" ]; then
+    if ! { true >&9; } 2>/dev/null; then
+      echo "ERROR: release lock marker inherited but file descriptor 9 unavailable" >&2
+      exit 1
+    fi
+    return 0
+  fi
+
+  local lock_file="${STATE_DIR}/release.lock"
+  mkdir -p "$(dirname "$lock_file")"
+  exec 9>"$lock_file"
+
+  if ! flock -n 9; then
+    exec 9>&-
+    return 1
+  fi
+
+  export LASOVIET_RELEASE_LOCK_HELD=1
+  return 0
+}
+
 validate_sha() {
   local sha="$1"
   if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then

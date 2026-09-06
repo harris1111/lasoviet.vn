@@ -6,13 +6,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/lib/common.sh"
 
 load_deploy_config
-read_state
 
 TARGET_SHA="${1:-}"
 if [ -z "$TARGET_SHA" ] || ! validate_sha "$TARGET_SHA"; then
   echo "ERROR: valid 40-character target release SHA required" >&2
   exit 1
 fi
+
+if ! acquire_release_lock; then
+  echo "ERROR: release lock busy" >&2
+  exit 1
+fi
+
+read_state
 
 OLD_CURRENT="$CURRENT_RELEASE_SHA"
 OLD_PREVIOUS="$PREVIOUS_RELEASE_SHA"

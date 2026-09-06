@@ -6,13 +6,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/lib/common.sh"
 
 load_deploy_config
-read_state
 
 CANDIDATE_SHA="${1:-}"
 if [ -z "$CANDIDATE_SHA" ] || ! validate_sha "$CANDIDATE_SHA"; then
   echo "ERROR: valid 40-character release SHA required" >&2
   exit 1
 fi
+
+if ! acquire_release_lock; then
+  echo "ERROR: release lock busy" >&2
+  exit 1
+fi
+
+read_state
 
 export LASOVIET_RELEASE_SHA="$CANDIDATE_SHA"
 build_compose_cmd

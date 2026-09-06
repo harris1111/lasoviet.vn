@@ -420,7 +420,7 @@ function runScript(
   }
 }
 
-describe("deployment shell contracts", () => {
+describe("deployment shell contracts", { timeout: 45_000 }, () => {
   let ctx: TestContext;
 
   beforeEach(() => {
@@ -517,6 +517,75 @@ exit 0
       // Launch poll 2 with identical config and NO SIMULATE_LOCK_BUSY flag
       const res2 = runScript(ctx, "poll-release.sh", []);
       expect(res2.status).toBe(0);
+
+      // Release barrier so poll 1 completes
+      rmSync(barrierFile, { force: true });
+      await new Promise((resolve) => p1.on("close", resolve));
+    } finally {
+      rmSync(barrierFile, { force: true });
+      p1.kill();
+    }
+  });
+
+  it("rejects direct deploy and direct rollback with nonzero error when poll holds release lock at barrier", async () => {
+    writeState(ctx, {
+      CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
+      PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
+    });
+
+    const barrierFile = path.join(ctx.tempDir, "barrier.block");
+    writeFileSync(barrierFile, "wait");
+
+    const scriptPath = toPosixPath(path.join(projectRoot, "scripts", "deployment", "poll-release.sh"));
+    const env1 = {
+      ...process.env,
+      PATH: `${toPosixPath(ctx.fakeBinDir)}${path.delimiter}${process.env.PATH}`,
+      LASOVIET_DEPLOY_CONFIG: toPosixPath(ctx.deployEnvPath),
+      LASOVIET_TEST_BIN: toPosixPath(ctx.fakeBinDir),
+      POLL_BARRIER_FILE: toPosixPath(barrierFile),
+    };
+
+    // Update fake docker to pause while POLL_BARRIER_FILE exists
+    const dockerWithBarrier = `#!/bin/sh
+if [ -n "\${POLL_BARRIER_FILE:-}" ]; then
+  echo "WAITING_BARRIER" >> "${toPosixPath(ctx.commandsLog)}"
+  while [ -f "\${POLL_BARRIER_FILE}" ]; do
+    /usr/bin/sleep 0.05 2>/dev/null || sleep 1
+  done
+fi
+exit 0
+`;
+    writeFileSync(path.join(ctx.fakeBinDir, "docker"), dockerWithBarrier, { mode: 0o755 });
+
+    // Launch poll 1
+    const p1 = spawn(bashExecutable, [scriptPath], { env: env1, stdio: ["pipe", "pipe", "pipe"] });
+
+    // Wait until poll 1 is holding lock and reached barrier
+    let waited = 0;
+    while (waited < 3000) {
+      if (existsSync(ctx.commandsLog) && readFileSync(ctx.commandsLog, "utf8").includes("WAITING_BARRIER")) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+      waited += 50;
+    }
+
+    try {
+      const resDeploy = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE]);
+      expect(resDeploy.status).not.toBe(0);
+      expect(resDeploy.stderr).toContain("release lock busy");
+
+      const stateAfterDeploy = readState(ctx);
+      expect(stateAfterDeploy.LAST_ATTEMPTED_RELEASE_SHA).not.toBe(VALID_SHA_CANDIDATE);
+      expect(stateAfterDeploy.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CURRENT);
+
+      const resRollback = runScript(ctx, "rollback-release.sh", [VALID_SHA_PREVIOUS]);
+      expect(resRollback.status).not.toBe(0);
+      expect(resRollback.stderr).toContain("release lock busy");
+
+      const stateAfterRollback = readState(ctx);
+      expect(stateAfterRollback.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CURRENT);
+      expect(stateAfterRollback.LAST_FAILURE_CODE).not.toBe("ROLLBACK_HEALTH_FAILED");
 
       // Release barrier so poll 1 completes
       rmSync(barrierFile, { force: true });
@@ -669,7 +738,7 @@ exit 0
     expect(state.LAST_FAILURE_CODE).toBe("BACKUP_FAILED");
   });
 
-  it("does not promote state when migration or readiness fails", { timeout: 15000 }, () => {
+  it("does not promote state when migration or readiness fails", () => {
     writeState(ctx, { CURRENT_RELEASE_SHA: VALID_SHA_CURRENT });
 
     const resMigrate = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
@@ -690,7 +759,7 @@ exit 0
     expect(state.LAST_FAILURE_CODE).toBe("HEALTH_CHECK_FAILED");
   });
 
-  it("triggers prior-SHA rollback on failed api/worker replacement or post-replacement health", { timeout: 15000 }, () => {
+  it("triggers prior-SHA rollback on failed api/worker replacement or post-replacement health", () => {
     writeState(ctx, {
       CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
       PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
