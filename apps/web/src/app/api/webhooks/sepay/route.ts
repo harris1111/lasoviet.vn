@@ -63,6 +63,10 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ ok: false }, { status: 503 });
   }
 
+  if (environment.value.sepay.environment === "disabled") {
+    return Response.json({ ok: false, code: "SEPAY_DISABLED" }, { status: 503 });
+  }
+
   const secret = request.headers.get("x-secret-key");
   const signature = request.headers.get("x-sepay-signature");
   const timestamp = request.headers.get("x-sepay-timestamp");

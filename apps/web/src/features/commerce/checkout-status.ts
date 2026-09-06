@@ -39,10 +39,19 @@ export type CheckoutOrderSummary = z.infer<typeof CheckoutOrderSummarySchema>;
 export const CheckoutStatusSchema = z
   .object({
     order: CheckoutOrderSummarySchema,
-    paymentInstructions: PaymentInstructionsSchema,
+    paymentInstructions: PaymentInstructionsSchema.nullable(),
     reportId: z.string().trim().min(1).nullable(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, context) => {
+    if (data.order.status === "pending" && data.paymentInstructions === null) {
+      context.addIssue({
+        code: "custom",
+        path: ["paymentInstructions"],
+        message: "Pending orders require payment instructions",
+      });
+    }
+  });
 
 export type CheckoutStatus = z.infer<typeof CheckoutStatusSchema>;
 

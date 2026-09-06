@@ -210,6 +210,32 @@ describe("VietQR checkout polling", () => {
     },
   );
 
+  it("navigates and delivers status when polling transitions from pending to paid with null paymentInstructions", async () => {
+    const initial = checkoutStatus("pending", null, "vi");
+    const paidNull: CheckoutStatus = {
+      ...initial,
+      order: { ...initial.order, status: "paid" },
+      paymentInstructions: null,
+      reportId: "report-123",
+    };
+    const fetchStatus = vi.fn().mockResolvedValue(paidNull);
+    const deliverStatus = vi.fn();
+    const navigate = vi.fn();
+
+    const cleanup = startVietQrCheckoutPolling({
+      initialStatus: initial,
+      fetchStatus,
+      deliverStatus,
+      navigate,
+      visibility: visibilityHarness(),
+    });
+
+    await vi.advanceTimersByTimeAsync(2_500);
+    expect(deliverStatus).toHaveBeenCalledWith(paidNull);
+    expect(navigate).toHaveBeenCalledWith("/bao-cao/report-123");
+    cleanup();
+  });
+
   it("cleanup removes timers and the visibility listener", async () => {
     const visibility = visibilityHarness();
     const fetchStatus = vi.fn().mockResolvedValue(checkoutStatus());
@@ -387,4 +413,42 @@ describe("VietQR checkout copy controls", () => {
     expect(status).toEqual(original);
     expect(onCopied).toHaveBeenCalledOnce();
   });
+  it("returns false from copyCheckoutField when paymentInstructions is null", async () => {
+    const statusWithNull: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "paid",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+      },
+      paymentInstructions: null,
+      reportId: "report-1",
+    };
+    const clipboard = { writeText: vi.fn() };
+    const onCopied = vi.fn();
+    const result = await copyCheckoutField("accountNumber", statusWithNull, clipboard, onCopied);
+    expect(result).toBe(false);
+    expect(clipboard.writeText).not.toHaveBeenCalled();
+    expect(onCopied).not.toHaveBeenCalled();
+  });
+
+  it("renders null safely when paymentInstructions is null", () => {
+    const statusWithNull: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "paid",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+      },
+      paymentInstructions: null,
+      reportId: "report-1",
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={statusWithNull} labels={labels} />,
+    );
+    expect(html).toBe("");
+  });
+
 });

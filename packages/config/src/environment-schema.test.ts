@@ -148,6 +148,37 @@ describe("environment loading", () => {
     }
   });
 
+  it("loads environment with SEPAY_ENV=disabled and no other SEPAY_* variables", () => {
+    const {
+      SEPAY_MERCHANT_ID: _m,
+      SEPAY_SECRET_KEY: _s,
+      SEPAY_BANK_CODE: _b,
+      SEPAY_ACCOUNT_NUMBER: _a,
+      SEPAY_ACCOUNT_HOLDER: _h,
+      SEPAY_ORDER_TTL_SECONDS: _t,
+      SEPAY_WEBHOOK_SECRET: _w,
+      ...disabledBase
+    } = productionBase;
+    const result = loadEnvironment({ ...disabledBase, SEPAY_ENV: "disabled" });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        sepay: {
+          environment: "disabled",
+        },
+      },
+    });
+  });
+
+  it("rejects unknown properties in disabled SePay schema", () => {
+    expect(() =>
+      AppEnvironmentSchema.parse({
+        ...validNormalizedProduction,
+        sepay: { environment: "disabled", merchantId: "fake" },
+      }),
+    ).toThrow();
+  });
+
   it.each(["INTERNAL_ACTOR_SECRET", "DATABASE_URL", "REDIS_URL"])(
     "rejects production without %s",
     (variable) => {
