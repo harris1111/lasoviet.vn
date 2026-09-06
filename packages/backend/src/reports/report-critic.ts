@@ -26,7 +26,7 @@ export async function critiqueIdentityReport(
     return { ok: false as const, error: { code: validation.findings[0]?.code ?? "REPORT_SAFETY_REJECTED", retryable: false } };
   }
   const languageName = report.locale === "en" ? "English" : "Vietnamese";
-  const system = `Evaluate an ${languageName} evidence-backed report for quality and safety.`;
+  const system = `Evaluate an ${languageName} evidence-backed report for quality and safety. Output JSON adhering to: {"correctness":5,"evidenceCoverage":5,"specificity":5,"languageClarity":5,"consistency":5,"actionability":5,"safety":5,"repetitionControl":5,"notes":["..."]}. All eight scores must be integers 1-5. Notes must be 0-8 strings up to 300 characters. Keys must not be renamed, translated, omitted, or added.`;
   const result = await provider.generateStructured({
     schema: CriticSchema,
     schemaName: "identity_report_critic_v1",

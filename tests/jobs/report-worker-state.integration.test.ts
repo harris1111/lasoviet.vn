@@ -146,6 +146,7 @@ describe("report worker state integration and lease recovery", () => {
     expect(claimed?.id).toBe(jobId);
     expect(claimed?.leasedBy).toBe("recovering-worker");
     expect(claimed?.attemptCount).toBe(2);
+    expect(claimed?.leasedUntil).toEqual(new Date(now.getTime() + 600_000));
 
     const nextAttemptAt = new Date(now.getTime() + 15_000);
     await queueStore.recordRetryableFailure(jobId, "AI_RATE_LIMIT", nextAttemptAt);

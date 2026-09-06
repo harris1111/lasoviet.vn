@@ -36,6 +36,8 @@ export type ReportJobQueueStore = {
   ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }>;
 };
 
+const REPORT_QUEUE_CLAIM_LEASE_MS = 600_000;
+
 export function createDatabaseReportQueueStore(
   database: Database,
   workerId: string,
@@ -83,7 +85,7 @@ export function createDatabaseReportQueueStore(
 
         if (!candidate) return null;
 
-        const leaseExpiry = new Date(now.getTime() + 60_000);
+        const leaseExpiry = new Date(now.getTime() + REPORT_QUEUE_CLAIM_LEASE_MS);
         const [claimed] = await tx
           .update(reportQueueJobs)
           .set({
