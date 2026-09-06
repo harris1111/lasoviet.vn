@@ -47,15 +47,12 @@ export type SiteHeaderProps = {
   locale: "en" | "vi";
   variant?: "default" | "discipline";
   currentPath?: string;
+  contactPath?: string;
   accentColor?: string;
 };
 
 function route(locale: "en" | "vi", path: string) {
   return locale === "en" ? "/en" + path : path;
-}
-
-function homeAnchor(locale: "en" | "vi", hash: string) {
-  return locale === "en" ? "/en#" + hash : "/#" + hash;
 }
 
 function renderHeaderIcon(name: "menu" | "chevron-right") {
@@ -80,17 +77,30 @@ export function SiteHeader({
   locale,
   variant = "default",
   currentPath,
+  contactPath = "/lien-he",
   accentColor,
 }: SiteHeaderProps) {
+  const contactHref = route(locale, contactPath);
   const isVietnamese = locale === "vi";
   const isDiscipline = variant === "discipline";
 
   const defaultLinks = [
-    [isVietnamese ? "Lập lá số Tử Vi" : "Zi Wei Chart", homeAnchor(locale, "hero-form")],
-    [isVietnamese ? "Các hệ quy chiếu" : "Frameworks", homeAnchor(locale, "he-quy-chieu")],
-    [isVietnamese ? "Thư viện tri thức" : "Knowledge", homeAnchor(locale, "kien-thuc")],
-    [isVietnamese ? "Về phương pháp" : "Method", homeAnchor(locale, "phuong-phap")],
+    [isVietnamese ? "Dịch vụ" : "Services", route(locale, "/tu-vi")],
+    [isVietnamese ? "Công cụ miễn phí" : "Free tools", route(locale, "/cong-cu-mien-phi")],
+    [isVietnamese ? "Kiến thức" : "Knowledge", route(locale, "/kien-thuc")],
+    [isVietnamese ? "Liên hệ" : "Contact", contactHref],
   ] as const;
+
+  const disciplineNavItems = isDiscipline
+    ? [
+        ...getDisciplineNavLinks(locale, currentPath),
+        {
+          label: isVietnamese ? "Liên hệ" : "Contact",
+          href: contactHref,
+          active: currentPath === contactHref,
+        },
+      ]
+    : [];
 
   const disciplineLinks = isDiscipline
     ? getDisciplineNavLinks(locale, currentPath)
@@ -206,7 +216,7 @@ export function SiteHeader({
             "aria-label": isVietnamese ? "Điều hướng chính" : "Primary navigation",
           },
           isDiscipline
-            ? disciplineLinks.map((item) =>
+            ? disciplineNavItems.map((item) =>
                 React.createElement(
                   Link,
                   {
@@ -239,6 +249,15 @@ export function SiteHeader({
           ),
           React.createElement(
             Link,
+            {
+              className: "login-link",
+              href: route(locale, "/dang-nhap"),
+              style: { color: "var(--pearl-200)", textDecoration: "none", fontSize: "14.5px" },
+            },
+            isVietnamese ? "Đăng nhập" : "Sign in",
+          ),
+          React.createElement(
+            Link,
             { className: "button button-small", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
             isVietnamese ? "Lập lá số Tử Vi" : "Build Zi Wei chart",
           ),
@@ -257,7 +276,7 @@ export function SiteHeader({
                 "aria-label": isVietnamese ? "Điều hướng chính" : "Primary navigation",
               },
               isDiscipline
-                ? disciplineLinks.map((item) =>
+                ? disciplineNavItems.map((item) =>
                     React.createElement(
                       Link,
                       {
@@ -277,6 +296,12 @@ export function SiteHeader({
                       renderHeaderIcon("chevron-right"),
                     ),
                   ),
+              React.createElement(
+                Link,
+                { className: "mobile-login-link", href: route(locale, "/dang-nhap") },
+                isVietnamese ? "Đăng nhập" : "Sign in",
+                renderHeaderIcon("chevron-right"),
+              ),
               React.createElement(
                 Link,
                 { className: "button", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { routeRegistry } from "@lasoviet/config";
 
 import type {
+  FlagshipPreviewPageModel,
   FreeToolsHubPageModel,
   GatedPreviewPageModel,
   UtilityPreviewPageModel,
@@ -19,11 +20,6 @@ describe("free tools page contract", () => {
     "/giai-ma-giac-mo",
     "/boi-bai",
     "/lich-am",
-  ] as const;
-
-  const GATED_PREVIEW_PATHS = [
-    "/phong-thuy/huong-nha",
-    "/xem-chi-tay",
   ] as const;
 
   it("resolves the hub kind for /cong-cu-mien-phi across vi and en", () => {
@@ -69,26 +65,48 @@ describe("free tools page contract", () => {
     }
   });
 
-  it("resolves two gated-preview kinds with isFunctional false and isAvailable false", () => {
-    for (const path of GATED_PREVIEW_PATHS) {
-      const route = routeRegistry.find((entry) => entry.path === path);
-      expect(route, `Route ${path} must exist in routeRegistry`).toBeDefined();
-      expect(route?.template).toBe("gated-preview");
+  it("resolves flagship-preview kind for /phong-thuy/huong-nha with illustrative source, false isFunctional, and non-empty disclosure", () => {
+    const path = "/phong-thuy/huong-nha";
+    const route = routeRegistry.find((entry) => entry.path === path);
+    expect(route, `Route ${path} must exist in routeRegistry`).toBeDefined();
+    expect(route?.template).toBe("gated-preview");
 
-      for (const locale of locales) {
-        const page = provider.resolve({ route: route!, locale });
-        expect(page, `Provider must resolve ${path} for ${locale}`).toBeDefined();
-        expect(page?.kind).toBe("gated-preview");
+    for (const locale of locales) {
+      const page = provider.resolve({ route: route!, locale });
+      expect(page, `Provider must resolve ${path} for ${locale}`).toBeDefined();
+      expect(page?.kind).toBe("flagship-preview");
 
-        const gatedPage = page as GatedPreviewPageModel;
-        expect(gatedPage.template).toBe("gated-preview");
-        expect(gatedPage.slug).toBe(path);
-        expect(gatedPage.locale).toBe(locale);
-        expect(gatedPage.isFunctional).toBe(false);
-        expect(gatedPage.isAvailable).toBe(false);
-        expect(gatedPage.gateReason).toBeTruthy();
-        expect(gatedPage.notice.trim().length).toBeGreaterThan(0);
-      }
+      const flagshipPage = page as FlagshipPreviewPageModel;
+      expect(flagshipPage.template).toBe("gated-preview");
+      expect(flagshipPage.slug).toBe(path);
+      expect(flagshipPage.locale).toBe(locale);
+      expect(flagshipPage.preview.sourceKind).toBe("illustrative");
+      expect(flagshipPage.preview.isIllustrative).toBe(true);
+      expect(flagshipPage.preview.disclosure.trim().length).toBeGreaterThan(0);
+      expect(flagshipPage.isFunctional).toBe(false);
+      expect(flagshipPage.isAvailable).toBe(false);
+    }
+  });
+
+  it("resolves gated-preview kind for /xem-chi-tay with isFunctional false and isAvailable false", () => {
+    const path = "/xem-chi-tay";
+    const route = routeRegistry.find((entry) => entry.path === path);
+    expect(route, `Route ${path} must exist in routeRegistry`).toBeDefined();
+    expect(route?.template).toBe("gated-preview");
+
+    for (const locale of locales) {
+      const page = provider.resolve({ route: route!, locale });
+      expect(page, `Provider must resolve ${path} for ${locale}`).toBeDefined();
+      expect(page?.kind).toBe("gated-preview");
+
+      const gatedPage = page as GatedPreviewPageModel;
+      expect(gatedPage.template).toBe("gated-preview");
+      expect(gatedPage.slug).toBe(path);
+      expect(gatedPage.locale).toBe(locale);
+      expect(gatedPage.isFunctional).toBe(false);
+      expect(gatedPage.isAvailable).toBe(false);
+      expect(gatedPage.gateReason).toBe("biometric_consent_prep");
+      expect(gatedPage.notice.trim().length).toBeGreaterThan(0);
     }
   });
 

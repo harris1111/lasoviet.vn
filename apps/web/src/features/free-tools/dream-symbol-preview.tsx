@@ -17,6 +17,7 @@ type DreamSymbol = {
   key: string;
   category: string;
   title: string;
+  synonyms: string;
   folk: string;
   symbolic: string;
 };
@@ -47,6 +48,7 @@ const SYMBOLS_VI: readonly DreamSymbol[] = [
     key: 'animal',
     category: 'Con vật',
     title: 'Mơ thấy rắn',
+    synonyms: 'con rắn, rắn cắn, rắn quấn',
     folk: 'Dân gian Việt Nam thường gắn hình ảnh con rắn với sự thay đổi hoặc một điều bất ngờ sắp đến, tuỳ vùng miền có cách kể khác nhau.',
     symbolic: 'Trong nhiều truyền thống biểu tượng, rắn gắn với sự lột xác, chuyển tiếp hoặc một nỗi lo chưa gọi tên được.'
   },
@@ -54,6 +56,7 @@ const SYMBOLS_VI: readonly DreamSymbol[] = [
     key: 'nature',
     category: 'Hiện tượng tự nhiên',
     title: 'Mơ thấy nước, lũ lụt',
+    synonyms: 'nước lớn, ngập lụt, sông nước',
     folk: 'Nước lớn trong giấc mơ dân gian thường được kể là dấu hiệu của cảm xúc dâng trào hoặc một biến động sắp tới.',
     symbolic: 'Nước thường được xem là biểu tượng của cảm xúc và tiềm thức — lũ lụt có thể phản ánh cảm giác quá tải trong đời sống thực.'
   },
@@ -61,6 +64,7 @@ const SYMBOLS_VI: readonly DreamSymbol[] = [
     key: 'people',
     category: 'Con người & mối quan hệ',
     title: 'Mơ thấy răng rụng',
+    synonyms: 'rụng răng, gãy răng, mất răng',
     folk: 'Đây là một trong những giấc mơ được kể lại nhiều nhất trong dân gian, thường gắn với lo lắng về sức khoẻ hoặc người thân.',
     symbolic: 'Về mặt tâm lý, mơ răng rụng thường liên quan đến cảm giác mất kiểm soát, lo âu về ngoại hình hoặc một giai đoạn nhiều áp lực.'
   },
@@ -68,6 +72,7 @@ const SYMBOLS_VI: readonly DreamSymbol[] = [
     key: 'event',
     category: 'Sự kiện đời sống',
     title: 'Mơ thấy bay',
+    synonyms: 'bay lên, bay lượn, tự bay',
     folk: 'Giấc mơ bay lên thường được dân gian kể như một dấu hiệu của sự nhẹ nhõm hoặc một giai đoạn thuận lợi sắp tới.',
     symbolic: 'Bay trong giấc mơ thường gắn với cảm giác tự do, thoát khỏi giới hạn hoặc mong muốn kiểm soát một tình huống.'
   },
@@ -75,6 +80,7 @@ const SYMBOLS_VI: readonly DreamSymbol[] = [
     key: 'people',
     category: 'Con người & mối quan hệ',
     title: 'Mơ thấy người đã mất',
+    synonyms: 'người chết, người thân đã khuất, ông bà đã mất',
     folk: 'Nhiều gia đình Việt kể lại đây là dấu hiệu người thân "về thăm", thường đi kèm cảm giác bình yên hơn là sợ hãi.',
     symbolic: 'Đây là một chủ đề giấc mơ phổ biến khi đang xử lý nỗi nhớ hoặc chưa hoàn tất cảm xúc với người đã khuất.'
   },
@@ -82,6 +88,7 @@ const SYMBOLS_VI: readonly DreamSymbol[] = [
     key: 'event',
     category: 'Sự kiện đời sống',
     title: 'Mơ thấy đám cưới',
+    synonyms: 'cưới hỏi, kết hôn, lấy chồng lấy vợ',
     folk: 'Dân gian thường kể giấc mơ đám cưới gắn với một khởi đầu mới, không nhất thiết liên quan đến chuyện tình cảm thật.',
     symbolic: 'Đám cưới trong giấc mơ thường tượng trưng cho sự kết hợp, cam kết hoặc một quyết định quan trọng đang đến gần.'
   }
@@ -92,6 +99,7 @@ const SYMBOLS_EN: readonly DreamSymbol[] = [
     key: 'animal',
     category: 'Animals',
     title: 'Dreaming of snakes',
+    synonyms: 'snakes, snakebite, coiled snake',
     folk: 'Vietnamese folklore often associates snakes with impending change or unexpected encounters, with regional variations.',
     symbolic: 'Across psychological traditions, snakes represent shedding skins, transition, or an unnamed unconscious fear.'
   },
@@ -99,6 +107,7 @@ const SYMBOLS_EN: readonly DreamSymbol[] = [
     key: 'nature',
     category: 'Natural Phenomena',
     title: 'Dreaming of water, floods',
+    synonyms: 'flood, deep water, flowing river',
     folk: 'Rising waters in folklore symbolize overflowing emotional states or incoming upheaval.',
     symbolic: 'Water universally mirrors the unconscious mind — floods often reflect overwhelm in waking life obligations.'
   },
@@ -106,6 +115,7 @@ const SYMBOLS_EN: readonly DreamSymbol[] = [
     key: 'people',
     category: 'People & Relationships',
     title: 'Dreaming of teeth falling out',
+    synonyms: 'falling teeth, broken tooth, losing teeth',
     folk: 'One of the most widespread folk motifs, traditionally linked to concerns over personal vitality or elder relatives.',
     symbolic: 'Psychologically, tooth loss reflects anxiety over loss of control, aging, or profound periods of stress.'
   },
@@ -113,6 +123,7 @@ const SYMBOLS_EN: readonly DreamSymbol[] = [
     key: 'event',
     category: 'Life Events',
     title: 'Dreaming of flying',
+    synonyms: 'flying, levitation, soaring',
     folk: 'Flying dreams in folk culture represent lightness, relief, or an auspicious unburdened phase ahead.',
     symbolic: 'Flight symbolizes liberation, breaking past perceived limits, or a conscious desire for broad perspective.'
   },
@@ -120,6 +131,7 @@ const SYMBOLS_EN: readonly DreamSymbol[] = [
     key: 'people',
     category: 'People & Relationships',
     title: 'Dreaming of deceased loved ones',
+    synonyms: 'deceased, late relatives, ancestors',
     folk: 'Families commonly describe this as a comforting visitation, bringing peace rather than apprehension.',
     symbolic: 'A natural psychological bridge when processing grief, enduring love, or unfinished emotional reconciliation.'
   },
@@ -127,6 +139,7 @@ const SYMBOLS_EN: readonly DreamSymbol[] = [
     key: 'event',
     category: 'Life Events',
     title: 'Dreaming of a wedding',
+    synonyms: 'wedding, marriage, getting married',
     folk: 'Folk narratives tie weddings to new beginnings, not necessarily romantic matters.',
     symbolic: 'Weddings symbolize integration, binding commitment, or an impending life-altering crossroad.'
   }
@@ -190,11 +203,28 @@ function renderSvgIcon(name: string, size = 18, color = "currentColor") {
 export function DreamSymbolPreview({ locale, className }: DreamSymbolPreviewProps) {
   const isVi = locale === "vi";
   const [category, setCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({ 0: true });
 
   const categories = isVi ? CATEGORIES_VI : CATEGORIES_EN;
   const allSymbols = isVi ? SYMBOLS_VI : SYMBOLS_EN;
-  const visibleSymbols = category === "all" ? allSymbols : allSymbols.filter((s) => s.key === category);
+  const bySameCategory = allSymbols.reduce<Record<string, string[]>>((acc, s) => {
+    (acc[s.key] = acc[s.key] || []).push(s.title);
+    return acc;
+  }, {});
+
+  const query = searchQuery.trim().toLowerCase();
+  const byCategory = category === "all" ? allSymbols : allSymbols.filter((s) => s.key === category);
+  const visibleSymbols = !query
+    ? byCategory
+    : byCategory.filter(
+        (s) =>
+          s.title.toLowerCase().includes(query) ||
+          s.synonyms.toLowerCase().includes(query) ||
+          s.folk.toLowerCase().includes(query) ||
+          s.symbolic.toLowerCase().includes(query)
+      );
+  const hasNoResults = visibleSymbols.length === 0;
   const limitItems = isVi ? LIMIT_ITEMS_VI : LIMIT_ITEMS_EN;
   const faqs = isVi ? FAQ_DATA_VI : FAQ_DATA_EN;
 
@@ -398,6 +428,26 @@ export function DreamSymbolPreview({ locale, className }: DreamSymbolPreviewProp
         {/* 02 LƯỚI BIỂU TƯỢNG */}
         <section style={{ padding: "0 0 clamp(56px, 9vw, 88px)" }} data-screen-label="02-luoi-bieu-tuong">
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
+            <div style={{ maxWidth: "480px", marginBottom: "20px" }}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={isVi ? "Tìm biểu tượng: rắn, nước, răng rụng..." : "Search symbols: snakes, water, falling teeth..."}
+                aria-label={isVi ? "Tìm biểu tượng giấc mơ" : "Search dream symbols"}
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "12px 16px",
+                  fontSize: "14.5px",
+                  fontFamily: "var(--font-ui)",
+                  color: "var(--text-heading)",
+                  background: "var(--surface-panel)",
+                  border: "1px solid var(--border-hairline)",
+                  borderRadius: "var(--radius-md, 8px)",
+                }}
+              />
+            </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "32px" }}>
               {categories.map((c) => {
                 const isActive = c.key === category;
@@ -423,6 +473,14 @@ export function DreamSymbolPreview({ locale, className }: DreamSymbolPreviewProp
                 );
               })}
             </div>
+
+            {hasNoResults && (
+              <p style={{ fontSize: "14.5px", color: "var(--text-faint)" }}>
+                {isVi
+                  ? `Không tìm thấy biểu tượng khớp với "${searchQuery}" trong thư viện hiện tại.`
+                  : `No symbols match "${searchQuery}" in the current library.`}
+              </p>
+            )}
 
             <div
               style={{
@@ -470,6 +528,25 @@ export function DreamSymbolPreview({ locale, className }: DreamSymbolPreviewProp
                       {isVi ? "Biểu tượng/tâm lý:" : "Symbolic/Psychology:"}
                     </strong>{" "}
                     {s.symbolic}
+                  </p>
+                  <p style={{ margin: "12px 0 0", fontSize: "13px", lineHeight: 1.6, color: "var(--text-body)", fontStyle: "italic" }}>
+                    {isVi
+                      ? "Điều gì trong giấc mơ khiến bạn chú ý nhất — chi tiết đó thường quan trọng hơn bản thân biểu tượng."
+                      : "What drew your attention most in the dream — that detail is often more meaningful than the symbol alone."}
+                  </p>
+                  <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid var(--border-hairline)" }}>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: "9.5px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-faint)" }}>
+                      {isVi ? "Biểu tượng liên quan" : "Related symbols"}
+                    </div>
+                    <div style={{ marginTop: "6px", fontSize: "13px", color: "var(--text-muted)" }}>
+                      {bySameCategory[s.key]?.filter((t) => t !== s.title).join(" · ") ||
+                        (isVi ? "Chưa có biểu tượng liên quan trong danh mục này." : "No related symbols in this category.")}
+                    </div>
+                  </div>
+                  <p style={{ margin: "10px 0 0", fontSize: "11px", color: "var(--text-faint)" }}>
+                    {isVi
+                      ? "Biên tập nội bộ Lá Số Việt, tổng hợp quan niệm dân gian phổ biến — không phải trích dẫn từ một nguồn học thuật duy nhất."
+                      : "Editorial synthesis by La So Viet based on popular folk concepts — not cited from a single academic source."}
                   </p>
                 </div>
               ))}

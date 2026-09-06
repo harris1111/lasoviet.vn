@@ -36,9 +36,8 @@ export const BAT_TU_CONTENT_VI: DisciplinePageContent = {
   sampleResult: {
     eyebrow: "03 · Cấu trúc mẫu",
     title: "Tứ Trụ trông như thế nào",
-    note: "Hồ sơ dưới đây là ví dụ minh hoạ cấu trúc — không phải dữ liệu người dùng thật và chưa qua engine tính toán.",
+    note: "Hồ sơ dưới đây là ví dụ minh hoạ cấu trúc — không phải dữ liệu người dùng thật và chưa qua engine tính toán. Bấm hoặc dùng phím Tab + Enter trên một trụ để xem chi tiết bên dưới.",
     disclosure: "Hồ sơ minh họa phương pháp, không phải kết quả tính từ dữ liệu thật.",
-    subnote: "Thập Thần (Ten Gods) và bảng quan hệ hình – xung – hợp – hại sẽ hiển thị cạnh bốn trụ khi tính năng luận giải ra mắt.",
   },
   glossary: {
     eyebrow: "04 · Thuật ngữ cốt lõi",
@@ -129,9 +128,8 @@ export const BAT_TU_CONTENT_EN: DisciplinePageContent = {
   sampleResult: {
     eyebrow: "03 · Sample structure",
     title: "What Four Pillars look like",
-    note: "The profile below illustrates structural layout — not actual user data and not yet processed by the engine.",
+    note: "The profile below illustrates structural layout — not actual user data and not yet processed by the engine. Click or use Tab + Enter on a pillar to inspect details below.",
     disclosure: "Illustrative sample profile demonstrating methodology, not real user data.",
-    subnote: "Ten Gods and branch interaction relationships will appear beside pillars once live.",
   },
   glossary: {
     eyebrow: "04 · Core terms",

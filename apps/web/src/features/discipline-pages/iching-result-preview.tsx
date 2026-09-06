@@ -6,32 +6,39 @@ export type IchingResultPreviewProps = {
 };
 
 type HexagramLine = {
+  num: string;
   yang?: boolean;
   yin?: boolean;
   moving?: boolean;
   color: string;
+  stateColor: string;
+  stateLabel: string;
 };
-
-const PRIMARY_LINES: readonly HexagramLine[] = [
-  { yang: true, moving: false, color: "var(--pearl-200)" },
-  { yang: true, moving: false, color: "var(--pearl-200)" },
-  { yang: true, moving: false, color: "var(--pearl-200)" },
-  { yang: true, moving: true, color: "var(--son, #ce5b45)" },
-  { yang: true, moving: false, color: "var(--pearl-200)" },
-  { yang: true, moving: false, color: "var(--pearl-200)" },
-];
-
-const CHANGED_LINES: readonly HexagramLine[] = [
-  { yang: true, color: "var(--pearl-200)" },
-  { yang: true, color: "var(--pearl-200)" },
-  { yin: true, color: "var(--pearl-200)" },
-  { yang: true, color: "var(--pearl-200)" },
-  { yang: true, color: "var(--pearl-200)" },
-  { yang: true, color: "var(--pearl-200)" },
-];
 
 export function IchingResultPreview({ locale, className }: IchingResultPreviewProps) {
   const isVi = locale === "vi";
+
+  // Quẻ Thuần Càn (01) với hào 3 (từ dưới lên) động, biến thành quẻ Thiên Trạch Lý (10):
+  // Thượng quái Càn (☰) không đổi, hạ quái đổi từ Càn (☰) sang Đoài (☱) vì hào 3 (Dương) hoá Âm.
+  // Mảng liệt kê từ hào 1 (dưới cùng, gieo trước) đến hào 6 (trên cùng) để giữ đúng thứ tự đọc DOM.
+  // flex-direction: column-reverse lật hiển thị để hào 1 nằm dưới cùng, hào 6 trên cùng.
+  const primaryLines: readonly HexagramLine[] = [
+    { num: "H1", yang: true, moving: false, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H2", yang: true, moving: false, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H3", yang: true, moving: true, color: "var(--son, #ce5b45)", stateColor: "var(--son, #ce5b45)", stateLabel: isVi ? "Dương · Động" : "Yang · Changing" },
+    { num: "H4", yang: true, moving: false, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H5", yang: true, moving: false, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H6", yang: true, moving: false, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+  ];
+
+  const changedLines: readonly HexagramLine[] = [
+    { num: "H1", yang: true, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H2", yang: true, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H3", yin: true, yang: false, color: "var(--pearl-200)", stateColor: "var(--son, #ce5b45)", stateLabel: isVi ? "Âm · Đã đổi" : "Yin · Changed" },
+    { num: "H4", yang: true, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H5", yang: true, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+    { num: "H6", yang: true, color: "var(--pearl-200)", stateColor: "var(--text-faint)", stateLabel: isVi ? "Dương" : "Yang" },
+  ];
 
   return (
     <div className={className} data-discipline-preview="kinh-dich">
@@ -81,15 +88,26 @@ export function IchingResultPreview({ locale, className }: IchingResultPreviewPr
               gap: "10px",
             }}
           >
-            {PRIMARY_LINES.map((ln, idx) => (
+            {primaryLines.map((ln) => (
               <div
-                key={idx}
+                key={ln.num}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
                 }}
               >
+                <span
+                  style={{
+                    flex: "none",
+                    width: "26px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    color: "var(--text-faint)",
+                  }}
+                >
+                  {ln.num}
+                </span>
                 {ln.yin && (
                   <div style={{ flex: 1, display: "flex", gap: "16%" }}>
                     <span
@@ -120,18 +138,16 @@ export function IchingResultPreview({ locale, className }: IchingResultPreviewPr
                     }}
                   />
                 )}
-                {ln.moving && (
-                  <span
-                    style={{
-                      flex: "none",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "9.5px",
-                      color: "var(--son, #ce5b45)",
-                    }}
-                  >
-                    {isVi ? "HÀO ĐỘNG" : "CHANGING LINE"}
-                  </span>
-                )}
+                <span
+                  style={{
+                    flex: "none",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "9.5px",
+                    color: ln.stateColor,
+                  }}
+                >
+                  {ln.stateLabel}
+                </span>
               </div>
             ))}
           </div>
@@ -219,10 +235,28 @@ export function IchingResultPreview({ locale, className }: IchingResultPreviewPr
               gap: "10px",
             }}
           >
-            {CHANGED_LINES.map((ln, idx) => (
-              <div key={idx}>
+            {changedLines.map((ln) => (
+              <div
+                key={ln.num}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <span
+                  style={{
+                    flex: "none",
+                    width: "26px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    color: "var(--text-faint)",
+                  }}
+                >
+                  {ln.num}
+                </span>
                 {ln.yin && (
-                  <div style={{ display: "flex", gap: "16%" }}>
+                  <div style={{ flex: 1, display: "flex", gap: "16%" }}>
                     <span
                       style={{
                         flex: 1,
@@ -244,12 +278,23 @@ export function IchingResultPreview({ locale, className }: IchingResultPreviewPr
                 {ln.yang && (
                   <div
                     style={{
+                      flex: 1,
                       height: "12px",
                       borderRadius: "2px",
                       background: ln.color,
                     }}
                   />
                 )}
+                <span
+                  style={{
+                    flex: "none",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "9.5px",
+                    color: ln.stateColor,
+                  }}
+                >
+                  {ln.stateLabel}
+                </span>
               </div>
             ))}
           </div>

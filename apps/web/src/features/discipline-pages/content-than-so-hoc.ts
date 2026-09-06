@@ -38,7 +38,6 @@ export const THAN_SO_HOC_CONTENT_VI: DisciplinePageContent = {
     title: "Một phép tính đầy đủ trông như thế nào",
     note: "Ví dụ dưới đây dùng tên và ngày sinh giả định để minh hoạ đúng công thức Pythagorean — không phải dữ liệu người dùng thật.",
     disclosure: "Ví dụ tính số minh họa phương pháp, không phải kết quả tính từ dữ liệu thật.",
-    subnote: "Ô có dấu ● là chữ số xuất hiện trong ngày sinh; ô trống là chữ số vắng mặt — chỉ để minh hoạ cách đọc bảng, không phải nhận định tính cách.",
   },
   glossary: {
     eyebrow: "04 · Thuật ngữ cốt lõi",
@@ -134,7 +133,6 @@ export const THAN_SO_HOC_CONTENT_EN: DisciplinePageContent = {
     title: "What a complete calculation looks like",
     note: "The example below uses assumed names and dates to illustrate Pythagorean formulas — not real user data.",
     disclosure: "Illustrative calculation sample demonstrating method, not real user data.",
-    subnote: "Marked cells show numbers appearing in birth dates; blank cells indicate absences for chart reading.",
   },
   glossary: {
     eyebrow: "04 · Core terms",

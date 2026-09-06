@@ -6,6 +6,7 @@ import { buildStructuredData, StructuredDataError } from "../../seo/structured-d
 import { getDisciplinePageProvider } from "../discipline-pages/discipline-page-provider";
 import { DisciplinePageShell } from "../discipline-pages/discipline-page-shell";
 import { DreamSymbolPreview } from "../free-tools/dream-symbol-preview";
+import { FengShuiPreview } from "../free-tools/feng-shui-preview";
 import { FreeToolsHub } from "../free-tools/free-tools-hub";
 import type { FreeToolKey } from "../free-tools/free-tools-page-model";
 import { getFreeToolsPageProvider } from "../free-tools/free-tools-page-provider";
@@ -146,15 +147,23 @@ export function PublicContentPage(props: PublicContentPageProps) {
       route: props.route,
       locale: props.locale,
     });
-    if (freeToolsModel && freeToolsModel.kind === "gated-preview") {
-      const gatedKind: GatedToolKind =
-        freeToolsModel.toolKey === "feng-shui" ? "huong-nha" : "xem-chi-tay";
-      return (
-        <div className="public-content">
-          <GatedToolPreview kind={gatedKind} locale={props.locale} />
-          <StructuredData content={props.content} route={props.route} />
-        </div>
-      );
+    if (freeToolsModel) {
+      if (freeToolsModel.kind === "flagship-preview") {
+        return (
+          <div className="public-content">
+            <FengShuiPreview locale={props.locale} />
+            <StructuredData content={props.content} route={props.route} />
+          </div>
+        );
+      }
+      if (freeToolsModel.kind === "gated-preview") {
+        return (
+          <div className="public-content">
+            <GatedToolPreview kind="xem-chi-tay" locale={props.locale} />
+            <StructuredData content={props.content} route={props.route} />
+          </div>
+        );
+      }
     }
   }
 

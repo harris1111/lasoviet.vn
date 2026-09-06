@@ -27,6 +27,7 @@ export type ToolStatusKind = "preview" | "waiting" | "experimental";
 
 export type ToolCardItem = {
   key: FreeToolKey;
+  group: string;
   icon: string;
   color: string;
   status: string;
@@ -35,7 +36,17 @@ export type ToolCardItem = {
   body: string;
   href: string;
   cta: string;
+  inputNeeded: string;
+  output: string;
+  timeEstimate: string;
+  cardClass?: string;
+  iconColor?: string;
   isFunctional: boolean;
+};
+
+export type ToolGroupItem = {
+  label: string;
+  tools: readonly ToolCardItem[];
 };
 
 export type FreeToolsFaqItem = {
@@ -52,6 +63,7 @@ export type FreeToolsHubContent = {
   title: string;
   description: string;
   tools: readonly ToolCardItem[];
+  toolGroups?: readonly ToolGroupItem[];
   principles: {
     heading: string;
     items: readonly string[];
@@ -88,6 +100,21 @@ export type UtilityPreviewPageModel<T = unknown> = {
   faqs: readonly FreeToolsFaqItem[];
 };
 
+export type FlagshipPreviewPageModel<T = unknown> = {
+  kind: "flagship-preview";
+  template: "gated-preview";
+  toolKey: "feng-shui";
+  slug: string;
+  locale: "vi" | "en";
+  title: string;
+  eyebrow: string;
+  description: string;
+  isFunctional: boolean;
+  isAvailable: boolean;
+  preview: PreviewData<T>;
+  faqs: readonly FreeToolsFaqItem[];
+};
+
 export type GatedPreviewPageModel = {
   kind: "gated-preview";
   template: "gated-preview";
@@ -108,6 +135,7 @@ export type GatedPreviewPageModel = {
 export type FreeToolsPageModel =
   | FreeToolsHubPageModel
   | UtilityPreviewPageModel
+  | FlagshipPreviewPageModel
   | GatedPreviewPageModel;
 
 export type FreeToolsPageContext = {

@@ -45,7 +45,7 @@ export function extractCoreVisibleStrings(content: DisciplinePageContent): Array
   strings.push({ path: "sampleResult.title", text: content.sampleResult.title });
   strings.push({ path: "sampleResult.note", text: content.sampleResult.note });
 
-  // For disciplines with full verbatim sections in prototype (e.g. Than So Hoc)
+  // For disciplines with full verbatim sections in prototype
   if (content.key === "than-so-hoc") {
     content.freeValue.items.forEach((item, idx) => {
       strings.push({ path: `freeValue.items[${idx}].title`, text: item.title });
@@ -130,6 +130,24 @@ describe("discipline prototype independent copy parity", () => {
       ).toEqual([]);
     });
   }
+
+
+  it("verifies specific prototype delta updates are in sync", () => {
+    const batTuCorpus = readPrototypeCorpus("prototype/bat-tu/index.html");
+    expect(batTuCorpus).toContain(normalizeComparableText(BAT_TU_CONTENT_VI.sampleResult.note));
+
+    const kinhDichCorpus = readPrototypeCorpus("prototype/kinh-dich/index.html");
+    const kinhDichCooldownRow = KINH_DICH_CONTENT_VI.method.rows.find((r) => r.label === "Giới hạn lượt gieo");
+    expect(kinhDichCooldownRow).toBeDefined();
+    expect(kinhDichCorpus).toContain(normalizeComparableText(kinhDichCooldownRow!.value));
+
+    const kinhDichFaq02 = KINH_DICH_CONTENT_VI.knowledgeFaq.faqs[1];
+    expect(kinhDichFaq02).toBeDefined();
+    expect(kinhDichCorpus).toContain(normalizeComparableText(kinhDichFaq02!.a));
+
+    const thanSoHocCorpus = readPrototypeCorpus("prototype/than-so-hoc/index.html");
+    expect(thanSoHocCorpus).toContain(normalizeComparableText(THAN_SO_HOC_CONTENT_VI.sampleResult.note));
+  });
 
   it("fails when an arbitrary visible string is deliberately changed", () => {
     const prototypeCorpus = readPrototypeCorpus("prototype/bat-tu/index.html");
