@@ -108,7 +108,7 @@ export function SiteHeader({
 
   const localeSwitcherHref = isVietnamese
     ? (currentPath ? (currentPath === "/" ? "/en" : "/en" + currentPath) : "/en")
-    : (currentPath ? (currentPath === "/en" ? "/" : currentPath.replace(/^\/en/, "")) : "/");
+    : (currentPath ? (currentPath === "/en" ? "/vi" : "/vi" + currentPath.replace(/^\/en/, "")) : "/vi");
 
   return React.createElement(
     React.Fragment,
