@@ -22,10 +22,10 @@ Use Superpowers only. Do not invoke `/ck` or the CK CLI.
 ## Git State
 
 - Audited implementation baseline (2026-09-06): `63f3823c7d630f690588e23de45ad03bec1e2559` (`fix(web): prevent private report locale redirect loops`).
-- Current branch HEAD is `92c8a000a8a6c084ec3c0530c1c95d33d4fec0f6` (`docs: record Phase 04 browser acceptance`), the single descendant documentation commit beyond the audited implementation baseline (recording verification evidence and handoff updates).
+- Documentation commit `92c8a000a8a6c084ec3c0530c1c95d33d4fec0f6` (`docs: record Phase 04 browser acceptance`) was the single documentation commit immediately following audited implementation baseline `63f3823` and recorded browser acceptance, followed by later handoff-lineage correction `060ae351ba55a38db177e33ab303d634acc79760` (`docs: correct Phase 04 handoff lineage`).
 - A fresh `origin` fetch on 2026-09-05 established verified current `origin/master`: `9280954429fd2f123eebaf94ec04fa70ee4ea7c7`.
 - Merged current `origin/master` (`9280954429fd2f123eebaf94ec04fa70ee4ea7c7`) via merge commit `d6f500528f54bb6d6768d7b119e7a7d22ddc69e8`.
-- Ahead/behind status against `origin/master`: 0 behind; ahead count was 72 at prior implementation baseline `3b7f8d7`, 74 at prior documentation commit `35f2eb9`, 77 at audited implementation baseline `63f3823`, and 78 at single descendant documentation commit `92c8a00` (re-derive dynamically via `git rev-list --left-right --count origin/master...HEAD`).
+- Ahead/behind status against `origin/master`: 0 behind; ahead count was 72 at prior implementation baseline `3b7f8d7`, 74 at prior documentation commit `35f2eb9`, 77 at audited implementation baseline `63f3823`, 78 at documentation commit `92c8a00`, and 79 at `060ae35` (re-derive dynamically via `git rev-list --left-right --count origin/master...HEAD`).
 - No remote `feature/phase04-report-generation` branch exists.
 - Never push directly to `master`.
 - Do not merge, create a PR, or deploy without an explicit founder request.
