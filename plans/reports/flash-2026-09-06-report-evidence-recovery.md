@@ -3,59 +3,60 @@
 Date: 2026-09-06
 Branch: fix/report-evidence-recovery
 Base: 2392378e22dd3bac9b09e41ed0e2b56121cacd5e
+Reviewed Base: 2d17e8f1f462bfcc2111c7cc3574503ea20ba614
 
 ## Objective
-Implement a bounded, domain-safe recovery operation (`recoverEvidenceInvalidGeneration`) for terminal report generation failures caused by missing knowledge provisioning. The operation allows safe re-orchestration once knowledge is ingested, preserving immutable execution history and guaranteeing that duplicate recovery requests cannot produce duplicate queue jobs.
+Implement a bounded, domain-safe recovery operation (`recoverEvidenceInvalidGeneration`) for terminal report generation failures caused by missing knowledge provisioning. Ensure recovery outbox IDs and queue job keys are report-scoped, deterministic, and durable against collisions and retries, preserving transactional rollback and immutable execution history.
+
+## Durability Corrections & Architecture
+1. **Report-Scoped Deterministic Outbox IDs**:
+   - In `recoverEvidenceInvalidGeneration`, derived deterministic SHA-256 token from `${reservation.reportVersionId}::${trimmedRecoveryId}`.
+   - Token formats: `eventId: evt-recovery-${token}`, `traceId: trace-recovery-${token}`, `idempotencyKey: report-recovery:${token}`.
+   - Guarantees identical IDs for the same report and recoveryId; prevents cross-report collisions when different reports use the same human recoveryId.
+2. **Transaction Atomicity Preservation**:
+   - Removed duplicate error handling from inside the transaction callback.
+   - Any duplicate key error during `enqueueOutbox` immediately aborts the transaction callback, triggering a database-level `ROLLBACK`.
+   - Outside the transaction, duplicate outbox errors (`OutboxError` / `OUTBOX_DUPLICATE_KEY`) map to `{ ok: false, code: "WORKFLOW_STATE_CONFLICT" }`; all other errors re-throw.
+   - Affected reservations remain `terminal_failure` with original `stateVersion` and `lastErrorCode`.
+3. **Queue Job Idempotency and Old Job Preservation**:
+   - In `createOutboxDispatcher`, normal event queue idempotency keys remain untouched (`report-generate:${payload.reportVersionId}`).
+   - For recovery events (idempotency key starting with `report-recovery:`), queue job idempotency key is derived deterministically from the recovery event identity (`report-generate:${event.eventId}`).
+   - Old terminal queue jobs and generation attempts remain intact, while recovery creates exactly one fresh waiting queue job. Retries by the dispatcher remain idempotent via database unique constraints.
+4. **Integration Test Verification**:
+   - Extended PostgreSQL integration test to prove:
+     - Old terminal queue job/attempt remain unchanged.
+     - Recovery succeeds and dispatch creates one distinct waiting queue job.
+     - Dispatch retry does not duplicate queue jobs.
+     - The same human recoveryId works across two different reports without collision.
+     - Forced outbox collision causes `WORKFLOW_STATE_CONFLICT` and rolls back reservation state.
 
 ## Files Changed
-- `packages/backend/src/reports/report.service.ts`:
-  - Added `recoverEvidenceInvalidGeneration` method to `createReportService`.
-  - Added fail-closed precondition checks: caller-provided non-empty `recoveryId`, reservation existence and row lock, status `terminal_failure`, lastErrorCode exactly `REPORT_EVIDENCE_INVALID`, stateVersion matching `expectedStateVersion`, and absence of any immutable `report_versions` row.
-  - Atomically resets reservation status to `requested`, increments stateVersion by 1, clears activeJobId, lastErrorCode, and nextAttemptAt, while strictly preserving attemptCount and all source/identity fields.
-  - Leaves historical `report_queue_jobs` and `report_generation_attempts` rows untouched as immutable audit records.
-  - Atomically enqueues a fresh `report.generation.requested.v1` outbox event using exact payload fields from the reservation, aggregateType `report`, aggregateId `reportVersionId`, actorId `null`, and deterministic bounded eventId, traceId, and idempotencyKey derived from the recoveryId.
-  - Guarantees fail-closed error handling: `REPORT_NOT_FOUND`, `WORKFLOW_STATE_CONFLICT`, `REPORT_VERSION_CONFLICT`, and `RECOVERY_ID_INVALID`.
-- `tests/jobs/report-generation.integration.test.ts`:
-  - Added focused integration test against PostgreSQL container verifying end-to-end recovery behavior:
-    - Verifies reservation reset to `requested` with incremented stateVersion, null activeJobId/lastErrorCode/nextAttemptAt, and preserved attemptCount and identity fields.
-    - Verifies old terminal queue job and generation attempt remain immutable with `REPORT_EVIDENCE_INVALID`.
-    - Verifies exactly one pending outbox event enqueued with exact payload fields and deterministic recovery idempotency key.
-    - Verifies repeat calls with stale expected state version fail closed with `WORKFLOW_STATE_CONFLICT` without duplicate outbox events.
-    - Verifies repeat calls against already-requested state version fail closed with `WORKFLOW_STATE_CONFLICT` without duplicate outbox events.
-    - Verifies fail-closed validation for whitespace recovery IDs (`RECOVERY_ID_INVALID`).
-    - Verifies fail-closed validation for non-existent reports (`REPORT_NOT_FOUND`).
-    - Verifies fail-closed validation when an immutable report version already exists (`REPORT_VERSION_CONFLICT`).
+- `packages/backend/src/reports/report.service.ts`: Report-scoped token derivation and transactional rollback on outbox collision.
+- `packages/backend/src/outbox/outbox.dispatcher.ts`: Distinct queue job idempotency key for `report-recovery:` events.
+- `tests/jobs/report-generation.integration.test.ts`: Extended integration test covering dispatch, retry idempotency, cross-report recovery IDs, and collision rollback.
+- `plans/reports/flash-2026-09-06-report-evidence-recovery.md`: Updated documentation and verification record.
 
-## RED Phase Evidence
-- Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
-- Output:
-```text
-FAIL  tests/jobs/report-generation.integration.test.ts > report generation orchestration and worker integration (Slice B) > recovers terminal failure caused by missing knowledge, preserving history and enqueuing requested outbox event
-TypeError: reportService.recoverEvidenceInvalidGeneration is not a function
- ❯ tests/jobs/report-generation.integration.test.ts:2332:57
-    2330|     const reportService = createReportService(database);
-    2331|     const recoveryResult = await (reportService as any).recoverEvidenceInvalidGeneration({
-```
-- Result: 1 failed | 25 skipped.
-
-## GREEN Phase Evidence
-- Focused test:
+## Focused Verification Evidence
+- Focused integration test:
   - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
-  - Output: `Test Files 1 passed (1) | Tests 1 passed | 25 skipped (26) | Duration 4.58s`
-- Full test suite:
-  - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts`
-  - Output: `Test Files 1 passed (1) | Tests 26 passed (26) | Duration 10.04s`
-
-## Verification Checks
-- `@lasoviet/backend` build: `pnpm --filter @lasoviet/backend run build` passed cleanly in 3.06s.
-- Workspace typecheck: `pnpm run typecheck` passed cleanly across all 10 workspace projects.
-- Whitespace and diff sanity: `git diff --check` returned 0 issues.
-- Zero secrets, zero VPS access, zero scope broadening, zero mutation of queue/attempt history.
+  - Output: `Test Files 1 passed (1) | Tests 1 passed | 25 skipped (26) | Duration 4.31s`
+- Backend unit tests:
+  - Command: `pnpm vitest run packages/backend/src/outbox/outbox.dispatcher.test.ts`
+  - Output: `Test Files 1 passed (1) | Tests 4 passed (4) | Duration 580ms`
+- Backend build:
+  - Command: `pnpm --filter @lasoviet/backend run build`
+  - Output: `$ tsc -p tsconfig.json` (Clean exit code 0)
+- Backend typecheck:
+  - Command: `pnpm --filter @lasoviet/backend run typecheck`
+  - Output: `$ tsc -p tsconfig.typecheck.json --noEmit` (Clean exit code 0)
+- Whitespace and diff sanity:
+  - Command: `git diff --check`
+  - Output: Clean exit code 0, no whitespace or formatting issues.
 
 ## Unresolved Questions
 None.
 
 ## Status Contract
 **Status:** DONE
-**Summary:** Implemented bounded, domain-safe `recoverEvidenceInvalidGeneration` on `createReportService` with optimistic concurrency control, immutable failure history preservation, and atomic `report.generation.requested.v1` outbox re-dispatch.
+**Summary:** Implemented durable evidence recovery with report-scoped SHA-256 tokens, strict transaction rollback on outbox conflicts, distinct queue job idempotency keys for recovery events, and comprehensive PostgreSQL integration verification.
 **Concerns/Blockers:** None

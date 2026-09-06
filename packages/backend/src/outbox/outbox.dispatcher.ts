@@ -46,12 +46,15 @@ export function createOutboxDispatcher(dependencies: OutboxDispatcherDependencie
         return { dispatched: false };
       }
       try {
+        const queueJobIdempotencyKey = event.idempotencyKey.startsWith("report-recovery:")
+          ? `report-generate:${event.eventId}`
+          : `report-generate:${payload.reportVersionId}`;
         await dependencies.publish({
           schemaVersion: 1,
           name: "report.generate.v1",
           sourceEventId: event.eventId,
           traceId: event.traceId,
-          idempotencyKey: `report-generate:${payload.reportVersionId}`,
+          idempotencyKey: queueJobIdempotencyKey,
           payload,
         });
         await dependencies.markProcessed(event.id);

@@ -33,11 +33,14 @@ import {
 } from "../../packages/database/src/index.js";
 import {
   createAiProductionGate,
+  createDatabaseOutboxStore,
   createDatabaseReportGenerationSourceRepository,
+  createDatabaseReportQueuePublisher,
   createDatabaseReportQueueStore,
   createDatabaseReportVersionRepository,
   createKnowledgeIngestionService,
   createKnowledgeRetrievalService,
+  createOutboxDispatcher,
   createReportGenerationService,
   createReportService,
   type AiProvider,
@@ -2387,7 +2390,12 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     expect(outboxEvent.aggregateId).toBe(fixture.reportVersionId);
     expect(outboxEvent.actorId).toBeNull();
     expect(outboxEvent.schemaVersion).toBe(1);
-    expect(outboxEvent.idempotencyKey).toBe("report-recovery:rec-2026-09-06-001");
+    const expectedRecoveryToken = createHash("sha256")
+      .update(`${fixture.reportVersionId}::rec-2026-09-06-001`)
+      .digest("hex");
+    expect(outboxEvent.eventId).toBe(`evt-recovery-${expectedRecoveryToken}`);
+    expect(outboxEvent.traceId).toBe(`trace-recovery-${expectedRecoveryToken}`);
+    expect(outboxEvent.idempotencyKey).toBe(`report-recovery:${expectedRecoveryToken}`);
     expect(outboxEvent.payload).toEqual({
       reportId: fixture.reportId,
       reportVersionId: fixture.reportVersionId,
@@ -2400,6 +2408,158 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
     });
+
+    // Dispatch outbox recovery event to create exactly one distinct waiting queue job
+    const outboxStore = createDatabaseOutboxStore(database, "test-recovery-dispatcher");
+    const queuePublisher = createDatabaseReportQueuePublisher(database);
+    const dispatcher = createOutboxDispatcher({
+      claim: () => outboxStore.claim(),
+      markProcessed: (id) => outboxStore.markProcessed(id),
+      release: (id, code) => outboxStore.release(id, code),
+      publish: (job) => queuePublisher.publish(job),
+    });
+
+    const dispatchResult = await dispatcher.dispatchOne();
+    expect(dispatchResult).toEqual({ dispatched: true });
+
+    // Verify exactly one distinct waiting queue job created
+    const allJobsAfterDispatch = await database.select().from(reportQueueJobs);
+    const waitingRecoveryJobs = allJobsAfterDispatch.filter(
+      (j) =>
+        j.status === "waiting" &&
+        (j.payload as { reportVersionId?: string })?.reportVersionId === fixture.reportVersionId,
+    );
+    expect(waitingRecoveryJobs).toHaveLength(1);
+    const freshJob = waitingRecoveryJobs[0];
+    expect(freshJob.id).toBe(`report-generate:${outboxEvent.eventId}`);
+    expect(freshJob.idempotencyKey).toBe(`report-generate:${outboxEvent.eventId}`);
+    expect(freshJob.sourceEventId).toBe(outboxEvent.eventId);
+    expect(freshJob.traceId).toBe(outboxEvent.traceId);
+    expect(freshJob.payload).toEqual(outboxEvent.payload);
+
+    // Verify old terminal queue job and attempt remain unchanged
+    const [originalJobAfterDispatch] = await database
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.id, fixture.jobId));
+    expect(originalJobAfterDispatch?.status).toBe("terminal_failure");
+    expect(originalJobAfterDispatch?.lastErrorCode).toBe("REPORT_EVIDENCE_INVALID");
+    expect(originalJobAfterDispatch?.attemptCount).toBe(1);
+
+    const attemptsAfterDispatch = await database
+      .select()
+      .from(reportGenerationAttempts)
+      .where(eq(reportGenerationAttempts.reportVersionId, fixture.reportVersionId));
+    expect(attemptsAfterDispatch).toHaveLength(1);
+    expect(attemptsAfterDispatch[0].status).toBe("failed");
+    expect(attemptsAfterDispatch[0].errorCode).toBe("REPORT_EVIDENCE_INVALID");
+
+    // Verify dispatch retry does not create another queue job
+    await database
+      .update(outbox)
+      .set({ status: "pending", processedAt: null, leasedBy: null, leasedUntil: null })
+      .where(eq(outbox.id, outboxEvent.id));
+
+    const retryDispatchResult = await dispatcher.dispatchOne();
+    expect(retryDispatchResult).toEqual({ dispatched: true });
+
+    const allJobsAfterRetry = await database.select().from(reportQueueJobs);
+    const jobsForFirstReport = allJobsAfterRetry.filter(
+      (j) => (j.payload as { reportVersionId?: string })?.reportVersionId === fixture.reportVersionId,
+    );
+    expect(jobsForFirstReport).toHaveLength(2);
+    expect(jobsForFirstReport.filter((j) => j.status === "terminal_failure")).toHaveLength(1);
+    expect(jobsForFirstReport.filter((j) => j.status === "waiting")).toHaveLength(1);
+
+    // Verify the same human recoveryId works for two different reports without collision
+    const secondFixture = await seedFullOrchestrationFixture(database, "evidence-recovery-second", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    await database
+      .update(reportReservations)
+      .set({
+        status: "terminal_failure",
+        lastErrorCode: "REPORT_EVIDENCE_INVALID",
+        activeJobId: secondFixture.jobId,
+        attemptCount: 1,
+      })
+      .where(eq(reportReservations.reportVersionId, secondFixture.reportVersionId));
+
+    const secondRecoveryResult = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: secondFixture.reportVersionId,
+      expectedStateVersion: 1,
+      recoveryId: "rec-2026-09-06-001",
+    });
+    expect(secondRecoveryResult).toEqual({ ok: true, stateVersion: 2 });
+
+    const [secondReservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportVersionId, secondFixture.reportVersionId));
+    expect(secondReservation?.status).toBe("requested");
+    expect(secondReservation?.stateVersion).toBe(2);
+
+    const secondOutboxEvents = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.aggregateId, secondFixture.reportVersionId));
+    expect(secondOutboxEvents).toHaveLength(1);
+    const secondExpectedToken = createHash("sha256")
+      .update(`${secondFixture.reportVersionId}::rec-2026-09-06-001`)
+      .digest("hex");
+    expect(secondOutboxEvents[0].idempotencyKey).toBe(`report-recovery:${secondExpectedToken}`);
+    expect(secondOutboxEvents[0].idempotencyKey).not.toBe(outboxEvent.idempotencyKey);
+
+    // Verify forced outbox collision causes WORKFLOW_STATE_CONFLICT and affected reservation
+    // remains terminal_failure with its original stateVersion/error (transaction rollback)
+    const collisionFixture = await seedFullOrchestrationFixture(database, "evidence-recovery-collision", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    await database
+      .update(reportReservations)
+      .set({
+        status: "terminal_failure",
+        lastErrorCode: "REPORT_EVIDENCE_INVALID",
+        activeJobId: collisionFixture.jobId,
+        attemptCount: 1,
+      })
+      .where(eq(reportReservations.reportVersionId, collisionFixture.reportVersionId));
+
+    const forcedRecoveryId = "rec-forced-collision";
+    const forcedToken = createHash("sha256")
+      .update(`${collisionFixture.reportVersionId}::${forcedRecoveryId}`)
+      .digest("hex");
+
+    await database.insert(outbox).values({
+      schemaVersion: 1,
+      eventType: "report.generation.requested.v1",
+      eventId: `evt-recovery-${forcedToken}`,
+      occurredAt: new Date(),
+      traceId: `trace-recovery-${forcedToken}`,
+      actorId: null,
+      aggregateType: "report",
+      aggregateId: collisionFixture.reportVersionId,
+      idempotencyKey: `report-recovery:${forcedToken}`,
+      payload: {},
+    });
+
+    const collisionResult = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: collisionFixture.reportVersionId,
+      expectedStateVersion: 1,
+      recoveryId: forcedRecoveryId,
+    });
+    expect(collisionResult).toEqual({ ok: false, code: "WORKFLOW_STATE_CONFLICT" });
+
+    const [collisionReservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportVersionId, collisionFixture.reportVersionId));
+    expect(collisionReservation?.status).toBe("terminal_failure");
+    expect(collisionReservation?.stateVersion).toBe(1);
+    expect(collisionReservation?.lastErrorCode).toBe("REPORT_EVIDENCE_INVALID");
+    expect(collisionReservation?.activeJobId).toBe(collisionFixture.jobId);
 
     // Repeat call with stale expected version fails without duplicate outbox event
     const repeatStale = await reportService.recoverEvidenceInvalidGeneration({

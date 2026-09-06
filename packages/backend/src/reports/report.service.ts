@@ -406,86 +406,85 @@ export function createReportService(database: Database) {
         return { ok: false, code: "RECOVERY_ID_INVALID" };
       }
 
-      return database.transaction(async (tx) => {
-        const [reservation] = await tx
-          .select()
-          .from(reportReservations)
-          .where(eq(reportReservations.reportVersionId, params.reportVersionId))
-          .for("update");
+      try {
+        return await database.transaction(async (tx) => {
+          const [reservation] = await tx
+            .select()
+            .from(reportReservations)
+            .where(eq(reportReservations.reportVersionId, params.reportVersionId))
+            .for("update");
 
-        if (!reservation) {
-          return { ok: false, code: "REPORT_NOT_FOUND" };
-        }
+          if (!reservation) {
+            return { ok: false, code: "REPORT_NOT_FOUND" };
+          }
 
-        const [existingVersion] = await tx
-          .select({ id: reportVersions.id })
-          .from(reportVersions)
-          .where(eq(reportVersions.reportVersionId, params.reportVersionId))
-          .limit(1);
+          const [existingVersion] = await tx
+            .select({ id: reportVersions.id })
+            .from(reportVersions)
+            .where(eq(reportVersions.reportVersionId, params.reportVersionId))
+            .limit(1);
 
-        if (existingVersion) {
-          return { ok: false, code: "REPORT_VERSION_CONFLICT" };
-        }
+          if (existingVersion) {
+            return { ok: false, code: "REPORT_VERSION_CONFLICT" };
+          }
 
-        if (
-          reservation.status !== "terminal_failure" ||
-          reservation.lastErrorCode !== "REPORT_EVIDENCE_INVALID" ||
-          reservation.stateVersion !== params.expectedStateVersion
-        ) {
-          return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
-        }
+          if (
+            reservation.status !== "terminal_failure" ||
+            reservation.lastErrorCode !== "REPORT_EVIDENCE_INVALID" ||
+            reservation.stateVersion !== params.expectedStateVersion
+          ) {
+            return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+          }
 
-        const current = params.now ?? new Date();
-        const nextStateVersion = reservation.stateVersion + 1;
+          const current = params.now ?? new Date();
+          const nextStateVersion = reservation.stateVersion + 1;
 
-        const [updatedReservation] = await tx
-          .update(reportReservations)
-          .set({
-            status: "requested",
-            stateVersion: nextStateVersion,
-            activeJobId: null,
-            lastErrorCode: null,
-            nextAttemptAt: null,
-            updatedAt: current,
-          })
-          .where(
-            and(
-              eq(reportReservations.id, reservation.id),
-              eq(reportReservations.reportVersionId, params.reportVersionId),
-              eq(reportReservations.status, "terminal_failure"),
-              eq(reportReservations.lastErrorCode, "REPORT_EVIDENCE_INVALID"),
-              eq(reportReservations.stateVersion, params.expectedStateVersion),
-            ),
-          )
-          .returning();
+          const [updatedReservation] = await tx
+            .update(reportReservations)
+            .set({
+              status: "requested",
+              stateVersion: nextStateVersion,
+              activeJobId: null,
+              lastErrorCode: null,
+              nextAttemptAt: null,
+              updatedAt: current,
+            })
+            .where(
+              and(
+                eq(reportReservations.id, reservation.id),
+                eq(reportReservations.reportVersionId, params.reportVersionId),
+                eq(reportReservations.status, "terminal_failure"),
+                eq(reportReservations.lastErrorCode, "REPORT_EVIDENCE_INVALID"),
+                eq(reportReservations.stateVersion, params.expectedStateVersion),
+              ),
+            )
+            .returning();
 
-        if (!updatedReservation) {
-          return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
-        }
+          if (!updatedReservation) {
+            return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+          }
 
-        const payload: ReportGenerationRequestedV1 = {
-          reportId: reservation.reportId,
-          reportVersionId: reservation.reportVersionId,
-          entitlementId: reservation.entitlementId,
-          chartVersionId: reservation.chartVersionId,
-          evidenceVersionId: reservation.evidenceVersionId,
-          knowledgeVersionId: reservation.knowledgeVersionId,
-          promptVersion: reservation.promptVersion,
-          reportConfigVersion: reservation.reportConfigVersion,
-          locale: reservation.locale as "vi" | "en",
-          sku: reservation.sku,
-        };
+          const payload: ReportGenerationRequestedV1 = {
+            reportId: reservation.reportId,
+            reportVersionId: reservation.reportVersionId,
+            entitlementId: reservation.entitlementId,
+            chartVersionId: reservation.chartVersionId,
+            evidenceVersionId: reservation.evidenceVersionId,
+            knowledgeVersionId: reservation.knowledgeVersionId,
+            promptVersion: reservation.promptVersion,
+            reportConfigVersion: reservation.reportConfigVersion,
+            locale: reservation.locale as "vi" | "en",
+            sku: reservation.sku,
+          };
 
-        const safeToken =
-          trimmedRecoveryId.length <= 64 && /^[a-zA-Z0-9_-]+$/.test(trimmedRecoveryId)
-            ? trimmedRecoveryId
-            : createHash("sha256").update(trimmedRecoveryId).digest("hex");
+          const recoveryToken = createHash("sha256")
+            .update(`${reservation.reportVersionId}::${trimmedRecoveryId}`)
+            .digest("hex");
 
-        const eventId = `evt-recovery-${safeToken}`;
-        const traceId = `trace-recovery-${safeToken}`;
-        const idempotencyKey = `report-recovery:${safeToken}`;
+          const eventId = `evt-recovery-${recoveryToken}`;
+          const traceId = `trace-recovery-${recoveryToken}`;
+          const idempotencyKey = `report-recovery:${recoveryToken}`;
 
-        try {
           await enqueueOutbox(tx, {
             schemaVersion: 1,
             type: "report.generation.requested.v1",
@@ -498,21 +497,21 @@ export function createReportService(database: Database) {
             idempotencyKey,
             payload,
           });
-        } catch (error) {
-          if (
-            error instanceof OutboxError ||
-            (error &&
-              typeof error === "object" &&
-              "code" in error &&
-              (error as { code: string }).code === "OUTBOX_DUPLICATE_KEY")
-          ) {
-            return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
-          }
-          throw error;
-        }
 
-        return { ok: true, stateVersion: nextStateVersion };
-      });
+          return { ok: true, stateVersion: nextStateVersion };
+        });
+      } catch (error) {
+        if (
+          error instanceof OutboxError ||
+          (error &&
+            typeof error === "object" &&
+            "code" in error &&
+            (error as { code: string }).code === "OUTBOX_DUPLICATE_KEY")
+        ) {
+          return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+        }
+        throw error;
+      }
     },
   };
 }
