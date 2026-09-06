@@ -360,24 +360,32 @@ export function createReportService(database: Database) {
           return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
         }
 
+        const failureStage = params.failureStage ?? "generation";
         const failedPayload: ReportFulfillmentFailedV1 = {
           reportId: reservation.reportId,
           reportVersionId: params.reportVersionId,
-          failureStage: params.failureStage ?? "generation",
+          failureStage,
           errorCode: params.errorCode,
         };
 
-        const eventId = `evt-failed-${params.reportVersionId}`;
+        const failureToken = createHash("sha256")
+          .update(`${params.reportVersionId}::${params.jobId}::${failureStage}`)
+          .digest("hex");
+
+        const eventId = `evt-failed-${failureToken}`;
+        const traceId = `trace-failed-${failureToken}`;
+        const idempotencyKey = `report-failed:${failureToken}`;
+
         await enqueueOutbox(tx, {
           schemaVersion: 1,
           type: "report.fulfillment.failed.v1",
           eventId,
           occurredAt: current.toISOString(),
-          traceId: `trace-failed-${params.reportVersionId}`,
+          traceId,
           actorId: null,
           aggregateType: "report",
           aggregateId: params.reportVersionId,
-          idempotencyKey: `report-failed:${params.reportVersionId}:${params.failureStage ?? "generation"}`,
+          idempotencyKey,
           payload: failedPayload,
         });
 

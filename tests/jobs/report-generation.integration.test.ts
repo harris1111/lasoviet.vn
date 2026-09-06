@@ -2331,6 +2331,27 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       errorCode: "REPORT_EVIDENCE_INVALID",
     });
 
+    await database.insert(outbox).values({
+      schemaVersion: 1,
+      eventType: "report.fulfillment.failed.v1",
+      eventId: `evt-failed-${fixture.reportVersionId}`,
+      occurredAt: new Date("2026-09-06T00:00:00.000Z"),
+      traceId: `trace-failed-${fixture.reportVersionId}`,
+      actorId: null,
+      aggregateType: "report",
+      aggregateId: fixture.reportVersionId,
+      idempotencyKey: `report-failed:${fixture.reportVersionId}:generation`,
+      payload: {
+        reportId: fixture.reportId,
+        reportVersionId: fixture.reportVersionId,
+        failureStage: "generation",
+        errorCode: "REPORT_EVIDENCE_INVALID",
+      },
+      status: "processed",
+      attemptCount: 1,
+      processedAt: new Date("2026-09-06T00:01:00.000Z"),
+    });
+
     const reportService = createReportService(database);
     const recoveryResult = await reportService.recoverEvidenceInvalidGeneration({
       reportVersionId: fixture.reportVersionId,
@@ -2470,6 +2491,75 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     expect(jobsForFirstReport).toHaveLength(2);
     expect(jobsForFirstReport.filter((j) => j.status === "terminal_failure")).toHaveLength(1);
     expect(jobsForFirstReport.filter((j) => j.status === "waiting")).toHaveLength(1);
+
+    // Start generating with the distinct recovery job
+    await database
+      .update(reportQueueJobs)
+      .set({
+        status: "leased",
+        leasedBy: fixture.workerId,
+        leasedUntil: new Date(Date.now() + 60_000),
+      })
+      .where(eq(reportQueueJobs.id, freshJob.id));
+
+    const startGeneratingResult = await reportService.startGenerating({
+      reportVersionId: fixture.reportVersionId,
+      jobId: freshJob.id,
+      workerId: fixture.workerId,
+    });
+    expect(startGeneratingResult).toEqual({
+      ok: true,
+      report: expect.objectContaining({
+        status: "generating",
+        activeJobId: freshJob.id,
+        stateVersion: 3,
+      }),
+    });
+
+    // Terminal-fail the recovery job; must not collide with old failure event
+    const recoveryTerminalResult = await reportService.recordTerminalFailure({
+      reportVersionId: fixture.reportVersionId,
+      jobId: freshJob.id,
+      workerId: fixture.workerId,
+      errorCode: "REPORT_VALIDATION_FAILED",
+      failureStage: "generation",
+      expectedStateVersion: 3,
+    });
+    expect(recoveryTerminalResult).toEqual({ ok: true });
+
+    const [finalReservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportVersionId, fixture.reportVersionId));
+    expect(finalReservation?.status).toBe("terminal_failure");
+    expect(finalReservation?.lastErrorCode).toBe("REPORT_VALIDATION_FAILED");
+    expect(finalReservation?.stateVersion).toBe(4);
+
+    const [finalRecoveryJob] = await database
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.id, freshJob.id));
+    expect(finalRecoveryJob?.status).toBe("terminal_failure");
+    expect(finalRecoveryJob?.lastErrorCode).toBe("REPORT_VALIDATION_FAILED");
+    expect(finalRecoveryJob?.leasedBy).toBeNull();
+
+    const [finalOriginalJob] = await database
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.id, fixture.jobId));
+    expect(finalOriginalJob?.status).toBe("terminal_failure");
+    expect(finalOriginalJob?.lastErrorCode).toBe("REPORT_EVIDENCE_INVALID");
+    expect(finalOriginalJob?.attemptCount).toBe(1);
+
+    const failureOutboxEvents = (
+      await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.aggregateId, fixture.reportVersionId))
+    ).filter((e) => e.eventType === "report.fulfillment.failed.v1");
+    expect(failureOutboxEvents).toHaveLength(2);
+    expect(failureOutboxEvents[0].eventId).not.toBe(failureOutboxEvents[1].eventId);
+    expect(failureOutboxEvents[0].idempotencyKey).not.toBe(failureOutboxEvents[1].idempotencyKey);
 
     // Verify the same human recoveryId works for two different reports without collision
     const secondFixture = await seedFullOrchestrationFixture(database, "evidence-recovery-second", {
