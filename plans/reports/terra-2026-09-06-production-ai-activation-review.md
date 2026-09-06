@@ -88,3 +88,53 @@ Important or Critical issue is in this scope.
 **Status:** DONE
 **Summary:** Important environment migration/template finding is addressed.
 **Concerns/Blockers:** None in scope.
+
+## Scoped Terra High CI Correction Re-review (2026-09-06)
+
+**Verdict: ADDRESSED**
+
+### Critical
+
+None.
+
+### Important
+
+None.
+
+### Review Basis
+
+The supplied end object `e3ac430635da24c7f077dbb13b194d3fb0671607` is not
+available locally. The checked-out branch head is
+`e3ac430312cd1e9b0cb815066f0495f03e67b5dd`; this re-review assessed the
+available correction from `e46ab0f711fd71cd660f8090458e72b853df7ed4` to that
+head.
+
+`createReportGenerateRunner` retains queue exclusion and injected-gate denial
+before its new no-AI check. With none of the eight AI variables present, it
+returns the historical no-op before `loadEnvironment`, so unrelated missing
+`SEPAY_ENV` cannot block the report-only no-op path. When any AI variable is
+present, execution still reaches `loadEnvironment`; its complete-group parser
+rejects partial AI configuration, including a legacy group missing
+`AI_PRODUCTION_ENABLED`, with `PARTIAL_OPTIONAL_GROUP`.
+
+The restored integration case confirms the no-AI runner returns zero without
+leasing the pending job, incrementing attempts, creating a report version, or
+calling an AI provider. The correction adds only variable names and synthetic
+test/report text; no provider credential, endpoint, model, or secret is
+exposed.
+
+### Verification
+
+- `corepack pnpm@11.25.0 vitest run apps/worker/src/worker.module.test.ts`: 10 passed.
+- `corepack pnpm@11.25.0 vitest run packages/config/src/environment-schema.test.ts`: 57 passed.
+- Exact regression integration test: 1 passed, 24 filtered.
+- `corepack pnpm@11.25.0 --filter @lasoviet/worker run typecheck`: passed.
+- `git diff --check e46ab0f711fd71cd660f8090458e72b853df7ed4..HEAD`: passed.
+
+## Status Contract
+
+**Status:** DONE
+**Summary:** The CI correction addresses the disabled-AI startup failure while preserving partial-AI fail-closed behavior and injected-gate semantics.
+**Concerns/Blockers:** None in scope.
+**ADDRESSED:** Root cause, partial-AI fail-closed handling, injected-gate path, and secret-exposure check.
+**NOT ADDRESSED:** None.
