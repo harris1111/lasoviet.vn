@@ -24,11 +24,11 @@ Use Superpowers only. Do not invoke `/ck` or the CK CLI.
 A fresh `origin` fetch on 2026-09-05 established:
 
 - Audited implementation baseline: `3b7f8d7899bdd951ac96865851fe92370d809e20`.
-- Prior documentation commit HEAD before this documentation fix round: `021e7346dcc67b9afb0804f6a2e6de8d119a4183`.
+- Prior documentation commit HEAD before this documentation fix round: `35f2eb9a78a0159d0db3ef0d8fbac5dde0cdea00`.
 - Current branch HEAD includes subsequent documentation commits beyond the audited implementation baseline (recording verification evidence and handoff updates).
 - Verified current `origin/master`: `9280954429fd2f123eebaf94ec04fa70ee4ea7c7`.
 - Merged current `origin/master` (`9280954429fd2f123eebaf94ec04fa70ee4ea7c7`) via merge commit `d6f500528f54bb6d6768d7b119e7a7d22ddc69e8`.
-- Ahead/behind status against `origin/master`: 0 behind; ahead count was 72 at implementation baseline `3b7f8d7` and 73 at prior documentation commit `021e734`, incrementing with subsequent documentation commits on this branch (re-derive dynamically via `git rev-list --left-right --count origin/master...HEAD`).
+- Ahead/behind status against `origin/master`: 0 behind; ahead count was 72 at implementation baseline `3b7f8d7` and 74 at prior documentation commit `35f2eb9`, incrementing with subsequent documentation commits on this branch (re-derive dynamically via `git rev-list --left-right --count origin/master...HEAD`).
 - No remote `feature/phase04-report-generation` branch exists.
 - Never push directly to `master`.
 - Do not merge, create a PR, or deploy without an explicit founder request.
@@ -64,14 +64,19 @@ Vietnamese.
 - **Phase 04 implementation:** SePay Tasks 1-2, the durable report worker,
   approved knowledge retrieval, evidence-backed immutable generation, and the
   owner-authorized private HTML reader are implemented and reviewed on
-  `feature/phase04-report-generation`. In-page VietQR Tasks 1-5 are complete.
+  `feature/phase04-report-generation`. In-page VietQR Tasks 1-6 are complete.
+  Controller-verified evidence on 2026-09-06:
+  `corepack pnpm@11.25.0 vitest run`: 121 test files passed, 722 tests passed, 0 failed, 0 skipped; duration 16.00s on 2026-09-06.
+  Compose services: web healthy on 127.0.0.1:55453, API healthy, PostgreSQL healthy, Redis healthy, worker running; migration completed successfully during rebuild.
+  HTTP smoke: `/`, `/health/live`, `/health/ready` through http://127.0.0.1:55453 each returned HTTP 200.
+  Oversized SePay webhook: 65,537-byte request with valid synthetic ingress auth returned HTTP 413 and `{"ok":false}`; no real provider/payment activity.
+  `G:\Dev\Temp\lasoviet-mvp-phase04-compose.env` is absent after successful smoke and must not be recreated or printed.
 - **Phase 06 foundation:** Docker images, Compose topology, loopback-only web
   publication, and production-like free-MVP smoke evidence exist. This does not
   close the full release phase.
 
 ### In Progress
 
-- **In-page VietQR Task 6:** implementation and fixes complete through `3b7f8d7` (including final fix wave `3a884de` and content scope fix `3b7f8d7`). Non-Docker checks (`i18n:check`, `lint`, diff check) passed; full Vitest (110 passed files / 645 passed tests) and local Compose validation are BLOCKED by unavailable Docker daemon.
 - **Phase 04 closure:** production AI remains fail-closed pending provider
   privacy approval. Seven private-report Playwright cases require controlled
   owner/other/pending/ready/failed fixtures, and two lineage integration cases
@@ -94,16 +99,16 @@ Vietnamese.
 
 ## Immediate Next Execution
 
-The immediate execution task is **In-page VietQR Task 6 closure / Docker re-run**: re-run full Vitest suite and local synthetic Compose smoke checks once Docker daemon becomes available. Non-Docker verification is complete on `3b7f8d7`.
-
-Following that milestone, the next coding phase is **Phase 05: PDF, Garage storage,
-report email delivery, and owner account center**. Before claiming Phase 04 closed in the
-intended environment:
+With In-page VietQR Task 6 complete and verified, the immediate execution focus
+points only to the remaining Phase 04 closure gates:
 
 1. Record and approve provider privacy due diligence.
 2. Run the seven controlled private-report Playwright cases.
 3. Re-run the two PostgreSQL lineage cases with Docker available.
 4. Deploy or activate only after a separate explicit founder instruction.
+
+Following those gates, the next coding phase is **Phase 05: PDF, Garage storage,
+report email delivery, and owner account center**.
 
 ## External And Founder Gates
 
