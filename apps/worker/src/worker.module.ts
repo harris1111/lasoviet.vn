@@ -79,6 +79,15 @@ export function createOutboxDispatchRunner() {
   }));
 }
 
+const AI_CONFIG_VARIABLES = [
+  "AI_BASE_URL", "AI_API_KEY", "AI_MODEL", "AI_TIMEOUT",
+  "AI_MAX_RETRIES", "AI_FEATURE_JSON_SCHEMA", "AI_FEATURE_TOOL_CALLING", "AI_PRODUCTION_ENABLED",
+] as const;
+
+function hasAnyAiConfig(source: NodeJS.ProcessEnv): boolean {
+  return AI_CONFIG_VARIABLES.some((key) => source[key] !== undefined);
+}
+
 export function createReportGenerateRunner(options?: {
   gate?: AiProductionGate;
   provider?: AiProvider;
@@ -98,6 +107,10 @@ export function createReportGenerateRunner(options?: {
         return { processed: 0 };
       },
     };
+  }
+
+  if (!hasAnyAiConfig(process.env)) {
+    return { async runOnce() { return { processed: 0 }; } };
   }
 
   const environment = loadEnvironment(process.env);

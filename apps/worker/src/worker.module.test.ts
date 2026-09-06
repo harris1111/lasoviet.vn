@@ -31,6 +31,14 @@ describe("createReportGenerateRunner", () => {
     expect(result).toEqual({ processed: 0 });
   });
 
+  it("returns no-op runner when queue is present and AI variables are omitted even if SEPAY_ENV is missing", async () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    delete process.env.SEPAY_ENV;
+    const runner = createReportGenerateRunner();
+    const result = await runner.runOnce();
+    expect(result).toEqual({ processed: 0 });
+  });
+
   it("returns no-op runner when queue is present and AI is configured but AI_PRODUCTION_ENABLED is false", async () => {
     process.env.WORKER_QUEUES = "report.generate";
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
