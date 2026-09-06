@@ -24,6 +24,7 @@ Harden production report generation across three bounded domains with Test-Drive
    - `recordTerminalFailure` generated outbox IDs using `evt-failed-${reportVersionId}` and idempotency key `report-failed:${reportVersionId}:${stage}`.
    - If a report failed terminally, was subsequently recovered, and then the recovery job experienced a terminal failure, `enqueueOutbox` collided with the old failure event unique constraint, throwing `OutboxError` / `OUTBOX_DUPLICATE_KEY`.
    - The resulting transaction rollback prevented the recovery job and reservation from transitioning to terminal failure, leaving the job leased for repeated execution.
+   - **CI Follow-up Finding**: Full suite execution revealed a legacy test assertion in `tests/jobs/report-worker-state.integration.test.ts` expecting the old `report-failed:${reportVersionId}:generation` format. The test required updating to assert the SHA-256 derived idempotency key and event ID.
 
 ## Implementation & Durability Fixes
 1. **Adapter Robustness (`openai-compatible-adapter.ts`)**:
@@ -64,7 +65,26 @@ Harden production report generation across three bounded domains with Test-Drive
    - Command: `pnpm vitest run packages/backend/src/reports/identity-report-writer.test.ts`
    - Initial Run: `instructs provider with exact structural constraints for top-level, sections, and claim skeleton` failed because system prompt lacked detailed skeleton and section constraints.
    - Review Fix Strengthening: Test strengthened to assert literal container substrings (`"evidenceIds":[`, `"limitations":[`, `"suggestedActions":[{"category":`); failed as expected before prompt enhancement.
-3. **PostgreSQL Integration Test**:
+3. **Worker State Integration Test Assertion (CI Failure)**:
+   - Command: `pnpm vitest run tests/jobs/report-worker-state.integration.test.ts -t "marks terminal failure and emits report.fulfillment.failed.v1 upon third failed attempt"`
+   - Result: Failed with `AssertionError` expecting legacy `report-failed:${reportVersionId}:generation` while receiving the new SHA-256 derived `report-failed:${hash}`.
+4. **PostgreSQL Integration Test (Repeated Terminal Failure)**:
+   - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
+   - Result: Failed with `OutboxError: OUTBOX_DUPLICATE_KEY: event or idempotency key already exists` at `enqueueOutbox` during `recordTerminalFailure` on recovery job due to collision with old failure outbox event.
+
+### GREEN Evidence
+1. **Writer Unit Test (Review Fix)**:
+   - Command: `pnpm vitest run packages/backend/src/reports/identity-report-writer.test.ts`
+   - Result: `Test Files 1 passed (1) | Tests 3 passed (3) | Duration 311ms`
+   - Verified: All 8 structural rules and exact literal JSON container syntax (`"evidenceIds":[`, `"limitations":[`, `"suggestedActions":[{"category":`) verified.
+2. **Adapter & Writer Unit Tests**:
+   - Command: `pnpm vitest run packages/backend/src/ai/openai-compatible-adapter.test.ts packages/backend/src/reports/identity-report-writer.test.ts`
+   - Result: `Test Files 2 passed (2) | Tests 12 passed (12) | Duration 390ms`
+3. **Worker State Integration Test (CI Follow-up)**:
+   - Command: `pnpm vitest run tests/jobs/report-worker-state.integration.test.ts -t "marks terminal failure and emits report.fulfillment.failed.v1 upon third failed attempt"`
+   - Result: `Test Files 1 passed (1) | Tests 1 passed | 5 skipped (6) | Duration 4.41s`
+   - Verified: Verified SHA-256 deterministic idempotency key `report-failed:${hash}` and event ID `evt-failed-${hash}`.
+4. **PostgreSQL Integration Test**:
    - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
    - Result: Failed with `OutboxError: OUTBOX_DUPLICATE_KEY: event or idempotency key already exists` at `enqueueOutbox` during `recordTerminalFailure` on recovery job due to collision with old failure outbox event.
 
@@ -80,13 +100,13 @@ Harden production report generation across three bounded domains with Test-Drive
    - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
    - Result: `Test Files 1 passed (1) | Tests 1 passed | 25 skipped (26) | Duration 4.54s`
    - Verified: Initial terminal failure, successful recovery dispatch, recovery job leased and generating, second terminal failure transition succeeds with distinct event ID and idempotency key, both failure events preserved in outbox, reservation updated with new error code and incremented stateVersion.
-4. **Backend Build**:
+5. **Backend Build**:
    - Command: `pnpm --filter @lasoviet/backend run build`
    - Result: Clean exit code 0.
-5. **Backend Typecheck**:
+6. **Backend Typecheck**:
    - Command: `pnpm --filter @lasoviet/backend run typecheck`
    - Result: Clean exit code 0.
-6. **Whitespace and Formatting**:
+7. **Whitespace and Formatting**:
    - Command: `git diff --check`
    - Result: Clean exit code 0.
 
@@ -97,6 +117,7 @@ Harden production report generation across three bounded domains with Test-Drive
 - `packages/backend/src/reports/identity-report-writer.test.ts`: Unit test asserting all 8 structural constraints in writer system prompt.
 - `packages/backend/src/reports/report.service.ts`: SHA-256 derived deterministic eventId, traceId, and idempotencyKey for terminal failure outbox records.
 - `tests/jobs/report-generation.integration.test.ts`: Extended integration test covering repeated terminal failure across recovery jobs and distinct outbox event generation.
+- `tests/jobs/report-worker-state.integration.test.ts`: Updated terminal failure assertion to verify SHA-256 derived idempotency key and event ID.
 - `plans/reports/flash-2026-09-06-report-generation-production-followup.md`: Verification report.
 
 ## Unresolved Questions
