@@ -33,3 +33,10 @@ Implement bounded production AI activation wiring with strict TDD. Add `AI_PRODU
 
 ## Unresolved Questions
 None.
+
+## Correction Note (2026-09-06)
+- Addressed Terra milestone review finding regarding environment migration template gap.
+- Added commented optional AI configuration block to `.env.example` documenting all 8 required AI group variables (`AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_TIMEOUT`, `AI_MAX_RETRIES`, `AI_FEATURE_JSON_SCHEMA`, `AI_FEATURE_TOOL_CALLING`, and `AI_PRODUCTION_ENABLED=false` fail-closed default).
+- Documented that production report generation requires changing `AI_PRODUCTION_ENABLED` to true only after provider capability approval.
+- Verified zero real endpoints, models, keys, or secrets committed; SePay disabled configuration unchanged.
+- Verified `git diff --check` passed cleanly.
