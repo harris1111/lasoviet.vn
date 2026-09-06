@@ -18,6 +18,11 @@ export type OpenAiCompatibleAdapterOptions = {
   fetchImpl?: typeof fetch;
 };
 
+const GENERIC_JSON_INSTRUCTION =
+  "Return strictly one JSON object only, with no Markdown, code fences, wrappers, or trailing prose.";
+const INVALID_OUTPUT_CORRECTION =
+  "Correction: The previous response was invalid. Return strictly one JSON object only with no Markdown or prose.";
+
 function failure(
   code: AiProviderError["code"],
   retryable: boolean,
@@ -37,6 +42,42 @@ function isUnsupportedStatus(status: number): boolean {
   return status === 400 || status === 404 || status === 422;
 }
 
+function extractFirstJsonObject(raw: string): string | undefined {
+  const trimmed = raw.trimStart();
+  if (!trimmed.startsWith("{") || trimmed.startsWith("```")) {
+    return undefined;
+  }
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < trimmed.length; i += 1) {
+    const char = trimmed[i];
+    if (inString) {
+      if (escape) {
+        escape = false;
+      } else if (char === "\\") {
+        escape = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+    } else {
+      if (char === "\"") {
+        inString = true;
+      } else if (char === "{") {
+        depth += 1;
+      } else if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          return trimmed.slice(0, i + 1);
+        }
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function parseContent<TSchema extends z.ZodType>(
   response: unknown,
   schema: TSchema,
@@ -44,11 +85,15 @@ function parseContent<TSchema extends z.ZodType>(
   const content = (response as {
     choices?: Array<{ message?: { content?: unknown } }>;
   }).choices?.[0]?.message?.content;
-  if (typeof content !== "string" || content.trim() === "" || content.trim().startsWith("```")) {
+  if (typeof content !== "string") {
+    return undefined;
+  }
+  const jsonStr = extractFirstJsonObject(content);
+  if (!jsonStr) {
     return undefined;
   }
   try {
-    const parsed = schema.safeParse(JSON.parse(content));
+    const parsed = schema.safeParse(JSON.parse(jsonStr));
     return parsed.success ? parsed.data : undefined;
   } catch {
     return undefined;
@@ -87,23 +132,28 @@ export function createOpenAiCompatibleAdapter(
       if (!gate.allows(request.use)) {
         return failure("AI_PROVIDER_NOT_APPROVED", false);
       }
-      const body = JSON.stringify({
-        model: options.modelId,
-        messages: [
-          { role: "system", content: request.system },
-          { role: "user", content: request.user },
-        ],
-        max_tokens: request.maxOutputTokens,
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: request.schemaName,
-            strict: true,
-            schema: z.toJSONSchema(request.schema),
-          },
-        },
-      });
+      let hasInvalidOutput = false;
       for (let attempt = 0; attempt <= options.retryCount; attempt += 1) {
+        let systemPrompt = `${request.system} ${GENERIC_JSON_INSTRUCTION}`;
+        if (hasInvalidOutput) {
+          systemPrompt += ` ${INVALID_OUTPUT_CORRECTION}`;
+        }
+        const body = JSON.stringify({
+          model: options.modelId,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: request.user },
+          ],
+          max_tokens: request.maxOutputTokens,
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: request.schemaName,
+              strict: true,
+              schema: z.toJSONSchema(request.schema),
+            },
+          },
+        });
         const result = await fetchAttempt(fetchImpl, endpoint(options.baseUrl), {
           method: "POST",
           headers: {
@@ -129,10 +179,20 @@ export function createOpenAiCompatibleAdapter(
         try {
           payload = await result.json();
         } catch {
+          if (attempt < options.retryCount) {
+            hasInvalidOutput = true;
+            continue;
+          }
           return failure("AI_OUTPUT_INVALID", false);
         }
         const value = parseContent(payload, request.schema);
-        if (value === undefined) return failure("AI_OUTPUT_INVALID", false);
+        if (value === undefined) {
+          if (attempt < options.retryCount) {
+            hasInvalidOutput = true;
+            continue;
+          }
+          return failure("AI_OUTPUT_INVALID", false);
+        }
         const modelId = typeof (payload as { model?: unknown }).model === "string"
           ? (payload as { model: string }).model
           : options.modelId;

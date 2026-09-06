@@ -176,4 +176,97 @@ describe("identity report writer", () => {
     expect((request as { system: string }).system).toMatch(/English/i);
     expect((request as { system: string }).system).toMatch(/chart.*(?:calculation|calculat)|invent|fabricat/i);
   });
+  it("instructs provider with exact structural constraints for top-level, sections, and claim skeleton", async () => {
+    let capturedSystem = "";
+    const provider: AiProvider = {
+      async generateStructured(candidate) {
+        capturedSystem = candidate.system;
+        return {
+          ok: true,
+          value: {
+            value: {
+              sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
+                id,
+                title: `Mục ${index + 1}`,
+                narrative: "Nội dung diễn giải phản chiếu.",
+                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id)
+                  ? [{
+                    id: `claim-${index}`,
+                    text: "Gợi ý tự phản chiếu.",
+                    evidenceIds: ["ziwei.identity.life-palace"],
+                    interpretationBoundCode: "reflective_identity_only",
+                    confidence: "moderate",
+                    limitations: ["Phụ thuộc vào giờ sinh."],
+                    suggestedActions: [{ category: "reflect", text: "Ghi lại quan sát." }],
+                  }]
+                  : [],
+              })),
+              reflectionQuestions: ["Câu hỏi 1", "Câu hỏi 2", "Câu hỏi 3"],
+              summaryActions: ["Hành động 1"],
+            },
+            providerId: "9router-an",
+            modelId: "canonical-model",
+          },
+        } as never;
+      },
+    };
+    const evidence: EvidenceSetV1 = {
+      version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1",
+      items: [{
+        id: "ziwei.identity.life-palace", factReferences: ["soulPalaceId"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }, {
+        id: "ziwei.identity.body-palace", factReferences: ["bodyPalaceId"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }, {
+        id: "ziwei.identity.transformations", factReferences: ["transformations"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }],
+    };
+    await writeIdentityReportDraft({
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+      chartVersionId: "chart-1",
+      evidence,
+      frozenFacts: {
+        version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1,
+        facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
+      },
+      knowledgePassages: [{ id: "knowledge-1", content: "Nội dung phê duyệt." }],
+      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v1", promptVersion: "prompt.v1", templateVersion: "template.v1" },
+      provider,
+    });
+
+    expect(capturedSystem).toMatch(/sections.*reflectionQuestions.*summaryActions/);
+    for (const sectionId of IDENTITY_REPORT_SECTION_IDS) {
+      expect(capturedSystem).toContain(sectionId);
+    }
+    expect(capturedSystem).toMatch(/id.*title.*narrative.*claims/);
+    expect(capturedSystem).toMatch(/id.*text.*evidenceIds.*interpretationBoundCode.*confidence.*limitations.*suggestedActions/);
+    expect(capturedSystem).toMatch(/exactly one.*evidence/i);
+    expect(capturedSystem).toMatch(/interpretationBoundCode/);
+    expect(capturedSystem).toMatch(/confidence/);
+    expect(capturedSystem).toMatch(/action/i);
+    expect(capturedSystem).toMatch(/1-3/);
+    expect(capturedSystem).toMatch(/0-2/);
+    const requiredSections = [
+      "personal_summary",
+      "primary_evidence",
+      "strengths_and_resources",
+      "tensions_and_blind_spots",
+      "identity_analysis",
+      "cycles_and_timing",
+      "within_control",
+    ];
+    for (const reqSec of requiredSections) {
+      expect(capturedSystem).toContain(reqSec);
+    }
+    expect(capturedSystem).toMatch(/translate|rename|invent/i);
+    expect(capturedSystem).toContain('"evidenceIds":[');
+    expect(capturedSystem).toContain('"limitations":[');
+    expect(capturedSystem).toContain('"suggestedActions":[{"category":');
+  });
 });

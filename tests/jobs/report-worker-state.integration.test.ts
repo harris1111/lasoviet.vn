@@ -1,5 +1,5 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   authUsers,
@@ -265,7 +265,11 @@ describe("report worker state integration and lease recovery", () => {
     const allOutboxEvents = await database.select().from(outbox);
     const failedEvents = allOutboxEvents.filter((e) => e.eventType === "report.fulfillment.failed.v1");
     expect(failedEvents).toHaveLength(1);
-    expect(failedEvents[0].idempotencyKey).toBe(`report-failed:${reportVersionId}:generation`);
+    const expectedHash = createHash("sha256")
+      .update(`${reportVersionId}::${jobId}::generation`)
+      .digest("hex");
+    expect(failedEvents[0].idempotencyKey).toBe(`report-failed:${expectedHash}`);
+    expect(failedEvents[0].eventId).toBe(`evt-failed-${expectedHash}`);
 
     const pdfEvents = allOutboxEvents.filter((e) => e.eventType === "report.pdf.requested.v1");
     expect(pdfEvents).toHaveLength(0);

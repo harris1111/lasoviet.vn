@@ -147,4 +147,96 @@ describe("OpenAI-compatible adapter", () => {
     });
     expect(attempts).toBe(2);
   });
+  it("retries invalid non-JSON output and succeeds when next attempt returns schema-valid JSON", async () => {
+    let attempts = 0;
+    const calls: RequestInit[] = [];
+    const provider = createOpenAiCompatibleAdapter({
+      baseUrl: "https://ai.synthetic.test",
+      apiKey: "not-a-real-secret",
+      modelId: "synthetic-model",
+      timeoutMs: 100,
+      retryCount: 1,
+      productionGate: createAiProductionGate("approved"),
+      fetchImpl: async (_url, init) => {
+        attempts += 1;
+        calls.push(init!);
+        if (attempts === 1) {
+          return jsonResponse(responseBody("# Markdown Title\n\nThis is not JSON."));
+        }
+        return jsonResponse(responseBody("{\"value\":\"sentinel\"}"));
+      },
+    });
+
+    const result = await provider.generateStructured(request);
+    expect(result).toMatchObject({
+      ok: true,
+      value: { value: { value: "sentinel" }, providerId: "9router-an", modelId: "synthetic-model" },
+    });
+    expect(attempts).toBe(2);
+
+    const firstBody = JSON.parse(String(calls[0].body));
+    expect(firstBody.messages[0].content).toMatch(/one JSON object only/i);
+    expect(firstBody.messages[0].content).toMatch(/no Markdown/i);
+
+    const secondBody = JSON.parse(String(calls[1].body));
+    expect(secondBody.messages[0].content).toMatch(/correction/i);
+  });
+
+  it("extracts and validates the first complete JSON object when trailing prose is present", async () => {
+    const trailingProseContent = "{\"value\":\"sentinel\"}\n\nHere is some trailing explanation that should be ignored.";
+    const provider = createOpenAiCompatibleAdapter({
+      baseUrl: "https://ai.synthetic.test",
+      apiKey: "not-a-real-secret",
+      modelId: "synthetic-model",
+      timeoutMs: 100,
+      retryCount: 0,
+      productionGate: createAiProductionGate("approved"),
+      fetchImpl: async () => jsonResponse(responseBody(trailingProseContent)),
+    });
+
+    const result = await provider.generateStructured(request);
+    expect(result).toMatchObject({
+      ok: true,
+      value: { value: { value: "sentinel" } },
+    });
+  });
+
+  it("rejects responses with leading prose", async () => {
+    const leadingProse = createOpenAiCompatibleAdapter({
+      baseUrl: "https://ai.synthetic.test",
+      apiKey: "not-a-real-secret",
+      modelId: "synthetic-model",
+      timeoutMs: 100,
+      retryCount: 0,
+      productionGate: createAiProductionGate("approved"),
+      fetchImpl: async () => jsonResponse(responseBody("Here is the json: {\"value\":\"sentinel\"}")),
+    });
+    await expect(leadingProse.generateStructured(request)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "AI_OUTPUT_INVALID" },
+    });
+  });
+
+  it("does not add correction note on retryable HTTP status retry", async () => {
+    let attempts = 0;
+    const calls: RequestInit[] = [];
+    const provider = createOpenAiCompatibleAdapter({
+      baseUrl: "https://ai.synthetic.test",
+      apiKey: "not-a-real-secret",
+      modelId: "synthetic-model",
+      timeoutMs: 100,
+      retryCount: 1,
+      productionGate: createAiProductionGate("approved"),
+      fetchImpl: async (_url, init) => {
+        attempts += 1;
+        calls.push(init!);
+        return attempts === 1 ? jsonResponse({ error: { message: "busy" } }, 429) : jsonResponse(responseBody("{\"value\":\"sentinel\"}"));
+      },
+    });
+    await expect(provider.generateStructured(request)).resolves.toMatchObject({ ok: true });
+    expect(attempts).toBe(2);
+    const retryBody = JSON.parse(String(calls[1].body));
+    expect(retryBody.messages[0].content).not.toMatch(/correction/i);
+    expect(retryBody.messages[0].content).toMatch(/one JSON object only/i);
+  });
 });
