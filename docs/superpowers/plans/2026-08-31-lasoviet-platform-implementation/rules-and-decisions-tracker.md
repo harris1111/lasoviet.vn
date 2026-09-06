@@ -38,6 +38,7 @@
 | FD-032 | 2026-09-05 | Use Sol high as orchestrator/adjudicator, Gemini Flash high as the bounded coder, and Terra high as the independent milestone reviewer. Luna remains paused. | Approved | `AGENTS.md`, master plan, P04-T06 onward |
 | FD-033 | 2026-09-05 | For the production discipline-page integration, use Sol high for orchestration, Gemini Flash strict for implementation, and one Terra xhigh milestone review after the complete batch; the implementation PR targets `product/discipline-flagship-pages` | Approved | `docs/superpowers/plans/2026-09-05-production-discipline-flagship-pages.md` |
 | FD-034 | 2026-09-05 | Port every completed page and gated state from `product/discipline-flagship-pages`; keep Vietnamese prototype copy unchanged, expose previews as public `live_noindex`, preserve legacy routes with locale-aware HTTP 301 redirects, and leave the private Tử Vi wizard unchanged | Approved | `docs/19-sitemap-v2-discipline-pages.md`, production discipline-page plan |
+| FD-035 | 2026-09-06 | Approve the Phase 04 provider privacy due-diligence gate for self-hosted/founder-operated `9router-an`; founder explicitly accepts operational/privacy responsibility and waives separate term investigation. Production AI/payment activation, deployment, and release activation remain separately founder-controlled. | Approved | `docs/compliance/ai-provider-due-diligence.md`, Phase 04 plan |
 
 ## FD-028 Execution Boundary
 
@@ -102,7 +103,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Evidence-gated calculation completion | P03-T03 found the evidence service existed but successful calculation responses did not ensure required evidence persistence | Terra wired idempotent evidence persistence to calculation completion; the pattern applies to future calculation engines and report consumers | Added to `AGENTS.md` under calculation completion and evidence |
 | Workspace declaration freshness | P01-T02 and P03-T04 independently encountered dependent typechecks reading stale workspace declarations from producer `dist` output | Sol confirmed the recurring producer-consumer build-order failure and narrowed the action to packages consumed through exports/generated declarations | Added to `AGENTS.md` under repository and operational safety |
 | Generated public-content publication boundaries | P03-T06 initially allowed mixed-locale, encoding-corrupted, unsupported-source, and localized unsafe copy across the Gate 1 corpus | Sol confirmed one severe repository-wide incident and narrowed the rule to deterministic locale integrity plus canonical repository source containment before publication | Added to `AGENTS.md` under repository and operational safety |
-| AI provider privacy production gate | FD-026 confirms a founder-operated provider but retention, training, region, subprocessors, deletion, access, and incident terms remain unknown | Existing architecture sections 18-19, `AGENTS.md` privacy/secret gates, and R-24 already require written due diligence before production use | No `AGENTS.md` change; implement the existing fail-closed gate and retain R-24 |
+| AI provider privacy production gate | FD-026 confirmed a founder-operated provider (terms historically unknown; superseded for Phase 04 closure on 2026-09-06 by FD-035 founder operational/privacy risk acceptance; production AI activation remains founder-controlled) | Existing architecture sections 18-19, `AGENTS.md` privacy/secret gates, and R-24 already require written due diligence before production use | No `AGENTS.md` change; Phase 04 privacy gate closed per FD-035; retain fail-closed gate for production activation |
 | Pre-controller authorization denial audit | P05A-T01 initially returned `notFound()` for missing, anonymous, and unverified admin sessions before the private API could record the denial | Sol confirmed a severe access-audit gap and approved a trusted server-to-private-API denial path without anonymous session creation or a public audit-write endpoint | Added to `AGENTS.md` under administrative and operational surface safety |
 | Aggregate admin projection capability enforcement | P05A-T02 twice allowed aggregate data to outlive or bypass active database capability narrowing: first through role-only module visibility, then through unconditional readiness data | Sol required a new projection-boundary cycle with active entry capability selection plus per-field/module query and response gating | Added to `AGENTS.md` under administrative and operational surface safety |
 | Transactional admin command outcome ownership | P05A-T05 repeatedly allowed deterministic post-authentication role-command outcomes to bypass atomic receipt/audit persistence through pre-transaction classification, stale receipt replay, and database-constraint fallthrough | Sol approved authority revalidation before replay plus repository ownership of every deterministic result, with atomic bounded receipt/audit evidence and duplicate-free replay | Added to `AGENTS.md` under administrative and operational surface safety |
@@ -206,7 +207,10 @@ Date: 2026-09-02
   strict JSON Schema output, and forced tool calling.
 - The probe is operational evidence only. Request retention, training use,
   processing regions, subprocessors, access controls, deletion behavior, and
-  incident-notification terms remain unknown and block production AI.
+  incident-notification terms were historically unknown and blocked production AI
+  (superseded on 2026-09-06 by FD-035: founder waived separate enumeration for
+  self-hosted `9router-an` and accepted operational/privacy responsibility;
+  production AI activation remains a separate founder-controlled gate).
 - The current milestone owns pure AI/report contracts and services only.
   Queue, persistence, private report UI, PDF events, and knowledge retrieval
   remain with their existing Phase 04 tasks.
@@ -221,8 +225,9 @@ Date: 2026-09-02
   dependencies.
 - Rule candidate: none. The existing privacy gate and R-24 already cover the
   reusable behavior; strict source-snapshot and locale-integrity rules already
-  cover the implementation lessons. Open questions: provider privacy terms
-  remain pending.
+  cover the implementation lessons. Open questions: provider privacy terms were
+  pending at this checkpoint (superseded on 2026-09-06 by FD-035: resolved by
+  founder privacy approval; no open Phase 04 questions).
 
 ## P04 Tasks 1-5 In-Page VietQR Flow Evidence
 
@@ -282,8 +287,10 @@ Date: 2026-09-05 (updated 2026-09-06)
 - P04-T05 connected the worker to frozen evidence/knowledge, bounded AI
   generation, deterministic validation and critic checks, immutable structured
   and escaped HTML persistence, replay fencing, and one idempotent
-  `report.pdf.requested.v1` event. Production AI remains fail-closed while
-  provider privacy due diligence is pending.
+  `report.pdf.requested.v1` event. Production AI remained fail-closed while
+  provider privacy due diligence was pending (superseded on 2026-09-06 by FD-035:
+  provider privacy gate approved; production AI activation remains a separate
+  founder-controlled gate).
 - P04-T06 added strict private report views, owner-filtered repository/API/BFF
   reads, pending/failed state rendering, artifact-backed responsive HTML,
   report-bound evidence disclosure, locale authority, noindex coverage,
@@ -313,11 +320,31 @@ Date: 2026-09-05 (updated 2026-09-06)
 - Full repository verification after code fix: workspace typecheck PASS;
   workspace production build PASS; full Vitest 121/121 files and 723/723 tests
   PASS; i18n parity PASS; repository ESLint PASS; `git diff --check` PASS.
-- Revised remaining gate: Phase 04 implementation and controlled browser
-  acceptance are complete. Provider privacy due diligence approval remains the
-  sole phase closure decision gate. Production payment activation, production AI
-  activation, and production deployment remain separately authorized
-  founder-controlled gates.
+- Phase 04 closure status: Phase 04 implementation, controlled browser
+  acceptance, and provider privacy due diligence approval (FD-035) are complete
+  on the isolated branch. Phase 04 is closed. Production payment activation,
+  production AI activation, deployment, merge, push, and release activation
+  remain separately authorized founder-controlled gates.
+
+## FD-035 Provider Privacy Due Diligence Approval Evidence
+
+Date: 2026-09-06
+
+- The founder formally confirmed that `9router-an` is self-hosted and
+  founder-operated.
+- The founder waived separate contractual enumeration (retention, training,
+  regions, subprocessors, access, deletion, incident notification) and
+  explicitly accepted operational and privacy responsibility for this provider
+  as configured.
+- This approved the Phase 04 provider privacy due-diligence decision gate in
+  `docs/compliance/ai-provider-due-diligence.md` and closed Phase 04.
+- Scope boundary: FD-035 approves the Phase 04 privacy gate only. It does not
+  authorize production AI activation, production payment activation, deployment,
+  merge, push, release activation, or credentials changes. Those remain
+  separate founder-controlled operations.
+- Terra high completed the due-diligence record completeness review in
+  `docs/compliance/ai-provider-due-diligence.md` on 2026-09-06 with
+  `SPEC PASS / QUALITY APPROVED`.
 
 ## P03 Non-Visual Slice 1 Evidence
 

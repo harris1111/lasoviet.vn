@@ -377,7 +377,7 @@ git commit -m "feat: add approved knowledge retrieval"
 Sol asks for base URL and model. API key is placed in the approved secret
 environment, not committed or copied into docs.
 
-- [ ] **Step 2: Record provider privacy and operational due diligence**
+- [x] **Step 2: Record provider privacy and operational due diligence**
 
 Record provider/controller identity, data-processing purpose, retention,
 training use, storage/processing regions, subprocessors, access controls,
@@ -451,7 +451,7 @@ git commit -m "feat: generate evidence-backed identity reports"
   text validation became deterministic, the critic consumed the same source
   snapshot, timeout retries honored their budget, and valid report formatting
   remained allowed.
-- This checkpoint does not complete P04-T05. Provider privacy approval,
+- This checkpoint did not complete P04-T05 (historical; subsequent tasks and FD-035 completed these requirements). Provider privacy approval,
   P04-T04 knowledge retrieval, P04-T03 worker state, immutable persistence,
   duplicate-job integration, and `report.pdf.requested.v1` remain required
   before the task or phase can close.
@@ -465,9 +465,27 @@ git commit -m "feat: generate evidence-backed identity reports"
   `report.pdf.requested.v1` event.
 - Terra high approved the combined generation implementation through commit
   `7ee0e16` with no open Critical or Important finding.
-- The production provider gate remains intentionally fail-closed because Step
-  2 privacy due diligence is not approved. This blocks production activation,
-  not the completed provider-independent implementation.
+- The production provider gate previously remained fail-closed because Step 2
+  privacy due diligence was not approved (superseded on 2026-09-06 by FD-035:
+  founder approved the privacy gate; production AI activation remains a separate
+  founder-controlled gate).
+
+#### Provider Privacy Due Diligence Approval Evidence (2026-09-06)
+
+- On 2026-09-06, the founder formally approved the provider privacy
+  due-diligence gate for self-hosted/founder-operated `9router-an` (FD-035).
+- The founder waived separate contractual enumeration (retention, training,
+  regions, subprocessors, access, deletion, incident notification) and
+  explicitly accepted operational and privacy responsibility for this provider
+  as configured.
+- Terra high completed the due-diligence record completeness review in
+  `docs/compliance/ai-provider-due-diligence.md` on 2026-09-06 with
+  `SPEC PASS / QUALITY APPROVED`.
+- Scope boundary: This approval closes the Phase 04 provider privacy decision
+  gate only. It does not authorize production AI activation, production payment
+  activation, deployment, merge, push, or release activation, which remain
+  separate founder-controlled operations.
+- Task 5 Step 2 is complete.
 
 ### Task 6 [P04-T06]: Persist immutable report versions and render private HTML
 
@@ -582,8 +600,10 @@ git commit -m "feat: publish immutable private reports"
 - Private HTML report works after refresh and is noindex.
 - Terra has no unresolved `must-fix`.
 
-Implementation and controlled browser acceptance status: complete.
-Intended-environment phase closure remains open only until provider privacy due
-diligence is approved. Production payment, production AI, deployment,
-PDF/storage, email delivery, and account-center activation are not authorized by
-this phase implementation commit and remain separate founder-controlled gates.
+Implementation, controlled browser acceptance, and provider privacy due
+diligence approval (FD-035) are complete. Phase 04 is closed on the isolated
+implementation branch. Production payment activation, production AI
+activation, deployment, merge, push, and release activation are not authorized
+by this phase closure and remain separate founder-controlled operations. Phase
+05 PDF generation, Garage storage, email delivery, and owner account center
+scope remain the next planned phase.

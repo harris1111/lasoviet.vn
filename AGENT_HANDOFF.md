@@ -58,11 +58,12 @@ Vietnamese.
 - **Phase 03:** the artifact-driven free MVP is implemented and deployed. The
   phase file still contains pre-merge unchecked UI steps and must not be read as
   proof that the free MVP is absent.
-- **Phase 04 implementation:** SePay Tasks 1-2, the durable report worker,
-  approved knowledge retrieval, evidence-backed immutable generation, and the
-  owner-authorized private HTML reader are implemented and reviewed on
-  `feature/phase04-report-generation`. In-page VietQR Tasks 1-6 are complete.
-  Controlled browser acceptance for private reports is complete (7 passed, 0 failed).
+- **Phase 04:** Complete on `feature/phase04-report-generation`. SePay Tasks 1-2,
+  the durable report worker, approved knowledge retrieval, evidence-backed
+  immutable generation, the owner-authorized private HTML reader, in-page
+  VietQR Tasks 1-6, controlled browser acceptance (7 passed, 0 failed), and
+  the founder's provider privacy risk acceptance (FD-035) are complete and
+  reviewed. Phase 04 documentation is closed.
   Controller-verified evidence on 2026-09-06:
   `corepack pnpm@11.25.0 vitest run`: 121 test files passed, 723 tests passed, 0 failed, 0 skipped; duration 16.00s on 2026-09-06.
   Controlled browser acceptance: `corepack pnpm@11.25.0 playwright test tests/e2e/paid-report-html.spec.ts --fully-parallel --workers=7`: 7 passed, 0 failed, 0 skipped, duration 11.2s on 2026-09-06. Covered signed-out redirect, cross-owner/missing 404 equivalence, VI evidence/noindex/canonical locale, EN locale, pending-to-ready refresh retaining path, safe static failed state, mobile TOC focus lifecycle.
@@ -79,20 +80,16 @@ Vietnamese.
 
 ### In Progress
 
-- **Phase 04 closure:** production AI remains fail-closed pending provider
-  privacy approval. Controlled private-report Playwright acceptance is complete
-  (7/7 passed). Provider privacy due diligence approval is the sole remaining
-  Phase 04 closure decision gate.
 - **Phase 05A:** T01 admin access/RBAC/audit, T02 redacted operations overview,
   and T05 role administration/audit inspection are complete. T03, T04, and T06
   remain open.
 
 ### Remaining
 
-- **P04 external gates:** provider privacy due diligence approval remains the
-  sole Phase 04 closure decision gate; production payment activation,
-  production AI activation, and production deployment remain separately
-  authorized founder gates.
+- **Production and release activation gates:** production payment activation,
+  production AI activation, deployment, merge, push, and release activation
+  remain separately authorized founder-controlled operations; Phase 04
+  implementation and provider privacy due diligence gate (FD-035) are closed.
 - **Phase 05:** PDF, Garage, optional replication, report email delivery, and
   owner account center.
 - **P05A-T03/T04/T06:** redacted detailed inspections, compensating commands,
@@ -103,23 +100,23 @@ Vietnamese.
 
 ## Immediate Next Execution
 
-With In-page VietQR Task 6, full Vitest suite (121 files, 723 tests), and
-controlled private-report browser acceptance (7/7 Playwright cases) complete and
-verified, the immediate execution focus points only to the sole remaining Phase
-04 closure gate:
+With Phase 04 implementation, controlled browser acceptance (7/7 Playwright
+cases), and provider privacy due diligence approval (FD-035) complete, Phase
+04 documentation is closed. Production AI activation, production payment
+activation, deployment, merge, push, and release activation remain separate
+operations requiring explicit founder instruction.
 
-1. Record and approve provider privacy due diligence.
-2. Deploy or activate only after a separate explicit founder instruction.
-
-Following those gates, the next coding phase is **Phase 05: PDF, Garage storage,
-report email delivery, and owner account center**.
+The next coding phase is **Phase 05: PDF, Garage storage, report email
+delivery, and owner account center**.
 
 ## External And Founder Gates
 
 - Production payment activation is founder-controlled. The current provider
   configuration is sandbox-only.
-- Production AI remains blocked until provider privacy and operational terms
-  are documented and approved.
+- Production AI activation is founder-controlled. Provider privacy due
+  diligence (FD-035) is approved for Phase 04 closure, but activating
+  production AI report generation requires separate explicit founder
+  authorization.
 - Google OAuth exists but has not been formally exercised in the recorded Phase
   01 evidence.
 - A password-reset email was delivered after the auth recovery fix. The founder
@@ -159,18 +156,17 @@ deployment facts and verify them before a new production action.
 
 ## Current Continuation Boundary
 
-- Keep the Phase 04 implementation commits local until the founder explicitly
-  authorizes push, merge, or deployment.
-- Do not activate production AI until provider privacy due diligence is
-  complete and founder-approved.
-- Controlled private-report browser acceptance is complete; intended-environment
-  Phase 04 closure remains open only for provider privacy approval. Do not claim
-  production activation.
+- Keep the Phase 04 commits local until the founder explicitly authorizes push,
+  merge, or deployment.
+- Provider privacy due diligence is approved (FD-035) and Phase 04 is closed;
+  do not activate production AI or production payment without separate
+  explicit founder authorization.
 - Phase 05 is the next coding phase. Sol writes each exact bounded brief,
   Gemini codes it, and Terra high reviews the meaningful milestone.
 
 ## Open Questions
 
-Provider privacy due diligence approval remains the sole open Phase 04 closure
-decision gate. Production AI approval, production payment activation,
-deployment, and release activation remain explicit founder gates.
+None for Phase 04. Phase 04 is complete and closed with founder provider
+privacy approval (FD-035). Production AI activation, production payment
+activation, deployment, merge, push, and release activation remain separate
+explicit founder-controlled gates.
