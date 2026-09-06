@@ -138,7 +138,7 @@ test.describe("paid report html reader e2e", () => {
     });
 
     await page.goto(`/bao-cao/${failedId}`);
-    await expect(page.locator('[role="alert"]')).toBeVisible();
+    await expect(page.locator('.report-progress-failed[role="alert"]')).toBeVisible();
     await expect(page.locator("body")).not.toContainText("lastErrorCode");
     await expect(page.locator("body")).not.toContainText("AI_TIMEOUT");
 

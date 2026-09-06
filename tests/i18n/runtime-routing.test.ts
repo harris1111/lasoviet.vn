@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import { routing } from "../../apps/web/src/i18n/routing";
-import { isExplicitVietnamesePath } from "../../apps/web/src/routing/explicit-vietnamese-path";
+import { isExplicitVietnamesePath, isUnprefixedCanonicalReportPath } from "../../apps/web/src/routing/explicit-vietnamese-path";
 import { resolveLegacyAliasRedirect } from "../../apps/web/src/routing/legacy-alias";
 
 describe("localized app runtime tree", () => {
@@ -89,5 +89,20 @@ describe("localized app runtime tree", () => {
     expect(isExplicitVietnamesePath("/vi/bat-tu")).toBe(true);
     expect(isExplicitVietnamesePath("/bat-tu")).toBe(false);
     expect(isExplicitVietnamesePath("/en/bat-tu")).toBe(false);
+  });
+
+  it("identifies unprefixed canonical private-report paths as Vietnamese-forced", () => {
+    expect(isUnprefixedCanonicalReportPath("/bao-cao")).toBe(true);
+    expect(isUnprefixedCanonicalReportPath("/bao-cao/")).toBe(true);
+    expect(isUnprefixedCanonicalReportPath("/bao-cao/019550b7-1549-74d3-b1d5-a3375b428d7a")).toBe(true);
+    expect(isUnprefixedCanonicalReportPath("/en/bao-cao/019550b7-1549-74d3-b1d5-a3375b428d7a")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/vi/bao-cao/019550b7-1549-74d3-b1d5-a3375b428d7a")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/en/bao-cao")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/vi/bao-cao")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/bao-cao-khac")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/bao-cao-khac/123")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/bao-caox")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/")).toBe(false);
+    expect(isUnprefixedCanonicalReportPath("/tu-vi")).toBe(false);
   });
 });

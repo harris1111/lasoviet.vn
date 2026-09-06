@@ -2,7 +2,10 @@ import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveLocale } from "@lasoviet/contracts";
 import { routing } from "./i18n/routing";
-import { isExplicitVietnamesePath } from "./routing/explicit-vietnamese-path";
+import {
+  isExplicitVietnamesePath,
+  isUnprefixedCanonicalReportPath,
+} from "./routing/explicit-vietnamese-path";
 import { resolveLegacyAliasRedirect } from "./routing/legacy-alias";
 
 const handleI18nRouting = createMiddleware(routing);
@@ -22,6 +25,10 @@ export default function proxy(request: NextRequest) {
       sameSite: "lax",
     });
     return response;
+  }
+
+  if (isUnprefixedCanonicalReportPath(pathname)) {
+    request.cookies.set("NEXT_LOCALE", "vi");
   }
 
   const response = handleI18nRouting(request);
