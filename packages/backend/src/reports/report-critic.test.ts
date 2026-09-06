@@ -200,4 +200,57 @@ describe("identity report critic", () => {
     expect((capturedRequest as { system: string }).system).toMatch(/English/i);
     expect((capturedRequest as { system: string }).system).not.toMatch(/Vietnamese/i);
   });
+
+  it("instructs provider with explicit literal JSON critic skeleton and key constraints while retaining locale awareness", async () => {
+    let capturedRequest: unknown;
+    const provider: AiProvider = {
+      async generateStructured(candidate) {
+        capturedRequest = candidate;
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "9router-an",
+            modelId: "model",
+          },
+        };
+      },
+    };
+
+    const viResult = await critiqueIdentityReport(report(), context, provider);
+    expect(viResult).toMatchObject({
+      ok: true,
+      value: { correctness: 5 },
+    });
+    const viSystem = (capturedRequest as { system: string }).system;
+    expect(viSystem).toMatch(/Vietnamese/i);
+    expect(viSystem).not.toMatch(/English/i);
+    expect(viSystem).toContain('{"correctness":5,"evidenceCoverage":5,"specificity":5,"languageClarity":5,"consistency":5,"actionability":5,"safety":5,"repetitionControl":5,"notes":["..."]}');
+    expect(viSystem).toMatch(/all eight scores must be integers 1-5/i);
+    expect(viSystem).toMatch(/notes must be 0-8 strings up to 300 characters/i);
+    expect(viSystem).toMatch(/keys must not be renamed, translated, omitted, or added/i);
+
+    const enResult = await critiqueIdentityReport(englishReport(), englishContext, provider);
+    expect(enResult).toMatchObject({
+      ok: true,
+      value: { correctness: 5 },
+    });
+    const enSystem = (capturedRequest as { system: string }).system;
+    expect(enSystem).toMatch(/English/i);
+    expect(enSystem).not.toMatch(/Vietnamese/i);
+    expect(enSystem).toContain('{"correctness":5,"evidenceCoverage":5,"specificity":5,"languageClarity":5,"consistency":5,"actionability":5,"safety":5,"repetitionControl":5,"notes":["..."]}');
+    expect(enSystem).toMatch(/all eight scores must be integers 1-5/i);
+    expect(enSystem).toMatch(/notes must be 0-8 strings up to 300 characters/i);
+    expect(enSystem).toMatch(/keys must not be renamed, translated, omitted, or added/i);
+  });
 });
