@@ -47,7 +47,7 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
     "Top-level keys must be exactly: sections, reflectionQuestions, summaryActions.",
     `The sections array must contain exactly the 11 canonical section IDs in exact canonical sequence: ${IDENTITY_REPORT_SECTION_IDS.join(", ")}.`,
     "Each section object must contain keys exactly: id, title, narrative, claims.",
-    "Each claim object must match the exact claim skeleton keys: id, text, evidenceIds, interpretationBoundCode, confidence, limitations, suggestedActions.",
+    'Each claim object must match the exact claim skeleton: {"id":"claim-1","text":"...","evidenceIds":["ziwei.identity.example"],"interpretationBoundCode":"reflective_identity_only","confidence":"moderate","limitations":["..."],"suggestedActions":[{"category":"reflect","text":"..."}]}.',
     "Each claim links exactly one supplied evidence item in evidenceIds; copies an allowed interpretationBoundCode from that evidence item; confidence does not exceed the evidence item confidence; suggestedActions action category is allowed for that evidence item.",
     "In each claim, limitations is 1-3 strings; suggestedActions is 0-2 objects with exactly category, text.",
     `These seven sections must have at least one claim: ${REQUIRED_CLAIM_SECTIONS.join(", ")}.`,

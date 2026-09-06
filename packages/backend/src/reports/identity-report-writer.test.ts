@@ -265,5 +265,8 @@ describe("identity report writer", () => {
       expect(capturedSystem).toContain(reqSec);
     }
     expect(capturedSystem).toMatch(/translate|rename|invent/i);
+    expect(capturedSystem).toContain('"evidenceIds":[');
+    expect(capturedSystem).toContain('"limitations":[');
+    expect(capturedSystem).toContain('"suggestedActions":[{"category":');
   });
 });

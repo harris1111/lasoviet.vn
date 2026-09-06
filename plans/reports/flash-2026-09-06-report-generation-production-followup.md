@@ -19,6 +19,7 @@ Harden production report generation across three bounded domains with Test-Drive
 2. **Report Writer Contract Gap**:
    - Generic prompting allowed model deviations in section ordering, claim key structures, evidence linkage, and missing claims in required sections (e.g., `cycles_and_timing`).
    - The writer required exact structural rules in its system instruction specifying top-level keys, 11 canonical section IDs in sequence, exact claim skeleton keys, single evidence linkage, bound code copying, confidence capping, limitation counts, action constraints, and 7 mandatory claim sections.
+   - **Review Finding (Terra Critical)**: Keyword-only instruction allowed models to emit prose descriptions of keys rather than concrete JSON container syntax. An explicit literal JSON claim skeleton showing exact container types (`[]`, `{}`) and key names was required in the system instruction, backed by strict substring assertions in tests.
 3. **Repeated Terminal Failure Collision**:
    - `recordTerminalFailure` generated outbox IDs using `evt-failed-${reportVersionId}` and idempotency key `report-failed:${reportVersionId}:${stage}`.
    - If a report failed terminally, was subsequently recovered, and then the recovery job experienced a terminal failure, `enqueueOutbox` collided with the old failure event unique constraint, throwing `OutboxError` / `OUTBOX_DUPLICATE_KEY`.
@@ -35,7 +36,8 @@ Harden production report generation across three bounded domains with Test-Drive
      - Top-level keys: `sections`, `reflectionQuestions`, `summaryActions`.
      - Exactly 11 canonical section IDs in exact canonical sequence.
      - Section keys: `id`, `title`, `narrative`, `claims`.
-     - Claim skeleton keys: `id`, `text`, `evidenceIds`, `interpretationBoundCode`, `confidence`, `limitations`, `suggestedActions`.
+     - Claim skeleton keys with explicit literal JSON container example:
+       `{"id":"claim-1","text":"...","evidenceIds":["ziwei.identity.example"],"interpretationBoundCode":"reflective_identity_only","confidence":"moderate","limitations":["..."],"suggestedActions":[{"category":"reflect","text":"..."}]}`
      - Each claim links exactly one supplied evidence item, copies an allowed `interpretationBoundCode`, confidence does not exceed evidence confidence, action category is allowed.
      - `limitations` has 1-3 strings; `suggestedActions` has 0-2 objects with `category`, `text`.
      - 7 sections required to have at least one claim: `personal_summary`, `primary_evidence`, `strengths_and_resources`, `tensions_and_blind_spots`, `identity_analysis`, `cycles_and_timing`, `within_control`.
@@ -60,26 +62,31 @@ Harden production report generation across three bounded domains with Test-Drive
      - `does not add correction note on retryable HTTP status retry`: Expected generic instruction on initial system prompt.
 2. **Writer Structural Contract Test**:
    - Command: `pnpm vitest run packages/backend/src/reports/identity-report-writer.test.ts`
-   - Result: `instructs provider with exact structural constraints for top-level, sections, and claim skeleton` failed because system prompt lacked detailed skeleton and section constraints.
+   - Initial Run: `instructs provider with exact structural constraints for top-level, sections, and claim skeleton` failed because system prompt lacked detailed skeleton and section constraints.
+   - Review Fix Strengthening: Test strengthened to assert literal container substrings (`"evidenceIds":[`, `"limitations":[`, `"suggestedActions":[{"category":`); failed as expected before prompt enhancement.
 3. **PostgreSQL Integration Test**:
    - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
    - Result: Failed with `OutboxError: OUTBOX_DUPLICATE_KEY: event or idempotency key already exists` at `enqueueOutbox` during `recordTerminalFailure` on recovery job due to collision with old failure outbox event.
 
 ### GREEN Evidence
-1. **Adapter & Writer Unit Tests**:
+1. **Writer Unit Test (Review Fix)**:
+   - Command: `pnpm vitest run packages/backend/src/reports/identity-report-writer.test.ts`
+   - Result: `Test Files 1 passed (1) | Tests 3 passed (3) | Duration 311ms`
+   - Verified: All 8 structural rules and exact literal JSON container syntax (`"evidenceIds":[`, `"limitations":[`, `"suggestedActions":[{"category":`) verified.
+2. **Adapter & Writer Unit Tests**:
    - Command: `pnpm vitest run packages/backend/src/ai/openai-compatible-adapter.test.ts packages/backend/src/reports/identity-report-writer.test.ts`
    - Result: `Test Files 2 passed (2) | Tests 12 passed (12) | Duration 390ms`
-2. **PostgreSQL Integration Test**:
+3. **PostgreSQL Integration Test**:
    - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
    - Result: `Test Files 1 passed (1) | Tests 1 passed | 25 skipped (26) | Duration 4.54s`
    - Verified: Initial terminal failure, successful recovery dispatch, recovery job leased and generating, second terminal failure transition succeeds with distinct event ID and idempotency key, both failure events preserved in outbox, reservation updated with new error code and incremented stateVersion.
-3. **Backend Build**:
+4. **Backend Build**:
    - Command: `pnpm --filter @lasoviet/backend run build`
    - Result: Clean exit code 0.
-4. **Backend Typecheck**:
+5. **Backend Typecheck**:
    - Command: `pnpm --filter @lasoviet/backend run typecheck`
    - Result: Clean exit code 0.
-5. **Whitespace and Formatting**:
+6. **Whitespace and Formatting**:
    - Command: `git diff --check`
    - Result: Clean exit code 0.
 
