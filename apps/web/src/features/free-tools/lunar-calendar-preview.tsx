@@ -195,31 +195,104 @@ function ToolIcon({ name, color = "var(--teal, #6E9C97)" }: { name: string; colo
 export function LunarCalendarPreview({ locale, className }: LunarCalendarPreviewProps) {
   const isVi = locale === "vi";
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({ 0: true });
+  const [selectedSolarDay, setSelectedSolarDay] = useState<number>(15);
 
   const toggleFaq = (index: number) => {
     setFaqOpen((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
-  const freeResults = isVi ? FREE_RESULTS_VI : FREE_RESULTS_EN;
-  const dayDetailRows = isVi ? DAY_DETAILS_VI : DAY_DETAILS_EN;
-  const glossaryItems = isVi ? GLOSSARY_ITEMS_VI : GLOSSARY_ITEMS_EN;
-  const methodRows = isVi ? METHOD_ROWS_VI : METHOD_ROWS_EN;
-  const limitItems = isVi ? LIMIT_ITEMS_VI : LIMIT_ITEMS_EN;
-  const faqs = isVi ? FAQ_ITEMS_VI : FAQ_ITEMS_EN;
-
+  const CAN_VI = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
+  const CHI_VI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+  const CAN_EN = ["Giap", "At", "Binh", "Dinh", "Mau", "Ky", "Canh", "Tan", "Nham", "Quy"];
+  const CHI_EN = ["Ty", "Suu", "Dan", "Mao", "Thin", "Ty", "Ngo", "Mui", "Than", "Dau", "Tuat", "Hoi"];
+  const canChiForOffset = (offset: number) => {
+    const n = ((offset % 60) + 60) % 60;
+    const can = isVi ? CAN_VI[n % 10] : CAN_EN[n % 10];
+    const chi = isVi ? CHI_VI[n % 12] : CHI_EN[n % 12];
+    return `${can} ${chi}`;
+  };
+  const TODAY_SOLAR_DAY = 15;
+  const weekdayNamesVi = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+  const weekdayNamesEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const weekdayNames = isVi ? weekdayNamesVi : weekdayNamesEn;
   const weekdayLabels = isVi ? ["CN", "T2", "T3", "T4", "T5", "T6", "T7"] : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const lunarSeq = [18,19,20,21,22,23,24,25,26,27,28,29,30,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+
   const monthCells = [];
   for (let i = 0; i < 35; i++) {
     const solarDay = i - 2;
     const inMonth = solarDay >= 1 && solarDay <= 30;
+    const weekdayIndex = i % 7;
+    const isWeekend = weekdayIndex === 0 || weekdayIndex === 6;
+    const isToday = inMonth && solarDay === TODAY_SOLAR_DAY;
+    const isSelected = inMonth && solarDay === selectedSolarDay;
+    let bg = inMonth
+      ? isWeekend
+        ? "var(--teal-tint, rgba(110,156,151,0.16))"
+        : "var(--surface-panel, #1C1813)"
+      : "var(--surface-deep, #0F0D0A)";
+    let border = "1px solid transparent";
+    if (isSelected) {
+      bg = "var(--gold-500, #c9a44d)";
+    } else if (isToday) {
+      border = "1px solid var(--gold-500, #c9a44d)";
+    }
     monthCells.push({
+      solarDay,
+      inMonth,
       solar: inMonth ? String(solarDay) : "",
       lunar: inMonth ? String(lunarSeq[i]) : "",
-      bg: inMonth ? "var(--surface-panel, #1C1813)" : "var(--surface-deep, #0F0D0A)",
-      solarColor: inMonth ? "var(--text-heading, #F6F1E6)" : "var(--text-faint, #6E6656)",
+      bg,
+      border,
+      solarColor: isSelected
+        ? "var(--surface-canvas, #0f0d0a)"
+        : inMonth
+        ? "var(--text-heading, #F6F1E6)"
+        : "var(--text-faint, #6E6656)",
+      lunarColor: isSelected
+        ? "var(--surface-deep, #15120e)"
+        : "var(--text-faint, #6E6656)",
+      isSelected,
+      isToday,
     });
   }
+
+  const selectedIndex = monthCells.findIndex((c) => c.isSelected);
+  const selectedWeekdayIndex = selectedIndex >= 0 ? selectedIndex % 7 : 6;
+  const selectedLunarDay = selectedIndex >= 0 ? lunarSeq[selectedIndex] : lunarSeq[TODAY_SOLAR_DAY + 2];
+
+  const dayDetailRows: readonly DayDetailRow[] = isVi
+    ? [
+        { label: "Ngày dương", value: `${weekdayNames[selectedWeekdayIndex]}, ${selectedSolarDay}/3 (minh hoạ)` },
+        { label: "Ngày âm", value: `${selectedLunarDay} (minh hoạ)` },
+        { label: "Can chi ngày", value: canChiForOffset(selectedSolarDay - 1) },
+        { label: "Tiết khí", value: "Không rơi đúng tiết khí (minh hoạ)" },
+        { label: "Múi giờ", value: "GMT+7 (Việt Nam)" },
+      ]
+    : [
+        { label: "Solar date", value: `${weekdayNames[selectedWeekdayIndex]}, 3/${selectedSolarDay} (illustrative)` },
+        { label: "Lunar date", value: `${selectedLunarDay} (illustrative)` },
+        { label: "Daily Can Chi", value: canChiForOffset(selectedSolarDay - 1) },
+        { label: "Solar term", value: "Does not fall on transition (illustrative)" },
+        { label: "Timezone", value: "GMT+7 (Vietnam)" },
+      ];
+
+  const hourBranchesVi = ["Tý (23h-1h)", "Sửu (1h-3h)", "Dần (3h-5h)", "Mão (5h-7h)", "Thìn (7h-9h)", "Tỵ (9h-11h)", "Ngọ (11h-13h)", "Mùi (13h-15h)", "Thân (15h-17h)", "Dậu (17h-19h)", "Tuất (19h-21h)", "Hợi (21h-23h)"];
+  const hourBranchesEn = ["Rat (23h-1h)", "Ox (1h-3h)", "Tiger (3h-5h)", "Cat (5h-7h)", "Dragon (7h-9h)", "Snake (9h-11h)", "Horse (11h-13h)", "Goat (13h-15h)", "Monkey (15h-17h)", "Rooster (17h-19h)", "Dog (19h-21h)", "Pig (21h-23h)"];
+  const hourBranches = isVi ? hourBranchesVi : hourBranchesEn;
+  const auspiciousSet = new Set([0, 2, 4, 6, 8, 10]);
+  const hourStrip = hourBranches.map((branch, i) => ({
+    branch,
+    label: auspiciousSet.has(i) ? (isVi ? "Hoàng đạo" : "Auspicious") : (isVi ? "Hắc đạo" : "Inauspicious"),
+    labelColor: auspiciousSet.has(i) ? "var(--gold-500, #c9a44d)" : "var(--text-faint, #6E6656)",
+    bg: auspiciousSet.has(i) ? "var(--teal-tint, rgba(110,156,151,0.16))" : "var(--surface-panel, #1C1813)",
+  }));
+
+  const freeResults = isVi ? FREE_RESULTS_VI : FREE_RESULTS_EN;
+  const glossaryItems = isVi ? GLOSSARY_ITEMS_VI : GLOSSARY_ITEMS_EN;
+  const methodRows = isVi ? METHOD_ROWS_VI : METHOD_ROWS_EN;
+  const limitItems = isVi ? LIMIT_ITEMS_VI : LIMIT_ITEMS_EN;
+  const faqs = isVi ? FAQ_ITEMS_VI : FAQ_ITEMS_EN;
 
   const homeHref = isVi ? "/" : "/en";
   const tuviHref = isVi ? "/tu-vi" : "/en/tu-vi";
@@ -476,10 +549,69 @@ export function LunarCalendarPreview({ locale, className }: LunarCalendarPreview
             </h2>
             <p style={{ margin: "16px 0 0", maxWidth: "680px", fontSize: "16px", lineHeight: 1.65, color: "var(--text-muted, #A79E8B)" }}>
               {isVi
-                ? "Lưới tháng minh hoạ dưới đây — số lớn là ngày dương, số nhỏ là ngày âm tương ứng. Không phải quy đổi từ một tháng thật."
-                : "The monthly grid below demonstrates layout — larger numbers denote solar dates, smaller numbers indicate lunar counterparts. Not computed from a real calendar month."}
+                ? "Lưới tháng minh hoạ dưới đây — số lớn là ngày dương, số nhỏ là ngày âm tương ứng. Không phải quy đổi từ một tháng thật. Bấm hoặc dùng phím Tab + Enter trên một ngày để xem chi tiết bên phải."
+                : "The monthly grid below demonstrates layout — larger numbers denote solar dates, smaller numbers indicate lunar counterparts. Not computed from a real calendar month. Click or use Tab + Enter on a date to inspect details on the right."}
             </p>
-            <div style={{ marginTop: "40px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "40px", alignItems: "start" }}>
+
+            <div style={{ marginTop: "32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <button
+                  type="button"
+                  disabled
+                  title={isVi ? "Điều hướng tháng sẽ hoạt động khi ra mắt" : "Month navigation will be active at launch"}
+                  style={{
+                    background: "none",
+                    border: "1px solid var(--border-hairline, #3A3227)",
+                    borderRadius: "var(--radius-sm, 4px)",
+                    color: "var(--text-faint, #6E6656)",
+                    width: "32px",
+                    height: "32px",
+                    cursor: "not-allowed",
+                  }}
+                >
+                  ‹
+                </button>
+                <span style={{ fontFamily: "var(--font-display, Georgia, serif)", fontSize: "18px", color: "var(--text-heading, #F6F1E6)" }}>
+                  {isVi ? "Tháng 3 · 1990 (minh hoạ)" : "March · 1990 (illustrative)"}
+                </span>
+                <button
+                  type="button"
+                  disabled
+                  title={isVi ? "Điều hướng tháng sẽ hoạt động khi ra mắt" : "Month navigation will be active at launch"}
+                  style={{
+                    background: "none",
+                    border: "1px solid var(--border-hairline, #3A3227)",
+                    borderRadius: "var(--radius-sm, 4px)",
+                    color: "var(--text-faint, #6E6656)",
+                    width: "32px",
+                    height: "32px",
+                    cursor: "not-allowed",
+                  }}
+                >
+                  ›
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedSolarDay(15)}
+                style={{
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontSize: "11.5px",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--teal, #6E9C97)",
+                  background: "var(--teal-tint, rgba(110,156,151,0.16))",
+                  border: "1px solid var(--teal, #6E9C97)",
+                  borderRadius: "var(--radius-pill, 9999px)",
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                {isVi ? "Hôm nay" : "Today"}
+              </button>
+            </div>
+
+            <div style={{ marginTop: "20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "40px", alignItems: "start" }}>
               <div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "1px", background: "var(--border-hairline, #3A3227)", border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-md, 8px)", overflow: "hidden" }}>
                   {weekdayLabels.map((w, idx) => (
@@ -488,18 +620,57 @@ export function LunarCalendarPreview({ locale, className }: LunarCalendarPreview
                     </div>
                   ))}
                   {monthCells.map((c, idx) => (
-                    <div key={idx} style={{ background: c.bg, padding: "10px 8px", minHeight: "64px", display: "flex", flexDirection: "column", gap: "2px", boxSizing: "border-box" }}>
+                    <button
+                      key={idx}
+                      type="button"
+                      disabled={!c.inMonth}
+                      aria-pressed={c.isSelected}
+                      onClick={c.inMonth ? () => setSelectedSolarDay(c.solarDay) : undefined}
+                      style={{
+                        background: c.bg,
+                        border: c.border,
+                        padding: "10px 8px",
+                        minHeight: "64px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "2px",
+                        boxSizing: "border-box",
+                        textAlign: "left",
+                        font: "inherit",
+                        cursor: c.inMonth ? "pointer" : "default",
+                      }}
+                    >
                       <span style={{ fontFamily: "var(--font-display, Georgia, serif)", fontSize: "15px", color: c.solarColor }}>{c.solar}</span>
-                      <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "10.5px", color: "var(--text-faint, #6E6656)" }}>{c.lunar}</span>
-                    </div>
+                      <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "10.5px", color: c.lunarColor }}>{c.lunar}</span>
+                      {c.isToday && (
+                        <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "8px", letterSpacing: "0.04em", textTransform: "uppercase", color: c.isSelected ? "var(--surface-canvas, #0f0d0a)" : "var(--gold-500, #c9a44d)" }}>
+                          {isVi ? "Hôm nay" : "Today"}
+                        </span>
+                      )}
+                    </button>
                   ))}
                 </div>
+                <div style={{ marginTop: "14px", display: "flex", gap: "20px", flexWrap: "wrap", fontSize: "11.5px", color: "var(--text-faint, #6E6656)" }}>
+                  <span>
+                    <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: "var(--teal-tint, rgba(110,156,151,0.16))", border: "1px solid var(--teal, #6E9C97)", verticalAlign: "middle", marginRight: 6 }} />
+                    {isVi ? "Cuối tuần" : "Weekend"}
+                  </span>
+                  <span>
+                    <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: "var(--surface-panel, #1C1813)", border: "1px solid var(--gold-500, #c9a44d)", verticalAlign: "middle", marginRight: 6 }} />
+                    {isVi ? "Hôm nay" : "Today"}
+                  </span>
+                  <span>
+                    <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: "var(--gold-500, #c9a44d)", verticalAlign: "middle", marginRight: 6 }} />
+                    {isVi ? "Đang chọn" : "Selected"}
+                  </span>
+                </div>
               </div>
+
               <div>
                 <h3 style={{ margin: "0 0 14px", fontFamily: "var(--font-display, Georgia, serif)", fontSize: "18px", color: "var(--text-heading, #F6F1E6)" }}>
-                  {isVi ? "Chi tiết một ngày (minh hoạ)" : "Single-day details (illustrative)"}
+                  {isVi ? "Chi tiết ngày đang chọn (minh hoạ)" : "Selected day details (illustrative)"}
                 </h3>
-                <div style={{ background: "var(--surface-panel, #1C1813)", border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-md, 8px)", padding: "24px", display: "grid", gap: "12px" }}>
+                <div style={{ background: "var(--surface-panel, #1C1813)", border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-md, 8px)", padding: "24px", display: "grid", gap: "12px" }} aria-live="polite">
                   {dayDetailRows.map((r, idx) => (
                     <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "13.5px", paddingBottom: "10px", borderBottom: "1px solid var(--border-hairline, #3A3227)" }}>
                       <span style={{ color: "var(--text-faint, #6E6656)" }}>{r.label}</span>
@@ -507,6 +678,23 @@ export function LunarCalendarPreview({ locale, className }: LunarCalendarPreview
                     </div>
                   ))}
                 </div>
+
+                <h3 style={{ margin: "28px 0 12px", fontFamily: "var(--font-display, Georgia, serif)", fontSize: "16px", color: "var(--text-heading, #F6F1E6)" }}>
+                  {isVi ? "Giờ hoàng đạo (minh hoạ hình dạng bảng)" : "Auspicious hours (illustrative table layout)"}
+                </h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "6px" }}>
+                  {hourStrip.map((h, idx) => (
+                    <div key={idx} style={{ background: h.bg, border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-sm, 4px)", padding: "6px 4px", textAlign: "center" }}>
+                      <div style={{ fontFamily: "var(--font-display, Georgia, serif)", fontSize: "12.5px", color: "var(--text-heading, #F6F1E6)" }}>{h.branch}</div>
+                      <div style={{ marginTop: "2px", fontFamily: "var(--font-mono, monospace)", fontSize: "8.5px", color: h.labelColor }}>{h.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ margin: "12px 0 0", fontSize: "11.5px", lineHeight: 1.6, color: "var(--text-faint, #6E6656)" }}>
+                  {isVi
+                    ? "Chỉ minh hoạ hình dạng bảng 12 giờ — cách tính giờ hoàng đạo/hắc đạo thật sẽ công bố cùng thuật toán quy đổi khi ra mắt."
+                    : "Illustrating 12-hour table structure only — real auspicious hour formulas will publish alongside conversion algorithms at launch."}
+                </p>
               </div>
             </div>
           </div>

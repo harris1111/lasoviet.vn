@@ -38,7 +38,6 @@ export const KINH_DICH_CONTENT_VI: DisciplinePageContent = {
     title: "Một quẻ trông như thế nào",
     note: "Ví dụ dưới đây minh hoạ đúng cấu trúc quẻ Kinh Dịch cổ điển — không phải kết quả gieo từ một câu hỏi thật.",
     disclosure: "Ví dụ minh họa cấu trúc quẻ, không phải kết quả gieo từ câu hỏi thật.",
-    subnote: "Hào động nằm ở vị trí thứ ba — nơi quẻ chủ chuyển thành quẻ biến.",
   },
   glossary: {
     eyebrow: "04 · Thuật ngữ cốt lõi",
@@ -56,12 +55,12 @@ export const KINH_DICH_CONTENT_VI: DisciplinePageContent = {
     title: "Cách gieo quẻ sẽ hoạt động",
     note: "Kinh Dịch dễ bị dùng sai theo hướng 'gieo lại đến khi ra quẻ mình thích'. Lá Số Việt thiết kế minh bạch: một câu hỏi một quẻ.",
     rows: [
-      { label: "Phương pháp gieo", value: "Mô phỏng 3 đồng xu cổ (Đồng tiền Mai Hoa) theo thuật toán ngẫu nhiên minh bạch." },
-      { label: "Quy tắc hào động", value: "3 mặt ngửa (Lão Dương - 9) hoặc 3 mặt sấp (Lão Âm - 6) sinh hào động." },
-      { label: "Chính sách Cooldown", value: "Không cho phép gieo liên tiếp cùng một câu hỏi trong thời gian ngắn." },
-      { label: "Căn cứ diễn giải", value: "Dựa trên Chu Dịch nguyên bản, Thoán Truyện và Tượng Truyện." },
+      { label: "Phương pháp gieo quẻ", value: "Gieo quẻ ảo theo phương pháp cổ điển (tương đương gieo 3 đồng tiền 6 lần) — quy tắc chính xác sẽ công bố trước khi ra mắt." },
+      { label: "Giới hạn lượt gieo", value: "Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ. Gieo lại cùng câu hỏi trong 24 giờ đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới." },
+      { label: "Khả năng xem lại", value: "Mỗi lượt gieo sẽ lưu lại đầy đủ để xem lại đúng quẻ đã ra, không được gieo lại âm thầm." },
+      { label: "Vai trò của AI", value: "Tổ chức và diễn giải quẻ đã gieo bằng tiếng Việt — không tự chọn hoặc thay đổi kết quả gieo." },
     ],
-    footnote: "Khi ra mắt, AI tại Lá Số Việt chỉ diễn giải quẻ đã gieo — không tự ý gieo lại hoặc chỉnh sửa kết quả.",
+    footnote: "Khi ra mắt, AI tại Lá Số Việt chỉ diễn giải quẻ đã gieo — không tự ý gieo lại hoặc chỉnh sửa kết quả để \"khớp\" với câu hỏi.",
   },
   limitations: {
     eyebrow: "06 · Giới hạn",
@@ -83,7 +82,7 @@ export const KINH_DICH_CONTENT_VI: DisciplinePageContent = {
     faqHeading: "Câu hỏi thường gặp",
     faqs: [
       { num: "01", q: "Kinh Dịch có cần giờ sinh không?", a: "Không, Kinh Dịch dựa trên câu hỏi và thời điểm khởi tâm gieo quẻ." },
-      { num: "02", q: "Có thể gieo quẻ nhiều lần trong ngày không?", a: "Mỗi câu hỏi cụ thể chỉ nên gieo một lần để giữ sự tập trung và chân thật." },
+      { num: "02", q: "Vì sao không thể gieo lại nếu chưa thích kết quả?", a: "Kinh Dịch có giá trị khi bạn đối diện với câu trả lời của lần gieo đầu, không phải chọn quẻ mình muốn nghe. Mỗi câu hỏi đã chuẩn hoá chỉ có một quẻ đang hoạt động mỗi 24 giờ — gieo lại trong thời gian đó sẽ hiện lại đúng quẻ trước, không tạo quẻ mới." },
       { num: "03", q: "Gieo quẻ Kinh Dịch có miễn phí không?", a: "Lượt gieo cơ bản và hiển thị quẻ luôn miễn phí." },
     ],
     ctaHeading: "Soi chiếu cuộc sống qua lăng kính Tử Vi",
@@ -131,7 +130,6 @@ export const KINH_DICH_CONTENT_EN: DisciplinePageContent = {
     title: "What a hexagram looks like",
     note: "The example below illustrates classical I Ching architecture — not generated from a real query.",
     disclosure: "Illustrative hexagram sample demonstrating structure, not a real cast query.",
-    subnote: "Line 3 is the moving line where the primary hexagram transforms.",
   },
   glossary: {
     eyebrow: "04 · Core terms",
@@ -149,10 +147,10 @@ export const KINH_DICH_CONTENT_EN: DisciplinePageContent = {
     title: "How casting operates",
     note: "I Ching is often abused by re-casting until a preferred outcome appears. La So Viet enforces discipline: one question, one hexagram.",
     rows: [
-      { label: "Casting method", value: "Three-coin simulation (Plum Blossom coins) using transparent RNG." },
-      { label: "Moving line rules", value: "Three tails (Old Yang - 9) or three heads (Old Yin - 6) mutate." },
-      { label: "Cooldown policy", value: "Prevents repetitive casting for identical queries within short windows." },
-      { label: "Interpretive canon", value: "Grounded in canonical Zhouyi, Great Treatise, and Tuan commentaries." },
+      { label: "Casting method", value: "Virtual casting following classical method (equivalent to casting three coins six times) — exact rules disclosed prior to launch." },
+      { label: "Cooldown policy", value: "Each normalized query has only one active hexagram per 24-hour window. Recasting the same query within 24 hours displays the prior result without generating a new hexagram." },
+      { label: "Reviewability", value: "Every casting is fully recorded for reviewing the exact resulting hexagram without silent re-casting." },
+      { label: "Role of AI", value: "Organizes and interprets cast hexagrams in Vietnamese — never inventing or altering casting outcomes." },
     ],
     footnote: "At launch, AI at La So Viet only explains the cast hexagram — never modifying outcomes to please the reader.",
   },
@@ -176,7 +174,7 @@ export const KINH_DICH_CONTENT_EN: DisciplinePageContent = {
     faqHeading: "Frequently asked questions",
     faqs: [
       { num: "01", q: "Does I Ching require birth time?", a: "No, I Ching is query-driven and relies solely on the moment of intentional casting." },
-      { num: "02", q: "Can I cast multiple times a day?", a: "Each specific question should only be cast once to maintain genuine contemplation." },
+      { num: "02", q: "Why can't I recast if I dislike the result?", a: "The value of I Ching lies in confronting the answer of the initial cast, not selecting the hexagram one prefers to hear. Each normalized query has only one active hexagram per 24-hour window — recasting during that time displays the prior result without creating a new hexagram." },
       { num: "03", q: "Is I Ching casting free?", a: "Standard single casting and reading presentation is completely free." },
     ],
     ctaHeading: "Examine your path through Zi Wei",

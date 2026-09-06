@@ -38,7 +38,6 @@ export const CHIEM_TINH_CONTENT_VI: DisciplinePageContent = {
     title: "Bản đồ sao trông như thế nào",
     note: "Hồ sơ dưới đây là ví dụ minh hoạ cấu trúc — không phải dữ liệu người dùng thật và chưa qua engine tính toán thiên văn.",
     disclosure: "Bản đồ sao minh họa phương pháp, không phải kết quả tính từ dữ liệu thật.",
-    subnote: "Bảng hành tinh, điểm mọc và góc chiếu sẽ hiển thị chi tiết khi ra mắt.",
   },
   glossary: {
     eyebrow: "04 · Thuật ngữ cốt lõi",
@@ -131,7 +130,6 @@ export const CHIEM_TINH_CONTENT_EN: DisciplinePageContent = {
     title: "What a natal chart looks like",
     note: "The profile below illustrates structural layout — not actual user data and not computed by the ephemeris.",
     disclosure: "Illustrative chart sample demonstrating structure, not a real user chart.",
-    subnote: "Planetary table, angles, and aspect lines will display in full detail once live.",
   },
   glossary: {
     eyebrow: "04 · Core terms",

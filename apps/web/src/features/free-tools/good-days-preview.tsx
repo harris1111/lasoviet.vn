@@ -16,12 +16,22 @@ type FreeResultItem = {
   bordered?: boolean;
 };
 
+type RuleTag = {
+  text: string;
+  color: string;
+};
+
 type CandidateDay = {
+  id: string;
   label: string;
+  lunar: string;
   canchi: string;
   status: string;
   statusColor: string;
   reason: string;
+  tamNuong: string;
+  tuoiNote: string;
+  ruleTags: readonly RuleTag[];
 };
 
 type CompareRow = {
@@ -64,34 +74,17 @@ const FREE_RESULTS_EN: readonly FreeResultItem[] = [
 ];
 
 const CANDIDATE_DAYS_VI: readonly CandidateDay[] = [
-  { label: "Ngày ứng viên 1", canchi: "Giáp Tý", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Không rơi vào Tam Nương; hợp tuổi Tý, Ngọ." },
-  { label: "Ngày ứng viên 2", canchi: "Bính Dần", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Ngày Hoàng Đạo; cần lưu ý nếu gia chủ tuổi Thân." },
-  { label: "Ngày ứng viên 3", canchi: "Kỷ Tỵ", status: "Hắc Đạo", statusColor: "var(--son, #ce5b45)", reason: "Rơi vào Tam Nương — loại khỏi danh sách đề xuất." },
-  { label: "Ngày ứng viên 4", canchi: "Canh Ngọ", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Ngày Hoàng Đạo; không xung khắc với các tuổi phổ biến." }
+  { id: "d1", label: "Ngày ứng viên 1", lunar: "12/2 ÂL", canchi: "Giáp Tý", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Không rơi vào Tam Nương; hợp tuổi Tý, Ngọ.", tamNuong: "Không", tuoiNote: "Không có", ruleTags: [{ text: "HD-01 Đạt", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Đạt", color: "var(--teal, #6E9C97)" }] },
+  { id: "d2", label: "Ngày ứng viên 2", lunar: "15/2 ÂL", canchi: "Bính Dần", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Ngày Hoàng Đạo; cần lưu ý nếu gia chủ tuổi Thân.", tamNuong: "Không", tuoiNote: "Tuổi Thân nên cân nhắc", ruleTags: [{ text: "HD-01 Đạt", color: "var(--teal, #6E9C97)" }, { text: "XT-02 Cảnh báo", color: "var(--gold-500, #C9A44D)" }] },
+  { id: "d3", label: "Ngày ứng viên 3", lunar: "18/2 ÂL", canchi: "Kỷ Tỵ", status: "Hắc Đạo", statusColor: "var(--son, #CE5B45)", reason: "Rơi vào Tam Nương — loại khỏi danh sách đề xuất.", tamNuong: "Có — loại trừ", tuoiNote: "Không đánh giá (đã loại)", ruleTags: [{ text: "TN-00 Không đạt", color: "var(--son, #CE5B45)" }] },
+  { id: "d4", label: "Ngày ứng viên 4", lunar: "20/2 ÂL", canchi: "Canh Ngọ", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Ngày Hoàng Đạo; không xung khắc với các tuổi phổ biến.", tamNuong: "Không", tuoiNote: "Không có", ruleTags: [{ text: "HD-01 Đạt", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Đạt", color: "var(--teal, #6E9C97)" }] }
 ];
 
 const CANDIDATE_DAYS_EN: readonly CandidateDay[] = [
-  { label: "Candidate date 1", canchi: "Giap Ty", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Not falling on Tam Nuong; favorable for Rat and Horse years." },
-  { label: "Candidate date 2", canchi: "Binh Dan", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Auspicious day; caution recommended if homeowner was born in Monkey year." },
-  { label: "Candidate date 3", canchi: "Ky Ty", status: "Inauspicious", statusColor: "var(--son, #ce5b45)", reason: "Falls on Tam Nuong — excluded from recommendation list." },
-  { label: "Candidate date 4", canchi: "Canh Ngo", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Auspicious day; no severe clashes with common birth years." }
-];
-
-const COMPARE_COLS_VI = ["Ngày ứng viên 1", "Ngày ứng viên 2", "Ngày ứng viên 4"];
-const COMPARE_COLS_EN = ["Candidate date 1", "Candidate date 2", "Candidate date 4"];
-
-const COMPARE_ROWS_VI: readonly CompareRow[] = [
-  { label: "Can chi ngày", values: ["Giáp Tý", "Bính Dần", "Canh Ngọ"] },
-  { label: "Hoàng/Hắc Đạo", values: ["Hoàng Đạo", "Hoàng Đạo", "Hoàng Đạo"] },
-  { label: "Tam Nương", values: ["Không", "Không", "Không"] },
-  { label: "Lưu ý tuổi", values: ["Không có", "Tuổi Thân nên cân nhắc", "Không có"] }
-];
-
-const COMPARE_ROWS_EN: readonly CompareRow[] = [
-  { label: "Day sexagenary stem-branch", values: ["Giap Ty", "Binh Dan", "Canh Ngo"] },
-  { label: "Auspicious / Inauspicious", values: ["Auspicious", "Auspicious", "Auspicious"] },
-  { label: "Tam Nuong taboo", values: ["None", "None", "None"] },
-  { label: "Birth year note", values: ["None", "Monkey year should consider", "None"] }
+  { id: "d1", label: "Candidate date 1", lunar: "12/2 Lunar", canchi: "Giap Ty", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Not falling on Tam Nuong; favorable for Rat and Horse years.", tamNuong: "None", tuoiNote: "None", ruleTags: [{ text: "HD-01 Pass", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Pass", color: "var(--teal, #6E9C97)" }] },
+  { id: "d2", label: "Candidate date 2", lunar: "15/2 Lunar", canchi: "Binh Dan", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Auspicious day; caution recommended if homeowner was born in Monkey year.", tamNuong: "None", tuoiNote: "Monkey year should consider", ruleTags: [{ text: "HD-01 Pass", color: "var(--teal, #6E9C97)" }, { text: "XT-02 Caution", color: "var(--gold-500, #C9A44D)" }] },
+  { id: "d3", label: "Candidate date 3", lunar: "18/2 Lunar", canchi: "Ky Ty", status: "Inauspicious", statusColor: "var(--son, #CE5B45)", reason: "Falls on Tam Nuong — excluded from recommendation list.", tamNuong: "Yes — excluded", tuoiNote: "Not evaluated (excluded)", ruleTags: [{ text: "TN-00 Fail", color: "var(--son, #CE5B45)" }] },
+  { id: "d4", label: "Candidate date 4", lunar: "20/2 Lunar", canchi: "Canh Ngo", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Auspicious day; no severe clashes with common birth years.", tamNuong: "None", tuoiNote: "None", ruleTags: [{ text: "HD-01 Pass", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Pass", color: "var(--teal, #6E9C97)" }] }
 ];
 
 const GLOSSARY_ITEMS_VI: readonly GlossaryItem[] = [
@@ -219,10 +212,36 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
   const [insightStamped, setInsightStamped] = useState(false);
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({ 0: true });
 
+  const [compareIds, setCompareIds] = useState<string[]>(["d1", "d2", "d4"]);
+  const toggleCompare = (id: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((x) => x !== id);
+      }
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
+    });
+  };
+
   const freeResults = isVi ? FREE_RESULTS_VI : FREE_RESULTS_EN;
   const candidateDays = isVi ? CANDIDATE_DAYS_VI : CANDIDATE_DAYS_EN;
-  const compareCols = isVi ? COMPARE_COLS_VI : COMPARE_COLS_EN;
-  const compareRows = isVi ? COMPARE_ROWS_VI : COMPARE_ROWS_EN;
+  const selectedCandidates = candidateDays.filter((d) => compareIds.includes(d.id));
+  const compareCols = selectedCandidates.map((d) => d.label);
+  const compareCount = selectedCandidates.length;
+  const hasComparison = compareCount > 0;
+  const compareRows: readonly CompareRow[] = isVi
+    ? [
+        { label: "Can chi ngày", values: selectedCandidates.map((d) => d.canchi) },
+        { label: "Hoàng/Hắc Đạo", values: selectedCandidates.map((d) => d.status) },
+        { label: "Tam Nương", values: selectedCandidates.map((d) => d.tamNuong) },
+        { label: "Lưu ý tuổi", values: selectedCandidates.map((d) => d.tuoiNote) },
+      ]
+    : [
+        { label: "Day sexagenary stem-branch", values: selectedCandidates.map((d) => d.canchi) },
+        { label: "Auspicious / Inauspicious", values: selectedCandidates.map((d) => d.status) },
+        { label: "Tam Nuong taboo", values: selectedCandidates.map((d) => d.tamNuong) },
+        { label: "Birth year note", values: selectedCandidates.map((d) => d.tuoiNote) },
+      ];
   const glossaryItems = isVi ? GLOSSARY_ITEMS_VI : GLOSSARY_ITEMS_EN;
   const methodRows = isVi ? METHOD_ROWS_VI : METHOD_ROWS_EN;
   const limitItems = isVi ? LIMIT_ITEMS_VI : LIMIT_ITEMS_EN;
@@ -580,12 +599,56 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
                 : "The example below illustrates dates for a \"wedding\" milestone — date labels and reasons are illustrative samples, not live calendar calculations."}
             </p>
 
-            <div style={{ marginTop: "40px", overflowX: "auto" }}>
-              <table style={{ width: "100%", minWidth: "640px", borderCollapse: "collapse", fontSize: "13.5px" }}>
+            <div
+              style={{
+                marginTop: "24px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "10px",
+                fontSize: "13px",
+                color: "var(--text-muted)",
+                background: "var(--surface-panel)",
+                border: "1px solid var(--border-hairline)",
+                borderRadius: "var(--radius-pill, 9999px)",
+                padding: "8px 16px",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10.5px",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--teal, #6E9C97)",
+                }}
+              >
+                {isVi ? "Đang xem việc" : "Viewing activity"}
+              </span>
+              <span style={{ color: "var(--text-heading)" }}>
+                {isVi ? "Cưới hỏi" : "Wedding"}
+              </span>
+              <span style={{ color: "var(--text-faint)" }}>
+                {isVi
+                  ? "· Đổi loại việc/khoảng ngày sẽ hoạt động khi ra mắt"
+                  : "· Changing activity/date range will be active at launch"}
+              </span>
+            </div>
+
+            <p style={{ margin: "28px 0 0", fontSize: "13px", color: "var(--text-faint)" }}>
+              {isVi
+                ? 'Chọn tối đa 3 ngày (nút "+ So sánh") để đưa vào bảng so sánh bên dưới.'
+                : 'Select up to 3 dates (via "+ Compare" button) to evaluate in the comparison table below.'}
+            </p>
+
+            <div style={{ marginTop: "12px", overflowX: "auto" }}>
+              <table style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse", fontSize: "13.5px" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px 10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px 10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>
                       {isVi ? "Ngày" : "Date"}
+                    </th>
+                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      {isVi ? "Âm lịch" : "Lunar"}
                     </th>
                     <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                       {isVi ? "Can chi ngày" : "Stem-Branch"}
@@ -593,20 +656,68 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
                     <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                       {isVi ? "Hoàng/Hắc Đạo" : "Officer"}
                     </th>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                       {isVi ? "Lý do" : "Reason"}
+                    </th>
+                    <th scope="col" style={{ textAlign: "left", padding: "10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      {isVi ? "So sánh" : "Compare"}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {candidateDays.map((d) => (
-                    <tr key={d.label} style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                      <td style={{ padding: "12px 12px 12px 0", color: "var(--text-heading)", whiteSpace: "nowrap" }}>{d.label}</td>
-                      <td style={{ padding: "12px", color: "var(--text-body)", whiteSpace: "nowrap" }}>{d.canchi}</td>
-                      <td style={{ padding: "12px", color: d.statusColor, whiteSpace: "nowrap" }}>{d.status}</td>
-                      <td style={{ padding: "12px 0", color: "var(--text-body)" }}>{d.reason}</td>
-                    </tr>
-                  ))}
+                  {candidateDays.map((d) => {
+                    const selected = compareIds.includes(d.id);
+                    const disabled = !selected && compareIds.length >= 3;
+                    return (
+                      <tr key={d.id} style={{ borderBottom: "1px solid var(--border-hairline)" }}>
+                        <td style={{ padding: "12px 12px 12px 0", color: "var(--text-heading)", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>{d.label}</td>
+                        <td style={{ padding: "12px", color: "var(--text-body)", whiteSpace: "nowrap" }}>{d.lunar}</td>
+                        <td style={{ padding: "12px", color: "var(--text-body)", whiteSpace: "nowrap" }}>{d.canchi}</td>
+                        <td style={{ padding: "12px", color: d.statusColor, whiteSpace: "nowrap" }}>{d.status}</td>
+                        <td style={{ padding: "12px", color: "var(--text-body)" }}>
+                          {d.reason}
+                          <div style={{ marginTop: "6px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            {d.ruleTags.map((rt, idx) => (
+                              <span
+                                key={idx}
+                                style={{
+                                  fontFamily: "var(--font-mono)",
+                                  fontSize: "9.5px",
+                                  padding: "2px 6px",
+                                  borderRadius: "var(--radius-sm, 3px)",
+                                  background: "var(--surface-panel)",
+                                  border: "1px solid var(--border-hairline)",
+                                  color: rt.color,
+                                }}
+                              >
+                                {rt.text}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td style={{ padding: "12px 0" }}>
+                          <button
+                            type="button"
+                            aria-pressed={selected}
+                            disabled={disabled}
+                            onClick={() => toggleCompare(d.id)}
+                            style={{
+                              fontFamily: "var(--font-mono)",
+                              fontSize: "11px",
+                              padding: "6px 10px",
+                              borderRadius: "var(--radius-sm, 3px)",
+                              cursor: disabled ? "not-allowed" : "pointer",
+                              background: selected ? "var(--teal-tint, rgba(110,156,151,0.16))" : "transparent",
+                              border: `1px solid ${selected ? "var(--teal, #6E9C97)" : "var(--border-hairline)"}`,
+                              color: selected ? "var(--teal, #6E9C97)" : "var(--text-faint)",
+                            }}
+                          >
+                            {selected ? (isVi ? "Đã chọn ✕" : "Selected ✕") : (isVi ? "+ So sánh" : "+ Compare")}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -705,36 +816,44 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
             </div>
 
             <h3 style={{ margin: "56px 0 16px", fontFamily: "var(--font-display)", fontSize: "19px", color: "var(--text-heading)" }}>
-              {isVi ? "So sánh tối đa 3 ngày" : "Compare up to 3 candidate dates"}
+              {isVi ? `So sánh ${compareCount} ngày đã chọn` : `Compare ${compareCount} selected dates`}
             </h3>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", minWidth: "640px", borderCollapse: "collapse", fontSize: "13.5px" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px 10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      {isVi ? "Tiêu chí" : "Criteria"}
-                    </th>
-                    {compareCols.map((c) => (
-                      <th key={c} scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                        {c}
+            {hasComparison ? (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", minWidth: "640px", borderCollapse: "collapse", fontSize: "13.5px" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border-hairline)" }}>
+                      <th scope="col" style={{ textAlign: "left", padding: "10px 12px 10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>
+                        {isVi ? "Tiêu chí" : "Criteria"}
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {compareRows.map((r) => (
-                    <tr key={r.label} style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                      <td style={{ padding: "12px 12px 12px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11.5px", textTransform: "uppercase" }}>
-                        {r.label}
-                      </td>
-                      {r.values.map((v, i) => (
-                        <td key={i} style={{ padding: "12px", color: "var(--text-body)" }}>{v}</td>
+                      {compareCols.map((c) => (
+                        <th key={c} scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                          {c}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {compareRows.map((r) => (
+                      <tr key={r.label} style={{ borderBottom: "1px solid var(--border-hairline)" }}>
+                        <td style={{ padding: "12px 12px 12px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11.5px", textTransform: "uppercase", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>
+                          {r.label}
+                        </td>
+                        {r.values.map((v, i) => (
+                          <td key={i} style={{ padding: "12px", color: "var(--text-body)" }}>{v}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: "14px", color: "var(--text-faint)", borderTop: "1px solid var(--border-hairline)", paddingTop: "20px" }}>
+                {isVi
+                  ? "Chưa chọn ngày nào để so sánh — bấm \"+ So sánh\" trên tối đa 3 dòng trong bảng ở trên."
+                  : "No dates selected for comparison — click \"+ Compare\" on up to 3 rows in the table above."}
+              </p>
+            )}
           </div>
         </section>
 

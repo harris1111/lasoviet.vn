@@ -59,6 +59,21 @@ function computeZodiac(year: number, isVi: boolean) {
   };
 }
 
+const ZODIAC_RAIL_RAW = [
+  { chiVi: "Tý", chiEn: "Ty", animalVi: "Chuột", animalEn: "Rat", recentYears: [2020, 2008, 1996] },
+  { chiVi: "Sửu", chiEn: "Suu", animalVi: "Trâu", animalEn: "Ox", recentYears: [2021, 2009, 1997] },
+  { chiVi: "Dần", chiEn: "Dan", animalVi: "Hổ", animalEn: "Tiger", recentYears: [2022, 2010, 1998] },
+  { chiVi: "Mão", chiEn: "Mao", animalVi: "Mèo", animalEn: "Cat / Rabbit", recentYears: [2023, 2011, 1999] },
+  { chiVi: "Thìn", chiEn: "Thin", animalVi: "Rồng", animalEn: "Dragon", recentYears: [2024, 2012, 2000] },
+  { chiVi: "Tỵ", chiEn: "Ty", animalVi: "Rắn", animalEn: "Snake", recentYears: [2025, 2013, 2001] },
+  { chiVi: "Ngọ", chiEn: "Ngo", animalVi: "Ngựa", animalEn: "Horse", recentYears: [2026, 2014, 2002] },
+  { chiVi: "Mùi", chiEn: "Mui", animalVi: "Dê", animalEn: "Goat", recentYears: [2027, 2015, 2003] },
+  { chiVi: "Thân", chiEn: "Than", animalVi: "Khỉ", animalEn: "Monkey", recentYears: [2016, 2004, 1992] },
+  { chiVi: "Dậu", chiEn: "Dau", animalVi: "Gà", animalEn: "Rooster", recentYears: [2017, 2005, 1993] },
+  { chiVi: "Tuất", chiEn: "Tuat", animalVi: "Chó", animalEn: "Dog", recentYears: [2018, 2006, 1994] },
+  { chiVi: "Hợi", chiEn: "Hoi", animalVi: "Lợn", animalEn: "Pig", recentYears: [2019, 2007, 1995] }
+];
+
 const ZODIAC_TABLE_VI: readonly ZodiacItem[] = [
   { chi: 'Tý', animal: 'Chuột', recentYear: '2020, 2008, 1996' },
   { chi: 'Sửu', animal: 'Trâu', recentYear: '2021, 2009, 1997' },
@@ -452,6 +467,68 @@ export function ZodiacPreview({ locale, className }: ZodiacPreviewProps) {
                   <span>{isVi ? `Địa Chi: ${result.chi}` : `Earthly Branch: ${result.chi}`}</span>
                   <span>{isVi ? `Ngũ hành theo Can: ${result.element}` : `Element by Stem: ${result.element}`}</span>
                 </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "40px" }}>
+              <div style={{ fontSize: "13px", color: "var(--text-faint)", marginBottom: "12px" }}>
+                {isVi
+                  ? "Vòng 12 con giáp (bấm một con giáp để nhảy tới năm gần nhất tương ứng):"
+                  : "12-animal cycle (click an animal to jump to the most recent matching year):"}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1px",
+                  background: "var(--border-hairline)",
+                  border: "1px solid var(--border-hairline)",
+                  borderRadius: "var(--radius-md, 8px)",
+                  overflow: "hidden",
+                  overflowX: "auto",
+                }}
+              >
+                {ZODIAC_RAIL_RAW.map((z) => {
+                  const chiLabel = isVi ? z.chiVi : z.chiEn;
+                  const animalLabel = isVi ? z.animalVi : z.animalEn;
+                  const currentChi = result.chi || "";
+                  const active = z.chiVi === currentChi || currentChi.startsWith(z.chiVi) || currentChi.startsWith(z.chiEn);
+                  return (
+                    <button
+                      key={z.chiVi}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setSelectedYear(z.recentYears[0] ?? 2020)}
+                      style={{
+                        flex: 1,
+                        minWidth: "64px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "4px",
+                        padding: "12px 6px",
+                        background: active ? "var(--gold-500, #c9a44d)" : "var(--surface-panel)",
+                        color: active ? "var(--surface-canvas, #0f0d0a)" : "var(--text-body)",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <span style={{ fontFamily: "var(--font-display)", fontSize: "14px" }}>
+                        {animalLabel}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "9px",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          opacity: 0.75,
+                        }}
+                      >
+                        {chiLabel}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -61,6 +61,25 @@ describe('discipline page contract', () => {
     }
   });
 
+
+  it('preserves preview data boundaries and disclosure contract across all flagship pages', () => {
+    const provider = getDisciplinePageProvider();
+    const flagshipSlugs = ['/bat-tu', '/kinh-dich', '/chiem-tinh', '/than-so-hoc'] as const;
+
+    for (const slug of flagshipSlugs) {
+      const route = routeRegistry.find((entry) => entry.path === slug)!;
+      for (const locale of ['vi', 'en'] as const) {
+        const page = provider.resolve({ route, locale })!;
+        expect(page.preview.sourceKind).toBe('illustrative');
+        expect(page.preview.isIllustrative).toBe(true);
+        expect(page.preview.disclosure).toBeTruthy();
+        expect(typeof page.preview.disclosure).toBe('string');
+        // Illustrative data carries typed discipline key
+        expect((page.preview.data as any).disciplineKey).toBe(page.key);
+      }
+    }
+  });
+
   it('returns null when resolving an unhandled route', () => {
     const provider = getDisciplinePageProvider();
     const homeRoute = routeRegistry.find((entry) => entry.id === 'brand.home')!;
