@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { eq } from "../../packages/backend/node_modules/drizzle-orm/index.js";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
@@ -2288,4 +2289,203 @@ describe("report generation orchestration and worker integration (Slice B)", () 
 
     await database.$client.end();
   });
+
+  it("recovers terminal failure caused by missing knowledge, preserving history and enqueuing requested outbox event", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "evidence-recovery", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+
+    // Simulate production terminal failure state from missing knowledge provisioning
+    await database
+      .update(reportReservations)
+      .set({
+        status: "terminal_failure",
+        lastErrorCode: "REPORT_EVIDENCE_INVALID",
+        activeJobId: fixture.jobId,
+        attemptCount: 1,
+      })
+      .where(eq(reportReservations.reportVersionId, fixture.reportVersionId));
+
+    await database
+      .update(reportQueueJobs)
+      .set({
+        status: "terminal_failure",
+        lastErrorCode: "REPORT_EVIDENCE_INVALID",
+        attemptCount: 1,
+        leasedBy: null,
+        leasedUntil: null,
+      })
+      .where(eq(reportQueueJobs.id, fixture.jobId));
+
+    await database.insert(reportGenerationAttempts).values({
+      id: randomUUID(),
+      reportVersionId: fixture.reportVersionId,
+      jobId: fixture.jobId,
+      attemptNumber: 1,
+      status: "failed",
+      errorCode: "REPORT_EVIDENCE_INVALID",
+    });
+
+    const reportService = createReportService(database);
+    const recoveryResult = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: fixture.reportVersionId,
+      expectedStateVersion: 1,
+      recoveryId: "rec-2026-09-06-001",
+    });
+
+    expect(recoveryResult).toEqual({ ok: true, stateVersion: 2 });
+
+    // Verify reservation reset and preserved fields
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportVersionId, fixture.reportVersionId));
+    expect(reservation?.status).toBe("requested");
+    expect(reservation?.stateVersion).toBe(2);
+    expect(reservation?.activeJobId).toBeNull();
+    expect(reservation?.lastErrorCode).toBeNull();
+    expect(reservation?.nextAttemptAt).toBeNull();
+    expect(reservation?.attemptCount).toBe(1);
+    expect(reservation?.reportId).toBe(fixture.reportId);
+    expect(reservation?.entitlementId).toBe(fixture.entitlementId);
+    expect(reservation?.chartVersionId).toBe(fixture.chartVersionId);
+    expect(reservation?.evidenceVersionId).toBe(fixture.evidenceVersionId);
+    expect(reservation?.knowledgeVersionId).toBe(fixture.knowledgeVersionId);
+
+    // Verify old terminal queue job and attempt remain immutable history
+    const [queueJob] = await database
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.id, fixture.jobId));
+    expect(queueJob?.status).toBe("terminal_failure");
+    expect(queueJob?.lastErrorCode).toBe("REPORT_EVIDENCE_INVALID");
+    expect(queueJob?.attemptCount).toBe(1);
+
+    const attempts = await database
+      .select()
+      .from(reportGenerationAttempts)
+      .where(eq(reportGenerationAttempts.reportVersionId, fixture.reportVersionId));
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0].status).toBe("failed");
+    expect(attempts[0].errorCode).toBe("REPORT_EVIDENCE_INVALID");
+
+    // Verify fresh pending outbox event with exact reservation payload
+    const allOutbox = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.aggregateId, fixture.reportVersionId));
+    const recoveryEvents = allOutbox.filter(
+      (e) => e.eventType === "report.generation.requested.v1",
+    );
+    expect(recoveryEvents).toHaveLength(1);
+    const outboxEvent = recoveryEvents[0];
+    expect(outboxEvent.status).toBe("pending");
+    expect(outboxEvent.attemptCount).toBe(0);
+    expect(outboxEvent.aggregateType).toBe("report");
+    expect(outboxEvent.aggregateId).toBe(fixture.reportVersionId);
+    expect(outboxEvent.actorId).toBeNull();
+    expect(outboxEvent.schemaVersion).toBe(1);
+    expect(outboxEvent.idempotencyKey).toBe("report-recovery:rec-2026-09-06-001");
+    expect(outboxEvent.payload).toEqual({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      entitlementId: fixture.entitlementId,
+      chartVersionId: fixture.chartVersionId,
+      evidenceVersionId: fixture.evidenceVersionId,
+      knowledgeVersionId: fixture.knowledgeVersionId,
+      promptVersion: "identity-report-prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+    });
+
+    // Repeat call with stale expected version fails without duplicate outbox event
+    const repeatStale = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: fixture.reportVersionId,
+      expectedStateVersion: 1,
+      recoveryId: "rec-2026-09-06-001",
+    });
+    expect(repeatStale).toEqual({ ok: false, code: "WORKFLOW_STATE_CONFLICT" });
+
+    // Repeat call with active (requested) state version also fails without duplicate outbox event
+    const repeatRequested = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: fixture.reportVersionId,
+      expectedStateVersion: 2,
+      recoveryId: "rec-2026-09-06-001",
+    });
+    expect(repeatRequested).toEqual({ ok: false, code: "WORKFLOW_STATE_CONFLICT" });
+
+    const outboxAfterRepeats = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.aggregateId, fixture.reportVersionId));
+    expect(
+      outboxAfterRepeats.filter((e) => e.eventType === "report.generation.requested.v1"),
+    ).toHaveLength(1);
+
+    // Fail-closed validation for invalid recovery ID
+    const emptyIdResult = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: fixture.reportVersionId,
+      expectedStateVersion: 2,
+      recoveryId: "   ",
+    });
+    expect(emptyIdResult).toEqual({ ok: false, code: "RECOVERY_ID_INVALID" });
+
+    // Fail-closed validation for report not found
+    const notFoundResult = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: randomUUID(),
+      expectedStateVersion: 1,
+      recoveryId: "rec-2026-09-06-not-found",
+    });
+    expect(notFoundResult).toEqual({ ok: false, code: "REPORT_NOT_FOUND" });
+
+    // Fail-closed validation for immutable report version conflict
+    const conflictFixture = await seedFullOrchestrationFixture(database, "evidence-recovery-conflict", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+    });
+    await database
+      .update(reportReservations)
+      .set({
+        status: "terminal_failure",
+        lastErrorCode: "REPORT_EVIDENCE_INVALID",
+        activeJobId: conflictFixture.jobId,
+        attemptCount: 1,
+      })
+      .where(eq(reportReservations.reportVersionId, conflictFixture.reportVersionId));
+
+    await database.insert(reportVersions).values({
+      id: randomUUID(),
+      reportId: conflictFixture.reportId,
+      reportVersionId: conflictFixture.reportVersionId,
+      entitlementId: conflictFixture.entitlementId,
+      chartVersionId: conflictFixture.chartVersionId,
+      evidenceVersionId: conflictFixture.evidenceVersionId,
+      knowledgeVersionId: conflictFixture.knowledgeVersionId,
+      promptVersion: "identity-report-prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent: {},
+      htmlContent: "<html></html>",
+      contentHash: "a".repeat(64),
+      pdfAssetId: randomUUID(),
+      renderVersion: "v1",
+    });
+
+    const conflictResult = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: conflictFixture.reportVersionId,
+      expectedStateVersion: 1,
+      recoveryId: "rec-2026-09-06-conflict",
+    });
+    expect(conflictResult).toEqual({ ok: false, code: "REPORT_VERSION_CONFLICT" });
+
+    await database.$client.end();
+  });
+
 });
