@@ -209,11 +209,7 @@ export function VietQrCheckout({
   const [copiedField, setCopiedField] = useState<CheckoutCopyField | null>(null);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const lastInstructionsRef = useRef(initialStatus.paymentInstructions);
-  if (status.paymentInstructions !== null) {
-    lastInstructionsRef.current = status.paymentInstructions;
-  }
-  const instructions = status.paymentInstructions ?? lastInstructionsRef.current;
+  const instructions = status.paymentInstructions;
 
   const [remainingTime, setRemainingTime] = useState(() =>
     instructions ? formatCheckoutRemainingTime(instructions.expiresAt) : ""

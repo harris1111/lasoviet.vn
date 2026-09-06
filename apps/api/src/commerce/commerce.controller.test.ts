@@ -687,4 +687,100 @@ describe("SePay controller HTTP contract", () => {
     });
   });
 
+  it("returns COMMERCE_AUTO_PAYMENT_FAILED when recordPaid rejects in disabled mode", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const orderRecord = {
+      id: "order-1",
+      invoiceNumber: "LSV-order-1",
+      ownerId: "user-1",
+      chartId: "chart-1",
+      chartVersionId: "chart-v1",
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79000,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-05T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: true,
+        value: orderRecord,
+        reused: false,
+      }),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn().mockRejectedValue(new Error("database transaction aborted")),
+    } as never);
+
+    try {
+      const result = await controller({ sepayEnvironment: "disabled" }).create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      });
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "COMMERCE_AUTO_PAYMENT_FAILED" },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns COMMERCE_AUTO_PAYMENT_FAILED when readOrderProjection rejects in disabled mode", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const orderRecord = {
+      id: "order-1",
+      invoiceNumber: "LSV-order-1",
+      ownerId: "user-1",
+      chartId: "chart-1",
+      chartVersionId: "chart-v1",
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79000,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-05T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: true,
+        value: orderRecord,
+        reused: false,
+      }),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn().mockRejectedValue(new Error("connection pool timeout")),
+      recordPaid: vi.fn().mockResolvedValue({ ok: true, replayed: false }),
+    } as never);
+
+    try {
+      const result = await controller({ sepayEnvironment: "disabled" }).create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      });
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "COMMERCE_AUTO_PAYMENT_FAILED" },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
 });

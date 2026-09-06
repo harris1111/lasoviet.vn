@@ -433,4 +433,22 @@ describe("VietQR checkout copy controls", () => {
     expect(onCopied).not.toHaveBeenCalled();
   });
 
+  it("renders null safely when paymentInstructions is null", () => {
+    const statusWithNull: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "paid",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+      },
+      paymentInstructions: null,
+      reportId: "report-1",
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={statusWithNull} labels={labels} />,
+    );
+    expect(html).toBe("");
+  });
+
 });

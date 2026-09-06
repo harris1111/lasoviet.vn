@@ -103,36 +103,40 @@ export class CommerceController {
       return { ok: false, error: { code: result.code } };
     }
     if (this.sepayEnvironment === "disabled") {
-      if (result.value.status === "pending") {
-        const paidResult = await this.repository().recordPaid({
-          invoiceNumber: result.value.invoiceNumber,
-          providerEventId: `disabled-autopay:${result.value.id}`,
-          amount: result.value.amount,
-          currency: result.value.currency,
-          traceId: actor.requestId,
-        });
-        if (!paidResult.ok) {
+      try {
+        if (result.value.status === "pending") {
+          const paidResult = await this.repository().recordPaid({
+            invoiceNumber: result.value.invoiceNumber,
+            providerEventId: `disabled-autopay:${result.value.id}`,
+            amount: result.value.amount,
+            currency: result.value.currency,
+            traceId: actor.requestId,
+          });
+          if (!paidResult.ok) {
+            return { ok: false, error: { code: "COMMERCE_AUTO_PAYMENT_FAILED" } };
+          }
+        }
+        const projection = await this.repository().readOrderProjection(actor, result.value.id);
+        if (projection === null) {
           return { ok: false, error: { code: "COMMERCE_AUTO_PAYMENT_FAILED" } };
         }
-      }
-      const projection = await this.repository().readOrderProjection(actor, result.value.id);
-      if (projection === null) {
+        return {
+          ok: true,
+          value: {
+            order: {
+              id: projection.order.id,
+              status: projection.order.status,
+              amount: projection.order.amount,
+              currency: projection.order.currency,
+              locale: projection.order.locale,
+            },
+            paymentInstructions: null,
+            reportId: projection.reportId,
+          },
+        };
+      } catch {
         return { ok: false, error: { code: "COMMERCE_AUTO_PAYMENT_FAILED" } };
       }
-      return {
-        ok: true,
-        value: {
-          order: {
-            id: projection.order.id,
-            status: projection.order.status,
-            amount: projection.order.amount,
-            currency: projection.order.currency,
-            locale: projection.order.locale,
-          },
-          paymentInstructions: null,
-          reportId: projection.reportId,
-        },
-      };
     }
 
     const projection = await this.repository().readOrderProjection(actor, result.value.id);
