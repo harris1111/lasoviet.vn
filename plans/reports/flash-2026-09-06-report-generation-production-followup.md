@@ -39,7 +39,7 @@ Harden production report generation across three bounded domains with Test-Drive
      - Section keys: `id`, `title`, `narrative`, `claims`.
      - Claim skeleton keys with explicit literal JSON container example:
        `{"id":"claim-1","text":"...","evidenceIds":["ziwei.identity.example"],"interpretationBoundCode":"reflective_identity_only","confidence":"moderate","limitations":["..."],"suggestedActions":[{"category":"reflect","text":"..."}]}`
-     - Each claim links exactly one supplied evidence item, copies an allowed `interpretationBoundCode`, confidence does not exceed evidence confidence, action category is allowed.
+     - Each claim links exactly one supplied evidence item in evidenceIds, copies an allowed `interpretationBoundCode`, confidence does not exceed evidence confidence, action category is allowed for that evidence item.
      - `limitations` has 1-3 strings; `suggestedActions` has 0-2 objects with `category`, `text`.
      - 7 sections required to have at least one claim: `personal_summary`, `primary_evidence`, `strengths_and_resources`, `tensions_and_blind_spots`, `identity_analysis`, `cycles_and_timing`, `within_control`.
      - Explicit prohibition against translated, renamed, or invented keys, IDs, codes, or categories.
@@ -84,19 +84,7 @@ Harden production report generation across three bounded domains with Test-Drive
    - Command: `pnpm vitest run tests/jobs/report-worker-state.integration.test.ts -t "marks terminal failure and emits report.fulfillment.failed.v1 upon third failed attempt"`
    - Result: `Test Files 1 passed (1) | Tests 1 passed | 5 skipped (6) | Duration 4.41s`
    - Verified: Verified SHA-256 deterministic idempotency key `report-failed:${hash}` and event ID `evt-failed-${hash}`.
-4. **PostgreSQL Integration Test**:
-   - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
-   - Result: Failed with `OutboxError: OUTBOX_DUPLICATE_KEY: event or idempotency key already exists` at `enqueueOutbox` during `recordTerminalFailure` on recovery job due to collision with old failure outbox event.
-
-### GREEN Evidence
-1. **Writer Unit Test (Review Fix)**:
-   - Command: `pnpm vitest run packages/backend/src/reports/identity-report-writer.test.ts`
-   - Result: `Test Files 1 passed (1) | Tests 3 passed (3) | Duration 311ms`
-   - Verified: All 8 structural rules and exact literal JSON container syntax (`"evidenceIds":[`, `"limitations":[`, `"suggestedActions":[{"category":`) verified.
-2. **Adapter & Writer Unit Tests**:
-   - Command: `pnpm vitest run packages/backend/src/ai/openai-compatible-adapter.test.ts packages/backend/src/reports/identity-report-writer.test.ts`
-   - Result: `Test Files 2 passed (2) | Tests 12 passed (12) | Duration 390ms`
-3. **PostgreSQL Integration Test**:
+4. **PostgreSQL Integration Test (Repeated Terminal Failure)**:
    - Command: `pnpm vitest run tests/jobs/report-generation.integration.test.ts -t "recovers terminal failure caused by missing knowledge"`
    - Result: `Test Files 1 passed (1) | Tests 1 passed | 25 skipped (26) | Duration 4.54s`
    - Verified: Initial terminal failure, successful recovery dispatch, recovery job leased and generating, second terminal failure transition succeeds with distinct event ID and idempotency key, both failure events preserved in outbox, reservation updated with new error code and incremented stateVersion.
@@ -113,8 +101,8 @@ Harden production report generation across three bounded domains with Test-Drive
 ## Files Changed
 - `packages/backend/src/ai/openai-compatible-adapter.ts`: Balanced JSON object scanner, generic system instruction, invalid-output retry with correction prompt.
 - `packages/backend/src/ai/openai-compatible-adapter.test.ts`: Unit tests for non-JSON retry, trailing prose extraction, leading prose rejection, and retry correction isolation.
-- `packages/backend/src/reports/identity-report-writer.ts`: Structural constraint expansion in writer system instructions.
-- `packages/backend/src/reports/identity-report-writer.test.ts`: Unit test asserting all 8 structural constraints in writer system prompt.
+- `packages/backend/src/reports/identity-report-writer.ts`: Structural constraint expansion in writer system instructions including literal JSON claim skeleton example.
+- `packages/backend/src/reports/identity-report-writer.test.ts`: Unit test asserting structural constraints and literal JSON container substrings in writer system prompt.
 - `packages/backend/src/reports/report.service.ts`: SHA-256 derived deterministic eventId, traceId, and idempotencyKey for terminal failure outbox records.
 - `tests/jobs/report-generation.integration.test.ts`: Extended integration test covering repeated terminal failure across recovery jobs and distinct outbox event generation.
 - `tests/jobs/report-worker-state.integration.test.ts`: Updated terminal failure assertion to verify SHA-256 derived idempotency key and event ID.
@@ -125,5 +113,5 @@ None.
 
 ## Status Contract
 **Status:** DONE
-**Summary:** Resolved AI output fragility with balanced JSON scanning and invalid-output retry, enforced comprehensive report writer structural contracts in system instructions, and eliminated repeated terminal failure outbox collisions via job-scoped SHA-256 tokens.
+**Summary:** Resolved AI output fragility with balanced JSON scanning and invalid-output retry, enforced comprehensive report writer structural contracts with literal JSON claim container syntax in system instructions, and eliminated repeated terminal failure outbox collisions via job-scoped SHA-256 tokens.
 **Concerns/Blockers:** None
