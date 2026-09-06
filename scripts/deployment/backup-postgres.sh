@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/lib/common.sh"
 
 load_deploy_config
-build_compose_cmd
+build_base_compose_cmd
 
 MODE="${1:-}"
 if [ -z "$MODE" ]; then

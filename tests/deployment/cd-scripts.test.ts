@@ -847,6 +847,24 @@ exit 0
     expect(files).toContain("daily-lookalike-20260901T023000Z.dump");
   });
 
+  it("succeeds for standalone daily backup without a release SHA and excludes registry compose overlay", () => {
+    const res = runScript(ctx, "backup-postgres.sh", ["daily"], {
+      LASOVIET_RELEASE_SHA: "",
+    });
+    expect(res.status).toBe(0);
+
+    const commands = readFileSync(ctx.commandsLog, "utf8");
+    const composeLines = commands
+      .split("\n")
+      .filter((line) => line.includes("compose") && line.includes("exec -T postgres"));
+
+    expect(composeLines.length).toBeGreaterThan(0);
+    const backupComposeCall = composeLines[0];
+    expect(backupComposeCall).toContain("docker-compose.yml");
+    expect(backupComposeCall).toContain("docker-compose.production.yml");
+    expect(backupComposeCall).not.toContain("docker-compose.registry.yml");
+  });
+
   it("preserves unknown and failed backup files and fails if chmod fails", () => {
     const preserveFiles = [
       "custom-manual-backup.dump",

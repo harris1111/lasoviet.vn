@@ -237,12 +237,16 @@ record_failure() {
   write_state "$CURRENT_RELEASE_SHA" "$PREVIOUS_RELEASE_SHA" "$LAST_ATTEMPTED_RELEASE_SHA" "$LAST_SUCCESSFUL_DEPLOYMENT_AT" "$code" "$now"
 }
 
-build_compose_cmd() {
+build_base_compose_cmd() {
   COMPOSE_CMD=(
     docker compose
     --env-file "$DEPLOY_ENV_FILE"
     -f "$PROJECT_DIR/docker-compose.yml"
     -f "$PROJECT_DIR/docker-compose.production.yml"
-    -f "$PROJECT_DIR/docker-compose.registry.yml"
   )
+}
+
+build_compose_cmd() {
+  build_base_compose_cmd
+  COMPOSE_CMD+=(-f "$PROJECT_DIR/docker-compose.registry.yml")
 }
