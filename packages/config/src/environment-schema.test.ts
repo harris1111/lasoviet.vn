@@ -24,6 +24,7 @@ const completeAi = {
   AI_MAX_RETRIES: "2",
   AI_FEATURE_JSON_SCHEMA: "true",
   AI_FEATURE_TOOL_CALLING: "false",
+  AI_PRODUCTION_ENABLED: "true",
 } as const;
 
 const completeSmtp = {
@@ -57,6 +58,7 @@ const validNormalizedProduction = {
     maxRetries: 2,
     featureJsonSchema: true,
     featureToolCalling: false,
+    productionEnabled: true,
   },
   smtp: {
     enabled: true,
@@ -265,6 +267,11 @@ describe("environment loading", () => {
       { ...productionBase, ...completeAi, AI_FEATURE_TOOL_CALLING: "yes" },
       "AI_FEATURE_TOOL_CALLING",
     ],
+    [
+      "AI_PRODUCTION_ENABLED",
+      { ...productionBase, ...completeAi, AI_PRODUCTION_ENABLED: "yes" },
+      "AI_PRODUCTION_ENABLED",
+    ],
 
     ["SMTP_HOST", { ...productionBase, ...completeSmtp, SMTP_HOST: " " }, "SMTP_HOST"],
     ["SMTP_PORT", { ...productionBase, ...completeSmtp, SMTP_PORT: "0" }, "SMTP_PORT"],
@@ -315,6 +322,20 @@ describe("environment loading", () => {
 
   it("rejects partial optional groups in declared order", () => {
     expectPartial({ ...productionBase, AI_BASE_URL: completeAi.AI_BASE_URL }, "ai", "AI_API_KEY");
+    expectPartial(
+      {
+        ...productionBase,
+        AI_BASE_URL: completeAi.AI_BASE_URL,
+        AI_API_KEY: completeAi.AI_API_KEY,
+        AI_MODEL: completeAi.AI_MODEL,
+        AI_TIMEOUT: completeAi.AI_TIMEOUT,
+        AI_MAX_RETRIES: completeAi.AI_MAX_RETRIES,
+        AI_FEATURE_JSON_SCHEMA: completeAi.AI_FEATURE_JSON_SCHEMA,
+        AI_FEATURE_TOOL_CALLING: completeAi.AI_FEATURE_TOOL_CALLING,
+      },
+      "ai",
+      "AI_PRODUCTION_ENABLED",
+    );
     expectPartial({ ...productionBase, SMTP_HOST: completeSmtp.SMTP_HOST }, "smtp", "SMTP_PORT");
     expectPartial(
       { ...productionBase, SMTP_HOST: completeSmtp.SMTP_HOST, SMTP_PORT: completeSmtp.SMTP_PORT },
@@ -379,6 +400,36 @@ describe("environment loading", () => {
     expect(serialized).toContain("AI_TIMEOUT");
   });
 
+  it("rejects AI_FEATURE_JSON_SCHEMA=false when AI_PRODUCTION_ENABLED=true", () => {
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        AI_PRODUCTION_ENABLED: "true",
+        AI_FEATURE_JSON_SCHEMA: "false",
+      },
+      "AI_FEATURE_JSON_SCHEMA",
+    );
+  });
+
+  it("allows AI_FEATURE_JSON_SCHEMA=false when AI_PRODUCTION_ENABLED=false", () => {
+    const result = loadEnvironment({
+      ...productionBase,
+      ...completeAi,
+      AI_PRODUCTION_ENABLED: "false",
+      AI_FEATURE_JSON_SCHEMA: "false",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        ai: {
+          enabled: true,
+          productionEnabled: false,
+          featureJsonSchema: false,
+        },
+      },
+    });
+  });
 });
 
 describe("normalized environment schema", () => {

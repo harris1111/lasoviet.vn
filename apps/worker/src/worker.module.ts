@@ -15,6 +15,7 @@ import {
   createDatabaseReportQueueStore,
   createDatabaseReportVersionRepository,
   createKnowledgeRetrievalService,
+  createOpenAiCompatibleAdapter,
   createReportService,
   createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
@@ -91,8 +92,7 @@ export function createReportGenerateRunner(options?: {
     };
   }
 
-  const gate = options?.gate ?? createAiProductionGate("pending");
-  if (!gate.allows("production_report_generation")) {
+  if (options?.gate !== undefined && !options.gate.allows("production_report_generation")) {
     return {
       async runOnce() {
         return { processed: 0 };
@@ -101,7 +101,29 @@ export function createReportGenerateRunner(options?: {
   }
 
   const environment = loadEnvironment(process.env);
-  if (!environment.ok || environment.value.databaseUrl === undefined) {
+  if (!environment.ok) {
+    throw new Error("WORKER_CONFIG_INVALID");
+  }
+
+  const gate =
+    options?.gate ??
+    createAiProductionGate(
+      environment.value.ai.enabled &&
+        environment.value.ai.productionEnabled &&
+        environment.value.ai.featureJsonSchema
+        ? "approved"
+        : "pending",
+    );
+
+  if (!gate.allows("production_report_generation")) {
+    return {
+      async runOnce() {
+        return { processed: 0 };
+      },
+    };
+  }
+
+  if (environment.value.databaseUrl === undefined) {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
@@ -112,14 +134,25 @@ export function createReportGenerateRunner(options?: {
     knowledgeRetrieval,
   });
   const versionRepository = createDatabaseReportVersionRepository(database);
-  const provider = options?.provider ?? {
-    async generateStructured() {
-      return {
-        ok: false as const,
-        error: { code: "AI_CAPABILITY_UNSUPPORTED" as const, retryable: false },
-      };
-    },
-  };
+  const provider =
+    options?.provider ??
+    (environment.value.ai.enabled
+      ? createOpenAiCompatibleAdapter({
+          baseUrl: environment.value.ai.baseUrl,
+          apiKey: environment.value.ai.apiKey,
+          modelId: environment.value.ai.model,
+          timeoutMs: environment.value.ai.timeoutMs,
+          retryCount: environment.value.ai.maxRetries,
+          productionGate: gate,
+        })
+      : {
+          async generateStructured() {
+            return {
+              ok: false as const,
+              error: { code: "AI_CAPABILITY_UNSUPPORTED" as const, retryable: false },
+            };
+          },
+        });
   const generationService = createReportGenerationService({
     sourceRepository,
     versionRepository,

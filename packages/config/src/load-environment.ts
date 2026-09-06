@@ -38,6 +38,7 @@ const AI_VARIABLES = [
   "AI_MAX_RETRIES",
   "AI_FEATURE_JSON_SCHEMA",
   "AI_FEATURE_TOOL_CALLING",
+  "AI_PRODUCTION_ENABLED",
 ] as const;
 
 const SMTP_VARIABLES = [
@@ -75,6 +76,7 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "ai.maxRetries": "AI_MAX_RETRIES",
   "ai.featureJsonSchema": "AI_FEATURE_JSON_SCHEMA",
   "ai.featureToolCalling": "AI_FEATURE_TOOL_CALLING",
+  "ai.productionEnabled": "AI_PRODUCTION_ENABLED",
   "smtp.host": "SMTP_HOST",
   "smtp.port": "SMTP_PORT",
   "smtp.username": "SMTP_USERNAME",
@@ -210,6 +212,7 @@ function loadAi(source: NodeJS.ProcessEnv): ParseResult<AiEnvironment> {
     maxRetries: decimalInteger(source.AI_MAX_RETRIES),
     featureJsonSchema: booleanValue(source.AI_FEATURE_JSON_SCHEMA),
     featureToolCalling: booleanValue(source.AI_FEATURE_TOOL_CALLING),
+    productionEnabled: booleanValue(source.AI_PRODUCTION_ENABLED),
   });
   return parsed.success
     ? { ok: true, value: parsed.data }
