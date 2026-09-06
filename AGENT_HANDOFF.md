@@ -1,10 +1,10 @@
 # La So Viet Engineering Handoff
 
-**Updated:** 2026-09-05
+**Updated:** 2026-09-06
 **Repository:** `harris1111/lasoviet.vn`
 **Worktree:** `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan\.worktrees\phase04-report-generation`
 **Active branch:** `feature/phase04-report-generation`
-**Audited implementation HEAD:** `9543450`
+**Audited implementation HEAD:** `3b7f8d7`
 
 ## Start Here
 
@@ -23,9 +23,10 @@ Use Superpowers only. Do not invoke `/ck` or the CK CLI.
 
 A fresh `origin` fetch on 2026-09-05 established:
 
-- Audited implementation commit: `9543450b37087164c031ec715d01e40db6abd3bb`.
+- Audited implementation commit: `3b7f8d7899bdd951ac96865851fe92370d809e20`.
 - `origin/master` is `be0d2601dc5d3caa5197d19d9029358d256fa1c7`.
-- The active branch is 65 commits ahead and 0 commits behind `origin/master`.
+- Merged current `origin/master` (`9280954`) via merge commit `d6f5005`.
+- The active branch is 72 commits ahead and 0 commits behind `origin/master`.
 - No remote `feature/phase04-report-generation` branch exists.
 - The documentation commit created after this audit makes the next task's
   actual HEAD newer than the implementation baseline above.
@@ -70,9 +71,7 @@ Vietnamese.
 
 ### In Progress
 
-- **In-page VietQR Task 6:** full verification, local synthetic Compose/browser
-  checks, and final Terra high review remain. Local Compose validation remains
-  synthetic-only; no SePay call or payment.
+- **In-page VietQR Task 6:** implementation and fixes complete through `3b7f8d7` (including final fix wave `3a884de` and content scope fix `3b7f8d7`). Non-Docker checks (`i18n:check`, `lint`, diff check) passed; full Vitest (110 passed files / 645 passed tests) and local Compose validation are BLOCKED by unavailable Docker daemon.
 - **Phase 04 closure:** production AI remains fail-closed pending provider
   privacy approval. Seven private-report Playwright cases require controlled
   owner/other/pending/ready/failed fixtures, and two lineage integration cases
@@ -95,9 +94,7 @@ Vietnamese.
 
 ## Immediate Next Execution
 
-The immediate execution task is **In-page VietQR Task 6: full verification,
-local synthetic Compose/browser checks, and final Terra high review**. Local
-Compose remains synthetic-only; no SePay call or payment.
+The immediate execution task is **In-page VietQR Task 6 closure / Docker re-run**: re-run full Vitest suite and local synthetic Compose smoke checks once Docker daemon becomes available. Non-Docker verification is complete on `3b7f8d7`.
 
 Following that milestone, the next coding phase is **Phase 05: PDF, Garage storage,
 report email delivery, and owner account center**. Before claiming Phase 04 closed in the
