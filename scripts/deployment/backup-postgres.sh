@@ -60,7 +60,7 @@ trap cleanup_failure ERR INT TERM
 
 # Run backup inside container
 CONTAINER_TEMP="/tmp/dump-${TIMESTAMP}-$$.dump"
-DUMP_SCRIPT="set -euo pipefail; trap 'rm -f ${CONTAINER_TEMP}' EXIT; pg_dump -U \"\${POSTGRES_USER}\" -d \"\${POSTGRES_DB}\" --format=custom --file=${CONTAINER_TEMP}; pg_restore --list ${CONTAINER_TEMP} > /dev/null; cat ${CONTAINER_TEMP}"
+DUMP_SCRIPT="set -eu; trap 'rm -f ${CONTAINER_TEMP}' EXIT; pg_dump -U \"\${POSTGRES_USER}\" -d \"\${POSTGRES_DB}\" --format=custom --file=${CONTAINER_TEMP}; pg_restore --list ${CONTAINER_TEMP} > /dev/null; cat ${CONTAINER_TEMP}"
 
 rm -f "$PARTIAL_ARCHIVE" "$PARTIAL_CHECKSUM"
 

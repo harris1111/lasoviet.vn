@@ -863,6 +863,8 @@ exit 0
     expect(backupComposeCall).toContain("docker-compose.yml");
     expect(backupComposeCall).toContain("docker-compose.production.yml");
     expect(backupComposeCall).not.toContain("docker-compose.registry.yml");
+    expect(backupComposeCall).toContain("set -eu;");
+    expect(backupComposeCall).not.toContain("pipefail");
   });
 
   it("preserves unknown and failed backup files and fails if chmod fails", () => {
