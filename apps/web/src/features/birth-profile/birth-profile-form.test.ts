@@ -30,7 +30,7 @@ describe("birth profile form payload", () => {
       version: 1,
       calendar: { kind: "solar", date: "1990-01-01" },
       time: { precision: "exact_minute", localTime: "09:30" },
-      timezone: { offsetMinutes: 420 },
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "male",
       consentVersion: "2026-09-01",
       locale: "vi",
@@ -65,12 +65,38 @@ describe("birth profile form payload", () => {
       version: 1,
       calendar: { kind: "solar", date: "1994-04-12" },
       time: { precision: "branch_only", branch: "si" },
-      timezone: { offsetMinutes: 420 },
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "female",
       consentVersion: "2026-09-01",
       locale: "vi",
     });
     expect((profile.time as { localTime?: string }).localTime).toBeUndefined();
+  });
+
+  it("preserves trimmed placeLabel when non-empty and submits IANA timezone", () => {
+    expect(
+      buildBirthProfile({
+        date: "1992-08-18",
+        time: { precision: "exact_minute", hour: "09", minute: "30" },
+        placeLabel: "   Hà Nội, Việt Nam   ",
+        gender: "male",
+        locale: "vi",
+      }),
+    ).toMatchObject({
+      placeLabel: "Hà Nội, Việt Nam",
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
+    });
+  });
+
+  it("omits placeLabel when empty or only whitespace", () => {
+    const profile = buildBirthProfile({
+      date: "1992-08-18",
+      time: { precision: "exact_minute", hour: "09", minute: "30" },
+      placeLabel: "    ",
+      gender: "male",
+      locale: "vi",
+    });
+    expect(profile).not.toHaveProperty("placeLabel");
   });
 
   it("supports discriminated precision state for exact_minute, branch_only, and unknown", () => {

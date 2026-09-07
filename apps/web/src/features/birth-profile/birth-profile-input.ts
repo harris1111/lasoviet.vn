@@ -12,6 +12,7 @@ export type BirthProfileInput = {
   timeUnknown?: boolean;
   branch?: CanonicalBranchId;
   time?: BirthTimeState;
+  placeLabel?: string;
   gender: "male" | "female";
   locale: "en" | "vi";
 };
@@ -48,7 +49,10 @@ export function buildBirthProfile(input: BirthProfileInput) {
     version: 1 as const,
     calendar: { kind: "solar" as const, date: input.date },
     time,
-    timezone: { offsetMinutes: 420 },
+    timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
+    ...(input.placeLabel?.trim()
+      ? { placeLabel: input.placeLabel.trim() }
+      : {}),
     gender: input.gender,
     consentVersion: "2026-09-01",
     locale: input.locale,

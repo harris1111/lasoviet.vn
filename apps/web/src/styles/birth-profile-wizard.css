@@ -611,12 +611,20 @@
   box-shadow: 0 0 0 3px rgba(201, 164, 77, 0.18);
 }
 
-.wizard-date-row input:nth-of-type(1),
-.wizard-date-row input:nth-of-type(2) {
+.wizard-field-group .wizard-date-row input {
+  width: auto;
+  min-width: 0;
+  padding-inline: 8px;
+}
+
+.wizard-field-group .wizard-date-row input:nth-of-type(1),
+.wizard-field-group .wizard-date-row input:nth-of-type(2) {
+  flex: 0 0 54px;
   width: 54px;
 }
 
-.wizard-date-row input:nth-of-type(3) {
+.wizard-field-group .wizard-date-row input:nth-of-type(3) {
+  flex: 0 0 78px;
   width: 78px;
 }
 
@@ -763,10 +771,16 @@
 .wizard-place-input-wrap svg {
   position: absolute;
   left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 18px;
   height: 18px;
   color: var(--pearl-400);
   pointer-events: none;
+}
+
+.wizard-field-group .wizard-place-input-wrap input {
+  padding: 0 14px 0 42px;
 }
 
 .wizard-place-input-wrap input {
@@ -1133,14 +1147,16 @@
     gap: 6px;
   }
 
-  .wizard-date-row input:nth-of-type(1),
-  .wizard-date-row input:nth-of-type(2) {
+  .wizard-field-group .wizard-date-row input:nth-of-type(1),
+  .wizard-field-group .wizard-date-row input:nth-of-type(2) {
+    flex: 0 0 46px;
     width: 46px;
     padding: 0 4px;
   }
 
-  .wizard-date-row input:nth-of-type(3) {
-    flex: 1;
+  .wizard-field-group .wizard-date-row input:nth-of-type(3) {
+    flex: 0 0 60px;
+    width: 60px;
     min-width: 60px;
     padding: 0 6px;
   }

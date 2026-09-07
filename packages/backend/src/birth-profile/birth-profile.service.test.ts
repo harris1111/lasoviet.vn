@@ -100,6 +100,50 @@ describe("BirthProfile normalization", () => {
       error: { code: "INVALID_CALENDAR_INPUT" },
     });
   });
+
+  it("normalizes and preserves placeLabel with trimmed whitespace and IANA timezone", () => {
+    const result = normalizeBirthProfile({
+      version: 1,
+      calendar: { kind: "solar", date: "1992-08-18" },
+      time: { precision: "exact_minute", localTime: "09:30" },
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
+      placeLabel: "   Hà Nội, Việt Nam   ",
+      gender: "male",
+      consentVersion: "2026-09-01",
+      locale: "vi",
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        normalizedPlaceLabel: "Hà Nội, Việt Nam",
+        timezoneProvenance: {
+          source: "iana",
+          ianaZone: "Asia/Ho_Chi_Minh",
+        },
+      },
+    });
+  });
+
+  it("leaves normalizedPlaceLabel absent for historical payloads without placeLabel", () => {
+    const result = normalizeBirthProfile({
+      version: 1,
+      calendar: { kind: "solar", date: "1992-08-18" },
+      time: { precision: "exact_minute", localTime: "09:30" },
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
+      gender: "male",
+      consentVersion: "2026-09-01",
+      locale: "vi",
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+    });
+    if (result.ok) {
+      expect(result.value).not.toHaveProperty("normalizedPlaceLabel");
+      expect(result.value.originalInput).not.toHaveProperty("placeLabel");
+    }
+  });
 });
 
 describe("BirthProfile service", () => {

@@ -50,8 +50,7 @@
     "yearLabel": "Year",
     "formatHint": "(DD / MM / YYYY)",
     "placeLabel": "Birth place",
-    "placePlaceholder": "City, province, or region",
-    "placeNote": "Birth place is optional screen-only context in this current flow, not persisted and not used for calculation; UTC+7 is used."
+    "placePlaceholder": "City, province, or region"
   },
   "review": {
     "title": "Review your details",

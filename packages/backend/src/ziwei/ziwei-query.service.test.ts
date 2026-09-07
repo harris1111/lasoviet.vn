@@ -135,6 +135,33 @@ describe("Zi Wei query service", () => {
     }
   });
 
+  it("includes placeLabel in birthSummary when present in record", async () => {
+    const store = repository({
+      readAuthorizedChart: vi.fn().mockResolvedValue(
+        record({
+          originalInput: {
+            ...profileOriginalInput,
+            placeLabel: "Hà Nội, Việt Nam",
+          },
+          normalizedInput: {
+            ...profileNormalizedInput,
+            normalizedPlaceLabel: "Hà Nội, Việt Nam",
+          },
+        }),
+      ),
+    });
+    const service = createZiweiQueryService({ repository: store, now: () => now });
+    const result = await service.readChart(account, "chart-1");
+    expect(result).toEqual({
+      ok: true,
+      value: expect.objectContaining({
+        birthSummary: expect.objectContaining({
+          placeLabel: "Hà Nội, Việt Nam",
+        }),
+      }),
+    });
+  });
+
   it("allows an unexpired anonymous owner and rejects an expired actor before querying", async () => {
     const store = repository();
     const service = createZiweiQueryService({ repository: store, now: () => now });

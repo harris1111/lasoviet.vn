@@ -50,8 +50,7 @@
     "yearLabel": "Năm",
     "formatHint": "(ngày / tháng / năm)",
     "placeLabel": "Nơi sinh",
-    "placePlaceholder": "Tỉnh, thành phố hoặc địa phương",
-    "placeNote": "Nơi sinh chỉ dùng làm ngữ cảnh hiển thị trên màn hình trong lượt này, không được lưu trữ và không dùng để tính toán lá số; hệ thống sử dụng múi giờ UTC+7."
+    "placePlaceholder": "Tỉnh, thành phố hoặc địa phương"
   },
   "review": {
     "title": "Kiểm tra thông tin",

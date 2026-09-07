@@ -13,13 +13,11 @@ export type BirthWizardBirthStepProps = {
   lunarLabel: string;
   lunarNotice: string;
   dateLabel: string;
-  formatHint: string;
   dayLabel: string;
   monthLabel: string;
   yearLabel: string;
   placeLabel: string;
   placePlaceholder: string;
-  placeNote: string;
   timezoneText: string;
   timeLabels: {
     hour: string;
@@ -56,13 +54,11 @@ export function BirthWizardBirthStep({
   lunarLabel,
   lunarNotice,
   dateLabel,
-  formatHint,
   dayLabel,
   monthLabel,
   yearLabel,
   placeLabel,
   placePlaceholder,
-  placeNote,
   timezoneText,
   timeLabels,
   day,
@@ -110,9 +106,7 @@ export function BirthWizardBirthStep({
       </div>
 
       <div className="wizard-field-group">
-        <span className="wizard-field-label">
-          {dateLabel} <span>{formatHint}</span>
-        </span>
+        <span className="wizard-field-label">{dateLabel}</span>
         <div className="wizard-date-row">
           <input
             aria-label={dayLabel}
@@ -181,7 +175,6 @@ export function BirthWizardBirthStep({
             value={place}
           />
         </div>
-        <p className="wizard-help">{placeNote}</p>
         <p className="wizard-help">{timezoneText}</p>
       </div>
     </section>

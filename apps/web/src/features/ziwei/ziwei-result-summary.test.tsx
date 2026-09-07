@@ -124,4 +124,36 @@ describe("ZiweiResultSummary", () => {
     expect(html).toContain("Wu Qu");
     expect(html).toContain("Prosperity");
   });
+
+  it("renders birth place in Vietnamese when placeLabel is provided", () => {
+    const html = renderToStaticMarkup(
+      <ZiweiResultSummary
+        chart={chart}
+        birthSummary={{ ...birthSummary, placeLabel: "Hà Nội, Việt Nam" }}
+        locale="vi"
+      />,
+    );
+    expect(html).toContain("Nơi sinh");
+    expect(html).toContain("Hà Nội, Việt Nam");
+  });
+
+  it("renders birth place in English when placeLabel is provided", () => {
+    const html = renderToStaticMarkup(
+      <ZiweiResultSummary
+        chart={chart}
+        birthSummary={{ ...birthSummary, placeLabel: "Hanoi, Vietnam" }}
+        locale="en"
+      />,
+    );
+    expect(html).toContain("Birth place");
+    expect(html).toContain("Hanoi, Vietnam");
+  });
+
+  it("does not render birth place row when placeLabel is absent", () => {
+    const html = renderToStaticMarkup(
+      <ZiweiResultSummary chart={chart} birthSummary={birthSummary} locale="vi" />,
+    );
+    expect(html).not.toContain("Nơi sinh");
+    expect(html).not.toContain("Birth place");
+  });
 });
