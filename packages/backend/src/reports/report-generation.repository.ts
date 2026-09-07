@@ -20,8 +20,8 @@ import {
 } from "../knowledge/knowledge-retrieval.service.js";
 import { buildFrozenIdentityReportFacts } from "./frozen-identity-report-facts.js";
 import { identityReportOutline } from "./identity-report-outline.js";
+import { buildSectionRetrievalQuery } from "./identity-report-prompt-context.js";
 import {
-  identityReportSectionPurpose,
   isBoundIdentityReportSource,
   type IdentityReportSource,
 } from "./report-source.js";
@@ -165,7 +165,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
             locale: input.locale,
             reportSection: section.id,
             knowledgeVersion: input.knowledgeVersionId,
-            text: identityReportSectionPurpose(section.id, input.locale),
+            text: buildSectionRetrievalQuery(section.id, input.locale, frozenResult.value.facts),
             enableVector: false,
           });
         } catch (error) {

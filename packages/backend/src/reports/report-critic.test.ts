@@ -16,7 +16,7 @@ function report(): IdentityReportV1 {
     provenance: { chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v1", providerId: "9router-an", modelId: "model", promptVersion: "prompt.v1", templateVersion: "template.v1" },
     sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
       id, title: `Mục ${index + 1}`, narrative: "Bạn nên quan sát bình tĩnh và điều chỉnh theo điều kiện thực tế.",
-      claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id) ? [{
+      claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id) ? [{
         id: `claim-${index}`, text: "Đây là gợi ý để bạn tự phản chiếu theo bằng chứng.", evidenceIds: ["ziwei.identity.life-palace"], interpretationBoundCode: "reflective_identity_only", confidence: "moderate", limitations: ["Phụ thuộc vào giờ sinh."], suggestedActions: [{ category: "reflect", text: "Ghi lại quan sát của bạn." }],
       }] : [],
     })),
@@ -46,7 +46,7 @@ function englishReport(): IdentityReportV1 {
       id,
       title: `Section ${index + 1}`,
       narrative: "You should observe calmly and adjust according to practical conditions.",
-      claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id) ? [{
+      claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id) ? [{
         id: `claim-${index}`,
         text: "This is a prompt for personal reflection based on evidence.",
         evidenceIds: ["ziwei.identity.life-palace"],
@@ -149,6 +149,104 @@ describe("identity report critic", () => {
     await expect(critiqueIdentityReport(report(), context, provider)).resolves.toMatchObject({
       ok: false,
       error: { code: "REPORT_SAFETY_REJECTED", retryable: false },
+    });
+  });
+
+  it("rejects non-safety scores below 4 with AI_OUTPUT_INVALID and exposes bounded notes", async () => {
+    const provider: AiProvider = {
+      async generateStructured() {
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 3, // < 4
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: ["Report lacks concrete specificity in identity section."],
+            },
+            providerId: "9router-an",
+            modelId: "model",
+          },
+        };
+      },
+    };
+    const result = await critiqueIdentityReport(report(), context, provider);
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: "AI_OUTPUT_INVALID",
+        retryable: false,
+        notes: ["Report lacks concrete specificity in identity section."],
+      },
+    });
+  });
+
+  it("rejects languageClarity below 4 with AI_OUTPUT_INVALID", async () => {
+    const provider: AiProvider = {
+      async generateStructured() {
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 4,
+              evidenceCoverage: 4,
+              specificity: 4,
+              languageClarity: 2, // < 4
+              consistency: 4,
+              actionability: 4,
+              safety: 4,
+              repetitionControl: 4,
+              notes: ["Sentences are too abstract."],
+            },
+            providerId: "9router-an",
+            modelId: "model",
+          },
+        };
+      },
+    };
+    const result = await critiqueIdentityReport(report(), context, provider);
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: "AI_OUTPUT_INVALID",
+        retryable: false,
+        notes: ["Sentences are too abstract."],
+      },
+    });
+  });
+
+  it("succeeds when all eight dimensions score at least four", async () => {
+    const provider: AiProvider = {
+      async generateStructured() {
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 4,
+              evidenceCoverage: 4,
+              specificity: 4,
+              languageClarity: 5,
+              consistency: 4,
+              actionability: 4,
+              safety: 5,
+              repetitionControl: 4,
+              notes: [],
+            },
+            providerId: "9router-an",
+            modelId: "model",
+          },
+        };
+      },
+    };
+    const result = await critiqueIdentityReport(report(), context, provider);
+    expect(result).toMatchObject({
+      ok: true,
+      value: { correctness: 4, safety: 5, languageClarity: 5 },
     });
   });
 

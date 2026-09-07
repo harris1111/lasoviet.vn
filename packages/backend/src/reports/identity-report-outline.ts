@@ -12,7 +12,6 @@ const evidenceBacked = new Set<IdentityReportSectionId>([
   "strengths_and_resources",
   "tensions_and_blind_spots",
   "identity_analysis",
-  "cycles_and_timing",
   "within_control",
 ]);
 

@@ -17,6 +17,11 @@ import {
 } from "@lasoviet/database";
 
 import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
+import {
+  CURRENT_REPORT_CONFIG_VERSION,
+  CURRENT_REPORT_KNOWLEDGE_VERSION,
+  CURRENT_REPORT_PROMPT_VERSION,
+} from "../reports/identity-report-config.js";
 
 type Sku = keyof typeof PRODUCT_CATALOG;
 type OrderRecord = typeof commerceOrders.$inferSelect;
@@ -296,8 +301,8 @@ export function createDatabaseCommerceRepository(
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
         const [reservation] = await transaction.insert(reportReservations).values({
           reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
-          evidenceVersionId: evidence.id, knowledgeVersionId: "ziwei.identity.knowledge.v1",
-          promptVersion: "ziwei.identity.prompt.v1", reportConfigVersion: "ziwei.identity.report.v1",
+          evidenceVersionId: evidence.id, knowledgeVersionId: CURRENT_REPORT_KNOWLEDGE_VERSION,
+          promptVersion: CURRENT_REPORT_PROMPT_VERSION, reportConfigVersion: CURRENT_REPORT_CONFIG_VERSION,
           locale: paidOrder.locale, sku: paidOrder.sku,
           createdAt: currentNow, updatedAt: currentNow,
         }).returning();

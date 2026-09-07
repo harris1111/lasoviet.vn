@@ -1,5 +1,9 @@
 import type { IdentityReportV1, ReportGenerateJobEnvelopeV1 } from "@lasoviet/contracts";
 import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
+import {
+  CURRENT_REPORT_RENDER_VERSION,
+  CURRENT_REPORT_TEMPLATE_VERSION,
+} from "./identity-report-config.js";
 import { renderIdentityReportHtml } from "./identity-report-html.js";
 import { writeIdentityReportDraft } from "./identity-report-writer.js";
 import { validateIdentityReport } from "./report-validator.js";
@@ -64,27 +68,27 @@ export function createReportGenerationService(
     }
 
     const replayResult = await dependencies.versionRepository.commitImmutableVersion({
-        reportId: payload.reportId,
-        reportVersionId: payload.reportVersionId,
-        entitlementId: payload.entitlementId,
-        chartVersionId: payload.chartVersionId,
-        evidenceVersionId: payload.evidenceVersionId,
-        knowledgeVersionId: payload.knowledgeVersionId,
-        promptVersion: payload.promptVersion,
-        reportConfigVersion: payload.reportConfigVersion,
-        templateVersion: existing.templateVersion,
-        renderVersion: existing.renderVersion as "identity-report-pdf.v1",
-        locale: payload.locale,
-        sku: payload.sku,
-        providerId: existing.providerId,
-        modelId: existing.modelId,
-        structuredContent: existing.structuredContent as IdentityReportV1,
-        htmlContent: existing.htmlContent,
-        jobId,
-        workerId,
-        attemptNumber,
-        traceId: job.traceId,
-      });
+      reportId: payload.reportId,
+      reportVersionId: payload.reportVersionId,
+      entitlementId: payload.entitlementId,
+      chartVersionId: payload.chartVersionId,
+      evidenceVersionId: payload.evidenceVersionId,
+      knowledgeVersionId: payload.knowledgeVersionId,
+      promptVersion: payload.promptVersion,
+      reportConfigVersion: payload.reportConfigVersion,
+      templateVersion: existing.templateVersion,
+      renderVersion: existing.renderVersion as "identity-report-pdf.v1",
+      locale: payload.locale,
+      sku: payload.sku,
+      providerId: existing.providerId,
+      modelId: existing.modelId,
+      structuredContent: existing.structuredContent as IdentityReportV1,
+      htmlContent: existing.htmlContent,
+      jobId,
+      workerId,
+      attemptNumber,
+      traceId: job.traceId,
+    });
 
     if (!replayResult.ok) {
       return {
@@ -187,7 +191,7 @@ export function createReportGenerationService(
         provenance: {
           knowledgeVersion: payload.knowledgeVersionId,
           promptVersion: payload.promptVersion,
-          templateVersion: "identity-report-html.v1",
+          templateVersion: CURRENT_REPORT_TEMPLATE_VERSION,
         },
         provider: dependencies.provider,
       });
@@ -229,6 +233,9 @@ export function createReportGenerationService(
     } catch {
       return failAttempt("AI_TIMEOUT", true);
     }
+
+    let finalDraft = draft;
+
     if (!criticResult.ok) {
       const errCode = criticResult.error.code;
       if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && criticResult.error.retryable)) {
@@ -240,16 +247,81 @@ export function createReportGenerationService(
       if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
         return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
       }
-      if (errCode === "AI_OUTPUT_INVALID") {
-        return failAttempt("AI_OUTPUT_INVALID", false);
-      }
       if (errCode === "REPORT_EVIDENCE_INVALID" || errCode === "REPORT_LANGUAGE_INVALID") {
         return failAttempt("REPORT_EVIDENCE_INVALID", false);
       }
-      return failAttempt("REPORT_SAFETY_REJECTED", false);
+      if (errCode === "AI_OUTPUT_INVALID") {
+        // Exactly one rewrite attempt
+        const criticNotes = "notes" in criticResult.error && Array.isArray(criticResult.error.notes)
+          ? criticResult.error.notes.slice(0, 8)
+          : [];
+
+        let revisionResult: Awaited<ReturnType<typeof writeIdentityReportDraft>>;
+        try {
+          revisionResult = await writeIdentityReportDraft({
+            ...source,
+            locale: payload.locale,
+            sku: payload.sku as "ZIWEI-IDENTITY-P0",
+            provenance: {
+              knowledgeVersion: payload.knowledgeVersionId,
+              promptVersion: payload.promptVersion,
+              templateVersion: CURRENT_REPORT_TEMPLATE_VERSION,
+            },
+            provider: dependencies.provider,
+            revision: {
+              priorContent: {
+                sections: draft.report.sections,
+                reflectionQuestions: draft.report.reflectionQuestions,
+                summaryActions: draft.report.summaryActions,
+              },
+              criticNotes,
+            },
+          });
+        } catch {
+          return failAttempt("AI_TIMEOUT", true);
+        }
+
+        if (!revisionResult.ok) {
+          const revErrCode = revisionResult.error.code;
+          if (revErrCode === "AI_TIMEOUT" || (revErrCode === "AI_PROVIDER_REQUEST_FAILED" && revisionResult.error.retryable)) {
+            return failAttempt("AI_TIMEOUT", true);
+          }
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
+
+        const revisedDraft = revisionResult.value;
+
+        const revValidation = validateIdentityReport(revisedDraft.report, source);
+        if (!revValidation.ok) {
+          const primaryFinding = revValidation.findings[0]?.code;
+          if (primaryFinding === "REPORT_SAFETY_REJECTED") {
+            return failAttempt("REPORT_SAFETY_REJECTED", false);
+          }
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
+
+        let revCriticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
+        try {
+          revCriticResult = await critiqueIdentityReport(revisedDraft.report, source, dependencies.provider);
+        } catch {
+          return failAttempt("AI_TIMEOUT", true);
+        }
+
+        if (!revCriticResult.ok) {
+          const revCritErrCode = revCriticResult.error.code;
+          if (revCritErrCode === "REPORT_SAFETY_REJECTED") {
+            return failAttempt("REPORT_SAFETY_REJECTED", false);
+          }
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
+
+        finalDraft = revisedDraft;
+      } else {
+        return failAttempt("REPORT_SAFETY_REJECTED", false);
+      }
     }
 
-    const htmlContent = renderIdentityReportHtml(draft.report);
+    const htmlContent = renderIdentityReportHtml(finalDraft.report);
 
     const commitResult = await dependencies.versionRepository.commitImmutableVersion({
       reportId: payload.reportId,
@@ -260,13 +332,13 @@ export function createReportGenerationService(
       knowledgeVersionId: payload.knowledgeVersionId,
       promptVersion: payload.promptVersion,
       reportConfigVersion: payload.reportConfigVersion,
-      templateVersion: "identity-report-html.v1",
-      renderVersion: "identity-report-pdf.v1",
+      templateVersion: CURRENT_REPORT_TEMPLATE_VERSION,
+      renderVersion: CURRENT_REPORT_RENDER_VERSION,
       locale: payload.locale,
       sku: payload.sku,
-      providerId: draft.providerId,
-      modelId: draft.modelId,
-      structuredContent: draft.report,
+      providerId: finalDraft.providerId,
+      modelId: finalDraft.modelId,
+      structuredContent: finalDraft.report,
       htmlContent,
       jobId,
       workerId,

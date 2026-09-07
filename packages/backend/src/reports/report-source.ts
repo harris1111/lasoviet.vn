@@ -51,13 +51,35 @@ export function identityReportSectionPurpose(
     : sectionId.replaceAll("_", " ");
 }
 
+export type BoundedKnowledgePassage = {
+  id: string;
+  content: string;
+  reportSections?: readonly IdentityReportSectionId[];
+  sourceAttribution?: string;
+};
+
 export function boundedKnowledge(
-  passages: readonly ApprovedKnowledgePassage[],
-) {
-  return passages.slice(0, 8).map((passage) => ({
-    id: passage.id,
-    content: passage.content.slice(0, 1_200),
-  }));
+  passages: readonly (ApprovedKnowledgePassage | KnowledgePassageV1)[],
+): BoundedKnowledgePassage[] {
+  const sorted = [...passages].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+  const results: BoundedKnowledgePassage[] = [];
+  let totalChars = 0;
+
+  for (const passage of sorted) {
+    if (results.length >= 11) break;
+    const maxAllowedChars = Math.min(900, 9_600 - totalChars);
+    if (maxAllowedChars <= 0) break;
+    const content = passage.content.slice(0, maxAllowedChars);
+    results.push({
+      id: passage.id,
+      content,
+      ...(passage.reportSections ? { reportSections: passage.reportSections } : {}),
+      ...(passage.sourceAttribution ? { sourceAttribution: passage.sourceAttribution } : {}),
+    });
+    totalChars += content.length;
+  }
+
+  return results;
 }
 
 export function isBoundIdentityReportSource(

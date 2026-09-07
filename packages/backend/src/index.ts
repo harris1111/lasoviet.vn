@@ -201,6 +201,32 @@ export type {
 export {
   createDatabaseAdminOverviewRepository,
 } from "./admin-overview/admin-overview.repository.js";
+export {
+  REPORT_KNOWLEDGE_VERSION_V1,
+  REPORT_KNOWLEDGE_VERSION_V2,
+  REPORT_PROMPT_VERSION_V1,
+  REPORT_PROMPT_VERSION_V2,
+  REPORT_CONFIG_VERSION_V1,
+  REPORT_TEMPLATE_VERSION_V1,
+  REPORT_RENDER_VERSION_V1,
+  CURRENT_REPORT_KNOWLEDGE_VERSION,
+  CURRENT_REPORT_PROMPT_VERSION,
+  CURRENT_REPORT_CONFIG_VERSION,
+  CURRENT_REPORT_TEMPLATE_VERSION,
+  CURRENT_REPORT_RENDER_VERSION,
+  CANONICAL_IDENTITY_REPORT_TITLES_VI,
+  CANONICAL_IDENTITY_REPORT_TITLES_EN,
+  DETERMINISTIC_CYCLES_NARRATIVE_VI,
+  DETERMINISTIC_CYCLES_NARRATIVE_EN,
+} from "./reports/identity-report-config.js";
+export {
+  boundedKnowledge,
+  buildLocalizedPromptFacts,
+  buildSectionRetrievalQuery,
+} from "./reports/identity-report-prompt-context.js";
+export type {
+  LocalizedPromptFacts,
+} from "./reports/identity-report-prompt-context.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
 export type {

@@ -6,12 +6,14 @@ import { resolveWorkerQueues } from "@lasoviet/backend";
 import { WorkerModule } from "./worker.module.js";
 import { createMaintenanceRunner, createOutboxDispatchRunner } from "./worker.module.js";
 import { createReportGenerateRunner } from "./worker.module.js";
+import { provisionReportKnowledge } from "./reports/provision-report-knowledge.js";
 import { executeWorkerPollingCycle, writeWorkerHeartbeat } from "./health/worker-heartbeat.js";
 
 async function bootstrap(): Promise<void> {
   await NestFactory.createApplicationContext(WorkerModule);
   const maintenance = createMaintenanceRunner();
   const outbox = createOutboxDispatchRunner();
+  await provisionReportKnowledge();
   const reportRunner = createReportGenerateRunner();
 
   const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);

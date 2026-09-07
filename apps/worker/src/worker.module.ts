@@ -28,6 +28,7 @@ import {
 } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
 import { createReportGenerateProcessor } from "./processors/report-generate.processor.js";
+export { provisionReportKnowledge } from "./reports/provision-report-knowledge.js";
 
 @Module({})
 export class WorkerModule {}

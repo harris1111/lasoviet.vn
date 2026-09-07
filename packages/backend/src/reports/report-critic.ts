@@ -41,8 +41,26 @@ export async function critiqueIdentityReport(
     maxOutputTokens: 600,
   });
   if (!result.ok) return result;
-  if (result.value.value.correctness < 4 || result.value.value.safety < 4) {
+  const critic = result.value.value;
+  if (critic.correctness < 4 || critic.safety < 4) {
     return { ok: false as const, error: { code: "REPORT_SAFETY_REJECTED", retryable: false } };
   }
-  return { ok: true as const, value: result.value.value };
+  if (
+    critic.evidenceCoverage < 4 ||
+    critic.specificity < 4 ||
+    critic.languageClarity < 4 ||
+    critic.consistency < 4 ||
+    critic.actionability < 4 ||
+    critic.repetitionControl < 4
+  ) {
+    return {
+      ok: false as const,
+      error: {
+        code: "AI_OUTPUT_INVALID",
+        retryable: false,
+        notes: critic.notes.slice(0, 8),
+      },
+    };
+  }
+  return { ok: true as const, value: critic };
 }

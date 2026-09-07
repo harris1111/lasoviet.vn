@@ -9,6 +9,12 @@ import {
 
 import type { AiProvider } from "../ai/ai-provider.js";
 import { writeIdentityReportDraft } from "./identity-report-writer.js";
+import {
+  CANONICAL_IDENTITY_REPORT_TITLES_EN,
+  CANONICAL_IDENTITY_REPORT_TITLES_VI,
+  DETERMINISTIC_CYCLES_NARRATIVE_EN,
+  DETERMINISTIC_CYCLES_NARRATIVE_VI,
+} from "./identity-report-config.js";
 
 describe("identity report writer", () => {
   it("sends resolved frozen facts only and assembles trusted provenance after model content", async () => {
@@ -22,9 +28,9 @@ describe("identity report writer", () => {
             value: {
               sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
                 id,
-                title: `Mục ${index + 1}`,
+                title: `Tên cũ của mô hình ${index + 1}`,
                 narrative: "Bạn nên quan sát bình tĩnh và điều chỉnh theo điều kiện thực tế.",
-                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id)
+                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id)
                   ? [{
                     id: `claim-${index}`,
                     text: "Đây là gợi ý để bạn tự phản chiếu theo bằng chứng.",
@@ -90,6 +96,17 @@ describe("identity report writer", () => {
     expect((request as { system: string }).system).toMatch(/reflective|self-reflection/i);
     expect((request as { system: string }).system).toMatch(/Vietnamese/i);
     expect((request as { system: string }).system).toMatch(/chart.*(?:calculation|calculat)|invent|fabricat/i);
+    expect((request as { maxOutputTokens: number }).maxOutputTokens).toBe(6000);
+
+    // Verify canonical title overwriting
+    if (result.ok) {
+      for (const sec of result.value.report.sections) {
+        expect(sec.title).toBe(CANONICAL_IDENTITY_REPORT_TITLES_VI[sec.id]);
+      }
+      const cyclesSec = result.value.report.sections.find((s) => s.id === "cycles_and_timing");
+      expect(cyclesSec?.narrative).toBe(DETERMINISTIC_CYCLES_NARRATIVE_VI);
+      expect(cyclesSec?.claims).toEqual([]);
+    }
   });
 
   it("selects the exact English disclaimer and requests English for an English reservation", async () => {
@@ -103,9 +120,9 @@ describe("identity report writer", () => {
             value: {
               sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
                 id,
-                title: `Section ${index + 1}`,
+                title: `Old Model Title ${index + 1}`,
                 narrative: "You should observe calmly and adjust according to practical conditions.",
-                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id)
+                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id)
                   ? [{
                     id: `claim-${index}`,
                     text: "This is a prompt for personal reflection based on evidence.",
@@ -175,8 +192,20 @@ describe("identity report writer", () => {
     expect((request as { system: string }).system).toMatch(/reflective|self-reflection/i);
     expect((request as { system: string }).system).toMatch(/English/i);
     expect((request as { system: string }).system).toMatch(/chart.*(?:calculation|calculat)|invent|fabricat/i);
+    expect((request as { maxOutputTokens: number }).maxOutputTokens).toBe(6000);
+
+    // Verify canonical title overwriting
+    if (result.ok) {
+      for (const sec of result.value.report.sections) {
+        expect(sec.title).toBe(CANONICAL_IDENTITY_REPORT_TITLES_EN[sec.id]);
+      }
+      const cyclesSec = result.value.report.sections.find((s) => s.id === "cycles_and_timing");
+      expect(cyclesSec?.narrative).toBe(DETERMINISTIC_CYCLES_NARRATIVE_EN);
+      expect(cyclesSec?.claims).toEqual([]);
+    }
   });
-  it("instructs provider with exact structural constraints for top-level, sections, and claim skeleton", async () => {
+
+  it("instructs provider with exact structural constraints and plain language sequence without cycles_and_timing in required claims", async () => {
     let capturedSystem = "";
     const provider: AiProvider = {
       async generateStructured(candidate) {
@@ -189,7 +218,7 @@ describe("identity report writer", () => {
                 id,
                 title: `Mục ${index + 1}`,
                 narrative: "Nội dung diễn giải phản chiếu.",
-                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "cycles_and_timing", "within_control"].includes(id)
+                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id)
                   ? [{
                     id: `claim-${index}`,
                     text: "Gợi ý tự phản chiếu.",
@@ -252,21 +281,97 @@ describe("identity report writer", () => {
     expect(capturedSystem).toMatch(/action/i);
     expect(capturedSystem).toMatch(/1-3/);
     expect(capturedSystem).toMatch(/0-2/);
-    const requiredSections = [
-      "personal_summary",
-      "primary_evidence",
-      "strengths_and_resources",
-      "tensions_and_blind_spots",
-      "identity_analysis",
-      "cycles_and_timing",
-      "within_control",
-    ];
-    for (const reqSec of requiredSections) {
-      expect(capturedSystem).toContain(reqSec);
-    }
+
+    // Plain language sequence and style bans
+    expect(capturedSystem).toMatch(/manifestation|daily/i);
+    expect(capturedSystem).toMatch(/jargon/i);
+    expect(capturedSystem).toMatch(/Barnum/i);
+
+    // Required sections must NOT include cycles_and_timing
+    const requiredMatch = capturedSystem.match(/These (?:six|7|seven) sections must have at least one claim:\s*([^\.]+)\./i);
+    expect(requiredMatch?.[1]).not.toContain("cycles_and_timing");
+
     expect(capturedSystem).toMatch(/translate|rename|invent/i);
-    expect(capturedSystem).toContain('"evidenceIds":[');
-    expect(capturedSystem).toContain('"limitations":[');
-    expect(capturedSystem).toContain('"suggestedActions":[{"category":');
+  });
+
+  it("passes revision input with prior draft and critic notes when provided", async () => {
+    let capturedUser = "";
+    let capturedSystem = "";
+    const provider: AiProvider = {
+      async generateStructured(candidate) {
+        capturedUser = candidate.user;
+        capturedSystem = candidate.system;
+        return {
+          ok: true,
+          value: {
+            value: {
+              sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
+                id,
+                title: `Mục ${index + 1}`,
+                narrative: "Nội dung phản chiếu.",
+                claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id)
+                  ? [{
+                    id: `claim-${index}`,
+                    text: "Gợi ý tự phản chiếu.",
+                    evidenceIds: ["ziwei.identity.life-palace"],
+                    interpretationBoundCode: "reflective_identity_only",
+                    confidence: "moderate",
+                    limitations: ["Phụ thuộc vào giờ sinh."],
+                    suggestedActions: [{ category: "reflect", text: "Ghi lại quan sát." }],
+                  }]
+                  : [],
+              })),
+              reflectionQuestions: ["Câu hỏi 1", "Câu hỏi 2", "Câu hỏi 3"],
+              summaryActions: ["Hành động 1"],
+            },
+            providerId: "9router-an",
+            modelId: "canonical-model",
+          },
+        } as never;
+      },
+    };
+
+    const evidence: EvidenceSetV1 = {
+      version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1",
+      items: [{
+        id: "ziwei.identity.life-palace", factReferences: ["soulPalaceId"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }, {
+        id: "ziwei.identity.body-palace", factReferences: ["bodyPalaceId"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }, {
+        id: "ziwei.identity.transformations", factReferences: ["transformations"], confidence: "moderate",
+        interpretationBounds: ["Reflective identity signal."], interpretationBoundCodes: ["reflective_identity_only"],
+        limitations: ["Phụ thuộc vào giờ sinh."], riskTags: ["identity"], allowedActionCategories: ["reflect"],
+      }],
+    };
+
+    await writeIdentityReportDraft({
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+      chartVersionId: "chart-1",
+      evidence,
+      frozenFacts: {
+        version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1,
+        facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
+      },
+      knowledgePassages: [{ id: "knowledge-1", content: "Nội dung phê duyệt." }],
+      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v1", promptVersion: "prompt.v1", templateVersion: "template.v1" },
+      provider,
+      revision: {
+        priorContent: {
+          sections: [],
+          reflectionQuestions: ["Câu hỏi cũ?"],
+          summaryActions: ["Hành động cũ."],
+        },
+        criticNotes: ["Improve specificity of claims", "Avoid repetitive intros"],
+      },
+    });
+
+    expect(capturedUser).toContain("criticNotes");
+    expect(capturedUser).toContain("Improve specificity of claims");
+    expect(capturedSystem).toMatch(/revision/i);
   });
 });
