@@ -184,9 +184,11 @@ export function PublicContentPage(props: PublicContentPageProps) {
     }
   })();
 
+  const currentPath = props.locale === "en" ? `/en${props.route.path}` : props.route.path;
+
   return (
     <div className="public-content">
-      <SiteHeader locale={props.locale} />
+      <SiteHeader locale={props.locale} currentPath={currentPath} />
       {template}
       <SiteFooter locale={props.locale} />
       <StructuredData content={props.content} route={props.route} />

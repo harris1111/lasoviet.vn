@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { SiteHeader } from "../../apps/web/src/components/site-header";
 import { routing } from "../../apps/web/src/i18n/routing";
 import { HomepageLenses } from "../../apps/web/src/features/homepage/homepage-lenses";
+import { PublicContentPage } from "../../apps/web/src/features/content/public-content-page";
+import type { PublicContentV1, RouteDefinitionV1 } from "@lasoviet/contracts";
+import type { PublicContentRepository } from "../../apps/web/src/features/content/public-content-repository";
 
 function extractAllLinks(element: any): Array<{ href: string; text?: string; className?: string }> {
   const links: Array<{ href: string; text?: string; className?: string }> = [];
@@ -28,6 +31,14 @@ function extractAllLinks(element: any): Array<{ href: string; text?: string; cla
         text: text.trim(),
         className: node.props.className,
       });
+    }
+
+    if (typeof node.type === "function") {
+      try {
+        walk(node.type(node.props));
+      } catch {
+        // ignore
+      }
     }
 
     if (node.props?.children) {
@@ -192,6 +203,84 @@ describe("homepage and navigation prototype parity", () => {
     const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
     expect(mobileEn).toBeDefined();
     expect(mobileEn?.href).toBe("/vi/tu-vi");
+    expect(mobileEn?.text).toContain("Tiếng Việt");
+  });
+
+  it("renders PublicContentPage preserving currentPath in mobile language switch for VI and EN", () => {
+    const routeVi: RouteDefinitionV1 = {
+      id: "terms",
+      path: "/dieu-khoan",
+      template: "generic",
+      intent: "informational",
+      localeBehavior: "localized",
+      localeOwners: ["vi", "en"],
+      owner: "legal",
+      indexing: "index_follow",
+      canonical: "self",
+      robots: "index,follow",
+      schemaTypes: ["WebPage"],
+      redirect: { disposition: "none" },
+      status: "live_indexable",
+      sitemap: true,
+      private: false,
+      purchasable: false,
+    };
+
+    const contentVi: PublicContentV1 = {
+      id: "terms",
+      routeId: "terms",
+      locale: "vi",
+      title: "Điều khoản dịch vụ",
+      summary: "Tóm tắt điều khoản",
+      body: "Nội dung điều khoản",
+      category: "legal",
+      tags: [],
+      metadata: {},
+    };
+
+    const dummyRepo: PublicContentRepository = {
+      getBySlug: () => null,
+      listAll: () => [],
+    } as unknown as PublicContentRepository;
+
+    const pageVi = PublicContentPage({
+      content: contentVi,
+      locale: "vi",
+      repository: dummyRepo,
+      route: routeVi,
+      routes: [routeVi],
+    });
+
+    const linksVi = extractAllLinks(pageVi);
+    const mobileVi = linksVi.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileVi).toBeDefined();
+    expect(mobileVi?.href).toBe("/en/dieu-khoan");
+    expect(mobileVi?.text).toContain("English");
+
+    const contentEn: PublicContentV1 = {
+      id: "terms-en",
+      routeId: "terms",
+      locale: "en",
+      title: "Terms of Service",
+      summary: "Summary of terms",
+      body: "Terms content",
+      category: "legal",
+      tags: [],
+      metadata: {},
+    };
+
+    const pageEn = PublicContentPage({
+      content: contentEn,
+      locale: "en",
+      repository: dummyRepo,
+      route: routeVi,
+      routes: [routeVi],
+    });
+
+    const linksEn = extractAllLinks(pageEn);
+    const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileEn).toBeDefined();
+    expect(mobileEn?.href).toBe("/vi/dieu-khoan");
     expect(mobileEn?.text).toContain("Tiếng Việt");
   });
 });
