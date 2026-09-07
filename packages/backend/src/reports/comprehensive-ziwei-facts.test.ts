@@ -141,11 +141,14 @@ describe("buildComprehensiveZiweiFacts", () => {
 
     expect(facts.transformations).toEqual(chart.transformations);
 
-    // Evidence keys must include palace IDs, star IDs, brightness IDs, transformation IDs, relation IDs, and matched pattern IDs
+    // Evidence keys must include palace IDs, earthlyBranch IDs, heavenlyStem IDs, cycle state IDs, star IDs, brightness IDs, transformation IDs, transformation source star IDs, relation IDs, and matched pattern IDs
     expect(facts.evidenceKeys).toEqual(
       expect.arrayContaining([
         "ziwei.palace.life",
         "ziwei.palace.career",
+        "ziwei.branch.tiger",
+        "ziwei.stem.jia",
+        "ziwei.cycle.born",
         "ziwei.star.ziwei",
         "ziwei.star.tianfu",
         "ziwei.brightness.prosperous",
@@ -271,10 +274,42 @@ describe("buildComprehensiveZiweiFacts", () => {
     });
   });
 
+
+  it("rejects charts with duplicate earthly branches to prevent malformed topology", () => {
+    const chart = createSampleChart();
+    chart.palaces[1]!.earthlyBranchId = chart.palaces[0]!.earthlyBranchId;
+    expect(() => buildComprehensiveZiweiFacts(chart)).toThrow("MALFORMED_BRANCH_TOPOLOGY");
+  });
+
+  it("does not detect san-qi-jia-hui when a transformed star is outside Life four-direction scope", () => {
+    const chart = createSampleChart();
+    // Lu in Life, Quan in Wealth (triad 1), Ke in Siblings (outside 4-direction scope!)
+    chart.palaces[0]!.stars = [
+      { id: "ziwei.star.wuqu", brightness: "ziwei.brightness.exalted", category: "major" },
+    ];
+    chart.palaces[4]!.stars = [
+      { id: "ziwei.star.taiyang", brightness: "ziwei.brightness.prosperous", category: "major" },
+    ];
+    // Siblings is index 1, which is not in Life scope (Life is 0, triads are 4, 8, opposite is 6)
+    chart.palaces[1]!.stars = [
+      { id: "ziwei.star.wenchang", brightness: "ziwei.brightness.favorable", category: "minor" },
+    ];
+    chart.transformations = [
+      { starId: "ziwei.star.wuqu", id: "ziwei.transformation.prosperity" },
+      { starId: "ziwei.star.taiyang", id: "ziwei.transformation.power" },
+      { starId: "ziwei.star.wenchang", id: "ziwei.transformation.fame" },
+    ];
+
+    const facts = buildComprehensiveZiweiFacts(chart);
+    expect(facts.patterns.find((p) => p.id === "san-qi-jia-hui")).toBeUndefined();
+  });
+
   it("does not detect patterns when conditions are not satisfied", () => {
     const chart = createSampleChart();
-    // Move Life Palace to rat branch (index 10) so zi-fu-tong-gong branch condition fails
-    chart.palaces[0]!.earthlyBranchId = "ziwei.branch.rat";
+    // Swap branches between palace 0 (tiger) and palace 10 (rat) so topology remains valid but zi-fu-tong-gong branch fails
+    const temp = chart.palaces[0]!.earthlyBranchId;
+    chart.palaces[0]!.earthlyBranchId = chart.palaces[10]!.earthlyBranchId;
+    chart.palaces[10]!.earthlyBranchId = temp;
     // Also remove tianfu
     chart.palaces[0]!.stars = [
       { id: "ziwei.star.ziwei", brightness: "ziwei.brightness.prosperous", category: "major" },

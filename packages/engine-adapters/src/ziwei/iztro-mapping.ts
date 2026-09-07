@@ -67,6 +67,7 @@ const branchIds: Record<
 };
 
 const starIds: Record<string, string> = {
+  // Principal major stars
   emperor: "ziwei.star.ziwei",
   advisor: "ziwei.star.tianji",
   sun: "ziwei.star.taiyang",
@@ -81,6 +82,8 @@ const starIds: Record<string, string> = {
   sage: "ziwei.star.tianliang",
   marshal: "ziwei.star.qisha",
   rebel: "ziwei.star.pojun",
+
+  // Minor stars
   officer: "ziwei.star.zuofu",
   helper: "ziwei.star.youbi",
   scholar: "ziwei.star.wenchang",
@@ -95,6 +98,91 @@ const starIds: Record<string, string> = {
   aide: "ziwei.star.tianyue",
   ideologue: "ziwei.star.dikong",
   fickle: "ziwei.star.dijie",
+
+  // Adjective stars (iztro en-US)
+  attractive: "ziwei.star.hongluan",
+  cheerful: "ziwei.star.tianxi",
+  social: "ziwei.star.tianyao",
+  passionate: "ziwei.star.xianchi",
+  considery: "ziwei.star.jieshen",
+  senior: "ziwei.star.santai",
+  dignified: "ziwei.star.bazuo",
+  grateful: "ziwei.star.enguang",
+  noble: "ziwei.star.tiangui",
+  talented: "ziwei.star.longchi",
+  refined: "ziwei.star.fengge",
+  gifted: "ziwei.star.tiancai",
+  ageless: "ziwei.star.tianshou",
+  honorable: "ziwei.star.taifu",
+  awarded: "ziwei.star.fenggao",
+  psychic: "ziwei.star.tianwu",
+  religious: "ziwei.star.huagai",
+  solemn: "ziwei.star.tianguan",
+  lucky: "ziwei.star.tianfu-adj",
+  gourmet: "ziwei.star.tianchu",
+  sickly: "ziwei.star.tianyue-adj",
+  blessed: "ziwei.star.tiande",
+  peaceful: "ziwei.star.yuede",
+  utopian: "ziwei.star.tiankong",
+  fancied: "ziwei.star.xunkong",
+  intercepted: "ziwei.star.jielu",
+  bottomless: "ziwei.star.kongwang",
+  virtuous: "ziwei.star.longde",
+  interrupted: "ziwei.star.jiekong",
+  murder: "ziwei.star.jiesha",
+  wastrel: "ziwei.star.dahao",
+  alone: "ziwei.star.guchen",
+  lonely: "ziwei.star.guasu",
+  instigated: "ziwei.star.feilian",
+  broken: "ziwei.star.posui",
+  serious: "ziwei.star.tianxing",
+  gloomy: "ziwei.star.yinsha",
+  upset: "ziwei.star.tianku",
+  frail: "ziwei.star.tianxu",
+  heaven: "ziwei.star.tianshi",
+  wounded: "ziwei.star.tianshang",
+  "considery(Y)": "ziwei.star.nianjie",
+
+  // Decorative & cycle stars (iztro en-US)
+  doctor: "ziwei.star.boshi",
+  sumo: "ziwei.star.lishi",
+  dragon: "ziwei.star.qinglong",
+  consumer: "ziwei.star.xiaohao",
+  book: "ziwei.star.zhoushu",
+  gossip: "ziwei.star.feilian-dec",
+  happiness: "ziwei.star.xishen",
+  illness: "ziwei.star.bingfu",
+  ambush: "ziwei.star.fubing",
+  government: "ziwei.star.guanfu",
+  initial: "ziwei.star.suijian",
+  unlucky: "ziwei.star.huiqi",
+  downcast: "ziwei.star.sangmen",
+  tied: "ziwei.star.guansuo",
+  official: "ziwei.star.gwanfu",
+  sinister: "ziwei.star.baihu",
+  sorrowing: "ziwei.star.diaoke",
+  capable: "ziwei.star.jiangxing",
+  admired: "ziwei.star.panan",
+  varied: "ziwei.star.suiyi",
+  listless: "ziwei.star.xiishen",
+  robbed: "ziwei.star.jiesha-dec",
+  disastery: "ziwei.star.zhaisha",
+  condemned: "ziwei.star.tiansha",
+  insidious: "ziwei.star.zhibei",
+  hapless: "ziwei.star.yuesha",
+  perished: "ziwei.star.wangshen",
+  born: "ziwei.star.changsheng",
+  infancy: "ziwei.star.muyu",
+  adolescence: "ziwei.star.guandai",
+  adulthood: "ziwei.star.linguan",
+  prime: "ziwei.star.diwang",
+  weak: "ziwei.star.shuai",
+  sick: "ziwei.star.bing",
+  dead: "ziwei.star.si",
+  buried: "ziwei.star.mu",
+  dissipated: "ziwei.star.jue",
+  embryo: "ziwei.star.tai",
+  molding: "ziwei.star.yang",
 };
 
 const stemIds: Record<string, string> = {
@@ -148,9 +236,6 @@ const cycleStateIds: Record<string, string> = {
 };
 
 function resolveStarId(star: RawStar): string | undefined {
-  if (star.name && /^ziwei\.star\.[a-z0-9-]+$/.test(star.name)) {
-    return star.name;
-  }
   return starIds[star.name];
 }
 
@@ -232,8 +317,6 @@ export function normalizeIztroAstrolabe(
   profile: NormalizedBirthProfileV1,
   provenance: CalculationProvenanceV1,
 ): NormalizedZiweiChartV1 {
-  let internalSkippedDecorativeCount = 0;
-
   const palaces = raw.palaces.map((palace) => {
     const id = palaceIds[palace.name];
     const earthlyBranchId = branchIds[palace.earthlyBranch];
@@ -274,7 +357,6 @@ export function normalizeIztroAstrolabe(
     for (const star of (palace.adjectiveStars ?? [])) {
       const starId = resolveStarId(star);
       if (starId === undefined) {
-        internalSkippedDecorativeCount += 1;
         continue;
       }
       mappedStars.push({
@@ -287,7 +369,6 @@ export function normalizeIztroAstrolabe(
     for (const star of (palace.decorativeStars ?? [])) {
       const starId = resolveStarId(star);
       if (starId === undefined) {
-        internalSkippedDecorativeCount += 1;
         continue;
       }
       mappedStars.push({

@@ -58,16 +58,17 @@ const rawRepresentativeAstrolabe = {
       minorStars: [
         {
           name: "officer",
+          mutagen: "C",
         },
       ],
       adjectiveStars: [
         {
-          name: "ziwei.star.sample-adjective",
+          name: "attractive",
         },
       ],
       decorativeStars: [
         {
-          name: "ziwei.star.sample-decorative",
+          name: "doctor",
         },
         {
           name: "unsupported-vendor-decorative",
@@ -106,14 +107,42 @@ describe("IztroAdapter", () => {
     expect(chart.palaces[0]).toMatchObject({
       heavenlyStemId: "ziwei.stem.jia",
       isBodyPalace: true,
+      isOriginalPalace: true,
+      cycleStateId: "ziwei.cycle.born",
       stars: expect.arrayContaining([
-        {
+        expect.objectContaining({
           id: "ziwei.star.ziwei",
           category: "major",
           brightness: "ziwei.brightness.prosperous",
-        },
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.zuofu",
+          category: "minor",
+          brightness: "ziwei.brightness.neutral",
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.hongluan",
+          category: "adjective",
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.boshi",
+          category: "decorative",
+        }),
       ]),
     });
+
+    // Unsupported decorative star is skipped
+    expect(chart.palaces[0]!.stars.map((s) => s.id)).not.toContain("unsupported-vendor-decorative");
+
+    // Mutation on minor star preserved in chart transformations
+    expect(chart.transformations).toEqual(
+      expect.arrayContaining([
+        {
+          starId: "ziwei.star.zuofu",
+          id: "ziwei.transformation.fame",
+        },
+      ]),
+    );
   });
 
   it("normalizes a default-rule chart with provenance", async () => {

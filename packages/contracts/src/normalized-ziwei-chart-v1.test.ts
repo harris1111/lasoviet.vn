@@ -137,6 +137,9 @@ describe("Normalized Zi Wei chart v1", () => {
     ["duplicate palace", (value: NormalizedZiweiChartV1) => {
       value.palaces[11] = { ...value.palaces[11]!, id: "ziwei.palace.life" };
     }],
+    ["duplicate earthly branch", (value: NormalizedZiweiChartV1) => {
+      value.palaces[1] = { ...value.palaces[1]!, earthlyBranchId: value.palaces[0]!.earthlyBranchId };
+    }],
     ["vendor-localized star", (value: NormalizedZiweiChartV1) => {
       value.palaces[0]!.stars[0] = {
         id: "紫微",

@@ -46,6 +46,9 @@ const CANONICAL_BRANCH_ORDER = [
 function buildPalaceFacts(chart: NormalizedZiweiChartV1): ComprehensiveZiweiPalaceFact[] {
   const branchToPalaceId = new Map<string, ZiweiPalaceId>();
   for (const palace of chart.palaces) {
+    if (branchToPalaceId.has(palace.earthlyBranchId)) {
+      throw new Error("MALFORMED_BRANCH_TOPOLOGY");
+    }
     branchToPalaceId.set(palace.earthlyBranchId, palace.id);
   }
 
@@ -202,16 +205,38 @@ function buildEvidenceKeys(
 ): string[] {
   const keys: string[] = [];
 
+  // 1. Palace IDs
   for (const palace of chart.palaces) {
     keys.push(palace.id);
   }
 
+  // 2. EarthlyBranch IDs
+  for (const palace of chart.palaces) {
+    keys.push(palace.earthlyBranchId);
+  }
+
+  // 3. HeavenlyStem IDs
+  for (const palace of chart.palaces) {
+    if (palace.heavenlyStemId) {
+      keys.push(palace.heavenlyStemId);
+    }
+  }
+
+  // 4. Cycle state IDs
+  for (const palace of chart.palaces) {
+    if (palace.cycleStateId) {
+      keys.push(palace.cycleStateId);
+    }
+  }
+
+  // 5. Star IDs
   for (const palace of chart.palaces) {
     for (const star of palace.stars) {
       keys.push(star.id);
     }
   }
 
+  // 6. Brightness IDs
   for (const palace of chart.palaces) {
     for (const star of palace.stars) {
       if (star.brightness) {
@@ -220,14 +245,18 @@ function buildEvidenceKeys(
     }
   }
 
+  // 7. Transformation IDs and source star IDs
   for (const transformation of chart.transformations) {
     keys.push(transformation.id);
+    keys.push(transformation.starId);
   }
 
+  // 8. Relation IDs
   keys.push("ziwei.relation.triad");
   keys.push("ziwei.relation.opposition");
   keys.push("ziwei.relation.flanking");
 
+  // 9. Matched pattern IDs
   for (const pattern of patterns) {
     keys.push(pattern.id);
   }

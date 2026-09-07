@@ -157,6 +157,14 @@ export const NormalizedZiweiChartV1Schema: z.ZodType<
         message: "Palaces must have unique canonical IDs",
       });
     }
+    const branchIds = new Set(chart.palaces.map((palace) => palace.earthlyBranchId));
+    if (branchIds.size !== chart.palaces.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["palaces"],
+        message: "Palaces must have unique earthly branch IDs",
+      });
+    }
     if (!palaceIds.has(chart.soulPalaceId)) {
       context.addIssue({
         code: "custom",
