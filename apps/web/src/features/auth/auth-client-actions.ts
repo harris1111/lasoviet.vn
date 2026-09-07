@@ -61,7 +61,18 @@ export function createAuthActions(client: AuthClientAdapter) {
       password: string;
       callbackURL: string;
     }) {
-      return result(await client.signUp.email(input));
+      const response = await client.signUp.email(input);
+      if (response.error == null) {
+        return { ok: true as const };
+      }
+      const code = errorCode(response.error);
+      if (
+        code === "USER_ALREADY_EXISTS" ||
+        code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
+      ) {
+        return { ok: false as const, reason: "accountExists" as const };
+      }
+      return { ok: false as const, reason: "generic" as const };
     },
     async signIn(input: {
       email: string;

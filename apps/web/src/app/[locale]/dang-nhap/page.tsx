@@ -1,15 +1,24 @@
-import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
+import { getLocale } from "next-intl/server";
 
 import { AuthPanel } from "../../../features/auth/auth-panel";
+import { resolveAuthCallbackUrl } from "../../../features/auth/auth-callback-resolver";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function SignInPage() {
+type SignInPageProps = {
+  searchParams?: Promise<{
+    callbackURL?: string | string[];
+    [key: string]: string | string[] | undefined;
+  }>;
+};
+
+export default async function SignInPage({ searchParams }: SignInPageProps = {}) {
   const locale = (await getLocale()) as "en" | "vi";
-  const callbackURL = locale === "en" ? "/en/tao-la-so/tu-vi" : "/tao-la-so/tu-vi";
+  const resolvedParams = searchParams ? await searchParams : undefined;
+  const callbackURL = resolveAuthCallbackUrl(resolvedParams?.callbackURL, locale);
   const forgotPasswordURL = locale === "en" ? "/en/quen-mat-khau" : "/quen-mat-khau";
 
   return (

@@ -226,4 +226,76 @@ describe("browser auth actions", () => {
       token: "reset-token",
     });
   });
+
+  it("maps Better Auth signup duplicate email error (USER_ALREADY_EXISTS) to accountExists", async () => {
+    const actions = createAuthActions({
+      signUp: {
+        email: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: "USER_ALREADY_EXISTS" },
+        }),
+      },
+      signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
+    });
+
+    await expect(
+      actions.signUp({
+        name: "Nguyen Van A",
+        email: "existing@example.com",
+        password: "password-with-enough-length",
+        callbackURL: "/tao-la-so/tu-vi",
+      }),
+    ).resolves.toEqual({ ok: false, reason: "accountExists" });
+  });
+
+  it("maps Better Auth signup duplicate email error (USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL) to accountExists", async () => {
+    const actions = createAuthActions({
+      signUp: {
+        email: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL" },
+        }),
+      },
+      signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
+    });
+
+    await expect(
+      actions.signUp({
+        name: "Nguyen Van A",
+        email: "existing@example.com",
+        password: "password-with-enough-length",
+        callbackURL: "/tao-la-so/tu-vi",
+      }),
+    ).resolves.toEqual({ ok: false, reason: "accountExists" });
+  });
+
+  it("maps Better Auth signup generic failure to generic reason", async () => {
+    const actions = createAuthActions({
+      signUp: {
+        email: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: "SOME_OTHER_ERROR" },
+        }),
+      },
+      signIn: { email: vi.fn(), social: vi.fn() },
+      sendVerificationEmail: vi.fn(),
+      requestPasswordReset: vi.fn(),
+      resetPassword: vi.fn(),
+    });
+
+    await expect(
+      actions.signUp({
+        name: "Nguyen Van A",
+        email: "a@example.com",
+        password: "password-with-enough-length",
+        callbackURL: "/tao-la-so/tu-vi",
+      }),
+    ).resolves.toEqual({ ok: false, reason: "generic" });
+  });
 });
