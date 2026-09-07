@@ -132,3 +132,87 @@ Risks requiring correction:
 ## Unresolved Questions
 
 None. The V1 compatibility concern is evidenced by retained V1 manifests, versioned reservation fields, and the absence of writer dispatch.
+
+## Terra High Scoped Re-Review: Correction Round 1
+
+Date: 2026-09-07
+Review range: `16944438d7db308d19e2cf6dd529792f9e96e246..f71abe35d6abd43680cff2dc1b496876a83ee486`
+Scope: correction round 1 only; no broad checks were rerun.
+
+### Verdicts
+
+#### I1: ADDRESSED
+
+`provisionReportKnowledge()` now encloses manifest loading, configuration, database construction, and both ingestion calls in one catch boundary. A throwing loader or rejected VI/EN ingestion is logged without the original exception and converted to `REPORT_KNOWLEDGE_PROVISION_FAILED`; result-shaped ingestion failures remain blocked before queue polling.
+
+Evidence:
+- `apps/worker/src/reports/provision-report-knowledge.ts:21-67`
+- `apps/worker/src/reports/provision-report-knowledge.test.ts:69-126`
+
+#### I2: ADDRESSED
+
+The nullable `rewrite_consumed_at` reservation field and atomic `WHERE rewrite_consumed_at IS NULL` update provide a durable, per-report-version rewrite claim. V2 consumes it before revision. A previously consumed budget terminates non-retryably without a writer call, and all revision-stage timeout/provider/critic failures after consumption are returned as non-retryable failures.
+
+Evidence:
+- `packages/database/drizzle/0015_report_rewrite_budget.sql:1`
+- `packages/backend/src/reports/report-version.repository.ts:295-322`
+- `packages/backend/src/reports/report-generation.service.ts:270-356`
+- `tests/jobs/report-generation.integration.test.ts` correction test: concurrent consumption yields exactly one winner.
+
+#### I3: NOT_ADDRESSED
+
+The correction separates known V1 and V2 behavior for the normal matching pairs, but it does not enforce an exact supported prompt/knowledge pair before retrieval or a provider call.
+
+Evidence:
+- `packages/backend/src/reports/report-generation.service.ts:175-180` rejects an unknown `promptVersion` only; `knowledgeVersionId` is not allow-listed.
+- `packages/backend/src/reports/report-generation.repository.ts:162-170` treats either a V1 prompt or a V1 knowledge ID as V1 (`||`), allowing mismatched pairs to combine V1 retrieval behavior with a V2 corpus, or V2 writer/critic behavior with a V1 corpus.
+- `packages/backend/src/reports/identity-report-writer.ts:75-80` dispatches only on prompt version.
+- `packages/backend/src/reports/report-critic.ts:30-55` has no unknown-version rejection and will call the provider for an unknown direct critic invocation.
+- `packages/backend/src/reports/report-validator.ts:79-80` maps an unknown prompt to the V2 outline rather than rejecting it.
+
+Impact: a job with a supported prompt and an unknown knowledge version can pass source input validation, retrieve an approved corpus of that unknown version if present, and then call the AI provider. Mismatched V1/V2 pairs also lack a single version family, so writer, critic, validator, and retrieval are not reliably coupled to the same reservation contract.
+
+Required correction: introduce one exact-pair resolver that accepts only `(ziwei.identity.prompt.v1, ziwei.identity.knowledge.v1)` and `(ziwei.identity.prompt.v2, ziwei.identity.knowledge.v2)`. Invoke it before source retrieval in generation and use its resolved family in writer, critic, validator, and retrieval. Add tests for both mismatched pairs and unknown knowledge versions proving zero provider calls.
+
+### New Critical or Important Findings
+
+None outside the unresolved I3 version-coupling defect.
+
+### Scoped Verdict
+
+**SPEC COMPLIANCE: FAIL**
+
+**CODE QUALITY: CHANGES_REQUIRED**
+
+## Terra High Scoped Re-Review: Correction Round 2 (I3)
+
+Date: 2026-09-07
+Review range: `f71abe35d6abd43680cff2dc1b496876a83ee486..984e15b742d8af66450996aea7fa4430a0f8eef2`
+Scope: I3 exact prompt/knowledge version-pair enforcement only.
+
+### I3: ADDRESSED
+
+`resolveIdentityReportVersionFamily()` admits only the exact supported pairs `(ziwei.identity.prompt.v1, ziwei.identity.knowledge.v1)` and `(ziwei.identity.prompt.v2, ziwei.identity.knowledge.v2)`; mismatched, unknown, and non-string values resolve to `null`.
+
+Generation rejects a null family as non-retryable `AI_OUTPUT_INVALID` before `loadSource`; retrieval independently rejects it as `REPORT_EVIDENCE_INVALID` before database or RAG access. Writer and critic reject it as non-retryable `AI_OUTPUT_INVALID` before their providers; validator rejects it as `REPORT_EVIDENCE_INVALID`. The resolved family, rather than either individual version alone, selects V1 versus V2 retrieval, writer, critic, and validator behavior.
+
+Evidence:
+- `packages/backend/src/reports/identity-report-version-family.ts:10-35`
+- `packages/backend/src/reports/report-generation.service.ts:174-182`
+- `packages/backend/src/reports/report-generation.repository.ts:87-93,176-192`
+- `packages/backend/src/reports/identity-report-writer.ts:76-90`
+- `packages/backend/src/reports/report-critic.ts:30-45`
+- `packages/backend/src/reports/report-validator.ts:83-89`
+- Focused tests prove mismatched V1/V2 and unknown versions make zero source/retrieval/provider calls: `report-generation.service.test.ts:203-247`, `report-generation.repository.test.ts:12-47`, `identity-report-writer.test.ts:25-64`, `report-critic.test.ts:402-421`.
+
+Focused verification: `pnpm vitest run` for the six I3 resolver/generation/retrieval/writer/critic/validator suites passed: 6 files, 83 tests.
+
+### New Critical or Important Findings
+
+None.
+
+### Scoped Verdict
+
+**SPEC COMPLIANCE: PASS**
+
+**CODE QUALITY: APPROVED**
