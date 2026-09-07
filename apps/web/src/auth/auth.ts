@@ -70,6 +70,7 @@ export function createAuth() {
     },
   },
   emailVerification: {
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url, token }, request) => {
       await sendAuthEmail(
         "email_verification",

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { authClient } from "../../auth/auth-client";
 import { createAuthActions } from "./auth-client-actions";
+import { withAuthRequestLock } from "./auth-request-lock";
 import { GoogleSignInButton } from "./google-sign-in-button";
 
 type AuthPanelProps = {
@@ -17,44 +18,91 @@ const actions = createAuthActions(authClient);
 export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
   const t = useTranslations("auth");
   const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
-  const [notice, setNotice] = useState<"verification" | "signedIn" | "resent" | "invalidCredentials" | "error" | null>(null);
+  const [notice, setNotice] = useState<
+    | "verification"
+    | "signedIn"
+    | "resent"
+    | "invalidCredentials"
+    | "accountExists"
+    | "error"
+    | null
+  >(null);
   const [pending, setPending] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
+  const inFlightRef = useRef(false);
 
   async function submit(formData: FormData) {
-    setPending(true);
-    setNotice(null);
-    const email = String(formData.get("email") ?? "");
-    const password = String(formData.get("password") ?? "");
-    if (mode === "signUp") {
-      const outcome = await actions.signUp({
-        name: String(formData.get("name") ?? ""),
-        email,
-        password,
+    const submittedEmail = String(formData.get("email") ?? email);
+    const submittedPassword = String(formData.get("password") ?? password);
+    setEmail(submittedEmail);
+
+    const result = await withAuthRequestLock(inFlightRef, async () => {
+      setPending(true);
+      setNotice(null);
+      if (mode === "signUp") {
+        return actions.signUp({
+          name: String(formData.get("name") ?? ""),
+          email: submittedEmail,
+          password: submittedPassword,
+          callbackURL,
+        });
+      }
+      return actions.signIn({
+        email: submittedEmail,
+        password: submittedPassword,
         callbackURL,
       });
-      setPending(false);
+    });
+
+    if (result.status === "blocked") {
+      return;
+    }
+
+    setPending(false);
+
+    if (result.status === "rejected") {
+      setNotice("error");
+      return;
+    }
+
+    const outcome = result.value;
+    if (mode === "signUp") {
       if (!outcome.ok) {
+        if ("reason" in outcome && outcome.reason === "accountExists") {
+          setMode("signIn");
+          setEmail(submittedEmail);
+          setPassword("");
+          setNotice("accountExists");
+          return;
+        }
         setNotice("error");
         return;
       }
-      setVerificationEmail(email);
+      setVerificationEmail(submittedEmail);
       setNotice("verification");
       return;
     }
 
-    const outcome = await actions.signIn({ email, password, callbackURL });
-    setPending(false);
     if (!outcome.ok) {
-      if (outcome.reason === "verificationRequired") {
-        setVerificationEmail(email);
+      if ("reason" in outcome && outcome.reason === "verificationRequired") {
+        setVerificationEmail(submittedEmail);
         setNotice("verification");
         return;
       }
-      setNotice(outcome.reason === "invalidCredentials" ? "invalidCredentials" : "error");
+      setNotice(
+        "reason" in outcome && outcome.reason === "invalidCredentials"
+          ? "invalidCredentials"
+          : "error",
+      );
       return;
     }
+
     setNotice("signedIn");
+    if (typeof window !== "undefined") {
+      window.location.assign(callbackURL);
+    }
   }
 
   async function resendVerification() {
@@ -62,25 +110,51 @@ export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
       return;
     }
 
-    setPending(true);
-    setNotice(null);
-    const outcome = await actions.resendVerification({
-      email: verificationEmail,
-      callbackURL,
+    const result = await withAuthRequestLock(inFlightRef, async () => {
+      setPending(true);
+      setNotice(null);
+      return actions.resendVerification({
+        email: verificationEmail,
+        callbackURL,
+      });
     });
+
+    if (result.status === "blocked") {
+      return;
+    }
+
     setPending(false);
-    setNotice(outcome.ok ? "resent" : "error");
+
+    if (result.status === "rejected") {
+      setNotice("error");
+      return;
+    }
+
+    setNotice(result.value.ok ? "resent" : "error");
   }
 
   async function signInWithGoogle(_callbackURL: string) {
-    setPending(true);
-    setNotice(null);
-    const outcome = await actions.signInWithGoogle(callbackURL);
+    const result = await withAuthRequestLock(inFlightRef, async () => {
+      setPending(true);
+      setNotice(null);
+      return actions.signInWithGoogle(callbackURL);
+    });
+
+    if (result.status === "blocked") {
+      return { ok: false };
+    }
+
     setPending(false);
-    if (!outcome.ok) {
+
+    if (result.status === "rejected") {
+      setNotice("error");
+      return { ok: false };
+    }
+
+    if (!result.value.ok) {
       setNotice("error");
     }
-    return outcome;
+    return result.value;
   }
 
   return (
@@ -88,7 +162,11 @@ export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
       <div className="auth-mode" role="tablist">
         <button
           aria-selected={mode === "signUp"}
-          onClick={() => setMode("signUp")}
+          onClick={() => {
+            setMode("signUp");
+            setNotice(null);
+            setPassword("");
+          }}
           role="tab"
           type="button"
         >
@@ -96,7 +174,11 @@ export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
         </button>
         <button
           aria-selected={mode === "signIn"}
-          onClick={() => setMode("signIn")}
+          onClick={() => {
+            setMode("signIn");
+            setNotice(null);
+            setPassword("");
+          }}
           role="tab"
           type="button"
         >
@@ -105,13 +187,41 @@ export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
       </div>
       <form action={submit} className="auth-form">
         {mode === "signUp" ? (
-          <label>{t("panel.name")}<input name="name" required /></label>
+          <label>
+            {t("panel.name")}
+            <input name="name" required />
+          </label>
         ) : null}
-        <label>{t("panel.email")}<input name="email" required type="email" /></label>
-        <label>{t("panel.password")}<input minLength={8} name="password" required type="password" /></label>
-        {mode === "signIn" ? <a href={forgotPasswordURL}>{t("panel.forgotPassword")}</a> : null}
+        <label>
+          {t("panel.email")}
+          <input
+            name="email"
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            type="email"
+            value={email}
+          />
+        </label>
+        <label>
+          {t("panel.password")}
+          <input
+            minLength={8}
+            name="password"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            type="password"
+            value={password}
+          />
+        </label>
+        {mode === "signIn" ? (
+          <a href={forgotPasswordURL}>{t("panel.forgotPassword")}</a>
+        ) : null}
         <button className="button" disabled={pending} type="submit">
-          {pending ? t("panel.pending") : mode === "signUp" ? t("panel.signUp") : t("panel.signIn")}
+          {pending
+            ? t("panel.pending")
+            : mode === "signUp"
+              ? t("panel.signUp")
+              : t("panel.signIn")}
         </button>
       </form>
       <GoogleSignInButton
@@ -123,15 +233,41 @@ export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
       {notice === "verification" ? (
         <div className="form-notice" role="status">
           <p>{t("verification.checkOrResend")}</p>
-          <button className="button" disabled={pending} onClick={() => void resendVerification()} type="button">
+          <button
+            className="button"
+            disabled={pending}
+            onClick={() => void resendVerification()}
+            type="button"
+          >
             {pending ? t("panel.pending") : t("verification.resend")}
           </button>
         </div>
       ) : null}
-      {notice === "resent" ? <p className="form-notice" role="status">{t("verification.resent")}</p> : null}
-      {notice === "signedIn" ? <p className="form-notice" role="status">{t("panel.signedIn")}</p> : null}
-      {notice === "invalidCredentials" ? <p className="form-error" role="alert">{t("panel.invalidCredentials")}</p> : null}
-      {notice === "error" ? <p className="form-error" role="alert">{t("panel.error")}</p> : null}
+      {notice === "resent" ? (
+        <p className="form-notice" role="status">
+          {t("verification.resent")}
+        </p>
+      ) : null}
+      {notice === "signedIn" ? (
+        <p className="form-notice" role="status">
+          {t("panel.signedIn")}
+        </p>
+      ) : null}
+      {notice === "accountExists" ? (
+        <p className="form-notice" role="status">
+          {t("panel.accountExists")}
+        </p>
+      ) : null}
+      {notice === "invalidCredentials" ? (
+        <p className="form-error" role="alert">
+          {t("panel.invalidCredentials")}
+        </p>
+      ) : null}
+      {notice === "error" ? (
+        <p className="form-error" role="alert">
+          {t("panel.error")}
+        </p>
+      ) : null}
     </section>
   );
 }
