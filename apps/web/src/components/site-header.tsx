@@ -297,6 +297,12 @@ export function SiteHeader({
                     ),
                   ),
               React.createElement(
+                "a",
+                { className: "mobile-locale-link", href: localeSwitcherHref },
+                isVietnamese ? "English" : "Tiếng Việt",
+                renderHeaderIcon("chevron-right"),
+              ),
+              React.createElement(
                 Link,
                 { className: "mobile-login-link", href: route(locale, "/dang-nhap") },
                 isVietnamese ? "Đăng nhập" : "Sign in",

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SiteHeader } from "../../apps/web/src/components/site-header";
+import { routing } from "../../apps/web/src/i18n/routing";
 import { HomepageLenses } from "../../apps/web/src/features/homepage/homepage-lenses";
 
 function extractAllLinks(element: any): Array<{ href: string; text?: string; className?: string }> {
@@ -52,6 +53,17 @@ describe("homepage and navigation prototype parity", () => {
     expect(links.some((l) => l.href === "/kien-thuc" && l.text.includes("Kiến thức"))).toBe(true);
     expect(links.some((l) => l.href === "/lien-he" && l.text.includes("Liên hệ"))).toBe(true);
 
+    // Desktop and mobile locale switch links
+    const desktopLocale = links.find((l) => l.className === "locale-link");
+    expect(desktopLocale).toBeDefined();
+    expect(desktopLocale?.href).toBe("/en");
+    expect(desktopLocale?.text).toContain("English");
+
+    const mobileLocale = links.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileLocale).toBeDefined();
+    expect(mobileLocale?.href).toBe("/en");
+    expect(mobileLocale?.text).toContain("English");
+
     // Login link
     expect(links.some((l) => l.href === "/dang-nhap" && l.text.includes("Đăng nhập"))).toBe(true);
 
@@ -71,6 +83,17 @@ describe("homepage and navigation prototype parity", () => {
     expect(links.some((l) => l.href === "/en/kien-thuc" && l.text.includes("Knowledge"))).toBe(true);
     expect(links.some((l) => l.href === "/en/lien-he" && l.text.includes("Contact"))).toBe(true);
 
+    // Desktop and mobile locale switch links
+    const desktopLocale = links.find((l) => l.className === "locale-link");
+    expect(desktopLocale).toBeDefined();
+    expect(desktopLocale?.href).toBe("/vi");
+    expect(desktopLocale?.text).toContain("Tiếng Việt");
+
+    const mobileLocale = links.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileLocale).toBeDefined();
+    expect(mobileLocale?.href).toBe("/vi");
+    expect(mobileLocale?.text).toContain("Tiếng Việt");
+
     // Login link
     expect(links.some((l) => l.href === "/en/dang-nhap" && l.text.includes("Sign in"))).toBe(true);
 
@@ -87,6 +110,9 @@ describe("homepage and navigation prototype parity", () => {
     expect(linksVi.some((l) => l.href === "/lien-he" && l.text.includes("Liên hệ"))).toBe(true);
     expect(linksVi.some((l) => l.href === "/dang-nhap" && l.text.includes("Đăng nhập"))).toBe(true);
     expect(linksVi.some((l) => l.href === "/tu-vi" && l.className?.includes("button"))).toBe(true);
+    const mobileVi = linksVi.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileVi?.href).toBe("/en/bat-tu");
+    expect(mobileVi?.text).toContain("English");
 
     const headerEn = SiteHeader({ locale: "en", variant: "discipline", currentPath: "/en/chiem-tinh" });
     const linksEn = extractAllLinks(headerEn);
@@ -94,6 +120,9 @@ describe("homepage and navigation prototype parity", () => {
     expect(linksEn.some((l) => l.href === "/en/lien-he" && l.text.includes("Contact"))).toBe(true);
     expect(linksEn.some((l) => l.href === "/en/dang-nhap" && l.text.includes("Sign in"))).toBe(true);
     expect(linksEn.some((l) => l.href === "/en/tu-vi" && l.className?.includes("button"))).toBe(true);
+    const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileEn?.href).toBe("/vi/chiem-tinh");
+    expect(mobileEn?.text).toContain("Tiếng Việt");
   });
 
   it("renders homepage discipline cards linking directly to built production routes and free tools in VI", () => {
@@ -142,5 +171,27 @@ describe("homepage and navigation prototype parity", () => {
     expect(hrefs).toContain("/en/boi-bai");
     expect(hrefs).toContain("/en/lich-am");
     expect(hrefs).toContain("/en/xem-chi-tay");
+  });
+
+  it("disables cookie and browser locale detection in routing while defaulting to vi", () => {
+    expect(routing.defaultLocale).toBe("vi");
+    expect(routing.locales).toEqual(["vi", "en"]);
+    expect(routing.localeDetection).toBe(false);
+  });
+
+  it("renders mobile language switch preserving currentPath on VI and EN", () => {
+    const headerVi = SiteHeader({ locale: "vi", currentPath: "/tu-vi" });
+    const linksVi = extractAllLinks(headerVi);
+    const mobileVi = linksVi.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileVi).toBeDefined();
+    expect(mobileVi?.href).toBe("/en/tu-vi");
+    expect(mobileVi?.text).toContain("English");
+
+    const headerEn = SiteHeader({ locale: "en", currentPath: "/en/tu-vi" });
+    const linksEn = extractAllLinks(headerEn);
+    const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
+    expect(mobileEn).toBeDefined();
+    expect(mobileEn?.href).toBe("/vi/tu-vi");
+    expect(mobileEn?.text).toContain("Tiếng Việt");
   });
 });
