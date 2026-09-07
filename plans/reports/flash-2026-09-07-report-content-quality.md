@@ -116,3 +116,79 @@ Failing tests observed prior to implementation:
 
 ## 5. Unresolved Questions / Remaining Concerns
 None. Task 2 implementation, TDD test suites, and verification checks are complete.
+
+## 6. Correction Round 1 Evidence (Terra High Findings I1, I2, I3)
+
+### Scope of Corrections
+1. **I1 (Stable provisioning failure boundary)**:
+   - Wrapped entire `provisionReportKnowledge` execution (manifest parsing, DB initialization, and ingestion calls) in a total failure boundary.
+   - Thrown exceptions or rejected promises now log only stable safe codes without leaking error text, manifest contents, or provider configuration, and throw `new Error("REPORT_KNOWLEDGE_PROVISION_FAILED")`.
+2. **I2 (Durable one-rewrite budget)**:
+   - Added `rewrite_consumed_at timestamptz` column to `report_reservations` via Drizzle migration `0015_report_rewrite_budget.sql` and updated `_journal.json`.
+   - Added `consumeRewriteBudget(reportVersionId)` to `ReportVersionRepository` with atomic `WHERE rewrite_consumed_at IS NULL` semantics, returning `{ consumed: true }` on win, `{ consumed: false }` when already consumed, and `REPORT_VERSION_CONFLICT` when missing.
+   - In `report-generation.service`, consumed the budget before V2 quality rewrite. Subsequent attempts after budget consumption are blocked non-retryably without calling the writer.
+   - Timeouts and provider errors after budget consumption terminate non-retryably (`retryable: false`), preventing processor retry loops from resetting the budget.
+3. **I3 (Preserve V1 generation semantics)**:
+   - Added version-dispatched behavior in writer, critic, validator, and retrieval.
+   - V1 writer retains exact baseline `3372d08` semantics: 4,000 max tokens, 8-passage flattened knowledge, model-provided titles, evidence-backed claims required on `cycles_and_timing`, and V1 provenance.
+   - V1 critic blocks only on correctness/safety < 4 (specificity < 4 passes in V1).
+   - V1 retrieval uses legacy section purpose text without localized facts.
+   - Unknown prompt versions fail with non-retryable `AI_OUTPUT_INVALID` before any provider calls.
+
+### Changed Files
+- `apps/worker/src/reports/provision-report-knowledge.ts`
+- `apps/worker/src/reports/provision-report-knowledge.test.ts`
+- `packages/database/drizzle/0015_report_rewrite_budget.sql`
+- `packages/database/drizzle/meta/_journal.json`
+- `packages/database/src/schema/reports.ts`
+- `packages/backend/src/reports/report-version.repository.ts`
+- `packages/backend/src/reports/report-version.repository.test.ts`
+- `packages/backend/src/reports/identity-report-outline.ts`
+- `packages/backend/src/reports/report-validator.ts`
+- `packages/backend/src/reports/report-validator.test.ts`
+- `packages/backend/src/reports/report-source.ts`
+- `packages/backend/src/reports/report-generation.repository.ts`
+- `packages/backend/src/reports/identity-report-writer.ts`
+- `packages/backend/src/reports/identity-report-writer.test.ts`
+- `packages/backend/src/reports/report-critic.ts`
+- `packages/backend/src/reports/report-critic.test.ts`
+- `packages/backend/src/reports/report-generation.service.ts`
+- `packages/backend/src/reports/report-generation.service.test.ts`
+- `packages/backend/src/reports/identity-report-config.test.ts`
+- `tests/jobs/report-generation.integration.test.ts`
+
+### RED Evidence
+1. Provisioning rejection & thrown exception handling:
+   - Tested throwing loader and rejected VI/EN ingestion in `apps/worker/src/reports/provision-report-knowledge.test.ts`.
+2. Rewrite budget enforcement:
+   - Added tests in `packages/backend/src/reports/report-version.repository.test.ts` verifying atomic update and existing row handling.
+   - Added tests in `packages/backend/src/reports/report-generation.service.test.ts` verifying that second invocation with consumed budget performs 0 rewrites and terminates non-retryably.
+3. V1 vs V2 compatibility & unknown prompt versions:
+   - Tested unknown prompt version failure before provider call.
+   - Tested V1 writer preserving model titles, 4k tokens, 8-passage knowledge, cycles claims requirement, and V1 provenance.
+   - Tested V1 critic allowing reports with specificity < 4.
+   - Tested validator enforcing cycles claims on V1 while allowing empty claims on V2.
+
+### GREEN Verification
+- Focused unit test suite:
+  - Command: `pnpm vitest run packages/backend/src/reports/ packages/contracts/ packages/backend/src/commerce/ apps/worker/`
+  - Result: 26 test files passed, 214 tests passed (0 failed).
+- Web unit tests:
+  - Command: `pnpm vitest run apps/web/src/features/ziwei/ apps/web/src/features/reports/`
+  - Result: 6 test files passed, 24 tests passed (0 failed).
+- Package builds:
+  - `pnpm --filter @lasoviet/database run build`: Clean exit (0 errors).
+  - `pnpm --filter @lasoviet/backend run build`: Clean exit (0 errors).
+  - `pnpm --filter @lasoviet/worker run build`: Clean exit (0 errors).
+- Workspace typecheck:
+  - Command: `pnpm run typecheck`
+  - Result: Clean exit across all 9 workspace projects (0 errors).
+- i18n parity check:
+  - Command: `pnpm run i18n:check`
+  - Result: `i18n parity passed` (0 missing keys).
+- Web production build:
+  - Command: `pnpm --filter @lasoviet/web run build`
+  - Result: Next.js 16.3.4 (Turbopack) production build completed, 25 static/dynamic routes compiled successfully.
+- Git diff whitespace & format check:
+  - Command: `git diff --check`
+  - Result: Clean (0 warnings or errors).

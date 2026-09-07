@@ -215,4 +215,25 @@ describe("identity report validator", () => {
       findings: [],
     });
   });
+  it("enforces claims on cycles_and_timing for V1 prompt but allows empty claims for V2 prompt", () => {
+    const candidate = report();
+    // remove claims from cycles_and_timing
+    const cyclesSec = candidate.sections.find((s) => s.id === "cycles_and_timing")!;
+    cyclesSec.claims = [];
+
+    // In V1: must fail because cycles_and_timing requires claims in V1
+    const v1Result = validateIdentityReport(candidate, { evidence, frozenFacts }, {
+      promptVersion: "ziwei.identity.prompt.v1",
+    });
+    expect(v1Result.ok).toBe(false);
+    expect(v1Result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "REPORT_EVIDENCE_INVALID", sectionId: "cycles_and_timing" })]),
+    );
+
+    // In V2: passes because cycles_and_timing does not require claims in V2
+    const v2Result = validateIdentityReport(candidate, { evidence, frozenFacts }, {
+      promptVersion: "ziwei.identity.prompt.v2",
+    });
+    expect(v2Result.ok).toBe(true);
+  });
 });

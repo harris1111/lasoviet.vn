@@ -51,6 +51,15 @@ export function identityReportSectionPurpose(
     : sectionId.replaceAll("_", " ");
 }
 
+export function boundedKnowledgeV1(
+  passages: readonly (ApprovedKnowledgePassage | KnowledgePassageV1)[],
+) {
+  return passages.slice(0, 8).map((passage) => ({
+    id: passage.id,
+    content: passage.content.slice(0, 1_200),
+  }));
+}
+
 export type BoundedKnowledgePassage = {
   id: string;
   content: string;

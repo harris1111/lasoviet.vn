@@ -19,9 +19,10 @@ import {
   type createKnowledgeRetrievalService,
 } from "../knowledge/knowledge-retrieval.service.js";
 import { buildFrozenIdentityReportFacts } from "./frozen-identity-report-facts.js";
-import { identityReportOutline } from "./identity-report-outline.js";
+import { getIdentityReportOutline } from "./identity-report-outline.js";
 import { buildSectionRetrievalQuery } from "./identity-report-prompt-context.js";
 import {
+  identityReportSectionPurpose,
   isBoundIdentityReportSource,
   type IdentityReportSource,
 } from "./report-source.js";
@@ -31,6 +32,7 @@ export type ReportGenerationSourceInput = {
   chartVersionId: string;
   evidenceVersionId: string;
   knowledgeVersionId: string;
+  promptVersion?: string;
   locale: "vi" | "en";
 };
 
@@ -157,15 +159,22 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       const aggregatedPassages: KnowledgePassageV1[] = [];
       const seenPassageIds = new Set<string>();
 
-      for (const section of identityReportOutline) {
+      const outline = getIdentityReportOutline(input.promptVersion);
+      const isV1 = input.promptVersion === "ziwei.identity.prompt.v1" || input.knowledgeVersionId === "ziwei.identity.knowledge.v1";
+
+      for (const section of outline) {
         let sectionPassages: KnowledgePassageV1[];
         try {
+          const queryText = isV1
+            ? identityReportSectionPurpose(section.id, input.locale)
+            : buildSectionRetrievalQuery(section.id, input.locale, frozenResult.value.facts);
+
           sectionPassages = await dependencies.knowledgeRetrieval.retrieveKnowledge({
             discipline: "ziwei",
             locale: input.locale,
             reportSection: section.id,
             knowledgeVersion: input.knowledgeVersionId,
-            text: buildSectionRetrievalQuery(section.id, input.locale, frozenResult.value.facts),
+            text: queryText,
             enableVector: false,
           });
         } catch (error) {

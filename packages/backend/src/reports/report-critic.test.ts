@@ -13,7 +13,7 @@ import { critiqueIdentityReport } from "./report-critic.js";
 function report(): IdentityReportV1 {
   return {
     version: 1, sku: "ZIWEI-IDENTITY-P0", capabilityId: "ziwei.identity.p0", locale: "vi",
-    provenance: { chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v1", providerId: "9router-an", modelId: "model", promptVersion: "prompt.v1", templateVersion: "template.v1" },
+    provenance: { chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v2", providerId: "9router-an", modelId: "model", promptVersion: "ziwei.identity.prompt.v2", templateVersion: "template.v1" },
     sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
       id, title: `Mục ${index + 1}`, narrative: "Bạn nên quan sát bình tĩnh và điều chỉnh theo điều kiện thực tế.",
       claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id) ? [{
@@ -36,10 +36,10 @@ function englishReport(): IdentityReportV1 {
       chartVersionId: "chart-1",
       ruleVersion: "ziwei.identity.v1",
       evidenceVersion: 1,
-      knowledgeVersion: "knowledge.en.v1",
+      knowledgeVersion: "knowledge.en.v2",
       providerId: "9router-an",
       modelId: "model",
-      promptVersion: "prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v2",
       templateVersion: "template.v1",
     },
     sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
@@ -152,7 +152,7 @@ describe("identity report critic", () => {
     });
   });
 
-  it("rejects non-safety scores below 4 with AI_OUTPUT_INVALID and exposes bounded notes", async () => {
+  it("rejects non-safety scores below 4 with AI_OUTPUT_INVALID and exposes bounded notes in V2", async () => {
     const provider: AiProvider = {
       async generateStructured() {
         return {
@@ -186,7 +186,7 @@ describe("identity report critic", () => {
     });
   });
 
-  it("rejects languageClarity below 4 with AI_OUTPUT_INVALID", async () => {
+  it("rejects languageClarity below 4 with AI_OUTPUT_INVALID in V2", async () => {
     const provider: AiProvider = {
       async generateStructured() {
         return {
@@ -220,7 +220,7 @@ describe("identity report critic", () => {
     });
   });
 
-  it("succeeds when all eight dimensions score at least four", async () => {
+  it("succeeds when all eight dimensions score at least four in V2", async () => {
     const provider: AiProvider = {
       async generateStructured() {
         return {
@@ -247,6 +247,51 @@ describe("identity report critic", () => {
     expect(result).toMatchObject({
       ok: true,
       value: { correctness: 4, safety: 5, languageClarity: 5 },
+    });
+  });
+
+  it("in V1 allows reports to pass when correctness and safety are >= 4 even if specificity is low", async () => {
+    const provider: AiProvider = {
+      async generateStructured() {
+        return {
+          ok: true,
+          value: {
+            value: {
+              correctness: 4,
+              evidenceCoverage: 4,
+              specificity: 2, // < 4 would fail V2, but passes V1!
+              languageClarity: 4,
+              consistency: 4,
+              actionability: 4,
+              safety: 4,
+              repetitionControl: 4,
+              notes: ["V1 note"],
+            },
+            providerId: "v1-provider",
+            modelId: "v1-model",
+          },
+        };
+      },
+    };
+    const v1Report = report();
+    v1Report.provenance.promptVersion = "ziwei.identity.prompt.v1";
+    v1Report.sections.find((s) => s.id === "cycles_and_timing")!.claims = [{
+      id: "claim-cycles",
+      text: "Nhận định chu kỳ V1.",
+      evidenceIds: ["ziwei.identity.life-palace"],
+      interpretationBoundCode: "reflective_identity_only",
+      confidence: "moderate",
+      limitations: ["Giới hạn giờ sinh."],
+      suggestedActions: [{ category: "reflect", text: "Quan sát." }],
+    }];
+
+    const result = await critiqueIdentityReport(v1Report, context, provider, {
+      promptVersion: "ziwei.identity.prompt.v1",
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: { correctness: 4, specificity: 2 },
     });
   });
 

@@ -756,6 +756,35 @@ describe("immutable report version repository integration", () => {
     await database.$client.end();
   });
 
+  it("atomically claims rewrite budget with exactly one consumed:true on concurrent/repeated consumption", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedReservationAndJobFixture(database, "rewrite-budget");
+    const repository = createDatabaseReportVersionRepository(database);
+
+    const [res1, res2, res3] = await Promise.all([
+      repository.consumeRewriteBudget(fixture.reportVersionId),
+      repository.consumeRewriteBudget(fixture.reportVersionId),
+      repository.consumeRewriteBudget(fixture.reportVersionId),
+    ]);
+
+    const consumedCount = [res1, res2, res3].filter((r) => r.ok && r.value.consumed === true).length;
+    const rejectedCount = [res1, res2, res3].filter((r) => r.ok && r.value.consumed === false).length;
+
+    expect(consumedCount).toBe(1);
+    expect(rejectedCount).toBe(2);
+
+    const repeated = await repository.consumeRewriteBudget(fixture.reportVersionId);
+    expect(repeated).toEqual({ ok: true, value: { consumed: false } });
+
+    const missing = await repository.consumeRewriteBudget(randomUUID());
+    expect(missing).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_VERSION_CONFLICT" },
+    });
+
+    await database.$client.end();
+  });
+
   it("replays existing immutable version without creating second output, attempt, or outbox event", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "replay");

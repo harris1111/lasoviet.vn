@@ -3,7 +3,7 @@ import {
   type IdentityReportV1,
 } from "@lasoviet/contracts";
 
-import { identityReportOutline } from "./identity-report-outline.js";
+import { getIdentityReportOutline } from "./identity-report-outline.js";
 import {
   isBoundIdentityReportSource,
   type IdentityReportSource,
@@ -68,6 +68,7 @@ function textFindings(
 export function validateIdentityReport(
   candidate: unknown,
   source: IdentityReportSource,
+  options?: { promptVersion?: string },
 ): ReportValidationResult {
   const parsed = IdentityReportV1Schema.safeParse(candidate);
   if (!parsed.success) return { ok: false, findings: [{ code: "REPORT_SCHEMA_INVALID" }] };
@@ -75,12 +76,14 @@ export function validateIdentityReport(
     return { ok: false, findings: [{ code: "REPORT_EVIDENCE_INVALID" }] };
   }
   const report = parsed.data;
+  const promptVersion = options?.promptVersion ?? report.provenance.promptVersion;
+  const outlineList = getIdentityReportOutline(promptVersion);
   const evidenceById = new Map(source.evidence.items.map((item) => [item.id, item]));
   const findings: ReportValidationFinding[] = [];
   for (const section of report.sections) {
     findings.push(...textFindings(section.title, report.locale, { sectionId: section.id }));
     findings.push(...textFindings(section.narrative, report.locale, { sectionId: section.id }));
-    const outline = identityReportOutline.find((item) => item.id === section.id);
+    const outline = outlineList.find((item) => item.id === section.id);
     if (outline?.requiresEvidenceBackedClaims && section.claims.length === 0) {
       findings.push({ code: "REPORT_EVIDENCE_INVALID", sectionId: section.id });
     }

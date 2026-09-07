@@ -13,6 +13,7 @@ import {
   DETERMINISTIC_CYCLES_NARRATIVE_EN,
   DETERMINISTIC_CYCLES_NARRATIVE_VI,
   REPORT_CONFIG_VERSION_V1,
+  REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
   REPORT_PROMPT_VERSION_V2,
   REPORT_RENDER_VERSION_V1,
@@ -22,6 +23,7 @@ import { validateKnowledgeManifest } from "../knowledge/knowledge-ingestion.serv
 
 describe("identity report config", () => {
   it("exports exact version constants for V2 knowledge and prompt and V1 render/template/config", () => {
+    expect(REPORT_KNOWLEDGE_VERSION_V1).toBe("ziwei.identity.knowledge.v1");
     expect(REPORT_KNOWLEDGE_VERSION_V2).toBe("ziwei.identity.knowledge.v2");
     expect(REPORT_PROMPT_VERSION_V2).toBe("ziwei.identity.prompt.v2");
     expect(REPORT_CONFIG_VERSION_V1).toBe("ziwei.identity.report.v1");

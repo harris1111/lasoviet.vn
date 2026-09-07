@@ -3,6 +3,8 @@ import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
   CURRENT_REPORT_RENDER_VERSION,
   CURRENT_REPORT_TEMPLATE_VERSION,
+  REPORT_PROMPT_VERSION_V1,
+  REPORT_PROMPT_VERSION_V2,
 } from "./identity-report-config.js";
 import { renderIdentityReportHtml } from "./identity-report-html.js";
 import { writeIdentityReportDraft } from "./identity-report-writer.js";
@@ -170,11 +172,19 @@ export function createReportGenerationService(
       };
     }
 
+    if (
+      payload.promptVersion !== REPORT_PROMPT_VERSION_V1 &&
+      payload.promptVersion !== REPORT_PROMPT_VERSION_V2
+    ) {
+      return failAttempt("AI_OUTPUT_INVALID", false);
+    }
+
     const sourceResult = await dependencies.sourceRepository.loadSource({
       reportVersionId: payload.reportVersionId,
       chartVersionId: payload.chartVersionId,
       evidenceVersionId: payload.evidenceVersionId,
       knowledgeVersionId: payload.knowledgeVersionId,
+      promptVersion: payload.promptVersion,
       locale: payload.locale,
     });
     if (!sourceResult.ok) {
@@ -215,7 +225,9 @@ export function createReportGenerationService(
 
     const draft = writerResult.value;
 
-    const validationResult = validateIdentityReport(draft.report, source);
+    const validationResult = validateIdentityReport(draft.report, source, {
+      promptVersion: payload.promptVersion,
+    });
     if (!validationResult.ok) {
       const primaryFinding = validationResult.findings[0]?.code;
       if (primaryFinding === "REPORT_SAFETY_REJECTED") {
@@ -229,7 +241,12 @@ export function createReportGenerationService(
 
     let criticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
     try {
-      criticResult = await critiqueIdentityReport(draft.report, source, dependencies.provider);
+      criticResult = await critiqueIdentityReport(
+        draft.report,
+        source,
+        dependencies.provider,
+        { promptVersion: payload.promptVersion },
+      );
     } catch {
       return failAttempt("AI_TIMEOUT", true);
     }
@@ -251,6 +268,20 @@ export function createReportGenerationService(
         return failAttempt("REPORT_EVIDENCE_INVALID", false);
       }
       if (errCode === "AI_OUTPUT_INVALID") {
+        // V1 never rewrites on quality failure
+        if (payload.promptVersion !== REPORT_PROMPT_VERSION_V2) {
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
+
+        // V2 durable rewrite budget check
+        const budgetResult = await dependencies.versionRepository.consumeRewriteBudget(payload.reportVersionId);
+        if (!budgetResult.ok) {
+          return failAttempt("REPORT_VERSION_CONFLICT", false);
+        }
+        if (!budgetResult.value.consumed) {
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
+
         // Exactly one rewrite attempt
         const criticNotes = "notes" in criticResult.error && Array.isArray(criticResult.error.notes)
           ? criticResult.error.notes.slice(0, 8)
@@ -278,20 +309,22 @@ export function createReportGenerationService(
             },
           });
         } catch {
-          return failAttempt("AI_TIMEOUT", true);
+          return failAttempt("AI_TIMEOUT", false);
         }
 
         if (!revisionResult.ok) {
           const revErrCode = revisionResult.error.code;
           if (revErrCode === "AI_TIMEOUT" || (revErrCode === "AI_PROVIDER_REQUEST_FAILED" && revisionResult.error.retryable)) {
-            return failAttempt("AI_TIMEOUT", true);
+            return failAttempt("AI_TIMEOUT", false);
           }
           return failAttempt("AI_OUTPUT_INVALID", false);
         }
 
         const revisedDraft = revisionResult.value;
 
-        const revValidation = validateIdentityReport(revisedDraft.report, source);
+        const revValidation = validateIdentityReport(revisedDraft.report, source, {
+          promptVersion: payload.promptVersion,
+        });
         if (!revValidation.ok) {
           const primaryFinding = revValidation.findings[0]?.code;
           if (primaryFinding === "REPORT_SAFETY_REJECTED") {
@@ -302,15 +335,23 @@ export function createReportGenerationService(
 
         let revCriticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
         try {
-          revCriticResult = await critiqueIdentityReport(revisedDraft.report, source, dependencies.provider);
+          revCriticResult = await critiqueIdentityReport(
+            revisedDraft.report,
+            source,
+            dependencies.provider,
+            { promptVersion: payload.promptVersion },
+          );
         } catch {
-          return failAttempt("AI_TIMEOUT", true);
+          return failAttempt("AI_TIMEOUT", false);
         }
 
         if (!revCriticResult.ok) {
           const revCritErrCode = revCriticResult.error.code;
           if (revCritErrCode === "REPORT_SAFETY_REJECTED") {
             return failAttempt("REPORT_SAFETY_REJECTED", false);
+          }
+          if (revCritErrCode === "AI_TIMEOUT" || (revCritErrCode === "AI_PROVIDER_REQUEST_FAILED" && revCriticResult.error.retryable)) {
+            return failAttempt("AI_TIMEOUT", false);
           }
           return failAttempt("AI_OUTPUT_INVALID", false);
         }

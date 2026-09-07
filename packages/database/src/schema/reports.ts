@@ -31,6 +31,7 @@ export const reportReservations = pgTable("report_reservations", {
   activeJobId: text("active_job_id"),
   lastErrorCode: text("last_error_code"),
   nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true, mode: "date" }),
+  rewriteConsumedAt: timestamp("rewrite_consumed_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [
