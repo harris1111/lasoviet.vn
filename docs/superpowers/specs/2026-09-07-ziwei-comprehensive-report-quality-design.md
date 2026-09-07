@@ -14,6 +14,11 @@ Delivery speed and output quality are the priorities. Normal generation uses
 one AI call, compact section-specific retrieval, and only lightweight
 deterministic validation.
 
+The Zi Wei creation and reading flow must also stop presenting internal
+limitations, confidence labels, disclaimers, and evidence machinery as
+customer-facing prose. Birth-place input must be persisted as real profile
+context rather than discarded after review.
+
 ## Founder Decisions
 
 - The report is a comprehensive natal Zi Wei reading, not only an identity
@@ -28,6 +33,11 @@ deterministic validation.
   edge-case suite.
 - Verification focuses on representative output quality, the core generation
   path, compilation, and a small set of high-value deterministic checks.
+- Birth place is retained in the immutable profile and shown back to the user.
+  The current Zi Wei method continues to use local civil birth time and does
+  not apply true-solar-time correction.
+- Internal limitation and provenance codes remain available for operations and
+  debugging but are not rendered in the customer Zi Wei flow.
 
 ## Scope
 
@@ -42,6 +52,11 @@ deterministic validation.
 - One-call report generation with a narrow retry only for provider or schema
   failure.
 - Representative output-quality evaluation before release.
+- Focused birth wizard corrections for the segmented date fields and
+  birth-place icon.
+- Birth-place label and Vietnamese IANA timezone persistence.
+- Customer-facing cleanup across the free preview, evidence view, chart result,
+  and paid report reader.
 
 ### Excluded
 
@@ -51,8 +66,54 @@ deterministic validation.
 - A new vector database or GraphRAG subsystem.
 - Multiple AI agents, critic calls, automatic editorial rewrites, or thick
   quality gates.
-- Payment changes, report authorization changes, PDF work, UI redesign,
+- Automatic geocoding, worldwide timezone lookup, or true-solar-time
+  correction.
+- Broad changes to public SEO articles or unreleased divination pages.
+- Payment changes, report authorization changes, PDF work, broad UI redesign,
   deployment, and production activation.
+
+## Birth Place and Wizard Corrections
+
+The current birth-place text field is only local component state and is
+discarded before the birth-profile request. Correct this by adding an optional,
+trimmed place label to the versioned birth-profile contract and preserving it
+in the immutable original and normalized profile data.
+
+The Vietnamese Zi Wei flow sends `Asia/Ho_Chi_Minh` as its timezone
+provenance instead of a numeric `+420` offset. The engine still receives the
+submitted local civil date and confirmed Zi Wei time branch. Coordinates and
+true-solar-time correction are not fabricated.
+
+The review and chart-result summaries display the persisted place label and
+timezone. Remove helper copy stating that place is temporary, not stored, or
+used only as screen context.
+
+Fix the segmented date layout by removing the redundant parenthetical date
+format and ensuring the day, month, and year controls retain usable widths on
+mobile. Fix the map-pin icon by giving the place input sufficient left padding
+and explicitly centering the icon vertically.
+
+## Customer-Facing Presentation Cleanup
+
+Remove technical report framing from the interactive Zi Wei customer journey:
+
+- do not render interpretation bounds beneath free-preview insights;
+- replace the evidence drawer's confidence, bounds, action-category, field
+  reference, and limitation rows with concise human-readable chart evidence;
+- do not render engine warnings or calculation limitations as result-page
+  marketing or interpretation copy;
+- do not render per-claim limitations, professional-advice disclaimers,
+  confidence metadata, technical fact-reference labels, or rail disclaimers in
+  the paid reader;
+- omit legacy method/disclaimer sections from the visible navigation and body.
+
+The underlying evidence, limitation codes, warnings, and immutable legacy
+report content remain stored. Presentation cleanup must not rewrite historical
+records or weaken owner authorization.
+
+The new comprehensive report contract does not request or store customer-facing
+disclaimer prose. Public SEO articles and unrelated discipline previews are
+outside this cleanup.
 
 ## Knowledge Sources
 
@@ -305,3 +366,8 @@ schema, and generation tests, workspace typecheck or build as needed, and
   unchanged.
 - Representative reports meet the founder's quality bar without delaying
   delivery for niche technical edge cases.
+- The submitted birth-place label survives profile persistence and appears in
+  review/result summaries with `Asia/Ho_Chi_Minh` provenance.
+- The date controls and birth-place icon render cleanly on desktop and mobile.
+- Interactive Zi Wei pages no longer display technical limitation,
+  confidence, disclaimer, or reflective-signal boilerplate.
