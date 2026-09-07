@@ -85,7 +85,8 @@
 - Modify: `apps/worker/src/worker.module.ts`
 - Modify: `apps/worker/Dockerfile`
 - Modify: `packages/backend/src/commerce/commerce.repository.ts`
-- Modify: `packages/backend/src/commerce/commerce.repository.test.ts`
+- Create: `packages/backend/src/reports/identity-report-config.ts`
+- Create: `packages/backend/src/reports/identity-report-config.test.ts`
 - Create: `packages/backend/src/reports/identity-report-prompt-context.ts`
 - Create: `packages/backend/src/reports/identity-report-prompt-context.test.ts`
 - Modify: `packages/backend/src/reports/report-source.ts`
@@ -96,11 +97,11 @@
 - Modify: `packages/backend/src/reports/report-critic.ts`
 - Modify: `packages/backend/src/reports/report-critic.test.ts`
 - Modify: `packages/backend/src/reports/report-generation.service.ts`
-- Modify: `packages/backend/src/reports/report-generation.service.test.ts`
+- Create: `packages/backend/src/reports/report-generation.service.test.ts`
 
 **Interfaces:**
 - New reservations use `ziwei.identity.knowledge.v2` and
-  `ziwei.identity.prompt.v2`.
+  `ziwei.identity.prompt.v2` through exported report configuration constants.
 - `provisionReportKnowledge()` reads both V2 manifests and idempotently calls
   `createKnowledgeIngestionService` before report polling starts.
 - Writer knowledge context preserves `reportSections` and
@@ -147,4 +148,3 @@
 - [ ] Return only evidence-backed must-fix findings to Gemini in one bounded
   correction brief, then request one scoped Terra re-review.
 - [ ] Record final verification evidence. Do not push, merge, or deploy.
-
