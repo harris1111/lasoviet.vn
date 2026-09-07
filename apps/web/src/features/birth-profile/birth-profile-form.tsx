@@ -590,8 +590,8 @@ export function BirthProfileForm({
                 onEditBirth={handleEditBirth}
                 onEditSubject={handleEditSubject}
                 pending={pending}
-                place={place.trim() ? place.trim() : "—"}
-                placeLabel={t("review.birthPlace")}
+                place={place.trim() ? place.trim() : undefined}
+                placeLabel={place.trim() ? t("review.birthPlace") : undefined}
                 subjectSectionTitle={t("steps.subject")}
                 subtitle={t("review.stepSub")}
                 time={formatReviewTimeSummary(timeState, locale)}
