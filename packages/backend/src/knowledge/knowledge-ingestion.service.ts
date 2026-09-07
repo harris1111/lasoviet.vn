@@ -12,7 +12,90 @@ import {
   type Database,
 } from "@lasoviet/database";
 
-export const PERMITTED_USE_BASES = ["first_party", "licensed", "public_domain"] as const;
+export const PERMITTED_USE_BASES = ["first_party", "licensed", "public_domain", "reference_rewrite"] as const;
+
+export const KNOWLEDGE_CHUNK_SOURCE_TYPES = ["modern", "classical", "matrix", "curated"] as const;
+export type KnowledgeChunkSourceType = (typeof KNOWLEDGE_CHUNK_SOURCE_TYPES)[number];
+
+export const KNOWLEDGE_CHUNK_LANGUAGE_ORIGINS = ["vi", "zh", "en"] as const;
+export type KnowledgeChunkLanguageOrigin = (typeof KNOWLEDGE_CHUNK_LANGUAGE_ORIGINS)[number];
+
+export const KNOWLEDGE_CHUNK_PRIORITIES = [1, 2, 3] as const;
+export type KnowledgeChunkPriority = (typeof KNOWLEDGE_CHUNK_PRIORITIES)[number];
+
+export type KnowledgeChunkMetadataV1 = {
+  topics: string[];
+  palaces: string[];
+  stars: string[];
+  brightness: string[];
+  transformations: string[];
+  relations: string[];
+  patterns: string[];
+  sourceType: "modern" | "classical" | "matrix" | "curated";
+  languageOrigin: "vi" | "zh" | "en";
+  priority: 1 | 2 | 3;
+};
+
+export const KnowledgeChunkMetadataV1Schema = z.object({
+  topics: z.array(z.string().trim()),
+  palaces: z.array(z.string().trim()),
+  stars: z.array(z.string().trim()),
+  brightness: z.array(z.string().trim()),
+  transformations: z.array(z.string().trim()),
+  relations: z.array(z.string().trim()),
+  patterns: z.array(z.string().trim()),
+  sourceType: z.enum(KNOWLEDGE_CHUNK_SOURCE_TYPES),
+  languageOrigin: z.enum(KNOWLEDGE_CHUNK_LANGUAGE_ORIGINS),
+  priority: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+}).strict();
+
+export function normalizeChunkMetadata(
+  metadata: KnowledgeChunkMetadataV1 | undefined,
+  locale: "vi" | "en",
+): KnowledgeChunkMetadataV1 {
+  if (metadata) {
+    return {
+      topics: Array.isArray(metadata.topics) ? [...metadata.topics] : [],
+      palaces: Array.isArray(metadata.palaces) ? [...metadata.palaces] : [],
+      stars: Array.isArray(metadata.stars) ? [...metadata.stars] : [],
+      brightness: Array.isArray(metadata.brightness) ? [...metadata.brightness] : [],
+      transformations: Array.isArray(metadata.transformations) ? [...metadata.transformations] : [],
+      relations: Array.isArray(metadata.relations) ? [...metadata.relations] : [],
+      patterns: Array.isArray(metadata.patterns) ? [...metadata.patterns] : [],
+      sourceType: metadata.sourceType ?? "curated",
+      languageOrigin: metadata.languageOrigin ?? locale,
+      priority: metadata.priority ?? 1,
+    };
+  }
+  return {
+    topics: [],
+    palaces: [],
+    stars: [],
+    brightness: [],
+    transformations: [],
+    relations: [],
+    patterns: [],
+    sourceType: "curated",
+    languageOrigin: locale,
+    priority: 1,
+  };
+}
+
+export function areMetadatasEqual(a: KnowledgeChunkMetadataV1, b: KnowledgeChunkMetadataV1): boolean {
+  if (a.sourceType !== b.sourceType || a.languageOrigin !== b.languageOrigin || a.priority !== b.priority) {
+    return false;
+  }
+  const keys: Array<keyof Pick<KnowledgeChunkMetadataV1, "topics" | "palaces" | "stars" | "brightness" | "transformations" | "relations" | "patterns">> = [
+    "topics", "palaces", "stars", "brightness", "transformations", "relations", "patterns"
+  ];
+  for (const k of keys) {
+    if (a[k].length !== b[k].length) return false;
+    for (let i = 0; i < a[k].length; i++) {
+      if (a[k][i] !== b[k][i]) return false;
+    }
+  }
+  return true;
+}
 export type PermittedUseBasis = (typeof PERMITTED_USE_BASES)[number];
 
 export const APPROVAL_STATUSES = ["draft", "approved", "rejected"] as const;
@@ -25,6 +108,7 @@ export const KnowledgeChunkManifestSchema = z.object({
   reportSections: z.array(z.enum(IDENTITY_REPORT_SECTION_IDS)).min(1),
   content: z.string().trim().min(1).max(1_200),
   contentHash: z.string().regex(/^[0-9a-f]{64}$/),
+  metadata: KnowledgeChunkMetadataV1Schema.optional(),
 }).strict();
 
 export const KnowledgeApprovalRecordSchema = z.object({
@@ -237,6 +321,13 @@ function verifyDeepImmutableMatch(
         return false;
       }
     }
+
+    const expectedMeta = normalizeChunkMetadata(chunk.metadata, manifest.locale);
+    const existingRaw = existing.metadata ? (typeof existing.metadata === "string" ? JSON.parse(existing.metadata) : existing.metadata) : {};
+    const existingMeta = Object.keys(existingRaw).length > 0 ? normalizeChunkMetadata(existingRaw as KnowledgeChunkMetadataV1, manifest.locale) : normalizeChunkMetadata(undefined, manifest.locale);
+    if (!areMetadatasEqual(existingMeta, expectedMeta)) {
+      return false;
+    }
   }
 
   return true;
@@ -422,6 +513,7 @@ export function createKnowledgeIngestionService(dependencies: {
             contentHash: c.contentHash,
             sourceAttribution: manifest.sourceAttribution,
             permittedUse: manifest.permittedUse,
+            metadata: normalizeChunkMetadata(c.metadata, manifest.locale),
           }));
 
           const insertedChunks = await tx

@@ -4,7 +4,11 @@ import {
   type IdentityReportSectionId,
 } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
-import type { PermittedUseBasis } from "./knowledge-ingestion.service.js";
+import {
+  type PermittedUseBasis,
+  type KnowledgeChunkMetadataV1,
+  normalizeChunkMetadata,
+} from "./knowledge-ingestion.service.js";
 
 export type KnowledgePassageV1 = {
   id: string;
@@ -18,6 +22,7 @@ export type KnowledgePassageV1 = {
   contentHash: string;
   sourceAttribution: string;
   permittedUse: PermittedUseBasis;
+  metadata?: KnowledgeChunkMetadataV1;
 };
 
 export type RetrieveKnowledgeQuery = {
@@ -186,6 +191,7 @@ export function createKnowledgeRetrievalService(dependencies: {
         content_hash: string;
         source_attribution: string;
         permitted_use: PermittedUseBasis;
+        metadata?: unknown;
         rank: number;
       }>(
         orQueryTokens.length > 0
@@ -202,6 +208,7 @@ export function createKnowledgeRetrievalService(dependencies: {
                 c.content_hash,
                 c.source_attribution,
                 c.permitted_use,
+                c.metadata,
                 GREATEST(
                   ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text})),
                   ts_rank(to_tsvector('simple', c.content), to_tsquery('simple', ${orQueryTokens}))
@@ -233,6 +240,7 @@ export function createKnowledgeRetrievalService(dependencies: {
                 c.content_hash,
                 c.source_attribution,
                 c.permitted_use,
+                c.metadata,
                 ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text})) AS rank
               FROM knowledge_chunks c
               INNER JOIN knowledge_documents d ON d.id = c.document_id
@@ -260,6 +268,11 @@ export function createKnowledgeRetrievalService(dependencies: {
             ? JSON.parse(row.report_sections)
             : [];
 
+        const rawMeta = typeof row.metadata === "string" ? JSON.parse(row.metadata) : row.metadata;
+        const normalizedMeta = rawMeta && typeof rawMeta === "object" && Object.keys(rawMeta).length > 0
+          ? normalizeChunkMetadata(rawMeta as KnowledgeChunkMetadataV1, row.locale)
+          : normalizeChunkMetadata(undefined, row.locale);
+
         ftsCandidates.push({
           id: row.id,
           passageId: row.passage_id,
@@ -272,6 +285,7 @@ export function createKnowledgeRetrievalService(dependencies: {
           contentHash: row.content_hash,
           sourceAttribution: row.source_attribution,
           permittedUse: row.permitted_use,
+          metadata: normalizedMeta,
         });
       }
 
@@ -319,6 +333,7 @@ export function createKnowledgeRetrievalService(dependencies: {
                 content_hash: string;
                 source_attribution: string;
                 permitted_use: PermittedUseBasis;
+                metadata?: unknown;
               }>(
                 sql`
                   SELECT
@@ -332,7 +347,8 @@ export function createKnowledgeRetrievalService(dependencies: {
                     c.content,
                     c.content_hash,
                     c.source_attribution,
-                    c.permitted_use
+                    c.permitted_use,
+                    c.metadata
                   FROM knowledge_chunks c
                   INNER JOIN knowledge_documents d ON d.id = c.document_id
                   WHERE d.approval_status = 'approved'
@@ -358,6 +374,10 @@ export function createKnowledgeRetrievalService(dependencies: {
                   : typeof row.report_sections === "string"
                     ? JSON.parse(row.report_sections)
                     : [];
+                const rawMeta = typeof row.metadata === "string" ? JSON.parse(row.metadata) : row.metadata;
+                const normalizedMeta = rawMeta && typeof rawMeta === "object" && Object.keys(rawMeta).length > 0
+                  ? normalizeChunkMetadata(rawMeta as KnowledgeChunkMetadataV1, row.locale)
+                  : normalizeChunkMetadata(undefined, row.locale);
 
                 extraCandidates.push({
                   passage: {
@@ -372,6 +392,7 @@ export function createKnowledgeRetrievalService(dependencies: {
                     contentHash: row.content_hash,
                     sourceAttribution: row.source_attribution,
                     permittedUse: row.permitted_use,
+                    metadata: normalizedMeta,
                   },
                   score: vectorScoreMap.get(row.passage_id) ?? 0,
                 });

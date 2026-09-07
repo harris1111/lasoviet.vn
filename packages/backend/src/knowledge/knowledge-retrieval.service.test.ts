@@ -47,6 +47,107 @@ describe("knowledge retrieval service", () => {
     ]
 };
 
+
+  describe("metadata ingestion and retrieval preservation", () => {
+    it("preserves chunk metadata during ingestion and returns it unchanged on retrieval", async () => {
+      const metadata = {
+        topics: ["career"],
+        palaces: ["ziwei.palace.career"],
+        stars: ["ziwei.star.wuqu"],
+        brightness: ["ziwei.brightness.prosperous"],
+        transformations: [],
+        relations: ["triad"],
+        patterns: [],
+        sourceType: "classical" as const,
+        languageOrigin: "zh" as const,
+        priority: 3 as const,
+      };
+
+      const manifestWithMetadata: any = {
+        ...validManifest,
+        documentId: "ziwei-career-metadata-doc",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+        permittedUse: "reference_rewrite",
+        chunks: [
+          {
+            ...validManifest.chunks[0],
+            passageId: "vi-ziwei-metadata-001",
+            metadata,
+          },
+        ],
+      };
+
+      let persistedChunkRows: any[] = [];
+      const mockDb = {
+        select: () => ({
+          from: () => ({
+            where: () => {
+              const res: any = Promise.resolve([]);
+              res.limit = async () => [];
+              return res;
+            },
+          }),
+        }),
+        transaction: async (callback: any) => {
+          const tx = {
+            insert: (table: any) => ({
+              values: (values: any) => {
+                if (Array.isArray(values)) {
+                  persistedChunkRows = values;
+                  return {
+                    returning: async () => values.map((v: any) => ({ id: v.id })),
+                  };
+                }
+                return {
+                  onConflictDoNothing: () => ({
+                    returning: async () => [values],
+                  }),
+                };
+              },
+            }),
+          };
+          return callback(tx);
+        },
+        execute: vi.fn().mockImplementation(async () => [
+          {
+            id: "id-meta",
+            passage_id: "vi-ziwei-metadata-001",
+            document_id: "doc-meta",
+            discipline: "ziwei",
+            locale: "vi",
+            report_sections: ["data_and_method"],
+            knowledge_version: "ziwei.comprehensive.knowledge.v3",
+            content: manifestWithMetadata.chunks[0].content,
+            content_hash: manifestWithMetadata.chunks[0].contentHash,
+            source_attribution: manifestWithMetadata.sourceAttribution,
+            permitted_use: manifestWithMetadata.permittedUse,
+            metadata: persistedChunkRows[0]?.metadata ?? metadata,
+            rank: 1.0,
+          },
+        ]),
+      } as any;
+
+      const ingestionService = createKnowledgeIngestionService({ database: mockDb });
+      const ingestResult = await ingestionService.ingestKnowledge(manifestWithMetadata);
+
+      expect(ingestResult.ok).toBe(true);
+      expect(persistedChunkRows).toHaveLength(1);
+      expect(persistedChunkRows[0].metadata).toEqual(metadata);
+
+      const retrievalService = createKnowledgeRetrievalService({ database: mockDb });
+      const passages = await retrievalService.retrieveKnowledge({
+        discipline: "ziwei",
+        locale: "vi",
+        reportSection: "data_and_method",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+        text: "nguyen ly luan giai",
+      });
+
+      expect(passages).toHaveLength(1);
+      expect(passages[0].metadata).toEqual(metadata);
+    });
+  });
+
   describe("manifest validation and ingestion invariants", () => {
     it("rejects unapproved manifest with KNOWLEDGE_UNAPPROVED", async () => {
       const draftManifest: KnowledgeManifestV1 = {
