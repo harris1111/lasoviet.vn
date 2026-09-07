@@ -42,25 +42,47 @@ const canonicalWarningCode = z.string().regex(/^ziwei\.warning\.[a-z0-9-]+$/);
 export type ZiweiPalaceId = z.infer<typeof PalaceIdSchema>;
 export type ZiweiStarId = string;
 
+const palaceStarSchema = z
+  .object({
+    id: canonicalStarId,
+    brightness: z.enum([
+      "ziwei.brightness.exalted",
+      "ziwei.brightness.prosperous",
+      "ziwei.brightness.favorable",
+      "ziwei.brightness.neutral",
+      "ziwei.brightness.unfavorable",
+      "ziwei.brightness.weak",
+    ]),
+    category: z.enum(["major", "minor", "adjective", "decorative"]).optional(),
+  })
+  .strict();
+
+const chartRelationshipSchema = z
+  .object({
+    id: z.string().optional(),
+    type: z.string().optional(),
+    palaceId: PalaceIdSchema.optional(),
+    targetPalaceIds: z.array(PalaceIdSchema).optional(),
+  })
+  .strict();
+
+const chartPatternSchema = z
+  .object({
+    id: z.string(),
+    palaceIds: z.array(PalaceIdSchema),
+    starIds: z.array(z.string()),
+  })
+  .strict();
+
 const palaceSchema = z
   .object({
     id: PalaceIdSchema,
     earthlyBranchId: z.enum(branchIds),
-    stars: z.array(
-      z
-        .object({
-          id: canonicalStarId,
-          brightness: z.enum([
-            "ziwei.brightness.exalted",
-            "ziwei.brightness.prosperous",
-            "ziwei.brightness.favorable",
-            "ziwei.brightness.neutral",
-            "ziwei.brightness.unfavorable",
-            "ziwei.brightness.weak",
-          ]),
-        })
-        .strict(),
-    ),
+    heavenlyStemId: z.string().regex(/^ziwei\.stem\.[a-z0-9-]+$/).optional(),
+    isBodyPalace: z.boolean().optional(),
+    isOriginalPalace: z.boolean().optional(),
+    cycleStateId: z.string().regex(/^ziwei\.cycle\.[a-z0-9-]+$/).optional(),
+    stars: z.array(palaceStarSchema),
   })
   .strict();
 
@@ -105,6 +127,8 @@ export type NormalizedZiweiChartV1 = {
   horoscopeCapabilities: Array<z.infer<typeof horoscopeCapabilitySchema>>;
   warnings: Array<z.infer<typeof warningSchema>>;
   provenance: CalculationProvenanceV1;
+  relationships?: Array<z.infer<typeof chartRelationshipSchema>>;
+  patterns?: Array<z.infer<typeof chartPatternSchema>>;
 };
 
 export const NormalizedZiweiChartV1Schema: z.ZodType<
@@ -120,6 +144,8 @@ export const NormalizedZiweiChartV1Schema: z.ZodType<
     horoscopeCapabilities: z.array(horoscopeCapabilitySchema).min(1),
     warnings: z.array(warningSchema),
     provenance: CalculationProvenanceV1Schema,
+    relationships: z.array(chartRelationshipSchema).optional(),
+    patterns: z.array(chartPatternSchema).optional(),
   })
   .strict()
   .superRefine((chart, context) => {

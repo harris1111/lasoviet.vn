@@ -88,6 +88,50 @@ describe("Normalized Zi Wei chart v1", () => {
     });
   });
 
+  it("accepts whole-chart fields, star categories, and pattern/relationship arrays", () => {
+    const richChart = structuredClone(chart()) as any;
+    richChart.palaces[0] = {
+      ...richChart.palaces[0]!,
+      heavenlyStemId: "ziwei.stem.jia",
+      isBodyPalace: true,
+      isOriginalPalace: true,
+      cycleStateId: "ziwei.cycle.sick",
+      stars: [
+        {
+          id: "ziwei.star.purple-emperor",
+          brightness: "ziwei.brightness.exalted",
+          category: "major",
+        },
+      ],
+    };
+    richChart.relationships = [
+      {
+        type: "triad",
+        palaceId: "ziwei.palace.life",
+        targetPalaceIds: ["ziwei.palace.career", "ziwei.palace.wealth"],
+      },
+    ];
+    richChart.patterns = [
+      {
+        id: "zi-fu-tong-gong",
+        palaceIds: ["ziwei.palace.life"],
+        starIds: ["ziwei.star.ziwei", "ziwei.star.tianfu"],
+      },
+    ];
+
+    expect(NormalizedZiweiChartV1Schema.parse(richChart)).toMatchObject({
+      palaces: expect.arrayContaining([
+        expect.objectContaining({
+          heavenlyStemId: "ziwei.stem.jia",
+          isBodyPalace: true,
+          isOriginalPalace: true,
+          cycleStateId: "ziwei.cycle.sick",
+        }),
+      ]),
+      patterns: expect.arrayContaining([expect.objectContaining({ id: "zi-fu-tong-gong" })]),
+    });
+  });
+
   it.each([
     ["missing palace", (value: NormalizedZiweiChartV1) => value.palaces.pop()],
     ["duplicate palace", (value: NormalizedZiweiChartV1) => {

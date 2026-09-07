@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { NormalizedBirthProfileV1 } from "@lasoviet/contracts";
 
 import { IztroAdapter } from "./iztro-adapter.js";
+import { normalizeIztroAstrolabe } from "./iztro-mapping.js";
 import { iztroDefaultConfig } from "./iztro-config.js";
 
 const profile: NormalizedBirthProfileV1 = {
@@ -23,7 +24,98 @@ const profile: NormalizedBirthProfileV1 = {
   limitations: [],
 };
 
+
+const provenanceSample = {
+  version: 1 as const,
+  engineId: "ziwei.iztro",
+  engineVersion: "2.6.0",
+  adapterId: "ziwei.iztro-adapter",
+  adapterVersion: "1.0.0",
+  schemaId: "normalized-ziwei-chart-v1",
+  ruleSetId: "ziwei.default",
+  inputHash: "a".repeat(64),
+  configHash: "b".repeat(64),
+  rawSnapshotHash: "c".repeat(64),
+  calculatedAt: "2026-09-02T00:00:00+00:00",
+  limitations: ["IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION"],
+};
+
+const rawRepresentativeAstrolabe = {
+  palaces: [
+    {
+      name: "soul",
+      earthlyBranch: "yin",
+      heavenlyStem: "jia",
+      isBodyPalace: true,
+      isOriginalPalace: true,
+      changsheng12: "born",
+      majorStars: [
+        {
+          name: "emperor",
+          brightness: "[+2]",
+        },
+      ],
+      minorStars: [
+        {
+          name: "officer",
+        },
+      ],
+      adjectiveStars: [
+        {
+          name: "ziwei.star.sample-adjective",
+        },
+      ],
+      decorativeStars: [
+        {
+          name: "ziwei.star.sample-decorative",
+        },
+        {
+          name: "unsupported-vendor-decorative",
+        },
+      ],
+    },
+    ...[
+      { name: "siblings", earthlyBranch: "mao" },
+      { name: "spouse", earthlyBranch: "chen" },
+      { name: "children", earthlyBranch: "si" },
+      { name: "wealth", earthlyBranch: "woo" },
+      { name: "health", earthlyBranch: "wei" },
+      { name: "surface", earthlyBranch: "shen" },
+      { name: "friends", earthlyBranch: "you" },
+      { name: "career", earthlyBranch: "xu" },
+      { name: "property", earthlyBranch: "hai" },
+      { name: "spirit", earthlyBranch: "zi" },
+      { name: "parents", earthlyBranch: "chou" },
+    ].map((p) => ({
+      ...p,
+      isBodyPalace: false,
+      majorStars: [],
+      minorStars: [],
+    })),
+  ],
+};
+
 describe("IztroAdapter", () => {
+  it("preserves whole-chart fields, categories, and extra star groups from a raw fixture", () => {
+    const chart = normalizeIztroAstrolabe(
+      rawRepresentativeAstrolabe as any,
+      profile,
+      provenanceSample,
+    );
+
+    expect(chart.palaces[0]).toMatchObject({
+      heavenlyStemId: "ziwei.stem.jia",
+      isBodyPalace: true,
+      stars: expect.arrayContaining([
+        {
+          id: "ziwei.star.ziwei",
+          category: "major",
+          brightness: "ziwei.brightness.prosperous",
+        },
+      ]),
+    });
+  });
+
   it("normalizes a default-rule chart with provenance", async () => {
     const result = await new IztroAdapter().calculate(
       { birthProfile: profile },
@@ -42,10 +134,11 @@ describe("IztroAdapter", () => {
     ).toMatchObject({
       earthlyBranchId: "ziwei.branch.goat",
       stars: expect.arrayContaining([
-        {
+        expect.objectContaining({
           id: "ziwei.star.tianliang",
           brightness: "ziwei.brightness.prosperous",
-        },
+          category: "major",
+        }),
       ]),
     });
     expect(result.output.transformations).toEqual(

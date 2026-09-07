@@ -349,3 +349,12 @@ export type {
   ReportQueryError,
   ReportQueryService,
 } from "./reports/report-query.service.js";
+
+export {
+  buildComprehensiveZiweiFacts,
+} from "./reports/comprehensive-ziwei-facts.js";
+export type {
+  ComprehensiveZiweiFacts,
+  ComprehensiveZiweiPalaceFact,
+  ComprehensiveZiweiPatternFact,
+} from "./reports/comprehensive-ziwei-facts.js";
