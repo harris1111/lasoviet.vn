@@ -19,6 +19,7 @@ import {
   identityReportOutlineV1,
   identityReportOutlineV2,
 } from "./identity-report-outline.js";
+import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 import { buildLocalizedPromptFacts } from "./identity-report-prompt-context.js";
 import {
   boundedKnowledge,
@@ -72,10 +73,11 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
     return { ok: false as const, error: { code: "REPORT_EVIDENCE_INVALID", retryable: false } };
   }
 
-  if (
-    input.provenance.promptVersion !== REPORT_PROMPT_VERSION_V1 &&
-    input.provenance.promptVersion !== REPORT_PROMPT_VERSION_V2
-  ) {
+  const family = resolveIdentityReportVersionFamily(
+    input.provenance.promptVersion,
+    input.provenance.knowledgeVersion,
+  );
+  if (family === null) {
     return { ok: false as const, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
   }
 
@@ -84,7 +86,7 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
     : CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER;
 
   // V1 Legacy Generation matching baseline 3372d08
-  if (input.provenance.promptVersion === REPORT_PROMPT_VERSION_V1) {
+  if (family === "v1") {
     const knowledge = boundedKnowledgeV1(input.knowledgePassages);
     const languageInstruction = input.locale === "en"
       ? "Respond strictly in clear, natural English."

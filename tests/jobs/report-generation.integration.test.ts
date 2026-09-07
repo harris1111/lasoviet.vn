@@ -323,6 +323,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -360,6 +361,7 @@ describe("report generation source loading integration", () => {
       chartVersionId: "chart-version-non-existent",
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -397,6 +399,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId: mismatchedEvidenceId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -428,6 +431,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -524,6 +528,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 

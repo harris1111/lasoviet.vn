@@ -3,9 +3,8 @@ import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
   CURRENT_REPORT_RENDER_VERSION,
   CURRENT_REPORT_TEMPLATE_VERSION,
-  REPORT_PROMPT_VERSION_V1,
-  REPORT_PROMPT_VERSION_V2,
 } from "./identity-report-config.js";
+import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 import { renderIdentityReportHtml } from "./identity-report-html.js";
 import { writeIdentityReportDraft } from "./identity-report-writer.js";
 import { validateIdentityReport } from "./report-validator.js";
@@ -172,10 +171,11 @@ export function createReportGenerationService(
       };
     }
 
-    if (
-      payload.promptVersion !== REPORT_PROMPT_VERSION_V1 &&
-      payload.promptVersion !== REPORT_PROMPT_VERSION_V2
-    ) {
+    const family = resolveIdentityReportVersionFamily(
+      payload.promptVersion,
+      payload.knowledgeVersionId,
+    );
+    if (family === null) {
       return failAttempt("AI_OUTPUT_INVALID", false);
     }
 
@@ -227,6 +227,7 @@ export function createReportGenerationService(
 
     const validationResult = validateIdentityReport(draft.report, source, {
       promptVersion: payload.promptVersion,
+      knowledgeVersion: payload.knowledgeVersionId,
     });
     if (!validationResult.ok) {
       const primaryFinding = validationResult.findings[0]?.code;
@@ -245,7 +246,7 @@ export function createReportGenerationService(
         draft.report,
         source,
         dependencies.provider,
-        { promptVersion: payload.promptVersion },
+        { promptVersion: payload.promptVersion, knowledgeVersion: payload.knowledgeVersionId },
       );
     } catch {
       return failAttempt("AI_TIMEOUT", true);
@@ -269,7 +270,7 @@ export function createReportGenerationService(
       }
       if (errCode === "AI_OUTPUT_INVALID") {
         // V1 never rewrites on quality failure
-        if (payload.promptVersion !== REPORT_PROMPT_VERSION_V2) {
+        if (family !== "v2") {
           return failAttempt("AI_OUTPUT_INVALID", false);
         }
 
@@ -324,6 +325,7 @@ export function createReportGenerationService(
 
         const revValidation = validateIdentityReport(revisedDraft.report, source, {
           promptVersion: payload.promptVersion,
+          knowledgeVersion: payload.knowledgeVersionId,
         });
         if (!revValidation.ok) {
           const primaryFinding = revValidation.findings[0]?.code;
@@ -339,7 +341,7 @@ export function createReportGenerationService(
             revisedDraft.report,
             source,
             dependencies.provider,
-            { promptVersion: payload.promptVersion },
+            { promptVersion: payload.promptVersion, knowledgeVersion: payload.knowledgeVersionId },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);

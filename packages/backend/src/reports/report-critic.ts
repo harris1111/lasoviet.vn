@@ -1,7 +1,7 @@
 import { z, type IdentityReportV1 } from "@lasoviet/contracts";
 
 import type { AiProvider } from "../ai/ai-provider.js";
-import { REPORT_PROMPT_VERSION_V1 } from "./identity-report-config.js";
+import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 import {
   boundedKnowledge,
   boundedKnowledgeV1,
@@ -25,12 +25,17 @@ export async function critiqueIdentityReport(
   report: IdentityReportV1,
   source: IdentityReportSource,
   provider: AiProvider,
-  options?: { promptVersion?: string },
+  options?: { promptVersion?: string; knowledgeVersion?: string },
 ) {
   const promptVersion = options?.promptVersion ?? report.provenance.promptVersion;
-  const isV1 = promptVersion === REPORT_PROMPT_VERSION_V1;
+  const knowledgeVersion = options?.knowledgeVersion ?? report.provenance.knowledgeVersion;
+  const family = resolveIdentityReportVersionFamily(promptVersion, knowledgeVersion);
+  if (family === null) {
+    return { ok: false as const, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+  }
+  const isV1 = family === "v1";
 
-  const validation = validateIdentityReport(report, source, { promptVersion });
+  const validation = validateIdentityReport(report, source, { promptVersion, knowledgeVersion });
   if (!validation.ok) {
     return { ok: false as const, error: { code: validation.findings[0]?.code ?? "REPORT_SAFETY_REJECTED", retryable: false } };
   }

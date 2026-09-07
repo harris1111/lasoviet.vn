@@ -200,7 +200,12 @@ function createJob(overrides?: Partial<ReportGenerateJobEnvelopeV1["payload"]>):
 }
 
 describe("createReportGenerationService", () => {
-  it("fails unknown prompt versions with stable non-retryable AI_OUTPUT_INVALID before any provider call", async () => {
+  it.each([
+    ["mismatched V1 prompt and V2 knowledge", REPORT_PROMPT_VERSION_V1, "ziwei.identity.knowledge.v2"],
+    ["mismatched V2 prompt and V1 knowledge", REPORT_PROMPT_VERSION_V2, "ziwei.identity.knowledge.v1"],
+    ["unknown knowledge version", REPORT_PROMPT_VERSION_V2, "unknown.knowledge.v999"],
+    ["unknown prompt version", "unknown.prompt.v999", "ziwei.identity.knowledge.v2"],
+  ])("fails %s with stable non-retryable AI_OUTPUT_INVALID before any provider call", async (_name, promptVersion, knowledgeVersionId) => {
     const writerSpy = vi.fn();
     const sourceRepository: ReportGenerationSourceRepository = {
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
@@ -227,7 +232,7 @@ describe("createReportGenerationService", () => {
     });
 
     const result = await service.generateReport({
-      job: createJob({ promptVersion: "unknown.prompt.v999" }),
+      job: createJob({ promptVersion, knowledgeVersionId }),
       attemptNumber: 1,
       workerId: "worker-1",
     });
@@ -238,6 +243,7 @@ describe("createReportGenerationService", () => {
       expect(result.error.retryable).toBe(false);
     }
     expect(writerSpy).not.toHaveBeenCalled();
+    expect(sourceRepository.loadSource).not.toHaveBeenCalled();
   });
 
   it("attempts one rewrite on first AI_OUTPUT_INVALID critic quality failure and persists if revision passes", async () => {

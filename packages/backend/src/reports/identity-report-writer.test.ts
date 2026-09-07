@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
@@ -14,16 +14,22 @@ import {
   CANONICAL_IDENTITY_REPORT_TITLES_VI,
   DETERMINISTIC_CYCLES_NARRATIVE_EN,
   DETERMINISTIC_CYCLES_NARRATIVE_VI,
+  REPORT_KNOWLEDGE_VERSION_V1,
+  REPORT_KNOWLEDGE_VERSION_V2,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
 } from "./identity-report-config.js";
 
 describe("identity report writer", () => {
-  it("rejects unknown prompt versions with AI_OUTPUT_INVALID before calling provider", async () => {
+  it.each([
+    ["mismatched V1 prompt and V2 knowledge", REPORT_PROMPT_VERSION_V1, "ziwei.identity.knowledge.v2"],
+    ["mismatched V2 prompt and V1 knowledge", REPORT_PROMPT_VERSION_V2, "ziwei.identity.knowledge.v1"],
+    ["unknown knowledge version", REPORT_PROMPT_VERSION_V2, "unknown.knowledge.v999"],
+    ["unknown prompt version", "unknown.prompt.v99", "ziwei.identity.knowledge.v2"],
+  ])("rejects %s with AI_OUTPUT_INVALID before calling provider", async (_name, promptVersion, knowledgeVersion) => {
+    const providerSpy = vi.fn();
     const provider: AiProvider = {
-      async generateStructured() {
-        throw new Error("should not be called");
-      },
+      generateStructured: providerSpy,
     };
     const evidence: EvidenceSetV1 = {
       version: 1, capabilityId: "ziwei.identity.p0", chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1",
@@ -51,10 +57,11 @@ describe("identity report writer", () => {
         facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
       },
       knowledgePassages: [{ id: "knowledge-1", content: "Nội dung đã được phê duyệt." }],
-      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v1", promptVersion: "unknown.prompt.v99", templateVersion: "template.v1" },
+      provenance: { evidenceVersion: 1, knowledgeVersion, promptVersion, templateVersion: "template.v1" },
       provider,
     });
     expect(result).toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(providerSpy).not.toHaveBeenCalled();
   });
 
   it("uses legacy V1 writer behavior when promptVersion is ziwei.identity.prompt.v1", async () => {
@@ -209,7 +216,7 @@ describe("identity report writer", () => {
         facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
       },
       knowledgePassages: [{ id: "knowledge-1", content: "Nội dung đã được phê duyệt." }],
-      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v2", promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
+      provenance: { evidenceVersion: 1, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2, promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
       provider,
     });
     expect(result).toMatchObject({
@@ -305,7 +312,7 @@ describe("identity report writer", () => {
         facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
       },
       knowledgePassages: [{ id: "knowledge-1", content: "Approved English content." }],
-      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.en.v2", promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
+      provenance: { evidenceVersion: 1, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2, promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
       provider,
     });
     expect(result).toMatchObject({
@@ -397,7 +404,7 @@ describe("identity report writer", () => {
         facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
       },
       knowledgePassages: [{ id: "knowledge-1", content: "Nội dung phê duyệt." }],
-      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v2", promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
+      provenance: { evidenceVersion: 1, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2, promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
       provider,
     });
 
@@ -490,7 +497,7 @@ describe("identity report writer", () => {
         facts: { soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: ["ziwei.transformation.prosperity"] },
       },
       knowledgePassages: [{ id: "knowledge-1", content: "Nội dung phê duyệt." }],
-      provenance: { evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v2", promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
+      provenance: { evidenceVersion: 1, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2, promptVersion: REPORT_PROMPT_VERSION_V2, templateVersion: "template.v1" },
       provider,
       revision: {
         priorContent: {

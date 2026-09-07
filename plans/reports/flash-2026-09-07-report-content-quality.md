@@ -192,3 +192,57 @@ None. Task 2 implementation, TDD test suites, and verification checks are comple
 - Git diff whitespace & format check:
   - Command: `git diff --check`
   - Result: Clean (0 warnings or errors).
+
+## 7. Correction Round 2 Evidence (Prompt/Knowledge Version-Family Coupling)
+
+### Scope of Corrections
+- Introduced `resolveIdentityReportVersionFamily(promptVersion, knowledgeVersion)` pure resolver returning:
+  - `"v1"` strictly for `("ziwei.identity.prompt.v1", "ziwei.identity.knowledge.v1")`.
+  - `"v2"` strictly for `("ziwei.identity.prompt.v2", "ziwei.identity.knowledge.v2")`.
+  - `null` for mismatched pairs, unknown versions, empty values, or invalid inputs.
+- Generation service resolves the version family before source retrieval and before calling the provider; mismatched pairs, unknown prompt versions, or unknown knowledge versions fail immediately with stable non-retryable `AI_OUTPUT_INVALID` without calling the AI provider or loading source data.
+- Source repository input requires `promptVersion`; resolves the version family and immediately returns `REPORT_EVIDENCE_INVALID` without querying knowledge or the database when invalid. V1 uses legacy section-purpose retrieval; V2 uses fact-driven retrieval.
+- Writer resolves the version family from `provenance.promptVersion` and `provenance.knowledgeVersion` before provider calls and dispatches strictly on the resolved family.
+- Critic resolves the version family from report provenance before provider calls; rejects invalid pairs with `AI_OUTPUT_INVALID` with zero provider calls; enforces correctness/safety only for V1, and all eight scores >= 4 for V2.
+- Validator resolves the version family and rejects invalid pairs with `REPORT_EVIDENCE_INVALID` instead of silently falling back to the V2 outline.
+
+### Changed Files
+- `packages/backend/src/reports/identity-report-version-family.ts` (created)
+- `packages/backend/src/reports/identity-report-version-family.test.ts` (created)
+- `packages/backend/src/reports/report-generation.repository.test.ts` (created)
+- `packages/backend/src/index.ts`
+- `packages/backend/src/reports/report-generation.service.ts`
+- `packages/backend/src/reports/report-generation.service.test.ts`
+- `packages/backend/src/reports/report-generation.repository.ts`
+- `packages/backend/src/reports/identity-report-writer.ts`
+- `packages/backend/src/reports/identity-report-writer.test.ts`
+- `packages/backend/src/reports/report-critic.ts`
+- `packages/backend/src/reports/report-critic.test.ts`
+- `packages/backend/src/reports/report-validator.ts`
+- `packages/backend/src/reports/report-validator.test.ts`
+- `tests/jobs/report-generation.integration.test.ts`
+
+### RED Evidence
+- `identity-report-version-family.test.ts` failed before resolver implementation (`Cannot find module './identity-report-version-family.js'`).
+- `report-generation.service.test.ts` verified that mismatched V1/V2 pairs and unknown knowledge versions fail before provider access with 0 provider calls.
+- `report-generation.repository.test.ts` verified that mismatched V1/V2 pairs and unknown knowledge versions return `REPORT_EVIDENCE_INVALID` with 0 knowledge retrieval queries.
+- `identity-report-writer.test.ts` verified that mismatched V1/V2 pairs and unknown knowledge versions return `AI_OUTPUT_INVALID` with 0 provider calls.
+- `report-critic.test.ts` verified that mismatched V1/V2 pairs and unknown knowledge versions return `AI_OUTPUT_INVALID` with 0 provider calls.
+- `report-validator.test.ts` verified that mismatched V1/V2 pairs return `REPORT_EVIDENCE_INVALID`.
+
+### GREEN Verification
+- Focused unit test suite:
+  - Command: `pnpm vitest run packages/backend/src/reports/ packages/contracts/ packages/backend/src/commerce/ apps/worker/`
+  - Result: 27 test files passed, 230 tests passed (0 failed).
+- Package builds:
+  - `pnpm --filter @lasoviet/backend run build`: Clean exit (0 errors).
+  - `pnpm --filter @lasoviet/worker run build`: Clean exit (0 errors).
+- Workspace typecheck:
+  - Command: `pnpm run typecheck`
+  - Result: Clean exit across all 9 workspace projects (0 errors).
+- i18n parity check:
+  - Command: `pnpm run i18n:check`
+  - Result: `i18n parity passed`.
+- Git diff whitespace & format check:
+  - Command: `git diff --check`
+  - Result: Clean (0 warnings or errors).

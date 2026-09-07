@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
@@ -13,7 +13,7 @@ import { critiqueIdentityReport } from "./report-critic.js";
 function report(): IdentityReportV1 {
   return {
     version: 1, sku: "ZIWEI-IDENTITY-P0", capabilityId: "ziwei.identity.p0", locale: "vi",
-    provenance: { chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1, knowledgeVersion: "knowledge.vi.v2", providerId: "9router-an", modelId: "model", promptVersion: "ziwei.identity.prompt.v2", templateVersion: "template.v1" },
+    provenance: { chartVersionId: "chart-1", ruleVersion: "ziwei.identity.v1", evidenceVersion: 1, knowledgeVersion: "ziwei.identity.knowledge.v2", providerId: "9router-an", modelId: "model", promptVersion: "ziwei.identity.prompt.v2", templateVersion: "template.v1" },
     sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
       id, title: `Mục ${index + 1}`, narrative: "Bạn nên quan sát bình tĩnh và điều chỉnh theo điều kiện thực tế.",
       claims: ["personal_summary", "primary_evidence", "strengths_and_resources", "tensions_and_blind_spots", "identity_analysis", "within_control"].includes(id) ? [{
@@ -36,7 +36,7 @@ function englishReport(): IdentityReportV1 {
       chartVersionId: "chart-1",
       ruleVersion: "ziwei.identity.v1",
       evidenceVersion: 1,
-      knowledgeVersion: "knowledge.en.v2",
+      knowledgeVersion: "ziwei.identity.knowledge.v2",
       providerId: "9router-an",
       modelId: "model",
       promptVersion: "ziwei.identity.prompt.v2",
@@ -275,6 +275,7 @@ describe("identity report critic", () => {
     };
     const v1Report = report();
     v1Report.provenance.promptVersion = "ziwei.identity.prompt.v1";
+    v1Report.provenance.knowledgeVersion = "ziwei.identity.knowledge.v1";
     v1Report.sections.find((s) => s.id === "cycles_and_timing")!.claims = [{
       id: "claim-cycles",
       text: "Nhận định chu kỳ V1.",
@@ -395,5 +396,28 @@ describe("identity report critic", () => {
     expect(enSystem).toMatch(/all eight scores must be integers 1-5/i);
     expect(enSystem).toMatch(/notes must be 0-8 strings up to 300 characters/i);
     expect(enSystem).toMatch(/keys must not be renamed, translated, omitted, or added/i);
+  });
+
+  it.each([
+    ["mismatched V1 prompt and V2 knowledge", "ziwei.identity.prompt.v1", "ziwei.identity.knowledge.v2"],
+    ["mismatched V2 prompt and V1 knowledge", "ziwei.identity.prompt.v2", "ziwei.identity.knowledge.v1"],
+    ["unknown knowledge version", "ziwei.identity.prompt.v2", "unknown.knowledge.v999"],
+    ["unknown prompt version", "unknown.prompt.v999", "ziwei.identity.knowledge.v2"],
+  ])("rejects %s with AI_OUTPUT_INVALID before calling provider", async (_name, promptVersion, knowledgeVersion) => {
+    const providerSpy = vi.fn();
+    const provider: AiProvider = {
+      generateStructured: providerSpy,
+    };
+    const testReport = report();
+    testReport.provenance.promptVersion = promptVersion;
+    testReport.provenance.knowledgeVersion = knowledgeVersion;
+
+    const result = await critiqueIdentityReport(testReport, context, provider, {
+      promptVersion,
+      knowledgeVersion,
+    });
+
+    expect(result).toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(providerSpy).not.toHaveBeenCalled();
   });
 });

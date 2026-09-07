@@ -227,6 +227,12 @@ export {
 export type {
   LocalizedPromptFacts,
 } from "./reports/identity-report-prompt-context.js";
+export {
+  resolveIdentityReportVersionFamily,
+} from "./reports/identity-report-version-family.js";
+export type {
+  IdentityReportVersionFamily,
+} from "./reports/identity-report-version-family.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
 export type {
