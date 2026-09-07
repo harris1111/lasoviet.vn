@@ -13,10 +13,6 @@ describe("localized Zi Wei presentation", () => {
     expect(vi.branch("ziwei.branch.tiger")).toBe("Dần");
     expect(en.star("ziwei.star.pojun")).toBe("Po Jun");
     expect(vi.star("ziwei.star.pojun")).toBe("Phá Quân");
-    expect(en.action("reflect")).toBe("Reflect");
-    expect(vi.action("explore")).toBe("Khám phá thêm");
-    expect(en.confidence("moderate")).toBe("Moderate");
-    expect(vi.confidence("high")).toBe("Cao");
     expect(en.chrome.chartFacts).toBe("Chart facts");
     expect(vi.chrome.chartFacts).toBe("Dữ liệu lá số");
     expect(en.evidence("ziwei.identity.life-palace")).toBe(
@@ -25,31 +21,24 @@ describe("localized Zi Wei presentation", () => {
     expect(en.fact("palaces.ziwei.palace.life.earthlyBranchId")).toBe(
       "Life Palace branch",
     );
-    expect(en.limitation("IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION")).toBe(
-      "True solar time correction is not applied.",
-    );
     expect(en.insight("body-palace-transformations-tension")).toBe(
       "Body Palace and transformations tension",
     );
     expect(en.offer("ZIWEI-IDENTITY-P0")).toBe("Identity and potential");
   });
 
-  it("localizes interpretation bounds without rendering raw English text for supported codes", () => {
+  it("does not expose orphaned technical report helpers", () => {
     const en = ziweiPresentation("en");
     const vi = ziweiPresentation("vi");
 
-    expect(en.interpretationBound("reflective_identity_only")).toBe(
-      "Use only as a reflective identity signal; does not predict deterministic events or replace professional counsel.",
-    );
-    expect(vi.interpretationBound("reflective_identity_only")).toBe(
-      "Chỉ dùng để tự phản chiếu bản mệnh; không dự đoán biến cố có tính quyết định hay thay thế tham vấn chuyên môn.",
-    );
-    expect(en.interpretationBound("unknown_code")).toBe(
-      "Interpretation bound recorded.",
-    );
-    expect(vi.interpretationBound("unknown_code")).toBe(
-      "Giới hạn luận giải đã ghi nhận.",
-    );
+    expect(en).not.toHaveProperty("interpretationBound");
+    expect(en).not.toHaveProperty("action");
+    expect(en).not.toHaveProperty("confidence");
+    expect(en).not.toHaveProperty("limitation");
+    expect(vi).not.toHaveProperty("interpretationBound");
+    expect(vi).not.toHaveProperty("action");
+    expect(vi).not.toHaveProperty("confidence");
+    expect(vi).not.toHaveProperty("limitation");
   });
 
   it("localizes brightness levels without exposing raw IDs", () => {

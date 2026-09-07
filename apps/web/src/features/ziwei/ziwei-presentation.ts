@@ -89,17 +89,6 @@ const transformations: LocalizedMap = {
   },
 };
 
-const interpretationBounds: LocalizedMap = {
-  en: {
-    reflective_identity_only:
-      "Use only as a reflective identity signal; does not predict deterministic events or replace professional counsel.",
-  },
-  vi: {
-    reflective_identity_only:
-      "Chỉ dùng để tự phản chiếu bản mệnh; không dự đoán biến cố có tính quyết định hay thay thế tham vấn chuyên môn.",
-  },
-};
-
 const genders: LocalizedMap = {
   en: { male: "Male", female: "Female" },
   vi: { male: "Nam", female: "Nữ" },
@@ -123,22 +112,6 @@ const timePrecisions: LocalizedMap = {
     range: "Khoảng giờ",
     unknown: "Chưa rõ",
   },
-};
-
-const actions: LocalizedMap = {
-  en: {
-    reflect: "Reflect", explore: "Explore",
-    "discuss-with-support": "Discuss with support",
-  },
-  vi: {
-    reflect: "Tự quan sát", explore: "Khám phá thêm",
-    "discuss-with-support": "Trao đổi với hỗ trợ",
-  },
-};
-
-const confidences: LocalizedMap = {
-  en: { high: "High", moderate: "Moderate" },
-  vi: { high: "Cao", moderate: "Trung bình" },
 };
 
 const evidenceLabels: LocalizedMap = {
@@ -168,29 +141,6 @@ const insightLabels: LocalizedMap = {
     transformations: "Mẫu hình Tứ Hóa",
     "life-palace-strength": "Thế mạnh từ Cung Mệnh",
     "body-palace-transformations-tension": "Điểm căng giữa Cung Thân và Tứ Hóa",
-  },
-};
-
-const limitationLabels: LocalizedMap = {
-  en: {
-    IZTRO_NO_NATIVE_LOCATION_INPUT: "Birth location is not passed directly to the chart engine.",
-    IZTRO_NO_NATIVE_TIMEZONE_INPUT: "Timezone is normalized before chart calculation.",
-    IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION: "True solar time correction is not applied.",
-    TIME_BRANCH_ONLY: "The birth time is known only to an earthly-branch interval.",
-    TIME_RANGE_WITHIN_SINGLE_BRANCH: "The birth time is a range within one earthly branch.",
-    TIME_RANGE_CROSSES_BRANCHES: "The birth-time range crosses earthly branches.",
-    TIME_UNKNOWN: "The exact birth time is unknown.",
-    LUNAR_CALENDAR_CONVERSION_DEFERRED: "Lunar calendar conversion is deferred.",
-  },
-  vi: {
-    IZTRO_NO_NATIVE_LOCATION_INPUT: "Nơi sinh chưa được truyền trực tiếp vào engine lập lá số.",
-    IZTRO_NO_NATIVE_TIMEZONE_INPUT: "Múi giờ được chuẩn hóa trước khi lập lá số.",
-    IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION: "Chưa áp dụng hiệu chỉnh giờ Mặt Trời thực.",
-    TIME_BRANCH_ONLY: "Giờ sinh chỉ được biết theo khoảng địa chi.",
-    TIME_RANGE_WITHIN_SINGLE_BRANCH: "Giờ sinh là một khoảng nằm trong cùng địa chi.",
-    TIME_RANGE_CROSSES_BRANCHES: "Khoảng giờ sinh đi qua nhiều địa chi.",
-    TIME_UNKNOWN: "Chưa biết giờ sinh chính xác.",
-    LUNAR_CALENDAR_CONVERSION_DEFERRED: "Việc chuyển đổi âm lịch đang được hoãn.",
   },
 };
 
@@ -267,12 +217,6 @@ export function ziweiPresentation(locale: ZiweiPresentationLocale) {
     transformation: (value: string) => mapped(
       transformations, locale, value, { en: "Transformation", vi: "Hóa khí" },
     ),
-    interpretationBound: (value: string) => mapped(
-      interpretationBounds, locale, value, {
-        en: "Interpretation bound recorded.",
-        vi: "Giới hạn luận giải đã ghi nhận.",
-      },
-    ),
     gender: (value?: string) =>
       value ? mapped(
         genders, locale, value, { en: "Unspecified", vi: "Chưa xác định" },
@@ -283,23 +227,12 @@ export function ziweiPresentation(locale: ZiweiPresentationLocale) {
     timePrecision: (value: string) => mapped(
       timePrecisions, locale, value, { en: "Time precision", vi: "Độ chính xác giờ" },
     ),
-    action: (value: string) => mapped(
-      actions, locale, value, { en: "Supported reflection", vi: "Gợi ý tự quan sát" },
-    ),
-    confidence: (value: string) => mapped(
-      confidences, locale, value, { en: "Recorded", vi: "Đã ghi nhận" },
-    ),
     evidence: (value: string) => mapped(
       evidenceLabels, locale, value, { en: "Chart evidence", vi: "Căn cứ lá số" },
     ),
     insight: (value: string) => mapped(
       insightLabels, locale, value, { en: "Identity insight", vi: "Nhận định bản mệnh" },
     ),
-    limitation: (value: string) =>
-      limitationLabels[locale][value] ??
-      (locale === "en"
-        ? "A technical limitation is recorded."
-        : "Một giới hạn kỹ thuật đã được ghi nhận."),
     offer: (value: string) =>
       offers[locale][value] ??
       (locale === "en" ? "Identity reading" : "Luận giải bản mệnh"),
