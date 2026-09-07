@@ -197,6 +197,20 @@ describe("IztroAdapter", () => {
         }),
       ]),
     });
+    expect(
+      result.output.palaces.find(
+        (palace) => palace.id === "ziwei.palace.career",
+      ),
+    ).toMatchObject({
+      stars: expect.arrayContaining([
+        expect.objectContaining({
+          id: "ziwei.star.dahao",
+          category: "decorative",
+          brightness: "ziwei.brightness.neutral",
+        }),
+      ]),
+    });
+
     expect(result.output.transformations).toEqual(
       expect.arrayContaining([
         {

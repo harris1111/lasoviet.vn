@@ -184,7 +184,7 @@ const suiqianStarIds: Record<string, string> = {
   tied: "ziwei.star.guansuo",
   official: "ziwei.star.gwanfu",
   consumer: "ziwei.star.xiaohao-sq",
-  wastrel: "ziwei.star.suipo",
+  wastrel: "ziwei.star.dahao",
   virtuous: "ziwei.star.longde-dec",
   sinister: "ziwei.star.baihu",
   blessed: "ziwei.star.tiande-dec",
