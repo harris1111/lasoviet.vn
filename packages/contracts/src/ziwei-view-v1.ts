@@ -1,6 +1,14 @@
 import { z } from "zod";
 
 import {
+  BirthCalendarInputSchema,
+  type BirthCalendarInput,
+  BirthTimeInputSchema,
+  type BirthTimeInput,
+  NormalizedBirthProfileV1Schema,
+  type NormalizedBirthProfileV1,
+} from "./birth-profile-v1.js";
+import {
   EvidenceItemV1Schema,
   type EvidenceItemV1,
 } from "./evidence.js";
@@ -21,11 +29,28 @@ const evidenceItemIdsSchema = z
     }
   });
 
+export const ZiweiBirthSummaryV1Schema = z
+  .object({
+    normalizedCalendar: BirthCalendarInputSchema,
+    normalizedTime: BirthTimeInputSchema,
+    timezoneProvenance: NormalizedBirthProfileV1Schema.shape.timezoneProvenance,
+    gender: z.string().trim().min(1).optional(),
+  })
+  .strict();
+
+export type ZiweiBirthSummaryV1 = {
+  normalizedCalendar: BirthCalendarInput;
+  normalizedTime: BirthTimeInput;
+  timezoneProvenance: NormalizedBirthProfileV1["timezoneProvenance"];
+  gender?: string;
+};
+
 export type ZiweiChartViewV1 = {
   version: 1;
   chartId: string;
   chartVersionId: string;
   chart: NormalizedZiweiChartV1;
+  birthSummary: ZiweiBirthSummaryV1;
   evidenceIndex: {
     version: 1;
     evidenceSetId: string;
@@ -49,6 +74,7 @@ export const ZiweiChartViewV1Schema: z.ZodType<ZiweiChartViewV1> = z
     chartId: z.string().trim().min(1),
     chartVersionId: z.string().trim().min(1),
     chart: NormalizedZiweiChartV1Schema,
+    birthSummary: ZiweiBirthSummaryV1Schema,
     evidenceIndex: z
       .object({
         version: z.literal(1),

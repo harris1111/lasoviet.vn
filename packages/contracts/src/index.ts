@@ -221,10 +221,12 @@ export type {
 } from "./identity-report-v1.js";
 
 export {
+  ZiweiBirthSummaryV1Schema,
   ZiweiChartViewV1Schema,
   ZiweiEvidenceViewV1Schema,
 } from "./ziwei-view-v1.js";
 export type {
+  ZiweiBirthSummaryV1,
   ZiweiChartViewV1,
   ZiweiEvidenceViewV1,
 } from "./ziwei-view-v1.js";

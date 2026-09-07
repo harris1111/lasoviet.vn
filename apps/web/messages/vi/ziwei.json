@@ -2,6 +2,19 @@
   "title": "Lá số Tử Vi",
   "private": "Lá số riêng tư",
   "heroCopy": "12 cung được tính từ dữ liệu sinh của bạn. Mỗi nhận định có căn cứ để mở và tự kiểm tra.",
+  "summary": {
+    "eyebrow": "Tóm tắt lá số",
+    "heading": "Trục bản mệnh và dữ liệu sinh",
+    "birthInfo": "Thông tin sinh",
+    "birthDate": "Ngày sinh",
+    "birthTime": "Giờ sinh",
+    "timezone": "Múi giờ",
+    "gender": "Giới tính",
+    "chartCore": "Trục bản mệnh",
+    "lifePalace": "Cung Mệnh",
+    "bodyPalace": "Cung Thân",
+    "transformations": "Tứ Hóa"
+  },
   "evidence": {
     "eyebrow": "Căn cứ",
     "heading": "Đọc nhận định trong giới hạn của lá số"

@@ -55,6 +55,76 @@ const stars: LocalizedMap = {
   },
 };
 
+const brightnesses: LocalizedMap = {
+  en: {
+    exalted: "Exalted",
+    prosperous: "Prosperous",
+    favorable: "Favorable",
+    neutral: "Neutral",
+    unfavorable: "Unfavorable",
+    weak: "Weak",
+  },
+  vi: {
+    exalted: "Miếu",
+    prosperous: "Vượng",
+    favorable: "Đắc",
+    neutral: "Bình",
+    unfavorable: "Hãm",
+    weak: "Nhược",
+  },
+};
+
+const transformations: LocalizedMap = {
+  en: {
+    prosperity: "Prosperity",
+    power: "Power",
+    fame: "Fame",
+    obstacle: "Obstacle",
+  },
+  vi: {
+    prosperity: "Hóa Lộc",
+    power: "Hóa Quyền",
+    fame: "Hóa Khoa",
+    obstacle: "Hóa Kỵ",
+  },
+};
+
+const interpretationBounds: LocalizedMap = {
+  en: {
+    reflective_identity_only:
+      "Use only as a reflective identity signal; does not predict deterministic events or replace professional counsel.",
+  },
+  vi: {
+    reflective_identity_only:
+      "Chỉ dùng để tự phản chiếu bản mệnh; không dự đoán biến cố có tính quyết định hay thay thế tham vấn chuyên môn.",
+  },
+};
+
+const genders: LocalizedMap = {
+  en: { male: "Male", female: "Female" },
+  vi: { male: "Nam", female: "Nữ" },
+};
+
+const calendarKinds: LocalizedMap = {
+  en: { solar: "Solar calendar", lunar: "Lunar calendar" },
+  vi: { solar: "Dương lịch", lunar: "Âm lịch" },
+};
+
+const timePrecisions: LocalizedMap = {
+  en: {
+    exact_minute: "Exact minute",
+    branch_only: "Earthly branch",
+    range: "Time range",
+    unknown: "Unknown",
+  },
+  vi: {
+    exact_minute: "Chính xác theo phút",
+    branch_only: "Theo địa chi",
+    range: "Khoảng giờ",
+    unknown: "Chưa rõ",
+  },
+};
+
 const actions: LocalizedMap = {
   en: {
     reflect: "Reflect", explore: "Explore",
@@ -198,6 +268,28 @@ export function ziweiPresentation(locale: ZiweiPresentationLocale) {
     ),
     star: (value: string) => mapped(
       stars, locale, value, { en: "Zi Wei star", vi: "Sao Tử Vi" },
+    ),
+    brightness: (value: string) => mapped(
+      brightnesses, locale, value, { en: "Standard brightness", vi: "Độ sáng tiêu chuẩn" },
+    ),
+    transformation: (value: string) => mapped(
+      transformations, locale, value, { en: "Transformation", vi: "Hóa khí" },
+    ),
+    interpretationBound: (value: string) => mapped(
+      interpretationBounds, locale, value, {
+        en: "Interpretation bound recorded.",
+        vi: "Giới hạn luận giải đã ghi nhận.",
+      },
+    ),
+    gender: (value?: string) =>
+      value ? mapped(
+        genders, locale, value, { en: "Unspecified", vi: "Chưa xác định" },
+      ) : (locale === "en" ? "Unspecified" : "Chưa xác định"),
+    calendarKind: (value: string) => mapped(
+      calendarKinds, locale, value, { en: "Calendar", vi: "Lịch" },
+    ),
+    timePrecision: (value: string) => mapped(
+      timePrecisions, locale, value, { en: "Time precision", vi: "Độ chính xác giờ" },
     ),
     action: (value: string) => mapped(
       actions, locale, value, { en: "Supported reflection", vi: "Gợi ý tự quan sát" },

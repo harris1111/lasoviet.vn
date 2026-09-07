@@ -52,6 +52,25 @@ const chart = {
   },
 };
 
+const profileOriginalInput = {
+  version: 1,
+  calendar: { kind: "solar" as const, date: "2000-01-01" },
+  time: { precision: "exact_minute" as const, localTime: "12:00" },
+  timezone: { offsetMinutes: 420 },
+  consentVersion: "1.0",
+  gender: "female",
+  location: { latitude: 10.8231, longitude: 106.6297 },
+};
+
+const profileNormalizedInput = {
+  version: 1,
+  normalizedCalendar: { kind: "solar" as const, date: "2000-01-01" },
+  normalizedTime: { precision: "exact_minute" as const, localTime: "12:00" },
+  timezoneProvenance: { source: "offset" as const, offsetMinutes: 420 },
+  normalizationWarnings: [],
+  limitations: [],
+};
+
 const items = ["life-palace", "body-palace", "transformations"].map((name) => ({
   id: `ziwei.identity.${name}`,
   factReferences: ["fact-1"],
@@ -68,6 +87,8 @@ function record(overrides: Partial<Awaited<ReturnType<ZiweiQueryRepository["read
     chartId: "chart-1",
     chartVersionId: "chart-version-2",
     normalizedOutput: chart,
+    originalInput: profileOriginalInput,
+    normalizedInput: profileNormalizedInput,
     evidenceSetId: "evidence-set-1",
     capabilityId: "ziwei.identity.p0" as const,
     ruleVersion: "ziwei.identity.v1" as const,
@@ -85,7 +106,7 @@ function repository(overrides: Partial<ZiweiQueryRepository> = {}) {
 }
 
 describe("Zi Wei query service", () => {
-  it("returns only a strict chart and three evidence IDs to the account owner", async () => {
+  it("returns only a strict chart, minimal birth summary, and three evidence IDs to the account owner", async () => {
     const store = repository();
     const service = createZiweiQueryService({ repository: store, now: () => now });
 
@@ -96,6 +117,12 @@ describe("Zi Wei query service", () => {
       value: expect.objectContaining({
         chartId: "chart-1",
         chartVersionId: "chart-version-2",
+        birthSummary: {
+          normalizedCalendar: { kind: "solar", date: "2000-01-01" },
+          normalizedTime: { precision: "exact_minute", localTime: "12:00" },
+          timezoneProvenance: { source: "offset", offsetMinutes: 420 },
+          gender: "female",
+        },
         evidenceIndex: expect.objectContaining({
           itemIds: items.map((item) => item.id),
         }),
@@ -103,6 +130,8 @@ describe("Zi Wei query service", () => {
     });
     if (result.ok) {
       expect(result.value).not.toHaveProperty("evidence");
+      expect(result.value.birthSummary).not.toHaveProperty("consentVersion");
+      expect(result.value.birthSummary).not.toHaveProperty("location");
     }
   });
 
@@ -156,7 +185,14 @@ describe("Zi Wei query service", () => {
 
     await expect(service.readPreview(account, "chart-1")).resolves.toMatchObject({
       ok: true,
-      value: { insights: { length: 3 }, paidPreview: { coveragePercent: 12 } },
+      value: {
+        insights: [
+          { evidence: { interpretationBoundCodes: ["reflective_identity_only"] } },
+          { evidence: { interpretationBoundCodes: ["reflective_identity_only"] } },
+          { evidence: { interpretationBoundCodes: ["reflective_identity_only"] } },
+        ],
+        paidPreview: { coveragePercent: 12 },
+      },
     });
     await expect(service.selectTopic(account, "chart-1", {
       sku: "ZIWEI-RELATIONSHIP-P0",

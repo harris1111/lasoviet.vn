@@ -1,9 +1,12 @@
 import { z } from "zod";
 
+import { EvidenceInterpretationBoundCodeSchema } from "./evidence.js";
+
 const evidenceReferenceSchema = z.object({
   evidenceId: z.string().regex(/^ziwei\.identity\.[a-z0-9-]+$/),
   factReferences: z.array(z.string().min(1)).min(1),
   confidence: z.enum(["high", "moderate"]),
+  interpretationBoundCodes: z.array(EvidenceInterpretationBoundCodeSchema).min(1).default(["reflective_identity_only"]),
   interpretationBounds: z.array(z.string().min(1)).min(1),
   limitations: z.array(z.string().min(1)).min(1),
 }).strict();
