@@ -23,10 +23,12 @@ type RawPalace = {
   heavenlyStemId?: string;
   changsheng12?: string;
   cycleStateId?: string;
+  boshi12?: string;
+  jiangqian12?: string;
+  suiqian12?: string;
   majorStars: RawStar[];
   minorStars: RawStar[];
   adjectiveStars?: RawStar[];
-  decorativeStars?: RawStar[];
 };
 
 export type RawIztroAstrolabe = {
@@ -143,46 +145,51 @@ const starIds: Record<string, string> = {
   wounded: "ziwei.star.tianshang",
   "considery(Y)": "ziwei.star.nianjie",
 
-  // Decorative & cycle stars (iztro en-US)
+};
+
+const boshiStarIds: Record<string, string> = {
   doctor: "ziwei.star.boshi",
   sumo: "ziwei.star.lishi",
   dragon: "ziwei.star.qinglong",
   consumer: "ziwei.star.xiaohao",
+  general: "ziwei.star.jiangjun",
   book: "ziwei.star.zhoushu",
   gossip: "ziwei.star.feilian-dec",
   happiness: "ziwei.star.xishen",
   illness: "ziwei.star.bingfu",
+  wastrel: "ziwei.star.dahao-dec",
   ambush: "ziwei.star.fubing",
   government: "ziwei.star.guanfu",
+};
+
+const jiangqianStarIds: Record<string, string> = {
+  capable: "ziwei.star.jiangxing",
+  admired: "ziwei.star.panan",
+  varied: "ziwei.star.suiyi",
+  listless: "ziwei.star.xiishen",
+  religious: "ziwei.star.huagai-dec",
+  robbed: "ziwei.star.jiesha-dec",
+  disastery: "ziwei.star.zhaisha",
+  condemned: "ziwei.star.tiansha",
+  insidious: "ziwei.star.zhibei",
+  passionate: "ziwei.star.xianchi-dec",
+  hapless: "ziwei.star.yuesha",
+  perished: "ziwei.star.wangshen",
+};
+
+const suiqianStarIds: Record<string, string> = {
   initial: "ziwei.star.suijian",
   unlucky: "ziwei.star.huiqi",
   downcast: "ziwei.star.sangmen",
   tied: "ziwei.star.guansuo",
   official: "ziwei.star.gwanfu",
+  consumer: "ziwei.star.xiaohao-sq",
+  wastrel: "ziwei.star.suipo",
+  virtuous: "ziwei.star.longde-dec",
   sinister: "ziwei.star.baihu",
+  blessed: "ziwei.star.tiande-dec",
   sorrowing: "ziwei.star.diaoke",
-  capable: "ziwei.star.jiangxing",
-  admired: "ziwei.star.panan",
-  varied: "ziwei.star.suiyi",
-  listless: "ziwei.star.xiishen",
-  robbed: "ziwei.star.jiesha-dec",
-  disastery: "ziwei.star.zhaisha",
-  condemned: "ziwei.star.tiansha",
-  insidious: "ziwei.star.zhibei",
-  hapless: "ziwei.star.yuesha",
-  perished: "ziwei.star.wangshen",
-  born: "ziwei.star.changsheng",
-  infancy: "ziwei.star.muyu",
-  adolescence: "ziwei.star.guandai",
-  adulthood: "ziwei.star.linguan",
-  prime: "ziwei.star.diwang",
-  weak: "ziwei.star.shuai",
-  sick: "ziwei.star.bing",
-  dead: "ziwei.star.si",
-  buried: "ziwei.star.mu",
-  dissipated: "ziwei.star.jue",
-  embryo: "ziwei.star.tai",
-  molding: "ziwei.star.yang",
+  illness: "ziwei.star.bingfu-sq",
 };
 
 const stemIds: Record<string, string> = {
@@ -366,16 +373,37 @@ export function normalizeIztroAstrolabe(
       });
     }
 
-    for (const star of (palace.decorativeStars ?? [])) {
-      const starId = resolveStarId(star);
-      if (starId === undefined) {
-        continue;
+    if (palace.boshi12) {
+      const starId = boshiStarIds[palace.boshi12];
+      if (starId !== undefined) {
+        mappedStars.push({
+          id: starId,
+          brightness: "ziwei.brightness.neutral",
+          category: "decorative",
+        });
       }
-      mappedStars.push({
-        id: starId,
-        brightness: brightness(star.brightness),
-        category: star.category ?? "decorative",
-      });
+    }
+
+    if (palace.jiangqian12) {
+      const starId = jiangqianStarIds[palace.jiangqian12];
+      if (starId !== undefined) {
+        mappedStars.push({
+          id: starId,
+          brightness: "ziwei.brightness.neutral",
+          category: "decorative",
+        });
+      }
+    }
+
+    if (palace.suiqian12) {
+      const starId = suiqianStarIds[palace.suiqian12];
+      if (starId !== undefined) {
+        mappedStars.push({
+          id: starId,
+          brightness: "ziwei.brightness.neutral",
+          category: "decorative",
+        });
+      }
     }
 
     const heavenlyStemId = resolveHeavenlyStemId(palace);
@@ -396,7 +424,6 @@ export function normalizeIztroAstrolabe(
       ...palace.majorStars,
       ...palace.minorStars,
       ...(palace.adjectiveStars ?? []),
-      ...(palace.decorativeStars ?? []),
     ];
     return allStars.flatMap((star) => {
       const starId = resolveStarId(star);

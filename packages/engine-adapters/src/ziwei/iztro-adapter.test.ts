@@ -49,6 +49,9 @@ const rawRepresentativeAstrolabe = {
       isBodyPalace: true,
       isOriginalPalace: true,
       changsheng12: "born",
+      boshi12: "doctor",
+      jiangqian12: "capable",
+      suiqian12: "initial",
       majorStars: [
         {
           name: "emperor",
@@ -65,13 +68,8 @@ const rawRepresentativeAstrolabe = {
         {
           name: "attractive",
         },
-      ],
-      decorativeStars: [
         {
-          name: "doctor",
-        },
-        {
-          name: "unsupported-vendor-decorative",
+          name: "unsupported-vendor-adjective",
         },
       ],
     },
@@ -127,12 +125,23 @@ describe("IztroAdapter", () => {
         expect.objectContaining({
           id: "ziwei.star.boshi",
           category: "decorative",
+          brightness: "ziwei.brightness.neutral",
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.jiangxing",
+          category: "decorative",
+          brightness: "ziwei.brightness.neutral",
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.suijian",
+          category: "decorative",
+          brightness: "ziwei.brightness.neutral",
         }),
       ]),
     });
 
-    // Unsupported decorative star is skipped
-    expect(chart.palaces[0]!.stars.map((s) => s.id)).not.toContain("unsupported-vendor-decorative");
+    // Unsupported adjective star is skipped
+    expect(chart.palaces[0]!.stars.map((s) => s.id)).not.toContain("unsupported-vendor-adjective");
 
     // Mutation on minor star preserved in chart transformations
     expect(chart.transformations).toEqual(
@@ -167,6 +176,24 @@ describe("IztroAdapter", () => {
           id: "ziwei.star.tianliang",
           brightness: "ziwei.brightness.prosperous",
           category: "major",
+        }),
+        expect.objectContaining({
+          category: "adjective",
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.guanfu",
+          category: "decorative",
+          brightness: "ziwei.brightness.neutral",
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.yuesha",
+          category: "decorative",
+          brightness: "ziwei.brightness.neutral",
+        }),
+        expect.objectContaining({
+          id: "ziwei.star.sangmen",
+          category: "decorative",
+          brightness: "ziwei.brightness.neutral",
         }),
       ]),
     });
