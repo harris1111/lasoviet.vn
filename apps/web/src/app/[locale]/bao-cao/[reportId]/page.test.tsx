@@ -72,7 +72,9 @@ const sectionIds = [
 
 const mockReadyViSections = sectionIds.map((id, index) => ({
   id,
-  title: index === 0 ? "Tổng quan lá số" : `Mục ${index + 1}`,
+  title: id === "limitations_and_disclaimer"
+    ? "Tuyên Bố Miễn Trừ"
+    : index === 0 ? "Tổng quan lá số" : `Mục ${index + 1}`,
   narrative: index === 0
     ? "Bản chất xu hướng nổi trội <script>alert('xss')</script>"
     : `Nội dung mục ${index + 1}`,
@@ -115,7 +117,7 @@ const mockReadyVi: ReportReadyViewV1 = {
       id: "ziwei.identity.life-palace",
       factReferences: ["soulPalaceId"],
       confidence: "high",
-      interpretationBounds: ["Giới hạn diễn giải mệnh"],
+      interpretationBounds: ["Giới hạn diễn giải mệnh reflective identity"],
       interpretationBoundCodes: ["reflective_identity_only"],
       limitations: ["TIME_BRANCH_ONLY"],
       riskTags: ["identity"],
@@ -316,11 +318,17 @@ describe("ReportPage", () => {
     expect(html).toContain("Bìa báo cáo luận giải Tử Vi — ảnh vật phẩm sơn mài");
     expect(html).toContain("Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.");
     expect(html).toContain("Tổng quan lá số");
-    expect(html).toContain(CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER);
     expect(html).toContain("Căn cứ Cung Mệnh");
     expect(html).toContain("Câu hỏi tự suy ngẫm 1");
     expect(html).toContain("Gợi ý hành động 1");
     expect(html).toContain("Hết báo cáo");
+
+    expect(html).not.toContain("Giới hạn ghi nhận");
+    expect(html).not.toContain("Tuyên Bố Miễn Trừ");
+    expect(html).not.toContain("Độ tin cậy");
+    expect(html).not.toContain("Giới hạn diễn giải");
+    expect(html).not.toContain("Trường dữ liệu căn cứ");
+    expect(html).not.toContain("reflective identity");
 
     // Must never render script sentinels as raw HTML
     expect(html).not.toContain("<script>alert('xss')</script>");

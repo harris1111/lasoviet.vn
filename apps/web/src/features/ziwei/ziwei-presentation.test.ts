@@ -17,6 +17,8 @@ describe("localized Zi Wei presentation", () => {
     expect(vi.action("explore")).toBe("Khám phá thêm");
     expect(en.confidence("moderate")).toBe("Moderate");
     expect(vi.confidence("high")).toBe("Cao");
+    expect(en.chrome.chartFacts).toBe("Chart facts");
+    expect(vi.chrome.chartFacts).toBe("Dữ liệu lá số");
     expect(en.evidence("ziwei.identity.life-palace")).toBe(
       "Life Palace evidence",
     );

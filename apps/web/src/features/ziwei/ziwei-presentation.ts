@@ -214,11 +214,7 @@ const chrome = {
     evidenceDialog: "Interpretation evidence",
     evidenceClose: "Close evidence",
     evidenceEyebrow: "Interpretation evidence",
-    interpretationBounds: "Interpretation bounds",
-    observableActions: "Observable actions",
-    factReferences: "Evidence fields",
-    limitations: "Limitations",
-    confidence: "Confidence",
+    chartFacts: "Chart facts",
   },
   vi: {
     chartAria: "Lá số Tử Vi",
@@ -234,11 +230,7 @@ const chrome = {
     evidenceDialog: "Căn cứ luận giải",
     evidenceClose: "Đóng căn cứ",
     evidenceEyebrow: "Căn cứ luận giải",
-    interpretationBounds: "Giới hạn diễn giải",
-    observableActions: "Điều có thể quan sát",
-    factReferences: "Trường dữ liệu căn cứ",
-    limitations: "Giới hạn",
-    confidence: "Độ tin cậy",
+    chartFacts: "Dữ liệu lá số",
   },
 } as const;
 
@@ -336,7 +328,7 @@ export function ziweiPresentation(locale: ZiweiPresentationLocale) {
         },
       };
       return facts[locale][value] ??
-        (locale === "en" ? "Chart data field" : "Trường dữ liệu lá số");
+        (locale === "en" ? "Chart data field" : "Dữ liệu lá số");
     },
   };
 }

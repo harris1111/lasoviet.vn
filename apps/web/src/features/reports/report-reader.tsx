@@ -15,6 +15,12 @@ export type ReportReaderProps = {
   report: ReportReadyViewV1;
 };
 
+const LEGACY_HIDDEN_SECTION_IDS = new Set([
+  "data_and_method",
+  "primary_evidence",
+  "limitations_and_disclaimer",
+]);
+
 const FONT_CLASSES = ["reader-font-sm", "reader-font-md", "reader-font-lg"] as const;
 
 export function ReportReader({ locale, report }: ReportReaderProps) {
@@ -44,7 +50,10 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     return map;
   }, [report.evidence]);
 
-  const sections = report.content.sections;
+  const sections = useMemo(
+    () => report.content.sections.filter((s) => !LEGACY_HIDDEN_SECTION_IDS.has(s.id)),
+    [report.content.sections],
+  );
 
   // Font size local storage restoration
   useEffect(() => {
@@ -400,24 +409,8 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
                                       {presentation.evidence(ev.id)}
                                     </h4>
                                     <dl className="report-evidence-spec">
-                                      <dt>{t("reader.confidence")}</dt>
-                                      <dd>{presentation.confidence(ev.confidence)}</dd>
-
-                                      <dt>{t("reader.interpretation_bounds")}</dt>
-                                      <dd>{ev.interpretationBoundCodes.length > 0 ? ev.interpretationBoundCodes.map(presentation.interpretationBound).join(" ") : ev.interpretationBounds.join(" ")}</dd>
-
-                                      <dt>{t("reader.fact_references")}</dt>
+                                      <dt>{presentation.chrome.chartFacts}</dt>
                                       <dd>{ev.factReferences.map((f) => presentation.fact(f)).join(", ")}</dd>
-
-                                      <dt>{t("reader.observable_actions")}</dt>
-                                      <dd>{ev.allowedActionCategories.map((a) => presentation.action(a)).join(", ")}</dd>
-
-                                      {ev.limitations.length > 0 && (
-                                        <>
-                                          <dt>{t("reader.limitations")}</dt>
-                                          <dd>{ev.limitations.map((l) => presentation.limitation(l)).join("; ")}</dd>
-                                        </>
-                                      )}
                                     </dl>
                                   </div>
                                 </details>
@@ -437,17 +430,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
                             </div>
                           )}
 
-                          {/* Claim Limitations */}
-                          {claim.limitations.length > 0 && (
-                            <div className="report-claim-limits">
-                              <span className="report-meta-label">{t("reader.limitations_title")}:</span>
-                              <ul>
-                                {claim.limitations.map((lim, li) => (
-                                  <li key={li}>{lim}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+
                         </article>
                       ))}
                     </div>
@@ -481,10 +464,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
             </section>
           )}
 
-          {/* Professional Advice Disclaimer */}
-          <section className="report-disclaimer-section" role="note">
-            <p>{report.content.professionalAdviceDisclaimer}</p>
-          </section>
+
 
           <div className="report-end-marker" aria-hidden="true">
             <span>{t("reader.end_of_report")}</span>
@@ -540,18 +520,9 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
               activeSectionEvidence.map((ev) => (
                 <div key={ev.id} className="report-rail-evidence-item">
                   <h4>{presentation.evidence(ev.id)}</h4>
-                  <dl className="report-evidence-spec">
-                    <dt>{t("reader.confidence")}</dt>
-                    <dd>{presentation.confidence(ev.confidence)}</dd>
-                    <dt>{t("reader.interpretation_bounds")}</dt>
-                    <dd>{ev.interpretationBoundCodes.length > 0 ? ev.interpretationBoundCodes.map(presentation.interpretationBound).join(" ") : ev.interpretationBounds.join(" ")}</dd>
-                    <dt>{t("reader.fact_references")}</dt>
-                    <dd>{ev.factReferences.map((f) => presentation.fact(f)).join(", ")}</dd>
-                  </dl>
                 </div>
               ))
             )}
-            <p className="report-rail-disclaimer">{t("reader.reading_rail_note")}</p>
           </div>
         </aside>
       </div>
