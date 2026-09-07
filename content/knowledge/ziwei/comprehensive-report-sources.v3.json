@@ -41,10 +41,10 @@
       ],
       "generationCounts": {
         "selectedFiles": 6,
-        "extractedUnits": 580,
-        "candidateChunks": 582,
-        "emittedChunks": 557,
-        "duplicatesRemoved": 25
+        "extractedUnits": 544,
+        "candidateChunks": 544,
+        "emittedChunks": 520,
+        "duplicatesRemoved": 24
       }
     },
     {
@@ -66,10 +66,10 @@
       ],
       "generationCounts": {
         "selectedFiles": 8,
-        "extractedUnits": 1194,
-        "candidateChunks": 1194,
-        "emittedChunks": 1186,
-        "duplicatesRemoved": 8
+        "extractedUnits": 1057,
+        "candidateChunks": 1057,
+        "emittedChunks": 1056,
+        "duplicatesRemoved": 1
       }
     },
     {
@@ -171,26 +171,26 @@
   ],
   "totals": {
     "selectedFiles": 56,
-    "extractedUnits": 3456,
-    "candidateChunks": 3458,
-    "emittedChunks": 3425,
-    "duplicatesRemoved": 33
+    "extractedUnits": 3283,
+    "candidateChunks": 3283,
+    "emittedChunks": 3258,
+    "duplicatesRemoved": 25
   },
   "palaceCoverage": [
     {
       "palace": "life",
       "canonicalId": "ziwei.palace.life",
-      "chunkCount": 375
+      "chunkCount": 363
     },
     {
       "palace": "siblings",
       "canonicalId": "ziwei.palace.siblings",
-      "chunkCount": 121
+      "chunkCount": 117
     },
     {
       "palace": "spouse",
       "canonicalId": "ziwei.palace.spouse",
-      "chunkCount": 270
+      "chunkCount": 266
     },
     {
       "palace": "children",
@@ -200,12 +200,12 @@
     {
       "palace": "wealth",
       "canonicalId": "ziwei.palace.wealth",
-      "chunkCount": 141
+      "chunkCount": 139
     },
     {
       "palace": "health",
       "canonicalId": "ziwei.palace.health",
-      "chunkCount": 80
+      "chunkCount": 79
     },
     {
       "palace": "travel",
@@ -215,7 +215,7 @@
     {
       "palace": "friends",
       "canonicalId": "ziwei.palace.friends",
-      "chunkCount": 85
+      "chunkCount": 80
     },
     {
       "palace": "career",

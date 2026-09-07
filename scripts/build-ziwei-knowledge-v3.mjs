@@ -312,9 +312,20 @@ function hash(value) {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
+
+function stripInlineSourceAnnotations(value) {
+  return value
+    .replace(/\s*\[来源[：:][^\]]*\]/gu, "")
+    .replace(/\s*\(?(?:亮度|四化|数据)?来源[：:][^)]*\)?/gu, "")
+    .replace(/\s*\(来自速查表\)/gu, "")
+    .replace(/\s*\[(?:Source|来源)[：:][^\]]*\]/gi, "")
+    .replace(/\s*ziwei-doushu\s*仓库的\s*algorithm\.ts\s*中有[^\n。]+(?:。|\.|$)?/gu, "")
+    .replace(/\s*参照\s+[a-zA-Z0-9_/-]+\.md\s*(?:的\s*["“][^"”]+["”]|的\s*[A-Z_]+|[a-zA-Z0-9_\u4e00-\u9fa5]+)?/gu, "");
+}
+
 function cleanInlineMarkup(value) {
   return normalizeContent(
-    value
+    stripInlineSourceAnnotations(value)
       .replace(/<!--[\s\S]*?-->/g, " ")
       .replace(/<[^>]+>/g, " ")
       .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
@@ -324,6 +335,66 @@ function cleanInlineMarkup(value) {
       .replace(/^\s*(?:[-+*]|\d+[.)])\s+/g, "")
       .replace(/^\s*>\s?/g, ""),
   );
+}
+
+function isEditorialOrTOCHeading(heading) {
+  return /^(?:目录|Table of Contents|来源标注规范.*|与示例的锚定关系|自检清单.*|文件存放路径|问答记录模板|\\?question\s*模式.*|完成后提示语.*|合盘报告模板.*|友情合盘报告模板.*|输出规范|输出文件规范|专项解读模板.*|报告尾部声明.*|11\.3\s*参考文献)$/i.test(
+    heading.trim(),
+  );
+}
+
+function isNonInterpretiveDebris(unit) {
+  const normalized = normalizeContent(unit);
+  if (!normalized) return true;
+
+  if (/^(?:目录|Table of Contents)[：:]/i.test(normalized)) return true;
+  if (/^\d+\.\s*\[[^\]]+\]\(#[^)]+\)/.test(normalized)) return true;
+
+  if (
+    /^(?:[^:]+[：:]\s*)?来源[：:]\s*(?:https?:\/\/|sources?\/|[a-z0-9_-]+\/(?:lib|src|data|references|content|skills)\/|\.[a-z0-9_/-]+)[^\s]*(?:\s*中的\s*[A-Z0-9_]+)?$/i.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+  if (/^(?:\[来源[：:][^\]]+\]|\(来源[：:][^)]+\))$/.test(normalized)) return true;
+  if (/^(?:[^:]+[：:]\s*)?完整(?:版详见|文件索引见)\s+[a-zA-Z0-9_/-]+\.md/i.test(normalized)) {
+    return true;
+  }
+
+  if (
+    /^(?:紫微斗数古籍传承（无确切作者）|相传陈抟祖师传|罗洪先\s*编|紫微斗数全集|紫微斗数全书|骨髓赋|必须\s*\/\s*加分\s*\/\s*破格)$/.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+  if (/^【?(?:一句话定调|核心论断|命盘依据|经典出处|了解\s*.*星)】?$/.test(normalized)) return true;
+  if (
+    /^(?:一句话核心|吉象条件\/表现|凶象\/注意事项|配偶外形性格|婚期建议|倪海夏原话|───.*───)$/.test(
+      normalized,
+    )
+  ) {
+    return true;
+  }
+
+  if (/本文件摘录与格局判断/i.test(normalized)) return true;
+  if (/本表供快速查找/i.test(normalized)) return true;
+  if (/本模板以示例命盘为标准/i.test(normalized)) return true;
+  if (/示例文件\s*examples\//i.test(normalized)) return true;
+  if (/质量判定标准：生成的报告行数应/i.test(normalized)) return true;
+  if (/以下格局不在.*源码中/i.test(normalized)) return true;
+  if (/飞星分析是紫微斗数中判断宫位间能量流动的核心技术，已实现为独立模块/i.test(normalized)) {
+    return true;
+  }
+  if (/iztro\s*仓库支持自化检测/i.test(normalized)) return true;
+  if (/详细断语[：:]\s*基本断语[：:]一句话概括/i.test(normalized)) return true;
+  if (/供合盘\s*AI\s*分析使用/i.test(normalized)) return true;
+  if (/紫微斗数最浓缩的核心口诀，全文约\s*1500\s*字/i.test(normalized)) return true;
+  if (/紫微斗数最权威的古籍之一/i.test(normalized)) return true;
+  if (/紫微斗数最系统的古籍/i.test(normalized)) return true;
+
+  return false;
 }
 
 function splitLongUnit(value) {
@@ -376,13 +447,17 @@ function extractMarkdown(text) {
   let inFrontmatter = lines[0]?.trim() === "---";
   let inFence = false;
   let heading = "";
+  let skipSection = false;
   let paragraph = [];
 
   const flush = () => {
-    const body = cleanInlineMarkup(paragraph.join(" "));
+    const raw = paragraph.join(" ");
     paragraph = [];
+    if (skipSection) return;
+    const body = cleanInlineMarkup(raw);
     if (!body) return;
-    units.push(heading && !body.startsWith(heading) ? `${heading}: ${body}` : body);
+    const unit = heading && !body.startsWith(heading) ? `${heading}: ${body}` : body;
+    if (!isNonInterpretiveDebris(unit)) units.push(unit);
   };
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -398,10 +473,17 @@ function extractMarkdown(text) {
     }
     if (inFence || /^<!--/.test(trimmed)) continue;
 
-    const headingMatch = trimmed.match(/^#{1,6}\s+(.+)$/);
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
       flush();
-      heading = cleanInlineMarkup(headingMatch[1]);
+      const level = headingMatch[1].length;
+      const cleanHeading = cleanInlineMarkup(headingMatch[2]);
+      heading = cleanHeading;
+      if (level <= 2) {
+        skipSection = isEditorialOrTOCHeading(cleanHeading);
+      } else if (isEditorialOrTOCHeading(cleanHeading)) {
+        skipSection = true;
+      }
       continue;
     }
     if (!trimmed || /^[-*_]{3,}$/.test(trimmed)) {
@@ -411,6 +493,7 @@ function extractMarkdown(text) {
     if (/^\|?(?:\s*:?-+:?\s*\|)+\s*$/.test(trimmed)) continue;
     if (trimmed.includes("|")) {
       flush();
+      if (skipSection) continue;
       const cells = trimmed
         .replace(/^\||\|$/g, "")
         .split("|")
@@ -418,7 +501,8 @@ function extractMarkdown(text) {
         .filter(Boolean);
       if (cells.length > 1) {
         const row = cells.join("; ");
-        units.push(heading ? `${heading}: ${row}` : row);
+        const unit = heading ? `${heading}: ${row}` : row;
+        if (!isNonInterpretiveDebris(unit)) units.push(unit);
       }
       continue;
     }
@@ -428,7 +512,30 @@ function extractMarkdown(text) {
   return units;
 }
 
-function extractTypeScript(text) {
+function extractClassics(text) {
+  const units = [];
+  const paragraphPattern = /text:\s*(["'`])((?:\\[\s\S]|(?!\1)[\s\S])*?)\1/g;
+  for (const match of text.matchAll(paragraphPattern)) {
+    const value = cleanInlineMarkup(
+      match[2]
+        .replace(/\$\{[\s\S]*?\}/g, " ")
+        .replace(/\\u([0-9a-fA-F]{4})/g, (_, c) =>
+          String.fromCharCode(Number.parseInt(c, 16)),
+        )
+        .replace(/\\[nrt]/g, " ")
+        .replace(/\\(["'`\\])/g, "$1"),
+    );
+    if (value && !isNonInterpretiveDebris(value)) {
+      units.push(value);
+    }
+  }
+  return units;
+}
+
+function extractTypeScript(text, relativePath = "") {
+  if (relativePath.includes("lib/classics/data/")) {
+    return extractClassics(text);
+  }
   const units = [];
   const comments = text.match(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g) ?? [];
   for (const comment of comments) {
@@ -437,26 +544,42 @@ function extractTypeScript(text) {
       .replace(/^\/\/\s?/gm, "")
       .replace(/^\s*\*\s?/gm, "")
       .replace(/^\s*@\w+.*$/gm, "");
-    units.push(...extractMarkdown(cleaned));
+    for (const unit of extractMarkdown(cleaned)) {
+      if (!isNonInterpretiveDebris(unit)) {
+        units.push(unit);
+      }
+    }
   }
 
   const stringPattern = /(["'`])((?:\\[\s\S]|(?!\1)[\s\S])*?)\1/g;
   for (const match of text.matchAll(stringPattern)) {
-    const value = cleanInlineMarkup(
-      match[2]
-        .replace(/\$\{[\s\S]*?\}/g, " ")
-        .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) =>
-          String.fromCharCode(Number.parseInt(code, 16)),
-        )
-        .replace(/\\[nrt]/g, " ")
-        .replace(/\\(["'`\\])/g, "$1"),
-    );
+    const raw = match[2]
+      .replace(/\$\{[\s\S]*?\}/g, " ")
+      .replace(/\\u([0-9a-fA-F]{4})/g, (_, c) =>
+        String.fromCharCode(Number.parseInt(c, 16)),
+      )
+      .replace(/\\[nrt]/g, " ")
+      .replace(/\\(["'`\\])/g, "$1");
+
+    if (raw.includes("\n#") || raw.includes("\n##")) {
+      for (const unit of extractMarkdown(raw)) {
+        if (!isNonInterpretiveDebris(unit)) {
+          units.push(unit);
+        }
+      }
+      continue;
+    }
+
+    const value = cleanInlineMarkup(raw);
     const hasHan = /\p{Script=Han}/u.test(value);
     if (value.length < (hasHan ? 4 : 18)) continue;
-    if (/^(?:@|\.{0,2}\/)/.test(value) || (!value.includes(" ") && /[/\\]/.test(value))) {
+    if (/^(?:@|\.{0,2}\/)/.test(value) || (!value.includes(" ") && /[\/\\]/.test(value))) {
       continue;
     }
     if (/^(?:string|number|boolean|excellent|good|neutral|caution)$/i.test(value)) {
+      continue;
+    }
+    if (isNonInterpretiveDebris(value)) {
       continue;
     }
     units.push(value);
@@ -490,9 +613,10 @@ function extractNihai(text) {
     if (!allowedBooks.has(row.book)) continue;
     const quote = cleanInlineMarkup(String(row.quote ?? ""));
     if (!quote) continue;
-    const heading = [row.h2, row.h3].map((value) => cleanInlineMarkup(String(value ?? ""))).filter(Boolean);
+    const heading = [row.h2, row.h3].map((v) => cleanInlineMarkup(String(v ?? ""))).filter(Boolean);
     const note = cleanInlineMarkup(String(row.note ?? ""));
-    units.push(`${heading.join(" / ")}: ${quote}${note ? ` ${note}` : ""}`);
+    const unit = `${heading.join(" / ")}: ${quote}${note ? ` ${note}` : ""}`;
+    if (!isNonInterpretiveDebris(unit)) units.push(unit);
   }
   return units;
 }
@@ -518,7 +642,17 @@ function detectLanguage(content, fallback) {
   const hanCount = (content.match(/\p{Script=Han}/gu) ?? []).length;
   const latinCount = (content.match(/[A-Za-z]/g) ?? []).length;
   if (hanCount > 0 && hanCount >= latinCount / 4) return "zh";
-  if (/\b(?:cung|sao|mệnh|tài|phúc|hóa|luận|lá số)\b/iu.test(content)) return "vi";
+  if (/\b(?:cung|sao|mệnh|tài|phúc|hóa|luận|lá số|menh|tai|phuc|hoa|luan|la so)\b/iu.test(content)) {
+    return "vi";
+  }
+  if (
+    latinCount > 0 &&
+    /\b(?:the|and|is|in|to|of|that|it|for|as|with|this|when|user|asks|whether|read|not|from|are|or|by|on|be|at|have|which|should|do|an|can|your|we|you|avoid|good|first|only|more|than)\b/i.test(
+      content,
+    )
+  ) {
+    return "en";
+  }
   return fallback;
 }
 
@@ -535,8 +669,7 @@ function sourceTypeFor(sourceId, path) {
 function fallbackLanguageFor(sourceId, path) {
   if (/vi-VN/.test(path)) return "vi";
   if (/zh-TW/.test(path)) return "zh";
-  if (sourceId === "nihai-tianji-corpus" || sourceId === "ziwei-doushu") return "zh";
-  if (sourceId === "tu-vi-dau-so-research" || sourceId === "ziwei-chat") return "vi";
+  if (sourceId === "tu-vi-dau-so-research") return "vi";
   return "zh";
 }
 
@@ -619,7 +752,7 @@ function extractUnits(sourceId, path, text) {
   if (sourceId === "nihai-tianji-corpus") return extractNihai(text);
   if (sourceId === "iztro") return extractTerminologyMap(text);
   if (path.endsWith(".md")) return extractMarkdown(text);
-  if (path.endsWith(".ts")) return extractTypeScript(text);
+  if (path.endsWith(".ts")) return extractTypeScript(text, path);
   throw new Error(`Unsupported selected source format: ${path}`);
 }
 
