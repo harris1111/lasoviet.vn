@@ -86,6 +86,6 @@ export const knowledgeChunks = pgTable(
       table.locale,
     ),
     index("knowledge_chunks_document_idx").on(table.documentId),
-    index("knowledge_chunks_metadata_idx").on(table.metadata),
+    index("knowledge_chunks_metadata_idx").using("gin", table.metadata),
   ],
 );
