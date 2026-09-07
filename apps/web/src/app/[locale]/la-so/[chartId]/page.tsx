@@ -12,6 +12,7 @@ import { freeIdentityPreviewLoader } from "../../../../features/reports/load-fre
 import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 import { ZiweiChart } from "../../../../features/ziwei/ziwei-chart";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
+import { ZiweiResultSummary } from "../../../../features/ziwei/ziwei-result-summary";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -44,6 +45,13 @@ export default async function ZiweiChartResultPage({
         <h1>{t("title")}</h1>
         <p>{t("heroCopy")}</p>
       </section>
+      <div className="container">
+        <ZiweiResultSummary
+          birthSummary={chartResult.value.birthSummary}
+          chart={chartResult.value.chart}
+          locale={locale}
+        />
+      </div>
       <div className="result-layout container">
         <ZiweiChart chart={chartResult.value.chart} locale={locale} />
         <aside className="result-evidence-note">
@@ -53,7 +61,7 @@ export default async function ZiweiChartResultPage({
         </aside>
       </div>
       <div className="container">
-        <FreeIdentityPreview chartId={chartId} locale={locale} loadEvidence={loadZiweiEvidence} preview={previewResult.value} />
+        <FreeIdentityPreview chart={chartResult.value.chart} chartId={chartId} locale={locale} loadEvidence={loadZiweiEvidence} preview={previewResult.value} />
         <Link className="button" href={topicHref}>{t("topicLink")}</Link>
         {actor.kind === "anonymous" ? (
           <AnonymousDataDeletionControl

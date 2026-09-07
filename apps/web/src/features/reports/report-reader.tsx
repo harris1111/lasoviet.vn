@@ -404,7 +404,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
                                       <dd>{presentation.confidence(ev.confidence)}</dd>
 
                                       <dt>{t("reader.interpretation_bounds")}</dt>
-                                      <dd>{ev.interpretationBounds.join(" ")}</dd>
+                                      <dd>{ev.interpretationBoundCodes.length > 0 ? ev.interpretationBoundCodes.map(presentation.interpretationBound).join(" ") : ev.interpretationBounds.join(" ")}</dd>
 
                                       <dt>{t("reader.fact_references")}</dt>
                                       <dd>{ev.factReferences.map((f) => presentation.fact(f)).join(", ")}</dd>
@@ -544,7 +544,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
                     <dt>{t("reader.confidence")}</dt>
                     <dd>{presentation.confidence(ev.confidence)}</dd>
                     <dt>{t("reader.interpretation_bounds")}</dt>
-                    <dd>{ev.interpretationBounds.join(" ")}</dd>
+                    <dd>{ev.interpretationBoundCodes.length > 0 ? ev.interpretationBoundCodes.map(presentation.interpretationBound).join(" ") : ev.interpretationBounds.join(" ")}</dd>
                     <dt>{t("reader.fact_references")}</dt>
                     <dd>{ev.factReferences.map((f) => presentation.fact(f)).join(", ")}</dd>
                   </dl>

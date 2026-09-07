@@ -35,6 +35,7 @@ function reference(item: ReturnType<typeof EvidenceItemV1Schema.parse>) {
     evidenceId: item.id,
     factReferences: item.factReferences,
     confidence: item.confidence,
+    interpretationBoundCodes: item.interpretationBoundCodes,
     interpretationBounds: item.interpretationBounds,
     limitations: item.limitations,
   };

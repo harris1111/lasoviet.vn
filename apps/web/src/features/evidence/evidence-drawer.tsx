@@ -51,7 +51,7 @@ export function EvidenceDrawer({
             <p className="eyebrow">{presentation.chrome.evidenceEyebrow}</p>
             <h2>{presentation.evidence(evidence.id)}</h2>
             <dl className="evidence-detail-list">
-              <dt>{presentation.chrome.interpretationBounds}</dt><dd>{evidence.interpretationBounds.join(" ")}</dd>
+              <dt>{presentation.chrome.interpretationBounds}</dt><dd>{evidence.interpretationBoundCodes.length > 0 ? evidence.interpretationBoundCodes.map(presentation.interpretationBound).join(" ") : evidence.interpretationBounds.join(" ")}</dd>
               <dt>{presentation.chrome.observableActions}</dt><dd>{evidence.allowedActionCategories.map(presentation.action).join(", ")}</dd>
               <dt>{presentation.chrome.factReferences}</dt><dd>{evidence.factReferences.map(presentation.fact).join("; ")}</dd>
               <dt>{presentation.chrome.limitations}</dt><dd>{evidence.limitations.map(presentation.limitation).join("; ")}</dd>

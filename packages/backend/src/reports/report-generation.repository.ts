@@ -19,7 +19,12 @@ import {
   type createKnowledgeRetrievalService,
 } from "../knowledge/knowledge-retrieval.service.js";
 import { buildFrozenIdentityReportFacts } from "./frozen-identity-report-facts.js";
-import { identityReportOutline } from "./identity-report-outline.js";
+import {
+  identityReportOutlineV1,
+  identityReportOutlineV2,
+} from "./identity-report-outline.js";
+import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
+import { buildSectionRetrievalQuery } from "./identity-report-prompt-context.js";
 import {
   identityReportSectionPurpose,
   isBoundIdentityReportSource,
@@ -31,6 +36,7 @@ export type ReportGenerationSourceInput = {
   chartVersionId: string;
   evidenceVersionId: string;
   knowledgeVersionId: string;
+  promptVersion: string;
   locale: "vi" | "en";
 };
 
@@ -71,8 +77,18 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         input.evidenceVersionId.trim().length === 0 ||
         typeof input.knowledgeVersionId !== "string" ||
         input.knowledgeVersionId.trim().length === 0 ||
+        typeof input.promptVersion !== "string" ||
+        input.promptVersion.trim().length === 0 ||
         (input.locale !== "vi" && input.locale !== "en")
       ) {
+        return invalid();
+      }
+
+      const family = resolveIdentityReportVersionFamily(
+        input.promptVersion,
+        input.knowledgeVersionId,
+      );
+      if (family === null) {
         return invalid();
       }
 
@@ -157,15 +173,21 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       const aggregatedPassages: KnowledgePassageV1[] = [];
       const seenPassageIds = new Set<string>();
 
-      for (const section of identityReportOutline) {
+      const outline = family === "v1" ? identityReportOutlineV1 : identityReportOutlineV2;
+
+      for (const section of outline) {
         let sectionPassages: KnowledgePassageV1[];
         try {
+          const queryText = family === "v1"
+            ? identityReportSectionPurpose(section.id, input.locale)
+            : buildSectionRetrievalQuery(section.id, input.locale, frozenResult.value.facts);
+
           sectionPassages = await dependencies.knowledgeRetrieval.retrieveKnowledge({
             discipline: "ziwei",
             locale: input.locale,
             reportSection: section.id,
             knowledgeVersion: input.knowledgeVersionId,
-            text: identityReportSectionPurpose(section.id, input.locale),
+            text: queryText,
             enableVector: false,
           });
         } catch (error) {

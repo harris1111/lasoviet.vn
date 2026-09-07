@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 
 import type { IdentityReportV1, Result } from "@lasoviet/contracts";
 import {
@@ -53,6 +53,7 @@ export type ReportVersionRepository = {
   startOrReuseAttempt(input: StartOrReuseAttemptInput): Promise<Result<ReportGenerationAttemptRecord, ReportVersionConflictCode>>;
   recordFailedAttempt(input: { jobId: string; attemptNumber: number; errorCode: string }): Promise<Result<void, ReportVersionConflictCode>>;
   commitImmutableVersion(input: CommitImmutableVersionInput): Promise<Result<ImmutableReportVersionRecord, ReportVersionConflictCode>>;
+  consumeRewriteBudget(reportVersionId: string): Promise<Result<{ consumed: boolean }, ReportVersionConflictCode>>;
 };
 
 class ConflictError extends Error {
@@ -289,6 +290,36 @@ export function createDatabaseReportVersionRepository(database: Database): Repor
         if (error instanceof ConflictError) return conflict();
         throw error;
       }
+    },
+
+    async consumeRewriteBudget(reportVersionId: string): Promise<Result<{ consumed: boolean }, ReportVersionConflictCode>> {
+      const now = new Date();
+      const [updated] = await database
+        .update(reportReservations)
+        .set({ rewriteConsumedAt: now, updatedAt: now })
+        .where(
+          and(
+            eq(reportReservations.reportVersionId, reportVersionId),
+            isNull(reportReservations.rewriteConsumedAt),
+          ),
+        )
+        .returning();
+
+      if (updated !== undefined) {
+        return { ok: true, value: { consumed: true } };
+      }
+
+      const [existing] = await database
+        .select({ id: reportReservations.id, rewriteConsumedAt: reportReservations.rewriteConsumedAt })
+        .from(reportReservations)
+        .where(eq(reportReservations.reportVersionId, reportVersionId))
+        .limit(1);
+
+      if (existing === undefined) {
+        return conflict();
+      }
+
+      return { ok: true, value: { consumed: false } };
     },
   };
 }

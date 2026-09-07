@@ -98,10 +98,10 @@ function sampleVietnameseReport(): IdentityReportV1 {
       chartVersionId: "chart-1",
       ruleVersion: "ziwei.identity.v1",
       evidenceVersion: 1,
-      knowledgeVersion: "knowledge.vi.v1",
+      knowledgeVersion: "ziwei.identity.knowledge.v1",
       providerId: "openai",
       modelId: "gpt-4o",
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       templateVersion: "identity-report-html.v1",
     },
     sections: IDENTITY_REPORT_SECTION_IDS.map((id, index) => ({
@@ -323,6 +323,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -360,6 +361,7 @@ describe("report generation source loading integration", () => {
       chartVersionId: "chart-version-non-existent",
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -397,6 +399,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId: mismatchedEvidenceId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -428,6 +431,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -524,6 +528,7 @@ describe("report generation source loading integration", () => {
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId: "ziwei.identity.knowledge.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       locale: "vi",
     });
 
@@ -616,7 +621,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
@@ -640,7 +645,7 @@ describe("immutable report version repository integration", () => {
         chartVersionId,
         evidenceVersionId,
         knowledgeVersionId,
-        promptVersion: "identity-report-prompt.v1",
+        promptVersion: "ziwei.identity.prompt.v1",
         reportConfigVersion: "identity-report-config.v1",
         locale: "vi",
         sku: "ZIWEI-IDENTITY-P0",
@@ -694,7 +699,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       renderVersion: "identity-report-pdf.v1",
@@ -756,6 +761,35 @@ describe("immutable report version repository integration", () => {
     await database.$client.end();
   });
 
+  it("atomically claims rewrite budget with exactly one consumed:true on concurrent/repeated consumption", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedReservationAndJobFixture(database, "rewrite-budget");
+    const repository = createDatabaseReportVersionRepository(database);
+
+    const [res1, res2, res3] = await Promise.all([
+      repository.consumeRewriteBudget(fixture.reportVersionId),
+      repository.consumeRewriteBudget(fixture.reportVersionId),
+      repository.consumeRewriteBudget(fixture.reportVersionId),
+    ]);
+
+    const consumedCount = [res1, res2, res3].filter((r) => r.ok && r.value.consumed === true).length;
+    const rejectedCount = [res1, res2, res3].filter((r) => r.ok && r.value.consumed === false).length;
+
+    expect(consumedCount).toBe(1);
+    expect(rejectedCount).toBe(2);
+
+    const repeated = await repository.consumeRewriteBudget(fixture.reportVersionId);
+    expect(repeated).toEqual({ ok: true, value: { consumed: false } });
+
+    const missing = await repository.consumeRewriteBudget(randomUUID());
+    expect(missing).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_VERSION_CONFLICT" },
+    });
+
+    await database.$client.end();
+  });
+
   it("replays existing immutable version without creating second output, attempt, or outbox event", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "replay");
@@ -778,7 +812,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       renderVersion: "identity-report-pdf.v1",
@@ -839,7 +873,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       renderVersion: "identity-report-pdf.v1",
@@ -892,7 +926,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       locale: "vi",
@@ -915,7 +949,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       renderVersion: "identity-report-pdf.v1",
@@ -963,7 +997,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       renderVersion: "identity-report-pdf.v1",
@@ -1026,7 +1060,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       renderVersion: "identity-report-pdf.v1" as const,
@@ -1098,7 +1132,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       locale: "vi",
@@ -1119,7 +1153,7 @@ describe("immutable report version repository integration", () => {
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       renderVersion: "identity-report-pdf.v1",
@@ -1370,7 +1404,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       chartVersionId,
       evidenceVersionId,
       knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       locale,
       sku: "ZIWEI-IDENTITY-P0",
@@ -1394,7 +1428,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
         chartVersionId,
         evidenceVersionId,
         knowledgeVersionId,
-        promptVersion: "identity-report-prompt.v1",
+        promptVersion: "ziwei.identity.prompt.v1",
         reportConfigVersion: "identity-report-config.v1",
         locale,
         sku: "ZIWEI-IDENTITY-P0",
@@ -2198,7 +2232,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
         chartVersionId: fixture.chartVersionId,
         evidenceVersionId: fixture.evidenceVersionId,
         knowledgeVersionId: fixture.knowledgeVersionId,
-        promptVersion: "identity-report-prompt.v1",
+        promptVersion: "ziwei.identity.prompt.v1",
         reportConfigVersion: "identity-report-config.v1",
         locale: "vi",
         sku: "ZIWEI-IDENTITY-P0",
@@ -2424,7 +2458,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       chartVersionId: fixture.chartVersionId,
       evidenceVersionId: fixture.evidenceVersionId,
       knowledgeVersionId: fixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
@@ -2714,7 +2748,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       chartVersionId: conflictFixture.chartVersionId,
       evidenceVersionId: conflictFixture.evidenceVersionId,
       knowledgeVersionId: conflictFixture.knowledgeVersionId,
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: "ziwei.identity.prompt.v1",
       reportConfigVersion: "identity-report-config.v1",
       templateVersion: "identity-report-html.v1",
       locale: "vi",

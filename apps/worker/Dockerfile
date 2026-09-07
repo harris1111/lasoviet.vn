@@ -18,6 +18,7 @@ ENV NODE_ENV=production
 
 COPY --from=build --chown=lasoviet:lasoviet /out/ ./
 COPY --from=build --chown=lasoviet:lasoviet /app/config ./config
+COPY --from=build --chown=lasoviet:lasoviet /app/content ./content
 
 USER lasoviet
 
