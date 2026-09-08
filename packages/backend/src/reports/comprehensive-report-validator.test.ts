@@ -230,4 +230,191 @@ describe("validateComprehensiveZiweiReport", () => {
     const result = validateComprehensiveZiweiReport(report, mockFacts);
     expect(result.ok).toBe(true);
   });
+
+  describe("locale integrity validation", () => {
+    it("rejects Han ideographs in every model-owned visible category without echoing prose", () => {
+      const hanProse = "Đoạn văn chứa chữ Hán bí mật không được xuất hiện trong lỗi.";
+
+      // 1. overview narrative
+      {
+        const report = createValidReport();
+        report.overview.narrative = `${hanProse} Tử Vi 紫.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors).toBeDefined();
+        expect(res.errors!.some((e) => e === "Han ideograph detected in overview")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(hanProse))).toBe(true);
+      }
+
+      // 2. coreAxis narrative
+      {
+        const report = createValidReport();
+        report.coreAxis.narrative = `${hanProse} Mệnh Thân 命身.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Han ideograph detected in coreAxis")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(hanProse))).toBe(true);
+      }
+
+      // 3. keyConfigurations[0].title
+      {
+        const report = createValidReport();
+        report.keyConfigurations[0]!.title = "Cách cục 紫府";
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Han ideograph detected in keyConfigurations[0].title")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes("Cách cục"))).toBe(true);
+      }
+
+      // 4. keyConfigurations[0] narrative
+      {
+        const report = createValidReport();
+        report.keyConfigurations[0]!.narrative = `${hanProse} Cấu trúc 帝星.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Han ideograph detected in keyConfigurations[0]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(hanProse))).toBe(true);
+      }
+
+      // 5. palaceReadings narrative
+      {
+        const report = createValidReport();
+        report.palaceReadings[0]!.narrative = `${hanProse} Cung Mệnh 命.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Han ideograph detected in palaceReadings[ziwei.palace.life]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(hanProse))).toBe(true);
+      }
+
+      // 6. thematicSynthesis narrative
+      {
+        const report = createValidReport();
+        report.thematicSynthesis[0]!.narrative = `${hanProse} Quan Lộc 官.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Han ideograph detected in thematicSynthesis[career_wealth]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(hanProse))).toBe(true);
+      }
+
+      // 7. strengthsAndTensions narrative
+      {
+        const report = createValidReport();
+        report.strengthsAndTensions.narrative = `${hanProse} Cường nhược 強.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Han ideograph detected in strengthsAndTensions")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(hanProse))).toBe(true);
+      }
+
+      // 8. practicalDirection item
+      {
+        const report = createValidReport();
+        report.practicalDirection[0] = `${hanProse} Hành động 行.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Han ideograph detected in practicalDirection[0]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(hanProse))).toBe(true);
+      }
+
+      // CJK Extension A character (\u3400) and Compatibility Ideograph (\uF900)
+      {
+        const reportExtA = createValidReport();
+        reportExtA.overview.narrative = "Ký tự mở rộng \u3400 trong câu.";
+        const resExtA = validateComprehensiveZiweiReport(reportExtA, mockFacts);
+        expect(resExtA.ok).toBe(false);
+        expect(resExtA.errors!.some((e) => e === "Han ideograph detected in overview")).toBe(true);
+
+        const reportCompat = createValidReport();
+        reportCompat.coreAxis.narrative = "Ký tự tương thích \uF900 trong câu.";
+        const resCompat = validateComprehensiveZiweiReport(reportCompat, mockFacts);
+        expect(resCompat.ok).toBe(false);
+        expect(resCompat.errors!.some((e) => e === "Han ideograph detected in coreAxis")).toBe(true);
+      }
+    });
+
+    it("rejects each of the six English brightness descriptors across relevant categories without echoing prose", () => {
+      const sampleSentence = "Câu văn chi tiết về dự đoán không được lặp lại trong lỗi.";
+
+      // 1. exalted in overview
+      {
+        const report = createValidReport();
+        report.overview.narrative = `${sampleSentence} Sao Tử Vi ở trạng thái exalted tại Mệnh.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "English brightness descriptor detected in overview: exalted")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 2. prosperous (all caps) in coreAxis
+      {
+        const report = createValidReport();
+        report.coreAxis.narrative = `${sampleSentence} Thiên Phủ PROSPEROUS hội chiếu.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "English brightness descriptor detected in coreAxis: prosperous")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 3. favorable in keyConfigurations[0].title
+      {
+        const report = createValidReport();
+        report.keyConfigurations[0]!.title = "Cấu trúc sao Favorable";
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "English brightness descriptor detected in keyConfigurations[0].title: favorable")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes("Cấu trúc"))).toBe(true);
+      }
+
+      // 4. neutral in palaceReadings
+      {
+        const report = createValidReport();
+        report.palaceReadings[0]!.narrative = `${sampleSentence} Vị trí sao mang tính (neutral) bình thường.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "English brightness descriptor detected in palaceReadings[ziwei.palace.life]: neutral")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 5. unfavorable in thematicSynthesis
+      {
+        const report = createValidReport();
+        report.thematicSynthesis[0]!.narrative = `${sampleSentence} Cục diện rơi vào Unfavorable khó phát triển.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "English brightness descriptor detected in thematicSynthesis[career_wealth]: unfavorable")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 6. weak in practicalDirection
+      {
+        const report = createValidReport();
+        report.practicalDirection[0] = `${sampleSentence} Cần cải thiện điểm weak này.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "English brightness descriptor detected in practicalDirection[0]: weak")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+    });
+
+    it("accepts Vietnamese brightness labels (Miếu, Vượng, Đắc, Bình, Hãm, Nhược)", () => {
+      const report = createValidReport();
+      report.overview.narrative = "Tử Vi Miếu địa tại Mệnh, kết hợp Thiên Phủ Vượng địa tạo cách cục vững bền.";
+      report.coreAxis.narrative = "Vũ Khúc Đắc địa trợ lực, các sao phụ tinh Bình hòa không gây xung đột.";
+      report.strengthsAndTensions.narrative = "Dù có sát tinh Hãm địa hay rơi vào thế Nhược vẫn có năng lực chuyển hóa.";
+      const res = validateComprehensiveZiweiReport(report, mockFacts);
+      expect(res.ok).toBe(true);
+      expect(res.errors).toBeUndefined();
+    });
+
+    it("retains validity for normal Vietnamese Tử Vi terminology", () => {
+      const report = createValidReport();
+      report.overview.narrative =
+        "Lá số hội tụ Tử Vi, Thất Sát, Liêm Trinh, Phá Quân và Tham Lang cùng tứ hóa Khoa Quyền Lộc Kỵ phân bố hài hòa.";
+      report.coreAxis.narrative =
+        "Trục Mệnh Thân có Tả Phù, Hữu Bật, Văn Xương, Văn Khúc và Thiên Khôi, Thiên Việt đồng độ gia tăng khí chất chỉ huy.";
+      const res = validateComprehensiveZiweiReport(report, mockFacts);
+      expect(res.ok).toBe(true);
+      expect(res.errors).toBeUndefined();
+    });
+  });
 });

@@ -17,6 +17,17 @@ import type { ComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
 import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
 import type { ComprehensiveReportSource } from "./report-source.js";
 
+export const BRIGHTNESS_LABELS_VI = Object.freeze({
+  "ziwei.brightness.exalted": "Miếu",
+  "ziwei.brightness.prosperous": "Vượng",
+  "ziwei.brightness.favorable": "Đắc",
+  "ziwei.brightness.neutral": "Bình",
+  "ziwei.brightness.unfavorable": "Hãm",
+  "ziwei.brightness.weak": "Nhược",
+} as const);
+
+export const brightnessLabelsVi = BRIGHTNESS_LABELS_VI;
+
 export const COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION = `QUY CÁCH CẤU TRÚC JSON ĐẦU RA BẮT BUỘC (V3 COMPREHENSIVE REPORT CONTRACT):
 Bản báo cáo phải là một JSON object hợp lệ duy nhất, tuân thủ nghiêm ngặt và chính xác các quy tắc cấu trúc sau:
 1. Top-level keys: Object JSON ở cấp cao nhất (root) CHỈ ĐƯỢC CHỨA ĐÚNG 7 trường sau (không thừa, không thiếu, không dùng bất kỳ tên trường nào khác):
@@ -54,7 +65,8 @@ Mô hình chỉ được phép kết thúc (finish) sau khi đã tạo đầy đ
 6. "strengthsAndTensions"
 7. "practicalDirection"
 Phải tiếp tục viết liên tục xuyên suốt qua toàn bộ 12 cung của "palaceReadings" và 4 chuyên đề của "thematicSynthesis" cho đến hết trường cuối cùng là "practicalDirection". Tuyệt đối không được dừng sớm sau "keyConfigurations" hay bỏ qua bất kỳ trường nào. Bất kỳ phản hồi nào thiếu dù chỉ một trong 7 trường trên đều hoàn toàn không hợp lệ (invalid).
-RÀNG BUỘC EVIDENCE KEYS BẮT BUỘC: Mọi giá trị trong tất cả các mảng "evidenceKeys" phải được sao chép nguyên văn (copied verbatim) từ "allowedEvidenceKeys" (hoặc "facts.evidenceKeys"). Tuyệt đối không được viết tắt (abbreviated), dịch nghĩa (translated), suy đoán (inferred), tái tạo (reconstructed), hoặc tự tạo mới (newly created). Mọi evidence key không có mặt nguyên văn trong "allowedEvidenceKeys" đều không hợp lệ.`;
+RÀNG BUỘC EVIDENCE KEYS BẮT BUỘC: Mọi giá trị trong tất cả các mảng "evidenceKeys" phải được sao chép nguyên văn (copied verbatim) từ "allowedEvidenceKeys" (hoặc "facts.evidenceKeys"). Tuyệt đối không được viết tắt (abbreviated), dịch nghĩa (translated), suy đoán (inferred), tái tạo (reconstructed), hoặc tự tạo mới (newly created). Mọi evidence key không có mặt nguyên văn trong "allowedEvidenceKeys" đều không hợp lệ.
+RÀNG BUỘC NGÔN NGỮ VÀ ĐỘ SÁNG SAO BẮT BUỘC (LOCALE INTEGRITY & BRIGHTNESS LABELS): Toàn bộ văn bản phải sử dụng tiếng Việt tự nhiên (natural Vietnamese). Khi diễn đạt độ sáng hoặc đắc hãm của các sao, CHỈ ĐƯỢC DÙNG đúng các nhãn tiếng Việt tương ứng được cung cấp trong "brightnessLabelsVi" ("Miếu", "Vượng", "Đắc", "Bình", "Hãm", "Nhược"). TUYỆT ĐỐI CẤM sử dụng chữ Hán / chữ Nôm (no Han ideographs). TUYỆT ĐỐI CẤM sử dụng các từ mô tả độ sáng bằng tiếng Anh (no English brightness descriptors) như "exalted", "prosperous", "favorable", "neutral", "unfavorable", "weak" (không phân biệt chữ hoa hay chữ thường / case-insensitively). Mọi phản hồi chứa chữ Hán hoặc bất kỳ từ tiếng Anh chỉ độ sáng nào đều hoàn toàn không hợp lệ (invalid).`;
 
 export const VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số cao cấp tại lasoviet.vn.
 Nhiệm vụ của bạn là viết một bản báo cáo luận giải toàn diện, sâu sắc, hoàn chỉnh bằng tiếng Việt chuyên nghiệp dựa DUY NHẤT trên các dữ kiện lá số (facts) và các gói tri thức (knowledgePacks) được cung cấp.
@@ -129,6 +141,7 @@ export async function writeComprehensiveZiweiReport(
     user: JSON.stringify({
       facts,
       allowedEvidenceKeys: facts.evidenceKeys,
+      brightnessLabelsVi: BRIGHTNESS_LABELS_VI,
       knowledgePacks,
       requiredPalaceOrder: ZIWEI_PALACE_IDS,
       requiredThematicOrder: ZIWEI_THEMATIC_SYNTHESIS_IDS,

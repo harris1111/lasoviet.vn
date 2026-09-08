@@ -53,6 +53,11 @@ const PROHIBITED_PATTERNS = [
 const TECHNICAL_IDENTIFIER_PATTERN =
   /\bziwei\.(?:palace|star|transformation|brightness|relation|branch|stem)\.[a-z0-9-]+\b/g;
 
+const HAN_IDEOGRAPH_PATTERN = /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{Script=Han})/u;
+
+const ENGLISH_BRIGHTNESS_PATTERN =
+  /(?<![\p{L}\p{N}])(exalted|prosperous|favorable|neutral|unfavorable|weak)(?![\p{L}\p{N}])/giu;
+
 function normalizeText(text: string): string {
   return text
     .toLowerCase()
@@ -133,6 +138,18 @@ export function validateComprehensiveZiweiReport(
     const techMatches = block.text.match(TECHNICAL_IDENTIFIER_PATTERN);
     if (techMatches) {
       errors.push(`Raw technical identifier leaked in ${block.section}: ${techMatches.join(", ")}`);
+    }
+
+    if (HAN_IDEOGRAPH_PATTERN.test(block.text)) {
+      errors.push(`Han ideograph detected in ${block.section}`);
+    }
+
+    const enBrightnessMatches = block.text.match(ENGLISH_BRIGHTNESS_PATTERN);
+    if (enBrightnessMatches) {
+      const uniqueMatches = [...new Set(enBrightnessMatches.map((m) => m.toLowerCase()))];
+      errors.push(
+        `English brightness descriptor detected in ${block.section}: ${uniqueMatches.join(", ")}`,
+      );
     }
   }
 

@@ -9,9 +9,11 @@ import {
   CANONICAL_THEMATIC_TITLES_VI,
 } from "./identity-report-config.js";
 import {
+  BRIGHTNESS_LABELS_VI,
   COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION,
   COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE,
   VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT,
+  brightnessLabelsVi,
   writeComprehensiveZiweiReport,
 } from "./comprehensive-report-writer.js";
 
@@ -115,6 +117,7 @@ describe("writeComprehensiveZiweiReport", () => {
 
     const userPayload = JSON.parse(req.user);
     expect(userPayload.allowedEvidenceKeys).toEqual(mockFacts.evidenceKeys);
+    expect(userPayload.brightnessLabelsVi).toEqual(BRIGHTNESS_LABELS_VI);
     expect(userPayload.requiredPalaceOrder).toEqual(ZIWEI_PALACE_IDS);
     expect(userPayload.requiredThematicOrder).toEqual(ZIWEI_THEMATIC_SYNTHESIS_IDS);
 
@@ -328,6 +331,68 @@ describe("writeComprehensiveZiweiReport", () => {
     expect(userPayload.allowedEvidenceKeys).toHaveLength(mockFacts.evidenceKeys.length);
 
     // Terminal completion gate is present in system prompt
+    expect(req.system).toContain(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE);
+  });
+
+  it("passes exact brightnessLabelsVi map and enforces natural Vietnamese, supplied VI brightness labels, no Han ideographs, and no English brightness descriptors case-insensitively in prompt", async () => {
+    // Check local immutable map
+    expect(brightnessLabelsVi).toEqual(BRIGHTNESS_LABELS_VI);
+    expect(BRIGHTNESS_LABELS_VI).toEqual({
+      "ziwei.brightness.exalted": "Miếu",
+      "ziwei.brightness.prosperous": "Vượng",
+      "ziwei.brightness.favorable": "Đắc",
+      "ziwei.brightness.neutral": "Bình",
+      "ziwei.brightness.unfavorable": "Hãm",
+      "ziwei.brightness.weak": "Nhược",
+    });
+
+    // Check prompt constraints in terminal completion gate
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("tiếng Việt tự nhiên");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("natural Vietnamese");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("brightnessLabelsVi");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("Miếu");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("Vượng");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("Đắc");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("Bình");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("Hãm");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("Nhược");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("no Han ideographs");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("chữ Hán");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("no English brightness descriptors");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("exalted");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("prosperous");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("favorable");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("neutral");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("unfavorable");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("weak");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("case-insensitively");
+
+    // Check generateStructured call payload and single-call invariant
+    const generateStructuredSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        value: createRawModelReport(),
+        providerId: "test-provider",
+        modelId: "test-model",
+      },
+    });
+
+    const provider: AiProvider = {
+      generateStructured: generateStructuredSpy,
+    };
+
+    const result = await writeComprehensiveZiweiReport({
+      facts: mockFacts,
+      knowledgePacks: mockKnowledgePacks,
+      provider,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(generateStructuredSpy).toHaveBeenCalledTimes(1);
+
+    const req = generateStructuredSpy.mock.calls[0]![0];
+    const userPayload = JSON.parse(req.user);
+    expect(userPayload.brightnessLabelsVi).toEqual(BRIGHTNESS_LABELS_VI);
     expect(req.system).toContain(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE);
   });
 });

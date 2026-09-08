@@ -18,6 +18,7 @@ This report records the private output-quality evaluation and diagnostic prepara
 - **Terminal Completion Gate Appended:** Appended `COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE` to the very end of the V3 system prompt, explicitly mandating that the model may finish only after generating all seven root fields in exact sequential order and must continue through `practicalDirection`, with any missing field marked strictly invalid.
 - **Sequential Diagnostic Findings & Grounding Verification:** In sequential authorized single-sample executions, `SAMPLE-01` through `SAMPLE-03` progressed, and `SAMPLE-04` returned HTTP 200 via a single provider call and single HTTP request, generating 2,731 Vietnamese words across all 12 palaces and 4 themes with strict schema compliance, zero duplicate paragraphs, zero prohibited phrases, and zero raw technical identifiers leaked in narrative prose. However, post-generation validation caught two occurrences of unsupported `ziwei.dikong` in `evidenceKeys` that were absent from frozen `facts.evidenceKeys`. Terra classified this ungrounded evidence key emission as Important and release-blocking.
 - **Evidence-Grounding Correction:** Added top-level `allowedEvidenceKeys: facts.evidenceKeys` to the user JSON payload and extended `COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE` to mandate that every `evidenceKeys` value must be copied verbatim from `allowedEvidenceKeys` and must not be abbreviated, translated, inferred, reconstructed, or newly created.
+- **Locale-Integrity & Brightness-Label Hardening:** Exported local immutable `brightnessLabelsVi` mapping all six canonical `ziwei.brightness.*` IDs to standard Vietnamese labels (`Miếu`, `Vượng`, `Đắc`, `Bình`, `Hãm`, `Nhược`) and passed it directly in the user prompt JSON payload. Extended `COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE` to require natural Vietnamese, allow only supplied Vietnamese brightness labels, and forbid Han ideographs as well as English brightness descriptors (`exalted`, `prosperous`, `favorable`, `neutral`, `unfavorable`, `weak`) case-insensitively. Hardened `comprehensive-report-validator.ts` to scan all `customerTextBlocks` and reject CJK Unified Ideographs, Extension A, Compatibility Ideographs, and English brightness descriptors with Unicode-safe boundaries while identifying section and category without echoing customer prose.
 - **Diagnostic Capability Added:** Implemented single-sample execution (`--sample-id SAMPLE-01` through `SAMPLE-05`) and private raw HTTP response capture (`<sampleId>-response.raw`) in mode `0600` inside the validated external output directory with collision protection. On provider failure, only synthetic sample ID, normalized error code, call counts, HTTP status, and captured response byte count are reported.
 - **Provider Execution Gate:** BLOCKED. Output quality acceptance is strictly withheld pending successful provider generation across all samples, diagnostic triage, and human review of all 5 outputs.
 
@@ -111,11 +112,11 @@ The full verification suite was executed against the clean repository state:
 - **Security Probes (Ancestor-Symlink Rejection, Directory Mode Repair & Path-Free Collision):**
   *Result:* PASS (existing directory mode 755 repaired to 700; ancestor symlink into repository correctly rejected; collision fail-close verified to throw path-free, synthetic-sample-safe error messages with mode 0600 enforcement; temporary artifacts removed).
 
-- **Focused Unit & Integration Tests (3 test files, 23 passed):**
+- **Focused Unit & Integration Tests (3 test files, 28 passed):**
   ```bash
   corepack pnpm@11.25.0 vitest run packages/backend/src/reports/comprehensive-report-writer.test.ts packages/backend/src/reports/comprehensive-report-validator.test.ts packages/backend/src/reports/comprehensive-report-html.test.ts
   ```
-  *Result:* PASS (23/23 tests passed).
+  *Result:* PASS (28/28 tests passed).
 
 - **Git Diff Check:**
   ```bash
@@ -128,4 +129,5 @@ The full verification suite was executed against the clean repository state:
 - **Provider Diagnostic Outcomes:** Under the hardened contract prompt, `SAMPLE-01` succeeded fully. `SAMPLE-02` returned HTTP 200 with `finish_reason=stop` but truncated prematurely after 1,043 completion tokens (containing `overview`, `coreAxis`, `keyConfigurations` but missing the remaining four root sections).
 - **Terminal Completion Gate Correction:** Appended a concise completion gate at the terminal boundary of the system prompt requiring all seven root fields in exact order through `practicalDirection`.
 - **Evidence-Grounding Correction:** Following `SAMPLE-04` validation failure on ungrounded `ziwei.dikong`, added `allowedEvidenceKeys: facts.evidenceKeys` to the user JSON payload and extended the terminal completion gate with strict copy-verbatim evidence key rules forbidding abbreviation, translation, inference, reconstruction, or newly created keys.
+- **Locale-Integrity Hardening:** Injected `brightnessLabelsVi` in user JSON payload, enforced Vietnamese brightness terminology in the terminal prompt gate while prohibiting Han ideographs and English brightness descriptors case-insensitively, and fail-closed validator rejection across all `customerTextBlocks` without prose leakage.
 - **Provider Output Review Gate:** BLOCKED pending authorized completion across all 5 synthetic samples and human review of private generated outputs. Output quality acceptance is strictly withheld.
