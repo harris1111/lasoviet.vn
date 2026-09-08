@@ -167,6 +167,7 @@ describe("report view v1 contract", () => {
     const readyWithMalformedEvidence = {
       version: 1,
       state: "ready",
+      contentVersion: "identity.v1",
       reportId: "report-1",
       reportVersionId: "version-1",
       locale: "vi",
@@ -246,6 +247,7 @@ describe("report view v1 contract", () => {
     const ready = {
       version: 1,
       state: "ready",
+      contentVersion: "identity.v1",
       reportId: "report-1",
       reportVersionId: "version-1",
       locale: "vi",
@@ -291,6 +293,7 @@ describe("report view v1 contract", () => {
     const ready = {
       version: 1,
       state: "ready",
+      contentVersion: "identity.v1",
       reportId: "report-1",
       reportVersionId: "version-1",
       locale: "vi",
@@ -310,6 +313,7 @@ describe("report view v1 contract", () => {
     const readyMismatched = {
       version: 1,
       state: "ready",
+      contentVersion: "identity.v1",
       reportId: "report-1",
       reportVersionId: "version-1",
       locale: "vi",
@@ -330,6 +334,7 @@ describe("report view v1 contract", () => {
     const readyWithNullLineage = {
       version: 1,
       state: "ready",
+      contentVersion: "identity.v1",
       reportId: "report-1",
       reportVersionId: "version-1",
       locale: "vi",
@@ -347,5 +352,40 @@ describe("report view v1 contract", () => {
       lineage: { supersedesReportVersionId: null, supersedesReportId: "old-id" },
     };
     expect(ReportViewV1Schema.safeParse(readyWithLegacyField).success).toBe(false);
+  });
+
+  it("rejects ready view payloads with a missing contentVersion discriminator", () => {
+    const readyMissingDiscriminator = {
+      version: 1,
+      state: "ready",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: readyReportContent,
+      evidence: sampleEvidence,
+      lineage: { supersedesReportVersionId: null },
+      provenance: safeProvenance,
+    };
+    expect(ReportViewV1Schema.safeParse(readyMissingDiscriminator).success).toBe(false);
+  });
+
+  it("rejects ready view payloads with an unknown contentVersion discriminator", () => {
+    const readyUnknownDiscriminator = {
+      version: 1,
+      state: "ready",
+      contentVersion: "unknown-discriminator.v99",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: readyReportContent,
+      evidence: sampleEvidence,
+      lineage: { supersedesReportVersionId: null },
+      provenance: safeProvenance,
+    };
+    expect(ReportViewV1Schema.safeParse(readyUnknownDiscriminator).success).toBe(false);
   });
 });

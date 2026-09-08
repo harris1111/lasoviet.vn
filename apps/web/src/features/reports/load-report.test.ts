@@ -365,4 +365,36 @@ describe("createReportLoader", () => {
       new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
     );
   });
+  it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) when ready view is missing contentVersion discriminator", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const { contentVersion: _cv, ...readyWithoutDiscriminator } = validReadyView;
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: readyWithoutDiscriminator,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-missing-disc")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
+  });
+
+  it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) when ready view has unknown contentVersion discriminator", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const readyWithUnknownDiscriminator = {
+      ...validReadyView,
+      contentVersion: "unknown-discriminator.v99",
+    };
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: readyWithUnknownDiscriminator,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-unknown-disc")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
+  });
 });

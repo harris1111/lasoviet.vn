@@ -285,7 +285,7 @@ const baseReportReadyViewV1Schema = z.object({
 });
 
 export const ReportLegacyReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
-  contentVersion: z.literal("identity.v1").default("identity.v1"),
+  contentVersion: z.literal("identity.v1"),
   locale: z.enum(["vi", "en"]),
   content: ReportPublicContentV1Schema,
   evidence: z.array(EvidenceItemV1Schema),
