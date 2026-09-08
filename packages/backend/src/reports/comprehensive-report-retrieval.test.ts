@@ -314,6 +314,83 @@ describe("retrieveZiweiKnowledge ranking and filtering", () => {
     expect(passages[0]!.passageId).toBe("chunk-01");
     expect(passages[1]!.passageId).toBe("chunk-04");
   });
+
+  it("retrieval candidates 1200, 700, 600 with maxPassages 2 and maxTotalChars 1800 returns 1200 and 600", async () => {
+    const c1 = {
+      id: "row-c1",
+      passage_id: "chunk-1200",
+      document_id: "doc-v3",
+      discipline: "ziwei" as const,
+      locale: "vi" as const,
+      report_sections: ["identity_analysis"],
+      knowledge_version: "ziwei.comprehensive.knowledge.v3",
+      content: "A".repeat(1200),
+      content_hash: "hash-1200",
+      source_attribution: "Lá Số Việt",
+      permitted_use: "reference_rewrite" as const,
+      metadata: {
+        topics: ["overview"],
+        palaces: ["ziwei.palace.life"],
+        stars: ["ziwei.star.ziwei"],
+        brightness: [],
+        transformations: [],
+        relations: [],
+        patterns: [],
+        sourceType: "modern" as const,
+        languageOrigin: "vi" as const,
+        priority: 3 as const,
+      },
+      rank: 0.9,
+    };
+
+    const c2 = {
+      ...c1,
+      id: "row-c2",
+      passage_id: "chunk-700",
+      content: "B".repeat(700),
+      content_hash: "hash-700",
+      metadata: {
+        ...c1.metadata,
+        priority: 2 as const,
+      },
+      rank: 0.8,
+    };
+
+    const c3 = {
+      ...c1,
+      id: "row-c3",
+      passage_id: "chunk-600",
+      content: "C".repeat(600),
+      content_hash: "hash-600",
+      metadata: {
+        ...c1.metadata,
+        priority: 1 as const,
+      },
+      rank: 0.7,
+    };
+
+    const mockDb = {
+      execute: vi.fn().mockResolvedValue([c1, c2, c3]),
+    } as any;
+
+    const service = createKnowledgeRetrievalService({ database: mockDb });
+    const passages = await service.retrieveZiweiKnowledge({
+      locale: "vi",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      palaceIds: ["ziwei.palace.life"],
+      starIds: ["ziwei.star.ziwei"],
+      text: "test budget scanning",
+      maxPassages: 2,
+      maxTotalChars: 1800,
+    });
+
+    expect(passages).toHaveLength(2);
+    expect(passages[0]!.passageId).toBe("chunk-1200");
+    expect(passages[0]!.content.length).toBe(1200);
+    expect(passages[1]!.passageId).toBe("chunk-600");
+    expect(passages[1]!.content.length).toBe(600);
+    expect(passages[0]!.content.length + passages[1]!.content.length).toBe(1800);
+  });
 });
 
 describe("buildComprehensiveKnowledgePacks", () => {
@@ -453,5 +530,95 @@ describe("buildComprehensiveKnowledgePacks", () => {
     expect(lifePack.passages.length).toBeLessThanOrEqual(2);
     const lifeChars = lifePack.passages.reduce((acc, p) => acc + p.content.length, 0);
     expect(lifeChars).toBeLessThanOrEqual(1800);
+  });
+
+  it("near-total pack budget with first candidate 200 and second 100 under only 140 remaining includes 100 and remains <= 32000", async () => {
+    const chart = createSampleChart();
+    const facts = buildComprehensiveZiweiFacts(chart);
+
+    let callCount = 0;
+    const mockRetrieve = vi.fn().mockImplementation(async () => {
+      callCount++;
+      // First 18 packs: return 1 passage of 1,770 chars (18 * 1770 = 31,860 chars)
+      if (callCount <= 18) {
+        return [
+          {
+            id: "p-" + callCount,
+            passageId: "passage-early-" + callCount,
+            content: "X".repeat(1770),
+            contentHash: "hash-early-" + callCount,
+            metadata: {
+              topics: [],
+              palaces: [],
+              stars: [],
+              brightness: [],
+              transformations: [],
+              relations: [],
+              patterns: [],
+              sourceType: "modern" as const,
+              languageOrigin: "vi" as const,
+              priority: 1 as const,
+            },
+          },
+        ];
+      }
+      // 19th pack (final_synthesis): candidate 1 is 200 chars, candidate 2 is 100 chars
+      return [
+        {
+          id: "final-1",
+          passageId: "final-passage-200",
+          content: "Y".repeat(200),
+          contentHash: "hash-final-200",
+          metadata: {
+            topics: ["synthesis"],
+            palaces: [],
+            stars: [],
+            brightness: [],
+            transformations: [],
+            relations: [],
+            patterns: [],
+            sourceType: "modern" as const,
+            languageOrigin: "vi" as const,
+            priority: 2 as const,
+          },
+        },
+        {
+          id: "final-2",
+          passageId: "final-passage-100",
+          content: "Z".repeat(100),
+          contentHash: "hash-final-100",
+          metadata: {
+            topics: ["synthesis"],
+            palaces: [],
+            stars: [],
+            brightness: [],
+            transformations: [],
+            relations: [],
+            patterns: [],
+            sourceType: "modern" as const,
+            languageOrigin: "vi" as const,
+            priority: 1 as const,
+          },
+        },
+      ];
+    });
+
+    const packs = await buildComprehensiveKnowledgePacks(facts, mockRetrieve);
+    expect(packs).toHaveLength(19);
+
+    const finalPack = packs.find((p) => p.id === "final_synthesis")!;
+    expect(finalPack).toBeDefined();
+    // Candidate 1 (200 chars) skipped because 31,860 + 200 > 32,000 (140 remaining).
+    // Candidate 2 (100 chars) fits and is included because 31,860 + 100 <= 32,000.
+    expect(finalPack.passages).toHaveLength(1);
+    expect(finalPack.passages[0]!.passageId).toBe("final-passage-100");
+    expect(finalPack.passages[0]!.content.length).toBe(100);
+
+    const totalChars = packs.reduce(
+      (acc, pack) => acc + pack.passages.reduce((pAcc, p) => pAcc + p.content.length, 0),
+      0,
+    );
+    expect(totalChars).toBe(31960);
+    expect(totalChars).toBeLessThanOrEqual(32000);
   });
 });

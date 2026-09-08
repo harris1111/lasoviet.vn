@@ -623,7 +623,6 @@ export function createKnowledgeRetrievalService(dependencies: {
             COALESCE((c.metadata->>'priority')::numeric, 1) DESC,
             rank DESC,
             c.passage_id ASC
-          LIMIT ${maxPassages * 10}
         `,
       );
 
@@ -687,7 +686,7 @@ export function createKnowledgeRetrievalService(dependencies: {
         if (boundedPassages.length >= maxPassages) break;
         if (seenContentHashes.has(candidate.contentHash)) continue;
         if (seenPassageIds.has(candidate.passageId)) continue;
-        if (totalChars + candidate.content.length > maxTotalChars) break;
+        if (totalChars + candidate.content.length > maxTotalChars) continue;
 
         seenContentHashes.add(candidate.contentHash);
         seenPassageIds.add(candidate.passageId);

@@ -316,8 +316,8 @@ export async function buildComprehensiveKnowledgePacks(
 
     for (const p of passages) {
       if (boundedPassages.length >= 2 && def.isPalacePack) break;
-      if (packChars + p.content.length > MAX_PACK_CHARS) break;
-      if (totalCollectionChars + p.content.length > MAX_TOTAL_COLLECTION_CHARS) break;
+      if (packChars + p.content.length > MAX_PACK_CHARS) continue;
+      if (totalCollectionChars + p.content.length > MAX_TOTAL_COLLECTION_CHARS) continue;
 
       const normalizedMeta = p.metadata
         ? normalizeChunkMetadata(p.metadata, "vi")
