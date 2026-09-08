@@ -106,8 +106,12 @@ export function validateComprehensiveZiweiReport(
     }
   }
 
-  // 2. Collect all narrative text blocks
-  const textBlocks: Array<{ section: string; text: string }> = [
+  // 2. Collect customer-visible model-owned text blocks and narrative prose blocks
+  const modelOwnedTitleBlocks: Array<{ section: string; text: string }> = [
+    ...report.keyConfigurations.map((k, i) => ({ section: `keyConfigurations[${i}].title`, text: k.title })),
+  ];
+
+  const narrativeBlocks: Array<{ section: string; text: string }> = [
     { section: "overview", text: report.overview.narrative },
     { section: "coreAxis", text: report.coreAxis.narrative },
     ...report.keyConfigurations.map((k, i) => ({ section: `keyConfigurations[${i}]`, text: k.narrative })),
@@ -117,8 +121,10 @@ export function validateComprehensiveZiweiReport(
     ...report.practicalDirection.map((d, i) => ({ section: `practicalDirection[${i}]`, text: d })),
   ];
 
-  // 3. Prohibited phrases & raw technical identifiers check
-  for (const block of textBlocks) {
+  const customerTextBlocks: Array<{ section: string; text: string }> = [...modelOwnedTitleBlocks, ...narrativeBlocks];
+
+  // 3. Prohibited phrases & raw technical identifiers check across all customer-visible text
+  for (const block of customerTextBlocks) {
     for (const pattern of PROHIBITED_PATTERNS) {
       if (pattern.regex.test(block.text)) {
         errors.push(`${pattern.description} found in ${block.section}: "${block.text.slice(0, 80)}"`);
@@ -130,16 +136,16 @@ export function validateComprehensiveZiweiReport(
     }
   }
 
-  // 4. Duplicate and near-duplicate paragraph check
-  for (let i = 0; i < textBlocks.length; i++) {
-    for (let j = i + 1; j < textBlocks.length; j++) {
-      const normA = normalizeText(textBlocks[i]!.text);
-      const normB = normalizeText(textBlocks[j]!.text);
+  // 4. Duplicate and near-duplicate paragraph check (scoped to narrative prose and practical directions)
+  for (let i = 0; i < narrativeBlocks.length; i++) {
+    for (let j = i + 1; j < narrativeBlocks.length; j++) {
+      const normA = normalizeText(narrativeBlocks[i]!.text);
+      const normB = normalizeText(narrativeBlocks[j]!.text);
       if (normA.length > 25 && normB.length > 25) {
         if (normA === normB) {
-          errors.push(`Duplicate narrative paragraph between ${textBlocks[i]!.section} and ${textBlocks[j]!.section}`);
+          errors.push(`Duplicate narrative paragraph between ${narrativeBlocks[i]!.section} and ${narrativeBlocks[j]!.section}`);
         } else if (normA.length > 40 && normB.length > 40 && wordSimilarity(normA, normB) >= 0.8) {
-          errors.push(`Near-duplicate narrative paragraph between ${textBlocks[i]!.section} and ${textBlocks[j]!.section}`);
+          errors.push(`Near-duplicate narrative paragraph between ${narrativeBlocks[i]!.section} and ${narrativeBlocks[j]!.section}`);
         }
       }
     }

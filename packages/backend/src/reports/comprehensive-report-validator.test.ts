@@ -192,4 +192,42 @@ describe("validateComprehensiveZiweiReport", () => {
     const result = validateComprehensiveZiweiReport(report, mockFacts);
     expect(result.ok).toBe(false);
   });
+
+  it("rejects when prohibited phrase is found in key-configuration title", () => {
+    const report = createValidReport();
+    report.keyConfigurations[0]!.title = "Phân tích AI về cách cục Tử Phủ";
+    const result = validateComprehensiveZiweiReport(report, mockFacts);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.some((e) => e.includes("AI") && e.includes("keyConfigurations[0].title"))).toBe(true);
+    }
+  });
+
+  it("rejects when raw technical identifier is leaked in key-configuration title", () => {
+    const report = createValidReport();
+    report.keyConfigurations[0]!.title = "Cách cục với ziwei.star.ziwei tọa thủ";
+    const result = validateComprehensiveZiweiReport(report, mockFacts);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.some((e) => e.includes("ziwei.star.ziwei") && e.includes("keyConfigurations[0].title"))).toBe(true);
+    }
+  });
+
+  it("does not treat short or identical titles as duplicate narrative prose", () => {
+    const report = createValidReport();
+    report.keyConfigurations = [
+      {
+        title: "Tử Phủ Đồng Cung",
+        narrative: "Tử Vi cùng Thiên Phủ tương hội tạo nền tảng vững chắc cho sự nghiệp bền lâu.",
+        evidenceKeys: ["ziwei.palace.life", "zi-fu-tong-gong"],
+      },
+      {
+        title: "Tử Phủ Đồng Cung",
+        narrative: "Một góc nhìn khác về cấu trúc này trong việc phát triển năng lực cá nhân.",
+        evidenceKeys: ["ziwei.palace.life", "zi-fu-tong-gong"],
+      },
+    ];
+    const result = validateComprehensiveZiweiReport(report, mockFacts);
+    expect(result.ok).toBe(true);
+  });
 });
