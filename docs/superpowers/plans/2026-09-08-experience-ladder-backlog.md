@@ -29,6 +29,8 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 
 **Cổng chặn:** không WP nào từ WP-07 trở đi được bắt đầu trước khi WP-01, WP-02 và WP-02B đã merge và có test integration xanh.
 
+**Cổng bật thanh toán (R-DIS-1):** `SEPAY_ENV` đang là `disabled`, nghĩa là đơn được tự đánh dấu đã trả và báo cáo phát miễn phí. **Không đổi giá trị này** cho tới khi WP-01, WP-02, WP-02B merge xong. Không có tiền thật đang bị rủi ro hôm nay, nên sửa trước rồi mới bật là thứ tự không tốn gì.
+
 **Ràng buộc bao trùm (FD-043):** không có người trực đối soát thanh toán. Mọi WP chạm đường tiền phải tự phục hồi, và nơi nào không tự phục hồi được thì phải tự ngừng bán chứ không được âm thầm nhận tiền. Không được đề xuất giải pháp có bước "vận hành xử lý tay".
 
 ---
@@ -45,7 +47,7 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 - `packages/database/drizzle/` — migration mới
 - `packages/backend/src/commerce/commerce.repository.ts:120-200` — mở lại đơn = INSERT row mới, không UPDATE `invoice_number`
 - `packages/backend/src/commerce/commerce.repository.ts:229-280` — `recordPaid` chấp nhận đơn `expired` khi khớp mã và số tiền, miễn chưa có entitlement
-- `packages/backend/src/commerce/commerce.repository.ts:63` — TTL đọc từ env, mặc định 86400
+- `packages/backend/src/commerce/commerce.repository.ts:63` — nâng mặc định TTL lên 86400 (cơ chế env `SEPAY_ORDER_TTL_SECONDS` đã có sẵn, chỉ đổi giá trị mặc định và `.env.example`)
 
 **Nghiệm thu:** R-PAY-1, R-PAY-2, R-PAY-3, R-PAY-4, R-PAY-6.
 
@@ -259,6 +261,8 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 **Sự kiện:** `landing`, `wizard_start`, `wizard_step_complete`, `chart_success`, `offer_view`, `auth_verified`, `checkout_created`, `payment_confirmed`, `report_ready`, `report_opened`, `upgrade_view`, `upgrade_purchased`, `repeat_purchase`, `payment_unmatched`, `payment_pending_over_1h`, `report_failed`, `refund`, `support_ticket`.
 
 **Ràng buộc không thương lượng:** không gửi tên, ngày/giờ/nơi sinh, nội dung câu hỏi, hoặc `chart_id` sang analytics bên thứ ba. Join thương mại chỉ phía server.
+
+**Loại trừ bắt buộc (R-DIS-2):** mọi phép đo doanh thu phải loại đơn có `provider_event_id` bắt đầu bằng `disabled-autopay:`. Đó là đơn test tự đánh dấu đã trả, không có tiền thật. Tính nhầm vào là KPI sai từ ngày đầu.
 
 **Nghiệm thu:** mục 7.
 

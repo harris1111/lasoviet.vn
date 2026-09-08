@@ -40,7 +40,7 @@ Audit đọc source trực tiếp tại commit nêu trên. Cột "Kết luận" 
 | 7 | Hai nguồn sự thật cho catalog: `config/product-catalog.json` (6 sản phẩm) và `PRODUCT_CATALOG` hardcode trong code (1 sản phẩm) | `packages/backend/src/commerce/order.service.ts:3-10` | **Xác nhận, chưa ai nêu.** Giá và SKU có thể trôi lệch nhau. |
 | 8 | Giả thuyết ban đầu của tôi: unique index `(chart_id, sku)` chặn tạo lại đơn sau khi hết hạn | `packages/backend/src/commerce/commerce.repository.ts:120-153` | **Bác bỏ.** Repository xử lý đúng: tìm order cũ và mở lại (`reused: true`). |
 | 9 | Mã đơn bị **thay mới** khi mở lại đơn, trong khi mã đơn chính là nội dung chuyển khoản và tham số đối chiếu webhook | `commerce.repository.ts:131,182`, `payment-instructions.ts:67,79`, `commerce.repository.ts:236-238` | **Xác nhận. Lỗi mất tiền. Hội đồng chưa nêu.** Chi tiết mục 2. |
-| 10 | TTL đơn hàng cố định 900 giây, không cấu hình được ở đâu | `commerce.repository.ts:63` | **Xác nhận.** 15 phút không đủ cho luồng chuyển app ngân hàng thực tế. |
+| 10 | TTL đơn hàng 900 giây | `commerce.repository.ts:63`, `commerce.controller.ts:58,84` | **Xác nhận một nửa.** Cơ chế cấu hình **đã có** (`SEPAY_ORDER_TTL_SECONDS`, wired qua `load-environment.ts:299`) — bản audit đầu của tôi ghi sai là không cấu hình được. Vấn đề thật chỉ là **giá trị mặc định 900 giây quá ngắn** cho luồng chuyển app ngân hàng thực tế. |
 | 11 | Bảng `commerce_entitlements` đã tồn tại, unique theo `(chart_id, sku)` | `packages/database/src/schema/commerce.ts:49-62` | **Xác nhận.** Đây là nền có sẵn cho thư viện và chống thu phí hai lần. |
 | 12 | Bank mode chỉ lấy **token đầu tiên** của nội dung chuyển khoản làm mã đối chiếu: `rawContent.split(/\s+/, 1)[0]` | `sepay-webhook.service.ts:191` | **Xác nhận.** App ngân hàng VN thường chèn tiền tố ("CT DEN:...", tên người gửi) trước nội dung khách gõ. Token đầu khi đó không phải mã đơn. |
 | 13 | Nội dung chuyển khoản không khớp `^[A-Za-z0-9_-]+$` làm **cả webhook** trả `SEPAY_PAYLOAD_INVALID` và không ghi lại gì | `sepay-webhook.service.ts:193` | **Xác nhận.** Chỉ cần một dấu `:` trong tiền tố ngân hàng là mất trắng dấu vết giao dịch. |
@@ -85,7 +85,7 @@ Kịch bản B không cần bất kỳ hành vi bất thường nào của khác
 | R-PAY-3 | Thay unique index `(chart_id, sku)` bằng **partial unique index trên `(chart_id, sku) WHERE status = 'pending'`**. Chống trùng đơn đang mở, nhưng cho phép lịch sử nhiều đơn. | Migration + test: 1 pending duy nhất tại mỗi thời điểm; nhiều `expired` cùng tồn tại. |
 | R-PAY-4 | Thanh toán khớp `invoice_number` và khớp số tiền phải được **chấp nhận kể cả khi đơn đã `expired`**, miễn là chưa có entitlement cho `(chart, sku)` đó. Đơn được kích hoạt lại và fulfil. | Test: trả tiền tại `t0+60p` với mã đúng → đơn `paid`, entitlement được cấp, báo cáo chạy. |
 | R-PAY-5 | Mọi webhook hợp lệ về chữ ký nhưng **không đối chiếu được** phải ghi vào `commerce_unmatched_payments` kèm payload gốc, rồi đưa vào chuỗi tự động ở mục 2B. Không bao giờ được im lặng bỏ qua. | Test: webhook mã lạ → 1 row unmatched, HTTP vẫn 200 để provider không retry vô hạn. |
-| R-PAY-6 | TTL đơn cấu hình được qua env, mặc định nâng lên **24 giờ**. QR và mã đơn hiển thị cho khách không được đổi trong thời gian đó. | Config + test: TTL đọc từ env; mặc định 86400. |
+| R-PAY-6 | Nâng **giá trị mặc định** TTL lên 24 giờ và đặt `SEPAY_ORDER_TTL_SECONDS` tương ứng khi triển khai. Cơ chế env đã có sẵn, không phải xây mới. QR và mã đơn không được đổi trong thời gian đó. | Test: mặc định 86400 khi env không đặt; `.env.example` cập nhật. |
 | R-PAY-7 | Màn thanh toán hiển thị mã đơn cố định, thời hạn thật, và câu "Chuyển đúng nội dung này. Nếu đã chuyển, đừng chuyển lại — tra cứu bằng mã đơn." | Acceptance UI + i18n key vi/en. |
 
 **R-PAY-3 đồng thời gỡ chặn kiến trúc cho ladder:** unique index `(chart_id, sku)` hiện tại khiến một lá số **vĩnh viễn chỉ mua được một lần mỗi SKU**. Tầng 3 (câu hỏi tình huống mới) và tầng 4 (báo cáo năm khác) sẽ không thể tạo đơn thứ hai. Một migration giải quyết cả lỗi tiền lẫn trần kiến trúc.
@@ -176,6 +176,28 @@ Khâu này đã có nền tốt: `report_queue_jobs` có `attemptCount`, `retrya
 | R-AUTO-20 | Gửi email khi báo cáo sẵn sàng, để khách không phải ngồi canh tab. Mở rộng `notification_delivery_kind`. |
 | R-AUTO-21 | `terminal_failure` trên đơn đã trả tiền tự động báo Founder trong 15 phút và hiện cho khách trạng thái thật kèm mã đơn (BE-5). Khách đã trả tiền không bao giờ rơi vào ngõ cụt im lặng. |
 | R-AUTO-22 | Retry sinh báo cáo **không bao giờ** thu thêm tiền hoặc tạo đơn mới. |
+
+---
+
+## 2C. Trạng thái hiện tại: thanh toán đang tắt
+
+Founder xác nhận cơ chế thanh toán đang tắt để test. Kiểm code cho thấy `SEPAY_ENV=disabled` **không phải** là "chặn mua" mà là **tự động đánh dấu đã trả tiền**:
+
+- Tạo đơn xong, controller gọi ngay `recordPaid` với `providerEventId: "disabled-autopay:<orderId>"` (`apps/api/src/commerce/commerce.controller.ts:105-118`), cấp entitlement và chạy sinh báo cáo.
+- `paymentInstructions` trả `null`, không hiện QR (`:177`).
+- Endpoint webhook trả 503 `SEPAY_DISABLED` (`:194`).
+
+Nghĩa là hiện tại **mọi báo cáo đều miễn phí** với bất kỳ ai đi hết luồng.
+
+| ID | Yêu cầu |
+|---|---|
+| R-DIS-1 | **Không đổi `SEPAY_ENV` khỏi `disabled`** cho tới khi WP-01, WP-02, WP-02B đã merge và test integration xanh. Đây là cổng chặn cụ thể thay cho "chưa tăng traffic". |
+| R-DIS-2 | Mọi phép đo doanh thu và KPI phải **loại trừ** đơn có `provider_event_id` bắt đầu bằng `disabled-autopay:`. Chúng nằm chung `commerce_orders` với trạng thái `paid` nhưng không có tiền thật. |
+| R-DIS-3 | Khi bật thanh toán, ghi lại mốc thời gian bật để tách cohort trước/sau. Dữ liệu giai đoạn `disabled` không được dùng làm baseline cho FD-038. |
+
+**Điểm thuận lợi:** không có tiền thật đang bị rủi ro hôm nay, nên toàn bộ P0 ở mục 2 và 2B sửa được *trước khi* bật thanh toán. Đây là thứ tự lý tưởng và không tốn thêm gì.
+
+**Cần Founder xác nhận:** giá trị `SEPAY_ENV` đang chạy trên production. Nếu bản deploy công khai đang ở `disabled`, người truy cập thật đang nhận báo cáo 79k miễn phí. Có thể đúng ý (beta miễn phí), có thể không — từ trong repo tôi không kiểm chứng được giá trị đang chạy.
 
 ---
 
