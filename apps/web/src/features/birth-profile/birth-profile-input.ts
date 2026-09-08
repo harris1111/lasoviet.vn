@@ -6,6 +6,7 @@ export type BirthTimeState =
   | { precision: "unknown" };
 
 export type BirthProfileInput = {
+  displayName?: string;
   date: string;
   hour?: string;
   minute?: string;
@@ -52,6 +53,9 @@ export function buildBirthProfile(input: BirthProfileInput) {
     timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
     ...(input.placeLabel?.trim()
       ? { placeLabel: input.placeLabel.trim() }
+      : {}),
+    ...(input.displayName?.trim()
+      ? { displayName: input.displayName.trim() }
       : {}),
     gender: input.gender,
     consentVersion: "2026-09-01",

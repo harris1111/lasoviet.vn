@@ -36,6 +36,7 @@ export const ZiweiBirthSummaryV1Schema = z
     timezoneProvenance: NormalizedBirthProfileV1Schema.shape.timezoneProvenance,
     placeLabel: z.string().trim().min(1).max(120).optional(),
     gender: z.string().trim().min(1).optional(),
+    displayName: z.string().trim().min(1).max(80).optional(),
   })
   .strict();
 
@@ -45,6 +46,7 @@ export type ZiweiBirthSummaryV1 = {
   timezoneProvenance: NormalizedBirthProfileV1["timezoneProvenance"];
   placeLabel?: string;
   gender?: string;
+  displayName?: string;
 };
 
 export type ZiweiChartViewV1 = {

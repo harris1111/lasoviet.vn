@@ -4,7 +4,6 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
-import { EvidenceDrawer } from "../../../../features/evidence/evidence-drawer";
 import { AnonymousDataDeletionControl } from "../../../../features/privacy/anonymous-data-deletion-control";
 import { deleteAnonymousDataAction } from "../../../../features/privacy/delete-anonymous-data-action";
 import { FreeIdentityPreview } from "../../../../features/reports/free-identity-preview";
@@ -34,23 +33,24 @@ export default async function ZiweiChartResultPage({
   ]);
   if (!chartResult.ok || !previewResult.ok) notFound();
 
-  const primaryEvidenceId = chartResult.value.evidenceIndex.itemIds.find(
-    (id) =>
-      id.includes("palace") ||
-      id.includes("star") ||
-      id.includes("transformation"),
-  );
-
   const topicHref = locale === "en"
     ? `/en/la-so/${chartId}/chon-luan-giai`
     : `/la-so/${chartId}/chon-luan-giai`;
+
+  const displayName = chartResult.value.birthSummary.displayName;
+  const heroTitle = displayName
+    ? t("personalizedTitle", { name: displayName })
+    : t("title");
+  const heroCopy = displayName
+    ? t("personalizedHeroCopy", { name: displayName })
+    : t("heroCopy");
 
   return (
     <main className="result-page">
       <section className="result-hero container">
         <p className="eyebrow">{t("private")}</p>
-        <h1>{t("title")}</h1>
-        <p>{t("heroCopy")}</p>
+        <h1>{heroTitle}</h1>
+        <p>{heroCopy}</p>
       </section>
       <div className="container">
         <ZiweiResultSummary
@@ -60,17 +60,21 @@ export default async function ZiweiChartResultPage({
         />
       </div>
       <div className="result-layout container">
-        <ZiweiChart chart={chartResult.value.chart} locale={locale} />
-        <aside className="result-evidence-note">
-          <p className="eyebrow">{t("evidence.eyebrow")}</p>
-          <h2>{t("evidence.heading")}</h2>
-          {primaryEvidenceId ? (
-            <EvidenceDrawer chartId={chartId} evidenceId={primaryEvidenceId} locale={locale} loadEvidence={loadZiweiEvidence} />
-          ) : null}
-        </aside>
+        <ZiweiChart
+          birthSummary={chartResult.value.birthSummary}
+          chart={chartResult.value.chart}
+          locale={locale}
+        />
       </div>
       <div className="container">
-        <FreeIdentityPreview chart={chartResult.value.chart} chartId={chartId} locale={locale} loadEvidence={loadZiweiEvidence} preview={previewResult.value} />
+        <FreeIdentityPreview
+          chart={chartResult.value.chart}
+          chartId={chartId}
+          displayName={displayName}
+          locale={locale}
+          loadEvidence={loadZiweiEvidence}
+          preview={previewResult.value}
+        />
         <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
           <div className="result-paid-report-head">
             <p className="eyebrow">{locale === "en" ? "Full Lifetime Report" : "Luận giải chuyên sâu trọn đời"}</p>

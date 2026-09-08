@@ -81,6 +81,7 @@ export const BirthProfileV1Schema = z
     time: BirthTimeInputSchema,
     timezone: BirthTimezoneInputSchema,
     placeLabel: z.string().trim().min(1).max(120).optional(),
+    displayName: z.string().trim().min(1).max(80).optional(),
     consentVersion: z.string().trim().min(1),
     locale: z.string().trim().min(1).optional(),
     gender: z.string().trim().min(1).optional(),

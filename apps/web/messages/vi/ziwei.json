@@ -29,5 +29,7 @@
     "confirm": "Xác nhận xóa",
     "pending": "Đang xóa",
     "error": "Không thể xóa dữ liệu lúc này. Vui lòng thử lại."
-  }
+  },
+  "personalizedTitle": "Lá số Tử Vi của {name}",
+  "personalizedHeroCopy": "12 cung được tính từ dữ liệu sinh của {name}. Mỗi nhận định có căn cứ để mở và tự kiểm tra."
 }

@@ -83,11 +83,13 @@ function chartView(record: Awaited<ReturnType<ZiweiQueryRepository["readAuthoriz
   const placeLabel =
     normalizedProfile.data.normalizedPlaceLabel ??
     normalizedProfile.data.originalInput.placeLabel;
+  const displayName = normalizedProfile.data.originalInput.displayName;
   const birthSummary: ZiweiBirthSummaryV1 = {
     normalizedCalendar: normalizedProfile.data.normalizedCalendar,
     normalizedTime: normalizedProfile.data.normalizedTime,
     timezoneProvenance: normalizedProfile.data.timezoneProvenance,
     ...(placeLabel ? { placeLabel } : {}),
+    ...(displayName ? { displayName } : {}),
     ...(normalizedProfile.data.originalInput.gender
       ? { gender: normalizedProfile.data.originalInput.gender }
       : {}),

@@ -196,6 +196,7 @@ export type ReusableBirthProfileV2 = {
   time: ReusableBirthTime;
   gender?: "male" | "female";
   place?: string;
+  displayName?: string;
   createdAt: number;
 };
 
@@ -280,6 +281,15 @@ function readValidV2BirthCache(
       return null;
     }
 
+    const displayName =
+      typeof parsed.displayName === "string" && parsed.displayName.trim().length > 0
+        ? parsed.displayName.trim().slice(0, 80)
+        : undefined;
+    if (parsed.displayName !== undefined && typeof parsed.displayName !== "string") {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
     const normalizedTime: ReusableBirthTime =
       parsed.time.precision === "exact_minute"
         ? {
@@ -295,6 +305,7 @@ function readValidV2BirthCache(
       time: normalizedTime,
       ...(gender ? { gender } : {}),
       ...(place ? { place } : {}),
+      ...(displayName ? { displayName } : {}),
       createdAt: parsed.createdAt,
     };
   } catch {
@@ -308,6 +319,7 @@ export function saveBirthCache(
     time: ReusableBirthTime;
     gender?: "male" | "female" | null;
     place?: string;
+    displayName?: string;
   },
   options?: {
     localStorage?: Storage;
@@ -354,12 +366,18 @@ export function saveBirthCache(
         ? input.place.trim().slice(0, 120)
         : undefined;
 
+    const trimmedDisplayName =
+      typeof input.displayName === "string" && input.displayName.trim().length > 0
+        ? input.displayName.trim().slice(0, 80)
+        : undefined;
+
     const payload: ReusableBirthProfileV2 = {
       version: BIRTH_CACHE_VERSION_V2,
       date: input.date,
       time: normalizedTime,
       ...(validGender ? { gender: validGender } : {}),
       ...(trimmedPlace ? { place: trimmedPlace } : {}),
+      ...(trimmedDisplayName ? { displayName: trimmedDisplayName } : {}),
       createdAt: now,
     };
 
@@ -458,92 +476,7 @@ export function readBirthCache(options?: {
   }
 
   // 2. Read V2 from localStorage (non-destructive)
-  if (!local) return null;
-  try {
-    const rawV2 = local.getItem(BIRTH_CACHE_STORAGE_KEY_V2);
-    if (!rawV2) return null;
-
-    let parsed: Partial<ReusableBirthProfileV2>;
-    try {
-      parsed = JSON.parse(rawV2);
-    } catch {
-      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
-      return null;
-    }
-
-    if (
-      !parsed ||
-      typeof parsed !== "object" ||
-      parsed.version !== BIRTH_CACHE_VERSION_V2 ||
-      typeof parsed.createdAt !== "number" ||
-      now - parsed.createdAt < 0 ||
-      now - parsed.createdAt > BIRTH_CACHE_MAX_AGE_MS ||
-      typeof parsed.date !== "string" ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)
-    ) {
-      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
-      return null;
-    }
-
-    const parts = parsed.date.split("-");
-    const yStr = parts[0];
-    const mStr = parts[1];
-    const dStr = parts[2];
-    if (yStr === undefined || mStr === undefined || dStr === undefined) {
-      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
-      return null;
-    }
-    const y = Number.parseInt(yStr, 10);
-    const m = Number.parseInt(mStr, 10);
-    const d = Number.parseInt(dStr, 10);
-    if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) {
-      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
-      return null;
-    }
-
-    if (!isValidReusableTime(parsed.time)) {
-      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
-      return null;
-    }
-
-    const gender =
-      parsed.gender === "male" || parsed.gender === "female"
-        ? parsed.gender
-        : undefined;
-    if (parsed.gender !== undefined && !gender) {
-      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
-      return null;
-    }
-
-    const place =
-      typeof parsed.place === "string" && parsed.place.trim().length > 0
-        ? parsed.place.trim().slice(0, 120)
-        : undefined;
-    if (parsed.place !== undefined && typeof parsed.place !== "string") {
-      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
-      return null;
-    }
-
-    const normalizedTime: ReusableBirthTime =
-      parsed.time.precision === "exact_minute"
-        ? {
-            precision: "exact_minute",
-            hour: parsed.time.hour.trim().padStart(2, "0"),
-            minute: parsed.time.minute.trim().padStart(2, "0"),
-          }
-        : parsed.time;
-
-    return {
-      version: BIRTH_CACHE_VERSION_V2,
-      date: `${y.toString().padStart(4, "0")}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
-      time: normalizedTime,
-      ...(gender ? { gender } : {}),
-      ...(place ? { place } : {}),
-      createdAt: parsed.createdAt,
-    };
-  } catch {
-    return null;
-  }
+  return readValidV2BirthCache(local, now);
 }
 
 export function clearBirthCache(options?: {
@@ -570,6 +503,7 @@ export function saveHomepageBirthPrefill(
     time: ReusableBirthTime;
     gender?: "male" | "female" | null;
     place?: string;
+    displayName?: string;
   },
   storageOrOptions?:
     | Storage

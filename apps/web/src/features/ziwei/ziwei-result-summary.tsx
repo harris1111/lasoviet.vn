@@ -84,6 +84,7 @@ export function ZiweiResultSummary({
     vi: {
       sectionAria: "Tóm tắt lá số",
       birthInfo: "Thông tin sinh",
+      fullName: "Họ và tên",
       birthDate: "Ngày sinh",
       birthTime: "Giờ sinh",
       timezone: "Múi giờ",
@@ -97,6 +98,7 @@ export function ZiweiResultSummary({
     en: {
       sectionAria: "Chart summary",
       birthInfo: "Birth data",
+      fullName: "Full name",
       birthDate: "Birth date",
       birthTime: "Birth time",
       timezone: "Timezone",
@@ -114,6 +116,12 @@ export function ZiweiResultSummary({
       <div className="result-summary-card">
         <h2 className="result-summary-heading">{labels.birthInfo}</h2>
         <dl className="result-summary-list">
+          {birthSummary.displayName ? (
+            <>
+              <dt>{labels.fullName}</dt>
+              <dd>{birthSummary.displayName}</dd>
+            </>
+          ) : null}
           <dt>{labels.birthDate}</dt>
           <dd>
             {birthSummary.normalizedCalendar.date} · {calendarLabel}
