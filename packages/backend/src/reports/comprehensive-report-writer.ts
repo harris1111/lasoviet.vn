@@ -28,6 +28,38 @@ export const BRIGHTNESS_LABELS_VI = Object.freeze({
 
 export const brightnessLabelsVi = BRIGHTNESS_LABELS_VI;
 
+const HAN_IDEOGRAPH_REMOVE_PATTERN =
+  /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{Script=Han})/gu;
+
+const EMPTY_PAIRED_WRAPPERS_PATTERN =
+  /\(\s*\)|\[\s*\]|（\s*）|【\s*】|〔\s*〕|「\s*」|『\s*』|《\s*》|〈\s*〉/gu;
+
+export function normalizeComprehensiveReportModelProse(text: string): string {
+  if (typeof text !== "string" || text.length === 0) {
+    return "";
+  }
+
+  const normalized = text.normalize("NFC");
+  let cleaned = normalized.replace(HAN_IDEOGRAPH_REMOVE_PATTERN, "");
+
+  for (let pass = 0; pass < 3; pass++) {
+    const next = cleaned.replace(EMPTY_PAIRED_WRAPPERS_PATTERN, "");
+    if (next === cleaned) {
+      break;
+    }
+    cleaned = next;
+  }
+
+  return cleaned
+    .replace(/\r\n/g, "\n")
+    .replace(/[^\S\n]+([,.;:!?])/g, "$1")
+    .split("\n")
+    .map((line) => line.replace(/[^\S\n]+/g, " ").trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export const COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION = `QUY CÁCH CẤU TRÚC JSON ĐẦU RA BẮT BUỘC (V3 COMPREHENSIVE REPORT CONTRACT):
 Bản báo cáo phải là một JSON object hợp lệ duy nhất, tuân thủ nghiêm ngặt và chính xác các quy tắc cấu trúc sau:
 1. Top-level keys: Object JSON ở cấp cao nhất (root) CHỈ ĐƯỢC CHỨA ĐÚNG 7 trường sau (không thừa, không thiếu, không dùng bất kỳ tên trường nào khác):
@@ -164,6 +196,7 @@ export async function writeComprehensiveZiweiReport(
       return {
         ...existingReading,
         title: CANONICAL_PALACE_TITLES_VI[palaceId],
+        narrative: normalizeComprehensiveReportModelProse(existingReading.narrative),
       };
     }
     return {
@@ -184,6 +217,7 @@ export async function writeComprehensiveZiweiReport(
         return {
           ...existingTheme,
           title: CANONICAL_THEMATIC_TITLES_VI[id],
+          narrative: normalizeComprehensiveReportModelProse(existingTheme.narrative),
         };
       }
       return {
@@ -199,19 +233,28 @@ export async function writeComprehensiveZiweiReport(
     overview: {
       ...rawReport.overview,
       title: CANONICAL_COMPREHENSIVE_SECTION_TITLES.overview,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.overview.narrative),
     },
     coreAxis: {
       ...rawReport.coreAxis,
       title: CANONICAL_COMPREHENSIVE_SECTION_TITLES.coreAxis,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.coreAxis.narrative),
     },
-    keyConfigurations: rawReport.keyConfigurations.map((k) => ({ ...k })),
+    keyConfigurations: rawReport.keyConfigurations.map((k) => ({
+      ...k,
+      title: normalizeComprehensiveReportModelProse(k.title),
+      narrative: normalizeComprehensiveReportModelProse(k.narrative),
+    })),
     palaceReadings: assembledPalaces,
     thematicSynthesis: assembledThemes,
     strengthsAndTensions: {
       ...rawReport.strengthsAndTensions,
       title: CANONICAL_COMPREHENSIVE_SECTION_TITLES.strengthsAndTensions,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.strengthsAndTensions.narrative),
     },
-    practicalDirection: [...rawReport.practicalDirection],
+    practicalDirection: rawReport.practicalDirection.map((d) =>
+      normalizeComprehensiveReportModelProse(d),
+    ),
   };
 
   return {
