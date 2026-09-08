@@ -10,6 +10,8 @@ import {
 } from "./identity-report-config.js";
 import {
   COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION,
+  COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE,
+  VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT,
   writeComprehensiveZiweiReport,
 } from "./comprehensive-report-writer.js";
 
@@ -223,5 +225,64 @@ describe("writeComprehensiveZiweiReport", () => {
     const userPayload = JSON.parse(req.user);
     expect(userPayload.requiredPalaceOrder).toEqual(ZIWEI_PALACE_IDS);
     expect(userPayload.requiredThematicOrder).toEqual(ZIWEI_THEMATIC_SYNTHESIS_IDS);
+  });
+
+  it("enforces terminal completion gate at the end of system prompt naming all seven root fields in exact order, requiring completion through practicalDirection, and marking missing fields invalid", async () => {
+    // Assert that the completion gate is strictly terminal in the system prompt
+    expect(
+      VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT.trimEnd().endsWith(
+        COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE,
+      ),
+    ).toBe(true);
+
+    // Assert all seven root fields are specified in exact sequential order in the terminal completion gate
+    const expectedRootFields = [
+      "overview",
+      "coreAxis",
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+      "strengthsAndTensions",
+      "practicalDirection",
+    ];
+
+    let lastIndex = -1;
+    for (const field of expectedRootFields) {
+      const idx = COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE.indexOf(`"${field}"`);
+      expect(idx).toBeGreaterThan(lastIndex);
+      lastIndex = idx;
+    }
+
+    // Assert continuing through practicalDirection and invalidating incomplete responses
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("practicalDirection");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain(
+      'cho đến hết trường cuối cùng là "practicalDirection"',
+    );
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("không hợp lệ");
+
+    // Assert generateStructured passes system prompt ending with terminal completion gate
+    const generateStructuredSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        value: createRawModelReport(),
+        providerId: "test-provider",
+        modelId: "test-model",
+      },
+    });
+
+    const provider: AiProvider = {
+      generateStructured: generateStructuredSpy,
+    };
+
+    const result = await writeComprehensiveZiweiReport({
+      facts: mockFacts,
+      knowledgePacks: mockKnowledgePacks,
+      provider,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(generateStructuredSpy).toHaveBeenCalledTimes(1);
+    const req = generateStructuredSpy.mock.calls[0]![0];
+    expect(req.system.trimEnd().endsWith(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE)).toBe(true);
   });
 });

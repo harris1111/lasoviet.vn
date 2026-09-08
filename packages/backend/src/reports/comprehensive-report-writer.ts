@@ -44,6 +44,17 @@ ${ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id, index) => `     ${index + 1}. "${id}"`).
    - CẤM trường "actionPriorities" (phải dùng "practicalDirection" là Array gồm 1 đến 10 chuỗi string).
    - CẤM thêm bất kỳ trường nào khác ngoài 7 trường top-level đã nêu trên.`;
 
+export const COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE = `ĐIỀU KIỆN HOÀN TẤT BẮT BUỘC (TERMINAL COMPLETION GATE):
+Mô hình chỉ được phép kết thúc (finish) sau khi đã tạo đầy đủ toàn bộ 7 trường ở cấp root theo đúng thứ tự bắt buộc:
+1. "overview"
+2. "coreAxis"
+3. "keyConfigurations"
+4. "palaceReadings"
+5. "thematicSynthesis"
+6. "strengthsAndTensions"
+7. "practicalDirection"
+Phải tiếp tục viết liên tục xuyên suốt qua toàn bộ 12 cung của "palaceReadings" và 4 chuyên đề của "thematicSynthesis" cho đến hết trường cuối cùng là "practicalDirection". Tuyệt đối không được dừng sớm sau "keyConfigurations" hay bỏ qua bất kỳ trường nào. Bất kỳ phản hồi nào thiếu dù chỉ một trong 7 trường trên đều hoàn toàn không hợp lệ (invalid).`;
+
 export const VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số cao cấp tại lasoviet.vn.
 Nhiệm vụ của bạn là viết một bản báo cáo luận giải toàn diện, sâu sắc, hoàn chỉnh bằng tiếng Việt chuyên nghiệp dựa DUY NHẤT trên các dữ kiện lá số (facts) và các gói tri thức (knowledgePacks) được cung cấp.
 
@@ -65,7 +76,9 @@ CẤM TUYỆT ĐỐI CÁC ĐIỀU SAU:
 - KHÔNG thuật lại quy trình tính toán, truy xuất hay thuật toán.
 - KHÔNG lặp đi lặp lại cùng một lời khuyên hay cảnh báo ở nhiều phần khác nhau.
 - KHÔNG tự bịa đặt sự kiện tương lai cụ thể hay đưa ra các mốc thời gian không có căn cứ.
-- KHÔNG tự tạo ra bất kỳ mã định danh hay dữ kiện lá số nào ngoài các facts được cung cấp. Mọi evidenceKeys phải trích xuất chính xác từ facts.evidenceKeys được cung cấp.`;
+- KHÔNG tự tạo ra bất kỳ mã định danh hay dữ kiện lá số nào ngoài các facts được cung cấp. Mọi evidenceKeys phải trích xuất chính xác từ facts.evidenceKeys được cung cấp.
+
+${COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE}`;
 
 export type ComprehensiveReportWriterInput = {
   facts: ComprehensiveZiweiFacts;
