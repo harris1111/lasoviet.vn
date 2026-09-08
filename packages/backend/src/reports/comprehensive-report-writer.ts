@@ -53,7 +53,8 @@ Mô hình chỉ được phép kết thúc (finish) sau khi đã tạo đầy đ
 5. "thematicSynthesis"
 6. "strengthsAndTensions"
 7. "practicalDirection"
-Phải tiếp tục viết liên tục xuyên suốt qua toàn bộ 12 cung của "palaceReadings" và 4 chuyên đề của "thematicSynthesis" cho đến hết trường cuối cùng là "practicalDirection". Tuyệt đối không được dừng sớm sau "keyConfigurations" hay bỏ qua bất kỳ trường nào. Bất kỳ phản hồi nào thiếu dù chỉ một trong 7 trường trên đều hoàn toàn không hợp lệ (invalid).`;
+Phải tiếp tục viết liên tục xuyên suốt qua toàn bộ 12 cung của "palaceReadings" và 4 chuyên đề của "thematicSynthesis" cho đến hết trường cuối cùng là "practicalDirection". Tuyệt đối không được dừng sớm sau "keyConfigurations" hay bỏ qua bất kỳ trường nào. Bất kỳ phản hồi nào thiếu dù chỉ một trong 7 trường trên đều hoàn toàn không hợp lệ (invalid).
+RÀNG BUỘC EVIDENCE KEYS BẮT BUỘC: Mọi giá trị trong tất cả các mảng "evidenceKeys" phải được sao chép nguyên văn (copied verbatim) từ "allowedEvidenceKeys" (hoặc "facts.evidenceKeys"). Tuyệt đối không được viết tắt (abbreviated), dịch nghĩa (translated), suy đoán (inferred), tái tạo (reconstructed), hoặc tự tạo mới (newly created). Mọi evidence key không có mặt nguyên văn trong "allowedEvidenceKeys" đều không hợp lệ.`;
 
 export const VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số cao cấp tại lasoviet.vn.
 Nhiệm vụ của bạn là viết một bản báo cáo luận giải toàn diện, sâu sắc, hoàn chỉnh bằng tiếng Việt chuyên nghiệp dựa DUY NHẤT trên các dữ kiện lá số (facts) và các gói tri thức (knowledgePacks) được cung cấp.
@@ -127,6 +128,7 @@ export async function writeComprehensiveZiweiReport(
     system: VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT,
     user: JSON.stringify({
       facts,
+      allowedEvidenceKeys: facts.evidenceKeys,
       knowledgePacks,
       requiredPalaceOrder: ZIWEI_PALACE_IDS,
       requiredThematicOrder: ZIWEI_THEMATIC_SYNTHESIS_IDS,

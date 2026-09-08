@@ -114,6 +114,7 @@ describe("writeComprehensiveZiweiReport", () => {
     expect(req.maxOutputTokens).toBe(9_000);
 
     const userPayload = JSON.parse(req.user);
+    expect(userPayload.allowedEvidenceKeys).toEqual(mockFacts.evidenceKeys);
     expect(userPayload.requiredPalaceOrder).toEqual(ZIWEI_PALACE_IDS);
     expect(userPayload.requiredThematicOrder).toEqual(ZIWEI_THEMATIC_SYNTHESIS_IDS);
 
@@ -223,6 +224,7 @@ describe("writeComprehensiveZiweiReport", () => {
 
     // Assert user payload structure
     const userPayload = JSON.parse(req.user);
+    expect(userPayload.allowedEvidenceKeys).toEqual(mockFacts.evidenceKeys);
     expect(userPayload.requiredPalaceOrder).toEqual(ZIWEI_PALACE_IDS);
     expect(userPayload.requiredThematicOrder).toEqual(ZIWEI_THEMATIC_SYNTHESIS_IDS);
   });
@@ -284,5 +286,48 @@ describe("writeComprehensiveZiweiReport", () => {
     expect(generateStructuredSpy).toHaveBeenCalledTimes(1);
     const req = generateStructuredSpy.mock.calls[0]![0];
     expect(req.system.trimEnd().endsWith(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE)).toBe(true);
+  });
+
+  it("passes allowedEvidenceKeys with exact payload equality and enforces copy-verbatim evidence rule in terminal completion gate", async () => {
+    // Assert copy-verbatim prompt rule in the terminal completion gate
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("allowedEvidenceKeys");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("copied verbatim");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("abbreviated");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("translated");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("inferred");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("reconstructed");
+    expect(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE).toContain("newly created");
+
+    const generateStructuredSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        value: createRawModelReport(),
+        providerId: "test-provider",
+        modelId: "test-model",
+      },
+    });
+
+    const provider: AiProvider = {
+      generateStructured: generateStructuredSpy,
+    };
+
+    const result = await writeComprehensiveZiweiReport({
+      facts: mockFacts,
+      knowledgePacks: mockKnowledgePacks,
+      provider,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(generateStructuredSpy).toHaveBeenCalledTimes(1);
+    const req = generateStructuredSpy.mock.calls[0]![0];
+    const userPayload = JSON.parse(req.user);
+
+    // Exact payload equality for allowedEvidenceKeys
+    expect(userPayload.allowedEvidenceKeys).toEqual(mockFacts.evidenceKeys);
+    expect(userPayload.allowedEvidenceKeys).toEqual(userPayload.facts.evidenceKeys);
+    expect(userPayload.allowedEvidenceKeys).toHaveLength(mockFacts.evidenceKeys.length);
+
+    // Terminal completion gate is present in system prompt
+    expect(req.system).toContain(COMPREHENSIVE_REPORT_TERMINAL_COMPLETION_GATE);
   });
 });
