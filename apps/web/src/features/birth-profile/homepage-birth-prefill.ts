@@ -1,6 +1,11 @@
 export const HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY = "lasoviet:birth-prefill:v1";
 export const HOMEPAGE_BIRTH_PREFILL_VERSION = 1 as const;
+export const BIRTH_CACHE_STORAGE_KEY_V2 = "lasoviet:birth-cache:v2";
+export const BIRTH_CACHE_STORAGE_KEY = BIRTH_CACHE_STORAGE_KEY_V2;
+export const BIRTH_CACHE_VERSION_V2 = 2 as const;
+export const BIRTH_CACHE_VERSION = BIRTH_CACHE_VERSION_V2;
 export const PREFILL_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const BIRTH_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export const CANONICAL_BRANCH_IDS = [
   "zi",
@@ -109,6 +114,21 @@ export function isValidSolarDate(
   return maxDays !== undefined && day <= maxDays;
 }
 
+export function isFutureSolarDate(
+  year: number,
+  month: number,
+  day: number,
+  nowMs?: number,
+): boolean {
+  const ref = nowMs !== undefined ? new Date(nowMs) : new Date();
+  const refLimit = Math.max(
+    Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate()),
+    Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate()),
+  );
+  const inputUtc = Date.UTC(year, month - 1, day);
+  return inputUtc > refLimit;
+}
+
 export function parseAndValidateDateParts(
   dayStr: string,
   monthStr: string,
@@ -146,6 +166,39 @@ export function parseAndValidateDateParts(
   return { valid: true, isoDate, day, month, year };
 }
 
+export type ReusableBirthTime =
+  | { precision: "exact_minute"; hour: string; minute: string }
+  | { precision: "branch_only"; branch: CanonicalBranchId }
+  | { precision: "unknown" };
+
+export function isValidReusableTime(time: unknown): time is ReusableBirthTime {
+  if (!time || typeof time !== "object") return false;
+  const t = time as Partial<ReusableBirthTime>;
+  if (t.precision === "unknown") return true;
+  if (t.precision === "branch_only") {
+    return isCanonicalBranchId(t.branch);
+  }
+  if (t.precision === "exact_minute") {
+    if (typeof t.hour !== "string" || typeof t.minute !== "string") return false;
+    const hTrim = t.hour.trim();
+    const mTrim = t.minute.trim();
+    if (!/^\d{1,2}$/.test(hTrim) || !/^\d{1,2}$/.test(mTrim)) return false;
+    const h = Number.parseInt(hTrim, 10);
+    const m = Number.parseInt(mTrim, 10);
+    return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+  }
+  return false;
+}
+
+export type ReusableBirthProfileV2 = {
+  version: typeof BIRTH_CACHE_VERSION_V2;
+  date: string; // ISO date YYYY-MM-DD
+  time: ReusableBirthTime;
+  gender?: "male" | "female";
+  place?: string;
+  createdAt: number;
+};
+
 export type HomepageBirthPrefill = {
   version: typeof HOMEPAGE_BIRTH_PREFILL_VERSION;
   date: string; // ISO date YYYY-MM-DD
@@ -155,39 +208,457 @@ export type HomepageBirthPrefill = {
   createdAt: number;
 };
 
-export function saveHomepageBirthPrefill(
+function readValidV2BirthCache(
+  local: Storage | undefined,
+  now: number,
+): ReusableBirthProfileV2 | null {
+  if (!local) return null;
+
+  try {
+    const rawV2 = local.getItem(BIRTH_CACHE_STORAGE_KEY_V2);
+    if (!rawV2) return null;
+
+    let parsed: Partial<ReusableBirthProfileV2>;
+    try {
+      parsed = JSON.parse(rawV2);
+    } catch {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      parsed.version !== BIRTH_CACHE_VERSION_V2 ||
+      typeof parsed.createdAt !== "number" ||
+      now - parsed.createdAt < 0 ||
+      now - parsed.createdAt > BIRTH_CACHE_MAX_AGE_MS ||
+      typeof parsed.date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)
+    ) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const parts = parsed.date.split("-");
+    const yStr = parts[0];
+    const mStr = parts[1];
+    const dStr = parts[2];
+    if (yStr === undefined || mStr === undefined || dStr === undefined) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const y = Number.parseInt(yStr, 10);
+    const m = Number.parseInt(mStr, 10);
+    const d = Number.parseInt(dStr, 10);
+    if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    if (!isValidReusableTime(parsed.time)) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const gender =
+      parsed.gender === "male" || parsed.gender === "female"
+        ? parsed.gender
+        : undefined;
+    if (parsed.gender !== undefined && !gender) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const place =
+      typeof parsed.place === "string" && parsed.place.trim().length > 0
+        ? parsed.place.trim().slice(0, 120)
+        : undefined;
+    if (parsed.place !== undefined && typeof parsed.place !== "string") {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const normalizedTime: ReusableBirthTime =
+      parsed.time.precision === "exact_minute"
+        ? {
+            precision: "exact_minute",
+            hour: parsed.time.hour.trim().padStart(2, "0"),
+            minute: parsed.time.minute.trim().padStart(2, "0"),
+          }
+        : parsed.time;
+
+    return {
+      version: BIRTH_CACHE_VERSION_V2,
+      date: `${y.toString().padStart(4, "0")}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
+      time: normalizedTime,
+      ...(gender ? { gender } : {}),
+      ...(place ? { place } : {}),
+      createdAt: parsed.createdAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function saveBirthCache(
   input: {
     date: string;
-    time:
-      | { precision: "branch_only"; branch: CanonicalBranchId }
-      | { precision: "unknown" };
+    time: ReusableBirthTime;
+    gender?: "male" | "female" | null;
+    place?: string;
   },
-  storage?: Storage,
+  options?: {
+    localStorage?: Storage;
+    now?: number;
+  },
 ): boolean {
   try {
     const targetStorage =
-      storage ?? (typeof window !== "undefined" ? window.sessionStorage : undefined);
+      options?.localStorage ??
+      (typeof window !== "undefined" ? window.localStorage : undefined);
     if (!targetStorage) return false;
 
-    const payload: HomepageBirthPrefill = {
-      version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+    const now = options?.now ?? Date.now();
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return false;
+    const parts = input.date.split("-");
+    const yStr = parts[0];
+    const mStr = parts[1];
+    const dStr = parts[2];
+    if (yStr === undefined || mStr === undefined || dStr === undefined) return false;
+    const y = Number.parseInt(yStr, 10);
+    const m = Number.parseInt(mStr, 10);
+    const d = Number.parseInt(dStr, 10);
+    if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) return false;
+
+    if (!isValidReusableTime(input.time)) return false;
+
+    const normalizedTime: ReusableBirthTime =
+      input.time.precision === "exact_minute"
+        ? {
+            precision: "exact_minute",
+            hour: input.time.hour.trim().padStart(2, "0"),
+            minute: input.time.minute.trim().padStart(2, "0"),
+          }
+        : input.time;
+
+    const validGender =
+      input.gender === "male" || input.gender === "female"
+        ? input.gender
+        : undefined;
+
+    const trimmedPlace =
+      typeof input.place === "string" && input.place.trim().length > 0
+        ? input.place.trim().slice(0, 120)
+        : undefined;
+
+    const payload: ReusableBirthProfileV2 = {
+      version: BIRTH_CACHE_VERSION_V2,
       date: input.date,
-      time: input.time,
-      createdAt: Date.now(),
+      time: normalizedTime,
+      ...(validGender ? { gender: validGender } : {}),
+      ...(trimmedPlace ? { place: trimmedPlace } : {}),
+      createdAt: now,
     };
 
-    targetStorage.setItem(
-      HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
-      JSON.stringify(payload),
-    );
+    targetStorage.setItem(BIRTH_CACHE_STORAGE_KEY_V2, JSON.stringify(payload));
     return true;
   } catch {
     return false;
   }
 }
 
+export function readBirthCache(options?: {
+  localStorage?: Storage;
+  sessionStorage?: Storage;
+  now?: number;
+}): ReusableBirthProfileV2 | null {
+  const now = options?.now ?? Date.now();
+  const local =
+    options?.localStorage ??
+    (typeof window !== "undefined" ? window.localStorage : undefined);
+  const session =
+    options?.sessionStorage ??
+    (typeof window !== "undefined" ? window.sessionStorage : undefined);
+
+  // Prefer the richer reusable cache. Legacy migration is only a fallback.
+  const validV2 = readValidV2BirthCache(local, now);
+  if (validV2) return validV2;
+
+  // Check legacy V1 in sessionStorage only after V2 is absent or invalid.
+  if (session) {
+    try {
+      const rawV1 = session.getItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
+      if (rawV1) {
+        session.removeItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
+        try {
+          const parsedV1 = JSON.parse(rawV1) as Partial<HomepageBirthPrefill>;
+          if (
+            parsedV1 &&
+            typeof parsedV1 === "object" &&
+            parsedV1.version === HOMEPAGE_BIRTH_PREFILL_VERSION &&
+            typeof parsedV1.date === "string" &&
+            typeof parsedV1.createdAt === "number" &&
+            now - parsedV1.createdAt >= 0 &&
+            now - parsedV1.createdAt <= PREFILL_MAX_AGE_MS &&
+            /^\d{4}-\d{2}-\d{2}$/.test(parsedV1.date)
+          ) {
+            const parts = parsedV1.date.split("-");
+            const yStr = parts[0];
+            const mStr = parts[1];
+            const dStr = parts[2];
+            if (yStr !== undefined && mStr !== undefined && dStr !== undefined) {
+              const y = Number.parseInt(yStr, 10);
+              const m = Number.parseInt(mStr, 10);
+              const d = Number.parseInt(dStr, 10);
+              if (isValidSolarDate(y, m, d) && !isFutureSolarDate(y, m, d, now)) {
+                let validTime: ReusableBirthTime | null = null;
+                if (
+                  parsedV1.time &&
+                  parsedV1.time.precision === "branch_only" &&
+                  isCanonicalBranchId(parsedV1.time.branch)
+                ) {
+                  validTime = {
+                    precision: "branch_only",
+                    branch: parsedV1.time.branch,
+                  };
+                } else if (
+                  parsedV1.time &&
+                  parsedV1.time.precision === "unknown"
+                ) {
+                  validTime = { precision: "unknown" };
+                }
+                if (validTime) {
+                  const migratedV2: ReusableBirthProfileV2 = {
+                    version: BIRTH_CACHE_VERSION_V2,
+                    date: `${y.toString().padStart(4, "0")}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
+                    time: validTime,
+                    createdAt: parsedV1.createdAt,
+                  };
+                  if (local) {
+                    local.setItem(
+                      BIRTH_CACHE_STORAGE_KEY_V2,
+                      JSON.stringify(migratedV2),
+                    );
+                  }
+                  return migratedV2;
+                }
+              }
+            }
+          }
+        } catch {
+          // Ignored malformed V1
+        }
+      }
+    } catch {
+      // Storage access restricted
+    }
+  }
+
+  // 2. Read V2 from localStorage (non-destructive)
+  if (!local) return null;
+  try {
+    const rawV2 = local.getItem(BIRTH_CACHE_STORAGE_KEY_V2);
+    if (!rawV2) return null;
+
+    let parsed: Partial<ReusableBirthProfileV2>;
+    try {
+      parsed = JSON.parse(rawV2);
+    } catch {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      parsed.version !== BIRTH_CACHE_VERSION_V2 ||
+      typeof parsed.createdAt !== "number" ||
+      now - parsed.createdAt < 0 ||
+      now - parsed.createdAt > BIRTH_CACHE_MAX_AGE_MS ||
+      typeof parsed.date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)
+    ) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const parts = parsed.date.split("-");
+    const yStr = parts[0];
+    const mStr = parts[1];
+    const dStr = parts[2];
+    if (yStr === undefined || mStr === undefined || dStr === undefined) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+    const y = Number.parseInt(yStr, 10);
+    const m = Number.parseInt(mStr, 10);
+    const d = Number.parseInt(dStr, 10);
+    if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    if (!isValidReusableTime(parsed.time)) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const gender =
+      parsed.gender === "male" || parsed.gender === "female"
+        ? parsed.gender
+        : undefined;
+    if (parsed.gender !== undefined && !gender) {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const place =
+      typeof parsed.place === "string" && parsed.place.trim().length > 0
+        ? parsed.place.trim().slice(0, 120)
+        : undefined;
+    if (parsed.place !== undefined && typeof parsed.place !== "string") {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const normalizedTime: ReusableBirthTime =
+      parsed.time.precision === "exact_minute"
+        ? {
+            precision: "exact_minute",
+            hour: parsed.time.hour.trim().padStart(2, "0"),
+            minute: parsed.time.minute.trim().padStart(2, "0"),
+          }
+        : parsed.time;
+
+    return {
+      version: BIRTH_CACHE_VERSION_V2,
+      date: `${y.toString().padStart(4, "0")}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
+      time: normalizedTime,
+      ...(gender ? { gender } : {}),
+      ...(place ? { place } : {}),
+      createdAt: parsed.createdAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function clearBirthCache(options?: {
+  localStorage?: Storage;
+  sessionStorage?: Storage;
+}): void {
+  try {
+    const local =
+      options?.localStorage ??
+      (typeof window !== "undefined" ? window.localStorage : undefined);
+    const session =
+      options?.sessionStorage ??
+      (typeof window !== "undefined" ? window.sessionStorage : undefined);
+    local?.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+    session?.removeItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
+  } catch {
+    // Storage access might be restricted
+  }
+}
+
+export function saveHomepageBirthPrefill(
+  input: {
+    date: string;
+    time: ReusableBirthTime;
+    gender?: "male" | "female" | null;
+    place?: string;
+  },
+  storageOrOptions?:
+    | Storage
+    | { localStorage?: Storage; sessionStorage?: Storage; now?: number },
+  nowParam?: number,
+): boolean {
+  const now =
+    nowParam ??
+    (typeof storageOrOptions === "object" && storageOrOptions !== null && "now" in storageOrOptions && typeof (storageOrOptions as { now?: number }).now === "number"
+      ? (storageOrOptions as { now: number }).now
+      : Date.now());
+
+  if (
+    storageOrOptions &&
+    "getItem" in storageOrOptions &&
+    typeof storageOrOptions.setItem === "function"
+  ) {
+    const legacyStorage = storageOrOptions as Storage;
+    try {
+      const v1Payload: HomepageBirthPrefill = {
+        version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+        date: input.date,
+        time:
+          input.time.precision === "branch_only"
+            ? input.time
+            : { precision: "unknown" },
+        createdAt: now,
+      };
+      legacyStorage.setItem(
+        HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
+        JSON.stringify(v1Payload),
+      );
+      const v2Payload: ReusableBirthProfileV2 = {
+        version: BIRTH_CACHE_VERSION_V2,
+        date: input.date,
+        time: input.time,
+        ...(input.gender === "male" || input.gender === "female"
+          ? { gender: input.gender }
+          : {}),
+        ...(typeof input.place === "string" && input.place.trim()
+          ? { place: input.place.trim().slice(0, 120) }
+          : {}),
+        createdAt: now,
+      };
+      legacyStorage.setItem(BIRTH_CACHE_STORAGE_KEY_V2, JSON.stringify(v2Payload));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const opts = storageOrOptions && !("getItem" in storageOrOptions)
+    ? storageOrOptions
+    : undefined;
+
+  const savedV2 = saveBirthCache(input, {
+    localStorage: opts?.localStorage,
+    now,
+  });
+
+  try {
+    const session =
+      opts?.sessionStorage ??
+      (typeof window !== "undefined" ? window.sessionStorage : undefined);
+    if (session) {
+      const v1Payload: HomepageBirthPrefill = {
+        version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+        date: input.date,
+        time:
+          input.time.precision === "branch_only"
+            ? input.time
+            : { precision: "unknown" },
+        createdAt: now,
+      };
+      session.setItem(
+        HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
+        JSON.stringify(v1Payload),
+      );
+    }
+  } catch {
+    // Ignore session storage failure
+  }
+
+  return savedV2;
+}
+
 export function consumeHomepageBirthPrefill(
   storage?: Storage,
+  nowParam?: number,
 ): HomepageBirthPrefill | null {
   try {
     const targetStorage =
@@ -197,7 +668,6 @@ export function consumeHomepageBirthPrefill(
     const raw = targetStorage.getItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
     if (!raw) return null;
 
-    // Consume-once: remove immediately upon reading
     targetStorage.removeItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
 
     const parsed = JSON.parse(raw) as Partial<HomepageBirthPrefill>;
@@ -213,12 +683,11 @@ export function consumeHomepageBirthPrefill(
       return null;
     }
 
-    // Check age (24 hours expiry)
-    if (Date.now() - parsed.createdAt > PREFILL_MAX_AGE_MS) {
+    const now = nowParam ?? Date.now();
+    if (now - parsed.createdAt > PREFILL_MAX_AGE_MS || now - parsed.createdAt < 0) {
       return null;
     }
 
-    // Check date validity (exact YYYY-MM-DD format)
     if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed.date)) {
       return null;
     }
@@ -239,7 +708,6 @@ export function consumeHomepageBirthPrefill(
       .toString()
       .padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
 
-    // Check time precision validity
     if (parsed.time.precision === "branch_only") {
       const b = (parsed.time as { branch?: unknown }).branch;
       if (!isCanonicalBranchId(b)) {

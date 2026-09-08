@@ -80,7 +80,10 @@ import {
   type BirthTimeState,
 } from "./birth-profile-input";
 import {
+  clearBirthCache,
   consumeHomepageBirthPrefill,
+  readBirthCache,
+  saveBirthCache,
   HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
 } from "./homepage-birth-prefill";
 import {
@@ -145,26 +148,60 @@ export function BirthProfileForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [step1Attempted, setStep1Attempted] = useState(false);
+  const [hasReusedCache, setHasReusedCache] = useState(false);
 
   useEffect(() => {
     let active = true;
-    const prefill = consumeHomepageBirthPrefill();
-    if (prefill) {
+    const cached = readBirthCache();
+    if (cached) {
       queueMicrotask(() => {
         if (!active) return;
-        const parts = splitIsoDateToParts(prefill.date);
+        const parts = splitIsoDateToParts(cached.date);
         setDay(parts.day);
         setMonth(parts.month);
         setYear(parts.year);
-        if (prefill.time.precision === "branch_only") {
+        if (cached.time.precision === "branch_only") {
           setTimeState({
             precision: "branch_only",
-            branch: prefill.time.branch,
+            branch: cached.time.branch,
           });
-        } else if (prefill.time.precision === "unknown") {
+        } else if (cached.time.precision === "exact_minute") {
+          setTimeState({
+            precision: "exact_minute",
+            hour: cached.time.hour,
+            minute: cached.time.minute,
+          });
+        } else if (cached.time.precision === "unknown") {
           setTimeState({ precision: "unknown" });
         }
+        if (cached.gender) {
+          setGender(cached.gender);
+        }
+        if (cached.place) {
+          setPlace(cached.place);
+        }
+        setHasReusedCache(true);
       });
+    } else {
+      const prefill = consumeHomepageBirthPrefill();
+      if (prefill) {
+        queueMicrotask(() => {
+          if (!active) return;
+          const parts = splitIsoDateToParts(prefill.date);
+          setDay(parts.day);
+          setMonth(parts.month);
+          setYear(parts.year);
+          if (prefill.time.precision === "branch_only") {
+            setTimeState({
+              precision: "branch_only",
+              branch: prefill.time.branch,
+            });
+          } else if (prefill.time.precision === "unknown") {
+            setTimeState({ precision: "unknown" });
+          }
+          setHasReusedCache(true);
+        });
+      }
     }
     return () => {
       active = false;
@@ -283,6 +320,17 @@ export function BirthProfileForm({
     setError(null);
   }
 
+  function handleClearCache() {
+    clearBirthCache();
+    setDay("");
+    setMonth("");
+    setYear("");
+    setTimeState({ precision: "exact_minute", hour: "", minute: "" });
+    setPlace("");
+    setGender(null);
+    setHasReusedCache(false);
+  }
+
   function handleExit() {
     if (pending) return;
     setStep(1);
@@ -299,14 +347,9 @@ export function BirthProfileForm({
     setError(null);
     setPending(false);
     setStep1Attempted(false);
+    setHasReusedCache(false);
 
-    try {
-      if (typeof window !== "undefined" && window.sessionStorage) {
-        window.sessionStorage.removeItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
-      }
-    } catch {
-      // Storage access may be restricted
-    }
+    clearBirthCache();
 
     const homeHref = locale === "en" ? "/en" : "/";
     router.push(homeHref);
@@ -388,6 +431,15 @@ export function BirthProfileForm({
       if (!saved.ok) {
         setError(t("errors.profile"));
         return;
+      }
+
+      if (forWhom === "self") {
+        saveBirthCache({
+          date: dateResult.isoDate,
+          time: timeState,
+          gender,
+          place: place.trim() ? place.trim() : undefined,
+        });
       }
 
       if (
@@ -484,6 +536,18 @@ export function BirthProfileForm({
       <div className="wizard-main-shell">
         <div className="wizard-main-grid">
           <div className="wizard-form-column">
+            {hasReusedCache && step < 3 ? (
+              <div className="wizard-cache-notice">
+                <span>{locale === "en" ? "Prefilled from saved birth details." : "Đang sử dụng thông tin sinh đã lưu."}</span>
+                <button
+                  className="wizard-cache-clear"
+                  onClick={handleClearCache}
+                  type="button"
+                >
+                  {locale === "en" ? "Clear saved data" : "Xóa dữ liệu đã lưu"}
+                </button>
+              </div>
+            ) : null}
             {step === 1 ? (
               <BirthWizardSubjectStep
                 consentOther={consentOther}

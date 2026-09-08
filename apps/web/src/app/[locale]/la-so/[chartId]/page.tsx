@@ -71,7 +71,24 @@ export default async function ZiweiChartResultPage({
       </div>
       <div className="container">
         <FreeIdentityPreview chart={chartResult.value.chart} chartId={chartId} locale={locale} loadEvidence={loadZiweiEvidence} preview={previewResult.value} />
-        <Link className="button" href={topicHref}>{t("topicLink")}</Link>
+        <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
+          <div className="result-paid-report-head">
+            <p className="eyebrow">{locale === "en" ? "Full Lifetime Report" : "Luận giải chuyên sâu trọn đời"}</p>
+            <h2 id="paid-report-cta-heading">
+              {locale === "en" ? "Life Potential & Destiny Report" : "Báo cáo luận giải Bản mệnh & Tiềm năng"}
+            </h2>
+            <div className="result-paid-report-pricing">
+              <span className="topic-price">{locale === "en" ? "79,000 VND" : "79.000 ₫"}</span>
+              <span className="topic-once">{locale === "en" ? "One-time payment · No auto-renewal" : "Thanh toán một lần · Không tự động gia hạn"}</span>
+            </div>
+          </div>
+          <div className="result-paid-report-actions">
+            <Link className="button" href={topicHref}>{t("topicLink")}</Link>
+            <Link className="button button-secondary" href={locale === "en" ? "/en/bao-cao-mau/tu-vi" : "/bao-cao-mau/tu-vi"}>
+              {locale === "en" ? "View sample report" : "Xem bản luận giải mẫu"}
+            </Link>
+          </div>
+        </section>
         {actor.kind === "anonymous" ? (
           <AnonymousDataDeletionControl
             action={deleteAnonymousDataAction.bind(null, locale)}

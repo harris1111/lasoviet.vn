@@ -44,9 +44,9 @@ export async function createAnonymousChart(page: Page, locale: Locale) {
   await page.goto(`${prefix}/tao-la-so/tu-vi`);
   await page.getByRole("radio", { name: copy.gender, exact: true }).check();
   await page.getByRole("button", { name: copy.continue }).click();
-  await page.getByLabel(copy.day).fill("01");
-  await page.getByLabel(copy.month).fill("01");
-  await page.getByLabel(copy.year).fill("1990");
+  await page.getByRole("textbox", { name: copy.day, exact: true }).fill("01");
+  await page.getByRole("textbox", { name: copy.month, exact: true }).fill("01");
+  await page.getByRole("textbox", { name: copy.year, exact: true }).fill("1990");
   await page.getByLabel(copy.hour, { exact: true }).fill("09");
   await page.getByLabel(copy.minute, { exact: true }).fill("30");
   await page.getByRole("button", { name: copy.continue }).click();
