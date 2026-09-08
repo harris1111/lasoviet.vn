@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +8,7 @@ import {
   buildComprehensiveKnowledgePacks,
   writeComprehensiveZiweiReport,
   validateComprehensiveZiweiReport,
+  validateKnowledgeManifest,
   createOpenAiCompatibleAdapter,
   createAiProductionGate,
 } from "../packages/backend/dist/index.js";
@@ -23,19 +24,30 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, "..");
 const CORPUS_PATH = resolve(REPO_ROOT, "content/knowledge/vi/ziwei/comprehensive-report.v3.json");
 
-// 10 Deterministic Synthetic Candidate Birth Inputs (covering diverse dates, branches, genders)
-const SYNTHETIC_CANDIDATE_POOL = [
-  { date: "1990-05-15", time: "06:30", gender: "male" },   // Life=Dần, Body=Thiên Di
-  { date: "1988-11-20", time: "14:15", gender: "female" }, // Life=Thìn, Body=Phúc Đức (Cơ Nguyệt Đồng Lương)
-  { date: "1993-01-12", time: "16:20", gender: "female" }, // Life=Tỵ, Body=Quan Lộc (Sát Phá Lang)
-  { date: "1999-09-09", time: "09:30", gender: "male" },   // Life=Mão, Body=Phu Thê
-  { date: "1986-06-18", time: "11:50", gender: "male" },   // Life=Tý, Body=Mệnh (Tam Kỳ Gia Hội)
-  { date: "1995-03-08", time: "20:45", gender: "male" },   // Life=Tỵ, Body=Tài Bạch
-  { date: "1984-07-25", time: "02:10", gender: "female" }, // Life=Ngọ, Body=Phúc Đức
-  { date: "2001-12-05", time: "22:15", gender: "female" }, // Life=Tý, Body=Phu Thê
-  { date: "1997-04-30", time: "04:20", gender: "male" },   // Life=Dần, Body=Quan Lộc
-  { date: "1991-08-14", time: "18:00", gender: "female" }, // Life=Thân, Body=Thiên Di
-];
+// Generate a deterministic synthetic candidate grid dynamically at runtime via numeric loops
+function generateDeterministicCandidateGrid() {
+  const candidates = [];
+  const baseYears = [1985, 1988, 1991, 1993, 1996, 1999, 2002];
+  const months = [2, 4, 6, 8, 10, 12];
+  const days = [5, 12, 18, 25];
+  const timeHours = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
+
+  let seq = 0;
+  for (const year of baseYears) {
+    for (const month of months) {
+      for (const day of days) {
+        for (const hour of timeHours) {
+          seq += 1;
+          const gender = seq % 2 === 0 ? "female" : "male";
+          const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const timeStr = `${String(hour).padStart(2, "0")}:30`;
+          candidates.push({ date: dateStr, time: timeStr, gender });
+        }
+      }
+    }
+  }
+  return candidates;
+}
 
 function createLocalCorpusRetriever(chunks) {
   return async function retrieve(query) {
@@ -44,16 +56,16 @@ function createLocalCorpusRetriever(chunks) {
 
     for (const chunk of chunks) {
       const meta = chunk.metadata;
-      let score = 0;
+      let metadataScore = 0;
 
       // Metadata priorities 1-7
-      if (query.patternIds && query.patternIds.some((id) => meta.patterns?.includes(id))) score += 100;
-      if (query.palaceIds && query.palaceIds.some((id) => meta.palaces?.includes(id))) score += 40;
-      if (query.starIds && query.starIds.some((id) => meta.stars?.includes(id))) score += 30;
-      if (query.transformationIds && query.transformationIds.some((id) => meta.transformations?.includes(id))) score += 20;
-      if (query.brightnessIds && query.brightnessIds.some((id) => meta.brightness?.includes(id))) score += 10;
-      if (query.relationIds && query.relationIds.some((id) => meta.relations?.includes(id))) score += 8;
-      if (query.topics && query.topics.some((id) => meta.topics?.includes(id))) score += 4;
+      if (query.patternIds && query.patternIds.some((id) => meta?.patterns?.includes(id))) metadataScore += 100;
+      if (query.palaceIds && query.palaceIds.some((id) => meta?.palaces?.includes(id))) metadataScore += 40;
+      if (query.starIds && query.starIds.some((id) => meta?.stars?.includes(id))) metadataScore += 30;
+      if (query.transformationIds && query.transformationIds.some((id) => meta?.transformations?.includes(id))) metadataScore += 20;
+      if (query.brightnessIds && query.brightnessIds.some((id) => meta?.brightness?.includes(id))) metadataScore += 10;
+      if (query.relationIds && query.relationIds.some((id) => meta?.relations?.includes(id))) metadataScore += 8;
+      if (query.topics && query.topics.some((id) => meta?.topics?.includes(id))) metadataScore += 4;
 
       // Lexical overlap priority 8
       let lexicalMatches = 0;
@@ -61,59 +73,83 @@ function createLocalCorpusRetriever(chunks) {
       for (const w of queryWords) {
         if (contentLower.includes(w)) lexicalMatches += 1;
       }
-      const lexicalScore = queryWords.length > 0 ? lexicalMatches / queryWords.length : 0;
-      const totalScore = score + lexicalScore;
+      const textRank = queryWords.length > 0 ? lexicalMatches / queryWords.length : 0;
 
-      if (totalScore > 0) {
+      // Return only candidates with metadata or lexical relevance
+      if (metadataScore > 0 || textRank > 0) {
         scored.push({
-          score: totalScore,
-          passage: {
-            id: chunk.passageId,
-            passageId: chunk.passageId,
-            documentId: "ziwei-comprehensive-report-vi",
-            discipline: "ziwei",
-            locale: "vi",
-            reportSections: chunk.reportSections,
-            knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
-            content: chunk.content,
-            contentHash: chunk.contentHash,
-            sourceAttribution: "Lá Số Việt Zi Wei Corpus Editorial Board",
-            permittedUse: "reference_rewrite",
-            metadata: chunk.metadata,
-          },
+          id: chunk.passageId,
           passageId: chunk.passageId,
+          documentId: "ziwei-comprehensive-report-vi",
+          discipline: "ziwei",
+          locale: "vi",
+          reportSections: chunk.reportSections,
+          knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+          content: chunk.content,
+          contentHash: chunk.contentHash,
+          sourceAttribution: "Lá Số Việt Zi Wei Corpus Editorial Board",
+          permittedUse: "reference_rewrite",
+          metadata: chunk.metadata,
+          metadataScore,
+          textRank,
         });
       }
     }
 
-    scored.sort((a, b) => b.score - a.score || a.passageId.localeCompare(b.passageId, "en"));
-    return scored.map((s) => s.passage);
+    // Task 5 ranking: metadataScore desc, priority desc, textRank desc, passageId asc
+    scored.sort((a, b) => {
+      const scoreDiff = b.metadataScore - a.metadataScore;
+      if (scoreDiff !== 0) return scoreDiff;
+      const priorityDiff = (b.metadata?.priority ?? 1) - (a.metadata?.priority ?? 1);
+      if (priorityDiff !== 0) return priorityDiff;
+      const rankDiff = b.textRank - a.textRank;
+      if (Math.abs(rankDiff) > 1e-6) return rankDiff;
+      return a.passageId.localeCompare(b.passageId, "en");
+    });
+
+    const maxPassages = query.maxPassages ?? 2;
+    const maxTotalChars = query.maxTotalChars ?? 1800;
+    const seenContentHashes = new Set();
+    const seenPassageIds = new Set();
+    const boundedPassages = [];
+    let totalChars = 0;
+
+    for (const candidate of scored) {
+      if (boundedPassages.length >= maxPassages) break;
+      if (seenContentHashes.has(candidate.contentHash)) continue;
+      if (seenPassageIds.has(candidate.passageId)) continue;
+      if (totalChars + candidate.content.length > maxTotalChars) continue;
+
+      seenContentHashes.add(candidate.contentHash);
+      seenPassageIds.add(candidate.passageId);
+      boundedPassages.push(candidate);
+      totalChars += candidate.content.length;
+    }
+
+    return boundedPassages;
   };
 }
 
-async function evaluateCandidatePool(candidates, adapter) {
+async function evaluateCandidatePool(adapter) {
+  const grid = generateDeterministicCandidateGrid();
   const evaluated = [];
 
-  for (let i = 0; i < candidates.length; i++) {
-    const c = candidates[i];
+  for (let i = 0; i < grid.length; i++) {
+    const c = grid[i];
     const profileRes = normalizeBirthProfile({
       version: 1,
       calendar: { kind: "solar", date: c.date },
       time: { precision: "exact_minute", localTime: c.time },
       timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
-      placeLabel: "Hà Nội",
+      placeLabel: "Việt Nam",
       gender: c.gender,
       consentVersion: "2026-09-01",
       locale: "vi",
     });
-    if (!profileRes.ok) {
-      throw new Error(`Candidate ${i + 1} normalization failed: ${profileRes.error.code}`);
-    }
+    if (!profileRes.ok) continue;
 
     const chartRes = await adapter.calculate({ birthProfile: profileRes.value }, iztroDefaultConfig);
-    if (!chartRes.ok) {
-      throw new Error(`Candidate ${i + 1} calculation failed`);
-    }
+    if (!chartRes.ok) continue;
 
     const facts = buildComprehensiveZiweiFacts(chartRes.output);
     const lifePalace = facts.palaces.find((p) => p.isLifePalace);
@@ -126,7 +162,6 @@ async function evaluateCandidatePool(candidates, adapter) {
     );
 
     evaluated.push({
-      candidateId: `candidate-${i + 1}`,
       facts,
       lifeBranch: lifePalace.earthlyBranchId,
       bodyPalace: bodyPalace.palaceId,
@@ -135,21 +170,29 @@ async function evaluateCandidatePool(candidates, adapter) {
       brightnesses: Array.from(brightnesses),
       transformations: facts.transformations.map((t) => t.id),
     });
+
+    if (evaluated.length >= 40) break;
   }
 
   // Greedy selection of 5 charts satisfying all coverage constraints
   const selected = [];
   const seenLifeBranches = new Set();
   const seenBodyPalaces = new Set();
+  const allPatterns = new Set();
 
   for (const item of evaluated) {
     if (selected.length === 5) break;
     if (seenLifeBranches.has(item.lifeBranch)) continue;
     if (seenBodyPalaces.has(item.bodyPalace)) continue;
+    // Prefer charts that contribute named patterns when needed
+    if (allPatterns.size < 2 && item.patterns.length === 0 && selected.length >= 3) {
+      continue;
+    }
 
     selected.push(item);
     seenLifeBranches.add(item.lifeBranch);
     seenBodyPalaces.add(item.bodyPalace);
+    for (const p of item.patterns) allPatterns.add(p);
   }
 
   if (selected.length !== 5) {
@@ -159,7 +202,6 @@ async function evaluateCandidatePool(candidates, adapter) {
   }
 
   // Verify collective coverage constraints across selected charts
-  const allPatterns = new Set(selected.flatMap((s) => s.patterns));
   const allTransformations = new Set(selected.flatMap((s) => s.transformations));
   const allBrightnesses = new Set(selected.flatMap((s) => s.brightnesses));
   const totalEmptyPalaces = selected.reduce((acc, s) => acc + s.emptyPalacesCount, 0);
@@ -214,21 +256,26 @@ async function evaluateCandidatePool(candidates, adapter) {
 
 function parseCliArguments() {
   const args = process.argv.slice(2);
-  const isPrepareOnly = args.includes("--prepare-only");
-  const isExecuteProvider = args.includes("--execute-provider");
+  const hasPrepareOnly = args.includes("--prepare-only");
+  const hasExecuteProvider = args.includes("--execute-provider");
   const outputDirIdx = args.indexOf("--output-dir");
   const outputDir = outputDirIdx !== -1 ? args[outputDirIdx + 1] : undefined;
 
+  if (hasPrepareOnly && hasExecuteProvider) {
+    console.error("BLOCKED: Conflicting arguments: --prepare-only and --execute-provider are mutually exclusive.");
+    process.exit(1);
+  }
+
   return {
-    prepareOnly: isPrepareOnly || !isExecuteProvider,
-    executeProvider: isExecuteProvider,
+    prepareOnly: hasPrepareOnly || !hasExecuteProvider,
+    executeProvider: hasExecuteProvider,
     outputDir,
   };
 }
 
-function validatePrivateOutputDirectory(outputDir) {
+export function validatePrivateOutputDirectory(outputDir) {
   if (!outputDir) {
-    throw new Error("Missing required --output-dir <path> argument for provider execution");
+    throw new Error("BLOCKED: Missing required --output-dir <path> argument for provider execution");
   }
 
   if (!isAbsolute(outputDir)) {
@@ -236,8 +283,47 @@ function validatePrivateOutputDirectory(outputDir) {
   }
 
   const resolved = resolve(outputDir);
-  if (resolved === REPO_ROOT || resolved.startsWith(REPO_ROOT + sep)) {
+  const realRepoRoot = realpathSync(REPO_ROOT);
+
+  if (
+    resolved === REPO_ROOT ||
+    resolved === realRepoRoot ||
+    resolved.startsWith(REPO_ROOT + sep) ||
+    resolved.startsWith(realRepoRoot + sep)
+  ) {
     throw new Error("BLOCKED: --output-dir must reside outside the canonical repository root");
+  }
+
+  // Find nearest existing ancestor and check its realpath
+  let current = resolved;
+  while (!existsSync(current)) {
+    const parent = dirname(current);
+    if (parent === current) {
+      throw new Error("BLOCKED: Root filesystem path does not exist");
+    }
+    current = parent;
+  }
+
+  const realExistingAncestor = realpathSync(current);
+  if (
+    realExistingAncestor === REPO_ROOT ||
+    realExistingAncestor === realRepoRoot ||
+    realExistingAncestor.startsWith(REPO_ROOT + sep) ||
+    realExistingAncestor.startsWith(realRepoRoot + sep)
+  ) {
+    throw new Error("BLOCKED: --output-dir ancestor symlink resolves inside the repository root");
+  }
+
+  // Project the remaining path from realExistingAncestor to verify canonical destination
+  const remainingPath = relative(current, resolved);
+  const projectedTarget = resolve(realExistingAncestor, remainingPath);
+  if (
+    projectedTarget === REPO_ROOT ||
+    projectedTarget === realRepoRoot ||
+    projectedTarget.startsWith(REPO_ROOT + sep) ||
+    projectedTarget.startsWith(realRepoRoot + sep)
+  ) {
+    throw new Error("BLOCKED: --output-dir projected canonical path resolves inside the repository root");
   }
 
   if (existsSync(resolved)) {
@@ -245,15 +331,40 @@ function validatePrivateOutputDirectory(outputDir) {
     if (!stat.isDirectory()) {
       throw new Error("BLOCKED: --output-dir target exists and is not a directory");
     }
-    const real = realpathSync(resolved);
-    if (real === REPO_ROOT || real.startsWith(REPO_ROOT + sep)) {
+    const realOut = realpathSync(resolved);
+    if (
+      realOut === REPO_ROOT ||
+      realOut === realRepoRoot ||
+      realOut.startsWith(REPO_ROOT + sep) ||
+      realOut.startsWith(realRepoRoot + sep)
+    ) {
       throw new Error("BLOCKED: --output-dir symlink target resolves inside the repository root");
     }
+    // Enforce owner-only directory permissions (0700) on existing directory
+    chmodSync(realOut, 0o700);
   } else {
     mkdirSync(resolved, { recursive: true, mode: 0o700 });
+    const realOut = realpathSync(resolved);
+    if (
+      realOut === REPO_ROOT ||
+      realOut === realRepoRoot ||
+      realOut.startsWith(REPO_ROOT + sep) ||
+      realOut.startsWith(realRepoRoot + sep)
+    ) {
+      throw new Error("BLOCKED: --output-dir created target resolves inside the repository root");
+    }
+    chmodSync(realOut, 0o700);
   }
 
-  return resolved;
+  return realpathSync(resolved);
+}
+
+function writePrivateFile(filePath, content) {
+  if (existsSync(filePath)) {
+    throw new Error(`BLOCKED: Private output file already exists and cannot be overwritten: ${filePath}`);
+  }
+  writeFileSync(filePath, content, { encoding: "utf8", mode: 0o600 });
+  chmodSync(filePath, 0o600);
 }
 
 function checkProviderEnvironment() {
@@ -295,24 +406,58 @@ function checkProviderEnvironment() {
   return { ready: true };
 }
 
+function extractValidationFindingCounts(validationResult) {
+  let duplicateParagraphCount = 0;
+  let prohibitedPhraseCount = 0;
+  let rawTechnicalIdentifierCount = 0;
+
+  if (!validationResult.ok && Array.isArray(validationResult.errors)) {
+    for (const err of validationResult.errors) {
+      if (err.includes("Duplicate narrative paragraph") || err.includes("Near-duplicate narrative paragraph")) {
+        duplicateParagraphCount += 1;
+      } else if (err.includes("Raw technical identifier leaked in")) {
+        rawTechnicalIdentifierCount += 1;
+      } else if (err.includes("Prohibited")) {
+        prohibitedPhraseCount += 1;
+      }
+    }
+  }
+
+  return {
+    duplicateParagraphCount,
+    prohibitedPhraseCount,
+    rawTechnicalIdentifierCount,
+  };
+}
+
 async function main() {
   const cli = parseCliArguments();
 
-  // Load and validate committed V3 corpus manifest
+  // Load and strictly validate committed V3 corpus manifest using production contract
   if (!existsSync(CORPUS_PATH)) {
-    throw new Error(`Committed V3 corpus not found at ${CORPUS_PATH}`);
+    throw new Error(`BLOCKED: Committed V3 corpus not found at ${CORPUS_PATH}`);
   }
-  const manifest = JSON.parse(readFileSync(CORPUS_PATH, "utf8"));
-  if (!Array.isArray(manifest.chunks) || manifest.chunks.length === 0) {
-    throw new Error("Committed V3 corpus has invalid or empty chunk manifest");
+  let rawJson;
+  try {
+    rawJson = JSON.parse(readFileSync(CORPUS_PATH, "utf8"));
+  } catch {
+    throw new Error("BLOCKED: Committed V3 corpus is not valid JSON");
   }
+
+  const validation = validateKnowledgeManifest(rawJson, { repositoryRoot: REPO_ROOT });
+  if (!validation.ok) {
+    throw new Error(
+      `BLOCKED: Committed V3 corpus manifest validation failed: ${validation.code} - ${validation.message}`,
+    );
+  }
+  const manifest = validation.value;
   const retriever = createLocalCorpusRetriever(manifest.chunks);
 
   // Initialize deterministic engine adapter
   const adapter = new IztroAdapter();
 
   // Evaluate candidate pool and select 5 synthetic charts
-  const { selected, aggregateCoverage } = await evaluateCandidatePool(SYNTHETIC_CANDIDATE_POOL, adapter);
+  const { selected, aggregateCoverage } = await evaluateCandidatePool(adapter);
 
   // Prepare knowledge packs for each selected sample (19 packs per sample)
   const preparedSamples = [];
@@ -380,13 +525,21 @@ async function main() {
       const durationMs = Date.now() - startTime;
       const sampleHttpRequests = totalHttpRequests - prevHttpCount;
 
+      // Strict invariant check: assert exactly 1 provider call and 1 HTTP request per sample
+      if (generateStructuredCalls !== 1 || sampleHttpRequests !== 1) {
+        throw new Error(
+          `BLOCKED: Sample ${sample.sampleId} violated single-call invariant: provider calls=${generateStructuredCalls}, HTTP requests=${sampleHttpRequests}`,
+        );
+      }
+
       if (!writerResult.ok) {
         throw new Error(`Sample ${sample.sampleId} generation failed: ${writerResult.error.code}`);
       }
 
       const report = writerResult.value.report;
-      const validation = validateComprehensiveZiweiReport(report, sample.facts);
+      const validationRes = validateComprehensiveZiweiReport(report, sample.facts);
       const html = renderComprehensiveZiweiHtml(report);
+      const findingCounts = extractValidationFindingCounts(validationRes);
 
       // Compute Vietnamese words
       const textToCount = [
@@ -400,16 +553,16 @@ async function main() {
       ].join(" ");
       const wordCount = textToCount.trim().split(/\s+/).filter(Boolean).length;
 
-      // Write private artifacts (never added to Git)
+      // Write private artifacts (mode 0600, fail closed on collision, never in Git)
       const sampleBaseName = sample.sampleId.toLowerCase();
-      writeFileSync(join(privateOutputDir, `${sampleBaseName}-report.json`), JSON.stringify(report, null, 2), {
-        encoding: "utf8",
-        mode: 0o600,
-      });
-      writeFileSync(join(privateOutputDir, `${sampleBaseName}-report.html`), html, {
-        encoding: "utf8",
-        mode: 0o600,
-      });
+      writePrivateFile(
+        join(privateOutputDir, `${sampleBaseName}-report.json`),
+        JSON.stringify(report, null, 2),
+      );
+      writePrivateFile(
+        join(privateOutputDir, `${sampleBaseName}-report.html`),
+        html,
+      );
 
       metrics.push({
         sampleId: sample.sampleId,
@@ -417,7 +570,10 @@ async function main() {
         providerCalls: generateStructuredCalls,
         httpRequests: sampleHttpRequests,
         wordCount,
-        validatorOk: validation.ok,
+        validatorOk: validationRes.ok,
+        duplicateParagraphCount: findingCounts.duplicateParagraphCount,
+        prohibitedPhraseCount: findingCounts.prohibitedPhraseCount,
+        rawTechnicalIdentifierCount: findingCounts.rawTechnicalIdentifierCount,
         twelvePalacesComplete: report.palaceReadings.length === 12,
         fourThemesComplete: report.thematicSynthesis.length === 4,
         htmlGenerated: Boolean(html && html.length > 0),
@@ -431,16 +587,13 @@ async function main() {
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 ${metrics.map((m) => `| ${m.sampleId} | | | | | | | |`).join("\n")}
 `;
-    writeFileSync(join(privateOutputDir, "review-worksheet.md"), worksheetContent, {
-      encoding: "utf8",
-      mode: 0o600,
-    });
+    writePrivateFile(join(privateOutputDir, "review-worksheet.md"), worksheetContent);
 
     console.log("=== Zi Wei V3 Provider Quality Generation Summary ===");
     console.log(`Samples Generated: ${metrics.length}`);
     for (const m of metrics) {
       console.log(
-        `[${m.sampleId}] Duration: ${m.durationMs}ms | Calls: ${m.providerCalls} | HTTP: ${m.httpRequests} | Words: ${m.wordCount} | Valid: ${m.validatorOk} | 12 Palaces: ${m.twelvePalacesComplete} | 4 Themes: ${m.fourThemesComplete}`,
+        `[${m.sampleId}] Duration: ${m.durationMs}ms | Calls: ${m.providerCalls} | HTTP: ${m.httpRequests} | Words: ${m.wordCount} | Valid: ${m.validatorOk} | Dups: ${m.duplicateParagraphCount} | Prohibited: ${m.prohibitedPhraseCount} | RawIDs: ${m.rawTechnicalIdentifierCount} | 12 Palaces: ${m.twelvePalacesComplete} | 4 Themes: ${m.fourThemesComplete}`,
       );
     }
     return;
@@ -466,7 +619,9 @@ ${metrics.map((m) => `| ${m.sampleId} | | | | | | | |`).join("\n")}
   console.log("Provider Execution Status: BLOCKED (AI environment credentials unset)");
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : String(err));
-  process.exit(1);
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  });
+}

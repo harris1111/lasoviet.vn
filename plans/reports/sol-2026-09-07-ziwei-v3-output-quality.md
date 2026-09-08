@@ -2,25 +2,25 @@
 
 - **Document:** `plans/reports/sol-2026-09-07-ziwei-v3-output-quality.md`
 - **Execution Date:** 2026-09-08
-- **Phase:** Phase 04 Zi Wei Quality Hardening (Task 8A)
+- **Phase:** Phase 04 Zi Wei Quality Hardening (Task 8A Correction Pass 1)
 - **Worktree:** `/home/debian/projects/lasoviet.vn-ziwei-v3`
 - **Branch:** `handoff/ziwei-report-quality-20260907`
-- **Baseline HEAD:** `9830c1d37db5462d19065007d6d7d644766ce589`
+- **Baseline HEAD:** `6648d288e2803d68e4615dd85efb1500a80df22c`
 
 ## 1. Executive Summary
 
-This report records the safe, provider-independent preparation of the private output-quality evaluation for Vietnamese comprehensive Zi Wei V3 reports.
+This report records the safe, provider-independent preparation of the private output-quality evaluation for Vietnamese comprehensive Zi Wei V3 reports following Task 8A remediation.
 
-- **Local Preparation:** Successfully completed using deterministic calculation, fact extraction, greedy coverage selection, and in-memory V3 corpus retrieval. Five diverse synthetic charts were selected and prepared across all 19 report knowledge packs (95 total packs, 764 passages) with zero network calls and zero committed private data.
-- **Provider Execution Gate:** BLOCKED as expected in this sandboxed worktree because runtime `AI_*` provider credentials are not present. In accordance with repository policy, no credentials were fabricated, committed, or requested. Output quality acceptance is strictly withheld pending actual provider generation and human scoring.
+- **Local Preparation:** Completed using deterministic calculation, fact extraction, live chart greedy selection from a runtime-generated candidate grid, production manifest validation (`validateKnowledgeManifest`), and faithful in-memory V3 corpus retrieval honoring Task 5 query limits and priority ordering. Five qualifying synthetic charts were selected and prepared across all 19 report knowledge packs (95 total packs, 190 total passages) with zero network calls, zero committed private birth data, and zero private report artifacts in the repository.
+- **Provider Execution Gate:** BLOCKED as required because runtime `AI_*` provider credentials are not present in this worktree environment. In accordance with repository policy, no credentials were fabricated, committed, or requested. Output quality acceptance is strictly withheld pending actual provider generation and human scoring.
 
 ## 2. Sample Preparation & Coverage Metrics
 
-The candidate pool and selection algorithm deterministically verified all plan coverage criteria without leaking birth data, report prose, full prompts, or private paths:
+The candidate pool is generated at runtime via numeric loops without any hardcoded dates or times in the source. Selection deterministically verified all plan coverage criteria without leaking birth data, report prose, full prompts, or private paths:
 
 | Metric | Target | Result | Status |
 |---|:---:|:---:|:---:|
-| Candidate Pool Evaluated | >= 5 | 10 | PASS |
+| Candidate Pool Evaluated | Runtime Grid | 40 candidates evaluated | PASS |
 | Samples Selected | Exactly 5 | 5 | PASS |
 | Sample Identifiers | Synthetic only | `SAMPLE-01`, `SAMPLE-02`, `SAMPLE-03`, `SAMPLE-04`, `SAMPLE-05` | PASS |
 | Distinct Life Palace Placements | >= 5 | 5/5 | PASS |
@@ -28,18 +28,21 @@ The candidate pool and selection algorithm deterministically verified all plan c
 | Favorable Brightness Values | Present | Exalted, prosperous, favorable | PASS |
 | Difficult Brightness Values | Present | Weak, unfavorable | PASS |
 | Four Transformations Coverage | 4/4 | 4/4 (Hóa Lộc, Hóa Quyền, Hóa Khoa, Hóa Kỵ) | PASS |
-| Supported Named Patterns Covered | >= 2 | 3 (`ji-yue-tong-liang`, `sha-po-lang`, `san-qi-jia-hui`) | PASS |
+| Supported Named Patterns Covered | >= 2 | 3 (`ji-yue-tong-liang`, `san-qi-jia-hui`, `sha-po-lang`) | PASS |
 | Sparse Principal-Star Palaces | Present | 60 empty palaces across samples | PASS |
 | Total Knowledge Packs Prepared | 95 (19 per sample) | 95 | PASS |
-| Total Passages Prepared | Bounded | 764 | PASS |
+| Total Passages Prepared (Task 5 bounded) | Bounded | 190 (max 2 passages/pack) | PASS |
 | External Network Calls | 0 | 0 | PASS |
 | Committed Private Report Artifacts | 0 | 0 | PASS |
 
 ## 3. Provider Execution Guard & Security Invariants
 
-The sampler script (`scripts/generate-ziwei-quality-samples.mjs`) enforces strict boundaries:
+The sampler script (`scripts/generate-ziwei-quality-samples.mjs`) enforces hardened boundary rules:
 
-1. **Eight Environment Invariants:**
+1. **Mutually Exclusive CLI Flags:**
+   `--prepare-only` and `--execute-provider` are mutually exclusive and immediately abort execution if both are passed, before checking environment variables or touching adapter code.
+
+2. **Eight Environment Invariants:**
    Provider mode strictly requires:
    - `AI_BASE_URL`
    - `AI_API_KEY`
@@ -51,14 +54,21 @@ The sampler script (`scripts/generate-ziwei-quality-samples.mjs`) enforces stric
    - `AI_PRODUCTION_ENABLED=true`
    Missing any variable aborts execution immediately before any adapter instantiation or HTTP request.
 
-2. **Explicit CLI Gate:**
-   Normal generation requires both the complete environment and the `--execute-provider` flag.
+3. **External Output Boundary & Symlink Defense:**
+   `--output-dir` is required for provider execution and must be an absolute path strictly outside the repository root.
+   - Nearest existing ancestor resolution prevents symlink-based redirection into the repository prior to directory creation.
+   - Post-creation `realpath` revalidation prevents escape.
+   - Enforces mode `0700` on both newly created and pre-existing target directories.
+   - Enforces mode `0600` on private files and fails closed if private output files already exist, preventing silent overwriting.
 
-3. **External Output Boundary:**
-   `--output-dir` is required for provider execution and must be an absolute path strictly outside the repository root. Relative paths, in-repo paths, and symlink traversals are rejected. Private files are written with `0o600` permissions and never tracked by Git.
+4. **Faithful Local Corpus Retrieval (Task 5 Semantics):**
+   - Validates the committed corpus using production `validateKnowledgeManifest(rawJson, { repositoryRoot: REPO_ROOT })`.
+   - Implements Task 5 priority ordering: pattern (+100), palace (+40), star (+30), transformation (+20), brightness (+10), relation (+8), topic (+4); then `metadata.priority` descending; then lexical overlap rank descending; then stable `passageId` ascending.
+   - Enforces content-hash then passage-ID deduplication and query bounds (`query.maxPassages` and `query.maxTotalChars`), continuing past non-fitting candidates.
 
-4. **Zero-Retry Request Accounting:**
-   When provider execution runs, the adapter enforces `retryCount: 0` and tracks both `provider.generateStructured` calls and underlying `fetch` HTTP requests (exactly 1 of each per sample).
+5. **Strict Single-Call Accounting & Metric Isolation:**
+   - Every provider sample strictly asserts `generateStructuredCalls === 1` and `sampleHttpRequests === 1` before file writing or metrics recording.
+   - Computes explicit `duplicateParagraphCount`, `prohibitedPhraseCount`, and `rawTechnicalIdentifierCount` from deterministic validation findings.
 
 ## 4. Human Review Worksheet Format
 
@@ -80,7 +90,16 @@ The full verification suite was executed against the clean repository state:
   ```bash
   node scripts/generate-ziwei-quality-samples.mjs --prepare-only
   ```
-  *Result:* PASS (5 samples selected, 95 knowledge packs prepared, 0 network calls, 0 private artifacts).
+  *Result:* PASS (5 samples selected, 95 knowledge packs prepared, 190 total passages, 0 network calls, 0 private artifacts).
+
+- **Conflicting Flags Guard:**
+  ```bash
+  node scripts/generate-ziwei-quality-samples.mjs --prepare-only --execute-provider
+  ```
+  *Result:* PASS (aborted with `BLOCKED: Conflicting arguments: --prepare-only and --execute-provider are mutually exclusive.`).
+
+- **Security Probes (Ancestor-Symlink Rejection & Directory Mode Repair):**
+  *Result:* PASS (existing directory mode 755 repaired to 700; ancestor symlink into repository correctly rejected; temporary artifacts removed).
 
 - **Task 1-7 Regression & Integration Suite (11 test files, 103 passed):**
   ```bash
@@ -104,7 +123,7 @@ The full verification suite was executed against the clean repository state:
   ```bash
   corepack pnpm@11.25.0 --filter @lasoviet/web run build
   ```
-  *Result:* PASS (Turbopack production build succeeded in 8.2s).
+  *Result:* PASS (Turbopack production build succeeded in 8.4s).
 
 - **Git Diff Check:**
   ```bash
