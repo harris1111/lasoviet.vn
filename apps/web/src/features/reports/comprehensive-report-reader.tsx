@@ -2,35 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import type {
-  EvidenceItemV1,
-  ReportReadyViewV1,
-} from "@lasoviet/contracts";
+import type { ReportComprehensiveReadyViewV1 } from "@lasoviet/contracts";
 
 import { ArtifactImage } from "../../components/artifact-image";
-import { ComprehensiveReportReader } from "./comprehensive-report-reader";
-import { ziweiPresentation } from "../ziwei/ziwei-presentation";
 
-export type ReportReaderProps = {
-  locale: "vi" | "en";
-  report: ReportReadyViewV1;
+export type ComprehensiveReportReaderProps = {
+  locale: "vi";
+  report: ReportComprehensiveReadyViewV1;
 };
-
-const LEGACY_HIDDEN_SECTION_IDS = new Set([
-  "data_and_method",
-  "primary_evidence",
-  "limitations_and_disclaimer",
-]);
 
 const FONT_CLASSES = ["reader-font-sm", "reader-font-md", "reader-font-lg"] as const;
 
-export function ReportReader({ locale, report }: ReportReaderProps) {
-  if (report.contentVersion === "ziwei-comprehensive.v1") {
-    return <ComprehensiveReportReader locale="vi" report={report} />;
-  }
-
+export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderProps) {
   const t = useTranslations("reports");
-  const presentation = ziweiPresentation(locale);
 
   const [fontIdx, setFontIdx] = useState<number>(1);
   const [activeSectionIdx, setActiveSectionIdx] = useState<number>(0);
@@ -41,26 +25,29 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
   const tocDialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const fontLabels = useMemo(() => [
-    t("reader.font_size_small"),
-    t("reader.font_size_medium"),
-    t("reader.font_size_large"),
-  ], [t]);
-
-  const evidenceMap = useMemo(() => {
-    const map = new Map<string, EvidenceItemV1>();
-    for (const item of report.evidence) {
-      map.set(item.id, item);
-    }
-    return map;
-  }, [report.evidence]);
-
-  const sections = useMemo(
-    () => report.content.sections.filter((s) => !LEGACY_HIDDEN_SECTION_IDS.has(s.id)),
-    [report.content.sections],
+  const fontLabels = useMemo(
+    () => [
+      t("reader.font_size_small"),
+      t("reader.font_size_medium"),
+      t("reader.font_size_large"),
+    ],
+    [t],
   );
 
-  // Font size local storage restoration
+  const tocSections = useMemo(
+    () => [
+      { id: "section-overview", title: report.content.overview.title },
+      { id: "section-core-axis", title: report.content.coreAxis.title },
+      { id: "section-key-configurations", title: "Cấu Trúc Và Cách Cục Trọng Yếu" },
+      { id: "section-palace-readings", title: "Luận Giải Chi Tiết Mười Hai Cung" },
+      { id: "section-thematic-synthesis", title: "Tổng Hợp Các Lĩnh Vực Đời Sống" },
+      { id: "section-strengths-tensions", title: report.content.strengthsAndTensions.title },
+      { id: "section-practical-direction", title: "Định Hướng Và Hành Động Thực Tế" },
+    ],
+    [report.content],
+  );
+
+  // Restore font size from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem("lsv-font-idx");
@@ -83,7 +70,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     try {
       localStorage.setItem("lsv-font-idx", String(clamped));
     } catch {
-      // Local storage failure ignored
+      // Ignore storage errors
     }
   };
 
@@ -137,13 +124,13 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     };
   }, [report.reportId]);
 
-  // Section observer for TOC & rail tracking
+  // Section observer for TOC tracking
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            const idx = sections.findIndex((s) => s.id === entry.target.id);
+            const idx = tocSections.findIndex((s) => s.id === entry.target.id);
             if (idx !== -1) {
               setActiveSectionIdx(idx);
             }
@@ -159,13 +146,12 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     return () => {
       observer.disconnect();
     };
-  }, [sections]);
+  }, [tocSections]);
 
   // Mobile TOC Dialog Keyboard Lifecycle
   useEffect(() => {
     if (!tocOpen) return;
 
-    // Initial focus inside dialog
     closeButtonRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -213,24 +199,10 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     tocOpenerRef.current?.focus();
   };
 
-  const activeSection = sections[activeSectionIdx] ?? sections[0];
-  const activeSectionEvidence = useMemo(() => {
-    if (!activeSection) return [];
-    const ids = new Set<string>();
-    for (const c of activeSection.claims) {
-      for (const eid of c.evidenceIds) {
-        ids.add(eid);
-      }
-    }
-    return Array.from(ids)
-      .map((id) => evidenceMap.get(id))
-      .filter((item): item is EvidenceItemV1 => item !== undefined);
-  }, [activeSection, evidenceMap]);
-
   const scrollToSection = (idx: number) => {
-    const targetSection = sections[idx];
-    if (!targetSection) return;
-    const el = document.getElementById(targetSection.id);
+    const target = tocSections[idx];
+    if (!target) return;
+    const el = document.getElementById(target.id);
     if (el) {
       const top = el.getBoundingClientRect().top + window.scrollY - 72;
       const prefersReducedMotion =
@@ -244,18 +216,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     setActiveSectionIdx(idx);
   };
 
-  const createdDateStr = useMemo(() => {
-    try {
-      const date = new Date(report.provenance.createdAt);
-      return date.toLocaleDateString(locale === "en" ? "en-US" : "vi-VN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch {
-      return report.provenance.createdAt;
-    }
-  }, [report.provenance.createdAt, locale]);
+  const activeSection = tocSections[activeSectionIdx] ?? tocSections[0];
 
   return (
     <div className={`report-reader-root ${FONT_CLASSES[fontIdx]}`}>
@@ -267,12 +228,12 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
       <header className="report-reader-header">
         <div className="report-header-inner">
           <div className="report-header-brand">
-            <span className="report-header-eyebrow">{t("reader.eyebrow")}</span>
-            <h1 className="report-header-title">{t("reader.title")}</h1>
+            <span className="report-header-eyebrow">BÁO CÁO LUẬN GIẢI TOÀN DIỆN</span>
+            <h1 className="report-header-title">Báo Cáo Luận Giải Toàn Diện Tử Vi</h1>
           </div>
 
           <div className="report-header-controls">
-            {/* Font size segmented choices */}
+            {/* Font size controls */}
             <div
               className="report-font-control"
               role="group"
@@ -287,9 +248,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
               >
                 A-
               </button>
-              <span className="report-font-label">
-                {fontLabels[fontIdx]}
-              </span>
+              <span className="report-font-label">{fontLabels[fontIdx]}</span>
               <button
                 type="button"
                 className="report-font-btn"
@@ -325,7 +284,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
         <nav className="report-toc-rail" aria-label={t("reader.toc_title")}>
           <div className="report-rail-heading">{t("reader.toc_title")}</div>
           <ol className="report-toc-list">
-            {sections.map((sec, i) => {
+            {tocSections.map((sec, i) => {
               const isCurrent = i === activeSectionIdx;
               const numeral = String(i + 1).padStart(2, "0");
               return (
@@ -350,157 +309,148 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
           {/* Frontispiece */}
           <div className="report-frontispiece">
             <ArtifactImage
-              alt={t("reader.frontispiece_alt")}
+              alt="Bìa báo cáo luận giải Tử Vi — ảnh vật phẩm sơn mài"
               desktop="/images/lasoviet/frontispiece-bao-cao-luan-giai-tu-vi.webp"
             />
           </div>
 
           <div className="report-intro-meta">
-            <p className="eyebrow">{t("reader.eyebrow")} · {t("reader.version_label", { version: "1.0" })}</p>
-            <h2 className="report-doc-title">{t("reader.title")}</h2>
-            <p className="report-doc-date">
-              {t("reader.created_prefix")} {createdDateStr} · {t("reader.based_on")}
-            </p>
+            <p className="eyebrow">BÁO CÁO LUẬN GIẢI TOÀN DIỆN · TỬ VI ĐẨU SỐ</p>
+            <h2 className="report-doc-title">Báo Cáo Luận Giải Toàn Diện Tử Vi</h2>
           </div>
 
-          {/* Canonical AI Disclosure */}
-          <div className="report-ai-disclosure" role="note">
-            <p>{t("reader.ai_disclosure")}</p>
-          </div>
-
-          {/* 11 Canonical Sections in stored order */}
+          {/* 7 Groups in Canonical Sequence */}
           <div className="report-sections-stream">
-            {sections.map((section, index) => {
-              const numeral = String(index + 1).padStart(2, "0");
-              return (
-                <section
-                  key={section.id}
-                  id={section.id}
-                  data-report-section
-                  className="report-section-block"
-                >
-                  <div className="report-section-header">
-                    <span className="report-section-numeral">{numeral}</span>
-                    <h3 className="report-section-title">{section.title}</h3>
-                  </div>
-
-                  <div className="report-section-narrative">
-                    <p>{section.narrative}</p>
-                  </div>
-
-                  {/* Section Claims with Evidence Triggers */}
-                  {section.claims.length > 0 && (
-                    <div className="report-claims-group">
-                      {section.claims.map((claim) => (
-                        <article key={claim.id} className="report-claim-card">
-                          <p className="report-claim-statement">{claim.text}</p>
-
-                          <div className="report-claim-evidence-row">
-                            {claim.evidenceIds.map((eid) => {
-                              const ev = evidenceMap.get(eid);
-                              if (!ev) return null;
-                              return (
-                                <details key={ev.id} className="report-evidence-inline-details">
-                                  <summary className="report-evidence-summary-btn">
-                                    <span className="report-evidence-icon" aria-hidden="true">
-                                      ✦
-                                    </span>
-                                    <span>
-                                      {t("reader.evidence_action")}: {presentation.evidence(ev.id)}
-                                    </span>
-                                  </summary>
-                                  <div className="report-evidence-popover">
-                                    <h4 className="report-evidence-title">
-                                      {presentation.evidence(ev.id)}
-                                    </h4>
-                                    <dl className="report-evidence-spec">
-                                      <dt>{presentation.chrome.chartFacts}</dt>
-                                      <dd>{ev.factReferences.map((f) => presentation.fact(f)).join(", ")}</dd>
-                                    </dl>
-                                  </div>
-                                </details>
-                              );
-                            })}
-                          </div>
-
-                          {/* Claim Suggested Actions */}
-                          {claim.suggestedActions.length > 0 && (
-                            <div className="report-claim-actions">
-                              <span className="report-meta-label">{t("reader.suggested_actions_title")}:</span>
-                              <ul>
-                                {claim.suggestedActions.map((act, ai) => (
-                                  <li key={ai}>{act.text}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
-          </div>
-
-          {/* Reflection Questions */}
-          {report.content.reflectionQuestions.length > 0 && (
-            <section className="report-reflection-section" aria-label={t("reader.reflection_title")}>
-              <h3 className="report-reflection-heading">{t("reader.reflection_title")}</h3>
-              <ol className="report-reflection-list">
-                {report.content.reflectionQuestions.map((q, qi) => (
-                  <li key={qi}>{q}</li>
-                ))}
-              </ol>
+            {/* 1. Overview */}
+            <section
+              id="section-overview"
+              data-report-section
+              className="report-section-block"
+            >
+              <div className="report-section-header">
+                <span className="report-section-numeral">01</span>
+                <h3 className="report-section-title">{report.content.overview.title}</h3>
+              </div>
+              <div className="report-section-narrative">
+                <p>{report.content.overview.narrative}</p>
+              </div>
             </section>
-          )}
 
-          {/* Summary Actions */}
-          {report.content.summaryActions.length > 0 && (
-            <section className="report-summary-actions-section" aria-label={t("reader.summary_actions_title")}>
-              <h3 className="report-summary-actions-heading">{t("reader.summary_actions_title")}</h3>
-              <ul className="report-summary-actions-list">
-                {report.content.summaryActions.map((act, ai) => (
-                  <li key={ai}>{act}</li>
+            {/* 2. Core Axis */}
+            <section
+              id="section-core-axis"
+              data-report-section
+              className="report-section-block"
+            >
+              <div className="report-section-header">
+                <span className="report-section-numeral">02</span>
+                <h3 className="report-section-title">{report.content.coreAxis.title}</h3>
+              </div>
+              <div className="report-section-narrative">
+                <p>{report.content.coreAxis.narrative}</p>
+              </div>
+            </section>
+
+            {/* 3. Key Configurations */}
+            <section
+              id="section-key-configurations"
+              data-report-section
+              className="report-section-block"
+            >
+              <div className="report-section-header">
+                <span className="report-section-numeral">03</span>
+                <h3 className="report-section-title">Cấu Trúc Và Cách Cục Trọng Yếu</h3>
+              </div>
+              <div className="report-subcard-group">
+                {report.content.keyConfigurations.map((config, index) => (
+                  <article key={index} className="report-subcard">
+                    <h4 className="report-subcard-title">{config.title}</h4>
+                    <p className="report-subcard-narrative">{config.narrative}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {/* 4. Twelve Palace Readings */}
+            <section
+              id="section-palace-readings"
+              data-report-section
+              className="report-section-block"
+            >
+              <div className="report-section-header">
+                <span className="report-section-numeral">04</span>
+                <h3 className="report-section-title">Luận Giải Chi Tiết Mười Hai Cung</h3>
+              </div>
+              <div className="report-subcard-group">
+                {report.content.palaceReadings.map((palace) => (
+                  <article key={palace.palaceId} id={`palace-${palace.palaceId.replace("ziwei.palace.", "")}`} className="report-subcard">
+                    <h4 className="report-subcard-title">{palace.title}</h4>
+                    <p className="report-subcard-narrative">{palace.narrative}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {/* 5. Four Thematic Synthesis Sections */}
+            <section
+              id="section-thematic-synthesis"
+              data-report-section
+              className="report-section-block"
+            >
+              <div className="report-section-header">
+                <span className="report-section-numeral">05</span>
+                <h3 className="report-section-title">Tổng Hợp Các Lĩnh Vực Đời Sống</h3>
+              </div>
+              <div className="report-subcard-group">
+                {report.content.thematicSynthesis.map((theme) => (
+                  <article key={theme.id} id={`theme-${theme.id}`} className="report-subcard">
+                    <h4 className="report-subcard-title">{theme.title}</h4>
+                    <p className="report-subcard-narrative">{theme.narrative}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {/* 6. Strengths and Tensions */}
+            <section
+              id="section-strengths-tensions"
+              data-report-section
+              className="report-section-block"
+            >
+              <div className="report-section-header">
+                <span className="report-section-numeral">06</span>
+                <h3 className="report-section-title">{report.content.strengthsAndTensions.title}</h3>
+              </div>
+              <div className="report-section-narrative">
+                <p>{report.content.strengthsAndTensions.narrative}</p>
+              </div>
+            </section>
+
+            {/* 7. Practical Direction */}
+            <section
+              id="section-practical-direction"
+              data-report-section
+              className="report-section-block"
+            >
+              <div className="report-section-header">
+                <span className="report-section-numeral">07</span>
+                <h3 className="report-section-title">Định Hướng Và Hành Động Thực Tế</h3>
+              </div>
+              <ul className="report-directions-list">
+                {report.content.practicalDirection.map((direction, index) => (
+                  <li key={index}>{direction}</li>
                 ))}
               </ul>
             </section>
-          )}
-
-
+          </div>
 
           <div className="report-end-marker" aria-hidden="true">
             <span>{t("reader.end_of_report")}</span>
           </div>
-
-          {/* Safe Provenance Footer */}
-          <footer className="report-provenance-footer">
-            <h4 className="report-provenance-title">{t("reader.provenance_heading")}</h4>
-            <div className="report-provenance-grid">
-              <div>{t("reader.provenance_method")}</div>
-              <div>
-                {t("reader.provenance_rule")}: <code>{report.provenance.ruleVersion}</code>
-              </div>
-              <div>
-                {t("reader.provenance_evidence")}: <code>v{report.provenance.evidenceVersion}</code>
-              </div>
-              <div>
-                {t("reader.provenance_knowledge")}: <code>{report.provenance.knowledgeVersion}</code>
-              </div>
-              <div>
-                {t("reader.provenance_template")}: <code>{report.provenance.templateVersion}</code>
-              </div>
-              <div>
-                {t("reader.provenance_created")}: <code>{report.provenance.createdAt}</code>
-              </div>
-            </div>
-          </footer>
         </main>
 
-        {/* RIGHT EVIDENCE CONTEXT RAIL (Desktop) */}
-        <aside className="report-evidence-rail" aria-label={t("reader.evidence_eyebrow")}>
+        {/* RIGHT READING PROGRESS RAIL (Desktop) */}
+        <aside className="report-evidence-rail" aria-label={t("reader.toc_title")}>
           <div className="report-progress-bar-wrap">
             <div
               className="report-progress-bar-fill"
@@ -513,21 +463,6 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
               {t("reader.viewing", { numeral: String(activeSectionIdx + 1).padStart(2, "0") })}
             </span>
             <div className="report-rail-section-title">{activeSection?.title}</div>
-          </div>
-
-          <div className="report-rail-evidence-card">
-            <p className="eyebrow">{t("reader.evidence_eyebrow")}</p>
-            {activeSectionEvidence.length === 0 ? (
-              <p className="report-rail-empty-note">
-                {t("reader.no_evidence_for_section")}
-              </p>
-            ) : (
-              activeSectionEvidence.map((ev) => (
-                <div key={ev.id} className="report-rail-evidence-item">
-                  <h4>{presentation.evidence(ev.id)}</h4>
-                </div>
-              ))
-            )}
           </div>
         </aside>
       </div>
@@ -559,7 +494,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
               </button>
             </div>
             <ol className="report-mobile-toc-list">
-              {sections.map((sec, i) => (
+              {tocSections.map((sec, i) => (
                 <li key={sec.id}>
                   <button
                     type="button"

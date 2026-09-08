@@ -7,6 +7,23 @@ import {
   IDENTITY_REPORT_SECTION_IDS,
 } from "@lasoviet/contracts";
 import {
+  ZIWEI_PALACE_IDS,
+  ZIWEI_THEMATIC_SYNTHESIS_IDS,
+} from "@lasoviet/contracts";
+import {
+  CANONICAL_PALACE_TITLES_VI,
+  CANONICAL_THEMATIC_TITLES_VI,
+} from "./identity-report-config.js";
+
+import {
+  REPORT_KNOWLEDGE_VERSION_V1,
+  REPORT_KNOWLEDGE_VERSION_V2,
+  REPORT_KNOWLEDGE_VERSION_V3,
+  REPORT_PROMPT_VERSION_V1,
+  REPORT_PROMPT_VERSION_V2,
+  REPORT_PROMPT_VERSION_V3,
+} from "./identity-report-config.js";
+import {
   createReportQueryService,
   ReportQueryDataError,
   type ReportQueryRepository,
@@ -65,10 +82,10 @@ function validStructuredContent(overrides = {}) {
       chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
       ruleVersion: "ziwei.identity.v1",
       evidenceVersion: 1,
-      knowledgeVersion: "knowledge.vi.v1",
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V1,
       providerId: "open-router",
       modelId: "synthetic-model",
-      promptVersion: "identity-report-prompt.v1",
+      promptVersion: REPORT_PROMPT_VERSION_V1,
       templateVersion: "identity-report-template.v1",
     },
     sections: validSections(),
@@ -120,6 +137,49 @@ function sampleEvidenceItems() {
   ];
 }
 
+
+function validV3StructuredContent() {
+  return {
+    overview: {
+      title: "Tổng quan bản mệnh",
+      narrative: "Tổng quan cuộc đời với Tử Vi đắc địa, tạo phong thái đĩnh đạc và uy tín tự nhiên.",
+      evidenceKeys: ["ziwei.palace.life", "ziwei.star.ziwei"],
+    },
+    coreAxis: {
+      title: "Mệnh, Thân và động lực cốt lõi",
+      narrative: "Trục Mệnh Thân thể hiện ý chí quật cường, kiên trì theo đuổi mục tiêu lớn dài hạn.",
+      evidenceKeys: ["ziwei.palace.life"],
+    },
+    keyConfigurations: [
+      {
+        title: "Cách cục Tử Phủ Đồng Cung",
+        narrative: "Tử Vi và Thiên Phủ cùng hội tụ đem lại sự vững vàng về tài chính và sự nghiệp.",
+        evidenceKeys: ["ziwei.palace.life", "zi-fu-tong-gong"],
+      },
+    ],
+    palaceReadings: ZIWEI_PALACE_IDS.map((palaceId) => ({
+      palaceId,
+      title: CANONICAL_PALACE_TITLES_VI[palaceId],
+      narrative: `Luận giải chi tiết cho ${CANONICAL_PALACE_TITLES_VI[palaceId]}.`,
+      evidenceKeys: [palaceId],
+    })),
+    thematicSynthesis: ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id) => ({
+      id,
+      title: CANONICAL_THEMATIC_TITLES_VI[id],
+      narrative: `Phân tích chuyên đề ${CANONICAL_THEMATIC_TITLES_VI[id]}.`,
+      evidenceKeys: ["ziwei.palace.life"],
+    })),
+    strengthsAndTensions: {
+      title: "Điểm mạnh, điểm vướng và điều kiện phát huy",
+      narrative: "Thế mạnh là tính kỷ luật, điểm cần lưu ý là tránh thái độ độc đoán.",
+      evidenceKeys: ["ziwei.palace.life"],
+    },
+    practicalDirection: [
+      "Ưu tiên phát triển năng lực chuyên môn sâu trong 3 năm tới.",
+    ],
+  };
+}
+
 function createSampleRecord(overrides: Partial<AuthorizedReportQueryRecord> = {}): AuthorizedReportQueryRecord {
   const reservation = {
     id: "res-uuid-1",
@@ -128,8 +188,8 @@ function createSampleRecord(overrides: Partial<AuthorizedReportQueryRecord> = {}
     entitlementId: "ent-1",
     chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
     evidenceVersionId: "ev-set-1",
-    knowledgeVersionId: "knowledge.vi.v1",
-    promptVersion: "identity-report-prompt.v1",
+    knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
+    promptVersion: REPORT_PROMPT_VERSION_V1,
     reportConfigVersion: "report-config.v1",
     locale: "vi",
     sku: "ZIWEI-IDENTITY-P0",
@@ -171,8 +231,8 @@ describe("report query service", () => {
       entitlementId: "ent-2", // mismatched entitlementId
       chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
       evidenceVersionId: "ev-set-1",
-      knowledgeVersionId: "knowledge.vi.v1",
-      promptVersion: "identity-report-prompt.v1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
+      promptVersion: REPORT_PROMPT_VERSION_V1,
       reportConfigVersion: "report-config.v1",
       templateVersion: "identity-report-template.v1",
       locale: "vi",
@@ -210,8 +270,8 @@ describe("report query service", () => {
       entitlementId: "ent-1",
       chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
       evidenceVersionId: "ev-set-1",
-      knowledgeVersionId: "knowledge.vi.v1",
-      promptVersion: "identity-report-prompt.v1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
+      promptVersion: REPORT_PROMPT_VERSION_V1,
       reportConfigVersion: "report-config.v1",
       templateVersion: "identity-report-template.v1",
       locale: "vi",
@@ -223,10 +283,10 @@ describe("report query service", () => {
           chartVersionId: "chart-version-mismatch",
           ruleVersion: "ziwei.identity.v1",
           evidenceVersion: 1,
-          knowledgeVersion: "knowledge.vi.v1",
+          knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V1,
           providerId: "open-router",
           modelId: "synthetic-model",
-          promptVersion: "identity-report-prompt.v1",
+          promptVersion: REPORT_PROMPT_VERSION_V1,
           templateVersion: "identity-report-template.v1",
         },
       }),
@@ -322,8 +382,8 @@ describe("report query service", () => {
       entitlementId: "ent-1",
       chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
       evidenceVersionId: "ev-set-1",
-      knowledgeVersionId: "knowledge.vi.v1",
-      promptVersion: "identity-report-prompt.v1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
+      promptVersion: REPORT_PROMPT_VERSION_V1,
       reportConfigVersion: "report-config.v1",
       templateVersion: "identity-report-template.v1",
       locale: "vi",
@@ -365,7 +425,7 @@ describe("report query service", () => {
       method: "ziwei",
       ruleVersion: "ziwei.identity.v1",
       evidenceVersion: 1,
-      knowledgeVersion: "knowledge.vi.v1",
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V1,
       templateVersion: "identity-report-template.v1",
       createdAt: expect.any(String),
     });
@@ -411,8 +471,8 @@ describe("report query service", () => {
       entitlementId: "ent-1",
       chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
       evidenceVersionId: "ev-set-1",
-      knowledgeVersionId: "knowledge.vi.v1",
-      promptVersion: "identity-report-prompt.v1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
+      promptVersion: REPORT_PROMPT_VERSION_V1,
       reportConfigVersion: "report-config.v1",
       templateVersion: "identity-report-template.v1",
       locale: "vi",
@@ -440,5 +500,247 @@ describe("report query service", () => {
     const service = createReportQueryService({ repository });
 
     await expect(service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553")).rejects.toThrow(ReportQueryDataError);
+  });
+  it("owner reads V3 comprehensive report with contentVersion ziwei-comprehensive.v1 and without internal evidence/provenance", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html>canonical</html>",
+      contentHash: "b".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: "prev-ver-123",
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        locale: "vi",
+      } as any,
+      version: versionRecord,
+      evidenceItems: sampleEvidenceItems() as any,
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.state).toBe("ready");
+    if (result.value.state !== "ready") return;
+
+    expect(result.value.contentVersion).toBe("ziwei-comprehensive.v1");
+    if (result.value.contentVersion !== "ziwei-comprehensive.v1") return;
+
+    expect(result.value.locale).toBe("vi");
+    expect(result.value.fulfillmentStatus).toBe("complete");
+    expect(result.value.lineage.supersedesReportVersionId).toBe("prev-ver-123");
+
+    // Comprehensive content has twelve palace readings
+    expect(result.value.content.palaceReadings).toHaveLength(12);
+    expect(result.value.content.thematicSynthesis).toHaveLength(4);
+    expect(result.value.content.keyConfigurations).toHaveLength(1);
+    expect(result.value.content.practicalDirection).toHaveLength(1);
+
+    // No internal evidenceKeys exposed in public projection
+    expect((result.value.content.overview as any).evidenceKeys).toBeUndefined();
+    expect((result.value.content.coreAxis as any).evidenceKeys).toBeUndefined();
+    expect((result.value.content.keyConfigurations[0] as any).evidenceKeys).toBeUndefined();
+    expect((result.value.content.palaceReadings[0] as any).evidenceKeys).toBeUndefined();
+    expect((result.value.content.thematicSynthesis[0] as any).evidenceKeys).toBeUndefined();
+    expect((result.value.content.strengthsAndTensions as any).evidenceKeys).toBeUndefined();
+
+    // No evidence records or technical provenance in comprehensive ready view
+    expect((result.value as any).evidence).toBeUndefined();
+    expect((result.value as any).provenance).toBeUndefined();
+    expect((result.value as any).providerId).toBeUndefined();
+    expect((result.value as any).modelId).toBeUndefined();
+    expect((result.value as any).htmlContent).toBeUndefined();
+  });
+
+  it("owner reads legacy V2 fixture with contentVersion identity.v1 and existing public content", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v2",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V2,
+      promptVersion: REPORT_PROMPT_VERSION_V2,
+      reportConfigVersion: "report-config.v1",
+      templateVersion: "identity-report-template.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validStructuredContent({
+        provenance: {
+          chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+          ruleVersion: "ziwei.identity.v1",
+          evidenceVersion: 1,
+          knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2,
+          providerId: "open-router",
+          modelId: "synthetic-model",
+          promptVersion: REPORT_PROMPT_VERSION_V2,
+          templateVersion: "identity-report-template.v1",
+        },
+      }),
+      htmlContent: "<html>legacy v2</html>",
+      contentHash: "c".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-05T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V2,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V2,
+      } as any,
+      version: versionRecord,
+      evidenceItems: sampleEvidenceItems() as any,
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.state).toBe("ready");
+    if (result.value.state !== "ready") return;
+
+    expect(result.value.contentVersion).toBe("identity.v1");
+    if (result.value.contentVersion !== "identity.v1") return;
+
+    expect(result.value.content.sections).toBeDefined();
+    expect(result.value.evidence).toHaveLength(1);
+    expect(result.value.provenance).toBeDefined();
+  });
+
+  it("fails closed with ReportQueryDataError on mixed or invalid version families", async () => {
+    const invalidTuples = [
+      { promptVersion: REPORT_PROMPT_VERSION_V1, knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V2 },
+      { promptVersion: REPORT_PROMPT_VERSION_V3, knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1 },
+      { promptVersion: "unsupported-prompt", knowledgeVersionId: "unsupported-knowledge" },
+    ];
+
+    for (const tuple of invalidTuples) {
+      const versionRecord = {
+        id: "ver-uuid-invalid",
+        reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+        reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+        entitlementId: "ent-1",
+        chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+        evidenceVersionId: "ev-set-1",
+        knowledgeVersionId: tuple.knowledgeVersionId,
+        promptVersion: tuple.promptVersion,
+        reportConfigVersion: "report-config.v1",
+        templateVersion: "template.v1",
+        locale: "vi",
+        sku: "ZIWEI-IDENTITY-P0",
+        providerId: "open-router",
+        modelId: "synthetic-model",
+        structuredContent: validStructuredContent(),
+        htmlContent: "<html></html>",
+        contentHash: "d".repeat(64),
+        pdfAssetId: null,
+        renderVersion: "identity-report-pdf.v1",
+        supersedesReportVersionId: null,
+        createdAt: new Date("2026-09-05T00:00:00+07:00"),
+      } as any;
+
+      const record = createSampleRecord({
+        reservation: {
+          status: "complete",
+          promptVersion: tuple.promptVersion,
+          knowledgeVersionId: tuple.knowledgeVersionId,
+        } as any,
+        version: versionRecord,
+        evidenceItems: sampleEvidenceItems() as any,
+      });
+
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(record),
+      };
+      const service = createReportQueryService({ repository });
+
+      await expect(service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553")).rejects.toThrow(
+        ReportQueryDataError,
+      );
+    }
+  });
+
+  it("fails closed when V3 report is requested with non-Vietnamese locale", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-en",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "en",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        locale: "en",
+      } as any,
+      version: versionRecord,
+      evidenceItems: sampleEvidenceItems() as any,
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    await expect(service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553")).rejects.toThrow(
+      ReportQueryDataError,
+    );
   });
 });

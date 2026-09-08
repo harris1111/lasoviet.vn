@@ -978,7 +978,12 @@ describe("createReportGenerationService", () => {
 
     expect(committedRecord).not.toBeNull();
     expect(committedRecord.templateVersion).toBe(REPORT_TEMPLATE_VERSION_V3);
-    expect(committedRecord.htmlContent).toBe("");
+    expect(committedRecord.htmlContent).not.toBe("");
+    expect(committedRecord.htmlContent).toContain("<h1>Báo Cáo Luận Giải Toàn Diện Tử Vi</h1>");
+    expect(committedRecord.htmlContent).toContain("Cung Mệnh");
+    expect(committedRecord.htmlContent).toContain("Cung Phụ Mẫu");
+    expect(committedRecord.htmlContent).not.toContain("evidenceKeys");
+    expect(committedRecord.htmlContent).not.toContain("miễn trừ");
     expect(committedRecord.promptVersion).toBe(REPORT_PROMPT_VERSION_V3);
     expect(committedRecord.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V3);
     expect(committedRecord.structuredContent.palaceReadings).toHaveLength(12);

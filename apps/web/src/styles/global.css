@@ -245,3 +245,10 @@ h1 { max-width: 700px; margin: 20px 0 0; font-size: 64px; line-height: 1.06; let
     transition: none !important;
   }
 }
+
+.report-subcard-group { margin-top: 24px; display: grid; gap: 20px; }
+.report-subcard { padding: 22px 24px; border: 1px solid var(--lacquer-line); border-radius: var(--radius-card); background: var(--lacquer-700); }
+.report-subcard-title { margin: 0 0 12px; font-family: var(--font-display); font-size: 19px; color: var(--pearl-50); font-weight: 500; }
+.report-subcard-narrative { margin: 0; font-size: var(--reader-body-size, 17px); line-height: 1.8; color: var(--pearl-200); }
+.report-directions-list { margin: 16px 0 0; padding-left: 24px; color: var(--pearl-200); line-height: 1.8; font-size: var(--reader-body-size, 17px); }
+.report-directions-list li { margin-bottom: 12px; }

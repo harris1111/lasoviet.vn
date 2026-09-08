@@ -7,6 +7,7 @@ import {
 } from "./identity-report-config.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 import { renderIdentityReportHtml } from "./identity-report-html.js";
+import { renderComprehensiveZiweiHtml } from "./comprehensive-report-html.js";
 import { writeIdentityReportDraft } from "./identity-report-writer.js";
 import { validateIdentityReport } from "./report-validator.js";
 import { critiqueIdentityReport } from "./report-critic.js";
@@ -229,6 +230,8 @@ export function createReportGenerationService(
         return failAttempt("AI_OUTPUT_INVALID", false);
       }
 
+      const htmlContent = renderComprehensiveZiweiHtml(draft.report);
+
       const commitResult = await dependencies.versionRepository.commitImmutableVersion({
         reportId: payload.reportId,
         reportVersionId: payload.reportVersionId,
@@ -245,7 +248,7 @@ export function createReportGenerationService(
         providerId: draft.providerId,
         modelId: draft.modelId,
         structuredContent: draft.report as unknown as IdentityReportV1,
-        htmlContent: "",
+        htmlContent,
         jobId,
         workerId,
         attemptNumber,

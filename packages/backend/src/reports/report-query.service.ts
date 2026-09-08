@@ -8,6 +8,8 @@ import {
   REPORT_PENDING_STATUSES,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
+  ZiweiComprehensiveReportContentV1Schema,
+  projectComprehensiveReportPublicContent,
   type CurrentActor,
   type EvidenceItemV1,
   type ReportViewV1,
@@ -18,6 +20,7 @@ import type {
   AuthorizedReportQueryRecord,
   ReportQueryRepository,
 } from "./report-query.repository.js";
+import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 
 export type {
   AuthorizedReportQueryRecord,
@@ -171,6 +174,48 @@ export function createReportQueryService(options: {
         throw new ReportQueryDataError();
       }
 
+      const family = resolveIdentityReportVersionFamily(
+        version.promptVersion,
+        version.knowledgeVersionId,
+      );
+      if (family === null) {
+        throw new ReportQueryDataError();
+      }
+
+      if (family === "v3") {
+        if (reservation.locale !== "vi" || version.locale !== "vi") {
+          throw new ReportQueryDataError();
+        }
+
+        const parsedV3 = ZiweiComprehensiveReportContentV1Schema.safeParse(version.structuredContent);
+        if (!parsedV3.success) {
+          throw new ReportQueryDataError();
+        }
+
+        const publicContent = projectComprehensiveReportPublicContent(parsedV3.data);
+
+        const readyParse = ReportReadyViewV1Schema.safeParse({
+          version: 1,
+          state: "ready",
+          contentVersion: "ziwei-comprehensive.v1",
+          reportId: reservation.reportId,
+          reportVersionId: reservation.reportVersionId,
+          locale: "vi",
+          sku: reservation.sku,
+          fulfillmentStatus: reservationFulfillmentStatus,
+          content: publicContent,
+          lineage: {
+            supersedesReportVersionId: version.supersedesReportVersionId ?? null,
+          },
+        });
+
+        if (!readyParse.success) {
+          throw new ReportQueryDataError();
+        }
+
+        return { ok: true, value: readyParse.data };
+      }
+
       const parsedContent = IdentityReportV1Schema.safeParse(version.structuredContent);
       if (!parsedContent.success) {
         throw new ReportQueryDataError();
@@ -223,6 +268,7 @@ export function createReportQueryService(options: {
       const readyParse = ReportReadyViewV1Schema.safeParse({
         version: 1,
         state: "ready",
+        contentVersion: "identity.v1",
         reportId: reservation.reportId,
         reportVersionId: reservation.reportVersionId,
         locale: reservation.locale,
