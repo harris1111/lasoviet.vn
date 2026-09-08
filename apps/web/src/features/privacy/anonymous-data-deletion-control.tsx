@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { AnonymousDeletionResult } from "./delete-anonymous-data";
+import { clearBirthCache } from "../birth-profile/homepage-birth-prefill";
 
 type AnonymousDataDeletionControlProps = {
   action(): Promise<AnonymousDeletionResult>;
@@ -17,6 +18,16 @@ type AnonymousDataDeletionControlProps = {
     error: string;
   };
 };
+
+function isRedirect(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    typeof (error as { digest: unknown }).digest === "string" &&
+    (error as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+  );
+}
 
 export function AnonymousDataDeletionControl({
   action,
@@ -34,8 +45,14 @@ export function AnonymousDataDeletionControl({
       if (!result.ok) {
         setError(true);
         setPending(false);
+        return;
       }
-    } catch {
+      clearBirthCache();
+    } catch (err) {
+      if (isRedirect(err)) {
+        clearBirthCache();
+        throw err;
+      }
       setError(true);
       setPending(false);
     }

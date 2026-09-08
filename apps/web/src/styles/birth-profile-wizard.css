@@ -71,8 +71,9 @@
 
 .wizard-logo img {
   display: block;
-  height: 42px;
-  width: auto;
+  height: auto;
+  max-width: 100%;
+  width: 188px;
 }
 
 .wizard-header-actions {
@@ -538,11 +539,13 @@
 
 .wizard-segment input[type="radio"] {
   position: absolute;
+  inset: 0;
+  z-index: 1;
   opacity: 0;
-  width: 1px;
-  height: 1px;
+  width: 100%;
+  height: 100%;
   margin: 0;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .wizard-segment span {
@@ -1170,4 +1173,134 @@
     padding: 0 14px;
     font-size: 14px;
   }
+}
+
+/* Reusable BirthDateFields */
+.birth-date-fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.birth-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.birth-date-input-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.birth-date-input-text {
+  display: none;
+}
+
+.birth-date-input {
+  min-height: 46px;
+  padding: 0 8px;
+  background: var(--lacquer-900);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-small);
+  color: var(--pearl-50);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+  transition: border-color var(--motion-feedback) ease, box-shadow var(--motion-feedback) ease;
+}
+
+.birth-date-input:focus {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px rgba(201, 164, 77, 0.18);
+}
+
+.birth-date-input.day,
+.birth-date-input.month {
+  width: 54px;
+}
+
+.birth-date-input.year {
+  width: 78px;
+}
+
+.birth-date-separator {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--pearl-600);
+  user-select: none;
+}
+
+.birth-date-picker-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.birth-date-calendar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  background: var(--lacquer-800);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-small);
+  color: var(--gold-400);
+  cursor: pointer;
+  transition: border-color var(--motion-feedback) ease, color var(--motion-feedback) ease;
+}
+
+.birth-date-calendar-button:hover:not(:disabled) {
+  border-color: var(--gold-500);
+  color: var(--gold-300);
+}
+
+.birth-date-calendar-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.birth-date-native-picker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* Wizard cache notice */
+.wizard-cache-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 10px 14px;
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-small);
+  background: rgba(201, 164, 77, 0.08);
+  font-size: 13px;
+  color: var(--pearl-200);
+}
+
+.wizard-cache-clear {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--gold-400);
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  min-height: 32px;
+}
+
+.wizard-cache-clear:hover {
+  color: var(--gold-300);
 }

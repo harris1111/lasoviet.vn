@@ -26,7 +26,7 @@ export function HomepageFinalCta({ locale }: HomepageFinalCtaProps) {
           <Link className="button" href={localizedPath(locale, "/tao-la-so/tu-vi")}>
             {t("home.finalCta.ctaPrimary")}
           </Link>
-          <Link className="button button-secondary" href="#luan-giai">
+          <Link className="button button-secondary" href={localizedPath(locale, "/bao-cao-mau/tu-vi")}>
             {t("home.finalCta.ctaSecondary")}
           </Link>
         </div>

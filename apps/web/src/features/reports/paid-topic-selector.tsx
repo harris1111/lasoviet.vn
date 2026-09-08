@@ -18,6 +18,7 @@ export function PaidTopicSelector({
   const presentation = ziweiPresentation(locale);
   const offer = topics.offers[0]!;
   const price = offer.price.toLocaleString(locale === "en" ? "en-US" : "vi-VN");
+  const submitActionLabel = locale === "en" ? "Continue to payment" : "Tiếp tục thanh toán";
 
   return (
     <section className="paid-topic-selector">
@@ -29,7 +30,7 @@ export function PaidTopicSelector({
         <p>{price} {offer.currency}</p>
         <p>{t("selection.oneTime")}</p>
         <form action={createCheckoutOrder.bind(null, topics.chartId, locale)}>
-          <button className="button" type="submit">{t("selection.available")}</button>
+          <button className="button" type="submit">{submitActionLabel}</button>
         </form>
       </article>
     </section>

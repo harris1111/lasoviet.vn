@@ -23,7 +23,7 @@ export default defineConfig({
     include: [
       "apps/**/*.test.{ts,tsx}",
       "packages/**/*.test.ts",
-      "tests/**/*.test.ts",
+      "tests/**/*.test.{ts,tsx}",
     ],
     exclude: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
   },

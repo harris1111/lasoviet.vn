@@ -59,7 +59,7 @@ describe("homepage and navigation prototype parity", () => {
     const links = extractAllLinks(header);
 
     // Nav links
-    expect(links.some((l) => l.href === "/tu-vi" && l.text.includes("Dịch vụ"))).toBe(true);
+    expect(links.some((l) => l.href === "/#dich-vu" && l.text.includes("Dịch vụ"))).toBe(true);
     expect(links.some((l) => l.href === "/cong-cu-mien-phi" && l.text.includes("Công cụ miễn phí"))).toBe(true);
     expect(links.some((l) => l.href === "/kien-thuc" && l.text.includes("Kiến thức"))).toBe(true);
     expect(links.some((l) => l.href === "/lien-he" && l.text.includes("Liên hệ"))).toBe(true);
@@ -89,7 +89,7 @@ describe("homepage and navigation prototype parity", () => {
     const links = extractAllLinks(header);
 
     // Nav links
-    expect(links.some((l) => l.href === "/en/tu-vi" && l.text.includes("Services"))).toBe(true);
+    expect(links.some((l) => l.href === "/en#dich-vu" && l.text.includes("Services"))).toBe(true);
     expect(links.some((l) => l.href === "/en/cong-cu-mien-phi" && l.text.includes("Free tools"))).toBe(true);
     expect(links.some((l) => l.href === "/en/kien-thuc" && l.text.includes("Knowledge"))).toBe(true);
     expect(links.some((l) => l.href === "/en/lien-he" && l.text.includes("Contact"))).toBe(true);

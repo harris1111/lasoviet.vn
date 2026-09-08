@@ -46,9 +46,9 @@ export function BirthWizardHeader({
       <Link className="wizard-logo" href={homeHref}>
         <Image
           alt="Lá Số Việt"
-          height={42}
+          height={33}
           src="/brand/lasoviet-logo-ngang-vang-son.svg"
-          width={168}
+          width={188}
         />
       </Link>
 

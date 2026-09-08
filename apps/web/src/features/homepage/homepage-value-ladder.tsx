@@ -35,7 +35,7 @@ export function HomepageValueLadder({ locale }: HomepageValueLadderProps) {
             </div>
             <p>{t("home.valueLadder.tier1.copy")}</p>
             <div className="tier-action">
-              <Link href={localizedPath(locale, "/luan-giai-tu-vi/tong-quan-ban-menh")}>
+              <Link href={localizedPath(locale, "/bao-cao-mau/tu-vi")}>
                 {t("home.valueLadder.tier1.sampleLink")}
               </Link>
             </div>

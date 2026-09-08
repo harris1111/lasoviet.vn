@@ -34,10 +34,10 @@ const locales = [
     menuLabel: "Mở điều hướng",
     brandName: "Lá Số Việt",
     anchors: [
-      "/#hero-form",
-      "/#he-quy-chieu",
-      "/#kien-thuc",
-      "/#phuong-phap",
+      "/#dich-vu",
+      "/cong-cu-mien-phi",
+      "/kien-thuc",
+      "/lien-he",
     ],
   },
   {
@@ -54,10 +54,10 @@ const locales = [
     menuLabel: "Open navigation",
     brandName: "La So Viet",
     anchors: [
-      "/en#hero-form",
-      "/en#he-quy-chieu",
-      "/en#kien-thuc",
-      "/en#phuong-phap",
+      "/en#dich-vu",
+      "/en/cong-cu-mien-phi",
+      "/en/kien-thuc",
+      "/en/lien-he",
     ],
   },
 ] as const;
@@ -154,7 +154,9 @@ test("uses exact localized routes and keeps planned offers inert", async ({
     const heroForm = page.locator("#hero-form");
     await expect(heroForm).toBeVisible();
     await expect(heroForm.getByRole("button", { name: locale.cta })).toBeVisible();
-    await expect(heroForm.locator('a[href="#luan-giai"]')).toBeVisible();
+    await expect(
+      heroForm.locator(`a[href="${locale.code === "vi" ? "/bao-cao-mau/tu-vi" : "/en/bao-cao-mau/tu-vi"}"]`),
+    ).toBeVisible();
 
     // Closed time select shows unknown plus all 12 canonical branches
     const timeSelect = heroForm.locator("select");
@@ -182,12 +184,11 @@ test("uses exact localized routes and keeps planned offers inert", async ({
     await expect(
       page.getByRole("link", { name: locale.finalCta }),
     ).toHaveAttribute("href", locale.chartPath);
-    await expect(page.locator(".lens-active a")).toHaveAttribute(
+    await expect(page.locator(".lens-card").first().locator("a")).toHaveAttribute(
       "href",
       locale.chartPath,
     );
-    await expect(page.locator(".lens-disabled")).toHaveCount(3);
-    await expect(page.locator(".lens-disabled a")).toHaveCount(0);
+    await expect(page.locator(".lens-card a")).toHaveCount(5);
     await expect(page.locator(".planned-tier")).toHaveCount(2);
     await expect(page.locator(".planned-tier a")).toHaveCount(0);
     await expect(page.locator(".planned-tier .topic-price")).toHaveCount(0);
@@ -200,8 +201,8 @@ test("uses exact localized routes and keeps planned offers inert", async ({
     await expect(availableTier.getByRole("link")).toHaveAttribute(
       "href",
       locale.code === "vi"
-        ? "/luan-giai-tu-vi/tong-quan-ban-menh"
-        : "/en/luan-giai-tu-vi/tong-quan-ban-menh",
+        ? "/bao-cao-mau/tu-vi"
+        : "/en/bao-cao-mau/tu-vi",
     );
   }
 });
@@ -232,10 +233,14 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
       /apple-icon\.png/,
     );
 
-    // Header has 26x26 CSS seal and localized brand name, no SVG brand image
+    // Header renders official brand logo and localized accessible name
     const headerBrand = page.locator("header .brand");
     await expect(headerBrand).toBeVisible();
-    await expect(headerBrand.locator(".seal")).toBeVisible();
+    await expect(headerBrand.locator("img.brand-logo")).toBeVisible();
+    await expect(headerBrand.locator("img.brand-logo")).toHaveAttribute(
+      "src",
+      /lasoviet-logo-ngang-vang-son\.svg/,
+    );
     await expect(headerBrand).toContainText(locale.brandName);
 
     // Header anchors resolve to localized homepage anchors

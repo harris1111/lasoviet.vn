@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 export type DisciplineNavLink = {
@@ -85,7 +86,7 @@ export function SiteHeader({
   const isDiscipline = variant === "discipline";
 
   const defaultLinks = [
-    [isVietnamese ? "Dịch vụ" : "Services", route(locale, "/tu-vi")],
+    [isVietnamese ? "Dịch vụ" : "Services", isVietnamese ? "/#dich-vu" : "/en#dich-vu"],
     [isVietnamese ? "Công cụ miễn phí" : "Free tools", route(locale, "/cong-cu-mien-phi")],
     [isVietnamese ? "Kiến thức" : "Knowledge", route(locale, "/kien-thuc")],
     [isVietnamese ? "Liên hệ" : "Contact", contactHref],
@@ -197,15 +198,22 @@ export function SiteHeader({
         { className: "container header-inner" },
         React.createElement(
           Link,
-          { className: "brand", href: route(locale, "/") },
+          {
+            className: "brand",
+            href: route(locale, "/"),
+            "aria-label": isVietnamese ? "Lá Số Việt" : "La So Viet",
+          },
+          React.createElement(Image, {
+            alt: isVietnamese ? "Lá Số Việt" : "La So Viet",
+            className: "brand-logo",
+            height: 28,
+            priority: true,
+            src: "/brand/lasoviet-logo-ngang-vang-son.svg",
+            width: 160,
+          }),
           React.createElement(
             "span",
-            { "aria-hidden": "true", className: "seal" },
-            React.createElement("span", null),
-          ),
-          React.createElement(
-            "span",
-            null,
+            { className: "sr-only" },
             isVietnamese ? "Lá Số Việt" : "La So Viet",
           ),
         ),

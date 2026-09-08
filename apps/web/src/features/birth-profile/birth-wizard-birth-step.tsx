@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { Icon } from "../../components/icon";
+import { BirthDateFields } from "./birth-date-fields";
 import type { BirthTimeState } from "./birth-profile-input";
 import { TimePrecisionFields } from "./time-precision-fields";
 
@@ -107,49 +108,23 @@ export function BirthWizardBirthStep({
 
       <div className="wizard-field-group">
         <span className="wizard-field-label">{dateLabel}</span>
-        <div className="wizard-date-row">
-          <input
-            aria-label={dayLabel}
-            inputMode="numeric"
-            maxLength={2}
-            onChange={(event) => onDayChange(event.target.value)}
-            pattern="[0-9]*"
-            placeholder={dayLabel}
-            type="text"
-            value={day}
-          />
-          <span aria-hidden="true" className="wizard-date-separator">
-            /
-          </span>
-          <input
-            aria-label={monthLabel}
-            inputMode="numeric"
-            maxLength={2}
-            onChange={(event) => onMonthChange(event.target.value)}
-            pattern="[0-9]*"
-            placeholder={monthLabel}
-            type="text"
-            value={month}
-          />
-          <span aria-hidden="true" className="wizard-date-separator">
-            /
-          </span>
-          <input
-            aria-label={yearLabel}
-            inputMode="numeric"
-            maxLength={4}
-            onChange={(event) => onYearChange(event.target.value)}
-            pattern="[0-9]*"
-            placeholder={yearLabel}
-            type="text"
-            value={year}
-          />
-        </div>
-        {dateError ? (
-          <p className="form-error" role="alert">
-            {dateError}
-          </p>
-        ) : null}
+        <BirthDateFields
+          calendarButtonLabel={locale === "en" ? "Select date from calendar" : "Chọn ngày từ lịch"}
+          day={day}
+          dayLabel={dayLabel}
+          dayPlaceholder={dayLabel}
+          error={dateError}
+          locale={locale}
+          month={month}
+          monthLabel={monthLabel}
+          monthPlaceholder={monthLabel}
+          onDayChange={onDayChange}
+          onMonthChange={onMonthChange}
+          onYearChange={onYearChange}
+          year={year}
+          yearLabel={yearLabel}
+          yearPlaceholder={yearLabel}
+        />
       </div>
 
       <TimePrecisionFields

@@ -16,6 +16,7 @@ import { LunarCalendarPreview } from "../free-tools/lunar-calendar-preview";
 import { TarotPreview } from "../free-tools/tarot-preview";
 import { ZodiacPreview } from "../free-tools/zodiac-preview";
 import { CommercialTopicPage } from "./commercial-topic-page";
+import { SampleReportPage } from "./sample-report-page";
 import { KnowledgeArticle } from "./knowledge-article";
 import { KnowledgeHub } from "./knowledge-hub";
 import type { PublicContentRepository } from "./public-content-repository";
@@ -169,6 +170,8 @@ export function PublicContentPage(props: PublicContentPageProps) {
 
   const template = (() => {
     switch (props.route.template) {
+      case "sample-report":
+        return <SampleReportPage content={props.content} locale={props.locale} route={props.route} />;
       case "calculator-landing":
         return <CalculatorLanding content={props.content} locale={props.locale} />;
       case "commercial-hub":

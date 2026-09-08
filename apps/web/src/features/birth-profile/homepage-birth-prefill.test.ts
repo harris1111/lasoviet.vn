@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  BIRTH_CACHE_STORAGE_KEY_V2,
+  BIRTH_CACHE_VERSION_V2,
   CANONICAL_BRANCH_IDS,
+  clearBirthCache,
   consumeHomepageBirthPrefill,
   getBranchOptionLabel,
   getBranchTwoHourRange,
@@ -9,6 +12,8 @@ import {
   HOMEPAGE_BIRTH_PREFILL_VERSION,
   isValidSolarDate,
   parseAndValidateDateParts,
+  readBirthCache,
+  saveBirthCache,
   saveHomepageBirthPrefill,
 } from "./homepage-birth-prefill";
 
@@ -310,5 +315,180 @@ describe("homepage birth prefill storage", () => {
       failingStorage,
     );
     expect(result).toBe(false);
+  });
+});
+
+describe("V2 reusable 24-hour birth cache", () => {
+  const fixedNow = 1788864000000; // Deterministic frozen test timestamp
+
+  it("stores and reads a versioned V2 payload with exact_minute time in localStorage", () => {
+    const local = createMockStorage();
+    const saved = saveBirthCache(
+      {
+        date: "1994-04-12",
+        time: { precision: "exact_minute", hour: "9", minute: "5" },
+        gender: "female",
+        place: "  Hà Nội  ",
+      },
+      { localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(true);
+    expect(local.setItem).toHaveBeenCalledWith(
+      BIRTH_CACHE_STORAGE_KEY_V2,
+      expect.stringContaining('"version":2'),
+    );
+
+    const read = readBirthCache({ localStorage: local, now: fixedNow + 3600000 });
+    expect(read).toEqual({
+      version: BIRTH_CACHE_VERSION_V2,
+      date: "1994-04-12",
+      time: { precision: "exact_minute", hour: "09", minute: "05" },
+      gender: "female",
+      place: "Hà Nội",
+      createdAt: fixedNow,
+    });
+  });
+
+  it("reading V2 cache is non-destructive", () => {
+    const local = createMockStorage();
+    saveBirthCache(
+      {
+        date: "1994-04-12",
+        time: { precision: "branch_only", branch: "si" },
+      },
+      { localStorage: local, now: fixedNow },
+    );
+
+    const firstRead = readBirthCache({ localStorage: local, now: fixedNow });
+    expect(firstRead).not.toBeNull();
+    expect(local.removeItem).not.toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
+
+    const secondRead = readBirthCache({ localStorage: local, now: fixedNow });
+    expect(secondRead).not.toBeNull();
+  });
+
+  it("prefers valid richer V2 data when legacy V1 is also present", () => {
+    const local = createMockStorage({
+      [BIRTH_CACHE_STORAGE_KEY_V2]: JSON.stringify({
+        version: 2,
+        date: "1994-04-12",
+        time: { precision: "exact_minute", hour: "09", minute: "05" },
+        gender: "female",
+        place: "Hà Nội",
+        createdAt: fixedNow,
+      }),
+    });
+    const session = createMockStorage({
+      [HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        date: "1994-04-12",
+        time: { precision: "unknown" },
+        createdAt: fixedNow,
+      }),
+    });
+
+    const result = readBirthCache({
+      localStorage: local,
+      sessionStorage: session,
+      now: fixedNow,
+    });
+
+    expect(result).toEqual({
+      version: 2,
+      date: "1994-04-12",
+      time: { precision: "exact_minute", hour: "09", minute: "05" },
+      gender: "female",
+      place: "Hà Nội",
+      createdAt: fixedNow,
+    });
+    expect(local.removeItem).not.toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
+    expect(session.removeItem).not.toHaveBeenCalledWith(
+      HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
+    );
+  });
+
+  it("migrates a valid legacy V1 payload from sessionStorage to V2 in localStorage and removes V1", () => {
+    const session = createMockStorage({
+      [HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        date: "1994-04-12",
+        time: { precision: "branch_only", branch: "si" },
+        createdAt: fixedNow - 10000,
+      }),
+    });
+    const local = createMockStorage();
+
+    const migrated = readBirthCache({
+      sessionStorage: session,
+      localStorage: local,
+      now: fixedNow,
+    });
+
+    expect(migrated).toEqual({
+      version: 2,
+      date: "1994-04-12",
+      time: { precision: "branch_only", branch: "si" },
+      createdAt: fixedNow - 10000,
+    });
+
+    // V1 removed from sessionStorage
+    expect(session.removeItem).toHaveBeenCalledWith(
+      HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
+    );
+    // V2 stored in localStorage
+    expect(local.setItem).toHaveBeenCalledWith(
+      BIRTH_CACHE_STORAGE_KEY_V2,
+      expect.stringContaining('"version":2'),
+    );
+  });
+
+  it("removes V2 cache and returns null when expired (older than 24h)", () => {
+    const over24HoursAgo = fixedNow - (24 * 60 * 60 * 1000 + 1000);
+    const local = createMockStorage({
+      [BIRTH_CACHE_STORAGE_KEY_V2]: JSON.stringify({
+        version: 2,
+        date: "1994-04-12",
+        time: { precision: "branch_only", branch: "si" },
+        createdAt: over24HoursAgo,
+      }),
+    });
+
+    const result = readBirthCache({ localStorage: local, now: fixedNow });
+    expect(result).toBeNull();
+    expect(local.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
+  });
+
+  it("removes V2 cache and returns null when malformed JSON or corrupted fields", () => {
+    const localMalformed = createMockStorage({
+      [BIRTH_CACHE_STORAGE_KEY_V2]: "not-valid-json",
+    });
+    expect(readBirthCache({ localStorage: localMalformed, now: fixedNow })).toBeNull();
+    expect(localMalformed.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
+
+    const localCorruptTime = createMockStorage({
+      [BIRTH_CACHE_STORAGE_KEY_V2]: JSON.stringify({
+        version: 2,
+        date: "1994-04-12",
+        time: { precision: "exact_minute", hour: "25", minute: "00" },
+        createdAt: fixedNow,
+      }),
+    });
+    expect(readBirthCache({ localStorage: localCorruptTime, now: fixedNow })).toBeNull();
+    expect(localCorruptTime.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
+  });
+
+  it("clears both V1 and V2 caches on manual clear", () => {
+    const local = createMockStorage({
+      [BIRTH_CACHE_STORAGE_KEY_V2]: "some-v2",
+    });
+    const session = createMockStorage({
+      [HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY]: "some-v1",
+    });
+
+    clearBirthCache({ localStorage: local, sessionStorage: session });
+
+    expect(local.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
+    expect(session.removeItem).toHaveBeenCalledWith(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
   });
 });
