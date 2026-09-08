@@ -5,6 +5,10 @@ import { defineConfig } from "vitest/config";
 const root = process.cwd();
 
 export default defineConfig({
+  oxc: false,
+  esbuild: {
+    jsx: "automatic",
+  },
   resolve: {
     alias: {
       "@lasoviet/contracts": resolve(root, "packages/contracts/src/index.ts"),
@@ -17,9 +21,9 @@ export default defineConfig({
   },
   test: {
     include: [
-      "apps/**/*.test.ts",
+      "apps/**/*.test.{ts,tsx}",
       "packages/**/*.test.ts",
-      "tests/**/*.test.ts",
+      "tests/**/*.test.{ts,tsx}",
     ],
     exclude: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
   },

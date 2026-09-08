@@ -55,20 +55,63 @@ const stars: LocalizedMap = {
   },
 };
 
-const actions: LocalizedMap = {
+const brightnesses: LocalizedMap = {
   en: {
-    reflect: "Reflect", explore: "Explore",
-    "discuss-with-support": "Discuss with support",
+    exalted: "Exalted",
+    prosperous: "Prosperous",
+    favorable: "Favorable",
+    neutral: "Neutral",
+    unfavorable: "Unfavorable",
+    weak: "Weak",
   },
   vi: {
-    reflect: "Tự quan sát", explore: "Khám phá thêm",
-    "discuss-with-support": "Trao đổi với hỗ trợ",
+    exalted: "Miếu",
+    prosperous: "Vượng",
+    favorable: "Đắc",
+    neutral: "Bình",
+    unfavorable: "Hãm",
+    weak: "Nhược",
   },
 };
 
-const confidences: LocalizedMap = {
-  en: { high: "High", moderate: "Moderate" },
-  vi: { high: "Cao", moderate: "Trung bình" },
+const transformations: LocalizedMap = {
+  en: {
+    prosperity: "Prosperity",
+    power: "Power",
+    fame: "Fame",
+    obstacle: "Obstacle",
+  },
+  vi: {
+    prosperity: "Hóa Lộc",
+    power: "Hóa Quyền",
+    fame: "Hóa Khoa",
+    obstacle: "Hóa Kỵ",
+  },
+};
+
+const genders: LocalizedMap = {
+  en: { male: "Male", female: "Female" },
+  vi: { male: "Nam", female: "Nữ" },
+};
+
+const calendarKinds: LocalizedMap = {
+  en: { solar: "Solar calendar", lunar: "Lunar calendar" },
+  vi: { solar: "Dương lịch", lunar: "Âm lịch" },
+};
+
+const timePrecisions: LocalizedMap = {
+  en: {
+    exact_minute: "Exact minute",
+    branch_only: "Earthly branch",
+    range: "Time range",
+    unknown: "Unknown",
+  },
+  vi: {
+    exact_minute: "Chính xác theo phút",
+    branch_only: "Theo địa chi",
+    range: "Khoảng giờ",
+    unknown: "Chưa rõ",
+  },
 };
 
 const evidenceLabels: LocalizedMap = {
@@ -101,29 +144,6 @@ const insightLabels: LocalizedMap = {
   },
 };
 
-const limitationLabels: LocalizedMap = {
-  en: {
-    IZTRO_NO_NATIVE_LOCATION_INPUT: "Birth location is not passed directly to the chart engine.",
-    IZTRO_NO_NATIVE_TIMEZONE_INPUT: "Timezone is normalized before chart calculation.",
-    IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION: "True solar time correction is not applied.",
-    TIME_BRANCH_ONLY: "The birth time is known only to an earthly-branch interval.",
-    TIME_RANGE_WITHIN_SINGLE_BRANCH: "The birth time is a range within one earthly branch.",
-    TIME_RANGE_CROSSES_BRANCHES: "The birth-time range crosses earthly branches.",
-    TIME_UNKNOWN: "The exact birth time is unknown.",
-    LUNAR_CALENDAR_CONVERSION_DEFERRED: "Lunar calendar conversion is deferred.",
-  },
-  vi: {
-    IZTRO_NO_NATIVE_LOCATION_INPUT: "Nơi sinh chưa được truyền trực tiếp vào engine lập lá số.",
-    IZTRO_NO_NATIVE_TIMEZONE_INPUT: "Múi giờ được chuẩn hóa trước khi lập lá số.",
-    IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION: "Chưa áp dụng hiệu chỉnh giờ Mặt Trời thực.",
-    TIME_BRANCH_ONLY: "Giờ sinh chỉ được biết theo khoảng địa chi.",
-    TIME_RANGE_WITHIN_SINGLE_BRANCH: "Giờ sinh là một khoảng nằm trong cùng địa chi.",
-    TIME_RANGE_CROSSES_BRANCHES: "Khoảng giờ sinh đi qua nhiều địa chi.",
-    TIME_UNKNOWN: "Chưa biết giờ sinh chính xác.",
-    LUNAR_CALENDAR_CONVERSION_DEFERRED: "Việc chuyển đổi âm lịch đang được hoãn.",
-  },
-};
-
 const offers: LocalizedMap = {
   en: { "ZIWEI-IDENTITY-P0": "Identity and potential" },
   vi: { "ZIWEI-IDENTITY-P0": "Bản mệnh và tiềm năng" },
@@ -144,11 +164,7 @@ const chrome = {
     evidenceDialog: "Interpretation evidence",
     evidenceClose: "Close evidence",
     evidenceEyebrow: "Interpretation evidence",
-    interpretationBounds: "Interpretation bounds",
-    observableActions: "Observable actions",
-    factReferences: "Evidence fields",
-    limitations: "Limitations",
-    confidence: "Confidence",
+    chartFacts: "Chart facts",
   },
   vi: {
     chartAria: "Lá số Tử Vi",
@@ -164,11 +180,7 @@ const chrome = {
     evidenceDialog: "Căn cứ luận giải",
     evidenceClose: "Đóng căn cứ",
     evidenceEyebrow: "Căn cứ luận giải",
-    interpretationBounds: "Giới hạn diễn giải",
-    observableActions: "Điều có thể quan sát",
-    factReferences: "Trường dữ liệu căn cứ",
-    limitations: "Giới hạn",
-    confidence: "Độ tin cậy",
+    chartFacts: "Dữ liệu lá số",
   },
 } as const;
 
@@ -199,11 +211,21 @@ export function ziweiPresentation(locale: ZiweiPresentationLocale) {
     star: (value: string) => mapped(
       stars, locale, value, { en: "Zi Wei star", vi: "Sao Tử Vi" },
     ),
-    action: (value: string) => mapped(
-      actions, locale, value, { en: "Supported reflection", vi: "Gợi ý tự quan sát" },
+    brightness: (value: string) => mapped(
+      brightnesses, locale, value, { en: "Standard brightness", vi: "Độ sáng tiêu chuẩn" },
     ),
-    confidence: (value: string) => mapped(
-      confidences, locale, value, { en: "Recorded", vi: "Đã ghi nhận" },
+    transformation: (value: string) => mapped(
+      transformations, locale, value, { en: "Transformation", vi: "Hóa khí" },
+    ),
+    gender: (value?: string) =>
+      value ? mapped(
+        genders, locale, value, { en: "Unspecified", vi: "Chưa xác định" },
+      ) : (locale === "en" ? "Unspecified" : "Chưa xác định"),
+    calendarKind: (value: string) => mapped(
+      calendarKinds, locale, value, { en: "Calendar", vi: "Lịch" },
+    ),
+    timePrecision: (value: string) => mapped(
+      timePrecisions, locale, value, { en: "Time precision", vi: "Độ chính xác giờ" },
     ),
     evidence: (value: string) => mapped(
       evidenceLabels, locale, value, { en: "Chart evidence", vi: "Căn cứ lá số" },
@@ -211,11 +233,6 @@ export function ziweiPresentation(locale: ZiweiPresentationLocale) {
     insight: (value: string) => mapped(
       insightLabels, locale, value, { en: "Identity insight", vi: "Nhận định bản mệnh" },
     ),
-    limitation: (value: string) =>
-      limitationLabels[locale][value] ??
-      (locale === "en"
-        ? "A technical limitation is recorded."
-        : "Một giới hạn kỹ thuật đã được ghi nhận."),
     offer: (value: string) =>
       offers[locale][value] ??
       (locale === "en" ? "Identity reading" : "Luận giải bản mệnh"),
@@ -244,7 +261,7 @@ export function ziweiPresentation(locale: ZiweiPresentationLocale) {
         },
       };
       return facts[locale][value] ??
-        (locale === "en" ? "Chart data field" : "Trường dữ liệu lá số");
+        (locale === "en" ? "Chart data field" : "Dữ liệu lá số");
     },
   };
 }

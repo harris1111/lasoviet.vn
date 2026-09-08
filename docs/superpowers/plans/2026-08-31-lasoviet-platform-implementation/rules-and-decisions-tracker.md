@@ -26,10 +26,50 @@
 | FD-020 | 2026-08-31 | Purge unlinked anonymous birth-profile and chart data after 24 hours; preserve it under account policy only after verified account linking | Approved | `AGENTS.md`, Phase 01, Phase 03 |
 | FD-021 | 2026-09-01 | Review complete features, phases, or meaningful milestones instead of every small implementation task; keep focused core-flow verification | Approved | `AGENTS.md` |
 | FD-022 | 2026-09-01 | Use the founder-provided MXRouting SMTP connection for authentication and report email; port 587 requires reviewed STARTTLS behavior | Approved | Phase 01, Phase 05 |
-| FD-023 | 2026-09-01 | From P01-T02 onward, Terra medium directly implements, debugs, and runs focused tests; Sol xhigh orchestrates and reviews milestones; Luna is paused | Approved | `AGENTS.md`, P01-T02 onward |
+| FD-023 | 2026-09-01 | From P01-T02 onward, Terra medium directly implements, debugs, and runs focused tests; Sol xhigh orchestrates and reviews milestones; Luna is paused | Superseded by FD-032 | Historical P01-T02 through P05A work |
 | FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Approved | `AGENTS.md`, current implementation phases |
 | FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
 | FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
+| FD-027 | 2026-09-02 | Approve Operations Dashboard V1 Option A as dedicated Phase 05A: private server-authorized `/admin/**`, database-backed RBAC/capabilities, redacted inspection, audited compensating domain commands, and no CMS; full CMS/back-office content editing is deferred | Approved | Admin dashboard spec, Phase 05A, Phases 04-06, contracts, risks, and release gates |
+| FD-028 | 2026-09-02 | Rename the active implementation branch to `feature/paid-flow-admin-operations`; implement paid-flow and Admin/Operations work on this branch, begin provider-independent Phase 05A work now, and defer SePay-dependent checkout/webhook activation until the founder supplies the required environment values | Approved | `AGENTS.md`, master plan, Phase 04, Phase 05A |
+| FD-029 | 2026-09-03 | Paid checkout requires an authenticated account with verified email. Anonymous actors remain free-flow only. Immutable commerce records use the durable account owner and must not reference anonymous/profile/chart lifecycle records with retention-blocking foreign keys. | Approved | Phase 04, `AGENTS.md`, commerce schema and checkout authorization |
+| FD-030 | 2026-09-03 | Approve the Payment Gateway Sandbox for the first SePay external test. Hosted checkout omits `payment_method`, so SePay presents merchant-enabled methods such as VietQR or cards. Production payment activation remains a separate founder-controlled gate. | Approved | Phase 04 sandbox activation gate |
+| FD-031 | 2026-09-04 | Add global Flash Executor on `ag/gemini-3.8-flash-high` with `high` reasoning as an execution-only subagent. It accepts exact bounded briefs from Sol or Terra, does not plan, propose, broaden scope, or debug deeply, and stops when work exceeds one direct local correction. Luna remains paused. | Approved | Global Codex configuration, `AGENTS.md`, master plan |
+| FD-032 | 2026-09-05 | Use Sol high as orchestrator/adjudicator, Gemini Flash high as the bounded coder, and Terra high as the independent milestone reviewer. Luna remains paused. | Approved | `AGENTS.md`, master plan, P04-T06 onward |
+| FD-033 | 2026-09-05 | For the production discipline-page integration, use Sol high for orchestration, Gemini Flash strict for implementation, and one Terra xhigh milestone review after the complete batch; the implementation PR targets `product/discipline-flagship-pages` | Approved | `docs/superpowers/plans/2026-09-05-production-discipline-flagship-pages.md` |
+| FD-034 | 2026-09-05 | Port every completed page and gated state from `product/discipline-flagship-pages`; keep Vietnamese prototype copy unchanged, expose previews as public `live_noindex`, preserve legacy routes with locale-aware HTTP 301 redirects, and leave the private Tử Vi wizard unchanged | Approved | `docs/19-sitemap-v2-discipline-pages.md`, production discipline-page plan |
+| FD-035 | 2026-09-06 | Approve the Phase 04 provider privacy due-diligence gate for self-hosted/founder-operated `9router-an`; founder explicitly accepts operational/privacy responsibility and waives separate term investigation. Production AI/payment activation, deployment, and release activation remain separately founder-controlled. | Approved | `docs/compliance/ai-provider-due-diligence.md`, Phase 04 plan |
+
+## FD-028 Execution Boundary
+
+- The prior remote branch `plan/admin-operations-dashboard` was renamed to
+  `feature/paid-flow-admin-operations`.
+- Phase 05A access, RBAC, redaction, audit, route, and provider-independent
+  operational foundations may proceed immediately.
+- Missing SePay environment values block only the SePay adapter, checkout,
+  webhook activation, and external provider smoke. They do not authorize
+  mocks, fake payment success, committed secrets, or unverified defaults.
+- Production payment activation remains a separate founder-controlled gate.
+
+## FD-027 Planning Evidence
+
+- The detailed design is
+  `docs/superpowers/specs/2026-09-02-admin-operations-dashboard-design.md`.
+- Phase 05 keeps storage, delivery, and owner account-center scope; Phase 05A
+  owns staff operations, support, RBAC, audit, and recovery.
+- Foundation may begin after Phase 03; closure depends on Phases 04 and 05;
+  Phase 06 paid release depends on Phase 05A.
+- Admin V1 uses redacted projections only. Unredacted sensitive-detail reveal
+  requires a separate founder-approved privacy scope and is deferred.
+- CMS editing, arbitrary SQL, direct BullMQ requeue, secrets display, direct
+  payment mutation, and in-place chart/report mutation remain prohibited.
+
+## FD-024 Completion Evidence
+
+- The approved UI artifact was implemented on a dedicated feature branch and
+  merged to `master` through pull request #3 on 2026-09-02.
+- FD-024 remains the artifact-first rule for future visual work, but it no
+  longer blocks the implemented free-MVP interface.
 
 ## Durable Rule Evaluation Log
 
@@ -37,6 +77,7 @@ This log records evaluation. It does not replace `AGENTS.md`.
 
 | Candidate | Evidence | Terra result | Disposition |
 |---|---|---|---|
+| Normalize line endings in repository-text assertions | Fresh Windows worktree baseline passed 268/269 tests after build; the sole failure compared raw LF against CRLF in `.github/workflows/ci.yml` | Approved technical correction | Added to `AGENTS.md`; baseline fix assigned before P05A-T01 |
 | Superpowers-only workflow | Direct founder instruction | Approved | Added to `AGENTS.md` |
 | Role authority and stop protocol | Direct founder instruction | Approved | Added to `AGENTS.md` |
 | Durable-rule distillation process | Direct founder instruction | Approved | Added to `AGENTS.md` |
@@ -50,7 +91,10 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Delegated Windows worktree anchoring | Required reads repeatedly resolved from the controller root instead of the assigned worktree, stopping P00-T02 and P00-T03 | Approved recurring invariant | Added to `AGENTS.md`; delegated commands must anchor and verify the absolute worktree |
 | Missing create-target handling | Discovery stopped when `rg` inspected `.github` before the task created it | Approved recurring ambiguity | Added to `AGENTS.md`; absent create-targets are expected, while missing required sources remain blocking |
 | Exact-version integration preflight | P01-T01 repeatedly used unverified Drizzle, Vitest, and Testcontainers integration behavior | Terra approved narrowed task-critical rule | Added to `AGENTS.md`; approved briefs must record only task-relevant exact-version facts |
+| Authentication anti-enumeration success versus delivery | A repeated sign-up for an existing unverified account returned Better Auth's generic success without creating a new notification delivery, while the UI presented that response as proof that verification email was sent | Sol confirmed the provider response intentionally hides account existence and approved an explicit provider-backed resend path with conditional copy | Added to `AGENTS.md` under repository and operational safety |
+| Ambient anonymous sessions on public auth recovery | Production resend verification returned HTTP 400 because Better Auth received the anonymous session cookie and switched from its public constant-time anti-enumeration branch to the session-bound email-mismatch branch | Terra verified Better Auth 1.7.2 client and route behavior; recovery calls now omit ambient credentials when public semantics are required | Clarified the existing authentication anti-enumeration rule in `AGENTS.md` |
 | Terra direct-execution workflow | Founder changed the active role model from P01-T02 to reduce implementation latency while preserving milestone review | Direct founder decision | Updated `AGENTS.md`; Terra medium implements/debugs/tests, Sol xhigh reviews milestones, Luna paused |
+| Global bounded execution subagent | Founder requested a reusable fast coding role that cannot self-assign, infer scope, propose changes, or debug deeply | Direct founder decision plus exact-model no-file probe | Added to `AGENTS.md`; global `flash_executor` uses `ag/gemini-3.8-flash-high` at `high` and returns ambiguous work to Sol or Terra |
 | UI artifact branch boundary | Founder reserved visual implementation for a later artifact branch | Direct founder decision | Added to `AGENTS.md`; non-UI branches may implement server routes and headless flows but not visual UI |
 | File-like dynamic route params | P03-T01 tests initially passed an extensionless sitemap key instead of the emitted `.xml` filename | Terra fixed the localized regression and added production-shaped coverage | Not added to `AGENTS.md`; one isolated incident does not meet section 9, and the regression test is the durable guard |
 | BFF error provenance | P03-T01 briefly reclassified missing private API configuration as a caller path error | Terra separated base configuration resolution from caller path validation and added regression coverage | Not added to `AGENTS.md`; one localized defect does not meet section 9 |
@@ -59,7 +103,13 @@ This log records evaluation. It does not replace `AGENTS.md`.
 | Evidence-gated calculation completion | P03-T03 found the evidence service existed but successful calculation responses did not ensure required evidence persistence | Terra wired idempotent evidence persistence to calculation completion; the pattern applies to future calculation engines and report consumers | Added to `AGENTS.md` under calculation completion and evidence |
 | Workspace declaration freshness | P01-T02 and P03-T04 independently encountered dependent typechecks reading stale workspace declarations from producer `dist` output | Sol confirmed the recurring producer-consumer build-order failure and narrowed the action to packages consumed through exports/generated declarations | Added to `AGENTS.md` under repository and operational safety |
 | Generated public-content publication boundaries | P03-T06 initially allowed mixed-locale, encoding-corrupted, unsupported-source, and localized unsafe copy across the Gate 1 corpus | Sol confirmed one severe repository-wide incident and narrowed the rule to deterministic locale integrity plus canonical repository source containment before publication | Added to `AGENTS.md` under repository and operational safety |
-| AI provider privacy production gate | FD-026 confirms a founder-operated provider but retention, training, region, subprocessors, deletion, access, and incident terms remain unknown | Existing architecture sections 18-19, `AGENTS.md` privacy/secret gates, and R-24 already require written due diligence before production use | No `AGENTS.md` change; implement the existing fail-closed gate and retain R-24 |
+| AI provider privacy production gate | FD-026 confirmed a founder-operated provider (terms historically unknown; superseded for Phase 04 closure on 2026-09-06 by FD-035 founder operational/privacy risk acceptance; production AI activation remains founder-controlled) | Existing architecture sections 18-19, `AGENTS.md` privacy/secret gates, and R-24 already require written due diligence before production use | No `AGENTS.md` change; Phase 04 privacy gate closed per FD-035; retain fail-closed gate for production activation |
+| Pre-controller authorization denial audit | P05A-T01 initially returned `notFound()` for missing, anonymous, and unverified admin sessions before the private API could record the denial | Sol confirmed a severe access-audit gap and approved a trusted server-to-private-API denial path without anonymous session creation or a public audit-write endpoint | Added to `AGENTS.md` under administrative and operational surface safety |
+| Aggregate admin projection capability enforcement | P05A-T02 twice allowed aggregate data to outlive or bypass active database capability narrowing: first through role-only module visibility, then through unconditional readiness data | Sol required a new projection-boundary cycle with active entry capability selection plus per-field/module query and response gating | Added to `AGENTS.md` under administrative and operational surface safety |
+| Transactional admin command outcome ownership | P05A-T05 repeatedly allowed deterministic post-authentication role-command outcomes to bypass atomic receipt/audit persistence through pre-transaction classification, stale receipt replay, and database-constraint fallthrough | Sol approved authority revalidation before replay plus repository ownership of every deterministic result, with atomic bounded receipt/audit evidence and duplicate-free replay | Added to `AGENTS.md` under administrative and operational surface safety |
+| SePay payment confirmation boundary | Verified SePay contract and Sol review require provider hosts/actions to come from a closed environment enum; hosted return URLs are navigation-only, while only an authenticated provider notification validated against order identity, state, amount, and currency can mutate or confirm payment | Approved combined payment-boundary rule | Added to `AGENTS.md` under repository and operational safety |
+| SePay sandbox VPS gate correction and deployment | Test-only commit `200b852` aligned migration `0010` command receipts and made the outbox fixture use persisted runtime time with row/event isolation; VPS verification then passed focused tests, Compose deployment, structural database checks, health checks, synthetic non-paid IPN probes, and browser callback smoke | Existing workspace producer build-order, runtime-clock fixture, and payment-boundary rules cover the issues | No `AGENTS.md` change; FD-030 already authorizes the first external sandbox test |
+| Unauthenticated provider setup probes | SePay Sandbox `Send test` omitted `X-Secret-Key` before provider-side authentication was configured and received `401`; after configuring `SECRET_KEY`, a real Sandbox card transaction delivered an authenticated `ORDER_PAID` and completed the commerce transaction | A setup probe is not payment verification and must never justify weakening the live webhook | Added to `AGENTS.md` under repository and operational safety |
 
 ## Per-Task Rule Check
 
@@ -80,6 +130,71 @@ and task history remain in plans/reports, not `AGENTS.md`.
 Open founder decisions are tracked in `open-decisions.md`. Package approval
 does not silently close them.
 
+## FD-031 Global Flash Executor Evidence
+
+Date: 2026-09-04
+
+- Added a global `flash_executor` Codex role outside project-specific
+  configuration. Its model is `ag/gemini-3.8-flash-high` with `high` reasoning.
+- The role reuses the existing global `custom` provider. No provider credential,
+  base URL, or secret was copied into the agent file or this repository.
+- The execution contract requires an explicit Sol or Terra brief, exact file
+  ownership, literal implementation, focused checks, and a stop after at most
+  one direct local correction.
+- A read-only ephemeral no-file CLI probe selected the exact model, global
+  provider, and `high` reasoning, then returned `FLASH_EXECUTOR_MODEL_OK`.
+- A second no-file CLI probe invoked the registered `flash_executor` role,
+  recorded an actual `spawn_agent` call, and received `FLASH_ROLE_OK` from the
+  child agent.
+- Luna remains paused. Open questions: none.
+
+## P04-T04 Approved Knowledge Retrieval Evidence
+
+Date: 2026-09-04
+
+- Implemented approved repository knowledge manifests (`content/knowledge/vi/ziwei/identity-report-foundation.v1.json` and `content/knowledge/en/ziwei/identity-report-foundation.v1.json`) using exact version `ziwei.identity.knowledge.v1` and repository-relative method guidance covering all 11 identity report sections.
+- Created `packages/database/src/schema/knowledge.ts` with immutable `knowledge_documents` and `knowledge_chunks` tables, registered in `client.ts`, `index.ts`, `drizzle.config.ts`, and migration `0013_approved_knowledge.sql` with journal entry `idx: 13`.
+- Implemented `packages/backend/src/knowledge/knowledge-ingestion.service.ts` with Zod validation, content hash recomputation, source path containment verification, approval verification, idempotent re-ingestion, and fail-closed immutable protection.
+- Implemented `packages/backend/src/knowledge/knowledge-retrieval.service.ts` with PostgreSQL `simple` text search, metadata filtering (discipline, locale, report section, exact version), rank desc and passageId asc deterministic ordering, hard limit enforcement (8 passages, 1,200 chars/passage, 9,600 total chars, 512 query chars, no mid-passage splitting), and silent fallback for unindexed/disabled vector dependency.
+- Implemented `apps/worker/src/processors/knowledge-embed.processor.ts` skipping with no side effect when disabled or unindexed, validating input, and embedding approved versioned chunks idempotently when enabled.
+- Focused verification passed 26 tests across 4 test files (`knowledge-retrieval.service.test.ts`, `knowledge-migration-layout.test.ts`, `knowledge-embed.processor.test.ts`, `knowledge-retrieval.integration.test.ts`). Real PostgreSQL integration verified with Testcontainers. Builds (`@lasoviet/database`, `@lasoviet/backend`), worker typecheck, scoped ESLint, and `git diff --check` all passed clean.
+- Rule candidate: none. Open questions: none.
+
+## FD-030 Sandbox Deployment Evidence
+
+Date: 2026-09-03
+
+- Branch `feature/paid-flow-admin-operations` deployed at
+  `200b85222a8b6eedb4692a76f31aed27c73bd214` after Sol's scoped re-review
+  verdict `SAFE_TO_PUSH_AND_RERUN_VPS_GATE` with no open findings.
+- The verified PostgreSQL pre-deploy backup existed before deployment. The
+  workspace producer build passed; the focused Docker VPS gate passed four
+  files, 18 tests, and zero failures.
+- Compose deployment succeeded: migration exited `0`; PostgreSQL, Redis, API,
+  and web were healthy; and the worker was running. The database reported 12
+  applied migrations, requested commerce/report tables, and both report
+  outbox indexes. Loopback and public HTTPS health returned `200`.
+- Public synthetic IPN probes rejected a wrong secret with `401` and
+  acknowledged an authenticated non-paid `TRANSACTION_VOID` with exact HTTP
+  `200` success without changing commerce order, payment, entitlement, or
+  reservation aggregate counts.
+- Browser smoke rendered live VI/EN home pages and kept EN and VI checkout
+  login callbacks locale-correct. Production Playwright was not a pass: the
+  existing specs set their locale cookie for `127.0.0.1` and failed before the
+  exercised form flow. This is a local-runtime harness limitation, not a
+  production defect; no scope expansion is authorized.
+- A real Sandbox card transaction was completed on 2026-09-03 for 79,000 VND;
+  no real money moved. SePay delivered an authenticated `ORDER_PAID` to the
+  public endpoint and received `200`. PostgreSQL recorded one paid order, one
+  payment event, one entitlement, one report reservation, and a processed
+  `report.generation.requested.v1` outbox event. The durable report worker
+  consumer (P04-T03) was implemented and approved on the active branch on
+  2026-09-04 (commits `2f9ef12`, `d585bba`, `d2c64f7`; 21 tests, 6 real
+  PostgreSQL integration scenarios, Terra APPROVED). The previously published
+  sandbox report job on the remote Docker VPS remains `waiting` pending a
+  separately authorized deployment.
+- Production payment activation remains a separate founder-controlled gate.
+
 ## P04 AI Execution Design
 
 Date: 2026-09-02
@@ -92,7 +207,10 @@ Date: 2026-09-02
   strict JSON Schema output, and forced tool calling.
 - The probe is operational evidence only. Request retention, training use,
   processing regions, subprocessors, access controls, deletion behavior, and
-  incident-notification terms remain unknown and block production AI.
+  incident-notification terms were historically unknown and blocked production AI
+  (superseded on 2026-09-06 by FD-035: founder waived separate enumeration for
+  self-hosted `9router-an` and accepted operational/privacy responsibility;
+  production AI activation remains a separate founder-controlled gate).
 - The current milestone owns pure AI/report contracts and services only.
   Queue, persistence, private report UI, PDF events, and knowledge retrieval
   remain with their existing Phase 04 tasks.
@@ -107,8 +225,126 @@ Date: 2026-09-02
   dependencies.
 - Rule candidate: none. The existing privacy gate and R-24 already cover the
   reusable behavior; strict source-snapshot and locale-integrity rules already
-  cover the implementation lessons. Open questions: provider privacy terms
-  remain pending.
+  cover the implementation lessons. Open questions: provider privacy terms were
+  pending at this checkpoint (superseded on 2026-09-06 by FD-035: resolved by
+  founder privacy approval; no open Phase 04 questions).
+
+## P04 Tasks 1-5 In-Page VietQR Flow Evidence
+
+Date: 2026-09-05
+
+- Implemented an in-page VietQR payment experience on the checkout route
+  (`/[locale]/thanh-toan/[orderId]`), superseding the hosted SePay redirect flow
+  while preserving backward-compatible hosted IPN handling.
+- Added five server-only environment variables (`SEPAY_BANK_CODE`,
+  `SEPAY_ACCOUNT_NUMBER`, `SEPAY_ACCOUNT_HOLDER`, `SEPAY_ORDER_TTL_SECONDS`,
+  `SEPAY_WEBHOOK_SECRET`) with strict schema validation. Bank code, account
+  number, and account holder are intentionally projected to the authenticated
+  owner on checkout to display transfer instructions, while webhook and gateway
+  secrets remain strictly server-only and redacted from client bundles and logs.
+- Enforced an initial order time-to-live (TTL) of exactly 900 seconds (15
+  minutes) with deterministic database compare-and-set transitions to `expired`
+  and rejection of late payments via `PAYMENT_STATE_CONFLICT`.
+- Added dual-mode webhook authentication at `/api/webhooks/sepay`:
+  - Bank webhook: `X-SePay-Signature: sha256=<hex>`, `X-SePay-Timestamp`,
+    canonical `<unix-seconds>.<raw-body>`, constant-time comparison, and maximum
+    drift of 300 seconds.
+  - Hosted IPN: `X-Secret-Key` verified with constant-time comparison against
+    `SEPAY_SECRET_KEY`.
+  - Modes are mutually exclusive and fail closed.
+- Implemented owner-only checkout status projection (`GET /api/commerce/orders/[orderId]/status`)
+  with `cache-control: no-store`, strict client parsing, and 2500 ms
+  polling while pending and visible. Polling pauses on document hide, refreshes
+  immediately upon visibility, and terminates on `expired`, `failed`, or
+  `refunded`.
+- When order status becomes `paid` with a valid `reportId`, checkout navigates to
+  the localized private report route: VI `/bao-cao/<encoded reportId>` and EN `/en/bao-cao/<encoded reportId>`.
+- `recordPaid` remains the single atomic payment-event, entitlement,
+  report-reservation, and `report.generation.requested.v1` handoff across all
+  payment paths.
+- Reopened expired and failed orders retain their stable order ID but receive a
+  fresh transfer description/invoice (`LSV-<uuid>`) so stale attempt
+  references cannot confirm the reopened order.
+- Public webhook bodies at `/api/webhooks/sepay` are capped at 64 KiB (65,536
+  bytes) before private API forwarding; oversized or malformed declared
+  content lengths fail closed with 413 or 400 without private API forwarding.
+- Task 5 review evidence: commit `9543450`, 19/19 focused tests, web typecheck,
+  i18n parity, scoped ESLint, and diff check passed; Terra high reported spec
+  PASS and quality APPROVED with no findings.
+- Local Compose validation remains synthetic-only and must not send a payment or
+  call SePay. Production payment activation remains a separate founder gate.
+
+## P04 Tasks 3-6 Implementation and Browser Acceptance Evidence
+
+Date: 2026-09-05 (updated 2026-09-06)
+
+- P04-T03 added the durable PostgreSQL report consumer and state machine,
+  ending at the authoritative `generating` handoff. Terra high approved 21
+  focused tests, including 6 PostgreSQL integration scenarios.
+- P04-T04 added approved, versioned repository knowledge ingestion and bounded
+  PostgreSQL retrieval with optional vector augmentation disabled by default.
+  Terra high approved 43 focused tests.
+- P04-T05 connected the worker to frozen evidence/knowledge, bounded AI
+  generation, deterministic validation and critic checks, immutable structured
+  and escaped HTML persistence, replay fencing, and one idempotent
+  `report.pdf.requested.v1` event. Production AI remained fail-closed while
+  provider privacy due diligence was pending (superseded on 2026-09-06 by FD-035:
+  provider privacy gate approved; production AI activation remains a separate
+  founder-controlled gate).
+- P04-T06 added strict private report views, owner-filtered repository/API/BFF
+  reads, pending/failed state rendering, artifact-backed responsive HTML,
+  report-bound evidence disclosure, locale authority, noindex coverage,
+  reduced-motion behavior, and mobile keyboard focus management. Initial
+  implementation was approved in commit `c702a91` by Terra high.
+- Browser test execution (RED) with controlled fixtures exposed two issues:
+  persisted-VI wrong-locale redirect loop on English private reports and a broad
+  failed-alert selector.
+- Final code fix commit `63f3823c7d630f690588e23de45ad03bec1e2559` (`fix(web): prevent private report locale redirect loops`)
+  was independently reviewed and approved by Terra high: SPEC PASS, QUALITY
+  APPROVED, with zero open Critical or Important findings.
+- Controlled browser acceptance:
+  `corepack pnpm@11.25.0 playwright test tests/e2e/paid-report-html.spec.ts --fully-parallel --workers=7`
+  passed with 7 passed, 0 failed, 0 skipped, duration 11.2s on 2026-09-06.
+  Covered signed-out redirect, cross-owner/missing 404 equivalence, VI
+  evidence/noindex/canonical locale, EN locale, pending-to-ready refresh
+  retaining path, safe static failed state, and mobile TOC focus lifecycle.
+- Fixture harness safety: 16 passed, 0 failed (12 pure + 4 command-level tests);
+  loopback-only base URL enforcement; duplicate setup refusal; manifest, path,
+  and ID validation; and PostgreSQL ownership verification before promote,
+  reset, or cleanup mutations. Terra final scoped review: SPEC PASS / QUALITY
+  APPROVED.
+- Fixture cleanup: synthetic users, report reservations, report versions, outbox,
+  and report queue counts all verified zero; temporary storage states and
+  manifest absent. No real SePay, payment, AI, PDF/storage, email delivery, or
+  deployment activity.
+- Full repository verification after code fix: workspace typecheck PASS;
+  workspace production build PASS; full Vitest 121/121 files and 723/723 tests
+  PASS; i18n parity PASS; repository ESLint PASS; `git diff --check` PASS.
+- Phase 04 closure status: Phase 04 implementation, controlled browser
+  acceptance, and provider privacy due diligence approval (FD-035) are complete
+  on the isolated branch. Phase 04 is closed. Production payment activation,
+  production AI activation, deployment, merge, push, and release activation
+  remain separately authorized founder-controlled gates.
+
+## FD-035 Provider Privacy Due Diligence Approval Evidence
+
+Date: 2026-09-06
+
+- The founder formally confirmed that `9router-an` is self-hosted and
+  founder-operated.
+- The founder waived separate contractual enumeration (retention, training,
+  regions, subprocessors, access, deletion, incident notification) and
+  explicitly accepted operational and privacy responsibility for this provider
+  as configured.
+- This approved the Phase 04 provider privacy due-diligence decision gate in
+  `docs/compliance/ai-provider-due-diligence.md` and closed Phase 04.
+- Scope boundary: FD-035 approves the Phase 04 privacy gate only. It does not
+  authorize production AI activation, production payment activation, deployment,
+  merge, push, release activation, or credentials changes. Those remain
+  separate founder-controlled operations.
+- Terra high completed the due-diligence record completeness review in
+  `docs/compliance/ai-provider-due-diligence.md` on 2026-09-06 with
+  `SPEC PASS / QUALITY APPROVED`.
 
 ## P03 Non-Visual Slice 1 Evidence
 
@@ -257,6 +493,54 @@ Date: 2026-09-01
   controlled Next/PostgreSQL runtime at `http://127.0.0.1:3000/`; a later
   authorized runtime must run that gate.
 - No external SMTP send or Google request occurred. Rule candidate: none.
+
+## MVP Verification Email Resend Correction
+
+Date: 2026-09-03
+
+- Production evidence showed that Better Auth returned its intentional generic
+  success for a repeated sign-up using an existing unverified email address,
+  but did not create another notification delivery. SMTP DNS and TCP port 587
+  remained reachable, and the account's earlier verification delivery was
+  recorded as sent.
+- The browser auth adapter no longer treats generic sign-up success as email
+  delivery confirmation. The sign-up panel now uses conditional,
+  enumeration-safe copy and exposes an explicit Better Auth-backed resend
+  verification command without automatically sending a duplicate email for a
+  newly created account.
+- TDD evidence: the focused auth action suite first failed four assertions
+  against the previous behavior, then passed all five tests after the
+  correction. Web typecheck, production build, and i18n parity also passed.
+- Commit `d7f85ee` was deployed to the VPS web service while API, worker,
+  PostgreSQL, and Redis remained running. The replacement web container became
+  healthy and the public health route returned HTTP 200.
+- One founder-authorized resend request returned HTTP 200 with
+  `{"status":true}`. The matching verification-delivery count increased from
+  one to two; the new delivery reached `sent` on its first attempt with a
+  provider message ID present. The founder confirmed inbox receipt on
+  2026-09-03.
+- The authentication anti-enumeration rule was added to `AGENTS.md`. Open
+  questions: none.
+
+## MVP Auth Recovery Correction
+
+Date: 2026-09-03
+
+- Production access logs showed verification resend returned HTTP 400 while
+  the browser carried an anonymous session. Better Auth 1.7.2 source confirmed
+  that the cookie selected its session-bound email-mismatch branch instead of
+  the public constant-time anti-enumeration branch.
+- The account verification callback completed successfully. The subsequent
+  sign-in returned HTTP 401, and server logs identified an invalid password;
+  the account remained verified with a credential account present.
+- Resend verification now omits ambient credentials. Sign-in distinguishes
+  invalid credentials from unverified-account recovery without identifying
+  whether the email or password was wrong. Password reset request and
+  completion routes use Better Auth's existing server configuration, preserve
+  enumeration-safe request copy, and remain noindex and outside sitemaps.
+- Focused implementation verification covers auth actions and canonical route
+  state. Deployment and one live password-reset smoke remain founder-authorized
+  external steps. Open questions: none.
 
 ## P01-T03 Evidence
 

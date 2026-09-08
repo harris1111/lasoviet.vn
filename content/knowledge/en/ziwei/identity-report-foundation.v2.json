@@ -1,0 +1,105 @@
+{
+  "documentId": "ziwei-identity-foundation-en",
+  "knowledgeVersion": "ziwei.identity.knowledge.v2",
+  "discipline": "ziwei",
+  "locale": "en",
+  "sourcePath": "content/knowledge/en/ziwei/identity-report-foundation.v2.json",
+  "sourceAttribution": "Lá Số Việt Method Editorial Board",
+  "permittedUse": "first_party",
+  "contentHash": "13c55295f51fd1807cd74776f3c5546882f25ee2431a6e414e48cfdb6ac16bbc",
+  "approval": {
+    "status": "approved",
+    "approver": "phase04-content-review",
+    "approvedAt": "2026-09-07T00:00:00.000Z"
+  },
+  "chunks": [
+    {
+      "passageId": "en-ziwei-foundation-v2-001",
+      "reportSections": [
+        "personal_summary"
+      ],
+      "content": "The personal summary draws upon the Life Palace, Body Palace, and Four Transformations pattern to sketch a grounded picture of personal identity. The Life Palace reflects core temperament and spontaneous responses, while the Body Palace reveals action orientation and adaptive style over time. The Four Transformations highlight primary areas of focus, helping the reader recognize baseline psychological patterns without deterministic fatalism.",
+      "contentHash": "0b985d512f22166ed58d81c03015a2010c0ced22a93ff704fb77fac17ddab06e"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-002",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "The report methodology operates on transparent data verification and explicit structural boundaries. The system interprets only normalized chart facts: Life Palace placement and earthly branch, Body Palace functional placement, and stars activated by the Four Transformations. Every insight functions as a conditional reflection signal, strictly bounded by verified technical evidence without speculative extrapolation.",
+      "contentHash": "a22702991c13d80d91cadb75a594106f1005f94e2a828ddac3ab95ea61c36f62"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-003",
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "The primary evidence consists of three structural pillars: the Life Palace and its earthly branch, the Body Palace and its functional assignment, and the Four Transformations pairing specific stars with Prosperity, Power, Fame, and Obstacle. Each supported claim links directly to one of these evidence items so readers can verify the origin and rationale behind every observation.",
+      "contentHash": "7dcc90e3b324ea8402c627f68cbe922355d5fe77ebb05f692d6a9cc2536fa5d5"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-004",
+      "reportSections": [
+        "strengths_and_resources"
+      ],
+      "content": "Strengths and resources are identified through favorable qualities of the Life Palace, Body Palace, and positive channels of Prosperity, Power, or Fame transformations. These represent potential behavioral competencies and internal assets that flourish with deliberate practice in suitable environments, rather than guaranteed automatic outcomes.",
+      "contentHash": "62021c1d2aeb66c346a1017bd1a252ca73a09b9377a52bc7761a8296db80e90b"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-005",
+      "reportSections": [
+        "tensions_and_blind_spots"
+      ],
+      "content": "Tensions and blind spots reflect friction between spontaneous impulses in the Life Palace and practical pursuits in the Body Palace, or cognitive friction associated with the Obstacle transformation. Identifying these friction points fosters self-observation under stress, helping individuals notice habitual counterproductive reactions and adjust course responsibly.",
+      "contentHash": "f928751201e442fb23d025c5865d0d26269f5c1faeb8c9014eba008e2c161727"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-006",
+      "reportSections": [
+        "identity_analysis"
+      ],
+      "content": "Identity analysis explores the structural interplay between baseline temperament in the Life Palace, developmental orientation in the Body Palace, and psychological dynamics shaped by the Four Transformations. This combination shapes distinctive cognitive habits, core motivations, and relational tendencies in daily life.",
+      "contentHash": "ffa9406d83a2d465f8ac79bacbf1bc55a4a298fd3514068933f86879670a4377"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-007",
+      "reportSections": [
+        "cycles_and_timing"
+      ],
+      "content": "Cycles and timing in this report version strictly adhere to verified evidence limits. Because verified decadal and annual cycle data are not yet integrated, this report does not present timing forecasts or period predictions, preserving methodological integrity.",
+      "contentHash": "054adcda95e37ae287d434a147ff107ec2aa72708fd25776a605f1885761162c"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-008",
+      "reportSections": [
+        "within_control"
+      ],
+      "content": "Within your control emphasizes that all chart indicators serve merely as structural reference points, while actual life outcomes depend upon conscious choices and deliberate action. You retain full agency over how you respond to pressure, which environments you cultivate, and the daily habits you choose to build.",
+      "contentHash": "fa4e8b5fab5965af2f3970c0540160837fe91003fbe2640307344b2b92a28d1a"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-009",
+      "reportSections": [
+        "reflection_questions"
+      ],
+      "content": "Reflection questions prompt thoughtful internal inquiry grounded in Life Palace, Body Palace, and Four Transformations evidence. These prompts encourage honest self-examination regarding decision-making habits, stress responses, and practical ways to cultivate strengths across work and relationships.",
+      "contentHash": "a15f379f531c912836ab0c1174600fff31b4880110d1cc1f855c5ea891917abc"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-010",
+      "reportSections": [
+        "action_summary"
+      ],
+      "content": "The action summary offers concrete, manageable behavioral steps grounded in verified observation limits. Each suggestion focuses on testing personal insights directly in daily life through attentive self-monitoring and low-risk, practical experiments.",
+      "contentHash": "473ce9800dadbfa8cfe95288e1f6f1efb7cfe2fb8409d7c772e8e2f04ea3c1ee"
+    },
+    {
+      "passageId": "en-ziwei-foundation-v2-011",
+      "reportSections": [
+        "limitations_and_disclaimer"
+      ],
+      "content": "Method limitations clarify that this report is strictly intended for self-reflection and personal inquiry. It does not replace licensed medical, mental health, legal, or financial advice, and should never serve as the sole foundation for high-stakes or risk-bearing life decisions.",
+      "contentHash": "75074b238b86e95dd53f6721f2cffc9468e5d82a9193dc77bd9519d8c91d8cea"
+    }
+  ]
+}

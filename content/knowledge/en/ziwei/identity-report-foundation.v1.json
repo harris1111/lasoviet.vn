@@ -1,0 +1,105 @@
+{
+  "documentId": "ziwei-identity-foundation-en",
+  "knowledgeVersion": "ziwei.identity.knowledge.v1",
+  "discipline": "ziwei",
+  "locale": "en",
+  "sourcePath": "docs/05-report-system.md",
+  "sourceAttribution": "Lá Số Việt Method Editorial Board",
+  "permittedUse": "first_party",
+  "contentHash": "ac681dd277132b0b7400129c0ee7e68fdb7df131aa02a721bdae0e1dd95d44a1",
+  "approval": {
+    "status": "approved",
+    "approver": "method-reviewer",
+    "approvedAt": "2026-09-01T00:00:00.000Z"
+  },
+  "chunks": [
+    {
+      "passageId": "en-ziwei-foundation-001",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "The reporting methodology at Lá Số Việt begins with normalizing input data against verified local timezones and established computational rules. The architecture enforces three distinct layers: baseline chart calculation, deterministic evidence selection, and reflective narrative synthesis. The system never introduces claims beyond validated evidence.",
+      "contentHash": "bf128025e828b118d5acdf7e647cc617d1be8f8d1f10598ede03e26fba2ccac1"
+    },
+    {
+      "passageId": "en-ziwei-foundation-002",
+      "reportSections": [
+        "personal_summary"
+      ],
+      "content": "The personal identity summary clarifies foundational temperament, primary behavioral patterns, and decision-making styles. Rather than relying on generic generalizations, the overview connects specific character traits directly to prominent evidence on the chart, providing a coherent portrait of personal tendencies.",
+      "contentHash": "e424a0ad1206d613c6cdfdb229a6d84d9e923694e5a5f078fefb027fc811917c"
+    },
+    {
+      "passageId": "en-ziwei-foundation-003",
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Primary evidence is selected through systematic rules correlating key palaces and star configurations. Each interpretive statement connects to concrete chart evidence, enabling readers to inspect the underlying rationale, rule labels, and sensitivity factors through transparent interface components.",
+      "contentHash": "2754b5a32b2faf6a50e909376fc082114c5fd8d671f1f6399c0398282176f27e"
+    },
+    {
+      "passageId": "en-ziwei-foundation-004",
+      "reportSections": [
+        "strengths_and_resources"
+      ],
+      "content": "Strengths and resources highlight conditional positive expressions in personal and professional domains. These assets are not automatic guarantees of success, but latent developmental capacities that require deliberate practice, suitable environments, and proactive commitment to mature effectively.",
+      "contentHash": "1cbeea879547e564a63398ae67f40e2c96c3a1f469333ab6025668b12e8bf9a5"
+    },
+    {
+      "passageId": "en-ziwei-foundation-005",
+      "reportSections": [
+        "tensions_and_blind_spots"
+      ],
+      "content": "Tensions and blind spots identify internal friction points, stress responses, and recurring cognitive vulnerabilities. Avoiding judgmental labels, the analytical framework objectively describes behavioral bottlenecks to support constructive self-awareness and emotional regulation.",
+      "contentHash": "cffd2af09a9b74ae7dc3b67274f0fed22655ee2e9a495051331a23e1752fb240"
+    },
+    {
+      "passageId": "en-ziwei-foundation-006",
+      "reportSections": [
+        "identity_analysis"
+      ],
+      "content": "Identity analysis examines core motivations, personal values, and relational styles. Respecting multifaceted psychological patterns, the framework assists individuals in navigating competing internal drivers and aligning developmental paths with authentic aptitudes.",
+      "contentHash": "148e6215e7c629ba0eae6798ce35348c3e14a208ae8caf63809809be9de9d58d"
+    },
+    {
+      "passageId": "en-ziwei-foundation-007",
+      "reportSections": [
+        "cycles_and_timing"
+      ],
+      "content": "Cycles and timing present probabilistic windows to assist strategic planning across short-term and long-term horizons. The methodology strictly rejects fatalistic predictions or rigid event claims, focusing instead on proactive resource preparation and adaptive mindset.",
+      "contentHash": "8d22e3f50c6162709f0df51304e362d93e6b73add1fb4a0b5796b24ad1d9325e"
+    },
+    {
+      "passageId": "en-ziwei-foundation-008",
+      "reportSections": [
+        "within_control"
+      ],
+      "content": "A central pillar of the Lá Số Việt philosophy is emphasizing areas strictly within personal control. Symbolic indicators serve only as reflective coordinates; deliberate agency, ethical discernment, and disciplined effort remain the decisive arbiters of life outcomes.",
+      "contentHash": "2afe8afce76ed4579a91465225cb014118f072c9e256bc84cda6c26199aee790"
+    },
+    {
+      "passageId": "en-ziwei-foundation-009",
+      "reportSections": [
+        "reflection_questions"
+      ],
+      "content": "Self-reflection questions comprise three to five open-ended inquiries designed to foster intentional self-examination. These prompts assist the reader in translating structured findings into practical insights regarding habits, communication, and personal goals.",
+      "contentHash": "f0e7dcf47107e21b9cd0fc8d4a638289f924999d4176bddbb8c4f4e3cba5cc48"
+    },
+    {
+      "passageId": "en-ziwei-foundation-010",
+      "reportSections": [
+        "action_summary"
+      ],
+      "content": "The action summary distills analytical findings into a concise checklist of up to five practical, grounded steps. Recommendations focus on observable behaviors that optimize innate strengths and mitigate cognitive blind spots in daily routines.",
+      "contentHash": "e82ad2955ae2ac1ad88a8117f1d407a5428eaf8283b2eca9360ee289092a3284"
+    },
+    {
+      "passageId": "en-ziwei-foundation-011",
+      "reportSections": [
+        "limitations_and_disclaimer"
+      ],
+      "content": "All report contents are provided solely for personal exploration and self-reflection. They do not constitute and cannot replace certified medical, psychiatric, legal, or professional financial advisory services. The reader retains complete autonomy and responsibility for all life decisions.",
+      "contentHash": "05247b2dfba1428cbc45d63cfc5f2b5c76140101cf157c893ffbfc9b653445f0"
+    }
+  ]
+}

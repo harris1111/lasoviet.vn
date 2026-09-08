@@ -25,6 +25,7 @@ test("the private Zi Wei result route renders the free chart flow", async ({
   await page.getByRole("button", { name: "Đóng căn cứ" }).click();
   await expect(page.getByRole("dialog", { name: "Căn cứ luận giải" })).toBeHidden();
 
+  await expect(page.getByRole("link", { name: "Xem bản luận giải mẫu" })).toBeVisible();
   await page.getByRole("link", { name: "Chọn chủ đề luận giải" }).click();
   await expect(page.getByRole("heading", { name: "Chọn luận giải chuyên sâu" })).toBeVisible();
   await expect(page.getByText("Bản mệnh và tiềm năng")).toBeVisible();

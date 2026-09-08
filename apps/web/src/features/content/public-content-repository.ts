@@ -43,9 +43,14 @@ export function createPublicContentRepository(
     const content = parsed.data;
     const route = routesById.get(content.routeId);
     const key = contentKey(content.routeId, content.locale);
+    const isAllowedPublicRoute =
+      route !== undefined &&
+      !route.private &&
+      (route.status === "live_indexable" || route.status === "live_noindex") &&
+      route.content === "reviewed";
+
     if (
-      route === undefined ||
-      route.status !== "live_indexable" ||
+      !isAllowedPublicRoute ||
       !route.localeOwners.includes(content.locale) ||
       content.status !== "published" ||
       recordsByKey.has(key)

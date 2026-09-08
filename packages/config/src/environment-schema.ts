@@ -13,6 +13,7 @@ export type AiEnvironment =
       maxRetries: number;
       featureJsonSchema: boolean;
       featureToolCalling: boolean;
+      productionEnabled: boolean;
     };
 
 export type SmtpEnvironment =
@@ -38,6 +39,25 @@ export type CloudS3Environment =
       secretAccessKey: string;
     };
 
+export type DisabledSePayEnvironment = {
+  environment: "disabled";
+};
+
+export type ActiveSePayEnvironment = {
+  environment: "sandbox" | "production";
+  merchantId: string;
+  secretKey: string;
+  bankCode: string;
+  accountNumber: string;
+  accountHolder: string;
+  orderTtlSeconds: number;
+  webhookSecret: string;
+};
+
+export type SePayEnvironment =
+  | DisabledSePayEnvironment
+  | ActiveSePayEnvironment;
+
 export type AppEnvironment = {
   nodeEnv: NodeEnvironment;
   internalActorSecret?: string;
@@ -53,6 +73,7 @@ export type AppEnvironment = {
   ai: AiEnvironment;
   smtp: SmtpEnvironment;
   cloudS3: CloudS3Environment;
+  sepay: SePayEnvironment;
 };
 
 const trimmedNonEmpty = z.string().trim().min(1);
@@ -86,8 +107,19 @@ const enabledAi = z
     maxRetries: z.number().int().nonnegative(),
     featureJsonSchema: z.boolean(),
     featureToolCalling: z.boolean(),
+    productionEnabled: z.boolean(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, context) => {
+    if (data.productionEnabled && !data.featureJsonSchema) {
+      context.addIssue({
+        code: "custom",
+        path: ["featureJsonSchema"],
+        message:
+          "AI_FEATURE_JSON_SCHEMA must be enabled when AI_PRODUCTION_ENABLED is true",
+      });
+    }
+  });
 
 export const AiEnvironmentSchema: z.ZodType<AiEnvironment> =
   z.discriminatedUnion("enabled", [disabledAi, enabledAi]);
@@ -123,6 +155,23 @@ const enabledCloudS3 = z
 export const CloudS3EnvironmentSchema: z.ZodType<CloudS3Environment> =
   z.discriminatedUnion("enabled", [disabledCloudS3, enabledCloudS3]);
 
+const disabledSePay = z.object({ environment: z.literal("disabled") }).strict();
+const activeSePay = z
+  .object({
+    environment: z.enum(["sandbox", "production"]),
+    merchantId: trimmedNonEmpty,
+    secretKey: trimmedNonEmpty,
+    bankCode: trimmedNonEmpty.max(64),
+    accountNumber: trimmedNonEmpty.max(64),
+    accountHolder: trimmedNonEmpty.max(128),
+    orderTtlSeconds: z.number().int().positive(),
+    webhookSecret: trimmedNonEmpty.max(256),
+  })
+  .strict();
+
+export const SePayEnvironmentSchema: z.ZodType<SePayEnvironment> =
+  z.discriminatedUnion("environment", [disabledSePay, activeSePay]);
+
 export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
   .object({
     nodeEnv: NodeEnvironmentSchema,
@@ -142,6 +191,7 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     ai: AiEnvironmentSchema,
     smtp: SmtpEnvironmentSchema,
     cloudS3: CloudS3EnvironmentSchema,
+    sepay: SePayEnvironmentSchema,
   })
   .strict()
   .superRefine((environment, context) => {

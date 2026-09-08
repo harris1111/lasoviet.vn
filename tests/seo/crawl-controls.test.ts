@@ -89,4 +89,35 @@ describe("crawl controls", () => {
       sitemap: SITEMAP_INDEX_URL,
     });
   });
+  it("strictly excludes live_noindex discipline preview routes from all sitemaps", () => {
+    const crawledUrls = getSitemapIndexEntries().map((entry) => entry.url);
+    const previewPaths = [
+      "/bat-tu",
+      "/kinh-dich",
+      "/chiem-tinh",
+      "/than-so-hoc",
+      "/cong-cu-mien-phi",
+      "/ngay-tot",
+      "/12-con-giap",
+      "/giai-ma-giac-mo",
+      "/boi-bai",
+      "/lich-am",
+      "/phong-thuy/huong-nha",
+      "/xem-chi-tay",
+    ];
+
+    for (const path of previewPaths) {
+      expect(crawledUrls).not.toContain(`${PRODUCTION_ORIGIN}${path}`);
+      expect(crawledUrls).not.toContain(englishUrl(path));
+    }
+
+    const previewRoutes = routeRegistry.filter((r) => previewPaths.includes(r.path));
+    expect(previewRoutes).toHaveLength(12);
+    for (const r of previewRoutes) {
+      expect(r.status).toBe("live_noindex");
+      expect(r.sitemap).toBe(false);
+      expect(r.indexing).toBe("noindex_follow");
+      expect(r.robots).toBe("noindex,follow");
+    }
+  });
 });

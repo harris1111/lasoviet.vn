@@ -1,5 +1,5 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -19,6 +19,12 @@ import {
 import { consents, deletionRequests } from "./privacy.js";
 import { enqueueOutbox, outbox } from "./outbox.js";
 import { auditLogs } from "./audit.js";
+import {
+  adminAuditLogs,
+  adminCapabilityPolicies,
+  adminRoleAssignments,
+  adminRoleMutationRequests,
+} from "./admin-access.js";
 import { runMigrations } from "../migrate.js";
 import { notificationDeliveries } from "./notifications.js";
 
@@ -203,6 +209,123 @@ describe("database schema integration", () => {
       requestId: "request_schema_test",
       metadata: { source: "integration-test" },
     });
+    await database.insert(adminRoleAssignments).values({
+      id: "admin_assignment_schema_test",
+      userId,
+      role: "read_only",
+    });
+    await expect(
+      database.insert(adminRoleAssignments).values({
+        id: "admin_assignment_duplicate",
+        userId,
+        role: "operations",
+      }),
+    ).rejects.toBeDefined();
+    await database.insert(adminRoleMutationRequests).values({
+      actorId: userId,
+      operation: "admin.role.assigned",
+      targetId: "admin_assignment_schema_test",
+      idempotencyKey: "schema-role-change-1",
+      requestFingerprint: "fingerprint-1",
+      result: { assignmentId: "admin_assignment_schema_test", version: 1 },
+    });
+    await database.insert(adminRoleMutationRequests).values({
+      actorId: userId,
+      operation: "admin.role.assigned",
+      targetId: "admin_assignment_schema_test",
+      idempotencyKey: "schema-role-change-1",
+      requestFingerprint: "fingerprint-2",
+      result: { assignmentId: "admin_assignment_schema_test", version: 1 },
+    });
+    await expect(
+      database.insert(adminRoleMutationRequests).values({
+        actorId: userId,
+        operation: "admin.role.assigned",
+        targetId: "admin_assignment_schema_test",
+        idempotencyKey: "schema-role-change-1",
+        requestFingerprint: "fingerprint-2",
+        result: { assignmentId: "admin_assignment_schema_test", version: 1 },
+      }),
+    ).rejects.toBeDefined();
+    expect(
+      await database
+        .select({
+          idempotencyKey: adminRoleMutationRequests.idempotencyKey,
+          requestFingerprint: adminRoleMutationRequests.requestFingerprint,
+        })
+        .from(adminRoleMutationRequests)
+        .where(
+          and(
+            eq(adminRoleMutationRequests.actorId, userId),
+            eq(
+              adminRoleMutationRequests.idempotencyKey,
+              "schema-role-change-1",
+            ),
+          ),
+        )
+        .orderBy(asc(adminRoleMutationRequests.requestFingerprint)),
+    ).toEqual([
+      {
+        idempotencyKey: "schema-role-change-1",
+        requestFingerprint: "fingerprint-1",
+      },
+      {
+        idempotencyKey: "schema-role-change-1",
+        requestFingerprint: "fingerprint-2",
+      },
+    ]);
+    expect(
+      await database
+        .select({ capability: adminCapabilityPolicies.capability })
+        .from(adminCapabilityPolicies)
+        .where(eq(adminCapabilityPolicies.role, "read_only"))
+        .orderBy(asc(adminCapabilityPolicies.capability)),
+    ).toEqual([
+      { capability: "admin.audit.read" },
+      { capability: "admin.overview.read" },
+      { capability: "admin.readiness.read" },
+      { capability: "admin.reports.read" },
+    ]);
+    const [adminAudit] = await database
+      .insert(adminAuditLogs)
+      .values({
+        actorId: userId,
+        roleAssignmentId: "admin_assignment_schema_test",
+        capability: "admin.overview.read",
+        operation: "admin.overview.read",
+        targetType: "admin_overview",
+        targetId: "overview",
+        requestId: "admin-request-schema-test",
+        traceId: "admin-trace-schema-test",
+        policyResult: "allowed",
+        redactionLevel: "redacted",
+        resultSummary: { count: 1 },
+      })
+      .returning();
+    await expect(
+      database
+        .update(adminAuditLogs)
+        .set({ operation: "admin.audit.mutated" })
+        .where(eq(adminAuditLogs.id, adminAudit!.id)),
+    ).rejects.toBeDefined();
+    await expect(
+      database.delete(adminAuditLogs).where(eq(adminAuditLogs.id, adminAudit!.id)),
+    ).rejects.toBeDefined();
+    await expect(
+      database.insert(adminAuditLogs).values({
+        actorId: null,
+        roleAssignmentId: null,
+        capability: "admin.overview.read",
+        operation: "admin.access.read",
+        targetType: "admin_overview",
+        targetId: "overview",
+        requestId: "admin-denied-request",
+        traceId: "admin-denied-trace",
+        policyResult: "denied",
+        redactionLevel: "redacted",
+        resultSummary: { outcome: "denied" },
+      }),
+    ).resolves.toBeDefined();
     const [notification] = await database
       .insert(notificationDeliveries)
       .values({

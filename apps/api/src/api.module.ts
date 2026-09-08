@@ -14,6 +14,15 @@ import {
   createAnalyticsService,
   createAccountDeletionService,
   createAnonymousRetentionService,
+  createAdminAccessService,
+  createAdminAuditService,
+  createAuditQueryService,
+  createDatabaseAuditQueryRepository,
+  createDatabaseAdminHealthService,
+  createDatabaseAdminAccessRepository,
+  createDatabaseAdminAuditRepository,
+  createDatabaseRoleAssignmentRepository,
+  createDatabaseAdminOverviewRepository,
   createBirthProfileService,
   createConsentService,
   createDatabaseAuthEmailDeliveryStore,
@@ -23,10 +32,15 @@ import {
   createDatabaseDeletionRepository,
   createDatabaseZiweiCalculationRepository,
   createDatabaseZiweiQueryRepository,
+  createDatabaseCommerceRepository,
   createSmtpEmailAdapter,
+  createAdminOverviewService,
+  createRoleAssignmentService,
   createEvidenceService,
   createZiweiCalculationService,
   createZiweiQueryService,
+  createDatabaseReportQueryRepository,
+  createReportQueryService,
   type EmailProvider,
 } from "@lasoviet/backend";
 import type { AnalyticsSink } from "@lasoviet/backend";
@@ -43,6 +57,22 @@ import {
   BIRTH_PROFILE_SERVICE_SECRET,
   BirthProfileController,
 } from "./birth-profile/birth-profile.controller.js";
+import {
+  ADMIN_ACCESS_DATABASE,
+  ADMIN_ACCESS_SERVICE,
+  ADMIN_ACCESS_SERVICE_SECRET,
+  ADMIN_AUDIT_SERVICE,
+  AdminAccessController,
+} from "./admin-access/admin-access.controller.js";
+import {
+  ADMIN_AUDIT_QUERY_SERVICE,
+  ADMIN_ROLE_ASSIGNMENT_SERVICE,
+  AdminRoleAuditController,
+} from "./admin-access/admin-role-audit.controller.js";
+import {
+  ADMIN_OVERVIEW_SERVICE,
+  AdminOverviewController,
+} from "./admin-overview/admin-overview.controller.js";
 import { HealthController } from "./health/health.controller.js";
 import {
   ACCOUNT_DELETION_SERVICE,
@@ -60,6 +90,27 @@ import {
   ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei/ziwei.controller.js";
+import {
+  REPORT_QUERY_DATABASE,
+  REPORT_QUERY_SERVICE,
+  REPORT_QUERY_SERVICE_SECRET,
+  ReportsController,
+} from "./reports/reports.controller.js";
+import {
+  COMMERCE_ACTOR_SECRET,
+  COMMERCE_DATABASE,
+  COMMERCE_INGRESS_SECRET,
+  COMMERCE_RETURN_ORIGIN,
+  COMMERCE_SEPAY_ENV,
+  COMMERCE_SEPAY_MERCHANT,
+  COMMERCE_SEPAY_SECRET,
+  COMMERCE_ORDER_TTL_SECONDS,
+  COMMERCE_SEPAY_WEBHOOK_SECRET,
+  COMMERCE_SEPAY_BANK_CODE,
+  COMMERCE_SEPAY_ACCOUNT_NUMBER,
+  COMMERCE_SEPAY_ACCOUNT_HOLDER,
+  CommerceController,
+} from "./commerce/commerce.controller.js";
 
 function applicationEnvironment() {
   const result = loadEnvironment(process.env);
@@ -123,6 +174,11 @@ export function createApiAnalyticsSink(
     PrivacyController,
     BirthProfileController,
     ZiweiController,
+    AdminAccessController,
+    AdminRoleAuditController,
+    AdminOverviewController,
+    CommerceController,
+    ReportsController,
   ],
   providers: [
     {
@@ -175,6 +231,53 @@ export function createApiAnalyticsSink(
     },
     { provide: PRIVACY_DATABASE, useFactory: privacyDatabase },
     {
+      provide: ADMIN_ACCESS_SERVICE,
+      useFactory: () =>
+        createAdminAccessService({
+          repository: createDatabaseAdminAccessRepository(privacyDatabase()),
+        }),
+    },
+    {
+      provide: ADMIN_AUDIT_SERVICE,
+      useFactory: () =>
+        createAdminAuditService({
+          repository: createDatabaseAdminAuditRepository(privacyDatabase()),
+        }),
+    },
+    {
+      provide: ADMIN_ACCESS_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
+    { provide: ADMIN_ACCESS_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ADMIN_ROLE_ASSIGNMENT_SERVICE,
+      useFactory: () => createRoleAssignmentService({
+        repository: createDatabaseRoleAssignmentRepository(privacyDatabase()),
+      }),
+    },
+    {
+      provide: ADMIN_AUDIT_QUERY_SERVICE,
+      useFactory: () => createAuditQueryService({
+        repository: createDatabaseAuditQueryRepository(privacyDatabase()),
+      }),
+    },
+    {
+      provide: ADMIN_OVERVIEW_SERVICE,
+      useFactory: () => {
+        const database = privacyDatabase();
+        return createAdminOverviewService({
+          repository: createDatabaseAdminOverviewRepository(database),
+          health: createDatabaseAdminHealthService(database),
+        });
+      },
+    },
+    {
       provide: BIRTH_PROFILE_SERVICE,
       useFactory: () =>
         createBirthProfileService({
@@ -215,6 +318,75 @@ export function createApiAnalyticsSink(
       },
     },
     { provide: ZIWEI_CALCULATION_DATABASE, useFactory: privacyDatabase },
+    { provide: COMMERCE_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: COMMERCE_ACTOR_SECRET,
+      useFactory: () => applicationEnvironment().internalActorSecret
+        ?? (() => { throw new Error("API_ACTOR_SECRET_CONFIG_INVALID"); })(),
+    },
+    {
+      provide: COMMERCE_INGRESS_SECRET,
+      useFactory: () => applicationEnvironment().internalActorSecret
+        ?? (() => { throw new Error("API_INGRESS_SECRET_CONFIG_INVALID"); })(),
+    },
+    {
+      provide: COMMERCE_SEPAY_SECRET,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.secretKey;
+      },
+    },
+    {
+      provide: COMMERCE_SEPAY_ENV,
+      useFactory: () => applicationEnvironment().sepay.environment,
+    },
+    {
+      provide: COMMERCE_SEPAY_MERCHANT,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.merchantId;
+      },
+    },
+    {
+      provide: COMMERCE_ORDER_TTL_SECONDS,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.orderTtlSeconds;
+      },
+    },
+    {
+      provide: COMMERCE_SEPAY_WEBHOOK_SECRET,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.webhookSecret;
+      },
+    },
+    {
+      provide: COMMERCE_SEPAY_BANK_CODE,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.bankCode;
+      },
+    },
+    {
+      provide: COMMERCE_SEPAY_ACCOUNT_NUMBER,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.accountNumber;
+      },
+    },
+    {
+      provide: COMMERCE_SEPAY_ACCOUNT_HOLDER,
+      useFactory: () => {
+        const sepay = applicationEnvironment().sepay;
+        return sepay.environment === "disabled" ? undefined : sepay.accountHolder;
+      },
+    },
+    {
+      provide: COMMERCE_RETURN_ORIGIN,
+      useFactory: () => applicationEnvironment().betterAuthUrl
+        ?? (() => { throw new Error("API_PUBLIC_ORIGIN_CONFIG_INVALID"); })(),
+    },
     {
       provide: ZIWEI_ANALYTICS_SERVICE,
       useFactory: () =>
@@ -230,6 +402,24 @@ export function createApiAnalyticsSink(
           analytics,
         }),
       inject: [ZIWEI_ANALYTICS_SERVICE],
+    },
+    { provide: REPORT_QUERY_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: REPORT_QUERY_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
+    {
+      provide: REPORT_QUERY_SERVICE,
+      useFactory: () =>
+        createReportQueryService({
+          repository: createDatabaseReportQueryRepository(privacyDatabase()),
+        }),
     },
   ],
 })

@@ -958,5 +958,413 @@
     ],
     "status": "published",
     "lastReviewed": "2026-09-02"
+  },
+  {
+    "routeId": "calculator.bat-tu",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Bát Tự / Tứ Trụ — Sắp ra mắt · Lá Số Việt",
+    "summary": "Bát Tự / Tứ Trụ tại Lá Số Việt đang được hoàn thiện: xem trước phương pháp Tứ Trụ, cấu trúc Thiên Can – Địa Chi và Nhật Chủ. Dùng chung hồ sơ sinh với Tử Vi.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.bat-tu",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Ba Zi / Four Pillars — Coming Soon · La So Viet",
+    "summary": "Ba Zi / Four Pillars at La So Viet is under active development: preview the Four Pillars method, Heavenly Stems, Earthly Branches, and Day Master. Shares the same birth profile with Tu Vi.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.kinh-dich",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Kinh Dịch / Chu Dịch — Sắp ra mắt · Lá Số Việt",
+    "summary": "Kinh Dịch tại Lá Số Việt đang được hoàn thiện: đặt một câu hỏi, gieo quẻ ảo, xem quẻ chủ, hào động và quẻ biến. Xem trước phương pháp và một quẻ mẫu.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.kinh-dich",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "I Ching / Book of Changes — Coming Soon · La So Viet",
+    "summary": "I Ching at La So Viet is under active development: ask a question, cast a virtual hexagram, and view primary, changing, and resulting hexagrams. Preview the method and a sample hexagram.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.western-natal",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Bản đồ sao / Chiêm tinh Tây phương — Sắp ra mắt · Lá Số Việt",
+    "summary": "Bản đồ sao (Chiêm tinh Tây phương) tại Lá Số Việt đang được hoàn thiện: Mặt Trời, Mặt Trăng, Cung Mọc, nhà và góc chiếu. Xem trước phương pháp và một bản đồ sao mẫu.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.western-natal",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Natal Chart / Western Astrology — Coming Soon · La So Viet",
+    "summary": "Natal Chart (Western Astrology) at La So Viet is under active development: Sun, Moon, Ascendant, houses, and aspects. Preview the method and a sample natal chart.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.numerology",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Thần Số Học — Sắp ra mắt · Lá Số Việt",
+    "summary": "Thần Số Học tại Lá Số Việt đang được hoàn thiện: xem trước công thức Pythagorean, cách tính Số Đường Đời và bảng số 3×3. Công thức thuần, không phụ thuộc thư viện ngoài.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.numerology",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Numerology — Coming Soon · La So Viet",
+    "summary": "Numerology at La So Viet is under active development: preview Pythagorean formulas, Life Path Number calculations, and the 3x3 grid. Pure calculation without third-party libraries.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.root",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Công cụ miễn phí — Lá Số Việt",
+    "summary": "7 công cụ miễn phí của Lá Số Việt: Xem Ngày Tốt, 12 Con Giáp, Phong Thủy hướng nhà, Giải Mã Giấc Mơ, Tarot/Bói Bài, Lịch Âm và Xem Chỉ Tay.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.root",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Free Tools — La So Viet",
+    "summary": "7 free tools by La So Viet: Good Days, 12 Zodiac Animals, Feng Shui House Facing, Dream Decoder, Tarot Reading, Lunar Calendar, and Palmistry.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.good-days",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Xem Ngày Tốt — Sắp ra mắt · Lá Số Việt",
+    "summary": "Công cụ Xem Ngày Tốt tại Lá Số Việt: chọn loại việc và khoảng thời gian, xem ngày phù hợp kèm lý do cụ thể — không chấm điểm may rủi tổng hợp.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.good-days",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Good Days — Coming Soon · La So Viet",
+    "summary": "Good Days tool at La So Viet: select an activity and time window to view suitable dates with specific reason codes — no aggregate luck scoring.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.zodiac",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "12 Con Giáp — Tra cứu năm sinh · Lá Số Việt",
+    "summary": "Tra cứu con giáp, Thiên Can – Địa Chi và ngũ hành theo năm sinh. Bảng đầy đủ 12 con giáp kèm giải thích ranh giới Tết Nguyên Đán.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.zodiac",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "12 Zodiac Animals — Birth Year Lookup · La So Viet",
+    "summary": "Look up zodiac animal, Heavenly Stems, Earthly Branches, and elements by birth year. Complete 12-animal reference table with Lunar New Year boundary explanation.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "content.dream-symbols",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Giải Mã Giấc Mơ — Lá Số Việt",
+    "summary": "Tra cứu ý nghĩa biểu tượng giấc mơ theo góc nhìn dân gian và biểu tượng/tâm lý. Nội dung tham khảo văn hoá, không phải dự đoán số hay chẩn đoán.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "content.dream-symbols",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Dream Symbols Decoder — La So Viet",
+    "summary": "Look up dream symbol meanings from folk and symbolic/psychological viewpoints. Cultural reference content, not lottery predictions or diagnoses.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.tarot",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Tarot / Bói Bài — Sắp ra mắt · Lá Số Việt",
+    "summary": "Tarot tại Lá Số Việt: một lá hôm nay hoặc ba lá cho một câu hỏi. Đang hoàn thiện — xem trước phương pháp và một ví dụ trải bài minh hoạ.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "calculator.tarot",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Tarot Reading — Coming Soon · La So Viet",
+    "summary": "Tarot at La So Viet: one card for today or three cards for a focused question. Under active development — preview the method and an illustrative spread example.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.lunar-calendar",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Lịch Âm — Sắp ra mắt · Lá Số Việt",
+    "summary": "Lịch Âm tại Lá Số Việt: xem ngày âm–dương song song, can chi ngày, tiết khí và quy đổi lịch. Đang hoàn thiện — xem trước phương pháp và một tháng mẫu.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.lunar-calendar",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Lunar Calendar — Coming Soon · La So Viet",
+    "summary": "Lunar Calendar at La So Viet: view solar and lunar dates side by side, daily stem-branch, solar terms, and calendar conversions. Preview the method and a sample month.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.feng-shui",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Phong Thủy Hướng Nhà — Đang chờ chốt phương pháp · Lá Số Việt",
+    "summary": "Trước khi công bố công cụ này, Lá Số Việt cần chốt đúng một trường phái và một bộ dữ liệu đầu vào/đầu ra cụ thể — thay vì gộp nhiều trường phái khác nhau vào một kết quả. Trang này sẽ có nội dung đầy đủ ngay khi quyết định đó được chốt.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.feng-shui",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Feng Shui House Facing — Awaiting Methodology Decision · La So Viet",
+    "summary": "Before publishing this tool, La So Viet must finalize a single school and specific input/output dataset instead of blending competing systems. Full content will be available once that decision is finalized.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.palmistry",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Xem Chỉ Tay — Pilot đang chuẩn bị · Lá Số Việt",
+    "summary": "Xem Chỉ Tay dùng ảnh chụp bàn tay — một dạng dữ liệu sinh trắc học. Vì vậy, công cụ này cần cơ chế xin sự đồng ý riêng, chính sách xoá ảnh rõ ràng và hoàn tất trước khi mở, kể cả ở dạng thử nghiệm miễn phí. Trang này sẽ có nội dung đầy đủ khi các điều kiện đó sẵn sàng.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.palmistry",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Palmistry — Pilot in Preparation · La So Viet",
+    "summary": "Palmistry uses palm photographs, a form of biometric data. This tool requires explicit consent mechanisms and a verified deletion policy before launch, even for free testing. Full content will be available once those requirements are met.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-05"
   }
 ]

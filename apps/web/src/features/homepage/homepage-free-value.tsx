@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
@@ -40,7 +41,15 @@ export function HomepageFreeValue() {
               <h3>{t(`home.freeValue.insight${number}.title`)}</h3>
               <p>{t(`home.freeValue.insight${number}.copy`)}</p>
               <Link className="text-link" href="#can-cu">
-                <span aria-hidden="true" className="seal"><span /></span>
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="free-value-mark"
+                  height={20}
+                  loading="eager"
+                  src="/brand/lasoviet-logomark-co-nho-vang-son.svg"
+                  width={20}
+                />
                 {t("home.evidence.action")}
               </Link>
             </article>

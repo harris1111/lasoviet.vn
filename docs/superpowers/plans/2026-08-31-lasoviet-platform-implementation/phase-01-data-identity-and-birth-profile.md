@@ -388,3 +388,41 @@ git commit -m "feat: add canonical birth profile"
   acceptance passed: 1 file, 5 tests. Root typecheck and build passed.
 - No browser/Playwright, Google OAuth, live SMTP, UI work, or external side
   effect occurred. No durable rule is warranted.
+
+## Verification Email Resend Correction (2026-09-03)
+
+- Production investigation confirmed that a repeated sign-up for an existing
+  unverified email received Better Auth's intentional anti-enumeration success
+  response without creating a new notification delivery. SMTP DNS and TCP port
+  587 remained reachable, so the failure was in the browser's interpretation
+  of the auth response rather than the SMTP transport.
+- The browser no longer claims that generic sign-up success proves delivery.
+  It presents conditional copy and an explicit Better Auth-backed resend
+  verification command, while avoiding automatic duplicate sends for newly
+  created accounts and preserving account-existence privacy.
+- The focused auth action suite failed four assertions before implementation
+  and passed all five afterward. Web typecheck, production build, and i18n
+  parity passed.
+- Commit `d7f85ee` was deployed by rebuilding and replacing only the VPS web
+  service. The container became healthy and the public health route returned
+  HTTP 200.
+- One founder-authorized resend returned HTTP 200. The matching notification
+  delivery reached `sent` on its first attempt with a provider message ID
+  present, and the founder confirmed inbox receipt on 2026-09-03.
+
+## Auth Recovery Correction (2026-09-03)
+
+- Production evidence separated two failures that the UI had collapsed into
+  one message. Verification resend returned HTTP 400 because an anonymous
+  session cookie selected Better Auth's session-bound email-mismatch branch.
+  After verification completed, sign-in returned HTTP 401 because the supplied
+  password did not match the existing credential.
+- Verification resend now omits ambient browser credentials so Better Auth
+  uses its public constant-time anti-enumeration path. Sign-in uses a safe
+  invalid-credentials message and returns unverified accounts to the existing
+  resend recovery surface without disclosing account existence.
+- Added enumeration-safe password-reset request and completion pages backed by
+  Better Auth 1.7.2. The routes are live noindex, nofollow, and excluded from
+  sitemaps in the canonical registry.
+- Deployment and one live password-reset smoke remain external
+  founder-authorized verification steps.

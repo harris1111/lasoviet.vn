@@ -53,11 +53,13 @@ test("the founder-run stack delivers registration email and serves the anonymous
   await expect(page.getByRole("alert")).toBeVisible();
 
   await page.goto("/tao-la-so/tu-vi");
+  await page.getByLabel("Nam").check();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
-  await page.getByLabel("Ngày sinh dương lịch").fill("1990-01-01");
+  await page.getByLabel("Ngày").fill("01");
+  await page.getByLabel("Tháng").fill("01");
+  await page.getByLabel("Năm").fill("1990");
   await page.getByLabel("Giờ", { exact: true }).fill("09");
   await page.getByLabel("Phút", { exact: true }).fill("30");
-  await page.getByLabel("Nam").check();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Lập lá số" }).click();

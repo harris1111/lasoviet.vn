@@ -125,9 +125,9 @@ export function TimePrecisionFields({
   }
 
   return (
-    <fieldset className="wizard-fieldset">
+    <fieldset className="wizard-fieldset wizard-time-fieldset">
       <legend>{labels.title}</legend>
-      <label className="wizard-check">
+      <label className="wizard-check wizard-unknown-time">
         <input
           checked={currentPrecision === "unknown"}
           onChange={(event) => handleUnknownToggle(event.target.checked)}
@@ -143,8 +143,8 @@ export function TimePrecisionFields({
           <div className="wizard-precision-toggle">
             <button
               aria-pressed={currentPrecision === "exact_minute"}
-              className={`button button-small ${
-                currentPrecision === "exact_minute" ? "" : "button-secondary"
+              className={`wizard-mode-button${
+                currentPrecision === "exact_minute" ? " is-active" : ""
               }`}
               onClick={() => handleSwitchMode("exact_minute")}
               type="button"
@@ -153,8 +153,8 @@ export function TimePrecisionFields({
             </button>
             <button
               aria-pressed={currentPrecision === "branch_only"}
-              className={`button button-small ${
-                currentPrecision === "branch_only" ? "" : "button-secondary"
+              className={`wizard-mode-button${
+                currentPrecision === "branch_only" ? " is-active" : ""
               }`}
               onClick={() => handleSwitchMode("branch_only")}
               type="button"
@@ -165,10 +165,11 @@ export function TimePrecisionFields({
 
           {currentPrecision === "exact_minute" ? (
             <div className="wizard-time-inputs">
-              <label>
+              <label className="wizard-time-input-label">
                 {labels.hour}
                 <input
                   aria-label={labels.hour}
+                  className="wizard-time-input"
                   inputMode="numeric"
                   maxLength={2}
                   onChange={(event) => handleHourChange(event.target.value)}
@@ -177,10 +178,11 @@ export function TimePrecisionFields({
                 />
               </label>
               <span aria-hidden="true">:</span>
-              <label>
+              <label className="wizard-time-input-label">
                 {labels.minute}
                 <input
                   aria-label={labels.minute}
+                  className="wizard-time-input"
                   inputMode="numeric"
                   maxLength={2}
                   onChange={(event) => handleMinuteChange(event.target.value)}
@@ -191,10 +193,11 @@ export function TimePrecisionFields({
             </div>
           ) : (
             <div className="wizard-branch-input">
-              <label>
+              <label className="wizard-branch-label">
                 {labels.branch ?? labels.title}
                 <select
                   aria-label={labels.branch ?? labels.title}
+                  className="wizard-branch-select"
                   onChange={(event) =>
                     handleBranchChange(event.target.value as CanonicalBranchId)
                   }

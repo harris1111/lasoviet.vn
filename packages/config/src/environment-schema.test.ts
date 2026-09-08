@@ -6,6 +6,14 @@ const productionBase = {
   INTERNAL_ACTOR_SECRET: "synthetic-actor-secret-never-serialize",
   DATABASE_URL: "https://synthetic-database-url-never-serialize.test/db",
   REDIS_URL: "https://synthetic-redis-url-never-serialize.test",
+  SEPAY_ENV: "sandbox",
+  SEPAY_MERCHANT_ID: "synthetic-sepay-merchant",
+  SEPAY_SECRET_KEY: "synthetic-sepay-secret-never-serialize",
+  SEPAY_BANK_CODE: "VCB",
+  SEPAY_ACCOUNT_NUMBER: "123456789",
+  SEPAY_ACCOUNT_HOLDER: "LA SO VIET",
+  SEPAY_ORDER_TTL_SECONDS: "900",
+  SEPAY_WEBHOOK_SECRET: "synthetic-sepay-webhook-secret-never-serialize",
 } as const;
 
 const completeAi = {
@@ -16,6 +24,7 @@ const completeAi = {
   AI_MAX_RETRIES: "2",
   AI_FEATURE_JSON_SCHEMA: "true",
   AI_FEATURE_TOOL_CALLING: "false",
+  AI_PRODUCTION_ENABLED: "true",
 } as const;
 
 const completeSmtp = {
@@ -49,6 +58,7 @@ const validNormalizedProduction = {
     maxRetries: 2,
     featureJsonSchema: true,
     featureToolCalling: false,
+    productionEnabled: true,
   },
   smtp: {
     enabled: true,
@@ -66,6 +76,16 @@ const validNormalizedProduction = {
     bucket: "synthetic-bucket",
     accessKeyId: "synthetic-access-key",
     secretAccessKey: "synthetic-s3-secret-never-serialize",
+  },
+  sepay: {
+    environment: "sandbox",
+    merchantId: "synthetic-sepay-merchant",
+    secretKey: "synthetic-sepay-secret-never-serialize",
+    bankCode: "VCB",
+    accountNumber: "123456789",
+    accountHolder: "LA SO VIET",
+    orderTtlSeconds: 900,
+    webhookSecret: "synthetic-sepay-webhook-secret-never-serialize",
   },
 } as const;
 
@@ -100,6 +120,26 @@ function expectPartial(
 }
 
 describe("environment loading", () => {
+  it.each([
+    "SEPAY_ENV",
+    "SEPAY_MERCHANT_ID",
+    "SEPAY_SECRET_KEY",
+    "SEPAY_BANK_CODE",
+    "SEPAY_ACCOUNT_NUMBER",
+    "SEPAY_ACCOUNT_HOLDER",
+    "SEPAY_ORDER_TTL_SECONDS",
+    "SEPAY_WEBHOOK_SECRET",
+  ])(
+    "rejects production without %s",
+    (variable) => {
+      const source = { ...productionBase };
+      delete source[variable as keyof typeof source];
+      expect(loadEnvironment(source)).toMatchObject({
+        ok: false,
+        error: { code: "MISSING_REQUIRED_ENV", field: variable },
+      });
+    },
+  );
   it("loads production with disabled optional groups", () => {
     const result = loadEnvironment(productionBase);
     expect(result).toMatchObject({ ok: true, value: { nodeEnv: "production" } });
@@ -108,6 +148,37 @@ describe("environment loading", () => {
       expect(result.value.smtp).toEqual({ enabled: false });
       expect(result.value.cloudS3).toEqual({ enabled: false });
     }
+  });
+
+  it("loads environment with SEPAY_ENV=disabled and no other SEPAY_* variables", () => {
+    const {
+      SEPAY_MERCHANT_ID: _m,
+      SEPAY_SECRET_KEY: _s,
+      SEPAY_BANK_CODE: _b,
+      SEPAY_ACCOUNT_NUMBER: _a,
+      SEPAY_ACCOUNT_HOLDER: _h,
+      SEPAY_ORDER_TTL_SECONDS: _t,
+      SEPAY_WEBHOOK_SECRET: _w,
+      ...disabledBase
+    } = productionBase;
+    const result = loadEnvironment({ ...disabledBase, SEPAY_ENV: "disabled" });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        sepay: {
+          environment: "disabled",
+        },
+      },
+    });
+  });
+
+  it("rejects unknown properties in disabled SePay schema", () => {
+    expect(() =>
+      AppEnvironmentSchema.parse({
+        ...validNormalizedProduction,
+        sepay: { environment: "disabled", merchantId: "fake" },
+      }),
+    ).toThrow();
   });
 
   it.each(["INTERNAL_ACTOR_SECRET", "DATABASE_URL", "REDIS_URL"])(
@@ -146,6 +217,33 @@ describe("environment loading", () => {
     ["NODE_ENV", { ...productionBase, NODE_ENV: "preview" }, "NODE_ENV"],
     ["DATABASE_URL", { ...productionBase, DATABASE_URL: "not-a-url" }, "DATABASE_URL"],
     ["INTERNAL_ACTOR_SECRET", { ...productionBase, INTERNAL_ACTOR_SECRET: "  " }, "INTERNAL_ACTOR_SECRET"],
+    ["SEPAY_ENV", { ...productionBase, SEPAY_ENV: "invalid" }, "SEPAY_ENV"],
+    ["SEPAY_MERCHANT_ID", { ...productionBase, SEPAY_MERCHANT_ID: " " }, "SEPAY_MERCHANT_ID"],
+    ["SEPAY_SECRET_KEY", { ...productionBase, SEPAY_SECRET_KEY: " " }, "SEPAY_SECRET_KEY"],
+    ["SEPAY_BANK_CODE", { ...productionBase, SEPAY_BANK_CODE: " " }, "SEPAY_BANK_CODE"],
+    ["SEPAY_ACCOUNT_NUMBER", { ...productionBase, SEPAY_ACCOUNT_NUMBER: " " }, "SEPAY_ACCOUNT_NUMBER"],
+    ["SEPAY_ACCOUNT_HOLDER", { ...productionBase, SEPAY_ACCOUNT_HOLDER: " " }, "SEPAY_ACCOUNT_HOLDER"],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "0" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "-900" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "900.5" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    [
+      "SEPAY_ORDER_TTL_SECONDS",
+      { ...productionBase, SEPAY_ORDER_TTL_SECONDS: "not-an-integer" },
+      "SEPAY_ORDER_TTL_SECONDS",
+    ],
+    ["SEPAY_WEBHOOK_SECRET", { ...productionBase, SEPAY_WEBHOOK_SECRET: " " }, "SEPAY_WEBHOOK_SECRET"],
   ] as const)(
     "rejects invalid base environment value %s",
     (_name, source, variable) => {
@@ -168,6 +266,11 @@ describe("environment loading", () => {
       "AI_FEATURE_TOOL_CALLING",
       { ...productionBase, ...completeAi, AI_FEATURE_TOOL_CALLING: "yes" },
       "AI_FEATURE_TOOL_CALLING",
+    ],
+    [
+      "AI_PRODUCTION_ENABLED",
+      { ...productionBase, ...completeAi, AI_PRODUCTION_ENABLED: "yes" },
+      "AI_PRODUCTION_ENABLED",
     ],
 
     ["SMTP_HOST", { ...productionBase, ...completeSmtp, SMTP_HOST: " " }, "SMTP_HOST"],
@@ -219,6 +322,20 @@ describe("environment loading", () => {
 
   it("rejects partial optional groups in declared order", () => {
     expectPartial({ ...productionBase, AI_BASE_URL: completeAi.AI_BASE_URL }, "ai", "AI_API_KEY");
+    expectPartial(
+      {
+        ...productionBase,
+        AI_BASE_URL: completeAi.AI_BASE_URL,
+        AI_API_KEY: completeAi.AI_API_KEY,
+        AI_MODEL: completeAi.AI_MODEL,
+        AI_TIMEOUT: completeAi.AI_TIMEOUT,
+        AI_MAX_RETRIES: completeAi.AI_MAX_RETRIES,
+        AI_FEATURE_JSON_SCHEMA: completeAi.AI_FEATURE_JSON_SCHEMA,
+        AI_FEATURE_TOOL_CALLING: completeAi.AI_FEATURE_TOOL_CALLING,
+      },
+      "ai",
+      "AI_PRODUCTION_ENABLED",
+    );
     expectPartial({ ...productionBase, SMTP_HOST: completeSmtp.SMTP_HOST }, "smtp", "SMTP_PORT");
     expectPartial(
       { ...productionBase, SMTP_HOST: completeSmtp.SMTP_HOST, SMTP_PORT: completeSmtp.SMTP_PORT },
@@ -283,6 +400,36 @@ describe("environment loading", () => {
     expect(serialized).toContain("AI_TIMEOUT");
   });
 
+  it("rejects AI_FEATURE_JSON_SCHEMA=false when AI_PRODUCTION_ENABLED=true", () => {
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        AI_PRODUCTION_ENABLED: "true",
+        AI_FEATURE_JSON_SCHEMA: "false",
+      },
+      "AI_FEATURE_JSON_SCHEMA",
+    );
+  });
+
+  it("allows AI_FEATURE_JSON_SCHEMA=false when AI_PRODUCTION_ENABLED=false", () => {
+    const result = loadEnvironment({
+      ...productionBase,
+      ...completeAi,
+      AI_PRODUCTION_ENABLED: "false",
+      AI_FEATURE_JSON_SCHEMA: "false",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        ai: {
+          enabled: true,
+          productionEnabled: false,
+          featureJsonSchema: false,
+        },
+      },
+    });
+  });
 });
 
 describe("normalized environment schema", () => {

@@ -14,6 +14,30 @@
 - No implementation dependency, migration, runtime service, or infrastructure
   has been created in this planning phase.
 
+## Current Implementation Reconciliation (2026-09-03)
+
+- The original starting-state note is historical. Phase 00 foundations, Phase
+  01 identity/privacy services, Phase 02 calculation/evidence services,
+  the artifact-driven Phase 03 free-MVP experience, the Phase 04 AI/report
+  foundation, reviewed SePay Tasks 1-2, and production-like free-MVP Compose
+  smoke evidence now exist.
+- The approved UI artifact was implemented and merged through the dedicated
+  feature branch. FD-024 therefore remains an artifact-first rule for future
+  visual work, not an active blocker on the current MVP interface.
+- The corrected explicit gender flow is approved and real-stack smoke reaches
+  persisted birth profile, Zi Wei calculation, chart, evidence, and free
+  preview. This is not evidence of paid-release readiness.
+- Phase 04 commerce/report completion, Phase 05 storage/delivery/account
+  center, Phase 05A Operations Dashboard, and Phase 06 paid-release gates
+  remain uncompleted unless their task-level records expressly say otherwise.
+- FD-030 approves the first SePay external sandbox test. The Windows host
+  cannot run the PostgreSQL Testcontainers suite without a container runtime,
+  but the Docker VPS gate passed on
+  `200b85222a8b6eedb4692a76f31aed27c73bd214` and the sandbox endpoint is
+  deployed. The remaining external step is the founder clicking SePay
+  dashboard `Send test`; production payment activation remains
+  founder-controlled.
+
 ## Verified Corrections
 
 | Existing assumption | Corrected planning truth |
@@ -58,7 +82,8 @@
 
 - AI endpoint URL, key, model, and capability behavior.
 - SMTP connection details and verified sender.
-- SePay sandbox/production inputs and current provider-contract preflight.
+- SePay production activation inputs; the sandbox provider contract and
+  checkout/webhook implementation are complete for Phase 04 Tasks 1-2.
 - Optional cloud S3 configuration.
 - VPS resource inventory, backup target, and selected `WEB_HOST_PORT`.
 - Founder-managed Nginx configuration.

@@ -59,8 +59,10 @@ the application.
   endpoint.
 - Responsive HTML reports, PDF generation, private object storage, email
   delivery, and optional cloud S3 replication.
-- Operational admin tools for payments, reports, failures, regeneration,
-  support, and audit records.
+- A dedicated Operations Dashboard V1 for authorized operational visibility,
+  policy-checked compensating commands, support, and audit records. It is not
+  a CMS or direct database, queue, payment-provider, secret, or immutable
+  content mutation surface.
 - Founder-approved Blueprint v1.1 canonical public/private routes, route-state
   governance, metadata, structured data, and privacy-safe analytics.
 - A Gate 1 public surface with the homepage, Zi Wei calculator landing,
@@ -75,7 +77,7 @@ the application.
 - Solar Return until a compatible, licensed calculation implementation is
   approved.
 - Unknown-time Zi Wei scenario comparison and birth-time rectification.
-- Full editorial CMS.
+- Full editorial CMS and back-office content editing.
 - Public report sharing.
 - Palmistry and face-reading production workloads.
 - Feng Shui physical-product commerce.
@@ -1046,19 +1048,33 @@ Rules:
 
 ## 29. Admin P0
 
-Admin capabilities include:
+Admin P0 is the dedicated Phase 05A Operations Dashboard V1. It is a
+server-authorized `/admin/**` console with `live_noindex` route state, no
+public-navigation entry, and no sitemap membership. Its detailed design is
+`docs/superpowers/specs/2026-09-02-admin-operations-dashboard-design.md`.
 
-- Order and payment-event inspection.
-- Entitlement inspection.
-- Report state and failure inspection.
-- Policy-authorized regeneration actions with reason and audit record.
-- Support-case tracking.
-- Audit-log inspection.
+It uses Better Auth verified sessions with database-backed roles
+`super_admin`, `operations`, `support`, and `read_only`. The private API
+authorizes every privileged read and command, while role assignment is
+privileged, version-checked, and audited.
 
-Admin cannot mutate an existing immutable chart or report version.
+The console provides redacted overview/health, accounts/verification/retention,
+profile/chart, commerce, reports/generation/outbox, delivery/storage, support,
+privacy, audit, and route/content/indexing readiness modules. Default
+projections never expose credentials, environment maps, provider secrets,
+password hashes, sessions, signed URLs, raw birth/chart payloads, full report
+bodies, or raw provider payloads.
 
-Editorial content and approved knowledge begin as version-controlled repository
-files. A full CMS UI is deferred.
+Every state-changing operation carries `actorId`, `roleAssignmentId`,
+capability, reason code, request/trace ID, idempotency key, and expected
+version where applicable. It calls a policy-checked domain service, writes an
+append-only audit record, and emits a compensating version/event through the
+outbox. Admin V1 has no unredacted sensitive-detail reveal path. No console
+code directly edits tables, mutates immutable records, requeues BullMQ, runs
+arbitrary jobs/SQL, or executes provider payment mutations.
+
+Editorial content and approved knowledge remain version-controlled repository
+files. Full CMS UI and back-office content editing are deferred.
 
 ## 30. Deployment
 
@@ -1361,8 +1377,12 @@ Engineering integration order and public launch order remain separate.
 5. Free chart and preview.
 6. SePay, entitlements, outbox, and report worker.
 7. AI, critic, report versioning, PDF, Garage, email, and replication.
-8. Admin and production readiness.
-9. Additional approved engines and waves.
+8. Storage, delivery, and owner account center.
+9. Admin and Operations Console foundation may begin after Phase 03; closure
+   follows the Phase 04 commerce/report and Phase 05 delivery/storage
+   contracts it operates.
+10. Production readiness and paid release after Phase 05A evidence.
+11. Additional approved engines and waves.
 
 ### 36.2 Public launch order
 

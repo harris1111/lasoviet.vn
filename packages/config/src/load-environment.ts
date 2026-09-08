@@ -5,11 +5,13 @@ import {
   CloudS3EnvironmentSchema,
   NodeEnvironmentSchema,
   SmtpEnvironmentSchema,
+  SePayEnvironmentSchema,
   type AiEnvironment,
   type AppEnvironment,
   type CloudS3Environment,
   type NodeEnvironment,
   type SmtpEnvironment,
+  type SePayEnvironment,
 } from "./environment-schema.js";
 
 export type EnvironmentErrorCode =
@@ -26,7 +28,7 @@ type ParseResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: AppError<EnvironmentErrorCode> };
 
-type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google";
+type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google" | "sepay";
 
 const AI_VARIABLES = [
   "AI_BASE_URL",
@@ -36,6 +38,7 @@ const AI_VARIABLES = [
   "AI_MAX_RETRIES",
   "AI_FEATURE_JSON_SCHEMA",
   "AI_FEATURE_TOOL_CALLING",
+  "AI_PRODUCTION_ENABLED",
 ] as const;
 
 const SMTP_VARIABLES = [
@@ -73,6 +76,7 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "ai.maxRetries": "AI_MAX_RETRIES",
   "ai.featureJsonSchema": "AI_FEATURE_JSON_SCHEMA",
   "ai.featureToolCalling": "AI_FEATURE_TOOL_CALLING",
+  "ai.productionEnabled": "AI_PRODUCTION_ENABLED",
   "smtp.host": "SMTP_HOST",
   "smtp.port": "SMTP_PORT",
   "smtp.username": "SMTP_USERNAME",
@@ -84,6 +88,14 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "cloudS3.bucket": "CLOUD_S3_BUCKET",
   "cloudS3.accessKeyId": "CLOUD_S3_ACCESS_KEY_ID",
   "cloudS3.secretAccessKey": "CLOUD_S3_SECRET_ACCESS_KEY",
+  "sepay.environment": "SEPAY_ENV",
+  "sepay.merchantId": "SEPAY_MERCHANT_ID",
+  "sepay.secretKey": "SEPAY_SECRET_KEY",
+  "sepay.bankCode": "SEPAY_BANK_CODE",
+  "sepay.accountNumber": "SEPAY_ACCOUNT_NUMBER",
+  "sepay.accountHolder": "SEPAY_ACCOUNT_HOLDER",
+  "sepay.orderTtlSeconds": "SEPAY_ORDER_TTL_SECONDS",
+  "sepay.webhookSecret": "SEPAY_WEBHOOK_SECRET",
 };
 
 function missingRequired(variable: string): ParseResult<never> {
@@ -200,6 +212,7 @@ function loadAi(source: NodeJS.ProcessEnv): ParseResult<AiEnvironment> {
     maxRetries: decimalInteger(source.AI_MAX_RETRIES),
     featureJsonSchema: booleanValue(source.AI_FEATURE_JSON_SCHEMA),
     featureToolCalling: booleanValue(source.AI_FEATURE_TOOL_CALLING),
+    productionEnabled: booleanValue(source.AI_PRODUCTION_ENABLED),
   });
   return parsed.success
     ? { ok: true, value: parsed.data }
@@ -253,6 +266,44 @@ function loadCloudS3(
     : invalidFromSchema(parsed.error, "CLOUD_S3_ENDPOINT", "cloudS3");
 }
 
+function loadSePay(source: NodeJS.ProcessEnv): ParseResult<SePayEnvironment> {
+  if (source.SEPAY_ENV === undefined) {
+    return missingRequired("SEPAY_ENV");
+  }
+  if (source.SEPAY_ENV === "disabled") {
+    const parsed = SePayEnvironmentSchema.safeParse({
+      environment: "disabled",
+    });
+    return parsed.success
+      ? { ok: true, value: parsed.data }
+      : invalidFromSchema(parsed.error, "SEPAY_ENV", "sepay");
+  }
+  for (const variable of [
+    "SEPAY_MERCHANT_ID",
+    "SEPAY_SECRET_KEY",
+    "SEPAY_BANK_CODE",
+    "SEPAY_ACCOUNT_NUMBER",
+    "SEPAY_ACCOUNT_HOLDER",
+    "SEPAY_ORDER_TTL_SECONDS",
+    "SEPAY_WEBHOOK_SECRET",
+  ]) {
+    if (source[variable] === undefined) return missingRequired(variable);
+  }
+  const parsed = SePayEnvironmentSchema.safeParse({
+    environment: source.SEPAY_ENV,
+    merchantId: source.SEPAY_MERCHANT_ID,
+    secretKey: source.SEPAY_SECRET_KEY,
+    bankCode: source.SEPAY_BANK_CODE,
+    accountNumber: source.SEPAY_ACCOUNT_NUMBER,
+    accountHolder: source.SEPAY_ACCOUNT_HOLDER,
+    orderTtlSeconds: decimalInteger(source.SEPAY_ORDER_TTL_SECONDS),
+    webhookSecret: source.SEPAY_WEBHOOK_SECRET,
+  });
+  return parsed.success
+    ? { ok: true, value: parsed.data }
+    : invalidFromSchema(parsed.error, "SEPAY_ENV", "sepay");
+}
+
 export function loadEnvironment(
   source: NodeJS.ProcessEnv,
 ): EnvironmentLoadResult {
@@ -286,6 +337,8 @@ export function loadEnvironment(
   if (!cloudS3.ok) {
     return cloudS3;
   }
+  const sepay = loadSePay(source);
+  if (!sepay.ok) return sepay;
 
   const googleState = optionalGroupState(source, GOOGLE_VARIABLES);
   if (googleState.state === "partial") {
@@ -297,6 +350,7 @@ export function loadEnvironment(
     ai: ai.value,
     smtp: smtp.value,
     cloudS3: cloudS3.value,
+    sepay: sepay.value,
   };
   if (source.INTERNAL_ACTOR_SECRET !== undefined) {
     normalized.internalActorSecret = source.INTERNAL_ACTOR_SECRET;

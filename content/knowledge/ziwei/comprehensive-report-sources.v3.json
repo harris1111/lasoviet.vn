@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "knowledgeVersion": "ziwei.comprehensive.knowledge.v3",
+  "generatedBy": "scripts/build-ziwei-knowledge-v3.mjs",
+  "sources": [
+    {
+      "sourceIndex": 1,
+      "sourceId": "nihai-tianji-corpus",
+      "pinnedCommit": "c90006168195c0650328b7199669eb6a2d0cac93",
+      "selectedPathRules": [
+        "data/entries.jsonl where book is one of 01-stars, 02-palaces, 03-patterns, 04-sihua, 05-illness"
+      ],
+      "selectedPaths": [
+        "data/entries.jsonl"
+      ],
+      "generationCounts": {
+        "selectedFiles": 1,
+        "extractedUnits": 1125,
+        "candidateChunks": 1125,
+        "emittedChunks": 1125,
+        "duplicatesRemoved": 0
+      }
+    },
+    {
+      "sourceIndex": 2,
+      "sourceId": "ziwei-doushu",
+      "pinnedCommit": "88194a404242bfe5c6d5cc512e4117e3e245cdd5",
+      "selectedPathRules": [
+        "lib/ziwei/patterns.ts",
+        "lib/ziwei/heming-knowledge.ts",
+        "lib/seo/knowledge.ts",
+        "lib/classics/data/*.ts"
+      ],
+      "selectedPaths": [
+        "lib/classics/data/gusuifu.ts",
+        "lib/classics/data/quanji.ts",
+        "lib/classics/data/quanshu.ts",
+        "lib/seo/knowledge.ts",
+        "lib/ziwei/heming-knowledge.ts",
+        "lib/ziwei/patterns.ts"
+      ],
+      "generationCounts": {
+        "selectedFiles": 6,
+        "extractedUnits": 544,
+        "candidateChunks": 544,
+        "emittedChunks": 520,
+        "duplicatesRemoved": 24
+      }
+    },
+    {
+      "sourceIndex": 3,
+      "sourceId": "ziwei-astrology-skills",
+      "pinnedCommit": "1cde63f65c84040cc5bdcb09fa4724be741fa007",
+      "selectedPathRules": [
+        "skills/ziwei-astrology/references/{star-palace-matrix,palace-interpretation,star-rules,sihua-rules,patterns,classics-excerpts,heming-knowledge,report-template}.md"
+      ],
+      "selectedPaths": [
+        "skills/ziwei-astrology/references/classics-excerpts.md",
+        "skills/ziwei-astrology/references/heming-knowledge.md",
+        "skills/ziwei-astrology/references/palace-interpretation.md",
+        "skills/ziwei-astrology/references/patterns.md",
+        "skills/ziwei-astrology/references/report-template.md",
+        "skills/ziwei-astrology/references/sihua-rules.md",
+        "skills/ziwei-astrology/references/star-palace-matrix.md",
+        "skills/ziwei-astrology/references/star-rules.md"
+      ],
+      "generationCounts": {
+        "selectedFiles": 8,
+        "extractedUnits": 1057,
+        "candidateChunks": 1057,
+        "emittedChunks": 1056,
+        "duplicatesRemoved": 1
+      }
+    },
+    {
+      "sourceIndex": 4,
+      "sourceId": "tu-vi-dau-so-research",
+      "pinnedCommit": "91f8a06f1bca2fb271791785937265ea78d7f858",
+      "selectedPathRules": [
+        "references/STAR_KNOWLEDGE_BASE.md",
+        "references/REASONING_ENGINE.md",
+        "references/PALACE_CROSS_REFERENCE.md",
+        "references/PROJECT_CORE.md"
+      ],
+      "selectedPaths": [
+        "references/PALACE_CROSS_REFERENCE.md",
+        "references/PROJECT_CORE.md",
+        "references/REASONING_ENGINE.md",
+        "references/STAR_KNOWLEDGE_BASE.md"
+      ],
+      "generationCounts": {
+        "selectedFiles": 4,
+        "extractedUnits": 109,
+        "candidateChunks": 109,
+        "emittedChunks": 109,
+        "duplicatesRemoved": 0
+      }
+    },
+    {
+      "sourceIndex": 5,
+      "sourceId": "iztro",
+      "pinnedCommit": "1ba89cca577c6d5d46754d6f49b6b51467c577d1",
+      "selectedPathRules": [
+        "src/i18n/locales/{vi-VN,zh-TW}/{star,palace,brightness,mutagen}.ts"
+      ],
+      "selectedPaths": [
+        "src/i18n/locales/vi-VN/brightness.ts",
+        "src/i18n/locales/vi-VN/mutagen.ts",
+        "src/i18n/locales/vi-VN/palace.ts",
+        "src/i18n/locales/vi-VN/star.ts",
+        "src/i18n/locales/zh-TW/brightness.ts",
+        "src/i18n/locales/zh-TW/mutagen.ts",
+        "src/i18n/locales/zh-TW/palace.ts",
+        "src/i18n/locales/zh-TW/star.ts"
+      ],
+      "generationCounts": {
+        "selectedFiles": 8,
+        "extractedUnits": 374,
+        "candidateChunks": 374,
+        "emittedChunks": 374,
+        "duplicatesRemoved": 0
+      }
+    },
+    {
+      "sourceIndex": 6,
+      "sourceId": "ziwei-chat",
+      "pinnedCommit": "ceef938a4ab8d50f864f690fa7d768b4294fcf77",
+      "selectedPathRules": [
+        "top-level content/knowledge/*.md",
+        "top-level content/skills/*.md"
+      ],
+      "selectedPaths": [
+        "content/knowledge/career-palace.md",
+        "content/knowledge/career-study-exam.md",
+        "content/knowledge/personality-life-palace.md",
+        "content/knowledge/recent-fortune-timing.md",
+        "content/knowledge/relationship-palace.md",
+        "content/knowledge/renhuai-auxiliary-and-malefic-stars.md",
+        "content/knowledge/renhuai-career-patterns.md",
+        "content/knowledge/renhuai-career-star-palace.md",
+        "content/knowledge/renhuai-chart-structure.md",
+        "content/knowledge/renhuai-major-star-details.md",
+        "content/knowledge/renhuai-major-stars-overview.md",
+        "content/knowledge/renhuai-palace-complete-basics.md",
+        "content/knowledge/renhuai-patterns-change-and-stability.md",
+        "content/knowledge/renhuai-personality-major-stars.md",
+        "content/knowledge/renhuai-recent-fortune-sihua.md",
+        "content/knowledge/renhuai-relationship-palace.md",
+        "content/knowledge/renhuai-relationship-star-palace.md",
+        "content/knowledge/renhuai-sihua-palace-applications.md",
+        "content/knowledge/renhuai-star-palace-examples.md",
+        "content/knowledge/renhuai-timing-practical-boundaries.md",
+        "content/knowledge/renhuai-wealth-sihua.md",
+        "content/knowledge/renhuai-wealth-star-palace.md",
+        "content/knowledge/wealth-palace.md",
+        "content/skills/career.md",
+        "content/skills/chart-explanation.md",
+        "content/skills/personality.md",
+        "content/skills/recent-fortune.md",
+        "content/skills/relationship.md",
+        "content/skills/wealth.md"
+      ],
+      "generationCounts": {
+        "selectedFiles": 29,
+        "extractedUnits": 74,
+        "candidateChunks": 74,
+        "emittedChunks": 74,
+        "duplicatesRemoved": 0
+      }
+    }
+  ],
+  "totals": {
+    "selectedFiles": 56,
+    "extractedUnits": 3283,
+    "candidateChunks": 3283,
+    "emittedChunks": 3258,
+    "duplicatesRemoved": 25
+  },
+  "palaceCoverage": [
+    {
+      "palace": "life",
+      "canonicalId": "ziwei.palace.life",
+      "chunkCount": 363
+    },
+    {
+      "palace": "siblings",
+      "canonicalId": "ziwei.palace.siblings",
+      "chunkCount": 117
+    },
+    {
+      "palace": "spouse",
+      "canonicalId": "ziwei.palace.spouse",
+      "chunkCount": 266
+    },
+    {
+      "palace": "children",
+      "canonicalId": "ziwei.palace.children",
+      "chunkCount": 96
+    },
+    {
+      "palace": "wealth",
+      "canonicalId": "ziwei.palace.wealth",
+      "chunkCount": 139
+    },
+    {
+      "palace": "health",
+      "canonicalId": "ziwei.palace.health",
+      "chunkCount": 79
+    },
+    {
+      "palace": "travel",
+      "canonicalId": "ziwei.palace.travel",
+      "chunkCount": 87
+    },
+    {
+      "palace": "friends",
+      "canonicalId": "ziwei.palace.friends",
+      "chunkCount": 80
+    },
+    {
+      "palace": "career",
+      "canonicalId": "ziwei.palace.career",
+      "chunkCount": 146
+    },
+    {
+      "palace": "property",
+      "canonicalId": "ziwei.palace.property",
+      "chunkCount": 75
+    },
+    {
+      "palace": "wellbeing",
+      "canonicalId": "ziwei.palace.fortune",
+      "chunkCount": 103
+    },
+    {
+      "palace": "parents",
+      "canonicalId": "ziwei.palace.parents",
+      "chunkCount": 114
+    }
+  ]
+}

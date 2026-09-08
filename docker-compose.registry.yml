@@ -1,0 +1,13 @@
+services:
+  migrate:
+    image: ghcr.io/harris1111/lasoviet-api:sha-${LASOVIET_RELEASE_SHA:?Set LASOVIET_RELEASE_SHA}
+    build: !reset null
+  api:
+    image: ghcr.io/harris1111/lasoviet-api:sha-${LASOVIET_RELEASE_SHA:?Set LASOVIET_RELEASE_SHA}
+    build: !reset null
+  worker:
+    image: ghcr.io/harris1111/lasoviet-worker:sha-${LASOVIET_RELEASE_SHA:?Set LASOVIET_RELEASE_SHA}
+    build: !reset null
+  web:
+    image: ghcr.io/harris1111/lasoviet-web:sha-${LASOVIET_RELEASE_SHA:?Set LASOVIET_RELEASE_SHA}
+    build: !reset null

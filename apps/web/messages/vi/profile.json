@@ -9,7 +9,17 @@
   "subject": {
     "title": "Lập lá số cho ai?",
     "copy": "Bạn có thể lập lá số miễn phí và không cần tài khoản.",
-    "self": "Lập cho bản thân"
+    "self": "Lập cho bản thân",
+    "stepTitle": "Người được lập lá số",
+    "stepSub": "Chọn đối tượng lập lá số và giới tính dùng để an sao.",
+    "nameLabel": "Tên gọi hiển thị",
+    "nameOptional": "(tùy chọn)",
+    "namePlaceholder": "Chỉ dùng để nhận diện biểu mẫu này",
+    "targetLabel": "Lá số này dành cho",
+    "other": "Lập cho người khác",
+    "otherConsent": "Khi lập cho người khác, bạn xác nhận đã có sự đồng ý của họ để nhập thông tin sinh tạo lá số trong lượt này (không lưu tài khoản hay cam kết lưu trữ dài hạn).",
+    "consentCheck": "Tôi xác nhận đã có sự đồng ý để tạo lá số này",
+    "consentError": "Vui lòng xác nhận sự đồng ý của người được lập trước khi tiếp tục."
   },
   "birth": {
     "title": "Ngày và giờ sinh",
@@ -28,13 +38,40 @@
     "gender": "Giới tính dùng để lập lá số",
     "genderHelp": "Tử Vi cần thông tin này để xác định chiều vận.",
     "male": "Nam",
-    "female": "Nữ"
+    "female": "Nữ",
+    "stepTitle": "Ngày, giờ sinh & nơi sinh",
+    "stepSub": "Nhập ngày giờ sinh để an sao lá số. Nơi sinh là thông tin ngữ cảnh tùy chọn.",
+    "calendarType": "Hệ lịch",
+    "solar": "Dương lịch",
+    "lunar": "Âm lịch",
+    "lunarNotice": "Tính năng nhập theo âm lịch đang phát triển. Vui lòng nhập ngày dương lịch tương ứng.",
+    "dayLabel": "Ngày",
+    "monthLabel": "Tháng",
+    "yearLabel": "Năm",
+    "formatHint": "(ngày / tháng / năm)",
+    "placeLabel": "Nơi sinh",
+    "placePlaceholder": "Tỉnh, thành phố hoặc địa phương"
   },
   "review": {
     "title": "Kiểm tra thông tin",
     "unknown": "Không rõ giờ sinh",
     "consent": "Tôi đồng ý để Lá Số Việt xử lý thông tin sinh nhằm lập lá số này.",
-    "privacy": "Lá số riêng tư theo mặc định. Dữ liệu tạm thời của khách sẽ hết hạn sau 24 giờ."
+    "privacy": "Lá số riêng tư theo mặc định. Dữ liệu tạm thời của khách sẽ hết hạn sau 24 giờ.",
+    "stepTitle": "Kiểm tra & riêng tư",
+    "stepSub": "Rà soát lại toàn bộ thông tin đã nhập trước khi hệ thống tính toán và an sao lá số.",
+    "edit": "Sửa",
+    "displayName": "Tên hiển thị",
+    "noName": "Chưa đặt tên (chỉ dùng cho biểu mẫu này)",
+    "forWhom": "Người được lập",
+    "self": "Bản thân",
+    "otherPermitted": "Người khác (đã xác nhận đồng ý)",
+    "solarDate": "Ngày sinh dương lịch",
+    "birthTime": "Giờ sinh",
+    "birthPlace": "Nơi sinh",
+    "timezone": "Múi giờ tính toán",
+    "disclosure": "Thông tin sinh chỉ được xử lý cho lượt lập lá số hiện tại theo chính sách riêng tư mặc định.",
+    "guestNotice": "Dữ liệu tạm thời của khách sẽ tự động hết hạn sau 24 giờ. Hệ thống không cam kết lưu trữ vĩnh viễn.",
+    "duplicateNotice": "Đang tiến hành lập lá số, vui lòng không gửi lại yêu cầu."
   },
   "heroForm": {
     "invalidDate": "Ngày sinh không hợp lệ hoặc không có trong lịch. Vui lòng kiểm tra lại.",
@@ -77,5 +114,20 @@
     "gender": "Hãy chọn giới tính dùng để lập lá số.",
     "timeUnknown": "Cần giờ sinh chính xác để lập lá số Tử Vi. Bạn có thể quay lại bổ sung khi biết giờ sinh.",
     "calculation": "Chưa thể lập lá số lúc này. Hãy thử lại sau."
+  },
+  "nav": {
+    "privacy": "Riêng tư theo mặc định. Dữ liệu khách hết hạn sau 24 giờ.",
+    "back": "Quay lại bước trước",
+    "exit": "Thoát về trang chủ",
+    "help": "Trợ giúp lập lá số",
+    "step": "Bước {current}",
+    "stepFull": "Bước {current}/3: {title}"
+  },
+  "rail": {
+    "eyebrow": "Ngữ cảnh lập số",
+    "step1": "Chọn đối tượng và giới tính dùng để lập lá số. Trong Tử Vi, giới tính quyết định chiều an vòng sao và đại vận thuận hay nghịch.",
+    "step2": "Ngày và giờ sinh là dữ liệu cốt lõi dùng để tính toán và an sao lá số. Nơi sinh chỉ là ngữ cảnh hiển thị trên màn hình, không ảnh hưởng đến thuật toán tính toán (chuẩn UTC+7).",
+    "step3": "Kiểm tra kỹ các thông số trước khi lập lá số. Dữ liệu tạm thời của khách sẽ hết hạn sau 24 giờ mà không có cam kết lưu trữ vĩnh viễn.",
+    "caption": "Tư liệu thẻ đăng ký nơi sinh dùng làm ngữ cảnh tham chiếu đối chiếu."
   }
 }

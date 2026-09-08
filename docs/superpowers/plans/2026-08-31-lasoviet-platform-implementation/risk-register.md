@@ -33,6 +33,9 @@
 | R-29 | Route, content, analytics, or sitemap drift | 00, 03, 06 | A second source defines different path, state, event, canonical, or index behavior | `config/route-registry.yml` plus typed loader, ordered analytics config, deprecated legacy sitemap, contract tests, production route inventory | Block public indexing |
 | R-30 | Authentication email unavailable | 01 | Verification or reset cannot deliver through reviewed SMTP | Establish SMTP port/adapter in Phase 01, protocol integration test, no verification bypass | Block authentication release |
 | R-31 | Anonymous birth data retained too long or orphaned during linking | 01, 03, 06 | Unlinked profile/chart survives 24 hours, manual deletion fails, or account linking duplicates ownership | Better Auth anonymous actor, explicit expiry, transactional ownership transfer, purge/reconciliation tests | Privacy block |
+| R-32 | Admin privilege escalation or stale role access | 05A, 06 | Browser claim, inactive assignment, self-escalation, or role mismatch reaches an admin operation | Verified sessions, DB roles/capabilities, assignment version checks, API authorization, RBAC tests | Block paid release |
+| R-33 | Admin PII overexposure | 05A, 06 | Projection, audit, or error returns secrets, tokens, raw payloads, signed URLs, report body, or unredacted personal detail | Redacted-only V1 projections, no reveal endpoint/capability, audit schemas, and E2E | Privacy block |
+| R-34 | Unaudited or bypassed operational mutation | 05A, 06 | Direct table edit, immutable edit, BullMQ requeue, provider mutation, or missing context/audit/outbox | Domain services, CAS, idempotency, transactional audit/outbox, immutable lineage, mediation tests | Block paid release |
 
 ## P02-T03 Evidence (2026-09-01)
 

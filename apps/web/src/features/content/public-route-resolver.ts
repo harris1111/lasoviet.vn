@@ -89,7 +89,9 @@ export function resolvePublicRoute(
     }
     return { kind: "not-found", state: "archived", code: "ROUTE_ARCHIVED" };
   }
-  if (route.status !== "live_indexable") return { kind: "not-found", state: "unknown" };
+  if (route.status !== "live_indexable" && route.status !== "live_noindex") {
+    return { kind: "not-found", state: "unknown" };
+  }
 
   return {
     kind: "render",

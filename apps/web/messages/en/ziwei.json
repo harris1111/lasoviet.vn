@@ -2,9 +2,22 @@
   "title": "Zi Wei chart",
   "private": "Private chart",
   "heroCopy": "The twelve palaces are calculated from your birth data. Each insight has evidence you can open and review.",
+  "summary": {
+    "eyebrow": "Chart summary",
+    "heading": "Core chart axes and birth data",
+    "birthInfo": "Birth data",
+    "birthDate": "Birth date",
+    "birthTime": "Birth time",
+    "timezone": "Timezone",
+    "gender": "Gender",
+    "chartCore": "Core chart axes",
+    "lifePalace": "Life Palace",
+    "bodyPalace": "Body Palace",
+    "transformations": "Four Transformations"
+  },
   "evidence": {
     "eyebrow": "Evidence",
-    "heading": "Read each insight within the chart's limits"
+    "heading": "Chart evidence"
   },
   "topicLink": "Choose a reading topic",
   "deletion": {

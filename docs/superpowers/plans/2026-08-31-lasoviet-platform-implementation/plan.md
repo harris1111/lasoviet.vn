@@ -21,9 +21,30 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Blueprint v1.1 reconciliation is complete and Terra-reviewed with
-no open must-fix on 2026-08-31. The package is ready for founder implementation
-approval; no product code is authorized until that explicit approval.
+**Status:** Planning reconciliation is current through 2026-09-06. The
+repository has implemented Phase 00 foundations, Phase 01 identity/privacy
+services, Phase 02 calculation/evidence services, the artifact-driven Phase 03
+free-MVP experience, all Phase 04 commerce/report tasks, and production-like
+free-MVP Compose smoke evidence. The FD-024 artifact-first UI gate was
+satisfied by the merged MVP UI branch; it remains the rule for future visual
+work. No later phase is marked complete merely because implementation exists.
+Phase 04 is complete on the isolated `feature/phase04-report-generation` branch
+following implementation, controlled browser acceptance, and founder approval
+of the `9router-an` provider privacy due-diligence gate (FD-035). Paid-release
+closure also requires later phases (Phase 05 workflows and Phase 05A evidence)
+and founder activation. Production payment activation, production AI activation,
+and deployment remain separately founder-controlled operations.
+
+**Active implementation branch:** `feature/phase04-report-generation`.
+Provider-independent Phase 05A implementation is authorized from 2026-09-02.
+SePay Tasks 1-2, the durable P04-T03 worker, P04-T04 approved knowledge
+retrieval, P04-T05 immutable evidence-backed generation, P04-T06
+owner-authorized private HTML reading, 7/7 controlled browser acceptance tests,
+and founder provider privacy approval (FD-035) are implemented and reviewed,
+closing Phase 04 documentation. The previously published sandbox report job on
+the Docker VPS remains `waiting` until a separately authorized deployment.
+Production payment activation and production AI activation remain
+founder-controlled.
 
 ## Global Constraints
 
@@ -37,8 +58,11 @@ approval; no product code is authorized until that explicit approval.
 - Communicate with the founder in Vietnamese; repository artifacts and commits
   are English.
 - Use only Superpowers workflows; do not invoke `/ck` or CK CLI.
-- Sol orchestrates, Terra reviews, and Luna implements only Terra-approved
-  instructions.
+- Sol high orchestrates and adjudicates. Global Flash Executor uses
+  `ag/gemini-3.8-flash-high` at `high` as the coder for literal, bounded Sol
+  briefs. Terra high independently reviews complete features, phases, and
+  meaningful milestones. Luna remains paused unless the founder explicitly
+  reactivates it.
 - P0 uses Next.js 16 latest stable 16.x at implementation time.
 - P0 uses NestJS with the Fastify adapter.
 - Browser traffic terminates at Next.js; the API remains private.
@@ -62,8 +86,9 @@ approval; no product code is authorized until that explicit approval.
   calculation/payment/privacy defects, and twenty internally reviewed reports.
 - Highly niche tests may be deferred only when they do not affect calculation,
   payment, authorization, privacy, or data integrity.
-- Every task ends with tests, Terra review evidence, docs impact, and a focused
-  English conventional commit.
+- Every task ends with focused verification, docs impact, and a focused English
+  conventional commit. Sol review remains milestone-based rather than a routine
+  gate after every small task.
 
 ## Plan Package
 
@@ -91,8 +116,9 @@ approval; no product code is authorized until that explicit approval.
 | [02](phase-02-ziwei-calculation-and-evidence.md) | iztro adapter, normalized chart, fixtures, evidence | 01 |
 | [03](phase-03-free-web-experience.md) | Gate 1 public surface, foundational content, private funnel, and free chart | 02 |
 | [04](phase-04-commerce-and-report-generation.md) | SePay, entitlement, worker, knowledge, AI report | 03 |
-| [05](phase-05-storage-delivery-and-admin.md) | PDF, Garage, replication, email, admin/support | 04 |
-| [06](phase-06-production-readiness-and-launch.md) | Compose deployment, security, E2E, release gates, and Gate 1 indexing | 05 |
+| [05](phase-05-storage-delivery-and-account-center.md) | PDF, Garage, replication, email, and owner account center | 04 |
+| [05A](phase-05a-admin-operations-dashboard.md) | Admin and Operations Console: RBAC, redacted inspection, audited recovery commands, and release evidence | Foundation may begin after 03; closure requires 04 and 05 |
+| [06](phase-06-production-readiness-and-launch.md) | Compose deployment, security, E2E, release gates, and Gate 1 indexing | 05 and 05A |
 | [07](phase-07-remaining-ziwei-and-wave-1-5.md) | Remaining Zi Wei SKUs and acquisition tools | 06 plus P0 stability evidence |
 | [08](phase-08-bazi-wave-2.md) | BaZi calculator and paid report | 07 public gate; engineering may prepare after 06 |
 | [09](phase-09-western-wave-3.md) | Celestine natal chart and interpretation | 06 for engineering; 08 public gate for launch |
@@ -102,16 +128,22 @@ approval; no product code is authorized until that explicit approval.
 ## Execution Rules
 
 1. Execute phases in dependency order.
-2. Within a phase, Sol gives Terra the phase goal and acceptance criteria.
-3. Terra converts approved work into exact Luna instructions.
-4. Luna writes only the assigned files and stops on unexpected behavior.
-5. Terra reviews the change and test evidence.
-6. Sol updates phase status, traceability, risk, decision, and rule trackers.
-7. A phase closes only when its exit criteria pass in the intended environment.
-8. No later-wave feature may delay the first complete paid Zi Wei flow.
-9. A task listed in `open-decisions.md` cannot cross its named decision gate
-   until the founder resolves that decision in writing.
-10. Each phase task and its matching `Pxx-Tyy` record in
+2. Sol high owns scope, sequencing, exact implementation briefs, and founder
+   communication.
+3. Global Flash Executor implements and runs the focused checks in Sol's exact
+   bounded brief.
+4. Terra high independently reviews meaningful milestones and scoped correction
+   passes.
+5. Sol may dispatch global Flash Executor only with an exact bounded
+   brief naming owned files, behavior, acceptance criteria, and focused checks.
+   Flash Executor does not plan, propose, broaden scope, or debug deeply.
+6. Luna is paused unless the founder explicitly reactivates it.
+7. Sol updates phase status, traceability, risk, decision, and rule trackers.
+8. A phase closes only when its exit criteria pass in the intended environment.
+9. No later-wave feature may delay the first complete paid Zi Wei flow.
+10. A task listed in `open-decisions.md` cannot cross its named decision gate
+    until the founder resolves that decision in writing.
+11. Each phase task and its matching `Pxx-Tyy` record in
     `task-contracts-and-test-vectors.md` form one normative implementation
     instruction.
 

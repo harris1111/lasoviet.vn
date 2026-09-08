@@ -12,6 +12,7 @@ import { freeIdentityPreviewLoader } from "../../../../features/reports/load-fre
 import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 import { ZiweiChart } from "../../../../features/ziwei/ziwei-chart";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
+import { ZiweiResultSummary } from "../../../../features/ziwei/ziwei-result-summary";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -33,6 +34,13 @@ export default async function ZiweiChartResultPage({
   ]);
   if (!chartResult.ok || !previewResult.ok) notFound();
 
+  const primaryEvidenceId = chartResult.value.evidenceIndex.itemIds.find(
+    (id) =>
+      id.includes("palace") ||
+      id.includes("star") ||
+      id.includes("transformation"),
+  );
+
   const topicHref = locale === "en"
     ? `/en/la-so/${chartId}/chon-luan-giai`
     : `/la-so/${chartId}/chon-luan-giai`;
@@ -44,17 +52,43 @@ export default async function ZiweiChartResultPage({
         <h1>{t("title")}</h1>
         <p>{t("heroCopy")}</p>
       </section>
+      <div className="container">
+        <ZiweiResultSummary
+          birthSummary={chartResult.value.birthSummary}
+          chart={chartResult.value.chart}
+          locale={locale}
+        />
+      </div>
       <div className="result-layout container">
         <ZiweiChart chart={chartResult.value.chart} locale={locale} />
         <aside className="result-evidence-note">
           <p className="eyebrow">{t("evidence.eyebrow")}</p>
           <h2>{t("evidence.heading")}</h2>
-          <EvidenceDrawer chartId={chartId} evidenceId={chartResult.value.evidenceIndex.itemIds[0]!} locale={locale} loadEvidence={loadZiweiEvidence} />
+          {primaryEvidenceId ? (
+            <EvidenceDrawer chartId={chartId} evidenceId={primaryEvidenceId} locale={locale} loadEvidence={loadZiweiEvidence} />
+          ) : null}
         </aside>
       </div>
       <div className="container">
-        <FreeIdentityPreview chartId={chartId} locale={locale} loadEvidence={loadZiweiEvidence} preview={previewResult.value} />
-        <Link className="button" href={topicHref}>{t("topicLink")}</Link>
+        <FreeIdentityPreview chart={chartResult.value.chart} chartId={chartId} locale={locale} loadEvidence={loadZiweiEvidence} preview={previewResult.value} />
+        <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
+          <div className="result-paid-report-head">
+            <p className="eyebrow">{locale === "en" ? "Full Lifetime Report" : "Luận giải chuyên sâu trọn đời"}</p>
+            <h2 id="paid-report-cta-heading">
+              {locale === "en" ? "Life Potential & Destiny Report" : "Báo cáo luận giải Bản mệnh & Tiềm năng"}
+            </h2>
+            <div className="result-paid-report-pricing">
+              <span className="topic-price">{locale === "en" ? "79,000 VND" : "79.000 ₫"}</span>
+              <span className="topic-once">{locale === "en" ? "One-time payment · No auto-renewal" : "Thanh toán một lần · Không tự động gia hạn"}</span>
+            </div>
+          </div>
+          <div className="result-paid-report-actions">
+            <Link className="button" href={topicHref}>{t("topicLink")}</Link>
+            <Link className="button button-secondary" href={locale === "en" ? "/en/bao-cao-mau/tu-vi" : "/bao-cao-mau/tu-vi"}>
+              {locale === "en" ? "View sample report" : "Xem bản luận giải mẫu"}
+            </Link>
+          </div>
+        </section>
         {actor.kind === "anonymous" ? (
           <AnonymousDataDeletionControl
             action={deleteAnonymousDataAction.bind(null, locale)}

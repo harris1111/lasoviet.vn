@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "healthcheck": "node dist/health/worker-health-cli.js"
   },
   "dependencies": {
     "@lasoviet/backend": "workspace:0.0.0",

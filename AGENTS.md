@@ -56,43 +56,64 @@ The active authority chain from P01-T02 onward is:
 
 ```text
 Founder-approved goals and decisions
-    -> GPT 5.6 Sol xhigh
-    -> GPT 5.6 Terra medium
+    -> GPT 5.6 Sol high
+        -> Flash Executor high for bounded implementation
+        -> GPT 5.6 Terra high for milestone review
 ```
 
-The former Sol -> Terra reviewer -> Luna implementor chain applies only through
-P01-T01. Luna is paused and must not be dispatched unless the founder
-explicitly reactivates that role.
+The former Sol -> Terra implementor/reviewer -> Luna chain is superseded.
+Luna is paused and must not be dispatched unless the founder explicitly
+reactivates that role. Flash Executor is the coder only when Sol provides an
+exact bounded brief; Terra independently reviews meaningful milestones.
 
-### Sol: Orchestrator And Milestone Reviewer
+### Sol: Orchestrator And Adjudicator
 
 - Sol owns orchestration, scope control, task decomposition, sequencing, and
   founder communication.
-- Sol gives implementation goals directly to Terra.
-- Sol reviews completed phases, complete features, and meaningful milestones;
-  Sol does not run routine review gates after small tasks.
-- Sol coordinates and reviews Terra's implementation evidence and correction
-  work within already approved scope.
+- Sol gives Flash Executor a fully specified, bounded implementation brief and
+  gives Terra the matching independent milestone-review brief.
+- Sol adjudicates review findings against founder decisions, binding plans, and
+  live repository evidence.
+- Sol does not write feature code or replace Terra's independent review.
 - Sol asks the founder in Vietnamese whenever founder input is required.
-- Sol must verify the requested model and `xhigh` reasoning level before
+- Sol must verify the requested model and `high` reasoning level before
   dispatch. Do not silently substitute another model or reasoning level.
 - Before declaring a requested model or reasoning level unavailable solely
   because current metadata omits it, run one no-file probe with that exact
   model and reasoning level. If the probe fails or cannot run, stop and report
   to Sol; do not substitute a model or effort.
 
-### Terra: Implementor And Debugger
+### Terra: Independent Milestone Reviewer
 
-- Terra medium receives goals from Sol and directly implements, debugs, and
-  runs focused tests.
-- Terra owns routine technical investigation, compile/test failure correction,
-  and exact-version API verification without an intermediate reviewer.
-- Terra may self-correct implementation defects inside approved scope and must
-  preserve concise evidence in the task report.
-- Terra reports completed milestone evidence and unresolved stop conditions to
-  Sol.
+- Terra high independently reviews complete features, phases, and meaningful
+  milestones after Gemini implementation.
+- Terra validates scope, behavior, security/privacy boundaries, tests, and
+  exclusions against binding sources and live code.
+- Terra reports evidence-backed `must-fix`, optional, or rejected findings to
+  Sol and performs scoped re-review after each correction pass.
+- Terra does not implement the reviewed milestone or dispatch coding work.
 - Terra must not silently broaden scope or make founder-level product,
   architecture, privacy, licensing, payment, or release decisions.
+
+### Flash Executor: Global Bounded Coder
+
+- Flash Executor uses `ag/gemini-3.8-flash-high` with `high` reasoning and is
+  available globally across Codex projects.
+- Flash Executor works only from an explicit brief assigned by Sol.
+- Every brief must name the owned files, exact behavior, acceptance criteria,
+  and focused checks. Flash Executor must not infer missing scope.
+- Flash Executor implements literally, preserves unrelated work, and does not
+  propose product, architecture, security, UX, dependency, or process changes.
+- Flash Executor does not self-assign follow-up work, broaden scope, perform
+  speculative refactors, or conduct deep debugging.
+- Flash Executor may make one direct local correction when an immediate syntax,
+  type, or focused-test failure is clearly caused by its assigned edit.
+- If that correction fails, evidence conflicts, instructions are ambiguous, or
+  investigation would exceed the brief, Flash Executor stops with `BLOCKED` or
+  `NEEDS_CONTEXT` and returns evidence to Sol.
+- Flash Executor must not commit, push, merge, deploy, access production,
+  trigger external side effects, or run destructive operations unless the brief
+  explicitly assigns that exact operation.
 
 ### Luna: Paused
 
@@ -139,10 +160,13 @@ affected work.
 
 ## 6. Stop And Escalation Protocol
 
-From P01-T02 onward, Terra continues through routine implementation ambiguity,
-compile failures, test failures, dependency integration, and non-destructive
-debugging inside the approved scope. Do not stop merely to request technical
-instructions that repository evidence or focused experiments can resolve.
+Flash Executor implements only the exact bounded brief. Sol resolves routine
+implementation ambiguity from repository evidence and may issue one narrowed
+correction brief after a focused failure or Terra finding.
+
+Flash Executor does not inherit broad debugging autonomy. It must return an
+ambiguous or non-local failure to Sol after the one
+bounded correction allowed by section 4.
 
 Stop and ask the founder through Sol only when:
 
@@ -152,8 +176,8 @@ Stop and ask the founder through Sol only when:
 - an external side effect lacks explicit authorization;
 - a destructive or hard-to-reverse operation is required.
 
-Preserve completed safe work that is independent of the blocker. Terra reports
-the exact blocker and evidence to Sol. Sol explains the issue, impact,
+Preserve completed safe work that is independent of the blocker. Gemini or
+Terra reports the exact blocker and evidence to Sol. Sol explains the issue, impact,
 realistic options, and recommendation to the founder in Vietnamese.
 
 ## 7. Implementation And Testing Priorities
@@ -182,6 +206,10 @@ Do not use a fixed near-future calendar timestamp when production compares
 against the real current clock; such fixtures become false failures as time
 passes.
 
+Tests that inspect repository text files must normalize CRLF and LF before
+asserting line-oriented content. Do not make a Windows checkout fail solely
+because Git materialized `\r\n` while CI materialized `\n`.
+
 Record genuinely deferred edge cases in English in the relevant later-phase
 plan or backlog, including risk, reason for deferral, and the condition that
 should bring them into scope.
@@ -191,11 +219,11 @@ flow must work end to end in the target deployment environment.
 
 ## 8. Review Closure
 
-From P01-T02 onward, Terra implements, debugs, self-checks, and runs focused
-tests directly. Sol performs the independent review after a complete phase,
-complete feature, or meaningful milestone.
+Gemini implements and runs the focused checks named by Sol's bounded brief.
+Terra high performs the independent review after a complete phase, complete
+feature, or meaningful milestone. Sol adjudicates the findings.
 
-Sol classifies milestone findings as:
+Terra proposes milestone finding classifications; Sol adjudicates them as:
 
 - `must-fix`: verified correctness, security, privacy, acceptance, or release
   issue within approved scope;
@@ -204,16 +232,15 @@ Sol classifies milestone findings as:
 - `rejected`: unsupported, duplicate, contradicted by verified evidence, or
   inconsistent with founder-approved scope.
 
-Do not schedule routine reviews after every small implementation task. Terra
-may execute consecutive tasks in approved scope and self-correct technical
-failures without an intermediate Sol review.
+Do not schedule routine reviews after every small implementation task. Sol may
+give Gemini consecutive bounded slices before a meaningful Terra review.
 
-Only evidence-backed `must-fix` findings return to Terra for correction. Each
-milestone review permits at most two Terra correction passes, with a Sol
-re-review after each pass.
+Only evidence-backed `must-fix` findings return to Gemini through a narrowed Sol
+brief. Each milestone review permits bounded correction passes with a Terra
+scoped re-review after each pass.
 
-If a finding remains after the second correction pass, Sol must choose and
-record one disposition:
+If a finding remains after the active Superpowers workflow's bounded correction
+cap, Sol must choose and record one disposition:
 
 - replan with a materially different approach and begin a new explicit review
   cycle;
@@ -283,12 +310,13 @@ rule instead of adding another version.
   instructions before planning or editing.
 - Inspect the live repository before asking a question that source inspection
   can answer.
-- Before Luna implements a task-critical external package or CLI integration
-  whose exact-version behavior is unverified, Terra must verify and record only
-  the task-relevant import/export, configuration, command working-directory or
-  root, and lifecycle/build-script facts in the approved brief. Luna must stop
-  if any required fact is unverified or conflicts with local evidence; never
-  rely on remembered or generic examples.
+- Before Flash Executor implements a task-critical external package or CLI
+  integration whose exact-version behavior is unverified, Sol must
+  verify and record only the task-relevant import/export, configuration,
+  command working-directory or root, and lifecycle/build-script facts in the
+  approved brief. Flash Executor must stop if any required fact is unverified
+  or conflicts with local evidence; never rely on remembered or generic
+  examples.
 - Keep upstream/reference repositories read-only unless the founder explicitly
   changes their role.
 - Before generated public content is marked `published`, require deterministic
@@ -305,10 +333,57 @@ rule instead of adding another version.
   Missing or fallback-only font faces block release and return to Terra.
 - Never commit secrets, credentials, private reports, or unnecessary personal
   data.
+- Generic anti-enumeration responses from an authentication provider are not
+  evidence that an account was created or an email was delivered. User-facing
+  sign-up and resend copy must remain conditional and must not disclose account
+  existence. Expose provider-backed recovery commands when needed. When a
+  provider's public anti-enumeration recovery endpoint changes behavior in the
+  presence of an ambient anonymous session, the browser recovery call must omit
+  that session credential. Claim delivery only from internal notification or
+  provider delivery evidence.
+- When a phase combines provider-dependent and provider-independent work,
+  missing credentials or environment values block only the provider-dependent
+  adapter, activation, and external smoke. Continue approved contracts,
+  domain services, admin tooling, and tests that do not consume those values.
+  Never replace the blocked provider path with fake success, committed
+  credentials, or an unverified production default.
+- Provider hosts and actions must derive from a closed environment enum, never
+  a free-form URL. Success, error, and cancel return URLs are navigation-only
+  and must never mutate or confirm payment; only an authenticated provider
+  notification validated against order identity, state, amount, and currency
+  may do so.
+- A provider setup probe that omits configured authentication is not payment
+  verification. Never weaken the live webhook to satisfy that probe. Complete
+  provider-side authentication, then verify the boundary with a real sandbox
+  transaction. If real callbacks remain unauthenticated, stop payment
+  activation and escalate through Sol.
 - When inspecting rendered Compose configuration or runtime service state,
   never print complete environment maps. Query only the required structural
   fields or redact sensitive values before tool output; stop and narrow the
   command when an inspection would expose an external deploy environment.
+- Administrative and operational surfaces must be server-authorized private
+  tools, never a database, queue, secret, payment-provider, or CMS console.
+  Admin V1 uses redacted projections only; unredacted sensitive-detail reveal
+  is deferred. Privileged reads require private-API authorization and redacted
+  audit evidence. Authorization denials that occur before a private controller
+  must still use a trusted server-to-private-API path to append bounded,
+  redacted audit evidence; never create an anonymous session or expose a public
+  unauthenticated audit-write endpoint to fill that gap. Aggregate admin
+  projections must authorize entry with an actual active, role-permitted read
+  capability and independently gate every returned module and field by its
+  matching active capability. Removing a capability must also stop the
+  associated source query and omit its data; hiding navigation, a module row,
+  or a label is not authorization. State-changing operations require an actor,
+  reason code, request/trace ID, idempotency key, expected version where
+  applicable, and an append-only audit record. After trusted authentication,
+  the transactional command repository must revalidate active authority before
+  receipt replay or outcome classification and must own every deterministic
+  command result. Persist the bounded result receipt and required audit
+  evidence atomically; matching retries replay without duplicate audits, and
+  expected domain conflicts must be classified before they can fall through to
+  storage constraint errors. State-changing operations call policy-checked
+  domain services and use compensating versions/events plus the outbox rather
+  than direct table edits, immutable-record mutation, or BullMQ requeue.
 - Do not run destructive filesystem or Git operations without explicit founder
   approval.
 - Do not deploy, push production configuration, modify DNS, change payment
@@ -441,3 +516,8 @@ rule instead of adding another version.
   profile or chart.
 - Anonymous data and identifiers remain subject to the same analytics
   prohibition as account-owned birth and chart data.
+- Paid checkout is unavailable to anonymous actors. Before order creation, the
+  server must require a current non-anonymous account with verified email;
+  immutable commerce rows use that durable account owner and must not add
+  retention-blocking foreign keys to anonymous, profile, chart, or chart-version
+  lifecycle records.

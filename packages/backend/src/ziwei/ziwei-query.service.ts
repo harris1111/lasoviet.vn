@@ -1,5 +1,6 @@
 import {
   EvidenceItemV1Schema,
+  NormalizedBirthProfileV1Schema,
   NormalizedZiweiChartV1Schema,
   PaidTopicSelectionRequestV1Schema,
   PaidTopicSelectionViewV1Schema,
@@ -7,6 +8,7 @@ import {
   type FreeIdentityPreviewV1,
   type PaidTopicSelectionViewV1,
   type Result,
+  type ZiweiBirthSummaryV1,
   ZiweiChartViewV1Schema,
   ZiweiEvidenceViewV1Schema,
   type ZiweiChartViewV1,
@@ -71,6 +73,25 @@ function chartView(record: Awaited<ReturnType<ZiweiQueryRepository["readAuthoriz
   ) {
     throw new ZiweiQueryDataError();
   }
+  const normalizedProfile = NormalizedBirthProfileV1Schema.safeParse({
+    ...(record.normalizedInput ?? {}),
+    originalInput: record.originalInput,
+  });
+  if (!normalizedProfile.success) {
+    throw new ZiweiQueryDataError();
+  }
+  const placeLabel =
+    normalizedProfile.data.normalizedPlaceLabel ??
+    normalizedProfile.data.originalInput.placeLabel;
+  const birthSummary: ZiweiBirthSummaryV1 = {
+    normalizedCalendar: normalizedProfile.data.normalizedCalendar,
+    normalizedTime: normalizedProfile.data.normalizedTime,
+    timezoneProvenance: normalizedProfile.data.timezoneProvenance,
+    ...(placeLabel ? { placeLabel } : {}),
+    ...(normalizedProfile.data.originalInput.gender
+      ? { gender: normalizedProfile.data.originalInput.gender }
+      : {}),
+  };
   const itemIds = items.map((item) => {
     if (!item.success) {
       throw new ZiweiQueryDataError();
@@ -82,6 +103,7 @@ function chartView(record: Awaited<ReturnType<ZiweiQueryRepository["readAuthoriz
     chartId: record.chartId,
     chartVersionId: record.chartVersionId,
     chart: chart.data,
+    birthSummary,
     evidenceIndex: {
       version: 1,
       evidenceSetId: record.evidenceSetId,

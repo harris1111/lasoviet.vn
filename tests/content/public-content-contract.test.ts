@@ -36,7 +36,10 @@ describe("public content contract", () => {
       await readFile("config/public-content.json", "utf8"),
     );
     const publicRoutes = routeRegistry.filter(
-      (route) => route.status === "live_indexable",
+      (route) =>
+        (route.status === "live_indexable" || route.status === "live_noindex") &&
+        !route.private &&
+        route.content === "reviewed",
     );
     const validated = validatePublicContent(records, routeRegistry);
     const keys = new Set(
@@ -82,5 +85,57 @@ describe("public content contract", () => {
         ],
       ),
     ).toThrow(/CONTENT_METADATA_INVALID/);
+  });
+  it("rejects public content records targeting public routes without reviewed content marker", () => {
+    const authRoute = routeRegistry.find((route) => route.id === "auth.sign-in");
+    expect(authRoute).toBeDefined();
+    if (authRoute === undefined) throw new Error("auth.sign-in fixture missing");
+
+    const authContent = {
+      routeId: authRoute.id,
+      locale: "vi" as const,
+      contentType: "ToolLanding" as const,
+      title: "Đăng nhập",
+      summary: "Trang đăng nhập",
+      reviewer: "content-reviewer",
+      sourceReferences: ["source:auth"],
+      riskTags: [],
+      status: "published" as const,
+      lastReviewed: "2026-09-01",
+    };
+
+    expect(() =>
+      validatePublicContent([authContent], routeRegistry),
+    ).toThrow(/CONTENT_METADATA_INVALID/);
+  });
+
+  it("validates published records for live_noindex preview routes", async () => {
+    const records = JSON.parse(
+      await readFile("config/public-content.json", "utf8"),
+    );
+    const requiredPreviewRouteIds = [
+      "calculator.bat-tu",
+      "calculator.kinh-dich",
+      "calculator.western-natal",
+      "calculator.numerology",
+      "utility.root",
+      "utility.good-days",
+      "utility.zodiac",
+      "content.dream-symbols",
+      "calculator.tarot",
+      "utility.lunar-calendar",
+      "utility.feng-shui",
+      "utility.palmistry",
+    ];
+
+    const validated = validatePublicContent(records, routeRegistry);
+    for (const id of requiredPreviewRouteIds) {
+      const vi = validated.find((r) => r.routeId === id && r.locale === "vi");
+      const en = validated.find((r) => r.routeId === id && r.locale === "en");
+      expect(vi).toBeDefined();
+      expect(en).toBeDefined();
+      expect(vi?.status).toBe("published");
+      expect(en?.status).toBe("published");
+    }
   });
 });

@@ -1,0 +1,105 @@
+{
+  "documentId": "ziwei-identity-foundation-vi",
+  "knowledgeVersion": "ziwei.identity.knowledge.v2",
+  "discipline": "ziwei",
+  "locale": "vi",
+  "sourcePath": "content/knowledge/vi/ziwei/identity-report-foundation.v2.json",
+  "sourceAttribution": "Lá Số Việt Method Editorial Board",
+  "permittedUse": "first_party",
+  "contentHash": "f1a7f4aaa59b4fa63ed63bc95c849b38b8019e5692705327e0ccc56b138e72c8",
+  "approval": {
+    "status": "approved",
+    "approver": "phase04-content-review",
+    "approvedAt": "2026-09-07T00:00:00.000Z"
+  },
+  "chunks": [
+    {
+      "passageId": "vi-ziwei-foundation-v2-001",
+      "reportSections": [
+        "personal_summary"
+      ],
+      "content": "Tóm tắt cá nhân dựa trên trục Cung Mệnh và Cung Thân cùng cách cục Tứ Hóa để phác thảo bức tranh tổng thể về bản sắc. Cung Mệnh phản ánh khuynh hướng tính cách và phản ứng tự nhiên ban đầu, trong khi Cung Thân thể hiện định hướng hành động và phong cách thích ứng theo thời gian. Mẫu hình Tứ Hóa bổ sung các trọng tâm chú ý then chốt, giúp người đọc nhận diện rõ nét cấu trúc tâm lý nền tảng mà không bị ràng buộc bởi các khẳng định số phận tuyệt đối.",
+      "contentHash": "75d2874b1973877bce6b8919a0dda74fca5fdf9f362d32137d0f19442fda0e40"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-002",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Phương pháp luận của báo cáo vận hành trên nguyên tắc minh bạch dữ liệu và phân tách trách nhiệm rõ ràng. Hệ thống chỉ diễn giải các trường thông tin đã được chuẩn hóa từ lá số: vị trí và địa chi Cung Mệnh, vị trí chức năng của Cung Thân, và các sao kích hoạt Tứ Hóa. Mọi nhận định đều là tín hiệu phản chiếu có điều kiện, hoàn toàn không suy diễn vượt quá bằng chứng kỹ thuật đã xác lập.",
+      "contentHash": "dbb108431ec976a7640e101405a68b57b145c52fb59f23dc4dddb2a86e839686"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-003",
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Căn cứ chính của báo cáo gồm ba trụ cột bằng chứng: Cung Mệnh với địa chi cư ngụ, Cung Thân với cung chức đảm nhận, và Tứ Hóa gồm Hóa Lộc, Hóa Quyền, Hóa Khoa, Hóa Kỵ gắn với từng sao cụ thể. Mỗi luận điểm trong báo cáo đều đối chiếu trực tiếp về một trong các căn cứ này để người đọc có thể kiểm chứng nguồn gốc suy luận một cách rõ ràng.",
+      "contentHash": "7251ffaa120748955e99e259c50f16e31f207fd1a327ecf05b2984460bc23d53"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-004",
+      "reportSections": [
+        "strengths_and_resources"
+      ],
+      "content": "Thế mạnh và nguồn lực được nhận diện qua các điểm tựa thuận lợi của Cung Mệnh, Cung Thân cùng ảnh hưởng tích cực từ Hóa Lộc, Hóa Quyền hoặc Hóa Khoa. Đây là những năng lực hành vi tiềm năng và nguồn lực nội tại có thể phát huy khi được đặt trong môi trường phù hợp và có sự rèn luyện chủ động, không phải là kết quả bảo đảm tự động.",
+      "contentHash": "8ffebabe67f85b29cce848066b0b2ef20fb5e9fdad23b36395808231dede91e6"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-005",
+      "reportSections": [
+        "tensions_and_blind_spots"
+      ],
+      "content": "Mâu thuẫn và điểm dễ mắc kẹt phản ánh xung lực giữa phản ứng bản năng tại Cung Mệnh và mục tiêu hành động tại Cung Thân, hoặc lực cản nhận thức gắn với Hóa Kỵ. Nhận diện các điểm nghẽn này giúp người đọc tăng cường khả năng tự quan sát khi gặp căng thẳng, nhận biết thói quen phản ứng bất lợi và điều chỉnh hành vi kịp thời.",
+      "contentHash": "19446a4308f803dbdb067965552177d9cffc2b008b9a6b5fc15aaa3d24b017da"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-006",
+      "reportSections": [
+        "identity_analysis"
+      ],
+      "content": "Phân tích bản sắc đào sâu mối liên kết cấu trúc giữa khí chất nền tảng tại Cung Mệnh, định hướng trưởng thành tại Cung Thân và dòng năng lượng tâm lý từ Tứ Hóa. Sự kết hợp này tạo nên phong cách tư duy, nhu cầu nội tâm và cách thức tương tác đặc trưng của mỗi cá nhân trong đời sống thực tế.",
+      "contentHash": "eef04075dc078794ead1185c5a673a326c7dfa6efb2d234d832b5bd51206df01"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-007",
+      "reportSections": [
+        "cycles_and_timing"
+      ],
+      "content": "Chu kỳ và thời điểm trong phiên bản báo cáo này tuân thủ nguyên tắc giới hạn bằng chứng nghiêm ngặt. Do hệ thống chưa áp dụng dữ liệu vận hạn như đại vận hay lưu niên, báo cáo không đưa ra nhận định hoặc dự báo về mốc thời gian, nhằm bảo đảm tính trung thực của phương pháp.",
+      "contentHash": "c6276392765cdd8248730c3c7f004d291330b14521183e2f45fe061779855440"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-008",
+      "reportSections": [
+        "within_control"
+      ],
+      "content": "Điều nằm trong tầm kiểm soát nhấn mạnh rằng mọi chỉ dấu lá số chỉ mang tính tham khảo cấu trúc, còn quyền quyết định và kết quả thực tế luôn thuộc về nhận thức và hành động của bạn. Bạn hoàn toàn làm chủ cách phản ứng trước áp lực, việc lựa chọn môi trường phát triển và các thói quen rèn luyện mỗi ngày.",
+      "contentHash": "b548c6518dbcc25f39a4f3fa8357492d7ece96a29d03d101474c1b2b85ef7508"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-009",
+      "reportSections": [
+        "reflection_questions"
+      ],
+      "content": "Câu hỏi tự suy ngẫm được xây dựng nhằm gợi mở đối thoại nội tâm từ các bằng chứng Cung Mệnh, Cung Thân và Tứ Hóa. Các câu hỏi tập trung vào việc tự soi chiếu thói quen ra quyết định, cách xử lý áp lực và phương thức phát huy điểm mạnh trong công việc và các mối quan hệ.",
+      "contentHash": "b79f243b5bb93eeca6803d218c58ba7f89a98fa0e58b9e36bb456c27879e753d"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-010",
+      "reportSections": [
+        "action_summary"
+      ],
+      "content": "Tóm tắt hành động đề xuất các bước thực hành vi mô cụ thể, khả thi và bám sát các giới hạn quan sát đã xác lập. Mỗi hành động hướng đến việc kiểm chứng trực tiếp các nhận định bản mệnh trong đời sống thường nhật thông qua quan sát tỉnh thức và thử nghiệm hành vi nhỏ.",
+      "contentHash": "2030cbc380dd625a684c738581a727697bb8ed0616b4c666d6eb98afdb735b06"
+    },
+    {
+      "passageId": "vi-ziwei-foundation-v2-011",
+      "reportSections": [
+        "limitations_and_disclaimer"
+      ],
+      "content": "Giới hạn phương pháp khẳng định rõ báo cáo chỉ có giá trị tham khảo tự nhận thức và tự phản chiếu bản thân. Báo cáo không thay thế cho tư vấn y tế, tâm lý, tài chính hoặc pháp lý chuyên nghiệp, và không được dùng làm căn cứ duy nhất cho các quyết định quan trọng mang tính rủi ro cao.",
+      "contentHash": "1b2463aab6dd55cf9471d528b690883400c2e89be43a578399931c0db4d0c3e5"
+    }
+  ]
+}

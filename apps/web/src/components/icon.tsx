@@ -12,9 +12,12 @@ type IconName =
   | "map-pin"
   | "menu"
   | "orbit"
+  | "pencil"
   | "refresh-off"
   | "shield-lock"
   | "star"
+  | "user"
+  | "user-circle"
   | "trien";
 
 const paths: Record<IconName, React.ReactNode> = {
@@ -31,9 +34,12 @@ const paths: Record<IconName, React.ReactNode> = {
   "map-pin": <><path d="M12 20.8s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z" /><circle cx="12" cy="9.8" r="2.5" /></>,
   menu: <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />,
   orbit: <><circle cx="12" cy="12" r="2.1" /><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(-28 12 12)" /><circle cx="20.1" cy="7.7" r="1.1" fill="currentColor" stroke="none" /></>,
+  pencil: <><path d="M4.5 19.5l3.2-1L18 8.2l-2.2-2.2L5.5 16.3l-1 3.2z" /><path d="M14.4 7.4l2.2 2.2" /></>,
   "refresh-off": <><path d="M18.9 8.2A8 8 0 1 0 19.6 14M19.4 3.6v4.8h-4.8M6.5 17.5L17.5 6.5" /></>,
   "shield-lock": <><path d="M12 3l7.5 3v5.6c0 4.4-3.2 7.1-7.5 8.4-4.3-1.3-7.5-4-7.5-8.4V6L12 3z" /><path d="M10 12.6h4v3h-4zM10.9 12.6v-1.2a1.1 1.1 0 0 1 2.2 0v1.2" /></>,
   star: <path d="M12 3.5c0 4-1 6.5-4.5 8.5 3.5 2 4.5 4.5 4.5 8.5 0-4 1-6.5 4.5-8.5-3.5-2-4.5-4.5-4.5-8.5z" />,
+  user: <><circle cx="12" cy="8.4" r="3.6" /><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6" /></>,
+  "user-circle": <><circle cx="12" cy="12" r="8.2" /><circle cx="12" cy="10" r="2.8" /><path d="M6.6 18.6c1.2-2 3.1-3.1 5.4-3.1s4.2 1.1 5.4 3.1" /></>,
   trien: <><rect x="2.8" y="2.8" width="18.4" height="18.4" rx="1" /><rect x="6.6" y="6.6" width="10.8" height="10.8" rx=".5" /></>,
 };
 

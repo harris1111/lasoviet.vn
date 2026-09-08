@@ -2,6 +2,7 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 
 import type { CurrentActor } from "@lasoviet/contracts";
 import {
+  birthProfileRevisions,
   birthProfiles,
   evidenceItems,
   evidenceSets,
@@ -14,6 +15,8 @@ export type AuthorizedZiweiChartRecord = {
   chartId: string;
   chartVersionId: string;
   normalizedOutput: Record<string, unknown>;
+  originalInput: Record<string, unknown>;
+  normalizedInput: Record<string, unknown> | null;
   evidenceSetId: string | null;
   capabilityId: string | null;
   ruleVersion: string | null;
@@ -51,9 +54,15 @@ export function createDatabaseZiweiQueryRepository(
           chartId: ziweiCharts.id,
           chartVersionId: ziweiChartVersions.id,
           normalizedOutput: ziweiChartVersions.normalizedOutput,
+          originalInput: birthProfileRevisions.originalInput,
+          normalizedInput: birthProfileRevisions.normalizedInput,
         })
         .from(ziweiCharts)
         .innerJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
+        .innerJoin(
+          birthProfileRevisions,
+          eq(birthProfileRevisions.id, ziweiCharts.profileRevisionId),
+        )
         .innerJoin(
           ziweiChartVersions,
           eq(ziweiChartVersions.chartId, ziweiCharts.id),
