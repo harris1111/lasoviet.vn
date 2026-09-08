@@ -8,7 +8,10 @@ import {
   CANONICAL_PALACE_TITLES_VI,
   CANONICAL_THEMATIC_TITLES_VI,
 } from "./identity-report-config.js";
-import { writeComprehensiveZiweiReport } from "./comprehensive-report-writer.js";
+import {
+  COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION,
+  writeComprehensiveZiweiReport,
+} from "./comprehensive-report-writer.js";
 
 const mockFacts: ComprehensiveZiweiFacts = {
   palaces: [
@@ -110,6 +113,7 @@ describe("writeComprehensiveZiweiReport", () => {
 
     const userPayload = JSON.parse(req.user);
     expect(userPayload.requiredPalaceOrder).toEqual(ZIWEI_PALACE_IDS);
+    expect(userPayload.requiredThematicOrder).toEqual(ZIWEI_THEMATIC_SYNTHESIS_IDS);
 
     // Verify assembler-owned canonical titles
     const report = result.value.report;
@@ -150,5 +154,74 @@ describe("writeComprehensiveZiweiReport", () => {
       provider,
     });
     expect(result.ok).toBe(false);
+  });
+
+  it("explicitly specifies V3 JSON contract, top-level keys, canonical palace and thematic sequence, and prohibits legacy keys in prompt", async () => {
+    const generateStructuredSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        value: createRawModelReport(),
+        providerId: "test-provider",
+        modelId: "test-model",
+      },
+    });
+
+    const provider: AiProvider = {
+      generateStructured: generateStructuredSpy,
+    };
+
+    const result = await writeComprehensiveZiweiReport({
+      facts: mockFacts,
+      knowledgePacks: mockKnowledgePacks,
+      provider,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(generateStructuredSpy).toHaveBeenCalledTimes(1);
+
+    const req = generateStructuredSpy.mock.calls[0]![0];
+
+    // Assert that system prompt contains the explicit JSON contract instruction
+    expect(req.system).toContain(COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION);
+
+    // Assert top-level keys specification
+    const expectedTopLevelKeys = [
+      "overview",
+      "coreAxis",
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+      "strengthsAndTensions",
+      "practicalDirection",
+    ];
+    for (const key of expectedTopLevelKeys) {
+      expect(req.system).toContain(`"${key}"`);
+    }
+
+    // Assert all 12 canonical palace IDs are in the prompt
+    for (const palaceId of ZIWEI_PALACE_IDS) {
+      expect(req.system).toContain(palaceId);
+    }
+
+    // Assert all 4 canonical thematic synthesis IDs are in the prompt
+    for (const themeId of ZIWEI_THEMATIC_SYNTHESIS_IDS) {
+      expect(req.system).toContain(themeId);
+    }
+
+    // Assert evidenceKeys constraints
+    expect(req.system).toContain("facts.evidenceKeys");
+    expect(req.system).toContain("ít nhất 1");
+
+    // Assert legacy key prohibitions
+    expect(req.system).toContain('CẤM trường "title" ở cấp cao nhất');
+    expect(req.system).toContain('CẤM trường "overview" là một chuỗi string');
+    expect(req.system).toContain('CẤM trường "palaceInterpretations"');
+    expect(req.system).toContain('CẤM trường "thematicSynthesis" là Object');
+    expect(req.system).toContain('CẤM trường "actionPriorities"');
+
+    // Assert user payload structure
+    const userPayload = JSON.parse(req.user);
+    expect(userPayload.requiredPalaceOrder).toEqual(ZIWEI_PALACE_IDS);
+    expect(userPayload.requiredThematicOrder).toEqual(ZIWEI_THEMATIC_SYNTHESIS_IDS);
   });
 });

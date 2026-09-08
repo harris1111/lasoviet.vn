@@ -12,7 +12,8 @@
 This report records the private output-quality evaluation and diagnostic preparation for Vietnamese comprehensive Zi Wei V3 reports following Task 8B diagnostic hardening.
 
 - **Local Preparation:** Successfully verified using deterministic calculation, fact extraction, live chart greedy selection from a runtime-generated candidate grid, production manifest validation (`validateKnowledgeManifest`), and faithful in-memory V3 corpus retrieval honoring Task 5 query limits and priority ordering. Five qualifying synthetic charts were selected and prepared across all 19 report knowledge packs (95 total packs, 190 total passages) with zero network calls, zero committed private birth data, and zero private report artifacts in the repository.
-- **First Provider Call Outcome:** The first authorized provider call for `SAMPLE-01` returned `AI_OUTPUT_INVALID` after approximately 87 seconds. The sampler stopped safely; zero report files were written, and 4 of the 5 authorized provider calls remain.
+- **First Provider Call Outcome & Structural Diagnosis:** The first authorized provider call for `SAMPLE-01` returned HTTP 200 (single provider call, single HTTP request) but failed schema parsing with `AI_OUTPUT_INVALID` after approximately 87 seconds. The captured response was parseable JSON but returned 8 schema issues due to legacy keys (`title`, string `overview`, `palaceInterpretations`, object `thematicSynthesis`, `actionPriorities`) while omitting required V3 contract keys (`coreAxis`, `keyConfigurations`, `palaceReadings`, `strengthsAndTensions`, `practicalDirection`). The sampler stopped safely; zero report files were written, and 4 of the 5 authorized provider calls remain.
+- **Contract Prompt Hardening:** Hardened `packages/backend/src/reports/comprehensive-report-writer.ts` so the generation prompt explicitly specifies the exact V3 JSON contract, top-level keys, nested field shapes, canonical palace and thematic sequence/IDs, `evidenceKeys` constraints, and explicit legacy key prohibitions.
 - **Diagnostic Capability Added:** Implemented single-sample execution (`--sample-id SAMPLE-01` through `SAMPLE-05`) and private raw HTTP response capture (`<sampleId>-response.raw`) in mode `0600` inside the validated external output directory with collision protection. On provider failure, only synthetic sample ID, normalized error code, call counts, HTTP status, and captured response byte count are reported.
 - **Provider Execution Gate:** BLOCKED. Output quality acceptance is strictly withheld pending successful provider generation, diagnostic triage, and human review of all 5 outputs.
 
@@ -106,11 +107,11 @@ The full verification suite was executed against the clean repository state:
 - **Security Probes (Ancestor-Symlink Rejection, Directory Mode Repair & Path-Free Collision):**
   *Result:* PASS (existing directory mode 755 repaired to 700; ancestor symlink into repository correctly rejected; collision fail-close verified to throw path-free, synthetic-sample-safe error messages with mode 0600 enforcement; temporary artifacts removed).
 
-- **Focused Unit & Integration Tests (3 test files, 20 passed):**
+- **Focused Unit & Integration Tests (3 test files, 21 passed):**
   ```bash
   corepack pnpm@11.25.0 vitest run packages/backend/src/reports/comprehensive-report-writer.test.ts packages/backend/src/reports/comprehensive-report-validator.test.ts packages/backend/src/reports/comprehensive-report-html.test.ts
   ```
-  *Result:* PASS (20/20 tests passed).
+  *Result:* PASS (21/21 tests passed).
 
 - **Git Diff Check:**
   ```bash
@@ -120,5 +121,5 @@ The full verification suite was executed against the clean repository state:
 
 ## 6. Unresolved / Blocked Gate
 
-- **First Provider Call Status:** Failed with `AI_OUTPUT_INVALID` on `SAMPLE-01`. The sampler stopped safely; zero report files were written; 4 authorized calls remain.
-- **Provider Output Review Gate:** BLOCKED pending single-sample diagnostic investigation using `--sample-id SAMPLE-01` and private response capture in an authorized execution environment. Output quality acceptance is not claimed.
+- **First Provider Call Status:** Failed with `AI_OUTPUT_INVALID` on `SAMPLE-01` due to structural mismatch (8 schema issues with legacy astrology keys). Prompt contract hardened with explicit V3 JSON schema instructions, field shapes, canonical palace/theme orders, evidenceKeys rules, and legacy key bans. 4 authorized calls remain.
+- **Provider Output Review Gate:** BLOCKED pending authorized single-sample execution using `--sample-id SAMPLE-01` and human review of generated outputs. Output quality acceptance is strictly withheld.

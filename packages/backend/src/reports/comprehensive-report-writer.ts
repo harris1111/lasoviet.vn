@@ -17,6 +17,33 @@ import type { ComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
 import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
 import type { ComprehensiveReportSource } from "./report-source.js";
 
+export const COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION = `QUY CÁCH CẤU TRÚC JSON ĐẦU RA BẮT BUỘC (V3 COMPREHENSIVE REPORT CONTRACT):
+Bản báo cáo phải là một JSON object hợp lệ duy nhất, tuân thủ nghiêm ngặt và chính xác các quy tắc cấu trúc sau:
+1. Top-level keys: Object JSON ở cấp cao nhất (root) CHỈ ĐƯỢC CHỨA ĐÚNG 7 trường sau (không thừa, không thiếu, không dùng bất kỳ tên trường nào khác):
+   - "overview": Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (tổng quan lá số).
+   - "coreAxis": Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (trục Mệnh - Thân và động lực cốt lõi).
+   - "keyConfigurations": Array gồm từ 1 đến 12 Object, mỗi Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (cách cục và cấu trúc sao trọng yếu).
+   - "palaceReadings": Array gồm ĐÚNG 12 Object tương ứng với 12 cung theo đúng thứ tự bắt buộc:
+${ZIWEI_PALACE_IDS.map((id, index) => `     ${index + 1}. "${id}"`).join("\n")}
+     Mỗi Object trong palaceReadings gồm: { "palaceId": string, "title": string, "narrative": string, "evidenceKeys": string[] }. Trường "palaceId" phải là một trong 12 mã định danh cung trên, không được thiếu và không được trùng lặp cung nào.
+   - "thematicSynthesis": Array gồm ĐÚNG 4 Object tương ứng với 4 chuyên đề tổng hợp theo đúng thứ tự bắt buộc:
+${ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id, index) => `     ${index + 1}. "${id}"`).join("\n")}
+     Mỗi Object trong thematicSynthesis gồm: { "id": string, "title": string, "narrative": string, "evidenceKeys": string[] }. Trường "id" phải là một trong 4 mã định danh chuyên đề trên, không được thiếu và không được trùng lặp chuyên đề nào.
+   - "strengthsAndTensions": Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (thế mạnh, điểm vướng và điều kiện chuyển hóa).
+   - "practicalDirection": Array gồm từ 1 đến 10 chuỗi string (các ưu tiên hành động và định hướng thực tế thiết thực).
+
+2. Ràng buộc trường "evidenceKeys":
+   - Tất cả các trường "evidenceKeys" trong "overview", "coreAxis", từng phần tử của "keyConfigurations", từng phần tử của "palaceReadings", từng phần tử của "thematicSynthesis", và "strengthsAndTensions" PHẢI là mảng không rỗng (chứa ít nhất 1 chuỗi string).
+   - TẤT CẢ các chuỗi trong "evidenceKeys" phải được trích xuất chính xác từ danh sách facts.evidenceKeys được cung cấp. Tuyệt đối không tự bịa đặt hay sử dụng bất kỳ khóa nào ngoài facts.evidenceKeys.
+
+3. CẤM TUYỆT ĐỐI CÁC TRƯỜNG DỮ LIỆU CŨ VÀ NGOẠI LAI (NO LEGACY KEYS):
+   - CẤM trường "title" ở cấp cao nhất (root).
+   - CẤM trường "overview" là một chuỗi string đơn lẻ (phải là Object gồm title, narrative, evidenceKeys).
+   - CẤM trường "palaceInterpretations" (phải dùng "palaceReadings" là Array của 12 Object).
+   - CẤM trường "thematicSynthesis" là Object (phải là Array gồm ĐÚNG 4 Object với trường id).
+   - CẤM trường "actionPriorities" (phải dùng "practicalDirection" là Array gồm 1 đến 10 chuỗi string).
+   - CẤM thêm bất kỳ trường nào khác ngoài 7 trường top-level đã nêu trên.`;
+
 export const VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số cao cấp tại lasoviet.vn.
 Nhiệm vụ của bạn là viết một bản báo cáo luận giải toàn diện, sâu sắc, hoàn chỉnh bằng tiếng Việt chuyên nghiệp dựa DUY NHẤT trên các dữ kiện lá số (facts) và các gói tri thức (knowledgePacks) được cung cấp.
 
@@ -27,6 +54,8 @@ YÊU CẦU NỘI DUNG VÀ VĂN PHONG:
 4. Tổng hợp đa chiều: Phân tích sâu 4 lĩnh vực trọng tâm (sự nghiệp và tài chính, quan hệ và gia đình, môi trường xã hội, thân tâm và nguồn lực nội tại).
 5. Tương tác cát hung: Làm rõ cách các yếu tố thuận lợi và khó khăn tác động, chuyển hóa lẫn nhau; không xem một cát tinh hay sát tinh một cách cô lập.
 6. Biểu hiện cụ thể và định hướng thực tế: Nêu rõ các tình huống thực tế và ưu tiên hành động thiết thực.
+
+${COMPREHENSIVE_REPORT_JSON_CONTRACT_INSTRUCTION}
 
 CẤM TUYỆT ĐỐI CÁC ĐIỀU SAU:
 - KHÔNG nhắc đến AI, trí tuệ nhân tạo, mô hình ngôn ngữ, prompt, dữ liệu đầu vào hay hệ thống kỹ thuật.
@@ -87,6 +116,7 @@ export async function writeComprehensiveZiweiReport(
       facts,
       knowledgePacks,
       requiredPalaceOrder: ZIWEI_PALACE_IDS,
+      requiredThematicOrder: ZIWEI_THEMATIC_SYNTHESIS_IDS,
     }),
   });
 
