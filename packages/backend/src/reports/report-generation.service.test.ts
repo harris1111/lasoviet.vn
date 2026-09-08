@@ -3,8 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IDENTITY_REPORT_SECTION_IDS,
+  ZIWEI_PALACE_IDS,
+  ZIWEI_THEMATIC_SYNTHESIS_IDS,
   type EvidenceSetV1,
   type IdentityReportV1,
+  type ZiweiComprehensiveReportContentV1,
   type ReportGenerateJobEnvelopeV1,
 } from "@lasoviet/contracts";
 
@@ -16,9 +19,15 @@ import {
 import type { ReportGenerationSourceRepository } from "./report-generation.repository.js";
 import type { ReportVersionRepository } from "./report-version.repository.js";
 import {
+  REPORT_CONFIG_VERSION_V3,
+  REPORT_KNOWLEDGE_VERSION_V3,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
+  REPORT_PROMPT_VERSION_V3,
+  REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
+import type { ComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
+import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
 
 function buildReport(titlePrefix = "Draft 1"): IdentityReportV1 {
   return {
@@ -174,6 +183,117 @@ const mockSource = {
   },
   knowledgePassages: [{ id: "k-1", content: "Nội dung phương pháp đã duyệt." }],
 };
+
+const mockV3Facts: ComprehensiveZiweiFacts = {
+  palaces: [
+    {
+      palaceId: "ziwei.palace.life",
+      earthlyBranchId: "ziwei.branch.tiger",
+      isLifePalace: true,
+      isBodyPalace: false,
+      stars: [{ id: "ziwei.star.ziwei", type: "principal", brightness: "ziwei.brightness.temple" }],
+      triadPalaceIds: ["ziwei.palace.career", "ziwei.palace.wealth"],
+      oppositePalaceId: "ziwei.palace.travel",
+      flankingPalaceIds: ["ziwei.palace.parents", "ziwei.palace.siblings"],
+    },
+  ],
+  transformations: [],
+  patterns: [{ id: "zi-fu-tong-gong", palaceIds: ["ziwei.palace.life"], starIds: ["ziwei.star.ziwei"] }],
+  evidenceKeys: [...ZIWEI_PALACE_IDS, "ziwei.star.ziwei", "zi-fu-tong-gong"],
+};
+
+const mockV3Packs: ZiweiReportKnowledgePack[] = [
+  {
+    id: "core_temperament",
+    isPalacePack: false,
+    evidenceKeys: ["ziwei.palace.life", "ziwei.star.ziwei"],
+    passages: [],
+  },
+];
+
+const mockV3Source = {
+  ...mockSource,
+  comprehensiveFacts: mockV3Facts,
+  knowledgePacks: mockV3Packs,
+};
+
+function buildV3ReportContent(): ZiweiComprehensiveReportContentV1 {
+  const palaceNarratives: Record<string, string> = {
+    "ziwei.palace.life": "Mệnh tọa Tử Vi tại Dần thể hiện khí phách đĩnh đạc, khả năng lãnh đạo bẩm sinh.",
+    "ziwei.palace.siblings": "Huynh đệ tương trợ hòa thuận, luôn có sự thấu hiểu lúc khó khăn.",
+    "ziwei.palace.spouse": "Phu thê môn đăng hộ đối, người phối ngẫu có tài năng và trách nhiệm cao.",
+    "ziwei.palace.children": "Con cái thông minh hoạt bát, tự lập từ sớm và có chí tiến thủ.",
+    "ziwei.palace.wealth": "Tài chính tích lũy qua thực lực và đầu tư bài bản, vững bền theo thời gian.",
+    "ziwei.palace.health": "Sức khỏe dẻo dai nhưng cần chú ý chế độ ăn uống điều độ hợp lý.",
+    "ziwei.palace.travel": "Ra ngoài được nhiều người nể trọng, môi trường bên ngoài đem lại nhiều bước tiến.",
+    "ziwei.palace.friends": "Bạn bè bằng hữu chân thành, cộng sự đắc lực trong mọi dự án lớn.",
+    "ziwei.palace.career": "Sự nghiệp thăng tiến vững chắc nhờ năng lực chuyên môn và tầm nhìn chiến lược.",
+    "ziwei.palace.property": "Bất động sản gia tăng giá trị, có duyên nắm giữ tài sản đất đai ổn định.",
+    "ziwei.palace.fortune": "Đời sống nội tâm an tĩnh, biết cân bằng giữa tham vọng và sự bình yên.",
+    "ziwei.palace.parents": "Cha mẹ gương mẫu, tạo bệ phóng tinh thần và giáo dục gia phong nghiêm cẩn.",
+  };
+
+  return {
+    overview: {
+      title: "Tổng quan lá số",
+      narrative: "Tổng quan cuộc đời với Tử Vi tọa thủ, biểu thị phẩm chất dẫn dắt tự nhiên.",
+      evidenceKeys: ["ziwei.palace.life", "ziwei.star.ziwei"],
+    },
+    coreAxis: {
+      title: "Mệnh, Thân và động lực cốt lõi",
+      narrative: "Trục Mệnh Thân thể hiện ý chí quật cường, kiên trì theo đuổi mục tiêu lớn.",
+      evidenceKeys: ["ziwei.palace.life", "ziwei.star.ziwei"],
+    },
+    keyConfigurations: [
+      {
+        title: "Cấu trúc Tử Phủ Đồng Cung",
+        narrative: "Thế cục Tử Phủ hội tụ tạo tiền đề vững chắc cho sự phát triển lâu dài.",
+        evidenceKeys: ["ziwei.palace.life", "zi-fu-tong-gong"],
+      },
+    ],
+    palaceReadings: ZIWEI_PALACE_IDS.map((palaceId) => ({
+      palaceId,
+      title: `Cung ${palaceId}`,
+      narrative: palaceNarratives[palaceId]!,
+      evidenceKeys: [palaceId],
+    })),
+    thematicSynthesis: [
+      {
+        id: "career_wealth",
+        title: "Chuyên đề sự nghiệp tài chính",
+        narrative: "Năng lực chuyên môn sâu cùng khả năng quản lý tài chính chặt chẽ giúp duy trì tăng trưởng bền vững.",
+        evidenceKeys: ["ziwei.palace.life"],
+      },
+      {
+        id: "relationships_family",
+        title: "Chuyên đề gia đạo",
+        narrative: "Gia đình là điểm tựa tinh thần quan trọng, các thành viên chia sẻ trách nhiệm và hỗ trợ lẫn nhau.",
+        evidenceKeys: ["ziwei.palace.life"],
+      },
+      {
+        id: "social_environment",
+        title: "Chuyên đề xã hội",
+        narrative: "Quan hệ xã hội rộng mở tạo điều kiện tiếp cận các đối tác chiến lược và nguồn lực quý báu.",
+        evidenceKeys: ["ziwei.palace.life"],
+      },
+      {
+        id: "wellbeing_inner_resources",
+        title: "Chuyên đề sức khỏe nội tâm",
+        narrative: "Tâm lý điềm tĩnh và thói quen rèn luyện thể chất giúp phục hồi năng lượng nhanh chóng sau áp lực.",
+        evidenceKeys: ["ziwei.palace.life"],
+      },
+    ],
+    strengthsAndTensions: {
+      title: "Điểm mạnh, điểm vướng và điều kiện phát huy",
+      narrative: "Thế mạnh là tầm nhìn vĩ mô; điểm cần điều chỉnh là lắng nghe đóng góp từ tập thể.",
+      evidenceKeys: ["ziwei.palace.life"],
+    },
+    practicalDirection: [
+      "Ưu tiên hoàn thiện hệ thống quản trị nội bộ.",
+      "Đầu tư nâng cao năng lực cho đội ngũ đồng hành.",
+    ],
+  };
+}
 
 function createJob(overrides?: Partial<ReportGenerateJobEnvelopeV1["payload"]>): ReportGenerateJobEnvelopeV1 {
   return {
@@ -790,5 +910,258 @@ describe("createReportGenerationService", () => {
     }
     expect(writerCallCount).toBe(1); // No rewrite attempted
     expect(commitSpy).not.toHaveBeenCalled();
+  });
+
+  it("generates V3 report with exactly one writer call, zero critic calls, and persists immutable structured content with empty htmlContent", async () => {
+    let writerCalls = 0;
+    let criticCalls = 0;
+    let committedRecord: any = null;
+
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
+    };
+
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockImplementation(async (input) => {
+        committedRecord = input;
+        return { ok: true, value: { ...input, createdAt: new Date() } };
+      }),
+      consumeRewriteBudget: vi.fn(),
+    } as unknown as ReportVersionRepository;
+
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+
+    const provider: AiProvider = {
+      generateStructured: vi.fn().mockImplementation(async (req) => {
+        if (req.schemaName === "ziwei_comprehensive_report_content_v1") {
+          writerCalls++;
+          return {
+            ok: true,
+            value: {
+              value: buildV3ReportContent(),
+              providerId: "v3-test-provider",
+              modelId: "v3-test-model",
+            },
+          };
+        }
+        if (req.schemaName === "identity_report_critic_v1") {
+          criticCalls++;
+          throw new Error("Critic must not be called for V3");
+        }
+        throw new Error(`Unexpected schemaName: ${req.schemaName}`);
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+
+    const result = await service.generateReport({
+      job: createJob({
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: REPORT_CONFIG_VERSION_V3,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(writerCalls).toBe(1);
+    expect(criticCalls).toBe(0);
+
+    expect(committedRecord).not.toBeNull();
+    expect(committedRecord.templateVersion).toBe(REPORT_TEMPLATE_VERSION_V3);
+    expect(committedRecord.htmlContent).toBe("");
+    expect(committedRecord.promptVersion).toBe(REPORT_PROMPT_VERSION_V3);
+    expect(committedRecord.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V3);
+    expect(committedRecord.structuredContent.palaceReadings).toHaveLength(12);
+  });
+
+  it("fails V3 generation with retryable AI_TIMEOUT when provider times out and persists no version", async () => {
+    const commitSpy = vi.fn();
+    const recordFailedAttemptSpy = vi.fn().mockResolvedValue({ ok: true });
+
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
+    };
+
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: recordFailedAttemptSpy,
+      commitImmutableVersion: commitSpy,
+    } as unknown as ReportVersionRepository;
+
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = {
+      generateStructured: vi.fn().mockRejectedValue(new Error("Provider timeout")),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+
+    const result = await service.generateReport({
+      job: createJob({
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: REPORT_CONFIG_VERSION_V3,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("AI_TIMEOUT");
+      expect(result.error.retryable).toBe(true);
+    }
+    expect(commitSpy).not.toHaveBeenCalled();
+  });
+
+  it("fails V3 generation non-retryably with AI_OUTPUT_INVALID when validator rejects and persists no version", async () => {
+    const commitSpy = vi.fn();
+
+    const invalidReportContent = buildV3ReportContent();
+    invalidReportContent.overview.evidenceKeys.push("ziwei.star.unsupported");
+
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
+    };
+
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: commitSpy,
+    } as unknown as ReportVersionRepository;
+
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: invalidReportContent,
+          providerId: "v3-provider",
+          modelId: "v3-model",
+        },
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+
+    const result = await service.generateReport({
+      job: createJob({
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: REPORT_CONFIG_VERSION_V3,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("AI_OUTPUT_INVALID");
+      expect(result.error.retryable).toBe(false);
+    }
+    expect(commitSpy).not.toHaveBeenCalled();
+  });
+
+  it("replays existing V3 report without calling provider writer or critic", async () => {
+    const writerSpy = vi.fn();
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn(),
+    };
+
+    const existingV3Record = {
+      reportId: "report-v3",
+      reportVersionId: "version-v3",
+      entitlementId: "entitlement-v3",
+      chartVersionId: "chart-1",
+      evidenceVersionId: "evidence-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V3,
+      templateVersion: REPORT_TEMPLATE_VERSION_V3,
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "v3-provider",
+      modelId: "v3-model",
+      structuredContent: buildV3ReportContent(),
+      htmlContent: "",
+      createdAt: new Date(),
+    };
+
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(existingV3Record),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: existingV3Record }),
+      startOrReuseAttempt: vi.fn(),
+      recordFailedAttempt: vi.fn(),
+    } as unknown as ReportVersionRepository;
+
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = { generateStructured: writerSpy };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+
+    const result = await service.generateReport({
+      job: createJob({
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: REPORT_CONFIG_VERSION_V3,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(writerSpy).not.toHaveBeenCalled();
+  });
+
+  it("fails V3 generation with REPORT_EVIDENCE_INVALID when comprehensive facts are missing from source", async () => {
+    const sourceRepository: ReportGenerationSourceRepository = {
+      // Missing comprehensiveFacts and knowledgePacks
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
+    };
+
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+    } as unknown as ReportVersionRepository;
+
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = { generateStructured: vi.fn() };
+
+    const service = createReportGenerationService({ sourceRepository, versionRepository, gate, provider });
+    const result = await service.generateReport({
+      job: createJob({ promptVersion: REPORT_PROMPT_VERSION_V3, knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3 }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("REPORT_EVIDENCE_INVALID");
   });
 });

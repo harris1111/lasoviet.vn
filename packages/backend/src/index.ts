@@ -209,11 +209,20 @@ export {
   REPORT_CONFIG_VERSION_V1,
   REPORT_TEMPLATE_VERSION_V1,
   REPORT_RENDER_VERSION_V1,
+  REPORT_KNOWLEDGE_VERSION_V3,
+  REPORT_PROMPT_VERSION_V3,
+  REPORT_CONFIG_VERSION_V3,
+  REPORT_TEMPLATE_VERSION_V3,
+  REPORT_CONTENT_VERSION_COMPREHENSIVE_V1,
+  currentReportVersions,
   CURRENT_REPORT_KNOWLEDGE_VERSION,
   CURRENT_REPORT_PROMPT_VERSION,
   CURRENT_REPORT_CONFIG_VERSION,
   CURRENT_REPORT_TEMPLATE_VERSION,
   CURRENT_REPORT_RENDER_VERSION,
+  CANONICAL_COMPREHENSIVE_SECTION_TITLES,
+  CANONICAL_PALACE_TITLES_VI,
+  CANONICAL_THEMATIC_TITLES_VI,
   CANONICAL_IDENTITY_REPORT_TITLES_VI,
   CANONICAL_IDENTITY_REPORT_TITLES_EN,
   DETERMINISTIC_CYCLES_NARRATIVE_VI,
@@ -265,6 +274,16 @@ export type {
   ComprehensiveReportSource,
   IdentityReportSource,
 } from "./reports/report-source.js";
+export {
+  writeComprehensiveZiweiReport,
+  VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT,
+} from "./reports/comprehensive-report-writer.js";
+export type {
+  ComprehensiveReportWriterInput,
+  ComprehensiveReportDraft,
+} from "./reports/comprehensive-report-writer.js";
+export { validateComprehensiveZiweiReport } from "./reports/comprehensive-report-validator.js";
+export type { ComprehensiveReportValidationResult } from "./reports/comprehensive-report-validator.js";
 export { validateIdentityReport } from "./reports/report-validator.js";
 export type {
   ReportValidationFinding,

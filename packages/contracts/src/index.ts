@@ -221,6 +221,16 @@ export type {
 } from "./identity-report-v1.js";
 
 export {
+  ZIWEI_PALACE_IDS,
+  ZIWEI_THEMATIC_SYNTHESIS_IDS,
+  ZiweiComprehensiveReportContentV1Schema,
+} from "./ziwei-comprehensive-report-v1.js";
+export type {
+  ZiweiComprehensiveReportContentV1,
+  ZiweiThematicSynthesisId,
+} from "./ziwei-comprehensive-report-v1.js";
+
+export {
   ZiweiBirthSummaryV1Schema,
   ZiweiChartViewV1Schema,
   ZiweiEvidenceViewV1Schema,
