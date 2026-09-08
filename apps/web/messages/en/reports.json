@@ -13,8 +13,18 @@
   "selection": {
     "eyebrow": "In-depth reading",
     "title": "Choose an in-depth reading",
+    "personalizedTitle": "Choose an in-depth reading for {name}",
+    "disciplinesTitle": "Birth-Data Interpretation Disciplines",
+    "disciplinesSubtitle": "A verified birth profile cross-referenced across traditional scholarly traditions.",
+    "topicsTitle": "Zi Wei Interpretation Topics",
+    "topicsSubtitle": "Select the interpretation package that best fits your reflective needs.",
     "available": "Available topic",
-    "oneTime": "One-time payment. No automatic renewal."
+    "comingSoon": "Coming soon",
+    "inDevelopment": "In development",
+    "lifetimeOfferTitle": "Comprehensive Lifetime Zi Wei Reading",
+    "oneTime": "One-time payment · No automatic renewal",
+    "continuePayment": "Continue to payment",
+    "viewSample": "View sample report"
   },
   "checkout": {
     "eyebrow": "Payment",

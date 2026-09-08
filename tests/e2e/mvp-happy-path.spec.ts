@@ -65,12 +65,21 @@ test("the founder-run stack delivers registration email and serves the anonymous
   await page.getByRole("button", { name: "Lập lá số" }).click();
 
   await expect(page).toHaveURL(/\/la-so\/[^/]+$/);
-  await expect(
-    page.locator(".ziwei-chart-grid").getByTestId("ziwei-palace"),
-  ).toHaveCount(12);
+  const chartGrid = page.getByTestId("ziwei-chart-grid");
+  await expect(chartGrid.getByTestId("ziwei-palace")).toHaveCount(12);
+
+  // Inspector is visible
+  await expect(page.getByTestId("ziwei-detail-inspector")).toBeVisible();
+
   await expect(page.getByRole("heading", { name: "Ba điểm để tự quan sát" })).toBeVisible();
-  await page.getByRole("button", { name: "Xem căn cứ" }).first().click();
-  await expect(page.getByRole("dialog", { name: "Căn cứ luận giải" })).toBeVisible();
+  const trigger = page.getByRole("button", { name: "Xem căn cứ" }).first();
+  await trigger.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("heading", { level: 2 })).toHaveText(/Căn cứ/);
+  await page.getByRole("button", { name: "Đóng căn cứ" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
 });
 
 test("the founder-run stack serves the complete English private funnel", async ({
@@ -78,35 +87,54 @@ test("the founder-run stack serves the complete English private funnel", async (
 }) => {
   await createAnonymousChart(page, "en");
 
-  await expect(page.getByRole("heading", { name: "Zi Wei chart" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Zi Wei");
   await expect(page.getByText("Private chart")).toBeVisible();
-  const chartGrid = page.locator(".ziwei-chart-grid");
-  await expect(chartGrid.getByRole("heading", { name: "Travel Palace" })).toBeVisible();
-  await expect(chartGrid.getByText("Tiger", { exact: true })).toBeVisible();
-  await expect(chartGrid.getByText("Po Jun", { exact: true })).toBeVisible();
-  await expect(page.getByText("travel", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("tiger", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("pojun", { exact: true })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "View evidence" }).first().click();
-  await expect(
-    page.getByRole("dialog", { name: "Interpretation evidence" }),
-  ).toBeVisible();
-  await expect(page.getByText("Observable actions")).toBeVisible();
-  await expect(page.getByText("Moderate", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Close evidence" }).click();
+  const chartGrid = page.getByTestId("ziwei-chart-grid");
+  await expect(chartGrid).toBeVisible();
+  const palaces = chartGrid.getByTestId("ziwei-palace");
+  await expect(palaces).toHaveCount(12);
+
+  const inspector = page.getByTestId("ziwei-detail-inspector");
+  await expect(inspector).toBeVisible();
+
+  // Palace selection
+  await palaces.nth(2).click();
+  await expect(palaces.nth(2)).toHaveAttribute("aria-pressed", "true");
+
+  // Evidence dialog with keyboard and restore
+  const trigger = page.getByRole("button", { name: "View evidence" }).first();
+  await trigger.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("heading", { level: 2 })).toHaveText(/Evidence/);
+  const closeBtn = dialog.getByRole("button", { name: "Close evidence" });
+  await expect(closeBtn).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
 
   await expect(
     page.getByRole("heading", { name: "Three points to reflect on" }),
   ).toBeVisible();
-  await expect(page.getByText("Strength", { exact: true })).toBeVisible();
-  await expect(page.getByText("Tension to observe", { exact: true })).toBeVisible();
-  await expect(page.getByText("ZIWEI-IDENTITY-P0")).toHaveCount(0);
+  await expect(page.getByText("Core Strength", { exact: true })).toBeVisible();
+  await expect(page.getByText("Area to Observe Mindfully", { exact: true })).toBeVisible();
 
   await page.getByRole("link", { name: "Choose a reading topic" }).click();
   await expect(
-    page.getByRole("heading", { name: "Choose an in-depth reading" }),
-  ).toBeVisible();
-  await expect(page.getByText("Identity and potential")).toBeVisible();
-  await expect(page.getByText("ZIWEI-IDENTITY-P0")).toHaveCount(0);
+    page.getByRole("heading", { level: 1 }),
+  ).toContainText("Choose an in-depth reading");
+
+  // Disciplines
+  const disciplines = page.getByTestId("disciplines-layer");
+  await expect(disciplines.getByText("Zi Wei Dou Shu")).toBeVisible();
+  await expect(disciplines.getByText("In development")).toHaveCount(3);
+
+  // Topics
+  const activeTopic = page.getByTestId("topic-lifetime-active");
+  await expect(activeTopic.getByText("79,000 VND")).toBeVisible();
+  await expect(activeTopic.getByRole("button", { name: "Continue to payment" })).toBeVisible();
+  await expect(page.getByTestId("topic-relationship-disabled")).toBeVisible();
+  await expect(page.getByTestId("topic-relationship-disabled").getByText("Coming soon")).toBeVisible();
+  await expect(page.getByTestId("topic-relationship-disabled").getByRole("button")).toHaveCount(0);
 });

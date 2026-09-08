@@ -12,10 +12,12 @@ import {
   ziweiPresentation,
   type ZiweiPresentationLocale,
 } from "../ziwei/ziwei-presentation";
+import { buildFreeInsights } from "../ziwei/ziwei-free-insights";
 
-type FreeIdentityPreviewProps = {
+export type FreeIdentityPreviewProps = {
   chart?: NormalizedZiweiChartV1;
   chartId: string;
+  displayName?: string;
   locale: ZiweiPresentationLocale;
   loadEvidence(chartId: string, evidenceId: string): Promise<
     | { ok: true; value: ZiweiEvidenceViewV1 }
@@ -24,45 +26,10 @@ type FreeIdentityPreviewProps = {
   preview: FreeIdentityPreviewV1;
 };
 
-function getInsightSummary(
-  insightId: string,
-  chart: NormalizedZiweiChartV1 | undefined,
-  presentation: ReturnType<typeof ziweiPresentation>,
-): string {
-  if (!chart) return "";
-  if (insightId === "life-palace") {
-    const lifePalace = chart.palaces.find((p) => p.id === chart.soulPalaceId);
-    if (!lifePalace) return "";
-    const stars =
-      lifePalace.stars.length > 0
-        ? lifePalace.stars
-            .map(
-              (s) =>
-                `${presentation.star(s.id)} (${presentation.brightness(s.brightness)})`,
-            )
-            .join(", ")
-        : presentation.chrome.noStars;
-    return `${presentation.branch(lifePalace.earthlyBranchId)} · ${stars}`;
-  }
-  if (insightId === "body-palace") {
-    const bodyPalace = chart.palaces.find((p) => p.id === chart.bodyPalaceId);
-    if (!bodyPalace) return "";
-    return `${presentation.palace(chart.bodyPalaceId)} · ${presentation.branch(bodyPalace.earthlyBranchId)}`;
-  }
-  if (insightId === "transformations") {
-    return chart.transformations
-      .map(
-        (t) =>
-          `${presentation.star(t.starId)} · ${presentation.transformation(t.id)}`,
-      )
-      .join(", ");
-  }
-  return "";
-}
-
 export function FreeIdentityPreview({
   chart,
   chartId,
+  displayName,
   locale,
   loadEvidence,
   preview,
@@ -70,42 +37,105 @@ export function FreeIdentityPreview({
   const t = useTranslations("reports");
   const presentation = ziweiPresentation(locale);
 
+  // Pure deterministic presenter derived from chart facts
+  const richInsights = chart ? buildFreeInsights(chart, locale, displayName) : undefined;
+
   return (
     <section aria-labelledby="identity-preview-title" className="identity-preview">
-      <p className="eyebrow">{t("preview.eyebrow")}</p>
-      <h2 id="identity-preview-title">{t("preview.title")}</h2>
-      <div className="identity-insights">
-        {preview.insights.map((insight, index) => {
-          const summary = getInsightSummary(insight.id, chart, presentation);
+      <div className="identity-preview-head">
+        <p className="eyebrow">{t("preview.eyebrow")}</p>
+        <h2 id="identity-preview-title">{t("preview.title")}</h2>
+        <p className="identity-preview-subtitle">
+          {locale === "vi"
+            ? "Tóm lược ba bình diện nổi bật nhất trên lá số giúp bạn nhận diện xu hướng hành động, nắm bắt cơ hội và tự quan sát điểm cần tiết chế."
+            : "A concise overview of three primary chart dimensions to recognize action patterns, leverage opportunities, and observe key tensions."}
+        </p>
+      </div>
 
-          return (
-            <article className="identity-insight" key={insight.id}>
-              <span>0{index + 1}</span>
-              <h3>{presentation.insight(insight.id)}</h3>
-              {summary ? <p className="insight-deterministic-summary">{summary}</p> : null}
-              <EvidenceDrawer chartId={chartId} evidenceId={insight.evidence.evidenceId} locale={locale} loadEvidence={loadEvidence} />
+      <div className="identity-insights">
+        {richInsights ? (
+          richInsights.items.map((item) => (
+            <article className="identity-insight-card" key={item.id}>
+              <div className="insight-card-top">
+                <span className="insight-numeral">{item.numeral}</span>
+                <span className="insight-tagline">{item.tagline}</span>
+              </div>
+              <h3 className="insight-card-title">{item.title}</h3>
+              <p className="insight-card-prose">{item.description}</p>
+              <div className="insight-card-footer">
+                <EvidenceDrawer
+                  chart={chart}
+                  chartId={chartId}
+                  evidenceId={item.evidenceId}
+                  locale={locale}
+                  loadEvidence={loadEvidence}
+                />
+              </div>
             </article>
-          );
-        })}
+          ))
+        ) : (
+          preview.insights.map((insight, index) => (
+            <article className="identity-insight-card" key={insight.id}>
+              <div className="insight-card-top">
+                <span className="insight-numeral">0{index + 1}</span>
+              </div>
+              <h3 className="insight-card-title">{presentation.insight(insight.id)}</h3>
+              <div className="insight-card-footer">
+                <EvidenceDrawer
+                  chart={chart}
+                  chartId={chartId}
+                  evidenceId={insight.evidence.evidenceId}
+                  locale={locale}
+                  loadEvidence={loadEvidence}
+                />
+              </div>
+            </article>
+          ))
+        )}
       </div>
-      <div className="identity-signals">
-        <article>
-          <p className="eyebrow">{t("preview.strength")}</p>
-          <h3>{presentation.insight(preview.strengthSignal.id)}</h3>
-          <EvidenceDrawer chartId={chartId} evidenceId={preview.strengthSignal.evidence.evidenceId} locale={locale} loadEvidence={loadEvidence} />
-        </article>
-        <article>
-          <p className="eyebrow">{t("preview.tension")}</p>
-          <h3>{presentation.insight(preview.tensionSignal.id)}</h3>
-          <EvidenceDrawer chartId={chartId} evidenceId={preview.tensionSignal.evidence[0]!.evidenceId} locale={locale} loadEvidence={loadEvidence} />
-        </article>
+
+      {richInsights ? (
+        <div className="identity-signals-grid">
+          <article className="signal-card signal-strength">
+            <div className="signal-head">
+              <span className="signal-badge badge-strength">{t("preview.strength")}</span>
+              <h3>{richInsights.overallStrength.title}</h3>
+            </div>
+            <p className="signal-prose">{richInsights.overallStrength.description}</p>
+            <EvidenceDrawer
+              chart={chart}
+              chartId={chartId}
+              evidenceId={richInsights.overallStrength.evidenceId}
+              locale={locale}
+              loadEvidence={loadEvidence}
+            />
+          </article>
+
+          <article className="signal-card signal-tension">
+            <div className="signal-head">
+              <span className="signal-badge badge-tension">{t("preview.tension")}</span>
+              <h3>{richInsights.areaWorthObserving.title}</h3>
+            </div>
+            <p className="signal-prose">{richInsights.areaWorthObserving.description}</p>
+            <EvidenceDrawer
+              chart={chart}
+              chartId={chartId}
+              evidenceId={richInsights.areaWorthObserving.evidenceId}
+              locale={locale}
+              loadEvidence={loadEvidence}
+            />
+          </article>
+        </div>
+      ) : null}
+
+      <div className="identity-coverage-box">
+        <p className="identity-coverage">
+          {t("preview.coverage", {
+            offer: presentation.offer(preview.paidPreview.sku),
+            percent: preview.paidPreview.coveragePercent,
+          })}
+        </p>
       </div>
-      <p className="identity-coverage">
-        {t("preview.coverage", {
-          offer: presentation.offer(preview.paidPreview.sku),
-          percent: preview.paidPreview.coveragePercent,
-        })}
-      </p>
     </section>
   );
 }

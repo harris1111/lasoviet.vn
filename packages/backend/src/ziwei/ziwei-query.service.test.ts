@@ -132,6 +132,7 @@ describe("Zi Wei query service", () => {
       expect(result.value).not.toHaveProperty("evidence");
       expect(result.value.birthSummary).not.toHaveProperty("consentVersion");
       expect(result.value.birthSummary).not.toHaveProperty("location");
+      expect(result.value.birthSummary).not.toHaveProperty("displayName");
     }
   });
 
@@ -157,6 +158,29 @@ describe("Zi Wei query service", () => {
       value: expect.objectContaining({
         birthSummary: expect.objectContaining({
           placeLabel: "Hà Nội, Việt Nam",
+        }),
+      }),
+    });
+  });
+
+  it("includes displayName in birthSummary when present in authorized revision", async () => {
+    const store = repository({
+      readAuthorizedChart: vi.fn().mockResolvedValue(
+        record({
+          originalInput: {
+            ...profileOriginalInput,
+            displayName: "Nguyen Van A",
+          },
+        }),
+      ),
+    });
+    const service = createZiweiQueryService({ repository: store, now: () => now });
+    const result = await service.readChart(account, "chart-1");
+    expect(result).toEqual({
+      ok: true,
+      value: expect.objectContaining({
+        birthSummary: expect.objectContaining({
+          displayName: "Nguyen Van A",
         }),
       }),
     });

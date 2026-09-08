@@ -174,6 +174,9 @@ export function BirthProfileForm({
         } else if (cached.time.precision === "unknown") {
           setTimeState({ precision: "unknown" });
         }
+        if (cached.displayName) {
+          setDisplayName(cached.displayName);
+        }
         if (cached.gender) {
           setGender(cached.gender);
         }
@@ -322,6 +325,7 @@ export function BirthProfileForm({
 
   function handleClearCache() {
     clearBirthCache();
+    setDisplayName("");
     setDay("");
     setMonth("");
     setYear("");
@@ -416,6 +420,7 @@ export function BirthProfileForm({
       setError(null);
 
       const profile = buildBirthProfile({
+        displayName: displayName.trim() ? displayName.trim() : undefined,
         date: dateResult.isoDate,
         time: timeState,
         placeLabel: place,
@@ -435,6 +440,7 @@ export function BirthProfileForm({
 
       if (forWhom === "self") {
         saveBirthCache({
+          displayName: displayName.trim() ? displayName.trim() : undefined,
           date: dateResult.isoDate,
           time: timeState,
           gender,
