@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
   EvidenceItemV1,
+  ReportLegacyReadyViewV1,
   ReportReadyViewV1,
 } from "@lasoviet/contracts";
 
@@ -24,11 +25,12 @@ const LEGACY_HIDDEN_SECTION_IDS = new Set([
 
 const FONT_CLASSES = ["reader-font-sm", "reader-font-md", "reader-font-lg"] as const;
 
-export function ReportReader({ locale, report }: ReportReaderProps) {
-  if (report.contentVersion === "ziwei-comprehensive.v1") {
-    return <ComprehensiveReportReader locale="vi" report={report} />;
-  }
+type LegacyReportReaderProps = {
+  locale: "vi" | "en";
+  report: ReportLegacyReadyViewV1;
+};
 
+function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
   const t = useTranslations("reports");
   const presentation = ziweiPresentation(locale);
 
@@ -582,4 +584,12 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
       )}
     </div>
   );
+}
+
+export function ReportReader({ locale, report }: ReportReaderProps) {
+  if (report.contentVersion === "ziwei-comprehensive.v1") {
+    return <ComprehensiveReportReader locale="vi" report={report} />;
+  }
+
+  return <LegacyReportReader locale={locale} report={report} />;
 }
