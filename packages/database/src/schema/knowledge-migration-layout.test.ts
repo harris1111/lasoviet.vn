@@ -32,6 +32,28 @@ describe("knowledge migration layout", () => {
     expect(journal).toContain('"idx": 13');
   });
 
+  it("keeps knowledge metadata schema and index in migration 0016", async () => {
+    const migration = await readFile(
+      new URL("0016_ziwei_knowledge_metadata.sql", migrationRoot),
+      "utf8",
+    );
+
+    expect(migration).toContain('ALTER TABLE "knowledge_chunks"');
+    expect(migration).toContain('ADD COLUMN "metadata" jsonb NOT NULL DEFAULT \'{}\'::jsonb');
+    expect(migration).toContain('CREATE INDEX "knowledge_chunks_metadata_idx"');
+    expect(migration).toContain('ON "knowledge_chunks" USING gin ("metadata")');
+  });
+
+  it("registers migration 0016 in drizzle meta journal", async () => {
+    const journal = await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    );
+
+    expect(journal).toContain('"tag": "0016_ziwei_knowledge_metadata"');
+    expect(journal).toContain('"idx": 16');
+  });
+
   it("registers knowledge schema in drizzle config, client, and package exports", async () => {
     const [drizzleConfig, client, packageIndex] = await Promise.all([
       readFile(new URL("../../drizzle.config.ts", import.meta.url), "utf8"),
