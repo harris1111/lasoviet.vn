@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { isAbsolute, normalize, resolve, sep } from "node:path";
 import { and, eq, inArray } from "drizzle-orm";
 import {
@@ -253,6 +253,30 @@ export function validateKnowledgeManifest(
       ok: false,
       code: "KNOWLEDGE_METADATA_INVALID",
       message: `Source file does not exist at ${manifest.sourcePath}`,
+    };
+  }
+
+  let canonicalRepoRoot: string;
+  let canonicalSourcePath: string;
+  try {
+    canonicalRepoRoot = realpathSync(repoRoot);
+    canonicalSourcePath = realpathSync(resolvedSourcePath);
+  } catch {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Source path resolution failed",
+    };
+  }
+
+  if (
+    canonicalSourcePath !== canonicalRepoRoot &&
+    !canonicalSourcePath.startsWith(canonicalRepoRoot + sep)
+  ) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Source path escapes repository root boundary",
     };
   }
 
