@@ -77,4 +77,22 @@ describe("commerce migration layout", () => {
     expect(migration).toContain('ALTER TABLE "report_queue_jobs" ADD COLUMN "available_at"');
     expect(migration).toContain('CREATE INDEX "report_queue_jobs_waiting_claim_idx"');
   });
+  it("keeps immutable commerce order invoice trigger in migration 0017", async () => {
+    const migration = await readFile(
+      new URL("0017_immutable_commerce_order_invoice.sql", migrationRoot),
+      "utf8",
+    );
+    expect(migration).toContain('CREATE OR REPLACE FUNCTION "prevent_commerce_order_invoice_mutation"' );
+    expect(migration).toContain('CREATE TRIGGER "commerce_orders_invoice_immutable"' );
+    expect(migration).toContain('BEFORE UPDATE ON "commerce_orders"' );
+    expect(migration).toContain("commerce_orders.invoice_number is immutable");
+    expect(migration).toContain('CREATE UNIQUE INDEX IF NOT EXISTS "commerce_orders_chart_sku_unique"' );
+  });
+
+  it("registers migration 0017 in drizzle meta journal", async () => {
+    const journal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
+    expect(journal).toContain('"tag": "0017_immutable_commerce_order_invoice"' );
+    expect(journal).toContain('"idx": 17' );
+  });
+
 });

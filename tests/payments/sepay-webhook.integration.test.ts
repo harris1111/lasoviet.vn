@@ -275,7 +275,7 @@ describe("SePay payment transaction", () => {
       {
         id: firstOrderId, invoiceNumber: `LSV-event-first-${firstOrderId}`, chartId: `chart-${firstOrderId}`,
         chartVersionId: `version-${firstOrderId}`, ownerId: "account-event", sku: "ZIWEI-IDENTITY-P0",
-        amount: 79_000, currency: "VND", locale: "vi", status: "expired",
+        amount: 79_000, currency: "VND", locale: "vi", status: "refunded",
       },
       {
         id: secondOrderId, invoiceNumber: `LSV-event-second-${secondOrderId}`, chartId: `chart-${secondOrderId}`,
@@ -478,7 +478,7 @@ describe("SePay payment transaction", () => {
     await database.$client.end();
   }, 120_000);
 
-  it("rejects late payment after 15:00 with PAYMENT_STATE_CONFLICT and creates no side effects", async () => {
+  it("accepts late payment matching invoice, amount, and currency after order expiry when no entitlement exists", async () => {
     const database = createDatabase(databaseUrl);
     const { actor, chartId, versionId } = await createChartFixture(database);
     const t0 = new Date("2026-09-05T10:00:00.000Z");
@@ -504,31 +504,32 @@ describe("SePay payment transaction", () => {
       traceId: "late-trace",
     });
     expect(latePaidResult).toMatchObject({
-      ok: false,
-      code: "PAYMENT_STATE_CONFLICT",
+      ok: true,
+      replayed: false,
     });
 
-    // No side effects created
+    // Fulfills the original order and creates entitlement, reservation, outbox
     expect(
       (await database.select().from(commercePaymentEvents)).filter((event) => event.orderId === order.id),
-    ).toEqual([]);
+    ).toHaveLength(1);
     expect(
       (await database.select().from(commerceEntitlements)).filter((entitlement) => entitlement.orderId === order.id),
-    ).toEqual([]);
+    ).toHaveLength(1);
     expect(
       (await database.select().from(reportReservations)).filter((reservation) => reservation.chartVersionId === versionId),
-    ).toEqual([]);
+    ).toHaveLength(1);
     expect(
       (await database.select().from(outbox)).filter((event) => event.aggregateId === order.id),
-    ).toEqual([]);
+    ).toHaveLength(1);
 
     const persistedOrder = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
-    expect(persistedOrder?.status).not.toBe("paid");
+    expect(persistedOrder?.status).toBe("paid");
+    expect(persistedOrder?.paidAt).not.toBeNull();
 
     await database.$client.end();
   }, 120_000);
 
-  it("rejects delayed payment on original invoice after order expiry and reopen without mutating pending attempt", async () => {
+  it("accepts late payment on original invoice after order expiry and reopen, cancels replacement pending order, and creates one entitlement", async () => {
     const database = createDatabase(databaseUrl);
     const { actor, chartId, versionId } = await createChartFixture(database);
     const t0 = new Date("2026-09-05T10:00:00.000Z");
@@ -539,7 +540,7 @@ describe("SePay payment transaction", () => {
     const createResult = await initialRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
     expect(createResult.ok).toBe(true);
     if (!createResult.ok) throw new Error("ORDER_CREATE_FAILED");
-    const orderId = createResult.value.id;
+    const originalOrderId = createResult.value.id;
     const originalInvoice = createResult.value.invoiceNumber;
 
     const tReopen = new Date("2026-09-05T10:20:00.000Z");
@@ -550,10 +551,19 @@ describe("SePay payment transaction", () => {
     const reopenResult = await reopenRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
     expect(reopenResult.ok).toBe(true);
     if (!reopenResult.ok) throw new Error("REOPEN_FAILED");
-    expect(reopenResult.value.id).toBe(orderId);
-    expect(reopenResult.value.invoiceNumber).not.toBe(originalInvoice);
+    const replacementOrderId = reopenResult.value.id;
+    const replacementInvoice = reopenResult.value.invoiceNumber;
 
-    // Deliver delayed payment event using original invoice inside the reopened window
+    // Requirement 1: invoice_number is immutable, reopen inserts new row with new invoice
+    expect(replacementOrderId).not.toBe(originalOrderId);
+    expect(replacementInvoice).not.toBe(originalInvoice);
+
+    // Old order row remains preserved with status='expired' and original invoice
+    const oldOrderBeforePayment = (await database.select().from(commerceOrders)).find((o) => o.id === originalOrderId);
+    expect(oldOrderBeforePayment?.status).toBe("expired");
+    expect(oldOrderBeforePayment?.invoiceNumber).toBe(originalInvoice);
+
+    // Deliver late payment event on the original invoice
     const delayedPaidResult = await reopenRepo.recordPaid({
       invoiceNumber: originalInvoice,
       providerEventId: "delayed-event-" + randomUUID(),
@@ -561,31 +571,41 @@ describe("SePay payment transaction", () => {
       currency: createResult.value.currency,
       traceId: "delayed-trace",
     });
-    expect(delayedPaidResult.ok).toBe(false);
+    expect(delayedPaidResult).toMatchObject({ ok: true, replayed: false });
 
-    // Proves no payment event, entitlement, report reservation, or outbox event is created
-    expect((await database.select().from(commercePaymentEvents)).filter((e) => e.orderId === orderId)).toEqual([]);
-    expect((await database.select().from(commerceEntitlements)).filter((e) => e.orderId === orderId)).toEqual([]);
-    expect((await database.select().from(reportReservations)).filter((r) => r.chartVersionId === versionId)).toEqual([]);
-    expect((await database.select().from(outbox)).filter((e) => e.aggregateId === orderId)).toEqual([]);
+    // Requirement 4: Old row is paid, replacement pending row is cancelled/expired, exactly one entitlement
+    const originalOrderAfter = (await database.select().from(commerceOrders)).find((o) => o.id === originalOrderId);
+    expect(originalOrderAfter?.status).toBe("paid");
+    expect(originalOrderAfter?.invoiceNumber).toBe(originalInvoice);
+    expect(originalOrderAfter?.paidAt).not.toBeNull();
 
-    // Proves the reopened order remains pending with the new invoice
-    const persisted = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
-    expect(persisted?.status).toBe("pending");
-    expect(persisted?.invoiceNumber).toBe(reopenResult.value.invoiceNumber);
-    expect(persisted?.paidAt).toBeNull();
+    const replacementOrderAfter = (await database.select().from(commerceOrders)).find((o) => o.id === replacementOrderId);
+    expect(replacementOrderAfter?.status).toBe("expired");
+    expect(replacementOrderAfter?.invoiceNumber).toBe(replacementInvoice);
+    expect(replacementOrderAfter?.paidAt).toBeNull();
+
+    // Exactly one payment event, one entitlement, one reservation, and one outbox event (for original order)
+    expect((await database.select().from(commercePaymentEvents)).filter((e) => e.orderId === originalOrderId)).toHaveLength(1);
+    expect((await database.select().from(commercePaymentEvents)).filter((e) => e.orderId === replacementOrderId)).toHaveLength(0);
+
+    const entitlements = (await database.select().from(commerceEntitlements)).filter((e) => e.chartId === chartId);
+    expect(entitlements).toHaveLength(1);
+    expect(entitlements[0]?.orderId).toBe(originalOrderId);
+
+    expect((await database.select().from(reportReservations)).filter((r) => r.chartVersionId === versionId)).toHaveLength(1);
+    expect((await database.select().from(outbox)).filter((e) => e.aggregateId === originalOrderId)).toHaveLength(1);
 
     await database.$client.end();
   }, 120_000);
 
-  it("reopens expired and failed orders on createOrder but never reopens paid or refunded orders", async () => {
+  it("reopens expired and failed orders by inserting a new row while preserving original row and invoice, and never reopens paid or refunded orders", async () => {
     const database = createDatabase(databaseUrl);
     const { actor, chartId, versionId } = await createChartFixture(database);
     const orderId = randomUUID();
     const initialInvoiceNumber = "LSV-reopen-" + orderId;
     const t0 = new Date("2026-09-05T10:00:00.000Z");
 
-    // 1. Expired order is reopened
+    // 1. Expired order is reopened: inserts new row with new invoice
     await database.insert(commerceOrders).values({
       id: orderId,
       invoiceNumber: initialInvoiceNumber,
@@ -608,25 +628,46 @@ describe("SePay payment transaction", () => {
     const reopenExpiredResult = await repoReopenExpired.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
     expect(reopenExpiredResult).toMatchObject({
       ok: true,
-      reused: true,
+      reused: false,
       value: {
-        id: orderId,
         status: "pending",
         paidAt: null,
       },
     });
     if (!reopenExpiredResult.ok) throw new Error("REOPEN_EXPIRED_FAILED");
+    expect(reopenExpiredResult.value.id).not.toBe(orderId);
     expect(reopenExpiredResult.value.invoiceNumber).not.toBe(initialInvoiceNumber);
     expect(reopenExpiredResult.value.invoiceNumber).toMatch(/^LSV-[0-9a-f-]{36}$/);
 
-    const reopenedExpiredOrder = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
-    expect(reopenedExpiredOrder?.status).toBe("pending");
-    expect(reopenedExpiredOrder?.invoiceNumber).toBe(reopenExpiredResult.value.invoiceNumber);
-    expect(reopenedExpiredOrder?.paidAt).toBeNull();
-    expect(reopenedExpiredOrder?.createdAt.getTime()).toBe(tReopenExpired.getTime());
+    // Old order row preserved
+    const originalExpiredOrder = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(originalExpiredOrder?.status).toBe("expired");
+    expect(originalExpiredOrder?.invoiceNumber).toBe(initialInvoiceNumber);
 
-    // 2. Failed order is reopened
-    await database.$client.unsafe("UPDATE commerce_orders SET status = \x27failed\x27 WHERE id = \x27" + orderId + "\x27");
+    // New order row exists
+    const newPendingOrder = (await database.select().from(commerceOrders)).find((o) => o.id === reopenExpiredResult.value.id);
+    expect(newPendingOrder?.status).toBe("pending");
+    expect(newPendingOrder?.invoiceNumber).toBe(reopenExpiredResult.value.invoiceNumber);
+
+    // 2. Failed order is reopened: inserts new row with new invoice
+    const failedOrderId = randomUUID();
+    const failedInvoiceNumber = "LSV-failed-" + failedOrderId;
+    // Expire the pending one first so we can test failed reopen cleanly
+    await database.update(commerceOrders).set({ status: "expired" }).where(eq(commerceOrders.id, reopenExpiredResult.value.id));
+    await database.insert(commerceOrders).values({
+      id: failedOrderId,
+      invoiceNumber: failedInvoiceNumber,
+      chartId,
+      chartVersionId: versionId,
+      ownerId: actor.userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "failed",
+      createdAt: t0,
+    });
+
     const tReopenFailed = new Date("2026-09-05T10:30:00.000Z");
     const repoReopenFailed = createDatabaseCommerceRepository(database, {
       now: () => tReopenFailed,
@@ -635,35 +676,203 @@ describe("SePay payment transaction", () => {
     const reopenFailedResult = await repoReopenFailed.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
     expect(reopenFailedResult).toMatchObject({
       ok: true,
-      reused: true,
+      reused: false,
       value: {
-        id: orderId,
         status: "pending",
         paidAt: null,
       },
     });
     if (!reopenFailedResult.ok) throw new Error("REOPEN_FAILED_FAILED");
-    expect(reopenFailedResult.value.invoiceNumber).not.toBe(initialInvoiceNumber);
-    expect(reopenFailedResult.value.invoiceNumber).not.toBe(reopenExpiredResult.value.invoiceNumber);
-    expect(reopenFailedResult.value.invoiceNumber).toMatch(/^LSV-[0-9a-f-]{36}$/);
+    expect(reopenFailedResult.value.id).not.toBe(failedOrderId);
+    expect(reopenFailedResult.value.invoiceNumber).not.toBe(failedInvoiceNumber);
 
-    const reopenedFailedOrder = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
-    expect(reopenedFailedOrder?.status).toBe("pending");
-    expect(reopenedFailedOrder?.invoiceNumber).toBe(reopenFailedResult.value.invoiceNumber);
-    expect(reopenedFailedOrder?.createdAt.getTime()).toBe(tReopenFailed.getTime());
+    // Original failed row preserved
+    const originalFailedOrder = (await database.select().from(commerceOrders)).find((o) => o.id === failedOrderId);
+    expect(originalFailedOrder?.status).toBe("failed");
+    expect(originalFailedOrder?.invoiceNumber).toBe(failedInvoiceNumber);
 
     // 3. Paid order is never reopened
     const tPaid = new Date("2026-09-05T10:35:00.000Z");
-    await database.$client.unsafe("UPDATE commerce_orders SET status = \x27paid\x27, paid_at = \x27" + tPaid.toISOString() + "\x27 WHERE id = \x27" + orderId + "\x27");
+    await database.update(commerceOrders).set({ status: "paid", paidAt: tPaid }).where(eq(commerceOrders.id, reopenFailedResult.value.id));
     const repoPaid = createDatabaseCommerceRepository(database, { now: () => new Date("2026-09-05T10:40:00.000Z"), orderTtlSeconds: 900 });
     const paidResult = await repoPaid.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
-    expect(paidResult).toMatchObject({ ok: true, reused: true, value: { id: orderId, status: "paid" } });
+    expect(paidResult).toMatchObject({ ok: true, reused: true, value: { id: reopenFailedResult.value.id, status: "paid" } });
 
     // 4. Refunded order is never reopened
-    await database.$client.unsafe("UPDATE commerce_orders SET status = \x27refunded\x27 WHERE id = \x27" + orderId + "\x27");
+    const { actor: refundActor, chartId: refundChartId } = await createChartFixture(database);
     const repoRefunded = createDatabaseCommerceRepository(database, { now: () => new Date("2026-09-05T10:45:00.000Z"), orderTtlSeconds: 900 });
-    const refundedResult = await repoRefunded.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
-    expect(refundedResult).toMatchObject({ ok: true, reused: true, value: { id: orderId, status: "refunded" } });
+    const refundOrder2Id = randomUUID();
+    await database.insert(commerceOrders).values({
+      id: refundOrder2Id,
+      invoiceNumber: "LSV-refund-" + refundOrder2Id,
+      chartId: refundChartId,
+      chartVersionId: versionId,
+      ownerId: refundActor.userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "refunded",
+      createdAt: t0,
+    });
+    const refundedResult = await repoRefunded.createOrder(refundActor, refundChartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(refundedResult).toMatchObject({ ok: true, reused: true, value: { id: refundOrder2Id, status: "refunded" } });
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("ensures concurrent payments for old and replacement orders result in exactly one entitlement", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+    const initialRepo = createDatabaseCommerceRepository(database, {
+      now: () => t0,
+      orderTtlSeconds: 900,
+    });
+    const order1Result = await initialRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(order1Result.ok).toBe(true);
+    if (!order1Result.ok) throw new Error("ORDER1_FAILED");
+    const order1 = order1Result.value;
+
+    const tReopen = new Date("2026-09-05T10:20:00.000Z");
+    const reopenRepo = createDatabaseCommerceRepository(database, {
+      now: () => tReopen,
+      orderTtlSeconds: 900,
+    });
+    const order2Result = await reopenRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
+    expect(order2Result.ok).toBe(true);
+    if (!order2Result.ok) throw new Error("ORDER2_FAILED");
+    const order2 = order2Result.value;
+
+    const results = await Promise.all([
+      reopenRepo.recordPaid({
+        invoiceNumber: order1.invoiceNumber,
+        providerEventId: "concurrent-event-" + randomUUID(),
+        amount: order1.amount,
+        currency: order1.currency,
+        traceId: "concurrent-trace-1",
+      }),
+      reopenRepo.recordPaid({
+        invoiceNumber: order2.invoiceNumber,
+        providerEventId: "concurrent-event-" + randomUUID(),
+        amount: order2.amount,
+        currency: order2.currency,
+        traceId: "concurrent-trace-2",
+      }),
+    ]);
+
+    const successes = results.filter((r) => r.ok && !r.replayed);
+    const conflicts = results.filter((r) => !r.ok && r.code === "PAYMENT_STATE_CONFLICT");
+    expect(successes).toHaveLength(1);
+    expect(conflicts).toHaveLength(1);
+
+    const entitlements = (await database.select().from(commerceEntitlements)).filter((e) => e.chartId === chartId);
+    expect(entitlements).toHaveLength(1);
+
+    const reservations = (await database.select().from(reportReservations)).filter((r) => r.chartVersionId === versionId);
+    expect(reservations).toHaveLength(1);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("applies default 86400s (24h) TTL when orderTtlSeconds is omitted", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+    const repoDefault = createDatabaseCommerceRepository(database, {
+      now: () => t0,
+    });
+    const createResult = await repoDefault.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(createResult.ok).toBe(true);
+    if (!createResult.ok) throw new Error("ORDER_CREATE_FAILED");
+    const orderId = createResult.value.id;
+
+    // At t0 + 900s: order is STILL pending (not expired!)
+    const repo900s = createDatabaseCommerceRepository(database, {
+      now: () => new Date(t0.getTime() + 900 * 1000),
+    });
+    const orderAt900s = await repo900s.readOrder(actor, orderId);
+    expect(orderAt900s?.status).toBe("pending");
+
+    // At t0 + 86399s: order is STILL pending
+    const repo86399s = createDatabaseCommerceRepository(database, {
+      now: () => new Date(t0.getTime() + 86399 * 1000),
+    });
+    const orderAt86399s = await repo86399s.readOrder(actor, orderId);
+    expect(orderAt86399s?.status).toBe("pending");
+
+    // At t0 + 86400s: order transitions to expired
+    const repo86400s = createDatabaseCommerceRepository(database, {
+      now: () => new Date(t0.getTime() + 86400 * 1000),
+    });
+    const orderAt86400s = await repo86400s.readOrder(actor, orderId);
+    expect(orderAt86400s?.status).toBe("expired");
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("proves partial unique index allows multiple expired orders and strictly one pending order", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+
+    const id1 = randomUUID();
+    const id2 = randomUUID();
+    await database.insert(commerceOrders).values([
+      {
+        id: id1,
+        invoiceNumber: "LSV-multi-1-" + id1,
+        chartId,
+        chartVersionId: versionId,
+        ownerId: actor.userId,
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+        status: "expired",
+      },
+      {
+        id: id2,
+        invoiceNumber: "LSV-multi-2-" + id2,
+        chartId,
+        chartVersionId: versionId,
+        ownerId: actor.userId,
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+        status: "expired",
+      },
+    ]);
+
+    const id3 = randomUUID();
+    await database.insert(commerceOrders).values({
+      id: id3,
+      invoiceNumber: "LSV-multi-3-" + id3,
+      chartId,
+      chartVersionId: versionId,
+      ownerId: actor.userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+    });
+
+    const id4 = randomUUID();
+    await expect(
+      database.insert(commerceOrders).values({
+        id: id4,
+        invoiceNumber: "LSV-multi-4-" + id4,
+        chartId,
+        chartVersionId: versionId,
+        ownerId: actor.userId,
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+        status: "pending",
+      }),
+    ).rejects.toThrow();
 
     await database.$client.end();
   }, 120_000);
@@ -795,4 +1004,182 @@ describe("SePay payment transaction", () => {
     await db1.$client.end();
     await db2.$client.end();
   }, 120_000);
+  it("enforces database-level immutability of commerce_orders.invoice_number", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const orderId = randomUUID();
+    const originalInvoice = "LSV-immutable-" + orderId;
+
+    // 1. INSERT succeeds
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: originalInvoice,
+      chartId,
+      chartVersionId: versionId,
+      ownerId: actor.userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+    });
+
+    // 2. Unrelated UPDATE succeeds (e.g. status)
+    await database.update(commerceOrders)
+      .set({ status: "expired" })
+      .where(eq(commerceOrders.id, orderId));
+
+    const updated = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(updated?.status).toBe("expired");
+    expect(updated?.invoiceNumber).toBe(originalInvoice);
+
+    // 3. Direct invoice overwrite FAILS at database level with trigger exception
+    let updateError: any;
+    try {
+      await database.update(commerceOrders)
+        .set({ invoiceNumber: "LSV-overwritten-" + randomUUID() })
+        .where(eq(commerceOrders.id, orderId));
+    } catch (err) {
+      updateError = err;
+    }
+    expect(updateError).toBeDefined();
+    expect(String(updateError?.cause?.message ?? updateError?.cause ?? updateError?.message)).toMatch(
+      /commerce_orders\.invoice_number is immutable/,
+    );
+
+    // Persisted invoice is unchanged
+    const afterAttempt = (await database.select().from(commerceOrders)).find((o) => o.id === orderId);
+    expect(afterAttempt?.invoiceNumber).toBe(originalInvoice);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("interleaves old-invoice and replacement-order payments deterministically with exactly one entitlement and controlled conflict", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const t0 = new Date("2026-09-05T10:00:00.000Z");
+    const initialRepo = createDatabaseCommerceRepository(database, {
+      now: () => t0,
+      orderTtlSeconds: 900,
+    });
+    const order1Result = await initialRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(order1Result.ok).toBe(true);
+    if (!order1Result.ok) throw new Error("ORDER1_FAILED");
+    const order1 = order1Result.value;
+
+    const tReopen = new Date("2026-09-05T10:20:00.000Z");
+    const reopenRepo = createDatabaseCommerceRepository(database, {
+      now: () => tReopen,
+      orderTtlSeconds: 900,
+    });
+    const order2Result = await reopenRepo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "en");
+    expect(order2Result.ok).toBe(true);
+    if (!order2Result.ok) throw new Error("ORDER2_FAILED");
+    const order2 = order2Result.value;
+
+    let releaseTx1: () => void;
+    const holdTx1 = new Promise<void>((resolve) => { releaseTx1 = resolve; });
+
+    const repoWithHook = createDatabaseCommerceRepository(database, {
+      now: () => tReopen,
+      orderTtlSeconds: 900,
+      beforePaymentCommit: async () => {
+        await holdTx1;
+      },
+    });
+
+    // Start payment 1 (old invoice), which pauses right before commit inside transaction
+    const payment1Promise = repoWithHook.recordPaid({
+      invoiceNumber: order1.invoiceNumber,
+      providerEventId: "interleave-event-1-" + randomUUID(),
+      amount: order1.amount,
+      currency: order1.currency,
+      traceId: "interleave-trace-1",
+    });
+
+    // Let payment 1 acquire advisory lock and pause
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Start payment 2 (replacement invoice) concurrently
+    const payment2Promise = reopenRepo.recordPaid({
+      invoiceNumber: order2.invoiceNumber,
+      providerEventId: "interleave-event-2-" + randomUUID(),
+      amount: order2.amount,
+      currency: order2.currency,
+      traceId: "interleave-trace-2",
+    });
+
+    // Allow payment 2 to queue on the advisory lock, then release payment 1
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    releaseTx1!();
+
+    const [result1, result2] = await Promise.all([payment1Promise, payment2Promise]);
+
+    // Payment 1 succeeded, Payment 2 cleanly conflicted
+    expect(result1).toMatchObject({ ok: true, replayed: false });
+    expect(result2).toMatchObject({ ok: false, code: "PAYMENT_STATE_CONFLICT" });
+
+    // Exactly one paid order, exactly one expired order
+    const persistedOrder1 = (await database.select().from(commerceOrders)).find((o) => o.id === order1.id);
+    const persistedOrder2 = (await database.select().from(commerceOrders)).find((o) => o.id === order2.id);
+    expect(persistedOrder1?.status).toBe("paid");
+    expect(persistedOrder2?.status).toBe("expired");
+
+    // Exactly one payment event, one entitlement, one reservation, and one outbox event
+    const events = (await database.select().from(commercePaymentEvents)).filter((e) => e.orderId === order1.id || e.orderId === order2.id);
+    expect(events).toHaveLength(1);
+
+    const entitlements = (await database.select().from(commerceEntitlements)).filter((e) => e.chartId === chartId);
+    expect(entitlements).toHaveLength(1);
+    expect(entitlements[0]?.orderId).toBe(order1.id);
+
+    const reservations = (await database.select().from(reportReservations)).filter((r) => r.chartVersionId === versionId);
+    expect(reservations).toHaveLength(1);
+
+    const outboxEvents = (await database.select().from(outbox)).filter((e) => e.aggregateId === order1.id || e.aggregateId === order2.id);
+    expect(outboxEvents).toHaveLength(1);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("ensures concurrent first-time createOrder calls serialize cleanly and return the same pending order", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+
+    const repo = createDatabaseCommerceRepository(database, {
+      now: () => new Date("2026-09-05T10:00:00.000Z"),
+      orderTtlSeconds: 86400,
+    });
+
+    const results = await Promise.all([
+      repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi"),
+      repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi"),
+      repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi"),
+    ]);
+
+    for (const res of results) {
+      expect(res.ok).toBe(true);
+    }
+
+    const createdCount = results.filter((r) => r.ok && !r.reused).length;
+    const reusedCount = results.filter((r) => r.ok && r.reused).length;
+    expect(createdCount).toBe(1);
+    expect(reusedCount).toBe(2);
+
+    const firstOrderId = results[0]?.ok ? results[0].value.id : null;
+    const firstInvoice = results[0]?.ok ? results[0].value.invoiceNumber : null;
+    for (const res of results) {
+      if (res.ok) {
+        expect(res.value.id).toBe(firstOrderId);
+        expect(res.value.invoiceNumber).toBe(firstInvoice);
+        expect(res.value.status).toBe("pending");
+      }
+    }
+
+    const ordersInDb = (await database.select().from(commerceOrders)).filter((o) => o.chartId === chartId);
+    expect(ordersInDb).toHaveLength(1);
+
+    await database.$client.end();
+  }, 120_000);
+
 });

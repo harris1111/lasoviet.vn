@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   index,
   integer,
@@ -28,7 +29,9 @@ export const commerceOrders = pgTable("commerce_orders", {
   paidAt: timestamp("paid_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
   uniqueIndex("commerce_orders_invoice_unique").on(table.invoiceNumber),
-  uniqueIndex("commerce_orders_chart_sku_unique").on(table.chartId, table.sku),
+  uniqueIndex("commerce_orders_chart_sku_unique")
+    .on(table.chartId, table.sku)
+    .where(sql`${table.status} = 'pending'`),
   index("commerce_orders_owner_idx").on(table.ownerId),
 ]);
 

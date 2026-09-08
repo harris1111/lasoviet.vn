@@ -55,7 +55,7 @@ export class CommerceController {
 
   private repository() {
     return createDatabaseCommerceRepository(this.database, {
-      orderTtlSeconds: this.orderTtlSeconds ?? 900,
+      orderTtlSeconds: this.orderTtlSeconds ?? 86400,
     });
   }
 
@@ -81,7 +81,7 @@ export class CommerceController {
       currency: "VND",
       invoiceNumber: order.invoiceNumber,
       createdAt: order.createdAt,
-      orderTtlSeconds: this.orderTtlSeconds ?? 900,
+      orderTtlSeconds: this.orderTtlSeconds ?? 86400,
     });
   }
 
