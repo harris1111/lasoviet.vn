@@ -253,11 +253,25 @@ export type {
 } from "./free-identity-preview-v1.js";
 
 export {
+  AccountLibraryGroupV1Schema,
+  AccountLibraryItemV1Schema,
+  AccountLibraryV1Schema,
   CommerceSkuSchema,
+  EntitlementStatusSchema,
+  OrderHistoryItemV1Schema,
+  OrderHistoryV1Schema,
   OrderStatusSchema,
+  PRODUCT_DISPLAY_NAMES,
+  resolveProductTitle,
 } from "./commerce.js";
 export type {
+  AccountLibraryGroupV1,
+  AccountLibraryItemV1,
+  AccountLibraryV1,
   CommerceSku,
+  EntitlementStatus,
+  OrderHistoryItemV1,
+  OrderHistoryV1,
   OrderStatus,
 } from "./commerce.js";
 

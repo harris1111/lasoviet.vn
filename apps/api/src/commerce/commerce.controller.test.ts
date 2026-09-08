@@ -783,4 +783,251 @@ describe("SePay controller HTTP contract", () => {
     }
   });
 
+  it("rejects library and history requests without valid authorization", async () => {
+    await expect(controller().library(undefined)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+    await expect(controller().history(undefined)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+    await expect(controller().library("InvalidToken")).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
+  it("returns owner-scoped library projection on library read", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const mockLibrary = {
+      version: 1 as const,
+      groups: [
+        {
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          chartId: "chart-1",
+          items: [
+            {
+              id: "ent-1",
+              entitlementId: "ent-1",
+              orderId: "order-1",
+              chartId: "chart-1",
+              profileId: "profile-1",
+              profileDisplayName: "Nguyễn Văn A",
+              sku: "ZIWEI-IDENTITY-P0" as const,
+              productTitle: "Bản mệnh & tiềm năng",
+              productName: "Bản mệnh & tiềm năng",
+              orderStatus: "paid" as const,
+              entitlementStatus: "active" as const,
+              reportId: "rep-1",
+              readUrl: "/bao-cao/rep-1",
+              reportStatus: "ready",
+              locale: "vi" as const,
+              createdAt: "2026-09-08T00:00:00.000Z",
+              purchasedAt: "2026-09-08T00:05:00.000Z",
+            },
+          ],
+          latestReportId: "rep-1",
+          latestReadUrl: "/bao-cao/rep-1",
+        },
+      ],
+      items: [
+        {
+          id: "ent-1",
+          entitlementId: "ent-1",
+          orderId: "order-1",
+          chartId: "chart-1",
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          sku: "ZIWEI-IDENTITY-P0" as const,
+          productTitle: "Bản mệnh & tiềm năng",
+          productName: "Bản mệnh & tiềm năng",
+          orderStatus: "paid" as const,
+          entitlementStatus: "active" as const,
+          reportId: "rep-1",
+          readUrl: "/bao-cao/rep-1",
+          reportStatus: "ready",
+          locale: "vi" as const,
+          createdAt: "2026-09-08T00:00:00.000Z",
+          purchasedAt: "2026-09-08T00:05:00.000Z",
+        },
+      ],
+      latestReadableReport: {
+        id: "ent-1",
+        entitlementId: "ent-1",
+        orderId: "order-1",
+        chartId: "chart-1",
+        profileId: "profile-1",
+        profileDisplayName: "Nguyễn Văn A",
+        sku: "ZIWEI-IDENTITY-P0" as const,
+        productTitle: "Bản mệnh & tiềm năng",
+        productName: "Bản mệnh & tiềm năng",
+        orderStatus: "paid" as const,
+        entitlementStatus: "active" as const,
+        reportId: "rep-1",
+        readUrl: "/bao-cao/rep-1",
+        reportStatus: "ready",
+        locale: "vi" as const,
+        createdAt: "2026-09-08T00:00:00.000Z",
+        purchasedAt: "2026-09-08T00:05:00.000Z",
+      },
+      totalCount: 1,
+    };
+    const readAccountLibrarySpy = vi.fn().mockResolvedValue(mockLibrary);
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn(),
+      readAccountLibrary: readAccountLibrarySpy,
+      readOrderHistory: vi.fn(),
+    } as never);
+
+    try {
+      const result = await controller().library("Bearer valid-token");
+      expect(result).toEqual({
+        ok: true,
+        value: mockLibrary,
+      });
+      expect(readAccountLibrarySpy).toHaveBeenCalledWith({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns owner-scoped OrderHistoryV1 on history read including expired orders", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const mockHistory = {
+      version: 1 as const,
+      orders: [
+        {
+          id: "order-1",
+          orderId: "order-1",
+          invoiceNumber: "LSV-order-1",
+          chartId: "chart-1",
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          sku: "ZIWEI-IDENTITY-P0" as const,
+          productTitle: "Bản mệnh & tiềm năng",
+          productName: "Bản mệnh & tiềm năng",
+          amount: 79000,
+          currency: "VND",
+          status: "expired" as const,
+          orderStatus: "expired" as const,
+          locale: "vi" as const,
+          createdAt: "2026-09-01T00:00:00.000Z",
+          paidAt: null,
+          reportId: null,
+          readUrl: null,
+          supportUrl: "/lien-he?orderId=order-1",
+        },
+      ],
+      items: [
+        {
+          id: "order-1",
+          orderId: "order-1",
+          invoiceNumber: "LSV-order-1",
+          chartId: "chart-1",
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          sku: "ZIWEI-IDENTITY-P0" as const,
+          productTitle: "Bản mệnh & tiềm năng",
+          productName: "Bản mệnh & tiềm năng",
+          amount: 79000,
+          currency: "VND",
+          status: "expired" as const,
+          orderStatus: "expired" as const,
+          locale: "vi" as const,
+          createdAt: "2026-09-01T00:00:00.000Z",
+          paidAt: null,
+          reportId: null,
+          readUrl: null,
+          supportUrl: "/lien-he?orderId=order-1",
+        },
+      ],
+      totalCount: 1,
+    };
+    const readOrderHistorySpy = vi.fn().mockResolvedValue(mockHistory);
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn(),
+      readAccountLibrary: vi.fn(),
+      readOrderHistory: readOrderHistorySpy,
+    } as never);
+
+    try {
+      const result = await controller().history("Bearer valid-token");
+      expect(result).toEqual({
+        ok: true,
+        value: mockHistory,
+      });
+      expect(readOrderHistorySpy).toHaveBeenCalledWith({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns empty library and history for anonymous actors without error", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "anonymous",
+      anonymousActorId: "anon-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+      expiresAt: "2026-09-09T00:00:00+00:00",
+    });
+    const emptyLib = {
+      version: 1 as const,
+      groups: [],
+      items: [],
+      latestReadableReport: null,
+      totalCount: 0,
+    };
+    const emptyHist = {
+      version: 1 as const,
+      orders: [],
+      items: [],
+      totalCount: 0,
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn(),
+      readAccountLibrary: vi.fn().mockResolvedValue(emptyLib),
+      readOrderHistory: vi.fn().mockResolvedValue(emptyHist),
+    } as never);
+
+    try {
+      const libResult = await controller().library("Bearer anon-token");
+      expect(libResult).toEqual({ ok: true, value: emptyLib });
+
+      const histResult = await controller().history("Bearer anon-token");
+      expect(histResult).toEqual({ ok: true, value: emptyHist });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
 });

@@ -159,6 +159,20 @@ export class CommerceController {
     };
   }
 
+  @Get(["library", "account/library"])
+  async library(@Headers("authorization") authorization: string | undefined) {
+    const actor = await this.actor(authorization);
+    const value = await this.repository().readAccountLibrary(actor);
+    return { ok: true, value };
+  }
+
+  @Get(["orders", "history", "order-history"])
+  async history(@Headers("authorization") authorization: string | undefined) {
+    const actor = await this.actor(authorization);
+    const value = await this.repository().readOrderHistory(actor);
+    return { ok: true, value };
+  }
+
   @Get("orders/:orderId")
   async read(@Headers("authorization") authorization: string | undefined, @Param("orderId") orderId: string) {
     const projection = await this.repository().readOrderProjection(await this.actor(authorization), orderId);

@@ -1,9 +1,20 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, gt, isNull, lte, ne, or, sql } from "drizzle-orm";
-import type { CurrentActor } from "@lasoviet/contracts";
+import { and, desc, eq, gt, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import type {
+  AccountLibraryGroupV1,
+  AccountLibraryItemV1,
+  AccountLibraryV1,
+  CommerceSku,
+  CurrentActor,
+  OrderHistoryItemV1,
+  OrderHistoryV1,
+  OrderStatus,
+} from "@lasoviet/contracts";
+import { resolveProductTitle } from "@lasoviet/contracts";
 import {
   birthProfiles,
+  birthProfileRevisions,
   authUsers,
   commerceEntitlements,
   commerceOrders,
@@ -11,6 +22,7 @@ import {
   enqueueOutbox,
   evidenceSets,
   reportReservations,
+  reportVersions,
   type Database,
   ziweiChartVersions,
   ziweiCharts,
@@ -93,6 +105,494 @@ export function createDatabaseCommerceRepository(
       }
     }
     return order;
+  }
+
+  async function readAccountLibrary(actor: CurrentActor): Promise<AccountLibraryV1> {
+    if (actor.kind !== "account") {
+      return {
+        version: 1,
+        groups: [],
+        items: [],
+        latestReadableReport: null,
+        totalCount: 0,
+      };
+    }
+
+    const rows = await database
+      .select({
+        entitlement: commerceEntitlements,
+        order: commerceOrders,
+        chart: ziweiCharts,
+        profile: birthProfiles,
+        revision: birthProfileRevisions,
+        chartVersion: ziweiChartVersions,
+        reservation: reportReservations,
+      })
+      .from(commerceEntitlements)
+      .innerJoin(
+        commerceOrders,
+        and(
+          eq(commerceOrders.id, commerceEntitlements.orderId),
+          eq(commerceOrders.ownerId, actor.userId),
+          eq(commerceOrders.chartId, commerceEntitlements.chartId),
+        ),
+      )
+      .innerJoin(
+        ziweiCharts,
+        eq(ziweiCharts.id, commerceEntitlements.chartId),
+      )
+      .innerJoin(
+        birthProfiles,
+        and(
+          eq(birthProfiles.id, ziweiCharts.profileId),
+          eq(birthProfiles.userId, actor.userId),
+          isNull(birthProfiles.deletedAt),
+        ),
+      )
+      .innerJoin(
+        birthProfileRevisions,
+        and(
+          eq(birthProfileRevisions.id, ziweiCharts.profileRevisionId),
+          eq(birthProfileRevisions.profileId, birthProfiles.id),
+        ),
+      )
+      .innerJoin(
+        ziweiChartVersions,
+        and(
+          eq(ziweiChartVersions.id, commerceOrders.chartVersionId),
+          eq(ziweiChartVersions.chartId, ziweiCharts.id),
+        ),
+      )
+      .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .where(eq(commerceEntitlements.ownerId, actor.userId))
+      .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
+
+    if (rows.length === 0) {
+      return {
+        version: 1,
+        groups: [],
+        items: [],
+        latestReadableReport: null,
+        totalCount: 0,
+      };
+    }
+
+    const activeReportVersionIds = rows
+      .map((r) => r.reservation?.reportVersionId)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+    const versionRows = activeReportVersionIds.length > 0
+      ? await database
+          .select()
+          .from(reportVersions)
+          .where(inArray(reportVersions.reportVersionId, activeReportVersionIds))
+          .orderBy(desc(reportVersions.createdAt), desc(reportVersions.id))
+      : [];
+
+    const versionMap = new Map<string, typeof versionRows[number]>();
+    for (const v of versionRows) {
+      if (!versionMap.has(v.reportVersionId)) {
+        versionMap.set(v.reportVersionId, v);
+      }
+    }
+
+    const evidenceSetIds = Array.from(
+      new Set(
+        versionRows
+          .map((v) => v.evidenceVersionId)
+          .filter((id): id is string => typeof id === "string" && id.length > 0),
+      ),
+    );
+
+    const evidenceSetRows = evidenceSetIds.length > 0
+      ? await database
+          .select({
+            id: evidenceSets.id,
+            chartVersionId: evidenceSets.chartVersionId,
+          })
+          .from(evidenceSets)
+          .where(inArray(evidenceSets.id, evidenceSetIds))
+      : [];
+
+    const evidenceSetMap = new Map<string, typeof evidenceSetRows[number]>();
+    for (const es of evidenceSetRows) {
+      evidenceSetMap.set(es.id, es);
+    }
+
+    const items: AccountLibraryItemV1[] = rows.map((row) => {
+      const entitlement = row.entitlement;
+      const order = row.order;
+      const profile = row.profile;
+      const revision = row.revision;
+      const reservation = row.reservation;
+      const version = reservation
+        ? versionMap.get(reservation.reportVersionId)
+        : undefined;
+
+      const isReservationValid =
+        reservation !== null &&
+        reservation.entitlementId === entitlement.id &&
+        reservation.chartVersionId === order.chartVersionId &&
+        order.sku === entitlement.sku &&
+        reservation.sku === entitlement.sku &&
+        reservation.locale === order.locale;
+
+      const isEvidenceValid =
+        version !== undefined &&
+        evidenceSetMap.get(version.evidenceVersionId)?.chartVersionId === order.chartVersionId;
+
+      const isVersionLineageConsistent =
+        isReservationValid &&
+        version !== undefined &&
+        version.reportId === reservation.reportId &&
+        version.reportVersionId === reservation.reportVersionId &&
+        version.entitlementId === entitlement.id &&
+        version.chartVersionId === order.chartVersionId &&
+        version.evidenceVersionId === reservation.evidenceVersionId &&
+        version.knowledgeVersionId === reservation.knowledgeVersionId &&
+        version.promptVersion === reservation.promptVersion &&
+        version.reportConfigVersion === reservation.reportConfigVersion &&
+        version.locale === reservation.locale &&
+        version.sku === reservation.sku &&
+        version.sku === order.sku &&
+        isEvidenceValid;
+
+      const isReportReady =
+        isVersionLineageConsistent &&
+        reservation.status !== "terminal_failure";
+
+      const displayName =
+        "displayName" in revision.originalInput &&
+        typeof revision.originalInput.displayName === "string" &&
+        revision.originalInput.displayName.trim().length > 0
+          ? revision.originalInput.displayName.trim()
+          : null;
+
+      const sku = entitlement.sku as CommerceSku;
+      const locale = order.locale === "en" ? ("en" as const) : ("vi" as const);
+      const productTitle = resolveProductTitle(sku, locale);
+
+      const reportId = isReportReady
+        ? version.reportId
+        : isReservationValid && !version
+          ? reservation.reportId
+          : null;
+
+      const readUrl = isReportReady && reportId
+        ? locale === "en"
+          ? `/en/bao-cao/${encodeURIComponent(reportId)}`
+          : `/bao-cao/${encodeURIComponent(reportId)}`
+        : null;
+
+      const reportStatus = isReportReady
+        ? "ready"
+        : isReservationValid && (!version || reservation.status === "terminal_failure")
+          ? reservation.status ?? null
+          : null;
+
+      return {
+        id: entitlement.id,
+        entitlementId: entitlement.id,
+        orderId: order.id,
+        chartId: entitlement.chartId,
+        profileId: profile.id,
+        profileDisplayName: displayName,
+        sku,
+        productTitle,
+        productName: productTitle,
+        orderStatus: order.status as OrderStatus,
+        entitlementStatus: "active" as const,
+        reportId,
+        readUrl,
+        reportStatus,
+        locale,
+        createdAt: entitlement.createdAt.toISOString(),
+        purchasedAt: order.paidAt ? order.paidAt.toISOString() : order.createdAt.toISOString(),
+      };
+    });
+
+    items.sort((a, b) => {
+      const aReadable = a.readUrl !== null;
+      const bReadable = b.readUrl !== null;
+      if (aReadable && !bReadable) return -1;
+      if (!aReadable && bReadable) return 1;
+
+      const timeA = new Date(a.purchasedAt ?? a.createdAt).getTime();
+      const timeB = new Date(b.purchasedAt ?? b.createdAt).getTime();
+      if (timeA !== timeB) return timeB - timeA;
+
+      return a.id.localeCompare(b.id);
+    });
+
+    const latestReadableReport = items.find((item) => item.readUrl !== null) ?? null;
+
+    const groupMap = new Map<string, AccountLibraryItemV1[]>();
+    for (const item of items) {
+      const key = item.chartId;
+      const existing = groupMap.get(key);
+      if (existing) {
+        existing.push(item);
+      } else {
+        groupMap.set(key, [item]);
+      }
+    }
+
+    const groups: AccountLibraryGroupV1[] = [];
+    for (const [chartId, groupItems] of groupMap.entries()) {
+      groupItems.sort((a, b) => {
+        const timeA = new Date(a.purchasedAt ?? a.createdAt).getTime();
+        const timeB = new Date(b.purchasedAt ?? b.createdAt).getTime();
+        if (timeA !== timeB) return timeB - timeA;
+        return a.id.localeCompare(b.id);
+      });
+
+      const firstReadable = groupItems.find((i) => i.readUrl !== null);
+      const profileId = groupItems[0]?.profileId ?? null;
+      const profileDisplayName = groupItems[0]?.profileDisplayName ?? null;
+
+      groups.push({
+        profileId,
+        profileDisplayName,
+        chartId,
+        items: groupItems,
+        latestReportId: firstReadable?.reportId ?? null,
+        latestReadUrl: firstReadable?.readUrl ?? null,
+      });
+    }
+
+    groups.sort((a, b) => {
+      if (latestReadableReport) {
+        if (a.chartId === latestReadableReport.chartId) return -1;
+        if (b.chartId === latestReadableReport.chartId) return 1;
+      }
+      const timeA = new Date(a.items[0]?.purchasedAt ?? a.items[0]?.createdAt ?? 0).getTime();
+      const timeB = new Date(b.items[0]?.purchasedAt ?? b.items[0]?.createdAt ?? 0).getTime();
+      if (timeA !== timeB) return timeB - timeA;
+      return a.chartId.localeCompare(b.chartId);
+    });
+
+    return {
+      version: 1,
+      groups,
+      items,
+      latestReadableReport,
+      totalCount: items.length,
+    };
+  }
+
+  async function readOrderHistory(actor: CurrentActor): Promise<OrderHistoryV1> {
+    if (actor.kind !== "account") {
+      return {
+        version: 1,
+        orders: [],
+        items: [],
+        totalCount: 0,
+      };
+    }
+
+    const currentNow = getNow();
+    const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+
+    const rows = await database
+      .select({
+        order: commerceOrders,
+        chart: ziweiCharts,
+        profile: birthProfiles,
+        revision: birthProfileRevisions,
+        chartVersion: ziweiChartVersions,
+        entitlement: commerceEntitlements,
+        reservation: reportReservations,
+      })
+      .from(commerceOrders)
+      .innerJoin(
+        ziweiCharts,
+        eq(ziweiCharts.id, commerceOrders.chartId),
+      )
+      .innerJoin(
+        birthProfiles,
+        and(
+          eq(birthProfiles.id, ziweiCharts.profileId),
+          eq(birthProfiles.userId, actor.userId),
+          isNull(birthProfiles.deletedAt),
+        ),
+      )
+      .innerJoin(
+        birthProfileRevisions,
+        and(
+          eq(birthProfileRevisions.id, ziweiCharts.profileRevisionId),
+          eq(birthProfileRevisions.profileId, birthProfiles.id),
+        ),
+      )
+      .innerJoin(
+        ziweiChartVersions,
+        and(
+          eq(ziweiChartVersions.id, commerceOrders.chartVersionId),
+          eq(ziweiChartVersions.chartId, ziweiCharts.id),
+        ),
+      )
+      .leftJoin(
+        commerceEntitlements,
+        and(
+          eq(commerceEntitlements.orderId, commerceOrders.id),
+          eq(commerceEntitlements.ownerId, actor.userId),
+          eq(commerceEntitlements.chartId, commerceOrders.chartId),
+        ),
+      )
+      .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .where(eq(commerceOrders.ownerId, actor.userId))
+      .orderBy(desc(commerceOrders.createdAt), desc(commerceOrders.id));
+
+    if (rows.length === 0) {
+      return {
+        version: 1,
+        orders: [],
+        items: [],
+        totalCount: 0,
+      };
+    }
+
+    const activeReportVersionIds = rows
+      .map((r) => r.reservation?.reportVersionId)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+    const versionRows = activeReportVersionIds.length > 0
+      ? await database
+          .select()
+          .from(reportVersions)
+          .where(inArray(reportVersions.reportVersionId, activeReportVersionIds))
+          .orderBy(desc(reportVersions.createdAt), desc(reportVersions.id))
+      : [];
+
+    const versionMap = new Map<string, typeof versionRows[number]>();
+    for (const v of versionRows) {
+      if (!versionMap.has(v.reportVersionId)) {
+        versionMap.set(v.reportVersionId, v);
+      }
+    }
+
+    const evidenceSetIds = Array.from(
+      new Set(
+        versionRows
+          .map((v) => v.evidenceVersionId)
+          .filter((id): id is string => typeof id === "string" && id.length > 0),
+      ),
+    );
+
+    const evidenceSetRows = evidenceSetIds.length > 0
+      ? await database
+          .select({
+            id: evidenceSets.id,
+            chartVersionId: evidenceSets.chartVersionId,
+          })
+          .from(evidenceSets)
+          .where(inArray(evidenceSets.id, evidenceSetIds))
+      : [];
+
+    const evidenceSetMap = new Map<string, typeof evidenceSetRows[number]>();
+    for (const es of evidenceSetRows) {
+      evidenceSetMap.set(es.id, es);
+    }
+
+    const orders: OrderHistoryItemV1[] = rows.map((row) => {
+      const order = row.order;
+      const profile = row.profile;
+      const revision = row.revision;
+      const reservation = row.reservation;
+      const entitlement = row.entitlement;
+      const version = reservation
+        ? versionMap.get(reservation.reportVersionId)
+        : undefined;
+
+      const isReservationValid =
+        reservation !== null &&
+        reservation.chartVersionId === order.chartVersionId &&
+        (!entitlement || entitlement.sku === order.sku) &&
+        reservation.sku === order.sku &&
+        reservation.locale === order.locale;
+
+      const isEvidenceValid =
+        version !== undefined &&
+        evidenceSetMap.get(version.evidenceVersionId)?.chartVersionId === order.chartVersionId;
+
+      const isVersionLineageConsistent =
+        isReservationValid &&
+        version !== undefined &&
+        version.reportId === reservation.reportId &&
+        version.reportVersionId === reservation.reportVersionId &&
+        version.chartVersionId === order.chartVersionId &&
+        version.evidenceVersionId === reservation.evidenceVersionId &&
+        version.knowledgeVersionId === reservation.knowledgeVersionId &&
+        version.promptVersion === reservation.promptVersion &&
+        version.reportConfigVersion === reservation.reportConfigVersion &&
+        version.locale === reservation.locale &&
+        version.sku === reservation.sku &&
+        version.sku === order.sku &&
+        isEvidenceValid;
+
+      const isReportReady =
+        isVersionLineageConsistent &&
+        reservation.status !== "terminal_failure";
+
+      const displayName =
+        "displayName" in revision.originalInput &&
+        typeof revision.originalInput.displayName === "string" &&
+        revision.originalInput.displayName.trim().length > 0
+          ? revision.originalInput.displayName.trim()
+          : null;
+
+      const sku = order.sku as CommerceSku;
+      const locale = order.locale === "en" ? ("en" as const) : ("vi" as const);
+      const productTitle = resolveProductTitle(sku, locale);
+
+      const isExpired = order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime();
+      const effectiveStatus: OrderStatus = isExpired ? "expired" : (order.status as OrderStatus);
+
+      const reportId = isReportReady
+        ? version.reportId
+        : isReservationValid && !version
+          ? reservation.reportId
+          : null;
+
+      const readUrl = isReportReady && reportId
+        ? locale === "en"
+          ? `/en/bao-cao/${encodeURIComponent(reportId)}`
+          : `/bao-cao/${encodeURIComponent(reportId)}`
+        : null;
+
+      const supportUrl =
+        locale === "en"
+          ? `/en/lien-he?orderId=${encodeURIComponent(order.id)}`
+          : `/lien-he?orderId=${encodeURIComponent(order.id)}`;
+
+      return {
+        id: order.id,
+        orderId: order.id,
+        invoiceNumber: order.invoiceNumber,
+        chartId: order.chartId,
+        profileId: profile.id,
+        profileDisplayName: displayName,
+        sku,
+        productTitle,
+        productName: productTitle,
+        amount: order.amount,
+        currency: order.currency,
+        status: effectiveStatus,
+        orderStatus: effectiveStatus,
+        locale,
+        createdAt: order.createdAt.toISOString(),
+        paidAt: order.paidAt ? order.paidAt.toISOString() : null,
+        reportId,
+        readUrl,
+        supportUrl,
+      };
+    });
+
+    return {
+      version: 1,
+      orders,
+      items: orders,
+      totalCount: orders.length,
+    };
   }
 
   return {
@@ -340,5 +840,9 @@ export function createDatabaseCommerceRepository(
       throw error;
     }
   },
+  readAccountLibrary,
+  readOrderHistory,
   };
 }
+
+export type CommerceRepository = ReturnType<typeof createDatabaseCommerceRepository>;
