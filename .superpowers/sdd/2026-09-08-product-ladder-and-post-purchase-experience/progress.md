@@ -42,7 +42,19 @@
   - Extended terminal-failure report query projection with order invoice, timestamps, and customer support contact fields.
   - Added integration test proving report retry/recovery does not mutate commerce orders or payment events (R-AUTO-22).
   - Preserved deferred scope: founder terminal-failure alerts, user-facing UI, and `SEPAY_ENV=disabled`.
-- WP-06 Terra correction pass implemented and pending scoped re-review:
+- WP-06 Terra correction pass completed and scoped re-review approved:
   - Report publication now requires an explicit validated public HTTPS origin and recipient fingerprint secret.
   - Terminal-failure projection now requires one unambiguous set of paid-order and support fields.
   - R-AUTO-22 now snapshots commerce and payment rows around the real invalid-output recovery command.
+- WP-06 server slice is complete in commits `b7613f5` and `3809a7d`.
+- WP-11 is deferred because its remaining work is user-facing UI owned by the
+  dedicated UI artifact branch.
+- WP-12 is deferred pending its founder price-test decision, completion of all
+  prerequisites, and the required clean 14-day baseline.
+- WP-13 is deferred to the dedicated UI artifact branch and founder visual
+  acceptance.
+- WP-14 remains founder/Product-owned and is not an implementation task for
+  this workflow.
+- Continue with WP-10 analytics and privacy instrumentation, which is
+  independent of the deferred catalog, pricing, payment activation, and visual
+  UI decisions.
