@@ -139,6 +139,16 @@ function validateIntegerLimit(
   return val;
 }
 
+function toTextArraySql(items: readonly string[]) {
+  if (items.length === 0) {
+    return sql`ARRAY[]::text[]`;
+  }
+  return sql`ARRAY[${sql.join(
+    items.map((item) => sql`${item}`),
+    sql`, `,
+  )}]::text[]`;
+}
+
 export function createKnowledgeRetrievalService(dependencies: {
   database: Database;
   vectorRetrieval?: VectorRetrievalDependency;
@@ -407,7 +417,7 @@ export function createKnowledgeRetrievalService(dependencies: {
                     AND c.locale = ${query.locale}
                     AND c.knowledge_version = ${query.knowledgeVersion}
                     AND c.report_sections @> ${querySectionJson}::jsonb
-                    AND c.passage_id = ANY(${vectorOnlyIds}::text[])
+                    AND c.passage_id = ANY(${toTextArraySql(vectorOnlyIds)})
                 `,
               );
 
@@ -554,25 +564,25 @@ export function createKnowledgeRetrievalService(dependencies: {
       const hasTopics = query.topics && query.topics.length > 0;
 
       const patternScoreSql = hasPatterns
-        ? sql`CASE WHEN c.metadata->'patterns' ?| ${query.patternIds}::text[] THEN 100 ELSE 0 END`
+        ? sql`CASE WHEN c.metadata->'patterns' ?| ${toTextArraySql(query.patternIds!)} THEN 100 ELSE 0 END`
         : sql`0`;
       const palaceScoreSql = hasPalaces
-        ? sql`CASE WHEN c.metadata->'palaces' ?| ${query.palaceIds}::text[] THEN 40 ELSE 0 END`
+        ? sql`CASE WHEN c.metadata->'palaces' ?| ${toTextArraySql(query.palaceIds!)} THEN 40 ELSE 0 END`
         : sql`0`;
       const starScoreSql = hasStars
-        ? sql`CASE WHEN c.metadata->'stars' ?| ${query.starIds}::text[] THEN 30 ELSE 0 END`
+        ? sql`CASE WHEN c.metadata->'stars' ?| ${toTextArraySql(query.starIds!)} THEN 30 ELSE 0 END`
         : sql`0`;
       const transformationScoreSql = hasTransformations
-        ? sql`CASE WHEN c.metadata->'transformations' ?| ${query.transformationIds}::text[] THEN 20 ELSE 0 END`
+        ? sql`CASE WHEN c.metadata->'transformations' ?| ${toTextArraySql(query.transformationIds!)} THEN 20 ELSE 0 END`
         : sql`0`;
       const brightnessScoreSql = hasBrightness
-        ? sql`CASE WHEN c.metadata->'brightness' ?| ${query.brightnessIds}::text[] THEN 10 ELSE 0 END`
+        ? sql`CASE WHEN c.metadata->'brightness' ?| ${toTextArraySql(query.brightnessIds!)} THEN 10 ELSE 0 END`
         : sql`0`;
       const relationScoreSql = hasRelations
-        ? sql`CASE WHEN c.metadata->'relations' ?| ${query.relationIds}::text[] THEN 8 ELSE 0 END`
+        ? sql`CASE WHEN c.metadata->'relations' ?| ${toTextArraySql(query.relationIds!)} THEN 8 ELSE 0 END`
         : sql`0`;
       const topicScoreSql = hasTopics
-        ? sql`CASE WHEN c.metadata->'topics' ?| ${query.topics}::text[] THEN 4 ELSE 0 END`
+        ? sql`CASE WHEN c.metadata->'topics' ?| ${toTextArraySql(query.topics!)} THEN 4 ELSE 0 END`
         : sql`0`;
 
       const textRankSql = orQueryTokens.length > 0

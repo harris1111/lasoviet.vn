@@ -1,12 +1,14 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { describe, expect, it, vi } from "vitest";
 import {
   createKnowledgeRetrievalService,
   KnowledgeError,
   type RetrieveKnowledgeQuery,
   type VectorRetrievalDependency,
+  type ZiweiKnowledgeQueryV3,
 } from "./knowledge-retrieval.service.js";
 import {
   createKnowledgeIngestionService,
@@ -770,4 +772,101 @@ describe("knowledge retrieval service", () => {
       const ingestionService = createKnowledgeIngestionService({ database: mockDb });
       await expect(ingestionService.ingestKnowledge(validManifest)).rejects.toThrow(unrelatedConstraintError);
     });
+
+  describe("retrieveZiweiKnowledge PostgreSQL array binding regression", () => {
+    it("binds all non-empty metadata filter lists as valid PostgreSQL ARRAY[...]::text[] without record tuple casts", async () => {
+      let capturedSql: any;
+      const mockDb = {
+        execute: vi.fn((sqlStatement) => {
+          capturedSql = sqlStatement;
+          return Promise.resolve([]);
+        }),
+      } as any;
+
+      const service = createKnowledgeRetrievalService({ database: mockDb });
+      const query: ZiweiKnowledgeQueryV3 = {
+        locale: "vi",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+        patternIds: ["pattern.a", "pattern.b"],
+        palaceIds: ["ziwei.palace.life", "ziwei.palace.career"],
+        starIds: ["ziwei.star.ziwei", "ziwei.star.tianfu"],
+        transformationIds: ["ziwei.trans.hua_lu", "ziwei.trans.hua_quyen"],
+        brightnessIds: ["ziwei.brightness.prosperous", "ziwei.brightness.bright"],
+        relationIds: ["ziwei.relation.triad", "ziwei.relation.opposite"],
+        topics: ["career", "personality"],
+        text: "menh than tu vi thien phu",
+        maxPassages: 5,
+        maxTotalChars: 5000,
+      };
+
+      await service.retrieveZiweiKnowledge(query);
+
+      expect(mockDb.execute).toHaveBeenCalledTimes(1);
+
+      const pgDialect = new PgDialect();
+      const compiled = pgDialect.sqlToQuery(capturedSql);
+
+      // Must produce valid ARRAY[...]::text[] for all 7 metadata filters
+      expect(compiled.sql).toContain("c.metadata->'patterns' ?| ARRAY[");
+      expect(compiled.sql).toContain("c.metadata->'palaces' ?| ARRAY[");
+      expect(compiled.sql).toContain("c.metadata->'stars' ?| ARRAY[");
+      expect(compiled.sql).toContain("c.metadata->'transformations' ?| ARRAY[");
+      expect(compiled.sql).toContain("c.metadata->'brightness' ?| ARRAY[");
+      expect(compiled.sql).toContain("c.metadata->'relations' ?| ARRAY[");
+      expect(compiled.sql).toContain("c.metadata->'topics' ?| ARRAY[");
+
+      // Must never produce record-cast expression ($n, $m)::text[] (PostgreSQL error 42846)
+      const recordTupleCastRegex = /\(\$\d+(?:,\s*\$\d+)*\)::text\[\]/;
+      expect(compiled.sql).not.toMatch(recordTupleCastRegex);
+
+      // Verify parameters are bound in order and contain all filter values
+      expect(compiled.params).toEqual(
+        expect.arrayContaining([
+          "pattern.a",
+          "pattern.b",
+          "ziwei.palace.life",
+          "ziwei.palace.career",
+          "ziwei.star.ziwei",
+          "ziwei.star.tianfu",
+          "ziwei.trans.hua_lu",
+          "ziwei.trans.hua_quyen",
+          "ziwei.brightness.prosperous",
+          "ziwei.brightness.bright",
+          "ziwei.relation.triad",
+          "ziwei.relation.opposite",
+          "career",
+          "personality",
+        ]),
+      );
+    });
+
+    it("evaluates scores to 0 without binding array expressions when metadata filters are omitted", async () => {
+      let capturedSql: any;
+      const mockDb = {
+        execute: vi.fn((sqlStatement) => {
+          capturedSql = sqlStatement;
+          return Promise.resolve([]);
+        }),
+      } as any;
+
+      const service = createKnowledgeRetrievalService({ database: mockDb });
+      await service.retrieveZiweiKnowledge({
+        locale: "vi",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+        text: "menh than",
+        maxPassages: 2,
+        maxTotalChars: 1800,
+      });
+
+      expect(mockDb.execute).toHaveBeenCalledTimes(1);
+
+      const pgDialect = new PgDialect();
+      const compiled = pgDialect.sqlToQuery(capturedSql);
+
+      expect(compiled.sql).not.toContain("ARRAY[");
+      const recordTupleCastRegex = /\(\$\d+(?:,\s*\$\d+)*\)::text\[\]/;
+      expect(compiled.sql).not.toMatch(recordTupleCastRegex);
+      expect(compiled.sql).toContain("(0 + 0 + 0 + 0 + 0 + 0 + 0) DESC");
+    });
+  });
 });
