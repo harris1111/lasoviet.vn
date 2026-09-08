@@ -3,4 +3,3 @@ ALTER TABLE "knowledge_chunks"
 
 CREATE INDEX "knowledge_chunks_metadata_idx"
   ON "knowledge_chunks" USING gin ("metadata");
-
