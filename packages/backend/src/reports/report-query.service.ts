@@ -94,7 +94,7 @@ export function createReportQueryService(options: {
         return notFound();
       }
 
-      const { reservation, version, evidenceItems } = record;
+      const { reservation, order, version, evidenceItems } = record;
 
       if (
         (reservation.locale !== "vi" && reservation.locale !== "en") ||
@@ -122,6 +122,13 @@ export function createReportQueryService(options: {
 
       if (!version) {
         if (reservationFulfillmentStatus === "terminal_failure") {
+          const paymentTime = (order.paidAt ?? order.createdAt).toISOString();
+          const updateTime = reservation.updatedAt.toISOString();
+          const supportSubject =
+            reservation.locale === "en"
+              ? `[La So Viet] Report support for order ${order.invoiceNumber}`
+              : `[Lá Số Việt] Hỗ trợ báo cáo đơn hàng ${order.invoiceNumber}`;
+
           const failedParse = ReportFailedViewV1Schema.safeParse({
             version: 1,
             state: "failed",
@@ -130,6 +137,14 @@ export function createReportQueryService(options: {
             locale: reservation.locale,
             sku: reservation.sku,
             fulfillmentStatus: "terminal_failure",
+            invoiceNumber: order.invoiceNumber,
+            paymentReceivedAt: paymentTime,
+            paidAt: paymentTime,
+            reportStatusUpdatedAt: updateTime,
+            statusUpdatedAt: updateTime,
+            supportEmail: "support@lasoviet.vn",
+            supportSubject,
+            supportReference: order.invoiceNumber,
           });
           if (!failedParse.success) {
             throw new ReportQueryDataError();

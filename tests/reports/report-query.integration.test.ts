@@ -1612,10 +1612,11 @@ describe("report query integration test with real database", () => {
     const reportVersionDId = randomUUID();
     const orderDId = randomUUID();
     const entitlementDId = randomUUID();
+    const invoiceNumberD = "INV-D-FAILED-" + randomUUID().slice(0, 8);
 
     await database.insert(commerceOrders).values({
       id: orderDId,
-      invoiceNumber: "INV-D-FAILED-" + randomUUID().slice(0, 8),
+      invoiceNumber: invoiceNumberD,
       chartId: ownerD.chartId,
       chartVersionId: ownerD.chartVersionId,
       ownerId: ownerD.ownerId,
@@ -1659,6 +1660,13 @@ describe("report query integration test with real database", () => {
     if (serviceResult4.ok) {
       expect(serviceResult4.value.state).toBe("failed");
       expect(serviceResult4.value.reportId).toBe(reportDId);
+      expect((serviceResult4.value as any).invoiceNumber).toBe(invoiceNumberD);
+      expect((serviceResult4.value as any).supportEmail).toBe("support@lasoviet.vn");
+      expect((serviceResult4.value as any).supportSubject).toBe(`[Lá Số Việt] Hỗ trợ báo cáo đơn hàng ${invoiceNumberD}`);
+      expect((serviceResult4.value as any).supportReference).toBe(invoiceNumberD);
+      expect((serviceResult4.value as any).paymentReceivedAt).toBeDefined();
+      expect((serviceResult4.value as any).reportStatusUpdatedAt).toBeDefined();
+      expect((serviceResult4.value as any).lastErrorCode).toBeUndefined();
     }
   }, containerTimeoutMs);
 

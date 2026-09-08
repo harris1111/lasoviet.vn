@@ -28,6 +28,42 @@ export const AuthEmailRequestSchema = z
   .strict();
 export type AuthEmailRequest = z.infer<typeof AuthEmailRequestSchema>;
 
+export const ReportReadyEmailRequestSchema = z
+  .object({
+    version: z.literal(1),
+    kind: z.literal("report_ready"),
+    idempotencyKey: nonEmpty,
+    recipient: z.email().transform((value) => value.trim().toLowerCase()),
+    locale: z.enum(["vi", "en"]),
+    actionUrl: z.url(),
+    requestId: nonEmpty,
+  })
+  .strict();
+export type ReportReadyEmailRequest = z.infer<typeof ReportReadyEmailRequestSchema>;
+
+export const PersistedEmailDeliveryRequestSchema = z.discriminatedUnion("kind", [
+  AuthEmailRequestSchema.extend({ kind: z.literal("email_verification") }),
+  AuthEmailRequestSchema.extend({ kind: z.literal("password_reset") }),
+  ReportReadyEmailRequestSchema,
+]);
+export type PersistedEmailDeliveryRequest = z.infer<
+  typeof PersistedEmailDeliveryRequestSchema
+>;
+
+export function canonicalizeEmailDeliveryRequest(
+  request: PersistedEmailDeliveryRequest,
+): string {
+  return JSON.stringify({
+    version: request.version,
+    kind: request.kind,
+    idempotencyKey: request.idempotencyKey.trim(),
+    recipient: request.recipient.trim().toLowerCase(),
+    locale: request.locale,
+    actionUrl: request.actionUrl,
+    requestId: request.requestId.trim(),
+  });
+}
+
 export const AuthEmailDeliveryOutcomeSchema = z
   .object({
     status: z.literal("sent"),

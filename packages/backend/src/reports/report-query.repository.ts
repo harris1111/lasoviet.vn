@@ -16,6 +16,7 @@ import {
 
 export type AuthorizedReportQueryRecord = {
   reservation: typeof reportReservations.$inferSelect;
+  order: typeof commerceOrders.$inferSelect;
   version: typeof reportVersions.$inferSelect | null;
   evidenceItems: Array<typeof evidenceItems.$inferSelect>;
 };
@@ -169,6 +170,7 @@ export function createDatabaseReportQueryRepository(
 
         return {
           reservation: reservationRecord,
+          order: record.order,
           version,
           evidenceItems: evidenceList,
         };
@@ -176,6 +178,7 @@ export function createDatabaseReportQueryRepository(
 
       return {
         reservation: reservationRecord,
+        order: record.order,
         version: null,
         evidenceItems: [],
       };

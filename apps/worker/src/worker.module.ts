@@ -147,7 +147,10 @@ export function createReportGenerateRunner(options?: {
     database,
     knowledgeRetrieval,
   });
-  const versionRepository = createDatabaseReportVersionRepository(database);
+  const versionRepository = createDatabaseReportVersionRepository(database, {
+    betterAuthUrl: environment.value.betterAuthUrl,
+    recipientFingerprintSecret: environment.value.internalActorSecret,
+  });
   const provider =
     options?.provider ??
     (environment.value.ai.enabled

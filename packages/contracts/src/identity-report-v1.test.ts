@@ -274,6 +274,48 @@ describe("report view v1 contract", () => {
     expect(ReportViewV1Schema.safeParse(failed).success).toBe(true);
   });
 
+  it("validates terminal failure view with bounded support and order lineage fields", () => {
+    const failedWithSupport = {
+      version: 1,
+      state: "failed",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "terminal_failure",
+      invoiceNumber: "LSV-INV-001",
+      paymentReceivedAt: "2026-09-08T00:00:00.000Z",
+      paidAt: "2026-09-08T00:00:00.000Z",
+      reportStatusUpdatedAt: "2026-09-08T00:05:00.000Z",
+      statusUpdatedAt: "2026-09-08T00:05:00.000Z",
+      supportEmail: "support@lasoviet.vn",
+      supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
+      supportReference: "LSV-INV-001",
+    };
+    expect(ReportViewV1Schema.safeParse(failedWithSupport).success).toBe(true);
+
+    expect(
+      ReportViewV1Schema.safeParse({
+        ...failedWithSupport,
+        supportEmail: "other@example.com",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      ReportViewV1Schema.safeParse({
+        ...failedWithSupport,
+        paymentReceivedAt: "invalid-date",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      ReportViewV1Schema.safeParse({
+        ...failedWithSupport,
+        lastErrorCode: "AI_TIMEOUT",
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects extra fields on all states", () => {
     const pending = {
       version: 1,

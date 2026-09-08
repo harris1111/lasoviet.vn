@@ -120,12 +120,17 @@ export {
   AuthEmailRequestSchema,
   AuthEmailServiceClaimsSchema,
   canonicalizeAuthEmailRequest,
+  ReportReadyEmailRequestSchema,
+  PersistedEmailDeliveryRequestSchema,
+  canonicalizeEmailDeliveryRequest,
 } from "./auth-email.js";
 export type {
   AuthEmailKind,
   AuthEmailDeliveryOutcome,
   AuthEmailRequest,
   AuthEmailServiceClaims,
+  ReportReadyEmailRequest,
+  PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
 
 export {

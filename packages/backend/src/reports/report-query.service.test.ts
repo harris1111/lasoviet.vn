@@ -204,10 +204,26 @@ function createSampleRecord(overrides: Partial<AuthorizedReportQueryRecord> = {}
     ...(overrides.reservation || {}),
   } as any;
 
+  const order = {
+    id: "ord-uuid-1",
+    invoiceNumber: "INV-SAMPLE-001",
+    chartId: "chart-1",
+    chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+    ownerId: "owner-1",
+    sku: "ZIWEI-IDENTITY-P0",
+    amount: 100000,
+    currency: "VND",
+    locale: "vi",
+    status: "paid",
+    createdAt: new Date("2026-09-05T00:00:00+07:00"),
+    paidAt: new Date("2026-09-05T00:01:00+07:00"),
+    ...(overrides.order || {}),
+  } as any;
+
   const version = overrides.version === undefined ? null : overrides.version;
   const evidenceItems = overrides.evidenceItems || [];
 
-  return { reservation, version, evidenceItems };
+  return { reservation, order, version, evidenceItems };
 }
 
 describe("report query service", () => {
@@ -459,8 +475,18 @@ describe("report query service", () => {
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
       fulfillmentStatus: "terminal_failure",
+      invoiceNumber: "INV-SAMPLE-001",
+      paymentReceivedAt: "2026-09-04T17:01:00.000Z",
+      paidAt: "2026-09-04T17:01:00.000Z",
+      reportStatusUpdatedAt: "2026-09-04T17:00:00.000Z",
+      statusUpdatedAt: "2026-09-04T17:00:00.000Z",
+      supportEmail: "support@lasoviet.vn",
+      supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng INV-SAMPLE-001",
+      supportReference: "INV-SAMPLE-001",
     });
     expect((result.value as any).lastErrorCode).toBeUndefined();
+    expect((result.value as any).providerId).toBeUndefined();
+    expect((result.value as any).modelId).toBeUndefined();
   });
 
   it("fails closed on locale, SKU, or evidence mismatch by throwing ReportQueryDataError", async () => {

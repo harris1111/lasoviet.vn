@@ -75,3 +75,69 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
     });
   });
 });
+
+describe("createDatabaseReportVersionRepository - commitImmutableVersion lineage guards", () => {
+  it("rejects commit when BETTER_AUTH_URL is loopback", async () => {
+    const mockTx = {
+      select: vi.fn().mockImplementation(() => ({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+          innerJoin: vi.fn().mockReturnThis(),
+        }),
+      })),
+      update: vi.fn().mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([{ id: "res-1", stateVersion: 1 }]),
+          }),
+        }),
+      }),
+      insert: vi.fn(),
+    };
+
+    const mockDb = {
+      transaction: vi.fn().mockImplementation(async (callback) => {
+        return callback(mockTx);
+      }),
+    };
+
+    const repo = createDatabaseReportVersionRepository(mockDb as never, {
+      betterAuthUrl: "http://127.0.0.1:3000",
+      recipientFingerprintSecret: "secret",
+    });
+
+    const result = await repo.commitImmutableVersion({
+      reportId: "rep-1",
+      reportVersionId: "ver-1",
+      entitlementId: "ent-1",
+      chartVersionId: "chart-1",
+      evidenceVersionId: "ev-1",
+      knowledgeVersionId: "kn-1",
+      promptVersion: "prompt-1",
+      reportConfigVersion: "cfg-1",
+      templateVersion: "tpl-1",
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "prov-1",
+      modelId: "mod-1",
+      structuredContent: {} as never,
+      htmlContent: "<html></html>",
+      jobId: "job-1",
+      workerId: "worker-1",
+      attemptNumber: 1,
+      traceId: "trace-1",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_VERSION_CONFLICT",
+        messageKey: "reports.report_version_conflict",
+        retryable: false,
+      },
+    });
+  });
+});

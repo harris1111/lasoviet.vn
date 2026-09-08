@@ -19,9 +19,11 @@ import {
   calculationRuns,
   commerceEntitlements,
   commerceOrders,
+  commercePaymentEvents,
   createDatabase,
   evidenceItems,
   evidenceSets,
+  notificationDeliveries,
   outbox,
   reportGenerationAttempts,
   reportQueueJobs,
@@ -68,6 +70,9 @@ const branchIds = [
   "ziwei.branch.dog",
   "ziwei.branch.pig",
 ] as const;
+
+process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
 
 function sampleChart(): NormalizedZiweiChartV1 {
   return {
@@ -619,6 +624,7 @@ describe("immutable report version repository integration", () => {
       locale: "vi",
       status: "paid",
       createdAt: now,
+      paidAt: now,
     });
     await database.insert(commerceEntitlements).values({
       id: entitlementId,
@@ -773,6 +779,25 @@ describe("immutable report version repository integration", () => {
       renderVersion: "identity-report-pdf.v1",
     });
 
+    const allNotifications = await database.select().from(notificationDeliveries);
+    const matchingNotification = allNotifications.filter(
+      (n) => n.idempotencyKey === `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
+    );
+    expect(matchingNotification.length).toBe(1);
+    expect(matchingNotification[0]?.kind).toBe("report_ready");
+    expect(matchingNotification[0]?.status).toBe("pending");
+    expect(matchingNotification[0]?.attemptCount).toBe(0);
+    expect(matchingNotification[0]?.recipientFingerprint).toBeDefined();
+    expect(matchingNotification[0]?.requestPayload).toEqual({
+      version: 1,
+      kind: "report_ready",
+      idempotencyKey: `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
+      recipient: `${fixture.userId}@example.test`,
+      locale: "vi",
+      actionUrl: `https://lasoviet.vn/bao-cao/${fixture.reportId}`,
+      requestId: `trace-${fixture.jobId}`,
+    });
+
     await database.$client.end();
   });
 
@@ -866,6 +891,12 @@ describe("immutable report version repository integration", () => {
     const allOutbox = await database.select().from(outbox);
     const matchingOutbox = allOutbox.filter((o) => o.idempotencyKey === `pdf-request:${fixture.reportVersionId}:identity-report-pdf.v1`);
     expect(matchingOutbox.length).toBe(1);
+
+    const allNotifications = await database.select().from(notificationDeliveries);
+    const matchingNotifications = allNotifications.filter(
+      (n) => n.idempotencyKey === `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
+    );
+    expect(matchingNotifications.length).toBe(1);
 
     await database.$client.end();
   });
@@ -1200,6 +1231,208 @@ describe("immutable report version repository integration", () => {
 
     await database.$client.end();
   });
+
+  it("rolls back publication transaction when recipient lineage is unverified, anonymous, unpaid, or loopback origin", async () => {
+    const database = createDatabase(databaseUrl);
+
+    // 1. Unverified email rollback
+    const unverifiedFixture = await seedReservationAndJobFixture(database, "unverified-email");
+    await database
+      .update(authUsers)
+      .set({ emailVerified: false })
+      .where(eq(authUsers.id, unverifiedFixture.userId));
+
+    const repo = createDatabaseReportVersionRepository(database);
+    const structuredContent = sampleVietnameseReport();
+    const htmlContent = "<html><body>Unverified test</body></html>";
+
+    const unverifiedResult = await repo.commitImmutableVersion({
+      reportId: unverifiedFixture.reportId,
+      reportVersionId: unverifiedFixture.reportVersionId,
+      entitlementId: unverifiedFixture.entitlementId,
+      chartVersionId: unverifiedFixture.chartVersionId,
+      evidenceVersionId: unverifiedFixture.evidenceVersionId,
+      knowledgeVersionId: unverifiedFixture.knowledgeVersionId,
+      promptVersion: "ziwei.identity.prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent,
+      htmlContent,
+      jobId: unverifiedFixture.jobId,
+      workerId: unverifiedFixture.workerId,
+      attemptNumber: 1,
+      traceId: `trace-${unverifiedFixture.jobId}`,
+    });
+
+    expect(unverifiedResult.ok).toBe(false);
+    expect(unverifiedResult.error?.code).toBe("REPORT_VERSION_CONFLICT");
+
+    // Assert rollback: no report version inserted, reservation still generating, no notification
+    const versions1 = await database.select().from(reportVersions);
+    expect(versions1.find((v) => v.reportVersionId === unverifiedFixture.reportVersionId)).toBeUndefined();
+    const [res1] = await database.select().from(reportReservations).where(eq(reportReservations.reportVersionId, unverifiedFixture.reportVersionId));
+    expect(res1?.status).toBe("generating");
+    const notifs1 = await database.select().from(notificationDeliveries);
+    expect(notifs1.find((n) => n.idempotencyKey.includes(unverifiedFixture.reportVersionId))).toBeUndefined();
+
+    // 2. Anonymous user rollback
+    const anonFixture = await seedReservationAndJobFixture(database, "anonymous-lineage");
+    await database
+      .update(authUsers)
+      .set({ isAnonymous: true })
+      .where(eq(authUsers.id, anonFixture.userId));
+
+    const anonResult = await repo.commitImmutableVersion({
+      reportId: anonFixture.reportId,
+      reportVersionId: anonFixture.reportVersionId,
+      entitlementId: anonFixture.entitlementId,
+      chartVersionId: anonFixture.chartVersionId,
+      evidenceVersionId: anonFixture.evidenceVersionId,
+      knowledgeVersionId: anonFixture.knowledgeVersionId,
+      promptVersion: "ziwei.identity.prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent,
+      htmlContent,
+      jobId: anonFixture.jobId,
+      workerId: anonFixture.workerId,
+      attemptNumber: 1,
+      traceId: `trace-${anonFixture.jobId}`,
+    });
+
+    expect(anonResult.ok).toBe(false);
+    expect(anonResult.error?.code).toBe("REPORT_VERSION_CONFLICT");
+    const versions2 = await database.select().from(reportVersions);
+    expect(versions2.find((v) => v.reportVersionId === anonFixture.reportVersionId)).toBeUndefined();
+
+    // 3. Null paidAt timestamp rollback
+    const unpaidFixture = await seedReservationAndJobFixture(database, "unpaid-lineage");
+    await database
+      .update(commerceOrders)
+      .set({ paidAt: null })
+      .where(eq(commerceOrders.id, unpaidFixture.orderId));
+
+    const unpaidResult = await repo.commitImmutableVersion({
+      reportId: unpaidFixture.reportId,
+      reportVersionId: unpaidFixture.reportVersionId,
+      entitlementId: unpaidFixture.entitlementId,
+      chartVersionId: unpaidFixture.chartVersionId,
+      evidenceVersionId: unpaidFixture.evidenceVersionId,
+      knowledgeVersionId: unpaidFixture.knowledgeVersionId,
+      promptVersion: "ziwei.identity.prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent,
+      htmlContent,
+      jobId: unpaidFixture.jobId,
+      workerId: unpaidFixture.workerId,
+      attemptNumber: 1,
+      traceId: `trace-${unpaidFixture.jobId}`,
+    });
+
+    expect(unpaidResult.ok).toBe(false);
+    expect(unpaidResult.error?.code).toBe("REPORT_VERSION_CONFLICT");
+
+    // 4. Loopback origin rollback
+    const loopbackFixture = await seedReservationAndJobFixture(database, "loopback-origin");
+    const loopbackRepo = createDatabaseReportVersionRepository(database, {
+      betterAuthUrl: "http://127.0.0.1:49152",
+      recipientFingerprintSecret: "test-secret",
+    });
+
+    const loopbackResult = await loopbackRepo.commitImmutableVersion({
+      reportId: loopbackFixture.reportId,
+      reportVersionId: loopbackFixture.reportVersionId,
+      entitlementId: loopbackFixture.entitlementId,
+      chartVersionId: loopbackFixture.chartVersionId,
+      evidenceVersionId: loopbackFixture.evidenceVersionId,
+      knowledgeVersionId: loopbackFixture.knowledgeVersionId,
+      promptVersion: "ziwei.identity.prompt.v1",
+      reportConfigVersion: "identity-report-config.v1",
+      templateVersion: "identity-report-html.v1",
+      renderVersion: "identity-report-pdf.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "openai",
+      modelId: "gpt-4o",
+      structuredContent,
+      htmlContent,
+      jobId: loopbackFixture.jobId,
+      workerId: loopbackFixture.workerId,
+      attemptNumber: 1,
+      traceId: `trace-${loopbackFixture.jobId}`,
+    });
+
+    expect(loopbackResult.ok).toBe(false);
+    expect(loopbackResult.error?.code).toBe("REPORT_VERSION_CONFLICT");
+
+    await database.$client.end();
+  });
+
+  it("verifies report retry and recovery leaves commerce orders and payment events unchanged (R-AUTO-22)", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedReservationAndJobFixture(database, "r-auto-22-payment-isolation");
+
+    // Add a real payment event for this order
+    await database.insert(commercePaymentEvents).values({
+      id: randomUUID(),
+      orderId: fixture.orderId,
+      providerEventId: `sepay-evt-${randomUUID()}`,
+      amount: 79_000,
+      currency: "VND",
+      status: "paid",
+      createdAt: new Date(),
+    });
+
+    // Snapshot commerce_orders and commerce_payment_events before retry
+    const ordersBefore = await database.select().from(commerceOrders);
+    const eventsBefore = await database.select().from(commercePaymentEvents);
+
+    // Simulate retry attempt via report-version repository startOrReuseAttempt
+    const repo = createDatabaseReportVersionRepository(database);
+    const attemptResult = await repo.startOrReuseAttempt({
+      jobId: fixture.jobId,
+      attemptNumber: 2,
+      reportVersionId: fixture.reportVersionId,
+      providerId: "openai",
+      modelId: "gpt-4o",
+    });
+    expect(attemptResult.ok).toBe(true);
+
+    // Record failure attempt
+    const failResult = await repo.recordFailedAttempt({
+      jobId: fixture.jobId,
+      attemptNumber: 2,
+      errorCode: "AI_TIMEOUT",
+    });
+    expect(failResult.ok).toBe(true);
+
+    // Snapshot commerce_orders and commerce_payment_events after retry
+    const ordersAfter = await database.select().from(commerceOrders);
+    const eventsAfter = await database.select().from(commercePaymentEvents);
+
+    expect(ordersAfter.length).toBe(ordersBefore.length);
+    expect(eventsAfter.length).toBe(eventsBefore.length);
+    expect(ordersAfter).toEqual(ordersBefore);
+    expect(eventsAfter).toEqual(eventsBefore);
+
+    await database.$client.end();
+  });
 });
 
 describe("report generation orchestration and worker integration (Slice B)", () => {
@@ -1402,6 +1635,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       locale,
       status: "paid",
       createdAt: now,
+      paidAt: now,
     });
     await database.insert(commerceEntitlements).values({
       id: entitlementId,

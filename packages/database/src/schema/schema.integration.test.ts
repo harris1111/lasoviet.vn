@@ -361,6 +361,32 @@ describe("database schema integration", () => {
       sentAt: null,
     });
 
+    const [reportReadyNotification] = await database
+      .insert(notificationDeliveries)
+      .values({
+        idempotencyKey: "report-ready-email:ver-schema-test:acc-schema-test",
+        kind: "report_ready",
+        recipientFingerprint: "recipient-fingerprint-schema-test",
+        requestPayload: {
+          version: 1,
+          kind: "report_ready",
+          idempotencyKey: "report-ready-email:ver-schema-test:acc-schema-test",
+          recipient: "schema-test@example.test",
+          locale: "vi",
+          actionUrl: "https://lasoviet.vn/bao-cao/report-schema-test",
+          requestId: "trace-schema-test",
+        },
+      })
+      .returning();
+    expect(reportReadyNotification).toMatchObject({
+      idempotencyKey: "report-ready-email:ver-schema-test:acc-schema-test",
+      kind: "report_ready",
+      status: "pending",
+      attemptCount: 0,
+      sendingLeaseExpiresAt: null,
+      sentAt: null,
+    });
+
     await database.$client.end();
   }, 120_000);
 
