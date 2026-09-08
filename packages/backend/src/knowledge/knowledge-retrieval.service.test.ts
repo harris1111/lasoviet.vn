@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
   createKnowledgeRetrievalService,
@@ -8,6 +10,7 @@ import {
 } from "./knowledge-retrieval.service.js";
 import {
   createKnowledgeIngestionService,
+  validateKnowledgeManifest,
   type KnowledgeManifestV1,
 } from "./knowledge-ingestion.service.js";
 
@@ -46,6 +49,107 @@ describe("knowledge retrieval service", () => {
         }
     ]
 };
+
+
+  describe("metadata ingestion and retrieval preservation", () => {
+    it("preserves chunk metadata during ingestion and returns it unchanged on retrieval", async () => {
+      const metadata = {
+        topics: ["career"],
+        palaces: ["ziwei.palace.career"],
+        stars: ["ziwei.star.wuqu"],
+        brightness: ["ziwei.brightness.prosperous"],
+        transformations: [],
+        relations: ["triad"],
+        patterns: [],
+        sourceType: "classical" as const,
+        languageOrigin: "zh" as const,
+        priority: 3 as const,
+      };
+
+      const manifestWithMetadata: any = {
+        ...validManifest,
+        documentId: "ziwei-career-metadata-doc",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+        permittedUse: "reference_rewrite",
+        chunks: [
+          {
+            ...validManifest.chunks[0],
+            passageId: "vi-ziwei-metadata-001",
+            metadata,
+          },
+        ],
+      };
+
+      let persistedChunkRows: any[] = [];
+      const mockDb = {
+        select: () => ({
+          from: () => ({
+            where: () => {
+              const res: any = Promise.resolve([]);
+              res.limit = async () => [];
+              return res;
+            },
+          }),
+        }),
+        transaction: async (callback: any) => {
+          const tx = {
+            insert: (table: any) => ({
+              values: (values: any) => {
+                if (Array.isArray(values)) {
+                  persistedChunkRows = values;
+                  return {
+                    returning: async () => values.map((v: any) => ({ id: v.id })),
+                  };
+                }
+                return {
+                  onConflictDoNothing: () => ({
+                    returning: async () => [values],
+                  }),
+                };
+              },
+            }),
+          };
+          return callback(tx);
+        },
+        execute: vi.fn().mockImplementation(async () => [
+          {
+            id: "id-meta",
+            passage_id: "vi-ziwei-metadata-001",
+            document_id: "doc-meta",
+            discipline: "ziwei",
+            locale: "vi",
+            report_sections: ["data_and_method"],
+            knowledge_version: "ziwei.comprehensive.knowledge.v3",
+            content: manifestWithMetadata.chunks[0].content,
+            content_hash: manifestWithMetadata.chunks[0].contentHash,
+            source_attribution: manifestWithMetadata.sourceAttribution,
+            permitted_use: manifestWithMetadata.permittedUse,
+            metadata: persistedChunkRows[0]?.metadata ?? metadata,
+            rank: 1.0,
+          },
+        ]),
+      } as any;
+
+      const ingestionService = createKnowledgeIngestionService({ database: mockDb });
+      const ingestResult = await ingestionService.ingestKnowledge(manifestWithMetadata);
+
+      expect(ingestResult.ok).toBe(true);
+      expect(persistedChunkRows).toHaveLength(1);
+      expect(persistedChunkRows[0].metadata).toEqual(metadata);
+
+      const retrievalService = createKnowledgeRetrievalService({ database: mockDb });
+      const passages = await retrievalService.retrieveKnowledge({
+        discipline: "ziwei",
+        locale: "vi",
+        reportSection: "data_and_method",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+        text: "nguyen ly luan giai",
+      });
+
+      expect(passages).toHaveLength(1);
+      expect(passages[0].metadata).toEqual(metadata);
+    });
+  });
 
   describe("manifest validation and ingestion invariants", () => {
     it("rejects unapproved manifest with KNOWLEDGE_UNAPPROVED", async () => {
@@ -124,6 +228,84 @@ describe("knowledge retrieval service", () => {
 
       expect(result.ok).toBe(false);
       expect((result as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
+    });
+
+    it("rejects in-root symlink pointing to an external target outside repository root before DB use", async () => {
+      const tempBase = mkdtempSync(join(tmpdir(), "lasoviet-symlink-escape-"));
+      try {
+        const repoDir = join(tempBase, "repo");
+        const externalDir = join(tempBase, "external");
+        mkdirSync(repoDir, { recursive: true });
+        mkdirSync(externalDir, { recursive: true });
+
+        const externalTarget = join(externalDir, "secret-outside-repo.md");
+        writeFileSync(externalTarget, "secret data outside repository");
+
+        const symlinkInRepo = join(repoDir, "symlink-source.md");
+        symlinkSync(externalTarget, symlinkInRepo);
+
+        const symlinkManifest: KnowledgeManifestV1 = {
+          ...validManifest,
+          sourcePath: "symlink-source.md",
+        };
+
+        const mockDb = {
+          select: vi.fn(),
+          transaction: vi.fn(),
+          execute: vi.fn(),
+        } as any;
+
+        const ingestionService = createKnowledgeIngestionService({
+          database: mockDb,
+          repositoryRoot: repoDir,
+        });
+
+        const result = await ingestionService.ingestKnowledge(symlinkManifest);
+
+        expect(result.ok).toBe(false);
+        expect((result as any).code).toBe("KNOWLEDGE_METADATA_INVALID");
+        // Must not expose canonical external path
+        const errorMessage = (result as any).error?.message;
+        expect(errorMessage).toBeDefined();
+        expect(errorMessage).not.toContain(externalDir);
+        expect(errorMessage).not.toContain("secret-outside-repo");
+        // DB operations must not be touched before validation failure
+        expect(mockDb.select).not.toHaveBeenCalled();
+        expect(mockDb.transaction).not.toHaveBeenCalled();
+        expect(mockDb.execute).not.toHaveBeenCalled();
+      } finally {
+        rmSync(tempBase, { recursive: true, force: true });
+      }
+    });
+
+    it("accepts in-root symlink when canonical target remains inside repository root", () => {
+      const tempBase = mkdtempSync(join(tmpdir(), "lasoviet-symlink-inroot-"));
+      try {
+        const repoDir = join(tempBase, "repo");
+        mkdirSync(repoDir, { recursive: true });
+
+        const internalTarget = join(repoDir, "internal-source.md");
+        writeFileSync(internalTarget, "legitimate internal documentation");
+
+        const inRootSymlink = join(repoDir, "in-root-link.md");
+        symlinkSync(internalTarget, inRootSymlink);
+
+        const inRootManifest: KnowledgeManifestV1 = {
+          ...validManifest,
+          sourcePath: "in-root-link.md",
+        };
+
+        const validation = validateKnowledgeManifest(inRootManifest, {
+          repositoryRoot: repoDir,
+        });
+
+        expect(validation.ok).toBe(true);
+        if (validation.ok) {
+          expect(validation.value.sourcePath).toBe("in-root-link.md");
+        }
+      } finally {
+        rmSync(tempBase, { recursive: true, force: true });
+      }
     });
   });
 

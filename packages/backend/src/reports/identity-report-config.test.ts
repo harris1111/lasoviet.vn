@@ -12,6 +12,12 @@ import {
   CURRENT_REPORT_TEMPLATE_VERSION,
   DETERMINISTIC_CYCLES_NARRATIVE_EN,
   DETERMINISTIC_CYCLES_NARRATIVE_VI,
+  REPORT_CONFIG_VERSION_V3,
+  REPORT_CONTENT_VERSION_COMPREHENSIVE_V1,
+  REPORT_KNOWLEDGE_VERSION_V3,
+  REPORT_PROMPT_VERSION_V3,
+  REPORT_TEMPLATE_VERSION_V3,
+  currentReportVersions,
   REPORT_CONFIG_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
@@ -34,6 +40,32 @@ describe("identity report config", () => {
     expect(CURRENT_REPORT_CONFIG_VERSION).toBe("ziwei.identity.report.v1");
     expect(CURRENT_REPORT_TEMPLATE_VERSION).toBe("identity-report-html.v1");
     expect(CURRENT_REPORT_RENDER_VERSION).toBe("identity-report-pdf.v1");
+
+    expect(REPORT_KNOWLEDGE_VERSION_V3).toBe("ziwei.comprehensive.knowledge.v3");
+    expect(REPORT_PROMPT_VERSION_V3).toBe("ziwei.comprehensive.prompt.v3");
+    expect(REPORT_CONFIG_VERSION_V3).toBe("ziwei.comprehensive.report.v3");
+    expect(REPORT_TEMPLATE_VERSION_V3).toBe("ziwei-comprehensive-html.v1");
+    expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V1).toBe("ziwei-comprehensive.v1");
+  });
+
+  it("currentReportVersions returns V3 for Vietnamese and V2 for English", () => {
+    const viVersions = currentReportVersions("vi");
+    expect(viVersions).toEqual({
+      family: "v3",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v3",
+      reportConfigVersion: "ziwei.comprehensive.report.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+    });
+
+    const enVersions = currentReportVersions("en");
+    expect(enVersions).toEqual({
+      family: "v2",
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2,
+      promptVersion: REPORT_PROMPT_VERSION_V2,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V1,
+      templateVersion: REPORT_TEMPLATE_VERSION_V1,
+    });
   });
 
   it("exports canonical localized section titles covering all 11 sections exactly", () => {

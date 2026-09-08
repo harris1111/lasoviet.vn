@@ -375,6 +375,7 @@ export function BirthProfileForm({
       const profile = buildBirthProfile({
         date: dateResult.isoDate,
         time: timeState,
+        placeLabel: place,
         gender,
         locale,
       });
@@ -521,7 +522,6 @@ export function BirthProfileForm({
                 dateLabel={t("birth.date")}
                 day={day}
                 dayLabel={t("birth.dayLabel")}
-                formatHint={t("birth.formatHint")}
                 locale={locale}
                 lunarLabel={t("birth.lunar")}
                 lunarNotice={t("birth.lunarNotice")}
@@ -534,7 +534,6 @@ export function BirthProfileForm({
                 onYearChange={handleYearChange}
                 place={place}
                 placeLabel={t("birth.placeLabel")}
-                placeNote={t("birth.placeNote")}
                 placePlaceholder={t("birth.placePlaceholder")}
                 solarLabel={t("birth.solar")}
                 subtitle={t("birth.stepSub")}
@@ -591,13 +590,13 @@ export function BirthProfileForm({
                 onEditBirth={handleEditBirth}
                 onEditSubject={handleEditSubject}
                 pending={pending}
-                place={place.trim() ? place.trim() : "—"}
-                placeLabel={t("review.birthPlace")}
+                place={place.trim() ? place.trim() : undefined}
+                placeLabel={place.trim() ? t("review.birthPlace") : undefined}
                 subjectSectionTitle={t("steps.subject")}
                 subtitle={t("review.stepSub")}
                 time={formatReviewTimeSummary(timeState, locale)}
                 timeLabel={t("review.birthTime")}
-                timezone="UTC+7"
+                timezone="Asia/Ho_Chi_Minh"
                 timezoneLabel={t("review.timezone")}
                 title={t("review.stepTitle")}
               />

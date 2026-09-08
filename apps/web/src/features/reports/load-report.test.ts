@@ -74,6 +74,7 @@ const validPendingView = {
 const validReadyView = {
   version: 1 as const,
   state: "ready" as const,
+  contentVersion: "identity.v1" as const,
   reportId: "rep-2",
   reportVersionId: "rep-ver-2",
   locale: "vi" as const,
@@ -96,6 +97,70 @@ const validReadyView = {
     knowledgeVersion: "1.0",
     templateVersion: "identity-report-html.v1",
     createdAt: "2026-09-05T00:00:00.000+07:00",
+  },
+};
+
+
+const validComprehensiveReadyView = {
+  version: 1 as const,
+  state: "ready" as const,
+  contentVersion: "ziwei-comprehensive.v1" as const,
+  reportId: "rep-v3-1",
+  reportVersionId: "rep-ver-v3-1",
+  locale: "vi" as const,
+  sku: "ZIWEI-IDENTITY-P0" as const,
+  fulfillmentStatus: "complete" as const,
+  content: {
+    overview: {
+      title: "Tổng quan bản mệnh",
+      narrative: "Nội dung tổng quan bản mệnh",
+    },
+    coreAxis: {
+      title: "Mệnh, Thân và động lực cốt lõi",
+      narrative: "Nội dung Mệnh Thân",
+    },
+    keyConfigurations: [
+      {
+        title: "Cách cục Tử Phủ Đồng Cung",
+        narrative: "Nội dung cách cục",
+      },
+    ],
+    palaceReadings: [
+      "ziwei.palace.life",
+      "ziwei.palace.siblings",
+      "ziwei.palace.spouse",
+      "ziwei.palace.children",
+      "ziwei.palace.wealth",
+      "ziwei.palace.health",
+      "ziwei.palace.travel",
+      "ziwei.palace.friends",
+      "ziwei.palace.career",
+      "ziwei.palace.property",
+      "ziwei.palace.fortune",
+      "ziwei.palace.parents",
+    ].map((palaceId) => ({
+      palaceId: palaceId as (typeof import("@lasoviet/contracts").ZIWEI_PALACE_IDS)[number],
+      title: `Cung ${palaceId}`,
+      narrative: `Nội dung ${palaceId}`,
+    })),
+    thematicSynthesis: [
+      "career_wealth",
+      "relationships_family",
+      "social_environment",
+      "wellbeing_inner_resources",
+    ].map((id) => ({
+      id: id as (typeof import("@lasoviet/contracts").ZIWEI_THEMATIC_SYNTHESIS_IDS)[number],
+      title: `Chuyên đề ${id}`,
+      narrative: `Nội dung chuyên đề ${id}`,
+    })),
+    strengthsAndTensions: {
+      title: "Điểm mạnh, điểm vướng",
+      narrative: "Nội dung thế mạnh và mâu thuẫn",
+    },
+    practicalDirection: ["Hành động định hướng thực tế 1"],
+  },
+  lineage: {
+    supersedesReportVersionId: null,
   },
 };
 
@@ -261,6 +326,74 @@ describe("createReportLoader", () => {
     const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
 
     await expect(loader.loadReport("rep-unknown-err")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
+  });
+  it("loads comprehensive ready report view (V3) and validates contract", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: validComprehensiveReadyView,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    const result = await loader.loadReport("rep-v3");
+    expect(result).toEqual({
+      ok: true,
+      value: validComprehensiveReadyView,
+    });
+  });
+
+  it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) when V3 payload is malformed", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const malformedV3 = {
+      ...validComprehensiveReadyView,
+      content: {
+        ...validComprehensiveReadyView.content,
+        palaceReadings: validComprehensiveReadyView.content.palaceReadings.slice(0, 5), // missing 7 palaces
+      },
+    };
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: malformedV3,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-malformed-v3")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
+  });
+  it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) when ready view is missing contentVersion discriminator", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const { contentVersion: _cv, ...readyWithoutDiscriminator } = validReadyView;
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: readyWithoutDiscriminator,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-missing-disc")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
+  });
+
+  it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) when ready view has unknown contentVersion discriminator", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const readyWithUnknownDiscriminator = {
+      ...validReadyView,
+      contentVersion: "unknown-discriminator.v99",
+    };
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: readyWithUnknownDiscriminator,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-unknown-disc")).rejects.toThrow(
       new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
     );
   });

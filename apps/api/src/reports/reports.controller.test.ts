@@ -104,6 +104,7 @@ describe("ReportsController HTTP boundary", () => {
     const readyView: any = {
       version: 1,
       state: "ready",
+      contentVersion: "identity.v1",
       reportId: "report-1",
       reportVersionId: "ver-1",
       locale: "vi",

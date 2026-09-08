@@ -1,3 +1,5 @@
+import type { ComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
+import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
 import {
   EvidenceSetV1Schema,
   FrozenIdentityReportFactsV1Schema,
@@ -26,6 +28,13 @@ export type IdentityReportSource = {
   evidence: EvidenceSetV1;
   frozenFacts: FrozenIdentityReportFactsV1;
   knowledgePassages: readonly (ApprovedKnowledgePassage | KnowledgePassageV1)[];
+  comprehensiveFacts?: ComprehensiveZiweiFacts;
+  knowledgePacks?: readonly ZiweiReportKnowledgePack[];
+};
+
+export type ComprehensiveReportSource = IdentityReportSource & {
+  comprehensiveFacts: ComprehensiveZiweiFacts;
+  knowledgePacks: readonly ZiweiReportKnowledgePack[];
 };
 
 const vietnameseSectionPurposes: Record<IdentityReportSectionId, string> = {

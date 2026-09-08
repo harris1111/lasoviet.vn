@@ -14,7 +14,7 @@ export type BirthWizardReviewStepProps = {
   dateLabel: string;
   timeLabel: string;
   genderLabel: string;
-  placeLabel: string;
+  placeLabel?: string;
   timezoneLabel: string;
   disclosure: string;
   guestNotice: string;
@@ -26,7 +26,7 @@ export type BirthWizardReviewStepProps = {
   date: string;
   time: string;
   gender: string;
-  place: string;
+  place?: string;
   timezone: string;
 
   consent: boolean;
@@ -119,8 +119,12 @@ export function BirthWizardReviewStep({
           <dd>{time}</dd>
           <dt>{genderLabel}</dt>
           <dd>{gender}</dd>
-          <dt>{placeLabel}</dt>
-          <dd>{place}</dd>
+          {place && place.trim() ? (
+            <>
+              <dt>{placeLabel}</dt>
+              <dd>{place.trim()}</dd>
+            </>
+          ) : null}
           <dt>{timezoneLabel}</dt>
           <dd>{timezone}</dd>
         </dl>

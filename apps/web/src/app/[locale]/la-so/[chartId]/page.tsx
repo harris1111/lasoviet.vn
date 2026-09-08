@@ -34,6 +34,13 @@ export default async function ZiweiChartResultPage({
   ]);
   if (!chartResult.ok || !previewResult.ok) notFound();
 
+  const primaryEvidenceId = chartResult.value.evidenceIndex.itemIds.find(
+    (id) =>
+      id.includes("palace") ||
+      id.includes("star") ||
+      id.includes("transformation"),
+  );
+
   const topicHref = locale === "en"
     ? `/en/la-so/${chartId}/chon-luan-giai`
     : `/la-so/${chartId}/chon-luan-giai`;
@@ -57,7 +64,9 @@ export default async function ZiweiChartResultPage({
         <aside className="result-evidence-note">
           <p className="eyebrow">{t("evidence.eyebrow")}</p>
           <h2>{t("evidence.heading")}</h2>
-          <EvidenceDrawer chartId={chartId} evidenceId={chartResult.value.evidenceIndex.itemIds[0]!} locale={locale} loadEvidence={loadZiweiEvidence} />
+          {primaryEvidenceId ? (
+            <EvidenceDrawer chartId={chartId} evidenceId={primaryEvidenceId} locale={locale} loadEvidence={loadZiweiEvidence} />
+          ) : null}
         </aside>
       </div>
       <div className="container">

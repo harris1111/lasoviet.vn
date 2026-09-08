@@ -87,6 +87,7 @@ export function ZiweiResultSummary({
       birthDate: "Ngày sinh",
       birthTime: "Giờ sinh",
       timezone: "Múi giờ",
+      birthPlace: "Nơi sinh",
       gender: "Giới tính",
       chartCore: "Trục bản mệnh",
       lifePalace: "Cung Mệnh",
@@ -99,6 +100,7 @@ export function ZiweiResultSummary({
       birthDate: "Birth date",
       birthTime: "Birth time",
       timezone: "Timezone",
+      birthPlace: "Birth place",
       gender: "Gender",
       chartCore: "Core chart axes",
       lifePalace: "Life Palace",
@@ -120,6 +122,12 @@ export function ZiweiResultSummary({
           <dd>{timeLabel}</dd>
           <dt>{labels.timezone}</dt>
           <dd>{formatTimezone(birthSummary.timezoneProvenance)}</dd>
+          {birthSummary.placeLabel ? (
+            <>
+              <dt>{labels.birthPlace}</dt>
+              <dd>{birthSummary.placeLabel}</dd>
+            </>
+          ) : null}
           {birthSummary.gender ? (
             <>
               <dt>{labels.gender}</dt>

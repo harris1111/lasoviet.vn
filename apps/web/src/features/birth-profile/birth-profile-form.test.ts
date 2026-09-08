@@ -1,3 +1,6 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { BirthWizardReviewStep } from "./birth-wizard-review-step";
 import { describe, expect, it } from "vitest";
 
 import { buildBirthProfile } from "./birth-profile-input";
@@ -30,7 +33,7 @@ describe("birth profile form payload", () => {
       version: 1,
       calendar: { kind: "solar", date: "1990-01-01" },
       time: { precision: "exact_minute", localTime: "09:30" },
-      timezone: { offsetMinutes: 420 },
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "male",
       consentVersion: "2026-09-01",
       locale: "vi",
@@ -65,12 +68,38 @@ describe("birth profile form payload", () => {
       version: 1,
       calendar: { kind: "solar", date: "1994-04-12" },
       time: { precision: "branch_only", branch: "si" },
-      timezone: { offsetMinutes: 420 },
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "female",
       consentVersion: "2026-09-01",
       locale: "vi",
     });
     expect((profile.time as { localTime?: string }).localTime).toBeUndefined();
+  });
+
+  it("preserves trimmed placeLabel when non-empty and submits IANA timezone", () => {
+    expect(
+      buildBirthProfile({
+        date: "1992-08-18",
+        time: { precision: "exact_minute", hour: "09", minute: "30" },
+        placeLabel: "   Hà Nội, Việt Nam   ",
+        gender: "male",
+        locale: "vi",
+      }),
+    ).toMatchObject({
+      placeLabel: "Hà Nội, Việt Nam",
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
+    });
+  });
+
+  it("omits placeLabel when empty or only whitespace", () => {
+    const profile = buildBirthProfile({
+      date: "1992-08-18",
+      time: { precision: "exact_minute", hour: "09", minute: "30" },
+      placeLabel: "    ",
+      gender: "male",
+      locale: "vi",
+    });
+    expect(profile).not.toHaveProperty("placeLabel");
   });
 
   it("supports discriminated precision state for exact_minute, branch_only, and unknown", () => {
@@ -405,5 +434,59 @@ describe("wizard state helpers (TDD)", () => {
         resolveWizardSubmitAction({ ...validBaseline, consent: false }),
       ).toEqual({ kind: "ERROR_PROFILE" });
     });
+  });
+});
+
+describe("BirthWizardReviewStep place rendering (TDD)", () => {
+  const baseReviewProps = {
+    title: "Kiểm tra thông tin",
+    subtitle: "Rà soát lại toàn bộ thông tin",
+    subjectSectionTitle: "Người được lập",
+    birthSectionTitle: "Ngày, giờ sinh",
+    editLabel: "Sửa",
+    displayNameLabel: "Tên hiển thị",
+    forWhomLabel: "Người được lập",
+    dateLabel: "Ngày sinh dương lịch",
+    timeLabel: "Giờ sinh",
+    genderLabel: "Giới tính",
+    placeLabel: "Nơi sinh",
+    timezoneLabel: "Múi giờ tính toán",
+    disclosure: "Thông tin sinh chỉ được xử lý...",
+    guestNotice: "Dữ liệu tạm thời...",
+    consentLabel: "Tôi đồng ý...",
+    duplicateNotice: "Đang tiến hành...",
+    displayName: "Bản thân",
+    forWhom: "Bản thân",
+    date: "18/08/1992",
+    time: "09:30",
+    gender: "Nam",
+    timezone: "Asia/Ho_Chi_Minh",
+    consent: true,
+    pending: false,
+    onEditSubject: () => {},
+    onEditBirth: () => {},
+    onConsentChange: () => {},
+  };
+
+  it("does not render the place row when place is empty or omitted", () => {
+    const html = renderToStaticMarkup(
+      createElement(BirthWizardReviewStep, {
+        ...baseReviewProps,
+        place: undefined,
+      }),
+    );
+    expect(html).not.toContain("Nơi sinh");
+    expect(html).not.toContain("—");
+  });
+
+  it("renders the place row when place is present", () => {
+    const html = renderToStaticMarkup(
+      createElement(BirthWizardReviewStep, {
+        ...baseReviewProps,
+        place: "Hà Nội, Việt Nam",
+      }),
+    );
+    expect(html).toContain("Nơi sinh");
+    expect(html).toContain("Hà Nội, Việt Nam");
   });
 });

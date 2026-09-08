@@ -72,7 +72,9 @@ const sectionIds = [
 
 const mockReadyViSections = sectionIds.map((id, index) => ({
   id,
-  title: index === 0 ? "Tổng quan lá số" : `Mục ${index + 1}`,
+  title: id === "limitations_and_disclaimer"
+    ? "Tuyên Bố Miễn Trừ"
+    : index === 0 ? "Tổng quan lá số" : `Mục ${index + 1}`,
   narrative: index === 0
     ? "Bản chất xu hướng nổi trội <script>alert('xss')</script>"
     : `Nội dung mục ${index + 1}`,
@@ -95,6 +97,7 @@ const mockReadyViSections = sectionIds.map((id, index) => ({
 const mockReadyVi: ReportReadyViewV1 = {
   version: 1,
   state: "ready",
+  contentVersion: "identity.v1",
   reportId: "rep-vi-1",
   reportVersionId: "rep-ver-vi-1",
   locale: "vi",
@@ -115,7 +118,7 @@ const mockReadyVi: ReportReadyViewV1 = {
       id: "ziwei.identity.life-palace",
       factReferences: ["soulPalaceId"],
       confidence: "high",
-      interpretationBounds: ["Giới hạn diễn giải mệnh"],
+      interpretationBounds: ["Giới hạn diễn giải mệnh reflective identity"],
       interpretationBoundCodes: ["reflective_identity_only"],
       limitations: ["TIME_BRANCH_ONLY"],
       riskTags: ["identity"],
@@ -316,11 +319,17 @@ describe("ReportPage", () => {
     expect(html).toContain("Bìa báo cáo luận giải Tử Vi — ảnh vật phẩm sơn mài");
     expect(html).toContain("Lá Số Việt dùng công cụ tính toán theo phương pháp và AI để tổ chức, đối chiếu và diễn giải bằng tiếng Việt. Mỗi nhận định quan trọng đều gắn với dữ liệu lá số được sử dụng.");
     expect(html).toContain("Tổng quan lá số");
-    expect(html).toContain(CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER);
     expect(html).toContain("Căn cứ Cung Mệnh");
     expect(html).toContain("Câu hỏi tự suy ngẫm 1");
     expect(html).toContain("Gợi ý hành động 1");
     expect(html).toContain("Hết báo cáo");
+
+    expect(html).not.toContain("Giới hạn ghi nhận");
+    expect(html).not.toContain("Tuyên Bố Miễn Trừ");
+    expect(html).not.toContain("Độ tin cậy");
+    expect(html).not.toContain("Giới hạn diễn giải");
+    expect(html).not.toContain("Trường dữ liệu căn cứ");
+    expect(html).not.toContain("reflective identity");
 
     // Must never render script sentinels as raw HTML
     expect(html).not.toContain("<script>alert('xss')</script>");
@@ -333,5 +342,154 @@ describe("ReportPage", () => {
     expect(pageModule.metadata).toMatchObject({
       robots: { index: false, follow: false },
     });
+  });
+  it("renders comprehensive V3 report without AI disclosure, disclaimers, or technical chrome", async () => {
+    const mockV3Ready: ReportReadyViewV1 = {
+      version: 1,
+      state: "ready",
+      contentVersion: "ziwei-comprehensive.v1",
+      reportId: "rep-v3-1",
+      reportVersionId: "rep-ver-v3-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: {
+        overview: {
+          title: "Tổng quan bản mệnh",
+          narrative: "Tổng quan với Tử Vi tọa thủ mang phong thái đĩnh đạc <script>alert('xss')</script>.",
+        },
+        coreAxis: {
+          title: "Mệnh, Thân và động lực cốt lõi",
+          narrative: "Trục Mệnh Thân kiên định và giàu ý chí.",
+        },
+        keyConfigurations: [
+          {
+            title: "Cách cục Tử Phủ Đồng Cung",
+            narrative: "Nền tảng vững chắc cho sự nghiệp bền lâu.",
+          },
+        ],
+        palaceReadings: [
+          "ziwei.palace.life",
+          "ziwei.palace.siblings",
+          "ziwei.palace.spouse",
+          "ziwei.palace.children",
+          "ziwei.palace.wealth",
+          "ziwei.palace.health",
+          "ziwei.palace.travel",
+          "ziwei.palace.friends",
+          "ziwei.palace.career",
+          "ziwei.palace.property",
+          "ziwei.palace.fortune",
+          "ziwei.palace.parents",
+        ].map((palaceId, idx) => ({
+          palaceId: palaceId as (typeof import("@lasoviet/contracts").ZIWEI_PALACE_IDS)[number],
+          title: [
+            "Cung Mệnh",
+            "Cung Huynh Đệ",
+            "Cung Phu Thê",
+            "Cung Tử Tức",
+            "Cung Tài Bạch",
+            "Cung Tật Ách",
+            "Cung Thiên Di",
+            "Cung Nô Bộc",
+            "Cung Quan Lộc",
+            "Cung Điền Trạch",
+            "Cung Phúc Đức",
+            "Cung Phụ Mẫu",
+          ][idx]!,
+          narrative: `Nội dung luận giải chi tiết cho cung thứ ${idx + 1}.`,
+        })),
+        thematicSynthesis: [
+          {
+            id: "career_wealth" as const,
+            title: "Sự nghiệp và tài chính",
+            narrative: "Định hướng phát triển tài chính bền vững.",
+          },
+          {
+            id: "relationships_family" as const,
+            title: "Quan hệ và gia đình",
+            narrative: "Gia đạo hòa thuận và gắn kết.",
+          },
+          {
+            id: "social_environment" as const,
+            title: "Môi trường xã hội",
+            narrative: "Mở rộng giao lưu uy tín.",
+          },
+          {
+            id: "wellbeing_inner_resources" as const,
+            title: "Sức khỏe và nội tâm",
+            narrative: "Cân bằng thân tâm và năng lượng nội tại.",
+          },
+        ],
+        strengthsAndTensions: {
+          title: "Điểm mạnh, điểm vướng và điều kiện phát huy",
+          narrative: "Nhận diện thế mạnh và chuyển hóa áp lực.",
+        },
+        practicalDirection: [
+          "Tập trung xây dựng năng lực cốt lõi.",
+          "Duy trì thói quen rèn luyện thể chất.",
+        ],
+      },
+      lineage: {
+        supersedesReportVersionId: null,
+      },
+    };
+
+    vi.mocked(reportLoader.loadReport).mockResolvedValue({
+      ok: true,
+      value: mockV3Ready,
+    });
+
+    const { default: ReportPage } = await import("./page");
+    const element = await ReportPage({
+      params: Promise.resolve({ locale: "vi", reportId: "rep-v3-1" }),
+    });
+    const html = renderToStaticMarkup(element);
+
+    expect(html).toContain("frontispiece-bao-cao-luan-giai-tu-vi.webp");
+    expect(html).toContain("Bìa báo cáo luận giải Tử Vi — ảnh vật phẩm sơn mài");
+    expect(html).toContain("Tổng quan bản mệnh");
+    expect(html).toContain("Mệnh, Thân và động lực cốt lõi");
+    expect(html).toContain("Cách cục Tử Phủ Đồng Cung");
+
+    // All twelve palace titles rendered
+    expect(html).toContain("Cung Mệnh");
+    expect(html).toContain("Cung Huynh Đệ");
+    expect(html).toContain("Cung Phu Thê");
+    expect(html).toContain("Cung Tử Tức");
+    expect(html).toContain("Cung Tài Bạch");
+    expect(html).toContain("Cung Tật Ách");
+    expect(html).toContain("Cung Thiên Di");
+    expect(html).toContain("Cung Nô Bộc");
+    expect(html).toContain("Cung Quan Lộc");
+    expect(html).toContain("Cung Điền Trạch");
+    expect(html).toContain("Cung Phúc Đức");
+    expect(html).toContain("Cung Phụ Mẫu");
+
+    // All thematic synthesis titles rendered
+    expect(html).toContain("Sự nghiệp và tài chính");
+    expect(html).toContain("Quan hệ và gia đình");
+    expect(html).toContain("Môi trường xã hội");
+    expect(html).toContain("Sức khỏe và nội tâm");
+
+    // Strengths and practical directions rendered
+    expect(html).toContain("Điểm mạnh, điểm vướng và điều kiện phát huy");
+    expect(html).toContain("Tập trung xây dựng năng lực cốt lõi.");
+    expect(html).toContain("Duy trì thói quen rèn luyện thể chất.");
+    expect(html).toContain("Hết báo cáo");
+
+    // No AI disclosure, disclaimers, or technical chrome
+    expect(html).not.toContain("Lá Số Việt dùng công cụ tính toán theo phương pháp và AI");
+    expect(html).not.toContain("Tuyên Bố Miễn Trừ");
+    expect(html).not.toContain("Giới hạn ghi nhận");
+    expect(html).not.toContain("Độ tin cậy");
+    expect(html).not.toContain("reflective identity");
+    expect(html).not.toContain("ziwei.palace.");
+    expect(html).not.toContain("ziwei.star.");
+    expect(html).not.toContain("evidenceKeys");
+
+    // Escaped text
+    expect(html).not.toContain("<script>alert('xss')</script>");
+    expect(html).toContain("&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;");
   });
 });

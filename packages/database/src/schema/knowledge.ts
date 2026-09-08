@@ -1,3 +1,24 @@
+export const PERMITTED_USE_BASES = [
+  "first_party",
+  "licensed",
+  "public_domain",
+  "reference_rewrite",
+] as const;
+
+export type KnowledgeChunkMetadataV1 = {
+  topics: string[];
+  palaces: string[];
+  stars: string[];
+  brightness: string[];
+  transformations: string[];
+  relations: string[];
+  patterns: string[];
+  sourceType: "modern" | "classical" | "matrix" | "curated";
+  languageOrigin: "vi" | "zh" | "en";
+  priority: 1 | 2 | 3;
+};
+
+import { sql } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -51,6 +72,7 @@ export const knowledgeChunks = pgTable(
     contentHash: text("content_hash").notNull(),
     sourceAttribution: text("source_attribution").notNull(),
     permittedUse: text("permitted_use").notNull(),
+    metadata: jsonb("metadata").$type<KnowledgeChunkMetadataV1>().notNull().default(sql`'{}'::jsonb`),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   },
   (table) => [
@@ -64,5 +86,6 @@ export const knowledgeChunks = pgTable(
       table.locale,
     ),
     index("knowledge_chunks_document_idx").on(table.documentId),
+    index("knowledge_chunks_metadata_idx").using("gin", table.metadata),
   ],
 );

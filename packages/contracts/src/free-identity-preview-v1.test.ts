@@ -130,6 +130,21 @@ describe("free identity preview contracts", () => {
     }
   });
 
+  const branches = [
+    "ziwei.branch.rat",
+    "ziwei.branch.ox",
+    "ziwei.branch.tiger",
+    "ziwei.branch.rabbit",
+    "ziwei.branch.dragon",
+    "ziwei.branch.snake",
+    "ziwei.branch.horse",
+    "ziwei.branch.goat",
+    "ziwei.branch.monkey",
+    "ziwei.branch.rooster",
+    "ziwei.branch.dog",
+    "ziwei.branch.pig",
+  ] as const;
+
   it("requires birthSummary in ZiweiChartViewV1Schema", () => {
     const chart = {
       version: 1,
@@ -137,9 +152,9 @@ describe("free identity preview contracts", () => {
       palaces: [
         "life", "siblings", "spouse", "children", "wealth", "health",
         "travel", "friends", "career", "property", "fortune", "parents",
-      ].map((name) => ({
+      ].map((name, index) => ({
         id: `ziwei.palace.${name}`,
-        earthlyBranchId: "ziwei.branch.tiger",
+        earthlyBranchId: branches[index]!,
         stars: [],
       })),
       transformations: [{ starId: "ziwei.star.wuqu", id: "ziwei.transformation.prosperity" }],

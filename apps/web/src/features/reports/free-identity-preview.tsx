@@ -77,16 +77,12 @@ export function FreeIdentityPreview({
       <div className="identity-insights">
         {preview.insights.map((insight, index) => {
           const summary = getInsightSummary(insight.id, chart, presentation);
-          const bound = insight.evidence.interpretationBoundCodes.length > 0
-            ? insight.evidence.interpretationBoundCodes.map(presentation.interpretationBound).join(" ")
-            : insight.evidence.interpretationBounds.join(" ");
 
           return (
             <article className="identity-insight" key={insight.id}>
               <span>0{index + 1}</span>
               <h3>{presentation.insight(insight.id)}</h3>
               {summary ? <p className="insight-deterministic-summary">{summary}</p> : null}
-              <p className="insight-bound-text">{bound}</p>
               <EvidenceDrawer chartId={chartId} evidenceId={insight.evidence.evidenceId} locale={locale} loadEvidence={loadEvidence} />
             </article>
           );

@@ -223,6 +223,10 @@ export function normalizeBirthProfile(
     utcInstant = instant.toISOString();
   }
 
+  const normalizedPlaceLabel = profile.placeLabel?.trim()
+    ? profile.placeLabel.trim()
+    : undefined;
+
   return {
     ok: true,
     value: {
@@ -232,6 +236,7 @@ export function normalizeBirthProfile(
       normalizedTime: profile.time,
       timezoneProvenance,
       ...(utcInstant === undefined ? {} : { utcInstant }),
+      ...(normalizedPlaceLabel ? { normalizedPlaceLabel } : {}),
       normalizationWarnings: [],
       limitations,
     },

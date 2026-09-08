@@ -3,8 +3,10 @@ import { resolveIdentityReportVersionFamily } from "./identity-report-version-fa
 import {
   REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
+  REPORT_KNOWLEDGE_VERSION_V3,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
+  REPORT_PROMPT_VERSION_V3,
 } from "./identity-report-config.js";
 
 describe("resolveIdentityReportVersionFamily", () => {
@@ -26,6 +28,15 @@ describe("resolveIdentityReportVersionFamily", () => {
     ).toBe("v2");
   });
 
+  it("resolves v3 only for exact v3 prompt and v3 knowledge pair", () => {
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V3,
+        REPORT_KNOWLEDGE_VERSION_V3,
+      ),
+    ).toBe("v3");
+  });
+
   it("returns null for mismatched v1/v2 pairs", () => {
     expect(
       resolveIdentityReportVersionFamily(
@@ -38,6 +49,20 @@ describe("resolveIdentityReportVersionFamily", () => {
       resolveIdentityReportVersionFamily(
         REPORT_PROMPT_VERSION_V2,
         REPORT_KNOWLEDGE_VERSION_V1,
+      ),
+    ).toBeNull();
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V3,
+        REPORT_KNOWLEDGE_VERSION_V2,
+      ),
+    ).toBeNull();
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V2,
+        REPORT_KNOWLEDGE_VERSION_V3,
       ),
     ).toBeNull();
   });

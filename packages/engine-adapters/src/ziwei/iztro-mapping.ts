@@ -9,14 +9,26 @@ type RawStar = {
   name: string;
   brightness?: string;
   mutagen?: string;
+  type?: string;
+  category?: "major" | "minor" | "adjective" | "decorative";
+  scope?: string;
 };
 
 type RawPalace = {
   name: string;
   earthlyBranch: string;
   isBodyPalace: boolean;
+  isOriginalPalace?: boolean;
+  heavenlyStem?: string;
+  heavenlyStemId?: string;
+  changsheng12?: string;
+  cycleStateId?: string;
+  boshi12?: string;
+  jiangqian12?: string;
+  suiqian12?: string;
   majorStars: RawStar[];
   minorStars: RawStar[];
+  adjectiveStars?: RawStar[];
 };
 
 export type RawIztroAstrolabe = {
@@ -57,6 +69,7 @@ const branchIds: Record<
 };
 
 const starIds: Record<string, string> = {
+  // Principal major stars
   emperor: "ziwei.star.ziwei",
   advisor: "ziwei.star.tianji",
   sun: "ziwei.star.taiyang",
@@ -71,6 +84,8 @@ const starIds: Record<string, string> = {
   sage: "ziwei.star.tianliang",
   marshal: "ziwei.star.qisha",
   rebel: "ziwei.star.pojun",
+
+  // Minor stars
   officer: "ziwei.star.zuofu",
   helper: "ziwei.star.youbi",
   scholar: "ziwei.star.wenchang",
@@ -85,7 +100,178 @@ const starIds: Record<string, string> = {
   aide: "ziwei.star.tianyue",
   ideologue: "ziwei.star.dikong",
   fickle: "ziwei.star.dijie",
+
+  // Adjective stars (iztro en-US)
+  attractive: "ziwei.star.hongluan",
+  cheerful: "ziwei.star.tianxi",
+  social: "ziwei.star.tianyao",
+  passionate: "ziwei.star.xianchi",
+  considery: "ziwei.star.jieshen",
+  senior: "ziwei.star.santai",
+  dignified: "ziwei.star.bazuo",
+  grateful: "ziwei.star.enguang",
+  noble: "ziwei.star.tiangui",
+  talented: "ziwei.star.longchi",
+  refined: "ziwei.star.fengge",
+  gifted: "ziwei.star.tiancai",
+  ageless: "ziwei.star.tianshou",
+  honorable: "ziwei.star.taifu",
+  awarded: "ziwei.star.fenggao",
+  psychic: "ziwei.star.tianwu",
+  religious: "ziwei.star.huagai",
+  solemn: "ziwei.star.tianguan",
+  lucky: "ziwei.star.tianfu-adj",
+  gourmet: "ziwei.star.tianchu",
+  sickly: "ziwei.star.tianyue-adj",
+  blessed: "ziwei.star.tiande",
+  peaceful: "ziwei.star.yuede",
+  utopian: "ziwei.star.tiankong",
+  fancied: "ziwei.star.xunkong",
+  intercepted: "ziwei.star.jielu",
+  bottomless: "ziwei.star.kongwang",
+  virtuous: "ziwei.star.longde",
+  interrupted: "ziwei.star.jiekong",
+  murder: "ziwei.star.jiesha",
+  wastrel: "ziwei.star.dahao",
+  alone: "ziwei.star.guchen",
+  lonely: "ziwei.star.guasu",
+  instigated: "ziwei.star.feilian",
+  broken: "ziwei.star.posui",
+  serious: "ziwei.star.tianxing",
+  gloomy: "ziwei.star.yinsha",
+  upset: "ziwei.star.tianku",
+  frail: "ziwei.star.tianxu",
+  heaven: "ziwei.star.tianshi",
+  wounded: "ziwei.star.tianshang",
+  "considery(Y)": "ziwei.star.nianjie",
+
 };
+
+const boshiStarIds: Record<string, string> = {
+  doctor: "ziwei.star.boshi",
+  sumo: "ziwei.star.lishi",
+  dragon: "ziwei.star.qinglong",
+  consumer: "ziwei.star.xiaohao",
+  general: "ziwei.star.jiangjun",
+  book: "ziwei.star.zhoushu",
+  gossip: "ziwei.star.feilian-dec",
+  happiness: "ziwei.star.xishen",
+  illness: "ziwei.star.bingfu",
+  wastrel: "ziwei.star.dahao-dec",
+  ambush: "ziwei.star.fubing",
+  government: "ziwei.star.guanfu",
+};
+
+const jiangqianStarIds: Record<string, string> = {
+  capable: "ziwei.star.jiangxing",
+  admired: "ziwei.star.panan",
+  varied: "ziwei.star.suiyi",
+  listless: "ziwei.star.xiishen",
+  religious: "ziwei.star.huagai-dec",
+  robbed: "ziwei.star.jiesha-dec",
+  disastery: "ziwei.star.zhaisha",
+  condemned: "ziwei.star.tiansha",
+  insidious: "ziwei.star.zhibei",
+  passionate: "ziwei.star.xianchi-dec",
+  hapless: "ziwei.star.yuesha",
+  perished: "ziwei.star.wangshen",
+};
+
+const suiqianStarIds: Record<string, string> = {
+  initial: "ziwei.star.suijian",
+  unlucky: "ziwei.star.huiqi",
+  downcast: "ziwei.star.sangmen",
+  tied: "ziwei.star.guansuo",
+  official: "ziwei.star.gwanfu",
+  consumer: "ziwei.star.xiaohao-sq",
+  wastrel: "ziwei.star.dahao",
+  virtuous: "ziwei.star.longde-dec",
+  sinister: "ziwei.star.baihu",
+  blessed: "ziwei.star.tiande-dec",
+  sorrowing: "ziwei.star.diaoke",
+  illness: "ziwei.star.bingfu-sq",
+};
+
+const stemIds: Record<string, string> = {
+  jia: "ziwei.stem.jia",
+  yi: "ziwei.stem.yi",
+  bing: "ziwei.stem.bing",
+  ding: "ziwei.stem.ding",
+  wu: "ziwei.stem.wu",
+  ji: "ziwei.stem.ji",
+  geng: "ziwei.stem.geng",
+  xin: "ziwei.stem.xin",
+  ren: "ziwei.stem.ren",
+  gui: "ziwei.stem.gui",
+  jiaHeavenly: "ziwei.stem.jia",
+  yiHeavenly: "ziwei.stem.yi",
+  bingHeavenly: "ziwei.stem.bing",
+  dingHeavenly: "ziwei.stem.ding",
+  wuHeavenly: "ziwei.stem.wu",
+  jiHeavenly: "ziwei.stem.ji",
+  gengHeavenly: "ziwei.stem.geng",
+  xinHeavenly: "ziwei.stem.xin",
+  renHeavenly: "ziwei.stem.ren",
+  guiHeavenly: "ziwei.stem.gui",
+};
+
+const cycleStateIds: Record<string, string> = {
+  born: "ziwei.cycle.born",
+  infancy: "ziwei.cycle.infancy",
+  adolescence: "ziwei.cycle.adolescence",
+  adulthood: "ziwei.cycle.adulthood",
+  prime: "ziwei.cycle.prime",
+  weak: "ziwei.cycle.weak",
+  sick: "ziwei.cycle.sick",
+  dead: "ziwei.cycle.dead",
+  buried: "ziwei.cycle.buried",
+  dissipated: "ziwei.cycle.dissipated",
+  embryo: "ziwei.cycle.embryo",
+  molding: "ziwei.cycle.molding",
+  changsheng: "ziwei.cycle.born",
+  muyu: "ziwei.cycle.infancy",
+  guandai: "ziwei.cycle.adolescence",
+  linguan: "ziwei.cycle.adulthood",
+  diwang: "ziwei.cycle.prime",
+  shuai: "ziwei.cycle.weak",
+  bing: "ziwei.cycle.sick",
+  si: "ziwei.cycle.dead",
+  mu: "ziwei.cycle.buried",
+  jue: "ziwei.cycle.dissipated",
+  tai: "ziwei.cycle.embryo",
+  yang: "ziwei.cycle.molding",
+};
+
+function resolveStarId(star: RawStar): string | undefined {
+  return starIds[star.name];
+}
+
+function resolveHeavenlyStemId(palace: RawPalace): string | undefined {
+  if (palace.heavenlyStemId && /^ziwei\.stem\.[a-z0-9-]+$/.test(palace.heavenlyStemId)) {
+    return palace.heavenlyStemId;
+  }
+  if (palace.heavenlyStem) {
+    if (palace.heavenlyStem.startsWith("ziwei.stem.")) {
+      return palace.heavenlyStem;
+    }
+    return stemIds[palace.heavenlyStem];
+  }
+  return undefined;
+}
+
+function resolveCycleStateId(palace: RawPalace): string | undefined {
+  if (palace.cycleStateId && /^ziwei\.cycle\.[a-z0-9-]+$/.test(palace.cycleStateId)) {
+    return palace.cycleStateId;
+  }
+  const rawCycle = palace.changsheng12;
+  if (rawCycle) {
+    if (rawCycle.startsWith("ziwei.cycle.")) {
+      return rawCycle;
+    }
+    return cycleStateIds[rawCycle];
+  }
+  return undefined;
+}
 
 function brightness(value: string | undefined) {
   switch (value) {
@@ -144,25 +330,107 @@ export function normalizeIztroAstrolabe(
     if (id === undefined || earthlyBranchId === undefined) {
       throw new Error("IZTRO_MAPPING_INVALID");
     }
+
+    const mappedStars: Array<{
+      id: string;
+      brightness: "ziwei.brightness.exalted" | "ziwei.brightness.prosperous" | "ziwei.brightness.favorable" | "ziwei.brightness.neutral" | "ziwei.brightness.unfavorable" | "ziwei.brightness.weak";
+      category: "major" | "minor" | "adjective" | "decorative";
+    }> = [];
+
+    for (const star of palace.majorStars) {
+      const starId = resolveStarId(star);
+      if (starId === undefined) {
+        throw new Error("IZTRO_MAPPING_INVALID");
+      }
+      mappedStars.push({
+        id: starId,
+        brightness: brightness(star.brightness),
+        category: star.category ?? "major",
+      });
+    }
+
+    for (const star of palace.minorStars) {
+      const starId = resolveStarId(star);
+      if (starId === undefined) {
+        throw new Error("IZTRO_MAPPING_INVALID");
+      }
+      mappedStars.push({
+        id: starId,
+        brightness: brightness(star.brightness),
+        category: star.category ?? "minor",
+      });
+    }
+
+    for (const star of (palace.adjectiveStars ?? [])) {
+      const starId = resolveStarId(star);
+      if (starId === undefined) {
+        continue;
+      }
+      mappedStars.push({
+        id: starId,
+        brightness: brightness(star.brightness),
+        category: star.category ?? "adjective",
+      });
+    }
+
+    if (palace.boshi12) {
+      const starId = boshiStarIds[palace.boshi12];
+      if (starId !== undefined) {
+        mappedStars.push({
+          id: starId,
+          brightness: "ziwei.brightness.neutral",
+          category: "decorative",
+        });
+      }
+    }
+
+    if (palace.jiangqian12) {
+      const starId = jiangqianStarIds[palace.jiangqian12];
+      if (starId !== undefined) {
+        mappedStars.push({
+          id: starId,
+          brightness: "ziwei.brightness.neutral",
+          category: "decorative",
+        });
+      }
+    }
+
+    if (palace.suiqian12) {
+      const starId = suiqianStarIds[palace.suiqian12];
+      if (starId !== undefined) {
+        mappedStars.push({
+          id: starId,
+          brightness: "ziwei.brightness.neutral",
+          category: "decorative",
+        });
+      }
+    }
+
+    const heavenlyStemId = resolveHeavenlyStemId(palace);
+    const cycleStateId = resolveCycleStateId(palace);
+
     return {
       id,
       earthlyBranchId,
-      stars: [...palace.majorStars, ...palace.minorStars].map((star) => {
-        const starId = starIds[star.name];
-        if (starId === undefined) {
-          throw new Error("IZTRO_MAPPING_INVALID");
-        }
-        return { id: starId, brightness: brightness(star.brightness) };
-      }),
+      ...(heavenlyStemId !== undefined ? { heavenlyStemId } : {}),
+      ...(palace.isBodyPalace !== undefined ? { isBodyPalace: Boolean(palace.isBodyPalace) } : {}),
+      ...(palace.isOriginalPalace !== undefined ? { isOriginalPalace: Boolean(palace.isOriginalPalace) } : {}),
+      ...(cycleStateId !== undefined ? { cycleStateId } : {}),
+      stars: mappedStars,
     };
   });
-  const transformations = raw.palaces.flatMap((palace) =>
-    [...palace.majorStars, ...palace.minorStars].flatMap((star) => {
-      const starId = starIds[star.name];
+  const transformations = raw.palaces.flatMap((palace) => {
+    const allStars = [
+      ...palace.majorStars,
+      ...palace.minorStars,
+      ...(palace.adjectiveStars ?? []),
+    ];
+    return allStars.flatMap((star) => {
+      const starId = resolveStarId(star);
       const id = transformation(star.mutagen);
       return starId === undefined || id === undefined ? [] : [{ starId, id }];
-    }),
-  );
+    });
+  });
   const soulPalaceId = palaceIds.soul;
   const bodyPalace = raw.palaces.find((palace) => palace.isBodyPalace);
   const bodyPalaceId = bodyPalace === undefined

@@ -3,12 +3,17 @@ import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
   CURRENT_REPORT_RENDER_VERSION,
   CURRENT_REPORT_TEMPLATE_VERSION,
+  REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 import { renderIdentityReportHtml } from "./identity-report-html.js";
+import { renderComprehensiveZiweiHtml } from "./comprehensive-report-html.js";
 import { writeIdentityReportDraft } from "./identity-report-writer.js";
 import { validateIdentityReport } from "./report-validator.js";
 import { critiqueIdentityReport } from "./report-critic.js";
+import { writeComprehensiveZiweiReport } from "./comprehensive-report-writer.js";
+import { validateComprehensiveZiweiReport } from "./comprehensive-report-validator.js";
+import type { ComprehensiveReportSource } from "./report-source.js";
 import type { ReportGenerationSourceRepository } from "./report-generation.repository.js";
 import type { ImmutableReportVersionRecord, ReportVersionRepository } from "./report-version.repository.js";
 
@@ -191,6 +196,71 @@ export function createReportGenerationService(
       return failAttempt("REPORT_EVIDENCE_INVALID", false);
     }
     const source = sourceResult.value;
+
+    if (family === "v3") {
+      if (!source.comprehensiveFacts || !source.knowledgePacks) {
+        return failAttempt("REPORT_EVIDENCE_INVALID", false);
+      }
+
+      let writerResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReport>>;
+      try {
+        writerResult = await writeComprehensiveZiweiReport(
+          source as ComprehensiveReportSource,
+          dependencies.provider,
+        );
+      } catch {
+        return failAttempt("AI_TIMEOUT", true);
+      }
+
+      if (!writerResult.ok) {
+        const errCode = writerResult.error.code;
+        if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
+          return failAttempt("AI_TIMEOUT", true);
+        }
+        if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+          return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+        }
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+
+      const draft = writerResult.value;
+
+      const validation = validateComprehensiveZiweiReport(draft.report, source.comprehensiveFacts);
+      if (!validation.ok) {
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+
+      const htmlContent = renderComprehensiveZiweiHtml(draft.report);
+
+      const commitResult = await dependencies.versionRepository.commitImmutableVersion({
+        reportId: payload.reportId,
+        reportVersionId: payload.reportVersionId,
+        entitlementId: payload.entitlementId,
+        chartVersionId: payload.chartVersionId,
+        evidenceVersionId: payload.evidenceVersionId,
+        knowledgeVersionId: payload.knowledgeVersionId,
+        promptVersion: payload.promptVersion,
+        reportConfigVersion: payload.reportConfigVersion,
+        templateVersion: REPORT_TEMPLATE_VERSION_V3,
+        renderVersion: CURRENT_REPORT_RENDER_VERSION,
+        locale: payload.locale,
+        sku: payload.sku,
+        providerId: draft.providerId,
+        modelId: draft.modelId,
+        structuredContent: draft.report as unknown as IdentityReportV1,
+        htmlContent,
+        jobId,
+        workerId,
+        attemptNumber,
+        traceId: job.traceId,
+      });
+
+      if (!commitResult.ok) {
+        return failAttempt("REPORT_VERSION_CONFLICT", false);
+      }
+
+      return { ok: true, value: commitResult.value };
+    }
 
     let writerResult: Awaited<ReturnType<typeof writeIdentityReportDraft>>;
     try {

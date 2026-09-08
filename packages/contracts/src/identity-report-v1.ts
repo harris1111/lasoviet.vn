@@ -9,6 +9,12 @@ import {
   ReportStatusSchema,
   type ReportStatus,
 } from "./jobs.js";
+import {
+  ZIWEI_PALACE_IDS,
+  ZIWEI_THEMATIC_SYNTHESIS_IDS,
+  type ZiweiComprehensiveReportContentV1,
+} from "./ziwei-comprehensive-report-v1.js";
+
 
 export const IDENTITY_REPORT_SECTION_IDS = [
   "personal_summary",
@@ -173,6 +179,99 @@ export const ReportPendingViewV1Schema = z.object({
 }).strict();
 export type ReportPendingViewV1 = z.infer<typeof ReportPendingViewV1Schema>;
 
+export const ComprehensiveReportOverviewSectionSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    narrative: z.string().trim().min(1).max(5_000),
+  })
+  .strict();
+
+export const ComprehensiveReportCoreAxisSectionSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    narrative: z.string().trim().min(1).max(5_000),
+  })
+  .strict();
+
+export const ComprehensiveReportKeyConfigurationItemSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    narrative: z.string().trim().min(1).max(5_000),
+  })
+  .strict();
+
+export const ComprehensiveReportPalaceReadingItemSchema = z
+  .object({
+    palaceId: z.enum(ZIWEI_PALACE_IDS),
+    title: z.string().trim().min(1).max(120),
+    narrative: z.string().trim().min(1).max(5_000),
+  })
+  .strict();
+
+export const ComprehensiveReportThematicSynthesisItemSchema = z
+  .object({
+    id: z.enum(ZIWEI_THEMATIC_SYNTHESIS_IDS),
+    title: z.string().trim().min(1).max(120),
+    narrative: z.string().trim().min(1).max(5_000),
+  })
+  .strict();
+
+export const ComprehensiveReportStrengthsAndTensionsSectionSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    narrative: z.string().trim().min(1).max(5_000),
+  })
+  .strict();
+
+export const ComprehensiveReportPublicContentV1Schema = z
+  .object({
+    overview: ComprehensiveReportOverviewSectionSchema,
+    coreAxis: ComprehensiveReportCoreAxisSectionSchema,
+    keyConfigurations: z.array(ComprehensiveReportKeyConfigurationItemSchema).min(1).max(12),
+    palaceReadings: z.array(ComprehensiveReportPalaceReadingItemSchema).length(ZIWEI_PALACE_IDS.length),
+    thematicSynthesis: z.array(ComprehensiveReportThematicSynthesisItemSchema).length(ZIWEI_THEMATIC_SYNTHESIS_IDS.length),
+    strengthsAndTensions: ComprehensiveReportStrengthsAndTensionsSectionSchema,
+    practicalDirection: z.array(z.string().trim().min(1).max(1_000)).min(1).max(10),
+  })
+  .strict();
+export type ComprehensiveReportPublicContentV1 = z.infer<
+  typeof ComprehensiveReportPublicContentV1Schema
+>;
+
+export function projectComprehensiveReportPublicContent(
+  stored: ZiweiComprehensiveReportContentV1,
+): ComprehensiveReportPublicContentV1 {
+  return {
+    overview: {
+      title: stored.overview.title,
+      narrative: stored.overview.narrative,
+    },
+    coreAxis: {
+      title: stored.coreAxis.title,
+      narrative: stored.coreAxis.narrative,
+    },
+    keyConfigurations: stored.keyConfigurations.map((k) => ({
+      title: k.title,
+      narrative: k.narrative,
+    })),
+    palaceReadings: stored.palaceReadings.map((p) => ({
+      palaceId: p.palaceId,
+      title: p.title,
+      narrative: p.narrative,
+    })),
+    thematicSynthesis: stored.thematicSynthesis.map((t) => ({
+      id: t.id,
+      title: t.title,
+      narrative: t.narrative,
+    })),
+    strengthsAndTensions: {
+      title: stored.strengthsAndTensions.title,
+      narrative: stored.strengthsAndTensions.narrative,
+    },
+    practicalDirection: [...stored.practicalDirection],
+  };
+}
+
 const baseReportReadyViewV1Schema = z.object({
   version: z.literal(1),
   state: z.literal("ready"),
@@ -180,16 +279,17 @@ const baseReportReadyViewV1Schema = z.object({
   reportVersionId: z.string().trim().min(1),
   sku: z.literal("ZIWEI-IDENTITY-P0"),
   fulfillmentStatus: ReportStatusSchema,
-  evidence: z.array(EvidenceItemV1Schema),
   lineage: z.object({
     supersedesReportVersionId: z.string().trim().min(1).nullable(),
   }).strict(),
-  provenance: ReportSafeProvenanceV1Schema,
 });
 
-export const ReportReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+export const ReportLegacyReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("identity.v1"),
   locale: z.enum(["vi", "en"]),
   content: ReportPublicContentV1Schema,
+  evidence: z.array(EvidenceItemV1Schema),
+  provenance: ReportSafeProvenanceV1Schema,
 }).strict().superRefine((val, ctx) => {
   if (val.locale === "vi" && val.content.professionalAdviceDisclaimer !== CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER) {
     ctx.addIssue({
@@ -206,21 +306,24 @@ export const ReportReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
     });
   }
 });
-export type ReportReadyViewV1 = {
-  version: 1;
-  state: "ready";
-  reportId: string;
-  reportVersionId: string;
-  locale: "vi" | "en";
-  sku: "ZIWEI-IDENTITY-P0";
-  fulfillmentStatus: ReportStatus;
-  content: ReportPublicContentV1;
-  evidence: EvidenceItemV1[];
-  lineage: {
-    supersedesReportVersionId: string | null;
-  };
-  provenance: ReportSafeProvenanceV1;
-};
+export type ReportLegacyReadyViewV1 = z.infer<typeof ReportLegacyReadyViewV1Schema>;
+
+export const ReportComprehensiveReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei-comprehensive.v1"),
+  locale: z.literal("vi"),
+  content: ComprehensiveReportPublicContentV1Schema,
+}).strict();
+export type ReportComprehensiveReadyViewV1 = z.infer<
+  typeof ReportComprehensiveReadyViewV1Schema
+>;
+
+export const ReportReadyViewV1Schema = z.discriminatedUnion("contentVersion", [
+  ReportLegacyReadyViewV1Schema,
+  ReportComprehensiveReadyViewV1Schema,
+]);
+export type ReportReadyViewV1 =
+  | ReportLegacyReadyViewV1
+  | ReportComprehensiveReadyViewV1;
 
 export const ReportFailedViewV1Schema = z.object({
   version: z.literal(1),

@@ -80,6 +80,7 @@ export const BirthProfileV1Schema = z
     calendar: BirthCalendarInputSchema,
     time: BirthTimeInputSchema,
     timezone: BirthTimezoneInputSchema,
+    placeLabel: z.string().trim().min(1).max(120).optional(),
     consentVersion: z.string().trim().min(1),
     locale: z.string().trim().min(1).optional(),
     gender: z.string().trim().min(1).optional(),
@@ -118,6 +119,7 @@ export const NormalizedBirthProfileV1Schema = z
     originalInput: BirthProfileV1Schema,
     normalizedCalendar: BirthCalendarInputSchema,
     normalizedTime: BirthTimeInputSchema,
+    normalizedPlaceLabel: z.string().trim().min(1).max(120).optional(),
     timezoneProvenance: z.discriminatedUnion("source", [
       z
         .object({

@@ -221,6 +221,16 @@ export type {
 } from "./identity-report-v1.js";
 
 export {
+  ZIWEI_PALACE_IDS,
+  ZIWEI_THEMATIC_SYNTHESIS_IDS,
+  ZiweiComprehensiveReportContentV1Schema,
+} from "./ziwei-comprehensive-report-v1.js";
+export type {
+  ZiweiComprehensiveReportContentV1,
+  ZiweiThematicSynthesisId,
+} from "./ziwei-comprehensive-report-v1.js";
+
+export {
   ZiweiBirthSummaryV1Schema,
   ZiweiChartViewV1Schema,
   ZiweiEvidenceViewV1Schema,
@@ -276,15 +286,28 @@ export {
   ReportPublicContentV1Schema,
   ReportSafeProvenanceV1Schema,
   ReportPendingViewV1Schema,
+  ReportLegacyReadyViewV1Schema,
+  ReportComprehensiveReadyViewV1Schema,
   ReportReadyViewV1Schema,
   ReportFailedViewV1Schema,
   ReportViewV1Schema,
+  ComprehensiveReportPublicContentV1Schema,
+  ComprehensiveReportOverviewSectionSchema,
+  ComprehensiveReportCoreAxisSectionSchema,
+  ComprehensiveReportKeyConfigurationItemSchema,
+  ComprehensiveReportPalaceReadingItemSchema,
+  ComprehensiveReportThematicSynthesisItemSchema,
+  ComprehensiveReportStrengthsAndTensionsSectionSchema,
+  projectComprehensiveReportPublicContent,
 } from "./identity-report-v1.js";
 export type {
   ReportPublicContentV1,
   ReportSafeProvenanceV1,
   ReportPendingViewV1,
+  ReportLegacyReadyViewV1,
+  ReportComprehensiveReadyViewV1,
   ReportReadyViewV1,
   ReportFailedViewV1,
   ReportViewV1,
+  ComprehensiveReportPublicContentV1,
 } from "./identity-report-v1.js";
