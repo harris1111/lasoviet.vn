@@ -54,13 +54,28 @@ const palaceIds = [
   "travel", "friends", "career", "property", "fortune", "parents",
 ] as const;
 
+const branchIds = [
+  "ziwei.branch.rat",
+  "ziwei.branch.ox",
+  "ziwei.branch.tiger",
+  "ziwei.branch.rabbit",
+  "ziwei.branch.dragon",
+  "ziwei.branch.snake",
+  "ziwei.branch.horse",
+  "ziwei.branch.goat",
+  "ziwei.branch.monkey",
+  "ziwei.branch.rooster",
+  "ziwei.branch.dog",
+  "ziwei.branch.pig",
+] as const;
+
 function sampleChart(): NormalizedZiweiChartV1 {
   return {
     version: 1,
     systemId: "ziwei",
-    palaces: palaceIds.map((id) => ({
+    palaces: palaceIds.map((id, index) => ({
       id: `ziwei.palace.${id}` as NormalizedZiweiChartV1["palaces"][number]["id"],
-      earthlyBranchId: "ziwei.branch.tiger",
+      earthlyBranchId: branchIds[index]!,
       stars: [],
     })),
     transformations: [{
