@@ -58,3 +58,21 @@
 - Continue with WP-10 analytics and privacy instrumentation, which is
   independent of the deferred catalog, pricing, payment activation, and visual
   UI decisions.
+- WP-10 implementation is deferred after source inspection because three
+  required decisions are unresolved:
+  - `config/analytics-events.json` remains the canonical ordered registry, and
+    the approved architecture requires an explicit event migration and
+    dashboard update before renaming or reordering its existing funnel;
+  - the current production sink is a structured application logger, not a
+    durable first-party KPI store capable of the required server-side commerce
+    join and disabled-autopay revenue exclusion;
+  - the repository requires separate analytics consent in experience guidance,
+    but no approved policy defines which first-party operational events may be
+    emitted before that consent or how the required pseudonymous session key is
+    derived and rotated.
+- Do not invent an analytics provider, consent default, identifier policy, or
+  dashboard migration. Revisit WP-10 after the founder resolves those
+  product/privacy/operations boundaries.
+- No further independent work package remains in this backlog: all remaining
+  items are recorded above as founder-decision, payment-prerequisite,
+  dedicated-UI-branch, baseline, or Product-owned deferrals.
