@@ -333,14 +333,12 @@ export const ReportFailedViewV1Schema = z.object({
   locale: z.enum(["vi", "en"]),
   sku: z.literal("ZIWEI-IDENTITY-P0"),
   fulfillmentStatus: z.literal("terminal_failure"),
-  invoiceNumber: z.string().trim().min(1).optional(),
-  paymentReceivedAt: z.iso.datetime({ offset: true }).optional(),
-  paidAt: z.iso.datetime({ offset: true }).optional(),
-  reportStatusUpdatedAt: z.iso.datetime({ offset: true }).optional(),
-  statusUpdatedAt: z.iso.datetime({ offset: true }).optional(),
-  supportEmail: z.literal("support@lasoviet.vn").optional(),
-  supportSubject: z.string().trim().min(1).optional(),
-  supportReference: z.string().trim().min(1).optional(),
+  invoiceNumber: z.string().trim().min(1),
+  paymentReceivedAt: z.iso.datetime({ offset: true }),
+  reportStatusUpdatedAt: z.iso.datetime({ offset: true }),
+  supportEmail: z.literal("support@lasoviet.vn"),
+  supportSubject: z.string().trim().min(1),
+  supportReference: z.string().trim().min(1),
 }).strict();
 export type ReportFailedViewV1 = z.infer<typeof ReportFailedViewV1Schema>;
 

@@ -270,6 +270,12 @@ describe("report view v1 contract", () => {
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
       fulfillmentStatus: "terminal_failure",
+      invoiceNumber: "LSV-INV-001",
+      paymentReceivedAt: "2026-09-08T00:00:00.000Z",
+      reportStatusUpdatedAt: "2026-09-08T00:05:00.000Z",
+      supportEmail: "support@lasoviet.vn",
+      supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
+      supportReference: "LSV-INV-001",
     };
     expect(ReportViewV1Schema.safeParse(failed).success).toBe(true);
   });
@@ -285,9 +291,7 @@ describe("report view v1 contract", () => {
       fulfillmentStatus: "terminal_failure",
       invoiceNumber: "LSV-INV-001",
       paymentReceivedAt: "2026-09-08T00:00:00.000Z",
-      paidAt: "2026-09-08T00:00:00.000Z",
       reportStatusUpdatedAt: "2026-09-08T00:05:00.000Z",
-      statusUpdatedAt: "2026-09-08T00:05:00.000Z",
       supportEmail: "support@lasoviet.vn",
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
       supportReference: "LSV-INV-001",
@@ -300,6 +304,19 @@ describe("report view v1 contract", () => {
         supportEmail: "other@example.com",
       }).success,
     ).toBe(false);
+
+    for (const field of [
+      "invoiceNumber",
+      "paymentReceivedAt",
+      "reportStatusUpdatedAt",
+      "supportEmail",
+      "supportSubject",
+      "supportReference",
+    ] as const) {
+      const missingField: Record<string, unknown> = { ...failedWithSupport };
+      delete missingField[field];
+      expect(ReportViewV1Schema.safeParse(missingField).success).toBe(false);
+    }
 
     expect(
       ReportViewV1Schema.safeParse({

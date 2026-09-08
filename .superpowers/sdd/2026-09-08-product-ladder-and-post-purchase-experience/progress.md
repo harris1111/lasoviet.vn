@@ -42,3 +42,7 @@
   - Extended terminal-failure report query projection with order invoice, timestamps, and customer support contact fields.
   - Added integration test proving report retry/recovery does not mutate commerce orders or payment events (R-AUTO-22).
   - Preserved deferred scope: founder terminal-failure alerts, user-facing UI, and `SEPAY_ENV=disabled`.
+- WP-06 Terra correction pass implemented and pending scoped re-review:
+  - Report publication now requires an explicit validated public HTTPS origin and recipient fingerprint secret.
+  - Terminal-failure projection now requires one unambiguous set of paid-order and support fields.
+  - R-AUTO-22 now snapshots commerce and payment rows around the real invalid-output recovery command.

@@ -1,4 +1,5 @@
 import { createHash, createHmac, randomUUID } from "node:crypto";
+import { isIP } from "node:net";
 import { isDeepStrictEqual } from "node:util";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 
@@ -53,8 +54,8 @@ export type ImmutableReportVersionRecord = typeof reportVersions.$inferSelect;
 export type ReportGenerationAttemptRecord = typeof reportGenerationAttempts.$inferSelect;
 
 export type ReportVersionRepositoryOptions = {
-  betterAuthUrl?: string;
-  recipientFingerprintSecret?: string;
+  betterAuthUrl: string;
+  recipientFingerprintSecret: string;
 };
 
 export type ReportVersionRepository = {
@@ -72,36 +73,49 @@ class ConflictError extends Error {
   }
 }
 
-function resolveCanonicalPublicOrigin(configuredUrl?: string): string {
-  const raw = configuredUrl ?? process.env.BETTER_AUTH_URL;
-  if (!raw || typeof raw !== "string" || !raw.trim()) {
-    throw new ConflictError();
+function resolveCanonicalPublicOrigin(configuredUrl: string): string {
+  if (typeof configuredUrl !== "string" || !configuredUrl.trim()) {
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
   }
+
   let parsed: URL;
   try {
-    parsed = new URL(raw.trim());
+    parsed = new URL(configuredUrl.trim());
   } catch {
-    throw new ConflictError();
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
   }
+
   const hostname = parsed.hostname.toLowerCase();
+  const normalizedHostname = hostname.endsWith(".")
+    ? hostname.slice(0, -1)
+    : hostname;
+  const ipCandidate =
+    normalizedHostname.startsWith("[") && normalizedHostname.endsWith("]")
+      ? normalizedHostname.slice(1, -1)
+      : normalizedHostname;
+
   if (
-    hostname === "127.0.0.1" ||
-    hostname === "localhost" ||
-    hostname === "0.0.0.0" ||
-    hostname === "::1" ||
-    (!hostname.includes(".") && !hostname.includes(":"))
+    parsed.protocol !== "https:" ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    !normalizedHostname.includes(".") ||
+    isIP(ipCandidate) !== 0 ||
+    normalizedHostname === "localhost" ||
+    normalizedHostname.endsWith(".localhost") ||
+    normalizedHostname.endsWith(".local") ||
+    normalizedHostname.endsWith(".internal")
   ) {
-    throw new ConflictError();
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
   }
+
   return parsed.origin;
 }
 
-function resolveFingerprintSecret(configuredSecret?: string): string {
-  const secret = configuredSecret ?? process.env.INTERNAL_ACTOR_SECRET;
-  if (!secret || typeof secret !== "string" || !secret.trim()) {
-    throw new ConflictError();
+function resolveFingerprintSecret(configuredSecret: string): string {
+  if (typeof configuredSecret !== "string" || !configuredSecret.trim()) {
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
   }
-  return secret.trim();
+  return configuredSecret.trim();
 }
 
 function conflict(): Result<never, ReportVersionConflictCode> {
@@ -117,8 +131,13 @@ function conflict(): Result<never, ReportVersionConflictCode> {
 
 export function createDatabaseReportVersionRepository(
   database: Database,
-  options?: ReportVersionRepositoryOptions,
+  options: ReportVersionRepositoryOptions,
 ): ReportVersionRepository {
+  const canonicalOrigin = resolveCanonicalPublicOrigin(options.betterAuthUrl);
+  const fingerprintSecret = resolveFingerprintSecret(
+    options.recipientFingerprintSecret,
+  );
+
   return {
     async getImmutableVersion(reportVersionId: string): Promise<ImmutableReportVersionRecord | null> {
       const [existing] = await database.select().from(reportVersions).where(eq(reportVersions.reportVersionId, reportVersionId)).limit(1);
@@ -294,9 +313,6 @@ export function createDatabaseReportVersionRepository(
           ) {
             throw new ConflictError();
           }
-
-          const canonicalOrigin = resolveCanonicalPublicOrigin(options?.betterAuthUrl);
-          const fingerprintSecret = resolveFingerprintSecret(options?.recipientFingerprintSecret);
 
           const reportPath =
             input.locale === "en"

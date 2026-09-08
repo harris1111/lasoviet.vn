@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { eq } from "../../packages/backend/node_modules/drizzle-orm/index.js";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
@@ -1613,6 +1614,8 @@ describe("report query integration test with real database", () => {
     const orderDId = randomUUID();
     const entitlementDId = randomUUID();
     const invoiceNumberD = "INV-D-FAILED-" + randomUUID().slice(0, 8);
+    const paidAtD = new Date("2026-09-08T12:00:00.000Z");
+    const reportUpdatedAtD = new Date("2026-09-08T12:05:00.000Z");
 
     await database.insert(commerceOrders).values({
       id: orderDId,
@@ -1625,6 +1628,7 @@ describe("report query integration test with real database", () => {
       currency: "VND",
       locale: "vi",
       status: "paid",
+      paidAt: paidAtD,
     });
 
     await database.insert(commerceEntitlements).values({
@@ -1648,6 +1652,7 @@ describe("report query integration test with real database", () => {
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
       status: "terminal_failure",
+      updatedAt: reportUpdatedAtD,
     });
 
     const repoResult4 = await repository.readAuthorizedReport(ownerD.ownerId, reportDId);
@@ -1664,10 +1669,20 @@ describe("report query integration test with real database", () => {
       expect((serviceResult4.value as any).supportEmail).toBe("support@lasoviet.vn");
       expect((serviceResult4.value as any).supportSubject).toBe(`[Lá Số Việt] Hỗ trợ báo cáo đơn hàng ${invoiceNumberD}`);
       expect((serviceResult4.value as any).supportReference).toBe(invoiceNumberD);
-      expect((serviceResult4.value as any).paymentReceivedAt).toBeDefined();
-      expect((serviceResult4.value as any).reportStatusUpdatedAt).toBeDefined();
+      expect((serviceResult4.value as any).paymentReceivedAt).toBe(paidAtD.toISOString());
+      expect((serviceResult4.value as any).reportStatusUpdatedAt).toBe(reportUpdatedAtD.toISOString());
       expect((serviceResult4.value as any).lastErrorCode).toBeUndefined();
+      expect((serviceResult4.value as any).paidAt).toBeUndefined();
+      expect((serviceResult4.value as any).statusUpdatedAt).toBeUndefined();
     }
+
+    await database
+      .update(commerceOrders)
+      .set({ paidAt: null })
+      .where(eq(commerceOrders.id, orderDId));
+    await expect(service.getReport(ownerD.actor, reportDId)).rejects.toThrow(
+      "REPORT_QUERY_DATA_INVALID",
+    );
   }, containerTimeoutMs);
 
   it("proves report query rejects order/entitlement and reservation/version SKU mismatches while preserving valid flows (Finding 2)", async () => {

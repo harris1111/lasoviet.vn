@@ -137,7 +137,11 @@ export function createReportGenerateRunner(options?: {
     };
   }
 
-  if (environment.value.databaseUrl === undefined) {
+  if (
+    environment.value.databaseUrl === undefined ||
+    environment.value.betterAuthUrl === undefined ||
+    environment.value.internalActorSecret === undefined
+  ) {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);

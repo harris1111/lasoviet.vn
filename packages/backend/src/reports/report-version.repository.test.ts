@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createDatabaseReportVersionRepository } from "./report-version.repository.js";
 
+const repositoryOptions = {
+  betterAuthUrl: "https://lasoviet.vn",
+  recipientFingerprintSecret: "synthetic-secret",
+};
+
 describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
   it("returns consumed: true when reservation exists and rewriteConsumedAt is null", async () => {
     const mockDb = {
@@ -14,7 +19,10 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
       select: vi.fn(),
     };
 
-    const repo = createDatabaseReportVersionRepository(mockDb as never);
+    const repo = createDatabaseReportVersionRepository(
+      mockDb as never,
+      repositoryOptions,
+    );
     const result = await repo.consumeRewriteBudget("version-1");
 
     expect(result).toEqual({ ok: true, value: { consumed: true } });
@@ -38,7 +46,10 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
       }),
     };
 
-    const repo = createDatabaseReportVersionRepository(mockDb as never);
+    const repo = createDatabaseReportVersionRepository(
+      mockDb as never,
+      repositoryOptions,
+    );
     const result = await repo.consumeRewriteBudget("version-1");
 
     expect(result).toEqual({ ok: true, value: { consumed: false } });
@@ -62,7 +73,10 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
       }),
     };
 
-    const repo = createDatabaseReportVersionRepository(mockDb as never);
+    const repo = createDatabaseReportVersionRepository(
+      mockDb as never,
+      repositoryOptions,
+    );
     const result = await repo.consumeRewriteBudget("version-missing");
 
     expect(result).toEqual({
@@ -76,68 +90,35 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
   });
 });
 
-describe("createDatabaseReportVersionRepository - commitImmutableVersion lineage guards", () => {
-  it("rejects commit when BETTER_AUTH_URL is loopback", async () => {
-    const mockTx = {
-      select: vi.fn().mockImplementation(() => ({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([]),
-          }),
-          innerJoin: vi.fn().mockReturnThis(),
-        }),
-      })),
-      update: vi.fn().mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([{ id: "res-1", stateVersion: 1 }]),
-          }),
-        }),
+describe("createDatabaseReportVersionRepository - notification configuration", () => {
+  const database = {} as never;
+
+  it("accepts the canonical public HTTPS origin", () => {
+    expect(() =>
+      createDatabaseReportVersionRepository(database, repositoryOptions),
+    ).not.toThrow();
+  });
+
+  it.each([
+    ["HTTP", "http://lasoviet.vn"],
+    ["private IP", "https://10.0.0.1"],
+    ["credentials", "https://user:password@lasoviet.vn"],
+    ["internal hostname", "https://reports.internal"],
+  ])("rejects %s origin", (_name, betterAuthUrl) => {
+    expect(() =>
+      createDatabaseReportVersionRepository(database, {
+        betterAuthUrl,
+        recipientFingerprintSecret: "synthetic-secret",
       }),
-      insert: vi.fn(),
-    };
+    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
+  });
 
-    const mockDb = {
-      transaction: vi.fn().mockImplementation(async (callback) => {
-        return callback(mockTx);
+  it("rejects an empty recipient fingerprint secret", () => {
+    expect(() =>
+      createDatabaseReportVersionRepository(database, {
+        betterAuthUrl: "https://lasoviet.vn",
+        recipientFingerprintSecret: "   ",
       }),
-    };
-
-    const repo = createDatabaseReportVersionRepository(mockDb as never, {
-      betterAuthUrl: "http://127.0.0.1:3000",
-      recipientFingerprintSecret: "secret",
-    });
-
-    const result = await repo.commitImmutableVersion({
-      reportId: "rep-1",
-      reportVersionId: "ver-1",
-      entitlementId: "ent-1",
-      chartVersionId: "chart-1",
-      evidenceVersionId: "ev-1",
-      knowledgeVersionId: "kn-1",
-      promptVersion: "prompt-1",
-      reportConfigVersion: "cfg-1",
-      templateVersion: "tpl-1",
-      renderVersion: "identity-report-pdf.v1",
-      locale: "vi",
-      sku: "ZIWEI-IDENTITY-P0",
-      providerId: "prov-1",
-      modelId: "mod-1",
-      structuredContent: {} as never,
-      htmlContent: "<html></html>",
-      jobId: "job-1",
-      workerId: "worker-1",
-      attemptNumber: 1,
-      traceId: "trace-1",
-    });
-
-    expect(result).toEqual({
-      ok: false,
-      error: {
-        code: "REPORT_VERSION_CONFLICT",
-        messageKey: "reports.report_version_conflict",
-        retryable: false,
-      },
-    });
+    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
   });
 });

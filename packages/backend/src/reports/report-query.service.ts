@@ -122,7 +122,11 @@ export function createReportQueryService(options: {
 
       if (!version) {
         if (reservationFulfillmentStatus === "terminal_failure") {
-          const paymentTime = (order.paidAt ?? order.createdAt).toISOString();
+          if (order.status !== "paid" || order.paidAt === null) {
+            throw new ReportQueryDataError();
+          }
+
+          const paymentTime = order.paidAt.toISOString();
           const updateTime = reservation.updatedAt.toISOString();
           const supportSubject =
             reservation.locale === "en"
@@ -139,9 +143,7 @@ export function createReportQueryService(options: {
             fulfillmentStatus: "terminal_failure",
             invoiceNumber: order.invoiceNumber,
             paymentReceivedAt: paymentTime,
-            paidAt: paymentTime,
             reportStatusUpdatedAt: updateTime,
-            statusUpdatedAt: updateTime,
             supportEmail: "support@lasoviet.vn",
             supportSubject,
             supportReference: order.invoiceNumber,

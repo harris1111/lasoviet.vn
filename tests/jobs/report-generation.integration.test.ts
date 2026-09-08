@@ -71,8 +71,10 @@ const branchIds = [
   "ziwei.branch.pig",
 ] as const;
 
-process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
-process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
+const reportRepositoryOptions = {
+  betterAuthUrl: "https://lasoviet.vn/configured/path?ignored=true#fragment",
+  recipientFingerprintSecret: "test-internal-secret",
+};
 
 function sampleChart(): NormalizedZiweiChartV1 {
   return {
@@ -697,7 +699,10 @@ describe("immutable report version repository integration", () => {
   it("commits immutable version atomically with lowercase sha256, advances reservation states, succeeds attempt, processes queue job, and emits single pdf event", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "atomic-commit");
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     const startAttemptResult = await repository.startOrReuseAttempt({
       jobId: fixture.jobId,
@@ -804,7 +809,10 @@ describe("immutable report version repository integration", () => {
   it("atomically claims rewrite budget with exactly one consumed:true on concurrent/repeated consumption", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "rewrite-budget");
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     const [res1, res2, res3] = await Promise.all([
       repository.consumeRewriteBudget(fixture.reportVersionId),
@@ -833,7 +841,10 @@ describe("immutable report version repository integration", () => {
   it("replays existing immutable version without creating second output, attempt, or outbox event", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "replay");
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     await repository.startOrReuseAttempt({
       jobId: fixture.jobId,
@@ -907,7 +918,10 @@ describe("immutable report version repository integration", () => {
     const fixture = await seedReservationAndJobFixture(database, "stale-lease", {
       leasedUntil: past,
     });
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     const structuredContent = sampleVietnameseReport();
     const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>Stale</title></head><body><h1>Stale</h1></body></html>`;
@@ -958,7 +972,10 @@ describe("immutable report version repository integration", () => {
   it("rolls back with REPORT_VERSION_CONFLICT when attempting to commit conflicting content or source for existing report version", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "content-conflict");
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     const structuredContent = sampleVietnameseReport();
     const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>Initial</title></head><body><h1>Initial</h1></body></html>`;
@@ -1030,7 +1047,10 @@ describe("immutable report version repository integration", () => {
   it("rolls back with REPORT_VERSION_CONFLICT when no running attempt exists for (jobId, attemptNumber)", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "missing-attempt");
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     // Intentionally do NOT start an attempt row for (fixture.jobId, 1)
     const structuredContent = sampleVietnameseReport();
@@ -1087,7 +1107,10 @@ describe("immutable report version repository integration", () => {
   it("rolls back with REPORT_VERSION_CONFLICT when replay has matching html and source metadata but mismatched structured content", async () => {
     const database = createDatabase(databaseUrl);
     const fixture = await seedReservationAndJobFixture(database, "struct-conflict");
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     await repository.startOrReuseAttempt({
       jobId: fixture.jobId,
@@ -1164,7 +1187,10 @@ describe("immutable report version repository integration", () => {
     const fixture = await seedReservationAndJobFixture(database, "replay-expired-lease", {
       leasedUntil: new Date("2026-09-03T00:00:00.000Z"),
     });
-    const repository = createDatabaseReportVersionRepository(database);
+    const repository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
 
     const structuredContent = sampleVietnameseReport();
     const htmlContent = `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>Replay Expired</title></head><body><h1>Replay Expired</h1></body></html>`;
@@ -1232,7 +1258,7 @@ describe("immutable report version repository integration", () => {
     await database.$client.end();
   });
 
-  it("rolls back publication transaction when recipient lineage is unverified, anonymous, unpaid, or loopback origin", async () => {
+  it("rolls back publication transaction when recipient lineage is unverified, anonymous, or unpaid", async () => {
     const database = createDatabase(databaseUrl);
 
     // 1. Unverified email rollback
@@ -1242,7 +1268,10 @@ describe("immutable report version repository integration", () => {
       .set({ emailVerified: false })
       .where(eq(authUsers.id, unverifiedFixture.userId));
 
-    const repo = createDatabaseReportVersionRepository(database);
+    const repo = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const structuredContent = sampleVietnameseReport();
     const htmlContent = "<html><body>Unverified test</body></html>";
 
@@ -1348,91 +1377,9 @@ describe("immutable report version repository integration", () => {
     expect(unpaidResult.ok).toBe(false);
     expect(unpaidResult.error?.code).toBe("REPORT_VERSION_CONFLICT");
 
-    // 4. Loopback origin rollback
-    const loopbackFixture = await seedReservationAndJobFixture(database, "loopback-origin");
-    const loopbackRepo = createDatabaseReportVersionRepository(database, {
-      betterAuthUrl: "http://127.0.0.1:49152",
-      recipientFingerprintSecret: "test-secret",
-    });
-
-    const loopbackResult = await loopbackRepo.commitImmutableVersion({
-      reportId: loopbackFixture.reportId,
-      reportVersionId: loopbackFixture.reportVersionId,
-      entitlementId: loopbackFixture.entitlementId,
-      chartVersionId: loopbackFixture.chartVersionId,
-      evidenceVersionId: loopbackFixture.evidenceVersionId,
-      knowledgeVersionId: loopbackFixture.knowledgeVersionId,
-      promptVersion: "ziwei.identity.prompt.v1",
-      reportConfigVersion: "identity-report-config.v1",
-      templateVersion: "identity-report-html.v1",
-      renderVersion: "identity-report-pdf.v1",
-      locale: "vi",
-      sku: "ZIWEI-IDENTITY-P0",
-      providerId: "openai",
-      modelId: "gpt-4o",
-      structuredContent,
-      htmlContent,
-      jobId: loopbackFixture.jobId,
-      workerId: loopbackFixture.workerId,
-      attemptNumber: 1,
-      traceId: `trace-${loopbackFixture.jobId}`,
-    });
-
-    expect(loopbackResult.ok).toBe(false);
-    expect(loopbackResult.error?.code).toBe("REPORT_VERSION_CONFLICT");
-
     await database.$client.end();
   });
 
-  it("verifies report retry and recovery leaves commerce orders and payment events unchanged (R-AUTO-22)", async () => {
-    const database = createDatabase(databaseUrl);
-    const fixture = await seedReservationAndJobFixture(database, "r-auto-22-payment-isolation");
-
-    // Add a real payment event for this order
-    await database.insert(commercePaymentEvents).values({
-      id: randomUUID(),
-      orderId: fixture.orderId,
-      providerEventId: `sepay-evt-${randomUUID()}`,
-      amount: 79_000,
-      currency: "VND",
-      status: "paid",
-      createdAt: new Date(),
-    });
-
-    // Snapshot commerce_orders and commerce_payment_events before retry
-    const ordersBefore = await database.select().from(commerceOrders);
-    const eventsBefore = await database.select().from(commercePaymentEvents);
-
-    // Simulate retry attempt via report-version repository startOrReuseAttempt
-    const repo = createDatabaseReportVersionRepository(database);
-    const attemptResult = await repo.startOrReuseAttempt({
-      jobId: fixture.jobId,
-      attemptNumber: 2,
-      reportVersionId: fixture.reportVersionId,
-      providerId: "openai",
-      modelId: "gpt-4o",
-    });
-    expect(attemptResult.ok).toBe(true);
-
-    // Record failure attempt
-    const failResult = await repo.recordFailedAttempt({
-      jobId: fixture.jobId,
-      attemptNumber: 2,
-      errorCode: "AI_TIMEOUT",
-    });
-    expect(failResult.ok).toBe(true);
-
-    // Snapshot commerce_orders and commerce_payment_events after retry
-    const ordersAfter = await database.select().from(commerceOrders);
-    const eventsAfter = await database.select().from(commercePaymentEvents);
-
-    expect(ordersAfter.length).toBe(ordersBefore.length);
-    expect(eventsAfter.length).toBe(eventsBefore.length);
-    expect(ordersAfter).toEqual(ordersBefore);
-    expect(eventsAfter).toEqual(eventsBefore);
-
-    await database.$client.end();
-  });
 });
 
 describe("report generation orchestration and worker integration (Slice B)", () => {
@@ -1775,7 +1722,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider();
     const generationService = createReportGenerationService({
@@ -1844,7 +1794,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const full = sampleVietnameseReport();
     const provider = createDeterministicMockProvider({
@@ -1932,7 +1885,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider({
       criticResponse: () => ({
@@ -2017,7 +1973,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider({
       writerResponse: () => ({
@@ -2080,7 +2039,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider({
       writerResponse: () => {
@@ -2136,7 +2098,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider({
       writerResponse: () => ({
@@ -2193,7 +2158,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider({
       writerResponse: () => ({
@@ -2256,7 +2224,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const realVersionRepository = createDatabaseReportVersionRepository(database);
+    const realVersionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const versionRepository = {
       ...realVersionRepository,
       recordFailedAttempt: async () => ({
@@ -2314,7 +2285,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider({
       writerResponse: () => ({
@@ -2383,7 +2357,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       database,
       knowledgeRetrieval,
     });
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("pending");
     const provider = createDeterministicMockProvider();
     const generationService = createReportGenerationService({
@@ -2442,7 +2419,10 @@ describe("report generation orchestration and worker integration (Slice B)", () 
         return realSourceRepository.loadSource(params);
       },
     };
-    const versionRepository = createDatabaseReportVersionRepository(database);
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
     const gate = createAiProductionGate("approved");
     const provider = createDeterministicMockProvider();
     const generationService = createReportGenerationService({
@@ -3081,6 +3061,16 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       processedAt: new Date("2026-09-08T00:01:00.000Z"),
     });
 
+    await database.insert(commercePaymentEvents).values({
+      id: randomUUID(),
+      orderId: fixture.orderId,
+      providerEventId: `sepay-recovery-${fixture.orderId}`,
+      amount: 79_000,
+      currency: "VND",
+      status: "paid",
+      createdAt: new Date("2026-09-08T00:00:00.000Z"),
+    });
+
     const reportService = createReportService(database);
 
     // Verify cross-error rejection: recoverEvidenceInvalidGeneration rejects AI_OUTPUT_INVALID reservation
@@ -3113,6 +3103,13 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     });
     expect(rejectEvidenceResult).toEqual({ ok: false, code: "WORKFLOW_STATE_CONFLICT" });
 
+    const commerceOrdersBeforeRecovery = await database
+      .select()
+      .from(commerceOrders);
+    const paymentEventsBeforeRecovery = await database
+      .select()
+      .from(commercePaymentEvents);
+
     // Execute successful recovery of AI_OUTPUT_INVALID
     const recoveryResult = await reportService.recoverInvalidOutputGeneration({
       reportVersionId: fixture.reportVersionId,
@@ -3120,6 +3117,13 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       recoveryId: "rec-invalid-output-001",
     });
     expect(recoveryResult).toEqual({ ok: true, stateVersion: 2 });
+
+    expect(await database.select().from(commerceOrders)).toEqual(
+      commerceOrdersBeforeRecovery,
+    );
+    expect(await database.select().from(commercePaymentEvents)).toEqual(
+      paymentEventsBeforeRecovery,
+    );
 
     // Verify reservation reset and preserved fields
     const [reservation] = await database

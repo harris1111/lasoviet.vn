@@ -477,9 +477,7 @@ describe("report query service", () => {
       fulfillmentStatus: "terminal_failure",
       invoiceNumber: "INV-SAMPLE-001",
       paymentReceivedAt: "2026-09-04T17:01:00.000Z",
-      paidAt: "2026-09-04T17:01:00.000Z",
       reportStatusUpdatedAt: "2026-09-04T17:00:00.000Z",
-      statusUpdatedAt: "2026-09-04T17:00:00.000Z",
       supportEmail: "support@lasoviet.vn",
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng INV-SAMPLE-001",
       supportReference: "INV-SAMPLE-001",
@@ -487,6 +485,30 @@ describe("report query service", () => {
     expect((result.value as any).lastErrorCode).toBeUndefined();
     expect((result.value as any).providerId).toBeUndefined();
     expect((result.value as any).modelId).toBeUndefined();
+  });
+
+  it.each([
+    ["null paidAt", { paidAt: null }],
+    ["non-paid order", { status: "failed" }],
+  ])("fails closed for terminal generation failure with %s", async (_name, order) => {
+    const record = createSampleRecord({
+      reservation: {
+        status: "terminal_failure",
+        lastErrorCode: "AI_OUTPUT_INVALID",
+      } as any,
+      order: order as any,
+    });
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    await expect(
+      service.getReport(
+        accountActor,
+        "834e9e89-19cb-44a6-bc59-ba7741374553",
+      ),
+    ).rejects.toThrow(ReportQueryDataError);
   });
 
   it("fails closed on locale, SKU, or evidence mismatch by throwing ReportQueryDataError", async () => {
