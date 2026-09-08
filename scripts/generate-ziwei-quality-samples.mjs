@@ -24,6 +24,14 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, "..");
 const CORPUS_PATH = resolve(REPO_ROOT, "content/knowledge/vi/ziwei/comprehensive-report.v3.json");
 
+const VALID_SAMPLE_IDS = [
+  "SAMPLE-01",
+  "SAMPLE-02",
+  "SAMPLE-03",
+  "SAMPLE-04",
+  "SAMPLE-05",
+];
+
 // Generate a deterministic synthetic candidate grid dynamically at runtime via numeric loops
 function generateDeterministicCandidateGrid() {
   const candidates = [];
@@ -261,6 +269,30 @@ function parseCliArguments() {
   const outputDirIdx = args.indexOf("--output-dir");
   const outputDir = outputDirIdx !== -1 ? args[outputDirIdx + 1] : undefined;
 
+  const sampleIdOccurrences = args.filter((a) => a === "--sample-id").length;
+  if (sampleIdOccurrences > 1) {
+    console.error("BLOCKED: Duplicate --sample-id argument.");
+    process.exit(1);
+  }
+
+  const sampleIdIdx = args.indexOf("--sample-id");
+  let sampleId = undefined;
+  if (sampleIdIdx !== -1) {
+    sampleId = args[sampleIdIdx + 1];
+    if (!sampleId || sampleId.startsWith("--")) {
+      console.error("BLOCKED: Missing value for --sample-id.");
+      process.exit(1);
+    }
+    if (!hasExecuteProvider || hasPrepareOnly) {
+      console.error("BLOCKED: --sample-id is valid only with --execute-provider.");
+      process.exit(1);
+    }
+    if (!VALID_SAMPLE_IDS.includes(sampleId)) {
+      console.error(`BLOCKED: Unknown or malformed --sample-id '${sampleId}'. Valid values: ${VALID_SAMPLE_IDS.join(", ")}.`);
+      process.exit(1);
+    }
+  }
+
   if (hasPrepareOnly && hasExecuteProvider) {
     console.error("BLOCKED: Conflicting arguments: --prepare-only and --execute-provider are mutually exclusive.");
     process.exit(1);
@@ -270,6 +302,7 @@ function parseCliArguments() {
     prepareOnly: hasPrepareOnly || !hasExecuteProvider,
     executeProvider: hasExecuteProvider,
     outputDir,
+    sampleId,
   };
 }
 
@@ -488,9 +521,20 @@ async function main() {
     const privateOutputDir = validatePrivateOutputDirectory(cli.outputDir);
 
     let totalHttpRequests = 0;
+    let lastCapturedResponse = undefined;
+    let lastHttpStatus = undefined;
+
     const countingFetch = async (url, init) => {
       totalHttpRequests += 1;
-      return await fetch(url, init);
+      const res = await fetch(url, init);
+      lastHttpStatus = res.status;
+      try {
+        const clone = res.clone();
+        lastCapturedResponse = await clone.text();
+      } catch {
+        lastCapturedResponse = "";
+      }
+      return res;
     };
 
     const aiProvider = createOpenAiCompatibleAdapter({
@@ -503,10 +547,17 @@ async function main() {
       fetchImpl: countingFetch,
     });
 
+    const samplesToExecute = cli.sampleId
+      ? preparedSamples.filter((s) => s.sampleId === cli.sampleId)
+      : preparedSamples;
+
     const metrics = [];
 
-    for (const sample of preparedSamples) {
+    for (const sample of samplesToExecute) {
       let generateStructuredCalls = 0;
+      lastCapturedResponse = undefined;
+      lastHttpStatus = undefined;
+
       const wrappedProvider = {
         generateStructured: async (req) => {
           generateStructuredCalls += 1;
@@ -517,23 +568,46 @@ async function main() {
       const prevHttpCount = totalHttpRequests;
       const startTime = Date.now();
 
-      const writerResult = await writeComprehensiveZiweiReport(
-        { comprehensiveFacts: sample.facts, knowledgePacks: sample.knowledgePacks },
-        wrappedProvider,
-      );
+      let writerResult;
+      let writerError = null;
+      try {
+        writerResult = await writeComprehensiveZiweiReport(
+          { comprehensiveFacts: sample.facts, knowledgePacks: sample.knowledgePacks },
+          wrappedProvider,
+        );
+      } catch (err) {
+        writerError = err;
+      }
 
       const durationMs = Date.now() - startTime;
       const sampleHttpRequests = totalHttpRequests - prevHttpCount;
+      const sampleBaseName = sample.sampleId.toLowerCase();
+      const capturedByteCount =
+        lastCapturedResponse !== undefined
+          ? Buffer.byteLength(lastCapturedResponse, "utf8")
+          : 0;
 
-      // Strict invariant check: assert exactly 1 provider call and 1 HTTP request per sample
+      // Capture exact HTTP response body into private output directory with mode 0600
+      if (lastCapturedResponse !== undefined) {
+        writePrivateFile(
+          join(privateOutputDir, `${sampleBaseName}-response.raw`),
+          lastCapturedResponse,
+        );
+      }
+
+      // Strict single-call invariant check: assert exactly 1 provider call and 1 HTTP request per sample
       if (generateStructuredCalls !== 1 || sampleHttpRequests !== 1) {
         throw new Error(
           `BLOCKED: Sample ${sample.sampleId} violated single-call invariant: provider calls=${generateStructuredCalls}, HTTP requests=${sampleHttpRequests}`,
         );
       }
 
-      if (!writerResult.ok) {
-        throw new Error(`Sample ${sample.sampleId} generation failed: ${writerResult.error.code}`);
+      if (!writerResult || !writerResult.ok) {
+        const errorCode = writerResult?.error?.code ?? (writerError ? "AI_PROVIDER_REQUEST_FAILED" : "UNKNOWN_ERROR");
+        console.error(
+          `[${sample.sampleId}] Generation failed: ${errorCode} | Calls: ${generateStructuredCalls} | HTTP: ${sampleHttpRequests} | Status: ${lastHttpStatus ?? "N/A"} | Response bytes: ${capturedByteCount}`,
+        );
+        throw new Error(`Sample ${sample.sampleId} generation failed: ${errorCode}`);
       }
 
       const report = writerResult.value.report;
@@ -554,7 +628,6 @@ async function main() {
       const wordCount = textToCount.trim().split(/\s+/).filter(Boolean).length;
 
       // Write private artifacts (mode 0600, fail closed on collision, never in Git)
-      const sampleBaseName = sample.sampleId.toLowerCase();
       writePrivateFile(
         join(privateOutputDir, `${sampleBaseName}-report.json`),
         JSON.stringify(report, null, 2),
@@ -569,6 +642,8 @@ async function main() {
         durationMs,
         providerCalls: generateStructuredCalls,
         httpRequests: sampleHttpRequests,
+        httpStatus: lastHttpStatus,
+        responseBytes: capturedByteCount,
         wordCount,
         validatorOk: validationRes.ok,
         duplicateParagraphCount: findingCounts.duplicateParagraphCount,
