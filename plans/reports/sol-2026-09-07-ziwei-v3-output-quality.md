@@ -62,7 +62,7 @@ The sampler script (`scripts/generate-ziwei-quality-samples.mjs`) enforces harde
    - Nearest existing ancestor resolution prevents symlink-based redirection into the repository prior to directory creation.
    - Post-creation `realpath` revalidation prevents escape.
    - Enforces mode `0700` on both newly created and pre-existing target directories.
-   - Enforces mode `0600` on private files and fails closed if private output files already exist, preventing silent overwriting.
+   - Enforces mode `0600` on private files and fails closed if private output files already exist, preventing silent overwriting. Throws a path-free, synthetic-sample-safe message (`BLOCKED: Private output file already exists and cannot be overwritten (<sampleId>)`) that never leaks private output paths or filenames in errors or logs.
 
 4. **Raw HTTP Response Diagnostic Capture:**
    - The counting `fetchImpl` intercepts and clones the exact HTTP response body for every provider request (both successful and non-success).
@@ -103,8 +103,8 @@ The full verification suite was executed against the clean repository state:
   ```
   *Result:* PASS (all invalid combinations failed with descriptive `BLOCKED` messages before environment checking or network calls).
 
-- **Security Probes (Ancestor-Symlink Rejection & Directory Mode Repair):**
-  *Result:* PASS (existing directory mode 755 repaired to 700; ancestor symlink into repository correctly rejected; temporary artifacts removed).
+- **Security Probes (Ancestor-Symlink Rejection, Directory Mode Repair & Path-Free Collision):**
+  *Result:* PASS (existing directory mode 755 repaired to 700; ancestor symlink into repository correctly rejected; collision fail-close verified to throw path-free, synthetic-sample-safe error messages with mode 0600 enforcement; temporary artifacts removed).
 
 - **Focused Unit & Integration Tests (3 test files, 20 passed):**
   ```bash

@@ -392,9 +392,10 @@ export function validatePrivateOutputDirectory(outputDir) {
   return realpathSync(resolved);
 }
 
-function writePrivateFile(filePath, content) {
+export function writePrivateFile(filePath, content, sampleId) {
   if (existsSync(filePath)) {
-    throw new Error(`BLOCKED: Private output file already exists and cannot be overwritten: ${filePath}`);
+    const scope = sampleId ? ` (${sampleId})` : "";
+    throw new Error(`BLOCKED: Private output file already exists and cannot be overwritten${scope}`);
   }
   writeFileSync(filePath, content, { encoding: "utf8", mode: 0o600 });
   chmodSync(filePath, 0o600);
@@ -592,6 +593,7 @@ async function main() {
         writePrivateFile(
           join(privateOutputDir, `${sampleBaseName}-response.raw`),
           lastCapturedResponse,
+          sample.sampleId,
         );
       }
 
@@ -631,10 +633,12 @@ async function main() {
       writePrivateFile(
         join(privateOutputDir, `${sampleBaseName}-report.json`),
         JSON.stringify(report, null, 2),
+        sample.sampleId,
       );
       writePrivateFile(
         join(privateOutputDir, `${sampleBaseName}-report.html`),
         html,
+        sample.sampleId,
       );
 
       metrics.push({
