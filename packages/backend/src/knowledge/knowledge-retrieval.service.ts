@@ -25,6 +25,57 @@ export type KnowledgePassageV1 = {
   metadata?: KnowledgeChunkMetadataV1;
 };
 
+export type ZiweiKnowledgeQueryV3 = {
+  locale: "vi";
+  knowledgeVersion: "ziwei.comprehensive.knowledge.v3";
+  topics?: string[];
+  palaceIds?: string[];
+  starIds?: string[];
+  brightnessIds?: string[];
+  transformationIds?: string[];
+  relationIds?: string[];
+  patternIds?: string[];
+  text: string;
+  maxPassages: number;
+  maxTotalChars: number;
+};
+
+function computeZiweiMetadataScore(
+  query: ZiweiKnowledgeQueryV3,
+  metadata?: KnowledgeChunkMetadataV1,
+): number {
+  if (!metadata) return 0;
+  let score = 0;
+  if (query.patternIds && query.patternIds.some((id) => metadata.patterns?.includes(id))) {
+    score += 100;
+  }
+  if (query.palaceIds && query.palaceIds.some((id) => metadata.palaces?.includes(id))) {
+    score += 40;
+  }
+  if (query.starIds && query.starIds.some((id) => metadata.stars?.includes(id))) {
+    score += 30;
+  }
+  if (
+    query.transformationIds &&
+    query.transformationIds.some((id) => metadata.transformations?.includes(id))
+  ) {
+    score += 20;
+  }
+  if (
+    query.brightnessIds &&
+    query.brightnessIds.some((id) => metadata.brightness?.includes(id))
+  ) {
+    score += 10;
+  }
+  if (query.relationIds && query.relationIds.some((id) => metadata.relations?.includes(id))) {
+    score += 8;
+  }
+  if (query.topics && query.topics.some((id) => metadata.topics?.includes(id))) {
+    score += 4;
+  }
+  return score;
+}
+
 export type RetrieveKnowledgeQuery = {
   discipline: "ziwei";
   locale: "vi" | "en";
@@ -436,5 +487,216 @@ export function createKnowledgeRetrievalService(dependencies: {
 
       return boundedPassages;
     },
+
+    async retrieveZiweiKnowledge(
+      query: ZiweiKnowledgeQueryV3,
+    ): Promise<KnowledgePassageV1[]> {
+      if (query.locale !== "vi") {
+        throw new KnowledgeError(
+          "KNOWLEDGE_METADATA_INVALID",
+          `Unsupported locale: ${query.locale}`,
+        );
+      }
+
+      if (query.knowledgeVersion !== "ziwei.comprehensive.knowledge.v3") {
+        throw new KnowledgeError(
+          "KNOWLEDGE_METADATA_INVALID",
+          `Unsupported knowledge version: ${query.knowledgeVersion}`,
+        );
+      }
+
+      if (!query.text || query.text.trim().length === 0) {
+        throw new KnowledgeError(
+          "KNOWLEDGE_METADATA_INVALID",
+          "Query text must not be empty",
+        );
+      }
+
+      if (query.text.length > 512) {
+        throw new KnowledgeError(
+          "KNOWLEDGE_CONTEXT_LIMIT",
+          "Query text must not exceed 512 characters",
+        );
+      }
+
+      const maxPassages = validateIntegerLimit(
+        query.maxPassages,
+        2,
+        1,
+        50,
+        "maxPassages",
+      );
+
+      const maxTotalChars = validateIntegerLimit(
+        query.maxTotalChars,
+        1800,
+        1,
+        32000,
+        "maxTotalChars",
+      );
+
+      const words = query.text
+        .replace(/[^\p{L}\p{N}]+/gu, " ")
+        .trim()
+        .split(/\s+/)
+        .filter((w) => w.length > 0);
+
+      const orQueryTokens = words
+        .map((w) => `'${w.replace(/'/g, "''")}'`)
+        .join(" | ");
+
+      const hasPatterns = query.patternIds && query.patternIds.length > 0;
+      const hasPalaces = query.palaceIds && query.palaceIds.length > 0;
+      const hasStars = query.starIds && query.starIds.length > 0;
+      const hasTransformations = query.transformationIds && query.transformationIds.length > 0;
+      const hasBrightness = query.brightnessIds && query.brightnessIds.length > 0;
+      const hasRelations = query.relationIds && query.relationIds.length > 0;
+      const hasTopics = query.topics && query.topics.length > 0;
+
+      const patternScoreSql = hasPatterns
+        ? sql`CASE WHEN c.metadata->'patterns' ?| ${query.patternIds}::text[] THEN 100 ELSE 0 END`
+        : sql`0`;
+      const palaceScoreSql = hasPalaces
+        ? sql`CASE WHEN c.metadata->'palaces' ?| ${query.palaceIds}::text[] THEN 40 ELSE 0 END`
+        : sql`0`;
+      const starScoreSql = hasStars
+        ? sql`CASE WHEN c.metadata->'stars' ?| ${query.starIds}::text[] THEN 30 ELSE 0 END`
+        : sql`0`;
+      const transformationScoreSql = hasTransformations
+        ? sql`CASE WHEN c.metadata->'transformations' ?| ${query.transformationIds}::text[] THEN 20 ELSE 0 END`
+        : sql`0`;
+      const brightnessScoreSql = hasBrightness
+        ? sql`CASE WHEN c.metadata->'brightness' ?| ${query.brightnessIds}::text[] THEN 10 ELSE 0 END`
+        : sql`0`;
+      const relationScoreSql = hasRelations
+        ? sql`CASE WHEN c.metadata->'relations' ?| ${query.relationIds}::text[] THEN 8 ELSE 0 END`
+        : sql`0`;
+      const topicScoreSql = hasTopics
+        ? sql`CASE WHEN c.metadata->'topics' ?| ${query.topics}::text[] THEN 4 ELSE 0 END`
+        : sql`0`;
+
+      const textRankSql = orQueryTokens.length > 0
+        ? sql`GREATEST(
+            ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text})),
+            ts_rank(to_tsvector('simple', c.content), to_tsquery('simple', ${orQueryTokens}))
+          )`
+        : sql`ts_rank(to_tsvector('simple', c.content), plainto_tsquery('simple', ${query.text}))`;
+
+      const rowsResult = await dependencies.database.execute<{
+        id: string;
+        passage_id: string;
+        document_id: string;
+        discipline: "ziwei";
+        locale: "vi";
+        report_sections: string[] | string;
+        knowledge_version: string;
+        content: string;
+        content_hash: string;
+        source_attribution: string;
+        permitted_use: PermittedUseBasis;
+        metadata?: unknown;
+        rank?: number;
+      }>(
+        sql`
+          SELECT
+            c.id,
+            c.passage_id,
+            c.document_id,
+            c.discipline,
+            c.locale,
+            c.report_sections,
+            c.knowledge_version,
+            c.content,
+            c.content_hash,
+            c.source_attribution,
+            c.permitted_use,
+            c.metadata,
+            ${textRankSql} AS rank
+          FROM knowledge_chunks c
+          INNER JOIN knowledge_documents d ON d.id = c.document_id
+          WHERE d.approval_status = 'approved'
+            AND c.discipline = 'ziwei'
+            AND c.locale = ${query.locale}
+            AND c.knowledge_version = ${query.knowledgeVersion}
+          ORDER BY
+            (${patternScoreSql} + ${palaceScoreSql} + ${starScoreSql} + ${transformationScoreSql} + ${brightnessScoreSql} + ${relationScoreSql} + ${topicScoreSql}) DESC,
+            COALESCE((c.metadata->>'priority')::numeric, 1) DESC,
+            rank DESC,
+            c.passage_id ASC
+          LIMIT ${maxPassages * 10}
+        `,
+      );
+
+      const candidates: Array<
+        KnowledgePassageV1 & { metadataScore: number; textRank: number }
+      > = [];
+
+      for (const row of rowsResult) {
+        const sections = Array.isArray(row.report_sections)
+          ? row.report_sections
+          : typeof row.report_sections === "string"
+            ? JSON.parse(row.report_sections)
+            : [];
+
+        const rawMeta =
+          typeof row.metadata === "string" ? JSON.parse(row.metadata) : row.metadata;
+        const normalizedMeta =
+          rawMeta && typeof rawMeta === "object" && Object.keys(rawMeta).length > 0
+            ? normalizeChunkMetadata(rawMeta as KnowledgeChunkMetadataV1, row.locale)
+            : normalizeChunkMetadata(undefined, row.locale);
+
+        const metadataScore = computeZiweiMetadataScore(query, normalizedMeta);
+        const textRank =
+          typeof row.rank === "number" ? row.rank : Number(row.rank ?? 0);
+
+        candidates.push({
+          id: row.id,
+          passageId: row.passage_id,
+          documentId: row.document_id,
+          discipline: row.discipline,
+          locale: row.locale,
+          reportSections: sections,
+          knowledgeVersion: row.knowledge_version,
+          content: row.content,
+          contentHash: row.content_hash,
+          sourceAttribution: row.source_attribution,
+          permittedUse: row.permitted_use,
+          metadata: normalizedMeta,
+          metadataScore,
+          textRank,
+        });
+      }
+
+      candidates.sort((a, b) => {
+        const scoreDiff = b.metadataScore - a.metadataScore;
+        if (scoreDiff !== 0) return scoreDiff;
+        const priorityDiff =
+          (b.metadata?.priority ?? 1) - (a.metadata?.priority ?? 1);
+        if (priorityDiff !== 0) return priorityDiff;
+        const rankDiff = b.textRank - a.textRank;
+        if (Math.abs(rankDiff) > 1e-6) return rankDiff;
+        return a.passageId.localeCompare(b.passageId);
+      });
+
+      const seenContentHashes = new Set<string>();
+      const seenPassageIds = new Set<string>();
+      const boundedPassages: KnowledgePassageV1[] = [];
+      let totalChars = 0;
+
+      for (const candidate of candidates) {
+        if (boundedPassages.length >= maxPassages) break;
+        if (seenContentHashes.has(candidate.contentHash)) continue;
+        if (seenPassageIds.has(candidate.passageId)) continue;
+        if (totalChars + candidate.content.length > maxTotalChars) break;
+
+        seenContentHashes.add(candidate.contentHash);
+        seenPassageIds.add(candidate.passageId);
+        boundedPassages.push(candidate);
+        totalChars += candidate.content.length;
+      }
+
+      return boundedPassages;
+    },
+
   };
 }

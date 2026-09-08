@@ -18,6 +18,11 @@ import {
   type KnowledgePassageV1,
   type createKnowledgeRetrievalService,
 } from "../knowledge/knowledge-retrieval.service.js";
+import { buildComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
+import {
+  buildComprehensiveKnowledgePacks,
+  type ZiweiReportKnowledgePack,
+} from "./comprehensive-report-retrieval.js";
 import { buildFrozenIdentityReportFacts } from "./frozen-identity-report-facts.js";
 import {
   identityReportOutlineV1,
@@ -62,7 +67,11 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
   knowledgeRetrieval: Pick<
     ReturnType<typeof createKnowledgeRetrievalService>,
     "retrieveKnowledge"
-  >;
+  > & {
+    retrieveZiweiKnowledge?: ReturnType<
+      typeof createKnowledgeRetrievalService
+    >["retrieveZiweiKnowledge"];
+  };
 }): ReportGenerationSourceRepository {
   return {
     async loadSource(
@@ -84,12 +93,29 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         return invalid();
       }
 
-      const family = resolveIdentityReportVersionFamily(
-        input.promptVersion,
-        input.knowledgeVersionId,
-      );
-      if (family === null) {
-        return invalid();
+      const isV3 =
+        input.promptVersion === "ziwei.comprehensive.prompt.v3" &&
+        input.knowledgeVersionId === "ziwei.comprehensive.knowledge.v3" &&
+        input.locale === "vi";
+
+      if (
+        input.promptVersion === "ziwei.comprehensive.prompt.v3" ||
+        input.knowledgeVersionId === "ziwei.comprehensive.knowledge.v3"
+      ) {
+        if (!isV3) {
+          return invalid();
+        }
+      }
+
+      let family: "v1" | "v2" | null = null;
+      if (!isV3) {
+        family = resolveIdentityReportVersionFamily(
+          input.promptVersion,
+          input.knowledgeVersionId,
+        );
+        if (family === null) {
+          return invalid();
+        }
       }
 
       const [chartRow] = await dependencies.database
@@ -168,6 +194,73 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       );
       if (!frozenResult.ok) {
         return invalid();
+      }
+
+      if (isV3) {
+        if (!dependencies.knowledgeRetrieval.retrieveZiweiKnowledge) {
+          return invalid();
+        }
+
+        const comprehensiveFacts = buildComprehensiveZiweiFacts(parsedChart.data);
+
+        let knowledgePacks: ZiweiReportKnowledgePack[];
+        try {
+          knowledgePacks = await buildComprehensiveKnowledgePacks(
+            comprehensiveFacts,
+            (query) => dependencies.knowledgeRetrieval.retrieveZiweiKnowledge!(query),
+          );
+        } catch (error) {
+          if (error instanceof KnowledgeError) {
+            return invalid();
+          }
+          throw error;
+        }
+
+        const aggregatedPassages: KnowledgePassageV1[] = [];
+        const seenPassageIds = new Set<string>();
+
+        for (const pack of knowledgePacks) {
+          for (const passage of pack.passages) {
+            if (!seenPassageIds.has(passage.passageId)) {
+              seenPassageIds.add(passage.passageId);
+              aggregatedPassages.push({
+                id: passage.passageId,
+                passageId: passage.passageId,
+                documentId: "",
+                discipline: "ziwei",
+                locale: "vi",
+                reportSections: [],
+                knowledgeVersion: input.knowledgeVersionId,
+                content: passage.content,
+                contentHash: "",
+                sourceAttribution: "",
+                permittedUse: "reference_rewrite",
+                metadata: passage.metadata,
+              });
+            }
+          }
+        }
+
+        if (aggregatedPassages.length === 0) {
+          return invalid();
+        }
+
+        const source: IdentityReportSource = {
+          evidence: assembledEvidence.data,
+          frozenFacts: frozenResult.value,
+          knowledgePassages: aggregatedPassages,
+          comprehensiveFacts,
+          knowledgePacks,
+        };
+
+        if (!isBoundIdentityReportSource(source)) {
+          return invalid();
+        }
+
+        return {
+          ok: true,
+          value: source,
+        };
       }
 
       const aggregatedPassages: KnowledgePassageV1[] = [];

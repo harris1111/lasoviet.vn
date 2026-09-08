@@ -262,6 +262,7 @@ export {
 } from "./reports/report-version.repository.js";
 export type {
   ApprovedKnowledgePassage,
+  ComprehensiveReportSource,
   IdentityReportSource,
 } from "./reports/report-source.js";
 export { validateIdentityReport } from "./reports/report-validator.js";
@@ -331,6 +332,7 @@ export type {
   KnowledgePassageV1,
   RetrieveKnowledgeQuery,
   VectorRetrievalDependency,
+  ZiweiKnowledgeQueryV3,
 } from "./knowledge/knowledge-retrieval.service.js";
 
 export {
@@ -358,3 +360,10 @@ export type {
   ComprehensiveZiweiPalaceFact,
   ComprehensiveZiweiPatternFact,
 } from "./reports/comprehensive-ziwei-facts.js";
+
+export {
+  buildComprehensiveKnowledgePacks,
+} from "./reports/comprehensive-report-retrieval.js";
+export type {
+  ZiweiReportKnowledgePack,
+} from "./reports/comprehensive-report-retrieval.js";
