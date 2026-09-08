@@ -58,6 +58,14 @@ const HAN_IDEOGRAPH_PATTERN = /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{S
 const ENGLISH_BRIGHTNESS_PATTERN =
   /(?<![\p{L}\p{N}])(exalted|prosperous|favorable|neutral|unfavorable|weak)(?![\p{L}\p{N}])/giu;
 
+const REPLACEMENT_CHARACTER_PATTERN = /\uFFFD/u;
+
+const WIN1252_TRAIL = "[\\u0080-\\u00BF\\u2010-\\u203A\\u20AC\\u0152\\u0153\\u0160\\u0161\\u017D\\u017E\\u0178\\u0192\\u02C6\\u02DC\\u2122]";
+const MOJIBAKE_PATTERN = new RegExp(
+  `áº|á»${WIN1252_TRAIL}|Ã${WIN1252_TRAIL}|Ä[\\u0080-\\u009F\\u00A8\\u00A9\\u2018\\u2019\\u0192\\u201A]|Æ[\\u00A0\\u00A1\\u00AF\\u00B0]|Å[\\u00A8\\u00A9]|â[€\\u0080]${WIN1252_TRAIL}|â[€™“”–—…]|ï»¿`,
+  "u",
+);
+
 function normalizeText(text: string): string {
   return text
     .toLowerCase()
@@ -150,6 +158,14 @@ export function validateComprehensiveZiweiReport(
       errors.push(
         `English brightness descriptor detected in ${block.section}: ${uniqueMatches.join(", ")}`,
       );
+    }
+
+    if (REPLACEMENT_CHARACTER_PATTERN.test(block.text)) {
+      errors.push(`Unicode replacement character detected in ${block.section}`);
+    }
+
+    if (MOJIBAKE_PATTERN.test(block.text) || MOJIBAKE_PATTERN.test(block.text.normalize("NFC"))) {
+      errors.push(`Encoding corruption detected in ${block.section}`);
     }
   }
 

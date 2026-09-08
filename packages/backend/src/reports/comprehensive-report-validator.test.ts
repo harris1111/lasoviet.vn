@@ -416,5 +416,188 @@ describe("validateComprehensiveZiweiReport", () => {
       expect(res.ok).toBe(true);
       expect(res.errors).toBeUndefined();
     });
+
+    it("rejects U+FFFD replacement characters across customer-visible sections without echoing prose", () => {
+      const sampleSentence = "Đoạn văn có ký tự hỏng không được xuất hiện trong lỗi.";
+
+      // 1. overview narrative
+      {
+        const report = createValidReport();
+        report.overview.narrative = `${sampleSentence} Ký tự lỗi \uFFFD ở đây.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in overview")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 2. coreAxis narrative
+      {
+        const report = createValidReport();
+        report.coreAxis.narrative = `${sampleSentence} Dấu thay thế \uFFFD xuất hiện.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in coreAxis")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 3. keyConfigurations[0].title
+      {
+        const report = createValidReport();
+        report.keyConfigurations[0]!.title = "Cách cục \uFFFD Tử Phủ";
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in keyConfigurations[0].title")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes("Tử Phủ"))).toBe(true);
+      }
+
+      // 4. keyConfigurations[0] narrative
+      {
+        const report = createValidReport();
+        report.keyConfigurations[0]!.narrative = `${sampleSentence} Hỏng mã \uFFFD.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in keyConfigurations[0]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 5. palaceReadings narrative
+      {
+        const report = createValidReport();
+        report.palaceReadings[0]!.narrative = `${sampleSentence} Cung mệnh lỗi \uFFFD.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in palaceReadings[ziwei.palace.life]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 6. thematicSynthesis narrative
+      {
+        const report = createValidReport();
+        report.thematicSynthesis[0]!.narrative = `${sampleSentence} Chuyên đề \uFFFD.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in thematicSynthesis[career_wealth]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 7. strengthsAndTensions narrative
+      {
+        const report = createValidReport();
+        report.strengthsAndTensions.narrative = `${sampleSentence} Thế mạnh \uFFFD.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in strengthsAndTensions")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 8. practicalDirection item
+      {
+        const report = createValidReport();
+        report.practicalDirection[0] = `${sampleSentence} Hành động \uFFFD.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Unicode replacement character detected in practicalDirection[0]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+    });
+
+    it("rejects common UTF-8-as-Latin-1 mojibake sequences including corrupted Tài Bạch and Đắc without echoing prose", () => {
+      const sampleSentence = "Câu văn chi tiết về mã hóa không được xuất hiện trong thông báo lỗi.";
+
+      // 1. corrupted Tài Bạch in overview narrative
+      {
+        const report = createValidReport();
+        report.overview.narrative = `${sampleSentence} Xuất hiện cung TÃ\u00A0i Báº¡ch bị lỗi mã hóa.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Encoding corruption detected in overview")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 2. corrupted Đắc in keyConfigurations[0].title
+      {
+        const report = createValidReport();
+        report.keyConfigurations[0]!.title = "Sao Tử Vi Ä\x90áº¯c Địa";
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Encoding corruption detected in keyConfigurations[0].title")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes("Địa"))).toBe(true);
+      }
+
+      // 3. corrupted đất đai in palaceReadings
+      {
+        const report = createValidReport();
+        report.palaceReadings[0]!.narrative = `${sampleSentence} Cơ nghiệp Ä‘áº¥t Ä‘ai rộng lớn.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Encoding corruption detected in palaceReadings[ziwei.palace.life]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 4. corrupted Mệnh (Má»‡nh) in coreAxis
+      {
+        const report = createValidReport();
+        report.coreAxis.narrative = `${sampleSentence} Bản Má»‡nh có nhiều nét đặc sắc.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Encoding corruption detected in coreAxis")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 5. corrupted Mãi (MÃ£i) in thematicSynthesis
+      {
+        const report = createValidReport();
+        report.thematicSynthesis[0]!.narrative = `${sampleSentence} Nỗ lực MÃ£i không ngừng nghỉ.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Encoding corruption detected in thematicSynthesis[career_wealth]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 6. corrupted Âm (Ã‚m) in strengthsAndTensions
+      {
+        const report = createValidReport();
+        report.strengthsAndTensions.narrative = `${sampleSentence} Khí thế Ã‚m Dương cân xứng.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Encoding corruption detected in strengthsAndTensions")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+
+      // 7. corrupted smart quote (â€™) in practicalDirection
+      {
+        const report = createValidReport();
+        report.practicalDirection[0] = `${sampleSentence} Lời khuyên â€™chân thànhâ€™ cho bạn.`;
+        const res = validateComprehensiveZiweiReport(report, mockFacts);
+        expect(res.ok).toBe(false);
+        expect(res.errors!.some((e) => e === "Encoding corruption detected in practicalDirection[0]")).toBe(true);
+        expect(res.errors!.every((e) => !e.includes(sampleSentence))).toBe(true);
+      }
+    });
+
+    it("accepts valid Vietnamese text containing proper Âm, Mãi, Đắc, đất đai, and normal NFC accents", () => {
+      const report = createValidReport();
+      report.overview.narrative =
+        "Cung Tài Bạch có sao Đắc địa, đất đai rộng mở, Âm Dương thuận lý, mãi mãi bền vững.";
+      report.coreAxis.narrative =
+        "Trục Mệnh Thân vững vàng với các sao Đắc địa; người này ĐÃ từng vượt qua nhiều thử thách MÃI ghi dấu ấn.";
+      report.keyConfigurations[0]!.title = "Cách cục Đắc địa Tử Phủ";
+      report.keyConfigurations[0]!.narrative =
+        "Phối hợp Âm Dương hài hòa, đất đai phì nhiêu, giữ gìn danh tiếng mãi mãi.";
+      report.palaceReadings[0]!.narrative =
+        "Cung Mệnh có Thái Âm và Thái Dương chiếu rọi, gia tăng phúc khí và đất đai tổ nghiệp.";
+      report.thematicSynthesis[0]!.narrative =
+        "Lĩnh vực tài chính đạt thế Đắc lợi, tích lũy đất đai lâu dài.";
+      report.strengthsAndTensions.narrative =
+        "Nội lực vững vàng, biết nắm bắt thời cơ để đạt thành công mãi về sau.";
+      report.practicalDirection[0] =
+        "Quản lý đất đai và tài sản cẩn trọng theo đúng quy hoạch.";
+      report.practicalDirection[1] =
+        "Trích dẫn danh ngôn: «Tử Vi đắc địa» và “Thiên Phủ triều viên” để giữ tâm thế tích cực.";
+
+      const res = validateComprehensiveZiweiReport(report, mockFacts);
+      expect(res.ok).toBe(true);
+      expect(res.errors).toBeUndefined();
+    });
   });
 });
