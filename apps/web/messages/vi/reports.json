@@ -24,7 +24,10 @@
     "lifetimeOfferTitle": "Luận giải Tử Vi trọn đời",
     "oneTime": "Thanh toán một lần · Không tự động gia hạn",
     "continuePayment": "Tiếp tục thanh toán",
-    "viewSample": "Xem bản luận giải mẫu"
+    "viewSample": "Xem bản luận giải mẫu",
+    "pausedTitle": "Tạm dừng tiếp nhận thanh toán mới",
+    "pausedDescription": "Hệ thống đang tạm ngừng tiếp nhận thanh toán mới. Quý khách vui lòng không chuyển khoản trong thời gian này.",
+    "retry": "Thử lại"
   },
   "checkout": {
     "eyebrow": "Thanh toán",
@@ -48,6 +51,20 @@
       "expired": "Đơn đã hết hạn",
       "failed": "Thanh toán chưa thành công",
       "refunded": "Đã hoàn tiền"
+    },
+    "selfClaim": {
+      "heading": "Đã chuyển khoản nhưng chưa được ghi nhận?",
+      "description": "Nhập chính xác số tiền và thời gian đã chuyển để hệ thống đối chiếu giao dịch và tiếp tục chuẩn bị báo cáo.",
+      "amountLabel": "Số tiền đã chuyển (VND)",
+      "timeLabel": "Thời gian chuyển khoản (giờ Việt Nam)",
+      "submit": "Kiểm tra và nhận báo cáo",
+      "submitting": "Đang kiểm tra...",
+      "errors": {
+        "invalid_input": "Vui lòng kiểm tra lại số tiền và thời gian chuyển khoản.",
+        "payment_not_found": "Chưa tìm thấy giao dịch phù hợp với thông tin đã nhập. Vui lòng kiểm tra lại thời gian chuyển khoản hoặc chờ thêm ít phút.",
+        "rate_limited": "Bạn đã vượt quá số lần kiểm tra trong ngày. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.",
+        "service_unavailable": "Hệ thống đối chiếu tạm thời gián đoạn. Vui lòng thử lại sau ít phút."
+      }
     }
   },
   "progress": {

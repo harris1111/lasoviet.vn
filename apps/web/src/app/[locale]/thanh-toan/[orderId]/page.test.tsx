@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
 import { privateApiClient } from "../../../../api/private-api-client.js";
 import {
   resolveVerifiedAccountActor,
@@ -49,6 +50,16 @@ const copy = {
     "checkout.status.expired": "Đơn đã hết hạn",
     "checkout.status.failed": "Thanh toán chưa thành công",
     "checkout.status.refunded": "Đã hoàn tiền",
+    "checkout.selfClaim.heading": "Đã chuyển khoản nhưng chưa được ghi nhận?",
+    "checkout.selfClaim.description": "Nhập chính xác số tiền và thời gian đã chuyển để hệ thống đối chiếu giao dịch và tiếp tục chuẩn bị báo cáo.",
+    "checkout.selfClaim.amountLabel": "Số tiền đã chuyển (VND)",
+    "checkout.selfClaim.timeLabel": "Thời gian chuyển khoản (giờ Việt Nam)",
+    "checkout.selfClaim.submit": "Kiểm tra và nhận báo cáo",
+    "checkout.selfClaim.submitting": "Đang kiểm tra...",
+    "checkout.selfClaim.errors.invalid_input": "Vui lòng kiểm tra lại số tiền và thời gian chuyển khoản.",
+    "checkout.selfClaim.errors.payment_not_found": "Chưa tìm thấy giao dịch phù hợp với thông tin đã nhập. Vui lòng kiểm tra lại thời gian chuyển khoản hoặc chờ thêm ít phút.",
+    "checkout.selfClaim.errors.rate_limited": "Bạn đã vượt quá số lần kiểm tra trong ngày. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.",
+    "checkout.selfClaim.errors.service_unavailable": "Hệ thống đối chiếu tạm thời gián đoạn. Vui lòng thử lại sau ít phút.",
   },
   en: {
     "checkout.eyebrow": "Payment",
@@ -70,6 +81,16 @@ const copy = {
     "checkout.status.expired": "Order expired",
     "checkout.status.failed": "Payment was not completed",
     "checkout.status.refunded": "Refunded",
+    "checkout.selfClaim.heading": "Transferred but not yet confirmed?",
+    "checkout.selfClaim.description": "Enter the exact amount and transfer time to locate your payment and continue preparing your report.",
+    "checkout.selfClaim.amountLabel": "Amount transferred (VND)",
+    "checkout.selfClaim.timeLabel": "Transfer time (Vietnam time)",
+    "checkout.selfClaim.submit": "Check and claim report",
+    "checkout.selfClaim.submitting": "Checking...",
+    "checkout.selfClaim.errors.invalid_input": "Please check the entered amount and transfer time.",
+    "checkout.selfClaim.errors.payment_not_found": "No matching payment found with the entered details. Please check your transfer time or try again in a few minutes.",
+    "checkout.selfClaim.errors.rate_limited": "Daily claim limit reached. Please try again later or contact support.",
+    "checkout.selfClaim.errors.service_unavailable": "Reconciliation service is temporarily unavailable. Please try again in a few minutes.",
   },
 };
 
@@ -101,9 +122,9 @@ describe("checkout page", () => {
   });
 
   it.each([
-    ["vi", "Thanh toán"],
-    ["en", "Payment"],
-  ] as const)("renders %s copy from the authoritative order locale using CheckoutStatus projection", async (locale, eyebrow) => {
+    ["vi", "Thanh toán", "Đã chuyển khoản nhưng chưa được ghi nhận?"],
+    ["en", "Payment", "Transferred but not yet confirmed?"],
+  ] as const)("renders %s copy from the authoritative order locale using CheckoutStatus projection and recovery UI", async (locale, eyebrow, recoveryHeading) => {
     vi.mocked(getTranslations).mockResolvedValue(
       ((key: keyof typeof copy.vi) => copy[locale][key]) as never,
     );
@@ -127,9 +148,12 @@ describe("checkout page", () => {
     expect(html).toContain("79");
     expect(html).toContain("000");
     expect(html).toContain("LSV-order-1");
-    expect(html.match(/<button/g)).toHaveLength(3);
+    // 3 copy buttons + 1 recovery submit button = 4 buttons
+    expect(html.match(/<button/g)).toHaveLength(4);
+    // Recovery UI heading rendered below instructions
+    expect(html).toContain(recoveryHeading);
+    expect(html.indexOf("vietqr-instructions")).toBeLessThan(html.indexOf("payment-self-claim-section"));
   });
-
 
   it("triggers notFound when private API returns ok: true but malformed payload without paymentInstructions", async () => {
     const { notFound } = await import("next/navigation");
@@ -195,6 +219,7 @@ describe("checkout page", () => {
     expect(redirect).toHaveBeenCalledWith("/thanh-toan/order-1");
     expect(getTranslations).not.toHaveBeenCalled();
   });
+
   it("server-redirects a paid order with reportId to the locale-correct report route for vi", async () => {
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -273,5 +298,4 @@ describe("checkout page", () => {
 
     expect(notFound).toHaveBeenCalled();
   });
-
 });

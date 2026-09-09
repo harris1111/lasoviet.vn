@@ -6,7 +6,7 @@ import type {
 import { useTranslations } from "next-intl";
 
 import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
-import { createCheckoutOrder } from "../commerce/create-checkout-order";
+import { CheckoutPurchaseForm } from "../commerce/checkout-purchase-form";
 
 export type PaidTopicSelectorProps = {
   locale: ZiweiPresentationLocale;
@@ -175,16 +175,18 @@ export function PaidTopicSelector({
               </li>
             </ul>
 
-            <div className="topic-actions-row">
-              <form action={createCheckoutOrder.bind(null, topics.chartId, locale)}>
-                <button className="button button-primary" type="submit">
-                  {t("selection.continuePayment")}
-                </button>
-              </form>
-              <Link className="sample-report-link" href={sampleHref}>
-                {t("selection.viewSample")} →
-              </Link>
-            </div>
+            <CheckoutPurchaseForm
+              chartId={topics.chartId}
+              locale={locale}
+              sampleHref={sampleHref}
+              labels={{
+                continuePayment: t("selection.continuePayment"),
+                viewSample: t("selection.viewSample"),
+                pausedTitle: t("selection.pausedTitle"),
+                pausedDescription: t("selection.pausedDescription"),
+                retry: t("selection.retry"),
+              }}
+            />
           </article>
 
           {/* Disabled Coming Soon Topics */}

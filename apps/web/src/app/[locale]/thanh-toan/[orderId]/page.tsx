@@ -8,6 +8,7 @@ import {
   resolveVerifiedAccountActor,
 } from "../../../../auth/resolve-current-actor";
 import { safeParseCheckoutStatus } from "../../../../features/commerce/checkout-status";
+import { PaymentSelfClaimForm } from "../../../../features/commerce/payment-self-claim-form";
 import { VietQrCheckout } from "../../../../features/commerce/vietqr-checkout";
 
 export const metadata: Metadata = {
@@ -85,6 +86,25 @@ export default async function CheckoutPage({
               expired: t("checkout.status.expired"),
               failed: t("checkout.status.failed"),
               refunded: t("checkout.status.refunded"),
+            },
+          }}
+        />
+        <PaymentSelfClaimForm
+          orderId={order.id}
+          defaultAmount={order.amount}
+          locale={order.locale}
+          labels={{
+            heading: t("checkout.selfClaim.heading"),
+            description: t("checkout.selfClaim.description"),
+            amountLabel: t("checkout.selfClaim.amountLabel"),
+            timeLabel: t("checkout.selfClaim.timeLabel"),
+            submit: t("checkout.selfClaim.submit"),
+            submitting: t("checkout.selfClaim.submitting"),
+            errors: {
+              invalid_input: t("checkout.selfClaim.errors.invalid_input"),
+              payment_not_found: t("checkout.selfClaim.errors.payment_not_found"),
+              rate_limited: t("checkout.selfClaim.errors.rate_limited"),
+              service_unavailable: t("checkout.selfClaim.errors.service_unavailable"),
             },
           }}
         />

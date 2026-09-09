@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   resolveVerifiedAccountActor,
 } from "../../auth/resolve-current-actor.js";
-import { privateApiClient } from "../../api/private-api-client.js";
+import { privateApiClient, PrivateApiClientError } from "../../api/private-api-client.js";
 
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("../../auth/resolve-current-actor.js", () => ({
@@ -15,7 +15,22 @@ vi.mock("../../auth/resolve-current-actor.js", () => ({
   },
   resolveVerifiedAccountActor: vi.fn(),
 }));
-vi.mock("../../api/private-api-client.js", () => ({ privateApiClient: vi.fn() }));
+vi.mock("../../api/private-api-client.js", () => {
+  class MockPrivateApiClientError extends Error {
+    readonly code: string;
+    readonly status: number | undefined;
+    constructor(code: string, status?: number) {
+      super(code);
+      this.name = "PrivateApiClientError";
+      this.code = code;
+      this.status = status;
+    }
+  }
+  return {
+    privateApiClient: vi.fn(),
+    PrivateApiClientError: MockPrivateApiClientError,
+  };
+});
 
 const actor = {
   kind: "account" as const,
@@ -104,7 +119,6 @@ describe("create checkout order", () => {
     expect(privateApiClient).not.toHaveBeenCalled();
   });
 
-
   it("encodes order ID containing path-special characters in the redirect URL", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     vi.mocked(privateApiClient).mockReturnValue({
@@ -139,5 +153,54 @@ describe("create checkout order", () => {
     const { createCheckoutOrder } = await import("./create-checkout-order.js");
 
     await expect(createCheckoutOrder("chart-1", "en")).rejects.toThrow("CHECKOUT_ORDER_FAILED");
+  });
+
+  describe("createCheckoutOrderAction wrapper for useActionState", () => {
+    it("returns paused status when private API throws CHECKOUT_PAYMENTS_PAUSED and does not redirect", async () => {
+      vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+      vi.mocked(privateApiClient).mockReturnValue({
+        request: vi.fn().mockRejectedValue(
+          new PrivateApiClientError("CHECKOUT_PAYMENTS_PAUSED", 503),
+        ),
+      });
+      const { createCheckoutOrderAction } = await import("./create-checkout-order.js");
+
+      const result = await createCheckoutOrderAction("chart-1", "vi", { status: "idle" });
+
+      expect(result).toEqual({ status: "paused" });
+      expect(redirect).not.toHaveBeenCalled();
+    });
+
+    it("re-throws when private API throws other errors without mislabeling paused", async () => {
+      vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+      vi.mocked(privateApiClient).mockReturnValue({
+        request: vi.fn().mockRejectedValue(
+          new PrivateApiClientError("PRIVATE_API_UNREACHABLE", 500),
+        ),
+      });
+      const { createCheckoutOrderAction } = await import("./create-checkout-order.js");
+
+      await expect(
+        createCheckoutOrderAction("chart-1", "vi", { status: "idle" }),
+      ).rejects.toThrow("PRIVATE_API_UNREACHABLE");
+
+      expect(redirect).not.toHaveBeenCalled();
+    });
+
+    it("executes successful checkout redirect normally", async () => {
+      vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+      vi.mocked(privateApiClient).mockReturnValue({
+        request: vi.fn().mockResolvedValue({
+          ok: true,
+          value: validCheckoutStatus,
+        }),
+      });
+      const { createCheckoutOrderAction } = await import("./create-checkout-order.js");
+
+      const result = await createCheckoutOrderAction("chart-1", "en", { status: "idle" });
+
+      expect(result).toEqual({ status: "idle" });
+      expect(redirect).toHaveBeenCalledWith("/en/thanh-toan/order-1");
+    });
   });
 });

@@ -94,6 +94,22 @@ describe("PaidTopicSelector", () => {
     expect(html).toContain("Chọn chủ đề luận giải cho Minh An");
   });
 
+  it("keeps one active purchase CTA and the sample-report link in both locales", () => {
+    const htmlVi = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={mockTopics} />,
+    );
+    expect(htmlVi).toContain("Tiếp tục thanh toán");
+    expect(htmlVi).toContain("/bao-cao-mau/tu-vi");
+    expect(htmlVi).toContain("Xem bản luận giải mẫu");
+    expect((htmlVi.match(/type="submit"/g) || []).length).toBe(1);
+
+    const htmlEn = renderToStaticMarkup(
+      <PaidTopicSelector locale="en" topics={mockTopics} />,
+    );
+    expect(htmlEn).toContain("/en/bao-cao-mau/tu-vi");
+    expect((htmlEn.match(/type="submit"/g) || []).length).toBe(1);
+  });
+
   it("renders generic heading when birthSummary is omitted or has no displayName", () => {
     const html = renderToStaticMarkup(
       <PaidTopicSelector locale="vi" topics={mockTopics} />,

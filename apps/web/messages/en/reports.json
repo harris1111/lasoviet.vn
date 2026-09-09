@@ -24,7 +24,10 @@
     "lifetimeOfferTitle": "Comprehensive Lifetime Zi Wei Reading",
     "oneTime": "One-time payment · No automatic renewal",
     "continuePayment": "Continue to payment",
-    "viewSample": "View sample report"
+    "viewSample": "View sample report",
+    "pausedTitle": "New payments temporarily paused",
+    "pausedDescription": "The system is temporarily pausing new payments. Please do not transfer funds at this time.",
+    "retry": "Try again"
   },
   "checkout": {
     "eyebrow": "Payment",
@@ -48,6 +51,20 @@
       "expired": "Order expired",
       "failed": "Payment was not completed",
       "refunded": "Refunded"
+    },
+    "selfClaim": {
+      "heading": "Transferred but not yet confirmed?",
+      "description": "Enter the exact amount and transfer time to locate your payment and continue preparing your report.",
+      "amountLabel": "Amount transferred (VND)",
+      "timeLabel": "Transfer time (Vietnam time)",
+      "submit": "Check and claim report",
+      "submitting": "Checking...",
+      "errors": {
+        "invalid_input": "Please check the entered amount and transfer time.",
+        "payment_not_found": "No matching payment found with the entered details. Please check your transfer time or try again in a few minutes.",
+        "rate_limited": "Daily claim limit reached. Please try again later or contact support.",
+        "service_unavailable": "Reconciliation service is temporarily unavailable. Please try again in a few minutes."
+      }
     }
   },
   "progress": {
