@@ -67,3 +67,17 @@
 - Remaining WP-02B scope:
   - Customer-facing self-claim and payment-paused UI on the approved UI artifact lineage.
   - Live Telegram activation and external smoke after the founder supplies `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
+- WP-02B customer-facing payment recovery UI completed and Terra-approved:
+  - Implementation landed in commit `6c370b7`.
+  - Added the authenticated customer self-claim form and localized payment-paused checkout state without changing payment activation or provider configuration.
+  - Terra returned `APPROVED` with no Critical or Important findings.
+  - Focused verification passed: contracts build, web typecheck, 6 focused test files with 38 passing tests, web production build, and clean `git diff --check`.
+- WP-03 account-center UI completed and Terra-approved:
+  - Initial implementation landed in commit `7d51677`.
+  - Added verified-account server rendering for `/tai-khoan`, `/tai-khoan/bao-cao`, and `/tai-khoan/don-hang`, including locale-correct authentication callbacks, latest-readable report priority, profile-grouped report library, immutable order history, localized statuses, and canonical chart-creation links.
+  - Terra identified three Important findings: projection failures appeared as empty accounts, support links exposed internal order IDs, and library groups used chart identity instead of birth-profile identity.
+  - Corrections landed in commit `aefe73f`: unavailable states no longer claim the account is empty, support links use customer-facing immutable invoice numbers, and multiple chart revisions for one birth profile are grouped together.
+  - Terra scoped re-review returned `APPROVED` with no remaining Critical or Important findings.
+  - Focused verification passed: contracts/database/backend builds, API and web typechecks, 10 focused test files with 108 passing tests, 11 commerce repository integration tests, web production build, and clean `git diff --check`.
+- Deferred provider activation:
+  - Telegram delivery activation and external smoke remain blocked only on founder-supplied `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
