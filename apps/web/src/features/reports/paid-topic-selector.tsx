@@ -5,24 +5,28 @@ import type {
 } from "@lasoviet/contracts";
 import { useTranslations } from "next-intl";
 
-import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
+import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { CheckoutPurchaseForm } from "../commerce/checkout-purchase-form";
+import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
+import {
+  buildSafeOfferPresentations,
+  type OfferOwnershipState,
+} from "./purchase-offer-presentation";
 
 export type PaidTopicSelectorProps = {
   locale: ZiweiPresentationLocale;
   topics: PaidTopicSelectionViewV1;
   birthSummary?: ZiweiBirthSummaryV1;
+  ownershipByOfferKey?: Partial<Record<PublicOfferKey, OfferOwnershipState>>;
 };
 
 export function PaidTopicSelector({
   locale,
   topics,
   birthSummary,
+  ownershipByOfferKey,
 }: PaidTopicSelectorProps) {
   const t = useTranslations("reports");
-  const offer = topics.offers[0]!;
-  const price = offer.price.toLocaleString(locale === "en" ? "en-US" : "vi-VN");
-  const currencySymbol = locale === "en" ? "VND" : "₫";
 
   const displayName = birthSummary?.displayName;
   const pageTitle = displayName
@@ -30,6 +34,11 @@ export function PaidTopicSelector({
     : t("selection.title");
 
   const sampleHref = locale === "en" ? "/en/bao-cao-mau/tu-vi" : "/bao-cao-mau/tu-vi";
+
+  const safeOffers = buildSafeOfferPresentations({
+    offers: topics.offers,
+    ownershipByOfferKey,
+  });
 
   const disciplines = [
     {
@@ -138,66 +147,102 @@ export function PaidTopicSelector({
         </div>
 
         <div className="topics-list">
-          {/* Active Available Topic: Comprehensive Lifetime Reading */}
-          <article className="topic-card topic-card-active" data-testid="topic-lifetime-active">
-            <div className="topic-card-head">
-              <div className="topic-title-group">
-                <span className="topic-status-tag tag-available">{t("selection.available")}</span>
-                <h3>{t("selection.lifetimeOfferTitle")}</h3>
+          {/* Active Available Topics (at most two) */}
+          {safeOffers.map((offer) => (
+            <article
+              className="topic-card topic-card-active"
+              data-testid={
+                offer.offerKey === "ziwei-comprehensive"
+                  ? "topic-lifetime-active"
+                  : `topic-${offer.offerKey}-active`
+              }
+              id={offer.anchorId}
+              key={offer.offerKey}
+            >
+              <div className="topic-card-head">
+                <div className="topic-title-group">
+                  <span className="topic-status-tag tag-available">{t("selection.available")}</span>
+                  <h3>{offer.title[locale]}</h3>
+                </div>
+                <div className="topic-pricing-block">
+                  <span className="topic-price-val">
+                    {offer.price.toLocaleString(locale === "en" ? "en-US" : "vi-VN")} {locale === "en" ? "VND" : "₫"}
+                  </span>
+                  <span className="topic-price-note">{t("selection.oneTime")}</span>
+                </div>
               </div>
-              <div className="topic-pricing-block">
-                <span className="topic-price-val">{price} {currencySymbol}</span>
-                <span className="topic-price-note">{t("selection.oneTime")}</span>
-              </div>
-            </div>
 
-            <p className="topic-summary-prose">
-              {locale === "vi"
-                ? "Báo cáo luận giải cấu trúc bản mệnh toàn diện đối chiếu từ dữ liệu lá số Tử Vi, mang tính chiêm nghiệm và định hướng thực tế."
-                : "A comprehensive natal structural interpretation report synthesizing key configurations and palace interactions from verified chart data."}
-            </p>
+              <p className="topic-summary-prose">{offer.summary[locale]}</p>
 
-            <ul className="topic-deliverables-list">
-              <li>
-                {locale === "vi"
-                  ? "Luận giải chi tiết toàn bộ 12 cung vị và tương tác tinh đẩu"
-                  : "Detailed interpretation covering all 12 natal palaces and star interactions"}
-              </li>
-              <li>
-                {locale === "vi"
-                  ? "Nhận diện cấu trúc lá số trọng điểm và tổng hợp đối chiếu liên cung, tam phương tứ chính"
-                  : "Key chart configurations and cross-palace synthesis across trines and oppositions"}
-              </li>
-              <li>
-                {locale === "vi"
-                  ? "Bốn cụm tổng hợp chủ đề: sự nghiệp - tài lộc, tình duyên - gia đạo, môi trường xã hội và nội lực tâm lý"
-                  : "Four thematic syntheses: career and wealth, relationship and family, social sphere, and inner wellbeing"}
-              </li>
-              <li>
-                {locale === "vi"
-                  ? "Gợi ý định hướng thực tế và điểm lưu tâm để tự rèn luyện bản thân"
-                  : "Actionable practical direction and personal development guidance"}
-              </li>
-              <li>
-                {locale === "vi"
-                  ? "Độ dài hoàn chỉnh 2.200–3.200 chữ tiếng Việt chuyên sâu"
-                  : "Structured multi-section report synthesizing core natal chart structure"}
-              </li>
-            </ul>
+              <ul className="topic-deliverables-list">
+                {offer.deliverables[locale].map((deliverable, index) => (
+                  <li key={index}>{deliverable}</li>
+                ))}
+              </ul>
 
-            <CheckoutPurchaseForm
-              chartId={topics.chartId}
-              locale={locale}
-              sampleHref={sampleHref}
-              labels={{
-                continuePayment: t("selection.continuePayment"),
-                viewSample: t("selection.viewSample"),
-                pausedTitle: t("selection.pausedTitle"),
-                pausedDescription: t("selection.pausedDescription"),
-                retry: t("selection.retry"),
-              }}
-            />
-          </article>
+              {offer.ownership.kind === "readable" ? (
+                <div className="topic-actions-row">
+                  <Link className="button button-primary" href={offer.ownership.readUrl}>
+                    {t("selection.readAgain")}
+                  </Link>
+                  <Link className="sample-report-link" href={sampleHref}>
+                    {t("selection.viewSample")} →
+                  </Link>
+                </div>
+              ) : offer.ownership.kind === "processing_or_terminal" ? (
+                <div className="topic-actions-row">
+                  <Link className="button button-primary" href={offer.ownership.progressUrl}>
+                    {t("selection.viewProgress")}
+                  </Link>
+                  <Link className="sample-report-link" href={sampleHref}>
+                    {t("selection.viewSample")} →
+                  </Link>
+                </div>
+              ) : offer.ownership.kind === "owned_unknown" ? (
+                <div className="topic-actions-row">
+                  <Link className="button button-primary" href={offer.ownership.libraryUrl}>
+                    {t("selection.viewLibrary")}
+                  </Link>
+                  <Link className="sample-report-link" href={sampleHref}>
+                    {t("selection.viewSample")} →
+                  </Link>
+                </div>
+              ) : offer.ownership.kind === "unavailable" ? (
+                <div
+                  aria-live="polite"
+                  className="checkout-purchase-unavailable"
+                  data-testid="checkout-unavailable-state"
+                  role="status"
+                >
+                  <p className="checkout-purchase-unavailable-title">
+                    {t("selection.unavailableTitle")}
+                  </p>
+                  <p className="checkout-purchase-unavailable-description">
+                    {t("selection.unavailableDescription")}
+                  </p>
+                  <div className="topic-actions-row">
+                    <Link className="sample-report-link" href={sampleHref}>
+                      {t("selection.viewSample")} →
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <CheckoutPurchaseForm
+                  chartId={topics.chartId}
+                  locale={locale}
+                  offerKey={offer.offerKey}
+                  sampleHref={sampleHref}
+                  labels={{
+                    continuePayment: t("selection.continuePayment"),
+                    viewSample: t("selection.viewSample"),
+                    pausedTitle: t("selection.pausedTitle"),
+                    pausedDescription: t("selection.pausedDescription"),
+                    retry: t("selection.retry"),
+                  }}
+                />
+              )}
+            </article>
+          ))}
 
           {/* Disabled Coming Soon Topics */}
           {comingSoonTopics.map((topic) => (

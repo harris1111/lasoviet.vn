@@ -21,6 +21,7 @@ export type CheckoutPurchaseFormProps = {
   chartId: string;
   locale: "vi" | "en";
   sampleHref: string;
+  offerKey?: string;
   labels?: CheckoutPurchaseLabels;
   action?: (
     state: CheckoutPurchaseState,
@@ -33,6 +34,7 @@ export function CheckoutPurchaseForm({
   chartId,
   locale,
   sampleHref,
+  offerKey,
   labels,
   action,
   initialState,
@@ -61,7 +63,10 @@ export function CheckoutPurchaseForm({
     retry: labels?.retry ?? defaultLabels.retry,
   };
 
-  const boundAction = action ?? createCheckoutOrderAction.bind(null, chartId, locale);
+  const resolvedOfferKey = offerKey ?? "ziwei-comprehensive";
+  const boundAction =
+    action ??
+    createCheckoutOrderAction.bind(null, chartId, locale, resolvedOfferKey);
   const [state, formAction, isPending] = useActionState(
     boundAction,
     initialState ?? INITIAL_CHECKOUT_PURCHASE_STATE,
@@ -83,6 +88,9 @@ export function CheckoutPurchaseForm({
         </p>
         <div className="topic-actions-row">
           <form action={formAction}>
+            <input name="chartId" type="hidden" value={chartId} />
+            <input name="locale" type="hidden" value={locale} />
+            <input name="offerKey" type="hidden" value={resolvedOfferKey} />
             <button
               className="button button-primary"
               disabled={isPending}
@@ -102,6 +110,9 @@ export function CheckoutPurchaseForm({
   return (
     <div className="topic-actions-row">
       <form action={formAction}>
+        <input name="chartId" type="hidden" value={chartId} />
+        <input name="locale" type="hidden" value={locale} />
+        <input name="offerKey" type="hidden" value={resolvedOfferKey} />
         <button
           className="button button-primary"
           disabled={isPending}

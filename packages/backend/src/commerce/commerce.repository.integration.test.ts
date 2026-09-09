@@ -1296,4 +1296,57 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(identityOrder.value.currency).toBe("VND");
     expect(identityOrder.value.sku).toBe("ZIWEI-IDENTITY-P0");
   });
+  it("proves ten consecutive createOrder calls for the same owner, chart, and active offer reuse the same pending order without creating duplicates (B-9)", async () => {
+    const owner = await createOwnerFixture({ displayName: "B9 Order Reuse Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const firstResult = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    expect(firstResult.ok).toBe(true);
+    if (!firstResult.ok) throw new Error("Initial order creation failed");
+
+    const initialOrder = firstResult.value;
+    expect(initialOrder.status).toBe("pending");
+    expect(initialOrder.amount).toBe(79000);
+    expect(initialOrder.currency).toBe("VND");
+    expect(initialOrder.invoiceNumber).toMatch(/^LSV-/);
+    expect(initialOrder.paymentCode).toBeDefined();
+
+    for (let callIndex = 2; callIndex <= 10; callIndex++) {
+      const subsequentResult = await repo.createOrder(
+        owner.actor,
+        owner.chartId,
+        "ZIWEI-IDENTITY-P0",
+        "vi",
+      );
+      expect(subsequentResult.ok).toBe(true);
+      if (!subsequentResult.ok) throw new Error(`Subsequent call ${callIndex} failed`);
+
+      expect(subsequentResult.reused).toBe(true);
+      expect(subsequentResult.value.id).toBe(initialOrder.id);
+      expect(subsequentResult.value.invoiceNumber).toBe(initialOrder.invoiceNumber);
+      expect(subsequentResult.value.paymentCode).toBe(initialOrder.paymentCode);
+      expect(subsequentResult.value.amount).toBe(initialOrder.amount);
+      expect(subsequentResult.value.currency).toBe(initialOrder.currency);
+      expect(new Date(subsequentResult.value.createdAt).getTime()).toBe(
+        new Date(initialOrder.createdAt).getTime(),
+      );
+    }
+
+    const persistedOrders = await database
+      .select()
+      .from(commerceOrders)
+      .where(eq(commerceOrders.chartId, owner.chartId));
+
+    expect(persistedOrders).toHaveLength(1);
+    expect(persistedOrders[0]?.id).toBe(initialOrder.id);
+    expect(persistedOrders[0]?.invoiceNumber).toBe(initialOrder.invoiceNumber);
+    expect(persistedOrders[0]?.paymentCode).toBe(initialOrder.paymentCode);
+    expect(persistedOrders[0]?.amount).toBe(79000);
+    expect(persistedOrders[0]?.status).toBe("pending");
+  });
 });

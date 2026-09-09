@@ -23,6 +23,8 @@ describe("CheckoutPurchaseForm", () => {
     expect(html).not.toContain("Tạm dừng tiếp nhận");
     const submitMatches = (html.match(/type="submit"/g) || []).length;
     expect(submitMatches).toBe(1);
+    expect(html).toContain('value="ziwei-comprehensive"');
+    expect(html).not.toMatch(/ZIWEI-[A-Z0-9]+/);
   });
 
   it("renders localized English purchase CTA and sample link when locale is en", () => {
@@ -89,5 +91,20 @@ describe("CheckoutPurchaseForm", () => {
     expect(html).not.toContain("SLA");
     expect(html).not.toContain("reason_code");
     expect(html).not.toContain("auto_matched");
+  });
+
+  it("accepts custom offerKey and renders it in hidden field without exposing technical SKU", () => {
+    const html = renderToStaticMarkup(
+      <CheckoutPurchaseForm
+        chartId="chart-1"
+        locale="vi"
+        offerKey="ziwei-comprehensive"
+        sampleHref="/bao-cao-mau/tu-vi"
+      />,
+    );
+
+    expect(html).toContain('name="offerKey"');
+    expect(html).toContain('value="ziwei-comprehensive"');
+    expect(html).not.toMatch(/ZIWEI-[A-Z0-9]+/);
   });
 });

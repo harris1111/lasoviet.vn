@@ -27,7 +27,12 @@
     "viewSample": "View sample report",
     "pausedTitle": "New payments temporarily paused",
     "pausedDescription": "The system is temporarily pausing new payments. Please do not transfer funds at this time.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "readAgain": "Read again",
+    "viewProgress": "View progress",
+    "viewLibrary": "View report library",
+    "unavailableTitle": "Unable to verify purchase status",
+    "unavailableDescription": "We could not load your ownership records. Please refresh the page or try again later."
   },
   "checkout": {
     "eyebrow": "Payment",

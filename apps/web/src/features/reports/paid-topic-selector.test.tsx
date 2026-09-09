@@ -60,7 +60,7 @@ describe("PaidTopicSelector", () => {
     expect(html).toContain("Bát Tự (Tứ Trụ)");
     expect(html).toContain("Bản đồ sao phương Tây");
     expect(html).toContain("Thần số học (Pitago)");
-    expect(html).not.toContain("Kinh Dịch"); // Kinh Dịch is divinatory, not birth-data based
+    expect(html).not.toContain("Kinh Dịch");
 
     // Layer 2: Topics in fixed research-backed order
     expect(html).toContain("Chủ đề luận giải Tử Vi");
@@ -69,11 +69,12 @@ describe("PaidTopicSelector", () => {
     expect(html).toContain("Công danh &amp; Tài lộc");
     expect(html).toContain("Vận trình năm &amp; Lưu niên");
 
-    // Active card details
+    // Active card details & stable anchor
     expect(html).toContain("79.000 ₫");
     expect(html).toContain("Thanh toán một lần");
     expect(html).toContain("Tiếp tục thanh toán");
     expect(html).toContain("/bao-cao-mau/tu-vi");
+    expect(html).toContain('id="ziwei-comprehensive"');
 
     // Deliverables required by WP-05
     expect(html).toContain("toàn bộ 12 cung vị");
@@ -104,7 +105,7 @@ describe("PaidTopicSelector", () => {
 
     // Disabled topics have no submit buttons
     const submitMatches = (html.match(/type="submit"/g) || []).length;
-    expect(submitMatches).toBe(1); // Only the active offer has a submit button
+    expect(submitMatches).toBe(1);
 
     // Coming-soon annual topic is clearly disabled and retains its own description
     const annualMatch = html.match(/<article[^>]*data-testid="topic-annual-disabled"[^>]*>([\s\S]*?)<\/article>/);
@@ -171,5 +172,95 @@ describe("PaidTopicSelector", () => {
 
     expect(html).toContain("Chọn chủ đề luận giải chuyên sâu");
     expect(html).not.toContain("cho Minh An");
+  });
+
+  it("renders Read again button and zero purchase buttons when offer is owned and readable", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        ownershipByOfferKey={{
+          "ziwei-comprehensive": {
+            kind: "readable",
+            reportId: "rep-123",
+            readUrl: "/bao-cao/rep-123",
+          },
+        }}
+        topics={mockTopics}
+      />,
+    );
+
+    expect(html).toContain("Đọc lại");
+    expect(html).toContain('href="/bao-cao/rep-123"');
+    expect(html).toContain("Xem bản luận giải mẫu");
+    expect(html).not.toContain("Tiếp tục thanh toán");
+    const submitMatches = (html.match(/type="submit"/g) || []).length;
+    expect(submitMatches).toBe(0);
+    expect(html).not.toMatch(/ZIWEI-[A-Z0-9]+/);
+  });
+
+  it("renders View progress and zero purchase buttons when offer is processing or terminal", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        ownershipByOfferKey={{
+          "ziwei-comprehensive": {
+            kind: "processing_or_terminal",
+            reportId: "rep-progress-456",
+            progressUrl: "/bao-cao/rep-progress-456",
+          },
+        }}
+        topics={mockTopics}
+      />,
+    );
+
+    expect(html).toContain("Xem tiến trình");
+    expect(html).toContain('href="/bao-cao/rep-progress-456"');
+    expect(html).toContain("Xem bản luận giải mẫu");
+    expect(html).not.toContain("Tiếp tục thanh toán");
+    const submitMatches = (html.match(/type="submit"/g) || []).length;
+    expect(submitMatches).toBe(0);
+  });
+
+  it("renders View report library and zero purchase buttons when offer is owned without report id", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        ownershipByOfferKey={{
+          "ziwei-comprehensive": {
+            kind: "owned_unknown",
+            libraryUrl: "/tai-khoan/bao-cao",
+          },
+        }}
+        topics={mockTopics}
+      />,
+    );
+
+    expect(html).toContain("Xem thư viện báo cáo");
+    expect(html).toContain('href="/tai-khoan/bao-cao"');
+    expect(html).toContain("Xem bản luận giải mẫu");
+    expect(html).not.toContain("Tiếp tục thanh toán");
+    const submitMatches = (html.match(/type="submit"/g) || []).length;
+    expect(submitMatches).toBe(0);
+  });
+
+  it("renders bounded unavailable notice and zero purchase buttons when library projection failed", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        ownershipByOfferKey={{
+          "ziwei-comprehensive": {
+            kind: "unavailable",
+          },
+        }}
+        topics={mockTopics}
+      />,
+    );
+
+    expect(html).toContain("Tạm thời không thể kiểm tra trạng thái");
+    expect(html).toContain("Hệ thống chưa thể tải thông tin sở hữu");
+    expect(html).toContain("Xem bản luận giải mẫu");
+    expect(html).not.toContain("Tiếp tục thanh toán");
+    const submitMatches = (html.match(/type="submit"/g) || []).length;
+    expect(submitMatches).toBe(0);
   });
 });

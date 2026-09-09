@@ -27,7 +27,12 @@
     "viewSample": "Xem bản luận giải mẫu",
     "pausedTitle": "Tạm dừng tiếp nhận thanh toán mới",
     "pausedDescription": "Hệ thống đang tạm ngừng tiếp nhận thanh toán mới. Quý khách vui lòng không chuyển khoản trong thời gian này.",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "readAgain": "Đọc lại",
+    "viewProgress": "Xem tiến trình",
+    "viewLibrary": "Xem thư viện báo cáo",
+    "unavailableTitle": "Tạm thời không thể kiểm tra trạng thái",
+    "unavailableDescription": "Hệ thống chưa thể tải thông tin sở hữu. Quý khách vui lòng làm mới trang hoặc thử lại sau."
   },
   "checkout": {
     "eyebrow": "Thanh toán",
