@@ -6,6 +6,8 @@ import { eq } from "../../packages/backend/node_modules/drizzle-orm/index.js";
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IDENTITY_REPORT_SECTION_IDS,
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
   type CurrentActor,
 } from "@lasoviet/contracts";
 import {
@@ -144,6 +146,7 @@ describe("report query integration test with real database", () => {
       chartId: "chart-1",
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: owner1Id,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -361,6 +364,7 @@ describe("report query integration test with real database", () => {
       chartId: "chart-lineage-1",
       sku: "ZIWEI-IDENTITY-P0",
       ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(evidenceSets).values({
@@ -627,6 +631,7 @@ describe("report query integration test with real database", () => {
       chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -864,6 +869,7 @@ describe("report query integration test with real database", () => {
       chartId: chartBId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: ownerBId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1011,7 +1017,7 @@ describe("report query integration test with real database", () => {
     });
     // Entitlement also has chartId: chartB2Id (no prior entitlement existed for chartB2Id)
     await database.insert(commerceEntitlements).values({
-      id: entitlementA2Id, orderId: orderA2Id, chartId: chartB2Id, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerAId,
+      id: entitlementA2Id, orderId: orderA2Id, chartId: chartB2Id, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerAId, scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(), reportId: reportA2Id, reportVersionId: randomUUID(), entitlementId: entitlementA2Id,
@@ -1054,7 +1060,7 @@ describe("report query integration test with real database", () => {
       sku: "ZIWEI-IDENTITY-P0", amount: 100000, currency: "VND", locale: "vi", status: "paid",
     });
     await database.insert(commerceEntitlements).values({
-      id: entitlementA3Id, orderId: orderA3Id, chartId: chartA3Id, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerAId,
+      id: entitlementA3Id, orderId: orderA3Id, chartId: chartA3Id, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerAId, scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     // Reservation with tampered chartVersionId pointing to Owner B chartVersion
     await database.insert(reportReservations).values({
@@ -1104,7 +1110,7 @@ describe("report query integration test with real database", () => {
       sku: "ZIWEI-IDENTITY-P0", amount: 100000, currency: "VND", locale: "vi", status: "paid",
     });
     await database.insert(commerceEntitlements).values({
-      id: entitlementA4Id, orderId: orderA4Id, chartId: chartA4Id, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerAId,
+      id: entitlementA4Id, orderId: orderA4Id, chartId: chartA4Id, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerAId, scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(), reportId: reportA4Id, reportVersionId: reportVersionA4Id, entitlementId: entitlementA4Id,
@@ -1161,7 +1167,7 @@ describe("report query integration test with real database", () => {
       sku: "ZIWEI-IDENTITY-P0", amount: 100000, currency: "VND", locale: "vi", status: "paid",
     });
     await database.insert(commerceEntitlements).values({
-      id: entitlementDId, orderId: orderDId, chartId: chartDId, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerDId,
+      id: entitlementDId, orderId: orderDId, chartId: chartDId, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerDId, scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(), reportId: reportDId, reportVersionId: reportVersionDId, entitlementId: entitlementDId,
@@ -1226,7 +1232,7 @@ describe("report query integration test with real database", () => {
       sku: "ZIWEI-IDENTITY-P0", amount: 100000, currency: "VND", locale: "vi", status: "paid",
     });
     await database.insert(commerceEntitlements).values({
-      id: entitlementCId, orderId: orderCId, chartId: chartCId, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerCId,
+      id: entitlementCId, orderId: orderCId, chartId: chartCId, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerCId, scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(), reportId: reportCId, reportVersionId: reportVersionCId, entitlementId: entitlementCId,
@@ -1428,6 +1434,7 @@ describe("report query integration test with real database", () => {
       chartId: attackerA1.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: attackerA1.ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1505,6 +1512,7 @@ describe("report query integration test with real database", () => {
       chartId: attackerA2.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: attackerA2.ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1578,6 +1586,7 @@ describe("report query integration test with real database", () => {
       chartId: ownerC.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: ownerC.ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1637,6 +1646,7 @@ describe("report query integration test with real database", () => {
       chartId: ownerD.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: ownerD.ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1715,6 +1725,7 @@ describe("report query integration test with real database", () => {
       chartId: owner1.chartId,
       sku: "ZIWEI-CAREER-P0", // mismatched entitlement SKU!
       ownerId: owner1.ownerId,
+      scope: TIER_1_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1788,6 +1799,7 @@ describe("report query integration test with real database", () => {
       chartId: owner2.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: owner2.ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1861,6 +1873,7 @@ describe("report query integration test with real database", () => {
       chartId: owner3.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: owner3.ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
@@ -1911,6 +1924,7 @@ describe("report query integration test with real database", () => {
       chartId: owner4.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: owner4.ownerId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     await database.insert(reportReservations).values({
