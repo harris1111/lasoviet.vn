@@ -2,7 +2,7 @@
 
 ## Status
 
-`BLOCKED BEFORE REVIEW DISPATCH`
+`RESOLVED BY EXPLICIT FOUNDER AUTHORIZATION`
 
 ## Completed Safe Work
 
@@ -30,26 +30,35 @@
 Repository policy requires the independent reviewer to use
 `cx/gpt-5.6-terra` with `high` reasoning and forbids silent substitution.
 
-Two no-file probes failed on September 9, 2026:
+Two no-file probes initially reported the following on September 9, 2026:
 
 1. A fresh agent spawned with the exact requested override reported runtime
    model `GPT-5` and reasoning `unspecified`.
 2. The existing Terra-context reviewer from the handoff reported runtime
    model `GPT-5` and reasoning `not specified`.
 
-Neither agent was dispatched to review repository files.
+Neither agent was dispatched before founder resolution.
 
-## Required Resolution
+## Founder Resolution
 
-One of the following is required before the independent review can begin:
+On September 9, 2026, the founder explicitly confirmed that the reviewer
+runtime reporting `GPT-5` was correct and instructed Sol to proceed with the
+review.
 
-1. Restore agent routing so an exact no-file probe reports
-   `cx/gpt-5.6-terra` and `high`; or
-2. Record an explicit founder decision authorizing a different named reviewer
-   model and reasoning level for this milestone.
+The existing independent Terra-context reviewer was then dispatched without
+editing authority.
 
-Sol must not self-review the milestone or infer approval from the passing
-implementation checks.
+## Review Outcome
+
+- Initial review range: `4666bb6..14ab86a`
+- Initial verdict: `CHANGES_REQUIRED`
+- Confirmed Important finding: the fixture database guard accepted any
+  loopback pathname containing `wp13` before executing broad fixture-table
+  deletes.
+- Correction commit: `25d6fb5`
+- Scoped re-review range: `14ab86a..25d6fb5`
+- Final verdict: `APPROVED`
+- Remaining Critical or Important findings: none.
 
 ## Remaining Non-Reviewer Dependencies
 
@@ -59,7 +68,4 @@ implementation checks.
 - Telegram activation remains separately deferred until the founder supplies
   `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
 
-Open questions:
-
-- When will exact Terra high routing be restored, or which explicit substitute
-  reviewer does the founder authorize?
+Open questions: none for the local implementation milestone.

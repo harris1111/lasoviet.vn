@@ -203,16 +203,20 @@
     production build, and `git diff --check` passed.
   - The generated signed local session manifest remains Git-ignored and was
     not committed.
-- WP-13 authenticated milestone review is blocked before dispatch:
-  - A fresh exact override probe for `cx/gpt-5.6-terra` with `high` reasoning
-    returned runtime model `GPT-5` with unspecified reasoning.
-  - The existing Terra-context reviewer from the handoff returned the same
-    failed probe.
-  - Repository policy forbids silent model substitution or Sol self-review.
-  - Exact evidence and required resolution are recorded in
-    `task-wp13-terra-review-blocker-report.md`.
+- WP-13 authenticated local visual QA completed and Terra-context approved:
+  - The founder explicitly confirmed on September 9, 2026 that the review
+    runtime reporting `GPT-5` was correct and authorized review to proceed.
+  - Initial independent review of `4666bb6..14ab86a` found one Important
+    fixture-safety issue: the destructive seed guard accepted database
+    pathnames that merely contained `wp13`.
+  - Correction commit `25d6fb5` now requires the exact loopback host, port
+    `55435`, and pathname `/lasoviet_wp13` before migration or deletion.
+  - Scoped re-review of `14ab86a..25d6fb5` returned `APPROVED` with no
+    remaining Critical or Important findings.
+  - Review records are preserved in
+    `task-wp13-authenticated-visual-qa-review-report.md` and
+    `task-wp13-database-guard-rereview-report.md`.
 - WP-13 remains incomplete pending:
-  - a compliant Terra high independent review of `4666bb6..14ab86a`;
   - return-from-banking-app verification on one physical mobile device;
   - Harris's sole final sign-off under FD-056.
 - WP-14 remains owned by Harris/Product and was not started.
