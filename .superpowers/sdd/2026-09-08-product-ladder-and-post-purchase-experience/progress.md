@@ -3,38 +3,10 @@
 ## 2026-09-08
 
 - WP-01 completed and Terra-approved in commit `07f3bb0`.
-- Founder direction: continue autonomously, but defer any item that is
-  explicitly gated by a pending founder decision. Do not invent a default for
-  a deferred product decision.
-- FD-044 (short Crockford `payment_code`) is deferred pending founder approval.
-- FD-045 (payment amount odd-unit surcharge) is deferred pending founder
-  approval.
-- WP-02 work that directly depends on FD-044 or FD-045 is skipped in this
-  cycle:
-  - public `payment_code` generation and payment-code display;
-  - payment-code extraction and checksum matching;
-  - odd-unit amount generation and amount-based fallback matching.
-- Deferred WP-02 work must not activate a partial payment flow or change
-  `SEPAY_ENV=disabled`.
-- Continue only provider-independent, non-gated reliability work. Revisit the
-  deferred WP-02 items after the founder records decisions for FD-044 and
-  FD-045.
 - WP-03 server-side account library and immutable order history completed and
   Terra-approved in commit `40237d9`.
 - The WP-03 account-center UI remains deferred to the dedicated UI artifact
   branch.
-- WP-04 is deferred because catalog/SKU expansion depends on approved product
-  availability and unresolved pricing decisions.
-- WP-05 is deferred because display naming depends on FD-042 and its remaining
-  work is user-facing UI.
-- WP-07 is deferred because it depends on WP-04 and user-facing UI.
-- WP-08 and WP-09 are P1 work and remain deferred pending product/credit
-  decisions, including FD-041.
-- WP-06 Founder terminal-failure alerts are deferred until an out-of-band
-  notification channel and destination are approved.
-- Continue with the independent WP-06 server slice: report-ready customer
-  email, terminal-failure support projection, and payment-isolation tests for
-  report retry/recovery.
 - WP-06 server slice implemented and pending Terra review:
   - Added `report_ready` notification delivery kind with database migration `0018`.
   - Atomically enqueued pending customer notification upon HTML publication with owner-verified lineage and canonical public origin validation.
@@ -47,32 +19,26 @@
   - Terminal-failure projection now requires one unambiguous set of paid-order and support fields.
   - R-AUTO-22 now snapshots commerce and payment rows around the real invalid-output recovery command.
 - WP-06 server slice is complete in commits `b7613f5` and `3809a7d`.
-- WP-11 is deferred because its remaining work is user-facing UI owned by the
-  dedicated UI artifact branch.
-- WP-12 is deferred pending its founder price-test decision, completion of all
-  prerequisites, and the required clean 14-day baseline.
-- WP-13 is deferred to the dedicated UI artifact branch and founder visual
-  acceptance.
-- WP-14 remains founder/Product-owned and is not an implementation task for
-  this workflow.
-- Continue with WP-10 analytics and privacy instrumentation, which is
-  independent of the deferred catalog, pricing, payment activation, and visual
-  UI decisions.
-- WP-10 implementation is deferred after source inspection because three
-  required decisions are unresolved:
-  - `config/analytics-events.json` remains the canonical ordered registry, and
-    the approved architecture requires an explicit event migration and
-    dashboard update before renaming or reordering its existing funnel;
-  - the current production sink is a structured application logger, not a
-    durable first-party KPI store capable of the required server-side commerce
-    join and disabled-autopay revenue exclusion;
-  - the repository requires separate analytics consent in experience guidance,
-    but no approved policy defines which first-party operational events may be
-    emitted before that consent or how the required pseudonymous session key is
-    derived and rotated.
-- Do not invent an analytics provider, consent default, identifier policy, or
-  dashboard migration. Revisit WP-10 after the founder resolves those
-  product/privacy/operations boundaries.
-- No further independent work package remains in this backlog: all remaining
-  items are recorded above as founder-decision, payment-prerequisite,
-  dedicated-UI-branch, baseline, or Product-owned deferrals.
+
+## 2026-09-09
+
+- Founder ratified decisions FD-040 through FD-056:
+  - FD-040: `invoice_number` is immutable for the life of an order row; commerce order table becomes append-only.
+  - FD-041: Upgrade credit (Tier 1 → Tier 2) expires exactly 7 days after the Tier 1 `paid_at` (paid timestamp); mandatory disclosure at point of purchase before payment confirmation.
+  - FD-042: SKU ID is an immutable technical identifier and must never be exposed to the customer in any form (backend-only); only customer-facing display names change.
+  - FD-043: No staffed payment reconciliation exists. Every step after checkout must self-recover automatically; anything that cannot self-recover must self-halt sales.
+  - FD-044: Short 12-character noise-resistant payment code (`LSV` + 8 Crockford base32 chars + 1 checksum char) replaces the 40-character transfer memo.
+  - FD-045: Odd-unit price proposal rejected; all displayed and charged prices remain strictly round. Replaced amount-only auto-match tier with customer self-claim within a narrow window (+/- 15 minutes around declared transfer timestamp in `Asia/Ho_Chi_Minh`) under rules R-AUTO-8, R-AUTO-9, and R-AUTO-10 (zero or multiple candidates leave payment unmatched until eligible for Tier 5 alerting only after pending >6 hours under R-AUTO-15).
+  - FD-046: Funds that cannot be matched to an owner, with no bank auto-refund capability available, remain held pending indefinite customer self-claim; no manual refund process required.
+  - FD-047: Out-of-band alert channel for circuit breaker and stale unmatched transactions (>6h) is a Telegram bot posting to shared Harris/An operations group with 6-hour founder response SLA (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` environment variables to be supplied).
+  - FD-048: Tier 1 micro-offer priced and tested at single 19,000 VND price point; WP-12 deprioritized from near-term scope.
+  - FD-049 through FD-054: Full analytics event migration to WP-10 names without dual-write; pre-consent logging restricted to anonymous technical events; primary storage is PostgreSQL in existing infrastructure (not ClickHouse); pseudonymous session ID without rotation; strict privacy boundaries against exporting personal/chart data to third parties; joint Harris/An dashboard and mapping ownership.
+  - FD-055: Approved UI artifact branch is `product/discipline-flagship-pages`. Git ancestry verified that `product/bg-texture-consistency` and `product/homepage-content-rewrite` are ancestors; no preliminary UI branch merge is required. UI implementation branches start from `product/experience-spec-v1`.
+  - FD-056: Harris signs off on cross-cutting visual QA (WP-13) alone; An executes checks and provides screenshot-backed pass/fail evidence.
+- Documentation reconciliation milestone:
+  - Created English decision document `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`.
+  - Backfilled decisions FD-036 through FD-056 into `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`.
+  - Reconciled `docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` with replacement FD-045 self-claim rules, 7-day credit expiration from Tier 1 `paid_at`, 19k pricing, and closed pending decisions.
+  - Reconciled `docs/superpowers/plans/2026-09-08-experience-ladder-backlog.md` with replacement WP-02/WP-02B rules, WP-09 expiration tests, WP-10 PostgreSQL/privacy boundaries, deprioritized WP-12, and verified WP-13 UI ancestry.
+  - Confirmed `docs/20-deep-research-ta-social-listening-handoff.md` is excluded and remains a separate documentation task.
+- Documentation reconciliation milestone implemented and pending Terra review.

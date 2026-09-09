@@ -1,27 +1,28 @@
 # Product Ladder & Post-Purchase Experience — Spec v1
 
-**Ngày:** 2026-09-08
-**Trạng thái:** Founder đã chốt hướng (FD-036…FD-039). Các mục đánh dấu *Đề xuất* cần Founder duyệt trước khi An lập implementation plan.
-**Base commit đã audit:** `6e6ff065b385873b15c926a0c4b95b68074baae5` (tip của `product/experience-spec-v1`, đã fast-forward về local ngày 2026-09-08).
-**Nguồn đầu vào:** `lasoviet-brainstorm-ux-product-ladder.md` (hội đồng mô phỏng, 08/09/2026) + audit source trực tiếp trong lượt này.
-**Ràng buộc kế thừa:** FD-007, FD-019, FD-029, OD-001…OD-006 giữ nguyên hiệu lực. Spec toàn diện 2026-09-07 là nguồn sự thật cho nội dung báo cáo Tử Vi.
+**Date:** 2026-09-08
+**Status:** All decisions FD-036 through FD-056 are ratified by the founder (Round 2, 2026-09-09). Full details, including the rejected odd-unit proposal and replacement mechanism (FD-045), are recorded in `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`. The table below records ratified status.
+**Audited base commit:** `6e6ff065b385873b15c926a0c4b95b68074baae5` (tip of `product/experience-spec-v1`, fast-forwarded locally on 2026-09-08).
+**Input sources:** `lasoviet-brainstorm-ux-product-ladder.md` (brainstorm council, 2026-09-08) + direct repository audit.
+**Inherited constraints:** FD-007, FD-019, FD-029, and OD-001 through OD-006 remain in effect. The 2026-09-07 comprehensive spec is the source of truth for Zi Wei report content.
 
 ---
 
-## 0. Quyết định Founder đợt này
+## 0. Founder Decisions (Ratified 2026-09-09)
 
-| ID | Quyết định | Trạng thái |
+| ID | Decision | Status |
 |---|---|---|
-| FD-036 | Chọn **hướng B theo giai đoạn**: Free → micro-offer HOẶC báo cáo toàn diện 79k, thanh toán thẳng VND. Ví/điểm là tùy chọn ở giai đoạn sau, có gate riêng. | Approved 2026-09-08 |
-| FD-037 | Micro-offer tầng 1 là **trích phần natal đã định nghĩa rõ, có khấu trừ khi nâng cấp**. Không xây engine câu hỏi tình huống trong đợt này. | Approved 2026-09-08 |
-| FD-038 | KPI chính 90 ngày là **lãi đóng góp 30 ngày trên mỗi khách tạo lá số**. Lượt mua đầu và doanh thu quay lại là KPI phụ, không được tối ưu đánh đổi KPI chính. | Approved 2026-09-08 |
-| FD-039 | **Không đưa ví/điểm "Điểm Việt" vào spec đợt này.** Thiết kế dữ liệu không được chặn đường bổ sung ví về sau. | Approved 2026-09-08 |
-| FD-040 | *Đề xuất:* Mã đơn (`invoice_number`) là **bất biến** suốt đời một order row. Bảng order chuyển sang append-only. | Chờ duyệt |
-| FD-041 | *Đề xuất:* Khấu trừ khi nâng cấp **không có hạn sử dụng** (lệch với đề xuất cửa sổ 7 ngày của hội đồng). | Chờ duyệt |
-| FD-042 | *Đề xuất:* SKU ID là định danh bất biến; đổi định vị sản phẩm bằng **đổi tên hiển thị**, không đổi SKU ID. | Chờ duyệt |
-| FD-043 | **Không có người trực đối soát thanh toán.** Mọi khâu sau khi khách bấm trả tiền phải tự phục hồi mà không cần thao tác thủ công. Nơi nào không tự động được thì phải tự dừng bán, không được âm thầm nhận tiền. | Approved 2026-09-08 |
-| FD-044 | *Đề xuất:* Thay mã chuyển khoản `LSV-<uuid>` (40 ký tự, chữ thường, có gạch) bằng **mã ngắn chống nhiễu**: `LSV` + 8 ký tự Crockford base32 in hoa, không gạch, có ký tự kiểm tra. | Chờ duyệt |
-| FD-045 | *Đề xuất:* Cộng **số lẻ định danh 1–999đ** vào số tiền mỗi đơn (79.000đ → 79.348đ) để số tiền trở thành khoá đối chiếu dự phòng gần như duy nhất. | Chờ duyệt |
+| FD-036 | Phased direction B: Free → micro-offer OR 79k comprehensive report, VND only; wallet/points deferred to a later gated phase | Approved 2026-09-08 |
+| FD-037 | Tier-1 micro-offer is a defined natal excerpt with upgrade credit; no situational-question engine this round | Approved 2026-09-08 |
+| FD-038 | Primary 90-day KPI is 30-day contribution margin per chart-creating customer; first-purchase rate and return revenue are secondary and must not be optimized at the primary KPI's expense | Approved 2026-09-08 |
+| FD-039 | Exclude the "Điểm Việt" wallet/points system from this round's spec; data design must not block adding a wallet later | Approved 2026-09-08 |
+| FD-040 | `invoice_number` is immutable for the life of an order row; commerce order table becomes append-only | Approved 2026-09-09 |
+| FD-041 | Upgrade credit (Tier 1 → Tier 2) expires 7 days after the Tier 1 `paid_at` (paid timestamp); mandatory disclosure at point of purchase before payment confirmation | Approved 2026-09-09 |
+| FD-042 | SKU ID is an immutable technical identifier and must never be exposed to the customer in any form (backend-only); only the customer-facing display name changes | Approved 2026-09-09 |
+| FD-043 | No staffed payment reconciliation exists. Every step after checkout must self-recover automatically; anything that cannot self-recover must self-halt sales rather than silently accept payment | Approved 2026-09-08 |
+| FD-044 | Replace the 40-character transfer-memo invoice number with a short 12-character anti-noise payment code (`LSV` + 8 Crockford base32 chars + 1 checksum char), stored separately from `invoice_number` | Approved 2026-09-09 |
+| FD-045 | Odd-unit surcharge proposal rejected — displayed and charged prices must always be round, no exceptions. Replaced legacy amount fallback matching tier with customer self-claim within +/- 15-minute window around declared transfer timestamp in `Asia/Ho_Chi_Minh` | Approved (revised) 2026-09-09 |
+| FD-046 through FD-056 | Unattended reconciliation, alert channel, micro-offer price (19k single price), analytics migration, consent/storage/session ID/third-party export boundaries, dashboard ownership, UI artifact branch (`product/discipline-flagship-pages`), and visual QA sign-off — see full details in `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`. | Approved 2026-09-09 |
 
 ---
 
@@ -129,41 +130,43 @@ Lý do: mã ngắn sống sót qua việc app ngân hàng viết hoa, lược k�
 | R-AUTO-6 | Xác thực ký tự kiểm tra trước khi coi là khớp. |
 | R-AUTO-7 | Nội dung không parse được **không bao giờ** làm webhook trả lỗi. Bỏ nhánh `SEPAY_PAYLOAD_INVALID` tại `:193` cho trường hợp này; luôn ghi nhận giao dịch rồi mới xử lý khớp. |
 
-**Tầng 3 — Khớp dự phòng bằng số tiền (FD-045).**
+**Tier 3 — Automated Fallback Matching Boundary (FD-045 Revised).**
 
-| ID | Yêu cầu |
+*Historical note: The initial proposal to append an identifying odd-unit surcharge (1–999 VND) to order amounts as an automated fallback reconciliation key was explicitly rejected by the founder on 2026-09-09. All displayed and charged prices must remain round without exception.*
+
+Under ratified FD-045, blind fallback matching based on amount alone without customer confirmation is eliminated. Transactions where a payment code cannot be extracted in Tiers 1–2 proceed directly to Tier 4 customer self-claim:
+
+| ID | Requirement |
 |---|---|
-| R-AUTO-8 | Mỗi đơn cộng số lẻ định danh 1–999đ, sinh từ hash của `payment_code`. Giá hiển thị là số tiền chính xác phải chuyển (79.348đ), thống nhất trên offer, checkout, QR và biên nhận. |
-| R-AUTO-9 | Khi không trích được mã: tìm đơn chưa fulfil có `amount` **khớp tuyệt đối** trong 24 giờ. Chỉ tự khớp khi có **đúng một** ứng viên. Ghi `match_method = 'amount'`. |
-| R-AUTO-10 | Có 0 hoặc từ 2 ứng viên trở lên: **không đoán**. Chuyển tầng 4. |
+| R-AUTO-8 | A validly authenticated payment without a valid payment code is persisted as unmatched in `commerce_unmatched_payments` and must never be auto-assigned from amount alone. |
+| R-AUTO-9 | An authenticated customer self-claim supplies exact transferred amount and a transfer timestamp to minute precision in `Asia/Ho_Chi_Minh`; candidate payment `received_at` must fall within plus/minus 15 minutes. |
+| R-AUTO-10 | Auto-approval requires exactly one eligible unmatched payment and exactly one eligible unfulfilled order for that owner under the exact-amount/time-window constraints. Zero or multiple candidates do not grant entitlement; the payment remains unmatched and becomes eligible for Tier 5 stale alerting only after remaining pending >6 hours under R-AUTO-15. |
 
-Số lẻ định danh khiến số tiền gần như là khoá duy nhất ở mức traffic hiện tại, nên tầng 3 giải quyết được hầu hết ca mà tầng 2 bỏ sót. Chi phí là giá hiển thị lẻ. Vì khách quét QR đã có sẵn số tiền, ma sát chỉ rơi vào người chuyển khoản thủ công — đổi lại là khả năng tự khớp mà không cần ai trực.
+**Tier 4 — Customer Self-Claim (Unattended Recovery).**
 
-**Tầng 4 — Khách tự nhận lại giao dịch của mình.**
+This replaces manual operations support: the customer who transferred funds initiates self-claim.
 
-Đây là phần thay thế cho người trực: người biết rõ giao dịch nhất chính là khách.
-
-| ID | Yêu cầu |
+| ID | Requirement |
 |---|---|
-| R-AUTO-11 | Bảng `commerce_unmatched_payments` lưu **toàn bộ payload gốc**, gồm mọi trường định danh người gửi mà SePay cung cấp. Ghi trước, xử lý sau. |
-| R-AUTO-12 | Trang "Tôi đã chuyển tiền nhưng chưa nhận báo cáo" cho tài khoản đã đăng nhập: khách nhập số tiền đã chuyển và ngày chuyển. |
-| R-AUTO-13 | Tự động duyệt yêu cầu khi **tất cả** điều kiện sau đúng: khách có đơn chưa fulfil; số tiền đơn khớp tuyệt đối số tiền giao dịch; giao dịch chưa bị ai nhận; chỉ có đúng một giao dịch khớp. Khi đó cấp entitlement, chạy báo cáo, ghi `match_method = 'self_claim'`. |
-| R-AUTO-14 | Chống lạm dụng: bắt buộc đăng nhập, giới hạn 5 yêu cầu/tài khoản/ngày, mỗi giao dịch chỉ nhận được một lần, ghi audit đầy đủ. Không khớp thì báo "chưa tìm thấy", **không** liệt kê các giao dịch chưa có chủ. |
+| R-AUTO-11 | The `commerce_unmatched_payments` table stores the full raw webhook payload, including all sender identification fields provided by SePay. Persist first, evaluate later. |
+| R-AUTO-12 | "Claim Unmatched Payment" interface for authenticated accounts: customer enters the exact transferred amount and transfer timestamp to minute precision in `Asia/Ho_Chi_Minh`. |
+| R-AUTO-13 | Automatically approve the self-claim when all conditions are satisfied: customer has an unfulfilled order; order amount matches candidate payment amount exactly; candidate payment `received_at` falls within plus/minus 15 minutes of the declared timestamp; payment is currently unclaimed; and exactly one candidate payment matches. When approved, grant entitlement, start report generation, and set `match_method = 'self_claim'`. |
+| R-AUTO-14 | Abuse prevention: mandatory authentication, rate-limited to 5 claim requests per account per day, each payment can only be claimed once, append-only audit logging. If no match is found, display "payment not found"; never disclose or list unclaimed payments. |
 
-**Tầng 5 — Thông báo phần dư.**
+**Tier 5 — Residual Alerting And Escalation.**
 
-| ID | Yêu cầu |
+| ID | Requirement |
 |---|---|
-| R-AUTO-15 | Giao dịch sống sót qua tầng 1–4 quá 6 giờ sẽ gửi thông báo tới Founder qua kênh out-of-band, kèm số tiền, thời điểm và payload. Mở rộng enum `notification_delivery_kind` tại `notifications.ts:13-16`. |
-| R-AUTO-16 | Thông báo là **cảnh báo**, không phải hàng đợi công việc. Nếu tầng 5 phát nhiều hơn 1 lần/tuần thì tầng 1–4 đang hỏng và phải sửa, không phải xử lý tay từng ca. |
+| R-AUTO-15 | Unmatched transactions pending >6 hours trigger an out-of-band Telegram alert (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) to the operations group, including amount, received timestamp, and payload metadata (FD-047). Unmatched funds remain held pending indefinite customer self-claim (FD-046). |
+| R-AUTO-16 | Notifications are alerts, not a routine work queue. If Tier 5 alerts fire frequently, Tiers 1–4 are malfunctioning and must be repaired. |
 
-### 2B.3 Cầu dao tự ngắt
+### 2B.3 Circuit Breaker
 
-| ID | Yêu cầu |
+| ID | Requirement |
 |---|---|
-| R-AUTO-17 | Hệ thống tự tính tỷ lệ tự khớp trượt theo 24 giờ: `số giao dịch tự khớp / tổng giao dịch nhận được`. |
-| R-AUTO-18 | Tỷ lệ tụt dưới **95%** với tối thiểu 20 giao dịch mẫu, hoặc có từ **3 giao dịch chưa có chủ** quá 6 giờ: **tự động tắt việc tạo đơn mới**, hiện trang "tạm ngừng nhận thanh toán", báo Founder. |
-| R-AUTO-19 | Bật lại là thao tác thủ công có chủ ý, không tự hồi phục theo thời gian. |
+| R-AUTO-17 | The system computes a 24-hour rolling auto-match rate: `auto_matched_payments / total_received_payments`. |
+| R-AUTO-18 | If the auto-match rate drops below **95%** (minimum 20 sample transactions) or if **3 or more unclaimed transactions** remain pending >6 hours: **automatically halt new order creation**, display a "payments temporarily paused" page, and alert the founder via Telegram. |
+| R-AUTO-19 | Resuming sales requires an intentional manual reset; the circuit breaker never automatically resets over time. |
 
 Đây là điều khoản quan trọng nhất của FD-043. Không có người trực nghĩa là không ai phát hiện lúc đường tiền hỏng. Vậy hệ thống phải tự phát hiện và **tự ngừng nhận tiền** — thà mất vài đơn còn hơn nhận tiền mà không giao được hàng và không ai biết.
 
@@ -208,7 +211,7 @@ Chỉ ba tầng dưới đây được phép hiển thị và bán. Mọi thứ 
 | Tầng | Sản phẩm | SKU ID | Giá | Phạm vi quyền đọc |
 |---|---|---|---|---|
 | 0 | Lá số + xem trước miễn phí | — | 0đ | Chart, sao/cung, 3 ý nghĩa cá nhân dễ hiểu |
-| 1 | **Bản mệnh và tiềm năng** | `ZIWEI-NATAL-EXCERPT-P0` | 19k hoặc 29k (A/B) | `overview`, `coreAxis`, `strengthsAndTensions`, `practicalDirection` |
+| 1 | **Bản mệnh và tiềm năng** | `ZIWEI-NATAL-EXCERPT-P0` | 19.000đ | `overview`, `coreAxis`, `strengthsAndTensions`, `practicalDirection` |
 | 2 | **Luận giải Tử Vi toàn diện** | `ZIWEI-IDENTITY-P0` *(giữ nguyên ID)* | 79k | Toàn bộ tầng 1 + `keyConfigurations`, 12 `palaceReadings`, 4 `thematicSynthesis` |
 
 ### 3.1 Vì sao giữ nguyên SKU ID `ZIWEI-IDENTITY-P0` cho sản phẩm 79k
@@ -227,14 +230,15 @@ Hai tầng lấy từ **cùng một lần sinh nội dung**, không phải hai l
 
 Hệ quả bắt buộc phải chấp nhận và theo dõi: một đơn 19k chịu **đúng COGS AI của một báo cáo đầy đủ**. Đây là đánh đổi có chủ ý để (a) tái dùng engine hiện hữu như FD-037 yêu cầu, (b) nâng cấp là tức thì, (c) nội dung tầng 1 không bao giờ mâu thuẫn với tầng 2. Rủi ro biên lợi nhuận được quản bằng guardrail mục 8.
 
-### 3.3 Khấu trừ khi nâng cấp
+### 3.3 Upgrade Credit (FD-041 Approved 2026-09-09)
 
-- Khấu trừ = **số tiền thực đã thanh toán** trên đơn tầng 1 `paid` và chưa hoàn của cùng lá số.
-- Giá nâng cấp = `79000 − khấu trừ`, sàn 0.
-- Mua 19k → nâng cấp 60k. Mua 29k → nâng cấp 50k.
-- Đã sở hữu tầng 2 trước: phần tầng 1 nằm sẵn trong quyền đọc, **không bao giờ thu thêm**.
-- **Không có hạn khấu trừ (FD-041, đề xuất).** Hội đồng đề xuất cửa sổ 7 ngày nhưng ghi rõ là chưa kiểm chứng. Cửa sổ hết hạn tạo ra một lớp khách trả tiền rồi mất quyền lợi đã ngụ ý — đúng loại vụ việc phá niềm tin mà toàn bộ spec này đang cố tránh, đổi lấy một mức thúc mua chưa có bằng chứng. Đề xuất bỏ hạn; nếu Founder muốn giữ cửa sổ thì phải công bố ngay tại điểm mua tầng 1.
-- Số tiền khấu trừ phải hiển thị rõ trước khi khách xác nhận: "Bạn đã trả 29.000đ. Nâng cấp hôm nay: 50.000đ."
+- Upgrade credit = **actual amount paid** on an unrefunded `paid` Tier 1 order for the same birth chart.
+- Upgrade price = `79,000 VND − credit`, floored at 0.
+- Standard flow: Purchase Tier 1 at 19,000 VND → upgrade within 7 days of payment (`paid_at`) by paying 60,000 VND (applying 19,000 VND credit against 79,000 VND).
+- Prior Tier 2 ownership: Customers who already purchased Tier 2 retain full access to all Tier 1 sections; never charge additional fees.
+- **7-day credit expiration (FD-041):** Upgrade credit expires exactly 7 days after the Tier 1 `paid_at` (paid timestamp), never generic order creation or an ambiguous purchase timestamp. After 7 days from `paid_at`, the credit is void and the full 79,000 VND price applies.
+- **Mandatory disclosure requirement:** Because the credit window is bounded, it must be explicitly disclosed at the point of purchase for Tier 1 before payment confirmation (e.g. "Upgrade credit towards the comprehensive report applies for 7 days from payment").
+- The credit amount and net upgrade price must be explicitly displayed before the customer confirms: "You paid 19,000 VND. Upgrade today: 60,000 VND (valid for 7 days from payment)."
 
 ---
 
@@ -248,15 +252,14 @@ Hệ quả bắt buộc phải chấp nhận và theo dõi: một đơn 19k ch�
 
 `CommerceSkuSchema` đổi từ `z.literal` sang `z.enum` dẫn xuất từ danh sách SKU **được phép bán** (`availability: "first_paid_flow"`). SKU `reserved` phải bị từ chối ở tầng contract, không chỉ ở UI — đây là cơ chế chặn duy nhất khiến sản phẩm chưa qua QA không thể bị kích hoạt bằng một request thủ công.
 
-### 4.3 Giá theo đơn, không chỉ theo SKU
+### 4.3 Order-Level Pricing And Credit Tracking
 
-`commerce_orders.amount` đã lưu giá theo đơn. Cần bổ sung:
+`commerce_orders.amount` persists the exact charged amount. The schema additions are:
 
-- `price_variant text` — ghi nhánh A/B đã áp cho đơn (`"19k"` / `"29k"` / `"baseline"`).
-- `credit_applied integer not null default 0` — số tiền khấu trừ đã áp.
-- `credited_from_order_id uuid` — trỏ về đơn tầng 1 đã dùng để khấu trừ, `null` nếu không có.
-
-Nhánh giá phải **dính theo lá số** (deterministic hash của `chart_id`), không random mỗi lần load, để khách không thấy hai mức giá khác nhau cho cùng một thứ.
+- `price_variant text` — records price variant. Under FD-048, only the `"19k"` assignment is active in near-term scope; no A/B allocation is implemented.
+- `credit_applied integer not null default 0` — credit amount deducted from the list price.
+- `credited_from_order_id uuid` — references the Tier 1 order used for upgrade credit, `null` if none.
+- `credit_expires_at timestamp with time zone` — records credit expiration timestamp for Tier 1 orders (7 days after `paid_at`).
 
 ### 4.4 Entitlement và phạm vi đọc
 
@@ -287,7 +290,7 @@ Nhánh giá phải **dính theo lá số** (deterministic hash của `chart_id`)
 | B-1 | Trang chọn hiển thị **tối đa 2 lựa chọn trả phí** liên quan nhu cầu hiện tại, kèm giá VND cuối cùng và mô tả đầu ra không trùng nhau. Không bày bảng toàn bộ danh mục | UI test: người mới thấy đúng 2 offer + free |
 | B-2 | Nhãn mua là tên khách hàng hiểu được, không phải SKU nội bộ | Không chuỗi `ZIWEI-*` nào lọt ra UI |
 | B-3 | Đã sở hữu → hiện "Đọc lại", **không hiện nút mua**. Hiện tại `ENTITLEMENT_EXISTS` bị nuốt thành `CHECKOUT_ORDER_FAILED` và khách thấy lỗi trắng | Test: chart đã mua → nút "Đọc lại", 0 lỗi |
-| B-4 | Có entitlement tầng 1 → offer tầng 2 hiện giá đã khấu trừ và nêu rõ phần nào được mở thêm | Test: mua 29k → offer nâng cấp hiện "50.000đ" |
+| B-4 | Active Tier 1 entitlement → Tier 2 upgrade offer displays discounted price and clearly names unlocked sections | Test: Purchase 19,000 VND → upgrade offer displays "60.000đ" within 7 days of Tier 1 `paid_at`; after 7 days displays full 79,000 VND |
 | B-5 | Giữ product intent xuyên qua đăng nhập/xác minh email; quay lại đúng offer đã chọn | Test: chọn offer → login → về đúng offer, không phải trang chủ |
 | B-6 | Tách bạch **"Đã thanh toán"** và **"Đang tạo báo cáo"** thành hai trạng thái khác nhau về chữ và bố cục | Hai màn phân biệt được, không dùng chung copy |
 | B-7 | Không có nút "tôi đã trả" tự mở báo cáo. Chỉ webhook hợp lệ mới xác nhận tiền | Không tồn tại đường mở khoá phía client |
@@ -405,11 +408,20 @@ Ràng buộc thiết kế duy nhất phải giữ cho tương lai: R-PAY-3 và m
 
 ---
 
-## 10. Còn chờ Founder
+## 10. Founder Decisions — Ratified 2026-09-09
 
-1. Duyệt FD-040, FD-041, FD-042.
-2. Chốt giá tầng 1 sẽ test: 19k và 29k, hay chỉ một mức để giữ mẫu tập trung khi traffic thấp.
-3. Cung cấp số để kiểm giả thuyết kinh tế: COGS AI thực mỗi báo cáo, phí thanh toán, tỷ lệ hoàn tiền lịch sử, traffic thật theo tuần. Toàn bộ số liệu kinh tế trong bản brainstorm là minh hoạ giả định.
-4. Duyệt FD-044 (mã ngắn) và FD-045 (số lẻ định danh). FD-045 làm giá hiển thị lẻ — đây là đánh đổi có thật, đổi lấy khả năng tự khớp khi không có người trực.
-5. Chọn kênh nhận cảnh báo out-of-band cho tầng 5 và cầu dao (email riêng, Telegram, hay kênh khác). Không có kênh này thì cầu dao tự ngắt sẽ ngắt mà không ai biết.
-6. Chấp nhận rằng tiền không quy được về chủ sẽ nằm lại chờ khách tự nhận, vì hệ thống không có khả năng tự hoàn tiền ra ngân hàng.
+All open items in this section were resolved via direct founder interview on 2026-09-09. Full details are recorded in `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`.
+
+| # | Original Open Item | Ratified Outcome |
+|---|---|---|
+| 1 | Approve FD-040, FD-041, FD-042 | FD-040 and FD-042 approved as proposed. FD-041 approved with 7-day expiration window from Tier 1 `paid_at` and mandatory point-of-purchase disclosure. |
+| 2 | Tier 1 pricing (19k vs 29k vs A/B) | Fixed at single price 19,000 VND (FD-048); no A/B testing in this release. |
+| 3 | Economic data (AI COGS, payment fees, refund rate, traffic ramp) | No live traffic yet; working assumptions established from VN market research (see round-2 doc appendix). |
+| 4 | Approve FD-044 and FD-045 | FD-044 approved as proposed. FD-045 odd-unit surcharge rejected; replaced with narrow-window (+/- 15 min) customer self-claim (R-AUTO-8..10). |
+| 5 | Out-of-band alert channel for Tier 5 and circuit breaker | Telegram bot posting to shared Harris/An operations group with 6-hour founder response SLA (FD-047). |
+| 6 | Unmatched funds disposition | Held pending indefinite customer self-claim; no manual refund workflow required (FD-046). |
+
+Additional ratified decisions from the round-2 interview:
+- FD-049 through FD-054: Complete analytics event migration to WP-10 names, pre-consent anonymous technical logging only, self-hosted PostgreSQL primary storage, pseudonymous session ID without rotation, strict privacy boundaries on third-party exports, joint Harris/An dashboard ownership.
+- FD-055: Approved UI artifact branch is `product/discipline-flagship-pages`; verified ancestry confirms no preliminary merge required; UI branches start from `product/experience-spec-v1`.
+- FD-056: Harris visual QA single sign-off for WP-13.
