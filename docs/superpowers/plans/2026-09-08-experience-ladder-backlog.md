@@ -107,22 +107,24 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 
 **Automated approval rules (R-AUTO-9, R-AUTO-10, R-AUTO-13):**
 Auto-approval requires that all of the following conditions hold simultaneously:
-1. Customer has an unfulfilled order under their authenticated account.
+1. Customer has exactly one eligible unfulfilled order under their authenticated account matching the transferred amount.
 2. Order amount matches candidate payment amount exactly.
 3. Customer supplies a transfer timestamp to minute precision in `Asia/Ho_Chi_Minh`, and the candidate payment `received_at` falls within plus/minus 15 minutes of that timestamp.
 4. The candidate payment in `commerce_unmatched_payments` is currently unclaimed.
-5. Exactly one candidate payment matches these criteria. If zero or multiple candidates match, entitlement is not granted, the payment remains unmatched, and it becomes eligible for Tier 5 stale alerting only after remaining pending >6 hours under R-AUTO-15 (no immediate Telegram alert or manual queue).
+5. Exactly one candidate payment matches these criteria, and exactly one eligible unfulfilled order for that owner matches. If zero or multiple candidate payments or orders match, entitlement is not granted, the payment remains unmatched in `commerce_unmatched_payments`, and it becomes eligible for Tier 5 stale alerting only after remaining pending >6 hours under R-AUTO-15 (no immediate Telegram alert or manual queue).
 
 **Acceptance:** R-AUTO-9 through R-AUTO-19.
 
 **Required tests:**
-1. Authenticated customer with unfulfilled 79,000 VND order submits exact amount and transfer timestamp within +/- 15 minutes of an unclaimed 79,000 VND payment -> exactly one candidate matches -> auto-approves, grants entitlement, enqueues report generation, sets `match_method = 'self_claim'`.
+1. Authenticated customer with unfulfilled 79,000 VND order submits exact amount and transfer timestamp within +/- 15 minutes of an unclaimed 79,000 VND payment -> exactly one candidate payment and one order match -> auto-approves, grants entitlement, enqueues report generation, sets `match_method = 'self_claim'`.
 2. Two candidate payments match exact amount and time window -> do not auto-approve, entitlement not granted, payment remains unmatched; becomes eligible for Tier 5 alerting only after pending >6 hours under R-AUTO-15.
 3. Customer submits amount with no matching unclaimed payment in the +/- 15-minute window -> denied with "payment not found", never disclosing whether unmatched payments exist.
-4. Rate limiting: 6th claim request in a single day for an account is blocked.
-5. An unmatched payment once claimed cannot be claimed a second time.
-6. Rolling 24-hour auto-match rate drops below 95% (min 20 samples) or >=3 unclaimed transactions pending >6 hours -> circuit breaker opens, `createCheckoutOrder` is blocked, Telegram alert fires.
-7. Open circuit breaker never automatically resets over time; requires explicit manual reactivation.
+4. Two eligible owner orders match the claimed amount -> do not auto-approve, entitlement not granted, payment remains unmatched; becomes eligible for Tier 5 alerting only after pending >6 hours under R-AUTO-15.
+5. Rate limiting: 6th claim request in a single day for an account is blocked.
+6. An unmatched payment once claimed cannot be claimed a second time.
+7. Rolling 24-hour auto-match rate drops below 95% (min 20 samples) or >=3 unclaimed transactions pending >6 hours -> circuit breaker opens, `createCheckoutOrder` is blocked, Telegram alert fires.
+8. Open circuit breaker never automatically resets over time; requires explicit manual reactivation.
+9. Focused frozen/injected-clock test for R-AUTO-15: one unmatched payment produces no Telegram alert at <=6 hours from `received_at`, and produces the Tier 5 alert only after >6 hours.
 
 **Dependencies:** WP-02.
 
