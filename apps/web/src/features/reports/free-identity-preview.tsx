@@ -24,6 +24,7 @@ export type FreeIdentityPreviewProps = {
     | { ok: false; error: { code: string } }
   >;
   preview: FreeIdentityPreviewV1;
+  paidUpgradeEligible?: boolean;
 };
 
 export function FreeIdentityPreview({
@@ -33,6 +34,7 @@ export function FreeIdentityPreview({
   locale,
   loadEvidence,
   preview,
+  paidUpgradeEligible = true,
 }: FreeIdentityPreviewProps) {
   const t = useTranslations("reports");
   const presentation = ziweiPresentation(locale);
@@ -128,14 +130,16 @@ export function FreeIdentityPreview({
         </div>
       ) : null}
 
-      <div className="identity-coverage-box">
-        <p className="identity-coverage">
-          {t("preview.coverage", {
-            offer: presentation.offer(preview.paidPreview.sku),
-            percent: preview.paidPreview.coveragePercent,
-          })}
-        </p>
-      </div>
+      {paidUpgradeEligible ? (
+        <div className="identity-coverage-box">
+          <p className="identity-coverage">
+            {t("preview.coverage", {
+              offer: presentation.offer(preview.paidPreview.sku),
+              percent: preview.paidPreview.coveragePercent,
+            })}
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }

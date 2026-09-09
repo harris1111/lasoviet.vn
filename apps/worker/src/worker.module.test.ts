@@ -96,7 +96,32 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
     process.env.AI_FEATURE_TOOL_CALLING = "false";
     process.env.AI_PRODUCTION_ENABLED = "true";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
     delete process.env.DATABASE_URL;
+
+    expect(() => createReportGenerateRunner()).toThrow("WORKER_CONFIG_INVALID");
+  });
+
+  it.each([
+    ["BETTER_AUTH_URL", "INTERNAL_ACTOR_SECRET"],
+    ["INTERNAL_ACTOR_SECRET", "BETTER_AUTH_URL"],
+  ])("throws WORKER_CONFIG_INVALID when approved but %s is missing", (missing, present) => {
+    process.env.WORKER_QUEUES = "report.generate";
+    process.env.AI_BASE_URL = "https://synthetic-ai.test";
+    process.env.AI_API_KEY = "test-key-never-leak";
+    process.env.AI_MODEL = "test-model";
+    process.env.AI_TIMEOUT = "3000";
+    process.env.AI_MAX_RETRIES = "2";
+    process.env.AI_FEATURE_JSON_SCHEMA = "true";
+    process.env.AI_FEATURE_TOOL_CALLING = "false";
+    process.env.AI_PRODUCTION_ENABLED = "true";
+    process.env.DATABASE_URL = "https://synthetic-db.test/db";
+    process.env[present] =
+      present === "BETTER_AUTH_URL"
+        ? "https://lasoviet.vn"
+        : "test-internal-secret";
+    delete process.env[missing];
 
     expect(() => createReportGenerateRunner()).toThrow("WORKER_CONFIG_INVALID");
   });
@@ -135,6 +160,8 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_FEATURE_TOOL_CALLING = "false";
     process.env.AI_PRODUCTION_ENABLED = "true";
     process.env.DATABASE_URL = "https://synthetic-db.test/db";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
 
     const mockProvider = {
       generateStructured: vi.fn(),
@@ -155,8 +182,41 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_FEATURE_TOOL_CALLING = "false";
     process.env.AI_PRODUCTION_ENABLED = "true";
     process.env.DATABASE_URL = "https://synthetic-db.test/db";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
 
     const runner = createReportGenerateRunner();
+    expect(runner).toBeDefined();
+    expect(typeof runner.runOnce).toBe("function");
+  });
+  it("initializes runner with injected alertDispatcher and telegramAlert options", () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    process.env.AI_BASE_URL = "https://synthetic-ai.test";
+    process.env.AI_API_KEY = "test-key-never-leak";
+    process.env.AI_MODEL = "test-model";
+    process.env.AI_TIMEOUT = "3000";
+    process.env.AI_MAX_RETRIES = "2";
+    process.env.AI_FEATURE_JSON_SCHEMA = "true";
+    process.env.AI_FEATURE_TOOL_CALLING = "false";
+    process.env.AI_PRODUCTION_ENABLED = "true";
+    process.env.DATABASE_URL = "https://synthetic-db.test/db";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
+
+    const mockDispatcher = {
+      dispatchPendingAlerts: vi.fn().mockResolvedValue({ delivered: 1, failed: 0, unconfigured: false }),
+    };
+    const mockTelegram = {
+      isConfigured: () => true,
+      sendStalePaymentAlert: vi.fn(),
+      sendCircuitOpenAlert: vi.fn(),
+      sendReportTerminalFailureAlert: vi.fn(),
+    };
+
+    const runner = createReportGenerateRunner({
+      alertDispatcher: mockDispatcher,
+      telegramAlert: mockTelegram,
+    });
     expect(runner).toBeDefined();
     expect(typeof runner.runOnce).toBe("function");
   });

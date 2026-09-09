@@ -13,6 +13,7 @@ export const AdminCapabilitySchema = z.enum([
   "admin.overview.read",
   "admin.accounts.read",
   "admin.commerce.read",
+  "admin.commerce.manage",
   "admin.support.manage",
   "admin.reports.read",
   "admin.reports.regenerate",

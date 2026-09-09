@@ -1,20 +1,44 @@
-import type { CurrentActor } from "@lasoviet/contracts";
+import type { CommerceSku, CurrentActor } from "@lasoviet/contracts";
+import { productCatalog } from "@lasoviet/config";
 
-export const PRODUCT_CATALOG = {
-  "ZIWEI-IDENTITY-P0": {
-    sku: "ZIWEI-IDENTITY-P0",
-    amount: 79_000,
-    currency: "VND" as const,
-    capabilityId: "ziwei.identity.p0",
-  },
-} as const;
+export type CatalogOffer = {
+  readonly sku: CommerceSku;
+  readonly amount: number;
+  readonly currency: "VND";
+  readonly capabilityId: "ziwei.identity.p0";
+};
 
-type ProductSku = keyof typeof PRODUCT_CATALOG;
+export type ProductSku = CommerceSku;
+
+function buildProductCatalog(): Readonly<Record<CommerceSku, CatalogOffer>> {
+  const offers = productCatalog.firstPaidOffers();
+  const catalog: Partial<Record<CommerceSku, CatalogOffer>> = {};
+  for (const offer of offers) {
+    if (offer.sku === "ZIWEI-IDENTITY-P0" || offer.sku === "ZIWEI-NATAL-EXCERPT-P0") {
+      catalog[offer.sku] = Object.freeze({
+        sku: offer.sku,
+        amount: offer.price,
+        currency: offer.currency,
+        capabilityId: "ziwei.identity.p0" as const,
+      });
+    }
+  }
+  return Object.freeze(catalog as Record<CommerceSku, CatalogOffer>);
+}
+
+export const PRODUCT_CATALOG: Readonly<Record<CommerceSku, CatalogOffer>> = buildProductCatalog();
 type Chart = { id: string; ownerId: string; eligible: boolean };
 export type CheckoutAccount = {
   emailVerified: boolean;
   isAnonymous: boolean;
 } | null;
+
+export type UpgradeCredit = {
+  credit: number;
+  sourceOrderId: string;
+  creditExpiresAt: Date;
+};
+
 type Order = {
   id: string;
   invoiceNumber: string;
@@ -23,12 +47,16 @@ type Order = {
   amount: number;
   currency: "VND";
   status: "pending";
+  creditApplied?: number;
+  creditedFromOrderId?: string | null;
+  creditExpiresAt?: Date | null;
 };
 
 export type OrderServiceDependencies = {
   findCheckoutAccount(userId: string): Promise<CheckoutAccount>;
   findChart(chartId: string): Promise<Chart | null>;
   findReusableEntitlement(chartId: string, sku: ProductSku): Promise<{ id: string } | null>;
+  findUpgradeCredit?(chartId: string, userId: string): Promise<UpgradeCredit | null>;
   save(order: Order): Promise<Order>;
   createId(): string;
 };
@@ -43,7 +71,16 @@ export function checkoutAccountError(
   return account.emailVerified ? null : "CHECKOUT_EMAIL_VERIFICATION_REQUIRED";
 }
 
-export function createOrderService(dependencies: OrderServiceDependencies) {
+export type OrderServiceOptions = {
+  now?: () => Date;
+};
+
+export function createOrderService(
+  dependencies: OrderServiceDependencies,
+  options?: OrderServiceOptions,
+) {
+  const getNow = options?.now ?? (() => new Date());
+
   return {
     async create(actor: CurrentActor, chartId: string, sku: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, error: { code: "SKU_UNSUPPORTED" } };
@@ -65,15 +102,46 @@ export function createOrderService(dependencies: OrderServiceDependencies) {
       if (await dependencies.findReusableEntitlement(chartId, product.sku)) {
         return { ok: false as const, error: { code: "ENTITLEMENT_EXISTS" } };
       }
+      if (
+        product.sku === "ZIWEI-NATAL-EXCERPT-P0" &&
+        (await dependencies.findReusableEntitlement(chartId, "ZIWEI-IDENTITY-P0"))
+      ) {
+        return { ok: false as const, error: { code: "ENTITLEMENT_EXISTS" } };
+      }
+      let amount = product.amount;
+      let creditApplied = 0;
+      let creditedFromOrderId: string | null = null;
+      let creditExpiresAt: Date | null = null;
+
+      const currentNow = getNow();
+
+      if (product.sku === "ZIWEI-IDENTITY-P0" && dependencies.findUpgradeCredit) {
+        const upgrade = await dependencies.findUpgradeCredit(chartId, actor.userId);
+        if (
+          upgrade &&
+          upgrade.creditExpiresAt instanceof Date &&
+          !Number.isNaN(upgrade.creditExpiresAt.getTime()) &&
+          currentNow.getTime() < upgrade.creditExpiresAt.getTime()
+        ) {
+          creditApplied = Math.min(upgrade.credit, product.amount);
+          creditedFromOrderId = upgrade.sourceOrderId;
+          creditExpiresAt = upgrade.creditExpiresAt;
+          amount = Math.max(product.amount - creditApplied, 0);
+        }
+      }
+
       const id = dependencies.createId();
       const value = await dependencies.save({
         id,
         invoiceNumber: `LSV-${id}`,
         chartId,
         sku: product.sku,
-        amount: product.amount,
+        amount,
         currency: product.currency,
         status: "pending",
+        creditApplied,
+        creditedFromOrderId,
+        creditExpiresAt,
       });
       return { ok: true as const, value };
     },

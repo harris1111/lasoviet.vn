@@ -10,8 +10,10 @@ import {
 
 import {
   AuthEmailRequestSchema,
+  PersistedEmailDeliveryRequestSchema,
   type AuthEmailKind,
   type AuthEmailRequest,
+  type PersistedEmailDeliveryRequest,
 } from "@lasoviet/contracts";
 import {
   notificationDeliveries,
@@ -32,12 +34,14 @@ export type NotificationDeliveryStatus =
   | "failed_permanent"
   | "delivery_unknown";
 
+export type NotificationDeliveryKind = AuthEmailKind | "report_ready";
+
 export type AuthEmailDeliveryRecord = {
   id: string;
   idempotencyKey: string;
-  kind: AuthEmailKind;
+  kind: NotificationDeliveryKind;
   recipientFingerprint: string;
-  requestPayload: AuthEmailRequest;
+  requestPayload: PersistedEmailDeliveryRequest;
   status: NotificationDeliveryStatus;
   sendingLeaseExpiresAt: Date | null;
   attemptCount: number;
@@ -78,7 +82,7 @@ export interface AuthEmailDeliveryStore {
     errorCode: string,
     now: Date,
   ): Promise<void>;
-  listRetryable(limit: number): Promise<AuthEmailRequest[]>;
+  listRetryable(limit: number): Promise<PersistedEmailDeliveryRequest[]>;
 }
 
 export type AuthEmailDeliveryOutcome = {
@@ -99,7 +103,7 @@ const LEASE_MS = 45_000;
 
 const messages: Record<
   "vi" | "en",
-  Record<AuthEmailKind, EmailMessage & { to: string }>
+  Record<NotificationDeliveryKind, EmailMessage & { to: string }>
 > = {
   vi: {
     email_verification: {
@@ -113,6 +117,12 @@ const messages: Record<
       subject: "Dat lai mat khau La So Viet",
       text: "Mo lien ket de dat lai mat khau La So Viet: {actionUrl}",
       html: "<p>Mo lien ket de dat lai mat khau La So Viet:</p><p>{actionUrl}</p>",
+    },
+    report_ready: {
+      to: "",
+      subject: "Bao cao La So Viet da san sang",
+      text: "Bao cao cua ban da san sang. Mo lien ket de xem bao cao: {actionUrl}",
+      html: "<p>Bao cao cua ban da san sang. Mo lien ket de xem bao cao:</p><p>{actionUrl}</p>",
     },
   },
   en: {
@@ -128,6 +138,12 @@ const messages: Record<
       text: "Open this link to reset your La So Viet password: {actionUrl}",
       html: "<p>Open this link to reset your La So Viet password:</p><p>{actionUrl}</p>",
     },
+    report_ready: {
+      to: "",
+      subject: "Your La So Viet report is ready",
+      text: "Your report is ready. Open this link to view your report: {actionUrl}",
+      html: "<p>Your report is ready. Open this link to view your report:</p><p>{actionUrl}</p>",
+    },
   },
 };
 
@@ -137,7 +153,7 @@ function fingerprint(recipient: string, secret: string): string {
     .digest("hex");
 }
 
-function renderMessage(request: AuthEmailRequest): EmailMessage {
+function renderMessage(request: PersistedEmailDeliveryRequest): EmailMessage {
   const template = messages[request.locale][request.kind];
   return {
     to: request.recipient,
@@ -189,8 +205,8 @@ export function createAuthEmailDeliveryService(
   const nowValue = options.now ?? (() => new Date());
 
   return {
-    async send(request: AuthEmailRequest): Promise<AuthEmailDeliveryOutcome> {
-      const validatedRequest = AuthEmailRequestSchema.parse(request);
+    async send(request: PersistedEmailDeliveryRequest): Promise<AuthEmailDeliveryOutcome> {
+      const validatedRequest = PersistedEmailDeliveryRequestSchema.parse(request);
       const now = nowValue();
       const idempotencyKey = validatedRequest.idempotencyKey;
 
@@ -273,9 +289,9 @@ function fromDatabaseRecord(
   return {
     id: record.id,
     idempotencyKey: record.idempotencyKey,
-    kind: record.kind,
+    kind: record.kind as NotificationDeliveryKind,
     recipientFingerprint: record.recipientFingerprint,
-    requestPayload: AuthEmailRequestSchema.parse(record.requestPayload),
+    requestPayload: PersistedEmailDeliveryRequestSchema.parse(record.requestPayload),
     status: record.status,
     sendingLeaseExpiresAt: record.sendingLeaseExpiresAt,
     attemptCount: record.attemptCount,
@@ -306,14 +322,21 @@ export function createDatabaseAuthEmailDeliveryStore(
         .select()
         .from(notificationDeliveries)
         .where(
-          and(
-            eq(notificationDeliveries.status, "failed_retryable"),
-            lt(notificationDeliveries.attemptCount, 3),
+          or(
+            and(
+              eq(notificationDeliveries.status, "pending"),
+              eq(notificationDeliveries.kind, "report_ready"),
+            ),
+            and(
+              eq(notificationDeliveries.status, "failed_retryable"),
+              lt(notificationDeliveries.attemptCount, 3),
+            ),
           ),
         )
+        .orderBy(notificationDeliveries.createdAt)
         .limit(limit);
       return records.flatMap((record) => {
-        const parsed = AuthEmailRequestSchema.safeParse(record.requestPayload);
+        const parsed = PersistedEmailDeliveryRequestSchema.safeParse(record.requestPayload);
         return parsed.success ? [parsed.data] : [];
       });
     },

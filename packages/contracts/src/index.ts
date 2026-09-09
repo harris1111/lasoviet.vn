@@ -120,12 +120,17 @@ export {
   AuthEmailRequestSchema,
   AuthEmailServiceClaimsSchema,
   canonicalizeAuthEmailRequest,
+  ReportReadyEmailRequestSchema,
+  PersistedEmailDeliveryRequestSchema,
+  canonicalizeEmailDeliveryRequest,
 } from "./auth-email.js";
 export type {
   AuthEmailKind,
   AuthEmailDeliveryOutcome,
   AuthEmailRequest,
   AuthEmailServiceClaims,
+  ReportReadyEmailRequest,
+  PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
 
 export {
@@ -253,12 +258,44 @@ export type {
 } from "./free-identity-preview-v1.js";
 
 export {
+  AccountLibraryGroupV1Schema,
+  AccountLibraryItemV1Schema,
+  AccountLibraryV1Schema,
   CommerceSkuSchema,
+  EntitlementStatusSchema,
+  OrderHistoryItemV1Schema,
+  OrderHistoryV1Schema,
   OrderStatusSchema,
+  PRODUCT_DISPLAY_NAMES,
+  resolveProductTitle,
+  PaymentSelfClaimRequestV1Schema,
+  PaymentSelfClaimSuccessV1Schema,
+  PAYMENT_CLAIM_ERROR_CODES,
+  isValidLocalMinuteString,
+  COMPREHENSIVE_REPORT_SECTION_IDS,
+  ComprehensiveReportSectionIdSchema,
+  TIER_1_SCOPE_SECTIONS,
+  TIER_2_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS,
+  EntitlementScopeSchema,
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
+  resolveEntitlementScopeForSku,
 } from "./commerce.js";
 export type {
+  AccountLibraryGroupV1,
+  AccountLibraryItemV1,
+  AccountLibraryV1,
   CommerceSku,
+  EntitlementStatus,
+  OrderHistoryItemV1,
+  OrderHistoryV1,
   OrderStatus,
+  PaymentSelfClaimRequestV1,
+  PaymentSelfClaimSuccessV1,
+  PaymentClaimErrorCode,
+  ComprehensiveReportSectionId,
+  EntitlementScope,
 } from "./commerce.js";
 
 export {
@@ -298,6 +335,8 @@ export {
   ComprehensiveReportPalaceReadingItemSchema,
   ComprehensiveReportThematicSynthesisItemSchema,
   ComprehensiveReportStrengthsAndTensionsSectionSchema,
+  ComprehensiveReportTier1PublicContentV1Schema,
+  ComprehensiveReportTier2PublicContentV1Schema,
   projectComprehensiveReportPublicContent,
 } from "./identity-report-v1.js";
 export type {
@@ -310,4 +349,7 @@ export type {
   ReportFailedViewV1,
   ReportViewV1,
   ComprehensiveReportPublicContentV1,
+  ComprehensiveReportTier1PublicContentV1,
+  ComprehensiveReportTier2PublicContentV1,
+  ComprehensiveReportViewContentV1,
 } from "./identity-report-v1.js";

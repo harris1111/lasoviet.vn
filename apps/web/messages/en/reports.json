@@ -1,14 +1,14 @@
 {
   "auth_required": "Sign in required to view report.",
   "report_not_found": "Report not found.",
-  "identity": "Identity and potential",
+  "identity": "Comprehensive Zi Wei reading",
   "paymentDeferred": "SePay will open in the next step.",
   "preview": {
     "eyebrow": "Free preview",
     "title": "Three points to reflect on",
     "strength": "Strength",
     "tension": "Tension to observe",
-    "coverage": "This preview covers {percent}% of the {offer} reading."
+    "coverage": "This preview covers {percent}% of the {offer}."
   },
   "selection": {
     "eyebrow": "In-depth reading",
@@ -21,14 +21,22 @@
     "available": "Available topic",
     "comingSoon": "Coming soon",
     "inDevelopment": "In development",
-    "lifetimeOfferTitle": "Comprehensive Lifetime Zi Wei Reading",
+    "lifetimeOfferTitle": "Comprehensive Zi Wei reading",
     "oneTime": "One-time payment · No automatic renewal",
     "continuePayment": "Continue to payment",
-    "viewSample": "View sample report"
+    "viewSample": "View sample report",
+    "pausedTitle": "New payments temporarily paused",
+    "pausedDescription": "The system is temporarily pausing new payments. Please do not transfer funds at this time.",
+    "retry": "Try again",
+    "readAgain": "Read again",
+    "viewProgress": "View progress",
+    "viewLibrary": "View report library",
+    "unavailableTitle": "Unable to verify purchase status",
+    "unavailableDescription": "We could not load your ownership records. Please refresh the page or try again later."
   },
   "checkout": {
     "eyebrow": "Payment",
-    "title": "Identity reading",
+    "title": "Comprehensive Zi Wei reading",
     "action": "Continue to SePay",
     "instructions_title": "Bank transfer details",
     "bank_code": "Bank",
@@ -48,18 +56,55 @@
       "expired": "Order expired",
       "failed": "Payment was not completed",
       "refunded": "Refunded"
-    }
+    },
+    "selfClaim": {
+      "heading": "Transferred but not yet confirmed?",
+      "description": "Enter the exact amount and transfer time to locate your payment and continue preparing your report.",
+      "amountLabel": "Amount transferred (VND)",
+      "timeLabel": "Transfer time (Vietnam time)",
+      "submit": "Check and claim report",
+      "submitting": "Checking...",
+      "errors": {
+        "invalid_input": "Please check the entered amount and transfer time.",
+        "payment_not_found": "No matching payment found with the entered details. Please check your transfer time or try again in a few minutes.",
+        "rate_limited": "Daily claim limit reached. Please try again later or contact support.",
+        "service_unavailable": "Reconciliation service is temporarily unavailable. Please try again in a few minutes."
+      }
+    },
+    "no_second_transfer_warning": "If you have already transferred, do not transfer again. Please use the verification form below to match your payment.",
+    "paid_processing_title": "Payment received successfully",
+    "paid_processing_description": "Your payment has been recorded and your interpretation report is being prepared. Please wait a moment or check your order history.",
+    "expired_title": "Order expired",
+    "expired_description": "This order has passed the payment window. Your previous order remains recorded in your order history for reference.",
+    "new_chart_action": "Create a new chart and request",
+    "order_history_action": "View order history",
+    "failed_title": "Payment was not completed",
+    "failed_description": "Payment for this order was not completed. Please do not attempt another transfer for this order. You can check your order history or contact support.",
+    "support_action": "Contact support",
+    "refunded_title": "Order refunded",
+    "refunded_description": "This order has been refunded. You can review the details in your order history."
   },
   "progress": {
+    "pending_eyebrow": "Processing reading",
     "pending_title": "Report is being prepared",
+    "payment_received_confirmation": "Payment has been successfully recorded.",
     "pending_description": "The system is cross-referencing and compiling your reading. This page will update shortly.",
+    "library_action": "Go to report library",
     "status_requested": "Request received...",
     "status_generating": "Compiling reading narrative...",
     "status_validating": "Validating chart evidence...",
     "status_retryable_failure": "Continuing cross-reference...",
+    "failed_eyebrow": "Processing issue",
     "failed_title": "Unable to complete report",
-    "failed_description": "An issue occurred while processing your report. Please contact support for assistance.",
-    "support_action": "Contact support"
+    "failed_description": "A technical interruption occurred while processing your report. Your order and payment are completely safe.",
+    "invoice_number_label": "Invoice number",
+    "payment_received_at_label": "Payment received at",
+    "status_updated_at_label": "Status updated at",
+    "support_reference_label": "Support reference",
+    "next_step_title": "Next step",
+    "next_step_description": "Your incident and payment details have been recorded. Please contact support below for priority handling and report fulfillment.",
+    "support_action": "Contact support",
+    "view_orders_action": "View order history"
   },
   "reader": {
     "eyebrow": "Interpretation Report",

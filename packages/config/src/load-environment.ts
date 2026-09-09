@@ -28,7 +28,7 @@ type ParseResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: AppError<EnvironmentErrorCode> };
 
-type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google" | "sepay";
+type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google" | "sepay" | "telegram";
 
 const AI_VARIABLES = [
   "AI_BASE_URL",
@@ -59,6 +59,8 @@ const CLOUD_S3_VARIABLES = [
 ] as const;
 
 const GOOGLE_VARIABLES = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const;
+
+const TELEGRAM_VARIABLES = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"] as const;
 
 const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   internalActorSecret: "INTERNAL_ACTOR_SECRET",
@@ -96,6 +98,8 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "sepay.accountHolder": "SEPAY_ACCOUNT_HOLDER",
   "sepay.orderTtlSeconds": "SEPAY_ORDER_TTL_SECONDS",
   "sepay.webhookSecret": "SEPAY_WEBHOOK_SECRET",
+  "telegram.botToken": "TELEGRAM_BOT_TOKEN",
+  "telegram.chatId": "TELEGRAM_CHAT_ID",
 };
 
 function missingRequired(variable: string): ParseResult<never> {
@@ -345,6 +349,11 @@ export function loadEnvironment(
     return partialOptionalGroup("google", googleState.missing);
   }
 
+  const telegramState = optionalGroupState(source, TELEGRAM_VARIABLES);
+  if (telegramState.state === "partial") {
+    return partialOptionalGroup("telegram", telegramState.missing);
+  }
+
   const normalized: AppEnvironment = {
     nodeEnv: parsedNodeEnv.data as NodeEnvironment,
     ai: ai.value,
@@ -374,6 +383,12 @@ export function loadEnvironment(
     normalized.google = {
       clientId: source.GOOGLE_CLIENT_ID as string,
       clientSecret: source.GOOGLE_CLIENT_SECRET as string,
+    };
+  }
+  if (telegramState.state === "complete") {
+    normalized.telegram = {
+      botToken: source.TELEGRAM_BOT_TOKEN as string,
+      chatId: source.TELEGRAM_CHAT_ID as string,
     };
   }
 

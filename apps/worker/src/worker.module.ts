@@ -17,6 +17,12 @@ import {
   createKnowledgeRetrievalService,
   createOpenAiCompatibleAdapter,
   createReportService,
+  createAdminAccessService,
+  createDatabaseAdminAccessRepository,
+  createReconciliationOperations,
+  createTelegramAlertProvider,
+  type TelegramAlertProvider,
+  type ReconciliationMaintenance,
   createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
   createPhaseOneMaintenanceRunner,
@@ -54,6 +60,18 @@ export function createMaintenanceRunner() {
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
   });
+  const telegramAlert = createTelegramAlertProvider({
+    botToken: environment.value.telegram?.botToken,
+    chatId: environment.value.telegram?.chatId,
+  });
+  const reconciliation = createReconciliationOperations({
+    database,
+    telegramAlert,
+    adminAccessService: createAdminAccessService({
+      repository: createDatabaseAdminAccessRepository(database),
+    }),
+  });
+
   return createPhaseOneMaintenanceRunner({
     accountDeletion: createAccountDeletionService({
       repository: createDatabaseDeletionRepository(database),
@@ -65,6 +83,7 @@ export function createMaintenanceRunner() {
         }).purgeExpired(new Date(), limit),
     },
     retryAuthEmail: (limit) => email.retryDue(limit),
+    reconciliation,
   });
 }
 
@@ -92,6 +111,12 @@ function hasAnyAiConfig(source: NodeJS.ProcessEnv): boolean {
 export function createReportGenerateRunner(options?: {
   gate?: AiProductionGate;
   provider?: AiProvider;
+  alertDispatcher?: {
+    dispatchPendingAlerts(
+      filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure",
+    ): Promise<unknown>;
+  };
+  telegramAlert?: TelegramAlertProvider;
 }) {
   const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);
   if (!queuesResult.ok || !queuesResult.value.includes("report.generate")) {
@@ -137,7 +162,11 @@ export function createReportGenerateRunner(options?: {
     };
   }
 
-  if (environment.value.databaseUrl === undefined) {
+  if (
+    environment.value.databaseUrl === undefined ||
+    environment.value.betterAuthUrl === undefined ||
+    environment.value.internalActorSecret === undefined
+  ) {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
@@ -147,7 +176,10 @@ export function createReportGenerateRunner(options?: {
     database,
     knowledgeRetrieval,
   });
-  const versionRepository = createDatabaseReportVersionRepository(database);
+  const versionRepository = createDatabaseReportVersionRepository(database, {
+    betterAuthUrl: environment.value.betterAuthUrl,
+    recipientFingerprintSecret: environment.value.internalActorSecret,
+  });
   const provider =
     options?.provider ??
     (environment.value.ai.enabled
@@ -173,12 +205,25 @@ export function createReportGenerateRunner(options?: {
     gate,
     provider,
   });
+  const telegramAlert =
+    options?.telegramAlert ??
+    createTelegramAlertProvider({
+      botToken: environment.value.telegram?.botToken,
+      chatId: environment.value.telegram?.chatId,
+    });
+  const alertDispatcher =
+    options?.alertDispatcher ??
+    createReconciliationOperations({
+      database,
+      telegramAlert,
+    });
   const processor = createReportGenerateProcessor({
     database,
     reportService: createReportService(database),
     queueStore: createDatabaseReportQueueStore(database, workerId),
     workerId,
     generationService,
+    alertDispatcher,
   });
 
   let activeRun: Promise<{ processed: number }> | undefined;

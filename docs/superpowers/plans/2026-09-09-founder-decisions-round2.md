@@ -1,267 +1,146 @@
 # Founder Decisions — Round 2 (2026-09-09)
 
-**Ngày:** 2026-09-09
-**Bối cảnh:** Founder (Harris) duyệt các điểm còn mở (FD-040…FD-045 và các mục "Còn chờ Founder") trong
-`docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` và
-`docs/superpowers/plans/2026-09-08-experience-ladder-backlog.md`, qua phỏng vấn trực tiếp ngày 2026-09-09,
-trước khi An hoàn thiện `feature/site-foundation` để mở PR vào `product/experience-spec-v1`.
-**Trạng thái:** Toàn bộ quyết định dưới đây là **chính thức, đã chốt**. Đây là nguồn sự thật thay thế cho
-mọi chỗ ghi "Chờ duyệt"/"Chờ Founder" trong hai tài liệu nguồn nói trên.
-**Việc An cần làm:** xem mục 6 ở cuối tài liệu này, đồng thời cập nhật `rules-and-decisions-tracker.md`
-(đã được bổ sung FD-036 → FD-056 trong lượt này), spec 2026-09-08 và backlog 2026-09-08 cho khớp.
+**Date:** 2026-09-09
+**Context:** Founder (Harris) reviewed and approved open decision points (FD-040 through FD-045 and "Pending Founder" items) in `docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` and `docs/superpowers/plans/2026-09-08-experience-ladder-backlog.md` via direct interview on 2026-09-09, prior to An finalizing `feature/site-foundation` to open a pull request into `product/experience-spec-v1`.
+**Status:** All decisions below are **official and ratified**. This document serves as the authoritative source of truth superseding every "Pending approval" or "Pending founder" notation in the two source documents mentioned above.
+**Action items for An:** See section 7 at the end of this document, and update `rules-and-decisions-tracker.md` (supplemented with FD-036 through FD-056 in this cycle), the 2026-09-08 spec, and the 2026-09-08 backlog accordingly.
 
 ---
 
-## 1. Tính toàn vẹn hồ sơ giao dịch (P0, chặn WP-01/WP-02)
+## 1. Transaction Record Integrity (P0, Blocks WP-01/WP-02)
 
 ### FD-040 — Approved
-`invoice_number` bất biến suốt đời một order row; bảng order chuyển sang append-only (mở lại đơn = tạo
-row mới, không `UPDATE` mã cũ). Đúng như An đề xuất, không sửa đổi. Đây là điều kiện tiên quyết để mọi cơ
-chế đối soát tự động phía sau (WP-02, WP-02B) hoạt động đúng — vá lỗi mất tiền mô tả ở mục 2 của spec.
+`invoice_number` is immutable for the entire lifetime of an order row; the commerce order table transitions to append-only (reopening an order inserts a new row rather than issuing an `UPDATE` on the old code). Exactly as proposed by An, without alteration. This is an essential prerequisite for all subsequent automated reconciliation mechanisms (WP-02, WP-02B) to function correctly, resolving the lost-funds defect described in section 2 of the spec.
 
-### FD-042 — Approved (kèm nguyên tắc bổ sung)
-SKU ID (`ZIWEI-IDENTITY-P0`...) là định danh kỹ thuật bất biến; chỉ đổi **tên hiển thị** sản phẩm, không
-đổi SKU ID, để không phải migrate bản ghi thương mại cũ.
+### FD-042 — Approved (With Supplementary Rule)
+SKU ID (`ZIWEI-IDENTITY-P0`...) is an immutable technical identifier; repositioning is accomplished by modifying the **product display name**, never altering the SKU ID, avoiding migration of legacy commerce records.
 
-Founder nhấn mạnh thêm một nguyên tắc cứng, áp dụng xuyên suốt: **SKU ID và mọi định danh kỹ thuật nội bộ
-không bao giờ được hiển thị cho khách dưới bất kỳ hình thức nào** — khách chỉ thấy tên sản phẩm dễ hiểu,
-hoặc mã đơn/mã tham chiếu ở dạng dễ hiểu (không phải chuỗi ID thô). Đây không phải yêu cầu mới — nó củng
-cố đúng yêu cầu B-2 đã có sẵn trong spec ("Không chuỗi `ZIWEI-*` nào lọt ra UI") — nhưng Founder muốn nó
-được đối xử như một nguyên tắc cứng khi An thiết kế mọi màn hình liên quan đến mã đơn/SKU, không chỉ ở
-trang chọn mua.
+The founder reinforced an invariant applied across the platform: **SKU ID and all internal technical identifiers must never be exposed to customers in any form**—customers only see clear, friendly product names, or customer-facing order and reference codes in an accessible format (never raw internal identifier strings). This reinforces requirement B-2 already present in the spec ("No `ZIWEI-*` strings leak to UI"), and must be treated as a strict rule across all user-facing touchpoints.
 
 ### FD-044 — Approved
-Thay mã chuyển khoản dài 40 ký tự (`LSV-<uuid>`) bằng mã ngắn 12 ký tự chống nhiễu: `LSV` + 8 ký tự
-Crockford base32 in hoa (đã loại `I/L/O/U`) + 1 ký tự kiểm tra. Đúng như An đề xuất.
+Replace the 40-character transfer memo (`LSV-<uuid>`) with a short 12-character noise-resistant payment code: `LSV` + 8 uppercase Crockford base32 characters (excluding ambiguous `I/L/O/U`) + 1 checksum character. Exactly as proposed by An.
 
-### FD-045 — Đề xuất ban đầu bị TỪ CHỐI; thay bằng cơ chế mới (Approved 2026-09-09)
+### FD-045 — Initial Proposal REJECTED; Replaced With Approved Mechanism (2026-09-09)
 
-**Đề xuất ban đầu bị từ chối:** cộng số lẻ định danh 1–999đ vào số tiền mỗi đơn (79.000đ → 79.348đ) để
-làm khoá đối chiếu dự phòng. **Founder không chấp nhận giá lẻ hiển thị cho khách dưới bất kỳ hình thức
-nào, không có ngoại lệ** — kể cả chỉ hiện ở bước chuyển khoản/QR.
+**Initial proposal rejected:** Adding an identifying odd-unit surcharge of 1–999 VND to each order amount (e.g. 79,000 VND -> 79,348 VND) to serve as a near-unique fallback reconciliation key. **The founder does not accept odd-unit prices displayed or charged to customers in any form, without exception**—including on bank transfer prompts or VietQR screens.
 
-**Cơ chế thay thế (Founder đã duyệt):**
+**Approved replacement mechanism:**
 
-1. Bỏ hẳn "Tầng 3" kiểu cũ trong mục 2B.2 của spec — không còn bước hệ thống tự động duyệt chỉ dựa vào số
-   tiền trùng khớp một cách "mù" (không có xác nhận của khách).
-2. Mọi giao dịch không trích được `payment_code` ở Tầng 1–2 (FD-044, R-AUTO-4→7) đi thẳng vào **Tầng 4 —
-   khách tự nhận** (R-AUTO-11 → R-AUTO-14), không qua bước tự động ở giữa.
-3. Trong Tầng 4, thắt điều kiện khớp: số tiền khớp tuyệt đối **và** nằm trong cửa sổ thời gian do khách tự
-   khai báo (ngày/giờ đã chuyển, theo R-AUTO-12) — thay cho cửa sổ 24 giờ rộng mà tầng auto-match cũ dùng.
-   Cửa sổ hẹp làm giảm mạnh khả năng trùng ở cùng mức giá tròn (79.000đ/19.000đ sẽ trùng nhau giữa nhiều
-   đơn nếu dùng cửa sổ rộng).
-4. Vẫn giữ nguyên tắc "chỉ tự duyệt khi đúng một ứng viên khớp" (R-AUTO-13). Có ≥2 ứng viên trùng số tiền
-   trong cùng cửa sổ → không tự duyệt, đẩy sang Tầng 5 (cảnh báo Founder, xem FD-047) để xử lý tay ca hiếm.
-5. Cầu dao tự ngắt (R-AUTO-17/18/19) giữ nguyên như spec — không đổi.
+1. Eliminate the legacy Tier 3 in section 2B.2 of the spec: there is no longer an automated reconciliation tier that blindly approves payments based solely on matching amounts without customer confirmation.
+2. All transactions from which a `payment_code` cannot be extracted in Tiers 1–2 (FD-044, R-AUTO-4 through R-AUTO-7) proceed directly to **Tier 4 — Customer Self-Claim** (R-AUTO-11 through R-AUTO-14), bypassing any intermediate automated match.
+3. In Tier 4, matching constraints are tightened: the amount must match exactly **and** candidate payment `received_at` must fall within a narrow time window of plus/minus 15 minutes around the customer-declared transfer timestamp, entered to minute precision and interpreted in `Asia/Ho_Chi_Minh` (replacing the wide 24-hour window used in the legacy auto-match proposal). The narrow window drastically reduces collision probability at round price points (e.g., 79,000 VND or 19,000 VND).
+4. Maintain the rule: auto-approve only when exactly one candidate payment AND exactly one eligible unfulfilled order for that owner match (R-AUTO-10 / R-AUTO-13). If zero or multiple candidate payments or orders match within the constraints, entitlement is not granted, the payment remains unmatched in `commerce_unmatched_payments`, and it becomes eligible for Tier 5 stale alerting only after remaining pending >6 hours under R-AUTO-15 (never triggering immediate Telegram alerts or creating a manual operations queue).
+5. Circuit breaker rules (R-AUTO-17, R-AUTO-18, R-AUTO-19) remain unchanged from the spec.
 
-**Đánh đổi đã được Founder chấp nhận:** tỷ lệ tự động khớp ở phần "không trích được mã" sẽ thấp hơn so với
-phương án số lẻ, nhưng đổi lại **giá hiển thị luôn tròn tuyệt đối ở mọi nơi** — offer, checkout, QR, biên
-nhận — không có ngoại lệ.
+**Accepted tradeoff:** The automated match rate for transactions lacking an extractable payment code will be lower than with odd-unit pricing, but in exchange, **all displayed and charged prices remain strictly round everywhere**—offer, checkout, QR, and receipt—without exception.
 
-**Tác động cần sửa trong spec/backlog:** mục 2B.2 "Tầng 3" của spec 2026-09-08 cần viết lại theo mô tả
-trên; R-AUTO-8/9/10 (dựa vào số lẻ định danh) bị loại bỏ, thay bằng yêu cầu tương đương cho cửa sổ thời
-gian hẹp ở Tầng 4 (An diễn giải chi tiết thành implementation plan khi viết plan cho WP-02/WP-02B).
+**Concrete rules defined for spec and backlog implementation:**
+- `R-AUTO-8`: A validly authenticated payment without a valid payment code is persisted as unmatched and must never be auto-assigned from amount alone.
+- `R-AUTO-9`: An authenticated customer self-claim supplies exact transferred amount and a transfer timestamp to minute precision in `Asia/Ho_Chi_Minh`; candidate payment `received_at` must fall within plus/minus 15 minutes.
+- `R-AUTO-10`: Auto-approval requires exactly one eligible unmatched payment and exactly one eligible unfulfilled order for that owner under the exact-amount/time-window constraints. Zero or multiple candidates do not grant entitlement; the payment remains unmatched and becomes eligible for Tier 5 stale alerting only after remaining pending >6 hours under R-AUTO-15.
 
 ---
 
-## 2. Đối soát khi không có người trực (thực thi FD-043)
+## 2. Unattended Reconciliation (Fulfilling FD-043)
 
 ### FD-046 — Approved
-Khi không xác định được chủ giao dịch (không ai tự nhận, không khớp đơn nào) **và** hệ thống không có khả
-năng tự hoàn tiền ra ngân hàng (SePay không hỗ trợ tự động hoàn tiền) → giữ giao dịch ở trạng thái **chờ
-khách tự nhận vô thời hạn**. Founder không yêu cầu xây quy trình hoàn tiền thủ công thay thế — đây là giới
-hạn thật của hệ thống, không phải hạng mục có thể lập trình bỏ qua (đúng như spec mục 2B.1 đã nêu).
+When a transaction cannot be attributed to an owner (no customer self-claim, no order matched) **and** the system lacks automated bank refund capability (SePay does not support automated outbound refunds), the transaction remains held in an **unmatched state pending indefinite customer self-claim**. The founder does not require building an alternate manual refund workflow; this is a real system boundary, consistent with spec section 2B.1.
 
 ### FD-047 — Approved
-Kênh cảnh báo out-of-band cho cầu dao tự ngắt (R-AUTO-18) và giao dịch tồn đọng >6 giờ (R-AUTO-15):
-**bot Telegram gửi vào group vận hành chung của Harris và An.**
+The out-of-band alert channel for the circuit breaker (R-AUTO-18) and stale unmatched transactions pending >6 hours (R-AUTO-15) is a **Telegram bot posting to the shared Harris and An operations group**.
 
-**SLA phản hồi:** Founder cam kết kiểm tra cảnh báo **trong vòng 6 giờ**. Vì cầu dao **không tự mở lại**
-(R-AUTO-19, bật lại là thao tác thủ công có chủ ý), thời gian ngừng bán khi cầu dao mở phụ thuộc trực tiếp
-vào SLA này — An nên coi 6 giờ là mốc thời gian tối đa hệ thống có thể ở trạng thái "tạm ngừng nhận thanh
-toán" trước khi Founder can thiệp.
+**Response SLA:** The founder commits to inspecting alerts **within 6 hours**. Because the circuit breaker does not self-reset (R-AUTO-19; resetting is an intentional manual operation), sales downtime while the circuit breaker is open depends directly on this SLA—An should treat 6 hours as the maximum duration the system might remain in "sales paused" state before founder intervention.
 
-**Việc kỹ thuật cần chuẩn bị:** bot token + group chat ID cấu hình qua biến môi trường (không hardcode).
-Founder sẽ tạo bot/group và cung cấp giá trị khi An sẵn sàng tích hợp WP-02B.
+**Technical configuration:** Bot token and group chat ID are configured via environment variables `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, never hardcoded. Credentials will be supplied later by the founder; code and tests must not commit credentials or unverified defaults. External smoke and activation remain blocked until values are supplied securely.
 
 ---
 
-## 3. Chính sách sản phẩm
+## 3. Product Policy
 
-### FD-041 — Approved, khác với đề xuất của An
-Khấu trừ khi nâng cấp tầng 1 → tầng 2 **hết hạn sau 7 ngày** kể từ ngày mua tầng 1 (không phải "không hết
-hạn" như An đề xuất; theo đúng cửa sổ hội đồng brainstorm ban đầu nêu ra dù chưa có bằng chứng thúc mua).
+### FD-041 — Approved (Diverging From An's Proposal)
+Upgrade credit from Tier 1 to Tier 2 **expires exactly 7 days** after the Tier 1 `paid_at` (paid timestamp), never generic order creation or an ambiguous purchase timestamp (diverging from An's recommendation of no expiration, adhering to the 7-day window initially defined by the brainstorm council).
 
-**Yêu cầu bắt buộc đi kèm (theo đúng điều kiện chính An đã ghi trong spec mục 3.3):** vì đây là cửa sổ có
-hạn, phải **công bố rõ ngay tại điểm mua tầng 1**, trước khi khách xác nhận thanh toán — ví dụ: "Ưu đãi
-khấu trừ khi nâng cấp lên bản toàn diện áp dụng trong 7 ngày kể từ hôm nay." Đây là điều kiện bắt buộc đi
-kèm quyết định này, không phải tuỳ chọn: nếu không disclose rõ, khách trả tiền tầng 1 rồi mất quyền lợi đã
-ngụ ý sau 7 ngày — đúng loại rủi ro phá niềm tin mà spec đang cố tránh.
+**Mandatory requirement:** Because this is a bounded window, it must be **explicitly disclosed at the point of purchase for Tier 1**, prior to payment confirmation—for example: "Upgrade credit towards the comprehensive report applies for 7 days from payment." This disclosure is mandatory: without clear disclosure, customers paying for Tier 1 lose an implied entitlement after 7 days, risking trust erosion.
 
-**Tác động backlog:** WP-09 cần thêm cơ chế hết hạn (ví dụ cột thời điểm hết hạn khấu trừ trên đơn tầng 1)
-và copy cảnh báo thời hạn hiển thị tại thời điểm mua tầng 1, không phải sau khi mua.
+**Backlog impact:** WP-09 requires an expiration mechanism (`credit_expires_at` column or equivalent on the Tier 1 order) and point-of-purchase warning copy before confirmation, not post-purchase.
 
 ### FD-048 — Approved
-Micro-offer tầng 1 chỉ bán/test ở **19.000đ** — một mức giá duy nhất, không chạy A/B 19k/29k ở giai đoạn
-này.
+The Tier 1 micro-offer is priced and tested at exactly **19,000 VND**—a single price point, with no 19k/29k A/B testing in this release.
 
-**Lưu ý guardrail (mục 8 spec):** ngưỡng "Tỷ lệ COGS trên giá tầng 1 > 40% → Dừng nhánh 19k" áp dụng trực
-tiếp lên mức giá này — đây là mức rủi ro biên lợi nhuận cao nhất trong hai lựa chọn từng cân nhắc, vì mỗi
-đơn 19k vẫn gánh đúng COGS của một báo cáo đầy đủ (spec mục 3.2). Cần đo COGS thật càng sớm càng tốt sau
-khi có traffic thật để kiểm tra ngưỡng này — xem mục 5 bên dưới.
+**Guardrail note (spec section 8):** The threshold "COGS / Tier 1 price > 40% -> Halt 19k branch" applies directly to this price point. This carries the highest margin risk between the two evaluated options, as each 19k order incurs the full report COGS (spec section 3.2). Actual COGS must be measured against real traffic as soon as live data exists.
 
-**Tác động backlog:** WP-12 (A/B 19k vs 29k) hạ khỏi ưu tiên gần hạn — giữ trong backlog cho tương lai
-nhưng không phải việc cần làm khi chỉ bán một mức giá.
+**Backlog impact:** WP-12 (A/B 19k vs 29k) is deprioritized from near-term work—retained in the backlog for future experimentation, but not active when only one price point is offered. `price_variant`, if retained for forward compatibility, has only the current `"19k"` assignment in near-term scope.
 
 ---
 
 ## 4. Analytics
 
 ### FD-049 — Approved
-Migrate hoàn toàn bộ event cũ (`config/analytics-events.json`, 18 event: `landing_view`, `chart_created`,
-`payment_completed`...) sang tên funnel mới theo WP-10 (`landing, wizard_start, wizard_step_complete,
-chart_success, offer_view, auth_verified, checkout_created, payment_confirmed, report_ready,
-report_opened, upgrade_view, upgrade_purchased, repeat_purchase, payment_unmatched,
-payment_pending_over_1h, report_failed, refund, support_ticket`). Không chạy song song hai hệ tên event.
+Fully migrate the legacy analytics event set (`config/analytics-events.json`, 18 events: `landing_view`, `chart_created`, `payment_completed`...) to the new WP-10 funnel event names (`landing`, `wizard_start`, `wizard_step_complete`, `chart_success`, `offer_view`, `auth_verified`, `checkout_created`, `payment_confirmed`, `report_ready`, `report_opened`, `upgrade_view`, `upgrade_purchased`, `repeat_purchase`, `payment_unmatched`, `payment_pending_over_1h`, `report_failed`, `refund`, `support_ticket`). Do not operate a dual-write or parallel event system.
 
 ### FD-050 — Approved
-Trước khi khách đồng ý analytics consent (nếu trang có cơ chế consent), **chỉ** được ghi event kỹ thuật ẩn
-danh không gắn hành vi người dùng (ví dụ lỗi tải trang, health check). Không event nào trong funnel
-canonical (`landing_view`, `chart_created`, `checkout_created`...) được ghi trước khi có consent.
+Prior to customer analytics consent (where a consent mechanism is active), **only** anonymous technical events not tied to user behavior (e.g. page load errors, health checks) may be recorded. No canonical funnel event (`landing`, `wizard_start`, `checkout_created`...) may be emitted prior to consent.
 
 ### FD-051 — Approved
-Lưu trữ analytics lâu dài: **tự host trong hạ tầng hiện có** (bảng riêng trong Postgres đang dùng, hoặc
-ClickHouse tự host) — không dùng dịch vụ SaaS bên thứ ba để lưu trữ chính. Hiện tại sink chỉ ghi log ứng
-dụng qua `createApiAnalyticsSink` (`apps/api/src/api.module.ts:160`) — không bền vững, cần thay theo quyết
-định này khi An làm WP-10.
+Long-term primary analytics storage is **PostgreSQL hosted within existing infrastructure** (dedicated tables in the existing PostgreSQL instance; ClickHouse is not used for this round). No third-party SaaS as primary store. The current log-only sink (`createApiAnalyticsSink` at `apps/api/src/api.module.ts:160`) will be replaced under WP-10.
 
-### FD-052 — Approved (đơn giản hoá so với đề xuất ban đầu)
-Pseudonymous session ID cho tầng analytics: **không cần xoay vòng theo chu kỳ.** Lý do đơn giản hoá: rủi ro
-"lần theo lịch sử hành vi trọn đời qua một ID bền vững" chỉ thực sự đáng lo khi dữ liệu rời khỏi hệ thống
-tự host (FD-051 đã loại trừ việc này với vai trò lưu trữ chính). Chỉ cần là một giá trị kỹ thuật khác với
-account ID — không dùng thẳng account ID/khoá chính nội bộ làm ID analytics (tránh trộn khoá nội bộ với hệ
-thống công khai/log — thói quen kỹ thuật tốt, không phải yêu cầu riêng tư đặc biệt). Cookie/ID sống dài
-bình thường như analytics thông thường.
+### FD-052 — Approved (Simplified From Initial Proposal)
+The pseudonymous session ID for analytics **does not require periodic rotation**. Concerns regarding lifetime tracking across durable IDs only apply when data leaves self-hosted infrastructure (which FD-051 excludes for primary storage). It simply needs to be a technical identifier distinct from account ID / internal primary keys (avoiding leaking internal primary keys to logs/analytics). It can persist across normal cookie/session lifespans.
 
 ### FD-053 — Approved
-Phạm vi dữ liệu được phép gửi ra công cụ phân tích/tối ưu hành vi mua bên thứ ba (nếu Founder dùng công cụ
-ngoài hạ tầng tự host để tối ưu conversion):
+Data scope permitted for export to third-party purchase-optimization or conversion analytics tools (if external tools are used):
+- **Freely permitted:** Behavioral and commercial data—funnel steps, selected SKU/price, traffic source, time to purchase, drop-off points, device/browser metadata.
+- **Strictly prohibited under any circumstances:** Name, exact birth date/time/place, customer free-text questions, `chart_id`.
+- Deep analysis requiring joins with astrological chart data (e.g. segmentation by birth year) must run solely on **self-hosted BI tools** (e.g. Metabase/Superset on existing PostgreSQL) within founder-controlled infrastructure.
 
-- **Được gửi tự do:** toàn bộ dữ liệu hành vi + thương mại — bước phễu, SKU/giá đã chọn, nguồn traffic,
-  thời gian tới mua, điểm rời bỏ, thiết bị/trình duyệt.
-- **Không bao giờ gửi ra bên thứ ba, dưới bất kỳ hình thức nào:** tên, ngày/giờ/nơi sinh chính xác, nội
-  dung câu hỏi tự do của khách, `chart_id`.
-- Phân tích sâu cần join với dữ liệu lá số (ví dụ phân khúc theo năm sinh) chỉ chạy trên **BI tool tự
-  host** (ví dụ Metabase/Superset trên chính Postgres của Founder) — không rời khỏi hạ tầng do Founder
-  kiểm soát.
-
-**Vì sao ranh giới này giữ nguyên dù Founder ưu tiên tiện lợi kinh doanh:** một khi dữ liệu rời sang bên
-thứ ba (Google/Meta/Mixpanel...), nghĩa vụ xoá dữ liệu theo yêu cầu khách (đã implement Phase 01, FD-020)
-không còn hiệu lực với bản sao đã ở bên thứ ba; ngày/giờ/nơi sinh và nội dung câu hỏi cá nhân có thể chạm
-ngưỡng dữ liệu cá nhân nhạy cảm theo Nghị định 13/2023/NĐ-CP. Founder đã xác nhận chấp nhận ranh giới này
-sau khi cân nhắc rủi ro — đây là quyết định có chủ ý, không phải giới hạn kỹ thuật áp đặt.
+**Rationale:** Once data is exported to third parties, customer data deletion obligations under Phase 01 / FD-020 cannot be enforced against third-party replicas; birth data and personal question text touch sensitive personal data under Decree 13/2023/ND-CP.
 
 ### FD-054 — Approved
-Dashboard analytics + bảng ánh xạ migration (event cũ → mới) do **Harris và An cùng sở hữu.**
+The analytics dashboard and legacy-to-new event mapping are jointly owned by Harris and An.
 
 ---
 
 ## 5. UI
 
 ### FD-055 — Approved
-UI artifact branch chính thức để An dựa vào khi làm WP-03 (thư viện/lịch sử đơn), WP-06 (đường ra lỗi
-thanh toán), WP-11 (đường ra khi không biết giờ sinh), WP-13 (kiểm UI xuyên suốt) — theo đúng yêu cầu
-FD-024 ("Defer user-facing UI to a dedicated artifact branch"):
+The official UI artifact branch for An to build WP-03 (account library/order history), WP-06 (payment failure path), WP-11 (unknown birth time path), and WP-13 (cross-cutting visual verification) per FD-024 ("Defer user-facing UI to a dedicated artifact branch") is:
 
 **`product/discipline-flagship-pages`**
 
-**Founder cần lưu ý trước khi An bắt đầu:** repo hiện có nhiều branch `product/*` mang UI khác nhau chưa
-hợp nhất với nhau — `product/bg-texture-consistency` (có logo Colophon v5 đã chốt + texture nền đồng bộ
-toàn site) và `product/homepage-content-rewrite` (nội dung trang chủ mới nhất). Nếu các thay đổi đó (đặc
-biệt logo đã chốt) chưa được hợp nhất vào `product/discipline-flagship-pages`, An sẽ build trên một
-artifact **thiếu** các thay đổi này. Đề xuất: Founder xác nhận có cần hợp nhất các branch UI liên quan vào
-`product/discipline-flagship-pages` trước khi An bắt đầu, hoặc xác nhận rõ những gì được phép bỏ qua ở
-vòng này.
+**Branch ancestry verification (2026-09-09):** Git inspection confirmed that `product/bg-texture-consistency` (containing approved Colophon v5 assets) and `product/homepage-content-rewrite` are both ancestors of `product/discipline-flagship-pages`. That artifact branch is itself an ancestor of `product/experience-spec-v1`. Therefore, no preliminary UI branch merge is required. UI implementation branches must start from the current `product/experience-spec-v1` lineage while treating the approved flagship artifact as binding.
 
 ### FD-056 — Approved
-Nghiệm thu visual xuyên suốt (WP-13, mobile/desktop/checkout flow, kể cả kịch bản quay lại từ app ngân
-hàng): **Harris nghiệm thu một mình.** An chạy kiểm và cung cấp bảng pass/fail có ảnh chụp theo đúng
-backlog đã ghi (WP-13 "Chủ sở hữu: An chạy kiểm, Harris nghiệm thu") — không đổi vai trò thực thi, chỉ xác
-nhận người ký duyệt cuối là Harris.
+Cross-cutting visual QA sign-off (WP-13, across mobile/desktop/checkout flows, including return-from-banking-app scenario): **Harris signs off alone.** An executes checks and supplies pass/fail verification tables with screenshot evidence.
 
 ---
 
-## 6. Dữ liệu kinh tế (mục 9 của "Còn chờ Founder") — cam kết cung cấp, chưa phải quyết định
+## 6. Economic Assumptions (Item 9 of "Pending Founder") — Baseline For Planning
 
-Founder xác nhận: **lasoviet.vn hiện chưa có traffic/doanh thu thật** — site mới ra mắt, sẽ ramp dần từ 0
-theo kế hoạch launch riêng của Founder (không phải số có thể nghiên cứu được — đây là mục tiêu kinh doanh
-của Founder, không phải benchmark thị trường). Do đó COGS AI thật, phí thanh toán thật, và tỷ lệ hoàn tiền
-thật **chưa tồn tại** để cung cấp làm baseline chính xác.
+The founder confirmed that lasoviet.vn currently has no live traffic or revenue—the site is newly launched and will ramp up from zero according to the founder's launch schedule. Real AI COGS, actual payment fees, and historical refund rates do not yet exist.
 
-Founder yêu cầu nghiên cứu thị trường Việt Nam nói chung để có giả định tạm dùng thay thế cho ba số còn
-lại (COGS AI/report, phí thanh toán, tỷ lệ hoàn tiền benchmark). Một lượt nghiên cứu riêng đã được khởi
-động cùng lúc với tài liệu này — kết quả sẽ được bổ sung vào phụ lục bên dưới khi hoàn tất.
+Working assumptions derived from market research (2026-09-09):
+- **All figures below are working assumptions/estimates, not live lasoviet.vn data.** They must be replaced with live figures once initial traffic and revenue are established, and must not be used to permanently halt or expand scope.
 
-**Hệ quả cho An:** guardrail "COGS/giá tầng 1 > 40%" (mục 8 spec) và KPI chính FD-038 (lãi đóng góp 30
-ngày/khách) tạm thời phải chạy trên số giả định trong phụ lục này cho đến khi có dữ liệu thật đầu tiên.
-**Không dùng số giả định để ra quyết định dừng/mở rộng vĩnh viễn** — chỉ dùng để không chặn việc lập kế
-hoạch và cấu hình guardrail ban đầu.
+1. **Average AI COGS per report** — Assuming 1 API call per report, total input+output 15,000–30,000 tokens (input ~70% structured prompt and chart/reference data; output 2,200–3,200 Vietnamese words ≈ 4,500–9,000 tokens due to BPE tokenizer overhead with Vietnamese diacritics):
+   - Frontier tier (GPT-4o / Claude Sonnet class): **~1,750–5,000 VND / report**
+   - Mid tier (GPT-4o-mini class): **~100–225 VND / report**
+   Even at the frontier tier, AI COGS remains under 5,000 VND / report, which is sustainable compared to the 19k/79k price points.
 
-### Phụ lục — giả định kinh tế (nghiên cứu thị trường VN, 2026-09-09)
+2. **Vietnamese payment processing fees** — SePay (webhook bank-sync model for direct VietQR transfers, not holding funds) charges no percentage fee: FREE tier 0 VND/month (50 transactions), STARTUP tier 120,000 VND/month (180 transactions, ~667 VND/transaction). Third-party gateways (VNPay, Ngan Luong, MoMo) charge 1,000–1,650 VND + 1.0–1.1% per transaction if card or wallet processing is added later. For the current VietQR model, the baseline is **~0% + fixed monthly subscription fee**.
 
-**Toàn bộ số dưới đây là GIẢ ĐỊNH/ƯỚC TÍNH, không phải dữ liệu thật của lasoviet.vn.** Phải thay bằng số
-thật ngay khi có traffic/doanh thu đầu tiên; không dùng để ra quyết định dừng/mở rộng vĩnh viễn.
+3. **Refund rate** — No public VN-specific figures; global digital/info-product benchmark: **3–5% baseline**, with worst-case stress-test at **10%**.
 
-**1. COGS AI trung bình/report** — giả định 1 lần gọi API/report, tổng input+output 15.000–30.000 token
-(input ~70% gồm prompt cấu trúc + dữ liệu lá số/tài liệu tham chiếu; output 2.200–3.200 từ tiếng Việt ≈
-4.500–9.000 token vì tokenizer BPE tốn nhiều token hơn với văn bản có dấu):
-- Tier frontier (GPT-4o/Claude Sonnet-class, giá 09/2026): **~1.750–5.000đ/report**
-- Tier mid (GPT-4o-mini-class): **~100–225đ/report**
-→ Ngay cả ở tier frontier, COGS AI dưới 5.000đ/report — không đáng kể so với giá bán 19k/79k. Cần đối
-chiếu với model thật mà `9router-an` đang proxy để chọn đúng tier.
+4. **Traffic ramp** — Weeks 1–12 represent SEO indexing and foundation ramp with minimal traffic; initial organic signals typically appear around weeks 8–12, with compounding growth starting after month 6.
 
-**2. Phí thanh toán VN** — SePay (mô hình webhook bank-sync, chuyển khoản VietQR trực tiếp ngân hàng↔ngân
-hàng, không giữ tiền hộ) **không tính % giao dịch**: gói FREE 0đ/tháng (50 giao dịch), STARTUP 120.000đ/
-tháng (180 giao dịch, ~667đ/giao dịch). Cổng trung gian thật (VNPay, Ngân Lượng, Momo) tính **1.000–1.650đ
-+ 1–1,1%/giao dịch** nếu sau này mở thêm thẻ/ví. → Với mô hình hiện tại (chỉ VietQR bank-transfer qua
-SePay), baseline hợp lý là **~0% + phí cố định/tháng theo gói**.
-
-**3. Tỷ lệ hoàn tiền** — không có số liệu công khai riêng cho VN; benchmark toàn cầu cho digital/info-
-product: **3–5% baseline**, stress-test kịch bản xấu ở **10%**.
-
-**4. Traffic ramp** — không dự đoán số cụ thể (đây là mục tiêu kinh doanh của Founder, không phải benchmark
-thị trường). Ghi chú SEO chung: tuần 1–12 chủ yếu là giai đoạn nền tảng (index hoá, on-page), traffic gần
-như chưa đáng kể; tín hiệu đầu tiên thường xuất hiện quanh tuần 8–12; tăng trưởng compounding thường bắt
-đầu sau tháng 6.
-
-**Áp dụng vào guardrail:** với COGS ước tính tối đa ~5.000đ/report trên giá bán 19.000đ, tỷ lệ COGS/giá ≈
-26% — dưới ngưỡng dừng 40% (mục 8 spec) ở baseline giả định này. Guardrail vẫn phải đo lại bằng số thật
-ngay khi có traffic, vì đây chỉ là ước tính trước khi biết model/token thật sự dùng.
-
-_Nguồn: bảng giá GPT-4o/Claude/GPT-4o-mini (09/2026), bảng giá SePay, biểu phí payOS/VNPay/Momo, benchmark
-refund rate Adapty/KISSmetrics, timeline SEO chung — chi tiết link có trong transcript nghiên cứu, không
-lặp lại ở đây để giữ tài liệu gọn._
+**Application to guardrail:** With estimated AI COGS at max ~5,000 VND on a 19,000 VND price, the COGS/price ratio is ~26%—comfortably below the 40% stop threshold (spec section 8). This guardrail must be remeasured against real traffic.
 
 ---
 
-## 7. Việc An cần làm ngay sau khi nhận tài liệu này
+## 7. Next Actions For Implementation
 
-1. Cập nhật spec 2026-09-08 mục 2B.2 "Tầng 3" theo cơ chế thay thế FD-045 (mục 1 ở trên).
-2. Cập nhật spec mục 3.3 thêm điều kiện hết hạn 7 ngày + yêu cầu disclosure UI tại điểm mua tầng 1
-   (FD-041).
-3. Cập nhật backlog: WP-09 thêm field/logic hết hạn khấu trừ; WP-12 hạ khỏi ưu tiên gần hạn (chỉ 1 mức giá
-   19k — FD-048); WP-02/WP-02B cập nhật theo cơ chế FD-045 mới; WP-10 áp dụng FD-049 → FD-054.
-4. Xác nhận với Founder việc có cần hợp nhất các branch UI trước khi bắt đầu WP-03/06/11/13 (FD-055).
-5. Chuẩn bị tích hợp Telegram bot cho cảnh báo (FD-047) — chờ Founder cấp bot token/group chat ID trước
-   khi triển khai WP-02B.
-6. Việc dọn dẹp còn treo từ backlog trước: file lạ `--full-page` ở gốc repo (chưa track, nghi do lỗi flag
-   CLI screenshot) và `docs/20-deep-research-ta-social-listening-handoff.md` (chưa track) — xác nhận với
-   Founder trước khi xoá/commit.
-
----
-
-**Nguồn quyết định:** phỏng vấn trực tiếp Founder ngày 2026-09-09, đối chiếu trực tiếp với
-`docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` và
-`docs/superpowers/plans/2026-09-08-experience-ladder-backlog.md`.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+1. Update spec `docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` section 2B.2 per the replacement FD-045 mechanism (`R-AUTO-8`, `R-AUTO-9`, `R-AUTO-10`).
+2. Update spec section 3.3 to incorporate the 7-day upgrade credit expiration window (measured from Tier 1 `paid_at`) and mandatory point-of-purchase disclosure requirement (FD-041).
+3. Update backlog `docs/superpowers/plans/2026-09-08-experience-ladder-backlog.md`: WP-09 adds expiration logic; WP-12 is deprioritized (single 19,000 VND price point per FD-048); WP-02 and WP-02B are updated per replacement FD-045; WP-10 implements FD-049 through FD-054 using PostgreSQL.
+4. Record UI branch ancestry verification complete; no merge needed before starting UI work; start from `product/experience-spec-v1` with flagship artifact as binding (FD-055).
+5. Prepare Telegram bot alert integration (FD-047) with environment variable placeholders `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, awaiting credentials from founder before activation.
+6. Note that `docs/20-deep-research-ta-social-listening-handoff.md` is excluded from this reconciliation and remains a separate documentation task.
