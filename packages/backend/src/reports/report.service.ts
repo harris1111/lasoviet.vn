@@ -552,8 +552,7 @@ export function createReportService(database: Database) {
             status: "pending",
             createdAt: current,
             updatedAt: current,
-          })
-          .onConflictDoNothing();
+          });
 
         return { ok: true };
       });

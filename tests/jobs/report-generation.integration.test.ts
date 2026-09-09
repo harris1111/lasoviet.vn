@@ -3523,4 +3523,96 @@ describe("report generation orchestration and worker integration (Slice B)", () 
 
     await database.$client.end();
   });
+
+  it("rolls back job and reservation transitions when alert idempotency key collides with pre-existing row", async () => {
+    const database = createDatabase(databaseUrl);
+    const reportService = createReportService(database);
+    const fixture = await seedFullOrchestrationFixture(database, "terminal-alert-key-collision", {
+      jobLeaseStatus: "leased",
+      reservationStatus: "generating",
+      leasedBy: "collision-worker-1",
+      leasedUntil: new Date(Date.now() + 120_000),
+    });
+
+    const [orderBefore] = await database
+      .select()
+      .from(commerceOrders)
+      .where(eq(commerceOrders.id, fixture.orderId));
+    const [paymentBefore] = await database
+      .select()
+      .from(commercePaymentEvents)
+      .where(eq(commercePaymentEvents.orderId, fixture.orderId));
+
+    // 2. Compute exact future terminal-alert idempotency key
+    const failureToken = createHash("sha256")
+      .update(`${fixture.reportVersionId}::${fixture.jobId}::generation`)
+      .digest("hex");
+    const collisionIdempotencyKey = `report-terminal-failure:${failureToken}`;
+
+    // 3. Pre-seed commerce_alert_deliveries with that key and wrong kind/malformed payload
+    const preSeededCreatedAt = new Date("2026-09-08T10:00:00.000Z");
+    await database.insert(commerceAlertDeliveries).values({
+      idempotencyKey: collisionIdempotencyKey,
+      alertKind: "wrong_kind_collision",
+      payload: { corrupted: true, reason: "pre_seeded_collision" },
+      status: "pending",
+      createdAt: preSeededCreatedAt,
+      updatedAt: preSeededCreatedAt,
+    });
+
+    // 4 & 5. Call recordTerminalFailure and assert it rejects/throws
+    await expect(
+      reportService.recordTerminalFailure({
+        reportVersionId: fixture.reportVersionId,
+        jobId: fixture.jobId,
+        workerId: "collision-worker-1",
+        errorCode: "JOB_RETRY_EXHAUSTED",
+        failureStage: "generation",
+      }),
+    ).rejects.toThrow();
+
+    // 6. Assert the job remains leased and not terminal
+    const [unmodifiedJob] = await database
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.id, fixture.jobId));
+    expect(unmodifiedJob?.status).toBe("leased");
+    expect(unmodifiedJob?.leasedBy).toBe("collision-worker-1");
+    expect(unmodifiedJob?.lastErrorCode).toBeNull();
+
+    // 7. Assert the reservation remains generating with its prior state version and error state
+    const [unmodifiedReservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportVersionId, fixture.reportVersionId));
+    expect(unmodifiedReservation?.status).toBe("generating");
+    expect(unmodifiedReservation?.stateVersion).toBe(1);
+    expect(unmodifiedReservation?.lastErrorCode).toBeNull();
+
+    // 8. Assert pre-seeded collision row is unchanged and no second alert exists
+    const collisionAlertRows = await database
+      .select()
+      .from(commerceAlertDeliveries)
+      .where(eq(commerceAlertDeliveries.idempotencyKey, collisionIdempotencyKey));
+    expect(collisionAlertRows).toHaveLength(1);
+    expect(collisionAlertRows[0].alertKind).toBe("wrong_kind_collision");
+    expect(collisionAlertRows[0].payload).toEqual({
+      corrupted: true,
+      reason: "pre_seeded_collision",
+    });
+
+    // 9. Assert no commerce order or payment event changes
+    const [orderAfter] = await database
+      .select()
+      .from(commerceOrders)
+      .where(eq(commerceOrders.id, fixture.orderId));
+    const [paymentAfter] = await database
+      .select()
+      .from(commercePaymentEvents)
+      .where(eq(commercePaymentEvents.orderId, fixture.orderId));
+    expect(orderAfter).toEqual(orderBefore);
+    expect(paymentAfter).toEqual(paymentBefore);
+
+    await database.$client.end();
+  });
 });
