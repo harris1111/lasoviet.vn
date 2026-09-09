@@ -19,6 +19,7 @@ import {
   commerceEntitlements,
   commerceOrders,
   commercePaymentEvents,
+  commerceUnmatchedPayments,
   enqueueOutbox,
   evidenceSets,
   reportReservations,
@@ -27,6 +28,11 @@ import {
   ziweiChartVersions,
   ziweiCharts,
 } from "@lasoviet/database";
+import {
+  generatePaymentCode,
+  isValidPaymentCode,
+  normalizePaymentCodeInput,
+} from "./payment-code.js";
 
 import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 import { currentReportVersions } from "../reports/identity-report-config.js";
@@ -39,6 +45,7 @@ export type CommerceRepositoryOptions = {
   now?: () => Date;
   orderTtlSeconds?: number;
   beforePaymentCommit?: () => Promise<void>;
+  paymentCodeFactory?: () => string;
 };
 
 export type OwnedOrderProjection = {
@@ -74,6 +81,7 @@ export function createDatabaseCommerceRepository(
 ) {
   const orderTtlSeconds = options.orderTtlSeconds ?? 86400;
   const getNow = options.now ?? (() => new Date());
+  const paymentCodeFactory = options.paymentCodeFactory ?? generatePaymentCode;
 
   async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
     if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
@@ -651,38 +659,42 @@ export function createDatabaseCommerceRepository(
         }
 
         const id = randomUUID();
-        const [created] = await transaction.insert(commerceOrders).values({
-          id,
-          invoiceNumber: "LSV-" + id,
-          chartId,
-          chartVersionId: chart.chartVersionId,
-          ownerId: actor.userId,
-          sku: product.sku,
-          amount: product.amount,
-          currency: product.currency,
-          locale: selectedLocale,
-          status: "pending",
-          createdAt: currentNow,
-        }).onConflictDoNothing().returning();
+        for (let attempt = 1; attempt <= 5; attempt++) {
+          const paymentCode = paymentCodeFactory();
+          const [created] = await transaction.insert(commerceOrders).values({
+            id,
+            paymentCode,
+            invoiceNumber: "LSV-" + id,
+            chartId,
+            chartVersionId: chart.chartVersionId,
+            ownerId: actor.userId,
+            sku: product.sku,
+            amount: product.amount,
+            currency: product.currency,
+            locale: selectedLocale,
+            status: "pending",
+            createdAt: currentNow,
+          }).onConflictDoNothing().returning();
 
-        if (created !== undefined) {
-          return { ok: true as const, value: created, reused: false };
+          if (created !== undefined) {
+            return { ok: true as const, value: created, reused: false };
+          }
+
+          const [concurrentPending] = await transaction.select().from(commerceOrders)
+            .where(and(
+              eq(commerceOrders.chartId, chartId),
+              eq(commerceOrders.sku, product.sku),
+              eq(commerceOrders.status, "pending"),
+            ))
+            .orderBy(desc(commerceOrders.createdAt))
+            .limit(1);
+
+          if (concurrentPending !== undefined) {
+            return { ok: true as const, value: concurrentPending, reused: true };
+          }
         }
 
-        const [concurrentPending] = await transaction.select().from(commerceOrders)
-          .where(and(
-            eq(commerceOrders.chartId, chartId),
-            eq(commerceOrders.sku, product.sku),
-            eq(commerceOrders.status, "pending"),
-          ))
-          .orderBy(desc(commerceOrders.createdAt))
-          .limit(1);
-
-        if (concurrentPending !== undefined) {
-          return { ok: true as const, value: concurrentPending, reused: true };
-        }
-
-        throw new Error("COMMERCE_ORDER_CREATE_FAILED");
+        throw new Error("PAYMENT_CODE_GENERATION_EXHAUSTED");
       });
     },
 
@@ -708,17 +720,50 @@ export function createDatabaseCommerceRepository(
     },
 
     async recordPaid(input: {
-      invoiceNumber: string; providerEventId: string; amount: number; currency: string; traceId: string;
+      invoiceNumber?: string;
+      paymentCode?: string;
+      matchMethod?: "invoice_number" | "payment_code";
+      providerEventId: string;
+      amount: number;
+      currency: string;
+      traceId: string;
     }) {
+      const matchMethod = input.matchMethod ?? "invoice_number";
+      let lookupPredicate: ReturnType<typeof eq>;
+
+      if (matchMethod === "payment_code") {
+        const raw = input.paymentCode ?? input.invoiceNumber ?? "";
+        const normalized = normalizePaymentCodeInput(raw);
+        if (!isValidPaymentCode(normalized)) {
+          return { ok: false as const, code: "ORDER_NOT_FOUND" };
+        }
+        lookupPredicate = eq(commerceOrders.paymentCode, normalized);
+      } else {
+        const invoice = input.invoiceNumber;
+        if (!invoice) {
+          return { ok: false as const, code: "ORDER_NOT_FOUND" };
+        }
+        lookupPredicate = eq(commerceOrders.invoiceNumber, invoice);
+      }
+
       try {
         return await database.transaction(async (transaction) => {
           const currentNow = getNow();
+
+          const providerLockKey = `provider_event:${input.providerEventId}`;
+          await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+
+          const [priorUnmatched] = await transaction.select().from(commerceUnmatchedPayments)
+            .where(eq(commerceUnmatchedPayments.providerEventId, input.providerEventId)).limit(1);
+          if (priorUnmatched !== undefined) {
+            return { ok: true as const, replayed: true };
+          }
 
           const [target] = await transaction.select({
             chartId: commerceOrders.chartId,
             sku: commerceOrders.sku,
           }).from(commerceOrders)
-            .where(eq(commerceOrders.invoiceNumber, input.invoiceNumber))
+            .where(lookupPredicate)
             .limit(1);
           if (target === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
 
@@ -726,7 +771,7 @@ export function createDatabaseCommerceRepository(
           await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
           const [order] = await transaction.select().from(commerceOrders)
-            .where(eq(commerceOrders.invoiceNumber, input.invoiceNumber))
+            .where(lookupPredicate)
             .limit(1)
             .for("update");
           if (order === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
@@ -785,7 +830,12 @@ export function createDatabaseCommerceRepository(
             : { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
         }
         const [event] = await transaction.insert(commercePaymentEvents).values({
-          orderId: order.id, providerEventId: input.providerEventId, amount: input.amount, currency: input.currency, status: "ORDER_PAID",
+          orderId: order.id,
+          providerEventId: input.providerEventId,
+          amount: input.amount,
+          currency: input.currency,
+          status: "ORDER_PAID",
+          matchMethod,
           createdAt: currentNow,
         }).onConflictDoNothing().returning();
         if (event === undefined) {
@@ -840,6 +890,88 @@ export function createDatabaseCommerceRepository(
       throw error;
     }
   },
+
+    async recordUnmatched(input: {
+      providerEventId: string;
+      rawPayload: Record<string, unknown>;
+      amount: number;
+      reason: string;
+      receivedAt?: Date;
+    }): Promise<{ ok: true; replayed: boolean } | { ok: false; code: string }> {
+      if (
+        typeof input.amount !== "number" ||
+        !Number.isSafeInteger(input.amount) ||
+        input.amount <= 0
+      ) {
+        return { ok: false as const, code: "PAYMENT_AMOUNT_INVALID" };
+      }
+
+      return await database.transaction(async (transaction) => {
+        const currentNow = getNow();
+        const receivedAt = input.receivedAt ?? currentNow;
+
+        const providerLockKey = `provider_event:${input.providerEventId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+
+        const [existingUnmatched] = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(eq(commerceUnmatchedPayments.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (existingUnmatched !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        const [existingPaid] = await transaction
+          .select()
+          .from(commercePaymentEvents)
+          .where(eq(commercePaymentEvents.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (existingPaid !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        const [inserted] = await transaction
+          .insert(commerceUnmatchedPayments)
+          .values({
+            providerEventId: input.providerEventId,
+            rawPayload: input.rawPayload,
+            amount: input.amount,
+            reason: input.reason,
+            receivedAt,
+          })
+          .onConflictDoNothing()
+          .returning();
+
+        if (inserted !== undefined) {
+          return { ok: true as const, replayed: false };
+        }
+
+        const [recheckedUnmatched] = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(eq(commerceUnmatchedPayments.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (recheckedUnmatched !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        const [recheckedPaid] = await transaction
+          .select()
+          .from(commercePaymentEvents)
+          .where(eq(commercePaymentEvents.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (recheckedPaid !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        throw new Error("UNMATCHED_PAYMENT_PERSISTENCE_FAILED");
+      });
+    },
   readAccountLibrary,
   readOrderHistory,
   };

@@ -76,6 +76,7 @@ describe("SePay controller HTTP contract", () => {
     });
     const orderRecord = {
       id: "order-1",
+      paymentCode: "LSVK7M2P9QXJ",
       invoiceNumber: "LSV-order-1",
       ownerId: "user-1",
       chartId: "chart-1",
@@ -124,8 +125,8 @@ describe("SePay controller HTTP contract", () => {
             accountHolder: "LA SO VIET",
             amount: 79000,
             currency: "VND",
-            transferDescription: "LSV-order-1",
-            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSV-order-1&template=compact",
+            transferDescription: "LSVK7M2P9QXJ",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSVK7M2P9QXJ&template=compact",
             expiresAt: "2026-09-05T00:15:00.000Z",
           },
           reportId: null,
@@ -147,6 +148,7 @@ describe("SePay controller HTTP contract", () => {
     });
     const paidOrderRecord = {
       id: "order-paid-1",
+      paymentCode: "LSVK7M2P9QXJ",
       invoiceNumber: "LSV-order-paid-1",
       ownerId: "user-1",
       chartId: "chart-1",
@@ -195,8 +197,8 @@ describe("SePay controller HTTP contract", () => {
             accountHolder: "LA SO VIET",
             amount: 79000,
             currency: "VND",
-            transferDescription: "LSV-order-paid-1",
-            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSV-order-paid-1&template=compact",
+            transferDescription: "LSVK7M2P9QXJ",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSVK7M2P9QXJ&template=compact",
             expiresAt: "2026-09-05T00:15:00.000Z",
           },
           reportId: "report-res-123",
@@ -336,13 +338,16 @@ describe("SePay controller HTTP contract", () => {
       .rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it("accepts valid HMAC bank webhook through controller boundary and acknowledges payment", async () => {
+  it("accepts valid HMAC bank webhook through controller boundary and acknowledges payment with payment_code", async () => {
+    const validCode = backend.generatePaymentCode();
     const recordPaidSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const recordUnmatchedSpy = vi.fn();
     const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
       createOrder: vi.fn(),
       readOrder: vi.fn(),
       readOrderProjection: vi.fn(),
       recordPaid: recordPaidSpy,
+      recordUnmatched: recordUnmatchedSpy,
     } as never);
 
     const bankTransfer = {
@@ -351,8 +356,8 @@ describe("SePay controller HTTP contract", () => {
       transactionDate: "2026-09-05 10:00:00",
       accountNumber: "123456789",
       subAccount: "",
-      code: "LSV-order-1",
-      content: "LSV-order-1 chuyen tien",
+      code: validCode,
+      content: `${validCode} chuyen tien`,
       transferType: "in",
       description: "NGUYEN VAN A chuyen tien",
       transferAmount: 79000,
@@ -376,11 +381,66 @@ describe("SePay controller HTTP contract", () => {
 
       expect(result).toEqual({ success: true });
       expect(recordPaidSpy).toHaveBeenCalledWith({
-        invoiceNumber: "LSV-order-1",
+        paymentCode: validCode,
+        matchMethod: "payment_code",
         providerEventId: "92704",
         amount: 79000,
         currency: "VND",
         traceId: "sepay-webhook",
+      });
+      expect(recordUnmatchedSpy).not.toHaveBeenCalled();
+    } finally {
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("persists unmatched payment and acknowledges with success when bank content has no valid code", async () => {
+    const recordPaidSpy = vi.fn();
+    const recordUnmatchedSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: recordPaidSpy,
+      recordUnmatched: recordUnmatchedSpy,
+    } as never);
+
+    const bankTransfer = {
+      id: 92704,
+      gateway: "Vietcombank",
+      transactionDate: "2026-09-05 10:00:00",
+      accountNumber: "123456789",
+      subAccount: "",
+      code: "",
+      content: "CORRUPTED CONTENT NO PAYMENT CODE",
+      transferType: "in",
+      description: "NGUYEN VAN A chuyen tien",
+      transferAmount: 79000,
+      accumulated: 1000000,
+      referenceCode: "FT24012345678",
+    };
+    const rawBody = Buffer.from(JSON.stringify(bankTransfer));
+    const nowEpochSeconds = Math.floor(Date.now() / 1000);
+    const hmac = createHmac("sha256", "synthetic-webhook-secret");
+    hmac.update(String(nowEpochSeconds) + "." + rawBody.toString("utf8"));
+    const signature = "sha256=" + hmac.digest("hex");
+
+    try {
+      const result = await controller().webhook(
+        "ingress-secret",
+        undefined,
+        signature,
+        String(nowEpochSeconds),
+        { rawBody },
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(recordPaidSpy).not.toHaveBeenCalled();
+      expect(recordUnmatchedSpy).toHaveBeenCalledWith({
+        providerEventId: "92704",
+        rawPayload: bankTransfer,
+        amount: 79000,
+        reason: "NO_VALID_PAYMENT_CODE",
       });
     } finally {
       repoSpy.mockRestore();
@@ -435,6 +495,7 @@ describe("SePay controller HTTP contract", () => {
       });
       expect(recordPaidSpy).toHaveBeenCalledWith({
         invoiceNumber: "LSV-order-1",
+        matchMethod: "invoice_number",
         providerEventId: "disabled-autopay:order-1",
         amount: 79000,
         currency: "VND",
@@ -1027,6 +1088,57 @@ describe("SePay controller HTTP contract", () => {
       expect(histResult).toEqual({ ok: true, value: emptyHist });
     } finally {
       authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("persists unmatched payment and acknowledges with success when hosted ORDER_PAID IPN fails to match order", async () => {
+    const recordPaidSpy = vi.fn().mockResolvedValue({ ok: false, code: "ORDER_NOT_FOUND" });
+    const recordUnmatchedSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: recordPaidSpy,
+      recordUnmatched: recordUnmatchedSpy,
+    } as never);
+
+    const hostedPayload = {
+      notification_type: "ORDER_PAID",
+      order: {
+        order_invoice_number: "LSV-unknown-order",
+        order_amount: "79000.00",
+        order_currency: "VND",
+        order_status: "CAPTURED",
+      },
+      transaction: {
+        transaction_id: "hosted-event-unknown",
+        transaction_amount: "79000.00",
+        transaction_currency: "VND",
+        transaction_status: "APPROVED",
+        transaction_type: "PAYMENT",
+      },
+    };
+    const rawBody = Buffer.from(JSON.stringify(hostedPayload));
+
+    try {
+      const result = await controller().webhook(
+        "ingress-secret",
+        "provider-secret",
+        undefined,
+        undefined,
+        { rawBody },
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(recordPaidSpy).toHaveBeenCalled();
+      expect(recordUnmatchedSpy).toHaveBeenCalledWith({
+        providerEventId: "hosted-event-unknown",
+        rawPayload: expect.objectContaining({ notification_type: "ORDER_PAID" }),
+        amount: 79000,
+        reason: "ORDER_NOT_FOUND",
+      });
+    } finally {
       repoSpy.mockRestore();
     }
   });

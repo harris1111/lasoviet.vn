@@ -69,7 +69,7 @@ export class CommerceController {
   }
 
   private buildPaymentInstructions(order: {
-    invoiceNumber: string;
+    paymentCode: string;
     amount: number;
     createdAt: Date;
   }): PaymentInstructions {
@@ -79,7 +79,7 @@ export class CommerceController {
       accountHolder: this.accountHolder ?? "",
       amount: order.amount,
       currency: "VND",
-      invoiceNumber: order.invoiceNumber,
+      paymentCode: order.paymentCode,
       createdAt: order.createdAt,
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
     });
@@ -107,6 +107,7 @@ export class CommerceController {
         if (result.value.status === "pending") {
           const paidResult = await this.repository().recordPaid({
             invoiceNumber: result.value.invoiceNumber,
+            matchMethod: "invoice_number",
             providerEventId: `disabled-autopay:${result.value.id}`,
             amount: result.value.amount,
             currency: result.value.currency,
@@ -211,10 +212,12 @@ export class CommerceController {
     if (!equal(ingress, this.ingressSecret)) throw new UnauthorizedException({ code: "INGRESS_AUTH_INVALID" });
     const rawBody = request.rawBody?.toString("utf8");
     if (rawBody === undefined) throw new BadRequestException({ code: "SEPAY_RAW_BODY_MISSING" });
+    const repo = this.repository();
     const result = await createSePayWebhookService({
       secretKey: this.sepaySecret ?? "",
       webhookSecret: this.sepayWebhookSecret ?? "",
-      recordPaid: (input) => this.repository().recordPaid(input),
+      recordPaid: (input) => repo.recordPaid(input),
+      recordUnmatched: (input) => repo.recordUnmatched(input),
     }).handle({
       rawBody,
       secretHeader: secret,

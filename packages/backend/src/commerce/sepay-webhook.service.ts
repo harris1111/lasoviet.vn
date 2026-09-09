@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { extractValidPaymentCodes } from "./payment-code.js";
 
 type IpN = {
   notification_type: "ORDER_PAID" | "TRANSACTION_VOID";
@@ -85,7 +86,20 @@ export function createSePayWebhookService(dependencies: {
   webhookSecret?: string;
   now?: () => Date;
   recordPaid(input: {
-    invoiceNumber: string; providerEventId: string; amount: number; currency: string; traceId: string;
+    invoiceNumber?: string;
+    paymentCode?: string;
+    matchMethod?: "invoice_number" | "payment_code";
+    providerEventId: string;
+    amount: number;
+    currency: string;
+    traceId: string;
+  }): Promise<{ ok: boolean; replayed?: boolean; code?: string }>;
+  recordUnmatched?(input: {
+    providerEventId: string;
+    rawPayload: Record<string, unknown>;
+    amount: number;
+    reason: string;
+    receivedAt?: Date;
   }): Promise<{ ok: boolean; replayed?: boolean; code?: string }>;
 }) {
   const getNow = dependencies.now ?? (() => new Date());
@@ -157,14 +171,29 @@ export function createSePayWebhookService(dependencies: {
         ) return { ok: false as const, error: { code: "SEPAY_PAYLOAD_INVALID" } };
         const result = await dependencies.recordPaid({
           invoiceNumber: parsed.order.order_invoice_number,
+          matchMethod: "invoice_number",
           providerEventId: parsed.transaction.transaction_id,
           amount: parsed.order.order_amount,
           currency: parsed.order.order_currency,
           traceId: input.traceId,
         });
-        return result.ok
-          ? { ok: true as const, value: { acknowledged: true, replayed: result.replayed === true } }
-          : { ok: false as const, error: { code: result.code ?? "PAYMENT_STATE_CONFLICT" } };
+        if (result.ok) {
+          return { ok: true as const, value: { acknowledged: true, replayed: result.replayed === true } };
+        }
+
+        if (!dependencies.recordUnmatched) {
+          throw new Error("UNMATCHED_PAYMENT_HANDLER_MISSING");
+        }
+        const unmatchedResult = await dependencies.recordUnmatched({
+          providerEventId: parsed.transaction.transaction_id,
+          rawPayload: payload as Record<string, unknown>,
+          amount: parsed.order.order_amount,
+          reason: result.code ?? "PAYMENT_MATCH_FAILED",
+        });
+        if (!unmatchedResult.ok) {
+          return { ok: false as const, error: { code: "UNMATCHED_PERSISTENCE_FAILED" } };
+        }
+        return { ok: true as const, value: { acknowledged: true as const, replayed: unmatchedResult.replayed === true } };
       }
 
       if (typeof payload !== "object" || payload === null) {
@@ -185,26 +214,51 @@ export function createSePayWebhookService(dependencies: {
       }
 
       const idStr = String(bank.id);
+      const rawCode = typeof bank.code === "string" ? bank.code : "";
+      const rawContent = typeof bank.content === "string" ? bank.content : "";
+      const combined = `${rawCode} ${rawContent}`.trim();
 
-      const rawCode = typeof bank.code === "string" ? bank.code.trim() : "";
-      const rawContent = typeof bank.content === "string" ? bank.content.trim() : "";
-      const paymentCode = rawCode || rawContent.split(/\s+/, 1)[0] || "";
+      const validCodes = extractValidPaymentCodes(combined);
 
-      if (!boundedText(paymentCode, /^[A-Za-z0-9_-]+$/)) {
-        return { ok: false as const, error: { code: "SEPAY_PAYLOAD_INVALID" } };
+      async function persistUnmatched(reason: string) {
+        if (!dependencies.recordUnmatched) {
+          throw new Error("UNMATCHED_PAYMENT_HANDLER_MISSING");
+        }
+        const unmatchedResult = await dependencies.recordUnmatched({
+          providerEventId: idStr,
+          rawPayload: bank,
+          amount: bank.transferAmount as number,
+          reason,
+        });
+        if (!unmatchedResult.ok) {
+          return { ok: false as const, error: { code: "UNMATCHED_PERSISTENCE_FAILED" } };
+        }
+        return { ok: true as const, value: { acknowledged: true as const, replayed: unmatchedResult.replayed === true } };
       }
 
+      if (validCodes.length === 0) {
+        return persistUnmatched("NO_VALID_PAYMENT_CODE");
+      }
+
+      if (validCodes.length > 1) {
+        return persistUnmatched("MULTIPLE_PAYMENT_CODES");
+      }
+
+      const paymentCode = validCodes[0];
       const result = await dependencies.recordPaid({
-        invoiceNumber: paymentCode,
+        paymentCode,
+        matchMethod: "payment_code",
         providerEventId: idStr,
-        amount: bank.transferAmount,
+        amount: bank.transferAmount as number,
         currency: "VND",
         traceId: input.traceId,
       });
 
-      return result.ok
-        ? { ok: true as const, value: { acknowledged: true, replayed: result.replayed === true } }
-        : { ok: false as const, error: { code: result.code ?? "PAYMENT_STATE_CONFLICT" } };
+      if (result.ok) {
+        return { ok: true as const, value: { acknowledged: true, replayed: result.replayed === true } };
+      }
+
+      return persistUnmatched(result.code ?? "PAYMENT_MATCH_FAILED");
     },
   };
 }

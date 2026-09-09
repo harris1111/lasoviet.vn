@@ -38,6 +38,7 @@ export {
   commerceOrderStatus,
   commerceOrders,
   commercePaymentEvents,
+  commerceUnmatchedPayments,
 } from "./schema/commerce.js";
 export {
   reportGenerationAttempts,

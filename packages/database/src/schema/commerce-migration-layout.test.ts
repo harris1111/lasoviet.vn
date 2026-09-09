@@ -95,4 +95,23 @@ describe("commerce migration layout", () => {
     expect(journal).toContain('"idx": 17' );
   });
 
+  it("keeps payment code reconciliation and unmatched payments in migration 0019", async () => {
+    const migration = await readFile(
+      new URL("0019_payment_code_reconciliation.sql", migrationRoot),
+      "utf8",
+    );
+    expect(migration).toContain("generate_payment_code");
+    expect(migration).toContain('ALTER TABLE "commerce_orders" ADD COLUMN IF NOT EXISTS "payment_code" text');
+    expect(migration).toContain('CREATE UNIQUE INDEX IF NOT EXISTS "commerce_orders_payment_code_unique"');
+    expect(migration).toContain('ALTER TABLE "commerce_payment_events" ADD COLUMN IF NOT EXISTS "match_method" text');
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "commerce_unmatched_payments"');
+    expect(migration).toContain('CREATE UNIQUE INDEX IF NOT EXISTS "commerce_unmatched_payments_provider_event_unique"');
+    expect(migration).toContain('CREATE INDEX IF NOT EXISTS "commerce_unmatched_payments_received_claimed_idx"');
+  });
+
+  it("registers migration 0019 in drizzle meta journal", async () => {
+    const journal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
+    expect(journal).toContain('"tag": "0019_payment_code_reconciliation"');
+    expect(journal).toContain('"idx": 19');
+  });
 });

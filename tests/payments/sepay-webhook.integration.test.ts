@@ -11,6 +11,7 @@ import {
   commerceEntitlements,
   commerceOrders,
   commercePaymentEvents,
+  commerceUnmatchedPayments,
   createDatabase,
   evidenceSets,
   enqueueOutbox,
@@ -26,7 +27,11 @@ import {
   createDatabaseOutboxStore,
   createDatabaseReportQueuePublisher,
   createOutboxDispatcher,
+  createSePayWebhookService,
+  generatePaymentCode,
+  isValidPaymentCode,
 } from "../../packages/backend/src/index.js";
+import { createHmac } from "node:crypto";
 
 describe("SePay payment transaction", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
@@ -1178,6 +1183,398 @@ describe("SePay payment transaction", () => {
 
     const ordersInDb = (await database.select().from(commerceOrders)).filter((o) => o.chartId === chartId);
     expect(ordersInDb).toHaveLength(1);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("stores a valid unique payment code on new order creation and retains it on reuse", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const result = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("CREATE_ORDER_FAILED");
+
+    const order = result.value;
+    expect(order.paymentCode).toBeDefined();
+    expect(isValidPaymentCode(order.paymentCode)).toBe(true);
+
+    const orderInDb = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(orderInDb?.paymentCode).toBe(order.paymentCode);
+
+    // Reuse pending order retains the exact same payment code
+    const reusedResult = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(reusedResult.ok).toBe(true);
+    if (!reusedResult.ok) throw new Error("REUSE_ORDER_FAILED");
+    expect(reusedResult.reused).toBe(true);
+    expect(reusedResult.value.paymentCode).toBe(order.paymentCode);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("retries on payment code collision and exhausts after five collisions", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor: actor1, chartId: chartId1 } = await createChartFixture(database);
+    const { actor: actor2, chartId: chartId2 } = await createChartFixture(database);
+
+    const normalRepo = createDatabaseCommerceRepository(database);
+    const firstOrder = await normalRepo.createOrder(actor1, chartId1, "ZIWEI-IDENTITY-P0", "vi");
+    expect(firstOrder.ok).toBe(true);
+    if (!firstOrder.ok) throw new Error("FIRST_ORDER_FAILED");
+    const collisionCode = firstOrder.value.paymentCode;
+
+    // Retry test: factory produces collisionCode once, then a fresh code
+    let attempts = 0;
+    const retryRepo = createDatabaseCommerceRepository(database, {
+      paymentCodeFactory: () => {
+        attempts++;
+        return attempts === 1 ? collisionCode : generatePaymentCode();
+      },
+    });
+
+    const retryResult = await retryRepo.createOrder(actor2, chartId2, "ZIWEI-IDENTITY-P0", "vi");
+    expect(retryResult.ok).toBe(true);
+    expect(attempts).toBe(2);
+    if (!retryResult.ok) throw new Error("RETRY_ORDER_FAILED");
+    expect(retryResult.value.paymentCode).not.toBe(collisionCode);
+
+    // Exhaustion test: factory always produces an existing code
+    const { actor: actor3, chartId: chartId3 } = await createChartFixture(database);
+    const exhaustRepo = createDatabaseCommerceRepository(database, {
+      paymentCodeFactory: () => collisionCode,
+    });
+
+    await expect(
+      exhaustRepo.createOrder(actor3, chartId3, "ZIWEI-IDENTITY-P0", "vi"),
+    ).rejects.toThrow(/PAYMENT_CODE_GENERATION_EXHAUSTED/);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("records match_method = payment_code on payment code match and match_method = invoice_number on invoice match", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor: actorCode, chartId: chartIdCode } = await createChartFixture(database);
+    const { actor: actorInvoice, chartId: chartIdInvoice } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    // 1. Payment code match
+    const orderCodeResult = await repo.createOrder(actorCode, chartIdCode, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderCodeResult.ok).toBe(true);
+    if (!orderCodeResult.ok) throw new Error("CREATE_ORDER_FAILED");
+    const codeOrder = orderCodeResult.value;
+
+    const eventIdCode = "event-code-" + randomUUID();
+    const paidCodeResult = await repo.recordPaid({
+      paymentCode: codeOrder.paymentCode,
+      matchMethod: "payment_code",
+      providerEventId: eventIdCode,
+      amount: codeOrder.amount,
+      currency: codeOrder.currency,
+      traceId: "trace-code",
+    });
+    expect(paidCodeResult).toMatchObject({ ok: true, replayed: false });
+
+    const codeEvent = (await database.select().from(commercePaymentEvents)).find((e) => e.providerEventId === eventIdCode);
+    expect(codeEvent?.matchMethod).toBe("payment_code");
+
+    // 2. Invoice number match
+    const orderInvoiceResult = await repo.createOrder(actorInvoice, chartIdInvoice, "ZIWEI-IDENTITY-P0", "en");
+    expect(orderInvoiceResult.ok).toBe(true);
+    if (!orderInvoiceResult.ok) throw new Error("CREATE_ORDER_FAILED");
+    const invoiceOrder = orderInvoiceResult.value;
+
+    const eventIdInvoice = "event-invoice-" + randomUUID();
+    const paidInvoiceResult = await repo.recordPaid({
+      invoiceNumber: invoiceOrder.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: eventIdInvoice,
+      amount: invoiceOrder.amount,
+      currency: invoiceOrder.currency,
+      traceId: "trace-invoice",
+    });
+    expect(paidInvoiceResult).toMatchObject({ ok: true, replayed: false });
+
+    const invoiceEvent = (await database.select().from(commercePaymentEvents)).find((e) => e.providerEventId === eventIdInvoice);
+    expect(invoiceEvent?.matchMethod).toBe("invoice_number");
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("records unmatched payment idempotently on duplicate providerEventId", async () => {
+    const database = createDatabase(databaseUrl);
+    const repo = createDatabaseCommerceRepository(database);
+    const providerEventId = "unmatched-event-" + randomUUID();
+
+    const first = await repo.recordUnmatched({
+      providerEventId,
+      rawPayload: { note: "first attempt" },
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+    });
+    expect(first).toEqual({ ok: true, replayed: false });
+
+    const second = await repo.recordUnmatched({
+      providerEventId,
+      rawPayload: { note: "second attempt" },
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+    });
+    expect(second).toEqual({ ok: true, replayed: true });
+
+    const rows = (await database.select().from(commerceUnmatchedPayments)).filter((r) => r.providerEventId === providerEventId);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.reason).toBe("NO_VALID_PAYMENT_CODE");
+    expect(rows[0]?.amount).toBe(79_000);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("handles bank webhook with noisy content and corrupted content end-to-end", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderResult = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) throw new Error("ORDER_CREATE_FAILED");
+    const order = orderResult.value;
+
+    const webhookSecret = "integration-webhook-secret";
+    const webhookService = createSePayWebhookService({
+      secretKey: "dummy",
+      webhookSecret,
+      recordPaid: (input) => repo.recordPaid(input),
+      recordUnmatched: (input) => repo.recordUnmatched(input),
+    });
+
+    const nowEpochSeconds = Math.floor(Date.now() / 1000);
+    function sign(body: string) {
+      const hmac = createHmac("sha256", webhookSecret);
+      hmac.update(String(nowEpochSeconds) + "." + body);
+      return "sha256=" + hmac.digest("hex");
+    }
+
+    // 1. Bank transfer with noisy content containing valid paymentCode -> paid
+    const bankTransfer = {
+      id: Math.floor(Math.random() * 1000000) + 1000,
+      gateway: "Vietcombank",
+      transactionDate: "2026-09-05 10:00:00",
+      accountNumber: "123456789",
+      subAccount: "",
+      code: "",
+      content: `CT DEN:987654 ${order.paymentCode} CHUYEN TIEN BAP`,
+      transferType: "in",
+      description: "CHUYEN TIEN",
+      transferAmount: 79000,
+      accumulated: 1000000,
+      referenceCode: "FT24012345678",
+    };
+    const body1 = JSON.stringify(bankTransfer);
+    const result1 = await webhookService.handle({
+      rawBody: body1,
+      signatureHeader: sign(body1),
+      timestampHeader: String(nowEpochSeconds),
+      traceId: "webhook-trace-1",
+    });
+
+    expect(result1).toEqual({ ok: true, value: { acknowledged: true, replayed: false } });
+
+    const orderAfter = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(orderAfter?.status).toBe("paid");
+
+    const eventAfter = (await database.select().from(commercePaymentEvents)).find((e) => e.providerEventId === String(bankTransfer.id));
+    expect(eventAfter?.matchMethod).toBe("payment_code");
+
+    // 2. Bank transfer with corrupted content -> persists unmatched, returns acknowledged: true
+    const corruptedTransfer = {
+      id: Math.floor(Math.random() * 1000000) + 2000,
+      gateway: "Vietcombank",
+      transactionDate: "2026-09-05 10:05:00",
+      accountNumber: "123456789",
+      subAccount: "",
+      code: "",
+      content: "GIBBERISH WITHOUT PAYMENT CODE",
+      transferType: "in",
+      description: "UNKNOWN",
+      transferAmount: 79000,
+      accumulated: 1000000,
+      referenceCode: "FT99999999999",
+    };
+    const body2 = JSON.stringify(corruptedTransfer);
+    const result2 = await webhookService.handle({
+      rawBody: body2,
+      signatureHeader: sign(body2),
+      timestampHeader: String(nowEpochSeconds),
+      traceId: "webhook-trace-2",
+    });
+
+    expect(result2).toEqual({ ok: true, value: { acknowledged: true, replayed: false } });
+
+    const unmatchedRow = (await database.select().from(commerceUnmatchedPayments)).find((r) => r.providerEventId === String(corruptedTransfer.id));
+    expect(unmatchedRow).toBeDefined();
+    expect(unmatchedRow?.reason).toBe("NO_VALID_PAYMENT_CODE");
+    expect(unmatchedRow?.amount).toBe(79000);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("enforces cross-table provider_event_id idempotency across payment events and unmatched payments", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderResult = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) throw new Error("CREATE_ORDER_FAILED");
+    const order = orderResult.value;
+
+    // Direction 1: Event already persisted unmatched must never later grant entitlement if replayed with valid code
+    const eventIdUnmatchedFirst = "cross-idempotency-unmatched-" + randomUUID();
+    const unmatchedResult = await repo.recordUnmatched({
+      providerEventId: eventIdUnmatchedFirst,
+      rawPayload: { note: "first arrived corrupted" },
+      amount: order.amount,
+      reason: "NO_VALID_PAYMENT_CODE",
+    });
+    expect(unmatchedResult).toEqual({ ok: true, replayed: false });
+
+    // Now attempt recordPaid using the same providerEventId with a valid code
+    const replayedPaidResult = await repo.recordPaid({
+      paymentCode: order.paymentCode,
+      matchMethod: "payment_code",
+      providerEventId: eventIdUnmatchedFirst,
+      amount: order.amount,
+      currency: order.currency,
+      traceId: "trace-replayed-unmatched",
+    });
+    expect(replayedPaidResult).toEqual({ ok: true, replayed: true });
+
+    // Verify: order status remains pending, no entitlement granted, no reservation created
+    const orderAfterReplay = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(orderAfterReplay?.status).toBe("pending");
+    expect(orderAfterReplay?.paidAt).toBeNull();
+    const entitlementsAfter = (await database.select().from(commerceEntitlements)).filter((e) => e.orderId === order.id);
+    expect(entitlementsAfter).toHaveLength(0);
+    const reservationsAfter = (await database.select().from(reportReservations)).filter((r) => r.chartVersionId === versionId);
+    expect(reservationsAfter).toHaveLength(0);
+
+    // Direction 2: Event already matched must not create an unmatched row
+    const eventIdPaidFirst = "cross-idempotency-paid-" + randomUUID();
+    const paidResult = await repo.recordPaid({
+      paymentCode: order.paymentCode,
+      matchMethod: "payment_code",
+      providerEventId: eventIdPaidFirst,
+      amount: order.amount,
+      currency: order.currency,
+      traceId: "trace-paid-first",
+    });
+    expect(paidResult).toMatchObject({ ok: true, replayed: false });
+
+    // Order is now paid, entitlement granted
+    const orderPaidInDb = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(orderPaidInDb?.status).toBe("paid");
+
+    // Attempt to record unmatched with the same providerEventId
+    const unmatchedReplayResult = await repo.recordUnmatched({
+      providerEventId: eventIdPaidFirst,
+      rawPayload: { note: "should not create unmatched row" },
+      amount: order.amount,
+      reason: "SOME_REASON",
+    });
+    expect(unmatchedReplayResult).toEqual({ ok: true, replayed: true });
+
+    // Verify: commerce_unmatched_payments has NO row for eventIdPaidFirst
+    const unmatchedRows = (await database.select().from(commerceUnmatchedPayments))
+      .filter((r) => r.providerEventId === eventIdPaidFirst);
+    expect(unmatchedRows).toHaveLength(0);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("persists unmatched payment and acknowledges success when hosted ORDER_PAID IPN encounters non-ok recordPaid", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderResult = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) throw new Error("CREATE_ORDER_FAILED");
+    const order = orderResult.value;
+
+    const webhookService = createSePayWebhookService({
+      secretKey: "hosted-test-secret",
+      recordPaid: (input) => repo.recordPaid(input),
+      recordUnmatched: (input) => repo.recordUnmatched(input),
+    });
+
+    // 1. Hosted IPN with unknown invoice number
+    const unknownEventId = "hosted-unknown-" + randomUUID();
+    const unknownPayload = {
+      notification_type: "ORDER_PAID",
+      order: {
+        order_invoice_number: "LSV-nonexistent-invoice",
+        order_amount: "79000.00",
+        order_currency: "VND",
+        order_status: "CAPTURED",
+      },
+      transaction: {
+        transaction_id: unknownEventId,
+        transaction_amount: "79000.00",
+        transaction_currency: "VND",
+        transaction_status: "APPROVED",
+        transaction_type: "PAYMENT",
+      },
+    };
+
+    const unknownResult = await webhookService.handle({
+      rawBody: JSON.stringify(unknownPayload),
+      secretHeader: "hosted-test-secret",
+      traceId: "trace-hosted-unknown",
+    });
+    expect(unknownResult).toEqual({ ok: true, value: { acknowledged: true, replayed: false } });
+
+    const unmatchedUnknown = (await database.select().from(commerceUnmatchedPayments))
+      .find((r) => r.providerEventId === unknownEventId);
+    expect(unmatchedUnknown).toBeDefined();
+    expect(unmatchedUnknown?.reason).toBe("ORDER_NOT_FOUND");
+    expect(unmatchedUnknown?.amount).toBe(79000);
+
+    // 2. Hosted IPN with amount mismatch against real order
+    const mismatchEventId = "hosted-mismatch-" + randomUUID();
+    const mismatchPayload = {
+      notification_type: "ORDER_PAID",
+      order: {
+        order_invoice_number: order.invoiceNumber,
+        order_amount: "50000.00",
+        order_currency: "VND",
+        order_status: "CAPTURED",
+      },
+      transaction: {
+        transaction_id: mismatchEventId,
+        transaction_amount: "50000.00",
+        transaction_currency: "VND",
+        transaction_status: "APPROVED",
+        transaction_type: "PAYMENT",
+      },
+    };
+
+    const mismatchResult = await webhookService.handle({
+      rawBody: JSON.stringify(mismatchPayload),
+      secretHeader: "hosted-test-secret",
+      traceId: "trace-hosted-mismatch",
+    });
+    expect(mismatchResult).toEqual({ ok: true, value: { acknowledged: true, replayed: false } });
+
+    const unmatchedMismatch = (await database.select().from(commerceUnmatchedPayments))
+      .find((r) => r.providerEventId === mismatchEventId);
+    expect(unmatchedMismatch).toBeDefined();
+    expect(unmatchedMismatch?.reason).toBe("PAYMENT_AMOUNT_MISMATCH");
+    expect(unmatchedMismatch?.amount).toBe(50000);
+
+    // Real order remains pending
+    const orderCheck = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(orderCheck?.status).toBe("pending");
 
     await database.$client.end();
   }, 120_000);

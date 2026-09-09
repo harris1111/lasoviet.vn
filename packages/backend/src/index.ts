@@ -301,6 +301,15 @@ export type {
   ReportGenerationServiceResult,
 } from "./reports/report-generation.service.js";
 
+export {
+  CROCKFORD_ALPHABET,
+  calculatePaymentCodeChecksum,
+  extractSyntacticPaymentCodes,
+  extractValidPaymentCodes,
+  generatePaymentCode,
+  isValidPaymentCode,
+  normalizePaymentCodeInput,
+} from "./commerce/payment-code.js";
 export { createPaymentInstructions } from "./commerce/payment-instructions.js";
 export type { PaymentInstructions } from "./commerce/payment-instructions.js";
 export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js";
