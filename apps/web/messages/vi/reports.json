@@ -1,7 +1,7 @@
 {
   "auth_required": "Yêu cầu đăng nhập để xem báo cáo.",
   "report_not_found": "Không tìm thấy báo cáo.",
-  "identity": "Bản mệnh và tiềm năng",
+  "identity": "Luận giải Tử Vi toàn diện",
   "paymentDeferred": "SePay sẽ được mở ở bước tiếp theo.",
   "preview": {
     "eyebrow": "Xem trước miễn phí",
@@ -21,7 +21,7 @@
     "available": "Chủ đề đang mở",
     "comingSoon": "Sắp ra mắt",
     "inDevelopment": "Đang phát triển",
-    "lifetimeOfferTitle": "Luận giải Tử Vi trọn đời",
+    "lifetimeOfferTitle": "Luận giải Tử Vi toàn diện",
     "oneTime": "Thanh toán một lần · Không tự động gia hạn",
     "continuePayment": "Tiếp tục thanh toán",
     "viewSample": "Xem bản luận giải mẫu",
@@ -31,7 +31,7 @@
   },
   "checkout": {
     "eyebrow": "Thanh toán",
-    "title": "Luận giải bản mệnh",
+    "title": "Luận giải Tử Vi toàn diện",
     "action": "Đi tới SePay",
     "instructions_title": "Thông tin chuyển khoản",
     "bank_code": "Ngân hàng",

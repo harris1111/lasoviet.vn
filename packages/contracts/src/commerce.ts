@@ -19,8 +19,8 @@ export type EntitlementStatus = z.infer<typeof EntitlementStatusSchema>;
 
 export const PRODUCT_DISPLAY_NAMES: Record<CommerceSku, Record<"vi" | "en", string>> = {
   "ZIWEI-IDENTITY-P0": {
-    vi: "Bản mệnh & tiềm năng",
-    en: "Identity and potential",
+    vi: "Luận giải Tử Vi toàn diện",
+    en: "Comprehensive Zi Wei reading",
   },
 };
 

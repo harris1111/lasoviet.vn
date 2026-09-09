@@ -1,14 +1,14 @@
 {
   "auth_required": "Sign in required to view report.",
   "report_not_found": "Report not found.",
-  "identity": "Identity and potential",
+  "identity": "Comprehensive Zi Wei reading",
   "paymentDeferred": "SePay will open in the next step.",
   "preview": {
     "eyebrow": "Free preview",
     "title": "Three points to reflect on",
     "strength": "Strength",
     "tension": "Tension to observe",
-    "coverage": "This preview covers {percent}% of the {offer} reading."
+    "coverage": "This preview covers {percent}% of the {offer}."
   },
   "selection": {
     "eyebrow": "In-depth reading",
@@ -21,7 +21,7 @@
     "available": "Available topic",
     "comingSoon": "Coming soon",
     "inDevelopment": "In development",
-    "lifetimeOfferTitle": "Comprehensive Lifetime Zi Wei Reading",
+    "lifetimeOfferTitle": "Comprehensive Zi Wei reading",
     "oneTime": "One-time payment · No automatic renewal",
     "continuePayment": "Continue to payment",
     "viewSample": "View sample report",
@@ -31,7 +31,7 @@
   },
   "checkout": {
     "eyebrow": "Payment",
-    "title": "Identity reading",
+    "title": "Comprehensive Zi Wei reading",
     "action": "Continue to SePay",
     "instructions_title": "Bank transfer details",
     "bank_code": "Bank",

@@ -13,8 +13,8 @@ import {
 
 describe("commerce contracts", () => {
   it("resolves product titles according to locale", () => {
-    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Bản mệnh & tiềm năng");
-    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Identity and potential");
+    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Luận giải Tử Vi toàn diện");
+    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Comprehensive Zi Wei reading");
   });
 
   it("validates CommerceSkuSchema permits only the current first-paid-flow SKU", () => {

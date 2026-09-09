@@ -77,9 +77,9 @@ export default async function ZiweiChartResultPage({
         />
         <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
           <div className="result-paid-report-head">
-            <p className="eyebrow">{locale === "en" ? "Full Lifetime Report" : "Luận giải chuyên sâu trọn đời"}</p>
+            <p className="eyebrow">{locale === "en" ? "In-depth interpretation" : "Luận giải chuyên sâu"}</p>
             <h2 id="paid-report-cta-heading">
-              {locale === "en" ? "Life Potential & Destiny Report" : "Báo cáo luận giải Bản mệnh & Tiềm năng"}
+              {locale === "en" ? "Comprehensive Zi Wei reading" : "Luận giải Tử Vi toàn diện"}
             </h2>
             <div className="result-paid-report-pricing">
               <span className="topic-price">{locale === "en" ? "79,000 VND" : "79.000 ₫"}</span>

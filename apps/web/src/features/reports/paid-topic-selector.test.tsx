@@ -4,12 +4,15 @@ vi.mock("server-only", () => ({}));
 import { renderToStaticMarkup } from "react-dom/server";
 import type { PaidTopicSelectionViewV1 } from "@lasoviet/contracts";
 
+let mockLocale = "vi";
 vi.mock("next-intl", async () => {
   const viMessages = (await import("../../../messages/vi/reports.json")).default;
+  const enMessages = (await import("../../../messages/en/reports.json")).default;
   return {
     useTranslations: (namespace?: string) => {
       return (key: string, values?: Record<string, unknown>) => {
-        let val: unknown = viMessages;
+        const messages = mockLocale === "en" ? enMessages : viMessages;
+        let val: unknown = messages;
         for (const segment of key.split(".")) {
           val = (val as Record<string, unknown>)?.[segment];
         }
@@ -61,7 +64,7 @@ describe("PaidTopicSelector", () => {
 
     // Layer 2: Topics in fixed research-backed order
     expect(html).toContain("Chủ đề luận giải Tử Vi");
-    expect(html).toContain("Luận giải Tử Vi trọn đời");
+    expect(html).toContain("Luận giải Tử Vi toàn diện");
     expect(html).toContain("Tình duyên &amp; Hôn nhân");
     expect(html).toContain("Công danh &amp; Tài lộc");
     expect(html).toContain("Vận trình năm &amp; Lưu niên");
@@ -72,9 +75,60 @@ describe("PaidTopicSelector", () => {
     expect(html).toContain("Tiếp tục thanh toán");
     expect(html).toContain("/bao-cao-mau/tu-vi");
 
+    // Deliverables required by WP-05
+    expect(html).toContain("toàn bộ 12 cung vị");
+    expect(html).toContain("cấu trúc lá số trọng điểm");
+    expect(html).toContain("Bốn cụm tổng hợp chủ đề");
+    expect(html).toContain("định hướng thực tế");
+    expect(html).toContain("2.200–3.200 chữ tiếng Việt");
+
+    // Active offer card exclusions
+    const activeCardMatch = html.match(/<article[^>]*data-testid="topic-lifetime-active"[^>]*>([\s\S]*?)<\/article>/);
+    expect(activeCardMatch).not.toBeNull();
+    const activeCardHtml = activeCardMatch?.[1] ?? "";
+    expect(activeCardHtml).not.toContain("vận trình thời gian");
+    expect(activeCardHtml).not.toContain("trọn đời");
+    expect(activeCardHtml).not.toContain("đại vận");
+    expect(activeCardHtml).not.toContain("lưu niên");
+    expect(activeCardHtml).not.toContain("dự báo");
+
+    // No raw internal SKU leaked in active UI
+    expect(html).not.toContain("ZIWEI-IDENTITY-P0");
+    expect(html).not.toMatch(/ZIWEI-[A-Z]+/);
+
+    // Discipline overview does not promise time forecasting
+    const disciplineMatch = html.match(/<div[^>]*data-testid="disciplines-layer"[^>]*>([\s\S]*?)<\/div>/);
+    expect(disciplineMatch).not.toBeNull();
+    const disciplineHtml = disciplineMatch?.[1] ?? "";
+    expect(disciplineHtml).not.toContain("vận trình thời gian");
+
     // Disabled topics have no submit buttons
     const submitMatches = (html.match(/type="submit"/g) || []).length;
     expect(submitMatches).toBe(1); // Only the active offer has a submit button
+
+    // Coming-soon annual topic is clearly disabled and retains its own description
+    const annualMatch = html.match(/<article[^>]*data-testid="topic-annual-disabled"[^>]*>([\s\S]*?)<\/article>/);
+    expect(annualMatch).not.toBeNull();
+    const annualHtml = annualMatch?.[1] ?? "";
+    expect(annualHtml).toContain("Vận trình năm &amp; Lưu niên");
+    expect(annualHtml).not.toContain("type=\"submit\"");
+  });
+
+  it("renders English offer title and equivalent scope without promising V3 delivery", () => {
+    mockLocale = "en";
+    try {
+      const html = renderToStaticMarkup(
+        <PaidTopicSelector locale="en" topics={mockTopics} />,
+      );
+      expect(html).toContain("Comprehensive Zi Wei reading");
+      expect(html).toContain("all 12 natal palaces");
+      expect(html).toContain("Key chart configurations");
+      expect(html).toContain("Four thematic syntheses");
+      expect(html).toContain("Actionable practical direction");
+      expect(html).not.toContain("2.200");
+    } finally {
+      mockLocale = "vi";
+    }
   });
 
   it("personalizes heading when birthSummary has displayName", () => {

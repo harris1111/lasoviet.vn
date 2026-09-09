@@ -39,8 +39,8 @@ export function PaidTopicSelector({
       badge: t("selection.available"),
       description:
         locale === "vi"
-          ? "Hệ thống 12 cung số phản chiếu cấu trúc bản mệnh, các trục tương tác và vận trình thời gian."
-          : "Twelve-palace system reflecting core temperament, dynamic axes, and life unfolding.",
+          ? "Hệ thống 12 cung số phản chiếu cấu trúc bản mệnh và các trục tương tác đa chiều."
+          : "Twelve-palace system reflecting natal structure and multi-dimensional palace interactions.",
     },
     {
       id: "bazi",
@@ -153,25 +153,35 @@ export function PaidTopicSelector({
 
             <p className="topic-summary-prose">
               {locale === "vi"
-                ? "Báo cáo luận giải chuyên sâu toàn diện bức tranh vận mệnh trọn đời dựa trên dữ liệu lá số Tử Vi đã lập."
-                : "A comprehensive in-depth interpretation report synthesizing your full life orientation from calculated chart facts."}
+                ? "Báo cáo luận giải cấu trúc bản mệnh toàn diện đối chiếu từ dữ liệu lá số Tử Vi, mang tính chiêm nghiệm và định hướng thực tế."
+                : "A comprehensive natal structural interpretation report synthesizing key configurations and palace interactions from verified chart data."}
             </p>
 
             <ul className="topic-deliverables-list">
               <li>
                 {locale === "vi"
-                  ? "Luận giải chi tiết toàn diện tất cả 12 cung số và vị trí các tinh đẩu"
-                  : "Exhaustive interpretation across all 12 palaces and star positions"}
+                  ? "Luận giải chi tiết toàn bộ 12 cung vị và tương tác tinh đẩu"
+                  : "Detailed interpretation covering all 12 natal palaces and star interactions"}
               </li>
               <li>
                 {locale === "vi"
-                  ? "Phân tích tổng hợp tương tác tam phương tứ chính và trục Mệnh - Thân"
-                  : "Cross-palace synthesis of trines, opposition, and foundational axes"}
+                  ? "Nhận diện cấu trúc lá số trọng điểm và tổng hợp đối chiếu liên cung, tam phương tứ chính"
+                  : "Key chart configurations and cross-palace synthesis across trines and oppositions"}
               </li>
               <li>
                 {locale === "vi"
-                  ? "Gợi ý định hướng thực tế và điểm lưu tâm bình tĩnh rèn luyện bản thân"
-                  : "Grounding practical directions and points for mindful self-cultivation"}
+                  ? "Bốn cụm tổng hợp chủ đề: sự nghiệp - tài lộc, tình duyên - gia đạo, môi trường xã hội và nội lực tâm lý"
+                  : "Four thematic syntheses: career and wealth, relationship and family, social sphere, and inner wellbeing"}
+              </li>
+              <li>
+                {locale === "vi"
+                  ? "Gợi ý định hướng thực tế và điểm lưu tâm để tự rèn luyện bản thân"
+                  : "Actionable practical direction and personal development guidance"}
+              </li>
+              <li>
+                {locale === "vi"
+                  ? "Độ dài hoàn chỉnh 2.200–3.200 chữ tiếng Việt chuyên sâu"
+                  : "Structured multi-section report synthesizing core natal chart structure"}
               </li>
             </ul>
 

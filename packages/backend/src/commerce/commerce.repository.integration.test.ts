@@ -366,7 +366,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
 
     const item = library.items[0]!;
     expect(item.orderId).toBe(created.value.id);
-    expect(item.productTitle).toBe("Bản mệnh & tiềm năng");
+    expect(item.productTitle).toBe("Luận giải Tử Vi toàn diện");
     expect(item.sku).toBe("ZIWEI-IDENTITY-P0");
     expect(item.orderStatus).toBe("paid");
     expect(item.entitlementStatus).toBe("active");
