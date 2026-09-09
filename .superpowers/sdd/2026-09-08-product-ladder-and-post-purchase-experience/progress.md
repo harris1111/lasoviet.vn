@@ -110,3 +110,9 @@
   - Terra scoped re-review returned `APPROVED` with no remaining Critical or Important findings.
   - Focused verification passed: database/backend builds, worker typecheck, 70 alert/report tests, 31 correction integration tests, and clean `git diff --check`.
   - WP-06 provider-independent implementation is complete. Live Telegram activation and external smoke remain deferred until the founder supplies `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
+- WP-07 purchase selection and ownership flow completed and Terra-approved:
+  - Implementation landed in commit `0361a40`.
+  - Added server-only public offer mapping, ownership-aware read/progress/library states, safe intent-preserving auth callbacks, compatibility handling for `ENTITLEMENT_EXISTS`, and real PostgreSQL ten-call pending-order reuse coverage.
+  - Reserved offers remain unpurchasable and no `ZIWEI-*` SKU reaches browser-visible UI, hidden inputs, URLs, or callbacks.
+  - Terra returned `APPROVED` with no Critical or Important findings.
+  - Focused verification passed: contracts/backend builds, web typecheck and production build, 64 focused tests, and clean `git diff --check`.
