@@ -8,9 +8,12 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("CheckoutPurchaseForm", () => {
+  const action = async () => ({ status: "idle" as const });
+
   it("renders initial purchase CTA and sample-report link in idle state", () => {
     const html = renderToStaticMarkup(
       <CheckoutPurchaseForm
+        action={action}
         chartId="chart-1"
         locale="vi"
         sampleHref="/bao-cao-mau/tu-vi"
@@ -30,6 +33,7 @@ describe("CheckoutPurchaseForm", () => {
   it("renders localized English purchase CTA and sample link when locale is en", () => {
     const html = renderToStaticMarkup(
       <CheckoutPurchaseForm
+        action={action}
         chartId="chart-1"
         locale="en"
         sampleHref="/en/bao-cao-mau/tu-vi"
@@ -45,6 +49,7 @@ describe("CheckoutPurchaseForm", () => {
   it("renders inline paused state with warning, retry button, and sample link when status is paused", () => {
     const html = renderToStaticMarkup(
       <CheckoutPurchaseForm
+        action={action}
         chartId="chart-1"
         locale="vi"
         sampleHref="/bao-cao-mau/tu-vi"
@@ -63,6 +68,7 @@ describe("CheckoutPurchaseForm", () => {
   it("renders English paused copy when locale is en and status is paused", () => {
     const html = renderToStaticMarkup(
       <CheckoutPurchaseForm
+        action={action}
         chartId="chart-1"
         locale="en"
         sampleHref="/en/bao-cao-mau/tu-vi"
@@ -79,6 +85,7 @@ describe("CheckoutPurchaseForm", () => {
   it("excludes internal metrics, circuit reason codes, and operational SLAs from markup", () => {
     const html = renderToStaticMarkup(
       <CheckoutPurchaseForm
+        action={action}
         chartId="chart-1"
         locale="vi"
         sampleHref="/bao-cao-mau/tu-vi"
@@ -96,6 +103,7 @@ describe("CheckoutPurchaseForm", () => {
   it("accepts custom offerKey and renders it in hidden field without exposing technical SKU", () => {
     const html = renderToStaticMarkup(
       <CheckoutPurchaseForm
+        action={action}
         chartId="chart-1"
         locale="vi"
         offerKey="ziwei-comprehensive"

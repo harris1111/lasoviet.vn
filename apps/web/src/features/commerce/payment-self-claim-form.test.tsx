@@ -8,9 +8,12 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("PaymentSelfClaimForm", () => {
+  const action = async () => ({ status: "idle" as const });
+
   it("renders default amount, minute-precision datetime control, Vietnamese-time label, and accessible result region", () => {
     const html = renderToStaticMarkup(
       <PaymentSelfClaimForm
+        action={action}
         orderId="order-123"
         defaultAmount={79000}
         locale="vi"
@@ -31,6 +34,7 @@ describe("PaymentSelfClaimForm", () => {
   it("renders English copy when locale is en", () => {
     const html = renderToStaticMarkup(
       <PaymentSelfClaimForm
+        action={action}
         orderId="order-123"
         defaultAmount={79000}
         locale="en"
@@ -46,6 +50,7 @@ describe("PaymentSelfClaimForm", () => {
   it("renders generic not-found message without disclosing whether unmatched records exist", () => {
     const html = renderToStaticMarkup(
       <PaymentSelfClaimForm
+        action={action}
         orderId="order-123"
         defaultAmount={79000}
         locale="vi"
@@ -62,6 +67,7 @@ describe("PaymentSelfClaimForm", () => {
   it("renders rate limited message when status is rate_limited", () => {
     const html = renderToStaticMarkup(
       <PaymentSelfClaimForm
+        action={action}
         orderId="order-123"
         defaultAmount={79000}
         locale="vi"
@@ -75,6 +81,7 @@ describe("PaymentSelfClaimForm", () => {
   it("renders invalid input message when status is invalid_input", () => {
     const html = renderToStaticMarkup(
       <PaymentSelfClaimForm
+        action={action}
         orderId="order-123"
         defaultAmount={79000}
         locale="vi"
@@ -88,6 +95,7 @@ describe("PaymentSelfClaimForm", () => {
   it("excludes AI, methodology, confidence, and limitation disclosures from visible copy", () => {
     const html = renderToStaticMarkup(
       <PaymentSelfClaimForm
+        action={action}
         orderId="order-123"
         defaultAmount={79000}
         locale="vi"

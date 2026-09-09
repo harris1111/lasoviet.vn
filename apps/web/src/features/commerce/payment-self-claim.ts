@@ -1,5 +1,3 @@
-"use server";
-
 import { redirect } from "next/navigation";
 import {
   PaymentSelfClaimRequestV1Schema,
@@ -66,6 +64,8 @@ export async function submitPaymentSelfClaim(
   arg1: PaymentSelfClaimState | FormData,
   arg2?: FormData,
 ): Promise<PaymentSelfClaimState> {
+  "use server";
+
   const formData = arg1 instanceof FormData ? arg1 : (arg2 ?? new FormData());
 
   const rawLocale = formData.get("locale");

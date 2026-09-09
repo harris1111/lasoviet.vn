@@ -7,6 +7,7 @@ import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
 } from "../../../../auth/resolve-current-actor";
+import { submitPaymentSelfClaim } from "../../../../features/commerce/payment-self-claim";
 import { safeParseCheckoutStatus } from "../../../../features/commerce/checkout-status";
 import { PaymentSelfClaimForm } from "../../../../features/commerce/payment-self-claim-form";
 import { VietQrCheckout } from "../../../../features/commerce/vietqr-checkout";
@@ -103,6 +104,7 @@ export default async function CheckoutPage({
                 orderId={order.id}
                 defaultAmount={order.amount}
                 locale={order.locale}
+                action={submitPaymentSelfClaim}
                 labels={{
                   heading: t("checkout.selfClaim.heading"),
                   description: t("checkout.selfClaim.description"),

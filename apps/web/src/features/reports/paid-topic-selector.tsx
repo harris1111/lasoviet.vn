@@ -39,6 +39,7 @@ import type {
 } from "@lasoviet/contracts";
 import { useTranslations } from "next-intl";
 
+import { createCheckoutOrderAction } from "../commerce/create-checkout-order";
 import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { CheckoutPurchaseForm } from "../commerce/checkout-purchase-form";
 import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
@@ -319,6 +320,12 @@ export function PaidTopicSelector({
                 </div>
               ) : (
                 <CheckoutPurchaseForm
+                  action={createCheckoutOrderAction.bind(
+                    null,
+                    topics.chartId,
+                    locale,
+                    offer.offerKey,
+                  )}
                   chartId={topics.chartId}
                   locale={locale}
                   offerKey={offer.offerKey}

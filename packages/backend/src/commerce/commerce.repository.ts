@@ -665,31 +665,6 @@ export function createDatabaseCommerceRepository(
         const lockKey = `commerce:chart:${chartId}`;
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
-        const [existingDiffLocaleReservation] = await transaction
-          .select({ id: reportReservations.id, locale: reportReservations.locale })
-          .from(commerceEntitlements)
-          .innerJoin(
-            reportReservations,
-            eq(reportReservations.entitlementId, commerceEntitlements.id),
-          )
-          .innerJoin(
-            commerceOrders,
-            eq(commerceOrders.id, commerceEntitlements.orderId),
-          )
-          .where(
-            and(
-              eq(commerceEntitlements.chartId, chartId),
-              eq(commerceEntitlements.ownerId, actor.userId),
-              ne(commerceOrders.status, "refunded"),
-              ne(reportReservations.locale, selectedLocale),
-            ),
-          )
-          .limit(1);
-
-        if (existingDiffLocaleReservation !== undefined) {
-          return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
-        }
-
         if (product.sku === "ZIWEI-NATAL-EXCERPT-P0") {
           const [tier2Entitlement] = await transaction
             .select({ id: commerceEntitlements.id })
@@ -734,6 +709,31 @@ export function createDatabaseCommerceRepository(
         const paidOrder = existingOrders.find((o) => o.status === "paid");
         if (paidOrder !== undefined) {
           return { ok: true as const, value: paidOrder, reused: true };
+        }
+
+        const [existingDiffLocaleReservation] = await transaction
+          .select({ id: reportReservations.id, locale: reportReservations.locale })
+          .from(commerceEntitlements)
+          .innerJoin(
+            reportReservations,
+            eq(reportReservations.entitlementId, commerceEntitlements.id),
+          )
+          .innerJoin(
+            commerceOrders,
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, chartId),
+              eq(commerceEntitlements.ownerId, actor.userId),
+              ne(commerceOrders.status, "refunded"),
+              ne(reportReservations.locale, selectedLocale),
+            ),
+          )
+          .limit(1);
+
+        if (existingDiffLocaleReservation !== undefined) {
+          return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
         }
 
         const refundedOrder = existingOrders.find((o) => o.status === "refunded");

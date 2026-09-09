@@ -1,5 +1,3 @@
-"use server";
-
 import { redirect } from "next/navigation";
 
 import {
@@ -122,6 +120,8 @@ export async function createCheckoutOrderAction(
   arg4?: FormData | CheckoutPurchaseState,
   _arg5?: FormData,
 ): Promise<CheckoutPurchaseState> {
+  "use server";
+
   let chartId = "";
   let locale = "vi";
   let offerKey: string = DEFAULT_PUBLIC_OFFER_KEY;

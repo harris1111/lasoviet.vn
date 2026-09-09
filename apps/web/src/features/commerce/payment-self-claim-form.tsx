@@ -2,11 +2,22 @@
 
 import { useActionState } from "react";
 
-import {
-  INITIAL_PAYMENT_SELF_CLAIM_STATE,
-  submitPaymentSelfClaim,
-  type PaymentSelfClaimState,
-} from "./payment-self-claim";
+export type PaymentSelfClaimStatus =
+  | "idle"
+  | "invalid_input"
+  | "payment_not_found"
+  | "rate_limited"
+  | "service_unavailable";
+
+export type PaymentSelfClaimState = {
+  status: PaymentSelfClaimStatus;
+  code?: PaymentSelfClaimStatus;
+  message?: string;
+};
+
+export const INITIAL_PAYMENT_SELF_CLAIM_STATE: PaymentSelfClaimState = {
+  status: "idle",
+};
 
 export type PaymentSelfClaimFormLabels = {
   heading?: string;
@@ -27,7 +38,7 @@ export type PaymentSelfClaimFormProps = {
   orderId: string;
   defaultAmount: number;
   locale: "vi" | "en";
-  action?: (
+  action: (
     state: PaymentSelfClaimState,
     formData: FormData,
   ) => Promise<PaymentSelfClaimState>;
@@ -105,7 +116,7 @@ export function PaymentSelfClaimForm({
   };
 
   const [state, formAction, isPending] = useActionState(
-    action ?? submitPaymentSelfClaim,
+    action,
     initialState ?? INITIAL_PAYMENT_SELF_CLAIM_STATE,
   );
 

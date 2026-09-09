@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
-import {
-  createCheckoutOrderAction,
-  INITIAL_CHECKOUT_PURCHASE_STATE,
-  type CheckoutPurchaseState,
-} from "./create-checkout-order";
+export type CheckoutPurchaseState = {
+  status: "idle" | "paused";
+};
+
+export const INITIAL_CHECKOUT_PURCHASE_STATE: CheckoutPurchaseState = {
+  status: "idle",
+};
 
 export type CheckoutPurchaseLabels = {
   continuePayment?: string;
@@ -23,9 +25,9 @@ export type CheckoutPurchaseFormProps = {
   sampleHref: string;
   offerKey?: string;
   labels?: CheckoutPurchaseLabels;
-  action?: (
+  action: (
     state: CheckoutPurchaseState,
-    formData?: FormData,
+    formData: FormData,
   ) => Promise<CheckoutPurchaseState>;
   initialState?: CheckoutPurchaseState;
 };
@@ -64,11 +66,8 @@ export function CheckoutPurchaseForm({
   };
 
   const resolvedOfferKey = offerKey ?? "ziwei-comprehensive";
-  const boundAction =
-    action ??
-    createCheckoutOrderAction.bind(null, chartId, locale, resolvedOfferKey);
   const [state, formAction, isPending] = useActionState(
-    boundAction,
+    action,
     initialState ?? INITIAL_CHECKOUT_PURCHASE_STATE,
   );
 
