@@ -18,6 +18,7 @@ import {
   birthProfiles,
   calculationRuns,
   commerceEntitlements,
+  commerceAlertDeliveries,
   commerceOrders,
   commercePaymentEvents,
   createDatabase,
@@ -3395,4 +3396,131 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     await database.$client.end();
   });
 
+
+  it("atomically creates one pending report_terminal_failure delivery with bounded payload, prevents replay duplicates, and enforces atomic rollback on conflict", async () => {
+    const database = createDatabase(databaseUrl);
+    const reportService = createReportService(database);
+    const fixture = await seedFullOrchestrationFixture(database, "terminal-alert-atomicity", {
+      jobLeaseStatus: "leased",
+      reservationStatus: "generating",
+      leasedBy: "worker-term-alert-1",
+      leasedUntil: new Date(Date.now() + 60_000),
+    });
+
+    const [orderBefore] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, fixture.orderId));
+    const [paymentBefore] = await database.select().from(commercePaymentEvents).where(eq(commercePaymentEvents.orderId, fixture.orderId));
+
+    // 1. Terminal failure transition
+    const termResult = await reportService.recordTerminalFailure({
+      reportVersionId: fixture.reportVersionId,
+      jobId: fixture.jobId,
+      workerId: "worker-term-alert-1",
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failureStage: "generation",
+    });
+    expect(termResult).toEqual({ ok: true });
+
+    // Verify reservation transitioned
+    const [res] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportVersionId, fixture.reportVersionId));
+    expect(res?.status).toBe("terminal_failure");
+    expect(res?.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+
+    // Verify exactly one pending commerce_alert_deliveries row created atomically
+    const failureToken = createHash("sha256")
+      .update(`${fixture.reportVersionId}::${fixture.jobId}::generation`)
+      .digest("hex");
+    const expectedIdempotencyKey = `report-terminal-failure:${failureToken}`;
+
+    const alertRows = await database
+      .select()
+      .from(commerceAlertDeliveries)
+      .where(eq(commerceAlertDeliveries.idempotencyKey, expectedIdempotencyKey));
+    expect(alertRows).toHaveLength(1);
+
+    const alert = alertRows[0];
+    expect(alert.alertKind).toBe("report_terminal_failure");
+    expect(alert.status).toBe("pending");
+    expect(alert.leaseToken).toBeNull();
+    expect(alert.sentAt).toBeNull();
+    expect(alert.payload).toEqual({
+      reportVersionId: fixture.reportVersionId,
+      failureStage: "generation",
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failedAt: expect.any(String),
+      idempotencyKey: expectedIdempotencyKey,
+    });
+
+    // Verify strictly bounded payload (no customer PII, credentials, or prompt)
+    const payloadStr = JSON.stringify(alert.payload);
+    expect(payloadStr).not.toContain("customer");
+    expect(payloadStr).not.toContain("example.test");
+    expect(payloadStr).not.toContain("Orchestration Test User");
+    expect(payloadStr).not.toContain("chart");
+    expect(payloadStr).not.toContain("ziwei");
+
+    // 2. Replay with the same parameters fails with WORKFLOW_STATE_CONFLICT without duplicate alert
+    const replayResult = await reportService.recordTerminalFailure({
+      reportVersionId: fixture.reportVersionId,
+      jobId: fixture.jobId,
+      workerId: "worker-term-alert-1",
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failureStage: "generation",
+    });
+    expect(replayResult.ok).toBe(false);
+    expect(["LEASE_LOST", "WORKFLOW_STATE_CONFLICT"]).toContain(replayResult.code);
+
+    const alertRowsAfterReplay = await database
+      .select()
+      .from(commerceAlertDeliveries)
+      .where(eq(commerceAlertDeliveries.idempotencyKey, expectedIdempotencyKey));
+    expect(alertRowsAfterReplay).toHaveLength(1);
+
+    // 3. Conflict case: lease/state conflict commits neither a terminal transition nor an alert
+    const conflictFixture = await seedFullOrchestrationFixture(database, "terminal-alert-conflict", {
+      jobLeaseStatus: "leased",
+      reservationStatus: "generating",
+      leasedBy: "legitimate-worker",
+      leasedUntil: new Date(Date.now() + 60_000),
+    });
+
+    const staleWorkerResult = await reportService.recordTerminalFailure({
+      reportVersionId: conflictFixture.reportVersionId,
+      jobId: conflictFixture.jobId,
+      workerId: "stale-worker-impostor",
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failureStage: "generation",
+    });
+    expect(staleWorkerResult).toEqual({ ok: false, code: "LEASE_LOST" });
+
+    const conflictFailureToken = createHash("sha256")
+      .update(`${conflictFixture.reportVersionId}::${conflictFixture.jobId}::generation`)
+      .digest("hex");
+    const conflictAlertRows = await database
+      .select()
+      .from(commerceAlertDeliveries)
+      .where(
+        eq(
+          commerceAlertDeliveries.idempotencyKey,
+          `report-terminal-failure:${conflictFailureToken}`,
+        ),
+      );
+    expect(conflictAlertRows).toHaveLength(0);
+
+    const [unmodifiedRes] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportVersionId, conflictFixture.reportVersionId));
+    expect(unmodifiedRes?.status).toBe("generating");
+
+    // 10. Verify no commerce orders or payments were mutated
+    const [orderAfter] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, fixture.orderId));
+    const [paymentAfter] = await database.select().from(commercePaymentEvents).where(eq(commercePaymentEvents.orderId, fixture.orderId));
+    expect(orderAfter).toEqual(orderBefore);
+    expect(paymentAfter).toEqual(paymentBefore);
+
+    await database.$client.end();
+  });
 });

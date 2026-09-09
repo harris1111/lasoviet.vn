@@ -14,6 +14,15 @@ export type CircuitOpenAlertPayload = {
   staleCount?: number;
 };
 
+
+export type ReportTerminalFailureAlertPayload = {
+  reportVersionId: string;
+  failureStage: string;
+  errorCode: string;
+  failedAt: Date | string;
+  idempotencyKey: string;
+};
+
 export type TelegramAlertResult =
   | { status: "delivered" }
   | { status: "unconfigured" }
@@ -30,6 +39,7 @@ export type TelegramAlertProvider = {
   isConfigured(): boolean;
   sendStalePaymentAlert(payload: StalePaymentAlertPayload): Promise<TelegramAlertResult>;
   sendCircuitOpenAlert(payload: CircuitOpenAlertPayload): Promise<TelegramAlertResult>;
+  sendReportTerminalFailureAlert(payload: ReportTerminalFailureAlertPayload): Promise<TelegramAlertResult>;
 };
 
 function formatStalePaymentMessage(payload: StalePaymentAlertPayload): string {
@@ -67,6 +77,24 @@ function formatCircuitOpenMessage(payload: CircuitOpenAlertPayload): string {
     lines.push(`- Giao dich treo >6h: ${payload.staleCount}`);
   }
   return lines.join("\n");
+}
+
+
+function formatReportTerminalFailureMessage(
+  payload: ReportTerminalFailureAlertPayload,
+): string {
+  const failedStr =
+    payload.failedAt instanceof Date
+      ? payload.failedAt.toISOString()
+      : new Date(payload.failedAt).toISOString();
+  return [
+    "[LA SO VIET] Canh bao sinh bao cao that bai (TERMINAL FAILURE)",
+    `- Ma phien ban bao cao: ${payload.reportVersionId}`,
+    `- Giai doan loi: ${payload.failureStage}`,
+    `- Ma loi: ${payload.errorCode}`,
+    `- Thoi diem: ${failedStr}`,
+    `- Idempotency key: ${payload.idempotencyKey}`,
+  ].join("\n");
 }
 
 export function createTelegramAlertProvider(
@@ -130,6 +158,9 @@ export function createTelegramAlertProvider(
     },
     async sendCircuitOpenAlert(payload) {
       return postMessage(formatCircuitOpenMessage(payload));
+    },
+    async sendReportTerminalFailureAlert(payload) {
+      return postMessage(formatReportTerminalFailureMessage(payload));
     },
   };
 }

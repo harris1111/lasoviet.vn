@@ -808,4 +808,169 @@ describe("reconciliation operations and circuit breaker", () => {
     expect(finalDelivery.sentAt).not.toBeNull();
     expect(finalDelivery.leaseToken).toBeNull();
   });
+
+  it("claims, sends, and marks report_terminal_failure alerts with lease fencing, preventing stale claimant overwrite", async () => {
+    const deliveryId = randomUUID();
+    const idempotencyKey = "test-terminal-reclaim-" + randomUUID();
+    let frozenTime = new Date("2026-09-08T11:00:00.000Z");
+
+    await database.insert(commerceAlertDeliveries).values({
+      id: deliveryId,
+      idempotencyKey,
+      alertKind: "report_terminal_failure",
+      payload: {
+        reportVersionId: "ver-terminal-fenced",
+        failureStage: "generation",
+        errorCode: "JOB_RETRY_EXHAUSTED",
+        failedAt: frozenTime.toISOString(),
+        idempotencyKey,
+      },
+      status: "pending",
+      createdAt: frozenTime,
+      updatedAt: frozenTime,
+    });
+
+    const mockFetchB = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const telegramB = createTelegramAlertProvider({
+      botToken: "token-b",
+      chatId: "chat-b",
+      fetch: mockFetchB as never,
+    });
+    const opsB = createReconciliationOperations({
+      database,
+      telegramAlert: telegramB,
+      now: () => frozenTime,
+    });
+
+    const mockFetchA = vi.fn().mockImplementation(async () => {
+      // Advance frozen time past the 60s lease to simulate expired lease
+      frozenTime = new Date("2026-09-08T11:02:00.000Z");
+
+      const bResult = await opsB.dispatchPendingAlerts("report_terminal_failure");
+      expect(bResult.delivered).toBe(1);
+
+      const [midDelivery] = await database
+        .select()
+        .from(commerceAlertDeliveries)
+        .where(eq(commerceAlertDeliveries.id, deliveryId));
+      expect(midDelivery.status).toBe("sent");
+      expect(midDelivery.leaseToken).toBeNull();
+
+      return { ok: false, status: 502 };
+    });
+
+    const telegramA = createTelegramAlertProvider({
+      botToken: "token-a",
+      chatId: "chat-a",
+      fetch: mockFetchA as never,
+    });
+    const opsA = createReconciliationOperations({
+      database,
+      telegramAlert: telegramA,
+      now: () => frozenTime,
+    });
+
+    const aResult = await opsA.dispatchPendingAlerts("report_terminal_failure");
+    expect(aResult.failed).toBe(1);
+
+    const [finalDelivery] = await database
+      .select()
+      .from(commerceAlertDeliveries)
+      .where(eq(commerceAlertDeliveries.id, deliveryId));
+
+    expect(finalDelivery.status).toBe("sent");
+    expect(finalDelivery.lastError).toBeNull();
+    expect(finalDelivery.sentAt).not.toBeNull();
+    expect(finalDelivery.leaseToken).toBeNull();
+
+    // Verify Telegram payload formatting received by Runner B
+    const requestBody = JSON.parse(mockFetchB.mock.calls[0][1].body);
+    expect(requestBody.text).toContain("[LA SO VIET] Canh bao sinh bao cao that bai (TERMINAL FAILURE)");
+    expect(requestBody.text).toContain("ver-terminal-fenced");
+    expect(requestBody.text).toContain("JOB_RETRY_EXHAUSTED");
+    expect(requestBody.text).toContain("generation");
+    expect(requestBody.text).toContain(idempotencyKey);
+  });
+
+  it("leaves report_terminal_failure alerts pending when Telegram is unconfigured", async () => {
+    const deliveryId = randomUUID();
+    const idempotencyKey = "test-terminal-unconfigured-" + randomUUID();
+    const now = new Date("2026-09-08T11:30:00.000Z");
+
+    await database.insert(commerceAlertDeliveries).values({
+      id: deliveryId,
+      idempotencyKey,
+      alertKind: "report_terminal_failure",
+      payload: {
+        reportVersionId: "ver-unconfigured",
+        failureStage: "generation",
+        errorCode: "AI_TIMEOUT",
+        failedAt: now.toISOString(),
+        idempotencyKey,
+      },
+      status: "pending",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const unconfiguredOps = createReconciliationOperations({
+      database,
+      telegramAlert: createTelegramAlertProvider({}),
+      now: () => now,
+    });
+
+    const result = await unconfiguredOps.dispatchPendingAlerts("report_terminal_failure");
+    expect(result).toEqual({ delivered: 0, failed: 0, unconfigured: true });
+
+    const [persisted] = await database
+      .select()
+      .from(commerceAlertDeliveries)
+      .where(eq(commerceAlertDeliveries.id, deliveryId));
+    expect(persisted.status).toBe("pending");
+    expect(persisted.sentAt).toBeNull();
+  });
+
+  it("maintenance run dispatches pending report_terminal_failure alerts", async () => {
+    const deliveryId = randomUUID();
+    const idempotencyKey = "test-terminal-maint-" + randomUUID();
+    const now = new Date("2026-09-08T12:00:00.000Z");
+
+    await database.insert(commerceAlertDeliveries).values({
+      id: deliveryId,
+      idempotencyKey,
+      alertKind: "report_terminal_failure",
+      payload: {
+        reportVersionId: "ver-maint",
+        failureStage: "validation",
+        errorCode: "REPORT_VALIDATION_FAILED",
+        failedAt: now.toISOString(),
+        idempotencyKey,
+      },
+      status: "pending",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const telegram = createTelegramAlertProvider({
+      botToken: "token-maint",
+      chatId: "chat-maint",
+      fetch: mockFetch as never,
+    });
+
+    const ops = createReconciliationOperations({
+      database,
+      telegramAlert: telegram,
+      now: () => now,
+    });
+
+    await ops.runMaintenance();
+
+    const [persisted] = await database
+      .select()
+      .from(commerceAlertDeliveries)
+      .where(eq(commerceAlertDeliveries.id, deliveryId));
+    expect(persisted.status).toBe("sent");
+    expect(persisted.sentAt).not.toBeNull();
+  });
 });

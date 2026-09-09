@@ -156,4 +156,84 @@ describe("TelegramAlertProvider", () => {
     });
     expect(JSON.stringify(result)).not.toContain("super-secret-token");
   });
+
+  it("returns unconfigured for report terminal failure when credentials are absent", async () => {
+    const unconfigured = createTelegramAlertProvider({});
+    const res = await unconfigured.sendReportTerminalFailureAlert({
+      reportVersionId: "rep-ver-123",
+      failureStage: "generation",
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failedAt: new Date("2026-09-08T12:00:00.000Z"),
+      idempotencyKey: "report-terminal-failure:token-123",
+    });
+    expect(res).toEqual({ status: "unconfigured" });
+  });
+
+  it("sends report terminal failure alert with only bounded operational fields when configured", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+    });
+    const provider = createTelegramAlertProvider({
+      botToken: "synthetic-token-12345",
+      chatId: "-1001234567890",
+      fetch: mockFetch as never,
+    });
+
+    const result = await provider.sendReportTerminalFailureAlert({
+      reportVersionId: "rep-ver-123",
+      failureStage: "generation",
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failedAt: new Date("2026-09-08T12:00:00.000Z"),
+      idempotencyKey: "report-terminal-failure:token-123",
+    });
+
+    expect(result).toEqual({ status: "delivered" });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    const [url, requestInit] = mockFetch.mock.calls[0];
+    expect(url).toBe("https://api.telegram.org/botsynthetic-token-12345/sendMessage");
+    expect(requestInit.method).toBe("POST");
+    expect(requestInit.headers).toEqual({ "Content-Type": "application/json" });
+
+    const body = JSON.parse(requestInit.body);
+    expect(body.chat_id).toBe("-1001234567890");
+    expect(body.text).toContain("[LA SO VIET] Canh bao sinh bao cao that bai (TERMINAL FAILURE)");
+    expect(body.text).toContain("rep-ver-123");
+    expect(body.text).toContain("generation");
+    expect(body.text).toContain("JOB_RETRY_EXHAUSTED");
+    expect(body.text).toContain("2026-09-08T12:00:00.000Z");
+    expect(body.text).toContain("report-terminal-failure:token-123");
+
+    // Strictly exclude PII, prompt, and credentials
+    expect(body.text).not.toContain("customer@example.com");
+    expect(body.text).not.toContain("Nguyen Van A");
+    expect(body.text).not.toContain("synthetic-token-12345");
+  });
+
+  it("maps report terminal failure non-2xx and network errors cleanly", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+    });
+    const provider = createTelegramAlertProvider({
+      botToken: "super-secret-token",
+      chatId: "-1001234567890",
+      fetch: mockFetch as never,
+    });
+
+    const result = await provider.sendReportTerminalFailureAlert({
+      reportVersionId: "rep-ver-123",
+      failureStage: "generation",
+      errorCode: "JOB_RETRY_EXHAUSTED",
+      failedAt: new Date("2026-09-08T12:00:00.000Z"),
+      idempotencyKey: "report-terminal-failure:token-123",
+    });
+
+    expect(result).toEqual({
+      status: "retryable_failure",
+      error: "TELEGRAM_HTTP_503",
+    });
+    expect(JSON.stringify(result)).not.toContain("super-secret-token");
+  });
 });

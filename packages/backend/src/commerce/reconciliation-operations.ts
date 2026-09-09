@@ -10,6 +10,7 @@ import {
 } from "@lasoviet/database";
 import type {
   CircuitOpenAlertPayload,
+  ReportTerminalFailureAlertPayload,
   StalePaymentAlertPayload,
   TelegramAlertProvider,
   TelegramAlertResult,
@@ -67,7 +68,7 @@ export type ReconciliationOperations = {
   runMaintenance(): Promise<MaintenanceRunResult>;
   resetCircuit(actor: CurrentActor): Promise<CircuitResetResult>;
   getCircuitStatus(): Promise<"closed" | "open">;
-  dispatchPendingAlerts(): Promise<{ delivered: number; failed: number; unconfigured: boolean }>;
+  dispatchPendingAlerts(filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure"): Promise<{ delivered: number; failed: number; unconfigured: boolean }>;
 };
 
 const CIRCUIT_LOCK_KEY = "commerce:reconciliation_circuit";
@@ -91,7 +92,7 @@ export function createReconciliationOperations(
       .onConflictDoNothing();
   }
 
-  async function dispatchPendingAlerts(filterKind?: "stale_payment" | "circuit_open"): Promise<{
+  async function dispatchPendingAlerts(filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure"): Promise<{
     delivered: number;
     failed: number;
     unconfigured: boolean;
@@ -163,6 +164,15 @@ export function createReconciliationOperations(
           autoMatched: p.autoMatched !== undefined ? Number(p.autoMatched) : undefined,
           totalReceived: p.totalReceived !== undefined ? Number(p.totalReceived) : undefined,
           staleCount: p.staleCount !== undefined ? Number(p.staleCount) : undefined,
+        });
+      } else if (alertKind === "report_terminal_failure") {
+        const p = payload as ReportTerminalFailureAlertPayload;
+        result = await telegramAlert.sendReportTerminalFailureAlert({
+          reportVersionId: String(p.reportVersionId),
+          failureStage: String(p.failureStage),
+          errorCode: String(p.errorCode),
+          failedAt: p.failedAt,
+          idempotencyKey: String(p.idempotencyKey),
         });
       } else {
         result = { status: "retryable_failure", error: "UNKNOWN_ALERT_KIND" };
@@ -482,6 +492,7 @@ export function createReconciliationOperations(
   async function runMaintenance(): Promise<MaintenanceRunResult> {
     const staleResult = await scanAndAlertStalePayments();
     const circuitResult = await evaluateCircuitBreaker();
+    await dispatchPendingAlerts();
     return {
       circuitStatus: circuitResult.circuitStatus,
       circuitTransitioned: circuitResult.transitioned,

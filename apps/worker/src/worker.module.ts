@@ -21,6 +21,7 @@ import {
   createDatabaseAdminAccessRepository,
   createReconciliationOperations,
   createTelegramAlertProvider,
+  type TelegramAlertProvider,
   type ReconciliationMaintenance,
   createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
@@ -110,6 +111,12 @@ function hasAnyAiConfig(source: NodeJS.ProcessEnv): boolean {
 export function createReportGenerateRunner(options?: {
   gate?: AiProductionGate;
   provider?: AiProvider;
+  alertDispatcher?: {
+    dispatchPendingAlerts(
+      filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure",
+    ): Promise<unknown>;
+  };
+  telegramAlert?: TelegramAlertProvider;
 }) {
   const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);
   if (!queuesResult.ok || !queuesResult.value.includes("report.generate")) {
@@ -198,12 +205,25 @@ export function createReportGenerateRunner(options?: {
     gate,
     provider,
   });
+  const telegramAlert =
+    options?.telegramAlert ??
+    createTelegramAlertProvider({
+      botToken: environment.value.telegram?.botToken,
+      chatId: environment.value.telegram?.chatId,
+    });
+  const alertDispatcher =
+    options?.alertDispatcher ??
+    createReconciliationOperations({
+      database,
+      telegramAlert,
+    });
   const processor = createReportGenerateProcessor({
     database,
     reportService: createReportService(database),
     queueStore: createDatabaseReportQueueStore(database, workerId),
     workerId,
     generationService,
+    alertDispatcher,
   });
 
   let activeRun: Promise<{ processed: number }> | undefined;
