@@ -452,3 +452,253 @@ describe("VietQR checkout copy controls", () => {
   });
 
 });
+
+describe("VietQR checkout recovery views", () => {
+  const fullLabels = {
+    instructionsTitle: "Bank transfer details",
+    bankCode: "Bank",
+    accountNumber: "Account number",
+    accountHolder: "Account holder",
+    amount: "Amount",
+    transferDescription: "Transfer description",
+    remainingTime: "Remaining time",
+    qrAlt: "VietQR payment code",
+    copyAccountNumber: "Copy account number",
+    copyAmount: "Copy amount",
+    copyTransferDescription: "Copy transfer description",
+    copied: "Copied",
+    status: {
+      pending: "Awaiting payment",
+      paid: "Paid",
+      expired: "Order expired",
+      failed: "Payment failed",
+      refunded: "Refunded",
+    },
+    noSecondTransferWarning: "If you have already transferred, do not transfer again.",
+    paidProcessingTitle: "Payment received successfully",
+    paidProcessingDescription: "Your payment has been recorded and report is being prepared.",
+    expiredTitle: "Order expired",
+    expiredDescription: "This order has expired. Old order remains recorded in history.",
+    newChartAction: "Create a new chart and request",
+    orderHistoryAction: "View order history",
+    failedTitle: "Payment was not completed",
+    failedDescription: "Payment failed. Do not attempt another transfer for this order.",
+    supportAction: "Contact support",
+    refundedTitle: "Order refunded",
+    refundedDescription: "This order has been refunded. Review details in order history.",
+  };
+
+  it("renders pending checkout with QR code, no-second-transfer warning, and self-claim form", () => {
+    const selfClaimMarker = <div data-testid="self-claim-mock">Self-claim form</div>;
+    const html = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={checkoutStatus("pending", null, "vi")}
+        labels={fullLabels}
+        selfClaim={selfClaimMarker}
+      />,
+    );
+
+    expect(html).toContain("https://vietqr.app/qr/order-1.png");
+    expect(html).toContain("If you have already transferred, do not transfer again.");
+    expect(html).toContain('data-testid="self-claim-mock"');
+    expect(html.indexOf("vietqr-instructions")).toBeLessThan(html.indexOf("self-claim-mock"));
+  });
+
+  it("renders paid checkout without report ID as dedicated payment-received screen without QR or self-claim", () => {
+    const selfClaimMarker = <div data-testid="self-claim-mock">Self-claim form</div>;
+    const statusPaidNoReport: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "paid",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+      },
+      paymentInstructions: null,
+      reportId: null,
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={statusPaidNoReport}
+        labels={fullLabels}
+        selfClaim={selfClaimMarker}
+      />,
+    );
+
+    expect(html).toContain('data-checkout-status="paid"');
+    expect(html).toContain("Payment received successfully");
+    expect(html).toContain("Your payment has been recorded and report is being prepared.");
+    expect(html).toContain("/tai-khoan/don-hang");
+    expect(html).toContain("report-progress-spinner");
+
+    // No QR code, no self-claim form
+    expect(html).not.toContain("https://vietqr.app");
+    expect(html).not.toContain("self-claim-mock");
+  });
+
+  it("renders expired checkout without QR or self-claim, explains traceable order, and links to new chart and order history", () => {
+    const selfClaimMarker = <div data-testid="self-claim-mock">Self-claim form</div>;
+    const statusExpired: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "expired",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+      },
+      paymentInstructions: null,
+      reportId: null,
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={statusExpired}
+        labels={fullLabels}
+        selfClaim={selfClaimMarker}
+      />,
+    );
+
+    expect(html).toContain('data-checkout-status="expired"');
+    expect(html).toContain("Order expired");
+    expect(html).toContain("This order has expired. Old order remains recorded in history.");
+    expect(html).toContain("/tao-la-so/tu-vi");
+    expect(html).toContain("/tai-khoan/don-hang");
+
+    // No QR or self-claim
+    expect(html).not.toContain("https://vietqr.app");
+    expect(html).not.toContain("self-claim-mock");
+  });
+
+  it("renders English expired checkout paths when locale is en", () => {
+    const statusExpiredEn: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "expired",
+        amount: 79_000,
+        currency: "VND",
+        locale: "en",
+      },
+      paymentInstructions: null,
+      reportId: null,
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={statusExpiredEn} labels={fullLabels} />,
+    );
+    expect(html).toContain("/en/tao-la-so/tu-vi");
+    expect(html).toContain("/en/tai-khoan/don-hang");
+  });
+
+  it("renders failed checkout without QR/self-claim or transfer-again guidance, and exposes order-history and support email", () => {
+    const selfClaimMarker = <div data-testid="self-claim-mock">Self-claim form</div>;
+    const statusFailed: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "failed",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+      },
+      paymentInstructions: null,
+      reportId: null,
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={statusFailed}
+        labels={fullLabels}
+        selfClaim={selfClaimMarker}
+      />,
+    );
+
+    expect(html).toContain('data-checkout-status="failed"');
+    expect(html).toContain("Payment was not completed");
+    expect(html).toContain("Payment failed. Do not attempt another transfer for this order.");
+    expect(html).toContain("/tai-khoan/don-hang");
+    expect(html).toContain("mailto:support@lasoviet.vn");
+
+    // No QR or self-claim
+    expect(html).not.toContain("https://vietqr.app");
+    expect(html).not.toContain("self-claim-mock");
+  });
+
+  it("renders refunded checkout without QR/self-claim or purchase-as-new action, exposing only order history", () => {
+    const selfClaimMarker = <div data-testid="self-claim-mock">Self-claim form</div>;
+    const statusRefunded: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "refunded",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+      },
+      paymentInstructions: null,
+      reportId: null,
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={statusRefunded}
+        labels={fullLabels}
+        selfClaim={selfClaimMarker}
+      />,
+    );
+
+    expect(html).toContain('data-checkout-status="refunded"');
+    expect(html).toContain("Order refunded");
+    expect(html).toContain("This order has been refunded. Review details in order history.");
+    expect(html).toContain("/tai-khoan/don-hang");
+
+    // Must NOT contain purchase-as-new button
+    expect(html).not.toContain("/tao-la-so");
+    expect(html).not.toContain("Create a new chart");
+    expect(html).not.toContain("Lập lá số");
+    expect(html).not.toContain("https://vietqr.app");
+    expect(html).not.toContain("self-claim-mock");
+  });
+
+  it("renders recovery screens correctly whether paymentInstructions is null or stale non-null", () => {
+    const staleInstructions = {
+      bankCode: "VCB",
+      accountNumber: "0123456789",
+      accountHolder: "LA SO VIET",
+      amount: 79_000,
+      currency: "VND" as const,
+      transferDescription: "LSV-order-1",
+      qrUrl: "https://vietqr.app/qr/order-1.png",
+      expiresAt: "2026-09-05T12:15:00.000Z",
+    };
+
+    const expiredWithStale: CheckoutStatus = {
+      order: { id: "order-1", status: "expired", amount: 79_000, currency: "VND", locale: "vi" },
+      paymentInstructions: staleInstructions,
+      reportId: null,
+    };
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={expiredWithStale} labels={fullLabels} />,
+    );
+    expect(html).toContain("Order expired");
+    expect(html).not.toContain("https://vietqr.app");
+  });
+
+  it("never renders client-side report unlock, raw SKU, raw fulfillment status, or internal provider detail", () => {
+    for (const status of ["pending", "paid", "expired", "failed", "refunded"] as const) {
+      const state: CheckoutStatus = {
+        order: { id: "order-1", status, amount: 79_000, currency: "VND", locale: "vi" },
+        paymentInstructions: status === "pending" ? {
+          bankCode: "VCB",
+          accountNumber: "0123456789",
+          accountHolder: "LA SO VIET",
+          amount: 79_000,
+          currency: "VND",
+          transferDescription: "LSV-order-1",
+          qrUrl: "https://vietqr.app/qr/order-1.png",
+          expiresAt: "2026-09-05T12:15:00.000Z",
+        } : null,
+        reportId: null,
+      };
+      const html = renderToStaticMarkup(<VietQrCheckout initialStatus={state} labels={fullLabels} />);
+      expect(html).not.toContain("ZIWEI-IDENTITY-P0");
+      expect(html).not.toContain("unlock");
+      expect(html).not.toContain("mở khoá");
+      expect(html).not.toContain("sepay");
+      expect(html).not.toContain("terminal_failure");
+    }
+  });
+});

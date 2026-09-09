@@ -127,7 +127,25 @@ h1 { max-width: 700px; margin: 20px 0 0; font-size: 64px; line-height: 1.06; let
 .report-progress-message { color: var(--pearl-400); line-height: 1.7; margin-bottom: 24px; }
 .report-progress-indicator { display: flex; justify-content: center; margin-top: 20px; }
 .report-progress-spinner { width: 32px; height: 32px; border: 3px solid var(--lacquer-line); border-top-color: var(--gold-500); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
-.report-progress-actions { margin-top: 20px; }
+.report-progress-notice { margin: 16px 0 20px; padding: 14px 16px; border: 1px solid var(--lacquer-line); border-radius: var(--radius-small); background: var(--lacquer-800); text-align: left; }
+.notice-highlight { color: var(--gold-400); font-weight: 600; font-size: 14px; margin: 0 0 6px; }
+.report-progress-notice .report-progress-message { margin-bottom: 0; font-size: 14px; }
+.report-failed-facts { margin: 20px 0; border-top: 1px solid var(--lacquer-line); border-bottom: 1px solid var(--lacquer-line); text-align: left; }
+.report-fact-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.report-fact-item:last-child { border-bottom: none; }
+.report-fact-item dt { color: var(--pearl-400); font: 11px var(--font-mono); text-transform: uppercase; letter-spacing: 0; }
+.report-fact-item dd { margin: 0; color: var(--pearl-100); font-family: var(--font-mono); font-size: 13px; font-weight: 500; text-align: right; }
+.report-failed-next-step { text-align: left; margin: 20px 0; padding: 14px 16px; border-left: 3px solid var(--gold-500); background: var(--lacquer-800); border-radius: 0 var(--radius-small) var(--radius-small) 0; }
+.next-step-title { margin: 0 0 6px; font-size: 14px; color: var(--gold-300); font-weight: 600; }
+.next-step-description { margin: 0; font-size: 13px; line-height: 1.5; color: var(--pearl-300); }
+.report-progress-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-top: 24px; }
+@media (max-width: 767px) {
+  .report-progress-card { padding: 24px 16px; }
+  .report-fact-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .report-fact-item dd { text-align: left; }
+  .report-progress-actions { flex-direction: column; width: 100%; }
+  .report-progress-actions .button { width: 100%; justify-content: center; }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .skip-link { position: absolute; left: 16px; top: -60px; z-index: 200; background: var(--lacquer-700); color: var(--pearl-50); padding: 12px 20px; border: 1px solid var(--gold-500); border-radius: 4px; font-size: 14px; transition: top var(--motion-feedback); }
