@@ -154,3 +154,15 @@
   - Verification passed 154 focused WP-09 tests, 66 compatibility tests,
     contracts/config/database/backend builds and typechecks, API/web
     typechecks, web production build, and clean `git diff --check`.
+- WP-10 implementation deferred pending founder/stakeholder input:
+  - Birth-data processing consent cannot be reused as analytics consent.
+  - The repository has no approved analytics grant/revoke UX, consent
+    document/version/copy, anonymous-to-account transfer rule, or withdrawal
+    retention rule.
+  - The repository also lacks approved authoritative sources for AI COGS,
+    payment fees, refund costs, and variable support costs required by the
+    binding 30-day contribution-margin KPI.
+  - Exact required inputs are recorded in `task-wp10-blocker-report.md`.
+  - No analytics runtime, schema, third-party export, or production behavior
+    was changed. Work continues with WP-11 per the founder's skip-blocker
+    instruction.
