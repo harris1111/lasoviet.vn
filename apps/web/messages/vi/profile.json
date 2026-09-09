@@ -114,6 +114,7 @@
   "unknownTimeSaved": {
     "title": "Đã lưu hồ sơ sinh",
     "savedConfirmation": "Thông tin sinh của bạn đã được lưu an toàn trên trình duyệt.",
+    "savedConfirmationSessionOnly": "Thông tin sinh đã được ghi nhận trong phiên hiện tại.",
     "requirement": "Để lập lá số và xem bản luận giải Tử Vi chuyên sâu, bạn cần biết tối thiểu khung giờ sinh theo 12 Địa Chi (khung 2 tiếng).",
     "guidanceTitle": "Gợi ý cách tìm lại giờ sinh:",
     "sourceCertificate": "Giấy khai sinh hoặc trích lục hộ tịch bản gốc",

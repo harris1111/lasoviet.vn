@@ -114,6 +114,7 @@
   "unknownTimeSaved": {
     "title": "Birth profile saved",
     "savedConfirmation": "Your birth details have been securely saved in your browser.",
+    "savedConfirmationSessionOnly": "Birth details have been recorded for the current session.",
     "requirement": "To calculate a Zi Wei chart and receive a comprehensive reading, at least a known traditional 2-hour branch is required.",
     "guidanceTitle": "Ways to find your birth time:",
     "sourceCertificate": "Birth certificate or civil registry extract",

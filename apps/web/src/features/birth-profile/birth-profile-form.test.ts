@@ -9,6 +9,7 @@ import {
   resolveWizardSubmitAction,
   getWizardSubmitButtonLabel,
   decideProfileSubmitOutcome,
+  resolveUnknownTimePersistence,
   UnknownTimeSavedPresenter,
 } from "./birth-profile-form";
 import {
@@ -577,39 +578,55 @@ describe("WP-11 unknown birth time UX flow (TDD focused acceptance)", () => {
     ).toBe("Creating chart...");
   });
 
-  it("Test 3: saved-profile presenter renders confirmation, 3 guidance sources, and locale-correct actions without forbidden prose (vi)", () => {
+  it("Test 3: resolveUnknownTimePersistence confirms reusable persistence only for self + successful cache write", () => {
+    // 1. self + successful cache write confirms browser persistence
+    expect(
+      resolveUnknownTimePersistence({ forWhom: "self", cacheSaved: true }),
+    ).toBe(true);
+
+    // 2. other-person input never claims browser persistence, even if cache write was attempted
+    expect(
+      resolveUnknownTimePersistence({ forWhom: "other", cacheSaved: true }),
+    ).toBe(false);
+    expect(
+      resolveUnknownTimePersistence({ forWhom: "other", cacheSaved: false }),
+    ).toBe(false);
+
+    // 3. self + failed cache write does not claim browser persistence
+    expect(
+      resolveUnknownTimePersistence({ forWhom: "self", cacheSaved: false }),
+    ).toBe(false);
+  });
+
+  it("Test 3a: self + successful cache write renders browser-saved confirmation and return-later action (vi)", () => {
     const onAddBirthTime = () => {};
     const onReturnHome = () => {};
 
     const html = renderToStaticMarkup(
       createElement(UnknownTimeSavedPresenter, {
         locale: "vi",
+        isBrowserPersisted: true,
         onAddBirthTime,
         onReturnHome,
       }),
     );
 
-    // Confirmation that profile was saved
+    // Truthful browser persistence confirmation
     expect(html).toContain("Đã lưu hồ sơ sinh");
-    expect(html).toContain("lưu an toàn");
+    expect(html).toContain("Thông tin sinh của bạn đã được lưu an toàn trên trình duyệt.");
 
     // Explanation of 2-hour branch requirement
     expect(html).toContain("12 Địa Chi");
     expect(html).toContain("khung 2 tiếng");
 
-    // Concise practical guidance covering all 3 sources
-    // 1. Birth certificate
+    // All 3 practical guidance sources
     expect(html).toContain("Giấy khai sinh");
-    // 2. Hospital record
     expect(html).toContain("bệnh viện");
-    // 3. Family members
     expect(html).toContain("Người thân trong gia đình");
 
-    // Actions
-    // Action 1: Add time now
+    // Both actions present: add time now & return home
     expect(html).toContain("Bổ sung giờ sinh ngay");
-    // Action 2: Locale-correct home link
-    expect(html).toContain("Về trang chủ");
+    expect(html).toContain("Về trang chủ (đã lưu hồ sơ)");
     expect(html).toContain('href="/"');
 
     // Strict negative checks: No paid price, checkout, report selector, or chart created claims
@@ -627,33 +644,31 @@ describe("WP-11 unknown birth time UX flow (TDD focused acceptance)", () => {
     expect(html).not.toContain("lá số đã được lập");
   });
 
-  it("Test 3: saved-profile presenter renders confirmation, 3 guidance sources, and locale-correct actions without forbidden prose (en)", () => {
+  it("Test 3b: self + successful cache write renders browser-saved confirmation and return-later action (en)", () => {
     const html = renderToStaticMarkup(
       createElement(UnknownTimeSavedPresenter, {
         locale: "en",
+        isBrowserPersisted: true,
         onAddBirthTime: () => {},
         onReturnHome: () => {},
       }),
     );
 
-    // Confirmation
+    // Truthful browser persistence confirmation
     expect(html).toContain("Birth profile saved");
-    expect(html).toContain("securely saved");
+    expect(html).toContain("Your birth details have been securely saved in your browser.");
 
     // Requirement explanation
     expect(html).toContain("2-hour branch");
 
     // All 3 practical guidance sources
-    // 1. Birth certificate
     expect(html).toContain("Birth certificate");
-    // 2. Hospital records
     expect(html).toContain("Hospital birth records");
-    // 3. Family members
     expect(html).toContain("Close family members");
 
     // Actions
     expect(html).toContain("Add birth time now");
-    expect(html).toContain("Return to home");
+    expect(html).toContain("Return to home (saved for later)");
     expect(html).toContain('href="/en"');
 
     // Strict negative checks
@@ -664,6 +679,88 @@ describe("WP-11 unknown birth time UX flow (TDD focused acceptance)", () => {
     expect(html).not.toContain("chon-luan-giai");
     expect(html).not.toContain("chart created");
     expect(html).not.toContain("chart has been created");
+  });
+
+  it("Test 3c: other-person input or failed cache write renders session-only copy and OMITS return-later action (vi)", () => {
+    const onAddBirthTime = () => {};
+    const onReturnHome = () => {};
+
+    const html = renderToStaticMarkup(
+      createElement(UnknownTimeSavedPresenter, {
+        locale: "vi",
+        isBrowserPersisted: false,
+        onAddBirthTime,
+        onReturnHome,
+      }),
+    );
+
+    // Truthful session-only confirmation
+    expect(html).toContain("Đã lưu hồ sơ sinh");
+    expect(html).toContain("Thông tin sinh đã được ghi nhận trong phiên hiện tại.");
+
+    // OMIT browser persistence claims
+    expect(html).not.toContain("trình duyệt");
+    expect(html).not.toContain("lưu an toàn trên trình duyệt");
+
+    // OMIT return-later / return-home action
+    expect(html).not.toContain("Về trang chủ");
+    expect(html).not.toContain("đã lưu hồ sơ");
+    expect(html).not.toContain("wizard-action-return-home");
+
+    // RETAIN add birth time now action
+    expect(html).toContain("Bổ sung giờ sinh ngay");
+
+    // RETAIN all 3 practical guidance sources
+    expect(html).toContain("Giấy khai sinh");
+    expect(html).toContain("bệnh viện");
+    expect(html).toContain("Người thân trong gia đình");
+
+    // Strict negative checks: No paid price, checkout, or chart created claims
+    expect(html).not.toContain("19.000");
+    expect(html).not.toContain("79.000");
+    expect(html).not.toContain("₫");
+    expect(html).not.toContain("checkout");
+    expect(html).not.toContain("chon-luan-giai");
+    expect(html).not.toContain("đã lập lá số");
+  });
+
+  it("Test 3d: other-person input or failed cache write renders session-only copy and OMITS return-later action (en)", () => {
+    const html = renderToStaticMarkup(
+      createElement(UnknownTimeSavedPresenter, {
+        locale: "en",
+        isBrowserPersisted: false,
+        onAddBirthTime: () => {},
+        onReturnHome: () => {},
+      }),
+    );
+
+    // Truthful session-only confirmation
+    expect(html).toContain("Birth profile saved");
+    expect(html).toContain("Birth details have been recorded for the current session.");
+
+    // OMIT browser persistence claims
+    expect(html).not.toContain("browser");
+    expect(html).not.toContain("saved in your browser");
+
+    // OMIT return-later / return-home action
+    expect(html).not.toContain("Return to home");
+    expect(html).not.toContain("saved for later");
+    expect(html).not.toContain("wizard-action-return-home");
+
+    // RETAIN add birth time now action
+    expect(html).toContain("Add birth time now");
+
+    // RETAIN all 3 practical guidance sources
+    expect(html).toContain("Birth certificate");
+    expect(html).toContain("Hospital birth records");
+    expect(html).toContain("Close family members");
+
+    // Strict negative checks
+    expect(html).not.toContain("$");
+    expect(html).not.toContain("19,000");
+    expect(html).not.toContain("79,000");
+    expect(html).not.toContain("checkout");
+    expect(html).not.toContain("chart created");
   });
 
   it("Test 4: unknown-time post-save transition cannot request Zi Wei calculation", () => {

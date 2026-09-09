@@ -154,6 +154,7 @@ export function decideProfileSubmitOutcome(saveResult: {
 export type UnknownTimeSavedLabels = {
   title: string;
   savedConfirmation: string;
+  savedConfirmationSessionOnly: string;
   requirement: string;
   guidanceTitle: string;
   sourceCertificate: string;
@@ -171,6 +172,8 @@ export const DEFAULT_UNKNOWN_TIME_SAVED_LABELS: Record<
     title: "Đã lưu hồ sơ sinh",
     savedConfirmation:
       "Thông tin sinh của bạn đã được lưu an toàn trên trình duyệt.",
+    savedConfirmationSessionOnly:
+      "Thông tin sinh đã được ghi nhận trong phiên hiện tại.",
     requirement:
       "Để lập lá số và xem bản luận giải Tử Vi chuyên sâu, bạn cần biết tối thiểu khung giờ sinh theo 12 Địa Chi (khung 2 tiếng).",
     guidanceTitle: "Gợi ý cách tìm lại giờ sinh:",
@@ -184,6 +187,8 @@ export const DEFAULT_UNKNOWN_TIME_SAVED_LABELS: Record<
     title: "Birth profile saved",
     savedConfirmation:
       "Your birth details have been securely saved in your browser.",
+    savedConfirmationSessionOnly:
+      "Birth details have been recorded for the current session.",
     requirement:
       "To calculate a Zi Wei chart and receive a comprehensive reading, at least a known traditional 2-hour branch is required.",
     guidanceTitle: "Ways to find your birth time:",
@@ -196,8 +201,16 @@ export const DEFAULT_UNKNOWN_TIME_SAVED_LABELS: Record<
   },
 };
 
+export function resolveUnknownTimePersistence(params: {
+  forWhom: "self" | "other";
+  cacheSaved: boolean;
+}): boolean {
+  return params.forWhom === "self" && params.cacheSaved === true;
+}
+
 export type UnknownTimeSavedPresenterProps = {
   locale: "en" | "vi";
+  isBrowserPersisted?: boolean;
   labels?: Partial<UnknownTimeSavedLabels>;
   onAddBirthTime?(): void;
   onReturnHome?(): void;
@@ -205,6 +218,7 @@ export type UnknownTimeSavedPresenterProps = {
 
 export function UnknownTimeSavedPresenter({
   locale,
+  isBrowserPersisted = false,
   labels,
   onAddBirthTime,
   onReturnHome,
@@ -212,13 +226,16 @@ export function UnknownTimeSavedPresenter({
   const defaultLabels = DEFAULT_UNKNOWN_TIME_SAVED_LABELS[locale];
   const resolved = { ...defaultLabels, ...labels };
   const homeHref = locale === "en" ? "/en" : "/";
+  const confirmationText = isBrowserPersisted
+    ? resolved.savedConfirmation
+    : resolved.savedConfirmationSessionOnly;
 
   return (
     <div className="wizard-saved-state" data-testid="unknown-time-saved-state">
       <div className="wizard-saved-header">
         <span aria-hidden="true" className="wizard-saved-badge">✓</span>
         <h2 className="wizard-saved-title">{resolved.title}</h2>
-        <p className="wizard-saved-confirm">{resolved.savedConfirmation}</p>
+        <p className="wizard-saved-confirm">{confirmationText}</p>
       </div>
 
       <div className="wizard-saved-requirement">
@@ -242,13 +259,15 @@ export function UnknownTimeSavedPresenter({
         >
           {resolved.addTimeAction}
         </button>
-        <Link
-          className="button button-secondary wizard-action-return-home"
-          href={homeHref}
-          onClick={onReturnHome}
-        >
-          {resolved.homeAction}
-        </Link>
+        {isBrowserPersisted ? (
+          <Link
+            className="button button-secondary wizard-action-return-home"
+            href={homeHref}
+            onClick={onReturnHome}
+          >
+            {resolved.homeAction}
+          </Link>
+        ) : null}
       </div>
     </div>
   );
@@ -299,7 +318,9 @@ export function BirthProfileForm({
   const [pending, setPending] = useState(false);
   const [step1Attempted, setStep1Attempted] = useState(false);
   const [hasReusedCache, setHasReusedCache] = useState(false);
-  const [savedUnknown, setSavedUnknown] = useState(false);
+  const [savedUnknown, setSavedUnknown] = useState<{
+    isBrowserPersisted: boolean;
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -457,7 +478,7 @@ export function BirthProfileForm({
   function handleBack() {
     if (pending) return;
     if (savedUnknown) {
-      setSavedUnknown(false);
+      setSavedUnknown(null);
       setStep(2);
       setError(null);
       return;
@@ -469,7 +490,7 @@ export function BirthProfileForm({
   }
 
   function handleAddBirthTime() {
-    setSavedUnknown(false);
+    setSavedUnknown(null);
     setStep(2);
     setError(null);
   }
@@ -518,6 +539,7 @@ export function BirthProfileForm({
     setError(null);
     setPending(false);
     setStep1Attempted(false);
+    setSavedUnknown(null);
     setHasReusedCache(false);
 
     clearBirthCache();
@@ -607,18 +629,25 @@ export function BirthProfileForm({
         return;
       }
 
+      let cacheSaved = false;
       if (forWhom === "self") {
-        saveBirthCache({
-          displayName: displayName.trim() ? displayName.trim() : undefined,
-          date: dateResult.isoDate,
-          time: timeState,
-          gender,
-          place: place.trim() ? place.trim() : undefined,
-        });
+        cacheSaved = Boolean(
+          saveBirthCache({
+            displayName: displayName.trim() ? displayName.trim() : undefined,
+            date: dateResult.isoDate,
+            time: timeState,
+            gender,
+            place: place.trim() ? place.trim() : undefined,
+          }),
+        );
       }
 
       if (outcome.kind === "SHOW_UNKNOWN_TIME_SAVED") {
-        setSavedUnknown(true);
+        const isBrowserPersisted = resolveUnknownTimePersistence({
+          forWhom,
+          cacheSaved,
+        });
+        setSavedUnknown({ isBrowserPersisted });
         setError(null);
         return;
       }
@@ -722,9 +751,13 @@ export function BirthProfileForm({
           <div className="wizard-form-column">
             {savedUnknown ? (
               <UnknownTimeSavedPresenter
+                isBrowserPersisted={savedUnknown.isBrowserPersisted}
                 labels={{
                   title: t("unknownTimeSaved.title"),
                   savedConfirmation: t("unknownTimeSaved.savedConfirmation"),
+                  savedConfirmationSessionOnly: t(
+                    "unknownTimeSaved.savedConfirmationSessionOnly",
+                  ),
                   requirement: t("unknownTimeSaved.requirement"),
                   guidanceTitle: t("unknownTimeSaved.guidanceTitle"),
                   sourceCertificate: t("unknownTimeSaved.sourceCertificate"),
