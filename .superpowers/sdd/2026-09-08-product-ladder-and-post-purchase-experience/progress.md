@@ -137,3 +137,20 @@
     subset, contracts/config/database/backend builds and typechecks, API
     typecheck, web typecheck and production build, and clean
     `git diff --check`.
+- WP-09 discounted upgrade completed and Terra-approved:
+  - Implementation landed in commit `189a673`.
+  - Added immutable order-level pricing snapshots, actual-paid Tier-1 credit,
+    exact seven-day expiration from `paid_at`, discounted-order deadline
+    enforcement, and payment-instruction expiry capping.
+  - Late webhook and self-claim paths cannot unlock an expired or invalid
+    discounted order; unmatched funds remain in the existing recovery flow.
+  - The Vietnamese selector now displays 79,000 VND list price, applied
+    19,000 VND credit, 60,000 VND net price, the exact Vietnam-local deadline,
+    newly unlocked sections, and the mandatory pre-payment seven-day notice.
+  - Tier-2 ownership hides Tier 1 and resolves the existing Tier-1 report after
+    upgrade without another AI generation.
+  - Terra returned `APPROVED` with no Critical, Important, deferred, or
+    rejected findings.
+  - Verification passed 154 focused WP-09 tests, 66 compatibility tests,
+    contracts/config/database/backend builds and typechecks, API/web
+    typechecks, web production build, and clean `git diff --check`.
