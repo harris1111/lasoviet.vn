@@ -67,6 +67,37 @@ describe("SePay controller HTTP contract", () => {
     });
   });
 
+  it("maps CHECKOUT_PAYMENTS_PAUSED to 503 ServiceUnavailableException", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: false,
+        code: "CHECKOUT_PAYMENTS_PAUSED",
+      }),
+    } as never);
+
+    try {
+      await expect(
+        controller().create("Bearer valid-token", {
+          chartId: "chart-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          locale: "vi",
+        }),
+      ).rejects.toMatchObject({
+        status: 503,
+        response: { code: "CHECKOUT_PAYMENTS_PAUSED" },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
   it("returns CheckoutStatus projection on order creation", async () => {
     const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
       kind: "account",

@@ -12,6 +12,7 @@ import {
   commerceEntitlements,
   commerceOrders,
   commercePaymentEvents,
+  commerceReconciliationState,
   commerceUnmatchedPayments,
   createDatabase,
   evidenceSets,
@@ -2137,4 +2138,31 @@ describe("SePay payment transaction", () => {
     await database.$client.end();
   }, 120_000);
 
+  it("rejects createOrder with CHECKOUT_PAYMENTS_PAUSED when circuit breaker is open", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    await database
+      .insert(commerceReconciliationState)
+      .values({ id: "singleton", circuitStatus: "open", openedAt: new Date(), updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: commerceReconciliationState.id,
+        set: { circuitStatus: "open", openedAt: new Date() },
+      });
+
+    const result = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(result).toEqual({ ok: false, code: "CHECKOUT_PAYMENTS_PAUSED" });
+
+    // Reset back to closed
+    await database
+      .update(commerceReconciliationState)
+      .set({ circuitStatus: "closed", openedAt: null })
+      .where(eq(commerceReconciliationState.id, "singleton"));
+
+    const closedResult = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(closedResult.ok).toBe(true);
+
+    await database.$client.end();
+  }, 120_000);
 });

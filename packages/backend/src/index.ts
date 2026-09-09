@@ -79,6 +79,7 @@ export {
 } from "./maintenance/phase-one-maintenance.js";
 export type {
   PhaseOneMaintenanceRunner,
+  ReconciliationMaintenance,
 } from "./maintenance/phase-one-maintenance.js";
 export type {
   BirthProfileNormalizationError,
@@ -328,6 +329,29 @@ export type { CommerceRepository, CommerceRepositoryOptions, OwnedOrderProjectio
 export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
 export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJobV1 } from "./outbox/outbox.dispatcher.js";
 export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";
+export {
+  createTelegramAlertProvider,
+} from "./commerce/telegram-alert.js";
+export type {
+  TelegramAlertProvider,
+  TelegramAlertProviderOptions,
+  TelegramAlertResult,
+  StalePaymentAlertPayload,
+  CircuitOpenAlertPayload,
+} from "./commerce/telegram-alert.js";
+export {
+  createReconciliationOperations,
+} from "./commerce/reconciliation-operations.js";
+export type {
+  ReconciliationOperations,
+  ReconciliationOperationsOptions,
+  CircuitEvaluationResult,
+  StaleScanResult,
+  MaintenanceRunResult,
+  CircuitResetResult,
+  CircuitResetError,
+} from "./commerce/reconciliation-operations.js";
+
 
 export {
   REGISTERED_QUEUES,

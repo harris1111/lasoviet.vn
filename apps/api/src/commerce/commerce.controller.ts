@@ -100,6 +100,9 @@ export class CommerceController {
       if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") {
         throw new ForbiddenException({ code: result.code });
       }
+      if (result.code === "CHECKOUT_PAYMENTS_PAUSED") {
+        throw new ServiceUnavailableException({ code: result.code });
+      }
       return { ok: false, error: { code: result.code } };
     }
     if (this.sepayEnvironment === "disabled") {

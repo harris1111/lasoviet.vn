@@ -37,7 +37,9 @@ export {
   commerceEntitlements,
   commerceOrderStatus,
   commerceOrders,
+  commerceAlertDeliveries,
   commercePaymentEvents,
+  commerceReconciliationState,
   commerceUnmatchedPayments,
 } from "./schema/commerce.js";
 export {

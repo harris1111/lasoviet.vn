@@ -189,4 +189,35 @@ describe("admin access service", () => {
       }),
     ).toMatchObject({ ok: false, error: { code: "ADMIN_FORBIDDEN" } });
   });
+  it("authorizes admin.commerce.manage only for super_admin access", async () => {
+    const service = createAdminAccessService({
+      repository: { findAccountAccess: async () => ({ emailVerified: true }) },
+    });
+    const superAdminAccess = {
+      actorId: account.userId,
+      roleAssignmentId: "assignment-super",
+      role: "super_admin" as const,
+      capabilities: ["admin.commerce.manage" as const],
+    };
+    const operationsAccess = {
+      actorId: account.userId,
+      roleAssignmentId: "assignment-ops",
+      role: "operations" as const,
+      capabilities: ["admin.commerce.read" as const],
+    };
+
+    expect(
+      service.authorizeAdminRead(superAdminAccess, "admin.commerce.manage", {
+        type: "commerce_reconciliation_state",
+        id: "singleton",
+      }),
+    ).toEqual({ ok: true, value: undefined });
+
+    expect(
+      service.authorizeAdminRead(operationsAccess, "admin.commerce.manage", {
+        type: "commerce_reconciliation_state",
+        id: "singleton",
+      }),
+    ).toMatchObject({ ok: false, error: { code: "ADMIN_FORBIDDEN" } });
+  });
 });

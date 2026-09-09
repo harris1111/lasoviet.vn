@@ -17,6 +17,11 @@ import {
   createKnowledgeRetrievalService,
   createOpenAiCompatibleAdapter,
   createReportService,
+  createAdminAccessService,
+  createDatabaseAdminAccessRepository,
+  createReconciliationOperations,
+  createTelegramAlertProvider,
+  type ReconciliationMaintenance,
   createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
   createPhaseOneMaintenanceRunner,
@@ -54,6 +59,18 @@ export function createMaintenanceRunner() {
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
   });
+  const telegramAlert = createTelegramAlertProvider({
+    botToken: environment.value.telegram?.botToken,
+    chatId: environment.value.telegram?.chatId,
+  });
+  const reconciliation = createReconciliationOperations({
+    database,
+    telegramAlert,
+    adminAccessService: createAdminAccessService({
+      repository: createDatabaseAdminAccessRepository(database),
+    }),
+  });
+
   return createPhaseOneMaintenanceRunner({
     accountDeletion: createAccountDeletionService({
       repository: createDatabaseDeletionRepository(database),
@@ -65,6 +82,7 @@ export function createMaintenanceRunner() {
         }).purgeExpired(new Date(), limit),
     },
     retryAuthEmail: (limit) => email.retryDue(limit),
+    reconciliation,
   });
 }
 

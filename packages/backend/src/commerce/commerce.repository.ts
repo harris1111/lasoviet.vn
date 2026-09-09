@@ -20,6 +20,7 @@ import {
   commerceEntitlements,
   commerceOrders,
   commercePaymentEvents,
+  commerceReconciliationState,
   commerceUnmatchedPayments,
   enqueueOutbox,
   evidenceSets,
@@ -621,6 +622,19 @@ export function createDatabaseCommerceRepository(
       if (actor.kind !== "account") throw new Error("CHECKOUT_ACTOR_INVALID");
 
       return database.transaction(async (transaction) => {
+        const circuitLockKey = "commerce:reconciliation_circuit";
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${circuitLockKey}))`);
+
+        const [circuitState] = await transaction
+          .select({ circuitStatus: commerceReconciliationState.circuitStatus })
+          .from(commerceReconciliationState)
+          .where(eq(commerceReconciliationState.id, "singleton"))
+          .limit(1);
+
+        if (circuitState?.circuitStatus === "open") {
+          return { ok: false as const, code: "CHECKOUT_PAYMENTS_PAUSED" };
+        }
+
         const lockKey = `commerce:${chartId}:${product.sku}`;
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
@@ -654,6 +668,7 @@ export function createDatabaseCommerceRepository(
         if (refundedOrder !== undefined) {
           return { ok: true as const, value: refundedOrder, reused: true };
         }
+
 
         const pendingOrder = existingOrders.find((o) => o.status === "pending");
         if (pendingOrder !== undefined) {

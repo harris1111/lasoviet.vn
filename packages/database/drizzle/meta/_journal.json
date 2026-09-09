@@ -141,6 +141,20 @@
       "when": 1789113600000,
       "tag": "0019_payment_code_reconciliation",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789200000000,
+      "tag": "0020_commerce_reconciliation_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789286400000,
+      "tag": "0021_admin_commerce_manage_and_alert_delivery",
+      "breakpoints": true
     }
   ]
 }

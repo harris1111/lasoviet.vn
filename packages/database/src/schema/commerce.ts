@@ -75,8 +75,51 @@ export const commerceUnmatchedPayments = pgTable("commerce_unmatched_payments", 
   receivedAt: timestamp("received_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   claimedByOrderId: uuid("claimed_by_order_id").references(() => commerceOrders.id),
   claimedAt: timestamp("claimed_at", { withTimezone: true, mode: "date" }),
+  staleAlertedAt: timestamp("stale_alerted_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
   uniqueIndex("commerce_unmatched_payments_provider_event_unique").on(table.providerEventId),
   index("commerce_unmatched_payments_received_claimed_idx").on(table.receivedAt, table.claimedAt),
   check("commerce_unmatched_payments_amount_positive", sql`${table.amount} > 0`),
 ]);
+
+export const commerceReconciliationState = pgTable("commerce_reconciliation_state", {
+  id: text("id").primaryKey(),
+  circuitStatus: text("circuit_status").$type<"closed" | "open">().notNull().default("closed"),
+  openedAt: timestamp("opened_at", { withTimezone: true, mode: "date" }),
+  reasonCode: text("reason_code"),
+  alertIdempotencyKey: text("alert_idempotency_key"),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  check("commerce_reconciliation_state_singleton", sql`${table.id} = 'singleton'`),
+  check("commerce_reconciliation_state_circuit_status", sql`${table.circuitStatus} IN ('closed', 'open')`),
+]);
+
+export const commerceAlertDeliveries = pgTable(
+  "commerce_alert_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    alertKind: text("alert_kind").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: text("status").notNull().default("pending"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    leasedUntil: timestamp("leased_until", { withTimezone: true, mode: "date" }),
+    leaseToken: text("lease_token"),
+    lastError: text("last_error"),
+    sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("commerce_alert_deliveries_idempotency_unique").on(table.idempotencyKey),
+    index("commerce_alert_deliveries_claim_idx").on(
+      table.status,
+      table.leasedUntil,
+      table.createdAt,
+    ),
+  ],
+);
