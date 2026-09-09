@@ -166,3 +166,24 @@
   - No analytics runtime, schema, third-party export, or production behavior
     was changed. Work continues with WP-11 per the founder's skip-blocker
     instruction.
+- WP-11 unknown birth time path completed and Terra-approved:
+  - Initial implementation landed in commit `d6b3e0e`.
+  - Added an honest save-profile path for `{ precision: "unknown" }` that
+    never requests Zi Wei calculation and never presents a paid Zi Wei CTA.
+  - Added concise birth-time recovery guidance and an immediate action to add
+    an exact time or traditional two-hour branch.
+  - Added an explicit free-preview presentation boundary that omits paid
+    coverage messaging when paid upgrade eligibility is false.
+  - Terra identified one Important persistence-truthfulness finding:
+    browser-saved copy and the return-later action were shown for
+    `forWhom=other` and failed cache writes.
+  - Correction commit `abaac3d` now shows reusable browser-persistence claims
+    only for `self` plus a successful cache write; all other cases receive
+    truthful session-only copy and retain only the immediate add-time action.
+  - Terra scoped re-review returned `APPROVED` with no remaining Critical or
+    Important findings.
+  - Verification passed 39 focused tests, web typecheck, web production build,
+    i18n parity, and clean `git diff --check`.
+- WP-12 remains deprioritized under FD-048 and was not started.
+- WP-13 is the next executable work package. It requires screenshot-backed
+  cross-cutting visual QA evidence for Harris's sole sign-off under FD-056.
