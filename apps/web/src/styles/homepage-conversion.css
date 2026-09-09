@@ -99,6 +99,62 @@
   text-align: center;
 }
 
+.value-ladder-copy {
+  max-width: 640px;
+  margin-top: 24px;
+}
+.value-ladder-copy p {
+  margin: 0 0 16px;
+  color: var(--pearl-200);
+  font-size: 16px;
+  line-height: 1.75;
+}
+.value-ladder-method-note {
+  color: var(--pearl-400) !important;
+  font-style: italic;
+  font-size: 14.5px !important;
+}
+.value-ladder-action {
+  margin-top: 32px;
+}
+
+.about-excerpt-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: center;
+  padding: 96px 0;
+}
+.about-excerpt-image img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--lacquer-line);
+}
+.about-excerpt-content .eyebrow {
+  margin-bottom: 16px;
+}
+.about-excerpt-content blockquote {
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  color: var(--pearl-50);
+  font: 28px/1.35 var(--font-display);
+}
+.about-excerpt-content > p {
+  margin: 0 0 24px;
+  color: var(--pearl-400);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+@media (max-width: 767px) {
+  .about-excerpt-grid {
+    grid-template-columns: 1fr;
+    padding: 56px 0;
+  }
+}
+
 .cta-inner {
   position: relative;
   z-index: 1;
