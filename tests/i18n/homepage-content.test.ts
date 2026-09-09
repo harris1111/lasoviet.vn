@@ -16,7 +16,7 @@ function collectStrings(value: unknown): string[] {
 }
 
 describe("homepage content and structure requirements", () => {
-  it("orchestrates the 16 ordered data-home-block sections in page.tsx", () => {
+  it("orchestrates the 17 ordered data-home-block sections in page.tsx", () => {
     const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
     const pageSource = readFileSync(pagePath, "utf8");
 
@@ -41,6 +41,7 @@ describe("homepage content and structure requirements", () => {
       "trust-specs",
       "knowledge",
       "faq",
+      "about-excerpt",
       "final-cta",
     ]);
   });
@@ -149,6 +150,7 @@ describe("homepage content and structure requirements", () => {
       "trustSpecs",
       "knowledge",
       "faq",
+      "aboutExcerpt",
       "finalCta",
     ];
 
@@ -158,7 +160,7 @@ describe("homepage content and structure requirements", () => {
     }
   });
 
-  it("enforces planned non-link states: only Tu Vi clickable, other disciplines inert, and only tier 1 priced", () => {
+  it("enforces planned non-link states for other disciplines, and no pricing shown on the homepage", () => {
     const viPath = resolve(rootDir, "apps/web/messages/vi/common.json");
     const enPath = resolve(rootDir, "apps/web/messages/en/common.json");
 
@@ -172,26 +174,40 @@ describe("homepage content and structure requirements", () => {
     expect(en.home?.lenses?.astrology?.status).toBe("Planned");
     expect(en.home?.lenses?.numerology?.status).toBe("Planned");
 
-    expect(vi.home?.valueLadder?.tier1?.price).toBe("79.000 ₫");
-    expect(en.home?.valueLadder?.tier1?.price).toBe("79,000 VND");
-    expect(vi.home?.valueLadder?.tier2?.price).toBeUndefined();
-    expect(vi.home?.valueLadder?.tier3?.price).toBeUndefined();
-    expect(en.home?.valueLadder?.tier2?.price).toBeUndefined();
-    expect(en.home?.valueLadder?.tier3?.price).toBeUndefined();
+    // Product decision (2026-09-09): the homepage no longer shows tier pricing at all —
+    // pricing lives on the sample/commercial pages only. See docs/superpowers/specs/
+    // 2026-09-09-content-ux-polish/vi/brand.home.md for the reconciliation with the
+    // two-tier ladder (FD-036…FD-048).
+    expect(vi.home?.valueLadder?.tier1).toBeUndefined();
+    expect(en.home?.valueLadder?.tier1).toBeUndefined();
+    expect(vi.home?.valueLadder).toMatchObject({
+      eyebrow: expect.any(String),
+      title: expect.any(String),
+      bodyIntro: expect.any(String),
+      bodyOffer: expect.any(String),
+      methodNote: expect.any(String),
+      cta: expect.any(String),
+    });
+    const viLadderCopy = collectStrings(vi.home.valueLadder).join("\n");
+    const enLadderCopy = collectStrings(en.home.valueLadder).join("\n");
+    expect(viLadderCopy).not.toMatch(/\d[\d.,]*\s*(?:₫|đ\b)/i);
+    expect(enLadderCopy).not.toMatch(/\d[\d.,]*\s*(?:VND|USD|\$)/i);
   });
 
   it("matches exact prototype copy and metadata references for hero and trust strip", () => {
     const viPath = resolve(rootDir, "apps/web/messages/vi/common.json");
     const vi = JSON.parse(readFileSync(viPath, "utf8"));
 
+    // Prototype baseline updated 2026-09-09: voice/positioning rewrite, see
+    // docs/superpowers/specs/2026-09-09-content-ux-polish/voice-and-positioning.md.
     expect(vi.home.hero).toMatchObject({
-      eyebrow: "Một hồ sơ sinh · Đa tầng soi chiếu Đông – Tây",
+      eyebrow: "Thư viện huyền học Việt · Mỗi câu hỏi, một cách tra cứu riêng",
       lead:
-        "Nhập thời khắc sinh một lần — soi tỏ căn tính và đường đời qua Tử Vi, Bát Tự, Bản đồ sao và Thần Số Học.",
+        "Đọc một lá số mà thấy toàn thuật ngữ lạ, vẫn không rõ nó đang nói gì về mình? Lá Số Việt dựng lá số Tử Vi miễn phí, rồi mở từng nhận định bằng đúng một câu hỏi: vì sao lại như vậy.",
       copy:
-        "Không thần bí hóa, không phán xét tương lai. Lá Số Việt chuyển hóa đồ hình cổ xưa thành lời giải thích tiếng Việt sáng rõ, minh bạch từng căn cứ — để bạn thấu hiểu chính mình và vững vàng trong mọi lựa chọn.",
+        "Không phán một câu rồi để bạn tự đoán. Không hứa biết trước tương lai. Những nhận định quan trọng đều có thể mở ra xem — dữ liệu nào, quy tắc nào, giới hạn ở đâu — để quyết định cuối cùng vẫn là của bạn.",
       microcopy:
-        "Miễn phí ngay lập tức · Riêng tư tuyệt đối · Không cần đăng ký tài khoản.",
+        "Miễn phí ngay lập tức · Riêng tư theo mặc định · Không cần đăng ký tài khoản.",
       metaRoute: "Từ dữ liệu sinh đến bản đồ 12 cung",
       metaDetail: "Lá số đầy đủ được tính ở bước tiếp theo.",
       ctaPrimary: "Lập lá số miễn phí",
@@ -200,16 +216,16 @@ describe("homepage content and structure requirements", () => {
 
     expect(vi.home.trustStrip).toEqual({
       item1: {
-        title: "Miễn phí khởi đầu",
-        copy: "Xem tổng quan lá số trước khi cần trả phí.",
+        title: "Gốc rễ hơn nghìn năm",
+        copy: "Tử Vi Đẩu Số là hệ thống cổ học được đúc kết qua nhiều thế kỷ, từ tri thức tinh túy của các bậc tiền nhân — Lá Số Việt kế thừa nền tảng đó bằng một cách tính nhất quán, minh bạch.",
       },
       item2: {
         title: "Tường minh căn cứ",
         copy: "Mỗi nhận định gắn với dữ liệu và quy tắc công bố.",
       },
       item3: {
-        title: "Riêng tư tuyệt đối",
-        copy: "Lá số của bạn không hiển thị công khai.",
+        title: "Riêng tư theo mặc định",
+        copy: "Lá số của bạn không hiển thị công khai. Dữ liệu khách chưa liên kết tài khoản được xóa trong 24 giờ.",
       },
       item4: {
         title: "Không ép gia hạn",

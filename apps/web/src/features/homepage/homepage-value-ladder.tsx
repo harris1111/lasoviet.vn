@@ -23,43 +23,16 @@ export function HomepageValueLadder({ locale }: HomepageValueLadderProps) {
           <p className="eyebrow">{t("home.valueLadder.eyebrow")}</p>
           <h2>{t("home.valueLadder.title")}</h2>
         </div>
-        <div className="value-ladder-grid">
-          <article className="ladder-tier active-tier">
-            <span className="tier-tag">{t("home.valueLadder.tier1.tag")}</span>
-            <div className="tier-head">
-              <h3>{t("home.valueLadder.tier1.title")}</h3>
-              <div className="tier-pricing">
-                <span className="topic-price">{t("home.valueLadder.tier1.price")}</span>
-                <span className="topic-once">{t("home.valueLadder.tier1.once")}</span>
-              </div>
-            </div>
-            <p>{t("home.valueLadder.tier1.copy")}</p>
-            <div className="tier-action">
-              <Link href={localizedPath(locale, "/bao-cao-mau/tu-vi")}>
-                {t("home.valueLadder.tier1.sampleLink")}
-              </Link>
-            </div>
-          </article>
-
-          <article className="ladder-tier planned-tier">
-            <div className="tier-tag-row">
-              <span className="tier-tag">{t("home.valueLadder.tier2.tag")}</span>
-              <span className="badge-planned">{t("home.valueLadder.tier2.status")}</span>
-            </div>
-            <h3>{t("home.valueLadder.tier2.title")}</h3>
-            <p>{t("home.valueLadder.tier2.copy")}</p>
-          </article>
-
-          <article className="ladder-tier planned-tier">
-            <div className="tier-tag-row">
-              <span className="tier-tag">{t("home.valueLadder.tier3.tag")}</span>
-              <span className="badge-planned">{t("home.valueLadder.tier3.status")}</span>
-            </div>
-            <h3>{t("home.valueLadder.tier3.title")}</h3>
-            <p>{t("home.valueLadder.tier3.copy")}</p>
-          </article>
+        <div className="value-ladder-copy">
+          <p>{t("home.valueLadder.bodyIntro")}</p>
+          <p>{t("home.valueLadder.bodyOffer")}</p>
+          <p className="value-ladder-method-note">{t("home.valueLadder.methodNote")}</p>
         </div>
-        <p className="ladder-microcopy">{t("home.valueLadder.microcopy")}</p>
+        <div className="value-ladder-action">
+          <Link className="button" href={localizedPath(locale, "/bao-cao-mau/tu-vi")}>
+            {t("home.valueLadder.cta")}
+          </Link>
+        </div>
       </div>
     </div>
   );
