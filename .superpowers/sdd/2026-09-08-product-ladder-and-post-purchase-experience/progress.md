@@ -81,3 +81,11 @@
   - Focused verification passed: contracts/database/backend builds, API and web typechecks, 10 focused test files with 108 passing tests, 11 commerce repository integration tests, web production build, and clean `git diff --check`.
 - Deferred provider activation:
   - Telegram delivery activation and external smoke remain blocked only on founder-supplied `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
+- WP-04 catalog single-source milestone completed and Terra-approved:
+  - Initial implementation landed in commit `24f5f14`.
+  - Centralized active commerce price and currency lookup on the validated JSON catalog, added fail-fast catalog policy checks, and enforced contract-level rejection of reserved and arbitrary SKUs before repository access.
+  - Added `ZIWEI-NATAL-EXCERPT-P0` metadata at the founder-approved 19,000 VND price.
+  - Terra identified one Important finding: the initial implementation made the 19,000 VND SKU purchasable before WP-08 provided atomic generation and server-side read-scope support.
+  - Correction landed in commit `64d1733`: the natal excerpt remains staged as `P1` and `reserved`, is excluded from the active commerce contract and runtime lookup, and cannot enter order, payment, or report workflows before WP-08.
+  - Terra scoped re-review returned `APPROVED` with no remaining Critical or Important findings.
+  - Focused verification passed: contracts/config/backend builds, 64 focused contract/config/order/API tests, 12 commerce repository integration tests, API typecheck, and clean `git diff --check`.
