@@ -344,7 +344,10 @@ export function createDatabaseCommerceRepository(
 
     const groupMap = new Map<string, AccountLibraryItemV1[]>();
     for (const item of items) {
-      const key = item.chartId;
+      const key =
+        item.profileId === null
+          ? `chart:${item.chartId}`
+          : `profile:${item.profileId}`;
       const existing = groupMap.get(key);
       if (existing) {
         existing.push(item);
@@ -354,7 +357,7 @@ export function createDatabaseCommerceRepository(
     }
 
     const groups: AccountLibraryGroupV1[] = [];
-    for (const [chartId, groupItems] of groupMap.entries()) {
+    for (const groupItems of groupMap.values()) {
       groupItems.sort((a, b) => {
         const timeA = new Date(a.purchasedAt ?? a.createdAt).getTime();
         const timeB = new Date(b.purchasedAt ?? b.createdAt).getTime();
@@ -365,6 +368,7 @@ export function createDatabaseCommerceRepository(
       const firstReadable = groupItems.find((i) => i.readUrl !== null);
       const profileId = groupItems[0]?.profileId ?? null;
       const profileDisplayName = groupItems[0]?.profileDisplayName ?? null;
+      const chartId = groupItems[0]!.chartId;
 
       groups.push({
         profileId,
@@ -378,13 +382,19 @@ export function createDatabaseCommerceRepository(
 
     groups.sort((a, b) => {
       if (latestReadableReport) {
-        if (a.chartId === latestReadableReport.chartId) return -1;
-        if (b.chartId === latestReadableReport.chartId) return 1;
+        const aContainsLatest = a.items.some(
+          (item) => item.id === latestReadableReport.id,
+        );
+        const bContainsLatest = b.items.some(
+          (item) => item.id === latestReadableReport.id,
+        );
+        if (aContainsLatest && !bContainsLatest) return -1;
+        if (!aContainsLatest && bContainsLatest) return 1;
       }
       const timeA = new Date(a.items[0]?.purchasedAt ?? a.items[0]?.createdAt ?? 0).getTime();
       const timeB = new Date(b.items[0]?.purchasedAt ?? b.items[0]?.createdAt ?? 0).getTime();
       if (timeA !== timeB) return timeB - timeA;
-      return a.chartId.localeCompare(b.chartId);
+      return (a.profileId ?? a.chartId).localeCompare(b.profileId ?? b.chartId);
     });
 
     return {
@@ -577,8 +587,8 @@ export function createDatabaseCommerceRepository(
 
       const supportUrl =
         locale === "en"
-          ? `/en/lien-he?orderId=${encodeURIComponent(order.id)}`
-          : `/lien-he?orderId=${encodeURIComponent(order.id)}`;
+          ? `/en/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`
+          : `/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`;
 
       return {
         id: order.id,

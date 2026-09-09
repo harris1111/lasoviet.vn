@@ -30,7 +30,17 @@ export function AccountDashboard({
 
   const totalReports = library?.totalCount ?? 0;
   const totalOrders = orders?.totalCount ?? 0;
-  const isEmpty = totalReports === 0 && totalOrders === 0;
+  const libraryUnavailable = Boolean(error && !library);
+  const ordersUnavailable = Boolean(error && !orders);
+  const isUnavailable = libraryUnavailable && ordersUnavailable;
+  const isEmpty =
+    !error &&
+    library !== undefined &&
+    library !== null &&
+    orders !== undefined &&
+    orders !== null &&
+    totalReports === 0 &&
+    totalOrders === 0;
   const latestReadableReport = library?.latestReadableReport ?? null;
 
   const allLibraryItems =
@@ -53,7 +63,20 @@ export function AccountDashboard({
         </div>
       )}
 
-      {isEmpty ? (
+      {isUnavailable ? (
+        <section className="account-unavailable-state">
+          <h2>
+            {isVi
+              ? "Chưa thể tải dữ liệu tài khoản"
+              : "Account data is temporarily unavailable"}
+          </h2>
+          <p>
+            {isVi
+              ? "Thông tin mua hàng của bạn chưa thể hiển thị lúc này. Vui lòng thử lại sau."
+              : "Your purchase information cannot be displayed right now. Please try again later."}
+          </p>
+        </section>
+      ) : isEmpty ? (
         <section className="account-empty-state">
           <h2>
             {isVi
@@ -127,13 +150,17 @@ export function AccountDashboard({
               <span className="account-stat-label">
                 {isVi ? "Tổng số báo cáo" : "Total reports"}
               </span>
-              <span className="account-stat-value">{totalReports}</span>
+              <span className="account-stat-value">
+                {libraryUnavailable ? "—" : totalReports}
+              </span>
             </div>
             <div className="account-stat-item">
               <span className="account-stat-label">
                 {isVi ? "Tổng số đơn hàng" : "Total orders"}
               </span>
-              <span className="account-stat-value">{totalOrders}</span>
+              <span className="account-stat-value">
+                {ordersUnavailable ? "—" : totalOrders}
+              </span>
             </div>
           </div>
 
@@ -152,7 +179,13 @@ export function AccountDashboard({
                   </Link>
                 )}
               </div>
-              {recentReports.length === 0 ? (
+              {libraryUnavailable ? (
+                <p className="account-text-muted">
+                  {isVi
+                    ? "Danh sách báo cáo tạm thời không khả dụng."
+                    : "Reports are temporarily unavailable."}
+                </p>
+              ) : recentReports.length === 0 ? (
                 <p className="account-text-muted">
                   {isVi ? "Chưa có báo cáo nào." : "No reports yet."}
                 </p>
@@ -217,7 +250,13 @@ export function AccountDashboard({
                   </Link>
                 )}
               </div>
-              {recentOrders.length === 0 ? (
+              {ordersUnavailable ? (
+                <p className="account-text-muted">
+                  {isVi
+                    ? "Lịch sử đơn hàng tạm thời không khả dụng."
+                    : "Order history is temporarily unavailable."}
+                </p>
+              ) : recentOrders.length === 0 ? (
                 <p className="account-text-muted">
                   {isVi ? "Chưa có đơn hàng nào." : "No orders yet."}
                 </p>

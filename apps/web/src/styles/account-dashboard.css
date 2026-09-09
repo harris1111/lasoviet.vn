@@ -90,6 +90,27 @@
   background: rgba(21, 18, 14, 0.6);
 }
 
+.account-unavailable-state {
+  max-width: 640px;
+  padding: 28px 0;
+  border-top: 1px solid var(--lacquer-line);
+  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.account-unavailable-state h2 {
+  margin: 0 0 10px;
+  color: var(--pearl-50);
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.account-unavailable-state p {
+  margin: 0;
+  color: var(--pearl-400);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
 .account-empty-state h2 {
   margin: 0 0 12px;
   color: var(--pearl-50);

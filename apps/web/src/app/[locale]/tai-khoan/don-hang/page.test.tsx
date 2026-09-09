@@ -170,6 +170,8 @@ describe("AccountOrdersPage (/tai-khoan/don-hang)", () => {
     const htmlVi = renderToStaticMarkup(elementVi);
     expect(htmlVi).toContain("role=\"alert\"");
     expect(htmlVi).toContain("Dịch vụ đơn hàng tạm thời không khả dụng. Vui lòng thử lại sau.");
+    expect(htmlVi).not.toContain("Chưa có đơn hàng nào");
+    expect(htmlVi).not.toContain("/tao-la-so/tu-vi");
 
     const elementEn = await AccountOrdersPage({
       params: Promise.resolve({ locale: "en" }),
@@ -177,6 +179,8 @@ describe("AccountOrdersPage (/tai-khoan/don-hang)", () => {
     const htmlEn = renderToStaticMarkup(elementEn);
     expect(htmlEn).toContain("role=\"alert\"");
     expect(htmlEn).toContain("Order history service is temporarily unavailable. Please try again later.");
+    expect(htmlEn).not.toContain("No orders yet");
+    expect(htmlEn).not.toContain("/en/tao-la-so/tu-vi");
   });
 
   it("exports force-dynamic and robots metadata", async () => {

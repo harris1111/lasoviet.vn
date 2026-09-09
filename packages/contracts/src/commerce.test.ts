@@ -132,7 +132,7 @@ describe("commerce contracts", () => {
           paidAt: "2026-09-08T10:05:00.000Z",
           reportId: "11111111-1111-4111-8111-111111111111",
           readUrl: "/bao-cao/11111111-1111-4111-8111-111111111111",
-          supportUrl: "/lien-he?orderId=order-paid",
+          supportUrl: "/lien-he?order=LSV-order-paid",
         },
         {
           id: "order-expired",
@@ -153,7 +153,7 @@ describe("commerce contracts", () => {
           paidAt: null,
           reportId: null,
           readUrl: null,
-          supportUrl: "/lien-he?orderId=order-expired",
+          supportUrl: "/lien-he?order=LSV-order-expired",
         },
       ],
       items: [
@@ -176,7 +176,7 @@ describe("commerce contracts", () => {
           paidAt: "2026-09-08T10:05:00.000Z",
           reportId: "11111111-1111-4111-8111-111111111111",
           readUrl: "/bao-cao/11111111-1111-4111-8111-111111111111",
-          supportUrl: "/lien-he?orderId=order-paid",
+          supportUrl: "/lien-he?order=LSV-order-paid",
         },
         {
           id: "order-expired",
@@ -197,7 +197,7 @@ describe("commerce contracts", () => {
           paidAt: null,
           reportId: null,
           readUrl: null,
-          supportUrl: "/lien-he?orderId=order-expired",
+          supportUrl: "/lien-he?order=LSV-order-expired",
         },
       ],
       totalCount: 2,

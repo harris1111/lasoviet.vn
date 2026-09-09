@@ -25,18 +25,23 @@ export function AccountLibrary({
   const totalReports = library?.totalCount ?? 0;
   const groups = library?.groups ?? [];
   const hasItems = groups.some((g) => g.items && g.items.length > 0);
+  const isUnavailable = Boolean(error && !library);
   const isEmpty =
-    !library || totalReports === 0 || groups.length === 0 || !hasItems;
+    !isUnavailable &&
+    (!library || totalReports === 0 || groups.length === 0 || !hasItems);
 
   return (
     <AccountPageShell activeTab="reports" locale={locale}>
-      {error && (
-        <div role="alert" className="account-error-banner">
-          {error}
-        </div>
-      )}
-
-      {isEmpty ? (
+      {isUnavailable ? (
+        <section className="account-unavailable-state" role="alert">
+          <h2>
+            {isVi
+              ? "Chưa thể tải thư viện báo cáo"
+              : "Reports are temporarily unavailable"}
+          </h2>
+          <p>{error}</p>
+        </section>
+      ) : isEmpty ? (
         <section className="account-empty-state">
           <h2>{isVi ? "Chưa có báo cáo nào" : "No reports yet"}</h2>
           <p>

@@ -300,11 +300,15 @@ describe("AccountLibrary", () => {
     expect(htmlEn).not.toContain('href="/tao-la-so/tu-vi"');
   });
 
-  it("renders error banner when error prop is provided", () => {
+  it("renders unavailable state without empty copy or create-chart CTA", () => {
     const html = renderToStaticMarkup(
       <AccountLibrary locale="vi" error="Dịch vụ báo cáo tạm thời không khả dụng" />,
     );
     expect(html).toContain('role="alert"');
     expect(html).toContain("Dịch vụ báo cáo tạm thời không khả dụng");
+    expect(html).toContain("Chưa thể tải thư viện báo cáo");
+    expect(html).not.toContain("Chưa có báo cáo nào");
+    expect(html).not.toContain("/tao-la-so/tu-vi");
+    expect(html).not.toContain("Lập lá số Tử Vi");
   });
 });

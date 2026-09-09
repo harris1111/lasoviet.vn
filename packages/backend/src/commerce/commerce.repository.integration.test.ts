@@ -138,6 +138,74 @@ describe("commerce repository - library and order history (WP-03)", () => {
     };
   }
 
+  async function createAdditionalChartRevisionFixture(input: {
+    profileId: string;
+    displayName: string;
+  }) {
+    const revisionId = "revision-" + randomUUID();
+    const runId = randomUUID();
+    const chartId = "chart-" + randomUUID();
+    const versionId = "version-" + randomUUID();
+    const evidenceId = "evidence-" + randomUUID();
+
+    await database.insert(birthProfileRevisions).values({
+      id: revisionId,
+      profileId: input.profileId,
+      revisionNumber: 2,
+      originalInput: {
+        version: 1,
+        displayName: input.displayName,
+      },
+      normalizedInput: {},
+      consentVersion: "privacy.v1",
+      createdAt: new Date("2026-09-09T01:00:00.000Z"),
+    });
+
+    await database.insert(calculationRuns).values({
+      id: runId,
+      profileId: input.profileId,
+      profileRevisionId: revisionId,
+      idempotencyKey: "run-" + runId,
+      engineId: "ziwei.iztro",
+      engineVersion: "1.0",
+      adapterId: "iztro",
+      adapterVersion: "1.0",
+      schemaId: "ziwei.chart.v1",
+      ruleSetId: "ziwei.default",
+      inputHash: "d".repeat(64),
+      configHash: "e".repeat(64),
+      rawSnapshotHash: "f".repeat(64),
+      createdAt: new Date("2026-09-09T01:01:00.000Z"),
+    });
+
+    await database.insert(ziweiCharts).values({
+      id: chartId,
+      profileId: input.profileId,
+      profileRevisionId: revisionId,
+      createdAt: new Date("2026-09-09T01:02:00.000Z"),
+    });
+
+    await database.insert(ziweiChartVersions).values({
+      id: versionId,
+      chartId,
+      calculationRunId: runId,
+      normalizedOutput: {},
+      privateRawSnapshot: {},
+      warnings: [],
+      provenance: {},
+      createdAt: new Date("2026-09-09T01:03:00.000Z"),
+    });
+
+    await database.insert(evidenceSets).values({
+      id: evidenceId,
+      chartVersionId: versionId,
+      capabilityId: "ziwei.identity.p0",
+      ruleVersion: "ziwei.identity.v1",
+    });
+
+    return { chartId, versionId };
+  }
+
   it("ensures owner A cannot read owner B data in library and order history", async () => {
     const repo = createDatabaseCommerceRepository(database);
     const ownerA = await createOwnerFixture({ displayName: "Owner A" });
@@ -183,17 +251,23 @@ describe("commerce repository - library and order history (WP-03)", () => {
     const histA = await repo.readOrderHistory(ownerA.actor);
     expect(histA.orders.some((o) => o.id === orderA.value.id)).toBe(true);
     expect(histA.orders.some((o) => o.id === orderB.value.id)).toBe(false);
+    expect(histA.orders[0]?.supportUrl).toBe(
+      `/lien-he?order=${encodeURIComponent(orderA.value.invoiceNumber)}`,
+    );
 
     // Owner B reads history
     const histB = await repo.readOrderHistory(ownerB.actor);
     expect(histB.orders.some((o) => o.id === orderB.value.id)).toBe(true);
     expect(histB.orders.some((o) => o.id === orderA.value.id)).toBe(false);
+    expect(histB.orders[0]?.supportUrl).toBe(
+      `/en/lien-he?order=${encodeURIComponent(orderB.value.invoiceNumber)}`,
+    );
   });
 
   it("shows expired orders in order history with preserved invoice number and amount", async () => {
     const owner = await createOwnerFixture();
     const orderId = randomUUID();
-    const invoiceNumber = "LSV-" + orderId;
+    const invoiceNumber = "LSV CUSTOMER/EXPIRED 001";
     const pastDate = new Date("2026-09-01T00:00:00.000Z");
 
     // Insert an expired order directly into commerceOrders
@@ -223,7 +297,10 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(found?.currency).toBe("VND");
     expect(found?.reportId).toBeNull();
     expect(found?.readUrl).toBeNull();
-    expect(found?.supportUrl).toContain(orderId);
+    expect(found?.supportUrl).toBe(
+      `/lien-he?order=${encodeURIComponent(invoiceNumber)}`,
+    );
+    expect(found?.supportUrl).not.toContain(orderId);
   });
 
   it("shows paid report in library with read target and deterministic profile grouping", async () => {
@@ -297,6 +374,65 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(item.reportId).toBe(group.latestReportId);
     expect(item.readUrl).toBe(group.latestReadUrl);
     expect(library.latestReadableReport).toEqual(item);
+  });
+
+  it("groups multiple chart revisions for one birth profile into one ordered group", async () => {
+    const owner = await createOwnerFixture({ displayName: "Nguyễn Minh An" });
+    const newerRevision = await createAdditionalChartRevisionFixture({
+      profileId: owner.profileId,
+      displayName: owner.displayName,
+    });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const olderOrder = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    if (!olderOrder.ok) throw new Error("Older chart order creation failed");
+    await repo.recordPaid({
+      invoiceNumber: olderOrder.value.invoiceNumber,
+      providerEventId: "event-" + randomUUID(),
+      amount: 79_000,
+      currency: "VND",
+      traceId: "trace-profile-revision-old",
+    });
+
+    const newerOrder = await repo.createOrder(
+      owner.actor,
+      newerRevision.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    if (!newerOrder.ok) throw new Error("Newer chart order creation failed");
+    await repo.recordPaid({
+      invoiceNumber: newerOrder.value.invoiceNumber,
+      providerEventId: "event-" + randomUUID(),
+      amount: 79_000,
+      currency: "VND",
+      traceId: "trace-profile-revision-new",
+    });
+
+    await database
+      .update(commerceOrders)
+      .set({ paidAt: new Date("2026-09-08T10:00:00.000Z") })
+      .where(eq(commerceOrders.id, olderOrder.value.id));
+    await database
+      .update(commerceOrders)
+      .set({ paidAt: new Date("2026-09-09T10:00:00.000Z") })
+      .where(eq(commerceOrders.id, newerOrder.value.id));
+
+    const library = await repo.readAccountLibrary(owner.actor);
+
+    expect(library.totalCount).toBe(2);
+    expect(library.groups).toHaveLength(1);
+    expect(library.groups[0]?.profileId).toBe(owner.profileId);
+    expect(library.groups[0]?.chartId).toBe(newerRevision.chartId);
+    expect(library.groups[0]?.items.map((item) => item.chartId)).toEqual([
+      newerRevision.chartId,
+      owner.chartId,
+    ]);
   });
 
   it("does not mark pending or failed reservation ready merely because older report_versions row exists (Finding 1)", async () => {

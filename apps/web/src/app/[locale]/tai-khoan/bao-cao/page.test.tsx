@@ -151,6 +151,8 @@ describe("AccountReportsPage (/tai-khoan/bao-cao)", () => {
     const htmlVi = renderToStaticMarkup(elementVi);
     expect(htmlVi).toContain("role=\"alert\"");
     expect(htmlVi).toContain("Dịch vụ báo cáo tạm thời không khả dụng. Vui lòng thử lại sau.");
+    expect(htmlVi).not.toContain("Chưa có báo cáo nào");
+    expect(htmlVi).not.toContain("/tao-la-so/tu-vi");
 
     const elementEn = await AccountReportsPage({
       params: Promise.resolve({ locale: "en" }),
@@ -158,6 +160,8 @@ describe("AccountReportsPage (/tai-khoan/bao-cao)", () => {
     const htmlEn = renderToStaticMarkup(elementEn);
     expect(htmlEn).toContain("role=\"alert\"");
     expect(htmlEn).toContain("Report service is temporarily unavailable. Please try again later.");
+    expect(htmlEn).not.toContain("No reports yet");
+    expect(htmlEn).not.toContain("/en/tao-la-so/tu-vi");
   });
 
   it("exports force-dynamic and robots metadata", async () => {

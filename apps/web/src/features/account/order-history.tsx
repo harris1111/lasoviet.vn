@@ -27,17 +27,21 @@ export function OrderHistory({
 
   const orderData = orders ?? history;
   const orderList = orderData?.orders ?? orderData?.items ?? [];
-  const isEmpty = !orderData || orderList.length === 0;
+  const isUnavailable = Boolean(error && !orderData);
+  const isEmpty = !isUnavailable && (!orderData || orderList.length === 0);
 
   return (
     <AccountPageShell activeTab="orders" locale={locale}>
-      {error && (
-        <div role="alert" className="account-error-banner">
-          {error}
-        </div>
-      )}
-
-      {isEmpty ? (
+      {isUnavailable ? (
+        <section className="account-unavailable-state" role="alert">
+          <h2>
+            {isVi
+              ? "Chưa thể tải lịch sử đơn hàng"
+              : "Order history is temporarily unavailable"}
+          </h2>
+          <p>{error}</p>
+        </section>
+      ) : isEmpty ? (
         <section className="account-empty-state">
           <h2>{isVi ? "Chưa có đơn hàng nào" : "No orders yet"}</h2>
           <p>

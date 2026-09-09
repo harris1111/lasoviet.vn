@@ -26,7 +26,7 @@ function createMockOrder(
     paidAt: "2026-09-08T10:05:00.000Z",
     reportId: "rep-default-id",
     readUrl: "/bao-cao/rep-default-id",
-    supportUrl: "/lien-he?orderId=ord-default-id",
+    supportUrl: "/lien-he?order=LSV-20260908-001",
     ...overrides,
   };
 }
@@ -241,9 +241,11 @@ describe("OrderHistory", () => {
         }),
         createMockOrder({
           invoiceNumber: "INV-SUPPORT-ONLY",
+          id: "internal-order-id-2",
+          orderId: "internal-order-id-2",
           status: "pending",
           readUrl: null,
-          supportUrl: "/lien-he?orderId=ord-2",
+          supportUrl: "/lien-he?order=INV-SUPPORT-ONLY",
         }),
         createMockOrder({
           invoiceNumber: "INV-NEITHER",
@@ -260,8 +262,9 @@ describe("OrderHistory", () => {
     );
     expect(htmlVi).toContain('href="/bao-cao/report-ready-1"');
     expect(htmlVi).toContain("Đọc báo cáo");
-    expect(htmlVi).toContain('href="/lien-he?orderId=ord-2"');
+    expect(htmlVi).toContain('href="/lien-he?order=INV-SUPPORT-ONLY"');
     expect(htmlVi).toContain("Hỗ trợ");
+    expect(htmlVi).not.toContain("internal-order-id-2");
 
     const readMatches = (htmlVi.match(/href="\/bao-cao\//g) || []).length;
     const supportMatches = (htmlVi.match(/href="\/lien-he/g) || []).length;
@@ -276,7 +279,7 @@ describe("OrderHistory", () => {
     );
     expect(htmlEn).toContain('href="/bao-cao/report-ready-1"');
     expect(htmlEn).toContain("Read report");
-    expect(htmlEn).toContain('href="/lien-he?orderId=ord-2"');
+    expect(htmlEn).toContain('href="/lien-he?order=INV-SUPPORT-ONLY"');
     expect(htmlEn).toContain("Support");
   });
 
@@ -340,11 +343,15 @@ describe("OrderHistory", () => {
     expect(htmlEn).not.toContain('href="/tao-la-so/tu-vi"');
   });
 
-  it("renders error banner when error prop is provided", () => {
+  it("renders unavailable state without empty copy or create-chart CTA", () => {
     const html = renderToStaticMarkup(
       <OrderHistory locale="vi" error="Dịch vụ đơn hàng tạm thời không khả dụng" />,
     );
     expect(html).toContain('role="alert"');
     expect(html).toContain("Dịch vụ đơn hàng tạm thời không khả dụng");
+    expect(html).toContain("Chưa thể tải lịch sử đơn hàng");
+    expect(html).not.toContain("Chưa có đơn hàng nào");
+    expect(html).not.toContain("/tao-la-so/tu-vi");
+    expect(html).not.toContain("Lập lá số Tử Vi");
   });
 });

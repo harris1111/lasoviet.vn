@@ -343,7 +343,7 @@ describe("AccountDashboard", () => {
     expect(html).not.toContain("rep-secret-id-12");
   });
 
-  it("renders error banner when error prop is provided", () => {
+  it("renders full unavailable state without empty copy or create-chart CTA", () => {
     const html = renderToStaticMarkup(
       <AccountDashboard
         locale="vi"
@@ -352,5 +352,31 @@ describe("AccountDashboard", () => {
     );
     expect(html).toContain("role=\"alert\"");
     expect(html).toContain("Dịch vụ tài khoản tạm thời không khả dụng");
+    expect(html).toContain("Chưa thể tải dữ liệu tài khoản");
+    expect(html).not.toContain("Chưa có báo cáo hoặc đơn hàng");
+    expect(html).not.toContain("/tao-la-so/tu-vi");
+    expect(html).not.toContain("Lập lá số Tử Vi");
+  });
+
+  it("preserves successful orders while marking missing reports unavailable", () => {
+    const orders: OrderHistoryV1 = {
+      version: 1,
+      totalCount: 1,
+      orders: [createMockOrder({ invoiceNumber: "LSV-PARTIAL-001" })],
+      items: [],
+    };
+
+    const html = renderToStaticMarkup(
+      <AccountDashboard
+        locale="vi"
+        orders={orders}
+        error="Không thể tải danh sách báo cáo. Vui lòng thử lại sau."
+      />,
+    );
+
+    expect(html).toContain("LSV-PARTIAL-001");
+    expect(html).toContain("Danh sách báo cáo tạm thời không khả dụng.");
+    expect(html).not.toContain("Chưa có báo cáo hoặc đơn hàng");
+    expect(html).not.toContain("/tao-la-so/tu-vi");
   });
 });

@@ -1025,7 +1025,7 @@ describe("SePay controller HTTP contract", () => {
           paidAt: null,
           reportId: null,
           readUrl: null,
-          supportUrl: "/lien-he?orderId=order-1",
+          supportUrl: "/lien-he?order=LSV-order-1",
         },
       ],
       items: [
@@ -1048,7 +1048,7 @@ describe("SePay controller HTTP contract", () => {
           paidAt: null,
           reportId: null,
           readUrl: null,
-          supportUrl: "/lien-he?orderId=order-1",
+          supportUrl: "/lien-he?order=LSV-order-1",
         },
       ],
       totalCount: 1,

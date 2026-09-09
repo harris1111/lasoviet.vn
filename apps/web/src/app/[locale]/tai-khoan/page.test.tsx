@@ -184,6 +184,8 @@ describe("AccountPage (/tai-khoan)", () => {
     expect(html).toContain("role=\"alert\"");
     expect(html).toContain("Không thể tải danh sách báo cáo. Vui lòng thử lại sau.");
     expect(html).toContain("LSV-INV-001");
+    expect(html).not.toContain("Chưa có báo cáo hoặc đơn hàng");
+    expect(html).not.toContain("/tao-la-so/tu-vi");
   });
 
   it("renders partial data with localized error when orders fail but library succeeds", async () => {
@@ -210,6 +212,8 @@ describe("AccountPage (/tai-khoan)", () => {
     expect(html).toContain("role=\"alert\"");
     expect(html).toContain("Unable to load order history. Please try again later.");
     expect(html).toContain("Latest report");
+    expect(html).not.toContain("No reports or orders yet");
+    expect(html).not.toContain("/en/tao-la-so/tu-vi");
   });
 
   it("renders bounded error when both projections fail", async () => {
@@ -239,6 +243,9 @@ describe("AccountPage (/tai-khoan)", () => {
 
     expect(html).toContain("role=\"alert\"");
     expect(html).toContain("Dịch vụ tài khoản tạm thời không khả dụng. Vui lòng thử lại sau.");
+    expect(html).toContain("Chưa thể tải dữ liệu tài khoản");
+    expect(html).not.toContain("Chưa có báo cáo hoặc đơn hàng");
+    expect(html).not.toContain("/tao-la-so/tu-vi");
   });
 
   it("exports force-dynamic and robots metadata", async () => {
