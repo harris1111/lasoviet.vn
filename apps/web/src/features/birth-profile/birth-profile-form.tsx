@@ -72,6 +72,7 @@ export function resolveWizardSubmitAction(
 }
 import { useEffect, useState, type FormEvent } from "react";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -103,6 +104,155 @@ import {
   splitIsoDateToParts,
   validateWizardDate,
 } from "./birth-wizard-state";
+
+export function getWizardSubmitButtonLabel(
+  precision: string,
+  pending: boolean,
+  labels: {
+    submit: string;
+    submitting: string;
+    saveProfile: string;
+    savingProfile: string;
+  },
+): string {
+  if (precision === "unknown") {
+    return pending ? labels.savingProfile : labels.saveProfile;
+  }
+  return pending ? labels.submitting : labels.submit;
+}
+
+export type ProfileSubmitOutcome =
+  | { kind: "CALCULATE_CHART"; revisionId: string }
+  | { kind: "SHOW_UNKNOWN_TIME_SAVED" }
+  | { kind: "SUBMISSION_ERROR"; errorKey: string };
+
+export function decideProfileSubmitOutcome(saveResult: {
+  ok: boolean;
+  value?: {
+    revisionId: string;
+    ziweiEligibility: { eligible: boolean };
+  };
+}): ProfileSubmitOutcome {
+  if (!saveResult.ok) {
+    return { kind: "SUBMISSION_ERROR", errorKey: "errors.profile" };
+  }
+  if (!saveResult.value) {
+    return { kind: "SUBMISSION_ERROR", errorKey: "errors.profile" };
+  }
+  if (!saveResult.value.ziweiEligibility.eligible) {
+    return { kind: "SHOW_UNKNOWN_TIME_SAVED" };
+  }
+  if (!saveResult.value.revisionId) {
+    return { kind: "SUBMISSION_ERROR", errorKey: "errors.profile" };
+  }
+  return {
+    kind: "CALCULATE_CHART",
+    revisionId: saveResult.value.revisionId,
+  };
+}
+
+export type UnknownTimeSavedLabels = {
+  title: string;
+  savedConfirmation: string;
+  requirement: string;
+  guidanceTitle: string;
+  sourceCertificate: string;
+  sourceHospital: string;
+  sourceFamily: string;
+  addTimeAction: string;
+  homeAction: string;
+};
+
+export const DEFAULT_UNKNOWN_TIME_SAVED_LABELS: Record<
+  "en" | "vi",
+  UnknownTimeSavedLabels
+> = {
+  vi: {
+    title: "Đã lưu hồ sơ sinh",
+    savedConfirmation:
+      "Thông tin sinh của bạn đã được lưu an toàn trên trình duyệt.",
+    requirement:
+      "Để lập lá số và xem bản luận giải Tử Vi chuyên sâu, bạn cần biết tối thiểu khung giờ sinh theo 12 Địa Chi (khung 2 tiếng).",
+    guidanceTitle: "Gợi ý cách tìm lại giờ sinh:",
+    sourceCertificate: "Giấy khai sinh hoặc trích lục hộ tịch bản gốc",
+    sourceHospital: "Hồ sơ bệnh viện hoặc sổ theo dõi lúc chào đời",
+    sourceFamily: "Người thân trong gia đình (cha mẹ, ông bà nhớ thời điểm sinh)",
+    addTimeAction: "Bổ sung giờ sinh ngay",
+    homeAction: "Về trang chủ (đã lưu hồ sơ)",
+  },
+  en: {
+    title: "Birth profile saved",
+    savedConfirmation:
+      "Your birth details have been securely saved in your browser.",
+    requirement:
+      "To calculate a Zi Wei chart and receive a comprehensive reading, at least a known traditional 2-hour branch is required.",
+    guidanceTitle: "Ways to find your birth time:",
+    sourceCertificate: "Birth certificate or civil registry extract",
+    sourceHospital: "Hospital birth records or maternal health documentation",
+    sourceFamily:
+      "Close family members (parents or relatives who remember the time)",
+    addTimeAction: "Add birth time now",
+    homeAction: "Return to home (saved for later)",
+  },
+};
+
+export type UnknownTimeSavedPresenterProps = {
+  locale: "en" | "vi";
+  labels?: Partial<UnknownTimeSavedLabels>;
+  onAddBirthTime?(): void;
+  onReturnHome?(): void;
+};
+
+export function UnknownTimeSavedPresenter({
+  locale,
+  labels,
+  onAddBirthTime,
+  onReturnHome,
+}: UnknownTimeSavedPresenterProps) {
+  const defaultLabels = DEFAULT_UNKNOWN_TIME_SAVED_LABELS[locale];
+  const resolved = { ...defaultLabels, ...labels };
+  const homeHref = locale === "en" ? "/en" : "/";
+
+  return (
+    <div className="wizard-saved-state" data-testid="unknown-time-saved-state">
+      <div className="wizard-saved-header">
+        <span aria-hidden="true" className="wizard-saved-badge">✓</span>
+        <h2 className="wizard-saved-title">{resolved.title}</h2>
+        <p className="wizard-saved-confirm">{resolved.savedConfirmation}</p>
+      </div>
+
+      <div className="wizard-saved-requirement">
+        <p>{resolved.requirement}</p>
+      </div>
+
+      <div className="wizard-guidance-card">
+        <h3 className="wizard-guidance-title">{resolved.guidanceTitle}</h3>
+        <ul className="wizard-guidance-list">
+          <li>{resolved.sourceCertificate}</li>
+          <li>{resolved.sourceHospital}</li>
+          <li>{resolved.sourceFamily}</li>
+        </ul>
+      </div>
+
+      <div className="wizard-saved-actions">
+        <button
+          className="button wizard-action-add-time"
+          onClick={onAddBirthTime}
+          type="button"
+        >
+          {resolved.addTimeAction}
+        </button>
+        <Link
+          className="button button-secondary wizard-action-return-home"
+          href={homeHref}
+          onClick={onReturnHome}
+        >
+          {resolved.homeAction}
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 type BirthProfileFormProps = {
   locale: "en" | "vi";
@@ -149,6 +299,7 @@ export function BirthProfileForm({
   const [pending, setPending] = useState(false);
   const [step1Attempted, setStep1Attempted] = useState(false);
   const [hasReusedCache, setHasReusedCache] = useState(false);
+  const [savedUnknown, setSavedUnknown] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -305,10 +456,26 @@ export function BirthProfileForm({
 
   function handleBack() {
     if (pending) return;
+    if (savedUnknown) {
+      setSavedUnknown(false);
+      setStep(2);
+      setError(null);
+      return;
+    }
     if (step > 1) {
       setStep((prev) => (prev - 1) as 1 | 2);
       setError(null);
     }
+  }
+
+  function handleAddBirthTime() {
+    setSavedUnknown(false);
+    setStep(2);
+    setError(null);
+  }
+
+  function handleReturnHome() {
+    router.push(locale === "en" ? "/en" : "/");
   }
 
   function handleEditSubject() {
@@ -433,8 +600,10 @@ export function BirthProfileForm({
         explicitConsent: consent,
       });
 
-      if (!saved.ok) {
-        setError(t("errors.profile"));
+      const outcome = decideProfileSubmitOutcome(saved);
+
+      if (outcome.kind === "SUBMISSION_ERROR") {
+        setError(t(outcome.errorKey as never));
         return;
       }
 
@@ -448,15 +617,13 @@ export function BirthProfileForm({
         });
       }
 
-      if (
-        !saved.value?.ziweiEligibility.eligible ||
-        !saved.value.revisionId
-      ) {
-        setError(t("errors.timeUnknown"));
+      if (outcome.kind === "SHOW_UNKNOWN_TIME_SAVED") {
+        setSavedUnknown(true);
+        setError(null);
         return;
       }
 
-      const calculated = await calculateZiweiChart(saved.value.revisionId);
+      const calculated = await calculateZiweiChart(outcome.revisionId);
 
       if (!calculated.ok) {
         setError(
@@ -500,6 +667,17 @@ export function BirthProfileForm({
     timeState,
   });
 
+  const submitButtonLabel = getWizardSubmitButtonLabel(
+    timeState.precision,
+    pending,
+    {
+      submit: t("submit"),
+      submitting: t("submitting"),
+      saveProfile: t("saveProfile"),
+      savingProfile: t("savingProfile"),
+    },
+  );
+
   const stepTitles = [
     t("steps.subject"),
     t("steps.birth"),
@@ -542,6 +720,25 @@ export function BirthProfileForm({
       <div className="wizard-main-shell">
         <div className="wizard-main-grid">
           <div className="wizard-form-column">
+            {savedUnknown ? (
+              <UnknownTimeSavedPresenter
+                labels={{
+                  title: t("unknownTimeSaved.title"),
+                  savedConfirmation: t("unknownTimeSaved.savedConfirmation"),
+                  requirement: t("unknownTimeSaved.requirement"),
+                  guidanceTitle: t("unknownTimeSaved.guidanceTitle"),
+                  sourceCertificate: t("unknownTimeSaved.sourceCertificate"),
+                  sourceHospital: t("unknownTimeSaved.sourceHospital"),
+                  sourceFamily: t("unknownTimeSaved.sourceFamily"),
+                  addTimeAction: t("unknownTimeSaved.addTimeAction"),
+                  homeAction: t("unknownTimeSaved.homeAction"),
+                }}
+                locale={locale}
+                onAddBirthTime={handleAddBirthTime}
+                onReturnHome={handleReturnHome}
+              />
+            ) : (
+              <>
             {hasReusedCache && step < 3 ? (
               <div className="wizard-cache-notice">
                 <span>{locale === "en" ? "Prefilled from saved birth details." : "Đang sử dụng thông tin sinh đã lưu."}</span>
@@ -705,11 +902,13 @@ export function BirthProfileForm({
                   disabled={submitGuard.buttonDisabled}
                   type="submit"
                 >
-                  {pending ? t("submitting") : t("submit")}
+                  {submitButtonLabel}
                 </button>
               )}
             </div>
-          </div>
+          </>
+        )}
+      </div>
 
           <BirthWizardContextRail
             body={railBody}
