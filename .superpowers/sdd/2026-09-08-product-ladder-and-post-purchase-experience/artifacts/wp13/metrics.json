@@ -168,5 +168,425 @@
       "failedControls": []
     },
     "pass": true
+  },
+  {
+    "screen": "account-overview-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 75,
+    "minInteractiveHeight": 44,
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Tab: Tổng quan",
+        "Tab: Báo cáo",
+        "Tab: Đơn hàng",
+        "Action: Đọc tiếp",
+        "Link: Xem tất cả"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "account-overview-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Tab: Tổng quan",
+        "Tab: Báo cáo",
+        "Tab: Đơn hàng",
+        "Action: Đọc tiếp",
+        "Link: Xem tất cả"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "account-reports-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 94,
+    "minInteractiveHeight": 44,
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Tab: Tổng quan",
+        "Tab: Báo cáo",
+        "Tab: Đơn hàng",
+        "Action: Đọc báo cáo"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "account-reports-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Tab: Tổng quan",
+        "Tab: Báo cáo",
+        "Tab: Đơn hàng",
+        "Action: Đọc báo cáo"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "account-orders-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 84,
+    "minInteractiveHeight": 44,
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Tab: Tổng quan",
+        "Tab: Báo cáo",
+        "Tab: Đơn hàng",
+        "Action: Hỗ trợ"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "account-orders-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Tab: Tổng quan",
+        "Tab: Báo cáo",
+        "Tab: Đơn hàng",
+        "Action: Hỗ trợ"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-refunded-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 324,
+    "minInteractiveHeight": 48,
+    "minInteractiveDimension": 48,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-refunded-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-paid-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 324,
+    "minInteractiveHeight": 48,
+    "minInteractiveDimension": 48,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-paid-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-expired-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 324,
+    "minInteractiveHeight": 48,
+    "minInteractiveDimension": 48,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Lập lá số mới",
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-expired-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Lập lá số mới",
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-failed-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 324,
+    "minInteractiveHeight": 48,
+    "minInteractiveDimension": 48,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem lịch sử đơn hàng",
+        "Action: Liên hệ hỗ trợ"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-failed-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem lịch sử đơn hàng",
+        "Action: Liên hệ hỗ trợ"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "report-terminal-failure-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 324,
+    "minInteractiveHeight": 48,
+    "minInteractiveDimension": 48,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Liên hệ hỗ trợ",
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "report-terminal-failure-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Liên hệ hỗ trợ",
+        "Action: Xem lịch sử đơn hàng"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "report-pending-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 324,
+    "minInteractiveHeight": 48,
+    "minInteractiveDimension": 48,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem danh sách báo cáo"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "report-pending-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Action: Xem danh sách báo cáo"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-pending-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "minInteractiveWidth": 44,
+    "minInteractiveHeight": 44,
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Copy: Số tài khoản",
+        "Copy: Số tiền",
+        "Copy: Nội dung"
+      ]
+    },
+    "pass": true
+  },
+  {
+    "screen": "checkout-pending-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "controlsPass": true,
+    "details": {
+      "verifiedFocusSequence": [
+        "Copy: Số tài khoản",
+        "Copy: Số tiền",
+        "Copy: Nội dung"
+      ]
+    },
+    "pass": true
   }
 ]

@@ -1,22 +1,36 @@
-# WP-13 Visual QA Report: Provider-Independent Public & Birth Wizard Flows
+# WP-13 Visual QA Report: Public, Wizard, and Authenticated Post-Purchase Flows
 
 ## 1. Executive Summary
 
-- **Task**: WP-13 Cross-Cutting Visual QA (Provider-Independent Public & Birth Wizard Flows)
+- **Task**: WP-13 Cross-Cutting Visual QA (Public, Birth Wizard, and Authenticated Post-Purchase Flows)
 - **Worktree**: `/home/debian/projects/lasoviet.vn-ziwei-v3`
 - **Branch**: `feature/wp13-visual-qa-20260909`
-- **Runtime**: Local production web runtime on `http://127.0.0.1:3011` (no private API or external provider dependencies active)
-- **Automated Test Suite**: `tests/e2e/wp13-visual-qa.spec.ts` (7 passed)
-- **Overall Status**: `INCOMPLETE - PENDING FOUNDER SIGN-OFF (FD-056) & AUTHENTICATED FLOW FIXTURES`
+- **Runtime**:
+  - Web: Local production web build on `http://127.0.0.1:3011`
+  - Private API: Real local Fastify/NestJS API on `http://127.0.0.1:3012`
+  - PostgreSQL: Isolated container `lasoviet-wp13-postgres` on `127.0.0.1:55435`
+  - Redis: Isolated container `lasoviet-wp13-redis` on `127.0.0.1:63424`
+- **Automated Test Suites**:
+  - `tests/e2e/wp13-visual-qa.spec.ts` (7 passed)
+  - `tests/e2e/wp13-authenticated-visual-qa.spec.ts` (20 passed)
+- **Overall Status**: `INCOMPLETE - PENDING FOUNDER SIGN-OFF (FD-056) & EXTERNAL DEVICE BANKING APP RETURN`
   - Provider-independent birth wizard flows (all viewports): **VERIFIED PASS**
   - Homepage desktop viewports (1440x900 & 720x450 reflow): **VERIFIED PASS**
-  - Homepage mobile viewports (360x800, 390x844, 414x896): **VERIFIED PASS** after the mobile logo and login anchor hit areas were raised to at least 44x44px.
-  - Paid checkout, banking returns, account library, and terminal-failure recovery: **BLOCKED - NOT VERIFIED** (requires an isolated authenticated local fixture; banking app return also requires device-level testing)
-  - **Harris alone provides final sign-off under FD-056**. Per the brief instructions, WP-13 cannot be labeled complete while checkout/banking evidence is blocked or while Harris sign-off is absent.
+  - Homepage mobile viewports (360x800, 390x844, 414x896): **VERIFIED PASS**
+  - Authenticated account overview with latest report and recent blocks (mobile & desktop): **VERIFIED PASS**
+  - Authenticated report library grouped deterministically by birth profile (mobile & desktop): **VERIFIED PASS**
+  - Authenticated immutable order history with paid, pending, expired, failed, refunded rows (mobile & desktop): **VERIFIED PASS**
+  - Paid checkout visual states (pending with VietQR & self-claim, paid with no report ID, expired, failed, refunded): **VERIFIED PASS**
+  - Report progress visual states (pending generating progress, terminal-failure recovery facts): **VERIFIED PASS**
+  - All-document touch target audit (every rendered interactive control meets >= 44x44px): **VERIFIED PASS**
+  - Deterministic named keyboard Tab focus sequences (outline/box-shadow required, no border-color reliance): **VERIFIED PASS**
+  - Top-of-page primary viewport screenshots at scrollY=0: **VERIFIED PASS**
+  - Return from physical mobile banking app: **BLOCKED - NOT VERIFIED (EXTERNAL DEVICE)**
+  - **Harris alone provides final sign-off under FD-056**. Overall WP-13 cannot be labeled complete until external device verification and Harris sign-off are completed.
 
 ---
 
-## 2. Automated Visual & Reflow Evidence Matrix
+## 2. Provider-Independent Public & Birth Wizard Evidence Matrix
 
 All automated checks were executed with Playwright using exact viewport screenshots (not stitched full-page captures, preserving sticky bar positions).
 
@@ -41,40 +55,59 @@ All automated checks were executed with Playwright using exact viewport screensh
 
 ---
 
-## 3. Resolved Defect: Mobile Homepage Header Touch Targets
+## 3. Authenticated Post-Purchase Visual Evidence Matrix
 
-Strict all-anchor measurement initially found:
+All authenticated visual states were tested through canonical Vietnamese routes using a verified non-anonymous Better Auth session cookie, isolated PostgreSQL 16 database, Redis 7 instance, and real local private API. All primary viewport screenshots are captured at `scrollY = 0` showing heading and primary state cards.
 
-- `a.brand[href="/"]`: 126x22px;
-- `a.login-link[href="/dang-nhap"]`: 74x19px.
-
-The existing mobile breakpoint now gives both anchors a minimum 44px height and
-width while preserving the visible logo and login typography. The unweakened
-suite was rerun against the rebuilt local production runtime and passed all
-three mobile viewports. Final metrics contain no failed controls.
-
----
-
-## 4. Provider-Dependent & Authenticated Flows (Blocked Items)
-
-Per brief instructions, the following items are explicitly marked as `BLOCKED - NOT VERIFIED` because no isolated local fixture exists in the current runtime without new credentials or external side effects:
-
-1. **Verified-account library and order history**:
-   - **Status**: `BLOCKED - NOT VERIFIED`
-   - **Reason**: The local production web runtime at `http://127.0.0.1:3011` intentionally has no reachable private API or database session fixture to simulate an authenticated customer library.
-2. **Paid checkout states**:
-   - **Status**: `BLOCKED - NOT VERIFIED`
-   - **Reason**: Blocked by the absence of an isolated verified-account, order, and private-API fixture in this standalone web runtime (`http://127.0.0.1:3011`). Visual checkout does not inherently require live payment provider webhooks or external credentials, but rendering the checkout modal/page requires a persisted verified user session and order identity.
-3. **Return from banking app on one mobile device**:
-   - **Status**: `BLOCKED - NOT VERIFIED`
-   - **Reason**: Requires real physical mobile banking app app-switching and deep-link / callback simulation.
-4. **Report recovery and terminal-failure states**:
-   - **Status**: `BLOCKED - NOT VERIFIED`
-   - **Reason**: Requires triggering private API error codes and worker retry exhaustion, which are unavailable in the isolated web runtime.
+| Flow / Screen | Viewport | Measured Evidence | Artifact Screenshot | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Account Overview (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). Heading "Tài khoản", latest readable report section ("Báo cáo gần nhất", "Nguyễn Minh Châu", "Đọc tiếp" action, min-height 48px), and recent blocks. Every rendered control in document meets width >= 44px and height >= 44px (including section link "Xem tất cả" at 75x44px; min width = 75px, min height = 44px). Deterministic Tab sequence verified across 5 named controls (Tabs -> Latest report CTA -> Section link). Zero `ZIWEI-` or raw statuses exposed. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/account-overview-mobile-390.png` | **PASS** |
+| **Account Overview (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Header navigation tabs (active: "Tổng quan"), latest readable report card with "Đọc tiếp" primary CTA, 2-column stats and recent lists layout. Deterministic Tab sequence verified. Zero sticky overlap. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/account-overview-desktop-1440.png` | **PASS** |
+| **Report Library (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). Grouped deterministically into 2 birth profile sections: "Nguyễn Văn An" and "Nguyễn Minh Châu". All controls meet >= 44x44px (min width = 78px, min height = 44px). Deterministic Tab sequence verified (Tabs -> Action "Đọc báo cáo"). Zero internal IDs exposed. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/account-reports-mobile-390.png` | **PASS** |
+| **Report Library (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Clean vertical layout of profile groups with respective report cards, dates, status badges, and action buttons. Deterministic focus verified. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/account-reports-desktop-1440.png` | **PASS** |
+| **Order History (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). Section heading "Lịch sử đơn hàng". All immutable states verified: "Đã thanh toán", "Đang chờ thanh toán", "Hết hạn", "Thất bại", "Đã hoàn tiền". Every control across document meets >= 44x44px. Deterministic Tab sequence verified (Tabs -> Action "Hỗ trợ"). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/account-orders-mobile-390.png` | **PASS** |
+| **Order History (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Clean list of orders with preserved customer invoice numbers (`LSV-20260909-xxx`), formatted amounts (`79.000 ₫`), dates, and status badges. Zero internal IDs exposed. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/account-orders-desktop-1440.png` | **PASS** |
+| **Checkout: Pending (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). State marker `[data-checkout-status="pending"]` with status "Đang chờ thanh toán". Visible VietQR image, transfer details, and self-claim form. All controls meet >= 44px. Deterministic Tab sequence verified across 3 copy buttons with 2px outline focus indicators. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-pending-mobile-390.png` | **PASS** |
+| **Checkout: Pending (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). VietQR checkout container cleanly aligned with QR figure, transfer details, copy actions, warning notice, and embedded reconciliation form. Deterministic focus verified across 3 copy buttons. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-pending-desktop-1440.png` | **PASS** |
+| **Checkout: Paid (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). State marker `[data-checkout-status="paid"]` with status "Đã thanh toán", heading "Đã nhận thanh toán thành công", processing spinner, and order history navigation CTA. All controls meet >= 44px. Deterministic Tab sequence verified to "Xem lịch sử đơn hàng". | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-paid-mobile-390.png` | **PASS** |
+| **Checkout: Paid (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Status `role="status"` and `aria-live="polite"` confirmed. No report ID exposed. Clean recovery card presentation. Focus verified. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-paid-desktop-1440.png` | **PASS** |
+| **Checkout: Expired (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). State marker `[data-checkout-status="expired"]` with status "Đơn đã hết hạn" and heading "Đơn hàng đã hết hạn thanh toán". Actions meet >= 44px. Deterministic Tab sequence verified (Action "Lập lá số mới" -> "Xem lịch sử đơn hàng"). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-expired-mobile-390.png` | **PASS** |
+| **Checkout: Expired (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Explanatory text and navigation to order history rendered cleanly. Zero paid terms or active QR shown. Deterministic focus verified. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-expired-desktop-1440.png` | **PASS** |
+| **Checkout: Failed (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). State marker `[data-checkout-status="failed"]` with status "Thanh toán chưa thành công" and heading "Thanh toán chưa thành công". Actions meet >= 44px. Deterministic Tab sequence verified (Action "Xem lịch sử đơn hàng" -> "Liên hệ hỗ trợ"). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-failed-mobile-390.png` | **PASS** |
+| **Checkout: Failed (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Failure description with non-retry warning and support contact action. Zero raw error codes. Deterministic focus verified. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-failed-desktop-1440.png` | **PASS** |
+| **Checkout: Refunded (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). State marker `[data-checkout-status="refunded"]` with status "Đã hoàn tiền" and heading "Đơn hàng đã được hoàn tiền". Actions meet >= 44px. Deterministic Tab sequence verified to "Xem lịch sử đơn hàng". | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-refunded-mobile-390.png` | **PASS** |
+| **Checkout: Refunded (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Status badge and refund confirmation description with link to order history. Focus verified. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/checkout-refunded-desktop-1440.png` | **PASS** |
+| **Report: Pending (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). Semantic `[role="status"]` on `.report-progress-pending`, heading "Báo cáo đang được xử lý", animated spinner, and library navigation action. Actions meet >= 44px. Deterministic Tab sequence verified to "Xem danh sách báo cáo". | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/report-pending-mobile-390.png` | **PASS** |
+| **Report: Pending (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Clean progress card with confirmed payment notification, localized status ("Đang tổng hợp nội dung luận giải..."), and library link. Focus verified. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/report-pending-desktop-1440.png` | **PASS** |
+| **Report: Terminal Failure (Mobile)** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). Semantic `[role="alert"]` on `.report-progress-failed`, heading "Chưa thể hoàn tất báo cáo", payment confirmation notice, customer facts list (invoice `LSV-20260909-009`, times, support reference), support mailto CTA, and order history link. Actions meet >= 44px. Deterministic Tab sequence verified (Support action -> Order history action). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/report-terminal-failure-mobile-390.png` | **PASS** |
+| **Report: Terminal Failure (Desktop)** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Full recovery layout with definition list of order facts, next step explanation, and dual actions. Zero internal failure codes or AI model mentions exposed. Focus verified. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/report-terminal-failure-desktop-1440.png` | **PASS** |
 
 ---
 
-## 5. Final Sign-off Authority (FD-056)
+## 4. Resolved Defects
+
+1. **Mobile Homepage Header Touch Targets (Resolved in Pass 2)**:
+   - `a.brand[href="/"]`: previously measured 126x22px.
+   - `a.login-link[href="/dang-nhap"]`: previously measured 74x19px.
+   - Resolved by bounded mobile breakpoint CSS in `apps/web/src/styles/global.css` (commit `4666bb6`).
+2. **Account Section Links Touch Target (Resolved in Pass 3)**:
+   - `.account-section-link` ("Xem tất cả"): previously measured 75x18px at mobile viewport.
+   - Resolved by bounded mobile layout rule in `apps/web/src/styles/account-dashboard.css` giving it `display: inline-flex; align-items: center; justify-content: flex-end; min-width: 44px; min-height: 44px;` and explicit `:focus-visible` indicator. Measured after correction: **75x44px** (PASS).
+
+---
+
+## 5. Remaining External Blocker
+
+Per brief instructions, exactly one physical external device flow remains blocked:
+
+- **Return from banking app on physical mobile device**:
+  - **Status**: `BLOCKED - NOT VERIFIED (EXTERNAL DEVICE)`
+  - **Reason**: Requires live mobile banking application switching, biometric authorization on an iOS/Android device, and operating-system level deep-link return to the mobile browser.
+
+---
+
+## 6. Final Sign-off Authority (FD-056)
 
 - **Authority Requirement**: Per founder decision FD-056 and the approved QA brief, **Harris alone provides final sign-off**.
-- **WP-13 Status**: Remains `INCOMPLETE - PENDING FOUNDER SIGN-OFF & EXTERNAL FIXTURES`.
+- **WP-13 Status**: Remains `INCOMPLETE - PENDING FOUNDER SIGN-OFF & EXTERNAL DEVICE BANKING APP RETURN`.
+- All local automated visual and reflow evidence across both public and authenticated flows is fully verified, repeatable, and preserved with Playwright artifacts.

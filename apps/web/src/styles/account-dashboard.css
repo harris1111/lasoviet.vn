@@ -263,6 +263,11 @@
   text-decoration: underline;
 }
 
+.account-section-link:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+}
+
 /* Rows List & Row Card */
 .account-rows-list {
   display: grid;
@@ -382,6 +387,13 @@
 
 /* Responsive */
 @media (max-width: 767px) {
+  .account-section-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 44px;
+    min-height: 44px;
+  }
   .account-overview-grid {
     grid-template-columns: 1fr;
   }
