@@ -41,4 +41,7 @@
   - Reconciled `docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` with replacement FD-045 self-claim rules, 7-day credit expiration from Tier 1 `paid_at`, 19k pricing, and closed pending decisions.
   - Reconciled `docs/superpowers/plans/2026-09-08-experience-ladder-backlog.md` with replacement WP-02/WP-02B rules and tests (including two matching owner orders and frozen-clock R-AUTO-15 tests), WP-09 expiration tests, WP-10 PostgreSQL/privacy boundaries, deprioritized WP-12, and verified WP-13 UI ancestry.
   - Confirmed `docs/20-deep-research-ta-social-listening-handoff.md` is excluded and remains a separate documentation task.
-- Documentation reconciliation milestone corrected per Terra review and pending Terra re-review.
+- Documentation reconciliation milestone completed and Terra-approved:
+  - Initial implementation landed in commit `5f46862`.
+  - Terra review findings corrected in commit `2d092c2` (aligning R-AUTO-13 and WP-02B with R-AUTO-10 to require exactly one eligible unmatched payment and exactly one eligible unfulfilled order for that owner, adding the two-matching-orders test, and adding the focused frozen-clock R-AUTO-15 alerting test).
+  - Scoped re-review returned APPROVED with no remaining Critical/Important findings.
