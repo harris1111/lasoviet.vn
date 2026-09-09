@@ -51,3 +51,19 @@
   - Terra scoped re-review returned APPROVED with no remaining Critical or Important findings.
   - Focused checks passed: `@lasoviet/database` build, `@lasoviet/backend` build, `@lasoviet/api` typecheck, 7 focused test files with 114 passing tests, and clean `git diff --check`.
   - Invariant boundaries preserved: `SEPAY_ENV`, payment activation, WP-02B customer self-claim, and Telegram alert integration remained untouched.
+- WP-02B customer self-claim server slice completed and Terra-approved:
+  - Implementation landed in commit `16a63d6`.
+  - Terra reviewed `1b066fe..16a63d6` and returned `APPROVED` with no Critical or Important findings.
+  - Focused checks passed: contracts/database/backend builds, API typecheck, 6 focused test files with 130 passing tests, and clean `git diff --check`.
+  - Implemented strict Vietnam local-minute parsing, inclusive +/-15-minute matching, exact-one payment/order eligibility, authenticated verified-account enforcement, concurrency-safe five-attempt daily rate limiting, bounded audit records, and atomic self-claim fulfillment.
+- WP-02B reconciliation operations server slice completed and Terra-approved:
+  - Implementation and corrections landed in commit `328d5ca`.
+  - Initial Terra review found transaction-bound Telegram delivery, checkout/circuit race, and an unregistered reset capability.
+  - Correction moved delivery through a durable leased queue outside database transactions, synchronized checkout and circuit transitions with one advisory lock, and registered `admin.commerce.manage` for super-admin reset authority.
+  - Scoped re-review required lease-token fencing; the final correction added per-claim lease ownership and stale-claimant protection.
+  - Terra returned `APPROVED` with no remaining Critical or Important findings.
+  - Focused verification passed: contracts/database/backend builds, API and worker typechecks, 11 focused test files with 162 passing tests, final lease-fencing re-review tests, and clean `git diff --check`.
+  - Telegram credentials remain absent; no external Telegram delivery, payment activation, `SEPAY_ENV` change, push, merge, deploy, or production access occurred.
+- Remaining WP-02B scope:
+  - Customer-facing self-claim and payment-paused UI on the approved UI artifact lineage.
+  - Live Telegram activation and external smoke after the founder supplies `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
