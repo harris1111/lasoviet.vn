@@ -1272,7 +1272,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(order3Found?.reportId).toBe(reservation3!.reportId);
   });
 
-  it("uses catalog prices 19,000 for natal excerpt and 79,000 for comprehensive, rejecting reserved SKUs", async () => {
+  it("uses the active catalog price and rejects reserved natal excerpt before order creation", async () => {
     const repo = createDatabaseCommerceRepository(database);
     const owner = await createOwnerFixture({ displayName: "Pricing Test Owner" });
 
@@ -1284,15 +1284,11 @@ describe("commerce repository - library and order history (WP-03)", () => {
     const arbitraryResult = await repo.createOrder(owner.actor, owner.chartId, "UNKNOWN-SKU", "vi");
     expect(arbitraryResult).toEqual({ ok: false, code: "SKU_UNSUPPORTED" });
 
-    // Natal excerpt SKU gets 19,000 VND
+    // Natal excerpt remains reserved until WP-08 activates scope and delivery.
     const excerptOrder = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
-    expect(excerptOrder.ok).toBe(true);
-    if (!excerptOrder.ok) throw new Error("Excerpt order creation failed");
-    expect(excerptOrder.value.amount).toBe(19000);
-    expect(excerptOrder.value.currency).toBe("VND");
-    expect(excerptOrder.value.sku).toBe("ZIWEI-NATAL-EXCERPT-P0");
+    expect(excerptOrder).toEqual({ ok: false, code: "SKU_UNSUPPORTED" });
 
-    // Comprehensive SKU gets 79,000 VND
+    // The current first-paid comprehensive SKU still gets 79,000 VND.
     const identityOrder = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
     expect(identityOrder.ok).toBe(true);
     if (!identityOrder.ok) throw new Error("Identity order creation failed");

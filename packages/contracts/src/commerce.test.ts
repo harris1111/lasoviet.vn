@@ -15,15 +15,13 @@ describe("commerce contracts", () => {
   it("resolves product titles according to locale", () => {
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Bản mệnh & tiềm năng");
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Identity and potential");
-    expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "vi")).toBe("Bản mệnh và tiềm năng");
-    expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "en")).toBe("Core identity and potential");
   });
 
-  it("validates CommerceSkuSchema permits only approved first-paid-flow SKUs and rejects reserved or arbitrary SKUs", () => {
+  it("validates CommerceSkuSchema permits only the current first-paid-flow SKU", () => {
     expect(CommerceSkuSchema.safeParse("ZIWEI-IDENTITY-P0").success).toBe(true);
-    expect(CommerceSkuSchema.safeParse("ZIWEI-NATAL-EXCERPT-P0").success).toBe(true);
 
     // Reserved products must fail contract validation
+    expect(CommerceSkuSchema.safeParse("ZIWEI-NATAL-EXCERPT-P0").success).toBe(false);
     expect(CommerceSkuSchema.safeParse("ZIWEI-RELATIONSHIP-P0").success).toBe(false);
     expect(CommerceSkuSchema.safeParse("ZIWEI-CAREER-P0").success).toBe(false);
     expect(CommerceSkuSchema.safeParse("ZIWEI-YEAR-P0").success).toBe(false);

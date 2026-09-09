@@ -16,8 +16,8 @@
       "name": "Bản mệnh và tiềm năng",
       "method": "ziwei",
       "price": 19000,
-      "phase": "P0",
-      "availability": "first_paid_flow",
+      "phase": "P1",
+      "availability": "reserved",
       "sections": ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"]
     },
     {

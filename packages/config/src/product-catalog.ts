@@ -5,8 +5,16 @@ import { resolve } from "node:path";
 
 const APPROVED_FIRST_PAID_CONFIG: Readonly<Record<string, { price: number; method: string }>> = {
   "ZIWEI-IDENTITY-P0": { price: 79000, method: "ziwei" },
-  "ZIWEI-NATAL-EXCERPT-P0": { price: 19000, method: "ziwei" },
 };
+
+const NATAL_EXCERPT_POLICY = {
+  sku: "ZIWEI-NATAL-EXCERPT-P0",
+  method: "ziwei",
+  price: 19000,
+  phase: "P1",
+  availability: "reserved",
+  sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+} as const;
 
 const productSchema = z.object({
   sku: z.string().regex(/^(?:ZIWEI|BAZI|WESTERN)-[A-Z]+(?:-[A-Z]+)*-P0$/),
@@ -59,6 +67,22 @@ export function validateProductCatalog(source: unknown): ProductCatalog {
     ) {
       throw new Error("PRODUCT_CATALOG_INVALID");
     }
+  }
+  const natalExcerpt = products.find(
+    (product) => product.sku === NATAL_EXCERPT_POLICY.sku,
+  );
+  if (
+    natalExcerpt === undefined ||
+    natalExcerpt.method !== NATAL_EXCERPT_POLICY.method ||
+    natalExcerpt.price !== NATAL_EXCERPT_POLICY.price ||
+    natalExcerpt.phase !== NATAL_EXCERPT_POLICY.phase ||
+    natalExcerpt.availability !== NATAL_EXCERPT_POLICY.availability ||
+    natalExcerpt.sections.length !== NATAL_EXCERPT_POLICY.sections.length ||
+    natalExcerpt.sections.some(
+      (section, index) => section !== NATAL_EXCERPT_POLICY.sections[index],
+    )
+  ) {
+    throw new Error("PRODUCT_CATALOG_INVALID");
   }
   const catalogProducts = products.map((product) => ({ ...product, currency })) as ProductCatalogProduct[];
 

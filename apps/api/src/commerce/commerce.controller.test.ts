@@ -103,74 +103,23 @@ describe("SePay controller HTTP contract", () => {
     }
   });
 
-  it("allows order creation for approved ZIWEI-NATAL-EXCERPT-P0 with 19,000 VND", async () => {
-    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
-      kind: "account",
-      userId: "user-1",
-      sessionId: "session-1",
-      requestId: "req-1",
-    });
-    const orderRecord = {
-      id: "order-excerpt-1",
-      paymentCode: "LSVK7M2P9QXJ",
-      invoiceNumber: "LSV-order-excerpt-1",
-      ownerId: "user-1",
-      chartId: "chart-1",
-      chartVersionId: "chart-v1",
-      sku: "ZIWEI-NATAL-EXCERPT-P0" as const,
-      amount: 19000,
-      currency: "VND" as const,
-      locale: "vi" as const,
-      status: "pending" as const,
-      paidAt: null,
-      createdAt: new Date("2026-09-05T00:00:00.000Z"),
-    };
-    const createOrderSpy = vi.fn().mockResolvedValue({
-      ok: true,
-      value: orderRecord,
-      reused: false,
-    });
-    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
-      createOrder: createOrderSpy,
-      readOrder: vi.fn(),
-      readOrderProjection: vi.fn().mockResolvedValue({
-        order: orderRecord,
-        reportId: null,
-      }),
-      recordPaid: vi.fn(),
-    } as never);
-
+  it("rejects reserved natal excerpt before auth, repository, payment, or report paths begin", async () => {
+    const actorSpy = vi.spyOn(internalGuard, "verifyInternalActorToken");
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository");
     try {
       const result = await controller().create("Bearer valid-token", {
         chartId: "chart-1",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
         locale: "vi",
       });
-      expect(createOrderSpy).toHaveBeenCalledWith(
-        expect.anything(),
-        "chart-1",
-        "ZIWEI-NATAL-EXCERPT-P0",
-        "vi",
-      );
       expect(result).toEqual({
-        ok: true,
-        value: {
-          order: {
-            id: "order-excerpt-1",
-            status: "pending",
-            amount: 19000,
-            currency: "VND",
-            locale: "vi",
-          },
-          paymentInstructions: expect.objectContaining({
-            amount: 19000,
-            currency: "VND",
-          }),
-          reportId: null,
-        },
+        ok: false,
+        error: { code: "COMMERCE_ORDER_INVALID" },
       });
+      expect(actorSpy).not.toHaveBeenCalled();
+      expect(repoSpy).not.toHaveBeenCalled();
     } finally {
-      authSpy.mockRestore();
+      actorSpy.mockRestore();
       repoSpy.mockRestore();
     }
   });

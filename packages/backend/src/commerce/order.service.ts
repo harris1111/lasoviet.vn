@@ -14,7 +14,7 @@ function buildProductCatalog(): Readonly<Record<CommerceSku, CatalogOffer>> {
   const offers = productCatalog.firstPaidOffers();
   const catalog: Partial<Record<CommerceSku, CatalogOffer>> = {};
   for (const offer of offers) {
-    if (offer.sku === "ZIWEI-IDENTITY-P0" || offer.sku === "ZIWEI-NATAL-EXCERPT-P0") {
+    if (offer.sku === "ZIWEI-IDENTITY-P0") {
       catalog[offer.sku] = Object.freeze({
         sku: offer.sku,
         amount: offer.price,
