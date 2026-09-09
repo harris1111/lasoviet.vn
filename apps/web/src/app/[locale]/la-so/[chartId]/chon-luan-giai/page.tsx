@@ -51,12 +51,19 @@ export default async function PaidTopicSelectionPage({
     if (!libraryResult.ok) {
       ownershipByOfferKey = {
         "ziwei-comprehensive": { kind: "unavailable" },
+        "ziwei-natal-excerpt": { kind: "unavailable" },
       };
     } else {
       ownershipByOfferKey = {
         "ziwei-comprehensive": deriveOfferOwnership({
           chartId,
           offerKey: "ziwei-comprehensive",
+          library: libraryResult.value,
+          locale,
+        }),
+        "ziwei-natal-excerpt": deriveOfferOwnership({
+          chartId,
+          offerKey: "ziwei-natal-excerpt",
           library: libraryResult.value,
           locale,
         }),

@@ -16,13 +16,26 @@ const insightSchema = z.object({
   evidence: evidenceReferenceSchema,
 }).strict();
 
-const offerSchema = z.object({
+const natalExcerptOfferSchema = z.object({
+  sku: z.literal("ZIWEI-NATAL-EXCERPT-P0"),
+  method: z.literal("ziwei"),
+  price: z.literal(19000),
+  currency: z.literal("VND"),
+  sections: z.array(z.string().trim().min(1)).min(1),
+}).strict();
+
+const identityOfferSchema = z.object({
   sku: z.literal("ZIWEI-IDENTITY-P0"),
   method: z.literal("ziwei"),
   price: z.literal(79000),
   currency: z.literal("VND"),
   sections: z.array(z.string().trim().min(1)).min(1),
 }).strict();
+
+const offerSchema = z.discriminatedUnion("sku", [
+  natalExcerptOfferSchema,
+  identityOfferSchema,
+]);
 
 function matchingFacts(
   first: readonly string[],
@@ -101,11 +114,11 @@ export const PaidTopicSelectionViewV1Schema = z.object({
   version: z.literal(1),
   chartId: z.string().trim().min(1),
   chartVersionId: z.string().trim().min(1),
-  offers: z.array(offerSchema).length(1),
+  offers: z.array(offerSchema).min(1).max(2),
 }).strict();
 
 export const PaidTopicSelectionRequestV1Schema = z.object({
-  sku: z.literal("ZIWEI-IDENTITY-P0"),
+  sku: z.enum(["ZIWEI-IDENTITY-P0", "ZIWEI-NATAL-EXCERPT-P0"]),
 }).strict();
 
 export type FreeIdentityPreviewV1 = z.infer<typeof FreeIdentityPreviewV1Schema>;

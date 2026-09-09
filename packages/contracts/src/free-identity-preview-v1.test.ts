@@ -211,24 +211,67 @@ describe("free identity preview contracts", () => {
     expect(withSummary.success).toBe(true);
   });
 
-  it("allows only the identity topic request and one catalog-backed VND offer", () => {
+  it("allows only the two active topic requests and at most two catalog-backed VND offers (Correction check 1)", () => {
     expect(PaidTopicSelectionRequestV1Schema.safeParse({
       sku: "ZIWEI-IDENTITY-P0",
     }).success).toBe(true);
     expect(PaidTopicSelectionRequestV1Schema.safeParse({
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+    }).success).toBe(true);
+    expect(PaidTopicSelectionRequestV1Schema.safeParse({
       sku: "ZIWEI-RELATIONSHIP-P0",
     }).success).toBe(false);
+    expect(PaidTopicSelectionRequestV1Schema.safeParse({
+      sku: "UNKNOWN-SKU",
+    }).success).toBe(false);
+
+    // Allows exactly the two active offers
+    expect(PaidTopicSelectionViewV1Schema.safeParse({
+      version: 1,
+      chartId: "chart-1",
+      chartVersionId: "chart-version-1",
+      offers: [
+        {
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          method: "ziwei",
+          price: 19000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+        },
+        {
+          sku: "ZIWEI-IDENTITY-P0",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"],
+        },
+      ],
+    }).success).toBe(true);
+
+    // Rejects reserved SKUs in offers
     expect(PaidTopicSelectionViewV1Schema.safeParse({
       version: 1,
       chartId: "chart-1",
       chartVersionId: "chart-version-1",
       offers: [{
-        sku: "ZIWEI-IDENTITY-P0",
+        sku: "ZIWEI-RELATIONSHIP-P0" as any,
         method: "ziwei",
         price: 79000,
         currency: "VND",
-        sections: ["personal_summary"],
+        sections: ["relationship"],
       }],
-    }).success).toBe(true);
+    }).success).toBe(false);
+
+    // Rejects more than two offers
+    expect(PaidTopicSelectionViewV1Schema.safeParse({
+      version: 1,
+      chartId: "chart-1",
+      chartVersionId: "chart-version-1",
+      offers: [
+        { sku: "ZIWEI-NATAL-EXCERPT-P0", method: "ziwei", price: 19000, currency: "VND", sections: ["overview"] },
+        { sku: "ZIWEI-IDENTITY-P0", method: "ziwei", price: 79000, currency: "VND", sections: ["overview"] },
+        { sku: "ZIWEI-IDENTITY-P0", method: "ziwei", price: 79000, currency: "VND", sections: ["overview"] },
+      ],
+    }).success).toBe(false);
   });
 });

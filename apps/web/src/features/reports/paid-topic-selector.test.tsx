@@ -263,4 +263,57 @@ describe("PaidTopicSelector", () => {
     const submitMatches = (html.match(/type="submit"/g) || []).length;
     expect(submitMatches).toBe(0);
   });
+  it("renders both active offers in Vietnamese and only comprehensive in English (Correction check 3)", () => {
+    const twoOffersTopics: PaidTopicSelectionViewV1 = {
+      version: 1,
+      chartId: "chart-123",
+      chartVersionId: "version-456",
+      offers: [
+        {
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          method: "ziwei",
+          price: 19000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+        },
+        {
+          sku: "ZIWEI-IDENTITY-P0",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"],
+        },
+      ],
+    };
+
+    // Vietnamese: renders both offers
+    const htmlVi = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={twoOffersTopics} />,
+    );
+    expect(htmlVi).toContain("19.000 ₫");
+    expect(htmlVi).toContain("79.000 ₫");
+    expect(htmlVi).toContain("Bản mệnh và tiềm năng");
+    expect(htmlVi).toContain("Luận giải Tử Vi toàn diện");
+    expect(htmlVi).toContain('id="ziwei-natal-excerpt"');
+    expect(htmlVi).toContain('id="ziwei-comprehensive"');
+    expect((htmlVi.match(/type="submit"/g) || []).length).toBe(2);
+
+    // English: renders only 79k comprehensive offer
+    mockLocale = "en";
+    try {
+      const htmlEn = renderToStaticMarkup(
+        <PaidTopicSelector locale="en" topics={twoOffersTopics} />,
+      );
+      expect(htmlEn).toContain("79,000 VND");
+      expect(htmlEn).not.toContain("19,000");
+      expect(htmlEn).toContain("Comprehensive Zi Wei reading");
+      expect(htmlEn).not.toContain("Core identity and potential");
+      expect(htmlEn).toContain('id="ziwei-comprehensive"');
+      expect(htmlEn).not.toContain('id="ziwei-natal-excerpt"');
+      expect((htmlEn.match(/type="submit"/g) || []).length).toBe(1);
+    } finally {
+      mockLocale = "vi";
+    }
+  });
+
 });

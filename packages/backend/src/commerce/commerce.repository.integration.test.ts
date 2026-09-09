@@ -1,4 +1,4 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -11,6 +11,7 @@ import {
   commerceEntitlements,
   commerceOrders,
   commerceUnmatchedPayments,
+  outbox,
   createDatabase,
   evidenceSets,
   reportReservations,
@@ -1470,5 +1471,298 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(entitlement).toBeDefined();
     expect(entitlement?.sku).toBe("ZIWEI-NATAL-EXCERPT-P0");
     expect(entitlement?.scope).toEqual(TIER_1_ENTITLEMENT_SCOPE);
+  });
+  it("paying Tier 1 then Tier 2 creates two entitlement rows but exactly one reservation and one outbox event (Correction check 5)", async () => {
+    const owner = await createOwnerFixture({ displayName: "Tier Upgrade Payment Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    // 1. Pay for Tier 1 (19k)
+    const order1Result = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-NATAL-EXCERPT-P0",
+      "vi",
+    );
+    expect(order1Result.ok).toBe(true);
+    if (!order1Result.ok) throw new Error("Order 1 creation failed");
+
+    const paid1 = await repo.recordPaid({
+      invoiceNumber: order1Result.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-tier1-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-upgrade-1",
+    });
+    expect(paid1.ok).toBe(true);
+
+    const proj1 = await repo.readOrderProjection(owner.actor, order1Result.value.id);
+    expect(proj1?.reportId).toBeDefined();
+    const existingReportId = proj1!.reportId!;
+
+    // 2. Pay for Tier 2 (79k)
+    const order2Result = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    expect(order2Result.ok).toBe(true);
+    if (!order2Result.ok) throw new Error("Order 2 creation failed");
+
+    const paid2 = await repo.recordPaid({
+      invoiceNumber: order2Result.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-tier2-${randomUUID()}`,
+      amount: 79000,
+      currency: "VND",
+      traceId: "trace-upgrade-2",
+    });
+    expect(paid2.ok).toBe(true);
+
+    // Proves two entitlement rows exist
+    const entitlements = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.chartId, owner.chartId));
+    expect(entitlements).toHaveLength(2);
+
+    // Proves exactly ONE report reservation exists for the chart
+    const reservations = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, owner.versionId));
+    expect(reservations).toHaveLength(1);
+    expect(reservations[0]?.reportId).toBe(existingReportId);
+
+    // Proves exactly ONE generation outbox event was created for the owner
+    const outboxEvents = await database
+      .select()
+      .from(outbox)
+      .where(
+        and(
+          eq(outbox.actorId, owner.actor.userId),
+          eq(outbox.eventType, "report.generation.requested.v1"),
+        ),
+      );
+    expect(outboxEvents).toHaveLength(1);
+
+    // Proves Tier-2 order projection points to the existing report
+    const proj2 = await repo.readOrderProjection(owner.actor, order2Result.value.id);
+    expect(proj2?.reportId).toBe(existingReportId);
+  });
+
+  it("self-claim upgrade also creates no second generation request and returns existing report ID (Correction check 6)", async () => {
+    const owner = await createOwnerFixture({ displayName: "Tier Upgrade Self Claim Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    // 1. Pay for Tier 1
+    const order1Result = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-NATAL-EXCERPT-P0",
+      "vi",
+    );
+    expect(order1Result.ok).toBe(true);
+    if (!order1Result.ok) throw new Error("Order 1 creation failed");
+
+    const paid1 = await repo.recordPaid({
+      invoiceNumber: order1Result.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-claim-tier1-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-claim-1",
+    });
+    expect(paid1.ok).toBe(true);
+
+    const proj1 = await repo.readOrderProjection(owner.actor, order1Result.value.id);
+    const existingReportId = proj1!.reportId!;
+
+    // 2. Create Tier 2 order and self-claim it
+    const order2Result = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    expect(order2Result.ok).toBe(true);
+    if (!order2Result.ok) throw new Error("Order 2 creation failed");
+
+    const providerEventId = `sepay-unmatched-upgrade-${randomUUID()}`;
+    const transferDate = new Date();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId,
+      rawPayload: { amount: 79000 },
+      amount: 79000,
+      reason: "MISSING_PAYMENT_CODE",
+      receivedAt: transferDate,
+    });
+
+    const formatLocalMinute = (d: Date): string => {
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const vnDate = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+      return `${vnDate.getUTCFullYear()}-${pad(vnDate.getUTCMonth() + 1)}-${pad(vnDate.getUTCDate())}T${pad(vnDate.getUTCHours())}:${pad(vnDate.getUTCMinutes())}`;
+    };
+
+    const claimResult = await repo.claimUnmatchedPayment(owner.actor, {
+      amount: 79000,
+      transferredAtLocal: formatLocalMinute(transferDate),
+    });
+    expect(claimResult.ok).toBe(true);
+    if (!claimResult.ok) throw new Error("Claim failed");
+
+    // Self-claim returns existing report ID
+    expect(claimResult.value.reportId).toBe(existingReportId);
+
+    // Proves exactly ONE outbox event exists for owner
+    const outboxEvents = await database
+      .select()
+      .from(outbox)
+      .where(
+        and(
+          eq(outbox.actorId, owner.actor.userId),
+          eq(outbox.eventType, "report.generation.requested.v1"),
+        ),
+      );
+    expect(outboxEvents).toHaveLength(1);
+  });
+
+  it("creating Tier 1 after owned Tier 2 creates no order (Correction check 7)", async () => {
+    const owner = await createOwnerFixture({ displayName: "Tier 1 After Tier 2 Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    // 1. Create and pay Tier 2
+    const orderTier2 = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    expect(orderTier2.ok).toBe(true);
+    if (!orderTier2.ok) throw new Error("Tier 2 order failed");
+
+    const paid2 = await repo.recordPaid({
+      invoiceNumber: orderTier2.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-tier2-first-${randomUUID()}`,
+      amount: 79000,
+      currency: "VND",
+      traceId: "trace-tier2-first",
+    });
+    expect(paid2.ok).toBe(true);
+
+    // 2. Attempt to create Tier 1 order on same chart
+    const orderTier1 = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-NATAL-EXCERPT-P0",
+      "vi",
+    );
+    expect(orderTier1).toEqual({ ok: false, code: "ENTITLEMENT_EXISTS" });
+
+    // Verify no order was created for Tier 1
+    const orders = await database
+      .select()
+      .from(commerceOrders)
+      .where(
+        and(
+          eq(commerceOrders.chartId, owner.chartId),
+          eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+        ),
+      );
+    expect(orders).toHaveLength(0);
+  });
+  it("proves concurrent 19k and 79k payments serialize on chart lock and yield exactly 2 entitlements, 1 reservation, 1 outbox event", async () => {
+    const owner = await createOwnerFixture({ displayName: "Concurrent Cross-Tier Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    // 1. Create order for Tier 1 (19k)
+    const order1 = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-NATAL-EXCERPT-P0",
+      "vi",
+    );
+    expect(order1.ok).toBe(true);
+    if (!order1.ok) throw new Error("Order 1 failed");
+
+    // 2. Create order for Tier 2 (79k)
+    const order2 = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    expect(order2.ok).toBe(true);
+    if (!order2.ok) throw new Error("Order 2 failed");
+
+    // 3. Concurrently record paid for both orders
+    const [paid1, paid2] = await Promise.all([
+      repo.recordPaid({
+        invoiceNumber: order1.value.invoiceNumber,
+        matchMethod: "invoice_number",
+        providerEventId: `sepay-concurrent-1-${randomUUID()}`,
+        amount: 19000,
+        currency: "VND",
+        traceId: "trace-concurrent-1",
+      }),
+      repo.recordPaid({
+        invoiceNumber: order2.value.invoiceNumber,
+        matchMethod: "invoice_number",
+        providerEventId: `sepay-concurrent-2-${randomUUID()}`,
+        amount: 79000,
+        currency: "VND",
+        traceId: "trace-concurrent-2",
+      }),
+    ]);
+
+    expect(paid1.ok).toBe(true);
+    expect(paid2.ok).toBe(true);
+
+    // Proves exactly 2 entitlements exist
+    const entitlements = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.chartId, owner.chartId));
+    expect(entitlements).toHaveLength(2);
+
+    // Proves exactly 1 report reservation exists
+    const reservations = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, owner.versionId));
+    expect(reservations).toHaveLength(1);
+
+    // Proves exactly 1 generation outbox event exists
+    const outboxEvents = await database
+      .select()
+      .from(outbox)
+      .where(
+        and(
+          eq(outbox.actorId, owner.actor.userId),
+          eq(outbox.eventType, "report.generation.requested.v1"),
+        ),
+      );
+    expect(outboxEvents).toHaveLength(1);
+
+    // Proves both order projections point to the exact same report ID
+    const proj1 = await repo.readOrderProjection(owner.actor, order1.value.id);
+    const proj2 = await repo.readOrderProjection(owner.actor, order2.value.id);
+    expect(proj1?.reportId).toBe(reservations[0]!.reportId);
+    expect(proj2?.reportId).toBe(reservations[0]!.reportId);
+  });
+
+  it("rejects ZIWEI-NATAL-EXCERPT-P0 with English locale in database repository", async () => {
+    const owner = await createOwnerFixture({ displayName: "Excerpt English Reject Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const result = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-NATAL-EXCERPT-P0",
+      "en",
+    );
+    expect(result).toEqual({ ok: false, code: "CHECKOUT_LOCALE_INVALID" });
   });
 });

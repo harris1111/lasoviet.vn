@@ -626,6 +626,9 @@ export function createDatabaseCommerceRepository(
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
       const selectedLocale = checkoutLocale(locale);
       if (selectedLocale === null) return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
+      if (sku === "ZIWEI-NATAL-EXCERPT-P0" && selectedLocale === "en") {
+        return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
+      }
       const product = PRODUCT_CATALOG[sku as Sku];
       const accountError = await checkoutAccount(database, actor);
       if (accountError !== null) return { ok: false as const, code: accountError };
@@ -645,8 +648,28 @@ export function createDatabaseCommerceRepository(
           return { ok: false as const, code: "CHECKOUT_PAYMENTS_PAUSED" };
         }
 
-        const lockKey = `commerce:${chartId}:${product.sku}`;
+        const lockKey = `commerce:chart:${chartId}`;
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+        if (product.sku === "ZIWEI-NATAL-EXCERPT-P0") {
+          const [tier2Entitlement] = await transaction
+            .select({ id: commerceEntitlements.id })
+            .from(commerceEntitlements)
+            .innerJoin(commerceOrders, eq(commerceOrders.id, commerceEntitlements.orderId))
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, chartId),
+                eq(commerceEntitlements.ownerId, actor.userId),
+                eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"),
+                ne(commerceOrders.status, "refunded"),
+              ),
+            )
+            .limit(1);
+
+          if (tier2Entitlement !== undefined) {
+            return { ok: false as const, code: "ENTITLEMENT_EXISTS" };
+          }
+        }
 
         const currentNow = getNow();
         const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
@@ -732,7 +755,31 @@ export function createDatabaseCommerceRepository(
           .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
           .where(and(eq(commerceEntitlements.orderId, order.id), eq(commerceEntitlements.ownerId, order.ownerId)))
           .limit(1);
-        reportId = reservation?.reportId ?? null;
+        if (reservation) {
+          reportId = reservation.reportId;
+        } else {
+          const [chartReservation] = await database
+            .select({ reportId: reportReservations.reportId })
+            .from(commerceEntitlements)
+            .innerJoin(
+              reportReservations,
+              eq(reportReservations.entitlementId, commerceEntitlements.id),
+            )
+            .innerJoin(
+              commerceOrders,
+              eq(commerceOrders.id, commerceEntitlements.orderId),
+            )
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, order.chartId),
+                eq(commerceEntitlements.ownerId, order.ownerId),
+                ne(commerceOrders.status, "refunded"),
+              ),
+            )
+            .orderBy(desc(reportReservations.createdAt))
+            .limit(1);
+          reportId = chartReservation?.reportId ?? null;
+        }
       }
 
       return { order, reportId };
@@ -786,7 +833,7 @@ export function createDatabaseCommerceRepository(
             .limit(1);
           if (target === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
 
-          const lockKey = `commerce:${target.chartId}:${target.sku}`;
+          const lockKey = `commerce:chart:${target.chartId}`;
           await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
           const [order] = await transaction.select().from(commerceOrders)
@@ -874,27 +921,54 @@ export function createDatabaseCommerceRepository(
           createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
-        const reportVersions = currentReportVersions(paidOrder.locale);
-        const [reservation] = await transaction.insert(reportReservations).values({
-          reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
-          evidenceVersionId: evidence.id, knowledgeVersionId: reportVersions.knowledgeVersion,
-          promptVersion: reportVersions.promptVersion, reportConfigVersion: reportVersions.reportConfigVersion,
-          locale: paidOrder.locale, sku: paidOrder.sku,
-          createdAt: currentNow, updatedAt: currentNow,
-        }).returning();
-        if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
-        await enqueueOutbox(transaction, {
-          schemaVersion: 1, type: "report.generation.requested.v1", eventId: randomUUID(),
-          occurredAt: currentNow.toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
-          aggregateType: "order", aggregateId: paidOrder.id,
-          idempotencyKey: "report-request:" + reservation.reportVersionId,
-          payload: {
-            reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
-            chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
-            knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
-            reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale, sku: reservation.sku,
-          },
-        });
+        const [existingChartReservation] = await transaction
+          .select({
+            reportId: reportReservations.reportId,
+            reportVersionId: reportReservations.reportVersionId,
+          })
+          .from(commerceEntitlements)
+          .innerJoin(
+            reportReservations,
+            eq(reportReservations.entitlementId, commerceEntitlements.id),
+          )
+          .innerJoin(
+            commerceOrders,
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, paidOrder.chartId),
+              eq(commerceEntitlements.ownerId, paidOrder.ownerId),
+              ne(commerceOrders.status, "refunded"),
+              ne(commerceEntitlements.id, entitlement.id),
+            ),
+          )
+          .orderBy(desc(reportReservations.createdAt))
+          .limit(1);
+
+        if (existingChartReservation === undefined) {
+          const reportVersions = currentReportVersions(paidOrder.locale);
+          const [reservation] = await transaction.insert(reportReservations).values({
+            reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
+            evidenceVersionId: evidence.id, knowledgeVersionId: reportVersions.knowledgeVersion,
+            promptVersion: reportVersions.promptVersion, reportConfigVersion: reportVersions.reportConfigVersion,
+            locale: paidOrder.locale, sku: paidOrder.sku,
+            createdAt: currentNow, updatedAt: currentNow,
+          }).returning();
+          if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
+          await enqueueOutbox(transaction, {
+            schemaVersion: 1, type: "report.generation.requested.v1", eventId: randomUUID(),
+            occurredAt: currentNow.toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
+            aggregateType: "order", aggregateId: paidOrder.id,
+            idempotencyKey: "report-request:" + reservation.reportVersionId,
+            payload: {
+              reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
+              chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
+              knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
+              reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale, sku: reservation.sku,
+            },
+          });
+        }
         await options.beforePaymentCommit?.();
         return { ok: true as const, replayed: false };
       });
@@ -1153,9 +1227,9 @@ export function createDatabaseCommerceRepository(
         const providerLockKey = `provider_event:${selectedPayment.providerEventId}`;
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
 
-        // 3. Chart/SKU advisory lock
-        const chartSkuLockKey = `commerce:${selectedOrder.chartId}:${selectedOrder.sku}`;
-        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${chartSkuLockKey}))`);
+        // 3. Chart-wide advisory lock
+        const chartLockKey = `commerce:chart:${selectedOrder.chartId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${chartLockKey}))`);
 
         // Test hook before table locks / locked re-query
         await options.beforeClaimLockedRequery?.();
@@ -1385,50 +1459,82 @@ export function createDatabaseCommerceRepository(
 
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
 
-        const reportVersions = currentReportVersions(paidOrder.locale);
-        const [reservation] = await transaction
-          .insert(reportReservations)
-          .values({
-            reportId: randomUUID(),
-            reportVersionId: randomUUID(),
-            entitlementId: entitlement.id,
-            chartVersionId: paidOrder.chartVersionId,
-            evidenceVersionId: evidence.id,
-            knowledgeVersionId: reportVersions.knowledgeVersion,
-            promptVersion: reportVersions.promptVersion,
-            reportConfigVersion: reportVersions.reportConfigVersion,
-            locale: paidOrder.locale,
-            sku: paidOrder.sku,
-            createdAt: currentNow,
-            updatedAt: currentNow,
+        const [existingChartReservation] = await transaction
+          .select({
+            reportId: reportReservations.reportId,
+            reportVersionId: reportReservations.reportVersionId,
           })
-          .returning();
+          .from(commerceEntitlements)
+          .innerJoin(
+            reportReservations,
+            eq(reportReservations.entitlementId, commerceEntitlements.id),
+          )
+          .innerJoin(
+            commerceOrders,
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, paidOrder.chartId),
+              eq(commerceEntitlements.ownerId, paidOrder.ownerId),
+              ne(commerceOrders.status, "refunded"),
+              ne(commerceEntitlements.id, entitlement.id),
+            ),
+          )
+          .orderBy(desc(reportReservations.createdAt))
+          .limit(1);
 
-        if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
+        let finalReportId: string;
 
-        await enqueueOutbox(transaction, {
-          schemaVersion: 1,
-          type: "report.generation.requested.v1",
-          eventId: randomUUID(),
-          occurredAt: currentNow.toISOString(),
-          traceId: actor.requestId,
-          actorId: paidOrder.ownerId,
-          aggregateType: "order",
-          aggregateId: paidOrder.id,
-          idempotencyKey: "report-request:" + reservation.reportVersionId,
-          payload: {
-            reportId: reservation.reportId,
-            reportVersionId: reservation.reportVersionId,
-            entitlementId: entitlement.id,
-            chartVersionId: reservation.chartVersionId,
-            evidenceVersionId: reservation.evidenceVersionId,
-            knowledgeVersionId: reservation.knowledgeVersionId,
-            promptVersion: reservation.promptVersion,
-            reportConfigVersion: reservation.reportConfigVersion,
-            locale: reservation.locale,
-            sku: reservation.sku,
-          },
-        });
+        if (existingChartReservation === undefined) {
+          const reportVersions = currentReportVersions(paidOrder.locale);
+          const [reservation] = await transaction
+            .insert(reportReservations)
+            .values({
+              reportId: randomUUID(),
+              reportVersionId: randomUUID(),
+              entitlementId: entitlement.id,
+              chartVersionId: paidOrder.chartVersionId,
+              evidenceVersionId: evidence.id,
+              knowledgeVersionId: reportVersions.knowledgeVersion,
+              promptVersion: reportVersions.promptVersion,
+              reportConfigVersion: reportVersions.reportConfigVersion,
+              locale: paidOrder.locale,
+              sku: paidOrder.sku,
+              createdAt: currentNow,
+              updatedAt: currentNow,
+            })
+            .returning();
+
+          if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
+
+          await enqueueOutbox(transaction, {
+            schemaVersion: 1,
+            type: "report.generation.requested.v1",
+            eventId: randomUUID(),
+            occurredAt: currentNow.toISOString(),
+            traceId: actor.requestId,
+            actorId: paidOrder.ownerId,
+            aggregateType: "order",
+            aggregateId: paidOrder.id,
+            idempotencyKey: "report-request:" + reservation.reportVersionId,
+            payload: {
+              reportId: reservation.reportId,
+              reportVersionId: reservation.reportVersionId,
+              entitlementId: entitlement.id,
+              chartVersionId: reservation.chartVersionId,
+              evidenceVersionId: reservation.evidenceVersionId,
+              knowledgeVersionId: reservation.knowledgeVersionId,
+              promptVersion: reservation.promptVersion,
+              reportConfigVersion: reservation.reportConfigVersion,
+              locale: reservation.locale,
+              sku: reservation.sku,
+            },
+          });
+          finalReportId = reservation.reportId;
+        } else {
+          finalReportId = existingChartReservation.reportId;
+        }
 
         await transaction.insert(auditLogs).values({
           actorId: actor.userId,
@@ -1451,7 +1557,7 @@ export function createDatabaseCommerceRepository(
           value: {
             status: "claimed" as const,
             orderId: paidOrder.id,
-            reportId: reservation.reportId,
+            reportId: finalReportId,
           },
         };
       });

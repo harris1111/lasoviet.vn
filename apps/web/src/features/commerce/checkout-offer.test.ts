@@ -18,7 +18,7 @@ describe("checkout-offer", () => {
   it("fails closed for unknown or arbitrary offer keys", () => {
     expect(resolveActiveSkuFromPublicOfferKey("unknown")).toBeNull();
     expect(resolveActiveSkuFromPublicOfferKey("ZIWEI-IDENTITY-P0")).toBeNull();
-    expect(resolveActiveSkuFromPublicOfferKey("ziwei-natal-excerpt")).toBeNull();
+    expect(resolveActiveSkuFromPublicOfferKey("ziwei-natal-excerpt")).toBe("ZIWEI-NATAL-EXCERPT-P0");
     expect(resolveActiveSkuFromPublicOfferKey("")).toBeNull();
     expect(resolveActiveSkuFromPublicOfferKey(null)).toBeNull();
     expect(resolveActiveSkuFromPublicOfferKey(undefined)).toBeNull();
@@ -29,7 +29,7 @@ describe("checkout-offer", () => {
   });
 
   it("returns null for unapproved, reserved, or unknown SKUs", () => {
-    expect(resolvePublicOfferKeyFromSku("ZIWEI-NATAL-EXCERPT-P0")).toBeNull();
+    expect(resolvePublicOfferKeyFromSku("ZIWEI-NATAL-EXCERPT-P0")).toBe("ziwei-natal-excerpt");
     expect(resolvePublicOfferKeyFromSku("ZIWEI-RELATIONSHIP-P0")).toBeNull();
     expect(resolvePublicOfferKeyFromSku("UNKNOWN-SKU")).toBeNull();
     expect(resolvePublicOfferKeyFromSku(null)).toBeNull();
@@ -37,7 +37,7 @@ describe("checkout-offer", () => {
 
   it("validates public offer keys correctly", () => {
     expect(isPublicOfferKey("ziwei-comprehensive")).toBe(true);
-    expect(isPublicOfferKey("ziwei-natal-excerpt")).toBe(false);
+    expect(isPublicOfferKey("ziwei-natal-excerpt")).toBe(true);
     expect(isPublicOfferKey("ZIWEI-IDENTITY-P0")).toBe(false);
     expect(isPublicOfferKey("")).toBe(false);
   });

@@ -38,6 +38,10 @@ export async function createCheckoutOrder(
     throw new Error("CHECKOUT_OFFER_INVALID");
   }
 
+  if (locale === "en" && sku === "ZIWEI-NATAL-EXCERPT-P0") {
+    throw new Error("CHECKOUT_OFFER_UNSUPPORTED_FOR_LOCALE");
+  }
+
   const prefix = locale === "en" ? "/en" : "";
   let actor;
   try {

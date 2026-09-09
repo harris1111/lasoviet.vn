@@ -127,6 +127,47 @@ describe("create checkout order", () => {
     expect(redirect).toHaveBeenCalledWith("/en/thanh-toan/order-1");
   });
 
+  it("rejects 19k excerpt offer in English checkout (Correction check 3)", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    const { createCheckoutOrder } = await import("./create-checkout-order.js");
+
+    await expect(
+      createCheckoutOrder("chart-1", "en", "ziwei-natal-excerpt"),
+    ).rejects.toThrow("CHECKOUT_OFFER_UNSUPPORTED_FOR_LOCALE");
+  });
+
+  it("permits 19k excerpt offer in Vietnamese checkout and maps to ZIWEI-NATAL-EXCERPT-P0", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          ...validCheckoutStatus,
+          order: {
+            ...validCheckoutStatus.order,
+            id: "order-excerpt-1",
+            amount: 19000,
+          },
+        },
+      }),
+    });
+    const { createCheckoutOrder } = await import("./create-checkout-order.js");
+
+    await createCheckoutOrder("chart-1", "vi", "ziwei-natal-excerpt");
+
+    expect(vi.mocked(privateApiClient).mock.results[0]?.value.request).toHaveBeenCalledWith(
+      "/commerce/orders",
+      expect.objectContaining({
+        body: JSON.stringify({
+          chartId: "chart-1",
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          locale: "vi",
+        }),
+      }),
+    );
+    expect(redirect).toHaveBeenCalledWith("/thanh-toan/order-excerpt-1");
+  });
+
   it("redirects directly to existing report when order is already paid with reportId", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     vi.mocked(privateApiClient).mockReturnValue({

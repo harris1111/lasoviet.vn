@@ -95,6 +95,9 @@ export class CommerceController {
     if (!skuResult.success) {
       return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
     }
+    if (skuResult.data === "ZIWEI-NATAL-EXCERPT-P0" && body.locale === "en") {
+      return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
+    }
     const actor = await this.actor(authorization);
     const result = await this.repository().createOrder(actor, body.chartId, skuResult.data, body.locale);
     if (!result.ok) {

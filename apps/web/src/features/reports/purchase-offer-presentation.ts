@@ -43,6 +43,32 @@ const OFFER_CONTENT: Record<
     deliverables: { vi: string[]; en: string[] };
   }
 > = {
+  "ziwei-natal-excerpt": {
+    title: {
+      vi: "Bản mệnh và tiềm năng",
+      en: "Core identity and potential",
+    },
+    summary: {
+      vi: "Báo cáo luận giải cô đọng bản mệnh, trục Mệnh - Thân, thế mạnh nội tại và định hướng hành động thiết thực từ lá số Tử Vi.",
+      en: "A focused natal reading covering personal summary, core axis, strengths and tensions, and practical actionable direction.",
+    },
+    deliverables: {
+      vi: [
+        "Tổng quan bản mệnh và tính cách cốt lõi",
+        "Trục Mệnh - Thân và động lực phát triển then chốt",
+        "Nhận diện thế mạnh, điểm vướng và điều kiện phát huy",
+        "Gợi ý định hướng và hành động thực tế",
+        "Bản luận giải 4 phần trọng tâm cô đọng, dễ ứng dụng",
+      ],
+      en: [
+        "Personal summary and core personality baseline",
+        "Core life and body axis with key drivers",
+        "Strengths, tensions, and growth conditions",
+        "Practical actionable direction for daily focus",
+        "Concise four-section natal reading",
+      ],
+    },
+  },
   "ziwei-comprehensive": {
     title: {
       vi: "Luận giải Tử Vi toàn diện",
@@ -74,6 +100,7 @@ const OFFER_CONTENT: Record<
 export type BuildSafeOfferPresentationsParams = {
   offers: PaidTopicSelectionViewV1["offers"];
   ownershipByOfferKey?: Partial<Record<PublicOfferKey, OfferOwnershipState>>;
+  locale?: "vi" | "en";
 };
 
 export function buildSafeOfferPresentations(
@@ -85,6 +112,10 @@ export function buildSafeOfferPresentations(
   for (const offer of params.offers) {
     const offerKey = resolvePublicOfferKeyFromSku(offer.sku);
     if (offerKey === null || seenKeys.has(offerKey)) {
+      continue;
+    }
+
+    if (params.locale === "en" && offerKey === "ziwei-natal-excerpt") {
       continue;
     }
 

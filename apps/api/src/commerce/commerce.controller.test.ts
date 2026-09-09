@@ -103,14 +103,14 @@ describe("SePay controller HTTP contract", () => {
     }
   });
 
-  it("rejects reserved natal excerpt before auth, repository, payment, or report paths begin", async () => {
+  it("rejects natal excerpt with English locale before auth, repository, payment, or report paths begin", async () => {
     const actorSpy = vi.spyOn(internalGuard, "verifyInternalActorToken");
     const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository");
     try {
       const result = await controller().create("Bearer valid-token", {
         chartId: "chart-1",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
-        locale: "vi",
+        locale: "en",
       });
       expect(result).toEqual({
         ok: false,
@@ -120,6 +120,60 @@ describe("SePay controller HTTP contract", () => {
       expect(repoSpy).not.toHaveBeenCalled();
     } finally {
       actorSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("permits natal excerpt with Vietnamese locale to proceed through auth and repository", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          id: "order-excerpt-1",
+          status: "pending",
+          amount: 19000,
+          currency: "VND",
+          locale: "vi",
+        },
+      }),
+      readOrderProjection: vi.fn().mockResolvedValue({
+        order: {
+          id: "order-excerpt-1",
+          status: "pending",
+          amount: 19000,
+          currency: "VND",
+          locale: "vi",
+          paymentCode: "LSV123456789",
+          createdAt: new Date(),
+        },
+        reportId: null,
+      }),
+    } as never);
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+      });
+      expect(result).toMatchObject({
+        ok: true,
+        value: {
+          order: {
+            id: "order-excerpt-1",
+            amount: 19000,
+          },
+        },
+      });
+      expect(authSpy).toHaveBeenCalled();
+      expect(repoSpy).toHaveBeenCalled();
+    } finally {
+      authSpy.mockRestore();
       repoSpy.mockRestore();
     }
   });

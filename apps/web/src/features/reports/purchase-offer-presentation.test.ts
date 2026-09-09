@@ -68,14 +68,72 @@ describe("purchase-offer-presentation", () => {
       expect(presentations.length).toBeLessThanOrEqual(2);
     });
 
-    it("excludes reserved or unknown SKUs from safe presentation", () => {
-      const mixedOffers: any = [
+    it("converts 19k natal excerpt into customer-safe presentation with no technical SKU strings (Correction check 2)", () => {
+      const excerptOffer: PaidTopicSelectionViewV1["offers"][number] = {
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        method: "ziwei",
+        price: 19000,
+        currency: "VND",
+        sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+      };
+
+      const presentations = buildSafeOfferPresentations({ offers: [excerptOffer], locale: "vi" });
+      expect(presentations).toHaveLength(1);
+
+      const offer = presentations[0]!;
+      expect(offer.offerKey).toBe("ziwei-natal-excerpt");
+      expect(offer.anchorId).toBe("ziwei-natal-excerpt");
+      expect(offer.price).toBe(19000);
+      expect(offer.currency).toBe("VND");
+      expect(offer.title.vi).toBe("Bản mệnh và tiềm năng");
+      expect(offer.title.en).toBe("Core identity and potential");
+      expect(offer.deliverables.vi).toHaveLength(5);
+      expect(offer.deliverables.vi[0]).toContain("Tổng quan bản mệnh");
+
+      // Invariant: no technical SKU leakage
+      const serialized = JSON.stringify(offer);
+      expect(serialized).not.toMatch(/ZIWEI-[A-Z0-9]+/);
+    });
+
+    it("renders both active offers in Vietnamese and only comprehensive in English (Correction check 3)", () => {
+      const twoOffers: PaidTopicSelectionViewV1["offers"] = [
         {
           sku: "ZIWEI-NATAL-EXCERPT-P0",
           method: "ziwei",
           price: 19000,
           currency: "VND",
-          sections: ["core-identity"],
+          sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+        },
+        mockOffers[0]!,
+      ];
+
+      // Vietnamese: both offers rendered
+      const viPresentations = buildSafeOfferPresentations({ offers: twoOffers, locale: "vi" });
+      expect(viPresentations).toHaveLength(2);
+      expect(viPresentations[0]!.offerKey).toBe("ziwei-natal-excerpt");
+      expect(viPresentations[1]!.offerKey).toBe("ziwei-comprehensive");
+
+      // English: only 79k comprehensive rendered (19k excluded)
+      const enPresentations = buildSafeOfferPresentations({ offers: twoOffers, locale: "en" });
+      expect(enPresentations).toHaveLength(1);
+      expect(enPresentations[0]!.offerKey).toBe("ziwei-comprehensive");
+    });
+
+    it("excludes reserved or unknown SKUs from safe presentation", () => {
+      const mixedOffers: any = [
+        {
+          sku: "ZIWEI-RELATIONSHIP-P0",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["relationship"],
+        },
+        {
+          sku: "UNKNOWN-SKU",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["unknown"],
         },
         mockOffers[0]!,
       ];

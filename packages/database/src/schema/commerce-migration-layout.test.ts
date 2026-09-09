@@ -114,4 +114,27 @@ describe("commerce migration layout", () => {
     expect(journal).toContain('"tag": "0019_payment_code_reconciliation"');
     expect(journal).toContain('"idx": 19');
   });
+  it("keeps entitlement scope migration 0022 with backfill before not null constraint (Correction check 8)", async () => {
+    const migration = await readFile(
+      new URL("0022_entitlement_scope.sql", migrationRoot),
+      "utf8",
+    );
+    expect(migration).toContain('ALTER TABLE "commerce_entitlements" ADD COLUMN "scope" jsonb;');
+    expect(migration).toContain('UPDATE "commerce_entitlements"');
+    expect(migration).toContain("WHERE \"sku\" = 'ZIWEI-IDENTITY-P0' AND \"scope\" IS NULL;");
+    expect(migration).toContain("WHERE \"sku\" = 'ZIWEI-NATAL-EXCERPT-P0' AND \"scope\" IS NULL;");
+    expect(migration).toContain('ALTER TABLE "commerce_entitlements" ALTER COLUMN "scope" SET NOT NULL;');
+
+    const addColumnIdx = migration.indexOf('ADD COLUMN "scope" jsonb;');
+    const updateIdx = migration.indexOf('UPDATE "commerce_entitlements"');
+    const setNotNullIdx = migration.indexOf('ALTER COLUMN "scope" SET NOT NULL;');
+
+    expect(addColumnIdx).toBeGreaterThan(-1);
+    expect(updateIdx).toBeGreaterThan(addColumnIdx);
+    expect(setNotNullIdx).toBeGreaterThan(updateIdx);
+
+    const journal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
+    expect(journal).toContain('"tag": "0022_entitlement_scope"');
+    expect(journal).toContain('"idx": 22');
+  });
 });

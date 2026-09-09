@@ -38,6 +38,7 @@ export function PaidTopicSelector({
   const safeOffers = buildSafeOfferPresentations({
     offers: topics.offers,
     ownershipByOfferKey,
+    locale,
   });
 
   const disciplines = [
