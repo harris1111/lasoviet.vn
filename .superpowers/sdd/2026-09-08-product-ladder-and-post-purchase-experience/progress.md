@@ -185,5 +185,34 @@
   - Verification passed 39 focused tests, web typecheck, web production build,
     i18n parity, and clean `git diff --check`.
 - WP-12 remains deprioritized under FD-048 and was not started.
-- WP-13 is the next executable work package. It requires screenshot-backed
-  cross-cutting visual QA evidence for Harris's sole sign-off under FD-056.
+- WP-13 provider-independent public and birth-wizard visual QA completed:
+  - Initial evidence landed in commit `7663dcb`.
+  - Evidence-strengthening correction landed in commit `0656fb9`.
+  - Mobile homepage header touch-target correction landed in commit `4666bb6`.
+  - Terra approved the final provider-independent range with no Critical or
+    Important findings.
+- WP-13 authenticated local visual QA implementation landed in commit
+  `14ab86a`:
+  - Added an isolated verified Better Auth fixture using local PostgreSQL,
+    Redis, the real private API, and canonical production web routes.
+  - Added screenshot-backed mobile and desktop coverage for account overview,
+    grouped report library, immutable order history, all five checkout states,
+    report pending, and report terminal-failure recovery.
+  - Corrected the mobile account-section link from `75x18px` to `75x44px`.
+  - The strict authenticated Playwright suite passed 20 tests; web typecheck,
+    production build, and `git diff --check` passed.
+  - The generated signed local session manifest remains Git-ignored and was
+    not committed.
+- WP-13 authenticated milestone review is blocked before dispatch:
+  - A fresh exact override probe for `cx/gpt-5.6-terra` with `high` reasoning
+    returned runtime model `GPT-5` with unspecified reasoning.
+  - The existing Terra-context reviewer from the handoff returned the same
+    failed probe.
+  - Repository policy forbids silent model substitution or Sol self-review.
+  - Exact evidence and required resolution are recorded in
+    `task-wp13-terra-review-blocker-report.md`.
+- WP-13 remains incomplete pending:
+  - a compliant Terra high independent review of `4666bb6..14ab86a`;
+  - return-from-banking-app verification on one physical mobile device;
+  - Harris's sole final sign-off under FD-056.
+- WP-14 remains owned by Harris/Product and was not started.
