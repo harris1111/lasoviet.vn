@@ -50,6 +50,10 @@ button { cursor: pointer; }
 .mobile-menu summary { display: grid; min-width: 44px; min-height: 44px; place-items: center; border: 1px solid var(--lacquer-line); border-radius: 4px; color: var(--pearl-50); cursor: pointer; list-style: none; }
 .mobile-menu summary::-webkit-details-marker { display: none; }
 .mobile-menu nav { display: none; }
+@media (max-width: 767px) {
+  .brand { min-height: 44px; min-width: 44px; }
+  .login-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding-inline: 8px; }
+}
 .home section { position: relative; border-bottom: 1px solid var(--lacquer-line); }
 .hero { overflow: hidden; min-height: 660px; background: var(--lacquer-900); }
 .hero::before, .hero::after, .image-section::after { position: absolute; inset: 0; content: ""; pointer-events: none; }

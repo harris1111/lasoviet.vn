@@ -6,10 +6,12 @@
 - **Worktree**: `/home/debian/projects/lasoviet.vn-ziwei-v3`
 - **Branch**: `feature/wp13-visual-qa-20260909`
 - **Runtime**: Local production web runtime on `http://127.0.0.1:3011` (no private API or external provider dependencies active)
-- **Automated Test Suite**: `tests/e2e/wp13-visual-qa.spec.ts` (7 passed across mobile & desktop viewports)
-- **Overall Status**: `INCOMPLETE - PENDING FOUNDER SIGN-OFF (FD-056) & EXTERNAL FIXTURES`
-  - Provider-independent public and birth-wizard flows: **VERIFIED PASS**
-  - Paid checkout, banking returns, account library, and terminal-failure recovery: **BLOCKED - NOT VERIFIED** (requires authenticated local fixtures / provider credentials)
+- **Automated Test Suite**: `tests/e2e/wp13-visual-qa.spec.ts` (7 passed)
+- **Overall Status**: `INCOMPLETE - PENDING FOUNDER SIGN-OFF (FD-056) & AUTHENTICATED FLOW FIXTURES`
+  - Provider-independent birth wizard flows (all viewports): **VERIFIED PASS**
+  - Homepage desktop viewports (1440x900 & 720x450 reflow): **VERIFIED PASS**
+  - Homepage mobile viewports (360x800, 390x844, 414x896): **VERIFIED PASS** after the mobile logo and login anchor hit areas were raised to at least 44x44px.
+  - Paid checkout, banking returns, account library, and terminal-failure recovery: **BLOCKED - NOT VERIFIED** (requires an isolated authenticated local fixture; banking app return also requires device-level testing)
   - **Harris alone provides final sign-off under FD-056**. Per the brief instructions, WP-13 cannot be labeled complete while checkout/banking evidence is blocked or while Harris sign-off is absent.
 
 ---
@@ -20,12 +22,12 @@ All automated checks were executed with Playwright using exact viewport screensh
 
 | Flow / Screen | Viewport | Measured Evidence | Artifact Screenshot | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **Homepage Compact Mobile** | 360x800 | `scrollWidth = clientWidth = 360px` (no overflow). Loaded fonts: Be Vietnam Pro (UI), Source Serif 4 (Display), JetBrains Mono (Mono) with VN glyphs. All initial interactive controls meet >= 44px touch target (width >= 44px AND height >= 44px; min width = 44px, min height = 44px). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-mobile-360.png` | **PASS** |
-| **Homepage Standard Mobile** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). Loaded font roles verified. All controls meet >= 44px touch target (width >= 44px AND height >= 44px; min width = 44px, min height = 44px). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-mobile-390.png` | **PASS** |
-| **Homepage Large Mobile** | 414x896 | `scrollWidth = clientWidth = 414px` (no overflow). Loaded font roles verified. All controls >= 44px touch target. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-mobile-414.png` | **PASS** |
+| **Homepage Compact Mobile** | 360x800 | `scrollWidth = clientWidth = 360px` (no overflow). Loaded fonts: Be Vietnam Pro (UI), Source Serif 4 (Display), JetBrains Mono (Mono) with VN glyphs. Every visible button, input, select, summary, and anchor meets both width >= 44px and height >= 44px; measured minimum width and height are 44px. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-mobile-360.png` | **PASS** |
+| **Homepage Standard Mobile** | 390x844 | `scrollWidth = clientWidth = 390px` (no overflow). Loaded font roles verified. Every visible interactive control and anchor meets 44x44px; measured minimum width and height are 44px. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-mobile-390.png` | **PASS** |
+| **Homepage Large Mobile** | 414x896 | `scrollWidth = clientWidth = 414px` (no overflow). Loaded font roles verified. Every visible interactive control and anchor meets 44x44px; measured minimum width and height are 44px. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-mobile-414.png` | **PASS** |
 | **Homepage Desktop** | 1440x900 | `scrollWidth = clientWidth = 1440px` (no overflow). Loaded fonts verified with full Vietnamese character set sample. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-desktop-1440.png` | **PASS** |
 | **Homepage 200% Zoom Reflow Approximation** | 720x450 | `scrollWidth = clientWidth = 720px` (no overflow, clean vertical stacking, responsive grid collapses cleanly). Evaluated at 720x450 as an equivalent reflow approximation for a 1440x900 viewport at 200% zoom rather than native browser engine zoom. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/homepage-desktop-200pct-equivalent.png` | **PASS** |
-| **Wizard Step 1: Subject (Mobile)** | 390x844 | Heading visible; labels associated with Nam/Nữ radios. All initial interactive controls meet >= 44px touch target (width >= 44px AND height >= 44px; min width = 44px, min height = 44px). Deterministic Tab sequence verified across 6 named controls (Help link -> Name input -> Choice: Self -> Choice: Other -> Gender: Male -> Continue button) with real focus indicator (outline-style solid 2px or gold box-shadow). No overflow (`390px`). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-step1-mobile-390.png` | **PASS** |
+| **Wizard Step 1: Subject (Mobile)** | 390x844 | Heading visible; labels associated with Nam/Nữ radios. All initial interactive controls meet >= 44px touch target (width >= 44px AND height >= 44px; min width = 44px, min height = 44px), including Help link (`a[aria-label="Trợ giúp lập lá số"]`, 44x44px). Deterministic Tab sequence verified across 6 named controls (Help link -> Name input -> Choice: Self -> Choice: Other -> Gender: Male -> Continue button) with real focus indicator (outline-style solid 2px or gold box-shadow). No overflow (`390px`). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-step1-mobile-390.png` | **PASS** |
 | **Wizard Step 1: Subject (Desktop)** | 1440x900 | Heading visible; form labels associated. Deterministic Tab sequence verified across 8 named controls (Logo link -> Help link -> Exit button -> Name input -> Choice: Self -> Choice: Other -> Gender: Male -> Continue button) with visible focus indicators. No overflow (`1440px`). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-step1-desktop-1440.png` | **PASS** |
 | **Wizard Step 2: Birth Step (Mobile)** | 390x844 | Date (Day, Month, Year), calendar button, hour/minute, place inputs all labeled and visible. No overflow (`390px`). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-step2-mobile-390.png` | **PASS** |
 | **Wizard Step 2: Birth Step (Desktop)** | 1440x900 | Date and time fields cleanly aligned. Labels associated with inputs. No overflow (`1440px`). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-step2-desktop-1440.png` | **PASS** |
@@ -34,12 +36,26 @@ All automated checks were executed with Playwright using exact viewport screensh
 | **Wizard Soft-Keyboard Pressure** | 390x500 | Reduced viewport height simulates soft keyboard. Hour and minute inputs focused and scrolled: `hourBox.y + hourBox.height <= 500px`, `minBox.y + minBox.height <= actionsBox.y`. Sticky actions do not cover active input. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-soft-keyboard-focus-390x500.png` | **PASS** |
 | **Wizard Step 3: Exact-Time Review (Mobile)** | 390x844 | Summary values verified: Nam, 01/01/1990, 09:30. Submit button shows "Lập lá số". Scrolled to bottom; both consent and actions bounding boxes verified; sticky footer does not cover final consent content (`clearance > 100px`, `padding-bottom: 96px` safe clearance). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-review-mobile-390.png` | **PASS** |
 | **Wizard Step 3: Exact-Time Review (Desktop)** | 1440x900 | Desktop review summary verified. Submit button: "Lập lá số". Direct unsubmitted browser refresh safely resets to initial wizard state (Step 1: "Người được lập lá số"); does not claim unsaved input persistence. Multi-tab cache reads do not mutate or clear stored birth data in `localStorage`. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-review-desktop-1440.png` | **PASS** |
-| **Wizard Step 3: Unknown-Time Review (Mobile)** | 390x844 | Summary shows "Không rõ giờ sinh". Submit button text is "Lưu hồ sơ". Page contains **0** paid terms (no "19.000", "79.000", "19k", "79k", "thanh toán", "mua ngay", "nâng cấp trả phí"). Scrolled to final consent; both consent and actions bounding boxes verified; sticky actions do not cover consent (`clearance > 100px`). Screenshot captured at final consent position. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-unknown-review-mobile-390.png` | **PASS** |
-| **Wizard Step 3: Unknown-Time Review (Desktop)** | 1440x900 | Unknown-time review summary verified on desktop. Submit button: "Lưu hồ sơ". Zero paid upgrade or pricing text anywhere on page. Scrolled to consent; non-overlap asserted. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-unknown-review-desktop-1440.png` | **PASS** |
+| **Wizard Step 3: Unknown-Time Review (Mobile)** | 390x844 | Summary shows "Không rõ giờ sinh". Submit button text is "Lưu hồ sơ". Page contains **0** paid terms (no "19.000", "79.000", "19k", "79k", "thanh toán", "mua ngay", "nâng cấp trả phí"). Scrolled to final consent; both consent and actions bounding boxes verified; non-overlap asserted without `isMobile` guard (`clearance > 100px`). Screenshot captured at final consent position. | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-unknown-review-mobile-390.png` | **PASS** |
+| **Wizard Step 3: Unknown-Time Review (Desktop)** | 1440x900 | Unknown-time review summary verified on desktop. Submit button: "Lưu hồ sơ". Zero paid upgrade or pricing text anywhere on page. Scrolled to consent; both bounding boxes verified; non-overlap asserted geometrically without `isMobile` guard (`consentBox.y + consentBox.height <= actionsBox.y + 4`, pass). | `.superpowers/sdd/2026-09-08-product-ladder-and-post-purchase-experience/artifacts/wp13/wizard-unknown-review-desktop-1440.png` | **PASS** |
 
 ---
 
-## 3. Provider-Dependent & Authenticated Flows (Blocked Items)
+## 3. Resolved Defect: Mobile Homepage Header Touch Targets
+
+Strict all-anchor measurement initially found:
+
+- `a.brand[href="/"]`: 126x22px;
+- `a.login-link[href="/dang-nhap"]`: 74x19px.
+
+The existing mobile breakpoint now gives both anchors a minimum 44px height and
+width while preserving the visible logo and login typography. The unweakened
+suite was rerun against the rebuilt local production runtime and passed all
+three mobile viewports. Final metrics contain no failed controls.
+
+---
+
+## 4. Provider-Dependent & Authenticated Flows (Blocked Items)
 
 Per brief instructions, the following items are explicitly marked as `BLOCKED - NOT VERIFIED` because no isolated local fixture exists in the current runtime without new credentials or external side effects:
 
@@ -58,8 +74,7 @@ Per brief instructions, the following items are explicitly marked as `BLOCKED - 
 
 ---
 
-## 4. Final Sign-off Authority (FD-056)
+## 5. Final Sign-off Authority (FD-056)
 
 - **Authority Requirement**: Per founder decision FD-056 and the approved QA brief, **Harris alone provides final sign-off**.
 - **WP-13 Status**: Remains `INCOMPLETE - PENDING FOUNDER SIGN-OFF & EXTERNAL FIXTURES`.
-- All provider-independent flows and visual criteria are fully implemented, automated, and verified via Playwright tests and viewport screenshots.

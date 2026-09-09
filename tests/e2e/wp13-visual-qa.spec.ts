@@ -40,6 +40,24 @@ type MetricRecord = {
 
 const metricsCollector: MetricRecord[] = [];
 
+function recordMetric(metric: MetricRecord) {
+  metricsCollector.push(metric);
+  const metricsPath = path.join(ARTIFACTS_DIR, "metrics.json");
+  let records: MetricRecord[] = [];
+  if (fs.existsSync(metricsPath)) {
+    try {
+      records = JSON.parse(fs.readFileSync(metricsPath, "utf-8"));
+    } catch {}
+  }
+  const idx = records.findIndex((r) => r.screen === metric.screen);
+  if (idx >= 0) {
+    records[idx] = metric;
+  } else {
+    records.push(metric);
+  }
+  fs.writeFileSync(metricsPath, JSON.stringify(records, null, 2));
+}
+
 async function setVietnameseLocale(page: Page) {
   const baseURL = test.info().project.use.baseURL as string;
   const base = new URL(baseURL);
@@ -58,7 +76,7 @@ async function setVietnameseLocale(page: Page) {
 async function checkMobileTouchTargets(page: Page) {
   return page.evaluate(() => {
     const interactive = Array.from(
-      document.querySelectorAll<HTMLElement>("button, a.button, input, select, summary"),
+      document.querySelectorAll<HTMLElement>("button, a, input, select, summary"),
     );
     const vh = window.innerHeight;
     const vw = window.innerWidth;
@@ -108,7 +126,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   const metricsPath = path.join(ARTIFACTS_DIR, "metrics.json");
-  fs.writeFileSync(metricsPath, JSON.stringify(metricsCollector, null, 2));
+  // Persisted incrementally via recordMetric
 });
 
 test.describe("WP-13 Homepage Visual & Reflow QA", () => {
@@ -162,10 +180,6 @@ test.describe("WP-13 Homepage Visual & Reflow QA", () => {
       let touchCheck: Awaited<ReturnType<typeof checkMobileTouchTargets>> | undefined;
       if (vp.isMobile) {
         touchCheck = await checkMobileTouchTargets(page);
-        expect(
-          touchCheck.failed,
-          "All initial interactive controls on mobile must meet 44px touch target (both width and height >= 44px)",
-        ).toEqual([]);
       }
 
       // 4. Save viewport screenshot (not full-page stitched)
@@ -175,7 +189,7 @@ test.describe("WP-13 Homepage Visual & Reflow QA", () => {
         fullPage: false,
       });
 
-      metricsCollector.push({
+      recordMetric({
         screen: `homepage-${vp.name}`,
         viewport: { name: vp.name, width: vp.width, height: vp.height },
         scrollWidth: overflow.scrollWidth,
@@ -187,8 +201,18 @@ test.describe("WP-13 Homepage Visual & Reflow QA", () => {
         minInteractiveHeight: vp.isMobile ? touchCheck?.minHeight : undefined,
         minInteractiveDimension: vp.isMobile ? touchCheck?.minDimension : undefined,
         controlsPass: vp.isMobile ? touchCheck?.pass : true,
+        details: {
+          failedControls: touchCheck?.failed || [],
+        },
         pass: !overflow.hasOverflow && allFontsLoaded && (vp.isMobile ? (touchCheck?.pass ?? false) : true),
       });
+
+      if (vp.isMobile && touchCheck) {
+        expect(
+          touchCheck.failed,
+          "All initial interactive controls on mobile must meet 44px touch target (both width and height >= 44px)",
+        ).toEqual([]);
+      }
     });
   }
 });
@@ -478,7 +502,7 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
       const unknownActionsBox = await page.locator(".wizard-actions").boundingBox();
       expect(unknownConsentBox, "Unknown-time review consent box must exist").not.toBeNull();
       expect(unknownActionsBox, "Unknown-time review actions box must exist").not.toBeNull();
-      if (unknownActionsBox && unknownConsentBox && vp.isMobile) {
+      if (unknownActionsBox && unknownConsentBox) {
         expect(unknownConsentBox.y + unknownConsentBox.height).toBeLessThanOrEqual(unknownActionsBox.y + 4);
       }
 
@@ -521,7 +545,7 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
       expect(tab2Read).toBe(tab1Initial);
       await page2.close();
 
-      metricsCollector.push({
+      recordMetric({
         screen: `wizard-${vp.name}`,
         viewport: { name: vp.name, width: vp.width, height: vp.height },
         scrollWidth: overflowStep1.scrollWidth,
