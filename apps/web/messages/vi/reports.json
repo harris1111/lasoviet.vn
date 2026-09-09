@@ -12,9 +12,19 @@
   },
   "selection": {
     "eyebrow": "Luận giải chuyên sâu",
-    "title": "Chọn luận giải chuyên sâu",
+    "title": "Chọn chủ đề luận giải chuyên sâu",
+    "personalizedTitle": "Chọn chủ đề luận giải cho {name}",
+    "disciplinesTitle": "Bộ môn luận giải từ dữ liệu sinh",
+    "disciplinesSubtitle": "Một hồ sơ sinh chuẩn xác được đối chiếu trên nhiều góc nhìn học thuật truyền thống.",
+    "topicsTitle": "Chủ đề luận giải Tử Vi",
+    "topicsSubtitle": "Chọn gói luận giải phù hợp với nhu cầu chiêm nghiệm của bạn.",
     "available": "Chủ đề đang mở",
-    "oneTime": "Thanh toán một lần. Không tự động gia hạn."
+    "comingSoon": "Sắp ra mắt",
+    "inDevelopment": "Đang phát triển",
+    "lifetimeOfferTitle": "Luận giải Tử Vi trọn đời",
+    "oneTime": "Thanh toán một lần · Không tự động gia hạn",
+    "continuePayment": "Tiếp tục thanh toán",
+    "viewSample": "Xem bản luận giải mẫu"
   },
   "checkout": {
     "eyebrow": "Thanh toán",

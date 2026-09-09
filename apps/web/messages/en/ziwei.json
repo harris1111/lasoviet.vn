@@ -29,5 +29,7 @@
     "confirm": "Confirm deletion",
     "pending": "Deleting",
     "error": "Your data could not be deleted right now. Please try again."
-  }
+  },
+  "personalizedTitle": "{name}'s Zi Wei Chart",
+  "personalizedHeroCopy": "The twelve palaces are calculated from {name}'s birth data. Each insight has evidence you can open and review."
 }
