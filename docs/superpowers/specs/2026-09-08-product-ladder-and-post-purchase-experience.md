@@ -1,7 +1,11 @@
 # Product Ladder & Post-Purchase Experience — Spec v1
 
 **Ngày:** 2026-09-08
-**Trạng thái:** Founder đã chốt hướng (FD-036…FD-039). Các mục đánh dấu *Đề xuất* cần Founder duyệt trước khi An lập implementation plan.
+**Trạng thái:** Founder đã chốt toàn bộ FD-036…FD-045 (đợt 2, 2026-09-09) cộng FD-046…FD-056 phát sinh
+trong lượt phỏng vấn đó. Chi tiết đầy đủ, gồm một chỗ **đề xuất bị từ chối và thay bằng cơ chế khác**
+(FD-045), nằm ở `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md` — đọc file đó trước khi
+lập implementation plan cho WP-01, WP-02, WP-02B, WP-09. Bảng dưới đây chỉ cập nhật trạng thái; không lặp
+lại rationale.
 **Base commit đã audit:** `6e6ff065b385873b15c926a0c4b95b68074baae5` (tip của `product/experience-spec-v1`, đã fast-forward về local ngày 2026-09-08).
 **Nguồn đầu vào:** `lasoviet-brainstorm-ux-product-ladder.md` (hội đồng mô phỏng, 08/09/2026) + audit source trực tiếp trong lượt này.
 **Ràng buộc kế thừa:** FD-007, FD-019, FD-029, OD-001…OD-006 giữ nguyên hiệu lực. Spec toàn diện 2026-09-07 là nguồn sự thật cho nội dung báo cáo Tử Vi.
@@ -16,12 +20,13 @@
 | FD-037 | Micro-offer tầng 1 là **trích phần natal đã định nghĩa rõ, có khấu trừ khi nâng cấp**. Không xây engine câu hỏi tình huống trong đợt này. | Approved 2026-09-08 |
 | FD-038 | KPI chính 90 ngày là **lãi đóng góp 30 ngày trên mỗi khách tạo lá số**. Lượt mua đầu và doanh thu quay lại là KPI phụ, không được tối ưu đánh đổi KPI chính. | Approved 2026-09-08 |
 | FD-039 | **Không đưa ví/điểm "Điểm Việt" vào spec đợt này.** Thiết kế dữ liệu không được chặn đường bổ sung ví về sau. | Approved 2026-09-08 |
-| FD-040 | *Đề xuất:* Mã đơn (`invoice_number`) là **bất biến** suốt đời một order row. Bảng order chuyển sang append-only. | Chờ duyệt |
-| FD-041 | *Đề xuất:* Khấu trừ khi nâng cấp **không có hạn sử dụng** (lệch với đề xuất cửa sổ 7 ngày của hội đồng). | Chờ duyệt |
-| FD-042 | *Đề xuất:* SKU ID là định danh bất biến; đổi định vị sản phẩm bằng **đổi tên hiển thị**, không đổi SKU ID. | Chờ duyệt |
+| FD-040 | Mã đơn (`invoice_number`) là **bất biến** suốt đời một order row. Bảng order chuyển sang append-only. | Approved 2026-09-09 |
+| FD-041 | Khấu trừ khi nâng cấp **hết hạn sau 7 ngày** (Founder chọn cửa sổ 7 ngày, khác đề xuất "không hạn" của An) — bắt buộc disclose tại điểm mua tầng 1. | Approved 2026-09-09 |
+| FD-042 | SKU ID là định danh kỹ thuật bất biến, **không bao giờ hiển thị cho khách**; đổi định vị sản phẩm bằng đổi tên hiển thị, không đổi SKU ID. | Approved 2026-09-09 |
 | FD-043 | **Không có người trực đối soát thanh toán.** Mọi khâu sau khi khách bấm trả tiền phải tự phục hồi mà không cần thao tác thủ công. Nơi nào không tự động được thì phải tự dừng bán, không được âm thầm nhận tiền. | Approved 2026-09-08 |
-| FD-044 | *Đề xuất:* Thay mã chuyển khoản `LSV-<uuid>` (40 ký tự, chữ thường, có gạch) bằng **mã ngắn chống nhiễu**: `LSV` + 8 ký tự Crockford base32 in hoa, không gạch, có ký tự kiểm tra. | Chờ duyệt |
-| FD-045 | *Đề xuất:* Cộng **số lẻ định danh 1–999đ** vào số tiền mỗi đơn (79.000đ → 79.348đ) để số tiền trở thành khoá đối chiếu dự phòng gần như duy nhất. | Chờ duyệt |
+| FD-044 | Thay mã chuyển khoản `LSV-<uuid>` (40 ký tự, chữ thường, có gạch) bằng **mã ngắn chống nhiễu**: `LSV` + 8 ký tự Crockford base32 in hoa, không gạch, có ký tự kiểm tra. | Approved 2026-09-09 |
+| FD-045 | Đề xuất ban đầu (cộng số lẻ định danh 1–999đ vào số tiền) **bị từ chối** — giá hiển thị phải luôn tròn, không ngoại lệ. **Thay bằng:** bỏ tầng auto-match theo số tiền, gộp vào Tầng 4 tự nhận với cửa sổ thời gian hẹp do khách khai báo. Chi tiết đầy đủ trong round-2 doc. | Approved (revised) 2026-09-09 |
+| FD-046…FD-056 | Đối soát khi không có người trực, kênh cảnh báo, giá micro-offer, migrate analytics, chính sách consent/lưu trữ/session ID/phạm vi dữ liệu bên thứ ba, chủ sở hữu dashboard, UI artifact branch, nghiệm thu visual — xem đầy đủ trong `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`. | Approved 2026-09-09 |
 
 ---
 
@@ -129,7 +134,16 @@ Lý do: mã ngắn sống sót qua việc app ngân hàng viết hoa, lược k�
 | R-AUTO-6 | Xác thực ký tự kiểm tra trước khi coi là khớp. |
 | R-AUTO-7 | Nội dung không parse được **không bao giờ** làm webhook trả lỗi. Bỏ nhánh `SEPAY_PAYLOAD_INVALID` tại `:193` cho trường hợp này; luôn ghi nhận giao dịch rồi mới xử lý khớp. |
 
-**Tầng 3 — Khớp dự phòng bằng số tiền (FD-045).**
+**Tầng 3 — SUPERSEDED 2026-09-09 (FD-045 revised).** Founder từ chối đề xuất số lẻ định danh dưới đây —
+giá hiển thị phải luôn tròn, không ngoại lệ. Tầng 3 kiểu cũ (R-AUTO-8/9/10) **bị loại bỏ hoàn toàn**, không
+còn bước hệ thống tự động duyệt chỉ dựa vào số tiền trùng khớp. Toàn bộ giao dịch không trích được
+`payment_code` ở Tầng 1–2 đi thẳng vào Tầng 4, với điều kiện khớp thắt lại bằng cửa sổ thời gian khách tự
+khai báo thay cho cửa sổ 24 giờ rộng. Chi tiết đầy đủ và lý do:
+`docs/superpowers/plans/2026-09-09-founder-decisions-round2.md` mục 1 (FD-045). **An: viết lại R-AUTO-8/9/10
+thành yêu cầu implementation-plan cho WP-02/WP-02B theo cơ chế mới trước khi code.**
+
+<details>
+<summary>Đề xuất gốc (đã bị từ chối, giữ lại để tham chiếu lịch sử)</summary>
 
 | ID | Yêu cầu |
 |---|---|
@@ -138,6 +152,8 @@ Lý do: mã ngắn sống sót qua việc app ngân hàng viết hoa, lược k�
 | R-AUTO-10 | Có 0 hoặc từ 2 ứng viên trở lên: **không đoán**. Chuyển tầng 4. |
 
 Số lẻ định danh khiến số tiền gần như là khoá duy nhất ở mức traffic hiện tại, nên tầng 3 giải quyết được hầu hết ca mà tầng 2 bỏ sót. Chi phí là giá hiển thị lẻ. Vì khách quét QR đã có sẵn số tiền, ma sát chỉ rơi vào người chuyển khoản thủ công — đổi lại là khả năng tự khớp mà không cần ai trực.
+
+</details>
 
 **Tầng 4 — Khách tự nhận lại giao dịch của mình.**
 
@@ -233,7 +249,7 @@ Hệ quả bắt buộc phải chấp nhận và theo dõi: một đơn 19k ch�
 - Giá nâng cấp = `79000 − khấu trừ`, sàn 0.
 - Mua 19k → nâng cấp 60k. Mua 29k → nâng cấp 50k.
 - Đã sở hữu tầng 2 trước: phần tầng 1 nằm sẵn trong quyền đọc, **không bao giờ thu thêm**.
-- **Không có hạn khấu trừ (FD-041, đề xuất).** Hội đồng đề xuất cửa sổ 7 ngày nhưng ghi rõ là chưa kiểm chứng. Cửa sổ hết hạn tạo ra một lớp khách trả tiền rồi mất quyền lợi đã ngụ ý — đúng loại vụ việc phá niềm tin mà toàn bộ spec này đang cố tránh, đổi lấy một mức thúc mua chưa có bằng chứng. Đề xuất bỏ hạn; nếu Founder muốn giữ cửa sổ thì phải công bố ngay tại điểm mua tầng 1.
+- **Hết hạn sau 7 ngày (FD-041, Approved 2026-09-09).** An đề xuất "không hạn" vì lo ngại đúng loại vụ việc phá niềm tin nêu ở đây, nhưng Founder chọn giữ cửa sổ 7 ngày của hội đồng brainstorm ban đầu. **Điều kiện bắt buộc đi kèm, không tuỳ chọn:** phải công bố rõ thời hạn 7 ngày **ngay tại điểm mua tầng 1**, trước khi khách xác nhận thanh toán — ví dụ "Ưu đãi khấu trừ khi nâng cấp áp dụng trong 7 ngày kể từ hôm nay." WP-09 cần cột thời điểm hết hạn khấu trừ trên đơn tầng 1 và copy cảnh báo này.
 - Số tiền khấu trừ phải hiển thị rõ trước khi khách xác nhận: "Bạn đã trả 29.000đ. Nâng cấp hôm nay: 50.000đ."
 
 ---
@@ -405,11 +421,22 @@ Ràng buộc thiết kế duy nhất phải giữ cho tương lai: R-PAY-3 và m
 
 ---
 
-## 10. Còn chờ Founder
+## 10. Còn chờ Founder — ĐÃ ĐÓNG 2026-09-09
 
-1. Duyệt FD-040, FD-041, FD-042.
-2. Chốt giá tầng 1 sẽ test: 19k và 29k, hay chỉ một mức để giữ mẫu tập trung khi traffic thấp.
-3. Cung cấp số để kiểm giả thuyết kinh tế: COGS AI thực mỗi báo cáo, phí thanh toán, tỷ lệ hoàn tiền lịch sử, traffic thật theo tuần. Toàn bộ số liệu kinh tế trong bản brainstorm là minh hoạ giả định.
-4. Duyệt FD-044 (mã ngắn) và FD-045 (số lẻ định danh). FD-045 làm giá hiển thị lẻ — đây là đánh đổi có thật, đổi lấy khả năng tự khớp khi không có người trực.
-5. Chọn kênh nhận cảnh báo out-of-band cho tầng 5 và cầu dao (email riêng, Telegram, hay kênh khác). Không có kênh này thì cầu dao tự ngắt sẽ ngắt mà không ai biết.
-6. Chấp nhận rằng tiền không quy được về chủ sẽ nằm lại chờ khách tự nhận, vì hệ thống không có khả năng tự hoàn tiền ra ngân hàng.
+Toàn bộ 6 mục dưới đây đã được Founder chốt qua phỏng vấn trực tiếp ngày 2026-09-09. Chi tiết đầy đủ:
+`docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`. Giữ lại danh sách gốc cho tham chiếu lịch
+sử; xem cột "Kết quả" cho quyết định thật.
+
+| # | Mục gốc | Kết quả |
+|---|---|---|
+| 1 | Duyệt FD-040, FD-041, FD-042 | FD-040/042 approved đúng đề xuất; FD-041 chốt hết hạn 7 ngày (khác đề xuất của An) |
+| 2 | Chốt giá tầng 1: 19k, 29k, hay A/B | Chỉ 19.000đ (FD-048), không A/B ở giai đoạn này |
+| 3 | Số liệu kinh tế: COGS AI, phí thanh toán, tỷ lệ hoàn tiền, traffic thật | Chưa có traffic thật (site mới) — dùng giả định từ nghiên cứu thị trường VN, xem phụ lục round-2 doc |
+| 4 | Duyệt FD-044 và FD-045 | FD-044 approved đúng đề xuất; FD-045 đề xuất gốc **bị từ chối**, thay bằng cơ chế mới (xem mục 2B.2) |
+| 5 | Kênh cảnh báo out-of-band | Telegram bot vào group vận hành Harris/An, SLA 6 giờ (FD-047) |
+| 6 | Chấp nhận tiền không quy được chủ nằm chờ tự nhận | Chấp nhận, vô thời hạn, không cần quy trình hoàn tiền thủ công (FD-046) |
+
+**Thêm phát sinh trong lượt phỏng vấn** (không có trong danh sách gốc, xem round-2 doc): FD-049…FD-054
+(migrate/consent/lưu trữ/session ID/phạm vi dữ liệu bên thứ ba/chủ sở hữu dashboard analytics), FD-055
+(UI artifact branch = `product/discipline-flagship-pages`, cần xác nhận hợp nhất các branch UI khác),
+FD-056 (Harris nghiệm thu visual một mình, WP-13).

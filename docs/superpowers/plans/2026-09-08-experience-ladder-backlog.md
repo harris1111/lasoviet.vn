@@ -91,7 +91,11 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 
 **Phụ thuộc:** WP-01 (mã đơn bất biến là tiền đề của mọi việc khớp).
 
-**Chờ Founder:** FD-044 (mã ngắn), FD-045 (số lẻ định danh làm giá hiển thị lẻ).
+**Đã chốt 2026-09-09:** FD-044 approved đúng đề xuất (mã ngắn). FD-045 đề xuất gốc (số lẻ định danh) **bị
+từ chối** — giá hiển thị phải luôn tròn. Tầng khớp dự phòng theo số tiền (test 5, 6 ở trên) **bị loại bỏ**;
+gộp vào WP-02B Tầng 4 (tự nhận) với cửa sổ thời gian hẹp thay vì cửa sổ 24h rộng. Trước khi viết
+implementation plan, đọc `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md` mục 1 và cập nhật
+test bắt buộc 5/6 ở trên cho khớp cơ chế mới.
 
 ---
 
@@ -121,7 +125,11 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 
 **Phụ thuộc:** WP-02.
 
-**Chờ Founder:** kênh nhận cảnh báo out-of-band.
+**Đã chốt 2026-09-09:** kênh cảnh báo out-of-band là bot Telegram gửi vào group vận hành chung Harris/An
+(FD-047), SLA phản hồi 6 giờ. Cần bot token + group chat ID từ Founder trước khi tích hợp — cấu hình qua
+biến môi trường, không hardcode. Đồng thời: quy tắc tự duyệt R-AUTO-13 giờ là tuyến chính (không còn Tầng
+3 riêng) — xem cập nhật ở WP-02 và FD-046 (giữ tiền chờ khách tự nhận vô thời hạn, không cần hoàn tiền thủ
+công thay thế).
 
 ---
 
@@ -242,7 +250,9 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 - `packages/backend/src/commerce/order.service.ts` — tính giá nâng cấp
 - `apps/web/src/features/reports/paid-topic-selector.tsx` — hiện số tiền đã trả và giá nâng cấp
 
-**Quy tắc:** khấu trừ = tiền thực trả trên đơn tầng 1 `paid` chưa hoàn của cùng lá số; giá nâng cấp = `79000 − khấu trừ`, sàn 0; không hạn sử dụng (FD-041); nâng cấp mở khoá tức thì, **không sinh lại nội dung**.
+**Quy tắc:** khấu trừ = tiền thực trả trên đơn tầng 1 `paid` chưa hoàn của cùng lá số; giá nâng cấp = `79000 − khấu trừ`, sàn 0; **hết hạn sau 7 ngày kể từ ngày mua tầng 1 (FD-041, Approved 2026-09-09 — khác với đề xuất "không hạn" ban đầu)**; nâng cấp mở khoá tức thì, **không sinh lại nội dung**.
+
+**Bổ sung do FD-041 có hạn:** thêm cột thời điểm hết hạn khấu trừ (`credit_expires_at` hoặc tương đương) trên đơn tầng 1; copy cảnh báo thời hạn 7 ngày phải hiện **tại điểm mua tầng 1, trước khi khách xác nhận thanh toán** — không phải sau khi mua. Test bắt buộc thêm: khấu trừ áp dụng đúng trong 7 ngày; quá 7 ngày → offer nâng cấp hiện giá đầy đủ 79.000đ, không còn khấu trừ.
 
 **Nghiệm thu:** B-4, mục 3.3.
 
@@ -268,6 +278,8 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 
 **Test bắt buộc:** test tự động quét payload event, fail nếu chứa trường thuộc danh sách cấm.
 
+**Đã chốt 2026-09-09 (FD-049 → FD-054, chi tiết trong `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md` mục 4):** migrate toàn bộ `config/analytics-events.json` sang tên event mới, không chạy song song; chỉ event kỹ thuật ẩn danh được ghi trước consent; lưu trữ dài hạn tự host trong hạ tầng hiện có (thay `createApiAnalyticsSink` hiện chỉ ghi log, `apps/api/src/api.module.ts:160`); session ID analytics không cần xoay vòng, chỉ cần khác account ID; công cụ tối ưu bên thứ ba được nhận dữ liệu hành vi/thương mại tự do nhưng **không bao giờ** nhận tên/ngày giờ nơi sinh/nội dung câu hỏi/`chart_id`; dashboard và bảng ánh xạ do Harris và An cùng sở hữu.
+
 ---
 
 ## WP-11 — Đường ra khi không biết giờ sinh `[P1]`
@@ -287,13 +299,17 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 # GIAI ĐOẠN P2 — Thử nghiệm giá
 *Chỉ mở sau khi WP-01 → WP-11 xong, guardrail mục 8 đã bật, cầu dao tự ngắt đã chạy thật, và tỷ lệ tự khớp thanh toán giữ trên 95% liên tục 14 ngày.*
 
-## WP-12 — A/B 19k vs 29k `[P2]`
+## WP-12 — A/B 19k vs 29k `[P2, hạ ưu tiên 2026-09-09]`
 
-**Quy tắc:** cùng đầu ra, cùng nguồn traffic, phân bổ **deterministic theo `chart_id`** để khách không thấy hai giá cho cùng một thứ. Ghi `price_variant` vào đơn. Đo bằng lãi đóng góp/khách (FD-038), không đo bằng conversion.
+**Đã chốt 2026-09-09 (FD-048):** micro-offer tầng 1 chỉ bán ở **19.000đ**, một mức giá duy nhất. WP-12
+**không cần triển khai** ở giai đoạn P2 ban đầu — giữ trong backlog cho tương lai nếu Founder muốn mở A/B
+sau khi có traffic thật, nhưng không phải việc ưu tiên khi chỉ bán một mức giá. Lưu ý guardrail: COGS/giá
+ở mức 19k là rủi ro biên lợi nhuận cao nhất trong hai lựa chọn từng cân nhắc — theo dõi ngưỡng "> 40%" ở
+mục 8 spec ngay khi có traffic thật.
+
+**Quy tắc (nếu sau này mở lại):** cùng đầu ra, cùng nguồn traffic, phân bổ **deterministic theo `chart_id`** để khách không thấy hai giá cho cùng một thứ. Ghi `price_variant` vào đơn. Đo bằng lãi đóng góp/khách (FD-038), không đo bằng conversion.
 
 **Điều kiện dừng:** theo bảng guardrail mục 8. Không dừng sớm vì kết quả đẹp.
-
-**Chờ Founder:** chạy cả hai mức hay chỉ một, do traffic hiện thấp.
 
 ---
 
@@ -314,7 +330,11 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 - Back / refresh / nhiều tab cùng lúc
 - **Quay lại từ app ngân hàng trên cùng một điện thoại** — kịch bản quan trọng nhất, chưa ai chạy thật
 
-**Chủ sở hữu:** An chạy kiểm, Harris nghiệm thu.
+**Chủ sở hữu:** An chạy kiểm, Harris nghiệm thu một mình (FD-056, Approved 2026-09-09).
+
+**Đã chốt 2026-09-09 (FD-055):** UI artifact branch chính thức cho WP-03/WP-06/WP-11/WP-13 là
+`product/discipline-flagship-pages`. **Trước khi bắt đầu:** xác nhận với Founder xem các branch UI khác
+đang tồn tại song song (`product/bg-texture-consistency` — có logo Colophon v5 đã chốt, `product/homepage-content-rewrite`) đã được hợp nhất vào branch này chưa — nếu chưa, An sẽ thiếu các thay đổi đó khi build.
 
 **Nghiệm thu:** mục "Kiểm UI xuyên suốt" của spec. Đầu ra là một bảng pass/fail có ảnh chụp, không phải kết luận suông.
 
