@@ -45,3 +45,9 @@
   - Initial implementation landed in commit `5f46862`.
   - Terra review findings corrected in commit `2d092c2` (aligning R-AUTO-13 and WP-02B with R-AUTO-10 to require exactly one eligible unmatched payment and exactly one eligible unfulfilled order for that owner, adding the two-matching-orders test, and adding the focused frozen-clock R-AUTO-15 alerting test).
   - Scoped re-review returned APPROVED with no remaining Critical/Important findings.
+- WP-02 automated reconciliation engine completed and Terra-approved:
+  - Initial implementation landed in commit `3816b85` (Crockford base32 `payment_code` generation, weighted modulo-32 checksums, normalization, migration `0019_payment_code_reconciliation`, `commerce_unmatched_payments` table, `match_method` tracking, and VietQR instructions).
+  - Terra review findings corrected in commit `8815002` (independent non-concatenating scanning of `bank.code` and `bank.content`, and scoping `onConflictDoNothing` specifically to `commerceOrders.paymentCode` on order creation).
+  - Terra scoped re-review returned APPROVED with no remaining Critical or Important findings.
+  - Focused checks passed: `@lasoviet/database` build, `@lasoviet/backend` build, `@lasoviet/api` typecheck, 7 focused test files with 114 passing tests, and clean `git diff --check`.
+  - Invariant boundaries preserved: `SEPAY_ENV`, payment activation, WP-02B customer self-claim, and Telegram alert integration remained untouched.
