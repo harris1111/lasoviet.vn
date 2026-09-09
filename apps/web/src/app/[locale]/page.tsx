@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { loadPublicContentRepository } from "../../features/content/public-content-repository";
+import { HomepageAboutExcerpt } from "../../features/homepage/homepage-about-excerpt";
 import { HomepageCategoryComparison } from "../../features/homepage/homepage-category-comparison";
 import { HomepageChatbotComparison } from "../../features/homepage/homepage-chatbot-comparison";
 import { HomepageEvidence } from "../../features/homepage/homepage-evidence";
@@ -53,6 +54,7 @@ export default async function Page({ params }: PageProps) {
         <section data-home-block="trust-specs"><HomepageTrustSpecs /></section>
         <section className="section section-deep" data-home-block="knowledge" id="kien-thuc"><HomepageKnowledge locale={locale} /></section>
         <section className="section" data-home-block="faq"><HomepageFaq /></section>
+        <section data-home-block="about-excerpt"><HomepageAboutExcerpt locale={locale} /></section>
         <section className="cta" data-home-block="final-cta"><HomepageFinalCta locale={locale} /></section>
       </main>
       <SiteFooter locale={locale} />

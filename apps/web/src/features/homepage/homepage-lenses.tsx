@@ -124,15 +124,15 @@ export function HomepageLenses({ locale }: HomepageLensesProps) {
         "h2",
         null,
         isVietnamese
-          ? "Một hồ sơ sinh duy nhất. Soi tỏ qua 5 lăng kính."
-          : "A single birth profile. Illuminated through 5 lenses.",
+          ? "Năm lăng kính, mỗi lăng kính một cách bắt đầu riêng"
+          : "Five lenses, each with its own way to begin",
       ),
       React.createElement(
         "p",
         { className: "section-lead" },
         isVietnamese
-          ? "Nhập ngày giờ sinh một lần — hồ sơ của bạn được kích hoạt đồng thời qua 4 bộ môn nguyên bản. Kinh Dịch dùng câu hỏi riêng, không cần hồ sơ sinh."
-          : "Enter your birth time once — your profile is activated across 4 original disciplines. I Ching uses dedicated questions without requiring a birth profile.",
+          ? "Tử Vi là hệ quy chiếu đang hoạt động. Bát Tự, Bản đồ sao và Thần Số Học được hiển thị ở trạng thái sắp ra mắt, chưa có liên kết sử dụng."
+          : "Zi Wei is the active framework. BaZi, Natal Astrology, and Numerology are shown as planned and have no usage links.",
       ),
     ),
     React.createElement(
@@ -162,7 +162,7 @@ export function HomepageLenses({ locale }: HomepageLensesProps) {
       // Card 2: Bat Tu
       React.createElement(
         "article",
-        { className: "lens-card lens-active" },
+        { className: "lens-card lens-preview" },
         React.createElement("div", { className: "lens-icon-wrap" }, renderLensSvg("elements")),
         React.createElement("h3", null, isVietnamese ? "Bát Tự / Tứ Trụ" : "BaZi / Four Pillars"),
         React.createElement("p", { className: "lens-sub" }, isVietnamese ? "Cân bằng ngũ hành" : "Five elements balance"),
@@ -176,14 +176,14 @@ export function HomepageLenses({ locale }: HomepageLensesProps) {
         React.createElement(
           Link,
           { className: "lens-link", href: localizedPath(locale, "/bat-tu") },
-          React.createElement("span", null, isVietnamese ? "Khám phá Bát Tự" : "Explore BaZi"),
+          React.createElement("span", null, isVietnamese ? "Xem trước Bát Tự" : "Preview BaZi"),
           renderLensSvg("arrow-right"),
         ),
       ),
       // Card 3: Astrology (Chiem Tinh / Ban do sao)
       React.createElement(
         "article",
-        { className: "lens-card lens-active" },
+        { className: "lens-card lens-preview" },
         React.createElement("div", { className: "lens-icon-wrap" }, renderLensSvg("orbit")),
         React.createElement("h3", null, isVietnamese ? "Bản đồ sao" : "Natal Chart"),
         React.createElement("p", { className: "lens-sub" }, isVietnamese ? "Chiêm tinh phương Tây" : "Western astrology"),
@@ -197,14 +197,14 @@ export function HomepageLenses({ locale }: HomepageLensesProps) {
         React.createElement(
           Link,
           { className: "lens-link", href: localizedPath(locale, "/chiem-tinh") },
-          React.createElement("span", null, isVietnamese ? "Khám phá Bản đồ sao" : "Explore Natal Chart"),
+          React.createElement("span", null, isVietnamese ? "Xem trước Bản đồ sao" : "Preview Natal Chart"),
           renderLensSvg("arrow-right"),
         ),
       ),
       // Card 4: Numerology (Than So Hoc)
       React.createElement(
         "article",
-        { className: "lens-card lens-active" },
+        { className: "lens-card lens-preview" },
         React.createElement("div", { className: "lens-icon-wrap" }, renderLensSvg("hash")),
         React.createElement("h3", null, isVietnamese ? "Thần Số Học" : "Numerology"),
         React.createElement("p", { className: "lens-sub" }, isVietnamese ? "Nhịp điệu đường đời" : "Life path rhythm"),
@@ -218,14 +218,14 @@ export function HomepageLenses({ locale }: HomepageLensesProps) {
         React.createElement(
           Link,
           { className: "lens-link", href: localizedPath(locale, "/than-so-hoc") },
-          React.createElement("span", null, isVietnamese ? "Khám phá Thần Số Học" : "Explore Numerology"),
+          React.createElement("span", null, isVietnamese ? "Xem trước Thần Số Học" : "Preview Numerology"),
           renderLensSvg("arrow-right"),
         ),
       ),
       // Card 5: I Ching (Kinh Dich)
       React.createElement(
         "article",
-        { className: "lens-card lens-active" },
+        { className: "lens-card lens-preview" },
         React.createElement(
           "div",
           { className: "lens-icon-wrap" },
@@ -243,7 +243,7 @@ export function HomepageLenses({ locale }: HomepageLensesProps) {
         React.createElement(
           Link,
           { className: "lens-link", href: localizedPath(locale, "/kinh-dich") },
-          React.createElement("span", null, isVietnamese ? "Khám phá Kinh Dịch" : "Explore I Ching"),
+          React.createElement("span", null, isVietnamese ? "Đặt câu hỏi Kinh Dịch (xem trước)" : "Ask I Ching (preview)"),
           renderLensSvg("arrow-right"),
         ),
       ),

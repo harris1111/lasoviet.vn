@@ -5,8 +5,8 @@ import { Icon } from "../../components/icon";
 export function HomepageTrustStrip() {
   const t = useTranslations("common");
   const keys = [
-    { key: "item1", icon: "check" },
-    { key: "item2", icon: "trien" },
+    { key: "item1", icon: "trien" },
+    { key: "item2", icon: "check" },
     { key: "item3", icon: "shield-lock" },
     { key: "item4", icon: "refresh-off" },
   ] as const;

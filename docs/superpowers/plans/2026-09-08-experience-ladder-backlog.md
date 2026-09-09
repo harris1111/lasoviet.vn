@@ -294,6 +294,8 @@ Auto-approval requires that all of the following conditions hold simultaneously:
 2. Canonical funnel events are suppressed prior to analytics consent.
 3. Disabled-autopay orders are excluded from revenue and 30-day contribution margin calculations.
 
+**Ratified 2026-09-09 (FD-049 through FD-054; see section 4 of `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`):** Fully migrate `config/analytics-events.json` to the new event names without parallel systems; log only anonymous technical events before consent; use self-hosted PostgreSQL for long-term storage, replacing the log-only `createApiAnalyticsSink` at `apps/api/src/api.module.ts:160`; analytics session IDs need no rotation but must differ from account IDs; third-party optimization tools may receive behavioral and commercial data but must **never** receive names, exact birth date/time/place, free-text question content, or `chart_id`; Harris and An jointly own the dashboard and event mapping.
+
 ---
 
 ## WP-11 — Đường ra khi không biết giờ sinh `[P1]`

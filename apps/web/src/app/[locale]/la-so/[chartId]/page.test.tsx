@@ -167,9 +167,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const html = renderToStaticMarkup(page);
 
     // Paid report CTA assertions
-    expect(html).toContain("Luận giải chuyên sâu");
-    expect(html).toContain("Luận giải Tử Vi toàn diện");
-    expect(html).toContain("79.000 ₫");
+    expect(html).toContain("Đọc sâu hơn lá số của bạn");
+    expect(html).toContain("Từ 3 điểm hôm nay, đến toàn bộ 12 cung");
+    expect(html).toContain("Bạn vừa đọc 3 điểm nổi bật từ Cung Mệnh.");
+    expect(html).toContain("Chọn luận giải phù hợp");
     expect(html).toContain("/la-so/chart-test-123/chon-luan-giai");
     expect(html).toContain("/bao-cao-mau/tu-vi");
 
@@ -177,6 +178,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const ctaMatch = html.match(/<section[^>]*class="result-paid-report-cta"[^>]*>([\s\S]*?)<\/section>/);
     expect(ctaMatch).not.toBeNull();
     const ctaHtml = ctaMatch![1]!;
+    expect(ctaHtml).not.toContain("79.000 ₫");
     expect(ctaHtml).not.toContain("Bản mệnh &amp; Tiềm năng");
     expect(ctaHtml).not.toContain("Bản mệnh & Tiềm năng");
     expect(ctaHtml).not.toContain("Destiny Report");
@@ -194,9 +196,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("In-depth interpretation");
-    expect(html).toContain("Comprehensive Zi Wei reading");
-    expect(html).toContain("79,000 VND");
+    expect(html).toContain("Go deeper into your chart");
+    expect(html).toContain("From today&#x27;s 3 highlights to all 12 palaces");
+    expect(html).toContain("You just read three highlights from your Life Palace.");
+    expect(html).toContain("Choose a reading");
     expect(html).toContain("/en/la-so/chart-test-123/chon-luan-giai");
     expect(html).toContain("/en/bao-cao-mau/tu-vi");
 
@@ -204,6 +207,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const ctaMatch = html.match(/<section[^>]*class="result-paid-report-cta"[^>]*>([\s\S]*?)<\/section>/);
     expect(ctaMatch).not.toBeNull();
     const ctaHtml = ctaMatch![1]!;
+    expect(ctaHtml).not.toContain("79,000 VND");
     expect(ctaHtml).not.toContain("Life Potential &amp; Destiny Report");
     expect(ctaHtml).not.toContain("Full Lifetime Report");
   });
