@@ -9,6 +9,7 @@ import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   IDENTITY_REPORT_SECTION_IDS,
   IdentityReportV1Schema,
+  TIER_2_ENTITLEMENT_SCOPE,
   type IdentityReportV1,
   type NormalizedZiweiChartV1,
 } from "@lasoviet/contracts";
@@ -635,6 +636,7 @@ describe("immutable report version repository integration", () => {
       chartId: `chart-${suffix}`,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
       createdAt: now,
     });
     await database.insert(reportReservations).values({
@@ -1591,6 +1593,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       chartId: `chart-${suffix}`,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
       createdAt: now,
     });
     await database.insert(reportReservations).values({
