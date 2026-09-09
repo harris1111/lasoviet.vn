@@ -1,0 +1,138 @@
+[
+  {
+    "screen": "homepage-mobile-360",
+    "viewport": {
+      "name": "mobile-360",
+      "width": 360,
+      "height": 800
+    },
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "overflowPass": true,
+    "fontsPass": true,
+    "fonts": [
+      "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+      "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+      "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
+    ],
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
+    "pass": true
+  },
+  {
+    "screen": "homepage-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "fontsPass": true,
+    "fonts": [
+      "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+      "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+      "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
+    ],
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
+    "pass": true
+  },
+  {
+    "screen": "homepage-mobile-414",
+    "viewport": {
+      "name": "mobile-414",
+      "width": 414,
+      "height": 896
+    },
+    "scrollWidth": 414,
+    "clientWidth": 414,
+    "overflowPass": true,
+    "fontsPass": true,
+    "fonts": [
+      "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+      "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+      "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
+    ],
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
+    "pass": true
+  },
+  {
+    "screen": "homepage-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "fontsPass": true,
+    "fonts": [
+      "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+      "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+      "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
+    ],
+    "controlsPass": true,
+    "pass": true
+  },
+  {
+    "screen": "homepage-desktop-200pct-equivalent",
+    "viewport": {
+      "name": "desktop-200pct-equivalent",
+      "width": 720,
+      "height": 900
+    },
+    "scrollWidth": 720,
+    "clientWidth": 720,
+    "overflowPass": true,
+    "fontsPass": true,
+    "fonts": [
+      "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+      "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+      "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
+    ],
+    "controlsPass": true,
+    "pass": true
+  },
+  {
+    "screen": "wizard-mobile-390",
+    "viewport": {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    },
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "overflowPass": true,
+    "details": {
+      "step1Overflow": true,
+      "step2Overflow": true,
+      "dateErrorVisible": true,
+      "saveLabelText": "Lưu hồ sơ",
+      "paidTermsFound": 0
+    },
+    "pass": true
+  },
+  {
+    "screen": "wizard-desktop-1440",
+    "viewport": {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 900
+    },
+    "scrollWidth": 1440,
+    "clientWidth": 1440,
+    "overflowPass": true,
+    "details": {
+      "step1Overflow": true,
+      "step2Overflow": true,
+      "dateErrorVisible": true,
+      "saveLabelText": "Lưu hồ sơ",
+      "paidTermsFound": 0
+    },
+    "pass": true
+  }
+]
