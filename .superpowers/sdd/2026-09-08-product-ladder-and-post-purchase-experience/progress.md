@@ -116,3 +116,24 @@
   - Reserved offers remain unpurchasable and no `ZIWEI-*` SKU reaches browser-visible UI, hidden inputs, URLs, or callbacks.
   - Terra returned `APPROVED` with no Critical or Important findings.
   - Focused verification passed: contracts/backend builds, web typecheck and production build, 64 focused tests, and clean `git diff --check`.
+- WP-08 entitlement scope and Tier-1 activation completed and Terra-approved:
+  - Initial implementation landed in commit `539b036`.
+  - Added immutable Tier-1/Tier-2 entitlement scopes, migration `0022`, full
+    backfill for existing comprehensive entitlements, server-side scope union,
+    and strict omission of locked report prose.
+  - Activated the 19,000 VND Vietnamese Tier-1 offer with a customer-safe
+    public offer key and a four-section report reader while preserving the
+    complete 12-palace Tier-2 reader.
+  - Terra identified two Important atomic-activation issues. Correction commit
+    `0625e15` completed the topic contract/UI path, serialized cross-tier
+    payment decisions with a chart-wide lock, and made Tier-2 unlock reuse the
+    existing report without another reservation or generation event.
+  - Terra's scoped re-review found one Important cross-locale issue. Correction
+    commit `7cd741c` blocks Vietnamese-V3 to English-V2 cross-locale upgrades
+    before order creation and requires locale-equal report reuse.
+  - Terra final scoped re-review returned `APPROVED` with no remaining Critical
+    or Important findings.
+  - Focused verification passed 209 WP-08 tests, the 107-test final correction
+    subset, contracts/config/database/backend builds and typechecks, API
+    typecheck, web typecheck and production build, and clean
+    `git diff --check`.
