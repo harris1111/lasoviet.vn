@@ -651,6 +651,31 @@ export function createDatabaseCommerceRepository(
         const lockKey = `commerce:chart:${chartId}`;
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
+        const [existingDiffLocaleReservation] = await transaction
+          .select({ id: reportReservations.id, locale: reportReservations.locale })
+          .from(commerceEntitlements)
+          .innerJoin(
+            reportReservations,
+            eq(reportReservations.entitlementId, commerceEntitlements.id),
+          )
+          .innerJoin(
+            commerceOrders,
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, chartId),
+              eq(commerceEntitlements.ownerId, actor.userId),
+              ne(commerceOrders.status, "refunded"),
+              ne(reportReservations.locale, selectedLocale),
+            ),
+          )
+          .limit(1);
+
+        if (existingDiffLocaleReservation !== undefined) {
+          return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
+        }
+
         if (product.sku === "ZIWEI-NATAL-EXCERPT-P0") {
           const [tier2Entitlement] = await transaction
             .select({ id: commerceEntitlements.id })
@@ -773,6 +798,7 @@ export function createDatabaseCommerceRepository(
               and(
                 eq(commerceEntitlements.chartId, order.chartId),
                 eq(commerceEntitlements.ownerId, order.ownerId),
+                eq(reportReservations.locale, order.locale),
                 ne(commerceOrders.status, "refunded"),
               ),
             )
@@ -939,6 +965,7 @@ export function createDatabaseCommerceRepository(
             and(
               eq(commerceEntitlements.chartId, paidOrder.chartId),
               eq(commerceEntitlements.ownerId, paidOrder.ownerId),
+              eq(reportReservations.locale, paidOrder.locale),
               ne(commerceOrders.status, "refunded"),
               ne(commerceEntitlements.id, entitlement.id),
             ),
@@ -1477,6 +1504,7 @@ export function createDatabaseCommerceRepository(
             and(
               eq(commerceEntitlements.chartId, paidOrder.chartId),
               eq(commerceEntitlements.ownerId, paidOrder.ownerId),
+              eq(reportReservations.locale, paidOrder.locale),
               ne(commerceOrders.status, "refunded"),
               ne(commerceEntitlements.id, entitlement.id),
             ),

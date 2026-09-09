@@ -359,5 +359,47 @@ describe("purchase-offer-presentation", () => {
         libraryUrl: "/tai-khoan/bao-cao",
       });
     });
+    it("returns unavailable for English selector when chart has an active Vietnamese Tier-1 entitlement (Cross-locale Test 4)", () => {
+      const library: AccountLibraryV1 = {
+        ...emptyLibrary,
+        items: [
+          {
+            id: "ent-vi-tier1",
+            entitlementId: "ent-vi-tier1",
+            orderId: "ord-vi-1",
+            chartId: "chart-cross-1",
+            profileId: "prof-1",
+            profileDisplayName: "User",
+            sku: "ZIWEI-NATAL-EXCERPT-P0",
+            productTitle: "Bản mệnh và tiềm năng",
+            productName: "Bản mệnh và tiềm năng",
+            orderStatus: "paid",
+            entitlementStatus: "active",
+            reportId: "rep-vi-1",
+            readUrl: "/bao-cao/rep-vi-1",
+            reportStatus: "ready",
+            locale: "vi",
+            createdAt: "2026-09-09T00:00:00.000Z",
+            purchasedAt: "2026-09-09T00:00:00.000Z",
+          },
+        ],
+      };
+
+      const ownershipEn = deriveOfferOwnership({
+        chartId: "chart-cross-1",
+        offerKey: "ziwei-comprehensive",
+        library,
+        locale: "en",
+      });
+      expect(ownershipEn).toEqual({ kind: "unavailable" });
+
+      const ownershipVi = deriveOfferOwnership({
+        chartId: "chart-cross-1",
+        offerKey: "ziwei-comprehensive",
+        library,
+        locale: "vi",
+      });
+      expect(ownershipVi).toEqual({ kind: "unowned" });
+    });
   });
 });

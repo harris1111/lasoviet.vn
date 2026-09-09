@@ -315,5 +315,23 @@ describe("PaidTopicSelector", () => {
       mockLocale = "vi";
     }
   });
+  it("renders unavailable notice and zero purchase forms in English selector when chart has active Vietnamese Tier-1 entitlement (Cross-locale Test 4)", () => {
+    mockLocale = "en";
+    try {
+      const html = renderToStaticMarkup(
+        <PaidTopicSelector
+          locale="en"
+          ownershipByOfferKey={{
+            "ziwei-comprehensive": { kind: "unavailable" },
+          }}
+          topics={mockTopics}
+        />,
+      );
 
+      expect((html.match(/type="submit"/g) || []).length).toBe(0);
+      expect(html).not.toMatch(/ZIWEI-[A-Z0-9]+/);
+    } finally {
+      mockLocale = "vi";
+    }
+  });
 });

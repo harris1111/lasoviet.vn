@@ -152,6 +152,19 @@ export type DeriveOfferOwnershipParams = {
 export function deriveOfferOwnership(
   params: DeriveOfferOwnershipParams,
 ): OfferOwnershipState {
+  if (params.locale === "en") {
+    const hasViTier1 = params.library.items.some(
+      (item) =>
+        item.chartId === params.chartId &&
+        item.locale === "vi" &&
+        item.sku === "ZIWEI-NATAL-EXCERPT-P0" &&
+        item.entitlementStatus === "active",
+    );
+    if (hasViTier1) {
+      return { kind: "unavailable" };
+    }
+  }
+
   const sku = resolveActiveSkuFromPublicOfferKey(params.offerKey);
   if (sku === null) {
     return { kind: "unowned" };

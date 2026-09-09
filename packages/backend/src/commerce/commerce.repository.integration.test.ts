@@ -28,6 +28,10 @@ import {
 } from "@lasoviet/contracts";
 
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
+import {
+  REPORT_KNOWLEDGE_VERSION_V2,
+  REPORT_PROMPT_VERSION_V2,
+} from "../reports/identity-report-config.js";
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
 
 describe("commerce repository - library and order history (WP-03)", () => {
@@ -1764,5 +1768,94 @@ describe("commerce repository - library and order history (WP-03)", () => {
       "en",
     );
     expect(result).toEqual({ ok: false, code: "CHECKOUT_LOCALE_INVALID" });
+  });
+  it("rejects English Tier 2 order creation after Vietnamese Tier 1 before creating order, entitlement, reservation, or outbox (Cross-locale Test 1)", async () => {
+    const owner = await createOwnerFixture({ displayName: "Cross-Locale Reject Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    // 1. Create and pay Vietnamese Tier 1
+    const viOrder = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-NATAL-EXCERPT-P0",
+      "vi",
+    );
+    expect(viOrder.ok).toBe(true);
+    if (!viOrder.ok) throw new Error("Vi order failed");
+
+    const viPaid = await repo.recordPaid({
+      invoiceNumber: viOrder.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-cross-vi-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-cross-vi",
+    });
+    expect(viPaid.ok).toBe(true);
+
+    const initialOrders = await database.select().from(commerceOrders).where(eq(commerceOrders.chartId, owner.chartId));
+    const initialEntitlements = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId, owner.chartId));
+    const initialReservations = await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.versionId));
+    const initialOutbox = await database.select().from(outbox).where(eq(outbox.actorId, owner.actor.userId));
+
+    expect(initialOrders).toHaveLength(1);
+    expect(initialEntitlements).toHaveLength(1);
+    expect(initialReservations).toHaveLength(1);
+    expect(initialOutbox).toHaveLength(1);
+
+    // 2. Attempt to create English Tier 2 order for same chart
+    const enOrder = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "en",
+    );
+    expect(enOrder).toEqual({ ok: false, code: "CHECKOUT_LOCALE_INVALID" });
+
+    // 3. Proves no new order, entitlement, reservation, or outbox was created
+    const postOrders = await database.select().from(commerceOrders).where(eq(commerceOrders.chartId, owner.chartId));
+    const postEntitlements = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId, owner.chartId));
+    const postReservations = await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.versionId));
+    const postOutbox = await database.select().from(outbox).where(eq(outbox.actorId, owner.actor.userId));
+
+    expect(postOrders).toHaveLength(1);
+    expect(postEntitlements).toHaveLength(1);
+    expect(postReservations).toHaveLength(1);
+    expect(postOutbox).toHaveLength(1);
+  });
+
+  it("creates V2 reservation for English 79k order with no prior entitlement (Cross-locale Test 2)", async () => {
+    const owner = await createOwnerFixture({ displayName: "English V2 Baseline Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const enOrder = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "en",
+    );
+    expect(enOrder.ok).toBe(true);
+    if (!enOrder.ok) throw new Error("English order failed");
+
+    const enPaid = await repo.recordPaid({
+      invoiceNumber: enOrder.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-en-baseline-${randomUUID()}`,
+      amount: 79000,
+      currency: "VND",
+      traceId: "trace-en-baseline",
+    });
+    expect(enPaid.ok).toBe(true);
+
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, owner.versionId));
+
+    expect(reservation).toBeDefined();
+    expect(reservation?.locale).toBe("en");
+    expect(reservation?.sku).toBe("ZIWEI-IDENTITY-P0");
+    expect(reservation?.promptVersion).toBe(REPORT_PROMPT_VERSION_V2);
+    expect(reservation?.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V2);
   });
 });
