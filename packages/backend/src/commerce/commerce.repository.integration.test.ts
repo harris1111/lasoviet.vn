@@ -1271,4 +1271,33 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(order3Found?.readUrl).toBe(`/bao-cao/${reservation3!.reportId}`);
     expect(order3Found?.reportId).toBe(reservation3!.reportId);
   });
+
+  it("uses catalog prices 19,000 for natal excerpt and 79,000 for comprehensive, rejecting reserved SKUs", async () => {
+    const repo = createDatabaseCommerceRepository(database);
+    const owner = await createOwnerFixture({ displayName: "Pricing Test Owner" });
+
+    // Reserved SKU is rejected with SKU_UNSUPPORTED
+    const reservedResult = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-RELATIONSHIP-P0", "vi");
+    expect(reservedResult).toEqual({ ok: false, code: "SKU_UNSUPPORTED" });
+
+    // Arbitrary SKU is rejected with SKU_UNSUPPORTED
+    const arbitraryResult = await repo.createOrder(owner.actor, owner.chartId, "UNKNOWN-SKU", "vi");
+    expect(arbitraryResult).toEqual({ ok: false, code: "SKU_UNSUPPORTED" });
+
+    // Natal excerpt SKU gets 19,000 VND
+    const excerptOrder = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
+    expect(excerptOrder.ok).toBe(true);
+    if (!excerptOrder.ok) throw new Error("Excerpt order creation failed");
+    expect(excerptOrder.value.amount).toBe(19000);
+    expect(excerptOrder.value.currency).toBe("VND");
+    expect(excerptOrder.value.sku).toBe("ZIWEI-NATAL-EXCERPT-P0");
+
+    // Comprehensive SKU gets 79,000 VND
+    const identityOrder = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(identityOrder.ok).toBe(true);
+    if (!identityOrder.ok) throw new Error("Identity order creation failed");
+    expect(identityOrder.value.amount).toBe(79000);
+    expect(identityOrder.value.currency).toBe("VND");
+    expect(identityOrder.value.sku).toBe("ZIWEI-IDENTITY-P0");
+  });
 });

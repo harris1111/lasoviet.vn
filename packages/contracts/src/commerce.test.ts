@@ -1,7 +1,10 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
   AccountLibraryV1Schema,
+  CommerceSkuSchema,
   OrderHistoryV1Schema,
   PaymentSelfClaimRequestV1Schema,
   PaymentSelfClaimSuccessV1Schema,
@@ -12,6 +15,40 @@ describe("commerce contracts", () => {
   it("resolves product titles according to locale", () => {
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Bản mệnh & tiềm năng");
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Identity and potential");
+    expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "vi")).toBe("Bản mệnh và tiềm năng");
+    expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "en")).toBe("Core identity and potential");
+  });
+
+  it("validates CommerceSkuSchema permits only approved first-paid-flow SKUs and rejects reserved or arbitrary SKUs", () => {
+    expect(CommerceSkuSchema.safeParse("ZIWEI-IDENTITY-P0").success).toBe(true);
+    expect(CommerceSkuSchema.safeParse("ZIWEI-NATAL-EXCERPT-P0").success).toBe(true);
+
+    // Reserved products must fail contract validation
+    expect(CommerceSkuSchema.safeParse("ZIWEI-RELATIONSHIP-P0").success).toBe(false);
+    expect(CommerceSkuSchema.safeParse("ZIWEI-CAREER-P0").success).toBe(false);
+    expect(CommerceSkuSchema.safeParse("ZIWEI-YEAR-P0").success).toBe(false);
+    expect(CommerceSkuSchema.safeParse("BAZI-COMPREHENSIVE-P0").success).toBe(false);
+    expect(CommerceSkuSchema.safeParse("WESTERN-NATAL-P0").success).toBe(false);
+
+    // Arbitrary SKU strings must fail
+    expect(CommerceSkuSchema.safeParse("NOT-A-SKU").success).toBe(false);
+    expect(CommerceSkuSchema.safeParse("").success).toBe(false);
+  });
+
+  it("proves CommerceSkuSchema matches exactly the first-paid-flow SKUs in product-catalog.json without drift", () => {
+    // Note: @lasoviet/contracts cannot import @lasoviet/config because config depends on contracts.
+    // There is no duplicate runtime catalog; this focused test guarantees that the contract-level
+    // CommerceSkuSchema enum remains strictly synchronized with the canonical JSON catalog.
+    const directPath = resolve(process.cwd(), "config", "product-catalog.json");
+    const catalogPath = existsSync(directPath)
+      ? directPath
+      : resolve(process.cwd(), "..", "..", "config", "product-catalog.json");
+    const rawCatalog = JSON.parse(readFileSync(catalogPath, "utf8"));
+    const firstPaidSkus = rawCatalog.products
+      .filter((p: { availability: string }) => p.availability === "first_paid_flow")
+      .map((p: { sku: string }) => p.sku);
+
+    expect([...CommerceSkuSchema.options].sort()).toEqual(firstPaidSkus.sort());
   });
 
   it("validates owner-scoped AccountLibraryV1 projection", () => {

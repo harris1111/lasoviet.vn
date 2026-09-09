@@ -3,7 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
-import { PaymentSelfClaimRequestV1Schema, type CurrentActor } from "@lasoviet/contracts";
+import { CommerceSkuSchema, PaymentSelfClaimRequestV1Schema, type CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
 
 import { ActorTokenError, verifyInternalActorToken } from "../auth/internal-actor.guard.js";
@@ -91,8 +91,12 @@ export class CommerceController {
     if (typeof body !== "object" || body === null || !("chartId" in body) || !("sku" in body) || !("locale" in body) || typeof body.chartId !== "string" || typeof body.sku !== "string" || (body.locale !== "vi" && body.locale !== "en")) {
       return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
     }
+    const skuResult = CommerceSkuSchema.safeParse(body.sku);
+    if (!skuResult.success) {
+      return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
+    }
     const actor = await this.actor(authorization);
-    const result = await this.repository().createOrder(actor, body.chartId, body.sku, body.locale);
+    const result = await this.repository().createOrder(actor, body.chartId, skuResult.data, body.locale);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") {
         throw new UnauthorizedException({ code: result.code });

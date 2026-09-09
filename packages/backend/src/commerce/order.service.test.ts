@@ -6,6 +6,21 @@ import {
 } from "./order.service.js";
 
 describe("order service", () => {
+  it("derives immutable catalog prices from config and maps capability deterministically", () => {
+    expect(PRODUCT_CATALOG["ZIWEI-IDENTITY-P0"]).toEqual({
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79000,
+      currency: "VND",
+      capabilityId: "ziwei.identity.p0",
+    });
+    expect(PRODUCT_CATALOG["ZIWEI-NATAL-EXCERPT-P0"]).toEqual({
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      amount: 19000,
+      currency: "VND",
+      capabilityId: "ziwei.identity.p0",
+    });
+  });
+
   it("uses the server catalog price and rejects unsupported SKU", async () => {
     const service = createOrderService({
       findCheckoutAccount: async () => ({
@@ -30,13 +45,36 @@ describe("order service", () => {
       service.create(
         { kind: "account", userId: "account-1", sessionId: "s", requestId: "r" },
         "chart-1",
+        "ZIWEI-RELATIONSHIP-P0",
+      ),
+    ).resolves.toMatchObject({ ok: false, error: { code: "SKU_UNSUPPORTED" } });
+
+    await expect(
+      service.create(
+        { kind: "account", userId: "account-1", sessionId: "s", requestId: "r" },
+        "chart-1",
         "ZIWEI-IDENTITY-P0",
       ),
     ).resolves.toMatchObject({
       ok: true,
       value: {
         id: "order-1",
-        amount: PRODUCT_CATALOG["ZIWEI-IDENTITY-P0"].amount,
+        amount: 79000,
+        currency: "VND",
+      },
+    });
+
+    await expect(
+      service.create(
+        { kind: "account", userId: "account-1", sessionId: "s", requestId: "r" },
+        "chart-1",
+        "ZIWEI-NATAL-EXCERPT-P0",
+      ),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        id: "order-1",
+        amount: 19000,
         currency: "VND",
       },
     });

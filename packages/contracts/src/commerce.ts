@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const CommerceSkuSchema = z.literal("ZIWEI-IDENTITY-P0");
+export const CommerceSkuSchema = z.enum([
+  "ZIWEI-IDENTITY-P0",
+  "ZIWEI-NATAL-EXCERPT-P0",
+]);
 export const OrderStatusSchema = z.enum([
   "pending",
   "paid",
@@ -19,6 +22,10 @@ export const PRODUCT_DISPLAY_NAMES: Record<CommerceSku, Record<"vi" | "en", stri
   "ZIWEI-IDENTITY-P0": {
     vi: "Bản mệnh & tiềm năng",
     en: "Identity and potential",
+  },
+  "ZIWEI-NATAL-EXCERPT-P0": {
+    vi: "Bản mệnh và tiềm năng",
+    en: "Core identity and potential",
   },
 };
 

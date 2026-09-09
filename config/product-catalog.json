@@ -12,6 +12,15 @@
       "sections": ["personal_summary", "strengths", "tensions", "decision_style", "growth_patterns", "actions", "limitations"]
     },
     {
+      "sku": "ZIWEI-NATAL-EXCERPT-P0",
+      "name": "Bản mệnh và tiềm năng",
+      "method": "ziwei",
+      "price": 19000,
+      "phase": "P0",
+      "availability": "first_paid_flow",
+      "sections": ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"]
+    },
+    {
       "sku": "ZIWEI-RELATIONSHIP-P0",
       "name": "Tình duyên & hôn nhân",
       "method": "ziwei",

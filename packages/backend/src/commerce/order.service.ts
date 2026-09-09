@@ -1,15 +1,32 @@
-import type { CurrentActor } from "@lasoviet/contracts";
+import type { CommerceSku, CurrentActor } from "@lasoviet/contracts";
+import { productCatalog } from "@lasoviet/config";
 
-export const PRODUCT_CATALOG = {
-  "ZIWEI-IDENTITY-P0": {
-    sku: "ZIWEI-IDENTITY-P0",
-    amount: 79_000,
-    currency: "VND" as const,
-    capabilityId: "ziwei.identity.p0",
-  },
-} as const;
+export type CatalogOffer = {
+  readonly sku: CommerceSku;
+  readonly amount: number;
+  readonly currency: "VND";
+  readonly capabilityId: "ziwei.identity.p0";
+};
 
-type ProductSku = keyof typeof PRODUCT_CATALOG;
+export type ProductSku = CommerceSku;
+
+function buildProductCatalog(): Readonly<Record<CommerceSku, CatalogOffer>> {
+  const offers = productCatalog.firstPaidOffers();
+  const catalog: Partial<Record<CommerceSku, CatalogOffer>> = {};
+  for (const offer of offers) {
+    if (offer.sku === "ZIWEI-IDENTITY-P0" || offer.sku === "ZIWEI-NATAL-EXCERPT-P0") {
+      catalog[offer.sku] = Object.freeze({
+        sku: offer.sku,
+        amount: offer.price,
+        currency: offer.currency,
+        capabilityId: "ziwei.identity.p0" as const,
+      });
+    }
+  }
+  return Object.freeze(catalog as Record<CommerceSku, CatalogOffer>);
+}
+
+export const PRODUCT_CATALOG: Readonly<Record<CommerceSku, CatalogOffer>> = buildProductCatalog();
 type Chart = { id: string; ownerId: string; eligible: boolean };
 export type CheckoutAccount = {
   emailVerified: boolean;
