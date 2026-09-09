@@ -104,4 +104,9 @@
   - Terminal report failure now displays every required BE-5 fact and a bounded prefilled support path without internal report identifiers.
   - Terra returned `APPROVED` with no Critical or Important findings.
   - Focused verification passed: contracts build, web typecheck and production build, 63 focused tests, and clean `git diff --check`.
-  - R-AUTO-21 durable founder alert delivery remains the only uncompleted provider-independent WP-06 slice; live Telegram activation remains deferred on founder credentials.
+  - R-AUTO-21 durable founder alert delivery was implemented in commit `d266e98`.
+  - Terminal transitions now atomically enqueue a bounded non-PII `report_terminal_failure` alert, attempt immediate post-commit delivery, and retain the existing 15-minute maintenance retry.
+  - Terra identified one Important idempotency-collision finding. Correction commit `d1487da` removed conflict suppression so alert-key collisions roll back the job, reservation, outbox, and alert transaction.
+  - Terra scoped re-review returned `APPROVED` with no remaining Critical or Important findings.
+  - Focused verification passed: database/backend builds, worker typecheck, 70 alert/report tests, 31 correction integration tests, and clean `git diff --check`.
+  - WP-06 provider-independent implementation is complete. Live Telegram activation and external smoke remain deferred until the founder supplies `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
