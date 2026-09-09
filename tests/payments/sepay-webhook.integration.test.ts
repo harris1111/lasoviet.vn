@@ -1252,6 +1252,59 @@ describe("SePay payment transaction", () => {
     await database.$client.end();
   }, 120_000);
 
+  it("scopes onConflictDoNothing specifically to payment_code so non-payment-code unique violations throw rather than suppressing", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+
+    const initialId = randomUUID();
+    const duplicateInvoice = "LSV-invoice-conflict-" + randomUUID();
+    const initialCode = generatePaymentCode();
+
+    await database.insert(commerceOrders).values({
+      id: initialId,
+      paymentCode: initialCode,
+      invoiceNumber: duplicateInvoice,
+      chartId,
+      chartVersionId: versionId,
+      ownerId: actor.userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "expired",
+    });
+
+    const newUniqueCode = generatePaymentCode();
+    let insertError: any;
+    try {
+      await database
+        .insert(commerceOrders)
+        .values({
+          id: randomUUID(),
+          paymentCode: newUniqueCode,
+          invoiceNumber: duplicateInvoice,
+          chartId,
+          chartVersionId: versionId,
+          ownerId: actor.userId,
+          sku: "ZIWEI-IDENTITY-P0",
+          amount: 79_000,
+          currency: "VND",
+          locale: "vi",
+          status: "pending",
+        })
+        .onConflictDoNothing({ target: commerceOrders.paymentCode })
+        .returning();
+    } catch (err) {
+      insertError = err;
+    }
+    expect(insertError).toBeDefined();
+    expect(String(insertError?.cause?.message ?? insertError?.cause ?? insertError?.message)).toMatch(
+      /commerce_orders_invoice_unique/,
+    );
+
+    await database.$client.end();
+  }, 120_000);
+
   it("records match_method = payment_code on payment code match and match_method = invoice_number on invoice match", async () => {
     const database = createDatabase(databaseUrl);
     const { actor: actorCode, chartId: chartIdCode } = await createChartFixture(database);

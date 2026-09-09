@@ -333,6 +333,42 @@ describe("SePay Bank Webhook (HMAC)", () => {
     }));
   });
 
+  it("does not synthesize valid code across split code='LSV' and content='000000000', persists unmatched and never calls recordPaid", async () => {
+    const recordPaid = vi.fn();
+    const recordUnmatched = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const service = createSePayWebhookService({
+      secretKey: "synthetic-sepay-secret",
+      webhookSecret,
+      now: nowClock,
+      recordPaid,
+      recordUnmatched,
+    });
+    const payload = {
+      ...bankTransfer,
+      code: "LSV",
+      content: "000000000",
+    };
+    const rawBody = JSON.stringify(payload);
+    const timestamp = String(nowEpochSeconds);
+    const signature = sign(timestamp, rawBody);
+
+    const result = await service.handle({
+      rawBody,
+      signatureHeader: signature,
+      timestampHeader: timestamp,
+      traceId: "bank-trace-split-fields",
+    });
+
+    expect(result).toEqual({ ok: true, value: { acknowledged: true, replayed: false } });
+    expect(recordPaid).not.toHaveBeenCalled();
+    expect(recordUnmatched).toHaveBeenCalledWith({
+      providerEventId: "92704",
+      rawPayload: payload,
+      amount: 79000,
+      reason: "NO_VALID_PAYMENT_CODE",
+    });
+  });
+
   it("persists unmatched and never guesses when two distinct valid codes are present", async () => {
     const codeA = generatePaymentCode(() => new Uint8Array([1, 2, 3, 4, 5]));
     const codeB = generatePaymentCode(() => new Uint8Array([6, 7, 8, 9, 10]));

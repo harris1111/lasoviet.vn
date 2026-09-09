@@ -216,9 +216,10 @@ export function createSePayWebhookService(dependencies: {
       const idStr = String(bank.id);
       const rawCode = typeof bank.code === "string" ? bank.code : "";
       const rawContent = typeof bank.content === "string" ? bank.content : "";
-      const combined = `${rawCode} ${rawContent}`.trim();
 
-      const validCodes = extractValidPaymentCodes(combined);
+      const codesFromCode = rawCode ? extractValidPaymentCodes(rawCode) : [];
+      const codesFromContent = rawContent ? extractValidPaymentCodes(rawContent) : [];
+      const validCodes = Array.from(new Set([...codesFromCode, ...codesFromContent]));
 
       async function persistUnmatched(reason: string) {
         if (!dependencies.recordUnmatched) {

@@ -674,23 +674,10 @@ export function createDatabaseCommerceRepository(
             locale: selectedLocale,
             status: "pending",
             createdAt: currentNow,
-          }).onConflictDoNothing().returning();
+          }).onConflictDoNothing({ target: commerceOrders.paymentCode }).returning();
 
           if (created !== undefined) {
             return { ok: true as const, value: created, reused: false };
-          }
-
-          const [concurrentPending] = await transaction.select().from(commerceOrders)
-            .where(and(
-              eq(commerceOrders.chartId, chartId),
-              eq(commerceOrders.sku, product.sku),
-              eq(commerceOrders.status, "pending"),
-            ))
-            .orderBy(desc(commerceOrders.createdAt))
-            .limit(1);
-
-          if (concurrentPending !== undefined) {
-            return { ok: true as const, value: concurrentPending, reused: true };
           }
         }
 
