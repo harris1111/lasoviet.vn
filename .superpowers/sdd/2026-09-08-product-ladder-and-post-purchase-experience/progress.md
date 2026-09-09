@@ -89,3 +89,11 @@
   - Correction landed in commit `64d1733`: the natal excerpt remains staged as `P1` and `reserved`, is excluded from the active commerce contract and runtime lookup, and cannot enter order, payment, or report workflows before WP-08.
   - Terra scoped re-review returned `APPROVED` with no remaining Critical or Important findings.
   - Focused verification passed: contracts/config/backend builds, 64 focused contract/config/order/API tests, 12 commerce repository integration tests, API typecheck, and clean `git diff --check`.
+- WP-05 offer-name and delivery-promise synchronization completed and Terra-approved:
+  - Implementation landed in commit `bd38d16`.
+  - Preserved immutable SKU `ZIWEI-IDENTITY-P0`, active 79,000 VND pricing, and the staged P1/reserved natal excerpt.
+  - Renamed the active offer to `Luận giải Tử Vi toàn diện` / `Comprehensive Zi Wei reading` across catalog, account projections, preview, result CTA, selector, and checkout.
+  - Replaced the legacy identity-section list with the exact seven top-level comprehensive V3 sections.
+  - Active Vietnamese purchase copy now states the actual 12-palace, key-configuration, cross-palace, four-theme, practical-direction, and 2,200-3,200-word delivery scope without promising unsupported time forecasting.
+  - Terra returned `APPROVED` with no Critical or Important findings.
+  - Focused verification passed: contracts/config/backend builds, web typecheck and production build, 63 focused tests, and clean `git diff --check`.
