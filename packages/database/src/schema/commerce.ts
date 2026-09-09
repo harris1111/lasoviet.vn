@@ -29,9 +29,18 @@ export const commerceOrders = pgTable("commerce_orders", {
   currency: text("currency").notNull(),
   locale: text("locale").notNull(),
   status: commerceOrderStatus("status").notNull().default("pending"),
+  priceVariant: text("price_variant"),
+  creditApplied: integer("credit_applied").notNull().default(0),
+  creditedFromOrderId: uuid("credited_from_order_id").references((): any => commerceOrders.id),
+  creditExpiresAt: timestamp("credit_expires_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   paidAt: timestamp("paid_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
+  check("commerce_orders_credit_applied_non_negative", sql`${table.creditApplied} >= 0`),
+  check(
+    "commerce_orders_credit_upgrade_consistency",
+    sql`(${table.creditApplied} = 0 AND ${table.creditedFromOrderId} IS NULL) OR (${table.creditApplied} > 0 AND ${table.creditedFromOrderId} IS NOT NULL AND ${table.creditExpiresAt} IS NOT NULL AND ${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.creditedFromOrderId} <> ${table.id})`,
+  ),
   uniqueIndex("commerce_orders_payment_code_unique").on(table.paymentCode),
   uniqueIndex("commerce_orders_invoice_unique").on(table.invoiceNumber),
   uniqueIndex("commerce_orders_chart_sku_unique")

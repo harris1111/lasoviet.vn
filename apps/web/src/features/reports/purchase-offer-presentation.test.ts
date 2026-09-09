@@ -5,6 +5,7 @@ vi.mock("server-only", () => ({}));
 import type { AccountLibraryV1, PaidTopicSelectionViewV1 } from "@lasoviet/contracts";
 import {
   buildSafeOfferPresentations,
+  deriveEligibleUpgradeCredit,
   deriveOfferOwnership,
 } from "./purchase-offer-presentation";
 
@@ -359,6 +360,65 @@ describe("purchase-offer-presentation", () => {
         libraryUrl: "/tai-khoan/bao-cao",
       });
     });
+    it("resolves existing Tier-1 report readUrl for Tier-2 entitlement without its own reservation (Requirement 3)", () => {
+      const library: AccountLibraryV1 = {
+        ...emptyLibrary,
+        items: [
+          {
+            id: "ent-tier1",
+            entitlementId: "ent-tier1",
+            orderId: "ord-t1",
+            chartId: "chart-upgrade-reuse",
+            profileId: "prof-1",
+            profileDisplayName: "User",
+            sku: "ZIWEI-NATAL-EXCERPT-P0",
+            productTitle: "Bản mệnh và tiềm năng",
+            productName: "Bản mệnh và tiềm năng",
+            orderStatus: "paid",
+            entitlementStatus: "active",
+            reportId: "rep-shared-1",
+            readUrl: "/bao-cao/rep-shared-1",
+            reportStatus: "ready",
+            locale: "vi",
+            createdAt: "2026-09-10T00:00:00.000Z",
+            purchasedAt: "2026-09-10T00:00:00.000Z",
+          },
+          {
+            id: "ent-tier2",
+            entitlementId: "ent-tier2",
+            orderId: "ord-t2",
+            chartId: "chart-upgrade-reuse",
+            profileId: "prof-1",
+            profileDisplayName: "User",
+            sku: "ZIWEI-IDENTITY-P0",
+            productTitle: "Luận giải Tử Vi toàn diện",
+            productName: "Luận giải Tử Vi toàn diện",
+            orderStatus: "paid",
+            entitlementStatus: "active",
+            reportId: null,
+            readUrl: null,
+            reportStatus: null,
+            locale: "vi",
+            createdAt: "2026-09-11T00:00:00.000Z",
+            purchasedAt: "2026-09-11T00:00:00.000Z",
+          },
+        ],
+      };
+
+      const ownership = deriveOfferOwnership({
+        chartId: "chart-upgrade-reuse",
+        offerKey: "ziwei-comprehensive",
+        library,
+        locale: "vi",
+      });
+
+      expect(ownership).toEqual({
+        kind: "readable",
+        reportId: "rep-shared-1",
+        readUrl: "/bao-cao/rep-shared-1",
+      });
+    });
+
     it("returns unavailable for English selector when chart has an active Vietnamese Tier-1 entitlement (Cross-locale Test 4)", () => {
       const library: AccountLibraryV1 = {
         ...emptyLibrary,
@@ -400,6 +460,171 @@ describe("purchase-offer-presentation", () => {
         locale: "vi",
       });
       expect(ownershipVi).toEqual({ kind: "unowned" });
+    });
+  });
+
+  describe("deriveEligibleUpgradeCredit", () => {
+    const paidAt = "2026-09-10T10:00:00.000Z";
+    const expiresAt = "2026-09-17T10:00:00.000Z";
+    const tier1Order = {
+      id: "ord-tier1-123",
+      orderId: "ord-tier1-123",
+      invoiceNumber: "LSV-tier1-123",
+      chartId: "chart-upgrade-test",
+      profileId: "profile-1",
+      profileDisplayName: "Test",
+      sku: "ZIWEI-NATAL-EXCERPT-P0" as const,
+      productTitle: "Bản mệnh và tiềm năng",
+      productName: "Bản mệnh và tiềm năng",
+      amount: 19000,
+      currency: "VND",
+      status: "paid" as const,
+      orderStatus: "paid" as const,
+      locale: "vi" as const,
+      createdAt: "2026-09-10T09:59:00.000Z",
+      paidAt,
+      creditExpiresAt: expiresAt,
+      reportId: "rep-1",
+      readUrl: "/bao-cao/rep-1",
+    };
+
+    it("returns 19,000 VND credit and 60,000 VND net price before expiration (WP-09 Test 10)", () => {
+      const now = new Date("2026-09-15T00:00:00.000Z");
+      const credit = deriveEligibleUpgradeCredit({
+        chartId: "chart-upgrade-test",
+        orders: [tier1Order],
+        now,
+      });
+
+      expect(credit).toEqual({
+        creditApplied: 19000,
+        listPrice: 79000,
+        netPrice: 60000,
+        creditExpiresAt: expiresAt,
+      });
+    });
+
+    it("returns null at or after exact expiration timestamp (WP-09 Test 10)", () => {
+      // Exactly at deadline
+      const creditAtDeadline = deriveEligibleUpgradeCredit({
+        chartId: "chart-upgrade-test",
+        orders: [tier1Order],
+        now: new Date(expiresAt),
+      });
+      expect(creditAtDeadline).toBeNull();
+
+      // After deadline
+      const creditAfterDeadline = deriveEligibleUpgradeCredit({
+        chartId: "chart-upgrade-test",
+        orders: [tier1Order],
+        now: new Date("2026-09-18T00:00:00.000Z"),
+      });
+      expect(creditAfterDeadline).toBeNull();
+    });
+
+    it("returns null when creditExpiresAt is missing or null, refusing to infer from paidAt (Requirement 4)", () => {
+      const orderWithoutDeadline = {
+        ...tier1Order,
+        creditExpiresAt: null,
+      };
+      const credit = deriveEligibleUpgradeCredit({
+        chartId: "chart-upgrade-test",
+        orders: [orderWithoutDeadline],
+        now: new Date("2026-09-12T00:00:00.000Z"),
+      });
+      expect(credit).toBeNull();
+    });
+
+    it("returns null when Tier 1 order is refunded (WP-09 Test 10)", () => {
+      const refundedOrder = {
+        ...tier1Order,
+        status: "refunded" as const,
+        orderStatus: "refunded" as const,
+      };
+      const credit = deriveEligibleUpgradeCredit({
+        chartId: "chart-upgrade-test",
+        orders: [refundedOrder],
+        now: new Date("2026-09-15T00:00:00.000Z"),
+      });
+      expect(credit).toBeNull();
+    });
+  });
+
+  describe("WP-09 Presentation and UI Invariants", () => {
+    const twoOffers: PaidTopicSelectionViewV1["offers"] = [
+      {
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        method: "ziwei",
+        price: 19000,
+        currency: "VND",
+        sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+      },
+      mockOffers[0]!,
+    ];
+
+    it("Tier-1 card contains the mandatory seven-day pre-payment disclosure (WP-09 Test 11)", () => {
+      const presentations = buildSafeOfferPresentations({
+        offers: twoOffers,
+        locale: "vi",
+      });
+      const tier1 = presentations.find((p) => p.offerKey === "ziwei-natal-excerpt");
+      expect(tier1?.upgradeDisclosure?.vi).toContain("7 ngày");
+      expect(tier1?.upgradeDisclosure?.vi).toContain("19.000 ₫");
+    });
+
+    it("hides Tier 1 completely when Tier 2 is owned (WP-09 Test 12)", () => {
+      const presentations = buildSafeOfferPresentations({
+        offers: twoOffers,
+        locale: "vi",
+        ownershipByOfferKey: {
+          "ziwei-comprehensive": {
+            kind: "readable",
+            reportId: "rep-1",
+            readUrl: "/bao-cao/rep-1",
+          },
+        },
+      });
+
+      expect(presentations).toHaveLength(1);
+      expect(presentations[0]!.offerKey).toBe("ziwei-comprehensive");
+      expect(presentations.some((p) => p.offerKey === "ziwei-natal-excerpt")).toBe(false);
+    });
+
+    it("ensures no rendered/serialized output leaks ZIWEI-* or source order IDs (WP-09 Test 13)", () => {
+      const presentations = buildSafeOfferPresentations({
+        offers: twoOffers,
+        locale: "vi",
+        chartId: "chart-upgrade-test",
+        orders: [
+          {
+            id: "ord-secret-source-id-12345",
+            orderId: "ord-secret-source-id-12345",
+            invoiceNumber: "LSV-secret-1",
+            chartId: "chart-upgrade-test",
+            profileId: "prof-1",
+            profileDisplayName: "User",
+            sku: "ZIWEI-NATAL-EXCERPT-P0" as const,
+            productTitle: "Bản mệnh và tiềm năng",
+            productName: "Bản mệnh và tiềm năng",
+            amount: 19000,
+            currency: "VND",
+            status: "paid" as const,
+            orderStatus: "paid" as const,
+            locale: "vi" as const,
+            createdAt: "2026-09-10T10:00:00Z",
+            paidAt: "2026-09-10T10:00:00Z",
+            creditExpiresAt: "2026-09-17T10:00:00Z",
+            reportId: "rep-1",
+            readUrl: "/bao-cao/rep-1",
+          },
+        ],
+        now: new Date("2026-09-12T00:00:00Z"),
+      });
+
+      const serialized = JSON.stringify(presentations);
+      expect(serialized).not.toMatch(/ZIWEI-[A-Z0-9]+/);
+      expect(serialized).not.toContain("ord-secret-source-id-12345");
+      expect(serialized).not.toContain("creditedFromOrderId");
     });
   });
 });

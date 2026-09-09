@@ -18,6 +18,7 @@ export function createPaymentInstructions(input: {
   paymentCode: string;
   createdAt: Date;
   orderTtlSeconds: number;
+  creditExpiresAt?: Date | null;
 }): PaymentInstructions {
   const bankCode = input.bankCode.trim();
   const accountNumber = input.accountNumber.trim();
@@ -67,8 +68,14 @@ export function createPaymentInstructions(input: {
   qrUrlObj.searchParams.set("des", paymentCode);
   qrUrlObj.searchParams.set("template", "compact");
 
-  const expiresAtMs = input.createdAt.getTime() + input.orderTtlSeconds * 1000;
-  const expiresAt = new Date(expiresAtMs).toISOString();
+  const normalExpiresAtMs = input.createdAt.getTime() + input.orderTtlSeconds * 1000;
+  const effectiveExpiresAtMs =
+    input.creditExpiresAt instanceof Date &&
+    !Number.isNaN(input.creditExpiresAt.getTime()) &&
+    input.creditExpiresAt.getTime() < normalExpiresAtMs
+      ? input.creditExpiresAt.getTime()
+      : normalExpiresAtMs;
+  const expiresAt = new Date(effectiveExpiresAtMs).toISOString();
 
   return {
     bankCode,

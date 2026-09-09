@@ -1428,7 +1428,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     };
 
     const claimResult = await repo.claimUnmatchedPayment(owner.actor, {
-      amount: 79000,
+      amount: orderResult.value.amount,
       transferredAtLocal: formatLocalMinute(transferDate),
     });
     expect(claimResult.ok).toBe(true);
@@ -1518,7 +1518,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
       invoiceNumber: order2Result.value.invoiceNumber,
       matchMethod: "invoice_number",
       providerEventId: `sepay-tier2-${randomUUID()}`,
-      amount: 79000,
+      amount: order2Result.value.amount,
       currency: "VND",
       traceId: "trace-upgrade-2",
     });
@@ -1597,8 +1597,8 @@ describe("commerce repository - library and order history (WP-03)", () => {
     const transferDate = new Date();
     await database.insert(commerceUnmatchedPayments).values({
       providerEventId,
-      rawPayload: { amount: 79000 },
-      amount: 79000,
+      rawPayload: { amount: order2Result.value.amount },
+      amount: order2Result.value.amount,
       reason: "MISSING_PAYMENT_CODE",
       receivedAt: transferDate,
     });
@@ -1610,7 +1610,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     };
 
     const claimResult = await repo.claimUnmatchedPayment(owner.actor, {
-      amount: 79000,
+      amount: order2Result.value.amount,
       transferredAtLocal: formatLocalMinute(transferDate),
     });
     expect(claimResult.ok).toBe(true);
@@ -1857,5 +1857,245 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(reservation?.sku).toBe("ZIWEI-IDENTITY-P0");
     expect(reservation?.promptVersion).toBe(REPORT_PROMPT_VERSION_V2);
     expect(reservation?.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V2);
+  });
+  it("enforces upgrade pricing, exact 7-day expiration, and payment deadline protection (WP-09 Tests 1-7)", async () => {
+    let mockTime = new Date("2026-09-10T10:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, { now: () => mockTime });
+
+    const owner = await createOwnerFixture({ displayName: "Upgrade Pricing Lifecycle Owner" });
+
+    // 1. Create Tier 1 order
+    const tier1Order = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
+    expect(tier1Order.ok).toBe(true);
+    if (!tier1Order.ok) throw new Error("Tier 1 order creation failed");
+
+    // Pay Tier 1 order at mockTime
+    const paidTier1 = await repo.recordPaid({
+      invoiceNumber: tier1Order.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-t1-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-t1-pay",
+    });
+    expect(paidTier1.ok).toBe(true);
+
+    // Test 1: Tier-1 payment persists deadline exactly paid_at + 7 days
+    const [t1DbOrder] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, tier1Order.value.id));
+    expect(t1DbOrder?.paidAt).toBeDefined();
+    expect(t1DbOrder?.creditExpiresAt).toBeDefined();
+    const expectedDeadline = new Date(mockTime.getTime() + 7 * 24 * 60 * 60 * 1000);
+    expect(t1DbOrder?.creditExpiresAt?.getTime()).toBe(expectedDeadline.getTime());
+    expect(t1DbOrder?.priceVariant).toBe("19k");
+
+    // Test 2: At paid_at + 7 days - 1 ms, Tier-2 order is 60,000 VND with 19,000 VND credit and source/deadline fields
+    mockTime = new Date(expectedDeadline.getTime() - 1);
+    const tier2Discounted = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(tier2Discounted.ok).toBe(true);
+    if (!tier2Discounted.ok) throw new Error("Tier 2 discounted order failed");
+    expect(tier2Discounted.value.amount).toBe(60000);
+    expect(tier2Discounted.value.creditApplied).toBe(19000);
+    expect(tier2Discounted.value.creditedFromOrderId).toBe(tier1Order.value.id);
+    expect(new Date(tier2Discounted.value.creditExpiresAt!).getTime()).toBe(expectedDeadline.getTime());
+
+    // Test 6: A discounted pending order expires at the credit deadline, is not reused, and its replacement is full price
+    // Move time to exactly paid_at + 7 days (the exact deadline)
+    mockTime = expectedDeadline;
+    const tier2AtDeadline = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(tier2AtDeadline.ok).toBe(true);
+    if (!tier2AtDeadline.ok) throw new Error("Tier 2 replacement order failed");
+    // Not reused: the discounted pending order was expired and replaced
+    expect(tier2AtDeadline.reused).toBe(false);
+    expect(tier2AtDeadline.value.id).not.toBe(tier2Discounted.value.id);
+    // Test 3: At exactly paid_at + 7 days, Tier-2 order is 79,000 VND with zero credit
+    expect(tier2AtDeadline.value.amount).toBe(79000);
+    expect(tier2AtDeadline.value.creditApplied).toBe(0);
+    expect(tier2AtDeadline.value.creditedFromOrderId).toBeNull();
+    expect(tier2AtDeadline.value.creditExpiresAt).toBeNull();
+
+    // Verify the previous discounted pending order was marked expired
+    const [previousDiscountedDb] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, tier2Discounted.value.id));
+    expect(previousDiscountedDb?.status).toBe("expired");
+
+    // Test 7: A webhook arriving at/after the discounted deadline creates no entitlement/unlock and is rejected
+    // Attempt to pay the expired discounted order at mockTime >= deadline
+    const latePaidResult = await repo.recordPaid({
+      invoiceNumber: tier2Discounted.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-late-${randomUUID()}`,
+      amount: 60000,
+      currency: "VND",
+      traceId: "trace-late-pay",
+    });
+    expect(latePaidResult.ok).toBe(false);
+    expect(latePaidResult.code).toBe("UPGRADE_CREDIT_EXPIRED");
+
+    // Verify no Tier-2 entitlement was created
+    const t2Entitlements = await database.select().from(commerceEntitlements).where(and(eq(commerceEntitlements.chartId, owner.chartId), eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")));
+    expect(t2Entitlements).toHaveLength(0);
+
+    // Test 4: Refunded Tier 1 gives no credit
+    const ownerRefund = await createOwnerFixture({ displayName: "Refund Tier 1 Owner" });
+    mockTime = new Date("2026-09-10T10:00:00.000Z");
+    const t1RefundOrder = await repo.createOrder(ownerRefund.actor, ownerRefund.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
+    expect(t1RefundOrder.ok).toBe(true);
+    if (!t1RefundOrder.ok) return;
+
+    await repo.recordPaid({
+      invoiceNumber: t1RefundOrder.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-ref-t1-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-ref-t1",
+    });
+
+    // Mark refunded
+    await database.update(commerceOrders).set({ status: "refunded" }).where(eq(commerceOrders.id, t1RefundOrder.value.id));
+
+    // Create Tier-2 order on this chart
+    const t2AfterRefund = await repo.createOrder(ownerRefund.actor, ownerRefund.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(t2AfterRefund.ok).toBe(true);
+    if (!t2AfterRefund.ok) return;
+    expect(t2AfterRefund.value.amount).toBe(79000);
+    expect(t2AfterRefund.value.creditApplied).toBe(0);
+  });
+  it("proves refund-after-quote invalidates credit, rejects payment/self-claim, and grants no entitlement (Refund-after-quote test)", async () => {
+    let mockTime = new Date("2026-09-10T10:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, { now: () => mockTime });
+
+    const owner = await createOwnerFixture({ displayName: "Refund After Quote Owner" });
+
+    // 1. Pay Tier 1 at T0
+    const t1Order = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
+    expect(t1Order.ok).toBe(true);
+    if (!t1Order.ok) return;
+
+    await repo.recordPaid({
+      invoiceNumber: t1Order.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-raq-t1-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-raq-t1",
+    });
+
+    // 2. Quote Tier 2 order (discounted at 60,000 VND)
+    mockTime = new Date("2026-09-11T10:00:00.000Z");
+    const t2Order = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(t2Order.ok).toBe(true);
+    if (!t2Order.ok) return;
+    expect(t2Order.value.amount).toBe(60000);
+    expect(t2Order.value.creditApplied).toBe(19000);
+
+    // 3. Before Tier 2 payment arrives, Tier 1 is refunded
+    await database.update(commerceOrders).set({ status: "refunded" }).where(eq(commerceOrders.id, t1Order.value.id));
+
+    // 4. Webhook arrives for the quoted 60k Tier 2 order
+    const paidResult = await repo.recordPaid({
+      invoiceNumber: t2Order.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-raq-t2-${randomUUID()}`,
+      amount: 60000,
+      currency: "VND",
+      traceId: "trace-raq-t2",
+    });
+
+    // Credit is invalidated because source Tier 1 is no longer in paid status
+    expect(paidResult.ok).toBe(false);
+    expect(paidResult.code).toBe("UPGRADE_CREDIT_INVALID");
+
+    // Tier 2 order is persistently marked expired
+    const [t2Db] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, t2Order.value.id));
+    expect(t2Db?.status).toBe("expired");
+
+    // No Tier-2 entitlement exists
+    const t2Entitlements = await database.select().from(commerceEntitlements).where(and(
+      eq(commerceEntitlements.chartId, owner.chartId),
+      eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"),
+    ));
+    expect(t2Entitlements).toHaveLength(0);
+
+    // 5. Self-claim for the invalid 60k order is also rejected
+    const providerEventId = `sepay-unmatched-raq-${randomUUID()}`;
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId,
+      rawPayload: { amount: 60000 },
+      amount: 60000,
+      reason: "UPGRADE_CREDIT_INVALID",
+      receivedAt: mockTime,
+    });
+
+    const formatLocalMinute = (d: Date): string => {
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const vnDate = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+      return `${vnDate.getUTCFullYear()}-${pad(vnDate.getUTCMonth() + 1)}-${pad(vnDate.getUTCDate())}T${pad(vnDate.getUTCHours())}:${pad(vnDate.getUTCMinutes())}`;
+    };
+
+    const claimResult = await repo.claimUnmatchedPayment(owner.actor, {
+      amount: 60000,
+      transferredAtLocal: formatLocalMinute(mockTime),
+    });
+    expect(claimResult.ok).toBe(false);
+    expect(claimResult.code).toBe("PAYMENT_CLAIM_NOT_FOUND");
+  });
+
+  it("proves read-at-deadline persistently expires discounted pending order and polling receives expired (Read-at-deadline test)", async () => {
+    let mockTime = new Date("2026-09-10T10:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, { now: () => mockTime });
+
+    const owner = await createOwnerFixture({ displayName: "Read At Deadline Owner" });
+
+    // 1. Pay Tier 1 at T0
+    const t1Order = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
+    expect(t1Order.ok).toBe(true);
+    if (!t1Order.ok) return;
+
+    await repo.recordPaid({
+      invoiceNumber: t1Order.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-rad-t1-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-rad-t1",
+    });
+
+    const deadline = new Date(mockTime.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    // 2. Create discounted Tier 2 order 1 hour before deadline (so normal 24h TTL is well within range)
+    mockTime = new Date(deadline.getTime() - 60 * 60 * 1000);
+    const t2Order = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(t2Order.ok).toBe(true);
+    if (!t2Order.ok) return;
+
+    // 3. At 30 minutes before deadline, neither TTL (24h) nor credit deadline has passed -> order is pending
+    mockTime = new Date(deadline.getTime() - 30 * 60 * 1000);
+    const readBefore = await repo.readOrder(owner.actor, t2Order.value.id);
+    expect(readBefore?.status).toBe("pending");
+    const projBefore = await repo.readOrderProjection(owner.actor, t2Order.value.id);
+    expect(projBefore?.order.status).toBe("pending");
+    const histBefore = await repo.readOrderHistory(owner.actor);
+    const histItemBefore = histBefore.orders.find((o) => o.id === t2Order.value.id);
+    expect(histItemBefore?.status).toBe("pending");
+
+    // 4. Freeze clock to exactly paid_at + 7 days (the exact deadline, while normal 24h TTL is NOT expired!)
+    mockTime = deadline;
+
+    // Polling / readOrder must persistently expire the order
+    const readAt = await repo.readOrder(owner.actor, t2Order.value.id);
+    expect(readAt?.status).toBe("expired");
+
+    // Projection also returns expired
+    const projAt = await repo.readOrderProjection(owner.actor, t2Order.value.id);
+    expect(projAt?.order.status).toBe("expired");
+
+    // Order history reflects expired
+    const histAt = await repo.readOrderHistory(owner.actor);
+    const histItemAt = histAt.orders.find((o) => o.id === t2Order.value.id);
+    expect(histItemAt?.status).toBe("expired");
+
+    // Database record is persistently updated to expired
+    const [dbOrder] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, t2Order.value.id));
+    expect(dbOrder?.status).toBe("expired");
   });
 });

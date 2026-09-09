@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AccountLibraryV1, PaidTopicSelectionViewV1 } from "@lasoviet/contracts";
+import type { AccountLibraryV1, OrderHistoryItemV1, PaidTopicSelectionViewV1 } from "@lasoviet/contracts";
 
 import {
   resolveActiveSkuFromPublicOfferKey,
@@ -14,6 +14,13 @@ export type OfferOwnershipState =
   | { kind: "processing_or_terminal"; reportId: string; progressUrl: string }
   | { kind: "owned_unknown"; libraryUrl: string }
   | { kind: "unavailable" };
+
+export type UpgradeCreditPresentation = {
+  creditApplied: number;
+  listPrice: number;
+  netPrice: number;
+  creditExpiresAt: string;
+};
 
 export type SafeOfferPresentation = {
   offerKey: PublicOfferKey;
@@ -33,6 +40,11 @@ export type SafeOfferPresentation = {
   price: number;
   currency: "VND";
   ownership: OfferOwnershipState;
+  upgradeCredit?: UpgradeCreditPresentation | null;
+  upgradeDisclosure?: {
+    vi: string;
+    en: string;
+  };
 };
 
 const OFFER_CONTENT: Record<
@@ -97,10 +109,52 @@ const OFFER_CONTENT: Record<
   },
 };
 
+export type DeriveEligibleUpgradeCreditParams = {
+  chartId: string;
+  orders?: OrderHistoryItemV1[];
+  now?: Date;
+};
+
+export function deriveEligibleUpgradeCredit(
+  params: DeriveEligibleUpgradeCreditParams,
+): UpgradeCreditPresentation | null {
+  if (!params.orders || params.orders.length === 0) return null;
+  const currentNow = params.now ?? new Date();
+
+  const eligibleOrder = params.orders.find((o) => {
+    if (o.chartId !== params.chartId) return false;
+    if (o.sku !== "ZIWEI-NATAL-EXCERPT-P0") return false;
+    if (o.status !== "paid" || !o.paidAt) return false;
+    if (o.orderStatus === "refunded") return false;
+    if (!o.creditExpiresAt) return false;
+    const expiresAt = new Date(o.creditExpiresAt);
+    if (Number.isNaN(expiresAt.getTime())) return false;
+    return currentNow.getTime() < expiresAt.getTime();
+  });
+
+  if (!eligibleOrder || !eligibleOrder.creditExpiresAt) return null;
+
+  const expiresAt = eligibleOrder.creditExpiresAt;
+
+  const listPrice = 79000;
+  const creditApplied = Math.min(eligibleOrder.amount, listPrice);
+  const netPrice = Math.max(listPrice - creditApplied, 0);
+
+  return {
+    creditApplied,
+    listPrice,
+    netPrice,
+    creditExpiresAt: expiresAt,
+  };
+}
+
 export type BuildSafeOfferPresentationsParams = {
   offers: PaidTopicSelectionViewV1["offers"];
   ownershipByOfferKey?: Partial<Record<PublicOfferKey, OfferOwnershipState>>;
   locale?: "vi" | "en";
+  orders?: OrderHistoryItemV1[];
+  chartId?: string;
+  now?: Date;
 };
 
 export function buildSafeOfferPresentations(
@@ -108,6 +162,12 @@ export function buildSafeOfferPresentations(
 ): SafeOfferPresentation[] {
   const presentations: SafeOfferPresentation[] = [];
   const seenKeys = new Set<PublicOfferKey>();
+
+  const tier2Ownership = params.ownershipByOfferKey?.["ziwei-comprehensive"];
+  const isTier2Owned =
+    tier2Ownership !== undefined &&
+    tier2Ownership.kind !== "unowned" &&
+    tier2Ownership.kind !== "unavailable";
 
   for (const offer of params.offers) {
     const offerKey = resolvePublicOfferKeyFromSku(offer.sku);
@@ -119,9 +179,33 @@ export function buildSafeOfferPresentations(
       continue;
     }
 
+    if (isTier2Owned && offerKey === "ziwei-natal-excerpt") {
+      continue;
+    }
+
     seenKeys.add(offerKey);
     const content = OFFER_CONTENT[offerKey];
     const ownership = params.ownershipByOfferKey?.[offerKey] ?? { kind: "unowned" };
+
+    let effectivePrice: number = offer.price;
+    let upgradeCredit: UpgradeCreditPresentation | null = null;
+    let upgradeDisclosure: { vi: string; en: string } | undefined = undefined;
+
+    if (offerKey === "ziwei-comprehensive" && params.locale !== "en" && params.chartId) {
+      upgradeCredit = deriveEligibleUpgradeCredit({
+        chartId: params.chartId,
+        orders: params.orders,
+        now: params.now,
+      });
+      if (upgradeCredit !== null) {
+        effectivePrice = upgradeCredit.netPrice;
+      }
+    } else if (offerKey === "ziwei-natal-excerpt") {
+      upgradeDisclosure = {
+        vi: "Số tiền 19.000 ₫ được khấu trừ trực tiếp khi nâng cấp lên Luận giải toàn diện trong vòng 7 ngày kể từ khi thanh toán.",
+        en: "The 19,000 VND payment is credited toward the comprehensive report for 7 days from payment.",
+      };
+    }
 
     presentations.push({
       offerKey,
@@ -129,9 +213,11 @@ export function buildSafeOfferPresentations(
       title: content.title,
       summary: content.summary,
       deliverables: content.deliverables,
-      price: offer.price,
+      price: effectivePrice,
       currency: offer.currency,
       ownership,
+      upgradeCredit,
+      upgradeDisclosure,
     });
 
     if (presentations.length >= 2) {
@@ -183,21 +269,53 @@ export function deriveOfferOwnership(
 
   const activeItem = matchingItems.find((i) => i.readUrl !== null) ?? matchingItems[0]!;
 
-  if (activeItem.readUrl !== null) {
+  let effectiveReadUrl = activeItem.readUrl;
+  let effectiveReportId = activeItem.reportId;
+
+  if (effectiveReadUrl === null && params.offerKey === "ziwei-comprehensive") {
+    const tier1Item = params.library.items.find(
+      (item) =>
+        item.chartId === params.chartId &&
+        item.locale === params.locale &&
+        item.sku === "ZIWEI-NATAL-EXCERPT-P0" &&
+        item.entitlementStatus === "active" &&
+        item.readUrl !== null,
+    );
+    if (tier1Item) {
+      effectiveReadUrl = tier1Item.readUrl;
+      effectiveReportId = tier1Item.reportId;
+    }
+  }
+
+  if (effectiveReportId === null && params.offerKey === "ziwei-comprehensive") {
+    const tier1Item = params.library.items.find(
+      (item) =>
+        item.chartId === params.chartId &&
+        item.locale === params.locale &&
+        item.sku === "ZIWEI-NATAL-EXCERPT-P0" &&
+        item.entitlementStatus === "active" &&
+        item.reportId !== null,
+    );
+    if (tier1Item) {
+      effectiveReportId = tier1Item.reportId;
+    }
+  }
+
+  if (effectiveReadUrl !== null) {
     return {
       kind: "readable",
-      reportId: activeItem.reportId ?? "",
-      readUrl: activeItem.readUrl,
+      reportId: effectiveReportId ?? "",
+      readUrl: effectiveReadUrl,
     };
   }
 
   const prefix = params.locale === "en" ? "/en" : "";
 
-  if (activeItem.reportId !== null) {
+  if (effectiveReportId !== null) {
     return {
       kind: "processing_or_terminal",
-      reportId: activeItem.reportId,
-      progressUrl: `${prefix}/bao-cao/${encodeURIComponent(activeItem.reportId)}`,
+      reportId: effectiveReportId,
+      progressUrl: `${prefix}/bao-cao/${encodeURIComponent(effectiveReportId)}`,
     };
   }
 

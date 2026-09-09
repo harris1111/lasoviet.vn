@@ -162,6 +162,13 @@
       "when": 1789372800000,
       "tag": "0022_entitlement_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789459200000,
+      "tag": "0023_order_upgrade_pricing_and_credit",
+      "breakpoints": true
     }
   ]
 }

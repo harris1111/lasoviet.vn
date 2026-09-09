@@ -219,4 +219,130 @@ describe("order service", () => {
       },
     });
   });
+  it("calculates upgrade credit for Tier-2 when valid Tier-1 credit is present", async () => {
+    const actor = { kind: "account" as const, userId: "account-1", sessionId: "s", requestId: "r" };
+    const expiresAt = new Date("2026-09-12T00:00:00Z");
+    const service = createOrderService({
+      findCheckoutAccount: async () => ({
+        emailVerified: true,
+        isAnonymous: false,
+      }),
+      findChart: async () => ({ id: "chart-1", ownerId: "account-1", eligible: true }),
+      findReusableEntitlement: async () => null,
+      findUpgradeCredit: async () => ({
+        credit: 19000,
+        sourceOrderId: "order-tier1",
+        creditExpiresAt: expiresAt,
+      }),
+      save: async (order) => order,
+      createId: () => "order-upgrade",
+    });
+
+    await expect(
+      service.create(actor, "chart-1", "ZIWEI-IDENTITY-P0"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        id: "order-upgrade",
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 60000,
+        creditApplied: 19000,
+        creditedFromOrderId: "order-tier1",
+        creditExpiresAt: expiresAt,
+      },
+    });
+  });
+
+  it("floors net upgrade price at zero when credit exceeds price", async () => {
+    const actor = { kind: "account" as const, userId: "account-1", sessionId: "s", requestId: "r" };
+    const expiresAt = new Date("2026-09-12T00:00:00Z");
+    const service = createOrderService({
+      findCheckoutAccount: async () => ({
+        emailVerified: true,
+        isAnonymous: false,
+      }),
+      findChart: async () => ({ id: "chart-1", ownerId: "account-1", eligible: true }),
+      findReusableEntitlement: async () => null,
+      findUpgradeCredit: async () => ({
+        credit: 100000,
+        sourceOrderId: "order-huge-credit",
+        creditExpiresAt: expiresAt,
+      }),
+      save: async (order) => order,
+      createId: () => "order-zero",
+    });
+
+    await expect(
+      service.create(actor, "chart-1", "ZIWEI-IDENTITY-P0"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        id: "order-zero",
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 0,
+        creditApplied: 79000,
+      },
+    });
+  });
+  it("evaluates creditExpiresAt against injected clock: applies credit at deadline - 1ms and ignores at exact deadline", async () => {
+    const actor = { kind: "account" as const, userId: "account-1", sessionId: "s", requestId: "r" };
+    const deadline = new Date("2026-09-17T10:00:00.000Z");
+
+    let currentNow = new Date(deadline.getTime() - 1); // -1ms before deadline
+    const dependencies = {
+      findCheckoutAccount: async () => ({
+        emailVerified: true,
+        isAnonymous: false,
+      }),
+      findChart: async () => ({ id: "chart-1", ownerId: "account-1", eligible: true }),
+      findReusableEntitlement: async () => null,
+      // Even if dependency returns stale credit object, order.service revalidates with its clock
+      findUpgradeCredit: async () => ({
+        credit: 19000,
+        sourceOrderId: "order-source-t1",
+        creditExpiresAt: deadline,
+      }),
+      save: async (order: any) => order,
+      createId: () => "order-boundary-test",
+    };
+
+    const serviceBeforeDeadline = createOrderService(dependencies, {
+      now: () => currentNow,
+    });
+
+    // At deadline - 1ms: credit is valid
+    await expect(
+      serviceBeforeDeadline.create(actor, "chart-1", "ZIWEI-IDENTITY-P0"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        id: "order-boundary-test",
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 60000,
+        creditApplied: 19000,
+        creditedFromOrderId: "order-source-t1",
+        creditExpiresAt: deadline,
+      },
+    });
+
+    // At exact deadline (currentNow === deadline): credit is expired and ignored
+    currentNow = deadline;
+    const serviceAtDeadline = createOrderService(dependencies, {
+      now: () => currentNow,
+    });
+
+    await expect(
+      serviceAtDeadline.create(actor, "chart-1", "ZIWEI-IDENTITY-P0"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        id: "order-boundary-test",
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79000,
+        creditApplied: 0,
+        creditedFromOrderId: null,
+        creditExpiresAt: null,
+      },
+    });
+  });
 });

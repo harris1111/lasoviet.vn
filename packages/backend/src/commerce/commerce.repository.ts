@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, gt, gte, inArray, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
 import type {
   AccountLibraryGroupV1,
   AccountLibraryItemV1,
@@ -101,13 +101,19 @@ export function createDatabaseCommerceRepository(
 
     const currentNow = getNow();
     const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
-    if (order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime()) {
+    const isTtlExpired = order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime();
+    const isCreditExpired =
+      order.status === "pending" &&
+      order.creditApplied > 0 &&
+      order.creditExpiresAt !== null &&
+      currentNow.getTime() >= order.creditExpiresAt.getTime();
+
+    if (isTtlExpired || isCreditExpired) {
       const [expired] = await database.update(commerceOrders)
         .set({ status: "expired" })
         .where(and(
           eq(commerceOrders.id, order.id),
           eq(commerceOrders.status, "pending"),
-          lte(commerceOrders.createdAt, cutoff),
         ))
         .returning();
       if (expired !== undefined) {
@@ -570,7 +576,13 @@ export function createDatabaseCommerceRepository(
       const locale = order.locale === "en" ? ("en" as const) : ("vi" as const);
       const productTitle = resolveProductTitle(sku, locale);
 
-      const isExpired = order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime();
+      const isTtlExpired = order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime();
+      const isCreditExpired =
+        order.status === "pending" &&
+        order.creditApplied > 0 &&
+        order.creditExpiresAt !== null &&
+        currentNow.getTime() >= order.creditExpiresAt.getTime();
+      const isExpired = isTtlExpired || isCreditExpired;
       const effectiveStatus: OrderStatus = isExpired ? "expired" : (order.status as OrderStatus);
 
       const reportId = isReportReady
@@ -610,6 +622,8 @@ export function createDatabaseCommerceRepository(
         reportId,
         readUrl,
         supportUrl,
+        creditApplied: order.creditApplied,
+        creditExpiresAt: order.creditExpiresAt ? order.creditExpiresAt.toISOString() : null,
       };
     });
 
@@ -730,12 +744,61 @@ export function createDatabaseCommerceRepository(
 
         const pendingOrder = existingOrders.find((o) => o.status === "pending");
         if (pendingOrder !== undefined) {
-          if (pendingOrder.createdAt.getTime() > cutoff.getTime()) {
+          const isTtlValid = pendingOrder.createdAt.getTime() > cutoff.getTime();
+          const isCreditValid =
+            pendingOrder.creditApplied === 0 ||
+            (pendingOrder.creditExpiresAt !== null &&
+              currentNow.getTime() < pendingOrder.creditExpiresAt.getTime());
+
+          if (isTtlValid && isCreditValid) {
             return { ok: true as const, value: pendingOrder, reused: true };
           }
           await transaction.update(commerceOrders)
             .set({ status: "expired" })
             .where(eq(commerceOrders.id, pendingOrder.id));
+        }
+
+        let orderAmount = product.amount;
+        let creditApplied = 0;
+        let creditedFromOrderId: string | null = null;
+        let creditExpiresAt: Date | null = null;
+        let priceVariant: string | null = null;
+
+        if (product.sku === "ZIWEI-NATAL-EXCERPT-P0") {
+          priceVariant = "19k";
+        } else if (product.sku === "ZIWEI-IDENTITY-P0") {
+          const [sourceOrder] = await transaction
+            .select({
+              id: commerceOrders.id,
+              amount: commerceOrders.amount,
+              creditExpiresAt: commerceOrders.creditExpiresAt,
+            })
+            .from(commerceOrders)
+            .innerJoin(
+              commerceEntitlements,
+              eq(commerceEntitlements.orderId, commerceOrders.id),
+            )
+            .where(
+              and(
+                eq(commerceOrders.ownerId, actor.userId),
+                eq(commerceOrders.chartId, chartId),
+                eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                eq(commerceOrders.status, "paid"),
+                eq(commerceOrders.locale, selectedLocale),
+                isNotNull(commerceOrders.paidAt),
+                isNotNull(commerceOrders.creditExpiresAt),
+                gt(commerceOrders.creditExpiresAt, currentNow),
+              ),
+            )
+            .orderBy(desc(commerceOrders.paidAt))
+            .limit(1);
+
+          if (sourceOrder !== undefined) {
+            creditApplied = Math.min(sourceOrder.amount, product.amount);
+            creditedFromOrderId = sourceOrder.id;
+            creditExpiresAt = sourceOrder.creditExpiresAt;
+            orderAmount = Math.max(product.amount - creditApplied, 0);
+          }
         }
 
         const id = randomUUID();
@@ -749,10 +812,14 @@ export function createDatabaseCommerceRepository(
             chartVersionId: chart.chartVersionId,
             ownerId: actor.userId,
             sku: product.sku,
-            amount: product.amount,
+            amount: orderAmount,
             currency: product.currency,
             locale: selectedLocale,
             status: "pending",
+            priceVariant,
+            creditApplied,
+            creditedFromOrderId,
+            creditExpiresAt,
             createdAt: currentNow,
           }).onConflictDoNothing({ target: commerceOrders.paymentCode }).returning();
 
@@ -897,6 +964,70 @@ export function createDatabaseCommerceRepository(
           return { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
         }
 
+        if (order.creditApplied > 0) {
+          if (
+            order.creditExpiresAt === null ||
+            currentNow.getTime() >= order.creditExpiresAt.getTime()
+          ) {
+            if (order.status === "pending") {
+              await transaction.update(commerceOrders)
+                .set({ status: "expired" })
+                .where(eq(commerceOrders.id, order.id));
+            }
+            return { ok: false as const, code: "UPGRADE_CREDIT_EXPIRED" };
+          }
+
+          if (order.creditedFromOrderId === null) {
+            if (order.status === "pending") {
+              await transaction.update(commerceOrders)
+                .set({ status: "expired" })
+                .where(eq(commerceOrders.id, order.id));
+            }
+            return { ok: false as const, code: "UPGRADE_CREDIT_INVALID" };
+          }
+
+          const [sourceOrder] = await transaction
+            .select({
+              id: commerceOrders.id,
+              amount: commerceOrders.amount,
+              status: commerceOrders.status,
+              creditExpiresAt: commerceOrders.creditExpiresAt,
+              entitlementId: commerceEntitlements.id,
+            })
+            .from(commerceOrders)
+            .innerJoin(
+              commerceEntitlements,
+              eq(commerceEntitlements.orderId, commerceOrders.id),
+            )
+            .where(
+              and(
+                eq(commerceOrders.id, order.creditedFromOrderId),
+                eq(commerceOrders.ownerId, order.ownerId),
+                eq(commerceOrders.chartId, order.chartId),
+                eq(commerceOrders.locale, order.locale),
+                eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                eq(commerceOrders.status, "paid"),
+                isNotNull(commerceOrders.paidAt),
+                isNotNull(commerceOrders.creditExpiresAt),
+              ),
+            )
+            .limit(1);
+
+          if (
+            sourceOrder === undefined ||
+            sourceOrder.creditExpiresAt === null ||
+            sourceOrder.creditExpiresAt.getTime() !== order.creditExpiresAt.getTime() ||
+            sourceOrder.amount < order.creditApplied
+          ) {
+            if (order.status === "pending") {
+              await transaction.update(commerceOrders)
+                .set({ status: "expired" })
+                .where(eq(commerceOrders.id, order.id));
+            }
+            return { ok: false as const, code: "UPGRADE_CREDIT_INVALID" };
+          }
+        }
+
         // Cancel/expire any replacement pending order for the same chart+sku
         await transaction.update(commerceOrders)
           .set({ status: "expired" })
@@ -907,8 +1038,18 @@ export function createDatabaseCommerceRepository(
             ne(commerceOrders.id, order.id),
           ));
 
+        const isTier1 = order.sku === "ZIWEI-NATAL-EXCERPT-P0";
+        const tier1CreditDeadline = isTier1
+          ? new Date(currentNow.getTime() + 7 * 24 * 60 * 60 * 1000)
+          : order.creditExpiresAt;
+
         const [paidOrder] = await transaction.update(commerceOrders)
-          .set({ status: "paid", paidAt: currentNow })
+          .set({
+            status: "paid",
+            paidAt: currentNow,
+            creditExpiresAt: tier1CreditDeadline,
+            priceVariant: isTier1 ? "19k" : order.priceVariant,
+          })
           .where(and(
             eq(commerceOrders.id, order.id),
             or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
@@ -1215,6 +1356,40 @@ export function createDatabaseCommerceRepository(
 
         const eligibleOrders: typeof candidateOrders = [];
         for (const order of candidateOrders) {
+          if (order.creditApplied > 0) {
+            if (
+              order.creditExpiresAt === null ||
+              currentNow.getTime() >= order.creditExpiresAt.getTime() ||
+              order.creditedFromOrderId === null
+            ) {
+              continue;
+            }
+            const [sourceOrder] = await transaction
+              .select({ id: commerceOrders.id })
+              .from(commerceOrders)
+              .innerJoin(
+                commerceEntitlements,
+                eq(commerceEntitlements.orderId, commerceOrders.id),
+              )
+              .where(
+                and(
+                  eq(commerceOrders.id, order.creditedFromOrderId),
+                  eq(commerceOrders.ownerId, actor.userId),
+                  eq(commerceOrders.chartId, order.chartId),
+                  eq(commerceOrders.locale, order.locale),
+                  eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                  eq(commerceOrders.status, "paid"),
+                  isNotNull(commerceOrders.paidAt),
+                  isNotNull(commerceOrders.creditExpiresAt),
+                  eq(commerceOrders.creditExpiresAt, order.creditExpiresAt),
+                  gte(commerceOrders.amount, order.creditApplied),
+                ),
+              )
+              .limit(1);
+            if (sourceOrder === undefined) {
+              continue;
+            }
+          }
           const [existingEntitlement] = await transaction
             .select({ id: commerceEntitlements.id })
             .from(commerceEntitlements)
@@ -1296,6 +1471,40 @@ export function createDatabaseCommerceRepository(
 
         const lockedEligibleOrders: typeof lockedCandidateOrders = [];
         for (const order of lockedCandidateOrders) {
+          if (order.creditApplied > 0) {
+            if (
+              order.creditExpiresAt === null ||
+              currentNow.getTime() >= order.creditExpiresAt.getTime() ||
+              order.creditedFromOrderId === null
+            ) {
+              continue;
+            }
+            const [sourceOrder] = await transaction
+              .select({ id: commerceOrders.id })
+              .from(commerceOrders)
+              .innerJoin(
+                commerceEntitlements,
+                eq(commerceEntitlements.orderId, commerceOrders.id),
+              )
+              .where(
+                and(
+                  eq(commerceOrders.id, order.creditedFromOrderId),
+                  eq(commerceOrders.ownerId, actor.userId),
+                  eq(commerceOrders.chartId, order.chartId),
+                  eq(commerceOrders.locale, order.locale),
+                  eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                  eq(commerceOrders.status, "paid"),
+                  isNotNull(commerceOrders.paidAt),
+                  isNotNull(commerceOrders.creditExpiresAt),
+                  eq(commerceOrders.creditExpiresAt, order.creditExpiresAt),
+                  gte(commerceOrders.amount, order.creditApplied),
+                ),
+              )
+              .limit(1);
+            if (sourceOrder === undefined) {
+              continue;
+            }
+          }
           const [existingEntitlement] = await transaction
             .select({ id: commerceEntitlements.id })
             .from(commerceEntitlements)
@@ -1426,9 +1635,19 @@ export function createDatabaseCommerceRepository(
             ),
           );
 
+        const isClaimTier1 = lockedOrder.sku === "ZIWEI-NATAL-EXCERPT-P0";
+        const tier1ClaimDeadline = isClaimTier1
+          ? new Date(currentNow.getTime() + 7 * 24 * 60 * 60 * 1000)
+          : lockedOrder.creditExpiresAt;
+
         const [paidOrder] = await transaction
           .update(commerceOrders)
-          .set({ status: "paid", paidAt: currentNow })
+          .set({
+            status: "paid",
+            paidAt: currentNow,
+            creditExpiresAt: tier1ClaimDeadline,
+            priceVariant: isClaimTier1 ? "19k" : lockedOrder.priceVariant,
+          })
           .where(
             and(
               eq(commerceOrders.id, lockedOrder.id),

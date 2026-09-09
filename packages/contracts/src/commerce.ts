@@ -160,6 +160,8 @@ export const OrderHistoryItemV1Schema = z
     reportId: z.string().trim().min(1).nullable(),
     readUrl: z.string().trim().min(1).nullable(),
     supportUrl: z.string().trim().min(1).optional(),
+    creditApplied: z.number().int().nonnegative().optional(),
+    creditExpiresAt: z.iso.datetime({ offset: true }).nullable().optional(),
   })
   .strict();
 export type OrderHistoryItemV1 = z.infer<typeof OrderHistoryItemV1Schema>;

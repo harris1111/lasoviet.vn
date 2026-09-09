@@ -72,6 +72,7 @@ export class CommerceController {
     paymentCode: string;
     amount: number;
     createdAt: Date;
+    creditExpiresAt?: Date | null;
   }): PaymentInstructions {
     return createPaymentInstructions({
       bankCode: this.bankCode ?? "",
@@ -82,6 +83,7 @@ export class CommerceController {
       paymentCode: order.paymentCode,
       createdAt: order.createdAt,
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
+      creditExpiresAt: order.creditExpiresAt ?? null,
     });
   }
 

@@ -51,6 +51,10 @@ vi.mock("../../../../../auth/resolve-current-actor", () => {
 vi.mock("../../../../../features/account/account-data-loader", () => ({
   accountDataLoader: {
     loadLibrary: vi.fn(),
+    loadOrders: vi.fn().mockResolvedValue({
+      ok: true,
+      value: { version: 1, orders: [], items: [], totalCount: 0 },
+    }),
   },
 }));
 

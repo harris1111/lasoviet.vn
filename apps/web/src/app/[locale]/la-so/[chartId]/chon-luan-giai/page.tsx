@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import type { CurrentActor } from "@lasoviet/contracts";
+import type { CurrentActor, OrderHistoryItemV1 } from "@lasoviet/contracts";
 import {
   resolveVerifiedAccountActor,
   VerifiedAccountResolutionError,
@@ -46,14 +46,19 @@ export default async function PaidTopicSelectionPage({
   }
 
   let ownershipByOfferKey: Partial<Record<PublicOfferKey, OfferOwnershipState>> = {};
+  let orderHistory: OrderHistoryItemV1[] = [];
   if (actor !== null) {
-    const libraryResult = await accountDataLoader.loadLibrary(actor);
-    if (!libraryResult.ok) {
+    const [libraryResult, ordersResult] = await Promise.all([
+      accountDataLoader.loadLibrary(actor),
+      accountDataLoader.loadOrders(actor),
+    ]);
+    if (!libraryResult.ok || !ordersResult.ok) {
       ownershipByOfferKey = {
         "ziwei-comprehensive": { kind: "unavailable" },
         "ziwei-natal-excerpt": { kind: "unavailable" },
       };
     } else {
+      orderHistory = ordersResult.value.orders;
       ownershipByOfferKey = {
         "ziwei-comprehensive": deriveOfferOwnership({
           chartId,
@@ -78,6 +83,7 @@ export default async function PaidTopicSelectionPage({
           birthSummary={chartResult.value.birthSummary}
           locale={locale}
           ownershipByOfferKey={ownershipByOfferKey}
+          orderHistory={orderHistory}
           topics={topics.value}
         />
       </div>

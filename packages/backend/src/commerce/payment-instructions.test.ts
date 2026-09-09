@@ -151,4 +151,36 @@ describe("createPaymentInstructions", () => {
       }),
     ).toThrow();
   });
+  it("caps expiresAt at the credit deadline when earlier than order TTL (Required check 8)", () => {
+    const createdAt = new Date("2026-09-05T00:00:00.000Z");
+    const creditDeadlineEarlier = new Date("2026-09-05T00:05:00.000Z");
+    const instructions = createPaymentInstructions({
+      bankCode: "VCB",
+      accountNumber: "123456789",
+      accountHolder: "LA SO VIET",
+      amount: 60_000,
+      currency: "VND",
+      paymentCode: "LSVK7M2P9QX4",
+      createdAt,
+      orderTtlSeconds: 86400, // 24 hours
+      creditExpiresAt: creditDeadlineEarlier,
+    });
+
+    expect(instructions.expiresAt).toBe("2026-09-05T00:05:00.000Z");
+
+    const creditDeadlineLater = new Date("2026-09-07T00:00:00.000Z");
+    const instructionsLater = createPaymentInstructions({
+      bankCode: "VCB",
+      accountNumber: "123456789",
+      accountHolder: "LA SO VIET",
+      amount: 60_000,
+      currency: "VND",
+      paymentCode: "LSVK7M2P9QX4",
+      createdAt,
+      orderTtlSeconds: 900, // 15 mins (earlier than creditDeadlineLater)
+      creditExpiresAt: creditDeadlineLater,
+    });
+
+    expect(instructionsLater.expiresAt).toBe("2026-09-05T00:15:00.000Z");
+  });
 });

@@ -32,6 +32,13 @@ export type CheckoutAccount = {
   emailVerified: boolean;
   isAnonymous: boolean;
 } | null;
+
+export type UpgradeCredit = {
+  credit: number;
+  sourceOrderId: string;
+  creditExpiresAt: Date;
+};
+
 type Order = {
   id: string;
   invoiceNumber: string;
@@ -40,12 +47,16 @@ type Order = {
   amount: number;
   currency: "VND";
   status: "pending";
+  creditApplied?: number;
+  creditedFromOrderId?: string | null;
+  creditExpiresAt?: Date | null;
 };
 
 export type OrderServiceDependencies = {
   findCheckoutAccount(userId: string): Promise<CheckoutAccount>;
   findChart(chartId: string): Promise<Chart | null>;
   findReusableEntitlement(chartId: string, sku: ProductSku): Promise<{ id: string } | null>;
+  findUpgradeCredit?(chartId: string, userId: string): Promise<UpgradeCredit | null>;
   save(order: Order): Promise<Order>;
   createId(): string;
 };
@@ -60,7 +71,16 @@ export function checkoutAccountError(
   return account.emailVerified ? null : "CHECKOUT_EMAIL_VERIFICATION_REQUIRED";
 }
 
-export function createOrderService(dependencies: OrderServiceDependencies) {
+export type OrderServiceOptions = {
+  now?: () => Date;
+};
+
+export function createOrderService(
+  dependencies: OrderServiceDependencies,
+  options?: OrderServiceOptions,
+) {
+  const getNow = options?.now ?? (() => new Date());
+
   return {
     async create(actor: CurrentActor, chartId: string, sku: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, error: { code: "SKU_UNSUPPORTED" } };
@@ -88,15 +108,40 @@ export function createOrderService(dependencies: OrderServiceDependencies) {
       ) {
         return { ok: false as const, error: { code: "ENTITLEMENT_EXISTS" } };
       }
+      let amount = product.amount;
+      let creditApplied = 0;
+      let creditedFromOrderId: string | null = null;
+      let creditExpiresAt: Date | null = null;
+
+      const currentNow = getNow();
+
+      if (product.sku === "ZIWEI-IDENTITY-P0" && dependencies.findUpgradeCredit) {
+        const upgrade = await dependencies.findUpgradeCredit(chartId, actor.userId);
+        if (
+          upgrade &&
+          upgrade.creditExpiresAt instanceof Date &&
+          !Number.isNaN(upgrade.creditExpiresAt.getTime()) &&
+          currentNow.getTime() < upgrade.creditExpiresAt.getTime()
+        ) {
+          creditApplied = Math.min(upgrade.credit, product.amount);
+          creditedFromOrderId = upgrade.sourceOrderId;
+          creditExpiresAt = upgrade.creditExpiresAt;
+          amount = Math.max(product.amount - creditApplied, 0);
+        }
+      }
+
       const id = dependencies.createId();
       const value = await dependencies.save({
         id,
         invoiceNumber: `LSV-${id}`,
         chartId,
         sku: product.sku,
-        amount: product.amount,
+        amount,
         currency: product.currency,
         status: "pending",
+        creditApplied,
+        creditedFromOrderId,
+        creditExpiresAt,
       });
       return { ok: true as const, value };
     },

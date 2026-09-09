@@ -31,7 +31,7 @@ vi.mock("next-intl", async () => {
   };
 });
 
-import { PaidTopicSelector } from "./paid-topic-selector";
+import { PaidTopicSelector, formatUpgradeDeadline } from "./paid-topic-selector";
 
 const mockTopics: PaidTopicSelectionViewV1 = {
   version: 1,
@@ -333,5 +333,243 @@ describe("PaidTopicSelector", () => {
     } finally {
       mockLocale = "vi";
     }
+  });
+  it("renders 79k list, 19k credit, 60k net price, exact deadline and unlocked sections before expiry (WP-09 Test 10)", () => {
+    const expiresAt = "2026-09-17T10:00:00.000Z";
+    const orderHistory = [
+      {
+        id: "ord-t1",
+        orderId: "ord-t1",
+        invoiceNumber: "LSV-t1",
+        chartId: "chart-123",
+        profileId: "prof-1",
+        profileDisplayName: "User",
+        sku: "ZIWEI-NATAL-EXCERPT-P0" as const,
+        productTitle: "Bản mệnh và tiềm năng",
+        productName: "Bản mệnh và tiềm năng",
+        amount: 19000,
+        currency: "VND",
+        status: "paid" as const,
+        orderStatus: "paid" as const,
+        locale: "vi" as const,
+        createdAt: "2026-09-10T10:00:00Z",
+        paidAt: "2026-09-10T10:00:00Z",
+        creditExpiresAt: expiresAt,
+        reportId: "rep-1",
+        readUrl: "/bao-cao/rep-1",
+      },
+    ];
+
+    const twoOffersTopics: PaidTopicSelectionViewV1 = {
+      version: 1,
+      chartId: "chart-123",
+      chartVersionId: "version-456",
+      offers: [
+        {
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          method: "ziwei",
+          price: 19000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+        },
+        {
+          sku: "ZIWEI-IDENTITY-P0",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"],
+        },
+      ],
+    };
+
+    // Before expiry: shows 79.000 ₫ list, 19.000 ₫ credit, 60.000 ₫ net, and unlocked sections
+    const htmlBeforeExpiry = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        topics={twoOffersTopics}
+        orderHistory={orderHistory}
+        now={new Date("2026-09-12T00:00:00Z")}
+      />,
+    );
+
+    expect(htmlBeforeExpiry).toContain("79.000 ₫");
+    expect(htmlBeforeExpiry).toContain("Đã trừ: -19.000 ₫");
+    expect(htmlBeforeExpiry).toContain("60.000 ₫");
+    expect(htmlBeforeExpiry).toContain("Ưu đãi nâng cấp áp dụng đến:");
+    expect(htmlBeforeExpiry).toContain("Cấu trúc và cách cục trọng yếu");
+
+    // Exactly at or after deadline: shows full 79.000 ₫, no credit
+    const htmlAfterDeadline = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        topics={twoOffersTopics}
+        orderHistory={orderHistory}
+        now={new Date("2026-09-17T10:00:00.000Z")}
+      />,
+    );
+
+    expect(htmlAfterDeadline).toContain("79.000 ₫");
+    expect(htmlAfterDeadline).not.toContain("60.000 ₫");
+    expect(htmlAfterDeadline).not.toContain("Đã trừ: -19.000 ₫");
+
+    // Refunded Tier 1: shows full 79.000 ₫, no credit
+    const refundedOrderHistory = [
+      {
+        ...orderHistory[0]!,
+        status: "refunded" as const,
+        orderStatus: "refunded" as const,
+      },
+    ];
+    const htmlAfterRefund = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        topics={twoOffersTopics}
+        orderHistory={refundedOrderHistory}
+        now={new Date("2026-09-12T00:00:00Z")}
+      />,
+    );
+    expect(htmlAfterRefund).toContain("79.000 ₫");
+    expect(htmlAfterRefund).not.toContain("60.000 ₫");
+  });
+
+  it("shows mandatory seven-day pre-payment disclosure on Tier-1 card (WP-09 Test 11)", () => {
+    const twoOffersTopics: PaidTopicSelectionViewV1 = {
+      version: 1,
+      chartId: "chart-123",
+      chartVersionId: "version-456",
+      offers: [
+        {
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          method: "ziwei",
+          price: 19000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+        },
+        {
+          sku: "ZIWEI-IDENTITY-P0",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"],
+        },
+      ],
+    };
+
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={twoOffersTopics} />,
+    );
+    expect(html).toContain("19.000 ₫");
+    expect(html).toContain("7 ngày");
+    expect(html).toContain("khấu trừ trực tiếp");
+  });
+
+  it("hides Tier 1 completely when Tier 2 is owned and resolves existing report (WP-09 Test 12)", () => {
+    const twoOffersTopics: PaidTopicSelectionViewV1 = {
+      version: 1,
+      chartId: "chart-123",
+      chartVersionId: "version-456",
+      offers: [
+        {
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          method: "ziwei",
+          price: 19000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+        },
+        {
+          sku: "ZIWEI-IDENTITY-P0",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"],
+        },
+      ],
+    };
+
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        topics={twoOffersTopics}
+        ownershipByOfferKey={{
+          "ziwei-comprehensive": {
+            kind: "readable",
+            reportId: "rep-existing-123",
+            readUrl: "/bao-cao/rep-existing-123",
+          },
+        }}
+      />,
+    );
+
+    // Tier 1 card is completely absent
+    expect(html).not.toContain('id="ziwei-natal-excerpt"');
+    expect(html).not.toContain("Bản mệnh và tiềm năng");
+
+    // Tier 2 card resolves to existing report
+    expect(html).toContain("Đọc lại");
+    expect(html).toContain('href="/bao-cao/rep-existing-123"');
+  });
+  it("formats upgrade deadline explicitly in Asia/Ho_Chi_Minh with exact time element (WP-09 Cleanup Item 1)", () => {
+    const isoString = "2026-09-17T10:00:00.000Z";
+    // 10:00 UTC = 17:00 in Asia/Ho_Chi_Minh (UTC+7)
+    expect(formatUpgradeDeadline(isoString, "vi")).toBe("17:00 17/09/2026");
+    expect(formatUpgradeDeadline(isoString, "en")).toBe("2026-09-17 17:00");
+
+    const twoOffersTopics: PaidTopicSelectionViewV1 = {
+      version: 1,
+      chartId: "chart-123",
+      chartVersionId: "version-456",
+      offers: [
+        {
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          method: "ziwei",
+          price: 19000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+        },
+        {
+          sku: "ZIWEI-IDENTITY-P0",
+          method: "ziwei",
+          price: 79000,
+          currency: "VND",
+          sections: ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"],
+        },
+      ],
+    };
+
+    const orderHistory = [
+      {
+        id: "ord-t1",
+        orderId: "ord-t1",
+        invoiceNumber: "LSV-t1",
+        chartId: "chart-123",
+        profileId: "prof-1",
+        profileDisplayName: "User",
+        sku: "ZIWEI-NATAL-EXCERPT-P0" as const,
+        productTitle: "Bản mệnh và tiềm năng",
+        productName: "Bản mệnh và tiềm năng",
+        amount: 19000,
+        currency: "VND",
+        status: "paid" as const,
+        orderStatus: "paid" as const,
+        locale: "vi" as const,
+        createdAt: "2026-09-10T10:00:00Z",
+        paidAt: "2026-09-10T10:00:00Z",
+        creditExpiresAt: isoString,
+        reportId: "rep-1",
+        readUrl: "/bao-cao/rep-1",
+      },
+    ];
+
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector
+        locale="vi"
+        topics={twoOffersTopics}
+        orderHistory={orderHistory}
+        now={new Date("2026-09-12T00:00:00Z")}
+      />,
+    );
+
+    // Exact <time dateTime="..."> binding in Asia/Ho_Chi_Minh
+    expect(html).toContain('<time dateTime="2026-09-17T10:00:00.000Z">17:00 17/09/2026</time>');
   });
 });

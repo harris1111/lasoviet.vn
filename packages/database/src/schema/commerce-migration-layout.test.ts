@@ -137,4 +137,24 @@ describe("commerce migration layout", () => {
     expect(journal).toContain('"tag": "0022_entitlement_scope"');
     expect(journal).toContain('"idx": 22');
   });
+  it("keeps order upgrade pricing and credit migration 0023 with backfill and constraints", async () => {
+    const migration = await readFile(
+      new URL("0023_order_upgrade_pricing_and_credit.sql", migrationRoot),
+      "utf8",
+    );
+    expect(migration).toContain('ALTER TABLE "commerce_orders" ADD COLUMN IF NOT EXISTS "price_variant" text;');
+    expect(migration).toContain('ALTER TABLE "commerce_orders" ADD COLUMN IF NOT EXISTS "credit_applied" integer DEFAULT 0 NOT NULL;');
+    expect(migration).toContain('ALTER TABLE "commerce_orders" ADD COLUMN IF NOT EXISTS "credited_from_order_id" uuid;');
+    expect(migration).toContain('ALTER TABLE "commerce_orders" ADD COLUMN IF NOT EXISTS "credit_expires_at" timestamp with time zone;');
+    expect(migration).toContain("WHERE \"sku\" = 'ZIWEI-NATAL-EXCERPT-P0' AND \"price_variant\" IS NULL;");
+    expect(migration).toContain("WHERE \"sku\" = 'ZIWEI-NATAL-EXCERPT-P0' AND \"paid_at\" IS NOT NULL");
+    expect(migration).toContain('"commerce_orders_credit_applied_non_negative"');
+    expect(migration).toContain('"commerce_orders_credit_upgrade_consistency"');
+    expect(migration).toContain('"sku" = \x27ZIWEI-IDENTITY-P0\x27');
+    expect(migration).toContain('"credited_from_order_id" <> "id"');
+
+    const journal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
+    expect(journal).toContain('"tag": "0023_order_upgrade_pricing_and_credit"');
+    expect(journal).toContain('"idx": 23');
+  });
 });
