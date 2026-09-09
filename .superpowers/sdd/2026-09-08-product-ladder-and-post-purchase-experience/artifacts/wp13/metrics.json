@@ -15,6 +15,8 @@
       "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
       "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
     ],
+    "minInteractiveWidth": 44,
+    "minInteractiveHeight": 44,
     "minInteractiveDimension": 44,
     "controlsPass": true,
     "pass": true
@@ -35,6 +37,8 @@
       "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
       "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
     ],
+    "minInteractiveWidth": 44,
+    "minInteractiveHeight": 44,
     "minInteractiveDimension": 44,
     "controlsPass": true,
     "pass": true
@@ -55,6 +59,8 @@
       "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
       "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace"
     ],
+    "minInteractiveWidth": 44,
+    "minInteractiveHeight": 44,
     "minInteractiveDimension": 44,
     "controlsPass": true,
     "pass": true
@@ -83,7 +89,7 @@
     "viewport": {
       "name": "desktop-200pct-equivalent",
       "width": 720,
-      "height": 900
+      "height": 450
     },
     "scrollWidth": 720,
     "clientWidth": 720,
@@ -107,12 +113,20 @@
     "scrollWidth": 390,
     "clientWidth": 390,
     "overflowPass": true,
+    "minInteractiveWidth": 44,
+    "minInteractiveHeight": 44,
+    "minInteractiveDimension": 44,
+    "controlsPass": true,
     "details": {
       "step1Overflow": true,
       "step2Overflow": true,
       "dateErrorVisible": true,
+      "tabOrderVerified": true,
+      "refreshResetsToStep1": true,
       "saveLabelText": "Lưu hồ sơ",
-      "paidTermsFound": 0
+      "paidTermsFound": 0,
+      "exactConsentClearancePass": true,
+      "unknownConsentClearancePass": true
     },
     "pass": true
   },
@@ -126,12 +140,17 @@
     "scrollWidth": 1440,
     "clientWidth": 1440,
     "overflowPass": true,
+    "controlsPass": true,
     "details": {
       "step1Overflow": true,
       "step2Overflow": true,
       "dateErrorVisible": true,
+      "tabOrderVerified": true,
+      "refreshResetsToStep1": true,
       "saveLabelText": "Lưu hồ sơ",
-      "paidTermsFound": 0
+      "paidTermsFound": 0,
+      "exactConsentClearancePass": true,
+      "unknownConsentClearancePass": true
     },
     "pass": true
   }

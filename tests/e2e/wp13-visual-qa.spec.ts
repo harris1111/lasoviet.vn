@@ -14,7 +14,7 @@ const HOMEPAGE_VIEWPORTS = [
   { name: "mobile-390", width: 390, height: 844, isMobile: true },
   { name: "mobile-414", width: 414, height: 896, isMobile: true },
   { name: "desktop-1440", width: 1440, height: 900, isMobile: false },
-  { name: "desktop-200pct-equivalent", width: 720, height: 900, isMobile: false },
+  { name: "desktop-200pct-equivalent", width: 720, height: 450, isMobile: false },
 ] as const;
 
 const WIZARD_VIEWPORTS = [
@@ -30,6 +30,8 @@ type MetricRecord = {
   overflowPass: boolean;
   fontsPass?: boolean;
   fonts?: string[];
+  minInteractiveWidth?: number;
+  minInteractiveHeight?: number;
   minInteractiveDimension?: number;
   controlsPass?: boolean;
   details?: Record<string, unknown>;
@@ -50,6 +52,51 @@ async function setVietnameseLocale(page: Page) {
   ]);
   await page.setExtraHTTPHeaders({
     "Accept-Language": "vi-VN,vi;q=0.9",
+  });
+}
+
+async function checkMobileTouchTargets(page: Page) {
+  return page.evaluate(() => {
+    const interactive = Array.from(
+      document.querySelectorAll<HTMLElement>("button, a.button, input, select, summary"),
+    );
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+    const initialVisible = interactive.filter((el) => {
+      const rect = el.getBoundingClientRect();
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        rect.top < vh &&
+        rect.bottom > 0 &&
+        rect.left < vw &&
+        rect.right > 0 &&
+        window.getComputedStyle(el).visibility !== "hidden" &&
+        window.getComputedStyle(el).display !== "none"
+      );
+    });
+    const controls = initialVisible.map((el) => {
+      const rect = el.getBoundingClientRect();
+      const meets = rect.width >= 44 && rect.height >= 44;
+      return {
+        tag: el.tagName,
+        text: (el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 30),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        meets44: meets,
+      };
+    });
+    const failed = controls.filter((c) => !c.meets44);
+    const minWidth = controls.length > 0 ? Math.min(...controls.map((c) => c.width)) : 44;
+    const minHeight = controls.length > 0 ? Math.min(...controls.map((c) => c.height)) : 44;
+    return {
+      controls,
+      failed,
+      minWidth,
+      minHeight,
+      minDimension: Math.min(minWidth, minHeight),
+      pass: failed.length === 0,
+    };
   });
 }
 
@@ -111,47 +158,14 @@ test.describe("WP-13 Homepage Visual & Reflow QA", () => {
         expect(f.loaded, `Font role ${f.role} (${f.family}) must be loaded with VN glyphs`).toBe(true);
       }
 
-      // 3. Check visible interactive controls touch target size on mobile
-      let minInteractiveDim = 999;
-      let controlsPass = true;
+      // 3. Check visible interactive controls touch target size on mobile (both width and height >= 44px)
+      let touchCheck: Awaited<ReturnType<typeof checkMobileTouchTargets>> | undefined;
       if (vp.isMobile) {
-        const controls = await page.evaluate(() => {
-          const interactive = Array.from(
-            document.querySelectorAll<HTMLElement>("button, a.button, input, select, summary"),
-          );
-          const vh = window.innerHeight;
-          const vw = window.innerWidth;
-          const initialVisible = interactive.filter((el) => {
-            const rect = el.getBoundingClientRect();
-            return (
-              rect.width > 0 &&
-              rect.height > 0 &&
-              rect.top < vh &&
-              rect.bottom > 0 &&
-              rect.left < vw &&
-              rect.right > 0 &&
-              window.getComputedStyle(el).visibility !== "hidden" &&
-              window.getComputedStyle(el).display !== "none"
-            );
-          });
-          return initialVisible.map((el) => {
-            const rect = el.getBoundingClientRect();
-            const minDim = Math.min(rect.width, rect.height);
-            const meets = rect.width >= 44 || rect.height >= 44;
-            return {
-              tag: el.tagName,
-              text: (el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 30),
-              width: Math.round(rect.width),
-              height: Math.round(rect.height),
-              minDim: Math.round(minDim),
-              meets44: meets,
-            };
-          });
-        });
-        const failedControls = controls.filter((c) => !c.meets44);
-        controlsPass = failedControls.length === 0;
-        minInteractiveDim = controls.length > 0 ? Math.min(...controls.map((c) => Math.max(c.width, c.height))) : 44;
-        expect(failedControls, "All initial interactive controls on mobile must meet 44px touch target").toEqual([]);
+        touchCheck = await checkMobileTouchTargets(page);
+        expect(
+          touchCheck.failed,
+          "All initial interactive controls on mobile must meet 44px touch target (both width and height >= 44px)",
+        ).toEqual([]);
       }
 
       // 4. Save viewport screenshot (not full-page stitched)
@@ -169,9 +183,11 @@ test.describe("WP-13 Homepage Visual & Reflow QA", () => {
         overflowPass: !overflow.hasOverflow,
         fontsPass: allFontsLoaded,
         fonts: fontCheck.map((f) => f.family),
-        minInteractiveDimension: vp.isMobile ? minInteractiveDim : undefined,
-        controlsPass: vp.isMobile ? controlsPass : true,
-        pass: !overflow.hasOverflow && allFontsLoaded && controlsPass,
+        minInteractiveWidth: vp.isMobile ? touchCheck?.minWidth : undefined,
+        minInteractiveHeight: vp.isMobile ? touchCheck?.minHeight : undefined,
+        minInteractiveDimension: vp.isMobile ? touchCheck?.minDimension : undefined,
+        controlsPass: vp.isMobile ? touchCheck?.pass : true,
+        pass: !overflow.hasOverflow && allFontsLoaded && (vp.isMobile ? (touchCheck?.pass ?? false) : true),
       });
     });
   }
@@ -199,25 +215,73 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
       }));
       expect(overflowStep1.scrollWidth).toBeLessThanOrEqual(overflowStep1.clientWidth);
 
+      // Check visible interactive controls touch target size on mobile for Step 1
+      let wizardTouchCheck: Awaited<ReturnType<typeof checkMobileTouchTargets>> | undefined;
+      if (vp.isMobile) {
+        wizardTouchCheck = await checkMobileTouchTargets(page);
+        expect(
+          wizardTouchCheck.failed,
+          "All initial interactive controls on wizard step 1 must meet 44px touch target (both width and height >= 44px)",
+        ).toEqual([]);
+      }
+
       // Form labels remain associated with fields
       const maleRadio = page.getByLabel("Nam");
       const femaleRadio = page.getByLabel("Nữ");
       await expect(maleRadio).toBeVisible();
       await expect(femaleRadio).toBeVisible();
 
-      // Keyboard Tab reaches controls in logical order with visible focus indicator
-      await page.keyboard.press("Tab");
-      const tabbedElementHasFocus = await page.evaluate(() => {
-        const active = document.activeElement;
-        if (!active || active === document.body) return false;
-        const style = window.getComputedStyle(active);
-        return (
-          style.outlineStyle !== "none" ||
-          style.boxShadow !== "none" ||
-          style.borderColor !== ""
-        );
-      });
-      expect(tabbedElementHasFocus).toBe(true);
+      // Keyboard Tab reaches controls in logical order with real visible focus indicator
+      const expectedTabSequence = vp.isMobile
+        ? [
+            { label: "Help link", match: (a: any) => a.tagName === "A" && a.ariaLabel === "Trợ giúp lập lá số" },
+            { label: "Name input", match: (a: any) => a.tagName === "INPUT" && a.name === "displayName" },
+            { label: "Choice: Self", match: (a: any) => a.tagName === "BUTTON" && a.textContent.includes("Lập cho bản thân") },
+            { label: "Choice: Other", match: (a: any) => a.tagName === "BUTTON" && a.textContent.includes("Lập cho người khác") },
+            { label: "Gender: Male", match: (a: any) => a.tagName === "INPUT" && a.name === "gender" && a.value === "male" },
+            { label: "Continue button", match: (a: any) => a.tagName === "BUTTON" && a.textContent.includes("Tiếp tục") },
+          ]
+        : [
+            { label: "Logo link", match: (a: any) => a.tagName === "A" && a.cls.includes("wizard-logo") },
+            { label: "Help link", match: (a: any) => a.tagName === "A" && a.ariaLabel === "Trợ giúp lập lá số" },
+            { label: "Exit button", match: (a: any) => a.tagName === "BUTTON" && a.ariaLabel === "Thoát về trang chủ" },
+            { label: "Name input", match: (a: any) => a.tagName === "INPUT" && a.name === "displayName" },
+            { label: "Choice: Self", match: (a: any) => a.tagName === "BUTTON" && a.textContent.includes("Lập cho bản thân") },
+            { label: "Choice: Other", match: (a: any) => a.tagName === "BUTTON" && a.textContent.includes("Lập cho người khác") },
+            { label: "Gender: Male", match: (a: any) => a.tagName === "INPUT" && a.name === "gender" && a.value === "male" },
+            { label: "Continue button", match: (a: any) => a.tagName === "BUTTON" && a.textContent.includes("Tiếp tục") },
+          ];
+
+      for (const step of expectedTabSequence) {
+        await page.keyboard.press("Tab");
+        await page.waitForTimeout(50);
+        const active = await page.evaluate(() => {
+          const el = document.activeElement;
+          if (!el || el === document.body) return null;
+          const s = window.getComputedStyle(el);
+          const hasOutline = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0;
+          const hasShadow = s.boxShadow !== "none" && !s.boxShadow.includes("0px 0px 0px 0px");
+          return {
+            tagName: el.tagName,
+            cls: el.className,
+            name: el.getAttribute("name"),
+            value: el.getAttribute("value"),
+            ariaLabel: el.getAttribute("aria-label"),
+            textContent: (el.textContent || "").trim(),
+            hasOutline,
+            hasShadow,
+            outlineStyle: s.outlineStyle,
+            outlineWidth: s.outlineWidth,
+            boxShadow: s.boxShadow,
+          };
+        });
+        expect(active, `Tab must reach a valid active element for ${step.label}`).not.toBeNull();
+        expect(step.match(active), `Focused element must match expected control for ${step.label}`).toBe(true);
+        expect(
+          active?.hasOutline || active?.hasShadow,
+          `Focus indicator (outline-style or non-none box-shadow) must be visible on ${step.label}`,
+        ).toBe(true);
+      }
 
       // Save viewport screenshot for Step 1
       await page.screenshot({
@@ -344,6 +408,8 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
       await page.waitForTimeout(100);
       const consentBox = await consentSection.boundingBox();
       const actionsBox = await page.locator(".wizard-actions").boundingBox();
+      expect(consentBox, "Exact-time consent box must exist").not.toBeNull();
+      expect(actionsBox, "Exact-time actions box must exist").not.toBeNull();
       if (actionsBox && consentBox && vp.isMobile) {
         expect(consentBox.y + consentBox.height).toBeLessThanOrEqual(actionsBox.y + 4);
       }
@@ -354,10 +420,11 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
         fullPage: false,
       });
 
-      // TEST: Browser refresh preserves the current page safely
+      // TEST: Direct unsubmitted browser refresh safely returns to initial wizard state
       await page.reload();
       await page.waitForLoadState("networkidle");
       await expect(page.locator(".wizard-page")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Người được lập lá số" })).toBeVisible();
 
       // Return to step 2 to test unknown time review
       // Navigate to /tao-la-so/tu-vi fresh for unknown time flow
@@ -377,6 +444,7 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
 
       // Click Tiếp tục to reach Step 3 (Review step for unknown time)
       await page.getByRole("button", { name: "Tiếp tục" }).click();
+      await page.waitForLoadState("networkidle");
 
       await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
       await expect(page.getByText("Không rõ giờ sinh")).toBeVisible();
@@ -402,7 +470,19 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
       );
       expect(matchedPaidTerms, "Unknown time review step must have no paid text").toEqual([]);
 
-      // Save viewport screenshot for Unknown-time Review
+      // Scroll to final consent, require both bounding boxes to exist, assert non-overlap, then capture screenshot
+      const unknownConsentSection = page.locator(".wizard-check").last();
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(100);
+      const unknownConsentBox = await unknownConsentSection.boundingBox();
+      const unknownActionsBox = await page.locator(".wizard-actions").boundingBox();
+      expect(unknownConsentBox, "Unknown-time review consent box must exist").not.toBeNull();
+      expect(unknownActionsBox, "Unknown-time review actions box must exist").not.toBeNull();
+      if (unknownActionsBox && unknownConsentBox && vp.isMobile) {
+        expect(unknownConsentBox.y + unknownConsentBox.height).toBeLessThanOrEqual(unknownActionsBox.y + 4);
+      }
+
+      // Save viewport screenshot for Unknown-time Review (after scrolling to consent)
       await page.screenshot({
         path: path.join(ARTIFACTS_DIR, `wizard-unknown-review-${vp.name}.png`),
         fullPage: false,
@@ -447,12 +527,20 @@ test.describe("WP-13 Birth Wizard Visual & Multi-Step QA", () => {
         scrollWidth: overflowStep1.scrollWidth,
         clientWidth: overflowStep1.clientWidth,
         overflowPass: overflowStep1.scrollWidth <= overflowStep1.clientWidth,
+        minInteractiveWidth: vp.isMobile ? wizardTouchCheck?.minWidth : undefined,
+        minInteractiveHeight: vp.isMobile ? wizardTouchCheck?.minHeight : undefined,
+        minInteractiveDimension: vp.isMobile ? wizardTouchCheck?.minDimension : undefined,
+        controlsPass: vp.isMobile ? wizardTouchCheck?.pass : true,
         details: {
           step1Overflow: overflowStep1.scrollWidth <= overflowStep1.clientWidth,
           step2Overflow: overflowStep2.scrollWidth <= overflowStep2.clientWidth,
           dateErrorVisible: true,
+          tabOrderVerified: true,
+          refreshResetsToStep1: true,
           saveLabelText: "Lưu hồ sơ",
           paidTermsFound: matchedPaidTerms.length,
+          exactConsentClearancePass: actionsBox && consentBox ? consentBox.y + consentBox.height <= actionsBox.y + 4 : true,
+          unknownConsentClearancePass: unknownActionsBox && unknownConsentBox ? unknownConsentBox.y + unknownConsentBox.height <= unknownActionsBox.y + 4 : true,
         },
         pass: true,
       });
