@@ -46,9 +46,7 @@ function validateEnvironment() {
   const isLoopback =
     parsedUrl.hostname === "127.0.0.1" || parsedUrl.hostname === "localhost";
   const isWp13Port = parsedUrl.port === "55435";
-  const isWp13Db =
-    parsedUrl.pathname === "/lasoviet_wp13" ||
-    parsedUrl.pathname.includes("wp13");
+  const isWp13Db = parsedUrl.pathname === "/lasoviet_wp13";
 
   if (!isLoopback || !isWp13Port || !isWp13Db) {
     throw new Error(
