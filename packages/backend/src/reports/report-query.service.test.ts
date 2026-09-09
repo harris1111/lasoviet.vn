@@ -9,6 +9,8 @@ import {
 import {
   ZIWEI_PALACE_IDS,
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
 } from "@lasoviet/contracts";
 import {
   CANONICAL_PALACE_TITLES_VI,
@@ -222,8 +224,9 @@ function createSampleRecord(overrides: Partial<AuthorizedReportQueryRecord> = {}
 
   const version = overrides.version === undefined ? null : overrides.version;
   const evidenceItems = overrides.evidenceItems || [];
+  const entitlements = overrides.entitlements;
 
-  return { reservation, order, version, evidenceItems };
+  return { reservation, order, version, evidenceItems, entitlements };
 }
 
 describe("report query service", () => {
@@ -558,6 +561,7 @@ describe("report query service", () => {
       chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
       evidenceVersionId: "ev-set-1",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
       promptVersion: REPORT_PROMPT_VERSION_V3,
       reportConfigVersion: "report-config.v3",
       templateVersion: "ziwei-comprehensive-html.v1",
@@ -579,6 +583,7 @@ describe("report query service", () => {
         status: "complete",
         promptVersion: REPORT_PROMPT_VERSION_V3,
         knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
         reportConfigVersion: "report-config.v3",
         locale: "vi",
       } as any,
@@ -755,6 +760,7 @@ describe("report query service", () => {
       chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
       evidenceVersionId: "ev-set-1",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
       promptVersion: REPORT_PROMPT_VERSION_V3,
       reportConfigVersion: "report-config.v3",
       templateVersion: "ziwei-comprehensive-html.v1",
@@ -776,6 +782,7 @@ describe("report query service", () => {
         status: "complete",
         promptVersion: REPORT_PROMPT_VERSION_V3,
         knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
         locale: "en",
       } as any,
       version: versionRecord,
@@ -790,5 +797,531 @@ describe("report query service", () => {
     await expect(service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553")).rejects.toThrow(
       ReportQueryDataError,
     );
+  });
+  it("returns Tier-1 public projection when effective scope is Tier 1 (Acceptance test 6)", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-tier1",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-tier1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        entitlementId: "ent-tier1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        locale: "vi",
+      } as any,
+      order: {
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "paid",
+      } as any,
+      version: versionRecord,
+      entitlements: [
+        {
+          id: "ent-tier1",
+          orderId: "ord-uuid-1",
+          chartId: "chart-1",
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          scope: TIER_1_ENTITLEMENT_SCOPE,
+          orderStatus: "paid",
+        },
+      ],
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.state).toBe("ready");
+    if (result.value.state !== "ready") return;
+
+    expect(result.value.contentVersion).toBe("ziwei-comprehensive.v1");
+    const content = result.value.content as any;
+
+    // Unlocked sections present
+    expect(content.overview.title).toBe("Tổng quan bản mệnh");
+    expect(content.coreAxis.title).toBe("Mệnh, Thân và động lực cốt lõi");
+    expect(content.strengthsAndTensions.title).toBe("Điểm mạnh, điểm vướng và điều kiện phát huy");
+    expect(content.practicalDirection).toEqual([
+      "Ưu tiên phát triển năng lực chuyên môn sâu trong 3 năm tới.",
+    ]);
+
+    // Locked sections metadata present
+    expect(content.lockedSections).toEqual([
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+    ]);
+
+    // Locked sections NOT present on object
+    expect(content).not.toHaveProperty("keyConfigurations");
+    expect(content).not.toHaveProperty("palaceReadings");
+    expect(content).not.toHaveProperty("thematicSynthesis");
+
+    // Serialization verification: no locked prose, titles, or palace IDs leak
+    const serialized = JSON.stringify(result.value);
+    expect(serialized).not.toContain("Cách cục Tử Phủ Đồng Cung");
+    expect(serialized).not.toContain("ziwei.palace.life");
+    expect(serialized).not.toContain("keyConfigurations\":");
+    expect(serialized).not.toContain("palaceReadings\":");
+    expect(serialized).not.toContain("thematicSynthesis\":");
+  });
+
+  it("returns Tier-2 public projection with all 12 palace readings and synthesis (Acceptance test 7)", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-tier2",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-tier2",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        entitlementId: "ent-tier2",
+        sku: "ZIWEI-IDENTITY-P0",
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        locale: "vi",
+      } as any,
+      order: {
+        sku: "ZIWEI-IDENTITY-P0",
+        status: "paid",
+      } as any,
+      version: versionRecord,
+      entitlements: [
+        {
+          id: "ent-tier2",
+          orderId: "ord-uuid-1",
+          chartId: "chart-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          scope: TIER_2_ENTITLEMENT_SCOPE,
+          orderStatus: "paid",
+        },
+      ],
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.state).toBe("ready");
+    if (result.value.state !== "ready") return;
+
+    const content = result.value.content as any;
+    expect(content.palaceReadings).toHaveLength(12);
+    expect(content.thematicSynthesis).toHaveLength(4);
+    expect(content.keyConfigurations).toHaveLength(1);
+    expect(content.practicalDirection).toBeDefined();
+    expect(content).not.toHaveProperty("lockedSections");
+  });
+
+  it("unions scopes across multiple non-refunded entitlements for one chart (Acceptance test 8)", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-union",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-tier1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        entitlementId: "ent-tier1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        locale: "vi",
+      } as any,
+      order: {
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "paid",
+      } as any,
+      version: versionRecord,
+      entitlements: [
+        {
+          id: "ent-tier1",
+          orderId: "ord-uuid-1",
+          chartId: "chart-1",
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          scope: TIER_1_ENTITLEMENT_SCOPE,
+          orderStatus: "paid",
+        },
+        {
+          id: "ent-tier2",
+          orderId: "ord-uuid-2",
+          chartId: "chart-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          scope: TIER_2_ENTITLEMENT_SCOPE,
+          orderStatus: "paid",
+        },
+      ],
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.value.state !== "ready") return;
+
+    const content = result.value.content as any;
+    // Union contains all Tier 2 sections
+    expect(content.palaceReadings).toHaveLength(12);
+    expect(content.thematicSynthesis).toHaveLength(4);
+    expect(content.keyConfigurations).toHaveLength(1);
+    expect(content).not.toHaveProperty("lockedSections");
+  });
+
+  it("ignores refunded entitlements when calculating effective scope (Acceptance test 8)", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-refunded",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-tier1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        entitlementId: "ent-tier1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        locale: "vi",
+      } as any,
+      order: {
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "paid",
+      } as any,
+      version: versionRecord,
+      entitlements: [
+        {
+          id: "ent-tier1",
+          orderId: "ord-uuid-1",
+          chartId: "chart-1",
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          scope: TIER_1_ENTITLEMENT_SCOPE,
+          orderStatus: "paid",
+        },
+        {
+          id: "ent-tier2",
+          orderId: "ord-uuid-2",
+          chartId: "chart-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          scope: TIER_2_ENTITLEMENT_SCOPE,
+          orderStatus: "refunded",
+        },
+      ],
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.value.state !== "ready") return;
+
+    const content = result.value.content as any;
+    // Refunded Tier 2 contributes nothing, so effective scope remains Tier 1
+    expect(content.lockedSections).toEqual([
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+    ]);
+    expect(content).not.toHaveProperty("keyConfigurations");
+    expect(content).not.toHaveProperty("palaceReadings");
+  });
+
+  it("fails closed when all entitlements for the chart are refunded", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-all-refunded",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-tier1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        entitlementId: "ent-tier1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        locale: "vi",
+      } as any,
+      order: {
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "refunded",
+      } as any,
+      version: versionRecord,
+      entitlements: [
+        {
+          id: "ent-tier1",
+          orderId: "ord-uuid-1",
+          chartId: "chart-1",
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          scope: TIER_1_ENTITLEMENT_SCOPE,
+          orderStatus: "refunded",
+        },
+      ],
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    await expect(
+      service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553"),
+    ).rejects.toThrow(ReportQueryDataError);
+  });
+
+  it("fails closed on corrupt/invalid entitlement scope", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-corrupt-scope",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-tier1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const record = createSampleRecord({
+      reservation: {
+        entitlementId: "ent-tier1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "complete",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        locale: "vi",
+      } as any,
+      order: {
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        status: "paid",
+      } as any,
+      version: versionRecord,
+      entitlements: [
+        {
+          id: "ent-tier1",
+          orderId: "ord-uuid-1",
+          chartId: "chart-1",
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          scope: { sections: ["unrecognized_section_name"] } as any,
+          orderStatus: "paid",
+        },
+      ],
+    });
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: vi.fn().mockResolvedValue(record),
+    };
+    const service = createReportQueryService({ repository });
+
+    await expect(
+      service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553"),
+    ).rejects.toThrow(ReportQueryDataError);
+  });
+
+  it("proves upgrade/unlock reads do not create a second report version or generation request (Acceptance test 9)", async () => {
+    const versionRecord = {
+      id: "ver-uuid-v3-upgrade",
+      reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+      reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+      entitlementId: "ent-tier1",
+      chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+      evidenceVersionId: "ev-set-1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: "report-config.v3",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      providerId: "open-router",
+      modelId: "synthetic-model",
+      structuredContent: validV3StructuredContent(),
+      htmlContent: "<html></html>",
+      contentHash: "e".repeat(64),
+      pdfAssetId: null,
+      renderVersion: "identity-report-pdf.v1",
+      supersedesReportVersionId: null,
+      createdAt: new Date("2026-09-08T00:00:00+07:00"),
+    } as any;
+
+    const readMock = vi.fn().mockResolvedValue(
+      createSampleRecord({
+        reservation: {
+        entitlementId: "ent-tier1",
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          status: "complete",
+          promptVersion: REPORT_PROMPT_VERSION_V3,
+          knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+          locale: "vi",
+        } as any,
+        version: versionRecord,
+        entitlements: [
+          {
+            id: "ent-tier1",
+            orderId: "ord-uuid-1",
+            chartId: "chart-1",
+            sku: "ZIWEI-NATAL-EXCERPT-P0",
+            scope: TIER_1_ENTITLEMENT_SCOPE,
+            orderStatus: "paid",
+          },
+          {
+            id: "ent-tier2",
+            orderId: "ord-uuid-2",
+            chartId: "chart-1",
+            sku: "ZIWEI-IDENTITY-P0",
+            scope: TIER_2_ENTITLEMENT_SCOPE,
+            orderStatus: "paid",
+          },
+        ],
+      }),
+    );
+
+    const repository: ReportQueryRepository = {
+      readAuthorizedReport: readMock,
+    };
+    const service = createReportQueryService({ repository });
+
+    const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+    expect(result.ok).toBe(true);
+
+    // Exact read call occurred once; no second generation or version creation
+    expect(readMock).toHaveBeenCalledTimes(1);
+    expect(readMock).toHaveBeenCalledWith(accountActor.userId, "834e9e89-19cb-44a6-bc59-ba7741374553");
   });
 });

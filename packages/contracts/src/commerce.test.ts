@@ -9,19 +9,29 @@ import {
   PaymentSelfClaimRequestV1Schema,
   PaymentSelfClaimSuccessV1Schema,
   resolveProductTitle,
+  COMPREHENSIVE_REPORT_SECTION_IDS,
+  TIER_1_SCOPE_SECTIONS,
+  TIER_2_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS,
+  EntitlementScopeSchema,
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
+  resolveEntitlementScopeForSku,
 } from "./commerce.js";
 
 describe("commerce contracts", () => {
   it("resolves product titles according to locale", () => {
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Luận giải Tử Vi toàn diện");
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Comprehensive Zi Wei reading");
+    expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "vi")).toBe("Bản mệnh và tiềm năng");
+    expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "en")).toBe("Core identity and potential");
   });
 
-  it("validates CommerceSkuSchema permits only the current first-paid-flow SKU", () => {
+  it("validates CommerceSkuSchema permits active first-paid-flow SKUs and rejects reserved SKUs", () => {
     expect(CommerceSkuSchema.safeParse("ZIWEI-IDENTITY-P0").success).toBe(true);
+    expect(CommerceSkuSchema.safeParse("ZIWEI-NATAL-EXCERPT-P0").success).toBe(true);
 
     // Reserved products must fail contract validation
-    expect(CommerceSkuSchema.safeParse("ZIWEI-NATAL-EXCERPT-P0").success).toBe(false);
     expect(CommerceSkuSchema.safeParse("ZIWEI-RELATIONSHIP-P0").success).toBe(false);
     expect(CommerceSkuSchema.safeParse("ZIWEI-CAREER-P0").success).toBe(false);
     expect(CommerceSkuSchema.safeParse("ZIWEI-YEAR-P0").success).toBe(false);
@@ -31,6 +41,39 @@ describe("commerce contracts", () => {
     // Arbitrary SKU strings must fail
     expect(CommerceSkuSchema.safeParse("NOT-A-SKU").success).toBe(false);
     expect(CommerceSkuSchema.safeParse("").success).toBe(false);
+  });
+
+  it("proves shared scope vocabulary matches Tier-1 and Tier-2 specifications (Acceptance test 2)", () => {
+    expect(TIER_1_SCOPE_SECTIONS).toEqual([
+      "overview",
+      "coreAxis",
+      "strengthsAndTensions",
+      "practicalDirection",
+    ]);
+    expect(TIER_2_SCOPE_SECTIONS).toEqual([
+      "overview",
+      "coreAxis",
+      "strengthsAndTensions",
+      "practicalDirection",
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+    ]);
+    expect(COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS).toEqual([
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+    ]);
+
+    expect(resolveEntitlementScopeForSku("ZIWEI-NATAL-EXCERPT-P0")).toEqual(TIER_1_ENTITLEMENT_SCOPE);
+    expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0")).toEqual(TIER_2_ENTITLEMENT_SCOPE);
+
+    // Scope schema validation
+    expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_1_SCOPE_SECTIONS] }).success).toBe(true);
+    expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_2_SCOPE_SECTIONS] }).success).toBe(true);
+    expect(EntitlementScopeSchema.safeParse({ sections: [] }).success).toBe(false);
+    expect(EntitlementScopeSchema.safeParse({ sections: ["invalid_section"] }).success).toBe(false);
+    expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_1_SCOPE_SECTIONS], extra: true }).success).toBe(false);
   });
 
   it("proves CommerceSkuSchema matches exactly the first-paid-flow SKUs in product-catalog.json without drift", () => {

@@ -1,5 +1,6 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 
+import type { EntitlementScope, OrderStatus } from "@lasoviet/contracts";
 import {
   birthProfileRevisions,
   birthProfiles,
@@ -19,6 +20,14 @@ export type AuthorizedReportQueryRecord = {
   order: typeof commerceOrders.$inferSelect;
   version: typeof reportVersions.$inferSelect | null;
   evidenceItems: Array<typeof evidenceItems.$inferSelect>;
+  entitlements?: Array<{
+    id: string;
+    orderId: string;
+    chartId: string;
+    sku: string;
+    scope: EntitlementScope;
+    orderStatus: OrderStatus;
+  }>;
 };
 
 export type ReportQueryRepository = {
@@ -168,19 +177,69 @@ export function createDatabaseReportQueryRepository(
           .where(eq(evidenceItems.evidenceSetId, version.evidenceVersionId))
           .orderBy(evidenceItems.evidenceKey);
 
+        const chartEntitlements = await database
+          .select({
+            id: commerceEntitlements.id,
+            orderId: commerceEntitlements.orderId,
+            chartId: commerceEntitlements.chartId,
+            sku: commerceEntitlements.sku,
+            scope: commerceEntitlements.scope,
+            orderStatus: commerceOrders.status,
+          })
+          .from(commerceEntitlements)
+          .innerJoin(
+            commerceOrders,
+            and(
+              eq(commerceOrders.id, commerceEntitlements.orderId),
+              eq(commerceOrders.ownerId, ownerId),
+            ),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.ownerId, ownerId),
+              eq(commerceEntitlements.chartId, record.entitlement.chartId),
+            ),
+          );
+
         return {
           reservation: reservationRecord,
           order: record.order,
           version,
           evidenceItems: evidenceList,
+          entitlements: chartEntitlements as any,
         };
       }
+
+      const chartEntitlements = await database
+        .select({
+          id: commerceEntitlements.id,
+          orderId: commerceEntitlements.orderId,
+          chartId: commerceEntitlements.chartId,
+          sku: commerceEntitlements.sku,
+          scope: commerceEntitlements.scope,
+          orderStatus: commerceOrders.status,
+        })
+        .from(commerceEntitlements)
+        .innerJoin(
+          commerceOrders,
+          and(
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+            eq(commerceOrders.ownerId, ownerId),
+          ),
+        )
+        .where(
+          and(
+            eq(commerceEntitlements.ownerId, ownerId),
+            eq(commerceEntitlements.chartId, record.entitlement.chartId),
+          ),
+        );
 
       return {
         reservation: reservationRecord,
         order: record.order,
         version: null,
         evidenceItems: [],
+        entitlements: chartEntitlements as any,
       };
     },
   };

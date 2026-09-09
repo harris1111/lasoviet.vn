@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CommerceSkuSchema = z.enum([
   "ZIWEI-IDENTITY-P0",
+  "ZIWEI-NATAL-EXCERPT-P0",
 ]);
 export const OrderStatusSchema = z.enum([
   "pending",
@@ -17,10 +18,74 @@ export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 export const EntitlementStatusSchema = z.enum(["active", "revoked"]);
 export type EntitlementStatus = z.infer<typeof EntitlementStatusSchema>;
 
+export const COMPREHENSIVE_REPORT_SECTION_IDS = [
+  "overview",
+  "coreAxis",
+  "strengthsAndTensions",
+  "practicalDirection",
+  "keyConfigurations",
+  "palaceReadings",
+  "thematicSynthesis",
+] as const;
+
+export const ComprehensiveReportSectionIdSchema = z.enum(COMPREHENSIVE_REPORT_SECTION_IDS);
+export type ComprehensiveReportSectionId = z.infer<typeof ComprehensiveReportSectionIdSchema>;
+
+export const TIER_1_SCOPE_SECTIONS = [
+  "overview",
+  "coreAxis",
+  "strengthsAndTensions",
+  "practicalDirection",
+] as const;
+
+export const TIER_2_SCOPE_SECTIONS = [
+  "overview",
+  "coreAxis",
+  "strengthsAndTensions",
+  "practicalDirection",
+  "keyConfigurations",
+  "palaceReadings",
+  "thematicSynthesis",
+] as const;
+
+export const COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS = [
+  "keyConfigurations",
+  "palaceReadings",
+  "thematicSynthesis",
+] as const;
+
+export const EntitlementScopeSchema = z
+  .object({
+    sections: z.array(ComprehensiveReportSectionIdSchema).min(1),
+  })
+  .strict();
+export type EntitlementScope = z.infer<typeof EntitlementScopeSchema>;
+
+export const TIER_1_ENTITLEMENT_SCOPE: EntitlementScope = Object.freeze({
+  sections: [...TIER_1_SCOPE_SECTIONS],
+});
+
+export const TIER_2_ENTITLEMENT_SCOPE: EntitlementScope = Object.freeze({
+  sections: [...TIER_2_SCOPE_SECTIONS],
+});
+
+export function resolveEntitlementScopeForSku(sku: CommerceSku): EntitlementScope {
+  switch (sku) {
+    case "ZIWEI-NATAL-EXCERPT-P0":
+      return TIER_1_ENTITLEMENT_SCOPE;
+    case "ZIWEI-IDENTITY-P0":
+      return TIER_2_ENTITLEMENT_SCOPE;
+  }
+}
+
 export const PRODUCT_DISPLAY_NAMES: Record<CommerceSku, Record<"vi" | "en", string>> = {
   "ZIWEI-IDENTITY-P0": {
     vi: "Luận giải Tử Vi toàn diện",
     en: "Comprehensive Zi Wei reading",
+  },
+  "ZIWEI-NATAL-EXCERPT-P0": {
+    vi: "Bản mệnh và tiềm năng",
+    en: "Core identity and potential",
   },
 };
 

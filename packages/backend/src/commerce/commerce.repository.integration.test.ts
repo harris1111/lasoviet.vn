@@ -10,6 +10,7 @@ import {
   calculationRuns,
   commerceEntitlements,
   commerceOrders,
+  commerceUnmatchedPayments,
   createDatabase,
   evidenceSets,
   reportReservations,
@@ -19,7 +20,11 @@ import {
   ziweiChartVersions,
   ziweiCharts,
 } from "@lasoviet/database";
-import type { CurrentActor } from "@lasoviet/contracts";
+import {
+  type CurrentActor,
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
+} from "@lasoviet/contracts";
 
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
@@ -618,6 +623,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
       chartId: ownerA.chartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: ownerA.userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
 
     const libAfterFake = await repo.readAccountLibrary(ownerA.actor);
@@ -646,6 +652,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
       chartId: "chart-adversarial-" + randomUUID(),
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: ownerB.userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(),
@@ -1284,9 +1291,13 @@ describe("commerce repository - library and order history (WP-03)", () => {
     const arbitraryResult = await repo.createOrder(owner.actor, owner.chartId, "UNKNOWN-SKU", "vi");
     expect(arbitraryResult).toEqual({ ok: false, code: "SKU_UNSUPPORTED" });
 
-    // Natal excerpt remains reserved until WP-08 activates scope and delivery.
+    // WP-08 activates 19k natal excerpt as first-paid selectable offer
     const excerptOrder = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
-    expect(excerptOrder).toEqual({ ok: false, code: "SKU_UNSUPPORTED" });
+    expect(excerptOrder.ok).toBe(true);
+    if (!excerptOrder.ok) throw new Error("Excerpt order creation failed");
+    expect(excerptOrder.value.amount).toBe(19000);
+    expect(excerptOrder.value.currency).toBe("VND");
+    expect(excerptOrder.value.sku).toBe("ZIWEI-NATAL-EXCERPT-P0");
 
     // The current first-paid comprehensive SKU still gets 79,000 VND.
     const identityOrder = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
@@ -1348,5 +1359,116 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(persistedOrders[0]?.paymentCode).toBe(initialOrder.paymentCode);
     expect(persistedOrders[0]?.amount).toBe(79000);
     expect(persistedOrders[0]?.status).toBe("pending");
+  });
+  it("creates Tier-2 scope upon payment confirmation of full-price order (Acceptance test 3)", async () => {
+    const owner = await createOwnerFixture({ displayName: "Tier 2 Payment Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderResult = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) throw new Error("Order creation failed");
+
+    const paidResult = await repo.recordPaid({
+      invoiceNumber: orderResult.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-event-${randomUUID()}`,
+      amount: 79000,
+      currency: "VND",
+      traceId: "trace-tier2-paid",
+    });
+    expect(paidResult.ok).toBe(true);
+
+    const [entitlement] = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.orderId, orderResult.value.id));
+
+    expect(entitlement).toBeDefined();
+    expect(entitlement?.sku).toBe("ZIWEI-IDENTITY-P0");
+    expect(entitlement?.scope).toEqual(TIER_2_ENTITLEMENT_SCOPE);
+  });
+
+  it("creates Tier-2 scope upon customer self-claim (Acceptance test 4)", async () => {
+    const owner = await createOwnerFixture({ displayName: "Tier 2 Self Claim Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderResult = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) throw new Error("Order creation failed");
+
+    const providerEventId = `sepay-unmatched-${randomUUID()}`;
+    const transferDate = new Date();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId,
+      rawPayload: { amount: 79000 },
+      amount: 79000,
+      reason: "MISSING_PAYMENT_CODE",
+      receivedAt: transferDate,
+    });
+
+    const formatLocalMinute = (d: Date): string => {
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const vnDate = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+      return `${vnDate.getUTCFullYear()}-${pad(vnDate.getUTCMonth() + 1)}-${pad(vnDate.getUTCDate())}T${pad(vnDate.getUTCHours())}:${pad(vnDate.getUTCMinutes())}`;
+    };
+
+    const claimResult = await repo.claimUnmatchedPayment(owner.actor, {
+      amount: 79000,
+      transferredAtLocal: formatLocalMinute(transferDate),
+    });
+    expect(claimResult.ok).toBe(true);
+
+    const [entitlement] = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.orderId, orderResult.value.id));
+
+    expect(entitlement).toBeDefined();
+    expect(entitlement?.sku).toBe("ZIWEI-IDENTITY-P0");
+    expect(entitlement?.scope).toEqual(TIER_2_ENTITLEMENT_SCOPE);
+  });
+
+  it("creates Tier-1 scope upon payment confirmation of 19k excerpt offer (Acceptance test 5)", async () => {
+    const owner = await createOwnerFixture({ displayName: "Tier 1 Excerpt Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderResult = await repo.createOrder(
+      owner.actor,
+      owner.chartId,
+      "ZIWEI-NATAL-EXCERPT-P0",
+      "vi",
+    );
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) throw new Error("Excerpt order creation failed");
+    expect(orderResult.value.amount).toBe(19000);
+
+    const paidResult = await repo.recordPaid({
+      invoiceNumber: orderResult.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-event-${randomUUID()}`,
+      amount: 19000,
+      currency: "VND",
+      traceId: "trace-tier1-paid",
+    });
+    expect(paidResult.ok).toBe(true);
+
+    const [entitlement] = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.orderId, orderResult.value.id));
+
+    expect(entitlement).toBeDefined();
+    expect(entitlement?.sku).toBe("ZIWEI-NATAL-EXCERPT-P0");
+    expect(entitlement?.scope).toEqual(TIER_1_ENTITLEMENT_SCOPE);
   });
 });

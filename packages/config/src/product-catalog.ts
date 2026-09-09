@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 
 const APPROVED_FIRST_PAID_CONFIG: Readonly<Record<string, { price: number; method: string }>> = {
   "ZIWEI-IDENTITY-P0": { price: 79000, method: "ziwei" },
+  "ZIWEI-NATAL-EXCERPT-P0": { price: 19000, method: "ziwei" },
 };
 
 const NATAL_EXCERPT_POLICY = {
@@ -12,7 +13,7 @@ const NATAL_EXCERPT_POLICY = {
   method: "ziwei",
   price: 19000,
   phase: "P1",
-  availability: "reserved",
+  availability: "first_paid_flow",
   sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
 } as const;
 

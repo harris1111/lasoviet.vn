@@ -17,7 +17,7 @@
       "method": "ziwei",
       "price": 19000,
       "phase": "P1",
-      "availability": "reserved",
+      "availability": "first_paid_flow",
       "sections": ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"]
     },
     {

@@ -272,6 +272,15 @@ export {
   PaymentSelfClaimSuccessV1Schema,
   PAYMENT_CLAIM_ERROR_CODES,
   isValidLocalMinuteString,
+  COMPREHENSIVE_REPORT_SECTION_IDS,
+  ComprehensiveReportSectionIdSchema,
+  TIER_1_SCOPE_SECTIONS,
+  TIER_2_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS,
+  EntitlementScopeSchema,
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
+  resolveEntitlementScopeForSku,
 } from "./commerce.js";
 export type {
   AccountLibraryGroupV1,
@@ -285,6 +294,8 @@ export type {
   PaymentSelfClaimRequestV1,
   PaymentSelfClaimSuccessV1,
   PaymentClaimErrorCode,
+  ComprehensiveReportSectionId,
+  EntitlementScope,
 } from "./commerce.js";
 
 export {
@@ -324,6 +335,8 @@ export {
   ComprehensiveReportPalaceReadingItemSchema,
   ComprehensiveReportThematicSynthesisItemSchema,
   ComprehensiveReportStrengthsAndTensionsSectionSchema,
+  ComprehensiveReportTier1PublicContentV1Schema,
+  ComprehensiveReportTier2PublicContentV1Schema,
   projectComprehensiveReportPublicContent,
 } from "./identity-report-v1.js";
 export type {
@@ -336,4 +349,7 @@ export type {
   ReportFailedViewV1,
   ReportViewV1,
   ComprehensiveReportPublicContentV1,
+  ComprehensiveReportTier1PublicContentV1,
+  ComprehensiveReportTier2PublicContentV1,
+  ComprehensiveReportViewContentV1,
 } from "./identity-report-v1.js";

@@ -13,6 +13,14 @@ import {
   authUsers,
 } from "./auth.js";
 import {
+  commerceOrders,
+  commerceEntitlements,
+} from "./commerce.js";
+import {
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
+} from "@lasoviet/contracts";
+import {
   birthProfileRevisions,
   birthProfiles,
 } from "./birth-profile.js";
@@ -551,6 +559,94 @@ describe("database schema integration", () => {
         (session) => session.id === "anonymous_no_profile_link_session",
       ),
     ).toBeUndefined();
+    await database.$client.end();
+  }, 120_000);
+  it("enforces non-null entitlement scope and supports Tier-1 and Tier-2 scopes (Acceptance test 1)", async () => {
+    const database = createDatabase(databaseUrl);
+    const userId = "user_entitlement_scope_test";
+    const orderId1 = "11111111-2222-3333-4444-555555555551";
+    const orderId2 = "11111111-2222-3333-4444-555555555552";
+    const chartId = "chart_scope_test";
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Scope Test User",
+      email: "scope-test@example.test",
+    });
+
+    await database.insert(commerceOrders).values([
+      {
+        id: orderId1,
+        invoiceNumber: "LSV-scope-test-1",
+        paymentCode: "LSV123456781",
+        chartId,
+        chartVersionId: "cv-1",
+        ownerId: userId,
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+      },
+      {
+        id: orderId2,
+        invoiceNumber: "LSV-scope-test-2",
+        paymentCode: "LSV123456782",
+        chartId,
+        chartVersionId: "cv-1",
+        ownerId: userId,
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        amount: 19000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+      },
+    ]);
+
+    // 1. Rejects inserting null scope (NOT NULL constraint)
+    await expect(
+      database.insert(commerceEntitlements).values({
+        id: "22222222-2222-3333-4444-555555555551",
+        orderId: orderId1,
+        chartId,
+        sku: "ZIWEI-IDENTITY-P0",
+        ownerId: userId,
+        scope: null as any,
+      }),
+    ).rejects.toBeDefined();
+
+    // 2. Persists Tier-2 entitlement scope
+    await database.insert(commerceEntitlements).values({
+      id: "22222222-2222-3333-4444-555555555551",
+      orderId: orderId1,
+      chartId,
+      sku: "ZIWEI-IDENTITY-P0",
+      ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
+    });
+
+    // 3. Persists Tier-1 entitlement scope
+    await database.insert(commerceEntitlements).values({
+      id: "22222222-2222-3333-4444-555555555552",
+      orderId: orderId2,
+      chartId,
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      ownerId: userId,
+      scope: TIER_1_ENTITLEMENT_SCOPE,
+    });
+
+    const rows = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.chartId, chartId));
+
+    expect(rows).toHaveLength(2);
+    const tier2Row = rows.find((r) => r.sku === "ZIWEI-IDENTITY-P0");
+    const tier1Row = rows.find((r) => r.sku === "ZIWEI-NATAL-EXCERPT-P0");
+
+    expect(tier2Row?.scope).toEqual(TIER_2_ENTITLEMENT_SCOPE);
+    expect(tier1Row?.scope).toEqual(TIER_1_ENTITLEMENT_SCOPE);
+
     await database.$client.end();
   }, 120_000);
 });

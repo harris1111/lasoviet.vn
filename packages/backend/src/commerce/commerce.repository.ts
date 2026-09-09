@@ -11,7 +11,7 @@ import type {
   OrderHistoryV1,
   OrderStatus,
 } from "@lasoviet/contracts";
-import { resolveProductTitle } from "@lasoviet/contracts";
+import { resolveProductTitle, resolveEntitlementScopeForSku } from "@lasoviet/contracts";
 import {
   auditLogs,
   birthProfiles,
@@ -870,6 +870,7 @@ export function createDatabaseCommerceRepository(
         if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
           orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
+          scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku),
           createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
@@ -1377,6 +1378,7 @@ export function createDatabaseCommerceRepository(
             chartId: paidOrder.chartId,
             sku: paidOrder.sku,
             ownerId: paidOrder.ownerId,
+            scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku),
             createdAt: currentNow,
           })
           .returning();

@@ -6,14 +6,23 @@ import {
 } from "./order.service.js";
 
 describe("order service", () => {
-  it("derives the immutable active catalog from config", () => {
+  it("derives the immutable active catalog from config (Acceptance test 5)", () => {
     expect(PRODUCT_CATALOG["ZIWEI-IDENTITY-P0"]).toEqual({
       sku: "ZIWEI-IDENTITY-P0",
       amount: 79000,
       currency: "VND",
       capabilityId: "ziwei.identity.p0",
     });
-    expect(Object.keys(PRODUCT_CATALOG)).toEqual(["ZIWEI-IDENTITY-P0"]);
+    expect(PRODUCT_CATALOG["ZIWEI-NATAL-EXCERPT-P0"]).toEqual({
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      amount: 19000,
+      currency: "VND",
+      capabilityId: "ziwei.identity.p0",
+    });
+    expect(Object.keys(PRODUCT_CATALOG).sort()).toEqual([
+      "ZIWEI-IDENTITY-P0",
+      "ZIWEI-NATAL-EXCERPT-P0",
+    ].sort());
   });
 
   it("uses the server catalog price and rejects unsupported SKU", async () => {
@@ -42,13 +51,28 @@ describe("order service", () => {
         "chart-1",
         "ZIWEI-NATAL-EXCERPT-P0",
       ),
-    ).resolves.toMatchObject({ ok: false, error: { code: "SKU_UNSUPPORTED" } });
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        id: "order-1",
+        amount: 19000,
+        currency: "VND",
+      },
+    });
 
     await expect(
       service.create(
         { kind: "account", userId: "account-1", sessionId: "s", requestId: "r" },
         "chart-1",
         "ZIWEI-RELATIONSHIP-P0",
+      ),
+    ).resolves.toMatchObject({ ok: false, error: { code: "SKU_UNSUPPORTED" } });
+
+    await expect(
+      service.create(
+        { kind: "account", userId: "account-1", sessionId: "s", requestId: "r" },
+        "chart-1",
+        "BAZI-COMPREHENSIVE-P0",
       ),
     ).resolves.toMatchObject({ ok: false, error: { code: "SKU_UNSUPPORTED" } });
 
@@ -148,6 +172,51 @@ describe("order service", () => {
     )).resolves.toMatchObject({
       ok: false,
       error: { code: "CHECKOUT_EMAIL_VERIFICATION_REQUIRED" },
+    });
+  });
+  it("prevents purchasing Tier 1 if Tier 2 is already owned on the chart", async () => {
+    const actor = { kind: "account" as const, userId: "account-1", sessionId: "s", requestId: "r" };
+    const service = createOrderService({
+      findCheckoutAccount: async () => ({
+        emailVerified: true,
+        isAnonymous: false,
+      }),
+      findChart: async () => ({ id: "chart-1", ownerId: "account-1", eligible: true }),
+      findReusableEntitlement: async (_chartId, sku) => (sku === "ZIWEI-IDENTITY-P0" ? { id: "ent-tier-2" } : null),
+      save: async (order) => order,
+      createId: () => "order-1",
+    });
+
+    await expect(
+      service.create(actor, "chart-1", "ZIWEI-NATAL-EXCERPT-P0"),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "ENTITLEMENT_EXISTS" },
+    });
+  });
+
+  it("allows purchasing Tier 2 when Tier 1 is already owned (upgrade)", async () => {
+    const actor = { kind: "account" as const, userId: "account-1", sessionId: "s", requestId: "r" };
+    const service = createOrderService({
+      findCheckoutAccount: async () => ({
+        emailVerified: true,
+        isAnonymous: false,
+      }),
+      findChart: async () => ({ id: "chart-1", ownerId: "account-1", eligible: true }),
+      findReusableEntitlement: async (_chartId, sku) => (sku === "ZIWEI-NATAL-EXCERPT-P0" ? { id: "ent-tier-1" } : null),
+      save: async (order) => order,
+      createId: () => "order-2",
+    });
+
+    await expect(
+      service.create(actor, "chart-1", "ZIWEI-IDENTITY-P0"),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        id: "order-2",
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79000,
+      },
     });
   });
 });

@@ -14,7 +14,7 @@ function buildProductCatalog(): Readonly<Record<CommerceSku, CatalogOffer>> {
   const offers = productCatalog.firstPaidOffers();
   const catalog: Partial<Record<CommerceSku, CatalogOffer>> = {};
   for (const offer of offers) {
-    if (offer.sku === "ZIWEI-IDENTITY-P0") {
+    if (offer.sku === "ZIWEI-IDENTITY-P0" || offer.sku === "ZIWEI-NATAL-EXCERPT-P0") {
       catalog[offer.sku] = Object.freeze({
         sku: offer.sku,
         amount: offer.price,
@@ -80,6 +80,12 @@ export function createOrderService(dependencies: OrderServiceDependencies) {
       }
       if (!chart.eligible) return { ok: false as const, error: { code: "CHART_INELIGIBLE" } };
       if (await dependencies.findReusableEntitlement(chartId, product.sku)) {
+        return { ok: false as const, error: { code: "ENTITLEMENT_EXISTS" } };
+      }
+      if (
+        product.sku === "ZIWEI-NATAL-EXCERPT-P0" &&
+        (await dependencies.findReusableEntitlement(chartId, "ZIWEI-IDENTITY-P0"))
+      ) {
         return { ok: false as const, error: { code: "ENTITLEMENT_EXISTS" } };
       }
       const id = dependencies.createId();
