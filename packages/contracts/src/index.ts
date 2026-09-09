@@ -268,6 +268,10 @@ export {
   OrderStatusSchema,
   PRODUCT_DISPLAY_NAMES,
   resolveProductTitle,
+  PaymentSelfClaimRequestV1Schema,
+  PaymentSelfClaimSuccessV1Schema,
+  PAYMENT_CLAIM_ERROR_CODES,
+  isValidLocalMinuteString,
 } from "./commerce.js";
 export type {
   AccountLibraryGroupV1,
@@ -278,6 +282,9 @@ export type {
   OrderHistoryItemV1,
   OrderHistoryV1,
   OrderStatus,
+  PaymentSelfClaimRequestV1,
+  PaymentSelfClaimSuccessV1,
+  PaymentClaimErrorCode,
 } from "./commerce.js";
 
 export {

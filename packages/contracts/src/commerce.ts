@@ -106,3 +106,72 @@ export const OrderHistoryV1Schema = z
   })
   .strict();
 export type OrderHistoryV1 = z.infer<typeof OrderHistoryV1Schema>;
+
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+function daysInMonth(year: number, month: number): number {
+  switch (month) {
+    case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+      return 31;
+    case 4: case 6: case 9: case 11:
+      return 30;
+    case 2:
+      return isLeapYear(year) ? 29 : 28;
+    default:
+      return 0;
+  }
+}
+
+export function isValidLocalMinuteString(val: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+    return false;
+  }
+  const [datePart, timePart] = val.split("T");
+  if (!datePart || !timePart) return false;
+  const [yearStr, monthStr, dayStr] = datePart.split("-");
+  const [hourStr, minuteStr] = timePart.split(":");
+  if (!yearStr || !monthStr || !dayStr || !hourStr || !minuteStr) return false;
+
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > daysInMonth(year, month)) return false;
+  if (hour < 0 || hour > 23) return false;
+  if (minute < 0 || minute > 59) return false;
+
+  return true;
+}
+
+export const PaymentSelfClaimRequestV1Schema = z
+  .object({
+    amount: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+    transferredAtLocal: z.string().refine(isValidLocalMinuteString, {
+      message: "transferredAtLocal must be an exact valid YYYY-MM-DDTHH:mm date without seconds or timezone offset",
+    }),
+  })
+  .strict();
+export type PaymentSelfClaimRequestV1 = z.infer<typeof PaymentSelfClaimRequestV1Schema>;
+
+export const PaymentSelfClaimSuccessV1Schema = z
+  .object({
+    status: z.literal("claimed"),
+    orderId: z.string().trim().min(1),
+    reportId: z.string().trim().min(1),
+  })
+  .strict();
+export type PaymentSelfClaimSuccessV1 = z.infer<typeof PaymentSelfClaimSuccessV1Schema>;
+
+export const PAYMENT_CLAIM_ERROR_CODES = [
+  "PAYMENT_CLAIM_NOT_FOUND",
+  "PAYMENT_CLAIM_RATE_LIMITED",
+  "PAYMENT_CLAIM_ACCOUNT_REQUIRED",
+  "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED",
+  "PAYMENT_CLAIM_INVALID",
+] as const;
+export type PaymentClaimErrorCode = typeof PAYMENT_CLAIM_ERROR_CODES[number];

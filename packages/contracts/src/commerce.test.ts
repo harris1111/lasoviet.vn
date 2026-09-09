@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   AccountLibraryV1Schema,
   OrderHistoryV1Schema,
+  PaymentSelfClaimRequestV1Schema,
+  PaymentSelfClaimSuccessV1Schema,
   resolveProductTitle,
 } from "./commerce.js";
 
@@ -217,3 +219,114 @@ describe("commerce contracts", () => {
     }).success).toBe(false);
   });
 });
+
+  describe("PaymentSelfClaimRequestV1Schema", () => {
+    it("accepts exact minute input and positive safe integer amount", () => {
+      const valid = {
+        amount: 79_000,
+        transferredAtLocal: "2026-09-05T14:30",
+      };
+      const result = PaymentSelfClaimRequestV1Schema.safeParse(valid);
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects inputs with seconds", () => {
+      const withSeconds = {
+        amount: 79_000,
+        transferredAtLocal: "2026-09-05T14:30:00",
+      };
+      expect(PaymentSelfClaimRequestV1Schema.safeParse(withSeconds).success).toBe(false);
+    });
+
+    it("rejects inputs with UTC or timezone offsets", () => {
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79_000,
+        transferredAtLocal: "2026-09-05T14:30Z",
+      }).success).toBe(false);
+
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79_000,
+        transferredAtLocal: "2026-09-05T14:30+07:00",
+      }).success).toBe(false);
+    });
+
+    it("rejects decimal, zero, or negative amounts", () => {
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79000.5,
+        transferredAtLocal: "2026-09-05T14:30",
+      }).success).toBe(false);
+
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 0,
+        transferredAtLocal: "2026-09-05T14:30",
+      }).success).toBe(false);
+
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: -79000,
+        transferredAtLocal: "2026-09-05T14:30",
+      }).success).toBe(false);
+    });
+
+    it("rejects impossible dates such as February 30 or April 31", () => {
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79_000,
+        transferredAtLocal: "2026-02-30T10:00",
+      }).success).toBe(false);
+
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79_000,
+        transferredAtLocal: "2026-04-31T10:00",
+      }).success).toBe(false);
+
+      // Non-leap year Feb 29
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79_000,
+        transferredAtLocal: "2025-02-29T10:00",
+      }).success).toBe(false);
+
+      // Valid leap year Feb 29
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79_000,
+        transferredAtLocal: "2024-02-29T10:00",
+      }).success).toBe(true);
+    });
+
+    it("rejects unknown extra fields due to strict schema", () => {
+      expect(PaymentSelfClaimRequestV1Schema.safeParse({
+        amount: 79_000,
+        transferredAtLocal: "2026-09-05T14:30",
+        extraField: "not allowed",
+      }).success).toBe(false);
+    });
+  });
+
+  describe("PaymentSelfClaimSuccessV1Schema", () => {
+    it("validates successful claim payload", () => {
+      const valid = {
+        status: "claimed",
+        orderId: "order-123",
+        reportId: "report-456",
+      };
+      expect(PaymentSelfClaimSuccessV1Schema.safeParse(valid).success).toBe(true);
+    });
+
+    it("rejects empty orderId, empty reportId, or invalid status", () => {
+      expect(PaymentSelfClaimSuccessV1Schema.safeParse({
+        status: "claimed",
+        orderId: "",
+        reportId: "report-456",
+      }).success).toBe(false);
+
+      expect(PaymentSelfClaimSuccessV1Schema.safeParse({
+        status: "claimed",
+        orderId: "order-123",
+        reportId: "  ",
+      }).success).toBe(false);
+
+      expect(PaymentSelfClaimSuccessV1Schema.safeParse({
+        status: "pending",
+        orderId: "order-123",
+        reportId: "report-456",
+      }).success).toBe(false);
+    });
+  });

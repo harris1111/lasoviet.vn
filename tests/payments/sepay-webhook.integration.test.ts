@@ -4,6 +4,7 @@ import { eq } from "../../packages/backend/node_modules/drizzle-orm/index.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  auditLogs,
   authUsers,
   birthProfileRevisions,
   birthProfiles,
@@ -67,7 +68,7 @@ describe("SePay payment transaction", () => {
       name: "Fixture user",
       email: userId + "@example.test",
       emailVerified: overrides.emailVerified ?? true,
-    });
+    }).onConflictDoNothing();
     await database.insert(birthProfiles).values({ id: profileId, userId });
     await database.insert(birthProfileRevisions).values({
       id: revisionId, profileId, revisionNumber: 1, originalInput: {}, normalizedInput: {}, consentVersion: "test",
@@ -1628,6 +1629,510 @@ describe("SePay payment transaction", () => {
     // Real order remains pending
     const orderCheck = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
     expect(orderCheck?.status).toBe("pending");
+
+    await database.$client.end();
+  }, 120_000);
+
+
+  it("succeeds at exact inclusive -15m and +15m boundaries, granting entitlement and marking payment claimed", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    // Declared local minute: 2026-09-05 10:30 (+07:00) -> 03:30 UTC
+    const transferredAtLocal = "2026-09-05T10:30";
+
+    // 1. Boundary at exact -15m: 03:15:00.000Z
+    const order1Res = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(order1Res.ok).toBe(true);
+    if (!order1Res.ok) throw new Error("ORDER1_FAILED");
+    const order1 = order1Res.value;
+
+    const paymentIdMinus15 = "payment-minus-15-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: paymentIdMinus15,
+      rawPayload: { note: "minus 15m" },
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-05T03:15:00.000Z"),
+    });
+
+    const claim1Res = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(claim1Res).toEqual({
+      ok: true,
+      value: {
+        status: "claimed",
+        orderId: order1.id,
+        reportId: expect.any(String),
+      },
+    });
+
+    const payment1Db = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === paymentIdMinus15);
+    expect(payment1Db?.claimedAt).not.toBeNull();
+    expect(payment1Db?.claimedByOrderId).toBe(order1.id);
+
+    const order1Db = (await database.select().from(commerceOrders)).find((o) => o.id === order1.id);
+    expect(order1Db?.status).toBe("paid");
+
+    const event1Db = (await database.select().from(commercePaymentEvents)).find((e) => e.providerEventId === paymentIdMinus15);
+    expect(event1Db?.matchMethod).toBe("self_claim");
+
+    // 2. Boundary at exact +15m: 03:45:00.000Z
+    const { actor: actor2, chartId: chartId2 } = await createChartFixture(database);
+    const order2Res = await repo.createOrder(actor2, chartId2, "ZIWEI-IDENTITY-P0", "vi");
+    expect(order2Res.ok).toBe(true);
+    if (!order2Res.ok) throw new Error("ORDER2_FAILED");
+    const order2 = order2Res.value;
+
+    const paymentIdPlus15 = "payment-plus-15-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: paymentIdPlus15,
+      rawPayload: { note: "plus 15m" },
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-05T03:45:00.000Z"),
+    });
+
+    const claim2Res = await repo.claimUnmatchedPayment(actor2, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(claim2Res).toEqual({
+      ok: true,
+      value: {
+        status: "claimed",
+        orderId: order2.id,
+        reportId: expect.any(String),
+      },
+    });
+
+    const payment2Db = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === paymentIdPlus15);
+    expect(payment2Db?.claimedAt).not.toBeNull();
+    expect(payment2Db?.claimedByOrderId).toBe(order2.id);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("returns PAYMENT_CLAIM_NOT_FOUND when payment is 1 millisecond outside either boundary", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderRes = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderRes.ok).toBe(true);
+    if (!orderRes.ok) throw new Error("ORDER_FAILED");
+    const order = orderRes.value;
+
+    // Declared: 2026-09-05 12:30 (+07:00) -> 05:30 UTC
+    const transferredAtLocal = "2026-09-05T12:30";
+
+    // Case A: 1ms before -15m (05:14:59.999Z)
+    const earlyId = "early-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: earlyId,
+      rawPayload: {},
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-05T05:14:59.999Z"),
+    });
+
+    const earlyClaim = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(earlyClaim).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    // Case B: 1ms after +15m (05:45:00.001Z)
+    const lateId = "late-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: lateId,
+      rawPayload: {},
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-05T05:45:00.001Z"),
+    });
+
+    const lateClaim = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(lateClaim).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    // Order remains pending, payments remain unclaimed
+    const orderDb = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(orderDb?.status).toBe("pending");
+
+    const earlyDb = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === earlyId);
+    expect(earlyDb?.claimedAt).toBeNull();
+    const lateDb = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === lateId);
+    expect(lateDb?.claimedAt).toBeNull();
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("returns generic PAYMENT_CLAIM_NOT_FOUND when two eligible payments match", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderRes = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderRes.ok).toBe(true);
+    if (!orderRes.ok) throw new Error("ORDER_FAILED");
+
+    const transferredAtLocal = "2026-09-05T14:30";
+
+    const id1 = "dup-payment-1-" + randomUUID();
+    const id2 = "dup-payment-2-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values([
+      {
+        providerEventId: id1,
+        rawPayload: {},
+        amount: 79_000,
+        reason: "NO_VALID_PAYMENT_CODE",
+        receivedAt: new Date("2026-09-05T07:20:00.000Z"),
+      },
+      {
+        providerEventId: id2,
+        rawPayload: {},
+        amount: 79_000,
+        reason: "NO_VALID_PAYMENT_CODE",
+        receivedAt: new Date("2026-09-05T07:25:00.000Z"),
+      },
+    ]);
+
+    const claimRes = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(claimRes).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    const p1 = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === id1);
+    const p2 = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === id2);
+    expect(p1?.claimedAt).toBeNull();
+    expect(p2?.claimedAt).toBeNull();
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("returns generic PAYMENT_CLAIM_NOT_FOUND when two eligible owner orders match", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId: chartId1, versionId: versionId1 } = await createChartFixture(database);
+    const { chartId: chartId2, versionId: versionId2 } = await createChartFixture(database, { userId: actor.userId });
+    const repo = createDatabaseCommerceRepository(database);
+
+    // Create 2 pending orders for the same user with amount 79,000
+    const o1 = await repo.createOrder(actor, chartId1, "ZIWEI-IDENTITY-P0", "vi");
+    const o2 = await repo.createOrder(actor, chartId2, "ZIWEI-IDENTITY-P0", "en");
+    expect(o1.ok && o2.ok).toBe(true);
+
+    const transferredAtLocal = "2026-09-05T16:30";
+    const paymentId = "single-payment-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: paymentId,
+      rawPayload: {},
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-05T09:30:00.000Z"),
+    });
+
+    const claimRes = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(claimRes).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    const paymentDb = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === paymentId);
+    expect(paymentDb?.claimedAt).toBeNull();
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("shares the same PAYMENT_CLAIM_NOT_FOUND outcome for cross-owner, wrong amount, and already claimed payments without disclosing details", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor: ownerA, chartId } = await createChartFixture(database);
+    const { actor: ownerB } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderRes = await repo.createOrder(ownerA, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderRes.ok).toBe(true);
+
+    const transferredAtLocal = "2026-09-05T18:30";
+
+    // 1. Wrong amount
+    const wrongAmountRes = await repo.claimUnmatchedPayment(ownerA, {
+      amount: 50_000, // No payment or order at 50k
+      transferredAtLocal,
+    });
+    expect(wrongAmountRes).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    // 2. Cross-owner: Owner B tries to claim
+    const crossOwnerRes = await repo.claimUnmatchedPayment(ownerB, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(crossOwnerRes).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    // 3. Already claimed payment
+    const claimedPaymentId = "claimed-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: claimedPaymentId,
+      rawPayload: {},
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-05T11:30:00.000Z"),
+      claimedAt: new Date(),
+    });
+
+    const alreadyClaimedRes = await repo.claimUnmatchedPayment(ownerA, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(alreadyClaimedRes).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("evaluates up to five attempts per Vietnam calendar day, rate-limits the sixth, and resets on the next local day", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor } = await createChartFixture(database);
+
+    // Injected clock at 10:00 UTC on 2026-09-05 (17:00 Vietnam time on 2026-09-05)
+    let currentClock = new Date("2026-09-05T10:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, {
+      now: () => currentClock,
+    });
+
+    const transferredAtLocal = "2026-09-05T14:30";
+
+    // Attempts 1 through 5 on this day evaluate and return NOT_FOUND
+    for (let i = 1; i <= 5; i++) {
+      const res = await repo.claimUnmatchedPayment(actor, {
+        amount: 79_000,
+        transferredAtLocal,
+      });
+      expect(res).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+    }
+
+    // 6th attempt on the same Vietnam calendar day is RATE_LIMITED
+    const res6 = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(res6).toEqual({ ok: false, code: "PAYMENT_CLAIM_RATE_LIMITED" });
+
+    // 7th attempt on the same day is also RATE_LIMITED
+    const res7 = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(res7).toEqual({ ok: false, code: "PAYMENT_CLAIM_RATE_LIMITED" });
+
+    // Advance clock to next Vietnam calendar day:
+    // 18:00 UTC on 2026-09-05 is 01:00 on 2026-09-06 in Vietnam!
+    currentClock = new Date("2026-09-05T18:00:00.000Z");
+
+    // Allowance is reset for the new Vietnam calendar day!
+    const nextDayRes = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal: "2026-09-06T01:00",
+    });
+    expect(nextDayRes).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("prevents concurrent attempts from exceeding the daily limit and prevents claiming a payment twice", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const transferredAtLocal = "2026-09-05T22:30";
+
+    // 1. Run 10 concurrent requests on empty match
+    const concurrent10 = await Promise.all(
+      Array.from({ length: 10 }, () =>
+        repo.claimUnmatchedPayment(actor, {
+          amount: 79_000,
+          transferredAtLocal,
+        }),
+      ),
+    );
+
+    const notFounds = concurrent10.filter((r) => !r.ok && r.code === "PAYMENT_CLAIM_NOT_FOUND");
+    const rateLimiteds = concurrent10.filter((r) => !r.ok && r.code === "PAYMENT_CLAIM_RATE_LIMITED");
+
+    // Exactly 5 evaluated attempts, remaining 5 rate limited
+    expect(notFounds).toHaveLength(5);
+    expect(rateLimiteds).toHaveLength(5);
+
+    // 2. Race two claims on the same single eligible payment with another user
+    const { actor: actor2, chartId: chartId2 } = await createChartFixture(database);
+    const orderRes = await repo.createOrder(actor2, chartId2, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderRes.ok).toBe(true);
+    if (!orderRes.ok) throw new Error("ORDER_FAILED");
+
+    const transferredAtLocalRace = "2026-09-06T10:30";
+    const singlePaymentId = "race-payment-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: singlePaymentId,
+      rawPayload: {},
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-06T03:30:00.000Z"),
+    });
+
+    const raceResults = await Promise.all([
+      repo.claimUnmatchedPayment(actor2, { amount: 79_000, transferredAtLocal: transferredAtLocalRace }),
+      repo.claimUnmatchedPayment(actor2, { amount: 79_000, transferredAtLocal: transferredAtLocalRace }),
+    ]);
+
+    const successes = raceResults.filter((r) => r.ok && r.value.status === "claimed");
+    const failures = raceResults.filter((r) => !r.ok && r.code === "PAYMENT_CLAIM_NOT_FOUND");
+
+    expect(successes).toHaveLength(1);
+    expect(failures).toHaveLength(1);
+
+    // Exactly one entitlement created
+    const entitlements = (await database.select().from(commerceEntitlements)).filter((e) => e.chartId === chartId2);
+    expect(entitlements).toHaveLength(1);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("appends exactly one bounded audit row per evaluated attempt without leaking sensitive metadata", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId } = await createChartFixture(database);
+    const repo = createDatabaseCommerceRepository(database);
+
+    const orderRes = await repo.createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderRes.ok).toBe(true);
+    if (!orderRes.ok) throw new Error("ORDER_FAILED");
+    const order = orderRes.value;
+
+    const transferredAtLocal = "2026-09-06T14:30";
+
+    // 1. Evaluated attempt that fails
+    const failRes = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(failRes.ok).toBe(false);
+
+    // 2. Evaluated attempt that succeeds
+    const successPaymentId = "audit-payment-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: successPaymentId,
+      rawPayload: { secretSender: "classified" },
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-06T07:30:00.000Z"),
+    });
+
+    const successRes = await repo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+    expect(successRes.ok).toBe(true);
+
+    const audits = (await database.select().from(auditLogs))
+      .filter((a) => a.actorId === actor.userId && a.action === "commerce.payment_self_claim.requested");
+
+    expect(audits).toHaveLength(2);
+
+    // Failed audit row
+    const failedAudit = audits.find((a) => a.targetId === "unresolved");
+    expect(failedAudit).toBeDefined();
+    expect(failedAudit?.reasonCode).toBe("PAYMENT_CLAIM_NOT_FOUND");
+    expect(failedAudit?.targetType).toBe("commerce_payment_claim");
+    expect(failedAudit?.requestId).toBe(actor.requestId);
+    expect(failedAudit?.metadata).toEqual({
+      outcome: "PAYMENT_CLAIM_NOT_FOUND",
+      claimedAmount: 79_000,
+    });
+
+    // Success audit row
+    const successAudit = audits.find((a) => a.targetId === order.id);
+    expect(successAudit).toBeDefined();
+    expect(successAudit?.reasonCode).toBe("claimed");
+    expect(successAudit?.targetType).toBe("commerce_payment_claim");
+    expect(successAudit?.requestId).toBe(actor.requestId);
+    expect(successAudit?.metadata).toEqual({
+      outcome: "claimed",
+      claimedAmount: 79_000,
+    });
+
+    // Confirm neither audit row contains sensitive metadata
+    for (const audit of audits) {
+      const metaKeys = Object.keys(audit.metadata ?? {});
+      expect(metaKeys.sort()).toEqual(["claimedAmount", "outcome"]);
+    }
+
+    await database.$client.end();
+  }, 120_000);
+
+
+  it("detects when a second matching payment arrives between initial selection and locked re-query, asserting generic NOT_FOUND and no claim", async () => {
+    const database = createDatabase(databaseUrl);
+    const { actor, chartId, versionId } = await createChartFixture(database);
+
+    // Isolated time window: 2026-09-07 10:30 (UTC 03:30, window 03:15 to 03:45)
+    const transferredAtLocal = "2026-09-07T10:30";
+
+    const orderRes = await createDatabaseCommerceRepository(database).createOrder(actor, chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderRes.ok).toBe(true);
+    if (!orderRes.ok) throw new Error("ORDER_FAILED");
+    const order = orderRes.value;
+
+    const initialPaymentId = "race-init-payment-" + randomUUID();
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: initialPaymentId,
+      rawPayload: {},
+      amount: 79_000,
+      reason: "NO_VALID_PAYMENT_CODE",
+      receivedAt: new Date("2026-09-07T03:30:00.000Z"),
+    });
+
+    const secondPaymentId = "race-second-payment-" + randomUUID();
+
+    const racingRepo = createDatabaseCommerceRepository(database, {
+      beforeClaimLockedRequery: async () => {
+        await database.insert(commerceUnmatchedPayments).values({
+          providerEventId: secondPaymentId,
+          rawPayload: {},
+          amount: 79_000,
+          reason: "NO_VALID_PAYMENT_CODE",
+          receivedAt: new Date("2026-09-07T03:35:00.000Z"),
+        });
+      },
+    });
+
+    const claimRes = await racingRepo.claimUnmatchedPayment(actor, {
+      amount: 79_000,
+      transferredAtLocal,
+    });
+
+    expect(claimRes).toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    const p1 = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === initialPaymentId);
+    const p2 = (await database.select().from(commerceUnmatchedPayments)).find((p) => p.providerEventId === secondPaymentId);
+    expect(p1?.claimedAt).toBeNull();
+    expect(p2?.claimedAt).toBeNull();
+
+    const orderDb = (await database.select().from(commerceOrders)).find((o) => o.id === order.id);
+    expect(orderDb?.status).toBe("pending");
+
+    const audits = (await database.select().from(auditLogs))
+      .filter((a) => a.actorId === actor.userId && a.action === "commerce.payment_self_claim.requested");
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.targetId).toBe("unresolved");
+    expect(audits[0]?.reasonCode).toBe("PAYMENT_CLAIM_NOT_FOUND");
+    expect(audits[0]?.metadata).toEqual({
+      outcome: "PAYMENT_CLAIM_NOT_FOUND",
+      claimedAmount: 79_000,
+    });
 
     await database.$client.end();
   }, 120_000);

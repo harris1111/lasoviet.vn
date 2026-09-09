@@ -1142,4 +1142,199 @@ describe("SePay controller HTTP contract", () => {
       repoSpy.mockRestore();
     }
   });
+
+  describe("POST /commerce/payments/self-claim", () => {
+    it("rejects missing actor token with 401 PAYMENT_CLAIM_ACCOUNT_REQUIRED", async () => {
+      await expect(
+        controller().selfClaim(undefined, {
+          amount: 79000,
+          transferredAtLocal: "2026-09-05T14:30",
+        }),
+      ).rejects.toMatchObject({
+        status: 401,
+        response: { code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" },
+      });
+    });
+
+    it("rejects invalid actor token with 401 PAYMENT_CLAIM_ACCOUNT_REQUIRED", async () => {
+      await expect(
+        controller().selfClaim("Bearer invalid-token", {
+          amount: 79000,
+          transferredAtLocal: "2026-09-05T14:30",
+        }),
+      ).rejects.toMatchObject({
+        status: 401,
+        response: { code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" },
+      });
+    });
+
+    it("rejects malformed input with 400 PAYMENT_CLAIM_INVALID", async () => {
+      await expect(
+        controller().selfClaim("Bearer valid-token", {
+          amount: -10,
+          transferredAtLocal: "invalid-date",
+        }),
+      ).rejects.toMatchObject({
+        status: 400,
+        response: { code: "PAYMENT_CLAIM_INVALID" },
+      });
+    });
+
+    it("maps PAYMENT_CLAIM_ACCOUNT_REQUIRED to 401", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 401,
+          response: { code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("maps PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED to 403", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 403,
+          response: { code: "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("maps PAYMENT_CLAIM_RATE_LIMITED to 429", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_RATE_LIMITED",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 429,
+          response: { code: "PAYMENT_CLAIM_RATE_LIMITED" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("maps PAYMENT_CLAIM_NOT_FOUND to 404", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_NOT_FOUND",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 404,
+          response: { code: "PAYMENT_CLAIM_NOT_FOUND" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("returns HTTP 200 with value on success", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: true,
+          value: {
+            status: "claimed",
+            orderId: "order-claimed-123",
+            reportId: "report-res-456",
+          },
+        }),
+      } as never);
+
+      try {
+        const result = await controller().selfClaim("Bearer valid-token", {
+          amount: 79000,
+          transferredAtLocal: "2026-09-05T14:30",
+        });
+        expect(result).toEqual({
+          ok: true,
+          value: {
+            status: "claimed",
+            orderId: "order-claimed-123",
+            reportId: "report-res-456",
+          },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+  });
 });

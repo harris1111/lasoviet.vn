@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, gt, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
 import type {
   AccountLibraryGroupV1,
   AccountLibraryItemV1,
@@ -13,6 +13,7 @@ import type {
 } from "@lasoviet/contracts";
 import { resolveProductTitle } from "@lasoviet/contracts";
 import {
+  auditLogs,
   birthProfiles,
   birthProfileRevisions,
   authUsers,
@@ -33,6 +34,11 @@ import {
   isValidPaymentCode,
   normalizePaymentCodeInput,
 } from "./payment-code.js";
+import {
+  getVietnamCalendarDayBounds,
+  parseTransferredAtLocal,
+  type ParsedClaimTime,
+} from "./payment-claim-time.js";
 
 import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 import { currentReportVersions } from "../reports/identity-report-config.js";
@@ -46,6 +52,7 @@ export type CommerceRepositoryOptions = {
   orderTtlSeconds?: number;
   beforePaymentCommit?: () => Promise<void>;
   paymentCodeFactory?: () => string;
+  beforeClaimLockedRequery?: () => Promise<void>;
 };
 
 export type OwnedOrderProjection = {
@@ -957,6 +964,469 @@ export function createDatabaseCommerceRepository(
         }
 
         throw new Error("UNMATCHED_PAYMENT_PERSISTENCE_FAILED");
+      });
+    },
+    async claimUnmatchedPayment(
+      actor: CurrentActor,
+      input: {
+        amount: number;
+        transferredAtLocal: string;
+      },
+    ): Promise<
+      | {
+          ok: true;
+          value: {
+            status: "claimed";
+            orderId: string;
+            reportId: string;
+          };
+        }
+      | {
+          ok: false;
+          code:
+            | "PAYMENT_CLAIM_ACCOUNT_REQUIRED"
+            | "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED"
+            | "PAYMENT_CLAIM_RATE_LIMITED"
+            | "PAYMENT_CLAIM_NOT_FOUND"
+            | "PAYMENT_CLAIM_INVALID";
+        }
+    > {
+      if (actor.kind !== "account") {
+        return { ok: false, code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" };
+      }
+      const accountError = await checkoutAccount(database, actor);
+      if (accountError === "CHECKOUT_ACCOUNT_REQUIRED") {
+        return { ok: false, code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" };
+      }
+      if (accountError === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") {
+        return { ok: false, code: "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED" };
+      }
+      if (accountError !== null) {
+        return { ok: false, code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" };
+      }
+
+      if (
+        typeof input.amount !== "number" ||
+        !Number.isSafeInteger(input.amount) ||
+        input.amount <= 0
+      ) {
+        return { ok: false, code: "PAYMENT_CLAIM_INVALID" };
+      }
+
+      let claimTime: ParsedClaimTime;
+      try {
+        claimTime = parseTransferredAtLocal(input.transferredAtLocal);
+      } catch {
+        return { ok: false, code: "PAYMENT_CLAIM_INVALID" };
+      }
+
+      return await database.transaction(async (transaction) => {
+        const currentNow = getNow();
+        const { startUtc, nextDayStartUtc, localDateKey } = getVietnamCalendarDayBounds(currentNow);
+
+        // 1. Account / day rate-limit advisory lock
+        const rateLimitLockKey = `self_claim_rate:${actor.userId}:${localDateKey}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${rateLimitLockKey}))`);
+
+        const [countResult] = await transaction
+          .select({ count: sql<number>`count(*)::integer` })
+          .from(auditLogs)
+          .where(
+            and(
+              eq(auditLogs.actorId, actor.userId),
+              eq(auditLogs.action, "commerce.payment_self_claim.requested"),
+              gte(auditLogs.createdAt, startUtc),
+              lt(auditLogs.createdAt, nextDayStartUtc),
+            ),
+          );
+
+        const attemptCount = countResult?.count ?? 0;
+        if (attemptCount >= 5) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_RATE_LIMITED",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_RATE_LIMITED",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_RATE_LIMITED" as const };
+        }
+
+        const candidatePayments = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(
+            and(
+              eq(commerceUnmatchedPayments.amount, input.amount),
+              isNull(commerceUnmatchedPayments.claimedAt),
+              isNull(commerceUnmatchedPayments.claimedByOrderId),
+              gte(commerceUnmatchedPayments.receivedAt, claimTime.windowStart),
+              lte(commerceUnmatchedPayments.receivedAt, claimTime.windowEnd),
+            ),
+          );
+
+        const candidateOrders = await transaction
+          .select()
+          .from(commerceOrders)
+          .where(
+            and(
+              eq(commerceOrders.ownerId, actor.userId),
+              eq(commerceOrders.amount, input.amount),
+              eq(commerceOrders.currency, "VND"),
+              or(
+                eq(commerceOrders.status, "pending"),
+                eq(commerceOrders.status, "expired"),
+              ),
+            ),
+          );
+
+        const eligibleOrders: typeof candidateOrders = [];
+        for (const order of candidateOrders) {
+          const [existingEntitlement] = await transaction
+            .select({ id: commerceEntitlements.id })
+            .from(commerceEntitlements)
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, order.chartId),
+                eq(commerceEntitlements.sku, order.sku),
+              ),
+            )
+            .limit(1);
+          if (existingEntitlement === undefined) {
+            eligibleOrders.push(order);
+          }
+        }
+
+        if (candidatePayments.length !== 1 || eligibleOrders.length !== 1) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        const selectedPayment = candidatePayments[0]!;
+        const selectedOrder = eligibleOrders[0]!;
+
+        // 2. Provider-event advisory lock
+        const providerLockKey = `provider_event:${selectedPayment.providerEventId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+
+        // 3. Chart/SKU advisory lock
+        const chartSkuLockKey = `commerce:${selectedOrder.chartId}:${selectedOrder.sku}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${chartSkuLockKey}))`);
+
+        // Test hook before table locks / locked re-query
+        await options.beforeClaimLockedRequery?.();
+
+        // 4. Table locks in order: commerce_unmatched_payments before commerce_orders
+        await transaction.execute(sql`LOCK TABLE commerce_unmatched_payments IN SHARE ROW EXCLUSIVE MODE`);
+        await transaction.execute(sql`LOCK TABLE commerce_orders IN SHARE ROW EXCLUSIVE MODE`);
+
+        // Re-query complete eligible payment and owner-order predicates after locks
+        const lockedCandidatePayments = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(
+            and(
+              eq(commerceUnmatchedPayments.amount, input.amount),
+              isNull(commerceUnmatchedPayments.claimedAt),
+              isNull(commerceUnmatchedPayments.claimedByOrderId),
+              gte(commerceUnmatchedPayments.receivedAt, claimTime.windowStart),
+              lte(commerceUnmatchedPayments.receivedAt, claimTime.windowEnd),
+            ),
+          );
+
+        const lockedCandidateOrders = await transaction
+          .select()
+          .from(commerceOrders)
+          .where(
+            and(
+              eq(commerceOrders.ownerId, actor.userId),
+              eq(commerceOrders.amount, input.amount),
+              eq(commerceOrders.currency, "VND"),
+              or(
+                eq(commerceOrders.status, "pending"),
+                eq(commerceOrders.status, "expired"),
+              ),
+            ),
+          );
+
+        const lockedEligibleOrders: typeof lockedCandidateOrders = [];
+        for (const order of lockedCandidateOrders) {
+          const [existingEntitlement] = await transaction
+            .select({ id: commerceEntitlements.id })
+            .from(commerceEntitlements)
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, order.chartId),
+                eq(commerceEntitlements.sku, order.sku),
+              ),
+            )
+            .limit(1);
+          if (existingEntitlement === undefined) {
+            lockedEligibleOrders.push(order);
+          }
+        }
+
+        // Require exactly the same one payment and one order
+        if (
+          lockedCandidatePayments.length !== 1 ||
+          lockedEligibleOrders.length !== 1 ||
+          lockedCandidatePayments[0]!.id !== selectedPayment.id ||
+          lockedEligibleOrders[0]!.id !== selectedOrder.id
+        ) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        // 5. Lock rows before mutation
+        const [lockedPayment] = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(eq(commerceUnmatchedPayments.id, selectedPayment.id))
+          .limit(1)
+          .for("update");
+
+        const [lockedOrder] = await transaction
+          .select()
+          .from(commerceOrders)
+          .where(eq(commerceOrders.id, selectedOrder.id))
+          .limit(1)
+          .for("update");
+
+        if (
+          lockedPayment === undefined ||
+          lockedOrder === undefined ||
+          lockedPayment.amount !== input.amount ||
+          lockedPayment.claimedAt !== null ||
+          lockedPayment.claimedByOrderId !== null ||
+          lockedPayment.receivedAt < claimTime.windowStart ||
+          lockedPayment.receivedAt > claimTime.windowEnd ||
+          lockedOrder.ownerId !== actor.userId ||
+          lockedOrder.amount !== input.amount ||
+          lockedOrder.currency !== "VND" ||
+          (lockedOrder.status !== "pending" && lockedOrder.status !== "expired")
+        ) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        const [concurrentEntitlement] = await transaction
+          .select({ id: commerceEntitlements.id })
+          .from(commerceEntitlements)
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, lockedOrder.chartId),
+              eq(commerceEntitlements.sku, lockedOrder.sku),
+            ),
+          )
+          .limit(1);
+
+        if (concurrentEntitlement !== undefined) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        await transaction
+          .update(commerceUnmatchedPayments)
+          .set({
+            claimedByOrderId: lockedOrder.id,
+            claimedAt: currentNow,
+          })
+          .where(eq(commerceUnmatchedPayments.id, lockedPayment.id));
+
+        await transaction
+          .update(commerceOrders)
+          .set({ status: "expired" })
+          .where(
+            and(
+              eq(commerceOrders.chartId, lockedOrder.chartId),
+              eq(commerceOrders.sku, lockedOrder.sku),
+              eq(commerceOrders.status, "pending"),
+              ne(commerceOrders.id, lockedOrder.id),
+            ),
+          );
+
+        const [paidOrder] = await transaction
+          .update(commerceOrders)
+          .set({ status: "paid", paidAt: currentNow })
+          .where(
+            and(
+              eq(commerceOrders.id, lockedOrder.id),
+              or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
+            ),
+          )
+          .returning();
+
+        if (paidOrder === undefined) {
+          throw new Error("ORDER_TRANSITION_FAILED");
+        }
+
+        const [event] = await transaction
+          .insert(commercePaymentEvents)
+          .values({
+            orderId: paidOrder.id,
+            providerEventId: lockedPayment.providerEventId,
+            amount: lockedPayment.amount,
+            currency: "VND",
+            status: "ORDER_PAID",
+            matchMethod: "self_claim",
+            createdAt: currentNow,
+          })
+          .onConflictDoNothing()
+          .returning();
+
+        if (event === undefined) {
+          throw new Error("PAYMENT_EVENT_CONFLICT");
+        }
+
+        const [evidence] = await transaction
+          .select({ id: evidenceSets.id })
+          .from(evidenceSets)
+          .where(
+            and(
+              eq(evidenceSets.chartVersionId, paidOrder.chartVersionId),
+              eq(evidenceSets.capabilityId, "ziwei.identity.p0"),
+            ),
+          )
+          .limit(1);
+
+        if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
+
+        const [entitlement] = await transaction
+          .insert(commerceEntitlements)
+          .values({
+            orderId: paidOrder.id,
+            chartId: paidOrder.chartId,
+            sku: paidOrder.sku,
+            ownerId: paidOrder.ownerId,
+            createdAt: currentNow,
+          })
+          .returning();
+
+        if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
+
+        const reportVersions = currentReportVersions(paidOrder.locale);
+        const [reservation] = await transaction
+          .insert(reportReservations)
+          .values({
+            reportId: randomUUID(),
+            reportVersionId: randomUUID(),
+            entitlementId: entitlement.id,
+            chartVersionId: paidOrder.chartVersionId,
+            evidenceVersionId: evidence.id,
+            knowledgeVersionId: reportVersions.knowledgeVersion,
+            promptVersion: reportVersions.promptVersion,
+            reportConfigVersion: reportVersions.reportConfigVersion,
+            locale: paidOrder.locale,
+            sku: paidOrder.sku,
+            createdAt: currentNow,
+            updatedAt: currentNow,
+          })
+          .returning();
+
+        if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
+
+        await enqueueOutbox(transaction, {
+          schemaVersion: 1,
+          type: "report.generation.requested.v1",
+          eventId: randomUUID(),
+          occurredAt: currentNow.toISOString(),
+          traceId: actor.requestId,
+          actorId: paidOrder.ownerId,
+          aggregateType: "order",
+          aggregateId: paidOrder.id,
+          idempotencyKey: "report-request:" + reservation.reportVersionId,
+          payload: {
+            reportId: reservation.reportId,
+            reportVersionId: reservation.reportVersionId,
+            entitlementId: entitlement.id,
+            chartVersionId: reservation.chartVersionId,
+            evidenceVersionId: reservation.evidenceVersionId,
+            knowledgeVersionId: reservation.knowledgeVersionId,
+            promptVersion: reservation.promptVersion,
+            reportConfigVersion: reservation.reportConfigVersion,
+            locale: reservation.locale,
+            sku: reservation.sku,
+          },
+        });
+
+        await transaction.insert(auditLogs).values({
+          actorId: actor.userId,
+          action: "commerce.payment_self_claim.requested",
+          targetType: "commerce_payment_claim",
+          targetId: paidOrder.id,
+          reasonCode: "claimed",
+          requestId: actor.requestId,
+          metadata: {
+            outcome: "claimed",
+            claimedAmount: input.amount,
+          },
+          createdAt: currentNow,
+        });
+
+        await options.beforePaymentCommit?.();
+
+        return {
+          ok: true as const,
+          value: {
+            status: "claimed" as const,
+            orderId: paidOrder.id,
+            reportId: reservation.reportId,
+          },
+        };
       });
     },
   readAccountLibrary,

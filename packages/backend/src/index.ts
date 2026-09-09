@@ -310,6 +310,14 @@ export {
   isValidPaymentCode,
   normalizePaymentCodeInput,
 } from "./commerce/payment-code.js";
+export {
+  parseTransferredAtLocal,
+  getVietnamCalendarDayBounds,
+} from "./commerce/payment-claim-time.js";
+export type {
+  ParsedClaimTime,
+  VietnamCalendarDayBounds,
+} from "./commerce/payment-claim-time.js";
 export { createPaymentInstructions } from "./commerce/payment-instructions.js";
 export type { PaymentInstructions } from "./commerce/payment-instructions.js";
 export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js";

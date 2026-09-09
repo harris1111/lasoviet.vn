@@ -1,9 +1,9 @@
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
-import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
-import type { CurrentActor } from "@lasoviet/contracts";
+import { PaymentSelfClaimRequestV1Schema, type CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
 
 import { ActorTokenError, verifyInternalActorToken } from "../auth/internal-actor.guard.js";
@@ -195,6 +195,48 @@ export class CommerceController {
             reportId: projection.reportId,
           },
         };
+  }
+
+  @Post("payments/self-claim")
+  @HttpCode(HttpStatus.OK)
+  async selfClaim(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const parsed = PaymentSelfClaimRequestV1Schema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ code: "PAYMENT_CLAIM_INVALID" });
+    }
+    let actor: CurrentActor;
+    try {
+      actor = await this.actor(authorization);
+    } catch {
+      throw new UnauthorizedException({ code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" });
+    }
+    const result = await this.repository().claimUnmatchedPayment(actor, {
+      amount: parsed.data.amount,
+      transferredAtLocal: parsed.data.transferredAtLocal,
+    });
+    if (!result.ok) {
+      switch (result.code) {
+        case "PAYMENT_CLAIM_INVALID":
+          throw new BadRequestException({ code: result.code });
+        case "PAYMENT_CLAIM_ACCOUNT_REQUIRED":
+          throw new UnauthorizedException({ code: result.code });
+        case "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED":
+          throw new ForbiddenException({ code: result.code });
+        case "PAYMENT_CLAIM_RATE_LIMITED":
+          throw new HttpException({ code: result.code }, HttpStatus.TOO_MANY_REQUESTS);
+        case "PAYMENT_CLAIM_NOT_FOUND":
+          throw new NotFoundException({ code: result.code });
+        default:
+          throw new NotFoundException({ code: "PAYMENT_CLAIM_NOT_FOUND" });
+      }
+    }
+    return {
+      ok: true,
+      value: result.value,
+    };
   }
 
   @Post("webhooks/sepay")
