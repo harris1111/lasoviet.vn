@@ -97,3 +97,11 @@
   - Active Vietnamese purchase copy now states the actual 12-palace, key-configuration, cross-palace, four-theme, practical-direction, and 2,200-3,200-word delivery scope without promising unsupported time forecasting.
   - Terra returned `APPROVED` with no Critical or Important findings.
   - Focused verification passed: contracts/config/backend builds, web typecheck and production build, 63 focused tests, and clean `git diff --check`.
+- WP-06 report and payment recovery UI completed and Terra-approved:
+  - Implementation landed in commit `f90345a`.
+  - Added distinct pending, paid-before-report, expired, failed, refunded, report-generation, and report-terminal-failure customer states.
+  - Pending payment preserves immutable VietQR instructions, warns against duplicate transfer, and exposes self-claim only while pending.
+  - Terminal report failure now displays every required BE-5 fact and a bounded prefilled support path without internal report identifiers.
+  - Terra returned `APPROVED` with no Critical or Important findings.
+  - Focused verification passed: contracts build, web typecheck and production build, 63 focused tests, and clean `git diff --check`.
+  - R-AUTO-21 durable founder alert delivery remains the only uncompleted provider-independent WP-06 slice; live Telegram activation remains deferred on founder credentials.
