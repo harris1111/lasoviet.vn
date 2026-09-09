@@ -104,7 +104,7 @@ function expectInvalid(source: NodeJS.ProcessEnv, variable: string) {
 
 function expectPartial(
   source: NodeJS.ProcessEnv,
-  group: "ai" | "smtp" | "cloudS3" | "google",
+  group: "ai" | "smtp" | "cloudS3" | "google" | "telegram",
   variable: string,
 ) {
   expect(loadEnvironment(source)).toEqual({
@@ -360,6 +360,16 @@ describe("environment loading", () => {
       "google",
       "GOOGLE_CLIENT_SECRET",
     );
+    expectPartial(
+      { ...productionBase, TELEGRAM_BOT_TOKEN: "synthetic-bot-token" },
+      "telegram",
+      "TELEGRAM_CHAT_ID",
+    );
+    expectPartial(
+      { ...productionBase, TELEGRAM_CHAT_ID: "synthetic-chat-id" },
+      "telegram",
+      "TELEGRAM_BOT_TOKEN",
+    );
   });
 
   it("normalizes each complete optional group to its enabled typed shape", () => {
@@ -429,6 +439,56 @@ describe("environment loading", () => {
         },
       },
     });
+  });
+
+  it("normalizes complete telegram group to its typed shape and omits when absent", () => {
+    const withoutTelegram = loadEnvironment(productionBase);
+    expect(withoutTelegram).toMatchObject({ ok: true });
+    if (withoutTelegram.ok) {
+      expect(withoutTelegram.value.telegram).toBeUndefined();
+    }
+
+    const withTelegram = loadEnvironment({
+      ...productionBase,
+      TELEGRAM_BOT_TOKEN: "synthetic-bot-token",
+      TELEGRAM_CHAT_ID: "-1001234567890",
+    });
+    expect(withTelegram).toMatchObject({
+      ok: true,
+      value: {
+        telegram: {
+          botToken: "synthetic-bot-token",
+          chatId: "-1001234567890",
+        },
+      },
+    });
+  });
+
+  it("never exposes telegram bot token in validation errors or serialization", () => {
+    const secretToken = "super-secret-telegram-token-12345";
+    const result = loadEnvironment({
+      ...productionBase,
+      TELEGRAM_BOT_TOKEN: secretToken,
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "PARTIAL_OPTIONAL_GROUP", field: "TELEGRAM_CHAT_ID" },
+    });
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain(secretToken);
+
+    const invalidResult = loadEnvironment({
+      ...productionBase,
+      TELEGRAM_BOT_TOKEN: "   ",
+      TELEGRAM_CHAT_ID: "-1001234567890",
+    });
+    expect(invalidResult).toMatchObject({
+      ok: false,
+      error: { code: "INVALID_ENV", field: "TELEGRAM_BOT_TOKEN" },
+    });
+    const invalidSerialized = JSON.stringify(invalidResult);
+    expect(invalidSerialized).not.toContain(secretToken);
+    expect(invalidSerialized).toContain("TELEGRAM_BOT_TOKEN");
   });
 });
 

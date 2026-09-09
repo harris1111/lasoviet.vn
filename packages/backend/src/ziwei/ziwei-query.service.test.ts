@@ -132,6 +132,7 @@ describe("Zi Wei query service", () => {
       expect(result.value).not.toHaveProperty("evidence");
       expect(result.value.birthSummary).not.toHaveProperty("consentVersion");
       expect(result.value.birthSummary).not.toHaveProperty("location");
+      expect(result.value.birthSummary).not.toHaveProperty("displayName");
     }
   });
 
@@ -157,6 +158,29 @@ describe("Zi Wei query service", () => {
       value: expect.objectContaining({
         birthSummary: expect.objectContaining({
           placeLabel: "Hà Nội, Việt Nam",
+        }),
+      }),
+    });
+  });
+
+  it("includes displayName in birthSummary when present in authorized revision", async () => {
+    const store = repository({
+      readAuthorizedChart: vi.fn().mockResolvedValue(
+        record({
+          originalInput: {
+            ...profileOriginalInput,
+            displayName: "Nguyen Van A",
+          },
+        }),
+      ),
+    });
+    const service = createZiweiQueryService({ repository: store, now: () => now });
+    const result = await service.readChart(account, "chart-1");
+    expect(result).toEqual({
+      ok: true,
+      value: expect.objectContaining({
+        birthSummary: expect.objectContaining({
+          displayName: "Nguyen Van A",
         }),
       }),
     });
@@ -223,6 +247,61 @@ describe("Zi Wei query service", () => {
     });
     await expect(service.selectTopic(account, "chart-1", {
       sku: "ZIWEI-RELATIONSHIP-P0",
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "SKU_UNAVAILABLE" },
+    });
+  });
+
+  it("returns exactly two active offers in canonical order for paid topic selection (Correction check 1)", async () => {
+    const service = createZiweiQueryService({ repository: repository(), now: () => now });
+
+    const selectionResult = await service.listTopics(account, "chart-1");
+    expect(selectionResult.ok).toBe(true);
+    if (!selectionResult.ok) return;
+
+    const offers = selectionResult.value.offers;
+    expect(offers).toHaveLength(2);
+
+    // Canonical order: 19k excerpt first, then 79k comprehensive
+    expect(offers[0]).toEqual({
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      method: "ziwei",
+      price: 19000,
+      currency: "VND",
+      sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+    });
+    expect(offers[1]).toEqual({
+      sku: "ZIWEI-IDENTITY-P0",
+      method: "ziwei",
+      price: 79000,
+      currency: "VND",
+      sections: ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"],
+    });
+
+    // Selecting 19k excerpt succeeds
+    const select19k = await service.selectTopic(account, "chart-1", {
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+    });
+    expect(select19k.ok).toBe(true);
+
+    // Selecting 79k comprehensive succeeds
+    const select79k = await service.selectTopic(account, "chart-1", {
+      sku: "ZIWEI-IDENTITY-P0",
+    });
+    expect(select79k.ok).toBe(true);
+
+    // Selecting reserved SKU is rejected before DB access
+    await expect(service.selectTopic(account, "chart-1", {
+      sku: "ZIWEI-CAREER-P0",
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "SKU_UNAVAILABLE" },
+    });
+
+    // Selecting arbitrary SKU is rejected
+    await expect(service.selectTopic(account, "chart-1", {
+      sku: "ARBITRARY-SKU",
     })).resolves.toMatchObject({
       ok: false,
       error: { code: "SKU_UNAVAILABLE" },

@@ -1,4 +1,4 @@
-﻿export type PaymentInstructions = {
+export type PaymentInstructions = {
   bankCode: string;
   accountNumber: string;
   accountHolder: string;
@@ -15,14 +15,15 @@ export function createPaymentInstructions(input: {
   accountHolder: string;
   amount: number;
   currency: "VND";
-  invoiceNumber: string;
+  paymentCode: string;
   createdAt: Date;
   orderTtlSeconds: number;
+  creditExpiresAt?: Date | null;
 }): PaymentInstructions {
   const bankCode = input.bankCode.trim();
   const accountNumber = input.accountNumber.trim();
   const accountHolder = input.accountHolder.trim();
-  const invoiceNumber = input.invoiceNumber.trim();
+  const paymentCode = input.paymentCode.trim();
 
   if (!bankCode || bankCode.length > 64) {
     throw new Error("Invalid bank code");
@@ -33,8 +34,8 @@ export function createPaymentInstructions(input: {
   if (!accountHolder || accountHolder.length > 128) {
     throw new Error("Invalid account holder");
   }
-  if (!invoiceNumber || invoiceNumber.length > 128) {
-    throw new Error("Invalid invoice number");
+  if (!paymentCode || paymentCode.length > 128) {
+    throw new Error("Invalid payment code");
   }
   if (input.currency !== "VND") {
     throw new Error("Currency must be VND");
@@ -64,11 +65,17 @@ export function createPaymentInstructions(input: {
   qrUrlObj.searchParams.set("acc", accountNumber);
   qrUrlObj.searchParams.set("bank", bankCode);
   qrUrlObj.searchParams.set("amount", String(input.amount));
-  qrUrlObj.searchParams.set("des", invoiceNumber);
+  qrUrlObj.searchParams.set("des", paymentCode);
   qrUrlObj.searchParams.set("template", "compact");
 
-  const expiresAtMs = input.createdAt.getTime() + input.orderTtlSeconds * 1000;
-  const expiresAt = new Date(expiresAtMs).toISOString();
+  const normalExpiresAtMs = input.createdAt.getTime() + input.orderTtlSeconds * 1000;
+  const effectiveExpiresAtMs =
+    input.creditExpiresAt instanceof Date &&
+    !Number.isNaN(input.creditExpiresAt.getTime()) &&
+    input.creditExpiresAt.getTime() < normalExpiresAtMs
+      ? input.creditExpiresAt.getTime()
+      : normalExpiresAtMs;
+  const expiresAt = new Date(effectiveExpiresAtMs).toISOString();
 
   return {
     bankCode,
@@ -76,7 +83,7 @@ export function createPaymentInstructions(input: {
     accountHolder,
     amount: input.amount,
     currency: "VND",
-    transferDescription: invoiceNumber,
+    transferDescription: paymentCode,
     qrUrl: qrUrlObj.toString(),
     expiresAt,
   };

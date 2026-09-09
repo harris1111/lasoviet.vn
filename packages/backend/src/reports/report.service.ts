@@ -6,6 +6,7 @@ import {
   reportQueueJobs,
   reportReservations,
   reportVersions,
+  commerceAlertDeliveries,
   type Database,
 } from "@lasoviet/database";
 import type {
@@ -534,6 +535,24 @@ export function createReportService(database: Database) {
           idempotencyKey,
           payload: failedPayload,
         });
+
+        const alertIdempotencyKey = `report-terminal-failure:${failureToken}`;
+        await tx
+          .insert(commerceAlertDeliveries)
+          .values({
+            idempotencyKey: alertIdempotencyKey,
+            alertKind: "report_terminal_failure",
+            payload: {
+              reportVersionId: params.reportVersionId,
+              failureStage,
+              errorCode: params.errorCode,
+              failedAt: current.toISOString(),
+              idempotencyKey: alertIdempotencyKey,
+            },
+            status: "pending",
+            createdAt: current,
+            updatedAt: current,
+          });
 
         return { ok: true };
       });

@@ -109,6 +109,20 @@
   "continue": "Tiếp tục",
   "submit": "Lập lá số",
   "submitting": "Đang lập lá số...",
+  "saveProfile": "Lưu hồ sơ",
+  "savingProfile": "Đang lưu hồ sơ...",
+  "unknownTimeSaved": {
+    "title": "Đã lưu hồ sơ sinh",
+    "savedConfirmation": "Thông tin sinh của bạn đã được lưu an toàn trên trình duyệt.",
+    "savedConfirmationSessionOnly": "Thông tin sinh đã được ghi nhận trong phiên hiện tại.",
+    "requirement": "Để lập lá số và xem bản luận giải Tử Vi chuyên sâu, bạn cần biết tối thiểu khung giờ sinh theo 12 Địa Chi (khung 2 tiếng).",
+    "guidanceTitle": "Gợi ý cách tìm lại giờ sinh:",
+    "sourceCertificate": "Giấy khai sinh hoặc trích lục hộ tịch bản gốc",
+    "sourceHospital": "Hồ sơ bệnh viện hoặc sổ theo dõi lúc chào đời",
+    "sourceFamily": "Người thân trong gia đình (cha mẹ, ông bà nhớ thời điểm sinh)",
+    "addTimeAction": "Bổ sung giờ sinh ngay",
+    "homeAction": "Về trang chủ (đã lưu hồ sơ)"
+  },
   "errors": {
     "profile": "Không thể lưu thông tin sinh. Hãy kiểm tra lại và thử lại.",
     "gender": "Hãy chọn giới tính dùng để lập lá số.",

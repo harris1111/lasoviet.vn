@@ -491,4 +491,40 @@ describe("V2 reusable 24-hour birth cache", () => {
     expect(local.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
     expect(session.removeItem).toHaveBeenCalledWith(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
   });
+
+  it("stores, trims, and reads displayName in V2 birth cache", () => {
+    const local = createMockStorage();
+    const saved = saveBirthCache(
+      {
+        date: "1994-04-12",
+        time: { precision: "exact_minute", hour: "9", minute: "5" },
+        displayName: "  Nguyen Van A  ",
+      },
+      { localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(true);
+    const read = readBirthCache({ localStorage: local, now: fixedNow + 3600000 });
+    expect(read).toEqual({
+      version: BIRTH_CACHE_VERSION_V2,
+      date: "1994-04-12",
+      time: { precision: "exact_minute", hour: "09", minute: "05" },
+      displayName: "Nguyen Van A",
+      createdAt: fixedNow,
+    });
+  });
+
+  it("removes V2 cache and returns null when stored displayName is non-string", () => {
+    const localCorrupt = createMockStorage({
+      [BIRTH_CACHE_STORAGE_KEY_V2]: JSON.stringify({
+        version: 2,
+        date: "1994-04-12",
+        time: { precision: "exact_minute", hour: "09", minute: "05" },
+        displayName: 12345,
+        createdAt: fixedNow,
+      }),
+    });
+    expect(readBirthCache({ localStorage: localCorrupt, now: fixedNow })).toBeNull();
+    expect(localCorrupt.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
+  });
 });

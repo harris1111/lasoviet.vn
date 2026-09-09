@@ -1,9 +1,9 @@
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
-import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
-import type { CurrentActor } from "@lasoviet/contracts";
+import { CommerceSkuSchema, PaymentSelfClaimRequestV1Schema, type CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
 
 import { ActorTokenError, verifyInternalActorToken } from "../auth/internal-actor.guard.js";
@@ -55,7 +55,7 @@ export class CommerceController {
 
   private repository() {
     return createDatabaseCommerceRepository(this.database, {
-      orderTtlSeconds: this.orderTtlSeconds ?? 900,
+      orderTtlSeconds: this.orderTtlSeconds ?? 86400,
     });
   }
 
@@ -69,9 +69,10 @@ export class CommerceController {
   }
 
   private buildPaymentInstructions(order: {
-    invoiceNumber: string;
+    paymentCode: string;
     amount: number;
     createdAt: Date;
+    creditExpiresAt?: Date | null;
   }): PaymentInstructions {
     return createPaymentInstructions({
       bankCode: this.bankCode ?? "",
@@ -79,9 +80,10 @@ export class CommerceController {
       accountHolder: this.accountHolder ?? "",
       amount: order.amount,
       currency: "VND",
-      invoiceNumber: order.invoiceNumber,
+      paymentCode: order.paymentCode,
       createdAt: order.createdAt,
-      orderTtlSeconds: this.orderTtlSeconds ?? 900,
+      orderTtlSeconds: this.orderTtlSeconds ?? 86400,
+      creditExpiresAt: order.creditExpiresAt ?? null,
     });
   }
 
@@ -91,14 +93,24 @@ export class CommerceController {
     if (typeof body !== "object" || body === null || !("chartId" in body) || !("sku" in body) || !("locale" in body) || typeof body.chartId !== "string" || typeof body.sku !== "string" || (body.locale !== "vi" && body.locale !== "en")) {
       return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
     }
+    const skuResult = CommerceSkuSchema.safeParse(body.sku);
+    if (!skuResult.success) {
+      return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
+    }
+    if (skuResult.data === "ZIWEI-NATAL-EXCERPT-P0" && body.locale === "en") {
+      return { ok: false, error: { code: "COMMERCE_ORDER_INVALID" } };
+    }
     const actor = await this.actor(authorization);
-    const result = await this.repository().createOrder(actor, body.chartId, body.sku, body.locale);
+    const result = await this.repository().createOrder(actor, body.chartId, skuResult.data, body.locale);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") {
         throw new UnauthorizedException({ code: result.code });
       }
       if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") {
         throw new ForbiddenException({ code: result.code });
+      }
+      if (result.code === "CHECKOUT_PAYMENTS_PAUSED") {
+        throw new ServiceUnavailableException({ code: result.code });
       }
       return { ok: false, error: { code: result.code } };
     }
@@ -107,6 +119,7 @@ export class CommerceController {
         if (result.value.status === "pending") {
           const paidResult = await this.repository().recordPaid({
             invoiceNumber: result.value.invoiceNumber,
+            matchMethod: "invoice_number",
             providerEventId: `disabled-autopay:${result.value.id}`,
             amount: result.value.amount,
             currency: result.value.currency,
@@ -159,6 +172,20 @@ export class CommerceController {
     };
   }
 
+  @Get(["library", "account/library"])
+  async library(@Headers("authorization") authorization: string | undefined) {
+    const actor = await this.actor(authorization);
+    const value = await this.repository().readAccountLibrary(actor);
+    return { ok: true, value };
+  }
+
+  @Get(["orders", "history", "order-history"])
+  async history(@Headers("authorization") authorization: string | undefined) {
+    const actor = await this.actor(authorization);
+    const value = await this.repository().readOrderHistory(actor);
+    return { ok: true, value };
+  }
+
   @Get("orders/:orderId")
   async read(@Headers("authorization") authorization: string | undefined, @Param("orderId") orderId: string) {
     const projection = await this.repository().readOrderProjection(await this.actor(authorization), orderId);
@@ -182,6 +209,48 @@ export class CommerceController {
         };
   }
 
+  @Post("payments/self-claim")
+  @HttpCode(HttpStatus.OK)
+  async selfClaim(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const parsed = PaymentSelfClaimRequestV1Schema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ code: "PAYMENT_CLAIM_INVALID" });
+    }
+    let actor: CurrentActor;
+    try {
+      actor = await this.actor(authorization);
+    } catch {
+      throw new UnauthorizedException({ code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" });
+    }
+    const result = await this.repository().claimUnmatchedPayment(actor, {
+      amount: parsed.data.amount,
+      transferredAtLocal: parsed.data.transferredAtLocal,
+    });
+    if (!result.ok) {
+      switch (result.code) {
+        case "PAYMENT_CLAIM_INVALID":
+          throw new BadRequestException({ code: result.code });
+        case "PAYMENT_CLAIM_ACCOUNT_REQUIRED":
+          throw new UnauthorizedException({ code: result.code });
+        case "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED":
+          throw new ForbiddenException({ code: result.code });
+        case "PAYMENT_CLAIM_RATE_LIMITED":
+          throw new HttpException({ code: result.code }, HttpStatus.TOO_MANY_REQUESTS);
+        case "PAYMENT_CLAIM_NOT_FOUND":
+          throw new NotFoundException({ code: result.code });
+        default:
+          throw new NotFoundException({ code: "PAYMENT_CLAIM_NOT_FOUND" });
+      }
+    }
+    return {
+      ok: true,
+      value: result.value,
+    };
+  }
+
   @Post("webhooks/sepay")
   @HttpCode(HttpStatus.OK)
   async webhook(
@@ -197,10 +266,12 @@ export class CommerceController {
     if (!equal(ingress, this.ingressSecret)) throw new UnauthorizedException({ code: "INGRESS_AUTH_INVALID" });
     const rawBody = request.rawBody?.toString("utf8");
     if (rawBody === undefined) throw new BadRequestException({ code: "SEPAY_RAW_BODY_MISSING" });
+    const repo = this.repository();
     const result = await createSePayWebhookService({
       secretKey: this.sepaySecret ?? "",
       webhookSecret: this.sepayWebhookSecret ?? "",
-      recordPaid: (input) => this.repository().recordPaid(input),
+      recordPaid: (input) => repo.recordPaid(input),
+      recordUnmatched: (input) => repo.recordUnmatched(input),
     }).handle({
       rawBody,
       secretHeader: secret,

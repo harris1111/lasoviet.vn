@@ -1,17 +1,33 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
+import type { EntitlementScope, OrderStatus } from "@lasoviet/contracts";
 import {
+  birthProfileRevisions,
+  birthProfiles,
   commerceEntitlements,
+  commerceOrders,
   evidenceItems,
+  evidenceSets,
   reportReservations,
   reportVersions,
+  ziweiChartVersions,
+  ziweiCharts,
   type Database,
 } from "@lasoviet/database";
 
 export type AuthorizedReportQueryRecord = {
   reservation: typeof reportReservations.$inferSelect;
+  order: typeof commerceOrders.$inferSelect;
   version: typeof reportVersions.$inferSelect | null;
   evidenceItems: Array<typeof evidenceItems.$inferSelect>;
+  entitlements?: Array<{
+    id: string;
+    orderId: string;
+    chartId: string;
+    sku: string;
+    scope: EntitlementScope;
+    orderStatus: OrderStatus;
+  }>;
 };
 
 export type ReportQueryRepository = {
@@ -30,19 +46,66 @@ export function createDatabaseReportQueryRepository(
         return null;
       }
 
-      const [reservation] = await database
+      const [record] = await database
         .select({
           reservation: reportReservations,
+          entitlement: commerceEntitlements,
+          order: commerceOrders,
+          chart: ziweiCharts,
+          profile: birthProfiles,
+          revision: birthProfileRevisions,
+          chartVersion: ziweiChartVersions,
         })
         .from(reportReservations)
         .innerJoin(
           commerceEntitlements,
-          eq(reportReservations.entitlementId, commerceEntitlements.id),
+          and(
+            eq(commerceEntitlements.id, reportReservations.entitlementId),
+            eq(commerceEntitlements.ownerId, ownerId),
+          ),
+        )
+        .innerJoin(
+          commerceOrders,
+          and(
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+            eq(commerceOrders.ownerId, ownerId),
+            eq(commerceOrders.chartId, commerceEntitlements.chartId),
+          ),
+        )
+        .innerJoin(
+          ziweiCharts,
+          eq(ziweiCharts.id, commerceEntitlements.chartId),
+        )
+        .innerJoin(
+          birthProfiles,
+          and(
+            eq(birthProfiles.id, ziweiCharts.profileId),
+            eq(birthProfiles.userId, ownerId),
+            isNull(birthProfiles.deletedAt),
+          ),
+        )
+        .innerJoin(
+          birthProfileRevisions,
+          and(
+            eq(birthProfileRevisions.id, ziweiCharts.profileRevisionId),
+            eq(birthProfileRevisions.profileId, birthProfiles.id),
+          ),
+        )
+        .innerJoin(
+          ziweiChartVersions,
+          and(
+            eq(ziweiChartVersions.id, commerceOrders.chartVersionId),
+            eq(ziweiChartVersions.chartId, ziweiCharts.id),
+          ),
         )
         .where(
           and(
             eq(reportReservations.reportId, reportId),
-            eq(commerceEntitlements.ownerId, ownerId),
+            eq(reportReservations.chartVersionId, commerceOrders.chartVersionId),
+            eq(reportReservations.sku, commerceEntitlements.sku),
+            eq(commerceOrders.sku, commerceEntitlements.sku),
+            eq(reportReservations.sku, commerceOrders.sku),
+            eq(reportReservations.locale, commerceOrders.locale),
           ),
         )
         .orderBy(
@@ -51,11 +114,18 @@ export function createDatabaseReportQueryRepository(
         )
         .limit(1);
 
-      if (!reservation) {
+      if (!record) {
         return null;
       }
 
-      const reservationRecord = reservation.reservation;
+      if (
+        record.order.sku !== record.entitlement.sku ||
+        record.entitlement.sku !== record.reservation.sku
+      ) {
+        return null;
+      }
+
+      const reservationRecord = record.reservation;
 
       const [version] = await database
         .select()
@@ -65,19 +135,111 @@ export function createDatabaseReportQueryRepository(
         )
         .limit(1);
 
-      let evidenceList: Array<typeof evidenceItems.$inferSelect> = [];
       if (version) {
-        evidenceList = await database
+        if (
+          version.reportId !== reservationRecord.reportId ||
+          version.reportVersionId !== reservationRecord.reportVersionId ||
+          version.entitlementId !== record.entitlement.id ||
+          version.chartVersionId !== record.order.chartVersionId ||
+          version.evidenceVersionId !== reservationRecord.evidenceVersionId ||
+          version.knowledgeVersionId !== reservationRecord.knowledgeVersionId ||
+          version.promptVersion !== reservationRecord.promptVersion ||
+          version.reportConfigVersion !== reservationRecord.reportConfigVersion ||
+          version.locale !== reservationRecord.locale ||
+          version.sku !== reservationRecord.sku ||
+          version.sku !== record.order.sku ||
+          version.sku !== record.entitlement.sku
+        ) {
+          return null;
+        }
+
+        const [evidenceSet] = await database
+          .select({
+            id: evidenceSets.id,
+            chartVersionId: evidenceSets.chartVersionId,
+          })
+          .from(evidenceSets)
+          .where(
+            and(
+              eq(evidenceSets.id, version.evidenceVersionId),
+              eq(evidenceSets.chartVersionId, record.order.chartVersionId),
+            ),
+          )
+          .limit(1);
+
+        if (!evidenceSet) {
+          return null;
+        }
+
+        const evidenceList = await database
           .select()
           .from(evidenceItems)
           .where(eq(evidenceItems.evidenceSetId, version.evidenceVersionId))
           .orderBy(evidenceItems.evidenceKey);
+
+        const chartEntitlements = await database
+          .select({
+            id: commerceEntitlements.id,
+            orderId: commerceEntitlements.orderId,
+            chartId: commerceEntitlements.chartId,
+            sku: commerceEntitlements.sku,
+            scope: commerceEntitlements.scope,
+            orderStatus: commerceOrders.status,
+          })
+          .from(commerceEntitlements)
+          .innerJoin(
+            commerceOrders,
+            and(
+              eq(commerceOrders.id, commerceEntitlements.orderId),
+              eq(commerceOrders.ownerId, ownerId),
+            ),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.ownerId, ownerId),
+              eq(commerceEntitlements.chartId, record.entitlement.chartId),
+            ),
+          );
+
+        return {
+          reservation: reservationRecord,
+          order: record.order,
+          version,
+          evidenceItems: evidenceList,
+          entitlements: chartEntitlements as any,
+        };
       }
+
+      const chartEntitlements = await database
+        .select({
+          id: commerceEntitlements.id,
+          orderId: commerceEntitlements.orderId,
+          chartId: commerceEntitlements.chartId,
+          sku: commerceEntitlements.sku,
+          scope: commerceEntitlements.scope,
+          orderStatus: commerceOrders.status,
+        })
+        .from(commerceEntitlements)
+        .innerJoin(
+          commerceOrders,
+          and(
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+            eq(commerceOrders.ownerId, ownerId),
+          ),
+        )
+        .where(
+          and(
+            eq(commerceEntitlements.ownerId, ownerId),
+            eq(commerceEntitlements.chartId, record.entitlement.chartId),
+          ),
+        );
 
       return {
         reservation: reservationRecord,
-        version: version ?? null,
-        evidenceItems: evidenceList,
+        order: record.order,
+        version: null,
+        evidenceItems: [],
+        entitlements: chartEntitlements as any,
       };
     },
   };

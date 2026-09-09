@@ -83,11 +83,13 @@ function chartView(record: Awaited<ReturnType<ZiweiQueryRepository["readAuthoriz
   const placeLabel =
     normalizedProfile.data.normalizedPlaceLabel ??
     normalizedProfile.data.originalInput.placeLabel;
+  const displayName = normalizedProfile.data.originalInput.displayName;
   const birthSummary: ZiweiBirthSummaryV1 = {
     normalizedCalendar: normalizedProfile.data.normalizedCalendar,
     normalizedTime: normalizedProfile.data.normalizedTime,
     timezoneProvenance: normalizedProfile.data.timezoneProvenance,
     ...(placeLabel ? { placeLabel } : {}),
+    ...(displayName ? { displayName } : {}),
     ...(normalizedProfile.data.originalInput.gender
       ? { gender: normalizedProfile.data.originalInput.gender }
       : {}),
@@ -140,15 +142,29 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
     return record === null ? error("CHART_NOT_FOUND") : record;
   }
 
+  const CANONICAL_OFFER_SKUS: readonly string[] = [
+    "ZIWEI-NATAL-EXCERPT-P0",
+    "ZIWEI-IDENTITY-P0",
+  ];
+
   function topicView(
     chartId: string,
     chartVersionId: string,
   ): PaidTopicSelectionViewV1 {
+    const sortedOffers = productCatalog
+      .firstPaidOffers()
+      .slice()
+      .sort((a, b) => {
+        const idxA = CANONICAL_OFFER_SKUS.indexOf(a.sku);
+        const idxB = CANONICAL_OFFER_SKUS.indexOf(b.sku);
+        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+      });
+
     const view = PaidTopicSelectionViewV1Schema.safeParse({
       version: 1,
       chartId,
       chartVersionId,
-      offers: productCatalog.firstPaidOffers().map((offer) => ({
+      offers: sortedOffers.map((offer) => ({
         sku: offer.sku,
         method: offer.method,
         price: offer.price,

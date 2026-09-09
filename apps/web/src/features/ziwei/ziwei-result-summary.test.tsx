@@ -156,4 +156,36 @@ describe("ZiweiResultSummary", () => {
     expect(html).not.toContain("Nơi sinh");
     expect(html).not.toContain("Birth place");
   });
+
+  it("renders displayName in Vietnamese when provided", () => {
+    const html = renderToStaticMarkup(
+      <ZiweiResultSummary
+        chart={chart}
+        birthSummary={{ ...birthSummary, displayName: "Nguyễn Văn A" }}
+        locale="vi"
+      />,
+    );
+    expect(html).toContain("Họ và tên");
+    expect(html).toContain("Nguyễn Văn A");
+  });
+
+  it("renders displayName in English when provided", () => {
+    const html = renderToStaticMarkup(
+      <ZiweiResultSummary
+        chart={chart}
+        birthSummary={{ ...birthSummary, displayName: "Alice Wonderland" }}
+        locale="en"
+      />,
+    );
+    expect(html).toContain("Full name");
+    expect(html).toContain("Alice Wonderland");
+  });
+
+  it("does not render displayName row when displayName is absent", () => {
+    const html = renderToStaticMarkup(
+      <ZiweiResultSummary chart={chart} birthSummary={birthSummary} locale="vi" />,
+    );
+    expect(html).not.toContain("Họ và tên");
+    expect(html).not.toContain("Full name");
+  });
 });

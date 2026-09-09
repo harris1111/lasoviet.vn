@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { ReportComprehensiveReadyViewV1 } from "@lasoviet/contracts";
+import type {
+  ComprehensiveReportTier2PublicContentV1,
+  ReportComprehensiveReadyViewV1,
+} from "@lasoviet/contracts";
 
 import { ArtifactImage } from "../../components/artifact-image";
 
@@ -10,6 +13,12 @@ export type ComprehensiveReportReaderProps = {
   locale: "vi";
   report: ReportComprehensiveReadyViewV1;
 };
+
+function isTier2Content(
+  content: ReportComprehensiveReadyViewV1["content"],
+): content is ComprehensiveReportTier2PublicContentV1 {
+  return "keyConfigurations" in content && Array.isArray((content as any).keyConfigurations);
+}
 
 const FONT_CLASSES = ["reader-font-sm", "reader-font-md", "reader-font-lg"] as const;
 
@@ -34,8 +43,18 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
     [t],
   );
 
-  const tocSections = useMemo(
-    () => [
+  const isTier2 = isTier2Content(report.content);
+
+  const tocSections = useMemo(() => {
+    if (!isTier2) {
+      return [
+        { id: "section-overview", title: report.content.overview.title },
+        { id: "section-core-axis", title: report.content.coreAxis.title },
+        { id: "section-strengths-tensions", title: report.content.strengthsAndTensions.title },
+        { id: "section-practical-direction", title: "Định Hướng Và Hành Động Thực Tế" },
+      ];
+    }
+    return [
       { id: "section-overview", title: report.content.overview.title },
       { id: "section-core-axis", title: report.content.coreAxis.title },
       { id: "section-key-configurations", title: "Cấu Trúc Và Cách Cục Trọng Yếu" },
@@ -43,9 +62,8 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
       { id: "section-thematic-synthesis", title: "Tổng Hợp Các Lĩnh Vực Đời Sống" },
       { id: "section-strengths-tensions", title: report.content.strengthsAndTensions.title },
       { id: "section-practical-direction", title: "Định Hướng Và Hành Động Thực Tế" },
-    ],
-    [report.content],
-  );
+    ];
+  }, [report.content, isTier2]);
 
   // Restore font size from localStorage
   useEffect(() => {
@@ -319,7 +337,7 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
             <h2 className="report-doc-title">Báo Cáo Luận Giải Toàn Diện Tử Vi</h2>
           </div>
 
-          {/* 7 Groups in Canonical Sequence */}
+          {/* Rendered groups in canonical sequence */}
           <div className="report-sections-stream">
             {/* 1. Overview */}
             <section
@@ -351,74 +369,79 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
               </div>
             </section>
 
-            {/* 3. Key Configurations */}
-            <section
-              id="section-key-configurations"
-              data-report-section
-              className="report-section-block"
-            >
-              <div className="report-section-header">
-                <span className="report-section-numeral">03</span>
-                <h3 className="report-section-title">Cấu Trúc Và Cách Cục Trọng Yếu</h3>
-              </div>
-              <div className="report-subcard-group">
-                {report.content.keyConfigurations.map((config, index) => (
-                  <article key={index} className="report-subcard">
-                    <h4 className="report-subcard-title">{config.title}</h4>
-                    <p className="report-subcard-narrative">{config.narrative}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
+            {/* Tier-2 only sections */}
+            {isTier2Content(report.content) && (
+              <>
+                {/* 3. Key Configurations */}
+                <section
+                  id="section-key-configurations"
+                  data-report-section
+                  className="report-section-block"
+                >
+                  <div className="report-section-header">
+                    <span className="report-section-numeral">03</span>
+                    <h3 className="report-section-title">Cấu Trúc Và Cách Cục Trọng Yếu</h3>
+                  </div>
+                  <div className="report-subcard-group">
+                    {report.content.keyConfigurations.map((config, index) => (
+                      <article key={index} className="report-subcard">
+                        <h4 className="report-subcard-title">{config.title}</h4>
+                        <p className="report-subcard-narrative">{config.narrative}</p>
+                      </article>
+                    ))}
+                  </div>
+                </section>
 
-            {/* 4. Twelve Palace Readings */}
-            <section
-              id="section-palace-readings"
-              data-report-section
-              className="report-section-block"
-            >
-              <div className="report-section-header">
-                <span className="report-section-numeral">04</span>
-                <h3 className="report-section-title">Luận Giải Chi Tiết Mười Hai Cung</h3>
-              </div>
-              <div className="report-subcard-group">
-                {report.content.palaceReadings.map((palace) => (
-                  <article key={palace.palaceId} id={`palace-${palace.palaceId.replace("ziwei.palace.", "")}`} className="report-subcard">
-                    <h4 className="report-subcard-title">{palace.title}</h4>
-                    <p className="report-subcard-narrative">{palace.narrative}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
+                {/* 4. Twelve Palace Readings */}
+                <section
+                  id="section-palace-readings"
+                  data-report-section
+                  className="report-section-block"
+                >
+                  <div className="report-section-header">
+                    <span className="report-section-numeral">04</span>
+                    <h3 className="report-section-title">Luận Giải Chi Tiết Mười Hai Cung</h3>
+                  </div>
+                  <div className="report-subcard-group">
+                    {report.content.palaceReadings.map((palace) => (
+                      <article key={palace.palaceId} id={`palace-${palace.palaceId.replace("ziwei.palace.", "")}`} className="report-subcard">
+                        <h4 className="report-subcard-title">{palace.title}</h4>
+                        <p className="report-subcard-narrative">{palace.narrative}</p>
+                      </article>
+                    ))}
+                  </div>
+                </section>
 
-            {/* 5. Four Thematic Synthesis Sections */}
-            <section
-              id="section-thematic-synthesis"
-              data-report-section
-              className="report-section-block"
-            >
-              <div className="report-section-header">
-                <span className="report-section-numeral">05</span>
-                <h3 className="report-section-title">Tổng Hợp Các Lĩnh Vực Đời Sống</h3>
-              </div>
-              <div className="report-subcard-group">
-                {report.content.thematicSynthesis.map((theme) => (
-                  <article key={theme.id} id={`theme-${theme.id}`} className="report-subcard">
-                    <h4 className="report-subcard-title">{theme.title}</h4>
-                    <p className="report-subcard-narrative">{theme.narrative}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
+                {/* 5. Four Thematic Synthesis Sections */}
+                <section
+                  id="section-thematic-synthesis"
+                  data-report-section
+                  className="report-section-block"
+                >
+                  <div className="report-section-header">
+                    <span className="report-section-numeral">05</span>
+                    <h3 className="report-section-title">Tổng Hợp Các Lĩnh Vực Đời Sống</h3>
+                  </div>
+                  <div className="report-subcard-group">
+                    {report.content.thematicSynthesis.map((theme) => (
+                      <article key={theme.id} id={`theme-${theme.id}`} className="report-subcard">
+                        <h4 className="report-subcard-title">{theme.title}</h4>
+                        <p className="report-subcard-narrative">{theme.narrative}</p>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              </>
+            )}
 
-            {/* 6. Strengths and Tensions */}
+            {/* Strengths and Tensions: 03 in Tier-1, 06 in Tier-2 */}
             <section
               id="section-strengths-tensions"
               data-report-section
               className="report-section-block"
             >
               <div className="report-section-header">
-                <span className="report-section-numeral">06</span>
+                <span className="report-section-numeral">{isTier2 ? "06" : "03"}</span>
                 <h3 className="report-section-title">{report.content.strengthsAndTensions.title}</h3>
               </div>
               <div className="report-section-narrative">
@@ -426,14 +449,14 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
               </div>
             </section>
 
-            {/* 7. Practical Direction */}
+            {/* Practical Direction: 04 in Tier-1, 07 in Tier-2 */}
             <section
               id="section-practical-direction"
               data-report-section
               className="report-section-block"
             >
               <div className="report-section-header">
-                <span className="report-section-numeral">07</span>
+                <span className="report-section-numeral">{isTier2 ? "07" : "04"}</span>
                 <h3 className="report-section-title">Định Hướng Và Hành Động Thực Tế</h3>
               </div>
               <ul className="report-directions-list">

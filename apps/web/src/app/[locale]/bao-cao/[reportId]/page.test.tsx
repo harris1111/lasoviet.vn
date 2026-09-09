@@ -175,6 +175,12 @@ const mockFailed: ReportFailedViewV1 = {
   locale: "vi",
   sku: "ZIWEI-IDENTITY-P0",
   fulfillmentStatus: "terminal_failure",
+  invoiceNumber: "LSV-INV-FAILED-1",
+  paymentReceivedAt: "2026-09-08T10:00:00.000Z",
+  reportStatusUpdatedAt: "2026-09-08T10:05:00.000Z",
+  supportEmail: "support@lasoviet.vn",
+  supportSubject: "Yêu cầu hỗ trợ báo cáo LSV-INV-FAILED-1",
+  supportReference: "REF-FAILED-1",
 };
 
 describe("ReportPage", () => {
@@ -299,6 +305,16 @@ describe("ReportPage", () => {
 
     expect(html).toContain('role="alert"');
     expect(html).toContain("Chưa thể hoàn tất báo cáo");
+    expect(html).toContain("LSV-INV-FAILED-1");
+    expect(html).toContain("REF-FAILED-1");
+    expect(html).toContain("17:00 08/09/2026");
+    expect(html).toContain("17:05 08/09/2026");
+    expect(html).toContain("Bước xử lý tiếp theo");
+    expect(html).toContain("mailto:support@lasoviet.vn?");
+    expect(html).toContain(encodeURIComponent("LSV-INV-FAILED-1"));
+    expect(html).toContain(encodeURIComponent("REF-FAILED-1"));
+    expect(html).not.toContain("rep-failed-1");
+    expect(html).not.toContain("rep-ver-f-1");
     expect(html).not.toContain("lastErrorCode");
     expect(html).not.toContain("terminal_failure");
   });

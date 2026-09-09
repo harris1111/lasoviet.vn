@@ -74,6 +74,10 @@ export type AppEnvironment = {
   smtp: SmtpEnvironment;
   cloudS3: CloudS3Environment;
   sepay: SePayEnvironment;
+  telegram?: {
+    botToken: string;
+    chatId: string;
+  };
 };
 
 const trimmedNonEmpty = z.string().trim().min(1);
@@ -192,6 +196,13 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     smtp: SmtpEnvironmentSchema,
     cloudS3: CloudS3EnvironmentSchema,
     sepay: SePayEnvironmentSchema,
+    telegram: z
+      .object({
+        botToken: trimmedNonEmpty,
+        chatId: trimmedNonEmpty,
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((environment, context) => {

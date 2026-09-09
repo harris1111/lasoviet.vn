@@ -14,6 +14,14 @@ import {
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
   type ZiweiComprehensiveReportContentV1,
 } from "./ziwei-comprehensive-report-v1.js";
+import {
+  CommerceSkuSchema,
+  ComprehensiveReportSectionIdSchema,
+  type ComprehensiveReportSectionId,
+  type EntitlementScope,
+  TIER_2_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS,
+} from "./commerce.js";
 
 
 export const IDENTITY_REPORT_SECTION_IDS = [
@@ -173,7 +181,7 @@ export const ReportPendingViewV1Schema = z.object({
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: z.literal("ZIWEI-IDENTITY-P0"),
+  sku: CommerceSkuSchema,
   fulfillmentStatus: z.enum(REPORT_PENDING_STATUSES),
   refreshAfterMs: z.literal(5000),
 }).strict();
@@ -223,7 +231,20 @@ export const ComprehensiveReportStrengthsAndTensionsSectionSchema = z
   })
   .strict();
 
-export const ComprehensiveReportPublicContentV1Schema = z
+export const ComprehensiveReportTier1PublicContentV1Schema = z
+  .object({
+    overview: ComprehensiveReportOverviewSectionSchema,
+    coreAxis: ComprehensiveReportCoreAxisSectionSchema,
+    strengthsAndTensions: ComprehensiveReportStrengthsAndTensionsSectionSchema,
+    practicalDirection: z.array(z.string().trim().min(1).max(1_000)).min(1).max(10),
+    lockedSections: z.array(ComprehensiveReportSectionIdSchema).min(1),
+  })
+  .strict();
+export type ComprehensiveReportTier1PublicContentV1 = z.infer<
+  typeof ComprehensiveReportTier1PublicContentV1Schema
+>;
+
+export const ComprehensiveReportTier2PublicContentV1Schema = z
   .object({
     overview: ComprehensiveReportOverviewSectionSchema,
     coreAxis: ComprehensiveReportCoreAxisSectionSchema,
@@ -234,13 +255,69 @@ export const ComprehensiveReportPublicContentV1Schema = z
     practicalDirection: z.array(z.string().trim().min(1).max(1_000)).min(1).max(10),
   })
   .strict();
-export type ComprehensiveReportPublicContentV1 = z.infer<
+export type ComprehensiveReportKeyConfigurationItem = z.infer<
+  typeof ComprehensiveReportKeyConfigurationItemSchema
+>;
+export type ComprehensiveReportPalaceReadingItem = z.infer<
+  typeof ComprehensiveReportPalaceReadingItemSchema
+>;
+export type ComprehensiveReportThematicSynthesisItem = z.infer<
+  typeof ComprehensiveReportThematicSynthesisItemSchema
+>;
+
+export type ComprehensiveReportTier2PublicContentV1 = z.infer<
+  typeof ComprehensiveReportTier2PublicContentV1Schema
+>;
+
+export const ComprehensiveReportPublicContentV1Schema = z.union([
+  ComprehensiveReportTier2PublicContentV1Schema,
+  ComprehensiveReportTier1PublicContentV1Schema,
+]);
+export type ComprehensiveReportViewContentV1 = z.infer<
   typeof ComprehensiveReportPublicContentV1Schema
 >;
+export type ComprehensiveReportPublicContentV1 = ComprehensiveReportTier2PublicContentV1;
 
 export function projectComprehensiveReportPublicContent(
   stored: ZiweiComprehensiveReportContentV1,
-): ComprehensiveReportPublicContentV1 {
+  scope?: EntitlementScope | readonly ComprehensiveReportSectionId[] | null,
+): ComprehensiveReportViewContentV1 {
+  const sections =
+    scope === null || scope === undefined
+      ? TIER_2_SCOPE_SECTIONS
+      : "sections" in scope
+        ? scope.sections
+        : scope;
+
+  const hasTier2 =
+    sections.includes("keyConfigurations") &&
+    sections.includes("palaceReadings") &&
+    sections.includes("thematicSynthesis");
+
+  if (!hasTier2) {
+    const lockedSections = COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS.filter(
+      (sec) => !sections.includes(sec),
+    );
+    return {
+      overview: {
+        title: stored.overview.title,
+        narrative: stored.overview.narrative,
+      },
+      coreAxis: {
+        title: stored.coreAxis.title,
+        narrative: stored.coreAxis.narrative,
+      },
+      strengthsAndTensions: {
+        title: stored.strengthsAndTensions.title,
+        narrative: stored.strengthsAndTensions.narrative,
+      },
+      practicalDirection: [...stored.practicalDirection],
+      lockedSections: lockedSections.length > 0
+        ? lockedSections
+        : [...COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS],
+    };
+  }
+
   return {
     overview: {
       title: stored.overview.title,
@@ -277,7 +354,7 @@ const baseReportReadyViewV1Schema = z.object({
   state: z.literal("ready"),
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
-  sku: z.literal("ZIWEI-IDENTITY-P0"),
+  sku: CommerceSkuSchema,
   fulfillmentStatus: ReportStatusSchema,
   lineage: z.object({
     supersedesReportVersionId: z.string().trim().min(1).nullable(),
@@ -308,6 +385,24 @@ export const ReportLegacyReadyViewV1Schema = baseReportReadyViewV1Schema.extend(
 });
 export type ReportLegacyReadyViewV1 = z.infer<typeof ReportLegacyReadyViewV1Schema>;
 
+export const ReportComprehensiveTier1ReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei-comprehensive.v1"),
+  locale: z.literal("vi"),
+  content: ComprehensiveReportTier1PublicContentV1Schema,
+}).strict();
+export type ReportComprehensiveTier1ReadyViewV1 = z.infer<
+  typeof ReportComprehensiveTier1ReadyViewV1Schema
+>;
+
+export const ReportComprehensiveTier2ReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei-comprehensive.v1"),
+  locale: z.literal("vi"),
+  content: ComprehensiveReportTier2PublicContentV1Schema,
+}).strict();
+export type ReportComprehensiveTier2ReadyViewV1 = z.infer<
+  typeof ReportComprehensiveTier2ReadyViewV1Schema
+>;
+
 export const ReportComprehensiveReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
   contentVersion: z.literal("ziwei-comprehensive.v1"),
   locale: z.literal("vi"),
@@ -331,8 +426,14 @@ export const ReportFailedViewV1Schema = z.object({
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: z.literal("ZIWEI-IDENTITY-P0"),
+  sku: CommerceSkuSchema,
   fulfillmentStatus: z.literal("terminal_failure"),
+  invoiceNumber: z.string().trim().min(1),
+  paymentReceivedAt: z.iso.datetime({ offset: true }),
+  reportStatusUpdatedAt: z.iso.datetime({ offset: true }),
+  supportEmail: z.literal("support@lasoviet.vn"),
+  supportSubject: z.string().trim().min(1),
+  supportReference: z.string().trim().min(1),
 }).strict();
 export type ReportFailedViewV1 = z.infer<typeof ReportFailedViewV1Schema>;
 

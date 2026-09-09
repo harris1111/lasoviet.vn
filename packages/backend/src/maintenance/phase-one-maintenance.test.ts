@@ -53,4 +53,37 @@ describe("Phase 01 maintenance runner", () => {
       retries: 0,
     });
   });
+
+  it("integrates reconciliation operations when configured", async () => {
+    const accountDeletion = { purgeExpired: vi.fn().mockResolvedValue([]) };
+    const anonymousRetention = { purgeExpired: vi.fn().mockResolvedValue([]) };
+    const retryAuthEmail = vi.fn().mockResolvedValue(0);
+    const reconciliation = {
+      runMaintenance: vi.fn().mockResolvedValue({
+        circuitStatus: "closed" as const,
+        circuitTransitioned: false,
+        staleAlerted: 2,
+      }),
+    };
+
+    const runner = createPhaseOneMaintenanceRunner({
+      accountDeletion,
+      anonymousRetention,
+      retryAuthEmail,
+      reconciliation,
+    });
+
+    const result = await runner.runOnce();
+    expect(result).toEqual({
+      accountPurges: 0,
+      anonymousPurges: 0,
+      retries: 0,
+      reconciliation: {
+        circuitStatus: "closed",
+        circuitTransitioned: false,
+        staleAlerted: 2,
+      },
+    });
+    expect(reconciliation.runMaintenance).toHaveBeenCalledTimes(1);
+  });
 });

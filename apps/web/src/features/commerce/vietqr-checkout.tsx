@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 import { Icon } from "../../components/icon";
 import {
@@ -194,22 +195,37 @@ export type VietQrCheckoutLabels = {
   copyTransferDescription: string;
   copied: string;
   status: Record<CheckoutStatus["order"]["status"], string>;
+  noSecondTransferWarning?: string;
+  paidProcessingTitle?: string;
+  paidProcessingDescription?: string;
+  expiredTitle?: string;
+  expiredDescription?: string;
+  newChartAction?: string;
+  orderHistoryAction?: string;
+  failedTitle?: string;
+  failedDescription?: string;
+  supportAction?: string;
+  refundedTitle?: string;
+  refundedDescription?: string;
 };
 
 export type VietQrCheckoutProps = {
   initialStatus: CheckoutStatus;
   labels: VietQrCheckoutLabels;
+  selfClaim?: React.ReactNode;
 };
 
 export function VietQrCheckout({
   initialStatus,
   labels,
+  selfClaim,
 }: VietQrCheckoutProps) {
   const [status, setStatus] = useState(initialStatus);
   const [copiedField, setCopiedField] = useState<CheckoutCopyField | null>(null);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const instructions = status.paymentInstructions;
+  const isVi = status.order.locale === "vi";
 
   const [remainingTime, setRemainingTime] = useState(() =>
     instructions ? formatCheckoutRemainingTime(instructions.expiresAt) : ""
@@ -263,16 +279,143 @@ export function VietQrCheckout({
     });
   }
 
+  if (status.order.status === "paid" && status.reportId !== null) {
+    return null;
+  }
+
+  if (status.order.status === "paid" && status.reportId === null) {
+    const paidTitle = labels.paidProcessingTitle ?? (isVi ? "Đã nhận thanh toán thành công" : "Payment received successfully");
+    const paidDesc = labels.paidProcessingDescription ?? (isVi ? "Hệ thống đã ghi nhận thanh toán của bạn và đang chuẩn bị báo cáo luận giải. Vui lòng chờ trong giây lát hoặc kiểm tra lịch sử đơn hàng." : "Your payment has been recorded and your interpretation report is being prepared. Please wait a moment or check your order history.");
+    const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
+    const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+
+    return (
+      <section
+        className="vietqr-checkout-recovery vietqr-checkout-paid-processing"
+        data-checkout-status="paid"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="vietqr-recovery-content">
+          <p className="vietqr-status">{labels.status.paid}</p>
+          <h2>{paidTitle}</h2>
+          <p className="vietqr-recovery-description">{paidDesc}</p>
+          <div className="report-progress-indicator" aria-hidden="true">
+            <span className="report-progress-spinner" />
+          </div>
+          <div className="vietqr-recovery-actions">
+            <Link href={ordersPath} className="button button-secondary">
+              {orderHistoryActionLabel}
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (status.order.status === "expired") {
+    const expiredTitle = labels.expiredTitle ?? (isVi ? "Đơn hàng đã hết hạn thanh toán" : "Order expired");
+    const expiredDesc = labels.expiredDescription ?? (isVi ? "Đơn hàng này đã quá thời gian thanh toán. Thông tin đơn hàng cũ vẫn được lưu trong lịch sử giao dịch để bạn tiện tra cứu." : "This order has passed the payment window. Your previous order remains recorded in your order history for reference.");
+    const newChartActionLabel = labels.newChartAction ?? (isVi ? "Lập lá số và tạo yêu cầu mới" : "Create a new chart and request");
+    const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
+    const newChartPath = isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi";
+    const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+
+    return (
+      <section
+        className="vietqr-checkout-recovery vietqr-checkout-expired"
+        data-checkout-status="expired"
+        role="alert"
+      >
+        <div className="vietqr-recovery-content">
+          <p className="vietqr-status">{labels.status.expired}</p>
+          <h2>{expiredTitle}</h2>
+          <p className="vietqr-recovery-description">{expiredDesc}</p>
+          <div className="vietqr-recovery-actions">
+            <Link href={newChartPath} className="button button-primary">
+              {newChartActionLabel}
+            </Link>
+            <Link href={ordersPath} className="button button-secondary">
+              {orderHistoryActionLabel}
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (status.order.status === "failed") {
+    const failedTitle = labels.failedTitle ?? (isVi ? "Thanh toán chưa thành công" : "Payment was not completed");
+    const failedDesc = labels.failedDescription ?? (isVi ? "Giao dịch thanh toán cho đơn hàng này chưa thành công. Vui lòng không chuyển khoản lại cho đơn hàng này. Quý khách có thể kiểm tra lịch sử đơn hàng hoặc liên hệ hỗ trợ." : "Payment for this order was not completed. Please do not attempt another transfer for this order. You can check your order history or contact support.");
+    const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
+    const supportActionLabel = labels.supportAction ?? (isVi ? "Liên hệ hỗ trợ" : "Contact support");
+    const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+
+    return (
+      <section
+        className="vietqr-checkout-recovery vietqr-checkout-failed"
+        data-checkout-status="failed"
+        role="alert"
+      >
+        <div className="vietqr-recovery-content">
+          <p className="vietqr-status">{labels.status.failed}</p>
+          <h2>{failedTitle}</h2>
+          <p className="vietqr-recovery-description">{failedDesc}</p>
+          <div className="vietqr-recovery-actions">
+            <Link href={ordersPath} className="button button-primary">
+              {orderHistoryActionLabel}
+            </Link>
+            <a href="mailto:support@lasoviet.vn" className="button button-secondary">
+              {supportActionLabel}
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (status.order.status === "refunded") {
+    const refundedTitle = labels.refundedTitle ?? (isVi ? "Đơn hàng đã được hoàn tiền" : "Order refunded");
+    const refundedDesc = labels.refundedDescription ?? (isVi ? "Đơn hàng này đã được xử lý hoàn tiền. Quý khách có thể kiểm tra chi tiết trong lịch sử đơn hàng." : "This order has been refunded. You can review the details in your order history.");
+    const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
+    const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+
+    return (
+      <section
+        className="vietqr-checkout-recovery vietqr-checkout-refunded"
+        data-checkout-status="refunded"
+        role="status"
+      >
+        <div className="vietqr-recovery-content">
+          <p className="vietqr-status">{labels.status.refunded}</p>
+          <h2>{refundedTitle}</h2>
+          <p className="vietqr-recovery-description">{refundedDesc}</p>
+          <div className="vietqr-recovery-actions">
+            <Link href={ordersPath} className="button button-secondary">
+              {orderHistoryActionLabel}
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (instructions === null) {
     return null;
   }
 
-  const priceLocale = status.order.locale === "en" ? "en-US" : "vi-VN";
+  const priceLocale = isVi ? "vi-VN" : "en-US";
   const copyLabels: Record<CheckoutCopyField, string> = {
     accountNumber: labels.copyAccountNumber,
     amount: labels.copyAmount,
     transferDescription: labels.copyTransferDescription,
   };
+
+  const warningText = labels.noSecondTransferWarning ?? (
+    isVi
+      ? "Nếu bạn đã chuyển khoản, tuyệt đối không chuyển khoản lại. Vui lòng sử dụng biểu mẫu kiểm tra giao dịch bên dưới để hệ thống đối chiếu."
+      : "If you have already transferred, do not transfer again. Please use the verification form below to match your payment."
+  );
 
   function copyButton(field: CheckoutCopyField) {
     return (
@@ -289,75 +432,83 @@ export function VietQrCheckout({
   }
 
   return (
-    <section
-      aria-labelledby="vietqr-instructions-title"
-      className="vietqr-checkout"
-      data-checkout-status={status.order.status}
-    >
-      <figure className="vietqr-figure">
-        <div className="vietqr-image-frame">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt={labels.qrAlt}
-            className="vietqr-image"
-            height={320}
-            src={instructions.qrUrl}
-            width={320}
-          />
-        </div>
-        <figcaption>{labels.qrAlt}</figcaption>
-      </figure>
+    <>
+      <section
+        aria-labelledby="vietqr-instructions-title"
+        className="vietqr-checkout"
+        data-checkout-status="pending"
+      >
+        <figure className="vietqr-figure">
+          <div className="vietqr-image-frame">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt={labels.qrAlt}
+              className="vietqr-image"
+              height={320}
+              src={instructions.qrUrl}
+              width={320}
+            />
+          </div>
+          <figcaption>{labels.qrAlt}</figcaption>
+        </figure>
 
-      <div className="vietqr-instructions">
-        <p className="vietqr-status" role="status">
-          {labels.status[status.order.status]}
-        </p>
-        <h2 id="vietqr-instructions-title">{labels.instructionsTitle}</h2>
-        <dl className="vietqr-details">
-          <div>
-            <dt>{labels.bankCode}</dt>
-            <dd>{instructions.bankCode}</dd>
+        <div className="vietqr-instructions">
+          <p className="vietqr-status" role="status">
+            {labels.status.pending}
+          </p>
+          <h2 id="vietqr-instructions-title">{labels.instructionsTitle}</h2>
+          <dl className="vietqr-details">
+            <div>
+              <dt>{labels.bankCode}</dt>
+              <dd>{instructions.bankCode}</dd>
+            </div>
+            <div>
+              <dt>{labels.accountNumber}</dt>
+              <dd>
+                <span>{instructions.accountNumber}</span>
+                {copyButton("accountNumber")}
+              </dd>
+            </div>
+            <div>
+              <dt>{labels.accountHolder}</dt>
+              <dd>{instructions.accountHolder}</dd>
+            </div>
+            <div>
+              <dt>{labels.amount}</dt>
+              <dd>
+                <span>
+                  {instructions.amount.toLocaleString(priceLocale)}{" "}
+                  {instructions.currency}
+                </span>
+                {copyButton("amount")}
+              </dd>
+            </div>
+            <div>
+              <dt>{labels.transferDescription}</dt>
+              <dd>
+                <span>{instructions.transferDescription}</span>
+                {copyButton("transferDescription")}
+              </dd>
+            </div>
+            <div>
+              <dt>{labels.remainingTime}</dt>
+              <dd className="vietqr-time">
+                <Icon name="clock" />
+                <time dateTime={instructions.expiresAt}>{remainingTime}</time>
+              </dd>
+            </div>
+          </dl>
+          <p aria-live="polite" className="vietqr-copy-feedback">
+            {copiedField === null ? "" : labels.copied}
+          </p>
+
+          <div className="vietqr-no-second-transfer-warning" role="note">
+            <p>{warningText}</p>
           </div>
-          <div>
-            <dt>{labels.accountNumber}</dt>
-            <dd>
-              <span>{instructions.accountNumber}</span>
-              {copyButton("accountNumber")}
-            </dd>
-          </div>
-          <div>
-            <dt>{labels.accountHolder}</dt>
-            <dd>{instructions.accountHolder}</dd>
-          </div>
-          <div>
-            <dt>{labels.amount}</dt>
-            <dd>
-              <span>
-                {instructions.amount.toLocaleString(priceLocale)}{" "}
-                {instructions.currency}
-              </span>
-              {copyButton("amount")}
-            </dd>
-          </div>
-          <div>
-            <dt>{labels.transferDescription}</dt>
-            <dd>
-              <span>{instructions.transferDescription}</span>
-              {copyButton("transferDescription")}
-            </dd>
-          </div>
-          <div>
-            <dt>{labels.remainingTime}</dt>
-            <dd className="vietqr-time">
-              <Icon name="clock" />
-              <time dateTime={instructions.expiresAt}>{remainingTime}</time>
-            </dd>
-          </div>
-        </dl>
-        <p aria-live="polite" className="vietqr-copy-feedback">
-          {copiedField === null ? "" : labels.copied}
-        </p>
-      </div>
-    </section>
+        </div>
+      </section>
+
+      {selfClaim}
+    </>
   );
 }

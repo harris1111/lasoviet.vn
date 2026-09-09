@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createDatabaseReportVersionRepository } from "./report-version.repository.js";
 
+const repositoryOptions = {
+  betterAuthUrl: "https://lasoviet.vn",
+  recipientFingerprintSecret: "synthetic-secret",
+};
+
 describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
   it("returns consumed: true when reservation exists and rewriteConsumedAt is null", async () => {
     const mockDb = {
@@ -14,7 +19,10 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
       select: vi.fn(),
     };
 
-    const repo = createDatabaseReportVersionRepository(mockDb as never);
+    const repo = createDatabaseReportVersionRepository(
+      mockDb as never,
+      repositoryOptions,
+    );
     const result = await repo.consumeRewriteBudget("version-1");
 
     expect(result).toEqual({ ok: true, value: { consumed: true } });
@@ -38,7 +46,10 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
       }),
     };
 
-    const repo = createDatabaseReportVersionRepository(mockDb as never);
+    const repo = createDatabaseReportVersionRepository(
+      mockDb as never,
+      repositoryOptions,
+    );
     const result = await repo.consumeRewriteBudget("version-1");
 
     expect(result).toEqual({ ok: true, value: { consumed: false } });
@@ -62,7 +73,10 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
       }),
     };
 
-    const repo = createDatabaseReportVersionRepository(mockDb as never);
+    const repo = createDatabaseReportVersionRepository(
+      mockDb as never,
+      repositoryOptions,
+    );
     const result = await repo.consumeRewriteBudget("version-missing");
 
     expect(result).toEqual({
@@ -73,5 +87,38 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
         retryable: false,
       },
     });
+  });
+});
+
+describe("createDatabaseReportVersionRepository - notification configuration", () => {
+  const database = {} as never;
+
+  it("accepts the canonical public HTTPS origin", () => {
+    expect(() =>
+      createDatabaseReportVersionRepository(database, repositoryOptions),
+    ).not.toThrow();
+  });
+
+  it.each([
+    ["HTTP", "http://lasoviet.vn"],
+    ["private IP", "https://10.0.0.1"],
+    ["credentials", "https://user:password@lasoviet.vn"],
+    ["internal hostname", "https://reports.internal"],
+  ])("rejects %s origin", (_name, betterAuthUrl) => {
+    expect(() =>
+      createDatabaseReportVersionRepository(database, {
+        betterAuthUrl,
+        recipientFingerprintSecret: "synthetic-secret",
+      }),
+    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
+  });
+
+  it("rejects an empty recipient fingerprint secret", () => {
+    expect(() =>
+      createDatabaseReportVersionRepository(database, {
+        betterAuthUrl: "https://lasoviet.vn",
+        recipientFingerprintSecret: "   ",
+      }),
+    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
   });
 });

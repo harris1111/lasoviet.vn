@@ -1,9 +1,14 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
+import { isIP } from "node:net";
 import { isDeepStrictEqual } from "node:util";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 
 import type { IdentityReportV1, Result } from "@lasoviet/contracts";
 import {
+  authUsers,
+  commerceEntitlements,
+  commerceOrders,
+  notificationDeliveries,
   outbox,
   reportGenerationAttempts,
   reportQueueJobs,
@@ -48,6 +53,11 @@ export type StartOrReuseAttemptInput = {
 export type ImmutableReportVersionRecord = typeof reportVersions.$inferSelect;
 export type ReportGenerationAttemptRecord = typeof reportGenerationAttempts.$inferSelect;
 
+export type ReportVersionRepositoryOptions = {
+  betterAuthUrl: string;
+  recipientFingerprintSecret: string;
+};
+
 export type ReportVersionRepository = {
   getImmutableVersion(reportVersionId: string): Promise<ImmutableReportVersionRecord | null>;
   startOrReuseAttempt(input: StartOrReuseAttemptInput): Promise<Result<ReportGenerationAttemptRecord, ReportVersionConflictCode>>;
@@ -63,6 +73,51 @@ class ConflictError extends Error {
   }
 }
 
+function resolveCanonicalPublicOrigin(configuredUrl: string): string {
+  if (typeof configuredUrl !== "string" || !configuredUrl.trim()) {
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(configuredUrl.trim());
+  } catch {
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  const normalizedHostname = hostname.endsWith(".")
+    ? hostname.slice(0, -1)
+    : hostname;
+  const ipCandidate =
+    normalizedHostname.startsWith("[") && normalizedHostname.endsWith("]")
+      ? normalizedHostname.slice(1, -1)
+      : normalizedHostname;
+
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    !normalizedHostname.includes(".") ||
+    isIP(ipCandidate) !== 0 ||
+    normalizedHostname === "localhost" ||
+    normalizedHostname.endsWith(".localhost") ||
+    normalizedHostname.endsWith(".local") ||
+    normalizedHostname.endsWith(".internal")
+  ) {
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
+  }
+
+  return parsed.origin;
+}
+
+function resolveFingerprintSecret(configuredSecret: string): string {
+  if (typeof configuredSecret !== "string" || !configuredSecret.trim()) {
+    throw new Error("REPORT_NOTIFICATION_CONFIG_INVALID");
+  }
+  return configuredSecret.trim();
+}
+
 function conflict(): Result<never, ReportVersionConflictCode> {
   return {
     ok: false,
@@ -74,7 +129,15 @@ function conflict(): Result<never, ReportVersionConflictCode> {
   };
 }
 
-export function createDatabaseReportVersionRepository(database: Database): ReportVersionRepository {
+export function createDatabaseReportVersionRepository(
+  database: Database,
+  options: ReportVersionRepositoryOptions,
+): ReportVersionRepository {
+  const canonicalOrigin = resolveCanonicalPublicOrigin(options.betterAuthUrl);
+  const fingerprintSecret = resolveFingerprintSecret(
+    options.recipientFingerprintSecret,
+  );
+
   return {
     async getImmutableVersion(reportVersionId: string): Promise<ImmutableReportVersionRecord | null> {
       const [existing] = await database.select().from(reportVersions).where(eq(reportVersions.reportVersionId, reportVersionId)).limit(1);
@@ -205,6 +268,74 @@ export function createDatabaseReportVersionRepository(database: Database): Repor
             .returning();
           if (!reservationFenced) throw new ConflictError();
 
+          const [recipientLineage] = await tx
+            .select({
+              user: authUsers,
+              order: commerceOrders,
+              entitlement: commerceEntitlements,
+            })
+            .from(commerceEntitlements)
+            .innerJoin(
+              commerceOrders,
+              and(
+                eq(commerceOrders.id, commerceEntitlements.orderId),
+                eq(commerceOrders.ownerId, commerceEntitlements.ownerId),
+                eq(commerceOrders.chartId, commerceEntitlements.chartId),
+                eq(commerceOrders.sku, commerceEntitlements.sku),
+              ),
+            )
+            .innerJoin(
+              authUsers,
+              eq(authUsers.id, commerceOrders.ownerId),
+            )
+            .where(
+              and(
+                eq(commerceEntitlements.id, input.entitlementId),
+                eq(commerceEntitlements.sku, input.sku),
+                eq(commerceOrders.chartVersionId, input.chartVersionId),
+                eq(commerceOrders.sku, input.sku),
+                eq(commerceOrders.status, "paid"),
+              ),
+            )
+            .limit(1);
+
+          if (!recipientLineage) {
+            throw new ConflictError();
+          }
+
+          const { user, order } = recipientLineage;
+          if (
+            order.paidAt === null ||
+            user.isAnonymous ||
+            !user.emailVerified ||
+            !user.email ||
+            !user.email.trim()
+          ) {
+            throw new ConflictError();
+          }
+
+          const reportPath =
+            input.locale === "en"
+              ? `/en/bao-cao/${encodeURIComponent(input.reportId)}`
+              : `/bao-cao/${encodeURIComponent(input.reportId)}`;
+          const actionUrl = new URL(reportPath, canonicalOrigin).toString();
+
+          const notificationIdempotencyKey = `report-ready-email:${input.reportVersionId}:${user.id}`;
+          const recipientEmail = user.email.trim().toLowerCase();
+          const recipientFingerprint = createHmac("sha256", fingerprintSecret)
+            .update(recipientEmail)
+            .digest("hex");
+
+          const deliveryPayload = {
+            version: 1,
+            kind: "report_ready" as const,
+            idempotencyKey: notificationIdempotencyKey,
+            recipient: recipientEmail,
+            locale: input.locale,
+            actionUrl,
+            requestId: input.traceId,
+          };
+
           const pdfAssetId = randomUUID();
           const [versionInserted] = await tx
             .insert(reportVersions)
@@ -256,6 +387,17 @@ export function createDatabaseReportVersionRepository(database: Database): Repor
             },
             status: "pending",
             availableAt: now,
+          });
+
+          await tx.insert(notificationDeliveries).values({
+            idempotencyKey: notificationIdempotencyKey,
+            kind: "report_ready",
+            recipientFingerprint,
+            requestPayload: deliveryPayload,
+            status: "pending",
+            attemptCount: 0,
+            createdAt: now,
+            updatedAt: now,
           });
 
           const [updatedAttempt] = await tx
