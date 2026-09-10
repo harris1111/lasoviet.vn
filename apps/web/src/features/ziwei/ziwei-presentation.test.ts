@@ -26,7 +26,8 @@ describe("localized Zi Wei presentation", () => {
     expect(en.insight("body-palace-transformations-tension")).toBe(
       "Body Palace and transformations tension",
     );
-    expect(en.offer("ZIWEI-IDENTITY-P0")).toBe("Identity and potential");
+    expect(en.offer("ZIWEI-IDENTITY-P0")).toBe("Comprehensive Zi Wei reading");
+    expect(vi.offer("ZIWEI-IDENTITY-P0")).toBe("Luận giải Tử Vi toàn diện");
   });
 
   it("does not expose orphaned technical report helpers", () => {

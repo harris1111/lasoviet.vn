@@ -1,20 +1,45 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, gt, inArray, isNull, lte, or } from "drizzle-orm";
-import type { CurrentActor } from "@lasoviet/contracts";
+import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
+import type {
+  AccountLibraryGroupV1,
+  AccountLibraryItemV1,
+  AccountLibraryV1,
+  CommerceSku,
+  CurrentActor,
+  OrderHistoryItemV1,
+  OrderHistoryV1,
+  OrderStatus,
+} from "@lasoviet/contracts";
+import { resolveProductTitle, resolveEntitlementScopeForSku } from "@lasoviet/contracts";
 import {
+  auditLogs,
   birthProfiles,
+  birthProfileRevisions,
   authUsers,
   commerceEntitlements,
   commerceOrders,
   commercePaymentEvents,
+  commerceReconciliationState,
+  commerceUnmatchedPayments,
   enqueueOutbox,
   evidenceSets,
   reportReservations,
+  reportVersions,
   type Database,
   ziweiChartVersions,
   ziweiCharts,
 } from "@lasoviet/database";
+import {
+  generatePaymentCode,
+  isValidPaymentCode,
+  normalizePaymentCodeInput,
+} from "./payment-code.js";
+import {
+  getVietnamCalendarDayBounds,
+  parseTransferredAtLocal,
+  type ParsedClaimTime,
+} from "./payment-claim-time.js";
 
 import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 import { currentReportVersions } from "../reports/identity-report-config.js";
@@ -27,6 +52,8 @@ export type CommerceRepositoryOptions = {
   now?: () => Date;
   orderTtlSeconds?: number;
   beforePaymentCommit?: () => Promise<void>;
+  paymentCodeFactory?: () => string;
+  beforeClaimLockedRequery?: () => Promise<void>;
 };
 
 export type OwnedOrderProjection = {
@@ -60,8 +87,9 @@ export function createDatabaseCommerceRepository(
   database: Database,
   options: CommerceRepositoryOptions = {},
 ) {
-  const orderTtlSeconds = options.orderTtlSeconds ?? 900;
+  const orderTtlSeconds = options.orderTtlSeconds ?? 86400;
   const getNow = options.now ?? (() => new Date());
+  const paymentCodeFactory = options.paymentCodeFactory ?? generatePaymentCode;
 
   async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
     if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
@@ -73,13 +101,19 @@ export function createDatabaseCommerceRepository(
 
     const currentNow = getNow();
     const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
-    if (order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime()) {
+    const isTtlExpired = order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime();
+    const isCreditExpired =
+      order.status === "pending" &&
+      order.creditApplied > 0 &&
+      order.creditExpiresAt !== null &&
+      currentNow.getTime() >= order.creditExpiresAt.getTime();
+
+    if (isTtlExpired || isCreditExpired) {
       const [expired] = await database.update(commerceOrders)
         .set({ status: "expired" })
         .where(and(
           eq(commerceOrders.id, order.id),
           eq(commerceOrders.status, "pending"),
-          lte(commerceOrders.createdAt, cutoff),
         ))
         .returning();
       if (expired !== undefined) {
@@ -95,114 +129,707 @@ export function createDatabaseCommerceRepository(
     return order;
   }
 
+  async function readAccountLibrary(actor: CurrentActor): Promise<AccountLibraryV1> {
+    if (actor.kind !== "account") {
+      return {
+        version: 1,
+        groups: [],
+        items: [],
+        latestReadableReport: null,
+        totalCount: 0,
+      };
+    }
+
+    const rows = await database
+      .select({
+        entitlement: commerceEntitlements,
+        order: commerceOrders,
+        chart: ziweiCharts,
+        profile: birthProfiles,
+        revision: birthProfileRevisions,
+        chartVersion: ziweiChartVersions,
+        reservation: reportReservations,
+      })
+      .from(commerceEntitlements)
+      .innerJoin(
+        commerceOrders,
+        and(
+          eq(commerceOrders.id, commerceEntitlements.orderId),
+          eq(commerceOrders.ownerId, actor.userId),
+          eq(commerceOrders.chartId, commerceEntitlements.chartId),
+        ),
+      )
+      .innerJoin(
+        ziweiCharts,
+        eq(ziweiCharts.id, commerceEntitlements.chartId),
+      )
+      .innerJoin(
+        birthProfiles,
+        and(
+          eq(birthProfiles.id, ziweiCharts.profileId),
+          eq(birthProfiles.userId, actor.userId),
+          isNull(birthProfiles.deletedAt),
+        ),
+      )
+      .innerJoin(
+        birthProfileRevisions,
+        and(
+          eq(birthProfileRevisions.id, ziweiCharts.profileRevisionId),
+          eq(birthProfileRevisions.profileId, birthProfiles.id),
+        ),
+      )
+      .innerJoin(
+        ziweiChartVersions,
+        and(
+          eq(ziweiChartVersions.id, commerceOrders.chartVersionId),
+          eq(ziweiChartVersions.chartId, ziweiCharts.id),
+        ),
+      )
+      .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .where(eq(commerceEntitlements.ownerId, actor.userId))
+      .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
+
+    if (rows.length === 0) {
+      return {
+        version: 1,
+        groups: [],
+        items: [],
+        latestReadableReport: null,
+        totalCount: 0,
+      };
+    }
+
+    const activeReportVersionIds = rows
+      .map((r) => r.reservation?.reportVersionId)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+    const versionRows = activeReportVersionIds.length > 0
+      ? await database
+          .select()
+          .from(reportVersions)
+          .where(inArray(reportVersions.reportVersionId, activeReportVersionIds))
+          .orderBy(desc(reportVersions.createdAt), desc(reportVersions.id))
+      : [];
+
+    const versionMap = new Map<string, typeof versionRows[number]>();
+    for (const v of versionRows) {
+      if (!versionMap.has(v.reportVersionId)) {
+        versionMap.set(v.reportVersionId, v);
+      }
+    }
+
+    const evidenceSetIds = Array.from(
+      new Set(
+        versionRows
+          .map((v) => v.evidenceVersionId)
+          .filter((id): id is string => typeof id === "string" && id.length > 0),
+      ),
+    );
+
+    const evidenceSetRows = evidenceSetIds.length > 0
+      ? await database
+          .select({
+            id: evidenceSets.id,
+            chartVersionId: evidenceSets.chartVersionId,
+          })
+          .from(evidenceSets)
+          .where(inArray(evidenceSets.id, evidenceSetIds))
+      : [];
+
+    const evidenceSetMap = new Map<string, typeof evidenceSetRows[number]>();
+    for (const es of evidenceSetRows) {
+      evidenceSetMap.set(es.id, es);
+    }
+
+    const items: AccountLibraryItemV1[] = rows.map((row) => {
+      const entitlement = row.entitlement;
+      const order = row.order;
+      const profile = row.profile;
+      const revision = row.revision;
+      const reservation = row.reservation;
+      const version = reservation
+        ? versionMap.get(reservation.reportVersionId)
+        : undefined;
+
+      const isReservationValid =
+        reservation !== null &&
+        reservation.entitlementId === entitlement.id &&
+        reservation.chartVersionId === order.chartVersionId &&
+        order.sku === entitlement.sku &&
+        reservation.sku === entitlement.sku &&
+        reservation.locale === order.locale;
+
+      const isEvidenceValid =
+        version !== undefined &&
+        evidenceSetMap.get(version.evidenceVersionId)?.chartVersionId === order.chartVersionId;
+
+      const isVersionLineageConsistent =
+        isReservationValid &&
+        version !== undefined &&
+        version.reportId === reservation.reportId &&
+        version.reportVersionId === reservation.reportVersionId &&
+        version.entitlementId === entitlement.id &&
+        version.chartVersionId === order.chartVersionId &&
+        version.evidenceVersionId === reservation.evidenceVersionId &&
+        version.knowledgeVersionId === reservation.knowledgeVersionId &&
+        version.promptVersion === reservation.promptVersion &&
+        version.reportConfigVersion === reservation.reportConfigVersion &&
+        version.locale === reservation.locale &&
+        version.sku === reservation.sku &&
+        version.sku === order.sku &&
+        isEvidenceValid;
+
+      const isReportReady =
+        isVersionLineageConsistent &&
+        reservation.status !== "terminal_failure";
+
+      const displayName =
+        "displayName" in revision.originalInput &&
+        typeof revision.originalInput.displayName === "string" &&
+        revision.originalInput.displayName.trim().length > 0
+          ? revision.originalInput.displayName.trim()
+          : null;
+
+      const sku = entitlement.sku as CommerceSku;
+      const locale = order.locale === "en" ? ("en" as const) : ("vi" as const);
+      const productTitle = resolveProductTitle(sku, locale);
+
+      const reportId = isReportReady
+        ? version.reportId
+        : isReservationValid && !version
+          ? reservation.reportId
+          : null;
+
+      const readUrl = isReportReady && reportId
+        ? locale === "en"
+          ? `/en/bao-cao/${encodeURIComponent(reportId)}`
+          : `/bao-cao/${encodeURIComponent(reportId)}`
+        : null;
+
+      const reportStatus = isReportReady
+        ? "ready"
+        : isReservationValid && (!version || reservation.status === "terminal_failure")
+          ? reservation.status ?? null
+          : null;
+
+      return {
+        id: entitlement.id,
+        entitlementId: entitlement.id,
+        orderId: order.id,
+        chartId: entitlement.chartId,
+        profileId: profile.id,
+        profileDisplayName: displayName,
+        sku,
+        productTitle,
+        productName: productTitle,
+        orderStatus: order.status as OrderStatus,
+        entitlementStatus: "active" as const,
+        reportId,
+        readUrl,
+        reportStatus,
+        locale,
+        createdAt: entitlement.createdAt.toISOString(),
+        purchasedAt: order.paidAt ? order.paidAt.toISOString() : order.createdAt.toISOString(),
+      };
+    });
+
+    items.sort((a, b) => {
+      const aReadable = a.readUrl !== null;
+      const bReadable = b.readUrl !== null;
+      if (aReadable && !bReadable) return -1;
+      if (!aReadable && bReadable) return 1;
+
+      const timeA = new Date(a.purchasedAt ?? a.createdAt).getTime();
+      const timeB = new Date(b.purchasedAt ?? b.createdAt).getTime();
+      if (timeA !== timeB) return timeB - timeA;
+
+      return a.id.localeCompare(b.id);
+    });
+
+    const latestReadableReport = items.find((item) => item.readUrl !== null) ?? null;
+
+    const groupMap = new Map<string, AccountLibraryItemV1[]>();
+    for (const item of items) {
+      const key =
+        item.profileId === null
+          ? `chart:${item.chartId}`
+          : `profile:${item.profileId}`;
+      const existing = groupMap.get(key);
+      if (existing) {
+        existing.push(item);
+      } else {
+        groupMap.set(key, [item]);
+      }
+    }
+
+    const groups: AccountLibraryGroupV1[] = [];
+    for (const groupItems of groupMap.values()) {
+      groupItems.sort((a, b) => {
+        const timeA = new Date(a.purchasedAt ?? a.createdAt).getTime();
+        const timeB = new Date(b.purchasedAt ?? b.createdAt).getTime();
+        if (timeA !== timeB) return timeB - timeA;
+        return a.id.localeCompare(b.id);
+      });
+
+      const firstReadable = groupItems.find((i) => i.readUrl !== null);
+      const profileId = groupItems[0]?.profileId ?? null;
+      const profileDisplayName = groupItems[0]?.profileDisplayName ?? null;
+      const chartId = groupItems[0]!.chartId;
+
+      groups.push({
+        profileId,
+        profileDisplayName,
+        chartId,
+        items: groupItems,
+        latestReportId: firstReadable?.reportId ?? null,
+        latestReadUrl: firstReadable?.readUrl ?? null,
+      });
+    }
+
+    groups.sort((a, b) => {
+      if (latestReadableReport) {
+        const aContainsLatest = a.items.some(
+          (item) => item.id === latestReadableReport.id,
+        );
+        const bContainsLatest = b.items.some(
+          (item) => item.id === latestReadableReport.id,
+        );
+        if (aContainsLatest && !bContainsLatest) return -1;
+        if (!aContainsLatest && bContainsLatest) return 1;
+      }
+      const timeA = new Date(a.items[0]?.purchasedAt ?? a.items[0]?.createdAt ?? 0).getTime();
+      const timeB = new Date(b.items[0]?.purchasedAt ?? b.items[0]?.createdAt ?? 0).getTime();
+      if (timeA !== timeB) return timeB - timeA;
+      return (a.profileId ?? a.chartId).localeCompare(b.profileId ?? b.chartId);
+    });
+
+    return {
+      version: 1,
+      groups,
+      items,
+      latestReadableReport,
+      totalCount: items.length,
+    };
+  }
+
+  async function readOrderHistory(actor: CurrentActor): Promise<OrderHistoryV1> {
+    if (actor.kind !== "account") {
+      return {
+        version: 1,
+        orders: [],
+        items: [],
+        totalCount: 0,
+      };
+    }
+
+    const currentNow = getNow();
+    const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+
+    const rows = await database
+      .select({
+        order: commerceOrders,
+        chart: ziweiCharts,
+        profile: birthProfiles,
+        revision: birthProfileRevisions,
+        chartVersion: ziweiChartVersions,
+        entitlement: commerceEntitlements,
+        reservation: reportReservations,
+      })
+      .from(commerceOrders)
+      .innerJoin(
+        ziweiCharts,
+        eq(ziweiCharts.id, commerceOrders.chartId),
+      )
+      .innerJoin(
+        birthProfiles,
+        and(
+          eq(birthProfiles.id, ziweiCharts.profileId),
+          eq(birthProfiles.userId, actor.userId),
+          isNull(birthProfiles.deletedAt),
+        ),
+      )
+      .innerJoin(
+        birthProfileRevisions,
+        and(
+          eq(birthProfileRevisions.id, ziweiCharts.profileRevisionId),
+          eq(birthProfileRevisions.profileId, birthProfiles.id),
+        ),
+      )
+      .innerJoin(
+        ziweiChartVersions,
+        and(
+          eq(ziweiChartVersions.id, commerceOrders.chartVersionId),
+          eq(ziweiChartVersions.chartId, ziweiCharts.id),
+        ),
+      )
+      .leftJoin(
+        commerceEntitlements,
+        and(
+          eq(commerceEntitlements.orderId, commerceOrders.id),
+          eq(commerceEntitlements.ownerId, actor.userId),
+          eq(commerceEntitlements.chartId, commerceOrders.chartId),
+        ),
+      )
+      .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .where(eq(commerceOrders.ownerId, actor.userId))
+      .orderBy(desc(commerceOrders.createdAt), desc(commerceOrders.id));
+
+    if (rows.length === 0) {
+      return {
+        version: 1,
+        orders: [],
+        items: [],
+        totalCount: 0,
+      };
+    }
+
+    const activeReportVersionIds = rows
+      .map((r) => r.reservation?.reportVersionId)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+    const versionRows = activeReportVersionIds.length > 0
+      ? await database
+          .select()
+          .from(reportVersions)
+          .where(inArray(reportVersions.reportVersionId, activeReportVersionIds))
+          .orderBy(desc(reportVersions.createdAt), desc(reportVersions.id))
+      : [];
+
+    const versionMap = new Map<string, typeof versionRows[number]>();
+    for (const v of versionRows) {
+      if (!versionMap.has(v.reportVersionId)) {
+        versionMap.set(v.reportVersionId, v);
+      }
+    }
+
+    const evidenceSetIds = Array.from(
+      new Set(
+        versionRows
+          .map((v) => v.evidenceVersionId)
+          .filter((id): id is string => typeof id === "string" && id.length > 0),
+      ),
+    );
+
+    const evidenceSetRows = evidenceSetIds.length > 0
+      ? await database
+          .select({
+            id: evidenceSets.id,
+            chartVersionId: evidenceSets.chartVersionId,
+          })
+          .from(evidenceSets)
+          .where(inArray(evidenceSets.id, evidenceSetIds))
+      : [];
+
+    const evidenceSetMap = new Map<string, typeof evidenceSetRows[number]>();
+    for (const es of evidenceSetRows) {
+      evidenceSetMap.set(es.id, es);
+    }
+
+    const orders: OrderHistoryItemV1[] = rows.map((row) => {
+      const order = row.order;
+      const profile = row.profile;
+      const revision = row.revision;
+      const reservation = row.reservation;
+      const entitlement = row.entitlement;
+      const version = reservation
+        ? versionMap.get(reservation.reportVersionId)
+        : undefined;
+
+      const isReservationValid =
+        reservation !== null &&
+        reservation.chartVersionId === order.chartVersionId &&
+        (!entitlement || entitlement.sku === order.sku) &&
+        reservation.sku === order.sku &&
+        reservation.locale === order.locale;
+
+      const isEvidenceValid =
+        version !== undefined &&
+        evidenceSetMap.get(version.evidenceVersionId)?.chartVersionId === order.chartVersionId;
+
+      const isVersionLineageConsistent =
+        isReservationValid &&
+        version !== undefined &&
+        version.reportId === reservation.reportId &&
+        version.reportVersionId === reservation.reportVersionId &&
+        version.chartVersionId === order.chartVersionId &&
+        version.evidenceVersionId === reservation.evidenceVersionId &&
+        version.knowledgeVersionId === reservation.knowledgeVersionId &&
+        version.promptVersion === reservation.promptVersion &&
+        version.reportConfigVersion === reservation.reportConfigVersion &&
+        version.locale === reservation.locale &&
+        version.sku === reservation.sku &&
+        version.sku === order.sku &&
+        isEvidenceValid;
+
+      const isReportReady =
+        isVersionLineageConsistent &&
+        reservation.status !== "terminal_failure";
+
+      const displayName =
+        "displayName" in revision.originalInput &&
+        typeof revision.originalInput.displayName === "string" &&
+        revision.originalInput.displayName.trim().length > 0
+          ? revision.originalInput.displayName.trim()
+          : null;
+
+      const sku = order.sku as CommerceSku;
+      const locale = order.locale === "en" ? ("en" as const) : ("vi" as const);
+      const productTitle = resolveProductTitle(sku, locale);
+
+      const isTtlExpired = order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime();
+      const isCreditExpired =
+        order.status === "pending" &&
+        order.creditApplied > 0 &&
+        order.creditExpiresAt !== null &&
+        currentNow.getTime() >= order.creditExpiresAt.getTime();
+      const isExpired = isTtlExpired || isCreditExpired;
+      const effectiveStatus: OrderStatus = isExpired ? "expired" : (order.status as OrderStatus);
+
+      const reportId = isReportReady
+        ? version.reportId
+        : isReservationValid && !version
+          ? reservation.reportId
+          : null;
+
+      const readUrl = isReportReady && reportId
+        ? locale === "en"
+          ? `/en/bao-cao/${encodeURIComponent(reportId)}`
+          : `/bao-cao/${encodeURIComponent(reportId)}`
+        : null;
+
+      const supportUrl =
+        locale === "en"
+          ? `/en/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`
+          : `/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`;
+
+      return {
+        id: order.id,
+        orderId: order.id,
+        invoiceNumber: order.invoiceNumber,
+        chartId: order.chartId,
+        profileId: profile.id,
+        profileDisplayName: displayName,
+        sku,
+        productTitle,
+        productName: productTitle,
+        amount: order.amount,
+        currency: order.currency,
+        status: effectiveStatus,
+        orderStatus: effectiveStatus,
+        locale,
+        createdAt: order.createdAt.toISOString(),
+        paidAt: order.paidAt ? order.paidAt.toISOString() : null,
+        reportId,
+        readUrl,
+        supportUrl,
+        creditApplied: order.creditApplied,
+        creditExpiresAt: order.creditExpiresAt ? order.creditExpiresAt.toISOString() : null,
+      };
+    });
+
+    return {
+      version: 1,
+      orders,
+      items: orders,
+      totalCount: orders.length,
+    };
+  }
+
   return {
     async createOrder(actor: CurrentActor, chartId: string, sku: string, locale: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
       const selectedLocale = checkoutLocale(locale);
       if (selectedLocale === null) return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
+      if (sku === "ZIWEI-NATAL-EXCERPT-P0" && selectedLocale === "en") {
+        return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
+      }
       const product = PRODUCT_CATALOG[sku as Sku];
       const accountError = await checkoutAccount(database, actor);
       if (accountError !== null) return { ok: false as const, code: accountError };
       if (actor.kind !== "account") throw new Error("CHECKOUT_ACTOR_INVALID");
 
-      const currentNow = getNow();
-      const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+      return database.transaction(async (transaction) => {
+        const circuitLockKey = "commerce:reconciliation_circuit";
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${circuitLockKey}))`);
 
-      const [chart] = await database.select({
-        chartId: ziweiCharts.id, chartVersionId: ziweiChartVersions.id,
-      }).from(ziweiCharts)
-        .innerJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
-        .innerJoin(ziweiChartVersions, eq(ziweiChartVersions.chartId, ziweiCharts.id))
-        .where(and(eq(ziweiCharts.id, chartId), ownerFilter(actor, currentNow), isNull(birthProfiles.deletedAt)))
-        .orderBy(desc(ziweiChartVersions.createdAt))
-        .limit(1);
-      if (chart === undefined) return { ok: false as const, code: "CHART_NOT_FOUND" };
+        const [circuitState] = await transaction
+          .select({ circuitStatus: commerceReconciliationState.circuitStatus })
+          .from(commerceReconciliationState)
+          .where(eq(commerceReconciliationState.id, "singleton"))
+          .limit(1);
 
-      const [existing] = await database.select().from(commerceOrders)
-        .where(and(eq(commerceOrders.chartId, chartId), eq(commerceOrders.sku, product.sku))).limit(1);
-      if (existing !== undefined) {
-        if (
-          existing.status === "expired" ||
-          existing.status === "failed" ||
-          (existing.status === "pending" && existing.createdAt.getTime() <= cutoff.getTime())
-        ) {
-          const [reopened] = await database.update(commerceOrders)
-            .set({
-              invoiceNumber: "LSV-" + randomUUID(),
-              status: "pending",
-              paidAt: null,
-              createdAt: currentNow,
-              chartVersionId: chart.chartVersionId,
-              locale: selectedLocale,
-            })
-            .where(and(
-              eq(commerceOrders.id, existing.id),
-              or(
-                inArray(commerceOrders.status, ["expired", "failed"]),
-                and(eq(commerceOrders.status, "pending"), lte(commerceOrders.createdAt, cutoff)),
+        if (circuitState?.circuitStatus === "open") {
+          return { ok: false as const, code: "CHECKOUT_PAYMENTS_PAUSED" };
+        }
+
+        const lockKey = `commerce:chart:${chartId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+        if (product.sku === "ZIWEI-NATAL-EXCERPT-P0") {
+          const [tier2Entitlement] = await transaction
+            .select({ id: commerceEntitlements.id })
+            .from(commerceEntitlements)
+            .innerJoin(commerceOrders, eq(commerceOrders.id, commerceEntitlements.orderId))
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, chartId),
+                eq(commerceEntitlements.ownerId, actor.userId),
+                eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"),
+                ne(commerceOrders.status, "refunded"),
               ),
-            ))
-            .returning();
-          if (reopened !== undefined) {
-            return { ok: true as const, value: reopened, reused: true };
+            )
+            .limit(1);
+
+          if (tier2Entitlement !== undefined) {
+            return { ok: false as const, code: "ENTITLEMENT_EXISTS" };
           }
-          const [current] = await database.select().from(commerceOrders)
-            .where(eq(commerceOrders.id, existing.id)).limit(1);
-          if (current === undefined) throw new Error("COMMERCE_ORDER_CREATE_FAILED");
-          return { ok: true as const, value: current, reused: true };
         }
-        return { ok: true as const, value: existing, reused: true };
-      }
 
-      const id = randomUUID();
-      const [created] = await database.insert(commerceOrders).values({
-        id,
-        invoiceNumber: "LSV-" + id,
-        chartId,
-        chartVersionId: chart.chartVersionId,
-        ownerId: actor.userId,
-        sku: product.sku,
-        amount: product.amount,
-        currency: product.currency,
-        locale: selectedLocale,
-        createdAt: currentNow,
-      }).onConflictDoNothing().returning();
-      if (created !== undefined) return { ok: true as const, value: created, reused: false };
+        const currentNow = getNow();
+        const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
 
-      const [concurrent] = await database.select().from(commerceOrders)
-        .where(and(eq(commerceOrders.chartId, chartId), eq(commerceOrders.sku, product.sku))).limit(1);
-      if (concurrent === undefined) throw new Error("COMMERCE_ORDER_CREATE_FAILED");
-      if (
-        concurrent.status === "expired" ||
-        concurrent.status === "failed" ||
-        (concurrent.status === "pending" && concurrent.createdAt.getTime() <= cutoff.getTime())
-      ) {
-        const [reopened] = await database.update(commerceOrders)
-          .set({
-            invoiceNumber: "LSV-" + randomUUID(),
-            status: "pending",
-            paidAt: null,
-            createdAt: currentNow,
-            chartVersionId: chart.chartVersionId,
-            locale: selectedLocale,
-          })
+        const [chart] = await transaction.select({
+          chartId: ziweiCharts.id, chartVersionId: ziweiChartVersions.id,
+        }).from(ziweiCharts)
+          .innerJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
+          .innerJoin(ziweiChartVersions, eq(ziweiChartVersions.chartId, ziweiCharts.id))
+          .where(and(eq(ziweiCharts.id, chartId), ownerFilter(actor, currentNow), isNull(birthProfiles.deletedAt)))
+          .orderBy(desc(ziweiChartVersions.createdAt))
+          .limit(1);
+        if (chart === undefined) return { ok: false as const, code: "CHART_NOT_FOUND" };
+
+        const existingOrders = await transaction.select().from(commerceOrders)
           .where(and(
-            eq(commerceOrders.id, concurrent.id),
-            or(
-              inArray(commerceOrders.status, ["expired", "failed"]),
-              and(eq(commerceOrders.status, "pending"), lte(commerceOrders.createdAt, cutoff)),
-            ),
+            eq(commerceOrders.chartId, chartId),
+            eq(commerceOrders.sku, product.sku),
           ))
-          .returning();
-        if (reopened !== undefined) {
-          return { ok: true as const, value: reopened, reused: true };
+          .orderBy(desc(commerceOrders.createdAt))
+          .for("update");
+
+        const paidOrder = existingOrders.find((o) => o.status === "paid");
+        if (paidOrder !== undefined) {
+          return { ok: true as const, value: paidOrder, reused: true };
         }
-        const [current] = await database.select().from(commerceOrders)
-          .where(eq(commerceOrders.id, concurrent.id)).limit(1);
-        if (current === undefined) throw new Error("COMMERCE_ORDER_CREATE_FAILED");
-        return { ok: true as const, value: current, reused: true };
-      }
-      return { ok: true as const, value: concurrent, reused: true };
+
+        const [existingDiffLocaleReservation] = await transaction
+          .select({ id: reportReservations.id, locale: reportReservations.locale })
+          .from(commerceEntitlements)
+          .innerJoin(
+            reportReservations,
+            eq(reportReservations.entitlementId, commerceEntitlements.id),
+          )
+          .innerJoin(
+            commerceOrders,
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, chartId),
+              eq(commerceEntitlements.ownerId, actor.userId),
+              ne(commerceOrders.status, "refunded"),
+              ne(reportReservations.locale, selectedLocale),
+            ),
+          )
+          .limit(1);
+
+        if (existingDiffLocaleReservation !== undefined) {
+          return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
+        }
+
+        const refundedOrder = existingOrders.find((o) => o.status === "refunded");
+        if (refundedOrder !== undefined) {
+          return { ok: true as const, value: refundedOrder, reused: true };
+        }
+
+
+        const pendingOrder = existingOrders.find((o) => o.status === "pending");
+        if (pendingOrder !== undefined) {
+          const isTtlValid = pendingOrder.createdAt.getTime() > cutoff.getTime();
+          const isCreditValid =
+            pendingOrder.creditApplied === 0 ||
+            (pendingOrder.creditExpiresAt !== null &&
+              currentNow.getTime() < pendingOrder.creditExpiresAt.getTime());
+
+          if (isTtlValid && isCreditValid) {
+            return { ok: true as const, value: pendingOrder, reused: true };
+          }
+          await transaction.update(commerceOrders)
+            .set({ status: "expired" })
+            .where(eq(commerceOrders.id, pendingOrder.id));
+        }
+
+        let orderAmount = product.amount;
+        let creditApplied = 0;
+        let creditedFromOrderId: string | null = null;
+        let creditExpiresAt: Date | null = null;
+        let priceVariant: string | null = null;
+
+        if (product.sku === "ZIWEI-NATAL-EXCERPT-P0") {
+          priceVariant = "19k";
+        } else if (product.sku === "ZIWEI-IDENTITY-P0") {
+          const [sourceOrder] = await transaction
+            .select({
+              id: commerceOrders.id,
+              amount: commerceOrders.amount,
+              creditExpiresAt: commerceOrders.creditExpiresAt,
+            })
+            .from(commerceOrders)
+            .innerJoin(
+              commerceEntitlements,
+              eq(commerceEntitlements.orderId, commerceOrders.id),
+            )
+            .where(
+              and(
+                eq(commerceOrders.ownerId, actor.userId),
+                eq(commerceOrders.chartId, chartId),
+                eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                eq(commerceOrders.status, "paid"),
+                eq(commerceOrders.locale, selectedLocale),
+                isNotNull(commerceOrders.paidAt),
+                isNotNull(commerceOrders.creditExpiresAt),
+                gt(commerceOrders.creditExpiresAt, currentNow),
+              ),
+            )
+            .orderBy(desc(commerceOrders.paidAt))
+            .limit(1);
+
+          if (sourceOrder !== undefined) {
+            creditApplied = Math.min(sourceOrder.amount, product.amount);
+            creditedFromOrderId = sourceOrder.id;
+            creditExpiresAt = sourceOrder.creditExpiresAt;
+            orderAmount = Math.max(product.amount - creditApplied, 0);
+          }
+        }
+
+        const id = randomUUID();
+        for (let attempt = 1; attempt <= 5; attempt++) {
+          const paymentCode = paymentCodeFactory();
+          const [created] = await transaction.insert(commerceOrders).values({
+            id,
+            paymentCode,
+            invoiceNumber: "LSV-" + id,
+            chartId,
+            chartVersionId: chart.chartVersionId,
+            ownerId: actor.userId,
+            sku: product.sku,
+            amount: orderAmount,
+            currency: product.currency,
+            locale: selectedLocale,
+            status: "pending",
+            priceVariant,
+            creditApplied,
+            creditedFromOrderId,
+            creditExpiresAt,
+            createdAt: currentNow,
+          }).onConflictDoNothing({ target: commerceOrders.paymentCode }).returning();
+
+          if (created !== undefined) {
+            return { ok: true as const, value: created, reused: false };
+          }
+        }
+
+        throw new Error("PAYMENT_CODE_GENERATION_EXHAUSTED");
+      });
     },
 
     async readOrder(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
@@ -220,22 +847,93 @@ export function createDatabaseCommerceRepository(
           .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
           .where(and(eq(commerceEntitlements.orderId, order.id), eq(commerceEntitlements.ownerId, order.ownerId)))
           .limit(1);
-        reportId = reservation?.reportId ?? null;
+        if (reservation) {
+          reportId = reservation.reportId;
+        } else {
+          const [chartReservation] = await database
+            .select({ reportId: reportReservations.reportId })
+            .from(commerceEntitlements)
+            .innerJoin(
+              reportReservations,
+              eq(reportReservations.entitlementId, commerceEntitlements.id),
+            )
+            .innerJoin(
+              commerceOrders,
+              eq(commerceOrders.id, commerceEntitlements.orderId),
+            )
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, order.chartId),
+                eq(commerceEntitlements.ownerId, order.ownerId),
+                eq(reportReservations.locale, order.locale),
+                ne(commerceOrders.status, "refunded"),
+              ),
+            )
+            .orderBy(desc(reportReservations.createdAt))
+            .limit(1);
+          reportId = chartReservation?.reportId ?? null;
+        }
       }
 
       return { order, reportId };
     },
 
     async recordPaid(input: {
-      invoiceNumber: string; providerEventId: string; amount: number; currency: string; traceId: string;
+      invoiceNumber?: string;
+      paymentCode?: string;
+      matchMethod?: "invoice_number" | "payment_code";
+      providerEventId: string;
+      amount: number;
+      currency: string;
+      traceId: string;
     }) {
-      return database.transaction(async (transaction) => {
-        const currentNow = getNow();
-        const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+      const matchMethod = input.matchMethod ?? "invoice_number";
+      let lookupPredicate: ReturnType<typeof eq>;
 
-        const [order] = await transaction.select().from(commerceOrders)
-          .where(eq(commerceOrders.invoiceNumber, input.invoiceNumber)).limit(1);
-        if (order === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
+      if (matchMethod === "payment_code") {
+        const raw = input.paymentCode ?? input.invoiceNumber ?? "";
+        const normalized = normalizePaymentCodeInput(raw);
+        if (!isValidPaymentCode(normalized)) {
+          return { ok: false as const, code: "ORDER_NOT_FOUND" };
+        }
+        lookupPredicate = eq(commerceOrders.paymentCode, normalized);
+      } else {
+        const invoice = input.invoiceNumber;
+        if (!invoice) {
+          return { ok: false as const, code: "ORDER_NOT_FOUND" };
+        }
+        lookupPredicate = eq(commerceOrders.invoiceNumber, invoice);
+      }
+
+      try {
+        return await database.transaction(async (transaction) => {
+          const currentNow = getNow();
+
+          const providerLockKey = `provider_event:${input.providerEventId}`;
+          await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+
+          const [priorUnmatched] = await transaction.select().from(commerceUnmatchedPayments)
+            .where(eq(commerceUnmatchedPayments.providerEventId, input.providerEventId)).limit(1);
+          if (priorUnmatched !== undefined) {
+            return { ok: true as const, replayed: true };
+          }
+
+          const [target] = await transaction.select({
+            chartId: commerceOrders.chartId,
+            sku: commerceOrders.sku,
+          }).from(commerceOrders)
+            .where(lookupPredicate)
+            .limit(1);
+          if (target === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
+
+          const lockKey = `commerce:chart:${target.chartId}`;
+          await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+          const [order] = await transaction.select().from(commerceOrders)
+            .where(lookupPredicate)
+            .limit(1)
+            .for("update");
+          if (order === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
         if (order.amount !== input.amount || order.currency !== input.currency) {
           return { ok: false as const, code: "PAYMENT_AMOUNT_MISMATCH" };
         }
@@ -247,25 +945,114 @@ export function createDatabaseCommerceRepository(
             : { ok: false as const, code: "PAYMENT_EVENT_CONFLICT" };
         }
 
-        if (order.status !== "pending" || order.createdAt.getTime() <= cutoff.getTime()) {
-          if (order.status === "pending") {
-            await transaction.update(commerceOrders)
-              .set({ status: "expired" })
-              .where(and(
-                eq(commerceOrders.id, order.id),
-                eq(commerceOrders.status, "pending"),
-                lte(commerceOrders.createdAt, cutoff),
-              ));
-          }
+        if (order.status === "paid" || order.status === "refunded") {
           return { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
         }
 
+        const [existingEntitlement] = await transaction.select({ id: commerceEntitlements.id })
+          .from(commerceEntitlements)
+          .where(and(
+            eq(commerceEntitlements.chartId, order.chartId),
+            eq(commerceEntitlements.sku, order.sku),
+          ))
+          .limit(1);
+        if (existingEntitlement !== undefined) {
+          return { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
+        }
+
+        if (order.status !== "pending" && order.status !== "expired") {
+          return { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
+        }
+
+        if (order.creditApplied > 0) {
+          if (
+            order.creditExpiresAt === null ||
+            currentNow.getTime() >= order.creditExpiresAt.getTime()
+          ) {
+            if (order.status === "pending") {
+              await transaction.update(commerceOrders)
+                .set({ status: "expired" })
+                .where(eq(commerceOrders.id, order.id));
+            }
+            return { ok: false as const, code: "UPGRADE_CREDIT_EXPIRED" };
+          }
+
+          if (order.creditedFromOrderId === null) {
+            if (order.status === "pending") {
+              await transaction.update(commerceOrders)
+                .set({ status: "expired" })
+                .where(eq(commerceOrders.id, order.id));
+            }
+            return { ok: false as const, code: "UPGRADE_CREDIT_INVALID" };
+          }
+
+          const [sourceOrder] = await transaction
+            .select({
+              id: commerceOrders.id,
+              amount: commerceOrders.amount,
+              status: commerceOrders.status,
+              creditExpiresAt: commerceOrders.creditExpiresAt,
+              entitlementId: commerceEntitlements.id,
+            })
+            .from(commerceOrders)
+            .innerJoin(
+              commerceEntitlements,
+              eq(commerceEntitlements.orderId, commerceOrders.id),
+            )
+            .where(
+              and(
+                eq(commerceOrders.id, order.creditedFromOrderId),
+                eq(commerceOrders.ownerId, order.ownerId),
+                eq(commerceOrders.chartId, order.chartId),
+                eq(commerceOrders.locale, order.locale),
+                eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                eq(commerceOrders.status, "paid"),
+                isNotNull(commerceOrders.paidAt),
+                isNotNull(commerceOrders.creditExpiresAt),
+              ),
+            )
+            .limit(1);
+
+          if (
+            sourceOrder === undefined ||
+            sourceOrder.creditExpiresAt === null ||
+            sourceOrder.creditExpiresAt.getTime() !== order.creditExpiresAt.getTime() ||
+            sourceOrder.amount < order.creditApplied
+          ) {
+            if (order.status === "pending") {
+              await transaction.update(commerceOrders)
+                .set({ status: "expired" })
+                .where(eq(commerceOrders.id, order.id));
+            }
+            return { ok: false as const, code: "UPGRADE_CREDIT_INVALID" };
+          }
+        }
+
+        // Cancel/expire any replacement pending order for the same chart+sku
+        await transaction.update(commerceOrders)
+          .set({ status: "expired" })
+          .where(and(
+            eq(commerceOrders.chartId, order.chartId),
+            eq(commerceOrders.sku, order.sku),
+            eq(commerceOrders.status, "pending"),
+            ne(commerceOrders.id, order.id),
+          ));
+
+        const isTier1 = order.sku === "ZIWEI-NATAL-EXCERPT-P0";
+        const tier1CreditDeadline = isTier1
+          ? new Date(currentNow.getTime() + 7 * 24 * 60 * 60 * 1000)
+          : order.creditExpiresAt;
+
         const [paidOrder] = await transaction.update(commerceOrders)
-          .set({ status: "paid", paidAt: currentNow })
+          .set({
+            status: "paid",
+            paidAt: currentNow,
+            creditExpiresAt: tier1CreditDeadline,
+            priceVariant: isTier1 ? "19k" : order.priceVariant,
+          })
           .where(and(
             eq(commerceOrders.id, order.id),
-            eq(commerceOrders.status, "pending"),
-            gt(commerceOrders.createdAt, cutoff),
+            or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
           ))
           .returning();
         if (paidOrder === undefined) {
@@ -276,7 +1063,12 @@ export function createDatabaseCommerceRepository(
             : { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
         }
         const [event] = await transaction.insert(commercePaymentEvents).values({
-          orderId: order.id, providerEventId: input.providerEventId, amount: input.amount, currency: input.currency, status: "ORDER_PAID",
+          orderId: order.id,
+          providerEventId: input.providerEventId,
+          amount: input.amount,
+          currency: input.currency,
+          status: "ORDER_PAID",
+          matchMethod,
           createdAt: currentNow,
         }).onConflictDoNothing().returning();
         if (event === undefined) {
@@ -292,33 +1084,734 @@ export function createDatabaseCommerceRepository(
         if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
           orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
+          scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku),
           createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
-        const reportVersions = currentReportVersions(paidOrder.locale);
-        const [reservation] = await transaction.insert(reportReservations).values({
-          reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
-          evidenceVersionId: evidence.id, knowledgeVersionId: reportVersions.knowledgeVersion,
-          promptVersion: reportVersions.promptVersion, reportConfigVersion: reportVersions.reportConfigVersion,
-          locale: paidOrder.locale, sku: paidOrder.sku,
-          createdAt: currentNow, updatedAt: currentNow,
-        }).returning();
-        if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
-        await enqueueOutbox(transaction, {
-          schemaVersion: 1, type: "report.generation.requested.v1", eventId: randomUUID(),
-          occurredAt: currentNow.toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
-          aggregateType: "order", aggregateId: paidOrder.id,
-          idempotencyKey: "report-request:" + reservation.reportVersionId,
-          payload: {
-            reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
-            chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
-            knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
-            reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale, sku: reservation.sku,
-          },
-        });
+        const [existingChartReservation] = await transaction
+          .select({
+            reportId: reportReservations.reportId,
+            reportVersionId: reportReservations.reportVersionId,
+          })
+          .from(commerceEntitlements)
+          .innerJoin(
+            reportReservations,
+            eq(reportReservations.entitlementId, commerceEntitlements.id),
+          )
+          .innerJoin(
+            commerceOrders,
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, paidOrder.chartId),
+              eq(commerceEntitlements.ownerId, paidOrder.ownerId),
+              eq(reportReservations.locale, paidOrder.locale),
+              ne(commerceOrders.status, "refunded"),
+              ne(commerceEntitlements.id, entitlement.id),
+            ),
+          )
+          .orderBy(desc(reportReservations.createdAt))
+          .limit(1);
+
+        if (existingChartReservation === undefined) {
+          const reportVersions = currentReportVersions(paidOrder.locale);
+          const [reservation] = await transaction.insert(reportReservations).values({
+            reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
+            evidenceVersionId: evidence.id, knowledgeVersionId: reportVersions.knowledgeVersion,
+            promptVersion: reportVersions.promptVersion, reportConfigVersion: reportVersions.reportConfigVersion,
+            locale: paidOrder.locale, sku: paidOrder.sku,
+            createdAt: currentNow, updatedAt: currentNow,
+          }).returning();
+          if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
+          await enqueueOutbox(transaction, {
+            schemaVersion: 1, type: "report.generation.requested.v1", eventId: randomUUID(),
+            occurredAt: currentNow.toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
+            aggregateType: "order", aggregateId: paidOrder.id,
+            idempotencyKey: "report-request:" + reservation.reportVersionId,
+            payload: {
+              reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
+              chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
+              knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
+              reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale, sku: reservation.sku,
+            },
+          });
+        }
         await options.beforePaymentCommit?.();
         return { ok: true as const, replayed: false };
       });
+    } catch (error: unknown) {
+      const pgError = error as { code?: string; message?: string };
+      if (
+        pgError?.code === "23505" ||
+        pgError?.message?.includes("commerce_entitlements") ||
+        pgError?.message?.includes("PAYMENT_STATE_CONFLICT")
+      ) {
+        return { ok: false as const, code: "PAYMENT_STATE_CONFLICT" };
+      }
+      throw error;
+    }
+  },
+
+    async recordUnmatched(input: {
+      providerEventId: string;
+      rawPayload: Record<string, unknown>;
+      amount: number;
+      reason: string;
+      receivedAt?: Date;
+    }): Promise<{ ok: true; replayed: boolean } | { ok: false; code: string }> {
+      if (
+        typeof input.amount !== "number" ||
+        !Number.isSafeInteger(input.amount) ||
+        input.amount <= 0
+      ) {
+        return { ok: false as const, code: "PAYMENT_AMOUNT_INVALID" };
+      }
+
+      return await database.transaction(async (transaction) => {
+        const currentNow = getNow();
+        const receivedAt = input.receivedAt ?? currentNow;
+
+        const providerLockKey = `provider_event:${input.providerEventId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+
+        const [existingUnmatched] = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(eq(commerceUnmatchedPayments.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (existingUnmatched !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        const [existingPaid] = await transaction
+          .select()
+          .from(commercePaymentEvents)
+          .where(eq(commercePaymentEvents.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (existingPaid !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        const [inserted] = await transaction
+          .insert(commerceUnmatchedPayments)
+          .values({
+            providerEventId: input.providerEventId,
+            rawPayload: input.rawPayload,
+            amount: input.amount,
+            reason: input.reason,
+            receivedAt,
+          })
+          .onConflictDoNothing()
+          .returning();
+
+        if (inserted !== undefined) {
+          return { ok: true as const, replayed: false };
+        }
+
+        const [recheckedUnmatched] = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(eq(commerceUnmatchedPayments.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (recheckedUnmatched !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        const [recheckedPaid] = await transaction
+          .select()
+          .from(commercePaymentEvents)
+          .where(eq(commercePaymentEvents.providerEventId, input.providerEventId))
+          .limit(1);
+
+        if (recheckedPaid !== undefined) {
+          return { ok: true as const, replayed: true };
+        }
+
+        throw new Error("UNMATCHED_PAYMENT_PERSISTENCE_FAILED");
+      });
     },
+    async claimUnmatchedPayment(
+      actor: CurrentActor,
+      input: {
+        amount: number;
+        transferredAtLocal: string;
+      },
+    ): Promise<
+      | {
+          ok: true;
+          value: {
+            status: "claimed";
+            orderId: string;
+            reportId: string;
+          };
+        }
+      | {
+          ok: false;
+          code:
+            | "PAYMENT_CLAIM_ACCOUNT_REQUIRED"
+            | "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED"
+            | "PAYMENT_CLAIM_RATE_LIMITED"
+            | "PAYMENT_CLAIM_NOT_FOUND"
+            | "PAYMENT_CLAIM_INVALID";
+        }
+    > {
+      if (actor.kind !== "account") {
+        return { ok: false, code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" };
+      }
+      const accountError = await checkoutAccount(database, actor);
+      if (accountError === "CHECKOUT_ACCOUNT_REQUIRED") {
+        return { ok: false, code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" };
+      }
+      if (accountError === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") {
+        return { ok: false, code: "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED" };
+      }
+      if (accountError !== null) {
+        return { ok: false, code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" };
+      }
+
+      if (
+        typeof input.amount !== "number" ||
+        !Number.isSafeInteger(input.amount) ||
+        input.amount <= 0
+      ) {
+        return { ok: false, code: "PAYMENT_CLAIM_INVALID" };
+      }
+
+      let claimTime: ParsedClaimTime;
+      try {
+        claimTime = parseTransferredAtLocal(input.transferredAtLocal);
+      } catch {
+        return { ok: false, code: "PAYMENT_CLAIM_INVALID" };
+      }
+
+      return await database.transaction(async (transaction) => {
+        const currentNow = getNow();
+        const { startUtc, nextDayStartUtc, localDateKey } = getVietnamCalendarDayBounds(currentNow);
+
+        // 1. Account / day rate-limit advisory lock
+        const rateLimitLockKey = `self_claim_rate:${actor.userId}:${localDateKey}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${rateLimitLockKey}))`);
+
+        const [countResult] = await transaction
+          .select({ count: sql<number>`count(*)::integer` })
+          .from(auditLogs)
+          .where(
+            and(
+              eq(auditLogs.actorId, actor.userId),
+              eq(auditLogs.action, "commerce.payment_self_claim.requested"),
+              gte(auditLogs.createdAt, startUtc),
+              lt(auditLogs.createdAt, nextDayStartUtc),
+            ),
+          );
+
+        const attemptCount = countResult?.count ?? 0;
+        if (attemptCount >= 5) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_RATE_LIMITED",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_RATE_LIMITED",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_RATE_LIMITED" as const };
+        }
+
+        const candidatePayments = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(
+            and(
+              eq(commerceUnmatchedPayments.amount, input.amount),
+              isNull(commerceUnmatchedPayments.claimedAt),
+              isNull(commerceUnmatchedPayments.claimedByOrderId),
+              gte(commerceUnmatchedPayments.receivedAt, claimTime.windowStart),
+              lte(commerceUnmatchedPayments.receivedAt, claimTime.windowEnd),
+            ),
+          );
+
+        const candidateOrders = await transaction
+          .select()
+          .from(commerceOrders)
+          .where(
+            and(
+              eq(commerceOrders.ownerId, actor.userId),
+              eq(commerceOrders.amount, input.amount),
+              eq(commerceOrders.currency, "VND"),
+              or(
+                eq(commerceOrders.status, "pending"),
+                eq(commerceOrders.status, "expired"),
+              ),
+            ),
+          );
+
+        const eligibleOrders: typeof candidateOrders = [];
+        for (const order of candidateOrders) {
+          if (order.creditApplied > 0) {
+            if (
+              order.creditExpiresAt === null ||
+              currentNow.getTime() >= order.creditExpiresAt.getTime() ||
+              order.creditedFromOrderId === null
+            ) {
+              continue;
+            }
+            const [sourceOrder] = await transaction
+              .select({ id: commerceOrders.id })
+              .from(commerceOrders)
+              .innerJoin(
+                commerceEntitlements,
+                eq(commerceEntitlements.orderId, commerceOrders.id),
+              )
+              .where(
+                and(
+                  eq(commerceOrders.id, order.creditedFromOrderId),
+                  eq(commerceOrders.ownerId, actor.userId),
+                  eq(commerceOrders.chartId, order.chartId),
+                  eq(commerceOrders.locale, order.locale),
+                  eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                  eq(commerceOrders.status, "paid"),
+                  isNotNull(commerceOrders.paidAt),
+                  isNotNull(commerceOrders.creditExpiresAt),
+                  eq(commerceOrders.creditExpiresAt, order.creditExpiresAt),
+                  gte(commerceOrders.amount, order.creditApplied),
+                ),
+              )
+              .limit(1);
+            if (sourceOrder === undefined) {
+              continue;
+            }
+          }
+          const [existingEntitlement] = await transaction
+            .select({ id: commerceEntitlements.id })
+            .from(commerceEntitlements)
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, order.chartId),
+                eq(commerceEntitlements.sku, order.sku),
+              ),
+            )
+            .limit(1);
+          if (existingEntitlement === undefined) {
+            eligibleOrders.push(order);
+          }
+        }
+
+        if (candidatePayments.length !== 1 || eligibleOrders.length !== 1) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        const selectedPayment = candidatePayments[0]!;
+        const selectedOrder = eligibleOrders[0]!;
+
+        // 2. Provider-event advisory lock
+        const providerLockKey = `provider_event:${selectedPayment.providerEventId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+
+        // 3. Chart-wide advisory lock
+        const chartLockKey = `commerce:chart:${selectedOrder.chartId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${chartLockKey}))`);
+
+        // Test hook before table locks / locked re-query
+        await options.beforeClaimLockedRequery?.();
+
+        // 4. Table locks in order: commerce_unmatched_payments before commerce_orders
+        await transaction.execute(sql`LOCK TABLE commerce_unmatched_payments IN SHARE ROW EXCLUSIVE MODE`);
+        await transaction.execute(sql`LOCK TABLE commerce_orders IN SHARE ROW EXCLUSIVE MODE`);
+
+        // Re-query complete eligible payment and owner-order predicates after locks
+        const lockedCandidatePayments = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(
+            and(
+              eq(commerceUnmatchedPayments.amount, input.amount),
+              isNull(commerceUnmatchedPayments.claimedAt),
+              isNull(commerceUnmatchedPayments.claimedByOrderId),
+              gte(commerceUnmatchedPayments.receivedAt, claimTime.windowStart),
+              lte(commerceUnmatchedPayments.receivedAt, claimTime.windowEnd),
+            ),
+          );
+
+        const lockedCandidateOrders = await transaction
+          .select()
+          .from(commerceOrders)
+          .where(
+            and(
+              eq(commerceOrders.ownerId, actor.userId),
+              eq(commerceOrders.amount, input.amount),
+              eq(commerceOrders.currency, "VND"),
+              or(
+                eq(commerceOrders.status, "pending"),
+                eq(commerceOrders.status, "expired"),
+              ),
+            ),
+          );
+
+        const lockedEligibleOrders: typeof lockedCandidateOrders = [];
+        for (const order of lockedCandidateOrders) {
+          if (order.creditApplied > 0) {
+            if (
+              order.creditExpiresAt === null ||
+              currentNow.getTime() >= order.creditExpiresAt.getTime() ||
+              order.creditedFromOrderId === null
+            ) {
+              continue;
+            }
+            const [sourceOrder] = await transaction
+              .select({ id: commerceOrders.id })
+              .from(commerceOrders)
+              .innerJoin(
+                commerceEntitlements,
+                eq(commerceEntitlements.orderId, commerceOrders.id),
+              )
+              .where(
+                and(
+                  eq(commerceOrders.id, order.creditedFromOrderId),
+                  eq(commerceOrders.ownerId, actor.userId),
+                  eq(commerceOrders.chartId, order.chartId),
+                  eq(commerceOrders.locale, order.locale),
+                  eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                  eq(commerceOrders.status, "paid"),
+                  isNotNull(commerceOrders.paidAt),
+                  isNotNull(commerceOrders.creditExpiresAt),
+                  eq(commerceOrders.creditExpiresAt, order.creditExpiresAt),
+                  gte(commerceOrders.amount, order.creditApplied),
+                ),
+              )
+              .limit(1);
+            if (sourceOrder === undefined) {
+              continue;
+            }
+          }
+          const [existingEntitlement] = await transaction
+            .select({ id: commerceEntitlements.id })
+            .from(commerceEntitlements)
+            .where(
+              and(
+                eq(commerceEntitlements.chartId, order.chartId),
+                eq(commerceEntitlements.sku, order.sku),
+              ),
+            )
+            .limit(1);
+          if (existingEntitlement === undefined) {
+            lockedEligibleOrders.push(order);
+          }
+        }
+
+        // Require exactly the same one payment and one order
+        if (
+          lockedCandidatePayments.length !== 1 ||
+          lockedEligibleOrders.length !== 1 ||
+          lockedCandidatePayments[0]!.id !== selectedPayment.id ||
+          lockedEligibleOrders[0]!.id !== selectedOrder.id
+        ) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        // 5. Lock rows before mutation
+        const [lockedPayment] = await transaction
+          .select()
+          .from(commerceUnmatchedPayments)
+          .where(eq(commerceUnmatchedPayments.id, selectedPayment.id))
+          .limit(1)
+          .for("update");
+
+        const [lockedOrder] = await transaction
+          .select()
+          .from(commerceOrders)
+          .where(eq(commerceOrders.id, selectedOrder.id))
+          .limit(1)
+          .for("update");
+
+        if (
+          lockedPayment === undefined ||
+          lockedOrder === undefined ||
+          lockedPayment.amount !== input.amount ||
+          lockedPayment.claimedAt !== null ||
+          lockedPayment.claimedByOrderId !== null ||
+          lockedPayment.receivedAt < claimTime.windowStart ||
+          lockedPayment.receivedAt > claimTime.windowEnd ||
+          lockedOrder.ownerId !== actor.userId ||
+          lockedOrder.amount !== input.amount ||
+          lockedOrder.currency !== "VND" ||
+          (lockedOrder.status !== "pending" && lockedOrder.status !== "expired")
+        ) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        const [concurrentEntitlement] = await transaction
+          .select({ id: commerceEntitlements.id })
+          .from(commerceEntitlements)
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, lockedOrder.chartId),
+              eq(commerceEntitlements.sku, lockedOrder.sku),
+            ),
+          )
+          .limit(1);
+
+        if (concurrentEntitlement !== undefined) {
+          await transaction.insert(auditLogs).values({
+            actorId: actor.userId,
+            action: "commerce.payment_self_claim.requested",
+            targetType: "commerce_payment_claim",
+            targetId: "unresolved",
+            reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+            requestId: actor.requestId,
+            metadata: {
+              outcome: "PAYMENT_CLAIM_NOT_FOUND",
+              claimedAmount: input.amount,
+            },
+            createdAt: currentNow,
+          });
+          return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+        }
+
+        await transaction
+          .update(commerceUnmatchedPayments)
+          .set({
+            claimedByOrderId: lockedOrder.id,
+            claimedAt: currentNow,
+          })
+          .where(eq(commerceUnmatchedPayments.id, lockedPayment.id));
+
+        await transaction
+          .update(commerceOrders)
+          .set({ status: "expired" })
+          .where(
+            and(
+              eq(commerceOrders.chartId, lockedOrder.chartId),
+              eq(commerceOrders.sku, lockedOrder.sku),
+              eq(commerceOrders.status, "pending"),
+              ne(commerceOrders.id, lockedOrder.id),
+            ),
+          );
+
+        const isClaimTier1 = lockedOrder.sku === "ZIWEI-NATAL-EXCERPT-P0";
+        const tier1ClaimDeadline = isClaimTier1
+          ? new Date(currentNow.getTime() + 7 * 24 * 60 * 60 * 1000)
+          : lockedOrder.creditExpiresAt;
+
+        const [paidOrder] = await transaction
+          .update(commerceOrders)
+          .set({
+            status: "paid",
+            paidAt: currentNow,
+            creditExpiresAt: tier1ClaimDeadline,
+            priceVariant: isClaimTier1 ? "19k" : lockedOrder.priceVariant,
+          })
+          .where(
+            and(
+              eq(commerceOrders.id, lockedOrder.id),
+              or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
+            ),
+          )
+          .returning();
+
+        if (paidOrder === undefined) {
+          throw new Error("ORDER_TRANSITION_FAILED");
+        }
+
+        const [event] = await transaction
+          .insert(commercePaymentEvents)
+          .values({
+            orderId: paidOrder.id,
+            providerEventId: lockedPayment.providerEventId,
+            amount: lockedPayment.amount,
+            currency: "VND",
+            status: "ORDER_PAID",
+            matchMethod: "self_claim",
+            createdAt: currentNow,
+          })
+          .onConflictDoNothing()
+          .returning();
+
+        if (event === undefined) {
+          throw new Error("PAYMENT_EVENT_CONFLICT");
+        }
+
+        const [evidence] = await transaction
+          .select({ id: evidenceSets.id })
+          .from(evidenceSets)
+          .where(
+            and(
+              eq(evidenceSets.chartVersionId, paidOrder.chartVersionId),
+              eq(evidenceSets.capabilityId, "ziwei.identity.p0"),
+            ),
+          )
+          .limit(1);
+
+        if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
+
+        const [entitlement] = await transaction
+          .insert(commerceEntitlements)
+          .values({
+            orderId: paidOrder.id,
+            chartId: paidOrder.chartId,
+            sku: paidOrder.sku,
+            ownerId: paidOrder.ownerId,
+            scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku),
+            createdAt: currentNow,
+          })
+          .returning();
+
+        if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
+
+        const [existingChartReservation] = await transaction
+          .select({
+            reportId: reportReservations.reportId,
+            reportVersionId: reportReservations.reportVersionId,
+          })
+          .from(commerceEntitlements)
+          .innerJoin(
+            reportReservations,
+            eq(reportReservations.entitlementId, commerceEntitlements.id),
+          )
+          .innerJoin(
+            commerceOrders,
+            eq(commerceOrders.id, commerceEntitlements.orderId),
+          )
+          .where(
+            and(
+              eq(commerceEntitlements.chartId, paidOrder.chartId),
+              eq(commerceEntitlements.ownerId, paidOrder.ownerId),
+              eq(reportReservations.locale, paidOrder.locale),
+              ne(commerceOrders.status, "refunded"),
+              ne(commerceEntitlements.id, entitlement.id),
+            ),
+          )
+          .orderBy(desc(reportReservations.createdAt))
+          .limit(1);
+
+        let finalReportId: string;
+
+        if (existingChartReservation === undefined) {
+          const reportVersions = currentReportVersions(paidOrder.locale);
+          const [reservation] = await transaction
+            .insert(reportReservations)
+            .values({
+              reportId: randomUUID(),
+              reportVersionId: randomUUID(),
+              entitlementId: entitlement.id,
+              chartVersionId: paidOrder.chartVersionId,
+              evidenceVersionId: evidence.id,
+              knowledgeVersionId: reportVersions.knowledgeVersion,
+              promptVersion: reportVersions.promptVersion,
+              reportConfigVersion: reportVersions.reportConfigVersion,
+              locale: paidOrder.locale,
+              sku: paidOrder.sku,
+              createdAt: currentNow,
+              updatedAt: currentNow,
+            })
+            .returning();
+
+          if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
+
+          await enqueueOutbox(transaction, {
+            schemaVersion: 1,
+            type: "report.generation.requested.v1",
+            eventId: randomUUID(),
+            occurredAt: currentNow.toISOString(),
+            traceId: actor.requestId,
+            actorId: paidOrder.ownerId,
+            aggregateType: "order",
+            aggregateId: paidOrder.id,
+            idempotencyKey: "report-request:" + reservation.reportVersionId,
+            payload: {
+              reportId: reservation.reportId,
+              reportVersionId: reservation.reportVersionId,
+              entitlementId: entitlement.id,
+              chartVersionId: reservation.chartVersionId,
+              evidenceVersionId: reservation.evidenceVersionId,
+              knowledgeVersionId: reservation.knowledgeVersionId,
+              promptVersion: reservation.promptVersion,
+              reportConfigVersion: reservation.reportConfigVersion,
+              locale: reservation.locale,
+              sku: reservation.sku,
+            },
+          });
+          finalReportId = reservation.reportId;
+        } else {
+          finalReportId = existingChartReservation.reportId;
+        }
+
+        await transaction.insert(auditLogs).values({
+          actorId: actor.userId,
+          action: "commerce.payment_self_claim.requested",
+          targetType: "commerce_payment_claim",
+          targetId: paidOrder.id,
+          reasonCode: "claimed",
+          requestId: actor.requestId,
+          metadata: {
+            outcome: "claimed",
+            claimedAmount: input.amount,
+          },
+          createdAt: currentNow,
+        });
+
+        await options.beforePaymentCommit?.();
+
+        return {
+          ok: true as const,
+          value: {
+            status: "claimed" as const,
+            orderId: paidOrder.id,
+            reportId: finalReportId,
+          },
+        };
+      });
+    },
+  readAccountLibrary,
+  readOrderHistory,
   };
 }
+
+export type CommerceRepository = ReturnType<typeof createDatabaseCommerceRepository>;

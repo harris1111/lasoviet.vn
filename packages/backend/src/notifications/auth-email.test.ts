@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AuthEmailRequest } from "@lasoviet/contracts";
+import type { AuthEmailRequest, ReportReadyEmailRequest, PersistedEmailDeliveryRequest } from "@lasoviet/contracts";
 
 import type {
   AuthEmailDeliveryRecord,
@@ -138,11 +138,12 @@ class MemoryDeliveryStore implements AuthEmailDeliveryStore {
     }
   }
 
-  async listRetryable(limit: number): Promise<AuthEmailRequest[]> {
+  async listRetryable(limit: number): Promise<PersistedEmailDeliveryRequest[]> {
     return [...this.records.values()]
       .filter(
         (record) =>
-          record.status === "failed_retryable" && record.attemptCount < 3,
+          (record.status === "pending" && record.kind === "report_ready") ||
+          (record.status === "failed_retryable" && record.attemptCount < 3),
       )
       .slice(0, limit)
       .map((record) => record.requestPayload);
@@ -272,5 +273,107 @@ describe("auth email delivery state machine", () => {
       status: "sent",
       attemptCount: 2,
     });
+  });
+
+  it("delivers report_ready notification with strict ASCII template and no report or chart data", async () => {
+    const store = new MemoryDeliveryStore();
+    const sentMessages: EmailMessage[] = [];
+    const providerMock: EmailProvider = {
+      async send(message: EmailMessage) {
+        sentMessages.push(message);
+        return { ok: true, providerMessageId: "msg-report-ready" };
+      },
+    };
+
+    const service = createAuthEmailDeliveryService({
+      store,
+      provider: providerMock,
+      recipientFingerprintSecret: "synthetic-secret",
+      now: () => new Date("2026-09-08T00:00:00Z"),
+    });
+
+    const reportReadyReqVi: ReportReadyEmailRequest = {
+      version: 1,
+      kind: "report_ready",
+      idempotencyKey: "report-ready-email:ver-1:acc-1",
+      recipient: "customer@example.com",
+      locale: "vi",
+      actionUrl: "https://lasoviet.vn/bao-cao/rep-123",
+      requestId: "trace-123",
+    };
+
+    const outcomeVi = await service.send(reportReadyReqVi);
+    expect(outcomeVi.status).toBe("sent");
+    expect(sentMessages).toHaveLength(1);
+    expect(sentMessages[0].to).toBe("customer@example.com");
+    expect(sentMessages[0].subject).toBe("Bao cao La So Viet da san sang");
+    expect(sentMessages[0].text).toContain("https://lasoviet.vn/bao-cao/rep-123");
+    expect(sentMessages[0].html).toContain("https://lasoviet.vn/bao-cao/rep-123");
+    expect(sentMessages[0].text).not.toContain("chart");
+    expect(sentMessages[0].text).not.toContain("provider");
+
+    const reportReadyReqEn: ReportReadyEmailRequest = {
+      version: 1,
+      kind: "report_ready",
+      idempotencyKey: "report-ready-email:ver-2:acc-2",
+      recipient: "customer2@example.com",
+      locale: "en",
+      actionUrl: "https://lasoviet.vn/en/bao-cao/rep-456",
+      requestId: "trace-456",
+    };
+
+    const outcomeEn = await service.send(reportReadyReqEn);
+    expect(outcomeEn.status).toBe("sent");
+    expect(sentMessages).toHaveLength(2);
+    expect(sentMessages[1].subject).toBe("Your La So Viet report is ready");
+    expect(sentMessages[1].text).toContain("https://lasoviet.vn/en/bao-cao/rep-456");
+  });
+
+  it("delivers atomically inserted pending report_ready delivery via retryDue", async () => {
+    const store = new MemoryDeliveryStore();
+    const calls = { count: 0 };
+    const now = new Date("2026-09-08T00:00:00Z");
+
+    const pendingReportReady: ReportReadyEmailRequest = {
+      version: 1,
+      kind: "report_ready",
+      idempotencyKey: "report-ready-email:ver-pending:acc-1",
+      recipient: "pending@example.com",
+      locale: "vi",
+      actionUrl: "https://lasoviet.vn/bao-cao/rep-pending",
+      requestId: "trace-pending",
+    };
+
+    store.seed({
+      id: "delivery-pending-report-ready",
+      idempotencyKey: pendingReportReady.idempotencyKey,
+      kind: "report_ready",
+      recipientFingerprint: "fingerprint-pending",
+      requestPayload: pendingReportReady,
+      status: "pending",
+      sendingLeaseExpiresAt: null,
+      attemptCount: 0,
+      lastErrorCode: null,
+      providerMessageId: null,
+      createdAt: now,
+      updatedAt: now,
+      sentAt: null,
+    });
+
+    const service = createAuthEmailDeliveryService({
+      store,
+      provider: provider({ ok: true, providerMessageId: "msg-pending-ready" }, calls),
+      recipientFingerprintSecret: "synthetic-secret",
+      now: () => now,
+    });
+
+    const processedCount = await service.retryDue(10);
+    expect(processedCount).toBe(1);
+    expect(calls.count).toBe(1);
+
+    const delivered = await store.getByIdempotencyKey(pendingReportReady.idempotencyKey);
+    expect(delivered.status).toBe("sent");
+    expect(delivered.attemptCount).toBe(1);
+    expect(delivered.providerMessageId).toBe("msg-pending-ready");
   });
 });

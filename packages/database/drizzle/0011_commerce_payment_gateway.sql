@@ -59,7 +59,7 @@ ALTER TABLE "commerce_payment_events" ADD CONSTRAINT "commerce_payment_events_or
 ALTER TABLE "commerce_entitlements" ADD CONSTRAINT "commerce_entitlements_order_id_commerce_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."commerce_orders"("id");--> statement-breakpoint
 ALTER TABLE "report_reservations" ADD CONSTRAINT "report_reservations_entitlement_id_commerce_entitlements_id_fk" FOREIGN KEY ("entitlement_id") REFERENCES "public"."commerce_entitlements"("id");--> statement-breakpoint
 CREATE UNIQUE INDEX "commerce_orders_invoice_unique" ON "commerce_orders" USING btree ("invoice_number");--> statement-breakpoint
-CREATE UNIQUE INDEX "commerce_orders_chart_sku_unique" ON "commerce_orders" USING btree ("chart_id","sku");--> statement-breakpoint
+CREATE UNIQUE INDEX "commerce_orders_chart_sku_unique" ON "commerce_orders" USING btree ("chart_id","sku") WHERE status = 'pending';--> statement-breakpoint
 CREATE INDEX "commerce_orders_owner_idx" ON "commerce_orders" USING btree ("owner_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "commerce_payment_events_provider_unique" ON "commerce_payment_events" USING btree ("provider_event_id");--> statement-breakpoint
 CREATE INDEX "commerce_payment_events_order_idx" ON "commerce_payment_events" USING btree ("order_id");--> statement-breakpoint

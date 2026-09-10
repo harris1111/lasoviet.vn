@@ -172,6 +172,12 @@ const validFailedView = {
   locale: "vi" as const,
   sku: "ZIWEI-IDENTITY-P0" as const,
   fulfillmentStatus: "terminal_failure" as const,
+  invoiceNumber: "LSV-INV-FAILED-3",
+  paymentReceivedAt: "2026-09-08T10:00:00.000Z",
+  reportStatusUpdatedAt: "2026-09-08T10:05:00.000Z",
+  supportEmail: "support@lasoviet.vn",
+  supportSubject: "Yêu cầu hỗ trợ báo cáo LSV-INV-FAILED-3",
+  supportReference: "REF-FAILED-3",
 };
 
 describe("createReportLoader", () => {

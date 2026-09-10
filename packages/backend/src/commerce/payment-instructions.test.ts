@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createPaymentInstructions } from "./payment-instructions.js";
 
 describe("createPaymentInstructions", () => {
@@ -9,7 +9,7 @@ describe("createPaymentInstructions", () => {
       accountHolder: "LA SO VIET",
       amount: 79_000,
       currency: "VND",
-      invoiceNumber: "LSV-order-1",
+      paymentCode: "LSVK7M2P9QX4",
       createdAt: new Date("2026-09-05T00:00:00.000Z"),
       orderTtlSeconds: 900,
     });
@@ -20,8 +20,8 @@ describe("createPaymentInstructions", () => {
       accountHolder: "LA SO VIET",
       amount: 79_000,
       currency: "VND",
-      transferDescription: "LSV-order-1",
-      qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSV-order-1&template=compact",
+      transferDescription: "LSVK7M2P9QX4",
+      qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSVK7M2P9QX4&template=compact",
       expiresAt: "2026-09-05T00:15:00.000Z",
     });
 
@@ -38,7 +38,7 @@ describe("createPaymentInstructions", () => {
     expect(parsedUrl.searchParams.get("acc")).toBe("123456789");
     expect(parsedUrl.searchParams.get("bank")).toBe("VCB");
     expect(parsedUrl.searchParams.get("amount")).toBe("79000");
-    expect(parsedUrl.searchParams.get("des")).toBe("LSV-order-1");
+    expect(parsedUrl.searchParams.get("des")).toBe("LSVK7M2P9QX4");
     expect(parsedUrl.searchParams.get("template")).toBe("compact");
   });
 
@@ -49,7 +49,7 @@ describe("createPaymentInstructions", () => {
       accountHolder: "LA SO VIET",
       amount: 79_000,
       currency: "VND" as const,
-      invoiceNumber: "LSV-order-1",
+      paymentCode: "LSVK7M2P9QX4",
       createdAt: new Date("2026-09-05T00:00:00.000Z"),
     };
 
@@ -70,7 +70,7 @@ describe("createPaymentInstructions", () => {
       accountHolder: "LA SO VIET",
       amount: 79_000,
       currency: "VND" as const,
-      invoiceNumber: "LSV-order-1",
+      paymentCode: "LSVK7M2P9QX4",
       createdAt: new Date("2026-09-05T00:00:00.000Z"),
       orderTtlSeconds: 900,
     };
@@ -118,7 +118,7 @@ describe("createPaymentInstructions", () => {
       accountHolder: "LA SO VIET",
       amount: 79_000,
       currency: "VND" as const,
-      invoiceNumber: "LSV-order-1",
+      paymentCode: "LSVK7M2P9QX4",
       createdAt: new Date("2026-09-05T00:00:00.000Z"),
       orderTtlSeconds: 900,
     };
@@ -147,8 +147,40 @@ describe("createPaymentInstructions", () => {
     expect(() =>
       createPaymentInstructions({
         ...base,
-        invoiceNumber: "",
+        paymentCode: "",
       }),
     ).toThrow();
+  });
+  it("caps expiresAt at the credit deadline when earlier than order TTL (Required check 8)", () => {
+    const createdAt = new Date("2026-09-05T00:00:00.000Z");
+    const creditDeadlineEarlier = new Date("2026-09-05T00:05:00.000Z");
+    const instructions = createPaymentInstructions({
+      bankCode: "VCB",
+      accountNumber: "123456789",
+      accountHolder: "LA SO VIET",
+      amount: 60_000,
+      currency: "VND",
+      paymentCode: "LSVK7M2P9QX4",
+      createdAt,
+      orderTtlSeconds: 86400, // 24 hours
+      creditExpiresAt: creditDeadlineEarlier,
+    });
+
+    expect(instructions.expiresAt).toBe("2026-09-05T00:05:00.000Z");
+
+    const creditDeadlineLater = new Date("2026-09-07T00:00:00.000Z");
+    const instructionsLater = createPaymentInstructions({
+      bankCode: "VCB",
+      accountNumber: "123456789",
+      accountHolder: "LA SO VIET",
+      amount: 60_000,
+      currency: "VND",
+      paymentCode: "LSVK7M2P9QX4",
+      createdAt,
+      orderTtlSeconds: 900, // 15 mins (earlier than creditDeadlineLater)
+      creditExpiresAt: creditDeadlineLater,
+    });
+
+    expect(instructionsLater.expiresAt).toBe("2026-09-05T00:15:00.000Z");
   });
 });

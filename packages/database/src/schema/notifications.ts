@@ -13,6 +13,7 @@ import {
 export const notificationDeliveryKind = pgEnum("notification_delivery_kind", [
   "email_verification",
   "password_reset",
+  "report_ready",
 ]);
 
 export const notificationDeliveryStatus = pgEnum("notification_delivery_status", [

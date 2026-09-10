@@ -18,6 +18,7 @@ import {
 import {
   createReportGenerateProcessor,
 } from "../../apps/worker/src/processors/report-generate.processor.js";
+import { TIER_2_ENTITLEMENT_SCOPE } from "@lasoviet/contracts";
 
 describe("report worker state integration and lease recovery", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
@@ -69,6 +70,7 @@ describe("report worker state integration and lease recovery", () => {
       chartId: `chart-${orderId}`,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(),
@@ -202,6 +204,7 @@ describe("report worker state integration and lease recovery", () => {
       chartId: `chart-${orderId}`,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(),
@@ -367,6 +370,7 @@ describe("report worker state integration and lease recovery", () => {
       chartId: `chart-${orderId}`,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(),
@@ -457,6 +461,7 @@ describe("report worker state integration and lease recovery", () => {
       chartId: `chart-${orderId}`,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
     });
     await database.insert(reportReservations).values({
       id: randomUUID(),

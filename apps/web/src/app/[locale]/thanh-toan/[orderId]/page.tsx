@@ -7,7 +7,9 @@ import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
 } from "../../../../auth/resolve-current-actor";
+import { submitPaymentSelfClaim } from "../../../../features/commerce/payment-self-claim";
 import { safeParseCheckoutStatus } from "../../../../features/commerce/checkout-status";
+import { PaymentSelfClaimForm } from "../../../../features/commerce/payment-self-claim-form";
 import { VietQrCheckout } from "../../../../features/commerce/vietqr-checkout";
 
 export const metadata: Metadata = {
@@ -53,9 +55,6 @@ export default async function CheckoutPage({
     const prefix = order.locale === "en" ? "/en" : "";
     return redirect(`${prefix}/bao-cao/${encodeURIComponent(parsed.value.reportId)}`);
   }
-  if (parsed.value.paymentInstructions === null) {
-    notFound();
-  }
   if (order.locale !== routeLocale) return redirect(checkoutPath(order.locale, order.id));
   const t = await getTranslations({ locale: order.locale, namespace: "reports" });
 
@@ -86,7 +85,43 @@ export default async function CheckoutPage({
               failed: t("checkout.status.failed"),
               refunded: t("checkout.status.refunded"),
             },
+            noSecondTransferWarning: t("checkout.no_second_transfer_warning"),
+            paidProcessingTitle: t("checkout.paid_processing_title"),
+            paidProcessingDescription: t("checkout.paid_processing_description"),
+            expiredTitle: t("checkout.expired_title"),
+            expiredDescription: t("checkout.expired_description"),
+            newChartAction: t("checkout.new_chart_action"),
+            orderHistoryAction: t("checkout.order_history_action"),
+            failedTitle: t("checkout.failed_title"),
+            failedDescription: t("checkout.failed_description"),
+            supportAction: t("checkout.support_action"),
+            refundedTitle: t("checkout.refunded_title"),
+            refundedDescription: t("checkout.refunded_description"),
           }}
+          selfClaim={
+            order.status === "pending" ? (
+              <PaymentSelfClaimForm
+                orderId={order.id}
+                defaultAmount={order.amount}
+                locale={order.locale}
+                action={submitPaymentSelfClaim}
+                labels={{
+                  heading: t("checkout.selfClaim.heading"),
+                  description: t("checkout.selfClaim.description"),
+                  amountLabel: t("checkout.selfClaim.amountLabel"),
+                  timeLabel: t("checkout.selfClaim.timeLabel"),
+                  submit: t("checkout.selfClaim.submit"),
+                  submitting: t("checkout.selfClaim.submitting"),
+                  errors: {
+                    invalid_input: t("checkout.selfClaim.errors.invalid_input"),
+                    payment_not_found: t("checkout.selfClaim.errors.payment_not_found"),
+                    rate_limited: t("checkout.selfClaim.errors.rate_limited"),
+                    service_unavailable: t("checkout.selfClaim.errors.service_unavailable"),
+                  },
+                }}
+              />
+            ) : null
+          }
         />
       </section>
     </main>

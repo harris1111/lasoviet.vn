@@ -120,6 +120,55 @@
       "when": 1788854400000,
       "tag": "0016_ziwei_knowledge_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788940800000,
+      "tag": "0017_immutable_commerce_order_invoice",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789027200000,
+      "tag": "0018_report_ready_notification",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789113600000,
+      "tag": "0019_payment_code_reconciliation",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789200000000,
+      "tag": "0020_commerce_reconciliation_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789286400000,
+      "tag": "0021_admin_commerce_manage_and_alert_delivery",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1789372800000,
+      "tag": "0022_entitlement_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789459200000,
+      "tag": "0023_order_upgrade_pricing_and_credit",
+      "breakpoints": true
     }
   ]
 }

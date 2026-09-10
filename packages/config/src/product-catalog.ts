@@ -3,8 +3,22 @@ import { z } from "zod";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+const APPROVED_FIRST_PAID_CONFIG: Readonly<Record<string, { price: number; method: string }>> = {
+  "ZIWEI-IDENTITY-P0": { price: 79000, method: "ziwei" },
+  "ZIWEI-NATAL-EXCERPT-P0": { price: 19000, method: "ziwei" },
+};
+
+const NATAL_EXCERPT_POLICY = {
+  sku: "ZIWEI-NATAL-EXCERPT-P0",
+  method: "ziwei",
+  price: 19000,
+  phase: "P1",
+  availability: "first_paid_flow",
+  sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
+} as const;
+
 const productSchema = z.object({
-  sku: z.string().regex(/^(?:ZIWEI|BAZI|WESTERN)-[A-Z]+-P0$/),
+  sku: z.string().regex(/^(?:ZIWEI|BAZI|WESTERN)-[A-Z]+(?:-[A-Z]+)*-P0$/),
   name: z.string().trim().min(1),
   method: z.enum(["ziwei", "bazi", "western_astrology"]),
   price: z.number().int().positive(),
@@ -41,10 +55,33 @@ export function validateProductCatalog(source: unknown): ProductCatalog {
     throw new Error("PRODUCT_CATALOG_INVALID");
   }
   const firstPaid = products.filter((product) => product.availability === "first_paid_flow");
+  const approvedSkus = Object.keys(APPROVED_FIRST_PAID_CONFIG);
+  if (firstPaid.length !== approvedSkus.length) {
+    throw new Error("PRODUCT_CATALOG_INVALID");
+  }
+  for (const product of firstPaid) {
+    const approved = APPROVED_FIRST_PAID_CONFIG[product.sku];
+    if (
+      approved === undefined ||
+      product.price !== approved.price ||
+      product.method !== approved.method
+    ) {
+      throw new Error("PRODUCT_CATALOG_INVALID");
+    }
+  }
+  const natalExcerpt = products.find(
+    (product) => product.sku === NATAL_EXCERPT_POLICY.sku,
+  );
   if (
-    firstPaid.length !== 1 ||
-    firstPaid[0]?.sku !== "ZIWEI-IDENTITY-P0" ||
-    firstPaid[0]?.price !== 79000
+    natalExcerpt === undefined ||
+    natalExcerpt.method !== NATAL_EXCERPT_POLICY.method ||
+    natalExcerpt.price !== NATAL_EXCERPT_POLICY.price ||
+    natalExcerpt.phase !== NATAL_EXCERPT_POLICY.phase ||
+    natalExcerpt.availability !== NATAL_EXCERPT_POLICY.availability ||
+    natalExcerpt.sections.length !== NATAL_EXCERPT_POLICY.sections.length ||
+    natalExcerpt.sections.some(
+      (section, index) => section !== NATAL_EXCERPT_POLICY.sections[index],
+    )
   ) {
     throw new Error("PRODUCT_CATALOG_INVALID");
   }

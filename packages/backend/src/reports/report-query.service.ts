@@ -10,8 +10,15 @@ import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   ZiweiComprehensiveReportContentV1Schema,
   projectComprehensiveReportPublicContent,
+  TIER_1_SCOPE_SECTIONS,
+  TIER_2_SCOPE_SECTIONS,
+  TIER_1_ENTITLEMENT_SCOPE,
+  TIER_2_ENTITLEMENT_SCOPE,
+  EntitlementScopeSchema,
+  type ComprehensiveReportSectionId,
   type CurrentActor,
   type EvidenceItemV1,
+  type OrderStatus,
   type ReportViewV1,
   type Result,
 } from "@lasoviet/contracts";
@@ -94,11 +101,16 @@ export function createReportQueryService(options: {
         return notFound();
       }
 
-      const { reservation, version, evidenceItems } = record;
+      const { reservation, order, version, evidenceItems } = record;
 
+      const allowedSkus: readonly string[] = [
+        "ZIWEI-IDENTITY-P0",
+        "ZIWEI-NATAL-EXCERPT-P0",
+      ];
       if (
+        !allowedSkus.includes(reservation.sku) ||
         (reservation.locale !== "vi" && reservation.locale !== "en") ||
-        reservation.sku !== "ZIWEI-IDENTITY-P0"
+        (reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" && reservation.locale !== "vi")
       ) {
         throw new ReportQueryDataError();
       }
@@ -122,6 +134,17 @@ export function createReportQueryService(options: {
 
       if (!version) {
         if (reservationFulfillmentStatus === "terminal_failure") {
+          if (order.status !== "paid" || order.paidAt === null) {
+            throw new ReportQueryDataError();
+          }
+
+          const paymentTime = order.paidAt.toISOString();
+          const updateTime = reservation.updatedAt.toISOString();
+          const supportSubject =
+            reservation.locale === "en"
+              ? `[La So Viet] Report support for order ${order.invoiceNumber}`
+              : `[Lá Số Việt] Hỗ trợ báo cáo đơn hàng ${order.invoiceNumber}`;
+
           const failedParse = ReportFailedViewV1Schema.safeParse({
             version: 1,
             state: "failed",
@@ -130,6 +153,12 @@ export function createReportQueryService(options: {
             locale: reservation.locale,
             sku: reservation.sku,
             fulfillmentStatus: "terminal_failure",
+            invoiceNumber: order.invoiceNumber,
+            paymentReceivedAt: paymentTime,
+            reportStatusUpdatedAt: updateTime,
+            supportEmail: "support@lasoviet.vn",
+            supportSubject,
+            supportReference: order.invoiceNumber,
           });
           if (!failedParse.success) {
             throw new ReportQueryDataError();
@@ -192,7 +221,50 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const publicContent = projectComprehensiveReportPublicContent(parsedV3.data);
+        // Calculate effective scope as union of all non-refunded entitlements for this owner and chart
+        const entitlementsList = record.entitlements && record.entitlements.length > 0
+          ? record.entitlements
+          : [
+              {
+                id: reservation.entitlementId,
+                orderId: order.id,
+                chartId: order.chartId,
+                sku: reservation.sku,
+                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" ? TIER_1_ENTITLEMENT_SCOPE : TIER_2_ENTITLEMENT_SCOPE,
+                orderStatus: order.status as OrderStatus,
+              },
+            ];
+
+        const activeEntitlements = entitlementsList.filter(
+          (e) => e.orderStatus !== "refunded",
+        );
+
+        if (activeEntitlements.length === 0) {
+          throw new ReportQueryDataError();
+        }
+
+        const effectiveSections = new Set<ComprehensiveReportSectionId>();
+        for (const ent of activeEntitlements) {
+          const parsedScope = EntitlementScopeSchema.safeParse(ent.scope);
+          if (!parsedScope.success) {
+            throw new ReportQueryDataError();
+          }
+          for (const sec of parsedScope.data.sections) {
+            effectiveSections.add(sec);
+          }
+        }
+
+        const hasTier1 = TIER_1_SCOPE_SECTIONS.every((s) => effectiveSections.has(s));
+        if (!hasTier1) {
+          throw new ReportQueryDataError();
+        }
+
+        const hasTier2 = TIER_2_SCOPE_SECTIONS.every((s) => effectiveSections.has(s));
+
+        const publicContent = projectComprehensiveReportPublicContent(
+          parsedV3.data,
+          hasTier2 ? TIER_2_ENTITLEMENT_SCOPE : TIER_1_ENTITLEMENT_SCOPE,
+        );
 
         const readyParse = ReportReadyViewV1Schema.safeParse({
           version: 1,

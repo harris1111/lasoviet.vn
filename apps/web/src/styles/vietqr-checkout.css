@@ -185,3 +185,171 @@
     transition: none;
   }
 }
+
+.payment-self-claim-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--lacquer-line);
+}
+
+.payment-self-claim-card {
+  max-width: 560px;
+  padding: var(--space-5);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-card);
+  background: var(--lacquer-900);
+}
+
+.self-claim-heading {
+  margin: 0 0 var(--space-2);
+  color: var(--pearl-100);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.self-claim-description {
+  margin: 0 0 var(--space-4);
+  color: var(--pearl-400);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.self-claim-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.self-claim-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.self-claim-label {
+  color: var(--pearl-300);
+  font: 12px/1.4 var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.self-claim-input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-small);
+  background: var(--lacquer-950);
+  color: var(--pearl-50);
+  font-size: 15px;
+  line-height: 1.5;
+  transition: border-color var(--motion-feedback);
+}
+
+.self-claim-input:focus {
+  outline: none;
+  border-color: var(--gold-500);
+}
+
+.self-claim-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.self-claim-actions {
+  margin-top: var(--space-2);
+}
+
+.self-claim-submit {
+  min-height: 44px;
+  width: auto;
+}
+
+.self-claim-feedback {
+  min-height: 24px;
+}
+
+.self-claim-error {
+  margin: 0;
+  color: #fca59d;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px) {
+  .payment-self-claim-card {
+    padding: var(--space-4);
+  }
+
+  .self-claim-submit {
+    width: 100%;
+  }
+}
+
+.vietqr-no-second-transfer-warning {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--gold-700);
+  border-radius: var(--radius-small);
+  background: rgba(212, 163, 89, 0.08);
+}
+
+.vietqr-no-second-transfer-warning p {
+  margin: 0;
+  color: var(--gold-300);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.vietqr-checkout-recovery {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-6);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-card);
+  background: var(--lacquer-800);
+  text-align: center;
+}
+
+.vietqr-checkout-recovery h2 {
+  margin: var(--space-3) 0 var(--space-4);
+  font-size: 26px;
+  line-height: 1.25;
+  color: var(--pearl-50);
+}
+
+.vietqr-recovery-description {
+  margin: 0 0 var(--space-6);
+  color: var(--pearl-300);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.vietqr-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 767px) {
+  .vietqr-checkout-recovery {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .vietqr-checkout-recovery h2 {
+    font-size: 22px;
+  }
+
+  .vietqr-recovery-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .vietqr-recovery-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

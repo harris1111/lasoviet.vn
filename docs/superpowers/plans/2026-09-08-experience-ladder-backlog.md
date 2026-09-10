@@ -62,74 +62,73 @@ P2  WP-12  ← cần toàn bộ P0 + P1
 
 ---
 
-## WP-02 — Máy đối soát tự động, tầng 1–3 `[P0-CRITICAL]`
+## WP-02 — Automated Reconciliation Engine, Tiers 1–2 `[P0-CRITICAL]`
 
-**Bối cảnh:** FD-043 — không có người trực đối soát. Thiết kế "hàng đợi cho vận hành" bị loại. Chi tiết mục 2B của spec.
+**Context:** FD-043 — No staffed payment reconciliation. Operational manual review queues are eliminated. Detailed in section 2B of the spec.
 
-**Vấn đề:** khâu khớp tiền hiện quá giòn để chạy không người trông:
-- Chỉ lấy token đầu tiên của nội dung chuyển khoản (`sepay-webhook.service.ts:191`), trong khi app ngân hàng VN hay chèn tiền tố trước nội dung khách gõ.
-- Nội dung có ký tự lạ như dấu `:` làm cả webhook trả `SEPAY_PAYLOAD_INVALID` (`:193`) và **không ghi lại gì**.
-- Khớp bằng `eq()` phân biệt hoa thường, trong khi mã đơn là UUID chữ thường có dấu gạch, dài 40 ký tự.
+**Problem:** Payment matching is currently too brittle to run unattended:
+- Extracts only the first token from transfer memo content (`sepay-webhook.service.ts:191`), whereas Vietnamese banking apps often prepend bank prefixes.
+- Punctuation like `:` causes the entire webhook to return `SEPAY_PAYLOAD_INVALID` (`:193`) with nothing recorded.
+- Matching uses case-sensitive `eq()`, whereas order identifiers are 40-character lowercased UUIDs with hyphens.
 
-**Phạm vi file:**
-- `packages/database/src/schema/commerce.ts` — thêm `payment_code text unique` vào `commerce_orders`; bảng mới `commerce_unmatched_payments` (`id`, `provider_event_id` unique, `raw_payload jsonb`, `amount`, `reason`, `received_at`, `claimed_by_order_id`, `claimed_at`); thêm `match_method text` vào `commerce_payment_events`
-- `packages/backend/src/commerce/payment-code.ts` — **file mới**: sinh mã Crockford base32, tính và kiểm ký tự kiểm tra, chuẩn hoá + trích mã từ nội dung nhiễu
-- `packages/backend/src/commerce/sepay-webhook.service.ts:191-193` — thay trích token đầu bằng quét regex toàn chuỗi; bỏ nhánh trả lỗi khi không parse được
-- `packages/backend/src/commerce/commerce.repository.ts:237` — khớp theo `payment_code` đã chuẩn hoá; thêm khớp dự phòng theo số tiền
-- `packages/backend/src/commerce/payment-instructions.ts:67,79` — QR và nội dung dùng `payment_code`
+**File scope:**
+- `packages/database/src/schema/commerce.ts` — add `payment_code text unique` to `commerce_orders`; create `commerce_unmatched_payments` table (`id`, `provider_event_id` unique, `raw_payload jsonb`, `amount`, `reason`, `received_at`, `claimed_by_order_id`, `claimed_at`); add `match_method text` to `commerce_payment_events`.
+- `packages/backend/src/commerce/payment-code.ts` — **new file**: generate Crockford base32 codes, calculate and verify checksum character, normalize and extract code from noisy content.
+- `packages/backend/src/commerce/sepay-webhook.service.ts:191-193` — replace first-token extraction with full-string regex scan; remove error response branch when parsing fails.
+- `packages/backend/src/commerce/commerce.repository.ts:237` — match by normalized `payment_code`; record unparseable/unmatched payments in `commerce_unmatched_payments`.
+- `packages/backend/src/commerce/payment-instructions.ts:67,79` — QR and transfer instructions display `payment_code`.
 
-**Nghiệm thu:** R-AUTO-1 → R-AUTO-10, R-PAY-5.
+**Acceptance:** R-AUTO-1 through R-AUTO-8, R-PAY-5.
 
-**Test bắt buộc:**
-1. Nội dung `"CT DEN:513423 LSVK7M2P9QX4 CHUYEN TIEN"` → trích đúng `LSVK7M2P9QX4`.
-2. Nội dung đã bị viết hoa và lược gạch → vẫn khớp.
-3. Nội dung rác hoàn toàn → **ghi 1 row unmatched**, HTTP 200, không ném lỗi.
-4. Mã sai ký tự kiểm tra → không khớp, không tự đoán sang đơn khác.
-5. Không có mã, đúng một đơn khớp số tiền trong 24h → tự khớp, `match_method='amount'`.
-6. Không có mã, **hai** đơn cùng số tiền → không khớp cái nào, ghi unmatched.
-7. `provider_event_id` trùng → không tạo row thứ hai.
+**Required tests:**
+1. Content `"CT DEN:513423 LSVK7M2P9QX4 CHUYEN TIEN"` extracts `LSVK7M2P9QX4`.
+2. Content transformed to uppercase and stripped of hyphens still matches.
+3. Completely corrupted content records 1 row in `commerce_unmatched_payments`, returns HTTP 200, never throws.
+4. Payment code with invalid checksum fails match and never guesses another order.
+5. Payment without valid payment code is persisted as unmatched in `commerce_unmatched_payments` and never auto-assigned from amount alone (R-AUTO-8).
+6. Duplicate `provider_event_id` is idempotent and never creates a duplicate row.
 
-**Phụ thuộc:** WP-01 (mã đơn bất biến là tiền đề của mọi việc khớp).
+**Dependencies:** WP-01 (immutable order codes are prerequisite for all matching).
 
-**Đã chốt 2026-09-09:** FD-044 approved đúng đề xuất (mã ngắn). FD-045 đề xuất gốc (số lẻ định danh) **bị
-từ chối** — giá hiển thị phải luôn tròn. Tầng khớp dự phòng theo số tiền (test 5, 6 ở trên) **bị loại bỏ**;
-gộp vào WP-02B Tầng 4 (tự nhận) với cửa sổ thời gian hẹp thay vì cửa sổ 24h rộng. Trước khi viết
-implementation plan, đọc `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md` mục 1 và cập nhật
-test bắt buộc 5/6 ở trên cho khớp cơ chế mới.
+**Ratified decisions (2026-09-09):** FD-044 approved (12-character Crockford code). FD-045 odd-unit surcharge rejected; blind amount matching eliminated; unparseable transactions proceed to Tier 4 self-claim (WP-02B).
 
 ---
 
-## WP-02B — Khách tự nhận giao dịch, cảnh báo và cầu dao `[P0-CRITICAL]`
+## WP-02B — Customer Self-Claim, Alerting, And Circuit Breaker `[P0-CRITICAL]`
 
-**Bối cảnh:** đây là phần thay thế trực tiếp cho người trực. Tầng 4–5 và cầu dao ở mục 2B của spec.
+**Context:** Direct replacement for manual operations. Tiers 4–5 and circuit breaker in section 2B of the spec.
 
-**Phạm vi file:**
-- `apps/web/` — trang "Tôi đã chuyển tiền nhưng chưa nhận báo cáo": nhập số tiền + ngày chuyển
-- `packages/backend/src/commerce/` — logic tự duyệt yêu cầu nhận giao dịch
-- `packages/database/src/schema/notifications.ts:13-16` — mở rộng `notification_delivery_kind` thêm `payment_unmatched_alert`, `checkout_circuit_open`, `report_ready`, `report_terminal_failure`
-- `packages/backend/src/commerce/` — job tính tỷ lệ tự khớp trượt 24h và đóng/mở cầu dao
-- `apps/web/` — trang "tạm ngừng nhận thanh toán" khi cầu dao mở
+**File scope:**
+- `apps/web/` — "Claim Unmatched Payment" interface: input exact transferred amount and transfer timestamp to minute precision in `Asia/Ho_Chi_Minh`.
+- `packages/backend/src/commerce/` — automated self-claim evaluation logic enforcing R-AUTO-8 through R-AUTO-10.
+- `packages/database/src/schema/notifications.ts:13-16` — extend `notification_delivery_kind` with `payment_unmatched_alert`, `checkout_circuit_open`, `report_ready`, `report_terminal_failure`.
+- `packages/backend/src/commerce/` — rolling 24-hour auto-match rate calculation and circuit breaker management.
+- `apps/web/` — "payments temporarily paused" page when circuit breaker opens.
 
-**Quy tắc tự duyệt (R-AUTO-13):** chỉ tự cấp quyền khi **đồng thời** đúng cả bốn: khách có đơn chưa fulfil; số tiền khớp tuyệt đối; giao dịch chưa ai nhận; chỉ có đúng một giao dịch khớp.
+**Automated approval rules (R-AUTO-9, R-AUTO-10, R-AUTO-13):**
+Auto-approval requires that all of the following conditions hold simultaneously:
+1. Customer has exactly one eligible unfulfilled order under their authenticated account matching the transferred amount.
+2. Order amount matches candidate payment amount exactly.
+3. Customer supplies a transfer timestamp to minute precision in `Asia/Ho_Chi_Minh`, and the candidate payment `received_at` falls within plus/minus 15 minutes of that timestamp.
+4. The candidate payment in `commerce_unmatched_payments` is currently unclaimed.
+5. Exactly one candidate payment matches these criteria, and exactly one eligible unfulfilled order for that owner matches. If zero or multiple candidate payments or orders match, entitlement is not granted, the payment remains unmatched in `commerce_unmatched_payments`, and it becomes eligible for Tier 5 stale alerting only after remaining pending >6 hours under R-AUTO-15 (no immediate Telegram alert or manual queue).
 
-**Nghiệm thu:** R-AUTO-11 → R-AUTO-19.
+**Acceptance:** R-AUTO-9 through R-AUTO-19.
 
-**Test bắt buộc:**
-1. Khách có đơn 79.348đ chưa fulfil + tồn tại giao dịch 79.348đ chưa ai nhận → tự duyệt, cấp entitlement, chạy báo cáo.
-2. Hai giao dịch cùng số tiền → **không** tự duyệt.
-3. Khách B yêu cầu nhận giao dịch của khách A (số tiền không khớp đơn của B) → từ chối, **không** tiết lộ giao dịch đó tồn tại.
-4. Yêu cầu thứ 6 trong ngày của một tài khoản → bị chặn.
-5. Một giao dịch đã bị nhận → không nhận lại được lần hai.
-6. Tỷ lệ tự khớp tụt dưới 95% với 20 mẫu → cầu dao mở, `createCheckoutOrder` bị chặn, cảnh báo phát ra.
-7. Cầu dao đã mở → **không** tự đóng lại theo thời gian.
+**Required tests:**
+1. Authenticated customer with unfulfilled 79,000 VND order submits exact amount and transfer timestamp within +/- 15 minutes of an unclaimed 79,000 VND payment -> exactly one candidate payment and one order match -> auto-approves, grants entitlement, enqueues report generation, sets `match_method = 'self_claim'`.
+2. Two candidate payments match exact amount and time window -> do not auto-approve, entitlement not granted, payment remains unmatched; becomes eligible for Tier 5 alerting only after pending >6 hours under R-AUTO-15.
+3. Customer submits amount with no matching unclaimed payment in the +/- 15-minute window -> denied with "payment not found", never disclosing whether unmatched payments exist.
+4. Two eligible owner orders match the claimed amount -> do not auto-approve, entitlement not granted, payment remains unmatched; becomes eligible for Tier 5 alerting only after pending >6 hours under R-AUTO-15.
+5. Rate limiting: 6th claim request in a single day for an account is blocked.
+6. An unmatched payment once claimed cannot be claimed a second time.
+7. Rolling 24-hour auto-match rate drops below 95% (min 20 samples) or >=3 unclaimed transactions pending >6 hours -> circuit breaker opens, `createCheckoutOrder` is blocked, Telegram alert fires.
+8. Open circuit breaker never automatically resets over time; requires explicit manual reactivation.
+9. Focused frozen/injected-clock test for R-AUTO-15: one unmatched payment produces no Telegram alert at <=6 hours from `received_at`, and produces the Tier 5 alert only after >6 hours.
 
-**Phụ thuộc:** WP-02.
+**Dependencies:** WP-02.
 
-**Đã chốt 2026-09-09:** kênh cảnh báo out-of-band là bot Telegram gửi vào group vận hành chung Harris/An
-(FD-047), SLA phản hồi 6 giờ. Cần bot token + group chat ID từ Founder trước khi tích hợp — cấu hình qua
-biến môi trường, không hardcode. Đồng thời: quy tắc tự duyệt R-AUTO-13 giờ là tuyến chính (không còn Tầng
-3 riêng) — xem cập nhật ở WP-02 và FD-046 (giữ tiền chờ khách tự nhận vô thời hạn, không cần hoàn tiền thủ
-công thay thế).
+**Ratified decisions (2026-09-09):** FD-046 (unmatched funds held pending indefinite customer self-claim without manual refund workflow). FD-047 (out-of-band alert channel is Telegram bot to Harris/An operations group, 6-hour founder response SLA; uses `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` environment variables).
 
 ---
 
@@ -243,42 +242,59 @@ công thay thế).
 
 ---
 
-## WP-09 — Nâng cấp có khấu trừ `[P1]`
+## WP-09 — Discounted Upgrade `[P1]`
 
-**Phạm vi file:**
-- `packages/database/src/schema/commerce.ts` — `price_variant`, `credit_applied`, `credited_from_order_id` trên `commerce_orders`
-- `packages/backend/src/commerce/order.service.ts` — tính giá nâng cấp
-- `apps/web/src/features/reports/paid-topic-selector.tsx` — hiện số tiền đã trả và giá nâng cấp
+**File scope:**
+- `packages/database/src/schema/commerce.ts` — `price_variant`, `credit_applied`, `credited_from_order_id`, `credit_expires_at` on `commerce_orders`.
+- `packages/backend/src/commerce/order.service.ts` — calculate upgrade price and evaluate 7-day credit expiration from Tier 1 `paid_at`.
+- `apps/web/src/features/reports/paid-topic-selector.tsx` — display applied credit, 7-day expiration notice, and net upgrade price.
 
-**Quy tắc:** khấu trừ = tiền thực trả trên đơn tầng 1 `paid` chưa hoàn của cùng lá số; giá nâng cấp = `79000 − khấu trừ`, sàn 0; **hết hạn sau 7 ngày kể từ ngày mua tầng 1 (FD-041, Approved 2026-09-09 — khác với đề xuất "không hạn" ban đầu)**; nâng cấp mở khoá tức thì, **không sinh lại nội dung**.
+**Rules (FD-041 Approved 2026-09-09):**
+- Upgrade credit = actual amount paid on an unrefunded `paid` Tier 1 order for the same chart.
+- Upgrade price = `79,000 VND − credit`, floored at 0.
+- **7-day expiration:** Credit expires exactly 7 days after the Tier 1 `paid_at` (paid timestamp), never generic order creation or an ambiguous purchase timestamp. After expiry, the full 79,000 VND price applies.
+- **Mandatory point-of-purchase disclosure:** The 7-day limit must be clearly stated at the Tier 1 checkout point prior to payment confirmation.
+- Upgrading unlocks Tier 2 sections immediately without regenerating report content.
 
-**Bổ sung do FD-041 có hạn:** thêm cột thời điểm hết hạn khấu trừ (`credit_expires_at` hoặc tương đương) trên đơn tầng 1; copy cảnh báo thời hạn 7 ngày phải hiện **tại điểm mua tầng 1, trước khi khách xác nhận thanh toán** — không phải sau khi mua. Test bắt buộc thêm: khấu trừ áp dụng đúng trong 7 ngày; quá 7 ngày → offer nâng cấp hiện giá đầy đủ 79.000đ, không còn khấu trừ.
+**Acceptance:** B-4, section 3.3.
 
-**Nghiệm thu:** B-4, mục 3.3.
-
-**Test bắt buộc:** mua 19k → nâng cấp đúng 60.000đ; mua 29k → 50.000đ; đã có tầng 2 trước → không bao giờ hiện offer tầng 1; đơn tầng 1 đã hoàn tiền → không được khấu trừ.
+**Required tests:**
+1. Purchase Tier 1 (19,000 VND) -> upgrade within 7 days of Tier 1 `paid_at` is 60,000 VND (applying 19,000 VND credit against 79,000 VND).
+2. Purchase Tier 1 (19,000 VND) -> upgrade after 7 days of Tier 1 `paid_at` displays full 79,000 VND (credit expired).
+3. Prior Tier 2 ownership -> never display Tier 1 offer.
+4. Refunded Tier 1 order -> no upgrade credit granted.
 
 ---
 
 # GIAI ĐOẠN P1 — Đo lường (chạy song song)
 
-## WP-10 — Instrument funnel và KPI `[P1]`
+## WP-10 — Funnel And KPI Instrumentation `[P1]`
 
-**Phạm vi file:**
-- `packages/contracts/src/analytics-event-v1.ts` — tên event
-- Điểm phát event dọc luồng web
+**File scope:**
+- `packages/contracts/src/analytics-event-v1.ts` — canonical event names.
+- `config/analytics-events.json` — full migration to new event registry; no dual-write (FD-049).
+- `apps/web/` and `apps/api/` — event dispatch points with analytics consent gate.
+- `packages/database/src/schema/` — dedicated analytics storage tables in PostgreSQL (FD-051).
 
-**Sự kiện:** `landing`, `wizard_start`, `wizard_step_complete`, `chart_success`, `offer_view`, `auth_verified`, `checkout_created`, `payment_confirmed`, `report_ready`, `report_opened`, `upgrade_view`, `upgrade_purchased`, `repeat_purchase`, `payment_unmatched`, `payment_pending_over_1h`, `report_failed`, `refund`, `support_ticket`.
+**Canonical funnel events:** `landing`, `wizard_start`, `wizard_step_complete`, `chart_success`, `offer_view`, `auth_verified`, `checkout_created`, `payment_confirmed`, `report_ready`, `report_opened`, `upgrade_view`, `upgrade_purchased`, `repeat_purchase`, `payment_unmatched`, `payment_pending_over_1h`, `report_failed`, `refund`, `support_ticket`.
 
-**Ràng buộc không thương lượng:** không gửi tên, ngày/giờ/nơi sinh, nội dung câu hỏi, hoặc `chart_id` sang analytics bên thứ ba. Join thương mại chỉ phía server.
+**Ratified decisions (FD-049 through FD-054, 2026-09-09):**
+- Full migration: Migrate `config/analytics-events.json` completely to new event names; no parallel dual event systems (FD-049).
+- Consent gate: Pre-consent logging is strictly restricted to anonymous technical events (page errors, health checks); no canonical funnel events fire pre-consent (FD-050).
+- Storage: Primary long-term storage is PostgreSQL within existing infrastructure; ClickHouse and third-party SaaS are not used (FD-051).
+- Session ID: Analytics session ID is pseudonymous, distinct from account ID / internal primary keys, with no periodic rotation required (FD-052).
+- Third-party boundary: Behavioral and commercial data may be exported to external optimization tools; name, exact birth date/time/place, free-text questions, and `chart_id` must never leave self-hosted infrastructure (FD-053).
+- Ownership: Dashboard and legacy-to-new event mapping are jointly owned by Harris and An (FD-054).
+- Mandatory exclusion (R-DIS-2): All revenue and margin KPI queries must filter out orders where `provider_event_id` begins with `disabled-autopay:`.
 
-**Loại trừ bắt buộc (R-DIS-2):** mọi phép đo doanh thu phải loại đơn có `provider_event_id` bắt đầu bằng `disabled-autopay:`. Đó là đơn test tự đánh dấu đã trả, không có tiền thật. Tính nhầm vào là KPI sai từ ngày đầu.
+**Acceptance:** Section 7.
 
-**Nghiệm thu:** mục 7.
+**Required tests:**
+1. Automated payload scan fails if any third-party export payload contains prohibited fields (`name`, birth date/time/place, free-text questions, `chart_id`).
+2. Canonical funnel events are suppressed prior to analytics consent.
+3. Disabled-autopay orders are excluded from revenue and 30-day contribution margin calculations.
 
-**Test bắt buộc:** test tự động quét payload event, fail nếu chứa trường thuộc danh sách cấm.
-
-**Đã chốt 2026-09-09 (FD-049 → FD-054, chi tiết trong `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md` mục 4):** migrate toàn bộ `config/analytics-events.json` sang tên event mới, không chạy song song; chỉ event kỹ thuật ẩn danh được ghi trước consent; lưu trữ dài hạn tự host trong hạ tầng hiện có (thay `createApiAnalyticsSink` hiện chỉ ghi log, `apps/api/src/api.module.ts:160`); session ID analytics không cần xoay vòng, chỉ cần khác account ID; công cụ tối ưu bên thứ ba được nhận dữ liệu hành vi/thương mại tự do nhưng **không bao giờ** nhận tên/ngày giờ nơi sinh/nội dung câu hỏi/`chart_id`; dashboard và bảng ánh xạ do Harris và An cùng sở hữu.
+**Ratified 2026-09-09 (FD-049 through FD-054; see section 4 of `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`):** Fully migrate `config/analytics-events.json` to the new event names without parallel systems; log only anonymous technical events before consent; use self-hosted PostgreSQL for long-term storage, replacing the log-only `createApiAnalyticsSink` at `apps/api/src/api.module.ts:160`; analytics session IDs need no rotation but must differ from account IDs; third-party optimization tools may receive behavioral and commercial data but must **never** receive names, exact birth date/time/place, free-text question content, or `chart_id`; Harris and An jointly own the dashboard and event mapping.
 
 ---
 
@@ -299,46 +315,40 @@ công thay thế).
 # GIAI ĐOẠN P2 — Thử nghiệm giá
 *Chỉ mở sau khi WP-01 → WP-11 xong, guardrail mục 8 đã bật, cầu dao tự ngắt đã chạy thật, và tỷ lệ tự khớp thanh toán giữ trên 95% liên tục 14 ngày.*
 
-## WP-12 — A/B 19k vs 29k `[P2, hạ ưu tiên 2026-09-09]`
+## WP-12 — Pricing Experimentation `[P2, Deprioritized 2026-09-09]`
 
-**Đã chốt 2026-09-09 (FD-048):** micro-offer tầng 1 chỉ bán ở **19.000đ**, một mức giá duy nhất. WP-12
-**không cần triển khai** ở giai đoạn P2 ban đầu — giữ trong backlog cho tương lai nếu Founder muốn mở A/B
-sau khi có traffic thật, nhưng không phải việc ưu tiên khi chỉ bán một mức giá. Lưu ý guardrail: COGS/giá
-ở mức 19k là rủi ro biên lợi nhuận cao nhất trong hai lựa chọn từng cân nhắc — theo dõi ngưỡng "> 40%" ở
-mục 8 spec ngay khi có traffic thật.
+**Ratified status (FD-048):** Tier 1 micro-offer is priced and tested at exactly 19,000 VND as a single price point. WP-12 is deprioritized from near-term implementation and retained in the backlog as a future experiment only after live traffic is established. In near-term scope, `price_variant` is assigned only `"19k"`, and no A/B allocation logic is implemented.
 
-**Quy tắc (nếu sau này mở lại):** cùng đầu ra, cùng nguồn traffic, phân bổ **deterministic theo `chart_id`** để khách không thấy hai giá cho cùng một thứ. Ghi `price_variant` vào đơn. Đo bằng lãi đóng góp/khách (FD-038), không đo bằng conversion.
+**Future rules (if reopened):** Identical output, identical traffic source, deterministic allocation by `chart_id` hash so a customer never observes two prices for the same chart. Measure primary KPI (30-day contribution margin per chart-creating customer, FD-038).
 
-**Điều kiện dừng:** theo bảng guardrail mục 8. Không dừng sớm vì kết quả đẹp.
+**Stop conditions:** Per guardrail table in spec section 8 (e.g. COGS/price > 40%).
 
 ---
 
 # GIAI ĐOẠN XUYÊN SUỐT — Kiểm chứng
 
-## WP-13 — Vòng kiểm UI xuyên suốt `[P0, chặn tăng traffic]`
+## WP-13 — Cross-Cutting Visual QA Pass `[P0, Blocks Traffic Scale]`
 
-**Vấn đề:** lượt audit này chỉ đọc source, chưa render bất kỳ màn nào. Không có cơ sở kết luận pass/fail cho bất kỳ tiêu chí giao diện nào. Hội đồng UX/UI yêu cầu vòng kiểm này trước khi mở traffic.
+**Context:** The initial audit inspected source code without rendering views. Visual pass/fail criteria require end-to-end rendering verification before scaling traffic.
 
-**Phạm vi kiểm:**
-- Viewport mobile phổ biến (360, 390, 414) và desktop; zoom 200%
-- Font Việt thật đã tải, không fallback nuốt dấu
-- Thứ tự Tab và focus ring xuyên toàn luồng mua
-- Label và thông báo lỗi form; lỗi hiện ngay tại trường
-- Bàn phím mobile không che trường ngày/giờ sinh
-- Drawer đóng/mở, sticky CTA không che nội dung
-- Tương phản chữ trên nền ảnh
-- Back / refresh / nhiều tab cùng lúc
-- **Quay lại từ app ngân hàng trên cùng một điện thoại** — kịch bản quan trọng nhất, chưa ai chạy thật
+**Scope of checks:**
+- Common mobile viewports (360, 390, 414) and desktop; 200% zoom.
+- Vietnamese fonts loaded with proper diacritic glyph coverage; no fallback rendering.
+- Tab order and focus ring integrity across the checkout and purchasing flow.
+- Form field labels and inline validation messages; errors anchored to fields.
+- Mobile soft keyboard does not occlude birth date/time inputs.
+- Drawer open/close and sticky CTA do not obscure primary content.
+- Text contrast over background patterns and images.
+- Browser back / refresh / multi-tab concurrency.
+- **Return from banking app on a single mobile device** — critical real-world payment flow.
 
-**Chủ sở hữu:** An chạy kiểm, Harris nghiệm thu một mình (FD-056, Approved 2026-09-09).
+**Ownership and Sign-Off (FD-056):** An executes checks and provides screenshot-backed pass/fail evidence; Harris signs off alone.
 
-**Đã chốt 2026-09-09 (FD-055):** UI artifact branch chính thức cho WP-03/WP-06/WP-11/WP-13 là
-`product/discipline-flagship-pages`. **Trước khi bắt đầu:** xác nhận với Founder xem các branch UI khác
-đang tồn tại song song (`product/bg-texture-consistency` — có logo Colophon v5 đã chốt, `product/homepage-content-rewrite`) đã được hợp nhất vào branch này chưa — nếu chưa, An sẽ thiếu các thay đổi đó khi build.
+**UI Artifact Branch (FD-055):** The official UI artifact branch is `product/discipline-flagship-pages`. On 2026-09-09, Git inspection verified that `product/bg-texture-consistency` and `product/homepage-content-rewrite` are ancestors of `product/discipline-flagship-pages`, which in turn is an ancestor of `product/experience-spec-v1`. No preliminary UI branch merge is required; implementation branches start from `product/experience-spec-v1` with the flagship artifact as binding.
 
-**Nghiệm thu:** mục "Kiểm UI xuyên suốt" của spec. Đầu ra là một bảng pass/fail có ảnh chụp, không phải kết luận suông.
+**Acceptance:** Spec cross-cutting UI criteria. Output is a screenshot-backed pass/fail report.
 
-**Công cụ có sẵn trong repo:** `tests/e2e/` đã có hạ tầng Playwright.
+**Available tooling in repo:** `tests/e2e/` contains Playwright test infrastructure.
 
 ---
 
@@ -365,7 +375,7 @@ mục 8 spec ngay khi có traffic thật.
 
 ---
 
-## Việc dọn dẹp phát hiện thêm
+## Additional Housekeeping Items
 
-- File lạ `--full-page` ở gốc repo (ảnh PNG 1440x900, 455KB, chưa track) — sinh ra do một flag CLI screenshot bị hiểu thành tên file đầu ra. Cần xác nhận rồi xoá.
-- `docs/20-deep-research-ta-social-listening-handoff.md` chưa được commit.
+- Stray `--full-page` file at repo root (PNG 1440x900, untracked, produced by a misparsed CLI screenshot flag) — confirm and clean up.
+- `docs/20-deep-research-ta-social-listening-handoff.md` is excluded from this reconciliation and remains a separate documentation task.

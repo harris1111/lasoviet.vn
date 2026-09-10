@@ -12,7 +12,27 @@ export function createReportGenerateProcessor(dependencies: {
   queueStore: ReportJobQueueStore;
   workerId: string;
   generationService?: ReportGenerationService;
+  alertDispatcher?: {
+    dispatchPendingAlerts(
+      filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure",
+    ): Promise<unknown>;
+  };
+  dispatchPendingAlerts?: (
+    filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure",
+  ) => Promise<unknown>;
 }) {
+  async function triggerImmediateAlertDispatch(): Promise<void> {
+    try {
+      if (dependencies.alertDispatcher?.dispatchPendingAlerts) {
+        await dependencies.alertDispatcher.dispatchPendingAlerts("report_terminal_failure");
+      } else if (dependencies.dispatchPendingAlerts) {
+        await dependencies.dispatchPendingAlerts("report_terminal_failure");
+      }
+    } catch {
+      // Immediate dispatch failure or unconfigured Telegram must not undo
+      // or misreport the already committed report terminal state.
+    }
+  }
   return {
     async processJobFailure(params: {
       jobId: string;
@@ -32,6 +52,7 @@ export function createReportGenerateProcessor(dependencies: {
             expectedStateVersion: params.expectedStateVersion,
           });
           if (!terminalResult.ok) return terminalResult;
+          await triggerImmediateAlertDispatch();
           return { ok: false, code: "JOB_RETRY_EXHAUSTED" };
         }
 
@@ -159,13 +180,16 @@ export function createReportGenerateProcessor(dependencies: {
         return { processed: false };
       }
 
-      await dependencies.reportService.recordTerminalFailure({
+      const termResult = await dependencies.reportService.recordTerminalFailure({
         reportVersionId,
         jobId: job.id,
         workerId: dependencies.workerId,
         errorCode: genResult.error.code,
         failureStage: "generation",
       });
+      if (termResult.ok) {
+        await triggerImmediateAlertDispatch();
+      }
       return { processed: false };
     },
   };

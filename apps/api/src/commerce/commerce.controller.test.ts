@@ -67,6 +67,148 @@ describe("SePay controller HTTP contract", () => {
     });
   });
 
+  it("rejects an order request with reserved SKU before repository factory is invoked", async () => {
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository");
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-RELATIONSHIP-P0",
+        locale: "vi",
+      });
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "COMMERCE_ORDER_INVALID" },
+      });
+      expect(repoSpy).not.toHaveBeenCalled();
+    } finally {
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("rejects an order request with arbitrary unsupported SKU before repository factory is invoked", async () => {
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository");
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "NOT-A-REAL-SKU",
+        locale: "vi",
+      });
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "COMMERCE_ORDER_INVALID" },
+      });
+      expect(repoSpy).not.toHaveBeenCalled();
+    } finally {
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("rejects natal excerpt with English locale before auth, repository, payment, or report paths begin", async () => {
+    const actorSpy = vi.spyOn(internalGuard, "verifyInternalActorToken");
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository");
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "en",
+      });
+      expect(result).toEqual({
+        ok: false,
+        error: { code: "COMMERCE_ORDER_INVALID" },
+      });
+      expect(actorSpy).not.toHaveBeenCalled();
+      expect(repoSpy).not.toHaveBeenCalled();
+    } finally {
+      actorSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("permits natal excerpt with Vietnamese locale to proceed through auth and repository", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          id: "order-excerpt-1",
+          status: "pending",
+          amount: 19000,
+          currency: "VND",
+          locale: "vi",
+        },
+      }),
+      readOrderProjection: vi.fn().mockResolvedValue({
+        order: {
+          id: "order-excerpt-1",
+          status: "pending",
+          amount: 19000,
+          currency: "VND",
+          locale: "vi",
+          paymentCode: "LSV123456789",
+          createdAt: new Date(),
+        },
+        reportId: null,
+      }),
+    } as never);
+    try {
+      const result = await controller().create("Bearer valid-token", {
+        chartId: "chart-1",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+      });
+      expect(result).toMatchObject({
+        ok: true,
+        value: {
+          order: {
+            id: "order-excerpt-1",
+            amount: 19000,
+          },
+        },
+      });
+      expect(authSpy).toHaveBeenCalled();
+      expect(repoSpy).toHaveBeenCalled();
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("maps CHECKOUT_PAYMENTS_PAUSED to 503 ServiceUnavailableException", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn().mockResolvedValue({
+        ok: false,
+        code: "CHECKOUT_PAYMENTS_PAUSED",
+      }),
+    } as never);
+
+    try {
+      await expect(
+        controller().create("Bearer valid-token", {
+          chartId: "chart-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          locale: "vi",
+        }),
+      ).rejects.toMatchObject({
+        status: 503,
+        response: { code: "CHECKOUT_PAYMENTS_PAUSED" },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
   it("returns CheckoutStatus projection on order creation", async () => {
     const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
       kind: "account",
@@ -76,6 +218,7 @@ describe("SePay controller HTTP contract", () => {
     });
     const orderRecord = {
       id: "order-1",
+      paymentCode: "LSVK7M2P9QXJ",
       invoiceNumber: "LSV-order-1",
       ownerId: "user-1",
       chartId: "chart-1",
@@ -124,8 +267,8 @@ describe("SePay controller HTTP contract", () => {
             accountHolder: "LA SO VIET",
             amount: 79000,
             currency: "VND",
-            transferDescription: "LSV-order-1",
-            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSV-order-1&template=compact",
+            transferDescription: "LSVK7M2P9QXJ",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSVK7M2P9QXJ&template=compact",
             expiresAt: "2026-09-05T00:15:00.000Z",
           },
           reportId: null,
@@ -147,6 +290,7 @@ describe("SePay controller HTTP contract", () => {
     });
     const paidOrderRecord = {
       id: "order-paid-1",
+      paymentCode: "LSVK7M2P9QXJ",
       invoiceNumber: "LSV-order-paid-1",
       ownerId: "user-1",
       chartId: "chart-1",
@@ -195,8 +339,8 @@ describe("SePay controller HTTP contract", () => {
             accountHolder: "LA SO VIET",
             amount: 79000,
             currency: "VND",
-            transferDescription: "LSV-order-paid-1",
-            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSV-order-paid-1&template=compact",
+            transferDescription: "LSVK7M2P9QXJ",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=79000&des=LSVK7M2P9QXJ&template=compact",
             expiresAt: "2026-09-05T00:15:00.000Z",
           },
           reportId: "report-res-123",
@@ -336,13 +480,16 @@ describe("SePay controller HTTP contract", () => {
       .rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it("accepts valid HMAC bank webhook through controller boundary and acknowledges payment", async () => {
+  it("accepts valid HMAC bank webhook through controller boundary and acknowledges payment with payment_code", async () => {
+    const validCode = backend.generatePaymentCode();
     const recordPaidSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const recordUnmatchedSpy = vi.fn();
     const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
       createOrder: vi.fn(),
       readOrder: vi.fn(),
       readOrderProjection: vi.fn(),
       recordPaid: recordPaidSpy,
+      recordUnmatched: recordUnmatchedSpy,
     } as never);
 
     const bankTransfer = {
@@ -351,8 +498,8 @@ describe("SePay controller HTTP contract", () => {
       transactionDate: "2026-09-05 10:00:00",
       accountNumber: "123456789",
       subAccount: "",
-      code: "LSV-order-1",
-      content: "LSV-order-1 chuyen tien",
+      code: validCode,
+      content: `${validCode} chuyen tien`,
       transferType: "in",
       description: "NGUYEN VAN A chuyen tien",
       transferAmount: 79000,
@@ -376,11 +523,66 @@ describe("SePay controller HTTP contract", () => {
 
       expect(result).toEqual({ success: true });
       expect(recordPaidSpy).toHaveBeenCalledWith({
-        invoiceNumber: "LSV-order-1",
+        paymentCode: validCode,
+        matchMethod: "payment_code",
         providerEventId: "92704",
         amount: 79000,
         currency: "VND",
         traceId: "sepay-webhook",
+      });
+      expect(recordUnmatchedSpy).not.toHaveBeenCalled();
+    } finally {
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("persists unmatched payment and acknowledges with success when bank content has no valid code", async () => {
+    const recordPaidSpy = vi.fn();
+    const recordUnmatchedSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: recordPaidSpy,
+      recordUnmatched: recordUnmatchedSpy,
+    } as never);
+
+    const bankTransfer = {
+      id: 92704,
+      gateway: "Vietcombank",
+      transactionDate: "2026-09-05 10:00:00",
+      accountNumber: "123456789",
+      subAccount: "",
+      code: "",
+      content: "CORRUPTED CONTENT NO PAYMENT CODE",
+      transferType: "in",
+      description: "NGUYEN VAN A chuyen tien",
+      transferAmount: 79000,
+      accumulated: 1000000,
+      referenceCode: "FT24012345678",
+    };
+    const rawBody = Buffer.from(JSON.stringify(bankTransfer));
+    const nowEpochSeconds = Math.floor(Date.now() / 1000);
+    const hmac = createHmac("sha256", "synthetic-webhook-secret");
+    hmac.update(String(nowEpochSeconds) + "." + rawBody.toString("utf8"));
+    const signature = "sha256=" + hmac.digest("hex");
+
+    try {
+      const result = await controller().webhook(
+        "ingress-secret",
+        undefined,
+        signature,
+        String(nowEpochSeconds),
+        { rawBody },
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(recordPaidSpy).not.toHaveBeenCalled();
+      expect(recordUnmatchedSpy).toHaveBeenCalledWith({
+        providerEventId: "92704",
+        rawPayload: bankTransfer,
+        amount: 79000,
+        reason: "NO_VALID_PAYMENT_CODE",
       });
     } finally {
       repoSpy.mockRestore();
@@ -435,6 +637,7 @@ describe("SePay controller HTTP contract", () => {
       });
       expect(recordPaidSpy).toHaveBeenCalledWith({
         invoiceNumber: "LSV-order-1",
+        matchMethod: "invoice_number",
         providerEventId: "disabled-autopay:order-1",
         amount: 79000,
         currency: "VND",
@@ -783,4 +986,497 @@ describe("SePay controller HTTP contract", () => {
     }
   });
 
+  it("rejects library and history requests without valid authorization", async () => {
+    await expect(controller().library(undefined)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+    await expect(controller().history(undefined)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+    await expect(controller().library("InvalidToken")).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
+  it("returns owner-scoped library projection on library read", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const mockLibrary = {
+      version: 1 as const,
+      groups: [
+        {
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          chartId: "chart-1",
+          items: [
+            {
+              id: "ent-1",
+              entitlementId: "ent-1",
+              orderId: "order-1",
+              chartId: "chart-1",
+              profileId: "profile-1",
+              profileDisplayName: "Nguyễn Văn A",
+              sku: "ZIWEI-IDENTITY-P0" as const,
+              productTitle: "Bản mệnh & tiềm năng",
+              productName: "Bản mệnh & tiềm năng",
+              orderStatus: "paid" as const,
+              entitlementStatus: "active" as const,
+              reportId: "rep-1",
+              readUrl: "/bao-cao/rep-1",
+              reportStatus: "ready",
+              locale: "vi" as const,
+              createdAt: "2026-09-08T00:00:00.000Z",
+              purchasedAt: "2026-09-08T00:05:00.000Z",
+            },
+          ],
+          latestReportId: "rep-1",
+          latestReadUrl: "/bao-cao/rep-1",
+        },
+      ],
+      items: [
+        {
+          id: "ent-1",
+          entitlementId: "ent-1",
+          orderId: "order-1",
+          chartId: "chart-1",
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          sku: "ZIWEI-IDENTITY-P0" as const,
+          productTitle: "Bản mệnh & tiềm năng",
+          productName: "Bản mệnh & tiềm năng",
+          orderStatus: "paid" as const,
+          entitlementStatus: "active" as const,
+          reportId: "rep-1",
+          readUrl: "/bao-cao/rep-1",
+          reportStatus: "ready",
+          locale: "vi" as const,
+          createdAt: "2026-09-08T00:00:00.000Z",
+          purchasedAt: "2026-09-08T00:05:00.000Z",
+        },
+      ],
+      latestReadableReport: {
+        id: "ent-1",
+        entitlementId: "ent-1",
+        orderId: "order-1",
+        chartId: "chart-1",
+        profileId: "profile-1",
+        profileDisplayName: "Nguyễn Văn A",
+        sku: "ZIWEI-IDENTITY-P0" as const,
+        productTitle: "Bản mệnh & tiềm năng",
+        productName: "Bản mệnh & tiềm năng",
+        orderStatus: "paid" as const,
+        entitlementStatus: "active" as const,
+        reportId: "rep-1",
+        readUrl: "/bao-cao/rep-1",
+        reportStatus: "ready",
+        locale: "vi" as const,
+        createdAt: "2026-09-08T00:00:00.000Z",
+        purchasedAt: "2026-09-08T00:05:00.000Z",
+      },
+      totalCount: 1,
+    };
+    const readAccountLibrarySpy = vi.fn().mockResolvedValue(mockLibrary);
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn(),
+      readAccountLibrary: readAccountLibrarySpy,
+      readOrderHistory: vi.fn(),
+    } as never);
+
+    try {
+      const result = await controller().library("Bearer valid-token");
+      expect(result).toEqual({
+        ok: true,
+        value: mockLibrary,
+      });
+      expect(readAccountLibrarySpy).toHaveBeenCalledWith({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns owner-scoped OrderHistoryV1 on history read including expired orders", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const mockHistory = {
+      version: 1 as const,
+      orders: [
+        {
+          id: "order-1",
+          orderId: "order-1",
+          invoiceNumber: "LSV-order-1",
+          chartId: "chart-1",
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          sku: "ZIWEI-IDENTITY-P0" as const,
+          productTitle: "Bản mệnh & tiềm năng",
+          productName: "Bản mệnh & tiềm năng",
+          amount: 79000,
+          currency: "VND",
+          status: "expired" as const,
+          orderStatus: "expired" as const,
+          locale: "vi" as const,
+          createdAt: "2026-09-01T00:00:00.000Z",
+          paidAt: null,
+          reportId: null,
+          readUrl: null,
+          supportUrl: "/lien-he?order=LSV-order-1",
+        },
+      ],
+      items: [
+        {
+          id: "order-1",
+          orderId: "order-1",
+          invoiceNumber: "LSV-order-1",
+          chartId: "chart-1",
+          profileId: "profile-1",
+          profileDisplayName: "Nguyễn Văn A",
+          sku: "ZIWEI-IDENTITY-P0" as const,
+          productTitle: "Bản mệnh & tiềm năng",
+          productName: "Bản mệnh & tiềm năng",
+          amount: 79000,
+          currency: "VND",
+          status: "expired" as const,
+          orderStatus: "expired" as const,
+          locale: "vi" as const,
+          createdAt: "2026-09-01T00:00:00.000Z",
+          paidAt: null,
+          reportId: null,
+          readUrl: null,
+          supportUrl: "/lien-he?order=LSV-order-1",
+        },
+      ],
+      totalCount: 1,
+    };
+    const readOrderHistorySpy = vi.fn().mockResolvedValue(mockHistory);
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn(),
+      readAccountLibrary: vi.fn(),
+      readOrderHistory: readOrderHistorySpy,
+    } as never);
+
+    try {
+      const result = await controller().history("Bearer valid-token");
+      expect(result).toEqual({
+        ok: true,
+        value: mockHistory,
+      });
+      expect(readOrderHistorySpy).toHaveBeenCalledWith({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns empty library and history for anonymous actors without error", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "anonymous",
+      anonymousActorId: "anon-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+      expiresAt: "2026-09-09T00:00:00+00:00",
+    });
+    const emptyLib = {
+      version: 1 as const,
+      groups: [],
+      items: [],
+      latestReadableReport: null,
+      totalCount: 0,
+    };
+    const emptyHist = {
+      version: 1 as const,
+      orders: [],
+      items: [],
+      totalCount: 0,
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: vi.fn(),
+      readAccountLibrary: vi.fn().mockResolvedValue(emptyLib),
+      readOrderHistory: vi.fn().mockResolvedValue(emptyHist),
+    } as never);
+
+    try {
+      const libResult = await controller().library("Bearer anon-token");
+      expect(libResult).toEqual({ ok: true, value: emptyLib });
+
+      const histResult = await controller().history("Bearer anon-token");
+      expect(histResult).toEqual({ ok: true, value: emptyHist });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("persists unmatched payment and acknowledges with success when hosted ORDER_PAID IPN fails to match order", async () => {
+    const recordPaidSpy = vi.fn().mockResolvedValue({ ok: false, code: "ORDER_NOT_FOUND" });
+    const recordUnmatchedSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn(),
+      recordPaid: recordPaidSpy,
+      recordUnmatched: recordUnmatchedSpy,
+    } as never);
+
+    const hostedPayload = {
+      notification_type: "ORDER_PAID",
+      order: {
+        order_invoice_number: "LSV-unknown-order",
+        order_amount: "79000.00",
+        order_currency: "VND",
+        order_status: "CAPTURED",
+      },
+      transaction: {
+        transaction_id: "hosted-event-unknown",
+        transaction_amount: "79000.00",
+        transaction_currency: "VND",
+        transaction_status: "APPROVED",
+        transaction_type: "PAYMENT",
+      },
+    };
+    const rawBody = Buffer.from(JSON.stringify(hostedPayload));
+
+    try {
+      const result = await controller().webhook(
+        "ingress-secret",
+        "provider-secret",
+        undefined,
+        undefined,
+        { rawBody },
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(recordPaidSpy).toHaveBeenCalled();
+      expect(recordUnmatchedSpy).toHaveBeenCalledWith({
+        providerEventId: "hosted-event-unknown",
+        rawPayload: expect.objectContaining({ notification_type: "ORDER_PAID" }),
+        amount: 79000,
+        reason: "ORDER_NOT_FOUND",
+      });
+    } finally {
+      repoSpy.mockRestore();
+    }
+  });
+
+  describe("POST /commerce/payments/self-claim", () => {
+    it("rejects missing actor token with 401 PAYMENT_CLAIM_ACCOUNT_REQUIRED", async () => {
+      await expect(
+        controller().selfClaim(undefined, {
+          amount: 79000,
+          transferredAtLocal: "2026-09-05T14:30",
+        }),
+      ).rejects.toMatchObject({
+        status: 401,
+        response: { code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" },
+      });
+    });
+
+    it("rejects invalid actor token with 401 PAYMENT_CLAIM_ACCOUNT_REQUIRED", async () => {
+      await expect(
+        controller().selfClaim("Bearer invalid-token", {
+          amount: 79000,
+          transferredAtLocal: "2026-09-05T14:30",
+        }),
+      ).rejects.toMatchObject({
+        status: 401,
+        response: { code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" },
+      });
+    });
+
+    it("rejects malformed input with 400 PAYMENT_CLAIM_INVALID", async () => {
+      await expect(
+        controller().selfClaim("Bearer valid-token", {
+          amount: -10,
+          transferredAtLocal: "invalid-date",
+        }),
+      ).rejects.toMatchObject({
+        status: 400,
+        response: { code: "PAYMENT_CLAIM_INVALID" },
+      });
+    });
+
+    it("maps PAYMENT_CLAIM_ACCOUNT_REQUIRED to 401", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 401,
+          response: { code: "PAYMENT_CLAIM_ACCOUNT_REQUIRED" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("maps PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED to 403", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 403,
+          response: { code: "PAYMENT_CLAIM_EMAIL_VERIFICATION_REQUIRED" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("maps PAYMENT_CLAIM_RATE_LIMITED to 429", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_RATE_LIMITED",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 429,
+          response: { code: "PAYMENT_CLAIM_RATE_LIMITED" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("maps PAYMENT_CLAIM_NOT_FOUND to 404", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: false,
+          code: "PAYMENT_CLAIM_NOT_FOUND",
+        }),
+      } as never);
+
+      try {
+        await expect(
+          controller().selfClaim("Bearer valid-token", {
+            amount: 79000,
+            transferredAtLocal: "2026-09-05T14:30",
+          }),
+        ).rejects.toMatchObject({
+          status: 404,
+          response: { code: "PAYMENT_CLAIM_NOT_FOUND" },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+
+    it("returns HTTP 200 with value on success", async () => {
+      const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+        kind: "account",
+        userId: "user-1",
+        sessionId: "session-1",
+        requestId: "req-1",
+      });
+      const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+        claimUnmatchedPayment: vi.fn().mockResolvedValue({
+          ok: true,
+          value: {
+            status: "claimed",
+            orderId: "order-claimed-123",
+            reportId: "report-res-456",
+          },
+        }),
+      } as never);
+
+      try {
+        const result = await controller().selfClaim("Bearer valid-token", {
+          amount: 79000,
+          transferredAtLocal: "2026-09-05T14:30",
+        });
+        expect(result).toEqual({
+          ok: true,
+          value: {
+            status: "claimed",
+            orderId: "order-claimed-123",
+            reportId: "report-res-456",
+          },
+        });
+      } finally {
+        authSpy.mockRestore();
+        repoSpy.mockRestore();
+      }
+    });
+  });
 });

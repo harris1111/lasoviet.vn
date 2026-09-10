@@ -109,6 +109,20 @@
   "continue": "Continue",
   "submit": "Create chart",
   "submitting": "Creating chart...",
+  "saveProfile": "Save profile",
+  "savingProfile": "Saving profile...",
+  "unknownTimeSaved": {
+    "title": "Birth profile saved",
+    "savedConfirmation": "Your birth details have been securely saved in your browser.",
+    "savedConfirmationSessionOnly": "Birth details have been recorded for the current session.",
+    "requirement": "To calculate a Zi Wei chart and receive a comprehensive reading, at least a known traditional 2-hour branch is required.",
+    "guidanceTitle": "Ways to find your birth time:",
+    "sourceCertificate": "Birth certificate or civil registry extract",
+    "sourceHospital": "Hospital birth records or maternal health documentation",
+    "sourceFamily": "Close family members (parents or relatives who remember the time)",
+    "addTimeAction": "Add birth time now",
+    "homeAction": "Return to home (saved for later)"
+  },
   "errors": {
     "profile": "We could not save the birth information. Check it and try again.",
     "gender": "Select the gender used to create the chart.",
