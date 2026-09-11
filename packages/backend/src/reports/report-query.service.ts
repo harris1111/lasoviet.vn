@@ -156,7 +156,7 @@ export function createReportQueryService(options: {
             invoiceNumber: order.invoiceNumber,
             paymentReceivedAt: paymentTime,
             reportStatusUpdatedAt: updateTime,
-            supportEmail: "support@lasoviet.vn",
+            supportEmail: "support@lasoviet.net",
             supportSubject,
             supportReference: order.invoiceNumber,
           });

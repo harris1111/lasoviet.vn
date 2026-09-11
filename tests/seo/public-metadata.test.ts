@@ -38,18 +38,18 @@ describe("public metadata", () => {
       title: "Lá Số Việt",
       description: "Nền tảng lập và luận giải lá số cho người Việt.",
       alternates: {
-        canonical: "https://lasoviet.vn/",
+        canonical: "https://lasoviet.net/",
         languages: {
-          vi: "https://lasoviet.vn/",
-          en: "https://lasoviet.vn/en",
-          "x-default": "https://lasoviet.vn/",
+          vi: "https://lasoviet.net/",
+          en: "https://lasoviet.net/en",
+          "x-default": "https://lasoviet.net/",
         },
       },
       robots: { index: true, follow: true },
     });
     expect(buildPublicMetadata(homeRoute, repository.get(homeRoute.id, "en"))).toMatchObject({
       title: "La So Viet",
-      alternates: { canonical: "https://lasoviet.vn/en" },
+      alternates: { canonical: "https://lasoviet.net/en" },
     });
   });
 
@@ -72,11 +72,11 @@ describe("public metadata", () => {
 
     expect(buildPublicMetadata(canonicalFixture, content)).toMatchObject({
       alternates: {
-        canonical: "https://lasoviet.vn/en/canonical-page",
+        canonical: "https://lasoviet.net/en/canonical-page",
         languages: {
-          vi: "https://lasoviet.vn/canonical-page",
-          en: "https://lasoviet.vn/en/canonical-page",
-          "x-default": "https://lasoviet.vn/canonical-page",
+          vi: "https://lasoviet.net/canonical-page",
+          en: "https://lasoviet.net/en/canonical-page",
+          "x-default": "https://lasoviet.net/canonical-page",
         },
       },
     });
@@ -112,11 +112,11 @@ describe("public metadata", () => {
       title: "Bát Tự Hà Lạc",
       description: "Khám phá bản đồ vận mệnh theo Bát Tự.",
       alternates: {
-        canonical: `https://lasoviet.vn${previewRoute.path}`,
+        canonical: `https://lasoviet.net${previewRoute.path}`,
         languages: {
-          vi: `https://lasoviet.vn${previewRoute.path}`,
-          en: `https://lasoviet.vn/en${previewRoute.path}`,
-          "x-default": `https://lasoviet.vn${previewRoute.path}`,
+          vi: `https://lasoviet.net${previewRoute.path}`,
+          en: `https://lasoviet.net/en${previewRoute.path}`,
+          "x-default": `https://lasoviet.net${previewRoute.path}`,
         },
       },
       robots: { index: false, follow: true },
@@ -129,7 +129,7 @@ describe("public metadata", () => {
     expect(enMetadata).toMatchObject({
       title: "Four Pillars of Destiny",
       alternates: {
-        canonical: `https://lasoviet.vn/en${previewRoute.path}`,
+        canonical: `https://lasoviet.net/en${previewRoute.path}`,
       },
       robots: { index: false, follow: true },
     });

@@ -27,7 +27,7 @@ owners: Harris/Product (giao việc), Claude Design (dựng trang), ChatGPT (vi�
 ```
 BỐI CẢNH
 
-Lá Số Việt (lasoviet.vn) — nền tảng lập và luận giải lá số Tử Vi tiếng Việt. Công cụ lập lá số miễn
+Lá Số Việt (lasoviet.net) — nền tảng lập và luận giải lá số Tử Vi tiếng Việt. Công cụ lập lá số miễn
 phí dẫn vào báo cáo luận giải trả phí, thanh toán một lần, không subscription. Định vị: "thư viện tri
 thức Việt đương đại" — không phải web bói toán, không phải thầy bói AI.
 

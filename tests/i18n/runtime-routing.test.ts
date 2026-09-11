@@ -17,36 +17,36 @@ describe("localized app runtime tree", () => {
 
     for (const { from, to } of aliasCases) {
       // Vietnamese request with query
-      const viReq = new Request(`https://lasoviet.vn${from}?tab=overview&ref=partner`);
+      const viReq = new Request(`https://lasoviet.net${from}?tab=overview&ref=partner`);
       const viRes = resolveLegacyAliasRedirect(viReq);
       expect(viRes).toBeDefined();
       expect(viRes?.status).toBe(301);
-      expect(viRes?.headers.get("location")).toBe(`https://lasoviet.vn${to}?tab=overview&ref=partner`);
+      expect(viRes?.headers.get("location")).toBe(`https://lasoviet.net${to}?tab=overview&ref=partner`);
 
       // English request with query
-      const enReq = new Request(`https://lasoviet.vn/en${from}?tab=overview&ref=partner`);
+      const enReq = new Request(`https://lasoviet.net/en${from}?tab=overview&ref=partner`);
       const enRes = resolveLegacyAliasRedirect(enReq);
       expect(enRes).toBeDefined();
       expect(enRes?.status).toBe(301);
-      expect(enRes?.headers.get("location")).toBe(`https://lasoviet.vn/en${to}?tab=overview&ref=partner`);
+      expect(enRes?.headers.get("location")).toBe(`https://lasoviet.net/en${to}?tab=overview&ref=partner`);
 
       // Trailing slash request
-      const slashReq = new Request(`https://lasoviet.vn${from}/`);
+      const slashReq = new Request(`https://lasoviet.net${from}/`);
       const slashRes = resolveLegacyAliasRedirect(slashReq);
       expect(slashRes).toBeDefined();
       expect(slashRes?.status).toBe(301);
-      expect(slashRes?.headers.get("location")).toBe(`https://lasoviet.vn${to}`);
+      expect(slashRes?.headers.get("location")).toBe(`https://lasoviet.net${to}`);
     }
 
     // Non-alias requests should return null so normal proxy routing handles them
     const unaffectedRequests = [
-      "https://lasoviet.vn/tu-vi",
-      "https://lasoviet.vn/en/tu-vi",
-      "https://lasoviet.vn/bat-tu",
-      "https://lasoviet.vn/en/bat-tu",
-      "https://lasoviet.vn/",
-      "https://lasoviet.vn/en",
-      "https://lasoviet.vn/chinh-sach-bao-mat",
+      "https://lasoviet.net/tu-vi",
+      "https://lasoviet.net/en/tu-vi",
+      "https://lasoviet.net/bat-tu",
+      "https://lasoviet.net/en/bat-tu",
+      "https://lasoviet.net/",
+      "https://lasoviet.net/en",
+      "https://lasoviet.net/chinh-sach-bao-mat",
     ];
 
     for (const url of unaffectedRequests) {

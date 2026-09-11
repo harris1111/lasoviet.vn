@@ -1,6 +1,6 @@
 # BỘ QUY TẮC NỘI DUNG & COPYWRITING — LÁ SỐ VIỆT (BẮT BUỘC TUÂN THỦ)
 
-> **Mục đích:** Đây là kim chỉ nam bất biến cho việc revise nội dung của TẤT CẢ các trang trên website `lasoviet.vn`. Bất kỳ đề xuất nội dung nào vi phạm các quy tắc này đều bị coi là không đạt.
+> **Mục đích:** Đây là kim chỉ nam bất biến cho việc revise nội dung của TẤT CẢ các trang trên website `lasoviet.net`. Bất kỳ đề xuất nội dung nào vi phạm các quy tắc này đều bị coi là không đạt.
 
 ---
 

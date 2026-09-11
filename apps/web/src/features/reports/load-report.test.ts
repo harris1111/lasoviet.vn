@@ -175,7 +175,7 @@ const validFailedView = {
   invoiceNumber: "LSV-INV-FAILED-3",
   paymentReceivedAt: "2026-09-08T10:00:00.000Z",
   reportStatusUpdatedAt: "2026-09-08T10:05:00.000Z",
-  supportEmail: "support@lasoviet.vn",
+  supportEmail: "support@lasoviet.net",
   supportSubject: "Yêu cầu hỗ trợ báo cáo LSV-INV-FAILED-3",
   supportReference: "REF-FAILED-3",
 };

@@ -247,7 +247,7 @@ export function GatedToolPreview({ kind, locale, className }: GatedToolPreviewPr
           color: "#6E6656",
         }}
       >
-        {isVi ? "© 2026 Lá Số Việt · lasoviet.vn" : "© 2026 La So Viet · lasoviet.vn"}
+        {isVi ? "© 2026 Lá Số Việt · lasoviet.net" : "© 2026 La So Viet · lasoviet.net"}
       </footer>
     </div>
   );
