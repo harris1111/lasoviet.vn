@@ -11,6 +11,7 @@ export type BirthDateFieldsProps = {
   onDayChange(value: string): void;
   onMonthChange(value: string): void;
   onYearChange(value: string): void;
+  calendarType?: "solar" | "lunar";
   locale?: "en" | "vi";
   dayLabel?: string;
   monthLabel?: string;
@@ -31,6 +32,7 @@ export function BirthDateFields({
   onDayChange,
   onMonthChange,
   onYearChange,
+  calendarType = "solar",
   locale = "vi",
   dayLabel = locale === "en" ? "Day" : "Ngày",
   monthLabel = locale === "en" ? "Month" : "Tháng",
@@ -142,29 +144,31 @@ export function BirthDateFields({
             value={year}
           />
         </label>
-        <div className="birth-date-picker-wrap">
-          <button
-            aria-label={calendarButtonLabel}
-            className="birth-date-calendar-button"
-            disabled={disabled}
-            onClick={handleOpenCalendar}
-            title={calendarButtonLabel}
-            type="button"
-          >
-            <Icon name="calendar-day" />
-          </button>
-          <input
-            aria-hidden="true"
-            className="birth-date-native-picker"
-            disabled={disabled}
-            max={maxDate}
-            onChange={handlePickerChange}
-            ref={pickerRef}
-            tabIndex={-1}
-            type="date"
-            value={pickerValue}
-          />
-        </div>
+        {calendarType === "solar" ? (
+          <div className="birth-date-picker-wrap">
+            <button
+              aria-label={calendarButtonLabel}
+              className="birth-date-calendar-button"
+              disabled={disabled}
+              onClick={handleOpenCalendar}
+              title={calendarButtonLabel}
+              type="button"
+            >
+              <Icon name="calendar-day" />
+            </button>
+            <input
+              aria-hidden="true"
+              className="birth-date-native-picker"
+              disabled={disabled}
+              max={maxDate}
+              onChange={handlePickerChange}
+              ref={pickerRef}
+              tabIndex={-1}
+              type="date"
+              value={pickerValue}
+            />
+          </div>
+        ) : null}
       </div>
       {error ? (
         <p className="form-error" role="alert">

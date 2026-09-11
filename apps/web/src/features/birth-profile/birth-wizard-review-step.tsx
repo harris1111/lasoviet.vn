@@ -24,6 +24,8 @@ export type BirthWizardReviewStepProps = {
   displayName: string;
   forWhom: string;
   date: string;
+  calendarType?: "solar" | "lunar";
+  isLeapMonth?: boolean;
   time: string;
   gender: string;
   place?: string;

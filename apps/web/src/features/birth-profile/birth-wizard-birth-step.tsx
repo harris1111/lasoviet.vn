@@ -13,6 +13,10 @@ export type BirthWizardBirthStepProps = {
   solarLabel: string;
   lunarLabel: string;
   lunarNotice: string;
+  calendarType?: 'solar' | 'lunar';
+  isLeapMonth?: boolean;
+  leapMonthLabel?: string;
+  leapMonthHelp?: string;
   dateLabel: string;
   dayLabel: string;
   monthLabel: string;
@@ -39,6 +43,8 @@ export type BirthWizardBirthStepProps = {
   timeState: BirthTimeState;
   place: string;
 
+  onCalendarTypeChange?(value: 'solar' | 'lunar'): void;
+  onIsLeapMonthChange?(value: boolean): void;
   onDayChange(value: string): void;
   onMonthChange(value: string): void;
   onYearChange(value: string): void;
@@ -54,6 +60,10 @@ export function BirthWizardBirthStep({
   solarLabel,
   lunarLabel,
   lunarNotice,
+  calendarType = "solar",
+  isLeapMonth = false,
+  leapMonthLabel,
+  leapMonthHelp,
   dateLabel,
   dayLabel,
   monthLabel,
@@ -68,6 +78,8 @@ export function BirthWizardBirthStep({
   dateError,
   timeState,
   place,
+  onCalendarTypeChange,
+  onIsLeapMonthChange,
   onDayChange,
   onMonthChange,
   onYearChange,
@@ -88,17 +100,17 @@ export function BirthWizardBirthStep({
         <span className="wizard-field-label">{calendarLabel}</span>
         <div className="wizard-choice-row">
           <button
-            aria-pressed={true}
-            className="wizard-choice-button is-active"
+            aria-pressed={calendarType === "solar"}
+            className={`wizard-choice-button ${calendarType === "solar" ? "is-active" : ""}`}
+            onClick={() => onCalendarTypeChange?.("solar")}
             type="button"
           >
             <span>{solarLabel}</span>
           </button>
           <button
-            aria-pressed={false}
-            className="wizard-choice-button is-disabled"
-            disabled
-            title={lunarNotice}
+            aria-pressed={calendarType === "lunar"}
+            className={`wizard-choice-button ${calendarType === "lunar" ? "is-active" : ""}`}
+            onClick={() => onCalendarTypeChange?.("lunar")}
             type="button"
           >
             <span>{lunarLabel}</span>
@@ -110,6 +122,7 @@ export function BirthWizardBirthStep({
         <span className="wizard-field-label">{dateLabel}</span>
         <BirthDateFields
           calendarButtonLabel={locale === "en" ? "Select date from calendar" : "Chọn ngày từ lịch"}
+          calendarType={calendarType}
           day={day}
           dayLabel={dayLabel}
           dayPlaceholder={dayLabel}
@@ -125,6 +138,25 @@ export function BirthWizardBirthStep({
           yearLabel={yearLabel}
           yearPlaceholder={yearLabel}
         />
+        {calendarType === "lunar" ? (
+          <div className="wizard-lunar-options">
+            <label className="wizard-check">
+              <input
+                checked={isLeapMonth}
+                name="isLeapMonth"
+                onChange={(event) => onIsLeapMonthChange?.(event.target.checked)}
+                type="checkbox"
+              />
+              <span>{leapMonthLabel ?? (locale === "en" ? "Leap month" : "Tháng nhuận")}</span>
+            </label>
+            {leapMonthHelp ? (
+              <p className="wizard-help">{leapMonthHelp}</p>
+            ) : null}
+            {lunarNotice ? (
+              <p className="wizard-help">{lunarNotice}</p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <TimePrecisionFields

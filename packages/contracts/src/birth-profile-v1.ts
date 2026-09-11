@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 const localDateSchema = z.iso.date();
+const lunarDateSchema = z
+  .string()
+  .regex(
+    /^[1-9]\d{3}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|30)$/,
+    "Invalid lunar date (expected YYYY-MM-DD with year 1000-9999, month 01-12, day 01-30)",
+  );
 const localTimeSchema = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
 
 export const BirthCalendarInputSchema = z.discriminatedUnion("kind", [
@@ -13,7 +19,7 @@ export const BirthCalendarInputSchema = z.discriminatedUnion("kind", [
   z
     .object({
       kind: z.literal("lunar"),
-      date: localDateSchema,
+      date: lunarDateSchema,
       isLeapMonth: z.boolean(),
     })
     .strict(),

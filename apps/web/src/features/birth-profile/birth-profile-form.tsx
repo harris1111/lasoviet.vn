@@ -304,6 +304,8 @@ export function BirthProfileForm({
   const [forWhom, setForWhom] = useState<"self" | "other">("self");
   const [consentOther, setConsentOther] = useState(false);
   const [gender, setGender] = useState<"male" | "female" | null>(null);
+  const [calendarType, setCalendarType] = useState<"solar" | "lunar">("solar");
+  const [isLeapMonth, setIsLeapMonth] = useState(false);
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -402,6 +404,20 @@ export function BirthProfileForm({
     }
   }
 
+  function handleCalendarTypeChange(value: "solar" | "lunar") {
+    setCalendarType(value);
+    if (value === "solar") {
+      setIsLeapMonth(false);
+    }
+    if (error === t("heroForm.invalidDate")) {
+      setError(null);
+    }
+  }
+
+  function handleIsLeapMonthChange(value: boolean) {
+    setIsLeapMonth(value);
+  }
+
   function handleDayChange(value: string) {
     setDay(value.replace(/\D/g, "").slice(0, 2));
     if (error === t("heroForm.invalidDate")) {
@@ -453,7 +469,7 @@ export function BirthProfileForm({
 
   function handleContinueStep2() {
     if (pending) return;
-    const dateResult = validateWizardDate(day, month, year);
+    const dateResult = validateWizardDate(day, month, year, undefined, calendarType);
     if (!dateResult.valid) {
       setError(t("heroForm.invalidDate"));
       return;
@@ -514,6 +530,8 @@ export function BirthProfileForm({
   function handleClearCache() {
     clearBirthCache();
     setDisplayName("");
+    setCalendarType("solar");
+    setIsLeapMonth(false);
     setDay("");
     setMonth("");
     setYear("");
@@ -530,6 +548,8 @@ export function BirthProfileForm({
     setForWhom("self");
     setConsentOther(false);
     setGender(null);
+    setCalendarType("solar");
+    setIsLeapMonth(false);
     setDay("");
     setMonth("");
     setYear("");
@@ -554,7 +574,7 @@ export function BirthProfileForm({
       return;
     }
 
-    const dateResult = validateWizardDate(day, month, year);
+    const dateResult = validateWizardDate(day, month, year, undefined, calendarType);
     const action = resolveWizardSubmitAction({
       step,
       pending,
@@ -611,6 +631,8 @@ export function BirthProfileForm({
       const profile = buildBirthProfile({
         displayName: displayName.trim() ? displayName.trim() : undefined,
         date: dateResult.isoDate,
+        calendarType,
+        isLeapMonth: calendarType === "lunar" ? isLeapMonth : false,
         time: timeState,
         placeLabel: place,
         gender,
@@ -630,7 +652,7 @@ export function BirthProfileForm({
       }
 
       let cacheSaved = false;
-      if (forWhom === "self") {
+      if (forWhom === "self" && calendarType === "solar") {
         cacheSaved = Boolean(
           saveBirthCache({
             displayName: displayName.trim() ? displayName.trim() : undefined,
@@ -684,7 +706,7 @@ export function BirthProfileForm({
   }
 
 
-  const dateResultForRender = validateWizardDate(day, month, year);
+  const dateResultForRender = validateWizardDate(day, month, year, undefined, calendarType);
   const submitGuard = getWizardSubmitGuard({
     step,
     pending,
@@ -818,16 +840,26 @@ export function BirthProfileForm({
             {step === 2 ? (
               <BirthWizardBirthStep
                 calendarLabel={t("birth.calendarType")}
+                calendarType={calendarType}
                 dateError={error === t("heroForm.invalidDate") ? error : null}
-                dateLabel={t("birth.date")}
+                dateLabel={
+                  calendarType === "lunar"
+                    ? t("birth.lunarDate")
+                    : t("birth.date")
+                }
                 day={day}
                 dayLabel={t("birth.dayLabel")}
+                isLeapMonth={isLeapMonth}
+                leapMonthHelp={t("birth.leapMonthHelp")}
+                leapMonthLabel={t("birth.leapMonth")}
                 locale={locale}
                 lunarLabel={t("birth.lunar")}
                 lunarNotice={t("birth.lunarNotice")}
                 month={month}
                 monthLabel={t("birth.monthLabel")}
+                onCalendarTypeChange={handleCalendarTypeChange}
                 onDayChange={handleDayChange}
+                onIsLeapMonthChange={handleIsLeapMonthChange}
                 onMonthChange={handleMonthChange}
                 onPlaceChange={handlePlaceChange}
                 onTimeStateChange={handleTimeStateChange}
@@ -859,11 +891,20 @@ export function BirthProfileForm({
             {step === 3 ? (
               <BirthWizardReviewStep
                 birthSectionTitle={t("steps.birth")}
+                calendarType={calendarType}
                 disabled={pending}
                 consent={consent}
                 consentLabel={t("review.consent")}
-                date={formatDateSummary(day, month, year)}
-                dateLabel={t("review.solarDate")}
+                date={formatDateSummary(day, month, year, {
+                  calendarType,
+                  isLeapMonth,
+                  locale,
+                })}
+                dateLabel={
+                  calendarType === "lunar"
+                    ? t("review.lunarDate")
+                    : t("review.solarDate")
+                }
                 disclosure={t("review.disclosure")}
                 displayName={
                   displayName.trim() ? displayName.trim() : t("review.noName")
@@ -885,6 +926,7 @@ export function BirthProfileForm({
                       : "—"
                 }
                 genderLabel={t("birth.gender")}
+                isLeapMonth={isLeapMonth}
                 guestNotice={t("review.guestNotice")}
                 onConsentChange={setConsent}
                 onEditBirth={handleEditBirth}

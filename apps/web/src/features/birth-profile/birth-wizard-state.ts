@@ -31,12 +31,59 @@ export type WizardDateValidationResult =
       error: "EMPTY" | "INVALID_FORMAT" | "IMPOSSIBLE_DATE" | "FUTURE_DATE";
     };
 
+export type WizardDateValidationOptions = {
+  referenceDate?: Date;
+  calendarType?: "solar" | "lunar";
+};
+
+export function isValidLunarDate(
+  year: number,
+  month: number,
+  day: number,
+): boolean {
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    year < 1000 ||
+    year > 9999 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 30
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export function validateWizardDate(
   dayStr: string,
   monthStr: string,
   yearStr: string,
-  referenceDate?: Date,
+  referenceDateOrOptions?: Date | WizardDateValidationOptions,
+  calendarTypeParam?: "solar" | "lunar",
 ): WizardDateValidationResult {
+  let referenceDate: Date | undefined;
+  let calendarType: "solar" | "lunar" = "solar";
+
+  if (referenceDateOrOptions instanceof Date) {
+    referenceDate = referenceDateOrOptions;
+    if (calendarTypeParam) {
+      calendarType = calendarTypeParam;
+    }
+  } else if (
+    referenceDateOrOptions &&
+    typeof referenceDateOrOptions === "object"
+  ) {
+    referenceDate = referenceDateOrOptions.referenceDate;
+    if (referenceDateOrOptions.calendarType) {
+      calendarType = referenceDateOrOptions.calendarType;
+    }
+  } else if (calendarTypeParam) {
+    calendarType = calendarTypeParam;
+  }
+
   const dTrim = dayStr.trim();
   const mTrim = monthStr.trim();
   const yTrim = yearStr.trim();
@@ -52,6 +99,19 @@ export function validateWizardDate(
   const d = Number.parseInt(dTrim, 10);
   const m = Number.parseInt(mTrim, 10);
   const y = Number.parseInt(yTrim, 10);
+
+  if (calendarType === "lunar") {
+    if (d < 1 || d > 31 || m < 1 || m > 12) {
+      return { valid: false, error: "INVALID_FORMAT" };
+    }
+    if (y < 1000 || y > 9999 || d > 30) {
+      return { valid: false, error: "IMPOSSIBLE_DATE" };
+    }
+    const isoDate = `${y.toString().padStart(4, "0")}-${m
+      .toString()
+      .padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
+    return { valid: true, isoDate };
+  }
 
   if (d < 1 || d > 31 || m < 1 || m > 12) {
     return { valid: false, error: "INVALID_FORMAT" };
@@ -173,12 +233,22 @@ export function formatDateSummary(
   day: string,
   month: string,
   year: string,
+  options?: {
+    calendarType?: "solar" | "lunar";
+    isLeapMonth?: boolean;
+    locale?: "en" | "vi";
+  },
 ): string {
   const d = day.trim();
   const m = month.trim();
   const y = year.trim();
   if (d && m && y) {
-    return `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
+    const formatted = `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
+    if (options?.calendarType === "lunar" && options?.isLeapMonth) {
+      const suffix = options.locale === "en" ? " (leap month)" : " (tháng nhuận)";
+      return `${formatted}${suffix}`;
+    }
+    return formatted;
   }
   return "—";
 }
