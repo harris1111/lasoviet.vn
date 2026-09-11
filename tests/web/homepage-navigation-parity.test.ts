@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { SiteHeader } from "../../apps/web/src/components/site-header";
+import {
+  buildSignInCallbackUrl,
+  SiteHeaderSignInLink,
+} from "../../apps/web/src/components/site-header-sign-in-link";
 import { routing } from "../../apps/web/src/i18n/routing";
 import { HomepageLenses } from "../../apps/web/src/features/homepage/homepage-lenses";
 import { PublicContentPage } from "../../apps/web/src/features/content/public-content-page";
@@ -9,26 +13,40 @@ import type { PublicContentRepository } from "../../apps/web/src/features/conten
 function extractAllLinks(element: any): Array<{ href: string; text?: string; className?: string }> {
   const links: Array<{ href: string; text?: string; className?: string }> = [];
 
+  function extractText(node: any): string {
+    let text = "";
+
+    function appendText(childNode: any) {
+      if (!childNode) return;
+      if (typeof childNode === "string" || typeof childNode === "number") {
+        text += String(childNode);
+      } else if (Array.isArray(childNode)) {
+        childNode.forEach(appendText);
+      } else if (childNode.props?.children) {
+        appendText(childNode.props.children);
+      }
+    }
+
+    appendText(node);
+    return text.trim();
+  }
+
   function walk(node: any) {
     if (!node || typeof node !== "object") return;
 
-    if (node.props?.href) {
-      let text = "";
-      function extractText(childNode: any) {
-        if (!childNode) return;
-        if (typeof childNode === "string" || typeof childNode === "number") {
-          text += String(childNode);
-        } else if (Array.isArray(childNode)) {
-          childNode.forEach(extractText);
-        } else if (childNode.props?.children) {
-          extractText(childNode.props.children);
-        }
-      }
-      extractText(node.props.children);
+    if (node.type === SiteHeaderSignInLink) {
+      links.push({
+        href: buildSignInCallbackUrl(node.props.locale, node.props.currentPath),
+        text: extractText(node.props.children),
+        className: node.props.className,
+      });
+      return;
+    }
 
+    if (node.props?.href) {
       links.push({
         href: node.props.href,
-        text: text.trim(),
+        text: extractText(node.props.children),
         className: node.props.className,
       });
     }
@@ -119,7 +137,10 @@ describe("homepage and navigation prototype parity", () => {
     const linksVi = extractAllLinks(headerVi);
 
     expect(linksVi.some((l) => l.href === "/lien-he" && l.text.includes("Liên hệ"))).toBe(true);
-    expect(linksVi.some((l) => l.href === "/dang-nhap" && l.text.includes("Đăng nhập"))).toBe(true);
+    expect(linksVi.some((l) =>
+      l.href === "/dang-nhap?callbackURL=%2Fbat-tu" &&
+      l.text.includes("Đăng nhập")
+    )).toBe(true);
     expect(linksVi.some((l) => l.href === "/tu-vi" && l.className?.includes("button"))).toBe(true);
     const mobileVi = linksVi.find((l) => l.className?.includes("mobile-locale-link"));
     expect(mobileVi?.href).toBe("/en/bat-tu");
@@ -129,7 +150,10 @@ describe("homepage and navigation prototype parity", () => {
     const linksEn = extractAllLinks(headerEn);
 
     expect(linksEn.some((l) => l.href === "/en/lien-he" && l.text.includes("Contact"))).toBe(true);
-    expect(linksEn.some((l) => l.href === "/en/dang-nhap" && l.text.includes("Sign in"))).toBe(true);
+    expect(linksEn.some((l) =>
+      l.href === "/en/dang-nhap?callbackURL=%2Fen%2Fchiem-tinh" &&
+      l.text.includes("Sign in")
+    )).toBe(true);
     expect(linksEn.some((l) => l.href === "/en/tu-vi" && l.className?.includes("button"))).toBe(true);
     const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
     expect(mobileEn?.href).toBe("/vi/chiem-tinh");
