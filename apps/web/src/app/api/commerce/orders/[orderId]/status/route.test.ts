@@ -42,6 +42,13 @@ const validCheckoutStatus = {
     amount: 79000,
     currency: "VND",
     locale: "vi",
+    productTitle: "Luận giải Tử Vi toàn diện",
+    paymentCode: "LSVK7M2P9QXJ",
+    chartId: "chart-1",
+    createdAt: "2026-09-05T00:00:00.000Z",
+    creditApplied: 0,
+    creditExpiresAt: null,
+    supportUrl: "/lien-he?order=LSV-order-1",
   },
   paymentInstructions: {
     bankCode: "VCB",

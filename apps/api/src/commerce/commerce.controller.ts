@@ -3,7 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
-import { CommerceSkuSchema, PaymentSelfClaimRequestV1Schema, type CurrentActor } from "@lasoviet/contracts";
+import { CommerceSkuSchema, PaymentSelfClaimRequestV1Schema, resolveProductTitle, type CommerceSku, type CurrentActor } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
 
 import { ActorTokenError, verifyInternalActorToken } from "../auth/internal-actor.guard.js";
@@ -87,6 +87,45 @@ export class CommerceController {
     });
   }
 
+  private buildCustomerSafeOrder(order: {
+    id: string;
+    status: string;
+    amount: number;
+    currency: string;
+    locale: string;
+    sku: string;
+    paymentCode: string;
+    invoiceNumber: string;
+    chartId: string;
+    createdAt: Date;
+    creditApplied: number;
+    creditExpiresAt?: Date | null;
+  }) {
+    const orderLocale = (order.locale === "en" ? "en" : "vi") as "vi" | "en";
+    const productTitle = resolveProductTitle(
+      order.sku as CommerceSku,
+      orderLocale,
+    );
+    const supportUrl = orderLocale === "en"
+      ? `/en/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`
+      : `/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`;
+
+    return {
+      id: order.id,
+      status: order.status,
+      amount: order.amount,
+      currency: order.currency,
+      locale: order.locale,
+      productTitle,
+      paymentCode: order.paymentCode,
+      chartId: order.chartId,
+      createdAt: order.createdAt.toISOString(),
+      creditApplied: order.creditApplied ?? 0,
+      creditExpiresAt: order.creditExpiresAt ? order.creditExpiresAt.toISOString() : null,
+      supportUrl,
+    };
+  }
+
   @Post("orders")
   @HttpCode(HttpStatus.OK)
   async create(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
@@ -136,13 +175,7 @@ export class CommerceController {
         return {
           ok: true,
           value: {
-            order: {
-              id: projection.order.id,
-              status: projection.order.status,
-              amount: projection.order.amount,
-              currency: projection.order.currency,
-              locale: projection.order.locale,
-            },
+            order: this.buildCustomerSafeOrder(projection.order),
             paymentInstructions: null,
             reportId: projection.reportId,
           },
@@ -159,13 +192,7 @@ export class CommerceController {
     return {
       ok: true,
       value: {
-        order: {
-          id: projection.order.id,
-          status: projection.order.status,
-          amount: projection.order.amount,
-          currency: projection.order.currency,
-          locale: projection.order.locale,
-        },
+        order: this.buildCustomerSafeOrder(projection.order),
         paymentInstructions: this.buildPaymentInstructions(projection.order),
         reportId: projection.reportId,
       },
@@ -194,13 +221,7 @@ export class CommerceController {
       : {
           ok: true,
           value: {
-            order: {
-              id: projection.order.id,
-              status: projection.order.status,
-              amount: projection.order.amount,
-              currency: projection.order.currency,
-              locale: projection.order.locale,
-            },
+            order: this.buildCustomerSafeOrder(projection.order),
             paymentInstructions: this.sepayEnvironment === "disabled"
               ? null
               : this.buildPaymentInstructions(projection.order),

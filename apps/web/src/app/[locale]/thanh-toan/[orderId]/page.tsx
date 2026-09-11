@@ -62,7 +62,7 @@ export default async function CheckoutPage({
     <main className="topic-page vietqr-checkout-page">
       <section className="container">
         <p className="eyebrow">{t("checkout.eyebrow")}</p>
-        <h1>{t("checkout.title")}</h1>
+        <h1>{order.creditApplied > 0 ? t("checkout.upgrade_title") : `${t("checkout.eyebrow")} · ${order.productTitle}`}</h1>
         <VietQrCheckout
           initialStatus={parsed.value}
           labels={{
@@ -97,9 +97,28 @@ export default async function CheckoutPage({
             supportAction: t("checkout.support_action"),
             refundedTitle: t("checkout.refunded_title"),
             refundedDescription: t("checkout.refunded_description"),
+            summaryPurchasing: t("checkout.summary_purchasing"),
+            summaryAutoFulfill: t("checkout.summary_auto_fulfill"),
+            summaryOrderCode: t("checkout.summary_order_code"),
+            upgradeCreditApplied: t("checkout.upgrade_credit_applied"),
+            upgradeCreditDeadline: t("checkout.upgrade_credit_deadline"),
+            summaryListPrice: t("checkout.summary_list_price"),
+            summaryPayableAmount: t("checkout.summary_payable_amount"),
+            stepsTitle: t("checkout.steps_title"),
+            step1: t("checkout.step_1"),
+            step2: t("checkout.step_2"),
+            step3: t("checkout.step_3"),
+            step4: t("checkout.step_4"),
+            expiresAtLabel: t("checkout.expires_at_label"),
+            pollingErrorTitle: t("checkout.polling_error_title"),
+            pollingErrorDescription: t("checkout.polling_error_notice"),
+            retryPollingAction: t("checkout.retry_polling_action"),
+            returnToTopicSelectorAction: t("checkout.return_to_topic_selector_action"),
+            footerSupportPrefix: t("checkout.footer_support"),
+            footerSupportAction: t("checkout.footer_contact_action"),
           }}
           selfClaim={
-            order.status === "pending" ? (
+            (order.status === "pending" || order.status === "expired") ? (
               <PaymentSelfClaimForm
                 orderId={order.id}
                 defaultAmount={order.amount}
