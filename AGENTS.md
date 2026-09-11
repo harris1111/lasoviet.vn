@@ -206,6 +206,12 @@ Do not use a fixed near-future calendar timestamp when production compares
 against the real current clock; such fixtures become false failures as time
 passes.
 
+Backup or archive retention for filenames that contain hashes or other
+non-time identifiers must validate and sort by the embedded timestamp, never by
+the complete filename. Regression tests must use identifiers whose lexical
+order conflicts with timestamp order and must prove that the newest archive is
+retained.
+
 Tests that inspect repository text files must normalize CRLF and LF before
 asserting line-oriented content. Do not make a Windows checkout fail solely
 because Git materialized `\r\n` while CI materialized `\n`.
