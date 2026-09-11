@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
 import { BirthWizardReviewStep } from "./birth-wizard-review-step";
 import { describe, expect, it } from "vitest";
 
@@ -19,6 +20,7 @@ import {
   formatDateSummary,
   formatReviewTimeSummary,
   splitIsoDateToParts,
+  isValidLunarDate,
   validateWizardDate,
 } from "./birth-wizard-state";
 
@@ -129,6 +131,44 @@ describe("birth profile form payload", () => {
       time: { precision: "unknown" },
     });
   });
+
+  it("builds lunar payload with isLeapMonth false when lunar calendar selected", () => {
+    expect(
+      buildBirthProfile({
+        date: "1990-01-30",
+        calendarType: "lunar",
+        isLeapMonth: false,
+        hour: "09",
+        minute: "30",
+        gender: "male",
+        locale: "vi",
+      }),
+    ).toEqual({
+      version: 1,
+      calendar: { kind: "lunar", date: "1990-01-30", isLeapMonth: false },
+      time: { precision: "exact_minute", localTime: "09:30" },
+      timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
+      gender: "male",
+      consentVersion: "2026-09-01",
+      locale: "vi",
+    });
+  });
+
+  it("builds lunar payload with isLeapMonth true when leap month checked", () => {
+    expect(
+      buildBirthProfile({
+        date: "1990-01-30",
+        calendarType: "lunar",
+        isLeapMonth: true,
+        hour: "09",
+        minute: "30",
+        gender: "female",
+        locale: "en",
+      }),
+    ).toMatchObject({
+      calendar: { kind: "lunar", date: "1990-01-30", isLeapMonth: true },
+    });
+  });
 });
 
 describe("wizard state helpers (TDD)", () => {
@@ -216,6 +256,59 @@ describe("wizard state helpers (TDD)", () => {
     });
   });
 
+  it("validates lunar dates including day 30 across months, with semantic bounds 1000..9999 and no Gregorian future rejection", () => {
+    expect(validateWizardDate("30", "2", "2024", undefined, "lunar")).toEqual({
+      valid: true,
+      isoDate: "2024-02-30",
+    });
+
+    expect(
+      validateWizardDate("30", "2", "2024", { calendarType: "lunar" }),
+    ).toEqual({
+      valid: true,
+      isoDate: "2024-02-30",
+    });
+
+    expect(validateWizardDate("1", "1", "1000", undefined, "lunar")).toEqual({
+      valid: true,
+      isoDate: "1000-01-01",
+    });
+    expect(validateWizardDate("30", "12", "9999", undefined, "lunar")).toEqual({
+      valid: true,
+      isoDate: "9999-12-30",
+    });
+
+    expect(validateWizardDate("31", "1", "2024", undefined, "lunar")).toEqual({
+      valid: false,
+      error: "IMPOSSIBLE_DATE",
+    });
+    expect(validateWizardDate("32", "1", "2024", undefined, "lunar")).toEqual({
+      valid: false,
+      error: "INVALID_FORMAT",
+    });
+    expect(validateWizardDate("15", "13", "2024", undefined, "lunar")).toEqual({
+      valid: false,
+      error: "INVALID_FORMAT",
+    });
+    expect(validateWizardDate("15", "5", "999", undefined, "lunar")).toEqual({
+      valid: false,
+      error: "IMPOSSIBLE_DATE",
+    });
+
+    const referenceDate = new Date(2026, 8, 5);
+    expect(validateWizardDate("1", "1", "2030", referenceDate, "lunar")).toEqual({
+      valid: true,
+      isoDate: "2030-01-01",
+    });
+  });
+
+  it("validates isValidLunarDate semantic helper", () => {
+    expect(isValidLunarDate(2024, 2, 30)).toBe(true);
+    expect(isValidLunarDate(2024, 1, 31)).toBe(false);
+    expect(isValidLunarDate(2024, 13, 1)).toBe(false);
+    expect(isValidLunarDate(999, 1, 1)).toBe(false);
+  });
+
   it("requires other-person permission only for the other-person path", () => {
     expect(canAdvanceStep1({ forWhom: "self", consentOther: false })).toBe(true);
     expect(canAdvanceStep1({ forWhom: "self", consentOther: true })).toBe(true);
@@ -278,6 +371,27 @@ describe("wizard state helpers (TDD)", () => {
     ).toBe("Tỵ (09:00 - 11:00)");
     expect(formatReviewTimeSummary({ precision: "unknown" }, "vi")).toBe("Không rõ giờ sinh");
     expect(formatDateSummary("12", "04", "1994")).toBe("12/04/1994");
+    expect(
+      formatDateSummary("12", "04", "1994", {
+        calendarType: "lunar",
+        isLeapMonth: false,
+        locale: "vi",
+      }),
+    ).toBe("12/04/1994");
+    expect(
+      formatDateSummary("12", "04", "1994", {
+        calendarType: "lunar",
+        isLeapMonth: true,
+        locale: "vi",
+      }),
+    ).toBe("12/04/1994 (tháng nhuận)");
+    expect(
+      formatDateSummary("12", "04", "1994", {
+        calendarType: "lunar",
+        isLeapMonth: true,
+        locale: "en",
+      }),
+    ).toBe("12/04/1994 (leap month)");
     expect(formatDateSummary("", "", "")).toBe("—");
   });
 
@@ -492,6 +606,114 @@ describe("BirthWizardReviewStep place rendering (TDD)", () => {
     );
     expect(html).toContain("Nơi sinh");
     expect(html).toContain("Hà Nội, Việt Nam");
+  });
+
+  it("renders lunar date label and leap month marker on review step", () => {
+    const html = renderToStaticMarkup(
+      createElement(BirthWizardReviewStep, {
+        ...baseReviewProps,
+        dateLabel: "Ngày sinh âm lịch",
+        date: "12/04/1994 (tháng nhuận)",
+        calendarType: "lunar",
+        isLeapMonth: true,
+      }),
+    );
+    expect(html).toContain("Ngày sinh âm lịch");
+    expect(html).toContain("12/04/1994 (tháng nhuận)");
+  });
+
+  it("renders BirthWizardBirthStep with lunar active button and leap month checkbox", () => {
+    const birthStepProps = {
+      locale: "vi" as const,
+      title: "Ngày, giờ sinh & nơi sinh",
+      subtitle: "Nhập ngày giờ sinh để an sao lá số.",
+      calendarLabel: "Hệ lịch",
+      solarLabel: "Dương lịch",
+      lunarLabel: "Âm lịch",
+      lunarNotice: "Hệ thống hỗ trợ nhập trực tiếp ngày âm lịch",
+      leapMonthLabel: "Tháng nhuận",
+      leapMonthHelp: "Chọn nếu ngày sinh thuộc tháng nhuận âm lịch.",
+      dateLabel: "Ngày sinh âm lịch",
+      dayLabel: "Ngày",
+      monthLabel: "Tháng",
+      yearLabel: "Năm",
+      placeLabel: "Nơi sinh",
+      placePlaceholder: "Tỉnh, thành phố hoặc địa phương",
+      timezoneText: "Múi giờ: UTC+7 (Giờ Việt Nam)",
+      timeLabels: {
+        hour: "Giờ",
+        minute: "Phút",
+        title: "Giờ sinh",
+        unknown: "Không rõ giờ sinh",
+        unknownHelp: "Bạn vẫn có thể lưu hồ sơ...",
+      },
+      day: "30",
+      month: "02",
+      year: "2024",
+      dateError: null,
+      timeState: { precision: "exact_minute" as const, hour: "09", minute: "30" },
+      place: "",
+      calendarType: "lunar" as const,
+      isLeapMonth: true,
+      onDayChange: () => {},
+      onMonthChange: () => {},
+      onYearChange: () => {},
+      onTimeStateChange: () => {},
+      onPlaceChange: () => {},
+    };
+
+    const html = renderToStaticMarkup(createElement(BirthWizardBirthStep, birthStepProps));
+    expect(html).toContain("Âm lịch");
+    expect(html).toContain("Tháng nhuận");
+    expect(html).toContain('name="isLeapMonth"');
+    expect(html).toContain("Hệ thống hỗ trợ nhập trực tiếp ngày âm lịch");
+    // Calendar picker button and native picker are not rendered for lunar input
+    expect(html).not.toContain("birth-date-calendar-button");
+    expect(html).not.toContain("birth-date-native-picker");
+    expect(html).not.toContain('type="date"');
+  });
+
+  it("renders BirthWizardBirthStep with calendar picker button for solar input", () => {
+    const solarBirthStepProps = {
+      locale: "vi" as const,
+      title: "Ngày, giờ sinh & nơi sinh",
+      subtitle: "Nhập ngày giờ sinh để an sao lá số.",
+      calendarLabel: "Hệ lịch",
+      solarLabel: "Dương lịch",
+      lunarLabel: "Âm lịch",
+      lunarNotice: "Hệ thống hỗ trợ nhập trực tiếp ngày âm lịch",
+      dateLabel: "Ngày sinh dương lịch",
+      dayLabel: "Ngày",
+      monthLabel: "Tháng",
+      yearLabel: "Năm",
+      placeLabel: "Nơi sinh",
+      placePlaceholder: "Tỉnh, thành phố hoặc địa phương",
+      timezoneText: "Múi giờ: UTC+7 (Giờ Việt Nam)",
+      timeLabels: {
+        hour: "Giờ",
+        minute: "Phút",
+        title: "Giờ sinh",
+        unknown: "Không rõ giờ sinh",
+        unknownHelp: "Bạn vẫn có thể lưu hồ sơ...",
+      },
+      day: "12",
+      month: "04",
+      year: "1994",
+      dateError: null,
+      timeState: { precision: "exact_minute" as const, hour: "09", minute: "30" },
+      place: "",
+      calendarType: "solar" as const,
+      onDayChange: () => {},
+      onMonthChange: () => {},
+      onYearChange: () => {},
+      onTimeStateChange: () => {},
+      onPlaceChange: () => {},
+    };
+
+    const html = renderToStaticMarkup(createElement(BirthWizardBirthStep, solarBirthStepProps));
+    expect(html).toContain("birth-date-calendar-button");
+    expect(html).toContain("birth-date-native-picker");
+    expect(html).toContain('type="date"');
   });
 });
 
