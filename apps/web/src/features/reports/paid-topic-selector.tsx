@@ -73,6 +73,7 @@ export function PaidTopicSelector({
     : t("selection.title");
 
   const sampleHref = locale === "en" ? "/en/bao-cao-mau/tu-vi" : "/bao-cao-mau/tu-vi";
+  const chartHref = locale === "en" ? `/en/la-so/${encodeURIComponent(topics.chartId)}` : `/la-so/${encodeURIComponent(topics.chartId)}`;
 
   const safeOffers = buildSafeOfferPresentations({
     offers: topics.offers,
@@ -161,6 +162,17 @@ export function PaidTopicSelector({
       <div className="topic-selector-header">
         <p className="eyebrow">{t("selection.eyebrow")}</p>
         <h1 id="topic-selector-heading">{pageTitle}</h1>
+        <p className="topic-selector-hero-description">{t("selection.heroDescription")}</p>
+        <p className="topic-selector-context">
+          {birthSummary?.normalizedCalendar?.date
+            ? t("selection.contextWithDate", { date: birthSummary.normalizedCalendar.date })
+            : t("selection.context")}{" "}
+          ·{" "}
+          <Link href={chartHref} className="back-to-chart-link">
+            {t("selection.backToChart")}
+          </Link>
+        </p>
+        <p className="topic-selector-choice-guidance">{t("selection.choiceGuidance")}</p>
       </div>
 
       {/* Layer 1: Birth Data Disciplines */}
@@ -204,7 +216,11 @@ export function PaidTopicSelector({
             >
               <div className="topic-card-head">
                 <div className="topic-title-group">
-                  <span className="topic-status-tag tag-available">{t("selection.available")}</span>
+                  {offer.badge ? (
+                    <span className="status-badge badge-featured">{offer.badge[locale]}</span>
+                  ) : (
+                    <span className="topic-status-tag tag-available">{t("selection.available")}</span>
+                  )}
                   <h3>{offer.title[locale]}</h3>
                 </div>
                 <div className="topic-pricing-block">
@@ -272,6 +288,12 @@ export function PaidTopicSelector({
                 ))}
               </ul>
 
+              {offer.fit && (
+                <p className="topic-fit-line" data-testid={`topic-${offer.offerKey}-fit`}>
+                  {offer.fit[locale]}
+                </p>
+              )}
+
               {offer.ownership.kind === "readable" ? (
                 <div className="topic-actions-row">
                   <Link className="button button-primary" href={offer.ownership.readUrl}>
@@ -331,7 +353,7 @@ export function PaidTopicSelector({
                   offerKey={offer.offerKey}
                   sampleHref={sampleHref}
                   labels={{
-                    continuePayment: t("selection.continuePayment"),
+                    continuePayment: offer.ctaLabel[locale],
                     viewSample: t("selection.viewSample"),
                     pausedTitle: t("selection.pausedTitle"),
                     pausedDescription: t("selection.pausedDescription"),
@@ -354,6 +376,29 @@ export function PaidTopicSelector({
               <p className="topic-summary-prose">{topic.description}</p>
             </article>
           ))}
+        </div>
+        <div className="topic-selector-quick-guide" data-testid="topic-quick-guide">
+          <h3>{t("selection.quickGuideTitle")}</h3>
+          <ul className="topic-quick-guide-list">
+            <li>
+              <span>{t("selection.quickGuideExcerptNeed")}</span> → <strong>{t("selection.quickGuideExcerptTarget")}</strong>
+            </li>
+            <li>
+              <span>{t("selection.quickGuideComprehensiveNeed")}</span> → <strong>{t("selection.quickGuideComprehensiveTarget")}</strong>
+            </li>
+          </ul>
+        </div>
+
+        <div className="topic-selector-trust-footer" data-testid="topic-trust-footer">
+          <p className="topic-trust-line">{t("selection.trustLine")}</p>
+          <p className="topic-ethics-line">{t("selection.ethicsLine")}</p>
+          <p className="topic-gate-note">{t("selection.gateNote")}</p>
+          <p className="topic-help-row">
+            {t("selection.helpPrefix")}{" "}
+            <Link href={locale === "en" ? "/en/lien-he" : "/lien-he"} className="topic-help-link">
+              {t("selection.helpLink")}
+            </Link>
+          </p>
         </div>
       </div>
     </section>

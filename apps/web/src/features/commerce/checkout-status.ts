@@ -31,6 +31,13 @@ export const CheckoutOrderSummarySchema = z
     amount: z.number().int().positive(),
     currency: z.literal("VND"),
     locale: z.enum(["vi", "en"]),
+    productTitle: z.string().trim().min(1),
+    paymentCode: z.string().trim().min(1),
+    chartId: z.string().trim().min(1),
+    createdAt: z.string().datetime({ offset: true }),
+    creditApplied: z.number().int().nonnegative(),
+    creditExpiresAt: z.string().datetime({ offset: true }).nullable(),
+    supportUrl: z.string().trim().min(1),
   })
   .strict();
 

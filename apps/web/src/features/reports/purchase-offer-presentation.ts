@@ -37,6 +37,18 @@ export type SafeOfferPresentation = {
     vi: string[];
     en: string[];
   };
+  fit?: {
+    vi: string;
+    en: string;
+  };
+  badge?: {
+    vi: string;
+    en: string;
+  };
+  ctaLabel: {
+    vi: string;
+    en: string;
+  };
   price: number;
   currency: "VND";
   ownership: OfferOwnershipState;
@@ -53,58 +65,77 @@ const OFFER_CONTENT: Record<
     title: { vi: string; en: string };
     summary: { vi: string; en: string };
     deliverables: { vi: string[]; en: string[] };
+    fit: { vi: string; en: string };
+    badge?: { vi: string; en: string };
+    ctaLabel: { vi: string; en: string };
   }
 > = {
   "ziwei-natal-excerpt": {
     title: {
       vi: "Bản mệnh và tiềm năng",
-      en: "Core identity and potential",
+      en: "Core Identity and Potential",
     },
     summary: {
-      vi: "Báo cáo luận giải cô đọng bản mệnh, trục Mệnh - Thân, thế mạnh nội tại và định hướng hành động thiết thực từ lá số Tử Vi.",
-      en: "A focused natal reading covering personal summary, core axis, strengths and tensions, and practical actionable direction.",
+      vi: "Một phần đọc cô đọng để hiểu trục cốt lõi của mình trước khi đi xa hơn.",
+      en: "A concise reading to understand your core axis before going further.",
     },
     deliverables: {
       vi: [
-        "Tổng quan bản mệnh và tính cách cốt lõi",
-        "Trục Mệnh - Thân và động lực phát triển then chốt",
-        "Nhận diện thế mạnh, điểm vướng và điều kiện phát huy",
-        "Gợi ý định hướng và hành động thực tế",
-        "Bản luận giải 4 phần trọng tâm cô đọng, dễ ứng dụng",
+        "Toàn cảnh bản mệnh.",
+        "Trục Mệnh – Thân và những điểm nhấn chính.",
+        "Điểm mạnh, điểm căng và hướng phát triển thực tế.",
       ],
       en: [
-        "Personal summary and core personality baseline",
-        "Core life and body axis with key drivers",
-        "Strengths, tensions, and growth conditions",
-        "Practical actionable direction for daily focus",
-        "Concise four-section natal reading",
+        "Comprehensive overview of your core destiny.",
+        "Destiny – Body axis and key focal configurations.",
+        "Strengths, tensions, and practical developmental direction.",
       ],
+    },
+    fit: {
+      vi: "Bạn muốn một điểm bắt đầu rõ ràng, đủ sâu để soi chiếu nhưng chưa cần đọc toàn bộ lá số.",
+      en: "You want a clear starting point that is deep enough for reflection without reading the entire chart.",
+    },
+    ctaLabel: {
+      vi: "Chọn Bản mệnh và tiềm năng — 19.000 ₫",
+      en: "Select Core Identity and Potential — 19,000 VND",
     },
   },
   "ziwei-comprehensive": {
+    badge: {
+      vi: "Đầy đủ nhất",
+      en: "Most complete",
+    },
     title: {
       vi: "Luận giải Tử Vi toàn diện",
       en: "Comprehensive Zi Wei reading",
     },
     summary: {
-      vi: "Báo cáo luận giải cấu trúc bản mệnh toàn diện đối chiếu từ dữ liệu lá số Tử Vi, mang tính chiêm nghiệm và định hướng thực tế.",
-      en: "A comprehensive natal structural interpretation report synthesizing key configurations and palace interactions from verified chart data.",
+      vi: "Đọc trọn cấu trúc lá số — từ nền tảng bản mệnh đến 12 cung và những mối liên hệ nổi bật.",
+      en: "Read the entire chart structure — from core destiny baseline to all 12 palaces and prominent interactions.",
     },
     deliverables: {
       vi: [
-        "Luận giải chi tiết toàn bộ 12 cung vị và tương tác tinh đẩu",
-        "Nhận diện cấu trúc lá số trọng điểm và tổng hợp đối chiếu liên cung, tam phương tứ chính",
-        "Bốn cụm tổng hợp chủ đề: sự nghiệp - tài lộc, tình duyên - gia đạo, môi trường xã hội và nội lực tâm lý",
-        "Gợi ý định hướng thực tế và điểm lưu tâm để tự rèn luyện bản thân",
-        "Độ dài hoàn chỉnh 2.200–3.200 chữ tiếng Việt chuyên sâu",
+        "Toàn bộ nội dung của Bản mệnh và tiềm năng.",
+        "Luận giải đầy đủ 12 cung.",
+        "Những cấu trúc nổi bật trong lá số.",
+        "Bốn nhóm tổng hợp để nối các mảnh ghép thành một hướng nhìn liền mạch.",
+        "Bản luận giải dài dự kiến khoảng 2.200–3.200 từ.",
       ],
       en: [
-        "Detailed interpretation covering all 12 natal palaces and star interactions",
-        "Key chart configurations and cross-palace synthesis across trines and oppositions",
-        "Four thematic syntheses: career and wealth, relationship and family, social sphere, and inner wellbeing",
-        "Actionable practical direction and personal development guidance",
-        "Structured multi-section report synthesizing core natal chart structure",
+        "All content included in Core Identity and Potential.",
+        "Full interpretation of all 12 palaces.",
+        "Key configurations and patterns in the chart.",
+        "Four thematic syntheses connecting chart facets into a cohesive view.",
+        "Estimated report length of approximately 2,200–3,200 words.",
       ],
+    },
+    fit: {
+      vi: "Bạn muốn có một bản tham chiếu đầy đủ để đọc lại theo từng câu hỏi và từng giai đoạn suy ngẫm.",
+      en: "You want a comprehensive reference reading to revisit across specific questions and reflective phases.",
+    },
+    ctaLabel: {
+      vi: "Chọn Luận giải Tử Vi toàn diện — 79.000 ₫",
+      en: "Select Comprehensive Zi Wei Reading — 79,000 VND",
     },
   },
 };
@@ -202,8 +233,16 @@ export function buildSafeOfferPresentations(
       }
     } else if (offerKey === "ziwei-natal-excerpt") {
       upgradeDisclosure = {
-        vi: "Số tiền 19.000 ₫ được khấu trừ trực tiếp khi nâng cấp lên Luận giải toàn diện trong vòng 7 ngày kể từ khi thanh toán.",
-        en: "The 19,000 VND payment is credited toward the comprehensive report for 7 days from payment.",
+        vi: "Nếu sau đó bạn muốn đọc bản toàn diện, 19.000 ₫ này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.",
+        en: "If you later wish to read the comprehensive report, this 19,000 VND will be credited directly toward the upgrade fee within 7 days from payment.",
+      };
+    }
+
+    let effectiveCtaLabel = content.ctaLabel;
+    if (offerKey === "ziwei-comprehensive" && upgradeCredit !== null) {
+      effectiveCtaLabel = {
+        vi: `Nâng cấp — chỉ còn ${upgradeCredit.netPrice.toLocaleString("vi-VN")} ₫`,
+        en: `Upgrade — only ${upgradeCredit.netPrice.toLocaleString("en-US")} VND`,
       };
     }
 
@@ -213,6 +252,9 @@ export function buildSafeOfferPresentations(
       title: content.title,
       summary: content.summary,
       deliverables: content.deliverables,
+      fit: content.fit,
+      badge: content.badge,
+      ctaLabel: effectiveCtaLabel,
       price: effectivePrice,
       currency: offer.currency,
       ownership,
