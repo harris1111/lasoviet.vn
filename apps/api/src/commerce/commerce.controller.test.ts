@@ -260,6 +260,13 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
+            productTitle: "Luận giải Tử Vi toàn diện",
+            paymentCode: "LSVK7M2P9QXJ",
+            chartId: "chart-1",
+            createdAt: "2026-09-05T00:00:00.000Z",
+            creditApplied: 0,
+            creditExpiresAt: null,
+            supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: {
             bankCode: "VCB",
@@ -332,6 +339,13 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
+            productTitle: "Luận giải Tử Vi toàn diện",
+            paymentCode: "LSVK7M2P9QXJ",
+            chartId: "chart-1",
+            createdAt: "2026-09-05T00:00:00.000Z",
+            creditApplied: 0,
+            creditExpiresAt: null,
+            supportUrl: "/lien-he?order=LSV-order-paid-1",
           },
           paymentInstructions: {
             bankCode: "VCB",
@@ -416,6 +430,75 @@ describe("SePay controller HTTP contract", () => {
     await expect(controller().read(undefined, "order-1")).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
+  });
+
+  it("extends customer-safe checkout projection on read without exposing SKU or internal order IDs", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const orderRecord = {
+      id: "order-excerpt-test",
+      paymentCode: "LSVT1EXCERPT",
+      invoiceNumber: "LSV-INV-EXCERPT-001",
+      ownerId: "user-1",
+      chartId: "chart-natal-1",
+      chartVersionId: "chart-v1",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      amount: 19000,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-10T10:00:00.000Z"),
+      creditApplied: 0,
+      creditExpiresAt: null,
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createOrder: vi.fn(),
+      readOrder: vi.fn(),
+      readOrderProjection: vi.fn().mockResolvedValue({
+        order: orderRecord,
+        reportId: null,
+      }),
+      recordPaid: vi.fn(),
+    } as never);
+
+    try {
+      const result = await controller().read("Bearer valid-token", "order-excerpt-test");
+      expect(result).toEqual({
+        ok: true,
+        value: {
+          order: {
+            id: "order-excerpt-test",
+            status: "pending",
+            amount: 19000,
+            currency: "VND",
+            locale: "vi",
+            productTitle: "Bản mệnh và tiềm năng",
+            paymentCode: "LSVT1EXCERPT",
+            chartId: "chart-natal-1",
+            createdAt: "2026-09-10T10:00:00.000Z",
+            creditApplied: 0,
+            creditExpiresAt: null,
+            supportUrl: "/lien-he?order=LSV-INV-EXCERPT-001",
+          },
+          paymentInstructions: expect.any(Object),
+          reportId: null,
+        },
+      });
+
+      const orderObj = (result as { ok: true; value: { order: Record<string, unknown> } }).value.order;
+      expect(orderObj.sku).toBeUndefined();
+      expect(orderObj.invoiceNumber).toBeUndefined();
+      expect(orderObj.ownerId).toBeUndefined();
+      expect(orderObj.chartVersionId).toBeUndefined();
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
   });
 
   it("maps ingress and provider authentication failures to 401", async () => {
@@ -597,6 +680,7 @@ describe("SePay controller HTTP contract", () => {
     });
     const orderRecord = {
       id: "order-1",
+      paymentCode: "LSVK7M2P9QXJ",
       invoiceNumber: "LSV-order-1",
       ownerId: "user-1",
       chartId: "chart-1",
@@ -652,6 +736,13 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
+            productTitle: "Luận giải Tử Vi toàn diện",
+            paymentCode: "LSVK7M2P9QXJ",
+            chartId: "chart-1",
+            createdAt: "2026-09-05T00:00:00.000Z",
+            creditApplied: 0,
+            creditExpiresAt: null,
+            supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: null,
           reportId: "report-auto-1",
@@ -672,6 +763,7 @@ describe("SePay controller HTTP contract", () => {
     });
     const paidOrderRecord = {
       id: "order-paid-1",
+      paymentCode: "LSVK7M2P9QXJ",
       invoiceNumber: "LSV-order-paid-1",
       ownerId: "user-1",
       chartId: "chart-1",
@@ -715,6 +807,13 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
+            productTitle: "Luận giải Tử Vi toàn diện",
+            paymentCode: "LSVK7M2P9QXJ",
+            chartId: "chart-1",
+            createdAt: "2026-09-05T00:00:00.000Z",
+            creditApplied: 0,
+            creditExpiresAt: null,
+            supportUrl: "/lien-he?order=LSV-order-paid-1",
           },
           paymentInstructions: null,
           reportId: "report-res-123",
@@ -831,6 +930,7 @@ describe("SePay controller HTTP contract", () => {
     });
     const orderRecord = {
       id: "order-1",
+      paymentCode: "LSVK7M2P9QXJ",
       invoiceNumber: "LSV-order-1",
       ownerId: "user-1",
       chartId: "chart-1",
@@ -864,6 +964,13 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
+            productTitle: "Luận giải Tử Vi toàn diện",
+            paymentCode: "LSVK7M2P9QXJ",
+            chartId: "chart-1",
+            createdAt: "2026-09-05T00:00:00.000Z",
+            creditApplied: 0,
+            creditExpiresAt: null,
+            supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: null,
           reportId: "report-123",

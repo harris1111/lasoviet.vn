@@ -72,6 +72,26 @@ const copy = {
     "checkout.selfClaim.errors.payment_not_found": "Chưa tìm thấy giao dịch phù hợp với thông tin đã nhập. Vui lòng kiểm tra lại thời gian chuyển khoản hoặc chờ thêm ít phút.",
     "checkout.selfClaim.errors.rate_limited": "Bạn đã vượt quá số lần kiểm tra trong ngày. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.",
     "checkout.selfClaim.errors.service_unavailable": "Hệ thống đối chiếu tạm thời gián đoạn. Vui lòng thử lại sau ít phút.",
+    "checkout.summary_purchasing": "Bạn đang mua",
+    "checkout.summary_auto_fulfill": "Báo cáo mở tự động khi chúng tôi xác nhận thanh toán",
+    "checkout.summary_order_code": "Mã đơn",
+    "checkout.upgrade_credit_applied": "Khấu trừ đã áp dụng",
+    "checkout.upgrade_credit_deadline": "Hạn mức ưu đãi",
+    "checkout.steps_title": "Các bước thực hiện",
+    "checkout.step_1": "Quét mã VietQR",
+    "checkout.step_2": "Chuyển đúng số tiền",
+    "checkout.step_3": "Giữ nguyên nội dung chuyển khoản",
+    "checkout.step_4": "Ở lại trang này",
+    "checkout.expires_at_label": "Còn hiệu lực đến",
+    "checkout.polling_error_title": "Tạm thời gián đoạn kiểm tra tự động",
+    "checkout.polling_error_notice": "Chúng tôi tạm thời không kiểm tra được trạng thái tự động.",
+    "checkout.retry_polling_action": "Kiểm tra lại",
+    "checkout.return_to_topic_selector_action": "Quay lại chọn luận giải",
+    "checkout.footer_support": "Cần hỗ trợ?",
+    "checkout.footer_contact_action": "Liên hệ — đã điền sẵn mã đơn",
+    "checkout.upgrade_title": "Thanh toán · Nâng cấp bản luận giải toàn diện",
+    "checkout.summary_list_price": "Giá gốc",
+    "checkout.summary_payable_amount": "Số tiền thanh toán",
   },
   en: {
     "checkout.eyebrow": "Payment",
@@ -115,6 +135,26 @@ const copy = {
     "checkout.selfClaim.errors.payment_not_found": "No matching payment found with the entered details. Please check your transfer time or try again in a few minutes.",
     "checkout.selfClaim.errors.rate_limited": "Daily claim limit reached. Please try again later or contact support.",
     "checkout.selfClaim.errors.service_unavailable": "Reconciliation service is temporarily unavailable. Please try again in a few minutes.",
+    "checkout.summary_purchasing": "You are purchasing",
+    "checkout.summary_auto_fulfill": "Report opens automatically when payment is confirmed",
+    "checkout.summary_order_code": "Order code",
+    "checkout.upgrade_credit_applied": "Credit applied",
+    "checkout.upgrade_credit_deadline": "Credit deadline",
+    "checkout.steps_title": "Steps to complete",
+    "checkout.step_1": "Scan VietQR code",
+    "checkout.step_2": "Transfer exact amount",
+    "checkout.step_3": "Keep description unchanged",
+    "checkout.step_4": "Stay on page",
+    "checkout.expires_at_label": "Valid until",
+    "checkout.polling_error_title": "Automatic check interrupted",
+    "checkout.polling_error_notice": "We temporarily cannot check order status automatically.",
+    "checkout.retry_polling_action": "Check again",
+    "checkout.return_to_topic_selector_action": "Return to reading selection",
+    "checkout.footer_support": "Need support?",
+    "checkout.footer_contact_action": "Contact support — order code prefilled",
+    "checkout.upgrade_title": "Payment · Upgrade to comprehensive reading",
+    "checkout.summary_list_price": "List price",
+    "checkout.summary_payable_amount": "Payable amount",
   },
 };
 
@@ -125,6 +165,13 @@ const sampleCheckoutStatus = (locale: "vi" | "en") => ({
     amount: 79_000,
     currency: "VND" as const,
     locale,
+    productTitle: locale === "en" ? "Comprehensive Zi Wei reading" : "Luận giải Tử Vi toàn diện",
+    paymentCode: "LSVK7M2P9QXJ",
+    chartId: "chart-1",
+    createdAt: "2026-09-05T00:00:00.000Z",
+    creditApplied: 0,
+    creditExpiresAt: null,
+    supportUrl: locale === "en" ? "/en/lien-he?order=LSV-order-1" : "/lien-he?order=LSV-order-1",
   },
   paymentInstructions: {
     bankCode: "VCB",
@@ -254,11 +301,8 @@ describe("checkout page", () => {
         ok: true,
         value: {
           order: {
-            id: "order-1",
+            ...sampleCheckoutStatus("vi").order,
             status: "paid",
-            amount: 79_000,
-            currency: "VND",
-            locale: "vi",
           },
           paymentInstructions: null,
           reportId: "report-auto-1",
@@ -280,11 +324,8 @@ describe("checkout page", () => {
         ok: true,
         value: {
           order: {
-            id: "order-1",
+            ...sampleCheckoutStatus("en").order,
             status: "paid",
-            amount: 79_000,
-            currency: "VND",
-            locale: "en",
           },
           paymentInstructions: null,
           reportId: "report-auto-2",
@@ -309,11 +350,8 @@ describe("checkout page", () => {
         ok: true,
         value: {
           order: {
-            id: "order-1",
+            ...sampleCheckoutStatus("vi").order,
             status: "paid",
-            amount: 79_000,
-            currency: "VND",
-            locale: "vi",
           },
           paymentInstructions: null,
           reportId: null,
@@ -343,11 +381,8 @@ describe("checkout page", () => {
         ok: true,
         value: {
           order: {
-            id: "order-1",
+            ...sampleCheckoutStatus("vi").order,
             status: "expired",
-            amount: 79_000,
-            currency: "VND",
-            locale: "vi",
           },
           paymentInstructions: null,
           reportId: null,
@@ -364,7 +399,7 @@ describe("checkout page", () => {
     expect(html).toContain("/tao-la-so/tu-vi");
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).not.toContain("https://vietqr.app");
-    expect(html).not.toContain("payment-self-claim-section");
+    expect(html).toContain("payment-self-claim-section");
   });
 
   it("renders recovery screen rather than 404 for failed order with null paymentInstructions", async () => {
@@ -376,11 +411,8 @@ describe("checkout page", () => {
         ok: true,
         value: {
           order: {
-            id: "order-1",
+            ...sampleCheckoutStatus("vi").order,
             status: "failed",
-            amount: 79_000,
-            currency: "VND",
-            locale: "vi",
           },
           paymentInstructions: null,
           reportId: null,
@@ -394,7 +426,7 @@ describe("checkout page", () => {
     }));
 
     expect(html).toContain("Thanh toán chưa thành công");
-    expect(html).toContain("mailto:support@lasoviet.vn");
+    expect(html).toContain('href="/lien-he?order=LSV-order-1"');
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).not.toContain("https://vietqr.app");
     expect(html).not.toContain("payment-self-claim-section");
@@ -409,11 +441,8 @@ describe("checkout page", () => {
         ok: true,
         value: {
           order: {
-            id: "order-1",
+            ...sampleCheckoutStatus("vi").order,
             status: "refunded",
-            amount: 79_000,
-            currency: "VND",
-            locale: "vi",
           },
           paymentInstructions: null,
           reportId: null,
@@ -431,5 +460,108 @@ describe("checkout page", () => {
     expect(html).not.toContain("/tao-la-so/tu-vi");
     expect(html).not.toContain("https://vietqr.app");
     expect(html).not.toContain("payment-self-claim-section");
+  });
+  it("renders dynamic product title in page heading and payment code in order summary for normal orders", async () => {
+    vi.mocked(getTranslations).mockResolvedValue(
+      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+    );
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          order: {
+            id: "order-dynamic-1",
+            status: "pending",
+            amount: 19000,
+            currency: "VND",
+            locale: "vi",
+            productTitle: "Bản mệnh & Tiềm năng",
+            paymentCode: "LSVTIER1TEST",
+            chartId: "chart-1",
+            createdAt: "2026-09-10T10:00:00.000Z",
+            creditApplied: 0,
+            creditExpiresAt: null,
+            supportUrl: "/lien-he?order=LSV-order-1",
+          },
+          paymentInstructions: {
+            bankCode: "VCB",
+            accountNumber: "123456789",
+            accountHolder: "LA SO VIET",
+            amount: 19000,
+            currency: "VND",
+            transferDescription: "LSVTIER1TEST",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=19000&des=LSVTIER1TEST&template=compact",
+            expiresAt: "2026-09-05T00:15:00.000Z",
+          },
+          reportId: null,
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+
+    const html = renderToStaticMarkup(await CheckoutPage({
+      params: Promise.resolve({ locale: "vi", orderId: "order-dynamic-1" }),
+    }));
+
+    // Dynamic H1
+    expect(html).toContain("<h1>Thanh toán · Bản mệnh &amp; Tiềm năng</h1>");
+    // Summary with payment code and amount
+    expect(html).toContain("LSVTIER1TEST");
+    expect(html).toContain("19.000 ₫");
+  });
+
+  it("renders upgrade title in H1, list price, credit applied, payable amount, and year-bearing deadline for upgrade orders", async () => {
+    vi.mocked(getTranslations).mockResolvedValue(
+      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+    );
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          order: {
+            id: "order-upgrade-page-1",
+            status: "pending",
+            amount: 60000,
+            currency: "VND",
+            locale: "vi",
+            productTitle: "Luận giải Tử Vi toàn diện",
+            paymentCode: "LSVUPGRADEPAGE",
+            chartId: "chart-1",
+            createdAt: "2026-09-10T10:00:00.000Z",
+            creditApplied: 19000,
+            creditExpiresAt: "2026-09-17T10:00:00.000Z",
+            supportUrl: "/lien-he?order=LSV-order-1",
+          },
+          paymentInstructions: {
+            bankCode: "VCB",
+            accountNumber: "123456789",
+            accountHolder: "LA SO VIET",
+            amount: 60000,
+            currency: "VND",
+            transferDescription: "LSVUPGRADEPAGE",
+            qrUrl: "https://vietqr.app/img?acc=123456789&bank=VCB&amount=60000&des=LSVUPGRADEPAGE&template=compact",
+            expiresAt: "2026-09-05T00:15:00.000Z",
+          },
+          reportId: null,
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+
+    const html = renderToStaticMarkup(await CheckoutPage({
+      params: Promise.resolve({ locale: "vi", orderId: "order-upgrade-page-1" }),
+    }));
+
+    // Must-fix C: localized upgrade_title
+    expect(html).toContain("<h1>Thanh toán · Nâng cấp bản luận giải toàn diện</h1>");
+    expect(html).toContain("Giá gốc");
+    expect(html).toContain("79.000 ₫");
+    expect(html).toContain("Khấu trừ đã áp dụng");
+    expect(html).toContain("-19.000 ₫");
+    expect(html).toContain("Số tiền thanh toán");
+    expect(html).toContain("60.000 ₫");
+    expect(html).toContain("Hạn mức ưu đãi");
+    // Year-bearing deadline: 17:00, 17/09/2026
+    expect(html).toContain("17:00, 17/09/2026");
   });
 });

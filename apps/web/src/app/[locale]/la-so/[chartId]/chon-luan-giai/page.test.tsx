@@ -136,9 +136,9 @@ describe("PaidTopicSelectionPage", () => {
     });
     const html = renderToStaticMarkup(jsx);
 
-    expect(html).toContain("Chọn chủ đề luận giải cho Minh An");
-    expect(html).toContain("Tiếp tục thanh toán");
-    expect(html).toContain("Xem bản luận giải mẫu");
+    expect(html).toContain("Luận giải cho lá số của Minh An");
+    expect(html).toContain("Chọn Luận giải Tử Vi toàn diện — 79.000 ₫");
+    expect(html).toContain("Xem bản mẫu");
     expect((html.match(/type="submit"/g) || []).length).toBe(1);
     expect(accountDataLoader.loadLibrary).not.toHaveBeenCalled();
   });
@@ -249,7 +249,7 @@ describe("PaidTopicSelectionPage", () => {
 
     expect(html).toContain("Tạm thời không thể kiểm tra trạng thái");
     expect(html).toContain("Hệ thống chưa thể tải thông tin sở hữu");
-    expect(html).toContain("Xem bản luận giải mẫu");
+    expect(html).toContain("Xem bản mẫu");
     expect(html).not.toContain("Tiếp tục thanh toán");
     expect((html.match(/type="submit"/g) || []).length).toBe(0);
   });

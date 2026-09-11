@@ -4,7 +4,7 @@
     "locale": "vi",
     "contentType": "SeoMetadata",
     "title": "Lá Số Việt | Lập lá số. Hiểu vận mệnh.",
-    "summary": "Nền tảng lập và luận giải lá số có căn cứ, bắt đầu với Tử Vi và trải nghiệm rõ ràng cho người Việt.",
+    "summary": "Lập lá số Tử Vi miễn phí, luận giải có căn cứ rõ ràng — nền tảng khai phóng bản mệnh cho người Việt, nói có sách mách có chứng.",
     "reviewer": "content-team",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
@@ -14,7 +14,7 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-10"
   },
   {
     "routeId": "brand.home",
@@ -149,8 +149,8 @@
     "routeId": "sample-report.tu-vi",
     "locale": "vi",
     "contentType": "SampleReport",
-    "title": "Báo cáo mẫu Tử Vi",
-    "summary": "Xem cách một báo cáo Tử Vi trình bày dữ liệu, căn cứ, diễn giải và giới hạn tham khảo.",
+    "title": "Bản luận giải mẫu Tử Vi",
+    "summary": "Xem một bản luận giải mẫu Tử Vi có cấu trúc rõ ràng, căn cứ minh bạch và định hướng thực tế — trước khi chọn độ sâu phù hợp cho lá số của bạn.",
     "reviewer": "report-reviewer",
     "sourceReferences": [
       "docs/05-report-system.md",
@@ -162,7 +162,7 @@
       "sample_data"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-10"
   },
   {
     "routeId": "sample-report.tu-vi",
@@ -606,7 +606,7 @@
     "locale": "vi",
     "contentType": "MethodologyPage",
     "title": "Phương pháp luận",
-    "summary": "Tìm hiểu cách Lá Số Việt tách bạch tính toán, quy tắc diễn giải, AI và căn cứ cho từng nhận định.",
+    "summary": "Quy trình bốn chặng đứng sau mỗi lời luận giải tại Lá Số Việt: xác thực đầu vào, khởi lập chính tông, luận giải đa tầng và minh bạch căn cứ.",
     "reviewer": "trust-reviewer",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
@@ -617,7 +617,7 @@
       "ai_transparency"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-10"
   },
   {
     "routeId": "methodology.root",
@@ -642,7 +642,7 @@
     "locale": "vi",
     "contentType": "MethodologyPage",
     "title": "Phương pháp Tử Vi",
-    "summary": "Các bước tính toán và nguyên tắc đọc được dùng để tạo trải nghiệm Tử Vi có thể truy nguyên.",
+    "summary": "Cách Lá Số Việt an sao, định cung và luận giải Tử Vi Đẩu Số nhất quán, có thể truy nguyên đến từng căn cứ.",
     "reviewer": "method-reviewer",
     "sourceReferences": [
       "docs/06-technical-architecture.md",
@@ -653,7 +653,7 @@
       "method_variation"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-10"
   },
   {
     "routeId": "methodology.tu-vi",
@@ -678,7 +678,7 @@
     "locale": "vi",
     "contentType": "MethodologyPage",
     "title": "AI và căn cứ",
-    "summary": "Giải thích vai trò của AI trong tổ chức và diễn giải nội dung, cùng cách giữ nhận định gắn với dữ liệu.",
+    "summary": "AI tại Lá Số Việt không bịa lá số của bạn — mọi nhận định phải bắt đầu từ dấu hiệu thật và có thể mở căn cứ để đối chiếu.",
     "reviewer": "trust-reviewer",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
@@ -689,7 +689,7 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-10"
   },
   {
     "routeId": "methodology.ai-evidence",
@@ -725,7 +725,7 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-09"
+    "lastReviewed": "2026-09-10"
   },
   {
     "routeId": "trust.sources",
@@ -750,7 +750,7 @@
     "locale": "vi",
     "contentType": "SeoMetadata",
     "title": "Về Lá Số Việt",
-    "summary": "Tìm hiểu định vị, nguyên tắc minh bạch và mục tiêu xây dựng nền tảng lập, luận giải lá số cho người Việt.",
+    "summary": "Sứ mệnh trả lại sự tôn nghiêm cho huyền học cổ xưa: minh bạch căn cứ, không phán xét, và lộ trình mở rộng từ Tử Vi đến các lăng kính khác.",
     "reviewer": "brand-reviewer",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
@@ -761,7 +761,7 @@
       "brand_claims"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-10"
   },
   {
     "routeId": "brand.about",

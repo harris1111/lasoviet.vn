@@ -30,6 +30,8 @@ export type VietQrCheckoutPollingOptions = {
   navigate(path: string): void;
   visibility: VisibilityDependencies;
   timers?: TimerDependencies;
+  onError?(error: unknown): void;
+  onSuccess?(): void;
 };
 
 function needsPolling(status: CheckoutStatus): boolean {
@@ -90,8 +92,10 @@ export function startVietQrCheckoutPolling(
       if (disposed) return;
       currentStatus = parseCheckoutStatus(payload);
       options.deliverStatus(currentStatus);
+      options.onSuccess?.();
       settleStatus();
-    } catch {
+    } catch (error) {
+      options.onError?.(error);
       // Keep the last valid instructions and let the bounded interval retry.
     } finally {
       fetching = false;
@@ -132,6 +136,39 @@ export function startVietQrCheckoutPolling(
     clearPollTimer();
     unsubscribeVisibility();
   };
+}
+
+export function formatCheckoutExpiresAt(
+  expiresAt: string,
+  locale: "vi" | "en",
+): string {
+  try {
+    const d = new Date(expiresAt);
+    if (Number.isNaN(d.getTime())) return expiresAt;
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(d);
+
+    const find = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+    const day = find("day");
+    const month = find("month");
+    const year = find("year");
+    const hour = find("hour");
+    const minute = find("minute");
+
+    if (locale === "vi") {
+      return `${hour}:${minute}, ${day}/${month}/${year}`;
+    }
+    return `${hour}:${minute}, ${year}-${month}-${day}`;
+  } catch {
+    return expiresAt;
+  }
 }
 
 export function formatCheckoutRemainingTime(
@@ -207,6 +244,25 @@ export type VietQrCheckoutLabels = {
   supportAction?: string;
   refundedTitle?: string;
   refundedDescription?: string;
+  summaryPurchasing?: string;
+  summaryAutoFulfill?: string;
+  summaryOrderCode?: string;
+  summaryListPrice?: string;
+  summaryPayableAmount?: string;
+  upgradeCreditApplied?: string;
+  upgradeCreditDeadline?: string;
+  stepsTitle?: string;
+  step1?: string;
+  step2?: string;
+  step3?: string;
+  step4?: string;
+  expiresAtLabel?: string;
+  pollingErrorTitle?: string;
+  pollingErrorDescription?: string;
+  retryPollingAction?: string;
+  returnToTopicSelectorAction?: string;
+  footerSupportPrefix?: string;
+  footerSupportAction?: string;
 };
 
 export type VietQrCheckoutProps = {
@@ -221,11 +277,17 @@ export function VietQrCheckout({
   selfClaim,
 }: VietQrCheckoutProps) {
   const [status, setStatus] = useState(initialStatus);
+  const [hasPollingError, setHasPollingError] = useState(false);
   const [copiedField, setCopiedField] = useState<CheckoutCopyField | null>(null);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const instructions = status.paymentInstructions;
   const isVi = status.order.locale === "vi";
+  const priceLocale = isVi ? "vi-VN" : "en-US";
+  const currencySymbol =
+    status.order.currency === "VND"
+      ? (isVi ? "₫" : "VND")
+      : status.order.currency;
 
   const [remainingTime, setRemainingTime] = useState(() =>
     instructions ? formatCheckoutRemainingTime(instructions.expiresAt) : ""
@@ -249,11 +311,36 @@ export function VietQrCheckout({
         if (!response.ok) throw new Error("CHECKOUT_STATUS_FAILED");
         return response.json();
       },
-      deliverStatus: setStatus,
+      deliverStatus: (newStatus) => {
+        setStatus(newStatus);
+        setHasPollingError(false);
+      },
       navigate: (path) => window.location.assign(path),
       visibility,
+      onError: () => setHasPollingError(true),
+      onSuccess: () => setHasPollingError(false),
     });
   }, [initialStatus]);
+
+  async function handleRetryPolling() {
+    try {
+      const response = await fetch(
+        `/api/commerce/orders/${encodeURIComponent(initialStatus.order.id)}/status`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) throw new Error("CHECKOUT_STATUS_FAILED");
+      const data = await response.json();
+      const parsed = parseCheckoutStatus(data);
+      setStatus(parsed);
+      setHasPollingError(false);
+      const path = reportPath(parsed);
+      if (path) {
+        window.location.assign(path);
+      }
+    } catch {
+      setHasPollingError(true);
+    }
+  }
 
   const expiresAt = instructions?.expiresAt;
   useEffect(() => {
@@ -279,6 +366,154 @@ export function VietQrCheckout({
     });
   }
 
+  const orderSummaryPurchasing =
+    labels.summaryPurchasing ?? (isVi ? "Bạn đang mua" : "You are purchasing");
+  const orderSummaryAutoFulfill =
+    labels.summaryAutoFulfill ??
+    (isVi
+      ? "Báo cáo mở tự động khi chúng tôi xác nhận thanh toán — bạn không cần làm gì thêm sau khi chuyển khoản."
+      : "Report opens automatically when payment is confirmed — no further action is needed after transfer.");
+  const orderSummaryCode = labels.summaryOrderCode ?? (isVi ? "Mã đơn" : "Order code");
+  const orderSummaryCreditApplied =
+    labels.upgradeCreditApplied ?? (isVi ? "Khấu trừ đã áp dụng" : "Credit applied");
+  const orderSummaryCreditDeadline =
+    labels.upgradeCreditDeadline ?? (isVi ? "Hạn mức ưu đãi" : "Credit deadline");
+
+  const expiresAtLabel = labels.expiresAtLabel ?? (isVi ? "Còn hiệu lực đến" : "Valid until");
+
+  const pollingErrorTitle =
+    labels.pollingErrorTitle ??
+    (isVi ? "Tạm thời gián đoạn kiểm tra tự động" : "Automatic check temporarily interrupted");
+  const pollingErrorDesc =
+    labels.pollingErrorDescription ??
+    (isVi
+      ? "Chúng tôi tạm thời không kiểm tra được trạng thái tự động."
+      : "We temporarily cannot check order status automatically.");
+  const retryActionLabel = labels.retryPollingAction ?? (isVi ? "Kiểm tra lại" : "Check again");
+
+  const stepsTitle = labels.stepsTitle ?? (isVi ? "Các bước thực hiện" : "Steps to complete");
+  const step1 =
+    labels.step1 ??
+    (isVi
+      ? "Quét mã VietQR, hoặc sao chép thông tin bên dưới."
+      : "Scan VietQR code, or copy the information below.");
+  const step2 =
+    labels.step2 ??
+    (isVi ? "Chuyển đúng số tiền hiển thị." : "Transfer the exact amount displayed.");
+  const step3 =
+    labels.step3 ??
+    (isVi
+      ? "Giữ nguyên nội dung chuyển khoản — đây là cách chúng tôi nhận ra đúng đơn của bạn."
+      : "Keep transfer description unchanged — this is how we identify your exact order.");
+  const step4 =
+    labels.step4 ??
+    (isVi
+      ? "Ở lại trang này. Chúng tôi tự động kiểm tra, không cần bấm gì thêm."
+      : "Stay on this page. We check automatically; no additional action needed.");
+
+  const footerSupportPrefix =
+    labels.footerSupportPrefix ?? (isVi ? "Cần hỗ trợ?" : "Need support?");
+  const footerSupportAction =
+    labels.footerSupportAction ??
+    (isVi ? "Liên hệ — đã điền sẵn mã đơn" : "Contact support — order code prefilled");
+  const footerSupportHref = status.order.supportUrl;
+
+  const orderSummaryListPrice = labels.summaryListPrice ?? (isVi ? "Giá gốc" : "List price");
+  const orderSummaryPayableAmount = labels.summaryPayableAmount ?? (isVi ? "Số tiền thanh toán" : "Payable amount");
+
+  const isUpgrade = status.order.creditApplied > 0;
+  const listPrice = status.order.amount + status.order.creditApplied;
+
+  const orderSummaryBlock = status.order.productTitle ? (
+    <section className="checkout-order-summary" aria-label="Order summary">
+      {isUpgrade ? (
+        <>
+          <p className="checkout-summary-main">
+            <span>
+              {orderSummaryListPrice}: <strong>{listPrice.toLocaleString(priceLocale)} {currencySymbol}</strong>
+            </span>
+            {" · "}
+            <span>
+              {orderSummaryCreditApplied}: <strong>-{status.order.creditApplied.toLocaleString(priceLocale)} {currencySymbol}</strong>
+            </span>
+            {" · "}
+            <span>
+              {orderSummaryPayableAmount}: <strong>{status.order.amount.toLocaleString(priceLocale)} {currencySymbol}</strong>
+            </span>
+            {" · "}
+            <span>
+              {orderSummaryCode}: <code>{status.order.paymentCode}</code>
+            </span>
+          </p>
+          {status.order.creditExpiresAt && (
+            <p className="checkout-summary-credit">
+              <span>
+                {orderSummaryCreditDeadline}:{" "}
+                <time dateTime={status.order.creditExpiresAt}>
+                  {formatCheckoutExpiresAt(status.order.creditExpiresAt, status.order.locale)}
+                </time>
+              </span>
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="checkout-summary-main">
+          {orderSummaryPurchasing}: <strong>{status.order.productTitle}</strong>
+          {" — "}
+          <span>
+            {status.order.amount.toLocaleString(priceLocale)} {currencySymbol}
+          </span>
+          {" · "}
+          <span>
+            {orderSummaryCode}: <code>{status.order.paymentCode}</code>
+          </span>
+        </p>
+      )}
+      <p className="checkout-summary-note">{orderSummaryAutoFulfill}</p>
+    </section>
+  ) : null;
+
+  const pollingErrorBlock = hasPollingError ? (
+    <div
+      className="vietqr-polling-error"
+      data-testid="checkout-polling-error"
+      role="alert"
+    >
+      <p className="vietqr-polling-error-title">{pollingErrorTitle}</p>
+      <p className="vietqr-polling-error-description">{pollingErrorDesc}</p>
+      <button
+        type="button"
+        className="button button-secondary"
+        onClick={() => void handleRetryPolling()}
+      >
+        {retryActionLabel}
+      </button>
+    </div>
+  ) : null;
+
+  const footerSupportBlock = (
+    <footer className="checkout-footer-support">
+      <p>
+        {footerSupportPrefix}{" "}
+        <a href={footerSupportHref}>
+          {footerSupportAction}
+        </a>
+      </p>
+    </footer>
+  );
+
+  const stepsBlock = (
+    <div className="checkout-steps" aria-label={stepsTitle}>
+      <p className="checkout-steps-title">{stepsTitle}</p>
+      <ol className="checkout-steps-list">
+        <li>{step1}</li>
+        <li>{step2}</li>
+        <li>{step3}</li>
+        <li>{step4}</li>
+      </ol>
+    </div>
+  );
+
   if (status.order.status === "paid" && status.reportId !== null) {
     return null;
   }
@@ -290,26 +525,31 @@ export function VietQrCheckout({
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
 
     return (
-      <section
-        className="vietqr-checkout-recovery vietqr-checkout-paid-processing"
-        data-checkout-status="paid"
-        role="status"
-        aria-live="polite"
-      >
-        <div className="vietqr-recovery-content">
-          <p className="vietqr-status">{labels.status.paid}</p>
-          <h2>{paidTitle}</h2>
-          <p className="vietqr-recovery-description">{paidDesc}</p>
-          <div className="report-progress-indicator" aria-hidden="true">
-            <span className="report-progress-spinner" />
+      <>
+        {orderSummaryBlock}
+        {pollingErrorBlock}
+        <section
+          className="vietqr-checkout-recovery vietqr-checkout-paid-processing"
+          data-checkout-status="paid"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="vietqr-recovery-content">
+            <p className="vietqr-status">{labels.status.paid}</p>
+            <h2>{paidTitle}</h2>
+            <p className="vietqr-recovery-description">{paidDesc}</p>
+            <div className="report-progress-indicator" aria-hidden="true">
+              <span className="report-progress-spinner" />
+            </div>
+            <div className="vietqr-recovery-actions">
+              <Link href={ordersPath} className="button button-secondary">
+                {orderHistoryActionLabel}
+              </Link>
+            </div>
           </div>
-          <div className="vietqr-recovery-actions">
-            <Link href={ordersPath} className="button button-secondary">
-              {orderHistoryActionLabel}
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+        {footerSupportBlock}
+      </>
     );
   }
 
@@ -317,30 +557,46 @@ export function VietQrCheckout({
     const expiredTitle = labels.expiredTitle ?? (isVi ? "Đơn hàng đã hết hạn thanh toán" : "Order expired");
     const expiredDesc = labels.expiredDescription ?? (isVi ? "Đơn hàng này đã quá thời gian thanh toán. Thông tin đơn hàng cũ vẫn được lưu trong lịch sử giao dịch để bạn tiện tra cứu." : "This order has passed the payment window. Your previous order remains recorded in your order history for reference.");
     const newChartActionLabel = labels.newChartAction ?? (isVi ? "Lập lá số và tạo yêu cầu mới" : "Create a new chart and request");
+    const returnToTopicSelectorLabel = labels.returnToTopicSelectorAction ?? (isVi ? "Quay lại chọn luận giải" : "Return to reading selection");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
     const newChartPath = isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi";
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+    const topicSelectorPath = status.order.chartId
+      ? isVi
+        ? `/la-so/${encodeURIComponent(status.order.chartId)}/chon-luan-giai`
+        : `/en/la-so/${encodeURIComponent(status.order.chartId)}/chon-luan-giai`
+      : null;
 
     return (
-      <section
-        className="vietqr-checkout-recovery vietqr-checkout-expired"
-        data-checkout-status="expired"
-        role="alert"
-      >
-        <div className="vietqr-recovery-content">
-          <p className="vietqr-status">{labels.status.expired}</p>
-          <h2>{expiredTitle}</h2>
-          <p className="vietqr-recovery-description">{expiredDesc}</p>
-          <div className="vietqr-recovery-actions">
-            <Link href={newChartPath} className="button button-primary">
-              {newChartActionLabel}
-            </Link>
-            <Link href={ordersPath} className="button button-secondary">
-              {orderHistoryActionLabel}
-            </Link>
+      <>
+        {orderSummaryBlock}
+        <section
+          className="vietqr-checkout-recovery vietqr-checkout-expired"
+          data-checkout-status="expired"
+          role="alert"
+        >
+          <div className="vietqr-recovery-content">
+            <p className="vietqr-status">{labels.status.expired}</p>
+            <h2>{expiredTitle}</h2>
+            <p className="vietqr-recovery-description">{expiredDesc}</p>
+            <div className="vietqr-recovery-actions">
+              <Link href={newChartPath} className="button button-primary">
+                {newChartActionLabel}
+              </Link>
+              {topicSelectorPath && (
+                <Link href={topicSelectorPath} className="button button-secondary">
+                  {returnToTopicSelectorLabel}
+                </Link>
+              )}
+              <Link href={ordersPath} className="button button-secondary">
+                {orderHistoryActionLabel}
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+        {selfClaim}
+        {footerSupportBlock}
+      </>
     );
   }
 
@@ -352,25 +608,29 @@ export function VietQrCheckout({
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
 
     return (
-      <section
-        className="vietqr-checkout-recovery vietqr-checkout-failed"
-        data-checkout-status="failed"
-        role="alert"
-      >
-        <div className="vietqr-recovery-content">
-          <p className="vietqr-status">{labels.status.failed}</p>
-          <h2>{failedTitle}</h2>
-          <p className="vietqr-recovery-description">{failedDesc}</p>
-          <div className="vietqr-recovery-actions">
-            <Link href={ordersPath} className="button button-primary">
-              {orderHistoryActionLabel}
-            </Link>
-            <a href="mailto:support@lasoviet.vn" className="button button-secondary">
-              {supportActionLabel}
-            </a>
+      <>
+        {orderSummaryBlock}
+        <section
+          className="vietqr-checkout-recovery vietqr-checkout-failed"
+          data-checkout-status="failed"
+          role="alert"
+        >
+          <div className="vietqr-recovery-content">
+            <p className="vietqr-status">{labels.status.failed}</p>
+            <h2>{failedTitle}</h2>
+            <p className="vietqr-recovery-description">{failedDesc}</p>
+            <div className="vietqr-recovery-actions">
+              <Link href={ordersPath} className="button button-primary">
+                {orderHistoryActionLabel}
+              </Link>
+              <a href={status.order.supportUrl} className="button button-secondary">
+                {supportActionLabel}
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+        {footerSupportBlock}
+      </>
     );
   }
 
@@ -381,22 +641,26 @@ export function VietQrCheckout({
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
 
     return (
-      <section
-        className="vietqr-checkout-recovery vietqr-checkout-refunded"
-        data-checkout-status="refunded"
-        role="status"
-      >
-        <div className="vietqr-recovery-content">
-          <p className="vietqr-status">{labels.status.refunded}</p>
-          <h2>{refundedTitle}</h2>
-          <p className="vietqr-recovery-description">{refundedDesc}</p>
-          <div className="vietqr-recovery-actions">
-            <Link href={ordersPath} className="button button-secondary">
-              {orderHistoryActionLabel}
-            </Link>
+      <>
+        {orderSummaryBlock}
+        <section
+          className="vietqr-checkout-recovery vietqr-checkout-refunded"
+          data-checkout-status="refunded"
+          role="status"
+        >
+          <div className="vietqr-recovery-content">
+            <p className="vietqr-status">{labels.status.refunded}</p>
+            <h2>{refundedTitle}</h2>
+            <p className="vietqr-recovery-description">{refundedDesc}</p>
+            <div className="vietqr-recovery-actions">
+              <Link href={ordersPath} className="button button-secondary">
+                {orderHistoryActionLabel}
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+        {footerSupportBlock}
+      </>
     );
   }
 
@@ -404,7 +668,6 @@ export function VietQrCheckout({
     return null;
   }
 
-  const priceLocale = isVi ? "vi-VN" : "en-US";
   const copyLabels: Record<CheckoutCopyField, string> = {
     accountNumber: labels.copyAccountNumber,
     amount: labels.copyAmount,
@@ -433,6 +696,9 @@ export function VietQrCheckout({
 
   return (
     <>
+      {orderSummaryBlock}
+      {pollingErrorBlock}
+      {stepsBlock}
       <section
         aria-labelledby="vietqr-instructions-title"
         className="vietqr-checkout"
@@ -495,6 +761,13 @@ export function VietQrCheckout({
               <dd className="vietqr-time">
                 <Icon name="clock" />
                 <time dateTime={instructions.expiresAt}>{remainingTime}</time>
+                <span className="vietqr-time-deadline">
+                  {" ("}{expiresAtLabel}{" "}
+                  <time dateTime={instructions.expiresAt}>
+                    {formatCheckoutExpiresAt(instructions.expiresAt, status.order.locale)}
+                  </time>
+                  {")"}
+                </span>
               </dd>
             </div>
           </dl>
@@ -509,6 +782,7 @@ export function VietQrCheckout({
       </section>
 
       {selfClaim}
+      {footerSupportBlock}
     </>
   );
 }
