@@ -5,9 +5,13 @@ export type BirthTimeState =
   | { precision: "branch_only"; branch: CanonicalBranchId }
   | { precision: "unknown" };
 
+export type BirthCalendarType = "solar" | "lunar";
+
 export type BirthProfileInput = {
   displayName?: string;
   date: string;
+  calendarType?: BirthCalendarType;
+  isLeapMonth?: boolean;
   hour?: string;
   minute?: string;
   timeUnknown?: boolean;
@@ -46,9 +50,21 @@ export function buildBirthProfile(input: BirthProfileInput) {
     };
   }
 
+  const calendar =
+    input.calendarType === "lunar"
+      ? {
+          kind: "lunar" as const,
+          date: input.date,
+          isLeapMonth: Boolean(input.isLeapMonth),
+        }
+      : {
+          kind: "solar" as const,
+          date: input.date,
+        };
+
   return {
     version: 1 as const,
-    calendar: { kind: "solar" as const, date: input.date },
+    calendar,
     time,
     timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
     ...(input.placeLabel?.trim()
