@@ -19,10 +19,10 @@ describe("admin private route state", () => {
       robots: "noindex,nofollow",
     });
     expect(getSitemapIndexEntries().map((entry) => entry.url)).not.toContain(
-      "https://lasoviet.vn/bao-cao",
+      "https://lasoviet.net/bao-cao",
     );
     expect(getSitemapIndexEntries().map((entry) => entry.url)).not.toContain(
-      "https://lasoviet.vn/en/bao-cao",
+      "https://lasoviet.net/en/bao-cao",
     );
   });
 
@@ -48,10 +48,10 @@ describe("admin private route state", () => {
       robots: "noindex,nofollow",
     });
     expect(getSitemapIndexEntries().map((entry) => entry.url)).not.toContain(
-      "https://lasoviet.vn/admin",
+      "https://lasoviet.net/admin",
     );
     expect(getSitemapIndexEntries().map((entry) => entry.url)).not.toContain(
-      "https://lasoviet.vn/en/admin",
+      "https://lasoviet.net/en/admin",
     );
     const auditRoute = routeRegistry.find((route) => route.id === "admin.audit");
     expect(auditRoute).toMatchObject({

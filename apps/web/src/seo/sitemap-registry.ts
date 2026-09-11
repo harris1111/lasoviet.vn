@@ -1,7 +1,7 @@
 import { routeRegistry } from "@lasoviet/config";
 import type { RouteDefinitionV1 } from "@lasoviet/contracts";
 
-export const PRODUCTION_ORIGIN = "https://lasoviet.vn";
+export const PRODUCTION_ORIGIN = "https://lasoviet.net";
 export const SITEMAP_INDEX_URL = `${PRODUCTION_ORIGIN}/sitemap.xml`;
 
 export const sitemapSections = ["pages", "tools", "knowledge-tu-vi"] as const;

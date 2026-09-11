@@ -137,11 +137,11 @@ Report cũ immutable. Khi sửa lỗi tính toán, tạo report mới và liên 
 
 ## 9. Suggested deployment topology
 
-- `www/lasoviet.vn`: SSR web + app shell.
-- `api.lasoviet.vn`: API public/authenticated.
+- `www.lasoviet.net`: SSR web + app shell.
+- `api.lasoviet.net`: API public/authenticated.
 - Worker/queue private network.
 - Object storage private cho PDF/chart artifacts.
 - Managed relational DB cho user/order/version metadata.
 - CMS tách quyền biên tập.
 
-Không cần dùng `lasoviet.cloud` chỉ vì đã sở hữu; subdomain của `.vn` thường đơn giản và nhất quán hơn. `.cloud` chỉ có vai trò khi tách hạ tầng tạo lợi ích vận hành thật.
+Do not use `lasoviet.cloud` merely because it is owned; `.net` subdomains are the canonical public boundary. Use `.cloud` only when separating infrastructure creates a clear operational benefit.

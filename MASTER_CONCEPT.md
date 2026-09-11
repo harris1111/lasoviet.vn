@@ -108,13 +108,14 @@ Không có đội ngũ chuyên gia phía sau thì không được dùng ảnh, c
 
 Không đưa dự đoán chắc chắn về tử vong, bệnh nặng, tai nạn, phản bội hoặc phá sản. Không dùng nỗi sợ để upsell.
 
-## 9. Vai trò tên miền
+## 9. Domain Roles
 
-- `lasoviet.vn`: canonical duy nhất cho thương hiệu, SEO, ứng dụng, checkout và email.
-- `lasoviet.cloud`: dự phòng hạ tầng/backend; root redirect về `.vn` cho tới khi có use case kỹ thuật rõ ràng.
-- `lasoviet.xyz`: bảo vệ thương hiệu/thử nghiệm; root 301 về `.vn`; staging/lab phải chặn index và truy cập công khai.
+- `lasoviet.net`: sole canonical domain for master brand, public SEO, web application, Better Auth, checkout, and customer support email (supersedes `lasoviet.vn` per founder decision FD-057).
+- `lasoviet.vn`: non-canonical redirect reserve once external DNS is configured (currently has no DNS records configured; external redirect setup pending).
+- `lasoviet.cloud`: infrastructure/backend reserve; root redirects to canonical `.net` until a distinct technical use case exists.
+- `lasoviet.xyz`: brand defense/experimental reserve; root HTTP 301 redirects to canonical `.net`; staging/lab must remain access-controlled and noindex.
 
-Không triển khai ba website nội dung giống nhau.
+Do not deploy duplicate public content across domains.
 
 ## 10. Quyết định từ dữ liệu
 

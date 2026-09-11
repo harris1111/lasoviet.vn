@@ -96,7 +96,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
     process.env.AI_FEATURE_TOOL_CALLING = "false";
     process.env.AI_PRODUCTION_ENABLED = "true";
-    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
     process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
     delete process.env.DATABASE_URL;
 
@@ -119,7 +119,7 @@ describe("createReportGenerateRunner", () => {
     process.env.DATABASE_URL = "https://synthetic-db.test/db";
     process.env[present] =
       present === "BETTER_AUTH_URL"
-        ? "https://lasoviet.vn"
+        ? "https://lasoviet.net"
         : "test-internal-secret";
     delete process.env[missing];
 
@@ -160,7 +160,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_FEATURE_TOOL_CALLING = "false";
     process.env.AI_PRODUCTION_ENABLED = "true";
     process.env.DATABASE_URL = "https://synthetic-db.test/db";
-    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
     process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
 
     const mockProvider = {
@@ -182,7 +182,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_FEATURE_TOOL_CALLING = "false";
     process.env.AI_PRODUCTION_ENABLED = "true";
     process.env.DATABASE_URL = "https://synthetic-db.test/db";
-    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
     process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
 
     const runner = createReportGenerateRunner();
@@ -200,7 +200,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_FEATURE_TOOL_CALLING = "false";
     process.env.AI_PRODUCTION_ENABLED = "true";
     process.env.DATABASE_URL = "https://synthetic-db.test/db";
-    process.env.BETTER_AUTH_URL = "https://lasoviet.vn";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
     process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
 
     const mockDispatcher = {
