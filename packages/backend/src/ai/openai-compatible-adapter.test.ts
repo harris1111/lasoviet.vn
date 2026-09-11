@@ -32,6 +32,7 @@ describe("OpenAI-compatible adapter", () => {
       value: { value: { value: "sentinel" }, providerId: "9router-an", modelId: "synthetic-model" },
     });
     expect(JSON.parse(String(calls[0].body))).toMatchObject({
+      stream: false,
       response_format: { type: "json_schema", json_schema: { name: "synthetic_response", strict: true } },
     });
   });

@@ -144,6 +144,7 @@ export function createOpenAiCompatibleAdapter(
             { role: "system", content: systemPrompt },
             { role: "user", content: request.user },
           ],
+          stream: false,
           max_tokens: request.maxOutputTokens,
           response_format: {
             type: "json_schema",
