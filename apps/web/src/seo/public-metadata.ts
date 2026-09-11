@@ -1,6 +1,6 @@
 import type { PublicContentV1, RouteDefinitionV1 } from "@lasoviet/contracts";
 
-export const PRODUCTION_ORIGIN = "https://lasoviet.vn";
+export const PRODUCTION_ORIGIN = "https://lasoviet.net";
 
 export type RobotsPolicy = { index: boolean; follow: boolean };
 

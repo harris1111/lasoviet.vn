@@ -296,7 +296,7 @@ git commit -m "feat: add evidence-backed free preview"
 
 ```ts
 expect(await metadataFor("/la-so-tu-vi", "vi")).toMatchObject({
-  alternates: { canonical: "https://lasoviet.vn/la-so-tu-vi" },
+  alternates: { canonical: "https://lasoviet.net/la-so-tu-vi" },
   robots: { index: true, follow: true },
 });
 expect(await resolvePublicRoute("/luan-giai-tu-vi/tinh-duyen-hon-nhan"))

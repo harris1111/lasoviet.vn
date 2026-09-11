@@ -41,9 +41,9 @@ describe("purchase-offer-presentation", () => {
       expect(offer.title.vi).toBe("Luận giải Tử Vi toàn diện");
       expect(offer.title.en).toBe("Comprehensive Zi Wei reading");
       expect(offer.deliverables.vi).toHaveLength(5);
-      expect(offer.deliverables.vi[0]).toContain("12 cung vị");
-      expect(offer.deliverables.vi[4]).toContain("2.200–3.200 chữ tiếng Việt");
-      expect(offer.deliverables.en[4]).not.toContain("2.200");
+      expect(offer.deliverables.vi[1]).toContain("12 cung");
+      expect(offer.deliverables.vi[4]).toContain("2.200–3.200 từ");
+      expect(offer.deliverables.en[4]).not.toContain("2.200 từ");
       expect(offer.ownership).toEqual({ kind: "unowned" });
 
       // Invariant: no technical SKU leakage
@@ -73,7 +73,7 @@ describe("purchase-offer-presentation", () => {
       const excerptOffer: PaidTopicSelectionViewV1["offers"][number] = {
         sku: "ZIWEI-NATAL-EXCERPT-P0",
         method: "ziwei",
-        price: 19000,
+        price: 19000 as const,
         currency: "VND",
         sections: ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"],
       };
@@ -87,9 +87,13 @@ describe("purchase-offer-presentation", () => {
       expect(offer.price).toBe(19000);
       expect(offer.currency).toBe("VND");
       expect(offer.title.vi).toBe("Bản mệnh và tiềm năng");
-      expect(offer.title.en).toBe("Core identity and potential");
-      expect(offer.deliverables.vi).toHaveLength(5);
-      expect(offer.deliverables.vi[0]).toContain("Tổng quan bản mệnh");
+      expect(offer.title.en).toBe("Core Identity and Potential");
+      expect(offer.deliverables.vi).toHaveLength(3);
+      expect(offer.deliverables.vi[0]).toBe("Toàn cảnh bản mệnh.");
+      expect(offer.deliverables.vi[1]).toBe("Trục Mệnh – Thân và những điểm nhấn chính.");
+      expect(offer.deliverables.vi[2]).toBe("Điểm mạnh, điểm căng và hướng phát triển thực tế.");
+      expect(offer.fit?.vi).toBe("Bạn muốn một điểm bắt đầu rõ ràng, đủ sâu để soi chiếu nhưng chưa cần đọc toàn bộ lá số.");
+      expect(offer.ctaLabel.vi).toBe("Chọn Bản mệnh và tiềm năng — 19.000 ₫");
 
       // Invariant: no technical SKU leakage
       const serialized = JSON.stringify(offer);
@@ -120,6 +124,34 @@ describe("purchase-offer-presentation", () => {
       expect(enPresentations[0]!.offerKey).toBe("ziwei-comprehensive");
     });
 
+
+    it("provides approved CTA labels, Tier 2 badge, and upgrade pricing CTA", () => {
+      const excerptOffer = {
+        sku: "ZIWEI-NATAL-EXCERPT-P0" as const,
+        method: "ziwei" as const,
+        price: 19000 as const,
+        currency: "VND" as const,
+        sections: ["overview"],
+      };
+      const comprehensiveOffer = {
+        sku: "ZIWEI-IDENTITY-P0" as const,
+        method: "ziwei" as const,
+        price: 79000 as const,
+        currency: "VND" as const,
+        sections: ["overview" as const],
+      };
+
+      const presentations = buildSafeOfferPresentations({
+        offers: [excerptOffer, comprehensiveOffer],
+        locale: "vi",
+      });
+
+      expect(presentations[0]!.ctaLabel.vi).toBe("Chọn Bản mệnh và tiềm năng — 19.000 ₫");
+      expect(presentations[1]!.ctaLabel.vi).toBe("Chọn Luận giải Tử Vi toàn diện — 79.000 ₫");
+      expect(presentations[1]!.badge?.vi).toBe("Đầy đủ nhất");
+      expect(presentations[1]!.fit?.vi).toBe("Bạn muốn có một bản tham chiếu đầy đủ để đọc lại theo từng câu hỏi và từng giai đoạn suy ngẫm.");
+      expect(presentations[1]!.summary.vi).toBe("Đọc trọn cấu trúc lá số — từ nền tảng bản mệnh đến 12 cung và những mối liên hệ nổi bật.");
+    });
     it("excludes reserved or unknown SKUs from safe presentation", () => {
       const mixedOffers: any = [
         {
@@ -568,8 +600,7 @@ describe("purchase-offer-presentation", () => {
         locale: "vi",
       });
       const tier1 = presentations.find((p) => p.offerKey === "ziwei-natal-excerpt");
-      expect(tier1?.upgradeDisclosure?.vi).toContain("7 ngày");
-      expect(tier1?.upgradeDisclosure?.vi).toContain("19.000 ₫");
+      expect(tier1?.upgradeDisclosure?.vi).toBe("Nếu sau đó bạn muốn đọc bản toàn diện, 19.000 ₫ này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.");
     });
 
     it("hides Tier 1 completely when Tier 2 is owned (WP-09 Test 12)", () => {

@@ -134,7 +134,7 @@ Mỗi calculator landing page nên có:
 
 ## 6. Technical SEO rules
 
-- Canonical toàn bộ public content về `https://lasoviet.vn`.
+- Set canonicals for all public content to `https://lasoviet.net` (superseding `https://lasoviet.vn` per FD-057).
 - Report cá nhân, tài khoản, checkout: `noindex, nofollow` theo ngữ cảnh.
 - Sitemap XML chỉ chứa public indexable URLs.
 - Dùng slug tiếng Việt không dấu, ngắn và ổn định.

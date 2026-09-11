@@ -35,7 +35,7 @@ tiêu chí nào kiểm tra được bằng số.
 ```
 BỐI CẢNH
 
-Lá Số Việt (lasoviet.vn) — nền tảng lập và luận giải lá số Tử Vi tiếng Việt. Lập lá số miễn phí dẫn
+Lá Số Việt (lasoviet.net) — nền tảng lập và luận giải lá số Tử Vi tiếng Việt. Lập lá số miễn phí dẫn
 vào báo cáo luận giải trả phí, thanh toán một lần. Định vị: "thư viện tri thức Việt đương đại" —
 KHÔNG phải web bói toán, KHÔNG phải thầy bói AI. Giọng thương hiệu: điềm tĩnh, có căn cứ, trả quyền
 quyết định về cho người dùng, không phán định tương lai.

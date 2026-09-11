@@ -381,7 +381,7 @@ describe("database schema integration", () => {
           idempotencyKey: "report-ready-email:ver-schema-test:acc-schema-test",
           recipient: "schema-test@example.test",
           locale: "vi",
-          actionUrl: "https://lasoviet.vn/bao-cao/report-schema-test",
+          actionUrl: "https://lasoviet.net/bao-cao/report-schema-test",
           requestId: "trace-schema-test",
         },
       })

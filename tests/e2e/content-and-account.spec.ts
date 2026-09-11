@@ -20,7 +20,7 @@ test("renders reviewed public content and honest private shells", async ({ page 
   );
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
-    "https://lasoviet.vn/la-so-tu-vi",
+    "https://lasoviet.net/la-so-tu-vi",
   );
 
   await page.goto("/luan-giai-tu-vi/tong-quan-ban-menh");

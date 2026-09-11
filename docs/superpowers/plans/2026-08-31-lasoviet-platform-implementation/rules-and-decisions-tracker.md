@@ -60,6 +60,7 @@
 | FD-054 | 2026-09-09 | Analytics dashboard and the legacy-to-new event mapping are jointly owned by Harris and An | Approved | Same round-2 doc |
 | FD-055 | 2026-09-09 | The approved UI artifact branch for WP-03/WP-06/WP-11/WP-13 (per FD-024) is `product/discipline-flagship-pages`; verified that `product/bg-texture-consistency` and `product/homepage-content-rewrite` are ancestors, so no preliminary merge is required | Approved | Same round-2 doc |
 | FD-056 | 2026-09-09 | Harris alone signs off on the cross-cutting visual QA pass (WP-13); An executes the checks and supplies pass/fail evidence with screenshots | Approved | Same round-2 doc |
+| FD-057 | 2026-09-11 | https://lasoviet.net supersedes lasoviet.vn as the sole canonical public domain for master brand, public SEO, web application, Better Auth, checkout, and customer support email; lasoviet.vn, lasoviet.cloud, and lasoviet.xyz serve as non-canonical redirect reserves once externally configured; the GitHub repository name and local filesystem paths remain lasoviet.vn | Approved | `AGENTS.md`, `config/domain-routing.json`, `config/sitemap.json`, documentation |
 
 ## FD-028 Execution Boundary
 
@@ -622,7 +623,7 @@ Date: 2026-09-02
 - Release review found that the web image baked the local Better Auth loopback
   URL into browser code. The client now uses same-origin auth, the image has no
   public auth build argument, and VPS guidance requires
-  `BETTER_AUTH_URL=https://lasoviet.vn` while Nginx retains the loopback
+  `BETTER_AUTH_URL=https://lasoviet.vn` (superseded on 2026-09-11 by FD-057 to `BETTER_AUTH_URL=https://lasoviet.net`) while Nginx retains the loopback
   upstream.
 - A stale E2E chart fixture was replaced with a real anonymous chart flow.
   Focused no-email release verification passed with five tests and one
@@ -704,3 +705,24 @@ Date: 2026-09-05
   recommendation), and the production BaZi/Western SKU display names shown to
   users (currently reusing the report scope description, not a marketed
   product name).
+
+
+## FD-057 Canonical Domain Migration to lasoviet.net Evidence
+
+Date: 2026-09-11
+
+- Founder decision: `https://lasoviet.net` supersedes `lasoviet.vn` as the sole
+  canonical public web, SEO, Better Auth, checkout, and customer support email
+  domain.
+- Secondary domains (`lasoviet.vn`, `lasoviet.cloud`, `lasoviet.xyz`) serve as
+  non-canonical redirect reserves once externally configured with Cloudflare DNS.
+- GitHub repository name (`harris1111/lasoviet.vn`) and local filesystem paths
+  (such as `/home/debian/projects/lasoviet.vn`) remain `lasoviet.vn`.
+- External DNS/mail gates recorded: `lasoviet.vn` currently has no DNS records
+  configured, and `lasoviet.net` currently has no MX or TXT records configured.
+  Code and documentation migration does not complete external DNS redirects or
+  inbound customer support email delivery until these external records are
+  provisioned.
+- Runtime configuration (`config/domain-routing.json`, `config/sitemap.json`),
+  public metadata, auth client actions, report writer, contracts, E2E tests,
+  and deployment specifications are aligned to `lasoviet.net`.

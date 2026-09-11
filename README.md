@@ -2,14 +2,14 @@
 
 Phiên bản đóng gói: 2026-08-31  
 Thị trường: Việt Nam  
-Tên miền chính: `lasoviet.vn`
+Canonical public domain: `lasoviet.net` (supersedes `lasoviet.vn` per FD-057; `.vn`, `.cloud`, and `.xyz` are non-canonical redirect reserves once externally configured)
 
 Đây là bộ hồ sơ làm nguồn sự thật chung cho founder, marketing, product, design và engineering trong giai đoạn 1 của Lá Số Việt.
 
 ## Quyết định cốt lõi
 
 - Xây Lá Số Việt như **nền tảng lập và luận giải lá số cho người Việt**, không định vị như “thầy bói AI”.
-- `lasoviet.vn` là thương hiệu, canonical SEO, thanh toán và email duy nhất.
+- `lasoviet.net` is the sole canonical domain for master brand, public SEO, web application, Better Auth, checkout, and customer support email (superseding `lasoviet.vn` per FD-057). Non-canonical domains (`.vn`, `.cloud`, `.xyz`) serve as redirect reserves once external DNS is configured.
 - Hero: **Lập lá số. Hiểu vận mệnh.**
 - Tử Vi là sản phẩm doanh thu đầu tiên; Bát Tự và Bản đồ sao là lớp mở rộng gần nhất; Kinh Dịch đi sau.
 - AI đứng sau quy trình tính toán–tổng hợp–diễn giải, được công bố trung thực nhưng không chi phối tên miền hay headline.

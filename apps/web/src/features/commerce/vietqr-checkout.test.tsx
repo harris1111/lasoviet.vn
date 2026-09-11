@@ -21,6 +21,13 @@ function checkoutStatus(
       amount: 79_000,
       currency: "VND",
       locale,
+      productTitle: locale === "en" ? "Comprehensive Zi Wei reading" : "Luận giải Tử Vi toàn diện",
+      paymentCode: "LSVK7M2P9QXJ",
+      chartId: "chart-1",
+      createdAt: "2026-09-05T00:00:00.000Z",
+      creditApplied: 0,
+      creditExpiresAt: null,
+      supportUrl: locale === "en" ? "/en/lien-he?order=LSV-order-1" : "/lien-he?order=LSV-order-1",
     },
     paymentInstructions: {
       bankCode: "VCB",
@@ -416,11 +423,7 @@ describe("VietQR checkout copy controls", () => {
   it("returns false from copyCheckoutField when paymentInstructions is null", async () => {
     const statusWithNull: CheckoutStatus = {
       order: {
-        id: "order-1",
-        status: "paid",
-        amount: 79_000,
-        currency: "VND",
-        locale: "vi",
+        ...checkoutStatus("paid").order,
       },
       paymentInstructions: null,
       reportId: "report-1",
@@ -436,11 +439,7 @@ describe("VietQR checkout copy controls", () => {
   it("renders null safely when paymentInstructions is null", () => {
     const statusWithNull: CheckoutStatus = {
       order: {
-        id: "order-1",
-        status: "paid",
-        amount: 79_000,
-        currency: "VND",
-        locale: "vi",
+        ...checkoutStatus("paid").order,
       },
       paymentInstructions: null,
       reportId: "report-1",
@@ -513,6 +512,13 @@ describe("VietQR checkout recovery views", () => {
         amount: 79_000,
         currency: "VND",
         locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
       reportId: null,
@@ -536,7 +542,7 @@ describe("VietQR checkout recovery views", () => {
     expect(html).not.toContain("self-claim-mock");
   });
 
-  it("renders expired checkout without QR or self-claim, explains traceable order, and links to new chart and order history", () => {
+  it("renders expired checkout without QR, with self-claim, explains traceable order, and links to new chart and order history", () => {
     const selfClaimMarker = <div data-testid="self-claim-mock">Self-claim form</div>;
     const statusExpired: CheckoutStatus = {
       order: {
@@ -545,6 +551,13 @@ describe("VietQR checkout recovery views", () => {
         amount: 79_000,
         currency: "VND",
         locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
       reportId: null,
@@ -563,9 +576,9 @@ describe("VietQR checkout recovery views", () => {
     expect(html).toContain("/tao-la-so/tu-vi");
     expect(html).toContain("/tai-khoan/don-hang");
 
-    // No QR or self-claim
+    // No QR, but self-claim is exposed for expired recovery
     expect(html).not.toContain("https://vietqr.app");
-    expect(html).not.toContain("self-claim-mock");
+    expect(html).toContain("self-claim-mock");
   });
 
   it("renders English expired checkout paths when locale is en", () => {
@@ -576,6 +589,13 @@ describe("VietQR checkout recovery views", () => {
         amount: 79_000,
         currency: "VND",
         locale: "en",
+        productTitle: "Comprehensive Zi Wei reading",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/en/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
       reportId: null,
@@ -596,6 +616,13 @@ describe("VietQR checkout recovery views", () => {
         amount: 79_000,
         currency: "VND",
         locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
       reportId: null,
@@ -612,7 +639,7 @@ describe("VietQR checkout recovery views", () => {
     expect(html).toContain("Payment was not completed");
     expect(html).toContain("Payment failed. Do not attempt another transfer for this order.");
     expect(html).toContain("/tai-khoan/don-hang");
-    expect(html).toContain("mailto:support@lasoviet.vn");
+    expect(html).toContain("/lien-he?order=LSV-order-1");
 
     // No QR or self-claim
     expect(html).not.toContain("https://vietqr.app");
@@ -628,6 +655,13 @@ describe("VietQR checkout recovery views", () => {
         amount: 79_000,
         currency: "VND",
         locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
       reportId: null,
@@ -666,7 +700,20 @@ describe("VietQR checkout recovery views", () => {
     };
 
     const expiredWithStale: CheckoutStatus = {
-      order: { id: "order-1", status: "expired", amount: 79_000, currency: "VND", locale: "vi" },
+      order: {
+        id: "order-1",
+        status: "expired",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
+      },
       paymentInstructions: staleInstructions,
       reportId: null,
     };
@@ -680,7 +727,20 @@ describe("VietQR checkout recovery views", () => {
   it("never renders client-side report unlock, raw SKU, raw fulfillment status, or internal provider detail", () => {
     for (const status of ["pending", "paid", "expired", "failed", "refunded"] as const) {
       const state: CheckoutStatus = {
-        order: { id: "order-1", status, amount: 79_000, currency: "VND", locale: "vi" },
+        order: {
+          id: "order-1",
+          status,
+          amount: 79_000,
+          currency: "VND",
+          locale: "vi",
+          productTitle: "Luận giải Tử Vi toàn diện",
+          paymentCode: "LSVK7M2P9QXJ",
+          chartId: "chart-1",
+          createdAt: "2026-09-05T00:00:00.000Z",
+          creditApplied: 0,
+          creditExpiresAt: null,
+          supportUrl: "/lien-he?order=LSV-order-1",
+        },
         paymentInstructions: status === "pending" ? {
           bankCode: "VCB",
           accountNumber: "0123456789",
@@ -700,5 +760,229 @@ describe("VietQR checkout recovery views", () => {
       expect(html).not.toContain("sepay");
       expect(html).not.toContain("terminal_failure");
     }
+  });
+});
+
+describe("VietQR checkout dynamic order summary, upgrade credit, and actual expiry", () => {
+  const fullLabels = {
+    instructionsTitle: "Thông tin chuyển khoản",
+    bankCode: "Ngân hàng",
+    accountNumber: "Số tài khoản",
+    accountHolder: "Chủ tài khoản",
+    amount: "Số tiền",
+    transferDescription: "Nội dung chuyển khoản",
+    remainingTime: "Thời gian còn lại",
+    qrAlt: "Mã VietQR thanh toán",
+    copyAccountNumber: "Sao chép số tài khoản",
+    copyAmount: "Sao chép số tiền",
+    copyTransferDescription: "Sao chép nội dung chuyển khoản",
+    copied: "Đã sao chép",
+    status: {
+      pending: "Đang chờ thanh toán",
+      paid: "Đã thanh toán",
+      expired: "Đơn đã hết hạn",
+      failed: "Thanh toán chưa thành công",
+      refunded: "Đã hoàn tiền",
+    },
+    summaryPurchasing: "Bạn đang mua",
+    summaryAutoFulfill: "Báo cáo mở tự động khi chúng tôi xác nhận thanh toán",
+    summaryOrderCode: "Mã đơn",
+    upgradeCreditApplied: "Khấu trừ đã áp dụng",
+    upgradeCreditDeadline: "Hạn mức ưu đãi",
+    expiresAtLabel: "Còn hiệu lực đến",
+    pollingErrorTitle: "Tạm thời gián đoạn kiểm tra tự động",
+    pollingErrorDescription: "Chúng tôi tạm thời không kiểm tra được trạng thái tự động.",
+    retryPollingAction: "Kiểm tra lại",
+    returnToTopicSelectorAction: "Quay lại chọn luận giải",
+  };
+
+  it("renders dynamic order summary with product title, formatted amount, and payment code", () => {
+    const status: CheckoutStatus = {
+      order: {
+        id: "order-summary-1",
+        status: "pending",
+        amount: 79000,
+        currency: "VND",
+        locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
+      },
+      paymentInstructions: {
+        bankCode: "VCB",
+        accountNumber: "0123456789",
+        accountHolder: "LA SO VIET",
+        amount: 79000,
+        currency: "VND",
+        transferDescription: "LSVK7M2P9QXJ",
+        qrUrl: "https://vietqr.app/qr/order-1.png",
+        expiresAt: "2026-09-05T12:15:00.000Z",
+      },
+      reportId: null,
+    };
+
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={status} labels={fullLabels} />,
+    );
+
+    expect(html).toContain("Bạn đang mua");
+    expect(html).toContain("Luận giải Tử Vi toàn diện");
+    expect(html).toContain("79.000 ₫");
+    expect(html).toContain("LSVK7M2P9QXJ");
+    expect(html).toContain("Báo cáo mở tự động khi chúng tôi xác nhận thanh toán");
+    expect(html).not.toContain("Khấu trừ đã áp dụng");
+  });
+
+  it("renders upgrade credit amount and actual deadline only when upgrade fields exist", () => {
+    const upgradeDeadline = "2026-09-17T10:00:00.000Z";
+    const status: CheckoutStatus = {
+      order: {
+        id: "order-upgrade-1",
+        status: "pending",
+        amount: 60000,
+        currency: "VND",
+        locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVUPGRADE12",
+        chartId: "chart-1",
+        createdAt: "2026-09-10T10:00:00.000Z",
+        creditApplied: 19000,
+        creditExpiresAt: upgradeDeadline,
+        supportUrl: "/lien-he?order=LSV-order-1",
+      },
+      paymentInstructions: {
+        bankCode: "VCB",
+        accountNumber: "0123456789",
+        accountHolder: "LA SO VIET",
+        amount: 60000,
+        currency: "VND",
+        transferDescription: "LSVUPGRADE12",
+        qrUrl: "https://vietqr.app/qr/order-1.png",
+        expiresAt: "2026-09-05T12:15:00.000Z",
+      },
+      reportId: null,
+    };
+
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={status} labels={fullLabels} />,
+    );
+
+    expect(html).toContain("Giá gốc");
+    expect(html).toContain("79.000 ₫");
+    expect(html).toContain("Khấu trừ đã áp dụng");
+    expect(html).toContain("-19.000 ₫");
+    expect(html).toContain("Số tiền thanh toán");
+    expect(html).toContain("60.000 ₫");
+    expect(html).toContain("Hạn mức ưu đãi");
+    expect(html).toContain("17:00, 17/09/2026");
+  });
+
+  it("renders actual expiry date/time rather than hardcoding 24 hours", () => {
+    const expiresAt = "2026-09-05T12:15:00.000Z";
+    const status: CheckoutStatus = {
+      order: {
+        id: "order-1",
+        status: "pending",
+        amount: 79000,
+        currency: "VND",
+        locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVK7M2P9QXJ",
+        chartId: "chart-1",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
+      },
+      paymentInstructions: {
+        bankCode: "VCB",
+        accountNumber: "0123456789",
+        accountHolder: "LA SO VIET",
+        amount: 79000,
+        currency: "VND",
+        transferDescription: "LSVK7M2P9QXJ",
+        qrUrl: "https://vietqr.app/qr/order-1.png",
+        expiresAt,
+      },
+      reportId: null,
+    };
+
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={status} labels={fullLabels} />,
+    );
+
+    expect(html).toContain("Còn hiệu lực đến");
+    expect(html).toContain("19:15, 05/09/2026");
+    expect(html).not.toContain("24 giờ kể từ lúc tạo đơn");
+  });
+
+  it("renders link back to topic selector using chartId for expired orders", () => {
+    const status: CheckoutStatus = {
+      order: {
+        id: "order-expired-1",
+        status: "expired",
+        amount: 79000,
+        currency: "VND",
+        locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        chartId: "chart-natal-xyz",
+        paymentCode: "LSVEXPIRED01",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-1",
+      },
+      paymentInstructions: null,
+      reportId: null,
+    };
+
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={status} labels={fullLabels} />,
+    );
+
+    expect(html).toContain("/la-so/chart-natal-xyz/chon-luan-giai");
+    expect(html).toContain("Quay lại chọn luận giải");
+  });
+});
+
+describe("VietQR checkout polling error notice and recovery", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("calls onError on transient fetch failure and onSuccess on resolution", async () => {
+    const onError = vi.fn();
+    const onSuccess = vi.fn();
+    const fetchStatus = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Network timeout"))
+      .mockResolvedValueOnce(checkoutStatus("paid", null));
+    const deliverStatus = vi.fn();
+
+    const cleanup = startVietQrCheckoutPolling({
+      initialStatus: checkoutStatus(),
+      fetchStatus,
+      deliverStatus,
+      navigate: vi.fn(),
+      visibility: visibilityHarness(),
+      onError,
+      onSuccess,
+    });
+
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(onError).toHaveBeenCalledOnce();
+    expect(onSuccess).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(onSuccess).toHaveBeenCalledOnce();
+    cleanup();
   });
 });

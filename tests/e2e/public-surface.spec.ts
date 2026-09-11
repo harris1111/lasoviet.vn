@@ -24,7 +24,7 @@ const locales = [
     code: "vi",
     path: "/",
     acceptLanguage: "vi-VN,vi;q=0.9",
-    canonical: "https://lasoviet.vn/",
+    canonical: "https://lasoviet.net/",
     title: "Lá Số Việt | Lập lá số. Hiểu vận mệnh.",
     description:
       "Nền tảng lập và luận giải lá số có căn cứ, bắt đầu với Tử Vi và trải nghiệm rõ ràng cho người Việt.",
@@ -44,7 +44,7 @@ const locales = [
     code: "en",
     path: "/en",
     acceptLanguage: "en-US,en;q=0.9",
-    canonical: "https://lasoviet.vn/en",
+    canonical: "https://lasoviet.net/en",
     title: "La So Viet | Build your chart. Understand your path.",
     description:
       "A grounded chart-building and interpretation platform, beginning with Tu Vi for Vietnamese users.",

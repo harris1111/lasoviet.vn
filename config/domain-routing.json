@@ -1,9 +1,10 @@
 {
-  "canonical": "https://lasoviet.vn",
+  "canonical": "https://lasoviet.net",
   "domains": {
-    "lasoviet.vn": {"role": "brand_seo_app_commerce", "index": true, "checkout": true},
-    "lasoviet.cloud": {"role": "infrastructure_reserve", "index": false, "checkout": false, "root_action": "301_to_lasoviet.vn"},
-    "lasoviet.xyz": {"role": "defensive_or_lab", "index": false, "checkout": false, "root_action": "301_to_lasoviet.vn"}
+    "lasoviet.net": {"role": "brand_seo_app_commerce", "index": true, "checkout": true},
+    "lasoviet.vn": {"role": "brand_redirect_reserve", "index": false, "checkout": false, "root_action": "301_to_lasoviet.net"},
+    "lasoviet.cloud": {"role": "infrastructure_reserve", "index": false, "checkout": false, "root_action": "301_to_lasoviet.net"},
+    "lasoviet.xyz": {"role": "defensive_or_lab", "index": false, "checkout": false, "root_action": "301_to_lasoviet.net"}
   },
   "dns": {
     "registrar": "Mat Bao",
@@ -11,7 +12,7 @@
     "nameservers": ["clayton.ns.cloudflare.com", "stephane.ns.cloudflare.com"]
   },
   "rules": [
-    "Only lasoviet.vn may host indexable public content.",
+    "Only lasoviet.net may host indexable public content.",
     "Private reports, accounts and checkout must be noindex.",
     "Lab/staging must require authentication in addition to noindex.",
     "Do not proxy email verification records through Cloudflare.",

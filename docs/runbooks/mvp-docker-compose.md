@@ -23,7 +23,7 @@ reuse it across restarts. It must include:
 
 The local founder-run value for `BETTER_AUTH_URL` is
 `http://127.0.0.1:<WEB_HOST_PORT>`. For a VPS behind Nginx, set
-`BETTER_AUTH_URL=https://lasoviet.vn` in the external deploy environment.
+`BETTER_AUTH_URL=https://lasoviet.net` (superseding `https://lasoviet.vn` per FD-057) in the external deploy environment.
 Nginx must continue proxying to `http://127.0.0.1:<WEB_HOST_PORT>`; that
 loopback upstream is not a valid VPS value for `BETTER_AUTH_URL`.
 

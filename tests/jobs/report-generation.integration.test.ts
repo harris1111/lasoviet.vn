@@ -74,7 +74,7 @@ const branchIds = [
 ] as const;
 
 const reportRepositoryOptions = {
-  betterAuthUrl: "https://lasoviet.vn/configured/path?ignored=true#fragment",
+  betterAuthUrl: "https://lasoviet.net/configured/path?ignored=true#fragment",
   recipientFingerprintSecret: "test-internal-secret",
 };
 
@@ -802,7 +802,7 @@ describe("immutable report version repository integration", () => {
       idempotencyKey: `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
       recipient: `${fixture.userId}@example.test`,
       locale: "vi",
-      actionUrl: `https://lasoviet.vn/bao-cao/${fixture.reportId}`,
+      actionUrl: `https://lasoviet.net/bao-cao/${fixture.reportId}`,
       requestId: `trace-${fixture.jobId}`,
     });
 

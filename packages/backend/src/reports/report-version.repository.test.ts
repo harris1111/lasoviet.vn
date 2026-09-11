@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createDatabaseReportVersionRepository } from "./report-version.repository.js";
 
 const repositoryOptions = {
-  betterAuthUrl: "https://lasoviet.vn",
+  betterAuthUrl: "https://lasoviet.net",
   recipientFingerprintSecret: "synthetic-secret",
 };
 
@@ -100,9 +100,9 @@ describe("createDatabaseReportVersionRepository - notification configuration", (
   });
 
   it.each([
-    ["HTTP", "http://lasoviet.vn"],
+    ["HTTP", "http://lasoviet.net"],
     ["private IP", "https://10.0.0.1"],
-    ["credentials", "https://user:password@lasoviet.vn"],
+    ["credentials", "https://user:password@lasoviet.net"],
     ["internal hostname", "https://reports.internal"],
   ])("rejects %s origin", (_name, betterAuthUrl) => {
     expect(() =>
@@ -116,7 +116,7 @@ describe("createDatabaseReportVersionRepository - notification configuration", (
   it("rejects an empty recipient fingerprint secret", () => {
     expect(() =>
       createDatabaseReportVersionRepository(database, {
-        betterAuthUrl: "https://lasoviet.vn",
+        betterAuthUrl: "https://lasoviet.net",
         recipientFingerprintSecret: "   ",
       }),
     ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");

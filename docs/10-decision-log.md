@@ -2,7 +2,7 @@
 
 | ID | Quyết định | Trạng thái | Căn cứ | Điều kiện xem xét lại |
 |---|---|---|---|---|
-| D-001 | Chọn `lasoviet.vn` làm domain/brand chính | Chốt | Khớp `lá số tử vi` volume lớn; đủ rộng cho Đông–Tây; uy tín hơn `coiboi` | Chỉ đổi nếu có vấn đề pháp lý/brand nghiêm trọng |
+| D-001 | Chọn `lasoviet.vn` làm domain/brand chính | Superseded by D-029 / FD-057 | Khớp `lá số tử vi` volume lớn; đủ rộng cho Đông–Tây; uy tín hơn `coiboi` | Superseded on 2026-09-11 by FD-057 selecting `lasoviet.net` as canonical |
 | D-002 | Không dùng `coiboi...` làm master brand | Chốt | “Coi bói” hẹp, colloquial/miền Nam hơn; dễ làm giảm perceived authority và mở rộng sản phẩm | Có thể dùng làm campaign/redirect nếu sở hữu, không canonical |
 | D-003 | Không dùng `huyenluan` làm domain đầu tiên | Chốt | Distinctive nhưng abstract, không có demand rõ; MVP cần category clarity | Có thể mua phòng thủ/brand sau khi economics được chứng minh |
 | D-004 | AI không ở tên miền/hero | Chốt | AI keyword nhỏ hơn method keywords; người dùng coi trọng trust/phương pháp | Xem lại nếu branded AI demand tăng rõ trong first-party/Search Console |
@@ -30,6 +30,7 @@
 | D-026 | Art direction: homepage/cấp platform dùng hình ảnh "tàng thư vũ trụ" phổ quát Đông-Tây (không riêng Tử Vi); mỗi trang bộ môn (kể cả Tử Vi) có hiện vật tín hiệu + màu nhấn riêng; cho phép ngoại lệ có kiểm soát với lệnh cấm ảnh tarot/hoàng đạo ở `art-direction.md` §2, chỉ áp dụng cho `/boi-bai` và `/chiem-tinh` | Chốt theo `docs/19` | Founder brainstorm 2026-09-04: homepage hiện tại code cứng hình ảnh Tử Vi/Đông phương trong khi định vị là đa bộ môn; Tarot/Chiêm Tinh không thể hoạt động nếu cấm tuyệt đối ảnh đặc trưng | Cần 1 đợt ảnh mới cho homepage theo hướng này — chưa thực hiện |
 | D-027 | "Lập lá số" là 1 hành động dùng chung (1 wizard) cho 4 bộ môn dựa trên hồ sơ sinh (Tử Vi, Bát Tự, Chiêm Tinh, Thần Số Học) — không phải 4 form nhập liệu riêng biệt trên 4 trang; Kinh Dịch tách hẳn (câu hỏi + thời điểm gieo quẻ, không dùng hồ sơ sinh) | Chốt theo `docs/19` v1.1 | Founder brainstorm 2026-09-05: "có lá số rồi mới dùng những môn có liên quan để luận giải" — khớp với quyết định đã có sẵn ở `docs/11` §4.1 (Thần Số Học dùng chung Birth Profile data model với Tử Vi) mà bản v1.0 của `docs/19` mô tả sai thành form riêng từng trang | Không áp dụng cho Kinh Dịch và nhóm Công cụ miễn phí |
 | D-028 | URL từng trang bộ môn dùng tên gọn đúng bộ môn (`/bat-tu`, `/kinh-dich`, `/chiem-tinh`, `/than-so-hoc`), không dùng slug nhồi từ khóa; đề xuất đổi `/la-so-tu-vi` đã live thành `/tu-vi` để nhất quán | Chốt theo `docs/19` v1.1 | Founder yêu cầu URL gọn đúng tên môn; chưa lên production nên đổi slug Tử Vi không mất SEO equity thật | Việc đổi slug Tử Vi + sửa link nội bộ chưa thực hiện, thuộc implementation plan |
+| D-029 | Non-binding summary of `FD-057`: `https://lasoviet.net` is the sole canonical domain for web, SEO, Better Auth, checkout, and customer support email; `lasoviet.vn`, `.cloud`, and `.xyz` are redirect reserves | Supersedes D-001 under FD-057 | The Founder approved `lasoviet.net` as the canonical domain on 2026-09-11; secondary domains are non-canonical redirect reserves, while repository and local filesystem paths retain `lasoviet.vn` | Binding approval is recorded only in `rules-and-decisions-tracker.md` as `FD-057` |
 
 ## Open decisions
 

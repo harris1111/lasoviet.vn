@@ -37,7 +37,7 @@ describe("structured data", () => {
         headline: "Fact-based title",
         description: "Fact-based summary.",
         inLanguage: "vi",
-        mainEntityOfPage: "https://lasoviet.vn/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
+        mainEntityOfPage: "https://lasoviet.net/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
       },
       {
         "@context": "https://schema.org",
@@ -47,7 +47,7 @@ describe("structured data", () => {
             "@type": "ListItem",
             position: 1,
             name: "Fact-based title",
-            item: "https://lasoviet.vn/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
+            item: "https://lasoviet.net/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
           },
         ],
       },
