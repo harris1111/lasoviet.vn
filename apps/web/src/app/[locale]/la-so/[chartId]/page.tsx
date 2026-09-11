@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
+import { SiteHeader } from "../../../../components/site-header";
 import { AnonymousDataDeletionControl } from "../../../../features/privacy/anonymous-data-deletion-control";
 import { deleteAnonymousDataAction } from "../../../../features/privacy/delete-anonymous-data-action";
 import { FreeIdentityPreview } from "../../../../features/reports/free-identity-preview";
@@ -18,6 +19,15 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
+
+function localizedChartPath(locale: "vi" | "en", chartId: string): string {
+  return locale === "en" ? `/en/la-so/${chartId}` : `/la-so/${chartId}`;
+}
+
+function localizedSignInPath(locale: "vi" | "en", callbackURL: string): string {
+  const prefix = locale === "en" ? "/en" : "";
+  return `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(callbackURL)}`;
+}
 export default async function ZiweiChartResultPage({
   params,
 }: {
@@ -33,6 +43,9 @@ export default async function ZiweiChartResultPage({
   ]);
   if (!chartResult.ok || !previewResult.ok) notFound();
 
+  const currentChartPath = localizedChartPath(locale, chartId);
+  const signInHref = localizedSignInPath(locale, currentChartPath);
+
   const topicHref = locale === "en"
     ? `/en/la-so/${chartId}/chon-luan-giai`
     : `/la-so/${chartId}/chon-luan-giai`;
@@ -46,7 +59,9 @@ export default async function ZiweiChartResultPage({
     : t("heroCopy");
 
   return (
-    <main className="result-page">
+    <>
+      <SiteHeader currentPath={currentChartPath} locale={locale} />
+      <main className="result-page">
       <section className="result-hero container">
         <p className="eyebrow">{t("private")}</p>
         <h1>{heroTitle}</h1>
@@ -97,9 +112,17 @@ export default async function ZiweiChartResultPage({
         {actor.kind === "anonymous" ? (
           <div className="result-privacy-note">
             <p>
-              {locale === "en"
-                ? "Private chart · guest data is automatically deleted after 24 hours unless linked to a verified account. Sign in to keep it, or delete it now below."
-                : "Lá số riêng tư · dữ liệu khách tự xóa sau 24 giờ nếu chưa liên kết với tài khoản đã xác minh. Đăng nhập để lưu lại, hoặc xóa ngay bên dưới."}
+              {locale === "en" ? (
+                <>
+                  Private chart · guest data is automatically deleted after 24 hours unless linked to a verified account.{" "}
+                  <Link href={signInHref}>Sign in to keep it</Link>, or delete it now below.
+                </>
+              ) : (
+                <>
+                  Lá số riêng tư · dữ liệu khách tự xóa sau 24 giờ nếu chưa liên kết với tài khoản đã xác minh.{" "}
+                  <Link href={signInHref}>Đăng nhập để lưu lại</Link>, hoặc xóa ngay bên dưới.
+                </>
+              )}
             </p>
           </div>
         ) : null}
@@ -120,5 +143,6 @@ export default async function ZiweiChartResultPage({
         ) : null}
       </div>
     </main>
+    </>
   );
 }

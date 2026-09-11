@@ -7,6 +7,7 @@ vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
+  usePathname: vi.fn(() => null),
 }));
 
 const mockZiweiTranslations = {
@@ -226,5 +227,55 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     await expect(
       ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) })
     ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+  it("renders localized sign-in CTA returning to chart URL when actor is anonymous in VI", async () => {
+    vi.mocked(resolveCurrentActor).mockResolvedValue({ kind: "anonymous", actorId: "anon-1" } as never);
+    const page = await ZiweiChartResultPage({
+      params: Promise.resolve({ chartId, locale: "vi" }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    const expectedCallback = encodeURIComponent("/la-so/" + chartId);
+    const expectedHref = "/dang-nhap?callbackURL=" + expectedCallback;
+
+    // Privacy note link
+    expect(html).toContain("Đăng nhập để lưu lại");
+    expect(html).toContain("href=\"" + expectedHref + "\"");
+
+    // Header links on chart result page also carry current chart callback
+    expect(html).toContain("class=\"login-link\"");
+    expect(html).toContain("href=\"" + expectedHref + "\"");
+    expect(html).toContain("class=\"mobile-login-link\" href=\"" + expectedHref + "\"");
+  });
+
+  it("renders localized sign-in CTA returning to chart URL when actor is anonymous in EN", async () => {
+    vi.mocked(resolveCurrentActor).mockResolvedValue({ kind: "anonymous", actorId: "anon-1" } as never);
+    const page = await ZiweiChartResultPage({
+      params: Promise.resolve({ chartId, locale: "en" }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    const expectedCallback = encodeURIComponent("/en/la-so/" + chartId);
+    const expectedHref = "/en/dang-nhap?callbackURL=" + expectedCallback;
+
+    // Privacy note link
+    expect(html).toContain("Sign in to keep it");
+    expect(html).toContain("href=\"" + expectedHref + "\"");
+
+    // Header links on chart result page also carry current chart callback
+    expect(html).toContain("class=\"login-link\"");
+    expect(html).toContain("href=\"" + expectedHref + "\"");
+    expect(html).toContain("class=\"mobile-login-link\" href=\"" + expectedHref + "\"");
+  });
+
+  it("omits anonymous privacy note and sign-in CTA when actor is authenticated account", async () => {
+    vi.mocked(resolveCurrentActor).mockResolvedValue({ kind: "account", userId: "u1" } as never);
+    const page = await ZiweiChartResultPage({
+      params: Promise.resolve({ chartId, locale: "vi" }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).not.toContain("result-privacy-note");
+    expect(html).not.toContain("Đăng nhập để lưu lại");
   });
 });
