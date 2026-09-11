@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { SiteHeaderSignInLink } from "./site-header-sign-in-link";
 
 export type DisciplineNavLink = {
   label: string;
@@ -55,6 +56,7 @@ export type SiteHeaderProps = {
 function route(locale: "en" | "vi", path: string) {
   return locale === "en" ? "/en" + path : path;
 }
+
 
 function renderHeaderIcon(name: "menu" | "chevron-right") {
   return React.createElement(
@@ -256,10 +258,11 @@ export function SiteHeader({
             isVietnamese ? "English" : "Tiếng Việt",
           ),
           React.createElement(
-            Link,
+            SiteHeaderSignInLink,
             {
               className: "login-link",
-              href: route(locale, "/dang-nhap"),
+              locale,
+              currentPath,
               style: { color: "var(--pearl-200)", textDecoration: "none", fontSize: "14.5px" },
             },
             isVietnamese ? "Đăng nhập" : "Sign in",
@@ -311,8 +314,12 @@ export function SiteHeader({
                 renderHeaderIcon("chevron-right"),
               ),
               React.createElement(
-                Link,
-                { className: "mobile-login-link", href: route(locale, "/dang-nhap") },
+                SiteHeaderSignInLink,
+                {
+                  className: "mobile-login-link",
+                  locale,
+                  currentPath,
+                },
                 isVietnamese ? "Đăng nhập" : "Sign in",
                 renderHeaderIcon("chevron-right"),
               ),
