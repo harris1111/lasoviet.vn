@@ -120,7 +120,7 @@ repository authority.
 
 1. `docs/08-domain-and-infrastructure.md` and
    `docs/06-technical-architecture.md` describe a public
-   `api.lasoviet.vn`. The approved P0 design uses Next.js as the public BFF and
+   `api.lasoviet.net`. The approved P0 design uses Next.js as the public BFF and
    keeps the NestJS API private.
 2. `docs/10-decision-log.md` and `docs/11-discipline-expansion-specs.md`
    contain language that treats founder silence as approval. Silence is never
@@ -233,6 +233,8 @@ This would add network contracts, failure modes, deployment units, migrations,
 and operational cost before real scaling evidence exists.
 
 ## 8. Repository Topology
+
+The repository directory and workspace root retain the unchanged repository directory/name (`lasoviet.vn/`), while the public canonical domain is `lasoviet.net` per FD-057.
 
 ```text
 lasoviet.vn/

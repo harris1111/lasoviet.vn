@@ -473,7 +473,7 @@ Expected: backup archive is non-zero, `pg_restore --list` succeeds, checksum ver
 
 - [ ] **Step 4: Install and verify origin access control**
 
-Install the reviewed include into the LasoViet virtual host, require `nginx -t` success, reload Nginx, confirm `https://lasoviet.vn/health/ready` returns `200`, and confirm a direct non-Cloudflare HTTP request with `Host: lasoviet.vn` is denied.
+Install the reviewed include into the LasoViet virtual host, require `nginx -t` success, reload Nginx, confirm `https://lasoviet.net/health/ready` returns `200`, and confirm a direct non-Cloudflare HTTP request with `Host: lasoviet.net` is denied.
 
 - [ ] **Step 5: Enable cron and verify idempotency**
 

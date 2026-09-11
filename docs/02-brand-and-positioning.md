@@ -3,7 +3,7 @@
 ## 1. Brand architecture
 
 - Brand: **Lá Số Việt**
-- Domain: `lasoviet.vn`
+- Canonical domain: `lasoviet.net` (supersedes `lasoviet.vn` per FD-057; `.vn` is a non-canonical redirect reserve once externally configured)
 - Category: nền tảng lập và luận giải lá số.
 - Audience: người Việt tìm hiểu bản thân, quan hệ và lựa chọn qua các hệ thống huyền học có cấu trúc.
 - Primary promise: biến dữ liệu lá số phức tạp thành lời giải thích tiếng Việt rõ ràng, có căn cứ.

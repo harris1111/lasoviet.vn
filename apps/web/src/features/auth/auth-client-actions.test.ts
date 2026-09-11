@@ -193,12 +193,12 @@ describe("browser auth actions", () => {
     await expect(
       actions.requestPasswordReset({
         email: "a@example.com",
-        redirectTo: "https://lasoviet.vn/dat-lai-mat-khau",
+        redirectTo: "https://lasoviet.net/dat-lai-mat-khau",
       }),
     ).resolves.toEqual({ ok: true });
     expect(requestPasswordReset).toHaveBeenCalledWith({
       email: "a@example.com",
-      redirectTo: "https://lasoviet.vn/dat-lai-mat-khau",
+      redirectTo: "https://lasoviet.net/dat-lai-mat-khau",
     });
   });
 

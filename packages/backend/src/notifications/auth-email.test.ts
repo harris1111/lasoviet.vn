@@ -298,7 +298,7 @@ describe("auth email delivery state machine", () => {
       idempotencyKey: "report-ready-email:ver-1:acc-1",
       recipient: "customer@example.com",
       locale: "vi",
-      actionUrl: "https://lasoviet.vn/bao-cao/rep-123",
+      actionUrl: "https://lasoviet.net/bao-cao/rep-123",
       requestId: "trace-123",
     };
 
@@ -307,8 +307,8 @@ describe("auth email delivery state machine", () => {
     expect(sentMessages).toHaveLength(1);
     expect(sentMessages[0].to).toBe("customer@example.com");
     expect(sentMessages[0].subject).toBe("Bao cao La So Viet da san sang");
-    expect(sentMessages[0].text).toContain("https://lasoviet.vn/bao-cao/rep-123");
-    expect(sentMessages[0].html).toContain("https://lasoviet.vn/bao-cao/rep-123");
+    expect(sentMessages[0].text).toContain("https://lasoviet.net/bao-cao/rep-123");
+    expect(sentMessages[0].html).toContain("https://lasoviet.net/bao-cao/rep-123");
     expect(sentMessages[0].text).not.toContain("chart");
     expect(sentMessages[0].text).not.toContain("provider");
 
@@ -318,7 +318,7 @@ describe("auth email delivery state machine", () => {
       idempotencyKey: "report-ready-email:ver-2:acc-2",
       recipient: "customer2@example.com",
       locale: "en",
-      actionUrl: "https://lasoviet.vn/en/bao-cao/rep-456",
+      actionUrl: "https://lasoviet.net/en/bao-cao/rep-456",
       requestId: "trace-456",
     };
 
@@ -326,7 +326,7 @@ describe("auth email delivery state machine", () => {
     expect(outcomeEn.status).toBe("sent");
     expect(sentMessages).toHaveLength(2);
     expect(sentMessages[1].subject).toBe("Your La So Viet report is ready");
-    expect(sentMessages[1].text).toContain("https://lasoviet.vn/en/bao-cao/rep-456");
+    expect(sentMessages[1].text).toContain("https://lasoviet.net/en/bao-cao/rep-456");
   });
 
   it("delivers atomically inserted pending report_ready delivery via retryDue", async () => {
@@ -340,7 +340,7 @@ describe("auth email delivery state machine", () => {
       idempotencyKey: "report-ready-email:ver-pending:acc-1",
       recipient: "pending@example.com",
       locale: "vi",
-      actionUrl: "https://lasoviet.vn/bao-cao/rep-pending",
+      actionUrl: "https://lasoviet.net/bao-cao/rep-pending",
       requestId: "trace-pending",
     };
 

@@ -97,7 +97,7 @@ Essence này cô đọng bốn giá trị: cá nhân hóa thật, diễn giải 
 
 ## 1.6 Brand architecture
 
-- **Master brand:** Lá Số Việt — luôn đủ dấu; domain canonical là lasoviet.vn.
+- **Master brand:** Lá Số Việt, always written with full Vietnamese diacritics; the canonical domain is `lasoviet.net` (superseding `lasoviet.vn` per FD-057).
 
 - **Category:** nền tảng lập và luận giải lá số.
 
@@ -253,7 +253,7 @@ Giữ nguyên vì đây là quyết định đã chốt trong repo và có categ
 
 - Phân biệt: Lá số = cấu trúc tính toán; Tóm tắt = insight miễn phí; Bản luận giải = sản phẩm trả phí; Căn cứ = yếu tố/rule được sử dụng.
 
-- Tên phương pháp viết: Tử Vi, Bát Tự, Kinh Dịch, Bản đồ sao. Brand luôn là Lá Số Việt; domain là lasoviet.vn.
+- Method names are Tử Vi, Bát Tự, Kinh Dịch, and Bản đồ sao. The brand is always Lá Số Việt; the canonical domain is `lasoviet.net` (superseding `lasoviet.vn` per FD-057).
 
 ## 4.3 Lexicon
 

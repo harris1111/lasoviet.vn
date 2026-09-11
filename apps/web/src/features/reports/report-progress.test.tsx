@@ -55,7 +55,7 @@ const mockFailedVi: ReportFailedViewV1 = {
   invoiceNumber: "LSV-INV-9999",
   paymentReceivedAt: "2026-09-08T10:00:00.000Z",
   reportStatusUpdatedAt: "2026-09-08T10:05:00.000Z",
-  supportEmail: "support@lasoviet.vn",
+  supportEmail: "support@lasoviet.net",
   supportSubject: "Yêu cầu hỗ trợ báo cáo LSV-INV-9999",
   supportReference: "REF-SUP-9999",
 };
@@ -90,7 +90,7 @@ describe("ReportProgress component", () => {
   describe("buildSupportMailto", () => {
     it("builds an encoded mailto URL with invoice, support ref, and displayed timestamps without internal IDs", () => {
       const url = buildSupportMailto(mockFailedVi, "vi");
-      expect(url.startsWith("mailto:support@lasoviet.vn?")).toBe(true);
+      expect(url.startsWith("mailto:support@lasoviet.net?")).toBe(true);
       expect(url).toContain(encodeURIComponent("Yêu cầu hỗ trợ báo cáo LSV-INV-9999"));
       expect(url).toContain(encodeURIComponent("LSV-INV-9999"));
       expect(url).toContain(encodeURIComponent("REF-SUP-9999"));
@@ -104,7 +104,7 @@ describe("ReportProgress component", () => {
 
     it("builds an English mailto URL with English body text without internal IDs", () => {
       const url = buildSupportMailto(mockFailedEn, "en");
-      expect(url.startsWith("mailto:support@lasoviet.vn?")).toBe(true);
+      expect(url.startsWith("mailto:support@lasoviet.net?")).toBe(true);
       expect(url).toContain(encodeURIComponent("Invoice: LSV-INV-9999"));
       expect(url).toContain(encodeURIComponent("Support reference: REF-SUP-9999"));
       expect(url).toContain(encodeURIComponent("2026-09-08 17:00"));
@@ -158,7 +158,7 @@ describe("ReportProgress component", () => {
       expect(html).toContain("Bước xử lý tiếp theo");
 
       // Support mailto link
-      expect(html).toContain("mailto:support@lasoviet.vn?");
+      expect(html).toContain("mailto:support@lasoviet.net?");
       expect(html).toContain(encodeURIComponent("LSV-INV-9999"));
       expect(html).toContain(encodeURIComponent("REF-SUP-9999"));
 

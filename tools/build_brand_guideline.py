@@ -549,7 +549,7 @@ add_bullets([
 
 add_h2('1.6 Brand architecture')
 add_bullets([
-    ('Master brand: ', 'Lá Số Việt — luôn đủ dấu; domain canonical là lasoviet.vn.'),
+    ('Master brand: ', 'Lá Số Việt, always written with full Vietnamese diacritics; the canonical domain is lasoviet.net (superseding lasoviet.vn per FD-057).'),
     ('Category: ', 'nền tảng lập và luận giải lá số.'),
     ('Hiện tại: ', 'Tử Vi là paid MVP và lời hứa sản phẩm đang có.'),
     ('Tương lai: ', 'Bát Tự, Bản đồ sao, Kinh Dịch và tổng hợp Đông–Tây chỉ được truyền thông như sản phẩm hiện hữu khi engine/evidence đã sẵn sàng.'),
@@ -690,7 +690,7 @@ add_bullets([
     'Dùng “bạn” trong sản phẩm và báo cáo; dùng “Lá Số Việt” hoặc “chúng tôi” ở methodology, policy và support.',
     'Không gọi người dùng là “con”, “mệnh chủ”, “đương số” trong UI phổ thông. Nếu thuật ngữ chuyên môn bắt buộc, giải thích ngay.',
     'Phân biệt: Lá số = cấu trúc tính toán; Tóm tắt = insight miễn phí; Bản luận giải = sản phẩm trả phí; Căn cứ = yếu tố/rule được sử dụng.',
-    'Tên phương pháp viết: Tử Vi, Bát Tự, Kinh Dịch, Bản đồ sao. Brand luôn là Lá Số Việt; domain là lasoviet.vn.',
+    'Method names are Tử Vi, Bát Tự, Kinh Dịch, and Bản đồ sao. The brand is always Lá Số Việt; the canonical domain is lasoviet.net (superseding lasoviet.vn per FD-057).',
 ])
 
 add_h2('4.3 Lexicon')

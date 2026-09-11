@@ -231,7 +231,7 @@ Installation:
 3. run `nginx -t`;
 4. reload Nginx only when validation succeeds;
 5. verify public HTTPS remains healthy;
-6. verify a direct non-Cloudflare HTTP request with `Host: lasoviet.vn` is
+6. verify a direct non-Cloudflare HTTP request with `Host: lasoviet.net` is
    denied.
 
 Cloudflare range refresh is a deliberate operator action. An invalid or empty

@@ -1,6 +1,6 @@
 # La So Viet Engineering Handoff
 
-**Updated:** 2026-09-06
+**Updated:** 2026-09-11
 **Repository:** `harris1111/lasoviet.vn`
 **Worktree:** `G:\Dev\Repos-Windows\tuvi-a-lam\lasoviet-admin-operations-plan\.worktrees\phase04-report-generation`
 **Active branch:** `feature/phase04-report-generation`
@@ -123,6 +123,11 @@ delivery, and owner account center**.
   has not yet recorded successful reset completion and sign-in.
 - Credentials and runtime secrets already exist outside Git. Never print,
   duplicate, or commit them.
+- Public domain transition and DNS gates (FD-057): `https://lasoviet.net` is
+  the canonical public domain. `lasoviet.vn` currently has no DNS records
+  configured and `lasoviet.net` has no MX/TXT records; code and documentation
+  migration does not complete DNS redirect or inbound support email setup
+  until external DNS and mail records are configured.
 
 ## Deployment Context
 
@@ -130,7 +135,7 @@ The latest repository evidence records:
 
 - VPS repository: `/home/debian/projects/lasoviet.vn`
 - External environment file: `/home/debian/projects/.lasoviet-mvp.env`
-- Public domain: `https://lasoviet.vn`
+- Public domain: `https://lasoviet.net` (supersedes `https://lasoviet.vn` per FD-057)
 - Web publication: `127.0.0.1:63423`
 - Nginx remains founder-managed.
 - PostgreSQL, Redis, API, and web were healthy; the worker container was running.
