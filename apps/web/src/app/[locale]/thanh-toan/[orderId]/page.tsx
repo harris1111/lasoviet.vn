@@ -89,7 +89,9 @@ export default async function CheckoutPage({
             paidProcessingTitle: t("checkout.paid_processing_title"),
             paidProcessingDescription: t("checkout.paid_processing_description"),
             expiredTitle: t("checkout.expired_title"),
-            expiredDescription: t("checkout.expired_description"),
+            expiredDescription: order.paymentCode
+              ? t("checkout.expired_description", { payment_code: order.paymentCode })
+              : t("checkout.expired_description_without_code"),
             newChartAction: t("checkout.new_chart_action"),
             orderHistoryAction: t("checkout.order_history_action"),
             failedTitle: t("checkout.failed_title"),

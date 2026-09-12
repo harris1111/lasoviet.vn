@@ -54,7 +54,8 @@ const copy = {
     "checkout.paid_processing_title": "Đã nhận thanh toán thành công",
     "checkout.paid_processing_description": "Hệ thống đã ghi nhận thanh toán của bạn và đang chuẩn bị báo cáo luận giải. Vui lòng chờ trong giây lát hoặc kiểm tra lịch sử đơn hàng.",
     "checkout.expired_title": "Đơn hàng đã hết hạn thanh toán",
-    "checkout.expired_description": "Đơn hàng này đã quá thời gian thanh toán. Thông tin đơn hàng cũ vẫn được lưu trong lịch sử giao dịch để bạn tiện tra cứu.",
+    "checkout.expired_description": "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ ({payment_code}), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.",
+    "checkout.expired_description_without_code": "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ, liên hệ hỗ trợ — chúng tôi vẫn đối chiếu được.",
     "checkout.new_chart_action": "Lập lá số và tạo yêu cầu mới",
     "checkout.order_history_action": "Xem lịch sử đơn hàng",
     "checkout.failed_title": "Thanh toán chưa thành công",
@@ -117,7 +118,8 @@ const copy = {
     "checkout.paid_processing_title": "Payment received successfully",
     "checkout.paid_processing_description": "Your payment has been recorded and your interpretation report is being prepared. Please wait a moment or check your order history.",
     "checkout.expired_title": "Order expired",
-    "checkout.expired_description": "This order has passed the payment window. Your previous order remains recorded in your order history for reference.",
+    "checkout.expired_description": "This order has expired. If you transferred using the old order code ({payment_code}), please contact support with this code — we can still reconcile your payment.",
+    "checkout.expired_description_without_code": "This order has expired. If you transferred using the old order code, please contact support — we can still reconcile your payment.",
     "checkout.new_chart_action": "Create a new chart and request",
     "checkout.order_history_action": "View order history",
     "checkout.failed_title": "Payment was not completed",
@@ -197,7 +199,15 @@ describe("checkout page", () => {
     ["en", "Payment", "Transferred but not yet confirmed?"],
   ] as const)("renders %s copy from the authoritative order locale using CheckoutStatus projection, warning, and recovery UI", async (locale, eyebrow, recoveryHeading) => {
     vi.mocked(getTranslations).mockResolvedValue(
-      ((key: keyof typeof copy.vi) => copy[locale][key]) as never,
+      ((key: keyof typeof copy.vi, values?: Record<string, unknown>) => {
+        let str = copy[locale][key];
+        if (typeof str === "string" && values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      }) as never,
     );
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -343,7 +353,15 @@ describe("checkout page", () => {
 
   it("renders recovery screen rather than 404 for paid order without reportId and null paymentInstructions", async () => {
     vi.mocked(getTranslations).mockResolvedValue(
-      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+      ((key: keyof typeof copy.vi, values?: Record<string, unknown>) => {
+        let str = copy.vi[key];
+        if (typeof str === "string" && values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      }) as never,
     );
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -374,7 +392,15 @@ describe("checkout page", () => {
 
   it("renders recovery screen rather than 404 for expired order with null paymentInstructions", async () => {
     vi.mocked(getTranslations).mockResolvedValue(
-      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+      ((key: keyof typeof copy.vi, values?: Record<string, unknown>) => {
+        let str = copy.vi[key];
+        if (typeof str === "string" && values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      }) as never,
     );
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -396,6 +422,8 @@ describe("checkout page", () => {
     }));
 
     expect(html).toContain("Đơn hàng đã hết hạn thanh toán");
+    expect(html).toContain("LSVK7M2P9QXJ");
+    expect(html).toContain("Nếu bạn lỡ chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ)");
     expect(html).toContain("/tao-la-so/tu-vi");
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).not.toContain("https://vietqr.app");
@@ -404,7 +432,15 @@ describe("checkout page", () => {
 
   it("renders recovery screen rather than 404 for failed order with null paymentInstructions", async () => {
     vi.mocked(getTranslations).mockResolvedValue(
-      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+      ((key: keyof typeof copy.vi, values?: Record<string, unknown>) => {
+        let str = copy.vi[key];
+        if (typeof str === "string" && values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      }) as never,
     );
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -426,6 +462,8 @@ describe("checkout page", () => {
     }));
 
     expect(html).toContain("Thanh toán chưa thành công");
+    expect(html).toContain("/tao-la-so/tu-vi");
+    expect(html).toContain("/la-so/chart-1/chon-luan-giai");
     expect(html).toContain('href="/lien-he?order=LSV-order-1"');
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).not.toContain("https://vietqr.app");
@@ -434,7 +472,15 @@ describe("checkout page", () => {
 
   it("renders recovery screen rather than 404 for refunded order with null paymentInstructions", async () => {
     vi.mocked(getTranslations).mockResolvedValue(
-      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+      ((key: keyof typeof copy.vi, values?: Record<string, unknown>) => {
+        let str = copy.vi[key];
+        if (typeof str === "string" && values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      }) as never,
     );
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -463,7 +509,15 @@ describe("checkout page", () => {
   });
   it("renders dynamic product title in page heading and payment code in order summary for normal orders", async () => {
     vi.mocked(getTranslations).mockResolvedValue(
-      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+      ((key: keyof typeof copy.vi, values?: Record<string, unknown>) => {
+        let str = copy.vi[key];
+        if (typeof str === "string" && values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      }) as never,
     );
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -512,7 +566,15 @@ describe("checkout page", () => {
 
   it("renders upgrade title in H1, list price, credit applied, payable amount, and year-bearing deadline for upgrade orders", async () => {
     vi.mocked(getTranslations).mockResolvedValue(
-      ((key: keyof typeof copy.vi) => copy.vi[key]) as never,
+      ((key: keyof typeof copy.vi, values?: Record<string, unknown>) => {
+        let str = copy.vi[key];
+        if (typeof str === "string" && values) {
+          for (const [k, v] of Object.entries(values)) {
+            str = str.replaceAll(`{${k}}`, String(v));
+          }
+        }
+        return str;
+      }) as never,
     );
     vi.mocked(privateApiClient).mockReturnValue({
       request: vi.fn().mockResolvedValue({
@@ -563,5 +625,23 @@ describe("checkout page", () => {
     expect(html).toContain("Hạn mức ưu đãi");
     // Year-bearing deadline: 17:00, 17/09/2026
     expect(html).toContain("17:00, 17/09/2026");
+  });
+});
+
+describe("docs/21 OAuth flow audit status", () => {
+  it("records callbackURL preservation fixed by 2deb64d/9661eb2 lineage and tracks autosave/wizard-step resume as unresolved follow-up", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const filePath = path.resolve(process.cwd(), "docs/21-audit-tao-tai-khoan-luu-la-so-flow.md");
+    const content = fs.readFileSync(filePath, "utf8").replace(/\r\n/g, "\n");
+
+    expect(content).toMatch(/status:\s*partially-resolved/);
+    expect(content).toContain("2deb64d");
+    expect(content).toContain("9661eb2");
+    expect(content).toContain("Bảo lưu callbackURL từ trang kết quả lá số");
+    expect(content).toContain("Bảo lưu callbackURL trên site header");
+    expect(content).toContain("Autosave dữ liệu form dở dang");
+    expect(content).toContain("Quay lại đúng bước wizard");
+    expect(content).toContain("the complete OAuth flow is NOT claimed to be fixed");
   });
 });
