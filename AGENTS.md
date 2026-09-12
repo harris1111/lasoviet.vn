@@ -78,6 +78,11 @@ exact bounded brief; Terra independently reviews meaningful milestones.
 - Sol asks the founder in Vietnamese whenever founder input is required.
 - Sol must verify the requested model and `high` reasoning level before
   dispatch. Do not silently substitute another model or reasoning level.
+- For Flash Executor dispatches, a successful request through an `ag/gemini`
+  model route satisfies the model-family check. Generic base-model metadata
+  emitted inside the harness is non-blocking and must not override the
+  explicitly requested `ag/gemini` route; the requested reasoning level must
+  still be `high`.
 - Before declaring a requested model or reasoning level unavailable solely
   because current metadata omits it, run one no-file probe with that exact
   model and reasoning level. If the probe fails or cannot run, stop and report
