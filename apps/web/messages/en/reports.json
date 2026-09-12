@@ -92,7 +92,7 @@
     "paid_processing_title": "Payment received successfully",
     "paid_processing_description": "Your payment has been recorded and your interpretation report is being prepared. Please wait a moment or check your order history.",
     "expired_title": "Order expired",
-    "expired_description": "This order has passed the payment window. Your previous order remains recorded in your order history for reference.",
+    "expired_description": "This order has expired. If you transferred using the old order code ({payment_code}), please contact support with this code — we can still reconcile your payment.",
     "new_chart_action": "Create a new chart and request",
     "order_history_action": "View order history",
     "failed_title": "Payment was not completed",
@@ -119,7 +119,8 @@
     "footer_contact_action": "Contact support — order code prefilled",
     "upgrade_title": "Payment · Upgrade to comprehensive reading",
     "summary_list_price": "List price",
-    "summary_payable_amount": "Payable amount"
+    "summary_payable_amount": "Payable amount",
+    "expired_description_without_code": "This order has expired. If you transferred using the old order code, please contact support — we can still reconcile your payment."
   },
   "progress": {
     "pending_eyebrow": "Processing reading",

@@ -49,35 +49,44 @@ const mockTopics: PaidTopicSelectionViewV1 = {
 };
 
 describe("PaidTopicSelector", () => {
-  it("renders Layer 1 disciplines and Layer 2 Zi Wei topics in fixed order", () => {
+  it("renders only authoritative Zi Wei offer cards and specified trust/gate/help content without discipline teaser or coming-soon blocks", () => {
     const html = renderToStaticMarkup(
       <PaidTopicSelector locale="vi" topics={mockTopics} />,
     );
 
-    // Layer 1: Disciplines
-    expect(html).toContain("Bộ môn luận giải từ dữ liệu sinh");
-    expect(html).toContain("Tử Vi Đẩu Số");
-    expect(html).toContain("Bát Tự (Tứ Trụ)");
-    expect(html).toContain("Bản đồ sao phương Tây");
-    expect(html).toContain("Thần số học (Pitago)");
+    // Disciplines layer and extra discipline teasers are NOT rendered
+    expect(html).not.toContain("Bộ môn luận giải từ dữ liệu sinh");
+    expect(html).not.toContain("disciplines-layer");
+    expect(html).not.toContain("Bát Tự (Tứ Trụ)");
+    expect(html).not.toContain("Bản đồ sao phương Tây");
+    expect(html).not.toContain("Thần số học (Pitago)");
     expect(html).not.toContain("Kinh Dịch");
 
-    // Layer 2: Topics in fixed research-backed order
-    expect(html).toContain("Chủ đề luận giải Tử Vi");
-    expect(html).toContain("Luận giải Tử Vi toàn diện");
-    expect(html).toContain("Tình duyên &amp; Hôn nhân");
-    expect(html).toContain("Công danh &amp; Tài lộc");
-    expect(html).toContain("Vận trình năm &amp; Lưu niên");
+    // Disabled coming-soon topic blocks are NOT rendered
+    expect(html).not.toContain("topic-card-disabled");
+    expect(html).not.toContain("Tình duyên &amp; Hôn nhân");
+    expect(html).not.toContain("Công danh &amp; Tài lộc");
+    expect(html).not.toContain("Vận trình năm &amp; Lưu niên");
+    expect(html).not.toContain("topic-annual-disabled");
 
-    // Active card details & stable anchor
+    // Quick guide is NOT rendered
+    expect(html).not.toContain("topic-quick-guide");
+    expect(html).not.toContain("Hướng dẫn chọn nhanh");
+
+    // Active offer card details & stable anchor
     expect(html).toContain("79.000 ₫");
     expect(html).toContain("Thanh toán một lần");
     expect(html).toContain("Chọn Luận giải Tử Vi toàn diện — 79.000 ₫");
     expect(html).toContain("/bao-cao-mau/tu-vi");
     expect(html).toContain("Đầy đủ nhất");
     expect(html).toContain("Chọn luận giải phù hợp");
-    expect(html).toContain("Thanh toán một lần, không tự động gia hạn.");
     expect(html).toContain('id="ziwei-comprehensive"');
+
+    // Specified trust row, gate note, and contact help
+    expect(html).toContain("Thanh toán một lần, không tự động gia hạn · Đọc lại không giới hạn sau khi mua.");
+    expect(html).toContain("Cần tài khoản có email đã xác minh để thanh toán. Nếu bạn đăng nhập sau khi chọn, lựa chọn này vẫn được giữ nguyên — không phải chọn lại.");
+    expect(html).toContain("Chuyển nhầm hoặc cần hỗ trợ?");
+    expect(html).toContain("/lien-he");
 
     // Deliverables for Tier 2
     expect(html).toContain("Luận giải đầy đủ 12 cung.");
@@ -99,22 +108,9 @@ describe("PaidTopicSelector", () => {
     expect(html).not.toContain("ZIWEI-IDENTITY-P0");
     expect(html).not.toMatch(/ZIWEI-[A-Z]+/);
 
-    // Discipline overview does not promise time forecasting
-    const disciplineMatch = html.match(/<div[^>]*data-testid="disciplines-layer"[^>]*>([\s\S]*?)<\/div>/);
-    expect(disciplineMatch).not.toBeNull();
-    const disciplineHtml = disciplineMatch?.[1] ?? "";
-    expect(disciplineHtml).not.toContain("vận trình thời gian");
-
-    // Disabled topics have no submit buttons
+    // Exactly one active purchase submit button for this single-offer view
     const submitMatches = (html.match(/type="submit"/g) || []).length;
     expect(submitMatches).toBe(1);
-
-    // Coming-soon annual topic is clearly disabled and retains its own description
-    const annualMatch = html.match(/<article[^>]*data-testid="topic-annual-disabled"[^>]*>([\s\S]*?)<\/article>/);
-    expect(annualMatch).not.toBeNull();
-    const annualHtml = annualMatch?.[1] ?? "";
-    expect(annualHtml).toContain("Vận trình năm &amp; Lưu niên");
-    expect(annualHtml).not.toContain("type=\"submit\"");
   });
 
   it("renders English offer title and equivalent scope without promising V3 delivery", () => {

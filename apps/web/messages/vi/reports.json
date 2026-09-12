@@ -92,7 +92,7 @@
     "paid_processing_title": "Đã nhận thanh toán thành công",
     "paid_processing_description": "Hệ thống đã ghi nhận thanh toán của bạn và đang chuẩn bị báo cáo luận giải. Vui lòng chờ trong giây lát hoặc kiểm tra lịch sử đơn hàng.",
     "expired_title": "Đơn hàng đã hết hạn thanh toán",
-    "expired_description": "Đơn hàng này đã quá thời gian thanh toán. Thông tin đơn hàng cũ vẫn được lưu trong lịch sử giao dịch để bạn tiện tra cứu.",
+    "expired_description": "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ ({payment_code}), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.",
     "new_chart_action": "Lập lá số và tạo yêu cầu mới",
     "order_history_action": "Xem lịch sử đơn hàng",
     "failed_title": "Thanh toán chưa thành công",
@@ -119,7 +119,8 @@
     "footer_contact_action": "Liên hệ — đã điền sẵn mã đơn",
     "upgrade_title": "Thanh toán · Nâng cấp bản luận giải toàn diện",
     "summary_list_price": "Giá gốc",
-    "summary_payable_amount": "Số tiền thanh toán"
+    "summary_payable_amount": "Số tiền thanh toán",
+    "expired_description_without_code": "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ, liên hệ hỗ trợ — chúng tôi vẫn đối chiếu được."
   },
   "progress": {
     "pending_eyebrow": "Xử lý luận giải",

@@ -223,6 +223,13 @@ Gemini implements and runs the focused checks named by Sol's bounded brief.
 Terra high performs the independent review after a complete phase, complete
 feature, or meaningful milestone. Sol adjudicates the findings.
 
+Do not move a Kaneo task to `Done` until the approved implementation has been
+deployed to its target environment and deployment smoke evidence has been
+recorded in the task. Keep the task in `In Review` or `In Progress` when code
+and review are complete but deployment has not occurred. Deployment still
+requires explicit founder authorization and must not be inferred from local
+tests or a successful build.
+
 Terra proposes milestone finding classifications; Sol adjudicates them as:
 
 - `must-fix`: verified correctness, security, privacy, acceptance, or release
