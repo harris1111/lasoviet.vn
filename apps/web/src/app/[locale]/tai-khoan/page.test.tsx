@@ -15,6 +15,7 @@ import {
   loadAccountLibrary,
   loadOrderHistory,
 } from "../../../features/account/account-data-loader";
+import { loadAccountOverview } from "../../../features/account/account-center-data";
 
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -32,6 +33,28 @@ vi.mock("../../../auth/resolve-current-actor", () => ({
 vi.mock("../../../features/account/account-data-loader", () => ({
   loadAccountLibrary: vi.fn(),
   loadOrderHistory: vi.fn(),
+}));
+
+vi.mock("../../../features/account/account-center-data", () => ({
+  loadAccountOverview: vi.fn().mockResolvedValue({
+    ok: true,
+    value: {
+      account: {
+        id: "user-123",
+        name: "Nguyễn Văn A",
+        email: "user@example.com",
+        createdAt: "2026-09-08T10:00:00.000Z",
+      },
+      counts: {
+        profileCount: 1,
+        reportCount: 1,
+        orderCount: 1,
+        consentActiveCount: 1,
+        consentTotalCount: 1,
+      },
+      recentActivity: [],
+    },
+  }),
 }));
 
 const mockActor: CurrentActor = {
@@ -99,6 +122,25 @@ const mockOrders: OrderHistoryV1 = {
 describe("AccountPage (/tai-khoan)", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(loadAccountOverview).mockResolvedValue({
+      ok: true,
+      value: {
+        account: {
+          id: "user-123",
+          name: "Nguyễn Văn A",
+          email: "user@example.com",
+          createdAt: "2026-09-08T10:00:00.000Z",
+        },
+        counts: {
+          profileCount: 1,
+          reportCount: 1,
+          orderCount: 1,
+          consentActiveCount: 1,
+          consentTotalCount: 1,
+        },
+        recentActivity: [],
+      },
+    });
   });
 
   it("calls notFound when route locale is neither vi nor en", async () => {
