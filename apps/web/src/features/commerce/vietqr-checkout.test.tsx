@@ -687,6 +687,96 @@ describe("VietQR checkout recovery views", () => {
     expect(html).not.toContain("self-claim-mock");
   });
 
+  it("includes old payment code in expired-state customer copy when payment code is available", () => {
+    const statusExpiredWithCode = checkoutStatus("expired", null, "vi");
+    const htmlVi = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={statusExpiredWithCode}
+        labels={{
+          ...fullLabels,
+          expiredDescription: "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ ({payment_code}), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.",
+        }}
+      />,
+    );
+
+    expect(htmlVi).toContain("LSVK7M2P9QXJ");
+    expect(htmlVi).toContain("Nếu bạn lỡ chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.");
+
+    // Default fallback when expiredDescription label is omitted
+    const htmlViDefault = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={statusExpiredWithCode}
+        labels={{
+          ...fullLabels,
+          expiredDescription: undefined,
+        }}
+      />,
+    );
+    expect(htmlViDefault).toContain("LSVK7M2P9QXJ");
+    expect(htmlViDefault).toContain("Nếu bạn lỡ chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.");
+
+    // English locale
+    const statusExpiredEn = checkoutStatus("expired", null, "en");
+    const htmlEn = renderToStaticMarkup(
+      <VietQrCheckout
+        initialStatus={statusExpiredEn}
+        labels={{
+          ...fullLabels,
+          expiredDescription: "This order has expired. If you transferred using the old order code ({payment_code}), please contact support with this code — we can still reconcile your payment.",
+        }}
+      />,
+    );
+    expect(htmlEn).toContain("LSVK7M2P9QXJ");
+    expect(htmlEn).toContain("This order has expired. If you transferred using the old order code (LSVK7M2P9QXJ), please contact support with this code — we can still reconcile your payment.");
+  });
+
+  it("exposes new request and topic selector actions for failed state when chartId is available, and hides QR", () => {
+    const statusFailed: CheckoutStatus = {
+      order: {
+        id: "order-failed-actions",
+        status: "failed",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+        productTitle: "Luận giải Tử Vi toàn diện",
+        paymentCode: "LSVFAILED1",
+        chartId: "chart-natal-failed",
+        createdAt: "2026-09-05T00:00:00.000Z",
+        creditApplied: 0,
+        creditExpiresAt: null,
+        supportUrl: "/lien-he?order=LSV-order-failed",
+      },
+      paymentInstructions: {
+        bankCode: "VCB",
+        accountNumber: "0123456789",
+        accountHolder: "LA SO VIET",
+        amount: 79_000,
+        currency: "VND",
+        transferDescription: "LSVFAILED1",
+        qrUrl: "https://vietqr.app/qr/order-failed.png",
+        expiresAt: "2026-09-05T12:15:00.000Z",
+      },
+      reportId: null,
+    };
+
+    const html = renderToStaticMarkup(
+      <VietQrCheckout initialStatus={statusFailed} labels={fullLabels} />,
+    );
+
+    expect(html).toContain('data-checkout-status="failed"');
+    // New chart action
+    expect(html).toContain("/tao-la-so/tu-vi");
+    expect(html).toContain("Create a new chart and request");
+    // Topic selector action
+    expect(html).toContain("/la-so/chart-natal-failed/chon-luan-giai");
+    expect(html).toContain("Quay lại chọn luận giải");
+    // Order history & support
+    expect(html).toContain("/tai-khoan/don-hang");
+    expect(html).toContain("/lien-he?order=LSV-order-failed");
+    // Hidden QR
+    expect(html).not.toContain("https://vietqr.app");
+  });
+
   it("renders recovery screens correctly whether paymentInstructions is null or stale non-null", () => {
     const staleInstructions = {
       bankCode: "VCB",

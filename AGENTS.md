@@ -78,6 +78,11 @@ exact bounded brief; Terra independently reviews meaningful milestones.
 - Sol asks the founder in Vietnamese whenever founder input is required.
 - Sol must verify the requested model and `high` reasoning level before
   dispatch. Do not silently substitute another model or reasoning level.
+- For Flash Executor dispatches, a successful request through an `ag/gemini`
+  model route satisfies the model-family check. Generic base-model metadata
+  emitted inside the harness is non-blocking and must not override the
+  explicitly requested `ag/gemini` route; the requested reasoning level must
+  still be `high`.
 - Before declaring a requested model or reasoning level unavailable solely
   because current metadata omits it, run one no-file probe with that exact
   model and reasoning level. If the probe fails or cannot run, stop and report
@@ -222,6 +227,13 @@ flow must work end to end in the target deployment environment.
 Gemini implements and runs the focused checks named by Sol's bounded brief.
 Terra high performs the independent review after a complete phase, complete
 feature, or meaningful milestone. Sol adjudicates the findings.
+
+Do not move a Kaneo task to `Done` until the approved implementation has been
+deployed to its target environment and deployment smoke evidence has been
+recorded in the task. Keep the task in `In Review` or `In Progress` when code
+and review are complete but deployment has not occurred. Deployment still
+requires explicit founder authorization and must not be inferred from local
+tests or a successful build.
 
 Terra proposes milestone finding classifications; Sol adjudicates them as:
 

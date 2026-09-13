@@ -498,3 +498,10 @@ export {
   buildZiweiV4Evidence,
   ZiweiV4EvidenceError,
 } from "./evidence/ziwei-v4-evidence.js";
+
+export {
+  createAccountCenterService,
+} from "./accounts/account-center.service.js";
+export type {
+  AccountCenterService,
+} from "./accounts/account-center.service.js";

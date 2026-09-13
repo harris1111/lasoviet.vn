@@ -6,6 +6,7 @@ import {
   loadAccountLibrary,
   loadOrderHistory,
 } from "../../../features/account/account-data-loader";
+import { loadAccountOverview } from "../../../features/account/account-center-data";
 import { AccountDashboard } from "../../../features/account/account-dashboard";
 
 export const dynamic = "force-dynamic";
@@ -42,13 +43,19 @@ export default async function AccountPage({
     redirect(localizedSignInPath(routeLocale, currentPath));
   }
 
-  const [libraryResult, ordersResult] = await Promise.all([
+  const [libraryResult, ordersResult, overviewResult] = await Promise.all([
     loadAccountLibrary(actor),
     loadOrderHistory(actor),
+    loadAccountOverview(actor),
   ]);
 
   let errorMessage: string | undefined;
-  if (!libraryResult.ok && !ordersResult.ok) {
+  if (!libraryResult.ok && !ordersResult.ok && !overviewResult.ok) {
+    errorMessage =
+      routeLocale === "vi"
+        ? "Dịch vụ tài khoản tạm thời không khả dụng. Vui lòng thử lại sau."
+        : "Account service is temporarily unavailable. Please try again later.";
+  } else if (!libraryResult.ok && !ordersResult.ok) {
     errorMessage =
       routeLocale === "vi"
         ? "Dịch vụ tài khoản tạm thời không khả dụng. Vui lòng thử lại sau."
@@ -63,6 +70,11 @@ export default async function AccountPage({
       routeLocale === "vi"
         ? "Không thể tải lịch sử đơn hàng. Vui lòng thử lại sau."
         : "Unable to load order history. Please try again later.";
+  } else if (!overviewResult.ok) {
+    errorMessage =
+      routeLocale === "vi"
+        ? "Không thể tải tổng quan tài khoản. Vui lòng thử lại sau."
+        : "Unable to load account overview. Please try again later.";
   }
 
   return (
@@ -70,6 +82,8 @@ export default async function AccountPage({
       locale={routeLocale}
       library={libraryResult.ok ? libraryResult.value : undefined}
       orders={ordersResult.ok ? ordersResult.value : undefined}
+      overview={overviewResult.ok ? overviewResult.value : undefined}
+      userEmail={overviewResult.ok ? overviewResult.value.account.email : undefined}
       error={errorMessage}
     />
   );

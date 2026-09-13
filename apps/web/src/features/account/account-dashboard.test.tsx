@@ -379,4 +379,101 @@ describe("AccountDashboard", () => {
     expect(html).not.toContain("Chưa có báo cáo hoặc đơn hàng");
     expect(html).not.toContain("/tao-la-so/tu-vi");
   });
+  it("renders profile count, consent count, and recent activity from overview", () => {
+    const overview = {
+      account: {
+        id: "usr-1",
+        name: "User One",
+        email: "user@example.com",
+        createdAt: "2026-09-01T00:00:00.000Z",
+      },
+      counts: {
+        profileCount: 7,
+        reportCount: 2,
+        orderCount: 2,
+        consentActiveCount: 3,
+        consentTotalCount: 3,
+      },
+      recentActivity: [
+        {
+          id: "act-1",
+          type: "profile_created" as const,
+          targetId: "prof-1",
+          timestamp: "2026-09-08T10:00:00.000Z",
+        },
+        {
+          id: "act-2",
+          type: "report_purchased" as const,
+          targetId: "rep-1",
+          timestamp: "2026-09-08T10:05:00.000Z",
+        },
+      ],
+    };
+
+    const htmlVi = renderToStaticMarkup(
+      <AccountDashboard locale="vi" overview={overview} />,
+    );
+    expect(htmlVi).toContain("Hồ sơ lá số");
+    expect(htmlVi).toContain("7");
+    expect(htmlVi).toContain("Mục đồng ý đang bật");
+    expect(htmlVi).toContain("3");
+    expect(htmlVi).toContain("Hoạt động gần đây");
+    expect(htmlVi).toContain("Tạo hồ sơ lá số");
+    expect(htmlVi).toContain("Mua báo cáo luận giải");
+
+    const htmlEn = renderToStaticMarkup(
+      <AccountDashboard locale="en" overview={overview} />,
+    );
+    expect(htmlEn).toContain("Birth profiles");
+    expect(htmlEn).toContain("Active consents");
+    expect(htmlEn).toContain("Recent activity");
+    expect(htmlEn).toContain("Birth profile created");
+    expect(htmlEn).toContain("Report purchased");
+  });
+
+  it("renders empty recent activity text when overview activity list is empty", () => {
+    const overview = {
+      account: {
+        id: "usr-1",
+        name: "User One",
+        email: "user@example.com",
+        createdAt: "2026-09-01T00:00:00.000Z",
+      },
+      counts: {
+        profileCount: 0,
+        reportCount: 0,
+        orderCount: 0,
+        consentActiveCount: 0,
+        consentTotalCount: 0,
+      },
+      recentActivity: [],
+    };
+
+    const htmlVi = renderToStaticMarkup(
+      <AccountDashboard locale="vi" overview={overview} />,
+    );
+    expect(htmlVi).toContain("Chưa có hoạt động nào gần đây.");
+
+    const htmlEn = renderToStaticMarkup(
+      <AccountDashboard locale="en" overview={overview} />,
+    );
+    expect(htmlEn).toContain("No recent activity.");
+  });
+
+  it("does not masquerade partial failure as an empty successful account", () => {
+    const html = renderToStaticMarkup(
+      <AccountDashboard
+        locale="vi"
+        library={null}
+        orders={{ version: 1, totalCount: 0, orders: [], items: [] }}
+        error="Không thể tải danh sách báo cáo. Vui lòng thử lại sau."
+      />,
+    );
+
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("Không thể tải danh sách báo cáo. Vui lòng thử lại sau.");
+    // Must NOT show empty state with create chart CTA
+    expect(html).not.toContain("Chưa có báo cáo hoặc đơn hàng");
+    expect(html).not.toContain("Lập lá số Tử Vi");
+  });
 });
