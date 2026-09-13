@@ -20,8 +20,10 @@ import type {
   ZiweiEngineConfig,
 } from "./ziwei-engine.js";
 
-const ENGINE_VERSION = "2.6.0";
-const ADAPTER_VERSION = "1";
+export const IZTRO_ENGINE_VERSION = "2.6.0";
+const ENGINE_VERSION = IZTRO_ENGINE_VERSION;
+export const IZTRO_ADAPTER_VERSION = "1";
+const ADAPTER_VERSION = IZTRO_ADAPTER_VERSION;
 
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) {
@@ -41,7 +43,7 @@ function hash(value: unknown): string {
   return createHash("sha256").update(canonicalJson(value)).digest("hex");
 }
 
-function gender(profile: NormalizedBirthProfileV1): "male" | "female" | undefined {
+export function iztroGender(profile: NormalizedBirthProfileV1): "male" | "female" | undefined {
   switch (profile.originalInput.gender) {
     case "male":
     case "Nam":
@@ -54,6 +56,10 @@ function gender(profile: NormalizedBirthProfileV1): "male" | "female" | undefine
     default:
       return undefined;
   }
+}
+
+function gender(profile: NormalizedBirthProfileV1): "male" | "female" | undefined {
+  return iztroGender(profile);
 }
 
 function failure(
@@ -69,7 +75,7 @@ function failure(
   };
 }
 
-function exactMinuteIndex(localTime: string): number {
+export function exactMinuteIndex(localTime: string): number {
   const hour = Number(localTime.slice(0, 2));
   if (hour === 23) {
     return 12;

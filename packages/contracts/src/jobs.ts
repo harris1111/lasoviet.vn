@@ -35,6 +35,36 @@ export const ReportGenerationRequestedV1Schema = z.object({
 }).strict();
 export type ReportGenerationRequestedV1 = z.infer<typeof ReportGenerationRequestedV1Schema>;
 
+export const ReportGenerationRequestedV2Schema = z
+  .object({
+    reportId: z.string().min(1),
+    reportVersionId: z.string().min(1),
+    entitlementId: z.string().min(1),
+    chartVersionId: z.string().min(1),
+    evidenceVersionId: z.string().min(1),
+    knowledgeVersionId: z.string().min(1),
+    promptVersion: z.string().min(1),
+    reportConfigVersion: z.string().min(1),
+    locale: z.enum(["vi", "en"]),
+    sku: z.string().min(1),
+    asOfDate: z.iso.date(),
+    targetYear: z.number().int(),
+    timingRuleVersion: z.string().trim().min(1),
+    sensitivityRuleVersion: z.string().trim().min(1),
+  })
+  .strict()
+  .superRefine((payload, ctx) => {
+    const asOfDateYear = parseInt(payload.asOfDate.slice(0, 4), 10);
+    if (payload.targetYear !== asOfDateYear) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["targetYear"],
+        message: "targetYear (" + payload.targetYear + ") must match asOfDate year (" + asOfDateYear + ")",
+      });
+    }
+  });
+export type ReportGenerationRequestedV2 = z.infer<typeof ReportGenerationRequestedV2Schema>;
+
 export const ReportGenerateJobEnvelopeV1Schema = z.object({
   schemaVersion: z.literal(1),
   name: z.literal("report.generate.v1"),
@@ -45,6 +75,25 @@ export const ReportGenerateJobEnvelopeV1Schema = z.object({
 }).strict();
 export type ReportGenerateJobEnvelopeV1 = z.infer<typeof ReportGenerateJobEnvelopeV1Schema>;
 export type QueueJobV1 = ReportGenerateJobEnvelopeV1;
+
+export const ReportGenerateJobEnvelopeV2Schema = z
+  .object({
+    schemaVersion: z.literal(2),
+    name: z.literal("report.generate.v2"),
+    sourceEventId: z.string().min(1),
+    traceId: z.string().min(1),
+    idempotencyKey: z.string().min(1),
+    payload: ReportGenerationRequestedV2Schema,
+  })
+  .strict();
+export type ReportGenerateJobEnvelopeV2 = z.infer<typeof ReportGenerateJobEnvelopeV2Schema>;
+
+export const ReportGenerateJobEnvelopeSchema = z.discriminatedUnion("schemaVersion", [
+  ReportGenerateJobEnvelopeV1Schema,
+  ReportGenerateJobEnvelopeV2Schema,
+]);
+export type ReportGenerateJobEnvelope = z.infer<typeof ReportGenerateJobEnvelopeSchema>;
+export type QueueJob = ReportGenerateJobEnvelope;
 
 export const ReportFulfillmentFailedV1Schema = z.object({
   reportId: z.string().min(1),

@@ -18,6 +18,14 @@ import {
   REPORT_PROMPT_VERSION_V3,
   REPORT_TEMPLATE_VERSION_V3,
   currentReportVersions,
+  REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4,
+  REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
+  REPORT_TIMING_RULE_VERSION_V1,
+  REPORT_SENSITIVITY_RULE_VERSION_V1,
+  v4ReportVersions,
+  deriveReportTimingLineage,
   REPORT_CONFIG_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
@@ -141,5 +149,51 @@ describe("identity report config", () => {
       expect(viHasSection).toBe(true);
       expect(enHasSection).toBe(true);
     }
+  });
+  it("exports dormant V4 constants and timing/sensitivity rule strings", () => {
+    expect(REPORT_KNOWLEDGE_VERSION_V4).toBe("ziwei.comprehensive.knowledge.v4");
+    expect(REPORT_PROMPT_VERSION_V4).toBe("ziwei.comprehensive.prompt.v4");
+    expect(REPORT_CONFIG_VERSION_V4).toBe("ziwei.comprehensive.report.v4");
+    expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V2).toBe("ziwei-comprehensive.v2");
+    expect(REPORT_TIMING_RULE_VERSION_V1).toBe("ziwei.timing.v1");
+    expect(REPORT_SENSITIVITY_RULE_VERSION_V1).toBe("ziwei.sensitivity.v1");
+  });
+
+  it("v4ReportVersions returns family v4 with exact dormant constants without activating currentReportVersions", () => {
+    const v4 = v4ReportVersions();
+    expect(v4).toEqual({
+      family: "v4",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      reportConfigVersion: "ziwei.comprehensive.report.v4",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      contentVersion: "ziwei-comprehensive.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
+
+    // Verify currentReportVersions remains family v3 for Vietnamese
+    expect(currentReportVersions("vi").family).toBe("v3");
+  });
+
+  it("deriveReportTimingLineage converts Date to Asia/Ho_Chi_Minh asOfDate and derives matching targetYear", () => {
+    // 2026-12-31 20:00:00 UTC -> 2027-01-01 03:00:00 in Vietnam (+7)
+    const newYearEveUtc = new Date("2026-12-31T20:00:00.000Z");
+    const lineage1 = deriveReportTimingLineage(newYearEveUtc);
+    expect(lineage1).toEqual({
+      asOfDate: "2027-01-01",
+      targetYear: 2027,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    });
+
+    // 2026-12-31 16:59:59 UTC -> 2026-12-31 23:59:59 in Vietnam (+7)
+    const beforeMidnightUtc = new Date("2026-12-31T16:59:59.000Z");
+    const lineage2 = deriveReportTimingLineage(beforeMidnightUtc);
+    expect(lineage2).toEqual({
+      asOfDate: "2026-12-31",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    });
   });
 });

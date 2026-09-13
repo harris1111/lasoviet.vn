@@ -8,7 +8,7 @@ current evidence and recommendation in Vietnamese; silence is never approval.
 
 | ID | Decision gate | Blocks | Status |
 |---|---|---|---|
-| OD-001 | Remaining Zi Wei SKU launch prices and enablement order | Phase 07 Task 1 checkout enablement | Resolved (2026-09-05): Option A |
+| OD-001 | Remaining Zi Wei SKU launch prices and enablement order (relationship and career only; annual superseded) | Phase 07 Task 1 checkout enablement | Resolved (2026-09-05): Option A; Updated (2026-09-12) |
 | OD-002 | BaZi paid SKU name, scope, and launch price | Phase 08 Task 4 checkout enablement | Resolved (2026-09-05): Option A |
 | OD-003 | Western natal paid SKU name, scope, and launch price | Phase 09 Task 3 checkout enablement | Resolved (2026-09-05): Option A |
 | OD-004 | Liu Yao cooldown and repeated-question policy | Phase 10 Task 3 public release | Resolved (2026-09-05): Option A |
@@ -18,10 +18,15 @@ current evidence and recommendation in Vietnamese; silence is never approval.
 ## OD-001: Remaining Zi Wei Commercial Sequence
 
 **Decision:** Confirm launch order and production price for
-`ZIWEI-RELATIONSHIP-P0`, `ZIWEI-CAREER-P0`, and `ZIWEI-YEAR-P0`.
+`ZIWEI-RELATIONSHIP-P0` and `ZIWEI-CAREER-P0`.
+
+**Historical Context & Supersession:** Originally included `ZIWEI-YEAR-P0`.
+On 2026-09-12, the founder cancelled the separate annual SKU `ZIWEI-YEAR-P0`
+and merged current decadal and annual timing snapshot into the VND 79,000
+comprehensive report (V4). OD-001 now applies strictly to relationship and career.
 
 **Why it matters:** The existing VND 79,000 values are product hypotheses.
-Enabling all three together would weaken per-topic quality and conversion
+Enabling both together would weaken per-topic quality and conversion
 measurement.
 
 **Option A:** Launch one topic at a time at VND 79,000.
@@ -41,7 +46,8 @@ checkout enablement.
 **Resolved (2026-09-05):** Option A. Founder confirmed one topic at a time at
 VND 79,000 each. See `rules-and-decisions-tracker.md` "Open Decisions OD-001
 Through OD-006 Resolved" for the full record. Checkout enablement remains
-blocked on Phase 07 Task 1.
+blocked on Phase 07 Task 1. On 2026-09-12, the annual SKU portion was cancelled
+and superseded by FD-058.
 
 ## OD-002: BaZi Paid Offer
 

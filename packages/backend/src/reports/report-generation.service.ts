@@ -1,4 +1,4 @@
-import type { IdentityReportV1, ReportGenerateJobEnvelopeV1 } from "@lasoviet/contracts";
+import type { IdentityReportV1, ReportGenerateJobEnvelope } from "@lasoviet/contracts";
 import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
   CURRENT_REPORT_RENDER_VERSION,
@@ -13,9 +13,14 @@ import { validateIdentityReport } from "./report-validator.js";
 import { critiqueIdentityReport } from "./report-critic.js";
 import { writeComprehensiveZiweiReport } from "./comprehensive-report-writer.js";
 import { validateComprehensiveZiweiReport } from "./comprehensive-report-validator.js";
+import { writeComprehensiveZiweiReportV4 } from "./comprehensive-report-writer-v4.js";
+import { validateComprehensiveZiweiReportV4 } from "./comprehensive-report-validator-v4.js";
+import { critiqueComprehensiveZiweiReportV4 } from "./comprehensive-report-critic-v4.js";
+import type { ComprehensiveReportSourceV4 } from "./report-source.js";
 import type { ComprehensiveReportSource } from "./report-source.js";
 import type { ReportGenerationSourceRepository } from "./report-generation.repository.js";
 import type { ImmutableReportVersionRecord, ReportVersionRepository } from "./report-version.repository.js";
+import type { ReportSourceSnapshotPreparationService } from "./report-source-snapshot.service.js";
 
 export type ReportGenerationServiceErrorCode =
   | "AI_CAPABILITY_UNSUPPORTED"
@@ -23,7 +28,10 @@ export type ReportGenerationServiceErrorCode =
   | "AI_OUTPUT_INVALID"
   | "REPORT_EVIDENCE_INVALID"
   | "REPORT_SAFETY_REJECTED"
-  | "REPORT_VERSION_CONFLICT";
+  | "REPORT_VERSION_CONFLICT"
+  | "REPORT_SOURCE_SNAPSHOT_INVALID"
+  | "REPORT_SOURCE_SNAPSHOT_CONFLICT"
+  | "REPORT_SOURCE_SNAPSHOT_UNAVAILABLE";
 
 export type ReportGenerationServiceError = {
   code: ReportGenerationServiceErrorCode;
@@ -35,7 +43,7 @@ export type ReportGenerationServiceResult =
   | { ok: false; error: ReportGenerationServiceError };
 
 export type GenerateReportInput = {
-  job: ReportGenerateJobEnvelopeV1;
+  job: ReportGenerateJobEnvelope;
   attemptNumber: number;
   workerId: string;
   jobId?: string;
@@ -46,6 +54,7 @@ export type ReportGenerationServiceDependencies = {
   versionRepository: ReportVersionRepository;
   gate: AiProductionGate;
   provider: AiProvider;
+  sourceSnapshotPreparer?: ReportSourceSnapshotPreparationService;
 };
 
 export type ReportGenerationService = {
@@ -176,6 +185,16 @@ export function createReportGenerationService(
       };
     }
 
+    if (job.name === "report.generate.v2") {
+      if (!dependencies.sourceSnapshotPreparer) {
+        return failAttempt("REPORT_SOURCE_SNAPSHOT_INVALID", false);
+      }
+      const prepResult = await dependencies.sourceSnapshotPreparer.prepare(payload);
+      if (!prepResult.ok) {
+        return failAttempt(prepResult.error.code, prepResult.error.retryable);
+      }
+    }
+
     const family = resolveIdentityReportVersionFamily(
       payload.promptVersion,
       payload.knowledgeVersionId,
@@ -196,6 +215,100 @@ export function createReportGenerationService(
       return failAttempt("REPORT_EVIDENCE_INVALID", false);
     }
     const source = sourceResult.value;
+
+    if (family === "v4") {
+      if (!source.comprehensiveFactsV4 || !source.knowledgePacks) {
+        return failAttempt("REPORT_EVIDENCE_INVALID", false);
+      }
+
+      let writerResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReportV4>>;
+      try {
+        writerResult = await writeComprehensiveZiweiReportV4(
+          source as ComprehensiveReportSourceV4,
+          dependencies.provider,
+        );
+      } catch {
+        return failAttempt("AI_TIMEOUT", true);
+      }
+
+      if (!writerResult.ok) {
+        const errCode = writerResult.error.code;
+        if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
+          return failAttempt("AI_TIMEOUT", true);
+        }
+        if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+          return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+        }
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+
+      const draft = writerResult.value;
+
+      const validation = validateComprehensiveZiweiReportV4(
+        draft.report,
+        source.comprehensiveFactsV4,
+      );
+      if (!validation.ok) {
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+
+      // Exactly one adapted critic provider call over frozen facts/draft. Fail-closed, no rewrite loop.
+      let criticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
+      try {
+        criticResult = await critiqueComprehensiveZiweiReportV4(
+          draft.report,
+          source.comprehensiveFactsV4,
+          dependencies.provider,
+        );
+      } catch {
+        return failAttempt("AI_TIMEOUT", true);
+      }
+
+      if (!criticResult.ok) {
+        const errCode = criticResult.error.code;
+        if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && (criticResult.error as any).retryable)) {
+          return failAttempt("AI_TIMEOUT", true);
+        }
+        if (errCode === "REPORT_SAFETY_REJECTED") {
+          return failAttempt("REPORT_SAFETY_REJECTED", false);
+        }
+        if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+          return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+        }
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+
+      const htmlContent = renderComprehensiveZiweiHtml(draft.report);
+
+      const commitResult = await dependencies.versionRepository.commitImmutableVersion({
+        reportId: payload.reportId,
+        reportVersionId: payload.reportVersionId,
+        entitlementId: payload.entitlementId,
+        chartVersionId: payload.chartVersionId,
+        evidenceVersionId: payload.evidenceVersionId,
+        knowledgeVersionId: payload.knowledgeVersionId,
+        promptVersion: payload.promptVersion,
+        reportConfigVersion: payload.reportConfigVersion,
+        templateVersion: REPORT_TEMPLATE_VERSION_V3,
+        renderVersion: CURRENT_REPORT_RENDER_VERSION,
+        locale: payload.locale,
+        sku: payload.sku,
+        providerId: draft.providerId,
+        modelId: draft.modelId,
+        structuredContent: draft.report as unknown as IdentityReportV1,
+        htmlContent,
+        jobId,
+        workerId,
+        attemptNumber,
+        traceId: job.traceId,
+      });
+
+      if (!commitResult.ok) {
+        return failAttempt("REPORT_VERSION_CONFLICT", false);
+      }
+
+      return { ok: true, value: commitResult.value };
+    }
 
     if (family === "v3") {
       if (!source.comprehensiveFacts || !source.knowledgePacks) {

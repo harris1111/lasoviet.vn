@@ -41,16 +41,6 @@
       "sections": ["career_motivation", "capabilities", "work_environment", "money_patterns", "timing", "actions", "limitations"]
     },
     {
-      "sku": "ZIWEI-YEAR-P0",
-      "name": "Vận trình năm",
-      "method": "ziwei",
-      "price": 79000,
-      "phase": "P7",
-      "availability": "reserved",
-      "decision_ref": "OD-001",
-      "sections": ["year_theme", "periods", "opportunities", "risks", "observation_checklist", "actions", "limitations"]
-    },
-    {
       "sku": "BAZI-COMPREHENSIVE-P0",
       "name": "Luận giải Bát Tự toàn diện",
       "method": "bazi",

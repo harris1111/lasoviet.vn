@@ -241,4 +241,94 @@ describe("createReportGenerateProcessor alert dispatching", () => {
 
     expect(failureRes).toEqual({ ok: false, code: "JOB_RETRY_EXHAUSTED" });
   });
+  it("reconstructs schemaVersion 2 when job name is report.generate.v2 and processes successfully", async () => {
+    const mockReportService = {
+      startGenerating: vi.fn().mockResolvedValue({ ok: true }),
+      recordTerminalFailure: vi.fn().mockResolvedValue({ ok: true }),
+    };
+    const mockQueueStore = {
+      claimNext: vi.fn().mockResolvedValue({
+        id: "job-v2-1",
+        name: "report.generate.v2",
+        sourceEventId: "evt-v2-1",
+        traceId: "trace-v2-1",
+        idempotencyKey: "report-generate:00000000-0000-0000-0000-000000000002",
+        attemptCount: 1,
+        payload: {
+          reportId: "00000000-0000-0000-0000-000000000001",
+          reportVersionId: "00000000-0000-0000-0000-000000000002",
+          entitlementId: "00000000-0000-0000-0000-000000000003",
+          chartVersionId: "chart-1",
+          evidenceVersionId: "ev-1",
+          knowledgeVersionId: "kn-4",
+          promptVersion: "p-4",
+          reportConfigVersion: "c-4",
+          locale: "vi",
+          sku: "ZIWEI-IDENTITY-P0",
+          asOfDate: "2026-09-12",
+          targetYear: 2026,
+          timingRuleVersion: "ziwei.timing.v1",
+          sensitivityRuleVersion: "ziwei.sensitivity.v1",
+        },
+      }),
+      markProcessed: vi.fn().mockResolvedValue({ ok: true }),
+      recordRetryableFailure: vi.fn(),
+      recordTerminalFailure: vi.fn(),
+    };
+
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: mockReportService as never,
+      queueStore: mockQueueStore as never,
+      workerId,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: true });
+
+    expect(mockReportService.startGenerating).toHaveBeenCalledWith({
+      reportVersionId: "00000000-0000-0000-0000-000000000002",
+      jobId: "job-v2-1",
+      workerId,
+    });
+    expect(mockQueueStore.markProcessed).toHaveBeenCalledWith("job-v2-1");
+  });
+
+  it("fails job processing when report.generate.v2 job payload is invalid", async () => {
+    const mockReportService = {
+      recordTerminalFailure: vi.fn().mockResolvedValue({ ok: true }),
+    };
+    const mockQueueStore = {
+      claimNext: vi.fn().mockResolvedValue({
+        id: "job-v2-invalid",
+        name: "report.generate.v2",
+        sourceEventId: "evt-v2-inv",
+        traceId: "trace-v2-inv",
+        idempotencyKey: "idem-inv",
+        attemptCount: 1,
+        payload: {
+          reportId: "00000000-0000-0000-0000-000000000001",
+          // Missing required V2 fields like asOfDate, targetYear
+        },
+      }),
+      recordRetryableFailure: vi.fn().mockResolvedValue({ ok: true }),
+      recordTerminalFailure: vi.fn(),
+      markProcessed: vi.fn(),
+    };
+
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: mockReportService as never,
+      queueStore: mockQueueStore as never,
+      workerId,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+    expect(mockQueueStore.recordRetryableFailure).toHaveBeenCalledWith(
+      "job-v2-invalid",
+      "JOB_PAYLOAD_INVALID",
+      expect.any(Date),
+    );
+  });
 });

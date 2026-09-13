@@ -280,6 +280,10 @@ export {
   EntitlementScopeSchema,
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
+  V4_TIMING_SCOPE_SECTIONS,
+  TIER_2_V4_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS,
+  TIER_2_V4_ENTITLEMENT_SCOPE,
   resolveEntitlementScopeForSku,
 } from "./commerce.js";
 export type {
@@ -300,17 +304,24 @@ export type {
 
 export {
   ReportFulfillmentFailedV1Schema,
+  ReportGenerateJobEnvelopeSchema,
   ReportGenerateJobEnvelopeV1Schema,
+  ReportGenerateJobEnvelopeV2Schema,
   ReportGenerationRequestedV1Schema,
+  ReportGenerationRequestedV2Schema,
   ReportPdfRequestedV1Schema,
   ReportQueueJobStatusSchema,
   ReportStatusSchema,
 } from "./jobs.js";
 export type {
+  QueueJob,
   QueueJobV1,
   ReportFulfillmentFailedV1,
+  ReportGenerateJobEnvelope,
   ReportGenerateJobEnvelopeV1,
+  ReportGenerateJobEnvelopeV2,
   ReportGenerationRequestedV1,
+  ReportGenerationRequestedV2,
   ReportPdfRequestedV1,
   ReportQueueJobStatus,
   ReportStatus,
@@ -338,6 +349,16 @@ export {
   ComprehensiveReportTier1PublicContentV1Schema,
   ComprehensiveReportTier2PublicContentV1Schema,
   projectComprehensiveReportPublicContent,
+  ComprehensiveReportActionItemV2PublicSchema,
+  ComprehensiveReportCurrentDecadalActiveV2PublicSchema,
+  ComprehensiveReportCurrentDecadalNotStartedV2PublicSchema,
+  ComprehensiveReportCurrentDecadalV2PublicSchema,
+  ComprehensiveReportAnnualSnapshotV2PublicSchema,
+  ComprehensiveReportTier1PublicContentV2Schema,
+  ComprehensiveReportTier2PublicContentV2Schema,
+  ComprehensiveReportPublicContentV2Schema,
+  projectComprehensiveReportPublicContentV2,
+  ReportComprehensiveV2ReadyViewV1Schema,
 } from "./identity-report-v1.js";
 export type {
   ReportPublicContentV1,
@@ -352,4 +373,92 @@ export type {
   ComprehensiveReportTier1PublicContentV1,
   ComprehensiveReportTier2PublicContentV1,
   ComprehensiveReportViewContentV1,
+  ComprehensiveReportActionItemV2Public,
+  ComprehensiveReportTier1PublicContentV2,
+  ComprehensiveReportTier2PublicContentV2,
+  ComprehensiveReportPublicContentV2,
+  ComprehensiveReportViewContentV2,
+  ReportComprehensiveV2ReadyViewV1,
 } from "./identity-report-v1.js";
+
+export {
+  ZIWEI_BRANCH_IDS,
+  ZIWEI_STEM_IDS,
+  ZiweiTimingConfigV1Schema,
+  ZiweiTimingProvenanceV1Schema,
+  ZiweiTimingStarSchema,
+  ZiweiTimingTransformationSchema,
+  ZiweiTimingPalaceSchema,
+  ZiweiTimingDecadalActiveLayerV1Schema,
+  ZiweiTimingDecadalNotStartedLayerV1Schema,
+  ZiweiTimingDecadalLayerV1Schema,
+  ZiweiTimingAnnualLayerV1Schema,
+  ZiweiTimingSnapshotV1Schema,
+  ZiweiTimeFrameSchema,
+  ZiweiSensitiveFactVariantSchema,
+  ZiweiSensitiveFactSchema,
+  ZiweiSensitivitySnapshotV1Schema,
+  ZiweiReportSnapshotProvenanceV1Schema,
+  ZiweiReportSnapshotV1Schema,
+} from "./ziwei-report-snapshot-v1.js";
+export type {
+  ZiweiBranchId,
+  ZiweiStemId,
+  ZiweiTimingConfigV1,
+  ZiweiTimingProvenanceV1,
+  ZiweiTimingStar,
+  ZiweiTimingTransformation,
+  ZiweiTimingPalace,
+  ZiweiTimingDecadalActiveLayerV1,
+  ZiweiTimingDecadalNotStartedLayerV1,
+  ZiweiTimingDecadalLayerV1,
+  ZiweiTimingAnnualLayerV1,
+  ZiweiTimingSnapshotV1,
+  ZiweiTimeFrame,
+  ZiweiSensitiveFactVariant,
+  ZiweiSensitiveFact,
+  ZiweiSensitivitySnapshotV1,
+  ZiweiReportSnapshotProvenanceV1,
+  ZiweiReportSnapshotV1,
+} from "./ziwei-report-snapshot-v1.js";
+
+export {
+  ZiweiComprehensiveReportActionItemV2Schema,
+  ZiweiComprehensiveReportBirthTimeSensitivityV2Schema,
+  ZiweiComprehensiveReportCurrentDecadalActiveV2Schema,
+  ZiweiComprehensiveReportCurrentDecadalNotStartedV2Schema,
+  ZiweiComprehensiveReportCurrentDecadalV2Schema,
+  ZiweiComprehensiveReportAnnualSnapshotV2Schema,
+  ZiweiComprehensiveReportContentV2Schema,
+} from "./ziwei-comprehensive-report-v2.js";
+export type {
+  ZiweiComprehensiveReportActionItemV2,
+  ZiweiComprehensiveReportBirthTimeSensitivityV2,
+  ZiweiComprehensiveReportCurrentDecadalActiveV2,
+  ZiweiComprehensiveReportCurrentDecadalNotStartedV2,
+  ZiweiComprehensiveReportCurrentDecadalV2,
+  ZiweiComprehensiveReportAnnualSnapshotV2,
+  ZiweiComprehensiveReportContentV2,
+} from "./ziwei-comprehensive-report-v2.js";
+
+export {
+  ReportSourceSnapshotV1Schema,
+} from "./ziwei-report-source-snapshot-v1.js";
+export type {
+  ReportSourceSnapshotV1,
+} from "./ziwei-report-source-snapshot-v1.js";
+
+export {
+  ZIWEI_REPORT_EVIDENCE_DIMENSIONS_V2,
+  ZiweiReportEvidenceDimensionV2Schema,
+  ZIWEI_REPORT_EVIDENCE_CONFIDENCES_V2,
+  ZiweiReportEvidenceConfidenceV2Schema,
+  ZiweiReportEvidenceItemV2Schema,
+  ZiweiReportEvidenceSetV2Schema,
+} from "./ziwei-report-evidence-v2.js";
+export type {
+  ZiweiReportEvidenceDimensionV2,
+  ZiweiReportEvidenceConfidenceV2,
+  ZiweiReportEvidenceItemV2,
+  ZiweiReportEvidenceSetV2,
+} from "./ziwei-report-evidence-v2.js";

@@ -57,10 +57,13 @@ context rather than discarded after review.
 - Birth-place label and Vietnamese IANA timezone persistence.
 - Customer-facing cleanup across the free preview, evidence view, chart result,
   and paid report reader.
+- For the VND 79,000 comprehensive report (V4), current 10-year decadal cycle
+  and current annual snapshot (superseding the 2026-09-07 exclusion per
+  2026-09-12 founder override).
 
 ### Excluded
 
-- Deep decadal, yearly, monthly, daily, or hourly forecasting.
+- Deep monthly, daily, or hourly forecasting (decadal and current annual snapshot are moved to Included for the VND 79,000 comprehensive report per 2026-09-12 founder override; separate annual SKU is cancelled).
 - Other divination disciplines.
 - Fine-tuning a model on the large generated chart-sample dataset.
 - A new vector database or GraphRAG subsystem.
@@ -71,6 +74,18 @@ context rather than discarded after review.
 - Broad changes to public SEO articles or unreleased divination pages.
 - Payment changes, report authorization changes, PDF work, broad UI redesign,
   deployment, and production activation.
+
+## Founder Override (2026-09-12): Zi Wei Comprehensive Report V4 Scope And Timing Inclusion
+
+On 2026-09-12, the founder approved Zi Wei Comprehensive Report V4 and issued an override for the timing scope of the base VND 79,000 comprehensive report (`ZIWEI-IDENTITY-P0`):
+- **Timing Inclusion Without SKU Separation:** The VND 79,000 comprehensive report includes the current 10-year decadal cycle and the current annual snapshot. The previously planned separate annual SKU (`ZIWEI-YEAR-P0`) is cancelled and removed from the product catalog and Phase 07 planning.
+- **Excluded Forecasting:** Deep monthly, daily, and hourly forecasting remain strictly excluded.
+- **Fixed Annual Snapshot & Brand Compliance:** The annual reading is an immutable snapshot tied strictly to the creation year (frozen at report reservation in `Asia/Ho_Chi_Minh`). It does not auto-update upon calendar year rollover, and there is no marketing prompt or workflow to "return annually for a new yearly reading." The decadal cycle is treated as stable for 10 years without expiry warnings, upholding the "no dependency loop" brand guideline.
+- **Three-Frame Birth-Time Sensitivity:** The engine calculates the selected birth-time branch plus the immediately preceding and succeeding branches (3 frames total). Comparison normalizes stable factors (invariant across frames, presented with high confidence) versus birth-time-sensitive factors (variant across frames, noted with precision dependency).
+- **PII Minimization:** Raw birth date, time, and location must never be sent to external AI providers; only normalized chart facts, diffs, and evidence keys are transmitted.
+- **Structured Personalized Actions:** The report concludes with 3 to 5 personalized actions. Each action must contain exactly 4 fixed fields: What to do (`recommendation`), Why it fits this chart (`rationale`), What to avoid (`avoid`), and `evidenceKeys`. No 7-day or 30-day tracking mechanics and no goal-picker inputs are introduced.
+- **Tier-1 Scope Preserved:** The VND 19,000 natal excerpt (`ZIWEI-NATAL-EXCERPT-P0`) remains strictly natal-only and does not include timing sections.
+- **Knowledge Base Release Blocker:** Vietnamese editorial rewrite of the knowledge corpus (conversational Vietnamese, school taxonomy, quarantining extreme/fatalistic content) is a prerequisite for V4 release. Editorial work begins once the founder supplies the required ruleset (preferred schools, allowed Sino-Vietnamese terms, quarantine criteria).
 
 ## Birth Place and Wizard Corrections
 

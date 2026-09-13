@@ -1,3 +1,4 @@
+import { calculateIztroReportSnapshot } from "@lasoviet/engine-adapters";
 import { Module } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { loadEnvironment } from "@lasoviet/config";
@@ -14,6 +15,8 @@ import {
   createDatabaseReportQueuePublisher,
   createDatabaseReportQueueStore,
   createDatabaseReportVersionRepository,
+  createDatabaseReportSourceSnapshotRepository,
+  createReportSourceSnapshotPreparationService,
   createKnowledgeRetrievalService,
   createOpenAiCompatibleAdapter,
   createReportService,
@@ -180,6 +183,12 @@ export function createReportGenerateRunner(options?: {
     betterAuthUrl: environment.value.betterAuthUrl,
     recipientFingerprintSecret: environment.value.internalActorSecret,
   });
+  const sourceSnapshotRepository = createDatabaseReportSourceSnapshotRepository(database);
+  const sourceSnapshotPreparer = createReportSourceSnapshotPreparationService({
+    database,
+    repository: sourceSnapshotRepository,
+    calculateSnapshot: calculateIztroReportSnapshot,
+  });
   const provider =
     options?.provider ??
     (environment.value.ai.enabled
@@ -204,6 +213,7 @@ export function createReportGenerateRunner(options?: {
     versionRepository,
     gate,
     provider,
+    sourceSnapshotPreparer,
   });
   const telegramAlert =
     options?.telegramAlert ??

@@ -1,12 +1,15 @@
 import { and, eq, lte, or, sql } from "drizzle-orm";
 import {
   ReportGenerationRequestedV1Schema,
+  ReportGenerationRequestedV2Schema,
+  type QueueJob,
   type QueueJobV1,
   type ReportGenerationRequestedV1,
+  type ReportGenerationRequestedV2,
 } from "@lasoviet/contracts";
 import { outbox, reportQueueJobs, type Database } from "@lasoviet/database";
 
-export type { QueueJobV1, ReportGenerationRequestedV1 };
+export type { QueueJob, QueueJobV1, ReportGenerationRequestedV1, ReportGenerationRequestedV2 };
 
 export type ClaimedOutboxEvent = {
   id: string;
@@ -21,42 +24,61 @@ export type OutboxDispatcherDependencies = {
   claim(): Promise<ClaimedOutboxEvent | null>;
   markProcessed(id: string): Promise<void>;
   release(id: string, code: string): Promise<void>;
-  publish(job: QueueJobV1): Promise<void>;
+  publish(job: QueueJob): Promise<void>;
 };
 
 export type OutboxDispatchRunner = {
   runOnce(): Promise<{ dispatched: number }>;
 };
 
-function reportJob(payload: unknown): ReportGenerationRequestedV1 | null {
-  const result = ReportGenerationRequestedV1Schema.safeParse(payload);
-  return result.success ? result.data : null;
-}
-
 export function createOutboxDispatcher(dependencies: OutboxDispatcherDependencies) {
   return {
     async dispatchOne(): Promise<{ dispatched: boolean }> {
       const event = await dependencies.claim();
       if (event === null) return { dispatched: false };
-      const payload = event.eventType === "report.generation.requested.v1"
-        ? reportJob(event.payload)
-        : null;
-      if (payload === null) {
+
+      let job: QueueJob | null = null;
+      if (event.eventType === "report.generation.requested.v1") {
+        const parseResult = ReportGenerationRequestedV1Schema.safeParse(event.payload);
+        if (parseResult.success) {
+          const payload = parseResult.data;
+          const queueJobIdempotencyKey = event.idempotencyKey.startsWith("report-recovery:")
+            ? `report-generate:${event.eventId}`
+            : `report-generate:${payload.reportVersionId}`;
+          job = {
+            schemaVersion: 1,
+            name: "report.generate.v1",
+            sourceEventId: event.eventId,
+            traceId: event.traceId,
+            idempotencyKey: queueJobIdempotencyKey,
+            payload,
+          };
+        }
+      } else if (event.eventType === "report.generation.requested.v2") {
+        const parseResult = ReportGenerationRequestedV2Schema.safeParse(event.payload);
+        if (parseResult.success) {
+          const payload = parseResult.data;
+          const queueJobIdempotencyKey = event.idempotencyKey.startsWith("report-recovery:")
+            ? `report-generate:${event.eventId}`
+            : `report-generate:${payload.reportVersionId}`;
+          job = {
+            schemaVersion: 2,
+            name: "report.generate.v2",
+            sourceEventId: event.eventId,
+            traceId: event.traceId,
+            idempotencyKey: queueJobIdempotencyKey,
+            payload,
+          };
+        }
+      }
+
+      if (job === null) {
         await dependencies.release(event.id, "OUTBOX_EVENT_INVALID");
         return { dispatched: false };
       }
+
       try {
-        const queueJobIdempotencyKey = event.idempotencyKey.startsWith("report-recovery:")
-          ? `report-generate:${event.eventId}`
-          : `report-generate:${payload.reportVersionId}`;
-        await dependencies.publish({
-          schemaVersion: 1,
-          name: "report.generate.v1",
-          sourceEventId: event.eventId,
-          traceId: event.traceId,
-          idempotencyKey: queueJobIdempotencyKey,
-          payload,
-        });
+        await dependencies.publish(job);
         await dependencies.markProcessed(event.id);
         return { dispatched: true };
       } catch {
@@ -119,6 +141,11 @@ export function createOutboxDispatchSchedule(options: {
   };
 }
 
+const reportGenerationEventTypeCondition = or(
+  eq(outbox.eventType, "report.generation.requested.v1"),
+  eq(outbox.eventType, "report.generation.requested.v2"),
+);
+
 export function createDatabaseOutboxStore(
   database: Database,
   workerId: string,
@@ -130,9 +157,12 @@ export function createDatabaseOutboxStore(
         const current = now();
         const [candidate] = await transaction.select({ id: outbox.id })
           .from(outbox)
-          .where(or(
-            and(eq(outbox.eventType, "report.generation.requested.v1"), eq(outbox.status, "pending"), lte(outbox.availableAt, current)),
-            and(eq(outbox.eventType, "report.generation.requested.v1"), eq(outbox.status, "leased"), lte(outbox.leasedUntil, current)),
+          .where(and(
+            reportGenerationEventTypeCondition,
+            or(
+              and(eq(outbox.status, "pending"), lte(outbox.availableAt, current)),
+              and(eq(outbox.status, "leased"), lte(outbox.leasedUntil, current)),
+            ),
           ))
           .limit(1);
         if (candidate === undefined) return null;
@@ -144,9 +174,10 @@ export function createDatabaseOutboxStore(
           updatedAt: current,
         }).where(and(
           eq(outbox.id, candidate.id),
+          reportGenerationEventTypeCondition,
           or(
-            and(eq(outbox.eventType, "report.generation.requested.v1"), eq(outbox.status, "pending"), lte(outbox.availableAt, current)),
-            and(eq(outbox.eventType, "report.generation.requested.v1"), eq(outbox.status, "leased"), lte(outbox.leasedUntil, current)),
+            and(eq(outbox.status, "pending"), lte(outbox.availableAt, current)),
+            and(eq(outbox.status, "leased"), lte(outbox.leasedUntil, current)),
           ),
         )).returning();
         return claimed === undefined
@@ -171,7 +202,7 @@ export function createDatabaseOutboxStore(
 
 export function createDatabaseReportQueuePublisher(database: Database) {
   return {
-    async publish(job: QueueJobV1): Promise<void> {
+    async publish(job: QueueJob): Promise<void> {
       await database.insert(reportQueueJobs).values({
         id: job.idempotencyKey,
         name: job.name,

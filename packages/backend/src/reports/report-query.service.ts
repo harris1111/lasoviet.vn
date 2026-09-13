@@ -14,6 +14,9 @@ import {
   TIER_2_SCOPE_SECTIONS,
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
+  TIER_2_V4_ENTITLEMENT_SCOPE,
+  ZiweiComprehensiveReportContentV2Schema,
+  projectComprehensiveReportPublicContentV2,
   EntitlementScopeSchema,
   type ComprehensiveReportSectionId,
   type CurrentActor,
@@ -43,6 +46,28 @@ export class ReportQueryDataError extends Error {
     super(message);
     this.name = "ReportQueryDataError";
   }
+}
+
+export function resolveEffectiveComprehensiveTier(
+  effectiveSections: ReadonlySet<ComprehensiveReportSectionId>,
+  family: "v3" | "v4" = "v3",
+): 1 | 2 | null {
+  const hasTier1 = TIER_1_SCOPE_SECTIONS.every((s) => effectiveSections.has(s));
+  if (!hasTier1) {
+    return null;
+  }
+
+  const v4TimingSections: readonly ComprehensiveReportSectionId[] = [
+    "currentDecadal",
+    "annualSnapshot",
+  ];
+  const requiredTier2Sections =
+    family === "v4"
+      ? [...TIER_2_SCOPE_SECTIONS, ...v4TimingSections]
+      : TIER_2_SCOPE_SECTIONS;
+
+  const hasTier2 = requiredTier2Sections.every((s) => effectiveSections.has(s));
+  return hasTier2 ? 2 : 1;
 }
 
 export type ReportQueryService = {
@@ -211,6 +236,81 @@ export function createReportQueryService(options: {
         throw new ReportQueryDataError();
       }
 
+      if (family === "v4") {
+        if (reservation.locale !== "vi" || version.locale !== "vi") {
+          throw new ReportQueryDataError();
+        }
+
+        const parsedV4 = ZiweiComprehensiveReportContentV2Schema.safeParse(version.structuredContent);
+        if (!parsedV4.success) {
+          throw new ReportQueryDataError();
+        }
+
+        const entitlementsList = record.entitlements && record.entitlements.length > 0
+          ? record.entitlements
+          : [
+              {
+                id: reservation.entitlementId,
+                orderId: order.id,
+                chartId: order.chartId,
+                sku: reservation.sku,
+                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" ? TIER_1_ENTITLEMENT_SCOPE : TIER_2_V4_ENTITLEMENT_SCOPE,
+                orderStatus: order.status as OrderStatus,
+              },
+            ];
+
+        const activeEntitlements = entitlementsList.filter(
+          (e) => e.orderStatus !== "refunded",
+        );
+
+        if (activeEntitlements.length === 0) {
+          throw new ReportQueryDataError();
+        }
+
+        const effectiveSections = new Set<ComprehensiveReportSectionId>();
+        for (const ent of activeEntitlements) {
+          const parsedScope = EntitlementScopeSchema.safeParse(ent.scope);
+          if (!parsedScope.success) {
+            throw new ReportQueryDataError();
+          }
+          for (const sec of parsedScope.data.sections) {
+            effectiveSections.add(sec);
+          }
+        }
+
+        const effectiveTier = resolveEffectiveComprehensiveTier(effectiveSections, "v4");
+        if (effectiveTier === null) {
+          throw new ReportQueryDataError();
+        }
+        const hasTier2 = effectiveTier === 2;
+
+        const publicContent = projectComprehensiveReportPublicContentV2(
+          parsedV4.data,
+          hasTier2 ? TIER_2_V4_ENTITLEMENT_SCOPE : TIER_1_ENTITLEMENT_SCOPE,
+        );
+
+        const readyParse = ReportReadyViewV1Schema.safeParse({
+          version: 1,
+          state: "ready",
+          contentVersion: "ziwei-comprehensive.v2",
+          reportId: reservation.reportId,
+          reportVersionId: reservation.reportVersionId,
+          locale: "vi",
+          sku: reservation.sku,
+          fulfillmentStatus: reservationFulfillmentStatus,
+          content: publicContent,
+          lineage: {
+            supersedesReportVersionId: version.supersedesReportVersionId ?? null,
+          },
+        });
+
+        if (!readyParse.success) {
+          throw new ReportQueryDataError();
+        }
+
+        return { ok: true, value: readyParse.data };
+      }
+
       if (family === "v3") {
         if (reservation.locale !== "vi" || version.locale !== "vi") {
           throw new ReportQueryDataError();
@@ -254,12 +354,11 @@ export function createReportQueryService(options: {
           }
         }
 
-        const hasTier1 = TIER_1_SCOPE_SECTIONS.every((s) => effectiveSections.has(s));
-        if (!hasTier1) {
+        const effectiveTier = resolveEffectiveComprehensiveTier(effectiveSections, "v3");
+        if (effectiveTier === null) {
           throw new ReportQueryDataError();
         }
-
-        const hasTier2 = TIER_2_SCOPE_SECTIONS.every((s) => effectiveSections.has(s));
+        const hasTier2 = effectiveTier === 2;
 
         const publicContent = projectComprehensiveReportPublicContent(
           parsedV3.data,

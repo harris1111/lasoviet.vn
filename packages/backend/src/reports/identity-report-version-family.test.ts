@@ -7,6 +7,8 @@ import {
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
   REPORT_PROMPT_VERSION_V3,
+  REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4,
 } from "./identity-report-config.js";
 
 describe("resolveIdentityReportVersionFamily", () => {
@@ -35,6 +37,22 @@ describe("resolveIdentityReportVersionFamily", () => {
         REPORT_KNOWLEDGE_VERSION_V3,
       ),
     ).toBe("v3");
+  });
+
+  it("resolves v4 for v4 prompt paired with approved v3 knowledge corpus, and rejects v4 knowledge", () => {
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4,
+        REPORT_KNOWLEDGE_VERSION_V3,
+      ),
+    ).toBe("v4");
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBeNull();
   });
 
   it("returns null for mismatched v1/v2 pairs", () => {
