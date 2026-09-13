@@ -2198,7 +2198,8 @@ describe("commerce repository - library and order history (WP-03)", () => {
   });
 
   it("proves default resolver activates V4 and emits V2 event with timing fields", async () => {
-    const repo = createDatabaseCommerceRepository(database);
+    const fixedNow = new Date("2026-09-13T10:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, { now: () => fixedNow });
 
     const owner = await createOwnerFixture({ displayName: "Default Resolver Owner" });
     const orderResult = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
@@ -2214,7 +2215,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
       traceId: "trace-default-v4",
     });
 
-    const expectedLineage = deriveReportTimingLineage(new Date());
+    const expectedLineage = deriveReportTimingLineage(fixedNow);
 
     const [reservation] = await database
       .select()
