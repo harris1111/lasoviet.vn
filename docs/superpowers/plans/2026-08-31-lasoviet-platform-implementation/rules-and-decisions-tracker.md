@@ -82,6 +82,7 @@
 | FD-076 | 2026-09-13 | Rewrite V4 prompts in everyday Vietnamese keeping only proper names; every claim pairs a real chart detail with a two-sided observation, a concrete everyday situation, and an actionable suggestion, using personal-sounding sentences anchored in the chart | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §6 |
 | FD-077 | 2026-09-13 | Add deterministic report quality gates: per-section minimum length, zero discouraged Sino-Vietnamese terms, proper-name density cap, zero death terms, misfortune-framing check, chart-anchoring check, plus existing Han/locale and repetition checks; failing sections are rewritten, never delivered below gate | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §8 |
 | FD-078 | 2026-09-13 | Add two optional single-choice reading-context questions to the birth wizard as a tappable list with a skip option (current life stage; top concern), stored as enum codes separate from the birth profile, used for examples, emphasis, and free-preview section choice, never for chart facts or prices, and never sent to third-party tools | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §7 |
+| FD-080 | 2026-09-13 | No analytics consent UI of any kind (no banner, popup, checkbox, or consent step). Behavioral funnel measurement is first-party and anonymous by design so that it does not process personal data: no stored raw IP, no full user agent or fingerprinting, unique visitors counted with a daily-rotating salted hash whose salt is destroyed after 24 hours, per-visit random ID in `sessionStorage` only, and no link to account ID, birth profile, `chart_id`, or order ID. Account-linked business metrics come from transaction data. Disclosure is one privacy-policy paragraph only. Third-party ad pixels carrying identifiers require a separate founder decision. Supersedes FD-050 and the no-rotation session-ID clause of FD-052; FD-051 and FD-053 remain binding | Approved | Kaneo LSV #10 (WP-10A), #11 (WP-10C), #12 (WP-10B) |
 
 ## FD-028 Execution Boundary
 
@@ -869,9 +870,28 @@ Date: 2026-09-13
   customers and are not a customer claim.
 - Cost input for the analytics contribution-margin work (WP-10): the founder
   confirmed SePay runs on the free plan, so the payment-fee cost is recorded as
-  0 VND until the plan changes. The WP-10 split proposal itself (transaction
-  metrics and AI cost capture first, consent-gated behavioral funnel later) and
-  the analytics consent defaults are not yet approved.
+  0 VND until the plan changes.
+- WP-10 split (approved 2026-09-13): WP-10A transaction-derived business and
+  operations metrics, WP-10C per-call AI usage and cost capture with a
+  30-day contribution margin before support cost, WP-10B anonymous behavioral
+  funnel. A drafted analytics consent banner and copy were rejected by the
+  founder as high-friction and deleted; see FD-080.
+
+## FD-080 Frictionless Anonymous Measurement
+
+Date: 2026-09-13
+
+- The founder rejected any customer-facing permission step for measurement,
+  stating that invisible system optimizations should be built without asking
+  users, because consent UI adds friction and drives visitors away.
+- The legally safe version that needs no consent is anonymous-by-design
+  measurement: data that cannot identify a specific person is not personal
+  data. The constraints in FD-080 are therefore binding implementation
+  requirements, not optional hardening; relaxing any of them (raw IP storage,
+  persistent per-person IDs, joins to account or chart data) would bring the
+  data back under Vietnamese personal-data consent rules.
+- Third-party advertising pixels that transmit identifiers remain outside this
+  decision and require a separate founder decision.
 
 ## FD-072 Through FD-078 Zi Wei V4 Report Depth, Language, and Personalization Evidence
 
