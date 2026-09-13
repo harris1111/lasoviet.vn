@@ -82,7 +82,8 @@
 | FD-076 | 2026-09-13 | Rewrite V4 prompts in everyday Vietnamese keeping only proper names; every claim pairs a real chart detail with a two-sided observation, a concrete everyday situation, and an actionable suggestion, using personal-sounding sentences anchored in the chart | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §6 |
 | FD-077 | 2026-09-13 | Add deterministic report quality gates: per-section minimum length, zero discouraged Sino-Vietnamese terms, proper-name density cap, zero death terms, misfortune-framing check, chart-anchoring check, plus existing Han/locale and repetition checks; failing sections are rewritten, never delivered below gate. Replaces the Kaneo #3 V4 launch rule "no V4 rewrite pass" (the AI critic pass stays), because stricter gates without rewrite would fail paid reports under FD-043 | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §8 |
 | FD-078 | 2026-09-13 | Add two optional single-choice reading-context questions to the birth wizard as a tappable list with a skip option (current life stage; top concern), stored as enum codes separate from the birth profile, used for examples, emphasis, and free-preview section choice, never for chart facts or prices, and never sent to third-party tools | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §7 |
-| FD-080 | 2026-09-13 | No analytics consent UI of any kind (no banner, popup, checkbox, or consent step). Behavioral funnel measurement is first-party and anonymous by design so that it does not process personal data: no stored raw IP, no full user agent or fingerprinting, unique visitors counted with a daily-rotating salted hash whose salt is destroyed after 24 hours, per-visit random ID in `sessionStorage` only, and no link to account ID, birth profile, `chart_id`, or order ID. Account-linked business metrics come from transaction data. Disclosure is one privacy-policy paragraph only. Third-party ad pixels carrying identifiers require a separate founder decision. Supersedes FD-050 and the no-rotation session-ID clause of FD-052; FD-051 and FD-053 remain binding | Approved | Kaneo LSV #10 (WP-10A), #11 (WP-10C), #12 (WP-10B) |
+| FD-080 | 2026-09-13 | No analytics consent UI of any kind (no banner, popup, checkbox, or consent step). Behavioral funnel measurement is first-party and anonymous by design so that it does not process personal data: no stored raw IP, no full user agent or fingerprinting, unique visitors counted with a daily-rotating salted hash whose salt is destroyed after 24 hours, per-visit random ID in `sessionStorage` only, and no link to account ID, birth profile, `chart_id`, or order ID. Account-linked business metrics come from transaction data. Disclosure is one privacy-policy paragraph only. Third-party ad pixels carrying identifiers require a separate founder decision. Supersedes FD-050 and the no-rotation session-ID clause of FD-052; FD-051 and FD-053 remain binding | Superseded by FD-081 | Kaneo LSV #10 (WP-10A), #11 (WP-10C), #12 (WP-10B) |
+| FD-081 | 2026-09-13 | Behavioral tracking is identified and account-linked to optimize upsell and revenue: first-party persistent `visitor_id` cookie, stored IP/user agent/referrer/UTM, and events linked to the account and birth profile once the visitor accepts the wizard consent or signs in, with prior visitor history merged into the customer profile. No new consent UI: the existing required wizard birth-data checkbox is re-worded to also cover analytics, personalization, and offers (versioned purposes), sign-in shows a one-line terms/privacy notice without a checkbox, and the privacy policy describes the data, purposes, and retention. Unlinked visitor IPs and events are deleted after 30 days without consent or sign-in; IP may be kept separately for fraud and abuse prevention. FD-053 third-party field limits remain binding; third-party ad pixels and marketing email rules require their own decisions. Supersedes FD-080 and FD-050 | Approved | Kaneo LSV #12 (WP-10B); UI tickets #19–#28 |
 
 ## FD-028 Execution Boundary
 
@@ -918,3 +919,20 @@ Date: 2026-09-13
 - Implementation is assigned to An via a Kaneo ticket and requires an
   implementation plan under `AGENTS.md`. The editorial rewrite starts after the
   founder signs the ruleset.
+
+## FD-081 Identified Account-Linked Tracking
+
+Date: 2026-09-13
+
+- The founder first rejected consent banners (FD-080), then rejected the
+  anonymous-by-design constraints as preventing upsell optimization ("không lưu
+  IP, không gắn thông tin với tài khoản thì làm sao tracking và tối ưu up sell").
+- A parallel session recorded the founder choosing to keep FD-080 at 11:31. The
+  founder was then shown both options side by side and explicitly chose
+  account-linked tracking ("Gắn tài khoản"). FD-081 is the latest decision.
+- Legal basis chosen: consent folded into the existing required wizard checkbox
+  and a sign-in notice, so no additional customer step is added. Data collected
+  before any consent or sign-in is kept for at most 30 days unless linked.
+- The drafted analytics consent copy remains deleted; wording for the widened
+  checkbox and privacy-policy section is specified in Kaneo #12 and goes through
+  the claim registry (#13).
