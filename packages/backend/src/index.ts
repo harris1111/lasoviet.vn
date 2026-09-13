@@ -215,7 +215,15 @@ export {
   REPORT_CONFIG_VERSION_V3,
   REPORT_TEMPLATE_VERSION_V3,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V1,
+  REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4,
+  REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
+  REPORT_TIMING_RULE_VERSION_V1,
+  REPORT_SENSITIVITY_RULE_VERSION_V1,
   currentReportVersions,
+  v4ReportVersions,
+  deriveReportTimingLineage,
   CURRENT_REPORT_KNOWLEDGE_VERSION,
   CURRENT_REPORT_PROMPT_VERSION,
   CURRENT_REPORT_CONFIG_VERSION,
@@ -229,6 +237,15 @@ export {
   DETERMINISTIC_CYCLES_NARRATIVE_VI,
   DETERMINISTIC_CYCLES_NARRATIVE_EN,
 } from "./reports/identity-report-config.js";
+export type {
+  ReportTimingLineage,
+  ReportVersionResolver,
+  ReportVersionSelection,
+  ReportVersionSelectionV2,
+  ReportVersionSelectionV3,
+  ReportVersionSelectionV4,
+} from "./reports/identity-report-config.js";
+
 export {
   boundedKnowledge,
   buildLocalizedPromptFacts,
@@ -271,10 +288,58 @@ export {
   createDatabaseReportVersionRepository,
 } from "./reports/report-version.repository.js";
 export type {
+  PersistedReportSourceSnapshotRecord,
+  ReportSourceSnapshotConflictCode,
+  ReportSourceSnapshotRepository,
+} from "./reports/report-source-snapshot.repository.js";
+export {
+  createDatabaseReportSourceSnapshotRepository,
+} from "./reports/report-source-snapshot.repository.js";
+export type {
+  ReportSnapshotCalculator,
+  ReportSnapshotCalculatorInput,
+  ReportSourceSnapshotPreparationErrorCode,
+  ReportSourceSnapshotPreparationService,
+  ReportSourceSnapshotPreparationServiceDependencies,
+} from "./reports/report-source-snapshot.service.js";
+export {
+  createReportSourceSnapshotPreparationService,
+} from "./reports/report-source-snapshot.service.js";
+export type {
   ApprovedKnowledgePassage,
   ComprehensiveReportSource,
+  ComprehensiveReportSourceV4,
   IdentityReportSource,
 } from "./reports/report-source.js";
+export {
+  buildComprehensiveZiweiFactsV4,
+  ComprehensiveZiweiFactsV4Error,
+} from "./reports/comprehensive-ziwei-facts-v4.js";
+export type {
+  ComprehensiveZiweiFactsV4,
+  ComprehensiveZiweiFactsV4Lineage,
+} from "./reports/comprehensive-ziwei-facts-v4.js";
+export {
+  writeComprehensiveZiweiReportV4,
+} from "./reports/comprehensive-report-writer-v4.js";
+export type {
+  ComprehensiveReportWriterV4Input,
+  ComprehensiveReportDraftV4,
+  ComprehensiveReportWriterV4Result,
+} from "./reports/comprehensive-report-writer-v4.js";
+export {
+  validateComprehensiveZiweiReportV4,
+} from "./reports/comprehensive-report-validator-v4.js";
+export type {
+  ComprehensiveReportV4ValidationResult,
+} from "./reports/comprehensive-report-validator-v4.js";
+export {
+  critiqueComprehensiveZiweiReportV4,
+} from "./reports/comprehensive-report-critic-v4.js";
+export type {
+  ComprehensiveCriticV4Evaluation,
+  ComprehensiveCriticV4Result,
+} from "./reports/comprehensive-report-critic-v4.js";
 export {
   writeComprehensiveZiweiReport,
   VIETNAMESE_COMPREHENSIVE_REPORT_SYSTEM_PROMPT,
@@ -327,7 +392,7 @@ export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";
 export { createDatabaseCommerceRepository } from "./commerce/commerce.repository.js";
 export type { CommerceRepository, CommerceRepositoryOptions, OwnedOrderProjection } from "./commerce/commerce.repository.js";
 export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
-export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJobV1 } from "./outbox/outbox.dispatcher.js";
+export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJob, QueueJobV1, ReportGenerationRequestedV1, ReportGenerationRequestedV2 } from "./outbox/outbox.dispatcher.js";
 export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";
 export {
   createTelegramAlertProvider,
@@ -428,6 +493,11 @@ export {
 export type {
   ZiweiReportKnowledgePack,
 } from "./reports/comprehensive-report-retrieval.js";
+
+export {
+  buildZiweiV4Evidence,
+  ZiweiV4EvidenceError,
+} from "./evidence/ziwei-v4-evidence.js";
 
 export {
   createAccountCenterService,

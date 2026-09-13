@@ -179,7 +179,7 @@ Auto-approval requires that all of the following conditions hold simultaneously:
 
 **Nghiệm thu:** mục 6 của spec.
 
-**Test bắt buộc:** không chuỗi `ZIWEI-*` nào xuất hiện trong UI; mô tả tầng 2 không chứa lời hứa dự báo đại vận/năm/tháng/ngày.
+**Test bắt buộc:** không chuỗi `ZIWEI-*` nào xuất hiện trong UI; mô tả tầng 2 phản ánh đúng phạm vi V4 (đại vận hiện tại và lưu niên cố định theo năm lập; không chứa lời hứa dự báo tháng/ngày/giờ hay cập nhật định kỳ).
 
 ---
 

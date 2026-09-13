@@ -89,4 +89,71 @@ describe("outbox dispatcher", () => {
     await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: false });
     expect(release).toHaveBeenCalledWith("outbox-invalid", "OUTBOX_EVENT_INVALID");
   });
+  it("claims one V2 report request and publishes the V2 job shape with schemaVersion 2", async () => {
+    const publish = vi.fn().mockResolvedValue(undefined);
+    const v2Payload = {
+      reportId: "report-2",
+      reportVersionId: "version-2",
+      entitlementId: "entitlement-2",
+      chartVersionId: "chart-version-2",
+      evidenceVersionId: "evidence-2",
+      knowledgeVersionId: "knowledge-4",
+      promptVersion: "prompt-4",
+      reportConfigVersion: "config-4",
+      locale: "vi" as const,
+      sku: "ZIWEI-IDENTITY-P0",
+      asOfDate: "2026-09-12",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    };
+
+    const dispatcher = createOutboxDispatcher({
+      claim: async () => ({
+        id: "outbox-2",
+        eventId: "event-2",
+        traceId: "trace-2",
+        idempotencyKey: "report-request:version-2",
+        eventType: "report.generation.requested.v2",
+        payload: v2Payload,
+      }),
+      markProcessed: async () => undefined,
+      release: async () => undefined,
+      publish,
+    });
+
+    await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: true });
+    expect(publish).toHaveBeenCalledWith({
+      schemaVersion: 2,
+      name: "report.generate.v2",
+      sourceEventId: "event-2",
+      traceId: "trace-2",
+      idempotencyKey: "report-generate:version-2",
+      payload: v2Payload,
+    });
+  });
+
+  it("releases an invalid V2 report generation requested payload as OUTBOX_EVENT_INVALID", async () => {
+    const release = vi.fn().mockResolvedValue(undefined);
+    const dispatcher = createOutboxDispatcher({
+      claim: async () => ({
+        id: "outbox-v2-invalid",
+        eventId: "event-v2-bad",
+        traceId: "trace-bad",
+        idempotencyKey: "report-request:bad",
+        eventType: "report.generation.requested.v2",
+        payload: {
+          reportId: "report-2",
+          asOfDate: "2026-09-12",
+          targetYear: 2025, // mismatched targetYear
+        },
+      }),
+      markProcessed: async () => undefined,
+      release,
+      publish: async () => undefined,
+    });
+
+    await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: false });
+    expect(release).toHaveBeenCalledWith("outbox-v2-invalid", "OUTBOX_EVENT_INVALID");
+  });
 });

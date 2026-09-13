@@ -73,4 +73,123 @@ describe("report generation migration layout", () => {
     expect(packageIndex).toContain("reportVersions");
     expect(packageIndex).toContain("reportGenerationAttempts");
   });
+
+  it("keeps report timing lineage additive columns and checks in migration 0024", async () => {
+    const migration = await readFile(
+      new URL("0024_report_timing_lineage.sql", migrationRoot),
+      "utf8",
+    );
+
+    expect(migration).toContain('ALTER TABLE "report_reservations" ADD COLUMN IF NOT EXISTS "as_of_date" date;');
+    expect(migration).toContain('ALTER TABLE "report_reservations" ADD COLUMN IF NOT EXISTS "target_year" integer;');
+    expect(migration).toContain('ALTER TABLE "report_reservations" ADD COLUMN IF NOT EXISTS "timing_rule_version" text;');
+    expect(migration).toContain('ALTER TABLE "report_reservations" ADD COLUMN IF NOT EXISTS "sensitivity_rule_version" text;');
+
+    expect(migration).toContain('"report_reservations_timing_lineage_presence"');
+    expect(migration).toContain('"report_reservations_target_year_matches_as_of_date"');
+    expect(migration).toContain('"report_reservations_timing_rule_versions_non_empty"');
+    expect(migration).toContain('btrim("timing_rule_version")');
+    expect(migration).toContain('btrim("sensitivity_rule_version")');
+    expect(migration).toContain('EXTRACT(YEAR FROM "as_of_date")');
+
+    expect(migration).not.toContain("report_versions");
+  });
+
+  it("registers migration 0024 in drizzle meta journal", async () => {
+    const journal = await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    );
+
+    expect(journal).toContain('"tag": "0024_report_timing_lineage"');
+    expect(journal).toContain('"idx": 24');
+  });
+
+  it("defines timing lineage columns and constraints on reportReservations schema", async () => {
+    const { reportReservations, reportVersions } = await import("./reports.js");
+
+    expect(reportReservations.asOfDate).toBeDefined();
+    expect(reportReservations.targetYear).toBeDefined();
+    expect(reportReservations.timingRuleVersion).toBeDefined();
+    expect(reportReservations.sensitivityRuleVersion).toBeDefined();
+
+    // Do not add these fields to reportVersions yet
+    expect((reportVersions as any).asOfDate).toBeUndefined();
+    expect((reportVersions as any).targetYear).toBeUndefined();
+    expect((reportVersions as any).timingRuleVersion).toBeUndefined();
+    expect((reportVersions as any).sensitivityRuleVersion).toBeUndefined();
+  });
+
+  it("keeps report source snapshots in migration 0025", async () => {
+    const migration = await readFile(
+      new URL("0025_report_source_snapshots.sql", migrationRoot),
+      "utf8",
+    );
+
+    expect(migration).toContain('CREATE TABLE "report_source_snapshots"');
+    expect(migration).toContain('"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL');
+    expect(migration).toContain('"report_id" uuid NOT NULL');
+    expect(migration).toContain('"report_version_id" uuid NOT NULL');
+    expect(migration).toContain('"chart_version_id" text NOT NULL');
+    expect(migration).toContain('"as_of_date" date NOT NULL');
+    expect(migration).toContain('"target_year" integer NOT NULL');
+    expect(migration).toContain('"timing_rule_version" text NOT NULL');
+    expect(migration).toContain('"sensitivity_rule_version" text NOT NULL');
+    expect(migration).toContain('"snapshot_hash" text NOT NULL');
+    expect(migration).toContain('"snapshot" jsonb NOT NULL');
+    expect(migration).toContain('"created_at" timestamp with time zone DEFAULT now() NOT NULL');
+
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "report_source_snapshots_version_unique" ON "report_source_snapshots" USING btree ("report_version_id")',
+    );
+    expect(migration).toContain(
+      'CREATE INDEX "report_source_snapshots_report_idx" ON "report_source_snapshots" USING btree ("report_id")',
+    );
+    expect(migration).toContain(
+      'CREATE INDEX "report_source_snapshots_chart_version_idx" ON "report_source_snapshots" USING btree ("chart_version_id")',
+    );
+
+    expect(migration).toContain('"report_source_snapshots_target_year_matches_as_of_date"');
+    expect(migration).toContain('"report_source_snapshots_timing_rule_versions_non_empty"');
+    expect(migration).toContain('"report_source_snapshots_hash_format"');
+    expect(migration).toContain('EXTRACT(YEAR FROM "as_of_date")');
+    expect(migration).toContain('btrim("timing_rule_version")');
+    expect(migration).toContain('btrim("sensitivity_rule_version")');
+    expect(migration).toContain('\x27^[a-f0-9]{64}$\x27');
+  });
+
+  it("registers migration 0025 in drizzle meta journal", async () => {
+    const journal = await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    );
+
+    expect(journal).toContain('"tag": "0025_report_source_snapshots"');
+    expect(journal).toContain('"idx": 25');
+  });
+
+  it("registers reportSourceSnapshots in database package exports", async () => {
+    const packageIndex = await readFile(
+      new URL("../index.ts", import.meta.url),
+      "utf8",
+    );
+
+    expect(packageIndex).toContain("reportSourceSnapshots");
+  });
+
+  it("defines reportSourceSnapshots schema with strict columns", async () => {
+    const { reportSourceSnapshots } = await import("./reports.js");
+
+    expect(reportSourceSnapshots.id).toBeDefined();
+    expect(reportSourceSnapshots.reportId).toBeDefined();
+    expect(reportSourceSnapshots.reportVersionId).toBeDefined();
+    expect(reportSourceSnapshots.chartVersionId).toBeDefined();
+    expect(reportSourceSnapshots.asOfDate).toBeDefined();
+    expect(reportSourceSnapshots.targetYear).toBeDefined();
+    expect(reportSourceSnapshots.timingRuleVersion).toBeDefined();
+    expect(reportSourceSnapshots.sensitivityRuleVersion).toBeDefined();
+    expect(reportSourceSnapshots.snapshotHash).toBeDefined();
+    expect(reportSourceSnapshots.snapshot).toBeDefined();
+    expect(reportSourceSnapshots.createdAt).toBeDefined();
+  });
 });

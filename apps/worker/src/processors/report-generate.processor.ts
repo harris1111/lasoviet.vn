@@ -79,7 +79,7 @@ export function createReportGenerateProcessor(dependencies: {
       if (!job) return { processed: false };
 
       const parsed = parseReportGenerateJob({
-        schemaVersion: 1,
+        schemaVersion: job.name === "report.generate.v2" ? 2 : 1,
         name: job.name,
         sourceEventId: job.sourceEventId,
         traceId: job.traceId,

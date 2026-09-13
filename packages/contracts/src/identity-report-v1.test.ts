@@ -14,7 +14,16 @@ import {
   ReportComprehensiveReadyViewV1Schema,
   ReportReadyViewV1Schema,
   projectComprehensiveReportPublicContent,
+  projectComprehensiveReportPublicContentV2,
+  ComprehensiveReportTier1PublicContentV2Schema,
+  ComprehensiveReportTier2PublicContentV2Schema,
+  ComprehensiveReportPublicContentV2Schema,
+  ReportComprehensiveV2ReadyViewV1Schema,
 } from "./identity-report-v1.js";
+import {
+  TIER_2_V4_ENTITLEMENT_SCOPE,
+} from "./commerce.js";
+import type { ZiweiComprehensiveReportContentV2 } from "./ziwei-comprehensive-report-v2.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -575,6 +584,99 @@ describe("report view v1 contract", () => {
       contentVersion: "ziwei-comprehensive.v1",
       reportId: "report-1",
       reportVersionId: "version-1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      fulfillmentStatus: "complete",
+      content: tier2,
+      lineage: { supersedesReportVersionId: null },
+    };
+    expect(ReportReadyViewV1Schema.safeParse(readyView).success).toBe(true);
+  });
+  it("proves V4 Tier-1 projection remains natal-only and locks timing sections", () => {
+    const rawV4: ZiweiComprehensiveReportContentV2 = {
+      overview: { title: "Tổng quan", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      coreAxis: { title: "Mệnh Thân", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      keyConfigurations: [{ title: "Cách cục", narrative: "Nội dung", evidenceKeys: ["k1"] }],
+      palaceReadings: ZIWEI_PALACE_IDS.map((palaceId) => ({ palaceId, title: "Cung", narrative: "Nội dung", evidenceKeys: ["k1"] })),
+      thematicSynthesis: ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id) => ({ id, title: "Chuyên đề", narrative: "Nội dung", evidenceKeys: ["k1"] })),
+      strengthsAndTensions: { title: "Điểm mạnh", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      currentDecadal: { title: "Đại vận", state: "active", index: 2, ageRange: [22, 31], yearRange: [2022, 2031], narrative: "Nội dung", evidenceKeys: ["k1"] },
+      annualSnapshot: { title: "Lưu niên", targetYear: 2026, asOfDate: "2026-09-12", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      practicalDirection: [
+        { recommendation: "Khuyến nghị 1", rationale: "Lý do 1", avoid: "Tránh 1", evidenceKeys: ["k1"] },
+        { recommendation: "Khuyến nghị 2", rationale: "Lý do 2", avoid: "Tránh 2", evidenceKeys: ["k1"] },
+        { recommendation: "Khuyến nghị 3", rationale: "Lý do 3", avoid: "Tránh 3", evidenceKeys: ["k1"] },
+      ],
+    };
+
+    const tier1 = projectComprehensiveReportPublicContentV2(rawV4, TIER_1_ENTITLEMENT_SCOPE);
+
+    expect(tier1).toHaveProperty("overview");
+    expect(tier1).toHaveProperty("coreAxis");
+    expect(tier1).toHaveProperty("strengthsAndTensions");
+    expect(tier1).toHaveProperty("practicalDirection");
+    expect((tier1 as any).currentDecadal).toBeUndefined();
+    expect((tier1 as any).annualSnapshot).toBeUndefined();
+    expect((tier1 as any).birthTimeSensitivity).toBeUndefined();
+    expect((tier1 as any).lockedSections).toContain("currentDecadal");
+    expect((tier1 as any).lockedSections).toContain("annualSnapshot");
+    expect((tier1 as any).lockedSections).not.toContain("birthTimeSensitivity");
+
+    expect(ComprehensiveReportTier1PublicContentV2Schema.safeParse(tier1).success).toBe(true);
+    expect(ComprehensiveReportPublicContentV2Schema.safeParse(tier1).success).toBe(true);
+
+    const readyView = {
+      version: 1,
+      state: "ready",
+      contentVersion: "ziwei-comprehensive.v2",
+      reportId: "report-v4-t1",
+      reportVersionId: "version-v4-t1",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      fulfillmentStatus: "complete",
+      content: tier1,
+      lineage: { supersedesReportVersionId: null },
+    };
+    expect(ReportReadyViewV1Schema.safeParse(readyView).success).toBe(true);
+  });
+
+  it("proves V4 Tier-2 projection includes timing and structured actions, omits birthTimeSensitivity", () => {
+    const rawV4: ZiweiComprehensiveReportContentV2 = {
+      overview: { title: "Tổng quan", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      coreAxis: { title: "Mệnh Thân", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      keyConfigurations: [{ title: "Cách cục", narrative: "Nội dung", evidenceKeys: ["k1"] }],
+      palaceReadings: ZIWEI_PALACE_IDS.map((palaceId) => ({ palaceId, title: "Cung", narrative: "Nội dung", evidenceKeys: ["k1"] })),
+      thematicSynthesis: ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id) => ({ id, title: "Chuyên đề", narrative: "Nội dung", evidenceKeys: ["k1"] })),
+      strengthsAndTensions: { title: "Điểm mạnh", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      currentDecadal: { title: "Đại vận", state: "active", index: 2, ageRange: [22, 31], yearRange: [2022, 2031], narrative: "Nội dung", evidenceKeys: ["k1"] },
+      annualSnapshot: { title: "Lưu niên", targetYear: 2026, asOfDate: "2026-09-12", narrative: "Nội dung", evidenceKeys: ["k1"] },
+      practicalDirection: [
+        { recommendation: "Khuyến nghị 1", rationale: "Lý do 1", avoid: "Tránh 1", evidenceKeys: ["k1"] },
+        { recommendation: "Khuyến nghị 2", rationale: "Lý do 2", avoid: "Tránh 2", evidenceKeys: ["k1"] },
+        { recommendation: "Khuyến nghị 3", rationale: "Lý do 3", avoid: "Tránh 3", evidenceKeys: ["k1"] },
+      ],
+    };
+
+    const tier2 = projectComprehensiveReportPublicContentV2(rawV4, TIER_2_V4_ENTITLEMENT_SCOPE);
+
+    expect((tier2 as any).palaceReadings).toHaveLength(12);
+    expect((tier2 as any).thematicSynthesis).toHaveLength(4);
+    expect((tier2 as any).currentDecadal.state).toBe("active");
+    expect((tier2 as any).annualSnapshot.targetYear).toBe(2026);
+    expect((tier2 as any).birthTimeSensitivity).toBeUndefined();
+    expect((tier2 as any).practicalDirection).toHaveLength(3);
+    // Evidence keys stripped from actions in public projection
+    expect((tier2 as any).practicalDirection[0].evidenceKeys).toBeUndefined();
+
+    expect(ComprehensiveReportTier2PublicContentV2Schema.safeParse(tier2).success).toBe(true);
+    expect(ComprehensiveReportPublicContentV2Schema.safeParse(tier2).success).toBe(true);
+
+    const readyView = {
+      version: 1,
+      state: "ready",
+      contentVersion: "ziwei-comprehensive.v2",
+      reportId: "report-v4-t2",
+      reportVersionId: "version-v4-t2",
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
       fulfillmentStatus: "complete",

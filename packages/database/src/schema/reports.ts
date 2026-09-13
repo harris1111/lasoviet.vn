@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  date,
   index,
   integer,
   jsonb,
@@ -34,8 +35,24 @@ export const reportReservations = pgTable("report_reservations", {
   rewriteConsumedAt: timestamp("rewrite_consumed_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  asOfDate: date("as_of_date", { mode: "string" }),
+  targetYear: integer("target_year"),
+  timingRuleVersion: text("timing_rule_version"),
+  sensitivityRuleVersion: text("sensitivity_rule_version"),
 }, (table) => [
   uniqueIndex("report_reservations_entitlement_unique").on(table.entitlementId),
+  check(
+    "report_reservations_timing_lineage_presence",
+    sql`(${table.asOfDate} IS NULL AND ${table.targetYear} IS NULL AND ${table.timingRuleVersion} IS NULL AND ${table.sensitivityRuleVersion} IS NULL) OR (${table.asOfDate} IS NOT NULL AND ${table.targetYear} IS NOT NULL AND ${table.timingRuleVersion} IS NOT NULL AND ${table.sensitivityRuleVersion} IS NOT NULL)`,
+  ),
+  check(
+    "report_reservations_target_year_matches_as_of_date",
+    sql`${table.asOfDate} IS NULL OR ${table.targetYear} = CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer)`,
+  ),
+  check(
+    "report_reservations_timing_rule_versions_non_empty",
+    sql`(${table.timingRuleVersion} IS NULL AND ${table.sensitivityRuleVersion} IS NULL) OR (btrim(${table.timingRuleVersion}) <> '' AND btrim(${table.sensitivityRuleVersion}) <> '')`,
+  ),
 ]);
 
 export const reportQueueJobs = pgTable("report_queue_jobs", {
@@ -108,4 +125,35 @@ export const reportGenerationAttempts = pgTable("report_generation_attempts", {
 }, (table) => [
   uniqueIndex("report_generation_attempts_job_attempt_unique").on(table.jobId, table.attemptNumber),
   index("report_generation_attempts_report_idx").on(table.reportVersionId, table.startedAt),
+]);
+
+
+export const reportSourceSnapshots = pgTable("report_source_snapshots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reportId: uuid("report_id").notNull(),
+  reportVersionId: uuid("report_version_id").notNull(),
+  chartVersionId: text("chart_version_id").notNull(),
+  asOfDate: date("as_of_date", { mode: "string" }).notNull(),
+  targetYear: integer("target_year").notNull(),
+  timingRuleVersion: text("timing_rule_version").notNull(),
+  sensitivityRuleVersion: text("sensitivity_rule_version").notNull(),
+  snapshotHash: text("snapshot_hash").notNull(),
+  snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("report_source_snapshots_version_unique").on(table.reportVersionId),
+  index("report_source_snapshots_report_idx").on(table.reportId),
+  index("report_source_snapshots_chart_version_idx").on(table.chartVersionId),
+  check(
+    "report_source_snapshots_target_year_matches_as_of_date",
+    sql`${table.targetYear} = CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer)`,
+  ),
+  check(
+    "report_source_snapshots_timing_rule_versions_non_empty",
+    sql`btrim(${table.timingRuleVersion}) <> '' AND btrim(${table.sensitivityRuleVersion}) <> ''`,
+  ),
+  check(
+    "report_source_snapshots_hash_format",
+    sql`${table.snapshotHash} ~ '^[a-f0-9]{64}$'`,
+  ),
 ]);

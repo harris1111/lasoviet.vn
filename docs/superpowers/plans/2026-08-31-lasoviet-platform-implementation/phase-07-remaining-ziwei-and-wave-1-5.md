@@ -38,10 +38,8 @@ discipline adapters, Vitest, Playwright.
 - Create: `packages/contracts/src/ziwei-report-topic.ts`
 - Create: `packages/backend/src/evidence/ziwei-relationship-rules.ts`
 - Create: `packages/backend/src/evidence/ziwei-career-rules.ts`
-- Create: `packages/backend/src/evidence/ziwei-year-rules.ts`
 - Create: `packages/backend/src/reports/ziwei-relationship-outline.ts`
 - Create: `packages/backend/src/reports/ziwei-career-outline.ts`
-- Create: `packages/backend/src/reports/ziwei-year-outline.ts`
 - Modify: `packages/backend/src/commerce/product-catalog.ts`
 - Modify: `apps/web/messages/vi/reports.json`
 - Modify: `apps/web/messages/en/reports.json`
@@ -49,9 +47,9 @@ discipline adapters, Vitest, Playwright.
 - Test: `tests/e2e/ziwei-topic-checkout.spec.ts`
 
 **Interfaces:**
-- Produces `ZiweiReportTopic = "relationship" | "career" | "year"`.
-- Adds `ZIWEI-RELATIONSHIP-P0`, `ZIWEI-CAREER-P0`, and
-  `ZIWEI-YEAR-P0` without changing `IdentityReportV1`.
+- Produces `ZiweiReportTopic = "relationship" | "career"`.
+- Adds `ZIWEI-RELATIONSHIP-P0` and `ZIWEI-CAREER-P0` without changing `IdentityReportV1`
+  (`ZIWEI-YEAR-P0` cancelled on 2026-09-12 and merged into comprehensive report V4).
 - Keeps each catalog item independently enabled, priced, and reviewable.
 
 - [ ] **Step 1: Write failing relationship-report tests**
@@ -71,10 +69,10 @@ Add only relationship evidence supported by normalized Zi Wei facts. Run the
 report validator and a controlled internal sample before enabling another
 topic.
 
-- [ ] **Step 4: Add career and annual topics through separate review gates**
+- [ ] **Step 4: Add career topic through a separate review gate**
 
-Career output enforces financial-advice boundaries. Annual output records
-year, period, engine configuration, and evidence provenance.
+Career output enforces financial-advice boundaries. (Annual topic was
+cancelled on 2026-09-12 and merged into base comprehensive report V4.)
 
 - [ ] **Step 5: Resolve OD-001 before public checkout**
 
@@ -98,7 +96,6 @@ changes, and rule-candidate result before each topic is enabled.
 ```bash
 git commit -m "feat: add Zi Wei relationship report"
 git commit -m "feat: add Zi Wei career report"
-git commit -m "feat: add Zi Wei annual report"
 ```
 
 ### Task 2 [P07-T02]: Add native Pythagorean numerology

@@ -18,7 +18,13 @@ import {
   type KnowledgePassageV1,
   type createKnowledgeRetrievalService,
 } from "../knowledge/knowledge-retrieval.service.js";
+import { REPORT_KNOWLEDGE_VERSION_V3 } from "./identity-report-config.js";
 import { buildComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
+import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
+import {
+  createDatabaseReportSourceSnapshotRepository,
+  type ReportSourceSnapshotRepository,
+} from "./report-source-snapshot.repository.js";
 import {
   buildComprehensiveKnowledgePacks,
   type ZiweiReportKnowledgePack,
@@ -34,6 +40,7 @@ import {
   identityReportSectionPurpose,
   isBoundIdentityReportSource,
   type IdentityReportSource,
+  type ComprehensiveReportSourceV4,
 } from "./report-source.js";
 
 export type ReportGenerationSourceInput = {
@@ -72,6 +79,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       typeof createKnowledgeRetrievalService
     >["retrieveZiweiKnowledge"];
   };
+  snapshotRepository?: ReportSourceSnapshotRepository;
 }): ReportGenerationSourceRepository {
   return {
     async loadSource(
@@ -93,29 +101,16 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         return invalid();
       }
 
-      const isV3 =
-        input.promptVersion === "ziwei.comprehensive.prompt.v3" &&
-        input.knowledgeVersionId === "ziwei.comprehensive.knowledge.v3" &&
-        input.locale === "vi";
-
-      if (
-        input.promptVersion === "ziwei.comprehensive.prompt.v3" ||
-        input.knowledgeVersionId === "ziwei.comprehensive.knowledge.v3"
-      ) {
-        if (!isV3) {
-          return invalid();
-        }
+      const family = resolveIdentityReportVersionFamily(
+        input.promptVersion,
+        input.knowledgeVersionId,
+      );
+      if (family === null) {
+        return invalid();
       }
 
-      let family: "v1" | "v2" | null = null;
-      if (!isV3) {
-        family = resolveIdentityReportVersionFamily(
-          input.promptVersion,
-          input.knowledgeVersionId,
-        );
-        if (family === null) {
-          return invalid();
-        }
+      if ((family === "v3" || family === "v4") && input.locale !== "vi") {
+        return invalid();
       }
 
       const [chartRow] = await dependencies.database
@@ -196,7 +191,111 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         return invalid();
       }
 
-      if (isV3) {
+      if (family === "v4") {
+        const snapshotRepo =
+          dependencies.snapshotRepository ??
+          createDatabaseReportSourceSnapshotRepository(dependencies.database);
+
+        let snapshotRecord;
+        try {
+          snapshotRecord = await snapshotRepo.getByReportVersionId(input.reportVersionId);
+        } catch {
+          return invalid();
+        }
+
+        if (!snapshotRecord || snapshotRecord.chartVersionId !== input.chartVersionId) {
+          return invalid();
+        }
+
+        const sourceSnapshot = {
+          version: 1 as const,
+          reportId: snapshotRecord.reportId,
+          reportVersionId: snapshotRecord.reportVersionId,
+          chartVersionId: snapshotRecord.chartVersionId,
+          asOfDate: snapshotRecord.asOfDate,
+          targetYear: snapshotRecord.targetYear,
+          timingRuleVersion: snapshotRecord.timingRuleVersion,
+          sensitivityRuleVersion: snapshotRecord.sensitivityRuleVersion,
+          snapshotHash: snapshotRecord.snapshotHash,
+          snapshot: snapshotRecord.snapshot,
+        };
+
+        let factsV4;
+        try {
+          factsV4 = buildComprehensiveZiweiFactsV4(parsedChart.data, sourceSnapshot);
+        } catch (err) {
+          return invalid();
+        }
+
+        if (!dependencies.knowledgeRetrieval.retrieveZiweiKnowledge) {
+          return invalid();
+        }
+
+        let knowledgePacks: ZiweiReportKnowledgePack[];
+        try {
+          knowledgePacks = await buildComprehensiveKnowledgePacks(
+            factsV4.natal,
+            (query) => dependencies.knowledgeRetrieval.retrieveZiweiKnowledge!({
+              ...query,
+              knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
+            }),
+          );
+        } catch (error) {
+          if (error instanceof KnowledgeError) {
+            return invalid();
+          }
+          throw error;
+        }
+
+        const aggregatedPassages: KnowledgePassageV1[] = [];
+        const seenPassageIds = new Set<string>();
+
+        for (const pack of knowledgePacks) {
+          for (const passage of pack.passages) {
+            if (!seenPassageIds.has(passage.passageId)) {
+              seenPassageIds.add(passage.passageId);
+              aggregatedPassages.push({
+                id: passage.passageId,
+                passageId: passage.passageId,
+                documentId: "",
+                discipline: "ziwei",
+                locale: "vi",
+                reportSections: [],
+                knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
+                content: passage.content,
+                contentHash: "",
+                sourceAttribution: "",
+                permittedUse: "reference_rewrite",
+                metadata: passage.metadata,
+              });
+            }
+          }
+        }
+
+        if (aggregatedPassages.length === 0) {
+          return invalid();
+        }
+
+        const source: ComprehensiveReportSourceV4 = {
+          evidence: assembledEvidence.data,
+          frozenFacts: frozenResult.value,
+          knowledgePassages: aggregatedPassages,
+          comprehensiveFacts: factsV4.natal,
+          comprehensiveFactsV4: factsV4,
+          knowledgePacks,
+        };
+
+        if (!isBoundIdentityReportSource(source)) {
+          return invalid();
+        }
+
+        return {
+          ok: true,
+          value: source,
+        };
+      }
+
+      if (family === "v3") {
         if (!dependencies.knowledgeRetrieval.retrieveZiweiKnowledge) {
           return invalid();
         }

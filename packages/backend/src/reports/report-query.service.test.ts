@@ -27,6 +27,7 @@ import {
 } from "./identity-report-config.js";
 import {
   createReportQueryService,
+  resolveEffectiveComprehensiveTier,
   ReportQueryDataError,
   type ReportQueryRepository,
   type AuthorizedReportQueryRecord,
@@ -1323,5 +1324,330 @@ describe("report query service", () => {
     // Exact read call occurred once; no second generation or version creation
     expect(readMock).toHaveBeenCalledTimes(1);
     expect(readMock).toHaveBeenCalledWith(accountActor.userId, "834e9e89-19cb-44a6-bc59-ba7741374553");
+  });
+
+  describe("resolveEffectiveComprehensiveTier legacy V3 and V4 scope separation", () => {
+    const tier1Sections = new Set([
+      "overview",
+      "coreAxis",
+      "strengthsAndTensions",
+      "practicalDirection",
+    ] as const);
+
+    const legacyTier2Sections = new Set([
+      "overview",
+      "coreAxis",
+      "strengthsAndTensions",
+      "practicalDirection",
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+    ] as const);
+
+    const v4Tier2Sections = new Set([
+      "overview",
+      "coreAxis",
+      "strengthsAndTensions",
+      "practicalDirection",
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+      "currentDecadal",
+      "annualSnapshot",
+    ] as const);
+
+    it("evaluates legacy 7-section entitlement as Tier-2 for V3 reports", () => {
+      expect(resolveEffectiveComprehensiveTier(legacyTier2Sections, "v3")).toBe(2);
+    });
+
+    it("evaluates legacy 7-section entitlement as Tier-1 for V4 reports (cannot unlock V4 timing sections)", () => {
+      expect(resolveEffectiveComprehensiveTier(legacyTier2Sections, "v4")).toBe(1);
+    });
+
+    it("evaluates 9-section entitlement as Tier-2 for both V3 and V4 reports", () => {
+      expect(resolveEffectiveComprehensiveTier(v4Tier2Sections, "v3")).toBe(2);
+      expect(resolveEffectiveComprehensiveTier(v4Tier2Sections, "v4")).toBe(2);
+    });
+
+    it("evaluates 4-section entitlement as Tier-1 for both V3 and V4 reports", () => {
+      expect(resolveEffectiveComprehensiveTier(tier1Sections, "v3")).toBe(1);
+      expect(resolveEffectiveComprehensiveTier(tier1Sections, "v4")).toBe(1);
+    });
+
+    it("returns null when natal Tier-1 sections are incomplete", () => {
+      const incomplete = new Set(["overview", "coreAxis"] as const);
+      expect(resolveEffectiveComprehensiveTier(incomplete as any, "v3")).toBeNull();
+      expect(resolveEffectiveComprehensiveTier(incomplete as any, "v4")).toBeNull();
+    });
+
+    it("allows a user with 9-section scope to read a V3 report with full Tier-2 projection", async () => {
+      const versionRecord = {
+        id: "ver-uuid-v3-10sec",
+        reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+        reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+        entitlementId: "ent-v4-scope",
+        chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+        evidenceVersionId: "ev-set-1",
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: "report-config.v3",
+        promptVersion: REPORT_PROMPT_VERSION_V3,
+        templateVersion: "ziwei-comprehensive-html.v1",
+        locale: "vi",
+        sku: "ZIWEI-IDENTITY-P0",
+        providerId: "open-router",
+        modelId: "synthetic-model",
+        structuredContent: validV3StructuredContent(),
+        htmlContent: "<html></html>",
+        contentHash: "e".repeat(64),
+        pdfAssetId: null,
+        renderVersion: "identity-report-pdf.v1",
+        supersedesReportVersionId: null,
+        createdAt: new Date("2026-09-08T00:00:00+07:00"),
+      } as any;
+
+      const readMock = vi.fn().mockResolvedValue(
+        createSampleRecord({
+          order: {
+            id: "ord-uuid-v4",
+            invoiceNumber: "LSV-INV-V4",
+            status: "paid",
+            paidAt: new Date("2026-09-08T10:05:00.000Z"),
+          } as any,
+          reservation: {
+            entitlementId: "ent-v4-scope",
+            sku: "ZIWEI-IDENTITY-P0",
+            status: "complete",
+            promptVersion: REPORT_PROMPT_VERSION_V3,
+            knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+            reportConfigVersion: "report-config.v3",
+            locale: "vi",
+          } as any,
+          version: versionRecord,
+          entitlements: [
+            {
+              id: "ent-v4-scope",
+              orderId: "ord-uuid-v4",
+              chartId: "chart-1",
+              sku: "ZIWEI-IDENTITY-P0",
+              scope: {
+                sections: [
+                  "overview",
+                  "coreAxis",
+                  "strengthsAndTensions",
+                  "practicalDirection",
+                  "keyConfigurations",
+                  "palaceReadings",
+                  "thematicSynthesis",
+                              "currentDecadal",
+                  "annualSnapshot",
+                ],
+              },
+              orderStatus: "paid",
+            },
+          ],
+        }),
+      );
+
+      const service = createReportQueryService({ repository: { readAuthorizedReport: readMock } });
+      const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.value.state).toBe("ready");
+      if (result.value.state !== "ready") return;
+
+      const content = result.value.content as any;
+      expect(content.keyConfigurations).toBeDefined();
+      expect(content.palaceReadings).toBeDefined();
+      expect(content.thematicSynthesis).toBeDefined();
+      expect(content.lockedSections).toBeUndefined();
+    });
+  });
+
+  describe("V4 report reading and scope projection", () => {
+    function validV4StructuredContent() {
+      return {
+        overview: { title: "Tổng quan", narrative: "Bản mệnh vững vàng.", evidenceKeys: ["ziwei.palace.life"] },
+        coreAxis: { title: "Mệnh Thân", narrative: "Ý chí kiên định.", evidenceKeys: ["ziwei.palace.life"] },
+        keyConfigurations: [{ title: "Cách cục", narrative: "Tử Phủ đồng cung.", evidenceKeys: ["ziwei.palace.life"] }],
+        palaceReadings: ZIWEI_PALACE_IDS.map((palaceId) => ({ palaceId, title: "Cung", narrative: "Luận giải.", evidenceKeys: ["ziwei.palace.life"] })),
+        thematicSynthesis: ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id) => ({ id, title: "Chuyên đề", narrative: "Tổng hợp.", evidenceKeys: ["ziwei.palace.life"] })),
+        strengthsAndTensions: { title: "Điểm mạnh", narrative: "Nội lực bền bỉ.", evidenceKeys: ["ziwei.palace.life"] },
+        currentDecadal: { title: "Đại vận", state: "active", index: 2, ageRange: [22, 31], yearRange: [2022, 2031], narrative: "Đại vận hanh thông.", evidenceKeys: ["decadal.state.active"] },
+        annualSnapshot: { title: "Lưu niên", targetYear: 2026, asOfDate: "2026-09-12", narrative: "Lưu niên nhiều cơ hội.", evidenceKeys: ["annual.target-year.2026"] },
+        practicalDirection: [
+          { recommendation: "Khuyến nghị 1", rationale: "Lý do 1", avoid: "Tránh 1", evidenceKeys: ["ziwei.palace.life"] },
+          { recommendation: "Khuyến nghị 2", rationale: "Lý do 2", avoid: "Tránh 2", evidenceKeys: ["ziwei.palace.life"] },
+          { recommendation: "Khuyến nghị 3", rationale: "Lý do 3", avoid: "Tránh 3", evidenceKeys: ["ziwei.palace.life"] },
+        ],
+      };
+    }
+
+    it("owner reads V4 comprehensive report with contentVersion ziwei-comprehensive.v2, decadal, annual, actions, and NO sensitivity", async () => {
+      const versionRecord = {
+        id: "ver-uuid-v4-t2",
+        reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+        reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+        entitlementId: "ent-v4-full",
+        chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+        evidenceVersionId: "ev-set-1",
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+        reportConfigVersion: "ziwei.comprehensive.report.v4",
+        promptVersion: "ziwei.comprehensive.prompt.v4",
+        templateVersion: "ziwei-comprehensive-html.v1",
+        locale: "vi",
+        sku: "ZIWEI-IDENTITY-P0",
+        providerId: "open-router",
+        modelId: "synthetic-model",
+        structuredContent: validV4StructuredContent(),
+        htmlContent: "<html></html>",
+        contentHash: "f".repeat(64),
+        pdfAssetId: null,
+        renderVersion: "identity-report-pdf.v1",
+        supersedesReportVersionId: null,
+        createdAt: new Date("2026-09-12T00:00:00+07:00"),
+      } as any;
+
+      const readMock = vi.fn().mockResolvedValue(
+        createSampleRecord({
+          order: {
+            id: "ord-uuid-v4-t2",
+            invoiceNumber: "LSV-INV-V4-T2",
+            status: "paid",
+            paidAt: new Date("2026-09-12T10:05:00.000Z"),
+          } as any,
+          reservation: {
+            entitlementId: "ent-v4-full",
+            sku: "ZIWEI-IDENTITY-P0",
+            status: "complete",
+            promptVersion: "ziwei.comprehensive.prompt.v4",
+            knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+            reportConfigVersion: "ziwei.comprehensive.report.v4",
+            locale: "vi",
+          } as any,
+          version: versionRecord,
+          entitlements: [
+            {
+              id: "ent-v4-full",
+              orderId: "ord-uuid-v4-t2",
+              chartId: "chart-1",
+              sku: "ZIWEI-IDENTITY-P0",
+              scope: {
+                sections: [
+                  "overview",
+                  "coreAxis",
+                  "strengthsAndTensions",
+                  "practicalDirection",
+                  "keyConfigurations",
+                  "palaceReadings",
+                  "thematicSynthesis",
+                  "currentDecadal",
+                  "annualSnapshot",
+                ],
+              },
+              orderStatus: "paid",
+            },
+          ],
+        }),
+      );
+
+      const service = createReportQueryService({ repository: { readAuthorizedReport: readMock } });
+      const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.value.state).toBe("ready");
+      if (result.value.state !== "ready") return;
+
+      expect(result.value.contentVersion).toBe("ziwei-comprehensive.v2");
+      const content = result.value.content as any;
+      expect(content.currentDecadal.state).toBe("active");
+      expect(content.annualSnapshot.targetYear).toBe(2026);
+      expect(content.practicalDirection).toHaveLength(3);
+      expect(content.birthTimeSensitivity).toBeUndefined();
+    });
+
+    it("Tier-1 entitlement for V4 report remains natal-only and locks timing sections", async () => {
+      const versionRecord = {
+        id: "ver-uuid-v4-t1",
+        reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+        reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+        entitlementId: "ent-v4-t1",
+        chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+        evidenceVersionId: "ev-set-1",
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+        reportConfigVersion: "ziwei.comprehensive.report.v4",
+        promptVersion: "ziwei.comprehensive.prompt.v4",
+        templateVersion: "ziwei-comprehensive-html.v1",
+        locale: "vi",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        providerId: "open-router",
+        modelId: "synthetic-model",
+        structuredContent: validV4StructuredContent(),
+        htmlContent: "<html></html>",
+        contentHash: "f".repeat(64),
+        pdfAssetId: null,
+        renderVersion: "identity-report-pdf.v1",
+        supersedesReportVersionId: null,
+        createdAt: new Date("2026-09-12T00:00:00+07:00"),
+      } as any;
+
+      const readMock = vi.fn().mockResolvedValue(
+        createSampleRecord({
+          order: {
+            id: "ord-uuid-v4-t1",
+            invoiceNumber: "LSV-INV-V4-T1",
+            status: "paid",
+            paidAt: new Date("2026-09-12T10:05:00.000Z"),
+          } as any,
+          reservation: {
+            entitlementId: "ent-v4-t1",
+            sku: "ZIWEI-NATAL-EXCERPT-P0",
+            status: "complete",
+            promptVersion: "ziwei.comprehensive.prompt.v4",
+            knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+            reportConfigVersion: "ziwei.comprehensive.report.v4",
+            locale: "vi",
+          } as any,
+          version: versionRecord,
+          entitlements: [
+            {
+              id: "ent-v4-t1",
+              orderId: "ord-uuid-v4-t1",
+              chartId: "chart-1",
+              sku: "ZIWEI-NATAL-EXCERPT-P0",
+              scope: {
+                sections: [
+                  "overview",
+                  "coreAxis",
+                  "strengthsAndTensions",
+                  "practicalDirection",
+                ],
+              },
+              orderStatus: "paid",
+            },
+          ],
+        }),
+      );
+
+      const service = createReportQueryService({ repository: { readAuthorizedReport: readMock } });
+      const result = await service.getReport(accountActor, "834e9e89-19cb-44a6-bc59-ba7741374553");
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.value.state).toBe("ready");
+      if (result.value.state !== "ready") return;
+
+      expect(result.value.contentVersion).toBe("ziwei-comprehensive.v2");
+      const content = result.value.content as any;
+      expect(content.currentDecadal).toBeUndefined();
+      expect(content.annualSnapshot).toBeUndefined();
+      expect(content.birthTimeSensitivity).toBeUndefined();
+      expect(content.lockedSections).toContain("currentDecadal");
+      expect(content.lockedSections).toContain("annualSnapshot");
+    });
   });
 });

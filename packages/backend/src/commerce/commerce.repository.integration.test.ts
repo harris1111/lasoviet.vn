@@ -31,7 +31,9 @@ import { createDatabaseCommerceRepository } from "./commerce.repository.js";
 import {
   REPORT_KNOWLEDGE_VERSION_V2,
   REPORT_PROMPT_VERSION_V2,
+  v4ReportVersions,
 } from "../reports/identity-report-config.js";
+import { createReportService } from "../reports/report.service.js";
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
 
 describe("commerce repository - library and order history (WP-03)", () => {
@@ -2097,5 +2099,154 @@ describe("commerce repository - library and order history (WP-03)", () => {
     // Database record is persistently updated to expired
     const [dbOrder] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, t2Order.value.id));
     expect(dbOrder?.status).toBe("expired");
+  });
+  it("proves injected reportVersionResolver returning v4 and frozen now near UTC/Vietnam date boundary persists Vietnam asOfDate/targetYear/rule versions and outbox V2 payload, and recovery under different clock preserves them", async () => {
+    // 2026-12-31 20:00:00 UTC -> 2027-01-01 03:00:00 in Vietnam (+7)
+    const newYearEveUtc = new Date("2026-12-31T20:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, {
+      now: () => newYearEveUtc,
+      reportVersionResolver: () => v4ReportVersions("vi"),
+    });
+
+    const owner = await createOwnerFixture({ displayName: "V4 Boundary Owner" });
+    const orderResult = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) return;
+
+    await repo.recordPaid({
+      invoiceNumber: orderResult.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-v4-boundary-${randomUUID()}`,
+      amount: 79000,
+      currency: "VND",
+      traceId: "trace-v4-boundary",
+    });
+
+    // 0. Verify entitlement scope contains all 10 V4 sections
+    const [v4Entitlement] = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.orderId, orderResult.value.id));
+    expect(v4Entitlement).toBeDefined();
+    expect(v4Entitlement?.scope.sections).toHaveLength(9);
+    expect(v4Entitlement?.scope.sections).not.toContain("birthTimeSensitivity");
+    expect(v4Entitlement?.scope.sections).toContain("currentDecadal");
+    expect(v4Entitlement?.scope.sections).toContain("annualSnapshot");
+
+    // 1. Verify reservation has frozen Vietnam asOfDate (2027-01-01) and targetYear (2027)
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, owner.versionId));
+    expect(reservation).toBeDefined();
+    expect(reservation?.asOfDate).toBe("2027-01-01");
+    expect(reservation?.targetYear).toBe(2027);
+    expect(reservation?.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(reservation?.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
+
+    // 2. Verify outbox event is V2
+    const [outboxEvent] = await database
+      .select()
+      .from(outbox)
+      .where(and(
+        eq(outbox.idempotencyKey, "report-request:" + reservation!.reportVersionId),
+        eq(outbox.eventType, "report.generation.requested.v2"),
+      ));
+    expect(outboxEvent).toBeDefined();
+    expect(outboxEvent?.schemaVersion).toBe(1);
+    const payload = outboxEvent?.payload as Record<string, unknown>;
+    expect(payload.asOfDate).toBe("2027-01-01");
+    expect(payload.targetYear).toBe(2027);
+    expect(payload.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(payload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
+
+    // 3. Mark terminal failure and recover under a completely different clock (mid 2027)
+    await database
+      .update(reportReservations)
+      .set({ status: "terminal_failure", lastErrorCode: "REPORT_EVIDENCE_INVALID" })
+      .where(eq(reportReservations.id, reservation!.id));
+
+    const recoveryClock = new Date("2027-07-20T12:00:00.000Z");
+    const reportService = createReportService(database);
+    const recoveryResult = await reportService.recoverEvidenceInvalidGeneration({
+      reportVersionId: reservation!.reportVersionId,
+      expectedStateVersion: reservation!.stateVersion,
+      recoveryId: "rec-v4-test",
+      now: recoveryClock,
+    });
+    expect(recoveryResult.ok).toBe(true);
+
+    // 4. Verify recovery outbox event preserves original 2027-01-01 / 2027 lineage, NOT derived from recoveryClock
+    const [recoveryOutboxEvent] = await database
+      .select()
+      .from(outbox)
+      .where(and(
+        eq(outbox.aggregateId, reservation!.reportVersionId),
+        eq(outbox.eventType, "report.generation.requested.v2"),
+      ))
+      .orderBy(desc(outbox.createdAt))
+      .limit(1);
+
+    expect(recoveryOutboxEvent).toBeDefined();
+    const recoveryPayload = recoveryOutboxEvent?.payload as Record<string, unknown>;
+    expect(recoveryPayload.asOfDate).toBe("2027-01-01");
+    expect(recoveryPayload.targetYear).toBe(2027);
+    expect(recoveryPayload.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(recoveryPayload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
+  });
+
+  it("proves default resolver remains V3 and emits V1 event without timing fields", async () => {
+    const repo = createDatabaseCommerceRepository(database);
+
+    const owner = await createOwnerFixture({ displayName: "Default Resolver Owner" });
+    const orderResult = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    expect(orderResult.ok).toBe(true);
+    if (!orderResult.ok) return;
+
+    await repo.recordPaid({
+      invoiceNumber: orderResult.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `sepay-default-v3-${randomUUID()}`,
+      amount: 79000,
+      currency: "VND",
+      traceId: "trace-default-v3",
+    });
+
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, owner.versionId));
+    expect(reservation).toBeDefined();
+    expect(reservation?.asOfDate).toBeNull();
+    expect(reservation?.targetYear).toBeNull();
+    expect(reservation?.timingRuleVersion).toBeNull();
+    expect(reservation?.sensitivityRuleVersion).toBeNull();
+    expect(reservation?.knowledgeVersionId).toBe("ziwei.comprehensive.knowledge.v3");
+
+    const [outboxEvent] = await database
+      .select()
+      .from(outbox)
+      .where(and(
+        eq(outbox.idempotencyKey, "report-request:" + reservation!.reportVersionId),
+        eq(outbox.eventType, "report.generation.requested.v1"),
+      ));
+    expect(outboxEvent).toBeDefined();
+    expect(outboxEvent?.schemaVersion).toBe(1);
+    const payload = outboxEvent?.payload as Record<string, unknown>;
+    expect(payload.asOfDate).toBeUndefined();
+    expect(payload.targetYear).toBeUndefined();
+    expect(payload.timingRuleVersion).toBeUndefined();
+    expect(payload.sensitivityRuleVersion).toBeUndefined();
+
+    // Verify default V3 entitlement has 7 sections without timing sections
+    const [v3Entitlement] = await database
+      .select()
+      .from(commerceEntitlements)
+      .where(eq(commerceEntitlements.orderId, orderResult.value.id));
+    expect(v3Entitlement).toBeDefined();
+    expect(v3Entitlement?.scope.sections).toHaveLength(7);
+    expect(v3Entitlement?.scope.sections).not.toContain("birthTimeSensitivity");
+    expect(v3Entitlement?.scope.sections).not.toContain("currentDecadal");
+    expect(v3Entitlement?.scope.sections).not.toContain("annualSnapshot");
   });
 });

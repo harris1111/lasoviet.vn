@@ -456,3 +456,16 @@ export function normalizeIztroAstrolabe(
     provenance,
   };
 }
+
+export {
+  palaceIds,
+  branchIds,
+  starIds,
+  boshiStarIds,
+  jiangqianStarIds,
+  suiqianStarIds,
+  stemIds,
+  cycleStateIds,
+  brightness,
+  transformation,
+};
