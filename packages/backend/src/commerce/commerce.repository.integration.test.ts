@@ -25,10 +25,12 @@ import {
   type CurrentActor,
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
+  TIER_2_V4_ENTITLEMENT_SCOPE,
 } from "@lasoviet/contracts";
 
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
 import {
+  deriveReportTimingLineage,
   REPORT_KNOWLEDGE_VERSION_V2,
   REPORT_PROMPT_VERSION_V2,
   v4ReportVersions,
@@ -1397,7 +1399,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
 
     expect(entitlement).toBeDefined();
     expect(entitlement?.sku).toBe("ZIWEI-IDENTITY-P0");
-    expect(entitlement?.scope).toEqual(TIER_2_ENTITLEMENT_SCOPE);
+    expect(entitlement?.scope).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
   });
 
   it("creates Tier-2 scope upon customer self-claim (Acceptance test 4)", async () => {
@@ -1442,7 +1444,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
 
     expect(entitlement).toBeDefined();
     expect(entitlement?.sku).toBe("ZIWEI-IDENTITY-P0");
-    expect(entitlement?.scope).toEqual(TIER_2_ENTITLEMENT_SCOPE);
+    expect(entitlement?.scope).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
   });
 
   it("creates Tier-1 scope upon payment confirmation of 19k excerpt offer (Acceptance test 5)", async () => {
@@ -1548,7 +1550,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
       .where(
         and(
           eq(outbox.actorId, owner.actor.userId),
-          eq(outbox.eventType, "report.generation.requested.v1"),
+          eq(outbox.eventType, "report.generation.requested.v2"),
         ),
       );
     expect(outboxEvents).toHaveLength(1);
@@ -1628,7 +1630,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
       .where(
         and(
           eq(outbox.actorId, owner.actor.userId),
-          eq(outbox.eventType, "report.generation.requested.v1"),
+          eq(outbox.eventType, "report.generation.requested.v2"),
         ),
       );
     expect(outboxEvents).toHaveLength(1);
@@ -1747,7 +1749,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
       .where(
         and(
           eq(outbox.actorId, owner.actor.userId),
-          eq(outbox.eventType, "report.generation.requested.v1"),
+          eq(outbox.eventType, "report.generation.requested.v2"),
         ),
       );
     expect(outboxEvents).toHaveLength(1);
@@ -2195,8 +2197,9 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(recoveryPayload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
   });
 
-  it("proves default resolver remains V3 and emits V1 event without timing fields", async () => {
-    const repo = createDatabaseCommerceRepository(database);
+  it("proves default resolver activates V4 and emits V2 event with timing fields", async () => {
+    const fixedNow = new Date("2026-09-13T10:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, { now: () => fixedNow });
 
     const owner = await createOwnerFixture({ displayName: "Default Resolver Owner" });
     const orderResult = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
@@ -2206,21 +2209,23 @@ describe("commerce repository - library and order history (WP-03)", () => {
     await repo.recordPaid({
       invoiceNumber: orderResult.value.invoiceNumber,
       matchMethod: "invoice_number",
-      providerEventId: `sepay-default-v3-${randomUUID()}`,
+      providerEventId: `sepay-default-v4-${randomUUID()}`,
       amount: 79000,
       currency: "VND",
-      traceId: "trace-default-v3",
+      traceId: "trace-default-v4",
     });
+
+    const expectedLineage = deriveReportTimingLineage(fixedNow);
 
     const [reservation] = await database
       .select()
       .from(reportReservations)
       .where(eq(reportReservations.chartVersionId, owner.versionId));
     expect(reservation).toBeDefined();
-    expect(reservation?.asOfDate).toBeNull();
-    expect(reservation?.targetYear).toBeNull();
-    expect(reservation?.timingRuleVersion).toBeNull();
-    expect(reservation?.sensitivityRuleVersion).toBeNull();
+    expect(reservation?.asOfDate).toBe(expectedLineage.asOfDate);
+    expect(reservation?.targetYear).toBe(expectedLineage.targetYear);
+    expect(reservation?.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(reservation?.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
     expect(reservation?.knowledgeVersionId).toBe("ziwei.comprehensive.knowledge.v3");
 
     const [outboxEvent] = await database
@@ -2228,25 +2233,26 @@ describe("commerce repository - library and order history (WP-03)", () => {
       .from(outbox)
       .where(and(
         eq(outbox.idempotencyKey, "report-request:" + reservation!.reportVersionId),
-        eq(outbox.eventType, "report.generation.requested.v1"),
+        eq(outbox.eventType, "report.generation.requested.v2"),
       ));
     expect(outboxEvent).toBeDefined();
     expect(outboxEvent?.schemaVersion).toBe(1);
     const payload = outboxEvent?.payload as Record<string, unknown>;
-    expect(payload.asOfDate).toBeUndefined();
-    expect(payload.targetYear).toBeUndefined();
-    expect(payload.timingRuleVersion).toBeUndefined();
-    expect(payload.sensitivityRuleVersion).toBeUndefined();
+    expect(payload.asOfDate).toBe(reservation?.asOfDate);
+    expect(payload.targetYear).toBe(reservation?.targetYear);
+    expect(payload.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(payload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
 
-    // Verify default V3 entitlement has 7 sections without timing sections
-    const [v3Entitlement] = await database
+    // Verify default V4 entitlement matches V4 section scope
+    const [v4Entitlement] = await database
       .select()
       .from(commerceEntitlements)
       .where(eq(commerceEntitlements.orderId, orderResult.value.id));
-    expect(v3Entitlement).toBeDefined();
-    expect(v3Entitlement?.scope.sections).toHaveLength(7);
-    expect(v3Entitlement?.scope.sections).not.toContain("birthTimeSensitivity");
-    expect(v3Entitlement?.scope.sections).not.toContain("currentDecadal");
-    expect(v3Entitlement?.scope.sections).not.toContain("annualSnapshot");
+    expect(v4Entitlement).toBeDefined();
+    expect(v4Entitlement?.scope).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
+    expect(v4Entitlement?.scope.sections).toHaveLength(9);
+    expect(v4Entitlement?.scope.sections).not.toContain("birthTimeSensitivity");
+    expect(v4Entitlement?.scope.sections).toContain("currentDecadal");
+    expect(v4Entitlement?.scope.sections).toContain("annualSnapshot");
   });
 });

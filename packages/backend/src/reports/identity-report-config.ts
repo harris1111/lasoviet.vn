@@ -124,9 +124,9 @@ export type ReportVersionSelection =
 
 export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
 
-export function currentReportVersions(locale: string): ReportVersionSelectionV2 | ReportVersionSelectionV3 {
+export function currentReportVersions(locale: string): ReportVersionSelectionV2 | ReportVersionSelectionV4 {
   return locale === "vi"
-    ? { family: "v3" as const, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3, promptVersion: REPORT_PROMPT_VERSION_V3, reportConfigVersion: REPORT_CONFIG_VERSION_V3, templateVersion: REPORT_TEMPLATE_VERSION_V3 }
+    ? v4ReportVersions("vi")
     : { family: "v2" as const, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2, promptVersion: REPORT_PROMPT_VERSION_V2, reportConfigVersion: REPORT_CONFIG_VERSION_V1, templateVersion: REPORT_TEMPLATE_VERSION_V1 };
 }
 
