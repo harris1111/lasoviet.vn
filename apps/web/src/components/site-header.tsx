@@ -1,7 +1,9 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { HeaderAccountUser } from "./site-header-sign-in-link";
 import { SiteHeaderSignInLink } from "./site-header-sign-in-link";
+export type { HeaderAccountUser };
 
 export type DisciplineNavLink = {
   label: string;
@@ -51,6 +53,7 @@ export type SiteHeaderProps = {
   currentPath?: string;
   contactPath?: string;
   accentColor?: string;
+  account?: HeaderAccountUser | null;
 };
 
 function route(locale: "en" | "vi", path: string) {
@@ -82,6 +85,7 @@ export function SiteHeader({
   currentPath,
   contactPath = "/lien-he",
   accentColor,
+  account,
 }: SiteHeaderProps) {
   const contactHref = route(locale, contactPath);
   const isVietnamese = locale === "vi";
@@ -263,6 +267,7 @@ export function SiteHeader({
               className: "login-link",
               locale,
               currentPath,
+              account,
               style: { color: "var(--pearl-200)", textDecoration: "none", fontSize: "14.5px" },
             },
             isVietnamese ? "Đăng nhập" : "Sign in",
@@ -319,6 +324,7 @@ export function SiteHeader({
                   className: "mobile-login-link",
                   locale,
                   currentPath,
+                  account,
                 },
                 isVietnamese ? "Đăng nhập" : "Sign in",
                 renderHeaderIcon("chevron-right"),
