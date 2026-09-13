@@ -56,14 +56,16 @@ describe("identity report config", () => {
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V1).toBe("ziwei-comprehensive.v1");
   });
 
-  it("currentReportVersions returns V3 for Vietnamese and V2 for English", () => {
+  it("currentReportVersions returns V4 for Vietnamese and V2 for English", () => {
     const viVersions = currentReportVersions("vi");
     expect(viVersions).toEqual({
-      family: "v3",
+      family: "v4",
       knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
-      promptVersion: "ziwei.comprehensive.prompt.v3",
-      reportConfigVersion: "ziwei.comprehensive.report.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      reportConfigVersion: "ziwei.comprehensive.report.v4",
       templateVersion: "ziwei-comprehensive-html.v1",
+      contentVersion: "ziwei-comprehensive.v2",
+      timingRuleVersion: "ziwei.timing.v1",
     });
 
     const enVersions = currentReportVersions("en");
@@ -150,7 +152,7 @@ describe("identity report config", () => {
       expect(enHasSection).toBe(true);
     }
   });
-  it("exports dormant V4 constants and timing/sensitivity rule strings", () => {
+  it("exports V4 constants and timing/sensitivity rule strings", () => {
     expect(REPORT_KNOWLEDGE_VERSION_V4).toBe("ziwei.comprehensive.knowledge.v4");
     expect(REPORT_PROMPT_VERSION_V4).toBe("ziwei.comprehensive.prompt.v4");
     expect(REPORT_CONFIG_VERSION_V4).toBe("ziwei.comprehensive.report.v4");
@@ -159,7 +161,7 @@ describe("identity report config", () => {
     expect(REPORT_SENSITIVITY_RULE_VERSION_V1).toBe("ziwei.sensitivity.v1");
   });
 
-  it("v4ReportVersions returns family v4 with exact dormant constants without activating currentReportVersions", () => {
+  it("v4ReportVersions returns family v4 matching activated currentReportVersions for Vietnamese while legacy V3 constants remain available", () => {
     const v4 = v4ReportVersions();
     expect(v4).toEqual({
       family: "v4",
@@ -171,8 +173,15 @@ describe("identity report config", () => {
       timingRuleVersion: "ziwei.timing.v1",
     });
 
-    // Verify currentReportVersions remains family v3 for Vietnamese
-    expect(currentReportVersions("vi").family).toBe("v3");
+    // Verify currentReportVersions matches v4ReportVersions for Vietnamese
+    expect(currentReportVersions("vi")).toEqual(v4);
+
+    // Regression check: legacy V3 constants remain available for existing reports
+    expect(REPORT_KNOWLEDGE_VERSION_V3).toBe("ziwei.comprehensive.knowledge.v3");
+    expect(REPORT_PROMPT_VERSION_V3).toBe("ziwei.comprehensive.prompt.v3");
+    expect(REPORT_CONFIG_VERSION_V3).toBe("ziwei.comprehensive.report.v3");
+    expect(REPORT_TEMPLATE_VERSION_V3).toBe("ziwei-comprehensive-html.v1");
+    expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V1).toBe("ziwei-comprehensive.v1");
   });
 
   it("deriveReportTimingLineage converts Date to Asia/Ho_Chi_Minh asOfDate and derives matching targetYear", () => {
