@@ -1,17 +1,25 @@
 ---
 title: Lá Số Việt — Sitemap, SEO & Wireframe Blueprint
-version: 1.1
+version: 1.2
 status: founder-approved
 date: 2026-08-31
 approved_at: 2026-08-31
 approval_decision: FD-019
+last_updated: 2026-09-13
+amendment_decisions: FD-059, FD-060, FD-062, FD-063, FD-064, FD-065, FD-066, FD-068
 owners: CEO, Product, Design, SEO, Engineering, Content
 depends_on:
   - MASTER_CONCEPT.md
-  - Brand & Experience Guideline v1.0
+  - Brand & Experience Guideline v1.1
 ---
 
-# Lá Số Việt — Sitemap, SEO & Wireframe Blueprint v1.1
+# Lá Số Việt — Sitemap, SEO & Wireframe Blueprint v1.2
+
+> **2026-09-13 amendment:** FD-059 through FD-063 replace the former no-blur
+> rule in the paid-preview and checkout wireframes with secure progressive
+> reveal, `Lá` credits, dual Lá/VND display, and evidence-backed conversion
+> visuals. The complete binding design is
+> `docs/superpowers/specs/2026-09-13-progressive-reveal-la-credits-and-conversion-ui-design.md`.
 
 > **Cập nhật 2026-09-04:** §2 (Navigation, mega-menu model) và khung sitemap ở
 > §3.1 đã được thay thế bởi `docs/19-sitemap-v2-discipline-pages.md` — nav
@@ -496,22 +504,22 @@ Empty, focus, valid, error cụ thể, địa danh trùng tên, không rõ giờ
 
 | Thứ tự | Block |
 |---|---|
-| 1 | H1 đúng topic + “phù hợp khi” |
-| 2 | Chọn birth profile/lập mới |
-| 3 | Deliverable: mục lục, 5–7 luận điểm, độ dài, ETA, format |
-| 4 | Preview 10–15% nội dung thật; không blur giả |
-| 5 | Có gì / Không có gì |
-| 6 | Giá cuối, mua một lần, support/regeneration |
-| 7 | FAQ/policy + CTA |
+| 1 | Topic-specific H1 and `phù hợp khi` framing |
+| 2 | Select an existing birth profile or create a new chart |
+| 3 | Real deliverable: contents, 5–7 points, length, ETA, and format |
+| 4 | One complete useful excerpt followed by a secure blur/fade representation; protected plaintext is absent from unauthorized client payloads |
+| 5 | Honest `Có gì / Không có gì` comparison |
+| 6 | Final Lá price, one-time ownership, support, and regeneration terms (no VND equivalent — FD-065) |
+| 7 | FAQ/policy and one contextual CTA |
 
 ## 6.6 Checkout phù hợp Việt Nam
 
-- Order summary xuất hiện trước payment trên mobile.
-- Tên report, birth profile, giá cuối và `Thanh toán một lần` luôn thấy.
-- VietQR/card/e-wallet chỉ theo provider thật.
-- QR hiển thị đúng người nhận, số tiền; có tải/mở app khi provider hỗ trợ.
-- Terms bắt buộc và marketing consent tách riêng, marketing mặc định off.
-- CTA chứa giá: `Thanh toán 79.000 ₫`.
+- Show the order summary before payment controls on mobile.
+- Keep report name, applicable birth profile, Lá amount, and `Thanh toán một lần` visible. VND appears only on the top-up pack step (FD-065).
+- Show only payment methods the provider actually supports.
+- QR shows the correct recipient and amount, with download/open-bank-app actions when supported.
+- Required terms and optional marketing consent remain separate; marketing defaults off.
+- Preserve the unlock intent in the CTA: `Mở báo cáo — 960 Lá`; with insufficient balance, pre-select the smallest covering pack, e.g. `Nhận 1.100 Lá — 99.000đ và mở báo cáo` (FD-066).
 
 States: creating order, pending, confirmed success, failed, expired QR, paid-but-not-returned và report-generation progress. Không xác nhận “thành công” chỉ vì client quay lại từ app ngân hàng.
 

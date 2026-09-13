@@ -39,10 +39,10 @@
 | FD-033 | 2026-09-05 | For the production discipline-page integration, use Sol high for orchestration, Gemini Flash strict for implementation, and one Terra xhigh milestone review after the complete batch; the implementation PR targets `product/discipline-flagship-pages` | Approved | `docs/superpowers/plans/2026-09-05-production-discipline-flagship-pages.md` |
 | FD-034 | 2026-09-05 | Port every completed page and gated state from `product/discipline-flagship-pages`; keep Vietnamese prototype copy unchanged, expose previews as public `live_noindex`, preserve legacy routes with locale-aware HTTP 301 redirects, and leave the private Tử Vi wizard unchanged | Approved | `docs/19-sitemap-v2-discipline-pages.md`, production discipline-page plan |
 | FD-035 | 2026-09-06 | Approve the Phase 04 provider privacy due-diligence gate for self-hosted/founder-operated `9router-an`; founder explicitly accepts operational/privacy responsibility and waives separate term investigation. Production AI/payment activation, deployment, and release activation remain separately founder-controlled. | Approved | `docs/compliance/ai-provider-due-diligence.md`, Phase 04 plan |
-| FD-036 | 2026-09-08 | Phased direction B: Free → micro-offer OR 79k comprehensive report, VND only; wallet/points deferred to a later gated phase | Approved | `docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` |
+| FD-036 | 2026-09-08 | Phased direction B: Free → micro-offer OR 79k comprehensive report, VND only; wallet/points deferred to a later gated phase | Partially superseded by FD-060; product ladder retained | `docs/superpowers/specs/2026-09-08-product-ladder-and-post-purchase-experience.md` |
 | FD-037 | 2026-09-08 | Tier-1 micro-offer is a defined natal excerpt with upgrade credit; no situational-question engine this round | Approved | Same spec |
 | FD-038 | 2026-09-08 | Primary 90-day KPI is 30-day contribution margin per chart-creating customer; first-purchase rate and return revenue are secondary and must not be optimized at the primary KPI's expense | Approved | Same spec |
-| FD-039 | 2026-09-08 | Exclude the "Điểm Việt" wallet/points system from this round's spec; data design must not block adding a wallet later | Approved | Same spec |
+| FD-039 | 2026-09-08 | Exclude the "Điểm Việt" wallet/points system from this round's spec; data design must not block adding a wallet later | Superseded by FD-060 | Same spec |
 | FD-040 | 2026-09-09 | `invoice_number` is immutable for the life of an order row; the commerce order table becomes append-only (reopening an order inserts a new row rather than overwriting the old one) | Approved | `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md` |
 | FD-041 | 2026-09-09 | Upgrade credit (tier 1 → tier 2) expires 7 days after the tier-1 `paid_at` (paid timestamp), overriding An's no-expiry recommendation; must be disclosed at the tier-1 purchase point before payment confirmation | Approved | Same round-2 doc |
 | FD-042 | 2026-09-09 | SKU ID is an immutable technical identifier and must never be exposed to the customer in any form (backend-only); only the customer-facing display name changes | Approved | Same round-2 doc |
@@ -51,7 +51,7 @@
 | FD-045 | 2026-09-09 | Reject any odd-cent amount surcharge for payment reconciliation — displayed/charged prices must always be round, no exceptions. Replace the amount-only auto-match tier with a customer self-claim flow gated by an exact-amount match within a narrow customer-declared transfer time window (plus/minus 15 minutes around declared timestamp to minute precision in `Asia/Ho_Chi_Minh`) | Approved (revised) | Same round-2 doc |
 | FD-046 | 2026-09-09 | Funds that cannot be matched to a customer, with no bank auto-refund capability available, remain held pending indefinite customer self-claim; no manual refund process is required | Approved | Same round-2 doc |
 | FD-047 | 2026-09-09 | Out-of-band alert channel for the circuit breaker and stale unmatched transactions (>6h) is a Telegram bot posting to the shared Harris/An operations group (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`); founder SLA is to check within 6 hours | Approved | Same round-2 doc |
-| FD-048 | 2026-09-09 | Tier-1 micro-offer sells at a single price point, 19,000 VND only; no 19k/29k A/B test this round (WP-12 deprioritized) | Approved | Same round-2 doc |
+| FD-048 | 2026-09-09 | Tier-1 micro-offer sells at a single price point, 19,000 VND only; no 19k/29k A/B test this round (WP-12 deprioritized) | Superseded by FD-066 (Tier-1 is now priced in Lá; no single VND price point) | Same round-2 doc |
 | FD-049 | 2026-09-09 | Fully migrate the legacy analytics event set (`config/analytics-events.json`) to the new WP-10 funnel event names; no dual event system running in parallel | Approved | Same round-2 doc |
 | FD-050 | 2026-09-09 | Only anonymous technical events (not tied to user behavior) may be logged before analytics consent; no canonical funnel event fires pre-consent | Approved | Same round-2 doc |
 | FD-051 | 2026-09-09 | Long-term analytics storage is PostgreSQL in existing infrastructure; no third-party SaaS as the primary store and no ClickHouse this round | Approved | Same round-2 doc |
@@ -61,6 +61,29 @@
 | FD-055 | 2026-09-09 | The approved UI artifact branch for WP-03/WP-06/WP-11/WP-13 (per FD-024) is `product/discipline-flagship-pages`; verified that `product/bg-texture-consistency` and `product/homepage-content-rewrite` are ancestors, so no preliminary merge is required | Approved | Same round-2 doc |
 | FD-056 | 2026-09-09 | Harris alone signs off on the cross-cutting visual QA pass (WP-13); An executes the checks and supplies pass/fail evidence with screenshots | Approved | Same round-2 doc |
 | FD-057 | 2026-09-11 | https://lasoviet.net supersedes lasoviet.vn as the sole canonical public domain for master brand, public SEO, web application, Better Auth, checkout, and customer support email; lasoviet.vn, lasoviet.cloud, and lasoviet.xyz serve as non-canonical redirect reserves once externally configured; the GitHub repository name and local filesystem paths remain lasoviet.vn | Approved | `AGENTS.md`, `config/domain-routing.json`, `config/sitemap.json`, documentation |
+| FD-058 | 2026-09-12 | Zi Wei comprehensive report V4 (`ZIWEI-IDENTITY-P0`, 79k) adds current decadal cycle, annual snapshot, three-frame birth-time sensitivity, and 3–5 structured actions; cancels `ZIWEI-YEAR-P0`; Knowledge Base V4 editorial rewrite (plain Vietnamese, school categorization, fatalistic-content quarantine) is a release prerequisite | Approved (table row added 2026-09-13; decision recorded 2026-09-12) | `docs/superpowers/plans/2026-09-12-ziwei-comprehensive-report-v4.md`; evidence section below |
+| FD-059 | 2026-09-13 | Adopt secure progressive reveal as a core conversion pattern: complete free value first, then truthful titles/excerpts and visual blur/fade for deeper content; locked plaintext must never be shipped to an unauthorized client | Approved | `docs/superpowers/specs/2026-09-13-progressive-reveal-la-credits-and-conversion-ui-design.md` |
+| FD-060 | 2026-09-13 | Adopt `Lá` as the proprietary internal service credit at the nominal reference `1 Lá = 1,000 VND`; every paywall, top-up confirmation, and payment order must also show the VND equivalent. This supersedes the VND-only clause of FD-036 and supersedes FD-039's wallet deferral | Partially superseded by FD-065 (no published exchange rate; VND shown only at top-up); `Lá` credit concept and FD-036/FD-039 supersession retained | Same 2026-09-13 design spec |
+| FD-061 | 2026-09-13 | Purchased and promotional Lá do not expire in the first release; credits are non-transferable, non-withdrawable, and recorded in an append-only ledger with separate paid/promotional buckets, deterministic spend order, atomic entitlement grant, idempotency, and compensating restoration on failure | Approved | Same 2026-09-13 design spec |
+| FD-062 | 2026-09-13 | Map the current 19k/79k/60k Tier-1/Tier-2/upgrade values to 19/79/60 Lá and always offer exact-missing-amount top-up; individual-section, AI-answer, and multi-pack prices remain hypotheses until their separate release gates pass | Superseded by FD-066 (new Lá price list and pack ladder; exact top-up removed) | Same 2026-09-13 design spec |
+| FD-063 | 2026-09-13 | Use real chart structure, palace relationships, evidence counts/categories, reading coverage, entitlement state, and report facts as conversion and upsell surfaces; prohibit invented fortune/compatibility scores and keep predictive trend charts deferred until a reviewed time-based engine exists | Approved | Same 2026-09-13 design spec |
+| FD-064 | 2026-09-13 | Commercial and conversion decisions are optimized for maximum revenue. Persuasion techniques commonly classed as dark patterns (decoy tiers, anchoring, bonus framing, default pre-selection, curiosity gaps) are permitted when lawful under Vietnamese law. The legal boundary is binding: no fabricated reference/crossed-out prices, no false scarcity or countdowns, no misleading promotion terms, and no fear-based fortune claims that risk superstition-business sanctions. For commercial conversion decisions this overrides the "trust/safety wins" conflict rule; privacy (FD-053), payment integrity (FD-043), and entitlement correctness remain binding | Approved | This tracker; conflict rule amended 2026-09-13 in `CLAUDE.md`, `docs/15-collaboration-branch-workflow.md`, and `docs/13-brand-experience-guideline.md` |
+| FD-065 | 2026-09-13 | Two-layer pricing: `Lá` has no published exchange rate to VND. VND appears only on top-up packs, the payment order, and the invoice. Content, unlock, and upgrade prices are shown in `Lá` only, with no "tương đương X đồng" line. Lá is used to buy and view all services from one shared balance | Approved | 2026-09-13 design spec §18 |
+| FD-066 | 2026-09-13 | Top-up packs: Nhập Môn 29,000 VND → 300 Lá; Khởi Đọc 99,000 → 1,000 + 100 bonus = 1,100 Lá; Khám Phá 249,000 → 2,500 + 500 = 3,000 Lá; Tàng Thư 599,000 → 6,000 + 2,000 = 8,000 Lá. Content prices: Tier 1 240 Lá, Tier 2 960 Lá, Tier 1→Tier 2 upgrade within the FD-041 window 720 Lá; single palace 120 Lá remains a hypothesis. Exact-missing-amount top-up is removed; the primary insufficient-balance CTA is the smallest pack that covers the item. Supersedes FD-048 and FD-062 | Approved | 2026-09-13 design spec §18 |
+| FD-067 | 2026-09-13 | The invoice is issued immediately when a Lá top-up payment is confirmed, with the line item described as a `Lá` service credit, not as a report. Revenue is recognized when Lá is spent on content (deferred revenue until spend); bonus/promotional Lá is not revenue. Content unlocks paid with Lá issue no second invoice | Approved; finance/tax confirmation of the line-item wording still required before production | 2026-09-13 design spec §18 |
+| FD-068 | 2026-09-13 | Generate a small set of real personalized report sections for free chart users so locked previews show genuine, server-clipped text rather than structural teasers, to maximize "this is exactly me" recognition before purchase; the AI cost on non-buying users is accepted | Approved; section count and COGS cap to be set in the implementation plan | 2026-09-13 design spec §18 |
+| FD-069 | 2026-09-13 | Keep the homepage free of prices (neither VND nor `Lá`): the homepage states only what the visitor receives and links to the sample report; tier comparison lives on the topic-selection page (`chon-luan-giai`) and commercial pages. Reaffirms the 2026-09-09 content-ux-polish decision and rejects the AITuvi audit's homepage tier-matrix recommendation | Approved | AITuvi pattern audit review, 2026-09-13 |
+| FD-070 | 2026-09-13 | The first detailed page-family spec derived from the AITuvi pattern audit covers the core funnel (homepage fast path → birth wizard → free result → offer/topic selection → checkout → paid report → account library) before the knowledge hub | Approved | AITuvi pattern audit review, 2026-09-13 |
+| FD-071 | 2026-09-13 | All interpretation and public content is AI-generated with no human reviewer. The only customer-facing attribution is "Lá Số Việt biên tập" (EN: "Edited by La So Viet"); no on-page source lists or reviewer workflow are required. No surface may claim human, expert, or team review ("đã được xem xét", "chuyên gia", "đội ngũ") | Approved | AITuvi pattern audit review, 2026-09-13; revisit if Vietnamese law requires explicit AI-generated labeling |
+| FD-072 | 2026-09-13 | Keep Zi Wei V4 active for new Vietnamese orders (no rollback to V3) and restore the V3 prompt rules the V4 prompt dropped: no reflective questions, no process narration, no repeated advice, no fabricated future events or dates, no invented identifiers, verbatim evidence keys, locale-integrity and brightness-label block; correct the prompt domain to lasoviet.net | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §2 |
+| FD-073 | 2026-09-13 | Generate the comprehensive report section by section (one call per palace/theme/section) with per-section token budgets and minimum lengths, independent retries, resumable persistence, and reuse of the same generator for FD-068 free previews | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §3 |
+| FD-074 | 2026-09-13 | The Knowledge Base V4 editorial rewrite follows the editorial ruleset draft (plain Vietnamese, proper-name whitelist, discouraged Sino-Vietnamese term list, mainstream school as base); the ruleset extends the founder's Kaneo #3 editorial input; the rewrite is the V4.1 fast-follow the founder deferred on Kaneo #3 | Approved; ruleset signed off by the founder 2026-09-13 (term table §3.3 and warning format §5) | `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset.md`; `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §4 |
+| FD-075 | 2026-09-13 | Remove all death, lifespan, and "khắc chết" content from the corpus and output; keep misfortune warnings (money, health, accidents, travel, legal, relationships, work) written as preparation guidance with concrete steps, without certainty language, adverse-event dates, named diseases, remedies/rituals, or use in paywall copy. Narrows FD-058's fatalistic-content quarantine and the 2026-09-12 Kaneo #3 editorial input that deleted serious illness, accidents, imprisonment, and disasters outright | Approved | Ruleset draft §4–§5; `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §5 |
+| FD-076 | 2026-09-13 | Rewrite V4 prompts in everyday Vietnamese keeping only proper names; every claim pairs a real chart detail with a two-sided observation, a concrete everyday situation, and an actionable suggestion, using personal-sounding sentences anchored in the chart | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §6 |
+| FD-077 | 2026-09-13 | Add deterministic report quality gates: per-section minimum length, zero discouraged Sino-Vietnamese terms, proper-name density cap, zero death terms, misfortune-framing check, chart-anchoring check, plus existing Han/locale and repetition checks; failing sections are rewritten, never delivered below gate. Replaces the Kaneo #3 V4 launch rule "no V4 rewrite pass" (the AI critic pass stays), because stricter gates without rewrite would fail paid reports under FD-043 | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §8 |
+| FD-078 | 2026-09-13 | Add two optional single-choice reading-context questions to the birth wizard as a tappable list with a skip option (current life stage; top concern), stored as enum codes separate from the birth profile, used for examples, emphasis, and free-preview section choice, never for chart facts or prices, and never sent to third-party tools | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §7 |
+| FD-080 | 2026-09-13 | No analytics consent UI of any kind (no banner, popup, checkbox, or consent step). Behavioral funnel measurement is first-party and anonymous by design so that it does not process personal data: no stored raw IP, no full user agent or fingerprinting, unique visitors counted with a daily-rotating salted hash whose salt is destroyed after 24 hours, per-visit random ID in `sessionStorage` only, and no link to account ID, birth profile, `chart_id`, or order ID. Account-linked business metrics come from transaction data. Disclosure is one privacy-policy paragraph only. Third-party ad pixels carrying identifiers require a separate founder decision. Supersedes FD-050 and the no-rotation session-ID clause of FD-052; FD-051 and FD-053 remain binding | Superseded by FD-081 | Kaneo LSV #10 (WP-10A), #11 (WP-10C), #12 (WP-10B) |
+| FD-081 | 2026-09-13 | Behavioral tracking is identified and account-linked to optimize upsell and revenue: first-party persistent `visitor_id` cookie, stored IP/user agent/referrer/UTM, and events linked to the account and birth profile once the visitor accepts the wizard consent or signs in, with prior visitor history merged into the customer profile. No new consent UI: the existing required wizard birth-data checkbox is re-worded to also cover analytics, personalization, and offers (versioned purposes), sign-in shows a one-line terms/privacy notice without a checkbox, and the privacy policy describes the data, purposes, and retention. Unlinked visitor IPs and events are deleted after 30 days without consent or sign-in; IP may be kept separately for fraud and abuse prevention. FD-053 third-party field limits remain binding; third-party ad pixels and marketing email rules require their own decisions. Supersedes FD-080 and FD-050 | Approved | Kaneo LSV #12 (WP-10B); UI tickets #19–#28 |
 
 ## FD-028 Execution Boundary
 
@@ -769,3 +792,147 @@ Date: 2026-09-12
   corpus into plain conversational Vietnamese, categorizing by school, and
   quarantining extreme or fatalistic content is a prerequisite for V4 release.
   Editorial work is gated on the founder providing the editorial ruleset
+
+## FD-059 Through FD-063 Progressive Reveal, Lá Credits, and Conversion UI
+
+Date: 2026-09-13
+
+- The founder explicitly approved the recommended hybrid secure-blur direction,
+  the proprietary `Lá` credit concept, exact-amount top-up alongside stepped
+  credit packs, and corresponding brand/spec changes.
+- The founder additionally required the AItuvi-derived conversion UI findings
+  to be incorporated: chart and diagram surfaces, real counts and status,
+  locked content maps, curiosity cues, and contextual upsell.
+- The binding design is
+  `docs/superpowers/specs/2026-09-13-progressive-reveal-la-credits-and-conversion-ui-design.md`.
+- This approval authorizes documentation and implementation planning only. It
+  does not authorize runtime wallet/payment/UI implementation, production
+  activation, deployment, or migration.
+- Exact top-up is approved behavior. Credit-pack prices, individual palace
+  prices, and contextual AI-answer prices remain validation hypotheses and are
+  not production-authorized SKUs. (Later the same day, FD-065 and FD-066
+  superseded the exchange-rate display, exact top-up, and price mapping.)
+- Existing trust, privacy, entitlement, payment integrity, and predictive-
+  engine gates remain active. Open questions: none for spec review.
+
+## FD-059 Through FD-063 Numbering Note
+
+Date: 2026-09-13
+
+- The AItuvi monetization handoff originally numbered its decisions FD-058
+  through FD-062. FD-058 was already assigned to the Zi Wei V4 decision on
+  2026-09-12, so the handoff decisions were renumbered to FD-059 through
+  FD-063 when imported. Every handoff document was updated accordingly.
+
+## FD-064 Through FD-068 Monetization Round 2 Evidence
+
+Date: 2026-09-13
+
+- Founder decision after reviewing the AItuvi handoff and a verified read of
+  AItuvi's public catalog endpoints (`/fastapi/v2/payment/bundles` with
+  `type=xu|direct|subscription|chatbot`, `platform=web`) on 2026-09-13.
+- FD-064: The founder explicitly rejected avoiding dark patterns on brand or
+  ethics grounds and asked that every decision maximize revenue, including
+  tricks, provided they are lawful. Reviews must evaluate legality, not taste.
+- FD-065: The founder judged `1 Lá = 1,000 VND` to be a parallel currency in
+  disguise and chose the two-layer model with no published exchange rate.
+- FD-066: The founder approved the proposed pack ladder and content prices,
+  and confirmed removal of exact-amount top-up and of the 19,000 VND price
+  point. Effective VND per Lá by pack is 96.7 / 90.0 / 83.0 / 74.9.
+- FD-067: The founder set invoice timing at the moment of the Lá purchase,
+  following comparable international services.
+- FD-068: The founder approved pre-generating real content for free users to
+  power real-text secure previews.
+- Unchanged and still binding: FD-043 self-recovery, FD-053 analytics privacy,
+  FD-059 no locked plaintext to unauthorized clients, FD-061 ledger rules,
+  FD-041 upgrade window. FD-063's real-numbers rule stands until the founder
+  revisits it under FD-064.
+- This approval authorizes documentation and implementation planning only; it
+  does not authorize runtime implementation, activation, deployment, or
+  migration.
+
+## FD-069 Through FD-071 AITuvi Pattern Audit Review
+
+Date: 2026-09-13
+
+- Founder decisions after reviewing
+  `aituvi-pattern-audit-lasoviet-recommendations.md` against the current
+  repository state.
+- FD-069: The founder accepted keeping prices off the homepage; the audit's
+  homepage Free/19k/79k matrix is not adopted. Under FD-065/FD-066 any tier
+  comparison is expressed in `Lá` and appears only on topic-selection and
+  commercial pages.
+- FD-070: The founder accepted core-funnel-first sequencing for page-family
+  specs; the knowledge hub follows.
+- FD-071: The founder stated that all content is AI-generated and no human
+  reviewer exists, and that "Lá Số Việt biên tập" is sufficient attribution
+  without on-page source lists. Existing "reviewed" wording on public surfaces
+  must be replaced; internal `reviewer` metadata values do not render to
+  customers and are not a customer claim.
+- Cost input for the analytics contribution-margin work (WP-10): the founder
+  confirmed SePay runs on the free plan, so the payment-fee cost is recorded as
+  0 VND until the plan changes.
+- WP-10 split (approved 2026-09-13): WP-10A transaction-derived business and
+  operations metrics, WP-10C per-call AI usage and cost capture with a
+  30-day contribution margin before support cost, WP-10B anonymous behavioral
+  funnel. A drafted analytics consent banner and copy were rejected by the
+  founder as high-friction and deleted; see FD-080.
+
+## FD-080 Frictionless Anonymous Measurement
+
+Date: 2026-09-13
+
+- The founder rejected any customer-facing permission step for measurement,
+  stating that invisible system optimizations should be built without asking
+  users, because consent UI adds friction and drives visitors away.
+- The legally safe version that needs no consent is anonymous-by-design
+  measurement: data that cannot identify a specific person is not personal
+  data. The constraints in FD-080 are therefore binding implementation
+  requirements, not optional hardening; relaxing any of them (raw IP storage,
+  persistent per-person IDs, joins to account or chart data) would bring the
+  data back under Vietnamese personal-data consent rules.
+- Third-party advertising pixels that transmit identifiers remain outside this
+  decision and require a separate founder decision.
+
+## FD-072 Through FD-078 Zi Wei V4 Report Depth, Language, and Personalization Evidence
+
+Date: 2026-09-13
+
+- Trigger: the founder reviewed a live V4 comprehensive report and judged the
+  interpretation thin, insufficiently personalized, and overloaded with
+  unnecessary Sino-Vietnamese vocabulary.
+- Audit on `origin/master` found: V4 is active (`2886fe1`) on the V3 corpus,
+  as the founder decided on Kaneo #3 (2026-09-13, decision 3: corpus
+  translation and provenance deferred to a V4.1 fast-follow); the `vi` corpus
+  in use is 89.5% Chinese-language chunks (2,918 of 3,258) with a
+  49-character median and 372 death/disaster chunks; one 9,000-token call
+  covers about 30 narrative blocks; the V4 prompt lacks several V3 rules; no
+  depth, vocabulary, or personalization gate exists.
+- Founder decisions: keep V4 and add the missing rules (FD-072); approve
+  section-by-section generation (FD-073); approve drafting the editorial
+  ruleset for sign-off (FD-074); remove death content but keep misfortune
+  warnings so customers can prepare (FD-075); approve the everyday-language and
+  personal-sounding prompt style (FD-076); approve automated gates (FD-077);
+  approve two context questions as a list picker inside the wizard (FD-078).
+- FD-075 legal boundary was set under FD-064: warnings avoid certainty,
+  adverse-event dates, named diseases, remedies, and paywall use.
+- Implementation is assigned to An via a Kaneo ticket and requires an
+  implementation plan under `AGENTS.md`. The editorial rewrite starts after the
+  founder signs the ruleset.
+
+## FD-081 Identified Account-Linked Tracking
+
+Date: 2026-09-13
+
+- The founder first rejected consent banners (FD-080), then rejected the
+  anonymous-by-design constraints as preventing upsell optimization ("không lưu
+  IP, không gắn thông tin với tài khoản thì làm sao tracking và tối ưu up sell").
+- A parallel session recorded the founder choosing to keep FD-080 at 11:31. The
+  founder was then shown both options side by side and explicitly chose
+  account-linked tracking ("Gắn tài khoản"). FD-081 is the latest decision.
+- Legal basis chosen: consent folded into the existing required wizard checkbox
+  and a sign-in notice, so no additional customer step is added. Data collected
+  before any consent or sign-in is kept for at most 30 days unless linked.
+- The drafted analytics consent copy remains deleted; wording for the widened
+  checkbox and privacy-policy section is specified in Kaneo #12 and goes through
+  the claim registry (#13).

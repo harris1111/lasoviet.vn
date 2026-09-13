@@ -1,7 +1,7 @@
 # Product Ladder & Post-Purchase Experience — Spec v1
 
 **Date:** 2026-09-08
-**Status:** All decisions FD-036 through FD-056 are ratified by the founder (Round 2, 2026-09-09). Full details, including the rejected odd-unit proposal and replacement mechanism (FD-045), are recorded in `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`. The table below records ratified status.
+**Status:** Decisions FD-036 through FD-056 were ratified by the founder in Round 2 on 2026-09-09. FD-059 through FD-063 were ratified on 2026-09-13 and selectively supersede the VND-only/wallet-deferral clauses while preserving the existing product ladder, safety, commerce, and privacy constraints. See `docs/superpowers/specs/2026-09-13-progressive-reveal-la-credits-and-conversion-ui-design.md`.
 **Audited base commit:** `6e6ff065b385873b15c926a0c4b95b68074baae5` (tip of `product/experience-spec-v1`, fast-forwarded locally on 2026-09-08).
 **Input sources:** `lasoviet-brainstorm-ux-product-ladder.md` (brainstorm council, 2026-09-08) + direct repository audit.
 **Inherited constraints:** FD-007, FD-019, FD-029, and OD-001 through OD-006 remain in effect. The 2026-09-07 comprehensive spec is the source of truth for Zi Wei report content.
@@ -12,10 +12,10 @@
 
 | ID | Decision | Status |
 |---|---|---|
-| FD-036 | Phased direction B: Free → micro-offer OR 79k comprehensive report, VND only; wallet/points deferred to a later gated phase | Approved 2026-09-08 |
+| FD-036 | Phased direction B: Free → micro-offer OR 79k comprehensive report. Its VND-only clause is superseded by FD-060; the two-offer ladder remains active | Partially superseded 2026-09-13 |
 | FD-037 | Tier-1 micro-offer is a defined natal excerpt with upgrade credit; no situational-question engine this round | Approved 2026-09-08 |
 | FD-038 | Primary 90-day KPI is 30-day contribution margin per chart-creating customer; first-purchase rate and return revenue are secondary and must not be optimized at the primary KPI's expense | Approved 2026-09-08 |
-| FD-039 | Exclude the "Điểm Việt" wallet/points system from this round's spec; data design must not block adding a wallet later | Approved 2026-09-08 |
+| FD-039 | Exclude the "Điểm Việt" wallet/points system from this round's spec; superseded by the approved `Lá` credit direction in FD-060 | Superseded 2026-09-13 |
 | FD-040 | `invoice_number` is immutable for the life of an order row; commerce order table becomes append-only | Approved 2026-09-09 |
 | FD-041 | Upgrade credit (Tier 1 → Tier 2) expires 7 days after the Tier 1 `paid_at` (paid timestamp); mandatory disclosure at point of purchase before payment confirmation | Approved 2026-09-09 |
 | FD-042 | SKU ID is an immutable technical identifier and must never be exposed to the customer in any form (backend-only); only the customer-facing display name changes | Approved 2026-09-09 |
@@ -23,6 +23,8 @@
 | FD-044 | Replace the 40-character transfer-memo invoice number with a short 12-character anti-noise payment code (`LSV` + 8 Crockford base32 chars + 1 checksum char), stored separately from `invoice_number` | Approved 2026-09-09 |
 | FD-045 | Odd-unit surcharge proposal rejected — displayed and charged prices must always be round, no exceptions. Replaced legacy amount fallback matching tier with customer self-claim within +/- 15-minute window around declared transfer timestamp in `Asia/Ho_Chi_Minh` | Approved (revised) 2026-09-09 |
 | FD-046 through FD-056 | Unattended reconciliation, alert channel, micro-offer price (19k single price), analytics migration, consent/storage/session ID/third-party export boundaries, dashboard ownership, UI artifact branch (`product/discipline-flagship-pages`), and visual QA sign-off — see full details in `docs/superpowers/plans/2026-09-09-founder-decisions-round2.md`. | Approved 2026-09-09 |
+| FD-059 through FD-063 | Secure progressive reveal, `Lá` credits, ledger lifecycle, exact top-up, 19/79/60 Lá mappings, and evidence-backed conversion visualizations — see the 2026-09-13 design spec | Approved 2026-09-13; FD-060 display rule and FD-062 superseded by FD-065/FD-066 |
+| FD-064 through FD-068 | Revenue-max commercial policy within the law, two-layer pricing without a published rate, new pack ladder and Lá prices, invoice at top-up, real-text previews for free users — see §18 of the 2026-09-13 design spec | Approved 2026-09-13 |
 
 ---
 
@@ -268,6 +270,16 @@ Hệ quả bắt buộc phải chấp nhận và theo dõi: một đơn 19k ch�
 - Quyền đọc của một lá số = hợp của scope mọi entitlement chưa bị hoàn tiền.
 - Quyền đã mua **không bao giờ bị thu hồi** bởi hết hạn gói, đổi giá, hay đổi packaging.
 
+### 4.5 Lá credits and ledger amendment (FD-060 through FD-062)
+
+- `Lá` is an internal service credit with no published exchange rate (FD-065).
+- Tier 1, Tier 2, and the in-window upgrade cost 240, 960, and 720 Lá respectively (FD-066). VND appears only on top-up packs, the payment order, and the invoice.
+- Exact-missing-amount top-up is removed (FD-066). The paywall pre-selects the smallest pack that covers the item; packs are 29.000đ→300, 99.000đ→1.100, 249.000đ→3.000, 599.000đ→8.000 Lá. Ledger correctness must still be verified before activation.
+- Credits and debits use an append-only ledger. Paid and promotional buckets remain distinguishable even when one total balance is displayed.
+- Debit and entitlement grant are atomic and idempotent. A failed unlock restores the exact consumed buckets through a compensating entry.
+- Existing VND orders and entitlements remain valid and readable; this amendment must not migrate or rewrite immutable commerce history.
+- The complete contract, state, UI, privacy, and acceptance requirements are defined in the 2026-09-13 progressive-reveal and Lá-credit design spec.
+
 ---
 
 ## 5. Đặc tả luồng và tiêu chí nghiệm thu
@@ -282,20 +294,27 @@ Hệ quả bắt buộc phải chấp nhận và theo dõi: một đơn 19k ch�
 | A-4 | Lỗi tính toán/mất mạng giữ nguyên form, cho retry cùng tác vụ, phân biệt "chưa tạo" với "đã tạo nhưng điều hướng lỗi" | Test: ngắt mạng ở bước tính → dữ liệu còn nguyên |
 | A-5 | Free preview hiển thị **3 ý nghĩa cá nhân dễ hiểu trước**, chi tiết sao/cung/Tứ Hoá mở khi cần | Test hiểu: người mới giải thích lại được 1 insight bằng lời của họ |
 | A-6 | Khách vãng lai được báo dữ liệu lưu tạm 24 giờ và cách xoá | Có thông báo + đường xoá hoạt động |
+| A-7 | After free value, show an exploration summary using only authoritative counts: 12 calculated palaces, three free insights, opened evidence, and available reading scope | Every displayed count matches the server projection; no invented score or report-generation percentage |
+| A-8 | The complete chart remains visible; interpretation depth is merchandised through palace state, relationship structure, evidence, and locked reading previews | Chart data is never blurred; locked plaintext is absent from unauthorized client payloads |
+| A-9 | A selected locked topic opens a secure preview with one complete useful excerpt, a fade/blur representation, scope, Lá price, and ownership terms | Copy/source inspection cannot recover protected content; screen-reader output names the locked state |
+| A-10 | Predictive trend charts remain unavailable until a separately approved time-based engine and evidence contract exist | Natal release contains no daily/monthly/yearly pseudo-trend visualization |
 
 ### Flow B — Chọn sản phẩm → trả tiền → nhận
 
 | ID | Yêu cầu | Nghiệm thu |
 |---|---|---|
-| B-1 | Trang chọn hiển thị **tối đa 2 lựa chọn trả phí** liên quan nhu cầu hiện tại, kèm giá VND cuối cùng và mô tả đầu ra không trùng nhau. Không bày bảng toàn bộ danh mục | UI test: người mới thấy đúng 2 offer + free |
+| B-1 | Trang chọn hiển thị **tối đa 2 lựa chọn trả phí** liên quan nhu cầu hiện tại, kèm giá Lá và mô tả đầu ra không trùng nhau. Không bày bảng toàn bộ danh mục | UI test: người mới thấy đúng 2 offer + free; no VND equivalent appears on the offer (FD-065) |
 | B-2 | Nhãn mua là tên khách hàng hiểu được, không phải SKU nội bộ | Không chuỗi `ZIWEI-*` nào lọt ra UI |
 | B-3 | Đã sở hữu → hiện "Đọc lại", **không hiện nút mua**. Hiện tại `ENTITLEMENT_EXISTS` bị nuốt thành `CHECKOUT_ORDER_FAILED` và khách thấy lỗi trắng | Test: chart đã mua → nút "Đọc lại", 0 lỗi |
-| B-4 | Active Tier 1 entitlement → Tier 2 upgrade offer displays discounted price and clearly names unlocked sections | Test: Purchase 19,000 VND → upgrade offer displays "60.000đ" within 7 days of Tier 1 `paid_at`; after 7 days displays full 79,000 VND |
+| B-4 | Active Tier 1 entitlement → Tier 2 upgrade offer displays discounted price and clearly names unlocked sections | Test: Purchase Tier 1 for 240 Lá → upgrade offer displays `720 Lá` within 7 days of Tier 1 `paid_at`; after 7 days displays `960 Lá` |
 | B-5 | Giữ product intent xuyên qua đăng nhập/xác minh email; quay lại đúng offer đã chọn | Test: chọn offer → login → về đúng offer, không phải trang chủ |
 | B-6 | Tách bạch **"Đã thanh toán"** và **"Đang tạo báo cáo"** thành hai trạng thái khác nhau về chữ và bố cục | Hai màn phân biệt được, không dùng chung copy |
 | B-7 | Không có nút "tôi đã trả" tự mở báo cáo. Chỉ webhook hợp lệ mới xác nhận tiền | Không tồn tại đường mở khoá phía client |
 | B-8 | Trang tiến trình không hiện % giả hay thời gian cam kết; khách rời trang được, quay lại bằng mã đơn hoặc thư viện | Không có progress bar bịa |
 | B-9 | Refresh trang đơn không tạo đơn mới, không thu thêm | Test: refresh 10 lần → vẫn 1 đơn pending |
+| B-10 | Insufficient balance preserves the exact chart/topic/offer intent and shows current balance, required amount, the smallest covering pack pre-selected, and the next pack up with its bonus and remaining balance | After verified payment, the customer returns to and completes the original unlock without selecting it again |
+| B-11 | A Lá debit and entitlement grant commit atomically under one idempotency key | Repeating the same confirmation creates one debit and one entitlement; a failed grant restores credits automatically |
+| B-12 | Unauthorized clients receive only allowed preview excerpts and safe blur metadata | HTML, JSON, React payload, print output, and accessibility tree contain zero locked plaintext |
 
 ### Flow B-lỗi — mọi trạng thái phải có đường ra
 
@@ -317,6 +336,7 @@ Hệ quả bắt buộc phải chấp nhận và theo dõi: một đơn 19k ch�
 | C-3 | Trang lịch sử đơn: mã đơn, số tiền, trạng thái, thời điểm, đường hỗ trợ gắn đơn. Lịch sử **bất biến**, hiện đủ cả đơn hết hạn | Phụ thuộc R-PAY-2 |
 | C-4 | Đọc lại báo cáo đã mua **luôn miễn phí**, không giới hạn số lần | Test: mở 20 lần → 0 lần bị chặn |
 | C-5 | Sửa thông tin sinh: hiện tác động lên báo cáo cũ và điều kiện tạo phiên bản mới **trước** khi xác nhận | Không âm thầm vô hiệu hoá báo cáo đã trả tiền |
+| C-6 | Tier 1 reader shows truthful `4/12` ownership/reading coverage, eight locked section titles, one secure next-section excerpt, 19-Lá credit, 60-Lá amount due, and the exact FD-041 deadline | Upgrade CTA appears only after meaningful owned content and unlocks the existing comprehensive report without regeneration |
 
 ### Flow D — Khách đến từ bộ môn khác
 
@@ -400,11 +420,11 @@ Không đưa tên, ngày/giờ/nơi sinh, nội dung câu hỏi, hoặc `chart_i
 
 ---
 
-## 9. Ngoài phạm vi đợt này
+## 9. Scope amendment and remaining exclusions
 
-Ví và điểm "Điểm Việt" (FD-039). Rewarded ads. Affiliate. Hệ nhiệm vụ. Gói hội viên. Bundle Tử Vi + Bát Tự 129k. Câu hỏi tình huống mới (tầng 3). Vận trình năm (tầng 4, chờ engine thời gian + QA). Bát Tự (gate P8). Natal Tây (gate P9). Chuyên gia người thật. Xem chỉ tay. Nhân tướng.
+The `Lá` wallet is no longer excluded from design and implementation planning; FD-060 supersedes FD-039. Production enablement still requires a separately approved implementation plan and all ledger/payment gates in the 2026-09-13 design spec.
 
-Ràng buộc thiết kế duy nhất phải giữ cho tương lai: R-PAY-3 và mục 4.4 phải làm sao cho việc bổ sung ví, mua lặp cùng SKU, và sản phẩm theo năm về sau **không cần migrate bản ghi thương mại bất biến**.
+Still excluded: rewarded ads, affiliate, mission/streak systems, membership, the 129k Zi Wei + BaZi bundle, the situational-question engine (Tier 3), annual forecasting (Tier 4, pending a time engine and QA), BaZi paid release (P8 gate), Western natal paid release (P9 gate), human experts, palmistry, and physiognomy.
 
 ---
 

@@ -186,9 +186,9 @@ Bảy khối theo thứ tự:
 01. H1 đúng tên chủ đề + đoạn "phù hợp khi bạn đang..."
 02. Chọn hồ sơ lá số đã có, hoặc lập lá số mới
 03. Deliverable: mục lục thật, 5–7 luận điểm, độ dài, thời gian giao, định dạng
-04. Preview 10–15% nội dung THẬT — tuyệt đối không blur giả, không khoá nội dung bằng hiệu ứng mờ
+04. Show a complete useful excerpt, then a secure blur/fade representation under FD-059. Never ship locked plaintext to the client, fabricate a warning, or imply that content exists before it has been generated.
 05. "Có gì / Không có gì" — hai cột đối chiếu thẳng thắn
-06. Giá cuối bằng VND · thanh toán một lần · chính sách hỗ trợ và tạo lại
+06. Show the final Lá price · one-time purchase · support and regeneration policy. No VND equivalent on the paywall (FD-065); insufficient balance pre-selects the smallest covering pack (FD-066).
 07. FAQ + policy + CTA
 
 Indexing: index, follow. Schema: Product + Offer (VND) + BreadcrumbList, dữ liệu phải khớp checkout.
@@ -203,11 +203,11 @@ Indexing: index, follow. Schema: Product + Offer (VND) + BreadcrumbList, dữ li
 DỰNG TRANG: Checkout, route /thanh-toan. Riêng tư — noindex. Không ảnh trang trí.
 
 - Trên mobile: order summary xuất hiện TRƯỚC phần thanh toán
-- Luôn nhìn thấy: tên báo cáo · hồ sơ lá số áp dụng · giá cuối · dòng "Thanh toán một lần"
+- Always visible: report name · applicable chart profile · Lá amount · the line `Thanh toán một lần` (VND only on the top-up pack step — FD-065)
 - Phương thức: VietQR / thẻ / ví điện tử — chỉ hiển thị đúng những gì provider thật hỗ trợ
 - QR hiển thị rõ người nhận và số tiền, có nút tải QR hoặc mở app ngân hàng
 - Điều khoản bắt buộc và đồng ý nhận marketing tách riêng, marketing mặc định TẮT
-- CTA chứa giá: "Thanh toán 79.000 ₫"
+- The CTA preserves the unlock intent: `Mở báo cáo — 960 Lá`. With insufficient balance: `Nhận 1.100 Lá — 99.000đ và mở báo cáo` (smallest covering pack, pre-selected — FD-066).
 
 Dựng đủ 7 trạng thái: đang tạo đơn · chờ thanh toán · thành công đã xác nhận · thất bại · QR hết
 hạn · đã trả tiền nhưng chưa quay lại được app · đang tạo báo cáo.
