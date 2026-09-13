@@ -1,7 +1,14 @@
 import Link from "next/link";
 import React from "react";
+import { signOutAction } from "./account-center-actions";
+import { SignOutButton } from "./account-actions";
 
-export type AccountTab = "overview" | "reports" | "orders";
+export type AccountTab =
+  | "overview"
+  | "profiles"
+  | "reports"
+  | "orders"
+  | "privacy";
 
 export function formatHoChiMinhDateTime(
   dateStr: string | null | undefined,
@@ -81,25 +88,42 @@ export function localizeReportStatus(
 export function AccountPageShell({
   activeTab,
   locale,
+  userEmail,
   children,
 }: {
   activeTab: AccountTab;
   locale: "vi" | "en";
+  userEmail?: string | null;
   children: React.ReactNode;
 }) {
   const isVi = locale === "vi";
   const overviewPath = isVi ? "/tai-khoan" : "/en/tai-khoan";
+  const profilesPath = isVi ? "/tai-khoan/ho-so-sinh" : "/en/tai-khoan/ho-so-sinh";
   const reportsPath = isVi ? "/tai-khoan/bao-cao" : "/en/tai-khoan/bao-cao";
   const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+  const privacyPath = isVi ? "/tai-khoan/quyen-rieng-tu" : "/en/tai-khoan/quyen-rieng-tu";
 
   return (
     <main className="content-page account-desk-page">
       <div className="container">
         <header className="account-shell-header">
-          <p className="account-eyebrow">
-            {isVi ? "Không gian cá nhân" : "Customer desk"}
-          </p>
-          <h1 className="account-title">{isVi ? "Tài khoản" : "Account"}</h1>
+          <div className="account-shell-header-row">
+            <div>
+              <p className="account-eyebrow">
+                {isVi ? "Không gian cá nhân" : "Customer desk"}
+              </p>
+              <h1 className="account-title">{isVi ? "Tài khoản" : "Account"}</h1>
+            </div>
+            <div className="account-shell-header-actions">
+              {userEmail && (
+                <span className="account-user-email">{userEmail}</span>
+              )}
+              <SignOutButton
+                action={signOutAction.bind(null, locale)}
+                label={isVi ? "Đăng xuất" : "Sign out"}
+              />
+            </div>
+          </div>
           <nav
             aria-label={isVi ? "Điều hướng tài khoản" : "Account navigation"}
             className="account-nav-tabs"
@@ -110,6 +134,13 @@ export function AccountPageShell({
               aria-current={activeTab === "overview" ? "page" : undefined}
             >
               {isVi ? "Tổng quan" : "Overview"}
+            </Link>
+            <Link
+              href={profilesPath}
+              className={`account-tab-link ${activeTab === "profiles" ? "active" : ""}`}
+              aria-current={activeTab === "profiles" ? "page" : undefined}
+            >
+              {isVi ? "Lá số & hồ sơ" : "Charts & profiles"}
             </Link>
             <Link
               href={reportsPath}
@@ -124,6 +155,13 @@ export function AccountPageShell({
               aria-current={activeTab === "orders" ? "page" : undefined}
             >
               {isVi ? "Đơn hàng" : "Orders"}
+            </Link>
+            <Link
+              href={privacyPath}
+              className={`account-tab-link ${activeTab === "privacy" ? "active" : ""}`}
+              aria-current={activeTab === "privacy" ? "page" : undefined}
+            >
+              {isVi ? "Quyền riêng tư" : "Privacy"}
             </Link>
           </nav>
         </header>

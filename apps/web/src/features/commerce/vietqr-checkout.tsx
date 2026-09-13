@@ -555,7 +555,18 @@ export function VietQrCheckout({
 
   if (status.order.status === "expired") {
     const expiredTitle = labels.expiredTitle ?? (isVi ? "Đơn hàng đã hết hạn thanh toán" : "Order expired");
-    const expiredDesc = labels.expiredDescription ?? (isVi ? "Đơn hàng này đã quá thời gian thanh toán. Thông tin đơn hàng cũ vẫn được lưu trong lịch sử giao dịch để bạn tiện tra cứu." : "This order has passed the payment window. Your previous order remains recorded in your order history for reference.");
+    const rawExpiredDesc = labels.expiredDescription ?? (
+      status.order.paymentCode
+        ? (isVi
+            ? `Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ (${status.order.paymentCode}), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.`
+            : `This order has expired. If you transferred using the old order code (${status.order.paymentCode}), please contact support with this code — we can still reconcile your payment.`)
+        : (isVi
+            ? "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ, liên hệ hỗ trợ — chúng tôi vẫn đối chiếu được."
+            : "This order has expired. If you transferred using the old order code, please contact support — we can still reconcile your payment.")
+    );
+    const expiredDesc = status.order.paymentCode
+      ? rawExpiredDesc.replace("{payment_code}", status.order.paymentCode)
+      : rawExpiredDesc.replace(" ({payment_code})", "").replace("({payment_code})", "");
     const newChartActionLabel = labels.newChartAction ?? (isVi ? "Lập lá số và tạo yêu cầu mới" : "Create a new chart and request");
     const returnToTopicSelectorLabel = labels.returnToTopicSelectorAction ?? (isVi ? "Quay lại chọn luận giải" : "Return to reading selection");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
@@ -603,9 +614,17 @@ export function VietQrCheckout({
   if (status.order.status === "failed") {
     const failedTitle = labels.failedTitle ?? (isVi ? "Thanh toán chưa thành công" : "Payment was not completed");
     const failedDesc = labels.failedDescription ?? (isVi ? "Giao dịch thanh toán cho đơn hàng này chưa thành công. Vui lòng không chuyển khoản lại cho đơn hàng này. Quý khách có thể kiểm tra lịch sử đơn hàng hoặc liên hệ hỗ trợ." : "Payment for this order was not completed. Please do not attempt another transfer for this order. You can check your order history or contact support.");
+    const newChartActionLabel = labels.newChartAction ?? (isVi ? "Lập lá số và tạo yêu cầu mới" : "Create a new chart and request");
+    const returnToTopicSelectorLabel = labels.returnToTopicSelectorAction ?? (isVi ? "Quay lại chọn luận giải" : "Return to reading selection");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
     const supportActionLabel = labels.supportAction ?? (isVi ? "Liên hệ hỗ trợ" : "Contact support");
+    const newChartPath = isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi";
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+    const topicSelectorPath = status.order.chartId
+      ? isVi
+        ? `/la-so/${encodeURIComponent(status.order.chartId)}/chon-luan-giai`
+        : `/en/la-so/${encodeURIComponent(status.order.chartId)}/chon-luan-giai`
+      : null;
 
     return (
       <>
@@ -620,7 +639,15 @@ export function VietQrCheckout({
             <h2>{failedTitle}</h2>
             <p className="vietqr-recovery-description">{failedDesc}</p>
             <div className="vietqr-recovery-actions">
-              <Link href={ordersPath} className="button button-primary">
+              <Link href={newChartPath} className="button button-primary">
+                {newChartActionLabel}
+              </Link>
+              {topicSelectorPath && (
+                <Link href={topicSelectorPath} className="button button-secondary">
+                  {returnToTopicSelectorLabel}
+                </Link>
+              )}
+              <Link href={ordersPath} className="button button-secondary">
                 {orderHistoryActionLabel}
               </Link>
               <a href={status.order.supportUrl} className="button button-secondary">
@@ -638,6 +665,7 @@ export function VietQrCheckout({
     const refundedTitle = labels.refundedTitle ?? (isVi ? "Đơn hàng đã được hoàn tiền" : "Order refunded");
     const refundedDesc = labels.refundedDescription ?? (isVi ? "Đơn hàng này đã được xử lý hoàn tiền. Quý khách có thể kiểm tra chi tiết trong lịch sử đơn hàng." : "This order has been refunded. You can review the details in your order history.");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
+    const supportActionLabel = labels.supportAction ?? (isVi ? "Liên hệ hỗ trợ" : "Contact support");
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
 
     return (
@@ -653,6 +681,9 @@ export function VietQrCheckout({
             <h2>{refundedTitle}</h2>
             <p className="vietqr-recovery-description">{refundedDesc}</p>
             <div className="vietqr-recovery-actions">
+              <a href={status.order.supportUrl} className="button button-secondary">
+                {supportActionLabel}
+              </a>
               <Link href={ordersPath} className="button button-secondary">
                 {orderHistoryActionLabel}
               </Link>

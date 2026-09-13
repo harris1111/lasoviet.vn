@@ -1,4 +1,8 @@
-import type { AccountLibraryV1, OrderHistoryV1 } from "@lasoviet/contracts";
+import type {
+  AccountLibraryV1,
+  AccountOverviewProjectionV1,
+  OrderHistoryV1,
+} from "@lasoviet/contracts";
 import Link from "next/link";
 import React from "react";
 
@@ -14,13 +18,32 @@ export interface AccountDashboardProps {
   locale: "vi" | "en";
   library?: AccountLibraryV1 | null;
   orders?: OrderHistoryV1 | null;
+  overview?: AccountOverviewProjectionV1 | null;
+  userEmail?: string | null;
   error?: string | null;
+}
+
+function formatActivityType(type: string, isVi: boolean): string {
+  switch (type) {
+    case "profile_created":
+      return isVi ? "Tạo hồ sơ lá số" : "Birth profile created";
+    case "report_purchased":
+      return isVi ? "Mua báo cáo luận giải" : "Report purchased";
+    case "order_created":
+      return isVi ? "Tạo đơn hàng" : "Order created";
+    case "deletion_requested":
+      return isVi ? "Yêu cầu xoá dữ liệu" : "Deletion requested";
+    default:
+      return type;
+  }
 }
 
 export function AccountDashboard({
   locale,
   library,
   orders,
+  overview,
+  userEmail,
   error,
 }: AccountDashboardProps) {
   const isVi = locale === "vi";
@@ -30,17 +53,24 @@ export function AccountDashboard({
 
   const totalReports = library?.totalCount ?? 0;
   const totalOrders = orders?.totalCount ?? 0;
+  const totalProfiles = overview?.counts?.profileCount ?? 0;
+  const consentActiveCount = overview?.counts?.consentActiveCount ?? 0;
+
   const libraryUnavailable = Boolean(error && !library);
   const ordersUnavailable = Boolean(error && !orders);
+  const overviewUnavailable = Boolean(error && !overview);
   const isUnavailable = libraryUnavailable && ordersUnavailable;
+
   const isEmpty =
     !error &&
     library !== undefined &&
     library !== null &&
     orders !== undefined &&
     orders !== null &&
+    (!overview || totalProfiles === 0) &&
     totalReports === 0 &&
     totalOrders === 0;
+
   const latestReadableReport = library?.latestReadableReport ?? null;
 
   const allLibraryItems =
@@ -55,8 +85,10 @@ export function AccountDashboard({
       : (orders?.items ?? []);
   const recentOrders = allOrders.slice(0, 3);
 
+  const email = userEmail || overview?.account?.email || null;
+
   return (
-    <AccountPageShell activeTab="overview" locale={locale}>
+    <AccountPageShell activeTab="overview" locale={locale} userEmail={email}>
       {error && (
         <div role="alert" className="account-error-banner">
           {error}
@@ -162,6 +194,26 @@ export function AccountDashboard({
                 {ordersUnavailable ? "—" : totalOrders}
               </span>
             </div>
+            {overview && (
+              <>
+                <div className="account-stat-item">
+                  <span className="account-stat-label">
+                    {isVi ? "Hồ sơ lá số" : "Birth profiles"}
+                  </span>
+                  <span className="account-stat-value">
+                    {overviewUnavailable ? "—" : totalProfiles}
+                  </span>
+                </div>
+                <div className="account-stat-item">
+                  <span className="account-stat-label">
+                    {isVi ? "Mục đồng ý đang bật" : "Active consents"}
+                  </span>
+                  <span className="account-stat-value">
+                    {overviewUnavailable ? "—" : consentActiveCount}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="account-overview-grid">
@@ -321,6 +373,49 @@ export function AccountDashboard({
                 </div>
               )}
             </section>
+
+            {overview && (
+              <section
+                className="account-section"
+                aria-label={isVi ? "Hoạt động gần đây" : "Recent activity"}
+              >
+                <div className="account-section-header">
+                  <h3 className="account-section-title">
+                    {isVi ? "Hoạt động gần đây" : "Recent activity"}
+                  </h3>
+                </div>
+                {overview.recentActivity.length === 0 ? (
+                  <p className="account-text-muted">
+                    {isVi
+                      ? "Chưa có hoạt động nào gần đây."
+                      : "No recent activity."}
+                  </p>
+                ) : (
+                  <div className="account-rows-list">
+                    {overview.recentActivity.slice(0, 5).map((activity) => (
+                      <article
+                        key={activity.id}
+                        className="account-row-card"
+                      >
+                        <div className="account-row-content">
+                          <h4 className="account-row-title">
+                            {formatActivityType(activity.type, isVi)}
+                          </h4>
+                          <div className="account-row-meta">
+                            <span>
+                              {formatHoChiMinhDateTime(
+                                activity.timestamp,
+                                locale,
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         </div>
       )}

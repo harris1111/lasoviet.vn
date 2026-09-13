@@ -221,8 +221,8 @@ describe("order service", () => {
   });
   it("calculates upgrade credit for Tier-2 when valid Tier-1 credit is present", async () => {
     const actor = { kind: "account" as const, userId: "account-1", sessionId: "s", requestId: "r" };
-    const currentNow = new Date("2026-09-12T00:00:00.000Z");
-    const expiresAt = new Date(currentNow.getTime() + 24 * 60 * 60 * 1000);
+    const now = new Date("2026-09-11T00:00:00Z");
+    const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const service = createOrderService({
       findCheckoutAccount: async () => ({
         emailVerified: true,
@@ -237,9 +237,7 @@ describe("order service", () => {
       }),
       save: async (order) => order,
       createId: () => "order-upgrade",
-    }, {
-      now: () => currentNow,
-    });
+    }, { now: () => now });
 
     await expect(
       service.create(actor, "chart-1", "ZIWEI-IDENTITY-P0"),
@@ -258,8 +256,8 @@ describe("order service", () => {
 
   it("floors net upgrade price at zero when credit exceeds price", async () => {
     const actor = { kind: "account" as const, userId: "account-1", sessionId: "s", requestId: "r" };
-    const currentNow = new Date("2026-09-12T00:00:00.000Z");
-    const expiresAt = new Date(currentNow.getTime() + 24 * 60 * 60 * 1000);
+    const now = new Date("2026-09-11T00:00:00Z");
+    const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const service = createOrderService({
       findCheckoutAccount: async () => ({
         emailVerified: true,
@@ -274,9 +272,7 @@ describe("order service", () => {
       }),
       save: async (order) => order,
       createId: () => "order-zero",
-    }, {
-      now: () => currentNow,
-    });
+    }, { now: () => now });
 
     await expect(
       service.create(actor, "chart-1", "ZIWEI-IDENTITY-P0"),

@@ -1,0 +1,102 @@
+{
+  "nav": {
+    "overview": "Tổng quan",
+    "profiles": "Lá số & hồ sơ",
+    "reports": "Báo cáo đã mua",
+    "orders": "Đơn hàng & hỗ trợ",
+    "privacy": "Quyền riêng tư"
+  },
+  "header": {
+    "title": "Tài khoản",
+    "home": "Trang chủ",
+    "signOut": "Đăng xuất"
+  },
+  "overview": {
+    "eyebrow": "Tài khoản",
+    "title": "Chào bạn trở lại",
+    "desc": "Tổng quan lá số đã lưu, báo cáo đã mua và quyền riêng tư dữ liệu. Trang này chỉ hiển thị cho bạn.",
+    "profilesCard": "Lá số & hồ sơ",
+    "reportsCard": "Báo cáo đã mua",
+    "ordersCard": "Đơn hàng",
+    "privacyCard": "Mục đồng ý đang bật",
+    "viewAll": "Xem tất cả →",
+    "viewHistory": "Xem lịch sử →",
+    "manage": "Quản lý →",
+    "recentActivity": "Hoạt động gần đây",
+    "noActivity": "Chưa có hoạt động nào gần đây.",
+    "activity": {
+      "profile_created": "Tạo hồ sơ lá số",
+      "report_purchased": "Mua báo cáo luận giải",
+      "order_created": "Tạo đơn hàng",
+      "deletion_requested": "Yêu cầu xoá dữ liệu"
+    }
+  },
+  "profiles": {
+    "title": "Lá số & hồ sơ của bạn",
+    "desc": "Mỗi hồ sơ dùng chung cho mọi bộ môn (Tử Vi, Bát Tự, Bản đồ sao...) khi tính năng đó ra mắt — không cần nhập lại ngày, giờ, nơi sinh.",
+    "newProfile": "+ Lập lá số mới",
+    "viewChart": "Xem lá số",
+    "viewReport": "Xem báo cáo →",
+    "deleteProfile": "Xoá hồ sơ",
+    "deleteConfirm": "Bạn có chắc chắn muốn xoá hồ sơ này không?",
+    "deleting": "Đang xoá...",
+    "empty": "Bạn chưa có hồ sơ nào.",
+    "emptyAction": "Lập lá số đầu tiên",
+    "createdDate": "Tạo ngày {date}"
+  },
+  "reports": {
+    "title": "Báo cáo đã mua",
+    "desc": "Mỗi báo cáo là một bản luận giải chuyên sâu theo một chủ đề, gắn với một hồ sơ lá số cụ thể — không phải một gói dùng chung cho mọi hồ sơ.",
+    "viewReport": "Xem báo cáo",
+    "downloadPdf": "Tải PDF",
+    "purchasedDate": "Mua ngày {date}",
+    "orderCode": "Mã đơn {orderId}",
+    "empty": "Bạn chưa mua báo cáo nào.",
+    "emptyAction": "Xem hồ sơ lá số của bạn"
+  },
+  "orders": {
+    "title": "Lịch sử đơn hàng",
+    "desc": "Mọi giao dịch mua báo cáo, kèm trạng thái thanh toán — không ẩn phí hay tự động gia hạn.",
+    "code": "Mã đơn",
+    "item": "Nội dung",
+    "date": "Ngày",
+    "amount": "Số tiền",
+    "status": "Trạng thái",
+    "empty": "Bạn chưa có đơn hàng nào.",
+    "supportTitle": "Hỗ trợ khách hàng",
+    "supportDesc": "Cần hỗ trợ về một đơn hàng, báo cáo hoặc vấn đề tài khoản? Hãy gửi yêu cầu cho chúng tôi qua trang liên hệ.",
+    "contactSupport": "Liên hệ hỗ trợ →"
+  },
+  "privacy": {
+    "title": "Quyền riêng tư dữ liệu",
+    "desc": "Mỗi mục đích dùng dữ liệu có công tắc riêng. Dữ liệu chỉ được truy cập khi có sự uỷ quyền của chính bạn.",
+    "readOnlyNote": "Trạng thái đồng ý được ghi nhận từ lần chấp thuận gần nhất và hiển thị dạng chỉ đọc.",
+    "active": "Đang bật",
+    "exportTitle": "Dữ liệu của bạn",
+    "exportDesc": "Tải toàn bộ hồ sơ lá số, báo cáo đã mua và thông tin tài khoản dưới dạng một file JSON.",
+    "exportAction": "Xuất dữ liệu (.json)",
+    "deleteTitle": "Xoá dữ liệu của bạn",
+    "deleteDesc": "Yêu cầu xoá tài khoản, lá số đã lưu và báo cáo. Xem chi tiết quy trình xoá bên dưới.",
+    "deleteButton": "Yêu cầu xoá dữ liệu",
+    "cancelDeleteButton": "Huỷ yêu cầu xoá dữ liệu",
+    "deleteConfirmTitle": "Xác nhận yêu cầu xoá tài khoản",
+    "deleteConfirm": "Bạn sắp yêu cầu xoá toàn bộ hồ sơ lá số và báo cáo. Hành động này không thể hoàn tác sau khi hoàn tất thời gian khôi phục.",
+    "deleteAck": "Tôi hiểu dữ liệu giao dịch kế toán liên quan vẫn được lưu trữ độc lập theo nghĩa vụ pháp lý.",
+    "confirm": "Xác nhận",
+    "cancel": "Huỷ",
+    "requesting": "Đang yêu cầu...",
+    "cancelling": "Đang huỷ...",
+    "deletionPendingBanner": "Tài khoản đang trong thời gian chờ xoá (hạn khôi phục: {date}). Bạn có thể huỷ yêu cầu bất cứ lúc nào trước thời hạn này.",
+    "recoverUntilLabel": "Hạn khôi phục: {date}",
+    "sharedLinksTitle": "Link đã chia sẻ",
+    "sharedLinksDesc": "Link xem lá số bạn đã chia sẻ. Mặc định ẩn thông tin cá nhân khi xem qua link chia sẻ.",
+    "sharedLinksEmpty": "Bạn chưa chia sẻ link nào.",
+    "deleteInfoTitle": "Quy trình xoá dữ liệu",
+    "deleteRecoveryTitle": "Thời gian khôi phục 30 ngày",
+    "deleteRecoveryDesc": "Tài khoản có 30 ngày để đăng nhập lại và huỷ yêu cầu xoá trước khi dữ liệu vòng đời bị thanh lọc vĩnh viễn.",
+    "deletePurgeTitle": "Thanh lọc sau 30 ngày",
+    "deletePurgeDesc": "Hồ sơ lá số, bản hiệu chỉnh, lá số tính toán và báo cáo gắn liền với tài khoản sẽ bị thanh lọc vĩnh viễn sau thời gian khôi phục.",
+    "deleteRetainedTitle": "Dữ liệu kế toán bắt buộc",
+    "deleteRetainedDesc": "Hoá đơn và thông tin giao dịch thanh toán được lưu trữ theo quy định chứng từ kế toán, tách biệt hoàn toàn khỏi hồ sơ lá số đã thanh lọc."
+  }
+}

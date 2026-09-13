@@ -41,6 +41,7 @@ import {
   createZiweiQueryService,
   createDatabaseReportQueryRepository,
   createReportQueryService,
+  createAccountCenterService,
   type EmailProvider,
 } from "@lasoviet/backend";
 import type { AnalyticsSink } from "@lasoviet/backend";
@@ -96,6 +97,12 @@ import {
   REPORT_QUERY_SERVICE_SECRET,
   ReportsController,
 } from "./reports/reports.controller.js";
+import {
+  ACCOUNT_CENTER_DATABASE,
+  ACCOUNT_CENTER_SERVICE,
+  ACCOUNT_CENTER_SERVICE_SECRET,
+  AccountCenterController,
+} from "./accounts/account-center.controller.js";
 import {
   COMMERCE_ACTOR_SECRET,
   COMMERCE_DATABASE,
@@ -179,6 +186,7 @@ export function createApiAnalyticsSink(
     AdminOverviewController,
     CommerceController,
     ReportsController,
+    AccountCenterController,
   ],
   providers: [
     {
@@ -421,6 +429,21 @@ export function createApiAnalyticsSink(
           repository: createDatabaseReportQueryRepository(privacyDatabase()),
         }),
     },
+    {
+      provide: ACCOUNT_CENTER_SERVICE,
+      useFactory: () => createAccountCenterService(privacyDatabase()),
+    },
+    {
+      provide: ACCOUNT_CENTER_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
+    { provide: ACCOUNT_CENTER_DATABASE, useFactory: privacyDatabase },
   ],
 })
 export class ApiModule {}

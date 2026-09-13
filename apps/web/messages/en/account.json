@@ -1,0 +1,102 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "profiles": "Charts & profiles",
+    "reports": "Purchased reports",
+    "orders": "Orders & support",
+    "privacy": "Data privacy"
+  },
+  "header": {
+    "title": "Account",
+    "home": "Home",
+    "signOut": "Sign out"
+  },
+  "overview": {
+    "eyebrow": "Account",
+    "title": "Welcome back",
+    "desc": "Overview of your saved charts, purchased reports, and data privacy. This page is private to you.",
+    "profilesCard": "Charts & profiles",
+    "reportsCard": "Purchased reports",
+    "ordersCard": "Orders",
+    "privacyCard": "Active consent purposes",
+    "viewAll": "View all →",
+    "viewHistory": "View history →",
+    "manage": "Manage →",
+    "recentActivity": "Recent activity",
+    "noActivity": "No recent activity.",
+    "activity": {
+      "profile_created": "Birth profile created",
+      "report_purchased": "Report purchased",
+      "order_created": "Order created",
+      "deletion_requested": "Deletion requested"
+    }
+  },
+  "profiles": {
+    "title": "Your charts & profiles",
+    "desc": "Each birth profile is shared across all disciplines — no need to re-enter birth date and time.",
+    "newProfile": "+ Create new chart",
+    "viewChart": "View chart",
+    "viewReport": "View report →",
+    "deleteProfile": "Delete profile",
+    "deleteConfirm": "Are you sure you want to delete this profile?",
+    "deleting": "Deleting...",
+    "empty": "You don't have any birth profiles yet.",
+    "emptyAction": "Create your first chart",
+    "createdDate": "Created on {date}"
+  },
+  "reports": {
+    "title": "Purchased reports",
+    "desc": "Each report is an in-depth interpretation for a specific birth profile — not a generic package.",
+    "viewReport": "View report",
+    "downloadPdf": "Download PDF",
+    "purchasedDate": "Purchased on {date}",
+    "orderCode": "Order {orderId}",
+    "empty": "You have not purchased any reports yet.",
+    "emptyAction": "View your birth profiles"
+  },
+  "orders": {
+    "title": "Order history",
+    "desc": "Every transaction with payment status — no hidden fees or auto-renewals.",
+    "code": "Order ID",
+    "item": "Description",
+    "date": "Date",
+    "amount": "Amount",
+    "status": "Status",
+    "empty": "You have no orders yet.",
+    "supportTitle": "Customer Support",
+    "supportDesc": "Need help with an order, report, or your account? Reach out to our team through our contact page.",
+    "contactSupport": "Contact support →"
+  },
+  "privacy": {
+    "title": "Data privacy",
+    "desc": "Each data purpose has separate controls. Data access remains owner-authorized.",
+    "readOnlyNote": "Consent records are recorded from your latest agreements and displayed as read-only.",
+    "active": "Active",
+    "exportTitle": "Your data",
+    "exportDesc": "Download your birth profiles, purchased reports, and account data as a JSON file.",
+    "exportAction": "Export data (.json)",
+    "deleteTitle": "Delete your data",
+    "deleteDesc": "Request deletion of your account, saved charts, and reports. Details below.",
+    "deleteButton": "Request data deletion",
+    "cancelDeleteButton": "Cancel deletion request",
+    "deleteConfirmTitle": "Confirm account deletion request",
+    "deleteConfirm": "You are requesting deletion of your account and all data. This action is irreversible once the recovery window expires.",
+    "deleteAck": "I understand financial transaction records are preserved separately under statutory accounting obligations.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "requesting": "Requesting...",
+    "cancelling": "Cancelling...",
+    "deletionPendingBanner": "Account deletion is requested (recovery deadline: {date}). You may cancel this request at any time before the deadline.",
+    "recoverUntilLabel": "Recovery deadline: {date}",
+    "sharedLinksTitle": "Shared links",
+    "sharedLinksDesc": "Shared chart links. Personal birth details are hidden by default.",
+    "sharedLinksEmpty": "You haven't shared any links yet.",
+    "deleteInfoTitle": "Data Deletion Process",
+    "deleteRecoveryTitle": "30-Day Recovery Window",
+    "deleteRecoveryDesc": "Your account enters a 30-day recovery window during which you can sign in and cancel the deletion request before lifecycle data is permanently purged.",
+    "deletePurgeTitle": "Purged After 30 Days",
+    "deletePurgeDesc": "Birth profiles, revisions, calculated charts, and account-linked reports will be permanently purged after the recovery window expires.",
+    "deleteRetainedTitle": "Retained Accounting Records",
+    "deleteRetainedDesc": "Order invoices and payment transaction records are preserved separately for statutory accounting compliance as required by law, detached from purged birth profiles."
+  }
+}
