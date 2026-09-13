@@ -98,8 +98,8 @@ Vertical padding: 88px desktop, 56px mobile. Container max 1200px; reading 720px
 | Check matrix | rows with 24px leading icon + label, columns with ✓/✕ badges in 28px circles |
 | Accordion | numbered rows, radius 16px, `+`/`×` icon right, first item open |
 | Chip rows | two rows of pill chips auto-scrolling in opposite directions (pause on hover/reduced-motion) |
-| Support card | illustration right, H3 20px gold, 2–3 lines, secondary pill "Chat với hỗ trợ qua Zalo" |
-| Floating contact | bottom-right Zalo button 48px; must never overlap the primary CTA (AITuvi's chat bubble covers its own CTA on mobile — do not copy) |
+| Support card | illustration right, H3 20px gold, 2–3 lines, secondary pill "Gửi email hỗ trợ" |
+| Floating contact | Not used at this stage (founder decision). If enabled later it must never overlap a primary CTA — AITuvi's chat bubble covers its own CTA on mobile |
 | Bottom sheet (mobile) | radius 16px top, drag handle, max 85vh, focus trapped |
 
 ### 3.5 Do not copy from AITuvi
@@ -137,7 +137,7 @@ Order (AITuvi `home` screenshots):
 6. **How it works** — 3 steps (keep current photos, shorter text ≤ 20 words each).
 7. **Knowledge** — 1 featured article card + 4 compact list items.
 8. **FAQ** — 8 numbered accordion items, first open.
-9. **Support card** (Zalo).
+9. **Support card** (email).
 10. **Final CTA** — repeat the form card on the lacquer texture background.
 
 Remove from homepage: marquee, "Năm lăng kính" long cards (replace with a compact
@@ -215,10 +215,14 @@ bạn". Never use a real person's name (AITuvi uses a named "Tỷ phú").
 
 - Support card component used on homepage (before final CTA), topic selection,
   checkout, payment failure/expired states, account orders.
-- Floating Zalo button site-wide (hidden on checkout QR step so it never covers the QR).
-- Footer trust stack like AITuvi: legal entity, phone, support email, address,
-  social links, then policy links row. Data comes from one config source.
-- Checkout support card pre-fills the order code in the Zalo message.
+- Founder decision 2026-09-13: do not display Zalo, legal entity name, address,
+  or phone number at this stage, and no floating contact button. The only visible
+  support channel is the `lasoviet.net` support email.
+- Footer: logo, policy links row, support email. Contact data comes from one
+  config source with a per-field visibility flag so hidden fields can be enabled
+  later without code changes.
+- Checkout support card uses a `mailto:` link with the order code pre-filled in
+  the subject.
 
 ### 4.8 Knowledge hub and article list (P1, after core funnel — FD-070)
 
