@@ -2,6 +2,7 @@ import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveLocale } from "@lasoviet/contracts";
 import { routing } from "./i18n/routing";
+import { resolveCanonicalOriginRedirect } from "./routing/canonical-origin";
 import {
   isExplicitVietnamesePath,
   isUnprefixedCanonicalReportPath,
@@ -11,6 +12,11 @@ import { resolveLegacyAliasRedirect } from "./routing/legacy-alias";
 const handleI18nRouting = createMiddleware(routing);
 
 export default function proxy(request: NextRequest) {
+  const canonicalRedirect = resolveCanonicalOriginRedirect(request);
+  if (canonicalRedirect !== null) {
+    return canonicalRedirect;
+  }
+
   const aliasRedirect = resolveLegacyAliasRedirect(request);
   if (aliasRedirect !== null) {
     return aliasRedirect;

@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import { routing } from "../../apps/web/src/i18n/routing";
+import { resolveCanonicalOriginRedirect } from "../../apps/web/src/routing/canonical-origin";
 import { isExplicitVietnamesePath, isUnprefixedCanonicalReportPath } from "../../apps/web/src/routing/explicit-vietnamese-path";
 import { resolveLegacyAliasRedirect } from "../../apps/web/src/routing/legacy-alias";
 
@@ -51,6 +52,81 @@ describe("localized app runtime tree", () => {
 
     for (const url of unaffectedRequests) {
       expect(resolveLegacyAliasRedirect(new Request(url))).toBeNull();
+    }
+  });
+
+  it("redirects configured reserve hosts to canonical origin with HTTP 301, preserving pathname and query", () => {
+    // .vn with path and query params
+    const vnReq = new Request(
+      "https://lasoviet.vn/la-so/123/chon-luan-giai?tab=overview&ref=partner",
+    );
+    const vnRes = resolveCanonicalOriginRedirect(vnReq);
+    expect(vnRes).toBeDefined();
+    expect(vnRes?.status).toBe(301);
+    expect(vnRes?.headers.get("location")).toBe(
+      "https://lasoviet.net/la-so/123/chon-luan-giai?tab=overview&ref=partner",
+    );
+
+    // .vn root
+    const vnRootReq = new Request("https://lasoviet.vn");
+    const vnRootRes = resolveCanonicalOriginRedirect(vnRootReq);
+    expect(vnRootRes?.status).toBe(301);
+    expect(vnRootRes?.headers.get("location")).toBe("https://lasoviet.net/");
+
+    // .vn with optional port
+    const vnPortReq = new Request("https://lasoviet.vn:8443/tu-vi?ref=partner");
+    const vnPortRes = resolveCanonicalOriginRedirect(vnPortReq);
+    expect(vnPortRes?.status).toBe(301);
+    expect(vnPortRes?.headers.get("location")).toBe(
+      "https://lasoviet.net/tu-vi?ref=partner",
+    );
+
+    // .cloud host
+    const cloudReq = new Request("https://lasoviet.cloud/bat-tu?tab=chart");
+    const cloudRes = resolveCanonicalOriginRedirect(cloudReq);
+    expect(cloudRes).toBeDefined();
+    expect(cloudRes?.status).toBe(301);
+    expect(cloudRes?.headers.get("location")).toBe(
+      "https://lasoviet.net/bat-tu?tab=chart",
+    );
+
+    // .xyz host
+    const xyzReq = new Request("https://lasoviet.xyz/kinh-dich?hexagram=1");
+    const xyzRes = resolveCanonicalOriginRedirect(xyzReq);
+    expect(xyzRes).toBeDefined();
+    expect(xyzRes?.status).toBe(301);
+    expect(xyzRes?.headers.get("location")).toBe(
+      "https://lasoviet.net/kinh-dich?hexagram=1",
+    );
+
+    // Fragments are browser-local and not fabricated in Location header
+    const fragmentReq = new Request(
+      "https://lasoviet.vn/tu-vi?tab=overview#section-1",
+    );
+    const fragmentRes = resolveCanonicalOriginRedirect(fragmentReq);
+    expect(fragmentRes?.status).toBe(301);
+    expect(fragmentRes?.headers.get("location")).toBe(
+      "https://lasoviet.net/tu-vi?tab=overview",
+    );
+  });
+
+  it("does not redirect canonical .net, localhost, 127.0.0.1, or arbitrary hosts", () => {
+    const nonRedirectCases = [
+      "https://lasoviet.net/la-so/123/chon-luan-giai?tab=overview",
+      "https://lasoviet.net/tu-vi",
+      "https://lasoviet.net/",
+      "http://localhost:3000/la-so/123",
+      "http://localhost:3000/",
+      "http://127.0.0.1:3000/la-so/123",
+      "http://127.0.0.1:49152/health",
+      "https://attacker.com/la-so/123",
+      "https://lasoviet.vn.evil.com/la-so/123",
+      "https://sub.lasoviet.vn/tu-vi",
+      "https://preview.lasoviet.net/tu-vi",
+    ];
+
+    for (const url of nonRedirectCases) {
+      expect(resolveCanonicalOriginRedirect(new Request(url))).toBeNull();
     }
   });
 
