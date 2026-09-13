@@ -1,9 +1,9 @@
 # Zi Wei V4 Report Depth, Language, and Personalization — Design Spec
 
 **Date:** 2026-09-13
-**Status:** Founder-approved direction (FD-072 through FD-078). Implementation requires an implementation plan under `AGENTS.md`; the editorial ruleset is a draft awaiting founder sign-off.
+**Status:** Founder-approved direction (FD-072 through FD-078). Implementation requires an implementation plan under `AGENTS.md`; the editorial ruleset was signed off by the founder on 2026-09-13.
 **Owner:** An/Development (implementation). Harris/Product (ruleset approval, acceptance).
-**Related:** FD-058 (V4), FD-064, FD-068, FD-071, `docs/superpowers/plans/2026-09-12-ziwei-comprehensive-report-v4.md`, `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset-draft.md`.
+**Related:** FD-058 (V4), FD-064, FD-068, FD-071, `docs/superpowers/plans/2026-09-12-ziwei-comprehensive-report-v4.md`, `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset.md`.
 
 ## 1. Problem
 
@@ -85,7 +85,7 @@ Expect roughly 3–4× the current output tokens per comprehensive report. WP-10
 
 ## 4. FD-074 — Knowledge Base V4 editorial rewrite
 
-This is the V4.1 fast-follow corpus rewrite the founder deferred in Kaneo #3 (decision item 3), now approved to proceed. Follow `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset-draft.md`, which extends the founder's editorial input already recorded in Kaneo #3 (2026-09-12 23:59 comment and 2026-09-13 04:29 decisions). Implementation starts once the founder signs its two approval boxes.
+This is the V4.1 fast-follow corpus rewrite the founder deferred in Kaneo #3 (decision item 3), now approved to proceed. Follow `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset.md`, which extends the founder's editorial input already recorded in Kaneo #3 (2026-09-12 23:59 comment and 2026-09-13 04:29 decisions). The founder signed off the ruleset on 2026-09-13, so implementation may start.
 
 - Build `content/knowledge/vi/ziwei/comprehensive-report.v4.json`.
 - Every chunk is Vietnamese, rewritten (not translated word-for-word) per the ruleset; oral filler removed; chunks tagged with star, palace, topic.

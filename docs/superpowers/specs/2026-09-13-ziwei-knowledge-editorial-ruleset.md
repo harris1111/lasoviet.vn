@@ -1,7 +1,7 @@
-# Bộ quy tắc biên tập nội dung luận giải Tử Vi — Bản nháp
+# Bộ quy tắc biên tập nội dung luận giải Tử Vi
 
 **Ngày:** 2026-09-13
-**Trạng thái:** Bản nháp, chờ founder duyệt. Bản này **kế thừa** bộ quy tắc biên tập founder đã đưa trong Kaneo #3 (tối 12/09) và 8 quyết định sáng 13/09, bổ sung phần còn thiếu. Khi founder duyệt, đây là chuẩn cho việc viết lại kho tri thức ở đợt V4.1 và cho mọi câu chữ trong báo cáo.
+**Trạng thái:** Founder đã duyệt ngày 2026-09-13 (bảng từ §3.3 và khuôn cảnh báo §5). Bản này **kế thừa** bộ quy tắc biên tập founder đã đưa trong Kaneo #3 (tối 12/09) và 8 quyết định sáng 13/09, bổ sung phần còn thiếu. Khi founder duyệt, đây là chuẩn cho việc viết lại kho tri thức ở đợt V4.1 và cho mọi câu chữ trong báo cáo.
 **Quyết định liên quan:** FD-058 (V4), FD-064, FD-071, FD-074, FD-075, FD-076, FD-077.
 **Người đọc:** founder (duyệt), An và agent viết lại kho tri thức (thực thi).
 
@@ -82,7 +82,7 @@ Quy tắc chỉ nhắm vào từ cổ, từ sách vở, từ thầy bói.
 
 An dựng danh sách này thành file cấu hình để máy tự kiểm (xem §8). Founder có thể thêm hoặc bớt từ bất cứ lúc nào.
 
-> **Founder duyệt:** bảng từ trên ☐ Đồng ý ☐ Thêm/bớt: ______
+> **Founder duyệt:** bảng từ trên ☑ Đồng ý (2026-09-13) ☐ Thêm/bớt: ______
 
 ## 4. Nội dung phải loại bỏ: chết chóc
 
@@ -120,7 +120,7 @@ Ranh giới pháp lý (bắt buộc, không phải tuỳ chọn):
 
 Lý do của cột phải: nói chắc chắn điều xấu, chỉ bệnh, hoặc bán cách "hoá giải" là vùng dễ bị xử phạt kiểu mê tín dị đoan. Nói "giai đoạn cần phòng bị + việc nên làm" thì an toàn và vẫn giữ được sức nặng.
 
-> **Founder duyệt:** khuôn cảnh báo và ranh giới trên ☐ Đồng ý ☐ Sửa: ______
+> **Founder duyệt:** khuôn cảnh báo và ranh giới trên ☑ Đồng ý (2026-09-13) ☐ Sửa: ______
 
 ## 6. Cách viết để người đọc thấy "đúng là mình"
 
@@ -173,4 +173,4 @@ Phần nào không đạt thì máy tự viết lại riêng phần đó. Viết
 
 ## 9. Việc founder cần làm
 
-Chỉ cần đánh dấu 2 ô duyệt ở §3.3 và §5 (hoặc ghi sửa). Phần trường phái (§2) đã chốt từ trước. Các phần còn lại là cách thực hiện.
+Đã xong: founder duyệt §3.3 và §5 ngày 2026-09-13. Việc viết lại kho tri thức (Kaneo #16) được bắt đầu.
