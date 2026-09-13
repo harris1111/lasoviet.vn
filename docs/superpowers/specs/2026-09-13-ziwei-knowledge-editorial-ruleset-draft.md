@@ -1,7 +1,7 @@
 # Bộ quy tắc biên tập nội dung luận giải Tử Vi — Bản nháp
 
 **Ngày:** 2026-09-13
-**Trạng thái:** Bản nháp, chờ founder duyệt. Khi founder duyệt, bản này mở khoá việc viết lại kho tri thức (V4 plan, Task 7) và là chuẩn cho mọi câu chữ trong báo cáo.
+**Trạng thái:** Bản nháp, chờ founder duyệt. Bản này **kế thừa** bộ quy tắc biên tập founder đã đưa trong Kaneo #3 (tối 12/09) và 8 quyết định sáng 13/09, bổ sung phần còn thiếu. Khi founder duyệt, đây là chuẩn cho việc viết lại kho tri thức ở đợt V4.1 và cho mọi câu chữ trong báo cáo.
 **Quyết định liên quan:** FD-058 (V4), FD-064, FD-071, FD-074, FD-075, FD-076, FD-077.
 **Người đọc:** founder (duyệt), An và agent viết lại kho tri thức (thực thi).
 
@@ -15,14 +15,14 @@ Ba lỗi hiện tại cần sửa:
 2. Nội dung mỏng, nói chung chung, ai đọc cũng giống nhau.
 3. Kho tri thức gốc gần 90% là tiếng Trung, có nhiều đoạn nói chuyện chết chóc.
 
-## 2. Trường phái
+## 2. Trường phái và nguồn (đã chốt, giữ nguyên)
 
-**Đề xuất:** lấy cách luận phổ thông (Tam Hợp) làm gốc, vì bộ máy lập lá số của Lá Số Việt đang an sao theo cách phổ thông. Luận theo trường phái khác trên cùng lá số sẽ dễ vênh.
+Theo quyết định founder ngày 13/09 (Kaneo #3):
 
-- Phần Hoá Lộc, Hoá Quyền, Hoá Khoa, Hoá Kỵ: được dùng thêm cách đọc Tứ Hoá để bổ sung, nhưng không được mâu thuẫn với cách luận gốc.
-- Khi hai nguồn nói ngược nhau về cùng một sao: giữ cách hiểu phổ biến hơn, bỏ cách còn lại. Không đưa cả hai vào báo cáo.
-
-> **Founder duyệt:** đồng ý lấy cách phổ thông làm gốc? ☐ Đồng ý ☐ Đổi sang: ______
+- Tên trường phái chỉ nêu ở trang phương pháp luận, **không** đưa vào nội dung báo cáo.
+- Khi các nguồn mâu thuẫn: ưu tiên nguồn chính xác, logic, rõ ràng nhất, không loại nguồn nào vì là tiếng Trung. Bản cho khách luôn là tiếng Việt dễ hiểu.
+- Tứ Hoá là lớp bổ sung; nếu dùng góc nhìn khác thì nói rõ, không trộn ngầm.
+- Xưng "bạn", không dùng "đương số".
 
 ## 3. Từ ngữ
 
@@ -86,6 +86,8 @@ An dựng danh sách này thành file cấu hình để máy tự kiểm (xem §
 
 ## 4. Nội dung phải loại bỏ: chết chóc
 
+> Thay đổi so với bản 12/09: bản cũ xoá hẳn cả bệnh nặng, tai nạn, tù tội, thảm hoạ. Từ 13/09 founder chốt **chỉ xoá chuyện chết chóc**; các biến cố còn lại được giữ và viết thành cảnh báo theo §5.
+
 Xoá khỏi kho tri thức và cấm xuất hiện trong báo cáo:
 
 - chết, tử vong, mất mạng, qua đời, yểu mệnh, đoản thọ, chết non;
@@ -122,12 +124,12 @@ Lý do của cột phải: nói chắc chắn điều xấu, chỉ bệnh, hoặ
 
 ## 6. Cách viết để người đọc thấy "đúng là mình"
 
-Mỗi nhận định trong báo cáo đi theo 4 bước:
+Mỗi nhận định trong báo cáo đi theo 4 bước (mở rộng khung "nhận định → căn cứ → giới hạn → điều bạn chủ động được" trong bản 12/09):
 
 1. **Mở bằng chi tiết thật của lá số** (tên sao, tên cung của chính người đó).
-2. **Nhận định có hai mặt:** mặt mạnh đi kèm mặt dễ vướng. Người đọc dễ thấy mình trong câu có cả hai mặt hơn câu chỉ khen.
+2. **Nhận định có hai mặt:** mặt mạnh đi kèm mặt dễ vướng. Người đọc dễ thấy mình trong câu có cả hai mặt hơn câu chỉ khen. Không nói tuyệt đối.
 3. **Tình huống đời sống cụ thể:** ở chỗ làm, trong gia đình, lúc tiêu tiền, khi cãi nhau.
-4. **Một gợi ý làm được ngay.**
+4. **Một gợi ý làm được ngay** (điều bạn có thể quan sát hoặc chủ động).
 
 Ví dụ **dở** (chung chung, Hán Việt):
 
@@ -160,12 +162,15 @@ Mỗi báo cáo và mỗi đoạn kho tri thức phải qua các kiểm tra tự
 | Từ trong bảng §3.3 | 0 lần |
 | Từ chết chóc §4 | 0 lần |
 | Cảnh báo biến cố thiếu việc chuẩn bị | 0 lần (máy chấm thêm theo §5) |
+| Từ định mệnh cấm theo bản 12/09 ("chắc chắn", "không thể tránh", "định sẵn", "đại hoạ", "đổi vận", "chính xác 99%"…) | 0 lần |
 | Chữ Hán, từ tiếng Anh chỉ độ sáng sao | 0 lần |
 | Mỗi phần có nhắc tên sao/cung thật của lá số đó | Bắt buộc |
 | Độ dài tối thiểu từng phần | Theo spec kỹ thuật FD-073 |
 
-Báo cáo không đạt thì tự viết lại phần hỏng. Viết lại vẫn hỏng thì dừng và báo lỗi, không giao nội dung kém cho khách.
+Phần nào không đạt thì máy tự viết lại riêng phần đó. Viết lại vẫn hỏng thì dừng và báo lỗi, không giao nội dung kém cho khách.
+
+> Thay đổi so với 13/09 sáng: khi phát hành V4, founder chốt "không có lượt viết lại". Nay có cổng kiểm tra chặt hơn; nếu không cho viết lại, báo cáo trượt kiểm tra sẽ hỏng luôn dù khách đã trả tiền. Vì vậy thêm bước tự viết lại từng phần hỏng.
 
 ## 9. Việc founder cần làm
 
-Chỉ cần đánh dấu 3 ô duyệt ở §2, §3.3, §5 (hoặc ghi sửa). Các phần còn lại là cách thực hiện.
+Chỉ cần đánh dấu 2 ô duyệt ở §3.3 và §5 (hoặc ghi sửa). Phần trường phái (§2) đã chốt từ trước. Các phần còn lại là cách thực hiện.

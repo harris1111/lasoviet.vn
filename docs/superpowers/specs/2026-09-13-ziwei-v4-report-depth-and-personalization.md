@@ -11,7 +11,7 @@ The founder reviewed a live V4 comprehensive report and found it thin, not perso
 
 | # | Cause | Evidence |
 |---|---|---|
-| 1 | V4 was activated before its own editorial release gate passed | V4 plan §Dormancy and Milestone 7 require the Knowledge Base V4 editorial rewrite before activation; Task 7 is unchecked; `2886fe1` activated V4 for new Vietnamese orders; retrieval still pins `ziwei.comprehensive.knowledge.v3` |
+| 1 | V4 launched on the V3 corpus by founder decision, with the corpus rewrite deferred | Kaneo #3 founder decision (2026-09-13 04:29, item 3): keep the V3 corpus for the V4 launch and move translation plus per-chunk provenance to a V4.1 fast-follow; `2886fe1` activated V4 for new Vietnamese orders; retrieval still pins `ziwei.comprehensive.knowledge.v3`. The older V4 plan text requiring the rewrite before activation was superseded by that decision |
 | 2 | The `vi` knowledge corpus is mostly Chinese lecture transcript | `content/knowledge/vi/ziwei/comprehensive-report.v3.json`: 3,258 chunks; 2,918 (89.5%) contain Han characters; 278 Vietnamese chunks are rule stubs; median chunk 49 chars, p90 137; 372 chunks mention death/disaster terms (死/灾/凶/祸/刑/病/亡) |
 | 3 | Retrieval text matching barely works | Vietnamese query text against Chinese content with PostgreSQL `to_tsvector('simple', …)`; palace packs capped at 2 passages / 1,800 chars |
 | 4 | Output budget is too small | One `generateStructured` call with `maxOutputTokens: 9_000` for ~30 narrative blocks; V4 added decadal, annual, and structured actions without raising the budget. Estimated 150–200 Vietnamese words per palace |
@@ -85,9 +85,9 @@ Expect roughly 3–4× the current output tokens per comprehensive report. WP-10
 
 ## 4. FD-074 — Knowledge Base V4 editorial rewrite
 
-Follow `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset-draft.md`. Implementation starts once the founder signs its three approval boxes.
+This is the V4.1 fast-follow corpus rewrite the founder deferred in Kaneo #3 (decision item 3), now approved to proceed. Follow `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset-draft.md`, which extends the founder's editorial input already recorded in Kaneo #3 (2026-09-12 23:59 comment and 2026-09-13 04:29 decisions). Implementation starts once the founder signs its two approval boxes.
 
-- Build `content/knowledge/vi/ziwei/comprehensive-report.v4.json` (V4 plan Task 7).
+- Build `content/knowledge/vi/ziwei/comprehensive-report.v4.json`.
 - Every chunk is Vietnamese, rewritten (not translated word-for-word) per the ruleset; oral filler removed; chunks tagged with star, palace, topic.
 - Minimum useful chunk length: roughly 2–4 sentences.
 - Update retrieval to `ziwei.comprehensive.knowledge.v4` with Vietnamese full-text search that actually matches the corpus.
@@ -95,7 +95,7 @@ Follow `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset-draf
 
 ## 5. FD-075 — Death content removed; misfortune warnings kept
 
-This narrows FD-058's "quarantine extreme or fatalistic content".
+This narrows FD-058's "quarantine extreme or fatalistic content" and the founder's 2026-09-12 editorial input (Kaneo #3), which deleted serious illness, accidents, imprisonment, and disasters outright. From 2026-09-13 only death content is deleted; the others become preparation-style warnings.
 
 - **Remove** all death, lifespan, and "khắc chết" content from the corpus and block it in output (ruleset §4).
 - **Keep** warnings about misfortune (money, health, accidents, travel, legal/paperwork, relationship breakdown, work) so the reader can prepare, written in the ruleset §5 format: area and period → chart basis → likely situation → 2–3 concrete preparation steps.
@@ -151,6 +151,8 @@ Rules:
 ## 8. FD-077 — Automated quality gates
 
 Add deterministic gates to the V4 validator, evaluated per section before assembly. A failing section triggers a bounded rewrite of that section only (§3.4).
+
+This replaces the Kaneo #3 launch rule "validator plus one AI critic pass, no V4 rewrite pass". Stricter gates without a rewrite would turn gate failures into failed paid reports, which FD-043 does not allow. The AI critic pass stays.
 
 | Gate | Rule | Source of truth |
 |---|---|---|
