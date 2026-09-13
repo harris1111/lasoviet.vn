@@ -5,9 +5,10 @@ import {
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
   REPORT_PROMPT_VERSION_V3,
+  REPORT_PROMPT_VERSION_V4,
 } from "./identity-report-config.js";
 
-export type IdentityReportVersionFamily = "v1" | "v2" | "v3";
+export type IdentityReportVersionFamily = "v1" | "v2" | "v3" | "v4";
 
 export function resolveIdentityReportVersionFamily<T extends string = IdentityReportVersionFamily>(
   promptVersion: unknown,
@@ -40,6 +41,13 @@ export function resolveIdentityReportVersionFamily<T extends string = IdentityRe
   ) {
     return "v3" as unknown as T;
   }
+  if (
+    promptVersion === REPORT_PROMPT_VERSION_V4 &&
+    knowledgeVersion === REPORT_KNOWLEDGE_VERSION_V3
+  ) {
+    return "v4" as unknown as T;
+  }
+
 
   return null;
 }

@@ -386,3 +386,260 @@ describe("createDatabaseReportGenerationSourceRepository - V3 source loading", (
     expect(retrieveKnowledgeSpy).toHaveBeenCalled();
   });
 });
+
+describe("createDatabaseReportGenerationSourceRepository - V4 source loading", () => {
+  function createSampleSnapshot() {
+    return {
+      id: "snap-1",
+      reportId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      reportVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      chartVersionId: "chart-v1",
+      asOfDate: "2026-09-12",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      snapshotHash: "c".repeat(64),
+      snapshot: {
+        version: 1,
+        chartVersionId: "chart-v1",
+        asOfDate: "2026-09-12",
+        timezone: "Asia/Ho_Chi_Minh",
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+        timing: {
+          decadal: {
+            state: "active" as const,
+            index: 1,
+            ageRange: [15, 24] as [number, number],
+            yearRange: [2020, 2029] as [number, number],
+            palaceId: "ziwei.palace.siblings" as const,
+            heavenlyStemId: "ziwei.stem.yi",
+            earthlyBranchId: "ziwei.branch.rabbit" as const,
+            palaces: palaceIds.map((id, index) => ({
+              palaceId: id,
+              heavenlyStemId: "ziwei.stem.jia",
+              earthlyBranchId: branches[index]!,
+              isOriginalPalace: index === 0,
+              cycleStateId: "ziwei.cycle.born",
+              stars: [{ id: "ziwei.star.ziwei", brightness: "ziwei.brightness.prosperous", category: "major" as const }],
+              transformations: [],
+            })),
+          },
+          annual: {
+            targetYear: 2026,
+            palaceId: "ziwei.palace.travel" as const,
+            heavenlyStemId: "ziwei.stem.bing",
+            earthlyBranchId: "ziwei.branch.horse" as const,
+            palaces: palaceIds.map((id, index) => ({
+              palaceId: id,
+              heavenlyStemId: "ziwei.stem.jia",
+              earthlyBranchId: branches[index]!,
+              isOriginalPalace: index === 0,
+              cycleStateId: "ziwei.cycle.born",
+              stars: [{ id: "ziwei.star.ziwei", brightness: "ziwei.brightness.prosperous", category: "major" as const }],
+              transformations: [],
+            })),
+          },
+          provenance: {
+            engineId: "ziwei.iztro",
+            engineVersion: "2.6.0",
+            adapterId: "ziwei.iztro-adapter",
+            adapterVersion: "1.0.0",
+            ruleSetId: "ziwei.default",
+            config: {
+              yearDivide: "normal",
+              horoscopeDivide: "normal",
+              ageDivide: "normal",
+              dayDivide: "current",
+            },
+          },
+        },
+        sensitivity: {
+          selectedFrame: { position: "selected" as const, vendorTimeIndex: 6, civilDateOffset: 0 as const, frameId: "ziwei.time-frame.horse" },
+          previousFrame: { position: "previous" as const, vendorTimeIndex: 5, civilDateOffset: 0 as const, frameId: "ziwei.time-frame.snake" },
+          nextFrame: { position: "next" as const, vendorTimeIndex: 7, civilDateOffset: 0 as const, frameId: "ziwei.time-frame.goat" },
+          stableFactKeys: ["ziwei.fact.soul-palace"],
+          sensitiveFacts: [],
+        },
+        provenance: {
+          chartVersionId: "chart-v1",
+          timingRuleVersion: "ziwei.timing.v1",
+          sensitivityRuleVersion: "ziwei.sensitivity.v1",
+          snapshotHash: "c".repeat(64),
+        },
+      },
+      createdAt: new Date(),
+    };
+  }
+
+  it("loads frozen snapshot, builds V4 facts, queries V3 knowledge corpus, and returns bound V4 source", async () => {
+    const chart = createSampleChart();
+    const evidenceResult = buildZiweiIdentityEvidence(chart, "chart-v1");
+    expect(evidenceResult.ok).toBe(true);
+    if (!evidenceResult.ok) return;
+
+    const mockDb = {
+      select: vi.fn().mockImplementation((fields) => ({
+        from: vi.fn().mockImplementation(() => ({
+          where: vi.fn().mockImplementation(() => {
+            if (fields && fields.normalizedOutput !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{ normalizedOutput: chart }]),
+              };
+            }
+            if (fields && fields.chartVersionId !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{
+                  id: "evidence-v1",
+                  chartVersionId: evidenceResult.value.chartVersionId,
+                  capabilityId: evidenceResult.value.capabilityId,
+                  ruleVersion: evidenceResult.value.ruleVersion,
+                }]),
+              };
+            }
+            return {
+              orderBy: vi.fn().mockResolvedValue(
+                evidenceResult.value.items.map((item) => ({
+                  evidenceKey: item.id,
+                  payload: item,
+                })),
+              ),
+            };
+          }),
+        })),
+      })),
+    };
+
+    const dummyPassage: KnowledgePassageV1 = {
+      id: "row-v3-1",
+      passageId: "passage-v3-01",
+      documentId: "doc-v3",
+      discipline: "ziwei",
+      locale: "vi",
+      reportSections: ["identity_analysis"],
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      content: "Nội dung đoạn trích V3 cho toàn bộ lá số.",
+      contentHash: "hash-v3-01",
+      sourceAttribution: "Lá Số Việt",
+      permittedUse: "reference_rewrite",
+      metadata: {
+        topics: ["overview"],
+        palaces: ["ziwei.palace.life"],
+        stars: ["ziwei.star.ziwei"],
+        brightness: ["ziwei.brightness.prosperous"],
+        transformations: [],
+        relations: [],
+        patterns: [],
+        sourceType: "classical",
+        languageOrigin: "vi",
+        priority: 2,
+      },
+    };
+
+    const retrieveZiweiKnowledgeSpy = vi.fn().mockResolvedValue([dummyPassage]);
+    const mockSnapshotRepo = {
+      getByReportVersionId: vi.fn().mockResolvedValue(createSampleSnapshot()),
+      persist: vi.fn(),
+    };
+
+    const repository = createDatabaseReportGenerationSourceRepository({
+      database: mockDb as never,
+      knowledgeRetrieval: {
+        retrieveKnowledge: vi.fn(),
+        retrieveZiweiKnowledge: retrieveZiweiKnowledgeSpy,
+      },
+      snapshotRepository: mockSnapshotRepo as never,
+    });
+
+    const result = await repository.loadSource({
+      reportVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      chartVersionId: "chart-v1",
+      evidenceVersionId: "evidence-v1",
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      locale: "vi",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.comprehensiveFacts).toBeDefined();
+    expect(result.value.comprehensiveFactsV4).toBeDefined();
+    expect(result.value.comprehensiveFactsV4?.timing.decadal.state).toBe("active");
+    expect(result.value.comprehensiveFactsV4?.timing.annual.targetYear).toBe(2026);
+    expect(result.value.knowledgePacks).toHaveLength(19);
+    expect(retrieveZiweiKnowledgeSpy).toHaveBeenCalledTimes(19);
+    // Verifies retrieval query explicitly asked for V3 knowledge corpus
+    expect(retrieveZiweiKnowledgeSpy.mock.calls[0][0].knowledgeVersion).toBe("ziwei.comprehensive.knowledge.v3");
+  });
+
+  it("returns REPORT_EVIDENCE_INVALID when snapshot is missing", async () => {
+    const chart = createSampleChart();
+    const evidenceResult = buildZiweiIdentityEvidence(chart, "chart-v1");
+    if (!evidenceResult.ok) return;
+
+    const mockDb = {
+      select: vi.fn().mockImplementation((fields) => ({
+        from: vi.fn().mockImplementation(() => ({
+          where: vi.fn().mockImplementation(() => {
+            if (fields && fields.normalizedOutput !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{ normalizedOutput: chart }]),
+              };
+            }
+            if (fields && fields.chartVersionId !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{
+                  id: "evidence-v1",
+                  chartVersionId: evidenceResult.value.chartVersionId,
+                  capabilityId: evidenceResult.value.capabilityId,
+                  ruleVersion: evidenceResult.value.ruleVersion,
+                }]),
+              };
+            }
+            return {
+              orderBy: vi.fn().mockResolvedValue(
+                evidenceResult.value.items.map((item) => ({
+                  evidenceKey: item.id,
+                  payload: item,
+                })),
+              ),
+            };
+          }),
+        })),
+      })),
+    };
+
+    const mockSnapshotRepo = {
+      getByReportVersionId: vi.fn().mockResolvedValue(null),
+      persist: vi.fn(),
+    };
+
+    const repository = createDatabaseReportGenerationSourceRepository({
+      database: mockDb as never,
+      knowledgeRetrieval: {
+        retrieveKnowledge: vi.fn(),
+        retrieveZiweiKnowledge: vi.fn(),
+      },
+      snapshotRepository: mockSnapshotRepo as never,
+    });
+
+    const result = await repository.loadSource({
+      reportVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      chartVersionId: "chart-v1",
+      evidenceVersionId: "evidence-v1",
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      locale: "vi",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_EVIDENCE_INVALID",
+        messageKey: "reports.report_evidence_invalid",
+        retryable: false,
+      },
+    });
+  });
+});

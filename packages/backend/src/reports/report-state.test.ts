@@ -92,6 +92,63 @@ describe("report worker state and queue contracts", () => {
     });
   });
 
+  const validV2Payload = {
+    ...validPayload,
+    asOfDate: "2026-09-12",
+    targetYear: 2026,
+    timingRuleVersion: "ziwei.timing.v1",
+    sensitivityRuleVersion: "ziwei.sensitivity.v1",
+  };
+
+  const validV2JobEnvelope = {
+    schemaVersion: 2 as const,
+    name: "report.generate.v2" as const,
+    sourceEventId: "evt-source-2",
+    traceId: "trace-test-2",
+    idempotencyKey: "report-generate:00000000-0000-0000-0000-000000000002",
+    payload: validV2Payload,
+  };
+
+  it("strictly validates report.generate.v2 job envelopes and rejects invalid V2 payloads", () => {
+    const validResult = parseReportGenerateJob(validV2JobEnvelope);
+    expect(validResult).toEqual({
+      ok: true,
+      value: validV2JobEnvelope,
+    });
+
+    const mismatchedYear = parseReportGenerateJob({
+      ...validV2JobEnvelope,
+      payload: { ...validV2Payload, targetYear: 2025 },
+    });
+    expect(mismatchedYear).toEqual({
+      ok: false,
+      code: "JOB_PAYLOAD_INVALID",
+    });
+
+    const missingRule = parseReportGenerateJob({
+      ...validV2JobEnvelope,
+      payload: {
+        ...validPayload,
+        asOfDate: "2026-09-12",
+        targetYear: 2026,
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      },
+    });
+    expect(missingRule).toEqual({
+      ok: false,
+      code: "JOB_PAYLOAD_INVALID",
+    });
+
+    const mismatchedName = parseReportGenerateJob({
+      ...validV2JobEnvelope,
+      name: "report.generate.v1",
+    });
+    expect(mismatchedName).toEqual({
+      ok: false,
+      code: "JOB_PAYLOAD_INVALID",
+    });
+  });
+
   it("resolves WORKER_QUEUES with default, accept, and fail-closed validation", () => {
     expect(resolveWorkerQueues(undefined)).toEqual({
       ok: true,

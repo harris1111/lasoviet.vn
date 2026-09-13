@@ -666,6 +666,10 @@ Date: 2026-09-05
   `ZIWEI-RELATIONSHIP-P0`, `ZIWEI-CAREER-P0`, `ZIWEI-YEAR-P0` one topic at a
   time at VND 79,000 each, matching the existing hypothesis price. Still
   blocked on Phase 07 Task 1 checkout enablement; this only fixes price/order.
+  *Historical supersession note (2026-09-12):* The `ZIWEI-YEAR-P0` portion was
+  superseded and cancelled by FD-058. Current decadal and annual timing snapshot
+  are merged into the base VND 79,000 comprehensive report (V4); OD-001 applies
+  only to `ZIWEI-RELATIONSHIP-P0` and `ZIWEI-CAREER-P0`.
 - OD-002 (BaZi paid offer): Option A. One comprehensive BaZi report at VND
   79,000, contingent on the report passing the common release QA gate. Still
   blocked on Phase 08 Task 4 checkout enablement.
@@ -726,3 +730,42 @@ Date: 2026-09-11
 - Runtime configuration (`config/domain-routing.json`, `config/sitemap.json`),
   public metadata, auth client actions, report writer, contracts, E2E tests,
   and deployment specifications are aligned to `lasoviet.net`.
+
+
+## FD-058 Zi Wei Comprehensive Report V4 Timing Scope, Sensitivity, And Editorial Gate Evidence
+
+Date: 2026-09-12
+
+- Founder decision and override: The base VND 79,000 Zi Wei comprehensive natal
+  report (`ZIWEI-IDENTITY-P0`, V4) includes natal interpretation, current
+  10-year decadal cycle, current annual snapshot, and three-frame birth-time
+  sensitivity analysis. This overrides the 2026-09-07 quality design exclusion
+  of decadal and yearly forecasting for this SKU.
+- Cancellation of separate annual SKU: `ZIWEI-YEAR-P0` is cancelled as an
+  independent offer and removed from `config/product-catalog.json`, Phase 07
+  Task 1, and OD-001. OD-001 now applies only to `ZIWEI-RELATIONSHIP-P0` and
+  `ZIWEI-CAREER-P0`.
+- Timing bounds and brand guideline compliance: The annual section is an
+  immutable snapshot tied strictly to the creation year (frozen at report
+  reservation). It does not auto-update across new calendar years, and there is
+  no recurring annual return loop or reminder. The decadal cycle is considered
+  stable across 10 years without expiry warnings. Deep monthly, daily, and
+  hourly forecasting remain strictly excluded.
+- Birth-time sensitivity and PII minimization: The engine calculates 3
+  neighboring time frames (selected hour branch, immediately preceding branch,
+  and immediately succeeding branch) and normalizes them into stable factors
+  (presented with high confidence) versus birth-time-sensitive factors
+  (presented with precision-dependency notes). Raw birth date, time, and
+  location must never be transmitted to external AI providers; only normalized
+  chart facts and comparison outputs are sent.
+- Structured personalized actions: The report concludes with 3 to 5
+  personalized actions. Each action must contain exactly 4 fixed fields: What
+  to do (`recommendation`), Why it fits this chart (`rationale`), What to
+  avoid (`avoid`), and `evidenceKeys`. No 7-day or 30-day tracking mechanics and
+  no goal picker are introduced.
+- Tier-1 scope: The VND 19,000 natal excerpt (`ZIWEI-NATAL-EXCERPT-P0`) scope
+  remains strictly natal-only and does not receive timing sections.
+- Knowledge base editorial prerequisite: Rewriting the Vietnamese knowledge
+  corpus into plain conversational Vietnamese, categorizing by school, and
+  quarantining extreme or fatalistic content is a prerequisite for V4 release.
+  Editorial work is gated on the founder providing the editorial ruleset

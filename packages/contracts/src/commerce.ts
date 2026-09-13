@@ -26,6 +26,8 @@ export const COMPREHENSIVE_REPORT_SECTION_IDS = [
   "keyConfigurations",
   "palaceReadings",
   "thematicSynthesis",
+  "currentDecadal",
+  "annualSnapshot",
 ] as const;
 
 export const ComprehensiveReportSectionIdSchema = z.enum(COMPREHENSIVE_REPORT_SECTION_IDS);
@@ -54,6 +56,21 @@ export const COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS = [
   "thematicSynthesis",
 ] as const;
 
+export const V4_TIMING_SCOPE_SECTIONS = [
+  "currentDecadal",
+  "annualSnapshot",
+] as const;
+
+export const TIER_2_V4_SCOPE_SECTIONS = [
+  ...TIER_2_SCOPE_SECTIONS,
+  ...V4_TIMING_SCOPE_SECTIONS,
+] as const;
+
+export const COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS = [
+  ...COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS,
+  ...V4_TIMING_SCOPE_SECTIONS,
+] as const;
+
 export const EntitlementScopeSchema = z
   .object({
     sections: z.array(ComprehensiveReportSectionIdSchema).min(1),
@@ -69,12 +86,26 @@ export const TIER_2_ENTITLEMENT_SCOPE: EntitlementScope = Object.freeze({
   sections: [...TIER_2_SCOPE_SECTIONS],
 });
 
-export function resolveEntitlementScopeForSku(sku: CommerceSku): EntitlementScope {
+export const TIER_2_V4_ENTITLEMENT_SCOPE: EntitlementScope = Object.freeze({
+  sections: [...TIER_2_V4_SCOPE_SECTIONS],
+});
+
+export function resolveEntitlementScopeForSku(
+  sku: CommerceSku,
+  familyOrOptions?: "v1" | "v2" | "v3" | "v4" | { reportFamily?: "v1" | "v2" | "v3" | "v4" },
+): EntitlementScope {
+  const family =
+    typeof familyOrOptions === "string"
+      ? familyOrOptions
+      : familyOrOptions?.reportFamily;
+
   switch (sku) {
     case "ZIWEI-NATAL-EXCERPT-P0":
       return TIER_1_ENTITLEMENT_SCOPE;
     case "ZIWEI-IDENTITY-P0":
-      return TIER_2_ENTITLEMENT_SCOPE;
+      return family === "v4"
+        ? TIER_2_V4_ENTITLEMENT_SCOPE
+        : TIER_2_ENTITLEMENT_SCOPE;
   }
 }
 

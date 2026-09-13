@@ -9,6 +9,8 @@ import {
   type IdentityReportV1,
   type ZiweiComprehensiveReportContentV1,
   type ReportGenerateJobEnvelopeV1,
+  type ReportGenerateJobEnvelopeV2,
+  type ReportGenerationRequestedV2,
 } from "@lasoviet/contracts";
 
 import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
@@ -18,8 +20,12 @@ import {
 } from "./report-generation.service.js";
 import type { ReportGenerationSourceRepository } from "./report-generation.repository.js";
 import type { ReportVersionRepository } from "./report-version.repository.js";
+import type { ReportSourceSnapshotPreparationService } from "./report-source-snapshot.service.js";
+import type { PersistedReportSourceSnapshotRecord } from "./report-source-snapshot.repository.js";
 import {
   REPORT_CONFIG_VERSION_V3,
+  CANONICAL_PALACE_TITLES_VI,
+  CANONICAL_THEMATIC_TITLES_VI,
   REPORT_KNOWLEDGE_VERSION_V3,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
@@ -469,7 +475,7 @@ describe("createReportGenerationService", () => {
       workerId: "worker-1",
     });
 
-    expect(result.ok).toBe(true);
+    expect(result.ok ? null : result.error).toBeNull();
     expect(writerCallCount).toBe(2);
     expect(criticCallCount).toBe(2);
     expect(committedRecord).not.toBeNull();
@@ -1168,5 +1174,564 @@ describe("createReportGenerationService", () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe("REPORT_EVIDENCE_INVALID");
+  });
+});
+
+function createV2Job(overrides?: Partial<ReportGenerationRequestedV2>): ReportGenerateJobEnvelopeV2 {
+  return {
+    schemaVersion: 2,
+    name: "report.generate.v2",
+    sourceEventId: "event-2",
+    traceId: "trace-2",
+    idempotencyKey: "job-2",
+    payload: {
+      reportId: "11111111-1111-4111-8111-111111111111",
+      reportVersionId: "22222222-2222-4222-8222-222222222222",
+      entitlementId: "entitlement-2",
+      chartVersionId: "chart-2",
+      evidenceVersionId: "evidence-2",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+      promptVersion: REPORT_PROMPT_VERSION_V3,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V3,
+      locale: "vi",
+      sku: "ZIWEI-NATAL-V4",
+      asOfDate: "2026-09-12",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      ...overrides,
+    },
+  };
+}
+
+describe("createReportGenerationService V2 source snapshot ordering", () => {
+  it("does not call sourceSnapshotPreparer for V1 jobs", async () => {
+    const preparer: ReportSourceSnapshotPreparationService = {
+      prepare: vi.fn(),
+    };
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
+    };
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+    } as unknown as ReportVersionRepository;
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = { generateStructured: vi.fn() };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+      sourceSnapshotPreparer: preparer,
+    });
+
+    await service.generateReport({
+      job: createJob({ promptVersion: "unknown.v999", knowledgeVersionId: "unknown.v999" }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(preparer.prepare).not.toHaveBeenCalled();
+  });
+
+  it("calls sourceSnapshotPreparer before sourceRepository.loadSource and provider for V2 jobs", async () => {
+    const callOrder: string[] = [];
+    const preparer: ReportSourceSnapshotPreparationService = {
+      prepare: vi.fn().mockImplementation(async () => {
+        callOrder.push("preparer");
+        return {
+          ok: true,
+          value: {
+            id: "snap-1",
+            reportId: "11111111-1111-4111-8111-111111111111",
+            reportVersionId: "22222222-2222-4222-8222-222222222222",
+            chartVersionId: "chart-2",
+            asOfDate: "2026-09-12",
+            targetYear: 2026,
+            timingRuleVersion: "ziwei.timing.v1",
+            sensitivityRuleVersion: "ziwei.sensitivity.v1",
+            snapshotHash: "a".repeat(64),
+            snapshot: {} as any,
+            createdAt: new Date(),
+          },
+        };
+      }),
+    };
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn().mockImplementation(async () => {
+        callOrder.push("source");
+        return { ok: true, value: mockV3Source };
+      }),
+    };
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: {} as any }),
+    } as unknown as ReportVersionRepository;
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = {
+      generateStructured: vi.fn().mockImplementation(async () => {
+        callOrder.push("provider");
+        return {
+          ok: true,
+          value: {
+            value: buildV3ReportContent(),
+            providerId: "v3-test-provider",
+            modelId: "v3-test-model",
+          },
+        };
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+      sourceSnapshotPreparer: preparer,
+    });
+
+    const result = await service.generateReport({
+      job: createV2Job(),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(callOrder[0]).toBe("preparer");
+    expect(callOrder[1]).toBe("source");
+    expect(callOrder[2]).toBe("provider");
+  });
+
+  it("fails closed when V2 job has missing sourceSnapshotPreparer and never calls provider", async () => {
+    const providerSpy = vi.fn();
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn(),
+    };
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+    } as unknown as ReportVersionRepository;
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = { generateStructured: providerSpy };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+      // sourceSnapshotPreparer omitted
+    });
+
+    const result = await service.generateReport({
+      job: createV2Job(),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("REPORT_SOURCE_SNAPSHOT_INVALID");
+      expect(result.error.retryable).toBe(false);
+    }
+    expect(providerSpy).not.toHaveBeenCalled();
+    expect(sourceRepository.loadSource).not.toHaveBeenCalled();
+  });
+
+  it("prevents source loading and provider calls when sourceSnapshotPreparer fails", async () => {
+    const loadSourceSpy = vi.fn();
+    const providerSpy = vi.fn();
+    const preparer: ReportSourceSnapshotPreparationService = {
+      prepare: vi.fn().mockResolvedValue({
+        ok: false,
+        error: {
+          code: "REPORT_SOURCE_SNAPSHOT_UNAVAILABLE",
+          messageKey: "reports.report_source_snapshot_unavailable",
+          retryable: true,
+        },
+      }),
+    };
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: loadSourceSpy,
+    };
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+    } as unknown as ReportVersionRepository;
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = { generateStructured: providerSpy };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+      sourceSnapshotPreparer: preparer,
+    });
+
+    const result = await service.generateReport({
+      job: createV2Job(),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("REPORT_SOURCE_SNAPSHOT_UNAVAILABLE");
+      expect(result.error.retryable).toBe(true);
+    }
+    expect(loadSourceSpy).not.toHaveBeenCalled();
+    expect(providerSpy).not.toHaveBeenCalled();
+  });
+
+  it("retries reuse existing snapshot without recomputing", async () => {
+    const existingSnapshotRecord: PersistedReportSourceSnapshotRecord = {
+      id: "snap-1",
+      reportId: "11111111-1111-4111-8111-111111111111",
+      reportVersionId: "22222222-2222-4222-8222-222222222222",
+      chartVersionId: "chart-2",
+      asOfDate: "2026-09-12",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      snapshotHash: "a".repeat(64),
+      snapshot: {} as any,
+      createdAt: new Date(),
+    };
+
+    const preparer: ReportSourceSnapshotPreparationService = {
+      prepare: vi.fn().mockResolvedValue({ ok: true, value: existingSnapshotRecord }),
+    };
+    const sourceRepository: ReportGenerationSourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
+    };
+    const versionRepository: ReportVersionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: {} as any }),
+    } as unknown as ReportVersionRepository;
+    const gate: AiProductionGate = { allows: () => true } as unknown as AiProductionGate;
+    const provider: AiProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: buildV3ReportContent(),
+          providerId: "v3-test-provider",
+          modelId: "v3-test-model",
+        },
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+      sourceSnapshotPreparer: preparer,
+    });
+
+    const result = await service.generateReport({
+      job: createV2Job(),
+      attemptNumber: 2,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(preparer.prepare).toHaveBeenCalledTimes(1);
+    expect(versionRepository.startOrReuseAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ attemptNumber: 2 }),
+    );
+  });
+});
+
+describe("createReportGenerationService V4 generation and critic", () => {
+  const palaceNarratives: Record<string, string> = {
+    "ziwei.palace.life": "Cung Mệnh định hình nhân sinh quan độc lập, phong thái đĩnh đạc và bản lĩnh tự thân lập nghiệp.",
+    "ziwei.palace.siblings": "Mối quan hệ anh chị em giữ được sự hòa thuận cơ bản, có sự trợ lực khi đối diện hoàn cảnh ngặt nghèo.",
+    "ziwei.palace.spouse": "Hôn phối có trình độ chuyên môn tốt, là hậu phương vững chắc dù đôi khi có bất đồng quan điểm.",
+    "ziwei.palace.children": "Hậu duệ thông minh, có xu hướng phát triển cá tính riêng từ sớm và cần phương pháp giáo dục kiên nhẫn.",
+    "ziwei.palace.wealth": "Nguồn tài chính hình thành từ tích lũy chuyên môn bền bỉ, dòng tiền ổn định hơn là đầu cơ mạo hiểm.",
+    "ziwei.palace.health": "Thể trạng tương đối tốt nhưng cần lưu ý hệ tiêu hóa và duy trì nhịp độ sinh hoạt điều độ.",
+    "ziwei.palace.travel": "Không gian bên ngoài mở ra nhiều cơ hội hợp tác giá trị, đi xa được nhiều quý nhân tương trợ.",
+    "ziwei.palace.friends": "Mạng lưới bạn bè và đồng nghiệp đáng tin cậy, hỗ trợ đắc lực trong những thời điểm then chốt.",
+    "ziwei.palace.career": "Đường quan lộ hanh thông nhờ năng lực chuyên môn sâu và tác phong làm việc bài bản, chỉn chu.",
+    "ziwei.palace.property": "Cơ ngơi điền sản gia tăng theo thời gian, có duyên gìn giữ đất đai hoặc bất động sản ổn định.",
+    "ziwei.palace.fortune": "Đời sống tinh thần an định, có chiều sâu tâm tưởng và khả năng tự cân bằng trước nghịch cảnh.",
+    "ziwei.palace.parents": "Song thân là tấm gương lớn về đạo đức, tạo nền tảng giáo dưỡng gia đình chu đáo từ thuở ấu thơ.",
+  };
+
+  const thematicNarratives: Record<string, string> = {
+    career_wealth: "Sự kết hợp giữa tài năng điều hành và kiểm soát tài chính mang lại lợi thế cạnh tranh dài hạn.",
+    relationships_family: "Nền tảng gia đình vững chắc tạo bệ phóng tinh thần cho mọi nỗ lực ngoài xã hội.",
+    social_environment: "Môi trường làm việc mở rộng giúp tiếp cận các nguồn lực tri thức và đối tác uy tín.",
+    wellbeing_inner_resources: "Nội lực bền bỉ giúp hóa giải áp lực bên ngoài, duy trì sức khỏe thể chất và tâm lý an nhiên.",
+  };
+
+  function buildV4ReportContent() {
+    return {
+      overview: {
+        title: "Tổng quan lá số",
+        narrative: "Bản mệnh vững vàng, cách cục phối hợp hài hòa.",
+        evidenceKeys: ["ziwei.palace.life"],
+      },
+      coreAxis: {
+        title: "Mệnh, Thân và động lực cốt lõi",
+        narrative: "Mệnh Thân đồng cung tại Dần tạo nên tính cách kiên định.",
+        evidenceKeys: ["ziwei.palace.life"],
+      },
+      keyConfigurations: [
+        {
+          title: "Cách cục Tử Phủ Đồng Cung",
+          narrative: "Tử Vi và Thiên Phủ cùng hội tụ đem lại vị thế vững chắc.",
+          evidenceKeys: ["ziwei.palace.life"],
+        },
+      ],
+      palaceReadings: ZIWEI_PALACE_IDS.map((palaceId) => ({
+        palaceId,
+        title: CANONICAL_PALACE_TITLES_VI[palaceId],
+        narrative: palaceNarratives[palaceId] || "Luận giải cung.",
+        evidenceKeys: ["ziwei.palace.life"],
+      })),
+      thematicSynthesis: ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id) => ({
+        id,
+        title: CANONICAL_THEMATIC_TITLES_VI[id],
+        narrative: thematicNarratives[id] || "Tổng hợp chủ đề.",
+        evidenceKeys: ["ziwei.palace.life"],
+      })),
+      strengthsAndTensions: {
+        title: "Điểm mạnh, điểm vướng và điều kiện phát huy",
+        narrative: "Điểm mạnh là tầm nhìn chiến lược, cần lưu ý điều phối.",
+        evidenceKeys: ["ziwei.palace.life"],
+      },
+      currentDecadal: {
+        title: "Đại vận hiện hành (22-31 tuổi)",
+        state: "active" as const,
+        index: 2,
+        ageRange: [22, 31] as [number, number],
+        yearRange: [2022, 2031] as [number, number],
+        narrative: "Đại vận 10 năm tại cung Phúc Đức mở ra nhiều bước tiến.",
+        evidenceKeys: ["decadal.state.active"],
+      },
+      annualSnapshot: {
+        title: "Lưu niên năm 2026",
+        targetYear: 2026,
+        asOfDate: "2026-09-12",
+        narrative: "Lưu niên năm 2026 thuận lợi củng cố uy tín.",
+        evidenceKeys: ["annual.target-year.2026"],
+      },
+      practicalDirection: [
+        {
+          recommendation: "Tập trung nâng cao năng lực chuyên môn.",
+          rationale: "Mệnh vững vàng cần năng lực thực tiễn.",
+          avoid: "Tránh các quyết định bốc đồng ngắn hạn.",
+          evidenceKeys: ["ziwei.palace.life"],
+        },
+        {
+          recommendation: "Xây dựng mạng lưới cộng sự đáng tin cậy.",
+          rationale: "Hợp tác minh bạch đem lại hiệu quả lâu bền.",
+          avoid: "Tránh đơn độc hành động.",
+          evidenceKeys: ["ziwei.palace.life"],
+        },
+        {
+          recommendation: "Giữ vững kỷ luật quản lý tài chính.",
+          rationale: "Tích lũy tài sản cho chu kỳ kế tiếp.",
+          avoid: "Tránh đầu tư mạo hiểm thiếu cơ sở.",
+          evidenceKeys: ["ziwei.palace.life"],
+        },
+      ],
+    };
+  }  const mockV4Source = {
+    ...mockV3Source,
+    comprehensiveFactsV4: {
+      version: 4 as const,
+      natal: mockV3Source.comprehensiveFacts,
+      timing: {
+        decadal: {
+          state: "active" as const,
+          index: 2,
+          ageRange: [22, 31] as [number, number],
+          yearRange: [2022, 2031] as [number, number],
+          palaceId: "ziwei.palace.fortune" as const,
+          heavenlyStemId: "ziwei.stem.yi",
+          earthlyBranchId: "ziwei.branch.rabbit" as const,
+          palaces: [],
+        },
+        annual: {
+          targetYear: 2026,
+          palaceId: "ziwei.palace.career" as const,
+          heavenlyStemId: "ziwei.stem.bing",
+          earthlyBranchId: "ziwei.branch.horse" as const,
+          palaces: [],
+        },
+        provenance: {} as any,
+      },
+      sensitivity: {} as any,
+      sourceSnapshot: {
+        reportVersionId: "22222222-2222-4222-8222-222222222222",
+        chartVersionId: "chart-2",
+        asOfDate: "2026-09-12",
+        targetYear: 2026,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+        snapshotHash: "a".repeat(64),
+      },
+      evidence: {} as any,
+      evidenceKeys: [
+        ...mockV3Source.comprehensiveFacts.evidenceKeys,
+        "decadal.state.active",
+        "annual.target-year.2026",
+      ],
+    },
+  };
+
+  it("successfully generates V4 report with exactly one critic call and commits", async () => {
+    const preparer = {
+      prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+    };
+    const sourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
+    };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+    };
+    const gate = { allows: () => true };
+    const provider = {
+      generateStructured: vi.fn()
+        // 1st call: V4 writer
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: buildV4ReportContent(),
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 2nd call: V4 critic
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "v4-critic-provider",
+            modelId: "v4-critic-model",
+          },
+        }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({
+      job: v4Job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    // Exactly 2 provider calls: 1 writer + 1 critic
+    expect(provider.generateStructured).toHaveBeenCalledTimes(2);
+    expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed on V4 critic safety failure without triggering rewrite", async () => {
+    const preparer = {
+      prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+    };
+    const sourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
+    };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn(),
+    };
+    const gate = { allows: () => true };
+    const provider = {
+      generateStructured: vi.fn()
+        // 1st call: V4 writer
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: buildV4ReportContent(),
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 2nd call: V4 critic failing safety
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: {
+              correctness: 3,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 3,
+              repetitionControl: 5,
+              notes: ["Safety issue"],
+            },
+          },
+        }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({
+      job: v4Job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe("REPORT_SAFETY_REJECTED");
+    // Strictly NO rewrite call: exactly 2 calls occurred
+    expect(provider.generateStructured).toHaveBeenCalledTimes(2);
+    expect(versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+    expect(versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ errorCode: "REPORT_SAFETY_REJECTED" }),
+    );
   });
 });

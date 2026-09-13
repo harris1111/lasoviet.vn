@@ -176,7 +176,7 @@ row, event, job, object, email, or analytics payload was created.
 
 | ID | Exact inputs | Outputs and errors | Persistence/events | Required failing vector |
 |---|---|---|---|---|
-| P07-T01 | Existing Zi Wei chart/evidence plus topic and period where required | Topic-specific report contract; errors `TOPIC_EVIDENCE_INSUFFICIENT`, `TOPIC_NOT_PUBLIC`, `TOPIC_PERIOD_INVALID` | Separate immutable report versions and catalog flags | Disabled OD-001 topic cannot create order; annual report without period provenance fails |
+| P07-T01 | Existing Zi Wei chart/evidence plus topic | Topic-specific report contract; errors `TOPIC_EVIDENCE_INSUFFICIENT`, `TOPIC_NOT_PUBLIC` | Separate immutable report versions and catalog flags | Disabled OD-001 topic cannot create order |
 | P07-T02 | Normalized Unicode name parts and birth date | `calculateNumerology(input): Result<NormalizedNumerologyChartV1, "NAME_REQUIRED" | "DATE_INVALID">` | Optional saved calculation; formula version and privacy-safe event | VI diacritics normalize deterministically; 11/22/33 are not reduced incorrectly |
 | P07-T03 | Actor, spread `daily | three_card`, question, stored or generated seed | `drawTarot(): Result<NormalizedTarotReadingV1, "DAILY_DRAW_EXISTS" | "QUESTION_INVALID" | "SPREAD_UNSUPPORTED">` | Immutable reading with seed, card IDs, orientations, order | Same seed replays exactly; second daily draw returns prior reading |
 | P07-T04 | Date-selection query or zodiac birth date/timezone | Normalized utility result; errors `DATE_RANGE_INVALID`, `TIMEZONE_INVALID`, `UTILITY_SCOPE_UNSUPPORTED` | Optional saved query and privacy-safe analytics | Zodiac boundary fixture and unsupported auspicious-certainty field both enforce contract |

@@ -1,0 +1,268 @@
+import {
+  ZIWEI_PALACE_IDS,
+  ZIWEI_THEMATIC_SYNTHESIS_IDS,
+  ZiweiComprehensiveReportContentV2Schema,
+  type ZiweiComprehensiveReportContentV2,
+  type ZiweiPalaceId,
+  type ZiweiThematicSynthesisId,
+} from "@lasoviet/contracts";
+
+import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
+import {
+  CANONICAL_COMPREHENSIVE_SECTION_TITLES,
+  CANONICAL_PALACE_TITLES_VI,
+  CANONICAL_THEMATIC_TITLES_VI,
+} from "./identity-report-config.js";
+import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
+import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
+import type { ComprehensiveReportSourceV4 } from "./report-source.js";
+import {
+  BRIGHTNESS_LABELS_VI,
+  normalizeComprehensiveReportModelProse,
+} from "./comprehensive-report-writer.js";
+
+export const COMPREHENSIVE_REPORT_V4_JSON_CONTRACT_INSTRUCTION = `QUY CÁCH CẤU TRÚC JSON ĐẦU RA BẮT BUỘC (V4 COMPREHENSIVE REPORT CONTRACT - ziwei-comprehensive.v2):
+Bản báo cáo phải là một JSON object hợp lệ duy nhất, tuân thủ nghiêm ngặt và chính xác các quy tắc cấu trúc sau:
+1. Top-level keys: Object JSON ở cấp cao nhất (root) CHỈ ĐƯỢC CHỨA ĐÚNG 9 trường sau (không thừa, không thiếu, không dùng bất kỳ tên trường nào khác):
+   - "overview": Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (tổng quan lá số).
+   - "coreAxis": Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (trục Mệnh - Thân và động lực cốt lõi).
+   - "keyConfigurations": Array gồm từ 1 đến 12 Object, mỗi Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (cách cục và cấu trúc sao trọng yếu).
+   - "palaceReadings": Array gồm ĐÚNG 12 Object tương ứng với 12 cung theo đúng thứ tự bắt buộc:
+${ZIWEI_PALACE_IDS.map((id, index) => `     ${index + 1}. "${id}"`).join("\n")}
+     Mỗi Object trong palaceReadings gồm: { "palaceId": string, "title": string, "narrative": string, "evidenceKeys": string[] }.
+   - "thematicSynthesis": Array gồm ĐÚNG 4 Object tương ứng với 4 chuyên đề tổng hợp theo đúng thứ tự bắt buộc:
+${ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id, index) => `     ${index + 1}. "${id}"`).join("\n")}
+     Mỗi Object trong thematicSynthesis gồm: { "id": string, "title": string, "narrative": string, "evidenceKeys": string[] }.
+   - "strengthsAndTensions": Object gồm { "title": string, "narrative": string, "evidenceKeys": string[] } (thế mạnh, điểm vướng và điều kiện phát huy).
+   - "currentDecadal": Object đại vận 10 năm hiện hành:
+     Nếu đại vận đang hoạt động: { "title": string, "state": "active", "index": number, "ageRange": [number, number], "yearRange": [number, number], "narrative": string, "evidenceKeys": string[] }.
+     Nếu đại vận chưa khởi (thời thơ ấu): { "title": string, "state": "not_started", "firstCycleStartAge": number, "firstCycleStartYear": number, "narrative": string, "evidenceKeys": string[] }.
+   - "annualSnapshot": Object lưu niên năm hiện hành: { "title": string, "targetYear": number, "asOfDate": string, "narrative": string, "evidenceKeys": string[] }.
+   - "practicalDirection": Array gồm từ 3 đến 5 Object hành động thực tế, mỗi Object chứa đúng 4 trường:
+     { "recommendation": string, "rationale": string, "avoid": string, "evidenceKeys": string[] }.
+
+2. CẤM TUYỆT ĐỐI TRƯỜNG "birthTimeSensitivity" trong hợp đồng khách hàng V4 (không xuất hiện trường này ở bất kỳ đâu).
+3. Ràng buộc trường "evidenceKeys":
+   - Mọi mảng "evidenceKeys" phải là mảng không rỗng (chứa ít nhất 1 chuỗi string).
+   - TẤT CẢ các chuỗi trong "evidenceKeys" phải được trích xuất chính xác từ facts.evidenceKeys được cung cấp. Tuyệt đối không tự tạo khóa ngoài danh sách này.`;
+
+export const VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số cao cấp tại lasoviet.vn.
+Nhiệm vụ của bạn là viết một bản báo cáo luận giải toàn diện, sâu sắc, hoàn chỉnh bằng tiếng Việt chuyên nghiệp dựa DUY NHẤT trên các dữ kiện lá số (facts) và các gói tri thức (knowledgePacks) được cung cấp.
+
+YÊU CẦU NỘI DUNG VÀ VĂN PHONG:
+1. Ngôn ngữ: Sử dụng tiếng Việt tự nhiên, chuẩn mực, giàu tính phân tích và đúc kết; giải thích thuật ngữ chuyên môn ngay trong ngữ cảnh thay vì liệt kê máy móc.
+2. Diễn giải trước, kỹ thuật sau: Luôn đưa ra nhận định thực tế trước, dùng tên sao và cách cục làm căn cứ bổ trợ.
+3. Bao quát toàn bộ 12 cung: Luận giải đầy đủ và thực chất từng cung theo đúng thứ tự 12 cung được yêu cầu.
+4. Tổng hợp đa chiều: Phân tích sâu 4 lĩnh vực trọng tâm (sự nghiệp và tài chính, quan hệ và gia đình, môi trường xã hội, thân tâm và nguồn lực nội tại).
+5. Vận hạn hiện hành: Luận giải thấu đáo đại vận hiện hành (hoặc giai đoạn tiền đại vận nếu chưa khởi) và lưu niên năm đánh giá.
+6. Hành động thực tế: Đưa ra chính xác từ 3 đến 5 hành động cụ thể có cấu trúc đầy đủ (khuyến nghị, lý do, điều nên tránh, căn cứ evidenceKeys).
+
+${COMPREHENSIVE_REPORT_V4_JSON_CONTRACT_INSTRUCTION}
+
+CẤM TUYỆT ĐỐI CÁC ĐIỀU SAU:
+- KHÔNG nhắc đến AI, trí tuệ nhân tạo, mô hình ngôn ngữ, prompt, dữ liệu đầu vào hay hệ thống kỹ thuật.
+- KHÔNG đưa vào lời tuyên bố miễn trừ trách nhiệm (disclaimer), cảnh báo pháp lý, y tế, tài chính hay khuyến cáo chuyên môn.
+- KHÔNG sử dụng nhãn độ tin cậy, mức độ chắc chắn, giới hạn phương pháp hoặc văn phong phòng thủ.
+- KHÔNG tạo trường birthTimeSensitivity.`;
+
+export type ComprehensiveReportWriterV4Input = {
+  facts: ComprehensiveZiweiFactsV4;
+  knowledgePacks: readonly ZiweiReportKnowledgePack[];
+  provider: AiProvider;
+};
+
+export type ComprehensiveReportDraftV4 = {
+  report: ZiweiComprehensiveReportContentV2;
+  providerId: string;
+  modelId: string;
+};
+
+export type ComprehensiveReportWriterV4Result =
+  | {
+      ok: true;
+      value: ComprehensiveReportDraftV4;
+    }
+  | {
+      ok: false;
+      error: AiProviderError;
+    };
+
+export async function writeComprehensiveZiweiReportV4(
+  sourceOrInput: ComprehensiveReportSourceV4 | ComprehensiveReportWriterV4Input,
+  maybeProvider?: AiProvider,
+): Promise<ComprehensiveReportWriterV4Result> {
+  const provider =
+    maybeProvider ?? ("provider" in sourceOrInput ? sourceOrInput.provider : undefined);
+  if (!provider) {
+    throw new Error("Provider required for writeComprehensiveZiweiReportV4");
+  }
+
+  const facts: ComprehensiveZiweiFactsV4 =
+    "comprehensiveFactsV4" in sourceOrInput
+      ? sourceOrInput.comprehensiveFactsV4
+      : sourceOrInput.facts;
+
+  const knowledgePacks = sourceOrInput.knowledgePacks;
+
+  // Safe factual payload without raw birth date, birth time, or location
+  const safeFactsPayload = {
+    natal: facts.natal,
+    timing: facts.timing,
+    evidenceKeys: facts.evidenceKeys,
+  };
+
+  const result = await provider.generateStructured({
+    schema: ZiweiComprehensiveReportContentV2Schema,
+    schemaName: "ziwei_comprehensive_report_content_v2",
+    use: "production_report_generation",
+    maxOutputTokens: 9_000,
+    system: VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+    user: JSON.stringify({
+      facts: safeFactsPayload,
+      allowedEvidenceKeys: facts.evidenceKeys,
+      brightnessLabelsVi: BRIGHTNESS_LABELS_VI,
+      knowledgePacks,
+      requiredPalaceOrder: ZIWEI_PALACE_IDS,
+      requiredThematicOrder: ZIWEI_THEMATIC_SYNTHESIS_IDS,
+      frozenTiming: {
+        asOfDate: facts.sourceSnapshot.asOfDate,
+        targetYear: facts.timing.annual.targetYear,
+        decadalState: facts.timing.decadal.state,
+      },
+    }),
+  });
+
+  if (!result.ok) {
+    return result;
+  }
+
+  const rawReport = result.value.value;
+
+  // Assembler enforces canonical sequence, canonical titles, and frozen timing values
+  const palaceMap = new Map(
+    rawReport.palaceReadings.map((reading) => [reading.palaceId, reading]),
+  );
+  const assembledPalaces = ZIWEI_PALACE_IDS.map((palaceId: ZiweiPalaceId) => {
+    const existingReading = palaceMap.get(palaceId);
+    if (existingReading) {
+      return {
+        ...existingReading,
+        title: CANONICAL_PALACE_TITLES_VI[palaceId],
+        narrative: normalizeComprehensiveReportModelProse(existingReading.narrative),
+      };
+    }
+    return {
+      palaceId,
+      title: CANONICAL_PALACE_TITLES_VI[palaceId],
+      narrative: "",
+      evidenceKeys: [palaceId],
+    };
+  });
+
+  const themeMap = new Map(
+    rawReport.thematicSynthesis.map((theme) => [theme.id, theme]),
+  );
+  const assembledThemes = ZIWEI_THEMATIC_SYNTHESIS_IDS.map(
+    (id: ZiweiThematicSynthesisId) => {
+      const existingTheme = themeMap.get(id);
+      if (existingTheme) {
+        return {
+          ...existingTheme,
+          title: CANONICAL_THEMATIC_TITLES_VI[id],
+          narrative: normalizeComprehensiveReportModelProse(existingTheme.narrative),
+        };
+      }
+      return {
+        id,
+        title: CANONICAL_THEMATIC_TITLES_VI[id],
+        narrative: "",
+        evidenceKeys: [],
+      };
+    },
+  );
+
+  // Decadal section with frozen engine parameters
+  let assembledDecadal: ZiweiComprehensiveReportContentV2["currentDecadal"];
+  if (facts.timing.decadal.state === "active") {
+    const decadalFacts = facts.timing.decadal;
+    assembledDecadal = {
+      title: rawReport.currentDecadal.title?.trim() || `Đại vận hiện hành (${decadalFacts.ageRange[0]}-${decadalFacts.ageRange[1]} tuổi)`,
+      state: "active",
+      index: decadalFacts.index,
+      ageRange: decadalFacts.ageRange,
+      yearRange: decadalFacts.yearRange,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.currentDecadal.narrative),
+      evidenceKeys: rawReport.currentDecadal.evidenceKeys.length > 0
+        ? rawReport.currentDecadal.evidenceKeys
+        : ["decadal.state.active"],
+    };
+  } else {
+    const decadalFacts = facts.timing.decadal;
+    assembledDecadal = {
+      title: rawReport.currentDecadal.title?.trim() || `Đại vận chưa khởi (bắt đầu từ ${decadalFacts.firstCycleStartAge} tuổi)`,
+      state: "not_started",
+      firstCycleStartAge: decadalFacts.firstCycleStartAge,
+      firstCycleStartYear: decadalFacts.firstCycleStartYear,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.currentDecadal.narrative),
+      evidenceKeys: rawReport.currentDecadal.evidenceKeys.length > 0
+        ? rawReport.currentDecadal.evidenceKeys
+        : ["decadal.state.not_started"],
+    };
+  }
+
+  // Annual section with frozen engine parameters
+  const assembledAnnual: ZiweiComprehensiveReportContentV2["annualSnapshot"] = {
+    title: rawReport.annualSnapshot.title?.trim() || `Lưu niên năm ${facts.timing.annual.targetYear}`,
+    targetYear: facts.timing.annual.targetYear,
+    asOfDate: facts.sourceSnapshot.asOfDate,
+    narrative: normalizeComprehensiveReportModelProse(rawReport.annualSnapshot.narrative),
+    evidenceKeys: rawReport.annualSnapshot.evidenceKeys.length > 0
+      ? rawReport.annualSnapshot.evidenceKeys
+      : [`annual.target-year.${facts.timing.annual.targetYear}`],
+  };
+
+  // Structured actions bounded to 3-5 items
+  const assembledActions = rawReport.practicalDirection.slice(0, 5).map((action) => ({
+    recommendation: normalizeComprehensiveReportModelProse(action.recommendation),
+    rationale: normalizeComprehensiveReportModelProse(action.rationale),
+    avoid: normalizeComprehensiveReportModelProse(action.avoid),
+    evidenceKeys: action.evidenceKeys,
+  }));
+
+  const assembledReport: ZiweiComprehensiveReportContentV2 = {
+    overview: {
+      ...rawReport.overview,
+      title: CANONICAL_COMPREHENSIVE_SECTION_TITLES.overview,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.overview.narrative),
+    },
+    coreAxis: {
+      ...rawReport.coreAxis,
+      title: CANONICAL_COMPREHENSIVE_SECTION_TITLES.coreAxis,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.coreAxis.narrative),
+    },
+    keyConfigurations: rawReport.keyConfigurations.map((k) => ({
+      ...k,
+      title: normalizeComprehensiveReportModelProse(k.title),
+      narrative: normalizeComprehensiveReportModelProse(k.narrative),
+    })),
+    palaceReadings: assembledPalaces,
+    thematicSynthesis: assembledThemes,
+    strengthsAndTensions: {
+      ...rawReport.strengthsAndTensions,
+      title: CANONICAL_COMPREHENSIVE_SECTION_TITLES.strengthsAndTensions,
+      narrative: normalizeComprehensiveReportModelProse(rawReport.strengthsAndTensions.narrative),
+    },
+    currentDecadal: assembledDecadal,
+    annualSnapshot: assembledAnnual,
+    practicalDirection: assembledActions,
+  };
+
+  return {
+    ok: true,
+    value: {
+      report: assembledReport,
+      providerId: result.value.providerId,
+      modelId: result.value.modelId,
+    },
+  };
+}

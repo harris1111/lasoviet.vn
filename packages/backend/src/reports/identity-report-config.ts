@@ -1,4 +1,5 @@
 import type { IdentityReportSectionId, ZiweiPalaceId } from "@lasoviet/contracts";
+import { getVietnamCalendarDayBounds } from "../commerce/payment-claim-time.js";
 
 export const REPORT_KNOWLEDGE_VERSION_V1 = "ziwei.identity.knowledge.v1" as const;
 export const REPORT_KNOWLEDGE_VERSION_V2 = "ziwei.identity.knowledge.v2" as const;
@@ -13,6 +14,14 @@ export const REPORT_PROMPT_VERSION_V3 = "ziwei.comprehensive.prompt.v3" as const
 export const REPORT_CONFIG_VERSION_V3 = "ziwei.comprehensive.report.v3" as const;
 export const REPORT_TEMPLATE_VERSION_V3 = "ziwei-comprehensive-html.v1" as const;
 export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V1 = "ziwei-comprehensive.v1" as const;
+
+export const REPORT_KNOWLEDGE_VERSION_V4 = "ziwei.comprehensive.knowledge.v4" as const;
+export const REPORT_PROMPT_VERSION_V4 = "ziwei.comprehensive.prompt.v4" as const;
+export const REPORT_CONFIG_VERSION_V4 = "ziwei.comprehensive.report.v4" as const;
+export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V2 = "ziwei-comprehensive.v2" as const;
+
+export const REPORT_TIMING_RULE_VERSION_V1 = "ziwei.timing.v1" as const;
+export const REPORT_SENSITIVITY_RULE_VERSION_V1 = "ziwei.sensitivity.v1" as const;
 
 export const CURRENT_REPORT_KNOWLEDGE_VERSION = REPORT_KNOWLEDGE_VERSION_V2;
 export const CURRENT_REPORT_PROMPT_VERSION = REPORT_PROMPT_VERSION_V2;
@@ -82,10 +91,79 @@ export const CANONICAL_THEMATIC_TITLES_VI: Record<
   wellbeing_inner_resources: "Sức khỏe và nội tâm",
 };
 
-export function currentReportVersions(locale: string) {
+export type ReportVersionSelectionV2 = {
+  family: "v2";
+  knowledgeVersion: typeof REPORT_KNOWLEDGE_VERSION_V2;
+  promptVersion: typeof REPORT_PROMPT_VERSION_V2;
+  reportConfigVersion: typeof REPORT_CONFIG_VERSION_V1;
+  templateVersion: typeof REPORT_TEMPLATE_VERSION_V1;
+};
+
+export type ReportVersionSelectionV3 = {
+  family: "v3";
+  knowledgeVersion: typeof REPORT_KNOWLEDGE_VERSION_V3;
+  promptVersion: typeof REPORT_PROMPT_VERSION_V3;
+  reportConfigVersion: typeof REPORT_CONFIG_VERSION_V3;
+  templateVersion: typeof REPORT_TEMPLATE_VERSION_V3;
+};
+
+export type ReportVersionSelectionV4 = {
+  family: "v4";
+  knowledgeVersion: typeof REPORT_KNOWLEDGE_VERSION_V3;
+  promptVersion: typeof REPORT_PROMPT_VERSION_V4;
+  reportConfigVersion: typeof REPORT_CONFIG_VERSION_V4;
+  templateVersion: typeof REPORT_TEMPLATE_VERSION_V3;
+  contentVersion: typeof REPORT_CONTENT_VERSION_COMPREHENSIVE_V2;
+  timingRuleVersion: typeof REPORT_TIMING_RULE_VERSION_V1;
+};
+
+export type ReportVersionSelection =
+  | ReportVersionSelectionV2
+  | ReportVersionSelectionV3
+  | ReportVersionSelectionV4;
+
+export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
+
+export function currentReportVersions(locale: string): ReportVersionSelectionV2 | ReportVersionSelectionV3 {
   return locale === "vi"
     ? { family: "v3" as const, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3, promptVersion: REPORT_PROMPT_VERSION_V3, reportConfigVersion: REPORT_CONFIG_VERSION_V3, templateVersion: REPORT_TEMPLATE_VERSION_V3 }
     : { family: "v2" as const, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2, promptVersion: REPORT_PROMPT_VERSION_V2, reportConfigVersion: REPORT_CONFIG_VERSION_V1, templateVersion: REPORT_TEMPLATE_VERSION_V1 };
+}
+
+export function v4ReportVersions(_locale: string = "vi"): ReportVersionSelectionV4 {
+  return {
+    family: "v4",
+    knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
+    promptVersion: REPORT_PROMPT_VERSION_V4,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4,
+    templateVersion: REPORT_TEMPLATE_VERSION_V3,
+    contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+  };
+}
+
+export type ReportTimingLineage = {
+  asOfDate: string;
+  targetYear: number;
+  timingRuleVersion: string;
+  sensitivityRuleVersion: string;
+};
+
+export function deriveReportTimingLineage(
+  now: Date,
+  options?: {
+    timingRuleVersion?: string;
+    sensitivityRuleVersion?: string;
+  },
+): ReportTimingLineage {
+  const { localDateKey } = getVietnamCalendarDayBounds(now);
+  const targetYear = parseInt(localDateKey.slice(0, 4), 10);
+  return {
+    asOfDate: localDateKey,
+    targetYear,
+    timingRuleVersion: options?.timingRuleVersion ?? REPORT_TIMING_RULE_VERSION_V1,
+    sensitivityRuleVersion: options?.sensitivityRuleVersion ?? REPORT_SENSITIVITY_RULE_VERSION_V1,
+  };
 }
 
 export const DETERMINISTIC_CYCLES_NARRATIVE_VI =

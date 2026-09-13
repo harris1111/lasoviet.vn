@@ -10,9 +10,11 @@ import {
   type Database,
 } from "@lasoviet/database";
 import type {
+  QueueJob,
   QueueJobV1,
   ReportFulfillmentFailedV1,
   ReportGenerationRequestedV1,
+  ReportGenerationRequestedV2,
 } from "@lasoviet/contracts";
 
 import {
@@ -21,7 +23,7 @@ import {
 } from "./report-state.js";
 
 export type ReportJobQueueStore = {
-  enqueue(job: QueueJobV1): Promise<void>;
+  enqueue(job: QueueJob): Promise<void>;
   claimNext(now?: Date): Promise<typeof reportQueueJobs.$inferSelect | null>;
   recordRetryableFailure(
     id: string,
@@ -44,7 +46,7 @@ export function createDatabaseReportQueueStore(
   workerId: string,
 ): ReportJobQueueStore {
   return {
-    async enqueue(job: QueueJobV1): Promise<void> {
+    async enqueue(job: QueueJob): Promise<void> {
       await database
         .insert(reportQueueJobs)
         .values({
@@ -227,7 +229,8 @@ type TerminalRecoveryResult =
         | "REPORT_NOT_FOUND"
         | "WORKFLOW_STATE_CONFLICT"
         | "REPORT_VERSION_CONFLICT"
-        | "RECOVERY_ID_INVALID";
+        | "RECOVERY_ID_INVALID"
+        | "REPORT_TIMING_LINEAGE_INVALID";
     };
 
 async function executeTerminalRecovery(
@@ -269,6 +272,27 @@ async function executeTerminalRecovery(
         return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
       }
 
+      const asOfDate = reservation.asOfDate;
+      const targetYear = reservation.targetYear;
+      const timingRuleVersion = reservation.timingRuleVersion;
+      const sensitivityRuleVersion = reservation.sensitivityRuleVersion;
+
+      const hasAllTimingLineage =
+        asOfDate !== null &&
+        targetYear !== null &&
+        timingRuleVersion !== null &&
+        sensitivityRuleVersion !== null;
+
+      const hasNoTimingLineage =
+        asOfDate === null &&
+        targetYear === null &&
+        timingRuleVersion === null &&
+        sensitivityRuleVersion === null;
+
+      if (!hasAllTimingLineage && !hasNoTimingLineage) {
+        return { ok: false, code: "REPORT_TIMING_LINEAGE_INVALID" };
+      }
+
       const current = params.now ?? new Date();
       const nextStateVersion = reservation.stateVersion + 1;
 
@@ -297,19 +321,6 @@ async function executeTerminalRecovery(
         return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
       }
 
-      const payload: ReportGenerationRequestedV1 = {
-        reportId: reservation.reportId,
-        reportVersionId: reservation.reportVersionId,
-        entitlementId: reservation.entitlementId,
-        chartVersionId: reservation.chartVersionId,
-        evidenceVersionId: reservation.evidenceVersionId,
-        knowledgeVersionId: reservation.knowledgeVersionId,
-        promptVersion: reservation.promptVersion,
-        reportConfigVersion: reservation.reportConfigVersion,
-        locale: reservation.locale as "vi" | "en",
-        sku: reservation.sku,
-      };
-
       const tokenInput =
         params.recoveryKind === "invalid_output"
           ? `invalid_output::${reservation.reportVersionId}::${trimmedRecoveryId}`
@@ -323,18 +334,63 @@ async function executeTerminalRecovery(
       const traceId = `trace-recovery-${recoveryToken}`;
       const idempotencyKey = `report-recovery:${recoveryToken}`;
 
-      await enqueueOutbox(tx, {
-        schemaVersion: 1,
-        type: "report.generation.requested.v1",
-        eventId,
-        occurredAt: current.toISOString(),
-        traceId,
-        actorId: null,
-        aggregateType: "report",
-        aggregateId: reservation.reportVersionId,
-        idempotencyKey,
-        payload,
-      });
+      if (hasAllTimingLineage) {
+        const payload: ReportGenerationRequestedV2 = {
+          reportId: reservation.reportId,
+          reportVersionId: reservation.reportVersionId,
+          entitlementId: reservation.entitlementId,
+          chartVersionId: reservation.chartVersionId,
+          evidenceVersionId: reservation.evidenceVersionId,
+          knowledgeVersionId: reservation.knowledgeVersionId,
+          promptVersion: reservation.promptVersion,
+          reportConfigVersion: reservation.reportConfigVersion,
+          locale: reservation.locale as "vi" | "en",
+          sku: reservation.sku,
+          asOfDate,
+          targetYear,
+          timingRuleVersion,
+          sensitivityRuleVersion,
+        };
+
+        await enqueueOutbox(tx, {
+          schemaVersion: 1,
+          type: "report.generation.requested.v2",
+          eventId,
+          occurredAt: current.toISOString(),
+          traceId,
+          actorId: null,
+          aggregateType: "report",
+          aggregateId: reservation.reportVersionId,
+          idempotencyKey,
+          payload,
+        });
+      } else {
+        const payload: ReportGenerationRequestedV1 = {
+          reportId: reservation.reportId,
+          reportVersionId: reservation.reportVersionId,
+          entitlementId: reservation.entitlementId,
+          chartVersionId: reservation.chartVersionId,
+          evidenceVersionId: reservation.evidenceVersionId,
+          knowledgeVersionId: reservation.knowledgeVersionId,
+          promptVersion: reservation.promptVersion,
+          reportConfigVersion: reservation.reportConfigVersion,
+          locale: reservation.locale as "vi" | "en",
+          sku: reservation.sku,
+        };
+
+        await enqueueOutbox(tx, {
+          schemaVersion: 1,
+          type: "report.generation.requested.v1",
+          eventId,
+          occurredAt: current.toISOString(),
+          traceId,
+          actorId: null,
+          aggregateType: "report",
+          aggregateId: reservation.reportVersionId,
+          idempotencyKey,
+          payload,
+        });
+      }
 
       return { ok: true, stateVersion: nextStateVersion };
     });
@@ -571,7 +627,8 @@ export function createReportService(database: Database) {
             | "REPORT_NOT_FOUND"
             | "WORKFLOW_STATE_CONFLICT"
             | "REPORT_VERSION_CONFLICT"
-            | "RECOVERY_ID_INVALID";
+            | "RECOVERY_ID_INVALID"
+            | "REPORT_TIMING_LINEAGE_INVALID";
         }
     > {
       return executeTerminalRecovery(database, {
@@ -594,7 +651,8 @@ export function createReportService(database: Database) {
             | "REPORT_NOT_FOUND"
             | "WORKFLOW_STATE_CONFLICT"
             | "REPORT_VERSION_CONFLICT"
-            | "RECOVERY_ID_INVALID";
+            | "RECOVERY_ID_INVALID"
+            | "REPORT_TIMING_LINEAGE_INVALID";
         }
     > {
       return executeTerminalRecovery(database, {

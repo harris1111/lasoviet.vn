@@ -1,15 +1,15 @@
 import {
-  ReportGenerateJobEnvelopeV1Schema,
-  type ReportGenerateJobEnvelopeV1,
+  ReportGenerateJobEnvelopeSchema,
+  type ReportGenerateJobEnvelope,
   type ReportStatus,
 } from "@lasoviet/contracts";
 
 export type ParseReportGenerateJobResult =
-  | { ok: true; value: ReportGenerateJobEnvelopeV1 }
+  | { ok: true; value: ReportGenerateJobEnvelope }
   | { ok: false; code: "JOB_PAYLOAD_INVALID" };
 
 export function parseReportGenerateJob(input: unknown): ParseReportGenerateJobResult {
-  const result = ReportGenerateJobEnvelopeV1Schema.safeParse(input);
+  const result = ReportGenerateJobEnvelopeSchema.safeParse(input);
   if (!result.success) {
     return { ok: false, code: "JOB_PAYLOAD_INVALID" };
   }

@@ -1,6 +1,7 @@
 import type {
   ComprehensiveReportPublicContentV1,
   ZiweiComprehensiveReportContentV1,
+  ZiweiComprehensiveReportContentV2,
 } from "@lasoviet/contracts";
 
 export function escapeHtml(text: string): string {
@@ -16,7 +17,8 @@ export const COMPREHENSIVE_REPORT_HTML_TITLE = "Báo Cáo Luận Giải Toàn Di
 
 export type ComprehensiveReportInput =
   | ZiweiComprehensiveReportContentV1
-  | ComprehensiveReportPublicContentV1;
+  | ComprehensiveReportPublicContentV1
+  | ZiweiComprehensiveReportContentV2;
 
 export function renderComprehensiveZiweiHtml(report: ComprehensiveReportInput): string {
   const overviewHtml = `<section class="report-overview"><h2>${escapeHtml(report.overview.title)}</h2><p>${escapeHtml(report.overview.narrative)}</p></section>`;
@@ -49,10 +51,32 @@ export function renderComprehensiveZiweiHtml(report: ComprehensiveReportInput): 
 
   const strengthsTensionsHtml = `<section class="report-strengths-tensions"><h2>${escapeHtml(report.strengthsAndTensions.title)}</h2><p>${escapeHtml(report.strengthsAndTensions.narrative)}</p></section>`;
 
-  const directionsList = report.practicalDirection
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
-  const practicalDirectionHtml = `<section class="report-practical-direction"><h2>Định Hướng Và Hành Động Thực Tế</h2><ul>${directionsList}</ul></section>`;
+  const currentDecadalHtml =
+    "currentDecadal" in report && report.currentDecadal
+      ? `<section class="report-current-decadal"><h2>${escapeHtml(report.currentDecadal.title)}</h2><p>${escapeHtml(report.currentDecadal.narrative)}</p></section>`
+      : "";
+
+  const annualSnapshotHtml =
+    "annualSnapshot" in report && report.annualSnapshot
+      ? `<section class="report-annual-snapshot"><h2>${escapeHtml(report.annualSnapshot.title)}</h2><p>${escapeHtml(report.annualSnapshot.narrative)}</p></section>`
+      : "";
+
+  let practicalDirectionContent = "";
+  if (Array.isArray(report.practicalDirection)) {
+    if (typeof report.practicalDirection[0] === "string") {
+      practicalDirectionContent = `<ul>${report.practicalDirection.map((item: any) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    } else {
+      practicalDirectionContent = report.practicalDirection
+        .map(
+          (item: any) =>
+            `<article class="practical-action"><h4>Khuyến nghị</h4><p>${escapeHtml(item.recommendation)}</p><h4>Lý do</h4><p>${escapeHtml(item.rationale)}</p><h4>Nên tránh</h4><p>${escapeHtml(item.avoid)}</p></article>`,
+        )
+        .join("");
+    }
+  }
+  const practicalDirectionHtml = practicalDirectionContent
+    ? `<section class="report-practical-direction"><h2>Định Hướng Và Hành Động Thực Tế</h2>${practicalDirectionContent}</section>`
+    : "";
 
   return (
     `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>${escapeHtml(COMPREHENSIVE_REPORT_HTML_TITLE)}</title></head><body>` +
@@ -64,6 +88,8 @@ export function renderComprehensiveZiweiHtml(report: ComprehensiveReportInput): 
     `${palaceReadingsHtml}` +
     `${thematicSynthesisHtml}` +
     `${strengthsTensionsHtml}` +
+    `${currentDecadalHtml}` +
+    `${annualSnapshotHtml}` +
     `${practicalDirectionHtml}` +
     `</main></body></html>`
   );

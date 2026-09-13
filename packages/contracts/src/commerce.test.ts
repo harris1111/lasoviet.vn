@@ -16,6 +16,10 @@ import {
   EntitlementScopeSchema,
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
+  V4_TIMING_SCOPE_SECTIONS,
+  TIER_2_V4_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS,
+  TIER_2_V4_ENTITLEMENT_SCOPE,
   resolveEntitlementScopeForSku,
 } from "./commerce.js";
 
@@ -67,13 +71,52 @@ describe("commerce contracts", () => {
 
     expect(resolveEntitlementScopeForSku("ZIWEI-NATAL-EXCERPT-P0")).toEqual(TIER_1_ENTITLEMENT_SCOPE);
     expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0")).toEqual(TIER_2_ENTITLEMENT_SCOPE);
+    expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0", "v4")).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
+    expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0", { reportFamily: "v4" })).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
+
+    // V4 timing scope constants
+    expect(V4_TIMING_SCOPE_SECTIONS).toEqual([
+      "currentDecadal",
+      "annualSnapshot",
+    ]);
+    expect(TIER_2_V4_SCOPE_SECTIONS).not.toContain("birthTimeSensitivity");
+    expect(V4_TIMING_SCOPE_SECTIONS).not.toContain("birthTimeSensitivity");
+    expect(TIER_2_V4_SCOPE_SECTIONS).toEqual([
+      ...TIER_2_SCOPE_SECTIONS,
+      ...V4_TIMING_SCOPE_SECTIONS,
+    ]);
+    expect(COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS).toEqual([
+      ...COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS,
+      ...V4_TIMING_SCOPE_SECTIONS,
+    ]);
+    expect(TIER_2_V4_ENTITLEMENT_SCOPE.sections).toEqual([...TIER_2_V4_SCOPE_SECTIONS]);
 
     // Scope schema validation
     expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_1_SCOPE_SECTIONS] }).success).toBe(true);
     expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_2_SCOPE_SECTIONS] }).success).toBe(true);
+    expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_2_V4_SCOPE_SECTIONS] }).success).toBe(true);
     expect(EntitlementScopeSchema.safeParse({ sections: [] }).success).toBe(false);
     expect(EntitlementScopeSchema.safeParse({ sections: ["invalid_section"] }).success).toBe(false);
     expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_1_SCOPE_SECTIONS], extra: true }).success).toBe(false);
+
+    // Proves legacy Tier-2 has exactly the 3 legacy locked sections relative to Tier-1
+    const tier1Sections = new Set<string>(TIER_1_SCOPE_SECTIONS);
+    const tier2NewSections = TIER_2_SCOPE_SECTIONS.filter((s) => !tier1Sections.has(s));
+    expect(tier2NewSections).toEqual([
+      "keyConfigurations",
+      "palaceReadings",
+      "thematicSynthesis",
+    ]);
+
+    // Proves V4 Tier-2 extends legacy Tier-2 with exactly the three timing sections
+    const tier2Set = new Set<string>(TIER_2_SCOPE_SECTIONS);
+    const v4NewSections = TIER_2_V4_SCOPE_SECTIONS.filter((s) => !tier2Set.has(s));
+    expect(v4NewSections).toEqual([
+      "currentDecadal",
+      "annualSnapshot",
+    ]);
+    expect(TIER_2_V4_SCOPE_SECTIONS).not.toContain("birthTimeSensitivity");
+    expect(V4_TIMING_SCOPE_SECTIONS).not.toContain("birthTimeSensitivity");
   });
 
   it("proves CommerceSkuSchema matches exactly the first-paid-flow SKUs in product-catalog.json without drift", () => {
