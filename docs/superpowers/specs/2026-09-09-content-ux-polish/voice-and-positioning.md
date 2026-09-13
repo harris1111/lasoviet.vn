@@ -108,8 +108,7 @@ văn minh**, không phải một công cụ tính toán hiện đại đơn lẻ
 - **Loss aversion trung thực:** vì theo spec ladder (mục 3.2), nội dung 12 cung **đã được sinh ra cùng một
   lần** khi mua tầng 1 — nên có thể nói thật "8 cung còn lại đã sẵn sàng cho đúng lá số của bạn, chỉ cần mở
   khóa" thay vì tạo cảm giác chờ đợi giả.
-- **Anchoring có thật:** hiển thị 79.000đ trước, rồi "đã trả 19.000đ → chỉ cần thêm 60.000đ" — đúng số
-  thật theo FD-041, không phải neo giá giả.
+- **Upgrade anchoring:** show `960 Lá` first, then `Đã ghi nhận 240 Lá → chỉ cần thêm 720 Lá`. These are the real FD-041/FD-066 values; anchors must reflect real prices (FD-064 legal boundary).
 - **Scarcity có thật:** hạn 7 ngày khấu trừ là thật (FD-041), được phép nhấn mạnh vì không phải bịa.
 - **Goal-gradient:** "Bạn đã đọc 4/12 cung" — tiến độ thật, không phải progress bar giả (khác hẳn điều
   B-8 của spec ladder cấm — progress bar giả trên trang tạo báo cáo).
@@ -132,3 +131,18 @@ Mỗi file `content-review/vi/<route-id>.md` từ giờ nên tự kiểm 3 câu 
    nhận...") lọt vào copy không — nếu có, viết lại bằng giọng người thật nói chuyện với người thật?
 3. Mọi con số/tuyên bố uy tín có truy được về một nguồn thật trong repo không? Nếu không, hoặc bỏ, hoặc
    hỏi Harris trước khi viết.
+
+## Approved extension — secure reveal, Lá credits, and conversion visuals (2026-09-13)
+
+The founder approved secure progressive reveal and the proprietary `Lá` service credit in FD-059 through FD-063. This extends, rather than reverses, the approved Zeigarnik and truthful-loss-aversion rules above.
+
+- A locked section may show its real title, role, one complete useful excerpt, authoritative evidence/status metadata, and a blur/fade representation of additional depth.
+- Protected plaintext must not be present in unauthorized HTML, JSON, React payloads, print output, or the accessibility tree.
+- The base chart remains open. Monetization applies to interpretation depth, not the calculated chart artifact.
+- Use real chart and reading facts to create curiosity: 12 palaces, three free insights, evidence count/category, `4/12` sections open, eight sections remaining, reading progress, and entitlement state.
+- Do not invent fortune, luck, compatibility, or confidence percentages. Predictive trend charts remain gated by a reviewed time-based engine.
+- Price content in Lá only. Show VND only on top-up packs, the payment order, and the invoice; never publish a Lá-to-VND rate (FD-065).
+- Preserve one selected topic/question/offer through authentication and payment so the customer returns to the same conversion context.
+- Approved prices (FD-066): 240 Lá for Tier 1, 960 Lá for Tier 2, 720 Lá for an in-window upgrade; packs 29.000đ→300 Lá, 99.000đ→1.100 Lá, 249.000đ→3.000 Lá, 599.000đ→8.000 Lá. Individual-section and AI-answer prices remain hypotheses.
+
+Binding detail: `docs/superpowers/specs/2026-09-13-progressive-reveal-la-credits-and-conversion-ui-design.md`.

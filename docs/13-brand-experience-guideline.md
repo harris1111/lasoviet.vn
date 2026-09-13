@@ -1,8 +1,8 @@
 ---
 title: Lá Số Việt — Brand & Experience Guideline
-version: 1.0
+version: 1.1
 status: approved
-last_updated: 2026-08-31
+last_updated: 2026-09-13
 source_of_truth: true
 ---
 
@@ -17,7 +17,7 @@ Guideline
 
 > **NORTH STAR** Thư viện tri thức Việt đương đại: tĩnh, sáng rõ, có căn cứ và trả quyền lựa chọn về cho người dùng.
 
-**VERSION 1.0 • MVP / PHASE 1 • 31 AUGUST 2026**
+**VERSION 1.1 • MVP / PHASE 1 • 13 SEPTEMBER 2026**
 
 Dành cho Founder, Product, Design, Content, Growth và Engineering
 
@@ -31,7 +31,7 @@ Dành cho Founder, Product, Design, Content, Growth và Engineering
 | **STANDARD — Chuẩn hệ thống** | Màu, font, component, voice, layout và pattern đã đủ tốt để triển khai.               | Tuân thủ mặc định; ngoại lệ phải có tên, lý do và owner.               |
 | **HYPOTHESIS — Cần test**     | Thông điệp challenger, hành vi “người Việt”, cách hiển thị mobile, giá và conversion. | Đo bằng user research/analytics; không biến thành chân lý thương hiệu. |
 
-> **QUY TẮC ƯU TIÊN** Khi conversion xung đột với niềm tin, quyền riêng tư hoặc sự an toàn tâm lý, trust/safety thắng. Không dùng nỗi sợ để đổi lấy doanh thu ngắn hạn.
+> **QUY TẮC ƯU TIÊN** (sửa theo FD-064, 2026-09-13) Khi conversion xung đột với trust/safety, doanh thu thắng nếu hợp pháp; được dùng chiêu trò bán hàng hợp pháp. Pháp luật, quyền riêng tư, toàn vẹn thanh toán và bảo mật nội dung khoá vẫn luôn thắng. Không dùng nỗi sợ, tai hoạ để ép mua (FD-075); cảnh báo biến cố chỉ nằm trong nội dung luận giải, kèm việc nên chuẩn bị.
 
 ## Mục lục
 
@@ -238,7 +238,7 @@ Giữ nguyên vì đây là quyết định đã chốt trong repo và có categ
 
 | **Nguyên tắc**   | **Cách thể hiện**                                                          |
 |------------------|----------------------------------------------------------------------------|
-| **Điềm tĩnh**    | Không kích động, không countdown, không dấu chấm than liên tục.            |
+| **Điềm tĩnh**    | Không kích động, không countdown giả, không dấu chấm than liên tục.        |
 | **Rõ ràng**      | Câu ngắn; thuật ngữ được giải thích ngay tại điểm dùng.                    |
 | **Tôn trọng**    | Gọi “bạn”; không phán xét đạo đức, không đóng vai “thầy”.                  |
 | **Có điều kiện** | Dùng “có xu hướng”, “có thể biểu hiện”, “trong khung phương pháp này”.     |
@@ -468,7 +468,7 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 - Ba insight nổi bật, một thế mạnh, một điểm căng thẳng và chủ đề nên xem sâu.
 
-- Một evidence drawer mở được; preview 10–15% nội dung trả phí, không blur giả.
+- Show at least one open evidence drawer and a meaningful paid-content preview. Secure blur/fade is permitted after complete free value under FD-059, but locked plaintext must not be shipped to an unauthorized client and the preview must not fabricate a warning or imply that ungenerated content already exists.
 
 - Phản hồi Đúng / Một phần / Không đúng; không dùng phản hồi để biến hệ thống thành “luôn đúng”.
 
@@ -485,6 +485,10 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 - Bán chiều sâu, cấu trúc và tính cá nhân — không bán “cảnh báo bị khóa”.
 
 - CTA cạnh: tên SKU, nội dung nhận được, sample, độ dài, thời gian tạo, giá cuối, mua một lần/không auto-renew nếu đúng.
+
+- Under FD-065, product UI prices content in `Lá` only; VND appears only on top-up packs, the payment order, and the invoice. There is no published Lá-to-VND rate. Under FD-066, exact-missing-amount top-up is removed; the insufficient-balance CTA pre-selects the smallest pack that covers the item.
+
+- A secure locked preview may show a complete useful excerpt, the section title, real scope/evidence metadata, and a blur/fade representation. It must never hide a fear-inducing warning, send protected plaintext to the client, or obstruct the free chart and insights.
 
 - Hiển thị phương thức thanh toán thật, trạng thái pending/success/failed, support và quy trình nhập sai/tạo lại.
 
@@ -616,7 +620,7 @@ Từ 01.01.2026, Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 có hiệu
 |-----------------|--------------------------------------------|------------------------------------------------------------------------------|
 | Insight bất lợi | “Bạn sẽ thất bại trong công việc năm nay.” | “Giai đoạn này có thể tăng áp lực về vai trò. Hãy quan sát ba tín hiệu sau…” |
 | Mô tả chung     | “Bạn mạnh mẽ nhưng đôi khi nhạy cảm.”      | “Nhận định này dựa trên \[cung/sao\] và thường rõ hơn khi…”                  |
-| Paywall         | “Có cảnh báo quan trọng — mở khóa ngay.”   | “Xem mục lục, báo cáo mẫu, giá và phần diễn giải đầy đủ.”                    |
+| Paywall         | “Có cảnh báo quan trọng — mở khóa ngay.”   | “Bạn đã đọc phần mở đầu. Còn 8 phần trong bản luận giải này. Mở toàn bộ — 720 Lá.” |
 | Giờ sinh thiếu  | “Hãy chọn một giờ gần đúng.”               | “Bạn có thể tiếp tục với kết quả giới hạn hoặc bổ sung giờ sinh sau.”        |
 | Error           | “Dữ liệu không hợp lệ.”                    | “Giờ sinh cần nằm trong khoảng 00:00–23:59.”                                 |
 | AI              | “AI hiểu bạn hơn chính bạn.”               | “AI hỗ trợ tổ chức và diễn giải trong giới hạn căn cứ đã cấp.”               |
@@ -716,7 +720,7 @@ Từ 01.01.2026, Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 có hiệu
 
 39. Mặc định có bảo vệ dữ liệu và quyền tự chủ không?
 
-40. Có dark pattern, urgency giả, social proof giả hoặc fear cue không?
+40. Có urgency giả, social proof giả, giá gốc gạch ngang không có thật hoặc fear cue không? (Chiêu trò hợp pháp được phép theo FD-064.)
 
 41. Màu, font, spacing, contrast và state có theo token không?
 

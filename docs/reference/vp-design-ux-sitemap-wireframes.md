@@ -1,8 +1,13 @@
 # Lá Số Việt — IA, navigation, journeys & low-fi wireframes
 
 **Góc nhìn:** VP Design / Product UX quốc tế  
-**Nguồn quyết định:** Brand & Experience Guideline v1.0  
+**Nguồn quyết định:** Brand & Experience Guideline v1.1
 **Nguyên tắc dẫn đường:** *Thư viện tri thức Việt đương đại — với một bàn đọc riêng tư dành cho từng người.*
+
+> **2026-09-13 amendment:** This reference now follows Brand Guideline v1.1
+> and FD-059 through FD-063. Secure progressive reveal and `Lá` credits are
+> allowed only under the binding 2026-09-13 design spec; value-before-login,
+> privacy, and the prohibition on fear-based conversion remain unchanged.
 
 ## 1. Các quyết định cấp hệ thống
 
@@ -12,7 +17,7 @@
 4. **Nội dung trước trang trí.** Giao diện giống một ấn phẩm tri thức cao cấp, không mô phỏng tiệm bói, không dùng “vũ trụ tím”, animation thần bí hay dashboard dày đặc.
 5. **Evidence ở đúng điểm nghi ngờ.** Mỗi luận điểm chính có nút “Vì sao có nhận định này?”; không bắt người dùng rời màn hình để đọc methodology chung.
 6. **Uncertainty là một phần của UI.** Không rõ giờ sinh, địa danh mơ hồ, timezone và giới hạn phương pháp phải có trạng thái hiển thị, không bị xử lý âm thầm.
-7. **Conversion không được thắng trust.** Không blur giả, countdown, “cảnh báo xấu”, giá mồi, auto-renew ngầm, pre-check marketing hoặc chặn kết quả bằng đăng nhập.
+7. **Conversion must not defeat trust.** Secure blur/fade may represent deeper real content only after complete free value, and protected plaintext must not be shipped to unauthorized clients. No fake countdown, hidden bad-news warning, fabricated anchor, undisclosed auto-renewal, pre-checked marketing, or login wall before the free result.
 
 ## 2. Sitemap ưu tiên người dùng
 

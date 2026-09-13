@@ -131,7 +131,7 @@ product/experience-spec-v1 → master
 | Brand, copy, sitemap, user flow, acceptance criteria | Harris/Product |
 | Implementation, framework, component internals, test strategy | An/Development |
 | URL, data contract, privacy, analytics, accessibility | Product và Development cùng review |
-| Conflict giữa conversion và trust/safety | Trust/safety thắng; Product chốt |
+| Conflict giữa doanh thu/conversion và trust/safety | Doanh thu thắng nếu hợp pháp (FD-064); pháp luật, quyền riêng tư (FD-053), toàn vẹn thanh toán (FD-043), bảo mật nội dung khoá (FD-059) và quyền sở hữu nội dung đã mua vẫn luôn thắng; Product chốt |
 
 Nếu code cho thấy spec không khả thi hoặc tạo rủi ro kỹ thuật, An không tự thay đổi hành vi sản phẩm. An ghi rõ trade-off trên PR; hai bên cập nhật quyết định trong docs trước khi merge.
 
