@@ -132,13 +132,21 @@ export type {
 } from "./analytics/analytics.service.js";
 export {
   buildFreeIdentityPreview,
+  buildGuardedFreeIdentityPreview,
+  checkPreviewBudgetPreflight,
+  PREVIEW_GUARD_LIMITS,
 } from "./reports/free-identity-preview.js";
 export type {
   FreeIdentityPreviewError,
   FreeIdentityPreviewInput,
+  GuardedPreviewInput,
+  PreviewPreflightResult,
+  PreviewPreflightReservation,
+  PreviewBudgetUsage,
 } from "./reports/free-identity-preview.js";
 export {
   createAiProductionGate,
+  resolveRequestPurpose,
 } from "./ai/ai-provider.js";
 export type {
   AiProvider,
@@ -146,12 +154,30 @@ export type {
   AiProviderErrorCode,
   AiProductionGate,
   AiRequestUse,
+  AiStructuredOutputValue,
   GenerateStructuredRequest,
 } from "./ai/ai-provider.js";
 export { createOpenAiCompatibleAdapter } from "./ai/openai-compatible-adapter.js";
 export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adapter.js";
 export { runAiCapabilityProbe } from "./ai/capability-probe.js";
 export type { AiCapabilityResult } from "./ai/capability-probe.js";
+export {
+  calculateTokenCostVnd,
+  toSafeInteger,
+  calculateTokenCostMicroVnd,
+  calculateContributionMargin,
+  createDatabaseAiCostService,
+  createInMemoryAiCostService,
+} from "./ai/ai-cost.js";
+export type {
+  AiCostRecorder,
+  AiCostService,
+  CalculateCostInput,
+  BeginAttemptInput,
+  BeginAttemptResult,
+  CompleteAttemptInput,
+  CompleteAttemptResult,
+} from "./ai/ai-cost.js";
 export {
   createAdminAccessService,
   createDatabaseAdminAccessRepository,

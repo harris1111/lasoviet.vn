@@ -35,6 +35,7 @@ import {
 } from "./admin-access.js";
 import { runMigrations } from "../migrate.js";
 import { notificationDeliveries } from "./notifications.js";
+import { aiModelPricing, aiCallAttempts, aiUsageOutcomes } from "./ai-cost.js";
 
 describe("database schema integration", () => {
   let container:
@@ -646,6 +647,95 @@ describe("database schema integration", () => {
 
     expect(tier2Row?.scope).toEqual(TIER_2_ENTITLEMENT_SCOPE);
     expect(tier1Row?.scope).toEqual(TIER_1_ENTITLEMENT_SCOPE);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("migrates and validates ai_model_pricing, ai_call_attempts, ai_usage_outcomes and append-only triggers", async () => {
+    const database = createDatabase(databaseUrl);
+
+    // 1. Persists versioned model pricing
+    await database.insert(aiModelPricing).values({
+      pricingVersion: "v1-20260914",
+      providerId: "9router-an",
+      modelId: "qwen-2.5-72b-instruct",
+      currency: "VND",
+      inputPricePerMillion: 15_000n,
+      outputPricePerMillion: 60_000n,
+      cachedInputPricePerMillion: 3_750n,
+      effectiveFrom: new Date("2026-09-14T00:00:00Z"),
+      source: "founder_approved_20260914",
+      sourceCurrency: "VND",
+      sourceReference: "founder_decision_20260914",
+      fxSource: "direct_vnd",
+      fxRate: 1n,
+      fxTimestamp: new Date("2026-09-14T00:00:00Z"),
+      referenceMetadata: { note: "test pricing" },
+      status: "active",
+    });
+
+    // 2. Persists immutable call attempt
+    const [attempt] = await database
+      .insert(aiCallAttempts)
+      .values({
+        callId: "call-pg-001",
+        attemptNumber: 0,
+        purpose: "report",
+        providerId: "9router-an",
+        requestedModelId: "qwen-2.5-72b-instruct",
+        maxOutputTokens: 9_000,
+        pricingVersion: "v1-20260914",
+        inputPricePerMillion: 15_000n,
+        outputPricePerMillion: 60_000n,
+        cachedInputPricePerMillion: 3_750n,
+        currency: "VND",
+        sourceCurrency: "VND",
+        sourceReference: "founder_decision_20260914",
+        fxSource: "direct_vnd",
+        fxRate: 1n,
+        fxTimestamp: new Date("2026-09-14T00:00:00Z"),
+        pricingSource: "founder_approved_20260914",
+      })
+      .returning();
+
+    expect(attempt.callId).toBe("call-pg-001");
+
+    // 3. Persists outcome referencing attempt
+    const [outcome] = await database
+      .insert(aiUsageOutcomes)
+      .values({
+        attemptId: attempt.id,
+        responseModelId: "qwen-2.5-72b-instruct",
+        httpStatus: 200,
+        inputTokens: 10_000,
+        outputTokens: 1_000,
+        cachedTokens: 3_000,
+        totalTokens: 11_000,
+        tokensUnknown: false,
+        costMicroVnd: 176250000000n,
+        costVnd: 177,
+        costStatus: "resolved",
+      })
+      .returning();
+
+    expect(outcome.costVnd).toBe(177);
+    expect(outcome.costMicroVnd).toBe(176250000000n);
+
+    // 4. Verifies append-only triggers reject UPDATE and DELETE
+    await expect(
+      database
+        .update(aiModelPricing)
+        .set({ status: "retired" })
+        .where(eq(aiModelPricing.pricingVersion, "v1-20260914")),
+    ).rejects.toThrow();
+
+    await expect(
+      database.delete(aiCallAttempts).where(eq(aiCallAttempts.id, attempt.id)),
+    ).rejects.toThrow();
+
+    await expect(
+      database.delete(aiUsageOutcomes).where(eq(aiUsageOutcomes.id, outcome.id)),
+    ).rejects.toThrow();
 
     await database.$client.end();
   }, 120_000);

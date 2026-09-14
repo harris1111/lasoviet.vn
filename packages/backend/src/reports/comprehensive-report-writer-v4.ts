@@ -1,4 +1,5 @@
 import {
+  type AiCostRequestContext,
   ZIWEI_PALACE_IDS,
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
   ZiweiComprehensiveReportContentV2Schema,
@@ -90,6 +91,7 @@ export type ComprehensiveReportWriterV4Result =
 export async function writeComprehensiveZiweiReportV4(
   sourceOrInput: ComprehensiveReportSourceV4 | ComprehensiveReportWriterV4Input,
   maybeProvider?: AiProvider,
+  options?: { costContext?: AiCostRequestContext },
 ): Promise<ComprehensiveReportWriterV4Result> {
   const provider =
     maybeProvider ?? ("provider" in sourceOrInput ? sourceOrInput.provider : undefined);
@@ -115,8 +117,10 @@ export async function writeComprehensiveZiweiReportV4(
     schema: ZiweiComprehensiveReportContentV2Schema,
     schemaName: "ziwei_comprehensive_report_content_v2",
     use: "production_report_generation",
+    purpose: options?.costContext?.purpose ?? "report",
     maxOutputTokens: 9_000,
     system: VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+    costContext: options?.costContext,
     user: JSON.stringify({
       facts: safeFactsPayload,
       allowedEvidenceKeys: facts.evidenceKeys,
