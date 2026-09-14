@@ -1591,7 +1591,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
     },
   };
 
-  it("successfully generates V4 report with exactly one critic call and commits", async () => {
+    it("successfully generates V4 report with exactly one critic call and commits without consuming rewrite budget", async () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
@@ -1603,6 +1603,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
       recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
       commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+      consumeRewriteBudget: vi.fn(),
     };
     const gate = { allows: () => true };
     const provider = {
@@ -1659,10 +1660,304 @@ describe("createReportGenerationService V4 generation and critic", () => {
     expect(result.ok).toBe(true);
     // Exactly 2 provider calls: 1 writer + 1 critic
     expect(provider.generateStructured).toHaveBeenCalledTimes(2);
+    // Did not need rewrite budget
+    expect(versionRepository.consumeRewriteBudget).not.toHaveBeenCalled();
     expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
   });
 
-  it("fails closed on V4 critic safety failure without triggering rewrite", async () => {
+  it("rewrites once when V4 validator fails, passes re-validation/critic, and commits", async () => {
+    const preparer = {
+      prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+    };
+    const sourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
+    };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+
+    const invalidDraftContent = buildV4ReportContent();
+    // Insert an unknown evidence key to fail validation
+    invalidDraftContent.overview.evidenceKeys = ["unknown.fabricated.key"];
+
+    const validRevisedContent = buildV4ReportContent();
+
+    const provider = {
+      generateStructured: vi.fn()
+        // 1st call: initial writer produces invalid evidenceKeys
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: invalidDraftContent,
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 2nd call: rewrite writer produces valid content
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: validRevisedContent,
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 3rd call: critic on revised content passes
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "v4-critic-provider",
+            modelId: "v4-critic-model",
+          },
+        }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({
+      job: v4Job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    // 3 calls: initial writer + rewrite writer + critic
+    expect(provider.generateStructured).toHaveBeenCalledTimes(3);
+    expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("rewrites once when V4 critic quality fails, passes second critic, and commits", async () => {
+    const preparer = {
+      prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+    };
+    const sourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
+    };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+
+    const provider = {
+      generateStructured: vi.fn()
+        // 1st call: initial writer
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: buildV4ReportContent(),
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 2nd call: critic quality failure (specificity < 4)
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 3,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: ["Phần luận giải cần tăng tính cụ thể."],
+            },
+            providerId: "v4-critic-provider",
+            modelId: "v4-critic-model",
+          },
+        })
+        // 3rd call: rewrite writer produces improved content
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: buildV4ReportContent(),
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 4th call: second critic passes
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "v4-critic-provider",
+            modelId: "v4-critic-model",
+          },
+        }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({
+      job: v4Job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    // 4 calls: writer 1 + critic 1 + rewrite writer + critic 2
+    expect(provider.generateStructured).toHaveBeenCalledTimes(4);
+    expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("rewrites once when V4 critic safety fails, passes second critic, and commits", async () => {
+    const preparer = {
+      prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+    };
+    const sourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
+    };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+
+    const provider = {
+      generateStructured: vi.fn()
+        // 1st call: initial writer
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: buildV4ReportContent(),
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 2nd call: critic safety rejection
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: {
+              correctness: 3,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 3,
+              repetitionControl: 5,
+              notes: ["Phát hiện nhận định chưa an toàn."],
+            },
+            providerId: "v4-critic-provider",
+            modelId: "v4-critic-model",
+          },
+        })
+        // 3rd call: rewrite writer produces safe content
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: buildV4ReportContent(),
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 4th call: second critic passes
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: {
+              correctness: 5,
+              evidenceCoverage: 5,
+              specificity: 5,
+              languageClarity: 5,
+              consistency: 5,
+              actionability: 5,
+              safety: 5,
+              repetitionControl: 5,
+              notes: [],
+            },
+            providerId: "v4-critic-provider",
+            modelId: "v4-critic-model",
+          },
+        }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({
+      job: v4Job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    expect(provider.generateStructured).toHaveBeenCalledTimes(4);
+    expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails terminal immediately without extra rewrite loop when rewrite budget is exhausted", async () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
@@ -1674,11 +1969,14 @@ describe("createReportGenerationService V4 generation and critic", () => {
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
       recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
       commitImmutableVersion: vi.fn(),
+      // Budget was consumed by a prior attempt
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: false } }),
     };
     const gate = { allows: () => true };
+
     const provider = {
       generateStructured: vi.fn()
-        // 1st call: V4 writer
+        // 1st call: initial writer
         .mockResolvedValueOnce({
           ok: true,
           value: {
@@ -1687,7 +1985,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
             modelId: "v4-model",
           },
         })
-        // 2nd call: V4 critic failing safety
+        // 2nd call: critic safety rejection
         .mockResolvedValueOnce({
           ok: true,
           value: {
@@ -1702,6 +2000,8 @@ describe("createReportGenerationService V4 generation and critic", () => {
               repetitionControl: 5,
               notes: ["Safety issue"],
             },
+            providerId: "v4-critic-provider",
+            modelId: "v4-critic-model",
           },
         }),
     };
@@ -1727,11 +2027,86 @@ describe("createReportGenerationService V4 generation and critic", () => {
 
     expect(result.ok).toBe(false);
     expect(result.error?.code).toBe("REPORT_SAFETY_REJECTED");
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
     // Strictly NO rewrite call: exactly 2 calls occurred
     expect(provider.generateStructured).toHaveBeenCalledTimes(2);
     expect(versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
     expect(versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
       expect.objectContaining({ errorCode: "REPORT_SAFETY_REJECTED" }),
+    );
+  });
+
+  it("terminal-fails and does not commit when rewritten V4 content still fails validation", async () => {
+    const preparer = {
+      prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+    };
+    const sourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
+    };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn(),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+
+    const invalidContent = buildV4ReportContent();
+    invalidContent.overview.evidenceKeys = ["unknown.key.1"];
+
+    const stillInvalidContent = buildV4ReportContent();
+    stillInvalidContent.overview.evidenceKeys = ["unknown.key.2"];
+
+    const provider = {
+      generateStructured: vi.fn()
+        // 1st call: initial writer fails validation
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: invalidContent,
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        })
+        // 2nd call: rewrite writer still produces invalid content
+        .mockResolvedValueOnce({
+          ok: true,
+          value: {
+            value: stillInvalidContent,
+            providerId: "v4-provider",
+            modelId: "v4-model",
+          },
+        }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({
+      job: v4Job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe("AI_OUTPUT_INVALID");
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    // Exactly 2 writer calls, no critic, no 3rd writer
+    expect(provider.generateStructured).toHaveBeenCalledTimes(2);
+    expect(versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+    expect(versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ errorCode: "AI_OUTPUT_INVALID" }),
     );
   });
 
@@ -1837,5 +2212,276 @@ describe("createReportGenerationService V4 generation and critic", () => {
     expect(versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
       expect.objectContaining({ errorCode: "AI_COST_RECORDING_FAILED" }),
     );
+  });
+
+  it("propagates cost context with report and critic purpose during V4 rewrite", async () => {
+    const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
+    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+    const calls: unknown[] = [];
+    const invalidReport = buildV4ReportContent();
+    invalidReport.overview.evidenceKeys = ["unknown.key.1"];
+    const validReport = buildV4ReportContent();
+
+    const mockProvider = {
+      generateStructured: vi.fn().mockImplementation(async (req: any) => {
+        calls.push(req);
+        if (req.schemaName.includes("critic")) {
+          return {
+            ok: true,
+            value: {
+              value: {
+                correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5,
+                consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [],
+              },
+              providerId: "test", modelId: "test",
+            },
+          };
+        }
+        const isFirstWriter = calls.filter((c: any) => !c.schemaName.includes("critic")).length === 1;
+        return {
+          ok: true,
+          value: { value: isFirstWriter ? invalidReport : validReport, providerId: "test", modelId: "test" },
+        };
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: mockProvider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({ job: v4Job, attemptNumber: 1, workerId: "worker-1" });
+    expect(result.ok).toBe(true);
+    expect(calls).toHaveLength(3);
+    const initialWriterCall = calls[0] as any;
+    const rewriteWriterCall = calls[1] as any;
+    const criticCall = calls[2] as any;
+    expect(initialWriterCall.purpose).toBe("report");
+    expect(initialWriterCall.costContext).toMatchObject({ reportId: v4Job.payload.reportId, purpose: "report" });
+    expect(initialWriterCall.costContext.chartId).toBeUndefined();
+    expect(rewriteWriterCall.purpose).toBe("report");
+    expect(rewriteWriterCall.costContext).toMatchObject({ reportId: v4Job.payload.reportId, purpose: "report" });
+    expect(rewriteWriterCall.costContext.chartId).toBeUndefined();
+    expect(criticCall.purpose).toBe("critic");
+    expect(criticCall.costContext).toMatchObject({ reportId: v4Job.payload.reportId, purpose: "critic" });
+    expect(criticCall.costContext.chartId).toBeUndefined();
+  });
+
+  it("rewrites and passes when initial critic rejects quality and second critic passes, preserving 4-call cost lineage", async () => {
+    const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
+    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+    const calls: any[] = [];
+    let criticCount = 0;
+
+    const mockProvider = {
+      generateStructured: vi.fn().mockImplementation(async (req: any) => {
+        calls.push(req);
+        if (req.schemaName.includes("critic")) {
+          criticCount += 1;
+          if (criticCount === 1) {
+            return {
+              ok: true,
+              value: {
+                value: {
+                  correctness: 5,
+                  evidenceCoverage: 2,
+                  specificity: 5,
+                  languageClarity: 5,
+                  consistency: 5,
+                  actionability: 5,
+                  safety: 5,
+                  repetitionControl: 5,
+                  notes: ["Cần bổ sung dẫn chứng chi tiết."],
+                },
+                providerId: "test-critic",
+                modelId: "test-critic-model",
+              },
+            };
+          }
+          return {
+            ok: true,
+            value: {
+              value: {
+                correctness: 5,
+                evidenceCoverage: 5,
+                specificity: 5,
+                languageClarity: 5,
+                consistency: 5,
+                actionability: 5,
+                safety: 5,
+                repetitionControl: 5,
+                notes: [],
+              },
+              providerId: "test-critic",
+              modelId: "test-critic-model",
+            },
+          };
+        }
+        return {
+          ok: true,
+          value: { value: buildV4ReportContent(), providerId: "test-writer", modelId: "test-writer-model" },
+        };
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: mockProvider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({ job: v4Job, attemptNumber: 1, workerId: "worker-1" });
+    expect(result.ok).toBe(true);
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(4);
+
+    expect(calls.map((c) => c.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    expect(calls.map((call) => call.costContext.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    for (const call of calls) {
+      expect(call.costContext).toMatchObject({
+        reportId: v4Job.payload.reportId,
+        reportVersionId: v4Job.payload.reportVersionId,
+        chartVersionId: v4Job.payload.chartVersionId,
+        entitlementId: v4Job.payload.entitlementId,
+        sku: v4Job.payload.sku,
+        attemptNumber: 1,
+      });
+      expect(call.costContext.chartId).toBeUndefined();
+    }
+  });
+
+  it("terminal-fails with REPORT_SAFETY_REJECTED and does not commit when rewritten V4 content fails second critic on safety", async () => {
+    const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
+    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn(),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+    const calls: any[] = [];
+    let criticCount = 0;
+
+    const mockProvider = {
+      generateStructured: vi.fn().mockImplementation(async (req: any) => {
+        calls.push(req);
+        if (req.schemaName.includes("critic")) {
+          criticCount += 1;
+          if (criticCount === 1) {
+            return {
+              ok: true,
+              value: {
+                value: {
+                  correctness: 5,
+                  evidenceCoverage: 2,
+                  specificity: 5,
+                  languageClarity: 5,
+                  consistency: 5,
+                  actionability: 5,
+                  safety: 5,
+                  repetitionControl: 5,
+                  notes: ["Chất lượng chưa đạt chuẩn."],
+                },
+                providerId: "test-critic",
+                modelId: "test-critic-model",
+              },
+            };
+          }
+          return {
+            ok: true,
+            value: {
+              value: {
+                correctness: 2,
+                evidenceCoverage: 5,
+                specificity: 5,
+                languageClarity: 5,
+                consistency: 5,
+                actionability: 5,
+                safety: 2,
+                repetitionControl: 5,
+                notes: ["Phát hiện nhận định chưa an toàn."],
+              },
+              providerId: "test-critic",
+              modelId: "test-critic-model",
+            },
+          };
+        }
+        return {
+          ok: true,
+          value: { value: buildV4ReportContent(), providerId: "test-writer", modelId: "test-writer-model" },
+        };
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: mockProvider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({ job: v4Job, attemptNumber: 1, workerId: "worker-1" });
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe("REPORT_SAFETY_REJECTED");
+    expect(versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ errorCode: "REPORT_SAFETY_REJECTED" }),
+    );
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    expect(versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+    expect(calls).toHaveLength(4);
+
+    expect(calls.map((c) => c.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    expect(calls.map((call) => call.costContext.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    for (const call of calls) {
+      expect(call.costContext).toMatchObject({
+        reportId: v4Job.payload.reportId,
+        reportVersionId: v4Job.payload.reportVersionId,
+        chartVersionId: v4Job.payload.chartVersionId,
+        entitlementId: v4Job.payload.entitlementId,
+        sku: v4Job.payload.sku,
+        attemptNumber: 1,
+      });
+      expect(call.costContext.chartId).toBeUndefined();
+    }
   });
 });

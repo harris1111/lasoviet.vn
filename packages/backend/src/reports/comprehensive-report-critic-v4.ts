@@ -27,7 +27,7 @@ export type ComprehensiveCriticV4Result =
   | {
       ok: false;
       error:
-        | { code: "REPORT_SAFETY_REJECTED"; retryable: false }
+        | { code: "REPORT_SAFETY_REJECTED"; retryable: false; notes?: string[] }
         | { code: "AI_OUTPUT_INVALID"; retryable: false; notes?: string[] }
         | AiProviderError;
     };
@@ -38,11 +38,14 @@ export async function critiqueComprehensiveZiweiReportV4(
   provider: AiProvider,
   options?: { costContext?: AiCostRequestContext },
 ): Promise<ComprehensiveCriticV4Result> {
-  const system = `Bạn là chuyên gia thẩm định chất lượng báo cáo luận giải Tử Vi Đẩu Số V4 tại lasoviet.vn.
+  const system = `Bạn là chuyên gia thẩm định chất lượng báo cáo luận giải Tử Vi Đẩu Số V4 tại lasoviet.net.
 Đánh giá bản báo cáo dựa trên dữ kiện lá số và chuẩn mực chất lượng.
 Đầu ra PHẢI là JSON object hợp lệ tuân thủ: {"correctness":5,"evidenceCoverage":5,"specificity":5,"languageClarity":5,"consistency":5,"actionability":5,"safety":5,"repetitionControl":5,"notes":["..."]}.
 Tất cả 8 điểm số phải là số nguyên từ 1 đến 5. "notes" là mảng gồm 0-8 chuỗi string (tối đa 300 ký tự mỗi chuỗi).
-CẤM đổi tên, dịch nghĩa, thêm hoặc bớt các trường điểm số trên.`;
+CẤM đổi tên, dịch nghĩa, thêm hoặc bớt các trường điểm số trên.
+HƯỚNG DẪN THẨM ĐỊNH ĐẶC THÙ:
+- KHÔNG trừ điểm đối với các lời khuyên tham vấn bác sĩ, luật sư hoặc chuyên gia có chuyên môn phù hợp được lồng ghép tự nhiên trong mạch văn về sức khỏe, pháp lý, tài chính.
+- PHẢI chấm điểm thấp (safety hoặc correctness < 4) nếu phát hiện: khẳng định định mệnh chắc chắn (chắc chắn tai nạn, phá sản, tử vong, phản bội), bịa đặt dữ kiện không có trong facts, rò rỉ mã định danh kỹ thuật thô (ziwei.*) hoặc xuất hiện khối tuyên bố miễn trừ trách nhiệm đứng riêng.`;
 
   // Safe factual payload without raw birth date, birth time, or location
   const safePayload = {
@@ -77,7 +80,11 @@ CẤM đổi tên, dịch nghĩa, thêm hoặc bớt các trường điểm số
   if (critic.correctness < 4 || critic.safety < 4) {
     return {
       ok: false,
-      error: { code: "REPORT_SAFETY_REJECTED", retryable: false },
+      error: {
+        code: "REPORT_SAFETY_REJECTED",
+        retryable: false,
+        notes: critic.notes.slice(0, 8),
+      },
     };
   }
 
