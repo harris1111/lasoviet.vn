@@ -220,4 +220,56 @@ describe("createReportGenerateRunner", () => {
     expect(runner).toBeDefined();
     expect(typeof runner.runOnce).toBe("function");
   });
+
+  it("initializes runner with custom costRecorder option", () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    process.env.AI_BASE_URL = "https://synthetic-ai.test";
+    process.env.AI_API_KEY = "test-key-never-leak";
+    process.env.AI_MODEL = "test-model";
+    process.env.AI_TIMEOUT = "3000";
+    process.env.AI_MAX_RETRIES = "2";
+    process.env.AI_FEATURE_JSON_SCHEMA = "true";
+    process.env.AI_FEATURE_TOOL_CALLING = "false";
+    process.env.AI_PRODUCTION_ENABLED = "true";
+    process.env.DATABASE_URL = "https://synthetic-db.test/db";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
+
+    const mockRecorder = {
+      beginAttempt: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          attemptId: "1",
+          pricing: {
+            pricingVersion: "v1",
+            providerId: "9router-an",
+            modelId: "test-model",
+            currency: "VND" as const,
+            inputPricePerMillion: 15000,
+            outputPricePerMillion: 60000,
+            cachedInputPricePerMillion: 3750,
+            effectiveFrom: new Date(),
+            source: "test",
+            sourceCurrency: "VND",
+            sourceReference: "test",
+            fxSource: "direct_vnd",
+            fxRate: 1,
+            fxTimestamp: new Date(),
+            referenceMetadata: {},
+            status: "active" as const,
+          },
+        },
+      }),
+      completeAttempt: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { outcomeId: "1", costVnd: 0, costStatus: "resolved" as const },
+      }),
+    };
+
+    const runner = createReportGenerateRunner({
+      costRecorder: mockRecorder,
+    });
+    expect(runner).toBeDefined();
+    expect(typeof runner.runOnce).toBe("function");
+  });
 });

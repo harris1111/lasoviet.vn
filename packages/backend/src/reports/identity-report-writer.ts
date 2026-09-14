@@ -1,4 +1,5 @@
 import {
+  type AiCostRequestContext,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IDENTITY_REPORT_SECTION_IDS,
@@ -66,6 +67,7 @@ export type IdentityReportWriterInput = IdentityReportSource & {
   };
   provider: AiProvider;
   revision?: IdentityReportWriterRevisionInput;
+  costContext?: AiCostRequestContext;
 };
 
 export async function writeIdentityReportDraft(input: IdentityReportWriterInput) {
@@ -113,7 +115,9 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
         outline: identityReportOutlineV1,
       }),
       use: "production_report_generation",
+      purpose: input.revision !== undefined ? "rewrite" : (input.costContext?.purpose ?? "report"),
       maxOutputTokens: 4_000,
+      costContext: input.costContext,
     });
     if (!result.ok) return result;
 
@@ -187,7 +191,9 @@ export async function writeIdentityReportDraft(input: IdentityReportWriterInput)
       ...(input.revision !== undefined ? { revision: input.revision } : {}),
     }),
     use: "production_report_generation",
+    purpose: input.revision !== undefined ? "rewrite" : (input.costContext?.purpose ?? "report"),
     maxOutputTokens: 6_000,
+    costContext: input.costContext,
   });
   if (!result.ok) return result;
 
