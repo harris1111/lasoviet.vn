@@ -1,4 +1,4 @@
-import { z, type ZiweiComprehensiveReportContentV2 } from "@lasoviet/contracts";
+import { type AiCostRequestContext, z, type ZiweiComprehensiveReportContentV2 } from "@lasoviet/contracts";
 
 import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -36,6 +36,7 @@ export async function critiqueComprehensiveZiweiReportV4(
   report: ZiweiComprehensiveReportContentV2,
   facts: ComprehensiveZiweiFactsV4,
   provider: AiProvider,
+  options?: { costContext?: AiCostRequestContext },
 ): Promise<ComprehensiveCriticV4Result> {
   const system = `Bạn là chuyên gia thẩm định chất lượng báo cáo luận giải Tử Vi Đẩu Số V4 tại lasoviet.net.
 Đánh giá bản báo cáo dựa trên dữ kiện lá số và chuẩn mực chất lượng.
@@ -65,7 +66,9 @@ HƯỚNG DẪN THẨM ĐỊNH ĐẶC THÙ:
     system,
     user: JSON.stringify(safePayload),
     use: "production_report_generation",
+    purpose: options?.costContext?.purpose ?? "critic",
     maxOutputTokens: 600,
+    costContext: options?.costContext,
   });
 
   if (!result.ok) {

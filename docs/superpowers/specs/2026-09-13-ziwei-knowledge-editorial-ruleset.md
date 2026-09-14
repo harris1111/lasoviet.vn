@@ -115,7 +115,7 @@ Ranh giới pháp lý (bắt buộc, không phải tuỳ chọn):
 | "dễ gặp", "nên đề phòng", "cần để ý" | "chắc chắn sẽ", "không tránh khỏi" |
 | "trong giai đoạn này", "năm nay" | ngày, tháng cụ thể biến cố sẽ xảy ra |
 | "sức khỏe cần chăm sóc: nghỉ ngơi, khám định kỳ" | tên bệnh cụ thể, chuyện sinh sản, vô sinh |
-| việc chuẩn bị đời thường | cúng giải hạn, mua bùa, "nạp Lá để hoá giải" |
+| việc chuẩn bị đời thường, kể cả "hỏi ý kiến bác sĩ / luật sư / người có chuyên môn" | cúng giải hạn, mua bùa, "nạp Lá để hoá giải" |
 | cảnh báo trong nội dung đã mua | dùng biến cố để ép mua ("mở khoá để biết tai hoạ sắp tới") |
 
 Lý do của cột phải: nói chắc chắn điều xấu, chỉ bệnh, hoặc bán cách "hoá giải" là vùng dễ bị xử phạt kiểu mê tín dị đoan. Nói "giai đoạn cần phòng bị + việc nên làm" thì an toàn và vẫn giữ được sức nặng.
@@ -145,6 +145,7 @@ Quy tắc thêm:
 - Không lặp lại cùng một lời khuyên ở nhiều phần.
 - Không nhắc tới AI, hệ thống, dữ liệu, cách tính (FD-071: chỉ ghi "Lá Số Việt biên tập").
 - Nếu khách có trả lời 2 câu hỏi bối cảnh (đang làm gì, quan tâm gì nhất), chọn tình huống ví dụ theo đúng hoàn cảnh đó.
+- **Nên khuyên hỏi người có chuyên môn** (founder duyệt 14/09, FD-082). Khi nói về sức khỏe, pháp lý, giấy tờ, khoản tiền lớn hay đầu tư, được và nên thêm lời khuyên tự nhiên trong mạch văn, ví dụ *"nếu mệt kéo dài, bạn nên đi khám và hỏi ý kiến bác sĩ"*, *"trước khi ký hợp đồng lớn, nên nhờ luật sư xem qua"*. Không dùng đoạn miễn trừ trách nhiệm kiểu văn bản pháp lý tách rời ("Tuyên bố miễn trừ trách nhiệm: …").
 
 ## 7. Xử lý nguồn tiếng Trung
 
@@ -164,6 +165,7 @@ Mỗi báo cáo và mỗi đoạn kho tri thức phải qua các kiểm tra tự
 | Cảnh báo biến cố thiếu việc chuẩn bị | 0 lần (máy chấm thêm theo §5) |
 | Từ định mệnh cấm theo bản 12/09 ("chắc chắn", "không thể tránh", "định sẵn", "đại hoạ", "đổi vận", "chính xác 99%"…) | 0 lần |
 | Chữ Hán, từ tiếng Anh chỉ độ sáng sao | 0 lần |
+| Lời khuyên hỏi bác sĩ / luật sư / người có chuyên môn | **Không bị chặn** (FD-082) |
 | Mỗi phần có nhắc tên sao/cung thật của lá số đó | Bắt buộc |
 | Độ dài tối thiểu từng phần | Theo spec kỹ thuật FD-073 |
 

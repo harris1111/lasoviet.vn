@@ -1,4 +1,4 @@
-import type { IdentityReportV1, ReportGenerateJobEnvelope } from "@lasoviet/contracts";
+import type { AiCostRequestContext, IdentityReportV1, ReportGenerateJobEnvelope } from "@lasoviet/contracts";
 import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
   CURRENT_REPORT_RENDER_VERSION,
@@ -24,6 +24,7 @@ import type { ReportSourceSnapshotPreparationService } from "./report-source-sna
 
 export type ReportGenerationServiceErrorCode =
   | "AI_CAPABILITY_UNSUPPORTED"
+  | "AI_COST_RECORDING_FAILED"
   | "AI_TIMEOUT"
   | "AI_OUTPUT_INVALID"
   | "REPORT_EVIDENCE_INVALID"
@@ -121,6 +122,16 @@ export function createReportGenerationService(
     const { job, attemptNumber, workerId } = input;
     const jobId = input.jobId ?? job.idempotencyKey;
     const payload = job.payload;
+    const baseCostContext: AiCostRequestContext = {
+      idempotencyKey: jobId,
+      reportId: payload.reportId,
+      reportVersionId: payload.reportVersionId,
+      entitlementId: payload.entitlementId,
+      // chartId is intentionally omitted; resolved by database cost service from commerce_entitlements
+      chartVersionId: payload.chartVersionId,
+      sku: payload.sku,
+      attemptNumber,
+    };
 
     const replay = await replayExisting(input);
     if (!replay.ok) return replay;
@@ -226,6 +237,7 @@ export function createReportGenerationService(
         writerResult = await writeComprehensiveZiweiReportV4(
           source as ComprehensiveReportSourceV4,
           dependencies.provider,
+          { costContext: { ...baseCostContext, purpose: "report" } },
         );
       } catch {
         return failAttempt("AI_TIMEOUT", true);
@@ -233,6 +245,9 @@ export function createReportGenerationService(
 
       if (!writerResult.ok) {
         const errCode = writerResult.error.code;
+        if (errCode === "AI_COST_RECORDING_FAILED") {
+          return failAttempt("AI_COST_RECORDING_FAILED", (writerResult.error as any).retryable ?? false);
+        }
         if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
           return failAttempt("AI_TIMEOUT", true);
         }
@@ -262,6 +277,7 @@ export function createReportGenerationService(
             draft.report,
             source.comprehensiveFactsV4,
             dependencies.provider,
+            { costContext: { ...baseCostContext, purpose: "critic" } },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", true);
@@ -269,6 +285,9 @@ export function createReportGenerationService(
 
         if (!criticResult.ok) {
           const errCode = criticResult.error.code;
+          if (errCode === "AI_COST_RECORDING_FAILED") {
+            return failAttempt("AI_COST_RECORDING_FAILED", (criticResult.error as any).retryable ?? false);
+          }
           if (
             errCode === "AI_TIMEOUT" ||
             (errCode === "AI_PROVIDER_REQUEST_FAILED" && (criticResult.error as any).retryable)
@@ -317,6 +336,7 @@ export function createReportGenerationService(
               },
             },
             dependencies.provider,
+            { costContext: { ...baseCostContext, purpose: "report" } },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);
@@ -324,6 +344,9 @@ export function createReportGenerationService(
 
         if (!revisionResult.ok) {
           const revErrCode = revisionResult.error.code;
+          if (revErrCode === "AI_COST_RECORDING_FAILED") {
+            return failAttempt("AI_COST_RECORDING_FAILED", (revisionResult.error as any).retryable ?? false);
+          }
           if (
             revErrCode === "AI_TIMEOUT" ||
             (revErrCode === "AI_PROVIDER_REQUEST_FAILED" && revisionResult.error.retryable)
@@ -352,6 +375,7 @@ export function createReportGenerationService(
             draft.report,
             source.comprehensiveFactsV4,
             dependencies.provider,
+            { costContext: { ...baseCostContext, purpose: "critic" } },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);
@@ -359,6 +383,9 @@ export function createReportGenerationService(
 
         if (!revCriticResult.ok) {
           const revCritErrCode = revCriticResult.error.code;
+          if (revCritErrCode === "AI_COST_RECORDING_FAILED") {
+            return failAttempt("AI_COST_RECORDING_FAILED", (revCriticResult.error as any).retryable ?? false);
+          }
           if (revCritErrCode === "REPORT_SAFETY_REJECTED") {
             return failAttempt("REPORT_SAFETY_REJECTED", false);
           }
@@ -367,6 +394,9 @@ export function createReportGenerationService(
             (revCritErrCode === "AI_PROVIDER_REQUEST_FAILED" && (revCriticResult.error as any).retryable)
           ) {
             return failAttempt("AI_TIMEOUT", false);
+          }
+          if (revCritErrCode === "AI_CAPABILITY_UNSUPPORTED" || revCritErrCode === "AI_PROVIDER_NOT_APPROVED") {
+            return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
           }
           return failAttempt("AI_OUTPUT_INVALID", false);
         }
@@ -414,6 +444,7 @@ export function createReportGenerationService(
         writerResult = await writeComprehensiveZiweiReport(
           source as ComprehensiveReportSource,
           dependencies.provider,
+          { costContext: { ...baseCostContext, purpose: "report" } },
         );
       } catch {
         return failAttempt("AI_TIMEOUT", true);
@@ -421,6 +452,9 @@ export function createReportGenerationService(
 
       if (!writerResult.ok) {
         const errCode = writerResult.error.code;
+        if (errCode === "AI_COST_RECORDING_FAILED") {
+          return failAttempt("AI_COST_RECORDING_FAILED", (writerResult.error as any).retryable ?? false);
+        }
         if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
           return failAttempt("AI_TIMEOUT", true);
         }
@@ -481,6 +515,7 @@ export function createReportGenerationService(
           templateVersion: CURRENT_REPORT_TEMPLATE_VERSION,
         },
         provider: dependencies.provider,
+        costContext: { ...baseCostContext, purpose: "report" },
       });
     } catch {
       return failAttempt("AI_TIMEOUT", true);
@@ -488,6 +523,9 @@ export function createReportGenerationService(
 
     if (!writerResult.ok) {
       const errCode = writerResult.error.code;
+      if (errCode === "AI_COST_RECORDING_FAILED") {
+        return failAttempt("AI_COST_RECORDING_FAILED", (writerResult.error as any).retryable ?? false);
+      }
       if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
         return failAttempt("AI_TIMEOUT", true);
       }
@@ -523,7 +561,11 @@ export function createReportGenerationService(
         draft.report,
         source,
         dependencies.provider,
-        { promptVersion: payload.promptVersion, knowledgeVersion: payload.knowledgeVersionId },
+        {
+          promptVersion: payload.promptVersion,
+          knowledgeVersion: payload.knowledgeVersionId,
+          costContext: { ...baseCostContext, purpose: "critic" },
+        },
       );
     } catch {
       return failAttempt("AI_TIMEOUT", true);
@@ -533,6 +575,9 @@ export function createReportGenerationService(
 
     if (!criticResult.ok) {
       const errCode = criticResult.error.code;
+      if (errCode === "AI_COST_RECORDING_FAILED") {
+        return failAttempt("AI_COST_RECORDING_FAILED", (criticResult.error as any).retryable ?? false);
+      }
       if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && criticResult.error.retryable)) {
         return failAttempt("AI_TIMEOUT", true);
       }
@@ -585,6 +630,7 @@ export function createReportGenerationService(
               },
               criticNotes,
             },
+            costContext: { ...baseCostContext, purpose: "rewrite" },
           });
         } catch {
           return failAttempt("AI_TIMEOUT", false);
@@ -592,6 +638,9 @@ export function createReportGenerationService(
 
         if (!revisionResult.ok) {
           const revErrCode = revisionResult.error.code;
+          if (revErrCode === "AI_COST_RECORDING_FAILED") {
+            return failAttempt("AI_COST_RECORDING_FAILED", (revisionResult.error as any).retryable ?? false);
+          }
           if (revErrCode === "AI_TIMEOUT" || (revErrCode === "AI_PROVIDER_REQUEST_FAILED" && revisionResult.error.retryable)) {
             return failAttempt("AI_TIMEOUT", false);
           }
@@ -618,7 +667,11 @@ export function createReportGenerationService(
             revisedDraft.report,
             source,
             dependencies.provider,
-            { promptVersion: payload.promptVersion, knowledgeVersion: payload.knowledgeVersionId },
+            {
+              promptVersion: payload.promptVersion,
+              knowledgeVersion: payload.knowledgeVersionId,
+              costContext: { ...baseCostContext, purpose: "critic" },
+            },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);
@@ -626,6 +679,9 @@ export function createReportGenerationService(
 
         if (!revCriticResult.ok) {
           const revCritErrCode = revCriticResult.error.code;
+          if (revCritErrCode === "AI_COST_RECORDING_FAILED") {
+            return failAttempt("AI_COST_RECORDING_FAILED", (revCriticResult.error as any).retryable ?? false);
+          }
           if (revCritErrCode === "REPORT_SAFETY_REJECTED") {
             return failAttempt("REPORT_SAFETY_REJECTED", false);
           }

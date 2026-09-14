@@ -9,6 +9,8 @@ import {
   createAuthEmailDeliveryService,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
+  createDatabaseAiCostService,
+  type AiCostRecorder,
   createDatabaseDeletionRepository,
   createDatabaseOutboxStore,
   createDatabaseReportGenerationSourceRepository,
@@ -114,6 +116,7 @@ function hasAnyAiConfig(source: NodeJS.ProcessEnv): boolean {
 export function createReportGenerateRunner(options?: {
   gate?: AiProductionGate;
   provider?: AiProvider;
+  costRecorder?: AiCostRecorder;
   alertDispatcher?: {
     dispatchPendingAlerts(
       filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure",
@@ -189,6 +192,8 @@ export function createReportGenerateRunner(options?: {
     repository: sourceSnapshotRepository,
     calculateSnapshot: calculateIztroReportSnapshot,
   });
+  const aiCostService = createDatabaseAiCostService(database);
+  const costRecorder = options?.costRecorder ?? aiCostService.recorder;
   const provider =
     options?.provider ??
     (environment.value.ai.enabled
@@ -199,6 +204,7 @@ export function createReportGenerateRunner(options?: {
           timeoutMs: environment.value.ai.timeoutMs,
           retryCount: environment.value.ai.maxRetries,
           productionGate: gate,
+          costRecorder,
         })
       : {
           async generateStructured() {

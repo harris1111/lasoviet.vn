@@ -1,15 +1,78 @@
 import {
+  PREVIEW_COST_GUARD_CONSTANTS,
   EvidenceItemV1Schema,
   FreeIdentityPreviewV1Schema,
   type FreeIdentityPreviewV1,
+  type PreviewBudgetUsage,
+  PreviewPreflightReservationSchema,
+  type PreviewPreflightReservation,
   type Result,
 } from "@lasoviet/contracts";
+
+export type { PreviewBudgetUsage, PreviewPreflightReservation };
 
 const canonicalEvidenceIds = [
   "ziwei.identity.life-palace",
   "ziwei.identity.body-palace",
   "ziwei.identity.transformations",
 ] as const;
+
+export const PREVIEW_GUARD_LIMITS = PREVIEW_COST_GUARD_CONSTANTS;
+
+export type PreviewPreflightResult =
+  | { allowed: true }
+  | {
+      allowed: false;
+      reason:
+        | "USAGE_UNKNOWN"
+        | "RESERVATION_REQUIRED"
+        | "MAX_SECTIONS_EXCEEDED"
+        | "MAX_TOKENS_EXCEEDED"
+        | "MAX_COST_EXCEEDED"
+        | "MAX_REWRITES_EXCEEDED";
+    };
+
+export function checkPreviewBudgetPreflight(
+  current: PreviewBudgetUsage,
+  reservation?: PreviewPreflightReservation,
+): PreviewPreflightResult {
+  const parsed = PreviewPreflightReservationSchema.safeParse(reservation);
+  if (!parsed.success) {
+    return { allowed: false, reason: "RESERVATION_REQUIRED" };
+  }
+  const res = parsed.data;
+
+  if (current.hasUnknownCost) {
+    return { allowed: false, reason: "USAGE_UNKNOWN" };
+  }
+
+  if (res.isRewrite && res.sectionId) {
+    const rewrites = current.rewritesBySection?.[res.sectionId] ?? 0;
+    if (rewrites >= PREVIEW_GUARD_LIMITS.maxRewritesPerSection) {
+      return { allowed: false, reason: "MAX_REWRITES_EXCEEDED" };
+    }
+  }
+
+  if (
+    current.generatedSections + res.projectedSections >
+    PREVIEW_GUARD_LIMITS.maxGeneratedSectionsPerChart
+  ) {
+    return { allowed: false, reason: "MAX_SECTIONS_EXCEEDED" };
+  }
+  if (
+    current.billableTokens + res.projectedTokens >
+    PREVIEW_GUARD_LIMITS.maxBillableTokensPerChart
+  ) {
+    return { allowed: false, reason: "MAX_TOKENS_EXCEEDED" };
+  }
+  if (
+    current.costVnd + res.projectedCostVnd >
+    PREVIEW_GUARD_LIMITS.maxCostVndPerChart
+  ) {
+    return { allowed: false, reason: "MAX_COST_EXCEEDED" };
+  }
+  return { allowed: true };
+}
 
 export type FreeIdentityPreviewError = "INSUFFICIENT_EVIDENCE";
 
@@ -92,4 +155,41 @@ export function buildFreeIdentityPreview(
   return preview.success
     ? { ok: true, value: preview.data }
     : insufficientEvidence();
+}
+
+export type GuardedPreviewInput = FreeIdentityPreviewInput & {
+  usageState: PreviewBudgetUsage;
+  reservation: PreviewPreflightReservation;
+  generator?: () => Promise<
+    | { ok: true; preview: FreeIdentityPreviewV1 }
+    | { ok: false; error?: unknown }
+  >;
+};
+
+export async function buildGuardedFreeIdentityPreview(
+  input: GuardedPreviewInput,
+): Promise<Result<FreeIdentityPreviewV1, FreeIdentityPreviewError>> {
+  const structural = buildFreeIdentityPreview(input);
+  if (!structural.ok) {
+    return structural;
+  }
+
+  if (!input.generator) {
+    return structural;
+  }
+
+  const budgetCheck = checkPreviewBudgetPreflight(input.usageState, input.reservation);
+  if (!budgetCheck.allowed) {
+    return structural;
+  }
+
+  try {
+    const genResult = await input.generator();
+    if (!genResult.ok) {
+      return structural;
+    }
+    return { ok: true, value: genResult.preview };
+  } catch {
+    return structural;
+  }
 }

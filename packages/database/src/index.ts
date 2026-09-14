@@ -66,3 +66,9 @@ export {
   knowledgeChunks,
   knowledgeDocuments,
 } from "./schema/knowledge.js";
+
+export {
+  aiModelPricing,
+  aiCallAttempts,
+  aiUsageOutcomes,
+} from "./schema/ai-cost.js";
