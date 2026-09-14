@@ -34,6 +34,8 @@ Restore these V3 prompt rules that `VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PR
 
 Also fix the prompt identity line from `lasoviet.vn` to `lasoviet.net` (FD-057).
 
+**FD-082 (2026-09-14) changes one existing rule:** remove the V3/V4 prohibition on professional advice ("KHÔNG đưa vào … cảnh báo pháp lý, y tế, tài chính hay khuyến cáo chuyên môn"). The writer should add natural, in-context referrals to a doctor, lawyer, or qualified professional when discussing health, legal matters, paperwork, large money decisions, or investment. Standalone legal-style disclaimer blocks ("Tuyên bố miễn trừ trách nhiệm: …") stay out.
+
 These can ship before the larger changes below, as an immediate patch.
 
 ## 3. FD-073 — Section-by-section generation
@@ -163,6 +165,7 @@ This replaces the Kaneo #3 launch rule "validator plus one AI critic pass, no V4
 | Misfortune framing | Any section containing misfortune terms must also contain at least 2 preparation suggestions; no certainty phrases ("chắc chắn sẽ", "không tránh khỏi"); no explicit day/month for adverse events | Config + critic check |
 | Chart anchoring | Each palace section names at least 2 stars actually present in that palace (or states the palace has no major star when true); each other section names at least 2 chart facts from its evidence keys | `facts.natal` |
 | Han and locale | Existing Han-ideograph and English brightness checks | Existing validator |
+| Professional referral allowed | Remove `bác sĩ`, `chuyên gia y tế`, `tư vấn y tế`, `tư vấn pháp lý`, `lời khuyên pháp lý`, `lời khuyên y tế`, `tư vấn tài chính chuyên nghiệp`, `không thay thế tư vấn` from the prohibited-disclaimer pattern; keep blocking standalone disclaimer labels (`miễn trừ trách nhiệm`, `tuyên bố miễn trừ`, English `disclaimer`) with Unicode-aware boundaries. The critic must not penalize in-context referrals (FD-082) | Validator + critic config |
 | Repetition | Existing near-duplicate check, extended across per-section outputs | Existing validator |
 
 Extend `critiqueComprehensiveZiweiReportV4` scoring notes with two model-judged checks that feed a rewrite (not a hard fail on their own): "a sentence that would fit any chart" and "claim without an everyday situation".

@@ -10,6 +10,7 @@ import * as knowledge from "./schema/knowledge.js";
 import * as outbox from "./schema/outbox.js";
 import * as privacy from "./schema/privacy.js";
 import * as reports from "./schema/reports.js";
+import * as aiCost from "./schema/ai-cost.js";
 
 const schema = {
   ...auth,
@@ -21,6 +22,7 @@ const schema = {
   ...outbox,
   ...privacy,
   ...reports,
+  ...aiCost,
 };
 
 export type Database = PostgresJsDatabase<typeof schema>;

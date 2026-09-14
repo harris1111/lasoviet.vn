@@ -1,4 +1,4 @@
-import { z, type IdentityReportV1 } from "@lasoviet/contracts";
+import { type AiCostRequestContext, z, type IdentityReportV1 } from "@lasoviet/contracts";
 
 import type { AiProvider } from "../ai/ai-provider.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
@@ -25,7 +25,7 @@ export async function critiqueIdentityReport(
   report: IdentityReportV1,
   source: IdentityReportSource,
   provider: AiProvider,
-  options?: { promptVersion?: string; knowledgeVersion?: string },
+  options?: { promptVersion?: string; knowledgeVersion?: string; costContext?: AiCostRequestContext },
 ) {
   const promptVersion = options?.promptVersion ?? report.provenance.promptVersion;
   const knowledgeVersion = options?.knowledgeVersion ?? report.provenance.knowledgeVersion;
@@ -56,7 +56,9 @@ export async function critiqueIdentityReport(
       knowledge,
     }),
     use: "production_report_generation",
+    purpose: options?.costContext?.purpose ?? "critic",
     maxOutputTokens: 600,
+    costContext: options?.costContext,
   });
   if (!result.ok) return result;
   const critic = result.value.value;
