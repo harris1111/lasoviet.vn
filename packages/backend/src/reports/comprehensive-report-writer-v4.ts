@@ -20,6 +20,7 @@ import {
   BRIGHTNESS_LABELS_VI,
   normalizeComprehensiveReportModelProse,
 } from "./comprehensive-report-writer.js";
+import { sanitizeReportCustomerVisibleIdentifiers } from "./comprehensive-report-validator-v4.js";
 
 export const COMPREHENSIVE_REPORT_V4_JSON_CONTRACT_INSTRUCTION = `QUY CÁCH CẤU TRÚC JSON ĐẦU RA BẮT BUỘC (V4 COMPREHENSIVE REPORT CONTRACT - ziwei-comprehensive.v2):
 Bản báo cáo phải là một JSON object hợp lệ duy nhất, tuân thủ nghiêm ngặt và chính xác các quy tắc cấu trúc sau:
@@ -46,29 +47,37 @@ ${ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id, index) => `     ${index + 1}. "${id}"`).
    - Mọi mảng "evidenceKeys" phải là mảng không rỗng (chứa ít nhất 1 chuỗi string).
    - TẤT CẢ các chuỗi trong "evidenceKeys" phải được trích xuất chính xác từ facts.evidenceKeys được cung cấp. Tuyệt đối không tự tạo khóa ngoài danh sách này.`;
 
-export const VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số cao cấp tại lasoviet.vn.
+export const VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số cao cấp tại lasoviet.net.
 Nhiệm vụ của bạn là viết một bản báo cáo luận giải toàn diện, sâu sắc, hoàn chỉnh bằng tiếng Việt chuyên nghiệp dựa DUY NHẤT trên các dữ kiện lá số (facts) và các gói tri thức (knowledgePacks) được cung cấp.
 
 YÊU CẦU NỘI DUNG VÀ VĂN PHONG:
 1. Ngôn ngữ: Sử dụng tiếng Việt tự nhiên, chuẩn mực, giàu tính phân tích và đúc kết; giải thích thuật ngữ chuyên môn ngay trong ngữ cảnh thay vì liệt kê máy móc.
 2. Diễn giải trước, kỹ thuật sau: Luôn đưa ra nhận định thực tế trước, dùng tên sao và cách cục làm căn cứ bổ trợ.
-3. Bao quát toàn bộ 12 cung: Luận giải đầy đủ và thực chất từng cung theo đúng thứ tự 12 cung được yêu cầu.
+3. Bao quát toàn bộ 12 cung: Luận giải đầy đủ và thực chất từng cung theo đúng thứ tự 12 cung được yêu cầu. Với các cung không có chính tinh (vô chính diệu), cần phân tích cụ thể các sao mượn từ cung xung chiếu và phụ tinh hội hợp, tránh viết theo khuôn sáo chung.
 4. Tổng hợp đa chiều: Phân tích sâu 4 lĩnh vực trọng tâm (sự nghiệp và tài chính, quan hệ và gia đình, môi trường xã hội, thân tâm và nguồn lực nội tại).
 5. Vận hạn hiện hành: Luận giải thấu đáo đại vận hiện hành (hoặc giai đoạn tiền đại vận nếu chưa khởi) và lưu niên năm đánh giá.
 6. Hành động thực tế: Đưa ra chính xác từ 3 đến 5 hành động cụ thể có cấu trúc đầy đủ (khuyến nghị, lý do, điều nên tránh, căn cứ evidenceKeys).
+7. Lời khuyên chuyên môn trong ngữ cảnh: Khi đề cập đến sức khỏe, pháp lý, giấy tờ thủ tục, khoản tiền lớn hoặc đầu tư, nên khuyên người đọc một cách tự nhiên trong mạch văn tham khảo ý kiến bác sĩ, luật sư hoặc chuyên gia có chuyên môn phù hợp.
 
 ${COMPREHENSIVE_REPORT_V4_JSON_CONTRACT_INSTRUCTION}
 
 CẤM TUYỆT ĐỐI CÁC ĐIỀU SAU:
 - KHÔNG nhắc đến AI, trí tuệ nhân tạo, mô hình ngôn ngữ, prompt, dữ liệu đầu vào hay hệ thống kỹ thuật.
-- KHÔNG đưa vào lời tuyên bố miễn trừ trách nhiệm (disclaimer), cảnh báo pháp lý, y tế, tài chính hay khuyến cáo chuyên môn.
+- KHÔNG đưa vào các khối văn bản hoặc nhãn tuyên bố miễn trừ trách nhiệm đứng riêng (như "Tuyên bố miễn trừ trách nhiệm", "Miễn trừ trách nhiệm", "Disclaimer"). Lời khuyên tham vấn chuyên gia chỉ được xuất hiện tự nhiên trong dòng chảy phân tích.
+- KHÔNG đưa ra các dự đoán định mệnh mang tính khẳng định chắc chắn về tai nạn, tử vong, phá sản hoặc phản bội trong cùng câu.
 - KHÔNG sử dụng nhãn độ tin cậy, mức độ chắc chắn, giới hạn phương pháp hoặc văn phong phòng thủ.
 - KHÔNG tạo trường birthTimeSensitivity.`;
+
+export type ComprehensiveReportWriterV4Revision = {
+  priorContent: ZiweiComprehensiveReportContentV2;
+  issues: string[];
+};
 
 export type ComprehensiveReportWriterV4Input = {
   facts: ComprehensiveZiweiFactsV4;
   knowledgePacks: readonly ZiweiReportKnowledgePack[];
   provider: AiProvider;
+  revision?: ComprehensiveReportWriterV4Revision;
 };
 
 export type ComprehensiveReportDraftV4 = {
@@ -111,12 +120,31 @@ export async function writeComprehensiveZiweiReportV4(
     evidenceKeys: facts.evidenceKeys,
   };
 
+  const revision = "revision" in sourceOrInput ? sourceOrInput.revision : undefined;
+  const boundedIssues = revision?.issues
+    ?.slice(0, 8)
+    .map((issue) => (issue.length > 300 ? `${issue.slice(0, 297)}...` : issue));
+
+  const revisionInstruction = revision
+    ? `\n\nYÊU CẦU HIỆU CHỈNH / VIẾT LẠI:
+Bạn đang thực hiện đúng một lượt viết lại có giới hạn cho bản báo cáo trước đó để khắc phục chính xác các vấn đề sau:
+${boundedIssues?.map((issue, idx) => `${idx + 1}. ${issue}`).join("\n")}
+
+HƯỚNG DẪN HIỆU CHỈNH:
+- CHỈ sửa chữa các vấn đề cụ thể được nêu ở trên; giữ nguyên tính nhất quán và các phần nội dung hợp lệ khác.
+- Bảo toàn tuyệt đối cấu trúc hợp đồng JSON và các giá trị frozenTiming (targetYear, asOfDate, decadal state/index/ageRange/yearRange).
+- Tuyệt đối KHÔNG bịa đặt dữ kiện mới, không đưa vào mã kỹ thuật thô (ziwei.*), và chỉ sử dụng evidenceKeys từ facts.evidenceKeys được cung cấp.
+- Tuyệt đối KHÔNG đưa vào thông tin nhận dạng cá nhân (PII).`
+    : "";
+
+  const systemPrompt = `${VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT}${revisionInstruction}`;
+
   const result = await provider.generateStructured({
     schema: ZiweiComprehensiveReportContentV2Schema,
     schemaName: "ziwei_comprehensive_report_content_v2",
     use: "production_report_generation",
     maxOutputTokens: 9_000,
-    system: VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+    system: systemPrompt,
     user: JSON.stringify({
       facts: safeFactsPayload,
       allowedEvidenceKeys: facts.evidenceKeys,
@@ -129,6 +157,14 @@ export async function writeComprehensiveZiweiReportV4(
         targetYear: facts.timing.annual.targetYear,
         decadalState: facts.timing.decadal.state,
       },
+      ...(revision
+        ? {
+            revision: {
+              priorReport: revision.priorContent,
+              issues: boundedIssues,
+            },
+          }
+        : {}),
     }),
   });
 
@@ -256,6 +292,8 @@ export async function writeComprehensiveZiweiReportV4(
     annualSnapshot: assembledAnnual,
     practicalDirection: assembledActions,
   };
+
+  sanitizeReportCustomerVisibleIdentifiers(assembledReport);
 
   return {
     ok: true,

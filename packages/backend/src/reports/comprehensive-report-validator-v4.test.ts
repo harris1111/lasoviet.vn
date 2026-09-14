@@ -372,4 +372,174 @@ describe("validateComprehensiveZiweiReportV4", () => {
     report2.practicalDirection.pop(); // now 2
     expect(validateComprehensiveZiweiReportV4(report2, facts).ok).toBe(false);
   });
+
+  describe("Kaneo LSV-29 regression cases & safety boundary", () => {
+    it("case 1: passes fatalistic false positive when bad outcome is framed as risk/possibility/prevention target", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+      const approvedPassCases = [
+        "Trong các kế hoạch quan trọng, bạn nên chắc chắn đọc kỹ hợp đồng và kiểm tra hồ sơ, vì sự chủ quan dễ dẫn tới nguy cơ phá sản.",
+        "Bạn cần chắc chắn hỏi ý kiến bác sĩ trước khi đầu tư để tránh nguy cơ phá sản.",
+        "Bạn nên chắc chắn tham khảo ý kiến luật sư trước khi ký hợp đồng lớn để tránh nguy cơ phá sản.",
+        "Bạn nên chắc chắn kiểm tra để tránh phá sản.",
+        "Bạn cần chắc chắn chuẩn bị kỹ càng để hạn chế rủi ro phá sản.",
+      ];
+
+      for (const text of approvedPassCases) {
+        const report = createValidReport(facts);
+        report.overview.narrative = text;
+        const result = validateComprehensiveZiweiReportV4(report, facts);
+        expect(result.ok).toBe(true);
+      }
+    });
+
+    it('case 1-override: explicit "không tránh khỏi" overrides prevention wording and remains rejected', () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+      const overrideFailCases = [
+        "Bạn chắc chắn không tránh khỏi phá sản.",
+        "Bạn chắc chắn không tránh khỏi nguy cơ phá sản.",
+        "Dù đã cố gắng, bạn chắc chắn không tránh khỏi rủi ro phá sản.",
+      ];
+
+      for (const text of overrideFailCases) {
+        const report = createValidReport(facts);
+        report.overview.narrative = text;
+        const result = validateComprehensiveZiweiReportV4(report, facts);
+        expect(result.ok).toBe(false);
+        expect(result.errors?.some((e) => e.includes("fatalistic"))).toBe(true);
+      }
+    });
+
+    it("case 1b: strictly rejects all 4 Terra-specified fatalistic certainty variants occurring in the same sentence", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+      const requiredFailCases = [
+        "Bạn chắc chắn sẽ gặp một tai nạn nghiêm trọng.",
+        "Chắc chắn rồi bạn sẽ phá sản.",
+        "Bạn chắc chắn rằng sẽ phá sản.",
+        "Bạn chắc chắn không tránh khỏi phá sản.",
+      ];
+
+      for (const text of requiredFailCases) {
+        const report = createValidReport(facts);
+        report.overview.narrative = text;
+        const result = validateComprehensiveZiweiReportV4(report, facts);
+        expect(result.ok).toBe(false);
+        expect(result.errors?.some((e) => e.includes("fatalistic"))).toBe(true);
+      }
+    });
+
+    it("case 2: sanitizes leaked raw ziwei technical identifiers including ziwei.trans.hua_lu and unknown tokens without failing", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+      const report = createValidReport(facts);
+      report.overview.narrative =
+        "Sao Tử Vi (ziwei.star.ziwei) tọa thủ tại ziwei.palace.life, đắc lực nhờ ziwei.trans.hua_lu và được bổ trợ bởi ziwei.custom_ns.unknown_token.";
+
+      const result = validateComprehensiveZiweiReportV4(report, facts);
+      expect(result.ok).toBe(true);
+      expect(report.overview.narrative).not.toContain("ziwei.star.ziwei");
+      expect(report.overview.narrative).not.toContain("ziwei.palace.life");
+      expect(report.overview.narrative).not.toContain("ziwei.trans.hua_lu");
+      expect(report.overview.narrative).not.toContain("ziwei.custom_ns.unknown_token");
+
+      expect(report.overview.narrative).toContain("sao Tử Vi");
+      expect(report.overview.narrative).toContain("cung Mệnh");
+      expect(report.overview.narrative).toContain("Hóa Lộc");
+      expect(report.overview.narrative).toContain("yếu tố Tử Vi");
+
+      // Evidence keys must remain untouched
+      expect(report.overview.evidenceKeys).toEqual([facts.evidenceKeys[0]!]);
+    });
+
+    it("case 3: passes short practical-action near-duplicates across items", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+      const report = createValidReport(facts);
+      report.practicalDirection[0]!.avoid =
+        "Tránh đưa ra quyết định tài chính lớn khi chưa cân nhắc kỹ càng.";
+      report.practicalDirection[1]!.avoid =
+        "Tránh đưa ra quyết định đầu tư lớn khi chưa cân nhắc kỹ càng.";
+
+      const result = validateComprehensiveZiweiReportV4(report, facts);
+      expect(result.ok).toBe(true);
+    });
+
+    it("case 4: passes similarly structured no-major-star palace texts across distinct palaces but rejects exact duplicate", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+      const report = createValidReport(facts);
+
+      const healthPalace = report.palaceReadings.find((p) => p.palaceId === "ziwei.palace.health")!;
+      const friendsPalace = report.palaceReadings.find((p) => p.palaceId === "ziwei.palace.friends")!;
+
+      healthPalace.narrative =
+        "Cung Tật Ách không có chính tinh tọa thủ, cần mượn lực từ cung đối diện là Phụ Mẫu để bồi đắp sức khỏe tự nhiên và duy trì thể trạng an định lâu dài.";
+      friendsPalace.narrative =
+        "Cung Nô Bộc không có chính tinh tọa thủ, cần mượn lực từ cung đối diện là Huynh Đệ để bồi đắp mạng lưới bạn bè và duy trì quan hệ xã hội bền lâu.";
+
+      const result = validateComprehensiveZiweiReportV4(report, facts);
+      expect(result.ok).toBe(true);
+
+      // Exact duplicate substantive narratives must still fail
+      friendsPalace.narrative = healthPalace.narrative;
+      const dupResult = validateComprehensiveZiweiReportV4(report, facts);
+      expect(dupResult.ok).toBe(false);
+      expect(dupResult.errors?.some((e) => e.includes("Duplicate narrative paragraph"))).toBe(true);
+    });
+
+    it("case 5: rejects methodology disclosure labels", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+      const report = createValidReport(facts);
+      report.overview.narrative =
+        "Theo phương pháp luận Tử Vi truyền thống, chúng tôi phân tích các dữ kiện dựa trên dữ liệu đầu vào.";
+
+      const result = validateComprehensiveZiweiReportV4(report, facts);
+      expect(result.ok).toBe(false);
+      expect(result.errors?.some((e) => e.includes("methodology or process disclosure"))).toBe(true);
+    });
+
+    it("case 6: passes in-context doctor and lawyer advice", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+      const report = createValidReport(facts);
+      report.overview.narrative =
+        "Khi đối mặt với các vấn đề thể chất hoặc thủ tục giấy tờ lớn, bạn hãy hỏi ý kiến bác sĩ hoặc luật sư chuyên trách, điều này không thay thế tư vấn pháp lý chuyên nghiệp.";
+
+      const result = validateComprehensiveZiweiReportV4(report, facts);
+      expect(result.ok).toBe(true);
+    });
+
+    it("case 7: rejects standalone disclaimer labels", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+      const viReport = createValidReport(facts);
+      viReport.overview.narrative = "Tuyên bố miễn trừ trách nhiệm: Tài liệu chỉ có tính chất tham khảo cá nhân.";
+      const viResult = validateComprehensiveZiweiReportV4(viReport, facts);
+      expect(viResult.ok).toBe(false);
+      expect(viResult.errors?.some((e) => e.includes("disclaimer"))).toBe(true);
+
+      const enReport = createValidReport(facts);
+      enReport.overview.narrative = "Disclaimer: This reading is for self-reflection purposes only.";
+      const enResult = validateComprehensiveZiweiReportV4(enReport, facts);
+      expect(enResult.ok).toBe(false);
+      expect(enResult.errors?.some((e) => e.includes("disclaimer"))).toBe(true);
+    });
+  });
+
 });

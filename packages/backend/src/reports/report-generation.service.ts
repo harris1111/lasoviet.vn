@@ -242,40 +242,134 @@ export function createReportGenerationService(
         return failAttempt("AI_OUTPUT_INVALID", false);
       }
 
-      const draft = writerResult.value;
+      let draft = writerResult.value;
 
-      const validation = validateComprehensiveZiweiReportV4(
+      let initialValidation = validateComprehensiveZiweiReportV4(
         draft.report,
         source.comprehensiveFactsV4,
       );
-      if (!validation.ok) {
-        return failAttempt("AI_OUTPUT_INVALID", false);
-      }
 
-      // Exactly one adapted critic provider call over frozen facts/draft. Fail-closed, no rewrite loop.
-      let criticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
-      try {
-        criticResult = await critiqueComprehensiveZiweiReportV4(
-          draft.report,
-          source.comprehensiveFactsV4,
-          dependencies.provider,
-        );
-      } catch {
-        return failAttempt("AI_TIMEOUT", true);
-      }
+      let initialCriticFailed = false;
+      let initialCriticErrorCode: "AI_OUTPUT_INVALID" | "REPORT_SAFETY_REJECTED" | undefined;
+      let rewriteIssues: string[] = [];
 
-      if (!criticResult.ok) {
-        const errCode = criticResult.error.code;
-        if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && (criticResult.error as any).retryable)) {
+      if (!initialValidation.ok) {
+        rewriteIssues = initialValidation.errors.slice(0, 8).map((e) => e.slice(0, 300));
+      } else {
+        let criticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
+        try {
+          criticResult = await critiqueComprehensiveZiweiReportV4(
+            draft.report,
+            source.comprehensiveFactsV4,
+            dependencies.provider,
+          );
+        } catch {
           return failAttempt("AI_TIMEOUT", true);
         }
-        if (errCode === "REPORT_SAFETY_REJECTED") {
-          return failAttempt("REPORT_SAFETY_REJECTED", false);
+
+        if (!criticResult.ok) {
+          const errCode = criticResult.error.code;
+          if (
+            errCode === "AI_TIMEOUT" ||
+            (errCode === "AI_PROVIDER_REQUEST_FAILED" && (criticResult.error as any).retryable)
+          ) {
+            return failAttempt("AI_TIMEOUT", true);
+          }
+          if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+            return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+          }
+
+          initialCriticFailed = true;
+          initialCriticErrorCode =
+            errCode === "REPORT_SAFETY_REJECTED" ? "REPORT_SAFETY_REJECTED" : "AI_OUTPUT_INVALID";
+
+          const notes = "notes" in criticResult.error && Array.isArray(criticResult.error.notes)
+            ? criticResult.error.notes
+            : [];
+          rewriteIssues = notes.slice(0, 8).map((n) => n.slice(0, 300));
+          if (rewriteIssues.length === 0 && initialCriticErrorCode === "REPORT_SAFETY_REJECTED") {
+            rewriteIssues = ["Báo cáo không đạt tiêu chuẩn an toàn hoặc tính chính xác, cần hiệu chỉnh."];
+          }
         }
-        if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
-          return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+      }
+
+      // Exactly one durable rewrite attempt if validation or critic rejected and budget available
+      if (!initialValidation.ok || initialCriticFailed) {
+        const budgetResult = await dependencies.versionRepository.consumeRewriteBudget(payload.reportVersionId);
+        if (!budgetResult.ok) {
+          return failAttempt("REPORT_VERSION_CONFLICT", false);
         }
-        return failAttempt("AI_OUTPUT_INVALID", false);
+        if (!budgetResult.value.consumed) {
+          const terminalCode = initialCriticErrorCode ?? "AI_OUTPUT_INVALID";
+          return failAttempt(terminalCode, false);
+        }
+
+        let revisionResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReportV4>>;
+        try {
+          revisionResult = await writeComprehensiveZiweiReportV4(
+            {
+              facts: source.comprehensiveFactsV4,
+              knowledgePacks: source.knowledgePacks,
+              provider: dependencies.provider,
+              revision: {
+                priorContent: draft.report,
+                issues: rewriteIssues,
+              },
+            },
+            dependencies.provider,
+          );
+        } catch {
+          return failAttempt("AI_TIMEOUT", false);
+        }
+
+        if (!revisionResult.ok) {
+          const revErrCode = revisionResult.error.code;
+          if (
+            revErrCode === "AI_TIMEOUT" ||
+            (revErrCode === "AI_PROVIDER_REQUEST_FAILED" && revisionResult.error.retryable)
+          ) {
+            return failAttempt("AI_TIMEOUT", false);
+          }
+          if (revErrCode === "AI_CAPABILITY_UNSUPPORTED" || revErrCode === "AI_PROVIDER_NOT_APPROVED") {
+            return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+          }
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
+
+        draft = revisionResult.value;
+
+        const revValidation = validateComprehensiveZiweiReportV4(
+          draft.report,
+          source.comprehensiveFactsV4,
+        );
+        if (!revValidation.ok) {
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
+
+        let revCriticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
+        try {
+          revCriticResult = await critiqueComprehensiveZiweiReportV4(
+            draft.report,
+            source.comprehensiveFactsV4,
+            dependencies.provider,
+          );
+        } catch {
+          return failAttempt("AI_TIMEOUT", false);
+        }
+
+        if (!revCriticResult.ok) {
+          const revCritErrCode = revCriticResult.error.code;
+          if (revCritErrCode === "REPORT_SAFETY_REJECTED") {
+            return failAttempt("REPORT_SAFETY_REJECTED", false);
+          }
+          if (
+            revCritErrCode === "AI_TIMEOUT" ||
+            (revCritErrCode === "AI_PROVIDER_REQUEST_FAILED" && (revCriticResult.error as any).retryable)
+          ) {
+            return failAttempt("AI_TIMEOUT", false);
+          }
+          return failAttempt("AI_OUTPUT_INVALID", false);
+        }
       }
 
       const htmlContent = renderComprehensiveZiweiHtml(draft.report);

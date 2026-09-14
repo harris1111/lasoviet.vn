@@ -14,7 +14,7 @@ const PROHIBITED_PATTERNS = [
     description: "Prohibited AI disclosure reference",
   },
   {
-    regex: /(?:\btrí tuệ nhân tạo\b|\bmô hình ngôn ngữ\b|\blarge language model\b|\bLLMs?\b|\btrợ lý ảo\b|\bChatGPT\b|\bOpenAI\b|\bAnthropic\b|\bGemini\b)/iu,
+    regex: /(?<![\p{L}\p{N}])(?:trí tuệ nhân tạo|mô hình ngôn ngữ|large language model|LLMs?|trợ lý ảo|ChatGPT|OpenAI|Anthropic|Gemini)(?![\p{L}\p{N}])/iu,
     description: "Prohibited AI disclosure reference",
   },
   {
@@ -22,33 +22,387 @@ const PROHIBITED_PATTERNS = [
     description: "Prohibited AI persona declaration",
   },
   {
-    regex: /\b(?:miễn trừ trách nhiệm|tuyên bố miễn trừ|không thay thế tư vấn|tư vấn y tế|chuyên gia y tế|bác sĩ|chẩn đoán y khoa|tư vấn pháp lý|tư vấn tài chính chuyên nghiệp|lời khuyên pháp lý|lời khuyên y tế)\b/i,
+    regex: /(?<![\p{L}\p{N}])(?:miễn trừ trách nhiệm|tuyên bố miễn trừ)(?![\p{L}\p{N}])/iu,
     description: "Prohibited disclaimer phrase",
   },
   {
-    regex: /\b(?:disclaimer|medical advice|legal advice|financial advice)\b/i,
+    regex: /(?<![\p{L}\p{N}])disclaimer(?![\p{L}\p{N}])/iu,
     description: "Prohibited English disclaimer phrase",
   },
   {
-    regex: /\b(?:phương pháp luận|dữ liệu và phương pháp|vector database|hệ thống retrieval|cơ sở dữ liệu|truy xuất thông tin|chỉ dựa trên dữ liệu được cung cấp|dữ liệu đầu vào|prompt)\b/i,
+    regex: /(?<![\p{L}\p{N}])(?:phương pháp luận|dữ liệu và phương pháp|vector database|hệ thống retrieval|cơ sở dữ liệu|truy xuất thông tin|chỉ dựa trên dữ liệu được cung cấp|dữ liệu đầu vào|prompt)(?![\p{L}\p{N}])/iu,
     description: "Prohibited methodology or process disclosure",
   },
   {
-    regex: /\b(?:độ tin cậy|mức độ tin cậy|confidence(?::|\s+(?:high|moderate|low))|độ chắc chắn|xác suất chính xác)\b/i,
+    regex: /(?<![\p{L}\p{N}])(?:độ tin cậy|mức độ tin cậy|confidence(?::|\s+(?:high|moderate|low))|độ chắc chắn|xác suất chính xác)(?![\p{L}\p{N}])/iu,
     description: "Prohibited confidence phrase",
   },
   {
-    regex: /\b(?:giới hạn phương pháp|giới hạn nhận định|hạn chế của phương pháp|hạn chế dữ liệu|limitations?)\b/i,
+    regex: /(?<![\p{L}\p{N}])(?:giới hạn phương pháp|giới hạn nhận định|hạn chế của phương pháp|hạn chế dữ liệu|limitations?)(?![\p{L}\p{N}])/iu,
     description: "Prohibited limitation phrase",
-  },
-  {
-    regex: /(?:chắc chắn|chac chan).*(?:tai nạn|tai nan|tử vong|tu vong|phá sản|pha san|phản bội|phan boi)/i,
-    description: "Prohibited fatalistic prediction",
   },
 ];
 
+const PROHIBITED_OUTCOME_PATTERN =
+  /(?<![\p{L}\p{N}])(?:tai nạn|tai nan|tử vong|tu vong|phá sản|pha san|phản bội|phan boi)(?![\p{L}\p{N}])/giu;
+
+const CERTAINTY_TOKEN_PATTERN =
+  /(?<![\p{L}\p{N}])(?:chắc chắn|chac chan)(?![\p{L}\p{N}])/giu;
+
+const INEVITABLE_PATTERN =
+  /(?<![\p{L}\p{N}])không\s+tránh\s+khỏi(?![\p{L}\p{N}])/iu;
+
+const FRAMING_LEAD_PATTERN =
+  /(?:nguy\s+cơ|nguy\s+co|rủi\s+ro|rui\s+ro|khả\s+năng|kha\s+nang|có\s+thể|co\s+the|để\s+tránh|de\s+tranh|tránh|tranh|phòng\s+ngừa|phòng\s+tránh|phòng|phong|hạn\s+chế|han\s+che|ngăn\s+ngừa|ngan\s+ngua|đề\s+phòng|de\s+phong)\s+(?:(?:tối\s+đa|nguy\s+cơ|rủi\s+ro|khả\s+năng|việc|dễ|có\s+thể|sẽ|bị|gặp|phải|dẫn\s+đến|dẫn\s+tới|đối\s+mặt\s+với|xảy\s+ra|xuất\s+hiện)\s+)*$/iu;
+
+function containsProhibitedFatalisticPrediction(text: string): boolean {
+  const sentences = text.split(/[.!?;\n]+/u);
+  for (const sentence of sentences) {
+    CERTAINTY_TOKEN_PATTERN.lastIndex = 0;
+    let hasUnnegatedCertainty = false;
+    let cMatch: RegExpExecArray | null;
+    while ((cMatch = CERTAINTY_TOKEN_PATTERN.exec(sentence)) !== null) {
+      const before = sentence.slice(0, cMatch.index).trimEnd();
+      if (!/(?:không|chưa)\s*$/iu.test(before)) {
+        hasUnnegatedCertainty = true;
+        break;
+      }
+    }
+    if (!hasUnnegatedCertainty) {
+      continue;
+    }
+
+    PROHIBITED_OUTCOME_PATTERN.lastIndex = 0;
+    if (!PROHIBITED_OUTCOME_PATTERN.test(sentence)) {
+      continue;
+    }
+
+    // Explicit "không tránh khỏi" asserts outcome as inevitable and overrides any prevention wording
+    if (INEVITABLE_PATTERN.test(sentence)) {
+      return true;
+    }
+
+    // Check every bad-outcome occurrence: if any outcome lacks risk/possibility/prevention framing, it is rejected
+    PROHIBITED_OUTCOME_PATTERN.lastIndex = 0;
+    let oMatch: RegExpExecArray | null;
+    let hasUnframedOutcome = false;
+    while ((oMatch = PROHIBITED_OUTCOME_PATTERN.exec(sentence)) !== null) {
+      const precedingText = sentence.slice(0, oMatch.index);
+      if (!FRAMING_LEAD_PATTERN.test(precedingText)) {
+        hasUnframedOutcome = true;
+        break;
+      }
+    }
+
+    if (hasUnframedOutcome) {
+      return true;
+    }
+  }
+  return false;
+}
+export const KNOWN_CANONICAL_IDENTIFIERS_VI: Record<string, string> = {
+  // Palaces
+  "ziwei.palace.life": "cung Mệnh",
+  "ziwei.palace.siblings": "cung Huynh Đệ",
+  "ziwei.palace.spouse": "cung Phu Thê",
+  "ziwei.palace.children": "cung Tử Tức",
+  "ziwei.palace.wealth": "cung Tài Bạch",
+  "ziwei.palace.health": "cung Tật Ách",
+  "ziwei.palace.travel": "cung Thiên Di",
+  "ziwei.palace.friends": "cung Nô Bộc",
+  "ziwei.palace.career": "cung Quan Lộc",
+  "ziwei.palace.property": "cung Điền Trạch",
+  "ziwei.palace.fortune": "cung Phúc Đức",
+  "ziwei.palace.parents": "cung Phụ Mẫu",
+
+  // Major Stars
+  "ziwei.star.ziwei": "sao Tử Vi",
+  "ziwei.star.purple-emperor": "sao Tử Vi",
+  "ziwei.star.tianji": "sao Thiên Cơ",
+  "ziwei.star.taiyang": "sao Thái Dương",
+  "ziwei.star.wuqu": "sao Vũ Khúc",
+  "ziwei.star.tiantong": "sao Thiên Đồng",
+  "ziwei.star.lianzhen": "sao Liêm Trinh",
+  "ziwei.star.tianfu": "sao Thiên Phủ",
+  "ziwei.star.taiyin": "sao Thái Âm",
+  "ziwei.star.tanlang": "sao Tham Lang",
+  "ziwei.star.jumen": "sao Cự Môn",
+  "ziwei.star.tianxiang": "sao Thiên Tướng",
+  "ziwei.star.tianliang": "sao Thiên Lương",
+  "ziwei.star.qisha": "sao Thất Sát",
+  "ziwei.star.pojun": "sao Phá Quân",
+
+  // Minor Stars & Adjectives
+  "ziwei.star.zuofu": "sao Tả Phù",
+  "ziwei.star.youbi": "sao Hữu Bật",
+  "ziwei.star.wenchang": "sao Văn Xương",
+  "ziwei.star.wenqu": "sao Văn Khúc",
+  "ziwei.star.lucun": "sao Lộc Tồn",
+  "ziwei.star.tianma": "sao Thiên Mã",
+  "ziwei.star.qingyang": "sao Kình Dương",
+  "ziwei.star.tuoluo": "sao Đà La",
+  "ziwei.star.huoxing": "sao Hỏa Tinh",
+  "ziwei.star.lingxing": "sao Linh Tinh",
+  "ziwei.star.tiankui": "sao Thiên Khôi",
+  "ziwei.star.tianyue": "sao Thiên Việt",
+  "ziwei.star.dikong": "sao Địa Không",
+  "ziwei.star.dijie": "sao Địa Kiếp",
+  "ziwei.star.hongluan": "sao Hồng Loan",
+  "ziwei.star.tianxi": "sao Thiên Hỷ",
+  "ziwei.star.tianyao": "sao Thiên Diêu",
+  "ziwei.star.xianchi": "sao Hàm Trì",
+  "ziwei.star.jieshen": "sao Giải Thần",
+  "ziwei.star.santai": "sao Tam Thai",
+  "ziwei.star.bazuo": "sao Bát Tọa",
+  "ziwei.star.enguang": "sao Ân Quang",
+  "ziwei.star.tiangui": "sao Thiên Quý",
+  "ziwei.star.longchi": "sao Long Trì",
+  "ziwei.star.fengge": "sao Phượng Các",
+  "ziwei.star.tiancai": "sao Thiên Tài",
+  "ziwei.star.tianshou": "sao Thiên Thọ",
+  "ziwei.star.taifu": "sao Thai Phụ",
+  "ziwei.star.fenggao": "sao Phong Cáo",
+  "ziwei.star.tianwu": "sao Thiên Vu",
+  "ziwei.star.huagai": "sao Hoa Cái",
+  "ziwei.star.tianguan": "sao Thiên Quan",
+  "ziwei.star.tianfu-adj": "sao Thiên Phúc",
+  "ziwei.star.tianchu": "sao Thiên Trù",
+  "ziwei.star.tianyue-adj": "sao Thiên Nguyệt",
+  "ziwei.star.tiande": "sao Thiên Đức",
+  "ziwei.star.yuede": "sao Nguyệt Đức",
+  "ziwei.star.tiankong": "sao Thiên Không",
+  "ziwei.star.xunkong": "sao Tuần Không",
+  "ziwei.star.jielu": "sao Triệt Lộ",
+  "ziwei.star.kongwang": "sao Không Vong",
+  "ziwei.star.longde": "sao Long Đức",
+  "ziwei.star.jiekong": "sao Tiệt Không",
+  "ziwei.star.jiesha": "sao Kiếp Sát",
+  "ziwei.star.dahao": "sao Đại Hao",
+  "ziwei.star.guchen": "sao Cô Thần",
+  "ziwei.star.guasu": "sao Quả Tú",
+  "ziwei.star.feilian": "sao Phi Liêm",
+  "ziwei.star.posui": "sao Phá Toái",
+  "ziwei.star.tianxing": "sao Thiên Hình",
+  "ziwei.star.yinsha": "sao Âm Sát",
+  "ziwei.star.tianku": "sao Thiên Khốc",
+  "ziwei.star.tianxu": "sao Thiên Hư",
+  "ziwei.star.tianshi": "sao Thiên Sứ",
+  "ziwei.star.tianshang": "sao Thiên Thương",
+  "ziwei.star.nianjie": "sao Niên Giải",
+  "ziwei.star.boshi": "sao Bác Sĩ",
+  "ziwei.star.lishi": "sao Lực Sĩ",
+  "ziwei.star.qinglong": "sao Thanh Long",
+  "ziwei.star.xiaohao": "sao Tiểu Hao",
+  "ziwei.star.jiangjun": "sao Tướng Quân",
+  "ziwei.star.zhoushu": "sao Tấu Thư",
+  "ziwei.star.feilian-dec": "sao Phi Liêm",
+  "ziwei.star.xishen": "sao Hỷ Thần",
+  "ziwei.star.bingfu": "sao Bệnh Phù",
+  "ziwei.star.dahao-dec": "sao Đại Hao",
+  "ziwei.star.fubing": "sao Phục Binh",
+  "ziwei.star.guanfu": "sao Quan Phủ",
+  "ziwei.star.jiangxing": "sao Tướng Tinh",
+  "ziwei.star.panan": "sao Phan An",
+  "ziwei.star.suiyi": "sao Tuế Dịch",
+  "ziwei.star.xiishen": "sao Tức Thần",
+  "ziwei.star.huagai-dec": "sao Hoa Cái",
+  "ziwei.star.jiesha-dec": "sao Kiếp Sát",
+  "ziwei.star.zhaisha": "sao Tai Sát",
+  "ziwei.star.tiansha": "sao Thiên Sát",
+  "ziwei.star.zhibei": "sao Chỉ Bối",
+  "ziwei.star.xianchi-dec": "sao Hàm Trì",
+  "ziwei.star.yuesha": "sao Nguyệt Sát",
+  "ziwei.star.wangshen": "sao Vong Thần",
+  "ziwei.star.suijian": "sao Thái Tuế",
+  "ziwei.star.huiqi": "sao Hối Khí",
+  "ziwei.star.sangmen": "sao Tang Môn",
+  "ziwei.star.guansuo": "sao Quán Sách",
+  "ziwei.star.gwanfu": "sao Quan Phù",
+  "ziwei.star.xiaohao-sq": "sao Tiểu Hao",
+  "ziwei.star.longde-dec": "sao Long Đức",
+  "ziwei.star.baihu": "sao Bạch Hổ",
+  "ziwei.star.tiande-dec": "sao Thiên Đức",
+  "ziwei.star.diaoke": "sao Điếu Khách",
+  "ziwei.star.bingfu-sq": "sao Bệnh Phù",
+
+  // Transformations
+  "ziwei.transformation.prosperity": "Hóa Lộc",
+  "ziwei.transformation.power": "Hóa Quyền",
+  "ziwei.transformation.fame": "Hóa Khoa",
+  "ziwei.transformation.obstacle": "Hóa Kỵ",
+  "ziwei.trans.hua_lu": "Hóa Lộc",
+  "ziwei.trans.hua_quyen": "Hóa Quyền",
+  "ziwei.trans.hua_khoa": "Hóa Khoa",
+  "ziwei.trans.hua_ky": "Hóa Kỵ",
+  "ziwei.brightness.bright": "Sáng",
+  "ziwei.relation.opposite": "xung chiếu",
+
+  // Brightness
+  "ziwei.brightness.exalted": "Miếu",
+  "ziwei.brightness.prosperous": "Vượng",
+  "ziwei.brightness.favorable": "Đắc",
+  "ziwei.brightness.neutral": "Bình",
+  "ziwei.brightness.unfavorable": "Hãm",
+  "ziwei.brightness.weak": "Nhược",
+
+  // Relations
+  "ziwei.relation.triad": "tam hợp",
+  "ziwei.relation.opposition": "xung chiếu",
+  "ziwei.relation.flanking": "giáp cung",
+
+  // Branches
+  "ziwei.branch.rat": "Tý",
+  "ziwei.branch.ox": "Sửu",
+  "ziwei.branch.tiger": "Dần",
+  "ziwei.branch.rabbit": "Mão",
+  "ziwei.branch.dragon": "Thìn",
+  "ziwei.branch.snake": "Tỵ",
+  "ziwei.branch.horse": "Ngọ",
+  "ziwei.branch.goat": "Mùi",
+  "ziwei.branch.monkey": "Thân",
+  "ziwei.branch.rooster": "Dậu",
+  "ziwei.branch.dog": "Tuất",
+  "ziwei.branch.pig": "Hợi",
+
+  // Stems
+  "ziwei.stem.jia": "Giáp",
+  "ziwei.stem.yi": "Ất",
+  "ziwei.stem.bing": "Bính",
+  "ziwei.stem.ding": "Đinh",
+  "ziwei.stem.wu": "Mậu",
+  "ziwei.stem.ji": "Kỷ",
+  "ziwei.stem.geng": "Canh",
+  "ziwei.stem.xin": "Tân",
+  "ziwei.stem.ren": "Nhâm",
+  "ziwei.stem.gui": "Quý",
+
+  // Cycles
+  "ziwei.cycle.born": "Trường Sinh",
+  "ziwei.cycle.infancy": "Mộc Dục",
+  "ziwei.cycle.adolescence": "Quan Đới",
+  "ziwei.cycle.adulthood": "Lâm Quan",
+  "ziwei.cycle.prime": "Đế Vượng",
+  "ziwei.cycle.weak": "Suy",
+  "ziwei.cycle.sick": "Bệnh",
+  "ziwei.cycle.dead": "Tử",
+  "ziwei.cycle.buried": "Mộ",
+  "ziwei.cycle.dissipated": "Tuyệt",
+  "ziwei.cycle.embryo": "Thai",
+  "ziwei.cycle.molding": "Dưỡng",
+};
+
+export function convertCanonicalIdentifierToVietnamese(id: string): string {
+  const normalized = id.toLowerCase();
+  if (KNOWN_CANONICAL_IDENTIFIERS_VI[normalized]) {
+    return KNOWN_CANONICAL_IDENTIFIERS_VI[normalized]!;
+  }
+  return "yếu tố Tử Vi";
+}
+
+const CANONICAL_IDENTIFIER_REGEX =
+  /(?<![\p{L}\p{N}])ziwei\.[a-z0-9_.-]*[a-z0-9_](?![\p{L}\p{N}])/giu;
+
+export function sanitizeCanonicalIdentifiersInText(text: string): string {
+  if (typeof text !== "string" || !text.includes("ziwei.")) {
+    return text;
+  }
+  return text.replace(CANONICAL_IDENTIFIER_REGEX, (matched) =>
+    convertCanonicalIdentifierToVietnamese(matched),
+  );
+}
+
+export function sanitizeReportCustomerVisibleIdentifiers(
+  report: ZiweiComprehensiveReportContentV2,
+): ZiweiComprehensiveReportContentV2 {
+  report.overview.narrative = sanitizeCanonicalIdentifiersInText(report.overview.narrative);
+  report.coreAxis.narrative = sanitizeCanonicalIdentifiersInText(report.coreAxis.narrative);
+  for (const k of report.keyConfigurations) {
+    k.title = sanitizeCanonicalIdentifiersInText(k.title);
+    k.narrative = sanitizeCanonicalIdentifiersInText(k.narrative);
+  }
+  for (const p of report.palaceReadings) {
+    p.narrative = sanitizeCanonicalIdentifiersInText(p.narrative);
+  }
+  for (const t of report.thematicSynthesis) {
+    t.narrative = sanitizeCanonicalIdentifiersInText(t.narrative);
+  }
+  report.strengthsAndTensions.narrative = sanitizeCanonicalIdentifiersInText(
+    report.strengthsAndTensions.narrative,
+  );
+  report.currentDecadal.title = sanitizeCanonicalIdentifiersInText(report.currentDecadal.title);
+  report.currentDecadal.narrative = sanitizeCanonicalIdentifiersInText(
+    report.currentDecadal.narrative,
+  );
+  report.annualSnapshot.title = sanitizeCanonicalIdentifiersInText(report.annualSnapshot.title);
+  report.annualSnapshot.narrative = sanitizeCanonicalIdentifiersInText(
+    report.annualSnapshot.narrative,
+  );
+  for (const action of report.practicalDirection) {
+    action.recommendation = sanitizeCanonicalIdentifiersInText(action.recommendation);
+    action.rationale = sanitizeCanonicalIdentifiersInText(action.rationale);
+    action.avoid = sanitizeCanonicalIdentifiersInText(action.avoid);
+  }
+  return report;
+}
+
+function sanitizeUnknownCandidate(candidate: unknown): void {
+  if (!candidate || typeof candidate !== "object") return;
+  const obj = candidate as Record<string, any>;
+  if (obj.overview && typeof obj.overview.narrative === "string") {
+    obj.overview.narrative = sanitizeCanonicalIdentifiersInText(obj.overview.narrative);
+  }
+  if (obj.coreAxis && typeof obj.coreAxis.narrative === "string") {
+    obj.coreAxis.narrative = sanitizeCanonicalIdentifiersInText(obj.coreAxis.narrative);
+  }
+  if (Array.isArray(obj.keyConfigurations)) {
+    for (const k of obj.keyConfigurations) {
+      if (k && typeof k === "object") {
+        if (typeof k.title === "string") k.title = sanitizeCanonicalIdentifiersInText(k.title);
+        if (typeof k.narrative === "string") k.narrative = sanitizeCanonicalIdentifiersInText(k.narrative);
+      }
+    }
+  }
+  if (Array.isArray(obj.palaceReadings)) {
+    for (const p of obj.palaceReadings) {
+      if (p && typeof p === "object" && typeof p.narrative === "string") {
+        p.narrative = sanitizeCanonicalIdentifiersInText(p.narrative);
+      }
+    }
+  }
+  if (Array.isArray(obj.thematicSynthesis)) {
+    for (const t of obj.thematicSynthesis) {
+      if (t && typeof t === "object" && typeof t.narrative === "string") {
+        t.narrative = sanitizeCanonicalIdentifiersInText(t.narrative);
+      }
+    }
+  }
+  if (obj.strengthsAndTensions && typeof obj.strengthsAndTensions.narrative === "string") {
+    obj.strengthsAndTensions.narrative = sanitizeCanonicalIdentifiersInText(obj.strengthsAndTensions.narrative);
+  }
+  if (obj.currentDecadal && typeof obj.currentDecadal === "object") {
+    if (typeof obj.currentDecadal.title === "string") obj.currentDecadal.title = sanitizeCanonicalIdentifiersInText(obj.currentDecadal.title);
+    if (typeof obj.currentDecadal.narrative === "string") obj.currentDecadal.narrative = sanitizeCanonicalIdentifiersInText(obj.currentDecadal.narrative);
+  }
+  if (obj.annualSnapshot && typeof obj.annualSnapshot === "object") {
+    if (typeof obj.annualSnapshot.title === "string") obj.annualSnapshot.title = sanitizeCanonicalIdentifiersInText(obj.annualSnapshot.title);
+    if (typeof obj.annualSnapshot.narrative === "string") obj.annualSnapshot.narrative = sanitizeCanonicalIdentifiersInText(obj.annualSnapshot.narrative);
+  }
+  if (Array.isArray(obj.practicalDirection)) {
+    for (const a of obj.practicalDirection) {
+      if (a && typeof a === "object") {
+        if (typeof a.recommendation === "string") a.recommendation = sanitizeCanonicalIdentifiersInText(a.recommendation);
+        if (typeof a.rationale === "string") a.rationale = sanitizeCanonicalIdentifiersInText(a.rationale);
+        if (typeof a.avoid === "string") a.avoid = sanitizeCanonicalIdentifiersInText(a.avoid);
+      }
+    }
+  }
+}
+
 const TECHNICAL_IDENTIFIER_PATTERN =
-  /\bziwei\.(?:palace|star|transformation|brightness|relation|branch|stem)\.[a-z0-9-]+\b/g;
+  /(?<![\p{L}\p{N}])ziwei\.[a-z0-9_.-]*[a-z0-9_](?![\p{L}\p{N}])/giu;
+
+const NO_MAJOR_STAR_PATTERN =
+  /(?<![\p{L}\p{N}])(?:vô chính diệu|không có (?:sao )?chính tinh)(?![\p{L}\p{N}])/iu;
 
 const HAN_IDEOGRAPH_PATTERN = /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{Script=Han})/u;
 
@@ -95,6 +449,8 @@ export function validateComprehensiveZiweiReportV4(
     };
   }
 
+  sanitizeUnknownCandidate(candidate);
+
   const parsed = ZiweiComprehensiveReportContentV2Schema.safeParse(candidate);
   if (!parsed.success) {
     return {
@@ -104,6 +460,7 @@ export function validateComprehensiveZiweiReportV4(
   }
 
   const report: ZiweiComprehensiveReportContentV2 = parsed.data;
+  sanitizeReportCustomerVisibleIdentifiers(report);
   const errors: string[] = [];
 
   // 1. Evidence keys must exist in frozen comprehensive facts V4
@@ -212,6 +569,10 @@ export function validateComprehensiveZiweiReportV4(
         errors.push(`${pattern.description} found in ${block.section}: "${block.text.slice(0, 80)}"`);
       }
     }
+    if (containsProhibitedFatalisticPrediction(block.text)) {
+      errors.push(`Prohibited fatalistic prediction found in ${block.section}: "${block.text.slice(0, 80)}"`);
+    }
+
     const techMatches = block.text.match(TECHNICAL_IDENTIFIER_PATTERN);
     if (techMatches) {
       errors.push(`Raw technical identifier leaked in ${block.section}: ${techMatches.join(", ")}`);
@@ -241,13 +602,35 @@ export function validateComprehensiveZiweiReportV4(
   // 5. Duplicate and near-duplicate paragraph check
   for (let i = 0; i < narrativeBlocks.length; i++) {
     for (let j = i + 1; j < narrativeBlocks.length; j++) {
-      const normA = normalizeText(narrativeBlocks[i]!.text);
-      const normB = normalizeText(narrativeBlocks[j]!.text);
+      const blockA = narrativeBlocks[i]!;
+      const blockB = narrativeBlocks[j]!;
+      const normA = normalizeText(blockA.text);
+      const normB = normalizeText(blockB.text);
       if (normA.length > 25 && normB.length > 25) {
         if (normA === normB) {
-          errors.push(`Duplicate narrative paragraph between ${narrativeBlocks[i]!.section} and ${narrativeBlocks[j]!.section}`);
-        } else if (normA.length > 40 && normB.length > 40 && wordSimilarity(normA, normB) >= 0.8) {
-          errors.push(`Near-duplicate narrative paragraph between ${narrativeBlocks[i]!.section} and ${narrativeBlocks[j]!.section}`);
+          errors.push(`Duplicate narrative paragraph between ${blockA.section} and ${blockB.section}`);
+        } else if (normA.length > 40 && normB.length > 40) {
+          // Do not compare short practicalDirection recommendation/rationale/avoid fields cross-item
+          const isPracticalA = blockA.section.startsWith("practicalDirection");
+          const isPracticalB = blockB.section.startsWith("practicalDirection");
+          if (isPracticalA || isPracticalB) {
+            continue;
+          }
+
+          // Natural similarly structured no-major-star palace paragraphs from distinct palaces must not false-fail
+          const isPalaceA = blockA.section.startsWith("palaceReadings[");
+          const isPalaceB = blockB.section.startsWith("palaceReadings[");
+          if (isPalaceA && isPalaceB && blockA.section !== blockB.section) {
+            const hasNoMajorStarA = NO_MAJOR_STAR_PATTERN.test(blockA.text);
+            const hasNoMajorStarB = NO_MAJOR_STAR_PATTERN.test(blockB.text);
+            if (hasNoMajorStarA && hasNoMajorStarB) {
+              continue;
+            }
+          }
+
+          if (wordSimilarity(normA, normB) >= 0.8) {
+            errors.push(`Near-duplicate narrative paragraph between ${blockA.section} and ${blockB.section}`);
+          }
         }
       }
     }

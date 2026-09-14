@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, eq, gt, lte, or, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lte, or, sql } from "drizzle-orm";
 import {
   enqueueOutbox,
   OutboxError,
@@ -216,7 +216,7 @@ type TerminalRecoveryParams = {
   reportVersionId: string;
   expectedStateVersion: number;
   recoveryId: string;
-  targetErrorCode: "REPORT_EVIDENCE_INVALID" | "AI_OUTPUT_INVALID";
+  allowedErrorCodes: readonly ("REPORT_EVIDENCE_INVALID" | "AI_OUTPUT_INVALID" | "REPORT_SAFETY_REJECTED")[];
   recoveryKind: RecoveryKind;
   now?: Date;
 };
@@ -266,7 +266,8 @@ async function executeTerminalRecovery(
 
       if (
         reservation.status !== "terminal_failure" ||
-        reservation.lastErrorCode !== params.targetErrorCode ||
+        !reservation.lastErrorCode ||
+        !params.allowedErrorCodes.includes(reservation.lastErrorCode as any) ||
         reservation.stateVersion !== params.expectedStateVersion
       ) {
         return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
@@ -311,7 +312,7 @@ async function executeTerminalRecovery(
             eq(reportReservations.id, reservation.id),
             eq(reportReservations.reportVersionId, params.reportVersionId),
             eq(reportReservations.status, "terminal_failure"),
-            eq(reportReservations.lastErrorCode, params.targetErrorCode),
+            inArray(reportReservations.lastErrorCode, [...params.allowedErrorCodes]),
             eq(reportReservations.stateVersion, params.expectedStateVersion),
           ),
         )
@@ -633,7 +634,7 @@ export function createReportService(database: Database) {
     > {
       return executeTerminalRecovery(database, {
         ...params,
-        targetErrorCode: "REPORT_EVIDENCE_INVALID",
+        allowedErrorCodes: ["REPORT_EVIDENCE_INVALID"],
         recoveryKind: "evidence",
       });
     },
@@ -657,7 +658,7 @@ export function createReportService(database: Database) {
     > {
       return executeTerminalRecovery(database, {
         ...params,
-        targetErrorCode: "AI_OUTPUT_INVALID",
+        allowedErrorCodes: ["AI_OUTPUT_INVALID", "REPORT_SAFETY_REJECTED"],
         recoveryKind: "invalid_output",
       });
     },
