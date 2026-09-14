@@ -279,4 +279,100 @@ describe("createReportService terminal recovery", () => {
       expect(insertedValues).toHaveLength(0);
     }
   });
+
+  it("recovers REPORT_SAFETY_REJECTED reservation with complete V2 timing lineage, requeues report.generation.requested.v2, preserves frozen timing, and increments stateVersion", async () => {
+    const mockReservation = {
+      id: "res-safety-v2",
+      reportId: "report-safety-1",
+      reportVersionId: "version-safety-1",
+      entitlementId: "entitlement-safety-1",
+      chartVersionId: "chart-1",
+      evidenceVersionId: "evidence-1",
+      knowledgeVersionId: "knowledge-4",
+      promptVersion: "prompt-4",
+      reportConfigVersion: "config-4",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-V4",
+      status: "terminal_failure",
+      lastErrorCode: "REPORT_SAFETY_REJECTED",
+      stateVersion: 2,
+      asOfDate: "2026-09-12",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    };
+
+    const { tx, insertedValues } = createMockTx({ reservation: mockReservation });
+    const mockDb = {
+      transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
+    };
+
+    const service = createReportService(mockDb as never);
+
+    // Provide a future date in 2027 to verify frozen timing is preserved, not derived freshly
+    const clockIn2027 = new Date("2027-08-15T12:00:00.000Z");
+    const result = await service.recoverInvalidOutputGeneration({
+      reportVersionId: "version-safety-1",
+      expectedStateVersion: 2,
+      recoveryId: "rec-safety-1",
+      now: clockIn2027,
+    });
+
+    expect(result).toEqual({ ok: true, stateVersion: 3 });
+
+    expect(insertedValues.length).toBe(1);
+    const outboxRow = insertedValues[0];
+    expect(outboxRow?.eventType).toBe("report.generation.requested.v2");
+    expect(outboxRow?.schemaVersion).toBe(1);
+    expect(outboxRow?.payload).toEqual({
+      reportId: "report-safety-1",
+      reportVersionId: "version-safety-1",
+      entitlementId: "entitlement-safety-1",
+      chartVersionId: "chart-1",
+      evidenceVersionId: "evidence-1",
+      knowledgeVersionId: "knowledge-4",
+      promptVersion: "prompt-4",
+      reportConfigVersion: "config-4",
+      locale: "vi",
+      sku: "ZIWEI-NATAL-V4",
+      asOfDate: "2026-09-12",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    });
+  });
+
+  it("rejects recovery with WORKFLOW_STATE_CONFLICT and performs no update or outbox enqueue when lastErrorCode is an unrelated terminal code", async () => {
+    const mockReservation = {
+      id: "res-unrelated",
+      reportId: "report-unrelated",
+      reportVersionId: "version-unrelated",
+      status: "terminal_failure",
+      lastErrorCode: "AI_TIMEOUT", // unrelated terminal code not in allowedErrorCodes
+      stateVersion: 1,
+      asOfDate: "2026-09-12",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    };
+
+    const { tx, insertedValues } = createMockTx({ reservation: mockReservation });
+    const mockDb = {
+      transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
+    };
+
+    const service = createReportService(mockDb as never);
+
+    const result = await service.recoverInvalidOutputGeneration({
+      reportVersionId: "version-unrelated",
+      expectedStateVersion: 1,
+      recoveryId: "rec-unrelated",
+    });
+
+    expect(result).toEqual({ ok: false, code: "WORKFLOW_STATE_CONFLICT" });
+    expect(tx.update).not.toHaveBeenCalled();
+    expect(tx.insert).not.toHaveBeenCalled();
+    expect(insertedValues).toHaveLength(0);
+  });
+
 });

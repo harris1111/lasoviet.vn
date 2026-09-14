@@ -239,7 +239,11 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
     const result = await critiqueComprehensiveZiweiReportV4(dummyReport as any, facts, mockProvider as never);
     expect(result).toEqual({
       ok: false,
-      error: { code: "REPORT_SAFETY_REJECTED", retryable: false },
+      error: {
+        code: "REPORT_SAFETY_REJECTED",
+        retryable: false,
+        notes: ["Thiếu chuẩn xác."],
+      },
     });
   });
 
@@ -297,4 +301,39 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
     });
     expect(mockProvider.generateStructured).toHaveBeenCalledTimes(1);
   });
+
+  it("enforces critic prompt constraints: lasoviet.net domain, does not penalize professional referrals, rejects certainty/fabrication", async () => {
+    const chart = createSampleChart();
+    const snapshot = createSampleSnapshot();
+    const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+    const mockProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5,
+            evidenceCoverage: 5,
+            specificity: 5,
+            languageClarity: 5,
+            consistency: 5,
+            actionability: 5,
+            safety: 5,
+            repetitionControl: 5,
+            notes: [],
+          },
+        },
+      }),
+    };
+
+    await critiqueComprehensiveZiweiReportV4(dummyReport as any, facts, mockProvider as never);
+    expect(mockProvider.generateStructured).toHaveBeenCalledTimes(1);
+
+    const callArgs = mockProvider.generateStructured.mock.calls[0][0];
+    expect(callArgs.system).toContain("lasoviet.net");
+    expect(callArgs.system).not.toContain("lasoviet.vn");
+    expect(callArgs.system).toContain("KHÔNG trừ điểm đối với các lời khuyên tham vấn bác sĩ, luật sư hoặc chuyên gia");
+    expect(callArgs.system).toContain("khẳng định định mệnh chắc chắn");
+  });
+
 });

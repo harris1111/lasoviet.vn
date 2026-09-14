@@ -324,4 +324,148 @@ describe("writeComprehensiveZiweiReportV4", () => {
     expect(serialized).not.toContain("1995-10-24");
     expect(serialized).not.toContain("10:30");
   });
+
+  it("converts leaked customer-visible canonical identifiers into Vietnamese prose without leaking raw keys", async () => {
+    const chart = createSampleChart();
+    const snapshot = createSampleSnapshot();
+    const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+    const generatedReport = createSampleV2GeneratedReport();
+    generatedReport.overview.narrative = "Người này có ziwei.star.ziwei tọa thủ tại ziwei.palace.life mang lại uy danh, được ziwei.trans.hua_lu chiếu rọi và hỗ trợ bởi ziwei.custom_ns.unknown_token.";
+    generatedReport.keyConfigurations[0]!.title = "Cách cục ziwei.star.ziwei";
+    generatedReport.keyConfigurations[0]!.narrative = "Được ziwei.transformation.power nâng đỡ.";
+    generatedReport.practicalDirection[0]!.recommendation = "Nên phát huy năng lực lãnh đạo của ziwei.star.ziwei.";
+
+    const mockProvider = {
+      id: "mock-ai",
+      modelId: "mock-model",
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: generatedReport,
+          providerId: "mock-ai",
+          modelId: "mock-model",
+        },
+      }),
+    };
+
+    const result = await writeComprehensiveZiweiReportV4({
+      facts,
+      knowledgePacks: [],
+      provider: mockProvider as never,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const report = result.value.report;
+    expect(report.overview.narrative).not.toContain("ziwei.star.ziwei");
+    expect(report.overview.narrative).not.toContain("ziwei.palace.life");
+    expect(report.overview.narrative).not.toContain("ziwei.trans.hua_lu");
+    expect(report.overview.narrative).not.toContain("ziwei.custom_ns.unknown_token");
+    expect(report.overview.narrative).toContain("sao Tử Vi");
+    expect(report.overview.narrative).toContain("cung Mệnh");
+    expect(report.overview.narrative).toContain("Hóa Lộc");
+    expect(report.overview.narrative).toContain("yếu tố Tử Vi");
+
+    expect(report.keyConfigurations[0]!.title).toContain("sao Tử Vi");
+    expect(report.keyConfigurations[0]!.narrative).toContain("Hóa Quyền");
+    expect(report.practicalDirection[0]!.recommendation).toContain("sao Tử Vi");
+
+    // Structural evidenceKeys must remain intact
+    expect(report.overview.evidenceKeys).toEqual(["natal.ziwei.palace.life"]);
+  });
+
+  it("passes bounded revision input into the writer call without raw PII", async () => {
+    const chart = createSampleChart();
+    const snapshot = createSampleSnapshot();
+    const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+    const priorReport = createSampleV2GeneratedReport();
+
+    const mockProvider = {
+      id: "mock-ai",
+      modelId: "mock-model",
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: createSampleV2GeneratedReport(),
+          providerId: "mock-ai",
+          modelId: "mock-model",
+        },
+      }),
+    };
+
+    const longIssue = "Lỗi độ dài: " + "a".repeat(400);
+    const manyIssues = [
+      "Issue 1", "Issue 2", "Issue 3", "Issue 4",
+      "Issue 5", "Issue 6", "Issue 7", "Issue 8",
+      "Issue 9 - should be truncated",
+    ];
+
+    const result = await writeComprehensiveZiweiReportV4({
+      facts,
+      knowledgePacks: [],
+      provider: mockProvider as never,
+      revision: {
+        priorContent: priorReport,
+        issues: [...manyIssues, longIssue],
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mockProvider.generateStructured).toHaveBeenCalledTimes(1);
+
+    const callArgs = mockProvider.generateStructured.mock.calls[0][0];
+    expect(callArgs.system).toContain("YÊU CẦU HIỆU CHỈNH / VIẾT LẠI");
+    expect(callArgs.system).toContain("lasoviet.net");
+
+    const userPayload = JSON.parse(callArgs.user);
+    expect(userPayload.revision).toBeDefined();
+    expect(userPayload.revision.priorReport).toBeDefined();
+    // Bounded to max 8 issues
+    expect(userPayload.revision.issues.length).toBeLessThanOrEqual(8);
+    // Bounded to max 300 chars per issue
+    for (const issue of userPayload.revision.issues) {
+      expect(issue.length).toBeLessThanOrEqual(300);
+    }
+
+    // Zero raw PII
+    const serialized = JSON.stringify(userPayload);
+    expect(serialized).not.toContain("1995-10-24");
+    expect(serialized).not.toContain("10:30");
+  });
+
+  it("enforces updated system prompt: lasoviet.net domain, in-context referral encouraged, standalone disclaimer prohibited", async () => {
+    const chart = createSampleChart();
+    const snapshot = createSampleSnapshot();
+    const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+    const mockProvider = {
+      id: "mock-ai",
+      modelId: "mock-model",
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: createSampleV2GeneratedReport(),
+          providerId: "mock-ai",
+          modelId: "mock-model",
+        },
+      }),
+    };
+
+    await writeComprehensiveZiweiReportV4({
+      facts,
+      knowledgePacks: [],
+      provider: mockProvider as never,
+    });
+
+    const callArgs = mockProvider.generateStructured.mock.calls[0][0];
+    expect(callArgs.system).toContain("lasoviet.net");
+    expect(callArgs.system).not.toContain("lasoviet.vn");
+    // Encourages in-context professional advice
+    expect(callArgs.system).toContain("bác sĩ, luật sư hoặc chuyên gia");
+    // Prohibits standalone disclaimer blocks
+    expect(callArgs.system).toContain("KHÔNG đưa vào các khối văn bản hoặc nhãn tuyên bố miễn trừ trách nhiệm đứng riêng");
+  });
+
 });
