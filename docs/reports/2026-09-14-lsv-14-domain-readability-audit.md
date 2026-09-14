@@ -180,8 +180,5 @@ All screenshots and machine-readable metrics are under
 
 1. Harris's exclusive visual sign-off is still required for text over
    lacquer/image surfaces under FD-056; An supplies the evidence.
-2. An must decide whether strict no-horizontal-scroll applies to account tab
-   navigation or whether a documented accessible tab-scroller exception is
-   acceptable.
-3. Native browser-chrome zoom evidence should be added during implementation
+2. Native browser-chrome zoom evidence should be added during implementation
    verification if the target CI/browser environment can control zoom reliably.

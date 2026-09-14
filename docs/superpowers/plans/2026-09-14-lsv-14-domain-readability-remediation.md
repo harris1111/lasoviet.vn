@@ -63,8 +63,8 @@ Owners: An with LSV-20 for homepage; An for account navigation.
 
 - Let LSV-20 replace the homepage comparison table with the approved responsive
   card treatment. Do not create an LSV-14-specific competing design.
-- Resolve account navigation so the strict LSV-14 requirement is met, or record
-  an explicit accessible horizontal-navigation exception before implementation.
+- Resolve account navigation so the strict LSV-14 no-horizontal-scroll
+  requirement is met. Only Lãm may explicitly reopen that UI requirement.
 - Preserve the ticket #8 exclusion for the 12-palace chart board.
 - Verify fixed/sticky controls, keyboard focus, and content visibility at
   320 x 720. Use the 200%-equivalent viewport only as a preliminary proxy, then
@@ -148,9 +148,7 @@ Acceptance:
 
 ## Unresolved Questions
 
-1. Whether account tabs may use an explicit accessible horizontal-scroller
-   exception.
-2. Which approved automated method will be used to validate contrast over
+1. Which approved automated method will be used to validate contrast over
    photographic and lacquer texture backgrounds.
-3. When LSV-15's V4 contract is stable enough to refresh the shared WP-13
+2. When LSV-15's V4 contract is stable enough to refresh the shared WP-13
    ready-report fixture.
