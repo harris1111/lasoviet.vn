@@ -2368,6 +2368,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
     expect(calls).toHaveLength(4);
 
     expect(calls.map((c) => c.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    expect(calls.map((call) => call.costContext.purpose)).toEqual(["report", "critic", "report", "critic"]);
     for (const call of calls) {
       expect(call.costContext).toMatchObject({
         reportId: v4Job.payload.reportId,
@@ -2470,6 +2471,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
     expect(calls).toHaveLength(4);
 
     expect(calls.map((c) => c.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    expect(calls.map((call) => call.costContext.purpose)).toEqual(["report", "critic", "report", "critic"]);
     for (const call of calls) {
       expect(call.costContext).toMatchObject({
         reportId: v4Job.payload.reportId,
