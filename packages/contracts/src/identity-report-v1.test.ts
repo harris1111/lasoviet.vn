@@ -342,7 +342,7 @@ describe("report view v1 contract", () => {
       invoiceNumber: "LSV-INV-001",
       paymentReceivedAt: "2026-09-08T00:00:00.000Z",
       reportStatusUpdatedAt: "2026-09-08T00:05:00.000Z",
-      supportEmail: "support@lasoviet.net",
+      supportEmail: "lasoviet.net@gmail.com",
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
       supportReference: "LSV-INV-001",
     };
@@ -361,7 +361,7 @@ describe("report view v1 contract", () => {
       invoiceNumber: "LSV-INV-001",
       paymentReceivedAt: "2026-09-08T00:00:00.000Z",
       reportStatusUpdatedAt: "2026-09-08T00:05:00.000Z",
-      supportEmail: "support@lasoviet.net",
+      supportEmail: "lasoviet.net@gmail.com",
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
       supportReference: "LSV-INV-001",
     };
