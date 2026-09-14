@@ -84,6 +84,7 @@
 | FD-078 | 2026-09-13 | Add two optional single-choice reading-context questions to the birth wizard as a tappable list with a skip option (current life stage; top concern), stored as enum codes separate from the birth profile, used for examples, emphasis, and free-preview section choice, never for chart facts or prices, and never sent to third-party tools | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §7 |
 | FD-080 | 2026-09-13 | No analytics consent UI of any kind (no banner, popup, checkbox, or consent step). Behavioral funnel measurement is first-party and anonymous by design so that it does not process personal data: no stored raw IP, no full user agent or fingerprinting, unique visitors counted with a daily-rotating salted hash whose salt is destroyed after 24 hours, per-visit random ID in `sessionStorage` only, and no link to account ID, birth profile, `chart_id`, or order ID. Account-linked business metrics come from transaction data. Disclosure is one privacy-policy paragraph only. Third-party ad pixels carrying identifiers require a separate founder decision. Supersedes FD-050 and the no-rotation session-ID clause of FD-052; FD-051 and FD-053 remain binding | Superseded by FD-081 | Kaneo LSV #10 (WP-10A), #11 (WP-10C), #12 (WP-10B) |
 | FD-081 | 2026-09-13 | Behavioral tracking is identified and account-linked to optimize upsell and revenue: first-party persistent `visitor_id` cookie, stored IP/user agent/referrer/UTM, and events linked to the account and birth profile once the visitor accepts the wizard consent or signs in, with prior visitor history merged into the customer profile. No new consent UI: the existing required wizard birth-data checkbox is re-worded to also cover analytics, personalization, and offers (versioned purposes), sign-in shows a one-line terms/privacy notice without a checkbox, and the privacy policy describes the data, purposes, and retention. Unlinked visitor IPs and events are deleted after 30 days without consent or sign-in; IP may be kept separately for fraud and abuse prevention. FD-053 third-party field limits remain binding; third-party ad pixels and marketing email rules require their own decisions. Supersedes FD-080 and FD-050 | Approved | Kaneo LSV #12 (WP-10B); UI tickets #19–#28 |
+| FD-082 | 2026-09-14 | Reports may and should include natural, in-context advice to consult a doctor, lawyer, or qualified professional when discussing health, legal matters, paperwork, large money decisions, or investment; this removes the V3/V4 prompt and validator ban on professional-advice phrases. Standalone legal-style disclaimer blocks remain excluded. Also approves the Kaneo #29 fix plan (bounded rewrite on validator/critic failure, false-positive regex fixes, Unicode-aware boundaries, 20 consecutive successful V4 generations before paid launch) | Approved | `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset.md` §6, §8; `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §2, §8; Kaneo #29, #15 |
 
 ## FD-028 Execution Boundary
 
@@ -936,3 +937,18 @@ Date: 2026-09-13
 - The drafted analytics consent copy remains deleted; wording for the widened
   checkbox and privacy-policy section is specified in Kaneo #12 and goes through
   the claim registry (#13).
+
+## FD-082 Professional Referral Advice Allowed
+
+Date: 2026-09-14
+
+- Trigger: auditing the first terminal V4 failure (Kaneo #29) showed the V4
+  validator's disclaimer regex both rejects natural sentences and, because it
+  uses `\b` without the `u` flag, fails to match phrases with Vietnamese
+  diacritics at their edges.
+- Founder decision: sentences such as "hãy hỏi ý kiến bác sĩ" or "không phải tư
+  vấn pháp lý" are desirable. Advising users to consult qualified people makes
+  the interpretation more trustworthy and humane, so they must not be blocked.
+- The founder approved the Kaneo #29 next steps recorded on 2026-09-14 (pilot:
+  no customer is charged yet; keep V4; fix rejection handling first; gate paid
+  launch on 20 consecutive successful V4 generations).
