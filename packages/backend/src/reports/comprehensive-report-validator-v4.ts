@@ -50,7 +50,10 @@ const CERTAINTY_TOKEN_PATTERN =
   /(?<![\p{L}\p{N}])(?:chắc chắn|chac chan)(?![\p{L}\p{N}])/giu;
 
 const INEVITABLE_PATTERN =
-  /(?<![\p{L}\p{N}])không\s+tránh\s+khỏi(?![\p{L}\p{N}])/iu;
+  /(?<![\p{L}\p{N}])(?:không|khong)\s+(?:tránh|tranh)\s+(?:khỏi|khoi)(?![\p{L}\p{N}])/iu;
+
+const DEATH_CONTENT_PATTERN =
+  /(?<![\p{L}\p{N}])(?:chết|chet|tử\s+vong|tu\s+vong|mất\s+mạng|mat\s+mang|qua\s+đời|qua\s+doi|yểu\s+mệnh|yeu\s+menh|đoản\s+thọ|doan\s+tho|chết\s+non|chet\s+non|tuổi\s+thọ|tuoi\s+tho|sống\s+được\s+bao\s+lâu|song\s+duoc\s+bao\s+lau|bao\s+nhiêu\s+tuổi\s+thì\s+mất|bao\s+nhieu\s+tuoi\s+thi\s+mat|khắc\s+chết|khac\s+chet|sát\s+phu|sat\s+phu|sát\s+thê|sat\s+the)(?![\p{L}\p{N}])/iu;
 
 const FRAMING_LEAD_PATTERN =
   /(?:nguy\s+cơ|nguy\s+co|rủi\s+ro|rui\s+ro|khả\s+năng|kha\s+nang|có\s+thể|co\s+the|để\s+tránh|de\s+tranh|tránh|tranh|phòng\s+ngừa|phòng\s+tránh|phòng|phong|hạn\s+chế|han\s+che|ngăn\s+ngừa|ngan\s+ngua|đề\s+phòng|de\s+phong)\s+(?:(?:tối\s+đa|nguy\s+cơ|rủi\s+ro|khả\s+năng|việc|dễ|có\s+thể|sẽ|bị|gặp|phải|dẫn\s+đến|dẫn\s+tới|đối\s+mặt\s+với|xảy\s+ra|xuất\s+hiện)\s+)*$/iu;
@@ -58,6 +61,16 @@ const FRAMING_LEAD_PATTERN =
 function containsProhibitedFatalisticPrediction(text: string): boolean {
   const sentences = text.split(/[.!?;\n]+/u);
   for (const sentence of sentences) {
+    PROHIBITED_OUTCOME_PATTERN.lastIndex = 0;
+    if (!PROHIBITED_OUTCOME_PATTERN.test(sentence)) {
+      continue;
+    }
+
+    // Explicit "không tránh khỏi" asserts outcome as inevitable independently of certainty
+    if (INEVITABLE_PATTERN.test(sentence)) {
+      return true;
+    }
+
     CERTAINTY_TOKEN_PATTERN.lastIndex = 0;
     let hasUnnegatedCertainty = false;
     let cMatch: RegExpExecArray | null;
@@ -70,16 +83,6 @@ function containsProhibitedFatalisticPrediction(text: string): boolean {
     }
     if (!hasUnnegatedCertainty) {
       continue;
-    }
-
-    PROHIBITED_OUTCOME_PATTERN.lastIndex = 0;
-    if (!PROHIBITED_OUTCOME_PATTERN.test(sentence)) {
-      continue;
-    }
-
-    // Explicit "không tránh khỏi" asserts outcome as inevitable and overrides any prevention wording
-    if (INEVITABLE_PATTERN.test(sentence)) {
-      return true;
     }
 
     // Check every bad-outcome occurrence: if any outcome lacks risk/possibility/prevention framing, it is rejected
@@ -568,6 +571,9 @@ export function validateComprehensiveZiweiReportV4(
       if (pattern.regex.test(block.text)) {
         errors.push(`${pattern.description} found in ${block.section}: "${block.text.slice(0, 80)}"`);
       }
+    }
+    if (DEATH_CONTENT_PATTERN.test(block.text)) {
+      errors.push(`Prohibited death or lifespan content found in ${block.section}: "${block.text.slice(0, 80)}"`);
     }
     if (containsProhibitedFatalisticPrediction(block.text)) {
       errors.push(`Prohibited fatalistic prediction found in ${block.section}: "${block.text.slice(0, 80)}"`);

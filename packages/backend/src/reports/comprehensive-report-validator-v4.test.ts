@@ -436,6 +436,55 @@ describe("validateComprehensiveZiweiReportV4", () => {
       }
     });
 
+    it("case 1c: strictly enforces FD-075 death-content gate and certainty-independent inevitability", () => {
+      const chart = createSampleChart();
+      const snapshot = createSampleSnapshot();
+      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+
+      const tableTestCases = [
+        // 1. Inevitability examples without "chắc chắn"
+        { text: "Bạn sẽ phá sản, không tránh khỏi.", errorMatcher: "fatalistic" },
+        { text: "Bạn không tránh khỏi nguy cơ phá sản.", errorMatcher: "fatalistic" },
+        // 2. Death-content gate: "Bạn sẽ tử vong."
+        { text: "Bạn sẽ tử vong.", errorMatcher: "death or lifespan" },
+        // 3. Representative lifespan terms
+        { text: "Lá số cho biết tuổi thọ của bạn.", errorMatcher: "death or lifespan" },
+        { text: "Khó có thể biết bạn sống được bao lâu.", errorMatcher: "death or lifespan" },
+        { text: "Bao nhiêu tuổi thì mất là do định mệnh.", errorMatcher: "death or lifespan" },
+        { text: "Người này đoản thọ.", errorMatcher: "death or lifespan" },
+        { text: "Lá số này yểu mệnh.", errorMatcher: "death or lifespan" },
+        { text: "Cần đề phòng chết non thuở nhỏ.", errorMatcher: "death or lifespan" },
+        { text: "Người thân qua đời đột ngột.", errorMatcher: "death or lifespan" },
+        { text: "Bạn sẽ mất mạng vì tai nạn.", errorMatcher: "death or lifespan" },
+        { text: "Khắc chết người thân.", errorMatcher: "death or lifespan" },
+        { text: "Bạn sẽ chết.", errorMatcher: "death or lifespan" },
+        // 4. Sát phu / sát thê terms
+        { text: "Cung Phu Thê phạm cách sát phu.", errorMatcher: "death or lifespan" },
+        { text: "Lá số có dấu hiệu sát thê.", errorMatcher: "death or lifespan" },
+        // 5. Unaccented variants
+        { text: "Ban se tu vong.", errorMatcher: "death or lifespan" },
+        { text: "Diem bao sat phu.", errorMatcher: "death or lifespan" },
+        { text: "Pham cach sat the.", errorMatcher: "death or lifespan" },
+        { text: "Tuoi tho cua ban khong dai.", errorMatcher: "death or lifespan" },
+        { text: "Song duoc bao lau tuy vao phuc duc.", errorMatcher: "death or lifespan" },
+        { text: "Bao nhieu tuoi thi mat la do troi.", errorMatcher: "death or lifespan" },
+        { text: "Khac chet ban doi.", errorMatcher: "death or lifespan" },
+        { text: "Nguoi nay doan tho.", errorMatcher: "death or lifespan" },
+        { text: "Pham yeu menh.", errorMatcher: "death or lifespan" },
+        { text: "Nguy co mat mang.", errorMatcher: "death or lifespan" },
+        { text: "Qua doi som.", errorMatcher: "death or lifespan" },
+        { text: "Chet non thuo nho.", errorMatcher: "death or lifespan" },
+      ];
+
+      for (const { text, errorMatcher } of tableTestCases) {
+        const report = createValidReport(facts);
+        report.overview.narrative = text;
+        const result = validateComprehensiveZiweiReportV4(report, facts);
+        expect(result.ok).toBe(false);
+        expect(result.errors?.some((e) => e.includes(errorMatcher))).toBe(true);
+      }
+    });
+
     it("case 2: sanitizes leaked raw ziwei technical identifiers including ziwei.trans.hua_lu and unknown tokens without failing", () => {
       const chart = createSampleChart();
       const snapshot = createSampleSnapshot();

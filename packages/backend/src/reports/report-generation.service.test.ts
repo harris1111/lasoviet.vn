@@ -2036,7 +2036,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
     );
   });
 
-  it("terminal-fails and does not commit when rewritten V4 content still fails validation or critic", async () => {
+  it("terminal-fails and does not commit when rewritten V4 content still fails validation", async () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
@@ -2281,5 +2281,205 @@ describe("createReportGenerationService V4 generation and critic", () => {
     expect(criticCall.purpose).toBe("critic");
     expect(criticCall.costContext).toMatchObject({ reportId: v4Job.payload.reportId, purpose: "critic" });
     expect(criticCall.costContext.chartId).toBeUndefined();
+  });
+
+  it("rewrites and passes when initial critic rejects quality and second critic passes, preserving 4-call cost lineage", async () => {
+    const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
+    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+    const calls: any[] = [];
+    let criticCount = 0;
+
+    const mockProvider = {
+      generateStructured: vi.fn().mockImplementation(async (req: any) => {
+        calls.push(req);
+        if (req.schemaName.includes("critic")) {
+          criticCount += 1;
+          if (criticCount === 1) {
+            return {
+              ok: true,
+              value: {
+                value: {
+                  correctness: 5,
+                  evidenceCoverage: 2,
+                  specificity: 5,
+                  languageClarity: 5,
+                  consistency: 5,
+                  actionability: 5,
+                  safety: 5,
+                  repetitionControl: 5,
+                  notes: ["Cần bổ sung dẫn chứng chi tiết."],
+                },
+                providerId: "test-critic",
+                modelId: "test-critic-model",
+              },
+            };
+          }
+          return {
+            ok: true,
+            value: {
+              value: {
+                correctness: 5,
+                evidenceCoverage: 5,
+                specificity: 5,
+                languageClarity: 5,
+                consistency: 5,
+                actionability: 5,
+                safety: 5,
+                repetitionControl: 5,
+                notes: [],
+              },
+              providerId: "test-critic",
+              modelId: "test-critic-model",
+            },
+          };
+        }
+        return {
+          ok: true,
+          value: { value: buildV4ReportContent(), providerId: "test-writer", modelId: "test-writer-model" },
+        };
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: mockProvider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({ job: v4Job, attemptNumber: 1, workerId: "worker-1" });
+    expect(result.ok).toBe(true);
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(4);
+
+    expect(calls.map((c) => c.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    for (const call of calls) {
+      expect(call.costContext).toMatchObject({
+        reportId: v4Job.payload.reportId,
+        reportVersionId: v4Job.payload.reportVersionId,
+        chartVersionId: v4Job.payload.chartVersionId,
+        entitlementId: v4Job.payload.entitlementId,
+        sku: v4Job.payload.sku,
+        attemptNumber: 1,
+      });
+      expect(call.costContext.chartId).toBeUndefined();
+    }
+  });
+
+  it("terminal-fails with REPORT_SAFETY_REJECTED and does not commit when rewritten V4 content fails second critic on safety", async () => {
+    const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
+    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn(),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const gate = { allows: () => true };
+    const calls: any[] = [];
+    let criticCount = 0;
+
+    const mockProvider = {
+      generateStructured: vi.fn().mockImplementation(async (req: any) => {
+        calls.push(req);
+        if (req.schemaName.includes("critic")) {
+          criticCount += 1;
+          if (criticCount === 1) {
+            return {
+              ok: true,
+              value: {
+                value: {
+                  correctness: 5,
+                  evidenceCoverage: 2,
+                  specificity: 5,
+                  languageClarity: 5,
+                  consistency: 5,
+                  actionability: 5,
+                  safety: 5,
+                  repetitionControl: 5,
+                  notes: ["Chất lượng chưa đạt chuẩn."],
+                },
+                providerId: "test-critic",
+                modelId: "test-critic-model",
+              },
+            };
+          }
+          return {
+            ok: true,
+            value: {
+              value: {
+                correctness: 2,
+                evidenceCoverage: 5,
+                specificity: 5,
+                languageClarity: 5,
+                consistency: 5,
+                actionability: 5,
+                safety: 2,
+                repetitionControl: 5,
+                notes: ["Phát hiện nhận định chưa an toàn."],
+              },
+              providerId: "test-critic",
+              modelId: "test-critic-model",
+            },
+          };
+        }
+        return {
+          ok: true,
+          value: { value: buildV4ReportContent(), providerId: "test-writer", modelId: "test-writer-model" },
+        };
+      }),
+    };
+
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: gate as any,
+      provider: mockProvider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({ job: v4Job, attemptNumber: 1, workerId: "worker-1" });
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe("REPORT_SAFETY_REJECTED");
+    expect(versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ errorCode: "REPORT_SAFETY_REJECTED" }),
+    );
+    expect(versionRepository.consumeRewriteBudget).toHaveBeenCalledTimes(1);
+    expect(versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+    expect(calls).toHaveLength(4);
+
+    expect(calls.map((c) => c.purpose)).toEqual(["report", "critic", "report", "critic"]);
+    for (const call of calls) {
+      expect(call.costContext).toMatchObject({
+        reportId: v4Job.payload.reportId,
+        reportVersionId: v4Job.payload.reportVersionId,
+        chartVersionId: v4Job.payload.chartVersionId,
+        entitlementId: v4Job.payload.entitlementId,
+        sku: v4Job.payload.sku,
+        attemptNumber: 1,
+      });
+      expect(call.costContext.chartId).toBeUndefined();
+    }
   });
 });
