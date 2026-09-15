@@ -1,11 +1,34 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { AnalyticsRepository } from "../analytics/analytics.repository.js";
 import { createAnalyticsService } from "../analytics/analytics.service.js";
 
 describe("reading-context analytics privacy boundary", () => {
-  it("rejects every prohibited reading-context property without calling the sink", async () => {
-    const sink = { write: vi.fn().mockResolvedValue(undefined) };
-    const service = createAnalyticsService({ sink });
+  it("rejects every prohibited reading-context property without recording an event", async () => {
+    const recordEvent = vi.fn().mockResolvedValue({
+      ok: true,
+      replayed: false,
+      event: { id: "event-payment-confirmed" },
+    });
+    const repository = { recordEvent } as unknown as AnalyticsRepository;
+    const service = createAnalyticsService({ repository });
+    const properties = {
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79000,
+      currency: "VND",
+      payment_method: "bank_transfer",
+    };
+
+    await expect(
+      service.ingest({
+        idempotencyKey: "reading-context-privacy-positive",
+        visitorId: "visitor-reading-context-privacy",
+        name: "payment_confirmed",
+        properties,
+      }),
+    ).resolves.toMatchObject({ ok: true });
+    expect(recordEvent).toHaveBeenCalled();
+    recordEvent.mockClear();
 
     for (const propertyName of [
       "readingContext",
@@ -16,12 +39,12 @@ describe("reading-context analytics privacy boundary", () => {
       "top_concern",
     ]) {
       await expect(
-        service.emit({
-          name: "payment_completed",
+        service.ingest({
+          idempotencyKey: `reading-context-privacy-${propertyName}`,
+          visitorId: "visitor-reading-context-privacy",
+          name: "payment_confirmed",
           properties: {
-            sku: "ZIWEI-IDENTITY-P0",
-            price_vnd: 79000,
-            payment_provider: "manual",
+            ...properties,
             [propertyName]: "redacted",
           },
         }),
@@ -31,6 +54,6 @@ describe("reading-context analytics privacy boundary", () => {
       });
     }
 
-    expect(sink.write).not.toHaveBeenCalled();
+    expect(recordEvent).not.toHaveBeenCalled();
   });
 });

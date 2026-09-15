@@ -20,6 +20,7 @@ import {
   PRIVACY_SERVICE_SECRET,
   PrivacyController,
 } from "./privacy.controller.js";
+import { ANALYTICS_SERVICE } from "../analytics/analytics.controller.js";
 
 const serviceSecret = "synthetic-privacy-service-secret";
 const secret = new TextEncoder().encode(serviceSecret);
@@ -38,6 +39,7 @@ const deleteAnonymous = vi.fn().mockResolvedValue({
   ok: true,
   value: { actorId: "anonymous-actor" },
 });
+const associateBirthProfile = vi.fn().mockResolvedValue({ ok: true, value: undefined });
 
 async function actorToken(
   kind: "account" | "anonymous",
@@ -88,6 +90,10 @@ Module({
     {
       provide: PRIVACY_SERVICE_SECRET,
       useValue: serviceSecret,
+    },
+    {
+      provide: ANALYTICS_SERVICE,
+      useValue: { associateBirthProfile },
     },
     {
       provide: PRIVACY_DATABASE,
@@ -169,5 +175,97 @@ describe("privacy private HTTP flow", () => {
 
     expect(response.statusCode).toBe(200);
     expect(deleteAnonymous).toHaveBeenCalledWith("anonymous-actor");
+  });
+
+  it("records four purposes atomically on /privacy/consents", async () => {
+    recordConsent.mockClear();
+    recordConsent.mockResolvedValueOnce({
+      ok: true,
+      value: { id: "consent-1", ids: ["consent-1", "consent-2", "consent-3", "consent-4"] },
+    });
+
+    const payload = {
+      version: 1,
+      documentKey: "privacy",
+      documentVersion: "2026-09-14",
+      purposes: ["birth_profile", "analytics", "personalization", "offers"],
+      visitorId: "123e4567-e89b-12d3-a456-426614174000",
+    };
+
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "POST",
+      url: "/privacy/consents",
+      headers: {
+        authorization: `Bearer ${await actorToken(
+          "account",
+          "verified-account",
+          "consent-request",
+        )}`,
+      },
+      payload,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(recordConsent).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "account", userId: "verified-account" }),
+      "privacy",
+      "2026-09-14",
+      ["birth_profile", "analytics", "personalization", "offers"],
+      "123e4567-e89b-12d3-a456-426614174000",
+    );
+  });
+
+  it("associates birth profile with visitor via /privacy/associate-profile", async () => {
+    associateBirthProfile.mockClear();
+    associateBirthProfile.mockResolvedValueOnce({ ok: true, value: undefined });
+
+    const payload = {
+      version: 1,
+      visitorId: "123e4567-e89b-12d3-a456-426614174000",
+      profileId: "profile-xyz",
+    };
+
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "POST",
+      url: "/privacy/associate-profile",
+      headers: {
+        authorization: `Bearer ${await actorToken(
+          "account",
+          "verified-account",
+          "assoc-request",
+        )}`,
+      },
+      payload,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(associateBirthProfile).toHaveBeenCalledWith({
+      visitorId: "123e4567-e89b-12d3-a456-426614174000",
+      birthProfileId: "profile-xyz",
+      owner: { userId: "verified-account" },
+    });
+  });
+
+  it("maps profile association errors to typed HTTP status codes", async () => {
+    associateBirthProfile.mockResolvedValueOnce({
+      ok: false,
+      error: { code: "PROFILE_FORBIDDEN" },
+    });
+
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "POST",
+      url: "/privacy/associate-profile",
+      headers: {
+        authorization: `Bearer ${await actorToken(
+          "account",
+          "verified-account",
+          "assoc-request",
+        )}`,
+      },
+      payload: { version: 1, visitorId: "123e4567-e89b-12d3-a456-426614174000", profileId: "profile-forbidden" },
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.json()).toEqual({ code: "PROFILE_FORBIDDEN" });
   });
 });

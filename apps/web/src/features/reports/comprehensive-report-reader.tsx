@@ -8,6 +8,7 @@ import type {
 } from "@lasoviet/contracts";
 
 import { ArtifactImage } from "../../components/artifact-image";
+import { useReportReaderAnalytics } from "./report-analytics";
 
 export type ComprehensiveReportReaderProps = {
   locale: "vi";
@@ -64,6 +65,13 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
       { id: "section-practical-direction", title: "Định Hướng Và Hành Động Thực Tế" },
     ];
   }, [report.content, isTier2]);
+
+  useReportReaderAnalytics({
+    sku: report.sku,
+    reportVersion: report.contentVersion,
+    activeSectionId: tocSections[activeSectionIdx]?.id,
+    progressPercent: progressPct,
+  });
 
   // Restore font size from localStorage
   useEffect(() => {

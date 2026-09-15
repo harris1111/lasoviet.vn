@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { eq } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   TIER_2_ENTITLEMENT_SCOPE,
@@ -1071,6 +1071,68 @@ describe("account-center service with PostgreSQL Testcontainers", () => {
       expect(result.error.code).toBe("ACCOUNT_EXPORT_LIMIT_EXCEEDED");
     }
   });
+  it("getExport includes owner-isolated analytics events and behavior profile, and handles nullable profile", async () => {
+    const analyticsUser = "user-analytics-export";
+    await database.insert(authUsers).values({
+      id: analyticsUser,
+      name: "Analytics User",
+      email: "analytics@example.test",
+      emailVerified: true,
+    });
+
+    const mockAnalyticsService: any = {
+      listAccountExportEvents: vi.fn().mockResolvedValue({
+        ok: true,
+        value: [
+          {
+            id: "evt-export-1",
+            name: "landing",
+            properties: { landing_page: "/home" },
+            occurredAt: "2026-09-14T00:00:00.000Z",
+          },
+        ],
+      }),
+      getAccountBehaviorProfile: vi.fn().mockResolvedValue(null),
+    };
+
+    const service = createAccountCenterService(database, mockAnalyticsService);
+    const result = await service.getExport(analyticsUser);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.analyticsEvents).toHaveLength(1);
+      expect(result.value.analyticsEvents![0]!.name).toBe("landing");
+      expect(result.value.behaviorProfile).toBeNull();
+      expect(mockAnalyticsService.listAccountExportEvents).toHaveBeenCalledWith(analyticsUser);
+      expect(mockAnalyticsService.getAccountBehaviorProfile).toHaveBeenCalledWith(analyticsUser);
+    }
+  });
+
+  it("getExport fails closed with ACCOUNT_EXPORT_LIMIT_EXCEEDED when analytics events exceed 500", async () => {
+    const limitUser = "user-events-limit";
+    await database.insert(authUsers).values({
+      id: limitUser,
+      name: "Events Limit User",
+      email: "evlimit@example.test",
+      emailVerified: true,
+    });
+
+    const mockAnalyticsService: any = {
+      listAccountExportEvents: vi.fn().mockResolvedValue({
+        ok: false,
+        error: { code: "ANALYTICS_EXPORT_LIMIT_EXCEEDED" },
+      }),
+      getAccountBehaviorProfile: vi.fn().mockResolvedValue(null),
+    };
+
+    const service = createAccountCenterService(database, mockAnalyticsService);
+    const result = await service.getExport(limitUser);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_EXPORT_LIMIT_EXCEEDED");
+    }
+  });
 
   it("exports a cleared context, omits skipped context, and keeps contexts isolated by owner", async () => {
     const userId = `user-context-state-${randomUUID()}`;
@@ -1175,6 +1237,32 @@ describe("account-center service with PostgreSQL Testcontainers", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe("ACCOUNT_EXPORT_LIMIT_EXCEEDED");
+    }
+  });
+
+  it("getExport fails closed with ACCOUNT_RESOURCE_NOT_FOUND when analytics records are corrupt", async () => {
+    const corruptUser = "user-events-corrupt";
+    await database.insert(authUsers).values({
+      id: corruptUser,
+      name: "Events Corrupt User",
+      email: "evcorrupt@example.test",
+      emailVerified: true,
+    });
+
+    const mockAnalyticsService: any = {
+      listAccountExportEvents: vi.fn().mockResolvedValue({
+        ok: false,
+        error: { code: "ANALYTICS_EXPORT_CORRUPTED" },
+      }),
+      getAccountBehaviorProfile: vi.fn().mockResolvedValue(null),
+    };
+
+    const service = createAccountCenterService(database, mockAnalyticsService);
+    const result = await service.getExport(corruptUser);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_RESOURCE_NOT_FOUND");
     }
   });
 

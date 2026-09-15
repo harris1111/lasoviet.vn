@@ -8,17 +8,20 @@ import {
   isUnprefixedCanonicalReportPath,
 } from "./routing/explicit-vietnamese-path";
 import { resolveLegacyAliasRedirect } from "./routing/legacy-alias";
+import { ensureVisitorCookie } from "./analytics/visitor-cookie";
 
 const handleI18nRouting = createMiddleware(routing);
 
 export default function proxy(request: NextRequest) {
   const canonicalRedirect = resolveCanonicalOriginRedirect(request);
   if (canonicalRedirect !== null) {
+    ensureVisitorCookie(request, canonicalRedirect);
     return canonicalRedirect;
   }
 
   const aliasRedirect = resolveLegacyAliasRedirect(request);
   if (aliasRedirect !== null) {
+    ensureVisitorCookie(request, aliasRedirect);
     return aliasRedirect;
   }
 
@@ -30,6 +33,7 @@ export default function proxy(request: NextRequest) {
       path: "/",
       sameSite: "lax",
     });
+    ensureVisitorCookie(request, response);
     return response;
   }
 
@@ -46,6 +50,7 @@ export default function proxy(request: NextRequest) {
     path: "/",
     sameSite: "lax",
   });
+  ensureVisitorCookie(request, response);
   return response;
 }
 

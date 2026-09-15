@@ -8,9 +8,9 @@ import { createPublicContentRepository } from "./public-content-repository";
 
 function buildRoute(overrides: Partial<RouteDefinitionV1>): RouteDefinitionV1 {
   return {
-    id: "trust.privacy",
-    path: "/chinh-sach-bao-mat",
-    intent: "trust.privacy",
+    id: "trust.terms",
+    path: "/dieu-khoan",
+    intent: "trust.terms",
     template: "policy-page",
     localeBehavior: "vi_default_en_explicit",
     localeOwners: ["vi", "en"],
@@ -48,7 +48,7 @@ const knowledgeRoute = buildRoute({
 const routes = [privacyRoute, calculatorRoute, knowledgeRoute];
 
 const privacyContent: PublicContentV1 = {
-  routeId: "trust.privacy",
+  routeId: "trust.terms",
   locale: "vi",
   contentType: "SeoMetadata",
   title: "Chính sách bảo mật",

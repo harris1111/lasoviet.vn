@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("../../../../../../analytics/server-analytics.js", () => ({
+  sendServerAnalyticsEvent: vi.fn().mockResolvedValue({ ok: true, replayed: false }),
+}));
+
 import {
   VerifiedAccountResolutionError,
   resolveVerifiedAccountActor,
@@ -27,6 +31,8 @@ vi.mock("../../../../../../api/private-api-client.js", () => ({
   },
   privateApiClient: vi.fn(),
 }));
+
+import { sendServerAnalyticsEvent } from "../../../../../../analytics/server-analytics.js";
 
 const actor = {
   kind: "account" as const,
@@ -136,5 +142,91 @@ describe("GET /api/commerce/orders/[orderId]/status", () => {
 
     const data = await response.json();
     expect(data).toEqual(validCheckoutStatus);
+  });
+
+  it("does not emit analytics for pending or non-paid orders", async () => {
+    const mockSend = vi.mocked(sendServerAnalyticsEvent);
+    mockSend.mockClear();
+
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: validCheckoutStatus, // status: "pending"
+      }),
+    });
+    const { GET } = await import("./route.js");
+
+    const request = new Request("https://lasoviet.example/api/commerce/orders/order-1/status");
+    const response = await GET(request, { params: Promise.resolve({ orderId: "order-1" }) });
+
+    expect(response.status).toBe(200);
+    expect(mockSend).not.toHaveBeenCalled();
+  });
+
+  it("emits payment_confirmed with stable key and exact amount/currency when order status is paid", async () => {
+    const mockSend = vi.mocked(sendServerAnalyticsEvent);
+    mockSend.mockClear();
+
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          ...validCheckoutStatus,
+          order: {
+            ...validCheckoutStatus.order,
+            status: "paid",
+          },
+        },
+      }),
+    });
+    const { GET } = await import("./route.js");
+
+    const request = new Request("https://lasoviet.example/api/commerce/orders/order-1/status");
+    const response = await GET(request, { params: Promise.resolve({ orderId: "order-1" }) });
+
+    expect(response.status).toBe(200);
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith({
+      name: "payment_confirmed",
+      idempotencyKey: "payment-confirmed:order-1",
+      userId: "account-1",
+      requestId: "request-1",
+      properties: {
+        amount: 79000,
+        currency: "VND",
+      },
+    });
+    const paymentCall = mockSend.mock.calls[0]![0];
+    expect(paymentCall.occurredAt).toBeUndefined();
+  });
+
+  it("preserves 200 response and headers even if analytics emission fails", async () => {
+    const paidStatus = {
+      ...validCheckoutStatus,
+      order: {
+        ...validCheckoutStatus.order,
+        status: "paid",
+      },
+    };
+
+    vi.mocked(sendServerAnalyticsEvent).mockResolvedValueOnce({ ok: false, code: "ANALYTICS_DELIVERY_FAILED" });
+
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: paidStatus,
+      }),
+    });
+    const { GET } = await import("./route.js");
+
+    const request = new Request("https://lasoviet.example/api/commerce/orders/order-1/status");
+    const response = await GET(request, { params: Promise.resolve({ orderId: "order-1" }) });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const data = await response.json();
+    expect(data).toEqual(paidStatus);
   });
 });

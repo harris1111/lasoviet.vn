@@ -11,6 +11,7 @@ import * as outbox from "./schema/outbox.js";
 import * as privacy from "./schema/privacy.js";
 import * as reports from "./schema/reports.js";
 import * as aiCost from "./schema/ai-cost.js";
+import * as analytics from "./schema/analytics.js";
 
 const schema = {
   ...auth,
@@ -23,6 +24,7 @@ const schema = {
   ...privacy,
   ...reports,
   ...aiCost,
+  ...analytics,
 };
 
 export type Database = PostgresJsDatabase<typeof schema>;

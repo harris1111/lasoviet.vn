@@ -1,8 +1,20 @@
-import type { CurrentActor, Result } from "@lasoviet/contracts";
+import {
+  ConsentPurposesSetSchema,
+  CURRENT_CONSENT_DOCUMENT_VERSION,
+  type CurrentActor,
+  type Result,
+} from "@lasoviet/contracts";
 
-import type { ConsentRepository } from "./consent.repository.js";
+import {
+  ConsentRepositoryError,
+  type ConsentRecordResult,
+  type ConsentRepository,
+} from "./consent.repository.js";
 
-export type ConsentErrorCode = "CONSENT_VERSION_UNKNOWN";
+export type ConsentErrorCode =
+  | "CONSENT_VERSION_UNKNOWN"
+  | "PROFILE_FORBIDDEN"
+  | "PROFILE_NOT_FOUND";
 
 export type ConsentDocumentVersions = Record<string, readonly string[]>;
 
@@ -17,7 +29,7 @@ function error(code: ConsentErrorCode): Result<never, ConsentErrorCode> {
     ok: false,
     error: {
       code,
-      messageKey: "privacy.consentVersionUnknown",
+      messageKey: `privacy.${code.toLowerCase()}`,
       retryable: false,
     },
   };
@@ -31,26 +43,48 @@ export function createConsentService(options: ConsentServiceOptions) {
       actor: CurrentActor,
       documentKey: string,
       documentVersion: string,
-      purpose: string,
-    ): Promise<Result<{ id: string }, ConsentErrorCode>> {
+      purposes: readonly string[],
+      visitorId?: string | null,
+    ): Promise<Result<ConsentRecordResult, ConsentErrorCode>> {
       const versions = options.documentVersions[documentKey];
       if (
         versions === undefined ||
         !versions.includes(documentVersion) ||
-        purpose.trim() === ""
+        purposes.length === 0 ||
+        purposes.some((p) => p.trim() === "")
       ) {
         return error("CONSENT_VERSION_UNKNOWN");
       }
-      return {
-        ok: true,
-        value: await options.repository.record({
+
+      if (documentVersion === CURRENT_CONSENT_DOCUMENT_VERSION) {
+        const validatedPurposes = ConsentPurposesSetSchema.safeParse(purposes);
+        if (!validatedPurposes.success) {
+          return error("CONSENT_VERSION_UNKNOWN");
+        }
+      }
+
+      try {
+        const value = await options.repository.record({
           actor,
           documentKey,
           documentVersion,
-          purpose: purpose.trim(),
+          purposes,
+          visitorId,
           grantedAt: now(),
-        }),
-      };
+        });
+        return {
+          ok: true,
+          value,
+        };
+      } catch (err) {
+        if (
+          err instanceof ConsentRepositoryError &&
+          (err.code === "PROFILE_FORBIDDEN" || err.code === "PROFILE_NOT_FOUND")
+        ) {
+          return error(err.code);
+        }
+        throw err;
+      }
     },
   };
 }

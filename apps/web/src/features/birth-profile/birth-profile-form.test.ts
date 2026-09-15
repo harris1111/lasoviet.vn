@@ -1,3 +1,5 @@
+import viProfileMessages from "../../../messages/vi/profile.json";
+import enProfileMessages from "../../../messages/en/profile.json";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
@@ -12,6 +14,13 @@ import {
   decideProfileSubmitOutcome,
   resolveUnknownTimePersistence,
   UnknownTimeSavedPresenter,
+  buildWizardStartEvent,
+  buildWizardStepCompleteEvent,
+  buildChartSuccessEvent,
+  createWizardAnalyticsGate,
+  claimWizardStart,
+  claimWizardStep3Complete,
+  claimChartSuccess,
 } from "./birth-profile-form";
 import {
   canAdvanceStep1,
@@ -41,7 +50,7 @@ describe("birth profile form payload", () => {
       time: { precision: "exact_minute", localTime: "09:30" },
       timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "male",
-      consentVersion: "2026-09-01",
+      consentVersion: "2026-09-14",
       locale: "vi",
     });
   });
@@ -76,7 +85,7 @@ describe("birth profile form payload", () => {
       time: { precision: "branch_only", branch: "si" },
       timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "female",
-      consentVersion: "2026-09-01",
+      consentVersion: "2026-09-14",
       locale: "vi",
     });
     expect((profile.time as { localTime?: string }).localTime).toBeUndefined();
@@ -149,7 +158,7 @@ describe("birth profile form payload", () => {
       time: { precision: "exact_minute", localTime: "09:30" },
       timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "male",
-      consentVersion: "2026-09-01",
+      consentVersion: "2026-09-14",
       locale: "vi",
     });
   });
@@ -746,7 +755,7 @@ describe("WP-11 unknown birth time UX flow (TDD focused acceptance)", () => {
       time: { precision: "unknown" },
       timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
       gender: "female",
-      consentVersion: "2026-09-01",
+      consentVersion: "2026-09-14",
       locale: "vi",
     });
     expect(honestProfile.time).not.toHaveProperty("hour");
@@ -1040,5 +1049,236 @@ describe("WP-11 unknown birth time UX flow (TDD focused acceptance)", () => {
       kind: "SUBMISSION_ERROR",
       errorKey: "errors.profile",
     });
+  });
+});
+
+describe("birth profile wizard analytics helpers and gates", () => {
+  it("builds exact wizard_start payload with required properties", () => {
+    expect(buildWizardStartEvent("vi")).toEqual({
+      name: "wizard_start",
+      properties: {
+        locale: "vi",
+        entry_point: "wizard_route",
+        step: 1,
+      },
+    });
+    expect(buildWizardStartEvent("en")).toEqual({
+      name: "wizard_start",
+      properties: {
+        locale: "en",
+        entry_point: "wizard_route",
+        step: 1,
+      },
+    });
+  });
+
+  it("builds exact wizard_step_complete payloads for steps 1, 2, and 3", () => {
+    expect(buildWizardStepCompleteEvent({ step: 1 })).toEqual({
+      name: "wizard_step_complete",
+      properties: {
+        step: 1,
+        step_name: "subject",
+      },
+    });
+
+    expect(
+      buildWizardStepCompleteEvent({
+        step: 2,
+        timePrecision: "exact_minute",
+        calendarType: "solar",
+      }),
+    ).toEqual({
+      name: "wizard_step_complete",
+      properties: {
+        step: 2,
+        step_name: "birth",
+        time_precision: "exact_minute",
+        calendar_type: "solar",
+      },
+    });
+
+    expect(
+      buildWizardStepCompleteEvent({
+        step: 3,
+        timePrecision: "unknown",
+        calendarType: "lunar",
+      }),
+    ).toEqual({
+      name: "wizard_step_complete",
+      properties: {
+        step: 3,
+        step_name: "review",
+        time_precision: "unknown",
+        calendar_type: "lunar",
+      },
+    });
+  });
+
+  it("builds chart_success payload with time_precision and strictly omits forbidden fields", () => {
+    const event = buildChartSuccessEvent("branch_only");
+    expect(event).toEqual({
+      name: "chart_success",
+      properties: {
+        time_precision: "branch_only",
+      },
+    });
+    expect(event.properties).not.toHaveProperty("chartId");
+    expect(event.properties).not.toHaveProperty("revisionId");
+    expect(event.properties).not.toHaveProperty("birthDate");
+    expect(event.properties).not.toHaveProperty("displayName");
+    expect(event.properties).not.toHaveProperty("placeLabel");
+  });
+
+  it("gate allows wizard_start only once and rejects repeated claims", () => {
+    const gate = createWizardAnalyticsGate();
+    const first = claimWizardStart(gate, "vi");
+    expect(first).not.toBeNull();
+    expect(first?.name).toBe("wizard_start");
+
+    const second = claimWizardStart(gate, "vi");
+    expect(second).toBeNull();
+  });
+
+  it("gate allows step 3 completion claim only once (prevents duplicate submit while pending)", () => {
+    const gate = createWizardAnalyticsGate();
+    const first = claimWizardStep3Complete(gate, {
+      timePrecision: "exact_minute",
+      calendarType: "solar",
+    });
+    expect(first).not.toBeNull();
+    expect(first?.properties.step).toBe(3);
+
+    const second = claimWizardStep3Complete(gate, {
+      timePrecision: "exact_minute",
+      calendarType: "solar",
+    });
+    expect(second).toBeNull();
+  });
+
+  it("gate allows chart_success claim only once", () => {
+    const gate = createWizardAnalyticsGate();
+    const first = claimChartSuccess(gate, "exact_minute");
+    expect(first).not.toBeNull();
+    expect(first?.name).toBe("chart_success");
+
+    const second = claimChartSuccess(gate, "exact_minute");
+    expect(second).toBeNull();
+  });
+});
+
+function deriveRichConsentContent(rawConsentMessage: string, href: string) {
+  const match = rawConsentMessage.match(/^(.*)<link>(.*)<\/link>(.*)$/);
+  if (!match) {
+    throw new Error("Consent message must contain <link>...</link> placeholder: " + rawConsentMessage);
+  }
+  const [, before, linkText, after] = match;
+  return createElement(
+    "span",
+    null,
+    before,
+    createElement("a", { href, target: "_blank", rel: "noopener noreferrer" }, linkText),
+    after,
+  );
+}
+
+describe("wizard review step consent wording and single checkbox", () => {
+  it("renders exactly one checkbox and rich-linked privacy policy derived from message JSON in VI", () => {
+    const rawMessage = viProfileMessages.review.consent;
+    expect(rawMessage).toContain("<link>");
+    expect(rawMessage).toContain("</link>");
+
+    const richConsent = deriveRichConsentContent(rawMessage, "/chinh-sach-bao-mat");
+    const html = renderToStaticMarkup(
+      createElement(BirthWizardReviewStep, {
+        title: "Kiểm tra thông tin",
+        subtitle: "Rà soát lại toàn bộ thông tin",
+        subjectSectionTitle: "Người được lập",
+        birthSectionTitle: "Ngày, giờ sinh",
+        editLabel: "Sửa",
+        displayNameLabel: "Tên hiển thị",
+        forWhomLabel: "Người được lập",
+        dateLabel: "Ngày sinh dương lịch",
+        timeLabel: "Giờ sinh",
+        genderLabel: "Giới tính",
+        timezoneLabel: "Múi giờ tính toán",
+        disclosure: "Thông tin sinh chỉ được xử lý...",
+        guestNotice: "Dữ liệu tạm thời...",
+        consentLabel: richConsent,
+        duplicateNotice: "Đang tiến hành...",
+        displayName: "Bản thân",
+        forWhom: "Bản thân",
+        date: "18/08/1992",
+        time: "09:30",
+        gender: "Nam",
+        timezone: "Asia/Ho_Chi_Minh",
+        consent: false,
+        pending: false,
+        onEditSubject: () => {},
+        onEditBirth: () => {},
+        onConsentChange: () => {},
+      }),
+    );
+
+    const checkboxes = html.match(/type="checkbox"/g);
+    expect(checkboxes).toHaveLength(1);
+
+    const expectedLinkText = rawMessage.match(/<link>(.*)<\/link>/)?.[1];
+    expect(expectedLinkText).toBeDefined();
+    expect(html).toContain('href="/chinh-sach-bao-mat"');
+    const match = rawMessage.match(/^(.*)<link>(.*)<\/link>(.*)$/);
+    expect(match).not.toBeNull();
+    expect(html).toContain(match![1]);
+    expect(html).toContain(match![2]);
+    expect(html).toContain(match![3]);
+  });
+
+  it("renders exactly one checkbox and rich-linked privacy policy derived from message JSON in EN", () => {
+    const rawMessage = enProfileMessages.review.consent;
+    expect(rawMessage).toContain("<link>");
+    expect(rawMessage).toContain("</link>");
+
+    const richConsent = deriveRichConsentContent(rawMessage, "/en/chinh-sach-bao-mat");
+    const html = renderToStaticMarkup(
+      createElement(BirthWizardReviewStep, {
+        title: "Review your details",
+        subtitle: "Review all information",
+        subjectSectionTitle: "Subject",
+        birthSectionTitle: "Birth details",
+        editLabel: "Edit",
+        displayNameLabel: "Display name",
+        forWhomLabel: "For whom",
+        dateLabel: "Birth date",
+        timeLabel: "Birth time",
+        genderLabel: "Gender",
+        timezoneLabel: "Timezone",
+        disclosure: "Birth information is only processed...",
+        guestNotice: "Temporary data...",
+        consentLabel: richConsent,
+        duplicateNotice: "In progress...",
+        displayName: "Self",
+        forWhom: "Self",
+        date: "18/08/1992",
+        time: "09:30",
+        gender: "Male",
+        timezone: "Asia/Ho_Chi_Minh",
+        consent: false,
+        pending: false,
+        onEditSubject: () => {},
+        onEditBirth: () => {},
+        onConsentChange: () => {},
+      }),
+    );
+
+    const checkboxes = html.match(/type="checkbox"/g);
+    expect(checkboxes).toHaveLength(1);
+
+    const expectedLinkText = rawMessage.match(/<link>(.*)<\/link>/)?.[1];
+    expect(expectedLinkText).toBeDefined();
+    expect(html).toContain('href="/en/chinh-sach-bao-mat"');
+    const match = rawMessage.match(/^(.*)<link>(.*)<\/link>(.*)$/);
+    expect(match).not.toBeNull();
+    expect(html).toContain(match![1]);
+    expect(html).toContain(match![2]);
+    expect(html).toContain(match![3]);
   });
 });

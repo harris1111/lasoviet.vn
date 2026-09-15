@@ -14,6 +14,12 @@ export {
 } from "./schema/auth.js";
 export { birthProfiles } from "./schema/birth-profile.js";
 export { notificationDeliveries } from "./schema/notifications.js";
+export {
+  accountBehaviorProfiles,
+  analyticsEvents,
+  analyticsFraudIpRecords,
+  analyticsVisitors,
+} from "./schema/analytics.js";
 
 import { createDatabase, type Database } from "./client.js";
 import {

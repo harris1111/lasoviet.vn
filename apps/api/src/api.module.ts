@@ -1,10 +1,9 @@
-import { Logger, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 
 import {
   CONSENT_DOCUMENT_VERSIONS,
 } from "@lasoviet/contracts";
 import { loadEnvironment } from "@lasoviet/config";
-import type { AnalyticsEventV1 } from "@lasoviet/config";
 import {
   IztroAdapter,
   iztroDefaultConfig,
@@ -12,6 +11,7 @@ import {
 import {
   createAuthEmailDeliveryService,
   createAnalyticsService,
+  createDatabaseAnalyticsRepository,
   createAccountDeletionService,
   createAnonymousRetentionService,
   createAdminAccessService,
@@ -46,7 +46,6 @@ import {
   createAccountCenterService,
   type EmailProvider,
 } from "@lasoviet/backend";
-import type { AnalyticsSink } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
 
 import {
@@ -95,7 +94,6 @@ import {
   ZIWEI_CALCULATION_DATABASE,
   ZIWEI_CALCULATION_SERVICE,
   ZIWEI_CALCULATION_SERVICE_SECRET,
-  ZIWEI_ANALYTICS_SERVICE,
   ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei/ziwei.controller.js";
@@ -126,6 +124,14 @@ import {
   COMMERCE_SEPAY_ACCOUNT_HOLDER,
   CommerceController,
 } from "./commerce/commerce.controller.js";
+import {
+  ANALYTICS_SERVICE,
+  AnalyticsController,
+} from "./analytics/analytics.controller.js";
+import {
+  ANALYTICS_SERVICE_SECRET,
+  AnalyticsServiceGuard,
+} from "./analytics/analytics-service.guard.js";
 
 function applicationEnvironment() {
   const result = loadEnvironment(process.env);
@@ -172,19 +178,11 @@ function privacyDatabase() {
   return createDatabase(environment.databaseUrl);
 }
 
-export function createApiAnalyticsSink(
-  logger: Pick<Logger, "log"> = new Logger("Analytics"),
-): AnalyticsSink {
-  return {
-    async write(event: AnalyticsEventV1) {
-      logger.log({ event: "analytics_event", analytics: event });
-    },
-  };
-}
 
 @Module({
   controllers: [
     HealthController,
+    AnalyticsController,
     AuthEmailController,
     PrivacyController,
     BirthProfileController,
@@ -198,6 +196,24 @@ export function createApiAnalyticsSink(
     AccountCenterController,
   ],
   providers: [
+    AnalyticsServiceGuard,
+    {
+      provide: ANALYTICS_SERVICE,
+      useFactory: () =>
+        createAnalyticsService({
+          repository: createDatabaseAnalyticsRepository(privacyDatabase()),
+        }),
+    },
+    {
+      provide: ANALYTICS_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
     {
       provide: AUTH_EMAIL_DELIVERY_SERVICE,
       useFactory: authEmailService,
@@ -423,20 +439,11 @@ export function createApiAnalyticsSink(
         ?? (() => { throw new Error("API_PUBLIC_ORIGIN_CONFIG_INVALID"); })(),
     },
     {
-      provide: ZIWEI_ANALYTICS_SERVICE,
-      useFactory: () =>
-        createAnalyticsService({
-          sink: createApiAnalyticsSink(),
-        }),
-    },
-    {
       provide: ZIWEI_QUERY_SERVICE,
-      useFactory: (analytics) =>
+      useFactory: () =>
         createZiweiQueryService({
           repository: createDatabaseZiweiQueryRepository(privacyDatabase()),
-          analytics,
         }),
-      inject: [ZIWEI_ANALYTICS_SERVICE],
     },
     { provide: REPORT_QUERY_DATABASE, useFactory: privacyDatabase },
     {

@@ -29,7 +29,6 @@ export const ZIWEI_CALCULATION_SERVICE_SECRET = Symbol(
 );
 export const ZIWEI_CALCULATION_DATABASE = Symbol("ZIWEI_CALCULATION_DATABASE");
 export const ZIWEI_QUERY_SERVICE = Symbol("ZIWEI_QUERY_SERVICE");
-export const ZIWEI_ANALYTICS_SERVICE = Symbol("ZIWEI_ANALYTICS_SERVICE");
 
 function bearerToken(authorization: string | undefined): string {
   if (authorization === undefined || !authorization.startsWith("Bearer ")) {

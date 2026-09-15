@@ -94,10 +94,13 @@ export type {
 } from "./i18n-key.js";
 
 export {
+  CANONICAL_ANALYTICS_EVENT_NAMES,
+  CanonicalAnalyticsEventNameSchema,
   AnalyticsEventV1Schema,
   AnalyticsPropertyValueSchema,
 } from "./analytics-event-v1.js";
 export type {
+  CanonicalAnalyticsEventName,
   AnalyticsEventV1,
 } from "./analytics-event-v1.js";
 
@@ -144,10 +147,20 @@ export type {
 } from "./route-v1.js";
 
 export {
+  CONSENT_DOCUMENT_KEY,
+  CURRENT_CONSENT_DOCUMENT_VERSION,
   CONSENT_DOCUMENT_VERSIONS,
+  CONSENT_PURPOSES,
+  ConsentPurposeSchema,
+  ConsentPurposesSetSchema,
   ConsentRequestV1Schema,
+  AssociateProfileRequestV1Schema,
 } from "./privacy.js";
-export type { ConsentRequestV1 } from "./privacy.js";
+export type {
+  ConsentPurpose,
+  ConsentRequestV1,
+  AssociateProfileRequestV1,
+} from "./privacy.js";
 
 export {
   BirthCalendarInputSchema,
@@ -503,6 +516,8 @@ export {
   AccountExportReportV1Schema,
   AccountExportConsentV1Schema,
   AccountExportProjectionV1Schema,
+  AccountBehaviorProfileV1Schema,
+  AccountExportAnalyticsEventV1Schema,
 } from "./account-center.js";
 export type {
   AccountCenterErrorCode,
@@ -521,6 +536,8 @@ export type {
   AccountExportReportV1,
   AccountExportConsentV1,
   AccountExportProjectionV1,
+  AccountBehaviorProfileV1,
+  AccountExportAnalyticsEventV1,
 } from "./account-center.js";
 
 export {
@@ -559,3 +576,29 @@ export type {
   ContributionMarginUnavailable,
   ContributionMarginResult,
 } from "./ai-cost-v1.js";
+export {
+  ANALYTICS_SERVICE_ISSUER,
+  ANALYTICS_SERVICE_AUDIENCE,
+  ANALYTICS_SERVICE_SUBJECT,
+  ANALYTICS_SERVICE_COMMAND,
+  ANALYTICS_BODY_BINDING_PREFIX,
+  DeviceClassSchema,
+  BrowserAnalyticsEventRequestV1Schema,
+  PrivateAnalyticsIngestRequestV1Schema,
+  canonicalizeAnalyticsIngestRequest,
+  AnalyticsServiceClaimsSchema,
+  AnalyticsIngestSuccessV1Schema,
+  AnalyticsIngestErrorCodeSchema,
+  AnalyticsIngestErrorV1Schema,
+  AnalyticsIngestResponseV1Schema,
+} from "./analytics-ingest.js";
+export type {
+  DeviceClass,
+  BrowserAnalyticsEventRequestV1,
+  PrivateAnalyticsIngestRequestV1,
+  AnalyticsServiceClaims,
+  AnalyticsIngestSuccessV1,
+  AnalyticsIngestErrorCode,
+  AnalyticsIngestErrorV1,
+  AnalyticsIngestResponseV1,
+} from "./analytics-ingest.js";

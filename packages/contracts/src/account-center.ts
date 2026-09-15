@@ -120,10 +120,49 @@ export type AccountDeletionRequestSummaryV1 = z.infer<
   typeof AccountDeletionRequestSummaryV1Schema
 >;
 
+
+export const AccountBehaviorProfileV1Schema = z
+  .object({
+    version: z.literal(1),
+    accountId: z.string().trim().min(1).max(128),
+    lockedSectionsViewed: z.array(z.string().trim().min(1).max(64)).max(50),
+    topupPacksViewed: z.array(z.string().trim().min(1).max(64)).max(20),
+    laBalance: z.number().int().nonnegative().nullable(),
+    lastReturnAt: z.string().datetime({ offset: true }).nullable(),
+    reportReadDepthPercent: z.number().int().min(0).max(100).nullable(),
+    interestTopics: z.array(z.string().trim().min(1).max(64)).max(20),
+    updatedAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+export type AccountBehaviorProfileV1 = z.infer<
+  typeof AccountBehaviorProfileV1Schema
+>;
+
+export const AccountExportAnalyticsEventV1Schema = z
+  .object({
+    id: z.string().trim().min(1).max(128),
+    name: z.string().trim().min(1).max(64),
+    properties: z.record(
+      z.string().trim().min(1).max(64),
+      z.union([
+        z.string().max(256),
+        z.number().finite(),
+        z.boolean(),
+        z.null(),
+      ]),
+    ),
+    occurredAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+export type AccountExportAnalyticsEventV1 = z.infer<
+  typeof AccountExportAnalyticsEventV1Schema
+>;
+
 export const AccountPrivacyProjectionV1Schema = z
   .object({
     consents: z.array(AccountConsentItemV1Schema).max(50),
     deletionRequest: AccountDeletionRequestSummaryV1Schema.nullable(),
+    analyticsOptIn: z.boolean().optional(),
   })
   .strict();
 export type AccountPrivacyProjectionV1 = z.infer<
@@ -282,6 +321,8 @@ export const AccountExportProjectionV1Schema = z
     orders: z.array(AccountExportOrderV1Schema).max(100),
     reports: z.array(AccountExportReportV1Schema).max(50),
     consents: z.array(AccountExportConsentV1Schema).max(50),
+    analyticsEvents: z.array(AccountExportAnalyticsEventV1Schema).max(500).optional(),
+    behaviorProfile: AccountBehaviorProfileV1Schema.nullable().optional(),
     deletionRequest: AccountDeletionRequestSummaryV1Schema.nullable(),
   })
   .strict();
