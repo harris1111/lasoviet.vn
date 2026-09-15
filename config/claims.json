@@ -1,0 +1,545 @@
+{
+  "$schema": "https://lasoviet.net/schemas/claims-registry.v1.json",
+  "schemaVersion": 1,
+  "claims": [
+    {
+      "id": "privacy-birth-data-processing",
+      "topic": "privacy",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Thông tin hồ sơ sinh được dùng để lập lá số và lưu hồ sơ; cùng với dữ liệu hành vi đã có đồng ý, dữ liệu này phục vụ phân tích sử dụng, cá nhân hóa, gợi ý dịch vụ và ưu đãi phù hợp.",
+        "en": "Birth inputs are used for chart generation and profile storage; together with consented interaction data, they support usage analytics, personalization, and relevant service and offer suggestions."
+      },
+      "authorities": [
+        "FD-020",
+        "FD-081",
+        "AGENTS.md"
+      ],
+      "placements": [
+        {
+          "routeId": "trust.privacy",
+          "sourcePath": "content/public/vi/pages/privacy.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "1. Nhóm dữ liệu thu thập: Thông tin tài khoản (email, họ tên), dữ liệu hồ sơ sinh (ngày, giờ, nơi sinh, giới tính), dữ liệu kỹ thuật và hành vi (địa chỉ IP, loại thiết bị, đường dẫn, thông số UTM), lịch sử đơn hàng và đọc báo cáo.",
+            "2. Mục đích xử lý: Cung cấp dịch vụ lập lá số và lưu hồ sơ (birth_profile), phân tích việc sử dụng sản phẩm (analytics), cá nhân hoá nội dung (personalization), gợi ý dịch vụ và ưu đãi phù hợp (offers), bảo vệ an ninh phòng chống gian lận và đo lường kinh doanh tổng hợp."
+          ]
+        },
+        {
+          "routeId": "wizard.tu-vi",
+          "sourcePath": "apps/web/src/features/birth-profile/birth-profile-form.tsx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "privacy-anonymous-retention-24h",
+      "topic": "privacy",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Hồ sơ sinh và lá số tạo dưới phiên khách ẩn danh chưa liên kết tài khoản sẽ tự động hết hạn và bị xóa hoàn toàn sau 24 giờ.",
+        "en": "Anonymous guest birth profiles and charts not linked to a verified account automatically expire and are purged within 24 hours."
+      },
+      "authorities": [
+        "FD-020",
+        "AGENTS.md"
+      ],
+      "placements": [
+        {
+          "routeId": "private.chart",
+          "sourcePath": "apps/web/src/app/[locale]/la-so/[chartId]/page.tsx",
+          "state": "active",
+          "sourceExcerpts": [
+            "guest data is automatically deleted after 24 hours unless linked to a verified account",
+            "dữ liệu khách tự xóa sau 24 giờ nếu chưa liên kết với tài khoản đã xác minh"
+          ]
+        },
+        {
+          "routeId": "trust.privacy",
+          "sourcePath": "content/public/vi/pages/privacy.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Hồ sơ sinh ẩn danh lưu tối đa 24 giờ và hỗ trợ xoá ngay lập tức."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "privacy-ai-provider-processing",
+      "topic": "privacy",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Phần AI luận giải chạy trên hạ tầng do chính Lá Số Việt vận hành; lá số không rời khỏi hệ thống Lá Số Việt tự quản lý để được xử lý.",
+        "en": "AI interpretation runs on infrastructure La So Viet operates directly; your chart does not leave a system La So Viet manages to be processed."
+      },
+      "authorities": [
+        "FD-026",
+        "FD-035"
+      ],
+      "placements": [
+        {
+          "routeId": "methodology.ai-evidence",
+          "sourcePath": "content/public/vi/pages/method.ai-evidence.mdx",
+          "state": "planned"
+        },
+        {
+          "routeId": "trust.privacy",
+          "sourcePath": "content/public/vi/pages/privacy.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Phần AI luận giải chạy trên hạ tầng do chính Lá Số Việt vận hành, không phải một dịch vụ bên ngoài mà chúng tôi không kiểm soát được — lá số của bạn không rời khỏi hệ thống chúng tôi tự quản lý để được xử lý."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "privacy-measurement-account-linked",
+      "topic": "privacy",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Trước khi chấp thuận hoặc đăng nhập, dữ liệu hành vi dùng cookie bên thứ nhất HTTP-only visitor_id; chấp thuận trong wizard hoặc đăng nhập sẽ liên kết lịch sử visitor với hồ sơ sinh, phiên ẩn danh hoặc tài khoản xác thực. Dữ liệu visitor và sự kiện chưa liên kết được xóa sau tối đa 30 ngày.",
+        "en": "Before consent or sign-in, interaction data uses a first-party HTTP-only visitor_id cookie; wizard consent or sign-in links visitor history to the birth profile, anonymous session context, or authenticated account. Unlinked visitor and event records are deleted after at most 30 days."
+      },
+      "authorities": [
+        "FD-081"
+      ],
+      "placements": [
+        {
+          "routeId": "trust.privacy",
+          "sourcePath": "content/public/vi/pages/privacy.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Trước khi chấp thuận hoặc đăng nhập, hành vi được gắn với cookie bên thứ nhất HTTP-only visitor_id.",
+            "Chấp thuận consent trong wizard ở phiên ẩn danh sẽ liên kết lịch sử visitor với hồ sơ sinh và ngữ cảnh phiên ẩn danh, không tự tạo hoặc hàm ý tài khoản xác thực.",
+            "Dữ liệu visitor và sự kiện chưa liên kết được thanh lọc sau tối đa 30 ngày."
+          ]
+        },
+        {
+          "routeId": "wizard.tu-vi",
+          "sourcePath": "apps/web/src/features/birth-profile/birth-profile-form.tsx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "privacy-third-party-boundary",
+      "topic": "privacy",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Các công cụ phân tích bên thứ ba không bao giờ nhận họ tên, ngày giờ sinh chính xác, câu hỏi tự do hoặc mã lá số của người dùng.",
+        "en": "Third-party analytics tools never receive customer name, exact birth date/time/place, free-text questions, or chart IDs."
+      },
+      "authorities": [
+        "FD-053"
+      ],
+      "placements": [
+        {
+          "routeId": "trust.privacy",
+          "sourcePath": "content/public/vi/pages/privacy.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "các đối tác phân tích hoặc xuất dữ liệu bên thứ ba không nhận được họ tên, email, ngày/giờ/nơi sinh chính xác, câu hỏi tự do, chart_id, profile_id, nội dung luận giải, bằng chứng tính toán, địa chỉ IP thô hoặc khoá định danh nội bộ"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "privacy-export-and-deletion",
+      "topic": "privacy",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Người dùng có thể xuất dữ liệu tài khoản dưới dạng JSON và yêu cầu xóa tài khoản với thời hạn khôi phục 30 ngày.",
+        "en": "Users can export account data as JSON and request account deletion with a 30-day recovery window."
+      },
+      "authorities": [
+        "FD-015",
+        "FD-020",
+        "AGENTS.md"
+      ],
+      "placements": [
+        {
+          "routeId": "private.account.privacy",
+          "sourcePath": "apps/web/src/app/[locale]/tai-khoan/quyen-rieng-tu/page.tsx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Tải toàn bộ hồ sơ lá số, báo cáo đã mua, lịch sử sử dụng và hồ sơ hành vi tài khoản dưới dạng một file JSON.",
+            "Thời gian khôi phục 30 ngày"
+          ]
+        },
+        {
+          "routeId": "trust.privacy",
+          "sourcePath": "content/public/vi/pages/privacy.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Bạn có quyền xuất dữ liệu tài khoản dưới dạng file JSON, yêu cầu xoá tài khoản với thời gian khôi phục 30 ngày"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "payment-vietqr-sepay",
+      "topic": "payment",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Trang thanh toán chuyển khoản hiển thị mã VietQR, nội dung chuyển khoản và mã đơn thanh toán.",
+        "en": "Bank transfer checkout displays a VietQR image, transfer description, and payment order code."
+      },
+      "authorities": [
+        "FD-030",
+        "FD-044",
+        "AGENTS.md"
+      ],
+      "placements": [
+        {
+          "routeId": "private.checkout",
+          "sourcePath": "apps/web/src/features/commerce/vietqr-checkout.tsx",
+          "state": "active",
+          "sourceExcerpts": [
+            "src={instructions.qrUrl}",
+            "<span>{instructions.transferDescription}</span>",
+            "{orderSummaryCode}: <code>{status.order.paymentCode}</code>"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "payment-real-qr-expiry",
+      "topic": "payment",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Thời gian đếm ngược trên mã VietQR phản ánh thời hạn hiệu lực thực tế từ máy chủ của đơn hàng, không phải đồng hồ ảo tạo áp lực mua hàng.",
+        "en": "The countdown on the checkout VietQR displays actual server-enforced order validity time, not a fabricated scarcity timer."
+      },
+      "authorities": [
+        "FD-030",
+        "FD-043",
+        "FD-064"
+      ],
+      "placements": [
+        {
+          "routeId": "private.checkout",
+          "sourcePath": "apps/web/src/features/commerce/vietqr-checkout.tsx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Math.ceil((Date.parse(expiresAt) - nowMs) / 1_000)",
+            "<time dateTime={instructions.expiresAt}>{remainingTime}</time>"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "payment-self-claim",
+      "topic": "payment",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Khi chuyển khoản bị sai nội dung, khách hàng có thể tự nhận khoản thanh toán bằng cách nhập số tiền chính xác và thời gian chuyển trong khoảng ±15 phút.",
+        "en": "If transfer memo matching fails, customers can self-claim payment by providing the exact amount and transfer timestamp within a ±15 minute window."
+      },
+      "authorities": [
+        "FD-045"
+      ],
+      "placements": [
+        {
+          "routeId": "private.checkout",
+          "sourcePath": "apps/web/src/features/commerce/payment-self-claim-form.tsx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "payment-unmatched-funds",
+      "topic": "payment",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Khoản tiền chuyển khoản không thể khớp tự động và chưa có đường hoàn tiền ngân hàng tự động sẽ được lưu giữ vô thời hạn để khách hàng tự nhận.",
+        "en": "Unmatched transfer funds without automated bank refund capabilities remain held indefinitely pending customer self-claim."
+      },
+      "authorities": [
+        "FD-046"
+      ],
+      "placements": [
+        {
+          "routeId": "support.faq",
+          "sourcePath": "content/public/vi/pages/faq.mdx",
+          "state": "planned"
+        },
+        {
+          "routeId": "private.checkout",
+          "sourcePath": "apps/web/src/features/commerce/vietqr-checkout.tsx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "payment-retry-idempotency",
+      "topic": "payment",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Mọi yêu cầu xử lý thanh toán và xác nhận webhook được thiết kế bất biến và xử lý lặp lại an toàn (idempotent), không ghi trùng biên nhận hay trừ tiền hai lần.",
+        "en": "All payment processing and webhook notifications are idempotent with append-only receipts, preventing duplicate fulfillment or charge processing."
+      },
+      "authorities": [
+        "FD-043",
+        "AGENTS.md"
+      ],
+      "placements": [
+        {
+          "routeId": "private.checkout",
+          "sourcePath": "apps/web/src/features/commerce/vietqr-checkout.tsx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "la-credit-validity",
+      "topic": "la",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Lá đã mua không hết hạn trong phiên bản hiện tại; Lá không thể chuyển nhượng và không thể quy đổi rút ra tiền mặt.",
+        "en": "Purchased La does not expire in the current release; La is non-transferable and cannot be cashed out."
+      },
+      "authorities": [
+        "FD-061"
+      ],
+      "placements": [
+        {
+          "routeId": "support.faq",
+          "sourcePath": "content/public/vi/pages/faq.mdx",
+          "state": "planned"
+        },
+        {
+          "routeId": "trust.terms",
+          "sourcePath": "content/public/vi/pages/terms.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "VND được quy đổi thành Lá — một loại tín dụng dịch vụ dùng để mở nội dung, không chuyển nhượng được, không rút lại thành tiền mặt.",
+            "Lá đã mua không hết hạn ở phiên bản hiện tại."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "la-bonus-credit-validity",
+      "topic": "la",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Lá khuyến mại không hết hạn trong phiên bản hiện tại.",
+        "en": "Promotional bonus La does not expire in the current release."
+      },
+      "authorities": [
+        "FD-061"
+      ],
+      "placements": [
+        {
+          "routeId": "support.faq",
+          "sourcePath": "content/public/vi/pages/faq.mdx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "la-bonus-buckets",
+      "topic": "la",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Các gói nạp Lá lớn hơn đi kèm số lượng Lá tặng thêm; hệ thống quản lý số dư theo sổ cái bất biến và ưu tiên trừ Lá tặng trước rồi mới đến Lá mua.",
+        "en": "Larger top-up packs include promotional bonus La; the ledger tracks paid and bonus buckets separately and consumes promotional bonus credits before purchased credits."
+      },
+      "authorities": [
+        "FD-061",
+        "FD-066"
+      ],
+      "placements": [
+        {
+          "routeId": "commercial.tu-vi",
+          "sourcePath": "content/public/vi/pages/commercial.ziwei.mdx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "la-invoice-wording-draft",
+      "topic": "la",
+      "approvalState": "draft_finance",
+      "publishable": false,
+      "wording": {
+        "vi": "Dự thảo tài chính: Hóa đơn điện tử được xuất ngay khi nạp gói Lá thành công với nội dung dịch vụ nạp điểm Lá; mở khóa nội dung bằng Lá không xuất hóa đơn lần hai.",
+        "en": "Draft finance wording: Electronic invoices are issued upon top-up pack confirmation describing La service credits; unlocking content with La does not generate a second invoice."
+      },
+      "authorities": [
+        "FD-067"
+      ],
+      "placements": [
+        {
+          "routeId": "private.checkout",
+          "sourcePath": "apps/web/src/features/commerce/vietqr-checkout.tsx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "la-pricing-display",
+      "topic": "la",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Giá mở khóa và xem các nội dung luận giải hiển thị duy nhất bằng điểm Lá, không quy đổi tương đương VNĐ; giá VNĐ chỉ xuất hiện trên gói nạp và đơn thanh toán.",
+        "en": "Content unlock prices are displayed exclusively in La credits without VND equivalence; VND appears only on top-up pack selection and payment invoices."
+      },
+      "authorities": [
+        "FD-065",
+        "FD-066"
+      ],
+      "placements": [
+        {
+          "routeId": "commercial.tu-vi",
+          "sourcePath": "content/public/vi/pages/commercial.ziwei.mdx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "upgrade-seven-day-window",
+      "topic": "upgrade_refund",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Nếu nâng cấp lên mức luận giải sâu hơn trong vòng 7 ngày kể từ lần mua đầu tiên cho lá số đó, người dùng chỉ trả phần chênh lệch thay vì mua lại từ đầu.",
+        "en": "Upgrading to a deeper interpretation within 7 days of the first purchase for that chart costs only the difference instead of repurchasing from the beginning."
+      },
+      "authorities": [
+        "FD-041"
+      ],
+      "placements": [
+        {
+          "routeId": "private.chart.topic",
+          "sourcePath": "apps/web/src/app/[locale]/la-so/[chartId]/chon-luan-giai/page.tsx",
+          "state": "planned"
+        },
+        {
+          "routeId": "private.checkout",
+          "sourcePath": "apps/web/src/features/commerce/vietqr-checkout.tsx",
+          "state": "planned"
+        },
+        {
+          "routeId": "trust.terms",
+          "sourcePath": "content/public/vi/pages/terms.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Nếu bạn nâng cấp lên mức luận giải sâu hơn trong vòng 7 ngày kể từ lần mua đầu tiên cho lá số đó, bạn chỉ trả thêm phần chênh lệch thay vì mua lại từ đầu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "report-failure-refund-draft",
+      "topic": "upgrade_refund",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Nếu tạo báo cáo gặp lỗi, hệ thống tự động thử lại mà không thu thêm tiền. Nếu vẫn không tạo được, đội ngũ trực tiếp xem xét từng trường hợp và có thể tạo lại miễn phí hoặc hoàn tiền theo nguyên nhân đã xác nhận; không tự động và không có mốc thời gian cố định.",
+        "en": "If report generation fails, the system retries automatically without charging again. If it still fails, the team reviews the case and may regenerate the report at no cost or refund it depending on the confirmed cause; this is not automatic and has no fixed timeline."
+      },
+      "authorities": [
+        "FD-043",
+        "FD-046"
+      ],
+      "placements": [
+        {
+          "routeId": "trust.terms",
+          "sourcePath": "content/public/vi/pages/terms.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "chúng tôi tự động thử lại — các lần thử lại này không thu thêm tiền",
+            "chúng tôi có thể tạo lại báo cáo miễn phí hoặc hoàn tiền cho bạn",
+            "đây là quyết định xem xét theo từng trường hợp sau khi đội ngũ kiểm tra, không phải một quy trình tự động có mốc thời gian cố định"
+          ]
+        },
+        {
+          "routeId": "support.faq",
+          "sourcePath": "content/public/vi/pages/faq.mdx",
+          "state": "planned"
+        }
+      ]
+    },
+    {
+      "id": "ai-attribution-byline-no-human-review",
+      "topic": "ai_content",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Lá Số Việt biên tập",
+        "en": "Edited by La So Viet"
+      },
+      "authorities": [
+        "FD-071"
+      ],
+      "placements": [
+        {
+          "routeId": "trust.sources",
+          "sourcePath": "content/public/vi/pages/sources.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Lá Số Việt biên tập"
+          ]
+        },
+        {
+          "routeId": "brand.about",
+          "sourcePath": "apps/web/src/features/content/public-content-page.tsx",
+          "state": "active",
+          "sourceExcerpts": [
+            "locale === \"vi\" ? \"Lá Số Việt biên tập\" : \"Edited by La So Viet\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ai-no-absolute-or-scientific-claim",
+      "topic": "ai_content",
+      "approvalState": "approved",
+      "publishable": true,
+      "wording": {
+        "vi": "Nội dung không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.",
+        "en": "Content does not make certain predictions, diagnose, or replace professional advice."
+      },
+      "authorities": [
+        "FD-058",
+        "FD-064",
+        "FD-071",
+        "FD-075"
+      ],
+      "placements": [
+        {
+          "routeId": "brand.about",
+          "sourcePath": "content/public/vi/pages/about.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Nội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn."
+          ]
+        },
+        {
+          "routeId": "methodology.root",
+          "sourcePath": "content/public/vi/pages/method.mdx",
+          "state": "active",
+          "sourceExcerpts": [
+            "Nội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn."
+          ]
+        }
+      ]
+    }
+  ]
+}
