@@ -331,4 +331,276 @@ describe("createReportGenerateProcessor alert dispatching", () => {
       expect.any(Date),
     );
   });
+
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((resolvePromise) => {
+      resolve = resolvePromise;
+    });
+    return { promise, resolve };
+  }
+
+  function job(reportConfigVersion = "ziwei.comprehensive.report.v4.1-sectioned") {
+    return {
+      id: `job-${reportConfigVersion}`,
+      name: "report.generate.v2",
+      sourceEventId: `evt-${reportConfigVersion}`,
+      traceId: `trace-${reportConfigVersion}`,
+      idempotencyKey: "report-generate:00000000-0000-0000-0000-000000000002",
+      attemptCount: 1,
+      payload: {
+        reportId: "00000000-0000-0000-0000-000000000001",
+        reportVersionId: "00000000-0000-0000-0000-000000000002",
+        entitlementId: "00000000-0000-0000-0000-000000000003",
+        chartVersionId: "chart-1",
+        evidenceVersionId: "ev-1",
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+        promptVersion: "ziwei.comprehensive.prompt.v4.0.1",
+        reportConfigVersion,
+        locale: "vi",
+        sku: "ZIWEI-IDENTITY-P0",
+        asOfDate: "2026-09-12",
+        targetYear: 2026,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      },
+    };
+  }
+
+  function clockAt(initial: Date) {
+    let current = initial;
+    let callback: (() => void) | undefined;
+    return {
+      clock: {
+        now: () => current,
+        setInterval: vi.fn((next: () => void, milliseconds: number) => {
+          callback = next;
+          return "heartbeat";
+        }),
+        clearInterval: vi.fn(),
+      },
+      advance(milliseconds: number) {
+        current = new Date(current.getTime() + milliseconds);
+      },
+      tick() {
+        callback?.();
+      },
+    };
+  }
+
+  function queueFor(currentJob = job()) {
+    return {
+      claimNext: vi.fn().mockResolvedValue(currentJob),
+      renewLease: vi.fn().mockResolvedValue({ ok: true }),
+      recordRetryableFailure: vi.fn().mockResolvedValue({ ok: true }),
+      recordTerminalFailure: vi.fn().mockResolvedValue({ ok: true }),
+      markProcessed: vi.fn().mockResolvedValue({ ok: true }),
+    };
+  }
+
+  it("schedules a 120-second sectioned heartbeat, renews before expiry, and never overlaps callbacks", async () => {
+    const frozenNow = new Date("2026-09-15T00:00:00.000Z");
+    const timer = clockAt(frozenNow);
+    const firstRenewal = deferred<{ ok: true }>();
+    const secondRenewal = deferred<{ ok: true }>();
+    const generation = deferred<{ ok: true; value: Record<string, never> }>();
+    const queueStore = queueFor();
+    queueStore.renewLease
+      .mockImplementationOnce(() => firstRenewal.promise)
+      .mockImplementationOnce(() => secondRenewal.promise);
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: { startGenerating: vi.fn().mockResolvedValue({ ok: true }) } as never,
+      queueStore: queueStore as never,
+      workerId,
+      clock: timer.clock,
+      generationService: {
+        replayExisting: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        generateReport: vi.fn().mockReturnValue(generation.promise),
+      } as never,
+    });
+
+    const processing = processor.processNext();
+    await vi.waitFor(() => expect(timer.clock.setInterval).toHaveBeenCalledWith(expect.any(Function), 120_000));
+    timer.advance(120_000);
+    timer.tick();
+    timer.tick();
+    expect(queueStore.renewLease).toHaveBeenCalledTimes(1);
+    expect(queueStore.renewLease).toHaveBeenCalledWith(job().id, new Date(frozenNow.getTime() + 120_000));
+
+    firstRenewal.resolve({ ok: true });
+    await firstRenewal.promise;
+    await Promise.resolve();
+    await Promise.resolve();
+    timer.advance(120_000);
+    timer.tick();
+    expect(queueStore.renewLease).toHaveBeenCalledTimes(2);
+    secondRenewal.resolve({ ok: true });
+    generation.resolve({ ok: true, value: {} });
+
+    await expect(processing).resolves.toEqual({ processed: true });
+    expect(timer.clock.clearInterval).toHaveBeenCalledWith("heartbeat");
+  });
+
+  it("does not create a heartbeat or execution guard for the legacy configuration", async () => {
+    const timer = clockAt(new Date("2026-09-15T00:00:00.000Z"));
+    const queueStore = queueFor(job("ziwei.comprehensive.report.v4"));
+    const generateReport = vi.fn().mockResolvedValue({ ok: true, value: {} });
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: { startGenerating: vi.fn().mockResolvedValue({ ok: true }) } as never,
+      queueStore: queueStore as never,
+      workerId,
+      clock: timer.clock,
+      generationService: {
+        replayExisting: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        generateReport,
+      } as never,
+    });
+
+    await expect(processor.processNext()).resolves.toEqual({ processed: true });
+    expect(timer.clock.setInterval).not.toHaveBeenCalled();
+    expect(queueStore.renewLease).not.toHaveBeenCalled();
+    expect(generateReport.mock.calls[0]?.[0]).not.toHaveProperty("executionGuard");
+  });
+
+  it("stops stale-worker completion without recording terminal failure or an alert", async () => {
+    const timer = clockAt(new Date("2026-09-15T00:00:00.000Z"));
+    const generation = deferred<{ ok: false; error: { code: string; retryable: false } }>();
+    const leaseLoss = deferred<{ ok: false; code: "LEASE_LOST" }>();
+    const queueStore = queueFor();
+    queueStore.renewLease.mockReturnValue(leaseLoss.promise);
+    const reportService = {
+      startGenerating: vi.fn().mockResolvedValue({ ok: true }),
+      recordTerminalFailure: vi.fn().mockResolvedValue({ ok: true }),
+    };
+    const alertDispatcher = { dispatchPendingAlerts: vi.fn() };
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: reportService as never,
+      queueStore: queueStore as never,
+      workerId,
+      clock: timer.clock,
+      alertDispatcher,
+      generationService: {
+        replayExisting: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        generateReport: vi.fn().mockReturnValue(generation.promise),
+      } as never,
+    });
+
+    const processing = processor.processNext();
+    await vi.waitFor(() => expect(timer.clock.setInterval).toHaveBeenCalledTimes(1));
+    timer.advance(120_000);
+    timer.tick();
+    await vi.waitFor(() => expect(queueStore.renewLease).toHaveBeenCalledTimes(1));
+    generation.resolve({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    await Promise.resolve();
+    expect(timer.clock.clearInterval).toHaveBeenCalledWith("heartbeat");
+    leaseLoss.resolve({ ok: false, code: "LEASE_LOST" });
+
+    await expect(processing).resolves.toEqual({ processed: false });
+    expect(reportService.recordTerminalFailure).not.toHaveBeenCalled();
+    expect(alertDispatcher.dispatchPendingAlerts).not.toHaveBeenCalled();
+    expect(timer.clock.clearInterval).toHaveBeenCalledWith("heartbeat");
+  });
+
+  it("exhausts the sectioned wall clock without another renewal and suppresses success", async () => {
+    const frozenNow = new Date("2026-09-15T00:00:00.000Z");
+    const timer = clockAt(frozenNow);
+    const generation = deferred<{ ok: true; value: Record<string, never> }>();
+    const queueStore = queueFor();
+    let guardState: string | undefined;
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: { startGenerating: vi.fn().mockResolvedValue({ ok: true }) } as never,
+      queueStore: queueStore as never,
+      workerId,
+      clock: timer.clock,
+      generationService: {
+        replayExisting: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        generateReport: vi.fn((input) => {
+          guardState = input.executionGuard.state();
+          return generation.promise;
+        }),
+      } as never,
+    });
+
+    const processing = processor.processNext();
+    await vi.waitFor(() => expect(timer.clock.setInterval).toHaveBeenCalledTimes(1));
+    timer.advance(60 * 60 * 1_000);
+    timer.tick();
+    expect(queueStore.renewLease).not.toHaveBeenCalled();
+    generation.resolve({ ok: true, value: {} });
+
+    await expect(processing).resolves.toEqual({ processed: false });
+    expect(guardState).toBe("active");
+    expect(timer.clock.clearInterval).toHaveBeenCalledWith("heartbeat");
+  });
+
+  it("clears sectioned heartbeats and settles an in-flight renewal on success and generation failure", async () => {
+    for (const generationResult of [
+      { ok: true, value: {} },
+      { ok: false, error: { code: "AI_TIMEOUT", retryable: true } },
+    ] as const) {
+      const timer = clockAt(new Date("2026-09-15T00:00:00.000Z"));
+      const renewal = deferred<{ ok: true }>();
+      const queueStore = queueFor();
+      queueStore.renewLease.mockReturnValue(renewal.promise);
+      const generation = deferred<typeof generationResult>();
+      const processor = createReportGenerateProcessor({
+        database: dummyDb,
+        reportService: { startGenerating: vi.fn().mockResolvedValue({ ok: true }) } as never,
+        queueStore: queueStore as never,
+        workerId,
+        clock: timer.clock,
+        generationService: {
+          replayExisting: vi.fn().mockResolvedValue({ ok: true, value: null }),
+          generateReport: vi.fn().mockReturnValue(generation.promise),
+        } as never,
+      });
+
+      const processing = processor.processNext();
+      await vi.waitFor(() => expect(timer.clock.setInterval).toHaveBeenCalledTimes(1));
+      timer.tick();
+      generation.resolve(generationResult);
+      await Promise.resolve();
+      expect(timer.clock.clearInterval).toHaveBeenCalledWith("heartbeat");
+      renewal.resolve({ ok: true });
+      await processing;
+    }
+  });
+
+  it("cleans up the timer for replay and a thrown generation", async () => {
+    const replayTimer = clockAt(new Date("2026-09-15T00:00:00.000Z"));
+    const replayProcessor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: { startGenerating: vi.fn() } as never,
+      queueStore: queueFor() as never,
+      workerId,
+      clock: replayTimer.clock,
+      generationService: {
+        replayExisting: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+        generateReport: vi.fn(),
+      } as never,
+    });
+    await expect(replayProcessor.processNext()).resolves.toEqual({ processed: true });
+    expect(replayTimer.clock.setInterval).not.toHaveBeenCalled();
+
+    const throwTimer = clockAt(new Date("2026-09-15T00:00:00.000Z"));
+    const throwProcessor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: { startGenerating: vi.fn().mockResolvedValue({ ok: true }) } as never,
+      queueStore: queueFor() as never,
+      workerId,
+      clock: throwTimer.clock,
+      generationService: {
+        replayExisting: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        generateReport: vi.fn(() => {
+          throw new Error("generation exploded");
+        }),
+      } as never,
+    });
+    await expect(throwProcessor.processNext()).rejects.toThrow("generation exploded");
+    expect(throwTimer.clock.clearInterval).toHaveBeenCalledWith("heartbeat");
+  });
 });

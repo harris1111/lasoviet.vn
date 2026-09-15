@@ -22,11 +22,15 @@ import {
   REPORT_PROMPT_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_CONFIG_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
   REPORT_TIMING_RULE_VERSION_V1,
   REPORT_SENSITIVITY_RULE_VERSION_V1,
   v4ReportVersions,
   v4_0_1ReportVersions,
+  v4SectionedReportVersions,
+  resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   REPORT_CONFIG_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V1,
@@ -159,6 +163,8 @@ describe("identity report config", () => {
     expect(REPORT_PROMPT_VERSION_V4).toBe("ziwei.comprehensive.prompt.v4");
     expect(REPORT_PROMPT_VERSION_V4_0_1).toBe("ziwei.comprehensive.prompt.v4.0.1");
     expect(REPORT_CONFIG_VERSION_V4).toBe("ziwei.comprehensive.report.v4");
+    expect(REPORT_CONFIG_VERSION_V4_1_SECTIONED).toBe("ziwei.comprehensive.report.v4.1-sectioned");
+    expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V1).toBe("ziwei.comprehensive.quality.v1");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V2).toBe("ziwei-comprehensive.v2");
     expect(REPORT_TIMING_RULE_VERSION_V1).toBe("ziwei.timing.v1");
     expect(REPORT_SENSITIVITY_RULE_VERSION_V1).toBe("ziwei.sensitivity.v1");
@@ -200,6 +206,26 @@ describe("identity report config", () => {
 
     expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
     expect(currentReportVersions("vi").promptVersion).toBe(REPORT_PROMPT_VERSION_V4);
+  });
+
+  it("provides an inactive sectioned V4 selection and a closed runtime policy without changing paid selection", () => {
+    expect(v4SectionedReportVersions()).toEqual({
+      family: "v4",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4.0.1",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned",
+      qualityVersion: "ziwei.comprehensive.quality.v1",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      contentVersion: "ziwei-comprehensive.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
+    expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_SECTIONED)).toEqual({
+      maximumWallClockMs: 3_600_000,
+    });
+    expect(() => resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4)).toThrow(
+      "REPORT_RUNTIME_POLICY_UNKNOWN_CONFIG",
+    );
+    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
   });
 
   it("deriveReportTimingLineage converts Date to Asia/Ho_Chi_Minh asOfDate and derives matching targetYear", () => {

@@ -50,6 +50,7 @@ export {
   reportQueueJobs,
   reportReservations,
   reportSectionCheckpoints,
+  reportSectionCheckpointRevisions,
   reportSourceSnapshots,
   reportVersions,
 } from "./schema/reports.js";

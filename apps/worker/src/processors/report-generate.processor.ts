@@ -6,6 +6,30 @@ import {
   type ReportJobQueueStore,
 } from "@lasoviet/backend";
 
+const SECTIONED_REPORT_CONFIG = "ziwei.comprehensive.report.v4.1-sectioned";
+const LEASE_HEARTBEAT_INTERVAL_MS = 120_000;
+const SECTIONED_MAXIMUM_WALL_CLOCK_MS = 60 * 60 * 1_000;
+
+export type ReportProcessorClock = {
+  now(): Date;
+  setInterval(callback: () => void, milliseconds: number): unknown;
+  clearInterval(handle: unknown): void;
+};
+
+type ReportGenerationExecutionGuard = {
+  state(): "active" | "lease_lost" | "wall_clock_exhausted";
+};
+
+type LeaseRenewingQueueStore = ReportJobQueueStore & {
+  renewLease(id: string, now?: Date): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }>;
+};
+
+const systemClock: ReportProcessorClock = {
+  now: () => new Date(),
+  setInterval: (callback, milliseconds) => setInterval(callback, milliseconds),
+  clearInterval: (handle) => clearInterval(handle as ReturnType<typeof setInterval>),
+};
+
 export function createReportGenerateProcessor(dependencies: {
   database: Database;
   reportService: ReturnType<typeof createReportService>;
@@ -20,7 +44,10 @@ export function createReportGenerateProcessor(dependencies: {
   dispatchPendingAlerts?: (
     filterKind?: "stale_payment" | "circuit_open" | "report_terminal_failure",
   ) => Promise<unknown>;
+  clock?: ReportProcessorClock;
 }) {
+  const clock = dependencies.clock ?? systemClock;
+  const queueStore = dependencies.queueStore as LeaseRenewingQueueStore;
   async function triggerImmediateAlertDispatch(): Promise<void> {
     try {
       if (dependencies.alertDispatcher?.dispatchPendingAlerts) {
@@ -64,7 +91,7 @@ export function createReportGenerateProcessor(dependencies: {
         return { ok: false, code: "JOB_RETRY_EXHAUSTED" };
       }
 
-      const nextAttemptAt = new Date(Date.now() + 30_000);
+      const nextAttemptAt = new Date(clock.now().getTime() + 30_000);
       const retryResult = await dependencies.queueStore.recordRetryableFailure(
         params.jobId,
         params.errorCode,
@@ -155,12 +182,54 @@ export function createReportGenerateProcessor(dependencies: {
         return { processed: false };
       }
 
-      const genResult = await dependencies.generationService.generateReport({
-        job: parsed.value,
-        jobId: job.id,
-        attemptNumber: job.attemptCount,
-        workerId: dependencies.workerId,
-      });
+      const isSectioned = parsed.value.payload.reportConfigVersion === SECTIONED_REPORT_CONFIG;
+      let heartbeat: unknown;
+      let renewal: Promise<void> | undefined;
+      let renewalInFlight = false;
+      let executionState: "active" | "lease_lost" | "wall_clock_exhausted" = "active";
+      const deadline = new Date(clock.now().getTime() + SECTIONED_MAXIMUM_WALL_CLOCK_MS);
+      const guard: ReportGenerationExecutionGuard = {
+        state() {
+          if (executionState === "active" && clock.now().getTime() >= deadline.getTime()) {
+            executionState = "wall_clock_exhausted";
+          }
+          return executionState;
+        },
+      };
+
+      const renew = () => {
+        if (renewalInFlight || guard.state() !== "active") return;
+        renewalInFlight = true;
+        renewal = queueStore.renewLease(job.id, clock.now())
+          .then((result) => {
+            if (!result.ok) executionState = "lease_lost";
+          })
+          .catch(() => {
+            executionState = "lease_lost";
+          })
+          .finally(() => {
+            renewalInFlight = false;
+          });
+      };
+
+      if (isSectioned) heartbeat = clock.setInterval(renew, LEASE_HEARTBEAT_INTERVAL_MS);
+      let genResult;
+      try {
+        genResult = await dependencies.generationService.generateReport({
+          job: parsed.value,
+          jobId: job.id,
+          attemptNumber: job.attemptCount,
+          workerId: dependencies.workerId,
+          ...(isSectioned ? { executionGuard: guard } : {}),
+        });
+      } finally {
+        if (heartbeat !== undefined) clock.clearInterval(heartbeat);
+        if (renewal) await renewal;
+      }
+
+      if (isSectioned && guard.state() !== "active") {
+        return { processed: false };
+      }
 
       if (genResult.ok) {
         return { processed: true };
