@@ -30,10 +30,16 @@ import {
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
   REPORT_PROMPT_VERSION_V3,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
 import type { ComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
 import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
+import {
+  VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
+  VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+} from "./comprehensive-report-writer-v4.js";
 
 function buildReport(titlePrefix = "Draft 1"): IdentityReportV1 {
   return {
@@ -1663,6 +1669,12 @@ describe("createReportGenerationService V4 generation and critic", () => {
     // Did not need rewrite budget
     expect(versionRepository.consumeRewriteBudget).not.toHaveBeenCalled();
     expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+    expect(provider.generateStructured.mock.calls[0][0].system).toBe(
+      VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+    );
+    expect(versionRepository.commitImmutableVersion.mock.calls[0][0].promptVersion).toBe(
+      REPORT_PROMPT_VERSION_V4,
+    );
   });
 
   it("rewrites once when V4 validator fails, passes re-validation/critic, and commits", async () => {
@@ -1737,7 +1749,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
     });
 
     const v4Job = createV2Job({
-      promptVersion: "ziwei.comprehensive.prompt.v4",
+      promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
     });
 
@@ -1752,6 +1764,15 @@ describe("createReportGenerationService V4 generation and critic", () => {
     // 3 calls: initial writer + rewrite writer + critic
     expect(provider.generateStructured).toHaveBeenCalledTimes(3);
     expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+    expect(provider.generateStructured.mock.calls[0][0].system).toBe(
+      VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
+    );
+    expect(provider.generateStructured.mock.calls[1][0].system).toContain(
+      VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
+    );
+    expect(versionRepository.commitImmutableVersion.mock.calls[0][0].promptVersion).toBe(
+      REPORT_PROMPT_VERSION_V4_0_1,
+    );
   });
 
   it("rewrites once when V4 critic quality fails, passes second critic, and commits", async () => {

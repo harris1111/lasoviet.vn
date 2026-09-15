@@ -17,6 +17,7 @@ export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V1 = "ziwei-comprehensive.v1" 
 
 export const REPORT_KNOWLEDGE_VERSION_V4 = "ziwei.comprehensive.knowledge.v4" as const;
 export const REPORT_PROMPT_VERSION_V4 = "ziwei.comprehensive.prompt.v4" as const;
+export const REPORT_PROMPT_VERSION_V4_0_1 = "ziwei.comprehensive.prompt.v4.0.1" as const;
 export const REPORT_CONFIG_VERSION_V4 = "ziwei.comprehensive.report.v4" as const;
 export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V2 = "ziwei-comprehensive.v2" as const;
 
@@ -117,10 +118,18 @@ export type ReportVersionSelectionV4 = {
   timingRuleVersion: typeof REPORT_TIMING_RULE_VERSION_V1;
 };
 
+export type ReportVersionSelectionV4_0_1 = Omit<
+  ReportVersionSelectionV4,
+  "promptVersion"
+> & {
+  promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1;
+};
+
 export type ReportVersionSelection =
   | ReportVersionSelectionV2
   | ReportVersionSelectionV3
-  | ReportVersionSelectionV4;
+  | ReportVersionSelectionV4
+  | ReportVersionSelectionV4_0_1;
 
 export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
 
@@ -135,6 +144,18 @@ export function v4ReportVersions(_locale: string = "vi"): ReportVersionSelection
     family: "v4",
     knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
     promptVersion: REPORT_PROMPT_VERSION_V4,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4,
+    templateVersion: REPORT_TEMPLATE_VERSION_V3,
+    contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+  };
+}
+
+export function v4_0_1ReportVersions(_locale: string = "vi"): ReportVersionSelectionV4_0_1 {
+  return {
+    family: "v4",
+    knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
+    promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
     reportConfigVersion: REPORT_CONFIG_VERSION_V4,
     templateVersion: REPORT_TEMPLATE_VERSION_V3,
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,

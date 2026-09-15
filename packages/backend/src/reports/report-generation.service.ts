@@ -3,6 +3,8 @@ import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
   CURRENT_REPORT_RENDER_VERSION,
   CURRENT_REPORT_TEMPLATE_VERSION,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
@@ -231,13 +233,24 @@ export function createReportGenerationService(
       if (!source.comprehensiveFactsV4 || !source.knowledgePacks) {
         return failAttempt("REPORT_EVIDENCE_INVALID", false);
       }
+      const promptVersion =
+        payload.promptVersion === REPORT_PROMPT_VERSION_V4 ||
+        payload.promptVersion === REPORT_PROMPT_VERSION_V4_0_1
+          ? payload.promptVersion
+          : null;
+      if (!promptVersion) {
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
 
       let writerResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReportV4>>;
       try {
         writerResult = await writeComprehensiveZiweiReportV4(
           source as ComprehensiveReportSourceV4,
           dependencies.provider,
-          { costContext: { ...baseCostContext, purpose: "report" } },
+          {
+            costContext: { ...baseCostContext, purpose: "report" },
+            promptVersion,
+          },
         );
       } catch {
         return failAttempt("AI_TIMEOUT", true);
@@ -336,7 +349,10 @@ export function createReportGenerationService(
               },
             },
             dependencies.provider,
-            { costContext: { ...baseCostContext, purpose: "report" } },
+            {
+              costContext: { ...baseCostContext, purpose: "report" },
+              promptVersion,
+            },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);

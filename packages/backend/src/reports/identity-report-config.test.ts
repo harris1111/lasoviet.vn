@@ -20,11 +20,13 @@ import {
   currentReportVersions,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_CONFIG_VERSION_V4,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
   REPORT_TIMING_RULE_VERSION_V1,
   REPORT_SENSITIVITY_RULE_VERSION_V1,
   v4ReportVersions,
+  v4_0_1ReportVersions,
   deriveReportTimingLineage,
   REPORT_CONFIG_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V1,
@@ -155,6 +157,7 @@ describe("identity report config", () => {
   it("exports V4 constants and timing/sensitivity rule strings", () => {
     expect(REPORT_KNOWLEDGE_VERSION_V4).toBe("ziwei.comprehensive.knowledge.v4");
     expect(REPORT_PROMPT_VERSION_V4).toBe("ziwei.comprehensive.prompt.v4");
+    expect(REPORT_PROMPT_VERSION_V4_0_1).toBe("ziwei.comprehensive.prompt.v4.0.1");
     expect(REPORT_CONFIG_VERSION_V4).toBe("ziwei.comprehensive.report.v4");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V2).toBe("ziwei-comprehensive.v2");
     expect(REPORT_TIMING_RULE_VERSION_V1).toBe("ziwei.timing.v1");
@@ -182,6 +185,21 @@ describe("identity report config", () => {
     expect(REPORT_CONFIG_VERSION_V3).toBe("ziwei.comprehensive.report.v3");
     expect(REPORT_TEMPLATE_VERSION_V3).toBe("ziwei-comprehensive-html.v1");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V1).toBe("ziwei-comprehensive.v1");
+  });
+
+  it("provides an inactive V4.0.1 selection with the legacy V4 config, content, template, and timing versions", () => {
+    expect(v4_0_1ReportVersions()).toEqual({
+      family: "v4",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4.0.1",
+      reportConfigVersion: "ziwei.comprehensive.report.v4",
+      templateVersion: "ziwei-comprehensive-html.v1",
+      contentVersion: "ziwei-comprehensive.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
+
+    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+    expect(currentReportVersions("vi").promptVersion).toBe(REPORT_PROMPT_VERSION_V4);
   });
 
   it("deriveReportTimingLineage converts Date to Asia/Ho_Chi_Minh asOfDate and derives matching targetYear", () => {
