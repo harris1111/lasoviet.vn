@@ -847,6 +847,103 @@ exit 0
     expect(files).toContain("daily-lookalike-20260901T023000Z.dump");
   });
 
+  it("retains pre-deploy backups by embedded timestamp across mixed release SHAs when SHA and timestamp orders conflict", () => {
+    // 11 pre-deploy backup pairs with mixed release SHAs whose lexicographic SHA order strictly conflicts with timestamp order.
+    // Oldest timestamp has highest lexicographic SHA; newest timestamp has lowest lexicographic SHA.
+    const fixtures = [
+      { sha: "ffffffffffffffffffffffffffffffffffffffff", timestamp: "20260901T010000Z" }, // oldest -> must be pruned
+      { sha: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", timestamp: "20260901T020000Z" },
+      { sha: "dddddddddddddddddddddddddddddddddddddddd", timestamp: "20260901T030000Z" },
+      { sha: "cccccccccccccccccccccccccccccccccccccccc", timestamp: "20260901T040000Z" },
+      { sha: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", timestamp: "20260901T050000Z" },
+      { sha: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", timestamp: "20260901T060000Z" },
+      { sha: "9999999999999999999999999999999999999999", timestamp: "20260901T070000Z" },
+      { sha: "8888888888888888888888888888888888888888", timestamp: "20260901T080000Z" },
+      { sha: "7777777777777777777777777777777777777777", timestamp: "20260901T090000Z" },
+      { sha: "6666666666666666666666666666666666666666", timestamp: "20260901T100000Z" },
+      { sha: "0000000000000000000000000000000000000000", timestamp: "20260901T110000Z" }, // newest -> must be retained
+    ];
+
+    for (const item of fixtures) {
+      const dumpName = `pre-deploy-${item.sha}-${item.timestamp}.dump`;
+      writeFileSync(path.join(ctx.backupDir, dumpName), "dummy-dump", { mode: 0o600 });
+      writeFileSync(path.join(ctx.backupDir, `${dumpName}.sha256`), "dummy-sha", { mode: 0o600 });
+    }
+
+    const res = runScript(ctx, "backup-postgres.sh", ["daily"]);
+    expect(res.status).toBe(0);
+
+    const files = readdirSync(ctx.backupDir);
+    const predeployDumps = files.filter((f) => /^pre-deploy-[0-9a-f]{40}-[0-9]{8}T[0-9]{6}Z\.dump$/.test(f));
+    const predeployShaFiles = files.filter((f) => /^pre-deploy-[0-9a-f]{40}-[0-9]{8}T[0-9]{6}Z\.dump\.sha256$/.test(f));
+
+    expect(predeployDumps.length).toBe(10);
+    expect(predeployShaFiles.length).toBe(10);
+
+    // Oldest valid pair must be pruned
+    const oldestDump = `pre-deploy-${fixtures[0].sha}-${fixtures[0].timestamp}.dump`;
+    expect(existsSync(path.join(ctx.backupDir, oldestDump))).toBe(false);
+    expect(existsSync(path.join(ctx.backupDir, `${oldestDump}.sha256`))).toBe(false);
+
+    // 10 newest timestamp pairs must be retained
+    for (let i = 1; i <= 10; i++) {
+      const retainedDump = `pre-deploy-${fixtures[i].sha}-${fixtures[i].timestamp}.dump`;
+      expect(existsSync(path.join(ctx.backupDir, retainedDump))).toBe(true);
+      expect(existsSync(path.join(ctx.backupDir, `${retainedDump}.sha256`))).toBe(true);
+    }
+  });
+
+  it("does not delete just-created pre-deploy backup when older archives have lexicographically higher release SHAs", () => {
+    const olderShas = [
+      "ffffffffffffffffffffffffffffffffffffffff", // oldest timestamp -> should be pruned when 11th is created
+      "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "dddddddddddddddddddddddddddddddddddddddd",
+      "cccccccccccccccccccccccccccccccccccccccc",
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "9999999999999999999999999999999999999999",
+      "8888888888888888888888888888888888888888",
+      "7777777777777777777777777777777777777777",
+      "6666666666666666666666666666666666666666",
+    ];
+
+    for (let i = 0; i < olderShas.length; i++) {
+      const idx = (i + 1).toString().padStart(2, "0");
+      const dumpName = `pre-deploy-${olderShas[i]}-20260901T0000${idx}Z.dump`;
+      writeFileSync(path.join(ctx.backupDir, dumpName), "dummy-dump", { mode: 0o600 });
+      writeFileSync(path.join(ctx.backupDir, `${dumpName}.sha256`), "dummy-sha", { mode: 0o600 });
+    }
+
+    // Create a new pre-deploy backup with VALID_SHA_PREVIOUS (0000...). Fake date outputs 20260904T023000Z.
+    const res = runScript(ctx, "backup-postgres.sh", ["pre-deploy", VALID_SHA_PREVIOUS]);
+    expect(res.status).toBe(0);
+
+    const files = readdirSync(ctx.backupDir);
+    const predeployDumps = files.filter((f) => /^pre-deploy-[0-9a-f]{40}-[0-9]{8}T[0-9]{6}Z\.dump$/.test(f));
+    const predeployShaFiles = files.filter((f) => /^pre-deploy-[0-9a-f]{40}-[0-9]{8}T[0-9]{6}Z\.dump\.sha256$/.test(f));
+
+    expect(predeployDumps.length).toBe(10);
+    expect(predeployShaFiles.length).toBe(10);
+
+    // Oldest valid pair must be pruned
+    const oldestDump = `pre-deploy-${olderShas[0]}-20260901T000001Z.dump`;
+    expect(existsSync(path.join(ctx.backupDir, oldestDump))).toBe(false);
+    expect(existsSync(path.join(ctx.backupDir, `${oldestDump}.sha256`))).toBe(false);
+
+    // Just-created backup with newest timestamp must be retained
+    const newestDump = `pre-deploy-${VALID_SHA_PREVIOUS}-20260904T023000Z.dump`;
+    expect(existsSync(path.join(ctx.backupDir, newestDump))).toBe(true);
+    expect(existsSync(path.join(ctx.backupDir, `${newestDump}.sha256`))).toBe(true);
+
+    // Remaining 9 older archives must be retained
+    for (let i = 1; i < olderShas.length; i++) {
+      const idx = (i + 1).toString().padStart(2, "0");
+      const retainedDump = `pre-deploy-${olderShas[i]}-20260901T0000${idx}Z.dump`;
+      expect(existsSync(path.join(ctx.backupDir, retainedDump))).toBe(true);
+      expect(existsSync(path.join(ctx.backupDir, `${retainedDump}.sha256`))).toBe(true);
+    }
+  });
+
   it("succeeds for standalone daily backup without a release SHA and excludes registry compose overlay", () => {
     const res = runScript(ctx, "backup-postgres.sh", ["daily"], {
       LASOVIET_RELEASE_SHA: "",

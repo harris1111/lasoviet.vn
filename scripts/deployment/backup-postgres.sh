@@ -109,20 +109,23 @@ prune_pairs() {
     fname="$(basename "$dump_path")"
     local base="${fname%.dump}"
     local is_match=0
+    local ts=""
 
     if [ "$prefix_type" = "daily" ]; then
-      if [[ "$base" =~ ^daily-[0-9]{8}T[0-9]{6}Z$ ]]; then
+      if [[ "$base" =~ ^daily-([0-9]{8}T[0-9]{6}Z)$ ]]; then
         is_match=1
+        ts="${BASH_REMATCH[1]}"
       fi
     elif [ "$prefix_type" = "pre-deploy" ]; then
-      if [[ "$base" =~ ^pre-deploy-[0-9a-f]{40}-[0-9]{8}T[0-9]{6}Z$ ]]; then
+      if [[ "$base" =~ ^pre-deploy-[0-9a-f]{40}-([0-9]{8}T[0-9]{6}Z)$ ]]; then
         is_match=1
+        ts="${BASH_REMATCH[1]}"
       fi
     fi
 
     if [ "$is_match" -eq 1 ]; then
       if [ -f "${dump_path}.sha256" ]; then
-        valid_dumps+=("$dump_path")
+        valid_dumps+=("${ts}"$'\t'"${dump_path}")
       fi
     fi
   done < <(find "$BACKUP_DIR" -maxdepth 1 -name "*.dump" -print0)
@@ -132,9 +135,9 @@ prune_pairs() {
   fi
 
   local sorted_dumps=()
-  while IFS= read -r line; do
-    [ -n "$line" ] && sorted_dumps+=("$line")
-  done < <(printf "%s\n" "${valid_dumps[@]}" | sort -r)
+  while IFS=$'\t' read -r _ts dump_path; do
+    [ -n "$dump_path" ] && sorted_dumps+=("$dump_path")
+  done < <(printf "%s\n" "${valid_dumps[@]}" | LC_ALL=C sort -t$'\t' -k1,1r -k2,2r)
 
   local total="${#sorted_dumps[@]}"
   if [ "$total" -gt "$keep_count" ]; then
