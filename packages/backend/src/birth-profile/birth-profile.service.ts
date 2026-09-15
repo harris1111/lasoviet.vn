@@ -4,6 +4,7 @@ import {
   type BirthProfileV1,
   type NormalizedBirthProfileV1,
   NormalizedBirthProfileV1Schema,
+  ReadingContextV1Schema,
   type Result,
   type ZiweiEligibilityV1,
 } from "@lasoviet/contracts";
@@ -25,7 +26,8 @@ export type BirthProfileNormalizationError =
 export type BirthProfileServiceError =
   | BirthProfileNormalizationError
   | "PROFILE_NOT_FOUND"
-  | "ANONYMOUS_EXPIRED";
+  | "ANONYMOUS_EXPIRED"
+  | "READING_CONTEXT_INVALID";
 
 export type BirthProfileServiceOptions = {
   repository: BirthProfileRepository;
@@ -300,27 +302,44 @@ export function createBirthProfileService(
     return result.ok ? result : serviceError(result.error.code);
   }
 
-  return {
-    async create(actor: CurrentActor, input: unknown) {
+  async function createWithContext(
+      actor: CurrentActor,
+      profileInput: unknown,
+      readingContext?: unknown,
+    ) {
       const currentTime = now();
       if (anonymousExpired(actor, currentTime)) {
         return serviceError("ANONYMOUS_EXPIRED");
       }
-      const result = await normalized(input);
+      const result = await normalized(profileInput);
       if (!result.ok) {
         return result;
       }
-      const record = await options.repository.create({
+      const context = readingContext === undefined
+        ? undefined
+        : ReadingContextV1Schema.safeParse(readingContext);
+      if (context !== undefined && !context.success) {
+        return serviceError("READING_CONTEXT_INVALID");
+      }
+      const record = await options.repository.createWithContext({
         actor,
         revisionNumber: 1,
         originalInput: result.value.originalInput,
         normalized: result.value,
+        ...(context === undefined ? {} : { readingContext: context.data }),
         now: currentTime,
       });
       return record === null
         ? serviceError("ANONYMOUS_EXPIRED")
         : { ok: true as const, value: profileResult(record, result.value) };
+  }
+
+  return {
+    async create(actor: CurrentActor, input: unknown) {
+      return createWithContext(actor, input);
     },
+
+    createWithContext,
 
     async read(actor: CurrentActor, profileId: string) {
       const currentTime = now();
