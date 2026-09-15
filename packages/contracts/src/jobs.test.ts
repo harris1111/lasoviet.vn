@@ -81,6 +81,14 @@ describe("ReportGenerationRequested contracts", () => {
       expect(parsed.success).toBe(false);
     });
 
+    it("rejects reading context revision IDs", () => {
+      const payload = {
+        ...createValidV1Payload(),
+        readingContextRevisionId: "reading-context-revision-1",
+      };
+      expect(ReportGenerationRequestedV1Schema.safeParse(payload).success).toBe(false);
+    });
+
     it("rejects unknown extra fields", () => {
       const payload = { ...createValidV1Payload(), extraField: "invalid" };
       const parsed = ReportGenerationRequestedV1Schema.safeParse(payload);
@@ -93,6 +101,43 @@ describe("ReportGenerationRequested contracts", () => {
       const payload = createValidV2Payload();
       const parsed = ReportGenerationRequestedV2Schema.safeParse(payload);
       expect(parsed.success).toBe(true);
+    });
+
+    it("accepts legacy payloads that omit readingContextRevisionId without adding it", () => {
+      const parsed = ReportGenerationRequestedV2Schema.safeParse(createValidV2Payload());
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data).not.toHaveProperty("readingContextRevisionId");
+      }
+    });
+
+    it("accepts explicit null readingContextRevisionId", () => {
+      const parsed = ReportGenerationRequestedV2Schema.safeParse({
+        ...createValidV2Payload(),
+        readingContextRevisionId: null,
+      });
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.readingContextRevisionId).toBeNull();
+      }
+    });
+
+    it("trims a nonblank readingContextRevisionId", () => {
+      const parsed = ReportGenerationRequestedV2Schema.safeParse({
+        ...createValidV2Payload(),
+        readingContextRevisionId: "  reading-context-revision-1  ",
+      });
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.readingContextRevisionId).toBe("reading-context-revision-1");
+      }
+    });
+
+    it("rejects invalid readingContextRevisionId values", () => {
+      for (const readingContextRevisionId of ["", "   ", 123, {}, []]) {
+        const payload = { ...createValidV2Payload(), readingContextRevisionId };
+        expect(ReportGenerationRequestedV2Schema.safeParse(payload).success).toBe(false);
+      }
     });
 
     it("requires asOfDate", () => {
@@ -195,6 +240,32 @@ describe("ReportGenerateJobEnvelope schemas", () => {
       expect(ReportGenerateJobEnvelopeV2Schema.safeParse(envelope).success).toBe(true);
     });
 
+    it("preserves omitted, null, and explicit readingContextRevisionId values", () => {
+      const legacy = ReportGenerateJobEnvelopeV2Schema.safeParse(createValidV2Envelope());
+      expect(legacy.success).toBe(true);
+      if (legacy.success) {
+        expect(legacy.data.payload).not.toHaveProperty("readingContextRevisionId");
+      }
+
+      const cleared = ReportGenerateJobEnvelopeV2Schema.safeParse({
+        ...createValidV2Envelope(),
+        payload: { ...createValidV2Payload(), readingContextRevisionId: null },
+      });
+      expect(cleared.success).toBe(true);
+      if (cleared.success) {
+        expect(cleared.data.payload.readingContextRevisionId).toBeNull();
+      }
+
+      const selected = ReportGenerateJobEnvelopeV2Schema.safeParse({
+        ...createValidV2Envelope(),
+        payload: { ...createValidV2Payload(), readingContextRevisionId: " revision-1 " },
+      });
+      expect(selected.success).toBe(true);
+      if (selected.success) {
+        expect(selected.data.payload.readingContextRevisionId).toBe("revision-1");
+      }
+    });
+
     it("rejects envelope with schemaVersion 1", () => {
       const envelope = { ...createValidV2Envelope(), schemaVersion: 1 };
       expect(ReportGenerateJobEnvelopeV2Schema.safeParse(envelope).success).toBe(false);
@@ -236,6 +307,41 @@ describe("ReportGenerateJobEnvelope schemas", () => {
         expect(parsed.data.name).toBe("report.generate.v2");
         expect(parsed.data.payload.asOfDate).toBe("2026-09-12");
         expect(parsed.data.payload.targetYear).toBe(2026);
+      }
+    });
+
+    it("preserves V2 readingContextRevisionId variants", () => {
+      const cases = [
+        {
+          envelope: createValidV2Envelope(),
+          expected: undefined,
+        },
+        {
+          envelope: {
+            ...createValidV2Envelope(),
+            payload: { ...createValidV2Payload(), readingContextRevisionId: null },
+          },
+          expected: null,
+        },
+        {
+          envelope: {
+            ...createValidV2Envelope(),
+            payload: { ...createValidV2Payload(), readingContextRevisionId: " revision-2 " },
+          },
+          expected: "revision-2",
+        },
+      ];
+
+      for (const { envelope, expected } of cases) {
+        const parsed = ReportGenerateJobEnvelopeSchema.safeParse(envelope);
+        expect(parsed.success).toBe(true);
+        if (parsed.success) {
+          if (expected === undefined) {
+            expect(parsed.data.payload).not.toHaveProperty("readingContextRevisionId");
+          } else {
+            expect(parsed.data.payload.readingContextRevisionId).toBe(expected);
+          }
+        }
       }
     });
 
