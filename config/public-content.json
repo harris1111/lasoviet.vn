@@ -617,7 +617,8 @@
       "ai_transparency"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-10"
+    "lastReviewed": "2026-09-10",
+    "body": "## Một hệ tri thức cổ, một cách trình bày rõ ràng\n\nHuyền học không phải trò đoán mò. Dù là Tử Vi, Bát Tự hay chiêm tinh phương Tây, mỗi hệ quy chiếu tại Lá Số Việt đều là kết quả của quy luật lịch pháp, phép tính nhất quán và tri thức cổ học được người xưa đúc kết qua nhiều thế kỷ. Việc của chúng tôi là giữ đúng tinh thần đó, rồi trình bày lại theo cách bạn có thể tự kiểm tra từng bước, không phải chỉ tin theo.\n\n## Bốn chặng, một đường đi rõ ràng\n\nTừ dữ liệu sinh của bạn đến một nhận định cụ thể, hệ thống đi qua bốn chặng:\n\n1. **Xác thực đầu vào:** chuẩn hóa ngày, giờ, nơi sinh và múi giờ. Thiếu dữ liệu thì nói thẳng, không đoán mò.\n2. **Khởi lập chính tông:** dựng đồ hình theo đúng quy tắc cổ điển của hệ đang áp dụng, không tự ý bẻ cong nguyên lý.\n3. **Luận giải đa tầng:** đối chiếu chéo nhiều dấu hiệu để tạo một diễn giải riêng cho lá số của bạn, không dùng văn mẫu chung chung.\n4. **Minh bạch căn cứ:** mọi nhận định quan trọng đều mở được căn cứ gốc để bạn tự kiểm chứng.\n\nTách chặng như vậy để mỗi câu trả lời đều có thể chỉ ra: nó đến từ đâu.\n\n## Hệ đang vận hành, hệ đang hoàn thiện\n\nTử Vi Đẩu Số là hệ duy nhất Lá Số Việt vận hành đầy đủ ở thời điểm này, cùng công cụ lập lá số và luận giải chuyên sâu. Bát Tự / Tứ Trụ, Chiêm tinh phương Tây và Thần Số Học đang trong giai đoạn hoàn thiện engine tính toán và bộ căn cứ luận giải trước khi phát hành. Mỗi hệ chỉ được công bố khi đã qua kiểm thử và có căn cứ minh bạch — chúng tôi không hứa trước một mốc ra mắt nào khi chưa sẵn sàng.\n\n## Khi dữ liệu chưa đủ, chúng tôi nói thẳng\n\nNếu giờ sinh chưa đủ điều kiện, hệ thống không đoán bừa để có một kết quả cho có. Đây là một ranh giới chúng tôi chủ động đặt ra, không phải một lỗi cần giấu.\n\n## Ba nguyên tắc đạo đức học thuật\n\n- **Lá số là bản đồ, bạn là người cầm lái:** chúng tôi chỉ ra quy luật vận động của thời vận để bạn chủ động phòng bị, không phán định số phận như một bản án.\n- **Không mê tín hù dọa:** không bao giờ dùng lời phán xui rủi hay \"hạn xấu\" để gieo rắc sợ hãi hay dắt mũi người xem.\n- **Rõ ràng giới hạn:** huyền học là công cụ tự soi chiếu và cố vấn tư duy, không thay thế chẩn đoán y khoa, tư vấn pháp lý hay quyết định tài chính rủi ro.\n\n## Giới hạn\n\nNội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi)."
   },
   {
     "routeId": "methodology.root",
@@ -635,7 +636,8 @@
       "ai_transparency"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Current scope\n\nThe method has four layers: normalized birth input, calculation adapter, chart contract, and bounded evidence. A published statement can therefore name the field or rule that supports it.\n\n## How to inspect it\n\nInsufficient input is not filled with a guess. The unknown-time fixture stops with TIME_UNKNOWN before the adapter runs; that is a product boundary rather than a hidden error.\n\n## Limitations\n\nThis material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi)."
   },
   {
     "routeId": "methodology.tu-vi",
@@ -653,7 +655,8 @@
       "method_variation"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-10"
+    "lastReviewed": "2026-09-10",
+    "body": "## Đọc cấu trúc bản mệnh, không phán một câu về số phận\n\nTử Vi Đẩu Số nhìn con người qua nhiều mối liên hệ: cung vị, chính tinh, phụ tinh, tứ hóa và cách chúng cùng tạo thành một cấu trúc riêng. Lá Số Việt giữ đúng phần cốt lõi của phương pháp cổ học đã tồn tại qua nhiều thế kỷ, rồi diễn giải bằng ngôn ngữ đủ rõ để bạn có thể tự đối chiếu với đời sống của mình — cùng một dữ liệu sinh, luôn cho ra cùng một lá số, không phụ thuộc vào ai đang tính hay tính vào lúc nào.\n\n## Tử Vi nhìn điều gì?\n\n- **Căn tính:** cung Mệnh và những sao liên quan gợi mở cách một người bước vào đời, phản ứng trước hoàn cảnh và phát huy thế mạnh tự nhiên.\n- **Mối liên hệ:** một cung không đứng riêng. Tam hợp, xung chiếu, nhị hợp và các liên hệ khác giúp nhìn một vấn đề từ nhiều phía thay vì kết luận vội từ một dấu hiệu.\n- **Cách chuyển hóa:** tứ hóa và các cấu trúc đi kèm cho thấy năng lượng được biểu hiện, nâng đỡ hoặc vướng mắc ra sao — đây là nơi một lá số riêng bắt đầu khác với văn mẫu chung chung.\n\nMột dấu hiệu chỉ là điểm bắt đầu. Ý nghĩa nằm trong cách các dấu hiệu đứng cạnh nhau.\n\n## Từ thời khắc sinh đến đồ hình 12 cung\n\n1. **Xác định thời khắc:** ngày, giờ và nơi sinh tạo nên điểm khởi đầu. Nếu giờ sinh chưa rõ, cần nói rõ giới hạn thay vì đoán thay người dùng.\n2. **Xác lập 12 cung:** các cung được đặt theo quy tắc của hệ Tử Vi đang áp dụng, tạo thành khung để quan sát những lĩnh vực khác nhau của đời sống.\n3. **Đặt sao và tứ hóa:** chính tinh, phụ tinh, độ sáng và tứ hóa được sắp vào đúng vị trí theo phép tính của trường phái — không tự ý đổi quy tắc để lời giải nghe thuận tai hơn.\n4. **Đọc tổng thể:** nhận định được hình thành từ sự phối hợp của nhiều cung và nhiều lớp dấu hiệu. Một câu kết luận không được tách rời khỏi căn cứ tạo ra nó.\n\n## Những ca khó chúng tôi đã kiểm tra kỹ\n\nChuyển đổi âm-dương lịch, tháng nhuận, ranh giới giờ Tý sớm/muộn và múi giờ nơi sinh là những điểm dễ sai nhất khi lập lá số. Chúng tôi kiểm tra kỹ từng trường hợp này bằng các ca thử nghiệm cụ thể — không khẳng định đã khớp với mọi trường phái hay mọi cách hiệu chỉnh khác đang tồn tại. Không có một cách trình bày đẹp nào bù được một điểm khởi đầu thiếu rõ ràng, vì vậy chúng tôi luôn nói thẳng phần nào chắc, phần nào cần thận trọng.\n\n## Ba nguyên tắc khi đọc\n\n- **Đọc theo cấu trúc:** không kết luận từ một sao hoặc một cung đứng riêng. Các mối liên hệ mới tạo nên bức tranh có ý nghĩa.\n- **Nói rõ căn cứ:** mỗi nhận định quan trọng cần có phần \"Vì sao có nhận định này?\" để người đọc xem được những dấu hiệu đứng phía sau.\n- **Trao lại quyền quyết định:** lá số có thể gợi ý một khuynh hướng, nhưng không thay bạn chọn nghề, chọn người hay quyết định một việc hệ trọng.\n\n## Cho người muốn kiểm chứng sâu\n\nEngine hiện dùng: **iztro 2.6.0**, theo bộ quy tắc `ziwei.default`. Thông tin này công khai để bất kỳ ai — kể cả người am hiểu kỹ thuật — có thể tự đối chiếu.\n\n## Giới hạn\n\nNội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi)."
   },
   {
     "routeId": "methodology.tu-vi",
@@ -671,7 +674,8 @@
       "method_variation"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Current scope\n\nThe adapter is pinned to iztro 2.6.0 with ruleSetId `ziwei.default`. It maps raw palace, branch, star, brightness, and mutagen fields into canonical identifiers used by the shared contract.\n\n## How to inspect it\n\nFixtures cover calendar conversion, leap months, early and late Zi, branch transitions, and timezone provenance. They document tested current behavior; they do not validate every school or unsupported correction.\n\n## Limitations\n\nThis material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi)."
   },
   {
     "routeId": "methodology.ai-evidence",
@@ -689,7 +693,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-10"
+    "lastReviewed": "2026-09-10",
+    "body": "## Lời luận giải phải bắt đầu từ điều có thể đối chiếu\n\nMột câu chữ trôi chảy chưa đủ để nói điều gì có giá trị về bạn. Mỗi nhận định trên Lá Số Việt cần bắt đầu từ những dấu hiệu thật trên lá số, được đặt trong đúng quy tắc và đúng phạm vi. Phần diễn giải bằng AI không được tự nghĩ ra dữ liệu lá số của bạn — mọi nhận định phải bắt nguồn từ dữ liệu và quy tắc đã được tính toán trước (cung Mệnh, cung Thân, các chuyển hóa), AI không được tạo ra một lá số khác lúc diễn giải.\n\n## Ba lớp tạo nên một nhận định\n\n1. **Dấu hiệu trên lá số:** những gì được tính từ ngày, giờ, nơi sinh và đồ hình Tử Vi — cung vị, sao, tứ hóa và các mối liên hệ liên quan.\n2. **Quy tắc của phương pháp:** dấu hiệu chỉ có ý nghĩa khi được đọc trong một hệ quy tắc rõ ràng, không lấy một câu trên mạng rồi gắn vào mọi lá số.\n3. **Lời diễn giải:** câu chữ là lớp cuối cùng, có nhiệm vụ chuyển một cấu trúc khó đọc thành điều bạn có thể hiểu, đối chiếu và suy ngẫm.\n\nCâu văn có thể thay đổi. Căn cứ phía sau nó thì phải đứng vững.\n\n## Mỗi nhận định đều có thể mở ra xem\n\nMỗi ý trong bản luận giải đi kèm một nút \"Vì sao có nhận định này?\" — mở ra bốn phần: điểm xuất phát (dấu hiệu hoặc mối liên hệ đang được nhắc đến), ý nghĩa trong phương pháp, giới hạn của nhận định, và một câu hỏi tự soi chiếu. Bạn luôn thấy rõ nguồn cơn, thay vì phải tin vào một câu nói suông.\n\n## Điều AI không được làm\n\n| Không làm | Cách làm đúng |\n|---|---|\n| Kết luận bạn mắc một bệnh nào đó | Chỉ gợi ý một điểm cần quan sát trong nhịp sống và cảm xúc |\n| Quyết định bạn có thắng một vụ việc pháp lý | Khuyên bạn tìm tư vấn pháp lý khi cần |\n| Hứa một khoản tiền chắc chắn sẽ đến | Gợi mở cách nhìn về thói quen, năng lực và lựa chọn tài chính |\n| Khẳng định một mối quan hệ chắc chắn thành hay bại | Đặt câu hỏi về nhu cầu, ranh giới và cách hai bên giao tiếp |\n\nMột nhận định phải được loại bỏ hoặc viết lại nếu: không truy ngược được về dấu hiệu trên lá số, bỏ qua các mối liên hệ quan trọng, dùng ngôn ngữ chắc chắn cho một điều vốn chỉ là khuynh hướng, hoặc gợi sợ hãi để khiến người đọc mua thêm. Không phải câu nào nghe sâu sắc cũng đáng tin — một câu đúng phải nói rõ nó dựa vào đâu và dừng lại ở đâu.\n\n## Giới hạn\n\nNội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi)."
   },
   {
     "routeId": "methodology.ai-evidence",
@@ -707,7 +712,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Current scope\n\nAI does not replace chart facts. P0 evidence is built from life palace, body palace, and transformations only when ruleSetId is `ziwei.default`; every item carries limitations, risk tags, and allowed actions.\n\n## How to inspect it\n\nInterpretation must stay conditional. It can invite reflection or exploration, but it cannot infer health, legal, financial, or relationship outcomes. Readers can inspect an evidence key instead of trusting an unnamed claim.\n\n## Limitations\n\nThis material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi)."
   },
   {
     "routeId": "trust.sources",
@@ -725,7 +731,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-10"
+    "lastReviewed": "2026-09-10",
+    "body": "## Đứng trên vai những bậc tiền nhân, trình bày minh bạch\n\nTrí tuệ của Lá Số Việt không đến từ việc ghép chữ ngẫu nhiên hay tài liệu cóp nhặt trôi nổi. Dù là phương Đông hay phương Tây, mỗi hệ chúng tôi trình bày đều bắt nguồn từ tri thức được người xưa đúc kết qua nhiều thế kỷ. Trang này liệt kê những gì đứng sau nội dung bạn đang đọc — để bạn tự kiểm tra, thay vì chỉ tin vào một cái tên nghe uy tín.\n\n## Những gì đứng sau một lá số Tử Vi\n\n- **Phương pháp:** hệ Tử Vi Đẩu Số truyền thống, theo trường phái đang áp dụng hiện tại — xem chi tiết tại [Phương pháp Tử Vi](route:methodology.tu-vi).\n- **Cách tính:** vận hành qua một engine tính toán công khai phiên bản, người am hiểu kỹ thuật có thể tự đối chiếu.\n- **Kiểm thử:** các trường hợp khó — tháng nhuận, ranh giới giờ Tý, múi giờ nơi sinh — được kiểm tra bằng bộ ca thử nghiệm cụ thể trước khi phát hành, không chỉ dựa vào một lần tính thử.\n- **Biên tập:** nội dung diễn giải được đội ngũ Lá Số Việt xem xét trước khi công bố.\n\n## Những gì chúng tôi chưa thể đối chiếu đầy đủ\n\nCó những điểm khác biệt thật sự giữa các trường phái — như giờ Tý sớm/muộn hay cách tính theo giờ mặt trời thực — mà một danh mục nguồn không thể tự biến thành lời xác nhận cho mọi cách diễn giải truyền thống khác.\n\n## Giới hạn\n\nNội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi)."
   },
   {
     "routeId": "trust.sources",
@@ -743,7 +750,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Current scope\n\nThe source registry identifies brand documents, data contracts, mapping code, fixtures, and evidence rules. Every entry is repository-backed so maintainers can inspect the version that supports published scope.\n\n## How to inspect it\n\nFixture sources also identify areas without full comparison, including true-solar-time, school differences, and a reference tool's late-Zi limitation. The registry is not independent confirmation of traditional interpretation.\n\n## Limitations\n\nThis material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi)."
   },
   {
     "routeId": "brand.about",
@@ -761,7 +769,8 @@
       "brand_claims"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-10"
+    "lastReviewed": "2026-09-10",
+    "body": "## Trả lại sự tôn nghiêm cho huyền học cổ xưa\n\nMỗi người sinh ra đều mang một cấu trúc bản mệnh riêng. Giữa một thị trường tràn ngập lời phán xui rủi và văn mẫu cắt dán, Lá Số Việt chọn hướng ngược lại: xây một nền tảng tri thức chuẩn mực, nơi bạn tự soi chiếu bản thân thay vì bị phán xét.\n\n## Vì sao chúng tôi chọn con đường khó hơn\n\nNhiều nơi dùng nỗi sợ về số phận để khiến người xem hoang mang rồi trục lợi; nhiều nơi khác cắt dán tài liệu trôi nổi thành những câu chung chung, ai đọc cũng thấy giống nhau. Lá Số Việt bỏ qua lối đi tắt đó để xây một thư viện tri thức đương đại, nơi mọi nhận định đều có căn cứ và mọi câu chữ đều hướng đến việc giúp bạn hiểu mình rõ hơn.\n\n## Lá số là tấm bản đồ thời tiết, không phải bản án\n\nKhông một vì sao nào có quyền định đoạt số phận của bạn. Lá số giống một tấm bản đồ thời tiết: mưa hay nắng, thuận hay nghịch là quy luật tự nhiên của thời vận — còn mang ô, dựng nhà hay kiên nhẫn chờ trời quang mây tạnh vẫn luôn là lựa chọn của chính bạn.\n\n## Ba điều chúng tôi giữ vững\n\n- **Gốc rễ từ cổ thư:** giữ đúng phép an sao và luận giải chính thống của tiền nhân, không chắp vá văn mẫu trôi nổi trên mạng.\n- **Nói có sách, mách có chứng:** mọi nhận định đều mở được căn cứ để bạn tự kiểm tra, không phải tin theo một cái tên nghe uy tín.\n- **Định hướng, không phán xét:** chúng tôi chỉ ra khuynh hướng và điểm cần quan sát; người quyết định luôn là bạn.\n\n## Điều chúng tôi đang làm — hôm nay, không phải một ngày nào đó\n\nHiện tại, Lá Số Việt tập trung hoàn thiện một hệ duy nhất ở mức chuẩn mực: Tử Vi. Bạn có thể lập lá số miễn phí, đọc ba điểm nổi bật, rồi chọn đọc sâu hơn nếu muốn — mọi bước đều rõ giá, rõ những gì bạn nhận được, trước khi bạn quyết định. Bát Tự, Bản đồ sao phương Tây và Thần Số Học đang ở giai đoạn hoàn thiện engine và bộ căn cứ luận giải; chúng tôi thà nói thẳng \"chưa xong\" còn hơn dựng một bản xem trước giả vờ như đang hoạt động. Khi mỗi hệ sẵn sàng, nó sẽ dùng chung một hồ sơ sinh và giữ đúng chuẩn minh bạch này.\n\n## Cam kết của chúng tôi với bạn\n\n1. Bạn luôn là người cầm lái cuộc đời mình; chúng tôi chỉ đóng vai trò thắp lên ngọn hải đăng soi đường.\n2. Không dùng lời phán xui rủi hay mê tín để gieo rắc hoang mang hay dắt mũi người xem.\n3. Rõ ràng chi phí: xem lá số miễn phí, các bản luận giải chuyên sâu niêm yết giá trọn gói, thanh toán một lần, không phụ phí ẩn.\n\n## Điều chúng tôi không làm\n\nKhông phán một câu rồi để bạn tự đoán. Không dùng danh xưng chuyên gia khi chưa có căn cứ. Không hứa chắc về những gì chưa xảy ra. Không tạo áp lực để bạn mua thêm.\n\n## Giới hạn\n\nNội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi)."
   },
   {
     "routeId": "brand.about",
@@ -778,6 +787,7 @@
       "uncertainty_disclosure",
       "brand_claims"
     ],
+    "body": "## Current scope\n\nLa So Viet is a platform for building and presenting charts for Vietnamese users. This position requires technical limits, a separation of calculation and interpretation, and no unsupported expert identity.\n\n## How to inspect it\n\nOnly one P0 product is public today. Scope, evidence, and privacy are more important than claiming advance knowledge of personal outcomes.\n\n## Limitations\n\nThis material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi).",
     "status": "published",
     "lastReviewed": "2026-09-01"
   },
