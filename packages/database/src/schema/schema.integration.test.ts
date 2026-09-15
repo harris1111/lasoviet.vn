@@ -1036,30 +1036,36 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.at(-2)).toMatchObject({
+    expect(journal.entries.at(-3)).toMatchObject({
       idx: 26,
       when: 1789718400000,
       tag: "0026_ai_usage_and_cost",
     });
-    expect(journal.entries.at(-1)).toMatchObject({
+    expect(journal.entries.at(-2)).toMatchObject({
       idx: 27,
       when: 1789804800000,
-      tag: "0027_account_linked_analytics",
+      tag: "0027_birth_profile_reading_context",
+    });
+    expect(journal.entries.at(-1)).toMatchObject({
+      idx: 28,
+      when: 1789891200000,
+      tag: "0028_account_linked_analytics",
     });
   });
 
-  it("applies 0026 AI cost and 0027 analytics to a clean database", async () => {
+  it("applies 0026 AI cost, 0027 reading context, and 0028 analytics to a clean database", async () => {
     const client = postgres(databaseUrl);
 
     const migrations = await client<{ created_at: string }[]>`
       SELECT created_at
       FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1789718400000, 1789804800000)
+      WHERE created_at IN (1789718400000, 1789804800000, 1789891200000)
       ORDER BY created_at ASC
     `;
     expect(migrations.map((migration) => Number(migration.created_at))).toEqual([
       1789718400000,
       1789804800000,
+      1789891200000,
     ]);
 
     const tables = await client<{ table_name: string }[]>`
@@ -1090,27 +1096,27 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades only 0027 from the 0026 AI cost boundary without losing AI data", async () => {
+  it("upgrades only 0028 from the 0027 reading-context boundary without losing AI data", async () => {
     const client = postgres(databaseUrl);
 
-    // Simulate a database that has completed the AI-cost migration but not analytics.
+    // Simulate a database that has completed ReadingContext but not analytics.
     await client`DROP TABLE IF EXISTS analytics_events CASCADE`;
     await client`DROP TABLE IF EXISTS analytics_visitors CASCADE`;
     await client`DROP TABLE IF EXISTS account_behavior_profiles CASCADE`;
     await client`DROP TABLE IF EXISTS analytics_fraud_ip_records CASCADE`;
-    await client`DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1789804800000`;
+    await client`DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1789891200000`;
 
     const [latestBefore] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestBefore?.created_at)).toBe(1789718400000);
+    expect(Number(latestBefore?.created_at)).toBe(1789804800000);
 
     await runMigrations(databaseUrl);
 
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1789804800000);
+    expect(Number(latestAfter?.created_at)).toBe(1789891200000);
 
     const [analyticsTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (

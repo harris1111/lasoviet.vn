@@ -28,11 +28,13 @@ export const PublicContentV1Schema = z
     riskTags: z.array(z.string().trim().min(1)),
     status: z.enum(["draft", "reviewed", "published", "archived"]),
     lastReviewed: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    body: z.string().trim().min(1).optional(),
   })
   .strict()
   .superRefine((content, context) => {
-    for (const field of ["title", "summary"] as const) {
-      if (forbiddenPlaceholder.test(content[field])) {
+    for (const field of ["title", "summary", "body"] as const) {
+      const value = content[field];
+      if (value !== undefined && forbiddenPlaceholder.test(value)) {
         context.addIssue({
           code: "custom",
           path: [field],
