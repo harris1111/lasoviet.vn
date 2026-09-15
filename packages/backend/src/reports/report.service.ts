@@ -25,6 +25,10 @@ import {
 export type ReportJobQueueStore = {
   enqueue(job: QueueJob): Promise<void>;
   claimNext(now?: Date): Promise<typeof reportQueueJobs.$inferSelect | null>;
+  renewLease(
+    id: string,
+    now?: Date,
+  ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }>;
   recordRetryableFailure(
     id: string,
     code: string,
@@ -137,6 +141,30 @@ export function createDatabaseReportQueueStore(
           availableAt: nextAttemptAt,
           leasedBy: null,
           leasedUntil: null,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(reportQueueJobs.id, id),
+            eq(reportQueueJobs.status, "leased"),
+            eq(reportQueueJobs.leasedBy, workerId),
+            gt(reportQueueJobs.leasedUntil, now),
+          ),
+        )
+        .returning();
+
+      if (!updated) return { ok: false, code: "LEASE_LOST" };
+      return { ok: true };
+    },
+
+    async renewLease(
+      id: string,
+      now: Date = new Date(),
+    ): Promise<{ ok: true } | { ok: false; code: "LEASE_LOST" }> {
+      const [updated] = await database
+        .update(reportQueueJobs)
+        .set({
+          leasedUntil: new Date(now.getTime() + REPORT_QUEUE_CLAIM_LEASE_MS),
           updatedAt: now,
         })
         .where(

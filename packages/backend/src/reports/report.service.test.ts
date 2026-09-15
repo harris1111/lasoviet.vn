@@ -1,5 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
-import { createReportService } from "./report.service.js";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { eq } from "drizzle-orm";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  createDatabase,
+  reportQueueJobs,
+  runMigrations,
+} from "@lasoviet/database";
+import {
+  createDatabaseReportQueueStore,
+  createReportService,
+} from "./report.service.js";
 
 describe("createReportService terminal recovery", () => {
   function createMockTx(options: {
@@ -375,4 +385,101 @@ describe("createReportService terminal recovery", () => {
     expect(insertedValues).toHaveLength(0);
   });
 
+});
+
+describe("createDatabaseReportQueueStore renewLease", () => {
+  const frozenNow = new Date("2026-09-15T00:00:00.000Z");
+  let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
+  let databaseUrl = "";
+  let sequence = 0;
+
+  beforeAll(async () => {
+    container = await new PostgreSqlContainer("postgres:16-alpine")
+      .withDatabase("lasoviet_report_queue_renewal_test")
+      .withUsername("lasoviet")
+      .withPassword("lasoviet")
+      .start();
+    databaseUrl = container.getConnectionUri();
+    await runMigrations(databaseUrl);
+  }, 120_000);
+
+  afterAll(async () => {
+    if (container) await container.stop();
+  }, 30_000);
+
+  function database() {
+    return createDatabase(databaseUrl);
+  }
+
+  async function insertJob(params: {
+    status: "waiting" | "retryable_failure" | "leased" | "processed";
+    leasedBy?: string | null;
+    leasedUntil?: Date | null;
+  }) {
+    sequence += 1;
+    const id = `renewal-job-${sequence}`;
+    await database().insert(reportQueueJobs).values({
+      id,
+      name: "report.generate.v2",
+      sourceEventId: `renewal-source-${sequence}`,
+      traceId: `renewal-trace-${sequence}`,
+      idempotencyKey: `renewal-idempotency-${sequence}`,
+      payload: {},
+      status: params.status,
+      attemptCount: 1,
+      availableAt: frozenNow,
+      leasedBy: params.leasedBy ?? null,
+      leasedUntil: params.leasedUntil ?? null,
+      createdAt: frozenNow,
+      updatedAt: frozenNow,
+    });
+    return id;
+  }
+
+  async function row(id: string) {
+    const [stored] = await database()
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.id, id));
+    return stored;
+  }
+
+  it("extends a live same-worker lease by exactly ten minutes", async () => {
+    const id = await insertJob({
+      status: "leased",
+      leasedBy: "worker-a",
+      leasedUntil: new Date(frozenNow.getTime() + 60_000),
+    });
+
+    await expect(
+      createDatabaseReportQueueStore(database(), "worker-a").renewLease(id, frozenNow),
+    ).resolves.toEqual({ ok: true });
+
+    expect((await row(id))?.leasedUntil).toEqual(new Date(frozenNow.getTime() + 600_000));
+  });
+
+  it.each([
+    ["expired lease", "leased", "worker-a", new Date(frozenNow.getTime() - 1)],
+    ["wrong worker", "leased", "worker-a", new Date(frozenNow.getTime() + 60_000)],
+    ["waiting status", "waiting", null, null],
+    ["retryable status", "retryable_failure", null, null],
+    ["processed status", "processed", null, null],
+  ] as const)(
+    "returns LEASE_LOST and leaves a %s row unchanged",
+    async (_label, status, leasedBy, leasedUntil) => {
+      const id = await insertJob({ status, leasedBy, leasedUntil });
+      const before = await row(id);
+      const workerId = status === "leased" && leasedBy === "worker-a" && leasedUntil === null
+        ? "worker-b"
+        : status === "leased" && leasedUntil && leasedUntil > frozenNow
+          ? "worker-b"
+          : "worker-a";
+
+      await expect(
+        createDatabaseReportQueueStore(database(), workerId).renewLease(id, frozenNow),
+      ).resolves.toEqual({ ok: false, code: "LEASE_LOST" });
+
+      expect(await row(id)).toEqual(before);
+    },
+  );
 });

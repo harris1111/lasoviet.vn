@@ -1038,25 +1038,30 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.at(-4)).toMatchObject({
+    expect(journal.entries.at(-5)).toMatchObject({
       idx: 26,
       when: 1789718400000,
       tag: "0026_ai_usage_and_cost",
     });
-    expect(journal.entries.at(-3)).toMatchObject({
+    expect(journal.entries.at(-4)).toMatchObject({
       idx: 27,
       when: 1789804800000,
       tag: "0027_birth_profile_reading_context",
     });
-    expect(journal.entries.at(-2)).toMatchObject({
+    expect(journal.entries.at(-3)).toMatchObject({
       idx: 28,
       when: 1789891200000,
       tag: "0028_account_linked_analytics",
     });
-    expect(journal.entries.at(-1)).toMatchObject({
+    expect(journal.entries.at(-2)).toMatchObject({
       idx: 29,
       when: 1789977600000,
       tag: "0029_report_section_checkpoints",
+    });
+    expect(journal.entries.at(-1)).toMatchObject({
+      idx: 30,
+      when: 1790064000000,
+      tag: "0030_report_section_checkpoint_revisions",
     });
   });
 
@@ -1088,7 +1093,8 @@ describe("database schema integration", () => {
           'analytics_events',
           'account_behavior_profiles',
           'analytics_fraud_ip_records',
-          'report_section_checkpoints'
+          'report_section_checkpoints',
+          'report_section_checkpoint_revisions'
         )
       ORDER BY table_name ASC
     `;
@@ -1100,13 +1106,14 @@ describe("database schema integration", () => {
       "analytics_events",
       "analytics_fraud_ip_records",
       "analytics_visitors",
+      "report_section_checkpoint_revisions",
       "report_section_checkpoints",
     ]);
 
     await client.end();
   });
 
-  it("upgrades 0029 from the 0028 analytics boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -1166,20 +1173,20 @@ describe("database schema integration", () => {
       createdAt: upgradeNow,
     });
 
-    await client`DROP TABLE IF EXISTS report_section_checkpoints`;
-    await client`DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1789977600000`;
+    await client`DROP TABLE IF EXISTS report_section_checkpoint_revisions`;
+    await client`DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1790064000000`;
 
     const [latestBefore] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestBefore?.created_at)).toBe(1789891200000);
+    expect(Number(latestBefore?.created_at)).toBe(1789977600000);
 
     await runMigrations(databaseUrl);
 
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1789977600000);
+    expect(Number(latestAfter?.created_at)).toBe(1790064000000);
 
     const [checkpointTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (
@@ -1188,6 +1195,21 @@ describe("database schema integration", () => {
       ) as exists
     `;
     expect(checkpointTableCheck?.exists).toBe(true);
+
+    const [revisionTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'report_section_checkpoint_revisions'
+      ) as exists
+    `;
+    expect(revisionTableCheck?.exists).toBe(true);
+
+    const [revisionForeignKey] = await client<{ delete_rule: string }[]>`
+      SELECT delete_rule
+      FROM information_schema.referential_constraints
+      WHERE constraint_name = 'report_section_checkpoint_revisions_checkpoint_fk'
+    `;
+    expect(revisionForeignKey?.delete_rule).toBe("RESTRICT");
 
     const [aiTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (

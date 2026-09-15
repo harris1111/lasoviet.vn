@@ -19,6 +19,8 @@ export const REPORT_KNOWLEDGE_VERSION_V4 = "ziwei.comprehensive.knowledge.v4" as
 export const REPORT_PROMPT_VERSION_V4 = "ziwei.comprehensive.prompt.v4" as const;
 export const REPORT_PROMPT_VERSION_V4_0_1 = "ziwei.comprehensive.prompt.v4.0.1" as const;
 export const REPORT_CONFIG_VERSION_V4 = "ziwei.comprehensive.report.v4" as const;
+export const REPORT_CONFIG_VERSION_V4_1_SECTIONED = "ziwei.comprehensive.report.v4.1-sectioned" as const;
+export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V1 = "ziwei.comprehensive.quality.v1" as const;
 export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V2 = "ziwei-comprehensive.v2" as const;
 
 export const REPORT_TIMING_RULE_VERSION_V1 = "ziwei.timing.v1" as const;
@@ -125,11 +127,21 @@ export type ReportVersionSelectionV4_0_1 = Omit<
   promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1;
 };
 
+export type ReportVersionSelectionV4Sectioned = Omit<
+  ReportVersionSelectionV4,
+  "promptVersion" | "reportConfigVersion"
+> & {
+  promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1;
+  reportConfigVersion: typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED;
+  qualityVersion: typeof REPORT_QUALITY_VERSION_COMPREHENSIVE_V1;
+};
+
 export type ReportVersionSelection =
   | ReportVersionSelectionV2
   | ReportVersionSelectionV3
   | ReportVersionSelectionV4
-  | ReportVersionSelectionV4_0_1;
+  | ReportVersionSelectionV4_0_1
+  | ReportVersionSelectionV4Sectioned;
 
 export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
 
@@ -161,6 +173,41 @@ export function v4_0_1ReportVersions(_locale: string = "vi"): ReportVersionSelec
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
     timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
   };
+}
+
+// This selection remains inactive until the founder acceptance and deployment gates pass.
+export function v4SectionedReportVersions(_locale: string = "vi"): ReportVersionSelectionV4Sectioned {
+  return {
+    family: "v4",
+    knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
+    promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+    qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
+    templateVersion: REPORT_TEMPLATE_VERSION_V3,
+    contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+  };
+}
+
+export type ReportRuntimePolicy = {
+  maximumWallClockMs: number;
+};
+
+const REPORT_RUNTIME_POLICIES: Readonly<Record<
+  typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  ReportRuntimePolicy
+>> = Object.freeze({
+  [REPORT_CONFIG_VERSION_V4_1_SECTIONED]: Object.freeze({
+    maximumWallClockMs: 60 * 60 * 1_000,
+  }),
+});
+
+export function resolveReportRuntimePolicy(reportConfigVersion: string): ReportRuntimePolicy {
+  const policy = REPORT_RUNTIME_POLICIES[
+    reportConfigVersion as keyof typeof REPORT_RUNTIME_POLICIES
+  ];
+  if (!policy) throw new Error("REPORT_RUNTIME_POLICY_UNKNOWN_CONFIG");
+  return policy;
 }
 
 export type ReportTimingLineage = {

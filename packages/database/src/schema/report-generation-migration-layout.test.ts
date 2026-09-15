@@ -238,4 +238,44 @@ describe("report generation migration layout", () => {
     expect(reportSectionCheckpoints.contentHash).toBeDefined();
     expect(reportSectionCheckpoints.activeWorkerId).toBeDefined();
   });
+
+  it("keeps checkpoint rewrite revisions append-only in migration 0030", async () => {
+    const migration = await readFile(
+      new URL("0030_report_section_checkpoint_revisions.sql", migrationRoot),
+      "utf8",
+    );
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_section_checkpoint_revisions"');
+    expect(migration).toContain('REFERENCES "report_section_checkpoints"("id") ON DELETE RESTRICT');
+    expect(migration).toContain('"rewrite_ordinal" integer NOT NULL');
+    expect(migration).toContain('"report_section_checkpoint_revisions_checkpoint_ordinal_unique"');
+    expect(migration).toContain('"report_section_checkpoint_revisions_positive_ordinal"');
+    expect(migration).toContain('"report_section_checkpoint_revisions_active_ownership"');
+    expect(migration).toContain('"report_section_checkpoint_revisions_passed_lineage"');
+    expect(migration).not.toContain("DELETE FROM");
+    expect(migration).not.toContain("UPDATE \"report_section_checkpoints\"");
+    expect(migration).not.toContain("ON DELETE CASCADE");
+  });
+
+  it("registers migration 0030 after checkpoints and exports revision schema", async () => {
+    const journal = JSON.parse(await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    )) as { entries: { idx: number; when: number; tag: string }[] };
+    const packageIndex = await readFile(new URL("../index.ts", import.meta.url), "utf8");
+    const { reportSectionCheckpointRevisions } = await import("./reports.js");
+    const previous = journal.entries.find((entry) => entry.idx === 29);
+    const revision = journal.entries.find((entry) => entry.idx === 30);
+
+    expect(previous?.tag).toBe("0029_report_section_checkpoints");
+    expect(revision).toMatchObject({
+      idx: 30,
+      tag: "0030_report_section_checkpoint_revisions",
+    });
+    expect(revision!.when).toBeGreaterThan(previous!.when);
+    expect(packageIndex).toContain("reportSectionCheckpointRevisions");
+    expect(reportSectionCheckpointRevisions.checkpointId).toBeDefined();
+    expect(reportSectionCheckpointRevisions.rewriteOrdinal).toBeDefined();
+    expect(reportSectionCheckpointRevisions.acceptedContent).toBeDefined();
+  });
 });

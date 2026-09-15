@@ -10,6 +10,7 @@ import {
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_0_1,
+  v4SectionedReportVersions,
 } from "./identity-report-config.js";
 
 describe("resolveIdentityReportVersionFamily", () => {
@@ -68,6 +69,14 @@ describe("resolveIdentityReportVersionFamily", () => {
         REPORT_KNOWLEDGE_VERSION_V4,
       ),
     ).toBeNull();
+
+    const sectioned = v4SectionedReportVersions();
+    expect(
+      resolveIdentityReportVersionFamily(
+        sectioned.promptVersion,
+        sectioned.knowledgeVersion,
+      ),
+    ).toBe("v4");
   });
 
   it("returns null for mismatched v1/v2 pairs", () => {

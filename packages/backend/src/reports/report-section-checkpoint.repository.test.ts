@@ -10,6 +10,7 @@ import {
   reportQueueJobs,
   reportReservations,
   reportSectionCheckpoints,
+  reportSectionCheckpointRevisions,
   runMigrations,
 } from "@lasoviet/database";
 import { TIER_2_ENTITLEMENT_SCOPE } from "@lasoviet/contracts";
@@ -59,6 +60,7 @@ function deferred<T = void>() {
 describe("createDatabaseReportSectionCheckpointRepository", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
   let databaseUrl = "";
+  let testDatabase: ReturnType<typeof createDatabase> | undefined;
   let queueNumber = 0;
 
   beforeAll(async () => {
@@ -76,7 +78,8 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
   }, 30_000);
 
   function database() {
-    return createDatabase(databaseUrl);
+    testDatabase ??= createDatabase(databaseUrl);
+    return testDatabase;
   }
 
   function repository() {
@@ -625,6 +628,233 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
         activeJobId: null,
         activeWorkerId: null,
       },
+    });
+  });
+
+  it("keeps passed revision overlays append-only and leaves the base checkpoint immutable", async () => {
+    const report = lineage(13);
+    const firstJob = await lease(report.reportVersionId, "rewrite-worker-one");
+    const baseClaim = await claim(13, firstJob);
+    expect(baseClaim.ok).toBe(true);
+    if (!baseClaim.ok) return;
+    await repository().markPassed({
+      ...report,
+      jobId: firstJob.id,
+      workerId: firstJob.workerId,
+      expectedStateVersion: baseClaim.value.checkpoint.stateVersion,
+      acceptedContent: overview,
+      contentHash: hash(overview),
+      providerId: "openai",
+      modelId: "gpt-5.6",
+    });
+    const [baseBefore] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, report.reportVersionId),
+    );
+    const first = await repository().claimPassedRewrite({
+      ...report, jobId: firstJob.id, workerId: firstJob.workerId, rewriteAttemptCap: 2,
+    });
+    const replay = await repository().claimPassedRewrite({
+      ...report, jobId: firstJob.id, workerId: firstJob.workerId, rewriteAttemptCap: 2,
+    });
+    expect(first).toMatchObject({ ok: true, value: { outcome: "claimed", revision: { rewriteOrdinal: 1 } } });
+    expect(replay).toMatchObject({ ok: true, value: { outcome: "claimed", revision: { rewriteOrdinal: 1 } } });
+    if (!first.ok) return;
+
+    const revisedOne = { ...overview, title: "Revision one" };
+    const passedOne = await repository().markPassedRewrite({
+      ...report, jobId: firstJob.id, workerId: firstJob.workerId, rewriteOrdinal: 1,
+      expectedStateVersion: first.value.revision.stateVersion, acceptedContent: revisedOne,
+      contentHash: hash(revisedOne), providerId: "openai", modelId: "gpt-5.6",
+    });
+    expect(passedOne).toMatchObject({ ok: true, value: { outcome: "passed", revision: { rewriteOrdinal: 1, status: "passed" } } });
+
+    const secondJob = await lease(report.reportVersionId, "rewrite-worker-two", false);
+    await handoffReservation(report.reportVersionId, firstJob.id, secondJob.id);
+    const second = await repository().claimPassedRewrite({
+      ...report, jobId: secondJob.id, workerId: secondJob.workerId, rewriteAttemptCap: 2,
+    });
+    expect(second).toMatchObject({ ok: true, value: { revision: { rewriteOrdinal: 2 } } });
+    if (!second.ok) return;
+    const revisedTwo = { ...overview, title: "Revision two" };
+    await repository().markPassedRewrite({
+      ...report, jobId: secondJob.id, workerId: secondJob.workerId, rewriteOrdinal: 2,
+      expectedStateVersion: second.value.revision.stateVersion, acceptedContent: revisedTwo,
+      contentHash: hash(revisedTwo), providerId: "openai", modelId: "gpt-5.6",
+    });
+    await expect(repository().claimPassedRewrite({
+      ...report, jobId: secondJob.id, workerId: secondJob.workerId, rewriteAttemptCap: 2,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } });
+
+    const [baseAfter] = await database().select().from(reportSectionCheckpoints).where(eq(reportSectionCheckpoints.id, baseBefore.id));
+    const revisions = await database().select().from(reportSectionCheckpointRevisions).where(
+      eq(reportSectionCheckpointRevisions.checkpointId, baseBefore.id),
+    );
+    expect(baseAfter).toMatchObject({
+      acceptedContent: overview, contentHash: hash(overview), providerId: "openai", modelId: "gpt-5.6",
+      rewriteAttemptCount: 2,
+    });
+    expect(revisions).toHaveLength(2);
+    await expect(repository().listAccepted(report.reportVersionId)).resolves.toMatchObject({
+      ok: true, value: [{ acceptedSection: { value: revisedTwo } }],
+    });
+  });
+
+  it("terminalizes a failed rewrite ordinal and blocks another provider claim at cap one", async () => {
+    const report = lineage(15);
+    const job = await lease(report.reportVersionId, "rewrite-cap-one");
+    const base = await claim(15, job);
+    expect(base.ok).toBe(true);
+    if (!base.ok) return;
+    await repository().markPassed({
+      ...report, jobId: job.id, workerId: job.workerId, expectedStateVersion: base.value.checkpoint.stateVersion,
+      acceptedContent: overview, contentHash: hash(overview), providerId: "openai", modelId: "gpt-5.6",
+    });
+    const first = await repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 1,
+    });
+    expect(first).toMatchObject({ ok: true, value: { revision: { rewriteOrdinal: 1, status: "generating" } } });
+    if (!first.ok) return;
+    await expect(repository().releaseRewriteRetryableFailure({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteOrdinal: 1,
+      expectedStateVersion: first.value.revision.stateVersion, failureCode: "AI_TIMEOUT",
+    })).resolves.toMatchObject({ ok: true, value: { status: "terminal_failure", failureCode: "AI_TIMEOUT" } });
+    await expect(repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 1,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } });
+    const revisions = await database().select().from(reportSectionCheckpointRevisions).where(
+      eq(reportSectionCheckpointRevisions.checkpointId, first.value.revision.checkpointId),
+    );
+    expect(revisions).toMatchObject([{ rewriteOrdinal: 1, status: "terminal_failure", failureCode: "AI_TIMEOUT" }]);
+  });
+
+  it("creates a distinct second rewrite ordinal when cap two remains after a failed call", async () => {
+    const report = lineage(16);
+    const job = await lease(report.reportVersionId, "rewrite-cap-two");
+    const base = await claim(16, job);
+    expect(base.ok).toBe(true);
+    if (!base.ok) return;
+    await repository().markPassed({
+      ...report, jobId: job.id, workerId: job.workerId, expectedStateVersion: base.value.checkpoint.stateVersion,
+      acceptedContent: overview, contentHash: hash(overview), providerId: "openai", modelId: "gpt-5.6",
+    });
+    const first = await repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 2,
+    });
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    await repository().releaseRewriteRetryableFailure({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteOrdinal: 1,
+      expectedStateVersion: first.value.revision.stateVersion, failureCode: "AI_TIMEOUT",
+    });
+    const second = await repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 2,
+    });
+    expect(second).toMatchObject({ ok: true, value: { revision: { rewriteOrdinal: 2, status: "generating" } } });
+    const [parent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, report.reportVersionId),
+    );
+    const revisions = await database().select().from(reportSectionCheckpointRevisions).where(
+      eq(reportSectionCheckpointRevisions.checkpointId, parent.id),
+    ).orderBy(reportSectionCheckpointRevisions.rewriteOrdinal);
+    expect(parent.rewriteAttemptCount).toBe(2);
+    expect(revisions).toMatchObject([
+      { rewriteOrdinal: 1, status: "terminal_failure", failureCode: "AI_TIMEOUT" },
+      { rewriteOrdinal: 2, status: "generating", activeJobId: job.id, activeWorkerId: job.workerId },
+    ]);
+  });
+
+  it("terminalizes a stale generating ordinal before applying the rewrite cap", async () => {
+    const report = lineage(17);
+    const firstJob = await lease(report.reportVersionId, "rewrite-stale-one");
+    const base = await claim(17, firstJob);
+    expect(base.ok).toBe(true);
+    if (!base.ok) return;
+    await repository().markPassed({
+      ...report, jobId: firstJob.id, workerId: firstJob.workerId, expectedStateVersion: base.value.checkpoint.stateVersion,
+      acceptedContent: overview, contentHash: hash(overview), providerId: "openai", modelId: "gpt-5.6",
+    });
+    const first = await repository().claimPassedRewrite({
+      ...report, jobId: firstJob.id, workerId: firstJob.workerId, rewriteAttemptCap: 1,
+    });
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    await database().update(reportQueueJobs).set({ leasedUntil: new Date(frozenNow.getTime() - 1) }).where(
+      eq(reportQueueJobs.id, firstJob.id),
+    );
+    const nextJob = await lease(report.reportVersionId, "rewrite-stale-two", false);
+    await handoffReservation(report.reportVersionId, firstJob.id, nextJob.id);
+    await expect(repository().claimPassedRewrite({
+      ...report, jobId: nextJob.id, workerId: nextJob.workerId, rewriteAttemptCap: 1,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } });
+    const [revision] = await database().select().from(reportSectionCheckpointRevisions).where(
+      eq(reportSectionCheckpointRevisions.id, first.value.revision.id),
+    );
+    expect(revision).toMatchObject({
+      rewriteOrdinal: 1,
+      status: "terminal_failure",
+      failureCode: "REWRITE_OWNER_ABANDONED",
+      activeJobId: null,
+      activeWorkerId: null,
+    });
+  });
+
+  it("does not increment a rewrite ordinal for a duplicate live-owner claim", async () => {
+    const report = lineage(18);
+    const job = await lease(report.reportVersionId, "rewrite-duplicate-owner");
+    const base = await claim(18, job);
+    expect(base.ok).toBe(true);
+    if (!base.ok) return;
+    await repository().markPassed({
+      ...report, jobId: job.id, workerId: job.workerId, expectedStateVersion: base.value.checkpoint.stateVersion,
+      acceptedContent: overview, contentHash: hash(overview), providerId: "openai", modelId: "gpt-5.6",
+    });
+    const first = await repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 2,
+    });
+    const replay = await repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 2,
+    });
+    expect(first).toMatchObject({ ok: true, value: { revision: { rewriteOrdinal: 1 } } });
+    expect(replay).toMatchObject({ ok: true, value: { revision: { rewriteOrdinal: 1 } } });
+    const [parent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, report.reportVersionId),
+    );
+    const revisions = await database().select().from(reportSectionCheckpointRevisions).where(
+      eq(reportSectionCheckpointRevisions.checkpointId, parent.id),
+    );
+    expect(parent.rewriteAttemptCount).toBe(1);
+    expect(revisions).toHaveLength(1);
+  });
+
+  it("fails closed for invalid rewrite content, hash, lineage, and corrupt history", async () => {
+    const report = lineage(19);
+    const job = await lease(report.reportVersionId, "rewrite-invalid");
+    const base = await claim(19, job);
+    expect(base.ok).toBe(true);
+    if (!base.ok) return;
+    await repository().markPassed({
+      ...report, jobId: job.id, workerId: job.workerId, expectedStateVersion: base.value.checkpoint.stateVersion,
+      acceptedContent: overview, contentHash: hash(overview), providerId: "openai", modelId: "gpt-5.6",
+    });
+    const claimed = await repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 1,
+    });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok) return;
+    await expect(repository().markPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteOrdinal: 1,
+      expectedStateVersion: claimed.value.revision.stateVersion, acceptedContent: {}, contentHash: "not-a-hash",
+      providerId: "openai", modelId: "gpt-5.6",
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_INVALID" } });
+    await expect(repository().claimPassedRewrite({
+      ...report, promptVersion: "wrong", jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 1,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_VERSION_CONFLICT" } });
+    await database().update(reportSectionCheckpointRevisions).set({
+      status: "passed", activeJobId: null, activeWorkerId: null, acceptedContent: overview,
+      contentHash: "0".repeat(64), providerId: "openai", modelId: "gpt-5.6",
+    }).where(eq(reportSectionCheckpointRevisions.id, claimed.value.revision.id));
+    await expect(repository().listAccepted(report.reportVersionId)).resolves.toMatchObject({
+      ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_CORRUPT" },
     });
   });
 });
