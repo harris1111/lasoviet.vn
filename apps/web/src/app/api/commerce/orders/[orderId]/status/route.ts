@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendServerAnalyticsEvent } from "../../../../../../analytics/server-analytics";
 
 import { privateApiClient, PrivateApiClientError } from "../../../../../../api/private-api-client";
 import {
@@ -59,6 +60,19 @@ export async function GET(
   const parsed = safeParseCheckoutStatus(result.value);
   if (!parsed.ok) {
     return new NextResponse(null, { status: 404, headers: NO_STORE_HEADERS });
+  }
+
+  if (parsed.value.order.status === "paid") {
+    await sendServerAnalyticsEvent({
+      name: "payment_confirmed",
+      idempotencyKey: `payment-confirmed:${parsed.value.order.id}`,
+      userId: actor.userId,
+      requestId: actor.requestId,
+      properties: {
+        amount: parsed.value.order.amount,
+        currency: parsed.value.order.currency,
+      },
+    });
   }
 
   return NextResponse.json(parsed.value, {

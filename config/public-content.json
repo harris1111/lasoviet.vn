@@ -860,14 +860,15 @@
     "reviewer": "privacy-reviewer",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
-      "docs/06-technical-architecture.md"
+      "docs/06-technical-architecture.md",
+      "docs/compliance/lsv-12-analytics-privacy-claim-record.md"
     ],
     "riskTags": [
       "privacy_boundary",
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-14"
   },
   {
     "routeId": "trust.privacy",
@@ -878,14 +879,15 @@
     "reviewer": "privacy-reviewer",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
-      "docs/06-technical-architecture.md"
+      "docs/06-technical-architecture.md",
+      "docs/compliance/lsv-12-analytics-privacy-claim-record.md"
     ],
     "riskTags": [
       "privacy_boundary",
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-14"
   },
   {
     "routeId": "trust.terms",

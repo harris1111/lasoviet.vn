@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createReportGenerateRunner } from "./worker.module.js";
+import { createMaintenanceRunner, createReportGenerateRunner } from "./worker.module.js";
 import { createAiProductionGate } from "@lasoviet/backend";
 
 describe("createReportGenerateRunner", () => {
@@ -269,6 +269,35 @@ describe("createReportGenerateRunner", () => {
     const runner = createReportGenerateRunner({
       costRecorder: mockRecorder,
     });
+    expect(runner).toBeDefined();
+    expect(typeof runner.runOnce).toBe("function");
+  });
+});
+
+describe("createMaintenanceRunner", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    process.env = {
+      NODE_ENV: "test",
+      SEPAY_ENV: "disabled",
+      DATABASE_URL: "postgresql://lasoviet:lasoviet@localhost:5432/lasoviet_test",
+      BETTER_AUTH_URL: "https://lasoviet.net",
+      INTERNAL_ACTOR_SECRET: "test-internal-secret",
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("throws WORKER_CONFIG_INVALID when DATABASE_URL is missing", () => {
+    delete process.env.DATABASE_URL;
+    expect(() => createMaintenanceRunner()).toThrow("WORKER_CONFIG_INVALID");
+  });
+
+  it("initializes runner successfully with analytics retention wired", () => {
+    const runner = createMaintenanceRunner();
     expect(runner).toBeDefined();
     expect(typeof runner.runOnce).toBe("function");
   });

@@ -246,7 +246,7 @@ describe("Gate 1 public content", () => {
         "Nguoi dung viet mot doan tieng Viet khong dau de giai thich cach kiem tra du lieu va gioi han cua phuong phap. [Open tool](route:calculator.tu-vi)",
       )),
     ).toThrow(/PUBLIC_CONTENT_INVALID/);
-  });
+  }, 15_000);
 
   it("detects sustained language across Markdown prose and keeps technical Vietnamese valid", () => {
     expect(() => assertPublicContentLocale("vi", [

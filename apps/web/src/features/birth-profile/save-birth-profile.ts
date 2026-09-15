@@ -18,6 +18,7 @@ import {
   CurrentActorResolutionError,
   resolveCurrentActor,
 } from "../../auth/resolve-current-actor";
+import { getOrReconcileVisitorId } from "../../analytics/visitor-cookie";
 
 export type BirthProfileSubmissionValue = {
   profileId: string;
@@ -35,6 +36,7 @@ export type BirthProfileSubmissionError =
 export type BirthProfileSubmissionDependencies = {
   resolveCurrentActor(): Promise<CurrentActor>;
   privateApiClient(actor: CurrentActor, requestId: string): PrivateApiClient;
+  getVisitorId(): Promise<string>;
 };
 
 type ApiResult<T> =
@@ -165,6 +167,16 @@ export function createBirthProfileSubmission(
     } catch (error) {
       return actorError(error);
     }
+
+    let visitorId: string;
+    try {
+      visitorId = await dependencies.getVisitorId();
+    } catch {
+      return failure("PROFILE_FORBIDDEN");
+    }
+    if (!visitorId || typeof visitorId !== "string" || visitorId.trim() === "") {
+      return failure("PROFILE_FORBIDDEN");
+    }
     const api = dependencies.privateApiClient(actor, actor.requestId);
     const consent = await api.request<ApiResult<{ id: string }>>(
       "/privacy/consents",
@@ -174,8 +186,9 @@ export function createBirthProfileSubmission(
         body: JSON.stringify({
           version: 1,
           documentKey: "privacy",
-          documentVersion: parsed.data.consentVersion,
-          purpose: "birth-profile-calculation",
+          documentVersion: "2026-09-14",
+          purposes: ["birth_profile", "analytics", "personalization", "offers"],
+          visitorId: visitorId.trim(),
         }),
       },
     );
@@ -194,12 +207,49 @@ export function createBirthProfileSubmission(
     if (!profile.ok) {
       return profileError(profile.error.code);
     }
+
+    const createdProfile = profile.value;
+
+    async function requestAssociation(): Promise<boolean> {
+      try {
+        const assocResponse = await api.request<unknown>(
+          "/privacy/associate-profile",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              version: 1,
+              visitorId: visitorId.trim(),
+              profileId: createdProfile.profileId,
+            }),
+          },
+        );
+        return (
+          typeof assocResponse === "object" &&
+          assocResponse !== null &&
+          "ok" in assocResponse &&
+          assocResponse.ok === true
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    let associated = await requestAssociation();
+    if (!associated) {
+      associated = await requestAssociation();
+    }
+
+    if (!associated) {
+      return failure("PROFILE_FORBIDDEN");
+    }
+
     return {
       ok: true,
       value: {
-        profileId: profile.value.profileId,
-        revisionId: profile.value.revisionId,
-        ziweiEligibility: profile.value.ziweiEligibility,
+        profileId: createdProfile.profileId,
+        revisionId: createdProfile.revisionId,
+        ziweiEligibility: createdProfile.ziweiEligibility,
         ...(actor.kind === "anonymous" ? { expiresAt: actor.expiresAt } : {}),
       },
     };
@@ -209,4 +259,5 @@ export function createBirthProfileSubmission(
 export const saveBirthProfile = createBirthProfileSubmission({
   resolveCurrentActor,
   privateApiClient,
+  getVisitorId: getOrReconcileVisitorId,
 });

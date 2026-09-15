@@ -28,6 +28,7 @@ export {
   createDatabaseConsentRepository,
 } from "./consent/consent.repository.js";
 export type {
+  ConsentRecordResult,
   ConsentRepository,
   RecordConsentInput,
 } from "./consent/consent.repository.js";
@@ -127,9 +128,55 @@ export {
   createAnalyticsService,
 } from "./analytics/analytics.service.js";
 export type {
+  AnalyticsExportErrorCode,
+  AnalyticsIngestErrorCode,
   AnalyticsService,
-  AnalyticsSink,
+  AnalyticsServiceOptions,
+  IngestAnalyticsEventInput,
 } from "./analytics/analytics.service.js";
+export {
+  createDatabaseAnalyticsRepository,
+} from "./analytics/analytics.repository.js";
+export type {
+  AccountBehaviorProfileRecord,
+  AnalyticsEventRecord,
+  AnalyticsFraudIpRecord,
+  AnalyticsRepository,
+  AnalyticsVisitorRecord,
+  AssociateProfileResult,
+  IngestEventRecordInput,
+  LinkVisitorResult,
+  RecordConsentResult,
+  RecordEventResult,
+  UpdateInterestTopicsResult,
+} from "./analytics/analytics.repository.js";
+export {
+  createAnalyticsRetentionService,
+} from "./analytics/analytics-retention.service.js";
+export type {
+  AnalyticsRetentionService,
+  AnalyticsRetentionSummary,
+} from "./analytics/analytics-retention.service.js";
+export {
+  isForbiddenExportKey,
+  projectEventForThirdParty,
+  projectEventsForAccountExport,
+} from "./analytics/analytics-export.js";
+export type {
+  ProjectThirdPartyResult,
+  ThirdPartyExportEvent,
+} from "./analytics/analytics-export.js";
+export {
+  APPROVED_INTEREST_TOPIC_CODES,
+  computeBehaviorProfileUpdateFromEvent,
+  isApprovedInterestTopic,
+  toAccountBehaviorProfileV1,
+} from "./analytics/account-behavior-profile.js";
+export type {
+  ApprovedInterestTopicCode,
+  BehaviorProfileUpdate,
+  ExistingBehaviorProfile,
+} from "./analytics/account-behavior-profile.js";
 export {
   buildFreeIdentityPreview,
   buildGuardedFreeIdentityPreview,

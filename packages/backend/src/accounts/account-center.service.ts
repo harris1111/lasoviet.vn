@@ -13,6 +13,11 @@ import type {
   ZiweiComprehensiveReportContentV1,
 } from "@lasoviet/contracts";
 import {
+  createAnalyticsService,
+  type AnalyticsService,
+} from "../analytics/analytics.service.js";
+import { createDatabaseAnalyticsRepository } from "../analytics/analytics.repository.js";
+import {
   AccountExportProjectionV1Schema,
   AccountOverviewProjectionV1Schema,
   AccountPrivacyProjectionV1Schema,
@@ -78,7 +83,11 @@ function exportLimitExceededError(): Result<never, AccountCenterErrorCode> {
 
 export function createAccountCenterService(
   database: Database,
+  analyticsService?: AnalyticsService,
 ): AccountCenterService {
+  const analytics = analyticsService ?? createAnalyticsService({
+    repository: createDatabaseAnalyticsRepository(database),
+  });
   async function findUser(userId: string) {
     const [user] = await database
       .select({
@@ -713,6 +722,21 @@ export function createAccountCenterService(
           }
         : null;
 
+      // 7. Analytics Events & Behavior Profile
+      const eventsResult = await analytics.listAccountExportEvents(userId);
+      if (!eventsResult.ok) {
+        if (eventsResult.error.code === "ANALYTICS_EXPORT_LIMIT_EXCEEDED") {
+          return exportLimitExceededError();
+        }
+        return notFoundError();
+      }
+
+      if (eventsResult.value.length > 500) {
+        return exportLimitExceededError();
+      }
+
+      const behaviorProfile = await analytics.getAccountBehaviorProfile(userId);
+
       const exportData: AccountExportProjectionV1 = {
         exportedAt: new Date().toISOString(),
         account: {
@@ -727,6 +751,8 @@ export function createAccountCenterService(
         orders: exportedOrders,
         reports: exportedReports,
         consents: exportedConsents,
+        analyticsEvents: eventsResult.value,
+        behaviorProfile: behaviorProfile ?? null,
         deletionRequest: exportedDeletion,
       };
 

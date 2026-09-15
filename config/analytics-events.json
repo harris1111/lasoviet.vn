@@ -1,35 +1,161 @@
 {
-  "privacy_rule": "Never send name, birth date/time/place, chart JSON, evidence text or report content to analytics.",
+  "privacy_rule": "Never send name, email, exact birth date/time/place, free-text questions, chart_id, profile_id, report content or evidence text to analytics.",
   "canonical_funnel": [
-    "landing_view",
-    "birth_form_started",
-    "chart_created",
-    "free_summary_viewed",
-    "evidence_opened",
-    "paid_topic_selected",
-    "checkout_started",
-    "payment_completed",
+    "landing",
+    "wizard_start",
+    "wizard_step_complete",
+    "chart_success",
+    "offer_view",
+    "locked_preview_view",
+    "topup_view",
+    "pack_selected",
+    "checkout_created",
+    "payment_confirmed",
+    "la_spent",
     "report_opened",
-    "report_feedback_submitted"
+    "report_section_read",
+    "upgrade_view",
+    "upgrade_purchased",
+    "return_visit"
   ],
   "events": [
-    {"name": "landing_view", "properties": ["page_type", "method", "source_intent", "experiment_ids"]},
-    {"name": "method_selected", "properties": ["method", "entry_page"]},
-    {"name": "birth_form_started", "properties": ["method", "entry_page"]},
-    {"name": "birth_form_error", "properties": ["method", "field_group", "error_code"]},
-    {"name": "chart_created", "properties": ["method", "time_precision", "engine_version"]},
-    {"name": "free_summary_viewed", "properties": ["method", "summary_version"]},
-    {"name": "evidence_opened", "properties": ["method", "claim_category"]},
-    {"name": "paid_topic_selected", "properties": ["sku", "method", "recommendation_source"]},
-    {"name": "paywall_viewed", "properties": ["sku", "price_vnd", "variant"]},
-    {"name": "checkout_started", "properties": ["sku", "price_vnd", "payment_provider"]},
-    {"name": "payment_completed", "properties": ["sku", "price_vnd", "payment_provider"]},
-    {"name": "payment_failed", "properties": ["sku", "payment_provider", "error_code"]},
-    {"name": "report_generation_completed", "properties": ["sku", "method", "duration_bucket", "report_version"]},
-    {"name": "report_opened", "properties": ["sku", "method", "days_since_purchase"]},
-    {"name": "report_downloaded", "properties": ["sku", "format"]},
-    {"name": "report_feedback_submitted", "properties": ["sku", "helpfulness_rating", "safety_category", "report_version"]},
-    {"name": "support_requested", "properties": ["category", "sku"]},
-    {"name": "profile_deleted", "properties": ["deletion_scope"]}
+    {
+      "name": "landing",
+      "properties": [
+        "landing_page",
+        "locale",
+        "referrer_host",
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_content",
+        "utm_term",
+        "device_category"
+      ]
+    },
+    {
+      "name": "wizard_start",
+      "properties": [
+        "locale",
+        "entry_point",
+        "step"
+      ]
+    },
+    {
+      "name": "wizard_step_complete",
+      "properties": [
+        "step",
+        "step_name",
+        "time_precision",
+        "calendar_type"
+      ]
+    },
+    {
+      "name": "chart_success",
+      "properties": [
+        "time_precision",
+        "engine_version",
+        "has_solar_time",
+        "is_dst"
+      ]
+    },
+    {
+      "name": "offer_view",
+      "properties": [
+        "offer_id",
+        "placement",
+        "sku"
+      ]
+    },
+    {
+      "name": "locked_preview_view",
+      "properties": [
+        "section_id",
+        "sku"
+      ]
+    },
+    {
+      "name": "topup_view",
+      "properties": [
+        "pack_id",
+        "placement"
+      ]
+    },
+    {
+      "name": "pack_selected",
+      "properties": [
+        "pack_id",
+        "price_vnd",
+        "la_amount"
+      ]
+    },
+    {
+      "name": "checkout_created",
+      "properties": [
+        "sku",
+        "pack_id",
+        "amount",
+        "currency"
+      ]
+    },
+    {
+      "name": "payment_confirmed",
+      "properties": [
+        "sku",
+        "pack_id",
+        "amount",
+        "currency",
+        "payment_method"
+      ]
+    },
+    {
+      "name": "la_spent",
+      "properties": [
+        "sku",
+        "amount",
+        "balance_after",
+        "feature_id"
+      ]
+    },
+    {
+      "name": "report_opened",
+      "properties": [
+        "sku",
+        "report_version",
+        "days_since_purchase"
+      ]
+    },
+    {
+      "name": "report_section_read",
+      "properties": [
+        "sku",
+        "section_id",
+        "read_depth_percent"
+      ]
+    },
+    {
+      "name": "upgrade_view",
+      "properties": [
+        "source_sku",
+        "target_sku",
+        "days_remaining"
+      ]
+    },
+    {
+      "name": "upgrade_purchased",
+      "properties": [
+        "source_sku",
+        "target_sku",
+        "amount",
+        "currency"
+      ]
+    },
+    {
+      "name": "return_visit",
+      "properties": [
+        "days_since_last_visit",
+        "return_count"
+      ]
+    }
   ]
 }

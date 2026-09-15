@@ -14,14 +14,15 @@
   "sourceIds": [
     "brand-guideline",
     "technical-architecture",
-    "source-manifest"
+    "source-manifest",
+    "lsv-12-claim-record"
   ],
   "riskTags": [
     "privacy_boundary",
     "birth_data_sensitivity"
   ],
   "status": "published",
-  "lastReviewed": "2026-09-01",
+  "lastReviewed": "2026-09-14",
   "relatedRouteIds": [
     "calculator.tu-vi",
     "knowledge.tu-vi"
@@ -33,7 +34,16 @@
 
 ## Phạm vi hiện tại
 
-Thông tin sinh có thể nhạy cảm vì nó được dùng để tạo dữ liệu lá số. Nội dung công khai mô tả nguyên tắc chỉ dùng đầu vào cần thiết, giữ provenance và cho người dùng quyền kiểm soát theo phạm vi sản phẩm.
+Thông tin sinh và dữ liệu cá nhân được bảo vệ theo các nguyên tắc minh bạch:
+
+1. Nhóm dữ liệu thu thập: Thông tin tài khoản (email, họ tên), dữ liệu hồ sơ sinh (ngày, giờ, nơi sinh, giới tính), dữ liệu kỹ thuật và hành vi (địa chỉ IP, loại thiết bị, đường dẫn, thông số UTM), lịch sử đơn hàng và đọc báo cáo.
+2. Mục đích xử lý: Cung cấp dịch vụ lập lá số và lưu hồ sơ (birth_profile), phân tích việc sử dụng sản phẩm (analytics), cá nhân hoá nội dung (personalization), gợi ý dịch vụ và ưu đãi phù hợp (offers), bảo vệ an ninh phòng chống gian lận và đo lường kinh doanh tổng hợp.
+3. Định danh và liên kết: Trước khi chấp thuận hoặc đăng nhập, hành vi được gắn với cookie bên thứ nhất HTTP-only visitor_id. Chấp thuận consent trong wizard ở phiên ẩn danh sẽ liên kết lịch sử visitor với hồ sơ sinh và ngữ cảnh phiên ẩn danh, không tự tạo hoặc hàm ý tài khoản xác thực. Khi bạn đăng nhập hoặc tạo tài khoản xác thực, lịch sử visitor được liên kết với tài khoản xác thực. Khi phiên hoặc hồ sơ ẩn danh được liên kết vào tài khoản xác thực, quyền sở hữu dữ liệu được chuyển giao theo quy trình liên kết tài khoản.
+4. Thời hạn lưu trữ: Dữ liệu visitor và sự kiện chưa liên kết được thanh lọc sau tối đa 30 ngày. Hồ sơ sinh ẩn danh lưu tối đa 24 giờ và hỗ trợ xoá ngay lập tức. Dữ liệu hành vi đã liên kết tồn tại theo vòng đời tài khoản và được thanh lọc khi xoá tài khoản hoặc dữ liệu. Địa chỉ IP thô lưu trữ 12 tháng phục vụ phân tích/cá nhân hoá và bảo mật độc lập, sau đó được gỡ bỏ khỏi sự kiện. Hoá đơn kế toán được lưu trữ riêng theo nghĩa vụ luật định.
+5. Ranh giới chia sẻ bên thứ ba: Theo ranh giới bắt buộc FD-053, các đối tác phân tích hoặc xuất dữ liệu bên thứ ba không nhận được họ tên, email, ngày/giờ/nơi sinh chính xác, câu hỏi tự do, chart_id, profile_id, nội dung luận giải, bằng chứng tính toán, địa chỉ IP thô hoặc khoá định danh nội bộ. Pixel quảng cáo và trình theo dõi quảng cáo bên thứ ba không được kích hoạt trong phạm vi phát hành LSV-12 hiện tại.
+6. Quyền của người dùng: Bạn có quyền xuất dữ liệu tài khoản dưới dạng file JSON, yêu cầu xoá tài khoản với thời gian khôi phục 30 ngày, xoá dữ liệu tạm thời ngay lập tức khi dùng phiên ẩn danh, và huỷ đăng ký nhận thông tin tiếp thị bất cứ lúc nào.
+
+Ngày hiệu lực và rà soát của chính sách: 14/09/2026.
 
 ## Cách kiểm tra
 

@@ -74,7 +74,7 @@ export function buildBirthProfile(input: BirthProfileInput) {
       ? { displayName: input.displayName.trim() }
       : {}),
     gender: input.gender,
-    consentVersion: "2026-09-01",
+    consentVersion: "2026-09-14",
     locale: input.locale,
   };
 }

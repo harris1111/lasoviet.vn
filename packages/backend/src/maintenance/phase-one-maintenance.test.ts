@@ -86,4 +86,41 @@ describe("Phase 01 maintenance runner", () => {
     });
     expect(reconciliation.runMaintenance).toHaveBeenCalledTimes(1);
   });
+
+  it("integrates analytics retention when configured", async () => {
+    const fixedNow = new Date("2026-09-14T15:00:00Z");
+    const accountDeletion = { purgeExpired: vi.fn().mockResolvedValue([]) };
+    const anonymousRetention = { purgeExpired: vi.fn().mockResolvedValue([]) };
+    const retryAuthEmail = vi.fn().mockResolvedValue(0);
+    const analyticsRetention = {
+      purgeExpired: vi.fn().mockResolvedValue({
+        deletedUnlinkedEvents: 10,
+        deletedUnlinkedVisitors: 3,
+        scrubbedIpEvents: 7,
+        deletedFraudRecords: 1,
+      }),
+    };
+
+    const runner = createPhaseOneMaintenanceRunner({
+      accountDeletion,
+      anonymousRetention,
+      retryAuthEmail,
+      analyticsRetention,
+      now: () => fixedNow,
+    });
+
+    const result = await runner.runOnce();
+    expect(result).toEqual({
+      accountPurges: 0,
+      anonymousPurges: 0,
+      retries: 0,
+      analytics: {
+        deletedUnlinkedEvents: 10,
+        deletedUnlinkedVisitors: 3,
+        scrubbedIpEvents: 7,
+        deletedFraudRecords: 1,
+      },
+    });
+    expect(analyticsRetention.purgeExpired).toHaveBeenCalledWith(fixedNow, 25);
+  });
 });

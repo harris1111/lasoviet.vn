@@ -41,6 +41,8 @@ import { useTranslations } from "next-intl";
 
 import { createCheckoutOrderAction } from "../commerce/create-checkout-order";
 import type { PublicOfferKey } from "../commerce/checkout-offer";
+import { resolveActiveSkuFromPublicOfferKey } from "../commerce/checkout-offer";
+import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tracker";
 import { CheckoutPurchaseForm } from "../commerce/checkout-purchase-form";
 import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
 import {
@@ -84,9 +86,21 @@ export function PaidTopicSelector({
     now,
   });
 
+  const renderedOfferDescriptors: RenderedOfferDescriptor[] = [];
+  for (const offer of safeOffers) {
+    const sku = resolveActiveSkuFromPublicOfferKey(offer.offerKey);
+    if (sku) {
+      renderedOfferDescriptors.push({
+        offerId: offer.offerKey,
+        sku,
+      });
+    }
+  }
+
   return (
     <section aria-labelledby="topic-selector-heading" className="paid-topic-selector">
       <div className="topic-selector-header">
+        <OfferViewTracker offers={renderedOfferDescriptors} />
         <p className="eyebrow">{t("selection.eyebrow")}</p>
         <h1 id="topic-selector-heading">{pageTitle}</h1>
         <p className="topic-selector-context">

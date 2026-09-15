@@ -10,6 +10,18 @@ export type ReconciliationMaintenance = {
   }>;
 };
 
+export type AnalyticsMaintenance = {
+  purgeExpired(
+    now: Date,
+    limit: number,
+  ): Promise<{
+    deletedUnlinkedEvents: number;
+    deletedUnlinkedVisitors: number;
+    scrubbedIpEvents: number;
+    deletedFraudRecords: number;
+  }>;
+};
+
 export type PhaseOneMaintenanceRunner = {
   runOnce(): Promise<{
     accountPurges: number;
@@ -20,6 +32,12 @@ export type PhaseOneMaintenanceRunner = {
       circuitTransitioned: boolean;
       staleAlerted: number;
     };
+    analytics?: {
+      deletedUnlinkedEvents: number;
+      deletedUnlinkedVisitors: number;
+      scrubbedIpEvents: number;
+      deletedFraudRecords: number;
+    };
   }>;
 };
 
@@ -28,9 +46,13 @@ export function createPhaseOneMaintenanceRunner(options: {
   anonymousRetention: PhaseOneMaintenance;
   retryAuthEmail: (limit: number) => Promise<number>;
   reconciliation?: ReconciliationMaintenance;
+  analyticsRetention?: AnalyticsMaintenance;
   batchSize?: number;
+  now?: () => Date;
 }): PhaseOneMaintenanceRunner {
   const batchSize = options.batchSize ?? 25;
+  const getNow = options.now ?? (() => new Date());
+
   let activeRun: Promise<{
     accountPurges: number;
     anonymousPurges: number;
@@ -40,19 +62,28 @@ export function createPhaseOneMaintenanceRunner(options: {
       circuitTransitioned: boolean;
       staleAlerted: number;
     };
+    analytics?: {
+      deletedUnlinkedEvents: number;
+      deletedUnlinkedVisitors: number;
+      scrubbedIpEvents: number;
+      deletedFraudRecords: number;
+    };
   }> | undefined;
+
   return {
     runOnce() {
       if (activeRun !== undefined) {
         return activeRun;
       }
+      const now = getNow();
       activeRun = Promise.all([
         options.accountDeletion.purgeExpired(batchSize),
         options.anonymousRetention.purgeExpired(batchSize),
         options.retryAuthEmail(batchSize),
         options.reconciliation ? options.reconciliation.runMaintenance() : Promise.resolve(undefined),
+        options.analyticsRetention ? options.analyticsRetention.purgeExpired(now, batchSize) : Promise.resolve(undefined),
       ])
-        .then(([accountPurges, anonymousPurges, retries, reconciliation]) => {
+        .then(([accountPurges, anonymousPurges, retries, reconciliation, analytics]) => {
           const res: {
             accountPurges: number;
             anonymousPurges: number;
@@ -62,6 +93,12 @@ export function createPhaseOneMaintenanceRunner(options: {
               circuitTransitioned: boolean;
               staleAlerted: number;
             };
+            analytics?: {
+              deletedUnlinkedEvents: number;
+              deletedUnlinkedVisitors: number;
+              scrubbedIpEvents: number;
+              deletedFraudRecords: number;
+            };
           } = {
             accountPurges: accountPurges.length,
             anonymousPurges: anonymousPurges.length,
@@ -69,6 +106,9 @@ export function createPhaseOneMaintenanceRunner(options: {
           };
           if (reconciliation !== undefined) {
             res.reconciliation = reconciliation;
+          }
+          if (analytics !== undefined) {
+            res.analytics = analytics;
           }
           return res;
         })

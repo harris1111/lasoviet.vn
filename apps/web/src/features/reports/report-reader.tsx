@@ -11,6 +11,7 @@ import type {
 import { ArtifactImage } from "../../components/artifact-image";
 import { ComprehensiveReportReader } from "./comprehensive-report-reader";
 import { ziweiPresentation } from "../ziwei/ziwei-presentation";
+import { useReportReaderAnalytics } from "./report-analytics";
 
 export type ReportReaderProps = {
   locale: "vi" | "en";
@@ -216,6 +217,13 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
   };
 
   const activeSection = sections[activeSectionIdx] ?? sections[0];
+
+  useReportReaderAnalytics({
+    sku: report.sku,
+    reportVersion: report.contentVersion,
+    activeSectionId: activeSection?.id,
+    progressPercent: progressPct,
+  });
   const activeSectionEvidence = useMemo(() => {
     if (!activeSection) return [];
     const ids = new Set<string>();

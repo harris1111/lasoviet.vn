@@ -72,3 +72,9 @@ export {
   aiCallAttempts,
   aiUsageOutcomes,
 } from "./schema/ai-cost.js";
+export {
+  accountBehaviorProfiles,
+  analyticsEvents,
+  analyticsFraudIpRecords,
+  analyticsVisitors,
+} from "./schema/analytics.js";

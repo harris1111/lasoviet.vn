@@ -89,7 +89,7 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain("Quyền riêng tư dữ liệu");
-    expect(html).toContain("Xử lý hồ sơ lá số");
+    expect(html).toContain("Lập và lưu hồ sơ lá số");
     expect(html).toContain("dieu-khoan-dich-vu");
     expect(html).toContain("2026-09-01");
     expect(html).toContain("Đang bật");
@@ -152,5 +152,111 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
     expect(pageModule.metadata).toMatchObject({
       robots: { index: false, follow: false },
     });
+  });
+  it("renders all four exact purpose labels in VI and EN without raw identifiers", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(mockActor);
+    const mockConsents = [
+      {
+        documentKey: "privacy",
+        documentVersion: "2026-09-14",
+        purpose: "birth_profile",
+        grantedAt: "2026-09-14T10:00:00.000Z",
+        revokedAt: null,
+        active: true,
+      },
+      {
+        documentKey: "privacy",
+        documentVersion: "2026-09-14",
+        purpose: "analytics",
+        grantedAt: "2026-09-14T10:00:00.000Z",
+        revokedAt: null,
+        active: true,
+      },
+      {
+        documentKey: "privacy",
+        documentVersion: "2026-09-14",
+        purpose: "personalization",
+        grantedAt: "2026-09-14T10:00:00.000Z",
+        revokedAt: null,
+        active: true,
+      },
+      {
+        documentKey: "privacy",
+        documentVersion: "2026-09-14",
+        purpose: "offers",
+        grantedAt: "2026-09-14T10:00:00.000Z",
+        revokedAt: null,
+        active: true,
+      },
+    ];
+
+    vi.mocked(loadAccountPrivacy).mockResolvedValue({
+      ok: true,
+      value: {
+        consents: mockConsents,
+        deletionRequest: null,
+      },
+    });
+
+    const { default: AccountPrivacyPage } = await import("./page");
+
+    // Vietnamese test
+    const elementVi = await AccountPrivacyPage({ params: Promise.resolve({ locale: "vi" }) });
+    const htmlVi = renderToStaticMarkup(elementVi);
+
+    expect(htmlVi).toContain("Lập và lưu hồ sơ lá số");
+    expect(htmlVi).toContain("Phân tích việc sử dụng sản phẩm");
+    expect(htmlVi).toContain("Cá nhân hoá nội dung");
+    expect(htmlVi).toContain("Gợi ý dịch vụ và ưu đãi phù hợp");
+    expect(htmlVi).toContain("lịch sử sử dụng và hồ sơ hành vi tài khoản");
+    expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">birth_profile</h3>");
+    expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">analytics</h3>");
+    expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">personalization</h3>");
+    expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">offers</h3>");
+
+    // English test
+    const elementEn = await AccountPrivacyPage({ params: Promise.resolve({ locale: "en" }) });
+    const htmlEn = renderToStaticMarkup(elementEn);
+
+    expect(htmlEn).toContain("Create and store birth profiles");
+    expect(htmlEn).toContain("Product usage analytics");
+    expect(htmlEn).toContain("Content personalization");
+    expect(htmlEn).toContain("Relevant service and offer suggestions");
+    expect(htmlEn).toContain("usage history, and account behavior profile");
+    expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">birth_profile</h3>");
+    expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">analytics</h3>");
+    expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">personalization</h3>");
+    expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">offers</h3>");
+  });
+  it("never renders raw unknown purpose identifiers and falls back to localized generic label", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(mockActor);
+    vi.mocked(loadAccountPrivacy).mockResolvedValue({
+      ok: true,
+      value: {
+        consents: [
+          {
+            documentKey: "custom_doc",
+            documentVersion: "1.0",
+            purpose: "internal_unknown_purpose",
+            grantedAt: "2026-09-14T10:00:00.000Z",
+            revokedAt: null,
+            active: true,
+          },
+        ],
+        deletionRequest: null,
+      },
+    });
+
+    const { default: AccountPrivacyPage } = await import("./page");
+
+    const elementVi = await AccountPrivacyPage({ params: Promise.resolve({ locale: "vi" }) });
+    const htmlVi = renderToStaticMarkup(elementVi);
+    expect(htmlVi).not.toContain("internal_unknown_purpose");
+    expect(htmlVi).toContain("Mục đích xử lý dữ liệu");
+
+    const elementEn = await AccountPrivacyPage({ params: Promise.resolve({ locale: "en" }) });
+    const htmlEn = renderToStaticMarkup(elementEn);
+    expect(htmlEn).not.toContain("internal_unknown_purpose");
+    expect(htmlEn).toContain("Data processing purpose");
   });
 });
