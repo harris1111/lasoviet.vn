@@ -192,4 +192,50 @@ describe("report generation migration layout", () => {
     expect(reportSourceSnapshots.snapshot).toBeDefined();
     expect(reportSourceSnapshots.createdAt).toBeDefined();
   });
+
+  it("keeps section checkpoints additive in migration 0029", async () => {
+    const migration = await readFile(
+      new URL("0029_report_section_checkpoints.sql", migrationRoot),
+      "utf8",
+    );
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_section_checkpoints"');
+    expect(migration).toContain('"report_version_id" uuid NOT NULL');
+    expect(migration).toContain('"section_key" text NOT NULL');
+    expect(migration).toContain('"accepted_content" jsonb');
+    expect(migration).toContain('"report_section_checkpoints_version_section_unique"');
+    expect(migration).toContain('"report_section_checkpoints_passed_order_idx"');
+    expect(migration).toContain('"report_section_checkpoints_status_valid"');
+    expect(migration).toContain('"report_section_checkpoints_active_ownership"');
+    expect(migration).toContain('"report_section_checkpoints_passed_lineage"');
+    expect(migration).not.toContain('REFERENCES "report_versions"');
+  });
+
+  it("registers migration 0029 and exports section checkpoints", async () => {
+    const journal = await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    );
+    const packageIndex = await readFile(
+      new URL("../index.ts", import.meta.url),
+      "utf8",
+    );
+
+    expect(journal).toContain('"idx": 29');
+    expect(journal).toContain('"when": 1789977600000');
+    expect(journal).toContain('"tag": "0029_report_section_checkpoints"');
+    expect(packageIndex).toContain("reportSectionCheckpoints");
+  });
+
+  it("defines reportSectionCheckpoints schema with checkpoint lineage", async () => {
+    const { reportSectionCheckpoints } = await import("./reports.js");
+
+    expect(reportSectionCheckpoints.reportVersionId).toBeDefined();
+    expect(reportSectionCheckpoints.sectionKey).toBeDefined();
+    expect(reportSectionCheckpoints.sectionOrder).toBeDefined();
+    expect(reportSectionCheckpoints.stateVersion).toBeDefined();
+    expect(reportSectionCheckpoints.acceptedContent).toBeDefined();
+    expect(reportSectionCheckpoints.contentHash).toBeDefined();
+    expect(reportSectionCheckpoints.activeWorkerId).toBeDefined();
+  });
 });
