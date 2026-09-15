@@ -602,3 +602,23 @@ export type {
   AnalyticsIngestErrorV1,
   AnalyticsIngestResponseV1,
 } from "./analytics-ingest.js";
+
+export {
+  AdminBusinessMetricsDayV1Schema,
+  AdminBusinessMetricsFiltersV1Schema,
+  AdminBusinessMetricsSourceAvailabilityV1Schema,
+  AdminBusinessMetricsV1Schema,
+  DEFAULT_BUSINESS_METRICS_SOURCE_AVAILABILITY_V1,
+  addCalendarDays,
+  countInclusiveCalendarDays,
+  getVietnamLocalDateKey,
+  isValidCalendarDate,
+  generateCalendarDayRange,
+  parseAdminBusinessMetricsFiltersV1,
+} from "./admin-business-metrics.js";
+export type {
+  AdminBusinessMetricsDayV1,
+  AdminBusinessMetricsFiltersV1,
+  AdminBusinessMetricsSourceAvailabilityV1,
+  AdminBusinessMetricsV1,
+} from "./admin-business-metrics.js";

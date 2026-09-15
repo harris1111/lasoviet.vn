@@ -36,6 +36,8 @@ import {
   createDatabaseCommerceRepository,
   createSmtpEmailAdapter,
   createAdminOverviewService,
+  createAdminBusinessMetricsService,
+  createDatabaseAdminBusinessMetricsRepository,
   createRoleAssignmentService,
   createEvidenceService,
   createReadingContextService,
@@ -81,6 +83,10 @@ import {
   ADMIN_OVERVIEW_SERVICE,
   AdminOverviewController,
 } from "./admin-overview/admin-overview.controller.js";
+import {
+  ADMIN_BUSINESS_METRICS_SERVICE,
+  AdminBusinessMetricsController,
+} from "./admin-overview/admin-business-metrics.controller.js";
 import { HealthController } from "./health/health.controller.js";
 import {
   ACCOUNT_DELETION_SERVICE,
@@ -191,6 +197,7 @@ function privacyDatabase() {
     AdminAccessController,
     AdminRoleAuditController,
     AdminOverviewController,
+    AdminBusinessMetricsController,
     CommerceController,
     ReportsController,
     AccountCenterController,
@@ -307,6 +314,15 @@ function privacyDatabase() {
         return createAdminOverviewService({
           repository: createDatabaseAdminOverviewRepository(database),
           health: createDatabaseAdminHealthService(database),
+        });
+      },
+    },
+    {
+      provide: ADMIN_BUSINESS_METRICS_SERVICE,
+      useFactory: () => {
+        const database = privacyDatabase();
+        return createAdminBusinessMetricsService({
+          repository: createDatabaseAdminBusinessMetricsRepository(database),
         });
       },
     },
