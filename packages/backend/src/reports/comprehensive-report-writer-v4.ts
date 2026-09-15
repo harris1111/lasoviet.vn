@@ -13,6 +13,8 @@ import {
   CANONICAL_COMPREHENSIVE_SECTION_TITLES,
   CANONICAL_PALACE_TITLES_VI,
   CANONICAL_THEMATIC_TITLES_VI,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
 } from "./identity-report-config.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
@@ -69,6 +71,24 @@ CẤM TUYỆT ĐỐI CÁC ĐIỀU SAU:
 - KHÔNG sử dụng nhãn độ tin cậy, mức độ chắc chắn, giới hạn phương pháp hoặc văn phong phòng thủ.
 - KHÔNG tạo trường birthTimeSensitivity.`;
 
+const COMPREHENSIVE_REPORT_V4_0_1_RESTORED_RULES = `
+
+RÀNG BUỘC BỔ SUNG BẮT BUỘC:
+- KHÔNG đặt câu hỏi tự suy ngẫm hoặc bài tập phản chiếu.
+- KHÔNG thuật lại quy trình tính toán, truy xuất, thuật toán, hay quá trình tạo báo cáo.
+- KHÔNG lặp lại cùng một lời khuyên hoặc cảnh báo ở nhiều phần khác nhau.
+- KHÔNG tự bịa đặt sự kiện tương lai cụ thể hoặc đưa ra mốc thời gian không có căn cứ từ facts và frozenTiming được cung cấp.
+- KHÔNG tự tạo bất kỳ mã định danh hoặc dữ kiện lá số nào ngoài facts được cung cấp.
+- Mọi giá trị trong evidenceKeys PHẢI được sao chép nguyên văn từ allowedEvidenceKeys; không viết tắt, dịch nghĩa, suy đoán, tái tạo, hoặc tạo mới.
+- Toàn bộ văn bản phải là tiếng Việt tự nhiên. Khi diễn đạt độ sáng sao, CHỈ ĐƯỢC DÙNG nguyên văn các nhãn trong brightnessLabelsVi được cung cấp. TUYỆT ĐỐI CẤM chữ Hán, chữ Nôm, hoặc từ tiếng Anh mô tả độ sáng như "exalted", "prosperous", "favorable", "neutral", "unfavorable", "weak" (không phân biệt chữ hoa hay chữ thường).`;
+
+export const VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT =
+  `${VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT}${COMPREHENSIVE_REPORT_V4_0_1_RESTORED_RULES}`;
+
+export type ComprehensiveReportWriterV4PromptVersion =
+  | typeof REPORT_PROMPT_VERSION_V4
+  | typeof REPORT_PROMPT_VERSION_V4_0_1;
+
 export type ComprehensiveReportWriterV4Revision = {
   priorContent: ZiweiComprehensiveReportContentV2;
   issues: string[];
@@ -98,10 +118,25 @@ export type ComprehensiveReportWriterV4Result =
       error: AiProviderError;
     };
 
+function comprehensiveReportV4SystemPrompt(
+  promptVersion: unknown,
+): string {
+  if (promptVersion === REPORT_PROMPT_VERSION_V4) {
+    return VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT;
+  }
+  if (promptVersion === REPORT_PROMPT_VERSION_V4_0_1) {
+    return VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT;
+  }
+  throw new Error(`Unsupported comprehensive V4 prompt version: ${String(promptVersion)}`);
+}
+
 export async function writeComprehensiveZiweiReportV4(
   sourceOrInput: ComprehensiveReportSourceV4 | ComprehensiveReportWriterV4Input,
   maybeProvider?: AiProvider,
-  options?: { costContext?: AiCostRequestContext },
+  options?: {
+    costContext?: AiCostRequestContext;
+    promptVersion?: ComprehensiveReportWriterV4PromptVersion;
+  },
 ): Promise<ComprehensiveReportWriterV4Result> {
   const provider =
     maybeProvider ?? ("provider" in sourceOrInput ? sourceOrInput.provider : undefined);
@@ -140,7 +175,8 @@ HƯỚNG DẪN HIỆU CHỈNH:
 - Tuyệt đối KHÔNG đưa vào thông tin nhận dạng cá nhân (PII).`
     : "";
 
-  const systemPrompt = `${VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT}${revisionInstruction}`;
+  const promptVersion = options?.promptVersion ?? REPORT_PROMPT_VERSION_V4;
+  const systemPrompt = `${comprehensiveReportV4SystemPrompt(promptVersion)}${revisionInstruction}`;
 
   const costContext =
     options?.costContext ??

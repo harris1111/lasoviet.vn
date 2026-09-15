@@ -9,11 +9,16 @@ import {
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
   writeComprehensiveZiweiReportV4,
+  VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
+  VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
 } from "./comprehensive-report-writer-v4.js";
 import {
   CANONICAL_PALACE_TITLES_VI,
   CANONICAL_THEMATIC_TITLES_VI,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
 } from "./identity-report-config.js";
+import { BRIGHTNESS_LABELS_VI } from "./comprehensive-report-writer.js";
 
 const palaceIds: ZiweiPalaceId[] = [
   "ziwei.palace.life",
@@ -466,6 +471,119 @@ describe("writeComprehensiveZiweiReportV4", () => {
     expect(callArgs.system).toContain("bác sĩ, luật sư hoặc chuyên gia");
     // Prohibits standalone disclaimer blocks
     expect(callArgs.system).toContain("KHÔNG đưa vào các khối văn bản hoặc nhãn tuyên bố miễn trừ trách nhiệm đứng riêng");
+  });
+
+  it("preserves the legacy V4 prompt by default and selects V4.0.1 only when explicitly requested", async () => {
+    const chart = createSampleChart();
+    const snapshot = createSampleSnapshot();
+    const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+    const mockProvider = {
+      id: "mock-ai",
+      modelId: "mock-model",
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: createSampleV2GeneratedReport(),
+          providerId: "mock-ai",
+          modelId: "mock-model",
+        },
+      }),
+    };
+
+    await writeComprehensiveZiweiReportV4({
+      facts,
+      knowledgePacks: [],
+      provider: mockProvider as never,
+    });
+    await writeComprehensiveZiweiReportV4(
+      {
+        facts,
+        knowledgePacks: [],
+        provider: mockProvider as never,
+      },
+      undefined,
+      { promptVersion: REPORT_PROMPT_VERSION_V4_0_1 },
+    );
+
+    expect(mockProvider.generateStructured.mock.calls[0][0].system).toBe(
+      VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+    );
+    expect(mockProvider.generateStructured.mock.calls[1][0].system).toBe(
+      VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
+    );
+    expect(REPORT_PROMPT_VERSION_V4).toBe("ziwei.comprehensive.prompt.v4");
+  });
+
+  it("fails closed when runtime input bypasses the V4 prompt-version type", async () => {
+    const chart = createSampleChart();
+    const snapshot = createSampleSnapshot();
+    const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+    const mockProvider = {
+      id: "mock-ai",
+      modelId: "mock-model",
+      generateStructured: vi.fn(),
+    };
+
+    await expect(
+      writeComprehensiveZiweiReportV4(
+        {
+          facts,
+          knowledgePacks: [],
+          provider: mockProvider as never,
+        },
+        undefined,
+        { promptVersion: "ziwei.comprehensive.prompt.unsupported" as never },
+      ),
+    ).rejects.toThrow("Unsupported comprehensive V4 prompt version");
+
+    expect(mockProvider.generateStructured).not.toHaveBeenCalled();
+  });
+
+  it("uses the V4.0.1 FD-072 prompt rules without reintroducing the deprecated domain or referral prohibition", async () => {
+    const chart = createSampleChart();
+    const snapshot = createSampleSnapshot();
+    const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
+    const mockProvider = {
+      id: "mock-ai",
+      modelId: "mock-model",
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: createSampleV2GeneratedReport(),
+          providerId: "mock-ai",
+          modelId: "mock-model",
+        },
+      }),
+    };
+
+    await writeComprehensiveZiweiReportV4(
+      {
+        facts,
+        knowledgePacks: [],
+        provider: mockProvider as never,
+      },
+      undefined,
+      { promptVersion: REPORT_PROMPT_VERSION_V4_0_1 },
+    );
+
+    const request = mockProvider.generateStructured.mock.calls[0][0];
+    const payload = JSON.parse(request.user);
+
+    expect(request.system).toContain("KHÔNG đặt câu hỏi tự suy ngẫm hoặc bài tập phản chiếu");
+    expect(request.system).toContain("KHÔNG thuật lại quy trình tính toán, truy xuất, thuật toán");
+    expect(request.system).toContain("KHÔNG lặp lại cùng một lời khuyên hoặc cảnh báo");
+    expect(request.system).toContain("KHÔNG tự bịa đặt sự kiện tương lai cụ thể");
+    expect(request.system).toContain("KHÔNG tự tạo bất kỳ mã định danh hoặc dữ kiện lá số nào ngoài facts");
+    expect(request.system).toContain("sao chép nguyên văn từ allowedEvidenceKeys");
+    expect(request.system).toContain("brightnessLabelsVi");
+    expect(request.system).toContain("chữ Hán, chữ Nôm");
+    expect(request.system).toContain("exalted");
+    expect(request.system).toContain("lasoviet.net");
+    expect(request.system).not.toContain("lasoviet.vn");
+    expect(request.system).not.toContain("KHÔNG đưa vào lời tuyên bố miễn trừ trách nhiệm (disclaimer), cảnh báo pháp lý");
+    expect(request.system).toContain("bác sĩ, luật sư hoặc chuyên gia");
+    expect(payload.allowedEvidenceKeys).toEqual(facts.evidenceKeys);
+    expect(payload.brightnessLabelsVi).toEqual(BRIGHTNESS_LABELS_VI);
   });
 
 });

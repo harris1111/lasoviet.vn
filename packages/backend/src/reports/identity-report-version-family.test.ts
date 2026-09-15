@@ -9,6 +9,7 @@ import {
   REPORT_PROMPT_VERSION_V3,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
 } from "./identity-report-config.js";
 
 describe("resolveIdentityReportVersionFamily", () => {
@@ -39,7 +40,7 @@ describe("resolveIdentityReportVersionFamily", () => {
     ).toBe("v3");
   });
 
-  it("resolves v4 for v4 prompt paired with approved v3 knowledge corpus, and rejects v4 knowledge", () => {
+  it("resolves both V4 prompt versions with the approved V3 knowledge corpus, and rejects V4 knowledge", () => {
     expect(
       resolveIdentityReportVersionFamily(
         REPORT_PROMPT_VERSION_V4,
@@ -49,7 +50,21 @@ describe("resolveIdentityReportVersionFamily", () => {
 
     expect(
       resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_0_1,
+        REPORT_KNOWLEDGE_VERSION_V3,
+      ),
+    ).toBe("v4");
+
+    expect(
+      resolveIdentityReportVersionFamily(
         REPORT_PROMPT_VERSION_V4,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBeNull();
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_0_1,
         REPORT_KNOWLEDGE_VERSION_V4,
       ),
     ).toBeNull();
