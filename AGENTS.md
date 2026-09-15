@@ -76,17 +76,19 @@ exact bounded brief; Terra independently reviews meaningful milestones.
   live repository evidence.
 - Sol does not write feature code or replace Terra's independent review.
 - Sol asks the founder in Vietnamese whenever founder input is required.
-- Sol must verify the requested model and `high` reasoning level before
-  dispatch. Do not silently substitute another model or reasoning level.
-- For Flash Executor dispatches, a successful request through an `ag/gemini`
-  model route satisfies the model-family check. Generic base-model metadata
-  emitted inside the harness is non-blocking and must not override the
-  explicitly requested `ag/gemini` route; the requested reasoning level must
-  still be `high`.
-- Before declaring a requested model or reasoning level unavailable solely
-  because current metadata omits it, run one no-file probe with that exact
-  model and reasoning level. If the probe fails or cannot run, stop and report
-  to Sol; do not substitute a model or effort.
+- Sol must request the exact Flash Executor model and `high` reasoning level
+  before dispatch. Do not silently substitute another model or reasoning
+  level.
+- A successful no-file request through the exact
+  `ag/gemini-3.8-flash-high` route is sufficient model verification. Generic,
+  omitted, or mismatched base-model metadata emitted inside the harness is
+  non-authoritative and must not override the explicitly requested route. The
+  dispatch command must still request `high` reasoning, but the harness
+  response does not need to echo either the model name or reasoning level.
+- Before declaring the Flash Executor unavailable, run one no-file probe
+  through the exact `ag/gemini-3.8-flash-high` route with `high` reasoning. If
+  the request itself fails or cannot run, stop and report to Sol; do not
+  substitute a model or effort.
 
 ### Terra: Independent Milestone Reviewer
 
@@ -436,15 +438,28 @@ rule instead of adding another version.
 
 ### Branch, Pull Request, And Merge Workflow
 
-- This subsection records a founder-approved repository invariant dated
-  2026-08-31.
+- This subsection records founder-approved repository invariants dated
+  2026-08-31 and 2026-09-13. The 2026-09-13 direct-to-`master` pull-request
+  workflow supersedes the former `product/experience-spec-v1` integration
+  target.
 - Start every change on a dedicated branch before editing or committing. Never
   commit new work directly on `master`, and never push directly to `master`.
-- Integrate changes only through this sequence: push the branch, create a pull
-  request targeting the integration branch named by the approved workflow,
-  complete any founder-requested review, then merge through the pull request.
-  Feature implementation targets `product/experience-spec-v1`; the accepted
-  product integration branch targets `master` only for release.
+- Start delegated ticket work from the latest fetched `origin/master`, with a
+  dedicated worktree and branch for each ticket. Do not use a dirty controller
+  worktree as the branch base.
+- Integrate changes only through this sequence: push the ticket branch, create
+  a pull request targeting `master`, complete required workflow review and any
+  founder-requested review, then wait for explicit founder merge
+  authorization.
+- Parallel ticket agents may commit, push their assigned branch, and create the
+  pull request only when the Sol brief explicitly assigns those operations.
+  They must never merge the pull request.
+- After related ticket branches are ready, Sol must check both Git conflicts
+  and overlapping behavior against current `origin/master` and the other
+  related branches. Use non-mutating analysis such as `git merge-tree` or a
+  disposable integration worktree; do not merge or rewrite the ticket branches
+  during this check. Report semantic overlap even when Git reports no textual
+  conflict.
 - A separate review between pull request creation and merge is optional and
   runs only when the founder requests it for that pull request. This does not
   waive any review already required by an approved planning or implementation
