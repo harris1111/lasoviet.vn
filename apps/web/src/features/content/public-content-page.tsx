@@ -1,5 +1,6 @@
 import { productCatalog } from "@lasoviet/config";
 import type { PublicContentV1, RouteDefinitionV1 } from "@lasoviet/contracts";
+import type { ReactNode } from "react";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { buildStructuredData, StructuredDataError } from "../../seo/structured-data";
@@ -37,7 +38,73 @@ function GenericContentPage({ content, locale }: Pick<PublicContentPageProps, "c
         <h1>{content.title}</h1>
         <p className="content-summary">{content.summary}</p>
         <footer>
-          <p>{locale === "vi" ? "Nội dung đã được xem xét." : "Reviewed content."}</p>
+          <p>{locale === "vi" ? "Lá Số Việt biên tập" : "Edited by La So Viet"}</p>
+        </footer>
+      </article>
+    </main>
+  );
+}
+
+const ROUTE_LINK_PATTERN = /\[([^\]]+)\]\(route:([a-zA-Z0-9_.-]+)\)/g;
+
+function resolveRouteHref(
+  routeId: string,
+  locale: "en" | "vi",
+  routes: readonly RouteDefinitionV1[],
+): string | null {
+  const route = routes.find((candidate) => candidate.id === routeId);
+  if (!route) return null;
+  return locale === "en" ? `/en${route.path}` : route.path;
+}
+
+function renderInlineText(
+  text: string,
+  locale: "en" | "vi",
+  routes: readonly RouteDefinitionV1[],
+): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let key = 0;
+  for (const match of text.matchAll(ROUTE_LINK_PATTERN)) {
+    const index = match.index ?? 0;
+    if (index > lastIndex) nodes.push(text.slice(lastIndex, index));
+    const label = match[1] ?? match[0];
+    const targetRouteId = match[2] ?? "";
+    const href = resolveRouteHref(targetRouteId, locale, routes);
+    nodes.push(
+      href ? <a href={href} key={`link-${key++}`}>{label}</a> : label,
+    );
+    lastIndex = index + match[0].length;
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return nodes;
+}
+
+function PolicyPage({
+  content,
+  locale,
+  routes,
+}: Pick<PublicContentPageProps, "content" | "locale" | "routes">) {
+  const blocks = (content.body ?? "")
+    .split(/\n\n+/)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0);
+
+  return (
+    <main className="content-page">
+      <article className="content-article container">
+        <p className="eyebrow">{locale === "vi" ? "Lá Số Việt" : "La So Viet"}</p>
+        <h1>{content.title}</h1>
+        <p className="content-summary">{content.summary}</p>
+        {blocks.map((block, index) =>
+          block.startsWith("## ") ? (
+            <h2 key={`policy-heading-${index}`}>{block.slice(3).trim()}</h2>
+          ) : (
+            <p key={`policy-paragraph-${index}`}>{renderInlineText(block, locale, routes)}</p>
+          ),
+        )}
+        <footer>
+          <p>{locale === "vi" ? "Lá Số Việt biên tập" : "Edited by La So Viet"}</p>
         </footer>
       </article>
     </main>
@@ -182,6 +249,8 @@ export function PublicContentPage(props: PublicContentPageProps) {
         return <KnowledgeHub {...props} />;
       case "knowledge-article":
         return <KnowledgeArticle content={props.content} locale={props.locale} />;
+      case "policy-page":
+        return <PolicyPage content={props.content} locale={props.locale} routes={props.routes} />;
       default:
         return <GenericContentPage content={props.content} locale={props.locale} />;
     }

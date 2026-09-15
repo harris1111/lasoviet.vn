@@ -867,7 +867,8 @@
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Phạm vi hiện tại\n\nThông tin sinh có thể nhạy cảm vì nó được dùng để tạo dữ liệu lá số. Nội dung công khai mô tả nguyên tắc chỉ dùng đầu vào cần thiết, giữ provenance và cho người dùng quyền kiểm soát theo phạm vi sản phẩm.\n\n## Cách kiểm tra\n\nMúi giờ, độ chính xác thời gian và limitation có thể ảnh hưởng đến kết quả. Chúng cần được trình bày như metadata kỹ thuật, không trở thành lý do để thu thêm dữ liệu hoặc suy đoán phần còn thiếu.\n\n## Giới hạn\n\nNội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi)."
   },
   {
     "routeId": "trust.privacy",
@@ -885,7 +886,8 @@
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Current scope\n\nBirth information can be sensitive because it is used to create chart data. Public material describes using necessary inputs, retaining provenance, and preserving user control within the product scope.\n\n## How to inspect it\n\nTimezone, time precision, and limitations can affect an output. They are technical metadata, not a reason to collect more data or invent missing facts.\n\n## Limitations\n\nThis material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi)."
   },
   {
     "routeId": "trust.terms",
@@ -903,7 +905,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Phạm vi hiện tại\n\nĐiều khoản giới hạn dịch vụ ở việc lập, trình bày và diễn giải tham khảo dựa trên cấu hình đã công bố. Người dùng chịu trách nhiệm với quyết định của mình và không nên dùng nội dung này làm tư vấn sức khỏe, pháp lý, tài chính hay quan hệ.\n\n## Cách kiểm tra\n\nMọi sản phẩm mở bán phải đúng SKU, giá và loại mua đã công bố. Nội dung dành cho route dự trữ không được hiển thị như sản phẩm hiện có hoặc đưa vào tài liệu indexable.\n\n## Giới hạn\n\nNội dung này chỉ mô tả hành vi, dữ liệu và phạm vi công khai của sản phẩm. Nó không dự báo chắc chắn, không chẩn đoán và không thay thế tư vấn chuyên môn.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi)."
   },
   {
     "routeId": "trust.terms",
@@ -921,7 +924,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Current scope\n\nTerms limit the service to chart creation, presentation, and reflective material based on the published configuration. Users remain responsible for their decisions and should not use this material as health, legal, financial, or relationship advice.\n\n## How to inspect it\n\nA public offer must match its published SKU, price, and purchase type. Reserved routes cannot be described as available products or published as indexable content.\n\n## Limitations\n\nThis material describes product behavior, data, and public scope only. It is not a certain forecast, diagnosis, or substitute for professional advice.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi)."
   },
   {
     "routeId": "calculator.horoscope-forecast",
