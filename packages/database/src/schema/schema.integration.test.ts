@@ -18,6 +18,7 @@ import {
   commerceOrders,
   commerceEntitlements,
 } from "./commerce.js";
+import { reportReservations } from "./reports.js";
 import {
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
@@ -27,6 +28,9 @@ import {
   birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
+  calculationRuns,
+  ziweiCharts,
+  ziweiChartVersions,
 } from "./birth-profile.js";
 import { consents, deletionRequests } from "./privacy.js";
 import { enqueueOutbox, outbox } from "./outbox.js";
@@ -1038,31 +1042,50 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.at(-5)).toMatchObject({
-      idx: 26,
-      when: 1789718400000,
-      tag: "0026_ai_usage_and_cost",
-    });
-    expect(journal.entries.at(-4)).toMatchObject({
-      idx: 27,
-      when: 1789804800000,
-      tag: "0027_birth_profile_reading_context",
-    });
-    expect(journal.entries.at(-3)).toMatchObject({
-      idx: 28,
-      when: 1789891200000,
-      tag: "0028_account_linked_analytics",
-    });
-    expect(journal.entries.at(-2)).toMatchObject({
-      idx: 29,
-      when: 1789977600000,
-      tag: "0029_report_section_checkpoints",
-    });
-    expect(journal.entries.at(-1)).toMatchObject({
-      idx: 30,
-      when: 1790064000000,
-      tag: "0030_report_section_checkpoint_revisions",
-    });
+    expect(journal.entries.slice(-6)).toEqual([
+      {
+        idx: 26,
+        version: "7",
+        when: 1789718400000,
+        tag: "0026_ai_usage_and_cost",
+        breakpoints: true,
+      },
+      {
+        idx: 27,
+        version: "7",
+        when: 1789804800000,
+        tag: "0027_birth_profile_reading_context",
+        breakpoints: true,
+      },
+      {
+        idx: 28,
+        version: "7",
+        when: 1789891200000,
+        tag: "0028_account_linked_analytics",
+        breakpoints: true,
+      },
+      {
+        idx: 29,
+        version: "7",
+        when: 1789977600000,
+        tag: "0029_report_section_checkpoints",
+        breakpoints: true,
+      },
+      {
+        idx: 30,
+        version: "7",
+        when: 1790064000000,
+        tag: "0030_report_section_checkpoint_revisions",
+        breakpoints: true,
+      },
+      {
+        idx: 31,
+        version: "7",
+        when: 1790553600000,
+        tag: "0031_report_reading_context_freeze",
+        breakpoints: true,
+      },
+    ]);
   });
 
   it("applies 0026 AI cost, 0027 reading context, 0028 analytics, and 0029 checkpoints to a clean database", async () => {
@@ -1113,7 +1136,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 and 0031 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -1173,8 +1196,20 @@ describe("database schema integration", () => {
       createdAt: upgradeNow,
     });
 
+    await client`
+      ALTER TABLE report_reservations
+      DROP CONSTRAINT IF EXISTS report_reservations_reading_context_revision_id_birth_profile_reading_context_revisions_id_fk
+    `;
+    await client`DROP INDEX IF EXISTS report_reservations_reading_context_revision_idx`;
+    await client`
+      ALTER TABLE report_reservations
+      DROP COLUMN IF EXISTS reading_context_revision_id
+    `;
     await client`DROP TABLE IF EXISTS report_section_checkpoint_revisions`;
-    await client`DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1790064000000`;
+    await client`
+      DELETE FROM drizzle.__drizzle_migrations
+      WHERE created_at IN (1790064000000, 1790553600000)
+    `;
 
     const [latestBefore] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
@@ -1186,7 +1221,18 @@ describe("database schema integration", () => {
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1790064000000);
+    expect(Number(latestAfter?.created_at)).toBe(1790553600000);
+
+    const reappliedMigrations = await client<{ created_at: string }[]>`
+      SELECT created_at
+      FROM drizzle.__drizzle_migrations
+      WHERE created_at IN (1790064000000, 1790553600000)
+      ORDER BY created_at ASC
+    `;
+    expect(reappliedMigrations.map((migration) => Number(migration.created_at))).toEqual([
+      1790064000000,
+      1790553600000,
+    ]);
 
     const [checkpointTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (
@@ -1273,5 +1319,112 @@ describe("database schema integration", () => {
     });
 
     await client.end();
+  });
+
+  it("nulls a reservation context reference when profile hard purge cascades its revision", async () => {
+    const database = createDatabase(databaseUrl);
+    const userId = "reservation-context-purge-user";
+    const profileId = "reservation-context-purge-profile";
+    const profileRevisionId = "reservation-context-purge-profile-revision";
+    const contextRevisionId = "reservation-context-purge-context-revision";
+    const runId = "reservation-context-purge-run";
+    const chartId = "reservation-context-purge-chart";
+    const chartVersionId = "reservation-context-purge-chart-version";
+    const orderId = "00000000-0000-4000-8000-000000000034";
+    const entitlementId = "00000000-0000-4000-8000-000000000035";
+    const reservationId = "00000000-0000-4000-8000-000000000031";
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Reservation Context Purge User",
+      email: "reservation-context-purge@example.test",
+    });
+    await database.insert(birthProfiles).values({ id: profileId, userId });
+    await database.insert(birthProfileRevisions).values({
+      id: profileRevisionId,
+      profileId,
+      revisionNumber: 1,
+      originalInput: {},
+      normalizedInput: {},
+      consentVersion: "privacy.v1",
+    });
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: contextRevisionId,
+      profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+    });
+    await database.insert(calculationRuns).values({
+      id: runId,
+      profileId,
+      profileRevisionId,
+      idempotencyKey: "reservation-context-purge-run",
+      engineId: "ziwei.iztro",
+      engineVersion: "1",
+      adapterId: "iztro",
+      adapterVersion: "1",
+      schemaId: "ziwei.chart.v1",
+      ruleSetId: "ziwei.default",
+      inputHash: "a".repeat(64),
+      configHash: "b".repeat(64),
+      rawSnapshotHash: "c".repeat(64),
+    });
+    await database.insert(ziweiCharts).values({
+      id: chartId,
+      profileId,
+      profileRevisionId,
+    });
+    await database.insert(ziweiChartVersions).values({
+      id: chartVersionId,
+      chartId,
+      calculationRunId: runId,
+      normalizedOutput: {},
+      privateRawSnapshot: {},
+      warnings: [],
+      provenance: {},
+    });
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: "LSV-RESERVATION-CONTEXT-PURGE",
+      chartId,
+      chartVersionId,
+      ownerId: userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.insert(commerceEntitlements).values({
+      id: entitlementId,
+      orderId,
+      chartId,
+      ownerId: userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      scope: TIER_2_ENTITLEMENT_SCOPE,
+    });
+    await database.insert(reportReservations).values({
+      id: reservationId,
+      reportId: "00000000-0000-4000-8000-000000000032",
+      reportVersionId: "00000000-0000-4000-8000-000000000033",
+      entitlementId,
+      chartVersionId,
+      evidenceVersionId: "reservation-context-purge-evidence",
+      knowledgeVersionId: "knowledge.v1",
+      promptVersion: "prompt.v1",
+      reportConfigVersion: "config.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      readingContextRevisionId: contextRevisionId,
+    });
+
+    await database.delete(birthProfiles).where(eq(birthProfiles.id, profileId));
+
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.id, reservationId));
+    expect(reservation).toBeDefined();
+    expect(reservation?.readingContextRevisionId).toBeNull();
   });
 });

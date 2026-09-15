@@ -55,6 +55,7 @@ import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.
 import {
   VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
   VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+  VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT_WITH_CONTEXT,
 } from "./comprehensive-report-writer-v4.js";
 
 function buildReport(titlePrefix = "Draft 1"): IdentityReportV1 {
@@ -245,6 +246,20 @@ const mockV3Source = {
   knowledgePacks: mockV3Packs,
 };
 
+function withSuccessfulLifecycle<T extends { loadSource: unknown }>(source: T) {
+  return {
+    ...source,
+    validateLifecycle: vi.fn(async ({ readingContextRevisionId }: {
+      reportVersionId: string;
+      jobId: string;
+      readingContextRevisionId: string | null;
+    }) => ({
+      ok: true as const,
+      value: { readingContextRevisionId },
+    })),
+  };
+}
+
 function buildV3ReportContent(): ZiweiComprehensiveReportContentV1 {
   const palaceNarratives: Record<string, string> = {
     "ziwei.palace.life": "Mệnh tọa Tử Vi tại Dần thể hiện khí phách đĩnh đạc, khả năng lãnh đạo bẩm sinh.",
@@ -355,9 +370,9 @@ describe("createReportGenerationService", () => {
     ["unknown prompt version", "unknown.prompt.v999", "ziwei.identity.knowledge.v2"],
   ])("fails %s with stable non-retryable AI_OUTPUT_INVALID before any provider call", async (_name, promptVersion, knowledgeVersionId) => {
     const writerSpy = vi.fn();
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -399,9 +414,9 @@ describe("createReportGenerationService", () => {
     let criticCallCount = 0;
     let committedRecord: unknown = null;
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -508,9 +523,9 @@ describe("createReportGenerationService", () => {
     let criticCallCount = 0;
     const commitSpy = vi.fn();
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -594,9 +609,9 @@ describe("createReportGenerationService", () => {
     let writerCallCount = 0;
     const commitSpy = vi.fn();
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -681,13 +696,13 @@ describe("createReportGenerationService", () => {
     let writerCallCount = 0;
     let committedRecord: unknown = null;
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockImplementation(async (input) => {
         // Assert promptVersion was passed to loadSource
         expect(input.promptVersion).toBe(REPORT_PROMPT_VERSION_V1);
         return { ok: true, value: mockSource };
       }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -777,9 +792,9 @@ describe("createReportGenerationService", () => {
     let criticCallCount = 0;
     const commitSpy = vi.fn();
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -862,9 +877,9 @@ describe("createReportGenerationService", () => {
     let writerCallCount = 0;
     const commitSpy = vi.fn();
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -945,9 +960,9 @@ describe("createReportGenerationService", () => {
     let criticCalls = 0;
     let committedRecord: any = null;
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -1021,9 +1036,9 @@ describe("createReportGenerationService", () => {
     const commitSpy = vi.fn();
     const recordFailedAttemptSpy = vi.fn().mockResolvedValue({ ok: true });
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -1068,9 +1083,9 @@ describe("createReportGenerationService", () => {
     const invalidReportContent = buildV3ReportContent();
     invalidReportContent.overview.evidenceKeys.push("ziwei.star.unsupported");
 
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -1118,9 +1133,9 @@ describe("createReportGenerationService", () => {
 
   it("replays existing V3 report without calling provider writer or critic", async () => {
     const writerSpy = vi.fn();
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn(),
-    };
+    });
 
     const existingV3Record = {
       reportId: "report-v3",
@@ -1174,10 +1189,10 @@ describe("createReportGenerationService", () => {
   });
 
   it("fails V3 generation with REPORT_EVIDENCE_INVALID when comprehensive facts are missing from source", async () => {
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       // Missing comprehensiveFacts and knowledgePacks
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
 
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
@@ -1231,9 +1246,9 @@ describe("createReportGenerationService V2 source snapshot ordering", () => {
     const preparer: ReportSourceSnapshotPreparationService = {
       prepare: vi.fn(),
     };
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockSource }),
-    };
+    });
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1282,12 +1297,12 @@ describe("createReportGenerationService V2 source snapshot ordering", () => {
         };
       }),
     };
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockImplementation(async () => {
         callOrder.push("source");
         return { ok: true, value: mockV3Source };
       }),
-    };
+    });
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1331,9 +1346,9 @@ describe("createReportGenerationService V2 source snapshot ordering", () => {
 
   it("fails closed when V2 job has missing sourceSnapshotPreparer and never calls provider", async () => {
     const providerSpy = vi.fn();
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn(),
-    };
+    });
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1378,9 +1393,9 @@ describe("createReportGenerationService V2 source snapshot ordering", () => {
         },
       }),
     };
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: loadSourceSpy,
-    };
+    });
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1430,9 +1445,9 @@ describe("createReportGenerationService V2 source snapshot ordering", () => {
     const preparer: ReportSourceSnapshotPreparationService = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: existingSnapshotRecord }),
     };
-    const sourceRepository: ReportGenerationSourceRepository = {
+    const sourceRepository: ReportGenerationSourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV3Source }),
-    };
+    });
     const versionRepository: ReportVersionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1613,13 +1628,201 @@ describe("createReportGenerationService V4 generation and critic", () => {
     },
   };
 
+  function createV4LifecycleFixture(
+    outcomes: Array<"ok" | "purged" | "mismatch">,
+    generateStructured: (request: any) => unknown,
+  ) {
+    const lifecycle = vi.fn(async (input: {
+      reportVersionId: string;
+      jobId: string;
+      readingContextRevisionId: string | null;
+    }) => {
+      const outcome = outcomes.shift() ?? "ok";
+      if (outcome === "ok") {
+        return { ok: true as const, value: { readingContextRevisionId: input.readingContextRevisionId } };
+      }
+      return {
+        ok: false as const,
+        error: {
+          code: outcome === "purged" ? "REPORT_PROFILE_PURGED" as const : "REPORT_CONTEXT_MISMATCH" as const,
+          messageKey: "reports.report_lifecycle_failed",
+          retryable: false,
+        },
+      };
+    });
+    const sourceRepository = {
+      loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
+      validateLifecycle: lifecycle,
+    };
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "v4-committed" } }),
+      consumeRewriteBudget: vi.fn().mockResolvedValue({ ok: true, value: { consumed: true } }),
+    };
+    const provider = { generateStructured: vi.fn(generateStructured) };
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: { allows: () => true } as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) } as any,
+    });
+    return { service, lifecycle, versionRepository, provider };
+  }
+
+  const criticPass = {
+    correctness: 5,
+    evidenceCoverage: 5,
+    specificity: 5,
+    languageClarity: 5,
+    consistency: 5,
+    actionability: 5,
+    safety: 5,
+    repetitionControl: 5,
+    notes: [],
+  };
+  const criticFailure = { ...criticPass, specificity: 3, notes: ["Cần tăng tính cụ thể."] };
+
+  it.each([
+    ["REPORT_PROFILE_PURGED", "purged"],
+    ["REPORT_CONTEXT_MISMATCH", "mismatch"],
+  ] as const)("blocks the initial V4 writer on %s with no provider call", async (code, lifecycle) => {
+    const fixture = createV4LifecycleFixture([lifecycle], () => {
+      throw new Error("provider must not be called");
+    });
+    const job = createV2Job({
+      promptVersion: REPORT_PROMPT_VERSION_V4,
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+      readingContextRevisionId: "context-1",
+    });
+    const result = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+      jobId: "active-job-1",
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code, retryable: false } });
+    expect(fixture.provider.generateStructured).not.toHaveBeenCalled();
+    expect(fixture.versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ errorCode: code }),
+    );
+  });
+
+  it("blocks the critic after an initial writer when the profile is purged", async () => {
+    const fixture = createV4LifecycleFixture(["ok", "purged"], () => ({
+      ok: true,
+      value: { value: buildV4ReportContent(), providerId: "writer", modelId: "writer-model" },
+    }));
+    const result = await fixture.service.generateReport({
+      job: createV2Job({ promptVersion: REPORT_PROMPT_VERSION_V4, knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3 }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+    });
+    expect(fixture.provider.generateStructured).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks rewrite and rewrite re-critic provider calls at their lifecycle fences", async () => {
+    const rewrite = createV4LifecycleFixture(["ok", "ok", "purged"], (request) => ({
+      ok: true,
+      value: request.schemaName.includes("critic")
+        ? { value: criticFailure, providerId: "critic", modelId: "critic-model" }
+        : { value: buildV4ReportContent(), providerId: "writer", modelId: "writer-model" },
+    }));
+    const rewriteResult = await rewrite.service.generateReport({
+      job: createV2Job({ promptVersion: REPORT_PROMPT_VERSION_V4, knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3 }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(rewriteResult).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+    });
+    expect(rewrite.provider.generateStructured).toHaveBeenCalledTimes(2);
+
+    const recritic = createV4LifecycleFixture(["ok", "ok", "ok", "mismatch"], (request) => ({
+      ok: true,
+      value: request.schemaName.includes("critic")
+        ? { value: criticFailure, providerId: "critic", modelId: "critic-model" }
+        : { value: buildV4ReportContent(), providerId: "writer", modelId: "writer-model" },
+    }));
+    const recriticResult = await recritic.service.generateReport({
+      job: createV2Job({ promptVersion: REPORT_PROMPT_VERSION_V4, knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3 }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(recriticResult).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_CONTEXT_MISMATCH", retryable: false },
+    });
+    expect(recritic.provider.generateStructured).toHaveBeenCalledTimes(3);
+  });
+
+  it("passes explicit and legacy-null context IDs through every V4 provider fence", async () => {
+    let explicitCriticCalls = 0;
+    const explicit = createV4LifecycleFixture(["ok", "ok", "ok", "ok"], (request) => ({
+      ok: true,
+      value: request.schemaName.includes("critic")
+        ? {
+          value: ++explicitCriticCalls === 1 ? criticFailure : criticPass,
+          providerId: "critic",
+          modelId: "critic-model",
+        }
+        : { value: buildV4ReportContent(), providerId: "writer", modelId: "writer-model" },
+    }));
+    const explicitJob = createV2Job({
+      promptVersion: REPORT_PROMPT_VERSION_V4,
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+      readingContextRevisionId: "context-1",
+    });
+    const explicitResult = await explicit.service.generateReport({
+      job: explicitJob,
+      attemptNumber: 1,
+      workerId: "worker-1",
+      jobId: "active-job-1",
+    });
+    expect(explicitResult.ok).toBe(true);
+    expect(explicit.lifecycle).toHaveBeenCalledTimes(4);
+    expect(explicit.lifecycle.mock.calls.every(([input]) =>
+      input.readingContextRevisionId === "context-1" &&
+      input.reportVersionId === explicitJob.payload.reportVersionId &&
+      input.jobId === "active-job-1",
+    )).toBe(true);
+
+    const legacy = createV4LifecycleFixture(["ok", "ok"], (request) => ({
+      ok: true,
+      value: request.schemaName.includes("critic")
+        ? { value: criticPass, providerId: "critic", modelId: "critic-model" }
+        : { value: buildV4ReportContent(), providerId: "writer", modelId: "writer-model" },
+    }));
+    const legacyJob = createV2Job({
+      promptVersion: REPORT_PROMPT_VERSION_V4,
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+    delete (legacyJob.payload as any).readingContextRevisionId;
+    const legacyResult = await legacy.service.generateReport({
+      job: legacyJob,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(legacyResult.ok).toBe(true);
+    expect(legacy.lifecycle.mock.calls.every(([input]) => input.readingContextRevisionId === null)).toBe(true);
+  });
+
     it("successfully generates V4 report with exactly one critic call and commits without consuming rewrite budget", async () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
-    const sourceRepository = {
+    const sourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
-    };
+    });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1686,7 +1889,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
     expect(versionRepository.consumeRewriteBudget).not.toHaveBeenCalled();
     expect(versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
     expect(provider.generateStructured.mock.calls[0][0].system).toBe(
-      VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+      VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT_WITH_CONTEXT,
     );
     expect(versionRepository.commitImmutableVersion.mock.calls[0][0].promptVersion).toBe(
       REPORT_PROMPT_VERSION_V4,
@@ -1697,9 +1900,9 @@ describe("createReportGenerationService V4 generation and critic", () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
-    const sourceRepository = {
+    const sourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
-    };
+    });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1795,9 +1998,9 @@ describe("createReportGenerationService V4 generation and critic", () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
-    const sourceRepository = {
+    const sourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
-    };
+    });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1897,9 +2100,9 @@ describe("createReportGenerationService V4 generation and critic", () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
-    const sourceRepository = {
+    const sourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
-    };
+    });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -1998,9 +2201,9 @@ describe("createReportGenerationService V4 generation and critic", () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
-    const sourceRepository = {
+    const sourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
-    };
+    });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -2077,9 +2280,9 @@ describe("createReportGenerationService V4 generation and critic", () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
-    const sourceRepository = {
+    const sourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
-    };
+    });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -2151,9 +2354,9 @@ describe("createReportGenerationService V4 generation and critic", () => {
     const preparer = {
       prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }),
     };
-    const sourceRepository = {
+    const sourceRepository = withSuccessfulLifecycle({
       loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }),
-    };
+    });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -2214,7 +2417,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
 
   it("propagates AI_COST_RECORDING_FAILED as its own code preserving retryability", async () => {
     const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
-    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const sourceRepository = withSuccessfulLifecycle({ loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -2253,7 +2456,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
 
   it("propagates cost context with report and critic purpose during V4 rewrite", async () => {
     const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
-    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const sourceRepository = withSuccessfulLifecycle({ loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -2322,7 +2525,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
 
   it("rewrites and passes when initial critic rejects quality and second critic passes, preserving 4-call cost lineage", async () => {
     const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
-    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const sourceRepository = withSuccessfulLifecycle({ loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -2421,7 +2624,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
 
   it("terminal-fails with REPORT_SAFETY_REJECTED and does not commit when rewritten V4 content fails second critic on safety", async () => {
     const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
-    const sourceRepository = { loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) };
+    const sourceRepository = withSuccessfulLifecycle({ loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) });
     const versionRepository = {
       getImmutableVersion: vi.fn().mockResolvedValue(null),
       startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
@@ -2772,6 +2975,8 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     onSection?: (key: Key, request: any) => any;
     onCritic?: (request: any, pass: number) => any;
     guard?: { state(): "active" | "lease_lost" | "wall_clock_exhausted" };
+    readingContext?: { version: 1; lifeStage?: any; topConcern?: any } | null;
+    lifecycle?: Array<"ok" | "purged" | "mismatch">;
   } = {}) {
     const repository = createCheckpointFake(options.initial);
     const starts: Key[] = [];
@@ -2779,6 +2984,24 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     let criticPass = 0;
     let inFlight = 0;
     let maxInFlight = 0;
+    const lifecycle = vi.fn(async (input: {
+      reportVersionId: string;
+      jobId: string;
+      readingContextRevisionId: string | null;
+    }) => {
+      const outcome = options.lifecycle?.shift() ?? "ok";
+      if (outcome === "ok") {
+        return { ok: true as const, value: { readingContextRevisionId: input.readingContextRevisionId } };
+      }
+      return {
+        ok: false as const,
+        error: {
+          code: outcome === "purged" ? "REPORT_PROFILE_PURGED" as const : "REPORT_CONTEXT_MISMATCH" as const,
+          messageKey: "reports.report_lifecycle_failed",
+          retryable: false,
+        },
+      };
+    });
     const provider = {
       generateStructured: vi.fn(async (request: any) => {
         costContexts.push(request.costContext);
@@ -2811,19 +3034,26 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       consumeRewriteBudget: vi.fn(),
     };
     const service = createReportGenerationService({
-      sourceRepository: { loadSource: vi.fn().mockResolvedValue({ ok: true, value: sectionedSource }) } as any,
+      sourceRepository: {
+        loadSource: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { ...sectionedSource, readingContext: options.readingContext ?? null },
+        }),
+        validateLifecycle: lifecycle,
+      } as any,
       sourceSnapshotPreparer: { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) } as any,
       versionRepository: versionRepository as any,
       sectionCheckpointRepository: repository,
       gate: { allows: () => true } as any,
       provider: provider as any,
     });
-    return { service, repository, provider, versionRepository, starts, costContexts, maxInFlight: () => maxInFlight, guard: options.guard };
+    return { service, repository, provider, versionRepository, starts, costContexts, lifecycle, maxInFlight: () => maxInFlight, guard: options.guard };
   }
 
-  const sectionedJob = () => createV2Job({
+  const sectionedJob = (overrides: Record<string, unknown> = {}) => createV2Job({
     promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
     reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+    ...overrides,
   });
 
   function expectSectionedSuccess(result: any, fixture: any) {
@@ -2866,6 +3096,157 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.costContexts.filter((context) => context.purpose === "critic").map((context) => context.idempotencyKey)).toEqual([
       `${sectionedJob().payload.reportVersionId}:critic:1`,
     ]);
+  });
+
+  it("prioritizes the matching thematic section without changing canonical assembly", async () => {
+    const fixture = createSectionedService({
+      readingContext: { version: 1, lifeStage: "early_career", topConcern: "career" },
+    });
+    const result = await fixture.service.generateReport({
+      job: sectionedJob({ readingContextRevisionId: "context-1" }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+      jobId: "active-job-1",
+    });
+    expectSectionedSuccess(result, fixture);
+    const themes = fixture.starts.filter((key) => key.startsWith("thematic:"));
+    expect(themes[0]).toBe("thematic:career_wealth");
+    expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+    expect(fixture.lifecycle).toHaveBeenCalled();
+    for (const call of fixture.lifecycle.mock.calls) {
+      expect(call[0]).toEqual({
+        reportVersionId: sectionedJob({ readingContextRevisionId: "context-1" }).payload.reportVersionId,
+        jobId: "active-job-1",
+        readingContextRevisionId: "context-1",
+      });
+    }
+  });
+
+  it("normalizes legacy context and stops all later provider calls on lifecycle mismatch", async () => {
+    const fixture = createSectionedService({ lifecycle: ["ok", "mismatch"] });
+    const job = sectionedJob();
+    delete (job.payload as any).readingContextRevisionId;
+    const result = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+      jobId: "active-job-legacy",
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_CONTEXT_MISMATCH", retryable: false },
+    });
+    expect(fixture.provider.generateStructured).toHaveBeenCalledTimes(1);
+    expect(fixture.starts).toEqual(["overview"]);
+    expect(fixture.lifecycle.mock.calls).toHaveLength(2);
+    expect(fixture.lifecycle.mock.calls[0][0]).toMatchObject({
+      reportVersionId: job.payload.reportVersionId,
+      jobId: "active-job-legacy",
+      readingContextRevisionId: null,
+    });
+  });
+
+  it.each([
+    ["REPORT_PROFILE_PURGED", "purged"],
+    ["REPORT_CONTEXT_MISMATCH", "mismatch"],
+  ] as const)("fences every section provider call and blocks later sections on %s", async (code, lifecycle) => {
+    const fixture = createSectionedService({ lifecycle: ["ok", lifecycle] });
+    const job = sectionedJob({ readingContextRevisionId: "context-1" });
+    const result = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+      jobId: "active-job-1",
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code, retryable: false } });
+    expect(fixture.provider.generateStructured).toHaveBeenCalledTimes(1);
+    expect(fixture.starts).toEqual(["overview"]);
+    expect(fixture.lifecycle).toHaveBeenCalledTimes(2);
+    expect(fixture.lifecycle.mock.calls.every(([input]) =>
+      input.readingContextRevisionId === "context-1" &&
+      input.reportVersionId === job.payload.reportVersionId &&
+      input.jobId === "active-job-1",
+    )).toBe(true);
+  });
+
+  it("fences a section rewrite before its provider call", async () => {
+    const fixture = createSectionedService({
+      initial: COMPREHENSIVE_REPORT_SECTION_KEYS.map((key) => checkpoint(key)),
+      lifecycle: ["ok", "purged"],
+      onCritic: () => ({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 3, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [],
+            findings: [{ key: "palace:ziwei.palace.life", note: "Bổ sung căn cứ." }],
+          },
+          providerId: "critic-provider",
+          modelId: "critic-model",
+        },
+      }),
+    });
+    const result = await fixture.service.generateReport({
+      job: sectionedJob({ readingContextRevisionId: "context-1" }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+    });
+    expect(fixture.provider.generateStructured).toHaveBeenCalledTimes(1);
+    expect(fixture.repository.calls.rewrites).toEqual(["palace:ziwei.palace.life"]);
+    expect(fixture.starts).toEqual([]);
+  });
+
+  it("fences initial and rewrite re-critic calls without dispatching forbidden critics", async () => {
+    const initialCritic = createSectionedService({
+      initial: COMPREHENSIVE_REPORT_SECTION_KEYS.map((key) => checkpoint(key)),
+      lifecycle: ["mismatch"],
+    });
+    const initialResult = await initialCritic.service.generateReport({
+      job: sectionedJob({ readingContextRevisionId: "context-1" }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(initialResult).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_CONTEXT_MISMATCH", retryable: false },
+    });
+    expect(initialCritic.provider.generateStructured).not.toHaveBeenCalled();
+
+    const recritic = createSectionedService({
+      initial: COMPREHENSIVE_REPORT_SECTION_KEYS.map((key) => checkpoint(key)),
+      lifecycle: ["ok", "ok", "purged"],
+      onCritic: (_request, pass) => pass === 1
+        ? {
+          ok: true,
+          value: {
+            value: {
+              correctness: 5, evidenceCoverage: 3, specificity: 5, languageClarity: 5,
+              consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [],
+              findings: [{ key: "palace:ziwei.palace.life", note: "Bổ sung căn cứ." }],
+            },
+            providerId: "critic-provider",
+            modelId: "critic-model",
+          },
+        }
+        : undefined,
+    });
+    const recriticResult = await recritic.service.generateReport({
+      job: sectionedJob({ readingContextRevisionId: "context-1" }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(recriticResult).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+    });
+    expect(recritic.provider.generateStructured).toHaveBeenCalledTimes(2);
+    expect(recritic.starts).toEqual(["palace:ziwei.palace.life"]);
   });
 
   it("reuses passed checkpoints, retries only invalid/retryable sections, and never regenerates passed key configurations", async () => {

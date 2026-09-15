@@ -11,6 +11,7 @@ import {
   writeComprehensiveZiweiReportV4,
   VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
   VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+  VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT_WITH_CONTEXT,
 } from "./comprehensive-report-writer-v4.js";
 import {
   CANONICAL_PALACE_TITLES_VI,
@@ -506,7 +507,7 @@ describe("writeComprehensiveZiweiReportV4", () => {
     );
 
     expect(mockProvider.generateStructured.mock.calls[0][0].system).toBe(
-      VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT,
+      VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT_WITH_CONTEXT,
     );
     expect(mockProvider.generateStructured.mock.calls[1][0].system).toBe(
       VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT,
@@ -584,6 +585,39 @@ describe("writeComprehensiveZiweiReportV4", () => {
     expect(request.system).toContain("bác sĩ, luật sư hoặc chuyên gia");
     expect(payload.allowedEvidenceKeys).toEqual(facts.evidenceKeys);
     expect(payload.brightnessLabelsVi).toEqual(BRIGHTNESS_LABELS_VI);
+  });
+
+  it("passes only normalized enum context and all three context prohibitions to the provider", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: createSampleV2GeneratedReport(), providerId: "mock", modelId: "model" },
+      }),
+    };
+
+    await writeComprehensiveZiweiReportV4({
+      facts,
+      knowledgePacks: [],
+      provider: provider as never,
+      readingContext: {
+        version: 1,
+        lifeStage: "early_career",
+        topConcern: "career",
+        birthDate: "1990-01-01",
+        fingerprint: "forbidden",
+        stateVersion: 9,
+      } as any,
+    });
+
+    const request = provider.generateStructured.mock.calls[0][0];
+    const payload = JSON.parse(request.user);
+    expect(payload.readingContext).toEqual(null);
+    expect(request.system).toContain("Chỉ dùng lifeStage và topConcern");
+    expect(request.system).toContain("không nói hoặc ngụ ý lá số đã tiết lộ");
+    expect(request.system).toContain("không tạo khẳng định Tử Vi liên kết sao");
+    expect(JSON.stringify(payload)).not.toContain("1990-01-01");
+    expect(JSON.stringify(payload)).not.toContain("forbidden");
   });
 
 });

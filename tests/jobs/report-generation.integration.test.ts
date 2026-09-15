@@ -2422,6 +2422,14 @@ describe("report generation orchestration and worker integration (Slice B)", () 
         loadSourceCalls++;
         return realSourceRepository.loadSource(params);
       },
+      async validateLifecycle(params: { readingContextRevisionId: string | null }) {
+        return {
+          ok: true as const,
+          value: {
+            readingContextRevisionId: params.readingContextRevisionId,
+          },
+        };
+      },
     };
     const versionRepository = createDatabaseReportVersionRepository(
       database,

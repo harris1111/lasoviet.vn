@@ -56,7 +56,9 @@ export type ReportGenerationServiceErrorCode =
   | "REPORT_VERSION_CONFLICT"
   | "REPORT_SOURCE_SNAPSHOT_INVALID"
   | "REPORT_SOURCE_SNAPSHOT_CONFLICT"
-  | "REPORT_SOURCE_SNAPSHOT_UNAVAILABLE";
+  | "REPORT_SOURCE_SNAPSHOT_UNAVAILABLE"
+  | "REPORT_PROFILE_PURGED"
+  | "REPORT_CONTEXT_MISMATCH";
 
 export type ReportGenerationExecutionState =
   | "active"
@@ -217,6 +219,22 @@ export function createReportGenerationService(
     return { code: "AI_OUTPUT_INVALID", retryable: false };
   }
 
+  async function lifecycleFence(
+    input: GenerateReportInput,
+  ): Promise<ReportGenerationServiceResult | null> {
+    const result = await dependencies.sourceRepository.validateLifecycle({
+      reportVersionId: input.job.payload.reportVersionId,
+      jobId: input.jobId ?? input.job.idempotencyKey,
+      readingContextRevisionId:
+        input.job.name === "report.generate.v2"
+          ? input.job.payload.readingContextRevisionId ?? null
+          : null,
+    });
+    return result.ok
+      ? null
+      : { ok: false, error: { code: result.error.code, retryable: false } };
+  }
+
   async function executeSectionedGeneration(
     input: GenerateReportInput,
     source: ComprehensiveReportSourceV4,
@@ -282,6 +300,8 @@ export function createReportGenerationService(
         const checkpoint = claim.value.checkpoint;
         const stoppedBeforeProvider = stopped();
         if (stoppedBeforeProvider) return stoppedBeforeProvider;
+        const lifecycle = await lifecycleFence(input);
+        if (lifecycle) return lifecycle;
         let written: Awaited<ReturnType<typeof writeComprehensiveReportSectionV4>>;
         try {
           written = await writeComprehensiveReportSectionV4({
@@ -290,6 +310,7 @@ export function createReportGenerationService(
             knowledgePacks: source.knowledgePacks!,
             provider: dependencies.provider,
             promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+            readingContext: source.readingContext,
             ...(digest ? { priorSectionDigest: digest } : {}),
             costContext: {
               ...baseCostContext,
@@ -353,11 +374,14 @@ export function createReportGenerationService(
       const revision = claimed.value.revision;
       const stoppedBeforeProvider = stopped();
       if (stoppedBeforeProvider) return stoppedBeforeProvider;
+      const lifecycle = await lifecycleFence(input);
+      if (lifecycle) return lifecycle;
       let written: Awaited<ReturnType<typeof writeComprehensiveReportSectionV4>>;
       try {
         written = await writeComprehensiveReportSectionV4({
           sectionKey, facts: source.comprehensiveFactsV4!, knowledgePacks: source.knowledgePacks!,
           provider: dependencies.provider, promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+          readingContext: source.readingContext,
           priorSectionDigest: buildComprehensiveReportSectionDigest((current.value as readonly PersistedReportSectionCheckpoint[]).flatMap((item) => item.acceptedSection ? [item.acceptedSection] : [])),
           rewrite: { priorSection: row.acceptedSection, findings: findings.slice(0, 8) },
           costContext: {
@@ -438,7 +462,17 @@ export function createReportGenerationService(
     listed = await listAccepted(); if (!listed.ok) return listed;
     rows = listed.value as readonly PersistedReportSectionCheckpoint[];
     const palaceDigest = buildComprehensiveReportPalaceSectionDigest(acceptedSections(rows));
-    const themes = COMPREHENSIVE_REPORT_SECTION_KEYS.filter((key) => key.startsWith("thematic:"));
+    const preferredTheme =
+      source.readingContext?.topConcern === "career" || source.readingContext?.topConcern === "money"
+        ? "thematic:career_wealth"
+        : source.readingContext?.topConcern === "love" || source.readingContext?.topConcern === "family"
+          ? "thematic:relationships_family"
+          : source.readingContext?.topConcern === "wellbeing" || source.readingContext?.topConcern === "self_understanding"
+            ? "thematic:wellbeing_inner_resources"
+            : null;
+    const themes = COMPREHENSIVE_REPORT_SECTION_KEYS
+      .filter((key) => key.startsWith("thematic:"))
+      .sort((left, right) => Number(right === preferredTheme) - Number(left === preferredTheme));
     const themeResult = await runPhase(themes.filter((key) => !new Set(rows.map((row) => row.sectionKey)).has(key)), palaceDigest);
     if (themeResult) return themeResult;
     listed = await listAccepted(); if (!listed.ok) return listed;
@@ -479,9 +513,12 @@ export function createReportGenerationService(
       if (!validation.ok) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
     }
     let critic;
+    const firstCriticLifecycle = await lifecycleFence(input);
+    if (firstCriticLifecycle) return firstCriticLifecycle;
     try {
       critic = await critiqueComprehensiveZiweiReportSectionedV4(report, source.comprehensiveFactsV4!, dependencies.provider, {
         costContext: { ...baseCostContext, idempotencyKey: `${payload.reportVersionId}:critic:1`, purpose: "critic" },
+        readingContext: source.readingContext,
       });
     } catch { return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } }; }
     if (stopped()) return stopped()!;
@@ -498,9 +535,12 @@ export function createReportGenerationService(
       try { report = assembleComprehensiveReportV4(acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]), source.comprehensiveFactsV4!); } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
       validation = validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!);
       if (!validation.ok) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      const secondCriticLifecycle = await lifecycleFence(input);
+      if (secondCriticLifecycle) return secondCriticLifecycle;
       try {
         critic = await critiqueComprehensiveZiweiReportSectionedV4(report, source.comprehensiveFactsV4!, dependencies.provider, {
           costContext: { ...baseCostContext, idempotencyKey: `${payload.reportVersionId}:critic:2`, purpose: "critic" },
+          readingContext: source.readingContext,
         });
       } catch { return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } }; }
       if (!critic.ok) return { ok: false, error: mapProviderError(critic.error) };
@@ -624,6 +664,10 @@ export function createReportGenerationService(
       knowledgeVersionId: payload.knowledgeVersionId,
       promptVersion: payload.promptVersion,
       locale: payload.locale,
+      readingContextRevisionId:
+        "readingContextRevisionId" in payload
+          ? payload.readingContextRevisionId ?? null
+          : null,
     });
     if (!sourceResult.ok) {
       return failAttempt("REPORT_EVIDENCE_INVALID", false);
@@ -658,6 +702,8 @@ export function createReportGenerationService(
       }
 
       let writerResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReportV4>>;
+      const writerLifecycle = await lifecycleFence(input);
+      if (writerLifecycle?.ok === false) return failAttempt(writerLifecycle.error.code, false);
       try {
         writerResult = await writeComprehensiveZiweiReportV4(
           source as ComprehensiveReportSourceV4,
@@ -700,12 +746,17 @@ export function createReportGenerationService(
         rewriteIssues = initialValidation.errors.slice(0, 8).map((e) => e.slice(0, 300));
       } else {
         let criticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
+        const criticLifecycle = await lifecycleFence(input);
+        if (criticLifecycle?.ok === false) return failAttempt(criticLifecycle.error.code, false);
         try {
           criticResult = await critiqueComprehensiveZiweiReportV4(
             draft.report,
             source.comprehensiveFactsV4,
             dependencies.provider,
-            { costContext: { ...baseCostContext, purpose: "critic" } },
+            {
+              costContext: { ...baseCostContext, purpose: "critic" },
+              readingContext: source.readingContext,
+            },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", true);
@@ -752,12 +803,15 @@ export function createReportGenerationService(
         }
 
         let revisionResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReportV4>>;
+        const rewriteLifecycle = await lifecycleFence(input);
+        if (rewriteLifecycle?.ok === false) return failAttempt(rewriteLifecycle.error.code, false);
         try {
           revisionResult = await writeComprehensiveZiweiReportV4(
             {
               facts: source.comprehensiveFactsV4,
               knowledgePacks: source.knowledgePacks,
               provider: dependencies.provider,
+              readingContext: source.readingContext,
               revision: {
                 priorContent: draft.report,
                 issues: rewriteIssues,
@@ -801,12 +855,17 @@ export function createReportGenerationService(
         }
 
         let revCriticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
+        const recriticLifecycle = await lifecycleFence(input);
+        if (recriticLifecycle?.ok === false) return failAttempt(recriticLifecycle.error.code, false);
         try {
           revCriticResult = await critiqueComprehensiveZiweiReportV4(
             draft.report,
             source.comprehensiveFactsV4,
             dependencies.provider,
-            { costContext: { ...baseCostContext, purpose: "critic" } },
+            {
+              costContext: { ...baseCostContext, purpose: "critic" },
+              readingContext: source.readingContext,
+            },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);
@@ -871,6 +930,8 @@ export function createReportGenerationService(
       }
 
       let writerResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReport>>;
+      const v3WriterLifecycle = await lifecycleFence(input);
+      if (v3WriterLifecycle?.ok === false) return failAttempt(v3WriterLifecycle.error.code, false);
       try {
         writerResult = await writeComprehensiveZiweiReport(
           source as ComprehensiveReportSource,
@@ -935,6 +996,8 @@ export function createReportGenerationService(
     }
 
     let writerResult: Awaited<ReturnType<typeof writeIdentityReportDraft>>;
+    const legacyWriterLifecycle = await lifecycleFence(input);
+    if (legacyWriterLifecycle?.ok === false) return failAttempt(legacyWriterLifecycle.error.code, false);
     try {
       writerResult = await writeIdentityReportDraft({
         ...source,
@@ -987,6 +1050,8 @@ export function createReportGenerationService(
     }
 
     let criticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
+    const legacyCriticLifecycle = await lifecycleFence(input);
+    if (legacyCriticLifecycle?.ok === false) return failAttempt(legacyCriticLifecycle.error.code, false);
     try {
       criticResult = await critiqueIdentityReport(
         draft.report,
@@ -995,7 +1060,7 @@ export function createReportGenerationService(
         {
           promptVersion: payload.promptVersion,
           knowledgeVersion: payload.knowledgeVersionId,
-          costContext: { ...baseCostContext, purpose: "critic" },
+            costContext: { ...baseCostContext, purpose: "critic" },
         },
       );
     } catch {
@@ -1042,6 +1107,8 @@ export function createReportGenerationService(
           : [];
 
         let revisionResult: Awaited<ReturnType<typeof writeIdentityReportDraft>>;
+        const legacyRewriteLifecycle = await lifecycleFence(input);
+        if (legacyRewriteLifecycle?.ok === false) return failAttempt(legacyRewriteLifecycle.error.code, false);
         try {
           revisionResult = await writeIdentityReportDraft({
             ...source,
@@ -1093,6 +1160,8 @@ export function createReportGenerationService(
         }
 
         let revCriticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
+        const legacyRecriticLifecycle = await lifecycleFence(input);
+        if (legacyRecriticLifecycle?.ok === false) return failAttempt(legacyRecriticLifecycle.error.code, false);
         try {
           revCriticResult = await critiqueIdentityReport(
             revisedDraft.report,

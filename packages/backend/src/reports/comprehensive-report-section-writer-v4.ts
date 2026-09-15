@@ -7,6 +7,8 @@ import {
   ZiweiComprehensiveReportCurrentDecadalV2Schema,
   type ZiweiPalaceId,
   type ZiweiThematicSynthesisId,
+  ReadingContextV1Schema,
+  type ReadingContextV1,
   z,
 } from "@lasoviet/contracts";
 import { ziweiComprehensiveReportQualityV1 } from "@lasoviet/config";
@@ -49,6 +51,7 @@ export type ComprehensiveReportSectionWriterV4Input = {
   provider: AiProvider;
   promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1;
   costContext?: AiCostRequestContext;
+  readingContext?: ReadingContextV1 | null;
 };
 
 export type ComprehensiveReportSectionWriterV4Result =
@@ -290,6 +293,26 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
     allowedEvidenceKeys: [...allowedEvidenceKeys].sort(),
     brightnessLabelsVi: BRIGHTNESS_LABELS_VI,
     knowledgePacks,
+    readingContext: (() => {
+      const parsed = ReadingContextV1Schema.safeParse(input.readingContext ?? null);
+      return parsed.success
+        ? { lifeStage: parsed.data.lifeStage ?? null, topConcern: parsed.data.topConcern ?? null }
+        : null;
+    })(),
+    thematicPriority:
+      input.sectionKey === "thematic:career_wealth"
+        ? input.readingContext?.topConcern === "career" || input.readingContext?.topConcern === "money"
+        : input.sectionKey === "thematic:relationships_family"
+          ? input.readingContext?.topConcern === "love" || input.readingContext?.topConcern === "family"
+          : input.sectionKey === "thematic:wellbeing_inner_resources"
+            ? input.readingContext?.topConcern === "wellbeing" || input.readingContext?.topConcern === "self_understanding"
+            : false,
+    personalizationGuidance:
+      input.sectionKey === "overview" || input.sectionKey === "coreAxis"
+        ? { useLifeStageForFraming: true }
+        : input.sectionKey === "practicalDirection"
+          ? { useTopConcernForPracticalDirection: true }
+          : null,
     ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
     ...(input.rewrite ? {
       rewrite: {
@@ -305,7 +328,8 @@ Viết đúng một phần báo cáo tiếng Việt bằng JSON theo schema đư
 Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tính toán hoặc truy xuất. Không dùng khối tuyên bố miễn trừ trách nhiệm.
 Không bịa sự kiện tương lai cụ thể, không dùng khẳng định định mệnh về tai nạn, tử vong, phá sản hoặc phản bội.
 Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, và không lặp lại lời khuyên/cảnh báo.
-Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.`;
+ Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
+ readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
 
 export async function writeComprehensiveReportSectionV4(
   input: ComprehensiveReportSectionWriterV4Input,

@@ -497,4 +497,26 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
     )).resolves.toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false, notes: [] } });
   });
 
+  it("sends normalized enum-only context to both critics", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: {
+          correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5,
+          consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [], findings: [],
+        } },
+      }),
+    };
+    const context = { version: 1, lifeStage: "early_career", topConcern: "career" } as const;
+    await critiqueComprehensiveZiweiReportV4(dummyReport as any, facts, provider as never, { readingContext: context });
+    await critiqueComprehensiveZiweiReportSectionedV4(dummyReport as any, facts, provider as never, { readingContext: context });
+    for (const [request] of provider.generateStructured.mock.calls) {
+      const payload = JSON.parse(request.user);
+      expect(payload.readingContext).toEqual({ lifeStage: "early_career", topConcern: "career" });
+      expect(JSON.stringify(payload)).not.toContain("birthDate");
+      expect(request.system).toContain("không được nói hoặc ngụ ý lá số tiết lộ context");
+    }
+  });
+
 });
