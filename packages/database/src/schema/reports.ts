@@ -127,6 +127,69 @@ export const reportGenerationAttempts = pgTable("report_generation_attempts", {
   index("report_generation_attempts_report_idx").on(table.reportVersionId, table.startedAt),
 ]);
 
+export const reportSectionCheckpoints = pgTable("report_section_checkpoints", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reportVersionId: uuid("report_version_id").notNull(),
+  sectionKey: text("section_key").notNull(),
+  sectionOrder: integer("section_order").notNull(),
+  stateVersion: integer("state_version").notNull().default(1),
+  status: text("status").notNull().default("pending"),
+  promptVersion: text("prompt_version").notNull(),
+  knowledgeVersionId: text("knowledge_version_id").notNull(),
+  reportConfigVersion: text("report_config_version").notNull(),
+  qualityConfigVersion: text("quality_config_version").notNull(),
+  generationAttemptCount: integer("generation_attempt_count").notNull().default(0),
+  rewriteAttemptCount: integer("rewrite_attempt_count").notNull().default(0),
+  activeJobId: text("active_job_id"),
+  activeWorkerId: text("active_worker_id"),
+  acceptedContent: jsonb("accepted_content").$type<Record<string, unknown>>(),
+  contentHash: text("content_hash"),
+  providerId: text("provider_id"),
+  modelId: text("model_id"),
+  failureCode: text("failure_code"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("report_section_checkpoints_version_section_unique").on(
+    table.reportVersionId,
+    table.sectionKey,
+  ),
+  index("report_section_checkpoints_passed_order_idx").on(
+    table.reportVersionId,
+    table.status,
+    table.sectionOrder,
+    table.sectionKey,
+  ),
+  check(
+    "report_section_checkpoints_lineage_non_empty",
+    sql`btrim(${table.sectionKey}) <> '' AND btrim(${table.promptVersion}) <> '' AND btrim(${table.knowledgeVersionId}) <> '' AND btrim(${table.reportConfigVersion}) <> '' AND btrim(${table.qualityConfigVersion}) <> ''`,
+  ),
+  check(
+    "report_section_checkpoints_nonnegative_counts",
+    sql`${table.sectionOrder} >= 0 AND ${table.generationAttemptCount} >= 0 AND ${table.rewriteAttemptCount} >= 0`,
+  ),
+  check(
+    "report_section_checkpoints_positive_state_version",
+    sql`${table.stateVersion} > 0`,
+  ),
+  check(
+    "report_section_checkpoints_status_valid",
+    sql`${table.status} IN ('pending', 'generating', 'passed', 'terminal_failure')`,
+  ),
+  check(
+    "report_section_checkpoints_active_ownership",
+    sql`(${table.status} = 'generating' AND ${table.activeJobId} IS NOT NULL AND btrim(${table.activeJobId}) <> '' AND ${table.activeWorkerId} IS NOT NULL AND btrim(${table.activeWorkerId}) <> '') OR (${table.status} <> 'generating' AND ${table.activeJobId} IS NULL AND ${table.activeWorkerId} IS NULL)`,
+  ),
+  check(
+    "report_section_checkpoints_passed_lineage",
+    sql`(${table.status} = 'passed' AND ${table.acceptedContent} IS NOT NULL AND ${table.contentHash} ~ '^[a-f0-9]{64}$' AND ${table.providerId} IS NOT NULL AND btrim(${table.providerId}) <> '' AND ${table.modelId} IS NOT NULL AND btrim(${table.modelId}) <> '' AND ${table.failureCode} IS NULL) OR (${table.status} <> 'passed' AND ${table.acceptedContent} IS NULL AND ${table.contentHash} IS NULL AND ${table.providerId} IS NULL AND ${table.modelId} IS NULL)`,
+  ),
+  check(
+    "report_section_checkpoints_failure_code_bounded",
+    sql`${table.failureCode} IS NULL OR (btrim(${table.failureCode}) <> '' AND char_length(${table.failureCode}) <= 120)`,
+  ),
+]);
+
 
 export const reportSourceSnapshots = pgTable("report_source_snapshots", {
   id: uuid("id").defaultRandom().primaryKey(),

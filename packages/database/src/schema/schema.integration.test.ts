@@ -23,6 +23,8 @@ import {
   TIER_2_ENTITLEMENT_SCOPE,
 } from "@lasoviet/contracts";
 import {
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
 } from "./birth-profile.js";
@@ -1022,7 +1024,7 @@ describe("database schema integration", () => {
       entries: Array<{ idx: number; when: number; tag: string }>;
     };
 
-    expect(journal.entries.length).toBeGreaterThanOrEqual(28);
+    expect(journal.entries.length).toBeGreaterThanOrEqual(29);
     for (let i = 1; i < journal.entries.length; i++) {
       const prev = journal.entries[i - 1]!;
       const curr = journal.entries[i]!;
@@ -1036,36 +1038,42 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.at(-3)).toMatchObject({
+    expect(journal.entries.at(-4)).toMatchObject({
       idx: 26,
       when: 1789718400000,
       tag: "0026_ai_usage_and_cost",
     });
-    expect(journal.entries.at(-2)).toMatchObject({
+    expect(journal.entries.at(-3)).toMatchObject({
       idx: 27,
       when: 1789804800000,
       tag: "0027_birth_profile_reading_context",
     });
-    expect(journal.entries.at(-1)).toMatchObject({
+    expect(journal.entries.at(-2)).toMatchObject({
       idx: 28,
       when: 1789891200000,
       tag: "0028_account_linked_analytics",
     });
+    expect(journal.entries.at(-1)).toMatchObject({
+      idx: 29,
+      when: 1789977600000,
+      tag: "0029_report_section_checkpoints",
+    });
   });
 
-  it("applies 0026 AI cost, 0027 reading context, and 0028 analytics to a clean database", async () => {
+  it("applies 0026 AI cost, 0027 reading context, 0028 analytics, and 0029 checkpoints to a clean database", async () => {
     const client = postgres(databaseUrl);
 
     const migrations = await client<{ created_at: string }[]>`
       SELECT created_at
       FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1789718400000, 1789804800000, 1789891200000)
+      WHERE created_at IN (1789718400000, 1789804800000, 1789891200000, 1789977600000)
       ORDER BY created_at ASC
     `;
     expect(migrations.map((migration) => Number(migration.created_at))).toEqual([
       1789718400000,
       1789804800000,
       1789891200000,
+      1789977600000,
     ]);
 
     const tables = await client<{ table_name: string }[]>`
@@ -1079,7 +1087,8 @@ describe("database schema integration", () => {
           'analytics_visitors',
           'analytics_events',
           'account_behavior_profiles',
-          'analytics_fraud_ip_records'
+          'analytics_fraud_ip_records',
+          'report_section_checkpoints'
         )
       ORDER BY table_name ASC
     `;
@@ -1091,40 +1100,94 @@ describe("database schema integration", () => {
       "analytics_events",
       "analytics_fraud_ip_records",
       "analytics_visitors",
+      "report_section_checkpoints",
     ]);
 
     await client.end();
   });
 
-  it("upgrades only 0028 from the 0027 reading-context boundary without losing AI data", async () => {
+  it("upgrades 0029 from the 0028 analytics boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
+    const database = createDatabase(databaseUrl);
+    const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
+    const userId = "checkpoint-upgrade-user";
+    const profileId = "checkpoint-upgrade-profile";
+    const revisionId = "checkpoint-upgrade-revision";
+    const visitorId = "checkpoint-upgrade-visitor";
+    const eventId = "checkpoint-upgrade-event";
 
-    // Simulate a database that has completed ReadingContext but not analytics.
-    await client`DROP TABLE IF EXISTS analytics_events CASCADE`;
-    await client`DROP TABLE IF EXISTS analytics_visitors CASCADE`;
-    await client`DROP TABLE IF EXISTS account_behavior_profiles CASCADE`;
-    await client`DROP TABLE IF EXISTS analytics_fraud_ip_records CASCADE`;
-    await client`DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1789891200000`;
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Checkpoint Upgrade User",
+      email: "checkpoint-upgrade@example.test",
+      createdAt: upgradeNow,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(birthProfiles).values({
+      id: profileId,
+      userId,
+      createdAt: upgradeNow,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: revisionId,
+      profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+      createdAt: upgradeNow,
+    });
+    await database.insert(birthProfileReadingContexts).values({
+      profileId,
+      currentRevisionId: revisionId,
+      stateVersion: 1,
+      lastRevisionNumber: 1,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(analyticsVisitors).values({
+      id: visitorId,
+      userId,
+      birthProfileId: profileId,
+      linkedAt: upgradeNow,
+      firstSeenAt: upgradeNow,
+      lastSeenAt: upgradeNow,
+      createdAt: upgradeNow,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(analyticsEvents).values({
+      id: eventId,
+      idempotencyKey: "checkpoint-upgrade-event-key",
+      visitorId,
+      userId,
+      birthProfileId: profileId,
+      name: "birth_profile_saved",
+      properties: { source: "checkpoint-upgrade" },
+      occurredAt: upgradeNow,
+      createdAt: upgradeNow,
+    });
+
+    await client`DROP TABLE IF EXISTS report_section_checkpoints`;
+    await client`DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1789977600000`;
 
     const [latestBefore] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestBefore?.created_at)).toBe(1789804800000);
+    expect(Number(latestBefore?.created_at)).toBe(1789891200000);
 
     await runMigrations(databaseUrl);
 
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1789891200000);
+    expect(Number(latestAfter?.created_at)).toBe(1789977600000);
 
-    const [analyticsTableCheck] = await client<{ exists: boolean }[]>`
+    const [checkpointTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (
         SELECT FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = 'analytics_visitors'
+        WHERE table_schema = 'public' AND table_name = 'report_section_checkpoints'
       ) as exists
     `;
-    expect(analyticsTableCheck?.exists).toBe(true);
+    expect(checkpointTableCheck?.exists).toBe(true);
 
     const [aiTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (
@@ -1138,6 +1201,54 @@ describe("database schema integration", () => {
       SELECT count(*) FROM ai_model_pricing WHERE pricing_version = 'v1-20260914'
     `;
     expect(Number(aiDataCheck?.count)).toBeGreaterThan(0);
+
+    const [readingContextTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'birth_profile_reading_contexts'
+      ) as exists
+    `;
+    expect(readingContextTableCheck?.exists).toBe(true);
+
+    const [context] = await database.select().from(birthProfileReadingContexts).where(
+      eq(birthProfileReadingContexts.profileId, profileId),
+    );
+    const [revision] = await database.select().from(birthProfileReadingContextRevisions).where(
+      eq(birthProfileReadingContextRevisions.id, revisionId),
+    );
+    const [visitor] = await database.select().from(analyticsVisitors).where(
+      eq(analyticsVisitors.id, visitorId),
+    );
+    const [event] = await database.select().from(analyticsEvents).where(
+      eq(analyticsEvents.id, eventId),
+    );
+    expect(context).toMatchObject({
+      profileId,
+      currentRevisionId: revisionId,
+      stateVersion: 1,
+      lastRevisionNumber: 1,
+    });
+    expect(revision).toMatchObject({
+      id: revisionId,
+      profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+    });
+    expect(visitor).toMatchObject({
+      id: visitorId,
+      userId,
+      birthProfileId: profileId,
+      linkedAt: upgradeNow,
+    });
+    expect(event).toMatchObject({
+      id: eventId,
+      visitorId,
+      userId,
+      birthProfileId: profileId,
+      name: "birth_profile_saved",
+      properties: { source: "checkpoint-upgrade" },
+    });
 
     await client.end();
   });

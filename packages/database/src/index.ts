@@ -49,6 +49,7 @@ export {
   reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,
+  reportSectionCheckpoints,
   reportSourceSnapshots,
   reportVersions,
 } from "./schema/reports.js";
