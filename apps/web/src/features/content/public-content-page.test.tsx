@@ -134,3 +134,74 @@ describe("PublicContentPage policy-page template", () => {
     expect(html).toContain("Chính sách bảo mật");
   });
 });
+
+describe("PublicContentPage rich-content templates (about/methodology/sources)", () => {
+  const richBody = [
+    "## Heading one",
+    "",
+    "Plain paragraph with **bold text** and `inline code`.",
+    "",
+    "## A list",
+    "",
+    "- **First:** one thing.",
+    "- **Second:** another thing.",
+    "",
+    "## Steps",
+    "",
+    "1. First step.",
+    "2. Second step.",
+    "",
+    "## A table",
+    "",
+    "| Wrong | Right |",
+    "|---|---|",
+    "| Bad thing | Good thing |",
+    "",
+    "## Tiếp tục",
+    "",
+    "[Lập lá số Tử Vi](route:calculator.tu-vi).",
+  ].join("\n");
+
+  const baseContent: PublicContentV1 = {
+    routeId: "brand.about",
+    locale: "vi",
+    contentType: "SeoMetadata",
+    title: "Về Lá Số Việt",
+    summary: "Tóm tắt.",
+    reviewer: "brand-reviewer",
+    sourceReferences: ["docs/13-brand-experience-guideline.md"],
+    riskTags: ["brand_claims"],
+    status: "published",
+    lastReviewed: "2026-09-15",
+    body: richBody,
+  };
+
+  it.each([
+    ["about-page", "brand.about", "/ve-la-so-viet"],
+    ["methodology-hub", "methodology.root", "/phuong-phap"],
+    ["methodology-page", "methodology.tu-vi", "/phuong-phap/tu-vi"],
+    ["source-registry", "trust.sources", "/nguon-tri-thuc"],
+  ])("renders headings, bold, code, lists, and tables for template %s", (template, routeId, path) => {
+    const route = buildRoute({ id: routeId, path, intent: routeId, template });
+    const content: PublicContentV1 = { ...baseContent, routeId };
+    const html = renderToStaticMarkup(
+      <PublicContentPage
+        content={content}
+        locale="vi"
+        repository={createPublicContentRepository([content], [route, calculatorRoute, knowledgeRoute])}
+        route={route}
+        routes={[route, calculatorRoute, knowledgeRoute]}
+      />,
+    );
+
+    expect(html).toContain("Heading one");
+    expect(html).toContain("<strong>bold text</strong>");
+    expect(html).toContain("<code>inline code</code>");
+    expect(html).toContain("<strong>First:</strong>");
+    expect(html).toContain("<ol>");
+    expect(html).toContain("First step.");
+    expect(html).toContain("<table>");
+    expect(html).toContain("Bad thing");
+    expect(html).toContain('href="/tu-vi"');
+  });
+});
