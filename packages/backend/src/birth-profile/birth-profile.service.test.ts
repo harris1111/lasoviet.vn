@@ -152,6 +152,13 @@ describe("BirthProfile service", () => {
     const service = createBirthProfileService({
       repository: {
         async create(input) {
+          return {
+            profileId: "legacy-profile",
+            revisionId: "legacy-revision",
+            revisionNumber: 1,
+          };
+        },
+        async createWithContext(input) {
           writes.push({ operation: "create", ...input });
           return {
             profileId: "profile-1",
@@ -244,6 +251,13 @@ describe("BirthProfile service", () => {
             revisionNumber: 1,
           };
         },
+        async createWithContext() {
+          return {
+            profileId: "profile-unknown",
+            revisionId: "revision-unknown",
+            revisionNumber: 1,
+          };
+        },
         async update() {
           return null;
         },
@@ -284,6 +298,9 @@ describe("BirthProfile service", () => {
     const service = createBirthProfileService({
       repository: {
         async create() {
+          return null;
+        },
+        async createWithContext() {
           return null;
         },
         async update() {
@@ -340,5 +357,66 @@ describe("BirthProfile service", () => {
         ziweiEligibility: { version: 1, eligible: true, timeIndex: 6 },
       },
     });
+  });
+
+  it("passes validated enum-only reading context through composite creation", async () => {
+    const writes: Array<Record<string, unknown>> = [];
+    const service = createBirthProfileService({
+      repository: {
+        async create() {
+          return null;
+        },
+        async createWithContext(input) {
+          writes.push(input);
+          return {
+            profileId: "profile-context",
+            revisionId: "revision-context",
+            revisionNumber: 1,
+          };
+        },
+        async update() {
+          return null;
+        },
+        async read() {
+          return null;
+        },
+        async archive() {
+          return false;
+        },
+      },
+      now: () => new Date("2026-09-01T00:00:00Z"),
+    });
+    const testCase = await fixture("exact-minute-offset");
+    const actor = {
+      kind: "account" as const,
+      userId: "user-context",
+      sessionId: "session-context",
+      requestId: "request-context",
+    };
+
+    await expect(
+      service.createWithContext(actor, testCase.input, {
+        version: 1,
+        lifeStage: "early_career",
+      }),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        profileId: "profile-context",
+        ziweiEligibility: { eligible: true },
+      },
+    });
+    expect(writes).toEqual([
+      expect.objectContaining({
+        readingContext: { version: 1, lifeStage: "early_career" },
+      }),
+    ]);
+    await expect(
+      service.createWithContext(actor, testCase.input, { version: 1 }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "READING_CONTEXT_INVALID" },
+    });
+    expect(writes).toHaveLength(1);
   });
 });

@@ -28,6 +28,7 @@ import {
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseBirthProfileRepository,
+  createDatabaseReadingContextRepository,
   createDatabaseConsentRepository,
   createDatabaseDeletionRepository,
   createDatabaseZiweiCalculationRepository,
@@ -37,6 +38,7 @@ import {
   createAdminOverviewService,
   createRoleAssignmentService,
   createEvidenceService,
+  createReadingContextService,
   createZiweiCalculationService,
   createZiweiQueryService,
   createDatabaseReportQueryRepository,
@@ -58,6 +60,12 @@ import {
   BIRTH_PROFILE_SERVICE_SECRET,
   BirthProfileController,
 } from "./birth-profile/birth-profile.controller.js";
+import {
+  READING_CONTEXT_DATABASE,
+  READING_CONTEXT_SERVICE,
+  READING_CONTEXT_SERVICE_SECRET,
+  ReadingContextController,
+} from "./birth-profile/reading-context.controller.js";
 import {
   ADMIN_ACCESS_DATABASE,
   ADMIN_ACCESS_SERVICE,
@@ -180,6 +188,7 @@ export function createApiAnalyticsSink(
     AuthEmailController,
     PrivacyController,
     BirthProfileController,
+    ReadingContextController,
     ZiweiController,
     AdminAccessController,
     AdminRoleAuditController,
@@ -303,6 +312,24 @@ export function createApiAnalyticsSink(
       },
     },
     { provide: BIRTH_PROFILE_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: READING_CONTEXT_SERVICE,
+      useFactory: () =>
+        createReadingContextService({
+          repository: createDatabaseReadingContextRepository(privacyDatabase()),
+        }),
+    },
+    {
+      provide: READING_CONTEXT_SERVICE_SECRET,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        if (environment.internalActorSecret === undefined) {
+          throw new Error("API_ACTOR_SECRET_CONFIG_INVALID");
+        }
+        return environment.internalActorSecret;
+      },
+    },
+    { provide: READING_CONTEXT_DATABASE, useFactory: privacyDatabase },
     {
       provide: ZIWEI_CALCULATION_SERVICE,
       useFactory: () =>

@@ -168,6 +168,29 @@ export type {
   ZiweiEligibilityV1,
 } from "./birth-profile-v1.js";
 
+export {
+  BirthProfileCreateRequestV1Schema,
+  BirthProfileCreateWrapperV1Schema,
+  ClearReadingContextRequestV1Schema,
+  computeReadingContextFingerprint,
+  LifeStageV1Schema,
+  normalizeBirthProfileCreateRequest,
+  ReadingContextRecordV1Schema,
+  ReadingContextV1Schema,
+  SetReadingContextRequestV1Schema,
+  TopConcernV1Schema,
+} from "./reading-context-v1.js";
+export type {
+  BirthProfileCreateRequestV1,
+  BirthProfileCreateWrapperV1,
+  ClearReadingContextRequestV1,
+  LifeStageV1,
+  ReadingContextRecordV1,
+  ReadingContextV1,
+  SetReadingContextRequestV1,
+  TopConcernV1,
+} from "./reading-context-v1.js";
+
 export type {
   CalculationEngine,
   CalculationEngineError,

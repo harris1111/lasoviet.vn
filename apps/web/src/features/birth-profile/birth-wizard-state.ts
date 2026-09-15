@@ -1,8 +1,99 @@
+import {
+  LifeStageV1Schema,
+  type LifeStageV1,
+  TopConcernV1Schema,
+  type TopConcernV1,
+} from "@lasoviet/contracts";
+import { z } from "zod";
+
 import type { BirthTimeState } from "./birth-profile-input";
 import {
   getBranchOptionLabel,
   isValidSolarDate,
 } from "./homepage-birth-prefill";
+
+export type WizardReadingContextDraft = {
+  lifeStage?: LifeStageV1;
+  topConcern?: TopConcernV1;
+  skippedQuestions: {
+    lifeStage: boolean;
+    topConcern: boolean;
+  };
+};
+
+export type WizardDraftV2 = {
+  version: 2;
+  step: 1 | 2 | 3;
+  subject: NonNullable<unknown> | null;
+  birth: NonNullable<unknown> | null;
+  readingContext?: WizardReadingContextDraft;
+  updatedAt: string;
+};
+
+const persistedOpaqueValueSchema = z
+  .unknown()
+  .refine((value) => value !== undefined, "Persisted value cannot be undefined");
+
+export const WizardReadingContextDraftSchema = z
+  .object({
+    lifeStage: LifeStageV1Schema.optional(),
+    topConcern: TopConcernV1Schema.optional(),
+    skippedQuestions: z
+      .object({
+        lifeStage: z.boolean(),
+        topConcern: z.boolean(),
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((context, issue) => {
+    if (context.lifeStage !== undefined && context.skippedQuestions.lifeStage) {
+      issue.addIssue({
+        code: "custom",
+        message: "lifeStage cannot be selected and skipped",
+        path: ["skippedQuestions", "lifeStage"],
+      });
+    }
+    if (context.topConcern !== undefined && context.skippedQuestions.topConcern) {
+      issue.addIssue({
+        code: "custom",
+        message: "topConcern cannot be selected and skipped",
+        path: ["skippedQuestions", "topConcern"],
+      });
+    }
+  });
+
+export const WizardDraftV2Schema = z
+  .object({
+    version: z.literal(2),
+    step: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    subject: persistedOpaqueValueSchema,
+    birth: persistedOpaqueValueSchema,
+    readingContext: WizardReadingContextDraftSchema.optional(),
+    updatedAt: z.string().datetime({ offset: true }),
+  })
+  .strict()
+  .superRefine((draft, issue) => {
+    if (!Object.prototype.hasOwnProperty.call(draft, "subject")) {
+      issue.addIssue({
+        code: "custom",
+        message: "subject is required",
+        path: ["subject"],
+      });
+    }
+    if (!Object.prototype.hasOwnProperty.call(draft, "birth")) {
+      issue.addIssue({
+        code: "custom",
+        message: "birth is required",
+        path: ["birth"],
+      });
+    }
+  });
+
+export function parseWizardDraftV2(input: unknown): WizardDraftV2 | null {
+  const parsed = WizardDraftV2Schema.safeParse(input);
+  return parsed.success ? (parsed.data as WizardDraftV2) : null;
+}
 
 export function splitIsoDateToParts(isoDate: string): {
   day: string;

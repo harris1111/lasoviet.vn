@@ -3,6 +3,7 @@ import "server-only";
 import {
   BirthProfileV1Schema,
   type CurrentActor,
+  ReadingContextV1Schema,
   type Result,
   ZiweiEligibilityV1Schema,
   type ZiweiEligibilityV1,
@@ -106,6 +107,9 @@ function profileError(code: string): Result<never, BirthProfileSubmissionError> 
   if (code === "INVALID_TIMEZONE" || code === "INVALID_CALENDAR_INPUT") {
     return failure("VALIDATION_FAILED");
   }
+  if (code === "READING_CONTEXT_INVALID") {
+    return failure("VALIDATION_FAILED");
+  }
   if (code === "ANONYMOUS_EXPIRED") {
     return failure("ANONYMOUS_EXPIRED");
   }
@@ -150,12 +154,20 @@ export function createBirthProfileSubmission(
   return async (input: {
     profile: unknown;
     explicitConsent: boolean;
+    readingContext?: unknown;
   }): Promise<Result<BirthProfileSubmissionValue, BirthProfileSubmissionError>> => {
     if (input.explicitConsent !== true) {
       return failure("CONSENT_REQUIRED");
     }
     const parsed = BirthProfileV1Schema.safeParse(input.profile);
     if (!parsed.success) {
+      return failure("VALIDATION_FAILED");
+    }
+    const readingContext =
+      input.readingContext === undefined
+        ? undefined
+        : ReadingContextV1Schema.safeParse(input.readingContext);
+    if (readingContext !== undefined && !readingContext.success) {
       return failure("VALIDATION_FAILED");
     }
 
@@ -188,7 +200,11 @@ export function createBirthProfileSubmission(
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(parsed.data),
+        body: JSON.stringify(
+          readingContext === undefined
+            ? parsed.data
+            : { profile: parsed.data, readingContext: readingContext.data },
+        ),
       },
     ));
     if (!profile.ok) {

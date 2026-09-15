@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 
@@ -6,10 +6,15 @@ import type {
   BirthProfileV1,
   CurrentActor,
   NormalizedBirthProfileV1,
+  ReadingContextV1,
 } from "@lasoviet/contracts";
+import { computeReadingContextFingerprint } from "@lasoviet/contracts";
 import {
   auditLogs,
   authAnonymousActors,
+  birthProfileReadingContextMutationReceipts,
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
   type Database,
@@ -34,8 +39,15 @@ export type BirthProfileWriteInput = {
   now: Date;
 };
 
+export type BirthProfileWithContextWriteInput = BirthProfileWriteInput & {
+  readingContext?: ReadingContextV1;
+};
+
 export type BirthProfileRepository = {
   create(input: BirthProfileWriteInput): Promise<BirthProfileRecord | null>;
+  createWithContext(
+    input: BirthProfileWithContextWriteInput,
+  ): Promise<BirthProfileRecord | null>;
   update(input: BirthProfileWriteInput): Promise<BirthProfileRecord | null>;
   read(
     actor: CurrentActor,
@@ -59,6 +71,14 @@ function serializedNormalized(
 ): Record<string, unknown> {
   const { originalInput: _originalInput, ...value } = normalized;
   return value as Record<string, unknown>;
+}
+
+function initialContextReceiptKey(requestId: string): string {
+  const trimmed = requestId.trim();
+  if (trimmed.length >= 1 && trimmed.length <= 128) {
+    return trimmed;
+  }
+  return createHash("sha256").update(requestId).digest("hex");
 }
 
 async function latestRecord(database: Database, profileId: string) {
@@ -85,58 +105,93 @@ async function latestRecord(database: Database, profileId: string) {
 export function createDatabaseBirthProfileRepository(
   database: Database,
 ): BirthProfileRepository {
-  return {
-    async create(input) {
-      return database.transaction(async (transaction) => {
-        let anonymousExpiresAt: Date | null = null;
-        if (input.actor.kind === "anonymous") {
-          const [anonymousActor] = await transaction
-            .update(authAnonymousActors)
-            .set({
-              expiresAt: sql`${authAnonymousActors.expiresAt}`,
-            })
-            .where(
-              and(
-                eq(authAnonymousActors.id, input.actor.anonymousActorId),
-                isNull(authAnonymousActors.linkedUserId),
-                isNull(authAnonymousActors.deletedAt),
-                gt(authAnonymousActors.expiresAt, input.now),
-              ),
-            )
-            .returning({ expiresAt: authAnonymousActors.expiresAt });
-          if (anonymousActor === undefined) {
-            return null;
-          }
-          anonymousExpiresAt = anonymousActor.expiresAt;
+  async function createWithContext(
+    input: BirthProfileWithContextWriteInput,
+  ): Promise<BirthProfileRecord | null> {
+    return database.transaction(async (transaction) => {
+      let anonymousExpiresAt: Date | null = null;
+      if (input.actor.kind === "anonymous") {
+        const [anonymousActor] = await transaction
+          .update(authAnonymousActors)
+          .set({
+            expiresAt: sql`${authAnonymousActors.expiresAt}`,
+          })
+          .where(
+            and(
+              eq(authAnonymousActors.id, input.actor.anonymousActorId),
+              isNull(authAnonymousActors.linkedUserId),
+              isNull(authAnonymousActors.deletedAt),
+              gt(authAnonymousActors.expiresAt, input.now),
+            ),
+          )
+          .returning({ expiresAt: authAnonymousActors.expiresAt });
+        if (anonymousActor === undefined) {
+          return null;
         }
+        anonymousExpiresAt = anonymousActor.expiresAt;
+      }
 
-        const profileId = randomUUID();
-        const revisionId = randomUUID();
-        await transaction.insert(birthProfiles).values(
-          input.actor.kind === "account"
-            ? {
-                id: profileId,
-                userId: input.actor.userId,
-                createdAt: input.now,
-                updatedAt: input.now,
-              }
-            : {
-                id: profileId,
-                anonymousActorId: input.actor.anonymousActorId,
-                anonymousExpiresAt,
-                createdAt: input.now,
-                updatedAt: input.now,
-              },
-        );
-        await transaction.insert(birthProfileRevisions).values({
-          id: revisionId,
+      const profileId = randomUUID();
+      const revisionId = randomUUID();
+      const revisionNumber = input.revisionNumber ?? 1;
+      await transaction.insert(birthProfiles).values(
+        input.actor.kind === "account"
+          ? {
+              id: profileId,
+              userId: input.actor.userId,
+              createdAt: input.now,
+              updatedAt: input.now,
+            }
+          : {
+              id: profileId,
+              anonymousActorId: input.actor.anonymousActorId,
+              anonymousExpiresAt,
+              createdAt: input.now,
+              updatedAt: input.now,
+            },
+      );
+      await transaction.insert(birthProfileRevisions).values({
+        id: revisionId,
+        profileId,
+        revisionNumber,
+        originalInput: input.originalInput,
+        normalizedInput: serializedNormalized(input.normalized),
+        normalizationWarnings: input.normalized.normalizationWarnings,
+        limitations: input.normalized.limitations,
+        consentVersion: input.originalInput.consentVersion,
+        createdAt: input.now,
+      });
+
+      if (input.readingContext !== undefined) {
+        const contextRevisionId = randomUUID();
+        await transaction.insert(birthProfileReadingContextRevisions).values({
+          id: contextRevisionId,
           profileId,
-          revisionNumber: input.revisionNumber ?? 1,
-          originalInput: input.originalInput,
-          normalizedInput: serializedNormalized(input.normalized),
-          normalizationWarnings: input.normalized.normalizationWarnings,
-          limitations: input.normalized.limitations,
-          consentVersion: input.originalInput.consentVersion,
+          revisionNumber: 1,
+          lifeStage: input.readingContext.lifeStage,
+          topConcern: input.readingContext.topConcern,
+          createdAt: input.now,
+        });
+        await transaction.insert(birthProfileReadingContexts).values({
+          profileId,
+          currentRevisionId: contextRevisionId,
+          stateVersion: 1,
+          lastRevisionNumber: 1,
+          updatedAt: input.now,
+        });
+        await transaction.insert(birthProfileReadingContextMutationReceipts).values({
+          profileId,
+          idempotencyKey: initialContextReceiptKey(input.actor.requestId),
+          commandType: "set",
+          requestFingerprint: computeReadingContextFingerprint(
+            "set",
+            0,
+            input.readingContext,
+          ),
+          resultStateVersion: 1,
+          resultRevisionId: contextRevisionId,
+          resultRevisionNumber: 1,
+          resultKind: "created",
           createdAt: input.now,
         });
         await transaction.insert(auditLogs).values({
@@ -144,24 +199,52 @@ export function createDatabaseBirthProfileRepository(
             input.actor.kind === "account"
               ? input.actor.userId
               : input.actor.anonymousActorId,
-          action: "birth_profile.created",
+          action: "birth_profile.reading_context.created",
           targetType: "birth_profile",
           targetId: profileId,
           requestId: input.actor.requestId,
-          metadata: { revisionId, revisionNumber: input.revisionNumber ?? 1 },
+          metadata: {
+            profileId,
+            revisionId: contextRevisionId,
+            revisionNumber: 1,
+            stateVersion: 1,
+            hasLifeStage: input.readingContext.lifeStage !== undefined,
+            hasTopConcern: input.readingContext.topConcern !== undefined,
+            action: "set",
+            outcome: "success",
+          },
         });
-        return {
-          profileId,
-          revisionId,
-          revisionNumber: input.revisionNumber ?? 1,
-          originalInput: input.originalInput,
-          normalizedInput: serializedNormalized(input.normalized),
-          normalizationWarnings: input.normalized.normalizationWarnings,
-          limitations: input.normalized.limitations,
-        };
+      }
+
+      await transaction.insert(auditLogs).values({
+        actorId:
+          input.actor.kind === "account"
+            ? input.actor.userId
+            : input.actor.anonymousActorId,
+        action: "birth_profile.created",
+        targetType: "birth_profile",
+        targetId: profileId,
+        requestId: input.actor.requestId,
+        metadata: { revisionId, revisionNumber },
       });
+      return {
+        profileId,
+        revisionId,
+        revisionNumber,
+        originalInput: input.originalInput,
+        normalizedInput: serializedNormalized(input.normalized),
+        normalizationWarnings: input.normalized.normalizationWarnings,
+        limitations: input.normalized.limitations,
+      };
+    });
+  }
+
+  return {
+    async create(input) {
+      return createWithContext(input);
     },
 
+    createWithContext,
     async update(input) {
       const profileId = input.profileId;
       if (profileId === undefined) {

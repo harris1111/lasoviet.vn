@@ -51,6 +51,7 @@ export const ReportGenerationRequestedV2Schema = z
     targetYear: z.number().int(),
     timingRuleVersion: z.string().trim().min(1),
     sensitivityRuleVersion: z.string().trim().min(1),
+    readingContextRevisionId: z.string().trim().min(1).nullable().optional(),
   })
   .strict()
   .superRefine((payload, ctx) => {

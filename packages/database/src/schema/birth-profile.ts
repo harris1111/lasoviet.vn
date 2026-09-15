@@ -1,10 +1,12 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  foreignKey,
   index,
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -91,6 +93,146 @@ export const birthProfileRevisions = pgTable(
       table.revisionNumber,
     ),
     index("birth_profile_revisions_profile_id_idx").on(table.profileId),
+  ],
+);
+
+export const birthProfileReadingContextRevisions = pgTable(
+  "birth_profile_reading_context_revisions",
+  {
+    id: text("id").primaryKey(),
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => birthProfiles.id, { onDelete: "cascade" }),
+    revisionNumber: integer("revision_number").notNull(),
+    lifeStage: text("life_stage"),
+    topConcern: text("top_concern"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("reading_context_revisions_profile_id_id_unique").on(
+      table.profileId,
+      table.id,
+    ),
+    uniqueIndex("reading_context_revisions_profile_revision_idx").on(
+      table.profileId,
+      table.revisionNumber,
+    ),
+    index("reading_context_revisions_profile_id_idx").on(table.profileId),
+    check("reading_context_revision_number_positive", sql`${table.revisionNumber} > 0`),
+    check(
+      "reading_context_at_least_one",
+      sql`num_nonnulls(${table.lifeStage}, ${table.topConcern}) >= 1`,
+    ),
+    check(
+      "reading_context_valid_life_stage",
+      sql`${table.lifeStage} IS NULL OR ${table.lifeStage} IN ('studying', 'early_career', 'established_career', 'business_owner', 'between_paths', 'retired')`,
+    ),
+    check(
+      "reading_context_valid_top_concern",
+      sql`${table.topConcern} IS NULL OR ${table.topConcern} IN ('career', 'money', 'love', 'family', 'wellbeing', 'self_understanding')`,
+    ),
+  ],
+);
+
+export const birthProfileReadingContexts = pgTable(
+  "birth_profile_reading_contexts",
+  {
+    profileId: text("profile_id")
+      .primaryKey()
+      .references(() => birthProfiles.id, { onDelete: "cascade" }),
+    currentRevisionId: text("current_revision_id"),
+    stateVersion: integer("state_version").notNull().default(1),
+    lastRevisionNumber: integer("last_revision_number").notNull().default(0),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.profileId, table.currentRevisionId],
+      foreignColumns: [
+        birthProfileReadingContextRevisions.profileId,
+        birthProfileReadingContextRevisions.id,
+      ],
+      name: "birth_profile_reading_contexts_same_profile_fk",
+    }).onDelete("cascade"),
+    index("reading_contexts_current_revision_idx").on(table.currentRevisionId),
+    check("reading_context_state_version_positive", sql`${table.stateVersion} > 0`),
+    check(
+      "reading_context_last_revision_number_non_negative",
+      sql`${table.lastRevisionNumber} >= 0`,
+    ),
+    check(
+      "reading_context_current_revision_coherent",
+      sql`${table.currentRevisionId} IS NULL OR ${table.lastRevisionNumber} > 0`,
+    ),
+  ],
+);
+
+export const birthProfileReadingContextMutationReceipts = pgTable(
+  "birth_profile_reading_context_mutation_receipts",
+  {
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => birthProfiles.id, { onDelete: "cascade" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    commandType: text("command_type").notNull(),
+    requestFingerprint: text("request_fingerprint").notNull(),
+    resultStateVersion: integer("result_state_version").notNull(),
+    resultRevisionId: text("result_revision_id"),
+    resultRevisionNumber: integer("result_revision_number"),
+    resultKind: text("result_kind").notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.profileId, table.idempotencyKey],
+      name: "reading_context_mutation_receipts_pk",
+    }),
+    index("reading_context_mutation_receipts_profile_idx").on(table.profileId),
+    check(
+      "reading_context_receipt_command_type_valid",
+      sql`${table.commandType} IN ('set', 'clear')`,
+    ),
+    check(
+      "reading_context_receipt_fingerprint_format",
+      sql`${table.requestFingerprint} ~ '^[0-9a-f]{64}$'`,
+    ),
+    check(
+      "reading_context_receipt_idempotency_key_bounded",
+      sql`char_length(${table.idempotencyKey}) BETWEEN 1 AND 128 AND btrim(${table.idempotencyKey}) <> ''`,
+    ),
+    check(
+      "reading_context_receipt_result_state_version_positive",
+      sql`${table.resultStateVersion} > 0`,
+    ),
+    check(
+      "reading_context_receipt_result_coherent",
+      sql`(
+        ${table.commandType} = 'clear'
+        AND ${table.resultKind} = 'cleared'
+        AND ${table.resultRevisionId} IS NULL
+        AND ${table.resultRevisionNumber} IS NULL
+      ) OR (
+        ${table.commandType} = 'set'
+        AND ${table.resultKind} IN ('created', 'updated')
+        AND ${table.resultRevisionId} IS NOT NULL
+        AND ${table.resultRevisionNumber} > 0
+      )`,
+    ),
   ],
 );
 
