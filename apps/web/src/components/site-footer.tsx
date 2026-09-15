@@ -31,6 +31,7 @@ export function SiteFooter({ locale }: SiteFooterProps) {
       [
         [vi ? "Phương pháp & niềm tin" : "Method & trust", "/phuong-phap"],
         [vi ? "Quyền riêng tư" : "Privacy", "/chinh-sach-bao-mat"],
+        [vi ? "Điều khoản" : "Terms", "/dieu-khoan"],
       ],
     ],
   ] as const;
