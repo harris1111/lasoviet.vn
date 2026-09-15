@@ -19,14 +19,18 @@ import {
   AccountProfilesProjectionV1Schema,
   BirthProfileV1Schema,
   IdentityReportContentV1Schema,
+  LifeStageV1Schema,
   IdentityReportV1Schema,
   NormalizedZiweiChartV1Schema,
   PersistedNormalizedBirthProfileV1Schema,
+  TopConcernV1Schema,
   ZiweiComprehensiveReportContentV1Schema,
 } from "@lasoviet/contracts";
 import {
   authUsers,
   birthProfileRevisions,
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfiles,
   commerceEntitlements,
   commerceOrders,
@@ -424,12 +428,53 @@ export function createAccountCenterService(
         return exportLimitExceededError();
       }
 
+      const readingContextRevisions =
+        profileIds.length > 0
+          ? await database
+              .select({
+                id: birthProfileReadingContextRevisions.id,
+                profileId: birthProfileReadingContextRevisions.profileId,
+                revisionNumber: birthProfileReadingContextRevisions.revisionNumber,
+                lifeStage: birthProfileReadingContextRevisions.lifeStage,
+                topConcern: birthProfileReadingContextRevisions.topConcern,
+                createdAt: birthProfileReadingContextRevisions.createdAt,
+              })
+              .from(birthProfileReadingContextRevisions)
+              .where(inArray(birthProfileReadingContextRevisions.profileId, profileIds))
+              .orderBy(asc(birthProfileReadingContextRevisions.revisionNumber))
+          : [];
+      const readingContextStates =
+        profileIds.length > 0
+          ? await database
+              .select({
+                profileId: birthProfileReadingContexts.profileId,
+                currentRevisionId: birthProfileReadingContexts.currentRevisionId,
+                stateVersion: birthProfileReadingContexts.stateVersion,
+                lastRevisionNumber: birthProfileReadingContexts.lastRevisionNumber,
+              })
+              .from(birthProfileReadingContexts)
+              .where(inArray(birthProfileReadingContexts.profileId, profileIds))
+          : [];
+
       const revisionsByProfile = new Map<string, typeof revisions>();
       for (const rev of revisions) {
         const list = revisionsByProfile.get(rev.profileId) ?? [];
         list.push(rev);
         revisionsByProfile.set(rev.profileId, list);
       }
+      const readingContextRevisionsByProfile = new Map<
+        string,
+        typeof readingContextRevisions
+      >();
+      for (const revision of readingContextRevisions) {
+        const list =
+          readingContextRevisionsByProfile.get(revision.profileId) ?? [];
+        list.push(revision);
+        readingContextRevisionsByProfile.set(revision.profileId, list);
+      }
+      const readingContextStateByProfile = new Map(
+        readingContextStates.map((state) => [state.profileId, state]),
+      );
 
       const exportedProfiles: AccountExportProjectionV1["profiles"] = [];
       for (const p of profiles) {
@@ -465,9 +510,76 @@ export function createAccountCenterService(
           });
         }
 
+        const contextRevisions = readingContextRevisionsByProfile.get(p.id) ?? [];
+        const contextState = readingContextStateByProfile.get(p.id);
+        let readingContext:
+          | NonNullable<AccountExportProfileV1["readingContext"]>
+          | undefined;
+        if (contextRevisions.length > 100) {
+          return exportLimitExceededError();
+        }
+        if (contextState === undefined && contextRevisions.length > 0) {
+          return notFoundError();
+        }
+        if (contextState !== undefined && contextRevisions.length === 0) {
+          return notFoundError();
+        }
+        if (contextState !== undefined) {
+          const hasContiguousRevisionHistory =
+            contextState.lastRevisionNumber > 0 &&
+            contextRevisions.length === contextState.lastRevisionNumber &&
+            contextRevisions.every(
+              (revision, index) => revision.revisionNumber === index + 1,
+            );
+          if (
+            !hasContiguousRevisionHistory ||
+            contextState.stateVersion < contextState.lastRevisionNumber
+          ) {
+            return notFoundError();
+          }
+
+          const exportedContextRevisions: NonNullable<
+            AccountExportProfileV1["readingContext"]
+          >["revisions"] = [];
+          const revisionNumberById = new Map<string, number>();
+          for (const revision of contextRevisions) {
+            const lifeStage = LifeStageV1Schema.safeParse(revision.lifeStage);
+            const topConcern = TopConcernV1Schema.safeParse(revision.topConcern);
+            if (
+              (revision.lifeStage !== null && !lifeStage.success) ||
+              (revision.topConcern !== null && !topConcern.success)
+            ) {
+              return notFoundError();
+            }
+            revisionNumberById.set(revision.id, revision.revisionNumber);
+            exportedContextRevisions.push({
+              revisionNumber: revision.revisionNumber,
+              lifeStage: revision.lifeStage === null ? null : lifeStage.data!,
+              topConcern: revision.topConcern === null ? null : topConcern.data!,
+              createdAt: revision.createdAt.toISOString(),
+            });
+          }
+          const currentRevisionNumber =
+            contextState.currentRevisionId === null
+              ? null
+              : revisionNumberById.get(contextState.currentRevisionId);
+          if (
+            (contextState.currentRevisionId !== null &&
+              currentRevisionNumber !== contextState.lastRevisionNumber)
+          ) {
+            return notFoundError();
+          }
+          readingContext = {
+            currentRevisionNumber: currentRevisionNumber ?? null,
+            stateVersion: contextState.stateVersion,
+            revisions: exportedContextRevisions,
+          };
+        }
+
         exportedProfiles.push({
           id: p.id,
           revisions: exportedRevs,
+          ...(readingContext === undefined ? {} : { readingContext }),
           createdAt: p.createdAt.toISOString(),
         });
       }
