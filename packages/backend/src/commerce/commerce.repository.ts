@@ -14,6 +14,7 @@ import type {
 import { resolveProductTitle, resolveEntitlementScopeForSku } from "@lasoviet/contracts";
 import {
   auditLogs,
+  birthProfileReadingContexts,
   birthProfiles,
   birthProfileRevisions,
   authUsers,
@@ -1089,6 +1090,16 @@ export function createDatabaseCommerceRepository(
           .limit(1);
         if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
         const reportVersions = reportVersionResolver(paidOrder.locale);
+        const [readingContext] = await transaction
+          .select({ revisionId: birthProfileReadingContexts.currentRevisionId })
+          .from(ziweiCharts)
+          .leftJoin(
+            birthProfileReadingContexts,
+            eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId),
+          )
+          .where(eq(ziweiCharts.id, paidOrder.chartId))
+          .limit(1);
+        const readingContextRevisionId = readingContext?.revisionId ?? null;
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
           orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
           scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku, reportVersions.family),
@@ -1133,6 +1144,7 @@ export function createDatabaseCommerceRepository(
               locale: paidOrder.locale, sku: paidOrder.sku,
               asOfDate: timingLineage.asOfDate, targetYear: timingLineage.targetYear,
               timingRuleVersion: timingLineage.timingRuleVersion, sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
+              readingContextRevisionId,
               createdAt: currentNow, updatedAt: currentNow,
             }).returning();
             if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
@@ -1148,6 +1160,7 @@ export function createDatabaseCommerceRepository(
                 reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale as "vi" | "en", sku: reservation.sku,
                 asOfDate: timingLineage.asOfDate, targetYear: timingLineage.targetYear,
                 timingRuleVersion: timingLineage.timingRuleVersion, sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
+                readingContextRevisionId: reservation.readingContextRevisionId,
               },
             });
           } else {
@@ -1728,6 +1741,16 @@ export function createDatabaseCommerceRepository(
         if (evidence === undefined) throw new Error("EVIDENCE_VERSION_MISSING");
 
         const reportVersions = reportVersionResolver(paidOrder.locale);
+        const [readingContext] = await transaction
+          .select({ revisionId: birthProfileReadingContexts.currentRevisionId })
+          .from(ziweiCharts)
+          .leftJoin(
+            birthProfileReadingContexts,
+            eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId),
+          )
+          .where(eq(ziweiCharts.id, paidOrder.chartId))
+          .limit(1);
+        const readingContextRevisionId = readingContext?.revisionId ?? null;
         const [entitlement] = await transaction
           .insert(commerceEntitlements)
           .values({
@@ -1792,6 +1815,7 @@ export function createDatabaseCommerceRepository(
                 targetYear: timingLineage.targetYear,
                 timingRuleVersion: timingLineage.timingRuleVersion,
                 sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
+                readingContextRevisionId,
                 createdAt: currentNow,
                 updatedAt: currentNow,
               })
@@ -1824,6 +1848,7 @@ export function createDatabaseCommerceRepository(
                 targetYear: timingLineage.targetYear,
                 timingRuleVersion: timingLineage.timingRuleVersion,
                 sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
+                readingContextRevisionId: reservation.readingContextRevisionId,
               },
             });
             finalReportId = reservation.reportId;

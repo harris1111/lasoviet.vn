@@ -1,4 +1,4 @@
-import { type AiCostRequestContext, z, type ZiweiComprehensiveReportContentV2 } from "@lasoviet/contracts";
+import { type AiCostRequestContext, z, type ZiweiComprehensiveReportContentV2, ReadingContextV1Schema, type ReadingContextV1 } from "@lasoviet/contracts";
 
 import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -65,8 +65,15 @@ export async function critiqueComprehensiveZiweiReportV4(
   report: ZiweiComprehensiveReportContentV2,
   facts: ComprehensiveZiweiFactsV4,
   provider: AiProvider,
-  options?: { costContext?: AiCostRequestContext },
+  options?: {
+    costContext?: AiCostRequestContext;
+    readingContext?: ReadingContextV1 | null;
+  },
 ): Promise<ComprehensiveCriticV4Result> {
+  const parsedReadingContext = ReadingContextV1Schema.safeParse(options?.readingContext ?? null);
+  const readingContext = parsedReadingContext.success
+    ? { lifeStage: parsedReadingContext.data.lifeStage ?? null, topConcern: parsedReadingContext.data.topConcern ?? null }
+    : null;
   const system = `Bạn là chuyên gia thẩm định chất lượng báo cáo luận giải Tử Vi Đẩu Số V4 tại lasoviet.net.
 Đánh giá bản báo cáo dựa trên dữ kiện lá số và chuẩn mực chất lượng.
 Đầu ra PHẢI là JSON object hợp lệ tuân thủ: {"correctness":5,"evidenceCoverage":5,"specificity":5,"languageClarity":5,"consistency":5,"actionability":5,"safety":5,"repetitionControl":5,"notes":["..."]}.
@@ -74,7 +81,8 @@ Tất cả 8 điểm số phải là số nguyên từ 1 đến 5. "notes" là m
 CẤM đổi tên, dịch nghĩa, thêm hoặc bớt các trường điểm số trên.
 HƯỚNG DẪN THẨM ĐỊNH ĐẶC THÙ:
 - KHÔNG trừ điểm đối với các lời khuyên tham vấn bác sĩ, luật sư hoặc chuyên gia có chuyên môn phù hợp được lồng ghép tự nhiên trong mạch văn về sức khỏe, pháp lý, tài chính.
-- PHẢI chấm điểm thấp (safety hoặc correctness < 4) nếu phát hiện: khẳng định định mệnh chắc chắn (chắc chắn tai nạn, phá sản, tử vong, phản bội), bịa đặt dữ kiện không có trong facts, rò rỉ mã định danh kỹ thuật thô (ziwei.*) hoặc xuất hiện khối tuyên bố miễn trừ trách nhiệm đứng riêng.`;
+    - PHẢI chấm điểm thấp (safety hoặc correctness < 4) nếu phát hiện: khẳng định định mệnh chắc chắn (chắc chắn tai nạn, phá sản, tử vong, phản bội), bịa đặt dữ kiện không có trong facts, rò rỉ mã định danh kỹ thuật thô (ziwei.*) hoặc xuất hiện khối tuyên bố miễn trừ trách nhiệm đứng riêng.
+    - readingContext chỉ chọn ví dụ gần gũi và nhấn mạnh chủ đề; không được nói hoặc ngụ ý lá số tiết lộ context, và không được liên kết sao với context thành khẳng định Tử Vi.`;
 
   // Safe factual payload without raw birth date, birth time, or location
   const safePayload = {
@@ -87,6 +95,7 @@ HƯỚNG DẪN THẨM ĐỊNH ĐẶC THÙ:
       annualSnapshot: facts.timing.annual,
       evidenceKeys: facts.evidenceKeys,
     },
+    readingContext,
   };
 
   const result = await provider.generateStructured({
@@ -142,8 +151,15 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
   report: ZiweiComprehensiveReportContentV2,
   facts: ComprehensiveZiweiFactsV4,
   provider: AiProvider,
-  options?: { costContext?: AiCostRequestContext },
+  options?: {
+    costContext?: AiCostRequestContext;
+    readingContext?: ReadingContextV1 | null;
+  },
 ): Promise<ComprehensiveSectionedCriticV4Result> {
+  const parsedReadingContext = ReadingContextV1Schema.safeParse(options?.readingContext ?? null);
+  const readingContext = parsedReadingContext.success
+    ? { lifeStage: parsedReadingContext.data.lifeStage ?? null, topConcern: parsedReadingContext.data.topConcern ?? null }
+    : null;
   const result = await provider.generateStructured({
     schema: SectionedCriticSchema,
     schemaName: "comprehensive_report_sectioned_critic_v4",
@@ -152,7 +168,8 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
 findings là mảng 0-8 mục {key,note}; key phải thuộc danh sách section key được cung cấp và note phải không rỗng, tối đa 300 ký tự.
 Chỉ trả findings khi có ít nhất một tiêu chí chất lượng dưới 4 và finding chỉ đúng section có thể viết lại. Khi tất cả điểm đều từ 4 trở lên, findings phải rỗng.
 Nếu có điểm safety hoặc correctness dưới 4, đây là từ chối an toàn: không trả findings viết lại.
-Không trừ điểm đối với lời khuyên tham vấn bác sĩ, luật sư hoặc chuyên gia phù hợp được lồng ghép tự nhiên.`,
+    Không trừ điểm đối với lời khuyên tham vấn bác sĩ, luật sư hoặc chuyên gia phù hợp được lồng ghép tự nhiên.
+    readingContext chỉ chọn ví dụ gần gũi và nhấn mạnh chủ đề; không được nói hoặc ngụ ý lá số tiết lộ context, và không được liên kết sao với context thành khẳng định Tử Vi.`,
     user: JSON.stringify({
       report,
       facts: {
@@ -164,6 +181,7 @@ Không trừ điểm đối với lời khuyên tham vấn bác sĩ, luật sư 
         evidenceKeys: facts.evidenceKeys,
       },
       allowedSectionKeys: COMPREHENSIVE_REPORT_SECTION_KEYS,
+      readingContext,
     }),
     use: "production_report_generation",
     purpose: "critic",

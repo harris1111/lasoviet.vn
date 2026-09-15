@@ -5,6 +5,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   authUsers,
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
   calculationRuns,
@@ -218,6 +220,42 @@ describe("commerce repository - library and order history (WP-03)", () => {
     });
 
     return { chartId, versionId };
+  }
+
+  async function setReadingContext(input: {
+    profileId: string;
+    revisionNumber: number;
+    lifeStage?: "studying" | "early_career" | "established_career" | "business_owner" | "between_paths" | "retired";
+    topConcern?: "career" | "money" | "love" | "family" | "wellbeing" | "self_understanding";
+  }) {
+    const revisionId = "reading-context-" + randomUUID();
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: revisionId,
+      profileId: input.profileId,
+      revisionNumber: input.revisionNumber,
+      lifeStage: input.lifeStage,
+      topConcern: input.topConcern,
+    });
+
+    if (input.revisionNumber === 1) {
+      await database.insert(birthProfileReadingContexts).values({
+        profileId: input.profileId,
+        currentRevisionId: revisionId,
+        stateVersion: 1,
+        lastRevisionNumber: 1,
+      });
+    } else {
+      await database
+        .update(birthProfileReadingContexts)
+        .set({
+          currentRevisionId: revisionId,
+          stateVersion: input.revisionNumber,
+          lastRevisionNumber: input.revisionNumber,
+        })
+        .where(eq(birthProfileReadingContexts.profileId, input.profileId));
+    }
+
+    return revisionId;
   }
 
   it("ensures owner A cannot read owner B data in library and order history", async () => {
@@ -2254,5 +2292,184 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(v4Entitlement?.scope.sections).not.toContain("birthTimeSensitivity");
     expect(v4Entitlement?.scope.sections).toContain("currentDecadal");
     expect(v4Entitlement?.scope.sections).toContain("annualSnapshot");
+  });
+
+  it("recordPaid freezes the active reading context revision and preserves the V2 payload after later context changes", async () => {
+    const owner = await createOwnerFixture({ displayName: "Frozen Context Payment Owner" });
+    const initialRevisionId = await setReadingContext({
+      profileId: owner.profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+    });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const order = await repo.createOrder(owner.actor, owner.chartId, "ZIWEI-IDENTITY-P0", "vi");
+    if (!order.ok) throw new Error("Order creation failed");
+    await expect(repo.recordPaid({
+      invoiceNumber: order.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: "reading-context-payment-" + randomUUID(),
+      amount: order.value.amount,
+      currency: "VND",
+      traceId: "trace-reading-context-payment",
+    })).resolves.toMatchObject({ ok: true });
+
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.entitlementId, (
+        await database.select({ id: commerceEntitlements.id })
+          .from(commerceEntitlements)
+          .where(eq(commerceEntitlements.orderId, order.value.id))
+      )[0]!.id));
+    const [event] = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.idempotencyKey, "report-request:" + reservation!.reportVersionId));
+    expect(reservation?.readingContextRevisionId).toBe(initialRevisionId);
+    expect((event?.payload as Record<string, unknown>).readingContextRevisionId).toBe(initialRevisionId);
+
+    await setReadingContext({
+      profileId: owner.profileId,
+      revisionNumber: 2,
+      lifeStage: "business_owner",
+      topConcern: "money",
+    });
+
+    const [frozenReservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.id, reservation!.id));
+    const [frozenEvent] = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.id, event!.id));
+    expect(frozenReservation?.readingContextRevisionId).toBe(initialRevisionId);
+    expect((frozenEvent?.payload as Record<string, unknown>).readingContextRevisionId).toBe(initialRevisionId);
+
+    const skippedOwner = await createOwnerFixture({ displayName: "Skipped Context Payment Owner" });
+    const skippedOrder = await repo.createOrder(
+      skippedOwner.actor,
+      skippedOwner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    if (!skippedOrder.ok) throw new Error("Skipped-context order creation failed");
+    await expect(repo.recordPaid({
+      invoiceNumber: skippedOrder.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: "skipped-context-payment-" + randomUUID(),
+      amount: skippedOrder.value.amount,
+      currency: "VND",
+      traceId: "trace-skipped-context-payment",
+    })).resolves.toMatchObject({ ok: true });
+    const [skippedReservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, skippedOwner.versionId));
+    const [skippedEvent] = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.idempotencyKey, "report-request:" + skippedReservation!.reportVersionId));
+    expect(skippedReservation?.readingContextRevisionId).toBeNull();
+    expect((skippedEvent?.payload as Record<string, unknown>).readingContextRevisionId).toBeNull();
+  });
+
+  it("self-claim freezes the active reading context revision and emits explicit null for skipped context", async () => {
+    const selectedOwner = await createOwnerFixture({ displayName: "Frozen Context Claim Owner" });
+    const selectedRevisionId = await setReadingContext({
+      profileId: selectedOwner.profileId,
+      revisionNumber: 1,
+      lifeStage: "established_career",
+      topConcern: "family",
+    });
+    const skippedOwner = await createOwnerFixture({ displayName: "Skipped Context Claim Owner" });
+    const repo = createDatabaseCommerceRepository(database);
+
+    const selectedOrder = await repo.createOrder(
+      selectedOwner.actor,
+      selectedOwner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    const skippedOrder = await repo.createOrder(
+      skippedOwner.actor,
+      skippedOwner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    if (!selectedOrder.ok || !skippedOrder.ok) throw new Error("Order creation failed");
+
+    const selectedTransfer = new Date();
+    const skippedTransfer = new Date(selectedTransfer.getTime() + 5 * 60 * 1000);
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: "reading-context-claim-selected-" + randomUUID(),
+      rawPayload: { amount: selectedOrder.value.amount },
+      amount: selectedOrder.value.amount,
+      reason: "MISSING_PAYMENT_CODE",
+      receivedAt: selectedTransfer,
+    });
+    const formatLocalMinute = (date: Date) => {
+      const pad = (value: number) => String(value).padStart(2, "0");
+      const local = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+      return `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}T${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
+    };
+
+    await expect(repo.claimUnmatchedPayment(selectedOwner.actor, {
+      amount: selectedOrder.value.amount,
+      transferredAtLocal: formatLocalMinute(selectedTransfer),
+    })).resolves.toMatchObject({ ok: true });
+
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: "reading-context-claim-skipped-" + randomUUID(),
+      rawPayload: { amount: skippedOrder.value.amount },
+      amount: skippedOrder.value.amount,
+      reason: "MISSING_PAYMENT_CODE",
+      receivedAt: skippedTransfer,
+    });
+    await expect(repo.claimUnmatchedPayment(skippedOwner.actor, {
+      amount: skippedOrder.value.amount,
+      transferredAtLocal: formatLocalMinute(skippedTransfer),
+    })).resolves.toMatchObject({ ok: true });
+
+    const selectedReservation = (await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, selectedOwner.versionId)))[0];
+    const skippedReservation = (await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.chartVersionId, skippedOwner.versionId)))[0];
+    const selectedEvent = (await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.idempotencyKey, "report-request:" + selectedReservation!.reportVersionId)))[0];
+    const skippedEvent = (await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.idempotencyKey, "report-request:" + skippedReservation!.reportVersionId)))[0];
+
+    expect(selectedReservation?.readingContextRevisionId).toBe(selectedRevisionId);
+    expect((selectedEvent?.payload as Record<string, unknown>).readingContextRevisionId).toBe(selectedRevisionId);
+    expect(skippedReservation?.readingContextRevisionId).toBeNull();
+    expect((skippedEvent?.payload as Record<string, unknown>).readingContextRevisionId).toBeNull();
+
+    await setReadingContext({
+      profileId: selectedOwner.profileId,
+      revisionNumber: 2,
+      lifeStage: "business_owner",
+      topConcern: "money",
+    });
+    const [frozenReservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.id, selectedReservation!.id));
+    const [frozenEvent] = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.id, selectedEvent!.id));
+    expect(frozenReservation?.readingContextRevisionId).toBe(selectedRevisionId);
+    expect((frozenEvent?.payload as Record<string, unknown>).readingContextRevisionId).toBe(selectedRevisionId);
   });
 });

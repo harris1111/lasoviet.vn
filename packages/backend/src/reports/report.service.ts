@@ -379,6 +379,7 @@ async function executeTerminalRecovery(
           targetYear,
           timingRuleVersion,
           sensitivityRuleVersion,
+          readingContextRevisionId: reservation.readingContextRevisionId ?? null,
         };
 
         await enqueueOutbox(tx, {

@@ -573,6 +573,116 @@ describe("createDatabaseReportGenerationSourceRepository - V4 source loading", (
     expect(retrieveZiweiKnowledgeSpy.mock.calls[0][0].knowledgeVersion).toBe("ziwei.comprehensive.knowledge.v3");
   });
 
+  it.each([
+    [
+      "loads a valid frozen ReadingContextV1 revision",
+      { lifeStage: "early_career", topConcern: "career" },
+      true,
+    ],
+    [
+      "fails closed for an invalid database enum",
+      { lifeStage: "not_a_life_stage", topConcern: "career" },
+      false,
+    ],
+    [
+      "fails closed when the requested frozen revision is missing",
+      undefined,
+      false,
+    ],
+  ])("%s", async (_name, revision, expectedSuccess) => {
+    const chart = createSampleChart();
+    const evidenceResult = buildZiweiIdentityEvidence(chart, "chart-v1");
+    if (!evidenceResult.ok) return;
+
+    const mockDb = {
+      select: vi.fn().mockImplementation((fields) => ({
+        from: vi.fn().mockImplementation(() => ({
+          where: vi.fn().mockImplementation(() => {
+            if (fields && fields.normalizedOutput !== undefined) {
+              return { limit: vi.fn().mockResolvedValue([{ normalizedOutput: chart }]) };
+            }
+            if (fields && fields.chartVersionId !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{
+                  id: "evidence-v1",
+                  chartVersionId: evidenceResult.value.chartVersionId,
+                  capabilityId: evidenceResult.value.capabilityId,
+                  ruleVersion: evidenceResult.value.ruleVersion,
+                }]),
+              };
+            }
+            if (fields && fields.evidenceKey !== undefined) {
+              return {
+                orderBy: vi.fn().mockResolvedValue(evidenceResult.value.items.map((item) => ({
+                  evidenceKey: item.id,
+                  payload: item,
+                }))),
+              };
+            }
+            return { limit: vi.fn().mockResolvedValue(revision === undefined ? [] : [revision]) };
+          }),
+        })),
+      })),
+    };
+    const passage: KnowledgePassageV1 = {
+      id: "row-v3-1",
+      passageId: "passage-v3-01",
+      documentId: "doc-v3",
+      discipline: "ziwei",
+      locale: "vi",
+      reportSections: ["identity_analysis"],
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      content: "Nội dung đoạn trích V3 cho toàn bộ lá số.",
+      contentHash: "hash-v3-01",
+      sourceAttribution: "Lá Số Việt",
+      permittedUse: "reference_rewrite",
+      metadata: {
+        topics: ["overview"],
+        palaces: ["ziwei.palace.life"],
+        stars: ["ziwei.star.ziwei"],
+        brightness: ["ziwei.brightness.prosperous"],
+        transformations: [],
+        relations: [],
+        patterns: [],
+        sourceType: "classical",
+        languageOrigin: "vi",
+        priority: 2,
+      },
+    };
+    const repository = createDatabaseReportGenerationSourceRepository({
+      database: mockDb as never,
+      knowledgeRetrieval: {
+        retrieveKnowledge: vi.fn(),
+        retrieveZiweiKnowledge: vi.fn().mockResolvedValue([passage]),
+      },
+      snapshotRepository: {
+        getByReportVersionId: vi.fn().mockResolvedValue(createSampleSnapshot()),
+        persist: vi.fn(),
+      } as never,
+    });
+
+    const result = await repository.loadSource({
+      reportVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      chartVersionId: "chart-v1",
+      evidenceVersionId: "evidence-v1",
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      locale: "vi",
+      readingContextRevisionId: "context-1",
+    });
+
+    expect(result.ok).toBe(expectedSuccess);
+    if (result.ok) {
+      expect(result.value.readingContext).toEqual({
+        version: 1,
+        lifeStage: "early_career",
+        topConcern: "career",
+      });
+    } else {
+      expect(result.error.code).toBe("REPORT_EVIDENCE_INVALID");
+    }
+  });
+
   it("returns REPORT_EVIDENCE_INVALID when snapshot is missing", async () => {
     const chart = createSampleChart();
     const evidenceResult = buildZiweiIdentityEvidence(chart, "chart-v1");
@@ -640,6 +750,165 @@ describe("createDatabaseReportGenerationSourceRepository - V4 source loading", (
         messageKey: "reports.report_evidence_invalid",
         retryable: false,
       },
+    });
+  });
+});
+
+describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () => {
+  function createLifecycleDatabase(row: Record<string, unknown> | undefined) {
+    const limit = vi.fn().mockResolvedValue(row === undefined ? [] : [row]);
+    const where = vi.fn().mockReturnValue({ limit });
+    const leftJoin = vi.fn();
+    const from = vi.fn().mockReturnValue({
+      leftJoin: leftJoin.mockImplementation(() => ({
+        leftJoin: leftJoin.mockImplementation(() => ({
+          leftJoin: leftJoin.mockImplementation(() => ({
+            leftJoin: leftJoin.mockImplementation(() => ({
+              where,
+            })),
+          })),
+        })),
+      })),
+    });
+    const select = vi.fn().mockReturnValue({ from });
+    return { database: { select } as never, select, from, leftJoin, where, limit };
+  }
+
+  async function validate(
+    row: Record<string, unknown> | undefined,
+    readingContextRevisionId: string | null = null,
+  ) {
+    const mock = createLifecycleDatabase(row);
+    const repository = createDatabaseReportGenerationSourceRepository({
+      database: mock.database,
+      knowledgeRetrieval: { retrieveKnowledge: vi.fn() },
+    });
+    const result = await repository.validateLifecycle({
+      reportVersionId: "report-version-1",
+      jobId: "active-job-1",
+      readingContextRevisionId,
+    });
+    return { result, mock };
+  }
+
+  it("fails REPORT_PROFILE_PURGED when no scoped reservation/profile chain remains", async () => {
+    const { result, mock } = await validate(undefined);
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+    });
+    expect(mock.select).toHaveBeenCalledTimes(1);
+    expect(mock.leftJoin).toHaveBeenCalledTimes(4);
+    expect(mock.where).toHaveBeenCalledTimes(1);
+    expect(mock.limit).toHaveBeenCalledWith(1);
+    const containsValue = (
+      value: unknown,
+      target: string,
+      seen = new Set<object>(),
+    ): boolean => {
+      if (value === target) return true;
+      if (value === null || typeof value !== "object") return false;
+      if (seen.has(value)) return false;
+      seen.add(value);
+      return Object.values(value).some((child) => containsValue(child, target, seen));
+    };
+    const scopedCondition = mock.where.mock.calls[0]![0];
+    expect(containsValue(scopedCondition, "report-version-1")).toBe(true);
+    expect(containsValue(scopedCondition, "active-job-1")).toBe(true);
+  });
+
+  it.each([
+    ["with a null frozen context", null],
+    ["with a non-null frozen context", "context-1"],
+  ])("fails REPORT_PROFILE_PURGED after hard purge %s", async (_name, readingContextRevisionId) => {
+    const { result } = await validate(
+      {
+        reservationContextRevisionId: readingContextRevisionId,
+        profileId: null,
+        revisionId: readingContextRevisionId,
+        revisionProfileId: "profile-1",
+      },
+      readingContextRevisionId,
+    );
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+    });
+  });
+
+  it("allows an active or soft-archived profile when frozen null context matches", async () => {
+    for (const deletedAt of [null, new Date("2026-09-15T00:00:00.000Z")]) {
+      const { result } = await validate({
+        reservationContextRevisionId: null,
+        profileId: "profile-1",
+        profileDeletedAt: deletedAt,
+        revisionId: null,
+        revisionProfileId: null,
+      });
+
+      expect(result).toEqual({
+        ok: true,
+        value: { readingContextRevisionId: null },
+      });
+    }
+  });
+
+  it("allows an active frozen context revision only when it belongs to the joined profile", async () => {
+    const { result } = await validate(
+      {
+        reservationContextRevisionId: "context-1",
+        profileId: "profile-1",
+        revisionId: "context-1",
+        revisionProfileId: "profile-1",
+      },
+      "context-1",
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      value: { readingContextRevisionId: "context-1" },
+    });
+  });
+
+  it.each([
+    [
+      "payload does not match the frozen reservation context",
+      {
+        reservationContextRevisionId: "context-1",
+        profileId: "profile-1",
+        revisionId: "context-1",
+        revisionProfileId: "profile-1",
+      },
+      "context-2",
+    ],
+    [
+      "the frozen revision no longer exists",
+      {
+        reservationContextRevisionId: "context-1",
+        profileId: "profile-1",
+        revisionId: null,
+        revisionProfileId: null,
+      },
+      "context-1",
+    ],
+    [
+      "the frozen revision belongs to another profile",
+      {
+        reservationContextRevisionId: "context-1",
+        profileId: "profile-1",
+        revisionId: "context-1",
+        revisionProfileId: "profile-2",
+      },
+      "context-1",
+    ],
+  ])("fails REPORT_CONTEXT_MISMATCH when %s", async (_name, row, readingContextRevisionId) => {
+    const { result } = await validate(row, readingContextRevisionId);
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_CONTEXT_MISMATCH", retryable: false },
     });
   });
 });

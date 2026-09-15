@@ -5,6 +5,8 @@ import {
   ZiweiComprehensiveReportContentV2Schema,
   type ZiweiComprehensiveReportContentV2,
   type ZiweiPalaceId,
+  ReadingContextV1Schema,
+  type ReadingContextV1,
   type ZiweiThematicSynthesisId,
 } from "@lasoviet/contracts";
 
@@ -71,6 +73,14 @@ CẤM TUYỆT ĐỐI CÁC ĐIỀU SAU:
 - KHÔNG sử dụng nhãn độ tin cậy, mức độ chắc chắn, giới hạn phương pháp hoặc văn phong phòng thủ.
 - KHÔNG tạo trường birthTimeSensitivity.`;
 
+const READING_CONTEXT_PROMPT_INSTRUCTION = `
+- Chỉ dùng lifeStage và topConcern để chọn ví dụ đời sống gần gũi và ưu tiên trọng tâm chủ đề.
+- TUYỆT ĐỐI không nói hoặc ngụ ý lá số đã tiết lộ lifeStage hoặc topConcern của người đọc.
+- TUYỆT ĐỐI không tạo khẳng định Tử Vi liên kết sao với lifeStage hoặc topConcern đã khai báo.`;
+
+export const VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT_WITH_CONTEXT =
+  `${VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT}${READING_CONTEXT_PROMPT_INSTRUCTION}`;
+
 const COMPREHENSIVE_REPORT_V4_0_1_RESTORED_RULES = `
 
 RÀNG BUỘC BỔ SUNG BẮT BUỘC:
@@ -83,7 +93,7 @@ RÀNG BUỘC BỔ SUNG BẮT BUỘC:
 - Toàn bộ văn bản phải là tiếng Việt tự nhiên. Khi diễn đạt độ sáng sao, CHỈ ĐƯỢC DÙNG nguyên văn các nhãn trong brightnessLabelsVi được cung cấp. TUYỆT ĐỐI CẤM chữ Hán, chữ Nôm, hoặc từ tiếng Anh mô tả độ sáng như "exalted", "prosperous", "favorable", "neutral", "unfavorable", "weak" (không phân biệt chữ hoa hay chữ thường).`;
 
 export const VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT =
-  `${VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT}${COMPREHENSIVE_REPORT_V4_0_1_RESTORED_RULES}`;
+  `${VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT_WITH_CONTEXT}${COMPREHENSIVE_REPORT_V4_0_1_RESTORED_RULES}`;
 
 export type ComprehensiveReportWriterV4PromptVersion =
   | typeof REPORT_PROMPT_VERSION_V4
@@ -100,6 +110,7 @@ export type ComprehensiveReportWriterV4Input = {
   provider: AiProvider;
   revision?: ComprehensiveReportWriterV4Revision;
   costContext?: AiCostRequestContext;
+  readingContext?: ReadingContextV1 | null;
 };
 
 export type ComprehensiveReportDraftV4 = {
@@ -122,7 +133,7 @@ function comprehensiveReportV4SystemPrompt(
   promptVersion: unknown,
 ): string {
   if (promptVersion === REPORT_PROMPT_VERSION_V4) {
-    return VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT;
+    return VIETNAMESE_COMPREHENSIVE_REPORT_V4_SYSTEM_PROMPT_WITH_CONTEXT;
   }
   if (promptVersion === REPORT_PROMPT_VERSION_V4_0_1) {
     return VIETNAMESE_COMPREHENSIVE_REPORT_V4_0_1_SYSTEM_PROMPT;
@@ -150,6 +161,15 @@ export async function writeComprehensiveZiweiReportV4(
       : sourceOrInput.facts;
 
   const knowledgePacks = sourceOrInput.knowledgePacks;
+  const readingContext =
+    "readingContext" in sourceOrInput ? sourceOrInput.readingContext ?? null : null;
+  const parsedReadingContext = ReadingContextV1Schema.safeParse(readingContext);
+  const promptReadingContext = parsedReadingContext.success
+    ? {
+        lifeStage: parsedReadingContext.data.lifeStage ?? null,
+        topConcern: parsedReadingContext.data.topConcern ?? null,
+      }
+    : null;
 
   // Safe factual payload without raw birth date, birth time, or location
   const safeFactsPayload = {
@@ -202,6 +222,7 @@ HƯỚNG DẪN HIỆU CHỈNH:
         targetYear: facts.timing.annual.targetYear,
         decadalState: facts.timing.decadal.state,
       },
+      readingContext: promptReadingContext,
       ...(revision
         ? {
             revision: {

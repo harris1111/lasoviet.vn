@@ -85,6 +85,7 @@ describe("createReportService terminal recovery", () => {
       targetYear: 2026,
       timingRuleVersion: "ziwei.timing.v1",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      readingContextRevisionId: "reading-context-revision-1",
     };
 
     const { tx, insertedValues } = createMockTx({ reservation: mockReservation });
@@ -125,6 +126,7 @@ describe("createReportService terminal recovery", () => {
       targetYear: 2026,
       timingRuleVersion: "ziwei.timing.v1",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      readingContextRevisionId: "reading-context-revision-1",
     });
   });
 
@@ -349,6 +351,7 @@ describe("createReportService terminal recovery", () => {
       targetYear: 2026,
       timingRuleVersion: "ziwei.timing.v1",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      readingContextRevisionId: null,
     });
   });
 
