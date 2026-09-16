@@ -142,14 +142,18 @@ describe("founder-run Compose topology", () => {
       readFile(`${root}/apps/worker/Dockerfile`, "utf8"),
     ]);
 
+    const garageHealthcheck = configuration.services.garage?.healthcheck as
+      | { test?: string[] }
+      | undefined;
+
     expect(configuration.services.garage).toMatchObject({
       image:
         "dxflrs/garage:v2.4.1@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020",
       restart: "unless-stopped",
-      healthcheck: {
-        test: ["CMD-SHELL", "/garage status >/dev/null 2>&1"],
-      },
     });
+    expect(garageHealthcheck?.test).toEqual(["CMD", "/garage", "status"]);
+    expect(garageHealthcheck?.test).not.toContain("CMD-SHELL");
+    expect(garageHealthcheck?.test).not.toContain("/bin/sh");
     expect(configuration.services.garage?.ports).toBeUndefined();
     expect(configuration.services["pdf-worker"]?.ports).toBeUndefined();
     expect(configuration.services["pdf-worker"]?.depends_on).toMatchObject({
