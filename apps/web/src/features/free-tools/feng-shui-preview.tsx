@@ -97,14 +97,14 @@ const GLOSSARY_ITEMS_EN: readonly GlossaryItem[] = [
 
 const METHOD_ROWS_VI: readonly MethodRow[] = [
   { label: "Utility đã chốt", value: "Chỉ hướng nhà — không gộp bàn làm việc, bếp hay màu sắc/ngũ hành ở giai đoạn đầu." },
-  { label: "Trường phái", value: "Bát Trạch (Eight Mansions) — công thức tính cung mệnh và bảng 8 hướng cụ thể đang chờ chuyên gia phong thuỷ độc lập rà soát." },
+  { label: "Trường phái", value: "Bát Trạch (Eight Mansions) — công thức tính cung mệnh và bảng 8 hướng cụ thể đang trong giai đoạn hoàn thiện, chưa công bố là kết quả chính thức." },
   { label: "Dữ liệu đầu vào", value: "Năm sinh, giới tính của gia chủ và hướng nhà đo được (độ) — không cần bản vẽ mặt bằng ở phiên bản đầu." },
   { label: "Vai trò của AI", value: "Tổ chức và diễn giải kết quả đã tính theo bộ quy tắc đã duyệt bằng tiếng Việt — không tự suy luận hướng tốt/xấu." }
 ];
 
 const METHOD_ROWS_EN: readonly MethodRow[] = [
   { label: "Settled utility", value: "Strictly house direction — no desk, kitchen hearth, or color/element mixing in the initial release." },
-  { label: "School of thought", value: "Eight Mansions (Bat Trach) — precise personal trigram formulas and 8-direction tables are undergoing independent expert review." },
+  { label: "School of thought", value: "Eight Mansions (Bat Trach) — precise personal trigram formulas and 8-direction tables are still being finalized and are not yet published as an official result." },
   { label: "Input data", value: "Birth year, gender of the homeowner, and measured orientation in degrees — architectural floor plans are not required initially." },
   { label: "Role of AI", value: "Organizes and interprets rule-based calculations in transparent prose — never invents or guesses favorable orientations." }
 ];
@@ -114,7 +114,7 @@ const LIMIT_ITEMS_VI: readonly string[] = [
   "Không đề xuất hoặc bán vật phẩm phong thuỷ, bùa hộ mệnh hay dịch vụ \"hoá giải\" cho bất kỳ hướng nào.",
   "Chỉ xử lý hướng nhà ở giai đoạn đầu — hướng bàn làm việc, hướng bếp và màu sắc/ngũ hành chưa nằm trong phạm vi.",
   "Không thay thế tư vấn từ kiến trúc sư, kỹ sư xây dựng hoặc chuyên gia phong thuỷ được cấp phép cho quyết định xây dựng thật.",
-  "Công thức cung mệnh và bảng 8 hướng cụ thể chưa được chuyên gia độc lập rà soát — chưa công bố như kết quả chính thức.",
+  "Công thức cung mệnh và bảng 8 hướng cụ thể vẫn đang hoàn thiện — chưa công bố như kết quả chính thức.",
   "Ví dụ minh hoạ ở trên chỉ thể hiện hình dạng bảng kết quả, không phải kết luận đã kiểm chứng."
 ];
 
@@ -123,22 +123,22 @@ const LIMIT_ITEMS_EN: readonly string[] = [
   "We never recommend or sell feng shui items, talismanic amulets, or \"misfortune remedy\" services for any orientation.",
   "Focuses exclusively on house direction in this initial phase — desks, kitchen placement, and color palettes are outside scope.",
   "Does not substitute for licensed architectural, engineering, or accredited professional consulting for actual construction.",
-  "Formulas and eight-direction reference tables remain subject to expert review — not yet published as definitive outcomes.",
+  "Formulas and eight-direction reference tables are still being finalized — not yet published as definitive outcomes.",
   "The illustrative example above solely demonstrates result structure, not an empirically audited conclusion."
 ];
 
 const FAQ_DATA_VI: readonly FaqItem[] = [
   { num: "01", q: "Phong Thủy hướng nhà có bán vật phẩm hoá giải không?", a: "Không, và sẽ không bao giờ có. Lá Số Việt không bán vật phẩm phong thuỷ, bùa hộ mệnh hay dịch vụ \"hoá giải\" đi kèm bất kỳ kết quả nào." },
-  { num: "02", q: "Vì sao chỉ có hướng nhà, không có hướng bàn làm việc hay bếp?", a: "Founder đã chọn hướng nhà là utility công khai đầu tiên vì có phạm vi dữ liệu đầu vào/đầu ra rõ nhất. Hướng bàn làm việc, bếp và màu sắc cần một quyết định phương pháp riêng, sẽ xem xét sau khi hướng nhà ổn định." },
-  { num: "03", q: "Khi nào Phong Thủy hướng nhà ra mắt?", a: "Chưa có ngày cụ thể. Công thức Bát Trạch và bảng 8 hướng cần một chuyên gia phong thuỷ độc lập rà soát trước khi công bố kết quả thật." },
+  { num: "02", q: "Vì sao chỉ có hướng nhà, không có hướng bàn làm việc hay bếp?", a: "Hướng nhà được chọn là utility công khai đầu tiên vì có phạm vi dữ liệu đầu vào/đầu ra rõ nhất. Hướng bàn làm việc, bếp và màu sắc cần một phương pháp riêng, sẽ được bổ sung sau khi hướng nhà ổn định." },
+  { num: "03", q: "Khi nào Phong Thủy hướng nhà ra mắt?", a: "Chưa có ngày cụ thể. Công thức Bát Trạch và bảng 8 hướng cần hoàn thiện thêm trước khi công bố kết quả thật." },
   { num: "04", q: "Ví dụ ở trên có phải kết quả thật không?", a: "Không. Đây là ví dụ minh hoạ hình dạng bảng kết quả và vị trí trên la bàn — cách phân loại 8 hướng cụ thể chưa được kiểm chứng, không phải kết luận đã duyệt." },
   { num: "05", q: "Tôi có cần bản vẽ mặt bằng nhà không?", a: "Không, ở phiên bản đầu chỉ cần năm sinh, giới tính và hướng nhà đo được. Phân tích mặt bằng chi tiết hơn không nằm trong phạm vi hiện tại." }
 ];
 
 const FAQ_DATA_EN: readonly FaqItem[] = [
   { num: "01", q: "Does House Direction Feng Shui sell remedial items?", a: "No, and it never will. La So Viet does not sell feng shui charms, amulets, or remedial products alongside any outcome." },
-  { num: "02", q: "Why focus only on house orientation rather than desks or kitchens?", a: "The founder selected house direction as the primary public utility due to well-defined inputs and outputs. Desks, kitchens, and color palettes will be addressed once this utility stabilizes." },
-  { num: "03", q: "When will House Direction Feng Shui launch?", a: "No firm release date has been set. Calculation formulas and eight-direction matrices require external expert validation before official launch." },
+  { num: "02", q: "Why focus only on house orientation rather than desks or kitchens?", a: "House direction was selected as the primary public utility due to well-defined inputs and outputs. Desks, kitchens, and color palettes will be addressed once this utility stabilizes." },
+  { num: "03", q: "When will House Direction Feng Shui launch?", a: "No firm release date has been set. Calculation formulas and eight-direction matrices still need further work before official launch." },
   { num: "04", q: "Is the example above an actual calculation?", a: "No. It is an illustrative visual layout showing the compass display and result table format — directional classifications have not been audited." },
   { num: "05", q: "Do I need architectural floor plans?", a: "No. The initial version only requires birth year, gender, and compass bearing. In-depth spatial floor plan analysis is outside current scope." }
 ];
@@ -598,8 +598,8 @@ export function FengShuiPreview({ locale, className }: FengShuiPreviewProps) {
               }}
             >
               {isVi
-                ? "Hồ sơ dưới đây minh hoạ hình dạng bảng kết quả — cung mệnh và cách xếp loại hướng cụ thể chưa được kiểm chứng bởi chuyên gia phong thuỷ, không phải kết luận thật."
-                : "The profile below illustrates the presentation layout — personal trigrams and directional categorizations are not audited by a feng shui expert, not a real conclusion."}
+                ? "Hồ sơ dưới đây minh hoạ hình dạng bảng kết quả — cung mệnh và cách xếp loại hướng cụ thể chưa được kiểm chứng đầy đủ, không phải kết luận thật."
+                : "The profile below illustrates the presentation layout — personal trigrams and directional categorizations are not fully verified yet, not a real conclusion."}
             </p>
 
             <div
@@ -870,8 +870,8 @@ export function FengShuiPreview({ locale, className }: FengShuiPreviewProps) {
               }}
             >
               {isVi
-                ? "Founder đã chốt utility đầu tiên là hướng nhà (không gộp bàn làm việc, bếp hay màu sắc). Công thức Bát Trạch cụ thể và bộ dữ liệu vẫn cần một chuyên gia phong thuỷ độc lập rà soát trước khi công bố kết quả thật."
-                : "The founder confirmed the initial utility is house orientation only (excluding desks, hearths, or color schemes). The specific formulas and dataset remain subject to independent review prior to official launch."}
+                ? "Utility đầu tiên được chọn là hướng nhà (không gộp bàn làm việc, bếp hay màu sắc). Công thức Bát Trạch cụ thể và bộ dữ liệu vẫn cần hoàn thiện thêm trước khi công bố kết quả thật."
+                : "The initial utility is house orientation only (excluding desks, hearths, or color schemes). The specific formulas and dataset still need further work prior to official launch."}
             </p>
 
             <div style={{ marginTop: "40px", maxWidth: "760px" }}>
