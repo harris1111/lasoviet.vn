@@ -1,14 +1,13 @@
 import type { Database } from "@lasoviet/database";
 import {
   parseReportGenerateJob,
+  resolveReportRuntimePolicy,
   type createReportService,
   type ReportGenerationService,
   type ReportJobQueueStore,
 } from "@lasoviet/backend";
 
-const SECTIONED_REPORT_CONFIG = "ziwei.comprehensive.report.v4.1-sectioned";
 const LEASE_HEARTBEAT_INTERVAL_MS = 120_000;
-const SECTIONED_MAXIMUM_WALL_CLOCK_MS = 60 * 60 * 1_000;
 const AI_TIMEOUT_RETRY_DELAYS_MS = [30_000, 60_000, 120_000, 300_000, 600_000, 1_200_000, 1_800_000];
 
 export type ReportProcessorClock = {
@@ -185,12 +184,18 @@ export function createReportGenerateProcessor(dependencies: {
         return { processed: false };
       }
 
-      const isSectioned = parsed.value.payload.reportConfigVersion === SECTIONED_REPORT_CONFIG;
+      let sectionedPolicy: { maximumWallClockMs: number } | null = null;
+      try {
+        sectionedPolicy = resolveReportRuntimePolicy(parsed.value.payload.reportConfigVersion);
+      } catch {
+        sectionedPolicy = null;
+      }
+      const isSectioned = sectionedPolicy !== null;
       let heartbeat: unknown;
       let renewal: Promise<void> | undefined;
       let renewalInFlight = false;
       let executionState: "active" | "lease_lost" | "wall_clock_exhausted" = "active";
-      const deadline = new Date(clock.now().getTime() + SECTIONED_MAXIMUM_WALL_CLOCK_MS);
+      const deadline = new Date(clock.now().getTime() + (sectionedPolicy?.maximumWallClockMs ?? 0));
       const guard: ReportGenerationExecutionGuard = {
         state() {
           if (executionState === "active" && clock.now().getTime() >= deadline.getTime()) {

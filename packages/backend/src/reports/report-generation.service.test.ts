@@ -45,10 +45,18 @@ import {
   REPORT_PROMPT_VERSION_V3,
   REPORT_PROMPT_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
-import { COMPREHENSIVE_REPORT_SECTION_KEYS, parseComprehensiveReportAcceptedSection } from "./comprehensive-report-section-v4.js";
+import {
+  COMPREHENSIVE_REPORT_SECTION_KEYS,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+  parseComprehensiveReportAcceptedSection,
+  type ComprehensiveReportSectionKey,
+} from "./comprehensive-report-section-v4.js";
 import { validateComprehensiveReportSectionQualityV4 } from "./comprehensive-report-quality-v4.js";
 import type { ComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
 import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
@@ -2727,7 +2735,7 @@ describe("createReportGenerationService V4 generation and critic", () => {
 });
 
 describe("createReportGenerationService V4.1 sectioned orchestration", () => {
-  type Key = (typeof COMPREHENSIVE_REPORT_SECTION_KEYS)[number];
+  type Key = ComprehensiveReportSectionKey;
 
   const longProse = (anchors: string[], seed: string) =>
     `${anchors.join(" và ")}. ${Array.from({ length: 24 }, (_, index) =>
@@ -2753,7 +2761,14 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
   };
 
   const sectionFor = (key: Key) => {
-    const evidenceKeys = ["e-life", "e-star"];
+    const evidenceKeys = key === "birthTimeSensitivity"
+      ? [
+          "sensitivity.stable.soul-palace",
+          "sensitivity.stable.major-star",
+          "sensitivity.sensitive.life-palace",
+          "sensitivity.sensitive.major-star",
+        ]
+      : ["e-life", "e-star"];
     if (key === "keyConfigurations") {
       return { key, value: [{ title: "Cấu trúc trọng yếu", narrative: longProse(["cung Mệnh", "sao Tử Vi"], key), evidenceKeys }] };
     }
@@ -2789,6 +2804,24 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         value: {
           title: "Lưu niên năm 2026", targetYear: 2026, asOfDate: "2026-09-12",
           narrative: longProse(["cung Mệnh", "sao Tử Vi"], key), evidenceKeys,
+        },
+      };
+    }
+    if (key === "birthTimeSensitivity") {
+      return {
+        key,
+        value: {
+          title: "Độ nhạy theo khung giờ sinh",
+          stableFactors: {
+            title: "Những điểm ổn định",
+            narrative: longProse(["cung Mệnh", "sao Tử Vi"], `${key}Stable`),
+            evidenceKeys: ["sensitivity.stable.soul-palace", "sensitivity.stable.major-star"],
+          },
+          sensitiveFactors: {
+            title: "Những điểm cần quan sát thêm",
+            narrative: longProse(["cung Mệnh", "sao Tử Vi"], `${key}Sensitive`),
+            evidenceKeys: ["sensitivity.sensitive.life-palace", "sensitivity.sensitive.major-star"],
+          },
         },
       };
     }
@@ -2830,7 +2863,10 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       decadal: { state: "active", index: 2, ageRange: [22, 31], yearRange: [2022, 2031], palaceId: "ziwei.palace.fortune", palaces: [] },
       annual: { targetYear: 2026, palaceId: "ziwei.palace.career", palaces: [] },
     },
-    sensitivity: {},
+    sensitivity: {
+      stableFactKeys: ["ziwei.fact.soul-palace"],
+      sensitiveFacts: [],
+    },
     sourceSnapshot: {
       reportVersionId: "22222222-2222-4222-8222-222222222222",
       chartVersionId: "chart-2",
@@ -2844,9 +2880,20 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       items: [
         { key: "e-life", sourceKeys: ["ziwei.palace.life"] },
         { key: "e-star", sourceKeys: ["ziwei.star.ziwei"] },
+        { key: "sensitivity.stable.soul-palace", sourceKeys: ["ziwei.palace.life"] },
+        { key: "sensitivity.stable.major-star", sourceKeys: ["ziwei.star.ziwei"] },
+        { key: "sensitivity.sensitive.life-palace", sourceKeys: ["ziwei.palace.life"] },
+        { key: "sensitivity.sensitive.major-star", sourceKeys: ["ziwei.star.ziwei"] },
       ],
     },
-    evidenceKeys: ["e-life", "e-star"],
+    evidenceKeys: [
+      "e-life",
+      "e-star",
+      "sensitivity.stable.soul-palace",
+      "sensitivity.stable.major-star",
+      "sensitivity.sensitive.life-palace",
+      "sensitivity.sensitive.major-star",
+    ],
   } as any;
 
   const sectionedSource = {
@@ -2872,8 +2919,10 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     const revisions = new Map<Key, any>();
     const revisionHistory = new Map<Key, any[]>();
     const calls = { claims: [] as Key[], rewrites: [] as Key[], passed: [] as Key[], releases: [] as Key[] };
-    const accepted = () => COMPREHENSIVE_REPORT_SECTION_KEYS.flatMap((key) => {
-      const base = rows.get(key);
+    const accepted = () => [...rows.values()]
+      .sort((left, right) => left.sectionOrder - right.sectionOrder)
+      .flatMap((base) => {
+      const key = base.sectionKey as Key;
       const revision = (revisionHistory.get(key) ?? []).filter((item) => item.status === "passed").at(-1);
       return base?.status === "passed" ? [{ ...base, ...(revision?.status === "passed" ? {
         acceptedSection: { key, value: revision.acceptedSection.value }, providerId: revision.providerId, modelId: revision.modelId,
@@ -3096,6 +3145,27 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.costContexts.filter((context) => context.purpose === "critic").map((context) => context.idempotencyKey)).toEqual([
       `${sectionedJob().payload.reportVersionId}:critic:1`,
     ]);
+  });
+
+  it("commits the exact V4.1 sensitivity tuple through checkpoints and V3 HTML", async () => {
+    const fixture = createSectionedService();
+    const job = sectionedJob({
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    });
+
+    const result = await fixture.service.generateReport({ job, attemptNumber: 1, workerId: "worker-1" });
+
+    expectSectionedSuccess(result, fixture);
+    expect(fixture.starts).toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    const committed = fixture.versionRepository.commitImmutableVersion.mock.calls[0]![0];
+    expect(committed).toMatchObject({
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+    });
+    expect(committed.structuredContent.birthTimeSensitivity).toBeDefined();
+    expect(committed.htmlContent).toContain("Độ nhạy theo khung giờ sinh");
   });
 
   it("prioritizes the matching thematic section without changing canonical assembly", async () => {

@@ -2,6 +2,7 @@ import type {
   ComprehensiveReportPublicContentV1,
   ZiweiComprehensiveReportContentV1,
   ZiweiComprehensiveReportContentV2,
+  ZiweiComprehensiveReportContentV3,
 } from "@lasoviet/contracts";
 
 export function escapeHtml(text: string): string {
@@ -18,7 +19,8 @@ export const COMPREHENSIVE_REPORT_HTML_TITLE = "Báo Cáo Luận Giải Toàn Di
 export type ComprehensiveReportInput =
   | ZiweiComprehensiveReportContentV1
   | ComprehensiveReportPublicContentV1
-  | ZiweiComprehensiveReportContentV2;
+  | ZiweiComprehensiveReportContentV2
+  | ZiweiComprehensiveReportContentV3;
 
 export function renderComprehensiveZiweiHtml(report: ComprehensiveReportInput): string {
   const overviewHtml = `<section class="report-overview"><h2>${escapeHtml(report.overview.title)}</h2><p>${escapeHtml(report.overview.narrative)}</p></section>`;
@@ -61,6 +63,11 @@ export function renderComprehensiveZiweiHtml(report: ComprehensiveReportInput): 
       ? `<section class="report-annual-snapshot"><h2>${escapeHtml(report.annualSnapshot.title)}</h2><p>${escapeHtml(report.annualSnapshot.narrative)}</p></section>`
       : "";
 
+  const birthTimeSensitivityHtml =
+    "birthTimeSensitivity" in report && report.birthTimeSensitivity
+      ? `<section class="report-birth-time-sensitivity"><h2>${escapeHtml(report.birthTimeSensitivity.title)}</h2><article class="birth-time-sensitivity-stable"><h3>${escapeHtml(report.birthTimeSensitivity.stableFactors.title)}</h3><p>${escapeHtml(report.birthTimeSensitivity.stableFactors.narrative)}</p></article><article class="birth-time-sensitivity-sensitive"><h3>${escapeHtml(report.birthTimeSensitivity.sensitiveFactors.title)}</h3><p>${escapeHtml(report.birthTimeSensitivity.sensitiveFactors.narrative)}</p></article></section>`
+      : "";
+
   let practicalDirectionContent = "";
   if (Array.isArray(report.practicalDirection)) {
     if (typeof report.practicalDirection[0] === "string") {
@@ -90,6 +97,7 @@ export function renderComprehensiveZiweiHtml(report: ComprehensiveReportInput): 
     `${strengthsTensionsHtml}` +
     `${currentDecadalHtml}` +
     `${annualSnapshotHtml}` +
+    `${birthTimeSensitivityHtml}` +
     `${practicalDirectionHtml}` +
     `</main></body></html>`
   );

@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   resolveZiweiReportQualityConfig,
+  resolveZiweiReportQualitySectionThreshold,
   validateZiweiReportQualityConfig,
   ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2Sensitivity,
 } from "./ziwei-report-quality.js";
 
 function source() {
@@ -95,9 +97,53 @@ describe("ziwei comprehensive report quality config", () => {
     expect(ziweiComprehensiveReportQualityV1.discouragedTerms).not.toContain("injected");
   });
 
+  it("loads and resolves the immutable V2 sensitivity pair only", () => {
+    const config = ziweiComprehensiveReportQualityV2Sensitivity;
+    expect(config.version).toBe("ziwei.comprehensive.quality.v2-sensitivity");
+    expect(config.reportConfigVersion).toBe(
+      "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+    );
+    expect(config.sections.birthTimeSensitivity).toEqual({
+      minimumSyllables: 300,
+      targetMinimumSyllables: 400,
+      targetMaximumSyllables: 600,
+      maxOutputTokens: 1800,
+    });
+    expect(Object.isFrozen(config)).toBe(true);
+    expect(Object.isFrozen(config.sections.birthTimeSensitivity)).toBe(true);
+    expect(
+      resolveZiweiReportQualityConfig(
+        "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+        "ziwei.comprehensive.quality.v2-sensitivity",
+      ),
+    ).toBe(config);
+    expect(
+      resolveZiweiReportQualitySectionThreshold(
+        "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+        "ziwei.comprehensive.quality.v2-sensitivity",
+        "birthTimeSensitivity",
+      ),
+    ).toEqual(config.sections.birthTimeSensitivity);
+    expect(() =>
+      resolveZiweiReportQualitySectionThreshold(
+        "ziwei.comprehensive.report.v4.1-sectioned",
+        "ziwei.comprehensive.quality.v1",
+        "birthTimeSensitivity",
+      ),
+    ).toThrow("ZIWEI_REPORT_QUALITY_SECTION_UNAVAILABLE");
+  });
+
   it("fails closed for unknown, remapped, or injected alternate configs", () => {
     expect(() => resolveZiweiReportQualityConfig("unknown", "ziwei.comprehensive.quality.v1")).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
     expect(() => resolveZiweiReportQualityConfig("ziwei.comprehensive.report.v4.1-sectioned", "unknown")).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
+    expect(() => resolveZiweiReportQualityConfig(
+      "ziwei.comprehensive.report.v4.1-sectioned",
+      "ziwei.comprehensive.quality.v2-sensitivity",
+    )).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
+    expect(() => resolveZiweiReportQualityConfig(
+      "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+      "ziwei.comprehensive.quality.v1",
+    )).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
     const remapped = source();
     remapped.reportConfigVersion = "ziwei.comprehensive.report.v4.0" as never;
     expect(() => validateZiweiReportQualityConfig(remapped)).toThrow("ZIWEI_REPORT_QUALITY_INVALID");

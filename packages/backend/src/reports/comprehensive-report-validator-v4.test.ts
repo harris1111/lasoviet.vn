@@ -7,7 +7,10 @@ import {
 } from "@lasoviet/contracts";
 
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
-import { validateComprehensiveZiweiReportV4 } from "./comprehensive-report-validator-v4.js";
+import {
+  validateComprehensiveZiweiReportV4,
+  validateComprehensiveZiweiReportV4_1,
+} from "./comprehensive-report-validator-v4.js";
 
 const palaceIds: ZiweiPalaceId[] = [
   "ziwei.palace.life",
@@ -591,4 +594,61 @@ describe("validateComprehensiveZiweiReportV4", () => {
     });
   });
 
+});
+
+describe("validateComprehensiveZiweiReportV4_1", () => {
+  function createSensitivityReport(facts: ReturnType<typeof buildComprehensiveZiweiFactsV4>) {
+    const sensitivityFacts = {
+      ...facts,
+      evidenceKeys: [
+        ...facts.evidenceKeys,
+        "sensitivity.stable.soul-palace",
+        "sensitivity.sensitive.life-palace",
+      ],
+    };
+    return {
+      facts: sensitivityFacts,
+      report: {
+        ...createValidReport(sensitivityFacts),
+        birthTimeSensitivity: {
+          title: "Độ nhạy theo khung giờ sinh",
+          stableFactors: {
+            title: "Những điểm ổn định",
+            narrative: "Các nét nền tảng vẫn nhất quán khi đối chiếu những khung giờ sinh lân cận.",
+            evidenceKeys: ["sensitivity.stable.soul-palace"],
+          },
+          sensitiveFactors: {
+            title: "Những điểm cần quan sát thêm",
+            narrative: "Một số trọng tâm có thể thay đổi, nên đối chiếu trải nghiệm thực tế trước khi kết luận.",
+            evidenceKeys: ["sensitivity.sensitive.life-palace"],
+          },
+        },
+      },
+    };
+  }
+
+  it("accepts customer-safe sensitivity prose", () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const sample = createSensitivityReport(facts);
+    expect(validateComprehensiveZiweiReportV4_1(sample.report, sample.facts).ok).toBe(true);
+  });
+
+  it("rejects AI disclosure in sensitivity prose", () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const sample = createSensitivityReport(facts);
+    sample.report.birthTimeSensitivity.stableFactors.narrative = "AI tổng hợp các yếu tố này cho bạn.";
+    expect(validateComprehensiveZiweiReportV4_1(sample.report, sample.facts).ok).toBe(false);
+  });
+
+  it("rejects fatalistic frame metadata and raw Vietnamese birth time", () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const sample = createSensitivityReport(facts);
+    sample.report.birthTimeSensitivity.sensitiveFactors.narrative =
+      "selected frame index 6 cho thấy bạn chắc chắn sẽ phá sản lúc 8 giờ 30.";
+    const result = validateComprehensiveZiweiReportV4_1(sample.report, sample.facts);
+    expect(result.ok).toBe(false);
+    expect(result.errors?.some((error) => error.includes("fatalistic"))).toBe(true);
+    expect(result.errors?.some((error) => error.includes("raw birth date or time"))).toBe(true);
+    expect(result.errors?.some((error) => error.includes("raw frame"))).toBe(true);
+  });
 });
