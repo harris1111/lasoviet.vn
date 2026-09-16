@@ -7,7 +7,11 @@ import {
 } from "./comprehensive-report-section-writer-v4.js";
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import { COMPREHENSIVE_REPORT_SECTION_KEYS } from "./comprehensive-report-section-v4.js";
-import { REPORT_PROMPT_VERSION_V4_0_1 } from "./identity-report-config.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const palaceIds = [...ZIWEI_PALACE_IDS];
 const branches = [
@@ -157,6 +161,14 @@ function outputFor(key: string): unknown {
   if (key === "keyConfigurations") return { key, value: [narrative] };
   if (key === "currentDecadal") return { key, value: { ...narrative, state: "active", index: 2, ageRange: [22, 31], yearRange: [2022, 2031] } };
   if (key === "annualSnapshot") return { key, value: { ...narrative, targetYear: 2026, asOfDate: "2026-09-12" } };
+  if (key === "birthTimeSensitivity") return {
+    key,
+    value: {
+      title: "Độ nhạy thời điểm sinh",
+      stableFactors: { ...narrative, title: "Yếu tố ổn định", evidenceKeys: ["sensitivity.stable.ziwei.fact.soul-palace"] },
+      sensitiveFactors: { ...narrative, title: "Yếu tố cần đối chiếu", evidenceKeys: ["sensitivity.sensitive.ziwei.fact.body-palace"] },
+    },
+  };
   if (key === "practicalDirection") return {
     key,
     value: Array.from({ length: 3 }, () => ({
@@ -418,5 +430,52 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(JSON.stringify(contextual)).not.toContain("1990-01-01");
     expect(JSON.stringify(contextual)).not.toContain("08:30");
     expect(JSON.stringify(contextual)).not.toContain("Hanoi");
+  });
+
+  it("serializes V4.1 sensitivity from frozen normalized comparisons without raw birth PII", async () => {
+    const reportFacts = facts();
+    reportFacts.sensitivity = {
+      stableFactKeys: ["ziwei.fact.soul-palace"],
+      sensitiveFacts: [{
+        factKey: "ziwei.fact.body-palace",
+        variants: [
+          { position: "previous", valueIds: ["ziwei.palace.life"], evidenceKeys: [] },
+          { position: "selected", valueIds: ["ziwei.palace.career"], evidenceKeys: [] },
+          { position: "next", valueIds: ["ziwei.palace.wealth"], evidenceKeys: [] },
+        ],
+      }],
+    };
+    reportFacts.evidence.items.push(
+      { key: "sensitivity.stable.ziwei.fact.soul-palace", dimension: "sensitivity", sourceKeys: ["ziwei.fact.soul-palace"] },
+      { key: "sensitivity.sensitive.ziwei.fact.body-palace", dimension: "sensitivity", sourceKeys: ["ziwei.fact.body-palace"] },
+    );
+    reportFacts.evidenceKeys.push(
+      "sensitivity.stable.ziwei.fact.soul-palace",
+      "sensitivity.sensitive.ziwei.fact.body-palace",
+    );
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("birthTimeSensitivity"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const result = await writeComprehensiveReportSectionV4({
+      sectionKey: "birthTimeSensitivity",
+      facts: reportFacts,
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    });
+    expect(result.ok).toBe(true);
+    const payload = JSON.parse(provider.generateStructured.mock.calls[0][0].user);
+    expect(payload.allowedEvidenceKeys).toEqual([
+      "sensitivity.sensitive.ziwei.fact.body-palace",
+      "sensitivity.stable.ziwei.fact.soul-palace",
+    ]);
+    expect(payload.facts.sensitivity).not.toHaveProperty("selectedFrame");
+    expect(JSON.stringify(payload)).not.toContain("1990-01-01");
+    expect(JSON.stringify(payload)).not.toContain("08:30");
+    expect(JSON.stringify(payload)).not.toContain("Hanoi");
   });
 });

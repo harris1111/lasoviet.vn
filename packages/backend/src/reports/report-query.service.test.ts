@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CurrentActor } from "@lasoviet/contracts";
+import type { CurrentActor, EntitlementScope } from "@lasoviet/contracts";
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
@@ -11,6 +11,8 @@ import {
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
+  TIER_2_V4_ENTITLEMENT_SCOPE,
+  TIER_2_V4_1_ENTITLEMENT_SCOPE,
 } from "@lasoviet/contracts";
 import {
   CANONICAL_PALACE_TITLES_VI,
@@ -21,9 +23,17 @@ import {
   REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
   REPORT_KNOWLEDGE_VERSION_V3,
+  REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
   REPORT_PROMPT_VERSION_V3,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
+  REPORT_TEMPLATE_VERSION_V3,
+  REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
 import {
   createReportQueryService,
@@ -1484,6 +1494,94 @@ describe("report query service", () => {
       };
     }
 
+    function validV4_1StructuredContent() {
+      return {
+        ...validV4StructuredContent(),
+        birthTimeSensitivity: {
+          title: "Độ nhạy giờ sinh",
+          stableFactors: {
+            title: "Yếu tố ổn định",
+            narrative: "Các nét cốt lõi vẫn nhất quán giữa các khung giờ lân cận.",
+            evidenceKeys: ["sensitivity.stable.core-axis"],
+          },
+          sensitiveFactors: {
+            title: "Yếu tố cần xác nhận",
+            narrative: "Một số điểm cần đối chiếu thêm khi giờ sinh chưa chắc chắn.",
+            evidenceKeys: ["sensitivity.sensitive.palace-shift"],
+          },
+        },
+      };
+    }
+
+    function v4_1VersionRecord(options?: {
+      sku?: "ZIWEI-IDENTITY-P0" | "ZIWEI-NATAL-EXCERPT-P0";
+      templateVersion?: string;
+      renderVersion?: string;
+    }) {
+      const sku = options?.sku ?? "ZIWEI-IDENTITY-P0";
+      return {
+        id: "ver-uuid-v4-1",
+        reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+        reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+        entitlementId: "ent-v4-1",
+        chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
+        evidenceVersionId: "ev-set-1",
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+        reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+        promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+        templateVersion: options?.templateVersion ?? REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
+        locale: "vi",
+        sku,
+        providerId: "open-router",
+        modelId: "synthetic-model",
+        structuredContent: validV4_1StructuredContent(),
+        htmlContent: "<html></html>",
+        contentHash: "1".repeat(64),
+        pdfAssetId: null,
+        renderVersion: options?.renderVersion ?? REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
+        supersedesReportVersionId: null,
+        createdAt: new Date("2026-09-16T00:00:00+07:00"),
+      } as any;
+    }
+
+    function v4_1Record(options?: {
+      sku?: "ZIWEI-IDENTITY-P0" | "ZIWEI-NATAL-EXCERPT-P0";
+      scope?: EntitlementScope;
+      templateVersion?: string;
+      renderVersion?: string;
+    }) {
+      const sku = options?.sku ?? "ZIWEI-IDENTITY-P0";
+      return createSampleRecord({
+        order: {
+          id: "ord-uuid-v4-1",
+          invoiceNumber: "LSV-INV-V4-1",
+          sku,
+          status: "paid",
+          paidAt: new Date("2026-09-16T00:05:00.000Z"),
+        } as any,
+        reservation: {
+          entitlementId: "ent-v4-1",
+          sku,
+          status: "complete",
+          promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+          knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+          reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+          locale: "vi",
+        } as any,
+        version: v4_1VersionRecord(options),
+        entitlements: [
+          {
+            id: "ent-v4-1",
+            orderId: "ord-uuid-v4-1",
+            chartId: "chart-1",
+            sku,
+            scope: options?.scope ?? TIER_2_V4_1_ENTITLEMENT_SCOPE,
+            orderStatus: "paid",
+          },
+        ],
+      });
+    }
+
     it("owner reads V4 comprehensive report with contentVersion ziwei-comprehensive.v2, decadal, annual, actions, and NO sensitivity", async () => {
       const versionRecord = {
         id: "ver-uuid-v4-t2",
@@ -1648,6 +1746,124 @@ describe("report query service", () => {
       expect(content.birthTimeSensitivity).toBeUndefined();
       expect(content.lockedSections).toContain("currentDecadal");
       expect(content.lockedSections).toContain("annualSnapshot");
+    });
+
+    it("reads V4.1 content only from its exact tuple and removes sensitivity evidence metadata", async () => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(v4_1Record()),
+      };
+      const result = await createReportQueryService({ repository }).getReport(
+        accountActor,
+        "834e9e89-19cb-44a6-bc59-ba7741374553",
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok || result.value.state !== "ready") return;
+
+      expect(result.value.contentVersion).toBe("ziwei-comprehensive.v3");
+      const sensitivity = (result.value.content as any).birthTimeSensitivity;
+      expect(sensitivity.stableFactors.narrative).toBeTruthy();
+      expect(sensitivity.sensitiveFactors.narrative).toBeTruthy();
+      expect(sensitivity).not.toHaveProperty("evidenceKeys");
+      expect(sensitivity.stableFactors).not.toHaveProperty("evidenceKeys");
+      expect(sensitivity.sensitiveFactors).not.toHaveProperty("evidenceKeys");
+      expect(JSON.stringify(sensitivity)).not.toContain("sensitivity.stable");
+      expect(JSON.stringify(sensitivity)).not.toContain("sensitivity.sensitive");
+    });
+
+    it("rejects V4.1 content paired with the historical V4 effective scope", async () => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(v4_1Record({
+          scope: TIER_2_V4_ENTITLEMENT_SCOPE,
+        })),
+      };
+
+      await expect(
+        createReportQueryService({ repository }).getReport(
+          accountActor,
+          "834e9e89-19cb-44a6-bc59-ba7741374553",
+        ),
+      ).rejects.toThrow(ReportQueryDataError);
+    });
+
+    it("rejects V4 content paired with a V4.1 effective scope", async () => {
+      const versionRecord = {
+        ...v4_1VersionRecord(),
+        knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+        reportConfigVersion: REPORT_CONFIG_VERSION_V4,
+        promptVersion: REPORT_PROMPT_VERSION_V4,
+        templateVersion: REPORT_TEMPLATE_VERSION_V3,
+        renderVersion: "identity-report-pdf.v1",
+        structuredContent: validV4StructuredContent(),
+      };
+      const record = createSampleRecord({
+        reservation: {
+          entitlementId: "ent-v4-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          status: "complete",
+          promptVersion: REPORT_PROMPT_VERSION_V4,
+          knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+          reportConfigVersion: REPORT_CONFIG_VERSION_V4,
+          locale: "vi",
+        } as any,
+        version: versionRecord,
+        entitlements: [{
+          id: "ent-v4-1",
+          orderId: "ord-uuid-v4-1",
+          chartId: "chart-1",
+          sku: "ZIWEI-IDENTITY-P0",
+          scope: TIER_2_V4_1_ENTITLEMENT_SCOPE,
+          orderStatus: "paid",
+        }],
+      });
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(record),
+      };
+
+      await expect(
+        createReportQueryService({ repository }).getReport(
+          accountActor,
+          "834e9e89-19cb-44a6-bc59-ba7741374553",
+        ),
+      ).rejects.toThrow(ReportQueryDataError);
+    });
+
+    it("rejects a V4.1 tuple with a mismatched template", async () => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(v4_1Record({
+          templateVersion: REPORT_TEMPLATE_VERSION_V3,
+        })),
+      };
+
+      await expect(
+        createReportQueryService({ repository }).getReport(
+          accountActor,
+          "834e9e89-19cb-44a6-bc59-ba7741374553",
+        ),
+      ).rejects.toThrow(ReportQueryDataError);
+    });
+
+    it("keeps a V4.1 natal excerpt at Tier-1 without timing or sensitivity", async () => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(v4_1Record({
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          scope: TIER_1_ENTITLEMENT_SCOPE,
+        })),
+      };
+      const result = await createReportQueryService({ repository }).getReport(
+        accountActor,
+        "834e9e89-19cb-44a6-bc59-ba7741374553",
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok || result.value.state !== "ready") return;
+
+      expect(result.value.contentVersion).toBe("ziwei-comprehensive.v3");
+      const content = result.value.content as any;
+      expect(content.currentDecadal).toBeUndefined();
+      expect(content.annualSnapshot).toBeUndefined();
+      expect(content.birthTimeSensitivity).toBeUndefined();
+      expect(content.lockedSections).toContain("birthTimeSensitivity");
     });
   });
 });

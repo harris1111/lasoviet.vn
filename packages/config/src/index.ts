@@ -66,10 +66,13 @@ export type {
 export {
   normalizeZiweiQualityTerm,
   resolveZiweiReportQualityConfig,
+  resolveZiweiReportQualitySectionThreshold,
   validateZiweiReportQualityConfig,
   ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2Sensitivity,
 } from "./ziwei-report-quality.js";
 export type {
   ZiweiReportQualityConfig,
   ZiweiReportQualitySectionKind,
+  ZiweiReportQualitySectionThreshold,
 } from "./ziwei-report-quality.js";

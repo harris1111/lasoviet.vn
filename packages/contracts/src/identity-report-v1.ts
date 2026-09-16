@@ -23,8 +23,11 @@ import {
   COMPREHENSIVE_REPORT_TIER_1_LOCKED_SECTIONS,
   TIER_2_V4_SCOPE_SECTIONS,
   COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS,
+  TIER_2_V4_1_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS,
 } from "./commerce.js";
 import type { ZiweiComprehensiveReportContentV2 } from "./ziwei-comprehensive-report-v2.js";
+import type { ZiweiComprehensiveReportContentV3 } from "./ziwei-comprehensive-report-v4-1.js";
 
 
 export const IDENTITY_REPORT_SECTION_IDS = [
@@ -544,6 +547,158 @@ export function projectComprehensiveReportPublicContentV2(
   };
 }
 
+export const ComprehensiveReportBirthTimeSensitivityV3PublicSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    stableFactors: ComprehensiveReportOverviewSectionSchema,
+    sensitiveFactors: ComprehensiveReportOverviewSectionSchema,
+  })
+  .strict();
+export type ComprehensiveReportBirthTimeSensitivityV3Public = z.infer<
+  typeof ComprehensiveReportBirthTimeSensitivityV3PublicSchema
+>;
+
+export const ComprehensiveReportTier1PublicContentV3Schema = z
+  .object({
+    overview: ComprehensiveReportOverviewSectionSchema,
+    coreAxis: ComprehensiveReportCoreAxisSectionSchema,
+    strengthsAndTensions: ComprehensiveReportStrengthsAndTensionsSectionSchema,
+    practicalDirection: z.array(ComprehensiveReportActionItemV2PublicSchema).min(3).max(5),
+    lockedSections: z.array(ComprehensiveReportSectionIdSchema).min(1),
+  })
+  .strict();
+export type ComprehensiveReportTier1PublicContentV3 = z.infer<
+  typeof ComprehensiveReportTier1PublicContentV3Schema
+>;
+
+export const ComprehensiveReportTier2PublicContentV3Schema = z
+  .object({
+    overview: ComprehensiveReportOverviewSectionSchema,
+    coreAxis: ComprehensiveReportCoreAxisSectionSchema,
+    keyConfigurations: z.array(ComprehensiveReportKeyConfigurationItemSchema).min(1).max(12),
+    palaceReadings: z.array(ComprehensiveReportPalaceReadingItemSchema).length(ZIWEI_PALACE_IDS.length),
+    thematicSynthesis: z.array(ComprehensiveReportThematicSynthesisItemSchema).length(ZIWEI_THEMATIC_SYNTHESIS_IDS.length),
+    strengthsAndTensions: ComprehensiveReportStrengthsAndTensionsSectionSchema,
+    currentDecadal: ComprehensiveReportCurrentDecadalV2PublicSchema,
+    annualSnapshot: ComprehensiveReportAnnualSnapshotV2PublicSchema,
+    birthTimeSensitivity: ComprehensiveReportBirthTimeSensitivityV3PublicSchema,
+    practicalDirection: z.array(ComprehensiveReportActionItemV2PublicSchema).min(3).max(5),
+  })
+  .strict();
+export type ComprehensiveReportTier2PublicContentV3 = z.infer<
+  typeof ComprehensiveReportTier2PublicContentV3Schema
+>;
+
+export const ComprehensiveReportPublicContentV3Schema = z.union([
+  ComprehensiveReportTier2PublicContentV3Schema,
+  ComprehensiveReportTier1PublicContentV3Schema,
+]);
+export type ComprehensiveReportViewContentV3 = z.infer<
+  typeof ComprehensiveReportPublicContentV3Schema
+>;
+export type ComprehensiveReportPublicContentV3 = ComprehensiveReportTier2PublicContentV3;
+
+export function projectComprehensiveReportPublicContentV3(
+  stored: ZiweiComprehensiveReportContentV3,
+  scope?: EntitlementScope | readonly ComprehensiveReportSectionId[] | null,
+): ComprehensiveReportViewContentV3 {
+  const sections =
+    scope === null || scope === undefined
+      ? TIER_2_V4_1_SCOPE_SECTIONS
+      : "sections" in scope
+        ? scope.sections
+        : scope;
+
+  const hasTier2 =
+    sections.includes("keyConfigurations") &&
+    sections.includes("palaceReadings") &&
+    sections.includes("thematicSynthesis") &&
+    sections.includes("currentDecadal") &&
+    sections.includes("annualSnapshot") &&
+    sections.includes("birthTimeSensitivity");
+
+  const projectedActions = stored.practicalDirection.map((action) => ({
+    recommendation: action.recommendation,
+    rationale: action.rationale,
+    avoid: action.avoid,
+  }));
+
+  if (!hasTier2) {
+    const lockedSections = COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS.filter(
+      (section) => !sections.includes(section),
+    );
+    return {
+      overview: { title: stored.overview.title, narrative: stored.overview.narrative },
+      coreAxis: { title: stored.coreAxis.title, narrative: stored.coreAxis.narrative },
+      strengthsAndTensions: {
+        title: stored.strengthsAndTensions.title,
+        narrative: stored.strengthsAndTensions.narrative,
+      },
+      practicalDirection: projectedActions,
+      lockedSections: lockedSections.length > 0
+        ? lockedSections
+        : [...COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS],
+    };
+  }
+
+  return {
+    overview: { title: stored.overview.title, narrative: stored.overview.narrative },
+    coreAxis: { title: stored.coreAxis.title, narrative: stored.coreAxis.narrative },
+    keyConfigurations: stored.keyConfigurations.map((item) => ({
+      title: item.title,
+      narrative: item.narrative,
+    })),
+    palaceReadings: stored.palaceReadings.map((item) => ({
+      palaceId: item.palaceId,
+      title: item.title,
+      narrative: item.narrative,
+    })),
+    thematicSynthesis: stored.thematicSynthesis.map((item) => ({
+      id: item.id,
+      title: item.title,
+      narrative: item.narrative,
+    })),
+    strengthsAndTensions: {
+      title: stored.strengthsAndTensions.title,
+      narrative: stored.strengthsAndTensions.narrative,
+    },
+    currentDecadal: stored.currentDecadal.state === "active"
+      ? {
+          title: stored.currentDecadal.title,
+          state: "active",
+          index: stored.currentDecadal.index,
+          ageRange: stored.currentDecadal.ageRange,
+          yearRange: stored.currentDecadal.yearRange,
+          narrative: stored.currentDecadal.narrative,
+        }
+      : {
+          title: stored.currentDecadal.title,
+          state: "not_started",
+          firstCycleStartAge: stored.currentDecadal.firstCycleStartAge,
+          firstCycleStartYear: stored.currentDecadal.firstCycleStartYear,
+          narrative: stored.currentDecadal.narrative,
+        },
+    annualSnapshot: {
+      title: stored.annualSnapshot.title,
+      targetYear: stored.annualSnapshot.targetYear,
+      asOfDate: stored.annualSnapshot.asOfDate,
+      narrative: stored.annualSnapshot.narrative,
+    },
+    birthTimeSensitivity: {
+      title: stored.birthTimeSensitivity.title,
+      stableFactors: {
+        title: stored.birthTimeSensitivity.stableFactors.title,
+        narrative: stored.birthTimeSensitivity.stableFactors.narrative,
+      },
+      sensitiveFactors: {
+        title: stored.birthTimeSensitivity.sensitiveFactors.title,
+        narrative: stored.birthTimeSensitivity.sensitiveFactors.narrative,
+      },
+    },
+    practicalDirection: projectedActions,
+  };
+}
+
 const baseReportReadyViewV1Schema = z.object({
   version: z.literal(1),
   state: z.literal("ready"),
@@ -616,15 +771,26 @@ export type ReportComprehensiveV2ReadyViewV1 = z.infer<
   typeof ReportComprehensiveV2ReadyViewV1Schema
 >;
 
+export const ReportComprehensiveV3ReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei-comprehensive.v3"),
+  locale: z.literal("vi"),
+  content: ComprehensiveReportPublicContentV3Schema,
+}).strict();
+export type ReportComprehensiveV3ReadyViewV1 = z.infer<
+  typeof ReportComprehensiveV3ReadyViewV1Schema
+>;
+
 export const ReportReadyViewV1Schema = z.discriminatedUnion("contentVersion", [
   ReportLegacyReadyViewV1Schema,
   ReportComprehensiveReadyViewV1Schema,
   ReportComprehensiveV2ReadyViewV1Schema,
+  ReportComprehensiveV3ReadyViewV1Schema,
 ]);
 export type ReportReadyViewV1 =
   | ReportLegacyReadyViewV1
   | ReportComprehensiveReadyViewV1
-  | ReportComprehensiveV2ReadyViewV1;
+  | ReportComprehensiveV2ReadyViewV1
+  | ReportComprehensiveV3ReadyViewV1;
 
 export const ReportFailedViewV1Schema = z.object({
   version: z.literal(1),

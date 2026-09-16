@@ -20,6 +20,10 @@ import {
   TIER_2_V4_SCOPE_SECTIONS,
   COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS,
   TIER_2_V4_ENTITLEMENT_SCOPE,
+  V4_1_SENSITIVITY_SCOPE_SECTIONS,
+  TIER_2_V4_1_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS,
+  TIER_2_V4_1_ENTITLEMENT_SCOPE,
   resolveEntitlementScopeForSku,
 } from "./commerce.js";
 
@@ -73,6 +77,12 @@ describe("commerce contracts", () => {
     expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0")).toEqual(TIER_2_ENTITLEMENT_SCOPE);
     expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0", "v4")).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
     expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0", { reportFamily: "v4" })).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
+    expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0", "v4_1")).toEqual(
+      TIER_2_V4_1_ENTITLEMENT_SCOPE,
+    );
+    expect(resolveEntitlementScopeForSku("ZIWEI-IDENTITY-P0", { reportFamily: "v4_1" })).toEqual(
+      TIER_2_V4_1_ENTITLEMENT_SCOPE,
+    );
 
     // V4 timing scope constants
     expect(V4_TIMING_SCOPE_SECTIONS).toEqual([
@@ -90,11 +100,25 @@ describe("commerce contracts", () => {
       ...V4_TIMING_SCOPE_SECTIONS,
     ]);
     expect(TIER_2_V4_ENTITLEMENT_SCOPE.sections).toEqual([...TIER_2_V4_SCOPE_SECTIONS]);
+    expect(V4_1_SENSITIVITY_SCOPE_SECTIONS).toEqual(["birthTimeSensitivity"]);
+    expect(TIER_2_V4_1_SCOPE_SECTIONS).toEqual([
+      ...TIER_2_V4_SCOPE_SECTIONS,
+      "birthTimeSensitivity",
+    ]);
+    expect(COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS).toEqual([
+      ...COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS,
+      "birthTimeSensitivity",
+    ]);
+    expect(TIER_2_V4_1_ENTITLEMENT_SCOPE.sections).toEqual([...TIER_2_V4_1_SCOPE_SECTIONS]);
+    expect(resolveEntitlementScopeForSku("ZIWEI-NATAL-EXCERPT-P0", "v4_1")).toEqual(
+      TIER_1_ENTITLEMENT_SCOPE,
+    );
 
     // Scope schema validation
     expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_1_SCOPE_SECTIONS] }).success).toBe(true);
     expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_2_SCOPE_SECTIONS] }).success).toBe(true);
     expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_2_V4_SCOPE_SECTIONS] }).success).toBe(true);
+    expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_2_V4_1_SCOPE_SECTIONS] }).success).toBe(true);
     expect(EntitlementScopeSchema.safeParse({ sections: [] }).success).toBe(false);
     expect(EntitlementScopeSchema.safeParse({ sections: ["invalid_section"] }).success).toBe(false);
     expect(EntitlementScopeSchema.safeParse({ sections: [...TIER_1_SCOPE_SECTIONS], extra: true }).success).toBe(false);

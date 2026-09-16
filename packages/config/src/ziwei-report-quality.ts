@@ -13,6 +13,7 @@ const SECTION_KINDS = [
   "currentDecadal",
   "annualSnapshot",
   "practicalAction",
+  "birthTimeSensitivity",
 ] as const;
 
 const sectionSchema = z.object({
@@ -27,9 +28,7 @@ const sectionSchema = z.object({
   }
 });
 
-const qualitySchema = z.object({
-  version: z.literal("ziwei.comprehensive.quality.v1"),
-  reportConfigVersion: z.literal("ziwei.comprehensive.report.v4.1-sectioned"),
+const qualityBaseSchema = z.object({
   sections: z.object({
     overview: sectionSchema, coreAxis: sectionSchema, keyConfigurations: sectionSchema,
     palace: sectionSchema, thematic: sectionSchema, strengthsAndTensions: sectionSchema,
@@ -56,8 +55,34 @@ const qualitySchema = z.object({
   maxFindingNoteChars: z.number().int().min(1),
 }).strict();
 
-export type ZiweiReportQualityConfig = z.infer<typeof qualitySchema>;
+const qualityV1Schema = qualityBaseSchema.extend({
+  version: z.literal("ziwei.comprehensive.quality.v1"),
+  reportConfigVersion: z.literal("ziwei.comprehensive.report.v4.1-sectioned"),
+  sections: qualityBaseSchema.shape.sections,
+});
+
+const qualityV2SensitivitySchema = qualityBaseSchema.extend({
+  version: z.literal("ziwei.comprehensive.quality.v2-sensitivity"),
+  reportConfigVersion: z.literal("ziwei.comprehensive.report.v4.1-sectioned-sensitivity"),
+  sections: qualityBaseSchema.shape.sections.extend({
+    birthTimeSensitivity: sectionSchema,
+  }).strict(),
+});
+
+const qualitySchema = z.union([
+  qualityV1Schema,
+  qualityV2SensitivitySchema,
+]);
+
+export type ZiweiReportQualityConfigV1 = z.infer<typeof qualityV1Schema>;
+export type ZiweiReportQualityConfigV2Sensitivity = z.infer<
+  typeof qualityV2SensitivitySchema
+>;
+export type ZiweiReportQualityConfig =
+  | ZiweiReportQualityConfigV1
+  | ZiweiReportQualityConfigV2Sensitivity;
 export type ZiweiReportQualitySectionKind = (typeof SECTION_KINDS)[number];
+export type ZiweiReportQualitySectionThreshold = z.infer<typeof sectionSchema>;
 
 export function normalizeZiweiQualityTerm(term: string): string {
   return term.normalize("NFC").toLocaleLowerCase("vi-VN").trim();
@@ -104,19 +129,44 @@ export function resolveZiweiReportQualityConfig(
   qualityVersion: string,
 ): ZiweiReportQualityConfig {
   if (
-    reportConfigVersion !== ziweiComprehensiveReportQualityV1.reportConfigVersion ||
-    qualityVersion !== ziweiComprehensiveReportQualityV1.version
+    reportConfigVersion === ziweiComprehensiveReportQualityV1.reportConfigVersion &&
+    qualityVersion === ziweiComprehensiveReportQualityV1.version
   ) {
-    throw new Error("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
+    return ziweiComprehensiveReportQualityV1;
   }
-  return ziweiComprehensiveReportQualityV1;
+  if (
+    reportConfigVersion === ziweiComprehensiveReportQualityV2Sensitivity.reportConfigVersion &&
+    qualityVersion === ziweiComprehensiveReportQualityV2Sensitivity.version
+  ) {
+    return ziweiComprehensiveReportQualityV2Sensitivity;
+  }
+  throw new Error("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
 }
 
-function configPath(): string {
-  const local = resolve(process.cwd(), "config", "ziwei-comprehensive-report-quality.v1.json");
-  return existsSync(local) ? local : resolve(process.cwd(), "..", "..", "config", "ziwei-comprehensive-report-quality.v1.json");
+export function resolveZiweiReportQualitySectionThreshold(
+  reportConfigVersion: string,
+  qualityVersion: string,
+  sectionKind: ZiweiReportQualitySectionKind,
+): ZiweiReportQualitySectionThreshold {
+  const config = resolveZiweiReportQualityConfig(reportConfigVersion, qualityVersion);
+  if (config.version === "ziwei.comprehensive.quality.v1") {
+    if (sectionKind === "birthTimeSensitivity") {
+      throw new Error("ZIWEI_REPORT_QUALITY_SECTION_UNAVAILABLE");
+    }
+    return config.sections[sectionKind];
+  }
+  return config.sections[sectionKind];
+}
+
+function configPath(filename: string): string {
+  const local = resolve(process.cwd(), "config", filename);
+  return existsSync(local) ? local : resolve(process.cwd(), "..", "..", "config", filename);
 }
 
 export const ziweiComprehensiveReportQualityV1 = validateZiweiReportQualityConfig(
-  JSON.parse(readFileSync(configPath(), "utf8")),
-);
+  JSON.parse(readFileSync(configPath("ziwei-comprehensive-report-quality.v1.json"), "utf8")),
+) as ZiweiReportQualityConfigV1;
+
+export const ziweiComprehensiveReportQualityV2Sensitivity = validateZiweiReportQualityConfig(
+  JSON.parse(readFileSync(configPath("ziwei-comprehensive-report-quality.v2-sensitivity.json"), "utf8")),
+) as ZiweiReportQualityConfigV2Sensitivity;

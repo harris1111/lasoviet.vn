@@ -1,6 +1,7 @@
 import type { ZiweiPalaceId } from "@lasoviet/contracts";
 import {
   resolveZiweiReportQualityConfig,
+  resolveZiweiReportQualitySectionThreshold,
   type ZiweiReportQualityConfig,
   type ZiweiReportQualitySectionKind,
 } from "@lasoviet/config";
@@ -182,7 +183,11 @@ export function validateComprehensiveReportSectionQualityV4(
   const add = (code: ComprehensiveReportQualityFindingCodeV4, note: string) => {
     if (findings.length < config.maxFindings) findings.push(finding(section.key, code, note, config));
   };
-  const threshold = config.sections[section.kind];
+  const threshold = resolveZiweiReportQualitySectionThreshold(
+    reportConfigVersion,
+    qualityVersion,
+    section.kind,
+  );
   const syllables = countVietnameseSyllables(text);
   if (syllables < threshold.minimumSyllables) add("MINIMUM_SYLLABLES", `Requires ${threshold.minimumSyllables} syllables; found ${syllables}.`);
   for (const [code, terms] of [["DISCOURAGED_TERM", config.discouragedTerms], ["DEATH_TERM", config.deathTerms], ["CERTAINTY", config.certaintyPhrases]] as const) {

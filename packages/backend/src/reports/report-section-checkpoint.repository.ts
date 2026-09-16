@@ -14,6 +14,7 @@ import {
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
   parseComprehensiveReportAcceptedSection,
+  resolveComprehensiveReportSectionKeys,
   type ComprehensiveReportAcceptedSection,
   type ComprehensiveReportSectionKey,
 } from "./comprehensive-report-section-v4.js";
@@ -198,12 +199,18 @@ function failureCode(value: unknown): value is string {
 }
 
 function validLineage(value: ReportSectionCheckpointLineage): boolean {
+  let sectionKeys: readonly string[];
+  try {
+    sectionKeys = resolveComprehensiveReportSectionKeys(value.reportConfigVersion);
+  } catch {
+    return false;
+  }
   return (
     nonBlank(value.reportVersionId) &&
     nonBlank(value.sectionKey) &&
-    (COMPREHENSIVE_REPORT_SECTION_KEYS as readonly string[]).includes(value.sectionKey) &&
+    sectionKeys.includes(value.sectionKey) &&
     Number.isInteger(value.sectionOrder) &&
-    value.sectionOrder === COMPREHENSIVE_REPORT_SECTION_KEYS.indexOf(value.sectionKey) &&
+    value.sectionOrder === sectionKeys.indexOf(value.sectionKey) &&
     nonBlank(value.promptVersion) &&
     nonBlank(value.knowledgeVersionId) &&
     nonBlank(value.reportConfigVersion) &&
@@ -245,9 +252,15 @@ function contentHash(value: unknown): string {
 }
 
 function mapRow(row: CheckpointRow): PersistedReportSectionCheckpoint {
+  let sectionKeys: readonly string[];
+  try {
+    sectionKeys = resolveComprehensiveReportSectionKeys(row.reportConfigVersion);
+  } catch {
+    throw new Error("REPORT_SECTION_CHECKPOINT_CORRUPT");
+  }
   if (
-    !(COMPREHENSIVE_REPORT_SECTION_KEYS as readonly string[]).includes(row.sectionKey) ||
-    row.sectionOrder !== COMPREHENSIVE_REPORT_SECTION_KEYS.indexOf(row.sectionKey as ComprehensiveReportSectionKey) ||
+    !sectionKeys.includes(row.sectionKey) ||
+    row.sectionOrder !== sectionKeys.indexOf(row.sectionKey as ComprehensiveReportSectionKey) ||
     !nonBlank(row.reportVersionId) ||
     !nonBlank(row.promptVersion) ||
     !nonBlank(row.knowledgeVersionId) ||
@@ -278,7 +291,7 @@ function mapRow(row: CheckpointRow): PersistedReportSectionCheckpoint {
       acceptedSection = parseComprehensiveReportAcceptedSection({
         key: row.sectionKey,
         value: row.acceptedContent,
-      });
+      }, row.reportConfigVersion);
     } catch {
       throw new Error("REPORT_SECTION_CHECKPOINT_CORRUPT");
     }
@@ -322,6 +335,7 @@ function mapRow(row: CheckpointRow): PersistedReportSectionCheckpoint {
 function mapRevisionRow(
   row: RevisionRow,
   sectionKey: ComprehensiveReportSectionKey,
+  reportConfigVersion: string,
 ): PersistedReportSectionCheckpointRevision {
   if (
     !nonBlank(row.checkpointId) ||
@@ -338,7 +352,7 @@ function mapRevisionRow(
     if (!row.acceptedContent || !nonBlank(row.contentHash) || !/^[a-f0-9]{64}$/.test(row.contentHash) || !nonBlank(row.providerId) || !nonBlank(row.modelId)) {
       throw new Error("REPORT_SECTION_CHECKPOINT_CORRUPT");
     }
-    acceptedSection = parseComprehensiveReportAcceptedSection({ key: sectionKey, value: row.acceptedContent });
+    acceptedSection = parseComprehensiveReportAcceptedSection({ key: sectionKey, value: row.acceptedContent }, reportConfigVersion);
     if (contentHash(acceptedSection.value) !== row.contentHash) throw new Error("REPORT_SECTION_CHECKPOINT_CORRUPT");
   } else if (row.acceptedContent !== null || row.contentHash !== null || row.providerId !== null || row.modelId !== null) {
     throw new Error("REPORT_SECTION_CHECKPOINT_CORRUPT");
@@ -421,7 +435,7 @@ export function createDatabaseReportSectionCheckpointRepository(
 
   return {
     async get(reportVersionId, sectionKey) {
-      if (!nonBlank(reportVersionId) || !(COMPREHENSIVE_REPORT_SECTION_KEYS as readonly string[]).includes(sectionKey)) {
+      if (!nonBlank(reportVersionId)) {
         return { ok: true, value: null };
       }
       const [row] = await database.select().from(reportSectionCheckpoints).where(and(
@@ -467,7 +481,7 @@ export function createDatabaseReportSectionCheckpointRepository(
             result.push(checkpoint);
             continue;
           }
-          const revision = mapRevisionRow(latest, checkpoint.sectionKey);
+          const revision = mapRevisionRow(latest, checkpoint.sectionKey, checkpoint.reportConfigVersion);
           result.push({
             ...checkpoint,
             acceptedSection: revision.acceptedSection,
@@ -581,7 +595,7 @@ export function createDatabaseReportSectionCheckpointRepository(
         accepted = parseComprehensiveReportAcceptedSection({
           key: input.sectionKey,
           value: input.acceptedContent,
-        });
+        }, input.reportConfigVersion);
       } catch {
         return failure("REPORT_SECTION_CHECKPOINT_INVALID");
       }
@@ -674,7 +688,7 @@ export function createDatabaseReportSectionCheckpointRepository(
         )).orderBy(asc(reportSectionCheckpointRevisions.rewriteOrdinal)).for("update").limit(1);
         const revision = unfinished[0];
         if (revision?.status === "generating" && revision.activeJobId === input.jobId && revision.activeWorkerId === input.workerId) {
-          return { ok: true, value: { outcome: "claimed" as const, revision: mapRevisionRow(revision, input.sectionKey) } };
+          return { ok: true, value: { outcome: "claimed" as const, revision: mapRevisionRow(revision, input.sectionKey, input.reportConfigVersion) } };
         }
         if (revision) {
           const [abandoned] = await transaction.update(reportSectionCheckpointRevisions).set({
@@ -715,7 +729,7 @@ export function createDatabaseReportSectionCheckpointRepository(
           updatedAt: current,
         }).returning();
         if (!claimed) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
-        return { ok: true, value: { outcome: "claimed" as const, revision: mapRevisionRow(claimed, input.sectionKey) } };
+        return { ok: true, value: { outcome: "claimed" as const, revision: mapRevisionRow(claimed, input.sectionKey, input.reportConfigVersion) } };
       });
     },
 
@@ -723,7 +737,7 @@ export function createDatabaseReportSectionCheckpointRepository(
       if (!validLineage(input) || !nonBlank(input.jobId) || !nonBlank(input.workerId) || !Number.isInteger(input.rewriteOrdinal) || input.rewriteOrdinal < 1 || !Number.isInteger(input.expectedStateVersion) || input.expectedStateVersion < 1 || !nonBlank(input.providerId) || !nonBlank(input.modelId) || !/^[a-f0-9]{64}$/.test(input.contentHash)) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
       let accepted: ComprehensiveReportAcceptedSection;
       try {
-        accepted = parseComprehensiveReportAcceptedSection({ key: input.sectionKey, value: input.acceptedContent });
+        accepted = parseComprehensiveReportAcceptedSection({ key: input.sectionKey, value: input.acceptedContent }, input.reportConfigVersion);
       } catch {
         return failure("REPORT_SECTION_CHECKPOINT_INVALID");
       }
@@ -737,7 +751,7 @@ export function createDatabaseReportSectionCheckpointRepository(
         const [revision] = await transaction.select().from(reportSectionCheckpointRevisions).where(and(eq(reportSectionCheckpointRevisions.checkpointId, parent.id), eq(reportSectionCheckpointRevisions.rewriteOrdinal, input.rewriteOrdinal))).for("update").limit(1);
         if (!revision) return failure("REPORT_VERSION_CONFLICT");
         if (revision.status === "passed") {
-          const persisted = mapRevisionRow(revision, input.sectionKey);
+          const persisted = mapRevisionRow(revision, input.sectionKey, input.reportConfigVersion);
           if (persisted.contentHash !== hash || persisted.providerId !== input.providerId || persisted.modelId !== input.modelId || !persisted.acceptedSection || !isDeepStrictEqual(persisted.acceptedSection.value, accepted.value)) return failure("REPORT_VERSION_CONFLICT");
           return { ok: true, value: { outcome: "replay" as const, revision: persisted } };
         }
@@ -749,7 +763,7 @@ export function createDatabaseReportSectionCheckpointRepository(
           stateVersion: sql`${reportSectionCheckpointRevisions.stateVersion} + 1`, updatedAt: current,
         }).where(and(eq(reportSectionCheckpointRevisions.id, revision.id), eq(reportSectionCheckpointRevisions.stateVersion, input.expectedStateVersion), eq(reportSectionCheckpointRevisions.status, "generating"), eq(reportSectionCheckpointRevisions.activeJobId, input.jobId), eq(reportSectionCheckpointRevisions.activeWorkerId, input.workerId))).returning();
         if (!passed) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
-        return { ok: true, value: { outcome: "passed" as const, revision: mapRevisionRow(passed, input.sectionKey) } };
+        return { ok: true, value: { outcome: "passed" as const, revision: mapRevisionRow(passed, input.sectionKey, input.reportConfigVersion) } };
       });
     },
 
@@ -825,7 +839,7 @@ export function createDatabaseReportSectionCheckpointRepository(
         eq(reportSectionCheckpointRevisions.activeWorkerId, input.workerId),
       )).returning();
       if (!updated) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
-      return { ok: true, value: mapRevisionRow(updated, input.sectionKey) };
+      return { ok: true, value: mapRevisionRow(updated, input.sectionKey, input.reportConfigVersion) };
     });
   }
 }

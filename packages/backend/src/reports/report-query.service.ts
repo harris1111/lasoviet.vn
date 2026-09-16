@@ -15,8 +15,11 @@ import {
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
   TIER_2_V4_ENTITLEMENT_SCOPE,
+  TIER_2_V4_1_ENTITLEMENT_SCOPE,
   ZiweiComprehensiveReportContentV2Schema,
+  ZiweiComprehensiveReportContentV3Schema,
   projectComprehensiveReportPublicContentV2,
+  projectComprehensiveReportPublicContentV3,
   EntitlementScopeSchema,
   type ComprehensiveReportSectionId,
   type CurrentActor,
@@ -30,6 +33,13 @@ import type {
   AuthorizedReportQueryRecord,
   ReportQueryRepository,
 } from "./report-query.repository.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
+  REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
+} from "./identity-report-config.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 
 export type {
@@ -50,7 +60,7 @@ export class ReportQueryDataError extends Error {
 
 export function resolveEffectiveComprehensiveTier(
   effectiveSections: ReadonlySet<ComprehensiveReportSectionId>,
-  family: "v3" | "v4" = "v3",
+  family: "v3" | "v4" | "v4_1" = "v3",
 ): 1 | 2 | null {
   const hasTier1 = TIER_1_SCOPE_SECTIONS.every((s) => effectiveSections.has(s));
   if (!hasTier1) {
@@ -61,8 +71,15 @@ export function resolveEffectiveComprehensiveTier(
     "currentDecadal",
     "annualSnapshot",
   ];
+  const v4_1SensitivitySections: readonly ComprehensiveReportSectionId[] = [
+    ...TIER_2_SCOPE_SECTIONS,
+    ...v4TimingSections,
+    "birthTimeSensitivity",
+  ];
   const requiredTier2Sections =
-    family === "v4"
+    family === "v4_1"
+      ? v4_1SensitivitySections
+      : family === "v4"
       ? [...TIER_2_SCOPE_SECTIONS, ...v4TimingSections]
       : TIER_2_SCOPE_SECTIONS;
 
@@ -236,6 +253,97 @@ export function createReportQueryService(options: {
         throw new ReportQueryDataError();
       }
 
+      if (family === "v4_1") {
+        if (
+          reservation.locale !== "vi" ||
+          version.locale !== "vi" ||
+          version.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
+          version.promptVersion !== REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
+          version.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+          version.templateVersion !== REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY ||
+          version.renderVersion !== REPORT_RENDER_VERSION_V4_1_SENSITIVITY
+        ) {
+          throw new ReportQueryDataError();
+        }
+
+        const parsedV4_1 = ZiweiComprehensiveReportContentV3Schema.safeParse(
+          version.structuredContent,
+        );
+        if (!parsedV4_1.success) {
+          throw new ReportQueryDataError();
+        }
+
+        const entitlementsList = record.entitlements && record.entitlements.length > 0
+          ? record.entitlements
+          : [
+              {
+                id: reservation.entitlementId,
+                orderId: order.id,
+                chartId: order.chartId,
+                sku: reservation.sku,
+                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0"
+                  ? TIER_1_ENTITLEMENT_SCOPE
+                  : TIER_2_V4_1_ENTITLEMENT_SCOPE,
+                orderStatus: order.status as OrderStatus,
+              },
+            ];
+
+        const activeEntitlements = entitlementsList.filter(
+          (entitlement) => entitlement.orderStatus !== "refunded",
+        );
+        if (activeEntitlements.length === 0) {
+          throw new ReportQueryDataError();
+        }
+
+        const effectiveSections = new Set<ComprehensiveReportSectionId>();
+        for (const entitlement of activeEntitlements) {
+          const parsedScope = EntitlementScopeSchema.safeParse(entitlement.scope);
+          if (!parsedScope.success) {
+            throw new ReportQueryDataError();
+          }
+          for (const section of parsedScope.data.sections) {
+            effectiveSections.add(section);
+          }
+        }
+
+        const effectiveTier = resolveEffectiveComprehensiveTier(
+          effectiveSections,
+          "v4_1",
+        );
+        if (
+          effectiveTier === null ||
+          (reservation.sku === "ZIWEI-IDENTITY-P0" && effectiveTier !== 2)
+        ) {
+          throw new ReportQueryDataError();
+        }
+
+        const publicContent = projectComprehensiveReportPublicContentV3(
+          parsedV4_1.data,
+          effectiveTier === 2
+            ? TIER_2_V4_1_ENTITLEMENT_SCOPE
+            : TIER_1_ENTITLEMENT_SCOPE,
+        );
+        const readyParse = ReportReadyViewV1Schema.safeParse({
+          version: 1,
+          state: "ready",
+          contentVersion: "ziwei-comprehensive.v3",
+          reportId: reservation.reportId,
+          reportVersionId: reservation.reportVersionId,
+          locale: "vi",
+          sku: reservation.sku,
+          fulfillmentStatus: reservationFulfillmentStatus,
+          content: publicContent,
+          lineage: {
+            supersedesReportVersionId: version.supersedesReportVersionId ?? null,
+          },
+        });
+        if (!readyParse.success) {
+          throw new ReportQueryDataError();
+        }
+
+        return { ok: true, value: readyParse.data };
+      }
+
       if (family === "v4") {
         if (reservation.locale !== "vi" || version.locale !== "vi") {
           throw new ReportQueryDataError();
@@ -276,6 +384,10 @@ export function createReportQueryService(options: {
           for (const sec of parsedScope.data.sections) {
             effectiveSections.add(sec);
           }
+        }
+
+        if (effectiveSections.has("birthTimeSensitivity")) {
+          throw new ReportQueryDataError();
         }
 
         const effectiveTier = resolveEffectiveComprehensiveTier(effectiveSections, "v4");
