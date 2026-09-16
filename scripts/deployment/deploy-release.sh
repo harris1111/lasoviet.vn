@@ -23,6 +23,104 @@ read_state
 export LASOVIET_RELEASE_SHA="$CANDIDATE_SHA"
 build_compose_cmd
 
+garage_pdf_activation_ready() {
+  if [ "${GARAGE_PDF_ENABLED:-false}" = "false" ] || [ -z "${GARAGE_PDF_ENABLED:-}" ]; then
+    return 1
+  fi
+  if [ "$GARAGE_PDF_ENABLED" != "true" ]; then
+    return 2
+  fi
+
+  local required
+  for required in \
+    GARAGE_ENDPOINT \
+    GARAGE_REGION \
+    GARAGE_BUCKET \
+    GARAGE_ACCESS_KEY_ID \
+    GARAGE_SECRET_ACCESS_KEY \
+    GARAGE_RPC_SECRET; do
+    if [ -z "${!required:-}" ]; then
+      return 2
+    fi
+  done
+
+  [ "$GARAGE_ENDPOINT" = "http://garage:3900" ] \
+    && [ "$GARAGE_REGION" = "lasoviet-private" ] \
+    && [ "$GARAGE_BUCKET" = "lasoviet-report-assets" ] \
+    && [[ "$GARAGE_RPC_SECRET" =~ ^[a-f0-9]{64}$ ]] || return 2
+}
+
+PDF_ACTIVATION_FAILURE_CODE=""
+PDF_ACTIVATION_FAILURE_AT=""
+
+record_pdf_activation_failure() {
+  PDF_ACTIVATION_FAILURE_CODE="$1"
+  PDF_ACTIVATION_FAILURE_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+  log_status "$PDF_ACTIVATION_FAILURE_CODE"
+}
+
+activate_pdf_consumer() {
+  local readiness
+  if ! load_garage_pdf_env; then
+    record_pdf_activation_failure "PDF_CONFIG_INVALID"
+    return 0
+  fi
+
+  set +e
+  garage_pdf_activation_ready
+  readiness=$?
+  set -e
+  if [ "$readiness" -eq 1 ]; then
+    log_status "PDF_CONSUMER_DISABLED"
+    return 0
+  fi
+  if [ "$readiness" -ne 0 ]; then
+    record_pdf_activation_failure "PDF_CONFIG_INVALID"
+    return 0
+  fi
+
+  local -a pdf_compose_cmd=("${COMPOSE_CMD[@]}" --profile pdf)
+  if ! "${pdf_compose_cmd[@]}" stop pdf-worker >/dev/null 2>&1; then
+    record_pdf_activation_failure "PDF_ACTIVATION_DISABLE_FAILED"
+    return 0
+  fi
+  if ! "${pdf_compose_cmd[@]}" pull garage pdf-worker >/dev/null 2>&1; then
+    record_pdf_activation_failure "PDF_ACTIVATION_GARAGE_PULL_FAILED"
+    return 0
+  fi
+  if ! "${pdf_compose_cmd[@]}" up -d --no-build garage >/dev/null 2>&1; then
+    record_pdf_activation_failure "PDF_ACTIVATION_GARAGE_START_FAILED"
+    return 0
+  fi
+
+  local timeout="${DEPLOY_TEST_TIMEOUT:-120}"
+  local interval="${DEPLOY_TEST_INTERVAL:-5}"
+  local elapsed=0
+  while [ "$elapsed" -lt "$timeout" ]; do
+    if "${pdf_compose_cmd[@]}" exec -T garage /garage status >/dev/null 2>&1; then
+      if ! "${pdf_compose_cmd[@]}" run --rm --no-deps pdf-worker node dist/health/garage-health-cli.js >/dev/null 2>&1; then
+        record_pdf_activation_failure "PDF_ACTIVATION_GARAGE_S3_HEALTH_FAILED"
+        return 0
+      fi
+      if "${pdf_compose_cmd[@]}" up -d --no-build pdf-worker >/dev/null 2>&1; then
+        log_status "PDF_CONSUMER_ACTIVATED"
+        return 0
+      fi
+      if ! "${pdf_compose_cmd[@]}" stop pdf-worker >/dev/null 2>&1; then
+        record_pdf_activation_failure "PDF_ACTIVATION_DISABLE_FAILED"
+        return 0
+      fi
+      record_pdf_activation_failure "PDF_ACTIVATION_WORKER_START_FAILED"
+      return 0
+    fi
+    sleep "$interval"
+    elapsed=$((elapsed + interval))
+  done
+
+  record_pdf_activation_failure "PDF_ACTIVATION_GARAGE_HEALTH_FAILED"
+  return 0
+}
+
 # Preflight 1: Disk space check using df -Pk
 check_disk_space() {
   local avail_kb
@@ -210,9 +308,13 @@ if ! check_readiness; then
   exit 1
 fi
 
+# Garage remains optional until its closed activation group is complete. A PDF
+# activation failure never disables the existing HTML report path.
+activate_pdf_consumer
+
 # Step 7: Promote state
 NOW="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-write_state "$CANDIDATE_SHA" "$PREV_CURRENT" "$CANDIDATE_SHA" "$NOW" "" ""
+write_state "$CANDIDATE_SHA" "$PREV_CURRENT" "$CANDIDATE_SHA" "$NOW" "$PDF_ACTIVATION_FAILURE_CODE" "$PDF_ACTIVATION_FAILURE_AT"
 log_status "DEPLOY_SUCCESSFUL"
 
 exit 0

@@ -19,6 +19,7 @@ import {
   createDatabaseReportQueuePublisher,
   createDatabaseReportQueueStore,
   createDatabaseReportVersionRepository,
+  createDatabaseAssetRepository,
   createDatabaseReportSourceSnapshotRepository,
   createReportSourceSnapshotPreparationService,
   createKnowledgeRetrievalService,
@@ -34,12 +35,17 @@ import {
   createOutboxDispatcher,
   createPhaseOneMaintenanceRunner,
   createReportGenerationService,
+  createPdfRenderer,
+  createAssetService,
+  createGarageAdapter,
   createSmtpEmailAdapter,
   resolveWorkerQueues,
   type AiProductionGate,
   type AiProvider,
+  type ObjectStore,
 } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
+import { createPdfRenderProcessor } from "./processors/pdf-render.processor.js";
 import { createReportGenerateProcessor } from "./processors/report-generate.processor.js";
 export { provisionReportKnowledge } from "./reports/provision-report-knowledge.js";
 
@@ -257,6 +263,75 @@ export function createReportGenerateRunner(options?: {
       })().finally(() => {
         activeRun = undefined;
       });
+      return activeRun;
+    },
+  };
+}
+
+export function createPdfRenderRunner(options?: {
+  objectStore?: ObjectStore;
+  renderer?: {
+    render(html: string, renderVersion: string): Promise<
+      | { ok: true; bytes: Uint8Array }
+      | {
+          ok: false;
+          code:
+            | "PDF_RENDER_FAILED"
+            | "PDF_TEMP_CLEANUP_FAILED"
+            | "PDF_FONT_MISSING"
+            | "PDF_RENDER_VERSION_UNSUPPORTED";
+        }
+    >;
+  };
+}) {
+  const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);
+  if (!queuesResult.ok || !queuesResult.value.includes("pdf.render")) {
+    return { async runOnce() { return { processed: 0 }; } };
+  }
+
+  const environment = loadEnvironment(process.env);
+  if (!environment.ok || !environment.value.garage.enabled) {
+    return { async runOnce() { return { processed: 0 }; } };
+  }
+  if (
+    environment.value.databaseUrl === undefined ||
+    environment.value.betterAuthUrl === undefined ||
+    environment.value.internalActorSecret === undefined
+  ) {
+    throw new Error("WORKER_CONFIG_INVALID");
+  }
+
+  const database = createDatabase(environment.value.databaseUrl);
+  const workerId = `pdf-worker-${randomUUID()}`;
+  const assetRepository = createDatabaseAssetRepository(database, {
+    canonicalPublicOrigin: environment.value.betterAuthUrl,
+    recipientFingerprintSecret: environment.value.internalActorSecret,
+  });
+  const assetService = createAssetService({
+    objectStore: options?.objectStore ?? createGarageAdapter(environment.value.garage),
+  });
+  const renderer = options?.renderer ?? createPdfRenderer();
+  const processor = createPdfRenderProcessor({
+    queueStore: createDatabaseReportQueueStore(database, workerId),
+    workerId,
+    assetRepository,
+    render: ({ html, renderVersion }) => renderer.render(html, renderVersion),
+    store: ({ candidateObjectKey, objectKey, bytes }) => assetService.storePdf({
+      candidateObjectKey,
+      objectKey,
+      bytes,
+    }),
+  });
+
+  let activeRun: Promise<{ processed: number }> | undefined;
+  return {
+    runOnce(): Promise<{ processed: number }> {
+      if (activeRun !== undefined) return activeRun;
+      activeRun = processor.processNext()
+        .then((result) => ({ processed: result.processed ? 1 : 0 }))
+        .finally(() => {
+          activeRun = undefined;
+        });
       return activeRun;
     },
   };

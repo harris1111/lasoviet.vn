@@ -53,10 +53,11 @@ The consumer has one authoritative path:
    bundled Vietnamese fonts, and deterministic PDF metadata. It writes only a
    worker-local temporary file, computes SHA-256 and byte length, and removes
    the file in `finally`.
-5. A private Garage S3-compatible adapter performs metadata lookup before
-   upload. An absent object is uploaded with checksum metadata; a matching
-   object is adopted; a differing checksum is a terminal key conflict and is
-   never overwritten.
+5. A private Garage S3-compatible adapter uses a fresh immutable object key for
+   each fenced storage attempt. It can adopt a matching prior candidate key;
+   otherwise it uploads checksum metadata under the fresh key and never
+   overwrites an object from another attempt. Objects written by losing or
+   expired attempts remain orphans for later reconciliation.
 6. Only after Garage metadata verification does one successful
    asset-storage transaction CAS the leased asset to `stored`, transition the
    report from `pdf_pending` to `complete`, insert `report.asset.stored.v1`,
@@ -66,17 +67,21 @@ The consumer has one authoritative path:
    commit: no `report_ready` notification exists before Garage success, and a
    retry/adoption cannot create a second notification.
 7. A server-authorized download ingress resolves the current account owner and
-   stored asset, then returns a short-lived private signed Garage download.
-   Object keys and signed URLs never enter queue payloads or logs.
+   stored asset. After private API owner authorization, the web BFF streams or
+   proxies the PDF server-side; it never returns the short-lived internal
+   Garage signed URL to the browser. Object keys and signed URLs never enter
+   queue payloads or logs.
 
-`report_assets` is the authoritative metadata/state record. It reserves an
-opaque deterministic key derived only from `assetId`, stores render version,
-media type, SHA-256, byte length, attempts, bounded error code, lease and
-state version, and Garage verification metadata. Its initial implementation
-uses `render_pending`, `rendering`, `rendered`, `storing`, `stored`, and
-`store_retryable_failure`, plus `terminal_failure`; replica fields remain
-`replica_disabled`. Later Phase 05 replication/deletion work owns replica and
-tombstone transitions.
+`report_assets` is the authoritative metadata/state record. It may reserve an
+opaque placeholder key derived only from `assetId`, then records the fresh
+immutable object key assigned under each lease attempt. Its fenced finalization
+atomically persists the one winning stored key in PostgreSQL. It also stores
+render version, media type, SHA-256, byte length, attempts, bounded error
+code, lease and state version, and Garage verification metadata. Its initial
+implementation uses `render_pending`, `rendering`, `rendered`, `storing`,
+`stored`, and `store_retryable_failure`, plus `terminal_failure`; replica
+fields remain `replica_disabled`. Later Phase 05 replication/deletion work owns
+replica, orphan reconciliation, and tombstone transitions.
 
 The only PDF/Garage failure codes for this consumer are:
 
@@ -243,7 +248,7 @@ Owned files:
 - Create `packages/backend/src/pdf/pdf-renderer.ts`
 - Create `packages/backend/src/pdf/pdf-renderer.test.ts`
 - Create `packages/backend/src/pdf/report-print-template.ts`
-- Create `packages/backend/src/pdf/assets/fonts/<approved-vietnamese-font>.woff2`
+- Create `packages/backend/src/pdf/assets/fonts/BeVietnamPro-*.woff2`
 - Create `packages/backend/src/storage/object-store.ts`
 - Create `packages/backend/src/storage/asset.repository.ts`
 - Create `packages/backend/src/storage/asset.service.ts`
@@ -437,8 +442,10 @@ The real adapter uses private bucket operations only: `head`, checksum-aware
 short-lived signed `get`. The API download controller verifies the account
 actor and report asset ownership through the existing account/report lineage
 before invoking the service. The Next.js route mints the existing trusted
-internal actor token and redirects only after that API authorization; it does
-not expose a public object lookup.
+internal actor token, then server-side fetches and streams or proxies the
+internal signed response only after that API authorization. It never returns
+the signed URL or object key to the browser and does not expose a public object
+lookup.
 
 Credential-dependent work begins only when the founder supplies the external
 Garage values and separately authorizes activation. Missing values block this
@@ -453,8 +460,8 @@ Focused checks:
   notification with
   `report-ready-email:{reportVersionId}:{recipientAccountId}`; HTML commit
   alone creates none;
-- owner download returns a short-lived response while cross-owner and anonymous
-  requests disclose neither asset existence nor object key;
+- owner download streams a PDF through the BFF while cross-owner and anonymous
+  requests disclose neither asset existence, object key, nor signed URL;
 - `ASSET_FORBIDDEN` and `SIGNED_URL_EXPIRED` remain non-persistent
   private-download request errors and do not mutate asset/report state or
   processor retry bookkeeping;
@@ -494,17 +501,40 @@ immutable HTML, alter report version lineage, or roll back the additive
 migration. A later authorized reconciliation handles reserved/rendering
 assets and any verified orphan under the Phase 05 contract.
 
-## Boundaries And Open Decisions
+## Boundaries And Remaining External Gates
 
+- **Implementation dependency verification (2026-09-16):**
+  `@aws-sdk/client-s3` `3.1133.0` and
+  `@aws-sdk/s3-request-presigner` `3.1133.0` were locally verified from
+  package metadata as Apache-2.0. The reviewed task-relevant API surface is
+  `S3Client`, `HeadObjectCommand`, `PutObjectCommand`, `DeleteObjectCommand`,
+  `GetObjectCommand`, `HeadBucketCommand`, and `getSignedUrl` where required.
+  Adapter configuration remains closed to the approved Garage endpoint,
+  region, and bucket rather than accepting a free-form host. No package build
+  script decision is required for these SDK packages. The exact
+  `minimumReleaseAgeExclude` entries are reviewed and intentionally narrow;
+  there is no `allowBuilds` change. The backend producer build copies bundled
+  fonts before worker build and deployment consume the compiled package.
+- **FD-087 founder approval (2026-09-16):** Garage conditional writes are not
+  required for this consumer. Each fenced storage attempt uses an immutable
+  object key, and PostgreSQL atomically selects the winning stored key during
+  finalization. Objects from losing or expired attempts remain orphans for
+  later authorized reconciliation. The web BFF streams or proxies PDF bytes
+  server-side only after private API owner authorization; Garage remains
+  private without a host-published port, and its internal signed URL is never
+  returned to the browser.
 - LSV-16 may allocate intervening migrations; this consumer allocates only
   the next journal number at implementation time and does not modify corpus or
   retrieval work.
 - LSV-19's reader artifact and screenshot manifest remain an activation
   dependency for the V4.1 report experience. This consumer has no visual
   reader scope.
-- The founder must approve the exact bundled Vietnamese font family/license,
-  Garage credentials and bucket policy, and the deployment/real-smoke
-  authorization. These are not inferred from this plan.
+- **FD-087 font approval (2026-09-16):** Be Vietnam Pro with SIL OFL-1.1 is
+  approved for PDF output.
+- Garage credentials and bucket policy, deployment, activation, and
+  real external smoke remain separate gates. They require explicit founder
+  authorization and actual configured credentials; no local test or approved
+  design decision authorizes them.
 - Cloud S3 replication, SMTP delivery, orphan reconciliation execution, and
   asset deletion remain later Phase 05 work. This plan supplies only the
   authoritative Garage PDF path and contracts they consume.
@@ -514,5 +544,5 @@ Rule candidate: none
 Evidence: Phase 05 storage plan, workflow event contracts, LSV-36 V4.1 plan,
 current schema/worker/deployment source
 AGENTS.md action: none
-Open questions: exact font/license; Garage external configuration and activation
-authorization; LSV-19 artifact availability
+Open questions: Garage external configuration and activation authorization;
+LSV-19 artifact availability

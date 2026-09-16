@@ -1,4 +1,4 @@
-export const REGISTERED_QUEUES = ["report.generate"] as const;
+export const REGISTERED_QUEUES = ["report.generate", "pdf.render"] as const;
 export type RegisteredQueue = (typeof REGISTERED_QUEUES)[number];
 
 export type ResolveWorkerQueuesResult =

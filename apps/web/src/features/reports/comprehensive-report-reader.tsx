@@ -4,7 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
   ComprehensiveReportTier2PublicContentV1,
+  ComprehensiveReportTier2PublicContentV3,
   ReportComprehensiveReadyViewV1,
+  ReportComprehensiveV3ReadyViewV1,
 } from "@lasoviet/contracts";
 
 import { ArtifactImage } from "../../components/artifact-image";
@@ -12,13 +14,19 @@ import { useReportReaderAnalytics } from "./report-analytics";
 
 export type ComprehensiveReportReaderProps = {
   locale: "vi";
-  report: ReportComprehensiveReadyViewV1;
+  report: ReportComprehensiveReadyViewV1 | ReportComprehensiveV3ReadyViewV1;
 };
 
 function isTier2Content(
-  content: ReportComprehensiveReadyViewV1["content"],
+  content: ComprehensiveReportReaderProps["report"]["content"],
 ): content is ComprehensiveReportTier2PublicContentV1 {
   return "keyConfigurations" in content && Array.isArray((content as any).keyConfigurations);
+}
+
+function isV4_1Tier2Content(
+  content: ComprehensiveReportReaderProps["report"]["content"],
+): content is ComprehensiveReportTier2PublicContentV3 {
+  return "birthTimeSensitivity" in content;
 }
 
 const FONT_CLASSES = ["reader-font-sm", "reader-font-md", "reader-font-lg"] as const;
@@ -45,6 +53,10 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
   );
 
   const isTier2 = isTier2Content(report.content);
+  const v4_1Content = report.contentVersion === "ziwei-comprehensive.v3" &&
+    isV4_1Tier2Content(report.content)
+    ? report.content
+    : null;
 
   const tocSections = useMemo(() => {
     if (!isTier2) {
@@ -55,16 +67,24 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
         { id: "section-practical-direction", title: "Định Hướng Và Hành Động Thực Tế" },
       ];
     }
-    return [
+    const sections = [
       { id: "section-overview", title: report.content.overview.title },
       { id: "section-core-axis", title: report.content.coreAxis.title },
       { id: "section-key-configurations", title: "Cấu Trúc Và Cách Cục Trọng Yếu" },
       { id: "section-palace-readings", title: "Luận Giải Chi Tiết Mười Hai Cung" },
       { id: "section-thematic-synthesis", title: "Tổng Hợp Các Lĩnh Vực Đời Sống" },
       { id: "section-strengths-tensions", title: report.content.strengthsAndTensions.title },
-      { id: "section-practical-direction", title: "Định Hướng Và Hành Động Thực Tế" },
     ];
-  }, [report.content, isTier2]);
+    if (v4_1Content) {
+      sections.push(
+        { id: "section-current-decadal", title: v4_1Content.currentDecadal.title },
+        { id: "section-annual-snapshot", title: v4_1Content.annualSnapshot.title },
+        { id: "section-birth-time-sensitivity", title: v4_1Content.birthTimeSensitivity.title },
+      );
+    }
+    sections.push({ id: "section-practical-direction", title: "Định Hướng Và Hành Động Thực Tế" });
+    return sections;
+  }, [report.content, isTier2, v4_1Content]);
 
   useReportReaderAnalytics({
     sku: report.sku,
@@ -457,20 +477,83 @@ export function ComprehensiveReportReader({ report }: ComprehensiveReportReaderP
               </div>
             </section>
 
-            {/* Practical Direction: 04 in Tier-1, 07 in Tier-2 */}
+            {v4_1Content && (
+              <>
+                <section
+                  id="section-current-decadal"
+                  data-report-section
+                  className="report-section-block"
+                >
+                  <div className="report-section-header">
+                    <span className="report-section-numeral">07</span>
+                    <h3 className="report-section-title">{v4_1Content.currentDecadal.title}</h3>
+                  </div>
+                  <div className="report-section-narrative">
+                    <p>{v4_1Content.currentDecadal.narrative}</p>
+                  </div>
+                </section>
+
+                <section
+                  id="section-annual-snapshot"
+                  data-report-section
+                  className="report-section-block"
+                >
+                  <div className="report-section-header">
+                    <span className="report-section-numeral">08</span>
+                    <h3 className="report-section-title">{v4_1Content.annualSnapshot.title}</h3>
+                  </div>
+                  <div className="report-section-narrative">
+                    <p>{v4_1Content.annualSnapshot.narrative}</p>
+                  </div>
+                </section>
+
+                <section
+                  id="section-birth-time-sensitivity"
+                  data-report-section
+                  className="report-section-block report-birth-time-sensitivity"
+                >
+                  <div className="report-section-header">
+                    <span className="report-section-numeral">09</span>
+                    <h3 className="report-section-title">{v4_1Content.birthTimeSensitivity.title}</h3>
+                  </div>
+                  <div className="report-sensitivity-factors">
+                    <article className="report-sensitivity-factor report-sensitivity-factor-stable">
+                      <h4 className="report-sensitivity-factor-title">
+                        {v4_1Content.birthTimeSensitivity.stableFactors.title}
+                      </h4>
+                      <p>{v4_1Content.birthTimeSensitivity.stableFactors.narrative}</p>
+                    </article>
+                    <article className="report-sensitivity-factor report-sensitivity-factor-sensitive">
+                      <h4 className="report-sensitivity-factor-title">
+                        {v4_1Content.birthTimeSensitivity.sensitiveFactors.title}
+                      </h4>
+                      <p>{v4_1Content.birthTimeSensitivity.sensitiveFactors.narrative}</p>
+                    </article>
+                  </div>
+                </section>
+              </>
+            )}
+
+            {/* Practical Direction: 04 in Tier-1, 07 in V1 Tier-2, 10 in V4.1 Tier-2 */}
             <section
               id="section-practical-direction"
               data-report-section
               className="report-section-block"
             >
               <div className="report-section-header">
-                <span className="report-section-numeral">{isTier2 ? "07" : "04"}</span>
+                <span className="report-section-numeral">{v4_1Content ? "10" : isTier2 ? "07" : "04"}</span>
                 <h3 className="report-section-title">Định Hướng Và Hành Động Thực Tế</h3>
               </div>
               <ul className="report-directions-list">
-                {report.content.practicalDirection.map((direction, index) => (
-                  <li key={index}>{direction}</li>
-                ))}
+                {report.contentVersion === "ziwei-comprehensive.v3"
+                  ? report.content.practicalDirection.map((direction, index) => (
+                    <li key={index}>
+                      <strong>{direction.recommendation}.</strong> {direction.rationale} {direction.avoid}
+                    </li>
+                  ))
+                  : report.content.practicalDirection.map((direction, index) => (
+                    <li key={index}>{direction}</li>
+                  ))}
               </ul>
             </section>
           </div>

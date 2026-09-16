@@ -48,6 +48,9 @@ import {
   createDatabaseReportQueryRepository,
   createReportQueryService,
   createAccountCenterService,
+  createAssetDownloadService,
+  createDatabaseAssetDownloadRepository,
+  createGarageAdapter,
   type EmailProvider,
 } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
@@ -144,6 +147,12 @@ import {
   ANALYTICS_SERVICE_SECRET,
   AnalyticsServiceGuard,
 } from "./analytics/analytics-service.guard.js";
+import {
+  ASSET_DOWNLOAD_DATABASE,
+  ASSET_DOWNLOAD_SERVICE,
+  ASSET_DOWNLOAD_SERVICE_SECRET,
+  AssetsController,
+} from "./assets/assets.controller.js";
 
 function applicationEnvironment() {
   const result = loadEnvironment(process.env);
@@ -208,6 +217,7 @@ function privacyDatabase() {
     CommerceController,
     ReportsController,
     AccountCenterController,
+    AssetsController,
   ],
   providers: [
     AnalyticsServiceGuard,
@@ -507,6 +517,31 @@ function privacyDatabase() {
       },
     },
     { provide: ACCOUNT_CENTER_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ASSET_DOWNLOAD_SERVICE,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        const database = privacyDatabase();
+        return createAssetDownloadService({
+          repository: createDatabaseAssetDownloadRepository(database),
+          objectStore: {
+            async createSignedDownload(objectKey, options) {
+              if (!environment.garage.enabled) {
+                throw new Error("GARAGE_UNAVAILABLE");
+              }
+              return createGarageAdapter(environment.garage)
+                .createSignedDownload(objectKey, options);
+            },
+          },
+        });
+      },
+    },
+    {
+      provide: ASSET_DOWNLOAD_SERVICE_SECRET,
+      useFactory: () => applicationEnvironment().internalActorSecret
+        ?? (() => { throw new Error("API_ACTOR_SECRET_CONFIG_INVALID"); })(),
+    },
+    { provide: ASSET_DOWNLOAD_DATABASE, useFactory: privacyDatabase },
   ],
 })
 export class ApiModule {}

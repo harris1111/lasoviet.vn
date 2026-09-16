@@ -90,59 +90,16 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
   });
 });
 
-describe("createDatabaseReportVersionRepository - notification configuration", () => {
-  const database = {} as never;
-
-  it("accepts the canonical public HTTPS origin", () => {
-    expect(() =>
-      createDatabaseReportVersionRepository(database, repositoryOptions),
-    ).not.toThrow();
-  });
-
-  it.each([
-    ["HTTP", "http://lasoviet.net"],
-    ["private IP", "https://10.0.0.1"],
-    ["credentials", "https://user:password@lasoviet.net"],
-    ["internal hostname", "https://reports.internal"],
-  ])("rejects %s origin", (_name, betterAuthUrl) => {
-    expect(() =>
-      createDatabaseReportVersionRepository(database, {
-        betterAuthUrl,
-        recipientFingerprintSecret: "synthetic-secret",
-      }),
-    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
-  });
-
-  it("rejects an empty recipient fingerprint secret", () => {
-    expect(() =>
-      createDatabaseReportVersionRepository(database, {
-        betterAuthUrl: "https://lasoviet.net",
-        recipientFingerprintSecret: "   ",
-      }),
-    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
-  });
-});
-
 describe("createDatabaseReportVersionRepository - immutable PDF requests", () => {
   it("persists and requests the exact V2 render version", async () => {
     const selectResults = [
       [],
       [{ id: "job-1" }],
-      [{
-        user: {
-          id: "user-1",
-          isAnonymous: false,
-          emailVerified: true,
-          email: "reader@lasoviet.net",
-        },
-        order: {
-          paidAt: new Date("2026-09-16T00:00:00.000Z"),
-        },
-      }],
     ];
     const updateResults = [
       [{ id: "reservation-1", stateVersion: 3 }],
       [{ id: "reservation-1", stateVersion: 4 }],
+      [{ id: "reservation-1", stateVersion: 5 }],
       [{ id: "attempt-1" }],
       [{ id: "job-1" }],
     ];
@@ -150,12 +107,11 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
       returning: vi.fn().mockResolvedValue([{ reportVersionId: "report-version-1" }]),
     });
     const outboxValues = vi.fn().mockResolvedValue(undefined);
-    const notificationValues = vi.fn().mockResolvedValue(undefined);
     const insert = vi
       .fn()
       .mockReturnValueOnce({ values: reportVersionValues })
+      .mockReturnValueOnce({ values: vi.fn().mockResolvedValue(undefined) })
       .mockReturnValueOnce({ values: outboxValues })
-      .mockReturnValueOnce({ values: notificationValues });
     const select = vi.fn(() => {
       const query = {
         from: vi.fn(),
@@ -214,6 +170,14 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
     expect(reportVersionValues).toHaveBeenCalledWith(
       expect.objectContaining({ renderVersion: "identity-report-pdf.v2" }),
     );
+    expect(insert.mock.results[1]?.value.values).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reportVersionId: "report-version-1",
+        renderVersion: "identity-report-pdf.v2",
+        status: "render_pending",
+        objectKey: expect.stringMatching(/^reports\/[^/]+\.pdf$/),
+      }),
+    );
     expect(outboxValues).toHaveBeenCalledWith(
       expect.objectContaining({
         eventType: "report.pdf.requested.v1",
@@ -223,5 +187,6 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
         }),
       }),
     );
+    expect(insert).toHaveBeenCalledTimes(3);
   });
 });

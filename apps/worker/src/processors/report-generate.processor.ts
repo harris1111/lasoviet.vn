@@ -104,7 +104,10 @@ export function createReportGenerateProcessor(dependencies: {
     },
 
     async processNext(): Promise<{ processed: boolean }> {
-      const job = await dependencies.queueStore.claimNext();
+      const job = await dependencies.queueStore.claimNext(undefined, [
+        "report.generate.v1",
+        "report.generate.v2",
+      ]);
       if (!job) return { processed: false };
 
       const parsed = parseReportGenerateJob({
