@@ -18,12 +18,11 @@ export function KnowledgeArticle({
           <p>
             {locale === "vi"
               ? "Nội dung được biên tập để làm rõ thuật ngữ, dữ liệu và giới hạn diễn giải. Đây không phải là kết luận tuyệt đối về một cá nhân."
-              : "This reviewed material clarifies terms, data, and interpretation limits. It is not an absolute conclusion about an individual."}
+              : "This material clarifies terms, data, and interpretation limits. It is not an absolute conclusion about an individual."}
           </p>
         </section>
         <footer>
-          <p>{locale === "vi" ? "Nguồn tham chiếu đã xem xét:" : "Reviewed references:"}</p>
-          <ul>{content.sourceReferences.map((reference) => <li key={reference}>{reference}</li>)}</ul>
+          <p>{locale === "vi" ? "Lá Số Việt biên tập" : "Edited by La So Viet"}</p>
         </footer>
       </article>
     </main>
