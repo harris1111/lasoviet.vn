@@ -4,8 +4,10 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   TIER_2_ENTITLEMENT_SCOPE,
+  TIER_2_V4_ENTITLEMENT_SCOPE,
+  ZIWEI_PALACE_IDS,
+  ZIWEI_THEMATIC_SYNTHESIS_IDS,
 } from "../packages/contracts/dist/index.js";
 import {
   authSessions,
@@ -19,11 +21,26 @@ import {
   evidenceItems,
   evidenceSets,
   reportReservations,
+  reportSourceSnapshots,
   reportVersions,
   runMigrations,
   ziweiChartVersions,
   ziweiCharts,
 } from "../packages/database/dist/index.js";
+
+export const WP13_FIXTURE_EVIDENCE_KEYS = [
+  "ziwei.identity.life-palace",
+  "ziwei.identity.body-palace",
+  "ziwei.identity.transformations",
+];
+
+export const WP13_V4_REPORT_EVIDENCE_KEYS = {
+  natal: "natal.ziwei.palace.life",
+  starZiwei: "natal.ziwei.star.purple-emperor",
+  starTianfu: "natal.ziwei.star.tianfu",
+  decadal: "decadal.state.active",
+  annual: "annual.target-year.2026",
+};
 
 function validateEnvironment() {
   const databaseUrl = process.env.DATABASE_URL;
@@ -62,8 +79,537 @@ function signSessionToken(token, secret) {
   return `${token}.${signature}`;
 }
 
+export function buildFixtureTemporalValues(fixtureNow) {
+  return {
+    pendingOrderCreatedAt: new Date(fixtureNow.getTime()),
+    sessionExpiresAt: new Date(fixtureNow.getTime() + 30 * 24 * 60 * 60 * 1000),
+  };
+}
+
+export function buildNormalizedBirthProfile({ displayName, birth }) {
+  const originalInput = {
+    version: 1,
+    calendar: { kind: "solar", date: birth.date },
+    time: { precision: "exact_minute", localTime: birth.time },
+    timezone: { ianaZone: "Asia/Ho_Chi_Minh" },
+    placeLabel: "Vietnam",
+    displayName,
+    consentVersion: "privacy.v1",
+    locale: "vi",
+    gender: birth.gender,
+  };
+
+  return {
+    version: 1,
+    originalInput,
+    normalizedCalendar: originalInput.calendar,
+    normalizedTime: originalInput.time,
+    normalizedPlaceLabel: originalInput.placeLabel,
+    timezoneProvenance: {
+      source: "iana",
+      ianaZone: "Asia/Ho_Chi_Minh",
+      runtime: "Intl",
+    },
+    normalizationWarnings: [],
+    limitations: [],
+  };
+}
+
+export function buildBirthProfileRevisionFixture({ displayName, birth }) {
+  const normalizedProfile = buildNormalizedBirthProfile({ displayName, birth });
+  const { originalInput, ...normalizedInput } = normalizedProfile;
+  return { originalInput, normalizedInput };
+}
+
+function buildFixturePalaceStars() {
+  return [
+    {
+      id: "ziwei.star.purple-emperor",
+      brightness: "ziwei.brightness.exalted",
+      category: "major",
+    },
+    {
+      id: "ziwei.star.tianfu",
+      brightness: "ziwei.brightness.prosperous",
+      category: "major",
+    },
+  ];
+}
+
+export function buildNormalizedZiweiChart() {
+  const branches = [
+    "ziwei.branch.rat",
+    "ziwei.branch.ox",
+    "ziwei.branch.tiger",
+    "ziwei.branch.rabbit",
+    "ziwei.branch.dragon",
+    "ziwei.branch.snake",
+    "ziwei.branch.horse",
+    "ziwei.branch.goat",
+    "ziwei.branch.monkey",
+    "ziwei.branch.rooster",
+    "ziwei.branch.dog",
+    "ziwei.branch.pig",
+  ];
+
+  return {
+    version: 1,
+    systemId: "ziwei",
+    palaces: ZIWEI_PALACE_IDS.map((id, index) => ({
+      id,
+      earthlyBranchId: branches[index],
+      isBodyPalace: id === "ziwei.palace.career",
+      isOriginalPalace: id === "ziwei.palace.life",
+      stars: buildFixturePalaceStars(),
+    })),
+    transformations: [{
+      starId: "ziwei.star.purple-emperor",
+      id: "ziwei.transformation.prosperity",
+    }],
+    soulPalaceId: "ziwei.palace.life",
+    bodyPalaceId: "ziwei.palace.career",
+    horoscopeCapabilities: [
+      { id: "ziwei.horoscope.decadal", supported: true },
+      { id: "ziwei.horoscope.annual", supported: true },
+    ],
+    warnings: [],
+    provenance: {
+      version: 1,
+      engineId: "ziwei.iztro",
+      engineVersion: "2.6.0",
+      adapterId: "ziwei.iztro-adapter",
+      adapterVersion: "1.0.0",
+      schemaId: "normalized-ziwei-chart-v1",
+      ruleSetId: "ziwei.default",
+      inputHash: "a".repeat(64),
+      configHash: "b".repeat(64),
+      rawSnapshotHash: "c".repeat(64),
+      calculatedAt: "2026-09-09T08:00:00+00:00",
+      limitations: ["SYNTHETIC_WP13_FIXTURE"],
+    },
+  };
+}
+
+export function buildIdentityEvidenceItems(evidenceSetId) {
+  const limitations = ["Synthetic WP-13 fixture data"];
+  const item = (suffix, id, factReferences) => ({
+    id: `evitem-${suffix}-${evidenceSetId}`,
+    evidenceSetId,
+    evidenceKey: id,
+    payload: {
+      id,
+      factReferences,
+      confidence: "moderate",
+      interpretationBounds: [
+        "Use only as a reflective identity signal, not a deterministic outcome.",
+        "Do not infer health, legal, financial, or relationship outcomes.",
+      ],
+      interpretationBoundCodes: ["reflective_identity_only"],
+      limitations,
+      riskTags: ["identity", "determinism", "birth-time"],
+      allowedActionCategories: ["reflect", "explore"],
+    },
+  });
+
+  return [
+    item("life", WP13_FIXTURE_EVIDENCE_KEYS[0], [
+      "palaces.ziwei.palace.life.earthlyBranchId",
+      "soulPalaceId",
+    ]),
+    item("body", WP13_FIXTURE_EVIDENCE_KEYS[1], [
+      "palaces.ziwei.palace.career.earthlyBranchId",
+      "bodyPalaceId",
+    ]),
+    item("transformations", WP13_FIXTURE_EVIDENCE_KEYS[2], [
+      "transformations",
+      "provenance.ruleSetId",
+    ]),
+  ];
+}
+
+export function buildReportSourceSnapshot({
+  reportId,
+  reportVersionId,
+  chartVersionId,
+  snapshotHash,
+  selectedFrame,
+}) {
+  const branches = [
+    "ziwei.branch.rat",
+    "ziwei.branch.ox",
+    "ziwei.branch.tiger",
+    "ziwei.branch.rabbit",
+    "ziwei.branch.dragon",
+    "ziwei.branch.snake",
+    "ziwei.branch.horse",
+    "ziwei.branch.goat",
+    "ziwei.branch.monkey",
+    "ziwei.branch.rooster",
+    "ziwei.branch.dog",
+    "ziwei.branch.pig",
+  ];
+  const timingPalaces = ZIWEI_PALACE_IDS.map((palaceId, index) => ({
+    palaceId,
+    heavenlyStemId: "ziwei.stem.bing",
+    earthlyBranchId: branches[index],
+    isOriginalPalace: palaceId === "ziwei.palace.life",
+    cycleStateId: "ziwei.cycle.born",
+    stars: buildFixturePalaceStars(),
+    transformations: index === 0
+      ? [{
+          starId: "ziwei.star.purple-emperor",
+          id: "ziwei.transformation.prosperity",
+        }]
+      : [],
+  }));
+  const timingRuleVersion = "ziwei.timing.v1";
+  const sensitivityRuleVersion = "ziwei.sensitivity.v1";
+  const asOfDate = "2026-09-09";
+  const snapshot = {
+    version: 1,
+    chartVersionId,
+    asOfDate,
+    timezone: "Asia/Ho_Chi_Minh",
+    timingRuleVersion,
+    sensitivityRuleVersion,
+    timing: {
+      decadal: {
+        state: "active",
+        index: 2,
+        ageRange: [22, 31],
+        yearRange: [2022, 2031],
+        palaceId: "ziwei.palace.fortune",
+        heavenlyStemId: "ziwei.stem.bing",
+        earthlyBranchId: "ziwei.branch.dog",
+        palaces: timingPalaces,
+      },
+      annual: {
+        targetYear: 2026,
+        palaceId: "ziwei.palace.career",
+        heavenlyStemId: "ziwei.stem.bing",
+        earthlyBranchId: "ziwei.branch.monkey",
+        palaces: timingPalaces,
+      },
+      provenance: {
+        engineId: "ziwei.iztro",
+        engineVersion: "2.6.0",
+        adapterId: "ziwei.iztro-adapter",
+        adapterVersion: "1.0.0",
+        ruleSetId: "ziwei.default",
+        config: {
+          yearDivide: "normal",
+          horoscopeDivide: "normal",
+          ageDivide: "normal",
+          dayDivide: "current",
+        },
+      },
+    },
+    sensitivity: {
+      previousFrame: {
+        position: "previous",
+        vendorTimeIndex: selectedFrame.vendorTimeIndex - 1,
+        civilDateOffset: 0,
+        frameId: selectedFrame.previousFrameId,
+      },
+      selectedFrame: {
+        position: "selected",
+        vendorTimeIndex: selectedFrame.vendorTimeIndex,
+        civilDateOffset: 0,
+        frameId: selectedFrame.frameId,
+      },
+      nextFrame: {
+        position: "next",
+        vendorTimeIndex: selectedFrame.vendorTimeIndex + 1,
+        civilDateOffset: 0,
+        frameId: selectedFrame.nextFrameId,
+      },
+      stableFactKeys: [
+        "ziwei.fact.soul-palace",
+        "ziwei.fact.body-palace",
+      ],
+      sensitiveFacts: [],
+    },
+    provenance: {
+      chartVersionId,
+      timingRuleVersion,
+      sensitivityRuleVersion,
+      snapshotHash,
+    },
+  };
+
+  return {
+    version: 1,
+    reportId,
+    reportVersionId,
+    chartVersionId,
+    asOfDate,
+    targetYear: 2026,
+    timingRuleVersion,
+    sensitivityRuleVersion,
+    snapshotHash,
+    snapshot,
+  };
+}
+
+export function buildV4ReportContent() {
+  const natalEvidenceKeys = [
+    WP13_V4_REPORT_EVIDENCE_KEYS.starZiwei,
+    WP13_V4_REPORT_EVIDENCE_KEYS.starTianfu,
+  ];
+  const buildSectionProse = (subject, vocabulary, minimumSyllables) => {
+    const words = vocabulary.split(/\s+/u);
+    const sentences = [
+      `Sao Tử Vi và sao Thiên Phủ là hai điểm tham chiếu cho ${subject}.`,
+    ];
+    let index = 0;
+    while (sentences.join(" ").split(/\s+/u).length < minimumSyllables + 12) {
+      const selected = Array.from(
+        { length: 6 },
+        (_, offset) => words[(index + offset) % words.length],
+      );
+      sentences.push(
+        `${subject} xem xét ${selected.join(", ")} qua bước ${index + 1}, từ đó ghi nhận thay đổi cụ thể, giữ nhịp quan sát đều đặn và chọn điều chỉnh phù hợp với hoàn cảnh hiện tại.`,
+      );
+      index += 1;
+    }
+    return sentences.join(" ");
+  };
+  const palaceSections = {
+    "ziwei.palace.life": {
+      title: "Cung Mệnh",
+      subject: "phần nhận diện cá nhân",
+      vocabulary: "bản sắc chủ động nhận thức lựa chọn giá trị thói quen định hướng tự chủ",
+    },
+    "ziwei.palace.siblings": {
+      title: "Cung Huynh Đệ",
+      subject: "phần tương tác đồng hành",
+      vocabulary: "chia sẻ phối hợp lắng nghe hỗ trợ ranh giới trao đổi hợp tác tin cậy",
+    },
+    "ziwei.palace.spouse": {
+      title: "Cung Phu Thê",
+      subject: "phần quan hệ gần gũi",
+      vocabulary: "đối thoại tôn trọng cam kết nhu cầu khoảng cách đồng thuận thấu hiểu hiện diện",
+    },
+    "ziwei.palace.children": {
+      title: "Cung Tử Tức",
+      subject: "phần nuôi dưỡng phát triển",
+      vocabulary: "sáng tạo hướng dẫn kiên nhẫn trưởng thành trách nhiệm khích lệ khám phá tiếp nối",
+    },
+    "ziwei.palace.wealth": {
+      title: "Cung Tài Bạch",
+      subject: "phần quản lý nguồn lực",
+      vocabulary: "ngân sách phân bổ tích lũy chi tiêu dự phòng kế hoạch cân đối kiểm soát",
+    },
+    "ziwei.palace.health": {
+      title: "Cung Tật Ách",
+      subject: "phần nhịp sống thường ngày",
+      vocabulary: "sinh hoạt vận động giấc ngủ phục hồi nhịp độ chăm sóc điều độ nghỉ ngơi",
+    },
+    "ziwei.palace.travel": {
+      title: "Cung Thiên Di",
+      subject: "phần thích nghi môi trường",
+      vocabulary: "trải nghiệm di chuyển khám phá linh hoạt chuẩn bị quan sát mở rộng chuyển tiếp",
+    },
+    "ziwei.palace.friends": {
+      title: "Cung Nô Bộc",
+      subject: "phần mạng lưới cộng tác",
+      vocabulary: "kết nối tin cậy vai trò phản hồi hỗ trợ chọn lọc đóng góp phối hợp",
+    },
+    "ziwei.palace.career": {
+      title: "Cung Quan Lộc",
+      subject: "phần trách nhiệm nghề nghiệp",
+      vocabulary: "kỹ năng tiến độ học hỏi đóng góp mục tiêu tiêu chuẩn thực hành chuyên môn",
+    },
+    "ziwei.palace.property": {
+      title: "Cung Điền Trạch",
+      subject: "phần nền tảng không gian",
+      vocabulary: "ổn định sắp xếp nơi ở tập trung duy trì riêng tư tiện ích trật tự",
+    },
+    "ziwei.palace.fortune": {
+      title: "Cung Phúc Đức",
+      subject: "phần nội lực suy ngẫm",
+      vocabulary: "bình tâm ý nghĩa cân bằng khoảng nghỉ bền bỉ chiêm nghiệm tĩnh lặng phục hồi",
+    },
+    "ziwei.palace.parents": {
+      title: "Cung Phụ Mẫu",
+      subject: "phần nền nếp gia đình",
+      vocabulary: "tiếp nối biết ơn đối thoại trưởng thành nâng đỡ truyền đạt tôn trọng gắn kết",
+    },
+  };
+  const thematicSections = {
+    career_wealth: {
+      title: "Sự nghiệp và tài chính",
+      subject: "chuyên đề công việc và ngân sách",
+      vocabulary: "ưu tiên năng lực tiến độ khoản chi tích lũy phương án hiệu quả mục tiêu",
+    },
+    relationships_family: {
+      title: "Tình cảm và gia đình",
+      subject: "chuyên đề gắn kết gia đình",
+      vocabulary: "lắng nghe đồng thuận chia sẻ hiện diện chăm sóc trách nhiệm ranh giới hòa hợp",
+    },
+    social_environment: {
+      title: "Quan hệ xã hội",
+      subject: "chuyên đề môi trường xã hội",
+      vocabulary: "cộng đồng đối tác kết nối vai trò uy tín phản hồi chọn lọc tương trợ",
+    },
+    wellbeing_inner_resources: {
+      title: "Nội lực và cân bằng",
+      subject: "chuyên đề cân bằng nội lực",
+      vocabulary: "tập trung thư giãn hồi phục tự nhận biết tiết chế nhịp sống yên tĩnh bền bỉ",
+    },
+  };
+
+  return {
+    overview: {
+      title: "Tổng quan lá số",
+      narrative: buildSectionProse(
+        "phần tổng quan định hướng",
+        "toàn cảnh lựa chọn nhịp sống mục tiêu nguồn lực quan sát điều chỉnh cân đối",
+        600,
+      ),
+      evidenceKeys: natalEvidenceKeys,
+    },
+    coreAxis: {
+      title: "Trục cốt lõi",
+      narrative: buildSectionProse(
+        "phần trục cốt lõi",
+        "nguyên tắc phản hồi ưu tiên ranh giới nhất quán cân nhắc trách nhiệm chủ động",
+        600,
+      ),
+      evidenceKeys: natalEvidenceKeys,
+    },
+    keyConfigurations: [{
+      title: "Cấu trúc tham chiếu",
+      narrative: buildSectionProse(
+        "phần cấu trúc tham chiếu",
+        "liên kết trọng tâm bối cảnh phối hợp khả năng điều kiện chuyển tiếp hỗ trợ",
+        250,
+      ),
+      evidenceKeys: natalEvidenceKeys,
+    }],
+    palaceReadings: ZIWEI_PALACE_IDS.map((palaceId) => ({
+      palaceId,
+      title: palaceSections[palaceId].title,
+      narrative: buildSectionProse(
+        palaceSections[palaceId].subject,
+        palaceSections[palaceId].vocabulary,
+        450,
+      ),
+      evidenceKeys: natalEvidenceKeys,
+    })),
+    thematicSynthesis: ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id) => ({
+      id,
+      title: thematicSections[id].title,
+      narrative: buildSectionProse(
+        thematicSections[id].subject,
+        thematicSections[id].vocabulary,
+        550,
+      ),
+      evidenceKeys: natalEvidenceKeys,
+    })),
+    strengthsAndTensions: {
+      title: "Điểm mạnh và điều cần lưu ý",
+      narrative: buildSectionProse(
+        "phần thế mạnh và điểm vướng",
+        "đều đặn linh hoạt kiên trì phân tán giới hạn điều kiện phát huy điều tiết",
+        500,
+      ),
+      evidenceKeys: natalEvidenceKeys,
+    },
+    currentDecadal: {
+      title: "Đại vận hiện hành",
+      state: "active",
+      index: 2,
+      ageRange: [22, 31],
+      yearRange: [2022, 2031],
+      narrative: buildSectionProse(
+        "phần giai đoạn mười năm",
+        "chu kỳ nền tảng tiến trình chuyển đổi thích ứng củng cố kiểm tra chuẩn bị",
+        550,
+      ),
+      evidenceKeys: [
+        ...natalEvidenceKeys,
+        WP13_V4_REPORT_EVIDENCE_KEYS.decadal,
+      ],
+    },
+    annualSnapshot: {
+      title: "Lưu niên 2026",
+      targetYear: 2026,
+      asOfDate: "2026-09-09",
+      narrative: buildSectionProse(
+        "phần rà soát năm 2026",
+        "thời điểm kế hoạch quý tháng tiến độ cập nhật xem xét phản hồi lịch trình",
+        450,
+      ),
+      evidenceKeys: [
+        ...natalEvidenceKeys,
+        WP13_V4_REPORT_EVIDENCE_KEYS.annual,
+      ],
+    },
+    practicalDirection: [
+      {
+        recommendation: buildSectionProse(
+          "khuyến nghị sắp xếp tuần",
+          "lịch biểu ưu tiên thời lượng đầu việc thứ tự hoàn thành kiểm tra",
+          42,
+        ),
+        rationale: buildSectionProse(
+          "lý do theo dõi tiến độ",
+          "mốc nhỏ ghi chép phản hồi đo lường nhịp độ rõ ràng duy trì",
+          42,
+        ),
+        avoid: buildSectionProse(
+          "điều cần tiết chế khi khởi động",
+          "dàn trải vội vàng chồng chéo ngắt quãng quá tải thiếu chuẩn bị",
+          42,
+        ),
+        evidenceKeys: natalEvidenceKeys,
+      },
+      {
+        recommendation: buildSectionProse(
+          "khuyến nghị dành khoảng yên tĩnh",
+          "suy xét lựa chọn khoảng nghỉ tập trung đối chiếu phương án ghi nhận",
+          42,
+        ),
+        rationale: buildSectionProse(
+          "lý do xem lại quyết định",
+          "chủ đích bình tĩnh tiêu chí hậu quả nguồn lực phạm vi cân nhắc",
+          42,
+        ),
+        avoid: buildSectionProse(
+          "điều cần tiết chế trước áp lực",
+          "phản ứng tức thời dao động hấp tấp bỏ dở lệch hướng nóng vội",
+          42,
+        ),
+        evidenceKeys: natalEvidenceKeys,
+      },
+      {
+        recommendation: buildSectionProse(
+          "khuyến nghị trao đổi mục tiêu",
+          "người tin cậy câu hỏi chia sẻ kỳ vọng phản biện thống nhất hỗ trợ",
+          42,
+        ),
+        rationale: buildSectionProse(
+          "lý do mở rộng góc nhìn",
+          "giả định nhận xét đối chiếu điểm mù khả thi lựa chọn bổ sung",
+          42,
+        ),
+        avoid: buildSectionProse(
+          "điều cần tiết chế khi tham khảo",
+          "phụ thuộc áp đặt sao chép kết luận vội bỏ qua hoàn cảnh riêng",
+          42,
+        ),
+        evidenceKeys: natalEvidenceKeys,
+      },
+    ],
+  };
+}
+
 export async function seedAuthenticatedFixture() {
   const { databaseUrl, betterAuthSecret } = validateEnvironment();
+  const fixtureNow = new Date();
+  const { pendingOrderCreatedAt, sessionExpiresAt } =
+    buildFixtureTemporalValues(fixtureNow);
 
   const origLog = console.log;
   console.log = () => {};
@@ -81,7 +627,7 @@ export async function seedAuthenticatedFixture() {
 
   const SESSION_ID = "20000000-0000-4000-8000-000000000001";
   const SESSION_TOKEN = "wp13-session-token-live-seed-001";
-  const SESSION_EXPIRES_AT = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const SESSION_EXPIRES_AT = sessionExpiresAt;
 
   const signedCookieValue = signSessionToken(SESSION_TOKEN, betterAuthSecret);
 
@@ -123,6 +669,7 @@ export async function seedAuthenticatedFixture() {
   const EVIDENCE_SET_3_ID = "evset-30000000-0000-4000-8000-000000000003";
 
   // Clean previous fixture rows if any
+  await database.delete(reportSourceSnapshots);
   await database.delete(reportVersions);
   await database.delete(reportReservations);
   await database.delete(commerceEntitlements);
@@ -173,17 +720,13 @@ export async function seedAuthenticatedFixture() {
     displayName,
     birth,
   }) {
+    const revision = buildBirthProfileRevisionFixture({ displayName, birth });
     await database.insert(birthProfileRevisions).values({
       id: revisionId,
       profileId,
       revisionNumber,
-      originalInput: {
-        displayName,
-        birthDate: birth.date,
-        birthTime: birth.time,
-        gender: birth.gender,
-      },
-      normalizedInput: {},
+      originalInput: revision.originalInput,
+      normalizedInput: revision.normalizedInput,
       consentVersion: "privacy.v1",
     });
 
@@ -213,7 +756,7 @@ export async function seedAuthenticatedFixture() {
       id: chartVersionId,
       chartId,
       calculationRunId: runId,
-      normalizedOutput: {},
+      normalizedOutput: buildNormalizedZiweiChart(),
       privateRawSnapshot: {},
       warnings: [],
       provenance: {},
@@ -226,21 +769,9 @@ export async function seedAuthenticatedFixture() {
       ruleVersion: "ziwei.identity.v1",
     });
 
-    await database.insert(evidenceItems).values({
-      id: "evitem-" + evidenceSetId,
-      evidenceSetId,
-      evidenceKey: "ziwei.identity.life-palace",
-      payload: {
-        id: "ziwei.identity.life-palace",
-        factReferences: ["palace.life.main-star"],
-        confidence: "high",
-        interpretationBounds: ["Reflective identity only"],
-        interpretationBoundCodes: ["reflective_identity_only"],
-        limitations: ["Time accuracy needed"],
-        riskTags: ["identity"],
-        allowedActionCategories: ["reflect"],
-      },
-    });
+    await database.insert(evidenceItems).values(
+      buildIdentityEvidenceItems(evidenceSetId),
+    );
   }
 
   // Profile 1: Revision 1, 2, 3
@@ -306,41 +837,6 @@ export async function seedAuthenticatedFixture() {
     birth: { date: "1992-10-20", time: "10:00", gender: "male" },
   });
 
-  // Helper for structured report content
-  function buildReportContent(chartVerId, title) {
-    return {
-      version: 1,
-      sku: "ZIWEI-IDENTITY-P0",
-      capabilityId: "ziwei.identity.p0",
-      locale: "vi",
-      provenance: {
-        chartVersionId: chartVerId,
-        ruleVersion: "ziwei.identity.v1",
-        evidenceVersion: 1,
-        knowledgeVersion: "ziwei.identity.knowledge.v2",
-        providerId: "openai",
-        modelId: "gpt-4o",
-        promptVersion: "ziwei.identity.prompt.v2",
-        templateVersion: "identity-report-template.v1",
-      },
-      sections: [
-        {
-          id: "personal_summary",
-          title,
-          narrative: "Tổng quan bản mệnh và hướng phát triển.",
-          claims: [],
-        },
-      ],
-      reflectionQuestions: [
-        "Giá trị cốt lõi nào bạn hướng tới?",
-        "Điều gì mang lại động lực bền vững?",
-        "Hành động cụ thể hôm nay là gì?",
-      ],
-      summaryActions: ["Lập kế hoạch hành động từng giai đoạn"],
-      professionalAdviceDisclaimer: CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
-    };
-  }
-
   // Order 1: Paid + Ready report for Profile 1 (Library Group 1)
   const ORDER_1_ID = "40000000-0000-4000-8000-000000000001";
   const ENTITLEMENT_1_ID = "50000000-0000-4000-8000-000000000001";
@@ -372,7 +868,7 @@ export async function seedAuthenticatedFixture() {
     chartId: CHART_1_ID,
     sku: "ZIWEI-IDENTITY-P0",
     ownerId: USER_ID,
-    scope: TIER_2_ENTITLEMENT_SCOPE,
+    scope: TIER_2_V4_ENTITLEMENT_SCOPE,
     createdAt: new Date("2026-09-09T08:00:00.000Z"),
   });
 
@@ -383,12 +879,16 @@ export async function seedAuthenticatedFixture() {
     entitlementId: ENTITLEMENT_1_ID,
     chartVersionId: CHART_VERSION_1_ID,
     evidenceVersionId: EVIDENCE_SET_1_ID,
-    knowledgeVersionId: "ziwei.identity.knowledge.v2",
-    promptVersion: "ziwei.identity.prompt.v2",
-    reportConfigVersion: "ziwei.identity.report.v1",
+    knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+    promptVersion: "ziwei.comprehensive.prompt.v4",
+    reportConfigVersion: "ziwei.comprehensive.report.v4",
     locale: "vi",
     sku: "ZIWEI-IDENTITY-P0",
     status: "complete",
+    asOfDate: "2026-09-09",
+    targetYear: 2026,
+    timingRuleVersion: "ziwei.timing.v1",
+    sensitivityRuleVersion: "ziwei.sensitivity.v1",
     createdAt: new Date("2026-09-09T08:01:00.000Z"),
     updatedAt: new Date("2026-09-09T08:05:00.000Z"),
   });
@@ -400,20 +900,46 @@ export async function seedAuthenticatedFixture() {
     entitlementId: ENTITLEMENT_1_ID,
     chartVersionId: CHART_VERSION_1_ID,
     evidenceVersionId: EVIDENCE_SET_1_ID,
-    knowledgeVersionId: "ziwei.identity.knowledge.v2",
-    promptVersion: "ziwei.identity.prompt.v2",
-    reportConfigVersion: "ziwei.identity.report.v1",
-    templateVersion: "1.0",
+    knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+    promptVersion: "ziwei.comprehensive.prompt.v4",
+    reportConfigVersion: "ziwei.comprehensive.report.v4",
+    templateVersion: "ziwei-comprehensive-html.v1",
     locale: "vi",
     sku: "ZIWEI-IDENTITY-P0",
     providerId: "openai",
     modelId: "gpt-4o",
-    structuredContent: buildReportContent(CHART_VERSION_1_ID, "Bản Luận Giải Tử Vi - Nguyễn Văn An"),
-    htmlContent: "<p>Báo cáo Tử Vi bản mệnh - Nguyễn Văn An</p>",
+    structuredContent: buildV4ReportContent(),
+    htmlContent: "<p>Báo cáo fixture tổng hợp.</p>",
     contentHash: "1".repeat(64),
     pdfAssetId: PDF_ASSET_1_ID,
-    renderVersion: "1.0",
+    renderVersion: "identity-report-pdf.v1",
     createdAt: new Date("2026-09-09T08:05:00.000Z"),
+  });
+
+  const SOURCE_SNAPSHOT_1 = buildReportSourceSnapshot({
+    reportId: REPORT_1_ID,
+    reportVersionId: REPORT_VERSION_1_ID,
+    chartVersionId: CHART_VERSION_1_ID,
+    snapshotHash: "d".repeat(64),
+    selectedFrame: {
+      vendorTimeIndex: 5,
+      previousFrameId: "ziwei.time-frame.dragon",
+      frameId: "ziwei.time-frame.snake",
+      nextFrameId: "ziwei.time-frame.horse",
+    },
+  });
+  await database.insert(reportSourceSnapshots).values({
+    id: "a0000000-0000-4000-8000-000000000001",
+    reportId: SOURCE_SNAPSHOT_1.reportId,
+    reportVersionId: SOURCE_SNAPSHOT_1.reportVersionId,
+    chartVersionId: SOURCE_SNAPSHOT_1.chartVersionId,
+    asOfDate: SOURCE_SNAPSHOT_1.asOfDate,
+    targetYear: SOURCE_SNAPSHOT_1.targetYear,
+    timingRuleVersion: SOURCE_SNAPSHOT_1.timingRuleVersion,
+    sensitivityRuleVersion: SOURCE_SNAPSHOT_1.sensitivityRuleVersion,
+    snapshotHash: SOURCE_SNAPSHOT_1.snapshotHash,
+    snapshot: SOURCE_SNAPSHOT_1.snapshot,
+    createdAt: new Date("2026-09-09T08:02:00.000Z"),
   });
 
   // Order 2: Paid + Ready report for Profile 2 (Account Overview latest report & Library Group 2)
@@ -447,7 +973,7 @@ export async function seedAuthenticatedFixture() {
     chartId: CHART_2_ID,
     sku: "ZIWEI-IDENTITY-P0",
     ownerId: USER_ID,
-    scope: TIER_2_ENTITLEMENT_SCOPE,
+    scope: TIER_2_V4_ENTITLEMENT_SCOPE,
     createdAt: new Date("2026-09-09T08:30:00.000Z"),
   });
 
@@ -458,12 +984,16 @@ export async function seedAuthenticatedFixture() {
     entitlementId: ENTITLEMENT_2_ID,
     chartVersionId: CHART_VERSION_2_ID,
     evidenceVersionId: EVIDENCE_SET_2_ID,
-    knowledgeVersionId: "ziwei.identity.knowledge.v2",
-    promptVersion: "ziwei.identity.prompt.v2",
-    reportConfigVersion: "ziwei.identity.report.v1",
+    knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+    promptVersion: "ziwei.comprehensive.prompt.v4",
+    reportConfigVersion: "ziwei.comprehensive.report.v4",
     locale: "vi",
     sku: "ZIWEI-IDENTITY-P0",
     status: "complete",
+    asOfDate: "2026-09-09",
+    targetYear: 2026,
+    timingRuleVersion: "ziwei.timing.v1",
+    sensitivityRuleVersion: "ziwei.sensitivity.v1",
     createdAt: new Date("2026-09-09T08:31:00.000Z"),
     updatedAt: new Date("2026-09-09T08:35:00.000Z"),
   });
@@ -475,20 +1005,46 @@ export async function seedAuthenticatedFixture() {
     entitlementId: ENTITLEMENT_2_ID,
     chartVersionId: CHART_VERSION_2_ID,
     evidenceVersionId: EVIDENCE_SET_2_ID,
-    knowledgeVersionId: "ziwei.identity.knowledge.v2",
-    promptVersion: "ziwei.identity.prompt.v2",
-    reportConfigVersion: "ziwei.identity.report.v1",
-    templateVersion: "1.0",
+    knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+    promptVersion: "ziwei.comprehensive.prompt.v4",
+    reportConfigVersion: "ziwei.comprehensive.report.v4",
+    templateVersion: "ziwei-comprehensive-html.v1",
     locale: "vi",
     sku: "ZIWEI-IDENTITY-P0",
     providerId: "openai",
     modelId: "gpt-4o",
-    structuredContent: buildReportContent(CHART_VERSION_2_ID, "Bản Luận Giải Tử Vi - Nguyễn Minh Châu"),
-    htmlContent: "<p>Báo cáo Tử Vi bản mệnh - Nguyễn Minh Châu</p>",
+    structuredContent: buildV4ReportContent(),
+    htmlContent: "<p>Báo cáo fixture tổng hợp.</p>",
     contentHash: "2".repeat(64),
     pdfAssetId: PDF_ASSET_2_ID,
-    renderVersion: "1.0",
+    renderVersion: "identity-report-pdf.v1",
     createdAt: new Date("2026-09-09T08:35:00.000Z"),
+  });
+
+  const SOURCE_SNAPSHOT_2 = buildReportSourceSnapshot({
+    reportId: REPORT_2_ID,
+    reportVersionId: REPORT_VERSION_2_ID,
+    chartVersionId: CHART_VERSION_2_ID,
+    snapshotHash: "e".repeat(64),
+    selectedFrame: {
+      vendorTimeIndex: 7,
+      previousFrameId: "ziwei.time-frame.horse",
+      frameId: "ziwei.time-frame.goat",
+      nextFrameId: "ziwei.time-frame.monkey",
+    },
+  });
+  await database.insert(reportSourceSnapshots).values({
+    id: "a0000000-0000-4000-8000-000000000002",
+    reportId: SOURCE_SNAPSHOT_2.reportId,
+    reportVersionId: SOURCE_SNAPSHOT_2.reportVersionId,
+    chartVersionId: SOURCE_SNAPSHOT_2.chartVersionId,
+    asOfDate: SOURCE_SNAPSHOT_2.asOfDate,
+    targetYear: SOURCE_SNAPSHOT_2.targetYear,
+    timingRuleVersion: SOURCE_SNAPSHOT_2.timingRuleVersion,
+    sensitivityRuleVersion: SOURCE_SNAPSHOT_2.sensitivityRuleVersion,
+    snapshotHash: SOURCE_SNAPSHOT_2.snapshotHash,
+    snapshot: SOURCE_SNAPSHOT_2.snapshot,
+    createdAt: new Date("2026-09-09T08:32:00.000Z"),
   });
 
   // Order 3: Checkout pending state
@@ -505,7 +1061,7 @@ export async function seedAuthenticatedFixture() {
     currency: "VND",
     locale: "vi",
     status: "pending",
-    createdAt: new Date("2026-09-09T08:40:00.000Z"),
+    createdAt: pendingOrderCreatedAt,
   });
 
   // Order 4: Checkout paid with no report ID (Chart 3 has no reservation)
@@ -697,6 +1253,7 @@ export async function seedAuthenticatedFixture() {
       checkoutExpired: `/thanh-toan/${ORDER_5_ID}`,
       checkoutFailed: `/thanh-toan/${ORDER_6_ID}`,
       checkoutRefunded: `/thanh-toan/${ORDER_7_ID}`,
+      reportReady: `/bao-cao/${REPORT_1_ID}`,
       reportPending: `/bao-cao/${REPORT_8_ID}`,
       reportTerminalFailure: `/bao-cao/${REPORT_9_ID}`,
     },
@@ -706,6 +1263,7 @@ export async function seedAuthenticatedFixture() {
       orderExpiredId: ORDER_5_ID,
       orderFailedId: ORDER_6_ID,
       orderRefundedId: ORDER_7_ID,
+      reportReadyId: REPORT_1_ID,
       reportPendingId: REPORT_8_ID,
       reportTerminalFailureId: REPORT_9_ID,
     },
