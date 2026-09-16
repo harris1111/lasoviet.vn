@@ -76,3 +76,12 @@ export type {
   ZiweiReportQualitySectionKind,
   ZiweiReportQualitySectionThreshold,
 } from "./ziwei-report-quality.js";
+
+export {
+  normalizeZiweiKnowledgeV4Term,
+  validateZiweiKnowledgeV4ValidationConfig,
+  ziweiKnowledgeV4ValidationV1,
+} from "./ziwei-knowledge-v4-validation.js";
+export type {
+  ZiweiKnowledgeV4ValidationConfig,
+} from "./ziwei-knowledge-v4-validation.js";

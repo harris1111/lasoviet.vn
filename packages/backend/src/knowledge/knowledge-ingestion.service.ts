@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, normalize, resolve, sep } from "node:path";
 import { and, eq, inArray } from "drizzle-orm";
 import {
@@ -133,6 +133,67 @@ export const KnowledgeManifestV1Schema = z.object({
 export type KnowledgeChunkManifest = z.infer<typeof KnowledgeChunkManifestSchema>;
 export type KnowledgeManifestV1 = z.infer<typeof KnowledgeManifestV1Schema>;
 
+export const V3_DISPOSITION_CODES = [
+  "rewritten",
+  "merged",
+  "split",
+  "omitted_oral_filler",
+  "omitted_death_only",
+] as const;
+export type V3DispositionCode = (typeof V3_DISPOSITION_CODES)[number];
+
+export const KnowledgeEditorialRecordV1Schema = KnowledgeChunkManifestSchema.extend({
+  metadata: KnowledgeChunkMetadataV1Schema,
+  sourcePassageIds: z.array(z.string().trim().min(1).max(120)).min(1),
+  dispositionRationaleCode: z.enum(["rewritten", "merged", "split"]),
+}).strict();
+export type KnowledgeEditorialRecordV1 = z.infer<typeof KnowledgeEditorialRecordV1Schema>;
+
+export const KnowledgeProvenanceEdgeV1Schema = z.object({
+  outputKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v4"),
+  outputPassageId: z.string().trim().min(1).max(120),
+  sourceKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v3"),
+  sourcePassageId: z.string().trim().min(1).max(120),
+}).strict();
+export type KnowledgeProvenanceEdgeV1 = z.infer<typeof KnowledgeProvenanceEdgeV1Schema>;
+
+export const V3DispositionLedgerEntryV1Schema = z.object({
+  sourcePassageId: z.string().trim().min(1).max(120),
+  disposition: z.enum(V3_DISPOSITION_CODES),
+  outputPassageIds: z.array(z.string().trim().min(1).max(120)),
+}).strict().superRefine((entry, context) => {
+  const omitsSource = entry.disposition === "omitted_oral_filler" ||
+    entry.disposition === "omitted_death_only";
+  if (omitsSource !== (entry.outputPassageIds.length === 0)) {
+    context.addIssue({
+      code: "custom",
+      message: "Omitted sources must have no output passage IDs; emitted sources require output passage IDs",
+    });
+  }
+});
+export type V3DispositionLedgerEntryV1 = z.infer<typeof V3DispositionLedgerEntryV1Schema>;
+
+export const V3DispositionLedgerV1Schema = z.object({
+  ledgerSchemaVersion: z.literal("ziwei.v3-disposition-ledger.v1"),
+  sourceKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v3"),
+  outputKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v4"),
+  candidateHash: z.string().regex(/^[0-9a-f]{64}$/),
+  entries: z.array(V3DispositionLedgerEntryV1Schema).min(1),
+}).strict();
+export type V3DispositionLedgerV1 = z.infer<typeof V3DispositionLedgerV1Schema>;
+
+export const KnowledgeManifestV2Schema = KnowledgeManifestV1Schema.extend({
+  manifestSchemaVersion: z.literal("knowledge-manifest.v2"),
+  knowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v4"),
+  candidateHash: z.string().regex(/^[0-9a-f]{64}$/),
+  assemblyVersion: z.string().trim().min(1).max(120),
+  provenanceSchemaVersion: z.literal("knowledge-provenance.v1"),
+  dispositionLedgerPath: z.string().trim().min(1),
+  dispositionLedgerHash: z.string().regex(/^[0-9a-f]{64}$/),
+  chunks: z.array(KnowledgeEditorialRecordV1Schema).min(1),
+}).strict();
+export type KnowledgeManifestV2 = z.infer<typeof KnowledgeManifestV2Schema>;
+
 export function computeChunkContentHash(content: string): string {
   return createHash("sha256").update(content, "utf8").digest("hex").toLowerCase();
 }
@@ -140,6 +201,247 @@ export function computeChunkContentHash(content: string): string {
 export function computeDocumentContentHash(chunks: Array<{ content: string }>): string {
   const concatenated = chunks.map((c) => c.content).join("\n\n");
   return createHash("sha256").update(concatenated, "utf8").digest("hex").toLowerCase();
+}
+
+type KnowledgeManifestV2ValidationResult =
+  | {
+      ok: true;
+      value: KnowledgeManifestV2;
+      ledger: V3DispositionLedgerV1;
+      provenanceEdges: KnowledgeProvenanceEdgeV1[];
+    }
+  | { ok: false; code: "KNOWLEDGE_METADATA_INVALID"; message: string };
+
+function resolveRepositoryFile(
+  sourcePath: string,
+  repositoryRoot: string,
+): { ok: true; path: string } | { ok: false; message: string } {
+  const normalizedSource = normalize(sourcePath);
+  if (
+    isAbsolute(sourcePath) ||
+    normalizedSource.startsWith("..") ||
+    sourcePath.includes("..")
+  ) {
+    return {
+      ok: false,
+      message: "Source path must be repository-relative and non-traversing",
+    };
+  }
+
+  const resolvedSourcePath = resolve(repositoryRoot, normalizedSource);
+  if (
+    !resolvedSourcePath.startsWith(repositoryRoot + sep) &&
+    resolvedSourcePath !== repositoryRoot
+  ) {
+    return {
+      ok: false,
+      message: "Source path escapes repository root boundary",
+    };
+  }
+  if (!existsSync(resolvedSourcePath)) {
+    return {
+      ok: false,
+      message: `Source file does not exist at ${sourcePath}`,
+    };
+  }
+
+  try {
+    const canonicalRepoRoot = realpathSync(repositoryRoot);
+    const canonicalSourcePath = realpathSync(resolvedSourcePath);
+    if (
+      canonicalSourcePath !== canonicalRepoRoot &&
+      !canonicalSourcePath.startsWith(canonicalRepoRoot + sep)
+    ) {
+      return {
+        ok: false,
+        message: "Source path escapes repository root boundary",
+      };
+    }
+  } catch {
+    return { ok: false, message: "Source path resolution failed" };
+  }
+
+  return { ok: true, path: resolvedSourcePath };
+}
+
+export function validateKnowledgeManifestV2(
+  input: unknown,
+  options?: { repositoryRoot?: string },
+): KnowledgeManifestV2ValidationResult {
+  const parsed = KnowledgeManifestV2Schema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: `Invalid V2 knowledge manifest schema: ${parsed.error.message}`,
+    };
+  }
+
+  const manifest = parsed.data;
+  const passageIds = new Set<string>();
+  for (const chunk of manifest.chunks) {
+    if (passageIds.has(chunk.passageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Duplicate passageId in manifest: ${chunk.passageId}`,
+      };
+    }
+    passageIds.add(chunk.passageId);
+    if (computeChunkContentHash(chunk.content) !== chunk.contentHash) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Content hash mismatch for chunk ${chunk.passageId}`,
+      };
+    }
+  }
+  if (computeDocumentContentHash(manifest.chunks) !== manifest.contentHash) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Document content hash mismatch",
+    };
+  }
+
+  const repositoryRoot = options?.repositoryRoot
+    ? resolve(options.repositoryRoot)
+    : resolve(process.cwd());
+  const sourcePath = resolveRepositoryFile(manifest.sourcePath, repositoryRoot);
+  if (!sourcePath.ok) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: `Invalid V2 source path: ${sourcePath.message}`,
+    };
+  }
+  const ledgerPath = resolveRepositoryFile(
+    manifest.dispositionLedgerPath,
+    repositoryRoot,
+  );
+  if (!ledgerPath.ok) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: `Invalid disposition ledger path: ${ledgerPath.message}`,
+    };
+  }
+
+  let ledgerSource: string;
+  let ledger: V3DispositionLedgerV1;
+  try {
+    ledgerSource = readFileSync(ledgerPath.path, "utf8");
+    const parsedLedger = V3DispositionLedgerV1Schema.safeParse(
+      JSON.parse(ledgerSource),
+    );
+    if (!parsedLedger.success) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Invalid V3 disposition ledger schema: ${parsedLedger.error.message}`,
+      };
+    }
+    ledger = parsedLedger.data;
+  } catch {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Disposition ledger could not be read",
+    };
+  }
+
+  if (computeChunkContentHash(ledgerSource) !== manifest.dispositionLedgerHash) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Disposition ledger hash mismatch",
+    };
+  }
+  if (ledger.candidateHash !== manifest.candidateHash) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Disposition ledger candidate hash mismatch",
+    };
+  }
+
+  const outputPassagesBySource = new Map<string, Set<string>>();
+  const provenanceEdges: KnowledgeProvenanceEdgeV1[] = [];
+  for (const chunk of manifest.chunks) {
+    const sourcePassageIds = new Set<string>();
+    for (const sourcePassageId of chunk.sourcePassageIds) {
+      if (sourcePassageIds.has(sourcePassageId)) {
+        return {
+          ok: false,
+          code: "KNOWLEDGE_METADATA_INVALID",
+          message: `Duplicate source passage ID for chunk ${chunk.passageId}`,
+        };
+      }
+      sourcePassageIds.add(sourcePassageId);
+      outputPassagesBySource.set(
+        sourcePassageId,
+        new Set([
+          ...(outputPassagesBySource.get(sourcePassageId) ?? []),
+          chunk.passageId,
+        ]),
+      );
+      const edge = KnowledgeProvenanceEdgeV1Schema.safeParse({
+        outputKnowledgeVersion: manifest.knowledgeVersion,
+        outputPassageId: chunk.passageId,
+        sourceKnowledgeVersion: ledger.sourceKnowledgeVersion,
+        sourcePassageId,
+      });
+      if (!edge.success) {
+        return {
+          ok: false,
+          code: "KNOWLEDGE_METADATA_INVALID",
+          message: `Invalid provenance edge for chunk ${chunk.passageId}`,
+        };
+      }
+      provenanceEdges.push(edge.data);
+    }
+  }
+
+  const ledgerSources = new Set<string>();
+  for (const entry of ledger.entries) {
+    if (ledgerSources.has(entry.sourcePassageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Duplicate source passage ID in disposition ledger: ${entry.sourcePassageId}`,
+      };
+    }
+    ledgerSources.add(entry.sourcePassageId);
+    if (new Set(entry.outputPassageIds).size !== entry.outputPassageIds.length) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Duplicate output passage ID in disposition ledger: ${entry.sourcePassageId}`,
+      };
+    }
+    const expectedOutputPassageIds = outputPassagesBySource.get(entry.sourcePassageId) ?? new Set();
+    if (
+      expectedOutputPassageIds.size !== entry.outputPassageIds.length ||
+      entry.outputPassageIds.some((passageId) => !expectedOutputPassageIds.has(passageId))
+    ) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Disposition ledger does not reconcile source passage: ${entry.sourcePassageId}`,
+      };
+    }
+  }
+  for (const sourcePassageId of outputPassagesBySource.keys()) {
+    if (!ledgerSources.has(sourcePassageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Missing disposition ledger entry for source passage: ${sourcePassageId}`,
+      };
+    }
+  }
+
+  return { ok: true, value: manifest, ledger, provenanceEdges };
 }
 
 export type IngestKnowledgeSuccess = {
