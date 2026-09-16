@@ -14,7 +14,8 @@
   "sourceIds": [
     "brand-guideline",
     "technical-architecture",
-    "source-manifest"
+    "source-manifest",
+    "lsv-12-claim-record"
   ],
   "riskTags": [
     "privacy_boundary",
@@ -34,6 +35,17 @@
 ## A private reading desk, not a public mirror
 
 Your birth date, time, and place aren't data we collect to use elsewhere — they're the one ingredient needed to build your own chart, and we keep only what that requires. This page states plainly what we store, why, and what you control.
+
+Birth information and personal data are protected under strict principles:
+
+1. Collected categories: Account details (email, display name), birth inputs (birth date, time, place, gender), technical and interaction data (IP address, device class, referrer/UTM parameters/path), and commercial history.
+2. Purposes of processing: Chart generation and birth profile storage (birth_profile), product usage analytics (analytics), content personalization (personalization), relevant service and offer suggestions (offers), infrastructure security, and aggregate business measurement.
+3. Identity and linking: Prior to consent or sign-in, interaction data is keyed to a first-party HTTP-only visitor_id cookie. Wizard consent by an anonymous actor links visitor history to the birth profile and anonymous session context without creating or implying an authenticated account. Signing in or authenticating links visitor history to your authenticated account. When an anonymous session or profile is later linked to a verified account, ownership transfers under the existing account-linking flow.
+4. Retention schedules: Unlinked visitor and event records are purged after at most 30 days. Anonymous birth profiles are retained for at most 24 hours with immediate deletion available. Account-linked behavioral data remains while the account exists and is purged upon account or data deletion requests. Raw IP addresses are retained for 12 months for analytics/personalization and separately bounded security, then scrubbed from events. Statutory accounting records are preserved independently.
+5. Third-party boundaries: Under the binding FD-053 boundary, third-party analytics or export adapters do not receive names, emails, exact birth date/time/place, free-text questions, chart_id, profile_id, report content, evidence text, raw IP addresses, or internal account/visitor identifiers. Advertising pixels and third-party advertising trackers are not activated by LSV-12 in the current release.
+6. User rights: You may export account data (as a JSON file), submit an account deletion request with a 30-day recovery window, immediately delete temporary anonymous data, and unsubscribe from marketing communications at any time.
+
+Policy effective and review date: September 14, 2026.
 
 ## What we store, and why
 

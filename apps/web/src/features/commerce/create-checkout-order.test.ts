@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("../../analytics/server-analytics.js", () => ({
+  sendServerAnalyticsEvent: vi.fn().mockResolvedValue({ ok: true, replayed: false }),
+}));
+
 import {
   resolveVerifiedAccountActor,
 } from "../../auth/resolve-current-actor.js";
@@ -32,6 +36,8 @@ vi.mock("../../api/private-api-client.js", () => {
     PrivateApiClientError: MockPrivateApiClientError,
   };
 });
+
+import { sendServerAnalyticsEvent } from "../../analytics/server-analytics.js";
 
 const actor = {
   kind: "account" as const,
@@ -272,6 +278,69 @@ describe("create checkout order", () => {
     const { createCheckoutOrder } = await import("./create-checkout-order.js");
 
     await expect(createCheckoutOrder("chart-1", "en")).rejects.toThrow("CHECKOUT_ORDER_FAILED");
+  });
+
+  it("emits checkout_created with stable idempotency key and exact properties on valid pending response", async () => {
+    const mockSendAnalytics = vi.mocked(sendServerAnalyticsEvent);
+    mockSendAnalytics.mockClear();
+
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: validCheckoutStatus,
+      }),
+    });
+    const { createCheckoutOrder } = await import("./create-checkout-order.js");
+
+    await createCheckoutOrder("chart-1", "en", "ziwei-comprehensive");
+
+    expect(mockSendAnalytics).toHaveBeenCalledTimes(1);
+    expect(mockSendAnalytics).toHaveBeenCalledWith({
+      name: "checkout_created",
+      idempotencyKey: "checkout-created:order-1",
+      occurredAt: "2026-09-05T00:00:00.000Z",
+      userId: "account-1",
+      requestId: "request-1",
+      properties: {
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79000,
+        currency: "VND",
+      },
+    });
+    expect(redirect).toHaveBeenCalledWith("/en/thanh-toan/order-1");
+  });
+
+  it("emits both checkout_created and payment_confirmed on authoritative already-paid response", async () => {
+    const mockSendAnalytics = vi.mocked(sendServerAnalyticsEvent);
+    mockSendAnalytics.mockClear();
+
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          ...validCheckoutStatus,
+          order: {
+            ...validCheckoutStatus.order,
+            status: "paid",
+          },
+        },
+      }),
+    });
+    const { createCheckoutOrder } = await import("./create-checkout-order.js");
+
+    await createCheckoutOrder("chart-1", "vi", "ziwei-comprehensive");
+
+    expect(mockSendAnalytics).toHaveBeenCalledTimes(2);
+    expect(mockSendAnalytics).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      name: "checkout_created",
+      idempotencyKey: "checkout-created:order-1",
+    }));
+    expect(mockSendAnalytics).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      name: "payment_confirmed",
+      idempotencyKey: "payment-confirmed:order-1",
+    }));
   });
 
   describe("createCheckoutOrderAction wrapper for useActionState", () => {

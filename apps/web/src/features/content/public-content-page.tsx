@@ -17,6 +17,7 @@ import { LunarCalendarPreview } from "../free-tools/lunar-calendar-preview";
 import { TarotPreview } from "../free-tools/tarot-preview";
 import { ZodiacPreview } from "../free-tools/zodiac-preview";
 import { CommercialTopicPage } from "./commercial-topic-page";
+import { PrivacyPolicyPage } from "./privacy-policy-page";
 import { SampleReportPage } from "./sample-report-page";
 import { KnowledgeArticle } from "./knowledge-article";
 import { KnowledgeHub } from "./knowledge-hub";
@@ -366,6 +367,9 @@ export function PublicContentPage(props: PublicContentPageProps) {
   }
 
   const template = (() => {
+    if (props.route.id === "trust.privacy") {
+      return <PrivacyPolicyPage content={props.content} locale={props.locale} />;
+    }
     switch (props.route.template) {
       case "sample-report":
         return <SampleReportPage content={props.content} locale={props.locale} route={props.route} />;

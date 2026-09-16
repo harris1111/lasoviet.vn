@@ -1,8 +1,14 @@
 import type { AiCostRequestContext, IdentityReportV1, ReportGenerateJobEnvelope } from "@lasoviet/contracts";
+import { createHash } from "node:crypto";
+import { ziweiComprehensiveReportQualityV1 } from "@lasoviet/config";
 import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
   CURRENT_REPORT_RENDER_VERSION,
   CURRENT_REPORT_TEMPLATE_VERSION,
+  REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
@@ -16,6 +22,24 @@ import { validateComprehensiveZiweiReport } from "./comprehensive-report-validat
 import { writeComprehensiveZiweiReportV4 } from "./comprehensive-report-writer-v4.js";
 import { validateComprehensiveZiweiReportV4 } from "./comprehensive-report-validator-v4.js";
 import { critiqueComprehensiveZiweiReportV4 } from "./comprehensive-report-critic-v4.js";
+import { critiqueComprehensiveZiweiReportSectionedV4 } from "./comprehensive-report-critic-v4.js";
+import { writeComprehensiveReportSectionV4 } from "./comprehensive-report-section-writer-v4.js";
+import { assembleComprehensiveReportV4 } from "./comprehensive-report-assembler-v4.js";
+import {
+  buildComprehensiveReportPalaceSectionDigest,
+  buildComprehensiveReportSectionDigest,
+} from "./comprehensive-report-section-digest-v4.js";
+import { validateComprehensiveReportSectionQualityV4 } from "./comprehensive-report-quality-v4.js";
+import {
+  COMPREHENSIVE_REPORT_SECTION_KEYS,
+  type ComprehensiveReportAcceptedSection,
+  type ComprehensiveReportSectionKey,
+} from "./comprehensive-report-section-v4.js";
+import type {
+  PersistedReportSectionCheckpoint,
+  ReportSectionCheckpointLineage,
+  ReportSectionCheckpointRepository,
+} from "./report-section-checkpoint.repository.js";
 import type { ComprehensiveReportSourceV4 } from "./report-source.js";
 import type { ComprehensiveReportSource } from "./report-source.js";
 import type { ReportGenerationSourceRepository } from "./report-generation.repository.js";
@@ -32,7 +56,18 @@ export type ReportGenerationServiceErrorCode =
   | "REPORT_VERSION_CONFLICT"
   | "REPORT_SOURCE_SNAPSHOT_INVALID"
   | "REPORT_SOURCE_SNAPSHOT_CONFLICT"
-  | "REPORT_SOURCE_SNAPSHOT_UNAVAILABLE";
+  | "REPORT_SOURCE_SNAPSHOT_UNAVAILABLE"
+  | "REPORT_PROFILE_PURGED"
+  | "REPORT_CONTEXT_MISMATCH";
+
+export type ReportGenerationExecutionState =
+  | "active"
+  | "lease_lost"
+  | "wall_clock_exhausted";
+
+export type ReportGenerationExecutionGuard = {
+  state(): ReportGenerationExecutionState;
+};
 
 export type ReportGenerationServiceError = {
   code: ReportGenerationServiceErrorCode;
@@ -48,6 +83,7 @@ export type GenerateReportInput = {
   attemptNumber: number;
   workerId: string;
   jobId?: string;
+  executionGuard?: ReportGenerationExecutionGuard;
 };
 
 export type ReportGenerationServiceDependencies = {
@@ -56,6 +92,7 @@ export type ReportGenerationServiceDependencies = {
   gate: AiProductionGate;
   provider: AiProvider;
   sourceSnapshotPreparer?: ReportSourceSnapshotPreparationService;
+  sectionCheckpointRepository?: ReportSectionCheckpointRepository;
 };
 
 export type ReportGenerationService = {
@@ -116,6 +153,412 @@ export function createReportGenerationService(
       };
     }
     return { ok: true, value: replayResult.value };
+  }
+
+  function guardState(input: GenerateReportInput): ReportGenerationExecutionState {
+    return input.executionGuard?.state() ?? "active";
+  }
+
+  function stableHash(value: unknown): string {
+    const canonical = (source: unknown): string => {
+      if (source === null || typeof source === "string" || typeof source === "number" || typeof source === "boolean") {
+        return JSON.stringify(source);
+      }
+      if (Array.isArray(source)) return `[${source.map(canonical).join(",")}]`;
+      if (source && typeof source === "object") {
+        const record = source as Record<string, unknown>;
+        return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${canonical(record[key])}`).join(",")}}`;
+      }
+      throw new Error("REPORT_SECTION_CANONICAL_CONTENT_INVALID");
+    };
+    return createHash("sha256").update(canonical(value), "utf8").digest("hex");
+  }
+
+  function qualityInputs(section: ComprehensiveReportAcceptedSection) {
+    const kind = section.key.startsWith("palace:")
+      ? "palace"
+      : section.key.startsWith("thematic:")
+        ? "thematic"
+        : section.key === "practicalDirection"
+          ? "practicalAction"
+          : section.key;
+    const entries = Array.isArray(section.value) ? section.value : [section.value];
+    return entries.map((entry: any) => ({
+      key: section.key,
+      kind,
+      text: typeof entry === "object" && "recommendation" in entry
+        ? `${entry.recommendation} ${entry.rationale} ${entry.avoid}`
+        : `${entry.title} ${entry.narrative}`,
+      evidenceKeys: entry.evidenceKeys ?? [],
+      ...(section.key.startsWith("palace:") ? { palaceId: section.key.slice("palace:".length) } : {}),
+    } as Parameters<typeof validateComprehensiveReportSectionQualityV4>[0]));
+  }
+
+  function sectionPassesQuality(
+    section: ComprehensiveReportAcceptedSection,
+    facts: ComprehensiveReportSourceV4["comprehensiveFactsV4"],
+  ): boolean {
+    return qualityInputs(section).every((quality) =>
+      validateComprehensiveReportSectionQualityV4(quality, facts!).ok,
+    );
+  }
+
+  function mapProviderError(
+    error: { code: string; retryable?: boolean },
+  ): ReportGenerationServiceError {
+    if (error.code === "AI_COST_RECORDING_FAILED") {
+      return { code: "AI_COST_RECORDING_FAILED", retryable: error.retryable ?? false };
+    }
+    if (error.code === "AI_TIMEOUT" || (error.code === "AI_PROVIDER_REQUEST_FAILED" && error.retryable)) {
+      return { code: "AI_TIMEOUT", retryable: true };
+    }
+    if (error.code === "AI_CAPABILITY_UNSUPPORTED" || error.code === "AI_PROVIDER_NOT_APPROVED") {
+      return { code: "AI_CAPABILITY_UNSUPPORTED", retryable: false };
+    }
+    if (error.code === "REPORT_SAFETY_REJECTED") return { code: "REPORT_SAFETY_REJECTED", retryable: false };
+    return { code: "AI_OUTPUT_INVALID", retryable: false };
+  }
+
+  async function lifecycleFence(
+    input: GenerateReportInput,
+  ): Promise<ReportGenerationServiceResult | null> {
+    const result = await dependencies.sourceRepository.validateLifecycle({
+      reportVersionId: input.job.payload.reportVersionId,
+      jobId: input.jobId ?? input.job.idempotencyKey,
+      readingContextRevisionId:
+        input.job.name === "report.generate.v2"
+          ? input.job.payload.readingContextRevisionId ?? null
+          : null,
+    });
+    return result.ok
+      ? null
+      : { ok: false, error: { code: result.error.code, retryable: false } };
+  }
+
+  async function executeSectionedGeneration(
+    input: GenerateReportInput,
+    source: ComprehensiveReportSourceV4,
+    baseCostContext: AiCostRequestContext,
+  ): Promise<ReportGenerationServiceResult> {
+    const repository = dependencies.sectionCheckpointRepository;
+    if (!repository) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+    const { payload } = input.job;
+    const jobId = input.jobId ?? input.job.idempotencyKey;
+    const lineageFor = (sectionKey: ComprehensiveReportSectionKey): ReportSectionCheckpointLineage => ({
+      reportVersionId: payload.reportVersionId,
+      sectionKey,
+      sectionOrder: COMPREHENSIVE_REPORT_SECTION_KEYS.indexOf(sectionKey),
+      promptVersion: payload.promptVersion,
+      knowledgeVersionId: payload.knowledgeVersionId,
+      reportConfigVersion: payload.reportConfigVersion,
+      qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
+    });
+    const stopped = (): ReportGenerationServiceResult | null => {
+      const state = guardState(input);
+      if (state === "lease_lost") return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+      if (state === "wall_clock_exhausted") return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+      return null;
+    };
+    const listAccepted = async (): Promise<
+      { ok: true; value: readonly PersistedReportSectionCheckpoint[] } | ReportGenerationServiceResult
+    > => {
+      const stoppedResult = stopped();
+      if (stoppedResult) return stoppedResult;
+      const listed = await repository.listAccepted(payload.reportVersionId);
+      if (!listed.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+      return listed;
+    };
+    const acceptedSections = (rows: readonly PersistedReportSectionCheckpoint[]) => {
+      const sections: ComprehensiveReportAcceptedSection[] = [];
+      for (const row of rows) {
+        if (!row.acceptedSection || !row.providerId?.trim() || !row.modelId?.trim()) {
+          throw new Error("REPORT_SECTION_ACCEPTED_LINEAGE_INVALID");
+        }
+        sections.push(row.acceptedSection);
+      }
+      return sections;
+    };
+    const generateOne = async (
+      sectionKey: ComprehensiveReportSectionKey,
+      digest?: ReturnType<typeof buildComprehensiveReportSectionDigest>,
+    ): Promise<ReportGenerationServiceResult | null> => {
+      while (true) {
+        const stoppedResult = stopped();
+        if (stoppedResult) return stoppedResult;
+        const claim = await repository.claim({
+          ...lineageFor(sectionKey),
+          jobId,
+          workerId: input.workerId,
+          mode: "generation",
+          generationAttemptCap: ziweiComprehensiveReportQualityV1.generationAttemptCap,
+          rewriteAttemptCap: ziweiComprehensiveReportQualityV1.sectionRewriteCap,
+        });
+        if (!claim.ok || claim.value.outcome === "terminal") {
+          return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+        }
+        if (claim.value.outcome === "replay") return null;
+        const checkpoint = claim.value.checkpoint;
+        const stoppedBeforeProvider = stopped();
+        if (stoppedBeforeProvider) return stoppedBeforeProvider;
+        const lifecycle = await lifecycleFence(input);
+        if (lifecycle) return lifecycle;
+        let written: Awaited<ReturnType<typeof writeComprehensiveReportSectionV4>>;
+        try {
+          written = await writeComprehensiveReportSectionV4({
+            sectionKey,
+            facts: source.comprehensiveFactsV4!,
+            knowledgePacks: source.knowledgePacks!,
+            provider: dependencies.provider,
+            promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+            readingContext: source.readingContext,
+            ...(digest ? { priorSectionDigest: digest } : {}),
+            costContext: {
+              ...baseCostContext,
+              idempotencyKey: `${payload.reportVersionId}:${sectionKey}:generation:${checkpoint.generationAttemptCount}:critic:0`,
+              purpose: "report",
+            },
+          });
+        } catch {
+          written = { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+        }
+        const stoppedAfterProvider = stopped();
+        if (stoppedAfterProvider) return stoppedAfterProvider;
+        if (!written.ok) {
+          const mapped = mapProviderError(written.error);
+          await repository.releaseRetryableFailure({ ...lineageFor(sectionKey), jobId, workerId: input.workerId, expectedStateVersion: checkpoint.stateVersion, failureCode: mapped.code });
+          return { ok: false, error: mapped };
+        }
+        const section: ComprehensiveReportAcceptedSection = { key: sectionKey as any, value: written.value.value as any };
+        if (!sectionPassesQuality(section, source.comprehensiveFactsV4)) {
+          const released = await repository.releaseRetryableFailure({ ...lineageFor(sectionKey), jobId, workerId: input.workerId, expectedStateVersion: checkpoint.stateVersion, failureCode: "AI_OUTPUT_INVALID" });
+          if (!released.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+          continue;
+        }
+        const stoppedBeforePass = stopped();
+        if (stoppedBeforePass) return stoppedBeforePass;
+        const passed = await repository.markPassed({
+          ...lineageFor(sectionKey), jobId, workerId: input.workerId, expectedStateVersion: checkpoint.stateVersion,
+          acceptedContent: section.value, contentHash: stableHash(section.value),
+          providerId: written.value.providerId, modelId: written.value.modelId,
+        });
+        if (!passed.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+        return null;
+      }
+    };
+    const runPhase = async (keys: readonly ComprehensiveReportSectionKey[], digest?: ReturnType<typeof buildComprehensiveReportSectionDigest>) => {
+      for (let offset = 0; offset < keys.length; offset += ziweiComprehensiveReportQualityV1.providerConcurrency) {
+        const group = keys.slice(offset, offset + ziweiComprehensiveReportQualityV1.providerConcurrency);
+        const results = await Promise.all(group.map((key) => generateOne(key, digest)));
+        const failure = results.find((result): result is ReportGenerationServiceResult => result !== null);
+        if (failure) return failure;
+      }
+      return null;
+    };
+    const rewriteOne = async (
+      sectionKey: ComprehensiveReportSectionKey,
+      findings: readonly string[],
+      criticPass: number,
+    ): Promise<ReportGenerationServiceResult | null> => {
+      const stoppedResult = stopped();
+      if (stoppedResult) return stoppedResult;
+      const current = await listAccepted();
+      if (!current.ok) return current;
+      const row = (current.value as readonly PersistedReportSectionCheckpoint[]).find((item) => item.sectionKey === sectionKey);
+      if (!row?.acceptedSection) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      const claimed = await repository.claimPassedRewrite({
+        ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+        rewriteAttemptCap: ziweiComprehensiveReportQualityV1.sectionRewriteCap,
+      });
+      if (!claimed.ok || claimed.value.outcome === "terminal") return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      if (claimed.value.outcome === "replay") return null;
+      const revision = claimed.value.revision;
+      const stoppedBeforeProvider = stopped();
+      if (stoppedBeforeProvider) return stoppedBeforeProvider;
+      const lifecycle = await lifecycleFence(input);
+      if (lifecycle) return lifecycle;
+      let written: Awaited<ReturnType<typeof writeComprehensiveReportSectionV4>>;
+      try {
+        written = await writeComprehensiveReportSectionV4({
+          sectionKey, facts: source.comprehensiveFactsV4!, knowledgePacks: source.knowledgePacks!,
+          provider: dependencies.provider, promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+          readingContext: source.readingContext,
+          priorSectionDigest: buildComprehensiveReportSectionDigest((current.value as readonly PersistedReportSectionCheckpoint[]).flatMap((item) => item.acceptedSection ? [item.acceptedSection] : [])),
+          rewrite: { priorSection: row.acceptedSection, findings: findings.slice(0, 8) },
+          costContext: {
+            ...baseCostContext,
+            idempotencyKey: `${payload.reportVersionId}:${sectionKey}:rewrite:${revision.rewriteOrdinal}:critic:${criticPass}`,
+            purpose: "rewrite",
+          },
+        });
+      } catch {
+        written = { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+      }
+      const postProvider = stopped();
+      if (postProvider) return postProvider;
+      if (!written.ok) {
+        const mapped = mapProviderError(written.error);
+        await repository.releaseRewriteRetryableFailure({
+          ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+          rewriteOrdinal: revision.rewriteOrdinal, expectedStateVersion: revision.stateVersion, failureCode: mapped.code,
+        });
+        return { ok: false, error: mapped };
+      }
+      const section: ComprehensiveReportAcceptedSection = { key: sectionKey as any, value: written.value.value as any };
+      if (!sectionPassesQuality(section, source.comprehensiveFactsV4)) {
+        await repository.releaseRewriteRetryableFailure({
+          ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+          rewriteOrdinal: revision.rewriteOrdinal, expectedStateVersion: revision.stateVersion, failureCode: "AI_OUTPUT_INVALID",
+        });
+        return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      }
+      const beforePass = stopped();
+      if (beforePass) return beforePass;
+      const passed = await repository.markPassedRewrite({
+        ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+        rewriteOrdinal: revision.rewriteOrdinal, expectedStateVersion: revision.stateVersion,
+        acceptedContent: section.value, contentHash: stableHash(section.value),
+        providerId: written.value.providerId, modelId: written.value.modelId,
+      });
+      return passed.ok ? null : { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+    };
+    const validatorKeys = (errors: readonly string[]): ComprehensiveReportSectionKey[] | null => {
+      const keys = new Set<ComprehensiveReportSectionKey>();
+      for (const error of errors) {
+        const direct = COMPREHENSIVE_REPORT_SECTION_KEYS.find((key) => error.includes(key));
+        if (direct) { keys.add(direct); continue; }
+        const palace = /palaceReadings\.(\d+)/u.exec(error);
+        if (palace) { keys.add(`palace:${["ziwei.palace.life", "ziwei.palace.siblings", "ziwei.palace.spouse", "ziwei.palace.children", "ziwei.palace.wealth", "ziwei.palace.health", "ziwei.palace.travel", "ziwei.palace.friends", "ziwei.palace.career", "ziwei.palace.property", "ziwei.palace.fortune", "ziwei.palace.parents"][Number(palace[1])]}` as ComprehensiveReportSectionKey); continue; }
+        const palaceKey = /palaceReadings\[(ziwei\.palace\.[a-z]+)\]/u.exec(error);
+        if (palaceKey && (COMPREHENSIVE_REPORT_SECTION_KEYS as readonly string[]).includes(`palace:${palaceKey[1]}`)) {
+          keys.add(`palace:${palaceKey[1]}` as ComprehensiveReportSectionKey); continue;
+        }
+        const theme = /thematicSynthesis\.(\d+)/u.exec(error);
+        if (theme) { keys.add(`thematic:${["career_wealth", "relationships_family", "social_environment", "wellbeing_inner_resources"][Number(theme[1])]}` as ComprehensiveReportSectionKey); continue; }
+        const themeKey = /thematicSynthesis\[([a-z_]+)\]/u.exec(error);
+        if (themeKey && (COMPREHENSIVE_REPORT_SECTION_KEYS as readonly string[]).includes(`thematic:${themeKey[1]}`)) {
+          keys.add(`thematic:${themeKey[1]}` as ComprehensiveReportSectionKey); continue;
+        }
+        return null;
+      }
+      return keys.size > 0 ? [...keys] : null;
+    };
+    let listed = await listAccepted();
+    if (!listed.ok) return listed;
+    let rows = listed.value as readonly PersistedReportSectionCheckpoint[];
+    const existing = new Set(rows.map((row) => row.sectionKey));
+    const sequentialBefore = ["overview", "coreAxis", "keyConfigurations"] as const;
+    for (const key of sequentialBefore) {
+      if (!existing.has(key)) {
+        const result = await generateOne(key);
+        if (result) return result;
+      }
+    }
+    listed = await listAccepted(); if (!listed.ok) return listed;
+    rows = listed.value as readonly PersistedReportSectionCheckpoint[];
+    const firstDigest = buildComprehensiveReportSectionDigest(acceptedSections(rows));
+    const palaces = COMPREHENSIVE_REPORT_SECTION_KEYS.filter((key) => key.startsWith("palace:"));
+    const palaceResult = await runPhase(palaces.filter((key) => !new Set(rows.map((row) => row.sectionKey)).has(key)), firstDigest);
+    if (palaceResult) return palaceResult;
+    listed = await listAccepted(); if (!listed.ok) return listed;
+    rows = listed.value as readonly PersistedReportSectionCheckpoint[];
+    const palaceDigest = buildComprehensiveReportPalaceSectionDigest(acceptedSections(rows));
+    const preferredTheme =
+      source.readingContext?.topConcern === "career" || source.readingContext?.topConcern === "money"
+        ? "thematic:career_wealth"
+        : source.readingContext?.topConcern === "love" || source.readingContext?.topConcern === "family"
+          ? "thematic:relationships_family"
+          : source.readingContext?.topConcern === "wellbeing" || source.readingContext?.topConcern === "self_understanding"
+            ? "thematic:wellbeing_inner_resources"
+            : null;
+    const themes = COMPREHENSIVE_REPORT_SECTION_KEYS
+      .filter((key) => key.startsWith("thematic:"))
+      .sort((left, right) => Number(right === preferredTheme) - Number(left === preferredTheme));
+    const themeResult = await runPhase(themes.filter((key) => !new Set(rows.map((row) => row.sectionKey)).has(key)), palaceDigest);
+    if (themeResult) return themeResult;
+    listed = await listAccepted(); if (!listed.ok) return listed;
+    rows = listed.value as readonly PersistedReportSectionCheckpoint[];
+    const trailing = ["strengthsAndTensions", "currentDecadal", "annualSnapshot", "practicalDirection"] as const;
+    for (const key of trailing) {
+      if (!new Set(rows.map((row) => row.sectionKey)).has(key)) {
+        const result = await generateOne(key, buildComprehensiveReportSectionDigest(acceptedSections(rows)));
+        if (result) return result;
+        listed = await listAccepted(); if (!listed.ok) return listed;
+        rows = listed.value as readonly PersistedReportSectionCheckpoint[];
+      }
+    }
+    if (rows.length !== COMPREHENSIVE_REPORT_SECTION_KEYS.length) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+    const sections = acceptedSections(rows);
+    const lineage = (accepted: readonly PersistedReportSectionCheckpoint[]) => ({
+      providerIds: new Set(accepted.map((row) => row.providerId).filter((value): value is string => Boolean(value?.trim()))),
+      modelIds: new Set(accepted.map((row) => row.modelId).filter((value): value is string => Boolean(value?.trim()))),
+    });
+    let { providerIds, modelIds } = lineage(rows);
+    if (providerIds.size !== 1 || modelIds.size !== 1) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+    let report;
+    try { report = assembleComprehensiveReportV4(sections, source.comprehensiveFactsV4!); } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
+    if (stopped()) return stopped()!;
+    let validation = validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!);
+    if (!validation.ok) {
+      const keys = validatorKeys(validation.errors);
+      if (!keys) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      for (const key of keys) {
+        const result = await rewriteOne(key, validation.errors, 0);
+        if (result) return result;
+      }
+      const refreshed = await listAccepted(); if (!refreshed.ok) return refreshed;
+      ({ providerIds, modelIds } = lineage(refreshed.value as readonly PersistedReportSectionCheckpoint[]));
+      if (providerIds.size !== 1 || modelIds.size !== 1) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      try { report = assembleComprehensiveReportV4(acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]), source.comprehensiveFactsV4!); } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
+      validation = validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!);
+      if (!validation.ok) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+    }
+    let critic;
+    const firstCriticLifecycle = await lifecycleFence(input);
+    if (firstCriticLifecycle) return firstCriticLifecycle;
+    try {
+      critic = await critiqueComprehensiveZiweiReportSectionedV4(report, source.comprehensiveFactsV4!, dependencies.provider, {
+        costContext: { ...baseCostContext, idempotencyKey: `${payload.reportVersionId}:critic:1`, purpose: "critic" },
+        readingContext: source.readingContext,
+      });
+    } catch { return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } }; }
+    if (stopped()) return stopped()!;
+    if (!critic.ok) {
+      const findings = "findings" in critic.error ? critic.error.findings : undefined;
+      if (!findings?.length) return { ok: false, error: mapProviderError(critic.error) };
+      for (const key of [...new Set(findings.map((finding) => finding.key))]) {
+        const result = await rewriteOne(key, findings.filter((finding) => finding.key === key).map((finding) => finding.note), 1);
+        if (result) return result;
+      }
+      const refreshed = await listAccepted(); if (!refreshed.ok) return refreshed;
+      ({ providerIds, modelIds } = lineage(refreshed.value as readonly PersistedReportSectionCheckpoint[]));
+      if (providerIds.size !== 1 || modelIds.size !== 1) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      try { report = assembleComprehensiveReportV4(acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]), source.comprehensiveFactsV4!); } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
+      validation = validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!);
+      if (!validation.ok) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      const secondCriticLifecycle = await lifecycleFence(input);
+      if (secondCriticLifecycle) return secondCriticLifecycle;
+      try {
+        critic = await critiqueComprehensiveZiweiReportSectionedV4(report, source.comprehensiveFactsV4!, dependencies.provider, {
+          costContext: { ...baseCostContext, idempotencyKey: `${payload.reportVersionId}:critic:2`, purpose: "critic" },
+          readingContext: source.readingContext,
+        });
+      } catch { return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } }; }
+      if (!critic.ok) return { ok: false, error: mapProviderError(critic.error) };
+    }
+    const stoppedBeforeCommit = stopped();
+    if (stoppedBeforeCommit) return stoppedBeforeCommit;
+    const commit = await dependencies.versionRepository.commitImmutableVersion({
+      reportId: payload.reportId, reportVersionId: payload.reportVersionId, entitlementId: payload.entitlementId,
+      chartVersionId: payload.chartVersionId, evidenceVersionId: payload.evidenceVersionId,
+      knowledgeVersionId: payload.knowledgeVersionId, promptVersion: payload.promptVersion,
+      reportConfigVersion: payload.reportConfigVersion, templateVersion: REPORT_TEMPLATE_VERSION_V3,
+      renderVersion: CURRENT_REPORT_RENDER_VERSION, locale: payload.locale, sku: payload.sku,
+      providerId: [...providerIds][0]!, modelId: [...modelIds][0]!,
+      structuredContent: report as unknown as IdentityReportV1, htmlContent: renderComprehensiveZiweiHtml(report),
+      jobId, workerId: input.workerId, attemptNumber: input.attemptNumber, traceId: input.job.traceId,
+    });
+    if (!commit.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+    return { ok: true, value: commit.value };
   }
 
   async function executeGeneration(input: GenerateReportInput): Promise<ReportGenerationServiceResult> {
@@ -221,6 +664,10 @@ export function createReportGenerationService(
       knowledgeVersionId: payload.knowledgeVersionId,
       promptVersion: payload.promptVersion,
       locale: payload.locale,
+      readingContextRevisionId:
+        "readingContextRevisionId" in payload
+          ? payload.readingContextRevisionId ?? null
+          : null,
     });
     if (!sourceResult.ok) {
       return failAttempt("REPORT_EVIDENCE_INVALID", false);
@@ -231,13 +678,40 @@ export function createReportGenerationService(
       if (!source.comprehensiveFactsV4 || !source.knowledgePacks) {
         return failAttempt("REPORT_EVIDENCE_INVALID", false);
       }
+      const promptVersion =
+        payload.promptVersion === REPORT_PROMPT_VERSION_V4 ||
+        payload.promptVersion === REPORT_PROMPT_VERSION_V4_0_1
+          ? payload.promptVersion
+          : null;
+      if (!promptVersion) {
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+      if (
+        payload.promptVersion === REPORT_PROMPT_VERSION_V4_0_1 &&
+        payload.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED
+      ) {
+        const sectioned = await executeSectionedGeneration(
+          input,
+          source as ComprehensiveReportSourceV4,
+          baseCostContext,
+        );
+        if (!sectioned.ok && guardState(input) === "lease_lost") return sectioned;
+        if (!sectioned.ok && guardState(input) === "wall_clock_exhausted") return sectioned;
+        if (!sectioned.ok) return failAttempt(sectioned.error.code, sectioned.error.retryable);
+        return sectioned;
+      }
 
       let writerResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReportV4>>;
+      const writerLifecycle = await lifecycleFence(input);
+      if (writerLifecycle?.ok === false) return failAttempt(writerLifecycle.error.code, false);
       try {
         writerResult = await writeComprehensiveZiweiReportV4(
           source as ComprehensiveReportSourceV4,
           dependencies.provider,
-          { costContext: { ...baseCostContext, purpose: "report" } },
+          {
+            costContext: { ...baseCostContext, purpose: "report" },
+            promptVersion,
+          },
         );
       } catch {
         return failAttempt("AI_TIMEOUT", true);
@@ -272,12 +746,17 @@ export function createReportGenerationService(
         rewriteIssues = initialValidation.errors.slice(0, 8).map((e) => e.slice(0, 300));
       } else {
         let criticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
+        const criticLifecycle = await lifecycleFence(input);
+        if (criticLifecycle?.ok === false) return failAttempt(criticLifecycle.error.code, false);
         try {
           criticResult = await critiqueComprehensiveZiweiReportV4(
             draft.report,
             source.comprehensiveFactsV4,
             dependencies.provider,
-            { costContext: { ...baseCostContext, purpose: "critic" } },
+            {
+              costContext: { ...baseCostContext, purpose: "critic" },
+              readingContext: source.readingContext,
+            },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", true);
@@ -324,19 +803,25 @@ export function createReportGenerationService(
         }
 
         let revisionResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReportV4>>;
+        const rewriteLifecycle = await lifecycleFence(input);
+        if (rewriteLifecycle?.ok === false) return failAttempt(rewriteLifecycle.error.code, false);
         try {
           revisionResult = await writeComprehensiveZiweiReportV4(
             {
               facts: source.comprehensiveFactsV4,
               knowledgePacks: source.knowledgePacks,
               provider: dependencies.provider,
+              readingContext: source.readingContext,
               revision: {
                 priorContent: draft.report,
                 issues: rewriteIssues,
               },
             },
             dependencies.provider,
-            { costContext: { ...baseCostContext, purpose: "report" } },
+            {
+              costContext: { ...baseCostContext, purpose: "report" },
+              promptVersion,
+            },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);
@@ -370,12 +855,17 @@ export function createReportGenerationService(
         }
 
         let revCriticResult: Awaited<ReturnType<typeof critiqueComprehensiveZiweiReportV4>>;
+        const recriticLifecycle = await lifecycleFence(input);
+        if (recriticLifecycle?.ok === false) return failAttempt(recriticLifecycle.error.code, false);
         try {
           revCriticResult = await critiqueComprehensiveZiweiReportV4(
             draft.report,
             source.comprehensiveFactsV4,
             dependencies.provider,
-            { costContext: { ...baseCostContext, purpose: "critic" } },
+            {
+              costContext: { ...baseCostContext, purpose: "critic" },
+              readingContext: source.readingContext,
+            },
           );
         } catch {
           return failAttempt("AI_TIMEOUT", false);
@@ -440,6 +930,8 @@ export function createReportGenerationService(
       }
 
       let writerResult: Awaited<ReturnType<typeof writeComprehensiveZiweiReport>>;
+      const v3WriterLifecycle = await lifecycleFence(input);
+      if (v3WriterLifecycle?.ok === false) return failAttempt(v3WriterLifecycle.error.code, false);
       try {
         writerResult = await writeComprehensiveZiweiReport(
           source as ComprehensiveReportSource,
@@ -504,6 +996,8 @@ export function createReportGenerationService(
     }
 
     let writerResult: Awaited<ReturnType<typeof writeIdentityReportDraft>>;
+    const legacyWriterLifecycle = await lifecycleFence(input);
+    if (legacyWriterLifecycle?.ok === false) return failAttempt(legacyWriterLifecycle.error.code, false);
     try {
       writerResult = await writeIdentityReportDraft({
         ...source,
@@ -556,6 +1050,8 @@ export function createReportGenerationService(
     }
 
     let criticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
+    const legacyCriticLifecycle = await lifecycleFence(input);
+    if (legacyCriticLifecycle?.ok === false) return failAttempt(legacyCriticLifecycle.error.code, false);
     try {
       criticResult = await critiqueIdentityReport(
         draft.report,
@@ -564,7 +1060,7 @@ export function createReportGenerationService(
         {
           promptVersion: payload.promptVersion,
           knowledgeVersion: payload.knowledgeVersionId,
-          costContext: { ...baseCostContext, purpose: "critic" },
+            costContext: { ...baseCostContext, purpose: "critic" },
         },
       );
     } catch {
@@ -611,6 +1107,8 @@ export function createReportGenerationService(
           : [];
 
         let revisionResult: Awaited<ReturnType<typeof writeIdentityReportDraft>>;
+        const legacyRewriteLifecycle = await lifecycleFence(input);
+        if (legacyRewriteLifecycle?.ok === false) return failAttempt(legacyRewriteLifecycle.error.code, false);
         try {
           revisionResult = await writeIdentityReportDraft({
             ...source,
@@ -662,6 +1160,8 @@ export function createReportGenerationService(
         }
 
         let revCriticResult: Awaited<ReturnType<typeof critiqueIdentityReport>>;
+        const legacyRecriticLifecycle = await lifecycleFence(input);
+        if (legacyRecriticLifecycle?.ok === false) return failAttempt(legacyRecriticLifecycle.error.code, false);
         try {
           revCriticResult = await critiqueIdentityReport(
             revisedDraft.report,

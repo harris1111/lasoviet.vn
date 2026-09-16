@@ -190,6 +190,41 @@
       "when": 1789718400000,
       "tag": "0026_ai_usage_and_cost",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1789804800000,
+      "tag": "0027_birth_profile_reading_context",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1789891200000,
+      "tag": "0028_account_linked_analytics",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1789977600000,
+      "tag": "0029_report_section_checkpoints",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1790064000000,
+      "tag": "0030_report_section_checkpoint_revisions",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1790553600000,
+      "tag": "0031_report_reading_context_freeze",
+      "breakpoints": true
     }
   ]
 }

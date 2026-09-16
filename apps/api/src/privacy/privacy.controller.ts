@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,11 +8,13 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  NotFoundException,
   Post,
   UnauthorizedException,
 } from "@nestjs/common";
 
 import {
+  AssociateProfileRequestV1Schema,
   ConsentRequestV1Schema,
   type CurrentActor,
 } from "@lasoviet/contracts";
@@ -19,7 +22,10 @@ import {
   createAccountDeletionService,
   createAnonymousRetentionService,
   createConsentService,
+  type AnalyticsService,
 } from "@lasoviet/backend";
+
+import { ANALYTICS_SERVICE } from "../analytics/analytics.controller.js";
 import type { Database } from "@lasoviet/database";
 
 import {
@@ -63,6 +69,8 @@ export class PrivacyController {
     private readonly secret: string,
     @Inject(PRIVACY_DATABASE)
     private readonly database: Database,
+    @Inject(ANALYTICS_SERVICE)
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   private async actor(
@@ -94,12 +102,55 @@ export class PrivacyController {
     if (!request.success) {
       throw new UnauthorizedException({ code: "CONSENT_VERSION_UNKNOWN" });
     }
-    return this.consentService.record(
+    const result = await this.consentService.record(
       await this.actor(authorization),
       request.data.documentKey,
       request.data.documentVersion,
-      request.data.purpose,
+      request.data.purposes,
+      request.data.visitorId,
     );
+    if (!result.ok) {
+      if (result.error.code === "PROFILE_FORBIDDEN") {
+        throw new ForbiddenException({ code: "PROFILE_FORBIDDEN" });
+      }
+      throw new UnauthorizedException({ code: "CONSENT_VERSION_UNKNOWN" });
+    }
+    return result;
+  }
+
+  @Post("associate-profile")
+  @HttpCode(HttpStatus.OK)
+  async associateProfile(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const actor = await this.actor(authorization);
+    const request = AssociateProfileRequestV1Schema.safeParse(body);
+    if (!request.success) {
+      throw new BadRequestException({ code: "ASSOCIATE_PROFILE_INVALID" });
+    }
+    const owner =
+      actor.kind === "account"
+        ? { userId: actor.userId }
+        : { anonymousActorId: actor.anonymousActorId };
+    const result = await this.analyticsService.associateBirthProfile({
+      visitorId: request.data.visitorId,
+      birthProfileId: request.data.profileId,
+      owner,
+    });
+    if (!result.ok) {
+      if (
+        result.error.code === "PROFILE_NOT_FOUND" ||
+        result.error.code === "VISITOR_NOT_FOUND"
+      ) {
+        throw new NotFoundException({ code: result.error.code });
+      }
+      if (result.error.code === "PROFILE_FORBIDDEN") {
+        throw new ForbiddenException({ code: result.error.code });
+      }
+      throw new BadRequestException({ code: result.error.code });
+    }
+    return { ok: true, value: undefined };
   }
 
   @Post("account/deletion")

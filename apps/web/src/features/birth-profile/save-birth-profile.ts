@@ -3,6 +3,7 @@ import "server-only";
 import {
   BirthProfileV1Schema,
   type CurrentActor,
+  ReadingContextV1Schema,
   type Result,
   ZiweiEligibilityV1Schema,
   type ZiweiEligibilityV1,
@@ -18,6 +19,7 @@ import {
   CurrentActorResolutionError,
   resolveCurrentActor,
 } from "../../auth/resolve-current-actor";
+import { getOrReconcileVisitorId } from "../../analytics/visitor-cookie";
 
 export type BirthProfileSubmissionValue = {
   profileId: string;
@@ -35,6 +37,7 @@ export type BirthProfileSubmissionError =
 export type BirthProfileSubmissionDependencies = {
   resolveCurrentActor(): Promise<CurrentActor>;
   privateApiClient(actor: CurrentActor, requestId: string): PrivateApiClient;
+  getVisitorId(): Promise<string>;
 };
 
 type ApiResult<T> =
@@ -106,6 +109,9 @@ function profileError(code: string): Result<never, BirthProfileSubmissionError> 
   if (code === "INVALID_TIMEZONE" || code === "INVALID_CALENDAR_INPUT") {
     return failure("VALIDATION_FAILED");
   }
+  if (code === "READING_CONTEXT_INVALID") {
+    return failure("VALIDATION_FAILED");
+  }
   if (code === "ANONYMOUS_EXPIRED") {
     return failure("ANONYMOUS_EXPIRED");
   }
@@ -150,6 +156,7 @@ export function createBirthProfileSubmission(
   return async (input: {
     profile: unknown;
     explicitConsent: boolean;
+    readingContext?: unknown;
   }): Promise<Result<BirthProfileSubmissionValue, BirthProfileSubmissionError>> => {
     if (input.explicitConsent !== true) {
       return failure("CONSENT_REQUIRED");
@@ -158,12 +165,29 @@ export function createBirthProfileSubmission(
     if (!parsed.success) {
       return failure("VALIDATION_FAILED");
     }
+    const readingContext =
+      input.readingContext === undefined
+        ? undefined
+        : ReadingContextV1Schema.safeParse(input.readingContext);
+    if (readingContext !== undefined && !readingContext.success) {
+      return failure("VALIDATION_FAILED");
+    }
 
     let actor: CurrentActor;
     try {
       actor = await dependencies.resolveCurrentActor();
     } catch (error) {
       return actorError(error);
+    }
+
+    let visitorId: string;
+    try {
+      visitorId = await dependencies.getVisitorId();
+    } catch {
+      return failure("PROFILE_FORBIDDEN");
+    }
+    if (!visitorId || typeof visitorId !== "string" || visitorId.trim() === "") {
+      return failure("PROFILE_FORBIDDEN");
     }
     const api = dependencies.privateApiClient(actor, actor.requestId);
     const consent = await api.request<ApiResult<{ id: string }>>(
@@ -174,8 +198,9 @@ export function createBirthProfileSubmission(
         body: JSON.stringify({
           version: 1,
           documentKey: "privacy",
-          documentVersion: parsed.data.consentVersion,
-          purpose: "birth-profile-calculation",
+          documentVersion: "2026-09-14",
+          purposes: ["birth_profile", "analytics", "personalization", "offers"],
+          visitorId: visitorId.trim(),
         }),
       },
     );
@@ -188,18 +213,59 @@ export function createBirthProfileSubmission(
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(parsed.data),
+        body: JSON.stringify(
+          readingContext === undefined
+            ? parsed.data
+            : { profile: parsed.data, readingContext: readingContext.data },
+        ),
       },
     ));
     if (!profile.ok) {
       return profileError(profile.error.code);
     }
+
+    const createdProfile = profile.value;
+
+    async function requestAssociation(): Promise<boolean> {
+      try {
+        const assocResponse = await api.request<unknown>(
+          "/privacy/associate-profile",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              version: 1,
+              visitorId: visitorId.trim(),
+              profileId: createdProfile.profileId,
+            }),
+          },
+        );
+        return (
+          typeof assocResponse === "object" &&
+          assocResponse !== null &&
+          "ok" in assocResponse &&
+          assocResponse.ok === true
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    let associated = await requestAssociation();
+    if (!associated) {
+      associated = await requestAssociation();
+    }
+
+    if (!associated) {
+      return failure("PROFILE_FORBIDDEN");
+    }
+
     return {
       ok: true,
       value: {
-        profileId: profile.value.profileId,
-        revisionId: profile.value.revisionId,
-        ziweiEligibility: profile.value.ziweiEligibility,
+        profileId: createdProfile.profileId,
+        revisionId: createdProfile.revisionId,
+        ziweiEligibility: createdProfile.ziweiEligibility,
         ...(actor.kind === "anonymous" ? { expiresAt: actor.expiresAt } : {}),
       },
     };
@@ -209,4 +275,5 @@ export function createBirthProfileSubmission(
 export const saveBirthProfile = createBirthProfileSubmission({
   resolveCurrentActor,
   privateApiClient,
+  getVisitorId: getOrReconcileVisitorId,
 });

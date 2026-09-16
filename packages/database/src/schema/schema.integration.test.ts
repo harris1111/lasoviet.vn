@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import postgres from "postgres";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { and, asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -16,13 +18,19 @@ import {
   commerceOrders,
   commerceEntitlements,
 } from "./commerce.js";
+import { reportReservations } from "./reports.js";
 import {
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
 } from "@lasoviet/contracts";
 import {
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
+  calculationRuns,
+  ziweiCharts,
+  ziweiChartVersions,
 } from "./birth-profile.js";
 import { consents, deletionRequests } from "./privacy.js";
 import { enqueueOutbox, outbox } from "./outbox.js";
@@ -36,6 +44,12 @@ import {
 import { runMigrations } from "../migrate.js";
 import { notificationDeliveries } from "./notifications.js";
 import { aiModelPricing, aiCallAttempts, aiUsageOutcomes } from "./ai-cost.js";
+import {
+  accountBehaviorProfiles,
+  analyticsEvents,
+  analyticsFraudIpRecords,
+  analyticsVisitors,
+} from "./analytics.js";
 
 describe("database schema integration", () => {
   let container:
@@ -739,4 +753,678 @@ describe("database schema integration", () => {
 
     await database.$client.end();
   }, 120_000);
+
+  it("enforces analytics schema constraints, unique idempotency, and foreign key deletion behavior", async () => {
+    const database = createDatabase(databaseUrl);
+    const userId = "user_analytics_test";
+    const profileId = "profile_analytics_test";
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Analytics Test User",
+      email: "analytics-test@example.test",
+    });
+    await database.insert(birthProfiles).values({
+      id: profileId,
+      userId,
+    });
+
+    const unlinkedVisitorId = "vis_unlinked_1";
+    const unlinkedExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    // 1. Unlinked visitor with expiresAt set succeeds
+    await database.insert(analyticsVisitors).values({
+      id: unlinkedVisitorId,
+      expiresAt: unlinkedExpiry,
+    });
+
+    // Unlinked visitor with null expiresAt fails check constraint
+    await expect(
+      database.insert(analyticsVisitors).values({
+        id: "vis_unlinked_invalid",
+        expiresAt: null,
+      }),
+    ).rejects.toBeDefined();
+
+    // Anonymous consented visitor with birthProfileId and 30-day expiry is valid
+    const anonymousActorId = "anon_actor_analytics_test";
+    const anonymousProfileId = "profile_anon_analytics_test";
+    await database.insert(authAnonymousActors).values({
+      id: anonymousActorId,
+      expiresAt: unlinkedExpiry,
+    });
+    await database.insert(birthProfiles).values({
+      id: anonymousProfileId,
+      anonymousActorId,
+      anonymousExpiresAt: unlinkedExpiry,
+    });
+
+    const consentedVisitorId = "vis_anonymous_consented";
+    const consentedAt = new Date();
+    await database.insert(analyticsVisitors).values({
+      id: consentedVisitorId,
+      birthProfileId: anonymousProfileId,
+      consentedAt,
+      expiresAt: unlinkedExpiry,
+    });
+
+    const [consentedVisitor] = await database
+      .select()
+      .from(analyticsVisitors)
+      .where(eq(analyticsVisitors.id, consentedVisitorId));
+    expect(consentedVisitor).toMatchObject({
+      id: consentedVisitorId,
+      birthProfileId: anonymousProfileId,
+      consentedAt,
+      expiresAt: unlinkedExpiry,
+      userId: null,
+      linkedAt: null,
+    });
+
+    // Consented unlinked visitor with null expiresAt still fails check constraint
+    await expect(
+      database.insert(analyticsVisitors).values({
+        id: "vis_consented_no_expiry_invalid",
+        birthProfileId: anonymousProfileId,
+        consentedAt,
+        expiresAt: null,
+      }),
+    ).rejects.toBeDefined();
+
+    // 2. Linked visitor with userId, linkedAt set, and null expiresAt succeeds
+    const linkedVisitorId = "vis_linked_1";
+    await database.insert(analyticsVisitors).values({
+      id: linkedVisitorId,
+      userId,
+      linkedAt: new Date(),
+      expiresAt: null,
+      birthProfileId: profileId,
+      consentedAt,
+    });
+
+    // Linked visitor with expiresAt set fails check constraint
+    await expect(
+      database.insert(analyticsVisitors).values({
+        id: "vis_linked_invalid",
+        userId,
+        linkedAt: new Date(),
+        expiresAt: unlinkedExpiry,
+      }),
+    ).rejects.toBeDefined();
+
+    const [linkedVisitor] = await database
+      .select()
+      .from(analyticsVisitors)
+      .where(eq(analyticsVisitors.id, linkedVisitorId));
+    expect(linkedVisitor).toMatchObject({
+      id: linkedVisitorId,
+      userId,
+      birthProfileId: profileId,
+      consentedAt,
+      expiresAt: null,
+    });
+
+    // 3. Analytics events: unlinked event with unlinkedExpiresAt set succeeds
+    await database.insert(analyticsEvents).values({
+      id: "evt_unlinked_1",
+      idempotencyKey: "idemp_unlinked_1",
+      visitorId: unlinkedVisitorId,
+      name: "landing",
+      properties: { landing_page: "/tra-cuu" },
+      ip: "192.168.1.1",
+      ipExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      unlinkedExpiresAt: unlinkedExpiry,
+    });
+
+    // Unlinked event with null unlinkedExpiresAt fails check constraint
+    await expect(
+      database.insert(analyticsEvents).values({
+        id: "evt_unlinked_invalid",
+        idempotencyKey: "idemp_unlinked_invalid",
+        visitorId: unlinkedVisitorId,
+        name: "landing",
+        properties: {},
+        unlinkedExpiresAt: null,
+      }),
+    ).rejects.toBeDefined();
+
+    // Duplicate idempotency key fails unique constraint
+    await expect(
+      database.insert(analyticsEvents).values({
+        id: "evt_unlinked_duplicate",
+        idempotencyKey: "idemp_unlinked_1",
+        visitorId: unlinkedVisitorId,
+        name: "landing",
+        properties: {},
+        unlinkedExpiresAt: unlinkedExpiry,
+      }),
+    ).rejects.toBeDefined();
+
+    // Linked event with userId and null unlinkedExpiresAt succeeds
+    await database.insert(analyticsEvents).values({
+      id: "evt_linked_1",
+      idempotencyKey: "idemp_linked_1",
+      visitorId: linkedVisitorId,
+      userId,
+      birthProfileId: profileId,
+      name: "chart_success",
+      properties: { engine_version: "v3" },
+      ip: "10.0.0.1",
+      ipExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      unlinkedExpiresAt: null,
+    });
+
+    // Linked event with unlinkedExpiresAt set fails check constraint
+    await expect(
+      database.insert(analyticsEvents).values({
+        id: "evt_linked_invalid",
+        idempotencyKey: "idemp_linked_invalid",
+        visitorId: linkedVisitorId,
+        userId,
+        name: "chart_success",
+        properties: {},
+        unlinkedExpiresAt: unlinkedExpiry,
+      }),
+    ).rejects.toBeDefined();
+
+    // Event with IP but null ipExpiresAt fails check constraint
+    await expect(
+      database.insert(analyticsEvents).values({
+        id: "evt_ip_invalid",
+        idempotencyKey: "idemp_ip_invalid",
+        visitorId: unlinkedVisitorId,
+        name: "landing",
+        properties: {},
+        ip: "1.2.3.4",
+        ipExpiresAt: null,
+        unlinkedExpiresAt: unlinkedExpiry,
+      }),
+    ).rejects.toBeDefined();
+
+    // 4. Account behavior profile succeeds and enforces unique userId
+    await database.insert(accountBehaviorProfiles).values({
+      id: "beh_1",
+      userId,
+      lockedSectionsViewed: ["section_career"],
+      topupPacksViewed: ["pack_50k"],
+      laBalance: 20,
+      interestTopics: ["career"],
+    });
+
+    await expect(
+      database.insert(accountBehaviorProfiles).values({
+        id: "beh_duplicate",
+        userId,
+        lockedSectionsViewed: [],
+        topupPacksViewed: [],
+        interestTopics: [],
+      }),
+    ).rejects.toBeDefined();
+
+    // 5. Fraud IP record with inet succeeds
+    await database.insert(analyticsFraudIpRecords).values({
+      id: "fraud_1",
+      ip: "203.0.113.195",
+      action: "auth.register",
+      userId,
+      visitorId: linkedVisitorId,
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    });
+
+    // 6. Deleting birthProfile sets birthProfileId to null
+    await database.delete(birthProfiles).where(eq(birthProfiles.id, profileId));
+    const [visitorAfterProfileDelete] = await database
+      .select()
+      .from(analyticsVisitors)
+      .where(eq(analyticsVisitors.id, linkedVisitorId));
+    expect(visitorAfterProfileDelete?.birthProfileId).toBeNull();
+
+    const [eventAfterProfileDelete] = await database
+      .select()
+      .from(analyticsEvents)
+      .where(eq(analyticsEvents.id, "evt_linked_1"));
+    expect(eventAfterProfileDelete?.birthProfileId).toBeNull();
+
+    // 7. Deleting authUsers cascades and removes linked visitor, event, behavior profile, and fraud record
+    await database.delete(authUsers).where(eq(authUsers.id, userId));
+
+    const visitorsForUser = await database
+      .select()
+      .from(analyticsVisitors)
+      .where(eq(analyticsVisitors.id, linkedVisitorId));
+    expect(visitorsForUser).toHaveLength(0);
+
+    const eventsForUser = await database
+      .select()
+      .from(analyticsEvents)
+      .where(eq(analyticsEvents.id, "evt_linked_1"));
+    expect(eventsForUser).toHaveLength(0);
+
+    const profilesForUser = await database
+      .select()
+      .from(accountBehaviorProfiles)
+      .where(eq(accountBehaviorProfiles.id, "beh_1"));
+    expect(profilesForUser).toHaveLength(0);
+
+    const fraudForUser = await database
+      .select()
+      .from(analyticsFraudIpRecords)
+      .where(eq(analyticsFraudIpRecords.id, "fraud_1"));
+    expect(fraudForUser).toHaveLength(0);
+
+    // Unlinked visitor and event are preserved
+    const unlinkedVisitors = await database
+      .select()
+      .from(analyticsVisitors)
+      .where(eq(analyticsVisitors.id, unlinkedVisitorId));
+    expect(unlinkedVisitors).toHaveLength(1);
+
+    await database.$client.end();
+  }, 120_000);
+
+  it("keeps migration journal identifiers sequential and unique", async () => {
+    const journalUrl = new URL("../../drizzle/meta/_journal.json", import.meta.url);
+    const journal = JSON.parse(await readFile(journalUrl, "utf8")) as {
+      entries: Array<{ idx: number; when: number; tag: string }>;
+    };
+
+    expect(journal.entries.length).toBeGreaterThanOrEqual(29);
+    for (let i = 1; i < journal.entries.length; i++) {
+      const prev = journal.entries[i - 1]!;
+      const curr = journal.entries[i]!;
+      expect(curr.idx).toBe(prev.idx + 1);
+      expect(curr.when).toBeGreaterThan(prev.when);
+    }
+
+    const indexes = journal.entries.map((entry) => entry.idx);
+    const tags = journal.entries.map((entry) => entry.tag);
+    const timestamps = journal.entries.map((entry) => entry.when);
+    expect(new Set(indexes).size).toBe(indexes.length);
+    expect(new Set(tags).size).toBe(tags.length);
+    expect(new Set(timestamps).size).toBe(timestamps.length);
+    expect(journal.entries.slice(-6)).toEqual([
+      {
+        idx: 26,
+        version: "7",
+        when: 1789718400000,
+        tag: "0026_ai_usage_and_cost",
+        breakpoints: true,
+      },
+      {
+        idx: 27,
+        version: "7",
+        when: 1789804800000,
+        tag: "0027_birth_profile_reading_context",
+        breakpoints: true,
+      },
+      {
+        idx: 28,
+        version: "7",
+        when: 1789891200000,
+        tag: "0028_account_linked_analytics",
+        breakpoints: true,
+      },
+      {
+        idx: 29,
+        version: "7",
+        when: 1789977600000,
+        tag: "0029_report_section_checkpoints",
+        breakpoints: true,
+      },
+      {
+        idx: 30,
+        version: "7",
+        when: 1790064000000,
+        tag: "0030_report_section_checkpoint_revisions",
+        breakpoints: true,
+      },
+      {
+        idx: 31,
+        version: "7",
+        when: 1790553600000,
+        tag: "0031_report_reading_context_freeze",
+        breakpoints: true,
+      },
+    ]);
+  });
+
+  it("applies 0026 AI cost, 0027 reading context, 0028 analytics, and 0029 checkpoints to a clean database", async () => {
+    const client = postgres(databaseUrl);
+
+    const migrations = await client<{ created_at: string }[]>`
+      SELECT created_at
+      FROM drizzle.__drizzle_migrations
+      WHERE created_at IN (1789718400000, 1789804800000, 1789891200000, 1789977600000)
+      ORDER BY created_at ASC
+    `;
+    expect(migrations.map((migration) => Number(migration.created_at))).toEqual([
+      1789718400000,
+      1789804800000,
+      1789891200000,
+      1789977600000,
+    ]);
+
+    const tables = await client<{ table_name: string }[]>`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name IN (
+          'ai_model_pricing',
+          'ai_call_attempts',
+          'ai_usage_outcomes',
+          'analytics_visitors',
+          'analytics_events',
+          'account_behavior_profiles',
+          'analytics_fraud_ip_records',
+          'report_section_checkpoints',
+          'report_section_checkpoint_revisions'
+        )
+      ORDER BY table_name ASC
+    `;
+    expect(tables.map((table) => table.table_name)).toEqual([
+      "account_behavior_profiles",
+      "ai_call_attempts",
+      "ai_model_pricing",
+      "ai_usage_outcomes",
+      "analytics_events",
+      "analytics_fraud_ip_records",
+      "analytics_visitors",
+      "report_section_checkpoint_revisions",
+      "report_section_checkpoints",
+    ]);
+
+    await client.end();
+  });
+
+  it("upgrades 0030 and 0031 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+    const client = postgres(databaseUrl);
+    const database = createDatabase(databaseUrl);
+    const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
+    const userId = "checkpoint-upgrade-user";
+    const profileId = "checkpoint-upgrade-profile";
+    const revisionId = "checkpoint-upgrade-revision";
+    const visitorId = "checkpoint-upgrade-visitor";
+    const eventId = "checkpoint-upgrade-event";
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Checkpoint Upgrade User",
+      email: "checkpoint-upgrade@example.test",
+      createdAt: upgradeNow,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(birthProfiles).values({
+      id: profileId,
+      userId,
+      createdAt: upgradeNow,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: revisionId,
+      profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+      createdAt: upgradeNow,
+    });
+    await database.insert(birthProfileReadingContexts).values({
+      profileId,
+      currentRevisionId: revisionId,
+      stateVersion: 1,
+      lastRevisionNumber: 1,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(analyticsVisitors).values({
+      id: visitorId,
+      userId,
+      birthProfileId: profileId,
+      linkedAt: upgradeNow,
+      firstSeenAt: upgradeNow,
+      lastSeenAt: upgradeNow,
+      createdAt: upgradeNow,
+      updatedAt: upgradeNow,
+    });
+    await database.insert(analyticsEvents).values({
+      id: eventId,
+      idempotencyKey: "checkpoint-upgrade-event-key",
+      visitorId,
+      userId,
+      birthProfileId: profileId,
+      name: "birth_profile_saved",
+      properties: { source: "checkpoint-upgrade" },
+      occurredAt: upgradeNow,
+      createdAt: upgradeNow,
+    });
+
+    await client`
+      ALTER TABLE report_reservations
+      DROP CONSTRAINT IF EXISTS report_reservations_reading_context_revision_id_birth_profile_reading_context_revisions_id_fk
+    `;
+    await client`DROP INDEX IF EXISTS report_reservations_reading_context_revision_idx`;
+    await client`
+      ALTER TABLE report_reservations
+      DROP COLUMN IF EXISTS reading_context_revision_id
+    `;
+    await client`DROP TABLE IF EXISTS report_section_checkpoint_revisions`;
+    await client`
+      DELETE FROM drizzle.__drizzle_migrations
+      WHERE created_at IN (1790064000000, 1790553600000)
+    `;
+
+    const [latestBefore] = await client<{ created_at: string }[]>`
+      SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
+    `;
+    expect(Number(latestBefore?.created_at)).toBe(1789977600000);
+
+    await runMigrations(databaseUrl);
+
+    const [latestAfter] = await client<{ created_at: string }[]>`
+      SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
+    `;
+    expect(Number(latestAfter?.created_at)).toBe(1790553600000);
+
+    const reappliedMigrations = await client<{ created_at: string }[]>`
+      SELECT created_at
+      FROM drizzle.__drizzle_migrations
+      WHERE created_at IN (1790064000000, 1790553600000)
+      ORDER BY created_at ASC
+    `;
+    expect(reappliedMigrations.map((migration) => Number(migration.created_at))).toEqual([
+      1790064000000,
+      1790553600000,
+    ]);
+
+    const [checkpointTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'report_section_checkpoints'
+      ) as exists
+    `;
+    expect(checkpointTableCheck?.exists).toBe(true);
+
+    const [revisionTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'report_section_checkpoint_revisions'
+      ) as exists
+    `;
+    expect(revisionTableCheck?.exists).toBe(true);
+
+    const [revisionForeignKey] = await client<{ delete_rule: string }[]>`
+      SELECT delete_rule
+      FROM information_schema.referential_constraints
+      WHERE constraint_name = 'report_section_checkpoint_revisions_checkpoint_fk'
+    `;
+    expect(revisionForeignKey?.delete_rule).toBe("RESTRICT");
+
+    const [aiTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'ai_model_pricing'
+      ) as exists
+    `;
+    expect(aiTableCheck?.exists).toBe(true);
+
+    const [aiDataCheck] = await client<{ count: string }[]>`
+      SELECT count(*) FROM ai_model_pricing WHERE pricing_version = 'v1-20260914'
+    `;
+    expect(Number(aiDataCheck?.count)).toBeGreaterThan(0);
+
+    const [readingContextTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'birth_profile_reading_contexts'
+      ) as exists
+    `;
+    expect(readingContextTableCheck?.exists).toBe(true);
+
+    const [context] = await database.select().from(birthProfileReadingContexts).where(
+      eq(birthProfileReadingContexts.profileId, profileId),
+    );
+    const [revision] = await database.select().from(birthProfileReadingContextRevisions).where(
+      eq(birthProfileReadingContextRevisions.id, revisionId),
+    );
+    const [visitor] = await database.select().from(analyticsVisitors).where(
+      eq(analyticsVisitors.id, visitorId),
+    );
+    const [event] = await database.select().from(analyticsEvents).where(
+      eq(analyticsEvents.id, eventId),
+    );
+    expect(context).toMatchObject({
+      profileId,
+      currentRevisionId: revisionId,
+      stateVersion: 1,
+      lastRevisionNumber: 1,
+    });
+    expect(revision).toMatchObject({
+      id: revisionId,
+      profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+    });
+    expect(visitor).toMatchObject({
+      id: visitorId,
+      userId,
+      birthProfileId: profileId,
+      linkedAt: upgradeNow,
+    });
+    expect(event).toMatchObject({
+      id: eventId,
+      visitorId,
+      userId,
+      birthProfileId: profileId,
+      name: "birth_profile_saved",
+      properties: { source: "checkpoint-upgrade" },
+    });
+
+    await client.end();
+  });
+
+  it("nulls a reservation context reference when profile hard purge cascades its revision", async () => {
+    const database = createDatabase(databaseUrl);
+    const userId = "reservation-context-purge-user";
+    const profileId = "reservation-context-purge-profile";
+    const profileRevisionId = "reservation-context-purge-profile-revision";
+    const contextRevisionId = "reservation-context-purge-context-revision";
+    const runId = "reservation-context-purge-run";
+    const chartId = "reservation-context-purge-chart";
+    const chartVersionId = "reservation-context-purge-chart-version";
+    const orderId = "00000000-0000-4000-8000-000000000034";
+    const entitlementId = "00000000-0000-4000-8000-000000000035";
+    const reservationId = "00000000-0000-4000-8000-000000000031";
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Reservation Context Purge User",
+      email: "reservation-context-purge@example.test",
+    });
+    await database.insert(birthProfiles).values({ id: profileId, userId });
+    await database.insert(birthProfileRevisions).values({
+      id: profileRevisionId,
+      profileId,
+      revisionNumber: 1,
+      originalInput: {},
+      normalizedInput: {},
+      consentVersion: "privacy.v1",
+    });
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: contextRevisionId,
+      profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+    });
+    await database.insert(calculationRuns).values({
+      id: runId,
+      profileId,
+      profileRevisionId,
+      idempotencyKey: "reservation-context-purge-run",
+      engineId: "ziwei.iztro",
+      engineVersion: "1",
+      adapterId: "iztro",
+      adapterVersion: "1",
+      schemaId: "ziwei.chart.v1",
+      ruleSetId: "ziwei.default",
+      inputHash: "a".repeat(64),
+      configHash: "b".repeat(64),
+      rawSnapshotHash: "c".repeat(64),
+    });
+    await database.insert(ziweiCharts).values({
+      id: chartId,
+      profileId,
+      profileRevisionId,
+    });
+    await database.insert(ziweiChartVersions).values({
+      id: chartVersionId,
+      chartId,
+      calculationRunId: runId,
+      normalizedOutput: {},
+      privateRawSnapshot: {},
+      warnings: [],
+      provenance: {},
+    });
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: "LSV-RESERVATION-CONTEXT-PURGE",
+      chartId,
+      chartVersionId,
+      ownerId: userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      amount: 79_000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.insert(commerceEntitlements).values({
+      id: entitlementId,
+      orderId,
+      chartId,
+      ownerId: userId,
+      sku: "ZIWEI-IDENTITY-P0",
+      scope: TIER_2_ENTITLEMENT_SCOPE,
+    });
+    await database.insert(reportReservations).values({
+      id: reservationId,
+      reportId: "00000000-0000-4000-8000-000000000032",
+      reportVersionId: "00000000-0000-4000-8000-000000000033",
+      entitlementId,
+      chartVersionId,
+      evidenceVersionId: "reservation-context-purge-evidence",
+      knowledgeVersionId: "knowledge.v1",
+      promptVersion: "prompt.v1",
+      reportConfigVersion: "config.v1",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      readingContextRevisionId: contextRevisionId,
+    });
+
+    await database.delete(birthProfiles).where(eq(birthProfiles.id, profileId));
+
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.id, reservationId));
+    expect(reservation).toBeDefined();
+    expect(reservation?.readingContextRevisionId).toBeNull();
+  });
 });

@@ -59,6 +59,11 @@
       "id": "source-manifest",
       "path": "data/source_manifest.md",
       "description": "Repository source inventory and limits for supplied research data."
+    },
+    {
+      "id": "lsv-12-claim-record",
+      "path": "docs/compliance/lsv-12-analytics-privacy-claim-record.md",
+      "description": "Initial LSV-12 analytics and privacy claim record for adoption by LSV-13."
     }
   ]
 }

@@ -15,7 +15,9 @@ import {
 } from "@nestjs/common";
 
 import {
+  BirthProfileCreateRequestV1Schema,
   BirthProfileRequestV1Schema,
+  normalizeBirthProfileCreateRequest,
   type CurrentActor,
 } from "@lasoviet/contracts";
 import { createBirthProfileService } from "@lasoviet/backend";
@@ -79,13 +81,27 @@ export class BirthProfileController {
     return parsed.data;
   }
 
+  private createRequest(body: unknown) {
+    const parsed = BirthProfileCreateRequestV1Schema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ code: "BIRTH_PROFILE_INVALID" });
+    }
+    return normalizeBirthProfileCreateRequest(parsed.data);
+  }
+
   @Post()
   @HttpCode(HttpStatus.OK)
   async create(
     @Headers("authorization") authorization: string | undefined,
     @Body() body: unknown,
   ) {
-    return this.service.create(await this.actor(authorization), this.request(body));
+    const actor = await this.actor(authorization);
+    const request = this.createRequest(body);
+    return this.service.createWithContext(
+      actor,
+      request.profile,
+      request.readingContext,
+    );
   }
 
   @Get(":profileId")
@@ -103,8 +119,9 @@ export class BirthProfileController {
     @Param("profileId") profileId: string,
     @Body() body: unknown,
   ) {
+    const actor = await this.actor(authorization);
     return this.service.update(
-      await this.actor(authorization),
+      actor,
       profileId,
       this.request(body),
     );

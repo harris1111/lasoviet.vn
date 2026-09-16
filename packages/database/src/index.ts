@@ -26,6 +26,9 @@ export {
   notificationDeliveryStatus,
 } from "./schema/notifications.js";
 export {
+  birthProfileReadingContextMutationReceipts,
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
   calculationRuns,
@@ -46,6 +49,8 @@ export {
   reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,
+  reportSectionCheckpoints,
+  reportSectionCheckpointRevisions,
   reportSourceSnapshots,
   reportVersions,
 } from "./schema/reports.js";
@@ -72,3 +77,9 @@ export {
   aiCallAttempts,
   aiUsageOutcomes,
 } from "./schema/ai-cost.js";
+export {
+  accountBehaviorProfiles,
+  analyticsEvents,
+  analyticsFraudIpRecords,
+  analyticsVisitors,
+} from "./schema/analytics.js";

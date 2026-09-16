@@ -22,6 +22,33 @@ import {
 
 export const dynamic = "force-dynamic";
 
+export const PURPOSE_LABELS = {
+  birth_profile: {
+    vi: "Lập và lưu hồ sơ lá số",
+    en: "Create and store birth profiles",
+  },
+  analytics: {
+    vi: "Phân tích việc sử dụng sản phẩm",
+    en: "Product usage analytics",
+  },
+  personalization: {
+    vi: "Cá nhân hoá nội dung",
+    en: "Content personalization",
+  },
+  offers: {
+    vi: "Gợi ý dịch vụ và ưu đãi phù hợp",
+    en: "Relevant service and offer suggestions",
+  },
+} as const;
+
+export function formatPurposeLabel(purpose: string, locale: "vi" | "en"): string {
+  if (purpose in PURPOSE_LABELS) {
+    return PURPOSE_LABELS[purpose as keyof typeof PURPOSE_LABELS][locale];
+  }
+  return locale === "vi" ? "Mục đích xử lý dữ liệu" : "Data processing purpose";
+}
+
+
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
@@ -89,12 +116,7 @@ export default async function AccountPrivacyPage({
 
         <div className="account-rows-list" style={{ marginTop: "24px" }}>
           {consents.map((c) => {
-            const purposeLabel =
-              c.purpose === "birth_profile"
-                ? isVi
-                  ? "Xử lý hồ sơ lá số"
-                  : "Birth profile processing"
-                : c.purpose;
+            const purposeLabel = formatPurposeLabel(c.purpose, routeLocale);
             const grantedDate = formatHoChiMinhDateTime(c.grantedAt, routeLocale);
             const docInfo = isVi
               ? `Tài liệu: ${c.documentKey} (${c.documentVersion}) · Đồng ý ngày ${grantedDate}`
@@ -102,7 +124,7 @@ export default async function AccountPrivacyPage({
 
             return (
               <div
-                key={`${c.documentKey}-${c.purpose}`}
+                key={`${c.documentKey}-${c.documentVersion}-${c.purpose}-${c.grantedAt}`}
                 className="account-row-card"
                 style={{ padding: "18px 24px" }}
               >
@@ -147,8 +169,8 @@ export default async function AccountPrivacyPage({
             </h3>
             <p className="account-text-muted" style={{ lineHeight: 1.5 }}>
               {isVi
-                ? "Tải toàn bộ hồ sơ lá số, báo cáo đã mua và thông tin tài khoản dưới dạng một file JSON."
-                : "Download your birth profiles, purchased reports, and account data as a JSON file."}
+                ? "Tải toàn bộ hồ sơ lá số, báo cáo đã mua, lịch sử sử dụng và hồ sơ hành vi tài khoản dưới dạng một file JSON."
+                : "Download your birth profiles, purchased reports, usage history, and account behavior profile as a JSON file."}
             </p>
             <div style={{ marginTop: "12px" }}>
               <a

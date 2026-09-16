@@ -58,7 +58,7 @@
   "review": {
     "title": "Kiểm tra thông tin",
     "unknown": "Không rõ giờ sinh",
-    "consent": "Tôi đồng ý để Lá Số Việt xử lý thông tin sinh nhằm lập lá số này.",
+    "consent": "Tôi đồng ý để Lá Số Việt xử lý thông tin sinh để lập lá số, và dùng dữ liệu sử dụng của tôi để cá nhân hoá nội dung, gợi ý dịch vụ phù hợp theo <link>Chính sách bảo mật</link>.",
     "privacy": "Lá số riêng tư theo mặc định. Dữ liệu tạm thời của khách sẽ hết hạn sau 24 giờ.",
     "stepTitle": "Kiểm tra & riêng tư",
     "stepSub": "Rà soát lại toàn bộ thông tin đã nhập trước khi hệ thống tính toán và an sao lá số.",

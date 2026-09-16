@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   TIER_2_ENTITLEMENT_SCOPE,
@@ -8,6 +9,9 @@ import {
 
 import {
   authUsers,
+  birthProfileReadingContextMutationReceipts,
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
   calculationRuns,
@@ -64,6 +68,54 @@ describe("account-center service with PostgreSQL Testcontainers", () => {
     normalizationWarnings: [],
     limitations: [],
   };
+
+  async function seedIncoherentReadingContext(options: {
+    revisionNumbers: number[];
+    currentRevisionNumber: number | null;
+    stateVersion: number;
+    lastRevisionNumber: number;
+  }): Promise<string> {
+    const fixtureId = randomUUID();
+    const userId = `user-context-incoherent-${fixtureId}`;
+    const profileId = `profile-context-incoherent-${fixtureId}`;
+    const contextRevisions = options.revisionNumbers.map((revisionNumber) => ({
+      id: `context-incoherent-${fixtureId}-${revisionNumber}`,
+      profileId,
+      revisionNumber,
+      lifeStage: "early_career",
+      topConcern: null,
+    }));
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Incoherent Context User",
+      email: `context-incoherent-${fixtureId}@example.test`,
+      emailVerified: true,
+    });
+    await database.insert(birthProfiles).values({ id: profileId, userId });
+    await database.insert(birthProfileRevisions).values({
+      id: `birth-context-incoherent-${fixtureId}`,
+      profileId,
+      revisionNumber: 1,
+      originalInput: validOriginalInput,
+      normalizedInput: validPersistedNormalizedInput,
+      consentVersion: "2026-09-01",
+    });
+    await database.insert(birthProfileReadingContextRevisions).values(
+      contextRevisions,
+    );
+    await database.insert(birthProfileReadingContexts).values({
+      profileId,
+      currentRevisionId:
+        options.currentRevisionNumber === null
+          ? null
+          : `context-incoherent-${fixtureId}-${options.currentRevisionNumber}`,
+      stateVersion: options.stateVersion,
+      lastRevisionNumber: options.lastRevisionNumber,
+    });
+
+    return userId;
+  }
 
   const sectionIds = [
     "personal_summary",
@@ -217,6 +269,28 @@ describe("account-center service with PostgreSQL Testcontainers", () => {
         consentVersion: "2026-09-01",
       },
     ]);
+    await database.insert(birthProfileReadingContextRevisions).values([
+      {
+        id: "context-owner-1-r1",
+        profileId: "p-owner-1",
+        revisionNumber: 1,
+        lifeStage: "early_career",
+        topConcern: null,
+      },
+      {
+        id: "context-owner-1-r2",
+        profileId: "p-owner-1",
+        revisionNumber: 2,
+        lifeStage: "established_career",
+        topConcern: "money",
+      },
+    ]);
+    await database.insert(birthProfileReadingContexts).values({
+      profileId: "p-owner-1",
+      currentRevisionId: "context-owner-1-r2",
+      stateVersion: 2,
+      lastRevisionNumber: 2,
+    });
 
     // Owner 1 calculation run & chart
     await database.insert(calculationRuns).values({
@@ -344,6 +418,19 @@ describe("account-center service with PostgreSQL Testcontainers", () => {
       originalInput: validOriginalInput,
       normalizedInput: validPersistedNormalizedInput,
       consentVersion: "2026-09-01",
+    });
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: "context-owner-2-r1",
+      profileId: "p-owner-2",
+      revisionNumber: 1,
+      lifeStage: "retired",
+      topConcern: "family",
+    });
+    await database.insert(birthProfileReadingContexts).values({
+      profileId: "p-owner-2",
+      currentRevisionId: "context-owner-2-r1",
+      stateVersion: 1,
+      lastRevisionNumber: 1,
     });
 
     await database.insert(commerceOrders).values({
@@ -923,6 +1010,22 @@ describe("account-center service with PostgreSQL Testcontainers", () => {
       expect(exp.profiles[0]!.revisions[0]!.normalizedInput?.normalizedCalendar.kind).toBe("solar");
       expect(exp.profiles[0]!.revisions[1]!.revisionNumber).toBe(2);
       expect(exp.profiles[0]!.revisions[1]!.originalInput.gender).toBe("female");
+      expect(exp.profiles[0]!.readingContext).toEqual({
+        currentRevisionNumber: 2,
+        stateVersion: 2,
+        revisions: [
+          expect.objectContaining({
+            revisionNumber: 1,
+            lifeStage: "early_career",
+            topConcern: null,
+          }),
+          expect.objectContaining({
+            revisionNumber: 2,
+            lifeStage: "established_career",
+            topConcern: "money",
+          }),
+        ],
+      });
       expect(exp.charts).toHaveLength(1);
       expect(exp.orders.length).toBeGreaterThanOrEqual(1);
       expect(exp.reports).toHaveLength(1);
@@ -967,5 +1070,313 @@ describe("account-center service with PostgreSQL Testcontainers", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("ACCOUNT_EXPORT_LIMIT_EXCEEDED");
     }
+  });
+  it("getExport includes owner-isolated analytics events and behavior profile, and handles nullable profile", async () => {
+    const analyticsUser = "user-analytics-export";
+    await database.insert(authUsers).values({
+      id: analyticsUser,
+      name: "Analytics User",
+      email: "analytics@example.test",
+      emailVerified: true,
+    });
+
+    const mockAnalyticsService: any = {
+      listAccountExportEvents: vi.fn().mockResolvedValue({
+        ok: true,
+        value: [
+          {
+            id: "evt-export-1",
+            name: "landing",
+            properties: { landing_page: "/home" },
+            occurredAt: "2026-09-14T00:00:00.000Z",
+          },
+        ],
+      }),
+      getAccountBehaviorProfile: vi.fn().mockResolvedValue(null),
+    };
+
+    const service = createAccountCenterService(database, mockAnalyticsService);
+    const result = await service.getExport(analyticsUser);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.analyticsEvents).toHaveLength(1);
+      expect(result.value.analyticsEvents![0]!.name).toBe("landing");
+      expect(result.value.behaviorProfile).toBeNull();
+      expect(mockAnalyticsService.listAccountExportEvents).toHaveBeenCalledWith(analyticsUser);
+      expect(mockAnalyticsService.getAccountBehaviorProfile).toHaveBeenCalledWith(analyticsUser);
+    }
+  });
+
+  it("getExport fails closed with ACCOUNT_EXPORT_LIMIT_EXCEEDED when analytics events exceed 500", async () => {
+    const limitUser = "user-events-limit";
+    await database.insert(authUsers).values({
+      id: limitUser,
+      name: "Events Limit User",
+      email: "evlimit@example.test",
+      emailVerified: true,
+    });
+
+    const mockAnalyticsService: any = {
+      listAccountExportEvents: vi.fn().mockResolvedValue({
+        ok: false,
+        error: { code: "ANALYTICS_EXPORT_LIMIT_EXCEEDED" },
+      }),
+      getAccountBehaviorProfile: vi.fn().mockResolvedValue(null),
+    };
+
+    const service = createAccountCenterService(database, mockAnalyticsService);
+    const result = await service.getExport(limitUser);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_EXPORT_LIMIT_EXCEEDED");
+    }
+  });
+
+  it("exports a cleared context, omits skipped context, and keeps contexts isolated by owner", async () => {
+    const userId = `user-context-state-${randomUUID()}`;
+    const clearedProfileId = `profile-context-cleared-${randomUUID()}`;
+    const skippedProfileId = `profile-context-skipped-${randomUUID()}`;
+    const clearedRevisionId = `context-cleared-r1-${randomUUID()}`;
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Context State User",
+      email: `context-state-${randomUUID()}@example.test`,
+      emailVerified: true,
+    });
+    await database.insert(birthProfiles).values([
+      { id: clearedProfileId, userId },
+      { id: skippedProfileId, userId },
+    ]);
+    await database.insert(birthProfileRevisions).values([
+      {
+        id: `birth-cleared-${randomUUID()}`,
+        profileId: clearedProfileId,
+        revisionNumber: 1,
+        originalInput: validOriginalInput,
+        normalizedInput: validPersistedNormalizedInput,
+        consentVersion: "2026-09-01",
+      },
+      {
+        id: `birth-skipped-${randomUUID()}`,
+        profileId: skippedProfileId,
+        revisionNumber: 1,
+        originalInput: validOriginalInput,
+        normalizedInput: validPersistedNormalizedInput,
+        consentVersion: "2026-09-01",
+      },
+    ]);
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: clearedRevisionId,
+      profileId: clearedProfileId,
+      revisionNumber: 1,
+      lifeStage: "studying",
+      topConcern: null,
+    });
+    await database.insert(birthProfileReadingContexts).values({
+      profileId: clearedProfileId,
+      currentRevisionId: null,
+      stateVersion: 2,
+      lastRevisionNumber: 1,
+    });
+
+    const result = await createAccountCenterService(database).getExport(userId);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const cleared = result.value.profiles.find((profile) => profile.id === clearedProfileId);
+      const skipped = result.value.profiles.find((profile) => profile.id === skippedProfileId);
+      expect(cleared?.readingContext).toMatchObject({
+        currentRevisionNumber: null,
+        stateVersion: 2,
+        revisions: [{ revisionNumber: 1, lifeStage: "studying", topConcern: null }],
+      });
+      expect(skipped).toBeDefined();
+      expect("readingContext" in (skipped ?? {})).toBe(false);
+      expect(JSON.stringify(result.value)).not.toContain("retired");
+      expect(JSON.stringify(result.value)).not.toContain("family");
+    }
+  });
+
+  it("returns ACCOUNT_EXPORT_LIMIT_EXCEEDED for 101 reading-context revisions without truncation", async () => {
+    const userId = `user-context-limit-${randomUUID()}`;
+    const profileId = `profile-context-limit-${randomUUID()}`;
+    const contextRevisions = Array.from({ length: 101 }, (_, index) => ({
+      id: `context-limit-${randomUUID()}`,
+      profileId,
+      revisionNumber: index + 1,
+      lifeStage: "early_career",
+      topConcern: null,
+    }));
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Context Limit User",
+      email: `context-limit-${randomUUID()}@example.test`,
+      emailVerified: true,
+    });
+    await database.insert(birthProfiles).values({ id: profileId, userId });
+    await database.insert(birthProfileRevisions).values({
+      id: `birth-context-limit-${randomUUID()}`,
+      profileId,
+      revisionNumber: 1,
+      originalInput: validOriginalInput,
+      normalizedInput: validPersistedNormalizedInput,
+      consentVersion: "2026-09-01",
+    });
+    await database.insert(birthProfileReadingContextRevisions).values(contextRevisions);
+    await database.insert(birthProfileReadingContexts).values({
+      profileId,
+      currentRevisionId: contextRevisions[100]!.id,
+      stateVersion: 101,
+      lastRevisionNumber: 101,
+    });
+
+    const result = await createAccountCenterService(database).getExport(userId);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_EXPORT_LIMIT_EXCEEDED");
+    }
+  });
+
+  it("getExport fails closed with ACCOUNT_RESOURCE_NOT_FOUND when analytics records are corrupt", async () => {
+    const corruptUser = "user-events-corrupt";
+    await database.insert(authUsers).values({
+      id: corruptUser,
+      name: "Events Corrupt User",
+      email: "evcorrupt@example.test",
+      emailVerified: true,
+    });
+
+    const mockAnalyticsService: any = {
+      listAccountExportEvents: vi.fn().mockResolvedValue({
+        ok: false,
+        error: { code: "ANALYTICS_EXPORT_CORRUPTED" },
+      }),
+      getAccountBehaviorProfile: vi.fn().mockResolvedValue(null),
+    };
+
+    const service = createAccountCenterService(database, mockAnalyticsService);
+    const result = await service.getExport(corruptUser);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_RESOURCE_NOT_FOUND");
+    }
+  });
+
+  it("fails export closed when reading-context revision history has a gap", async () => {
+    const userId = await seedIncoherentReadingContext({
+      revisionNumbers: [1, 3],
+      currentRevisionNumber: 3,
+      stateVersion: 3,
+      lastRevisionNumber: 3,
+    });
+
+    const result = await createAccountCenterService(database).getExport(userId);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_RESOURCE_NOT_FOUND");
+    }
+  });
+
+  it("fails export closed when current reading-context pointer is stale", async () => {
+    const userId = await seedIncoherentReadingContext({
+      revisionNumbers: [1, 2],
+      currentRevisionNumber: 1,
+      stateVersion: 2,
+      lastRevisionNumber: 2,
+    });
+
+    const result = await createAccountCenterService(database).getExport(userId);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_RESOURCE_NOT_FOUND");
+    }
+  });
+
+  it("fails export closed when reading-context stateVersion trails history", async () => {
+    const userId = await seedIncoherentReadingContext({
+      revisionNumbers: [1, 2],
+      currentRevisionNumber: 2,
+      stateVersion: 1,
+      lastRevisionNumber: 2,
+    });
+
+    const result = await createAccountCenterService(database).getExport(userId);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("ACCOUNT_RESOURCE_NOT_FOUND");
+    }
+  });
+
+  it("hard deletion of an account-owned auth user cascades its profile and reading-context records", async () => {
+    const userId = `user-context-cascade-${randomUUID()}`;
+    const profileId = `profile-context-cascade-${randomUUID()}`;
+    const contextRevisionId = `context-cascade-r1-${randomUUID()}`;
+
+    await database.insert(authUsers).values({
+      id: userId,
+      name: "Context Cascade User",
+      email: `context-cascade-${randomUUID()}@example.test`,
+      emailVerified: true,
+    });
+    await database.insert(birthProfiles).values({ id: profileId, userId });
+    await database.insert(birthProfileRevisions).values({
+      id: `birth-context-cascade-${randomUUID()}`,
+      profileId,
+      revisionNumber: 1,
+      originalInput: validOriginalInput,
+      normalizedInput: validPersistedNormalizedInput,
+      consentVersion: "2026-09-01",
+    });
+    await database.insert(birthProfileReadingContextRevisions).values({
+      id: contextRevisionId,
+      profileId,
+      revisionNumber: 1,
+      lifeStage: "business_owner",
+      topConcern: null,
+    });
+    await database.insert(birthProfileReadingContexts).values({
+      profileId,
+      currentRevisionId: contextRevisionId,
+      stateVersion: 1,
+      lastRevisionNumber: 1,
+    });
+    await database.insert(birthProfileReadingContextMutationReceipts).values({
+      profileId,
+      idempotencyKey: `context-cascade-key-${randomUUID()}`,
+      commandType: "set",
+      requestFingerprint: "a".repeat(64),
+      resultStateVersion: 1,
+      resultRevisionId: contextRevisionId,
+      resultRevisionNumber: 1,
+      resultKind: "created",
+    });
+
+    await database.delete(authUsers).where(eq(authUsers.id, userId));
+
+    await expect(
+      database.select().from(birthProfiles).where(eq(birthProfiles.id, profileId)),
+    ).resolves.toEqual([]);
+    await expect(
+      database
+        .select()
+        .from(birthProfileReadingContexts)
+        .where(eq(birthProfileReadingContexts.profileId, profileId)),
+    ).resolves.toEqual([]);
+    await expect(
+      database
+        .select()
+        .from(birthProfileReadingContextRevisions)
+        .where(eq(birthProfileReadingContextRevisions.profileId, profileId)),
+    ).resolves.toEqual([]);
+    await expect(
+      database
+        .select()
+        .from(birthProfileReadingContextMutationReceipts)
+        .where(eq(birthProfileReadingContextMutationReceipts.profileId, profileId)),
+    ).resolves.toEqual([]);
   });
 });

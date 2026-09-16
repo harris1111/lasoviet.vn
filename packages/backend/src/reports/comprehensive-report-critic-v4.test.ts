@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { NormalizedZiweiChartV1, ZiweiPalaceId } from "@lasoviet/contracts";
 
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
-import { critiqueComprehensiveZiweiReportV4 } from "./comprehensive-report-critic-v4.js";
+import {
+  critiqueComprehensiveZiweiReportSectionedV4,
+  critiqueComprehensiveZiweiReportV4,
+} from "./comprehensive-report-critic-v4.js";
 
 const palaceIds: ZiweiPalaceId[] = [
   "ziwei.palace.life",
@@ -334,6 +337,186 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
     expect(callArgs.system).not.toContain("lasoviet.vn");
     expect(callArgs.system).toContain("KHÔNG trừ điểm đối với các lời khuyên tham vấn bác sĩ, luật sư hoặc chuyên gia");
     expect(callArgs.system).toContain("khẳng định định mệnh chắc chắn");
+  });
+
+  it("makes one PII-free whole-report call and passes with empty findings", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const mockProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 5, repetitionControl: 5,
+            notes: [],
+            findings: [],
+          },
+          providerId: "mock-ai", modelId: "mock-model",
+        },
+      }),
+    };
+    const costContext = { idempotencyKey: "critic-key", purpose: "generation" as const };
+    const result = await critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any,
+      facts,
+      mockProvider as never,
+      { costContext },
+    );
+    expect(result.ok).toBe(true);
+    expect(mockProvider.generateStructured).toHaveBeenCalledTimes(1);
+    const request = mockProvider.generateStructured.mock.calls[0][0];
+    expect(request.purpose).toBe("critic");
+    expect(request.costContext).toBe(costContext);
+    expect(request.maxOutputTokens).toBe(900);
+    const payload = JSON.parse(request.user);
+    expect(payload.report).toEqual(dummyReport);
+    expect(request.user).not.toContain("birthDate");
+    expect(request.user).not.toContain("birthTime");
+    expect(request.user).not.toContain("birthLocation");
+  });
+
+  it("returns closed named findings only for addressable low quality", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const mockProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 3, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 5, repetitionControl: 5,
+            notes: ["Thiếu căn cứ."],
+            findings: [{ key: "overview", note: "Bổ sung căn cứ trực tiếp." }],
+          },
+        },
+      }),
+    };
+    const result = await critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any, facts, mockProvider as never,
+    );
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "AI_OUTPUT_INVALID",
+        retryable: false,
+        notes: ["Thiếu căn cứ."],
+        findings: [{ key: "overview", note: "Bổ sung căn cứ trực tiếp." }],
+      },
+    });
+  });
+
+  it("keeps an unaddressable low-quality report terminal without rewrite findings", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const mockProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 3, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 5, repetitionControl: 5,
+            notes: ["Thiếu căn cứ."], findings: [],
+          },
+        },
+      }),
+    };
+    const result = await critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any, facts, mockProvider as never,
+    );
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "AI_OUTPUT_INVALID", retryable: false, notes: ["Thiếu căn cứ."] },
+    });
+  });
+
+  it("does not expose rewrite findings for safety rejection", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const mockProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 3, repetitionControl: 5,
+            notes: ["Khẳng định không phù hợp."],
+            findings: [{ key: "overview", note: "Không được trả ra." }],
+          },
+        },
+      }),
+    };
+    const result = await critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any, facts, mockProvider as never,
+    );
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_SAFETY_REJECTED",
+        retryable: false,
+        notes: ["Khẳng định không phù hợp."],
+      },
+    });
+  });
+
+  it.each([
+    ["unknown finding key", [{ key: "unknown", note: "Sai key." }]],
+    ["excess findings", Array.from({ length: 9 }, () => ({ key: "overview", note: "Quá nhiều." }))],
+    ["malformed finding", [{ key: "overview", note: "" }]],
+  ])("fails closed on %s", async (_label, findings) => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const mockProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 3, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 5, repetitionControl: 5,
+            notes: [], findings,
+          },
+        },
+      }),
+    };
+    await expect(critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any, facts, mockProvider as never,
+    )).resolves.toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+  });
+
+  it("fails closed when passing scores include findings", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const mockProvider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 5, repetitionControl: 5,
+            notes: [], findings: [{ key: "overview", note: "Mâu thuẫn với điểm." }],
+          },
+        },
+      }),
+    };
+    await expect(critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any, facts, mockProvider as never,
+    )).resolves.toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false, notes: [] } });
+  });
+
+  it("sends normalized enum-only context to both critics", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: {
+          correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5,
+          consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [], findings: [],
+        } },
+      }),
+    };
+    const context = { version: 1, lifeStage: "early_career", topConcern: "career" } as const;
+    await critiqueComprehensiveZiweiReportV4(dummyReport as any, facts, provider as never, { readingContext: context });
+    await critiqueComprehensiveZiweiReportSectionedV4(dummyReport as any, facts, provider as never, { readingContext: context });
+    for (const [request] of provider.generateStructured.mock.calls) {
+      const payload = JSON.parse(request.user);
+      expect(payload.readingContext).toEqual({ lifeStage: "early_career", topConcern: "career" });
+      expect(JSON.stringify(payload)).not.toContain("birthDate");
+      expect(request.system).toContain("không được nói hoặc ngụ ý lá số tiết lộ context");
+    }
   });
 
 });

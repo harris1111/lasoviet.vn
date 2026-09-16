@@ -4,6 +4,8 @@ import { randomUUID } from "node:crypto";
 import { loadEnvironment } from "@lasoviet/config";
 import {
   createAccountDeletionService,
+  createAnalyticsRetentionService,
+  createDatabaseAnalyticsRepository,
   createAiProductionGate,
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
@@ -89,6 +91,9 @@ export function createMaintenanceRunner() {
     },
     retryAuthEmail: (limit) => email.retryDue(limit),
     reconciliation,
+    analyticsRetention: createAnalyticsRetentionService({
+      repository: createDatabaseAnalyticsRepository(database),
+    }),
   });
 }
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { authClient } from "../../auth/auth-client";
 import { createAuthActions } from "./auth-client-actions";
@@ -17,6 +18,10 @@ const actions = createAuthActions(authClient);
 
 export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
   const t = useTranslations("auth");
+  const currentLocale = useLocale();
+  const isEn = currentLocale === "en";
+  const termsHref = isEn ? "/en/dieu-khoan" : "/dieu-khoan";
+  const privacyHref = isEn ? "/en/chinh-sach-bao-mat" : "/chinh-sach-bao-mat";
   const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
   const [notice, setNotice] = useState<
     | "verification"
@@ -230,6 +235,20 @@ export function AuthPanel({ callbackURL, forgotPasswordURL }: AuthPanelProps) {
         label={t("panel.google")}
         onSignIn={signInWithGoogle}
       />
+      <p className="auth-continuation-notice">
+        {t.rich("panel.continuationNotice", {
+          termsLink: (chunks) => (
+            <Link href={termsHref} target="_blank" rel="noopener noreferrer">
+              {chunks}
+            </Link>
+          ),
+          privacyLink: (chunks) => (
+            <Link href={privacyHref} target="_blank" rel="noopener noreferrer">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
       {notice === "verification" ? (
         <div className="form-notice" role="status">
           <p>{t("verification.checkOrResend")}</p>

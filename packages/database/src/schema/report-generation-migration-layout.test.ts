@@ -105,6 +105,28 @@ describe("report generation migration layout", () => {
     expect(journal).toContain('"idx": 24');
   });
 
+  it("keeps reading-context reservation freezing in additive migration 0031 after 0030", async () => {
+    const [migration, journal] = await Promise.all([
+      readFile(new URL("0031_report_reading_context_freeze.sql", migrationRoot), "utf8"),
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+    ]);
+
+    expect(migration).toContain('ADD COLUMN IF NOT EXISTS "reading_context_revision_id" text');
+    expect(migration).toContain('REFERENCES "public"."birth_profile_reading_context_revisions"("id")');
+    expect(migration).toContain("ON DELETE SET NULL");
+    expect(migration).toContain('"report_reservations_reading_context_revision_idx"');
+    expect(migration).toContain(
+      '"report_reservations_reading_context_revision_id_birth_profile_reading_context_revisions_id_fk"',
+    );
+
+    const entries = JSON.parse(journal).entries as Array<{ idx: number; tag: string }>;
+    const migration0030 = entries.findIndex((entry) => entry.idx === 30);
+    const migration0031 = entries.findIndex((entry) => entry.idx === 31);
+    expect(entries[migration0030]).toMatchObject({ tag: "0030_report_section_checkpoint_revisions" });
+    expect(entries[migration0031]).toMatchObject({ tag: "0031_report_reading_context_freeze" });
+    expect(migration0031).toBe(migration0030 + 1);
+  });
+
   it("defines timing lineage columns and constraints on reportReservations schema", async () => {
     const { reportReservations, reportVersions } = await import("./reports.js");
 
@@ -112,6 +134,7 @@ describe("report generation migration layout", () => {
     expect(reportReservations.targetYear).toBeDefined();
     expect(reportReservations.timingRuleVersion).toBeDefined();
     expect(reportReservations.sensitivityRuleVersion).toBeDefined();
+    expect(reportReservations.readingContextRevisionId).toBeDefined();
 
     // Do not add these fields to reportVersions yet
     expect((reportVersions as any).asOfDate).toBeUndefined();
@@ -191,5 +214,91 @@ describe("report generation migration layout", () => {
     expect(reportSourceSnapshots.snapshotHash).toBeDefined();
     expect(reportSourceSnapshots.snapshot).toBeDefined();
     expect(reportSourceSnapshots.createdAt).toBeDefined();
+  });
+
+  it("keeps section checkpoints additive in migration 0029", async () => {
+    const migration = await readFile(
+      new URL("0029_report_section_checkpoints.sql", migrationRoot),
+      "utf8",
+    );
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_section_checkpoints"');
+    expect(migration).toContain('"report_version_id" uuid NOT NULL');
+    expect(migration).toContain('"section_key" text NOT NULL');
+    expect(migration).toContain('"accepted_content" jsonb');
+    expect(migration).toContain('"report_section_checkpoints_version_section_unique"');
+    expect(migration).toContain('"report_section_checkpoints_passed_order_idx"');
+    expect(migration).toContain('"report_section_checkpoints_status_valid"');
+    expect(migration).toContain('"report_section_checkpoints_active_ownership"');
+    expect(migration).toContain('"report_section_checkpoints_passed_lineage"');
+    expect(migration).not.toContain('REFERENCES "report_versions"');
+  });
+
+  it("registers migration 0029 and exports section checkpoints", async () => {
+    const journal = await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    );
+    const packageIndex = await readFile(
+      new URL("../index.ts", import.meta.url),
+      "utf8",
+    );
+
+    expect(journal).toContain('"idx": 29');
+    expect(journal).toContain('"when": 1789977600000');
+    expect(journal).toContain('"tag": "0029_report_section_checkpoints"');
+    expect(packageIndex).toContain("reportSectionCheckpoints");
+  });
+
+  it("defines reportSectionCheckpoints schema with checkpoint lineage", async () => {
+    const { reportSectionCheckpoints } = await import("./reports.js");
+
+    expect(reportSectionCheckpoints.reportVersionId).toBeDefined();
+    expect(reportSectionCheckpoints.sectionKey).toBeDefined();
+    expect(reportSectionCheckpoints.sectionOrder).toBeDefined();
+    expect(reportSectionCheckpoints.stateVersion).toBeDefined();
+    expect(reportSectionCheckpoints.acceptedContent).toBeDefined();
+    expect(reportSectionCheckpoints.contentHash).toBeDefined();
+    expect(reportSectionCheckpoints.activeWorkerId).toBeDefined();
+  });
+
+  it("keeps checkpoint rewrite revisions append-only in migration 0030", async () => {
+    const migration = await readFile(
+      new URL("0030_report_section_checkpoint_revisions.sql", migrationRoot),
+      "utf8",
+    );
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_section_checkpoint_revisions"');
+    expect(migration).toContain('REFERENCES "report_section_checkpoints"("id") ON DELETE RESTRICT');
+    expect(migration).toContain('"rewrite_ordinal" integer NOT NULL');
+    expect(migration).toContain('"report_section_checkpoint_revisions_checkpoint_ordinal_unique"');
+    expect(migration).toContain('"report_section_checkpoint_revisions_positive_ordinal"');
+    expect(migration).toContain('"report_section_checkpoint_revisions_active_ownership"');
+    expect(migration).toContain('"report_section_checkpoint_revisions_passed_lineage"');
+    expect(migration).not.toContain("DELETE FROM");
+    expect(migration).not.toContain("UPDATE \"report_section_checkpoints\"");
+    expect(migration).not.toContain("ON DELETE CASCADE");
+  });
+
+  it("registers migration 0030 after checkpoints and exports revision schema", async () => {
+    const journal = JSON.parse(await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    )) as { entries: { idx: number; when: number; tag: string }[] };
+    const packageIndex = await readFile(new URL("../index.ts", import.meta.url), "utf8");
+    const { reportSectionCheckpointRevisions } = await import("./reports.js");
+    const previous = journal.entries.find((entry) => entry.idx === 29);
+    const revision = journal.entries.find((entry) => entry.idx === 30);
+
+    expect(previous?.tag).toBe("0029_report_section_checkpoints");
+    expect(revision).toMatchObject({
+      idx: 30,
+      tag: "0030_report_section_checkpoint_revisions",
+    });
+    expect(revision!.when).toBeGreaterThan(previous!.when);
+    expect(packageIndex).toContain("reportSectionCheckpointRevisions");
+    expect(reportSectionCheckpointRevisions.checkpointId).toBeDefined();
+    expect(reportSectionCheckpointRevisions.rewriteOrdinal).toBeDefined();
+    expect(reportSectionCheckpointRevisions.acceptedContent).toBeDefined();
   });
 });

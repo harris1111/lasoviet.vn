@@ -7,6 +7,7 @@ import {
   type EvidenceSetV1,
   type FrozenIdentityReportFactsV1,
   type IdentityReportSectionId,
+  type ReadingContextV1,
 } from "@lasoviet/contracts";
 import type { PermittedUseBasis } from "../knowledge/knowledge-ingestion.service.js";
 import type { KnowledgePassageV1 } from "../knowledge/knowledge-retrieval.service.js";
@@ -32,6 +33,7 @@ export type IdentityReportSource = {
   comprehensiveFacts?: ComprehensiveZiweiFacts;
   knowledgePacks?: readonly ZiweiReportKnowledgePack[];
   comprehensiveFactsV4?: ComprehensiveZiweiFactsV4;
+  readingContext?: ReadingContextV1 | null;
 };
 
 export type ComprehensiveReportSource = IdentityReportSource & {

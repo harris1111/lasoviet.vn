@@ -16,7 +16,6 @@ import {
 } from "@lasoviet/contracts";
 import { productCatalog } from "@lasoviet/config";
 
-import type { AnalyticsService } from "../analytics/analytics.service.js";
 import {
   buildFreeIdentityPreview,
 } from "../reports/free-identity-preview.js";
@@ -34,7 +33,6 @@ export type ZiweiQueryError =
 export type ZiweiQueryServiceOptions = {
   repository: ZiweiQueryRepository;
   now?: () => Date;
-  analytics?: AnalyticsService;
 };
 
 export class ZiweiQueryDataError extends Error {
@@ -270,14 +268,6 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
         return error("SKU_UNAVAILABLE");
       }
       const view = topicView(record.chartId, record.chartVersionId);
-      await options.analytics?.emit({
-        name: "paid_topic_selected",
-        properties: {
-          sku: selection.data.sku,
-          method: "ziwei",
-          recommendation_source: "topic_selection",
-        },
-      });
       return { ok: true, value: view };
     },
   };

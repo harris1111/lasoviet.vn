@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { sendServerAnalyticsEvent } from "../../analytics/server-analytics";
 
 import {
   privateApiClient,
@@ -102,6 +103,33 @@ export async function createCheckoutOrder(
     checkoutStatus = parseCheckoutStatus(response.value);
   } catch {
     throw new Error("CHECKOUT_ORDER_FAILED");
+  }
+
+  await sendServerAnalyticsEvent({
+    name: "checkout_created",
+    idempotencyKey: `checkout-created:${checkoutStatus.order.id}`,
+    occurredAt: checkoutStatus.order.createdAt,
+    userId: actor.userId,
+    requestId: actor.requestId,
+    properties: {
+      sku,
+      amount: checkoutStatus.order.amount,
+      currency: checkoutStatus.order.currency,
+    },
+  });
+
+  if (checkoutStatus.order.status === "paid") {
+    await sendServerAnalyticsEvent({
+      name: "payment_confirmed",
+      idempotencyKey: `payment-confirmed:${checkoutStatus.order.id}`,
+      userId: actor.userId,
+      requestId: actor.requestId,
+      properties: {
+        sku,
+        amount: checkoutStatus.order.amount,
+        currency: checkoutStatus.order.currency,
+      },
+    });
   }
 
   if (checkoutStatus.order.status === "paid" && checkoutStatus.reportId) {

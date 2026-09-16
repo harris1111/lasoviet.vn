@@ -3,6 +3,10 @@ import { randomUUID } from "node:crypto";
 import { and, eq, gt, lte } from "drizzle-orm";
 
 import {
+  accountBehaviorProfiles,
+  analyticsEvents,
+  analyticsFraudIpRecords,
+  analyticsVisitors,
   auditLogs,
   authSessions,
   deletionRequests,
@@ -165,6 +169,20 @@ export function createDatabaseDeletionRepository(
           if (updated === undefined) {
             return;
           }
+
+          // Permanently delete all analytics rows owned by updated.userId in robust order
+          await transaction
+            .delete(analyticsEvents)
+            .where(eq(analyticsEvents.userId, updated.userId));
+          await transaction
+            .delete(analyticsFraudIpRecords)
+            .where(eq(analyticsFraudIpRecords.userId, updated.userId));
+          await transaction
+            .delete(accountBehaviorProfiles)
+            .where(eq(accountBehaviorProfiles.userId, updated.userId));
+          await transaction
+            .delete(analyticsVisitors)
+            .where(eq(analyticsVisitors.userId, updated.userId));
           await enqueueOutbox(transaction, {
             schemaVersion: 1,
             type: "account.purge.requested.v1",

@@ -971,3 +971,15 @@ h1 { max-width: 700px; margin: 20px 0 0; font-size: 64px; line-height: 1.06; let
 @media (max-width: 480px) {
   .disciplines-grid { grid-template-columns: 1fr; }
 }
+
+.auth-continuation-notice {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--pearl-400);
+  text-align: center;
+  line-height: 1.4;
+}
+.auth-continuation-notice a {
+  color: var(--pearl-200);
+  text-decoration: underline;
+}

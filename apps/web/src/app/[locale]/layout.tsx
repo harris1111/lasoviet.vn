@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { routing } from "../../i18n/routing";
+import { AnalyticsCollector } from "../../features/analytics/analytics-collector";
 import "../../styles/global.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -58,6 +59,7 @@ export default async function LocaleLayout({
     >
       <body>
         <NextIntlClientProvider messages={messages}>
+          <AnalyticsCollector />
           {children}
         </NextIntlClientProvider>
       </body>

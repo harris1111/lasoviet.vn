@@ -62,3 +62,14 @@ export type {
   ProductCatalog,
   ProductCatalogProduct,
 } from "./product-catalog.js";
+
+export {
+  normalizeZiweiQualityTerm,
+  resolveZiweiReportQualityConfig,
+  validateZiweiReportQualityConfig,
+  ziweiComprehensiveReportQualityV1,
+} from "./ziwei-report-quality.js";
+export type {
+  ZiweiReportQualityConfig,
+  ZiweiReportQualitySectionKind,
+} from "./ziwei-report-quality.js";

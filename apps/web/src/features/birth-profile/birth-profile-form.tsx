@@ -70,7 +70,8 @@ export function resolveWizardSubmitAction(
   }
   return { kind: "PROCEED" };
 }
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -201,6 +202,105 @@ export const DEFAULT_UNKNOWN_TIME_SAVED_LABELS: Record<
   },
 };
 
+
+export function buildWizardStartEvent(locale: "en" | "vi") {
+  return {
+    name: "wizard_start" as const,
+    properties: {
+      locale,
+      entry_point: "wizard_route" as const,
+      step: 1 as const,
+    },
+  };
+}
+
+export function buildWizardStepCompleteEvent(
+  params:
+    | { step: 1 }
+    | { step: 2; timePrecision: string; calendarType: "solar" | "lunar" }
+    | { step: 3; timePrecision: string; calendarType: "solar" | "lunar" },
+) {
+  if (params.step === 1) {
+    return {
+      name: "wizard_step_complete" as const,
+      properties: {
+        step: 1 as const,
+        step_name: "subject" as const,
+      },
+    };
+  }
+  if (params.step === 2) {
+    return {
+      name: "wizard_step_complete" as const,
+      properties: {
+        step: 2 as const,
+        step_name: "birth" as const,
+        time_precision: params.timePrecision,
+        calendar_type: params.calendarType,
+      },
+    };
+  }
+  return {
+    name: "wizard_step_complete" as const,
+    properties: {
+      step: 3 as const,
+      step_name: "review" as const,
+      time_precision: params.timePrecision,
+      calendar_type: params.calendarType,
+    },
+  };
+}
+
+export function buildChartSuccessEvent(timePrecision: string) {
+  return {
+    name: "chart_success" as const,
+    properties: {
+      time_precision: timePrecision,
+    },
+  };
+}
+
+export type WizardAnalyticsGate = {
+  hasStarted: boolean;
+  hasCompletedStep3: boolean;
+  hasCalculatedChart: boolean;
+};
+
+export function createWizardAnalyticsGate(): WizardAnalyticsGate {
+  return {
+    hasStarted: false,
+    hasCompletedStep3: false,
+    hasCalculatedChart: false,
+  };
+}
+
+export function claimWizardStart(
+  gate: WizardAnalyticsGate,
+  locale: "en" | "vi",
+): ReturnType<typeof buildWizardStartEvent> | null {
+  if (gate.hasStarted) return null;
+  gate.hasStarted = true;
+  return buildWizardStartEvent(locale);
+}
+
+export function claimWizardStep3Complete(
+  gate: WizardAnalyticsGate,
+  params: { timePrecision: string; calendarType: "solar" | "lunar" },
+): ReturnType<typeof buildWizardStepCompleteEvent> | null {
+  if (gate.hasCompletedStep3) return null;
+  gate.hasCompletedStep3 = true;
+  return buildWizardStepCompleteEvent({ step: 3, ...params });
+}
+
+export function claimChartSuccess(
+  gate: WizardAnalyticsGate,
+  timePrecision: string,
+): ReturnType<typeof buildChartSuccessEvent> | null {
+  if (gate.hasCalculatedChart) return null;
+  gate.hasCalculatedChart = true;
+  return buildChartSuccessEvent(timePrecision);
+}
+
 export function resolveUnknownTimePersistence(params: {
   forWhom: "self" | "other";
   cacheSaved: boolean;
@@ -323,6 +423,14 @@ export function BirthProfileForm({
   const [savedUnknown, setSavedUnknown] = useState<{
     isBrowserPersisted: boolean;
   } | null>(null);
+
+  const analyticsGateRef = useRef<WizardAnalyticsGate>(createWizardAnalyticsGate());
+  useEffect(() => {
+    const claim = claimWizardStart(analyticsGateRef.current, locale);
+    if (claim) {
+      void sendBrowserAnalyticsEvent(claim.name, claim.properties);
+    }
+  }, [locale]);
 
   useEffect(() => {
     let active = true;
@@ -464,6 +572,8 @@ export function BirthProfileForm({
       return;
     }
     setError(null);
+    const step1Event = buildWizardStepCompleteEvent({ step: 1 });
+    void sendBrowserAnalyticsEvent(step1Event.name, step1Event.properties);
     setStep(2);
   }
 
@@ -479,6 +589,12 @@ export function BirthProfileForm({
       return;
     }
     setError(null);
+    const step2Event = buildWizardStepCompleteEvent({
+      step: 2,
+      timePrecision: timeState.precision,
+      calendarType,
+    });
+    void sendBrowserAnalyticsEvent(step2Event.name, step2Event.properties);
     setStep(3);
   }
 
@@ -651,6 +767,14 @@ export function BirthProfileForm({
         return;
       }
 
+      const step3Claim = claimWizardStep3Complete(analyticsGateRef.current, {
+        timePrecision: timeState.precision,
+        calendarType,
+      });
+      if (step3Claim) {
+        void sendBrowserAnalyticsEvent(step3Claim.name, step3Claim.properties);
+      }
+
       let cacheSaved = false;
       if (forWhom === "self" && calendarType === "solar") {
         cacheSaved = Boolean(
@@ -688,6 +812,11 @@ export function BirthProfileForm({
       if (!calculated.value?.chartId) {
         setError(t("errors.calculation"));
         return;
+      }
+
+      const chartClaim = claimChartSuccess(analyticsGateRef.current, timeState.precision);
+      if (chartClaim) {
+        void sendBrowserAnalyticsEvent(chartClaim.name, chartClaim.properties);
       }
 
       navigating = true;
@@ -894,7 +1023,17 @@ export function BirthProfileForm({
                 calendarType={calendarType}
                 disabled={pending}
                 consent={consent}
-                consentLabel={t("review.consent")}
+                consentLabel={t.rich("review.consent", {
+                  link: (chunks) => (
+                    <Link
+                      href={locale === "en" ? "/en/chinh-sach-bao-mat" : "/chinh-sach-bao-mat"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
                 date={formatDateSummary(day, month, year, {
                   calendarType,
                   isLeapMonth,

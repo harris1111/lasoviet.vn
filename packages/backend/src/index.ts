@@ -28,6 +28,7 @@ export {
   createDatabaseConsentRepository,
 } from "./consent/consent.repository.js";
 export type {
+  ConsentRecordResult,
   ConsentRepository,
   RecordConsentInput,
 } from "./consent/consent.repository.js";
@@ -66,6 +67,7 @@ export {
 export type {
   BirthProfileRecord,
   BirthProfileRepository,
+  BirthProfileWithContextWriteInput,
   BirthProfileWriteInput,
 } from "./birth-profile/birth-profile.repository.js";
 export {
@@ -87,6 +89,25 @@ export type {
   BirthProfileServiceOptions,
   TimePrecisionError,
 } from "./birth-profile/birth-profile.service.js";
+export {
+  createDatabaseReadingContextRepository,
+} from "./birth-profile/reading-context.repository.js";
+export type {
+  MutationReceiptRecord,
+  ReadingContextCurrentRecord,
+  ReadingContextMutationOperation,
+  ReadingContextRepository,
+  ReadingContextRepositoryError,
+  ReadingContextRevisionRecord,
+} from "./birth-profile/reading-context.repository.js";
+export {
+  createReadingContextService,
+} from "./birth-profile/reading-context.service.js";
+export type {
+  ReadingContextService,
+  ReadingContextServiceError,
+  ReadingContextServiceOptions,
+} from "./birth-profile/reading-context.service.js";
 
 export {
   createDatabaseZiweiCalculationRepository,
@@ -127,9 +148,55 @@ export {
   createAnalyticsService,
 } from "./analytics/analytics.service.js";
 export type {
+  AnalyticsExportErrorCode,
+  AnalyticsIngestErrorCode,
   AnalyticsService,
-  AnalyticsSink,
+  AnalyticsServiceOptions,
+  IngestAnalyticsEventInput,
 } from "./analytics/analytics.service.js";
+export {
+  createDatabaseAnalyticsRepository,
+} from "./analytics/analytics.repository.js";
+export type {
+  AccountBehaviorProfileRecord,
+  AnalyticsEventRecord,
+  AnalyticsFraudIpRecord,
+  AnalyticsRepository,
+  AnalyticsVisitorRecord,
+  AssociateProfileResult,
+  IngestEventRecordInput,
+  LinkVisitorResult,
+  RecordConsentResult,
+  RecordEventResult,
+  UpdateInterestTopicsResult,
+} from "./analytics/analytics.repository.js";
+export {
+  createAnalyticsRetentionService,
+} from "./analytics/analytics-retention.service.js";
+export type {
+  AnalyticsRetentionService,
+  AnalyticsRetentionSummary,
+} from "./analytics/analytics-retention.service.js";
+export {
+  isForbiddenExportKey,
+  projectEventForThirdParty,
+  projectEventsForAccountExport,
+} from "./analytics/analytics-export.js";
+export type {
+  ProjectThirdPartyResult,
+  ThirdPartyExportEvent,
+} from "./analytics/analytics-export.js";
+export {
+  APPROVED_INTEREST_TOPIC_CODES,
+  computeBehaviorProfileUpdateFromEvent,
+  isApprovedInterestTopic,
+  toAccountBehaviorProfileV1,
+} from "./analytics/account-behavior-profile.js";
+export type {
+  ApprovedInterestTopicCode,
+  BehaviorProfileUpdate,
+  ExistingBehaviorProfile,
+} from "./analytics/account-behavior-profile.js";
 export {
   buildFreeIdentityPreview,
   buildGuardedFreeIdentityPreview,
@@ -531,3 +598,17 @@ export {
 export type {
   AccountCenterService,
 } from "./accounts/account-center.service.js";
+
+export {
+  createAdminBusinessMetricsService,
+} from "./admin-business-metrics/business-metrics.service.js";
+export type {
+  AdminBusinessMetricsError,
+  AdminBusinessMetricsService,
+} from "./admin-business-metrics/business-metrics.service.js";
+export {
+  createDatabaseAdminBusinessMetricsRepository,
+} from "./admin-business-metrics/business-metrics.repository.js";
+export type {
+  AdminBusinessMetricsRepository,
+} from "./admin-business-metrics/business-metrics.repository.js";

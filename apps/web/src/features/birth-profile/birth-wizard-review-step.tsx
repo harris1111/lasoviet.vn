@@ -18,7 +18,7 @@ export type BirthWizardReviewStepProps = {
   timezoneLabel: string;
   disclosure: string;
   guestNotice: string;
-  consentLabel: string;
+  consentLabel: React.ReactNode;
   duplicateNotice: string;
 
   displayName: string;

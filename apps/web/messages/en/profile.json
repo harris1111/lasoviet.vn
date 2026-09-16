@@ -58,7 +58,7 @@
   "review": {
     "title": "Review your details",
     "unknown": "Birth time unknown",
-    "consent": "I agree that Lá Số Việt may process this birth information to create this chart.",
+    "consent": "I agree that Lá Số Việt may process birth information to create this chart and use my usage data to personalize content and suggest relevant services under the <link>Privacy Policy</link>.",
     "privacy": "Charts are private by default. Guest data expires after 24 hours.",
     "stepTitle": "Review & privacy",
     "stepSub": "Review all entered information before calculating and generating the chart.",
