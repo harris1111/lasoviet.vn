@@ -784,6 +784,11 @@ Date: 2026-09-12
   (presented with precision-dependency notes). Raw birth date, time, and
   location must never be transmitted to external AI providers; only normalized
   chart facts and comparison outputs are sent.
+- Clarification (2026-09-16): The founder decided that `birthTimeSensitivity`
+  is a separate V4.1 implementation slice and an activation gate for LSV-15
+  sectioned paid generation. Existing V4 stored reports and current production
+  behavior remain unchanged and readable until the V4.1 slice is approved,
+  implemented, reviewed, and explicitly activated.
 - Structured personalized actions: The report concludes with 3 to 5
   personalized actions. Each action must contain exactly 4 fixed fields: What
   to do (`recommendation`), Why it fits this chart (`rationale`), What to
