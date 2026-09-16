@@ -27,7 +27,10 @@ vi.mock("next-intl", async () => {
   };
 });
 
-import type { ReportLegacyReadyViewV1 } from "@lasoviet/contracts";
+import type {
+  ReportComprehensiveV3ReadyViewV1,
+  ReportLegacyReadyViewV1,
+} from "@lasoviet/contracts";
 import { ReportReader } from "./report-reader";
 
 const legacyReport: ReportLegacyReadyViewV1 = {
@@ -60,6 +63,11 @@ const legacyReport: ReportLegacyReadyViewV1 = {
   },
 };
 
+const v3Report = {
+  ...legacyReport,
+  contentVersion: "ziwei-comprehensive.v3",
+} as unknown as ReportComprehensiveV3ReadyViewV1;
+
 describe("ReportReader", () => {
   it("renders legacy reader and produces valid HTML markup without throwing", () => {
     const html = renderToStaticMarkup(
@@ -68,5 +76,11 @@ describe("ReportReader", () => {
     expect(html).toContain("Cung Mệnh");
     expect(html).toContain("Bản mệnh vững vàng");
     expect(html).toContain("Cung Thân");
+  });
+
+  it("fails closed until the V4.1 report reader is activated", () => {
+    expect(() => renderToStaticMarkup(
+      <ReportReader locale="vi" report={v3Report} />,
+    )).toThrow("V4_1_REPORT_READER_NOT_ACTIVATED");
   });
 });

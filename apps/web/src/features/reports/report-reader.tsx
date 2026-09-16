@@ -603,5 +603,9 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     throw new Error("V4_REPORT_READER_NOT_ACTIVATED");
   }
 
+  if (report.contentVersion === "ziwei-comprehensive.v3") {
+    throw new Error("V4_1_REPORT_READER_NOT_ACTIVATED");
+  }
+
   return <LegacyReportReader locale={locale} report={report} />;
 }
