@@ -61,6 +61,21 @@ describe("analytics events web route (acceptance 5)", () => {
     expect(sent.ip).toBe("203.0.113.195");
   });
 
+  it("accepts a valid IPv6 x-real-ip header", async () => {
+    mockSendCommand.mockClear();
+    const request = new NextRequest("http://localhost:3000/api/analytics/events", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-real-ip": "2001:db8::1",
+      },
+      body: JSON.stringify(validPayload),
+    });
+
+    await testHandler(request);
+    expect(mockSendCommand.mock.calls[0]![0].ip).toBe("2001:db8::1");
+  });
+
   it("ignores spoofed x-forwarded-for and x-lasoviet-client-ip headers", async () => {
     const request = new NextRequest(
       "http://localhost:3000/api/analytics/events",
