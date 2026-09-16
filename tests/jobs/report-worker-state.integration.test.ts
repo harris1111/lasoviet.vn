@@ -258,17 +258,23 @@ describe("report worker state integration and lease recovery", () => {
     const allJobs = await database.select().from(reportQueueJobs);
     const [failedJob] = allJobs.filter((j) => j.id === jobId);
     expect(failedJob.status).toBe("terminal_failure");
-    expect(failedJob.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(failedJob.lastErrorCode).toBe("UPSTREAM_UNAVAILABLE");
 
     const allReservations = await database.select().from(reportReservations);
     const [failedReservation] = allReservations.filter((r) => r.reportVersionId === reportVersionId);
     expect(failedReservation.status).toBe("terminal_failure");
-    expect(failedReservation.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(failedReservation.lastErrorCode).toBe("UPSTREAM_UNAVAILABLE");
     expect(failedReservation.stateVersion).toBe(2);
 
     const allOutboxEvents = await database.select().from(outbox);
     const failedEvents = allOutboxEvents.filter((e) => e.eventType === "report.fulfillment.failed.v1");
     expect(failedEvents).toHaveLength(1);
+    expect(failedEvents[0].payload).toMatchObject({
+      reportId,
+      reportVersionId,
+      errorCode: "UPSTREAM_UNAVAILABLE",
+      failureStage: "generation",
+    });
     const expectedHash = createHash("sha256")
       .update(`${reportVersionId}::${jobId}::generation`)
       .digest("hex");
@@ -316,7 +322,7 @@ describe("report worker state integration and lease recovery", () => {
     const allJobs = await database.select().from(reportQueueJobs);
     const [fencedJob] = allJobs.filter((j) => j.id === jobId);
     expect(fencedJob.status).toBe("terminal_failure");
-    expect(fencedJob.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(fencedJob.lastErrorCode).toBe("JOB_PAYLOAD_INVALID");
 
     const allOutboxEvents = await database.select().from(outbox);
     const failedEvents = allOutboxEvents.filter(
@@ -406,7 +412,7 @@ describe("report worker state integration and lease recovery", () => {
     const allJobs = await database.select().from(reportQueueJobs);
     const [fencedJob] = allJobs.filter((j) => j.id === jobId);
     expect(fencedJob.status).toBe("terminal_failure");
-    expect(fencedJob.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(fencedJob.lastErrorCode).toBe("JOB_PAYLOAD_INVALID");
 
     const allReservations = await database.select().from(reportReservations);
     const [reservation] = allReservations.filter((r) => r.reportVersionId === reportVersionId);

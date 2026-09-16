@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -83,6 +84,53 @@ export const adminRoleMutationRequests = pgTable(
       table.actorId,
       table.idempotencyKey,
       table.requestFingerprint,
+    ),
+  ],
+);
+
+export const adminReportRecoveryReceipts = pgTable(
+  "admin_report_recovery_receipts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorId: text("actor_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "restrict" }),
+    operation: text("operation").notNull(),
+    targetReportVersionId: text("target_report_version_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    requestFingerprint: text("request_fingerprint").notNull(),
+    result: jsonb("result").$type<Record<string, unknown>>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("admin_report_recovery_receipts_actor_key_unique").on(
+      table.actorId,
+      table.idempotencyKey,
+    ),
+    index("admin_report_recovery_receipts_target_idx").on(
+      table.targetReportVersionId,
+    ),
+    check(
+      "admin_report_recovery_receipts_operation_bounded",
+      sql`char_length(${table.operation}) BETWEEN 1 AND 96 AND btrim(${table.operation}) <> ''`,
+    ),
+    check(
+      "admin_report_recovery_receipts_target_bounded",
+      sql`char_length(${table.targetReportVersionId}) BETWEEN 1 AND 128 AND btrim(${table.targetReportVersionId}) <> ''`,
+    ),
+    check(
+      "admin_report_recovery_receipts_key_bounded",
+      sql`char_length(${table.idempotencyKey}) BETWEEN 1 AND 128 AND btrim(${table.idempotencyKey}) <> ''`,
+    ),
+    check(
+      "admin_report_recovery_receipts_fingerprint_format",
+      sql`${table.requestFingerprint} ~ '^[a-f0-9]{64}$'`,
+    ),
+    check(
+      "admin_report_recovery_receipts_result_object",
+      sql`jsonb_typeof(${table.result}) = 'object'`,
     ),
   ],
 );

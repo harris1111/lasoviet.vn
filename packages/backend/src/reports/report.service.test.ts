@@ -1,4 +1,5 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -386,6 +387,175 @@ describe("createReportService terminal recovery", () => {
     expect(tx.update).not.toHaveBeenCalled();
     expect(tx.insert).not.toHaveBeenCalled();
     expect(insertedValues).toHaveLength(0);
+  });
+
+  it.each(["AI_TIMEOUT", "JOB_RETRY_EXHAUSTED"] as const)(
+    "recovers %s transient provider failures with the dedicated recovery token namespace",
+    async (lastErrorCode) => {
+      const mockReservation = {
+        id: `res-${lastErrorCode}`,
+        reportId: `report-${lastErrorCode}`,
+        reportVersionId: `version-${lastErrorCode}`,
+        entitlementId: `entitlement-${lastErrorCode}`,
+        chartVersionId: "chart-1",
+        evidenceVersionId: "evidence-1",
+        knowledgeVersionId: "knowledge-4",
+        promptVersion: "prompt-4",
+        reportConfigVersion: "config-4",
+        locale: "vi",
+        sku: "ZIWEI-IDENTITY-P0",
+        status: "terminal_failure",
+        lastErrorCode,
+        stateVersion: 4,
+        asOfDate: "2026-09-12",
+        targetYear: 2026,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      };
+      const { tx, insertedValues } = createMockTx({ reservation: mockReservation });
+      const mockDb = {
+        transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
+      };
+      const service = createReportService(mockDb as never);
+      const recoveryId = "transient-recovery-1";
+
+      await expect(
+        service.recoverTransientProviderFailureGeneration({
+          reportVersionId: mockReservation.reportVersionId,
+          expectedStateVersion: 4,
+          recoveryId,
+          now: new Date("2027-05-20T10:00:00.000Z"),
+        }),
+      ).resolves.toEqual({ ok: true, stateVersion: 5 });
+
+      expect(insertedValues).toHaveLength(1);
+      expect(insertedValues[0]?.eventType).toBe("report.generation.requested.v2");
+      expect(insertedValues[0]?.payload).toMatchObject({
+        reportVersionId: mockReservation.reportVersionId,
+        asOfDate: "2026-09-12",
+        targetYear: 2026,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      });
+      const token = createHash("sha256")
+        .update(`transient_provider::${mockReservation.reportVersionId}::${recoveryId}`)
+        .digest("hex");
+      expect(insertedValues[0]?.idempotencyKey).toBe(`report-recovery:${token}`);
+    },
+  );
+
+  it("reconstructs a V1 event for transient provider recovery without timing lineage", async () => {
+    const mockReservation = {
+      id: "res-transient-v1",
+      reportId: "report-transient-v1",
+      reportVersionId: "version-transient-v1",
+      entitlementId: "entitlement-transient-v1",
+      chartVersionId: "chart-1",
+      evidenceVersionId: "evidence-1",
+      knowledgeVersionId: "knowledge-3",
+      promptVersion: "prompt-3",
+      reportConfigVersion: "config-3",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      status: "terminal_failure",
+      lastErrorCode: "AI_TIMEOUT",
+      stateVersion: 1,
+      asOfDate: null,
+      targetYear: null,
+      timingRuleVersion: null,
+      sensitivityRuleVersion: null,
+    };
+    const { tx, insertedValues } = createMockTx({ reservation: mockReservation });
+    const mockDb = {
+      transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
+    };
+    const service = createReportService(mockDb as never);
+
+    await expect(
+      service.recoverTransientProviderFailureGeneration({
+        reportVersionId: mockReservation.reportVersionId,
+        expectedStateVersion: 1,
+        recoveryId: "transient-v1",
+      }),
+    ).resolves.toEqual({ ok: true, stateVersion: 2 });
+
+    expect(insertedValues).toHaveLength(1);
+    expect(insertedValues[0]?.eventType).toBe("report.generation.requested.v1");
+    expect(insertedValues[0]?.payload).not.toHaveProperty("asOfDate");
+  });
+
+  it("rejects transient provider recovery for malformed timing lineage, stale state, immutable output, and blank recovery ids", async () => {
+    const partialReservation = {
+      id: "res-transient-partial",
+      reportVersionId: "version-transient-partial",
+      status: "terminal_failure",
+      lastErrorCode: "AI_TIMEOUT",
+      stateVersion: 1,
+      asOfDate: "2026-09-12",
+      targetYear: null,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    };
+    const { tx, insertedValues } = createMockTx({ reservation: partialReservation });
+    const mockDb = {
+      transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
+    };
+    const service = createReportService(mockDb as never);
+
+    await expect(
+      service.recoverTransientProviderFailureGeneration({
+        reportVersionId: partialReservation.reportVersionId,
+        expectedStateVersion: 1,
+        recoveryId: "partial",
+      }),
+    ).resolves.toEqual({ ok: false, code: "REPORT_TIMING_LINEAGE_INVALID" });
+    expect(tx.update).not.toHaveBeenCalled();
+    expect(tx.insert).not.toHaveBeenCalled();
+    expect(insertedValues).toHaveLength(0);
+
+    const staleReservation = {
+      ...partialReservation,
+      reportVersionId: "version-transient-stale",
+      asOfDate: null,
+      targetYear: null,
+      timingRuleVersion: null,
+      sensitivityRuleVersion: null,
+      stateVersion: 3,
+    };
+    const staleMock = createMockTx({ reservation: staleReservation });
+    const staleService = createReportService({
+      transaction: vi.fn(async (callback: (txArg: typeof staleMock.tx) => Promise<unknown>) => callback(staleMock.tx)),
+    } as never);
+    await expect(
+      staleService.recoverTransientProviderFailureGeneration({
+        reportVersionId: staleReservation.reportVersionId,
+        expectedStateVersion: 2,
+        recoveryId: "stale",
+      }),
+    ).resolves.toEqual({ ok: false, code: "WORKFLOW_STATE_CONFLICT" });
+
+    const immutableMock = createMockTx({
+      reservation: { ...staleReservation, reportVersionId: "version-transient-immutable", stateVersion: 2 },
+      existingVersion: { id: "immutable-version" },
+    });
+    const immutableService = createReportService({
+      transaction: vi.fn(async (callback: (txArg: typeof immutableMock.tx) => Promise<unknown>) => callback(immutableMock.tx)),
+    } as never);
+    await expect(
+      immutableService.recoverTransientProviderFailureGeneration({
+        reportVersionId: "version-transient-immutable",
+        expectedStateVersion: 2,
+        recoveryId: "immutable",
+      }),
+    ).resolves.toEqual({ ok: false, code: "REPORT_VERSION_CONFLICT" });
+
+    await expect(
+      service.recoverTransientProviderFailureGeneration({
+        reportVersionId: partialReservation.reportVersionId,
+        expectedStateVersion: 1,
+        recoveryId: "   ",
+      }),
+    ).resolves.toEqual({ ok: false, code: "RECOVERY_ID_INVALID" });
   });
 
 });

@@ -301,4 +301,38 @@ describe("report generation migration layout", () => {
     expect(reportSectionCheckpointRevisions.rewriteOrdinal).toBeDefined();
     expect(reportSectionCheckpointRevisions.acceptedContent).toBeDefined();
   });
+
+  it("keeps admin report recovery receipts bounded and registers migration 0032", async () => {
+    const migration = await readFile(
+      new URL("0032_admin_report_recovery.sql", migrationRoot),
+      "utf8",
+    );
+    const journal = JSON.parse(await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    )) as { entries: { idx: number; when: number; tag: string }[] };
+    const packageIndex = await readFile(new URL("../index.ts", import.meta.url), "utf8");
+    const { adminReportRecoveryReceipts } = await import("./admin-access.js");
+    const previous = journal.entries.find((entry) => entry.idx === 31);
+    const recovery = journal.entries.find((entry) => entry.idx === 32);
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "admin_report_recovery_receipts"');
+    expect(migration).toContain('"admin_report_recovery_receipts_actor_key_unique"');
+    expect(migration).toContain('"admin_report_recovery_receipts_operation_bounded"');
+    expect(migration).toContain('"admin_report_recovery_receipts_target_bounded"');
+    expect(migration).toContain('"admin_report_recovery_receipts_key_bounded"');
+    expect(migration).toContain('"admin_report_recovery_receipts_fingerprint_format"');
+    expect(migration).toContain('"admin_report_recovery_receipts_result_object"');
+    expect(migration).not.toContain("admin_capability_policies");
+    expect(recovery).toMatchObject({
+      idx: 32,
+      tag: "0032_admin_report_recovery",
+    });
+    expect(recovery!.when).toBeGreaterThan(previous!.when);
+    expect(packageIndex).toContain("adminReportRecoveryReceipts");
+    expect(adminReportRecoveryReceipts.actorId).toBeDefined();
+    expect(adminReportRecoveryReceipts.targetReportVersionId).toBeDefined();
+    expect(adminReportRecoveryReceipts.requestFingerprint).toBeDefined();
+    expect(adminReportRecoveryReceipts.result).toBeDefined();
+  });
 });

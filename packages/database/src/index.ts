@@ -17,6 +17,7 @@ export {
 export {
   adminAuditLogs,
   adminCapabilityPolicies,
+  adminReportRecoveryReceipts,
   adminRoleAssignments,
   adminRoleMutationRequests,
 } from "./schema/admin-access.js";

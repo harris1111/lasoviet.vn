@@ -22,6 +22,7 @@ import {
   createDatabaseAdminAccessRepository,
   createDatabaseAdminAuditRepository,
   createDatabaseRoleAssignmentRepository,
+  createDatabaseReportRecoveryRepository,
   createDatabaseAdminOverviewRepository,
   createBirthProfileService,
   createConsentService,
@@ -39,6 +40,7 @@ import {
   createAdminBusinessMetricsService,
   createDatabaseAdminBusinessMetricsRepository,
   createRoleAssignmentService,
+  createReportRecoveryService,
   createEvidenceService,
   createReadingContextService,
   createZiweiCalculationService,
@@ -79,6 +81,10 @@ import {
   ADMIN_ROLE_ASSIGNMENT_SERVICE,
   AdminRoleAuditController,
 } from "./admin-access/admin-role-audit.controller.js";
+import {
+  ADMIN_REPORT_RECOVERY_SERVICE,
+  AdminReportRecoveryController,
+} from "./admin-access/admin-report-recovery.controller.js";
 import {
   ADMIN_OVERVIEW_SERVICE,
   AdminOverviewController,
@@ -196,6 +202,7 @@ function privacyDatabase() {
     ZiweiController,
     AdminAccessController,
     AdminRoleAuditController,
+    AdminReportRecoveryController,
     AdminOverviewController,
     AdminBusinessMetricsController,
     CommerceController,
@@ -305,6 +312,12 @@ function privacyDatabase() {
       provide: ADMIN_AUDIT_QUERY_SERVICE,
       useFactory: () => createAuditQueryService({
         repository: createDatabaseAuditQueryRepository(privacyDatabase()),
+      }),
+    },
+    {
+      provide: ADMIN_REPORT_RECOVERY_SERVICE,
+      useFactory: () => createReportRecoveryService({
+        repository: createDatabaseReportRecoveryRepository(privacyDatabase()),
       }),
     },
     {

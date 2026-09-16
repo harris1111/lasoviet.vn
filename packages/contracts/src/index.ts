@@ -55,6 +55,18 @@ export type {
   AdminRole,
   InternalAdminPreflightAuditV1,
 } from "./admin-auth.js";
+export {
+  AdminReportRecoveryCommandV1Schema,
+  AdminReportRecoveryContextV1Schema,
+  AdminReportRecoveryReasonCodeSchema,
+  AdminReportRecoverySuccessV1Schema,
+} from "./admin-report-recovery.js";
+export type {
+  AdminReportRecoveryCommandV1,
+  AdminReportRecoveryContextV1,
+  AdminReportRecoveryReasonCode,
+  AdminReportRecoverySuccessV1,
+} from "./admin-report-recovery.js";
 
 export {
   AdminAccountProjectionV1Schema,
