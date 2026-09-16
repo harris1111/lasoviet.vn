@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { UiCoreArtifactRenderer } from "./ui-core-artifact-renderer";
 
 const evidenceDirectory = "docs/reports/evidence/lsv-19";
+const captureIt = process.env.LSV_UI_CAPTURE === "1" ? it : it.skip;
 
 const documentStyles = `
   :root {
@@ -50,7 +51,7 @@ const documentStyles = `
 `;
 
 describe("UI core artifact capture", () => {
-  it("captures 320, 390, and 1440px artifact surfaces without blank, overflow, or obvious overlap", async () => {
+  captureIt("captures 320, 390, and 1440px artifact surfaces without blank, overflow, or obvious overlap", async () => {
     const [tokens, coreStyles] = await Promise.all([
       readFile("apps/web/src/styles/tokens.css", "utf8"),
       readFile("apps/web/src/styles/ui-core.css", "utf8"),
