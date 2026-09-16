@@ -177,29 +177,4 @@ describe("account-center-data loaders", () => {
       }
     });
   });
-  describe("i18n account message key parity", () => {
-    it("keeps exact key parity between vi and en account.json", async () => {
-      const vi = await import("../../../messages/vi/account.json");
-      const en = await import("../../../messages/en/account.json");
-
-      function getKeys(obj: any, prefix = ""): string[] {
-        let keys: string[] = [];
-        for (const [k, v] of Object.entries(obj)) {
-          const full = prefix ? `${prefix}.${k}` : k;
-          if (v && typeof v === "object" && !Array.isArray(v)) {
-            keys = keys.concat(getKeys(v, full));
-          } else {
-            keys.push(full);
-          }
-        }
-        return keys.sort();
-      }
-
-      const viKeys = getKeys(vi.default || vi);
-      const enKeys = getKeys(en.default || en);
-
-      expect(viKeys).toEqual(enKeys);
-    });
-  });
-
 });

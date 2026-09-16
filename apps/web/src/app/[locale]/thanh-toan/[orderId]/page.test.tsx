@@ -54,8 +54,8 @@ const copy = {
     "checkout.paid_processing_title": "Đã nhận thanh toán thành công",
     "checkout.paid_processing_description": "Hệ thống đã ghi nhận thanh toán của bạn và đang chuẩn bị báo cáo luận giải. Vui lòng chờ trong giây lát hoặc kiểm tra lịch sử đơn hàng.",
     "checkout.expired_title": "Đơn hàng đã hết hạn thanh toán",
-    "checkout.expired_description": "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ ({payment_code}), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.",
-    "checkout.expired_description_without_code": "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ, liên hệ hỗ trợ — chúng tôi vẫn đối chiếu được.",
+    "checkout.expired_description": "Đơn này đã hết hiệu lực. Nếu bạn đã chuyển khoản với mã đơn cũ ({payment_code}), vui lòng sử dụng biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước. Chỉ liên hệ hỗ trợ kèm mã này nếu đối chiếu không thành công.",
+    "checkout.expired_description_without_code": "Đơn này đã hết hiệu lực. Nếu bạn đã chuyển khoản với mã đơn cũ, vui lòng sử dụng biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước. Chỉ liên hệ hỗ trợ nếu đối chiếu không thành công.",
     "checkout.new_chart_action": "Lập lá số và tạo yêu cầu mới",
     "checkout.order_history_action": "Xem lịch sử đơn hàng",
     "checkout.failed_title": "Thanh toán chưa thành công",
@@ -118,8 +118,8 @@ const copy = {
     "checkout.paid_processing_title": "Payment received successfully",
     "checkout.paid_processing_description": "Your payment has been recorded and your interpretation report is being prepared. Please wait a moment or check your order history.",
     "checkout.expired_title": "Order expired",
-    "checkout.expired_description": "This order has expired. If you transferred using the old order code ({payment_code}), please contact support with this code — we can still reconcile your payment.",
-    "checkout.expired_description_without_code": "This order has expired. If you transferred using the old order code, please contact support — we can still reconcile your payment.",
+    "checkout.expired_description": "This order has expired. If you already transferred using the old order code ({payment_code}), please use the self-claim form below with exact amount and transfer time first. Contact support with this code only if matching fails.",
+    "checkout.expired_description_without_code": "This order has expired. If you already transferred using the old order code, please use the self-claim form below with exact amount and transfer time first. Contact support only if matching fails.",
     "checkout.new_chart_action": "Create a new chart and request",
     "checkout.order_history_action": "View order history",
     "checkout.failed_title": "Payment was not completed",
@@ -423,10 +423,50 @@ describe("checkout page", () => {
 
     expect(html).toContain("Đơn hàng đã hết hạn thanh toán");
     expect(html).toContain("LSVK7M2P9QXJ");
-    expect(html).toContain("Nếu bạn lỡ chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ)");
+    expect(html).toContain("Nếu bạn đã chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ)");
+    expect(html).toContain("biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước");
+    expect(html).toContain("Chỉ liên hệ hỗ trợ kèm mã này nếu đối chiếu không thành công.");
+    expect(html).not.toContain("chúng tôi vẫn đối chiếu được");
     expect(html).toContain("/tao-la-so/tu-vi");
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).not.toContain("https://vietqr.app");
+    expect(html).toContain("payment-self-claim-section");
+  });
+
+  it("renders English expired recovery with self-claim first and support fallback", async () => {
+    vi.mocked(getTranslations).mockResolvedValue(
+      ((key: keyof typeof copy.en, values?: Record<string, unknown>) => {
+        let str = copy.en[key];
+        if (typeof str === "string" && values) {
+          for (const [name, value] of Object.entries(values)) {
+            str = str.replaceAll(`{${name}}`, String(value));
+          }
+        }
+        return str;
+      }) as never,
+    );
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          order: { ...sampleCheckoutStatus("en").order, status: "expired" },
+          paymentInstructions: null,
+          reportId: null,
+        },
+      }),
+    });
+    const { default: CheckoutPage } = await import("./page.js");
+    const html = renderToStaticMarkup(
+      await CheckoutPage({
+        params: Promise.resolve({ locale: "en", orderId: "order-1" }),
+      }),
+    );
+
+    expect(html).toContain("Order expired");
+    expect(html).toContain("LSVK7M2P9QXJ");
+    expect(html).toContain("please use the self-claim form below with exact amount and transfer time first");
+    expect(html).toContain("Contact support with this code only if matching fails.");
+    expect(html).not.toContain("we can still reconcile your payment");
     expect(html).toContain("payment-self-claim-section");
   });
 

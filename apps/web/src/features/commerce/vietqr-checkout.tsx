@@ -558,15 +558,19 @@ export function VietQrCheckout({
     const rawExpiredDesc = labels.expiredDescription ?? (
       status.order.paymentCode
         ? (isVi
-            ? `Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ (${status.order.paymentCode}), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.`
-            : `This order has expired. If you transferred using the old order code (${status.order.paymentCode}), please contact support with this code — we can still reconcile your payment.`)
+            ? `Đơn này đã hết hiệu lực. Nếu bạn đã chuyển khoản với mã đơn cũ (${status.order.paymentCode}), vui lòng sử dụng biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước. Chỉ liên hệ hỗ trợ kèm mã này nếu đối chiếu không thành công.`
+            : `This order has expired. If you already transferred using the old order code (${status.order.paymentCode}), please use the self-claim form below with exact amount and transfer time first. Contact support with this code only if matching fails.`)
         : (isVi
-            ? "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ, liên hệ hỗ trợ — chúng tôi vẫn đối chiếu được."
-            : "This order has expired. If you transferred using the old order code, please contact support — we can still reconcile your payment.")
+            ? "Đơn này đã hết hiệu lực. Nếu bạn đã chuyển khoản với mã đơn cũ, vui lòng sử dụng biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước. Chỉ liên hệ hỗ trợ nếu đối chiếu không thành công."
+            : "This order has expired. If you already transferred using the old order code, please use the self-claim form below with exact amount and transfer time first. Contact support only if matching fails.")
     );
     const expiredDesc = status.order.paymentCode
       ? rawExpiredDesc.replace("{payment_code}", status.order.paymentCode)
-      : rawExpiredDesc.replace(" ({payment_code})", "").replace("({payment_code})", "");
+      : rawExpiredDesc
+          .replace(" ({payment_code})", "")
+          .replace("({payment_code})", "")
+          .replace(" kèm mã này", "")
+          .replace(" with this code", "");
     const newChartActionLabel = labels.newChartAction ?? (isVi ? "Lập lá số và tạo yêu cầu mới" : "Create a new chart and request");
     const returnToTopicSelectorLabel = labels.returnToTopicSelectorAction ?? (isVi ? "Quay lại chọn luận giải" : "Return to reading selection");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");

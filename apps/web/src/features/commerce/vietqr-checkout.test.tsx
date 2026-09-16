@@ -687,20 +687,20 @@ describe("VietQR checkout recovery views", () => {
     expect(html).not.toContain("self-claim-mock");
   });
 
-  it("includes old payment code in expired-state customer copy when payment code is available", () => {
+  it("directs expired transfers to self-claim first and support only after matching fails", () => {
     const statusExpiredWithCode = checkoutStatus("expired", null, "vi");
     const htmlVi = renderToStaticMarkup(
       <VietQrCheckout
         initialStatus={statusExpiredWithCode}
         labels={{
           ...fullLabels,
-          expiredDescription: "Đơn này đã hết hiệu lực. Nếu bạn lỡ chuyển khoản với mã đơn cũ ({payment_code}), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.",
+          expiredDescription: "Đơn này đã hết hiệu lực. Nếu bạn đã chuyển khoản với mã đơn cũ ({payment_code}), vui lòng sử dụng biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước. Chỉ liên hệ hỗ trợ kèm mã này nếu đối chiếu không thành công.",
         }}
       />,
     );
 
     expect(htmlVi).toContain("LSVK7M2P9QXJ");
-    expect(htmlVi).toContain("Nếu bạn lỡ chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.");
+    expect(htmlVi).toContain("Nếu bạn đã chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ), vui lòng sử dụng biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước. Chỉ liên hệ hỗ trợ kèm mã này nếu đối chiếu không thành công.");
 
     // Default fallback when expiredDescription label is omitted
     const htmlViDefault = renderToStaticMarkup(
@@ -713,7 +713,7 @@ describe("VietQR checkout recovery views", () => {
       />,
     );
     expect(htmlViDefault).toContain("LSVK7M2P9QXJ");
-    expect(htmlViDefault).toContain("Nếu bạn lỡ chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ), liên hệ hỗ trợ kèm mã này — chúng tôi vẫn đối chiếu được.");
+    expect(htmlViDefault).toContain("Nếu bạn đã chuyển khoản với mã đơn cũ (LSVK7M2P9QXJ), vui lòng sử dụng biểu mẫu tự đối chiếu bên dưới với chính xác số tiền và thời gian chuyển trước. Chỉ liên hệ hỗ trợ kèm mã này nếu đối chiếu không thành công.");
 
     // English locale
     const statusExpiredEn = checkoutStatus("expired", null, "en");
@@ -722,12 +722,13 @@ describe("VietQR checkout recovery views", () => {
         initialStatus={statusExpiredEn}
         labels={{
           ...fullLabels,
-          expiredDescription: "This order has expired. If you transferred using the old order code ({payment_code}), please contact support with this code — we can still reconcile your payment.",
+          expiredDescription: "This order has expired. If you already transferred using the old order code ({payment_code}), please use the self-claim form below with exact amount and transfer time first. Contact support with this code only if matching fails.",
         }}
       />,
     );
     expect(htmlEn).toContain("LSVK7M2P9QXJ");
-    expect(htmlEn).toContain("This order has expired. If you transferred using the old order code (LSVK7M2P9QXJ), please contact support with this code — we can still reconcile your payment.");
+    expect(htmlEn).toContain("This order has expired. If you already transferred using the old order code (LSVK7M2P9QXJ), please use the self-claim form below with exact amount and transfer time first. Contact support with this code only if matching fails.");
+    expect(htmlEn).not.toContain("we can still reconcile your payment");
   });
 
   it("exposes new request and topic selector actions for failed state when chartId is available, and hides QR", () => {
