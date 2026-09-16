@@ -387,6 +387,19 @@
 
 /* Responsive */
 @media (max-width: 767px) {
+  .account-nav-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(136px, 100%), 1fr));
+    gap: 0 8px;
+    overflow-x: visible;
+  }
+
+  .account-tab-link {
+    justify-content: center;
+    min-width: 0;
+    padding: 0 8px;
+  }
+
   .account-section-link {
     display: inline-flex;
     align-items: center;
