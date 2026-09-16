@@ -135,6 +135,7 @@ export {
   AuthEmailRequestSchema,
   AuthEmailServiceClaimsSchema,
   canonicalizeAuthEmailRequest,
+  ReportFailedEmailRequestV1Schema,
   ReportReadyEmailRequestSchema,
   PersistedEmailDeliveryRequestSchema,
   canonicalizeEmailDeliveryRequest,
@@ -144,6 +145,7 @@ export type {
   AuthEmailDeliveryOutcome,
   AuthEmailRequest,
   AuthEmailServiceClaims,
+  ReportFailedEmailRequestV1,
   ReportReadyEmailRequest,
   PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
@@ -357,13 +359,32 @@ export type {
 } from "./commerce.js";
 
 export {
+  ReportAssetFailureCodeSchema,
+  ReportAssetReplicaStatusSchema,
+  ReportAssetStatusSchema,
+  ReportAssetStoredV1Schema,
+  ReportPdfRenderJobV1Schema,
+  ReportPdfRenderVersionSchema,
+  ReportPdfRequestedV1Schema,
+} from "./report-assets.js";
+export type {
+  ReportAssetFailureCode,
+  ReportAssetReplicaStatus,
+  ReportAssetStatus,
+  ReportAssetStoredV1,
+  ReportPdfRenderJobV1,
+  ReportPdfRenderVersion,
+  ReportPdfRequestedV1,
+} from "./report-assets.js";
+
+export {
   ReportFulfillmentFailedV1Schema,
   ReportGenerateJobEnvelopeSchema,
   ReportGenerateJobEnvelopeV1Schema,
   ReportGenerateJobEnvelopeV2Schema,
   ReportGenerationRequestedV1Schema,
   ReportGenerationRequestedV2Schema,
-  ReportPdfRequestedV1Schema,
+  ReportPdfRenderJobV1Schema as ReportPdfRenderJobEnvelopeV1Schema,
   ReportQueueJobStatusSchema,
   ReportStatusSchema,
 } from "./jobs.js";
@@ -376,7 +397,6 @@ export type {
   ReportGenerateJobEnvelopeV2,
   ReportGenerationRequestedV1,
   ReportGenerationRequestedV2,
-  ReportPdfRequestedV1,
   ReportQueueJobStatus,
   ReportStatus,
 } from "./jobs.js";

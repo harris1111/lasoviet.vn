@@ -232,6 +232,13 @@
       "when": 1790640000000,
       "tag": "0032_admin_report_recovery",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790726400000,
+      "tag": "0033_report_assets_and_report_failure_delivery",
+      "breakpoints": true
     }
   ]
 }

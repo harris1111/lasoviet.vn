@@ -32,8 +32,14 @@ fi
 export LASOVIET_RELEASE_SHA="$TARGET_SHA"
 build_compose_cmd
 
-# Pull images for rollback target SHA
-if ! "${COMPOSE_CMD[@]}" pull api worker web >/dev/null 2>&1; then
+# Disable the optional PDF consumer before replacing the prior application
+# images. Garage is intentionally left running and its named volumes are never
+# removed by rollback.
+"${COMPOSE_CMD[@]}" --profile pdf stop pdf-worker >/dev/null 2>&1 || true
+
+# Pull images for rollback target SHA, including the disabled PDF worker so its
+# next explicit activation cannot use a local build or a stale image.
+if ! "${COMPOSE_CMD[@]}" pull api worker pdf-worker web >/dev/null 2>&1; then
   record_failure "ROLLBACK_PULL_FAILED"
   exit 1
 fi

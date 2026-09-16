@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMaintenanceRunner, createReportGenerateRunner } from "./worker.module.js";
+import {
+  createMaintenanceRunner,
+  createPdfRenderRunner,
+  createReportGenerateRunner,
+} from "./worker.module.js";
 import { createAiProductionGate } from "@lasoviet/backend";
 
 describe("createReportGenerateRunner", () => {
@@ -299,6 +303,47 @@ describe("createMaintenanceRunner", () => {
   it("initializes runner successfully with analytics retention wired", () => {
     const runner = createMaintenanceRunner();
     expect(runner).toBeDefined();
+    expect(typeof runner.runOnce).toBe("function");
+  });
+});
+
+describe("createPdfRenderRunner", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    process.env = {
+      NODE_ENV: "test",
+      SEPAY_ENV: "disabled",
+      WORKER_QUEUES: "pdf.render",
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("is fail-closed when the isolated PDF queue is not configured", async () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    await expect(createPdfRenderRunner().runOnce()).resolves.toEqual({ processed: 0 });
+  });
+
+  it("is fail-closed when Garage is disabled", async () => {
+    await expect(createPdfRenderRunner().runOnce()).resolves.toEqual({ processed: 0 });
+  });
+
+  it("wires a real Garage adapter by default when the PDF queue is enabled", () => {
+    process.env.GARAGE_PDF_ENABLED = "true";
+    process.env.GARAGE_ENDPOINT = "http://garage:3900";
+    process.env.GARAGE_REGION = "lasoviet-private";
+    process.env.GARAGE_BUCKET = "lasoviet-report-assets";
+    process.env.GARAGE_ACCESS_KEY_ID = "test-access-key";
+    process.env.GARAGE_SECRET_ACCESS_KEY = "test-secret-key";
+    process.env.GARAGE_RPC_SECRET = "a".repeat(64);
+    process.env.DATABASE_URL = "postgresql://lasoviet:lasoviet@localhost:5432/lasoviet_test";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
+
+    const runner = createPdfRenderRunner();
     expect(typeof runner.runOnce).toBe("function");
   });
 });

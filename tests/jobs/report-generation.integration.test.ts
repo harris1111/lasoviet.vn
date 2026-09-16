@@ -761,8 +761,8 @@ describe("immutable report version repository integration", () => {
 
     const allReservations = await database.select().from(reportReservations);
     const reservationRow = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
-    expect(reservationRow?.status).toBe("html_ready");
-    expect(reservationRow?.stateVersion).toBe(3);
+    expect(reservationRow?.status).toBe("pdf_pending");
+    expect(reservationRow?.stateVersion).toBe(4);
 
     const allAttempts = await database.select().from(reportGenerationAttempts);
     const attemptRow = allAttempts.find((a) => a.jobId === fixture.jobId);
@@ -791,20 +791,7 @@ describe("immutable report version repository integration", () => {
     const matchingNotification = allNotifications.filter(
       (n) => n.idempotencyKey === `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
     );
-    expect(matchingNotification.length).toBe(1);
-    expect(matchingNotification[0]?.kind).toBe("report_ready");
-    expect(matchingNotification[0]?.status).toBe("pending");
-    expect(matchingNotification[0]?.attemptCount).toBe(0);
-    expect(matchingNotification[0]?.recipientFingerprint).toBeDefined();
-    expect(matchingNotification[0]?.requestPayload).toEqual({
-      version: 1,
-      kind: "report_ready",
-      idempotencyKey: `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
-      recipient: `${fixture.userId}@example.test`,
-      locale: "vi",
-      actionUrl: `https://lasoviet.net/bao-cao/${fixture.reportId}`,
-      requestId: `trace-${fixture.jobId}`,
-    });
+    expect(matchingNotification).toHaveLength(0);
 
     await database.$client.end();
   });
@@ -910,7 +897,7 @@ describe("immutable report version repository integration", () => {
     const matchingNotifications = allNotifications.filter(
       (n) => n.idempotencyKey === `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
     );
-    expect(matchingNotifications.length).toBe(1);
+    expect(matchingNotifications).toHaveLength(0);
 
     await database.$client.end();
   });
@@ -1759,7 +1746,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
 
     const allReservations = await database.select().from(reportReservations);
     const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
-    expect(reservation?.status).toBe("html_ready");
+    expect(reservation?.status).toBe("pdf_pending");
 
     const allAttempts = await database.select().from(reportGenerationAttempts);
     const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
@@ -2783,15 +2770,31 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       publish: (job) => queuePublisher.publish(job),
     });
 
-    const dispatchResult = await dispatcher.dispatchOne();
-    expect(dispatchResult).toEqual({ dispatched: true });
+    let recoveryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const dispatchResult = await dispatcher.dispatchOne();
+      expect(dispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryDispatched).toBe(true);
 
     // Verify exactly one distinct waiting queue job created
     const allJobsAfterDispatch = await database.select().from(reportQueueJobs);
     const waitingRecoveryJobs = allJobsAfterDispatch.filter(
-      (j) =>
-        j.status === "waiting" &&
-        (j.payload as { reportVersionId?: string })?.reportVersionId === fixture.reportVersionId,
+      (j) => j.status === "waiting" && j.sourceEventId === outboxEvent.eventId,
     );
     expect(waitingRecoveryJobs).toHaveLength(1);
     const freshJob = waitingRecoveryJobs[0];
@@ -2824,8 +2827,26 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       .set({ status: "pending", processedAt: null, leasedBy: null, leasedUntil: null })
       .where(eq(outbox.id, outboxEvent.id));
 
-    const retryDispatchResult = await dispatcher.dispatchOne();
-    expect(retryDispatchResult).toEqual({ dispatched: true });
+    let recoveryRetryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const retryDispatchResult = await dispatcher.dispatchOne();
+      expect(retryDispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryRetryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryRetryDispatched).toBe(true);
 
     const allJobsAfterRetry = await database.select().from(reportQueueJobs);
     const jobsForFirstReport = allJobsAfterRetry.filter(
@@ -3298,18 +3319,20 @@ describe("report generation orchestration and worker integration (Slice B)", () 
 
     // Dispatch outbox recovery event using a scoped claim test-double returning only this recovery event
     const queuePublisher = createDatabaseReportQueuePublisher(database);
-    let recoveryClaimed = false;
     const dispatcher = createOutboxDispatcher({
       claim: async () => {
-        if (recoveryClaimed) return null;
-        recoveryClaimed = true;
+        const [currentOutboxEvent] = await database
+          .select()
+          .from(outbox)
+          .where(eq(outbox.id, outboxEvent.id));
+        if (currentOutboxEvent?.status !== "pending") return null;
         return {
-          id: outboxEvent.id,
-          eventId: outboxEvent.eventId,
-          traceId: outboxEvent.traceId,
-          idempotencyKey: outboxEvent.idempotencyKey,
-          eventType: outboxEvent.eventType,
-          payload: outboxEvent.payload,
+          id: currentOutboxEvent.id,
+          eventId: currentOutboxEvent.eventId,
+          traceId: currentOutboxEvent.traceId,
+          idempotencyKey: currentOutboxEvent.idempotencyKey,
+          eventType: currentOutboxEvent.eventType,
+          payload: currentOutboxEvent.payload,
         };
       },
       markProcessed: async (id) => {
@@ -3327,15 +3350,31 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       publish: (job) => queuePublisher.publish(job),
     });
 
-    const dispatchResult = await dispatcher.dispatchOne();
-    expect(dispatchResult).toEqual({ dispatched: true });
+    let recoveryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const dispatchResult = await dispatcher.dispatchOne();
+      expect(dispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryDispatched).toBe(true);
 
     // Verify exactly one distinct waiting queue job created
     const allJobsAfterDispatch = await database.select().from(reportQueueJobs);
     const waitingRecoveryJobs = allJobsAfterDispatch.filter(
-      (j) =>
-        j.status === "waiting" &&
-        (j.payload as { reportVersionId?: string })?.reportVersionId === fixture.reportVersionId,
+      (j) => j.status === "waiting" && j.sourceEventId === outboxEvent.eventId,
     );
     expect(waitingRecoveryJobs).toHaveLength(1);
     const freshJob = waitingRecoveryJobs[0];
@@ -3353,6 +3392,38 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     expect(originalJobAfterDispatch?.status).toBe("terminal_failure");
     expect(originalJobAfterDispatch?.lastErrorCode).toBe("AI_OUTPUT_INVALID");
     expect(originalJobAfterDispatch?.attemptCount).toBe(1);
+
+    await database
+      .update(outbox)
+      .set({ status: "pending", processedAt: null, leasedBy: null, leasedUntil: null })
+      .where(eq(outbox.id, outboxEvent.id));
+
+    let recoveryRetryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const retryDispatchResult = await dispatcher.dispatchOne();
+      expect(retryDispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryRetryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryRetryDispatched).toBe(true);
+
+    const jobsAfterRetry = await database
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+    expect(jobsAfterRetry).toHaveLength(1);
 
     // Repeat call with stale expected version fails without duplicate outbox event
     const repeatStale = await reportService.recoverInvalidOutputGeneration({

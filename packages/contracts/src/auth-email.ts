@@ -41,10 +41,28 @@ export const ReportReadyEmailRequestSchema = z
   .strict();
 export type ReportReadyEmailRequest = z.infer<typeof ReportReadyEmailRequestSchema>;
 
+export const ReportFailedEmailRequestV1Schema = z
+  .object({
+    version: z.literal(1),
+    kind: z.literal("report_failed"),
+    idempotencyKey: nonEmpty,
+    recipient: z.email().transform((value) => value.trim().toLowerCase()),
+    locale: z.enum(["vi", "en"]),
+    actionUrl: z.url(),
+    requestId: nonEmpty,
+    reportId: nonEmpty,
+    reportVersionId: nonEmpty,
+    failureStage: z.enum(["pdf", "garage"]),
+    supportCaseId: nonEmpty,
+  })
+  .strict();
+export type ReportFailedEmailRequestV1 = z.infer<typeof ReportFailedEmailRequestV1Schema>;
+
 export const PersistedEmailDeliveryRequestSchema = z.discriminatedUnion("kind", [
   AuthEmailRequestSchema.extend({ kind: z.literal("email_verification") }),
   AuthEmailRequestSchema.extend({ kind: z.literal("password_reset") }),
   ReportReadyEmailRequestSchema,
+  ReportFailedEmailRequestV1Schema,
 ]);
 export type PersistedEmailDeliveryRequest = z.infer<
   typeof PersistedEmailDeliveryRequestSchema
@@ -61,6 +79,16 @@ export function canonicalizeEmailDeliveryRequest(
     locale: request.locale,
     actionUrl: request.actionUrl,
     requestId: request.requestId.trim(),
+    ...(
+      request.kind === "report_failed"
+        ? {
+            reportId: request.reportId.trim(),
+            reportVersionId: request.reportVersionId.trim(),
+            failureStage: request.failureStage,
+            supportCaseId: request.supportCaseId.trim(),
+          }
+        : {}
+    ),
   });
 }
 

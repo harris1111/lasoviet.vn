@@ -107,6 +107,10 @@ if [ "$1" = "compose" ]; then
         shift 2
         ;;
       pull)
+        if [ "\${SIMULATE_GARAGE_PULL_FAIL:-0}" = "1" ] && [ "$2" = "garage" ]; then
+          echo "failed Garage image pull" >&2
+          exit 1
+        fi
         if [ "\${SIMULATE_IMAGE_PULL_FAIL:-0}" = "1" ]; then
           echo "failed image pull" >&2
           exit 1
@@ -114,6 +118,13 @@ if [ "$1" = "compose" ]; then
         exit 0
         ;;
       run)
+        if [ "$2" = "--rm" ] && [ "$3" = "--no-deps" ] && [ "$4" = "pdf-worker" ]; then
+          if [ "\${SIMULATE_GARAGE_S3_HEALTH_FAIL:-0}" = "1" ]; then
+            echo "Garage S3 health unavailable" >&2
+            exit 1
+          fi
+          exit 0
+        fi
         if [ "\${SIMULATE_MIGRATE_FAIL:-0}" = "1" ]; then
           echo "CRITICAL_SECRET_DATABASE_URL=postgres://user:SUPER_SECRET_PASSWORD_123@db migration failed" >&2
           exit 1
@@ -122,6 +133,14 @@ if [ "$1" = "compose" ]; then
         ;;
       up)
         shift
+        if [ "\${SIMULATE_GARAGE_START_FAIL:-0}" = "1" ] && [ "$*" = "-d --no-build garage" ]; then
+          echo "failed Garage start" >&2
+          exit 1
+        fi
+        if [ "\${SIMULATE_PDF_WORKER_START_FAIL:-0}" = "1" ] && [ "$*" = "-d --no-build pdf-worker" ]; then
+          echo "failed PDF worker start" >&2
+          exit 1
+        fi
         if [ "$*" = "-d --no-build api worker" ] || [ "$*" = "--no-build -d api worker" ]; then
           if [ "\${SIMULATE_APP_UP_FAIL:-0}" = "1" ]; then
             echo "failed to start api worker containers" >&2
@@ -152,6 +171,12 @@ if [ "$1" = "compose" ]; then
         done
         service="$1"
         shift
+        if [ "$service" = "garage" ]; then
+          if [ "\${SIMULATE_GARAGE_HEALTH_FAIL:-0}" = "1" ]; then
+            exit 1
+          fi
+          exit 0
+        fi
         if [ "$service" = "postgres" ] && ( [ "$1" = "sh" ] || [ "$1" = "bash" ] ); then
           if [ "\${SIMULATE_BACKUP_FAIL:-0}" = "1" ]; then
             echo "pg_dump failed" >&2
@@ -386,6 +411,14 @@ function readState(context: TestContext): Record<string, string> {
     }
   }
   return result;
+}
+
+function writeGarageEnvironment(context: TestContext, values: Record<string, string>) {
+  const envPath = path.join(context.projectDir, ".lasoviet-mvp.env");
+  const content = Object.entries(values)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+  writeFileSync(envPath, `${content}\n`, { mode: 0o600 });
 }
 
 function runScript(
@@ -786,6 +819,163 @@ exit 0
     expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CURRENT);
     expect(state.LAST_ATTEMPTED_RELEASE_SHA).toBe(VALID_SHA_CANDIDATE);
     expect(state.LAST_FAILURE_CODE).toBe("HEALTH_CHECK_FAILED");
+  });
+
+  it("activates the private PDF consumer only after Garage pull, start, and health", () => {
+    const garageEnvironment = {
+      GARAGE_PDF_ENABLED: "true",
+      GARAGE_ENDPOINT: "http://garage:3900",
+      GARAGE_REGION: "lasoviet-private",
+      GARAGE_BUCKET: "lasoviet-report-assets",
+      GARAGE_ACCESS_KEY_ID: "synthetic-garage-access-key",
+      GARAGE_SECRET_ACCESS_KEY: "synthetic-garage-secret",
+      GARAGE_RPC_SECRET:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    };
+
+    writeGarageEnvironment(ctx, garageEnvironment);
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], {
+      GARAGE_PDF_ENABLED: "false",
+    });
+    expect(res.status).toBe(0);
+
+    const commands = readFileSync(ctx.commandsLog, "utf8").split("\n");
+    const garagePull = commands.findIndex((line) =>
+      line.includes("pull garage pdf-worker"),
+    );
+    const garageStart = commands.findIndex((line) =>
+      line.includes("up -d --no-build garage"),
+    );
+    const garageHealth = commands.findIndex((line) =>
+      line.includes("exec -T garage /garage status"),
+    );
+    const garageS3Health = commands.findIndex((line) =>
+      line.includes("run --rm --no-deps pdf-worker node dist/health/garage-health-cli.js"),
+    );
+    const pdfWorkerStart = commands.findIndex((line) =>
+      line.includes("up -d --no-build pdf-worker"),
+    );
+
+    expect(garagePull).toBeGreaterThanOrEqual(0);
+    expect(garageStart).toBeGreaterThan(garagePull);
+    expect(garageHealth).toBeGreaterThan(garageStart);
+    expect(garageS3Health).toBeGreaterThan(garageHealth);
+    expect(pdfWorkerStart).toBeGreaterThan(garageS3Health);
+  });
+
+  it.each([
+    ["Garage image pull", { SIMULATE_GARAGE_PULL_FAIL: "1" }, "PDF_ACTIVATION_GARAGE_PULL_FAILED"],
+    ["Garage start", { SIMULATE_GARAGE_START_FAIL: "1" }, "PDF_ACTIVATION_GARAGE_START_FAILED"],
+    ["Garage health", { SIMULATE_GARAGE_HEALTH_FAIL: "1" }, "PDF_ACTIVATION_GARAGE_HEALTH_FAILED"],
+    ["Garage S3 health", { SIMULATE_GARAGE_S3_HEALTH_FAIL: "1" }, "PDF_ACTIVATION_GARAGE_S3_HEALTH_FAILED"],
+    ["PDF worker start", { SIMULATE_PDF_WORKER_START_FAIL: "1" }, "PDF_ACTIVATION_WORKER_START_FAILED"],
+  ])("keeps the HTML release healthy but records a blocking PDF activation failure on %s", (
+    _failurePoint,
+    failureEnvironment,
+    expectedFailureCode,
+  ) => {
+    writeGarageEnvironment(ctx, {
+      GARAGE_PDF_ENABLED: "true",
+      GARAGE_ENDPOINT: "http://garage:3900",
+      GARAGE_REGION: "lasoviet-private",
+      GARAGE_BUCKET: "lasoviet-report-assets",
+      GARAGE_ACCESS_KEY_ID: "synthetic-garage-access-key",
+      GARAGE_SECRET_ACCESS_KEY: "synthetic-garage-secret",
+      GARAGE_RPC_SECRET:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    });
+
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE], failureEnvironment);
+    expect(res.status).toBe(0);
+
+    const commands = readFileSync(ctx.commandsLog, "utf8");
+    expect(commands).toContain("stop pdf-worker");
+    expect(commands).toContain("pull garage pdf-worker");
+    if (expectedFailureCode === "PDF_ACTIVATION_WORKER_START_FAILED") {
+      expect(commands.match(/stop pdf-worker/g)?.length).toBeGreaterThanOrEqual(2);
+    }
+
+    const state = readState(ctx);
+    expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CANDIDATE);
+    expect(state.LAST_FAILURE_CODE).toBe(expectedFailureCode);
+    expect(state.LAST_FAILURE_AT).toBe("2026-09-04T02:30:00Z");
+
+    const log = readFileSync(path.join(ctx.logDir, "deploy.log"), "utf8");
+    expect(log).toContain(expectedFailureCode);
+    expect(log).toContain("DEPLOY_SUCCESSFUL");
+    expect(log).not.toContain("PDF_CONSUMER_ACTIVATED");
+  });
+
+  it("retains a malformed enabled Garage configuration as a PDF activation failure", () => {
+    writeGarageEnvironment(ctx, {
+      GARAGE_PDF_ENABLED: "true",
+      GARAGE_ENDPOINT: "https://invalid.example",
+      GARAGE_REGION: "lasoviet-private",
+      GARAGE_BUCKET: "lasoviet-report-assets",
+      GARAGE_ACCESS_KEY_ID: "synthetic-garage-access-key",
+      GARAGE_SECRET_ACCESS_KEY: "synthetic-garage-secret",
+      GARAGE_RPC_SECRET:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    });
+
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE]);
+    expect(res.status).toBe(0);
+
+    const commands = readFileSync(ctx.commandsLog, "utf8");
+    expect(commands).not.toContain("pull garage pdf-worker");
+    expect(commands).not.toContain("up -d --no-build pdf-worker");
+
+    const state = readState(ctx);
+    expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CANDIDATE);
+    expect(state.LAST_FAILURE_CODE).toBe("PDF_CONFIG_INVALID");
+    expect(state.LAST_FAILURE_AT).toBe("2026-09-04T02:30:00Z");
+  });
+
+  it("retains an incomplete enabled Garage configuration as a PDF activation failure", () => {
+    writeGarageEnvironment(ctx, {
+      GARAGE_PDF_ENABLED: "true",
+      GARAGE_ENDPOINT: "http://garage:3900",
+      GARAGE_REGION: "lasoviet-private",
+      GARAGE_BUCKET: "lasoviet-report-assets",
+      GARAGE_ACCESS_KEY_ID: "synthetic-garage-access-key",
+      GARAGE_RPC_SECRET:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    });
+
+    const res = runScript(ctx, "deploy-release.sh", [VALID_SHA_CANDIDATE]);
+    expect(res.status).toBe(0);
+
+    const commands = readFileSync(ctx.commandsLog, "utf8");
+    expect(commands).not.toContain("pull garage pdf-worker");
+    expect(commands).not.toContain("up -d --no-build pdf-worker");
+
+    const state = readState(ctx);
+    expect(state.CURRENT_RELEASE_SHA).toBe(VALID_SHA_CANDIDATE);
+    expect(state.LAST_FAILURE_CODE).toBe("PDF_CONFIG_INVALID");
+    expect(state.LAST_FAILURE_AT).toBe("2026-09-04T02:30:00Z");
+  });
+
+  it("stops the PDF consumer before rollback and preserves Garage storage", () => {
+    writeState(ctx, {
+      CURRENT_RELEASE_SHA: VALID_SHA_CURRENT,
+      PREVIOUS_RELEASE_SHA: VALID_SHA_PREVIOUS,
+    });
+
+    const res = runScript(ctx, "rollback-release.sh", [VALID_SHA_PREVIOUS]);
+    expect(res.status).toBe(0);
+
+    const commands = readFileSync(ctx.commandsLog, "utf8").split("\n");
+    const stopPdfWorker = commands.findIndex((line) =>
+      line.includes("--profile pdf stop pdf-worker"),
+    );
+    const rollbackPull = commands.findIndex((line) =>
+      line.includes("pull api worker pdf-worker web"),
+    );
+
+    expect(stopPdfWorker).toBeGreaterThanOrEqual(0);
+    expect(rollbackPull).toBeGreaterThan(stopPdfWorker);
+    expect(commands.join("\n")).not.toContain(" down ");
+    expect(commands.join("\n")).not.toContain(" -v");
   });
 
   it("swaps rollback state exactly and never invokes database downgrade or restore", () => {

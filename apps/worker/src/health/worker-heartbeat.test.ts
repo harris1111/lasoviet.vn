@@ -394,4 +394,27 @@ describe("worker heartbeat and progress probe", () => {
     expect(outboxError).toBeUndefined();
     expect(reportError).toBeUndefined();
   });
+
+  it("requires the configured PDF runner to settle before recording a healthy poll", async () => {
+    let heartbeatWritten = false;
+    let pdfError: unknown;
+
+    const result = await executeWorkerPollingCycle({
+      runOutbox: async () => ({ dispatched: 1 }),
+      runReport: async () => ({ processed: 1 }),
+      runPdf: async () => {
+        throw new Error("pdf failed");
+      },
+      writeHeartbeat: async () => {
+        heartbeatWritten = true;
+      },
+      onPdfError(error) {
+        pdfError = error;
+      },
+    });
+
+    expect(result).toBe(false);
+    expect(heartbeatWritten).toBe(false);
+    expect(pdfError).toBeInstanceOf(Error);
+  });
 });

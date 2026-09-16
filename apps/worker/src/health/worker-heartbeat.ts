@@ -143,17 +143,20 @@ export async function validateWorkerHealth(
 export type ExecuteWorkerPollingCycleDependencies = {
   runOutbox(): Promise<unknown>;
   runReport(): Promise<unknown>;
+  runPdf?(): Promise<unknown>;
   writeHeartbeat(): Promise<void>;
   onOutboxError?(error: unknown): void;
   onReportError?(error: unknown): void;
+  onPdfError?(error: unknown): void;
 };
 
 export async function executeWorkerPollingCycle(
   dependencies: ExecuteWorkerPollingCycleDependencies,
 ): Promise<boolean> {
-  const [outboxSettled, reportSettled] = await Promise.allSettled([
+  const [outboxSettled, reportSettled, pdfSettled] = await Promise.allSettled([
     Promise.resolve().then(() => dependencies.runOutbox()),
     Promise.resolve().then(() => dependencies.runReport()),
+    Promise.resolve().then(() => dependencies.runPdf?.()),
   ]);
 
   if (outboxSettled.status === "rejected") {
@@ -162,10 +165,14 @@ export async function executeWorkerPollingCycle(
   if (reportSettled.status === "rejected") {
     dependencies.onReportError?.(reportSettled.reason);
   }
+  if (pdfSettled.status === "rejected") {
+    dependencies.onPdfError?.(pdfSettled.reason);
+  }
 
   if (
     outboxSettled.status === "fulfilled" &&
-    reportSettled.status === "fulfilled"
+    reportSettled.status === "fulfilled" &&
+    pdfSettled.status === "fulfilled"
   ) {
     await dependencies.writeHeartbeat();
     return true;

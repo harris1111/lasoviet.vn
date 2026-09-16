@@ -3,6 +3,13 @@ import { describe, expect, it } from "vitest";
 
 const migrationRoot = new URL("../../drizzle/", import.meta.url);
 
+type DrizzleSnapshot = {
+  tables: Record<string, {
+    columns: Record<string, unknown>;
+    checkConstraints: Record<string, { value: string }>;
+  }>;
+};
+
 describe("report generation migration layout", () => {
   it("keeps report generation outputs in migration 0014", async () => {
     const migration = await readFile(
@@ -72,6 +79,44 @@ describe("report generation migration layout", () => {
 
     expect(packageIndex).toContain("reportVersions");
     expect(packageIndex).toContain("reportGenerationAttempts");
+  });
+
+  it("keeps PDF asset and report failure delivery schema additive in migration 0033", async () => {
+    const [migration, journal, packageIndex, runtime, snapshot] = await Promise.all([
+      readFile(new URL("0033_report_assets_and_report_failure_delivery.sql", migrationRoot), "utf8"),
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+      readFile(new URL("../index.ts", import.meta.url), "utf8"),
+      readFile(new URL("../runtime.ts", import.meta.url), "utf8"),
+      readFile(new URL("meta/0033_snapshot.json", migrationRoot), "utf8"),
+    ]);
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_assets"');
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "support_cases"');
+    expect(migration).toContain("ADD VALUE IF NOT EXISTS 'report_failed'");
+    expect(migration).toContain('"report_assets_report_version_unique"');
+    expect(migration).toContain('"support_cases_report_version_stage_unique"');
+    expect(migration).toContain('"report_assets_status_bounded"');
+    expect(migration).toContain('"report_assets_replica_status_bounded"');
+    expect(migration).toContain('"support_cases_failure_stage_bounded"');
+    expect(migration).not.toContain("html_content");
+
+    expect(journal).toContain('"idx": 33');
+    expect(journal).toContain('"tag": "0033_report_assets_and_report_failure_delivery"');
+    expect(packageIndex).toContain("reportAssets");
+    expect(packageIndex).toContain("supportCases");
+    expect(runtime).toContain("reportAssets");
+    expect(runtime).toContain("supportCases");
+    const reportAssets = (JSON.parse(snapshot) as DrizzleSnapshot).tables["public.report_assets"];
+    expect(reportAssets?.columns).toHaveProperty("replica_status");
+    expect(reportAssets?.checkConstraints.report_assets_status_bounded?.value).toBe(
+      "\"report_assets\".\"status\" IN ('render_pending', 'rendering', 'rendered', 'storing', 'stored', 'store_retryable_failure', 'terminal_failure')",
+    );
+    expect(reportAssets?.checkConstraints.report_assets_status_bounded?.value).not.toContain(
+      "replica_disabled",
+    );
+    expect(reportAssets?.checkConstraints.report_assets_replica_status_bounded?.value).toBe(
+      "\"report_assets\".\"replica_status\" = 'replica_disabled'",
+    );
   });
 
   it("keeps report timing lineage additive columns and checks in migration 0024", async () => {

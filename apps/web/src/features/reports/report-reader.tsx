@@ -6,7 +6,9 @@ import type {
   EvidenceItemV1,
   ReportLegacyReadyViewV1,
   ReportReadyViewV1,
+  ReportComprehensiveV3ReadyViewV1,
 } from "@lasoviet/contracts";
+import { ReportComprehensiveV3ReadyViewV1Schema } from "@lasoviet/contracts";
 
 import { ArtifactImage } from "../../components/artifact-image";
 import { ComprehensiveReportReader } from "./comprehensive-report-reader";
@@ -604,7 +606,16 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
   }
 
   if (report.contentVersion === "ziwei-comprehensive.v3") {
-    throw new Error("V4_1_REPORT_READER_NOT_ACTIVATED");
+    const parsed = ReportComprehensiveV3ReadyViewV1Schema.safeParse(report);
+    if (!parsed.success) {
+      throw new Error("V4_1_REPORT_READER_INVALID");
+    }
+    return (
+      <ComprehensiveReportReader
+        locale="vi"
+        report={parsed.data as ReportComprehensiveV3ReadyViewV1}
+      />
+    );
   }
 
   return <LegacyReportReader locale={locale} report={report} />;

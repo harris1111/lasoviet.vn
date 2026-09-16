@@ -544,6 +544,45 @@ export {
 } from "./jobs/queue.registry.js";
 export type { RegisteredQueue, ResolveWorkerQueuesResult } from "./jobs/queue.registry.js";
 
+export { createPdfRenderer, loadBundledPdfFonts } from "./pdf/pdf-renderer.js";
+export type {
+  ChromiumBrowser,
+  ChromiumLauncher,
+  ChromiumPage,
+  PdfRenderFailureCode,
+  PdfRenderResult,
+} from "./pdf/pdf-renderer.js";
+export { createReportPrintHtml } from "./pdf/report-print-template.js";
+export { createAssetService } from "./storage/asset.service.js";
+export {
+  createGarageAdapter,
+  probeGarageReadiness,
+} from "./storage/garage-adapter.js";
+export type { GarageAdapterDependencies } from "./storage/garage-adapter.js";
+export {
+  createAssetDownloadService,
+  createDatabaseAssetDownloadRepository,
+} from "./storage/asset-download.service.js";
+export {
+  createDatabaseAssetRepository,
+} from "./storage/asset.repository.js";
+export type {
+  AssetRepositoryOptions,
+  PdfWorkItem,
+} from "./storage/asset.repository.js";
+export type {
+  AssetDownload,
+  AssetDownloadError,
+  AssetDownloadRepository,
+} from "./storage/asset-download.service.js";
+export type {
+  ObjectStore,
+  ObjectMetadata,
+  SignedDownload,
+} from "./storage/object-store.js";
+export { createSupportCaseRepository } from "./support/support-case.repository.js";
+export { createSupportCaseService } from "./support/support-case.service.js";
+
 export {
   completeReportGeneratingHandoff,
   parseReportGenerateJob,

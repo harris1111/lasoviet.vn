@@ -43,6 +43,8 @@ import {
 } from "./admin-access.js";
 import { runMigrations } from "../migrate.js";
 import { notificationDeliveries } from "./notifications.js";
+import { reportAssets } from "./assets.js";
+import { supportCases } from "./support-cases.js";
 import { aiModelPricing, aiCallAttempts, aiUsageOutcomes } from "./ai-cost.js";
 import {
   accountBehaviorProfiles,
@@ -78,6 +80,16 @@ describe("database schema integration", () => {
 
     expect(first.appliedMigrations).toEqual(second.appliedMigrations);
     expect(first.appliedMigrations.length).toBeGreaterThan(0);
+  });
+
+  it("exposes PDF asset, support case, and report_failed delivery schema exactly once", () => {
+    expect(reportAssets.id).toBeDefined();
+    expect(reportAssets.reportVersionId).toBeDefined();
+    expect(reportAssets.objectKey).toBeDefined();
+    expect(reportAssets.replicaStatus).toBeDefined();
+    expect(supportCases.assetId).toBeDefined();
+    expect(supportCases.failureStage).toBeDefined();
+    expect(notificationDeliveries.kind).toBeDefined();
   });
 
   it("enforces identity, ownership, privacy, and outbox integrity", async () => {
@@ -1042,7 +1054,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-7)).toEqual([
+    expect(journal.entries.slice(-8)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -1090,6 +1102,13 @@ describe("database schema integration", () => {
         version: "7",
         when: 1790640000000,
         tag: "0032_admin_report_recovery",
+        breakpoints: true,
+      },
+      {
+        idx: 33,
+        version: "7",
+        when: 1790726400000,
+        tag: "0033_report_assets_and_report_failure_delivery",
         breakpoints: true,
       },
     ]);
@@ -1143,7 +1162,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 through 0032 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0033 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -1214,9 +1233,11 @@ describe("database schema integration", () => {
     `;
     await client`DROP TABLE IF EXISTS admin_report_recovery_receipts`;
     await client`DROP TABLE IF EXISTS report_section_checkpoint_revisions`;
+    await client`DROP TABLE IF EXISTS support_cases`;
+    await client`DROP TABLE IF EXISTS report_assets`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000)
+      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000, 1790726400000)
     `;
 
     const [latestBefore] = await client<{ created_at: string }[]>`
@@ -1229,18 +1250,19 @@ describe("database schema integration", () => {
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1790640000000);
+    expect(Number(latestAfter?.created_at)).toBe(1790726400000);
 
     const reappliedMigrations = await client<{ created_at: string }[]>`
       SELECT created_at
       FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000)
+      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000, 1790726400000)
       ORDER BY created_at ASC
     `;
     expect(reappliedMigrations.map((migration) => Number(migration.created_at))).toEqual([
       1790064000000,
       1790553600000,
       1790640000000,
+      1790726400000,
     ]);
 
     const [recoveryReceiptTableCheck] = await client<{ exists: boolean }[]>`

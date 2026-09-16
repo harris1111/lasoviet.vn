@@ -975,3 +975,35 @@ Date: 2026-09-14
 - An approved the LSV-12 technical plan, migration `0027_account_linked_analytics`, service-token
   boundary, focused test scope, and current limited artifact branch in chat on
   2026-09-14.
+
+## FD-086 Terra Medium Implementation Route
+
+Date: 2026-09-16
+
+- The founder explicitly instructed Sol to stop using Gemini/Flash Executor
+  and use GPT 5.6 Terra with `medium` reasoning for bounded implementation.
+- A separate GPT 5.6 Terra session with `high` reasoning remains the mandatory
+  independent milestone reviewer. The implementor and reviewer sessions must
+  remain independent.
+- Flash Executor is paused from this decision onward and may be reactivated
+  only by another explicit founder instruction.
+- Existing scope, approval, review, merge, deployment, activation, and
+  external-side-effect gates remain unchanged.
+
+## FD-087 LSV-36 Private PDF Delivery And Immutable Storage Attempts
+
+Date: 2026-09-16
+
+- The founder approved the LSV-36 web BFF as the only browser-facing PDF
+  delivery path: after private API owner authorization, the BFF streams or
+  proxies the PDF server-side. Garage remains private with no host-published
+  port, and its internal signed URL is never returned to the browser.
+- The founder approved per-attempt immutable Garage object keys. PostgreSQL
+  atomically selects the winning stored key during fenced finalization; objects
+  written by losing or expired attempts remain orphans for later authorized
+  reconciliation and are never overwritten by a later attempt.
+- The founder approved Be Vietnam Pro under the SIL Open Font License 1.1 for
+  LSV-36 PDF output.
+- This decision does not authorize deployment, activation, use of credentials,
+  or external smoke. Each still requires separate founder authorization and
+  actual configured credentials.

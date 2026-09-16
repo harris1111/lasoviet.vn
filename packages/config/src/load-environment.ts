@@ -3,12 +3,14 @@ import {
   AiEnvironmentSchema,
   AppEnvironmentSchema,
   CloudS3EnvironmentSchema,
+  GarageEnvironmentSchema,
   NodeEnvironmentSchema,
   SmtpEnvironmentSchema,
   SePayEnvironmentSchema,
   type AiEnvironment,
   type AppEnvironment,
   type CloudS3Environment,
+  type GarageEnvironment,
   type NodeEnvironment,
   type SmtpEnvironment,
   type SePayEnvironment,
@@ -28,7 +30,14 @@ type ParseResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: AppError<EnvironmentErrorCode> };
 
-type OptionalGroup = "ai" | "smtp" | "cloudS3" | "google" | "sepay" | "telegram";
+type OptionalGroup =
+  | "ai"
+  | "smtp"
+  | "cloudS3"
+  | "garage"
+  | "google"
+  | "sepay"
+  | "telegram";
 
 const AI_VARIABLES = [
   "AI_BASE_URL",
@@ -56,6 +65,15 @@ const CLOUD_S3_VARIABLES = [
   "CLOUD_S3_BUCKET",
   "CLOUD_S3_ACCESS_KEY_ID",
   "CLOUD_S3_SECRET_ACCESS_KEY",
+] as const;
+
+const GARAGE_VARIABLES = [
+  "GARAGE_ENDPOINT",
+  "GARAGE_REGION",
+  "GARAGE_BUCKET",
+  "GARAGE_ACCESS_KEY_ID",
+  "GARAGE_SECRET_ACCESS_KEY",
+  "GARAGE_RPC_SECRET",
 ] as const;
 
 const GOOGLE_VARIABLES = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const;
@@ -90,6 +108,12 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "cloudS3.bucket": "CLOUD_S3_BUCKET",
   "cloudS3.accessKeyId": "CLOUD_S3_ACCESS_KEY_ID",
   "cloudS3.secretAccessKey": "CLOUD_S3_SECRET_ACCESS_KEY",
+  "garage.endpoint": "GARAGE_ENDPOINT",
+  "garage.region": "GARAGE_REGION",
+  "garage.bucket": "GARAGE_BUCKET",
+  "garage.accessKeyId": "GARAGE_ACCESS_KEY_ID",
+  "garage.secretAccessKey": "GARAGE_SECRET_ACCESS_KEY",
+  "garage.rpcSecret": "GARAGE_RPC_SECRET",
   "sepay.environment": "SEPAY_ENV",
   "sepay.merchantId": "SEPAY_MERCHANT_ID",
   "sepay.secretKey": "SEPAY_SECRET_KEY",
@@ -270,6 +294,39 @@ function loadCloudS3(
     : invalidFromSchema(parsed.error, "CLOUD_S3_ENDPOINT", "cloudS3");
 }
 
+function loadGarage(source: NodeJS.ProcessEnv): ParseResult<GarageEnvironment> {
+  if (
+    source.GARAGE_PDF_ENABLED === undefined ||
+    source.GARAGE_PDF_ENABLED === "false"
+  ) {
+    return { ok: true, value: { enabled: false } };
+  }
+  if (source.GARAGE_PDF_ENABLED !== "true") {
+    return invalidEnvironment("GARAGE_PDF_ENABLED");
+  }
+
+  const state = optionalGroupState(source, GARAGE_VARIABLES);
+  if (state.state !== "complete") {
+    return partialOptionalGroup(
+      "garage",
+      state.state === "disabled" ? "GARAGE_ENDPOINT" : state.missing,
+    );
+  }
+
+  const parsed = GarageEnvironmentSchema.safeParse({
+    enabled: true,
+    endpoint: source.GARAGE_ENDPOINT,
+    region: source.GARAGE_REGION,
+    bucket: source.GARAGE_BUCKET,
+    accessKeyId: source.GARAGE_ACCESS_KEY_ID,
+    secretAccessKey: source.GARAGE_SECRET_ACCESS_KEY,
+    rpcSecret: source.GARAGE_RPC_SECRET,
+  });
+  return parsed.success
+    ? { ok: true, value: parsed.data }
+    : invalidFromSchema(parsed.error, "GARAGE_ENDPOINT", "garage");
+}
+
 function loadSePay(source: NodeJS.ProcessEnv): ParseResult<SePayEnvironment> {
   if (source.SEPAY_ENV === undefined) {
     return missingRequired("SEPAY_ENV");
@@ -341,6 +398,10 @@ export function loadEnvironment(
   if (!cloudS3.ok) {
     return cloudS3;
   }
+  const garage = loadGarage(source);
+  if (!garage.ok) {
+    return garage;
+  }
   const sepay = loadSePay(source);
   if (!sepay.ok) return sepay;
 
@@ -359,6 +420,7 @@ export function loadEnvironment(
     ai: ai.value,
     smtp: smtp.value,
     cloudS3: cloudS3.value,
+    garage: garage.value,
     sepay: sepay.value,
   };
   if (source.INTERNAL_ACTOR_SECRET !== undefined) {

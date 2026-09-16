@@ -250,3 +250,62 @@ build_compose_cmd() {
   build_base_compose_cmd
   COMPOSE_CMD+=(-f "$PROJECT_DIR/docker-compose.registry.yml")
 }
+
+read_external_env_key() {
+  local key="$1"
+  local line value found=0
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    [ -z "$line" ] && continue
+    [[ "$line" == \#* ]] && continue
+    [[ "$line" == "export "* ]] && line="${line#export }"
+
+    if [[ "$line" == "$key="* ]]; then
+      found=$((found + 1))
+      if [ "$found" -gt 1 ]; then
+        return 2
+      fi
+
+      value="${line#*=}"
+      if [[ "$value" == \"*\" ]] && [ "${value: -1}" = "\"" ]; then
+        value="${value:1:${#value}-2}"
+      elif [[ "$value" == \'*\' ]] && [ "${value: -1}" = "'" ]; then
+        value="${value:1:${#value}-2}"
+      fi
+    fi
+  done < "$DEPLOY_ENV_FILE"
+
+  if [ "$found" -eq 0 ]; then
+    return 1
+  fi
+
+  printf '%s' "$value"
+}
+
+load_garage_pdf_env() {
+  local key value result
+  local -a garage_keys=(
+    GARAGE_PDF_ENABLED
+    GARAGE_ENDPOINT
+    GARAGE_REGION
+    GARAGE_BUCKET
+    GARAGE_ACCESS_KEY_ID
+    GARAGE_SECRET_ACCESS_KEY
+    GARAGE_RPC_SECRET
+  )
+
+  for key in "${garage_keys[@]}"; do
+    unset "$key"
+    value=""
+    if value="$(read_external_env_key "$key")"; then
+      export "$key=$value"
+      continue
+    fi
+
+    result=$?
+    if [ "$result" -ne 1 ]; then
+      return "$result"
+    fi
+  done
+}

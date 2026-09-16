@@ -2,6 +2,7 @@ import { and, eq, lte, or, sql } from "drizzle-orm";
 import {
   ReportGenerationRequestedV1Schema,
   ReportGenerationRequestedV2Schema,
+  ReportPdfRequestedV1Schema,
   type QueueJob,
   type QueueJobV1,
   type ReportGenerationRequestedV1,
@@ -67,6 +68,19 @@ export function createOutboxDispatcher(dependencies: OutboxDispatcherDependencie
             sourceEventId: event.eventId,
             traceId: event.traceId,
             idempotencyKey: queueJobIdempotencyKey,
+            payload,
+          };
+        }
+      } else if (event.eventType === "report.pdf.requested.v1") {
+        const parseResult = ReportPdfRequestedV1Schema.safeParse(event.payload);
+        if (parseResult.success) {
+          const payload = parseResult.data;
+          job = {
+            schemaVersion: 1,
+            name: "report.pdf.render.v1",
+            sourceEventId: event.eventId,
+            traceId: event.traceId,
+            idempotencyKey: `pdf-render:${payload.assetId}:${payload.renderVersion}`,
             payload,
           };
         }
@@ -144,6 +158,7 @@ export function createOutboxDispatchSchedule(options: {
 const reportGenerationEventTypeCondition = or(
   eq(outbox.eventType, "report.generation.requested.v1"),
   eq(outbox.eventType, "report.generation.requested.v2"),
+  eq(outbox.eventType, "report.pdf.requested.v1"),
 );
 
 export function createDatabaseOutboxStore(

@@ -55,6 +55,8 @@ export {
   reportSourceSnapshots,
   reportVersions,
 } from "./schema/reports.js";
+export { reportAssets } from "./schema/assets.js";
+export { supportCases } from "./schema/support-cases.js";
 export {
   deletionRequestStatus,
   deletionRequests,
