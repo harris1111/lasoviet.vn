@@ -9,6 +9,7 @@ import {
 const SECTIONED_REPORT_CONFIG = "ziwei.comprehensive.report.v4.1-sectioned";
 const LEASE_HEARTBEAT_INTERVAL_MS = 120_000;
 const SECTIONED_MAXIMUM_WALL_CLOCK_MS = 60 * 60 * 1_000;
+const AI_TIMEOUT_RETRY_DELAYS_MS = [30_000, 60_000, 120_000, 300_000, 600_000, 1_200_000, 1_800_000];
 
 export type ReportProcessorClock = {
   now(): Date;
@@ -68,13 +69,15 @@ export function createReportGenerateProcessor(dependencies: {
       errorCode: string;
       expectedStateVersion?: number;
     }): Promise<{ ok: true } | { ok: false; code: string }> {
-      if (params.attemptCount >= 3) {
+      const isAiTimeout = params.errorCode === "AI_TIMEOUT";
+      const maxAttempts = isAiTimeout ? 8 : 3;
+      if (params.attemptCount >= maxAttempts) {
         if (params.reportVersionId) {
           const terminalResult = await dependencies.reportService.recordTerminalFailure({
             reportVersionId: params.reportVersionId,
             jobId: params.jobId,
             workerId: dependencies.workerId,
-            errorCode: "JOB_RETRY_EXHAUSTED",
+            errorCode: params.errorCode,
             failureStage: "generation",
             expectedStateVersion: params.expectedStateVersion,
           });
@@ -83,15 +86,15 @@ export function createReportGenerateProcessor(dependencies: {
           return { ok: false, code: "JOB_RETRY_EXHAUSTED" };
         }
 
-        const fenceResult = await dependencies.queueStore.recordTerminalFailure(
-          params.jobId,
-          "JOB_RETRY_EXHAUSTED",
-        );
+        const fenceResult = await dependencies.queueStore.recordTerminalFailure(params.jobId, params.errorCode);
         if (!fenceResult.ok) return fenceResult;
         return { ok: false, code: "JOB_RETRY_EXHAUSTED" };
       }
 
-      const nextAttemptAt = new Date(clock.now().getTime() + 30_000);
+      const retryDelayMs = isAiTimeout
+        ? AI_TIMEOUT_RETRY_DELAYS_MS[params.attemptCount - 1] ?? AI_TIMEOUT_RETRY_DELAYS_MS.at(-1)!
+        : 30_000;
+      const nextAttemptAt = new Date(clock.now().getTime() + retryDelayMs);
       const retryResult = await dependencies.queueStore.recordRetryableFailure(
         params.jobId,
         params.errorCode,

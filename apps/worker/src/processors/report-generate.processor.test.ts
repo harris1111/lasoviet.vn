@@ -71,7 +71,7 @@ describe("createReportGenerateProcessor alert dispatching", () => {
     expect(mockAlertDispatcher.dispatchPendingAlerts).toHaveBeenCalledTimes(1);
   });
 
-  it("requests immediate dispatch on processJobFailure when attemptCount >= 3", async () => {
+  it("requests immediate dispatch on processJobFailure when the non-timeout attempt cap is reached", async () => {
     const mockReportService = {
       recordTerminalFailure: vi.fn().mockResolvedValue({ ok: true }),
     };
@@ -106,12 +106,98 @@ describe("createReportGenerateProcessor alert dispatching", () => {
       reportVersionId: "ver-3",
       jobId: "job-3",
       workerId,
-      errorCode: "JOB_RETRY_EXHAUSTED",
+      errorCode: "JOB_PAYLOAD_INVALID",
       failureStage: "generation",
       expectedStateVersion: 1,
     });
     expect(mockAlertDispatcher.dispatchPendingAlerts).toHaveBeenCalledWith("report_terminal_failure");
     expect(mockAlertDispatcher.dispatchPendingAlerts).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses the persisted AI_TIMEOUT backoff schedule through attempt seven", async () => {
+    const frozenNow = new Date("2026-09-15T00:00:00.000Z");
+    const mockReportService = {
+      recordTerminalFailure: vi.fn().mockResolvedValue({ ok: true }),
+    };
+    const mockQueueStore = {
+      claimNext: vi.fn(),
+      recordRetryableFailure: vi.fn().mockResolvedValue({ ok: true }),
+      recordTerminalFailure: vi.fn(),
+      markProcessed: vi.fn(),
+    };
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: mockReportService as never,
+      queueStore: mockQueueStore as never,
+      workerId,
+      clock: {
+        now: () => frozenNow,
+        setInterval: vi.fn(),
+        clearInterval: vi.fn(),
+      },
+    });
+
+    const delays = [30_000, 60_000, 120_000, 300_000, 600_000, 1_200_000, 1_800_000];
+    for (const [index, delay] of delays.entries()) {
+      await expect(
+        processor.processJobFailure({
+          jobId: `timeout-job-${index + 1}`,
+          reportVersionId: `timeout-version-${index + 1}`,
+          attemptCount: index + 1,
+          errorCode: "AI_TIMEOUT",
+        }),
+      ).resolves.toEqual({ ok: true });
+      expect(mockQueueStore.recordRetryableFailure).toHaveBeenLastCalledWith(
+        `timeout-job-${index + 1}`,
+        "AI_TIMEOUT",
+        new Date(frozenNow.getTime() + delay),
+      );
+    }
+
+    expect(mockReportService.recordTerminalFailure).not.toHaveBeenCalled();
+  });
+
+  it("terminal-fails AI_TIMEOUT on attempt eight with the original code and one alert", async () => {
+    const mockReportService = {
+      recordTerminalFailure: vi.fn().mockResolvedValue({ ok: true }),
+    };
+    const mockQueueStore = {
+      claimNext: vi.fn(),
+      recordRetryableFailure: vi.fn(),
+      recordTerminalFailure: vi.fn(),
+      markProcessed: vi.fn(),
+    };
+    const mockAlertDispatcher = {
+      dispatchPendingAlerts: vi.fn().mockResolvedValue({ delivered: 1, failed: 0, unconfigured: false }),
+    };
+    const processor = createReportGenerateProcessor({
+      database: dummyDb,
+      reportService: mockReportService as never,
+      queueStore: mockQueueStore as never,
+      workerId,
+      alertDispatcher: mockAlertDispatcher,
+    });
+
+    await expect(
+      processor.processJobFailure({
+        jobId: "timeout-job-8",
+        reportVersionId: "timeout-version-8",
+        attemptCount: 8,
+        errorCode: "AI_TIMEOUT",
+      }),
+    ).resolves.toEqual({ ok: false, code: "JOB_RETRY_EXHAUSTED" });
+
+    expect(mockReportService.recordTerminalFailure).toHaveBeenCalledTimes(1);
+    expect(mockReportService.recordTerminalFailure).toHaveBeenCalledWith({
+      reportVersionId: "timeout-version-8",
+      jobId: "timeout-job-8",
+      workerId,
+      errorCode: "AI_TIMEOUT",
+      failureStage: "generation",
+    });
+    expect(mockAlertDispatcher.dispatchPendingAlerts).toHaveBeenCalledWith("report_terminal_failure");
+    expect(mockAlertDispatcher.dispatchPendingAlerts).toHaveBeenCalledTimes(1);
+    expect(mockQueueStore.recordRetryableFailure).not.toHaveBeenCalled();
   });
 
   it("does not dispatch if recordTerminalFailure returns conflict / lease lost", async () => {

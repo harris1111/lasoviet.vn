@@ -273,6 +273,17 @@ export {
   createDatabaseRoleAssignmentRepository,
 } from "./admin-access/role-assignment.repository.js";
 export {
+  createReportRecoveryService,
+} from "./admin-access/report-recovery.service.js";
+export type {
+  ReportRecoveryCommand,
+  ReportRecoveryError,
+  ReportRecoveryRepository,
+} from "./admin-access/report-recovery.service.js";
+export {
+  createDatabaseReportRecoveryRepository,
+} from "./admin-access/report-recovery.repository.js";
+export {
   createAuditQueryService,
 } from "./admin-access/audit-query.service.js";
 export type { AuditQueryRepository } from "./admin-access/audit-query.service.js";
@@ -523,8 +534,15 @@ export {
   transitionReportToGenerating,
 } from "./reports/report-state.js";
 export type { ReportStateSnapshot, TransitionReportToGeneratingResult } from "./reports/report-state.js";
-export { createDatabaseReportQueueStore, createReportService } from "./reports/report.service.js";
-export type { ReportJobQueueStore } from "./reports/report.service.js";
+export {
+  createDatabaseReportQueueStore,
+  createReportService,
+  recoverTransientProviderFailureGenerationInTransaction,
+} from "./reports/report.service.js";
+export type {
+  ReportJobQueueStore,
+  TerminalRecoveryResult,
+} from "./reports/report.service.js";
 
 export {
   createKnowledgeIngestionService,
