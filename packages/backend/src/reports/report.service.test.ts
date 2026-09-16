@@ -10,6 +10,7 @@ import {
 import {
   createDatabaseReportQueueStore,
   createReportService,
+  recoverInvalidOutputGenerationInTransaction,
 } from "./report.service.js";
 
 describe("createReportService terminal recovery", () => {
@@ -154,13 +155,7 @@ describe("createReportService terminal recovery", () => {
     };
 
     const { tx, insertedValues } = createMockTx({ reservation: mockReservation });
-    const mockDb = {
-      transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
-    };
-
-    const service = createReportService(mockDb as never);
-
-    const result = await service.recoverInvalidOutputGeneration({
+    const result = await recoverInvalidOutputGenerationInTransaction(tx as never, {
       reportVersionId: "version-v1",
       expectedStateVersion: 1,
       recoveryId: "rec-v1",

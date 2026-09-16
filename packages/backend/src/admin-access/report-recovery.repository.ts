@@ -22,6 +22,7 @@ import {
 } from "@lasoviet/database";
 
 import {
+  recoverInvalidOutputGenerationInTransaction,
   recoverTransientProviderFailureGenerationInTransaction,
 } from "../reports/report.service.js";
 import type {
@@ -31,6 +32,22 @@ import type {
 } from "./report-recovery.service.js";
 
 type LockedReservation = typeof reportReservations.$inferSelect;
+type RecoveryKind = "transient_provider" | "invalid_output";
+
+const recoveryOperations = {
+  transient_provider: {
+    authorization: "admin.report.recovery.authorization",
+    receipt: "admin.report.recovery.requested",
+    failure: "admin.report.recovery.command_failed",
+    requested: "admin.report.recovery.requested",
+  },
+  invalid_output: {
+    authorization: "admin.report.recovery.authorization",
+    receipt: "admin.report.recovery.invalid_output.requested",
+    failure: "admin.report.recovery.invalid_output.command_failed",
+    requested: "admin.report.recovery.invalid_output.requested",
+  },
+} as const;
 
 type RecoveryAuthority = {
   assignmentId: string | null;
@@ -71,10 +88,15 @@ function failure(
 
 function storedOutcome(
   result: unknown,
+  receiptOperation: string,
+  expectedReceiptOperations: readonly string[],
   receiptTargetReportVersionId: string,
   commandReportVersionId: string,
 ): Result<AdminReportRecoverySuccessV1, ReportRecoveryError> | undefined {
-  if (receiptTargetReportVersionId !== commandReportVersionId) {
+  if (
+    !expectedReceiptOperations.includes(receiptOperation) ||
+    receiptTargetReportVersionId !== commandReportVersionId
+  ) {
     return undefined;
   }
   const success = AdminReportRecoverySuccessV1Schema.safeParse(result);
@@ -155,6 +177,7 @@ async function resolveAuthority(
 function requestFingerprint(
   command: ReportRecoveryCommand,
   authority: RecoveryAuthority,
+  recoveryKind: RecoveryKind,
 ): string {
   return createHash("sha256")
     .update(JSON.stringify({
@@ -162,6 +185,7 @@ function requestFingerprint(
       reportVersionId: command.reportVersionId,
       expectedStateVersion: command.expectedStateVersion,
       reasonCode: command.context.reasonCode,
+      recoveryKind,
     }))
     .digest("hex");
 }
@@ -197,6 +221,7 @@ async function persistFailure(
   digest: string,
   code: ReportRecoveryError,
   reservation: LockedReservation | undefined,
+  recoveryKind: RecoveryKind,
 ) {
   const authorizationAudit = {
     actorId: command.context.access.actorId,
@@ -218,7 +243,7 @@ async function persistFailure(
       : { outcome: "denied", code },
   };
   const operation = authority.allowed
-    ? "admin.report.recovery.command_failed"
+    ? recoveryOperations[recoveryKind].failure
     : "admin.report.recovery.authorization";
   if (authority.allowed) {
     await transaction.insert(adminAuditLogs).values([
@@ -246,117 +271,136 @@ async function persistFailure(
 export function createDatabaseReportRecoveryRepository(
   database: Database,
 ): ReportRecoveryRepository {
-  return {
-    async recoverTransientFailure(command) {
-      try {
-        return await database.transaction(async (transaction) => {
-          const tx = transaction as Database;
-          const authority = await resolveAuthority(tx, command);
-          const reservation = await lockReservation(tx, command.reportVersionId);
-          const digest = requestFingerprint(command, authority);
-          const receipts = await tx
-            .select()
-            .from(adminReportRecoveryReceipts)
-            .where(and(
-              eq(adminReportRecoveryReceipts.actorId, command.context.access.actorId),
-              eq(
-                adminReportRecoveryReceipts.idempotencyKey,
-                command.context.idempotencyKey,
-              ),
-            ));
-          const receipt = receipts[0];
+  async function recover(
+    command: ReportRecoveryCommand,
+    recoveryKind: RecoveryKind,
+  ): Promise<Result<AdminReportRecoverySuccessV1, ReportRecoveryError>> {
+    const operations = recoveryOperations[recoveryKind];
+    try {
+      return await database.transaction(async (transaction) => {
+        const tx = transaction as Database;
+        const authority = await resolveAuthority(tx, command);
+        const reservation = await lockReservation(tx, command.reportVersionId);
+        const digest = requestFingerprint(command, authority, recoveryKind);
+        const receipts = await tx
+          .select()
+          .from(adminReportRecoveryReceipts)
+          .where(and(
+            eq(adminReportRecoveryReceipts.actorId, command.context.access.actorId),
+            eq(
+              adminReportRecoveryReceipts.idempotencyKey,
+              command.context.idempotencyKey,
+            ),
+          ));
+        const receipt = receipts[0];
 
-          if (receipt?.requestFingerprint === digest) {
-            return storedOutcome(
-              receipt.result,
-              receipt.targetReportVersionId,
-              command.reportVersionId,
-            ) ??
-              failure("REPORT_RECOVERY_CONFLICT");
-          }
-          if (receipt !== undefined) {
-            return failure("REPORT_RECOVERY_CONFLICT");
-          }
-          if (!authority.allowed) {
-            return persistFailure(
-              tx,
-              command,
-              authority,
-              digest,
-              "REPORT_RECOVERY_FORBIDDEN",
-              reservation,
-            );
-          }
-          if (reservation === undefined) {
-            return persistFailure(
-              tx,
-              command,
-              authority,
-              digest,
-              "REPORT_NOT_FOUND",
-              reservation,
-            );
-          }
-
-          const recovery = await recoverTransientProviderFailureGenerationInTransaction(
+        if (receipt?.requestFingerprint === digest) {
+          return storedOutcome(
+            receipt.result,
+            receipt.operation,
+            [operations.authorization, operations.failure, operations.receipt],
+            receipt.targetReportVersionId,
+            command.reportVersionId,
+          ) ??
+            failure("REPORT_RECOVERY_CONFLICT");
+        }
+        if (receipt !== undefined) {
+          return failure("REPORT_RECOVERY_CONFLICT");
+        }
+        if (!authority.allowed) {
+          return persistFailure(
             tx,
-            {
+            command,
+            authority,
+            digest,
+            "REPORT_RECOVERY_FORBIDDEN",
+            reservation,
+            recoveryKind,
+          );
+        }
+        if (reservation === undefined) {
+          return persistFailure(
+            tx,
+            command,
+            authority,
+            digest,
+            "REPORT_NOT_FOUND",
+            reservation,
+            recoveryKind,
+          );
+        }
+
+        const recovery = recoveryKind === "invalid_output"
+          ? await recoverInvalidOutputGenerationInTransaction(tx, {
               reportVersionId: command.reportVersionId,
               expectedStateVersion: command.expectedStateVersion,
               recoveryId: command.context.idempotencyKey,
-            },
+            })
+          : await recoverTransientProviderFailureGenerationInTransaction(tx, {
+              reportVersionId: command.reportVersionId,
+              expectedStateVersion: command.expectedStateVersion,
+              recoveryId: command.context.idempotencyKey,
+            });
+        if (!recovery.ok) {
+          return persistFailure(
+            tx,
+            command,
+            authority,
+            digest,
+            mapRecoveryError(recovery.code),
+            reservation,
+            recoveryKind,
           );
-          if (!recovery.ok) {
-            return persistFailure(
-              tx,
-              command,
-              authority,
-              digest,
-              mapRecoveryError(recovery.code),
-              reservation,
-            );
-          }
+        }
 
-          const result: AdminReportRecoverySuccessV1 = {
-            reportVersionId: command.reportVersionId,
-            stateVersion: recovery.stateVersion,
-            replayed: false,
-          };
-          const audit = (operation: string) => ({
-            actorId: command.context.access.actorId,
-            roleAssignmentId: authority.assignmentId,
-            capabilityPolicyId: authority.policyId,
-            capability: "admin.reports.regenerate" as const,
-            operation,
-            targetType: "report_version",
-            targetId: command.reportVersionId,
-            requestId: command.context.requestId,
-            traceId: command.context.traceId,
-            idempotencyKey: command.context.idempotencyKey,
-            reasonCode: command.context.reasonCode,
-            policyResult: "allowed" as const,
-            redactionLevel: "redacted" as const,
-            beforeVersion: reservation.stateVersion,
-            afterVersion: recovery.stateVersion,
-            resultSummary: { outcome: "allowed" },
-          });
-          await tx.insert(adminAuditLogs).values([
-            audit("admin.report.recovery.authorization"),
-            audit("admin.report.recovery.requested"),
-          ]);
-          await tx.insert(adminReportRecoveryReceipts).values({
-            actorId: command.context.access.actorId,
-            operation: "admin.report.recovery.requested",
-            targetReportVersionId: command.reportVersionId,
-            idempotencyKey: command.context.idempotencyKey,
-            requestFingerprint: digest,
-            result,
-          });
-          return { ok: true as const, value: result };
+        const result: AdminReportRecoverySuccessV1 = {
+          reportVersionId: command.reportVersionId,
+          stateVersion: recovery.stateVersion,
+          replayed: false,
+        };
+        const audit = (operation: string) => ({
+          actorId: command.context.access.actorId,
+          roleAssignmentId: authority.assignmentId,
+          capabilityPolicyId: authority.policyId,
+          capability: "admin.reports.regenerate" as const,
+          operation,
+          targetType: "report_version",
+          targetId: command.reportVersionId,
+          requestId: command.context.requestId,
+          traceId: command.context.traceId,
+          idempotencyKey: command.context.idempotencyKey,
+          reasonCode: command.context.reasonCode,
+          policyResult: "allowed" as const,
+          redactionLevel: "redacted" as const,
+          beforeVersion: reservation.stateVersion,
+          afterVersion: recovery.stateVersion,
+          resultSummary: { outcome: "allowed" },
         });
-      } catch {
-        return failure("REPORT_RECOVERY_CONFLICT");
-      }
+        await tx.insert(adminAuditLogs).values([
+          audit("admin.report.recovery.authorization"),
+          audit(operations.requested),
+        ]);
+        await tx.insert(adminReportRecoveryReceipts).values({
+          actorId: command.context.access.actorId,
+          operation: operations.receipt,
+          targetReportVersionId: command.reportVersionId,
+          idempotencyKey: command.context.idempotencyKey,
+          requestFingerprint: digest,
+          result,
+        });
+        return { ok: true as const, value: result };
+      });
+    } catch {
+      return failure("REPORT_RECOVERY_CONFLICT");
+    }
+  }
+
+  return {
+    async recoverTransientFailure(command) {
+      return recover(command, "transient_provider");
+    },
+    async recoverInvalidOutputFailure(command) {
+      return recover(command, "invalid_output");
     },
   };
 }

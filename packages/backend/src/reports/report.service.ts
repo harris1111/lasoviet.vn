@@ -483,6 +483,22 @@ export async function recoverTransientProviderFailureGenerationInTransaction(
   });
 }
 
+export async function recoverInvalidOutputGenerationInTransaction(
+  transaction: Database,
+  params: {
+    reportVersionId: string;
+    expectedStateVersion: number;
+    recoveryId: string;
+    now?: Date;
+  },
+): Promise<TerminalRecoveryResult> {
+  return executeTerminalRecoveryInTransaction(transaction, {
+    ...params,
+    allowedErrorCodes: ["AI_OUTPUT_INVALID", "REPORT_SAFETY_REJECTED"],
+    recoveryKind: "invalid_output",
+  });
+}
+
 export function createReportService(database: Database) {
   return {
     async startGenerating(params: {

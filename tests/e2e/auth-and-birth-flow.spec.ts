@@ -154,3 +154,76 @@ test("prefills birth data with unknown time from hero form and respects honest e
   await expect(page.getByText("12/04/1994")).toBeVisible();
   await expect(page.getByText("Không rõ giờ sinh")).toBeVisible();
 });
+
+test("autosaves partial homepage input across reload", async ({ page }) => {
+  const baseURL = test.info().project.use.baseURL as string;
+  await page.context().addCookies([
+    {
+      name: "NEXT_LOCALE",
+      value: "vi",
+      domain: new URL(baseURL).hostname,
+      path: "/",
+    },
+  ]);
+  await page.goto("/");
+
+  const heroForm = page.locator("#hero-form");
+  await heroForm.getByRole("textbox", { name: "Ngày", exact: true }).fill("12");
+  await heroForm.getByRole("textbox", { name: "Tháng", exact: true }).fill("04");
+  await heroForm.getByRole("button", { name: "Giờ & phút" }).click();
+  await heroForm.getByRole("textbox", { name: "Giờ", exact: true }).fill("09");
+
+  await page.reload();
+
+  const restoredHeroForm = page.locator("#hero-form");
+  await expect(restoredHeroForm.getByRole("textbox", { name: "Ngày", exact: true })).toHaveValue("12");
+  await expect(restoredHeroForm.getByRole("textbox", { name: "Tháng", exact: true })).toHaveValue("04");
+  await expect(restoredHeroForm.getByRole("textbox", { name: "Giờ", exact: true })).toHaveValue("09");
+});
+
+test("autosaves Review before immediate sign-in navigation and restores it after mocked OAuth", async ({
+  page,
+}) => {
+  const baseURL = test.info().project.use.baseURL as string;
+  await page.context().addCookies([
+    {
+      name: "NEXT_LOCALE",
+      value: "vi",
+      domain: new URL(baseURL).hostname,
+      path: "/",
+    },
+  ]);
+
+  const wizardPath = "/tao-la-so/tu-vi";
+  const wizardUrl = new URL(wizardPath, baseURL).toString();
+  await page.goto(wizardPath);
+  await page.getByLabel("Nam").check();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await page.getByRole("textbox", { name: "Ngày", exact: true }).fill("12");
+  await page.getByRole("textbox", { name: "Tháng", exact: true }).fill("04");
+  await page.getByRole("textbox", { name: "Năm", exact: true }).fill("1994");
+  await page.getByLabel("Giờ", { exact: true }).fill("09");
+  await page.getByLabel("Phút", { exact: true }).fill("30");
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+  await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
+
+  await page.route("**/api/auth/sign-in/social", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ url: wizardUrl, redirect: true }),
+    });
+  });
+
+  await page.getByRole("link", { name: "Đăng nhập" }).click();
+  await expect(page).toHaveURL(
+    `/dang-nhap?callbackURL=${encodeURIComponent(wizardPath)}`,
+  );
+  const googleButton = page.getByRole("button", { name: /Google/i });
+  await Promise.all([page.waitForURL(wizardUrl), googleButton.click()]);
+
+  await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
+  await expect(page.getByText("12/04/1994")).toBeVisible();
+  await expect(page.getByText("09:30")).toBeVisible();
+  await expect(page.getByRole("checkbox")).not.toBeChecked();
+});
