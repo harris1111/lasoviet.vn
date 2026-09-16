@@ -27,6 +27,7 @@ const serviceSecret = "synthetic-admin-report-recovery-secret";
 const secret = new TextEncoder().encode(serviceSecret);
 const resolveAdminAccess = vi.fn();
 const recoverTransientFailure = vi.fn();
+const recoverInvalidOutputFailure = vi.fn();
 const appendAdminAudit = vi.fn();
 
 async function actorToken(): Promise<string> {
@@ -53,7 +54,7 @@ Module({
     { provide: ADMIN_ACCESS_SERVICE, useValue: { resolveAdminAccess } },
     {
       provide: ADMIN_REPORT_RECOVERY_SERVICE,
-      useValue: { recoverTransientFailure },
+      useValue: { recoverTransientFailure, recoverInvalidOutputFailure },
     },
     { provide: ADMIN_AUDIT_SERVICE, useValue: { appendAdminAudit } },
     { provide: ADMIN_ACCESS_SERVICE_SECRET, useValue: serviceSecret },
@@ -81,6 +82,7 @@ describe("AdminReportRecoveryController HTTP boundary", () => {
   beforeEach(() => {
     resolveAdminAccess.mockReset();
     recoverTransientFailure.mockReset();
+    recoverInvalidOutputFailure.mockReset();
     appendAdminAudit.mockReset();
     appendAdminAudit.mockResolvedValue("audit-1");
     resolveAdminAccess.mockResolvedValue({
@@ -94,10 +96,14 @@ describe("AdminReportRecoveryController HTTP boundary", () => {
     });
   });
 
-  function request(body: Record<string, unknown>, authorization?: string) {
+  function request(
+    body: Record<string, unknown>,
+    authorization?: string,
+    operation = "recover-transient",
+  ) {
     return app.getHttpAdapter().getInstance().inject({
       method: "POST",
-      url: "/admin/reports/00000000-0000-0000-0000-000000000001/recover-transient",
+      url: `/admin/reports/00000000-0000-0000-0000-000000000001/${operation}`,
       headers: authorization === undefined ? {} : { authorization },
       payload: body,
     });
@@ -223,6 +229,36 @@ describe("AdminReportRecoveryController HTTP boundary", () => {
         reasonCode: "incident_recovery",
       },
     );
+  });
+
+  it("uses the distinct invalid-output recovery endpoint and service operation", async () => {
+    recoverInvalidOutputFailure.mockResolvedValue({
+      ok: true,
+      value: {
+        reportVersionId: "00000000-0000-0000-0000-000000000001",
+        stateVersion: 4,
+        replayed: false,
+      },
+    });
+
+    const response = await request({
+      expectedStateVersion: 3,
+      idempotencyKey: "invalid-output-1",
+      reasonCode: "incident_recovery",
+    }, `Bearer ${await actorToken()}`, "recover-invalid-output");
+
+    expect(response.statusCode).toBe(200);
+    expect(recoverInvalidOutputFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        idempotencyKey: "invalid-output-1",
+        reasonCode: "incident_recovery",
+      }),
+      expect.objectContaining({
+        idempotencyKey: "invalid-output-1",
+        reasonCode: "incident_recovery",
+      }),
+    );
+    expect(recoverTransientFailure).not.toHaveBeenCalled();
   });
 
   it.each([

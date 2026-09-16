@@ -163,6 +163,18 @@ describe("database admin report recovery repository", () => {
     };
   }
 
+  function invalidOutputCommand(
+    fixture: Awaited<ReturnType<typeof seedFixture>>,
+  ) {
+    return {
+      ...command(fixture),
+      context: {
+        ...fixture.context,
+        reasonCode: "incident_recovery" as const,
+      },
+    };
+  }
+
   async function rowsFor(
     db: Database,
     fixture: Awaited<ReturnType<typeof seedFixture>>,
@@ -767,5 +779,114 @@ describe("database admin report recovery repository", () => {
         await db.$client.end();
       }
     }
+  }, 120_000);
+
+  it("recovers invalid output once, replays it, and records the distinct recovery operation", async () => {
+    const fixture = await seedFixture({
+      errorCode: "AI_OUTPUT_INVALID",
+      timing: "v2",
+    });
+    const db = database();
+    const repository = createDatabaseReportRecoveryRepository(db);
+    const recovery = invalidOutputCommand(fixture);
+
+    await expect(repository.recoverInvalidOutputFailure(recovery)).resolves.toMatchObject({
+      ok: true,
+      value: { stateVersion: 4, replayed: false },
+    });
+    await expect(repository.recoverInvalidOutputFailure(recovery)).resolves.toMatchObject({
+      ok: true,
+      value: { stateVersion: 4, replayed: true },
+    });
+
+    const rows = await rowsFor(db, fixture);
+    expect(rows.events).toHaveLength(1);
+    expect(rows.receipts).toEqual([
+      expect.objectContaining({
+        operation: "admin.report.recovery.invalid_output.requested",
+      }),
+    ]);
+    expect(rows.audits.map((row) => row.operation).sort()).toEqual([
+      "admin.report.recovery.authorization",
+      "admin.report.recovery.invalid_output.requested",
+    ]);
+    await db.$client.end();
+  }, 120_000);
+
+  it("fails closed for the wrong invalid-output class and stale state", async () => {
+    const wrongClass = await seedFixture({ errorCode: "AI_TIMEOUT" });
+    const stale = await seedFixture({
+      errorCode: "REPORT_SAFETY_REJECTED",
+      stateVersion: 5,
+    });
+    const db = database();
+    const repository = createDatabaseReportRecoveryRepository(db);
+
+    await expect(
+      repository.recoverInvalidOutputFailure(invalidOutputCommand(wrongClass)),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_RECOVERY_CONFLICT" },
+    });
+    await expect(repository.recoverInvalidOutputFailure({
+      ...invalidOutputCommand(stale),
+      expectedStateVersion: 4,
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_RECOVERY_CONFLICT" },
+    });
+
+    for (const fixture of [wrongClass, stale]) {
+      const rows = await rowsFor(db, fixture);
+      expect(rows.events).toHaveLength(0);
+      expect(rows.receipts).toHaveLength(1);
+      expect(rows.audits).toHaveLength(2);
+    }
+    await db.$client.end();
+  }, 120_000);
+
+  it("revalidates authority and rejects idempotency keys reused across recovery operations", async () => {
+    const denied = await seedFixture({ errorCode: "AI_OUTPUT_INVALID" });
+    const collision = await seedFixture({ errorCode: "AI_TIMEOUT" });
+    const db = database();
+    const repository = createDatabaseReportRecoveryRepository(db);
+
+    await db.update(adminCapabilityPolicies).set({ active: false }).where(
+      eq(adminCapabilityPolicies.id, denied.policyId),
+    );
+    try {
+      await expect(
+        repository.recoverInvalidOutputFailure(invalidOutputCommand(denied)),
+      ).resolves.toMatchObject({
+        ok: false,
+        error: { code: "REPORT_RECOVERY_FORBIDDEN" },
+      });
+    } finally {
+      await db.update(adminCapabilityPolicies).set({ active: true }).where(
+        eq(adminCapabilityPolicies.id, denied.policyId),
+      );
+    }
+
+    await expect(repository.recoverTransientFailure(command(collision))).resolves.toMatchObject({
+      ok: true,
+    });
+    await expect(
+      repository.recoverInvalidOutputFailure(invalidOutputCommand(collision)),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_RECOVERY_CONFLICT" },
+    });
+
+    const deniedRows = await rowsFor(db, denied);
+    expect(deniedRows.audits).toEqual([
+      expect.objectContaining({
+        operation: "admin.report.recovery.authorization",
+        policyResult: "denied",
+      }),
+    ]);
+    const collisionRows = await rowsFor(db, collision);
+    expect(collisionRows.receipts).toHaveLength(1);
+    expect(collisionRows.events).toHaveLength(1);
+    await db.$client.end();
   }, 120_000);
 });

@@ -24,6 +24,9 @@ export type ReportRecoveryRepository = {
   recoverTransientFailure(
     command: ReportRecoveryCommand,
   ): Promise<Result<AdminReportRecoverySuccessV1, ReportRecoveryError>>;
+  recoverInvalidOutputFailure(
+    command: ReportRecoveryCommand,
+  ): Promise<Result<AdminReportRecoverySuccessV1, ReportRecoveryError>>;
 };
 
 function failure(code: ReportRecoveryError): Result<never, ReportRecoveryError> {
@@ -57,6 +60,28 @@ export function createReportRecoveryService(options: {
       }
 
       return options.repository.recoverTransientFailure({
+        context: context.data,
+        reportVersionId: command.data.reportVersionId,
+        expectedStateVersion: command.data.expectedStateVersion,
+      });
+    },
+
+    async recoverInvalidOutputFailure(
+      contextInput: AdminReportRecoveryContextV1,
+      commandInput: AdminReportRecoveryCommandV1,
+    ): Promise<Result<AdminReportRecoverySuccessV1, ReportRecoveryError>> {
+      const context = AdminReportRecoveryContextV1Schema.safeParse(contextInput);
+      const command = AdminReportRecoveryCommandV1Schema.safeParse(commandInput);
+      if (
+        !context.success ||
+        !command.success ||
+        context.data.idempotencyKey !== command.data.idempotencyKey ||
+        context.data.reasonCode !== command.data.reasonCode
+      ) {
+        return failure("REPORT_RECOVERY_CONFLICT");
+      }
+
+      return options.repository.recoverInvalidOutputFailure({
         context: context.data,
         reportVersionId: command.data.reportVersionId,
         expectedStateVersion: command.data.expectedStateVersion,
