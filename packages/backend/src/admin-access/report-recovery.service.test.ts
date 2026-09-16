@@ -33,7 +33,10 @@ describe("report recovery service", () => {
       },
     });
     const service = createReportRecoveryService({
-      repository: { recoverTransientFailure },
+      repository: {
+        recoverTransientFailure,
+        recoverInvalidOutputFailure: vi.fn(),
+      },
     });
 
     await expect(
@@ -56,7 +59,10 @@ describe("report recovery service", () => {
       },
     });
     const service = createReportRecoveryService({
-      repository: { recoverTransientFailure },
+      repository: {
+        recoverTransientFailure,
+        recoverInvalidOutputFailure: vi.fn(),
+      },
     });
 
     await expect(
@@ -74,7 +80,10 @@ describe("report recovery service", () => {
   it("rejects malformed or mismatched command inputs before persistence", async () => {
     const recoverTransientFailure = vi.fn();
     const service = createReportRecoveryService({
-      repository: { recoverTransientFailure },
+      repository: {
+        recoverTransientFailure,
+        recoverInvalidOutputFailure: vi.fn(),
+      },
     });
 
     await expect(
@@ -114,5 +123,34 @@ describe("report recovery service", () => {
       error: { code: "REPORT_RECOVERY_CONFLICT" },
     });
     expect(recoverTransientFailure).not.toHaveBeenCalled();
+  });
+
+  it("passes an invalid-output command to its distinct transactional repository operation", async () => {
+    const recoverInvalidOutputFailure = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        reportVersionId: command.reportVersionId,
+        stateVersion: 4,
+        replayed: false,
+      },
+    });
+    const service = createReportRecoveryService({
+      repository: {
+        recoverTransientFailure: vi.fn(),
+        recoverInvalidOutputFailure,
+      },
+    });
+
+    await expect(
+      service.recoverInvalidOutputFailure(
+        { ...context, reasonCode: "incident_recovery" },
+        { ...command, reasonCode: "incident_recovery" },
+      ),
+    ).resolves.toMatchObject({ ok: true });
+    expect(recoverInvalidOutputFailure).toHaveBeenCalledWith({
+      context: { ...context, reasonCode: "incident_recovery" },
+      reportVersionId: command.reportVersionId,
+      expectedStateVersion: 3,
+    });
   });
 });
