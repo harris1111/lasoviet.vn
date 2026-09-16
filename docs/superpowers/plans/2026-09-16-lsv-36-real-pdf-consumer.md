@@ -101,17 +101,35 @@ asset state/version in an eligible PDF or Garage processing state, and report
 state/version `pdf_pending`; it CASes the asset and report to
 `terminal_failure`, preserves immutable HTML, and records the bounded failure
 code and stage (`pdf` or `garage`). In that same fenced transaction, it creates
-exactly one support case, inserts exactly one `report.fulfillment.failed.v1`
-with idempotency `report-failed:{reportVersionId}:{failureStage}` and the
-created `supportCaseId` in its payload, and creates the bounded failed
-notification/`report_terminal_failure` operational alert required by the
-workflow contract. The failed notification uses
-`report-failed-email:{reportVersionId}:{recipientAccountId}:{failureStage}`
-and contains only safe status and a support link. A stale lease, changed
+exactly one persisted PDF/Garage support case, inserts exactly one
+`report.fulfillment.failed.v1` with idempotency
+`report-failed:{reportVersionId}:{failureStage}` and the created non-null
+`supportCaseId` in its payload, inserts one pending `report_failed`
+notification, and creates the required `report_terminal_failure` operational
+alert. The failed notification uses
+`report-failed-email:{reportVersionId}:{recipientAccountId}:{failureStage}`,
+contains only safe status and a support link, and is later delivered through
+the existing durable notification-maintenance consumer. A stale lease, changed
 state/version, or duplicate terminalization commits none of the asset/report
 terminalization, support case, event, notification, or alert. Neither a
 transient error nor a direct external-storage exception may create any of
 these records outside this fence.
+
+`ReportFulfillmentFailedV1` remains compatible with current generation and
+validation terminalization: those stages continue to accept their existing
+absent or null `supportCaseId` until their separately owned workflow supplies
+one. The schema must reject a PDF or Garage terminal payload unless
+`supportCaseId` is a non-empty string. This is a stage-discriminated contract
+rule, not a global non-null migration that would alter existing
+generation/validation behavior.
+
+The durable `report_failed` delivery is not a second outbox queue event.
+`report.fulfillment.failed.v1` remains the terminal workflow event; the
+outbox dispatcher maps only `report.pdf.requested.v1` to
+`report.pdf.render.v1` for this consumer. The terminal transaction inserts the
+notification row directly with the other fenced records, and the existing
+maintenance runner claims pending `report_ready` and `report_failed`
+deliveries through the same idempotent email state machine.
 
 Renderer dispatch is exact and versioned:
 
@@ -132,21 +150,29 @@ Owned files:
 
 - Create `packages/contracts/src/report-assets.ts`
 - Create `packages/contracts/src/report-assets.test.ts`
+- Modify `packages/contracts/src/auth-email.ts`
+- Create `packages/contracts/src/auth-email.test.ts`
 - Modify `packages/contracts/src/jobs.ts`
 - Modify `packages/contracts/src/jobs.test.ts`
 - Modify `packages/contracts/src/index.ts`
 - Create `packages/database/src/schema/assets.ts`
+- Create `packages/database/src/schema/support-cases.ts`
+- Modify `packages/database/src/schema/notifications.ts`
 - Modify `packages/database/src/schema/reports.ts`
+- Modify `packages/database/drizzle.config.ts`
 - Modify `packages/database/src/index.ts`
-- Create `packages/database/drizzle/00XX_report_assets.sql`
+- Modify `packages/database/src/runtime.ts`
+- Modify `packages/database/src/schema/schema.integration.test.ts`
+- Create `packages/database/drizzle/00XX_report_assets_and_report_failure_delivery.sql`
 - Create `packages/database/drizzle/meta/00XX_snapshot.json`
 - Modify `packages/database/drizzle/meta/_journal.json`
 - Modify `packages/database/src/schema/report-generation-migration-layout.test.ts`
 - Modify `packages/backend/src/reports/report-version.repository.ts`
 - Modify `packages/backend/src/reports/report-version.repository.test.ts`
+- Modify `packages/backend/src/reports/report.service.ts`
+- Modify `packages/backend/src/reports/report.service.test.ts`
 - Modify `packages/backend/src/outbox/outbox.dispatcher.ts`
 - Modify `packages/backend/src/outbox/outbox.dispatcher.test.ts`
-- Modify `packages/backend/src/reports/report.service.ts`
 - Modify `packages/backend/src/reports/report-state.test.ts`
 
 Allocate `00XX` only after rebasing onto the current
@@ -154,13 +180,43 @@ Allocate `00XX` only after rebasing onto the current
 Do not reserve a number in this plan. This avoids collision with LSV-16 or
 any intervening migration.
 
+The one additive migration creates `report_assets` and `support_cases`, adds
+`report_failed` to `notification_delivery_kind`, and contains the related
+foreign keys, uniqueness, bounded-status/error checks, and indexes. The
+support-case row is a redacted operational record with report/report-version,
+asset, stage, and bounded error-code lineage; it contains no HTML, chart,
+provider response, or customer email. Its unique terminal lineage prevents a
+second PDF/Garage support case for the same report version and failure stage.
+Register both new schemas in `drizzle.config.ts`, export their tables and
+enums from `packages/database/src/index.ts`, and export the runtime tables
+required by backend repositories from `packages/database/src/runtime.ts`.
+
 Define strict `ReportPdfRequestedV1`, `ReportPdfRenderJobV1`,
-`ReportAssetStoredV1`, and `ReportFulfillmentFailedV1` schemas. Accept only
-the exact v1/v2 render literals, not an arbitrary render-version string.
+`ReportAssetStoredV1`, `ReportFailedEmailRequestV1`, and
+`ReportFulfillmentFailedV1` schemas. Accept only the exact v1/v2 render
+literals, not an arbitrary render-version string. Make
+`ReportFulfillmentFailedV1` stage-discriminated: `pdf` and `garage` require a
+non-empty `supportCaseId`; existing `generation` and `validation` payloads
+continue to accept absent/null `supportCaseId`. Extend
+`PersistedEmailDeliveryRequestSchema` and canonicalization with
+`report_failed`, carrying the stable idempotency key, recipient, locale, safe
+support action URL, request ID, `reportId`, `reportVersionId`, failure stage,
+and non-empty `supportCaseId`; reject internal error detail and all unneeded
+report/chart content. `ReportFailedEmailRequestV1` is the typed persisted
+request for the logical `email.report-failed.v1` dispatch; it does not create
+a second outbox or queue envelope.
+
 Reserve the asset row and opaque key in the same transaction that persists
 HTML, CASes `html_ready` to `pdf_pending`, and inserts the request event.
-Extend the dispatcher claim condition and queue publisher for PDF jobs without
-changing generation job behavior.
+Move the current immediate `report_ready` insertion out of
+`report-version.repository.ts`: successful generation/validation still commits
+the immutable HTML, asset reservation, and PDF request with its existing
+generation semantics, but creates no ready or failed delivery. Keep the
+existing generation/validation terminal event behavior intact. Extend the
+dispatcher claim condition, parser, and queue publisher so only a valid
+`report.pdf.requested.v1` publishes the idempotent
+`report.pdf.render.v1` job; `report.fulfillment.failed.v1` is not claimed or
+published as a job.
 
 Focused checks:
 
@@ -170,6 +226,15 @@ Focused checks:
 - the `html_ready` to `pdf_pending` CAS creates the reservation/request once,
   while a stale or duplicate CAS creates neither;
 - invalid render version or duplicate asset/event fails closed.
+- a `generation` or `validation` failure payload preserves its present
+  nullable/absent `supportCaseId` behavior, while every PDF/Garage payload
+  without a non-empty `supportCaseId` fails contract validation;
+- the additive migration, schema registration, database exports, and runtime
+  exports expose `report_assets`, `support_cases`, and `report_failed`
+  notification kind exactly once;
+- HTML generation/validation no longer inserts `report_ready`, and the
+  existing generation/validation terminalization does not acquire a new
+  support-case requirement.
 
 ### Slice 2: Provider-Independent Renderer And Consumer
 
@@ -183,6 +248,10 @@ Owned files:
 - Create `packages/backend/src/storage/asset.repository.ts`
 - Create `packages/backend/src/storage/asset.service.ts`
 - Create `packages/backend/src/storage/asset.service.test.ts`
+- Create `packages/backend/src/support/support-case.repository.ts`
+- Create `packages/backend/src/support/support-case.repository.test.ts`
+- Create `packages/backend/src/support/support-case.service.ts`
+- Create `packages/backend/src/support/support-case.service.test.ts`
 - Create `apps/worker/src/processors/pdf-render.processor.ts`
 - Create `apps/worker/src/processors/pdf-render.processor.test.ts`
 - Modify `apps/worker/src/worker.module.ts`
@@ -190,6 +259,10 @@ Owned files:
 - Modify `apps/worker/src/main.ts`
 - Modify `apps/worker/src/health/worker-heartbeat.ts`
 - Modify `apps/worker/src/health/worker-heartbeat.test.ts`
+- Modify `packages/backend/src/notifications/auth-email.ts`
+- Modify `packages/backend/src/notifications/auth-email.test.ts`
+- Modify `packages/backend/src/maintenance/phase-one-maintenance.ts`
+- Modify `packages/backend/src/maintenance/phase-one-maintenance.test.ts`
 - Modify `packages/backend/src/index.ts`
 - Modify `packages/backend/package.json`
 - Modify `apps/worker/package.json`
@@ -226,6 +299,29 @@ Use an in-memory/fake object-store implementation only in focused tests. It
 does not simulate successful Garage activation and it must exercise the same
 checksum and metadata contract as the real adapter.
 
+`support-case.repository.ts` owns only persistence primitives and accepts the
+active transaction supplied by the terminalizer. `support-case.service.ts`
+validates the bounded PDF/Garage support-case input and creates the single
+terminal-lineage record without introducing an admin controller, UI, or a
+generic support workflow. `asset.repository.ts` owns
+`finalizePdfTerminalFailure`: after all lease/state CAS predicates succeed, it
+uses that transaction-bound service to persist the support case, then inserts
+the required non-null-support-case failure event, the pending
+`report_failed` delivery, and the operational alert before commit. The
+notification payload contains the same persisted `supportCaseId` as the
+event, and constructs a canonical owner-safe support URL without error detail.
+
+Extend the existing email service rather than creating a parallel sender:
+add the `report_failed` template and kind, permit pending `report_failed`
+records in its bounded `retryDue` query, and retain the existing unique
+idempotency key, claim lease, three-attempt cap, and sent-delivery replay
+behavior. Wire the same service through `createMaintenanceRunner` and
+`createPhaseOneMaintenanceRunner`; `apps/worker/src/main.ts` continues to
+invoke that maintenance runner, so no direct SMTP call is permitted from the
+PDF processor. `worker.module.ts`, `main.ts`, and heartbeat ownership add the
+`pdf.render` runner alongside the existing report/outbox cycle, gated by the
+resolved worker queue configuration.
+
 Focused checks:
 
 - immutable Vietnamese HTML renders a valid PDF with the expected font loaded
@@ -239,11 +335,22 @@ Focused checks:
 - duplicate event/job replay performs no second render/upload after stored
   adoption;
 - a storage failure leaves `html_content` unchanged and the asset retryable;
-- a checksum mismatch never overwrites the existing object.
+- a checksum mismatch never overwrites the existing object;
 - retry exhaustion atomically terminalizes the asset/report, creates one
-  support case, emits one `report.fulfillment.failed.v1` containing its
-  `supportCaseId`, and creates one bounded failed notification/operational
-  alert; stale lease and duplicate terminal attempts create none.
+  persisted support case, emits one `report.fulfillment.failed.v1` containing
+  that same non-null `supportCaseId`, inserts one pending `report_failed`
+  delivery whose payload contains that same `supportCaseId`, and creates one
+  bounded operational alert; stale lease and duplicate terminal attempts
+  create none;
+- the terminal transaction rollback leaves no support case, failure event,
+  failed notification, or alert when any required insert fails;
+- `retryDue` claims a pending `report_failed` delivery, renders only the safe
+  support-link template, sends `email.report-failed.v1` with
+  `report-failed-email:{reportVersionId}:{recipientAccountId}:{failureStage}`,
+  and a replay produces no second provider send;
+- worker/maintenance tests prove `pdf.render` is enabled only by its worker
+  queue and that a pending `report_failed` delivery is dispatched through the
+  existing maintenance cycle, not directly by the processor or an outbox job.
 
 ### Slice 3: Garage Adapter, Private Download, And Credential-Gated Activation
 
