@@ -1042,7 +1042,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-6)).toEqual([
+    expect(journal.entries.slice(-7)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -1083,6 +1083,13 @@ describe("database schema integration", () => {
         version: "7",
         when: 1790553600000,
         tag: "0031_report_reading_context_freeze",
+        breakpoints: true,
+      },
+      {
+        idx: 32,
+        version: "7",
+        when: 1790640000000,
+        tag: "0032_admin_report_recovery",
         breakpoints: true,
       },
     ]);
@@ -1136,7 +1143,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 and 0031 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0032 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -1205,10 +1212,11 @@ describe("database schema integration", () => {
       ALTER TABLE report_reservations
       DROP COLUMN IF EXISTS reading_context_revision_id
     `;
+    await client`DROP TABLE IF EXISTS admin_report_recovery_receipts`;
     await client`DROP TABLE IF EXISTS report_section_checkpoint_revisions`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1790064000000, 1790553600000)
+      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000)
     `;
 
     const [latestBefore] = await client<{ created_at: string }[]>`
@@ -1221,18 +1229,27 @@ describe("database schema integration", () => {
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1790553600000);
+    expect(Number(latestAfter?.created_at)).toBe(1790640000000);
 
     const reappliedMigrations = await client<{ created_at: string }[]>`
       SELECT created_at
       FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1790064000000, 1790553600000)
+      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000)
       ORDER BY created_at ASC
     `;
     expect(reappliedMigrations.map((migration) => Number(migration.created_at))).toEqual([
       1790064000000,
       1790553600000,
+      1790640000000,
     ]);
+
+    const [recoveryReceiptTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'admin_report_recovery_receipts'
+      ) as exists
+    `;
+    expect(recoveryReceiptTableCheck?.exists).toBe(true);
 
     const [checkpointTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (

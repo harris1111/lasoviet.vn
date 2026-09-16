@@ -2150,12 +2150,80 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     await database.$client.end();
   });
 
-  it("generation timeout on attempt 3 terminates with JOB_RETRY_EXHAUSTED via terminal failure transaction", async () => {
+  it("generation timeout on attempt 7 remains retryable and does not terminal-fail the reservation", async () => {
     const database = createDatabase(databaseUrl);
-    const fixture = await seedFullOrchestrationFixture(database, "gen-attempt3-timeout", {
+    const fixture = await seedFullOrchestrationFixture(database, "gen-attempt7-timeout", {
       jobLeaseStatus: "waiting",
       reservationStatus: "requested",
-      attemptCount: 2,
+      attemptCount: 6,
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: false as const,
+        error: { code: "AI_TIMEOUT" as const, retryable: true },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("retryable_failure");
+    expect(job?.lastErrorCode).toBe("AI_TIMEOUT");
+    expect(job?.attemptCount).toBe(7);
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("generating");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("AI_TIMEOUT");
+
+    const allOutbox = await database.select().from(outbox);
+    const failedEvents = allOutbox.filter(
+      (event) =>
+        event.eventType === "report.fulfillment.failed.v1" &&
+        event.aggregateId === fixture.reportVersionId,
+    );
+    expect(failedEvents).toHaveLength(0);
+
+    await database.$client.end();
+  });
+
+  it("generation timeout on attempt 8 persists AI_TIMEOUT via terminal failure transaction", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-attempt8-timeout", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+      attemptCount: 7,
     });
     const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
     const sourceRepository = createDatabaseReportGenerationSourceRepository({
@@ -2195,13 +2263,13 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     const allJobs = await database.select().from(reportQueueJobs);
     const job = allJobs.find((j) => j.id === fixture.jobId);
     expect(job?.status).toBe("terminal_failure");
-    expect(job?.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
-    expect(job?.attemptCount).toBe(3);
+    expect(job?.lastErrorCode).toBe("AI_TIMEOUT");
+    expect(job?.attemptCount).toBe(8);
 
     const allReservations = await database.select().from(reportReservations);
     const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
     expect(reservation?.status).toBe("terminal_failure");
-    expect(reservation?.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(reservation?.lastErrorCode).toBe("AI_TIMEOUT");
     expect(reservation?.stateVersion).toBe(3);
 
     const allOutbox = await database.select().from(outbox);
@@ -2210,7 +2278,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     expect(failedEvents[0].payload).toMatchObject({
       reportId: fixture.reportId,
       reportVersionId: fixture.reportVersionId,
-      errorCode: "JOB_RETRY_EXHAUSTED",
+      errorCode: "AI_TIMEOUT",
       failureStage: "generation",
     });
 

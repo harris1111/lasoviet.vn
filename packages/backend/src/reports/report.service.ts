@@ -238,18 +238,24 @@ export function createDatabaseReportQueueStore(
   };
 }
 
-type RecoveryKind = "evidence" | "invalid_output";
+type RecoveryKind = "evidence" | "invalid_output" | "transient_provider";
 
 type TerminalRecoveryParams = {
   reportVersionId: string;
   expectedStateVersion: number;
   recoveryId: string;
-  allowedErrorCodes: readonly ("REPORT_EVIDENCE_INVALID" | "AI_OUTPUT_INVALID" | "REPORT_SAFETY_REJECTED")[];
+  allowedErrorCodes: readonly (
+    | "REPORT_EVIDENCE_INVALID"
+    | "AI_OUTPUT_INVALID"
+    | "REPORT_SAFETY_REJECTED"
+    | "AI_TIMEOUT"
+    | "JOB_RETRY_EXHAUSTED"
+  )[];
   recoveryKind: RecoveryKind;
   now?: Date;
 };
 
-type TerminalRecoveryResult =
+export type TerminalRecoveryResult =
   | { ok: true; stateVersion: number }
   | {
       ok: false;
@@ -261,8 +267,8 @@ type TerminalRecoveryResult =
         | "REPORT_TIMING_LINEAGE_INVALID";
     };
 
-async function executeTerminalRecovery(
-  database: Database,
+async function executeTerminalRecoveryInTransaction(
+  transaction: Database,
   params: TerminalRecoveryParams,
 ): Promise<TerminalRecoveryResult> {
   const trimmedRecoveryId = params.recoveryId?.trim();
@@ -270,160 +276,169 @@ async function executeTerminalRecovery(
     return { ok: false, code: "RECOVERY_ID_INVALID" };
   }
 
-  try {
-    return await database.transaction(async (tx) => {
-      const [reservation] = await tx
-        .select()
-        .from(reportReservations)
-        .where(eq(reportReservations.reportVersionId, params.reportVersionId))
-        .for("update");
+  const [reservation] = await transaction
+    .select()
+    .from(reportReservations)
+    .where(eq(reportReservations.reportVersionId, params.reportVersionId))
+    .for("update");
 
-      if (!reservation) {
-        return { ok: false, code: "REPORT_NOT_FOUND" };
-      }
+  if (!reservation) {
+    return { ok: false, code: "REPORT_NOT_FOUND" };
+  }
 
-      const [existingVersion] = await tx
-        .select({ id: reportVersions.id })
-        .from(reportVersions)
-        .where(eq(reportVersions.reportVersionId, params.reportVersionId))
-        .limit(1);
+  const [existingVersion] = await transaction
+    .select({ id: reportVersions.id })
+    .from(reportVersions)
+    .where(eq(reportVersions.reportVersionId, params.reportVersionId))
+    .limit(1);
 
-      if (existingVersion) {
-        return { ok: false, code: "REPORT_VERSION_CONFLICT" };
-      }
+  if (existingVersion) {
+    return { ok: false, code: "REPORT_VERSION_CONFLICT" };
+  }
 
-      if (
-        reservation.status !== "terminal_failure" ||
-        !reservation.lastErrorCode ||
-        !params.allowedErrorCodes.includes(reservation.lastErrorCode as any) ||
-        reservation.stateVersion !== params.expectedStateVersion
-      ) {
-        return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
-      }
+  if (
+    reservation.status !== "terminal_failure" ||
+    !reservation.lastErrorCode ||
+    !params.allowedErrorCodes.includes(reservation.lastErrorCode as any) ||
+    reservation.stateVersion !== params.expectedStateVersion
+  ) {
+    return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+  }
 
-      const asOfDate = reservation.asOfDate;
-      const targetYear = reservation.targetYear;
-      const timingRuleVersion = reservation.timingRuleVersion;
-      const sensitivityRuleVersion = reservation.sensitivityRuleVersion;
+  const asOfDate = reservation.asOfDate;
+  const targetYear = reservation.targetYear;
+  const timingRuleVersion = reservation.timingRuleVersion;
+  const sensitivityRuleVersion = reservation.sensitivityRuleVersion;
 
-      const hasAllTimingLineage =
-        asOfDate !== null &&
-        targetYear !== null &&
-        timingRuleVersion !== null &&
-        sensitivityRuleVersion !== null;
+  const hasAllTimingLineage =
+    asOfDate !== null &&
+    targetYear !== null &&
+    timingRuleVersion !== null &&
+    sensitivityRuleVersion !== null;
 
-      const hasNoTimingLineage =
-        asOfDate === null &&
-        targetYear === null &&
-        timingRuleVersion === null &&
-        sensitivityRuleVersion === null;
+  const hasNoTimingLineage =
+    asOfDate === null &&
+    targetYear === null &&
+    timingRuleVersion === null &&
+    sensitivityRuleVersion === null;
 
-      if (!hasAllTimingLineage && !hasNoTimingLineage) {
-        return { ok: false, code: "REPORT_TIMING_LINEAGE_INVALID" };
-      }
+  if (!hasAllTimingLineage && !hasNoTimingLineage) {
+    return { ok: false, code: "REPORT_TIMING_LINEAGE_INVALID" };
+  }
 
-      const current = params.now ?? new Date();
-      const nextStateVersion = reservation.stateVersion + 1;
+  const current = params.now ?? new Date();
+  const nextStateVersion = reservation.stateVersion + 1;
 
-      const [updatedReservation] = await tx
-        .update(reportReservations)
-        .set({
-          status: "requested",
-          stateVersion: nextStateVersion,
-          activeJobId: null,
-          lastErrorCode: null,
-          nextAttemptAt: null,
-          updatedAt: current,
-        })
-        .where(
-          and(
-            eq(reportReservations.id, reservation.id),
-            eq(reportReservations.reportVersionId, params.reportVersionId),
-            eq(reportReservations.status, "terminal_failure"),
-            inArray(reportReservations.lastErrorCode, [...params.allowedErrorCodes]),
-            eq(reportReservations.stateVersion, params.expectedStateVersion),
-          ),
-        )
-        .returning();
+  const [updatedReservation] = await transaction
+    .update(reportReservations)
+    .set({
+      status: "requested",
+      stateVersion: nextStateVersion,
+      activeJobId: null,
+      lastErrorCode: null,
+      nextAttemptAt: null,
+      updatedAt: current,
+    })
+    .where(
+      and(
+        eq(reportReservations.id, reservation.id),
+        eq(reportReservations.reportVersionId, params.reportVersionId),
+        eq(reportReservations.status, "terminal_failure"),
+        inArray(reportReservations.lastErrorCode, [...params.allowedErrorCodes]),
+        eq(reportReservations.stateVersion, params.expectedStateVersion),
+      ),
+    )
+    .returning();
 
-      if (!updatedReservation) {
-        return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
-      }
+  if (!updatedReservation) {
+    return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+  }
 
-      const tokenInput =
-        params.recoveryKind === "invalid_output"
-          ? `invalid_output::${reservation.reportVersionId}::${trimmedRecoveryId}`
-          : `${reservation.reportVersionId}::${trimmedRecoveryId}`;
+  const tokenInput =
+    params.recoveryKind === "invalid_output"
+      ? `invalid_output::${reservation.reportVersionId}::${trimmedRecoveryId}`
+      : params.recoveryKind === "transient_provider"
+        ? `transient_provider::${reservation.reportVersionId}::${trimmedRecoveryId}`
+        : `${reservation.reportVersionId}::${trimmedRecoveryId}`;
 
-      const recoveryToken = createHash("sha256")
-        .update(tokenInput)
-        .digest("hex");
+  const recoveryToken = createHash("sha256")
+    .update(tokenInput)
+    .digest("hex");
 
-      const eventId = `evt-recovery-${recoveryToken}`;
-      const traceId = `trace-recovery-${recoveryToken}`;
-      const idempotencyKey = `report-recovery:${recoveryToken}`;
+  const eventId = `evt-recovery-${recoveryToken}`;
+  const traceId = `trace-recovery-${recoveryToken}`;
+  const idempotencyKey = `report-recovery:${recoveryToken}`;
 
-      if (hasAllTimingLineage) {
-        const payload: ReportGenerationRequestedV2 = {
-          reportId: reservation.reportId,
-          reportVersionId: reservation.reportVersionId,
-          entitlementId: reservation.entitlementId,
-          chartVersionId: reservation.chartVersionId,
-          evidenceVersionId: reservation.evidenceVersionId,
-          knowledgeVersionId: reservation.knowledgeVersionId,
-          promptVersion: reservation.promptVersion,
-          reportConfigVersion: reservation.reportConfigVersion,
-          locale: reservation.locale as "vi" | "en",
-          sku: reservation.sku,
-          asOfDate,
-          targetYear,
-          timingRuleVersion,
-          sensitivityRuleVersion,
-          readingContextRevisionId: reservation.readingContextRevisionId ?? null,
-        };
+  if (hasAllTimingLineage) {
+    const payload: ReportGenerationRequestedV2 = {
+      reportId: reservation.reportId,
+      reportVersionId: reservation.reportVersionId,
+      entitlementId: reservation.entitlementId,
+      chartVersionId: reservation.chartVersionId,
+      evidenceVersionId: reservation.evidenceVersionId,
+      knowledgeVersionId: reservation.knowledgeVersionId,
+      promptVersion: reservation.promptVersion,
+      reportConfigVersion: reservation.reportConfigVersion,
+      locale: reservation.locale as "vi" | "en",
+      sku: reservation.sku,
+      asOfDate,
+      targetYear,
+      timingRuleVersion,
+      sensitivityRuleVersion,
+      readingContextRevisionId: reservation.readingContextRevisionId ?? null,
+    };
 
-        await enqueueOutbox(tx, {
-          schemaVersion: 1,
-          type: "report.generation.requested.v2",
-          eventId,
-          occurredAt: current.toISOString(),
-          traceId,
-          actorId: null,
-          aggregateType: "report",
-          aggregateId: reservation.reportVersionId,
-          idempotencyKey,
-          payload,
-        });
-      } else {
-        const payload: ReportGenerationRequestedV1 = {
-          reportId: reservation.reportId,
-          reportVersionId: reservation.reportVersionId,
-          entitlementId: reservation.entitlementId,
-          chartVersionId: reservation.chartVersionId,
-          evidenceVersionId: reservation.evidenceVersionId,
-          knowledgeVersionId: reservation.knowledgeVersionId,
-          promptVersion: reservation.promptVersion,
-          reportConfigVersion: reservation.reportConfigVersion,
-          locale: reservation.locale as "vi" | "en",
-          sku: reservation.sku,
-        };
-
-        await enqueueOutbox(tx, {
-          schemaVersion: 1,
-          type: "report.generation.requested.v1",
-          eventId,
-          occurredAt: current.toISOString(),
-          traceId,
-          actorId: null,
-          aggregateType: "report",
-          aggregateId: reservation.reportVersionId,
-          idempotencyKey,
-          payload,
-        });
-      }
-
-      return { ok: true, stateVersion: nextStateVersion };
+    await enqueueOutbox(transaction, {
+      schemaVersion: 1,
+      type: "report.generation.requested.v2",
+      eventId,
+      occurredAt: current.toISOString(),
+      traceId,
+      actorId: null,
+      aggregateType: "report",
+      aggregateId: reservation.reportVersionId,
+      idempotencyKey,
+      payload,
     });
+  } else {
+    const payload: ReportGenerationRequestedV1 = {
+      reportId: reservation.reportId,
+      reportVersionId: reservation.reportVersionId,
+      entitlementId: reservation.entitlementId,
+      chartVersionId: reservation.chartVersionId,
+      evidenceVersionId: reservation.evidenceVersionId,
+      knowledgeVersionId: reservation.knowledgeVersionId,
+      promptVersion: reservation.promptVersion,
+      reportConfigVersion: reservation.reportConfigVersion,
+      locale: reservation.locale as "vi" | "en",
+      sku: reservation.sku,
+    };
+
+    await enqueueOutbox(transaction, {
+      schemaVersion: 1,
+      type: "report.generation.requested.v1",
+      eventId,
+      occurredAt: current.toISOString(),
+      traceId,
+      actorId: null,
+      aggregateType: "report",
+      aggregateId: reservation.reportVersionId,
+      idempotencyKey,
+      payload,
+    });
+  }
+
+  return { ok: true, stateVersion: nextStateVersion };
+}
+
+async function executeTerminalRecovery(
+  database: Database,
+  params: TerminalRecoveryParams,
+): Promise<TerminalRecoveryResult> {
+  try {
+    return await database.transaction((transaction) =>
+      executeTerminalRecoveryInTransaction(transaction as Database, params)
+    );
   } catch (error) {
     if (
       error instanceof OutboxError ||
@@ -436,6 +451,22 @@ async function executeTerminalRecovery(
     }
     throw error;
   }
+}
+
+export async function recoverTransientProviderFailureGenerationInTransaction(
+  transaction: Database,
+  params: {
+    reportVersionId: string;
+    expectedStateVersion: number;
+    recoveryId: string;
+    now?: Date;
+  },
+): Promise<TerminalRecoveryResult> {
+  return executeTerminalRecoveryInTransaction(transaction, {
+    ...params,
+    allowedErrorCodes: ["AI_TIMEOUT", "JOB_RETRY_EXHAUSTED"],
+    recoveryKind: "transient_provider",
+  });
 }
 
 export function createReportService(database: Database) {
@@ -689,6 +720,30 @@ export function createReportService(database: Database) {
         ...params,
         allowedErrorCodes: ["AI_OUTPUT_INVALID", "REPORT_SAFETY_REJECTED"],
         recoveryKind: "invalid_output",
+      });
+    },
+
+    async recoverTransientProviderFailureGeneration(params: {
+      reportVersionId: string;
+      expectedStateVersion: number;
+      recoveryId: string;
+      now?: Date;
+    }): Promise<
+      | { ok: true; stateVersion: number }
+      | {
+          ok: false;
+          code:
+            | "REPORT_NOT_FOUND"
+            | "WORKFLOW_STATE_CONFLICT"
+            | "REPORT_VERSION_CONFLICT"
+            | "RECOVERY_ID_INVALID"
+            | "REPORT_TIMING_LINEAGE_INVALID";
+        }
+    > {
+      return executeTerminalRecovery(database, {
+        ...params,
+        allowedErrorCodes: ["AI_TIMEOUT", "JOB_RETRY_EXHAUSTED"],
+        recoveryKind: "transient_provider",
       });
     },
   };

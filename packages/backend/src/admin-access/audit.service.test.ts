@@ -67,4 +67,33 @@ describe("admin audit service", () => {
       },
     }));
   });
+
+  it("preserves bounded report recovery failure summaries", async () => {
+    const append = vi.fn().mockResolvedValue("audit-3");
+    const service = createAdminAuditService({ repository: { append } });
+
+    await service.appendAdminAudit({
+      actorId: "account-1",
+      roleAssignmentId: "assignment-1",
+      capability: "admin.reports.regenerate",
+      operation: "admin.report.recovery.command_failed",
+      target: { type: "report_version", id: "version-1" },
+      requestId: "request-3",
+      traceId: "trace-3",
+      policyResult: "allowed",
+      redactionLevel: "redacted",
+      resultSummary: {
+        outcome: "failed",
+        code: "REPORT_RECOVERY_CONFLICT",
+        details: { reportContent: "must be removed" },
+      },
+    });
+
+    expect(append).toHaveBeenCalledWith(expect.objectContaining({
+      resultSummary: {
+        outcome: "failed",
+        code: "REPORT_RECOVERY_CONFLICT",
+      },
+    }));
+  });
 });
