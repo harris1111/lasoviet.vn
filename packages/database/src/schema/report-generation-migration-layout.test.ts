@@ -105,6 +105,28 @@ describe("report generation migration layout", () => {
     expect(journal).toContain('"idx": 24');
   });
 
+  it("keeps reading-context reservation freezing in additive migration 0031 after 0030", async () => {
+    const [migration, journal] = await Promise.all([
+      readFile(new URL("0031_report_reading_context_freeze.sql", migrationRoot), "utf8"),
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+    ]);
+
+    expect(migration).toContain('ADD COLUMN IF NOT EXISTS "reading_context_revision_id" text');
+    expect(migration).toContain('REFERENCES "public"."birth_profile_reading_context_revisions"("id")');
+    expect(migration).toContain("ON DELETE SET NULL");
+    expect(migration).toContain('"report_reservations_reading_context_revision_idx"');
+    expect(migration).toContain(
+      '"report_reservations_reading_context_revision_id_birth_profile_reading_context_revisions_id_fk"',
+    );
+
+    const entries = JSON.parse(journal).entries as Array<{ idx: number; tag: string }>;
+    const migration0030 = entries.findIndex((entry) => entry.idx === 30);
+    const migration0031 = entries.findIndex((entry) => entry.idx === 31);
+    expect(entries[migration0030]).toMatchObject({ tag: "0030_report_section_checkpoint_revisions" });
+    expect(entries[migration0031]).toMatchObject({ tag: "0031_report_reading_context_freeze" });
+    expect(migration0031).toBe(migration0030 + 1);
+  });
+
   it("defines timing lineage columns and constraints on reportReservations schema", async () => {
     const { reportReservations, reportVersions } = await import("./reports.js");
 
@@ -112,6 +134,7 @@ describe("report generation migration layout", () => {
     expect(reportReservations.targetYear).toBeDefined();
     expect(reportReservations.timingRuleVersion).toBeDefined();
     expect(reportReservations.sensitivityRuleVersion).toBeDefined();
+    expect(reportReservations.readingContextRevisionId).toBeDefined();
 
     // Do not add these fields to reportVersions yet
     expect((reportVersions as any).asOfDate).toBeUndefined();

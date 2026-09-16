@@ -1,15 +1,20 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 
 import {
   EvidenceItemV1Schema,
   EvidenceSetV1Schema,
   NormalizedZiweiChartV1Schema,
+  ReadingContextV1Schema,
   type Result,
 } from "@lasoviet/contracts";
 import {
   evidenceItems,
   evidenceSets,
+  birthProfileReadingContextRevisions,
+  birthProfiles,
   type Database,
+  reportReservations,
+  ziweiCharts,
   ziweiChartVersions,
 } from "@lasoviet/database";
 
@@ -50,12 +55,21 @@ export type ReportGenerationSourceInput = {
   knowledgeVersionId: string;
   promptVersion: string;
   locale: "vi" | "en";
+  readingContextRevisionId?: string | null;
 };
 
 export type ReportGenerationSourceRepository = {
   loadSource(
     input: ReportGenerationSourceInput,
   ): Promise<Result<IdentityReportSource, "REPORT_EVIDENCE_INVALID">>;
+  validateLifecycle(input: {
+    reportVersionId: string;
+    jobId: string;
+    readingContextRevisionId: string | null;
+  }): Promise<Result<
+    { readingContextRevisionId: string | null },
+    "REPORT_PROFILE_PURGED" | "REPORT_CONTEXT_MISMATCH"
+  >>;
 };
 
 function invalid(): Result<never, "REPORT_EVIDENCE_INVALID"> {
@@ -82,6 +96,71 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
   snapshotRepository?: ReportSourceSnapshotRepository;
 }): ReportGenerationSourceRepository {
   return {
+    async validateLifecycle(input) {
+      const [row] = await dependencies.database
+        .select({
+          reservationContextRevisionId: reportReservations.readingContextRevisionId,
+          profileId: birthProfiles.id,
+          revisionId: birthProfileReadingContextRevisions.id,
+          revisionProfileId: birthProfileReadingContextRevisions.profileId,
+        })
+        .from(reportReservations)
+        .leftJoin(
+          ziweiChartVersions,
+          eq(ziweiChartVersions.id, reportReservations.chartVersionId),
+        )
+        .leftJoin(ziweiCharts, eq(ziweiCharts.id, ziweiChartVersions.chartId))
+        .leftJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
+        .leftJoin(
+          birthProfileReadingContextRevisions,
+          eq(
+            birthProfileReadingContextRevisions.id,
+            reportReservations.readingContextRevisionId,
+          ),
+        )
+        .where(
+          and(
+            eq(reportReservations.reportVersionId, input.reportVersionId),
+            eq(reportReservations.activeJobId, input.jobId),
+          ),
+        )
+        .limit(1);
+
+      if (!row || row.profileId === null) {
+        return {
+          ok: false,
+          error: {
+            code: "REPORT_PROFILE_PURGED",
+            messageKey: "reports.report_profile_purged",
+            retryable: false,
+          },
+        };
+      }
+      if ((row.reservationContextRevisionId ?? null) !== input.readingContextRevisionId) {
+        return {
+          ok: false,
+          error: {
+            code: "REPORT_CONTEXT_MISMATCH",
+            messageKey: "reports.report_context_mismatch",
+            retryable: false,
+          },
+        };
+      }
+      if (
+        row.reservationContextRevisionId !== null &&
+        (row.revisionId === null || row.revisionProfileId !== row.profileId)
+      ) {
+        return {
+          ok: false,
+          error: {
+            code: "REPORT_CONTEXT_MISMATCH",
+            messageKey: "reports.report_context_mismatch",
+            retryable: false,
+          },
+        };
+      }
+      return { ok: true, value: { readingContextRevisionId: row.reservationContextRevisionId ?? null } };
+    },
     async loadSource(
       input: ReportGenerationSourceInput,
     ): Promise<Result<IdentityReportSource, "REPORT_EVIDENCE_INVALID">> {
@@ -276,6 +355,30 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           return invalid();
         }
 
+        let readingContext: IdentityReportSource["readingContext"] = null;
+        if (input.readingContextRevisionId) {
+          const [revision] = await dependencies.database
+            .select({
+              lifeStage: birthProfileReadingContextRevisions.lifeStage,
+              topConcern: birthProfileReadingContextRevisions.topConcern,
+            })
+            .from(birthProfileReadingContextRevisions)
+            .where(eq(birthProfileReadingContextRevisions.id, input.readingContextRevisionId))
+            .limit(1);
+          if (!revision) {
+            return invalid();
+          }
+          const parsedContext = ReadingContextV1Schema.safeParse({
+            version: 1,
+            ...(revision.lifeStage === null ? {} : { lifeStage: revision.lifeStage }),
+            ...(revision.topConcern === null ? {} : { topConcern: revision.topConcern }),
+          });
+          if (!parsedContext.success) {
+            return invalid();
+          }
+          readingContext = parsedContext.data;
+        }
+
         const source: ComprehensiveReportSourceV4 = {
           evidence: assembledEvidence.data,
           frozenFacts: frozenResult.value,
@@ -283,6 +386,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           comprehensiveFacts: factsV4.natal,
           comprehensiveFactsV4: factsV4,
           knowledgePacks,
+          readingContext,
         };
 
         if (!isBoundIdentityReportSource(source)) {

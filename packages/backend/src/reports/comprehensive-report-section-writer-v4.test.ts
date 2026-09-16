@@ -389,4 +389,34 @@ describe("writeComprehensiveReportSectionV4", () => {
       promptVersion: "ziwei.comprehensive.prompt.v4" as any,
     })).rejects.toThrow("COMPREHENSIVE_REPORT_SECTION_PROMPT_UNSUPPORTED");
   });
+
+  it("adds enum-only contextual guidance without changing facts or evidence", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("practicalDirection"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const sharedFacts = facts();
+    const baseline = await writeComprehensiveReportSectionV4({
+      sectionKey: "practicalDirection", facts: sharedFacts, knowledgePacks: [], provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+    });
+    const personalized = await writeComprehensiveReportSectionV4({
+      sectionKey: "practicalDirection", facts: sharedFacts, knowledgePacks: [], provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+      readingContext: { version: 1, lifeStage: "early_career", topConcern: "career" },
+    });
+    expect(baseline.ok).toBe(true);
+    expect(personalized.ok).toBe(true);
+    const [neutral, contextual] = provider.generateStructured.mock.calls.map(([request]) => JSON.parse(request.user));
+    expect(neutral.readingContext).toBeNull();
+    expect(contextual.readingContext).toEqual({ lifeStage: "early_career", topConcern: "career" });
+    expect(contextual.personalizationGuidance).toEqual({ useTopConcernForPracticalDirection: true });
+    expect(neutral.facts).toEqual(contextual.facts);
+    expect(neutral.allowedEvidenceKeys).toEqual(contextual.allowedEvidenceKeys);
+    expect(JSON.stringify(contextual)).not.toContain("1990-01-01");
+    expect(JSON.stringify(contextual)).not.toContain("08:30");
+    expect(JSON.stringify(contextual)).not.toContain("Hanoi");
+  });
 });

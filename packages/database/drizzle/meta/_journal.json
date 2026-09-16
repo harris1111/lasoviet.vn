@@ -218,6 +218,13 @@
       "when": 1790064000000,
       "tag": "0030_report_section_checkpoint_revisions",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1790553600000,
+      "tag": "0031_report_reading_context_freeze",
+      "breakpoints": true
     }
   ]
 }

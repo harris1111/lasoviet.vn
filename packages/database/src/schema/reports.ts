@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { commerceEntitlements } from "./commerce.js";
+import { birthProfileReadingContextRevisions } from "./birth-profile.js";
 
 export const reportReservations = pgTable("report_reservations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -39,6 +40,10 @@ export const reportReservations = pgTable("report_reservations", {
   targetYear: integer("target_year"),
   timingRuleVersion: text("timing_rule_version"),
   sensitivityRuleVersion: text("sensitivity_rule_version"),
+  readingContextRevisionId: text("reading_context_revision_id").references(
+    () => birthProfileReadingContextRevisions.id,
+    { onDelete: "set null" },
+  ),
 }, (table) => [
   uniqueIndex("report_reservations_entitlement_unique").on(table.entitlementId),
   check(
