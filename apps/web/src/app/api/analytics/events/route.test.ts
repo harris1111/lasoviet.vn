@@ -43,13 +43,12 @@ describe("analytics events web route (acceptance 5)", () => {
     },
   };
 
-  it("ignores spoofed x-forwarded-for and x-real-ip headers, persists null IP if trusted header is absent", async () => {
+  it("accepts a valid x-real-ip header", async () => {
     const request = new NextRequest("http://localhost:3000/api/analytics/events", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-forwarded-for": "198.51.100.1, 198.51.100.2",
-        "x-real-ip": "198.51.100.1",
+        "x-real-ip": "203.0.113.195",
       },
       body: JSON.stringify(validPayload),
     });
@@ -59,39 +58,55 @@ describe("analytics events web route (acceptance 5)", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(mockSendCommand).toHaveBeenCalledTimes(1);
     const sent = mockSendCommand.mock.calls[0]![0];
-    expect(sent.ip).toBeNull();
+    expect(sent.ip).toBe("203.0.113.195");
   });
 
-  it("accepts valid dedicated x-lasoviet-client-ip header and rejects comma lists or invalid IPs", async () => {
-    // Valid IP
-    const validReq = new NextRequest(
+  it("ignores spoofed x-forwarded-for and x-lasoviet-client-ip headers", async () => {
+    const request = new NextRequest(
       "http://localhost:3000/api/analytics/events",
       {
         method: "POST",
         headers: {
           "content-type": "application/json",
+          "x-forwarded-for": "198.51.100.1, 198.51.100.2",
           "x-lasoviet-client-ip": "203.0.113.195",
         },
         body: JSON.stringify(validPayload),
       },
     );
-    await testHandler(validReq);
-    expect(mockSendCommand.mock.calls[0]![0].ip).toBe("203.0.113.195");
+    await testHandler(request);
+    expect(mockSendCommand.mock.calls[0]![0].ip).toBeNull();
 
-    // Invalid IP with comma
-    mockSendCommand.mockClear();
-    const invalidReq = new NextRequest(
+  });
+
+  it("rejects comma-separated and invalid x-real-ip values", async () => {
+    const commaListRequest = new NextRequest(
       "http://localhost:3000/api/analytics/events",
       {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-lasoviet-client-ip": "203.0.113.195, 1.1.1.1",
+          "x-real-ip": "203.0.113.195, 1.1.1.1",
         },
         body: JSON.stringify(validPayload),
       },
     );
-    await testHandler(invalidReq);
+    await testHandler(commaListRequest);
+    expect(mockSendCommand.mock.calls[0]![0].ip).toBeNull();
+
+    mockSendCommand.mockClear();
+    const invalidRequest = new NextRequest(
+      "http://localhost:3000/api/analytics/events",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-real-ip": "not-an-ip",
+        },
+        body: JSON.stringify(validPayload),
+      },
+    );
+    await testHandler(invalidRequest);
     expect(mockSendCommand.mock.calls[0]![0].ip).toBeNull();
   });
 

@@ -69,7 +69,7 @@ export function classifyDevice(
 }
 
 export function extractTrustedClientIp(headers: Headers): string | null {
-  const headerValue = headers.get("x-lasoviet-client-ip");
+  const headerValue = headers.get("x-real-ip");
   if (!headerValue) {
     return null;
   }
