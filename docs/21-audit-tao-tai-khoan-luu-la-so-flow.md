@@ -1,7 +1,7 @@
 ---
 title: "Audit: luồng \"Đăng nhập để lưu lá số\" bị văng về wizard trống sau Google OAuth"
-version: 1.2
-status: partially-resolved
+version: 1.3
+status: resolved
 date: 2026-09-16
 reporter: Harris/Product
 assignee: An/Development
@@ -159,9 +159,8 @@ Luồng này **chưa được coi là hoàn tất toàn bộ (the complete OAuth
 
 ## 7. LSV-6 Closure Evidence (Updated 2026-09-16)
 
-The unresolved items in section 6(b) are implemented for the browser-local
-boundary, but the ticket remains partially resolved until browser acceptance
-can run with valid local auth configuration:
+This section supersedes the historical unresolved status in section 6. The
+browser-local implementation and target-environment acceptance are complete:
 
 - `HomepageHero` and `BirthProfileForm` share a versioned 24-hour
   `localStorage` draft with post-hydration debounced writes.
@@ -174,11 +173,12 @@ can run with valid local auth configuration:
 - Homepage edits preserve richer wizard-only fields. Explicit Clear, Exit, and
   successful chart navigation cancel pending writes before removing the draft.
 - Focused Vitest, web typecheck, scoped lint, and `git diff --check` pass.
-- Dedicated-port Playwright is blocked before interaction verification because
-  `/api/auth/get-session` returns `AUTH_CONFIG_INVALID` in the local dev
-  environment. The failure is configuration-dependent, not a claim of a
-  successful browser acceptance run.
+- Production release `2aeb4d8a1eb3fd42969886b655109f13213e507c` passed browser
+  acceptance on 2026-09-16: an immediate reload during the debounce window
+  restored the homepage draft, and a mocked Google OAuth return restored the
+  exact Review step, date, and time while leaving final consent unchecked.
 
-Once valid local auth configuration is available, rerun the mocked-provider
-browser flow. A real Google OAuth smoke remains an environment-level deployment
-check and is not claimed by this audit.
+The full callback, in-flight draft, and exact-step restoration defect is
+resolved. A separate live Google-provider smoke remains tracked by LSV-35
+because Google Safe Browsing review is an external domain gate, not an LSV-6
+runtime behavior gap.
