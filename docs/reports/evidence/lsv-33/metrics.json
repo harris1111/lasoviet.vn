@@ -1,0 +1,219 @@
+{
+  "capturedAt": "2026-09-16T17:52:30.237Z",
+  "route": "/tai-khoan",
+  "results": [
+    {
+      "viewport": {
+        "name": "account-tabs-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "account-tabs-320.png",
+      "document": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "hasHorizontalOverflow": false
+      },
+      "accountNavigation": {
+        "linkCount": 5,
+        "labels": [
+          "Tổng quan",
+          "Lá số & hồ sơ",
+          "Báo cáo",
+          "Đơn hàng",
+          "Quyền riêng tư"
+        ],
+        "display": "grid",
+        "overflowX": "visible",
+        "scrollWidth": 288,
+        "clientWidth": 288,
+        "hasHorizontalOverflow": false,
+        "links": [
+          {
+            "label": "Tổng quan",
+            "href": "/tai-khoan",
+            "width": 140,
+            "height": 44,
+            "top": 174,
+            "left": 16
+          },
+          {
+            "label": "Lá số & hồ sơ",
+            "href": "/tai-khoan/ho-so-sinh",
+            "width": 140,
+            "height": 44,
+            "top": 174,
+            "left": 164
+          },
+          {
+            "label": "Báo cáo",
+            "href": "/tai-khoan/bao-cao",
+            "width": 140,
+            "height": 44,
+            "top": 218,
+            "left": 16
+          },
+          {
+            "label": "Đơn hàng",
+            "href": "/tai-khoan/don-hang",
+            "width": 140,
+            "height": 44,
+            "top": 218,
+            "left": 164
+          },
+          {
+            "label": "Quyền riêng tư",
+            "href": "/tai-khoan/quyen-rieng-tu",
+            "width": 140,
+            "height": 44,
+            "top": 262,
+            "left": 16
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "name": "account-tabs-640x450-zoom-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "account-tabs-640x450-zoom-equivalent.png",
+      "document": {
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "hasHorizontalOverflow": false
+      },
+      "accountNavigation": {
+        "linkCount": 5,
+        "labels": [
+          "Tổng quan",
+          "Lá số & hồ sơ",
+          "Báo cáo",
+          "Đơn hàng",
+          "Quyền riêng tư"
+        ],
+        "display": "grid",
+        "overflowX": "visible",
+        "scrollWidth": 608,
+        "clientWidth": 608,
+        "hasHorizontalOverflow": false,
+        "links": [
+          {
+            "label": "Tổng quan",
+            "href": "/tai-khoan",
+            "width": 146,
+            "height": 44,
+            "top": 139,
+            "left": 16
+          },
+          {
+            "label": "Lá số & hồ sơ",
+            "href": "/tai-khoan/ho-so-sinh",
+            "width": 146,
+            "height": 44,
+            "top": 139,
+            "left": 170
+          },
+          {
+            "label": "Báo cáo",
+            "href": "/tai-khoan/bao-cao",
+            "width": 146,
+            "height": 44,
+            "top": 139,
+            "left": 324
+          },
+          {
+            "label": "Đơn hàng",
+            "href": "/tai-khoan/don-hang",
+            "width": 146,
+            "height": 44,
+            "top": 139,
+            "left": 478
+          },
+          {
+            "label": "Quyền riêng tư",
+            "href": "/tai-khoan/quyen-rieng-tu",
+            "width": 146,
+            "height": 44,
+            "top": 183,
+            "left": 16
+          }
+        ]
+      }
+    },
+    {
+      "viewport": {
+        "name": "account-tabs-1440",
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "screenshot": "account-tabs-1440.png",
+      "document": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "hasHorizontalOverflow": false
+      },
+      "accountNavigation": {
+        "linkCount": 5,
+        "labels": [
+          "Tổng quan",
+          "Lá số & hồ sơ",
+          "Báo cáo",
+          "Đơn hàng",
+          "Quyền riêng tư"
+        ],
+        "display": "flex",
+        "overflowX": "auto",
+        "scrollWidth": 1200,
+        "clientWidth": 1200,
+        "hasHorizontalOverflow": false,
+        "links": [
+          {
+            "label": "Tổng quan",
+            "href": "/tai-khoan",
+            "width": 113,
+            "height": 44,
+            "top": 139,
+            "left": 120
+          },
+          {
+            "label": "Lá số & hồ sơ",
+            "href": "/tai-khoan/ho-so-sinh",
+            "width": 128,
+            "height": 44,
+            "top": 139,
+            "left": 241
+          },
+          {
+            "label": "Báo cáo",
+            "href": "/tai-khoan/bao-cao",
+            "width": 94,
+            "height": 44,
+            "top": 139,
+            "left": 377
+          },
+          {
+            "label": "Đơn hàng",
+            "href": "/tai-khoan/don-hang",
+            "width": 104,
+            "height": 44,
+            "top": 139,
+            "left": 479
+          },
+          {
+            "label": "Quyền riêng tư",
+            "href": "/tai-khoan/quyen-rieng-tu",
+            "width": 142,
+            "height": 44,
+            "top": 139,
+            "left": 591
+          }
+        ]
+      }
+    }
+  ]
+}
