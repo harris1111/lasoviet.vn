@@ -11,8 +11,8 @@ describe("UI core token contract", () => {
 
     for (const token of [
       "--jade-500",
-      "--radius-card: 8px",
-      "--radius-field: 8px",
+      "--radius-card: 16px",
+      "--radius-field: 12px",
       "--radius-pill: 9999px",
       "--control-height: 44px",
       "--control-height-primary: 48px",

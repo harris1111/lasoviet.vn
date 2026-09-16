@@ -399,7 +399,7 @@
 .ui-artifact__title {
   margin: 0;
   color: var(--pearl-50);
-  font: 600 36px/1.2 var(--font-display);
+  font: 600 48px/1.2 var(--font-display);
 }
 
 .ui-artifact__lead {
@@ -452,7 +452,7 @@
   }
 
   .ui-artifact__title {
-    font-size: 28px;
+    font-size: 32px;
   }
 
   .ui-artifact__grid {

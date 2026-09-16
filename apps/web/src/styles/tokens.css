@@ -34,9 +34,9 @@
 
   --radius-small: 4px;
   --radius-control: 8px;
-  --radius-card: 8px;
+  --radius-card: 16px;
   --radius-modal: 12px;
-  --radius-field: 8px;
+  --radius-field: 12px;
   --radius-pill: 9999px;
   --touch-target-min: 44px;
   --control-height: 44px;
