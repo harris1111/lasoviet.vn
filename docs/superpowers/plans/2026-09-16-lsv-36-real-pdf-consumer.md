@@ -252,8 +252,12 @@ Owned files:
 - Create `packages/backend/src/support/support-case.repository.test.ts`
 - Create `packages/backend/src/support/support-case.service.ts`
 - Create `packages/backend/src/support/support-case.service.test.ts`
+- Modify `packages/backend/src/jobs/queue.registry.ts`
+- Modify `packages/backend/src/reports/report.service.ts`
+- Modify `packages/backend/src/reports/report-state.test.ts`
 - Create `apps/worker/src/processors/pdf-render.processor.ts`
 - Create `apps/worker/src/processors/pdf-render.processor.test.ts`
+- Modify `apps/worker/src/processors/report-generate.processor.ts`
 - Modify `apps/worker/src/worker.module.ts`
 - Modify `apps/worker/src/worker.module.test.ts`
 - Modify `apps/worker/src/main.ts`
@@ -269,6 +273,7 @@ Owned files:
 - Modify `pnpm-lock.yaml`
 - Modify `pnpm-workspace.yaml` only if pnpm 11 requires an exact reviewed
   `allowBuilds` entry.
+- Modify `tests/jobs/report-worker-state.integration.test.ts`
 
 Before implementation, Sol records the exact package/version and the
 task-relevant Playwright Chromium install path, browser executable lookup,
@@ -322,6 +327,33 @@ PDF processor. `worker.module.ts`, `main.ts`, and heartbeat ownership add the
 `pdf.render` runner alongside the existing report/outbox cycle, gated by the
 resolved worker queue configuration.
 
+Extend `packages/backend/src/jobs/queue.registry.ts` so the closed
+`WORKER_QUEUES` registry accepts both `report.generate` and `pdf.render`.
+The registry contract maps `report.generate` to only
+`report.generate.v1|report.generate.v2`, and maps `pdf.render` to only
+`report.pdf.render.v1`; a queue token is never a wildcard over
+`report_queue_jobs.name`.
+
+Refactor the queue-store claim contract so every consumer passes its immutable
+allowlist of job names. Both the candidate selection and the CAS update in
+`claimNext` must filter `report_queue_jobs.name` by that allowlist:
+the generation processor passes only `report.generate.v1|report.generate.v2`,
+and the PDF processor passes only `report.pdf.render.v1`. The name predicate
+is retained when a waiting job, retryable failure, or expired lease is claimed,
+so an expired lease or retry never transfers a job to the other consumer.
+Generation parsing must reject an unexpected job name rather than treating it
+as a v1 default.
+
+The successful PDF storage transaction and
+`finalizePdfTerminalFailure` both atomically settle the exact leased
+`report.pdf.render.v1` queue job with the asset/report CAS updates. A
+successful stored asset settles the job as processed; a terminal asset/report
+settles it as terminal failure. Each settlement requires the current worker,
+unexpired lease, exact job name, and matching fenced state. A later replay
+observing a stored or terminal asset/report must only adopt the already settled
+outcome or no-op under that state fence; it must not create a new claim,
+render, upload, asset transition, or report transition.
+
 Focused checks:
 
 - immutable Vietnamese HTML renders a valid PDF with the expected font loaded
@@ -348,6 +380,16 @@ Focused checks:
   support-link template, sends `email.report-failed.v1` with
   `report-failed-email:{reportVersionId}:{recipientAccountId}:{failureStage}`,
   and a replay produces no second provider send;
+- `report-state.test.ts` proves `WORKER_QUEUES=pdf.render` resolves through
+  the closed registry and that the registry maps it only to
+  `report.pdf.render.v1`;
+- `report-worker-state.integration.test.ts` proves generation can claim only
+  `report.generate.v1|report.generate.v2` and PDF can claim only
+  `report.pdf.render.v1`, including retryable and expired-lease candidates;
+  neither consumer can claim the other consumer's job;
+- the same integration test proves a settled PDF success or terminal job is
+  not claimable again, while replay after the asset/report state fence only
+  adopts or no-ops;
 - worker/maintenance tests prove `pdf.render` is enabled only by its worker
   queue and that a pending `report_failed` delivery is dispatched through the
   existing maintenance cycle, not directly by the processor or an outbox job.
