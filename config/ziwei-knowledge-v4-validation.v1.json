@@ -1,0 +1,33 @@
+{
+  "version": "ziwei.knowledge.validation.v4.1",
+  "v4KnowledgeVersion": "ziwei.comprehensive.knowledge.v4",
+  "v3KnowledgeVersion": "ziwei.comprehensive.knowledge.v3",
+  "prohibitedEditorialTerms": ["cát", "hung", "cát hung", "cát tinh", "sát tinh", "hung tinh", "chuyển hoá", "thân tâm", "khí chất", "bản mệnh", "phú quý", "hiển đạt", "công danh", "tài lộc", "hao tán", "phá tán", "tử tức", "phu thê", "hôn phối", "thị phi", "hình khắc", "xung khắc", "lao lực", "bôn ba", "quý nhân", "tiểu nhân", "tiền vận", "hậu vận", "vận trình", "phúc phần", "tổ nghiệp", "ly tổ", "tai ách", "tai ương", "đa sầu đa cảm", "cương nghị", "thao lược", "tu dưỡng", "tu thân", "đắc địa", "thất địa", "vượng phát", "an nhàn"],
+  "deathTerms": ["chết", "tử vong", "mất mạng", "qua đời", "yểu mệnh", "đoản thọ", "chết non", "tuổi thọ", "sống được bao lâu", "bao nhiêu tuổi thì mất", "khắc chết", "sát phu", "sát thê"],
+  "oralFillers": ["các bạn có thấy không", "hiểu không"],
+  "palaces": ["Mệnh", "Huynh Đệ", "Phu Thê", "Tử Tức", "Tài Bạch", "Tật Ách", "Thiên Di", "Nô Bộc", "Quan Lộc", "Điền Trạch", "Phúc Đức", "Phụ Mẫu", "Thân"],
+  "stars": ["Tử Vi", "Thiên Cơ", "Thái Dương", "Vũ Khúc", "Thiên Đồng", "Liêm Trinh", "Thiên Phủ", "Thái Âm", "Tham Lang", "Cự Môn", "Thiên Tướng", "Thiên Lương", "Thất Sát", "Phá Quân"],
+  "transformations": ["Hoá Lộc", "Hoá Quyền", "Hoá Khoa", "Hoá Kỵ"],
+  "brightness": ["Miếu", "Vượng", "Đắc", "Bình", "Hãm"],
+  "patterns": ["Sát Phá Tham", "Cơ Nguyệt Đồng Lương"],
+  "timeTerms": ["đại vận", "lưu niên"],
+  "warningDomains": ["tiền bạc", "sức khỏe", "tai nạn", "đi lại", "kiện tụng", "giấy tờ", "đổ vỡ quan hệ", "công việc"],
+  "warningPeriodPhrases": ["trong đại vận này", "trong giai đoạn này", "năm nay"],
+  "chartBasisPhrases": ["vì", "lá số", "cung"],
+  "likelySituationPhrases": ["dễ gặp", "có thể gặp", "cần đề phòng", "cần để ý"],
+  "preparationIndicators": ["quỹ dự phòng", "không ký bảo lãnh", "chờ 1 tuần", "kiểm tra hồ sơ", "đọc kỹ hợp đồng", "hỏi ý kiến bác sĩ", "hỏi ý kiến luật sư", "khám định kỳ", "nghỉ ngơi", "không đầu tư theo lời rủ rê"],
+  "certaintyPhrases": ["chắc chắn sẽ", "chắc chắn", "không tránh khỏi", "không thể tránh", "định sẵn", "đại hoạ", "đại họa", "đổi vận", "chính xác 99%"],
+  "adverseDatePatterns": ["\\bngày\\s+\\d{1,2}\\s+tháng\\s+\\d{1,2}\\b", "\\btháng\\s+\\d{1,2}\\s+ngày\\s+\\d{1,2}\\b", "\\b\\d{1,2}/\\d{1,2}\\b"],
+  "namedDiseaseTerms": ["ung thư", "đột quỵ", "vô sinh"],
+  "reproductiveClaimTerms": ["vô sinh", "không có con"],
+  "remedyOrRitualTerms": ["cúng giải hạn", "mua bùa", "hoá giải"],
+  "paywallPressureTerms": ["mở khoá để biết", "nạp lá để"],
+  "allowedDispositions": ["rewritten", "merged", "split", "omitted_oral_filler", "omitted_death_only"],
+  "usefulChunk": {
+    "minimumTerminalSentences": 2,
+    "targetMinimumSentences": 2,
+    "targetMaximumSentences": 4,
+    "minimumSyllables": 36,
+    "maximumCharacters": 1200
+  }
+}
