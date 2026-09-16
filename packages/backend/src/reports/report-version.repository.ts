@@ -29,7 +29,7 @@ export type CommitImmutableVersionInput = {
   promptVersion: string;
   reportConfigVersion: string;
   templateVersion: string;
-  renderVersion: "identity-report-pdf.v1";
+  renderVersion: "identity-report-pdf.v1" | "identity-report-pdf.v2";
   locale: "vi" | "en";
   sku: string;
   providerId: string;

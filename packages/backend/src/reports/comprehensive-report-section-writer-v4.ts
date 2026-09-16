@@ -4,6 +4,7 @@ import {
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
   ZiweiComprehensiveReportActionItemV2Schema,
   ZiweiComprehensiveReportAnnualSnapshotV2Schema,
+  ZiweiComprehensiveReportBirthTimeSensitivityV2Schema,
   ZiweiComprehensiveReportCurrentDecadalV2Schema,
   type ZiweiPalaceId,
   type ZiweiThematicSynthesisId,
@@ -11,7 +12,10 @@ import {
   type ReadingContextV1,
   z,
 } from "@lasoviet/contracts";
-import { ziweiComprehensiveReportQualityV1 } from "@lasoviet/config";
+import {
+  ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2Sensitivity,
+} from "@lasoviet/config";
 
 import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -19,12 +23,18 @@ import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
   parseComprehensiveReportAcceptedSection,
+  resolveComprehensiveReportSectionKeys,
   type ComprehensiveReportAcceptedSection,
   type ComprehensiveReportSectionKey,
 } from "./comprehensive-report-section-v4.js";
 import type { ComprehensiveReportSectionDigest } from "./comprehensive-report-section-digest-v4.js";
 import { BRIGHTNESS_LABELS_VI } from "./comprehensive-report-writer.js";
-import { REPORT_PROMPT_VERSION_V4_0_1 } from "./identity-report-config.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const narrativeSchema = z.object({
   title: z.string().trim().min(1).max(120),
@@ -49,7 +59,8 @@ export type ComprehensiveReportSectionWriterV4Input = {
   priorSectionDigest?: ComprehensiveReportSectionDigest;
   rewrite?: ComprehensiveReportSectionWriterV4Rewrite;
   provider: AiProvider;
-  promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1;
+  promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1 | typeof REPORT_PROMPT_VERSION_V4_1_SENSITIVITY;
+  reportConfigVersion?: typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
   costContext?: AiCostRequestContext;
   readingContext?: ReadingContextV1 | null;
 };
@@ -59,7 +70,7 @@ export type ComprehensiveReportSectionWriterV4Result =
   | { ok: false; error: AiProviderError | { code: "AI_OUTPUT_INVALID"; retryable: false } };
 
 type SectionScope = {
-  kind: keyof typeof ziweiComprehensiveReportQualityV1.sections;
+  kind: keyof typeof ziweiComprehensiveReportQualityV2Sensitivity.sections;
   palaceIds: readonly ZiweiPalaceId[];
   packIds: readonly string[];
   includePatterns: boolean;
@@ -118,6 +129,8 @@ function scopeFor(key: ComprehensiveReportSectionKey, facts: ComprehensiveZiweiF
       };
     case "annualSnapshot":
       return { kind: "annualSnapshot", palaceIds: [facts.timing.annual.palaceId], packIds: [], includePatterns: false, includeTransformations: false, includeAllNatalConfigurations: false, includeDecadal: false, includeAnnual: true };
+    case "birthTimeSensitivity":
+      return { kind: "birthTimeSensitivity", palaceIds: [], packIds: [], includePatterns: false, includeTransformations: false, includeAllNatalConfigurations: false, includeDecadal: false, includeAnnual: false };
     case "practicalDirection":
       return { kind: "practicalAction", palaceIds: lifeAndBody, packIds: ["final_synthesis"], includePatterns: true, includeTransformations: true, includeAllNatalConfigurations: false, includeDecadal: true, includeAnnual: true };
   }
@@ -131,6 +144,7 @@ function schemaFor(key: ComprehensiveReportSectionKey): z.ZodType {
   else if (isThematicKey(key)) value = thematicValueSchema;
   else if (key === "currentDecadal") value = ZiweiComprehensiveReportCurrentDecadalV2Schema;
   else if (key === "annualSnapshot") value = ZiweiComprehensiveReportAnnualSnapshotV2Schema;
+  else if (key === "birthTimeSensitivity") value = ZiweiComprehensiveReportBirthTimeSensitivityV2Schema;
   else value = practicalDirectionSchema;
   return z.object({ key: z.literal(key), value }).strict();
 }
@@ -244,6 +258,42 @@ function mappedEvidenceKeys(
 }
 
 function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: SectionScope) {
+  if (input.sectionKey === "birthTimeSensitivity") {
+    const allowedEvidenceKeys = input.facts.evidence.items
+      .filter((item) =>
+        input.facts.evidenceKeys.includes(item.key) &&
+        (item.key.startsWith("sensitivity.stable.") || item.key.startsWith("sensitivity.sensitive.")),
+      )
+      .map((item) => item.key)
+      .sort();
+    return {
+      sectionKey: input.sectionKey,
+      facts: {
+        sensitivity: {
+          stableFactKeys: [...input.facts.sensitivity.stableFactKeys],
+          sensitiveFacts: input.facts.sensitivity.sensitiveFacts.map((fact) => ({
+            factKey: fact.factKey,
+            variants: fact.variants.map((variant) => ({
+              position: variant.position,
+              valueIds: [...variant.valueIds],
+              evidenceKeys: variant.evidenceKeys.filter((key) => allowedEvidenceKeys.includes(key)),
+            })),
+          })),
+        },
+      },
+      allowedEvidenceKeys,
+      knowledgePacks: [],
+      readingContext: null,
+      personalizationGuidance: null,
+      ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
+      ...(input.rewrite ? {
+        rewrite: {
+          priorSection: input.rewrite.priorSection,
+          findings: boundedFindings(input.rewrite.findings),
+        },
+      } : {}),
+    };
+  }
   const palaces = input.facts.natal.palaces.filter((palace) => scope.palaceIds.includes(palace.palaceId));
   const transformations = scope.includeTransformations
     ? scope.includeAllNatalConfigurations
@@ -334,13 +384,26 @@ Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, v
 export async function writeComprehensiveReportSectionV4(
   input: ComprehensiveReportSectionWriterV4Input,
 ): Promise<ComprehensiveReportSectionWriterV4Result> {
-  if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_0_1) {
+  const reportConfigVersion = input.reportConfigVersion ?? REPORT_CONFIG_VERSION_V4_1_SECTIONED;
+  const isV4 = input.promptVersion === REPORT_PROMPT_VERSION_V4_0_1 &&
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED;
+  const isV4_1 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_SENSITIVITY &&
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
+  if (!isV4 && !isV4_1) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_PROMPT_UNSUPPORTED");
+  }
+  if (!resolveComprehensiveReportSectionKeys(reportConfigVersion).includes(input.sectionKey)) {
+    throw new Error("COMPREHENSIVE_REPORT_SECTION_KEY_UNSUPPORTED");
   }
   if (input.rewrite && input.rewrite.priorSection.key !== input.sectionKey) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_REWRITE_KEY_MISMATCH");
   }
   const scope = scopeFor(input.sectionKey, input.facts);
+  const maxOutputTokens = isV4
+    ? ziweiComprehensiveReportQualityV1.sections[
+      scope.kind as keyof typeof ziweiComprehensiveReportQualityV1.sections
+    ].maxOutputTokens
+    : ziweiComprehensiveReportQualityV2Sensitivity.sections[scope.kind].maxOutputTokens;
   const result = await input.provider.generateStructured({
     schema: schemaFor(input.sectionKey),
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
@@ -348,12 +411,12 @@ export async function writeComprehensiveReportSectionV4(
     user: JSON.stringify(scopedPayload(input, scope)),
     use: "production_report_generation",
     purpose: input.rewrite ? "rewrite" : "report",
-    maxOutputTokens: ziweiComprehensiveReportQualityV1.sections[scope.kind].maxOutputTokens,
+    maxOutputTokens,
     costContext: input.costContext,
   });
   if (!result.ok) return result;
   try {
-    const section = parseComprehensiveReportAcceptedSection(result.value.value);
+    const section = parseComprehensiveReportAcceptedSection(result.value.value, reportConfigVersion);
     if (section.key !== input.sectionKey) throw new Error("key mismatch");
     return { ok: true, value: { ...section, providerId: result.value.providerId, modelId: result.value.modelId } };
   } catch {

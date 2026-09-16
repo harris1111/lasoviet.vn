@@ -122,3 +122,106 @@ describe("createDatabaseReportVersionRepository - notification configuration", (
     ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
   });
 });
+
+describe("createDatabaseReportVersionRepository - immutable PDF requests", () => {
+  it("persists and requests the exact V2 render version", async () => {
+    const selectResults = [
+      [],
+      [{ id: "job-1" }],
+      [{
+        user: {
+          id: "user-1",
+          isAnonymous: false,
+          emailVerified: true,
+          email: "reader@lasoviet.net",
+        },
+        order: {
+          paidAt: new Date("2026-09-16T00:00:00.000Z"),
+        },
+      }],
+    ];
+    const updateResults = [
+      [{ id: "reservation-1", stateVersion: 3 }],
+      [{ id: "reservation-1", stateVersion: 4 }],
+      [{ id: "attempt-1" }],
+      [{ id: "job-1" }],
+    ];
+    const reportVersionValues = vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{ reportVersionId: "report-version-1" }]),
+    });
+    const outboxValues = vi.fn().mockResolvedValue(undefined);
+    const notificationValues = vi.fn().mockResolvedValue(undefined);
+    const insert = vi
+      .fn()
+      .mockReturnValueOnce({ values: reportVersionValues })
+      .mockReturnValueOnce({ values: outboxValues })
+      .mockReturnValueOnce({ values: notificationValues });
+    const select = vi.fn(() => {
+      const query = {
+        from: vi.fn(),
+        innerJoin: vi.fn(),
+        where: vi.fn(),
+        limit: vi.fn().mockImplementation(() => Promise.resolve(selectResults.shift())),
+      };
+      query.from.mockReturnValue(query);
+      query.innerJoin.mockReturnValue(query);
+      query.where.mockReturnValue(query);
+      return query;
+    });
+    const transaction = vi.fn(async (callback) =>
+      callback({
+        select,
+        update: vi.fn(() => ({
+          set: vi.fn(() => ({
+            where: vi.fn(() => ({
+              returning: vi.fn().mockImplementation(() => Promise.resolve(updateResults.shift())),
+            })),
+          })),
+        })),
+        insert,
+      }),
+    );
+    const database = { transaction } as never;
+    const repo = createDatabaseReportVersionRepository(database, repositoryOptions);
+
+    const result = await repo.commitImmutableVersion({
+      reportId: "report-1",
+      reportVersionId: "report-version-1",
+      entitlementId: "entitlement-1",
+      chartVersionId: "chart-version-1",
+      evidenceVersionId: "evidence-version-1",
+      knowledgeVersionId: "knowledge-version-1",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+      locale: "vi",
+      sku: "ZIWEI-COMPREHENSIVE-P1",
+      providerId: "provider-1",
+      modelId: "model-1",
+      structuredContent: {} as never,
+      htmlContent: "<html>immutable</html>",
+      jobId: "job-1",
+      workerId: "worker-1",
+      attemptNumber: 1,
+      traceId: "trace-1",
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      value: { reportVersionId: "report-version-1" },
+    });
+    expect(reportVersionValues).toHaveBeenCalledWith(
+      expect.objectContaining({ renderVersion: "identity-report-pdf.v2" }),
+    );
+    expect(outboxValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: "report.pdf.requested.v1",
+        idempotencyKey: "pdf-request:report-version-1:identity-report-pdf.v2",
+        payload: expect.objectContaining({
+          renderVersion: "identity-report-pdf.v2",
+        }),
+      }),
+    );
+  });
+});
