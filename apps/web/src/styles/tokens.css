@@ -8,11 +8,14 @@
   --gold-600: #a8842f;
   --gold-700: #9a7730;
   --son: #ce5b45;
+  --jade-500: #4f7a68;
   --pearl-50: #f6f1e6;
   --pearl-200: #dcd4c3;
   --pearl-400: #a79e8b;
   --pearl-600: #6e6656;
   --gold-gradient: linear-gradient(103deg, var(--gold-700), var(--gold-400) 34%, var(--gold-500) 58%, var(--gold-600));
+  --gold-soft: rgba(201, 164, 77, 0.14);
+  --surface-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 
   --font-display: var(--font-source-serif-4), Georgia, serif;
   --font-ui: var(--font-be-vietnam-pro), system-ui, sans-serif;
@@ -33,7 +36,15 @@
   --radius-control: 8px;
   --radius-card: 8px;
   --radius-modal: 12px;
+  --radius-field: 8px;
+  --radius-pill: 9999px;
   --touch-target-min: 44px;
+  --control-height: 44px;
+  --control-height-primary: 48px;
+  --field-height: 56px;
+  --reading-width: 720px;
+  --section-space-desktop: 88px;
+  --section-space-mobile: 56px;
   --focus-ring: 0 0 0 3px var(--gold-400);
   --motion-feedback: 120ms;
   --motion-standard: 180ms;
