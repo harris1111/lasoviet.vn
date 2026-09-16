@@ -1,4 +1,7 @@
 import { z } from "zod";
+import {
+  ReportPdfRequestedV1Schema,
+} from "./report-assets.js";
 
 export const ReportStatusSchema = z.enum([
   "requested",
@@ -94,21 +97,38 @@ export const ReportGenerateJobEnvelopeSchema = z.discriminatedUnion("schemaVersi
   ReportGenerateJobEnvelopeV2Schema,
 ]);
 export type ReportGenerateJobEnvelope = z.infer<typeof ReportGenerateJobEnvelopeSchema>;
-export type QueueJob = ReportGenerateJobEnvelope;
+export type QueueJob = ReportGenerateJobEnvelope | ReportPdfRenderJobV1;
 
-export const ReportFulfillmentFailedV1Schema = z.object({
-  reportId: z.string().min(1),
-  reportVersionId: z.string().min(1),
-  failureStage: z.enum(["generation", "validation", "pdf", "garage"]),
-  errorCode: z.string().min(1),
-  supportCaseId: z.string().nullable().optional(),
-}).strict();
-export type ReportFulfillmentFailedV1 = z.infer<typeof ReportFulfillmentFailedV1Schema>;
-
-export const ReportPdfRequestedV1Schema = z.object({
+const ReportFulfillmentFailedBaseSchema = z.object({
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
-  assetId: z.string().trim().min(1),
-  renderVersion: z.string().trim().min(1),
+  errorCode: z.string().trim().min(1),
+});
+
+export const ReportFulfillmentFailedV1Schema = z.discriminatedUnion("failureStage", [
+  ReportFulfillmentFailedBaseSchema.extend({
+    failureStage: z.enum(["generation", "validation"]),
+    supportCaseId: z.string().trim().min(1).nullable().optional(),
+  }).strict(),
+  ReportFulfillmentFailedBaseSchema.extend({
+    failureStage: z.enum(["pdf", "garage"]),
+    supportCaseId: z.string().trim().min(1),
+  }).strict(),
+]);
+export type ReportFulfillmentFailedV1 = z.infer<typeof ReportFulfillmentFailedV1Schema>;
+
+export const ReportPdfRenderJobV1Schema = z.object({
+  schemaVersion: z.literal(1),
+  name: z.literal("report.pdf.render.v1"),
+  sourceEventId: z.string().trim().min(1),
+  traceId: z.string().trim().min(1),
+  idempotencyKey: z.string().trim().min(1),
+  payload: ReportPdfRequestedV1Schema,
 }).strict();
-export type ReportPdfRequestedV1 = z.infer<typeof ReportPdfRequestedV1Schema>;
+export type ReportPdfRenderJobV1 = z.infer<typeof ReportPdfRenderJobV1Schema>;
+
+export {
+  ReportPdfRequestedV1Schema,
+  ReportPdfRenderVersionSchema,
+} from "./report-assets.js";
+export type { ReportPdfRequestedV1 } from "./report-assets.js";

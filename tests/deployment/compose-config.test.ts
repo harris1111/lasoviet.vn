@@ -17,11 +17,12 @@ const registryComposeFiles = [
   "docker-compose.registry.yml",
 ].map((file) => `${root}/${file}`);
 
-async function composeConfig() {
+async function composeConfig(profile?: string) {
   const { stdout } = await execFileAsync(
     "docker",
     [
       "compose",
+      ...(profile === undefined ? [] : ["--profile", profile]),
       "--env-file",
       `${root}/.env.example`,
       ...composeFiles.flatMap((file) => ["-f", file]),
@@ -37,11 +38,12 @@ async function composeConfig() {
   };
 }
 
-async function registryComposeConfig(releaseSha: string) {
+async function registryComposeConfig(releaseSha: string, profile?: string) {
   const { stdout } = await execFileAsync(
     "docker",
     [
       "compose",
+      ...(profile === undefined ? [] : ["--profile", profile]),
       "--env-file",
       `${root}/.env.example`,
       ...registryComposeFiles.flatMap((file) => ["-f", file]),
@@ -133,14 +135,53 @@ describe("founder-run Compose topology", () => {
     });
   });
 
+  it("keeps the credential-gated Garage PDF profile private and persistent", async () => {
+    const [configuration, garageConfig, workerDockerfile] = await Promise.all([
+      composeConfig("pdf"),
+      readFile(`${root}/config/garage.toml`, "utf8"),
+      readFile(`${root}/apps/worker/Dockerfile`, "utf8"),
+    ]);
+
+    expect(configuration.services.garage).toMatchObject({
+      image:
+        "dxflrs/garage:v2.4.1@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020",
+      restart: "unless-stopped",
+      healthcheck: {
+        test: ["CMD-SHELL", "/garage status >/dev/null 2>&1"],
+      },
+    });
+    expect(configuration.services.garage?.ports).toBeUndefined();
+    expect(configuration.services["pdf-worker"]?.ports).toBeUndefined();
+    expect(configuration.services["pdf-worker"]?.depends_on).toMatchObject({
+      garage: { condition: "service_healthy" },
+    });
+    expect(configuration.services["pdf-worker"]?.environment).toMatchObject({
+      WORKER_QUEUES: "pdf.render",
+    });
+    expect(configuration.volumes).toMatchObject({
+      garage_metadata: {},
+      garage_metadata_snapshots: {},
+      garage_data: {},
+    });
+    expect(garageConfig).toContain('s3_region = "lasoviet-private"');
+    expect(garageConfig).toContain('rpc_public_addr = "garage:3901"');
+    expect(workerDockerfile).toContain(
+      "apt-get install -y --no-install-recommends chromium",
+    );
+    expect(workerDockerfile).toContain(
+      "CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium",
+    );
+    expect(workerDockerfile).toContain("USER lasoviet");
+  });
+
   it("applies registry overlay images and clears build definitions from rendered configuration", async () => {
     const testSha = "abcdef1234567890abcdef1234567890abcdef12";
     const [rawRegistryCompose, configuration] = await Promise.all([
       readFile(`${root}/docker-compose.registry.yml`, "utf8"),
-      registryComposeConfig(testSha),
+      registryComposeConfig(testSha, "pdf"),
     ]);
 
-    const targetServices = ["migrate", "api", "worker", "web"];
+    const targetServices = ["migrate", "api", "worker", "pdf-worker", "web"];
     for (const service of targetServices) {
       expect(configuration.services[service]?.build).toBeUndefined();
     }
@@ -153,6 +194,9 @@ describe("founder-run Compose topology", () => {
       `ghcr.io/harris1111/lasoviet-api:sha-${testSha}`,
     );
     expect(configuration.services.worker?.image).toBe(
+      `ghcr.io/harris1111/lasoviet-worker:sha-${testSha}`,
+    );
+    expect(configuration.services["pdf-worker"]?.image).toBe(
       `ghcr.io/harris1111/lasoviet-worker:sha-${testSha}`,
     );
     expect(configuration.services.web?.image).toBe(

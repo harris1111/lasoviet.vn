@@ -34,7 +34,7 @@ export type NotificationDeliveryStatus =
   | "failed_permanent"
   | "delivery_unknown";
 
-export type NotificationDeliveryKind = AuthEmailKind | "report_ready";
+export type NotificationDeliveryKind = AuthEmailKind | "report_ready" | "report_failed";
 
 export type AuthEmailDeliveryRecord = {
   id: string;
@@ -124,6 +124,12 @@ const messages: Record<
       text: "Bao cao cua ban da san sang. Mo lien ket de xem bao cao: {actionUrl}",
       html: "<p>Bao cao cua ban da san sang. Mo lien ket de xem bao cao:</p><p>{actionUrl}</p>",
     },
+    report_failed: {
+      to: "",
+      subject: "Bao cao La So Viet can duoc ho tro",
+      text: "Bao cao cua ban can duoc ho tro. Mo lien ket de xem trang ho tro: {actionUrl}",
+      html: "<p>Bao cao cua ban can duoc ho tro.</p><p><a href=\"{actionUrl}\">Mo trang ho tro</a></p>",
+    },
   },
   en: {
     email_verification: {
@@ -143,6 +149,12 @@ const messages: Record<
       subject: "Your La So Viet report is ready",
       text: "Your report is ready. Open this link to view your report: {actionUrl}",
       html: "<p>Your report is ready. Open this link to view your report:</p><p>{actionUrl}</p>",
+    },
+    report_failed: {
+      to: "",
+      subject: "Your La So Viet report needs support",
+      text: "Your report needs support. Open this link to view the support page: {actionUrl}",
+      html: "<p>Your report needs support.</p><p><a href=\"{actionUrl}\">Open support</a></p>",
     },
   },
 };
@@ -325,7 +337,10 @@ export function createDatabaseAuthEmailDeliveryStore(
           or(
             and(
               eq(notificationDeliveries.status, "pending"),
-              eq(notificationDeliveries.kind, "report_ready"),
+              or(
+                eq(notificationDeliveries.kind, "report_ready"),
+                eq(notificationDeliveries.kind, "report_failed"),
+              ),
             ),
             and(
               eq(notificationDeliveries.status, "failed_retryable"),

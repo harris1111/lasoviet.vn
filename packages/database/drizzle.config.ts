@@ -11,6 +11,8 @@ export default defineConfig({
     "./src/schema/notifications.ts",
     "./src/schema/commerce.ts",
     "./src/schema/reports.ts",
+    "./src/schema/assets.ts",
+    "./src/schema/support-cases.ts",
     "./src/schema/knowledge.ts",
     "./src/schema/analytics.ts",
   ],

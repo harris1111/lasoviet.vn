@@ -24,7 +24,10 @@ import {
 
 export type ReportJobQueueStore = {
   enqueue(job: QueueJob): Promise<void>;
-  claimNext(now?: Date): Promise<typeof reportQueueJobs.$inferSelect | null>;
+  claimNext(
+    now?: Date,
+    allowedNames?: readonly ("report.generate.v1" | "report.generate.v2" | "report.pdf.render.v1")[],
+  ): Promise<typeof reportQueueJobs.$inferSelect | null>;
   renewLease(
     id: string,
     now?: Date,
@@ -67,24 +70,34 @@ export function createDatabaseReportQueueStore(
         .onConflictDoNothing();
     },
 
-    async claimNext(now: Date = new Date()): Promise<typeof reportQueueJobs.$inferSelect | null> {
+    async claimNext(
+      now: Date = new Date(),
+      allowedNames: readonly ("report.generate.v1" | "report.generate.v2" | "report.pdf.render.v1")[] = [
+        "report.generate.v1",
+        "report.generate.v2",
+      ],
+    ): Promise<typeof reportQueueJobs.$inferSelect | null> {
+      if (allowedNames.length === 0) return null;
       return database.transaction(async (tx) => {
         const [candidate] = await tx
           .select({ id: reportQueueJobs.id })
           .from(reportQueueJobs)
           .where(
-            or(
-              and(
-                eq(reportQueueJobs.status, "waiting"),
-                lte(reportQueueJobs.availableAt, now),
-              ),
-              and(
-                eq(reportQueueJobs.status, "retryable_failure"),
-                lte(reportQueueJobs.availableAt, now),
-              ),
-              and(
-                eq(reportQueueJobs.status, "leased"),
-                lte(reportQueueJobs.leasedUntil, now),
+            and(
+              inArray(reportQueueJobs.name, [...allowedNames]),
+              or(
+                and(
+                  eq(reportQueueJobs.status, "waiting"),
+                  lte(reportQueueJobs.availableAt, now),
+                ),
+                and(
+                  eq(reportQueueJobs.status, "retryable_failure"),
+                  lte(reportQueueJobs.availableAt, now),
+                ),
+                and(
+                  eq(reportQueueJobs.status, "leased"),
+                  lte(reportQueueJobs.leasedUntil, now),
+                ),
               ),
             ),
           )
@@ -105,6 +118,7 @@ export function createDatabaseReportQueueStore(
           .where(
             and(
               eq(reportQueueJobs.id, candidate.id),
+              inArray(reportQueueJobs.name, [...allowedNames]),
               or(
                 and(
                   eq(reportQueueJobs.status, "waiting"),
@@ -553,7 +567,7 @@ export function createReportService(database: Database) {
       jobId: string;
       workerId: string;
       errorCode: string;
-      failureStage?: "generation" | "validation" | "pdf" | "garage";
+      failureStage?: "generation" | "validation";
       expectedStateVersion?: number;
     }): Promise<
       | { ok: true }

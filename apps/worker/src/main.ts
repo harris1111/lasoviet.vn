@@ -4,8 +4,12 @@ import { NestFactory } from "@nestjs/core";
 import { resolveWorkerQueues } from "@lasoviet/backend";
 
 import { WorkerModule } from "./worker.module.js";
-import { createMaintenanceRunner, createOutboxDispatchRunner } from "./worker.module.js";
-import { createReportGenerateRunner } from "./worker.module.js";
+import {
+  createMaintenanceRunner,
+  createOutboxDispatchRunner,
+  createPdfRenderRunner,
+  createReportGenerateRunner,
+} from "./worker.module.js";
 import { provisionReportKnowledge } from "./reports/provision-report-knowledge.js";
 import { executeWorkerPollingCycle, writeWorkerHeartbeat } from "./health/worker-heartbeat.js";
 
@@ -15,6 +19,7 @@ async function bootstrap(): Promise<void> {
   const outbox = createOutboxDispatchRunner();
   await provisionReportKnowledge();
   const reportRunner = createReportGenerateRunner();
+  const pdfRunner = createPdfRenderRunner();
 
   const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);
   const configuredQueues = queuesResult.ok ? queuesResult.value : [];
@@ -31,12 +36,16 @@ async function bootstrap(): Promise<void> {
     activeCycle = executeWorkerPollingCycle({
       runOutbox: () => outbox.runOnce(),
       runReport: () => reportRunner.runOnce(),
+      runPdf: () => pdfRunner.runOnce(),
       writeHeartbeat: () => writeWorkerHeartbeat({ queues: configuredQueues }),
       onOutboxError(error) {
         console.error("OUTBOX_DISPATCH_FAILED", error);
       },
       onReportError(error) {
         console.error("REPORT_GENERATE_RUNNER_FAILED", error);
+      },
+      onPdfError(error) {
+        console.error("PDF_RENDER_RUNNER_FAILED", error);
       },
     })
       .catch((error: unknown) => {

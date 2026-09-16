@@ -156,4 +156,72 @@ describe("outbox dispatcher", () => {
     await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: false });
     expect(release).toHaveBeenCalledWith("outbox-v2-invalid", "OUTBOX_EVENT_INVALID");
   });
+
+  it("publishes one fenced PDF render job with the exact stored render version", async () => {
+    const publish = vi.fn().mockResolvedValue(undefined);
+    const dispatcher = createOutboxDispatcher({
+      claim: async () => ({
+        id: "outbox-pdf-1",
+        eventId: "event-pdf-1",
+        traceId: "trace-pdf-1",
+        idempotencyKey: "pdf-request:version-1:identity-report-pdf.v2",
+        eventType: "report.pdf.requested.v1",
+        payload: {
+          reportId: "report-1",
+          reportVersionId: "version-1",
+          assetId: "asset-1",
+          renderVersion: "identity-report-pdf.v2",
+        },
+      }),
+      markProcessed: async () => undefined,
+      release: async () => undefined,
+      publish,
+    });
+
+    await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: true });
+    expect(publish).toHaveBeenCalledWith({
+      schemaVersion: 1,
+      name: "report.pdf.render.v1",
+      sourceEventId: "event-pdf-1",
+      traceId: "trace-pdf-1",
+      idempotencyKey: "pdf-render:asset-1:identity-report-pdf.v2",
+      payload: {
+        reportId: "report-1",
+        reportVersionId: "version-1",
+        assetId: "asset-1",
+        renderVersion: "identity-report-pdf.v2",
+      },
+    });
+  });
+
+  it("rejects invalid PDF requests and never publishes fulfillment failure events", async () => {
+    const release = vi.fn().mockResolvedValue(undefined);
+    const dispatcher = createOutboxDispatcher({
+      claim: vi.fn()
+        .mockResolvedValueOnce({
+          id: "outbox-pdf-invalid",
+          eventId: "event-pdf-invalid",
+          traceId: "trace-pdf-invalid",
+          idempotencyKey: "pdf-request:invalid",
+          eventType: "report.pdf.requested.v1",
+          payload: { reportId: "report-1", renderVersion: "identity-report-pdf.v3" },
+        })
+        .mockResolvedValueOnce({
+          id: "outbox-failed",
+          eventId: "event-failed",
+          traceId: "trace-failed",
+          idempotencyKey: "report-failed:version-1:pdf",
+          eventType: "report.fulfillment.failed.v1",
+          payload: {},
+        }),
+      markProcessed: async () => undefined,
+      release,
+      publish: async () => undefined,
+    });
+
+    await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: false });
+    await expect(dispatcher.dispatchOne()).resolves.toEqual({ dispatched: false });
+    expect(release).toHaveBeenNthCalledWith(1, "outbox-pdf-invalid", "OUTBOX_EVENT_INVALID");
+    expect(release).toHaveBeenNthCalledWith(2, "outbox-failed", "OUTBOX_EVENT_INVALID");
+  });
 });
