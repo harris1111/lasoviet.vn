@@ -19,6 +19,7 @@ import {
   AccountDeletionForm,
   CancelDeletionButton,
 } from "../../../../features/account/account-actions";
+import { AccountExportButton } from "../../../../features/account/account-export-button";
 
 export const dynamic = "force-dynamic";
 
@@ -41,11 +42,30 @@ export const PURPOSE_LABELS = {
   },
 } as const;
 
-export function formatPurposeLabel(purpose: string, locale: "vi" | "en"): string {
+export function formatConsentPurpose(purpose: string, locale: "vi" | "en"): string {
+  const isVi = locale === "vi";
+  switch (purpose) {
+    case "birth_profile":
+      return isVi ? "Xử lý hồ sơ lá số" : "Birth profile processing";
+    case "birth-profile-calculation":
+      return isVi ? "Tính toán hồ sơ lá số" : "Birth profile calculation";
+    case "service_operation":
+      return isVi ? "Vận hành dịch vụ" : "Service operation";
+    case "marketing":
+    case "marketing_email":
+      return isVi ? "Email tiếp thị" : "Marketing email";
+    case "third_party_sharing":
+      return isVi ? "Chia sẻ với bên thứ ba" : "Third-party sharing";
+    case "ai_training":
+      return isVi ? "Huấn luyện mô hình AI" : "AI model training";
+    default:
+      break;
+  }
+
   if (purpose in PURPOSE_LABELS) {
     return PURPOSE_LABELS[purpose as keyof typeof PURPOSE_LABELS][locale];
   }
-  return locale === "vi" ? "Mục đích xử lý dữ liệu" : "Data processing purpose";
+  return isVi ? "Mục đích sử dụng khác" : "Other data purpose";
 }
 
 
@@ -105,18 +125,13 @@ export default async function AccountPrivacyPage({
         </h1>
         <p className="account-section-desc">
           {isVi
-            ? "Mỗi mục đích dùng dữ liệu có công tắc riêng. Dữ liệu chỉ được truy cập khi có sự uỷ quyền của chính bạn."
-            : "Each data purpose has separate controls. Data access remains owner-authorized."}
-        </p>
-        <p style={{ marginTop: "8px", fontSize: "13px", color: "var(--pearl-400)" }}>
-          {isVi
-            ? "Trạng thái đồng ý được ghi nhận từ lần chấp thuận gần nhất và hiển thị dạng chỉ đọc."
-            : "Consent records are recorded from your latest agreements and displayed as read-only."}
+            ? "Dữ liệu chỉ được truy cập khi có sự uỷ quyền của chính bạn. Trạng thái đồng ý được ghi nhận từ lần chấp thuận gần nhất và hiển thị dạng chỉ đọc."
+            : "Data access remains owner-authorized. Consent records are recorded from your latest agreements and displayed as read-only."}
         </p>
 
         <div className="account-rows-list" style={{ marginTop: "24px" }}>
           {consents.map((c) => {
-            const purposeLabel = formatPurposeLabel(c.purpose, routeLocale);
+            const purposeLabel = formatConsentPurpose(c.purpose, routeLocale);
             const grantedDate = formatHoChiMinhDateTime(c.grantedAt, routeLocale);
             const docInfo = isVi
               ? `Tài liệu: ${c.documentKey} (${c.documentVersion}) · Đồng ý ngày ${grantedDate}`
@@ -169,17 +184,11 @@ export default async function AccountPrivacyPage({
             </h3>
             <p className="account-text-muted" style={{ lineHeight: 1.5 }}>
               {isVi
-                ? "Tải toàn bộ hồ sơ lá số, báo cáo đã mua, lịch sử sử dụng và hồ sơ hành vi tài khoản dưới dạng một file JSON."
-                : "Download your birth profiles, purchased reports, usage history, and account behavior profile as a JSON file."}
+                ? "Tải toàn bộ hồ sơ lá số, báo cáo đã mua và thông tin tài khoản dưới dạng một file JSON."
+                : "Download your birth profiles, purchased reports, and account data as a JSON file."}
             </p>
             <div style={{ marginTop: "12px" }}>
-              <a
-                href="/api/account/export"
-                className="button button-secondary button-small"
-                download
-              >
-                {isVi ? "Xuất dữ liệu (.json)" : "Export data (.json)"}
-              </a>
+              <AccountExportButton locale={routeLocale} />
             </div>
           </div>
 
