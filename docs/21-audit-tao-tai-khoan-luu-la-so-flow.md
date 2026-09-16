@@ -1,8 +1,8 @@
 ---
 title: "Audit: luồng \"Đăng nhập để lưu lá số\" bị văng về wizard trống sau Google OAuth"
-version: 1.1
+version: 1.2
 status: partially-resolved
-date: 2026-09-12
+date: 2026-09-16
 reporter: Harris/Product
 assignee: An/Development
 related: docs/15-collaboration-branch-workflow.md
@@ -156,3 +156,29 @@ không giải quyết 3 lỗi trên.
 
 ### (c) Kết luận phạm vi
 Luồng này **chưa được coi là hoàn tất toàn bộ (the complete OAuth flow is NOT claimed to be fixed)**. Chỉ có việc bảo lưu callback điều hướng (chart-page / header callback preservation) là đã hoàn tất qua lineage `2deb64d`/`9661eb2`. Hai vấn đề về dữ liệu in-flight (autosave và exact wizard-step resume) vẫn là việc tồn đọng cần xử lý trong các hạng mục tiếp theo (unresolved follow-up work).
+
+## 7. LSV-6 Closure Evidence (Updated 2026-09-16)
+
+The unresolved items in section 6(b) are implemented for the browser-local
+boundary, but the ticket remains partially resolved until browser acceptance
+can run with valid local auth configuration:
+
+- `HomepageHero` and `BirthProfileForm` share a versioned 24-hour
+  `localStorage` draft with post-hydration debounced writes.
+- The boundary rejects malformed, expired, future, unsupported, or unsafe
+  drafts fail-closed, including malformed branches and future lunar years.
+- Final explicit consent, pending state, errors, tokens, and authentication
+  state are never persisted.
+- The wizard restores the highest valid exact step, including Review when both
+  subject and birth prerequisites remain valid.
+- Homepage edits preserve richer wizard-only fields. Explicit Clear, Exit, and
+  successful chart navigation cancel pending writes before removing the draft.
+- Focused Vitest, web typecheck, scoped lint, and `git diff --check` pass.
+- Dedicated-port Playwright is blocked before interaction verification because
+  `/api/auth/get-session` returns `AUTH_CONFIG_INVALID` in the local dev
+  environment. The failure is configuration-dependent, not a claim of a
+  successful browser acceptance run.
+
+Once valid local auth configuration is available, rerun the mocked-provider
+browser flow. A real Google OAuth smoke remains an environment-level deployment
+check and is not claimed by this audit.

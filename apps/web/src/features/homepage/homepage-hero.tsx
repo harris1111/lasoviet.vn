@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -17,6 +17,16 @@ import {
   saveHomepageBirthPrefill,
   type ReusableBirthTime,
 } from "../birth-profile/homepage-birth-prefill";
+import {
+  bindDraftPagehideFlush,
+  clearBirthProfileDraft,
+  createDraftAutosaveController,
+  isMeaningfulHomepageDraft,
+  readBirthProfileDraft,
+  saveHomepageDraft,
+  type DraftAutosaveController,
+  type HomepageDraftInput,
+} from "../birth-profile/birth-profile-draft";
 import { splitIsoDateToParts } from "../birth-profile/birth-wizard-state";
 import { imagePath, localizedPath } from "./homepage-utilities";
 
@@ -38,9 +48,54 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
   const [branch, setBranch] = useState("");
   const [hasReusedCache, setHasReusedCache] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isHydratedRef = useRef(false);
+  const autosaveRef = useRef<DraftAutosaveController<HomepageDraftInput> | null>(
+    null,
+  );
+  if (autosaveRef.current === null) {
+    autosaveRef.current = createDraftAutosaveController({
+      save: saveHomepageDraft,
+      clear: clearBirthProfileDraft,
+      isMeaningful: isMeaningfulHomepageDraft,
+    });
+  }
 
   useEffect(() => {
     let active = true;
+    const draft = readBirthProfileDraft();
+    if (
+      draft &&
+      (draft.day ||
+        draft.month ||
+        draft.year ||
+        draft.timeState.precision === "unknown" ||
+        draft.timeState.precision === "branch_only" ||
+        (draft.timeState.precision === "exact_minute" &&
+          Boolean(draft.timeState.hour || draft.timeState.minute)))
+    ) {
+      queueMicrotask(() => {
+        if (!active) return;
+        setDay(draft.day);
+        setMonth(draft.month);
+        setYear(draft.year);
+        if (draft.timeState.precision === "exact_minute") {
+          setTimeMode("exact_minute");
+          setHour(draft.timeState.hour);
+          setMinute(draft.timeState.minute);
+        } else if (draft.timeState.precision === "branch_only") {
+          setTimeMode("branch_only");
+          setBranch(draft.timeState.branch);
+        } else {
+          setTimeMode("unknown");
+        }
+        setHasReusedCache(true);
+        isHydratedRef.current = true;
+      });
+      return () => {
+        active = false;
+      };
+    }
+
     const cached = readBirthCache();
     if (cached) {
       queueMicrotask(() => {
@@ -60,14 +115,41 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
           setTimeMode("unknown");
         }
         setHasReusedCache(true);
+        isHydratedRef.current = true;
       });
+    } else {
+      isHydratedRef.current = true;
     }
     return () => {
       active = false;
     };
   }, []);
 
+  useEffect(() => {
+    if (!isHydratedRef.current) return;
+    autosaveRef.current?.schedule({
+      day,
+      month,
+      year,
+      timeMode,
+      hour,
+      minute,
+      branch,
+    });
+  }, [day, month, year, timeMode, hour, minute, branch]);
+
+  useEffect(() => {
+    const controller = autosaveRef.current;
+    if (!controller) return;
+    const unbindPagehide = bindDraftPagehideFlush(controller, window);
+    return () => {
+      unbindPagehide();
+      controller.dispose();
+    };
+  }, []);
+
   function handleClearCache() {
+    autosaveRef.current?.cancelAndClear();
     clearBirthCache();
     setDay("");
     setMonth("");
