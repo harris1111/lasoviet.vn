@@ -332,6 +332,10 @@ export {
   TIER_2_V4_SCOPE_SECTIONS,
   COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS,
   TIER_2_V4_ENTITLEMENT_SCOPE,
+  V4_1_SENSITIVITY_SCOPE_SECTIONS,
+  TIER_2_V4_1_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS,
+  TIER_2_V4_1_ENTITLEMENT_SCOPE,
   resolveEntitlementScopeForSku,
 } from "./commerce.js";
 export type {
@@ -345,6 +349,8 @@ export type {
   OrderStatus,
   PaymentSelfClaimRequestV1,
   PaymentSelfClaimSuccessV1,
+  EntitlementReportFamily,
+  EntitlementScopeOptions,
   PaymentClaimErrorCode,
   ComprehensiveReportSectionId,
   EntitlementScope,
@@ -407,6 +413,12 @@ export {
   ComprehensiveReportPublicContentV2Schema,
   projectComprehensiveReportPublicContentV2,
   ReportComprehensiveV2ReadyViewV1Schema,
+  ComprehensiveReportBirthTimeSensitivityV3PublicSchema,
+  ComprehensiveReportTier1PublicContentV3Schema,
+  ComprehensiveReportTier2PublicContentV3Schema,
+  ComprehensiveReportPublicContentV3Schema,
+  projectComprehensiveReportPublicContentV3,
+  ReportComprehensiveV3ReadyViewV1Schema,
 } from "./identity-report-v1.js";
 export type {
   ReportPublicContentV1,
@@ -427,6 +439,12 @@ export type {
   ComprehensiveReportPublicContentV2,
   ComprehensiveReportViewContentV2,
   ReportComprehensiveV2ReadyViewV1,
+  ComprehensiveReportBirthTimeSensitivityV3Public,
+  ComprehensiveReportTier1PublicContentV3,
+  ComprehensiveReportTier2PublicContentV3,
+  ComprehensiveReportPublicContentV3,
+  ComprehensiveReportViewContentV3,
+  ReportComprehensiveV3ReadyViewV1,
 } from "./identity-report-v1.js";
 
 export {
@@ -488,6 +506,13 @@ export type {
   ZiweiComprehensiveReportAnnualSnapshotV2,
   ZiweiComprehensiveReportContentV2,
 } from "./ziwei-comprehensive-report-v2.js";
+
+export {
+  ZiweiComprehensiveReportContentV3Schema,
+} from "./ziwei-comprehensive-report-v4-1.js";
+export type {
+  ZiweiComprehensiveReportContentV3,
+} from "./ziwei-comprehensive-report-v4-1.js";
 
 export {
   ReportSourceSnapshotV1Schema,
