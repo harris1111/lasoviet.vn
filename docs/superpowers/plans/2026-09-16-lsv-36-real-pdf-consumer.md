@@ -61,10 +61,10 @@ The consumer has one authoritative path:
    asset-storage transaction CAS the leased asset to `stored`, transition the
    report from `pdf_pending` to `complete`, insert `report.asset.stored.v1`,
    and create the `report_ready` notification with stable idempotency
-   `report-ready:{reportVersionId}:{assetId}`. This explicitly replaces the
-   current immediate notification creation at HTML commit: no `report_ready`
-   notification exists before Garage success, and a retry/adoption cannot
-   create a second notification.
+   `report-ready-email:{reportVersionId}:{recipientAccountId}`. This
+   explicitly replaces the current immediate notification creation at HTML
+   commit: no `report_ready` notification exists before Garage success, and a
+   retry/adoption cannot create a second notification.
 7. A server-authorized download ingress resolves the current account owner and
    stored asset, then returns a short-lived private signed Garage download.
    Object keys and signed URLs never enter queue payloads or logs.
@@ -85,7 +85,11 @@ The only PDF/Garage failure codes for this consumer are:
 | PDF | `PDF_RENDER_FAILED`, `PDF_TEMP_CLEANUP_FAILED` | `PDF_FONT_MISSING`, `PDF_RENDER_VERSION_UNSUPPORTED` |
 | Garage | `GARAGE_UNAVAILABLE` | `ASSET_CHECKSUM_MISMATCH`, `ASSET_KEY_CONFLICT` |
 
-Retryable failures retain their code and bounded attempt count. When the
+This table contains only processor/storage failures persisted on the asset.
+`ASSET_FORBIDDEN` and `SIGNED_URL_EXPIRED` remain the required P05-T02
+non-persistent private-download request errors: they do not update asset or
+report state, consume processor attempts, or enter the bounded persisted error
+code. Retryable failures retain their code and bounded attempt count. When the
 configured retry budget is exhausted, they take the same fenced terminal path
 with their retained code; no unbounded or ad hoc error code is persisted.
 `PDF_FONT_MISSING` is the binding literal for a missing or unloaded required
@@ -95,13 +99,19 @@ The terminal path is a dedicated `finalizePdfTerminalFailure` transaction,
 not a side effect of a catch block. It requires the current asset lease token,
 asset state/version in an eligible PDF or Garage processing state, and report
 state/version `pdf_pending`; it CASes the asset and report to
-`terminal_failure`, preserves immutable HTML, records the bounded failure
-code and stage (`pdf` or `garage`), and inserts exactly one
-`report.fulfillment.failed.v1` with idempotency
-`report-failed:{reportVersionId}:{failureStage}`. A stale lease, changed
-state/version, or duplicate terminalization commits nothing. Neither a
-transient error nor a direct external-storage exception may emit the failure
-event outside this fence.
+`terminal_failure`, preserves immutable HTML, and records the bounded failure
+code and stage (`pdf` or `garage`). In that same fenced transaction, it creates
+exactly one support case, inserts exactly one `report.fulfillment.failed.v1`
+with idempotency `report-failed:{reportVersionId}:{failureStage}` and the
+created `supportCaseId` in its payload, and creates the bounded failed
+notification/`report_terminal_failure` operational alert required by the
+workflow contract. The failed notification uses
+`report-failed-email:{reportVersionId}:{recipientAccountId}:{failureStage}`
+and contains only safe status and a support link. A stale lease, changed
+state/version, or duplicate terminalization commits none of the asset/report
+terminalization, support case, event, notification, or alert. Neither a
+transient error nor a direct external-storage exception may create any of
+these records outside this fence.
 
 Renderer dispatch is exact and versioned:
 
@@ -230,9 +240,10 @@ Focused checks:
   adoption;
 - a storage failure leaves `html_content` unchanged and the asset retryable;
 - a checksum mismatch never overwrites the existing object.
-- retry exhaustion atomically terminalizes the asset/report and emits one
-  `report.fulfillment.failed.v1`; stale lease and duplicate terminal attempts
-  emit none.
+- retry exhaustion atomically terminalizes the asset/report, creates one
+  support case, emits one `report.fulfillment.failed.v1` containing its
+  `supportCaseId`, and creates one bounded failed notification/operational
+  alert; stale lease and duplicate terminal attempts create none.
 
 ### Slice 3: Garage Adapter, Private Download, And Credential-Gated Activation
 
@@ -290,10 +301,14 @@ Focused checks:
 - Garage `head` plus matching SHA-256 adopts exactly one object;
 - a Garage upload error preserves HTML and records retryable storage failure;
 - the successful asset-storage transaction creates one `report_ready`
-  notification with `report-ready:{reportVersionId}:{assetId}`; HTML commit
+  notification with
+  `report-ready-email:{reportVersionId}:{recipientAccountId}`; HTML commit
   alone creates none;
 - owner download returns a short-lived response while cross-owner and anonymous
   requests disclose neither asset existence nor object key;
+- `ASSET_FORBIDDEN` and `SIGNED_URL_EXPIRED` remain non-persistent
+  private-download request errors and do not mutate asset/report state or
+  processor retry bookkeeping;
 - Compose renders Garage private, persistent, and without a host port;
 - deploy/rollback script tests prove Garage image pull/start and private health
   completion precede `pdf.render` enablement, and rollback disables the
