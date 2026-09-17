@@ -66,4 +66,37 @@ describe("ai cost and usage migration layout", () => {
     const journal = normalizeNewlines(rawJournal);
     expect(journal).toContain('"tag": "0026_ai_usage_and_cost"');
   });
+
+  it("adds bounded invalid-output diagnostics in additive migration 0038", async () => {
+    const rawMigration = await readFile(
+      new URL("0038_ai_output_diagnostics.sql", migrationRoot),
+      "utf8",
+    );
+    const migration = normalizeNewlines(rawMigration);
+    const rawJournal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
+    const journal = normalizeNewlines(rawJournal);
+    const rawSnapshot = await readFile(
+      new URL("meta/0038_snapshot.json", migrationRoot),
+      "utf8",
+    );
+    const snapshot = normalizeNewlines(rawSnapshot);
+
+    expect(migration).toContain(
+      'ALTER TABLE "ai_usage_outcomes" ADD COLUMN "invalid_output_reason" text',
+    );
+    expect(migration).toContain('"ai_usage_outcomes_invalid_output_reason_valid"');
+    expect(migration).toContain('"ai_usage_outcomes_invalid_output_reason_relation"');
+    expect(migration).not.toContain("CREATE ");
+    expect(migration).not.toContain("DROP ");
+    expect(migration).not.toContain("prompt");
+    expect(migration).not.toContain('"content" text');
+    expect(migration).not.toContain("response_body");
+    expect(snapshot).toContain('"public.ai_model_pricing"');
+    expect(snapshot).toContain('"public.ai_call_attempts"');
+    expect(snapshot).toContain('"public.ai_usage_outcomes"');
+    expect(snapshot).toContain('"invalid_output_reason"');
+    expect(snapshot).toContain('"ai_usage_outcomes_invalid_output_reason_valid"');
+    expect(snapshot).toContain('"ai_usage_outcomes_invalid_output_reason_relation"');
+    expect(journal).toContain('"tag": "0038_ai_output_diagnostics"');
+  });
 });

@@ -159,7 +159,7 @@ describe("database schema integration", () => {
     })).rejects.toBeDefined();
   });
 
-  it("backfills a valid 0036 wallet intent through only 0037 and restores the current schema", async () => {
+  it("backfills a valid 0036 wallet intent through 0037 and restores the current 0038 schema", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const ownerId = "wallet-0036-to-0037-owner";
@@ -181,6 +181,18 @@ describe("database schema integration", () => {
         DROP COLUMN locale
       `;
       await client`
+        ALTER TABLE ai_usage_outcomes
+        DROP CONSTRAINT IF EXISTS ai_usage_outcomes_invalid_output_reason_relation
+      `;
+      await client`
+        ALTER TABLE ai_usage_outcomes
+        DROP CONSTRAINT IF EXISTS ai_usage_outcomes_invalid_output_reason_valid
+      `;
+      await client`
+        ALTER TABLE ai_usage_outcomes
+        DROP COLUMN IF EXISTS invalid_output_reason
+      `;
+      await client`
         ALTER TABLE wallet_purchase_intents
         ADD CONSTRAINT wallet_purchase_intents_valid CHECK (
           (
@@ -193,7 +205,7 @@ describe("database schema integration", () => {
       `;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at = 1790812980000
+        WHERE created_at IN (1790812980000, 1790813040000)
       `;
       await client`
         INSERT INTO wallet_purchase_intents (
@@ -2446,6 +2458,69 @@ describe("database schema integration", () => {
 
     expect(outcome.costVnd).toBe(177);
     expect(outcome.costMicroVnd).toBe(176250000000n);
+    expect(outcome.invalidOutputReason).toBeNull();
+
+    const insertAttempt = async (callId: string) => {
+      const [row] = await database
+        .insert(aiCallAttempts)
+        .values({
+          callId,
+          attemptNumber: 0,
+          purpose: "report",
+          providerId: "9router-an",
+          requestedModelId: "qwen-2.5-72b-instruct",
+          maxOutputTokens: 9_000,
+          pricingVersion: "v1-20260914",
+          inputPricePerMillion: 15_000n,
+          outputPricePerMillion: 60_000n,
+          cachedInputPricePerMillion: 3_750n,
+          currency: "VND",
+          sourceCurrency: "VND",
+          sourceReference: "founder_decision_20260914",
+          fxSource: "direct_vnd",
+          fxRate: 1n,
+          fxTimestamp: new Date("2026-09-14T00:00:00Z"),
+          pricingSource: "founder_approved_20260914",
+        })
+        .returning();
+      return row!;
+    };
+
+    const validDiagnosticAttempt = await insertAttempt("call-pg-002");
+    const [validDiagnostic] = await database
+      .insert(aiUsageOutcomes)
+      .values({
+        attemptId: validDiagnosticAttempt.id,
+        httpStatus: 200,
+        errorCode: "AI_OUTPUT_INVALID",
+        invalidOutputReason: "json_object_malformed",
+        tokensUnknown: true,
+        costStatus: "unknown",
+      })
+      .returning();
+    expect(validDiagnostic.invalidOutputReason).toBe("json_object_malformed");
+
+    const unknownReasonAttempt = await insertAttempt("call-pg-003");
+    await expect(
+      database.insert(aiUsageOutcomes).values({
+        attemptId: unknownReasonAttempt.id,
+        errorCode: "AI_OUTPUT_INVALID",
+        invalidOutputReason: "unknown_reason",
+        tokensUnknown: true,
+        costStatus: "unknown",
+      }),
+    ).rejects.toThrow();
+
+    const invalidRelationAttempt = await insertAttempt("call-pg-004");
+    await expect(
+      database.insert(aiUsageOutcomes).values({
+        attemptId: invalidRelationAttempt.id,
+        errorCode: "AI_TIMEOUT",
+        invalidOutputReason: "json_object_malformed",
+        tokensUnknown: true,
+        costStatus: "unknown",
+      }),
+    ).rejects.toThrow();
 
     // 4. Verifies append-only triggers reject UPDATE and DELETE
     await expect(
@@ -2754,7 +2829,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-12)).toEqual([
+    expect(journal.entries.slice(-13)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -2839,6 +2914,13 @@ describe("database schema integration", () => {
         tag: "0037_wallet_purchase_intent_locale",
         breakpoints: true,
       },
+      {
+        idx: 38,
+        version: "7",
+        when: 1790813040000,
+        tag: "0038_ai_output_diagnostics",
+        breakpoints: true,
+      },
     ]);
   });
 
@@ -2890,7 +2972,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 through 0037 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0038 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -2900,6 +2982,7 @@ describe("database schema integration", () => {
     const visitorId = "checkpoint-upgrade-visitor";
     const eventId = "checkpoint-upgrade-event";
 
+    try {
     await database.insert(authUsers).values({
       id: userId,
       name: "Checkpoint Upgrade User",
@@ -3141,6 +3224,18 @@ describe("database schema integration", () => {
     await client`DROP TABLE IF EXISTS support_cases`;
     await client`DROP TABLE IF EXISTS report_assets`;
     await client`
+      ALTER TABLE ai_usage_outcomes
+      DROP CONSTRAINT IF EXISTS ai_usage_outcomes_invalid_output_reason_relation
+    `;
+    await client`
+      ALTER TABLE ai_usage_outcomes
+      DROP CONSTRAINT IF EXISTS ai_usage_outcomes_invalid_output_reason_valid
+    `;
+    await client`
+      ALTER TABLE ai_usage_outcomes
+      DROP COLUMN IF EXISTS invalid_output_reason
+    `;
+    await client`
       DELETE FROM drizzle.__drizzle_migrations
       WHERE created_at IN (
         1790064000000,
@@ -3150,7 +3245,8 @@ describe("database schema integration", () => {
         1790812800000,
         1790812860000,
         1790812920000,
-        1790812980000
+        1790812980000,
+        1790813040000
       )
     `;
 
@@ -3164,7 +3260,7 @@ describe("database schema integration", () => {
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1790812980000);
+    expect(Number(latestAfter?.created_at)).toBe(1790813040000);
 
     const reappliedMigrations = await client<{ created_at: string }[]>`
       SELECT created_at
@@ -3177,7 +3273,8 @@ describe("database schema integration", () => {
         1790812800000,
         1790812860000,
         1790812920000,
-        1790812980000
+        1790812980000,
+        1790813040000
       )
       ORDER BY created_at ASC
     `;
@@ -3190,6 +3287,7 @@ describe("database schema integration", () => {
       1790812860000,
       1790812920000,
       1790812980000,
+      1790813040000,
     ]);
 
     const [recoveryReceiptTableCheck] = await client<{ exists: boolean }[]>`
@@ -3283,6 +3381,31 @@ describe("database schema integration", () => {
     `;
     expect(Number(aiDataCheck?.count)).toBeGreaterThan(0);
 
+    const [aiDiagnosticColumn] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'ai_usage_outcomes'
+          AND column_name = 'invalid_output_reason'
+      ) as exists
+    `;
+    expect(aiDiagnosticColumn?.exists).toBe(true);
+
+    const aiDiagnosticConstraints = await client<{ constraint_name: string }[]>`
+      SELECT constraint_name
+      FROM information_schema.table_constraints
+      WHERE table_schema = 'public'
+        AND constraint_name IN (
+          'ai_usage_outcomes_invalid_output_reason_valid',
+          'ai_usage_outcomes_invalid_output_reason_relation'
+        )
+      ORDER BY constraint_name ASC
+    `;
+    expect(aiDiagnosticConstraints.map((constraint) => constraint.constraint_name)).toEqual([
+      "ai_usage_outcomes_invalid_output_reason_relation",
+      "ai_usage_outcomes_invalid_output_reason_valid",
+    ]);
+
     const [readingContextTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (
         SELECT FROM information_schema.tables
@@ -3351,7 +3474,10 @@ describe("database schema integration", () => {
       ownerId: userId,
     });
 
-    await client.end();
+    } finally {
+      await runMigrations(databaseUrl);
+      await client.end();
+    }
   });
 
   it("nulls a reservation context reference when profile hard purge cascades its revision", async () => {

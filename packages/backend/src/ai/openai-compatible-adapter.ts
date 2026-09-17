@@ -9,12 +9,13 @@ import {
   type AiProviderError,
   type GenerateStructuredRequest,
 } from "./ai-provider.js";
-import type { AiCostRecorder } from "./ai-cost.js";
+import type { AiCostRecorder, InvalidOutputReason } from "./ai-cost.js";
 
 export type OpenAiCompatibleAdapterOptions = {
   baseUrl: string;
   apiKey: string;
   modelId: string;
+  allowedResolvedModelIds: readonly string[];
   providerId?: string;
   timeoutMs: number;
   retryCount: number;
@@ -94,7 +95,7 @@ function extractUsage(payload: unknown): {
 
 function extractFirstJsonObject(raw: string): string | undefined {
   const trimmed = raw.trimStart();
-  if (!trimmed.startsWith("{") || trimmed.startsWith("```")) {
+  if (!trimmed.startsWith("{")) {
     return undefined;
   }
   let depth = 0;
@@ -131,22 +132,37 @@ function extractFirstJsonObject(raw: string): string | undefined {
 function parseContent<TSchema extends z.ZodType>(
   response: unknown,
   schema: TSchema,
-): z.output<TSchema> | undefined {
+):
+  | { ok: true; value: z.output<TSchema> }
+  | { ok: false; reason: InvalidOutputReason } {
   const content = (response as {
     choices?: Array<{ message?: { content?: unknown } }>;
   }).choices?.[0]?.message?.content;
   if (typeof content !== "string") {
-    return undefined;
+    return { ok: false, reason: "message_content_missing_or_non_string" };
+  }
+  if (!content.trimStart().startsWith("{")) {
+    return { ok: false, reason: "content_not_json_object" };
   }
   const jsonStr = extractFirstJsonObject(content);
   if (!jsonStr) {
-    return undefined;
+    return { ok: false, reason: "json_object_malformed" };
   }
   try {
-    const parsed = schema.safeParse(JSON.parse(jsonStr));
-    return parsed.success ? parsed.data : undefined;
+    const parsedJson = JSON.parse(jsonStr);
+    if (
+      parsedJson === null ||
+      typeof parsedJson !== "object" ||
+      Array.isArray(parsedJson)
+    ) {
+      return { ok: false, reason: "json_object_malformed" };
+    }
+    const parsed = schema.safeParse(parsedJson);
+    return parsed.success
+      ? { ok: true, value: parsed.data }
+      : { ok: false, reason: "schema_validation_failed" };
   } catch {
-    return undefined;
+    return { ok: false, reason: "json_object_malformed" };
   }
 }
 
@@ -175,6 +191,7 @@ export function createOpenAiCompatibleAdapter(
   const gate = options.productionGate ?? createAiProductionGate("pending");
   const fetchImpl = options.fetchImpl ?? fetch;
   const providerId = options.providerId ?? "9router-an";
+  const allowedResolvedModelIds = new Set(options.allowedResolvedModelIds);
 
   return {
     async generateStructured<TSchema extends z.ZodType>(
@@ -311,6 +328,7 @@ export function createOpenAiCompatibleAdapter(
               attemptId,
               httpStatus: result.status,
               errorCode: "AI_OUTPUT_INVALID",
+              invalidOutputReason: "response_json_parse_failed",
               tokensUnknown: true,
             });
             if (!compRes.ok) return failure("AI_COST_RECORDING_FAILED", compRes.error.retryable);
@@ -323,19 +341,36 @@ export function createOpenAiCompatibleAdapter(
         }
 
         const usage = extractUsage(payload);
+        const payloadRecord =
+          payload !== null && typeof payload === "object"
+            ? (payload as Record<string, unknown>)
+            : undefined;
         const responseModelId =
-          typeof (payload as { model?: unknown }).model === "string"
-            ? (payload as { model: string }).model
+          typeof payloadRecord?.model === "string"
+            ? payloadRecord.model
             : undefined;
 
-        const value = parseContent(payload, request.schema);
-        if (value === undefined) {
+        const invalidOutputReason =
+          responseModelId === undefined || responseModelId.trim() === ""
+            ? "resolved_model_missing"
+            : !allowedResolvedModelIds.has(responseModelId)
+              ? "resolved_model_disallowed"
+              : undefined;
+        const parsedContent =
+          invalidOutputReason === undefined
+            ? parseContent(payload, request.schema)
+            : undefined;
+        const reason =
+          invalidOutputReason ??
+          (parsedContent?.ok === false ? parsedContent.reason : undefined);
+        if (reason !== undefined) {
           if (options.costRecorder && attemptId) {
             const compRes = await options.costRecorder.completeAttempt({
               attemptId,
               responseModelId,
               httpStatus: result.status,
               errorCode: "AI_OUTPUT_INVALID",
+              invalidOutputReason: reason,
               ...usage,
             });
             if (!compRes.ok) return failure("AI_COST_RECORDING_FAILED", compRes.error.retryable);
@@ -344,6 +379,9 @@ export function createOpenAiCompatibleAdapter(
             hasInvalidOutput = true;
             continue;
           }
+          return failure("AI_OUTPUT_INVALID", false);
+        }
+        if (!parsedContent || !parsedContent.ok) {
           return failure("AI_OUTPUT_INVALID", false);
         }
 
@@ -368,7 +406,7 @@ export function createOpenAiCompatibleAdapter(
         return {
           ok: true as const,
           value: {
-            value,
+            value: parsedContent.value,
             providerId,
             modelId: responseModelId ?? options.modelId,
             usage: {

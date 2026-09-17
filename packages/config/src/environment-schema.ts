@@ -9,6 +9,7 @@ export type AiEnvironment =
       baseUrl: string;
       apiKey: string;
       model: string;
+      allowedResolvedModels: string[];
       timeoutMs: number;
       maxRetries: number;
       featureJsonSchema: boolean;
@@ -94,6 +95,17 @@ export type AppEnvironment = {
 };
 
 const trimmedNonEmpty = z.string().trim().min(1);
+const uniqueTrimmedNonEmptyIds = z
+  .array(trimmedNonEmpty)
+  .min(1)
+  .superRefine((values, context) => {
+    if (new Set(values).size !== values.length) {
+      context.addIssue({
+        code: "custom",
+        message: "Expected unique resolved model IDs",
+      });
+    }
+  });
 const absoluteUrl = z.string().trim().pipe(z.url());
 const emailAddress = z.string().trim().pipe(z.email());
 const mailboxAddress = z
@@ -120,6 +132,7 @@ const enabledAi = z
     baseUrl: absoluteUrl,
     apiKey: trimmedNonEmpty,
     model: trimmedNonEmpty,
+    allowedResolvedModels: uniqueTrimmedNonEmptyIds,
     timeoutMs: z.number().int().positive(),
     maxRetries: z.number().int().nonnegative(),
     featureJsonSchema: z.boolean(),

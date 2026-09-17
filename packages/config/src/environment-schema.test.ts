@@ -20,6 +20,7 @@ const completeAi = {
   AI_BASE_URL: "https://synthetic-ai-url-never-serialize.test",
   AI_API_KEY: "synthetic-ai-key-never-serialize",
   AI_MODEL: "synthetic-model",
+  AI_ALLOWED_RESOLVED_MODELS: "synthetic-model, synthetic-model-raw",
   AI_TIMEOUT: "2500",
   AI_MAX_RETRIES: "2",
   AI_FEATURE_JSON_SCHEMA: "true",
@@ -65,6 +66,7 @@ const validNormalizedProduction = {
     baseUrl: "https://synthetic-ai-url-never-serialize.test",
     apiKey: "synthetic-ai-key-never-serialize",
     model: "synthetic-model",
+    allowedResolvedModels: ["synthetic-model", "synthetic-model-raw"],
     timeoutMs: 2500,
     maxRetries: 2,
     featureJsonSchema: true,
@@ -270,6 +272,11 @@ describe("environment loading", () => {
     ["AI_BASE_URL", { ...productionBase, ...completeAi, AI_BASE_URL: "/relative" }, "AI_BASE_URL"],
     ["AI_API_KEY", { ...productionBase, ...completeAi, AI_API_KEY: " " }, "AI_API_KEY"],
     ["AI_MODEL", { ...productionBase, ...completeAi, AI_MODEL: " " }, "AI_MODEL"],
+    [
+      "AI_ALLOWED_RESOLVED_MODELS",
+      { ...productionBase, ...completeAi, AI_ALLOWED_RESOLVED_MODELS: " " },
+      "AI_ALLOWED_RESOLVED_MODELS",
+    ],
     ["AI_TIMEOUT", { ...productionBase, ...completeAi, AI_TIMEOUT: "2.5" }, "AI_TIMEOUT"],
     ["AI_MAX_RETRIES", { ...productionBase, ...completeAi, AI_MAX_RETRIES: "-1" }, "AI_MAX_RETRIES"],
     [
@@ -378,6 +385,7 @@ describe("environment loading", () => {
         AI_BASE_URL: completeAi.AI_BASE_URL,
         AI_API_KEY: completeAi.AI_API_KEY,
         AI_MODEL: completeAi.AI_MODEL,
+        AI_ALLOWED_RESOLVED_MODELS: completeAi.AI_ALLOWED_RESOLVED_MODELS,
         AI_TIMEOUT: completeAi.AI_TIMEOUT,
         AI_MAX_RETRIES: completeAi.AI_MAX_RETRIES,
         AI_FEATURE_JSON_SCHEMA: completeAi.AI_FEATURE_JSON_SCHEMA,
@@ -523,6 +531,38 @@ describe("environment loading", () => {
         },
       },
     });
+  });
+
+  it("trims parsed resolved-model IDs and rejects empty or duplicate entries", () => {
+    const parsed = loadEnvironment({
+      ...productionBase,
+      ...completeAi,
+      AI_ALLOWED_RESOLVED_MODELS: " synthetic-model , synthetic-model-raw ",
+    });
+    expect(parsed).toMatchObject({
+      ok: true,
+      value: {
+        ai: {
+          allowedResolvedModels: ["synthetic-model", "synthetic-model-raw"],
+        },
+      },
+    });
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        AI_ALLOWED_RESOLVED_MODELS: "synthetic-model,,synthetic-model-raw",
+      },
+      "AI_ALLOWED_RESOLVED_MODELS",
+    );
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        AI_ALLOWED_RESOLVED_MODELS: "synthetic-model, synthetic-model",
+      },
+      "AI_ALLOWED_RESOLVED_MODELS",
+    );
   });
 
   it("normalizes complete telegram group to its typed shape and omits when absent", () => {

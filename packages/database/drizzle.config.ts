@@ -15,6 +15,7 @@ export default defineConfig({
     "./src/schema/support-cases.ts",
     "./src/schema/knowledge.ts",
     "./src/schema/analytics.ts",
+    "./src/schema/ai-cost.ts",
     "./src/schema/wallet-commerce.ts",
     "./src/schema/generated-preview.ts",
   ],
