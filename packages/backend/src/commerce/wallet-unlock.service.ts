@@ -437,7 +437,7 @@ export function createWalletUnlockService(
             createdAt: currentNow,
           }).returning();
           if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
-          const timing = reportVersions.family === "v4"
+          const timing = reportVersions.family === "v4" || reportVersions.family === "v4_1"
             ? deriveReportTimingLineage(currentNow, { timingRuleVersion: reportVersions.timingRuleVersion })
             : null;
           const [reservation] = await transaction.insert(reportReservations).values({
