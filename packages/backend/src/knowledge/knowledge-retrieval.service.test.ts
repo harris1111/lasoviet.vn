@@ -774,6 +774,39 @@ describe("knowledge retrieval service", () => {
     });
 
   describe("retrieveZiweiKnowledge PostgreSQL array binding regression", () => {
+    it("accepts the exact V4 comprehensive knowledge version", async () => {
+      const mockDb = {
+        execute: vi.fn().mockResolvedValue([]),
+      } as any;
+
+      const service = createKnowledgeRetrievalService({ database: mockDb });
+      await expect(service.retrieveZiweiKnowledge({
+        locale: "vi",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+        text: "menh than",
+        maxPassages: 2,
+        maxTotalChars: 1800,
+      })).resolves.toEqual([]);
+
+      expect(mockDb.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("rejects unsupported comprehensive knowledge versions", async () => {
+      const service = createKnowledgeRetrievalService({
+        database: { execute: vi.fn() } as any,
+      });
+
+      await expect(service.retrieveZiweiKnowledge({
+        locale: "vi",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v5" as never,
+        text: "menh than",
+        maxPassages: 2,
+        maxTotalChars: 1800,
+      })).rejects.toMatchObject({
+        code: "KNOWLEDGE_METADATA_INVALID",
+      });
+    });
+
     it("binds all non-empty metadata filter lists as valid PostgreSQL ARRAY[...]::text[] without record tuple casts", async () => {
       let capturedSql: any;
       const mockDb = {
