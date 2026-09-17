@@ -42,6 +42,7 @@ import {
   deriveReportTimingLineage,
   REPORT_KNOWLEDGE_VERSION_V2,
   REPORT_PROMPT_VERSION_V2,
+  v4_1SensitivityReportVersions,
   v4ReportVersions,
 } from "../reports/identity-report-config.js";
 import { createReportService } from "../reports/report.service.js";
@@ -2617,6 +2618,100 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(recoveryPayload.targetYear).toBe(2027);
     expect(recoveryPayload.timingRuleVersion).toBe("ziwei.timing.v1");
     expect(recoveryPayload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
+  });
+
+  it("persists V4.1 sensitivity timing lineage for direct payment and self-claim reservations", async () => {
+    const fixedNow = new Date("2026-12-31T20:00:00.000Z");
+    const repo = createDatabaseCommerceRepository(database, {
+      now: () => fixedNow,
+      reportVersionResolver: () => v4_1SensitivityReportVersions("vi"),
+    });
+    const paidOwner = await createOwnerFixture({ displayName: "V4.1 direct payment owner" });
+    const claimedOwner = await createOwnerFixture({ displayName: "V4.1 self claim owner" });
+    const paidContextId = await setReadingContext({
+      profileId: paidOwner.profileId,
+      revisionNumber: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+    });
+    const claimedContextId = await setReadingContext({
+      profileId: claimedOwner.profileId,
+      revisionNumber: 1,
+      lifeStage: "established_career",
+      topConcern: "family",
+    });
+
+    const directOrder = await repo.createOrder(
+      paidOwner.actor,
+      paidOwner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    const claimOrder = await repo.createOrder(
+      claimedOwner.actor,
+      claimedOwner.chartId,
+      "ZIWEI-IDENTITY-P0",
+      "vi",
+    );
+    if (!directOrder.ok || !claimOrder.ok) throw new Error("V4.1 order creation failed");
+
+    await expect(repo.recordPaid({
+      invoiceNumber: directOrder.value.invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `v4-1-direct-${randomUUID()}`,
+      amount: directOrder.value.amount,
+      currency: "VND",
+      traceId: "trace-v4-1-direct",
+    })).resolves.toMatchObject({ ok: true });
+
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: `v4-1-claim-${randomUUID()}`,
+      rawPayload: { amount: claimOrder.value.amount },
+      amount: claimOrder.value.amount,
+      reason: "MISSING_PAYMENT_CODE",
+      receivedAt: fixedNow,
+    });
+    await expect(repo.claimUnmatchedPayment(claimedOwner.actor, {
+      amount: claimOrder.value.amount,
+      transferredAtLocal: "2027-01-01T03:00",
+    })).resolves.toMatchObject({ ok: true });
+
+    const expectedTiming = deriveReportTimingLineage(fixedNow);
+    for (const [owner, readingContextRevisionId] of [
+      [paidOwner, paidContextId],
+      [claimedOwner, claimedContextId],
+    ] as const) {
+      const [reservation] = await database
+        .select()
+        .from(reportReservations)
+        .where(eq(reportReservations.chartVersionId, owner.versionId));
+      const [event] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.idempotencyKey, `report-request:${reservation!.reportVersionId}`));
+
+      expect(reservation).toMatchObject({
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+        promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+        reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+        asOfDate: expectedTiming.asOfDate,
+        targetYear: expectedTiming.targetYear,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+        readingContextRevisionId,
+      });
+      expect(event?.eventType).toBe("report.generation.requested.v2");
+      expect(event?.payload).toMatchObject({
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+        promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+        reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+        asOfDate: expectedTiming.asOfDate,
+        targetYear: expectedTiming.targetYear,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+        readingContextRevisionId,
+      });
+    }
   });
 
   it("proves default resolver activates V4 and emits V2 event with timing fields", async () => {
