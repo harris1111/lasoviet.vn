@@ -43,6 +43,7 @@ const AI_VARIABLES = [
   "AI_BASE_URL",
   "AI_API_KEY",
   "AI_MODEL",
+  "AI_ALLOWED_RESOLVED_MODELS",
   "AI_TIMEOUT",
   "AI_MAX_RETRIES",
   "AI_FEATURE_JSON_SCHEMA",
@@ -92,6 +93,7 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "ai.baseUrl": "AI_BASE_URL",
   "ai.apiKey": "AI_API_KEY",
   "ai.model": "AI_MODEL",
+  "ai.allowedResolvedModels": "AI_ALLOWED_RESOLVED_MODELS",
   "ai.timeoutMs": "AI_TIMEOUT",
   "ai.maxRetries": "AI_MAX_RETRIES",
   "ai.featureJsonSchema": "AI_FEATURE_JSON_SCHEMA",
@@ -179,9 +181,15 @@ function invalidFromSchema(
       ? localPath
       : `${groupPrefix}.${localPath}`;
 
-  return invalidEnvironment(
-    NORMALIZED_FIELD_VARIABLES[normalizedPath] ?? fallback,
-  );
+  const variable =
+    NORMALIZED_FIELD_VARIABLES[normalizedPath] ??
+    Object.entries(NORMALIZED_FIELD_VARIABLES).find(
+      ([path]) =>
+        normalizedPath === path || normalizedPath.startsWith(`${path}.`),
+    )?.[1] ??
+    fallback;
+
+  return invalidEnvironment(variable);
 }
 
 function optionalGroupState(
@@ -222,6 +230,10 @@ function booleanValue(value: string | undefined): boolean | undefined {
   return undefined;
 }
 
+function commaSeparatedIds(value: string | undefined): string[] {
+  return value === undefined ? [] : value.split(",").map((entry) => entry.trim());
+}
+
 function loadAi(source: NodeJS.ProcessEnv): ParseResult<AiEnvironment> {
   const state = optionalGroupState(source, AI_VARIABLES);
   if (state.state === "disabled") {
@@ -236,6 +248,7 @@ function loadAi(source: NodeJS.ProcessEnv): ParseResult<AiEnvironment> {
     baseUrl: source.AI_BASE_URL,
     apiKey: source.AI_API_KEY,
     model: source.AI_MODEL,
+    allowedResolvedModels: commaSeparatedIds(source.AI_ALLOWED_RESOLVED_MODELS),
     timeoutMs: decimalInteger(source.AI_TIMEOUT),
     maxRetries: decimalInteger(source.AI_MAX_RETRIES),
     featureJsonSchema: booleanValue(source.AI_FEATURE_JSON_SCHEMA),

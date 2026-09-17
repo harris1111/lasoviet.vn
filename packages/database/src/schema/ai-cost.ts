@@ -143,6 +143,7 @@ export const aiUsageOutcomes = pgTable(
     responseModelId: text("response_model_id"),
     httpStatus: integer("http_status"),
     errorCode: text("error_code"),
+    invalidOutputReason: text("invalid_output_reason"),
     inputTokens: integer("input_tokens"),
     outputTokens: integer("output_tokens"),
     cachedTokens: integer("cached_tokens"),
@@ -161,6 +162,14 @@ export const aiUsageOutcomes = pgTable(
     check(
       "ai_usage_outcomes_cost_status_valid",
       sql`${table.costStatus} IN ('resolved', 'unknown')`,
+    ),
+    check(
+      "ai_usage_outcomes_invalid_output_reason_valid",
+      sql`${table.invalidOutputReason} IS NULL OR ${table.invalidOutputReason} IN ('response_json_parse_failed', 'message_content_missing_or_non_string', 'content_not_json_object', 'json_object_malformed', 'schema_validation_failed', 'resolved_model_missing', 'resolved_model_disallowed')`,
+    ),
+    check(
+      "ai_usage_outcomes_invalid_output_reason_relation",
+      sql`${table.invalidOutputReason} IS NULL OR ${table.errorCode} = 'AI_OUTPUT_INVALID'`,
     ),
     check(
       "ai_usage_outcomes_tokens_and_cost_consistency",

@@ -80,12 +80,25 @@ export type CompleteAttemptInput = {
   responseModelId?: string;
   httpStatus?: number;
   errorCode?: string;
+  invalidOutputReason?: InvalidOutputReason;
   inputTokens?: number;
   outputTokens?: number;
   cachedTokens?: number;
   totalTokens?: number;
   tokensUnknown?: boolean;
 };
+
+export const INVALID_OUTPUT_REASONS = [
+  "response_json_parse_failed",
+  "message_content_missing_or_non_string",
+  "content_not_json_object",
+  "json_object_malformed",
+  "schema_validation_failed",
+  "resolved_model_missing",
+  "resolved_model_disallowed",
+] as const;
+
+export type InvalidOutputReason = (typeof INVALID_OUTPUT_REASONS)[number];
 
 export type CompleteAttemptResult = {
   outcomeId: string;
@@ -388,6 +401,19 @@ export function createDatabaseAiCostService(database: Database): AiCostService {
     },
 
     async completeAttempt(input) {
+      if (
+        (input.errorCode === "AI_OUTPUT_INVALID") !==
+        (input.invalidOutputReason !== undefined)
+      ) {
+        return {
+          ok: false,
+          error: {
+            code: "AI_COST_RECORDING_FAILED",
+            retryable: false,
+            message: "Invalid output diagnostic relation is invalid",
+          },
+        };
+      }
       let attemptRow;
       try {
         const [row] = await database
@@ -463,6 +489,7 @@ export function createDatabaseAiCostService(database: Database): AiCostService {
             responseModelId: input.responseModelId ?? null,
             httpStatus: input.httpStatus ?? null,
             errorCode: input.errorCode ?? null,
+            invalidOutputReason: input.invalidOutputReason ?? null,
             inputTokens,
             outputTokens,
             cachedTokens,
@@ -917,6 +944,19 @@ export function createInMemoryAiCostService(): InMemoryAiCostService {
       },
 
       async completeAttempt(input) {
+        if (
+          (input.errorCode === "AI_OUTPUT_INVALID") !==
+          (input.invalidOutputReason !== undefined)
+        ) {
+          return {
+            ok: false,
+            error: {
+              code: "AI_COST_RECORDING_FAILED",
+              retryable: false,
+              message: "Invalid output diagnostic relation is invalid",
+            },
+          };
+        }
         const attempt = attemptList.find((a) => a.id === input.attemptId);
         if (!attempt) {
           return {
