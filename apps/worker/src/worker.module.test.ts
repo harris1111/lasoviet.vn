@@ -4,7 +4,20 @@ import {
   createPdfRenderRunner,
   createReportGenerateRunner,
 } from "./worker.module.js";
-import { createAiProductionGate } from "@lasoviet/backend";
+import {
+  createAiProductionGate,
+  createReportGenerationService,
+} from "@lasoviet/backend";
+
+vi.mock("@lasoviet/backend", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@lasoviet/backend")>();
+  return {
+    ...actual,
+    createReportGenerationService: vi.fn(actual.createReportGenerationService),
+  };
+});
+
+const mockedCreateReportGenerationService = vi.mocked(createReportGenerationService);
 
 describe("createReportGenerateRunner", () => {
   const originalEnv = { ...process.env };
@@ -192,6 +205,34 @@ describe("createReportGenerateRunner", () => {
     const runner = createReportGenerateRunner();
     expect(runner).toBeDefined();
     expect(typeof runner.runOnce).toBe("function");
+  });
+
+  it("supplies a database section checkpoint repository to default active generation wiring", () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    process.env.AI_BASE_URL = "https://synthetic-ai.test";
+    process.env.AI_API_KEY = "test-key-never-leak";
+    process.env.AI_MODEL = "test-model";
+    process.env.AI_TIMEOUT = "3000";
+    process.env.AI_MAX_RETRIES = "2";
+    process.env.AI_FEATURE_JSON_SCHEMA = "true";
+    process.env.AI_FEATURE_TOOL_CALLING = "false";
+    process.env.AI_PRODUCTION_ENABLED = "true";
+    process.env.DATABASE_URL = "https://synthetic-db.test/db";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
+
+    mockedCreateReportGenerationService.mockClear();
+    createReportGenerateRunner();
+
+    expect(mockedCreateReportGenerationService).toHaveBeenCalledTimes(1);
+    const [{ sectionCheckpointRepository }] =
+      mockedCreateReportGenerationService.mock.calls[0]!;
+    expect(sectionCheckpointRepository).toEqual(expect.objectContaining({
+      get: expect.any(Function),
+      listPassed: expect.any(Function),
+      claim: expect.any(Function),
+      markPassed: expect.any(Function),
+    }));
   });
   it("initializes runner with injected alertDispatcher and telegramAlert options", () => {
     process.env.WORKER_QUEUES = "report.generate";

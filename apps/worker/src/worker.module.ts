@@ -20,6 +20,7 @@ import {
   createDatabaseReportQueueStore,
   createDatabaseReportVersionRepository,
   createDatabaseAssetRepository,
+  createDatabaseReportSectionCheckpointRepository,
   createDatabaseReportSourceSnapshotRepository,
   createReportSourceSnapshotPreparationService,
   createKnowledgeRetrievalService,
@@ -198,6 +199,8 @@ export function createReportGenerateRunner(options?: {
     recipientFingerprintSecret: environment.value.internalActorSecret,
   });
   const sourceSnapshotRepository = createDatabaseReportSourceSnapshotRepository(database);
+  const sectionCheckpointRepository =
+    createDatabaseReportSectionCheckpointRepository(database);
   const sourceSnapshotPreparer = createReportSourceSnapshotPreparationService({
     database,
     repository: sourceSnapshotRepository,
@@ -231,6 +234,7 @@ export function createReportGenerateRunner(options?: {
     gate,
     provider,
     sourceSnapshotPreparer,
+    sectionCheckpointRepository,
   });
   const telegramAlert =
     options?.telegramAlert ??
