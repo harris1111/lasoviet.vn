@@ -253,6 +253,13 @@
       "when": 1790812860000,
       "tag": "0035_generated_preview_persistence",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790812920000,
+      "tag": "0036_wallet_restoration_respend_reconciliation",
+      "breakpoints": true
     }
   ]
 }
