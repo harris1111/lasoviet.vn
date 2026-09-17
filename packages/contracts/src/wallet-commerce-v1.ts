@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const id = z.string().trim().min(1);
+const walletHistoryId = z.string().regex(/^wh_[0-9a-f]{32}$/);
 const amount = z.number().int().nonnegative();
 const positiveAmount = z.number().int().positive();
 const timestamp = z.iso.datetime({ offset: true });
@@ -35,7 +36,7 @@ export const WalletBalanceV1Schema = z.object({
 export type WalletBalanceV1 = z.infer<typeof WalletBalanceV1Schema>;
 
 export const WalletHistoryItemV1Schema = z.object({
-  id: id,
+  id: walletHistoryId,
   category: z.enum(["grant", "spend", "restoration"]),
   laDelta: z.number().int().refine((value) => value !== 0),
   resultingPurchasedLa: amount,
@@ -111,6 +112,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     id: id,
     sku: z.literal("ZIWEI-NATAL-EXCERPT-P0"),
     chartVersionId: id,
+    locale: z.literal("vi"),
     amountLa: z.literal(240),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
@@ -120,6 +122,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     id: id,
     sku: z.literal("ZIWEI-IDENTITY-P0"),
     chartVersionId: id,
+    locale: z.enum(["vi", "en"]),
     amountLa: z.union([z.literal(720), z.literal(960)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),

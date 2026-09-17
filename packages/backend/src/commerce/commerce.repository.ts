@@ -5,6 +5,7 @@ import type {
   AccountLibraryGroupV1,
   AccountLibraryItemV1,
   AccountLibraryV1,
+  AccountLibraryV2,
   CommerceSku,
   CurrentActor,
   OrderHistoryItemV1,
@@ -28,6 +29,9 @@ import {
   reportReservations,
   reportVersions,
   type Database,
+  walletAccounts,
+  walletPurchaseIntents,
+  walletTransactions,
   ziweiChartVersions,
   ziweiCharts,
 } from "@lasoviet/database";
@@ -48,6 +52,9 @@ import {
   deriveReportTimingLineage,
   type ReportVersionResolver,
 } from "../reports/identity-report-config.js";
+import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
+import { createWalletService } from "../wallet/wallet.service.js";
+import { createWalletUnlockService } from "./wallet-unlock.service.js";
 
 type Sku = keyof typeof PRODUCT_CATALOG;
 type OrderRecord = typeof commerceOrders.$inferSelect;
@@ -110,6 +117,11 @@ export function createDatabaseCommerceRepository(
   const getNow = options.now ?? (() => new Date());
   const paymentCodeFactory = options.paymentCodeFactory ?? generatePaymentCode;
   const reportVersionResolver = options.reportVersionResolver ?? currentReportVersions;
+  const walletService = createWalletService(createDatabaseWalletRepository(database, { now: getNow }));
+  const walletUnlock = createWalletUnlockService(database, walletService, {
+    now: getNow,
+    reportVersionResolver,
+  });
 
   async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<ContentPurchaseOrder | null> {
     if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
@@ -674,7 +686,133 @@ export function createDatabaseCommerceRepository(
     };
   }
 
+  async function readAccountLibraryV2(actor: CurrentActor): Promise<AccountLibraryV2> {
+    const legacy = await readAccountLibrary(actor);
+    if (actor.kind !== "account") return { version: 2, items: [], totalCount: 0 };
+    const orderItems: AccountLibraryV2["items"] = legacy.items.map((item) => ({
+      source: "order" as const,
+      id: item.id,
+      entitlementId: item.entitlementId,
+      orderId: item.orderId,
+      profileId: item.profileId,
+      profileDisplayName: item.profileDisplayName,
+      productTitle: item.productTitle,
+      entitlementStatus: item.entitlementStatus,
+      reportId: item.reportId,
+      readUrl: item.readUrl,
+      reportStatus: item.reportStatus,
+      locale: item.locale,
+      createdAt: item.createdAt,
+      purchasedAt: item.purchasedAt,
+    }));
+    const walletRows = await database.select({
+      entitlement: commerceEntitlements,
+      intent: walletPurchaseIntents,
+      spend: walletTransactions,
+      wallet: walletAccounts,
+      chart: ziweiCharts,
+      profile: birthProfiles,
+      revision: birthProfileRevisions,
+      reservation: reportReservations,
+      evidence: evidenceSets,
+    }).from(commerceEntitlements)
+      .innerJoin(walletTransactions, and(
+        eq(walletTransactions.id, commerceEntitlements.ledgerSpendId),
+        eq(walletTransactions.kind, "spend"),
+        sql`not exists (
+          select 1
+          from wallet_transactions as wallet_restoration
+          where wallet_restoration.reversal_of_transaction_id = ${walletTransactions.id}
+        )`,
+      ))
+      .innerJoin(walletAccounts, and(
+        eq(walletAccounts.id, walletTransactions.walletId),
+        eq(walletAccounts.ownerId, actor.userId),
+      ))
+      .innerJoin(walletPurchaseIntents, and(
+        eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
+        eq(walletPurchaseIntents.ownerId, actor.userId),
+        eq(walletPurchaseIntents.status, "completed"),
+        eq(walletPurchaseIntents.chartId, commerceEntitlements.chartId),
+        eq(walletPurchaseIntents.sku, commerceEntitlements.sku),
+      ))
+      .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
+      .innerJoin(birthProfiles, and(
+        eq(birthProfiles.id, ziweiCharts.profileId),
+        eq(birthProfiles.userId, actor.userId),
+        isNull(birthProfiles.deletedAt),
+      ))
+      .innerJoin(birthProfileRevisions, and(
+        eq(birthProfileRevisions.id, ziweiCharts.profileRevisionId),
+        eq(birthProfileRevisions.profileId, birthProfiles.id),
+      ))
+      .innerJoin(ziweiChartVersions, and(
+        eq(ziweiChartVersions.id, walletPurchaseIntents.chartVersionId),
+        eq(ziweiChartVersions.chartId, ziweiCharts.id),
+      ))
+      .innerJoin(reportReservations, and(
+        eq(reportReservations.entitlementId, commerceEntitlements.id),
+        eq(reportReservations.chartVersionId, walletPurchaseIntents.chartVersionId),
+        eq(reportReservations.sku, walletPurchaseIntents.sku),
+        eq(reportReservations.locale, walletPurchaseIntents.locale),
+      ))
+      .innerJoin(evidenceSets, and(
+        eq(evidenceSets.id, reportReservations.evidenceVersionId),
+        eq(evidenceSets.chartVersionId, walletPurchaseIntents.chartVersionId),
+        eq(evidenceSets.capabilityId, "ziwei.identity.p0"),
+      ))
+      .where(and(
+        eq(commerceEntitlements.ownerId, actor.userId),
+        isNull(commerceEntitlements.orderId),
+      ))
+      .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
+    const walletItems: AccountLibraryV2["items"] = walletRows.map((row) => {
+      const displayName = "displayName" in row.revision.originalInput &&
+        typeof row.revision.originalInput.displayName === "string" &&
+        row.revision.originalInput.displayName.trim().length > 0
+        ? row.revision.originalInput.displayName.trim()
+        : null;
+      const locale = row.intent.locale === "en" ? "en" as const : "vi" as const;
+      const sku = row.entitlement.sku as CommerceSku;
+      return {
+        source: "ledger_spend" as const,
+        id: row.entitlement.id,
+        entitlementId: row.entitlement.id,
+        orderId: null,
+        profileId: row.profile.id,
+        profileDisplayName: displayName,
+        productTitle: resolveProductTitle(sku, locale),
+        entitlementStatus: "active" as const,
+        reportId: row.reservation.reportId,
+        readUrl: null,
+        reportStatus: row.reservation.status,
+        locale,
+        createdAt: row.entitlement.createdAt.toISOString(),
+        purchasedAt: row.spend.createdAt.toISOString(),
+      };
+    });
+    const items = [...orderItems, ...walletItems].sort((left, right) => {
+      const date = new Date(right.purchasedAt ?? right.createdAt).getTime() -
+        new Date(left.purchasedAt ?? left.createdAt).getTime();
+      return date === 0 ? left.id.localeCompare(right.id) : date;
+    });
+    return { version: 2, items, totalCount: items.length };
+  }
+
   return {
+    readWalletBalance(actor: CurrentActor) {
+      return walletService.readBalance(actor);
+    },
+    readWalletHistory(actor: CurrentActor) {
+      return walletService.readHistory(actor);
+    },
+    createWalletPurchaseIntent(actor: CurrentActor, input: Parameters<typeof walletUnlock.createPurchaseIntent>[1]) {
+      return walletUnlock.createPurchaseIntent(actor, input);
+    },
+    unlockWalletPurchase(actor: CurrentActor, input: Parameters<typeof walletUnlock.unlock>[1]) {
+      return walletUnlock.unlock(actor, input);
+    },
+    readAccountLibraryV2,
     async createOrder(actor: CurrentActor, chartId: string, sku: string, locale: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
       const selectedLocale = checkoutLocale(locale);

@@ -20,6 +20,7 @@ describe("wallet commerce schema", () => {
     expect(walletSpendAllocations.bucket).toBeDefined();
     expect(walletSpendAllocations.recognizedVnd).toBeDefined();
     expect(walletPurchaseIntents.priceLa).toBeDefined();
+    expect(walletPurchaseIntents.locale).toBeDefined();
   });
 
   it("exports restoration allocations through the package root", () => {

@@ -110,6 +110,136 @@ describe("database schema integration", () => {
     expect(generatedPreviewSections.safeExcerpt).toBeDefined();
   });
 
+  it("enforces immutable wallet purchase intent locale and SKU combinations in PostgreSQL", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-locale-owner";
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet Locale Owner",
+      email: "wallet-locale-owner@example.test",
+      emailVerified: true,
+    });
+    await database.insert(walletPurchaseIntents).values([
+      {
+        id: "10000000-0000-4000-8000-000000000037",
+        ownerId,
+        chartId: "wallet-locale-identity-vi",
+        chartVersionId: "wallet-locale-identity-version-vi",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+        priceLa: 960,
+      },
+      {
+        id: "10000000-0000-4000-8000-000000000038",
+        ownerId,
+        chartId: "wallet-locale-identity-en",
+        chartVersionId: "wallet-locale-identity-version-en",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "en",
+        priceLa: 720,
+      },
+      {
+        id: "10000000-0000-4000-8000-000000000039",
+        ownerId,
+        chartId: "wallet-locale-excerpt-vi",
+        chartVersionId: "wallet-locale-excerpt-version-vi",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      },
+    ]);
+    await expect(database.insert(walletPurchaseIntents).values({
+      id: "10000000-0000-4000-8000-000000000040",
+      ownerId,
+      chartId: "wallet-locale-excerpt-en",
+      chartVersionId: "wallet-locale-excerpt-version-en",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "en",
+      priceLa: 240,
+    })).rejects.toBeDefined();
+  });
+
+  it("backfills a valid 0036 wallet intent through only 0037 and restores the current schema", async () => {
+    const client = postgres(databaseUrl);
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-0036-to-0037-owner";
+    const legacyIntentId = "10000000-0000-4000-8000-000000000041";
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet 0037 Upgrade Owner",
+      email: "wallet-0037-upgrade@example.test",
+      emailVerified: true,
+    });
+
+    try {
+      await client`
+        ALTER TABLE wallet_purchase_intents
+        DROP CONSTRAINT wallet_purchase_intents_valid
+      `;
+      await client`
+        ALTER TABLE wallet_purchase_intents
+        DROP COLUMN locale
+      `;
+      await client`
+        ALTER TABLE wallet_purchase_intents
+        ADD CONSTRAINT wallet_purchase_intents_valid CHECK (
+          (
+            (sku = 'ZIWEI-NATAL-EXCERPT-P0' AND price_la = 240) OR
+            (sku = 'ZIWEI-IDENTITY-P0' AND price_la IN (720, 960))
+          ) AND
+          status IN ('pending', 'completed', 'cancelled', 'expired') AND
+          state_version > 0
+        )
+      `;
+      await client`
+        DELETE FROM drizzle.__drizzle_migrations
+        WHERE created_at = 1790812980000
+      `;
+      await client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, price_la, status, state_version
+        ) VALUES (
+          ${legacyIntentId}, ${ownerId}, 'wallet-0036-chart', 'wallet-0036-version',
+          'ZIWEI-NATAL-EXCERPT-P0', 240, 'pending', 1
+        )
+      `;
+
+      await runMigrations(databaseUrl);
+
+      const [backfilled] = await client<{ locale: string }[]>`
+        SELECT locale FROM wallet_purchase_intents WHERE id = ${legacyIntentId}
+      `;
+      expect(backfilled?.locale).toBe("vi");
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000042', ${ownerId}, 'wallet-0037-null-chart',
+          'wallet-0037-null-version', 'ZIWEI-IDENTITY-P0', ${null}, 960, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000043', ${ownerId}, 'wallet-0037-identity-chart',
+          'wallet-0037-identity-version', 'ZIWEI-IDENTITY-P0', 'en', 960, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000044', ${ownerId}, 'wallet-0037-excerpt-chart',
+          'wallet-0037-excerpt-version', 'ZIWEI-NATAL-EXCERPT-P0', 'en', 240, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+    } finally {
+      await runMigrations(databaseUrl);
+      await client.end();
+    }
+  });
+
   it("rejects invalid wallet, revenue, receipt, entitlement, and preview lineage in PostgreSQL", async () => {
     const database = createDatabase(databaseUrl);
     const ownerId = "wallet-lineage-owner";
@@ -161,6 +291,7 @@ describe("database schema integration", () => {
         chartId: "wallet-lineage-invalid-chart",
         chartVersionId: "wallet-lineage-invalid-version",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -209,6 +340,7 @@ describe("database schema integration", () => {
         chartId: "wallet-lineage-chart",
         chartVersionId: "wallet-lineage-chart-version",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -368,6 +500,7 @@ describe("database schema integration", () => {
         chartId: "wallet-authority-chart",
         chartVersionId: "wallet-authority-chart-version",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -869,6 +1002,7 @@ describe("database schema integration", () => {
           chartId: `wallet-spend-price-chart-${amountLa}`,
           chartVersionId: `wallet-spend-price-version-${amountLa}`,
           sku: "ZIWEI-NATAL-EXCERPT-P0",
+          locale: "vi",
           priceLa: 240,
         });
         await transaction.insert(walletTransactions).values({
@@ -904,6 +1038,7 @@ describe("database schema integration", () => {
         chartId: "wallet-spend-price-chart-valid",
         chartVersionId: "wallet-spend-price-version-valid",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -970,6 +1105,7 @@ describe("database schema integration", () => {
           chartId: `wallet-cumulative-floor-chart-${spendId}`,
           chartVersionId: `wallet-cumulative-floor-version-${spendId}`,
           sku: priceLa === 240 ? "ZIWEI-NATAL-EXCERPT-P0" : "ZIWEI-IDENTITY-P0",
+          locale: "vi",
           priceLa,
         });
         await transaction.insert(walletTransactions).values({
@@ -1271,6 +1407,7 @@ describe("database schema integration", () => {
         chartId: `wallet-restoration-rounding-chart-${spendId}`,
         chartVersionId: `wallet-restoration-rounding-version-${spendId}`,
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -1359,6 +1496,7 @@ describe("database schema integration", () => {
         chartId: "wallet-restoration-rounding-chart-third",
         chartVersionId: "wallet-restoration-rounding-version-third",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -1504,6 +1642,7 @@ describe("database schema integration", () => {
         chartId: "wallet-restoration-chart",
         chartVersionId: "wallet-restoration-version",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -1606,6 +1745,7 @@ describe("database schema integration", () => {
         chartId: "wallet-restoration-respend-chart",
         chartVersionId: "wallet-restoration-respend-version",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
         priceLa: 240,
       });
       await transaction.insert(walletTransactions).values({
@@ -2614,7 +2754,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-11)).toEqual([
+    expect(journal.entries.slice(-12)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -2692,6 +2832,13 @@ describe("database schema integration", () => {
         tag: "0036_wallet_restoration_respend_reconciliation",
         breakpoints: true,
       },
+      {
+        idx: 37,
+        version: "7",
+        when: 1790812980000,
+        tag: "0037_wallet_purchase_intent_locale",
+        breakpoints: true,
+      },
     ]);
   });
 
@@ -2743,7 +2890,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 through 0036 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0037 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -3002,7 +3149,8 @@ describe("database schema integration", () => {
         1790726400000,
         1790812800000,
         1790812860000,
-        1790812920000
+        1790812920000,
+        1790812980000
       )
     `;
 
@@ -3016,7 +3164,7 @@ describe("database schema integration", () => {
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1790812920000);
+    expect(Number(latestAfter?.created_at)).toBe(1790812980000);
 
     const reappliedMigrations = await client<{ created_at: string }[]>`
       SELECT created_at
@@ -3028,7 +3176,8 @@ describe("database schema integration", () => {
         1790726400000,
         1790812800000,
         1790812860000,
-        1790812920000
+        1790812920000,
+        1790812980000
       )
       ORDER BY created_at ASC
     `;
@@ -3040,6 +3189,7 @@ describe("database schema integration", () => {
       1790812800000,
       1790812860000,
       1790812920000,
+      1790812980000,
     ]);
 
     const [recoveryReceiptTableCheck] = await client<{ exists: boolean }[]>`

@@ -235,9 +235,40 @@ function createSampleRecord(overrides: Partial<AuthorizedReportQueryRecord> = {}
 
   const version = overrides.version === undefined ? null : overrides.version;
   const evidenceItems = overrides.evidenceItems || [];
-  const entitlements = overrides.entitlements;
+  const entitlements = (overrides.entitlements ?? [{
+    id: "ent-1",
+    chartId: "chart-1",
+    sku: "ZIWEI-IDENTITY-P0",
+    scope: TIER_2_ENTITLEMENT_SCOPE,
+    active: true,
+    source: "order",
+  }]).map((entitlement) => ({
+    ...entitlement,
+    active: !(
+      "orderStatus" in entitlement &&
+      entitlement.orderStatus === "refunded"
+    ) as true,
+    source: entitlement.source === "ledger_spend" ? "ledger_spend" as const : "order" as const,
+  }));
 
-  return { reservation, order, version, evidenceItems, entitlements };
+  return { source: "order", reservation, order, version, evidenceItems, entitlements };
+}
+
+function createWalletSampleRecord(
+  overrides: Parameters<typeof createSampleRecord>[0] = {},
+): Extract<AuthorizedReportQueryRecord, { source: "ledger_spend" }> {
+  const record = createSampleRecord(overrides);
+  return {
+    source: "ledger_spend",
+    reservation: record.reservation,
+    version: record.version,
+    evidenceItems: record.evidenceItems,
+    entitlements: record.entitlements,
+    wallet: {
+      spendId: "wallet-spend-1",
+      purchaseIntentId: "wallet-intent-1",
+    },
+  };
 }
 
 describe("report query service", () => {
@@ -499,6 +530,57 @@ describe("report query service", () => {
     expect((result.value as any).lastErrorCode).toBeUndefined();
     expect((result.value as any).providerId).toBeUndefined();
     expect((result.value as any).modelId).toBeUndefined();
+  });
+
+  it("returns the strict wallet terminal failure projection without order or ledger fields", async () => {
+    const record = createWalletSampleRecord({
+      reservation: {
+        status: "terminal_failure",
+        lastErrorCode: "PROVIDER_SECRET_DETAIL",
+      } as any,
+    });
+    const service = createReportQueryService({
+      repository: { readAuthorizedReport: vi.fn().mockResolvedValue(record) },
+    });
+
+    const result = await service.getReport(
+      accountActor,
+      "834e9e89-19cb-44a6-bc59-ba7741374553",
+    );
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        version: 2,
+        purchaseSource: "wallet_spend",
+        reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
+        reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
+        errorCode: "REPORT_GENERATION_FAILED",
+        supportReference: "RPT-834E9E8919CB",
+      },
+    });
+    if (!result.ok) return;
+    expect(Object.keys(result.value).sort()).toEqual([
+      "errorCode",
+      "purchaseSource",
+      "reportId",
+      "reportVersionId",
+      "supportReference",
+      "version",
+    ]);
+  });
+
+  it("returns the existing V1 pending view for a wallet authority", async () => {
+    const record = createWalletSampleRecord();
+    const service = createReportQueryService({
+      repository: { readAuthorizedReport: vi.fn().mockResolvedValue(record) },
+    });
+    await expect(service.getReport(
+      accountActor,
+      "834e9e89-19cb-44a6-bc59-ba7741374553",
+    )).resolves.toMatchObject({
+      ok: true,
+      value: { version: 1, state: "pending", fulfillmentStatus: "generating" },
+    });
   });
 
   it.each([
@@ -1005,7 +1087,7 @@ describe("report query service", () => {
       createdAt: new Date("2026-09-08T00:00:00+07:00"),
     } as any;
 
-    const record = createSampleRecord({
+    const record = createWalletSampleRecord({
       reservation: {
         entitlementId: "ent-tier1",
         sku: "ZIWEI-NATAL-EXCERPT-P0",
@@ -1031,11 +1113,11 @@ describe("report query service", () => {
         },
         {
           id: "ent-tier2",
-          orderId: "ord-uuid-2",
           chartId: "chart-1",
           sku: "ZIWEI-IDENTITY-P0",
           scope: TIER_2_ENTITLEMENT_SCOPE,
-          orderStatus: "paid",
+          active: true,
+          source: "ledger_spend",
         },
       ],
     });

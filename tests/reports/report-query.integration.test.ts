@@ -1211,6 +1211,7 @@ describe("report query integration test with real database", () => {
     const reportCId = randomUUID();
     const reportVersionCId = randomUUID();
     const runCId = randomUUID();
+    const evidenceSetCId = "ev-set-pending-c";
 
     await database.insert(authUsers).values({ id: ownerCId, name: "Owner C", email: `c-${ownerCId}@example.com`, role: "user" });
     await database.insert(birthProfiles).values({ id: profileCId, userId: ownerCId });
@@ -1234,9 +1235,15 @@ describe("report query integration test with real database", () => {
     await database.insert(commerceEntitlements).values({
       id: entitlementCId, orderId: orderCId, chartId: chartCId, sku: "ZIWEI-IDENTITY-P0", ownerId: ownerCId, scope: TIER_2_ENTITLEMENT_SCOPE,
     });
+    await database.insert(evidenceSets).values({
+      id: evidenceSetCId,
+      chartVersionId: chartVersionCId,
+      capabilityId: "ziwei.identity.p0",
+      ruleVersion: "ziwei.identity.v1",
+    });
     await database.insert(reportReservations).values({
       id: randomUUID(), reportId: reportCId, reportVersionId: reportVersionCId, entitlementId: entitlementCId,
-      chartVersionId: chartVersionCId, evidenceVersionId: "ev-placeholder", knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
+      chartVersionId: chartVersionCId, evidenceVersionId: evidenceSetCId, knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
       promptVersion: REPORT_PROMPT_VERSION_V1, reportConfigVersion: "config.v1", locale: "vi", sku: "ZIWEI-IDENTITY-P0", status: "generating",
     });
 
@@ -1595,7 +1602,7 @@ describe("report query integration test with real database", () => {
       reportVersionId: reportVersionCId,
       entitlementId: entitlementCId,
       chartVersionId: ownerC.chartVersionId,
-      evidenceVersionId: "ev-placeholder-pending",
+      evidenceVersionId: ownerC.evidenceSetId,
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
       promptVersion: REPORT_PROMPT_VERSION_V1,
       reportConfigVersion: "config.v1",
@@ -1655,7 +1662,7 @@ describe("report query integration test with real database", () => {
       reportVersionId: reportVersionDId,
       entitlementId: entitlementDId,
       chartVersionId: ownerD.chartVersionId,
-      evidenceVersionId: "ev-placeholder-failed",
+      evidenceVersionId: ownerD.evidenceSetId,
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V1,
       promptVersion: REPORT_PROMPT_VERSION_V1,
       reportConfigVersion: "config.v1",

@@ -21,6 +21,9 @@ import {
   reportVersions,
   runMigrations,
   type Database,
+  walletAccounts,
+  walletPurchaseIntents,
+  walletTransactions,
   ziweiChartVersions,
   ziweiCharts,
 } from "@lasoviet/database";
@@ -32,6 +35,9 @@ import {
 } from "@lasoviet/contracts";
 
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
+import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
+import { createWalletService } from "../wallet/wallet.service.js";
+import { createWalletUnlockService } from "./wallet-unlock.service.js";
 import {
   deriveReportTimingLineage,
   REPORT_KNOWLEDGE_VERSION_V2,
@@ -315,6 +321,111 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(histB.orders[0]?.supportUrl).toBe(
       `/en/lien-he?order=${encodeURIComponent(orderB.value.invoiceNumber)}`,
     );
+  });
+
+  it("excludes a wallet library entitlement when a restoration reverses its spend", async () => {
+    const owner = await createOwnerFixture({ displayName: "Restored wallet library owner" });
+    const audit = await createOwnerFixture({ displayName: "Restored wallet library audit" });
+    const authority = { token: {}, actorId: audit.userId };
+    const walletRepository = createDatabaseWalletRepository(database, { trustedGrantAuthority: authority });
+    const unlock = createWalletUnlockService(database, createWalletService(walletRepository));
+    const grant = await walletRepository.grant({
+      targetOwnerId: owner.userId,
+      trustedGrantToken: authority.token,
+      topUpOrderId: null,
+      grant: {
+        version: 1,
+        kind: "grant",
+        actorId: audit.userId,
+        reasonCode: "test.wallet.library",
+        requestId: `wallet-library-grant-request-${randomUUID()}`,
+        traceId: `wallet-library-grant-trace-${randomUUID()}`,
+        idempotencyKey: `wallet-library-grant-${randomUUID()}`,
+        purchasedLa: 0,
+        promotionalLa: 240,
+        topUpPackId: null,
+      },
+    });
+    if (!grant.ok) throw new Error(`wallet grant failed: ${grant.error.code}`);
+    const intent = await unlock.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: owner.versionId,
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "vi",
+    });
+    if (!intent.ok) throw new Error(`wallet intent failed: ${intent.code}`);
+    const spent = await unlock.unlock(owner.actor, {
+      purchaseIntentId: intent.value.id,
+      expectedIntentVersion: 1,
+      expectedWalletVersion: 2,
+      idempotencyKey: `wallet-library-unlock-${randomUUID()}`,
+    });
+    if (!spent.ok) throw new Error(`wallet unlock failed: ${spent.code}`);
+    const repo = createDatabaseCommerceRepository(database);
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toMatchObject({
+      version: 2,
+      totalCount: 1,
+      items: [expect.objectContaining({ source: "ledger_spend" })],
+    });
+    const [walletIntent] = await database.select().from(walletPurchaseIntents)
+      .where(eq(walletPurchaseIntents.id, intent.value.id));
+    if (walletIntent === undefined) throw new Error("wallet intent missing");
+    await database.update(walletPurchaseIntents).set({ status: "cancelled" })
+      .where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
+    await database.update(walletPurchaseIntents).set({ status: "completed", chartVersionId: randomUUID() })
+      .where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
+    await database.update(walletPurchaseIntents).set({
+      chartVersionId: walletIntent.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "en",
+      priceLa: 960,
+    }).where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
+    await database.update(walletPurchaseIntents).set({
+      sku: walletIntent.sku,
+      locale: walletIntent.locale,
+      priceLa: walletIntent.priceLa,
+    }).where(eq(walletPurchaseIntents.id, walletIntent.id));
+
+    const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    const [spend] = await database.select().from(walletTransactions).where(and(
+      eq(walletTransactions.walletId, wallet!.id),
+      eq(walletTransactions.kind, "spend"),
+    ));
+    const restored = await walletRepository.restore({
+      actor: owner.actor,
+      restoration: {
+        version: 1,
+        kind: "restoration",
+        actorId: owner.userId,
+        reasonCode: "test.wallet.library.restoration",
+        requestId: `wallet-library-restoration-request-${randomUUID()}`,
+        traceId: `wallet-library-restoration-trace-${randomUUID()}`,
+        idempotencyKey: `wallet-library-restoration-${randomUUID()}`,
+        originalSpendId: spend!.id,
+        expectedWalletVersion: 3,
+      },
+    });
+    if (!restored.ok) throw new Error(`wallet restoration failed: ${restored.error.code}`);
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
   });
 
   it("shows expired orders in order history with preserved invoice number and amount", async () => {

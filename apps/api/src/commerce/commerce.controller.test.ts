@@ -1,5 +1,5 @@
 import * as internalGuard from "../auth/internal-actor.guard.js";
-import { BadRequestException, ConflictException, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { describe, expect, it, vi } from "vitest";
 import { createHmac } from "node:crypto";
 import * as backend from "@lasoviet/backend";
@@ -48,6 +48,176 @@ const nonPaid = Buffer.from(JSON.stringify({
 }));
 
 describe("SePay controller HTTP contract", () => {
+  it("rejects malformed wallet command bodies before authentication or repository access", async () => {
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository");
+    try {
+      await expect(controller().unlockWallet(undefined, {
+        purchaseIntentId: "intent",
+        expectedIntentVersion: "1",
+        expectedWalletVersion: 1,
+        idempotencyKey: "key",
+      })).rejects.toBeInstanceOf(BadRequestException);
+      expect(repoSpy).not.toHaveBeenCalled();
+    } finally {
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns a redacted wallet intent projection", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createWalletPurchaseIntent: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          id: "intent-1", sku: "ZIWEI-IDENTITY-P0", chartVersionId: "private-chart-version",
+          locale: "en", amountLa: 720, status: "pending", stateVersion: 1,
+          createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      }),
+    } as never);
+    try {
+      const result = await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-IDENTITY-P0", locale: "en",
+      });
+      expect(result).toEqual({
+        ok: true,
+        value: {
+          id: "intent-1", productTitle: "Comprehensive Zi Wei reading", locale: "en", amountLa: 720,
+          status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      });
+      expect(JSON.stringify(result)).not.toContain("ZIWEI-");
+      expect(JSON.stringify(result)).not.toContain("chart-1");
+      expect(JSON.stringify(result)).not.toContain("private-chart-version");
+      expect(JSON.stringify(result)).not.toMatch(/provider|invoice|allocation|receipt/i);
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("requires authentication for wallet reads and maps an ineligible account to forbidden", async () => {
+    await expect(controller().walletBalance(undefined)).rejects.toBeInstanceOf(UnauthorizedException);
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      readWalletBalance: vi.fn().mockResolvedValue({ ok: false, error: { code: "WALLET_ACCOUNT_INELIGIBLE" } }),
+    } as never);
+    try {
+      await expect(controller().walletBalance("Bearer valid-token")).rejects.toBeInstanceOf(ForbiddenException);
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns wallet balance and history only through their strict customer contracts", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+    const balance = {
+      version: 1 as const, totalLa: 100, purchasedLa: 40, promotionalLa: 60, updatedAt: "2026-09-17T00:00:00.000Z",
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      readWalletBalance: vi.fn().mockResolvedValue({ ok: true, value: balance }),
+      readWalletHistory: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          version: 1, balance,
+          items: [{
+            id: "wh_0123456789abcdef0123456789abcdef", category: "spend", laDelta: -240,
+            resultingPurchasedLa: 40, resultingPromotionalLa: 60,
+            productTitle: "Luận giải Tử Vi toàn diện", occurredAt: "2026-09-17T00:00:00.000Z",
+          }],
+        },
+      }),
+    } as never);
+    try {
+      await expect(controller().walletBalance("Bearer valid-token")).resolves.toEqual({ ok: true, value: balance });
+      await expect(controller().walletHistory("Bearer valid-token")).resolves.toEqual({
+        ok: true,
+        value: {
+          version: 1, balance,
+          items: [expect.not.objectContaining({ allocations: expect.anything(), invoiceNumber: expect.anything() })],
+        },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns a redacted wallet unlock and the mixed V2 library projection", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      unlockWalletPurchase: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          intent: {
+            id: "intent-1", sku: "ZIWEI-NATAL-EXCERPT-P0", chartVersionId: "private-version",
+            locale: "vi", amountLa: 240, status: "completed", stateVersion: 2,
+            createdAt: "2026-09-17T00:00:00.000Z",
+          },
+          balance: {
+            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+          },
+          reportId: "report-1",
+          receipt: "private-receipt",
+        },
+      }),
+      readAccountLibraryV2: vi.fn().mockResolvedValue({
+        version: 2,
+        totalCount: 2,
+        items: [
+          {
+            source: "order", id: "entitlement-order", entitlementId: "entitlement-order", orderId: "order-1",
+            profileId: null, profileDisplayName: null,
+            productTitle: "Luận giải Tử Vi khai mở", entitlementStatus: "active", reportId: null,
+            readUrl: null, reportStatus: null, locale: "vi", createdAt: "2026-09-17T00:00:00.000Z", purchasedAt: null,
+          },
+          {
+            source: "ledger_spend", id: "entitlement-wallet", entitlementId: "entitlement-wallet", orderId: null,
+            profileId: null, profileDisplayName: null,
+            productTitle: "Comprehensive Zi Wei reading", entitlementStatus: "active", reportId: "report-1",
+            readUrl: null, reportStatus: "requested", locale: "en", createdAt: "2026-09-17T00:00:00.000Z",
+            purchasedAt: "2026-09-17T00:00:00.000Z",
+          },
+        ],
+      }),
+    } as never);
+    try {
+      const unlocked = await controller().unlockWallet("Bearer valid-token", {
+        purchaseIntentId: "intent-1", expectedIntentVersion: 1, expectedWalletVersion: 2, idempotencyKey: "unlock-1",
+      });
+      expect(unlocked).toEqual({
+        ok: true,
+        value: {
+          intent: {
+            id: "intent-1", productTitle: "Bản mệnh và tiềm năng", locale: "vi", amountLa: 240,
+            status: "completed", stateVersion: 2, createdAt: "2026-09-17T00:00:00.000Z",
+          },
+          balance: {
+            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+          },
+          reportId: "report-1",
+        },
+      });
+      expect(JSON.stringify(unlocked)).not.toMatch(/ZIWEI-|private-version|private-receipt|invoice|allocation|chart-1|chart-2|provider/i);
+      await expect(controller().libraryV2("Bearer valid-token")).resolves.toMatchObject({
+        ok: true,
+        value: { version: 2, totalCount: 2, items: [{ source: "order" }, { source: "ledger_spend", orderId: null }] },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
   it("rejects an unsigned checkout request before it can reach persistence", async () => {
     await expect(controller().create(undefined, {
       chartId: "chart-1",

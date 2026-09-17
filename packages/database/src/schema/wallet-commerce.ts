@@ -99,6 +99,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   chartId: text("chart_id").notNull(),
   chartVersionId: text("chart_version_id").notNull(),
   sku: text("sku").notNull(),
+  locale: text("locale").notNull(),
   priceLa: integer("price_la").notNull(),
   status: text("status").notNull().default("pending"),
   stateVersion: integer("state_version").notNull().default(1),
@@ -106,7 +107,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
   uniqueIndex("wallet_purchase_intents_owner_chart_sku_pending_unique").on(table.ownerId, table.chartId, table.sku).where(sql`${table.status} = 'pending'`),
-  check("wallet_purchase_intents_valid", sql`((${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.priceLa} = 240) OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.priceLa} IN (720, 960))) AND ${table.status} IN ('pending', 'completed', 'cancelled', 'expired') AND ${table.stateVersion} > 0`),
+  check("wallet_purchase_intents_valid", sql`((${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} = 240) OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (720, 960))) AND ${table.status} IN ('pending', 'completed', 'cancelled', 'expired') AND ${table.stateVersion} > 0`),
 ]);
 
 export const walletCommandReceipts = pgTable("wallet_command_receipts", {

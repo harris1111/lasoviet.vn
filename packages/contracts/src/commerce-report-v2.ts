@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CommerceSkuSchema, EntitlementStatusSchema } from "./commerce.js";
+import { EntitlementStatusSchema } from "./commerce.js";
 
 const id = z.string().trim().min(1);
 const timestamp = z.iso.datetime({ offset: true });
@@ -10,10 +10,8 @@ export const AccountLibraryItemV2Schema = z.discriminatedUnion("source", [
     id,
     entitlementId: id,
     orderId: id,
-    chartId: id,
     profileId: id.nullable(),
     profileDisplayName: z.string().trim().min(1).max(80).nullable(),
-    sku: CommerceSkuSchema,
     productTitle: z.string().trim().min(1),
     entitlementStatus: EntitlementStatusSchema,
     reportId: id.nullable(),
@@ -28,10 +26,8 @@ export const AccountLibraryItemV2Schema = z.discriminatedUnion("source", [
     id,
     entitlementId: id,
     orderId: z.null(),
-    chartId: id,
     profileId: id.nullable(),
     profileDisplayName: z.string().trim().min(1).max(80).nullable(),
-    sku: CommerceSkuSchema,
     productTitle: z.string().trim().min(1),
     entitlementStatus: EntitlementStatusSchema,
     reportId: id.nullable(),
@@ -56,7 +52,7 @@ export const ReportFailedWalletSpendViewV2Schema = z.object({
   purchaseSource: z.literal("wallet_spend"),
   reportId: id,
   reportVersionId: id,
-  errorCode: z.string().trim().min(1).max(120),
+  errorCode: z.literal("REPORT_GENERATION_FAILED"),
   supportReference: z.string().trim().min(1).max(120),
 }).strict();
 export type ReportFailedWalletSpendViewV2 = z.infer<typeof ReportFailedWalletSpendViewV2Schema>;

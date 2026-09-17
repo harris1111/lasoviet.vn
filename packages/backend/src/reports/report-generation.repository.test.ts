@@ -759,17 +759,9 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
     const limit = vi.fn().mockResolvedValue(row === undefined ? [] : [row]);
     const where = vi.fn().mockReturnValue({ limit });
     const leftJoin = vi.fn();
-    const from = vi.fn().mockReturnValue({
-      leftJoin: leftJoin.mockImplementation(() => ({
-        leftJoin: leftJoin.mockImplementation(() => ({
-          leftJoin: leftJoin.mockImplementation(() => ({
-            leftJoin: leftJoin.mockImplementation(() => ({
-              where,
-            })),
-          })),
-        })),
-      })),
-    });
+    const joins = { leftJoin, where };
+    leftJoin.mockImplementation(() => joins);
+    const from = vi.fn().mockReturnValue(joins);
     const select = vi.fn().mockReturnValue({ from });
     return { database: { select } as never, select, from, leftJoin, where, limit };
   }
@@ -791,15 +783,62 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
     return { result, mock };
   }
 
-  it("fails REPORT_PROFILE_PURGED when no scoped reservation/profile chain remains", async () => {
+  function validOrderAuthority(
+    context: {
+      reservationContextRevisionId: string | null;
+      revisionId: string | null;
+      revisionProfileId: string | null;
+    },
+  ) {
+    return {
+      ...context,
+      profileId: "profile-1",
+      profileOwnerId: "owner-1",
+      chartVersionChartId: "chart-1",
+      reservation: {
+        chartVersionId: "chart-version-1",
+        evidenceVersionId: "evidence-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      },
+      entitlement: {
+        id: "entitlement-1",
+        orderId: "order-1",
+        ledgerSpendId: null,
+        ownerId: "owner-1",
+        chartId: "chart-1",
+        sku: "ZIWEI-IDENTITY-P0",
+      },
+      order: {
+        id: "order-1",
+        kind: "content_purchase",
+        status: "paid",
+        ownerId: "owner-1",
+        chartId: "chart-1",
+        chartVersionId: "chart-version-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      },
+      spend: null,
+      wallet: null,
+      intent: null,
+      evidence: {
+        id: "evidence-1",
+        chartVersionId: "chart-version-1",
+        capabilityId: "ziwei.identity.p0",
+      },
+    };
+  }
+
+  it("fails REPORT_CONTEXT_MISMATCH when no scoped lifecycle record remains", async () => {
     const { result, mock } = await validate(undefined);
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+      error: { code: "REPORT_CONTEXT_MISMATCH", retryable: false },
     });
     expect(mock.select).toHaveBeenCalledTimes(1);
-    expect(mock.leftJoin).toHaveBeenCalledTimes(4);
+    expect(mock.leftJoin).toHaveBeenCalledTimes(10);
     expect(mock.where).toHaveBeenCalledTimes(1);
     expect(mock.limit).toHaveBeenCalledWith(1);
     const containsValue = (
@@ -841,11 +880,12 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
   it("allows an active or soft-archived profile when frozen null context matches", async () => {
     for (const deletedAt of [null, new Date("2026-09-15T00:00:00.000Z")]) {
       const { result } = await validate({
-        reservationContextRevisionId: null,
-        profileId: "profile-1",
+        ...validOrderAuthority({
+          reservationContextRevisionId: null,
+          revisionId: null,
+          revisionProfileId: null,
+        }),
         profileDeletedAt: deletedAt,
-        revisionId: null,
-        revisionProfileId: null,
       });
 
       expect(result).toEqual({
@@ -858,10 +898,11 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
   it("allows an active frozen context revision only when it belongs to the joined profile", async () => {
     const { result } = await validate(
       {
-        reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
-        revisionId: "context-1",
-        revisionProfileId: "profile-1",
+        ...validOrderAuthority({
+          reservationContextRevisionId: "context-1",
+          revisionId: "context-1",
+          revisionProfileId: "profile-1",
+        }),
       },
       "context-1",
     );
@@ -875,32 +916,29 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
   it.each([
     [
       "payload does not match the frozen reservation context",
-      {
+      validOrderAuthority({
         reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
         revisionId: "context-1",
         revisionProfileId: "profile-1",
-      },
+      }),
       "context-2",
     ],
     [
       "the frozen revision no longer exists",
-      {
+      validOrderAuthority({
         reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
         revisionId: null,
         revisionProfileId: null,
-      },
+      }),
       "context-1",
     ],
     [
       "the frozen revision belongs to another profile",
-      {
+      validOrderAuthority({
         reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
         revisionId: "context-1",
         revisionProfileId: "profile-2",
-      },
+      }),
       "context-1",
     ],
   ])("fails REPORT_CONTEXT_MISMATCH when %s", async (_name, row, readingContextRevisionId) => {

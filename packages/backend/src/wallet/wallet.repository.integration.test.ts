@@ -21,7 +21,10 @@ import {
 } from "@lasoviet/database";
 import type { CurrentActor, WalletGrantV1 } from "@lasoviet/contracts";
 
-import { createDatabaseWalletRepository } from "./wallet.repository.js";
+import {
+  abortWalletSpendContinuation,
+  createDatabaseWalletRepository,
+} from "./wallet.repository.js";
 
 describe("wallet repository", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
@@ -103,6 +106,7 @@ describe("wallet repository", () => {
       chartId: `chart-${randomUUID()}`,
       chartVersionId: `chart-version-${randomUUID()}`,
       sku: amountLa === 240 ? "ZIWEI-NATAL-EXCERPT-P0" : "ZIWEI-IDENTITY-P0",
+      locale: "vi",
       priceLa: amountLa,
     });
     return id;
@@ -382,6 +386,94 @@ describe("wallet repository", () => {
       .where(and(eq(auditLogs.targetId, wallet.id), eq(auditLogs.action, "wallet.spend")))).toHaveLength(1);
   });
 
+  it("includes the closed expected-intent operation version in a continuation spend fingerprint", async () => {
+    const auditActorId = await createAccount("wallet-intent-fingerprint-audit");
+    const ownerId = await createAccount("wallet-intent-fingerprint-owner");
+    const actor = accountActor(ownerId);
+    const { authority, repository } = trustedRepository(auditActorId);
+    const funded = await repository.grant({
+      targetOwnerId: ownerId,
+      grant: promotionalGrant(auditActorId, `intent-fingerprint-grant-${randomUUID()}`, 500),
+      topUpOrderId: null,
+      trustedGrantToken: authority.token,
+    });
+    if (!funded.ok) throw new Error("expected grant");
+    const intentId = await insertIntent(ownerId);
+    const idempotencyKey = `intent-fingerprint-${randomUUID()}`;
+    const first = await repository.spend({
+      actor,
+      spend: {
+        kind: "spend", actorId: ownerId, reasonCode: "wallet.report.unlock", requestId: randomUUID(), traceId: randomUUID(),
+        idempotencyKey, purchaseIntentId: intentId, amountLa: 240, expectedWalletVersion: 2,
+      },
+      continuationOperation: "wallet.report.unlock.v1.intent-v1",
+      continuation: async () => ({ reservationId: "intent-fingerprint-reservation" }),
+      continuationResultCodec: reservationCodec(),
+    });
+    expect(first).toMatchObject({ ok: true, value: { status: "completed" } });
+
+    const changedExpectedIntentVersion = await repository.spend({
+      actor,
+      spend: {
+        kind: "spend", actorId: ownerId, reasonCode: "wallet.report.unlock", requestId: randomUUID(), traceId: randomUUID(),
+        idempotencyKey, purchaseIntentId: intentId, amountLa: 240, expectedWalletVersion: 2,
+      },
+      continuationOperation: "wallet.report.unlock.v1.intent-v2",
+      continuation: async () => ({ reservationId: "must-not-run" }),
+      continuationResultCodec: reservationCodec(),
+    });
+    expect(changedExpectedIntentVersion).toMatchObject({
+      ok: false,
+      error: { code: "WALLET_IDEMPOTENCY_KEY_REUSED" },
+    });
+  });
+
+  it("returns a classified continuation abort and rolls back the debit and all receipt artifacts", async () => {
+    const auditActorId = await createAccount("wallet-abort-audit");
+    const ownerId = await createAccount("wallet-abort-owner");
+    const actor = accountActor(ownerId);
+    const { authority, repository } = trustedRepository(auditActorId);
+    const funded = await repository.grant({
+      targetOwnerId: ownerId,
+      grant: promotionalGrant(auditActorId, `abort-grant-${randomUUID()}`, 500),
+      topUpOrderId: null,
+      trustedGrantToken: authority.token,
+    });
+    if (!funded.ok) throw new Error("expected grant");
+    const wallet = await walletFor(ownerId);
+    const intentId = await insertIntent(ownerId);
+    const idempotencyKey = `abort-${randomUUID()}`;
+
+    await expect(repository.spend({
+      actor,
+      spend: {
+        kind: "spend", actorId: ownerId, reasonCode: "wallet.report.unlock", requestId: randomUUID(), traceId: randomUUID(),
+        idempotencyKey, purchaseIntentId: intentId, amountLa: 240, expectedWalletVersion: 2,
+      },
+      continuation: async () => abortWalletSpendContinuation("WALLET_INVALID_INTENT"),
+      continuationResultCodec: reservationCodec(),
+    })).resolves.toMatchObject({ ok: false, error: { code: "WALLET_INVALID_INTENT" } });
+
+    expect(await walletFor(ownerId)).toMatchObject({
+      id: wallet.id,
+      promotionalBalance: 500,
+      purchasedBalance: 0,
+      stateVersion: 2,
+    });
+    expect(await database.select().from(walletTransactions).where(and(
+      eq(walletTransactions.walletId, wallet.id),
+      eq(walletTransactions.idempotencyKey, idempotencyKey),
+    ))).toHaveLength(0);
+    expect(await database.select().from(walletCommandReceipts).where(and(
+      eq(walletCommandReceipts.walletId, wallet.id),
+      eq(walletCommandReceipts.idempotencyKey, idempotencyKey),
+    ))).toHaveLength(0);
+    expect(await database.select().from(auditLogs).where(and(
+      eq(auditLogs.targetId, wallet.id),
+      eq(auditLogs.action, "wallet.spend"),
+    ))).toHaveLength(0);
+  });
+
   it("spends promotional credit first and restores the exact lot allocation for a later re-spend", async () => {
     const ownerId = await createAccount("wallet-spend-owner");
     const actor = accountActor(ownerId);
@@ -402,6 +494,7 @@ describe("wallet repository", () => {
       chartId: `chart-${randomUUID()}`,
       chartVersionId: `chart-version-${randomUUID()}`,
       sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "vi",
       priceLa: 240,
     });
     const firstSpend = await repository.spend({
@@ -492,6 +585,7 @@ describe("wallet repository", () => {
       chartId: `chart-${randomUUID()}`,
       chartVersionId: `chart-version-${randomUUID()}`,
       sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "vi",
       priceLa: 240,
     });
     const secondSpend = await repository.spend({
@@ -610,9 +704,15 @@ describe("wallet repository", () => {
     const history = await repository.readHistory(actor);
     expect(history).toMatchObject({ ok: true });
     if (!history.ok) throw new Error("expected history");
-    const restorationItem = history.value.items.find((item) => item.id === restoration.value.transactionId);
-    const originalSpendItem = history.value.items.find((item) => item.id === spends[3]!.transactionId);
+    const replayedHistory = await repository.readHistory(actor);
+    if (!replayedHistory.ok) throw new Error("expected replayed history");
+    const restorationItem = history.value.items.find((item) => item.category === "restoration");
+    const originalSpendItem = history.value.items.find((item) => item.category === "spend");
     expect(restorationItem?.productTitle).toBe(originalSpendItem?.productTitle);
+    expect(replayedHistory.value.items).toEqual(history.value.items);
+    expect(history.value.items.every((item) => /^wh_[0-9a-f]{32}$/.test(item.id))).toBe(true);
+    expect(JSON.stringify(history.value)).not.toContain(restoration.value.transactionId);
+    expect(JSON.stringify(history.value)).not.toContain(spends[3]!.transactionId);
     expect(JSON.stringify(history.value)).not.toMatch(/order|provider|invoice|chart|profile|session|receipt|allocation|lot/i);
   });
 

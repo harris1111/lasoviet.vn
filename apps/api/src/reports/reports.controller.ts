@@ -8,7 +8,12 @@ import {
 } from "@nestjs/common";
 
 import type { ReportQueryService } from "@lasoviet/backend";
-import type { CurrentActor, ReportViewV1, Result } from "@lasoviet/contracts";
+import type {
+  CurrentActor,
+  ReportFailedWalletSpendViewV2,
+  ReportViewV1,
+  Result,
+} from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
 
 import {
@@ -61,7 +66,7 @@ export class ReportsController {
   async read(
     @Headers("authorization") authorization: string | undefined,
     @Param("reportId") reportId: string,
-  ): Promise<Result<ReportViewV1, "REPORT_NOT_FOUND">> {
+  ): Promise<Result<ReportViewV1 | ReportFailedWalletSpendViewV2, "REPORT_NOT_FOUND">> {
     const actor = await this.actor(authorization);
     const result = await this.service.getReport(actor, reportId);
     if (!result.ok) {
