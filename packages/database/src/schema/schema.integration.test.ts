@@ -65,10 +65,56 @@ import {
 import { generatedPreviewRequests, generatedPreviewSections } from "./generated-preview.js";
 
 describe("database schema integration", () => {
+  const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
+  const currentMigrationTimestamp = 1790813100000;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
   let databaseUrl: string;
+
+  async function removeClaudePricingForRewind(
+    client: ReturnType<typeof postgres>,
+  ): Promise<void> {
+    let triggerDisabled = false;
+
+    try {
+      await client`
+        ALTER TABLE ai_model_pricing
+        DISABLE TRIGGER prevent_mutation_ai_model_pricing
+      `;
+      triggerDisabled = true;
+      await client`
+        DELETE FROM ai_model_pricing
+        WHERE pricing_version = ${claudePricingVersion}
+      `;
+    } finally {
+      if (triggerDisabled) {
+        await client`
+          ALTER TABLE ai_model_pricing
+          ENABLE TRIGGER prevent_mutation_ai_model_pricing
+        `;
+      }
+    }
+  }
+
+  async function expectCurrentClaudePricingAndJournal(
+    client: ReturnType<typeof postgres>,
+  ): Promise<void> {
+    const [pricing] = await client<{ pricing_version: string }[]>`
+      SELECT pricing_version
+      FROM ai_model_pricing
+      WHERE pricing_version = ${claudePricingVersion}
+    `;
+    expect(pricing?.pricing_version).toBe(claudePricingVersion);
+
+    const [tail] = await client<{ created_at: string }[]>`
+      SELECT created_at
+      FROM drizzle.__drizzle_migrations
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+    expect(Number(tail?.created_at)).toBe(currentMigrationTimestamp);
+  }
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer("postgres:16-alpine")
@@ -91,6 +137,76 @@ describe("database schema integration", () => {
 
     expect(first.appliedMigrations).toEqual(second.appliedMigrations);
     expect(first.appliedMigrations.length).toBeGreaterThan(0);
+  });
+
+  it("seeds the reviewed Claude pricing record once and resolves it as active pricing", async () => {
+    const database = createDatabase(databaseUrl);
+    const client = postgres(databaseUrl);
+    const pricingVersion = claudePricingVersion;
+
+    try {
+      const [pricing] = await database
+        .select()
+        .from(aiModelPricing)
+        .where(eq(aiModelPricing.pricingVersion, pricingVersion));
+
+      expect(pricing).toMatchObject({
+        pricingVersion,
+        providerId: "9router-an",
+        modelId: "ag/claude-sonnet-4-6",
+        currency: "VND",
+        inputPricePerMillion: 78_330n,
+        outputPricePerMillion: 391_650n,
+        cachedInputPricePerMillion: 7_833n,
+        effectiveFrom: new Date("2026-09-17T00:00:00Z"),
+        sourceCurrency: "USD",
+        sourceReference:
+          "https://github.com/decolua/9router/blob/17c4cc76877bd1755030a8414f8d0083f48dcccf/open-sse/providers/pricing.js",
+        fxSource: "Vietcombank USD sell",
+        fxRate: 26_110n,
+        fxTimestamp: new Date("2026-09-14T07:40:00Z"),
+        status: "active",
+      });
+      expect(pricing?.referenceMetadata).toEqual({
+        requested_model_id: "ag/claude-sonnet-4-6",
+        resolved_model_id: "claude-sonnet-4-6",
+        strict_json_schema_probe: {
+          date: "2026-09-17",
+          result: "http_200_finish_stop_exact_sentinel_pass",
+        },
+        no_customer_data: true,
+      });
+
+      const [effective] = await database
+        .select()
+        .from(aiModelPricing)
+        .where(
+          and(
+            eq(aiModelPricing.providerId, "9router-an"),
+            eq(aiModelPricing.modelId, "ag/claude-sonnet-4-6"),
+            eq(aiModelPricing.status, "active"),
+          ),
+        )
+        .orderBy(asc(aiModelPricing.effectiveFrom))
+        .limit(1);
+      expect(effective?.pricingVersion).toBe(pricingVersion);
+
+      await expect(client`
+        INSERT INTO ai_model_pricing (
+          pricing_version, provider_id, model_id, currency,
+          input_price_per_million, output_price_per_million, cached_input_price_per_million,
+          effective_from, source, source_currency, source_reference,
+          fx_source, fx_rate, fx_timestamp, reference_metadata, status
+        ) VALUES (
+          ${pricingVersion}, '9router-an', 'ag/claude-sonnet-4-6', 'VND',
+          1, 1, 1, '2026-09-17T00:00:00Z', 'conflict', 'USD', 'conflict',
+          'Vietcombank USD sell', 26110, '2026-09-14T07:40:00Z', '{}'::jsonb, 'active'
+        )
+      `).rejects.toBeDefined();
+    } finally {
+      await client.end();
+      await database.$client.end();
+    }
   });
 
   it("exposes PDF asset, support case, and report_failed delivery schema exactly once", () => {
@@ -159,7 +275,7 @@ describe("database schema integration", () => {
     })).rejects.toBeDefined();
   });
 
-  it("backfills a valid 0036 wallet intent through 0037 and restores the current 0038 schema", async () => {
+  it("backfills a valid 0036 wallet intent through 0037 and restores the current 0039 schema", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const ownerId = "wallet-0036-to-0037-owner";
@@ -203,9 +319,10 @@ describe("database schema integration", () => {
           state_version > 0
         )
       `;
+      await removeClaudePricingForRewind(client);
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790812980000, 1790813040000)
+        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000)
       `;
       await client`
         INSERT INTO wallet_purchase_intents (
@@ -217,6 +334,7 @@ describe("database schema integration", () => {
       `;
 
       await runMigrations(databaseUrl);
+      await expectCurrentClaudePricingAndJournal(client);
 
       const [backfilled] = await client<{ locale: string }[]>`
         SELECT locale FROM wallet_purchase_intents WHERE id = ${legacyIntentId}
@@ -248,6 +366,7 @@ describe("database schema integration", () => {
       `).rejects.toBeDefined();
     } finally {
       await runMigrations(databaseUrl);
+      await expectCurrentClaudePricingAndJournal(client);
       await client.end();
     }
   });
@@ -2829,7 +2948,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-13)).toEqual([
+    expect(journal.entries.slice(-14)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -2921,6 +3040,13 @@ describe("database schema integration", () => {
         tag: "0038_ai_output_diagnostics",
         breakpoints: true,
       },
+      {
+        idx: 39,
+        version: "7",
+        when: 1790813100000,
+        tag: "0039_ai_model_pricing_claude_sonnet_4_6",
+        breakpoints: true,
+      },
     ]);
   });
 
@@ -2972,7 +3098,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 through 0038 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0039 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -3235,6 +3361,7 @@ describe("database schema integration", () => {
       ALTER TABLE ai_usage_outcomes
       DROP COLUMN IF EXISTS invalid_output_reason
     `;
+    await removeClaudePricingForRewind(client);
     await client`
       DELETE FROM drizzle.__drizzle_migrations
       WHERE created_at IN (
@@ -3246,7 +3373,8 @@ describe("database schema integration", () => {
         1790812860000,
         1790812920000,
         1790812980000,
-        1790813040000
+        1790813040000,
+        1790813100000
       )
     `;
 
@@ -3260,7 +3388,7 @@ describe("database schema integration", () => {
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1790813040000);
+    expect(Number(latestAfter?.created_at)).toBe(currentMigrationTimestamp);
 
     const reappliedMigrations = await client<{ created_at: string }[]>`
       SELECT created_at
@@ -3274,7 +3402,8 @@ describe("database schema integration", () => {
         1790812860000,
         1790812920000,
         1790812980000,
-        1790813040000
+        1790813040000,
+        1790813100000
       )
       ORDER BY created_at ASC
     `;
@@ -3288,7 +3417,9 @@ describe("database schema integration", () => {
       1790812920000,
       1790812980000,
       1790813040000,
+      1790813100000,
     ]);
+    await expectCurrentClaudePricingAndJournal(client);
 
     const [recoveryReceiptTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (
@@ -3476,6 +3607,7 @@ describe("database schema integration", () => {
 
     } finally {
       await runMigrations(databaseUrl);
+      await expectCurrentClaudePricingAndJournal(client);
       await client.end();
     }
   });

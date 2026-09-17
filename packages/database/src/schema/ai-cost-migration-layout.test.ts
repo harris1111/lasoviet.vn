@@ -99,4 +99,43 @@ describe("ai cost and usage migration layout", () => {
     expect(snapshot).toContain('"ai_usage_outcomes_invalid_output_reason_relation"');
     expect(journal).toContain('"tag": "0038_ai_output_diagnostics"');
   });
+
+  it("adds the reviewed Claude pricing record in data-only migration 0039", async () => {
+    const rawMigration = await readFile(
+      new URL("0039_ai_model_pricing_claude_sonnet_4_6.sql", migrationRoot),
+      "utf8",
+    );
+    const migration = normalizeNewlines(rawMigration);
+    const rawJournal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
+    const journal = normalizeNewlines(rawJournal);
+    const rawSnapshot = await readFile(
+      new URL("meta/0039_snapshot.json", migrationRoot),
+      "utf8",
+    );
+    const snapshot = normalizeNewlines(rawSnapshot);
+
+    expect(migration).toContain('INSERT INTO "ai_model_pricing"');
+    expect(migration).toContain("'9router-ag-claude-sonnet-4-6-v1-20260917'");
+    expect(migration).toContain("'9router-an'");
+    expect(migration).toContain("'ag/claude-sonnet-4-6'");
+    expect(migration).toContain('"resolved_model_id":"claude-sonnet-4-6"');
+    expect(migration).toContain("78330");
+    expect(migration).toContain("391650");
+    expect(migration).toContain("7833");
+    expect(migration).toContain("'2026-09-17T00:00:00Z'");
+    expect(migration).toContain(
+      "'https://github.com/decolua/9router/blob/17c4cc76877bd1755030a8414f8d0083f48dcccf/open-sse/providers/pricing.js'",
+    );
+    expect(migration).toContain("'Vietcombank USD sell'");
+    expect(migration).toContain("26110");
+    expect(migration).toContain("'2026-09-14T07:40:00Z'");
+    expect(migration).toContain("'active'");
+    expect(migration).not.toMatch(/\bgemini\b/i);
+    expect(migration).not.toMatch(/\b(?:UPDATE|DELETE|UPSERT|ALTER|CREATE|DROP)\b/i);
+    expect(journal).toContain('"tag": "0038_ai_output_diagnostics"');
+    expect(journal).toContain('"tag": "0039_ai_model_pricing_claude_sonnet_4_6"');
+    expect(snapshot).toContain('"prevId": "ecf16cfc-3152-427a-8689-ccc8de24127f"');
+    expect(snapshot).toContain('"public.ai_model_pricing"');
+    expect(snapshot).toContain('"invalid_output_reason"');
+  });
 });
