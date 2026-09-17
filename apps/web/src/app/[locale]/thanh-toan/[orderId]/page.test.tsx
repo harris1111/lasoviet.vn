@@ -669,19 +669,21 @@ describe("checkout page", () => {
 });
 
 describe("docs/21 OAuth flow audit status", () => {
-  it("records callbackURL preservation fixed by 2deb64d/9661eb2 lineage and tracks autosave/wizard-step resume as unresolved follow-up", async () => {
+  it("records callbackURL lineage and the LSV-6 closure evidence for draft and exact Review restoration", async () => {
     const fs = await import("node:fs");
     const path = await import("node:path");
     const filePath = path.resolve(process.cwd(), "docs/21-audit-tao-tai-khoan-luu-la-so-flow.md");
     const content = fs.readFileSync(filePath, "utf8").replace(/\r\n/g, "\n");
 
-    expect(content).toMatch(/status:\s*partially-resolved/);
+    expect(content).toMatch(/status:\s*resolved/);
     expect(content).toContain("2deb64d");
     expect(content).toContain("9661eb2");
     expect(content).toContain("Bảo lưu callbackURL từ trang kết quả lá số");
     expect(content).toContain("Bảo lưu callbackURL trên site header");
-    expect(content).toContain("Autosave dữ liệu form dở dang");
-    expect(content).toContain("Quay lại đúng bước wizard");
-    expect(content).toContain("the complete OAuth flow is NOT claimed to be fixed");
+    expect(content).toContain("share a versioned 24-hour");
+    expect(content).toMatch(/`localStorage`\s+draft/);
+    expect(content).toContain("restores the highest valid exact step, including Review");
+    expect(content).toContain("2aeb4d8a1eb3fd42969886b655109f13213e507c");
+    expect(content).toContain("exact-step restoration defect is\nresolved");
   });
 });
