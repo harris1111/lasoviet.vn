@@ -66,3 +66,20 @@ changes. Those remain separate founder-controlled operations.
   infrastructure topology change requires renewed due-diligence review.
 
 No credentials, secret values, or provider endpoint details are recorded here.
+
+## Model Selection Record (2026-09-17)
+
+- This execution is explicitly forbidden from using Gemini.
+- The selected requested model ID is `ag/claude-sonnet-4-6`; its expected exact
+  resolved model ID is `claude-sonnet-4-6`.
+- A synthetic strict JSON-schema capability probe on 2026-09-17 returned HTTP
+  200, `finish_reason` `stop`, the exact sentinel result, and no report or
+  customer data.
+- The reviewed pricing record uses the pinned `9router` pricing source at
+  commit `17c4cc76877bd1755030a8414f8d0083f48dcccf`: USD per million tokens is
+  3.00 input, 15.00 output, and 0.30 cached input. It uses the existing
+  production FX provenance: Vietcombank USD sell, 26,110 VND/USD at
+  2026-09-14T07:40:00Z.
+- Runtime activation must require an exact resolved-model allowlist. Production
+  activation remains gated by a reviewed release and environment change,
+  production smoke evidence, and the required 20 consecutive sectioned runs.
