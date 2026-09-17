@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -12,6 +12,7 @@ import {
   calculationRuns,
   commerceEntitlements,
   commerceOrders,
+  commercePaymentEvents,
   commerceUnmatchedPayments,
   outbox,
   createDatabase,
@@ -20,6 +21,9 @@ import {
   reportVersions,
   runMigrations,
   type Database,
+  walletAccounts,
+  walletPurchaseIntents,
+  walletTransactions,
   ziweiChartVersions,
   ziweiCharts,
 } from "@lasoviet/database";
@@ -31,6 +35,9 @@ import {
 } from "@lasoviet/contracts";
 
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
+import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
+import { createWalletService } from "../wallet/wallet.service.js";
+import { createWalletUnlockService } from "./wallet-unlock.service.js";
 import {
   deriveReportTimingLineage,
   REPORT_KNOWLEDGE_VERSION_V2,
@@ -316,6 +323,111 @@ describe("commerce repository - library and order history (WP-03)", () => {
     );
   });
 
+  it("excludes a wallet library entitlement when a restoration reverses its spend", async () => {
+    const owner = await createOwnerFixture({ displayName: "Restored wallet library owner" });
+    const audit = await createOwnerFixture({ displayName: "Restored wallet library audit" });
+    const authority = { token: {}, actorId: audit.userId };
+    const walletRepository = createDatabaseWalletRepository(database, { trustedGrantAuthority: authority });
+    const unlock = createWalletUnlockService(database, createWalletService(walletRepository));
+    const grant = await walletRepository.grant({
+      targetOwnerId: owner.userId,
+      trustedGrantToken: authority.token,
+      topUpOrderId: null,
+      grant: {
+        version: 1,
+        kind: "grant",
+        actorId: audit.userId,
+        reasonCode: "test.wallet.library",
+        requestId: `wallet-library-grant-request-${randomUUID()}`,
+        traceId: `wallet-library-grant-trace-${randomUUID()}`,
+        idempotencyKey: `wallet-library-grant-${randomUUID()}`,
+        purchasedLa: 0,
+        promotionalLa: 240,
+        topUpPackId: null,
+      },
+    });
+    if (!grant.ok) throw new Error(`wallet grant failed: ${grant.error.code}`);
+    const intent = await unlock.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: owner.versionId,
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "vi",
+    });
+    if (!intent.ok) throw new Error(`wallet intent failed: ${intent.code}`);
+    const spent = await unlock.unlock(owner.actor, {
+      purchaseIntentId: intent.value.id,
+      expectedIntentVersion: 1,
+      expectedWalletVersion: 2,
+      idempotencyKey: `wallet-library-unlock-${randomUUID()}`,
+    });
+    if (!spent.ok) throw new Error(`wallet unlock failed: ${spent.code}`);
+    const repo = createDatabaseCommerceRepository(database);
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toMatchObject({
+      version: 2,
+      totalCount: 1,
+      items: [expect.objectContaining({ source: "ledger_spend" })],
+    });
+    const [walletIntent] = await database.select().from(walletPurchaseIntents)
+      .where(eq(walletPurchaseIntents.id, intent.value.id));
+    if (walletIntent === undefined) throw new Error("wallet intent missing");
+    await database.update(walletPurchaseIntents).set({ status: "cancelled" })
+      .where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
+    await database.update(walletPurchaseIntents).set({ status: "completed", chartVersionId: randomUUID() })
+      .where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
+    await database.update(walletPurchaseIntents).set({
+      chartVersionId: walletIntent.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "en",
+      priceLa: 960,
+    }).where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
+    await database.update(walletPurchaseIntents).set({
+      sku: walletIntent.sku,
+      locale: walletIntent.locale,
+      priceLa: walletIntent.priceLa,
+    }).where(eq(walletPurchaseIntents.id, walletIntent.id));
+
+    const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    const [spend] = await database.select().from(walletTransactions).where(and(
+      eq(walletTransactions.walletId, wallet!.id),
+      eq(walletTransactions.kind, "spend"),
+    ));
+    const restored = await walletRepository.restore({
+      actor: owner.actor,
+      restoration: {
+        version: 1,
+        kind: "restoration",
+        actorId: owner.userId,
+        reasonCode: "test.wallet.library.restoration",
+        requestId: `wallet-library-restoration-request-${randomUUID()}`,
+        traceId: `wallet-library-restoration-trace-${randomUUID()}`,
+        idempotencyKey: `wallet-library-restoration-${randomUUID()}`,
+        originalSpendId: spend!.id,
+        expectedWalletVersion: 3,
+      },
+    });
+    if (!restored.ok) throw new Error(`wallet restoration failed: ${restored.error.code}`);
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
+      version: 2,
+      items: [],
+      totalCount: 0,
+    });
+  });
+
   it("shows expired orders in order history with preserved invoice number and amount", async () => {
     const owner = await createOwnerFixture();
     const orderId = randomUUID();
@@ -353,6 +465,160 @@ describe("commerce repository - library and order history (WP-03)", () => {
       `/lien-he?order=${encodeURIComponent(invoiceNumber)}`,
     );
     expect(found?.supportUrl).not.toContain(orderId);
+  });
+
+  it("keeps directly inserted wallet top-up orders out of all legacy V1 reads and payment paths", async () => {
+    const owner = await createOwnerFixture({ displayName: "Wallet Top-up Legacy Isolation" });
+    const repo = createDatabaseCommerceRepository(database);
+    const topUpOrderId = randomUUID();
+    const paymentCode = `LSV${randomUUID().replace(/-/g, "").toUpperCase().slice(0, 9)}`;
+    const invoiceNumber = `LSV-WALLET-TOPUP-${randomUUID()}`;
+    const transferredAt = new Date();
+
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode,
+      invoiceNumber,
+      kind: "wallet_topup",
+      chartId: null,
+      chartVersionId: null,
+      ownerId: owner.userId,
+      sku: "LA-ENTRY-300",
+      amount: 29_000,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+      createdAt: transferredAt,
+    });
+
+    await expect(repo.readOrder(owner.actor, topUpOrderId)).resolves.toBeNull();
+    await expect(repo.readOrderProjection(owner.actor, topUpOrderId)).resolves.toBeNull();
+    await expect(repo.readAccountLibrary(owner.actor)).resolves.toMatchObject({
+      totalCount: 0,
+      items: [],
+    });
+    await expect(repo.readOrderHistory(owner.actor)).resolves.toMatchObject({
+      totalCount: 0,
+      orders: [],
+    });
+
+    await expect(repo.recordPaid({
+      invoiceNumber,
+      matchMethod: "invoice_number",
+      providerEventId: `wallet-topup-record-paid-${randomUUID()}`,
+      amount: 29_000,
+      currency: "VND",
+      traceId: "wallet-topup-legacy-isolation",
+    })).resolves.toEqual({ ok: false, code: "ORDER_NOT_FOUND" });
+
+    const formatLocalMinute = (date: Date) => {
+      const pad = (value: number) => String(value).padStart(2, "0");
+      const local = new Date(date.getTime() + 7 * 60 * 60 * 1000);
+      return `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}T${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
+    };
+    const unmatchedPaymentId = `wallet-topup-self-claim-${randomUUID()}`;
+    await database.insert(commerceUnmatchedPayments).values({
+      providerEventId: unmatchedPaymentId,
+      rawPayload: { amount: 29_000 },
+      amount: 29_000,
+      reason: "MISSING_PAYMENT_CODE",
+      receivedAt: transferredAt,
+    });
+
+    await expect(repo.claimUnmatchedPayment(owner.actor, {
+      amount: 29_000,
+      transferredAtLocal: formatLocalMinute(transferredAt),
+    })).resolves.toEqual({ ok: false, code: "PAYMENT_CLAIM_NOT_FOUND" });
+
+    const [paymentEvents, entitlements, reservations, outboxEvents, topUpOrder, unmatchedPayment] =
+      await Promise.all([
+        database.select().from(commercePaymentEvents)
+          .where(eq(commercePaymentEvents.orderId, topUpOrderId)),
+        database.select().from(commerceEntitlements)
+          .where(eq(commerceEntitlements.orderId, topUpOrderId)),
+        database.select().from(reportReservations)
+          .where(eq(reportReservations.chartVersionId, owner.versionId)),
+        database.select().from(outbox)
+          .where(eq(outbox.aggregateId, topUpOrderId)),
+        database.select().from(commerceOrders)
+          .where(eq(commerceOrders.id, topUpOrderId)),
+        database.select().from(commerceUnmatchedPayments)
+          .where(eq(commerceUnmatchedPayments.providerEventId, unmatchedPaymentId)),
+      ]);
+
+    expect(paymentEvents).toEqual([]);
+    expect(entitlements).toEqual([]);
+    expect(reservations).toEqual([]);
+    expect(outboxEvents).toEqual([]);
+    expect(topUpOrder[0]?.status).toBe("pending");
+    expect(unmatchedPayment[0]?.claimedAt).toBeNull();
+    expect(unmatchedPayment[0]?.claimedByOrderId).toBeNull();
+  });
+
+  it("does not reuse malformed nullable content orders when creating a valid order", async () => {
+    const owner = await createOwnerFixture({ displayName: "Malformed Content Order Guard" });
+    const repo = createDatabaseCommerceRepository(database);
+    const malformedOrderId = randomUUID();
+
+    await database.execute(sql`
+      ALTER TABLE "commerce_orders"
+      DROP CONSTRAINT "commerce_orders_kind_fields"
+    `);
+
+    try {
+      await database.insert(commerceOrders).values({
+        id: malformedOrderId,
+        paymentCode: `LSV${randomUUID().replace(/-/g, "").toUpperCase().slice(0, 9)}`,
+        invoiceNumber: `LSV-MALFORMED-${randomUUID()}`,
+        kind: "content_purchase",
+        chartId: owner.chartId,
+        chartVersionId: null,
+        ownerId: owner.userId,
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79_000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+      });
+
+      const created = await repo.createOrder(
+        owner.actor,
+        owner.chartId,
+        "ZIWEI-IDENTITY-P0",
+        "vi",
+      );
+
+      expect(created.ok).toBe(true);
+      if (!created.ok) throw new Error("Valid content order creation failed");
+      expect(created.reused).toBe(false);
+      expect(created.value.id).not.toBe(malformedOrderId);
+      expect(created.value.kind).toBe("content_purchase");
+      expect(created.value.chartId).toBe(owner.chartId);
+      expect(created.value.chartVersionId).toBe(owner.versionId);
+    } finally {
+      try {
+        await database.delete(commerceOrders).where(eq(commerceOrders.id, malformedOrderId));
+      } finally {
+        await database.execute(sql`
+          ALTER TABLE "commerce_orders"
+          ADD CONSTRAINT "commerce_orders_kind_fields"
+          CHECK (
+            ("kind" = 'content_purchase' AND "chart_id" IS NOT NULL AND "chart_version_id" IS NOT NULL)
+            OR (
+              "kind" = 'wallet_topup'
+              AND "chart_id" IS NULL
+              AND "chart_version_id" IS NULL
+              AND (
+                ("sku" = 'LA-ENTRY-300' AND "amount" = 29000 AND "currency" = 'VND')
+                OR ("sku" = 'LA-START-1100' AND "amount" = 99000 AND "currency" = 'VND')
+                OR ("sku" = 'LA-DISCOVER-3000' AND "amount" = 249000 AND "currency" = 'VND')
+                OR ("sku" = 'LA-LIBRARY-8000' AND "amount" = 599000 AND "currency" = 'VND')
+              )
+            )
+          )
+        `);
+      }
+    }
   });
 
   it("shows paid report in library with read target and deterministic profile grouping", async () => {
@@ -623,17 +889,47 @@ describe("commerce repository - library and order history (WP-03)", () => {
       traceId: "trace-cross-1",
     });
 
-    // Adversarially tamper entitlement.chartId to point to ownerB.chartId
-    await database
-      .update(commerceEntitlements)
-      .set({ chartId: ownerB.chartId })
-      .where(eq(commerceEntitlements.orderId, orderA1.value.id));
+    // The production relation trigger rejects direct lineage corruption.
+    await expect(
+      database
+        .update(commerceEntitlements)
+        .set({ chartId: ownerB.chartId })
+        .where(eq(commerceEntitlements.orderId, orderA1.value.id)),
+    ).rejects.toMatchObject({
+      cause: expect.objectContaining({
+        message: "order entitlement must match its content purchase order and owner",
+      }),
+    });
 
-    const libA = await repo.readAccountLibrary(ownerA.actor);
-    expect(libA.totalCount).toBe(0);
-    expect(libA.items).toEqual([]);
-    expect(libA.groups).toEqual([]);
-    expect(libA.latestReadableReport).toBeNull();
+    // Preserve reader hardening coverage for legacy corrupt rows only.
+    await database.execute(sql`
+      ALTER TABLE "commerce_entitlements"
+      DISABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+    `);
+    try {
+      await database
+        .update(commerceEntitlements)
+        .set({ chartId: ownerB.chartId })
+        .where(eq(commerceEntitlements.orderId, orderA1.value.id));
+    } finally {
+      await database.execute(sql`
+        ALTER TABLE "commerce_entitlements"
+        ENABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+      `);
+    }
+
+    try {
+      const libA = await repo.readAccountLibrary(ownerA.actor);
+      expect(libA.totalCount).toBe(0);
+      expect(libA.items).toEqual([]);
+      expect(libA.groups).toEqual([]);
+      expect(libA.latestReadableReport).toBeNull();
+    } finally {
+      await database
+        .update(commerceEntitlements)
+        .set({ chartId: ownerA.chartId })
+        .where(eq(commerceEntitlements.orderId, orderA1.value.id));
+    }
 
     // Scenario 2: Inconsistent order for Owner A with chartId pointing to Owner B chart in order history
     // Must be completely EXCLUDED from order history
@@ -664,17 +960,44 @@ describe("commerce repository - library and order history (WP-03)", () => {
     });
 
     const fakeEntitlementId = randomUUID();
-    await database.insert(commerceEntitlements).values({
+    const fakeEntitlementChartId = "chart-adversarial-" + randomUUID();
+    const fakeEntitlement = {
       id: fakeEntitlementId,
       orderId: orderBId,
-      chartId: ownerA.chartId,
+      chartId: fakeEntitlementChartId,
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: ownerA.userId,
       scope: TIER_2_ENTITLEMENT_SCOPE,
+    };
+    await expect(
+      database.insert(commerceEntitlements).values(fakeEntitlement),
+    ).rejects.toMatchObject({
+      cause: expect.objectContaining({
+        message: "order entitlement must match its content purchase order and owner",
+      }),
     });
 
-    const libAfterFake = await repo.readAccountLibrary(ownerA.actor);
-    expect(libAfterFake.items.some((i) => i.id === fakeEntitlementId)).toBe(false);
+    await database.execute(sql`
+      ALTER TABLE "commerce_entitlements"
+      DISABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+    `);
+    try {
+      await database.insert(commerceEntitlements).values(fakeEntitlement);
+    } finally {
+      await database.execute(sql`
+        ALTER TABLE "commerce_entitlements"
+        ENABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+      `);
+    }
+
+    try {
+      const libAfterFake = await repo.readAccountLibrary(ownerA.actor);
+      expect(libAfterFake.items.some((i) => i.id === fakeEntitlementId)).toBe(false);
+    } finally {
+      await database
+        .delete(commerceEntitlements)
+        .where(eq(commerceEntitlements.id, fakeEntitlementId));
+    }
 
     // Scenario 4: Entitlement owned by Owner B on Owner A order
     const orderA3Id = randomUUID();
@@ -692,17 +1015,39 @@ describe("commerce repository - library and order history (WP-03)", () => {
     });
 
     const fakeEntitlementB = randomUUID();
-    const fakeResB = randomUUID();
-    await database.insert(commerceEntitlements).values({
+    const fakeEntitlementBRow = {
       id: fakeEntitlementB,
       orderId: orderA3Id,
       chartId: "chart-adversarial-" + randomUUID(),
       sku: "ZIWEI-IDENTITY-P0",
       ownerId: ownerB.userId,
       scope: TIER_2_ENTITLEMENT_SCOPE,
+    };
+    await expect(
+      database.insert(commerceEntitlements).values(fakeEntitlementBRow),
+    ).rejects.toMatchObject({
+      cause: expect.objectContaining({
+        message: "order entitlement must match its content purchase order and owner",
+      }),
     });
+
+    await database.execute(sql`
+      ALTER TABLE "commerce_entitlements"
+      DISABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+    `);
+    try {
+      await database.insert(commerceEntitlements).values(fakeEntitlementBRow);
+    } finally {
+      await database.execute(sql`
+        ALTER TABLE "commerce_entitlements"
+        ENABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+      `);
+    }
+
+    const fakeReservationId = randomUUID();
+    const fakeResB = randomUUID();
     await database.insert(reportReservations).values({
-      id: randomUUID(),
+      id: fakeReservationId,
       reportId: fakeResB,
       reportVersionId: randomUUID(),
       entitlementId: fakeEntitlementB,
@@ -715,10 +1060,19 @@ describe("commerce repository - library and order history (WP-03)", () => {
       sku: "ZIWEI-IDENTITY-P0",
     });
 
-    const histAfterFakeB = await repo.readOrderHistory(ownerA.actor);
-    const orderA3Found = histAfterFakeB.orders.find((o) => o.id === orderA3Id);
-    expect(orderA3Found?.reportId).toBeNull();
-    expect(orderA3Found?.readUrl).toBeNull();
+    try {
+      const histAfterFakeB = await repo.readOrderHistory(ownerA.actor);
+      const orderA3Found = histAfterFakeB.orders.find((o) => o.id === orderA3Id);
+      expect(orderA3Found?.reportId).toBeNull();
+      expect(orderA3Found?.readUrl).toBeNull();
+    } finally {
+      await database
+        .delete(reportReservations)
+        .where(eq(reportReservations.id, fakeReservationId));
+      await database
+        .delete(commerceEntitlements)
+        .where(eq(commerceEntitlements.id, fakeEntitlementB));
+    }
 
     // Scenario 5: Corrupted entitlement/reservation/version chain attempting to expose another owner report
     const ownerBVictim = await createOwnerFixture({ displayName: "Nạn Nhân B" });
@@ -1172,46 +1526,76 @@ describe("commerce repository - library and order history (WP-03)", () => {
       .from(reportReservations)
       .where(eq(reportReservations.entitlementId, entitlement1!.id));
 
-    // Tamper entitlement SKU to be different from order.sku
-    await database
-      .update(commerceEntitlements)
-      .set({ sku: "ZIWEI-CAREER-P0" })
-      .where(eq(commerceEntitlements.id, entitlement1!.id));
-
-    // Complete report version
-    await database.insert(reportVersions).values({
-      id: randomUUID(),
-      reportId: reservation1!.reportId,
-      reportVersionId: reservation1!.reportVersionId,
-      entitlementId: entitlement1!.id,
-      chartVersionId: reservation1!.chartVersionId,
-      evidenceVersionId: reservation1!.evidenceVersionId,
-      knowledgeVersionId: reservation1!.knowledgeVersionId,
-      promptVersion: reservation1!.promptVersion,
-      reportConfigVersion: reservation1!.reportConfigVersion,
-      templateVersion: "1.0",
-      locale: reservation1!.locale,
-      sku: reservation1!.sku,
-      providerId: "openai",
-      modelId: "gpt-4o",
-      structuredContent: {},
-      htmlContent: "<p>SKU mismatch test</p>",
-      contentHash: "3".repeat(64),
-      pdfAssetId: randomUUID(),
-      renderVersion: "1.0",
+    // The production relation trigger rejects direct lineage corruption.
+    await expect(
+      database
+        .update(commerceEntitlements)
+        .set({ sku: "ZIWEI-CAREER-P0" })
+        .where(eq(commerceEntitlements.id, entitlement1!.id)),
+    ).rejects.toMatchObject({
+      cause: expect.objectContaining({
+        message: "order entitlement must match its content purchase order and owner",
+      }),
     });
 
-    const lib1 = await repo.readAccountLibrary(owner1.actor);
-    const item1 = lib1.items.find((i) => i.orderId === order1.value.id);
-    expect(item1).toBeDefined();
-    expect(item1?.readUrl).toBeNull();
-    expect(item1?.reportId).toBeNull();
+    // Preserve reader hardening coverage for legacy corrupt rows only.
+    await database.execute(sql`
+      ALTER TABLE "commerce_entitlements"
+      DISABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+    `);
+    try {
+      await database
+        .update(commerceEntitlements)
+        .set({ sku: "ZIWEI-CAREER-P0" })
+        .where(eq(commerceEntitlements.id, entitlement1!.id));
+    } finally {
+      await database.execute(sql`
+        ALTER TABLE "commerce_entitlements"
+        ENABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+      `);
+    }
 
-    const hist1 = await repo.readOrderHistory(owner1.actor);
-    const order1Found = hist1.orders.find((o) => o.id === order1.value.id);
-    expect(order1Found).toBeDefined();
-    expect(order1Found?.readUrl).toBeNull();
-    expect(order1Found?.reportId).toBeNull();
+    try {
+      // Complete report version
+      await database.insert(reportVersions).values({
+        id: randomUUID(),
+        reportId: reservation1!.reportId,
+        reportVersionId: reservation1!.reportVersionId,
+        entitlementId: entitlement1!.id,
+        chartVersionId: reservation1!.chartVersionId,
+        evidenceVersionId: reservation1!.evidenceVersionId,
+        knowledgeVersionId: reservation1!.knowledgeVersionId,
+        promptVersion: reservation1!.promptVersion,
+        reportConfigVersion: reservation1!.reportConfigVersion,
+        templateVersion: "1.0",
+        locale: reservation1!.locale,
+        sku: reservation1!.sku,
+        providerId: "openai",
+        modelId: "gpt-4o",
+        structuredContent: {},
+        htmlContent: "<p>SKU mismatch test</p>",
+        contentHash: "3".repeat(64),
+        pdfAssetId: randomUUID(),
+        renderVersion: "1.0",
+      });
+
+      const lib1 = await repo.readAccountLibrary(owner1.actor);
+      const item1 = lib1.items.find((i) => i.orderId === order1.value.id);
+      expect(item1).toBeDefined();
+      expect(item1?.readUrl).toBeNull();
+      expect(item1?.reportId).toBeNull();
+
+      const hist1 = await repo.readOrderHistory(owner1.actor);
+      const order1Found = hist1.orders.find((o) => o.id === order1.value.id);
+      expect(order1Found).toBeDefined();
+      expect(order1Found?.readUrl).toBeNull();
+      expect(order1Found?.reportId).toBeNull();
+    } finally {
+      await database
+        .update(commerceEntitlements)
+        .set({ sku: "ZIWEI-IDENTITY-P0" })
+        .where(eq(commerceEntitlements.id, entitlement1!.id));
+    }
 
     // 2. Reservation / Version SKU mismatch
     const owner2 = await createOwnerFixture({ displayName: "Chủ Thể SKU 2" });

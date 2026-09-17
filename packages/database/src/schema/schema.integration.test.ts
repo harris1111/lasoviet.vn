@@ -52,6 +52,17 @@ import {
   analyticsFraudIpRecords,
   analyticsVisitors,
 } from "./analytics.js";
+import {
+  walletAccounts,
+  walletCommandReceipts,
+  walletCreditLots,
+  walletLedgerEntries,
+  walletPurchaseIntents,
+  walletRestorationAllocations,
+  walletSpendAllocations,
+  walletTransactions,
+} from "./wallet-commerce.js";
+import { generatedPreviewRequests, generatedPreviewSections } from "./generated-preview.js";
 
 describe("database schema integration", () => {
   let container:
@@ -90,6 +101,1695 @@ describe("database schema integration", () => {
     expect(supportCases.assetId).toBeDefined();
     expect(supportCases.failureStage).toBeDefined();
     expect(notificationDeliveries.kind).toBeDefined();
+    expect(walletAccounts.ownerId).toBeDefined();
+    expect(walletTransactions.idempotencyKey).toBeDefined();
+    expect(walletCreditLots.remainingLa).toBeDefined();
+    expect(walletLedgerEntries.amountLa).toBeDefined();
+    expect(walletSpendAllocations.bucket).toBeDefined();
+    expect(generatedPreviewRequests.leaseExpiresAt).toBeDefined();
+    expect(generatedPreviewSections.safeExcerpt).toBeDefined();
+  });
+
+  it("enforces immutable wallet purchase intent locale and SKU combinations in PostgreSQL", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-locale-owner";
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet Locale Owner",
+      email: "wallet-locale-owner@example.test",
+      emailVerified: true,
+    });
+    await database.insert(walletPurchaseIntents).values([
+      {
+        id: "10000000-0000-4000-8000-000000000037",
+        ownerId,
+        chartId: "wallet-locale-identity-vi",
+        chartVersionId: "wallet-locale-identity-version-vi",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+        priceLa: 960,
+      },
+      {
+        id: "10000000-0000-4000-8000-000000000038",
+        ownerId,
+        chartId: "wallet-locale-identity-en",
+        chartVersionId: "wallet-locale-identity-version-en",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "en",
+        priceLa: 720,
+      },
+      {
+        id: "10000000-0000-4000-8000-000000000039",
+        ownerId,
+        chartId: "wallet-locale-excerpt-vi",
+        chartVersionId: "wallet-locale-excerpt-version-vi",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      },
+    ]);
+    await expect(database.insert(walletPurchaseIntents).values({
+      id: "10000000-0000-4000-8000-000000000040",
+      ownerId,
+      chartId: "wallet-locale-excerpt-en",
+      chartVersionId: "wallet-locale-excerpt-version-en",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "en",
+      priceLa: 240,
+    })).rejects.toBeDefined();
+  });
+
+  it("backfills a valid 0036 wallet intent through only 0037 and restores the current schema", async () => {
+    const client = postgres(databaseUrl);
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-0036-to-0037-owner";
+    const legacyIntentId = "10000000-0000-4000-8000-000000000041";
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet 0037 Upgrade Owner",
+      email: "wallet-0037-upgrade@example.test",
+      emailVerified: true,
+    });
+
+    try {
+      await client`
+        ALTER TABLE wallet_purchase_intents
+        DROP CONSTRAINT wallet_purchase_intents_valid
+      `;
+      await client`
+        ALTER TABLE wallet_purchase_intents
+        DROP COLUMN locale
+      `;
+      await client`
+        ALTER TABLE wallet_purchase_intents
+        ADD CONSTRAINT wallet_purchase_intents_valid CHECK (
+          (
+            (sku = 'ZIWEI-NATAL-EXCERPT-P0' AND price_la = 240) OR
+            (sku = 'ZIWEI-IDENTITY-P0' AND price_la IN (720, 960))
+          ) AND
+          status IN ('pending', 'completed', 'cancelled', 'expired') AND
+          state_version > 0
+        )
+      `;
+      await client`
+        DELETE FROM drizzle.__drizzle_migrations
+        WHERE created_at = 1790812980000
+      `;
+      await client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, price_la, status, state_version
+        ) VALUES (
+          ${legacyIntentId}, ${ownerId}, 'wallet-0036-chart', 'wallet-0036-version',
+          'ZIWEI-NATAL-EXCERPT-P0', 240, 'pending', 1
+        )
+      `;
+
+      await runMigrations(databaseUrl);
+
+      const [backfilled] = await client<{ locale: string }[]>`
+        SELECT locale FROM wallet_purchase_intents WHERE id = ${legacyIntentId}
+      `;
+      expect(backfilled?.locale).toBe("vi");
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000042', ${ownerId}, 'wallet-0037-null-chart',
+          'wallet-0037-null-version', 'ZIWEI-IDENTITY-P0', ${null}, 960, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000043', ${ownerId}, 'wallet-0037-identity-chart',
+          'wallet-0037-identity-version', 'ZIWEI-IDENTITY-P0', 'en', 960, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000044', ${ownerId}, 'wallet-0037-excerpt-chart',
+          'wallet-0037-excerpt-version', 'ZIWEI-NATAL-EXCERPT-P0', 'en', 240, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+    } finally {
+      await runMigrations(databaseUrl);
+      await client.end();
+    }
+  });
+
+  it("rejects invalid wallet, revenue, receipt, entitlement, and preview lineage in PostgreSQL", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-lineage-owner";
+    const unverifiedOwnerId = "wallet-lineage-unverified";
+    const walletId = "10000000-0000-4000-8000-000000000001";
+    const topUpOrderId = "10000000-0000-4000-8000-000000000002";
+    const grantId = "10000000-0000-4000-8000-000000000003";
+    const lotId = "10000000-0000-4000-8000-000000000004";
+    const intentId = "10000000-0000-4000-8000-000000000005";
+    const spendId = "10000000-0000-4000-8000-000000000006";
+
+    await database.insert(authUsers).values([
+      { id: ownerId, name: "Wallet Lineage Owner", email: "wallet-lineage-owner@example.test", emailVerified: true },
+      { id: unverifiedOwnerId, name: "Unverified Wallet Owner", email: "wallet-lineage-unverified@example.test" },
+    ]);
+    await expect(database.insert(walletAccounts).values({
+      id: "10000000-0000-4000-8000-000000000000",
+      ownerId: unverifiedOwnerId,
+    })).rejects.toBeDefined();
+    await database.insert(walletAccounts).values({ id: walletId, ownerId });
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode: "LSVABD123EFG",
+      invoiceNumber: "LSV-WALLET-LINEAGE-001",
+      kind: "wallet_topup",
+      ownerId,
+      sku: "LA-ENTRY-300",
+      amount: 29000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await expect(database.insert(commerceOrders).values({
+      id: "10000000-0000-4000-8000-000000000007",
+      paymentCode: "LSVABD123EFH",
+      invoiceNumber: "LSV-WALLET-LINEAGE-002",
+      kind: "wallet_topup",
+      ownerId,
+      sku: "LA-ENTRY-300",
+      amount: 1,
+      currency: "VND",
+      locale: "vi",
+      status: "pending",
+    })).rejects.toBeDefined();
+    await expect(database.transaction(async (transaction) => {
+      await transaction.insert(walletPurchaseIntents).values({
+        id: "10000000-0000-4000-8000-000000000008",
+        ownerId,
+        chartId: "wallet-lineage-invalid-chart",
+        chartVersionId: "wallet-lineage-invalid-version",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: "10000000-0000-4000-8000-000000000009",
+        walletId,
+        kind: "spend",
+        idempotencyKey: "wallet-lineage-invalid-spend",
+        fingerprint: "invalid-spend-fingerprint",
+        purchaseIntentId: "10000000-0000-4000-8000-000000000008",
+      });
+      await transaction.insert(walletSpendAllocations).values({
+        id: "10000000-0000-4000-8000-000000000010",
+        spendTransactionId: "10000000-0000-4000-8000-000000000009",
+        creditLotId: lotId,
+        bucket: "purchased",
+        amountLa: 240,
+        purchasedLa: 240,
+        recognizedVnd: 1,
+      });
+    })).rejects.toBeDefined();
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: grantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-lineage-grant",
+        fingerprint: "grant-fingerprint",
+        topUpOrderId,
+      });
+      await transaction.insert(walletCreditLots).values({
+        id: lotId,
+        walletId,
+        grantTransactionId: grantId,
+        bucket: "purchased",
+        grantedLa: 300,
+        remainingLa: 300,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: grantId,
+        bucket: "purchased",
+        amountLa: 300,
+      });
+      await transaction.insert(walletPurchaseIntents).values({
+        id: intentId,
+        ownerId,
+        chartId: "wallet-lineage-chart",
+        chartVersionId: "wallet-lineage-chart-version",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: spendId,
+        walletId,
+        kind: "spend",
+        idempotencyKey: "wallet-lineage-spend",
+        fingerprint: "spend-fingerprint",
+        purchaseIntentId: intentId,
+      });
+      await transaction.insert(walletSpendAllocations).values({
+        id: "10000000-0000-4000-8000-000000000011",
+        spendTransactionId: spendId,
+        creditLotId: lotId,
+        bucket: "purchased",
+        amountLa: 240,
+        purchasedLa: 240,
+        recognizedVnd: 23200,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: spendId,
+        bucket: "purchased",
+        amountLa: -240,
+      });
+    });
+    await expect(database.insert(walletCommandReceipts).values({
+      walletId,
+      idempotencyKey: "wrong-key",
+      fingerprint: "spend-fingerprint",
+      transactionId: spendId,
+      result: {},
+    })).rejects.toBeDefined();
+    await expect(database.insert(commerceEntitlements).values({
+      ledgerSpendId: spendId,
+      chartId: "another-chart",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      ownerId,
+      scope: TIER_1_ENTITLEMENT_SCOPE,
+    })).rejects.toBeDefined();
+    await expect(database.insert(commerceEntitlements).values({
+      orderId: topUpOrderId,
+      chartId: "wallet-lineage-chart",
+      sku: "LA-ENTRY-300",
+      ownerId,
+      scope: TIER_1_ENTITLEMENT_SCOPE,
+    })).rejects.toBeDefined();
+    const contentOrderId = "10000000-0000-4000-8000-000000000013";
+    await database.insert(commerceOrders).values({
+      id: contentOrderId,
+      paymentCode: "LSVABD123EFK",
+      invoiceNumber: "LSV-WALLET-LINEAGE-CONTENT-001",
+      kind: "content_purchase",
+      chartId: "wallet-lineage-chart",
+      chartVersionId: "wallet-lineage-chart-version",
+      ownerId,
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      amount: 19000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await expect(database.insert(commerceEntitlements).values({
+      orderId: contentOrderId,
+      chartId: "wallet-lineage-chart",
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      ownerId,
+      scope: TIER_1_ENTITLEMENT_SCOPE,
+    })).resolves.toBeDefined();
+    await database.insert(generatedPreviewRequests).values({
+      id: "10000000-0000-4000-8000-000000000010",
+      chartVersionId: "wallet-lineage-preview-version",
+      sourceReference: "10000000-0000-4000-8000-000000000011",
+      idempotencyKey: "preview-one",
+    });
+    await expect(database.insert(generatedPreviewRequests).values({
+      id: "10000000-0000-4000-8000-000000000012",
+      chartVersionId: "wallet-lineage-preview-version",
+      sourceReference: "10000000-0000-4000-8000-000000000013",
+      idempotencyKey: "preview-two",
+    })).rejects.toBeDefined();
+  });
+
+  it("enforces wallet owner, lot, reversal, and ledger authority in PostgreSQL", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-authority-owner";
+    const replacementOwnerId = "wallet-authority-replacement";
+    const walletId = "20000000-0000-4000-8000-000000000001";
+    const topUpOrderId = "20000000-0000-4000-8000-000000000012";
+    const grantId = "20000000-0000-4000-8000-000000000003";
+    const lotId = "20000000-0000-4000-8000-000000000004";
+    const intentId = "20000000-0000-4000-8000-000000000005";
+    const spendId = "20000000-0000-4000-8000-000000000006";
+    const allocationId = "20000000-0000-4000-8000-000000000007";
+    const restorationId = "20000000-0000-4000-8000-000000000008";
+
+    await database.insert(authUsers).values([
+      { id: ownerId, name: "Wallet Authority Owner", email: "wallet-authority-owner@example.test", emailVerified: true },
+      { id: replacementOwnerId, name: "Wallet Authority Replacement", email: "wallet-authority-replacement@example.test", emailVerified: true },
+    ]);
+    await database.insert(walletAccounts).values({ id: walletId, ownerId });
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode: "LSVABD123EFJ",
+      invoiceNumber: "LSV-WALLET-AUTHORITY-001",
+      kind: "wallet_topup",
+      ownerId,
+      sku: "LA-ENTRY-300",
+      amount: 29000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+
+    await expect(database.update(walletAccounts).set({ ownerId: replacementOwnerId }).where(
+      eq(walletAccounts.id, walletId),
+    )).rejects.toBeDefined();
+    await expect(database.update(authUsers).set({ emailVerified: false }).where(
+      eq(authUsers.id, ownerId),
+    )).rejects.toBeDefined();
+    await expect(database.update(authUsers).set({ isAnonymous: true }).where(
+      eq(authUsers.id, ownerId),
+    )).rejects.toBeDefined();
+    await expect(database.insert(walletTransactions).values({
+      id: "20000000-0000-4000-8000-000000000009",
+      walletId,
+      kind: "restoration",
+      idempotencyKey: "wallet-authority-missing-restoration",
+      fingerprint: "missing-restoration-fingerprint",
+      reversalOfTransactionId: "20000000-0000-4000-8000-000000000010",
+    })).rejects.toBeDefined();
+
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: grantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-authority-grant",
+        fingerprint: "authority-grant-fingerprint",
+        topUpOrderId,
+      });
+      await transaction.insert(walletCreditLots).values({
+        id: lotId,
+        walletId,
+        grantTransactionId: grantId,
+        bucket: "purchased",
+        grantedLa: 300,
+        remainingLa: 300,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: grantId,
+        bucket: "purchased",
+        amountLa: 300,
+      });
+      await transaction.insert(walletPurchaseIntents).values({
+        id: intentId,
+        ownerId,
+        chartId: "wallet-authority-chart",
+        chartVersionId: "wallet-authority-chart-version",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: spendId,
+        walletId,
+        kind: "spend",
+        idempotencyKey: "wallet-authority-spend",
+        fingerprint: "authority-spend-fingerprint",
+        purchaseIntentId: intentId,
+      });
+      await transaction.insert(walletSpendAllocations).values({
+        id: allocationId,
+        spendTransactionId: spendId,
+        creditLotId: lotId,
+        bucket: "purchased",
+        amountLa: 240,
+        purchasedLa: 240,
+        recognizedVnd: 23200,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: spendId,
+        bucket: "purchased",
+        amountLa: -240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: restorationId,
+        walletId,
+        kind: "restoration",
+        idempotencyKey: "wallet-authority-restoration",
+        fingerprint: "authority-restoration-fingerprint",
+        reversalOfTransactionId: spendId,
+      });
+      await transaction.insert(walletRestorationAllocations).values({
+        restorationTransactionId: restorationId,
+        spendAllocationId: allocationId,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: restorationId,
+        bucket: "purchased",
+        amountLa: 240,
+      });
+    });
+
+    await expect(database.insert(walletLedgerEntries).values({
+      transactionId: grantId,
+      bucket: "promotional",
+      amountLa: 999999,
+    })).rejects.toBeDefined();
+
+    const immutableLotUpdates = [
+      { walletId: "20000000-0000-4000-8000-000000000011" },
+      { grantTransactionId: spendId },
+      { bucket: "promotional" },
+      { grantedLa: 301 },
+      { grantedAt: new Date("2026-09-17T00:00:00.000Z") },
+      { expiresAt: new Date("2026-09-18T00:00:00.000Z") },
+    ];
+    for (const values of immutableLotUpdates) {
+      await expect(database.update(walletCreditLots).set(values).where(
+        eq(walletCreditLots.id, lotId),
+      )).rejects.toBeDefined();
+    }
+    await expect(database.update(walletCreditLots).set({ remainingLa: 60 }).where(
+      eq(walletCreditLots.id, lotId),
+    )).resolves.toBeDefined();
+
+    const entries = await database.select({
+      transactionId: walletLedgerEntries.transactionId,
+      amountLa: walletLedgerEntries.amountLa,
+    }).from(walletLedgerEntries).where(
+      eq(walletLedgerEntries.bucket, "purchased"),
+    ).orderBy(asc(walletLedgerEntries.transactionId));
+    expect(entries.filter((entry) => [
+      grantId,
+      spendId,
+      restorationId,
+    ].includes(entry.transactionId))).toEqual([
+      { transactionId: grantId, amountLa: 300 },
+      { transactionId: spendId, amountLa: -240 },
+      { transactionId: restorationId, amountLa: 240 },
+    ]);
+  });
+
+  it("enforces exact top-up pack grants while preserving deferred ledger ordering", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-pack-owner";
+    const walletId = "30000000-0000-4000-8000-000000000001";
+    const startOrderId = "30000000-0000-4000-8000-000000000002";
+    const discoverOrderId = "30000000-0000-4000-8000-000000000003";
+    const entryOrderId = "30000000-0000-4000-8000-000000000004";
+    const pendingOrderId = "30000000-0000-4000-8000-000000000005";
+    const refundedOrderId = "30000000-0000-4000-8000-000000000006";
+
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet Pack Owner",
+      email: "wallet-pack-owner@example.test",
+      emailVerified: true,
+    });
+    await database.insert(walletAccounts).values({ id: walletId, ownerId });
+    await database.insert(commerceOrders).values([
+      {
+        id: startOrderId,
+        paymentCode: "LSVWAT123456",
+        invoiceNumber: "LSV-WALLET-PACK-START",
+        kind: "wallet_topup",
+        ownerId,
+        sku: "LA-START-1100",
+        amount: 99000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+      },
+      {
+        id: discoverOrderId,
+        paymentCode: "LSVWAT123457",
+        invoiceNumber: "LSV-WALLET-PACK-DISCOVER",
+        kind: "wallet_topup",
+        ownerId,
+        sku: "LA-DISCOVER-3000",
+        amount: 249000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+      },
+      {
+        id: entryOrderId,
+        paymentCode: "LSVWAT123458",
+        invoiceNumber: "LSV-WALLET-PACK-ENTRY",
+        kind: "wallet_topup",
+        ownerId,
+        sku: "LA-ENTRY-300",
+        amount: 29000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+      },
+      {
+        id: pendingOrderId,
+        paymentCode: "LSVWAT123459",
+        invoiceNumber: "LSV-WALLET-PACK-PENDING",
+        kind: "wallet_topup",
+        ownerId,
+        sku: "LA-ENTRY-300",
+        amount: 29000,
+        currency: "VND",
+        locale: "vi",
+        status: "pending",
+      },
+      {
+        id: refundedOrderId,
+        paymentCode: "LSVWAT123460",
+        invoiceNumber: "LSV-WALLET-PACK-REFUNDED",
+        kind: "wallet_topup",
+        ownerId,
+        sku: "LA-ENTRY-300",
+        amount: 29000,
+        currency: "VND",
+        locale: "vi",
+        status: "refunded",
+      },
+    ]);
+
+    const ledgerFirstGrantId = "30000000-0000-4000-8000-000000000010";
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: ledgerFirstGrantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-pack-ledger-first",
+        fingerprint: "wallet-pack-ledger-first-fingerprint",
+        topUpOrderId: startOrderId,
+      });
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: ledgerFirstGrantId, bucket: "purchased", amountLa: 1000 },
+        { transactionId: ledgerFirstGrantId, bucket: "promotional", amountLa: 100 },
+      ]);
+      await transaction.insert(walletCreditLots).values([
+        {
+          id: "30000000-0000-4000-8000-000000000011",
+          walletId,
+          grantTransactionId: ledgerFirstGrantId,
+          bucket: "purchased",
+          grantedLa: 1000,
+          remainingLa: 1000,
+        },
+        {
+          id: "30000000-0000-4000-8000-000000000012",
+          walletId,
+          grantTransactionId: ledgerFirstGrantId,
+          bucket: "promotional",
+          grantedLa: 100,
+          remainingLa: 100,
+        },
+      ]);
+    });
+
+    const lotsFirstGrantId = "30000000-0000-4000-8000-000000000020";
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: lotsFirstGrantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-pack-lots-first",
+        fingerprint: "wallet-pack-lots-first-fingerprint",
+        topUpOrderId: discoverOrderId,
+      });
+      await transaction.insert(walletCreditLots).values([
+        {
+          id: "30000000-0000-4000-8000-000000000021",
+          walletId,
+          grantTransactionId: lotsFirstGrantId,
+          bucket: "purchased",
+          grantedLa: 2500,
+          remainingLa: 2500,
+        },
+        {
+          id: "30000000-0000-4000-8000-000000000022",
+          walletId,
+          grantTransactionId: lotsFirstGrantId,
+          bucket: "promotional",
+          grantedLa: 500,
+          remainingLa: 500,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: lotsFirstGrantId, bucket: "purchased", amountLa: 2500 },
+        { transactionId: lotsFirstGrantId, bucket: "promotional", amountLa: 500 },
+      ]);
+    });
+
+    const reconciledEntries = await database.select({
+      transactionId: walletLedgerEntries.transactionId,
+      bucket: walletLedgerEntries.bucket,
+      amountLa: walletLedgerEntries.amountLa,
+    }).from(walletLedgerEntries).where(
+      eq(walletLedgerEntries.transactionId, ledgerFirstGrantId),
+    ).orderBy(asc(walletLedgerEntries.bucket));
+    expect(reconciledEntries).toEqual([
+      { transactionId: ledgerFirstGrantId, bucket: "promotional", amountLa: 100 },
+      { transactionId: ledgerFirstGrantId, bucket: "purchased", amountLa: 1000 },
+    ]);
+    await expect(database.insert(walletCreditLots).values({
+      walletId,
+      grantTransactionId: ledgerFirstGrantId,
+      bucket: "purchased",
+      grantedLa: 1,
+      remainingLa: 1,
+    })).rejects.toBeDefined();
+
+    await expect(database.transaction(async (transaction) => {
+      const grantId = "30000000-0000-4000-8000-000000000030";
+      await transaction.insert(walletTransactions).values({
+        id: grantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-pack-wrong-total",
+        fingerprint: "wallet-pack-wrong-total-fingerprint",
+        topUpOrderId: entryOrderId,
+      });
+      await transaction.insert(walletCreditLots).values({
+        walletId,
+        grantTransactionId: grantId,
+        bucket: "purchased",
+        grantedLa: 301,
+        remainingLa: 301,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: grantId,
+        bucket: "purchased",
+        amountLa: 301,
+      });
+    })).rejects.toBeDefined();
+
+    await expect(database.transaction(async (transaction) => {
+      const grantId = "30000000-0000-4000-8000-000000000040";
+      await transaction.insert(walletTransactions).values({
+        id: grantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-pack-extra-bucket",
+        fingerprint: "wallet-pack-extra-bucket-fingerprint",
+        topUpOrderId: entryOrderId,
+      });
+      await transaction.insert(walletCreditLots).values([
+        {
+          walletId,
+          grantTransactionId: grantId,
+          bucket: "purchased",
+          grantedLa: 300,
+          remainingLa: 300,
+        },
+        {
+          walletId,
+          grantTransactionId: grantId,
+          bucket: "promotional",
+          grantedLa: 1,
+          remainingLa: 1,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: grantId, bucket: "purchased", amountLa: 300 },
+        { transactionId: grantId, bucket: "promotional", amountLa: 1 },
+      ]);
+    })).rejects.toBeDefined();
+
+    await expect(database.insert(walletTransactions).values({
+      id: "30000000-0000-4000-8000-000000000050",
+      walletId,
+      kind: "grant",
+      idempotencyKey: "wallet-pack-duplicate-order",
+      fingerprint: "wallet-pack-duplicate-order-fingerprint",
+      topUpOrderId: startOrderId,
+    })).rejects.toBeDefined();
+
+    const rejectedTopUpGrants = [
+      {
+        grantId: "30000000-0000-4000-8000-000000000051",
+        orderId: pendingOrderId,
+        idempotencyKey: "wallet-pack-pending-order",
+      },
+      {
+        grantId: "30000000-0000-4000-8000-000000000052",
+        orderId: refundedOrderId,
+        idempotencyKey: "wallet-pack-refunded-order",
+      },
+    ];
+    for (const rejectedGrant of rejectedTopUpGrants) {
+      await expect(database.transaction(async (transaction) => {
+        await transaction.insert(walletTransactions).values({
+          id: rejectedGrant.grantId,
+          walletId,
+          kind: "grant",
+          idempotencyKey: rejectedGrant.idempotencyKey,
+          fingerprint: `${rejectedGrant.idempotencyKey}-fingerprint`,
+          topUpOrderId: rejectedGrant.orderId,
+        });
+        await transaction.insert(walletCreditLots).values({
+          walletId,
+          grantTransactionId: rejectedGrant.grantId,
+          bucket: "purchased",
+          grantedLa: 300,
+          remainingLa: 300,
+        });
+        await transaction.insert(walletLedgerEntries).values({
+          transactionId: rejectedGrant.grantId,
+          bucket: "purchased",
+          amountLa: 300,
+        });
+      })).rejects.toBeDefined();
+
+      const [rejectedTransaction] = await database.select({
+        id: walletTransactions.id,
+      }).from(walletTransactions).where(
+        eq(walletTransactions.id, rejectedGrant.grantId),
+      );
+      const rejectedLots = await database.select({
+        id: walletCreditLots.id,
+      }).from(walletCreditLots).where(
+        eq(walletCreditLots.grantTransactionId, rejectedGrant.grantId),
+      );
+      const rejectedEntries = await database.select({
+        id: walletLedgerEntries.id,
+      }).from(walletLedgerEntries).where(
+        eq(walletLedgerEntries.transactionId, rejectedGrant.grantId),
+      );
+      expect(rejectedTransaction).toBeUndefined();
+      expect(rejectedLots).toEqual([]);
+      expect(rejectedEntries).toEqual([]);
+    }
+
+    const promotionalGrantId = "30000000-0000-4000-8000-000000000060";
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: promotionalGrantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-pack-promotional-control",
+        fingerprint: "wallet-pack-promotional-control-fingerprint",
+      });
+      await transaction.insert(walletCreditLots).values({
+        walletId,
+        grantTransactionId: promotionalGrantId,
+        bucket: "promotional",
+        grantedLa: 750,
+        remainingLa: 750,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: promotionalGrantId,
+        bucket: "promotional",
+        amountLa: 750,
+      });
+    });
+
+    await expect(database.transaction(async (transaction) => {
+      const grantId = "30000000-0000-4000-8000-000000000070";
+      await transaction.insert(walletTransactions).values({
+        id: grantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-pack-unlinked-purchased",
+        fingerprint: "wallet-pack-unlinked-purchased-fingerprint",
+      });
+      await transaction.insert(walletCreditLots).values({
+        walletId,
+        grantTransactionId: grantId,
+        bucket: "purchased",
+        grantedLa: 1,
+        remainingLa: 1,
+      });
+    })).rejects.toBeDefined();
+
+    await expect(database.delete(authUsers).where(
+      eq(authUsers.id, ownerId),
+    )).rejects.toBeDefined();
+  });
+
+  it("requires spend allocations to equal the immutable intent price across buckets", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-spend-price-owner";
+    const walletId = "40000000-0000-4000-8000-000000000001";
+    const topUpOrderId = "40000000-0000-4000-8000-000000000002";
+    const purchasedGrantId = "40000000-0000-4000-8000-000000000003";
+    const purchasedLotId = "40000000-0000-4000-8000-000000000004";
+    const promotionalGrantId = "40000000-0000-4000-8000-000000000005";
+    const promotionalLotId = "40000000-0000-4000-8000-000000000006";
+
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet Spend Price Owner",
+      email: "wallet-spend-price-owner@example.test",
+      emailVerified: true,
+    });
+    await database.insert(walletAccounts).values({ id: walletId, ownerId });
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode: "LSVWSP123456",
+      invoiceNumber: "LSV-WALLET-SPEND-PRICE-001",
+      kind: "wallet_topup",
+      ownerId,
+      sku: "LA-ENTRY-300",
+      amount: 29000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: purchasedGrantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-spend-price-purchased",
+        fingerprint: "wallet-spend-price-purchased-fingerprint",
+        topUpOrderId,
+      });
+      await transaction.insert(walletCreditLots).values({
+        id: purchasedLotId,
+        walletId,
+        grantTransactionId: purchasedGrantId,
+        bucket: "purchased",
+        grantedLa: 300,
+        remainingLa: 300,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: purchasedGrantId,
+        bucket: "purchased",
+        amountLa: 300,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: promotionalGrantId,
+        walletId,
+        kind: "grant",
+        idempotencyKey: "wallet-spend-price-promotional",
+        fingerprint: "wallet-spend-price-promotional-fingerprint",
+      });
+      await transaction.insert(walletCreditLots).values({
+        id: promotionalLotId,
+        walletId,
+        grantTransactionId: promotionalGrantId,
+        bucket: "promotional",
+        grantedLa: 300,
+        remainingLa: 300,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: promotionalGrantId,
+        bucket: "promotional",
+        amountLa: 300,
+      });
+    });
+
+    for (const [amountLa, intentId, spendId] of [
+      [239, "40000000-0000-4000-8000-000000000239", "40000000-0000-4000-8000-000000000139"],
+      [241, "40000000-0000-4000-8000-000000000241", "40000000-0000-4000-8000-000000000141"],
+    ] as const) {
+      await expect(database.transaction(async (transaction) => {
+        await transaction.insert(walletPurchaseIntents).values({
+          id: intentId,
+          ownerId,
+          chartId: `wallet-spend-price-chart-${amountLa}`,
+          chartVersionId: `wallet-spend-price-version-${amountLa}`,
+          sku: "ZIWEI-NATAL-EXCERPT-P0",
+          locale: "vi",
+          priceLa: 240,
+        });
+        await transaction.insert(walletTransactions).values({
+          id: spendId,
+          walletId,
+          kind: "spend",
+          idempotencyKey: `wallet-spend-price-${amountLa}`,
+          fingerprint: `wallet-spend-price-${amountLa}-fingerprint`,
+          purchaseIntentId: intentId,
+        });
+        await transaction.insert(walletSpendAllocations).values({
+          spendTransactionId: spendId,
+          creditLotId: promotionalLotId,
+          bucket: "promotional",
+          amountLa,
+          purchasedLa: 0,
+          recognizedVnd: 0,
+        });
+        await transaction.insert(walletLedgerEntries).values({
+          transactionId: spendId,
+          bucket: "promotional",
+          amountLa: -amountLa,
+        });
+      })).rejects.toBeDefined();
+    }
+
+    const intentId = "40000000-0000-4000-8000-000000000007";
+    const spendId = "40000000-0000-4000-8000-000000000008";
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletPurchaseIntents).values({
+        id: intentId,
+        ownerId,
+        chartId: "wallet-spend-price-chart-valid",
+        chartVersionId: "wallet-spend-price-version-valid",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: spendId,
+        walletId,
+        kind: "spend",
+        idempotencyKey: "wallet-spend-price-valid",
+        fingerprint: "wallet-spend-price-valid-fingerprint",
+        purchaseIntentId: intentId,
+      });
+      await transaction.insert(walletSpendAllocations).values([
+        {
+          spendTransactionId: spendId,
+          creditLotId: promotionalLotId,
+          bucket: "promotional",
+          amountLa: 60,
+          purchasedLa: 0,
+          recognizedVnd: 0,
+        },
+        {
+          spendTransactionId: spendId,
+          creditLotId: purchasedLotId,
+          bucket: "purchased",
+          amountLa: 180,
+          purchasedLa: 180,
+          recognizedVnd: 17400,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: spendId, bucket: "promotional", amountLa: -60 },
+        { transactionId: spendId, bucket: "purchased", amountLa: -180 },
+      ]);
+    });
+  });
+
+  it("uses cumulative-floor recognition for non-divisible purchased lot consumption", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-cumulative-floor-owner";
+    const walletId = "45000000-0000-4000-8000-000000000001";
+    const topUpOrderId = "45000000-0000-4000-8000-000000000002";
+    const purchasedGrantId = "45000000-0000-4000-8000-000000000003";
+    const purchasedLotId = "45000000-0000-4000-8000-000000000004";
+    const packPromotionalLotId = "45000000-0000-4000-8000-000000000005";
+    const controlledPromotionalGrantId = "45000000-0000-4000-8000-000000000006";
+    const controlledPromotionalLotId = "45000000-0000-4000-8000-000000000007";
+    let sequence = 0;
+
+    const nextId = () => `45000000-0000-4000-8000-${String(++sequence + 100).padStart(12, "0")}`;
+    const createSpend = async (
+      allocations: Array<{
+        creditLotId: string;
+        bucket: "purchased" | "promotional";
+        amountLa: number;
+        recognizedVnd: number;
+      }>,
+      priceLa: 240 | 720 | 960,
+    ) => {
+      const intentId = nextId();
+      const spendId = nextId();
+      await database.transaction(async (transaction) => {
+        await transaction.insert(walletPurchaseIntents).values({
+          id: intentId,
+          ownerId,
+          chartId: `wallet-cumulative-floor-chart-${spendId}`,
+          chartVersionId: `wallet-cumulative-floor-version-${spendId}`,
+          sku: priceLa === 240 ? "ZIWEI-NATAL-EXCERPT-P0" : "ZIWEI-IDENTITY-P0",
+          locale: "vi",
+          priceLa,
+        });
+        await transaction.insert(walletTransactions).values({
+          id: spendId,
+          walletId,
+          kind: "spend",
+          idempotencyKey: `wallet-cumulative-floor-${spendId}`,
+          fingerprint: `wallet-cumulative-floor-${spendId}-fingerprint`,
+          purchaseIntentId: intentId,
+        });
+        await transaction.insert(walletSpendAllocations).values(allocations.map((allocation) => ({
+          spendTransactionId: spendId,
+          creditLotId: allocation.creditLotId,
+          bucket: allocation.bucket,
+          amountLa: allocation.amountLa,
+          purchasedLa: allocation.bucket === "purchased" ? allocation.amountLa : 0,
+          recognizedVnd: allocation.recognizedVnd,
+        })));
+        await transaction.insert(walletLedgerEntries).values(allocations.map((allocation) => ({
+          transactionId: spendId,
+          bucket: allocation.bucket,
+          amountLa: -allocation.amountLa,
+        })));
+      });
+      return spendId;
+    };
+
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet Cumulative Floor Owner",
+      email: "wallet-cumulative-floor-owner@example.test",
+      emailVerified: true,
+    });
+    await database.insert(walletAccounts).values({ id: walletId, ownerId });
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode: "LSVCDF123456",
+      invoiceNumber: "LSV-WALLET-CUMULATIVE-FLOOR-001",
+      kind: "wallet_topup",
+      ownerId,
+      sku: "LA-LIBRARY-8000",
+      amount: 599000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values([
+        {
+          id: purchasedGrantId,
+          walletId,
+          kind: "grant",
+          idempotencyKey: "wallet-cumulative-floor-pack",
+          fingerprint: "wallet-cumulative-floor-pack-fingerprint",
+          topUpOrderId,
+        },
+        {
+          id: controlledPromotionalGrantId,
+          walletId,
+          kind: "grant",
+          idempotencyKey: "wallet-cumulative-floor-controlled-promotional",
+          fingerprint: "wallet-cumulative-floor-controlled-promotional-fingerprint",
+        },
+      ]);
+      await transaction.insert(walletCreditLots).values([
+        {
+          id: purchasedLotId,
+          walletId,
+          grantTransactionId: purchasedGrantId,
+          bucket: "purchased",
+          grantedLa: 6000,
+          remainingLa: 6000,
+        },
+        {
+          id: packPromotionalLotId,
+          walletId,
+          grantTransactionId: purchasedGrantId,
+          bucket: "promotional",
+          grantedLa: 2000,
+          remainingLa: 2000,
+        },
+        {
+          id: controlledPromotionalLotId,
+          walletId,
+          grantTransactionId: controlledPromotionalGrantId,
+          bucket: "promotional",
+          grantedLa: 160,
+          remainingLa: 160,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: purchasedGrantId, bucket: "purchased", amountLa: 6000 },
+        { transactionId: purchasedGrantId, bucket: "promotional", amountLa: 2000 },
+        { transactionId: controlledPromotionalGrantId, bucket: "promotional", amountLa: 160 },
+      ]);
+    });
+
+    for (let index = 0; index < 8; index += 1) {
+      await createSpend([{
+        creditLotId: packPromotionalLotId,
+        bucket: "promotional",
+        amountLa: 240,
+        recognizedVnd: 0,
+      }], 240);
+    }
+
+    const firstPurchasedSpendId = await createSpend([
+      {
+        creditLotId: packPromotionalLotId,
+        bucket: "promotional",
+        amountLa: 80,
+        recognizedVnd: 0,
+      },
+      {
+        creditLotId: purchasedLotId,
+        bucket: "purchased",
+        amountLa: 160,
+        recognizedVnd: 15973,
+      },
+    ], 240);
+    const firstPurchasedAllocation = await database.select({
+      recognizedVnd: walletSpendAllocations.recognizedVnd,
+    }).from(walletSpendAllocations).where(
+      eq(walletSpendAllocations.spendTransactionId, firstPurchasedSpendId),
+    );
+    expect(firstPurchasedAllocation).toContainEqual({ recognizedVnd: 15973 });
+
+    await expect(createSpend([{
+      creditLotId: purchasedLotId,
+      bucket: "purchased",
+      amountLa: 240,
+      recognizedVnd: 23959,
+    }], 240)).rejects.toBeDefined();
+    await expect(createSpend([{
+      creditLotId: purchasedLotId,
+      bucket: "purchased",
+      amountLa: 240,
+      recognizedVnd: 23961,
+    }], 240)).rejects.toBeDefined();
+
+    const residualCarrySpendId = await createSpend([{
+      creditLotId: purchasedLotId,
+      bucket: "purchased",
+      amountLa: 240,
+      recognizedVnd: 23960,
+    }], 240);
+    const residualCarryAllocation = await database.select({
+      recognizedVnd: walletSpendAllocations.recognizedVnd,
+    }).from(walletSpendAllocations).where(
+      eq(walletSpendAllocations.spendTransactionId, residualCarrySpendId),
+    );
+    expect(residualCarryAllocation).toEqual([{ recognizedVnd: 23960 }]);
+
+    for (let index = 0; index < 5; index += 1) {
+      const cumulativePurchasedLa = 400 + ((index + 1) * 960);
+      const priorPurchasedLa = cumulativePurchasedLa - 960;
+      await createSpend([{
+        creditLotId: purchasedLotId,
+        bucket: "purchased",
+        amountLa: 960,
+        recognizedVnd: Math.floor((cumulativePurchasedLa * 599000) / 6000)
+          - Math.floor((priorPurchasedLa * 599000) / 6000),
+      }], 960);
+    }
+
+    await createSpend([
+      {
+        creditLotId: purchasedLotId,
+        bucket: "purchased",
+        amountLa: 800,
+        recognizedVnd: 79867,
+      },
+      {
+        creditLotId: controlledPromotionalLotId,
+        bucket: "promotional",
+        amountLa: 160,
+        recognizedVnd: 0,
+      },
+    ], 960);
+
+    const purchasedAllocations = await database.select({
+      purchasedLa: walletSpendAllocations.purchasedLa,
+      recognizedVnd: walletSpendAllocations.recognizedVnd,
+    }).from(walletSpendAllocations).where(
+      eq(walletSpendAllocations.creditLotId, purchasedLotId),
+    );
+    const totalPurchasedLa = purchasedAllocations.reduce(
+      (total, allocation) => total + allocation.purchasedLa,
+      0,
+    );
+    const totalRecognizedVnd = purchasedAllocations.reduce(
+      (total, allocation) => total + allocation.recognizedVnd,
+      0,
+    );
+    expect(totalPurchasedLa).toBe(6000);
+    expect(totalRecognizedVnd).toBeLessThanOrEqual(599000);
+    expect(totalRecognizedVnd).toBe(599000);
+  });
+
+  it("uses active allocations to compensate non-LIFO purchased-lot restoration and re-spend", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-restoration-rounding-owner";
+    const walletId = "46000000-0000-4000-8000-000000000001";
+    const topUpOrderId = "46000000-0000-4000-8000-000000000002";
+    const purchasedGrantId = "46000000-0000-4000-8000-000000000003";
+    const promotionalGrantId = "46000000-0000-4000-8000-000000000004";
+    const purchasedLotId = "46000000-0000-4000-8000-000000000005";
+    const packPromotionalLotId = "46000000-0000-4000-8000-000000000006";
+    const controlledPromotionalLotId = "46000000-0000-4000-8000-000000000007";
+    const firstIntentId = "46000000-0000-4000-8000-000000000008";
+    const firstSpendId = "46000000-0000-4000-8000-000000000009";
+    const firstPurchasedAllocationId = "46000000-0000-4000-8000-000000000010";
+    const firstPromotionalAllocationId = "46000000-0000-4000-8000-000000000011";
+    const secondIntentId = "46000000-0000-4000-8000-000000000012";
+    const secondSpendId = "46000000-0000-4000-8000-000000000013";
+    const restorationId = "46000000-0000-4000-8000-000000000014";
+    const thirdIntentId = "46000000-0000-4000-8000-000000000015";
+    const thirdSpendId = "46000000-0000-4000-8000-000000000016";
+
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet Restoration Rounding Owner",
+      email: "wallet-restoration-rounding@example.test",
+      emailVerified: true,
+    });
+    await database.insert(walletAccounts).values({ id: walletId, ownerId });
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode: "LSVRND123456",
+      invoiceNumber: "LSV-WALLET-RESTORATION-ROUNDING-001",
+      kind: "wallet_topup",
+      ownerId,
+      sku: "LA-LIBRARY-8000",
+      amount: 599000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values([
+        {
+          id: purchasedGrantId,
+          walletId,
+          kind: "grant",
+          idempotencyKey: "wallet-restoration-rounding-pack",
+          fingerprint: "wallet-restoration-rounding-pack-fingerprint",
+          topUpOrderId,
+        },
+        {
+          id: promotionalGrantId,
+          walletId,
+          kind: "grant",
+          idempotencyKey: "wallet-restoration-rounding-promotional",
+          fingerprint: "wallet-restoration-rounding-promotional-fingerprint",
+        },
+      ]);
+      await transaction.insert(walletCreditLots).values([
+        {
+          id: purchasedLotId,
+          walletId,
+          grantTransactionId: purchasedGrantId,
+          bucket: "purchased",
+          grantedLa: 6000,
+          remainingLa: 6000,
+        },
+        {
+          id: packPromotionalLotId,
+          walletId,
+          grantTransactionId: purchasedGrantId,
+          bucket: "promotional",
+          grantedLa: 2000,
+          remainingLa: 2000,
+        },
+        {
+          id: controlledPromotionalLotId,
+          walletId,
+          grantTransactionId: promotionalGrantId,
+          bucket: "promotional",
+          grantedLa: 720,
+          remainingLa: 720,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: purchasedGrantId, bucket: "purchased", amountLa: 6000 },
+        { transactionId: purchasedGrantId, bucket: "promotional", amountLa: 2000 },
+        { transactionId: promotionalGrantId, bucket: "promotional", amountLa: 720 },
+      ]);
+    });
+
+    const insertOneLaSpend = async (
+      intentId: string,
+      spendId: string,
+      recognizedVnd: number,
+      purchasedAllocationId?: string,
+    ) => database.transaction(async (transaction) => {
+      await transaction.insert(walletPurchaseIntents).values({
+        id: intentId,
+        ownerId,
+        chartId: `wallet-restoration-rounding-chart-${spendId}`,
+        chartVersionId: `wallet-restoration-rounding-version-${spendId}`,
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: spendId,
+        walletId,
+        kind: "spend",
+        idempotencyKey: `wallet-restoration-rounding-${spendId}`,
+        fingerprint: `wallet-restoration-rounding-${spendId}-fingerprint`,
+        purchaseIntentId: intentId,
+      });
+      await transaction.insert(walletSpendAllocations).values([
+        {
+          ...(purchasedAllocationId ? { id: purchasedAllocationId } : {}),
+          spendTransactionId: spendId,
+          creditLotId: purchasedLotId,
+          bucket: "purchased",
+          amountLa: 1,
+          purchasedLa: 1,
+          recognizedVnd,
+        },
+        {
+          ...(purchasedAllocationId ? { id: firstPromotionalAllocationId } : {}),
+          spendTransactionId: spendId,
+          creditLotId: controlledPromotionalLotId,
+          bucket: "promotional",
+          amountLa: 239,
+          purchasedLa: 0,
+          recognizedVnd: 0,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: spendId, bucket: "purchased", amountLa: -1 },
+        { transactionId: spendId, bucket: "promotional", amountLa: -239 },
+      ]);
+    });
+
+    await insertOneLaSpend(firstIntentId, firstSpendId, 99, firstPurchasedAllocationId);
+    await insertOneLaSpend(secondIntentId, secondSpendId, 100);
+
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: restorationId,
+        walletId,
+        kind: "restoration",
+        idempotencyKey: "wallet-restoration-rounding-reversal",
+        fingerprint: "wallet-restoration-rounding-reversal-fingerprint",
+        reversalOfTransactionId: firstSpendId,
+      });
+      await transaction.insert(walletRestorationAllocations).values([
+        {
+          restorationTransactionId: restorationId,
+          spendAllocationId: firstPurchasedAllocationId,
+        },
+        {
+          restorationTransactionId: restorationId,
+          spendAllocationId: firstPromotionalAllocationId,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: restorationId, bucket: "purchased", amountLa: 1 },
+        { transactionId: restorationId, bucket: "promotional", amountLa: 239 },
+      ]);
+    });
+
+    const activeBeforeThirdSpend = await database.select({
+      id: walletSpendAllocations.id,
+      purchasedLa: walletSpendAllocations.purchasedLa,
+      recognizedVnd: walletSpendAllocations.recognizedVnd,
+    }).from(walletSpendAllocations).where(
+      eq(walletSpendAllocations.creditLotId, purchasedLotId),
+    );
+    const restoredBeforeThirdSpend = new Set((await database.select({
+      spendAllocationId: walletRestorationAllocations.spendAllocationId,
+    }).from(walletRestorationAllocations).where(
+      eq(walletRestorationAllocations.restorationTransactionId, restorationId),
+    )).map((restoration) => restoration.spendAllocationId));
+    const activeRecognizedBeforeThirdSpend = activeBeforeThirdSpend
+      .filter((allocation) => !restoredBeforeThirdSpend.has(allocation.id))
+      .reduce((sum, allocation) => sum + allocation.recognizedVnd, 0);
+    expect(activeRecognizedBeforeThirdSpend).toBe(100);
+
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletPurchaseIntents).values({
+        id: thirdIntentId,
+        ownerId,
+        chartId: "wallet-restoration-rounding-chart-third",
+        chartVersionId: "wallet-restoration-rounding-version-third",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: thirdSpendId,
+        walletId,
+        kind: "spend",
+        idempotencyKey: "wallet-restoration-rounding-third",
+        fingerprint: "wallet-restoration-rounding-third-fingerprint",
+        purchaseIntentId: thirdIntentId,
+      });
+      await transaction.insert(walletSpendAllocations).values([
+        {
+          spendTransactionId: thirdSpendId,
+          creditLotId: purchasedLotId,
+          bucket: "purchased",
+          amountLa: 1,
+          purchasedLa: 1,
+          recognizedVnd: 99,
+        },
+        {
+          spendTransactionId: thirdSpendId,
+          creditLotId: controlledPromotionalLotId,
+          bucket: "promotional",
+          amountLa: 239,
+          purchasedLa: 0,
+          recognizedVnd: 0,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: thirdSpendId, bucket: "purchased", amountLa: -1 },
+        { transactionId: thirdSpendId, bucket: "promotional", amountLa: -239 },
+      ]);
+    });
+
+    const purchasedAllocations = await database.select({
+      id: walletSpendAllocations.id,
+      purchasedLa: walletSpendAllocations.purchasedLa,
+      recognizedVnd: walletSpendAllocations.recognizedVnd,
+    }).from(walletSpendAllocations).where(
+      eq(walletSpendAllocations.creditLotId, purchasedLotId),
+    );
+    const restorations = await database.select({
+      spendAllocationId: walletRestorationAllocations.spendAllocationId,
+    }).from(walletRestorationAllocations).where(
+      eq(walletRestorationAllocations.restorationTransactionId, restorationId),
+    );
+    const restoredAllocationIds = new Set(restorations.map((restoration) => restoration.spendAllocationId));
+    const activeAllocations = purchasedAllocations.filter(
+      (allocation) => !restoredAllocationIds.has(allocation.id),
+    );
+
+    expect(purchasedAllocations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: firstPurchasedAllocationId, recognizedVnd: 99 }),
+      expect.objectContaining({ recognizedVnd: 100 }),
+      expect.objectContaining({ recognizedVnd: 99 }),
+    ]));
+    expect(activeAllocations.reduce((sum, allocation) => sum + allocation.purchasedLa, 0)).toBe(2);
+    expect(activeAllocations.reduce((sum, allocation) => sum + allocation.recognizedVnd, 0)).toBe(
+      Math.floor((2 * 599000) / 6000),
+    );
+  });
+
+  it("requires a restoration to restore every allocation from its reversed multi-bucket spend", async () => {
+    const database = createDatabase(databaseUrl);
+    const ownerId = "wallet-restoration-owner";
+    const walletId = "50000000-0000-4000-8000-000000000001";
+    const topUpOrderId = "50000000-0000-4000-8000-000000000002";
+    const purchasedGrantId = "50000000-0000-4000-8000-000000000003";
+    const purchasedLotId = "50000000-0000-4000-8000-000000000004";
+    const promotionalGrantId = "50000000-0000-4000-8000-000000000005";
+    const promotionalLotId = "50000000-0000-4000-8000-000000000006";
+    const intentId = "50000000-0000-4000-8000-000000000007";
+    const spendId = "50000000-0000-4000-8000-000000000008";
+    const purchasedAllocationId = "50000000-0000-4000-8000-000000000009";
+    const promotionalAllocationId = "50000000-0000-4000-8000-000000000010";
+    const partialRestorationId = "50000000-0000-4000-8000-000000000011";
+    const completeRestorationId = "50000000-0000-4000-8000-000000000012";
+    const respendIntentId = "50000000-0000-4000-8000-000000000013";
+    const respendId = "50000000-0000-4000-8000-000000000014";
+
+    await database.insert(authUsers).values({
+      id: ownerId,
+      name: "Wallet Restoration Owner",
+      email: "wallet-restoration-owner@example.test",
+      emailVerified: true,
+    });
+    await database.insert(walletAccounts).values({ id: walletId, ownerId });
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode: "LSVABC123EFH",
+      invoiceNumber: "LSV-WALLET-RESTORATION-001",
+      kind: "wallet_topup",
+      ownerId,
+      sku: "LA-ENTRY-300",
+      amount: 29000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+    });
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values([
+        {
+          id: purchasedGrantId,
+          walletId,
+          kind: "grant",
+          idempotencyKey: "wallet-restoration-purchased-grant",
+          fingerprint: "wallet-restoration-purchased-grant-fingerprint",
+          topUpOrderId,
+        },
+        {
+          id: promotionalGrantId,
+          walletId,
+          kind: "grant",
+          idempotencyKey: "wallet-restoration-promotional-grant",
+          fingerprint: "wallet-restoration-promotional-grant-fingerprint",
+        },
+      ]);
+      await transaction.insert(walletCreditLots).values([
+        {
+          id: purchasedLotId,
+          walletId,
+          grantTransactionId: purchasedGrantId,
+          bucket: "purchased",
+          grantedLa: 300,
+          remainingLa: 300,
+        },
+        {
+          id: promotionalLotId,
+          walletId,
+          grantTransactionId: promotionalGrantId,
+          bucket: "promotional",
+          grantedLa: 60,
+          remainingLa: 60,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: purchasedGrantId, bucket: "purchased", amountLa: 300 },
+        { transactionId: promotionalGrantId, bucket: "promotional", amountLa: 60 },
+      ]);
+      await transaction.insert(walletPurchaseIntents).values({
+        id: intentId,
+        ownerId,
+        chartId: "wallet-restoration-chart",
+        chartVersionId: "wallet-restoration-version",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: spendId,
+        walletId,
+        kind: "spend",
+        idempotencyKey: "wallet-restoration-spend",
+        fingerprint: "wallet-restoration-spend-fingerprint",
+        purchaseIntentId: intentId,
+      });
+      await transaction.insert(walletSpendAllocations).values([
+        {
+          id: purchasedAllocationId,
+          spendTransactionId: spendId,
+          creditLotId: purchasedLotId,
+          bucket: "purchased",
+          amountLa: 180,
+          purchasedLa: 180,
+          recognizedVnd: 17400,
+        },
+        {
+          id: promotionalAllocationId,
+          spendTransactionId: spendId,
+          creditLotId: promotionalLotId,
+          bucket: "promotional",
+          amountLa: 60,
+          purchasedLa: 0,
+          recognizedVnd: 0,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: spendId, bucket: "purchased", amountLa: -180 },
+        { transactionId: spendId, bucket: "promotional", amountLa: -60 },
+      ]);
+    });
+
+    await expect(database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: partialRestorationId,
+        walletId,
+        kind: "restoration",
+        idempotencyKey: "wallet-restoration-partial",
+        fingerprint: "wallet-restoration-partial-fingerprint",
+        reversalOfTransactionId: spendId,
+      });
+      await transaction.insert(walletRestorationAllocations).values({
+        restorationTransactionId: partialRestorationId,
+        spendAllocationId: promotionalAllocationId,
+      });
+      await transaction.insert(walletLedgerEntries).values({
+        transactionId: partialRestorationId,
+        bucket: "promotional",
+        amountLa: 60,
+      });
+    })).rejects.toBeDefined();
+    await expect(database.select().from(walletTransactions).where(
+      eq(walletTransactions.id, partialRestorationId),
+    )).resolves.toEqual([]);
+
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletTransactions).values({
+        id: completeRestorationId,
+        walletId,
+        kind: "restoration",
+        idempotencyKey: "wallet-restoration-complete",
+        fingerprint: "wallet-restoration-complete-fingerprint",
+        reversalOfTransactionId: spendId,
+      });
+      await transaction.insert(walletRestorationAllocations).values([
+        {
+          restorationTransactionId: completeRestorationId,
+          spendAllocationId: purchasedAllocationId,
+        },
+        {
+          restorationTransactionId: completeRestorationId,
+          spendAllocationId: promotionalAllocationId,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: completeRestorationId, bucket: "purchased", amountLa: 180 },
+        { transactionId: completeRestorationId, bucket: "promotional", amountLa: 60 },
+      ]);
+    });
+
+    const restorationEntries = await database.select({
+      bucket: walletLedgerEntries.bucket,
+      amountLa: walletLedgerEntries.amountLa,
+    }).from(walletLedgerEntries).where(
+      eq(walletLedgerEntries.transactionId, completeRestorationId),
+    ).orderBy(asc(walletLedgerEntries.bucket));
+    expect(restorationEntries).toEqual([
+      { bucket: "promotional", amountLa: 60 },
+      { bucket: "purchased", amountLa: 180 },
+    ]);
+
+    await database.transaction(async (transaction) => {
+      await transaction.insert(walletPurchaseIntents).values({
+        id: respendIntentId,
+        ownerId,
+        chartId: "wallet-restoration-respend-chart",
+        chartVersionId: "wallet-restoration-respend-version",
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        locale: "vi",
+        priceLa: 240,
+      });
+      await transaction.insert(walletTransactions).values({
+        id: respendId,
+        walletId,
+        kind: "spend",
+        idempotencyKey: "wallet-restoration-respend",
+        fingerprint: "wallet-restoration-respend-fingerprint",
+        purchaseIntentId: respendIntentId,
+      });
+      await transaction.insert(walletSpendAllocations).values([
+        {
+          spendTransactionId: respendId,
+          creditLotId: purchasedLotId,
+          bucket: "purchased",
+          amountLa: 180,
+          purchasedLa: 180,
+          recognizedVnd: 17400,
+        },
+        {
+          spendTransactionId: respendId,
+          creditLotId: promotionalLotId,
+          bucket: "promotional",
+          amountLa: 60,
+          purchasedLa: 0,
+          recognizedVnd: 0,
+        },
+      ]);
+      await transaction.insert(walletLedgerEntries).values([
+        { transactionId: respendId, bucket: "purchased", amountLa: -180 },
+        { transactionId: respendId, bucket: "promotional", amountLa: -60 },
+      ]);
+    });
+
+    const activePurchasedAllocations = await database.select({
+      purchasedLa: walletSpendAllocations.purchasedLa,
+      recognizedVnd: walletSpendAllocations.recognizedVnd,
+    }).from(walletSpendAllocations).where(
+      eq(walletSpendAllocations.spendTransactionId, respendId),
+    );
+    expect(activePurchasedAllocations).toContainEqual({
+      purchasedLa: 180,
+      recognizedVnd: 17400,
+    });
   });
 
   it("enforces identity, ownership, privacy, and outbox integrity", async () => {
@@ -1054,7 +2754,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-8)).toEqual([
+    expect(journal.entries.slice(-12)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -1111,6 +2811,34 @@ describe("database schema integration", () => {
         tag: "0033_report_assets_and_report_failure_delivery",
         breakpoints: true,
       },
+      {
+        idx: 34,
+        version: "7",
+        when: 1790812800000,
+        tag: "0034_wallet_commerce_foundation",
+        breakpoints: true,
+      },
+      {
+        idx: 35,
+        version: "7",
+        when: 1790812860000,
+        tag: "0035_generated_preview_persistence",
+        breakpoints: true,
+      },
+      {
+        idx: 36,
+        version: "7",
+        when: 1790812920000,
+        tag: "0036_wallet_restoration_respend_reconciliation",
+        breakpoints: true,
+      },
+      {
+        idx: 37,
+        version: "7",
+        when: 1790812980000,
+        tag: "0037_wallet_purchase_intent_locale",
+        breakpoints: true,
+      },
     ]);
   });
 
@@ -1162,7 +2890,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 through 0033 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0037 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -1221,7 +2949,184 @@ describe("database schema integration", () => {
       occurredAt: upgradeNow,
       createdAt: upgradeNow,
     });
+    const historicalOrderId = "20000000-0000-4000-8000-000000000001";
+    const historicalUpgradeOrderId = "20000000-0000-4000-8000-000000000002";
+    const historicalEntitlementId = "20000000-0000-4000-8000-000000000003";
+    await database.insert(commerceOrders).values([
+      {
+        id: historicalOrderId,
+        paymentCode: "LSVABC123DEF",
+        invoiceNumber: "LSV-HISTORICAL-001",
+        chartId: "historical-direct-vnd-chart",
+        chartVersionId: "historical-direct-vnd-version",
+        ownerId: userId,
+        sku: "ZIWEI-NATAL-EXCERPT-P0",
+        amount: 19000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+        paidAt: upgradeNow,
+      },
+      {
+        id: historicalUpgradeOrderId,
+        paymentCode: "LSVABC123DEG",
+        invoiceNumber: "LSV-HISTORICAL-002",
+        chartId: "historical-direct-vnd-chart",
+        chartVersionId: "historical-direct-vnd-version",
+        ownerId: userId,
+        sku: "ZIWEI-IDENTITY-P0",
+        amount: 79000,
+        currency: "VND",
+        locale: "vi",
+        status: "paid",
+        creditApplied: 19000,
+        creditedFromOrderId: historicalOrderId,
+        creditExpiresAt: new Date("2026-09-20T00:00:00.000Z"),
+        paidAt: upgradeNow,
+      },
+    ]);
+    await database.insert(commerceEntitlements).values({
+      id: historicalEntitlementId,
+      orderId: historicalUpgradeOrderId,
+      chartId: "historical-direct-vnd-chart",
+      sku: "ZIWEI-IDENTITY-P0",
+      ownerId: userId,
+      scope: TIER_2_ENTITLEMENT_SCOPE,
+      createdAt: upgradeNow,
+    });
 
+    await client`DROP TABLE IF EXISTS generated_preview_sections`;
+    await client`DROP TABLE IF EXISTS generated_preview_requests`;
+    await client`
+      DROP TRIGGER IF EXISTS auth_users_wallet_owner_state_guard
+      ON auth_users
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_restoration_allocations_ledger_reconciliation
+      ON wallet_restoration_allocations
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_spend_allocations_ledger_reconciliation
+      ON wallet_spend_allocations
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_credit_lots_ledger_reconciliation
+      ON wallet_credit_lots
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_ledger_entries_reconciliation
+      ON wallet_ledger_entries
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_transactions_ledger_reconciliation
+      ON wallet_transactions
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_command_receipts_immutable
+      ON wallet_command_receipts
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_command_receipts_relation_guard
+      ON wallet_command_receipts
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_spend_allocations_immutable
+      ON wallet_spend_allocations
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_spend_allocations_relation_guard
+      ON wallet_spend_allocations
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_restoration_allocations_immutable
+      ON wallet_restoration_allocations
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_restoration_allocations_relation_guard
+      ON wallet_restoration_allocations
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_credit_lots_relation_guard
+      ON wallet_credit_lots
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_credit_lots_source_immutable
+      ON wallet_credit_lots
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_ledger_entries_immutable
+      ON wallet_ledger_entries
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_transactions_immutable
+      ON wallet_transactions
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_transactions_relation_guard
+      ON wallet_transactions
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS wallet_accounts_owner_guard
+      ON wallet_accounts
+    `;
+    await client`
+      DROP TRIGGER IF EXISTS commerce_entitlements_ledger_relation_guard
+      ON commerce_entitlements
+    `;
+    await client`DROP FUNCTION IF EXISTS prevent_wallet_immutable_mutation()`;
+    await client`DROP FUNCTION IF EXISTS prevent_wallet_credit_lot_source_mutation()`;
+    await client`DROP FUNCTION IF EXISTS enforce_wallet_ledger_reconciliation()`;
+    await client`DROP FUNCTION IF EXISTS enforce_wallet_owner_account_state()`;
+    await client`DROP FUNCTION IF EXISTS enforce_wallet_relations()`;
+    await client`
+      ALTER TABLE commerce_entitlements
+      DROP CONSTRAINT IF EXISTS commerce_entitlements_authority_xor
+    `;
+    await client`DROP INDEX IF EXISTS commerce_entitlements_ledger_spend_unique`;
+    await client`
+      ALTER TABLE commerce_entitlements
+      DROP CONSTRAINT IF EXISTS commerce_entitlements_ledger_spend_id_wallet_transactions_id_fk
+    `;
+    await client`
+      ALTER TABLE commerce_entitlements
+      DROP COLUMN IF EXISTS ledger_spend_id
+    `;
+    await client`
+      ALTER TABLE commerce_entitlements
+      ALTER COLUMN order_id SET NOT NULL
+    `;
+    await client`DROP TABLE IF EXISTS wallet_command_receipts`;
+    await client`DROP TABLE IF EXISTS wallet_restoration_allocations`;
+    await client`DROP TABLE IF EXISTS wallet_spend_allocations`;
+    await client`DROP TABLE IF EXISTS wallet_ledger_entries`;
+    await client`DROP TABLE IF EXISTS wallet_credit_lots`;
+    await client`DROP TABLE IF EXISTS wallet_transactions`;
+    await client`DROP TABLE IF EXISTS wallet_purchase_intents`;
+    await client`DROP TABLE IF EXISTS wallet_accounts`;
+    await client`DELETE FROM commerce_orders WHERE kind = 'wallet_topup'`;
+    await client`
+      ALTER TABLE commerce_orders
+      DROP CONSTRAINT IF EXISTS commerce_orders_kind_fields
+    `;
+    await client`
+      ALTER TABLE commerce_orders
+      DROP CONSTRAINT IF EXISTS commerce_orders_kind_valid
+    `;
+    await client`DROP INDEX IF EXISTS commerce_orders_chart_sku_unique`;
+    await client`ALTER TABLE commerce_orders DROP COLUMN IF EXISTS kind`;
+    await client`
+      ALTER TABLE commerce_orders
+      ALTER COLUMN chart_id SET NOT NULL
+    `;
+    await client`
+      ALTER TABLE commerce_orders
+      ALTER COLUMN chart_version_id SET NOT NULL
+    `;
+    await client`
+      CREATE UNIQUE INDEX commerce_orders_chart_sku_unique
+      ON commerce_orders USING btree (chart_id, sku)
+      WHERE status = 'pending'
+    `;
     await client`
       ALTER TABLE report_reservations
       DROP CONSTRAINT IF EXISTS report_reservations_reading_context_revision_id_birth_profile_reading_context_revisions_id_fk
@@ -1237,7 +3142,16 @@ describe("database schema integration", () => {
     await client`DROP TABLE IF EXISTS report_assets`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000, 1790726400000)
+      WHERE created_at IN (
+        1790064000000,
+        1790553600000,
+        1790640000000,
+        1790726400000,
+        1790812800000,
+        1790812860000,
+        1790812920000,
+        1790812980000
+      )
     `;
 
     const [latestBefore] = await client<{ created_at: string }[]>`
@@ -1250,12 +3164,21 @@ describe("database schema integration", () => {
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
     `;
-    expect(Number(latestAfter?.created_at)).toBe(1790726400000);
+    expect(Number(latestAfter?.created_at)).toBe(1790812980000);
 
     const reappliedMigrations = await client<{ created_at: string }[]>`
       SELECT created_at
       FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (1790064000000, 1790553600000, 1790640000000, 1790726400000)
+      WHERE created_at IN (
+        1790064000000,
+        1790553600000,
+        1790640000000,
+        1790726400000,
+        1790812800000,
+        1790812860000,
+        1790812920000,
+        1790812980000
+      )
       ORDER BY created_at ASC
     `;
     expect(reappliedMigrations.map((migration) => Number(migration.created_at))).toEqual([
@@ -1263,6 +3186,10 @@ describe("database schema integration", () => {
       1790553600000,
       1790640000000,
       1790726400000,
+      1790812800000,
+      1790812860000,
+      1790812920000,
+      1790812980000,
     ]);
 
     const [recoveryReceiptTableCheck] = await client<{ exists: boolean }[]>`
@@ -1295,6 +3222,53 @@ describe("database schema integration", () => {
       WHERE constraint_name = 'report_section_checkpoint_revisions_checkpoint_fk'
     `;
     expect(revisionForeignKey?.delete_rule).toBe("RESTRICT");
+
+    const restoredTables = await client<{ table_name: string }[]>`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name IN (
+          'wallet_accounts',
+          'generated_preview_requests',
+          'generated_preview_sections'
+        )
+      ORDER BY table_name ASC
+    `;
+    expect(restoredTables.map((table) => table.table_name)).toEqual([
+      "generated_preview_requests",
+      "generated_preview_sections",
+      "wallet_accounts",
+    ]);
+
+    const restoredColumns = await client<{ table_name: string; column_name: string }[]>`
+      SELECT table_name, column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND (
+          (table_name = 'commerce_entitlements' AND column_name = 'ledger_spend_id')
+          OR (table_name = 'commerce_orders' AND column_name = 'kind')
+        )
+      ORDER BY table_name ASC, column_name ASC
+    `;
+    expect(restoredColumns).toEqual([
+      { table_name: "commerce_entitlements", column_name: "ledger_spend_id" },
+      { table_name: "commerce_orders", column_name: "kind" },
+    ]);
+
+    const restoredConstraints = await client<{ constraint_name: string }[]>`
+      SELECT constraint_name
+      FROM information_schema.table_constraints
+      WHERE table_schema = 'public'
+        AND constraint_name IN (
+          'commerce_entitlements_authority_xor',
+          'commerce_orders_kind_valid'
+        )
+      ORDER BY constraint_name ASC
+    `;
+    expect(restoredConstraints.map((constraint) => constraint.constraint_name)).toEqual([
+      "commerce_entitlements_authority_xor",
+      "commerce_orders_kind_valid",
+    ]);
 
     const [aiTableCheck] = await client<{ exists: boolean }[]>`
       SELECT EXISTS (
@@ -1355,6 +3329,26 @@ describe("database schema integration", () => {
       birthProfileId: profileId,
       name: "birth_profile_saved",
       properties: { source: "checkpoint-upgrade" },
+    });
+    const [historicalUpgrade] = await database.select().from(commerceOrders).where(
+      eq(commerceOrders.id, historicalUpgradeOrderId),
+    );
+    const [historicalEntitlement] = await database.select().from(commerceEntitlements).where(
+      eq(commerceEntitlements.id, historicalEntitlementId),
+    );
+    expect(historicalUpgrade).toMatchObject({
+      id: historicalUpgradeOrderId,
+      kind: "content_purchase",
+      paymentCode: "LSVABC123DEG",
+      invoiceNumber: "LSV-HISTORICAL-002",
+      creditApplied: 19000,
+      creditedFromOrderId: historicalOrderId,
+    });
+    expect(historicalEntitlement).toMatchObject({
+      id: historicalEntitlementId,
+      orderId: historicalUpgradeOrderId,
+      ledgerSpendId: null,
+      ownerId: userId,
     });
 
     await client.end();

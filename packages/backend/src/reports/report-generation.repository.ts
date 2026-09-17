@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import {
   EvidenceItemV1Schema,
@@ -12,8 +12,14 @@ import {
   evidenceSets,
   birthProfileReadingContextRevisions,
   birthProfiles,
+  commerceEntitlements,
+  commerceOrders,
   type Database,
   reportReservations,
+  walletAccounts,
+  walletPurchaseIntents,
+  walletSpendAllocations,
+  walletTransactions,
   ziweiCharts,
   ziweiChartVersions,
 } from "@lasoviet/database";
@@ -83,6 +89,24 @@ function invalid(): Result<never, "REPORT_EVIDENCE_INVALID"> {
   };
 }
 
+function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
+  return {
+    ok: false,
+    error: {
+      code: "REPORT_CONTEXT_MISMATCH",
+      messageKey: "reports.report_context_mismatch",
+      retryable: false,
+    },
+  };
+}
+
+function validWalletPrice(sku: string, priceLa: number): boolean {
+  return (
+    (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
+    (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
+  );
+}
+
 export function createDatabaseReportGenerationSourceRepository(dependencies: {
   database: Database;
   knowledgeRetrieval: Pick<
@@ -100,24 +124,54 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       const [row] = await dependencies.database
         .select({
           reservationContextRevisionId: reportReservations.readingContextRevisionId,
+          reservation: reportReservations,
           profileId: birthProfiles.id,
+          profileOwnerId: birthProfiles.userId,
+          chartVersionChartId: ziweiChartVersions.chartId,
           revisionId: birthProfileReadingContextRevisions.id,
           revisionProfileId: birthProfileReadingContextRevisions.profileId,
+          entitlement: commerceEntitlements,
+          order: commerceOrders,
+          spend: walletTransactions,
+          wallet: walletAccounts,
+          intent: walletPurchaseIntents,
+          evidence: evidenceSets,
         })
         .from(reportReservations)
+        .leftJoin(
+          commerceEntitlements,
+          eq(commerceEntitlements.id, reportReservations.entitlementId),
+        )
+        .leftJoin(
+          commerceOrders,
+          eq(commerceOrders.id, commerceEntitlements.orderId),
+        )
+        .leftJoin(
+          walletTransactions,
+          eq(walletTransactions.id, commerceEntitlements.ledgerSpendId),
+        )
+        .leftJoin(
+          walletAccounts,
+          eq(walletAccounts.id, walletTransactions.walletId),
+        )
+        .leftJoin(
+          walletPurchaseIntents,
+          eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
+        )
+        .leftJoin(
+          evidenceSets,
+          eq(evidenceSets.id, reportReservations.evidenceVersionId),
+        )
         .leftJoin(
           ziweiChartVersions,
           eq(ziweiChartVersions.id, reportReservations.chartVersionId),
         )
         .leftJoin(ziweiCharts, eq(ziweiCharts.id, ziweiChartVersions.chartId))
         .leftJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
-        .leftJoin(
-          birthProfileReadingContextRevisions,
-          eq(
-            birthProfileReadingContextRevisions.id,
-            reportReservations.readingContextRevisionId,
-          ),
-        )
+        .leftJoin(birthProfileReadingContextRevisions, eq(
+          birthProfileReadingContextRevisions.id,
+          reportReservations.readingContextRevisionId,
+        ))
         .where(
           and(
             eq(reportReservations.reportVersionId, input.reportVersionId),
@@ -126,7 +180,10 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         )
         .limit(1);
 
-      if (!row || row.profileId === null) {
+      if (!row) {
+        return contextMismatch();
+      }
+      if (row.profileId === null) {
         return {
           ok: false,
           error: {
@@ -136,28 +193,102 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           },
         };
       }
+      const entitlement = row.entitlement;
+      const hasOrderAuthority = entitlement?.orderId !== null && entitlement?.ledgerSpendId === null;
+      const hasWalletAuthority = entitlement?.orderId === null && entitlement?.ledgerSpendId !== null;
+      if (!entitlement || hasOrderAuthority === hasWalletAuthority) {
+        return contextMismatch();
+      }
+      if (
+        row.chartVersionChartId !== entitlement.chartId ||
+        row.profileOwnerId !== entitlement.ownerId
+      ) {
+        return contextMismatch();
+      }
+
+      if (
+        hasOrderAuthority &&
+        (
+          !row.order ||
+          row.order.kind !== "content_purchase" ||
+          row.order.status !== "paid" ||
+          row.order.ownerId !== entitlement.ownerId ||
+          row.order.chartId !== entitlement.chartId ||
+          row.order.chartVersionId !== row.reservation.chartVersionId ||
+          row.order.sku !== entitlement.sku ||
+          row.order.sku !== row.reservation.sku ||
+          row.order.locale !== row.reservation.locale
+        )
+      ) {
+        return contextMismatch();
+      }
+      if (
+        hasWalletAuthority &&
+        (
+          !row.spend ||
+          !row.wallet ||
+          !row.intent ||
+          row.spend.kind !== "spend" ||
+          row.spend.reversalOfTransactionId !== null ||
+          row.spend.purchaseIntentId !== row.intent.id ||
+          row.wallet.id !== row.spend.walletId ||
+          row.wallet.ownerId !== entitlement.ownerId ||
+          row.intent.ownerId !== entitlement.ownerId ||
+          row.intent.status !== "completed" ||
+          row.intent.completedAt === null ||
+          row.intent.chartId !== entitlement.chartId ||
+          row.intent.chartVersionId !== row.reservation.chartVersionId ||
+          row.intent.sku !== entitlement.sku ||
+          row.intent.sku !== row.reservation.sku ||
+          row.intent.locale !== row.reservation.locale ||
+          !validWalletPrice(row.intent.sku, row.intent.priceLa)
+        )
+      ) {
+        return contextMismatch();
+      }
+      if (
+        !row.evidence ||
+        row.evidence.chartVersionId !== row.reservation.chartVersionId ||
+        row.evidence.capabilityId !== "ziwei.identity.p0"
+      ) {
+        return contextMismatch();
+      }
+      if (hasWalletAuthority) {
+        const spendId = row.spend!.id;
+        const [restoration] = await dependencies.database
+          .select({ id: walletTransactions.id })
+          .from(walletTransactions)
+          .where(
+            and(
+              eq(walletTransactions.kind, "restoration"),
+              eq(walletTransactions.reversalOfTransactionId, spendId),
+            ),
+          )
+          .limit(1);
+        const [allocation] = await dependencies.database
+          .select({
+            amountLa: sql<number>`coalesce(sum(${walletSpendAllocations.amountLa}), 0)`,
+          })
+          .from(walletSpendAllocations)
+          .where(eq(walletSpendAllocations.spendTransactionId, spendId));
+        const allocatedAmountLa = Number(allocation?.amountLa);
+        if (
+          restoration ||
+          !Number.isSafeInteger(allocatedAmountLa) ||
+          allocatedAmountLa < 0 ||
+          allocatedAmountLa !== row.intent!.priceLa
+        ) {
+          return contextMismatch();
+        }
+      }
       if ((row.reservationContextRevisionId ?? null) !== input.readingContextRevisionId) {
-        return {
-          ok: false,
-          error: {
-            code: "REPORT_CONTEXT_MISMATCH",
-            messageKey: "reports.report_context_mismatch",
-            retryable: false,
-          },
-        };
+        return contextMismatch();
       }
       if (
         row.reservationContextRevisionId !== null &&
         (row.revisionId === null || row.revisionProfileId !== row.profileId)
       ) {
-        return {
-          ok: false,
-          error: {
-            code: "REPORT_CONTEXT_MISMATCH",
-            messageKey: "reports.report_context_mismatch",
-            retryable: false,
-          },
-        };
+        return contextMismatch();
       }
       return { ok: true, value: { readingContextRevisionId: row.reservationContextRevisionId ?? null } };
     },

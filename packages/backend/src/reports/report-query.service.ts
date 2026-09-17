@@ -4,6 +4,7 @@ import {
   ReportPendingViewV1Schema,
   ReportReadyViewV1Schema,
   ReportFailedViewV1Schema,
+  ReportFailedWalletSpendViewV2Schema,
   ReportViewV1Schema,
   REPORT_PENDING_STATUSES,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
@@ -26,6 +27,7 @@ import {
   type EvidenceItemV1,
   type OrderStatus,
   type ReportViewV1,
+  type ReportFailedWalletSpendViewV2,
   type Result,
 } from "@lasoviet/contracts";
 
@@ -91,7 +93,7 @@ export type ReportQueryService = {
   getReport(
     actor: CurrentActor,
     reportId: string,
-  ): Promise<Result<ReportViewV1, ReportQueryError>>;
+  ): Promise<Result<ReportViewV1 | ReportFailedWalletSpendViewV2, ReportQueryError>>;
 };
 
 function notFound(): Result<never, ReportQueryError> {
@@ -143,7 +145,7 @@ export function createReportQueryService(options: {
         return notFound();
       }
 
-      const { reservation, order, version, evidenceItems } = record;
+      const { reservation, version, evidenceItems } = record;
 
       const allowedSkus: readonly string[] = [
         "ZIWEI-IDENTITY-P0",
@@ -176,9 +178,23 @@ export function createReportQueryService(options: {
 
       if (!version) {
         if (reservationFulfillmentStatus === "terminal_failure") {
-          if (order.status !== "paid" || order.paidAt === null) {
-            throw new ReportQueryDataError();
+          if (record.source === "ledger_spend") {
+            const supportReference = `RPT-${reservation.reportId.replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+            const walletFailed = ReportFailedWalletSpendViewV2Schema.safeParse({
+              version: 2,
+              purchaseSource: "wallet_spend",
+              reportId: reservation.reportId,
+              reportVersionId: reservation.reportVersionId,
+              errorCode: "REPORT_GENERATION_FAILED",
+              supportReference,
+            });
+            if (!walletFailed.success) {
+              throw new ReportQueryDataError();
+            }
+            return { ok: true, value: walletFailed.data };
           }
+          const { order } = record;
+          if (order.status !== "paid" || order.paidAt === null) throw new ReportQueryDataError();
 
           const paymentTime = order.paidAt.toISOString();
           const updateTime = reservation.updatedAt.toISOString();
@@ -273,24 +289,7 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const entitlementsList = record.entitlements && record.entitlements.length > 0
-          ? record.entitlements
-          : [
-              {
-                id: reservation.entitlementId,
-                orderId: order.id,
-                chartId: order.chartId,
-                sku: reservation.sku,
-                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0"
-                  ? TIER_1_ENTITLEMENT_SCOPE
-                  : TIER_2_V4_1_ENTITLEMENT_SCOPE,
-                orderStatus: order.status as OrderStatus,
-              },
-            ];
-
-        const activeEntitlements = entitlementsList.filter(
-          (entitlement) => entitlement.orderStatus !== "refunded",
-        );
+        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
         }
@@ -354,22 +353,7 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const entitlementsList = record.entitlements && record.entitlements.length > 0
-          ? record.entitlements
-          : [
-              {
-                id: reservation.entitlementId,
-                orderId: order.id,
-                chartId: order.chartId,
-                sku: reservation.sku,
-                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" ? TIER_1_ENTITLEMENT_SCOPE : TIER_2_V4_ENTITLEMENT_SCOPE,
-                orderStatus: order.status as OrderStatus,
-              },
-            ];
-
-        const activeEntitlements = entitlementsList.filter(
-          (e) => e.orderStatus !== "refunded",
-        );
+        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
@@ -434,22 +418,7 @@ export function createReportQueryService(options: {
         }
 
         // Calculate effective scope as union of all non-refunded entitlements for this owner and chart
-        const entitlementsList = record.entitlements && record.entitlements.length > 0
-          ? record.entitlements
-          : [
-              {
-                id: reservation.entitlementId,
-                orderId: order.id,
-                chartId: order.chartId,
-                sku: reservation.sku,
-                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" ? TIER_1_ENTITLEMENT_SCOPE : TIER_2_ENTITLEMENT_SCOPE,
-                orderStatus: order.status as OrderStatus,
-              },
-            ];
-
-        const activeEntitlements = entitlementsList.filter(
-          (e) => e.orderStatus !== "refunded",
-        );
+        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();

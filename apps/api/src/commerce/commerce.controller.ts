@@ -3,7 +3,16 @@ import { timingSafeEqual } from "node:crypto";
 
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
-import { CommerceSkuSchema, PaymentSelfClaimRequestV1Schema, resolveProductTitle, type CommerceSku, type CurrentActor } from "@lasoviet/contracts";
+import {
+  AccountLibraryV2Schema,
+  CommerceSkuSchema,
+  PaymentSelfClaimRequestV1Schema,
+  resolveProductTitle,
+  WalletBalanceV1Schema,
+  WalletHistoryV1Schema,
+  type CommerceSku,
+  type CurrentActor,
+} from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
 
 import { ActorTokenError, verifyInternalActorToken } from "../auth/internal-actor.guard.js";
@@ -34,6 +43,71 @@ function equal(a: string | undefined, b: string): boolean {
   if (a === undefined) return false;
   const left = Buffer.from(a); const right = Buffer.from(b);
   return left.length === right.length && timingSafeEqual(left, right);
+}
+
+function walletIntentRequest(body: unknown) {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
+  const value = body as Record<string, unknown>;
+  if (Object.keys(value).length !== 4 ||
+    typeof value.chartId !== "string" || value.chartId.trim().length === 0 ||
+    typeof value.chartVersionId !== "string" || value.chartVersionId.trim().length === 0 ||
+    (value.sku !== "ZIWEI-NATAL-EXCERPT-P0" && value.sku !== "ZIWEI-IDENTITY-P0") ||
+    (value.locale !== "vi" && value.locale !== "en")) return null;
+  return value as {
+    chartId: string;
+    chartVersionId: string;
+    sku: "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
+    locale: "vi" | "en";
+  };
+}
+
+function walletUnlockRequest(body: unknown) {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
+  const value = body as Record<string, unknown>;
+  if (Object.keys(value).length !== 4 ||
+    typeof value.purchaseIntentId !== "string" || value.purchaseIntentId.trim().length === 0 ||
+    typeof value.expectedIntentVersion !== "number" || !Number.isInteger(value.expectedIntentVersion) || value.expectedIntentVersion <= 0 ||
+    typeof value.expectedWalletVersion !== "number" || !Number.isInteger(value.expectedWalletVersion) || value.expectedWalletVersion <= 0 ||
+    typeof value.idempotencyKey !== "string" || value.idempotencyKey.trim().length === 0 || value.idempotencyKey.length > 200) return null;
+  return value as {
+    purchaseIntentId: string;
+    expectedIntentVersion: number;
+    expectedWalletVersion: number;
+    idempotencyKey: string;
+  };
+}
+
+function customerWalletIntent(value: {
+  id: string;
+  sku: string;
+  locale: string;
+  amountLa: number;
+  status: string;
+  stateVersion: number;
+  createdAt: string;
+}) {
+  if (value.id.trim().length === 0 ||
+    (value.sku !== "ZIWEI-NATAL-EXCERPT-P0" && value.sku !== "ZIWEI-IDENTITY-P0") ||
+    (value.locale !== "vi" && value.locale !== "en") ||
+    (value.amountLa !== 240 && value.amountLa !== 720 && value.amountLa !== 960) ||
+    !["pending", "completed", "cancelled", "expired"].includes(value.status) ||
+    !Number.isInteger(value.stateVersion) || value.stateVersion <= 0 ||
+    Number.isNaN(Date.parse(value.createdAt))) throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+  return {
+    id: value.id,
+    productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale),
+    locale: value.locale,
+    amountLa: value.amountLa,
+    status: value.status,
+    stateVersion: value.stateVersion,
+    createdAt: value.createdAt,
+  };
+}
+
+function walletError(code: string): never {
+  if (code === "WALLET_ACCOUNT_REQUIRED") throw new UnauthorizedException({ code });
+  if (code === "WALLET_ACCOUNT_INELIGIBLE") throw new ForbiddenException({ code });
+  throw new BadRequestException({ code });
 }
 
 @Controller("commerce")
@@ -211,6 +285,77 @@ export class CommerceController {
     const actor = await this.actor(authorization);
     const value = await this.repository().readOrderHistory(actor);
     return { ok: true, value };
+  }
+
+  @Get("wallet/balance")
+  async walletBalance(@Headers("authorization") authorization: string | undefined) {
+    const result = await this.repository().readWalletBalance(await this.actor(authorization));
+    if (!result.ok) walletError(result.error.code);
+    return { ok: true, value: WalletBalanceV1Schema.parse(result.value) };
+  }
+
+  @Get("wallet/history")
+  async walletHistory(@Headers("authorization") authorization: string | undefined) {
+    const result = await this.repository().readWalletHistory(await this.actor(authorization));
+    if (!result.ok) walletError(result.error.code);
+    return { ok: true, value: WalletHistoryV1Schema.parse(result.value) };
+  }
+
+  @Post("wallet/purchase-intents")
+  @HttpCode(HttpStatus.OK)
+  async createWalletPurchaseIntent(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const input = walletIntentRequest(body);
+    if (input === null) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.repository().createWalletPurchaseIntent(await this.actor(authorization), input);
+    if (!result.ok) walletError(result.code);
+    const intent = customerWalletIntent({
+      id: result.value.id,
+      sku: result.value.sku,
+      locale: result.value.locale,
+      amountLa: result.value.amountLa,
+      status: result.value.status,
+      stateVersion: result.value.stateVersion,
+      createdAt: result.value.createdAt,
+    });
+    return { ok: true, value: intent };
+  }
+
+  @Post("wallet/unlock")
+  @HttpCode(HttpStatus.OK)
+  async unlockWallet(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const input = walletUnlockRequest(body);
+    if (input === null) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.repository().unlockWalletPurchase(await this.actor(authorization), input);
+    if (!result.ok) walletError(result.code);
+    const intent = customerWalletIntent({
+      id: result.value.intent.id,
+      sku: result.value.intent.sku,
+      locale: result.value.intent.locale,
+      amountLa: result.value.intent.amountLa,
+      status: result.value.intent.status,
+      stateVersion: result.value.intent.stateVersion,
+      createdAt: result.value.intent.createdAt,
+    });
+    return {
+      ok: true,
+      value: {
+        intent,
+        balance: WalletBalanceV1Schema.parse(result.value.balance),
+        reportId: result.value.reportId,
+      },
+    };
+  }
+
+  @Get("account/library-v2")
+  async libraryV2(@Headers("authorization") authorization: string | undefined) {
+    const value = await this.repository().readAccountLibraryV2(await this.actor(authorization));
+    return { ok: true, value: AccountLibraryV2Schema.parse(value) };
   }
 
   @Get("orders/:orderId")

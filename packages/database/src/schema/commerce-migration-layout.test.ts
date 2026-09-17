@@ -157,4 +157,22 @@ describe("commerce migration layout", () => {
     expect(journal).toContain('"tag": "0023_order_upgrade_pricing_and_credit"');
     expect(journal).toContain('"idx": 23');
   });
+
+  it("keeps wallet commerce migration additive, backfills order kind, and preserves order-backed entitlements", async () => {
+    const migration = await readFile(new URL("0034_wallet_commerce_foundation.sql", migrationRoot), "utf8");
+    expect(migration).toContain('ADD COLUMN "kind" text DEFAULT \'content_purchase\' NOT NULL;');
+    expect(migration).toContain('"commerce_entitlements_authority_xor"');
+    expect(migration).toContain('"commerce_orders_chart_sku_unique"');
+    expect(migration).toContain(`"kind" = 'content_purchase'`);
+    expect(migration).toContain("'LA-LIBRARY-8000'");
+    expect(migration).toContain('"wallet_spend_allocations_bucket_valid"');
+    expect(migration).toContain('"wallet_transactions_top_up_order_id_commerce_orders_id_fk"');
+    expect(migration).toContain('"wallet_transactions_top_up_order_unique"');
+    expect(migration).toContain("top-up grant lots must match the approved pack");
+    expect(migration).toContain("top-up grant must belong to its paid wallet-topup order owner");
+    expect(migration).toContain("top-up grant must reference a paid wallet-topup order");
+    expect(migration).toContain("enforce_wallet_relations");
+    expect(migration).toContain("wallet_restoration_allocations");
+    expect(migration).toContain("wallet_transactions_immutable");
+  });
 });

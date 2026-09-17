@@ -149,6 +149,41 @@ describe("ReportsController HTTP boundary", () => {
     expect(response.body).not.toContain("lastErrorCode");
   });
 
+  it("returns the strict wallet terminal-failure V2 success envelope", async () => {
+    mockGetReport.mockReset();
+    mockGetReport.mockResolvedValue({
+      ok: true,
+      value: {
+        version: 2,
+        purchaseSource: "wallet_spend",
+        reportId: "report-wallet-1",
+        reportVersionId: "report-wallet-version-1",
+        errorCode: "REPORT_GENERATION_FAILED",
+        supportReference: "RPT-REPORTWALLE",
+      },
+    });
+
+    const token = await actorToken("user-123");
+    const response = await app.getHttpAdapter().getInstance().inject({
+      method: "GET",
+      url: "/reports/report-wallet-1",
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({
+      ok: true,
+      value: {
+        version: 2,
+        purchaseSource: "wallet_spend",
+        reportId: "report-wallet-1",
+        reportVersionId: "report-wallet-version-1",
+        errorCode: "REPORT_GENERATION_FAILED",
+        supportReference: "RPT-REPORTWALLE",
+      },
+    });
+  });
+
   it("collapses internal REPORT_NOT_FOUND and REPORT_FORBIDDEN into identical outward envelopes", async () => {
     const token = await actorToken("user-123");
 
