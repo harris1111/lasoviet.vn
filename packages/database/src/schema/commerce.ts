@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { walletTransactions } from "./wallet-commerce.js";
 
 export const commerceOrderStatus = pgEnum("commerce_order_status", [
   "pending", "paid", "expired", "failed", "refunded",
@@ -21,8 +22,9 @@ export const commerceOrders = pgTable("commerce_orders", {
   id: uuid("id").defaultRandom().primaryKey(),
   paymentCode: text("payment_code").notNull().default(sql`generate_payment_code()`),
   invoiceNumber: text("invoice_number").notNull(),
-  chartId: text("chart_id").notNull(),
-  chartVersionId: text("chart_version_id").notNull(),
+  kind: text("kind").notNull().default("content_purchase"),
+  chartId: text("chart_id"),
+  chartVersionId: text("chart_version_id"),
   ownerId: text("owner_id").notNull(),
   sku: text("sku").notNull(),
   amount: integer("amount").notNull(),
@@ -36,6 +38,8 @@ export const commerceOrders = pgTable("commerce_orders", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   paidAt: timestamp("paid_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
+  check("commerce_orders_kind_valid", sql`${table.kind} IN ('content_purchase', 'wallet_topup')`),
+  check("commerce_orders_kind_fields", sql`(${table.kind} = 'content_purchase' AND ${table.chartId} IS NOT NULL AND ${table.chartVersionId} IS NOT NULL) OR (${table.kind} = 'wallet_topup' AND ${table.chartId} IS NULL AND ${table.chartVersionId} IS NULL AND ((${table.sku} = 'LA-ENTRY-300' AND ${table.amount} = 29000 AND ${table.currency} = 'VND') OR (${table.sku} = 'LA-START-1100' AND ${table.amount} = 99000 AND ${table.currency} = 'VND') OR (${table.sku} = 'LA-DISCOVER-3000' AND ${table.amount} = 249000 AND ${table.currency} = 'VND') OR (${table.sku} = 'LA-LIBRARY-8000' AND ${table.amount} = 599000 AND ${table.currency} = 'VND')))`),
   check("commerce_orders_credit_applied_non_negative", sql`${table.creditApplied} >= 0`),
   check(
     "commerce_orders_credit_upgrade_consistency",
@@ -45,7 +49,7 @@ export const commerceOrders = pgTable("commerce_orders", {
   uniqueIndex("commerce_orders_invoice_unique").on(table.invoiceNumber),
   uniqueIndex("commerce_orders_chart_sku_unique")
     .on(table.chartId, table.sku)
-    .where(sql`${table.status} = 'pending'`),
+    .where(sql`${table.status} = 'pending' AND ${table.kind} = 'content_purchase'`),
   index("commerce_orders_owner_idx").on(table.ownerId),
   check("commerce_orders_payment_code_format", sql`${table.paymentCode} ~ '^LSV[0-9ABCDEFGHJKMNPQRSTVWXYZ]{9}$'`),
 ]);
@@ -66,7 +70,8 @@ export const commercePaymentEvents = pgTable("commerce_payment_events", {
 
 export const commerceEntitlements = pgTable("commerce_entitlements", {
   id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id").notNull().references(() => commerceOrders.id),
+  orderId: uuid("order_id").references(() => commerceOrders.id),
+  ledgerSpendId: uuid("ledger_spend_id").references(() => walletTransactions.id),
   chartId: text("chart_id").notNull(),
   sku: text("sku").notNull(),
   ownerId: text("owner_id").notNull(),
@@ -74,7 +79,9 @@ export const commerceEntitlements = pgTable("commerce_entitlements", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex("commerce_entitlements_order_unique").on(table.orderId),
+  uniqueIndex("commerce_entitlements_ledger_spend_unique").on(table.ledgerSpendId),
   uniqueIndex("commerce_entitlements_chart_sku_unique").on(table.chartId, table.sku),
+  check("commerce_entitlements_authority_xor", sql`(${table.orderId} IS NOT NULL AND ${table.ledgerSpendId} IS NULL) OR (${table.orderId} IS NULL AND ${table.ledgerSpendId} IS NOT NULL)`),
 ]);
 
 export const commerceUnmatchedPayments = pgTable("commerce_unmatched_payments", {

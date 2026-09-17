@@ -119,6 +119,20 @@ describe("report generation migration layout", () => {
     );
   });
 
+  it("registers the 0034 and 0035 snapshots as one canonical continuation", async () => {
+    const [journal, walletSnapshot, previewSnapshot] = await Promise.all([
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+      readFile(new URL("meta/0034_snapshot.json", migrationRoot), "utf8"),
+      readFile(new URL("meta/0035_snapshot.json", migrationRoot), "utf8"),
+    ]);
+    const wallet = JSON.parse(walletSnapshot) as { id: string; prevId: string };
+    const preview = JSON.parse(previewSnapshot) as { prevId: string };
+    expect(journal).toContain('"tag": "0034_wallet_commerce_foundation"');
+    expect(journal).toContain('"tag": "0035_generated_preview_persistence"');
+    expect(wallet.prevId).toBe("afe69938-d462-4a00-82d3-00837218fa1f");
+    expect(preview.prevId).toBe(wallet.id);
+  });
+
   it("keeps report timing lineage additive columns and checks in migration 0024", async () => {
     const migration = await readFile(
       new URL("0024_report_timing_lineage.sql", migrationRoot),

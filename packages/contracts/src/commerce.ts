@@ -11,6 +11,8 @@ export const OrderStatusSchema = z.enum([
   "failed",
   "refunded",
 ]);
+export const CommerceOrderKindSchema = z.enum(["content_purchase", "wallet_topup"]);
+export type CommerceOrderKind = z.infer<typeof CommerceOrderKindSchema>;
 
 export type CommerceSku = z.infer<typeof CommerceSkuSchema>;
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;

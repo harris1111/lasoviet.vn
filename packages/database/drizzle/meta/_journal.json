@@ -239,6 +239,20 @@
       "when": 1790726400000,
       "tag": "0033_report_assets_and_report_failure_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790812800000,
+      "tag": "0034_wallet_commerce_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1790812860000,
+      "tag": "0035_generated_preview_persistence",
+      "breakpoints": true
     }
   ]
 }

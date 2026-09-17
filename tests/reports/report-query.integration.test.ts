@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq } from "../../packages/backend/node_modules/drizzle-orm/index.js";
+import { eq, sql } from "../../packages/backend/node_modules/drizzle-orm/index.js";
 
 import {
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
@@ -1719,14 +1719,41 @@ describe("report query integration test with real database", () => {
       status: "paid",
     });
 
-    await database.insert(commerceEntitlements).values({
-      id: entitlement1Id,
-      orderId: order1Id,
-      chartId: owner1.chartId,
-      sku: "ZIWEI-CAREER-P0", // mismatched entitlement SKU!
-      ownerId: owner1.ownerId,
-      scope: TIER_1_ENTITLEMENT_SCOPE,
+    await expect(
+      database.insert(commerceEntitlements).values({
+        id: entitlement1Id,
+        orderId: order1Id,
+        chartId: owner1.chartId,
+        sku: "ZIWEI-CAREER-P0", // mismatched entitlement SKU!
+        ownerId: owner1.ownerId,
+        scope: TIER_1_ENTITLEMENT_SCOPE,
+      }),
+    ).rejects.toMatchObject({
+      cause: expect.objectContaining({
+        message: "order entitlement must match its content purchase order and owner",
+      }),
     });
+
+    // Preserve reader hardening coverage for legacy corrupt rows only.
+    await database.execute(sql`
+      ALTER TABLE "commerce_entitlements"
+      DISABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+    `);
+    try {
+      await database.insert(commerceEntitlements).values({
+        id: entitlement1Id,
+        orderId: order1Id,
+        chartId: owner1.chartId,
+        sku: "ZIWEI-CAREER-P0",
+        ownerId: owner1.ownerId,
+        scope: TIER_1_ENTITLEMENT_SCOPE,
+      });
+    } finally {
+      await database.execute(sql`
+        ALTER TABLE "commerce_entitlements"
+        ENABLE TRIGGER "commerce_entitlements_ledger_relation_guard"
+      `);
+    }
 
     await database.insert(reportReservations).values({
       id: randomUUID(),
