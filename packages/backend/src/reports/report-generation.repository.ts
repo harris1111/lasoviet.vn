@@ -29,7 +29,10 @@ import {
   type KnowledgePassageV1,
   type createKnowledgeRetrievalService,
 } from "../knowledge/knowledge-retrieval.service.js";
-import { REPORT_KNOWLEDGE_VERSION_V3 } from "./identity-report-config.js";
+import {
+  REPORT_KNOWLEDGE_VERSION_V3,
+  REPORT_KNOWLEDGE_VERSION_V4,
+} from "./identity-report-config.js";
 import { buildComprehensiveZiweiFacts } from "./comprehensive-ziwei-facts.js";
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
@@ -319,7 +322,10 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         return invalid();
       }
 
-      if ((family === "v3" || family === "v4") && input.locale !== "vi") {
+      if (
+        (family === "v3" || family === "v4" || family === "v4_1") &&
+        input.locale !== "vi"
+      ) {
         return invalid();
       }
 
@@ -401,7 +407,11 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         return invalid();
       }
 
-      if (family === "v4") {
+      if (family === "v4" || family === "v4_1") {
+        const comprehensiveKnowledgeVersion =
+          family === "v4"
+            ? REPORT_KNOWLEDGE_VERSION_V3
+            : REPORT_KNOWLEDGE_VERSION_V4;
         const snapshotRepo =
           dependencies.snapshotRepository ??
           createDatabaseReportSourceSnapshotRepository(dependencies.database);
@@ -445,10 +455,8 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         try {
           knowledgePacks = await buildComprehensiveKnowledgePacks(
             factsV4.natal,
-            (query) => dependencies.knowledgeRetrieval.retrieveZiweiKnowledge!({
-              ...query,
-              knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
-            }),
+            (query) => dependencies.knowledgeRetrieval.retrieveZiweiKnowledge!(query),
+            comprehensiveKnowledgeVersion,
           );
         } catch (error) {
           if (error instanceof KnowledgeError) {
@@ -471,7 +479,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
                 discipline: "ziwei",
                 locale: "vi",
                 reportSections: [],
-                knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V3,
+                knowledgeVersion: comprehensiveKnowledgeVersion,
                 content: passage.content,
                 contentHash: "",
                 sourceAttribution: "",
@@ -542,6 +550,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           knowledgePacks = await buildComprehensiveKnowledgePacks(
             comprehensiveFacts,
             (query) => dependencies.knowledgeRetrieval.retrieveZiweiKnowledge!(query),
+            REPORT_KNOWLEDGE_VERSION_V3,
           );
         } catch (error) {
           if (error instanceof KnowledgeError) {
