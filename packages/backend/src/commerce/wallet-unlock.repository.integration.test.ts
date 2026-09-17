@@ -37,6 +37,10 @@ import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createWalletService } from "../wallet/wallet.service.js";
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
 import { createWalletUnlockService } from "./wallet-unlock.service.js";
+import {
+  deriveReportTimingLineage,
+  v4_1SensitivityReportVersions,
+} from "../reports/identity-report-config.js";
 
 describe("wallet unlock repository integration", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
@@ -322,6 +326,67 @@ describe("wallet unlock repository integration", () => {
     expect(allocations).toHaveLength(1);
     expect(ledgerEntries).toHaveLength(1);
     expect(wallet).toMatchObject({ promotionalBalance: 1_040, purchasedBalance: 0, stateVersion: 3 });
+  });
+
+  it("persists V4.1 sensitivity timing lineage and a V2 generation request for wallet unlock", async () => {
+    const audit = await ownerFixture("Audit V4.1 wallet unlock");
+    const owner = await ownerFixture("V4.1 wallet unlock owner");
+    const { authority, repository, service } = walletPorts(audit.userId, {
+      reportVersionResolver: () => v4_1SensitivityReportVersions("vi"),
+    });
+    const funded = await repository.grant({
+      targetOwnerId: owner.userId,
+      grant: grant(audit.userId, `v4-1-grant-${randomUUID()}`, 960),
+      topUpOrderId: null,
+      trustedGrantToken: authority.token,
+    });
+    if (!funded.ok) throw new Error(`grant failed: ${funded.error.code}`);
+
+    const intent = await service.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    if (!intent.ok) throw new Error(`intent failed: ${intent.code}`);
+    const unlocked = await service.unlock(owner.actor, {
+      purchaseIntentId: intent.value.id,
+      expectedIntentVersion: 1,
+      expectedWalletVersion: 2,
+      idempotencyKey: `v4-1-unlock-${randomUUID()}`,
+    });
+    if (!unlocked.ok) throw new Error(`unlock failed: ${unlocked.code}`);
+
+    const [reservation] = await database
+      .select()
+      .from(reportReservations)
+      .where(eq(reportReservations.reportId, unlocked.value.reportId));
+    const [event] = await database
+      .select()
+      .from(outbox)
+      .where(eq(outbox.idempotencyKey, `report-request:${reservation!.reportVersionId}`));
+    const timing = deriveReportTimingLineage(frozenNow);
+
+    expect(reservation).toMatchObject({
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+      asOfDate: timing.asOfDate,
+      targetYear: timing.targetYear,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    });
+    expect(event?.eventType).toBe("report.generation.requested.v2");
+    expect(event?.payload).toMatchObject({
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+      asOfDate: timing.asOfDate,
+      targetYear: timing.targetYear,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      readingContextRevisionId: null,
+    });
   });
 
   it("replays a completed matching unlock sequentially and rejects shape-valid corrupted continuation lineage", async () => {

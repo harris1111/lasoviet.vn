@@ -1315,7 +1315,7 @@ export function createDatabaseCommerceRepository(
           .limit(1);
 
         if (existingChartReservation === undefined) {
-          if (reportVersions.family === "v4") {
+          if (reportVersions.family === "v4" || reportVersions.family === "v4_1") {
             const timingLineage = deriveReportTimingLineage(currentNow, {
               timingRuleVersion: reportVersions.timingRuleVersion,
             });
@@ -1993,7 +1993,7 @@ export function createDatabaseCommerceRepository(
         let finalReportId: string;
 
         if (existingChartReservation === undefined) {
-          if (reportVersions.family === "v4") {
+          if (reportVersions.family === "v4" || reportVersions.family === "v4_1") {
             const timingLineage = deriveReportTimingLineage(currentNow, {
               timingRuleVersion: reportVersions.timingRuleVersion,
             });
