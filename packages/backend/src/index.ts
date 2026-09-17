@@ -415,6 +415,12 @@ export type {
 export {
   createDatabaseReportSourceSnapshotRepository,
 } from "./reports/report-source-snapshot.repository.js";
+export {
+  createDatabaseReportSectionCheckpointRepository,
+} from "./reports/report-section-checkpoint.repository.js";
+export type {
+  ReportSectionCheckpointRepository,
+} from "./reports/report-section-checkpoint.repository.js";
 export type {
   ReportSnapshotCalculator,
   ReportSnapshotCalculatorInput,
