@@ -180,6 +180,15 @@ const validFailedView = {
   supportReference: "REF-FAILED-3",
 };
 
+const validWalletFailedView = {
+  version: 2 as const,
+  purchaseSource: "wallet_spend" as const,
+  reportId: "rep-wallet-4",
+  reportVersionId: "rep-wallet-ver-4",
+  errorCode: "REPORT_GENERATION_FAILED",
+  supportReference: "RPT-REPWALLET4",
+};
+
 describe("createReportLoader", () => {
   it("maps VerifiedAccountResolutionError to REPORT_AUTH_REQUIRED", async () => {
     const resolveVerifiedAccountActor = vi.fn().mockRejectedValue(
@@ -299,6 +308,42 @@ describe("createReportLoader", () => {
       ok: true,
       value: validFailedView,
     });
+  });
+
+  it("maps strict wallet terminal failure to REPORT_FAILED", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: validWalletFailedView,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-wallet-4")).resolves.toEqual({
+      ok: false,
+      error: {
+        code: "REPORT_FAILED",
+        messageKey: "reports.report_failed",
+        retryable: false,
+      },
+    });
+  });
+
+  it("rejects a wallet failure hybrid with invoice lineage", async () => {
+    const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        ...validWalletFailedView,
+        invoiceNumber: "INV-LEAKED",
+      },
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
+
+    await expect(loader.loadReport("rep-wallet-hybrid")).rejects.toThrow(
+      new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"),
+    );
   });
 
   it("throws PrivateApiClientError(PRIVATE_API_RESPONSE_INVALID) when payload fails schema validation", async () => {

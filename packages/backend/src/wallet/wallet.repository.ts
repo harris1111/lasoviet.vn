@@ -118,6 +118,14 @@ function abort(code: WalletError): never {
   throw new WalletCommandAbort(code);
 }
 
+export type WalletSpendContinuationAbortCode =
+  | "WALLET_INVALID_INTENT"
+  | "WALLET_RECONCILIATION_FAILED";
+
+export function abortWalletSpendContinuation(code: WalletSpendContinuationAbortCode): never {
+  throw new WalletCommandAbort(code);
+}
+
 export function walletFingerprint(command: Record<string, unknown>): string {
   const canonical = JSON.stringify(canonicalize(command));
   return createHash("sha256").update(canonical).digest("hex");
@@ -208,6 +216,10 @@ function safeNonnegativeInteger(value: unknown): number | undefined {
 function safeInteger(value: unknown): number | undefined {
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+function publicHistoryId(transactionId: string): string {
+  return `wh_${createHash("sha256").update(`lasoviet.wallet.history.v1:${transactionId}`).digest("hex").slice(0, 32)}`;
 }
 
 function receipt(
@@ -359,7 +371,7 @@ export function createDatabaseWalletRepository(
           : row.sku;
         const sku = candidateSku === "ZIWEI-IDENTITY-P0" || candidateSku === "ZIWEI-NATAL-EXCERPT-P0" ? candidateSku : null;
         items.push({
-          id: row.transaction.id,
+          id: publicHistoryId(row.transaction.id),
           category: row.transaction.kind as "grant" | "spend" | "restoration",
           laDelta: purchasedDelta + promotionalDelta,
           resultingPurchasedLa: purchased,

@@ -243,6 +243,7 @@ describe("WP-13 authenticated fixture", () => {
       createdAt: new Date("2026-09-09T08:05:00.000Z"),
     };
     const readAuthorizedReport = vi.fn().mockResolvedValue({
+      source: "order",
       reservation,
       order,
       version,
@@ -252,11 +253,11 @@ describe("WP-13 authenticated fixture", () => {
       })),
       entitlements: [{
         id: reservation.entitlementId,
-        orderId: order.id,
         chartId: order.chartId,
         sku: order.sku,
         scope: TIER_2_V4_ENTITLEMENT_SCOPE,
-        orderStatus: "paid",
+        active: true,
+        source: "order",
       }],
     });
     const service = createReportQueryService({
