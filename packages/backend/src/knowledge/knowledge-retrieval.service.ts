@@ -27,7 +27,9 @@ export type KnowledgePassageV1 = {
 
 export type ZiweiKnowledgeQueryV3 = {
   locale: "vi";
-  knowledgeVersion: "ziwei.comprehensive.knowledge.v3";
+  knowledgeVersion:
+    | "ziwei.comprehensive.knowledge.v3"
+    | "ziwei.comprehensive.knowledge.v4";
   topics?: string[];
   palaceIds?: string[];
   starIds?: string[];
@@ -508,7 +510,10 @@ export function createKnowledgeRetrievalService(dependencies: {
         );
       }
 
-      if (query.knowledgeVersion !== "ziwei.comprehensive.knowledge.v3") {
+      if (
+        query.knowledgeVersion !== "ziwei.comprehensive.knowledge.v3" &&
+        query.knowledgeVersion !== "ziwei.comprehensive.knowledge.v4"
+      ) {
         throw new KnowledgeError(
           "KNOWLEDGE_METADATA_INVALID",
           `Unsupported knowledge version: ${query.knowledgeVersion}`,

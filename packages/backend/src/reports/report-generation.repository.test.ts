@@ -4,8 +4,10 @@ import { createDatabaseReportGenerationSourceRepository } from "./report-generat
 import {
   REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
+  REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
 import { buildZiweiIdentityEvidence } from "../evidence/ziwei-identity-rules.js";
 import { KnowledgeError, type KnowledgePassageV1 } from "../knowledge/knowledge-retrieval.service.js";
@@ -571,6 +573,124 @@ describe("createDatabaseReportGenerationSourceRepository - V4 source loading", (
     expect(retrieveZiweiKnowledgeSpy).toHaveBeenCalledTimes(19);
     // Verifies retrieval query explicitly asked for V3 knowledge corpus
     expect(retrieveZiweiKnowledgeSpy.mock.calls[0][0].knowledgeVersion).toBe("ziwei.comprehensive.knowledge.v3");
+  });
+
+  it("loads frozen snapshot, builds sensitivity facts, and keeps V4 knowledge and reading context lineage for V4.1", async () => {
+    const chart = createSampleChart();
+    const evidenceResult = buildZiweiIdentityEvidence(chart, "chart-v1");
+    expect(evidenceResult.ok).toBe(true);
+    if (!evidenceResult.ok) return;
+
+    const mockDb = {
+      select: vi.fn().mockImplementation((fields) => ({
+        from: vi.fn().mockImplementation(() => ({
+          where: vi.fn().mockImplementation(() => {
+            if (fields && fields.normalizedOutput !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{ normalizedOutput: chart }]),
+              };
+            }
+            if (fields && fields.chartVersionId !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{
+                  id: "evidence-v1",
+                  chartVersionId: evidenceResult.value.chartVersionId,
+                  capabilityId: evidenceResult.value.capabilityId,
+                  ruleVersion: evidenceResult.value.ruleVersion,
+                }]),
+              };
+            }
+            if (fields && fields.evidenceKey !== undefined) {
+              return {
+                orderBy: vi.fn().mockResolvedValue(
+                  evidenceResult.value.items.map((item) => ({
+                    evidenceKey: item.id,
+                    payload: item,
+                  })),
+                ),
+              };
+            }
+            return {
+              limit: vi.fn().mockResolvedValue([{
+                lifeStage: "early_career",
+                topConcern: "career",
+              }]),
+            };
+          }),
+        })),
+      })),
+    };
+
+    const dummyPassage: KnowledgePassageV1 = {
+      id: "row-v4-1",
+      passageId: "passage-v4-01",
+      documentId: "doc-v4",
+      discipline: "ziwei",
+      locale: "vi",
+      reportSections: ["identity_analysis"],
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
+      content: "Nội dung đoạn trích V4 cho toàn bộ lá số.",
+      contentHash: "hash-v4-01",
+      sourceAttribution: "Lá Số Việt",
+      permittedUse: "reference_rewrite",
+      metadata: {
+        topics: ["overview"],
+        palaces: ["ziwei.palace.life"],
+        stars: ["ziwei.star.ziwei"],
+        brightness: ["ziwei.brightness.prosperous"],
+        transformations: [],
+        relations: [],
+        patterns: [],
+        sourceType: "classical",
+        languageOrigin: "vi",
+        priority: 2,
+      },
+    };
+    const retrieveZiweiKnowledgeSpy = vi.fn().mockResolvedValue([dummyPassage]);
+    const repository = createDatabaseReportGenerationSourceRepository({
+      database: mockDb as never,
+      knowledgeRetrieval: {
+        retrieveKnowledge: vi.fn(),
+        retrieveZiweiKnowledge: retrieveZiweiKnowledgeSpy,
+      },
+      snapshotRepository: {
+        getByReportVersionId: vi.fn().mockResolvedValue(createSampleSnapshot()),
+        persist: vi.fn(),
+      } as never,
+    });
+
+    const result = await repository.loadSource({
+      reportVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      chartVersionId: "chart-v1",
+      evidenceVersionId: "evidence-v1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      locale: "vi",
+      readingContextRevisionId: "context-1",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.comprehensiveFactsV4?.sensitivity.selectedFrame.frameId)
+      .toBe("ziwei.time-frame.horse");
+    expect(result.value.comprehensiveFactsV4?.sensitivity.previousFrame.frameId)
+      .toBe("ziwei.time-frame.snake");
+    expect(result.value.comprehensiveFactsV4?.sensitivity.nextFrame.frameId)
+      .toBe("ziwei.time-frame.goat");
+    expect(result.value.knowledgePacks).toHaveLength(19);
+    expect(retrieveZiweiKnowledgeSpy).toHaveBeenCalledTimes(19);
+    expect(retrieveZiweiKnowledgeSpy.mock.calls.every(
+      ([query]) => query.knowledgeVersion === REPORT_KNOWLEDGE_VERSION_V4,
+    )).toBe(true);
+    expect(result.value.knowledgePassages).toHaveLength(1);
+    expect(result.value.knowledgePassages[0]?.knowledgeVersion)
+      .toBe(REPORT_KNOWLEDGE_VERSION_V4);
+    expect(result.value.readingContext).toEqual({
+      version: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+    });
   });
 
   it.each([

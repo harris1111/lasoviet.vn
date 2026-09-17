@@ -92,6 +92,7 @@ function collectPalaceKeys(
 export async function buildComprehensiveKnowledgePacks(
   facts: ComprehensiveZiweiFacts,
   retrieve: (query: ZiweiKnowledgeQueryV3) => Promise<KnowledgePassageV1[]>,
+  knowledgeVersion: ZiweiKnowledgeQueryV3["knowledgeVersion"] = "ziwei.comprehensive.knowledge.v3",
 ): Promise<ZiweiReportKnowledgePack[]> {
   const lifePalace = facts.palaces.find((p) => p.isLifePalace) ?? facts.palaces[0]!;
   const bodyPalace = facts.palaces.find((p) => p.isBodyPalace) ?? lifePalace;
@@ -109,7 +110,7 @@ export async function buildComprehensiveKnowledgePacks(
     candidateEvidenceKeys: coreEvidenceKeys,
     query: {
       locale: "vi",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      knowledgeVersion,
       palaceIds: [lifePalace.palaceId, bodyPalace.palaceId],
       starIds: [
         ...lifePalace.stars.map((s) => s.id),
@@ -135,7 +136,7 @@ export async function buildComprehensiveKnowledgePacks(
       candidateEvidenceKeys: candidateKeys,
       query: {
         locale: "vi",
-        knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+        knowledgeVersion,
         palaceIds: [palace.palaceId],
         starIds: palace.stars.map((s) => s.id),
         brightnessIds: palace.stars
@@ -166,7 +167,7 @@ export async function buildComprehensiveKnowledgePacks(
     candidateEvidenceKeys: patternKeys,
     query: {
       locale: "vi",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      knowledgeVersion,
       patternIds: facts.patterns.map((p) => p.id),
       transformationIds: facts.transformations.map((t) => t.id),
       starIds: facts.transformations.map((t) => t.starId),
@@ -190,7 +191,7 @@ export async function buildComprehensiveKnowledgePacks(
     candidateEvidenceKeys: careerWealthKeys,
     query: {
       locale: "vi",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      knowledgeVersion,
       palaceIds: ["ziwei.palace.career", "ziwei.palace.wealth"],
       starIds: careerWealthPalaces.flatMap((p) => p.stars.map((s) => s.id)),
       topics: ["career", "wealth", "finance"],
@@ -213,7 +214,7 @@ export async function buildComprehensiveKnowledgePacks(
     candidateEvidenceKeys: relKeys,
     query: {
       locale: "vi",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      knowledgeVersion,
       palaceIds: [
         "ziwei.palace.spouse",
         "ziwei.palace.children",
@@ -241,7 +242,7 @@ export async function buildComprehensiveKnowledgePacks(
     candidateEvidenceKeys: socialKeys,
     query: {
       locale: "vi",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      knowledgeVersion,
       palaceIds: ["ziwei.palace.travel", "ziwei.palace.friends"],
       starIds: socialPalaces.flatMap((p) => p.stars.map((s) => s.id)),
       topics: ["social", "environment", "travel"],
@@ -264,7 +265,7 @@ export async function buildComprehensiveKnowledgePacks(
     candidateEvidenceKeys: wellbeingKeys,
     query: {
       locale: "vi",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      knowledgeVersion,
       palaceIds: ["ziwei.palace.health", "ziwei.palace.fortune"],
       starIds: wellbeingPalaces.flatMap((p) => p.stars.map((s) => s.id)),
       topics: ["health", "wellbeing", "mind", "karma"],
@@ -289,7 +290,7 @@ export async function buildComprehensiveKnowledgePacks(
     candidateEvidenceKeys: synthesisKeys,
     query: {
       locale: "vi",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
+      knowledgeVersion,
       patternIds: facts.patterns.map((p) => p.id),
       transformationIds: facts.transformations.map((t) => t.id),
       topics: ["synthesis", "overview"],
