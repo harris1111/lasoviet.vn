@@ -401,11 +401,34 @@ export function writePrivateFile(filePath, content, sampleId) {
   chmodSync(filePath, 0o600);
 }
 
+export function parseAllowedResolvedModelIds(value) {
+  if (typeof value !== "string") {
+    return { ok: false, reason: "AI_ALLOWED_RESOLVED_MODELS must be set" };
+  }
+
+  const ids = value.split(",").map((entry) => entry.trim());
+  if (ids.length === 0 || ids.some((id) => id.length === 0)) {
+    return {
+      ok: false,
+      reason: "AI_ALLOWED_RESOLVED_MODELS must contain non-empty comma-separated model IDs",
+    };
+  }
+  if (new Set(ids).size !== ids.length) {
+    return {
+      ok: false,
+      reason: "AI_ALLOWED_RESOLVED_MODELS must contain unique model IDs",
+    };
+  }
+
+  return { ok: true, value: ids };
+}
+
 function checkProviderEnvironment() {
   const REQUIRED_ENV_VARS = [
     "AI_BASE_URL",
     "AI_API_KEY",
     "AI_MODEL",
+    "AI_ALLOWED_RESOLVED_MODELS",
     "AI_TIMEOUT",
     "AI_MAX_RETRIES",
     "AI_FEATURE_JSON_SCHEMA",
@@ -437,7 +460,12 @@ function checkProviderEnvironment() {
     return { ready: false, reason: "AI_PRODUCTION_ENABLED must be set to 'true'" };
   }
 
-  return { ready: true };
+  const allowedResolvedModelIds = parseAllowedResolvedModelIds(
+    process.env.AI_ALLOWED_RESOLVED_MODELS,
+  );
+  return allowedResolvedModelIds.ok
+    ? { ready: true, allowedResolvedModelIds: allowedResolvedModelIds.value }
+    : { ready: false, reason: allowedResolvedModelIds.reason };
 }
 
 function extractValidationFindingCounts(validationResult) {
@@ -542,6 +570,7 @@ async function main() {
       baseUrl: process.env.AI_BASE_URL,
       apiKey: process.env.AI_API_KEY,
       modelId: process.env.AI_MODEL,
+      allowedResolvedModelIds: envCheck.allowedResolvedModelIds,
       timeoutMs: Number.parseInt(process.env.AI_TIMEOUT, 10) || 45000,
       retryCount: 0,
       productionGate: createAiProductionGate("approved"),

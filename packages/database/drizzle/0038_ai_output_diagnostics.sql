@@ -1,0 +1,3 @@
+ALTER TABLE "ai_usage_outcomes" ADD COLUMN "invalid_output_reason" text;--> statement-breakpoint
+ALTER TABLE "ai_usage_outcomes" ADD CONSTRAINT "ai_usage_outcomes_invalid_output_reason_valid" CHECK ("ai_usage_outcomes"."invalid_output_reason" IS NULL OR "ai_usage_outcomes"."invalid_output_reason" IN ('response_json_parse_failed', 'message_content_missing_or_non_string', 'content_not_json_object', 'json_object_malformed', 'schema_validation_failed', 'resolved_model_missing', 'resolved_model_disallowed'));--> statement-breakpoint
+ALTER TABLE "ai_usage_outcomes" ADD CONSTRAINT "ai_usage_outcomes_invalid_output_reason_relation" CHECK ("ai_usage_outcomes"."invalid_output_reason" IS NULL OR "ai_usage_outcomes"."error_code" = 'AI_OUTPUT_INVALID');

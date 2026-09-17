@@ -118,7 +118,7 @@ export function createOutboxDispatchRunner() {
 
 const AI_CONFIG_VARIABLES = [
   "AI_BASE_URL", "AI_API_KEY", "AI_MODEL", "AI_TIMEOUT",
-  "AI_MAX_RETRIES", "AI_FEATURE_JSON_SCHEMA", "AI_FEATURE_TOOL_CALLING", "AI_PRODUCTION_ENABLED",
+  "AI_ALLOWED_RESOLVED_MODELS", "AI_MAX_RETRIES", "AI_FEATURE_JSON_SCHEMA", "AI_FEATURE_TOOL_CALLING", "AI_PRODUCTION_ENABLED",
 ] as const;
 
 function hasAnyAiConfig(source: NodeJS.ProcessEnv): boolean {
@@ -215,6 +215,7 @@ export function createReportGenerateRunner(options?: {
           baseUrl: environment.value.ai.baseUrl,
           apiKey: environment.value.ai.apiKey,
           modelId: environment.value.ai.model,
+          allowedResolvedModelIds: environment.value.ai.allowedResolvedModels,
           timeoutMs: environment.value.ai.timeoutMs,
           retryCount: environment.value.ai.maxRetries,
           productionGate: gate,

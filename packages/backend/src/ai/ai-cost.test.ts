@@ -300,6 +300,83 @@ describe("ai-cost service and calculations", () => {
       expect(record).not.toHaveProperty("user");
     });
 
+    it("records bounded invalid-output diagnostics and rejects invalid diagnostic relations", async () => {
+      const costService = createInMemoryAiCostService();
+      await costService.savePricing({
+        pricingVersion: "v1-invalid-output-diagnostic",
+        providerId: "9router-an",
+        modelId: "synthetic-model",
+        currency: "VND",
+        inputPricePerMillion: 15_000,
+        outputPricePerMillion: 60_000,
+        cachedInputPricePerMillion: 3_750,
+        effectiveFrom: new Date("2026-09-01T00:00:00Z"),
+        source: "test",
+        sourceCurrency: "VND",
+        sourceReference: "test",
+        fxSource: "direct_vnd",
+        fxRate: 1,
+        fxTimestamp: new Date("2026-09-01T00:00:00Z"),
+        referenceMetadata: {},
+        status: "active",
+      });
+      const begin = await costService.recorder.beginAttempt({
+        callId: "call-invalid-output-diagnostic",
+        attemptNumber: 0,
+        purpose: "report",
+        providerId: "9router-an",
+        requestedModelId: "synthetic-model",
+        maxOutputTokens: 100,
+        costContext: {
+          reportId: "a0000000-0000-4000-8000-000000000002",
+        },
+      });
+      expect(begin.ok).toBe(true);
+      if (!begin.ok) return;
+
+      await expect(
+        costService.recorder.completeAttempt({
+          attemptId: begin.value.attemptId,
+          errorCode: "AI_OUTPUT_INVALID",
+          invalidOutputReason: "json_object_malformed",
+          tokensUnknown: true,
+        }),
+      ).resolves.toMatchObject({ ok: true });
+      const report = await costService.getAiCogsPerReport(
+        "a0000000-0000-4000-8000-000000000002",
+      );
+      expect(report.records).toHaveLength(1);
+      expect(report.records[0]).toMatchObject({
+        errorCode: "AI_OUTPUT_INVALID",
+      });
+
+      const invalidReason = await costService.recorder.completeAttempt({
+        attemptId: begin.value.attemptId,
+        errorCode: "AI_TIMEOUT",
+        invalidOutputReason: "json_object_malformed",
+        tokensUnknown: true,
+      });
+      expect(invalidReason).toMatchObject({
+        ok: false,
+        error: { code: "AI_COST_RECORDING_FAILED", retryable: false },
+      });
+
+      const missingReason = await costService.recorder.completeAttempt({
+        attemptId: begin.value.attemptId,
+        errorCode: "AI_OUTPUT_INVALID",
+        tokensUnknown: true,
+      });
+      expect(missingReason).toMatchObject({
+        ok: false,
+        error: { code: "AI_COST_RECORDING_FAILED", retryable: false },
+      });
+
+      const serialized = JSON.stringify(report.records);
+      expect(serialized).not.toContain("prompt");
+      expect(serialized).not.toContain("response");
+      expect(serialized).not.toContain("content");
+    });
+
     it("fails closed on beginAttempt when pricing is missing for production requests", async () => {
       const costService = createInMemoryAiCostService();
       const res = await costService.recorder.beginAttempt({
