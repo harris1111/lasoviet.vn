@@ -97,7 +97,20 @@ export const ReportGenerateJobEnvelopeSchema = z.discriminatedUnion("schemaVersi
   ReportGenerateJobEnvelopeV2Schema,
 ]);
 export type ReportGenerateJobEnvelope = z.infer<typeof ReportGenerateJobEnvelopeSchema>;
-export type QueueJob = ReportGenerateJobEnvelope | ReportPdfRenderJobV1;
+export const GeneratedPreviewGenerateJobV1Schema = z.object({
+  schemaVersion: z.literal(1),
+  name: z.literal("preview.generate.v1"),
+  sourceEventId: z.string().trim().min(1),
+  traceId: z.string().trim().min(1),
+  idempotencyKey: z.string().trim().min(1),
+  payload: z.object({
+    requestId: z.string().trim().min(1),
+    chartVersionId: z.string().trim().min(1),
+    sectionIds: z.array(z.string().trim().min(1)).min(1).max(3),
+  }).strict(),
+}).strict();
+export type GeneratedPreviewGenerateJobV1 = z.infer<typeof GeneratedPreviewGenerateJobV1Schema>;
+export type QueueJob = ReportGenerateJobEnvelope | ReportPdfRenderJobV1 | GeneratedPreviewGenerateJobV1;
 
 const ReportFulfillmentFailedBaseSchema = z.object({
   reportId: z.string().trim().min(1),

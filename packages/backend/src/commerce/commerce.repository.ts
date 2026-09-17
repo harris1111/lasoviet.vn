@@ -51,6 +51,11 @@ import {
 
 type Sku = keyof typeof PRODUCT_CATALOG;
 type OrderRecord = typeof commerceOrders.$inferSelect;
+export type ContentPurchaseOrder = OrderRecord & {
+  kind: "content_purchase";
+  chartId: string;
+  chartVersionId: string;
+};
 type CheckoutLocale = "vi" | "en";
 
 export type CommerceRepositoryOptions = {
@@ -63,7 +68,7 @@ export type CommerceRepositoryOptions = {
 };
 
 export type OwnedOrderProjection = {
-  order: typeof commerceOrders.$inferSelect;
+  order: ContentPurchaseOrder;
   reportId: string | null;
 };
 
@@ -89,6 +94,14 @@ function checkoutLocale(locale: string): CheckoutLocale | null {
   return locale === "vi" || locale === "en" ? locale : null;
 }
 
+function isContentPurchaseOrder(order: OrderRecord): order is ContentPurchaseOrder {
+  return (
+    order.kind === "content_purchase" &&
+    order.chartId !== null &&
+    order.chartVersionId !== null
+  );
+}
+
 export function createDatabaseCommerceRepository(
   database: Database,
   options: CommerceRepositoryOptions = {},
@@ -98,13 +111,17 @@ export function createDatabaseCommerceRepository(
   const paymentCodeFactory = options.paymentCodeFactory ?? generatePaymentCode;
   const reportVersionResolver = options.reportVersionResolver ?? currentReportVersions;
 
-  async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
+  async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<ContentPurchaseOrder | null> {
     if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") {
       return null;
     }
     let [order] = await database.select().from(commerceOrders)
-      .where(and(eq(commerceOrders.id, orderId), eq(commerceOrders.ownerId, actor.userId))).limit(1);
-    if (order === undefined) return null;
+      .where(and(
+        eq(commerceOrders.id, orderId),
+        eq(commerceOrders.ownerId, actor.userId),
+        eq(commerceOrders.kind, "content_purchase"),
+      )).limit(1);
+    if (order === undefined || !isContentPurchaseOrder(order)) return null;
 
     const currentNow = getNow();
     const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
@@ -120,20 +137,24 @@ export function createDatabaseCommerceRepository(
         .set({ status: "expired" })
         .where(and(
           eq(commerceOrders.id, order.id),
+          eq(commerceOrders.kind, "content_purchase"),
           eq(commerceOrders.status, "pending"),
         ))
         .returning();
-      if (expired !== undefined) {
+      if (expired !== undefined && isContentPurchaseOrder(expired)) {
         order = expired;
       } else {
         const [fresh] = await database.select().from(commerceOrders)
-          .where(eq(commerceOrders.id, order.id)).limit(1);
-        if (fresh !== undefined) {
+          .where(and(
+            eq(commerceOrders.id, order.id),
+            eq(commerceOrders.kind, "content_purchase"),
+          )).limit(1);
+        if (fresh !== undefined && isContentPurchaseOrder(fresh)) {
           order = fresh;
         }
       }
     }
-    return order;
+    return isContentPurchaseOrder(order) ? order : null;
   }
 
   async function readAccountLibrary(actor: CurrentActor): Promise<AccountLibraryV1> {
@@ -164,6 +185,7 @@ export function createDatabaseCommerceRepository(
           eq(commerceOrders.id, commerceEntitlements.orderId),
           eq(commerceOrders.ownerId, actor.userId),
           eq(commerceOrders.chartId, commerceEntitlements.chartId),
+          eq(commerceOrders.kind, "content_purchase"),
         ),
       )
       .innerJoin(
@@ -193,7 +215,10 @@ export function createDatabaseCommerceRepository(
         ),
       )
       .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
-      .where(eq(commerceEntitlements.ownerId, actor.userId))
+      .where(and(
+        eq(commerceEntitlements.ownerId, actor.userId),
+        eq(commerceOrders.kind, "content_purchase"),
+      ))
       .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
 
     if (rows.length === 0) {
@@ -478,7 +503,10 @@ export function createDatabaseCommerceRepository(
         ),
       )
       .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
-      .where(eq(commerceOrders.ownerId, actor.userId))
+      .where(and(
+        eq(commerceOrders.ownerId, actor.userId),
+        eq(commerceOrders.kind, "content_purchase"),
+      ))
       .orderBy(desc(commerceOrders.createdAt), desc(commerceOrders.id));
 
     if (rows.length === 0) {
@@ -532,7 +560,11 @@ export function createDatabaseCommerceRepository(
       evidenceSetMap.set(es.id, es);
     }
 
-    const orders: OrderHistoryItemV1[] = rows.map((row) => {
+    const contentRows = rows.filter((
+      row,
+    ): row is typeof row & { order: ContentPurchaseOrder } => isContentPurchaseOrder(row.order));
+
+    const orders: OrderHistoryItemV1[] = contentRows.map((row) => {
       const order = row.order;
       const profile = row.profile;
       const revision = row.revision;
@@ -682,6 +714,7 @@ export function createDatabaseCommerceRepository(
                 eq(commerceEntitlements.chartId, chartId),
                 eq(commerceEntitlements.ownerId, actor.userId),
                 eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"),
+                eq(commerceOrders.kind, "content_purchase"),
                 ne(commerceOrders.status, "refunded"),
               ),
             )
@@ -709,11 +742,14 @@ export function createDatabaseCommerceRepository(
           .where(and(
             eq(commerceOrders.chartId, chartId),
             eq(commerceOrders.sku, product.sku),
+            eq(commerceOrders.kind, "content_purchase"),
           ))
           .orderBy(desc(commerceOrders.createdAt))
           .for("update");
 
-        const paidOrder = existingOrders.find((o) => o.status === "paid");
+        const existingContentOrders = existingOrders.filter(isContentPurchaseOrder);
+
+        const paidOrder = existingContentOrders.find((o) => o.status === "paid");
         if (paidOrder !== undefined) {
           return { ok: true as const, value: paidOrder, reused: true };
         }
@@ -743,13 +779,13 @@ export function createDatabaseCommerceRepository(
           return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
         }
 
-        const refundedOrder = existingOrders.find((o) => o.status === "refunded");
+        const refundedOrder = existingContentOrders.find((o) => o.status === "refunded");
         if (refundedOrder !== undefined) {
           return { ok: true as const, value: refundedOrder, reused: true };
         }
 
 
-        const pendingOrder = existingOrders.find((o) => o.status === "pending");
+        const pendingOrder = existingContentOrders.find((o) => o.status === "pending");
         if (pendingOrder !== undefined) {
           const isTtlValid = pendingOrder.createdAt.getTime() > cutoff.getTime();
           const isCreditValid =
@@ -790,6 +826,7 @@ export function createDatabaseCommerceRepository(
                 eq(commerceOrders.ownerId, actor.userId),
                 eq(commerceOrders.chartId, chartId),
                 eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+                eq(commerceOrders.kind, "content_purchase"),
                 eq(commerceOrders.status, "paid"),
                 eq(commerceOrders.locale, selectedLocale),
                 isNotNull(commerceOrders.paidAt),
@@ -815,6 +852,7 @@ export function createDatabaseCommerceRepository(
             id,
             paymentCode,
             invoiceNumber: "LSV-" + id,
+            kind: "content_purchase",
             chartId,
             chartVersionId: chart.chartVersionId,
             ownerId: actor.userId,
@@ -839,7 +877,7 @@ export function createDatabaseCommerceRepository(
       });
     },
 
-    async readOrder(actor: CurrentActor, orderId: string): Promise<OrderRecord | null> {
+    async readOrder(actor: CurrentActor, orderId: string): Promise<ContentPurchaseOrder | null> {
       return getOwnedOrderWithExpiry(actor, orderId);
     },
 
@@ -873,6 +911,7 @@ export function createDatabaseCommerceRepository(
                 eq(commerceEntitlements.chartId, order.chartId),
                 eq(commerceEntitlements.ownerId, order.ownerId),
                 eq(reportReservations.locale, order.locale),
+                eq(commerceOrders.kind, "content_purchase"),
                 ne(commerceOrders.status, "refunded"),
               ),
             )
@@ -925,22 +964,23 @@ export function createDatabaseCommerceRepository(
             return { ok: true as const, replayed: true };
           }
 
-          const [target] = await transaction.select({
-            chartId: commerceOrders.chartId,
-            sku: commerceOrders.sku,
-          }).from(commerceOrders)
-            .where(lookupPredicate)
+          const [target] = await transaction.select().from(commerceOrders)
+            .where(and(lookupPredicate, eq(commerceOrders.kind, "content_purchase")))
             .limit(1);
-          if (target === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
+          if (target === undefined || !isContentPurchaseOrder(target)) {
+            return { ok: false as const, code: "ORDER_NOT_FOUND" };
+          }
 
           const lockKey = `commerce:chart:${target.chartId}`;
           await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
           const [order] = await transaction.select().from(commerceOrders)
-            .where(lookupPredicate)
+            .where(and(lookupPredicate, eq(commerceOrders.kind, "content_purchase")))
             .limit(1)
             .for("update");
-          if (order === undefined) return { ok: false as const, code: "ORDER_NOT_FOUND" };
+          if (order === undefined || !isContentPurchaseOrder(order)) {
+            return { ok: false as const, code: "ORDER_NOT_FOUND" };
+          }
         if (order.amount !== input.amount || order.currency !== input.currency) {
           return { ok: false as const, code: "PAYMENT_AMOUNT_MISMATCH" };
         }
@@ -1011,6 +1051,7 @@ export function createDatabaseCommerceRepository(
                 eq(commerceOrders.id, order.creditedFromOrderId),
                 eq(commerceOrders.ownerId, order.ownerId),
                 eq(commerceOrders.chartId, order.chartId),
+                eq(commerceOrders.kind, "content_purchase"),
                 eq(commerceOrders.locale, order.locale),
                 eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
                 eq(commerceOrders.status, "paid"),
@@ -1041,6 +1082,7 @@ export function createDatabaseCommerceRepository(
           .where(and(
             eq(commerceOrders.chartId, order.chartId),
             eq(commerceOrders.sku, order.sku),
+            eq(commerceOrders.kind, "content_purchase"),
             eq(commerceOrders.status, "pending"),
             ne(commerceOrders.id, order.id),
           ));
@@ -1059,10 +1101,11 @@ export function createDatabaseCommerceRepository(
           })
           .where(and(
             eq(commerceOrders.id, order.id),
+            eq(commerceOrders.kind, "content_purchase"),
             or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
           ))
           .returning();
-        if (paidOrder === undefined) {
+        if (paidOrder === undefined || !isContentPurchaseOrder(paidOrder)) {
           const [replayed] = await transaction.select().from(commercePaymentEvents)
             .where(eq(commercePaymentEvents.providerEventId, input.providerEventId)).limit(1);
           return replayed?.orderId === order.id
@@ -1125,6 +1168,7 @@ export function createDatabaseCommerceRepository(
               eq(commerceEntitlements.chartId, paidOrder.chartId),
               eq(commerceEntitlements.ownerId, paidOrder.ownerId),
               eq(reportReservations.locale, paidOrder.locale),
+              eq(commerceOrders.kind, "content_purchase"),
               ne(commerceOrders.status, "refunded"),
               ne(commerceEntitlements.id, entitlement.id),
             ),
@@ -1396,6 +1440,7 @@ export function createDatabaseCommerceRepository(
               eq(commerceOrders.ownerId, actor.userId),
               eq(commerceOrders.amount, input.amount),
               eq(commerceOrders.currency, "VND"),
+              eq(commerceOrders.kind, "content_purchase"),
               or(
                 eq(commerceOrders.status, "pending"),
                 eq(commerceOrders.status, "expired"),
@@ -1405,6 +1450,9 @@ export function createDatabaseCommerceRepository(
 
         const eligibleOrders: typeof candidateOrders = [];
         for (const order of candidateOrders) {
+          if (!isContentPurchaseOrder(order)) {
+            continue;
+          }
           if (order.creditApplied > 0) {
             if (
               order.creditExpiresAt === null ||
@@ -1425,6 +1473,7 @@ export function createDatabaseCommerceRepository(
                   eq(commerceOrders.id, order.creditedFromOrderId),
                   eq(commerceOrders.ownerId, actor.userId),
                   eq(commerceOrders.chartId, order.chartId),
+                  eq(commerceOrders.kind, "content_purchase"),
                   eq(commerceOrders.locale, order.locale),
                   eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
                   eq(commerceOrders.status, "paid"),
@@ -1511,6 +1560,7 @@ export function createDatabaseCommerceRepository(
               eq(commerceOrders.ownerId, actor.userId),
               eq(commerceOrders.amount, input.amount),
               eq(commerceOrders.currency, "VND"),
+              eq(commerceOrders.kind, "content_purchase"),
               or(
                 eq(commerceOrders.status, "pending"),
                 eq(commerceOrders.status, "expired"),
@@ -1520,6 +1570,9 @@ export function createDatabaseCommerceRepository(
 
         const lockedEligibleOrders: typeof lockedCandidateOrders = [];
         for (const order of lockedCandidateOrders) {
+          if (!isContentPurchaseOrder(order)) {
+            continue;
+          }
           if (order.creditApplied > 0) {
             if (
               order.creditExpiresAt === null ||
@@ -1540,6 +1593,7 @@ export function createDatabaseCommerceRepository(
                   eq(commerceOrders.id, order.creditedFromOrderId),
                   eq(commerceOrders.ownerId, actor.userId),
                   eq(commerceOrders.chartId, order.chartId),
+                  eq(commerceOrders.kind, "content_purchase"),
                   eq(commerceOrders.locale, order.locale),
                   eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
                   eq(commerceOrders.status, "paid"),
@@ -1603,7 +1657,10 @@ export function createDatabaseCommerceRepository(
         const [lockedOrder] = await transaction
           .select()
           .from(commerceOrders)
-          .where(eq(commerceOrders.id, selectedOrder.id))
+          .where(and(
+            eq(commerceOrders.id, selectedOrder.id),
+            eq(commerceOrders.kind, "content_purchase"),
+          ))
           .limit(1)
           .for("update");
 
@@ -1616,6 +1673,7 @@ export function createDatabaseCommerceRepository(
           lockedPayment.receivedAt < claimTime.windowStart ||
           lockedPayment.receivedAt > claimTime.windowEnd ||
           lockedOrder.ownerId !== actor.userId ||
+          !isContentPurchaseOrder(lockedOrder) ||
           lockedOrder.amount !== input.amount ||
           lockedOrder.currency !== "VND" ||
           (lockedOrder.status !== "pending" && lockedOrder.status !== "expired")
@@ -1677,9 +1735,10 @@ export function createDatabaseCommerceRepository(
           .set({ status: "expired" })
           .where(
             and(
-              eq(commerceOrders.chartId, lockedOrder.chartId),
-              eq(commerceOrders.sku, lockedOrder.sku),
-              eq(commerceOrders.status, "pending"),
+            eq(commerceOrders.chartId, lockedOrder.chartId),
+            eq(commerceOrders.sku, lockedOrder.sku),
+            eq(commerceOrders.kind, "content_purchase"),
+            eq(commerceOrders.status, "pending"),
               ne(commerceOrders.id, lockedOrder.id),
             ),
           );
@@ -1700,12 +1759,13 @@ export function createDatabaseCommerceRepository(
           .where(
             and(
               eq(commerceOrders.id, lockedOrder.id),
+              eq(commerceOrders.kind, "content_purchase"),
               or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
             ),
           )
           .returning();
 
-        if (paidOrder === undefined) {
+        if (paidOrder === undefined || !isContentPurchaseOrder(paidOrder)) {
           throw new Error("ORDER_TRANSITION_FAILED");
         }
 
@@ -1784,6 +1844,7 @@ export function createDatabaseCommerceRepository(
               eq(commerceEntitlements.chartId, paidOrder.chartId),
               eq(commerceEntitlements.ownerId, paidOrder.ownerId),
               eq(reportReservations.locale, paidOrder.locale),
+              eq(commerceOrders.kind, "content_purchase"),
               ne(commerceOrders.status, "refunded"),
               ne(commerceEntitlements.id, entitlement.id),
             ),

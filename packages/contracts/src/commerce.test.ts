@@ -25,9 +25,16 @@ import {
   COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS,
   TIER_2_V4_1_ENTITLEMENT_SCOPE,
   resolveEntitlementScopeForSku,
+  CommerceOrderKindSchema,
 } from "./commerce.js";
 
 describe("commerce contracts", () => {
+  it("adds strict order kinds without changing the V1 SKU contract", () => {
+    expect(CommerceOrderKindSchema.safeParse("content_purchase").success).toBe(true);
+    expect(CommerceOrderKindSchema.safeParse("wallet_topup").success).toBe(true);
+    expect(CommerceOrderKindSchema.safeParse("invoice").success).toBe(false);
+  });
+
   it("resolves product titles according to locale", () => {
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Luận giải Tử Vi toàn diện");
     expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Comprehensive Zi Wei reading");

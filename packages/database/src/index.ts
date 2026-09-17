@@ -47,6 +47,20 @@ export {
   commerceUnmatchedPayments,
 } from "./schema/commerce.js";
 export {
+  walletAccounts,
+  walletCommandReceipts,
+  walletCreditLots,
+  walletLedgerEntries,
+  walletPurchaseIntents,
+  walletRestorationAllocations,
+  walletSpendAllocations,
+  walletTransactions,
+} from "./schema/wallet-commerce.js";
+export {
+  generatedPreviewRequests,
+  generatedPreviewSections,
+} from "./schema/generated-preview.js";
+export {
   reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,

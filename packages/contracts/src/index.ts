@@ -301,6 +301,61 @@ export {
   PaidTopicSelectionRequestV1Schema,
   PaidTopicSelectionViewV1Schema,
 } from "./free-identity-preview-v1.js";
+export {
+  FreeIdentityPreviewV2Schema,
+  PaidTopicSelectionViewV2Schema,
+} from "./free-identity-preview-v2.js";
+export type {
+  FreeIdentityPreviewV2,
+  PaidTopicSelectionViewV2,
+} from "./free-identity-preview-v2.js";
+export {
+  GeneratedPreviewRequestV1Schema,
+  GeneratedPreviewSafeProjectionV1Schema,
+  GeneratedPreviewStatusV1Schema,
+} from "./generated-preview-v1.js";
+export type {
+  GeneratedPreviewRequestV1,
+  GeneratedPreviewSafeProjectionV1,
+  GeneratedPreviewStatusV1,
+} from "./generated-preview-v1.js";
+export {
+  AccountLibraryItemV2Schema,
+  AccountLibraryV2Schema,
+  ReportFailedWalletSpendViewV2Schema,
+} from "./commerce-report-v2.js";
+export type {
+  AccountLibraryItemV2,
+  AccountLibraryV2,
+  ReportFailedWalletSpendViewV2,
+} from "./commerce-report-v2.js";
+export {
+  WalletBalanceV1Schema,
+  WalletCreditLotV1Schema,
+  WalletGrantV1Schema,
+  WalletHistoryItemV1Schema,
+  WalletHistoryV1Schema,
+  WalletPurchaseIntentV1Schema,
+  WalletRestorationV1Schema,
+  WalletSpendAllocationV1Schema,
+  WalletSpendV1Schema,
+  WalletTopUpCatalogV1,
+  WalletTopUpPackIdSchema,
+  WalletTransactionReceiptV1Schema,
+} from "./wallet-commerce-v1.js";
+export type {
+  WalletBalanceV1,
+  WalletCreditLotV1,
+  WalletGrantV1,
+  WalletHistoryItemV1,
+  WalletHistoryV1,
+  WalletPurchaseIntentV1,
+  WalletRestorationV1,
+  WalletSpendAllocationV1,
+  WalletSpendV1,
+  WalletTopUpPackId,
+  WalletTransactionReceiptV1,
+} from "./wallet-commerce-v1.js";
 export type {
   FreeIdentityPreviewV1,
   PaidTopicSelectionRequestV1,
@@ -311,6 +366,7 @@ export {
   AccountLibraryGroupV1Schema,
   AccountLibraryItemV1Schema,
   AccountLibraryV1Schema,
+  CommerceOrderKindSchema,
   CommerceSkuSchema,
   EntitlementStatusSchema,
   OrderHistoryItemV1Schema,
@@ -345,6 +401,7 @@ export type {
   AccountLibraryItemV1,
   AccountLibraryV1,
   CommerceSku,
+  CommerceOrderKind,
   EntitlementStatus,
   OrderHistoryItemV1,
   OrderHistoryV1,
@@ -378,6 +435,7 @@ export type {
 } from "./report-assets.js";
 
 export {
+  GeneratedPreviewGenerateJobV1Schema,
   ReportFulfillmentFailedV1Schema,
   ReportGenerateJobEnvelopeSchema,
   ReportGenerateJobEnvelopeV1Schema,
@@ -389,6 +447,7 @@ export {
   ReportStatusSchema,
 } from "./jobs.js";
 export type {
+  GeneratedPreviewGenerateJobV1,
   QueueJob,
   QueueJobV1,
   ReportFulfillmentFailedV1,

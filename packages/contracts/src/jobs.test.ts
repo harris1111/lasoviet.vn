@@ -9,6 +9,7 @@ import {
   type ReportGenerationRequestedV2,
   type ReportGenerateJobEnvelopeV1,
   type ReportGenerateJobEnvelopeV2,
+  GeneratedPreviewGenerateJobV1Schema,
 } from "./jobs.js";
 
 function createValidV1Payload(): ReportGenerationRequestedV1 {
@@ -354,5 +355,22 @@ describe("ReportGenerateJobEnvelope schemas", () => {
       const mismatched = { ...createValidV1Envelope(), name: "report.generate.v2" };
       expect(ReportGenerateJobEnvelopeSchema.safeParse(mismatched).success).toBe(false);
     });
+  });
+});
+
+describe("generated preview job contract", () => {
+  it("accepts only a bounded section selection and no sensitive payload", () => {
+    const job = {
+      schemaVersion: 1,
+      name: "preview.generate.v1",
+      sourceEventId: "event",
+      traceId: "trace",
+      idempotencyKey: "key",
+      payload: { requestId: "request", chartVersionId: "chart", sectionIds: ["coreAxis"] },
+    };
+    expect(GeneratedPreviewGenerateJobV1Schema.safeParse(job).success).toBe(true);
+    expect(GeneratedPreviewGenerateJobV1Schema.safeParse({
+      ...job, payload: { ...job.payload, prompt: "secret" },
+    }).success).toBe(false);
   });
 });

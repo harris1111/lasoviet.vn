@@ -12,6 +12,8 @@ import * as privacy from "./schema/privacy.js";
 import * as reports from "./schema/reports.js";
 import * as aiCost from "./schema/ai-cost.js";
 import * as analytics from "./schema/analytics.js";
+import * as walletCommerce from "./schema/wallet-commerce.js";
+import * as generatedPreview from "./schema/generated-preview.js";
 
 const schema = {
   ...auth,
@@ -25,6 +27,8 @@ const schema = {
   ...reports,
   ...aiCost,
   ...analytics,
+  ...walletCommerce,
+  ...generatedPreview,
 };
 
 export type Database = PostgresJsDatabase<typeof schema>;
