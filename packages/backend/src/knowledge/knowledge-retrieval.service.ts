@@ -25,11 +25,17 @@ export type KnowledgePassageV1 = {
   metadata?: KnowledgeChunkMetadataV1;
 };
 
-export type ZiweiKnowledgeQueryV3 = {
+export const ZIWEI_COMPREHENSIVE_KNOWLEDGE_VERSIONS = [
+  "ziwei.comprehensive.knowledge.v3",
+  "ziwei.comprehensive.knowledge.v4",
+] as const;
+
+export type ZiweiComprehensiveKnowledgeVersion =
+  (typeof ZIWEI_COMPREHENSIVE_KNOWLEDGE_VERSIONS)[number];
+
+export type ZiweiKnowledgeQuery = {
   locale: "vi";
-  knowledgeVersion:
-    | "ziwei.comprehensive.knowledge.v3"
-    | "ziwei.comprehensive.knowledge.v4";
+  knowledgeVersion: ZiweiComprehensiveKnowledgeVersion;
   topics?: string[];
   palaceIds?: string[];
   starIds?: string[];
@@ -42,8 +48,11 @@ export type ZiweiKnowledgeQueryV3 = {
   maxTotalChars: number;
 };
 
+// Kept for existing V3 report-pack consumers; the query is versioned V3/V4.
+export type ZiweiKnowledgeQueryV3 = ZiweiKnowledgeQuery;
+
 function computeZiweiMetadataScore(
-  query: ZiweiKnowledgeQueryV3,
+  query: ZiweiKnowledgeQuery,
   metadata?: KnowledgeChunkMetadataV1,
 ): number {
   if (!metadata) return 0;
@@ -510,10 +519,7 @@ export function createKnowledgeRetrievalService(dependencies: {
         );
       }
 
-      if (
-        query.knowledgeVersion !== "ziwei.comprehensive.knowledge.v3" &&
-        query.knowledgeVersion !== "ziwei.comprehensive.knowledge.v4"
-      ) {
+      if (!ZIWEI_COMPREHENSIVE_KNOWLEDGE_VERSIONS.includes(query.knowledgeVersion)) {
         throw new KnowledgeError(
           "KNOWLEDGE_METADATA_INVALID",
           `Unsupported knowledge version: ${query.knowledgeVersion}`,

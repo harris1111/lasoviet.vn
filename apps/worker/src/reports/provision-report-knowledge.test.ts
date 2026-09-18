@@ -1,7 +1,9 @@
 import { createHash } from "node:crypto";
-import { resolve } from "node:path";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { describe, expect, it, vi } from "vitest";
-import type { KnowledgeManifestV1 } from "@lasoviet/backend";
+import type { KnowledgeManifestV1, KnowledgeManifestV2 } from "@lasoviet/backend";
 import {
   DEFAULT_REPORT_KNOWLEDGE_PATHS,
   provisionReportKnowledge,
@@ -44,19 +46,24 @@ function createValidManifest(
 }
 
 describe("provisionReportKnowledge", () => {
-  it("configures exact default paths with Vietnamese V3 and English V2 without legacy VI V2", () => {
+  it("configures exact default paths with Vietnamese V3, English V2, and frozen Vietnamese V4", () => {
     expect(DEFAULT_REPORT_KNOWLEDGE_PATHS.vi).toBe(
       "content/knowledge/vi/ziwei/comprehensive-report.v3.json",
     );
     expect(DEFAULT_REPORT_KNOWLEDGE_PATHS.en).toBe(
       "content/knowledge/en/ziwei/identity-report-foundation.v2.json",
     );
+    expect(DEFAULT_REPORT_KNOWLEDGE_PATHS.v4).toBe(
+      "content/knowledge/vi/ziwei/comprehensive-report.v4.json",
+    );
     expect(DEFAULT_REPORT_KNOWLEDGE_PATHS.vi).not.toContain("identity-report-foundation");
     expect(DEFAULT_REPORT_KNOWLEDGE_PATHS.vi).not.toContain(".v2.json");
   });
 
-  it("loads exact default paths from disk, validates both manifests, and ingests them in VI then EN order", async () => {
-    const ingestKnowledge = vi.fn().mockImplementation(async (manifest: KnowledgeManifestV1) => ({
+  it("loads exact default paths from disk, validates all manifests, and ingests V3 VI, V2 EN, then V4", async () => {
+    const ingestKnowledge = vi.fn().mockImplementation(async (
+      manifest: KnowledgeManifestV1 | KnowledgeManifestV2,
+    ) => ({
       ok: true,
       documentId: manifest.documentId,
       chunkCount: manifest.chunks.length,
@@ -70,7 +77,7 @@ describe("provisionReportKnowledge", () => {
       }),
     ).resolves.toBeUndefined();
 
-    expect(ingestKnowledge).toHaveBeenCalledTimes(2);
+    expect(ingestKnowledge).toHaveBeenCalledTimes(3);
 
     const firstCall = ingestKnowledge.mock.calls[0];
     expect(firstCall).toBeDefined();
@@ -87,6 +94,14 @@ describe("provisionReportKnowledge", () => {
     expect(enCallManifest.knowledgeVersion).toBe("ziwei.identity.knowledge.v2");
     expect(enCallManifest.locale).toBe("en");
     expect(enCallManifest.sourcePath).toBe(DEFAULT_REPORT_KNOWLEDGE_PATHS.en);
+
+    const thirdCall = ingestKnowledge.mock.calls[2];
+    expect(thirdCall).toBeDefined();
+    const v4CallManifest = thirdCall?.[0] as KnowledgeManifestV2;
+    expect(v4CallManifest.documentId).toBe("ziwei-comprehensive-report-vi");
+    expect(v4CallManifest.knowledgeVersion).toBe("ziwei.comprehensive.knowledge.v4");
+    expect(v4CallManifest.locale).toBe("vi");
+    expect(v4CallManifest.sourcePath).toBe(DEFAULT_REPORT_KNOWLEDGE_PATHS.v4);
   });
 
   it("provisions both valid VI and EN manifests successfully via manifestLoader", async () => {
@@ -328,6 +343,73 @@ describe("provisionReportKnowledge", () => {
     expect(ingestKnowledge).not.toHaveBeenCalled();
     const allArgs = consoleSpy.mock.calls.flatMap((call) => call.map(String)).join(" ");
     expect(allArgs).not.toContain("/nonexistent-repo-root");
+    consoleSpy.mockRestore();
+  });
+
+  it("does not fall back when the default V4 manifest is missing", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const ingestKnowledge = vi.fn();
+    const repositoryRoot = mkdtempSync(join(tmpdir(), "lasoviet-report-knowledge-"));
+    const viPath = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.vi);
+    const enPath = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.en);
+    mkdirSync(resolve(viPath, ".."), { recursive: true });
+    mkdirSync(resolve(enPath, ".."), { recursive: true });
+    writeFileSync(viPath, JSON.stringify(createValidManifest({ locale: "vi" })));
+    writeFileSync(enPath, JSON.stringify(createValidManifest({ locale: "en" })));
+
+    try {
+      await expect(
+        provisionReportKnowledge({
+          manifestValidator: (manifest) => ({
+            ok: true as const,
+            value: manifest as KnowledgeManifestV1,
+          }),
+          ingestionService: { ingestKnowledge },
+          repositoryRoot,
+        }),
+      ).rejects.toThrow("REPORT_KNOWLEDGE_PROVISION_FAILED");
+    } finally {
+      rmSync(repositoryRoot, { force: true, recursive: true });
+    }
+
+    expect(ingestKnowledge).not.toHaveBeenCalled();
+    const allArgs = consoleSpy.mock.calls.flatMap((call) => call.map(String)).join(" ");
+    expect(allArgs).not.toContain("missing V4 manifest");
+    consoleSpy.mockRestore();
+  });
+
+  it("does not fall back when the default V4 manifest is invalid", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const ingestKnowledge = vi.fn();
+    const repositoryRoot = mkdtempSync(join(tmpdir(), "lasoviet-report-knowledge-"));
+    const viPath = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.vi);
+    const enPath = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.en);
+    const v4Path = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.v4);
+    mkdirSync(resolve(viPath, ".."), { recursive: true });
+    mkdirSync(resolve(enPath, ".."), { recursive: true });
+    mkdirSync(resolve(v4Path, ".."), { recursive: true });
+    writeFileSync(viPath, JSON.stringify(createValidManifest({ locale: "vi" })));
+    writeFileSync(enPath, JSON.stringify(createValidManifest({ locale: "en" })));
+    writeFileSync(v4Path, "{not valid json");
+
+    try {
+      await expect(
+        provisionReportKnowledge({
+          ingestionService: { ingestKnowledge },
+          manifestValidator: (manifest) => ({
+            ok: true as const,
+            value: manifest as KnowledgeManifestV1,
+          }),
+          repositoryRoot,
+        }),
+      ).rejects.toThrow("REPORT_KNOWLEDGE_PROVISION_FAILED");
+    } finally {
+      rmSync(repositoryRoot, { force: true, recursive: true });
+    }
+
+    expect(ingestKnowledge).not.toHaveBeenCalled();
+    const allArgs = consoleSpy.mock.calls.flatMap((call) => call.map(String)).join(" ");
+    expect(allArgs).not.toContain("not valid json");
     consoleSpy.mockRestore();
   });
 

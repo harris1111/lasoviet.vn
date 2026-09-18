@@ -1,0 +1,9 @@
+{
+  "validationSchemaVersion": "ziwei.v4-validation-report.v1",
+  "candidateHash": "ce3d9ad69e8dc924f55fe085b9719cbb9067738c03e67b4fd54f021cb3ac8b70",
+  "policyVersion": "ziwei.knowledge.validation.v4.5",
+  "assemblyVersion": "ziwei-v4-assembler.v1",
+  "status": "passed",
+  "ok": true,
+  "issues": []
+}

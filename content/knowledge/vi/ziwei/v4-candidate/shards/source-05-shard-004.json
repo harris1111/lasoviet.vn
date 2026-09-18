@@ -1,0 +1,611 @@
+{
+  "shardSchemaVersion": "ziwei.v4-editorial-shard.v1",
+  "path": "content/knowledge/vi/ziwei/v4-candidate/shards/source-05-shard-004.json",
+  "sourcePassageIds": [
+    "ziwei-v3-05-d451c6c8-00014-256baf16fe81",
+    "ziwei-v3-05-d451c6c8-00015-daf057899865",
+    "ziwei-v3-05-d451c6c8-00016-d892ccf2894d",
+    "ziwei-v3-05-d451c6c8-00017-75e19bd72dc5",
+    "ziwei-v3-05-d451c6c8-00018-08fcf755c1f2",
+    "ziwei-v3-05-d451c6c8-00019-13d2c51d7141",
+    "ziwei-v3-05-d451c6c8-00020-1fa4dc6cee54",
+    "ziwei-v3-05-d451c6c8-00021-98b58dfeed26",
+    "ziwei-v3-05-d451c6c8-00022-ef948f548658",
+    "ziwei-v3-05-d451c6c8-00023-7a6b489e2435",
+    "ziwei-v3-05-d451c6c8-00024-683a766ae630",
+    "ziwei-v3-05-d451c6c8-00025-9818e4ad3c29",
+    "ziwei-v3-05-d451c6c8-00026-24a848129285",
+    "ziwei-v3-05-d451c6c8-00027-6f0d308f8a7b",
+    "ziwei-v3-05-d451c6c8-00028-7aadc7dbc201",
+    "ziwei-v3-05-d451c6c8-00029-5fec0b536950",
+    "ziwei-v3-05-d451c6c8-00030-64e41f052355",
+    "ziwei-v3-05-d451c6c8-00031-45c2b7a3059e",
+    "ziwei-v3-05-d451c6c8-00032-33d2295e3cb1",
+    "ziwei-v3-05-d451c6c8-00033-07adbf02c6e4",
+    "ziwei-v3-05-d451c6c8-00034-54d74c9b565c",
+    "ziwei-v3-05-d451c6c8-00035-960e4de5d07c",
+    "ziwei-v3-05-d451c6c8-00036-528c5ff18955",
+    "ziwei-v3-05-d451c6c8-00037-4d9f0e5f41ce",
+    "ziwei-v3-05-d451c6c8-00038-20f772400136",
+    "ziwei-v3-05-d451c6c8-00039-94b71e09ff8d",
+    "ziwei-v3-05-d451c6c8-00040-bebe4b0e54aa",
+    "ziwei-v3-05-d451c6c8-00041-2f9ca2ca337a",
+    "ziwei-v3-05-d451c6c8-00042-70115db2d08a",
+    "ziwei-v3-05-d451c6c8-00043-d998ecb1e902",
+    "ziwei-v3-05-d451c6c8-00044-c9fe0a29efec",
+    "ziwei-v3-05-d451c6c8-00045-d5354b24b9a0",
+    "ziwei-v3-05-d451c6c8-00046-da420040e15e",
+    "ziwei-v3-05-d451c6c8-00047-be4639c215ef",
+    "ziwei-v3-05-d451c6c8-00048-8439a95686bd",
+    "ziwei-v3-05-d451c6c8-00049-c7a3ae05589c",
+    "ziwei-v3-05-d451c6c8-00050-ccec8842f0ca",
+    "ziwei-v3-05-d451c6c8-00051-f2589426747a",
+    "ziwei-v3-05-d451c6c8-00052-dbb327b33c7a",
+    "ziwei-v3-05-d451c6c8-00053-eb2129f4fa31",
+    "ziwei-v3-05-d451c6c8-00054-90821ead5096",
+    "ziwei-v3-05-d451c6c8-00055-e78cbad71b80",
+    "ziwei-v3-05-d451c6c8-00056-f124a7db167a",
+    "ziwei-v3-05-d451c6c8-00057-44b760887917",
+    "ziwei-v3-05-d451c6c8-00058-86d9a1b11967",
+    "ziwei-v3-05-d451c6c8-00059-dc69763b86c7",
+    "ziwei-v3-05-d451c6c8-00060-ab0c59e371ab",
+    "ziwei-v3-05-d451c6c8-00061-f80beb9d6e6c",
+    "ziwei-v3-05-d451c6c8-00062-669473a727be",
+    "ziwei-v3-05-d451c6c8-00063-dfa9499e8e26",
+    "ziwei-v3-05-d451c6c8-00064-7b6f36ec405a",
+    "ziwei-v3-05-d451c6c8-00065-a458b1d69155",
+    "ziwei-v3-05-d451c6c8-00066-62811bbe92e0",
+    "ziwei-v3-05-d451c6c8-00067-6f21f2459775",
+    "ziwei-v3-05-d451c6c8-00068-c63b6adea389",
+    "ziwei-v3-05-d451c6c8-00069-322931c20de2",
+    "ziwei-v3-05-d451c6c8-00070-fd13c81b0eb1",
+    "ziwei-v3-05-d451c6c8-00071-e058981ecb0c",
+    "ziwei-v3-05-d451c6c8-00072-b9e69a7eeb50",
+    "ziwei-v3-05-d451c6c8-00073-442cc019afde",
+    "ziwei-v3-05-d451c6c8-00074-1aec7377dfab",
+    "ziwei-v3-05-d451c6c8-00075-5967c6c9fcb7",
+    "ziwei-v3-05-d451c6c8-00076-225a8480fc2e",
+    "ziwei-v3-05-d451c6c8-00077-7b27b1b3cd68",
+    "ziwei-v3-05-d451c6c8-00078-c6d910742c31",
+    "ziwei-v3-05-d451c6c8-00079-996a6646b050",
+    "ziwei-v3-05-d451c6c8-00080-42f06f741fca",
+    "ziwei-v3-05-d451c6c8-00081-f764e9dd6b55",
+    "ziwei-v3-05-d451c6c8-00082-14a026c45388",
+    "ziwei-v3-05-d451c6c8-00083-f0529919e2fd",
+    "ziwei-v3-05-d451c6c8-00084-72204fea1cb9",
+    "ziwei-v3-05-d451c6c8-00085-8805fc4c8cd9",
+    "ziwei-v3-05-d451c6c8-00086-293c8ed65c83",
+    "ziwei-v3-05-d451c6c8-00087-27b908dc4761",
+    "ziwei-v3-05-d451c6c8-00088-1336b62ea05b"
+  ],
+  "records": [
+    {
+      "passageId": "ziwei-v4-4a6a0cd2a5176e6344643b82",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Các sao phụ trong nhóm này được gọi thống nhất bằng tiếng Việt khi đọc lá số. Tên gọi giúp người đọc nhận biết các sao được nhắc tới và theo dõi phần giải thích liên quan, nhưng không tự mang ý nghĩa diễn giải, đánh giá hay dự báo cho người đọc.",
+      "contentHash": "296472729993239d1875256aaac954b01a365ddf0547dce1f302a50a9f0e8ada",
+      "metadata": {
+        "topics": [
+          "interpretation"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-05-d451c6c8-00078-c6d910742c31",
+        "ziwei-v3-05-d451c6c8-00079-996a6646b050",
+        "ziwei-v3-05-d451c6c8-00080-42f06f741fca",
+        "ziwei-v3-05-d451c6c8-00081-f764e9dd6b55",
+        "ziwei-v3-05-d451c6c8-00082-14a026c45388",
+        "ziwei-v3-05-d451c6c8-00083-f0529919e2fd",
+        "ziwei-v3-05-d451c6c8-00084-72204fea1cb9",
+        "ziwei-v3-05-d451c6c8-00085-8805fc4c8cd9",
+        "ziwei-v3-05-d451c6c8-00086-293c8ed65c83",
+        "ziwei-v3-05-d451c6c8-00087-27b908dc4761",
+        "ziwei-v3-05-d451c6c8-00088-1336b62ea05b"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-d9a3b941d55b4b289defc7b5",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Các tên trong nhóm này được gọi thống nhất bằng tiếng Việt khi đọc lá số. Chúng không tự đưa ra nhận xét về hành vi, hoàn cảnh hay đời sống của bất kỳ người nào.",
+      "contentHash": "41c115ad9c7a747154938587afbf9f158801e11c8e839c8795b27e6441fc42c7",
+      "metadata": {
+        "topics": [
+          "interpretation",
+          "stars"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.tianyue"
+        ],
+        "brightness": [
+          "ziwei.brightness.prosperous"
+        ],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-05-d451c6c8-00045-d5354b24b9a0",
+        "ziwei-v3-05-d451c6c8-00046-da420040e15e",
+        "ziwei-v3-05-d451c6c8-00047-be4639c215ef",
+        "ziwei-v3-05-d451c6c8-00048-8439a95686bd",
+        "ziwei-v3-05-d451c6c8-00049-c7a3ae05589c",
+        "ziwei-v3-05-d451c6c8-00050-ccec8842f0ca",
+        "ziwei-v3-05-d451c6c8-00051-f2589426747a",
+        "ziwei-v3-05-d451c6c8-00052-dbb327b33c7a",
+        "ziwei-v3-05-d451c6c8-00053-eb2129f4fa31",
+        "ziwei-v3-05-d451c6c8-00054-90821ead5096",
+        "ziwei-v3-05-d451c6c8-00055-e78cbad71b80",
+        "ziwei-v3-05-d451c6c8-00056-f124a7db167a",
+        "ziwei-v3-05-d451c6c8-00057-44b760887917",
+        "ziwei-v3-05-d451c6c8-00058-86d9a1b11967",
+        "ziwei-v3-05-d451c6c8-00059-dc69763b86c7",
+        "ziwei-v3-05-d451c6c8-00060-ab0c59e371ab",
+        "ziwei-v3-05-d451c6c8-00061-f80beb9d6e6c",
+        "ziwei-v3-05-d451c6c8-00062-669473a727be",
+        "ziwei-v3-05-d451c6c8-00063-dfa9499e8e26",
+        "ziwei-v3-05-d451c6c8-00064-7b6f36ec405a",
+        "ziwei-v3-05-d451c6c8-00065-a458b1d69155"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-38d4f02f1e4353a58e5e2578",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Các tên trong vòng trạng thái được dùng thống nhất bằng tiếng Việt khi đọc lá số. Những tên này giúp người đọc nhận biết từng trạng thái được nhắc tới và theo dõi chúng trong phần giải thích phù hợp, nhưng không tự suy luận về tình trạng cá nhân.",
+      "contentHash": "2e8a14c87307302b3cece52442b8f39000a727060b7c0e5da0312364a635e9f0",
+      "metadata": {
+        "topics": [
+          "interpretation"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [
+          "ziwei.brightness.prosperous"
+        ],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-05-d451c6c8-00066-62811bbe92e0",
+        "ziwei-v3-05-d451c6c8-00067-6f21f2459775",
+        "ziwei-v3-05-d451c6c8-00068-c63b6adea389",
+        "ziwei-v3-05-d451c6c8-00069-322931c20de2",
+        "ziwei-v3-05-d451c6c8-00070-fd13c81b0eb1",
+        "ziwei-v3-05-d451c6c8-00071-e058981ecb0c",
+        "ziwei-v3-05-d451c6c8-00072-b9e69a7eeb50",
+        "ziwei-v3-05-d451c6c8-00073-442cc019afde",
+        "ziwei-v3-05-d451c6c8-00074-1aec7377dfab",
+        "ziwei-v3-05-d451c6c8-00075-5967c6c9fcb7",
+        "ziwei-v3-05-d451c6c8-00076-225a8480fc2e",
+        "ziwei-v3-05-d451c6c8-00077-7b27b1b3cd68"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-5dbc3d2f3d5d21fb2fb4ea63",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Tên các sao trong nhóm này được dùng bằng tiếng Việt rõ ràng khi đọc lá số. Tên gọi giúp người đọc nhận biết sao đang được nói tới và theo dõi phần giải thích liên quan, nhưng không tự tạo thành nhận định hay đánh giá cho một cá nhân.",
+      "contentHash": "998af5d7b52493fb22397be94be47c4251322402b39f082b597916c5a6a337c0",
+      "metadata": {
+        "topics": [
+          "stars"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.dijie",
+          "ziwei.star.dikong",
+          "ziwei.star.huoxing",
+          "ziwei.star.lingxing",
+          "ziwei.star.lucun",
+          "ziwei.star.pojun",
+          "ziwei.star.qingyang",
+          "ziwei.star.tiankui",
+          "ziwei.star.tianma",
+          "ziwei.star.tianyue",
+          "ziwei.star.tuoluo",
+          "ziwei.star.wenchang",
+          "ziwei.star.wenqu",
+          "ziwei.star.youbi",
+          "ziwei.star.zuofu"
+        ],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-05-d451c6c8-00014-256baf16fe81",
+        "ziwei-v3-05-d451c6c8-00015-daf057899865",
+        "ziwei-v3-05-d451c6c8-00016-d892ccf2894d",
+        "ziwei-v3-05-d451c6c8-00017-75e19bd72dc5",
+        "ziwei-v3-05-d451c6c8-00018-08fcf755c1f2",
+        "ziwei-v3-05-d451c6c8-00019-13d2c51d7141",
+        "ziwei-v3-05-d451c6c8-00020-1fa4dc6cee54",
+        "ziwei-v3-05-d451c6c8-00021-98b58dfeed26",
+        "ziwei-v3-05-d451c6c8-00022-ef948f548658",
+        "ziwei-v3-05-d451c6c8-00023-7a6b489e2435",
+        "ziwei-v3-05-d451c6c8-00024-683a766ae630",
+        "ziwei-v3-05-d451c6c8-00025-9818e4ad3c29",
+        "ziwei-v3-05-d451c6c8-00026-24a848129285",
+        "ziwei-v3-05-d451c6c8-00027-6f0d308f8a7b",
+        "ziwei-v3-05-d451c6c8-00028-7aadc7dbc201"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-0184c12ae57990c720d2c23e",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Nhóm sao phụ được gọi bằng tên tiếng Việt nhất quán khi đọc lá số. Việc gọi tên giúp người đọc nhận biết các sao xuất hiện trong phần này và theo dõi phần giải thích liên quan, nhưng không tự giải thích ý nghĩa hay dự báo cho một người.",
+      "contentHash": "39d8f50d93a971e39e7d309d4b49f0f420868832709f2013fc80443ccc4e83b2",
+      "metadata": {
+        "topics": [
+          "interpretation",
+          "stars"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.tianfu"
+        ],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-05-d451c6c8-00029-5fec0b536950",
+        "ziwei-v3-05-d451c6c8-00030-64e41f052355",
+        "ziwei-v3-05-d451c6c8-00031-45c2b7a3059e",
+        "ziwei-v3-05-d451c6c8-00032-33d2295e3cb1",
+        "ziwei-v3-05-d451c6c8-00033-07adbf02c6e4",
+        "ziwei-v3-05-d451c6c8-00034-54d74c9b565c",
+        "ziwei-v3-05-d451c6c8-00035-960e4de5d07c",
+        "ziwei-v3-05-d451c6c8-00036-528c5ff18955",
+        "ziwei-v3-05-d451c6c8-00037-4d9f0e5f41ce",
+        "ziwei-v3-05-d451c6c8-00038-20f772400136",
+        "ziwei-v3-05-d451c6c8-00039-94b71e09ff8d",
+        "ziwei-v3-05-d451c6c8-00040-bebe4b0e54aa",
+        "ziwei-v3-05-d451c6c8-00041-2f9ca2ca337a",
+        "ziwei-v3-05-d451c6c8-00042-70115db2d08a",
+        "ziwei-v3-05-d451c6c8-00043-d998ecb1e902",
+        "ziwei-v3-05-d451c6c8-00044-c9fe0a29efec"
+      ],
+      "dispositionRationaleCode": "merged"
+    }
+  ],
+  "dispositions": [
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00014-256baf16fe81",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00015-daf057899865",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00016-d892ccf2894d",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00017-75e19bd72dc5",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00018-08fcf755c1f2",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00019-13d2c51d7141",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00020-1fa4dc6cee54",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00021-98b58dfeed26",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00022-ef948f548658",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00023-7a6b489e2435",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00024-683a766ae630",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00025-9818e4ad3c29",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00026-24a848129285",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00027-6f0d308f8a7b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00028-7aadc7dbc201",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00029-5fec0b536950",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00030-64e41f052355",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00031-45c2b7a3059e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00032-33d2295e3cb1",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00033-07adbf02c6e4",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00034-54d74c9b565c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00035-960e4de5d07c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00036-528c5ff18955",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00037-4d9f0e5f41ce",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00038-20f772400136",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00039-94b71e09ff8d",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00040-bebe4b0e54aa",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00041-2f9ca2ca337a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00042-70115db2d08a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00043-d998ecb1e902",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00044-c9fe0a29efec",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00045-d5354b24b9a0",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00046-da420040e15e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00047-be4639c215ef",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00048-8439a95686bd",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00049-c7a3ae05589c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00050-ccec8842f0ca",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00051-f2589426747a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00052-dbb327b33c7a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00053-eb2129f4fa31",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00054-90821ead5096",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00055-e78cbad71b80",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00056-f124a7db167a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00057-44b760887917",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00058-86d9a1b11967",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00059-dc69763b86c7",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00060-ab0c59e371ab",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00061-f80beb9d6e6c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00062-669473a727be",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00063-dfa9499e8e26",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00064-7b6f36ec405a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00065-a458b1d69155",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00066-62811bbe92e0",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00067-6f21f2459775",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00068-c63b6adea389",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00069-322931c20de2",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00070-fd13c81b0eb1",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00071-e058981ecb0c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00072-b9e69a7eeb50",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00073-442cc019afde",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00074-1aec7377dfab",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00075-5967c6c9fcb7",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00076-225a8480fc2e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00077-7b27b1b3cd68",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00078-c6d910742c31",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00079-996a6646b050",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00080-42f06f741fca",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00081-f764e9dd6b55",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00082-14a026c45388",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00083-f0529919e2fd",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00084-72204fea1cb9",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00085-8805fc4c8cd9",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00086-293c8ed65c83",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00087-27b908dc4761",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-05-d451c6c8-00088-1336b62ea05b",
+      "disposition": "merged"
+    }
+  ]
+}

@@ -1,0 +1,1024 @@
+{
+  "shardSchemaVersion": "ziwei.v4-editorial-shard.v1",
+  "path": "content/knowledge/vi/ziwei/v4-candidate/shards/source-03-shard-005.json",
+  "sourcePassageIds": [
+    "ziwei-v3-03-5b9e3ef3-00001-92997728ed42",
+    "ziwei-v3-03-5b9e3ef3-00002-5e0f59a13451",
+    "ziwei-v3-03-5b9e3ef3-00003-10e4aea679f6",
+    "ziwei-v3-03-5b9e3ef3-00004-3ae7bb2e752b",
+    "ziwei-v3-03-5b9e3ef3-00005-39aa790699bb",
+    "ziwei-v3-03-5b9e3ef3-00006-6916dcab9fe3",
+    "ziwei-v3-03-5b9e3ef3-00007-906a26613c24",
+    "ziwei-v3-03-5b9e3ef3-00008-a8c63c241f43",
+    "ziwei-v3-03-5b9e3ef3-00009-6cd27ad50e8a",
+    "ziwei-v3-03-5b9e3ef3-00010-9bf3efd62fc1",
+    "ziwei-v3-03-5b9e3ef3-00011-ec6f0abf0f9b",
+    "ziwei-v3-03-5b9e3ef3-00012-27c7481eb939",
+    "ziwei-v3-03-5b9e3ef3-00013-1eb6e75787c2",
+    "ziwei-v3-03-5b9e3ef3-00014-c23673e42c88",
+    "ziwei-v3-03-5b9e3ef3-00015-47373d164e06",
+    "ziwei-v3-03-5b9e3ef3-00016-4dd6d0e9e3c0",
+    "ziwei-v3-03-5b9e3ef3-00017-a38a243b3d34",
+    "ziwei-v3-03-5b9e3ef3-00018-c9a79e4e28eb",
+    "ziwei-v3-03-5b9e3ef3-00019-ac192e4bf142",
+    "ziwei-v3-03-5b9e3ef3-00020-186451496dea",
+    "ziwei-v3-03-5b9e3ef3-00021-97f272d01541",
+    "ziwei-v3-03-5b9e3ef3-00022-6df1272cb454",
+    "ziwei-v3-03-5b9e3ef3-00023-0c842bc14613",
+    "ziwei-v3-03-5b9e3ef3-00024-3d1cfcc235a6",
+    "ziwei-v3-03-5b9e3ef3-00025-827c5dc7797b",
+    "ziwei-v3-03-5b9e3ef3-00026-830b8bd083fa",
+    "ziwei-v3-03-5b9e3ef3-00027-4258d503f963",
+    "ziwei-v3-03-5b9e3ef3-00028-646fbdabb55f",
+    "ziwei-v3-03-5b9e3ef3-00029-f3b5c5403d15",
+    "ziwei-v3-03-5b9e3ef3-00030-52d9f262e799",
+    "ziwei-v3-03-5b9e3ef3-00031-d3abad6a90a1",
+    "ziwei-v3-03-5b9e3ef3-00032-20facc2b6e1b",
+    "ziwei-v3-03-5b9e3ef3-00033-01bda892293a",
+    "ziwei-v3-03-5b9e3ef3-00034-71d4a1e21a4b",
+    "ziwei-v3-03-5b9e3ef3-00035-f5c8bde7016b",
+    "ziwei-v3-03-62445041-00001-d5cc8118a28b",
+    "ziwei-v3-03-62445041-00002-b70080fe585c",
+    "ziwei-v3-03-62445041-00003-92eaa3bc76e8",
+    "ziwei-v3-03-62445041-00004-3e11888585ca",
+    "ziwei-v3-03-62445041-00005-1c997881c91e",
+    "ziwei-v3-03-62445041-00006-42ce39319cb6",
+    "ziwei-v3-03-62445041-00007-232053b38df3",
+    "ziwei-v3-03-62445041-00008-fedd3df979a2",
+    "ziwei-v3-03-62445041-00009-a06de4529d60",
+    "ziwei-v3-03-62445041-00010-723c4afaed2f",
+    "ziwei-v3-03-62445041-00011-16268b5f1434",
+    "ziwei-v3-03-62445041-00012-a93ea9490342",
+    "ziwei-v3-03-62445041-00013-13322ffa9e6e",
+    "ziwei-v3-03-62445041-00014-6579f0b7b26c",
+    "ziwei-v3-03-62445041-00015-6fe1ff3f392d",
+    "ziwei-v3-03-62445041-00016-d4e7051acbff",
+    "ziwei-v3-03-62445041-00017-7b856bfb19d9",
+    "ziwei-v3-03-62445041-00018-2821bf9cf5f0",
+    "ziwei-v3-03-62445041-00019-a2bee864b99e",
+    "ziwei-v3-03-62445041-00020-8938466eb319",
+    "ziwei-v3-03-62445041-00021-92c2a1abf8f5",
+    "ziwei-v3-03-62445041-00022-f03cfb6859bd",
+    "ziwei-v3-03-62445041-00023-c7170e43071f",
+    "ziwei-v3-03-62445041-00024-78f8a69b0ba8",
+    "ziwei-v3-03-62445041-00025-58aba192fe2c",
+    "ziwei-v3-03-62445041-00026-31f70870c0ec",
+    "ziwei-v3-03-62445041-00027-295ca9aa615f",
+    "ziwei-v3-03-62445041-00028-233d7471e8ca",
+    "ziwei-v3-03-62445041-00029-a44a50ecf30e",
+    "ziwei-v3-03-62445041-00030-86b2e6e2675e",
+    "ziwei-v3-03-62445041-00031-6bd50a142e91",
+    "ziwei-v3-03-62445041-00032-41e1f190513d",
+    "ziwei-v3-03-62445041-00033-c14f8e7c44a8",
+    "ziwei-v3-03-62445041-00034-9d64a563746e",
+    "ziwei-v3-03-62445041-00035-f39415c7e948",
+    "ziwei-v3-03-62445041-00036-d5a8c4c4beb4",
+    "ziwei-v3-03-62445041-00037-8b909251702e",
+    "ziwei-v3-03-62445041-00038-bfa660b68d7a",
+    "ziwei-v3-03-62445041-00039-3800a0728099",
+    "ziwei-v3-03-62445041-00040-54563acf26c2"
+  ],
+  "records": [
+    {
+      "reportSections": [
+        "action_summary",
+        "identity_analysis",
+        "primary_evidence",
+        "strengths_and_resources"
+      ],
+      "content": "Phần Hoá theo cung nhấn mạnh việc theo dõi liên hệ giữa các cung và ghi lại điểm xuất phát của từng nhãn. Nguồn có các cách diễn giải khác nhau về tự Hoá, vì vậy cách làm thận trọng là nêu phương pháp đang dùng, tách dữ kiện khỏi suy luận và không phóng đại một mối nối đơn lẻ.",
+      "contentHash": "8825364822e4b12b04a62d434a5e4147a49eb34bbad9ce9569d4ab2a992d4b9b",
+      "metadata": {
+        "topics": [
+          "career",
+          "life",
+          "patterns",
+          "stars",
+          "transformations",
+          "wealth"
+        ],
+        "palaces": [
+          "ziwei.palace.career",
+          "ziwei.palace.life",
+          "ziwei.palace.wealth"
+        ],
+        "stars": [
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.fame",
+          "ziwei.transformation.obstacle",
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [
+          "triad"
+        ],
+        "patterns": [],
+        "sourceType": "curated",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-5b9e3ef3-00012-27c7481eb939",
+        "ziwei-v3-03-5b9e3ef3-00013-1eb6e75787c2",
+        "ziwei-v3-03-5b9e3ef3-00014-c23673e42c88",
+        "ziwei-v3-03-5b9e3ef3-00015-47373d164e06",
+        "ziwei-v3-03-5b9e3ef3-00016-4dd6d0e9e3c0",
+        "ziwei-v3-03-5b9e3ef3-00017-a38a243b3d34",
+        "ziwei-v3-03-5b9e3ef3-00018-c9a79e4e28eb",
+        "ziwei-v3-03-5b9e3ef3-00019-ac192e4bf142"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-06677b9d42fa9baaabdb7989"
+    },
+    {
+      "reportSections": [
+        "cycles_and_timing",
+        "primary_evidence"
+      ],
+      "content": "Nguồn phân biệt các yếu tố ổn định của lá số với lớp thời điểm dùng để quan sát từng năm. Cách đọc phù hợp là ưu tiên vị trí sao, độ sáng, tổ hợp và bối cảnh hiện tại, rồi xem lớp thời điểm như một phần tham khảo.",
+      "contentHash": "d51b778ef5f261ec489755928845dd53b8603f6ca265af2cd9bdce9243e02a9d",
+      "metadata": {
+        "topics": [
+          "stars",
+          "timing"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "curated",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-5b9e3ef3-00020-186451496dea",
+        "ziwei-v3-03-5b9e3ef3-00021-97f272d01541",
+        "ziwei-v3-03-5b9e3ef3-00022-6df1272cb454",
+        "ziwei-v3-03-5b9e3ef3-00023-0c842bc14613",
+        "ziwei-v3-03-5b9e3ef3-00024-3d1cfcc235a6"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-c7d81551dafba6f5db22f65c"
+    },
+    {
+      "reportSections": [
+        "action_summary",
+        "identity_analysis",
+        "primary_evidence",
+        "reflection_questions",
+        "strengths_and_resources",
+        "tensions_and_blind_spots"
+      ],
+      "content": "Nhóm sao Tử Vi, Thiên Phủ, Thái Âm, Tham Lang và Cự Môn gợi ý cách bạn tổ chức việc chung, tích lũy, quan sát, giao tiếp và nuôi dưỡng sáng tạo. Khi đứng trước lựa chọn lớn, hãy trao đổi với người tin cậy và chọn môi trường tôn trọng năng lực thực tế thay vì chạy theo khuôn mẫu giới tính hay danh xưng.",
+      "contentHash": "1ead095889d2a779db997f869dde032ccea07ca015db90b292639da3f1e9bc06",
+      "metadata": {
+        "topics": [
+          "career",
+          "patterns",
+          "property",
+          "relationships",
+          "stars",
+          "transformations",
+          "wellbeing"
+        ],
+        "palaces": [
+          "ziwei.palace.career",
+          "ziwei.palace.children",
+          "ziwei.palace.fortune",
+          "ziwei.palace.property",
+          "ziwei.palace.siblings",
+          "ziwei.palace.spouse"
+        ],
+        "stars": [
+          "ziwei.star.huoxing",
+          "ziwei.star.jumen",
+          "ziwei.star.lingxing",
+          "ziwei.star.lucun",
+          "ziwei.star.taiyang",
+          "ziwei.star.taiyin",
+          "ziwei.star.tanlang",
+          "ziwei.star.tianfu",
+          "ziwei.star.youbi",
+          "ziwei.star.ziwei",
+          "ziwei.star.zuofu"
+        ],
+        "brightness": [
+          "ziwei.brightness.exalted",
+          "ziwei.brightness.favorable",
+          "ziwei.brightness.neutral",
+          "ziwei.brightness.prosperous",
+          "ziwei.brightness.weak"
+        ],
+        "transformations": [
+          "ziwei.transformation.obstacle",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [
+          "conjunction",
+          "triad"
+        ],
+        "patterns": [
+          "ziwei.pattern.jun-chen-qing-hui",
+          "ziwei.pattern.zi-fu-tong-gong"
+        ],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-62445041-00033-c14f8e7c44a8",
+        "ziwei-v3-03-62445041-00034-9d64a563746e",
+        "ziwei-v3-03-62445041-00035-f39415c7e948",
+        "ziwei-v3-03-62445041-00036-d5a8c4c4beb4",
+        "ziwei-v3-03-62445041-00037-8b909251702e",
+        "ziwei-v3-03-62445041-00038-bfa660b68d7a",
+        "ziwei-v3-03-62445041-00039-3800a0728099",
+        "ziwei-v3-03-62445041-00040-54563acf26c2"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-0b03d47df7ef252bdbbb285c"
+    },
+    {
+      "reportSections": [
+        "action_summary",
+        "primary_evidence",
+        "reflection_questions",
+        "strengths_and_resources",
+        "tensions_and_blind_spots"
+      ],
+      "content": "Tử Vi và Thất Sát trong nguồn được dùng để gợi ý vai trò dẫn dắt, tinh thần mở đường và nhu cầu cân bằng giữa chủ động với phản hồi từ môi trường. Ở cung Quan Lộc, cung Điền Trạch và cung Phu Thê, cách diễn giải nên nhấn mạnh trách nhiệm, thỏa thuận rõ ràng và khả năng điều chỉnh khi điều kiện thay đổi.",
+      "contentHash": "7ff1e6b57543bdfd9c62929469ca9baa3ac6129b193a69cd33be059e6bead299",
+      "metadata": {
+        "topics": [
+          "career",
+          "property",
+          "relationships",
+          "stars",
+          "transformations"
+        ],
+        "palaces": [
+          "ziwei.palace.career",
+          "ziwei.palace.property",
+          "ziwei.palace.spouse"
+        ],
+        "stars": [
+          "ziwei.star.qisha",
+          "ziwei.star.tianfu",
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.fame",
+          "ziwei.transformation.obstacle",
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [
+          "conjunction",
+          "opposition"
+        ],
+        "patterns": [],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-62445041-00006-42ce39319cb6",
+        "ziwei-v3-03-62445041-00007-232053b38df3",
+        "ziwei-v3-03-62445041-00008-fedd3df979a2",
+        "ziwei-v3-03-62445041-00009-a06de4529d60",
+        "ziwei-v3-03-62445041-00010-723c4afaed2f"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-4005bd6d0bcb40b863f159e0"
+    },
+    {
+      "reportSections": [
+        "primary_evidence",
+        "reflection_questions",
+        "tensions_and_blind_spots"
+      ],
+      "content": "Bốn nhãn Hoá trong phần cổ điển được dùng để gợi ý các chủ đề về nguồn lực, trách nhiệm, học hỏi và điểm cần xem lại. Khi những nhãn này xuất hiện ở các cung khác nhau, nên mô tả tác động có điều kiện, nêu lựa chọn có thể cân nhắc và tránh biến chúng thành phán quyết về kết quả.",
+      "contentHash": "d7912b959cf4dcdb1e8c6b011e1651c3c9493e629da06664e3e662809bf03bc6",
+      "metadata": {
+        "topics": [
+          "relationships",
+          "stars",
+          "transformations"
+        ],
+        "palaces": [
+          "ziwei.palace.children",
+          "ziwei.palace.spouse"
+        ],
+        "stars": [
+          "ziwei.star.lucun",
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.fame",
+          "ziwei.transformation.obstacle",
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [
+          "triad"
+        ],
+        "patterns": [],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-62445041-00015-6fe1ff3f392d",
+        "ziwei-v3-03-62445041-00016-d4e7051acbff",
+        "ziwei-v3-03-62445041-00017-7b856bfb19d9",
+        "ziwei-v3-03-62445041-00018-2821bf9cf5f0"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-6651a7c64c2527c256101f92"
+    },
+    {
+      "reportSections": [
+        "cycles_and_timing",
+        "primary_evidence"
+      ],
+      "content": "Một nhãn Hoá có thể giúp làm rõ vì sao một cung được xem xét trong phần luận giải. Khi có nhiều điều kiện cùng xuất hiện, nên nói rõ phạm vi áp dụng và tránh chồng quá nhiều giả định.",
+      "contentHash": "9061f9897e494133fffc7c53843d7b77608216a05a35e607690f916bd5bcf490",
+      "metadata": {
+        "topics": [
+          "stars",
+          "timing",
+          "transformations"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.fame",
+          "ziwei.transformation.obstacle",
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "curated",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-5b9e3ef3-00030-52d9f262e799",
+        "ziwei-v3-03-5b9e3ef3-00031-d3abad6a90a1",
+        "ziwei-v3-03-5b9e3ef3-00032-20facc2b6e1b",
+        "ziwei-v3-03-5b9e3ef3-00033-01bda892293a",
+        "ziwei-v3-03-5b9e3ef3-00034-71d4a1e21a4b",
+        "ziwei-v3-03-5b9e3ef3-00035-f5c8bde7016b"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-ddcb626657264b6be1541710"
+    },
+    {
+      "reportSections": [
+        "action_summary",
+        "cycles_and_timing",
+        "identity_analysis",
+        "primary_evidence",
+        "reflection_questions",
+        "strengths_and_resources",
+        "tensions_and_blind_spots"
+      ],
+      "content": "Các cung trong lá số được dùng để chia nhỏ chủ đề như quan hệ, nơi ở, định hướng và đời sống nội tâm; tam phương và đối cung giúp mở rộng góc nhìn. Khi một cung không có sao chính, cách đọc cần nói rõ sao đối chiếu và giới hạn của phép tham chiếu, thay vì coi đó là khoảng trống cần lấp bằng suy đoán.",
+      "contentHash": "d66b17e47695cdc9cce7d79ea14805d56ac99192782c0056cc69f2d49dc088c2",
+      "metadata": {
+        "topics": [
+          "career",
+          "health",
+          "life",
+          "patterns",
+          "property",
+          "relationships",
+          "stars",
+          "timing",
+          "travel",
+          "wealth",
+          "wellbeing"
+        ],
+        "palaces": [
+          "ziwei.palace.career",
+          "ziwei.palace.children",
+          "ziwei.palace.fortune",
+          "ziwei.palace.health",
+          "ziwei.palace.life",
+          "ziwei.palace.parents",
+          "ziwei.palace.property",
+          "ziwei.palace.spouse",
+          "ziwei.palace.travel",
+          "ziwei.palace.wealth"
+        ],
+        "stars": [
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [
+          "ziwei.brightness.exalted",
+          "ziwei.brightness.favorable",
+          "ziwei.brightness.prosperous",
+          "ziwei.brightness.weak"
+        ],
+        "transformations": [],
+        "relations": [
+          "opposition",
+          "triad"
+        ],
+        "patterns": [],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-62445041-00026-31f70870c0ec",
+        "ziwei-v3-03-62445041-00027-295ca9aa615f",
+        "ziwei-v3-03-62445041-00028-233d7471e8ca",
+        "ziwei-v3-03-62445041-00029-a44a50ecf30e",
+        "ziwei-v3-03-62445041-00030-86b2e6e2675e",
+        "ziwei-v3-03-62445041-00031-6bd50a142e91",
+        "ziwei-v3-03-62445041-00032-41e1f190513d"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-b163eb21f82b92200cc1a247"
+    },
+    {
+      "reportSections": [
+        "cycles_and_timing",
+        "identity_analysis",
+        "primary_evidence"
+      ],
+      "content": "Các sao hỗ trợ và các dấu hiệu căng thẳng trong nguồn nhắc người đọc quan sát mạng lưới hợp tác, kỹ năng giao tiếp và cách phản ứng trước áp lực. Chúng gợi ý kiểm tra nguồn lực, giảm quyết định vội vàng và tìm hỗ trợ phù hợp, không dùng để gán nhãn xấu cho một người hay một mối quan hệ.",
+      "contentHash": "066a6621ddd8df3fa40513b809ebdab63d11e53847141394fc0ef801e64a9577",
+      "metadata": {
+        "topics": [
+          "life",
+          "patterns",
+          "stars",
+          "timing",
+          "transformations"
+        ],
+        "palaces": [
+          "ziwei.palace.life"
+        ],
+        "stars": [
+          "ziwei.star.dijie",
+          "ziwei.star.dikong",
+          "ziwei.star.huoxing",
+          "ziwei.star.lingxing",
+          "ziwei.star.qingyang",
+          "ziwei.star.tiankui",
+          "ziwei.star.tianyue",
+          "ziwei.star.tuoluo",
+          "ziwei.star.wenchang",
+          "ziwei.star.wenqu",
+          "ziwei.star.youbi",
+          "ziwei.star.ziwei",
+          "ziwei.star.zuofu"
+        ],
+        "brightness": [
+          "ziwei.brightness.neutral"
+        ],
+        "transformations": [
+          "ziwei.transformation.obstacle"
+        ],
+        "relations": [
+          "conjunction",
+          "triad"
+        ],
+        "patterns": [
+          "ziwei.pattern.jun-chen-qing-hui"
+        ],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-62445041-00019-a2bee864b99e",
+        "ziwei-v3-03-62445041-00020-8938466eb319",
+        "ziwei-v3-03-62445041-00021-92c2a1abf8f5",
+        "ziwei-v3-03-62445041-00022-f03cfb6859bd",
+        "ziwei-v3-03-62445041-00023-c7170e43071f",
+        "ziwei-v3-03-62445041-00024-78f8a69b0ba8",
+        "ziwei-v3-03-62445041-00025-58aba192fe2c"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-e4c4736bec8496bf9f447823"
+    },
+    {
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Các tổ hợp Sát Phá Tham và Cơ Nguyệt Đồng Lương mô tả hai cách tiếp cận khác nhau: một bên thiên về đổi mới, bên kia thiên về tích lũy và chuyên môn. Giá trị của chúng nằm ở việc đặt câu hỏi về nhịp độ phù hợp, mức độ chuẩn bị và loại môi trường giúp mỗi người phát huy điểm mạnh.",
+      "contentHash": "338da2d20fe09133d7eb871c8934f388c69789e678aa5ffeb0d1ff0dbd52c6c9",
+      "metadata": {
+        "topics": [
+          "patterns",
+          "stars",
+          "transformations"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.pojun",
+          "ziwei.star.qisha",
+          "ziwei.star.taiyin",
+          "ziwei.star.tanlang",
+          "ziwei.star.tianji",
+          "ziwei.star.tianliang",
+          "ziwei.star.tiantong",
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [
+          "ziwei.brightness.favorable",
+          "ziwei.brightness.neutral"
+        ],
+        "transformations": [
+          "ziwei.transformation.fame",
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [
+          "triad"
+        ],
+        "patterns": [
+          "ziwei.pattern.ji-yue-tong-liang",
+          "ziwei.pattern.sha-po-lang"
+        ],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-62445041-00011-16268b5f1434",
+        "ziwei-v3-03-62445041-00012-a93ea9490342",
+        "ziwei-v3-03-62445041-00013-13322ffa9e6e",
+        "ziwei-v3-03-62445041-00014-6579f0b7b26c"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-b96fa898501c57321b3449f0"
+    },
+    {
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Bảng Hoá theo thiên can trong nguồn đối chiếu từng năm với bốn nhãn Hoá. Khi dùng bảng này, cần nêu rõ thiên can đang được tham chiếu và xem nó như một lớp bối cảnh, không phải căn cứ duy nhất cho một kết luận.",
+      "contentHash": "613c5b9378d782e5c62ece592b151b4ae7944f91a3df5dff2fc672c43006d6e2",
+      "metadata": {
+        "topics": [
+          "stars",
+          "transformations"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.jumen",
+          "ziwei.star.lianzhen",
+          "ziwei.star.pojun",
+          "ziwei.star.taiyang",
+          "ziwei.star.taiyin",
+          "ziwei.star.tanlang",
+          "ziwei.star.tianji",
+          "ziwei.star.tianliang",
+          "ziwei.star.tiantong",
+          "ziwei.star.wenchang",
+          "ziwei.star.wenqu",
+          "ziwei.star.wuqu",
+          "ziwei.star.youbi",
+          "ziwei.star.ziwei",
+          "ziwei.star.zuofu"
+        ],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.fame",
+          "ziwei.transformation.obstacle",
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "curated",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-5b9e3ef3-00001-92997728ed42",
+        "ziwei-v3-03-5b9e3ef3-00002-5e0f59a13451",
+        "ziwei-v3-03-5b9e3ef3-00003-10e4aea679f6",
+        "ziwei-v3-03-5b9e3ef3-00004-3ae7bb2e752b",
+        "ziwei-v3-03-5b9e3ef3-00005-39aa790699bb",
+        "ziwei-v3-03-5b9e3ef3-00006-6916dcab9fe3",
+        "ziwei-v3-03-5b9e3ef3-00007-906a26613c24",
+        "ziwei-v3-03-5b9e3ef3-00008-a8c63c241f43",
+        "ziwei-v3-03-5b9e3ef3-00009-6cd27ad50e8a",
+        "ziwei-v3-03-5b9e3ef3-00010-9bf3efd62fc1",
+        "ziwei-v3-03-5b9e3ef3-00011-ec6f0abf0f9b"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-086f6cde378af8f545fd5c25"
+    },
+    {
+      "reportSections": [
+        "cycles_and_timing",
+        "identity_analysis",
+        "primary_evidence"
+      ],
+      "content": "Các trích đoạn tổng luận dùng hình ảnh về vai trò của sao để mô tả cách các yếu tố phối hợp trong lá số. Cách đọc theo sao chính, sao hỗ trợ và tam phương nên hướng tới năng lực tổ chức, quan sát và phối hợp thay vì xếp hạng con người.",
+      "contentHash": "aa68e8071da46100c31dc31b32aaf44da6c6b91f5791bbf9511c5946a2df6032",
+      "metadata": {
+        "topics": [
+          "life",
+          "patterns",
+          "stars",
+          "timing",
+          "transformations"
+        ],
+        "palaces": [
+          "ziwei.palace.life"
+        ],
+        "stars": [
+          "ziwei.star.lianzhen",
+          "ziwei.star.lucun",
+          "ziwei.star.pojun",
+          "ziwei.star.tianfu",
+          "ziwei.star.tianji",
+          "ziwei.star.tianliang",
+          "ziwei.star.youbi",
+          "ziwei.star.ziwei",
+          "ziwei.star.zuofu"
+        ],
+        "brightness": [
+          "ziwei.brightness.favorable"
+        ],
+        "transformations": [
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [
+          "conjunction",
+          "triad"
+        ],
+        "patterns": [
+          "ziwei.pattern.zi-fu-tong-gong"
+        ],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-62445041-00001-d5cc8118a28b",
+        "ziwei-v3-03-62445041-00002-b70080fe585c",
+        "ziwei-v3-03-62445041-00003-92eaa3bc76e8",
+        "ziwei-v3-03-62445041-00004-3e11888585ca",
+        "ziwei-v3-03-62445041-00005-1c997881c91e"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-957cf491972ad3e2cddf02f3"
+    },
+    {
+      "reportSections": [
+        "primary_evidence"
+      ],
+      "content": "Thiên can theo tháng, ngày và giờ cho thấy các yếu tố trong lá số liên hệ theo từng thời điểm. Bạn nên xem chúng như gợi ý để quan sát thói quen và lựa chọn của mình, không dùng để khẳng định trước một sự việc cụ thể.",
+      "contentHash": "64ffb76e138ff301106ce24fe1a6171d22d61cf0d74010083e59aceff5e56d0f",
+      "metadata": {
+        "topics": [
+          "stars"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "curated",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-5b9e3ef3-00025-827c5dc7797b",
+        "ziwei-v3-03-5b9e3ef3-00026-830b8bd083fa",
+        "ziwei-v3-03-5b9e3ef3-00027-4258d503f963",
+        "ziwei-v3-03-5b9e3ef3-00028-646fbdabb55f",
+        "ziwei-v3-03-5b9e3ef3-00029-f3b5c5403d15"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-260efa429260bae01deacd0e"
+    }
+  ],
+  "dispositions": [
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00001-92997728ed42",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00002-5e0f59a13451",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00003-10e4aea679f6",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00004-3ae7bb2e752b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00005-39aa790699bb",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00006-6916dcab9fe3",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00007-906a26613c24",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00008-a8c63c241f43",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00009-6cd27ad50e8a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00010-9bf3efd62fc1",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00011-ec6f0abf0f9b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00012-27c7481eb939",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00013-1eb6e75787c2",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00014-c23673e42c88",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00015-47373d164e06",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00016-4dd6d0e9e3c0",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00017-a38a243b3d34",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00018-c9a79e4e28eb",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00019-ac192e4bf142",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00020-186451496dea",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00021-97f272d01541",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00022-6df1272cb454",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00023-0c842bc14613",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00024-3d1cfcc235a6",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00025-827c5dc7797b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00026-830b8bd083fa",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00027-4258d503f963",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00028-646fbdabb55f",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00029-f3b5c5403d15",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00030-52d9f262e799",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00031-d3abad6a90a1",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00032-20facc2b6e1b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00033-01bda892293a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00034-71d4a1e21a4b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-5b9e3ef3-00035-f5c8bde7016b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00001-d5cc8118a28b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00002-b70080fe585c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00003-92eaa3bc76e8",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00004-3e11888585ca",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00005-1c997881c91e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00006-42ce39319cb6",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00007-232053b38df3",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00008-fedd3df979a2",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00009-a06de4529d60",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00010-723c4afaed2f",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00011-16268b5f1434",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00012-a93ea9490342",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00013-13322ffa9e6e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00014-6579f0b7b26c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00015-6fe1ff3f392d",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00016-d4e7051acbff",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00017-7b856bfb19d9",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00018-2821bf9cf5f0",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00019-a2bee864b99e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00020-8938466eb319",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00021-92c2a1abf8f5",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00022-f03cfb6859bd",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00023-c7170e43071f",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00024-78f8a69b0ba8",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00025-58aba192fe2c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00026-31f70870c0ec",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00027-295ca9aa615f",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00028-233d7471e8ca",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00029-a44a50ecf30e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00030-86b2e6e2675e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00031-6bd50a142e91",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00032-41e1f190513d",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00033-c14f8e7c44a8",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00034-9d64a563746e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00035-f39415c7e948",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00036-d5a8c4c4beb4",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00037-8b909251702e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00038-bfa660b68d7a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00039-3800a0728099",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-62445041-00040-54563acf26c2",
+      "disposition": "merged"
+    }
+  ]
+}
