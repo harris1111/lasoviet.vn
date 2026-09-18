@@ -13,6 +13,7 @@ import {
   z,
 } from "@lasoviet/contracts";
 import {
+  resolveZiweiReportQualityConfig,
   resolveZiweiReportQualitySectionThreshold,
   ziweiComprehensiveReportQualityV1,
   ziweiComprehensiveReportQualityV2Sensitivity,
@@ -36,6 +37,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
@@ -73,7 +75,8 @@ export type ComprehensiveReportSectionWriterV4Input = {
   promptVersion:
     | typeof REPORT_PROMPT_VERSION_V4_0_1
     | typeof REPORT_PROMPT_VERSION_V4_1_SENSITIVITY
-    | typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY;
+    | typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY
+    | typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY;
   reportConfigVersion?:
     | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
     | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
@@ -182,7 +185,7 @@ function boundedFindings(
 
 function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4Input) {
   if (
-    input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
+    !isKeyConfigurationContractPrompt(input.promptVersion) ||
     input.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
     input.sectionKey !== "keyConfigurations"
   ) {
@@ -201,13 +204,18 @@ function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4I
   });
 }
 
+function isKeyConfigurationContractPrompt(promptVersion: ComprehensiveReportSectionWriterV4Input["promptVersion"]): boolean {
+  return promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
+    promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY;
+}
+
 function rewritePayload(input: ComprehensiveReportSectionWriterV4Input) {
   if (!input.rewrite) return {};
   const priorItems = input.rewrite.priorSection.key === "keyConfigurations"
     ? input.rewrite.priorSection.value
     : null;
   const isKeyConfigurationContract =
-    input.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY &&
+    isKeyConfigurationContractPrompt(input.promptVersion) &&
     input.sectionKey === "keyConfigurations" &&
     priorItems !== null;
   return {
@@ -445,7 +453,35 @@ Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tín
 Không bịa sự kiện tương lai cụ thể, không dùng khẳng định định mệnh về tai nạn, tử vong, phá sản hoặc phản bội.
 Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, và không lặp lại lời khuyên/cảnh báo.
  Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
- readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
+readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
+
+function acceptanceContract(input: ComprehensiveReportSectionWriterV4Input) {
+  if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
+  const quality = resolveZiweiReportQualityConfig(
+    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  );
+  return {
+    scope: "section-and-item-addressed",
+    suppliedFindings: "Correct every supplied finding for its exact section or itemKey.",
+    discouragedTerms: [...quality.discouragedTerms],
+    properNameDensity: {
+      configuredProperNames: [...quality.properNames],
+      maximumPer100Syllables: quality.maxProperNamesPer100Syllables,
+    },
+    evidence: {
+      useOnlyAllowedEvidenceKeys: true,
+      preserveEvidenceBackedChartFacts: true,
+      preserveRequiredEvidenceKeys: true,
+    },
+    noNewQualityViolations: true,
+    ...(input.sectionKey === "keyConfigurations" ? {
+      keyConfigurations: {
+        preserveExactTitleOrderEvidenceKeysIdentity: true,
+      },
+    } : {}),
+  } as const;
+}
 
 export async function writeComprehensiveReportSectionV4(
   input: ComprehensiveReportSectionWriterV4Input,
@@ -460,7 +496,9 @@ export async function writeComprehensiveReportSectionV4(
     );
   const isV4_1_1 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY &&
     reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
-  if (!isV4 && !isV4_1 && !isV4_1_1) {
+  const isV4_1_2 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  if (!isV4 && !isV4_1 && !isV4_1_1 && !isV4_1_2) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_PROMPT_UNSUPPORTED");
   }
   if (!resolveComprehensiveReportSectionKeys(reportConfigVersion).includes(input.sectionKey)) {
@@ -474,6 +512,7 @@ export async function writeComprehensiveReportSectionV4(
     ...input,
     reportConfigVersion,
   });
+  const contract = acceptanceContract({ ...input, reportConfigVersion });
   const maxOutputTokens = isV4
     ? ziweiComprehensiveReportQualityV1.sections[
       scope.kind as keyof typeof ziweiComprehensiveReportQualityV1.sections
@@ -488,12 +527,20 @@ export async function writeComprehensiveReportSectionV4(
   const result = await input.provider.generateStructured({
     schema: schemaFor(input.sectionKey),
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
-    system: requirements
+    system: contract
+      ? `${SECTION_SYSTEM_PROMPT}
+Acceptance contract: every supplied finding must be corrected at its exact section/item address; avoid every configured discouraged term; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
+Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
+      : requirements
       ? `${SECTION_SYSTEM_PROMPT}
 Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.`
       : SECTION_SYSTEM_PROMPT,
-    user: JSON.stringify(scopedPayload(input, scope)),
+    user: JSON.stringify({
+      ...scopedPayload(input, scope),
+      ...(contract ? { acceptanceContract: contract } : {}),
+    }),
     use: "production_report_generation",
     purpose: input.rewrite ? "rewrite" : "report",
     maxOutputTokens,
