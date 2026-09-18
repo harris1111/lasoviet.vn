@@ -3337,6 +3337,121 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
   });
 
+  it("terminalizes a post-rewrite discouraged-term failure and resumes without another provider dispatch", async () => {
+    const coreAxis = sectionFor("coreAxis");
+    const coreAxisInitial = {
+      ...coreAxis,
+      value: {
+        ...(coreAxis.value as any),
+        narrative: `${(coreAxis.value as any).narrative} quý nhân`,
+      },
+    };
+    const coreAxisRewrite = {
+      ...coreAxis,
+      value: {
+        ...(coreAxis.value as any),
+        narrative: `${(coreAxis.value as any).narrative} đắc địa`,
+      },
+    };
+    const fixture = createSectionedService({
+      onSection: (key, request) => {
+        if (key === "coreAxis") {
+          const payload = JSON.parse(request.user);
+          return {
+            ok: true,
+            value: {
+              value: payload.rewrite ? coreAxisRewrite : coreAxisInitial,
+              providerId: "section-provider",
+              modelId: "section-model",
+            },
+          };
+        }
+        return {
+          ok: true,
+          value: {
+            value: sectionFor(key),
+            providerId: "section-provider",
+            modelId: "section-model",
+          },
+        };
+      },
+    });
+    const job = keyConfigPromptJob();
+
+    const first = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(first).toMatchObject({
+      ok: false,
+      error: { code: "AI_OUTPUT_INVALID", retryable: false },
+    });
+    const candidate = fixture.repository.qualityCandidates.get("coreAxis");
+    expect(candidate.findings).toEqual([{
+      itemKey: "coreAxis",
+      code: "DISCOURAGED_TERM",
+      note: "Contains prohibited term: quý nhân.",
+    }]);
+    const coreAxisRequests = fixture.provider.generateStructured.mock.calls
+      .map(([request]: [any]) => request)
+      .filter((request: any) => JSON.parse(request.user).sectionKey === "coreAxis");
+    expect(coreAxisRequests).toHaveLength(2);
+    expect(JSON.parse(coreAxisRequests[0].user).rewrite).toBeUndefined();
+    expect(coreAxisRequests[0].costContext).toMatchObject({
+      purpose: "report",
+      idempotencyKey: `${job.payload.reportVersionId}:coreAxis:generation:1:critic:0`,
+    });
+    expect(JSON.parse(coreAxisRequests[1].user).rewrite.findings).toEqual([{
+      itemKey: "coreAxis",
+      code: "DISCOURAGED_TERM",
+      note: "Contains prohibited term: quý nhân.",
+    }]);
+    expect(coreAxisRequests[1].costContext).toMatchObject({
+      purpose: "rewrite",
+      idempotencyKey: `${job.payload.reportVersionId}:coreAxis:quality-rewrite:1`,
+    });
+    expect(fixture.repository.qualityCandidates.get("coreAxis")).toMatchObject({
+      status: "terminal_failure",
+      acceptedSection: null,
+      terminalFindings: [{
+        itemKey: "coreAxis",
+        code: "DISCOURAGED_TERM",
+        note: "Contains prohibited term: đắc địa.",
+      }],
+    });
+    expect(candidate.terminalFindings).toEqual([{
+      itemKey: "coreAxis",
+      code: "DISCOURAGED_TERM",
+      note: "Contains prohibited term: đắc địa.",
+    }]);
+    expect(fixture.repository.markQualityRewriteTerminalFailure).toHaveBeenCalledTimes(1);
+    expect(fixture.repository.markQualityRewriteTerminalFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionKey: "coreAxis",
+        rewriteOrdinal: 1,
+        failureCode: "AI_OUTPUT_INVALID",
+      }),
+    );
+    expect(fixture.repository.markQualityRewritePassed).not.toHaveBeenCalled();
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+
+    const providerCalls = fixture.provider.generateStructured.mock.calls.length;
+    const starts = [...fixture.starts];
+    const second = await fixture.service.generateReport({
+      job,
+      attemptNumber: 2,
+      workerId: "worker-2",
+    });
+    expect(second).toMatchObject({
+      ok: false,
+      error: { code: "AI_OUTPUT_INVALID", retryable: false },
+    });
+    expect(fixture.provider.generateStructured).toHaveBeenCalledTimes(providerCalls);
+    expect(fixture.starts).toEqual(starts);
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+  });
+
   it("rejects crossed V4.1 report and quality tuple selection before provider dispatch", async () => {
     const fixture = createSectionedService();
     const job = sectionedJob({
