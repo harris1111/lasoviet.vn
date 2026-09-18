@@ -393,7 +393,33 @@ export function createReportGenerationService(
         if (stoppedAfterProvider) return stoppedAfterProvider;
         if (!written.ok) {
           const mapped = mapProviderError(written.error);
-          await repository.releaseRetryableFailure({ ...lineageFor(sectionKey), jobId, workerId: input.workerId, expectedStateVersion: checkpoint.stateVersion, failureCode: mapped.code });
+          const finalInvalidAttempt =
+            mapped.code === "AI_OUTPUT_INVALID" &&
+            checkpoint.generationAttemptCount >= quality.generationAttemptCap;
+          const transitioned = await (finalInvalidAttempt
+            ? repository.markTerminalFailure({
+              ...lineageFor(sectionKey),
+              jobId,
+              workerId: input.workerId,
+              expectedStateVersion: checkpoint.stateVersion,
+              failureCode: mapped.code,
+            })
+            : repository.releaseRetryableFailure({
+              ...lineageFor(sectionKey),
+              jobId,
+              workerId: input.workerId,
+              expectedStateVersion: checkpoint.stateVersion,
+              failureCode: mapped.code,
+            }));
+          if (!transitioned.ok) {
+            return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+          }
+          if (
+            mapped.code === "AI_OUTPUT_INVALID" &&
+            !finalInvalidAttempt
+          ) {
+            return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+          }
           return { ok: false, error: mapped };
         }
         const section: ComprehensiveReportAcceptedSection = { key: sectionKey as any, value: written.value.value as any };

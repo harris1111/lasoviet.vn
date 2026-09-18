@@ -2918,7 +2918,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     const rows = new Map<Key, any>(initial.map((row) => [row.sectionKey, { ...row }]));
     const revisions = new Map<Key, any>();
     const revisionHistory = new Map<Key, any[]>();
-    const calls = { claims: [] as Key[], rewrites: [] as Key[], passed: [] as Key[], releases: [] as Key[] };
+    const calls = { claims: [] as Key[], rewrites: [] as Key[], passed: [] as Key[], releases: [] as Key[], terminals: [] as Key[] };
     const accepted = () => [...rows.values()]
       .sort((left, right) => left.sectionOrder - right.sectionOrder)
       .flatMap((base) => {
@@ -2952,6 +2952,19 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         calls.releases.push(input.sectionKey);
         const current = rows.get(input.sectionKey);
         rows.set(input.sectionKey, { ...current, status: "pending", stateVersion: current.stateVersion + 1, failureCode: input.failureCode });
+        return { ok: true, value: rows.get(input.sectionKey) };
+      }),
+      markTerminalFailure: vi.fn(async (input: any) => {
+        calls.terminals.push(input.sectionKey);
+        const current = rows.get(input.sectionKey);
+        rows.set(input.sectionKey, {
+          ...current,
+          status: "terminal_failure",
+          activeJobId: null,
+          activeWorkerId: null,
+          stateVersion: current.stateVersion + 1,
+          failureCode: input.failureCode,
+        });
         return { ok: true, value: rows.get(input.sectionKey) };
       }),
       claimPassedRewrite: vi.fn(async (input: any) => {
@@ -3344,6 +3357,96 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.repository.calls.passed).not.toContain("keyConfigurations");
   });
 
+  it("releases malformed section output for one durable retry and resumes only that section", async () => {
+    let malformed = true;
+    const fixture = createSectionedService({
+      initial: [checkpoint("overview"), checkpoint("coreAxis"), checkpoint("keyConfigurations")],
+      onSection: (key) => {
+        if (key === "palace:ziwei.palace.life" && malformed) {
+          malformed = false;
+          return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+        }
+        return { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } };
+      },
+    });
+
+    const first = await fixture.service.generateReport({
+      job: sectionedJob(),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(first).toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
+    expect(fixture.repository.rows.get("palace:ziwei.palace.life")).toMatchObject({
+      status: "pending",
+      generationAttemptCount: 1,
+      failureCode: "AI_OUTPUT_INVALID",
+    });
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+
+    const resumed = await fixture.service.generateReport({
+      job: sectionedJob(),
+      attemptNumber: 2,
+      workerId: "worker-2",
+    });
+    expectSectionedSuccess(resumed, fixture);
+    expect(fixture.starts.filter((key) =>
+      key === "overview" || key === "coreAxis" || key === "keyConfigurations",
+    )).toEqual([]);
+    expect(fixture.starts.filter((key) => key === "palace:ziwei.palace.life")).toHaveLength(2);
+  });
+
+  it("terminal-fails malformed section output at the durable generation cap without commit", async () => {
+    const nearCap = checkpoint("overview");
+    nearCap.status = "pending";
+    nearCap.acceptedSection = null;
+    nearCap.contentHash = null;
+    nearCap.providerId = null;
+    nearCap.modelId = null;
+    nearCap.generationAttemptCount = 2;
+    const fixture = createSectionedService({
+      initial: [nearCap],
+      onSection: (key) => key === "overview"
+        ? { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }
+        : { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } },
+    });
+
+    const result = await fixture.service.generateReport({
+      job: sectionedJob(),
+      attemptNumber: 3,
+      workerId: "worker-3",
+    });
+    expect(result).toMatchObject({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(fixture.repository.rows.get("overview")).toMatchObject({
+      status: "terminal_failure",
+      generationAttemptCount: 3,
+      failureCode: "AI_OUTPUT_INVALID",
+    });
+    expect(fixture.repository.calls.terminals).toEqual(["overview"]);
+    expect(fixture.repository.calls.releases).toEqual([]);
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when malformed output cannot release its checkpoint", async () => {
+    const fixture = createSectionedService({
+      onSection: () => ({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }),
+    });
+    fixture.repository.releaseRetryableFailure.mockResolvedValueOnce({
+      ok: false,
+      error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" },
+    });
+
+    const result = await fixture.service.generateReport({
+      job: sectionedJob(),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_VERSION_CONFLICT", retryable: false },
+    });
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+  });
+
   it("fails closed for malformed section output, maps named critic findings to append-only revisions, and refreshes lineage", async () => {
     const malformed = createSectionedService({
       onSection: (key) => key === "overview"
@@ -3351,7 +3454,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         : { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } },
     });
     const rejected = await malformed.service.generateReport({ job: sectionedJob(), attemptNumber: 1, workerId: "worker-1" });
-    expect(rejected).toMatchObject({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(rejected).toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
     expect(malformed.repository.calls.releases).toEqual(["overview"]);
     expect(malformed.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
 

@@ -380,6 +380,9 @@ export {
 export type {
   IdentityReportVersionFamily,
 } from "./reports/identity-report-version-family.js";
+export {
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+} from "./reports/comprehensive-report-section-v4.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
 export type {
@@ -517,6 +520,20 @@ export { createSePayGateway } from "./commerce/sepay-adapter.js";
 export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";
 export { createDatabaseCommerceRepository } from "./commerce/commerce.repository.js";
 export type { CommerceRepository, CommerceRepositoryOptions, OwnedOrderProjection } from "./commerce/commerce.repository.js";
+export {
+  createDatabaseWalletRepository,
+} from "./wallet/wallet.repository.js";
+export type {
+  TrustedGrantAuthority,
+  WalletRepository,
+  WalletRestorationCommand,
+  WalletResult,
+} from "./wallet/wallet.repository.js";
+export { createWalletService } from "./wallet/wallet.service.js";
+export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
+export type {
+  WalletUnlockService,
+} from "./commerce/wallet-unlock.service.js";
 export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
 export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJob, QueueJobV1, ReportGenerationRequestedV1, ReportGenerationRequestedV2 } from "./outbox/outbox.dispatcher.js";
 export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";
