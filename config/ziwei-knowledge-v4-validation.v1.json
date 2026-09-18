@@ -1,8 +1,10 @@
 {
-  "version": "ziwei.knowledge.validation.v4.1",
+  "version": "ziwei.knowledge.validation.v4.5",
   "v4KnowledgeVersion": "ziwei.comprehensive.knowledge.v4",
   "v3KnowledgeVersion": "ziwei.comprehensive.knowledge.v3",
   "prohibitedEditorialTerms": ["cát", "hung", "cát hung", "cát tinh", "sát tinh", "hung tinh", "chuyển hoá", "thân tâm", "khí chất", "bản mệnh", "phú quý", "hiển đạt", "công danh", "tài lộc", "hao tán", "phá tán", "tử tức", "phu thê", "hôn phối", "thị phi", "hình khắc", "xung khắc", "lao lực", "bôn ba", "quý nhân", "tiểu nhân", "tiền vận", "hậu vận", "vận trình", "phúc phần", "tổ nghiệp", "ly tổ", "tai ách", "tai ương", "đa sầu đa cảm", "cương nghị", "thao lược", "tu dưỡng", "tu thân", "đắc địa", "thất địa", "vượng phát", "an nhàn"],
+  "prohibitedProcessTerms": ["AI", "hệ thống", "dữ liệu", "cách tính", "tính toán", "identifier", "key", "provenance", "prose", "metadata", "mapping", "output", "V4", "đầu ra", "kết quả trung gian", "công cụ truy xuất", "cấu trúc dữ liệu", "quy trình biên tập", "template", "ma trận", "biên tập", "đầu vào", "phép tính", "tái tạo nguồn", "cấu hình kỹ thuật", "bản mới"],
+  "prohibitedEnglishProseTerms": ["Glossary", "bright", "exalted", "prosperous", "favorable", "neutral", "unfavorable", "weak"],
   "deathTerms": ["chết", "tử vong", "mất mạng", "qua đời", "yểu mệnh", "đoản thọ", "chết non", "tuổi thọ", "sống được bao lâu", "bao nhiêu tuổi thì mất", "khắc chết", "sát phu", "sát thê"],
   "oralFillers": ["các bạn có thấy không", "hiểu không"],
   "palaces": ["Mệnh", "Huynh Đệ", "Phu Thê", "Tử Tức", "Tài Bạch", "Tật Ách", "Thiên Di", "Nô Bộc", "Quan Lộc", "Điền Trạch", "Phúc Đức", "Phụ Mẫu", "Thân"],

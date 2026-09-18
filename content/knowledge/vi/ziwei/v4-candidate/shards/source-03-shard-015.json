@@ -1,0 +1,81 @@
+{
+  "shardSchemaVersion": "ziwei.v4-editorial-shard.v1",
+  "path": "content/knowledge/vi/ziwei/v4-candidate/shards/source-03-shard-015.json",
+  "sourcePassageIds": [
+    "ziwei-v3-03-ff125422-00156-50dcd2eaaab5",
+    "ziwei-v3-03-ff125422-00157-4d7734dfeadb",
+    "ziwei-v3-03-ff125422-00158-eebea5193826",
+    "ziwei-v3-03-ff125422-00159-d7b50b60e9b1",
+    "ziwei-v3-03-ff125422-00160-b4bfddb5ff86",
+    "ziwei-v3-03-ff125422-00161-e5032b30ee8c"
+  ],
+  "records": [
+    {
+      "passageId": "ziwei-v4-f2c91ffbbcdb684f0ab243c6",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Khi so sánh quan hệ đôi lứa và tình bạn, cần giữ mục tiêu phân tích khác nhau: một bên tập trung vào cách giao tiếp và ranh giới gần gũi, bên kia tập trung vào hỗ trợ, hợp tác và mức độ tin cậy trong mạng lưới. Không dùng rating, yếu tố biến đổi hoặc lớp thời gian để bảo đảm kết quả hay gán nhãn cho một mối quan hệ. Nội dung phù hợp nên hướng người đọc về bối cảnh thực tế, sự đồng thuận và giới hạn rõ ràng.",
+      "contentHash": "be476260831a7e872eaaf97e7800e7969ed16dd6316c50abe3f222df0bfc2a35",
+      "metadata": {
+        "topics": [
+          "stars",
+          "timing",
+          "transformations"
+        ],
+        "palaces": [],
+        "stars": [
+          "ziwei.star.taiyang",
+          "ziwei.star.taiyin",
+          "ziwei.star.youbi",
+          "ziwei.star.ziwei",
+          "ziwei.star.zuofu"
+        ],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.obstacle"
+        ],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-03-ff125422-00156-50dcd2eaaab5",
+        "ziwei-v3-03-ff125422-00157-4d7734dfeadb",
+        "ziwei-v3-03-ff125422-00158-eebea5193826",
+        "ziwei-v3-03-ff125422-00159-d7b50b60e9b1",
+        "ziwei-v3-03-ff125422-00160-b4bfddb5ff86",
+        "ziwei-v3-03-ff125422-00161-e5032b30ee8c"
+      ],
+      "dispositionRationaleCode": "merged"
+    }
+  ],
+  "dispositions": [
+    {
+      "sourcePassageId": "ziwei-v3-03-ff125422-00156-50dcd2eaaab5",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-ff125422-00157-4d7734dfeadb",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-ff125422-00158-eebea5193826",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-ff125422-00159-d7b50b60e9b1",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-ff125422-00160-b4bfddb5ff86",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-03-ff125422-00161-e5032b30ee8c",
+      "disposition": "merged"
+    }
+  ]
+}

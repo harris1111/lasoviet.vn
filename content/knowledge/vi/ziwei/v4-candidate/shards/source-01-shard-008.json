@@ -1,0 +1,584 @@
+{
+  "shardSchemaVersion": "ziwei.v4-editorial-shard.v1",
+  "path": "content/knowledge/vi/ziwei/v4-candidate/shards/source-01-shard-008.json",
+  "sourcePassageIds": [
+    "ziwei-v3-01-b6891706-00526-0abf0250c6df",
+    "ziwei-v3-01-b6891706-00527-7f140e485ac5",
+    "ziwei-v3-01-b6891706-00528-f5959b3252f2",
+    "ziwei-v3-01-b6891706-00529-cc08c5f48420",
+    "ziwei-v3-01-b6891706-00530-96162c4fbbcd",
+    "ziwei-v3-01-b6891706-00531-0b7108671527",
+    "ziwei-v3-01-b6891706-00532-a6b412f5e441",
+    "ziwei-v3-01-b6891706-00533-3bffb0be059e",
+    "ziwei-v3-01-b6891706-00534-554a014347b6",
+    "ziwei-v3-01-b6891706-00535-d3e316c417dc",
+    "ziwei-v3-01-b6891706-00536-c0b7e2d54562",
+    "ziwei-v3-01-b6891706-00537-5a6b34cc8f38",
+    "ziwei-v3-01-b6891706-00538-73f0c85f610d",
+    "ziwei-v3-01-b6891706-00539-cde3d6dcd3ef",
+    "ziwei-v3-01-b6891706-00540-b3f7989f9198",
+    "ziwei-v3-01-b6891706-00541-98ad7aac05b8",
+    "ziwei-v3-01-b6891706-00542-bba8b0e965dc",
+    "ziwei-v3-01-b6891706-00543-4c0cbded7407",
+    "ziwei-v3-01-b6891706-00544-0e1b4ab10672",
+    "ziwei-v3-01-b6891706-00545-85ddd174b9b7",
+    "ziwei-v3-01-b6891706-00546-4245373d4538",
+    "ziwei-v3-01-b6891706-00547-352d725c46f9",
+    "ziwei-v3-01-b6891706-00548-576285e08e56",
+    "ziwei-v3-01-b6891706-00549-b3f0335e638a",
+    "ziwei-v3-01-b6891706-00550-e8180b6a68e5",
+    "ziwei-v3-01-b6891706-00551-5ff8beab70e1",
+    "ziwei-v3-01-b6891706-00552-e91ccac57b8c",
+    "ziwei-v3-01-b6891706-00553-633a97b89f8d",
+    "ziwei-v3-01-b6891706-00554-307f16ebe4dd",
+    "ziwei-v3-01-b6891706-00555-81bab326213d",
+    "ziwei-v3-01-b6891706-00556-1025ee692bb0",
+    "ziwei-v3-01-b6891706-00557-4b70e5405079",
+    "ziwei-v3-01-b6891706-00558-166fd386d94f",
+    "ziwei-v3-01-b6891706-00559-e16098c557dc",
+    "ziwei-v3-01-b6891706-00560-8a72f1ef00c2",
+    "ziwei-v3-01-b6891706-00561-1fffb6dbc17f",
+    "ziwei-v3-01-b6891706-00562-2c23c3ba1f44",
+    "ziwei-v3-01-b6891706-00563-70c6a67fc591",
+    "ziwei-v3-01-b6891706-00564-154b479f8195",
+    "ziwei-v3-01-b6891706-00565-483fbbbfd792",
+    "ziwei-v3-01-b6891706-00566-9d5abeed3839",
+    "ziwei-v3-01-b6891706-00567-827291408693",
+    "ziwei-v3-01-b6891706-00568-4ff95911e7f0",
+    "ziwei-v3-01-b6891706-00569-fa9c4e87a8d6",
+    "ziwei-v3-01-b6891706-00570-4ed95b9d0f67",
+    "ziwei-v3-01-b6891706-00571-eb73b329a157",
+    "ziwei-v3-01-b6891706-00572-1cf14e86c239",
+    "ziwei-v3-01-b6891706-00573-096bc17bb37f",
+    "ziwei-v3-01-b6891706-00574-346324e0dd99",
+    "ziwei-v3-01-b6891706-00575-24484fbf3cd2",
+    "ziwei-v3-01-b6891706-00576-7a86291588c7",
+    "ziwei-v3-01-b6891706-00577-8985ca80de90",
+    "ziwei-v3-01-b6891706-00578-313281491726",
+    "ziwei-v3-01-b6891706-00579-dd4907178c49",
+    "ziwei-v3-01-b6891706-00580-f617cdcf5d3d",
+    "ziwei-v3-01-b6891706-00581-912d086c598e",
+    "ziwei-v3-01-b6891706-00582-2d8f18e645ce",
+    "ziwei-v3-01-b6891706-00583-00d1f0d24921",
+    "ziwei-v3-01-b6891706-00584-8ad43de0efda",
+    "ziwei-v3-01-b6891706-00585-5e9fcc5e0f78",
+    "ziwei-v3-01-b6891706-00586-95f75d03f06f",
+    "ziwei-v3-01-b6891706-00587-7c1c93a2c4ca",
+    "ziwei-v3-01-b6891706-00588-6b19a5f83ab3",
+    "ziwei-v3-01-b6891706-00589-b16c41bf557e",
+    "ziwei-v3-01-b6891706-00590-bb62d7c366ba",
+    "ziwei-v3-01-b6891706-00591-848f04f5d7ff",
+    "ziwei-v3-01-b6891706-00592-9e84f1246520",
+    "ziwei-v3-01-b6891706-00593-3e3b6bd532fe",
+    "ziwei-v3-01-b6891706-00594-a035f11e96b2",
+    "ziwei-v3-01-b6891706-00595-c96414dbd263",
+    "ziwei-v3-01-b6891706-00596-1be5d080587a",
+    "ziwei-v3-01-b6891706-00597-63d84695fbea",
+    "ziwei-v3-01-b6891706-00598-661b59681474",
+    "ziwei-v3-01-b6891706-00599-4faddb515108",
+    "ziwei-v3-01-b6891706-00600-3b6334e48ccf"
+  ],
+  "records": [
+    {
+      "reportSections": [
+        "reflection_questions",
+        "tensions_and_blind_spots"
+      ],
+      "content": "Cung Tử Tức chỉ nên được dùng để đặt câu hỏi về bối cảnh chăm sóc, giáo dục và mối liên hệ giữa các thế hệ. Khi cần hiểu một người con, nguồn cũng nhắc rằng lá số riêng và hoàn cảnh thực tế của người đó mới là điều quan trọng. Không nên dùng một cung để đếm con, suy ra giới tính hay dự báo một biến cố của gia đình.",
+      "contentHash": "8812ed9fc44ad9d80fb4de24f0c0a169ea664228e1176a218a1ab4212aceb4c8",
+      "metadata": {
+        "topics": [
+          "relationships"
+        ],
+        "palaces": [
+          "ziwei.palace.children"
+        ],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-01-b6891706-00528-f5959b3252f2"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-dc6e8c6e1487468f4d026528"
+    },
+    {
+      "reportSections": [
+        "action_summary",
+        "primary_evidence",
+        "strengths_and_resources"
+      ],
+      "content": "Cung Tài Bạch được nguồn dùng để xem cách một người tiếp cận nguồn lực, môi trường tạo thu nhập và hình thức đóng góp chuyên môn. Khi có các sao như Thái Dương, Phá Quân, Văn Khúc, Thiên Việt, Lộc Tồn, Thiên Cơ hoặc Thiên Đồng, nên so sánh kỹ năng, mức độ tự chủ và bối cảnh tổ chức trước khi diễn giải. Những dấu hiệu này không ấn định nghề nghiệp, mức thu nhập hay kết quả của một quyết định.",
+      "contentHash": "da0e0a7005d6a45c08422141a247e993ec4fd2066f15909818f81b3662bcab2d",
+      "metadata": {
+        "topics": [
+          "career",
+          "stars",
+          "transformations",
+          "travel",
+          "wealth"
+        ],
+        "palaces": [
+          "ziwei.palace.career",
+          "ziwei.palace.travel",
+          "ziwei.palace.wealth"
+        ],
+        "stars": [
+          "ziwei.star.dijie",
+          "ziwei.star.lucun",
+          "ziwei.star.pojun",
+          "ziwei.star.qisha",
+          "ziwei.star.taiyang",
+          "ziwei.star.tianji",
+          "ziwei.star.tianma",
+          "ziwei.star.tiantong",
+          "ziwei.star.tianyue",
+          "ziwei.star.wenqu",
+          "ziwei.star.ziwei"
+        ],
+        "brightness": [
+          "ziwei.brightness.favorable",
+          "ziwei.brightness.neutral",
+          "ziwei.brightness.weak"
+        ],
+        "transformations": [
+          "ziwei.transformation.fame",
+          "ziwei.transformation.obstacle",
+          "ziwei.transformation.power",
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-01-b6891706-00561-1fffb6dbc17f",
+        "ziwei-v3-01-b6891706-00562-2c23c3ba1f44",
+        "ziwei-v3-01-b6891706-00563-70c6a67fc591",
+        "ziwei-v3-01-b6891706-00564-154b479f8195",
+        "ziwei-v3-01-b6891706-00565-483fbbbfd792",
+        "ziwei-v3-01-b6891706-00566-9d5abeed3839",
+        "ziwei-v3-01-b6891706-00567-827291408693",
+        "ziwei-v3-01-b6891706-00568-4ff95911e7f0",
+        "ziwei-v3-01-b6891706-00569-fa9c4e87a8d6",
+        "ziwei-v3-01-b6891706-00570-4ed95b9d0f67",
+        "ziwei-v3-01-b6891706-00571-eb73b329a157",
+        "ziwei-v3-01-b6891706-00572-1cf14e86c239",
+        "ziwei-v3-01-b6891706-00573-096bc17bb37f",
+        "ziwei-v3-01-b6891706-00574-346324e0dd99",
+        "ziwei-v3-01-b6891706-00575-24484fbf3cd2",
+        "ziwei-v3-01-b6891706-00576-7a86291588c7",
+        "ziwei-v3-01-b6891706-00577-8985ca80de90",
+        "ziwei-v3-01-b6891706-00578-313281491726",
+        "ziwei-v3-01-b6891706-00579-dd4907178c49",
+        "ziwei-v3-01-b6891706-00580-f617cdcf5d3d",
+        "ziwei-v3-01-b6891706-00581-912d086c598e",
+        "ziwei-v3-01-b6891706-00582-2d8f18e645ce",
+        "ziwei-v3-01-b6891706-00583-00d1f0d24921",
+        "ziwei-v3-01-b6891706-00584-8ad43de0efda"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-e890cd60892ca14474a00028"
+    },
+    {
+      "reportSections": [
+        "cycles_and_timing",
+        "data_and_method",
+        "identity_analysis",
+        "primary_evidence"
+      ],
+      "content": "Cung Thiên Di gợi ý cách một người tiếp cận môi trường ngoài nơi quen thuộc và những thay đổi về địa điểm hoặc vai trò. Khi có Thiên Mã, Thiên Tướng, Kình Dương, Tả Phụ hoặc Hữu Bật, nên quan sát khả năng thích nghi, mạng lưới hỗ trợ và lý do của sự dịch chuyển. Không dùng một vị trí để kết luận rằng ở lại hay rời đi sẽ dẫn tới một kết quả cố định.",
+      "contentHash": "7df7cbc910f626672092232b568665aeb38ce90835caeb55f374b18fbf0de22b",
+      "metadata": {
+        "topics": [
+          "life",
+          "stars",
+          "timing",
+          "transformations",
+          "travel"
+        ],
+        "palaces": [
+          "ziwei.palace.life",
+          "ziwei.palace.travel"
+        ],
+        "stars": [
+          "ziwei.star.qingyang",
+          "ziwei.star.tianma",
+          "ziwei.star.tianxiang",
+          "ziwei.star.youbi",
+          "ziwei.star.zuofu"
+        ],
+        "brightness": [
+          "ziwei.brightness.favorable",
+          "ziwei.brightness.weak"
+        ],
+        "transformations": [
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-01-b6891706-00585-5e9fcc5e0f78",
+        "ziwei-v3-01-b6891706-00586-95f75d03f06f",
+        "ziwei-v3-01-b6891706-00587-7c1c93a2c4ca",
+        "ziwei-v3-01-b6891706-00588-6b19a5f83ab3",
+        "ziwei-v3-01-b6891706-00589-b16c41bf557e",
+        "ziwei-v3-01-b6891706-00590-bb62d7c366ba",
+        "ziwei-v3-01-b6891706-00591-848f04f5d7ff",
+        "ziwei-v3-01-b6891706-00592-9e84f1246520",
+        "ziwei-v3-01-b6891706-00593-3e3b6bd532fe",
+        "ziwei-v3-01-b6891706-00594-a035f11e96b2",
+        "ziwei-v3-01-b6891706-00595-c96414dbd263",
+        "ziwei-v3-01-b6891706-00596-1be5d080587a",
+        "ziwei-v3-01-b6891706-00597-63d84695fbea"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-f6e6cf772d0c5031250be607"
+    },
+    {
+      "reportSections": [
+        "reflection_questions",
+        "tensions_and_blind_spots"
+      ],
+      "content": "Cung Nô Bộc là khung để xem chất lượng kết nối, cách hợp tác và ảnh hưởng của những người cùng tham gia một việc. Khi cung này có các sao cần đọc thận trọng, nên làm rõ mục tiêu, trách nhiệm và cách trao đổi trước khi phối hợp. Tên cung hoặc một sao không đủ để xác định thành bại của một quan hệ hợp tác.",
+      "contentHash": "74efa4d8a5af1ec7e8acc6db223a667d3f6873778dd170ac701fbb4871726fa6",
+      "metadata": {
+        "topics": [
+          "relationships"
+        ],
+        "palaces": [
+          "ziwei.palace.friends"
+        ],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "classical",
+        "languageOrigin": "vi",
+        "priority": 3
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-01-b6891706-00598-661b59681474",
+        "ziwei-v3-01-b6891706-00599-4faddb515108",
+        "ziwei-v3-01-b6891706-00600-3b6334e48ccf"
+      ],
+      "dispositionRationaleCode": "merged",
+      "passageId": "ziwei-v4-d84c35dc136042f5116af9e4"
+    }
+  ],
+  "dispositions": [
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00526-0abf0250c6df",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00527-7f140e485ac5",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00528-f5959b3252f2",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00529-cc08c5f48420",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00530-96162c4fbbcd",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00531-0b7108671527",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00532-a6b412f5e441",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00533-3bffb0be059e",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00534-554a014347b6",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00535-d3e316c417dc",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00536-c0b7e2d54562",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00537-5a6b34cc8f38",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00538-73f0c85f610d",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00539-cde3d6dcd3ef",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00540-b3f7989f9198",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00541-98ad7aac05b8",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00542-bba8b0e965dc",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00543-4c0cbded7407",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00544-0e1b4ab10672",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00545-85ddd174b9b7",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00546-4245373d4538",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00547-352d725c46f9",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00548-576285e08e56",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00549-b3f0335e638a",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00550-e8180b6a68e5",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00551-5ff8beab70e1",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00552-e91ccac57b8c",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00553-633a97b89f8d",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00554-307f16ebe4dd",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00555-81bab326213d",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00556-1025ee692bb0",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00557-4b70e5405079",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00558-166fd386d94f",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00559-e16098c557dc",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00560-8a72f1ef00c2",
+      "disposition": "omitted_oral_filler"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00561-1fffb6dbc17f",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00562-2c23c3ba1f44",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00563-70c6a67fc591",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00564-154b479f8195",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00565-483fbbbfd792",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00566-9d5abeed3839",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00567-827291408693",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00568-4ff95911e7f0",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00569-fa9c4e87a8d6",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00570-4ed95b9d0f67",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00571-eb73b329a157",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00572-1cf14e86c239",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00573-096bc17bb37f",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00574-346324e0dd99",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00575-24484fbf3cd2",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00576-7a86291588c7",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00577-8985ca80de90",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00578-313281491726",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00579-dd4907178c49",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00580-f617cdcf5d3d",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00581-912d086c598e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00582-2d8f18e645ce",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00583-00d1f0d24921",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00584-8ad43de0efda",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00585-5e9fcc5e0f78",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00586-95f75d03f06f",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00587-7c1c93a2c4ca",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00588-6b19a5f83ab3",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00589-b16c41bf557e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00590-bb62d7c366ba",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00591-848f04f5d7ff",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00592-9e84f1246520",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00593-3e3b6bd532fe",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00594-a035f11e96b2",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00595-c96414dbd263",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00596-1be5d080587a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00597-63d84695fbea",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00598-661b59681474",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00599-4faddb515108",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-01-b6891706-00600-3b6334e48ccf",
+      "disposition": "merged"
+    }
+  ]
+}

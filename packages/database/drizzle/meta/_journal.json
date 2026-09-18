@@ -281,6 +281,13 @@
       "when": 1790813100000,
       "tag": "0039_ai_model_pricing_claude_sonnet_4_6",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790813160000,
+      "tag": "0040_ziwei_knowledge_v4_provenance",
+      "breakpoints": true
     }
   ]
 }
