@@ -11,7 +11,9 @@ import {
   REPORT_PROMPT_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   v4SectionedReportVersions,
+  v4_1_1KeyConfigSensitivityReportVersions,
   v4_1SensitivityReportVersions,
 } from "./identity-report-config.js";
 
@@ -113,6 +115,26 @@ describe("resolveIdentityReportVersionFamily", () => {
       resolveIdentityReportVersionFamily(
         REPORT_PROMPT_VERSION_V4,
         REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBeNull();
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBe("v4_1");
+    const keyConfig = v4_1_1KeyConfigSensitivityReportVersions();
+    expect(
+      resolveIdentityReportVersionFamily(
+        keyConfig.promptVersion,
+        keyConfig.knowledgeVersion,
+      ),
+    ).toBe("v4_1");
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V3,
       ),
     ).toBeNull();
   });

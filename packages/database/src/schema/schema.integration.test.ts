@@ -66,7 +66,7 @@ import { generatedPreviewRequests, generatedPreviewSections } from "./generated-
 
 describe("database schema integration", () => {
   const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
-  const currentMigrationTimestamp = 1790813220000;
+  const currentMigrationTimestamp = 1790813280000;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
@@ -139,6 +139,62 @@ describe("database schema integration", () => {
     expect(first.appliedMigrations.length).toBeGreaterThan(0);
   });
 
+  it("upgrades existing 0041 quality candidates through 0042 without data loss", async () => {
+    const client = postgres(databaseUrl);
+    const checkpointId = "62000000-0000-4000-8000-000000000001";
+    const candidateId = "62000000-0000-4000-8000-000000000002";
+    try {
+      await client`
+        ALTER TABLE report_section_quality_candidates
+        DROP COLUMN terminal_findings
+      `;
+      await client`
+        DELETE FROM drizzle.__drizzle_migrations
+        WHERE created_at = 1790813280000
+      `;
+      await client`
+        INSERT INTO report_section_checkpoints (
+          id, report_version_id, section_key, section_order,
+          prompt_version, knowledge_version_id, report_config_version, quality_config_version
+        ) VALUES (
+          ${checkpointId}, '62000000-0000-4000-8000-000000000003', 'overview', 0,
+          'prompt.v1', 'knowledge.v1', 'ziwei.comprehensive.report.v4', 'quality.v1'
+        )
+      `;
+      await client`
+        INSERT INTO report_section_quality_candidates (
+          id, checkpoint_id, rewrite_ordinal, generation_ordinal,
+          candidate_content, candidate_hash, candidate_provider_id, candidate_model_id, findings
+        ) VALUES (
+          ${candidateId}, ${checkpointId}, 1, 1,
+          '{"title":"Candidate","narrative":"Existing content","evidenceKeys":["fact"]}'::jsonb,
+          ${"a".repeat(64)}, '9router-an', 'claude-sonnet-4-6',
+          '[{"itemKey":"overview","code":"MINIMUM_SYLLABLES","note":"Requires more detail."}]'::jsonb
+        )
+      `;
+
+      await runMigrations(databaseUrl);
+      const [candidate] = await client<{
+        id: string;
+        candidate_hash: string;
+        terminal_findings: unknown;
+      }[]>`
+        SELECT id, candidate_hash, terminal_findings
+        FROM report_section_quality_candidates
+        WHERE id = ${candidateId}
+      `;
+      expect(candidate).toEqual({
+        id: candidateId,
+        candidate_hash: "a".repeat(64),
+        terminal_findings: null,
+      });
+    } finally {
+      await client`DELETE FROM report_section_quality_candidates WHERE id = ${candidateId}`;
+      await client`DELETE FROM report_section_checkpoints WHERE id = ${checkpointId}`;
+      await client.end();
+    }
+  });
+
   it("enforces closed quality finding shape and active attempt ownership in PostgreSQL", async () => {
     const client = postgres(databaseUrl);
     const checkpointId = "61000000-0000-4000-8000-000000000001";
@@ -186,6 +242,28 @@ describe("database schema integration", () => {
       `;
 
       await expect(insertCandidate([validFinding])).resolves.toBeDefined();
+      const [existingCandidate] = await client<{ terminal_findings: unknown }[]>`
+        SELECT terminal_findings
+        FROM report_section_quality_candidates
+        WHERE checkpoint_id = ${checkpointId} AND rewrite_ordinal = 1
+      `;
+      expect(existingCandidate?.terminal_findings).toBeNull();
+      await expect(client`
+        UPDATE report_section_quality_candidates
+        SET terminal_findings = ${client.json([validFinding])}
+        WHERE checkpoint_id = ${checkpointId} AND rewrite_ordinal = 1
+      `).rejects.toBeDefined();
+      await expect(client`
+        UPDATE report_section_quality_candidates
+        SET status = 'terminal_failure',
+            terminal_findings = ${client.json([validFinding])}
+        WHERE checkpoint_id = ${checkpointId} AND rewrite_ordinal = 1
+      `).resolves.toBeDefined();
+      await expect(client`
+        UPDATE report_section_quality_candidates
+        SET terminal_findings = ${client.json([{ ...validFinding, code: "OPEN_CODE" }])}
+        WHERE checkpoint_id = ${checkpointId} AND rewrite_ordinal = 1
+      `).rejects.toBeDefined();
       for (const invalid of [
         1,
         "finding",
@@ -407,7 +485,7 @@ describe("database schema integration", () => {
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000, 1790813160000, 1790813220000)
+        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000, 1790813160000, 1790813220000, 1790813280000)
       `;
       await client`
         INSERT INTO wallet_purchase_intents (
@@ -3040,7 +3118,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-16)).toEqual([
+    expect(journal.entries.slice(-17)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -3151,6 +3229,13 @@ describe("database schema integration", () => {
         version: "7",
         when: 1790813220000,
         tag: "0041_report_section_quality_candidates",
+        breakpoints: true,
+      },
+      {
+        idx: 42,
+        version: "7",
+        when: 1790813280000,
+        tag: "0042_report_section_quality_terminal_findings",
         breakpoints: true,
       },
     ]);
@@ -3484,7 +3569,8 @@ describe("database schema integration", () => {
         1790813040000,
         1790813100000,
         1790813160000,
-        1790813220000
+        1790813220000,
+        1790813280000
       )
     `;
 
@@ -3515,7 +3601,8 @@ describe("database schema integration", () => {
         1790813040000,
         1790813100000,
         1790813160000,
-        1790813220000
+        1790813220000,
+        1790813280000
       )
       ORDER BY created_at ASC
     `;
@@ -3532,6 +3619,7 @@ describe("database schema integration", () => {
       1790813100000,
       1790813160000,
       1790813220000,
+      1790813280000,
     ]);
     await expectCurrentClaudePricingAndJournal(client);
 

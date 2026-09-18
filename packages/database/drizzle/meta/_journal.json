@@ -295,6 +295,13 @@
       "when": 1790813220000,
       "tag": "0041_report_section_quality_candidates",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790813280000,
+      "tag": "0042_report_section_quality_terminal_findings",
+      "breakpoints": true
     }
   ]
 }
