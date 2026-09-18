@@ -26,6 +26,7 @@ import {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
@@ -40,6 +41,7 @@ import {
   v4SectionedReportVersions,
   v4_1SensitivityReportVersions,
   v4_1_1SensitivityReportVersions,
+  v4_1_1KeyConfigSensitivityReportVersions,
   resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   REPORT_CONFIG_VERSION_V1,
@@ -177,6 +179,7 @@ describe("identity report config", () => {
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V1).toBe("ziwei.comprehensive.quality.v1");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V2).toBe("ziwei-comprehensive.v2");
     expect(REPORT_PROMPT_VERSION_V4_1_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1-sensitivity");
+    expect(REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1.1-sensitivity");
     expect(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1-sectioned-sensitivity");
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2-sensitivity");
     expect(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity");
@@ -283,6 +286,23 @@ describe("identity report config", () => {
       maximumWallClockMs: 3_600_000,
     });
     expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+  });
+
+  it("adds the key-configuration prompt tuple without changing the durable V4.1.1 resolver", () => {
+    expect(v4_1_1SensitivityReportVersions().promptVersion).toBe(
+      REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    );
+    expect(v4_1_1KeyConfigSensitivityReportVersions()).toEqual({
+      family: "v4_1",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+      qualityVersion: "ziwei.comprehensive.quality.v2.1-sensitivity",
+      contentVersion: "ziwei-comprehensive.v3",
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
   });
 
   it("deriveReportTimingLineage converts Date to Asia/Ho_Chi_Minh asOfDate and derives matching targetYear", () => {

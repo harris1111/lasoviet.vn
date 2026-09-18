@@ -8,6 +8,7 @@ import {
   REPORT_PROMPT_VERSION_V3,
   REPORT_PROMPT_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
 
@@ -53,7 +54,10 @@ export function resolveIdentityReportVersionFamily<T extends string = IdentityRe
   }
 
   if (
-    promptVersion === REPORT_PROMPT_VERSION_V4_1_SENSITIVITY &&
+    (
+      promptVersion === REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
+      promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY
+    ) &&
     knowledgeVersion === REPORT_KNOWLEDGE_VERSION_V4
   ) {
     return "v4_1" as unknown as T;

@@ -267,6 +267,7 @@ export const reportSectionQualityCandidates = pgTable("report_section_quality_ca
   candidateProviderId: text("candidate_provider_id").notNull(),
   candidateModelId: text("candidate_model_id").notNull(),
   findings: jsonb("findings").$type<Array<{ itemKey: string; code: string; note: string }>>().notNull(),
+  terminalFindings: jsonb("terminal_findings").$type<Array<{ itemKey: string; code: string; note: string }>>(),
   acceptedContent: jsonb("accepted_content").$type<Record<string, unknown>>(),
   contentHash: text("content_hash"),
   providerId: text("provider_id"),
@@ -295,6 +296,8 @@ export const reportSectionQualityCandidates = pgTable("report_section_quality_ca
   check("report_section_quality_candidates_active_ownership", sql`(${table.status} = 'generating' AND ${table.activeJobId} IS NOT NULL AND btrim(${table.activeJobId}) <> '' AND ${table.activeWorkerId} IS NOT NULL AND btrim(${table.activeWorkerId}) <> '' AND ${table.activeAttemptNumber} IS NOT NULL AND ${table.activeAttemptNumber} > 0) OR (${table.status} <> 'generating' AND ${table.activeJobId} IS NULL AND ${table.activeWorkerId} IS NULL AND ${table.activeAttemptNumber} IS NULL)`),
   check("report_section_quality_candidates_candidate_lineage", sql`${table.candidateContent} IS NOT NULL AND ${table.candidateHash} ~ '^[a-f0-9]{64}$' AND btrim(${table.candidateProviderId}) <> '' AND btrim(${table.candidateModelId}) <> ''`),
   check("report_section_quality_candidates_findings_bounded", sql`report_section_quality_findings_valid(${table.findings})`),
+  check("report_section_quality_candidates_terminal_findings_bounded", sql`${table.terminalFindings} IS NULL OR report_section_quality_findings_valid(${table.terminalFindings})`),
+  check("report_section_quality_candidates_terminal_findings_status", sql`${table.status} = 'terminal_failure' OR ${table.terminalFindings} IS NULL`),
   check("report_section_quality_candidates_passed_lineage", sql`(${table.status} = 'passed' AND ${table.acceptedContent} IS NOT NULL AND ${table.contentHash} ~ '^[a-f0-9]{64}$' AND ${table.providerId} IS NOT NULL AND btrim(${table.providerId}) <> '' AND ${table.modelId} IS NOT NULL AND btrim(${table.modelId}) <> '' AND ${table.failureCode} IS NULL) OR (${table.status} <> 'passed' AND ${table.acceptedContent} IS NULL AND ${table.contentHash} IS NULL AND ${table.providerId} IS NULL AND ${table.modelId} IS NULL)`),
   check("report_section_quality_candidates_failure_code_bounded", sql`${table.failureCode} IS NULL OR (btrim(${table.failureCode}) <> '' AND char_length(${table.failureCode}) <= 120)`),
 ]);

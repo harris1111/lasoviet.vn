@@ -3,7 +3,7 @@ import {
   COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
-  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   createBirthProfileService,
   createDatabaseBirthProfileRepository,
@@ -13,7 +13,7 @@ import {
   createWalletService,
   createWalletUnlockService,
   createZiweiCalculationService,
-  v4_1_1SensitivityReportVersions,
+  v4_1_1KeyConfigSensitivityReportVersions,
 } from "@lasoviet/backend";
 import type { CurrentActor } from "@lasoviet/contracts";
 import {
@@ -145,7 +145,7 @@ export function passesFd082Evidence(evidence: Fd082Evidence): boolean {
   if (
     evidence.reservation?.status !== "complete" ||
     evidence.reservation.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
-    evidence.reservation.promptVersion !== REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
+    evidence.reservation.promptVersion !== REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
     evidence.reservation.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
     evidence.checkpoints.length !== expectedKeys.size ||
     new Set(evidence.checkpoints.map((item) => item.sectionKey)).size !== expectedKeys.size ||
@@ -153,7 +153,7 @@ export function passesFd082Evidence(evidence: Fd082Evidence): boolean {
       !expectedKeys.has(item.sectionKey as typeof COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1[number]) ||
       item.status !== "passed" ||
       item.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
-      item.promptVersion !== REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
+      item.promptVersion !== REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
       item.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
       item.qualityConfigVersion !== REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY ||
       item.providerId !== EXPECTED_PROVIDER ||
@@ -161,7 +161,7 @@ export function passesFd082Evidence(evidence: Fd082Evidence): boolean {
     ) ||
     evidence.immutable === null ||
     evidence.immutable.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
-    evidence.immutable.promptVersion !== REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
+    evidence.immutable.promptVersion !== REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
     evidence.immutable.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
     evidence.immutable.providerId !== EXPECTED_PROVIDER ||
     evidence.immutable.modelId !== EXPECTED_MODEL ||
@@ -347,7 +347,9 @@ export async function runFd082GateSequence(
 export async function runFd082Gate(database: Database, input: Fd082GateArguments, log: (line: Record<string, unknown>) => void): Promise<void> {
   const authority = await ownerActor(database, input.ownerId, `fd082:${input.campaignId}`);
   const wallet = createWalletService(createDatabaseWalletRepository(database));
-  const unlock = createWalletUnlockService(database, wallet, { reportVersionResolver: v4_1_1SensitivityReportVersions });
+  const unlock = createWalletUnlockService(database, wallet, {
+    reportVersionResolver: v4_1_1KeyConfigSensitivityReportVersions,
+  });
   const profiles = createBirthProfileService({ repository: createDatabaseBirthProfileRepository(database) });
   const calculate = createZiweiCalculationService({
     repository: createDatabaseZiweiCalculationRepository(database),
