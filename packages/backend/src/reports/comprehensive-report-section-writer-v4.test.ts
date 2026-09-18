@@ -1,14 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import { ZIWEI_PALACE_IDS, ZIWEI_THEMATIC_SYNTHESIS_IDS } from "@lasoviet/contracts";
-import { ziweiComprehensiveReportQualityV1 } from "@lasoviet/config";
+import {
+  ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2Sensitivity,
+} from "@lasoviet/config";
 
 import {
   writeComprehensiveReportSectionV4,
 } from "./comprehensive-report-section-writer-v4.js";
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
-import { COMPREHENSIVE_REPORT_SECTION_KEYS } from "./comprehensive-report-section-v4.js";
+import {
+  COMPREHENSIVE_REPORT_SECTION_KEYS,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+} from "./comprehensive-report-section-v4.js";
 import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
@@ -208,6 +215,51 @@ describe("writeComprehensiveReportSectionV4", () => {
       expect(request.schema.safeParse(output).success).toBe(true);
       expect(request.schema.safeParse({ ...output, key: "overview" }).success).toBe(key === "overview");
     }
+  });
+
+  it("uses 3500 only for all four V4.1.1 thematic sections and preserves old budgets", async () => {
+    const reportFacts = facts();
+    reportFacts.sensitivity = {
+      stableFactKeys: [],
+      sensitiveFacts: [],
+    };
+    const provider = {
+      generateStructured: vi.fn().mockImplementation(async (request) => {
+        const key = JSON.parse(request.user).sectionKey;
+        return { ok: true, value: { value: outputFor(key), providerId: "mock", modelId: "model" } };
+      }),
+    };
+    for (const reportConfigVersion of [
+      REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    ] as const) {
+      for (const sectionKey of COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1) {
+        await writeComprehensiveReportSectionV4({
+          sectionKey,
+          facts: reportFacts,
+          knowledgePacks: [],
+          provider: provider as never,
+          promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+          reportConfigVersion,
+        });
+      }
+    }
+    const requests = provider.generateStructured.mock.calls.map((call) => call[0]);
+    const oldRequests = requests.slice(0, COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.length);
+    const newRequests = requests.slice(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.length);
+    for (const [index, key] of COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.entries()) {
+      if (key.startsWith("thematic:")) {
+        expect(oldRequests[index].maxOutputTokens).toBe(2500);
+        expect(newRequests[index].maxOutputTokens).toBe(3500);
+      } else {
+        expect(newRequests[index].maxOutputTokens).toBe(oldRequests[index].maxOutputTokens);
+      }
+    }
+    expect(oldRequests.find((request) =>
+      JSON.parse(request.user).sectionKey === "birthTimeSensitivity"
+    ).maxOutputTokens).toBe(
+      ziweiComprehensiveReportQualityV2Sensitivity.sections.birthTimeSensitivity.maxOutputTokens,
+    );
   });
 
   it("rejects mismatched key-specific IDs and does not invent fallback content", async () => {

@@ -36,6 +36,7 @@ import type {
   ReportQueryRepository,
 } from "./report-query.repository.js";
 import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
@@ -275,7 +276,10 @@ export function createReportQueryService(options: {
           version.locale !== "vi" ||
           version.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
           version.promptVersion !== REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
-          version.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+          (
+            version.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY &&
+            version.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+          ) ||
           version.templateVersion !== REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY ||
           version.renderVersion !== REPORT_RENDER_VERSION_V4_1_SENSITIVITY
         ) {

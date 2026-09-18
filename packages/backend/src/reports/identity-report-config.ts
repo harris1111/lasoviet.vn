@@ -25,6 +25,8 @@ export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V2 = "ziwei-comprehensive.v2" 
 export const REPORT_PROMPT_VERSION_V4_1_SENSITIVITY = "ziwei.comprehensive.prompt.v4.1-sensitivity" as const;
 export const REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY = "ziwei.comprehensive.report.v4.1-sectioned-sensitivity" as const;
 export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY = "ziwei.comprehensive.quality.v2-sensitivity" as const;
+export const REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY = "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity" as const;
+export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY = "ziwei.comprehensive.quality.v2.1-sensitivity" as const;
 export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V3 = "ziwei-comprehensive.v3" as const;
 export const REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY = "ziwei-comprehensive-html.v2" as const;
 export const REPORT_RENDER_VERSION_V4_1_SENSITIVITY = "identity-report-pdf.v2" as const;
@@ -154,13 +156,22 @@ export type ReportVersionSelectionV4_1Sensitivity = {
   timingRuleVersion: typeof REPORT_TIMING_RULE_VERSION_V1;
 };
 
+export type ReportVersionSelectionV4_1_1Sensitivity = Omit<
+  ReportVersionSelectionV4_1Sensitivity,
+  "reportConfigVersion" | "qualityVersion"
+> & {
+  reportConfigVersion: typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  qualityVersion: typeof REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY;
+};
+
 export type ReportVersionSelection =
   | ReportVersionSelectionV2
   | ReportVersionSelectionV3
   | ReportVersionSelectionV4
   | ReportVersionSelectionV4_0_1
   | ReportVersionSelectionV4Sectioned
-  | ReportVersionSelectionV4_1Sensitivity;
+  | ReportVersionSelectionV4_1Sensitivity
+  | ReportVersionSelectionV4_1_1Sensitivity;
 
 export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
 
@@ -224,18 +235,39 @@ export function v4_1SensitivityReportVersions(
   };
 }
 
+export function v4_1_1SensitivityReportVersions(
+  _locale: string = "vi",
+): ReportVersionSelectionV4_1_1Sensitivity {
+  return {
+    family: "v4_1",
+    knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
+    templateVersion: REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
+    renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+  };
+}
+
 export type ReportRuntimePolicy = {
   maximumWallClockMs: number;
 };
 
 const REPORT_RUNTIME_POLICIES: Readonly<Record<
-  typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
+  | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+  | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   ReportRuntimePolicy
 >> = Object.freeze({
   [REPORT_CONFIG_VERSION_V4_1_SECTIONED]: Object.freeze({
     maximumWallClockMs: 60 * 60 * 1_000,
   }),
   [REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY]: Object.freeze({
+    maximumWallClockMs: 60 * 60 * 1_000,
+  }),
+  [REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY]: Object.freeze({
     maximumWallClockMs: 60 * 60 * 1_000,
   }),
 });

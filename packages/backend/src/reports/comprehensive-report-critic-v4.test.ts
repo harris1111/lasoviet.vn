@@ -6,6 +6,10 @@ import {
   critiqueComprehensiveZiweiReportSectionedV4,
   critiqueComprehensiveZiweiReportV4,
 } from "./comprehensive-report-critic-v4.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const palaceIds: ZiweiPalaceId[] = [
   "ziwei.palace.life",
@@ -373,6 +377,37 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
     expect(request.user).not.toContain("birthDate");
     expect(request.user).not.toContain("birthTime");
     expect(request.user).not.toContain("birthLocation");
+  });
+
+  it.each([
+    REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  ])("accepts sensitivity critic config %s and rejects unknown config", async (reportConfigVersion) => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5,
+            consistency: 5, actionability: 5, safety: 5, repetitionControl: 5,
+            notes: [], findings: [],
+          },
+        },
+      }),
+    };
+    await expect(critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any,
+      facts,
+      provider as never,
+      { reportConfigVersion },
+    )).resolves.toMatchObject({ ok: true });
+    await expect(critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any,
+      facts,
+      provider as never,
+      { reportConfigVersion: "unknown" as never },
+    )).resolves.toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
   });
 
   it("returns closed named findings only for addressable low quality", async () => {
