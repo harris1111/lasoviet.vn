@@ -5,13 +5,16 @@ import { createDatabase, type Database } from "@lasoviet/database";
 import {
   createKnowledgeIngestionService,
   validateKnowledgeManifest,
+  validateKnowledgeManifestV2,
   type createKnowledgeIngestionService as IngestionFactory,
   type KnowledgeManifestV1,
+  type KnowledgeManifestV2,
 } from "@lasoviet/backend";
 
 export const DEFAULT_REPORT_KNOWLEDGE_PATHS = {
   vi: "content/knowledge/vi/ziwei/comprehensive-report.v3.json",
   en: "content/knowledge/en/ziwei/identity-report-foundation.v2.json",
+  v4: "content/knowledge/vi/ziwei/comprehensive-report.v4.json",
 } as const;
 
 export type ManifestValidator = (
@@ -19,13 +22,19 @@ export type ManifestValidator = (
   options?: { repositoryRoot?: string },
 ) => { ok: true; value: KnowledgeManifestV1 } | { ok: false; code: string; message: string };
 
+export type V4ManifestValidator = (
+  input: unknown,
+  options?: { repositoryRoot?: string },
+) => { ok: true; value: KnowledgeManifestV2 } | { ok: false; code: string; message: string };
+
 export type ProvisionReportKnowledgeOptions = {
   databaseUrl?: string;
   database?: Database;
   repositoryRoot?: string;
   ingestionService?: Pick<ReturnType<typeof IngestionFactory>, "ingestKnowledge">;
-  manifestLoader?: () => { viManifest: unknown; enManifest: unknown };
+  manifestLoader?: () => { viManifest: unknown; enManifest: unknown; v4Manifest?: unknown };
   manifestValidator?: ManifestValidator;
+  v4ManifestValidator?: V4ManifestValidator;
 };
 
 export async function provisionReportKnowledge(
@@ -36,29 +45,54 @@ export async function provisionReportKnowledge(
 
     let viManifest: unknown;
     let enManifest: unknown;
+    let v4Manifest: unknown;
 
     if (options.manifestLoader !== undefined) {
       const loaded = options.manifestLoader();
       viManifest = loaded.viManifest;
       enManifest = loaded.enManifest;
+      v4Manifest = loaded.v4Manifest;
     } else {
       const viPath = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.vi);
       const enPath = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.en);
+      const v4Path = resolve(repositoryRoot, DEFAULT_REPORT_KNOWLEDGE_PATHS.v4);
       viManifest = JSON.parse(readFileSync(viPath, "utf8"));
       enManifest = JSON.parse(readFileSync(enPath, "utf8"));
+      v4Manifest = JSON.parse(readFileSync(v4Path, "utf8"));
     }
 
-    const validator = options.manifestValidator ?? validateKnowledgeManifest;
+    const manifestValidator = options.manifestValidator ?? validateKnowledgeManifest;
 
-    const viValidation = validator(viManifest, { repositoryRoot });
+    const viValidation = manifestValidator(viManifest, { repositoryRoot });
     if (!viValidation.ok) {
       console.error("REPORT_KNOWLEDGE_PROVISION_FAILED", viValidation.code);
       throw new Error("REPORT_KNOWLEDGE_PROVISION_FAILED");
     }
 
-    const enValidation = validator(enManifest, { repositoryRoot });
+    const enValidation = manifestValidator(enManifest, { repositoryRoot });
     if (!enValidation.ok) {
       console.error("REPORT_KNOWLEDGE_PROVISION_FAILED", enValidation.code);
+      throw new Error("REPORT_KNOWLEDGE_PROVISION_FAILED");
+    }
+
+    const v4Validation = v4Manifest === undefined
+      ? undefined
+      : (options.v4ManifestValidator ?? validateKnowledgeManifestV2)(
+        v4Manifest,
+        { repositoryRoot },
+      );
+    if (v4Validation !== undefined && !v4Validation.ok) {
+      console.error("REPORT_KNOWLEDGE_PROVISION_FAILED", v4Validation.code);
+      throw new Error("REPORT_KNOWLEDGE_PROVISION_FAILED");
+    }
+    if (
+      v4Validation !== undefined &&
+      (
+        v4Validation.value.approval.status !== "approved" ||
+        !v4Validation.value.approval.approver.trim()
+      )
+    ) {
+      console.error("REPORT_KNOWLEDGE_PROVISION_FAILED", "KNOWLEDGE_UNAPPROVED");
       throw new Error("REPORT_KNOWLEDGE_PROVISION_FAILED");
     }
 
@@ -85,6 +119,14 @@ export async function provisionReportKnowledge(
     if (!enResult.ok) {
       console.error("REPORT_KNOWLEDGE_PROVISION_FAILED", enResult.code);
       throw new Error("REPORT_KNOWLEDGE_PROVISION_FAILED");
+    }
+
+    if (v4Validation !== undefined) {
+      const v4Result = await ingestionService.ingestKnowledge(v4Validation.value);
+      if (!v4Result.ok) {
+        console.error("REPORT_KNOWLEDGE_PROVISION_FAILED", v4Result.code);
+        throw new Error("REPORT_KNOWLEDGE_PROVISION_FAILED");
+      }
     }
   } catch (error) {
     if (error instanceof Error && error.message === "REPORT_KNOWLEDGE_PROVISION_FAILED") {

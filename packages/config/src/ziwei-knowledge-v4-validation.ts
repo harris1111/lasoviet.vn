@@ -6,10 +6,12 @@ import { z } from "zod";
 const nonEmptyTerms = z.array(z.string().trim().min(1)).min(1);
 
 const schema = z.object({
-  version: z.literal("ziwei.knowledge.validation.v4.1"),
+  version: z.literal("ziwei.knowledge.validation.v4.5"),
   v4KnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v4"),
   v3KnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v3"),
   prohibitedEditorialTerms: nonEmptyTerms,
+  prohibitedProcessTerms: nonEmptyTerms,
+  prohibitedEnglishProseTerms: nonEmptyTerms,
   deathTerms: nonEmptyTerms,
   oralFillers: nonEmptyTerms,
   palaces: nonEmptyTerms,

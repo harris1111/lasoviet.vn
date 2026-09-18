@@ -86,6 +86,7 @@ export type { WorkflowEnvelopeV1 } from "./schema/outbox.js";
 
 export {
   knowledgeChunks,
+  knowledgeChunkProvenanceEdges,
   knowledgeDocuments,
 } from "./schema/knowledge.js";
 

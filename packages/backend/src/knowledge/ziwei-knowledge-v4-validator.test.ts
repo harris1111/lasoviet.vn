@@ -88,6 +88,84 @@ describe("Zi Wei knowledge V4 validator", () => {
     }
   });
 
+  it("rejects every configured process term in prose with whole-term semantics", () => {
+    for (const term of ziweiKnowledgeV4ValidationV1.prohibitedProcessTerms) {
+      const surface = term === "V4" ? "v4" : term;
+      const candidate = nonWarningRecord(`Cụm từ ${surface} không được xuất hiện trong phần này.`);
+      expect(issueCodes(candidate)).toContain("V4_PROCESS_TERM_PROHIBITED");
+    }
+  });
+
+  it("rejects the final editorial-process variants without matching embedded text", () => {
+    const prohibitedCases = [
+      "biên tập",
+      "đầu vào",
+      "phép tính",
+      "tái tạo nguồn",
+      "cấu hình kỹ thuật",
+      "bản mới",
+    ];
+    for (const term of prohibitedCases) {
+      expect(issueCodes(nonWarningRecord(`Cụm ${term} không được xuất hiện trong phần này.`)))
+        .toContain("V4_PROCESS_TERM_PROHIBITED");
+    }
+
+    for (const ordinaryCase of [
+      "Bạn có thể chuyển thành từng bước nhỏ để dễ theo dõi hơn.",
+      "Quy trình bàn giao ở nơi làm việc cần rõ ràng và tôn trọng mọi người.",
+      "Từ đầu vàoX và phép tínhX chỉ là các ví dụ về cách ghép chữ.",
+      "Bản mớiX là cách ghi tên một mục riêng.",
+    ]) {
+      expect(issueCodes(nonWarningRecord(ordinaryCase)))
+        .not.toContain("V4_PROCESS_TERM_PROHIBITED");
+    }
+  });
+
+  it("rejects every configured English prose term in localized content only", () => {
+    for (const term of ziweiKnowledgeV4ValidationV1.prohibitedEnglishProseTerms) {
+      const candidate = nonWarningRecord(`Từ ${term.toUpperCase()} không được xuất hiện trong phần này.`);
+      expect(issueCodes(candidate)).toContain("V4_ENGLISH_PROSE_PROHIBITED");
+    }
+  });
+
+  it("keeps process terms out of metadata and canonical identifiers", () => {
+    const candidate = record({
+      passageId: "v4-AI-V4-identifier-key-provenance-prose-metadata-mapping-output-template",
+      metadata: {
+        topics: ["dữ liệu"],
+        palaces: ["cung Tài Bạch"],
+        stars: ["Hoá Kỵ"],
+        brightness: [],
+        transformations: ["Hoá Kỵ"],
+        relations: ["cách tính"],
+        patterns: ["ma trận"],
+        sourceType: "matrix",
+        languageOrigin: "vi",
+        priority: 1,
+      },
+      sourcePassageIds: ["v3-kết-quả-trung-gian-công-cụ-truy-xuất"],
+    });
+    expect(issueCodes(candidate)).not.toContain("V4_PROCESS_TERM_PROHIBITED");
+  });
+
+  it("does not match ordinary lowercase ai or terms embedded in longer words", () => {
+    const candidate = nonWarningRecord(
+      "Ai cũng có cách riêng; Mai dùng monkey, keyboard, outputting, templateX và V42 làm ví dụ.",
+    );
+    expect(issueCodes(candidate)).not.toContain("V4_PROCESS_TERM_PROHIBITED");
+  });
+
+  it("applies appropriate case semantics to AI and process vocabulary", () => {
+    expect(issueCodes(nonWarningRecord("AI không được nhắc trong phần này.")))
+      .toContain("V4_PROCESS_TERM_PROHIBITED");
+    expect(issueCodes(nonWarningRecord("ai cũng có thể tự quan sát thói quen của mình.")))
+      .not.toContain("V4_PROCESS_TERM_PROHIBITED");
+    expect(issueCodes(nonWarningRecord("Identifier cũng không được nhắc trong phần này.")))
+      .toContain("V4_PROCESS_TERM_PROHIBITED");
+    expect(issueCodes(nonWarningRecord("HỆ THỐNG cũng không được nhắc trong phần này.")))
+      .toContain("V4_PROCESS_TERM_PROHIBITED");
+  });
+
   it("requires source provenance and rejects malformed record contracts", () => {
     expect(issueCodes(record({ sourcePassageIds: [] }))).toContain("V4_RECORD_SCHEMA_INVALID");
     expect(issueCodes(record({ metadata: undefined }))).toContain("V4_RECORD_SCHEMA_INVALID");
@@ -134,6 +212,32 @@ describe("Zi Wei knowledge V4 validator", () => {
       content: allowedPalace,
       contentHash: createHash("sha256").update(allowedPalace).digest("hex"),
     }))).toEqual([]);
+  });
+
+  it("requires canonical proper palace labels without rejecting ordinary palace phrases", () => {
+    for (const palace of ziweiKnowledgeV4ValidationV1.palaces) {
+      const candidate = `${content} Cung ${palace} được nhắc đúng ngữ cảnh.`;
+      expect(issueCodes(record({
+        content: candidate,
+        contentHash: createHash("sha256").update(candidate).digest("hex"),
+      }))).not.toContain("V4_PALACE_LABEL_PROHIBITED");
+    }
+
+    for (const alias of ["Cung Bạn Hữu", "Cung Công Danh", "cung Gia Đạo"]) {
+      const candidate = `${content} ${alias} được nhắc đúng ngữ cảnh.`;
+      expect(issueCodes(record({
+        content: candidate,
+        contentHash: createHash("sha256").update(candidate).digest("hex"),
+      }))).toContain("V4_PALACE_LABEL_PROHIBITED");
+    }
+
+    for (const ordinaryPhrase of ["cung này", "cung liên hệ", "cung đang xét"]) {
+      const candidate = `${content} ${ordinaryPhrase} cần được giải thích rõ ràng.`;
+      expect(issueCodes(record({
+        content: candidate,
+        contentHash: createHash("sha256").update(candidate).digest("hex"),
+      }))).not.toContain("V4_PALACE_LABEL_PROHIBITED");
+    }
   });
 
   it("rejects tampered hashes and non-NFC candidate values", () => {

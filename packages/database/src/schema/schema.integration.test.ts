@@ -66,7 +66,7 @@ import { generatedPreviewRequests, generatedPreviewSections } from "./generated-
 
 describe("database schema integration", () => {
   const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
-  const currentMigrationTimestamp = 1790813100000;
+  const currentMigrationTimestamp = 1790813160000;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
@@ -275,7 +275,7 @@ describe("database schema integration", () => {
     })).rejects.toBeDefined();
   });
 
-  it("backfills a valid 0036 wallet intent through 0037 and restores the current 0039 schema", async () => {
+  it("backfills a valid 0036 wallet intent through 0037 and restores the current 0040 schema", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const ownerId = "wallet-0036-to-0037-owner";
@@ -320,9 +320,10 @@ describe("database schema integration", () => {
         )
       `;
       await removeClaudePricingForRewind(client);
+      await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000)
+        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000, 1790813160000)
       `;
       await client`
         INSERT INTO wallet_purchase_intents (
@@ -335,6 +336,13 @@ describe("database schema integration", () => {
 
       await runMigrations(databaseUrl);
       await expectCurrentClaudePricingAndJournal(client);
+      const [provenanceTableCheck] = await client<{ exists: boolean }[]>`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_schema = 'public' AND table_name = 'knowledge_chunk_provenance_edges'
+        ) as exists
+      `;
+      expect(provenanceTableCheck?.exists).toBe(true);
 
       const [backfilled] = await client<{ locale: string }[]>`
         SELECT locale FROM wallet_purchase_intents WHERE id = ${legacyIntentId}
@@ -2948,7 +2956,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-14)).toEqual([
+    expect(journal.entries.slice(-15)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -3047,6 +3055,13 @@ describe("database schema integration", () => {
         tag: "0039_ai_model_pricing_claude_sonnet_4_6",
         breakpoints: true,
       },
+      {
+        idx: 40,
+        version: "7",
+        when: 1790813160000,
+        tag: "0040_ziwei_knowledge_v4_provenance",
+        breakpoints: true,
+      },
     ]);
   });
 
@@ -3098,7 +3113,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 through 0039 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0040 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -3362,6 +3377,7 @@ describe("database schema integration", () => {
       DROP COLUMN IF EXISTS invalid_output_reason
     `;
     await removeClaudePricingForRewind(client);
+    await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
       WHERE created_at IN (
@@ -3374,7 +3390,8 @@ describe("database schema integration", () => {
         1790812920000,
         1790812980000,
         1790813040000,
-        1790813100000
+        1790813100000,
+        1790813160000
       )
     `;
 
@@ -3403,7 +3420,8 @@ describe("database schema integration", () => {
         1790812920000,
         1790812980000,
         1790813040000,
-        1790813100000
+        1790813100000,
+        1790813160000
       )
       ORDER BY created_at ASC
     `;
@@ -3418,6 +3436,7 @@ describe("database schema integration", () => {
       1790812980000,
       1790813040000,
       1790813100000,
+      1790813160000,
     ]);
     await expectCurrentClaudePricingAndJournal(client);
 
@@ -3459,13 +3478,15 @@ describe("database schema integration", () => {
         AND table_name IN (
           'wallet_accounts',
           'generated_preview_requests',
-          'generated_preview_sections'
+          'generated_preview_sections',
+          'knowledge_chunk_provenance_edges'
         )
       ORDER BY table_name ASC
     `;
     expect(restoredTables.map((table) => table.table_name)).toEqual([
       "generated_preview_requests",
       "generated_preview_sections",
+      "knowledge_chunk_provenance_edges",
       "wallet_accounts",
     ]);
 

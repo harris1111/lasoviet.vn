@@ -1,0 +1,497 @@
+{
+  "shardSchemaVersion": "ziwei.v4-editorial-shard.v1",
+  "path": "content/knowledge/vi/ziwei/v4-candidate/shards/source-04-shard-002.json",
+  "sourcePassageIds": [
+    "ziwei-v3-04-c0f53795-00005-d0155341cf17",
+    "ziwei-v3-04-c0f53795-00006-c6ba08988c29",
+    "ziwei-v3-04-c0f53795-00007-5e61ea03fce0",
+    "ziwei-v3-04-c0f53795-00008-5fa2fa2f7899",
+    "ziwei-v3-04-c0f53795-00009-46161b3c5ef7",
+    "ziwei-v3-04-c0f53795-00010-b5f8c5aac6bb",
+    "ziwei-v3-04-c0f53795-00011-27d94ac63476",
+    "ziwei-v3-04-c0f53795-00012-9230cf43342a",
+    "ziwei-v3-04-c0f53795-00013-c6b8d64508eb",
+    "ziwei-v3-04-c0f53795-00014-4392e1cee568",
+    "ziwei-v3-04-c0f53795-00015-36ddceb4ab8e",
+    "ziwei-v3-04-c0f53795-00016-9997fc0702da",
+    "ziwei-v3-04-c0f53795-00017-ea8dd6b02f10",
+    "ziwei-v3-04-c0f53795-00018-bf30f43c9785",
+    "ziwei-v3-04-c0f53795-00019-951c1fd16e30",
+    "ziwei-v3-04-c0f53795-00020-eb952d756f47",
+    "ziwei-v3-04-c0f53795-00021-8cb56d113f74",
+    "ziwei-v3-04-c0f53795-00022-5e83ab072058",
+    "ziwei-v3-04-c0f53795-00023-f7d790244025",
+    "ziwei-v3-04-c0f53795-00024-09c49a807173",
+    "ziwei-v3-04-c0f53795-00025-dbb840ad3ec0",
+    "ziwei-v3-04-c0f53795-00026-9d01b5a3381c",
+    "ziwei-v3-04-c0f53795-00027-d11e15ae3ad9",
+    "ziwei-v3-04-c0f53795-00028-28019ef6871d",
+    "ziwei-v3-04-c0f53795-00029-4e7f92b2a533",
+    "ziwei-v3-04-c0f53795-00030-972bdc4e85ae",
+    "ziwei-v3-04-c0f53795-00031-2eb320e43318",
+    "ziwei-v3-04-c0f53795-00032-b88e4ff26b78",
+    "ziwei-v3-04-c0f53795-00033-46f59620050b",
+    "ziwei-v3-04-c0f53795-00034-8b66abfa55a1",
+    "ziwei-v3-04-c0f53795-00035-8ccfba8ec3f5",
+    "ziwei-v3-04-c0f53795-00036-c8ccf2bd97c4",
+    "ziwei-v3-04-c0f53795-00037-2c1cea7013d5",
+    "ziwei-v3-04-c0f53795-00038-f86af1613114"
+  ],
+  "records": [
+    {
+      "passageId": "ziwei-v4-0fe2da0d5932984ed63a36b0",
+      "reportSections": [
+        "cycles_and_timing",
+        "data_and_method",
+        "primary_evidence"
+      ],
+      "content": "Khi hợp nhất chứng cứ, cần hỏi các dấu hiệu có cùng cơ chế hay chỉ giống từ khóa, tác động thuộc cấu trúc hay điều kiện, và yếu tố nào làm thay đổi cách biểu hiện. Một tổ hợp không tự tạo ra kết quả duy nhất. Phân tích cần quay lại các cung liên quan và bối cảnh thời gian trước khi nêu diễn giải.",
+      "contentHash": "8ce8d56908515a0e8d90e7ff695967d98690b325fb85d6fdba375853d1be0bf4",
+      "metadata": {
+        "topics": [
+          "methodology",
+          "stars",
+          "timing",
+          "transformations",
+          "travel"
+        ],
+        "palaces": [
+          "ziwei.palace.travel"
+        ],
+        "stars": [
+          "ziwei.star.tianma"
+        ],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.obstacle"
+        ],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00019-951c1fd16e30",
+        "ziwei-v3-04-c0f53795-00020-eb952d756f47",
+        "ziwei-v3-04-c0f53795-00021-8cb56d113f74",
+        "ziwei-v3-04-c0f53795-00022-5e83ab072058"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-6c6f09cd58f3ca05b92b39d0",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Khi chính cung và các cung liên hệ tạo tín hiệu khác nhau, cần mô tả cả năng lực nền lẫn điều kiện hỗ trợ hoặc hạn chế. Một giai đoạn khó không xóa toàn bộ khả năng sẵn có, và một giai đoạn thuận không xóa các thói quen cần điều chỉnh. Kết luận nên gắn với bối cảnh thay vì dùng một nhãn tổng quát.",
+      "contentHash": "32b1657b4fd9fadce2f84d52860e2386f24f454fe005b4705710beb98761daf7",
+      "metadata": {
+        "topics": [
+          "methodology"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [
+          "ziwei.brightness.weak"
+        ],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00023-f7d790244025",
+        "ziwei-v3-04-c0f53795-00024-09c49a807173",
+        "ziwei-v3-04-c0f53795-00025-dbb840ad3ec0",
+        "ziwei-v3-04-c0f53795-00026-9d01b5a3381c"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-6cf4232a126f82de5facc441",
+      "reportSections": [
+        "cycles_and_timing",
+        "data_and_method"
+      ],
+      "content": "Lớp thời gian tạo bối cảnh cho diễn giải, còn một thay đổi lớn cần nhiều nhóm thông tin cùng hướng về một chủ đề. Kết quả nên được đối chiếu với trải nghiệm trước đó và phải lưu cả điểm không phù hợp. Lịch sử nhận định cần được giữ nguyên để việc điều chỉnh sau này có thể truy vết.",
+      "contentHash": "dc4a8e3a3fdca1237a11f6548ce9115bdfe4f260d4393265fcbbe27f2969d8ab",
+      "metadata": {
+        "topics": [
+          "methodology",
+          "timing"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [
+          "ziwei.brightness.weak"
+        ],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00009-46161b3c5ef7",
+        "ziwei-v3-04-c0f53795-00010-b5f8c5aac6bb"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-9bf0c9c23927ea72ac3f71d5",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Một khuynh hướng chỉ nên được nâng thành khả năng sự kiện khi có dấu hiệu nền, cung chức năng xác nhận, lớp thời gian liên quan và không có phản chứng đủ mạnh. Với thay đổi lớn trong gia đình, nơi ở, hướng nghề hay nguồn lực, cần nhiều nhóm dấu hiệu độc lập. Quy tắc này giữ cho suy luận không vượt quá bằng chứng hiện có.",
+      "contentHash": "af6193a8592c59e2def007540e27b1c38966de885b86510c8f1c33301cfc71e4",
+      "metadata": {
+        "topics": [
+          "methodology"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00029-4e7f92b2a533",
+        "ziwei-v3-04-c0f53795-00030-972bdc4e85ae",
+        "ziwei-v3-04-c0f53795-00031-2eb320e43318"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-9e084159a3ea397fc23e9e78",
+      "reportSections": [
+        "cycles_and_timing",
+        "data_and_method"
+      ],
+      "content": "Nền tảng lá số, hoàn cảnh sống và từng giai đoạn cần được nhìn riêng rồi mới đặt cạnh nhau. Xu hướng thích tự quyết có thể thể hiện rất khác ở mỗi nơi làm việc hoặc trong mỗi gia đình. Khi chưa rõ đại vận và lưu niên, không nên gắn một nét chung với một giai đoạn cụ thể.",
+      "contentHash": "86f0edecc028b5e097936728927cf678fbc768a5887c2bba3ed168bbc6275cd6",
+      "metadata": {
+        "topics": [
+          "methodology",
+          "timing"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00032-b88e4ff26b78",
+        "ziwei-v3-04-c0f53795-00033-46f59620050b",
+        "ziwei-v3-04-c0f53795-00034-8b66abfa55a1",
+        "ziwei-v3-04-c0f53795-00035-8ccfba8ec3f5"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-c13038fc68a60bf77ad99748",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Khi phân tích tam phương và cung đối diện, cần xác định ảnh hưởng đến từ người được xem, nguồn lực, môi trường hay người khác. Cung giáp chỉ là lớp hỗ trợ, không thay thế cho cấu trúc chính. Sau đó mới nối các cung có chức năng liên quan đến chủ đề đang được xem.",
+      "contentHash": "49444d83d5e9fbd6b7f5e98030edcc718dec3bdb9297f776431419613606abdf",
+      "metadata": {
+        "topics": [
+          "methodology"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [
+          "flanking",
+          "triad"
+        ],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00005-d0155341cf17",
+        "ziwei-v3-04-c0f53795-00006-c6ba08988c29"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-d80a7c6fad3c80c016ea7888",
+      "reportSections": [
+        "data_and_method",
+        "primary_evidence"
+      ],
+      "content": "Các yếu tố biến đổi cần được mô tả theo ngôi sao khởi phát, vị trí tiếp nhận và chủ đề bị tác động. Việc đọc cần làm rõ dòng ảnh hưởng giữa các cung thay vì chỉ liệt kê tên yếu tố. Cách ghi này giữ được bối cảnh và cho phép đối chiếu khi có nhiều dấu hiệu cùng xuất hiện.",
+      "contentHash": "47625d79b6e3bea52be3296a04000719f9732dfcc3d2f68b4f323ecb84210aff",
+      "metadata": {
+        "topics": [
+          "methodology",
+          "transformations"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [],
+        "transformations": [
+          "ziwei.transformation.prosperity"
+        ],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00007-5e61ea03fce0",
+        "ziwei-v3-04-c0f53795-00008-5fa2fa2f7899"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-f77a4b314120ed910eaa5e02",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Mỗi kết luận nên có bảng đối chiếu ghi rõ vị trí, ý nghĩa, hướng tác động, mức hỗ trợ và nguồn quy tắc. Bảng đối chiếu có thể bao gồm sao chính, các cung liên hệ, yếu tố biến đổi, lớp thời gian và phản chứng. Cách tổ chức này giúp người đọc thấy phần nào nâng đỡ hoặc làm giảm một nhận định.",
+      "contentHash": "53a5b27df704219f47030ab1b94eab88d928603add599774a46b75ddfc5b603a",
+      "metadata": {
+        "topics": [
+          "methodology"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00011-27d94ac63476",
+        "ziwei-v3-04-c0f53795-00012-9230cf43342a",
+        "ziwei-v3-04-c0f53795-00013-c6b8d64508eb",
+        "ziwei-v3-04-c0f53795-00014-4392e1cee568",
+        "ziwei-v3-04-c0f53795-00015-36ddceb4ab8e",
+        "ziwei-v3-04-c0f53795-00016-9997fc0702da",
+        "ziwei-v3-04-c0f53795-00017-ea8dd6b02f10",
+        "ziwei-v3-04-c0f53795-00018-bf30f43c9785"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-568eabdcb99ffad850034294",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Một nhận định có điều kiện cần nêu rõ điểm nền tảng, điều gì hỗ trợ và điều gì có thể làm điểm khó bộc lộ. Giai đoạn chỉ nên được nhắc đến khi đại vận hoặc lưu niên cho thấy dấu hiệu phù hợp. Cách nói này giúp bạn phân biệt khuynh hướng với một lời khẳng định dứt khoát.",
+      "contentHash": "d5423a4981de96f6d9ea52694377b5465f179b8fd67aef8b0b6075922b9ebf6d",
+      "metadata": {
+        "topics": [
+          "methodology"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [
+          "ziwei.brightness.weak"
+        ],
+        "transformations": [],
+        "relations": [],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00027-d11e15ae3ad9",
+        "ziwei-v3-04-c0f53795-00028-28019ef6871d"
+      ],
+      "dispositionRationaleCode": "merged"
+    },
+    {
+      "passageId": "ziwei-v4-f486132d35ccd7a0b5b59b5b",
+      "reportSections": [
+        "data_and_method"
+      ],
+      "content": "Nhãn ưu tiên nội bộ có thể hỗ trợ sắp xếp sao chính, tổ hợp, quan hệ cung và các lớp thời gian trong quá trình nghiên cứu. Các nhãn này chỉ giúp tổ chức chứng cứ và không phải quy tắc bắt buộc của truyền thống. Không dùng chúng để tạo điểm số hoặc kết luận về số phận của một người.",
+      "contentHash": "22d6c2e6eeae1cf7c3bcdd141cc7134f352d48d89305a00c1025c09c26287a2f",
+      "metadata": {
+        "topics": [
+          "methodology",
+          "patterns"
+        ],
+        "palaces": [],
+        "stars": [],
+        "brightness": [],
+        "transformations": [],
+        "relations": [
+          "conjunction",
+          "flanking"
+        ],
+        "patterns": [],
+        "sourceType": "modern",
+        "languageOrigin": "vi",
+        "priority": 2
+      },
+      "sourcePassageIds": [
+        "ziwei-v3-04-c0f53795-00036-c8ccf2bd97c4",
+        "ziwei-v3-04-c0f53795-00037-2c1cea7013d5",
+        "ziwei-v3-04-c0f53795-00038-f86af1613114"
+      ],
+      "dispositionRationaleCode": "merged"
+    }
+  ],
+  "dispositions": [
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00005-d0155341cf17",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00006-c6ba08988c29",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00007-5e61ea03fce0",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00008-5fa2fa2f7899",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00009-46161b3c5ef7",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00010-b5f8c5aac6bb",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00011-27d94ac63476",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00012-9230cf43342a",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00013-c6b8d64508eb",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00014-4392e1cee568",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00015-36ddceb4ab8e",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00016-9997fc0702da",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00017-ea8dd6b02f10",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00018-bf30f43c9785",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00019-951c1fd16e30",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00020-eb952d756f47",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00021-8cb56d113f74",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00022-5e83ab072058",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00023-f7d790244025",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00024-09c49a807173",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00025-dbb840ad3ec0",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00026-9d01b5a3381c",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00027-d11e15ae3ad9",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00028-28019ef6871d",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00029-4e7f92b2a533",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00030-972bdc4e85ae",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00031-2eb320e43318",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00032-b88e4ff26b78",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00033-46f59620050b",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00034-8b66abfa55a1",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00035-8ccfba8ec3f5",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00036-c8ccf2bd97c4",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00037-2c1cea7013d5",
+      "disposition": "merged"
+    },
+    {
+      "sourcePassageId": "ziwei-v3-04-c0f53795-00038-f86af1613114",
+      "disposition": "merged"
+    }
+  ]
+}

@@ -8,7 +8,7 @@ import {
   computeChunkContentHash,
   KnowledgeEditorialRecordV1Schema,
   type KnowledgeEditorialRecordV1,
-} from "./knowledge-ingestion.service.js";
+} from "./knowledge-editorial-record.js";
 
 export type ZiweiKnowledgeV4ValidationIssue = {
   code: string;
@@ -23,6 +23,10 @@ function normalized(value: string): string {
   return normalizeZiweiKnowledgeV4Term(value).replace(/\s+/gu, " ");
 }
 
+function normalizedProse(value: string): string {
+  return value.normalize("NFC").replace(/\s+/gu, " ").trim();
+}
+
 function escaped(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
@@ -34,6 +38,19 @@ function includesTerm(text: string, term: string): boolean {
 
 function includesAny(text: string, terms: readonly string[]): boolean {
   return terms.some((term) => includesTerm(text, term));
+}
+
+function includesProcessTerm(text: string, term: string): boolean {
+  const flags = term === "AI" ? "gu" : "giu";
+  const pattern = term === "AI" ? term.normalize("NFC").trim() : normalized(term);
+  return new RegExp(
+    `(?:^|[^\\p{L}\\p{N}])${escaped(pattern)}(?=$|[^\\p{L}\\p{N}])`,
+    flags,
+  ).test(text);
+}
+
+function includesAnyProcessTerm(text: string, terms: readonly string[]): boolean {
+  return terms.some((term) => includesProcessTerm(text, term));
 }
 
 function countTerminalSentences(text: string): number {
@@ -100,6 +117,19 @@ function hasBarePalace(text: string, palace: string): boolean {
   return includesTerm(text.replace(allowed, " "), palace);
 }
 
+function hasInvalidProperPalaceLabel(
+  text: string,
+  config: ZiweiKnowledgeV4ValidationConfig,
+): boolean {
+  const canonicalLabels = new Set(config.palaces.map(normalized));
+  const properPalaceLabel = /\b(?:C|c)ung\s+(\p{Lu}[\p{L}\p{M}]*(?:\s+\p{Lu}[\p{L}\p{M}]*)*)/gu;
+
+  for (const match of text.matchAll(properPalaceLabel)) {
+    if (!canonicalLabels.has(normalized(match[1]!))) return true;
+  }
+  return false;
+}
+
 function validateWarning(text: string, config: ZiweiKnowledgeV4ValidationConfig, issues: ZiweiKnowledgeV4ValidationIssue[]): void {
   if (!includesAny(text, config.warningDomains)) return;
   const requirements: Array<[string, readonly string[]]> = [
@@ -123,7 +153,7 @@ export function validateZiweiKnowledgeV4Record(
   if (!parsed.success) return { ok: false, issues: [{ code: "V4_RECORD_SCHEMA_INVALID" }] };
 
   const record = parsed.data;
-  const text = normalized(record.content);
+  const text = normalizedProse(record.content);
   const issues: ZiweiKnowledgeV4ValidationIssue[] = [];
   const add = (code: string) => issues.push({ code, passageId: record.passageId });
 
@@ -142,12 +172,19 @@ export function validateZiweiKnowledgeV4Record(
   if (includesAny(text, config.reproductiveClaimTerms)) add("V4_WARNING_REPRODUCTIVE_CLAIM_PROHIBITED");
   if (includesAny(text, config.remedyOrRitualTerms)) add("V4_WARNING_REMEDY_PROHIBITED");
   if (includesAny(text, config.paywallPressureTerms)) add("V4_WARNING_PAYWALL_PRESSURE_PROHIBITED");
+  if (includesAnyProcessTerm(text, config.prohibitedProcessTerms)) {
+    add("V4_PROCESS_TERM_PROHIBITED");
+  }
+  if (includesAny(text, config.prohibitedEnglishProseTerms)) {
+    add("V4_ENGLISH_PROSE_PROHIBITED");
+  }
   const palaceTerms = new Set(config.palaces.map(normalized));
   if (includesAny(
     text,
     config.prohibitedEditorialTerms.filter((term) => !palaceTerms.has(normalized(term))),
   )) add("V4_EDITORIAL_TERM_PROHIBITED");
   if (config.palaces.some((palace) => hasBarePalace(text, palace))) add("V4_BARE_PALACE_PROHIBITED");
+  if (hasInvalidProperPalaceLabel(text, config)) add("V4_PALACE_LABEL_PROHIBITED");
   if (!metadataArraysAreCanonical(record)) add("V4_METADATA_NOT_CANONICAL");
 
   const sentences = countTerminalSentences(text);

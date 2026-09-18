@@ -608,8 +608,15 @@ export type {
 export {
   createKnowledgeIngestionService,
   validateKnowledgeManifest,
+  validateKnowledgeManifestV2,
+  canonicalizeKnowledgeEditorialChunks,
+  canonicalizeKnowledgeProvenanceEdges,
+  canonicalizeV3DispositionLedgerPayload,
   computeChunkContentHash,
+  computeDispositionLedgerPayloadHash,
   computeDocumentContentHash,
+  computeKnowledgeProvenanceEdgeId,
+  computeKnowledgeV4CandidateHash,
 } from "./knowledge/knowledge-ingestion.service.js";
 export type {
   ApprovalStatus,
@@ -618,6 +625,8 @@ export type {
   IngestKnowledgeSuccess,
   KnowledgeChunkManifest,
   KnowledgeManifestV1,
+  KnowledgeManifestV2,
+  KnowledgeProvenanceEdgeV1,
   PermittedUseBasis,
 } from "./knowledge/knowledge-ingestion.service.js";
 
