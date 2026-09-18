@@ -11,6 +11,7 @@ import {
 } from "@lasoviet/contracts";
 import {
   REPORT_CONFIG_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
 } from "./identity-report-config.js";
@@ -93,7 +94,10 @@ export function resolveComprehensiveReportSectionKeys(
   ) {
     return COMPREHENSIVE_REPORT_SECTION_KEYS;
   }
-  if (reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY) {
+  if (
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+  ) {
     return COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1;
   }
   return fail();

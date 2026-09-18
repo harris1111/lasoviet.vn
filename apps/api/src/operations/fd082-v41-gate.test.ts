@@ -3,10 +3,11 @@ import { PgDialect } from "drizzle-orm/pg-core";
 
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
-  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
 } from "@lasoviet/backend";
 
 import {
@@ -24,15 +25,15 @@ function exactEvidence(): Fd082Evidence {
       status: "complete",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
-      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
     },
     checkpoints: COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.map((sectionKey) => ({
       sectionKey,
       status: "passed",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
-      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
-      qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
       providerId: "9router-an",
       modelId: "claude-sonnet-4-6",
     })),
@@ -41,7 +42,7 @@ function exactEvidence(): Fd082Evidence {
       modelId: "claude-sonnet-4-6",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
-      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
       contentHash: "a".repeat(64),
     },
     asset: {
@@ -76,6 +77,14 @@ describe("FD-082 V4.1 gate", () => {
 
   it("accepts only the exact V4.1 evidence tuple", () => {
     expect(passesFd082Evidence(exactEvidence())).toBe(true);
+    const oldTuple = exactEvidence();
+    oldTuple.reservation!.reportConfigVersion = REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
+    oldTuple.checkpoints = oldTuple.checkpoints.map((checkpoint) => ({
+      ...checkpoint,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    }));
+    oldTuple.immutable!.reportConfigVersion = REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
+    expect(passesFd082Evidence(oldTuple)).toBe(false);
   });
 
   it("constructs the wallet audit predicate with an explicit UUID-to-text cast", () => {

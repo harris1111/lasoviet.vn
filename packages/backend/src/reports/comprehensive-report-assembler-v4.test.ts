@@ -5,9 +5,17 @@ import {
 } from "@lasoviet/contracts";
 import { describe, expect, it } from "vitest";
 
-import { assembleComprehensiveReportV4 } from "./comprehensive-report-assembler-v4.js";
+import {
+  assembleComprehensiveReportV4,
+  assembleComprehensiveReportV4_1,
+} from "./comprehensive-report-assembler-v4.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
-import { CANONICAL_PALACE_TITLES_VI, CANONICAL_THEMATIC_TITLES_VI } from "./identity-report-config.js";
+import {
+  CANONICAL_PALACE_TITLES_VI,
+  CANONICAL_THEMATIC_TITLES_VI,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const evidenceKeys = ["ziwei.evidence.one"];
 const narrative = (title: string, content = "Nội dung đã được chuẩn hóa.") => ({
@@ -80,6 +88,19 @@ function acceptedSections(state: "active" | "not_started" = "active"): unknown[]
       })),
     },
   ];
+}
+
+function acceptedSensitivitySections(): unknown[] {
+  const sections = acceptedSections();
+  sections.splice(-1, 0, {
+    key: "birthTimeSensitivity",
+    value: {
+      title: "Độ nhạy thời điểm sinh",
+      stableFactors: narrative("Yếu tố ổn định"),
+      sensitiveFactors: narrative("Yếu tố cần đối chiếu"),
+    },
+  });
+  return sections;
 }
 
 describe("comprehensive report V4 assembler", () => {
@@ -174,5 +195,29 @@ describe("comprehensive report V4 assembler", () => {
     expect(ZiweiComprehensiveReportContentV2Schema.safeParse(first).success).toBe(true);
     expect("birthTimeSensitivity" in first).toBe(false);
     expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+  });
+
+  it.each([
+    REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  ])("assembles V4.1 content with selected config %s", (reportConfigVersion) => {
+    const report = assembleComprehensiveReportV4_1(
+      acceptedSensitivitySections(),
+      facts(),
+      reportConfigVersion,
+    );
+    expect(report.birthTimeSensitivity.stableFactors.title).toBe("Yếu tố ổn định");
+  });
+
+  it("defaults V4.1 assembly to the old config and rejects unknown config", () => {
+    expect(() => assembleComprehensiveReportV4_1(
+      acceptedSensitivitySections(),
+      facts(),
+    )).not.toThrow();
+    expect(() => assembleComprehensiveReportV4_1(
+      acceptedSensitivitySections(),
+      facts(),
+      "unknown" as never,
+    )).toThrow("COMPREHENSIVE_REPORT_SECTION_INVALID");
   });
 });

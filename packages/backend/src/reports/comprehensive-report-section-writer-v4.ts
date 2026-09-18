@@ -13,6 +13,7 @@ import {
   z,
 } from "@lasoviet/contracts";
 import {
+  resolveZiweiReportQualitySectionThreshold,
   ziweiComprehensiveReportQualityV1,
   ziweiComprehensiveReportQualityV2Sensitivity,
 } from "@lasoviet/config";
@@ -32,8 +33,11 @@ import { BRIGHTNESS_LABELS_VI } from "./comprehensive-report-writer.js";
 import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
 } from "./identity-report-config.js";
 
 const narrativeSchema = z.object({
@@ -60,7 +64,10 @@ export type ComprehensiveReportSectionWriterV4Input = {
   rewrite?: ComprehensiveReportSectionWriterV4Rewrite;
   provider: AiProvider;
   promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1 | typeof REPORT_PROMPT_VERSION_V4_1_SENSITIVITY;
-  reportConfigVersion?: typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
+  reportConfigVersion?:
+    | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
+    | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+    | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
   costContext?: AiCostRequestContext;
   readingContext?: ReadingContextV1 | null;
 };
@@ -388,7 +395,10 @@ export async function writeComprehensiveReportSectionV4(
   const isV4 = input.promptVersion === REPORT_PROMPT_VERSION_V4_0_1 &&
     reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED;
   const isV4_1 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_SENSITIVITY &&
-    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
+    (
+      reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+      reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+    );
   if (!isV4 && !isV4_1) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_PROMPT_UNSUPPORTED");
   }
@@ -403,7 +413,13 @@ export async function writeComprehensiveReportSectionV4(
     ? ziweiComprehensiveReportQualityV1.sections[
       scope.kind as keyof typeof ziweiComprehensiveReportQualityV1.sections
     ].maxOutputTokens
-    : ziweiComprehensiveReportQualityV2Sensitivity.sections[scope.kind].maxOutputTokens;
+    : resolveZiweiReportQualitySectionThreshold(
+      reportConfigVersion,
+      reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+        ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY
+        : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+      scope.kind,
+    ).maxOutputTokens;
   const result = await input.provider.generateStructured({
     schema: schemaFor(input.sectionKey),
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,

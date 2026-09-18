@@ -9,7 +9,10 @@ import {
   parseComprehensiveReportAcceptedSection,
   resolveComprehensiveReportSectionKeys,
 } from "./comprehensive-report-section-v4.js";
-import { REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY } from "./identity-report-config.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const narrative = (title = "Tiêu đề") => ({
   title,
@@ -110,6 +113,8 @@ describe("comprehensive report section V4 registry", () => {
     );
     expect(resolveComprehensiveReportSectionKeys(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY))
       .toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    expect(resolveComprehensiveReportSectionKeys(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY))
+      .toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
 
     const sections = completeSections();
     sections.splice(-1, 0, {
@@ -124,5 +129,12 @@ describe("comprehensive report section V4 registry", () => {
       sections,
       REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
     ).map((item) => item.key)).toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    expect(parseCompleteComprehensiveReportAcceptedSections(
+      sections,
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    ).map((item) => item.key)).toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    expect(() => resolveComprehensiveReportSectionKeys("unknown")).toThrow(
+      ComprehensiveReportSectionV4Error,
+    );
   });
 });

@@ -327,8 +327,10 @@ export {
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
@@ -339,6 +341,7 @@ export {
   v4_0_1ReportVersions,
   v4SectionedReportVersions,
   v4_1SensitivityReportVersions,
+  v4_1_1SensitivityReportVersions,
   resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   CURRENT_REPORT_KNOWLEDGE_VERSION,
@@ -364,6 +367,7 @@ export type {
   ReportVersionSelectionV4_0_1,
   ReportVersionSelectionV4Sectioned,
   ReportVersionSelectionV4_1Sensitivity,
+  ReportVersionSelectionV4_1_1Sensitivity,
 } from "./reports/identity-report-config.js";
 
 export {

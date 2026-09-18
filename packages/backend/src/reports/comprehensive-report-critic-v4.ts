@@ -10,6 +10,7 @@ import {
 import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
 } from "./identity-report-config.js";
 
 const CriticSchema = z
@@ -159,7 +160,10 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
   options?: {
     costContext?: AiCostRequestContext;
     readingContext?: ReadingContextV1 | null;
-    reportConfigVersion?: typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
+    reportConfigVersion?:
+      | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
+      | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+      | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
   },
 ): Promise<ComprehensiveSectionedCriticV4Result> {
   const parsedReadingContext = ReadingContextV1Schema.safeParse(options?.readingContext ?? null);
@@ -169,7 +173,8 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
   const reportConfigVersion = options?.reportConfigVersion ?? REPORT_CONFIG_VERSION_V4_1_SECTIONED;
   const allowedSectionKeys = reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED
     ? COMPREHENSIVE_REPORT_SECTION_KEYS
-    : reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+    : reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+        reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
       ? COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1
       : null;
   if (!allowedSectionKeys) {
