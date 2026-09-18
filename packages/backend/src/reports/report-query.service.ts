@@ -39,6 +39,8 @@ import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
@@ -53,6 +55,36 @@ export type {
 export type ReportQueryError = "REPORT_NOT_FOUND" | "REPORT_FORBIDDEN";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const VALID_V4_1_PROMPT_CONFIG_TUPLES = [
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  },
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  },
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  },
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  },
+] as const;
+
+function isValidV4_1PromptConfigTuple(
+  promptVersion: string,
+  reportConfigVersion: string,
+): boolean {
+  return VALID_V4_1_PROMPT_CONFIG_TUPLES.some(
+    (tuple) =>
+      tuple.promptVersion === promptVersion &&
+      tuple.reportConfigVersion === reportConfigVersion,
+  );
+}
 
 export class ReportQueryDataError extends Error {
   constructor(message = "REPORT_QUERY_DATA_INVALID") {
@@ -275,10 +307,9 @@ export function createReportQueryService(options: {
           reservation.locale !== "vi" ||
           version.locale !== "vi" ||
           version.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
-          version.promptVersion !== REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
-          (
-            version.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY &&
-            version.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+          !isValidV4_1PromptConfigTuple(
+            version.promptVersion,
+            version.reportConfigVersion,
           ) ||
           version.templateVersion !== REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY ||
           version.renderVersion !== REPORT_RENDER_VERSION_V4_1_SENSITIVITY

@@ -12,8 +12,10 @@ import {
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   v4SectionedReportVersions,
   v4_1_1KeyConfigSensitivityReportVersions,
+  v4_1_2SensitivityReportVersions,
   v4_1SensitivityReportVersions,
 } from "./identity-report-config.js";
 
@@ -83,7 +85,7 @@ describe("resolveIdentityReportVersionFamily", () => {
     ).toBe("v4");
   });
 
-  it("resolves V4.1 only for the sensitivity prompt with V4 knowledge", () => {
+  it("resolves V4.1 sensitivity prompt tuples with V4 knowledge", () => {
     expect(
       resolveIdentityReportVersionFamily(
         REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
@@ -134,6 +136,26 @@ describe("resolveIdentityReportVersionFamily", () => {
     expect(
       resolveIdentityReportVersionFamily(
         REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V3,
+      ),
+    ).toBeNull();
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBe("v4_1");
+    const v4_1_2 = v4_1_2SensitivityReportVersions();
+    expect(
+      resolveIdentityReportVersionFamily(
+        v4_1_2.promptVersion,
+        v4_1_2.knowledgeVersion,
+      ),
+    ).toBe("v4_1");
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
         REPORT_KNOWLEDGE_VERSION_V3,
       ),
     ).toBeNull();

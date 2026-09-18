@@ -27,6 +27,7 @@ import {
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
@@ -42,6 +43,7 @@ import {
   v4_1SensitivityReportVersions,
   v4_1_1SensitivityReportVersions,
   v4_1_1KeyConfigSensitivityReportVersions,
+  v4_1_2SensitivityReportVersions,
   resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   REPORT_CONFIG_VERSION_V1,
@@ -180,6 +182,7 @@ describe("identity report config", () => {
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V2).toBe("ziwei-comprehensive.v2");
     expect(REPORT_PROMPT_VERSION_V4_1_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1-sensitivity");
     expect(REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1.1-sensitivity");
+    expect(REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1.2-sensitivity");
     expect(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1-sectioned-sensitivity");
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2-sensitivity");
     expect(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity");
@@ -302,6 +305,19 @@ describe("identity report config", () => {
       templateVersion: "ziwei-comprehensive-html.v2",
       renderVersion: "identity-report-pdf.v2",
       timingRuleVersion: "ziwei.timing.v1",
+    });
+  });
+
+  it("adds the V4.1.2 acceptance tuple without changing historical V4.1.1 lineage", () => {
+    expect(v4_1_1SensitivityReportVersions().promptVersion).toBe(
+      REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    );
+    expect(v4_1_2SensitivityReportVersions()).toMatchObject({
+      family: "v4_1",
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
     });
   });
 
