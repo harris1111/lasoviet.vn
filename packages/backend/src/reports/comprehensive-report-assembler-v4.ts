@@ -19,7 +19,10 @@ import {
   parseCompleteComprehensiveReportAcceptedSections,
   type ComprehensiveReportAcceptedSection,
 } from "./comprehensive-report-section-v4.js";
-import { REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY } from "./identity-report-config.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+} from "./identity-report-config.js";
 import { normalizeComprehensiveReportModelProse } from "./comprehensive-report-writer.js";
 
 function fail(): never {
@@ -179,10 +182,14 @@ export function assembleComprehensiveReportV4(
 export function assembleComprehensiveReportV4_1(
   source: readonly unknown[],
   facts: ComprehensiveZiweiFactsV4,
+  reportConfigVersion:
+    | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+    | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY =
+      REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
 ): ZiweiComprehensiveReportContentV3 {
   const sections = parseCompleteComprehensiveReportAcceptedSections(
     source,
-    REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    reportConfigVersion,
   );
   const sensitivity = sections.find((section) => section.key === "birthTimeSensitivity");
   if (!sensitivity || sensitivity.key !== "birthTimeSensitivity") fail();

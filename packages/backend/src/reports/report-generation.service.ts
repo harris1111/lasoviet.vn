@@ -1,8 +1,8 @@
 import type { AiCostRequestContext, IdentityReportV1, ReportGenerateJobEnvelope } from "@lasoviet/contracts";
 import { createHash } from "node:crypto";
 import {
+  resolveZiweiReportQualityConfig,
   ziweiComprehensiveReportQualityV1,
-  ziweiComprehensiveReportQualityV2Sensitivity,
 } from "@lasoviet/config";
 import type { AiProductionGate, AiProvider } from "../ai/ai-provider.js";
 import {
@@ -19,6 +19,7 @@ import {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
   v4SectionedReportVersions,
+  v4_1_1SensitivityReportVersions,
   v4_1SensitivityReportVersions,
 } from "./identity-report-config.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
@@ -213,6 +214,14 @@ export function createReportGenerationService(
     ) {
       return v4_1;
     }
+    const v4_1_1 = v4_1_1SensitivityReportVersions();
+    if (
+      payload.knowledgeVersionId === v4_1_1.knowledgeVersion &&
+      payload.promptVersion === v4_1_1.promptVersion &&
+      payload.reportConfigVersion === v4_1_1.reportConfigVersion
+    ) {
+      return v4_1_1;
+    }
     return null;
   }
 
@@ -329,7 +338,10 @@ export function createReportGenerationService(
     const sectionKeys = resolveComprehensiveReportSectionKeys(selection.reportConfigVersion);
     const quality = selection.family === "v4"
       ? ziweiComprehensiveReportQualityV1
-      : ziweiComprehensiveReportQualityV2Sensitivity;
+      : resolveZiweiReportQualityConfig(
+        selection.reportConfigVersion,
+        selection.qualityVersion,
+      );
     const jobId = input.jobId ?? input.job.idempotencyKey;
     const lineageFor = (sectionKey: ComprehensiveReportSectionKey): ReportSectionCheckpointLineage => ({
       reportVersionId: payload.reportVersionId,
@@ -721,7 +733,11 @@ export function createReportGenerationService(
     try {
       report = selection.family === "v4"
         ? assembleComprehensiveReportV4(sections, source.comprehensiveFactsV4!)
-        : assembleComprehensiveReportV4_1(sections, source.comprehensiveFactsV4!);
+        : assembleComprehensiveReportV4_1(
+          sections,
+          source.comprehensiveFactsV4!,
+          selection.reportConfigVersion,
+        );
     } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
     if (stopped()) return stopped()!;
     let validation = selection.family === "v4"
@@ -740,7 +756,11 @@ export function createReportGenerationService(
       try {
         report = selection.family === "v4"
           ? assembleComprehensiveReportV4(acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]), source.comprehensiveFactsV4!)
-          : assembleComprehensiveReportV4_1(acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]), source.comprehensiveFactsV4!);
+          : assembleComprehensiveReportV4_1(
+            acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]),
+            source.comprehensiveFactsV4!,
+            selection.reportConfigVersion,
+          );
       } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
       validation = selection.family === "v4"
         ? validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!)
@@ -771,7 +791,11 @@ export function createReportGenerationService(
       try {
         report = selection.family === "v4"
           ? assembleComprehensiveReportV4(acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]), source.comprehensiveFactsV4!)
-          : assembleComprehensiveReportV4_1(acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]), source.comprehensiveFactsV4!);
+          : assembleComprehensiveReportV4_1(
+            acceptedSections(refreshed.value as readonly PersistedReportSectionCheckpoint[]),
+            source.comprehensiveFactsV4!,
+            selection.reportConfigVersion,
+          );
       } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
       validation = selection.family === "v4"
         ? validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!)

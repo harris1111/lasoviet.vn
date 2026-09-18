@@ -48,7 +48,9 @@ import {
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
 import {
@@ -3249,6 +3251,58 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
     expect(committed.structuredContent.birthTimeSensitivity).toBeDefined();
     expect(committed.htmlContent).toContain("Độ nhạy theo khung giờ sinh");
+  });
+
+  it("generates the exact V4.1.1 tuple with matching quality lineage and thematic budgets", async () => {
+    const fixture = createSectionedService();
+    const job = sectionedJob({
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    });
+
+    const result = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expectSectionedSuccess(result, fixture);
+    expect(fixture.starts).toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    const claims = fixture.repository.claim.mock.calls.map(([input]: [any]) => input);
+    expect(claims.every((input: any) =>
+      input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
+      input.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY
+    )).toBe(true);
+    const thematicRequests = fixture.provider.generateStructured.mock.calls
+      .map(([request]: [any]) => request)
+      .filter((request: any) => request.schemaName.startsWith("ziwei_comprehensive_report_section_thematic_"));
+    expect(thematicRequests).toHaveLength(4);
+    expect(thematicRequests.every((request: any) => request.maxOutputTokens === 3500)).toBe(true);
+    expect(fixture.versionRepository.commitImmutableVersion.mock.calls[0]![0]).toMatchObject({
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+    });
+  });
+
+  it("rejects crossed V4.1 report and quality tuple selection before provider dispatch", async () => {
+    const fixture = createSectionedService();
+    const job = sectionedJob({
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1.2-sectioned-sensitivity",
+    });
+    const result = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "AI_OUTPUT_INVALID", retryable: false },
+    });
+    expect(fixture.provider.generateStructured).not.toHaveBeenCalled();
   });
 
   it("prioritizes the matching thematic section without changing canonical assembly", async () => {

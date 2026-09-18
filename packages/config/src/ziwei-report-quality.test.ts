@@ -5,6 +5,7 @@ import {
   resolveZiweiReportQualitySectionThreshold,
   validateZiweiReportQualityConfig,
   ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2_1Sensitivity,
   ziweiComprehensiveReportQualityV2Sensitivity,
 } from "./ziwei-report-quality.js";
 
@@ -133,6 +134,31 @@ describe("ziwei comprehensive report quality config", () => {
     ).toThrow("ZIWEI_REPORT_QUALITY_SECTION_UNAVAILABLE");
   });
 
+  it("changes only the V2.1 tuple and thematic output budget", () => {
+    const oldConfig = ziweiComprehensiveReportQualityV2Sensitivity;
+    const newConfig = ziweiComprehensiveReportQualityV2_1Sensitivity;
+    expect(newConfig.version).toBe("ziwei.comprehensive.quality.v2.1-sensitivity");
+    expect(newConfig.reportConfigVersion).toBe(
+      "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+    );
+    expect(newConfig.sections.thematic.maxOutputTokens).toBe(3500);
+    expect(oldConfig.sections.thematic.maxOutputTokens).toBe(2500);
+
+    const oldComparable = structuredClone(oldConfig) as Record<string, unknown>;
+    const newComparable = structuredClone(newConfig) as Record<string, unknown>;
+    delete oldComparable.version;
+    delete oldComparable.reportConfigVersion;
+    delete newComparable.version;
+    delete newComparable.reportConfigVersion;
+    (
+      newComparable.sections as typeof newConfig.sections
+    ).thematic.maxOutputTokens = oldConfig.sections.thematic.maxOutputTokens;
+    expect(newComparable).toEqual(oldComparable);
+    expect(
+      resolveZiweiReportQualityConfig(newConfig.reportConfigVersion, newConfig.version),
+    ).toBe(newConfig);
+  });
+
   it("fails closed for unknown, remapped, or injected alternate configs", () => {
     expect(() => resolveZiweiReportQualityConfig("unknown", "ziwei.comprehensive.quality.v1")).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
     expect(() => resolveZiweiReportQualityConfig("ziwei.comprehensive.report.v4.1-sectioned", "unknown")).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
@@ -143,6 +169,14 @@ describe("ziwei comprehensive report quality config", () => {
     expect(() => resolveZiweiReportQualityConfig(
       "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
       "ziwei.comprehensive.quality.v1",
+    )).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
+    expect(() => resolveZiweiReportQualityConfig(
+      "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+      "ziwei.comprehensive.quality.v2.1-sensitivity",
+    )).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
+    expect(() => resolveZiweiReportQualityConfig(
+      "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+      "ziwei.comprehensive.quality.v2-sensitivity",
     )).toThrow("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
     const remapped = source();
     remapped.reportConfigVersion = "ziwei.comprehensive.report.v4.0" as never;

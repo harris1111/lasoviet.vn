@@ -27,7 +27,9 @@ import {
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
@@ -37,6 +39,7 @@ import {
   v4_0_1ReportVersions,
   v4SectionedReportVersions,
   v4_1SensitivityReportVersions,
+  v4_1_1SensitivityReportVersions,
   resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   REPORT_CONFIG_VERSION_V1,
@@ -176,6 +179,8 @@ describe("identity report config", () => {
     expect(REPORT_PROMPT_VERSION_V4_1_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1-sensitivity");
     expect(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1-sectioned-sensitivity");
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2-sensitivity");
+    expect(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity");
+    expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.1-sensitivity");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V3).toBe("ziwei-comprehensive.v3");
     expect(REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY).toBe("ziwei-comprehensive-html.v2");
     expect(REPORT_RENDER_VERSION_V4_1_SENSITIVITY).toBe("identity-report-pdf.v2");
@@ -254,6 +259,27 @@ describe("identity report config", () => {
       timingRuleVersion: "ziwei.timing.v1",
     });
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY)).toEqual({
+      maximumWallClockMs: 3_600_000,
+    });
+    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+  });
+
+  it("provides the additive V4.1.1 sensitivity tuple without remapping V4.1", () => {
+    expect(v4_1SensitivityReportVersions().reportConfigVersion).toBe(
+      "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+    );
+    expect(v4_1_1SensitivityReportVersions()).toEqual({
+      family: "v4_1",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+      qualityVersion: "ziwei.comprehensive.quality.v2.1-sensitivity",
+      contentVersion: "ziwei-comprehensive.v3",
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
+    expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY)).toEqual({
       maximumWallClockMs: 3_600_000,
     });
     expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));

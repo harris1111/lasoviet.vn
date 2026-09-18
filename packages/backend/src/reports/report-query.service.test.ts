@@ -31,6 +31,7 @@ import {
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
@@ -1599,6 +1600,7 @@ describe("report query service", () => {
       sku?: "ZIWEI-IDENTITY-P0" | "ZIWEI-NATAL-EXCERPT-P0";
       templateVersion?: string;
       renderVersion?: string;
+      reportConfigVersion?: string;
     }) {
       const sku = options?.sku ?? "ZIWEI-IDENTITY-P0";
       return {
@@ -1609,7 +1611,8 @@ describe("report query service", () => {
         chartVersionId: "chart-c678f352-452a-402e-a688-566fabd31f67",
         evidenceVersionId: "ev-set-1",
         knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-        reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+        reportConfigVersion: options?.reportConfigVersion ??
+          REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
         promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
         templateVersion: options?.templateVersion ?? REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
         locale: "vi",
@@ -1631,6 +1634,7 @@ describe("report query service", () => {
       scope?: EntitlementScope;
       templateVersion?: string;
       renderVersion?: string;
+      reportConfigVersion?: string;
     }) {
       const sku = options?.sku ?? "ZIWEI-IDENTITY-P0";
       return createSampleRecord({
@@ -1647,7 +1651,8 @@ describe("report query service", () => {
           status: "complete",
           promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
           knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-          reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+          reportConfigVersion: options?.reportConfigVersion ??
+            REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
           locale: "vi",
         } as any,
         version: v4_1VersionRecord(options),
@@ -1851,6 +1856,22 @@ describe("report query service", () => {
       expect(sensitivity.sensitiveFactors).not.toHaveProperty("evidenceKeys");
       expect(JSON.stringify(sensitivity)).not.toContain("sensitivity.stable");
       expect(JSON.stringify(sensitivity)).not.toContain("sensitivity.sensitive");
+    });
+
+    it("reads completed V4.1.1 content without weakening other lineage checks", async () => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(v4_1Record({
+          reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        })),
+      };
+      const result = await createReportQueryService({ repository }).getReport(
+        accountActor,
+        "834e9e89-19cb-44a6-bc59-ba7741374553",
+      );
+      expect(result.ok).toBe(true);
+      if (!result.ok || result.value.state !== "ready") return;
+      expect(result.value.contentVersion).toBe("ziwei-comprehensive.v3");
+      expect((result.value.content as any).birthTimeSensitivity).toBeDefined();
     });
 
     it("rejects V4.1 content paired with the historical V4 effective scope", async () => {
