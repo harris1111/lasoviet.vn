@@ -66,7 +66,7 @@ import { generatedPreviewRequests, generatedPreviewSections } from "./generated-
 
 describe("database schema integration", () => {
   const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
-  const currentMigrationTimestamp = 1790813160000;
+  const currentMigrationTimestamp = 1790813220000;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
@@ -137,6 +137,89 @@ describe("database schema integration", () => {
 
     expect(first.appliedMigrations).toEqual(second.appliedMigrations);
     expect(first.appliedMigrations.length).toBeGreaterThan(0);
+  });
+
+  it("enforces closed quality finding shape and active attempt ownership in PostgreSQL", async () => {
+    const client = postgres(databaseUrl);
+    const checkpointId = "61000000-0000-4000-8000-000000000001";
+    let ordinal = 0;
+    const validFinding = {
+      itemKey: "keyConfigurations[0]",
+      code: "MINIMUM_SYLLABLES",
+      note: "Requires more detail.",
+    };
+    const insertCandidate = (
+      findings: unknown,
+      ownership: {
+        status?: "pending" | "generating";
+        activeJobId?: string | null;
+        activeWorkerId?: string | null;
+        activeAttemptNumber?: number | null;
+      } = {},
+    ) => {
+      ordinal += 1;
+      return client`
+        INSERT INTO report_section_quality_candidates (
+          checkpoint_id, rewrite_ordinal, generation_ordinal, status,
+          active_job_id, active_worker_id, active_attempt_number,
+          candidate_content, candidate_hash, candidate_provider_id, candidate_model_id, findings
+        ) VALUES (
+          ${checkpointId}, ${ordinal}, ${ordinal}, ${ownership.status ?? "pending"},
+          ${ownership.activeJobId ?? null}, ${ownership.activeWorkerId ?? null},
+          ${ownership.activeAttemptNumber ?? null},
+          '{"title":"Candidate","narrative":"Bounded content","evidenceKeys":["fact"]}'::jsonb,
+          ${"a".repeat(64)}, '9router-an', 'claude-sonnet-4-6',
+          ${client.json(findings as any)}
+        )
+      `;
+    };
+
+    try {
+      await client`
+        INSERT INTO report_section_checkpoints (
+          id, report_version_id, section_key, section_order,
+          prompt_version, knowledge_version_id, report_config_version, quality_config_version
+        ) VALUES (
+          ${checkpointId}, '61000000-0000-4000-8000-000000000002', 'overview', 0,
+          'prompt.v1', 'knowledge.v1', 'ziwei.comprehensive.report.v4', 'quality.v1'
+        )
+      `;
+
+      await expect(insertCandidate([validFinding])).resolves.toBeDefined();
+      for (const invalid of [
+        1,
+        "finding",
+        {},
+        [{}],
+        [{ code: "MINIMUM_SYLLABLES", note: "Missing item key." }],
+        [{ ...validFinding, extra: "forbidden" }],
+        [{ ...validFinding, itemKey: "   " }],
+        [{ ...validFinding, itemKey: "x".repeat(121) }],
+        [{ ...validFinding, note: "   " }],
+        [{ ...validFinding, note: "x".repeat(301) }],
+        [{ ...validFinding, code: "OPEN_CODE" }],
+      ]) {
+        await expect(insertCandidate(invalid)).rejects.toBeDefined();
+      }
+      await expect(insertCandidate([validFinding], {
+        status: "generating",
+        activeJobId: "quality-job",
+        activeWorkerId: "quality-worker",
+      })).rejects.toBeDefined();
+      await expect(insertCandidate([validFinding], {
+        activeAttemptNumber: 1,
+      })).rejects.toBeDefined();
+      await expect(insertCandidate([validFinding], {
+        status: "generating",
+        activeJobId: "quality-job",
+        activeWorkerId: "quality-worker",
+        activeAttemptNumber: 1,
+      })).resolves.toBeDefined();
+    } finally {
+      await client`DELETE FROM report_section_quality_candidates WHERE checkpoint_id = ${checkpointId}`;
+      await client`DELETE FROM report_section_checkpoints WHERE id = ${checkpointId}`;
+      await client.end();
+    }
   });
 
   it("seeds the reviewed Claude pricing record once and resolves it as active pricing", async () => {
@@ -275,7 +358,7 @@ describe("database schema integration", () => {
     })).rejects.toBeDefined();
   });
 
-  it("backfills a valid 0036 wallet intent through 0037 and restores the current 0040 schema", async () => {
+  it("backfills a valid 0036 wallet intent through 0037 and restores the current 0041 schema", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const ownerId = "wallet-0036-to-0037-owner";
@@ -321,9 +404,10 @@ describe("database schema integration", () => {
       `;
       await removeClaudePricingForRewind(client);
       await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
+      await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000, 1790813160000)
+        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000, 1790813160000, 1790813220000)
       `;
       await client`
         INSERT INTO wallet_purchase_intents (
@@ -2956,7 +3040,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-15)).toEqual([
+    expect(journal.entries.slice(-16)).toEqual([
       {
         idx: 26,
         version: "7",
@@ -3062,6 +3146,13 @@ describe("database schema integration", () => {
         tag: "0040_ziwei_knowledge_v4_provenance",
         breakpoints: true,
       },
+      {
+        idx: 41,
+        version: "7",
+        when: 1790813220000,
+        tag: "0041_report_section_quality_candidates",
+        breakpoints: true,
+      },
     ]);
   });
 
@@ -3113,7 +3204,7 @@ describe("database schema integration", () => {
     await client.end();
   });
 
-  it("upgrades 0030 through 0040 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
+  it("upgrades 0030 through 0041 from the 0029 checkpoint boundary without losing ReadingContext, analytics, or AI data", async () => {
     const client = postgres(databaseUrl);
     const database = createDatabase(databaseUrl);
     const upgradeNow = new Date("2026-09-15T00:00:00.000Z");
@@ -3361,6 +3452,7 @@ describe("database schema integration", () => {
       DROP COLUMN IF EXISTS reading_context_revision_id
     `;
     await client`DROP TABLE IF EXISTS admin_report_recovery_receipts`;
+    await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
     await client`DROP TABLE IF EXISTS report_section_checkpoint_revisions`;
     await client`DROP TABLE IF EXISTS support_cases`;
     await client`DROP TABLE IF EXISTS report_assets`;
@@ -3391,7 +3483,8 @@ describe("database schema integration", () => {
         1790812980000,
         1790813040000,
         1790813100000,
-        1790813160000
+        1790813160000,
+        1790813220000
       )
     `;
 
@@ -3421,7 +3514,8 @@ describe("database schema integration", () => {
         1790812980000,
         1790813040000,
         1790813100000,
-        1790813160000
+        1790813160000,
+        1790813220000
       )
       ORDER BY created_at ASC
     `;
@@ -3437,6 +3531,7 @@ describe("database schema integration", () => {
       1790813040000,
       1790813100000,
       1790813160000,
+      1790813220000,
     ]);
     await expectCurrentClaudePricingAndJournal(client);
 
@@ -3470,6 +3565,14 @@ describe("database schema integration", () => {
       WHERE constraint_name = 'report_section_checkpoint_revisions_checkpoint_fk'
     `;
     expect(revisionForeignKey?.delete_rule).toBe("RESTRICT");
+
+    const [qualityCandidateTableCheck] = await client<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'report_section_quality_candidates'
+      ) as exists
+    `;
+    expect(qualityCandidateTableCheck?.exists).toBe(true);
 
     const restoredTables = await client<{ table_name: string }[]>`
       SELECT table_name
