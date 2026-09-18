@@ -35,6 +35,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
@@ -53,7 +54,13 @@ const practicalDirectionSchema = z.array(ZiweiComprehensiveReportActionItemV2Sch
 
 export type ComprehensiveReportSectionWriterV4Rewrite = {
   priorSection: ComprehensiveReportAcceptedSection;
-  findings: readonly string[];
+  findings: readonly (string | ComprehensiveReportSectionWriterV4Finding)[];
+};
+
+export type ComprehensiveReportSectionWriterV4Finding = {
+  itemKey: string;
+  code: string;
+  note: string;
 };
 
 export type ComprehensiveReportSectionWriterV4Input = {
@@ -63,7 +70,10 @@ export type ComprehensiveReportSectionWriterV4Input = {
   priorSectionDigest?: ComprehensiveReportSectionDigest;
   rewrite?: ComprehensiveReportSectionWriterV4Rewrite;
   provider: AiProvider;
-  promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1 | typeof REPORT_PROMPT_VERSION_V4_1_SENSITIVITY;
+  promptVersion:
+    | typeof REPORT_PROMPT_VERSION_V4_0_1
+    | typeof REPORT_PROMPT_VERSION_V4_1_SENSITIVITY
+    | typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY;
   reportConfigVersion?:
     | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
     | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
@@ -156,8 +166,64 @@ function schemaFor(key: ComprehensiveReportSectionKey): z.ZodType {
   return z.object({ key: z.literal(key), value }).strict();
 }
 
-function boundedFindings(findings: readonly string[]): string[] {
-  return findings.slice(0, 8).map((finding) => finding.trim().slice(0, 300));
+function boundedFindings(
+  findings: readonly (string | ComprehensiveReportSectionWriterV4Finding)[],
+): Array<string | ComprehensiveReportSectionWriterV4Finding> {
+  return findings.slice(0, 8).map((finding) =>
+    typeof finding === "string"
+      ? finding.trim().slice(0, 300)
+      : {
+          itemKey: finding.itemKey.trim().slice(0, 120),
+          code: finding.code,
+          note: finding.note.trim().slice(0, 300),
+        },
+  );
+}
+
+function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4Input) {
+  if (
+    input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
+    input.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
+    input.sectionKey !== "keyConfigurations"
+  ) {
+    return null;
+  }
+  const threshold = resolveZiweiReportQualitySectionThreshold(
+    input.reportConfigVersion,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    "keyConfigurations",
+  );
+  return Object.freeze({
+    perItem: true as const,
+    minimumSyllables: threshold.minimumSyllables,
+    targetMinimumSyllables: threshold.targetMinimumSyllables,
+    targetMaximumSyllables: threshold.targetMaximumSyllables,
+  });
+}
+
+function rewritePayload(input: ComprehensiveReportSectionWriterV4Input) {
+  if (!input.rewrite) return {};
+  const priorItems = input.rewrite.priorSection.key === "keyConfigurations"
+    ? input.rewrite.priorSection.value
+    : null;
+  const isKeyConfigurationContract =
+    input.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY &&
+    input.sectionKey === "keyConfigurations" &&
+    priorItems !== null;
+  return {
+    rewrite: {
+      priorSection: input.rewrite.priorSection,
+      findings: boundedFindings(input.rewrite.findings),
+      ...(isKeyConfigurationContract ? {
+        itemKeys: priorItems.map(
+          (_item, index) => `keyConfigurations[${index}]`,
+        ),
+        preserveItemCount: true,
+        preserveItemOrder: true,
+        preserveEvidenceKeys: true,
+      } : {}),
+    },
+  };
 }
 
 function natalSourceKeys(
@@ -265,6 +331,7 @@ function mappedEvidenceKeys(
 }
 
 function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: SectionScope) {
+  const requirements = keyConfigurationRequirements(input);
   if (input.sectionKey === "birthTimeSensitivity") {
     const allowedEvidenceKeys = input.facts.evidence.items
       .filter((item) =>
@@ -292,13 +359,9 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
       knowledgePacks: [],
       readingContext: null,
       personalizationGuidance: null,
+      ...(requirements ? { keyConfigurationRequirements: requirements } : {}),
       ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
-      ...(input.rewrite ? {
-        rewrite: {
-          priorSection: input.rewrite.priorSection,
-          findings: boundedFindings(input.rewrite.findings),
-        },
-      } : {}),
+      ...rewritePayload(input),
     };
   }
   const palaces = input.facts.natal.palaces.filter((palace) => scope.palaceIds.includes(palace.palaceId));
@@ -370,13 +433,9 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
         : input.sectionKey === "practicalDirection"
           ? { useTopConcernForPracticalDirection: true }
           : null,
+    ...(requirements ? { keyConfigurationRequirements: requirements } : {}),
     ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
-    ...(input.rewrite ? {
-      rewrite: {
-        priorSection: input.rewrite.priorSection,
-        findings: boundedFindings(input.rewrite.findings),
-      },
-    } : {}),
+    ...rewritePayload(input),
   };
 }
 
@@ -399,7 +458,9 @@ export async function writeComprehensiveReportSectionV4(
       reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
       reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
     );
-  if (!isV4 && !isV4_1) {
+  const isV4_1_1 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY &&
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  if (!isV4 && !isV4_1 && !isV4_1_1) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_PROMPT_UNSUPPORTED");
   }
   if (!resolveComprehensiveReportSectionKeys(reportConfigVersion).includes(input.sectionKey)) {
@@ -409,6 +470,10 @@ export async function writeComprehensiveReportSectionV4(
     throw new Error("COMPREHENSIVE_REPORT_SECTION_REWRITE_KEY_MISMATCH");
   }
   const scope = scopeFor(input.sectionKey, input.facts);
+  const requirements = keyConfigurationRequirements({
+    ...input,
+    reportConfigVersion,
+  });
   const maxOutputTokens = isV4
     ? ziweiComprehensiveReportQualityV1.sections[
       scope.kind as keyof typeof ziweiComprehensiveReportQualityV1.sections
@@ -423,7 +488,11 @@ export async function writeComprehensiveReportSectionV4(
   const result = await input.provider.generateStructured({
     schema: schemaFor(input.sectionKey),
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
-    system: SECTION_SYSTEM_PROMPT,
+    system: requirements
+      ? `${SECTION_SYSTEM_PROMPT}
+Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
+Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.`
+      : SECTION_SYSTEM_PROMPT,
     user: JSON.stringify(scopedPayload(input, scope)),
     use: "production_report_generation",
     purpose: input.rewrite ? "rewrite" : "report",

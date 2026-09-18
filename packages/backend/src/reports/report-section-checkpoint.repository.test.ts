@@ -978,6 +978,7 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
       rewriteOrdinal: 1,
       status: "pending",
       candidateHash: hash(overview),
+      terminalFindings: null,
       acceptedContent: null,
     });
 
@@ -1196,6 +1197,25 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
       ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId,
       rewriteOrdinal: 1, expectedStateVersion: claimed.value.candidate.stateVersion,
       failureCode: "AI_OUTPUT_INVALID",
+      terminalFindings: [{
+        itemKey: "overview",
+        code: "OPEN_CODE",
+        note: "Must fail closed.",
+      }] as any,
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_SECTION_CHECKPOINT_INVALID" },
+    });
+    const terminalFindings = [{
+      itemKey: "overview",
+      code: "MINIMUM_SYLLABLES" as const,
+      note: "Requires more detail.",
+    }];
+    await expect(repository().markQualityRewriteTerminalFailure({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId,
+      rewriteOrdinal: 1, expectedStateVersion: claimed.value.candidate.stateVersion,
+      failureCode: "AI_OUTPUT_INVALID",
+      terminalFindings,
     })).resolves.toMatchObject({ ok: true, value: { status: "terminal_failure", activeAttemptNumber: null } });
     const [parent] = await database().select().from(reportSectionCheckpoints).where(
       eq(reportSectionCheckpoints.reportVersionId, prepared.report.reportVersionId),
@@ -1210,6 +1230,7 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
       activeWorkerId: null,
       activeAttemptNumber: null,
       failureCode: "AI_OUTPUT_INVALID",
+      terminalFindings,
     });
   });
 });

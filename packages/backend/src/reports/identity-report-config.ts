@@ -23,6 +23,7 @@ export const REPORT_CONFIG_VERSION_V4_1_SECTIONED = "ziwei.comprehensive.report.
 export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V1 = "ziwei.comprehensive.quality.v1" as const;
 export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V2 = "ziwei-comprehensive.v2" as const;
 export const REPORT_PROMPT_VERSION_V4_1_SENSITIVITY = "ziwei.comprehensive.prompt.v4.1-sensitivity" as const;
+export const REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY = "ziwei.comprehensive.prompt.v4.1.1-sensitivity" as const;
 export const REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY = "ziwei.comprehensive.report.v4.1-sectioned-sensitivity" as const;
 export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY = "ziwei.comprehensive.quality.v2-sensitivity" as const;
 export const REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY = "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity" as const;
@@ -164,6 +165,13 @@ export type ReportVersionSelectionV4_1_1Sensitivity = Omit<
   qualityVersion: typeof REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY;
 };
 
+export type ReportVersionSelectionV4_1_1KeyConfigSensitivity = Omit<
+  ReportVersionSelectionV4_1_1Sensitivity,
+  "promptVersion"
+> & {
+  promptVersion: typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY;
+};
+
 export type ReportVersionSelection =
   | ReportVersionSelectionV2
   | ReportVersionSelectionV3
@@ -171,7 +179,8 @@ export type ReportVersionSelection =
   | ReportVersionSelectionV4_0_1
   | ReportVersionSelectionV4Sectioned
   | ReportVersionSelectionV4_1Sensitivity
-  | ReportVersionSelectionV4_1_1Sensitivity;
+  | ReportVersionSelectionV4_1_1Sensitivity
+  | ReportVersionSelectionV4_1_1KeyConfigSensitivity;
 
 export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
 
@@ -242,6 +251,22 @@ export function v4_1_1SensitivityReportVersions(
     family: "v4_1",
     knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
     promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
+    templateVersion: REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
+    renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+  };
+}
+
+export function v4_1_1KeyConfigSensitivityReportVersions(
+  _locale: string = "vi",
+): ReportVersionSelectionV4_1_1KeyConfigSensitivity {
+  return {
+    family: "v4_1",
+    knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
     reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
     qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,

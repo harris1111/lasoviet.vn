@@ -187,7 +187,7 @@ export type ReportSectionCheckpointRepository = {
     input: MutateReportSectionQualityCandidateInput,
   ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>>;
   markQualityRewriteTerminalFailure(
-    input: MutateReportSectionQualityCandidateInput,
+    input: TerminalReportSectionQualityCandidateInput,
   ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>>;
   markQualityRewritePassed(
     input: MarkPassedReportSectionQualityCandidateInput,
@@ -232,6 +232,7 @@ export type PersistedReportSectionQualityCandidate = {
   candidateProviderId: string;
   candidateModelId: string;
   findings: readonly ReportSectionQualityFinding[];
+  terminalFindings: readonly ReportSectionQualityFinding[] | null;
   acceptedSection: ComprehensiveReportAcceptedSection | null;
   contentHash: string | null;
   providerId: string | null;
@@ -267,6 +268,11 @@ export type MutateReportSectionQualityCandidateInput = ReportSectionCheckpointLi
   expectedStateVersion: number;
   failureCode: string;
 };
+
+export type TerminalReportSectionQualityCandidateInput =
+  MutateReportSectionQualityCandidateInput & {
+    terminalFindings?: readonly ReportSectionQualityFinding[];
+  };
 
 export type MarkPassedReportSectionQualityCandidateInput =
   Omit<MutateReportSectionQualityCandidateInput, "failureCode"> & {
@@ -515,6 +521,17 @@ function mapQualityCandidateRow(
   if (row.status !== "generating" && row.activeAttemptNumber !== null) {
     throw new Error("REPORT_SECTION_CHECKPOINT_CORRUPT");
   }
+  const terminalFindings = row.terminalFindings === null
+    ? null
+    : validQualityFindings(row.terminalFindings)
+      ? row.terminalFindings as ReportSectionQualityFinding[]
+      : null;
+  if (
+    (row.terminalFindings !== null && terminalFindings === null) ||
+    (row.status !== "terminal_failure" && terminalFindings !== null)
+  ) {
+    throw new Error("REPORT_SECTION_CHECKPOINT_CORRUPT");
+  }
   let candidateSection: ComprehensiveReportAcceptedSection;
   try {
     candidateSection = parseComprehensiveReportAcceptedSection({ key: sectionKey, value: row.candidateContent }, reportConfigVersion);
@@ -539,7 +556,7 @@ function mapQualityCandidateRow(
     activeWorkerId: row.activeWorkerId, activeAttemptNumber: row.activeAttemptNumber,
     candidateSection, candidateHash: row.candidateHash,
     candidateProviderId: row.candidateProviderId, candidateModelId: row.candidateModelId,
-    findings: row.findings as ReportSectionQualityFinding[], acceptedSection,
+    findings: row.findings as ReportSectionQualityFinding[], terminalFindings, acceptedSection,
     contentHash: row.contentHash, providerId: row.providerId, modelId: row.modelId,
     failureCode: row.failureCode, createdAt: row.createdAt, updatedAt: row.updatedAt,
   };
@@ -1150,6 +1167,7 @@ export function createDatabaseReportSectionCheckpointRepository(
           status: "passed", activeJobId: null, activeWorkerId: null, activeAttemptNumber: null,
           acceptedContent: accepted.value as Record<string, unknown>,
           contentHash: input.contentHash, providerId: input.providerId, modelId: input.modelId, failureCode: null,
+          terminalFindings: null,
           stateVersion: sql`${reportSectionQualityCandidates.stateVersion} + 1`, updatedAt: current,
         }).where(and(eq(reportSectionQualityCandidates.id, candidate.id), eq(reportSectionQualityCandidates.stateVersion, input.expectedStateVersion))).returning();
         if (!passedCandidate) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
@@ -1232,13 +1250,22 @@ export function createDatabaseReportSectionCheckpointRepository(
   }
 
   async function mutateQualityCandidate(
-    input: MutateReportSectionQualityCandidateInput,
+    input: MutateReportSectionQualityCandidateInput | TerminalReportSectionQualityCandidateInput,
     status: "pending" | "terminal_failure",
   ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>> {
     if (!validLineage(input) || !nonBlank(input.jobId) || !nonBlank(input.workerId) ||
       !Number.isInteger(input.rewriteOrdinal) || input.rewriteOrdinal < 1 ||
       !Number.isInteger(input.expectedStateVersion) || input.expectedStateVersion < 1 ||
       !failureCode(input.failureCode)) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+    const terminalFindings = "terminalFindings" in input
+      ? input.terminalFindings
+      : undefined;
+    if (
+      (terminalFindings !== undefined && !validQualityFindings(terminalFindings)) ||
+      (status !== "terminal_failure" && terminalFindings !== undefined)
+    ) {
+      return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+    }
     return qualityCandidateTransaction<PersistedReportSectionQualityCandidate>(async (transaction) => {
       const current = now();
       if (!await lockActiveReservationLease(transaction, input.reportVersionId, input.jobId, input.workerId, current, true)) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
@@ -1262,6 +1289,9 @@ export function createDatabaseReportSectionCheckpointRepository(
       const [updatedCandidate] = await transaction.update(reportSectionQualityCandidates).set({
         status, activeJobId: null, activeWorkerId: null, activeAttemptNumber: null,
         failureCode: input.failureCode.trim(),
+        terminalFindings: status === "terminal_failure"
+          ? terminalFindings as ReportSectionQualityFinding[] | undefined
+          : null,
         stateVersion: sql`${reportSectionQualityCandidates.stateVersion} + 1`, updatedAt: current,
       }).where(and(eq(reportSectionQualityCandidates.id, candidate.id), eq(reportSectionQualityCandidates.stateVersion, input.expectedStateVersion))).returning();
       if (!updatedCandidate) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");

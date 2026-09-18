@@ -17,6 +17,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
 
@@ -380,6 +381,82 @@ describe("writeComprehensiveReportSectionV4", () => {
     ]);
     expect(payload.allowedEvidenceKeys.every((key: string) => reportFacts.evidenceKeys.includes(key))).toBe(true);
     expect(JSON.stringify(payload)).not.toContain("UNRELATED_PALACE");
+  });
+
+  it("adds config-derived per-item requirements and structured rewrite findings only for the new prompt", async () => {
+    const priorSection = {
+      key: "keyConfigurations" as const,
+      value: Array.from({ length: 5 }, (_, index) => ({
+        title: `Configuration ${index}`,
+        narrative: "Short candidate.",
+        evidenceKeys: [`evidence-${index}`],
+      })),
+    };
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("keyConfigurations"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const shared = {
+      sectionKey: "keyConfigurations" as const,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    };
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+      rewrite: {
+        priorSection,
+        findings: Array.from({ length: 5 }, (_, index) => ({
+          itemKey: `keyConfigurations[${index}]`,
+          code: "MINIMUM_SYLLABLES",
+          note: `Expand item ${index}.`,
+        })),
+      },
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    });
+
+    const [initialRequest, rewriteRequest, oldRequest] =
+      provider.generateStructured.mock.calls.map(([request]) => request);
+    const initialPayload = JSON.parse(initialRequest.user);
+    const rewritePayload = JSON.parse(rewriteRequest.user);
+    const oldPayload = JSON.parse(oldRequest.user);
+    expect(initialPayload.keyConfigurationRequirements).toEqual({
+      perItem: true,
+      minimumSyllables: 250,
+      targetMinimumSyllables: 300,
+      targetMaximumSyllables: 400,
+    });
+    expect(rewritePayload.keyConfigurationRequirements).toEqual(
+      initialPayload.keyConfigurationRequirements,
+    );
+    expect(rewritePayload.rewrite).toMatchObject({
+      priorSection,
+      findings: Array.from({ length: 5 }, (_, index) => ({
+        itemKey: `keyConfigurations[${index}]`,
+        code: "MINIMUM_SYLLABLES",
+        note: `Expand item ${index}.`,
+      })),
+      itemKeys: Array.from({ length: 5 }, (_, index) => `keyConfigurations[${index}]`),
+      preserveItemCount: true,
+      preserveItemOrder: true,
+      preserveEvidenceKeys: true,
+    });
+    expect(initialRequest.system).toContain("tối thiểu 250 âm tiết");
+    expect(initialRequest.system).toContain("mục tiêu 300-400 âm tiết");
+    expect(rewriteRequest.system).toContain("sửa đầy đủ mọi finding theo đúng itemKey");
+    expect(oldPayload).not.toHaveProperty("keyConfigurationRequirements");
+    expect(oldRequest.system).not.toContain("tối thiểu 250 âm tiết");
   });
 
   it("maps production V4 evidence items by source key without leaking raw, unrelated, or mismatched timing keys", async () => {

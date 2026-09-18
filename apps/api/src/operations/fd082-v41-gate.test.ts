@@ -6,6 +6,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
 } from "@lasoviet/backend";
@@ -24,14 +25,14 @@ function exactEvidence(): Fd082Evidence {
       reportVersionId: "report-version-1",
       status: "complete",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
     },
     checkpoints: COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.map((sectionKey) => ({
       sectionKey,
       status: "passed",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
       qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
       providerId: "9router-an",
@@ -41,7 +42,7 @@ function exactEvidence(): Fd082Evidence {
       providerId: "9router-an",
       modelId: "claude-sonnet-4-6",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
       contentHash: "a".repeat(64),
     },
@@ -85,6 +86,14 @@ describe("FD-082 V4.1 gate", () => {
     }));
     oldTuple.immutable!.reportConfigVersion = REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY;
     expect(passesFd082Evidence(oldTuple)).toBe(false);
+    const oldPrompt = exactEvidence();
+    oldPrompt.reservation!.promptVersion = REPORT_PROMPT_VERSION_V4_1_SENSITIVITY;
+    oldPrompt.checkpoints = oldPrompt.checkpoints.map((checkpoint) => ({
+      ...checkpoint,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    }));
+    oldPrompt.immutable!.promptVersion = REPORT_PROMPT_VERSION_V4_1_SENSITIVITY;
+    expect(passesFd082Evidence(oldPrompt)).toBe(false);
   });
 
   it("constructs the wallet audit predicate with an explicit UUID-to-text cast", () => {

@@ -13,12 +13,14 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V3,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
   v4SectionedReportVersions,
+  v4_1_1KeyConfigSensitivityReportVersions,
   v4_1_1SensitivityReportVersions,
   v4_1SensitivityReportVersions,
 } from "./identity-report-config.js";
@@ -222,6 +224,14 @@ export function createReportGenerationService(
     ) {
       return v4_1_1;
     }
+    const v4_1_1KeyConfig = v4_1_1KeyConfigSensitivityReportVersions();
+    if (
+      payload.knowledgeVersionId === v4_1_1KeyConfig.knowledgeVersion &&
+      payload.promptVersion === v4_1_1KeyConfig.promptVersion &&
+      payload.reportConfigVersion === v4_1_1KeyConfig.reportConfigVersion
+    ) {
+      return v4_1_1KeyConfig;
+    }
     return null;
   }
 
@@ -291,6 +301,44 @@ export function createReportGenerationService(
     qualityVersion: string = REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   ): boolean {
     return sectionQualityFindings(section, facts, reportConfigVersion, qualityVersion).length === 0;
+  }
+
+  function keyConfigurationRewriteContractFindings(
+    candidate: ComprehensiveReportAcceptedSection,
+    rewritten: ComprehensiveReportAcceptedSection,
+    promptVersion: string,
+  ): readonly ReportSectionQualityFinding[] {
+    if (
+      promptVersion !== REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
+      candidate.key !== "keyConfigurations" ||
+      rewritten.key !== "keyConfigurations"
+    ) {
+      return [];
+    }
+    if (candidate.value.length !== rewritten.value.length) {
+      return [{
+        itemKey: "keyConfigurations",
+        code: "EVIDENCE_ANCHORS",
+        note: "Rewrite must preserve the candidate item count and order.",
+      }];
+    }
+    return candidate.value.flatMap((item, index) => {
+      const rewrittenItem = rewritten.value[index]!;
+      if (item.title !== rewrittenItem.title) {
+        return [{
+          itemKey: `keyConfigurations[${index}]`,
+          code: "EVIDENCE_ANCHORS" as const,
+          note: "Rewrite must preserve this item's title and array position.",
+        }];
+      }
+      return stableHash(item.evidenceKeys) === stableHash(rewrittenItem.evidenceKeys)
+        ? []
+        : [{
+            itemKey: `keyConfigurations[${index}]`,
+            code: "EVIDENCE_ANCHORS" as const,
+            note: "Rewrite must preserve this item's evidence keys and array position.",
+          }];
+    }).slice(0, 8);
   }
 
   function mapProviderError(
@@ -415,9 +463,11 @@ export function createReportGenerationService(
               ...(digest ? { priorSectionDigest: digest } : {}),
               rewrite: {
                 priorSection: candidate.candidateSection,
-                findings: candidate.findings.map((finding) =>
-                  `${finding.itemKey} ${finding.code}: ${finding.note}`.slice(0, 300),
-                ),
+                findings: selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY
+                  ? candidate.findings
+                  : candidate.findings.map((finding) =>
+                      `${finding.itemKey} ${finding.code}: ${finding.note}`.slice(0, 300),
+                    ),
               },
               costContext: {
                 ...baseCostContext,
@@ -450,11 +500,26 @@ export function createReportGenerationService(
             key: sectionKey as any,
             value: rewritten.value.value as any,
           };
-          if (sectionQualityFindings(rewrittenSection, source.comprehensiveFactsV4, selection.reportConfigVersion, selection.qualityVersion).length > 0) {
+          const postRewriteFindings = sectionQualityFindings(
+            rewrittenSection,
+            source.comprehensiveFactsV4,
+            selection.reportConfigVersion,
+            selection.qualityVersion,
+          );
+          const finalFindings = [
+            ...keyConfigurationRewriteContractFindings(
+              candidate.candidateSection,
+              rewrittenSection,
+              selection.promptVersion,
+            ),
+            ...postRewriteFindings,
+          ].slice(0, 8);
+          if (finalFindings.length > 0) {
             const terminal = await repository.markQualityRewriteTerminalFailure({
               ...lineageFor(sectionKey), jobId, workerId: input.workerId,
               rewriteOrdinal: candidate.rewriteOrdinal, expectedStateVersion: candidate.stateVersion,
               failureCode: "AI_OUTPUT_INVALID",
+              terminalFindings: finalFindings,
             });
             if (!terminal.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
             return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
@@ -632,6 +697,20 @@ export function createReportGenerationService(
         return { ok: false, error: mapped };
       }
       const section: ComprehensiveReportAcceptedSection = { key: sectionKey as any, value: written.value.value as any };
+      const contractFindings = keyConfigurationRewriteContractFindings(
+        row.acceptedSection,
+        section,
+        selection.promptVersion,
+      );
+      if (contractFindings.length > 0) {
+        const terminal = await repository.markRewriteTerminalFailure({
+          ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+          rewriteOrdinal: revision.rewriteOrdinal, expectedStateVersion: revision.stateVersion,
+          failureCode: "AI_OUTPUT_INVALID",
+        });
+        if (!terminal.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+        return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      }
       if (!sectionPassesQuality(section, source.comprehensiveFactsV4, selection.reportConfigVersion, selection.qualityVersion)) {
         await repository.releaseRewriteRetryableFailure({
           ...lineageFor(sectionKey), jobId, workerId: input.workerId,
