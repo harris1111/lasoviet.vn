@@ -50,6 +50,7 @@ import {
   REPORT_PROMPT_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
@@ -3335,6 +3336,109 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       templateVersion: "ziwei-comprehensive-html.v2",
       renderVersion: "identity-report-pdf.v2",
     });
+  });
+
+  it("routes the additive V4.1.2 prompt tuple while retaining V4.1.1 config and quality lineage", async () => {
+    const fixture = createSectionedService();
+    const job = sectionedJob({
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    });
+
+    const result = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expectSectionedSuccess(result, fixture);
+    expect(fixture.repository.claim.mock.calls.every(([input]: [any]) =>
+      input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
+      input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
+      input.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY
+    )).toBe(true);
+    expect(fixture.versionRepository.commitImmutableVersion.mock.calls[0]![0]).toMatchObject({
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    });
+  });
+
+  it("preserves structured V4.1.2 quality findings in the writer rewrite payload", async () => {
+    const rewritePayloads: any[] = [];
+    const shortItems = Array.from({ length: 5 }, (_, index) => ({
+      title: `Configuration ${index}`,
+      narrative: `cung Mệnh và sao Tử Vi. ${Array.from(
+        { length: 40 },
+        () => `năng lực thực tế ${index}`,
+      ).join(" ")} khí chất`,
+      evidenceKeys: ["unknown-evidence"],
+    }));
+    const validItems = shortItems.map((item, index) => ({
+      ...item,
+      narrative: longProse(["cung Mệnh", "sao Tử Vi"], `rewrite${index}`),
+      evidenceKeys: ["e-life", "e-star"],
+    }));
+    const fixture = createSectionedService({
+      onSection: (key, request) => {
+        const payload = JSON.parse(request.user);
+        if (payload.rewrite) rewritePayloads.push(payload);
+        if (key === "keyConfigurations" && !payload.rewrite) {
+          return {
+            ok: true,
+            value: {
+              value: {
+                key,
+                value: shortItems,
+              },
+              providerId: "section-provider",
+              modelId: "section-model",
+            },
+          };
+        }
+        if (key === "keyConfigurations" && payload.rewrite) {
+          return {
+            ok: true,
+            value: {
+              value: { key, value: validItems },
+              providerId: "section-provider",
+              modelId: "section-model",
+            },
+          };
+        }
+        return {
+          ok: true,
+          value: {
+            value: sectionFor(key),
+            providerId: "section-provider",
+            modelId: "section-model",
+          },
+        };
+      },
+    });
+    const result = await fixture.service.generateReport({
+      job: keyConfigPromptJob({
+        promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(rewritePayloads.length).toBeGreaterThan(0);
+    const recordInput = fixture.repository.recordQualityCandidate.mock.calls
+      .find(([input]: [any]) => input.sectionKey === "keyConfigurations")![0];
+    expect(recordInput.findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ itemKey: "keyConfigurations[0]", code: "DISCOURAGED_TERM" }),
+      expect.objectContaining({ itemKey: "keyConfigurations[0]", code: "EVIDENCE_ANCHORS" }),
+    ]));
+    expect(rewritePayloads[0]!.rewrite.findings).toEqual(recordInput.findings);
+    expect(rewritePayloads[0]!.rewrite.findings.every((finding: any) =>
+      typeof finding === "object" &&
+      typeof finding.itemKey === "string" &&
+      typeof finding.code === "string" &&
+      typeof finding.note === "string",
+    )).toBe(true);
   });
 
   it("terminalizes a post-rewrite discouraged-term failure and resumes without another provider dispatch", async () => {

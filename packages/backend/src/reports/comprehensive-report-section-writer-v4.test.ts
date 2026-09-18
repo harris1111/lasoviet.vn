@@ -18,6 +18,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
 
@@ -457,6 +458,103 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(rewriteRequest.system).toContain("sửa đầy đủ mọi finding theo đúng itemKey");
     expect(oldPayload).not.toHaveProperty("keyConfigurationRequirements");
     expect(oldRequest.system).not.toContain("tối thiểu 250 âm tiết");
+  });
+
+  it("sends the shared V4.1.2 acceptance contract for generic generation and item-addressed rewrites", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("coreAxis"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const priorSection = outputFor("coreAxis") as any;
+    await writeComprehensiveReportSectionV4({
+      sectionKey: "coreAxis",
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    });
+    await writeComprehensiveReportSectionV4({
+      sectionKey: "coreAxis",
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      rewrite: {
+        priorSection,
+        findings: [
+          { itemKey: "coreAxis", code: "DISCOURAGED_TERM", note: "Replace khí chất." },
+          { itemKey: "coreAxis", code: "EVIDENCE_ANCHORS", note: "Add chart anchors." },
+        ],
+      },
+    });
+    const [initial, rewrite] = provider.generateStructured.mock.calls.map(([request]) => ({
+      request,
+      payload: JSON.parse(request.user),
+    }));
+    expect(initial.payload.acceptanceContract).toMatchObject({
+      scope: "section-and-item-addressed",
+      suppliedFindings: expect.stringContaining("every supplied finding"),
+      properNameDensity: {
+        configuredProperNames: expect.arrayContaining(["Mệnh", "Tử Vi"]),
+        maximumPer100Syllables: 8,
+      },
+      evidence: {
+        preserveEvidenceBackedChartFacts: true,
+        preserveRequiredEvidenceKeys: true,
+      },
+      noNewQualityViolations: true,
+    });
+    expect(initial.payload.acceptanceContract.discouragedTerms).toEqual(
+      expect.arrayContaining(["khí chất", "an nhàn"]),
+    );
+    expect(rewrite.payload.rewrite.findings).toEqual([
+      { itemKey: "coreAxis", code: "DISCOURAGED_TERM", note: "Replace khí chất." },
+      { itemKey: "coreAxis", code: "EVIDENCE_ANCHORS", note: "Add chart anchors." },
+    ]);
+    expect(rewrite.request.system).toContain("configured discouraged term");
+    expect(rewrite.request.system).toContain("every supplied finding");
+  });
+
+  it("keeps V4.1.2 keyConfigurations title, order, and evidenceKeys identity contract", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("keyConfigurations"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const priorSection = {
+      key: "keyConfigurations" as const,
+      value: [
+        { title: "First", narrative: "Candidate", evidenceKeys: ["e1"] },
+        { title: "Second", narrative: "Candidate", evidenceKeys: ["e2"] },
+      ],
+    };
+    await writeComprehensiveReportSectionV4({
+      sectionKey: "keyConfigurations",
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      rewrite: {
+        priorSection,
+        findings: [{ itemKey: "keyConfigurations[1]", code: "EVIDENCE_ANCHORS", note: "Correct item." }],
+      },
+    });
+    const payload = JSON.parse(provider.generateStructured.mock.calls[0][0].user);
+    expect(payload.acceptanceContract.keyConfigurations).toEqual({
+      preserveExactTitleOrderEvidenceKeysIdentity: true,
+    });
+    expect(payload.rewrite).toMatchObject({
+      itemKeys: ["keyConfigurations[0]", "keyConfigurations[1]"],
+      preserveItemCount: true,
+      preserveItemOrder: true,
+      preserveEvidenceKeys: true,
+    });
   });
 
   it("maps production V4 evidence items by source key without leaking raw, unrelated, or mismatched timing keys", async () => {

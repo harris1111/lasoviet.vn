@@ -7,8 +7,10 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  v4_1_2SensitivityReportVersions,
 } from "@lasoviet/backend";
 
 import {
@@ -25,14 +27,14 @@ function exactEvidence(): Fd082Evidence {
       reportVersionId: "report-version-1",
       status: "complete",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
     },
     checkpoints: COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.map((sectionKey) => ({
       sectionKey,
       status: "passed",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
       qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
       providerId: "9router-an",
@@ -42,7 +44,7 @@ function exactEvidence(): Fd082Evidence {
       providerId: "9router-an",
       modelId: "claude-sonnet-4-6",
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
-      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
       contentHash: "a".repeat(64),
     },
@@ -94,6 +96,25 @@ describe("FD-082 V4.1 gate", () => {
     }));
     oldPrompt.immutable!.promptVersion = REPORT_PROMPT_VERSION_V4_1_SENSITIVITY;
     expect(passesFd082Evidence(oldPrompt)).toBe(false);
+  });
+
+  it("rejects the historical V4.1.1 prompt while accepting only V4.1.2 for fresh FD-082 evidence", () => {
+    const historical = exactEvidence();
+    historical.reservation!.promptVersion = REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY;
+    historical.checkpoints = historical.checkpoints.map((checkpoint) => ({
+      ...checkpoint,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+    }));
+    historical.immutable!.promptVersion = REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY;
+    expect(passesFd082Evidence(historical)).toBe(false);
+  });
+
+  it("uses the V4.1.2 report tuple for fresh FD-082 unlocks", () => {
+    expect(v4_1_2SensitivityReportVersions()).toMatchObject({
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    });
   });
 
   it("constructs the wallet audit predicate with an explicit UUID-to-text cast", () => {

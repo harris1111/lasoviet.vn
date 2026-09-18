@@ -24,6 +24,8 @@ import {
   REPORT_KNOWLEDGE_VERSION_V2,
   REPORT_KNOWLEDGE_VERSION_V3,
   REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
   REPORT_PROMPT_VERSION_V3,
@@ -1598,6 +1600,7 @@ describe("report query service", () => {
 
     function v4_1VersionRecord(options?: {
       sku?: "ZIWEI-IDENTITY-P0" | "ZIWEI-NATAL-EXCERPT-P0";
+      promptVersion?: string;
       templateVersion?: string;
       renderVersion?: string;
       reportConfigVersion?: string;
@@ -1613,7 +1616,7 @@ describe("report query service", () => {
         knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
         reportConfigVersion: options?.reportConfigVersion ??
           REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
-        promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+        promptVersion: options?.promptVersion ?? REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
         templateVersion: options?.templateVersion ?? REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
         locale: "vi",
         sku,
@@ -1631,6 +1634,7 @@ describe("report query service", () => {
 
     function v4_1Record(options?: {
       sku?: "ZIWEI-IDENTITY-P0" | "ZIWEI-NATAL-EXCERPT-P0";
+      promptVersion?: string;
       scope?: EntitlementScope;
       templateVersion?: string;
       renderVersion?: string;
@@ -1649,7 +1653,7 @@ describe("report query service", () => {
           entitlementId: "ent-v4-1",
           sku,
           status: "complete",
-          promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+          promptVersion: options?.promptVersion ?? REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
           knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
           reportConfigVersion: options?.reportConfigVersion ??
             REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
@@ -1872,6 +1876,51 @@ describe("report query service", () => {
       if (!result.ok || result.value.state !== "ready") return;
       expect(result.value.contentVersion).toBe("ziwei-comprehensive.v3");
       expect((result.value.content as any).birthTimeSensitivity).toBeDefined();
+    });
+
+    it.each([
+      ["V4.1 prompt + V4.1 config", REPORT_PROMPT_VERSION_V4_1_SENSITIVITY, REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY],
+      ["V4.1 prompt + V4.1.1 config", REPORT_PROMPT_VERSION_V4_1_SENSITIVITY, REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY],
+      ["V4.1.1 prompt + V4.1.1 config", REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY, REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY],
+      ["V4.1.2 prompt + V4.1.1 config", REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY, REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY],
+    ] as const)("accepts the valid %s tuple", async (_label, promptVersion, reportConfigVersion) => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(
+          v4_1Record({ promptVersion, reportConfigVersion }),
+        ),
+      };
+      const result = await createReportQueryService({ repository }).getReport(
+        accountActor,
+        "834e9e89-19cb-44a6-bc59-ba7741374553",
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok || result.value.state !== "ready") return;
+      expect(result.value.contentVersion).toBe("ziwei-comprehensive.v3");
+    });
+
+    it.each([
+      ["V4.1.1 prompt + V4.1 config", REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY, REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY],
+      ["V4.1.2 prompt + V4.1 config", REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY, REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY],
+      ["unknown prompt + V4.1 config", "ziwei.comprehensive.prompt.v4.1.unknown", REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY],
+      ["unknown prompt + V4.1.1 config", "ziwei.comprehensive.prompt.v4.1.unknown", REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY],
+      ["V4.1 prompt + unknown config", REPORT_PROMPT_VERSION_V4_1_SENSITIVITY, "ziwei.comprehensive.report.v4.1-unknown"],
+      ["V4.1.1 prompt + unknown config", REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY, "ziwei.comprehensive.report.v4.1-unknown"],
+      ["V4.1.2 prompt + unknown config", REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY, "ziwei.comprehensive.report.v4.1-unknown"],
+      ["unknown prompt + unknown config", "ziwei.comprehensive.prompt.v4.1.unknown", "ziwei.comprehensive.report.v4.1-unknown"],
+    ] as const)("rejects the invalid %s tuple", async (_label, promptVersion, reportConfigVersion) => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(
+          v4_1Record({ promptVersion, reportConfigVersion }),
+        ),
+      };
+
+      await expect(
+        createReportQueryService({ repository }).getReport(
+          accountActor,
+          "834e9e89-19cb-44a6-bc59-ba7741374553",
+        ),
+      ).rejects.toThrow(ReportQueryDataError);
     });
 
     it("rejects V4.1 content paired with the historical V4 effective scope", async () => {

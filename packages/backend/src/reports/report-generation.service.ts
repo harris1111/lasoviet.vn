@@ -14,6 +14,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V3,
   REPORT_KNOWLEDGE_VERSION_V4,
@@ -21,6 +22,7 @@ import {
   REPORT_TEMPLATE_VERSION_V3,
   v4SectionedReportVersions,
   v4_1_1KeyConfigSensitivityReportVersions,
+  v4_1_2SensitivityReportVersions,
   v4_1_1SensitivityReportVersions,
   v4_1SensitivityReportVersions,
 } from "./identity-report-config.js";
@@ -232,6 +234,14 @@ export function createReportGenerationService(
     ) {
       return v4_1_1KeyConfig;
     }
+    const v4_1_2 = v4_1_2SensitivityReportVersions();
+    if (
+      payload.knowledgeVersionId === v4_1_2.knowledgeVersion &&
+      payload.promptVersion === v4_1_2.promptVersion &&
+      payload.reportConfigVersion === v4_1_2.reportConfigVersion
+    ) {
+      return v4_1_2;
+    }
     return null;
   }
 
@@ -309,7 +319,10 @@ export function createReportGenerationService(
     promptVersion: string,
   ): readonly ReportSectionQualityFinding[] {
     if (
-      promptVersion !== REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
+      ![
+        REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+        REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      ].includes(promptVersion as typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY | typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) ||
       candidate.key !== "keyConfigurations" ||
       rewritten.key !== "keyConfigurations"
     ) {
@@ -463,7 +476,8 @@ export function createReportGenerationService(
               ...(digest ? { priorSectionDigest: digest } : {}),
               rewrite: {
                 priorSection: candidate.candidateSection,
-                findings: selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY
+                findings: selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
+                  selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
                   ? candidate.findings
                   : candidate.findings.map((finding) =>
                       `${finding.itemKey} ${finding.code}: ${finding.note}`.slice(0, 300),
