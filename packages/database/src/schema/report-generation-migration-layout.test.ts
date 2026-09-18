@@ -361,6 +361,36 @@ describe("report generation migration layout", () => {
     expect(reportSectionCheckpointRevisions.acceptedContent).toBeDefined();
   });
 
+  it("keeps quality candidates additive in migration 0041 with no raw provider artifacts", async () => {
+    const [migration, journal, packageIndex] = await Promise.all([
+      readFile(new URL("0041_report_section_quality_candidates.sql", migrationRoot), "utf8"),
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+      readFile(new URL("../index.ts", import.meta.url), "utf8"),
+    ]);
+    const { reportSectionQualityCandidates } = await import("./reports.js");
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_section_quality_candidates"');
+    expect(migration).toContain('CREATE OR REPLACE FUNCTION "report_section_quality_findings_valid"');
+    expect(migration).toContain("IMMUTABLE");
+    expect(migration).toContain('REFERENCES "report_section_checkpoints"("id") ON DELETE RESTRICT');
+    expect(migration).toContain('"checkpoint_id","rewrite_ordinal"');
+    expect(migration).toContain('"checkpoint_id","generation_ordinal"');
+    expect(migration).toContain('"report_section_quality_candidates_candidate_lineage"');
+    expect(migration).toContain('"report_section_quality_candidates_passed_lineage"');
+    expect(migration).toContain('"report_section_quality_candidates_findings_bounded"');
+    expect(migration).toContain('"active_attempt_number" integer');
+    expect(migration).toContain('"active_attempt_number" > 0');
+    expect(migration).not.toContain("raw_response");
+    expect(migration).not.toContain("raw_prompt");
+    expect(migration).not.toContain("DELETE FROM");
+    expect(journal).toContain('"idx": 41');
+    expect(journal).toContain('"tag": "0041_report_section_quality_candidates"');
+    expect(packageIndex).toContain("reportSectionQualityCandidates");
+    expect(reportSectionQualityCandidates.candidateContent).toBeDefined();
+    expect(reportSectionQualityCandidates.findings).toBeDefined();
+    expect(reportSectionQualityCandidates.activeAttemptNumber).toBeDefined();
+  });
+
   it("keeps admin report recovery receipts bounded and registers migration 0032", async () => {
     const migration = await readFile(
       new URL("0032_admin_report_recovery.sql", migrationRoot),

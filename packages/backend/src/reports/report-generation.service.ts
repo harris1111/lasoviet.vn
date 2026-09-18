@@ -54,6 +54,7 @@ import {
 } from "./comprehensive-report-section-v4.js";
 import type {
   PersistedReportSectionCheckpoint,
+  ReportSectionQualityFinding,
   ReportSectionCheckpointLineage,
   ReportSectionCheckpointRepository,
 } from "./report-section-checkpoint.repository.js";
@@ -229,28 +230,49 @@ export function createReportGenerationService(
       return [
         {
           key: section.key,
+          itemKey: `${section.key}.stableFactors`,
           kind,
           text: `${section.value.stableFactors.title} ${section.value.stableFactors.narrative}`,
           evidenceKeys: section.value.stableFactors.evidenceKeys,
         },
         {
           key: section.key,
+          itemKey: `${section.key}.sensitiveFactors`,
           kind,
           text: `${section.value.sensitiveFactors.title} ${section.value.sensitiveFactors.narrative}`,
           evidenceKeys: section.value.sensitiveFactors.evidenceKeys,
         },
-      ] as Parameters<typeof validateComprehensiveReportSectionQualityV4>[0][];
+      ] as unknown as Array<Parameters<typeof validateComprehensiveReportSectionQualityV4>[0] & { itemKey: string }>;
     }
     const entries = Array.isArray(section.value) ? section.value : [section.value];
-    return entries.map((entry: any) => ({
-      key: section.key,
+    return entries.map((entry: any, index: number) => ({
+      key: Array.isArray(section.value) ? `${section.key}[${index}]` : section.key,
+      itemKey: Array.isArray(section.value) ? `${section.key}[${index}]` : section.key,
       kind,
       text: typeof entry === "object" && "recommendation" in entry
         ? `${entry.recommendation} ${entry.rationale} ${entry.avoid}`
         : `${entry.title} ${entry.narrative}`,
       evidenceKeys: entry.evidenceKeys ?? [],
       ...(section.key.startsWith("palace:") ? { palaceId: section.key.slice("palace:".length) } : {}),
-    } as Parameters<typeof validateComprehensiveReportSectionQualityV4>[0]));
+    } as Parameters<typeof validateComprehensiveReportSectionQualityV4>[0] & { itemKey: string }));
+  }
+
+  function sectionQualityFindings(
+    section: ComprehensiveReportAcceptedSection,
+    facts: ComprehensiveReportSourceV4["comprehensiveFactsV4"],
+    reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+    qualityVersion: string = REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
+  ): readonly ReportSectionQualityFinding[] {
+    return qualityInputs(section).flatMap((quality) => {
+      const result = validateComprehensiveReportSectionQualityV4(quality, facts!, reportConfigVersion, qualityVersion);
+      return result.ok
+        ? []
+        : result.findings.map((finding) => ({
+          itemKey: (quality as unknown as { itemKey: string }).itemKey,
+          code: finding.code,
+          note: finding.note.slice(0, 300),
+        }));
+    }).slice(0, 8);
   }
 
   function sectionPassesQuality(
@@ -259,9 +281,7 @@ export function createReportGenerationService(
     reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
     qualityVersion: string = REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   ): boolean {
-    return qualityInputs(section).every((quality) =>
-      validateComprehensiveReportSectionQualityV4(quality, facts!, reportConfigVersion, qualityVersion).ok,
-    );
+    return sectionQualityFindings(section, facts, reportConfigVersion, qualityVersion).length === 0;
   }
 
   function mapProviderError(
@@ -352,6 +372,89 @@ export function createReportGenerationService(
       while (true) {
         const stoppedResult = stopped();
         if (stoppedResult) return stoppedResult;
+        const qualityRewrite = await repository.claimQualityRewrite({
+          ...lineageFor(sectionKey),
+          jobId,
+          workerId: input.workerId,
+          attemptNumber: input.attemptNumber,
+        });
+        if (!qualityRewrite.ok || qualityRewrite.value.outcome === "terminal") {
+          return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+        }
+        if (qualityRewrite.value.outcome === "in_progress") {
+          return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+        }
+        if (qualityRewrite.value.outcome === "claimed") {
+          const candidate = qualityRewrite.value.candidate!;
+          const beforeQualityProvider = stopped();
+          if (beforeQualityProvider) return beforeQualityProvider;
+          const qualityLifecycle = await lifecycleFence(input);
+          if (qualityLifecycle) return qualityLifecycle;
+          let rewritten: Awaited<ReturnType<typeof writeComprehensiveReportSectionV4>>;
+          try {
+            rewritten = await writeComprehensiveReportSectionV4({
+              sectionKey,
+              facts: source.comprehensiveFactsV4!,
+              knowledgePacks: source.knowledgePacks!,
+              provider: dependencies.provider,
+              promptVersion: selection.promptVersion,
+              reportConfigVersion: selection.reportConfigVersion,
+              readingContext: source.readingContext,
+              ...(digest ? { priorSectionDigest: digest } : {}),
+              rewrite: {
+                priorSection: candidate.candidateSection,
+                findings: candidate.findings.map((finding) =>
+                  `${finding.itemKey} ${finding.code}: ${finding.note}`.slice(0, 300),
+                ),
+              },
+              costContext: {
+                ...baseCostContext,
+                idempotencyKey: `${payload.reportVersionId}:${sectionKey}:quality-rewrite:${candidate.rewriteOrdinal}`,
+                purpose: "rewrite",
+              },
+            });
+          } catch {
+            rewritten = { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+          }
+          const afterQualityProvider = stopped();
+          if (afterQualityProvider) return afterQualityProvider;
+          if (!rewritten.ok) {
+            const mapped = mapProviderError(rewritten.error);
+            const transitioned = mapped.retryable
+              ? await repository.releaseQualityRewriteRetryableFailure({
+                ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+                rewriteOrdinal: candidate.rewriteOrdinal, expectedStateVersion: candidate.stateVersion,
+                failureCode: mapped.code,
+              })
+              : await repository.markQualityRewriteTerminalFailure({
+                ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+                rewriteOrdinal: candidate.rewriteOrdinal, expectedStateVersion: candidate.stateVersion,
+                failureCode: mapped.code,
+              });
+            if (!transitioned.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+            return { ok: false, error: mapped };
+          }
+          const rewrittenSection: ComprehensiveReportAcceptedSection = {
+            key: sectionKey as any,
+            value: rewritten.value.value as any,
+          };
+          if (sectionQualityFindings(rewrittenSection, source.comprehensiveFactsV4, selection.reportConfigVersion, selection.qualityVersion).length > 0) {
+            const terminal = await repository.markQualityRewriteTerminalFailure({
+              ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+              rewriteOrdinal: candidate.rewriteOrdinal, expectedStateVersion: candidate.stateVersion,
+              failureCode: "AI_OUTPUT_INVALID",
+            });
+            if (!terminal.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+            return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+          }
+          const passed = await repository.markQualityRewritePassed({
+            ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+            rewriteOrdinal: candidate.rewriteOrdinal, expectedStateVersion: candidate.stateVersion,
+            acceptedContent: rewrittenSection.value, contentHash: stableHash(rewrittenSection.value),
+            providerId: rewritten.value.providerId, modelId: rewritten.value.modelId,
+          });
+          return passed.ok ? null : { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+        }
         const claim = await repository.claim({
           ...lineageFor(sectionKey),
           jobId,
@@ -423,10 +526,28 @@ export function createReportGenerationService(
           return { ok: false, error: mapped };
         }
         const section: ComprehensiveReportAcceptedSection = { key: sectionKey as any, value: written.value.value as any };
-        if (!sectionPassesQuality(section, source.comprehensiveFactsV4, selection.reportConfigVersion, selection.qualityVersion)) {
-          const released = await repository.releaseRetryableFailure({ ...lineageFor(sectionKey), jobId, workerId: input.workerId, expectedStateVersion: checkpoint.stateVersion, failureCode: "AI_OUTPUT_INVALID" });
-          if (!released.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
-          continue;
+        const findings = sectionQualityFindings(section, source.comprehensiveFactsV4, selection.reportConfigVersion, selection.qualityVersion);
+        if (findings.length > 0) {
+          const recorded = await repository.recordQualityCandidate({
+            ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+            expectedStateVersion: checkpoint.stateVersion,
+            generationOrdinal: checkpoint.generationAttemptCount,
+            candidateContent: section.value, candidateHash: stableHash(section.value),
+            candidateProviderId: written.value.providerId, candidateModelId: written.value.modelId,
+            findings, rewriteAttemptCap: quality.sectionRewriteCap,
+          });
+          if (!recorded.ok) {
+            return {
+              ok: false,
+              error: {
+                code: recorded.error.code === "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT"
+                  ? "AI_OUTPUT_INVALID"
+                  : "REPORT_VERSION_CONFLICT",
+                retryable: false,
+              },
+            };
+          }
+          return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
         }
         const stoppedBeforePass = stopped();
         if (stoppedBeforePass) return stoppedBeforePass;

@@ -2918,7 +2918,8 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     const rows = new Map<Key, any>(initial.map((row) => [row.sectionKey, { ...row }]));
     const revisions = new Map<Key, any>();
     const revisionHistory = new Map<Key, any[]>();
-    const calls = { claims: [] as Key[], rewrites: [] as Key[], passed: [] as Key[], releases: [] as Key[], terminals: [] as Key[] };
+    const qualityCandidates = new Map<Key, any>();
+    const calls = { claims: [] as Key[], rewrites: [] as Key[], passed: [] as Key[], releases: [] as Key[], terminals: [] as Key[], qualityRewrites: [] as Key[] };
     const accepted = () => [...rows.values()]
       .sort((left, right) => left.sectionOrder - right.sectionOrder)
       .flatMap((base) => {
@@ -2929,7 +2930,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       } : {}) }] : [];
     });
     return {
-      calls, rows, revisions,
+      calls, rows, revisions, qualityCandidates,
       listAccepted: vi.fn(async () => ({ ok: true, value: accepted() })),
       claim: vi.fn(async (input: any) => {
         calls.claims.push(input.sectionKey);
@@ -2966,6 +2967,75 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
           failureCode: input.failureCode,
         });
         return { ok: true, value: rows.get(input.sectionKey) };
+      }),
+      claimQualityRewrite: vi.fn(async (input: any) => {
+        calls.qualityRewrites.push(input.sectionKey);
+        const candidate = qualityCandidates.get(input.sectionKey);
+        if (!candidate) return { ok: true, value: { outcome: "none" } };
+        if (candidate.status === "terminal_failure") return { ok: true, value: { outcome: "terminal" } };
+        if (candidate.status === "generating" && candidate.activeJobId === input.jobId && candidate.activeWorkerId === input.workerId && candidate.activeAttemptNumber === input.attemptNumber) {
+          return { ok: true, value: { outcome: "in_progress", candidate } };
+        }
+        const claimed = { ...candidate, status: "generating", activeJobId: input.jobId, activeWorkerId: input.workerId, activeAttemptNumber: input.attemptNumber, stateVersion: candidate.stateVersion + 1 };
+        qualityCandidates.set(input.sectionKey, claimed);
+        const current = rows.get(input.sectionKey);
+        rows.set(input.sectionKey, { ...current, status: "generating", activeJobId: input.jobId, activeWorkerId: input.workerId, stateVersion: current.stateVersion + 1 });
+        return { ok: true, value: { outcome: "claimed", candidate: claimed } };
+      }),
+      recordQualityCandidate: vi.fn(async (input: any) => {
+        const current = rows.get(input.sectionKey);
+        const existing = qualityCandidates.get(input.sectionKey);
+        if (existing) return { ok: true, value: { outcome: "replay", candidate: existing } };
+        if (current.rewriteAttemptCount >= input.rewriteAttemptCap) {
+          rows.set(input.sectionKey, { ...current, status: "terminal_failure", activeJobId: null, activeWorkerId: null });
+          return { ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } };
+        }
+        const candidate = {
+          id: `quality-${input.sectionKey}`, checkpointId: `checkpoint-${input.sectionKey}`,
+          rewriteOrdinal: current.rewriteAttemptCount + 1, generationOrdinal: current.generationAttemptCount,
+          stateVersion: 1, status: "pending", activeJobId: null, activeWorkerId: null, activeAttemptNumber: null,
+          candidateSection: { key: input.sectionKey, value: input.candidateContent },
+          candidateHash: input.candidateHash, candidateProviderId: input.candidateProviderId,
+          candidateModelId: input.candidateModelId, findings: input.findings, acceptedSection: null,
+        };
+        qualityCandidates.set(input.sectionKey, candidate);
+        rows.set(input.sectionKey, { ...current, status: "pending", activeJobId: null, activeWorkerId: null, rewriteAttemptCount: candidate.rewriteOrdinal, stateVersion: current.stateVersion + 1 });
+        return { ok: true, value: { outcome: "recorded", candidate } };
+      }),
+      releaseQualityRewriteRetryableFailure: vi.fn(async (input: any) => {
+        const candidate = qualityCandidates.get(input.sectionKey);
+        const released = { ...candidate, status: "pending", activeJobId: null, activeWorkerId: null, activeAttemptNumber: null, stateVersion: candidate.stateVersion + 1, failureCode: input.failureCode };
+        qualityCandidates.set(input.sectionKey, released);
+        const current = rows.get(input.sectionKey);
+        rows.set(input.sectionKey, { ...current, status: "pending", activeJobId: null, activeWorkerId: null, stateVersion: current.stateVersion + 1, failureCode: input.failureCode });
+        return { ok: true, value: released };
+      }),
+      markQualityRewriteTerminalFailure: vi.fn(async (input: any) => {
+        const candidate = qualityCandidates.get(input.sectionKey);
+        const terminal = { ...candidate, status: "terminal_failure", activeJobId: null, activeWorkerId: null, activeAttemptNumber: null, stateVersion: candidate.stateVersion + 1, failureCode: input.failureCode };
+        qualityCandidates.set(input.sectionKey, terminal);
+        const current = rows.get(input.sectionKey);
+        rows.set(input.sectionKey, {
+          ...current,
+          status: "terminal_failure",
+          activeJobId: null,
+          activeWorkerId: null,
+          acceptedSection: null,
+          contentHash: null,
+          providerId: null,
+          modelId: null,
+          stateVersion: current.stateVersion + 1,
+          failureCode: input.failureCode,
+        });
+        return { ok: true, value: terminal };
+      }),
+      markQualityRewritePassed: vi.fn(async (input: any) => {
+        const candidate = qualityCandidates.get(input.sectionKey);
+        const passed = { ...candidate, status: "passed", activeJobId: null, activeWorkerId: null, activeAttemptNumber: null, stateVersion: candidate.stateVersion + 1, acceptedSection: { key: input.sectionKey, value: input.acceptedContent }, providerId: input.providerId, modelId: input.modelId };
+        qualityCandidates.set(input.sectionKey, passed);
+        const current = rows.get(input.sectionKey);
+        rows.set(input.sectionKey, { ...current, status: "passed", activeJobId: null, activeWorkerId: null, stateVersion: current.stateVersion + 1, acceptedSection: passed.acceptedSection, providerId: input.providerId, modelId: input.modelId });
+        return { ok: true, value: { outcome: "passed", candidate: passed } };
       }),
       claimPassedRewrite: vi.fn(async (input: any) => {
         calls.rewrites.push(input.sectionKey);
@@ -3381,6 +3451,8 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       generationAttemptCount: 1,
       failureCode: "AI_OUTPUT_INVALID",
     });
+    expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
+    expect(fixture.repository.qualityCandidates.size).toBe(0);
     expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
 
     const resumed = await fixture.service.generateReport({
@@ -3393,6 +3465,183 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       key === "overview" || key === "coreAxis" || key === "keyConfigurations",
     )).toEqual([]);
     expect(fixture.starts.filter((key) => key === "palace:ziwei.palace.life")).toHaveLength(2);
+  });
+
+  it("persists item-addressed deterministic findings and resumes a guided quality rewrite", async () => {
+    const shortCandidate = {
+      key: "keyConfigurations" as const,
+      value: [{
+        title: "Cấu hình ngắn",
+        narrative: "Nội dung hợp schema nhưng chưa đủ độ sâu.",
+        evidenceKeys: ["e-life", "e-star"],
+      }],
+    };
+    let rewritePayload: any;
+    const fixture = createSectionedService({
+      initial: [checkpoint("overview"), checkpoint("coreAxis")],
+      onSection: (key, request) => {
+        const payload = JSON.parse(request.user);
+        if (key === "keyConfigurations" && !payload.rewrite) {
+          return { ok: true, value: { value: shortCandidate, providerId: "section-provider", modelId: "section-model" } };
+        }
+        if (key === "keyConfigurations" && payload.rewrite) {
+          rewritePayload = payload.rewrite;
+        }
+        return { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } };
+      },
+    });
+
+    const first = await fixture.service.generateReport({
+      job: sectionedJob(), attemptNumber: 1, workerId: "worker-1",
+    });
+    expect(first).toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
+    expect(fixture.repository.recordQualityCandidate).toHaveBeenCalledTimes(1);
+    const recordInput = fixture.repository.recordQualityCandidate.mock.calls[0]![0];
+    expect(recordInput).toMatchObject({
+      sectionKey: "keyConfigurations",
+      generationOrdinal: 1,
+      candidateContent: shortCandidate.value,
+    });
+    expect(recordInput.findings.length).toBeGreaterThan(0);
+    expect(recordInput.findings.every((finding: any) =>
+      finding.itemKey === "keyConfigurations[0]" &&
+      finding.note.length <= 300,
+    )).toBe(true);
+    expect(fixture.repository.rows.get("keyConfigurations")).toMatchObject({
+      status: "pending",
+      generationAttemptCount: 1,
+      rewriteAttemptCount: 1,
+    });
+
+    const resumed = await fixture.service.generateReport({
+      job: sectionedJob(), attemptNumber: 2, workerId: "worker-2",
+    });
+    expectSectionedSuccess(resumed, fixture);
+    expect(rewritePayload.priorSection).toEqual(shortCandidate);
+    expect(rewritePayload.findings).toEqual(expect.arrayContaining([
+      expect.stringContaining("keyConfigurations[0] MINIMUM_SYLLABLES"),
+    ]));
+    expect(fixture.costContexts.filter((context) => context.purpose === "rewrite")).toEqual([
+      expect.objectContaining({
+        idempotencyKey: `${sectionedJob().payload.reportVersionId}:keyConfigurations:quality-rewrite:1`,
+      }),
+    ]);
+    expect(fixture.repository.rows.get("keyConfigurations")).toMatchObject({
+      status: "passed",
+      generationAttemptCount: 1,
+      rewriteAttemptCount: 1,
+      acceptedSection: sectionFor("keyConfigurations"),
+    });
+    expect(fixture.starts.filter((key) => key === "keyConfigurations")).toHaveLength(2);
+    expect(fixture.starts.filter((key) => key === "overview" || key === "coreAxis")).toEqual([]);
+  });
+
+  it("releases a retryable quality provider failure and resumes the same ordinal with one cost key", async () => {
+    const shortCandidate = {
+      key: "keyConfigurations" as const,
+      value: [{ title: "Ngắn", narrative: "Chưa đủ độ sâu.", evidenceKeys: ["e-life", "e-star"] }],
+    };
+    let rewriteFailure = true;
+    const fixture = createSectionedService({
+      initial: [checkpoint("overview"), checkpoint("coreAxis")],
+      onSection: (key, request) => {
+        const payload = JSON.parse(request.user);
+        if (key === "keyConfigurations" && !payload.rewrite) {
+          return { ok: true, value: { value: shortCandidate, providerId: "section-provider", modelId: "section-model" } };
+        }
+        if (key === "keyConfigurations" && payload.rewrite && rewriteFailure) {
+          rewriteFailure = false;
+          return { ok: false, error: { code: "AI_PROVIDER_REQUEST_FAILED", retryable: true } };
+        }
+        return { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } };
+      },
+    });
+
+    await expect(fixture.service.generateReport({
+      job: sectionedJob(), attemptNumber: 1, workerId: "worker-1",
+    })).resolves.toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
+    await expect(fixture.service.generateReport({
+      job: sectionedJob(), attemptNumber: 2, workerId: "worker-2",
+    })).resolves.toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
+    expect(fixture.repository.qualityCandidates.get("keyConfigurations")).toMatchObject({
+      status: "pending",
+      rewriteOrdinal: 1,
+    });
+    const completed = await fixture.service.generateReport({
+      job: sectionedJob(), attemptNumber: 3, workerId: "worker-3",
+    });
+    expectSectionedSuccess(completed, fixture);
+    const rewriteKeys = fixture.costContexts
+      .filter((context) => context.purpose === "rewrite")
+      .map((context) => context.idempotencyKey);
+    expect(rewriteKeys).toEqual([
+      `${sectionedJob().payload.reportVersionId}:keyConfigurations:quality-rewrite:1`,
+      `${sectionedJob().payload.reportVersionId}:keyConfigurations:quality-rewrite:1`,
+    ]);
+    expect(fixture.repository.rows.get("keyConfigurations")).toMatchObject({
+      generationAttemptCount: 1,
+      rewriteAttemptCount: 1,
+      status: "passed",
+    });
+  });
+
+  it("terminalizes a deterministic quality rewrite failure without accepting candidate content", async () => {
+    const shortCandidate = {
+      key: "keyConfigurations" as const,
+      value: [{ title: "Ngắn", narrative: "Chưa đủ độ sâu.", evidenceKeys: ["e-life", "e-star"] }],
+    };
+    const fixture = createSectionedService({
+      initial: [checkpoint("overview"), checkpoint("coreAxis")],
+      onSection: (key) => key === "keyConfigurations"
+        ? { ok: true, value: { value: shortCandidate, providerId: "section-provider", modelId: "section-model" } }
+        : { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } },
+    });
+
+    await fixture.service.generateReport({ job: sectionedJob(), attemptNumber: 1, workerId: "worker-1" });
+    const failed = await fixture.service.generateReport({ job: sectionedJob(), attemptNumber: 2, workerId: "worker-2" });
+    expect(failed).toMatchObject({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(fixture.repository.qualityCandidates.get("keyConfigurations")).toMatchObject({
+      status: "terminal_failure",
+      acceptedSection: null,
+      rewriteOrdinal: 1,
+    });
+    expect(fixture.repository.rows.get("keyConfigurations")).toMatchObject({
+      status: "terminal_failure",
+      acceptedSection: null,
+    });
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+  });
+
+  it("does not call the provider for a same-attempt quality rewrite already in progress", async () => {
+    const shortCandidate = {
+      key: "keyConfigurations" as const,
+      value: [{ title: "Ngắn", narrative: "Chưa đủ độ sâu.", evidenceKeys: ["e-life", "e-star"] }],
+    };
+    const fixture = createSectionedService({
+      initial: [checkpoint("overview"), checkpoint("coreAxis")],
+      onSection: (key) => key === "keyConfigurations"
+        ? { ok: true, value: { value: shortCandidate, providerId: "section-provider", modelId: "section-model" } }
+        : { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } },
+    });
+    await fixture.service.generateReport({ job: sectionedJob(), attemptNumber: 1, workerId: "worker-1" });
+    await fixture.repository.claimQualityRewrite({
+      reportVersionId: sectionedJob().payload.reportVersionId,
+      sectionKey: "keyConfigurations",
+      sectionOrder: 2,
+      promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+      qualityConfigVersion: "ziwei.comprehensive.quality.v1",
+      jobId: sectionedJob().idempotencyKey,
+      workerId: "worker-2",
+      attemptNumber: 2,
+    });
+    const providerCalls = fixture.provider.generateStructured.mock.calls.length;
+    const result = await fixture.service.generateReport({
+      job: sectionedJob(), attemptNumber: 2, workerId: "worker-2",
+    });
+    expect(result).toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
+    expect(fixture.provider.generateStructured).toHaveBeenCalledTimes(providerCalls);
   });
 
   it("terminal-fails malformed section output at the durable generation cap without commit", async () => {

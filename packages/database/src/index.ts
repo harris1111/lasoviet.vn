@@ -66,6 +66,7 @@ export {
   reportReservations,
   reportSectionCheckpoints,
   reportSectionCheckpointRevisions,
+  reportSectionQualityCandidates,
   reportSourceSnapshots,
   reportVersions,
 } from "./schema/reports.js";

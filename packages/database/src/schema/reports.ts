@@ -249,6 +249,56 @@ export const reportSectionCheckpointRevisions = pgTable("report_section_checkpoi
   ),
 ]);
 
+export const reportSectionQualityCandidates = pgTable("report_section_quality_candidates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  checkpointId: uuid("checkpoint_id").notNull().references(
+    () => reportSectionCheckpoints.id,
+    { onDelete: "restrict" },
+  ),
+  rewriteOrdinal: integer("rewrite_ordinal").notNull(),
+  generationOrdinal: integer("generation_ordinal").notNull(),
+  stateVersion: integer("state_version").notNull().default(1),
+  status: text("status").notNull().default("pending"),
+  activeJobId: text("active_job_id"),
+  activeWorkerId: text("active_worker_id"),
+  activeAttemptNumber: integer("active_attempt_number"),
+  candidateContent: jsonb("candidate_content").$type<Record<string, unknown>>().notNull(),
+  candidateHash: text("candidate_hash").notNull(),
+  candidateProviderId: text("candidate_provider_id").notNull(),
+  candidateModelId: text("candidate_model_id").notNull(),
+  findings: jsonb("findings").$type<Array<{ itemKey: string; code: string; note: string }>>().notNull(),
+  acceptedContent: jsonb("accepted_content").$type<Record<string, unknown>>(),
+  contentHash: text("content_hash"),
+  providerId: text("provider_id"),
+  modelId: text("model_id"),
+  failureCode: text("failure_code"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("report_section_quality_candidates_checkpoint_rewrite_unique").on(
+    table.checkpointId,
+    table.rewriteOrdinal,
+  ),
+  uniqueIndex("report_section_quality_candidates_checkpoint_generation_unique").on(
+    table.checkpointId,
+    table.generationOrdinal,
+  ),
+  index("report_section_quality_candidates_checkpoint_status_idx").on(
+    table.checkpointId,
+    table.status,
+    table.rewriteOrdinal,
+  ),
+  check("report_section_quality_candidates_positive_rewrite_ordinal", sql`${table.rewriteOrdinal} > 0`),
+  check("report_section_quality_candidates_positive_generation_ordinal", sql`${table.generationOrdinal} > 0`),
+  check("report_section_quality_candidates_positive_state_version", sql`${table.stateVersion} > 0`),
+  check("report_section_quality_candidates_status_valid", sql`${table.status} IN ('pending', 'generating', 'passed', 'terminal_failure')`),
+  check("report_section_quality_candidates_active_ownership", sql`(${table.status} = 'generating' AND ${table.activeJobId} IS NOT NULL AND btrim(${table.activeJobId}) <> '' AND ${table.activeWorkerId} IS NOT NULL AND btrim(${table.activeWorkerId}) <> '' AND ${table.activeAttemptNumber} IS NOT NULL AND ${table.activeAttemptNumber} > 0) OR (${table.status} <> 'generating' AND ${table.activeJobId} IS NULL AND ${table.activeWorkerId} IS NULL AND ${table.activeAttemptNumber} IS NULL)`),
+  check("report_section_quality_candidates_candidate_lineage", sql`${table.candidateContent} IS NOT NULL AND ${table.candidateHash} ~ '^[a-f0-9]{64}$' AND btrim(${table.candidateProviderId}) <> '' AND btrim(${table.candidateModelId}) <> ''`),
+  check("report_section_quality_candidates_findings_bounded", sql`report_section_quality_findings_valid(${table.findings})`),
+  check("report_section_quality_candidates_passed_lineage", sql`(${table.status} = 'passed' AND ${table.acceptedContent} IS NOT NULL AND ${table.contentHash} ~ '^[a-f0-9]{64}$' AND ${table.providerId} IS NOT NULL AND btrim(${table.providerId}) <> '' AND ${table.modelId} IS NOT NULL AND btrim(${table.modelId}) <> '' AND ${table.failureCode} IS NULL) OR (${table.status} <> 'passed' AND ${table.acceptedContent} IS NULL AND ${table.contentHash} IS NULL AND ${table.providerId} IS NULL AND ${table.modelId} IS NULL)`),
+  check("report_section_quality_candidates_failure_code_bounded", sql`${table.failureCode} IS NULL OR (btrim(${table.failureCode}) <> '' AND char_length(${table.failureCode}) <= 120)`),
+]);
+
 
 export const reportSourceSnapshots = pgTable("report_source_snapshots", {
   id: uuid("id").defaultRandom().primaryKey(),

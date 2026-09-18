@@ -288,6 +288,13 @@
       "when": 1790813160000,
       "tag": "0040_ziwei_knowledge_v4_provenance",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790813220000,
+      "tag": "0041_report_section_quality_candidates",
+      "breakpoints": true
     }
   ]
 }
