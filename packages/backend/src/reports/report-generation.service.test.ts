@@ -3427,7 +3427,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.repository.calls.passed).not.toContain("keyConfigurations");
   });
 
-  it("releases malformed section output for one durable retry and resumes only that section", async () => {
+  it("retries pre-cap malformed output and completes within the same invocation", async () => {
     let malformed = true;
     const fixture = createSectionedService({
       initial: [checkpoint("overview"), checkpoint("coreAxis"), checkpoint("keyConfigurations")],
@@ -3440,34 +3440,32 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       },
     });
 
-    const first = await fixture.service.generateReport({
+    const result = await fixture.service.generateReport({
       job: sectionedJob(),
       attemptNumber: 1,
       workerId: "worker-1",
     });
-    expect(first).toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
+    expectSectionedSuccess(result, fixture);
     expect(fixture.repository.rows.get("palace:ziwei.palace.life")).toMatchObject({
-      status: "pending",
-      generationAttemptCount: 1,
-      failureCode: "AI_OUTPUT_INVALID",
+      status: "passed",
+      generationAttemptCount: 2,
     });
     expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
     expect(fixture.repository.qualityCandidates.size).toBe(0);
-    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
-
-    const resumed = await fixture.service.generateReport({
-      job: sectionedJob(),
-      attemptNumber: 2,
-      workerId: "worker-2",
-    });
-    expectSectionedSuccess(resumed, fixture);
+    expect(fixture.repository.calls.releases).toEqual(["palace:ziwei.palace.life"]);
     expect(fixture.starts.filter((key) =>
       key === "overview" || key === "coreAxis" || key === "keyConfigurations",
     )).toEqual([]);
     expect(fixture.starts.filter((key) => key === "palace:ziwei.palace.life")).toHaveLength(2);
+    expect(fixture.costContexts.filter((context) =>
+      context.idempotencyKey.includes(":palace:ziwei.palace.life:generation:"),
+    ).map((context) => context.idempotencyKey)).toEqual([
+      `${sectionedJob().payload.reportVersionId}:palace:ziwei.palace.life:generation:1:critic:0`,
+      `${sectionedJob().payload.reportVersionId}:palace:ziwei.palace.life:generation:2:critic:0`,
+    ]);
   });
 
-  it("persists item-addressed deterministic findings and resumes a guided quality rewrite", async () => {
+  it("completes multiple deterministic quality candidate handoffs within one invocation", async () => {
     const shortCandidate = {
       key: "keyConfigurations" as const,
       value: [{
@@ -3476,7 +3474,16 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         evidenceKeys: ["e-life", "e-star"],
       }],
     };
-    let rewritePayload: any;
+    const shortPalace = {
+      key: "palace:ziwei.palace.life" as const,
+      value: {
+        palaceId: "ziwei.palace.life" as const,
+        title: "Cung Mệnh ngắn",
+        narrative: "Nội dung hợp schema nhưng chưa đủ độ sâu.",
+        evidenceKeys: ["e-life", "e-star"],
+      },
+    };
+    const rewritePayloads = new Map<string, any>();
     const fixture = createSectionedService({
       initial: [checkpoint("overview"), checkpoint("coreAxis")],
       onSection: (key, request) => {
@@ -3484,56 +3491,63 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         if (key === "keyConfigurations" && !payload.rewrite) {
           return { ok: true, value: { value: shortCandidate, providerId: "section-provider", modelId: "section-model" } };
         }
-        if (key === "keyConfigurations" && payload.rewrite) {
-          rewritePayload = payload.rewrite;
+        if (key === "palace:ziwei.palace.life" && !payload.rewrite) {
+          return { ok: true, value: { value: shortPalace, providerId: "section-provider", modelId: "section-model" } };
+        }
+        if (payload.rewrite) {
+          rewritePayloads.set(key, payload.rewrite);
         }
         return { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } };
       },
     });
 
-    const first = await fixture.service.generateReport({
+    const result = await fixture.service.generateReport({
       job: sectionedJob(), attemptNumber: 1, workerId: "worker-1",
     });
-    expect(first).toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
-    expect(fixture.repository.recordQualityCandidate).toHaveBeenCalledTimes(1);
-    const recordInput = fixture.repository.recordQualityCandidate.mock.calls[0]![0];
-    expect(recordInput).toMatchObject({
+    expectSectionedSuccess(result, fixture);
+    expect(fixture.repository.recordQualityCandidate).toHaveBeenCalledTimes(2);
+    const recordInputs = fixture.repository.recordQualityCandidate.mock.calls.map(([input]: [any]) => input);
+    expect(recordInputs[0]).toMatchObject({
       sectionKey: "keyConfigurations",
       generationOrdinal: 1,
       candidateContent: shortCandidate.value,
     });
-    expect(recordInput.findings.length).toBeGreaterThan(0);
-    expect(recordInput.findings.every((finding: any) =>
+    expect(recordInputs[0].findings.length).toBeGreaterThan(0);
+    expect(recordInputs[0].findings.every((finding: any) =>
       finding.itemKey === "keyConfigurations[0]" &&
       finding.note.length <= 300,
     )).toBe(true);
-    expect(fixture.repository.rows.get("keyConfigurations")).toMatchObject({
-      status: "pending",
-      generationAttemptCount: 1,
-      rewriteAttemptCount: 1,
+    expect(recordInputs[1]).toMatchObject({
+      sectionKey: "palace:ziwei.palace.life",
+      generationOrdinal: 1,
+      candidateContent: shortPalace.value,
     });
-
-    const resumed = await fixture.service.generateReport({
-      job: sectionedJob(), attemptNumber: 2, workerId: "worker-2",
-    });
-    expectSectionedSuccess(resumed, fixture);
-    expect(rewritePayload.priorSection).toEqual(shortCandidate);
-    expect(rewritePayload.findings).toEqual(expect.arrayContaining([
-      expect.stringContaining("keyConfigurations[0] MINIMUM_SYLLABLES"),
-    ]));
-    expect(fixture.costContexts.filter((context) => context.purpose === "rewrite")).toEqual([
-      expect.objectContaining({
-        idempotencyKey: `${sectionedJob().payload.reportVersionId}:keyConfigurations:quality-rewrite:1`,
-      }),
-    ]);
     expect(fixture.repository.rows.get("keyConfigurations")).toMatchObject({
       status: "passed",
       generationAttemptCount: 1,
       rewriteAttemptCount: 1,
       acceptedSection: sectionFor("keyConfigurations"),
     });
+    expect(fixture.repository.rows.get("palace:ziwei.palace.life")).toMatchObject({
+      status: "passed",
+      generationAttemptCount: 1,
+      rewriteAttemptCount: 1,
+      acceptedSection: sectionFor("palace:ziwei.palace.life"),
+    });
+    expect(rewritePayloads.get("keyConfigurations").priorSection).toEqual(shortCandidate);
+    expect(rewritePayloads.get("keyConfigurations").findings).toEqual(expect.arrayContaining([
+      expect.stringContaining("keyConfigurations[0] MINIMUM_SYLLABLES"),
+    ]));
+    expect(rewritePayloads.get("palace:ziwei.palace.life").priorSection).toEqual(shortPalace);
+    expect(fixture.costContexts.filter((context) => context.purpose === "rewrite")
+      .map((context) => context.idempotencyKey)).toEqual([
+      `${sectionedJob().payload.reportVersionId}:keyConfigurations:quality-rewrite:1`,
+      `${sectionedJob().payload.reportVersionId}:palace:ziwei.palace.life:quality-rewrite:1`,
+    ]);
     expect(fixture.starts.filter((key) => key === "keyConfigurations")).toHaveLength(2);
+    expect(fixture.starts.filter((key) => key === "palace:ziwei.palace.life")).toHaveLength(2);
     expect(fixture.starts.filter((key) => key === "overview" || key === "coreAxis")).toEqual([]);
+    expect(fixture.starts).toHaveLength(COMPREHENSIVE_REPORT_SECTION_KEYS.length);
   });
 
   it("releases a retryable quality provider failure and resumes the same ordinal with one cost key", async () => {
@@ -3560,15 +3574,12 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     await expect(fixture.service.generateReport({
       job: sectionedJob(), attemptNumber: 1, workerId: "worker-1",
     })).resolves.toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
-    await expect(fixture.service.generateReport({
-      job: sectionedJob(), attemptNumber: 2, workerId: "worker-2",
-    })).resolves.toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
     expect(fixture.repository.qualityCandidates.get("keyConfigurations")).toMatchObject({
       status: "pending",
       rewriteOrdinal: 1,
     });
     const completed = await fixture.service.generateReport({
-      job: sectionedJob(), attemptNumber: 3, workerId: "worker-3",
+      job: sectionedJob(), attemptNumber: 2, workerId: "worker-2",
     });
     expectSectionedSuccess(completed, fixture);
     const rewriteKeys = fixture.costContexts
@@ -3597,8 +3608,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         : { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } },
     });
 
-    await fixture.service.generateReport({ job: sectionedJob(), attemptNumber: 1, workerId: "worker-1" });
-    const failed = await fixture.service.generateReport({ job: sectionedJob(), attemptNumber: 2, workerId: "worker-2" });
+    const failed = await fixture.service.generateReport({ job: sectionedJob(), attemptNumber: 1, workerId: "worker-1" });
     expect(failed).toMatchObject({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
     expect(fixture.repository.qualityCandidates.get("keyConfigurations")).toMatchObject({
       status: "terminal_failure",
@@ -3619,22 +3629,43 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     };
     const fixture = createSectionedService({
       initial: [checkpoint("overview"), checkpoint("coreAxis")],
-      onSection: (key) => key === "keyConfigurations"
-        ? { ok: true, value: { value: shortCandidate, providerId: "section-provider", modelId: "section-model" } }
-        : { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } },
     });
-    await fixture.service.generateReport({ job: sectionedJob(), attemptNumber: 1, workerId: "worker-1" });
-    await fixture.repository.claimQualityRewrite({
-      reportVersionId: sectionedJob().payload.reportVersionId,
-      sectionKey: "keyConfigurations",
-      sectionOrder: 2,
-      promptVersion: REPORT_PROMPT_VERSION_V4_0_1,
-      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
-      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED,
-      qualityConfigVersion: "ziwei.comprehensive.quality.v1",
-      jobId: sectionedJob().idempotencyKey,
-      workerId: "worker-2",
-      attemptNumber: 2,
+    fixture.repository.rows.set("keyConfigurations", {
+      ...checkpoint("keyConfigurations"),
+      status: "generating",
+      generationAttemptCount: 1,
+      rewriteAttemptCount: 1,
+      activeJobId: sectionedJob().idempotencyKey,
+      activeWorkerId: "worker-2",
+      acceptedSection: null,
+      contentHash: null,
+      providerId: null,
+      modelId: null,
+    });
+    fixture.repository.qualityCandidates.set("keyConfigurations", {
+      id: "quality-keyConfigurations",
+      checkpointId: "checkpoint-keyConfigurations",
+      rewriteOrdinal: 1,
+      generationOrdinal: 1,
+      stateVersion: 2,
+      status: "generating",
+      activeJobId: sectionedJob().idempotencyKey,
+      activeWorkerId: "worker-2",
+      activeAttemptNumber: 2,
+      candidateSection: shortCandidate,
+      candidateHash: "a".repeat(64),
+      candidateProviderId: "section-provider",
+      candidateModelId: "section-model",
+      findings: [{
+        itemKey: "keyConfigurations[0]",
+        code: "MINIMUM_SYLLABLES",
+        note: "Requires more detail.",
+      }],
+      acceptedSection: null,
+      contentHash: null,
+      providerId: null,
+      modelId: null,
+      failureCode: null,
     });
     const providerCalls = fixture.provider.generateStructured.mock.calls.length;
     const result = await fixture.service.generateReport({
@@ -3703,8 +3734,11 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         : { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } },
     });
     const rejected = await malformed.service.generateReport({ job: sectionedJob(), attemptNumber: 1, workerId: "worker-1" });
-    expect(rejected).toMatchObject({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } });
-    expect(malformed.repository.calls.releases).toEqual(["overview"]);
+    expect(rejected).toMatchObject({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(malformed.repository.calls.releases).toEqual(["overview", "overview"]);
+    expect(malformed.repository.calls.terminals).toEqual(["overview"]);
+    expect(malformed.starts).toEqual(["overview", "overview", "overview"]);
+    expect(malformed.repository.recordQualityCandidate).not.toHaveBeenCalled();
     expect(malformed.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
 
     const rewrite = createSectionedService({

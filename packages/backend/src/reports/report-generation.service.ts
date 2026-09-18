@@ -521,7 +521,7 @@ export function createReportGenerationService(
             mapped.code === "AI_OUTPUT_INVALID" &&
             !finalInvalidAttempt
           ) {
-            return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+            continue;
           }
           return { ok: false, error: mapped };
         }
@@ -547,7 +547,7 @@ export function createReportGenerationService(
               },
             };
           }
-          return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+          continue;
         }
         const stoppedBeforePass = stopped();
         if (stoppedBeforePass) return stoppedBeforePass;
