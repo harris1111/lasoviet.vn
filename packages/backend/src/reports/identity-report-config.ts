@@ -193,9 +193,11 @@ export type ReportVersionSelection =
 
 export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
 
-export function currentReportVersions(locale: string): ReportVersionSelectionV2 | ReportVersionSelectionV4 {
+export function currentReportVersions(
+  locale: string,
+): ReportVersionSelectionV2 | ReportVersionSelectionV4Sectioned {
   return locale === "vi"
-    ? v4ReportVersions("vi")
+    ? v4SectionedReportVersions("vi")
     : { family: "v2" as const, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V2, promptVersion: REPORT_PROMPT_VERSION_V2, reportConfigVersion: REPORT_CONFIG_VERSION_V1, templateVersion: REPORT_TEMPLATE_VERSION_V1 };
 }
 
@@ -223,7 +225,7 @@ export function v4_0_1ReportVersions(_locale: string = "vi"): ReportVersionSelec
   };
 }
 
-// This selection remains inactive until the founder acceptance and deployment gates pass.
+// The sectioned V4 tuple is the active Vietnamese comprehensive-report selection.
 export function v4SectionedReportVersions(_locale: string = "vi"): ReportVersionSelectionV4Sectioned {
   return {
     family: "v4",
