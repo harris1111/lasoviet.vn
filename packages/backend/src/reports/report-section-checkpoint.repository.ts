@@ -189,6 +189,9 @@ export type ReportSectionCheckpointRepository = {
   markQualityRewriteTerminalFailure(
     input: TerminalReportSectionQualityCandidateInput,
   ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>>;
+  continueQualityRewrite(
+    input: ContinueReportSectionQualityRewriteInput,
+  ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>>;
   markQualityRewritePassed(
     input: MarkPassedReportSectionQualityCandidateInput,
   ): Promise<Result<
@@ -272,6 +275,16 @@ export type MutateReportSectionQualityCandidateInput = ReportSectionCheckpointLi
 export type TerminalReportSectionQualityCandidateInput =
   MutateReportSectionQualityCandidateInput & {
     terminalFindings?: readonly ReportSectionQualityFinding[];
+  };
+
+export type ContinueReportSectionQualityRewriteInput =
+  Omit<MutateReportSectionQualityCandidateInput, "failureCode"> & {
+    candidateContent: unknown;
+    candidateHash: string;
+    candidateProviderId: string;
+    candidateModelId: string;
+    findings: readonly ReportSectionQualityFinding[];
+    rewriteAttemptCap: number;
   };
 
 export type MarkPassedReportSectionQualityCandidateInput =
@@ -1130,6 +1143,119 @@ export function createDatabaseReportSectionCheckpointRepository(
 
     async markQualityRewriteTerminalFailure(input) {
       return mutateQualityCandidate(input, "terminal_failure");
+    },
+
+    async continueQualityRewrite(input) {
+      if (
+        !validLineage(input) || !nonBlank(input.jobId) || !nonBlank(input.workerId) ||
+        !Number.isInteger(input.rewriteOrdinal) || input.rewriteOrdinal < 1 ||
+        !Number.isInteger(input.expectedStateVersion) || input.expectedStateVersion < 1 ||
+        !nonBlank(input.candidateProviderId) || !nonBlank(input.candidateModelId) ||
+        !/^[a-f0-9]{64}$/.test(input.candidateHash) || !validQualityFindings(input.findings) ||
+        !Number.isInteger(input.rewriteAttemptCap) || input.rewriteAttemptCap < 1
+      ) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      let candidateContent: ComprehensiveReportAcceptedSection;
+      try {
+        candidateContent = parseComprehensiveReportAcceptedSection({
+          key: input.sectionKey,
+          value: input.candidateContent,
+        }, input.reportConfigVersion);
+      } catch {
+        return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      }
+      if (contentHash(candidateContent.value) !== input.candidateHash) {
+        return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      }
+      return qualityCandidateTransaction<PersistedReportSectionQualityCandidate>(async (transaction) => {
+        const current = now();
+        if (!await lockActiveReservationLease(
+          transaction,
+          input.reportVersionId,
+          input.jobId,
+          input.workerId,
+          current,
+          true,
+        )) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        const [parent] = await transaction.select().from(reportSectionCheckpoints).where(and(
+          eq(reportSectionCheckpoints.reportVersionId, input.reportVersionId),
+          eq(reportSectionCheckpoints.sectionKey, input.sectionKey),
+        )).for("update").limit(1);
+        if (!parent || !lineageMatches(parent, input)) return failure("REPORT_VERSION_CONFLICT");
+        if (
+          parent.status !== "generating" ||
+          parent.activeJobId !== input.jobId ||
+          parent.activeWorkerId !== input.workerId ||
+          parent.rewriteAttemptCount !== input.rewriteOrdinal
+        ) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        const [candidate] = await transaction.select().from(reportSectionQualityCandidates).where(and(
+          eq(reportSectionQualityCandidates.checkpointId, parent.id),
+          eq(reportSectionQualityCandidates.rewriteOrdinal, input.rewriteOrdinal),
+        )).for("update").limit(1);
+        if (!candidate) return failure("REPORT_VERSION_CONFLICT");
+        if (
+          candidate.status !== "generating" ||
+          candidate.stateVersion !== input.expectedStateVersion ||
+          candidate.activeJobId !== input.jobId ||
+          candidate.activeWorkerId !== input.workerId ||
+          candidate.activeJobId !== parent.activeJobId ||
+          candidate.activeWorkerId !== parent.activeWorkerId
+        ) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        if (parent.rewriteAttemptCount >= input.rewriteAttemptCap) {
+          return failure("REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT");
+        }
+        const nextRewriteOrdinal = parent.rewriteAttemptCount + 1;
+        const [continuedCandidate] = await transaction.update(reportSectionQualityCandidates).set({
+          rewriteOrdinal: nextRewriteOrdinal,
+          candidateContent: candidateContent.value as Record<string, unknown>,
+          candidateHash: input.candidateHash,
+          candidateProviderId: input.candidateProviderId,
+          candidateModelId: input.candidateModelId,
+          findings: input.findings as ReportSectionQualityFinding[],
+          terminalFindings: null,
+          acceptedContent: null,
+          contentHash: null,
+          providerId: null,
+          modelId: null,
+          status: "pending",
+          activeJobId: null,
+          activeWorkerId: null,
+          activeAttemptNumber: null,
+          failureCode: "QUALITY_GATE_REWRITE_PENDING",
+          stateVersion: sql`${reportSectionQualityCandidates.stateVersion} + 1`,
+          updatedAt: current,
+        }).where(and(
+          eq(reportSectionQualityCandidates.id, candidate.id),
+          eq(reportSectionQualityCandidates.stateVersion, input.expectedStateVersion),
+          eq(reportSectionQualityCandidates.status, "generating"),
+          eq(reportSectionQualityCandidates.activeJobId, input.jobId),
+          eq(reportSectionQualityCandidates.activeWorkerId, input.workerId),
+        )).returning();
+        if (!continuedCandidate) abortQualityCandidateTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        const [continuedParent] = await transaction.update(reportSectionCheckpoints).set({
+          status: "pending",
+          activeJobId: null,
+          activeWorkerId: null,
+          rewriteAttemptCount: nextRewriteOrdinal,
+          failureCode: "QUALITY_GATE_REWRITE_PENDING",
+          stateVersion: sql`${reportSectionCheckpoints.stateVersion} + 1`,
+          updatedAt: current,
+        }).where(and(
+          eq(reportSectionCheckpoints.id, parent.id),
+          eq(reportSectionCheckpoints.stateVersion, parent.stateVersion),
+          eq(reportSectionCheckpoints.status, "generating"),
+          eq(reportSectionCheckpoints.activeJobId, input.jobId),
+          eq(reportSectionCheckpoints.activeWorkerId, input.workerId),
+        )).returning();
+        if (!continuedParent) abortQualityCandidateTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        return {
+          ok: true,
+          value: mapQualityCandidateRow(
+            continuedCandidate,
+            input.sectionKey,
+            input.reportConfigVersion,
+          ),
+        };
+      });
     },
 
     async markQualityRewritePassed(input) {

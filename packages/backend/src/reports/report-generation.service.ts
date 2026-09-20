@@ -520,15 +520,50 @@ export function createReportGenerationService(
             selection.reportConfigVersion,
             selection.qualityVersion,
           );
-          const finalFindings = [
-            ...keyConfigurationRewriteContractFindings(
-              candidate.candidateSection,
-              rewrittenSection,
-              selection.promptVersion,
-            ),
-            ...postRewriteFindings,
-          ].slice(0, 8);
+          const contractFindings = keyConfigurationRewriteContractFindings(
+            candidate.candidateSection,
+            rewrittenSection,
+            selection.promptVersion,
+          );
+          if (contractFindings.length > 0) {
+            const terminal = await repository.markQualityRewriteTerminalFailure({
+              ...lineageFor(sectionKey), jobId, workerId: input.workerId,
+              rewriteOrdinal: candidate.rewriteOrdinal, expectedStateVersion: candidate.stateVersion,
+              failureCode: "AI_OUTPUT_INVALID",
+              terminalFindings: contractFindings,
+            });
+            if (!terminal.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+            return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+          }
+          const finalFindings = postRewriteFindings.slice(0, 8);
           if (finalFindings.length > 0) {
+            if (candidate.rewriteOrdinal < quality.sectionRewriteCap) {
+              const continued = await repository.continueQualityRewrite({
+                ...lineageFor(sectionKey),
+                jobId,
+                workerId: input.workerId,
+                rewriteOrdinal: candidate.rewriteOrdinal,
+                expectedStateVersion: candidate.stateVersion,
+                candidateContent: rewrittenSection.value,
+                candidateHash: stableHash(rewrittenSection.value),
+                candidateProviderId: rewritten.value.providerId,
+                candidateModelId: rewritten.value.modelId,
+                findings: finalFindings,
+                rewriteAttemptCap: quality.sectionRewriteCap,
+              });
+              if (!continued.ok) {
+                return {
+                  ok: false,
+                  error: {
+                    code: continued.error.code === "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT"
+                      ? "AI_OUTPUT_INVALID"
+                      : "REPORT_VERSION_CONFLICT",
+                    retryable: false,
+                  },
+                };
+              }
+              continue;
+            }
             const terminal = await repository.markQualityRewriteTerminalFailure({
               ...lineageFor(sectionKey), jobId, workerId: input.workerId,
               rewriteOrdinal: candidate.rewriteOrdinal, expectedStateVersion: candidate.stateVersion,
@@ -673,7 +708,7 @@ export function createReportGenerationService(
       if (!row?.acceptedSection) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
       const claimed = await repository.claimPassedRewrite({
         ...lineageFor(sectionKey), jobId, workerId: input.workerId,
-        rewriteAttemptCap: quality.sectionRewriteCap,
+        rewriteAttemptCap: 1,
       });
       if (!claimed.ok || claimed.value.outcome === "terminal") return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
       if (claimed.value.outcome === "replay") return null;

@@ -134,7 +134,7 @@ describe("ziwei comprehensive report quality config", () => {
     ).toThrow("ZIWEI_REPORT_QUALITY_SECTION_UNAVAILABLE");
   });
 
-  it("changes only the V2.1 tuple and thematic output budget", () => {
+  it("changes only the V2.1 tuple, thematic output budget, and quality rewrite cap", () => {
     const oldConfig = ziweiComprehensiveReportQualityV2Sensitivity;
     const newConfig = ziweiComprehensiveReportQualityV2_1Sensitivity;
     expect(newConfig.version).toBe("ziwei.comprehensive.quality.v2.1-sensitivity");
@@ -143,6 +143,9 @@ describe("ziwei comprehensive report quality config", () => {
     );
     expect(newConfig.sections.thematic.maxOutputTokens).toBe(3500);
     expect(oldConfig.sections.thematic.maxOutputTokens).toBe(2500);
+    expect(newConfig.sectionRewriteCap).toBe(2);
+    expect(oldConfig.sectionRewriteCap).toBe(1);
+    expect(ziweiComprehensiveReportQualityV1.sectionRewriteCap).toBe(1);
 
     const oldComparable = structuredClone(oldConfig) as Record<string, unknown>;
     const newComparable = structuredClone(newConfig) as Record<string, unknown>;
@@ -153,6 +156,7 @@ describe("ziwei comprehensive report quality config", () => {
     (
       newComparable.sections as typeof newConfig.sections
     ).thematic.maxOutputTokens = oldConfig.sections.thematic.maxOutputTokens;
+    newComparable.sectionRewriteCap = oldConfig.sectionRewriteCap;
     expect(newComparable).toEqual(oldComparable);
     expect(
       resolveZiweiReportQualityConfig(newConfig.reportConfigVersion, newConfig.version),
