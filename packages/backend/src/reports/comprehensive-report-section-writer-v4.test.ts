@@ -506,6 +506,10 @@ describe("writeComprehensiveReportSectionV4", () => {
       },
       forbiddenTerms: {
         discouraged: expect.arrayContaining(["khí chất", "an nhàn"]),
+        contextualPalaceNameExceptions: {
+          terms: ["Phu Thê", "Tử Tức"],
+          rule: expect.stringContaining("explicit palace-name references"),
+        },
         death: expect.arrayContaining(["tử vong", "sát phu"]),
         certainty: expect.arrayContaining(["chắc chắn", "không tránh khỏi"]),
       },
@@ -531,7 +535,10 @@ describe("writeComprehensiveReportSectionV4", () => {
       { itemKey: "coreAxis", code: "EVIDENCE_ANCHORS", note: "Add chart anchors." },
     ]);
     expect(rewrite.request.system).toContain("configured per-section or per-item syllable range");
-    expect(rewrite.request.system).toContain("discouraged, death, and certainty term");
+    expect(rewrite.request.system).toContain(
+      "except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context",
+    );
+    expect(rewrite.request.system).toContain("Tên cung như Phu Thê và Tử Tức");
     expect(rewrite.request.system).toContain("no Han/Nom ideograph");
     expect(rewrite.request.system).toContain("every supplied finding");
   });

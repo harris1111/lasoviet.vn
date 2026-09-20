@@ -130,17 +130,27 @@ function properNamesInFacts(
   return names;
 }
 
+const PALACE_NAME_CONTEXT_PATTERNS = [
+  /\bcung\s*$/iu,
+  /\btam phương\b[^.!?;:\n]{0,64}\b(?:gồm|là|có)\s*$/iu,
+  /\btam hợp\s*$/iu,
+  /\bđối cung\s*$/iu,
+  /\bxung chiếu(?:\s+(?:đến|tới|với))?\s*$/iu,
+  /\b(?:chiếu về|liên cung)\s*$/iu,
+];
+
 function hasDiscouragedTerm(text: string, term: string): boolean {
   const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu");
   const normalizedTerm = term.normalize("NFC").toLocaleLowerCase("vi-VN");
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(text)) !== null) {
-    if (
-      (normalizedTerm === "phu thê" || normalizedTerm === "tử tức") &&
-      /cung\s+$/iu.test(text.slice(0, match.index))
-    ) {
-      continue;
+    if (normalizedTerm === "phu thê" || normalizedTerm === "tử tức") {
+      const contextStart = Math.max(0, match.index - 96);
+      const context = text.slice(contextStart, match.index);
+      if (PALACE_NAME_CONTEXT_PATTERNS.some((contextPattern) => contextPattern.test(context))) {
+        continue;
+      }
     }
     return true;
   }

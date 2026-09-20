@@ -248,10 +248,24 @@ describe("comprehensive V4 section quality", () => {
     expectFinding(gate({ text: `${prose(610)} ${term}` }), "CERTAINTY");
   });
 
-  it("permits Phu Thê and Tử Tức only as immediate palace proper names", () => {
-    expect(gate({ text: `${prose(610)} cung Phu Thê và cung Tử Tức` }).ok).toBe(true);
-    expectFinding(gate({ text: `${prose(610)} Phu Thê` }), "DISCOURAGED_TERM");
-    expectFinding(gate({ text: `${prose(610)} Tử Tức` }), "DISCOURAGED_TERM");
+  it.each([
+    "cung Phu Thê và cung Tử Tức",
+    "tam phương của cung Thiên Di gồm Phu Thê và Phúc Đức",
+    "đối cung Phu Thê có liên hệ với trục Mệnh",
+    "xung chiếu đến Tử Tức cần được đọc cùng các sao liên quan",
+  ])("permits %s as a contextual palace name", (palaceReference) => {
+    expect(gate({ text: `${prose(610)} ${palaceReference}` }).ok).toBe(true);
+  });
+
+  it.each([
+    "Phu Thê",
+    "Tử Tức",
+    "mối quan hệ Phu Thê được nhắc đến trong lời khuyên",
+    "trục Mệnh cần cân nhắc mối quan hệ Phu Thê",
+    "đối với Tử Tức, hãy chuẩn bị phương án phù hợp",
+    "cung này được khuyên nên tránh Phu Thê",
+  ])("rejects ambiguous discouraged palace phrase: %s", (phrase) => {
+    expectFinding(gate({ text: `${prose(610)} ${phrase}` }), "DISCOURAGED_TERM");
   });
 
   it("enforces proper-name density and allows qualified preparation framing", () => {

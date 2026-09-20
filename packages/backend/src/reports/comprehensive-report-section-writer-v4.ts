@@ -452,6 +452,7 @@ const SECTION_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩ
 Viết đúng một phần báo cáo tiếng Việt bằng JSON theo schema được cung cấp, chỉ dựa trên facts, knowledgePacks và allowedEvidenceKeys.
 Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tính toán hoặc truy xuất. Không dùng khối tuyên bố miễn trừ trách nhiệm.
 Không bịa sự kiện tương lai cụ thể, không dùng khẳng định định mệnh về tai nạn, tử vong, phá sản hoặc phản bội.
+Tên cung như Phu Thê và Tử Tức được phép khi đang mô tả cấu trúc lá số một cách thực tế; hãy viết kèm ngữ cảnh cung, tam phương, đối cung hoặc xung chiếu, không dùng chúng như nhãn diễn giải rời.
 Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, và không lặp lại lời khuyên/cảnh báo.
  Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
 readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
@@ -484,6 +485,10 @@ function acceptanceContract(
     },
     forbiddenTerms: {
       discouraged: [...quality.discouragedTerms],
+      contextualPalaceNameExceptions: {
+        terms: ["Phu Thê", "Tử Tức"],
+        rule: "Allow only explicit palace-name references in chart-structure context; reject ambiguous interpretive usage.",
+      },
       death: [...quality.deathTerms],
       certainty: [...quality.certaintyPhrases],
     },
@@ -639,7 +644,7 @@ export async function writeComprehensiveReportSectionV4(
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
     system: contract
       ? `${SECTION_SYSTEM_PROMPT}
-Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term; emit no Han/Nom ideograph or English brightness descriptor; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term, except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context; emit no Han/Nom ideograph or English brightness descriptor; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
 ${v4_1_2LengthInstruction(input, contract)}
 ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
