@@ -50,6 +50,12 @@ describe("OpenAI-compatible adapter", () => {
       ok: true,
       value: { value: { value: "sentinel" }, providerId: "9router-an", modelId: "synthetic-model" },
     });
+
+    const body = JSON.parse(String(calls[0]?.body)) as {
+      messages: Array<{ role: string; content: string }>;
+    };
+    expect(body.messages[0]?.content).toContain("Authoritative output contract");
+    expect(body.messages[0]?.content).toContain('"value":{"type":"string","const":"sentinel"');
   });
 
   it("requires a cost recorder for production report generation and fails closed before fetch", async () => {
