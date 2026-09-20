@@ -14,7 +14,7 @@ Nguồn sự thật đầy đủ: `docs/15-collaboration-branch-workflow.md`. T�
   concept, brand, or business-model question read only: the founder-decision
   tracker (`docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`,
   the only binding register), `MASTER_CONCEPT.md`, `docs/11`, `docs/13`,
-  `docs/14`, `docs/19`, `docs/20`, `docs/22` (art direction), `docs/23` (điều kiện index), `docs/15`. **Never read `docs/archive/`**
+  `docs/14`, `docs/19`, `docs/20`, `docs/22` (art direction), `docs/23` (điều kiện index), `docs/24` (token màu + light theme), `docs/15`. **Never read `docs/archive/`**
   unless the founder names an exact file there. See `AGENTS.md` §1.1.
 - Vai trò: **Harris/Product** ("anh") — chốt concept, brand, sitemap, UX, acceptance criteria. **An/Development** — code, test, sửa theo review.
 - Hai branch làm việc cố định:

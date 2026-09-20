@@ -27,6 +27,9 @@ supersedes:
 > một nguồn sáng xiên, vàng bắt rìa — mô tả **theme sơn mài**. Khi light theme
 > được build, nó cần art direction riêng, không suy ra bằng cách đảo màu.
 >
+> Hệ token màu đầy đủ cho cả hai theme, đã đo WCAG 2.2 AA và sẵn sàng build:
+> `docs/24-light-theme-color-spec.md`.
+>
 > `docs/13` vẫn quản: chiến lược thương hiệu, khách hàng, giọng và messaging,
 > **typography (§5.3)**, **grid/spacing/shape (§5.4)**, iconography (§5.6),
 > nguyên tắc data-viz (§5.7), **motion (§5.8)**, nguyên tắc UX, trust/privacy,

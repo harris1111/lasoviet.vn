@@ -14,6 +14,7 @@ order:
 4. Founder-approved experience sources: `docs/13-brand-experience-guideline.md`,
    `docs/14-sitemap-seo-wireframes.md`, `docs/19-sitemap-v2-discipline-pages.md`,
    `docs/22-art-direction.md`, `docs/23-index-eligibility-gate.md`,
+   `docs/24-light-theme-color-spec.md`,
    `docs/11-discipline-expansion-specs.md`,
    `docs/20-deep-research-ta-social-listening-handoff.md`, and
    `docs/15-collaboration-branch-workflow.md`.
@@ -31,6 +32,7 @@ business-model question, read only:
 | Concept and business model | `MASTER_CONCEPT.md` |
 | Brand, voice, UX principles | `docs/13-brand-experience-guideline.md` |
 | Visual system: color, surfaces, imagery | `docs/22-art-direction.md` + `apps/web/src/styles/tokens.css` (values). Supersedes `docs/13` §5.1/5.2/5.5. §0 image-naming rule is mandatory |
+| Colour tokens, contrast, the planned light theme | `docs/24-light-theme-color-spec.md` (build-ready, measured) |
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` |
 | Navigation and discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` |
 | Disciplines in scope | `docs/11-discipline-expansion-specs.md` |
