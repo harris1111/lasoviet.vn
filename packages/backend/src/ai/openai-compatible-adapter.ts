@@ -259,6 +259,9 @@ export function createOpenAiCompatibleAdapter(
           ],
           stream: false,
           max_tokens: request.maxOutputTokens,
+          ...(providerId === "openrouter"
+            ? { reasoning: { effort: "none" } }
+            : {}),
           response_format: {
             type: "json_schema",
             json_schema: {
