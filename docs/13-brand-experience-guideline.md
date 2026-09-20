@@ -304,13 +304,38 @@ Giữ nguyên vì đây là quyết định đã chốt trong repo và có categ
 
 # 05. Visual identity system
 
+> ## ⚠️ MỤC 05 ĐÃ BỊ THAY THẾ MỘT PHẦN — ĐỌC KỸ TRƯỚC KHI DÙNG
+>
+> Sản phẩm đang chạy hệ **sơn mài sẫm** (`apps/web/src/styles/tokens.css`:
+> `--lacquer-900 #0f0d0a`, `--gold-500 #c9a44d`, `--son #ce5b45`). Hệ
+> **Giấy — Mực — Son** mô tả dưới đây **không tồn tại trong code**: không có
+> token Paper/Ink/Cinnabar nào trong sản phẩm.
+>
+> **Đã chết — dùng `docs/22-art-direction.md` và `tokens.css` thay thế:**
+> §5.1 (visual idea), §5.2 (color system), §5.5 (imagery), dòng "Palette series"
+> trong §5.7, và dòng "Dark mode: không thuộc MVP" trong §5.8.
+>
+> **Vẫn còn hiệu lực, khớp đúng code:** §5.3 (typography — Source Serif 4 +
+> Be Vietnam Pro), §5.4 (grid, spacing 4→96px, radius 4/8/12, touch target
+> 44px), §5.6 (iconography), §5.7 trừ dòng palette, §5.8 phần motion
+> (120/180/240ms).
+>
+> Toàn bộ các mục 01–04 và 06–08 của guideline này không bị ảnh hưởng.
+
 ## 5.1 Visual idea
+
+> **ĐÃ THAY THẾ** bởi `docs/22-art-direction.md` §1 ("Tàng thư các dát vàng").
+> Giữ lại làm hồ sơ lịch sử.
 
 Giấy — Mực — Son. Một ấn bản tri thức được biên tập kỹ, không phải sân khấu bói toán.
 
 Khoảng trắng và typography là nhận diện chính. Navy/mực dựng cấu trúc. Cinnabar/son hoạt động như dấu triện: ít nhưng có lực. Texture và chi tiết văn hóa chỉ là lớp phụ, không được cạnh tranh với nội dung.
 
 ## 5.2 Color system
+
+> **ĐÃ THAY THẾ.** Nguồn màu duy nhất là
+> `apps/web/src/styles/tokens.css`; xem `docs/22-art-direction.md` §2 cho
+> ràng buộc hình ảnh. Bảng dưới đây không khớp sản phẩm.
 
 | **Token**      | **HEX**  | **Vai trò**                                                   |
 |----------------|----------|---------------------------------------------------------------|
@@ -384,6 +409,10 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 ## 5.5 Imagery & illustration
 
+> **ĐÃ THAY THẾ** bởi `docs/22-art-direction.md` §2 (nền sẫm, một nguồn sáng
+> xiên, vàng–son). Quy tắc đặt tên file ảnh SEO ở `docs/22` §0 là bắt buộc.
+> Danh sách "Tránh" dưới đây vẫn hữu ích và đã được `docs/22` kế thừa.
+
 - **Ưu tiên:** line-art mực navy, một điểm son; tư liệu/sách/bản khắc có nguồn; ảnh đời sống đương đại tự nhiên; texture giấy 2–4%.
 
 - **Bắt buộc:** asset văn hóa phải có nguồn gốc và context; icon chuyên ngành được content expert kiểm duyệt.
@@ -410,7 +439,7 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 - Cung cấp view bảng/list tương đương để hỗ trợ accessibility và chia sẻ.
 
-- Palette series: \#1B3A57, \#A63D2F, \#467A6B, \#8A622C, \#66578A, \#4E7395, \#875566; luôn bổ sung marker/nét/label.
+- ~~Palette series: \#1B3A57, \#A63D2F, \#467A6B, \#8A622C, \#66578A, \#4E7395, \#875566~~ — **đã thay thế**, dùng thang `--gold-*` / `--pearl-*` / `--son` trong `tokens.css`. Nguyên tắc "luôn bổ sung marker/nét/label" vẫn bắt buộc.
 
 ## 5.8 Motion & dark mode
 
@@ -418,7 +447,7 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 - **Không dùng:** parallax, sao bay, lá số xoay, “mở cổng vận mệnh”, shimmer mạnh.
 
-- **Dark mode:** không thuộc MVP. Chỉ làm khi có dữ liệu đọc ban đêm; không auto-invert, cần palette được thiết kế và test riêng.
+- ~~**Dark mode:** không thuộc MVP.~~ **Đã thay thế.** Sản phẩm mặc định là giao diện sẫm (sơn mài). Không có chế độ sáng. Nguyên tắc "không auto-invert" vẫn giữ.
 
 # 06. Product experience principles
 

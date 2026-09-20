@@ -4,15 +4,27 @@ version: 1.0
 status: founder-approved
 date: 2026-09-20
 source_of_truth: true
-scope: hệ thống hình ảnh và quy tắc đặt tên file ảnh
+scope: hệ thống thị giác (màu, bề mặt, hình ảnh) và quy tắc đặt tên file ảnh
+supersedes:
+  - "docs/13-brand-experience-guideline.md §5.1, §5.2, §5.5, dòng palette series trong §5.7, dòng dark mode trong §5.8"
+
 ---
 
 # Lá Số Việt — Art Direction cho hình ảnh
 
 > **Trạng thái: đã được founder duyệt (2026-09-20).** Đây là nguồn chốt cho
-> **hệ thống hình ảnh**, thay thế phần hình ảnh trong
-> `docs/13-brand-experience-guideline.md`. Mọi phần brand khác (giọng, typography,
-> màu, nguyên tắc UX) vẫn do `docs/13` quy định.
+> **hệ thống thị giác** — ý niệm hình ảnh, màu, bề mặt, ánh sáng, và hình ảnh —
+> thay thế `docs/13-brand-experience-guideline.md` §5.1, §5.2, §5.5, dòng
+> palette series §5.7 và dòng dark mode §5.8.
+>
+> Giá trị màu thực thi nằm ở `apps/web/src/styles/tokens.css`
+> (`--lacquer-*`, `--gold-*`, `--son`, `--pearl-*`). File này giải thích *vì sao*;
+> `tokens.css` là *nguồn giá trị*. Khi hai bên lệch nhau, `tokens.css` thắng.
+>
+> `docs/13` vẫn quản: chiến lược thương hiệu, khách hàng, giọng và messaging,
+> **typography (§5.3)**, **grid/spacing/shape (§5.4)**, iconography (§5.6),
+> nguyên tắc data-viz (§5.7), **motion (§5.8)**, nguyên tắc UX, trust/privacy,
+> và component/copy recipes.
 >
 > §0 (quy tắc đặt tên file ảnh SEO) là **bắt buộc**, áp dụng cho mọi ảnh, mọi
 > trang, không có ngoại lệ.
@@ -276,9 +288,15 @@ khóa · cân · check · mũi tên · cộng · chevron · menu · sao.
 
 ## 6. Việc còn treo
 
-- [ ] Logo — anh tự làm, sau đó thay wordmark `Lá Số Việt` + icon thiên bàn ở header/footer.
-- [ ] Cập nhật `docs/13-brand-experience-guideline.md` §5.2/§5.5/§5.8 sang hệ sơn mài.
-- [ ] Ghi entry decision log cho việc đổi LOCKED palette.
+- [x] ~~Logo~~ — **xong.** Logomark Colophon v5 đã chốt và xuất đủ bộ trong `brand/logo/`.
+- [x] ~~Cập nhật `docs/13` §5.2/§5.5/§5.8 sang hệ sơn mài~~ — **xong 2026-09-20**
+      bằng cách đánh dấu các mục đó là đã bị thay thế và trỏ về file này +
+      `tokens.css`, thay vì viết lại nội dung trong `docs/13`.
+- [ ] **CÒN TREO — cần founder quyết:** việc đổi từ palette `LOCKED` Giấy–Mực–Son
+      sang hệ sơn mài chưa bao giờ được ghi thành một Founder Decision. Sản phẩm
+      đã ship theo hệ sơn mài, nhưng không có `FD-xxx` nào cho phép đổi một
+      quyết định gắn nhãn `LOCKED`. Cần một entry trong
+      `rules-and-decisions-tracker.md` để khép lại.
 - [ ] Kiểm contrast thực tế sau khi ảnh thật vào chỗ (ảnh sáng hơn dự kiến sẽ phá contrast chữ hero).
 - [ ] **Mới (2026-09-04, xem `docs/19` §5.3–5.4):** ảnh hero/homepage hiện tại
       code cứng theo Tử Vi/Đông phương (sách tàng thư, la kinh) — cần 1 đợt ảnh

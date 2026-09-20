@@ -16,7 +16,7 @@ Read a file here only when the founder names that exact file and asks for it.
 |---|---|
 | What has the founder actually decided? | `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md` (FD-001…FD-085) — **the only binding decision register** |
 | Concept, positioning, brand voice, UX principles | `docs/13-brand-experience-guideline.md` (v1.1, `source_of_truth: true`) |
-| Imagery system, image file naming | `docs/22-art-direction.md` (§0 naming rule is mandatory) |
+| Visual system: color, surfaces, imagery | `docs/22-art-direction.md` + `apps/web/src/styles/tokens.css` |
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` (v1.2) |
 | Navigation and per-discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` (v1.1) |
 | Which disciplines are in scope | `docs/11-discipline-expansion-specs.md` |

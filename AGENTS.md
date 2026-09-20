@@ -30,7 +30,7 @@ business-model question, read only:
 | What the founder decided | the founder-decision tracker (item 1 above) — the only binding register |
 | Concept and business model | `MASTER_CONCEPT.md` |
 | Brand, voice, UX principles | `docs/13-brand-experience-guideline.md` |
-| Imagery system, image file naming | `docs/22-art-direction.md` (§0 naming rule is mandatory) |
+| Visual system: color, surfaces, imagery | `docs/22-art-direction.md` + `apps/web/src/styles/tokens.css` (values). Supersedes `docs/13` §5.1/5.2/5.5. §0 image-naming rule is mandatory |
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` |
 | Navigation and discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` |
 | Disciplines in scope | `docs/11-discipline-expansion-specs.md` |

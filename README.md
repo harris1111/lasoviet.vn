@@ -16,7 +16,7 @@ This file is a pointer index only. It states no decisions of its own.
 |---|---|
 | Concept and business model | `MASTER_CONCEPT.md` |
 | Brand, voice, UX principles | `docs/13-brand-experience-guideline.md` |
-| Imagery and image file naming | `docs/22-art-direction.md` |
+| Hệ thị giác: màu, bề mặt, hình ảnh | `docs/22-art-direction.md` (giá trị màu: `apps/web/src/styles/tokens.css`) |
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` |
 | Navigation and discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` |
 | Disciplines in scope | `docs/11-discipline-expansion-specs.md` |
