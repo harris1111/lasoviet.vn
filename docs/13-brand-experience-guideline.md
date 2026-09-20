@@ -311,9 +311,14 @@ Giữ nguyên vì đây là quyết định đã chốt trong repo và có categ
 > **Giấy — Mực — Son** mô tả dưới đây **không tồn tại trong code**: không có
 > token Paper/Ink/Cinnabar nào trong sản phẩm.
 >
-> **Đã chết — dùng `docs/22-art-direction.md` và `tokens.css` thay thế:**
+> **Không còn là mặc định — dùng `docs/22-art-direction.md` và `tokens.css`:**
 > §5.1 (visual idea), §5.2 (color system), §5.5 (imagery), dòng "Palette series"
 > trong §5.7, và dòng "Dark mode: không thuộc MVP" trong §5.8.
+>
+> **§5.2 KHÔNG bị bỏ đi.** Founder đã chốt (2026-09-20) sẽ build thêm một
+> **light theme**. Bảng màu Giấy–Mực–Son dưới đây là **điểm xuất phát đã được
+> duyệt cho theme sáng đó** — nó vốn được thiết kế và đo tương phản trên nền
+> sáng, đúng ngữ cảnh cần dùng. Đừng xoá.
 >
 > **Vẫn còn hiệu lực, khớp đúng code:** §5.3 (typography — Source Serif 4 +
 > Be Vietnam Pro), §5.4 (grid, spacing 4→96px, radius 4/8/12, touch target
@@ -333,9 +338,14 @@ Khoảng trắng và typography là nhận diện chính. Navy/mực dựng cấ
 
 ## 5.2 Color system
 
-> **ĐÃ THAY THẾ.** Nguồn màu duy nhất là
-> `apps/web/src/styles/tokens.css`; xem `docs/22-art-direction.md` §2 cho
-> ràng buộc hình ảnh. Bảng dưới đây không khớp sản phẩm.
+> **KHÔNG CÒN LÀ THEME MẶC ĐỊNH — NHƯNG GIỮ LẠI.**
+>
+> Theme mặc định đang chạy là hệ sơn mài trong
+> `apps/web/src/styles/tokens.css`. Bảng dưới đây không mô tả sản phẩm hiện tại.
+>
+> Tuy nhiên đây là **bảng màu xuất phát đã duyệt cho light theme sẽ build**
+> (founder chốt 2026-09-20). Các tỷ lệ tương phản ghi ở đây đo trên nền
+> Paper 100 nên **chỉ có giá trị cho theme sáng**, không áp được sang nền tối.
 
 | **Token**      | **HEX**  | **Vai trò**                                                   |
 |----------------|----------|---------------------------------------------------------------|
@@ -447,7 +457,7 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 - **Không dùng:** parallax, sao bay, lá số xoay, “mở cổng vận mệnh”, shimmer mạnh.
 
-- ~~**Dark mode:** không thuộc MVP.~~ **Đã thay thế.** Sản phẩm mặc định là giao diện sẫm (sơn mài). Không có chế độ sáng. Nguyên tắc "không auto-invert" vẫn giữ.
+- ~~**Dark mode:** không thuộc MVP.~~ **Đã thay thế.** Sản phẩm ship **dark-first**: hệ sơn mài là theme mặc định. Một **light theme** đã được chốt sẽ build (thời điểm do founder quyết), lấy §5.2 làm điểm xuất phát. Nguyên tắc "không auto-invert, cần palette được thiết kế và test riêng" vẫn giữ nguyên hiệu lực và nay là yêu cầu bắt buộc với light theme.
 
 # 06. Product experience principles
 

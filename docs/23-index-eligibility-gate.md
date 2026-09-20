@@ -54,6 +54,40 @@ sang toàn bộ domain, kể cả các trang Tử Vi đang làm ra tiền.
 | Route cũ, 301 | 7 | `archived` |
 | Trang riêng tư (tài khoản, thanh toán, admin) | 15 | `private` |
 
+## 2.5 Luật nội dung cho trang chưa có engine
+
+**Chốt 2026-09-20.** Trang nào **chưa có engine tính thật và chưa có spec** thì
+nội dung trên live phải ở dạng **"Sắp ra mắt"**:
+
+- Gắn nhãn "Sắp ra mắt" rõ ràng ở hero.
+- Giới thiệu phương pháp và hồ sơ **minh hoạ**, kèm câu nói rõ đây không phải
+  kết quả tính từ dữ liệu thật.
+- **Không** form nhập liệu giả, **không** nút bấm ra kết quả bịa,
+  **không** đếm ngược hay khan hiếm giả.
+- Điều hướng người dùng sang thứ đang chạy thật (Tử Vi) thay vì để họ mắc kẹt.
+
+Luật này giữ trang trung thực và đúng D-024. Nó cũng là lý do các trang đó
+phải ở `noindex`: một trang "Sắp ra mắt" không có gì để xếp hạng.
+
+### Ngoại lệ — hai trang đã chạy thật, không được gắn "Sắp ra mắt"
+
+Kiểm tra code ngày 2026-09-20 cho thấy hai trang trong nhóm 12 **đã hoạt động
+đầy đủ**, không phải placeholder:
+
+| Trang | Bằng chứng |
+|---|---|
+| `/12-con-giap` | `zodiac-preview.tsx:40` có `computeZodiac(year)` tính thật (`year - 1984`, mod 12), đủ dữ liệu 12 địa chi, chọn năm tương tác |
+| `/giai-ma-giac-mo` | `dream-symbol-preview.tsx` có tìm kiếm + lọc theo nhóm trên từ điển biểu tượng |
+
+Gắn "Sắp ra mắt" lên hai trang này là **nói dối theo chiều ngược lại** và phá
+tính năng đang chạy. Chúng vẫn ở `noindex` vì chưa đạt **điều kiện 5** (đủ độ
+sâu để xếp hạng — từ điển giấc mơ hiện mới có 10 mục), không phải vì thiếu
+engine.
+
+Bốn tiện ích còn lại (`/boi-bai`, `/lich-am`, `/ngay-tot`,
+`/phong-thuy/huong-nha`) và bốn bộ môn (`/bat-tu`, `/kinh-dich`, `/chiem-tinh`,
+`/than-so-hoc`) đều đã gắn nhãn "Sắp ra mắt" đúng luật này.
+
 ## 3. Năm điều kiện để bật index
 
 Một trang bộ môn chỉ được chuyển `live_noindex` → `live_indexable` khi **đạt
