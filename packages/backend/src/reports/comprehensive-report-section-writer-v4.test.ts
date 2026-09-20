@@ -498,6 +498,24 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(initial.payload.acceptanceContract).toMatchObject({
       scope: "section-and-item-addressed",
       suppliedFindings: expect.stringContaining("every supplied finding"),
+      sectionLength: {
+        appliesPerItem: false,
+        minimumSyllables: 600,
+        targetMinimumSyllables: 700,
+        targetMaximumSyllables: 900,
+      },
+      forbiddenTerms: {
+        discouraged: expect.arrayContaining(["khí chất", "an nhàn"]),
+        death: expect.arrayContaining(["tử vong", "sát phu"]),
+        certainty: expect.arrayContaining(["chắc chắn", "không tránh khỏi"]),
+      },
+      localeIntegrity: {
+        language: "vi",
+        noHanIdeographs: true,
+        noNomIdeographs: true,
+        noEnglishBrightnessDescriptors: true,
+        allowedBrightnessLabels: ["Miếu", "Vượng", "Đắc", "Bình", "Hãm", "Nhược"],
+      },
       properNameDensity: {
         configuredProperNames: expect.arrayContaining(["Mệnh", "Tử Vi"]),
         maximumPer100Syllables: 8,
@@ -508,14 +526,13 @@ describe("writeComprehensiveReportSectionV4", () => {
       },
       noNewQualityViolations: true,
     });
-    expect(initial.payload.acceptanceContract.discouragedTerms).toEqual(
-      expect.arrayContaining(["khí chất", "an nhàn"]),
-    );
     expect(rewrite.payload.rewrite.findings).toEqual([
       { itemKey: "coreAxis", code: "DISCOURAGED_TERM", note: "Replace khí chất." },
       { itemKey: "coreAxis", code: "EVIDENCE_ANCHORS", note: "Add chart anchors." },
     ]);
-    expect(rewrite.request.system).toContain("configured discouraged term");
+    expect(rewrite.request.system).toContain("configured per-section or per-item syllable range");
+    expect(rewrite.request.system).toContain("discouraged, death, and certainty term");
+    expect(rewrite.request.system).toContain("no Han/Nom ideograph");
     expect(rewrite.request.system).toContain("every supplied finding");
   });
 

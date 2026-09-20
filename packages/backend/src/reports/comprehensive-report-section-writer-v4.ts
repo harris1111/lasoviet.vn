@@ -455,16 +455,44 @@ Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, v
  Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
 readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
 
-function acceptanceContract(input: ComprehensiveReportSectionWriterV4Input) {
+function acceptanceContract(
+  input: ComprehensiveReportSectionWriterV4Input,
+  sectionKind: SectionScope["kind"],
+) {
   if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
   const quality = resolveZiweiReportQualityConfig(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
     REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   );
+  const threshold = resolveZiweiReportQualitySectionThreshold(
+    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    sectionKind,
+  );
   return {
     scope: "section-and-item-addressed",
     suppliedFindings: "Correct every supplied finding for its exact section or itemKey.",
-    discouragedTerms: [...quality.discouragedTerms],
+    sectionLength: {
+      appliesPerItem:
+        input.sectionKey === "keyConfigurations" ||
+        input.sectionKey === "practicalDirection" ||
+        input.sectionKey === "birthTimeSensitivity",
+      minimumSyllables: threshold.minimumSyllables,
+      targetMinimumSyllables: threshold.targetMinimumSyllables,
+      targetMaximumSyllables: threshold.targetMaximumSyllables,
+    },
+    forbiddenTerms: {
+      discouraged: [...quality.discouragedTerms],
+      death: [...quality.deathTerms],
+      certainty: [...quality.certaintyPhrases],
+    },
+    localeIntegrity: {
+      language: "vi",
+      noHanIdeographs: true,
+      noNomIdeographs: true,
+      noEnglishBrightnessDescriptors: true,
+      allowedBrightnessLabels: Object.values(BRIGHTNESS_LABELS_VI),
+    },
     properNameDensity: {
       configuredProperNames: [...quality.properNames],
       maximumPer100Syllables: quality.maxProperNamesPer100Syllables,
@@ -512,7 +540,10 @@ export async function writeComprehensiveReportSectionV4(
     ...input,
     reportConfigVersion,
   });
-  const contract = acceptanceContract({ ...input, reportConfigVersion });
+  const contract = acceptanceContract(
+    { ...input, reportConfigVersion },
+    scope.kind,
+  );
   const maxOutputTokens = isV4
     ? ziweiComprehensiveReportQualityV1.sections[
       scope.kind as keyof typeof ziweiComprehensiveReportQualityV1.sections
@@ -529,7 +560,7 @@ export async function writeComprehensiveReportSectionV4(
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
     system: contract
       ? `${SECTION_SYSTEM_PROMPT}
-Acceptance contract: every supplied finding must be corrected at its exact section/item address; avoid every configured discouraged term; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term; emit no Han/Nom ideograph or English brightness descriptor; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
 ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
       : requirements
