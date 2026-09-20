@@ -1,7 +1,25 @@
-# Lá Số Việt — Art Direction cho hình ảnh (bản làm việc)
+---
+title: Lá Số Việt — Art Direction (hệ thống hình ảnh)
+version: 1.0
+status: founder-approved
+date: 2026-09-20
+source_of_truth: true
+scope: hệ thống hình ảnh và quy tắc đặt tên file ảnh
+---
 
-> Trạng thái: **draft**, đi kèm bản Claude Design "Trang chủ Lá Số Việt" (hệ sơn mài, vòng 3).
-> Chưa cập nhật vào `docs/13-brand-experience-guideline.md` — chờ founder duyệt hướng hình.
+# Lá Số Việt — Art Direction cho hình ảnh
+
+> **Trạng thái: đã được founder duyệt (2026-09-20).** Đây là nguồn chốt cho
+> **hệ thống hình ảnh**, thay thế phần hình ảnh trong
+> `docs/13-brand-experience-guideline.md`. Mọi phần brand khác (giọng, typography,
+> màu, nguyên tắc UX) vẫn do `docs/13` quy định.
+>
+> §0 (quy tắc đặt tên file ảnh SEO) là **bắt buộc**, áp dụng cho mọi ảnh, mọi
+> trang, không có ngoại lệ.
+>
+> Trước 2026-09-20 file này nằm ở `docs/22-art-direction.md` và mang nhãn
+> `draft`, trong khi `docs/19` đã coi nó là nguồn chốt. Mâu thuẫn đó đã được
+> founder giải quyết bằng cách nâng file lên `docs/`.
 
 ---
 

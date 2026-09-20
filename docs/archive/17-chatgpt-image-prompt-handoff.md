@@ -34,7 +34,7 @@ Bạn đã làm đúng việc này cho trang chủ rồi. Lần này lặp lại
 | 1 | `prototype/homepage/image-prompts-homepage.md` | **Khuôn mẫu của chính bạn.** Bám sát cấu trúc này: creative thesis, image map table, prompt hoàn chỉnh, ma trận Địa Chi, strict exclusions, filename + alt |
 | 2 | `docs/16-claude-design-page-build-handoff.md` | Chín khối trang Claude Design đang dựng — mỗi khối đã ghi sẵn mã ảnh và tỷ lệ cần cho trang đó |
 | 3 | `docs/14-sitemap-seo-wireframes.md` §6 | Wireframe chi tiết từng trang — để hiểu ảnh nằm cạnh nội dung gì, cần chừa copy-safe zone ở đâu |
-| 4 | `prototype/art-direction.md` | Art direction gốc + **quy tắc đặt tên file ảnh bắt buộc** (§0) |
+| 4 | `docs/22-art-direction.md` | Art direction gốc + **quy tắc đặt tên file ảnh bắt buộc** (§0) |
 | 5 | `docs/13-brand-experience-guideline.md` §5.5, §7 | Ràng buộc hình ảnh và trust/safety |
 | 6 | `prototype/homepage/homepage.html` | Xem ảnh trang chủ đang được đặt vào layout thế nào (`<picture>` desktop/mobile, `object-fit`, `object-position`) |
 

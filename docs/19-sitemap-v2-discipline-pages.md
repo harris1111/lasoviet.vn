@@ -9,8 +9,8 @@ supersedes:
   - "docs/14-sitemap-seo-wireframes.md §2 (Navigation, mega-menu model) and the sitemap-diagram framing in §3.1; the specific primary-entry slugs '/gieo-que-kinh-dich' and '/ban-do-sao' in §3.4.2–3.4.3 are replaced by '/kinh-dich' and '/chiem-tinh' as flagship URLs; '/la-so-tu-vi' is proposed for rename to '/tu-vi' (§2, not yet executed). §3.2–3.3 route registry (including the private `/tao-la-so/**` and `/la-so/{opaque_id}` wizard/result routes, reused as-is by §3 below), §3.4's per-discipline knowledge/commercial child-route tables, §3.5 entity-page gating, and the route-status system (§3.4.6) are NOT superseded."
 depends_on:
   - docs/11-discipline-expansion-specs.md
-  - docs/13-brand-experience-guideline.md (superseded on visual system by prototype/art-direction.md)
-  - prototype/art-direction.md
+  - docs/13-brand-experience-guideline.md (superseded on visual system by docs/22-art-direction.md)
+  - docs/22-art-direction.md
   - prototype/homepage/homepage.html (current build)
 changelog:
   - "v1.0 (2026-09-04): first version — flat 8-item nav, per-discipline intake forms"
@@ -174,7 +174,7 @@ Each of the four birth-profile flagship pages should surface, once a profile
 exists, direct links to view the *other* birth-profile disciplines' reading
 from the same profile ("Bạn cũng có lá số Bát Tự từ hồ sơ này") — this is the
 "một hồ sơ, nhiều lăng kính" mechanism already written into the homepage
-content (`content-proposal.md` Block 5), now wired through to the actual
+content (`docs/archive/homepage-content-proposal-v5-2026-09-04.md` Block 5, archived), now wired through to the actual
 discipline pages instead of stopping at homepage teaser cards.
 
 ## 4. Per-discipline flagship page anatomy
@@ -223,7 +223,7 @@ standalone.
 
 Unchanged from v1.0 — founder-approved, no revision needed this round.
 
-Current visual system of record is `prototype/art-direction.md` ("Tàng thư dát
+Current visual system of record is `docs/22-art-direction.md` ("Tàng thư dát
 vàng" — dark lacquer, gold leaf, cinnabar, museum-artifact macro photography),
 which supersedes the bright Paper-Ink-Cinnabar system described in
 `docs/13-brand-experience-guideline.md`. `docs/13` §5.2/5.5/5.8 still need a

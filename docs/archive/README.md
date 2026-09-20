@@ -16,6 +16,7 @@ Read a file here only when the founder names that exact file and asks for it.
 |---|---|
 | What has the founder actually decided? | `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md` (FD-001…FD-085) — **the only binding decision register** |
 | Concept, positioning, brand voice, UX principles | `docs/13-brand-experience-guideline.md` (v1.1, `source_of_truth: true`) |
+| Imagery system, image file naming | `docs/22-art-direction.md` (§0 naming rule is mandatory) |
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` (v1.2) |
 | Navigation and per-discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` (v1.1) |
 | Which disciplines are in scope | `docs/11-discipline-expansion-specs.md` |
@@ -45,3 +46,11 @@ reason. Do not treat them as current decision sources; the tracker governs.
 | `2026-09-04-project-status-and-next-steps.md` | Superseded by the tracker and the current phase files |
 | `AGENT_HANDOFF.md`, `NEXT_AGENT_PROMPT.md` | Stale Phase 04 / Windows-worktree snapshots |
 | `README-concept-package-2026-08-31.md` | Root `README.md` (rewritten as a pointer index) |
+| `prototype-logo/logo-concepts-v2.md` | Rejected by the founder ("quá kỹ thuật, kém sang") |
+| `prototype-logo/logo-concepts-v3.md` | Superseded by the locked Colophon v5 mark in `brand/logo/` |
+| `prototype-logo/image-prompts-logo.md` | The file itself recorded that this direction was dropped |
+| `homepage-content-proposal-v5-2026-09-04.md` | Overtaken by the shipped homepage copy in `content/public/{vi,en}/pages/home.mdx` |
+| `prototype-logo/logo-concepts-v2.md` | Rejected by the founder ("quá kỹ thuật, kém sang") |
+| `prototype-logo/logo-concepts-v3.md` | Superseded by the locked Colophon v5 mark in `brand/logo/` |
+| `prototype-logo/image-prompts-logo.md` | The file itself recorded that this direction was dropped |
+| `homepage-content-proposal-v5-2026-09-04.md` | Overtaken by the shipped homepage copy in `content/public/{vi,en}/pages/home.mdx` |

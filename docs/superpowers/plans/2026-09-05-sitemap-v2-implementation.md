@@ -18,7 +18,7 @@
 |---|---|---|
 | **Phase 1 (this plan)** | Rename Tử Vi/wizard routes, fix internal links, update homepage nav + services section, create 5 "Sắp ra mắt" stub pages, add the discipline-page header variant | Direct file edits in this repo — no design tool needed (see Architecture above) |
 | **Phase 2 (separate handoff doc, not this plan)** | Full bespoke pages for `/bat-tu`, `/kinh-dich`, `/chiem-tinh`, `/than-so-hoc`, `/cong-cu-mien-phi` + its 7 children, each with real `_ds`-integrated components and the artifact photography from `docs/19` §6.2 | Claude Design handoff document (`docs/20-...`, matching the `docs/16` pattern) — these need the design tool's component/token generation, the same way all prior full pages were built |
-| **Phase 3 (separate, content/asset work)** | New homepage hero imagery per `docs/19` §6.3, per-discipline artifact photography | Image generation workflow per `prototype/art-direction.md`, then a design-tool pass to place them |
+| **Phase 3 (separate, content/asset work)** | New homepage hero imagery per `docs/19` §6.3, per-discipline artifact photography | Image generation workflow per `docs/22-art-direction.md`, then a design-tool pass to place them |
 
 Phase 1 is self-contained and unblocks Phase 2 (Phase 2's pages need real URLs and correct nav to link into, which Phase 1 creates). This plan produces **working, reviewable software on its own**: after Phase 1, every nav link and homepage card resolves to a real page (either the live Tử Vi flow or an honest "Sắp ra mắt" placeholder), with no dead links.
 

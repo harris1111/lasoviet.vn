@@ -13,6 +13,7 @@ order:
 3. Approved plans and architecture records.
 4. Founder-approved experience sources: `docs/13-brand-experience-guideline.md`,
    `docs/14-sitemap-seo-wireframes.md`, `docs/19-sitemap-v2-discipline-pages.md`,
+   `docs/22-art-direction.md`,
    `docs/11-discipline-expansion-specs.md`,
    `docs/20-deep-research-ta-social-listening-handoff.md`, and
    `docs/15-collaboration-branch-workflow.md`.
@@ -29,6 +30,7 @@ business-model question, read only:
 | What the founder decided | the founder-decision tracker (item 1 above) — the only binding register |
 | Concept and business model | `MASTER_CONCEPT.md` |
 | Brand, voice, UX principles | `docs/13-brand-experience-guideline.md` |
+| Imagery system, image file naming | `docs/22-art-direction.md` (§0 naming rule is mandatory) |
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` |
 | Navigation and discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` |
 | Disciplines in scope | `docs/11-discipline-expansion-specs.md` |
@@ -45,7 +47,7 @@ handoff material retained only for traceability.
 and `scripts/public-claim-check.mjs` validates those citations. Treat them as
 evidence sources, not as current decision sources; the tracker governs.
 
-There is no second decision register. The former `docs/10-decision-log.md` was
+There is no second decision register. The former decision log (now `docs/archive/10-decision-log.md`) was
 archived on 2026-09-20. Blueprint v1.1 may supersede UX, route, and SEO material
 in `MASTER_CONCEPT.md` and the deprecated `config/sitemap.json`. It does not
 supersede this policy, the founder-decision tracker, or approved technical

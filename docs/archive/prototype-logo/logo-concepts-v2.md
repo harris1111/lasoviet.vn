@@ -13,7 +13,7 @@
 ## Cách chấm
 
 Mỗi hướng phải trả lời được: **nó tham chiếu đúng yếu tố nào đã có trong brand** (không bịa
-biểu tượng mới), và **nó có phạm luật cấm ở `prototype/art-direction.md` §2 / `docs/13` §5.5
+biểu tượng mới), và **nó có phạm luật cấm ở `docs/22-art-direction.md` §2 / `docs/13` §5.5
 không** (không cầu pha lê, không khói hương, không cung hoàng đạo phương Tây, không chữ Hán–Nôm
 chưa kiểm chứng, không mặt người). Cả 6 hướng dưới đây đều thuần hình học, không chữ Hán, không
 ảnh — an toàn tuyệt đối về mặt này, khác biệt nhau ở **cấu trúc và câu chuyện**, không phải ở
@@ -70,7 +70,7 @@ tinh cố tình để rỗng, không hoà vào nhau — đúng câu ở `docs/ar
 ### 05 — Nguyệt Tướng (trăng khuyết)
 
 Một hình trăng khuyết dựng từ hai vòng tròn lệch tâm (mask), không thêm chi tiết nào khác —
-đúng "nguyệt tướng" đã có sẵn trong bộ icon 13 ký hiệu ở `prototype/art-direction.md` §5, không
+đúng "nguyệt tướng" đã có sẵn trong bộ icon 13 ký hiệu ở `docs/22-art-direction.md` §5, không
 phải biểu tượng bịa mới. Không dùng điểm son — hướng duy nhất cố tình *không* có accent, để
 kiểm tra độ đơn sắc/im lặng đến đâu là vừa.
 
@@ -99,5 +99,5 @@ hẳn 5 hướng còn lại.
       (không chỉ xem trên canvas 100×100).
 - [ ] `docs/13-brand-experience-guideline.md` §5.1–5.2 vẫn mô tả hệ "Giấy — Mực — Son" (nền
       paper, navy làm chủ đạo) trong khi bản dựng thật đã chuyển hệ sơn mài nền tối — đúng như
-      `prototype/art-direction.md` đã ghi nhận ở mục "Việc còn treo" của nó. Logo nên chốt xong
+      `docs/22-art-direction.md` đã ghi nhận ở mục "Việc còn treo" của nó. Logo nên chốt xong
       trước, rồi gộp luôn vào lần cập nhật §5 đó thay vì sửa hai lần.
