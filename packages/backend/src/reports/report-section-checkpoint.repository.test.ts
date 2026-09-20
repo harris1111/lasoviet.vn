@@ -1010,6 +1010,104 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
     })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } });
   });
 
+  it("atomically continues a quality rewrite with rewritten content and claims ordinal two", async () => {
+    const report = lineage(30);
+    const job = await lease(report.reportVersionId, "quality-continue-worker");
+    const generated = await claim(30, job);
+    expect(generated.ok).toBe(true);
+    if (!generated.ok) return;
+    const recorded = await repository().recordQualityCandidate({
+      ...qualityCandidateInput(30, job, generated.value.checkpoint),
+      rewriteAttemptCap: 2,
+    });
+    expect(recorded.ok).toBe(true);
+    if (!recorded.ok) return;
+    const claimed = await repository().claimQualityRewrite({
+      ...report,
+      jobId: job.id,
+      workerId: job.workerId,
+      attemptNumber: 1,
+    });
+    expect(claimed).toMatchObject({
+      ok: true,
+      value: { outcome: "claimed", candidate: { rewriteOrdinal: 1, status: "generating" } },
+    });
+    if (!claimed.ok || !claimed.value.candidate) return;
+    const rewritten = { ...overview, title: "First quality rewrite" };
+    const findings = [{
+      itemKey: "overview",
+      code: "DISCOURAGED_TERM" as const,
+      note: "Contains prohibited term: khí chất.",
+    }];
+    await expect(repository().continueQualityRewrite({
+      ...report,
+      jobId: job.id,
+      workerId: job.workerId,
+      rewriteOrdinal: 1,
+      expectedStateVersion: claimed.value.candidate.stateVersion,
+      candidateContent: rewritten,
+      candidateHash: hash(rewritten),
+      candidateProviderId: "9router-fallback",
+      candidateModelId: "gpt-5.6-luna",
+      findings,
+      rewriteAttemptCap: 2,
+    })).resolves.toMatchObject({
+      ok: true,
+      value: {
+        generationOrdinal: 1,
+        rewriteOrdinal: 2,
+        status: "pending",
+        candidateHash: hash(rewritten),
+        findings,
+        activeJobId: null,
+        activeWorkerId: null,
+        activeAttemptNumber: null,
+        terminalFindings: null,
+      },
+    });
+    const [parent] = await database().select().from(reportSectionCheckpoints).where(and(
+      eq(reportSectionCheckpoints.reportVersionId, report.reportVersionId),
+      eq(reportSectionCheckpoints.sectionKey, report.sectionKey),
+    ));
+    const [candidate] = await database().select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, parent.id),
+    );
+    expect(parent).toMatchObject({
+      status: "pending",
+      rewriteAttemptCount: 2,
+      activeJobId: null,
+      activeWorkerId: null,
+      failureCode: "QUALITY_GATE_REWRITE_PENDING",
+    });
+    expect(candidate).toMatchObject({
+      generationOrdinal: 1,
+      rewriteOrdinal: 2,
+      status: "pending",
+      candidateContent: rewritten,
+      candidateHash: hash(rewritten),
+      candidateProviderId: "9router-fallback",
+      candidateModelId: "gpt-5.6-luna",
+      findings,
+      terminalFindings: null,
+      acceptedContent: null,
+      contentHash: null,
+      providerId: null,
+      modelId: null,
+    });
+    await expect(repository().claimQualityRewrite({
+      ...report,
+      jobId: job.id,
+      workerId: job.workerId,
+      attemptNumber: 1,
+    })).resolves.toMatchObject({
+      ok: true,
+      value: {
+        outcome: "claimed",
+        candidate: { generationOrdinal: 1, rewriteOrdinal: 2, status: "generating" },
+      },
+    });
+  });
+
   it("fences quality rewrite epochs while allowing later attempts and a current new job takeover", async () => {
     const prepared = await prepareQualityCandidate(21);
     const first = await repository().claimQualityRewrite({

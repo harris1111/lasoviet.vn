@@ -3047,6 +3047,44 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         });
         return { ok: true, value: terminal };
       }),
+      continueQualityRewrite: vi.fn(async (input: any) => {
+        const candidate = qualityCandidates.get(input.sectionKey);
+        if (candidate.rewriteOrdinal >= input.rewriteAttemptCap) {
+          return { ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } };
+        }
+        const continued = {
+          ...candidate,
+          rewriteOrdinal: candidate.rewriteOrdinal + 1,
+          status: "pending",
+          activeJobId: null,
+          activeWorkerId: null,
+          activeAttemptNumber: null,
+          stateVersion: candidate.stateVersion + 1,
+          candidateSection: { key: input.sectionKey, value: input.candidateContent },
+          candidateHash: input.candidateHash,
+          candidateProviderId: input.candidateProviderId,
+          candidateModelId: input.candidateModelId,
+          findings: input.findings,
+          terminalFindings: null,
+          acceptedSection: null,
+          contentHash: null,
+          providerId: null,
+          modelId: null,
+          failureCode: "QUALITY_GATE_REWRITE_PENDING",
+        };
+        qualityCandidates.set(input.sectionKey, continued);
+        const current = rows.get(input.sectionKey);
+        rows.set(input.sectionKey, {
+          ...current,
+          status: "pending",
+          activeJobId: null,
+          activeWorkerId: null,
+          rewriteAttemptCount: continued.rewriteOrdinal,
+          stateVersion: current.stateVersion + 1,
+          failureCode: "QUALITY_GATE_REWRITE_PENDING",
+        });
+        return { ok: true, value: continued };
+      }),
       markQualityRewritePassed: vi.fn(async (input: any) => {
         const candidate = qualityCandidates.get(input.sectionKey);
         const passed = { ...candidate, status: "passed", activeJobId: null, activeWorkerId: null, activeAttemptNumber: null, stateVersion: candidate.stateVersion + 1, acceptedSection: { key: input.sectionKey, value: input.acceptedContent }, providerId: input.providerId, modelId: input.modelId };
@@ -3441,7 +3479,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     )).toBe(true);
   });
 
-  it("terminalizes a post-rewrite discouraged-term failure and resumes without another provider dispatch", async () => {
+  it("continues a post-rewrite new finding through a second quality rewrite without regeneration", async () => {
     const coreAxis = sectionFor("coreAxis");
     const coreAxisInitial = {
       ...coreAxis,
@@ -3457,14 +3495,20 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         narrative: `${(coreAxis.value as any).narrative} đắc địa`,
       },
     };
+    let qualityRewriteCount = 0;
     const fixture = createSectionedService({
       onSection: (key, request) => {
         if (key === "coreAxis") {
           const payload = JSON.parse(request.user);
+          if (payload.rewrite) qualityRewriteCount += 1;
           return {
             ok: true,
             value: {
-              value: payload.rewrite ? coreAxisRewrite : coreAxisInitial,
+              value: !payload.rewrite
+                ? coreAxisInitial
+                : qualityRewriteCount === 1
+                  ? coreAxisRewrite
+                  : coreAxis,
               providerId: "section-provider",
               modelId: "section-model",
             },
@@ -3480,27 +3524,26 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         };
       },
     });
-    const job = keyConfigPromptJob();
+    const job = keyConfigPromptJob({
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    });
 
     const first = await fixture.service.generateReport({
       job,
       attemptNumber: 1,
       workerId: "worker-1",
     });
-    expect(first).toMatchObject({
-      ok: false,
-      error: { code: "AI_OUTPUT_INVALID", retryable: false },
-    });
+    expectSectionedSuccess(first, fixture);
     const candidate = fixture.repository.qualityCandidates.get("coreAxis");
     expect(candidate.findings).toEqual([{
       itemKey: "coreAxis",
       code: "DISCOURAGED_TERM",
-      note: "Contains prohibited term: quý nhân.",
+      note: "Contains prohibited term: đắc địa.",
     }]);
     const coreAxisRequests = fixture.provider.generateStructured.mock.calls
       .map(([request]: [any]) => request)
       .filter((request: any) => JSON.parse(request.user).sectionKey === "coreAxis");
-    expect(coreAxisRequests).toHaveLength(2);
+    expect(coreAxisRequests).toHaveLength(3);
     expect(JSON.parse(coreAxisRequests[0].user).rewrite).toBeUndefined();
     expect(coreAxisRequests[0].costContext).toMatchObject({
       purpose: "report",
@@ -3515,8 +3558,105 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       purpose: "rewrite",
       idempotencyKey: `${job.payload.reportVersionId}:coreAxis:quality-rewrite:1`,
     });
+    expect(JSON.parse(coreAxisRequests[2].user).rewrite.findings).toEqual([{
+      itemKey: "coreAxis",
+      code: "DISCOURAGED_TERM",
+      note: "Contains prohibited term: đắc địa.",
+    }]);
+    expect(coreAxisRequests[2].costContext).toMatchObject({
+      purpose: "rewrite",
+      idempotencyKey: `${job.payload.reportVersionId}:coreAxis:quality-rewrite:2`,
+    });
+    expect(fixture.repository.qualityCandidates.get("coreAxis")).toMatchObject({
+      status: "passed",
+      rewriteOrdinal: 2,
+      generationOrdinal: 1,
+      acceptedSection: { key: "coreAxis", value: coreAxis.value },
+      terminalFindings: null,
+    });
+    expect(candidate.findings).toEqual([{
+      itemKey: "coreAxis",
+      code: "DISCOURAGED_TERM",
+      note: "Contains prohibited term: đắc địa.",
+    }]);
+    expect(fixture.repository.continueQualityRewrite).toHaveBeenCalledTimes(1);
+    expect(fixture.repository.continueQualityRewrite).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionKey: "coreAxis",
+        rewriteOrdinal: 1,
+        candidateContent: coreAxisRewrite.value,
+        findings: [{
+          itemKey: "coreAxis",
+          code: "DISCOURAGED_TERM",
+          note: "Contains prohibited term: đắc địa.",
+        }],
+      }),
+    );
+    expect(fixture.repository.markQualityRewriteTerminalFailure).not.toHaveBeenCalled();
+    expect(fixture.repository.markQualityRewritePassed).toHaveBeenCalledTimes(1);
+    expect(fixture.repository.rows.get("coreAxis")).toMatchObject({
+      status: "passed",
+      generationAttemptCount: 1,
+      rewriteAttemptCount: 2,
+    });
+    expect(fixture.starts.filter((key) => key === "coreAxis")).toHaveLength(3);
+    expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("terminalizes V2.1 quality rewrite after the second rewrite exhausts its cap", async () => {
+    const coreAxis = sectionFor("coreAxis");
+    const coreAxisInitial = {
+      ...coreAxis,
+      value: {
+        ...(coreAxis.value as any),
+        narrative: `${(coreAxis.value as any).narrative} quý nhân`,
+      },
+    };
+    const rewrittenWithNewFinding = {
+      ...coreAxis,
+      value: {
+        ...(coreAxis.value as any),
+        narrative: `${(coreAxis.value as any).narrative} đắc địa`,
+      },
+    };
+    const fixture = createSectionedService({
+      onSection: (key, request) => {
+        if (key !== "coreAxis") {
+          return { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } };
+        }
+        const payload = JSON.parse(request.user);
+        return {
+          ok: true,
+          value: {
+            value: payload.rewrite ? rewrittenWithNewFinding : coreAxisInitial,
+            providerId: "section-provider",
+            modelId: "section-model",
+          },
+        };
+      },
+    });
+    const job = keyConfigPromptJob({
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    });
+
+    await expect(fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "AI_OUTPUT_INVALID", retryable: false },
+    });
+    const coreAxisRequests = fixture.provider.generateStructured.mock.calls
+      .map(([request]: [any]) => request)
+      .filter((request: any) => JSON.parse(request.user).sectionKey === "coreAxis");
+    expect(coreAxisRequests).toHaveLength(3);
+    expect(coreAxisRequests.filter((request: any) => request.costContext.purpose === "report")).toHaveLength(1);
+    expect(coreAxisRequests.filter((request: any) => request.costContext.purpose === "rewrite")).toHaveLength(2);
     expect(fixture.repository.qualityCandidates.get("coreAxis")).toMatchObject({
       status: "terminal_failure",
+      rewriteOrdinal: 2,
+      generationOrdinal: 1,
       acceptedSection: null,
       terminalFindings: [{
         itemKey: "coreAxis",
@@ -3524,35 +3664,15 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         note: "Contains prohibited term: đắc địa.",
       }],
     });
-    expect(candidate.terminalFindings).toEqual([{
-      itemKey: "coreAxis",
-      code: "DISCOURAGED_TERM",
-      note: "Contains prohibited term: đắc địa.",
-    }]);
     expect(fixture.repository.markQualityRewriteTerminalFailure).toHaveBeenCalledTimes(1);
     expect(fixture.repository.markQualityRewriteTerminalFailure).toHaveBeenCalledWith(
       expect.objectContaining({
         sectionKey: "coreAxis",
-        rewriteOrdinal: 1,
+        rewriteOrdinal: 2,
         failureCode: "AI_OUTPUT_INVALID",
       }),
     );
     expect(fixture.repository.markQualityRewritePassed).not.toHaveBeenCalled();
-    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
-
-    const providerCalls = fixture.provider.generateStructured.mock.calls.length;
-    const starts = [...fixture.starts];
-    const second = await fixture.service.generateReport({
-      job,
-      attemptNumber: 2,
-      workerId: "worker-2",
-    });
-    expect(second).toMatchObject({
-      ok: false,
-      error: { code: "AI_OUTPUT_INVALID", retryable: false },
-    });
-    expect(fixture.provider.generateStructured).toHaveBeenCalledTimes(providerCalls);
-    expect(fixture.starts).toEqual(starts);
     expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
   });
 
@@ -4014,6 +4134,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
     expect(fixture.repository.qualityCandidates.get("keyConfigurations")).toMatchObject({
       status: "terminal_failure",
+      rewriteOrdinal: 1,
       acceptedSection: null,
       terminalFindings: [
         {
@@ -4028,6 +4149,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         },
       ],
     });
+    expect(fixture.repository.continueQualityRewrite).not.toHaveBeenCalled();
     expect(fixture.repository.markQualityRewritePassed).not.toHaveBeenCalled();
     expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
   });
@@ -4070,6 +4192,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
     expect(fixture.repository.qualityCandidates.get("keyConfigurations")).toMatchObject({
       status: "terminal_failure",
+      rewriteOrdinal: 1,
       acceptedSection: null,
       terminalFindings: [{
         itemKey: "keyConfigurations[2]",
@@ -4077,6 +4200,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         note: "Rewrite must preserve this item's title and array position.",
       }],
     });
+    expect(fixture.repository.continueQualityRewrite).not.toHaveBeenCalled();
     expect(fixture.repository.markQualityRewritePassed).not.toHaveBeenCalled();
     expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
   });
@@ -4125,6 +4249,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
     expect(fixture.repository.qualityCandidates.get("keyConfigurations")).toMatchObject({
       status: "terminal_failure",
+      rewriteOrdinal: 1,
       acceptedSection: null,
       terminalFindings: [
         {
@@ -4134,6 +4259,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         },
       ],
     });
+    expect(fixture.repository.continueQualityRewrite).not.toHaveBeenCalled();
     expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
   });
 
