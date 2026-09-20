@@ -7,8 +7,8 @@ Gói làm việc này chứa homepage đã tích hợp đủ 12 hình ảnh fina
 - `homepage.html`: homepage hiện tại, dùng custom elements/template syntax như `x-dc`, `sc-for`, `sc-if` và binding `{{ ... }}`.
 - `support.js`: runtime hỗ trợ cho file HTML.
 - `uploads/`: 12 WebP đang được tham chiếu trong homepage.
-- `docs/art-direction.md`: art direction thương hiệu.
-- `docs/image-prompts.md`: bộ prompt hình ảnh homepage.
+- `docs/22-art-direction.md`: art direction thương hiệu.
+- `image-prompts-homepage.md`: bộ prompt hình ảnh homepage.
 
 ## Quy ước quan trọng
 

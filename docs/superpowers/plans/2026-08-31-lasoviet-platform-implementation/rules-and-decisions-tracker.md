@@ -4,6 +4,7 @@
 
 | ID | Date | Decision | Status | Implemented in |
 |---|---|---|---|---|
+| FD-088 | 2026-09-20 | Ratify the shipped lacquer palette as the product's **default theme**, and establish the colour contract that makes a second **light theme** buildable later. `apps/web/src/styles/tokens.css` holds primitive values; a semantic layer (`--surface-*`, `--text-*`, `--border-*`, `--accent-*`) is the only thing components may reference, and each theme supplies its own mapping of semantic names to primitives. This supersedes the `LOCKED` Paper/Ink/Cinnabar palette in `docs/13-brand-experience-guideline.md` §5.2 **as the default theme**, but that palette is retained as the approved starting point for the future light theme rather than discarded. The §5.8 line stating dark mode is out of MVP scope is superseded: the product ships dark-first and a light theme is planned. `docs/13` §5.3 typography, §5.4 grid/spacing/shape, §5.6 iconography, and §5.8 motion stay binding and already match the tokens. Four implementation rules bind from this date: components reference semantic tokens only, never primitives; every semantic token must be defined before use; no new bare hex outside the token files; and contrast is measured per theme, never carried between themes. The full measured two-theme system is `docs/24-light-theme-color-spec.md`. | Approved | `docs/13-brand-experience-guideline.md` §05, `docs/22-art-direction.md`, `apps/web/src/styles/tokens.css`, `apps/web/src/styles/discipline-pages-foundation.css`, `docs/24-light-theme-color-spec.md` |
 | FD-084 | 2026-09-15 | An and Lãm have equal authority across all business, product, workflow, UI, technical, security, Git, infrastructure, deployment, production, migration, and release matters. A direct written instruction from either is binding without confirmation from the other; when explicit instructions conflict, the latest explicit instruction controls. Replace Gemini Flash high as bounded coder with a `cx/gpt-5.6-terra` medium bounded executor while retaining a separate `cx/gpt-5.6-terra` high session for independent milestone review. The former Flash scope, correction, stop, and side-effect limits transfer unchanged to Terra medium. Supersedes FD-031, FD-032, and FD-083 where they conflict. | Approved by direct owner instruction | `AGENTS.md`, all active Git worktrees |
 | FD-001 | 2026-08-31 | Use Superpowers only; no `/ck` or CK CLI | Approved | `AGENTS.md` |
 | FD-002 | 2026-08-31 | Sol orchestrates, Terra reviews, Luna implements | Approved | `AGENTS.md` |
@@ -1007,3 +1008,75 @@ Date: 2026-09-16
 - This decision does not authorize deployment, activation, use of credentials,
   or external smoke. Each still requires separate founder authorization and
   actual configured credentials.
+
+## FD-088 Two-Theme Colour Contract
+
+Date: 2026-09-20
+
+- Trigger: the 2026-09-20 business-source consolidation found that
+  `docs/13-brand-experience-guideline.md` §5.2 carries a `LOCKED` Paper/Ink/
+  Cinnabar palette that no shipped component uses. `tokens.css` defines only
+  the lacquer scale. The change shipped with no founder decision authorising
+  it, which `AGENTS.md` forbids ("Never silently reverse, reinterpret, or
+  weaken a founder-confirmed decision"), and `docs/22` §6 had carried the
+  unresolved item since 2026-09-02.
+- The founder confirmed on 2026-09-20 that a light theme is planned. This
+  decision therefore ratifies the lacquer system as the default theme rather
+  than declaring a single permanent surface, and records the colour rules now
+  so the light theme has a contract to build against from the start.
+- The Paper/Ink/Cinnabar palette is **not discarded**. It is a coherent,
+  already-reasoned light system whose contrast ratios were measured against a
+  light surface, which is exactly the context a light theme needs. It is
+  retained in `docs/13` §5.2 as the approved starting point for that theme.
+- Audit evidence that a light theme is not currently possible without the
+  contract below:
+  - The semantic alias layer (`--surface-deep`, `--text-body`, `--accent-gold`
+    and others) is defined in `apps/web/src/styles/discipline-pages-foundation.css`,
+    scoped to discipline pages, not in the global `tokens.css`.
+  - **14 tokens are referenced but never defined anywhere, across 104 uses.**
+    Six of them carry no fallback either (`--pearl-100` 12 uses, `--pearl-300`
+    13 uses, `--pearl-500`, `--gold-300`, `--pearl-800`, `--lacquer-950`), so
+    the declaration is invalid at computed-value time and the text inherits its
+    parent's colour instead of the intended one. This is a live rendering bug
+    on the privacy policy page, `.palace-title`, `.report-fact-item dd`, and
+    the birth-profile wizard, not merely theming debt.
+  - `--accent-seal` falls back to *different* colours at different call sites:
+    `#CE5B45` (son) in three places and `#c9a44d` (gold) at
+    `good-days-preview.tsx:804`. One token name, two colours.
+  - 43 bare hex values across 7 `.tsx` files sit outside any token and would
+    not change when a theme switches. A further 319 hex values are `var()`
+    fallbacks, which are acceptable as a safety net but must not be relied on.
+  - Components also reference primitives directly (`var(--lacquer-800, ...)`),
+    which bypasses any theme layer by construction.
+- Binding rules from this date:
+  1. **Semantic-only.** Components reference semantic tokens
+     (`--surface-*`, `--text-*`, `--border-*`, `--accent-*`). Referencing a
+     primitive (`--lacquer-*`, `--gold-*`, `--pearl-*`, `--son`) directly from a
+     component is not allowed in new work.
+  2. **Define before use.** A semantic token must be defined in the global
+     token layer before any component references it. `--accent-seal` is the
+     existing violation and must be fixed.
+  3. **No new bare hex.** New components must not introduce hex literals
+     outside the token files. The existing 43 are technical debt to be paid
+     down, not a precedent.
+  4. **Contrast is per theme.** The lacquer theme was measured for the first
+     time on 2026-09-20 and mostly passes, with two exceptions now binding:
+     `--text-faint` reaches only 3.29:1 on canvas and 3.11:1 on panel, so it
+     must not carry meaningful text; and `--accent-seal` reaches 4.38:1 on
+     `--surface-panel`, so it must not be used for normal-size text there. The ratios recorded in §5.2 were measured
+     against Paper 100 and are valid only for the light theme. Ratios for the
+     lacquer theme must be measured against lacquer surfaces. This decision
+     does **not** assert that the shipped lacquer pairs currently pass
+     WCAG 2.2 AA; that is unverified and must be measured.
+- Scope boundary: colour, surface, and theming only. No change to typography,
+  spacing, iconography, motion, or any UX, privacy, payment, or content rule.
+- The full light-theme colour system is specified, measured, and build-ready in
+  `docs/24-light-theme-color-spec.md`. Every value there carries its WCAG 2.2 AA
+  ratio. The light theme reuses the `docs/13` §5.2 Paper/Ink palette almost
+  unchanged, which passes; the single exception is gold, since `--gold-500`
+  reaches only 2.10:1 on paper, so `--gold-800 #755718` is added for light-theme
+  text. The gold gradient CTA passes in both themes unchanged and stays a
+  shared brand anchor.
+- The light theme itself is **not** authorised for build by this decision. It
+  is planned; timing stays with the founder, and the Zi Wei flow remains the
+  current priority per `docs/23-index-eligibility-gate.md` §0.

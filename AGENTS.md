@@ -12,15 +12,53 @@ order:
 2. This repository policy.
 3. Approved plans and architecture records.
 4. Founder-approved experience sources: `docs/13-brand-experience-guideline.md`,
-   `docs/14-sitemap-seo-wireframes.md`, and
+   `docs/14-sitemap-seo-wireframes.md`, `docs/19-sitemap-v2-discipline-pages.md`,
+   `docs/22-art-direction.md`, `docs/23-index-eligibility-gate.md`,
+   `docs/24-light-theme-color-spec.md`,
+   `docs/11-discipline-expansion-specs.md`,
+   `docs/20-deep-research-ta-social-listening-handoff.md`, and
    `docs/15-collaboration-branch-workflow.md`.
-5. Existing repository conventions and older business material.
+5. Existing repository conventions.
 
-`docs/10-decision-log.md` is a business-facing summary, not a second binding
-founder-decision register. Blueprint v1.1 may supersede UX, route, and SEO
-material in `MASTER_CONCEPT.md`, `docs/01-*` through `docs/12-*`, and the
-deprecated `config/sitemap.json`. It does not supersede this policy, the
-founder-decision tracker, or approved technical architecture constraints.
+### 1.1 Business And Concept Reading Scope
+
+Consolidated on 2026-09-20 to stop agents re-reading superseded and mutually
+contradictory business material. For any business, concept, brand, or
+business-model question, read only:
+
+| Question | Source |
+|---|---|
+| What the founder decided | the founder-decision tracker (item 1 above) — the only binding register |
+| Concept and business model | `MASTER_CONCEPT.md` |
+| Brand, voice, UX principles | `docs/13-brand-experience-guideline.md` |
+| Visual system: color, surfaces, imagery | `docs/22-art-direction.md` + `apps/web/src/styles/tokens.css` (values). Supersedes `docs/13` §5.1/5.2/5.5. §0 image-naming rule is mandatory |
+| Colour tokens, contrast, the planned light theme | `docs/24-light-theme-color-spec.md` (build-ready, measured) |
+| Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` |
+| Navigation and discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` |
+| Disciplines in scope | `docs/11-discipline-expansion-specs.md` |
+| Whether a page may be indexed; what is deliberately noindex | `docs/23-index-eligibility-gate.md` — **read before proposing any new discipline work** |
+| Audience insight and content rules | `docs/20-deep-research-ta-social-listening-handoff.md` |
+| Public claim evidence | `config/claims.json`, `docs/claims-registry-audit.md`, `docs/compliance/` |
+
+**`docs/archive/` is out of scope. Never open, cite, or reason from a file in
+`docs/archive/` unless the founder names that exact file and asks for it.** It
+holds superseded concept, brand, sitemap, roadmap, decision-log, and one-off
+handoff material retained only for traceability.
+
+`docs/04-phase-1-product-spec.md`, `docs/05-report-system.md`, and
+`docs/21-audit-tao-tai-khoan-luu-la-so-flow.md` remain in `docs/` because the
+build reads them: `config/claims.json` and `content/public/sources.yml` cite the
+first two and `scripts/public-claim-check.mjs` validates those citations, while
+`apps/web/src/app/[locale]/thanh-toan/[orderId]/page.test.tsx` reads the third.
+Treat all three as evidence sources, not as current decision sources; the
+tracker governs. Before moving any file out of `docs/`, grep `apps`, `packages`,
+`tests`, `scripts`, `config`, and `content` for its path.
+
+There is no second decision register. The former decision log (now `docs/archive/10-decision-log.md`) was
+archived on 2026-09-20. Blueprint v1.1 may supersede UX, route, and SEO material
+in `MASTER_CONCEPT.md` and the deprecated `config/sitemap.json`. It does not
+supersede this policy, the founder-decision tracker, or approved technical
+architecture constraints.
 
 Never silently reverse, reinterpret, or weaken a founder-confirmed decision.
 When sources conflict, stop the affected decision, preserve the conflict in the

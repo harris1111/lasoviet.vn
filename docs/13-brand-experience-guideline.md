@@ -304,13 +304,48 @@ Giữ nguyên vì đây là quyết định đã chốt trong repo và có categ
 
 # 05. Visual identity system
 
+> ## ⚠️ MỤC 05 ĐÃ BỊ THAY THẾ MỘT PHẦN — ĐỌC KỸ TRƯỚC KHI DÙNG
+>
+> Sản phẩm đang chạy hệ **sơn mài sẫm** (`apps/web/src/styles/tokens.css`:
+> `--lacquer-900 #0f0d0a`, `--gold-500 #c9a44d`, `--son #ce5b45`). Hệ
+> **Giấy — Mực — Son** mô tả dưới đây **không tồn tại trong code**: không có
+> token Paper/Ink/Cinnabar nào trong sản phẩm.
+>
+> **Không còn là mặc định — dùng `docs/22-art-direction.md` và `tokens.css`:**
+> §5.1 (visual idea), §5.2 (color system), §5.5 (imagery), dòng "Palette series"
+> trong §5.7, và dòng "Dark mode: không thuộc MVP" trong §5.8.
+>
+> **§5.2 KHÔNG bị bỏ đi.** Founder đã chốt (2026-09-20) sẽ build thêm một
+> **light theme**. Bảng màu Giấy–Mực–Son dưới đây là **điểm xuất phát đã được
+> duyệt cho theme sáng đó** — nó vốn được thiết kế và đo tương phản trên nền
+> sáng, đúng ngữ cảnh cần dùng. Đừng xoá.
+>
+> **Vẫn còn hiệu lực, khớp đúng code:** §5.3 (typography — Source Serif 4 +
+> Be Vietnam Pro), §5.4 (grid, spacing 4→96px, radius 4/8/12, touch target
+> 44px), §5.6 (iconography), §5.7 trừ dòng palette, §5.8 phần motion
+> (120/180/240ms).
+>
+> Toàn bộ các mục 01–04 và 06–08 của guideline này không bị ảnh hưởng.
+
 ## 5.1 Visual idea
+
+> **ĐÃ THAY THẾ** bởi `docs/22-art-direction.md` §1 ("Tàng thư các dát vàng").
+> Giữ lại làm hồ sơ lịch sử.
 
 Giấy — Mực — Son. Một ấn bản tri thức được biên tập kỹ, không phải sân khấu bói toán.
 
 Khoảng trắng và typography là nhận diện chính. Navy/mực dựng cấu trúc. Cinnabar/son hoạt động như dấu triện: ít nhưng có lực. Texture và chi tiết văn hóa chỉ là lớp phụ, không được cạnh tranh với nội dung.
 
 ## 5.2 Color system
+
+> **KHÔNG CÒN LÀ THEME MẶC ĐỊNH — NHƯNG GIỮ LẠI.**
+>
+> Theme mặc định đang chạy là hệ sơn mài trong
+> `apps/web/src/styles/tokens.css`. Bảng dưới đây không mô tả sản phẩm hiện tại.
+>
+> Tuy nhiên đây là **bảng màu xuất phát đã duyệt cho light theme sẽ build**
+> (founder chốt 2026-09-20). Các tỷ lệ tương phản ghi ở đây đo trên nền
+> Paper 100 nên **chỉ có giá trị cho theme sáng**, không áp được sang nền tối.
 
 | **Token**      | **HEX**  | **Vai trò**                                                   |
 |----------------|----------|---------------------------------------------------------------|
@@ -384,6 +419,10 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 ## 5.5 Imagery & illustration
 
+> **ĐÃ THAY THẾ** bởi `docs/22-art-direction.md` §2 (nền sẫm, một nguồn sáng
+> xiên, vàng–son). Quy tắc đặt tên file ảnh SEO ở `docs/22` §0 là bắt buộc.
+> Danh sách "Tránh" dưới đây vẫn hữu ích và đã được `docs/22` kế thừa.
+
 - **Ưu tiên:** line-art mực navy, một điểm son; tư liệu/sách/bản khắc có nguồn; ảnh đời sống đương đại tự nhiên; texture giấy 2–4%.
 
 - **Bắt buộc:** asset văn hóa phải có nguồn gốc và context; icon chuyên ngành được content expert kiểm duyệt.
@@ -410,7 +449,7 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 - Cung cấp view bảng/list tương đương để hỗ trợ accessibility và chia sẻ.
 
-- Palette series: \#1B3A57, \#A63D2F, \#467A6B, \#8A622C, \#66578A, \#4E7395, \#875566; luôn bổ sung marker/nét/label.
+- ~~Palette series: \#1B3A57, \#A63D2F, \#467A6B, \#8A622C, \#66578A, \#4E7395, \#875566~~ — **đã thay thế**, dùng thang `--gold-*` / `--pearl-*` / `--son` trong `tokens.css`. Nguyên tắc "luôn bổ sung marker/nét/label" vẫn bắt buộc.
 
 ## 5.8 Motion & dark mode
 
@@ -418,7 +457,7 @@ Be Vietnam Pro được thiết kế với letterform/diacritic tiếng Việt v
 
 - **Không dùng:** parallax, sao bay, lá số xoay, “mở cổng vận mệnh”, shimmer mạnh.
 
-- **Dark mode:** không thuộc MVP. Chỉ làm khi có dữ liệu đọc ban đêm; không auto-invert, cần palette được thiết kế và test riêng.
+- ~~**Dark mode:** không thuộc MVP.~~ **Đã thay thế.** Sản phẩm ship **dark-first**: hệ sơn mài là theme mặc định. Một **light theme** đã được chốt sẽ build (thời điểm do founder quyết), lấy §5.2 làm điểm xuất phát. Nguyên tắc "không auto-invert, cần palette được thiết kế và test riêng" vẫn giữ nguyên hiệu lực và nay là yêu cầu bắt buộc với light theme.
 
 # 06. Product experience principles
 
@@ -794,9 +833,9 @@ Nguồn được dùng để khóa guideline gồm source of truth trong repo, n
 
 **S1** [<u>Lá Số Việt — MASTER_CONCEPT.md</u>](https://github.com/harris1111/lasoviet.vn/blob/master/MASTER_CONCEPT.md)
 
-**S2** [<u>Brand, Positioning & Trust — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/02-brand-and-positioning.md)
+**S2** [<u>Brand, Positioning & Trust — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/archive/02-brand-and-positioning.md)
 
-**S3** [<u>Evidence & Audience Insights — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/01-evidence-and-insights.md)
+**S3** [<u>Evidence & Audience Insights — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/archive/01-evidence-and-insights.md)
 
 **S4** [<u>CESifo Working Paper 11272 — Astrology and Matrimony in Vietnam (2024)</u>](https://www.ifo.de/en/cesifo/publications/2024/working-paper/astrology-and-matrimony-social-reinforcement-religious-beliefs)
 
