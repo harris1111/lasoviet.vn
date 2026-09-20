@@ -11,6 +11,7 @@ import {
   createDatabaseReportQueueStore,
   createReportService,
   recoverInvalidOutputGenerationInTransaction,
+  restartInvalidOutputWithCurrentVersionInTransaction,
 } from "./report.service.js";
 
 describe("createReportService terminal recovery", () => {
@@ -241,6 +242,95 @@ describe("createReportService terminal recovery", () => {
       providerId: null,
       modelId: null,
       failureCode: null,
+    });
+  });
+
+  it("supersedes invalid-output recovery onto current Vietnamese lineage without touching old checkpoints", async () => {
+    const oldReportVersionId = "00000000-0000-0000-0000-000000000001";
+    const mockReservation = {
+      id: "res-supersede",
+      reportId: "report-supersede",
+      reportVersionId: oldReportVersionId,
+      entitlementId: "entitlement-supersede",
+      chartVersionId: "chart-supersede",
+      evidenceVersionId: "evidence-supersede",
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4.0.1",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      status: "terminal_failure",
+      lastErrorCode: "AI_OUTPUT_INVALID",
+      stateVersion: 3,
+      attemptCount: 6,
+      activeJobId: "old-job",
+      rewriteConsumedAt: new Date("2026-09-20T00:00:00.000Z"),
+      asOfDate: "2026-09-20",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      readingContextRevisionId: "reading-context-1",
+    };
+    const { tx, insertedValues, updatedValues } = createMockTx({
+      reservation: mockReservation,
+      incompleteCheckpoints: [{ id: "old-checkpoint" }],
+    });
+    const now = new Date("2026-12-31T20:00:00.000Z");
+
+    const result = await restartInvalidOutputWithCurrentVersionInTransaction(tx as never, {
+      reportVersionId: oldReportVersionId,
+      expectedStateVersion: 3,
+      recoveryId: "supersede-1",
+      now,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      stateVersion: 4,
+    });
+    if (!result.ok) throw new Error("expected restart success");
+    expect(result.reportVersionId).not.toBe(oldReportVersionId);
+    expect(tx.delete).not.toHaveBeenCalled();
+    expect(tx.update).toHaveBeenCalledTimes(1);
+    expect(updatedValues[0]).toMatchObject({
+      reportVersionId: result.reportVersionId,
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1.2-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+      status: "requested",
+      stateVersion: 4,
+      attemptCount: 0,
+      activeJobId: null,
+      lastErrorCode: null,
+      nextAttemptAt: null,
+      rewriteConsumedAt: null,
+      asOfDate: "2027-01-01",
+      targetYear: 2027,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    });
+    expect(insertedValues).toHaveLength(1);
+    expect(insertedValues[0]).toMatchObject({
+      eventType: "report.generation.requested.v2",
+      aggregateId: result.reportVersionId,
+      payload: {
+        reportId: mockReservation.reportId,
+        reportVersionId: result.reportVersionId,
+        entitlementId: mockReservation.entitlementId,
+        chartVersionId: mockReservation.chartVersionId,
+        evidenceVersionId: mockReservation.evidenceVersionId,
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+        promptVersion: "ziwei.comprehensive.prompt.v4.1.2-sensitivity",
+        reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+        locale: "vi",
+        sku: mockReservation.sku,
+        asOfDate: "2027-01-01",
+        targetYear: 2027,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+        readingContextRevisionId: "reading-context-1",
+        supersedesReportVersionId: oldReportVersionId,
+      },
     });
   });
 

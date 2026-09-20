@@ -118,6 +118,14 @@ export type ReportGenerationServiceDependencies = {
   sectionCheckpointRepository?: ReportSectionCheckpointRepository;
 };
 
+function supersedesReportVersionId(
+  payload: ReportGenerateJobEnvelope["payload"],
+): string | null {
+  return "supersedesReportVersionId" in payload
+    ? payload.supersedesReportVersionId ?? null
+    : null;
+}
+
 export type ReportGenerationService = {
   replayExisting(input: GenerateReportInput): Promise<
     | { ok: true; value: ImmutableReportVersionRecord | null }
@@ -164,6 +172,7 @@ export function createReportGenerationService(
       workerId,
       attemptNumber,
       traceId: job.traceId,
+      supersedesReportVersionId: supersedesReportVersionId(payload),
     });
 
     if (!replayResult.ok) {
@@ -951,6 +960,7 @@ export function createReportGenerationService(
       providerId: [...providerIds][0]!, modelId: [...modelIds][0]!,
       structuredContent: report as unknown as IdentityReportV1, htmlContent: renderComprehensiveZiweiHtml(report as never),
       jobId, workerId: input.workerId, attemptNumber: input.attemptNumber, traceId: input.job.traceId,
+      supersedesReportVersionId: supersedesReportVersionId(payload),
     });
     if (!commit.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
     return { ok: true, value: commit.value };
@@ -1311,6 +1321,7 @@ export function createReportGenerationService(
         workerId,
         attemptNumber,
         traceId: job.traceId,
+        supersedesReportVersionId: supersedesReportVersionId(payload),
       });
 
       if (!commitResult.ok) {
@@ -1382,6 +1393,7 @@ export function createReportGenerationService(
         workerId,
         attemptNumber,
         traceId: job.traceId,
+        supersedesReportVersionId: supersedesReportVersionId(payload),
       });
 
       if (!commitResult.ok) {
@@ -1616,6 +1628,7 @@ export function createReportGenerationService(
       workerId,
       attemptNumber,
       traceId: job.traceId,
+      supersedesReportVersionId: supersedesReportVersionId(payload),
     });
 
     if (!commitResult.ok) {
