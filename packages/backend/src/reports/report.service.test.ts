@@ -17,9 +17,11 @@ describe("createReportService terminal recovery", () => {
   function createMockTx(options: {
     reservation: Record<string, unknown> | null;
     existingVersion?: Record<string, unknown> | null;
+    incompleteCheckpoints?: Array<Record<string, unknown>>;
   }) {
     let selectCallCount = 0;
     const insertedValues: Array<Record<string, unknown>> = [];
+    const updatedValues: Array<Record<string, unknown>> = [];
 
     const tx = {
       select: vi.fn(() => ({
@@ -32,15 +34,26 @@ describe("createReportService terminal recovery", () => {
                 for: vi.fn().mockResolvedValue(options.reservation ? [options.reservation] : []),
               };
             }
-            // existingVersion query with limit(1)
+            if (selectCallCount === 2) {
+              // existingVersion query with limit(1)
+              return {
+                limit: vi.fn().mockResolvedValue(options.existingVersion ? [options.existingVersion] : []),
+              };
+            }
+            // incomplete section checkpoints query with for("update")
             return {
-              limit: vi.fn().mockResolvedValue(options.existingVersion ? [options.existingVersion] : []),
+              for: vi.fn().mockResolvedValue(options.incompleteCheckpoints ?? []),
             };
           }),
         })),
       })),
+      delete: vi.fn(() => ({
+        where: vi.fn().mockResolvedValue([]),
+      })),
       update: vi.fn(() => ({
-        set: vi.fn(() => ({
+        set: vi.fn((values: Record<string, unknown>) => {
+          updatedValues.push(values);
+          return {
           where: vi.fn(() => ({
             returning: vi.fn().mockResolvedValue([
               {
@@ -50,7 +63,8 @@ describe("createReportService terminal recovery", () => {
               },
             ]),
           })),
-        })),
+          };
+        }),
       })),
       insert: vi.fn(() => ({
         values: vi.fn((vals: Record<string, unknown>) => {
@@ -64,7 +78,7 @@ describe("createReportService terminal recovery", () => {
       })),
     };
 
-    return { tx, insertedValues };
+    return { tx, insertedValues, updatedValues };
   }
 
   it("reconstructs V2 payload and event report.generation.requested.v2 when all 4 timing fields are non-null", async () => {
@@ -178,6 +192,55 @@ describe("createReportService terminal recovery", () => {
       reportConfigVersion: "config-3",
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
+    });
+  });
+
+  it("resets incomplete section checkpoints before requeueing invalid output recovery", async () => {
+    const mockReservation = {
+      id: "res-reset",
+      reportId: "report-reset",
+      reportVersionId: "version-reset",
+      entitlementId: "entitlement-reset",
+      chartVersionId: "chart-1",
+      evidenceVersionId: "evidence-1",
+      knowledgeVersionId: "knowledge-4",
+      promptVersion: "prompt-4",
+      reportConfigVersion: "config-4",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      status: "terminal_failure",
+      lastErrorCode: "AI_OUTPUT_INVALID",
+      stateVersion: 3,
+      asOfDate: null,
+      targetYear: null,
+      timingRuleVersion: null,
+      sensitivityRuleVersion: null,
+    };
+    const { tx, updatedValues } = createMockTx({
+      reservation: mockReservation,
+      incompleteCheckpoints: [{ id: "checkpoint-reset" }],
+    });
+
+    const result = await recoverInvalidOutputGenerationInTransaction(tx as never, {
+      reportVersionId: "version-reset",
+      expectedStateVersion: 3,
+      recoveryId: "recovery-reset",
+    });
+
+    expect(result).toEqual({ ok: true, stateVersion: 4 });
+    expect(tx.delete).toHaveBeenCalledTimes(2);
+    expect(tx.update).toHaveBeenCalledTimes(2);
+    expect(updatedValues[1]).toMatchObject({
+      status: "pending",
+      generationAttemptCount: 0,
+      rewriteAttemptCount: 0,
+      activeJobId: null,
+      activeWorkerId: null,
+      acceptedContent: null,
+      contentHash: null,
+      providerId: null,
+      modelId: null,
+      failureCode: null,
     });
   });
 

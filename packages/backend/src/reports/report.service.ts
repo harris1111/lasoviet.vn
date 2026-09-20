@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
-import { and, eq, gt, inArray, lte, or, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lte, ne, or, sql } from "drizzle-orm";
 import {
   enqueueOutbox,
   OutboxError,
   reportQueueJobs,
+  reportSectionCheckpointRevisions,
+  reportSectionCheckpoints,
+  reportSectionQualityCandidates,
   reportReservations,
   reportVersions,
   commerceAlertDeliveries,
@@ -269,6 +272,51 @@ type TerminalRecoveryParams = {
   now?: Date;
 };
 
+async function resetIncompleteSectionCheckpoints(
+  transaction: Database,
+  reportVersionId: string,
+  current: Date,
+): Promise<void> {
+  const incomplete = await transaction
+    .select({ id: reportSectionCheckpoints.id })
+    .from(reportSectionCheckpoints)
+    .where(and(
+      eq(reportSectionCheckpoints.reportVersionId, reportVersionId),
+      ne(reportSectionCheckpoints.status, "passed"),
+    ))
+    .for("update");
+
+  const checkpointIds = incomplete.map((row) => row.id);
+  if (checkpointIds.length === 0) return;
+
+  // Failed section attempts are scoped to one recovery cycle. Keep passed
+  // sections for replay, but remove incomplete child state so the new cycle
+  // receives a fresh generation/rewrite budget without unique-key collisions.
+  await transaction
+    .delete(reportSectionCheckpointRevisions)
+    .where(inArray(reportSectionCheckpointRevisions.checkpointId, checkpointIds));
+  await transaction
+    .delete(reportSectionQualityCandidates)
+    .where(inArray(reportSectionQualityCandidates.checkpointId, checkpointIds));
+  await transaction
+    .update(reportSectionCheckpoints)
+    .set({
+      status: "pending",
+      stateVersion: sql`${reportSectionCheckpoints.stateVersion} + 1`,
+      generationAttemptCount: 0,
+      rewriteAttemptCount: 0,
+      activeJobId: null,
+      activeWorkerId: null,
+      acceptedContent: null,
+      contentHash: null,
+      providerId: null,
+      modelId: null,
+      failureCode: null,
+      updatedAt: current,
+    })
+    .where(inArray(reportSectionCheckpoints.id, checkpointIds));
+}
+
 export type TerminalRecoveryResult =
   | { ok: true; stateVersion: number }
   | {
@@ -366,6 +414,14 @@ async function executeTerminalRecoveryInTransaction(
 
   if (!updatedReservation) {
     return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+  }
+
+  if (params.recoveryKind === "invalid_output") {
+    await resetIncompleteSectionCheckpoints(
+      transaction,
+      params.reportVersionId,
+      current,
+    );
   }
 
   const tokenInput =

@@ -19,6 +19,9 @@ import {
   createDatabase,
   outbox,
   reportReservations,
+  reportSectionCheckpointRevisions,
+  reportSectionCheckpoints,
+  reportSectionQualityCandidates,
   reportVersions,
   runMigrations,
   type Database,
@@ -789,6 +792,70 @@ describe("database admin report recovery repository", () => {
     const db = database();
     const repository = createDatabaseReportRecoveryRepository(db);
     const recovery = invalidOutputCommand(fixture);
+    const passedCheckpointId = randomUUID();
+    const failedCheckpointId = randomUUID();
+    await db.insert(reportSectionCheckpoints).values([
+      {
+        id: passedCheckpointId,
+        reportVersionId: fixture.reportVersionId,
+        sectionKey: "coreAxis",
+        sectionOrder: 1,
+        status: "passed",
+        promptVersion: `prompt-${sequence}`,
+        knowledgeVersionId: `knowledge-${sequence}`,
+        reportConfigVersion: `config-${sequence}`,
+        qualityConfigVersion: "quality-v1",
+        generationAttemptCount: 1,
+        acceptedContent: {
+          title: "Existing accepted section",
+          narrative: "This section must survive recovery.",
+          evidenceKeys: ["evidence.passed"],
+        },
+        contentHash: "a".repeat(64),
+        providerId: "9router-an",
+        modelId: "gpt-5.6-luna",
+      },
+      {
+        id: failedCheckpointId,
+        reportVersionId: fixture.reportVersionId,
+        sectionKey: "overview",
+        sectionOrder: 0,
+        status: "terminal_failure",
+        promptVersion: `prompt-${sequence}`,
+        knowledgeVersionId: `knowledge-${sequence}`,
+        reportConfigVersion: `config-${sequence}`,
+        qualityConfigVersion: "quality-v1",
+        generationAttemptCount: 3,
+        rewriteAttemptCount: 1,
+        failureCode: "AI_OUTPUT_INVALID",
+      },
+    ]);
+    await db.insert(reportSectionCheckpointRevisions).values({
+      checkpointId: failedCheckpointId,
+      rewriteOrdinal: 1,
+      status: "terminal_failure",
+      failureCode: "AI_OUTPUT_INVALID",
+    });
+    await db.insert(reportSectionQualityCandidates).values({
+      checkpointId: failedCheckpointId,
+      rewriteOrdinal: 1,
+      generationOrdinal: 1,
+      status: "terminal_failure",
+      candidateContent: {
+        title: "Rejected candidate",
+        narrative: "This candidate belongs to the failed recovery cycle.",
+        evidenceKeys: ["evidence.failed"],
+      },
+      candidateHash: "b".repeat(64),
+      candidateProviderId: "9router-an",
+      candidateModelId: "gpt-5.6-luna",
+      findings: [{
+        itemKey: "overview",
+        code: "MINIMUM_SYLLABLES",
+        note: "Candidate did not meet the quality threshold.",
+      }],
+      failureCode: "AI_OUTPUT_INVALID",
+    });
 
     await expect(repository.recoverInvalidOutputFailure(recovery)).resolves.toMatchObject({
       ok: true,
@@ -810,6 +877,34 @@ describe("database admin report recovery repository", () => {
       "admin.report.recovery.authorization",
       "admin.report.recovery.invalid_output.requested",
     ]);
+    expect(await db.select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.id, passedCheckpointId),
+    )).toEqual([
+      expect.objectContaining({
+        status: "passed",
+        generationAttemptCount: 1,
+        providerId: "9router-an",
+        modelId: "gpt-5.6-luna",
+      }),
+    ]);
+    expect(await db.select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.id, failedCheckpointId),
+    )).toEqual([
+      expect.objectContaining({
+        status: "pending",
+        generationAttemptCount: 0,
+        rewriteAttemptCount: 0,
+        activeJobId: null,
+        activeWorkerId: null,
+        failureCode: null,
+      }),
+    ]);
+    expect(await db.select().from(reportSectionCheckpointRevisions).where(
+      eq(reportSectionCheckpointRevisions.checkpointId, failedCheckpointId),
+    )).toHaveLength(0);
+    expect(await db.select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, failedCheckpointId),
+    )).toHaveLength(0);
     await db.$client.end();
   }, 120_000);
 
