@@ -44,6 +44,16 @@ function endpoint(baseUrl: string): string {
   return `${baseUrl.trim().replace(/\/+$/, "")}/chat/completions`;
 }
 
+export function resolveOpenAiCompatibleProviderId(baseUrl: string): string {
+  try {
+    return new URL(baseUrl).hostname.toLowerCase() === "openrouter.ai"
+      ? "openrouter"
+      : "9router-an";
+  } catch {
+    return "9router-an";
+  }
+}
+
 function isRetryableStatus(status: number): boolean {
   return status === 408 || status === 429 || status >= 500;
 }
@@ -194,7 +204,7 @@ export function createOpenAiCompatibleAdapter(
 ): AiProvider {
   const gate = options.productionGate ?? createAiProductionGate("pending");
   const fetchImpl = options.fetchImpl ?? fetch;
-  const providerId = options.providerId ?? "9router-an";
+  const providerId = options.providerId ?? resolveOpenAiCompatibleProviderId(options.baseUrl);
   const allowedResolvedModelIds = new Set(options.allowedResolvedModelIds);
 
   return {

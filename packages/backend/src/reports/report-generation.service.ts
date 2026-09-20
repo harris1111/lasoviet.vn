@@ -71,6 +71,7 @@ import type { ReportSourceSnapshotPreparationService } from "./report-source-sna
 
 export type ReportGenerationServiceErrorCode =
   | "AI_CAPABILITY_UNSUPPORTED"
+  | "AI_PROVIDER_NOT_APPROVED"
   | "AI_COST_RECORDING_FAILED"
   | "AI_TIMEOUT"
   | "AI_OUTPUT_INVALID"
@@ -372,8 +373,11 @@ export function createReportGenerationService(
     if (error.code === "AI_TIMEOUT" || (error.code === "AI_PROVIDER_REQUEST_FAILED" && error.retryable)) {
       return { code: "AI_TIMEOUT", retryable: true };
     }
-    if (error.code === "AI_CAPABILITY_UNSUPPORTED" || error.code === "AI_PROVIDER_NOT_APPROVED") {
+    if (error.code === "AI_CAPABILITY_UNSUPPORTED") {
       return { code: "AI_CAPABILITY_UNSUPPORTED", retryable: false };
+    }
+    if (error.code === "AI_PROVIDER_NOT_APPROVED") {
+      return { code: "AI_PROVIDER_NOT_APPROVED", retryable: false };
     }
     if (error.code === "REPORT_SAFETY_REJECTED") return { code: "REPORT_SAFETY_REJECTED", retryable: false };
     return { code: "AI_OUTPUT_INVALID", retryable: false };
@@ -1131,8 +1135,11 @@ export function createReportGenerationService(
         if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
           return failAttempt("AI_TIMEOUT", true);
         }
-        if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+        if (errCode === "AI_CAPABILITY_UNSUPPORTED") {
           return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+        }
+        if (errCode === "AI_PROVIDER_NOT_APPROVED") {
+          return failAttempt("AI_PROVIDER_NOT_APPROVED", false);
         }
         return failAttempt("AI_OUTPUT_INVALID", false);
       }
@@ -1179,8 +1186,11 @@ export function createReportGenerationService(
           ) {
             return failAttempt("AI_TIMEOUT", true);
           }
-          if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+          if (errCode === "AI_CAPABILITY_UNSUPPORTED") {
             return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+          }
+          if (errCode === "AI_PROVIDER_NOT_APPROVED") {
+            return failAttempt("AI_PROVIDER_NOT_APPROVED", false);
           }
 
           initialCriticFailed = true;
@@ -1244,8 +1254,11 @@ export function createReportGenerationService(
           ) {
             return failAttempt("AI_TIMEOUT", false);
           }
-          if (revErrCode === "AI_CAPABILITY_UNSUPPORTED" || revErrCode === "AI_PROVIDER_NOT_APPROVED") {
+          if (revErrCode === "AI_CAPABILITY_UNSUPPORTED") {
             return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+          }
+          if (revErrCode === "AI_PROVIDER_NOT_APPROVED") {
+            return failAttempt("AI_PROVIDER_NOT_APPROVED", false);
           }
           return failAttempt("AI_OUTPUT_INVALID", false);
         }
@@ -1291,8 +1304,11 @@ export function createReportGenerationService(
           ) {
             return failAttempt("AI_TIMEOUT", false);
           }
-          if (revCritErrCode === "AI_CAPABILITY_UNSUPPORTED" || revCritErrCode === "AI_PROVIDER_NOT_APPROVED") {
+          if (revCritErrCode === "AI_CAPABILITY_UNSUPPORTED") {
             return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+          }
+          if (revCritErrCode === "AI_PROVIDER_NOT_APPROVED") {
+            return failAttempt("AI_PROVIDER_NOT_APPROVED", false);
           }
           return failAttempt("AI_OUTPUT_INVALID", false);
         }
@@ -1357,8 +1373,11 @@ export function createReportGenerationService(
         if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
           return failAttempt("AI_TIMEOUT", true);
         }
-        if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+        if (errCode === "AI_CAPABILITY_UNSUPPORTED") {
           return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+        }
+        if (errCode === "AI_PROVIDER_NOT_APPROVED") {
+          return failAttempt("AI_PROVIDER_NOT_APPROVED", false);
         }
         return failAttempt("AI_OUTPUT_INVALID", false);
       }
@@ -1431,8 +1450,11 @@ export function createReportGenerationService(
       if (errCode === "AI_TIMEOUT" || (errCode === "AI_PROVIDER_REQUEST_FAILED" && writerResult.error.retryable)) {
         return failAttempt("AI_TIMEOUT", true);
       }
-      if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+      if (errCode === "AI_CAPABILITY_UNSUPPORTED") {
         return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+      }
+      if (errCode === "AI_PROVIDER_NOT_APPROVED") {
+        return failAttempt("AI_PROVIDER_NOT_APPROVED", false);
       }
       if (errCode === "REPORT_EVIDENCE_INVALID") {
         return failAttempt("REPORT_EVIDENCE_INVALID", false);
@@ -1488,8 +1510,11 @@ export function createReportGenerationService(
       if (errCode === "REPORT_SAFETY_REJECTED") {
         return failAttempt("REPORT_SAFETY_REJECTED", false);
       }
-      if (errCode === "AI_CAPABILITY_UNSUPPORTED" || errCode === "AI_PROVIDER_NOT_APPROVED") {
+      if (errCode === "AI_CAPABILITY_UNSUPPORTED") {
         return failAttempt("AI_CAPABILITY_UNSUPPORTED", false);
+      }
+      if (errCode === "AI_PROVIDER_NOT_APPROVED") {
+        return failAttempt("AI_PROVIDER_NOT_APPROVED", false);
       }
       if (errCode === "REPORT_EVIDENCE_INVALID" || errCode === "REPORT_LANGUAGE_INVALID") {
         return failAttempt("REPORT_EVIDENCE_INVALID", false);

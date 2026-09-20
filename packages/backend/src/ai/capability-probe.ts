@@ -9,7 +9,7 @@ const ProbeSchema = z.object({
 }).strict();
 
 export type AiCapabilityResult =
-  | { ok: true; value: { providerId: "9router-an"; modelId: string } }
+  | { ok: true; value: { providerId: string; modelId: string } }
   | { ok: false; error: { code: string; retryable: boolean } };
 
 export async function runAiCapabilityProbe(
@@ -26,13 +26,13 @@ export async function runAiCapabilityProbe(
   if (!result.ok) return result;
   if (
     result.value.value.sentinel !== sentinel ||
-    result.value.providerId !== "9router-an" ||
+    result.value.providerId.trim() === "" ||
     result.value.modelId.trim() === ""
   ) {
     return { ok: false, error: { code: "AI_CAPABILITY_UNSUPPORTED", retryable: false } };
   }
   return {
     ok: true,
-    value: { providerId: "9router-an", modelId: result.value.modelId },
+    value: { providerId: result.value.providerId, modelId: result.value.modelId },
   };
 }

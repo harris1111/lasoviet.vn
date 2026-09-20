@@ -224,7 +224,10 @@ export type {
   AiStructuredOutputValue,
   GenerateStructuredRequest,
 } from "./ai/ai-provider.js";
-export { createOpenAiCompatibleAdapter } from "./ai/openai-compatible-adapter.js";
+export {
+  createOpenAiCompatibleAdapter,
+  resolveOpenAiCompatibleProviderId,
+} from "./ai/openai-compatible-adapter.js";
 export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adapter.js";
 export { runAiCapabilityProbe } from "./ai/capability-probe.js";
 export type { AiCapabilityResult } from "./ai/capability-probe.js";
