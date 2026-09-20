@@ -3373,6 +3373,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
       templateVersion: "ziwei-comprehensive-html.v2",
       renderVersion: "identity-report-pdf.v2",
+      supersedesReportVersionId: null,
     });
   });
 
@@ -3382,6 +3383,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      supersedesReportVersionId: "11111111-1111-4111-8111-111111111119",
     });
 
     const result = await fixture.service.generateReport({
@@ -3399,6 +3401,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.versionRepository.commitImmutableVersion.mock.calls[0]![0]).toMatchObject({
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      supersedesReportVersionId: "11111111-1111-4111-8111-111111111119",
     });
   });
 

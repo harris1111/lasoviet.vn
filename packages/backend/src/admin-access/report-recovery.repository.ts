@@ -24,6 +24,7 @@ import {
 import {
   recoverInvalidOutputGenerationInTransaction,
   recoverTransientProviderFailureGenerationInTransaction,
+  restartInvalidOutputWithCurrentVersionInTransaction,
 } from "../reports/report.service.js";
 import type {
   ReportRecoveryCommand,
@@ -32,7 +33,10 @@ import type {
 } from "./report-recovery.service.js";
 
 type LockedReservation = typeof reportReservations.$inferSelect;
-type RecoveryKind = "transient_provider" | "invalid_output";
+type RecoveryKind =
+  | "transient_provider"
+  | "invalid_output"
+  | "invalid_output_current";
 
 const recoveryOperations = {
   transient_provider: {
@@ -46,6 +50,12 @@ const recoveryOperations = {
     receipt: "admin.report.recovery.invalid_output.requested",
     failure: "admin.report.recovery.invalid_output.command_failed",
     requested: "admin.report.recovery.invalid_output.requested",
+  },
+  invalid_output_current: {
+    authorization: "admin.report.recovery.invalid_output_current.authorization",
+    receipt: "admin.report.recovery.invalid_output_current.receipt",
+    failure: "admin.report.recovery.invalid_output_current.command_failed",
+    requested: "admin.report.recovery.invalid_output_current.requested",
   },
 } as const;
 
@@ -92,6 +102,7 @@ function storedOutcome(
   expectedReceiptOperations: readonly string[],
   receiptTargetReportVersionId: string,
   commandReportVersionId: string,
+  recoveryKind: RecoveryKind,
 ): Result<AdminReportRecoverySuccessV1, ReportRecoveryError> | undefined {
   if (
     !expectedReceiptOperations.includes(receiptOperation) ||
@@ -103,7 +114,13 @@ function storedOutcome(
   if (
     success.success &&
     success.data.replayed === false &&
-    success.data.reportVersionId === commandReportVersionId
+    (
+      recoveryKind === "invalid_output_current"
+        ? success.data.reportVersionId !== commandReportVersionId &&
+          success.data.supersedesReportVersionId === commandReportVersionId
+        : success.data.reportVersionId === commandReportVersionId &&
+          success.data.supersedesReportVersionId === undefined
+    )
   ) {
     return {
       ok: true,
@@ -223,12 +240,13 @@ async function persistFailure(
   reservation: LockedReservation | undefined,
   recoveryKind: RecoveryKind,
 ) {
+  const operations = recoveryOperations[recoveryKind];
   const authorizationAudit = {
     actorId: command.context.access.actorId,
     roleAssignmentId: authority.assignmentId,
     capabilityPolicyId: authority.policyId,
     capability: "admin.reports.regenerate",
-    operation: "admin.report.recovery.authorization",
+    operation: operations.authorization,
     targetType: "report_version",
     targetId: command.reportVersionId,
     requestId: command.context.requestId,
@@ -243,8 +261,8 @@ async function persistFailure(
       : { outcome: "denied", code },
   };
   const operation = authority.allowed
-    ? recoveryOperations[recoveryKind].failure
-    : "admin.report.recovery.authorization";
+    ? operations.failure
+    : operations.authorization;
   if (authority.allowed) {
     await transaction.insert(adminAuditLogs).values([
       authorizationAudit,
@@ -301,6 +319,7 @@ export function createDatabaseReportRecoveryRepository(
             [operations.authorization, operations.failure, operations.receipt],
             receipt.targetReportVersionId,
             command.reportVersionId,
+            recoveryKind,
           ) ??
             failure("REPORT_RECOVERY_CONFLICT");
         }
@@ -336,11 +355,17 @@ export function createDatabaseReportRecoveryRepository(
               expectedStateVersion: command.expectedStateVersion,
               recoveryId: command.context.idempotencyKey,
             })
-          : await recoverTransientProviderFailureGenerationInTransaction(tx, {
-              reportVersionId: command.reportVersionId,
-              expectedStateVersion: command.expectedStateVersion,
-              recoveryId: command.context.idempotencyKey,
-            });
+          : recoveryKind === "invalid_output_current"
+            ? await restartInvalidOutputWithCurrentVersionInTransaction(tx, {
+                reportVersionId: command.reportVersionId,
+                expectedStateVersion: command.expectedStateVersion,
+                recoveryId: command.context.idempotencyKey,
+              })
+            : await recoverTransientProviderFailureGenerationInTransaction(tx, {
+                reportVersionId: command.reportVersionId,
+                expectedStateVersion: command.expectedStateVersion,
+                recoveryId: command.context.idempotencyKey,
+              });
         if (!recovery.ok) {
           return persistFailure(
             tx,
@@ -353,8 +378,17 @@ export function createDatabaseReportRecoveryRepository(
           );
         }
 
+        const nextReportVersionId =
+          recoveryKind === "invalid_output_current" &&
+          "reportVersionId" in recovery &&
+          typeof recovery.reportVersionId === "string"
+            ? recovery.reportVersionId
+            : command.reportVersionId;
         const result: AdminReportRecoverySuccessV1 = {
-          reportVersionId: command.reportVersionId,
+          reportVersionId: nextReportVersionId,
+          ...(recoveryKind === "invalid_output_current"
+            ? { supersedesReportVersionId: command.reportVersionId }
+            : {}),
           stateVersion: recovery.stateVersion,
           replayed: false,
         };
@@ -377,7 +411,7 @@ export function createDatabaseReportRecoveryRepository(
           resultSummary: { outcome: "allowed" },
         });
         await tx.insert(adminAuditLogs).values([
-          audit("admin.report.recovery.authorization"),
+          audit(operations.authorization),
           audit(operations.requested),
         ]);
         await tx.insert(adminReportRecoveryReceipts).values({
@@ -401,6 +435,9 @@ export function createDatabaseReportRecoveryRepository(
     },
     async recoverInvalidOutputFailure(command) {
       return recover(command, "invalid_output");
+    },
+    async restartInvalidOutputWithCurrentVersion(command) {
+      return recover(command, "invalid_output_current");
     },
   };
 }

@@ -13,15 +13,18 @@ import {
   adminCapabilityPolicies,
   adminReportRecoveryReceipts,
   adminRoleAssignments,
+  aiCallAttempts,
   authUsers,
   commerceEntitlements,
   commerceOrders,
   createDatabase,
   outbox,
   reportReservations,
+  reportGenerationAttempts,
   reportSectionCheckpointRevisions,
   reportSectionCheckpoints,
   reportSectionQualityCandidates,
+  reportSourceSnapshots,
   reportVersions,
   runMigrations,
   type Database,
@@ -178,6 +181,18 @@ describe("database admin report recovery repository", () => {
     };
   }
 
+  function restartInvalidOutputCurrentCommand(
+    fixture: Awaited<ReturnType<typeof seedFixture>>,
+  ) {
+    return {
+      ...command(fixture),
+      context: {
+        ...fixture.context,
+        reasonCode: "incident_recovery" as const,
+      },
+    };
+  }
+
   async function rowsFor(
     db: Database,
     fixture: Awaited<ReturnType<typeof seedFixture>>,
@@ -198,6 +213,122 @@ describe("database admin report recovery repository", () => {
       reservations: await db.select().from(reportReservations).where(
         eq(reportReservations.reportVersionId, fixture.reportVersionId),
       ),
+    };
+  }
+
+  async function seedOldLineageArtifacts(
+    db: Database,
+    fixture: Awaited<ReturnType<typeof seedFixture>>,
+  ) {
+    const checkpointId = randomUUID();
+    const revisionId = randomUUID();
+    const candidateId = randomUUID();
+    const generationAttemptId = randomUUID();
+    const aiCallAttemptId = randomUUID();
+    const sourceSnapshotId = randomUUID();
+    await db.insert(reportSectionCheckpoints).values({
+      id: checkpointId,
+      reportVersionId: fixture.reportVersionId,
+      sectionKey: "palace:ziwei.palace.life",
+      sectionOrder: 5,
+      status: "terminal_failure",
+      promptVersion: "ziwei.comprehensive.prompt.v4.0.1",
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned",
+      qualityConfigVersion: "ziwei.comprehensive.quality.v1",
+      generationAttemptCount: 4,
+      rewriteAttemptCount: 1,
+      failureCode: "AI_OUTPUT_INVALID",
+    });
+    await db.insert(reportSectionCheckpointRevisions).values({
+      id: revisionId,
+      checkpointId,
+      rewriteOrdinal: 1,
+      status: "terminal_failure",
+      failureCode: "AI_OUTPUT_INVALID",
+    });
+    await db.insert(reportSectionQualityCandidates).values({
+      id: candidateId,
+      checkpointId,
+      rewriteOrdinal: 1,
+      generationOrdinal: 1,
+      status: "terminal_failure",
+      candidateContent: {
+        title: "Rejected candidate",
+        narrative: "Preserved old-lineage candidate.",
+        evidenceKeys: ["evidence.old"],
+      },
+      candidateHash: "b".repeat(64),
+      candidateProviderId: "9router-an",
+      candidateModelId: "gpt-5.6-luna",
+      findings: [{
+        itemKey: "palace:ziwei.palace.life",
+        code: "DISCOURAGED_TERM",
+        note: "Preserved finding.",
+      }],
+      terminalFindings: [{
+        itemKey: "palace:ziwei.palace.life",
+        code: "DISCOURAGED_TERM",
+        note: "Preserved finding.",
+      }],
+      failureCode: "AI_OUTPUT_INVALID",
+    });
+    await db.insert(reportGenerationAttempts).values({
+      id: generationAttemptId,
+      reportVersionId: fixture.reportVersionId,
+      jobId: `old-generation-${randomUUID()}`,
+      attemptNumber: 1,
+      status: "failed",
+      providerId: "9router-an",
+      modelId: "gpt-5.6-luna",
+      errorCode: "AI_OUTPUT_INVALID",
+      completedAt: new Date("2026-09-20T00:00:00.000Z"),
+    });
+    await db.insert(aiCallAttempts).values({
+      id: aiCallAttemptId,
+      callId: `old-call-${randomUUID()}`,
+      attemptNumber: 1,
+      idempotencyKey: `old-call-idempotency-${randomUUID()}`,
+      purpose: "report",
+      providerId: "9router-an",
+      requestedModelId: "cx/gpt-5.6-luna",
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      entitlementId: fixture.entitlementId,
+      chartVersionId: `chart-version-${sequence}`,
+      sku: "ZIWEI-IDENTITY-P0",
+      maxOutputTokens: 1_000,
+      pricingVersion: "test-pricing-v1",
+      inputPricePerMillion: 0n,
+      outputPricePerMillion: 0n,
+      cachedInputPricePerMillion: 0n,
+      currency: "VND",
+      sourceCurrency: "VND",
+      sourceReference: "test-source",
+      fxSource: "direct-vnd",
+      fxRate: 1n,
+      fxTimestamp: new Date("2026-09-20T00:00:00.000Z"),
+      pricingSource: "test-pricing",
+    });
+    await db.insert(reportSourceSnapshots).values({
+      id: sourceSnapshotId,
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      chartVersionId: `chart-version-${sequence}`,
+      asOfDate: "2026-09-20",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      snapshotHash: "c".repeat(64),
+      snapshot: { version: 1, lineage: "old" },
+    });
+    return {
+      checkpointId,
+      revisionId,
+      candidateId,
+      generationAttemptId,
+      aiCallAttemptId,
+      sourceSnapshotId,
     };
   }
 
@@ -905,6 +1036,383 @@ describe("database admin report recovery repository", () => {
     expect(await db.select().from(reportSectionQualityCandidates).where(
       eq(reportSectionQualityCandidates.checkpointId, failedCheckpointId),
     )).toHaveLength(0);
+    await db.$client.end();
+  }, 120_000);
+
+  it("supersedes invalid output onto the current Vietnamese lineage once without mutating old checkpoints", async () => {
+    const fixture = await seedFixture({
+      errorCode: "AI_OUTPUT_INVALID",
+      timing: "v2",
+    });
+    const db = database();
+    const repository = createDatabaseReportRecoveryRepository(db);
+    const artifacts = await seedOldLineageArtifacts(db, fixture);
+    const restart = restartInvalidOutputCurrentCommand(fixture);
+
+    const first = await repository.restartInvalidOutputWithCurrentVersion(restart);
+    expect(first).toMatchObject({
+      ok: true,
+      value: {
+        supersedesReportVersionId: fixture.reportVersionId,
+        stateVersion: fixture.stateVersion + 1,
+        replayed: false,
+      },
+    });
+    if (!first.ok) throw new Error("expected current-lineage restart success");
+    const nextReportVersionId = first.value.reportVersionId;
+    expect(nextReportVersionId).not.toBe(fixture.reportVersionId);
+
+    await expect(
+      repository.restartInvalidOutputWithCurrentVersion(restart),
+    ).resolves.toEqual({
+      ok: true,
+      value: {
+        reportVersionId: nextReportVersionId,
+        supersedesReportVersionId: fixture.reportVersionId,
+        stateVersion: fixture.stateVersion + 1,
+        replayed: true,
+      },
+    });
+    await db.update(adminReportRecoveryReceipts).set({
+      result: {
+        reportVersionId: nextReportVersionId,
+        supersedesReportVersionId: randomUUID(),
+        stateVersion: fixture.stateVersion + 1,
+        replayed: false,
+      },
+    }).where(and(
+      eq(adminReportRecoveryReceipts.actorId, fixture.actorId),
+      eq(
+        adminReportRecoveryReceipts.idempotencyKey,
+        fixture.context.idempotencyKey,
+      ),
+    ));
+    await expect(
+      repository.restartInvalidOutputWithCurrentVersion(restart),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_RECOVERY_CONFLICT" },
+    });
+
+    expect(await db.select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.id, artifacts.checkpointId),
+    )).toEqual([
+      expect.objectContaining({
+        reportVersionId: fixture.reportVersionId,
+        status: "terminal_failure",
+        generationAttemptCount: 4,
+        rewriteAttemptCount: 1,
+        failureCode: "AI_OUTPUT_INVALID",
+      }),
+    ]);
+    expect(await db.select().from(reportSectionCheckpointRevisions).where(
+      eq(reportSectionCheckpointRevisions.id, artifacts.revisionId),
+    )).toEqual([
+      expect.objectContaining({
+        checkpointId: artifacts.checkpointId,
+        status: "terminal_failure",
+        failureCode: "AI_OUTPUT_INVALID",
+      }),
+    ]);
+    expect(await db.select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.id, artifacts.candidateId),
+    )).toEqual([
+      expect.objectContaining({
+        checkpointId: artifacts.checkpointId,
+        status: "terminal_failure",
+        failureCode: "AI_OUTPUT_INVALID",
+      }),
+    ]);
+    expect(await db.select().from(reportGenerationAttempts).where(
+      eq(reportGenerationAttempts.id, artifacts.generationAttemptId),
+    )).toEqual([
+      expect.objectContaining({
+        reportVersionId: fixture.reportVersionId,
+        status: "failed",
+      }),
+    ]);
+    expect(await db.select().from(aiCallAttempts).where(
+      eq(aiCallAttempts.id, artifacts.aiCallAttemptId),
+    )).toEqual([
+      expect.objectContaining({
+        reportVersionId: fixture.reportVersionId,
+        requestedModelId: "cx/gpt-5.6-luna",
+      }),
+    ]);
+    expect(await db.select().from(reportSourceSnapshots).where(
+      eq(reportSourceSnapshots.id, artifacts.sourceSnapshotId),
+    )).toEqual([
+      expect.objectContaining({
+        reportVersionId: fixture.reportVersionId,
+        snapshotHash: "c".repeat(64),
+      }),
+    ]);
+    expect(await db.select().from(reportReservations).where(
+      eq(reportReservations.reportVersionId, fixture.reportVersionId),
+    )).toHaveLength(0);
+    expect(await db.select().from(reportReservations).where(
+      eq(reportReservations.reportVersionId, nextReportVersionId),
+    )).toEqual([
+      expect.objectContaining({
+        reportId: fixture.reportId,
+        entitlementId: fixture.entitlementId,
+        reportVersionId: nextReportVersionId,
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+        promptVersion: "ziwei.comprehensive.prompt.v4.1.2-sensitivity",
+        reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+        status: "requested",
+        stateVersion: fixture.stateVersion + 1,
+        attemptCount: 0,
+        activeJobId: null,
+        lastErrorCode: null,
+        nextAttemptAt: null,
+        rewriteConsumedAt: null,
+        asOfDate: expect.any(String),
+        targetYear: expect.any(Number),
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      }),
+    ]);
+    expect(await db.select().from(outbox).where(
+      eq(outbox.aggregateId, nextReportVersionId),
+    )).toEqual([
+      expect.objectContaining({
+        eventType: "report.generation.requested.v2",
+        aggregateId: nextReportVersionId,
+        payload: expect.objectContaining({
+          reportVersionId: nextReportVersionId,
+          supersedesReportVersionId: fixture.reportVersionId,
+          promptVersion: "ziwei.comprehensive.prompt.v4.1.2-sensitivity",
+          reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+        }),
+      }),
+    ]);
+    const oldRows = await rowsFor(db, fixture);
+    expect(oldRows.receipts).toEqual([
+      expect.objectContaining({
+        operation: "admin.report.recovery.invalid_output_current.receipt",
+        targetReportVersionId: fixture.reportVersionId,
+      }),
+    ]);
+    expect(oldRows.audits.map((row) => row.operation).sort()).toEqual([
+      "admin.report.recovery.invalid_output_current.authorization",
+      "admin.report.recovery.invalid_output_current.requested",
+    ]);
+    expect(oldRows.events).toHaveLength(0);
+    await db.$client.end();
+  }, 120_000);
+
+  it("rejects current-lineage restart when the old immutable version already exists", async () => {
+    const fixture = await seedFixture({
+      errorCode: "AI_OUTPUT_INVALID",
+      timing: "v2",
+    });
+    const db = database();
+    const repository = createDatabaseReportRecoveryRepository(db);
+    await db.insert(reportVersions).values({
+      reportId: fixture.reportId,
+      reportVersionId: fixture.reportVersionId,
+      entitlementId: fixture.entitlementId,
+      chartVersionId: "immutable-old-chart",
+      evidenceVersionId: "immutable-old-evidence",
+      knowledgeVersionId: "immutable-old-knowledge",
+      promptVersion: "immutable-old-prompt",
+      reportConfigVersion: "immutable-old-config",
+      templateVersion: "immutable-old-template",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      providerId: "immutable-old-provider",
+      modelId: "immutable-old-model",
+      structuredContent: {},
+      htmlContent: "<p>immutable old output</p>",
+      contentHash: "d".repeat(64),
+      pdfAssetId: randomUUID(),
+      renderVersion: "identity-report-pdf.v1",
+    });
+    const outboxBefore = await db.select().from(outbox);
+
+    await expect(
+      repository.restartInvalidOutputWithCurrentVersion(
+        restartInvalidOutputCurrentCommand(fixture),
+      ),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_VERSION_CONFLICT" },
+    });
+
+    expect(await db.select().from(reportReservations).where(
+      eq(reportReservations.reportVersionId, fixture.reportVersionId),
+    )).toEqual([
+      expect.objectContaining({
+        status: "terminal_failure",
+        stateVersion: fixture.stateVersion,
+        lastErrorCode: "AI_OUTPUT_INVALID",
+      }),
+    ]);
+    expect(await db.select().from(outbox)).toHaveLength(outboxBefore.length);
+    await db.$client.end();
+  }, 120_000);
+
+  it("rolls back current-lineage restart on outbox, audit, or receipt insertion failure", async () => {
+    for (const failurePoint of ["outbox", "audit", "receipt"] as const) {
+      const fixture = await seedFixture({
+        errorCode: "AI_OUTPUT_INVALID",
+        timing: "v2",
+      });
+      const db = database();
+      const repository = createDatabaseReportRecoveryRepository(db);
+      const artifacts = await seedOldLineageArtifacts(db, fixture);
+      const outboxBefore = await db.select().from(outbox);
+
+      if (failurePoint === "outbox") {
+        await db.execute(sql`
+          CREATE FUNCTION admin_report_restart_fail_outbox() RETURNS trigger AS $$
+          BEGIN
+            RAISE EXCEPTION 'forced admin report restart outbox failure';
+          END;
+          $$ LANGUAGE plpgsql
+        `);
+        await db.execute(sql`
+          CREATE TRIGGER admin_report_restart_fail_outbox_trigger
+          BEFORE INSERT ON outbox
+          FOR EACH ROW EXECUTE FUNCTION admin_report_restart_fail_outbox()
+        `);
+      } else if (failurePoint === "audit") {
+        await db.execute(sql`
+          CREATE FUNCTION admin_report_restart_fail_audit() RETURNS trigger AS $$
+          BEGIN
+            RAISE EXCEPTION 'forced admin report restart audit failure';
+          END;
+          $$ LANGUAGE plpgsql
+        `);
+        await db.execute(sql`
+          CREATE TRIGGER admin_report_restart_fail_audit_trigger
+          BEFORE INSERT ON admin_audit_logs
+          FOR EACH ROW EXECUTE FUNCTION admin_report_restart_fail_audit()
+        `);
+      } else {
+        await db.execute(sql`
+          CREATE FUNCTION admin_report_restart_fail_receipt() RETURNS trigger AS $$
+          BEGIN
+            RAISE EXCEPTION 'forced admin report restart receipt failure';
+          END;
+          $$ LANGUAGE plpgsql
+        `);
+        await db.execute(sql`
+          CREATE TRIGGER admin_report_restart_fail_receipt_trigger
+          BEFORE INSERT ON admin_report_recovery_receipts
+          FOR EACH ROW EXECUTE FUNCTION admin_report_restart_fail_receipt()
+        `);
+      }
+
+      try {
+        await expect(
+          repository.restartInvalidOutputWithCurrentVersion(
+            restartInvalidOutputCurrentCommand(fixture),
+          ),
+        ).resolves.toMatchObject({
+          ok: false,
+          error: { code: "REPORT_RECOVERY_CONFLICT" },
+        });
+        expect(await db.select().from(reportReservations).where(
+          eq(reportReservations.entitlementId, fixture.entitlementId),
+        )).toEqual([
+          expect.objectContaining({
+            reportVersionId: fixture.reportVersionId,
+            status: "terminal_failure",
+            stateVersion: fixture.stateVersion,
+            lastErrorCode: "AI_OUTPUT_INVALID",
+          }),
+        ]);
+        expect(await db.select().from(outbox)).toHaveLength(outboxBefore.length);
+        expect(await db.select().from(adminAuditLogs).where(
+          eq(adminAuditLogs.targetId, fixture.reportVersionId),
+        )).toHaveLength(0);
+        expect(await db.select().from(adminReportRecoveryReceipts).where(
+          eq(
+            adminReportRecoveryReceipts.targetReportVersionId,
+            fixture.reportVersionId,
+          ),
+        )).toHaveLength(0);
+        expect(await db.select().from(reportSectionCheckpoints).where(
+          eq(reportSectionCheckpoints.id, artifacts.checkpointId),
+        )).toHaveLength(1);
+        expect(await db.select().from(reportSectionCheckpointRevisions).where(
+          eq(reportSectionCheckpointRevisions.id, artifacts.revisionId),
+        )).toHaveLength(1);
+        expect(await db.select().from(reportSectionQualityCandidates).where(
+          eq(reportSectionQualityCandidates.id, artifacts.candidateId),
+        )).toHaveLength(1);
+        expect(await db.select().from(reportGenerationAttempts).where(
+          eq(reportGenerationAttempts.id, artifacts.generationAttemptId),
+        )).toHaveLength(1);
+        expect(await db.select().from(aiCallAttempts).where(
+          eq(aiCallAttempts.id, artifacts.aiCallAttemptId),
+        )).toHaveLength(1);
+        expect(await db.select().from(reportSourceSnapshots).where(
+          eq(reportSourceSnapshots.id, artifacts.sourceSnapshotId),
+        )).toHaveLength(1);
+      } finally {
+        if (failurePoint === "outbox") {
+          await db.execute(sql`DROP TRIGGER admin_report_restart_fail_outbox_trigger ON outbox`);
+          await db.execute(sql`DROP FUNCTION admin_report_restart_fail_outbox()`);
+        } else if (failurePoint === "audit") {
+          await db.execute(sql`DROP TRIGGER admin_report_restart_fail_audit_trigger ON admin_audit_logs`);
+          await db.execute(sql`DROP FUNCTION admin_report_restart_fail_audit()`);
+        } else {
+          await db.execute(sql`DROP TRIGGER admin_report_restart_fail_receipt_trigger ON admin_report_recovery_receipts`);
+          await db.execute(sql`DROP FUNCTION admin_report_restart_fail_receipt()`);
+        }
+        await db.$client.end();
+      }
+    }
+  }, 120_000);
+
+  it("fails closed for stale, wrong-class, and non-Vietnamese current-lineage restart commands", async () => {
+    const wrongClass = await seedFixture({ errorCode: "AI_TIMEOUT" });
+    const stale = await seedFixture({
+      errorCode: "REPORT_SAFETY_REJECTED",
+      stateVersion: 5,
+    });
+    const nonVietnamese = await seedFixture({ errorCode: "AI_OUTPUT_INVALID" });
+    const db = database();
+    const repository = createDatabaseReportRecoveryRepository(db);
+    await db.update(reportReservations).set({ locale: "en" }).where(
+      eq(reportReservations.reportVersionId, nonVietnamese.reportVersionId),
+    );
+
+    await expect(
+      repository.restartInvalidOutputWithCurrentVersion(
+        restartInvalidOutputCurrentCommand(wrongClass),
+      ),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_RECOVERY_CONFLICT" },
+    });
+    await expect(
+      repository.restartInvalidOutputWithCurrentVersion({
+        ...restartInvalidOutputCurrentCommand(stale),
+        expectedStateVersion: 4,
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_RECOVERY_CONFLICT" },
+    });
+    await expect(
+      repository.restartInvalidOutputWithCurrentVersion(
+        restartInvalidOutputCurrentCommand(nonVietnamese),
+      ),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_RECOVERY_CONFLICT" },
+    });
+
+    for (const fixture of [wrongClass, stale, nonVietnamese]) {
+      const rows = await rowsFor(db, fixture);
+      expect(rows.receipts).toHaveLength(1);
+      expect(rows.audits).toHaveLength(2);
+      expect(rows.events).toHaveLength(0);
+    }
     await db.$client.end();
   }, 120_000);
 
