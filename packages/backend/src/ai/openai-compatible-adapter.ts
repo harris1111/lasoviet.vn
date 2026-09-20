@@ -29,6 +29,10 @@ const GENERIC_JSON_INSTRUCTION =
 const INVALID_OUTPUT_CORRECTION =
   "Correction: The previous response was invalid. Return strictly one JSON object only with no Markdown or prose.";
 
+function structuredSchemaInstruction(schema: z.ZodType): string {
+  return `Authoritative output contract: the JSON object must match this JSON Schema exactly. Do not add, remove, rename, or nest fields outside this schema. JSON Schema: ${JSON.stringify(z.toJSONSchema(schema))}`;
+}
+
 function failure(
   code: AiProviderError["code"],
   retryable: boolean,
@@ -232,7 +236,8 @@ export function createOpenAiCompatibleAdapter(
           attemptId = beginRes.value.attemptId;
         }
 
-        let systemPrompt = `${request.system} ${GENERIC_JSON_INSTRUCTION}`;
+        let systemPrompt =
+          `${request.system} ${GENERIC_JSON_INSTRUCTION} ${structuredSchemaInstruction(request.schema)}`;
         if (hasInvalidOutput) {
           systemPrompt += ` ${INVALID_OUTPUT_CORRECTION}`;
         }
