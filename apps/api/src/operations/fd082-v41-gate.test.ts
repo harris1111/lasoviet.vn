@@ -9,7 +9,7 @@ import {
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
-  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
   v4_1_2SensitivityReportVersions,
 } from "@lasoviet/backend";
 
@@ -36,7 +36,7 @@ function exactEvidence(): Fd082Evidence {
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-      qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+      qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
       providerId: "9router-an",
       modelId: "claude-sonnet-4-6",
     })),
@@ -114,6 +114,7 @@ describe("FD-082 V4.1 gate", () => {
       knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
     });
   });
 

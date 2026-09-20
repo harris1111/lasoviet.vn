@@ -5,6 +5,7 @@ import {
   resolveZiweiReportQualitySectionThreshold,
   validateZiweiReportQualityConfig,
   ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2_2Sensitivity,
   ziweiComprehensiveReportQualityV2_1Sensitivity,
   ziweiComprehensiveReportQualityV2Sensitivity,
 } from "./ziwei-report-quality.js";
@@ -134,10 +135,11 @@ describe("ziwei comprehensive report quality config", () => {
     ).toThrow("ZIWEI_REPORT_QUALITY_SECTION_UNAVAILABLE");
   });
 
-  it("changes only the V2.1 tuple, thematic output budget, and quality rewrite cap", () => {
+  it("keeps the V2.1 tuple immutable", () => {
     const oldConfig = ziweiComprehensiveReportQualityV2Sensitivity;
     const newConfig = ziweiComprehensiveReportQualityV2_1Sensitivity;
     expect(newConfig.version).toBe("ziwei.comprehensive.quality.v2.1-sensitivity");
+    expect(newConfig.maxProperNamesPer100Syllables).toBe(8);
     expect(newConfig.reportConfigVersion).toBe(
       "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
     );
@@ -157,10 +159,30 @@ describe("ziwei comprehensive report quality config", () => {
       newComparable.sections as typeof newConfig.sections
     ).thematic.maxOutputTokens = oldConfig.sections.thematic.maxOutputTokens;
     newComparable.sectionRewriteCap = oldConfig.sectionRewriteCap;
+    newComparable.maxProperNamesPer100Syllables = oldConfig.maxProperNamesPer100Syllables;
     expect(newComparable).toEqual(oldComparable);
     expect(
       resolveZiweiReportQualityConfig(newConfig.reportConfigVersion, newConfig.version),
     ).toBe(newConfig);
+  });
+
+  it("adds V2.2 with a moderate proper-name density increase", () => {
+    const config = ziweiComprehensiveReportQualityV2_2Sensitivity;
+    expect(config.version).toBe("ziwei.comprehensive.quality.v2.2-sensitivity");
+    expect(config.reportConfigVersion).toBe(
+      "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+    );
+    expect(config.maxProperNamesPer100Syllables).toBe(10);
+    expect(
+      resolveZiweiReportQualityConfig(config.reportConfigVersion, config.version),
+    ).toBe(config);
+    expect(
+      resolveZiweiReportQualitySectionThreshold(
+        config.reportConfigVersion,
+        config.version,
+        "coreAxis",
+      ),
+    ).toEqual(config.sections.coreAxis);
   });
 
   it("fails closed for unknown, remapped, or injected alternate configs", () => {
