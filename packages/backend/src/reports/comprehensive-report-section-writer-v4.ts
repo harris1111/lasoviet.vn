@@ -30,6 +30,7 @@ import {
   type ComprehensiveReportSectionKey,
 } from "./comprehensive-report-section-v4.js";
 import type { ComprehensiveReportSectionDigest } from "./comprehensive-report-section-digest-v4.js";
+import { countVietnameseSyllables } from "./comprehensive-report-quality-v4.js";
 import { BRIGHTNESS_LABELS_VI } from "./comprehensive-report-writer.js";
 import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
@@ -511,6 +512,84 @@ function acceptanceContract(
   } as const;
 }
 
+function appliesLengthPerItem(sectionKey: ComprehensiveReportSectionKey): boolean {
+  return sectionKey === "keyConfigurations" ||
+    sectionKey === "practicalDirection" ||
+    sectionKey === "birthTimeSensitivity";
+}
+
+function measuredSectionLengths(section: ComprehensiveReportAcceptedSection): Array<{
+  itemKey: string;
+  syllables: number;
+}> {
+  if (section.key === "birthTimeSensitivity") {
+    return [
+      {
+        itemKey: "birthTimeSensitivity.stableFactors",
+        syllables: countVietnameseSyllables(
+          `${section.value.stableFactors.title} ${section.value.stableFactors.narrative}`,
+        ),
+      },
+      {
+        itemKey: "birthTimeSensitivity.sensitiveFactors",
+        syllables: countVietnameseSyllables(
+          `${section.value.sensitiveFactors.title} ${section.value.sensitiveFactors.narrative}`,
+        ),
+      },
+    ];
+  }
+  if (Array.isArray(section.value)) {
+    return section.value.map((item, index) => ({
+      itemKey: `${section.key}[${index}]`,
+      syllables: countVietnameseSyllables(
+        "recommendation" in item
+          ? `${item.recommendation} ${item.rationale} ${item.avoid}`
+          : `${item.title} ${item.narrative}`,
+      ),
+    }));
+  }
+  return [{
+    itemKey: section.key,
+    syllables: countVietnameseSyllables(`${section.value.title} ${section.value.narrative}`),
+  }];
+}
+
+function v4_1_2LengthInstruction(
+  input: ComprehensiveReportSectionWriterV4Input,
+  contract: NonNullable<ReturnType<typeof acceptanceContract>>,
+): string {
+  const { minimumSyllables, targetMinimumSyllables, targetMaximumSyllables } = contract.sectionLength;
+  const perItem = appliesLengthPerItem(input.sectionKey);
+  const paragraphCount = targetMinimumSyllables >= 700 ? 5 : targetMinimumSyllables >= 400 ? 4 : 3;
+  const minimumPerParagraph = Math.ceil(targetMinimumSyllables / paragraphCount);
+  const base = `Yêu cầu độ dài bắt buộc: hệ thống đếm mỗi đơn vị đã chuẩn hóa và được ngăn cách bởi whitespace là 1 âm tiết. ${perItem ? "Mỗi phần tử được kiểm tra riêng." : "Toàn bộ phần này được kiểm tra."} Tối thiểu ${minimumSyllables} âm tiết; mục tiêu ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết. Không kết thúc khi chưa đạt tối thiểu ${targetMinimumSyllables} âm tiết.`;
+  const deliveryPlan = !perItem
+    ? `Kế hoạch triển khai: viết ${paragraphCount} đoạn văn thực chất, mỗi đoạn ít nhất ${minimumPerParagraph} đơn vị, để tổng phần nằm trong ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết và trong giới hạn schema.`
+    : input.sectionKey === "practicalDirection"
+      ? `Kế hoạch triển khai: với TỪNG practicalDirection[i], phân bổ nội dung thực chất cho recommendation, rationale và avoid; mỗi trường ít nhất ${Math.ceil(targetMinimumSyllables / 3)} đơn vị để mỗi item đạt ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết, không vượt giới hạn schema.`
+      : input.sectionKey === "birthTimeSensitivity"
+        ? `Kế hoạch triển khai: với TỪNG mục stableFactors và sensitiveFactors, viết ${paragraphCount} đoạn thực chất trong narrative, mỗi đoạn ít nhất ${minimumPerParagraph} đơn vị, để mỗi mục đạt ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết và trong giới hạn schema.`
+        : `Kế hoạch triển khai: với TỪNG keyConfigurations[i], viết ${paragraphCount} đoạn thực chất trong narrative, mỗi đoạn ít nhất ${minimumPerParagraph} đơn vị, để mỗi item đạt ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết và trong giới hạn schema.`;
+  if (!input.rewrite) return `${base}\n${deliveryPlan}`;
+
+  const measurements = measuredSectionLengths(input.rewrite.priorSection);
+  const measuredPriorLength = measurements
+    .map(({ itemKey, syllables }) =>
+      `${itemKey}: hiện ${syllables} âm tiết, cần bổ sung ít nhất ${Math.max(0, targetMinimumSyllables - syllables)} âm tiết`,
+    )
+    .join("; ");
+  const hasMinimumSyllablesFinding = input.rewrite.findings.some((finding) =>
+    typeof finding !== "string" && finding.code === "MINIMUM_SYLLABLES",
+  );
+  const rewriteInstruction = hasMinimumSyllablesFinding
+    ? `Có finding MINIMUM_SYLLABLES: giữ nguyên mọi nội dung hợp lệ, không tóm tắt hoặc nén nội dung, và bổ sung văn xuôi tiếng Việt có thực chất theo số lượng nêu trên để đạt ít nhất ${targetMinimumSyllables} âm tiết cho ${perItem ? "từng item" : "phần này"}.`
+    : `Khi rewrite, giữ nguyên nội dung hợp lệ và mở rộng theo số lượng nêu trên khi cần để đạt ít nhất ${targetMinimumSyllables} âm tiết cho ${perItem ? "từng item" : "phần này"}.`;
+  return `${base}
+${deliveryPlan}
+Độ dài prior section theo cách đếm trên: ${measuredPriorLength}.
+${rewriteInstruction}`;
+}
+
 export async function writeComprehensiveReportSectionV4(
   input: ComprehensiveReportSectionWriterV4Input,
 ): Promise<ComprehensiveReportSectionWriterV4Result> {
@@ -561,6 +640,7 @@ export async function writeComprehensiveReportSectionV4(
     system: contract
       ? `${SECTION_SYSTEM_PROMPT}
 Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term; emit no Han/Nom ideograph or English brightness descriptor; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+${v4_1_2LengthInstruction(input, contract)}
 ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
       : requirements
