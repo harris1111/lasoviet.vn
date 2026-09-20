@@ -32,6 +32,7 @@ import {
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
   TIER_2_V4_ENTITLEMENT_SCOPE,
+  TIER_2_V4_1_ENTITLEMENT_SCOPE,
 } from "@lasoviet/contracts";
 
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
@@ -41,7 +42,10 @@ import { createWalletUnlockService } from "./wallet-unlock.service.js";
 import {
   deriveReportTimingLineage,
   REPORT_KNOWLEDGE_VERSION_V2,
+  REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V2,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   v4_1SensitivityReportVersions,
   v4ReportVersions,
 } from "../reports/identity-report-config.js";
@@ -1822,7 +1826,8 @@ describe("commerce repository - library and order history (WP-03)", () => {
 
     expect(entitlement).toBeDefined();
     expect(entitlement?.sku).toBe("ZIWEI-IDENTITY-P0");
-    expect(entitlement?.scope).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
+    expect(entitlement?.scope).toEqual(TIER_2_V4_1_ENTITLEMENT_SCOPE);
+    expect(entitlement?.scope.sections).toContain("birthTimeSensitivity");
   });
 
   it("creates Tier-2 scope upon customer self-claim (Acceptance test 4)", async () => {
@@ -1867,7 +1872,8 @@ describe("commerce repository - library and order history (WP-03)", () => {
 
     expect(entitlement).toBeDefined();
     expect(entitlement?.sku).toBe("ZIWEI-IDENTITY-P0");
-    expect(entitlement?.scope).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
+    expect(entitlement?.scope).toEqual(TIER_2_V4_1_ENTITLEMENT_SCOPE);
+    expect(entitlement?.scope.sections).toContain("birthTimeSensitivity");
   });
 
   it("creates Tier-1 scope upon payment confirmation of 19k excerpt offer (Acceptance test 5)", async () => {
@@ -2714,7 +2720,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     }
   });
 
-  it("proves default resolver activates V4 and emits V2 event with timing fields", async () => {
+  it("proves default resolver activates V4.1.2 and emits V2 event with timing fields", async () => {
     const fixedNow = new Date("2026-09-13T10:00:00.000Z");
     const repo = createDatabaseCommerceRepository(database, { now: () => fixedNow });
 
@@ -2743,7 +2749,11 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(reservation?.targetYear).toBe(expectedLineage.targetYear);
     expect(reservation?.timingRuleVersion).toBe("ziwei.timing.v1");
     expect(reservation?.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
-    expect(reservation?.knowledgeVersionId).toBe("ziwei.comprehensive.knowledge.v3");
+    expect(reservation?.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V4);
+    expect(reservation?.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY);
+    expect(reservation?.reportConfigVersion).toBe(
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    );
 
     const [outboxEvent] = await database
       .select()
@@ -2759,16 +2769,21 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(payload.targetYear).toBe(reservation?.targetYear);
     expect(payload.timingRuleVersion).toBe("ziwei.timing.v1");
     expect(payload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
+    expect(payload.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V4);
+    expect(payload.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY);
+    expect(payload.reportConfigVersion).toBe(
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    );
 
-    // Verify default V4 entitlement matches V4 section scope
+    // Verify default V4.1 entitlement includes the sensitivity section.
     const [v4Entitlement] = await database
       .select()
       .from(commerceEntitlements)
       .where(eq(commerceEntitlements.orderId, orderResult.value.id));
     expect(v4Entitlement).toBeDefined();
-    expect(v4Entitlement?.scope).toEqual(TIER_2_V4_ENTITLEMENT_SCOPE);
-    expect(v4Entitlement?.scope.sections).toHaveLength(9);
-    expect(v4Entitlement?.scope.sections).not.toContain("birthTimeSensitivity");
+    expect(v4Entitlement?.scope).toEqual(TIER_2_V4_1_ENTITLEMENT_SCOPE);
+    expect(v4Entitlement?.scope.sections).toHaveLength(10);
+    expect(v4Entitlement?.scope.sections).toContain("birthTimeSensitivity");
     expect(v4Entitlement?.scope.sections).toContain("currentDecadal");
     expect(v4Entitlement?.scope.sections).toContain("annualSnapshot");
   });
