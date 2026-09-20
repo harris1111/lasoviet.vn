@@ -64,6 +64,31 @@ describe("OpenAI-compatible adapter", () => {
     expect(body.messages[0]?.content).toContain('"value":{"type":"string","const":"sentinel"');
   });
 
+  it("disables OpenRouter reasoning so the output budget remains available for JSON", async () => {
+    let body: Record<string, unknown> | undefined;
+    const provider = createOpenAiCompatibleAdapter({
+      baseUrl: "https://openrouter.ai/api/v1",
+      apiKey: "not-a-real-secret",
+      modelId: "~deepseek/deepseek-flash-latest",
+      allowedResolvedModelIds: ["deepseek/deepseek-v4.1-flash"],
+      timeoutMs: 100,
+      retryCount: 0,
+      productionGate: createAiProductionGate("pending"),
+      fetchImpl: async (_url, init) => {
+        body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return jsonResponse({
+          model: "deepseek/deepseek-v4.1-flash",
+          choices: [{ message: { content: "{\"value\":\"sentinel\"}" } }],
+        });
+      },
+    });
+
+    await expect(provider.generateStructured(request)).resolves.toMatchObject({
+      ok: true,
+    });
+    expect(body?.reasoning).toEqual({ effort: "none" });
+  });
+
   it("requires a cost recorder for production report generation and fails closed before fetch", async () => {
     const fetchSpy = vi.fn();
     const provider = createOpenAiCompatibleAdapter({
