@@ -40,6 +40,7 @@ import {
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
 } from "./identity-report-config.js";
@@ -194,7 +195,9 @@ function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4I
   }
   const threshold = resolveZiweiReportQualitySectionThreshold(
     input.reportConfigVersion,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+      ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+      : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
     "keyConfigurations",
   );
   return Object.freeze({
@@ -464,11 +467,11 @@ function acceptanceContract(
   if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
   const quality = resolveZiweiReportQualityConfig(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
   );
   const threshold = resolveZiweiReportQualitySectionThreshold(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
     sectionKind,
   );
   return {
@@ -636,7 +639,9 @@ export async function writeComprehensiveReportSectionV4(
       reportConfigVersion,
       reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
         ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY
-        : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+        : input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+          ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+          : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
       scope.kind,
     ).maxOutputTokens;
   const result = await input.provider.generateStructured({

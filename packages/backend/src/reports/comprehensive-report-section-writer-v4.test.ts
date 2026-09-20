@@ -522,7 +522,7 @@ describe("writeComprehensiveReportSectionV4", () => {
       },
       properNameDensity: {
         configuredProperNames: expect.arrayContaining(["Mệnh", "Tử Vi"]),
-        maximumPer100Syllables: 8,
+        maximumPer100Syllables: 10,
       },
       evidence: {
         preserveEvidenceBackedChartFacts: true,

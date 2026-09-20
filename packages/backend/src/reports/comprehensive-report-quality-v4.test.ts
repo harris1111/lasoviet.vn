@@ -4,6 +4,11 @@ import {
   type ReportSourceSnapshotV1,
   type ZiweiPalaceId,
 } from "@lasoviet/contracts";
+import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+} from "./identity-report-config.js";
 
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
@@ -183,14 +188,19 @@ function prose(words: number, suffix = "cung Mệnh sao Tử Vi sao Thiên Phủ
   return `${Array.from({ length: words }, () => "nội dung").join(" ")} ${suffix}`;
 }
 
-function gate(overrides: Record<string, unknown> = {}, customFacts = facts) {
+function gate(
+  overrides: Record<string, unknown> = {},
+  customFacts = facts,
+  reportConfigVersion?: string,
+  qualityVersion?: string,
+) {
   return validateComprehensiveReportSectionQualityV4({
     key: "overview",
     kind: "overview",
     text: prose(610),
     evidenceKeys: [evidenceKeyFor("ziwei.star.ziwei"), evidenceKeyFor("ziwei.star.tianfu")],
     ...overrides,
-  } as never, customFacts);
+  } as never, customFacts, reportConfigVersion, qualityVersion);
 }
 
 function expectFinding(result: ReturnType<typeof gate>, code: string): void {
@@ -276,6 +286,38 @@ describe("comprehensive V4 section quality", () => {
     expect(gate({
       text: `${prose(610)} tai nạn có thể xảy ra; hãy giữ quỹ dự phòng và đọc kỹ hợp đồng trước việc lớn.`,
     }).ok).toBe(true);
+  });
+
+  it("uses the V2.2 density allowance without removing the density gate", () => {
+    const moderatelyDense = `${prose(610)} ${Array.from({ length: 130 }, () => "Tử Vi").join(" ")}`;
+    expectFinding(
+      gate(
+        { text: moderatelyDense },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+      ),
+      "PROPER_NAME_DENSITY",
+    );
+    expect(
+      gate(
+        { text: moderatelyDense },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+      ).ok,
+    ).toBe(true);
+
+    const excessive = `${prose(610)} ${Array.from({ length: 160 }, () => "Tử Vi").join(" ")}`;
+    expectFinding(
+      gate(
+        { text: excessive },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+      ),
+      "PROPER_NAME_DENSITY",
+    );
   });
 
   it.each([
