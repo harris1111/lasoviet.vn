@@ -301,11 +301,10 @@ khóa · cân · check · mũi tên · cộng · chevron · menu · sao.
 - [x] ~~Cập nhật `docs/13` §5.2/§5.5/§5.8 sang hệ sơn mài~~ — **xong 2026-09-20**
       bằng cách đánh dấu các mục đó là đã bị thay thế và trỏ về file này +
       `tokens.css`, thay vì viết lại nội dung trong `docs/13`.
-- [ ] **CÒN TREO — cần founder quyết:** việc đổi từ palette `LOCKED` Giấy–Mực–Son
-      sang hệ sơn mài chưa bao giờ được ghi thành một Founder Decision. Sản phẩm
-      đã ship theo hệ sơn mài, nhưng không có `FD-xxx` nào cho phép đổi một
-      quyết định gắn nhãn `LOCKED`. Cần một entry trong
-      `rules-and-decisions-tracker.md` để khép lại.
+- [x] ~~Ghi entry decision log cho việc đổi `LOCKED` palette~~ — **xong
+      2026-09-20: `FD-086`.** Hệ sơn mài được phê chuẩn là **theme mặc định**;
+      bảng Giấy–Mực–Son giữ lại làm điểm xuất phát cho light theme. Hợp đồng
+      token và số đo đầy đủ: `docs/24-light-theme-color-spec.md`.
 - [ ] Kiểm contrast thực tế sau khi ảnh thật vào chỗ (ảnh sáng hơn dự kiến sẽ phá contrast chữ hero).
 - [ ] **Mới (2026-09-04, xem `docs/19` §5.3–5.4):** ảnh hero/homepage hiện tại
       code cứng theo Tử Vi/Đông phương (sách tàng thư, la kinh) — cần 1 đợt ảnh
