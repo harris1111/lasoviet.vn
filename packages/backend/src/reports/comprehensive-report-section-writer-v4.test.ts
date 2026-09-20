@@ -536,6 +536,121 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(rewrite.request.system).toContain("every supplied finding");
   });
 
+  it("gives V4.1.2 overview generation and rewrite an explicit numeric length contract", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("overview"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const shared = {
+      sectionKey: "overview" as const,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    };
+    await writeComprehensiveReportSectionV4(shared);
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      rewrite: {
+        priorSection: {
+          key: "overview",
+          value: {
+            title: "Một",
+            narrative: "hai   \nba",
+            evidenceKeys: ["natal.ziwei.palace.life"],
+          },
+        },
+        findings: [{ itemKey: "overview", code: "MINIMUM_SYLLABLES", note: "Expand." }],
+      },
+    });
+
+    const [generation, rewrite] = provider.generateStructured.mock.calls.map(([request]) => request);
+    expect(generation.system).toContain(
+      "hệ thống đếm mỗi đơn vị đã chuẩn hóa và được ngăn cách bởi whitespace là 1 âm tiết.",
+    );
+    expect(generation.system).toContain(
+      "Tối thiểu 600 âm tiết; mục tiêu 700-900 âm tiết. Không kết thúc khi chưa đạt tối thiểu 700 âm tiết.",
+    );
+    expect(generation.system).toContain(
+      "Kế hoạch triển khai: viết 5 đoạn văn thực chất, mỗi đoạn ít nhất 140 đơn vị",
+    );
+    expect(rewrite.system).toContain(
+      "Độ dài prior section theo cách đếm trên: overview: hiện 3 âm tiết, cần bổ sung ít nhất 697 âm tiết.",
+    );
+    expect(rewrite.system).toContain(
+      "Có finding MINIMUM_SYLLABLES: giữ nguyên mọi nội dung hợp lệ, không tóm tắt hoặc nén nội dung",
+    );
+    expect(rewrite.system).toContain("đạt ít nhất 700 âm tiết cho phần này.");
+  });
+
+  it("gives V4.1.2 item-addressed sections deterministic per-item length plans", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockImplementation(async (request) => {
+        const key = JSON.parse(request.user).sectionKey;
+        return { ok: true, value: { value: outputFor(key), providerId: "mock", modelId: "model" } };
+      }),
+    };
+    const shared = {
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    };
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      sectionKey: "keyConfigurations",
+      facts: facts(),
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      sectionKey: "practicalDirection",
+      facts: facts(),
+      rewrite: {
+        priorSection: {
+          key: "practicalDirection",
+          value: Array.from({ length: 3 }, () => ({
+            recommendation: "một",
+            rationale: "hai   ",
+            avoid: "\nba",
+            evidenceKeys: ["natal.ziwei.palace.life"],
+          })),
+        },
+        findings: [{ itemKey: "practicalDirection[0]", code: "MINIMUM_SYLLABLES", note: "Expand." }],
+      },
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      sectionKey: "birthTimeSensitivity",
+      facts: productionFacts(),
+    });
+
+    const [keyConfigurations, practicalDirection, birthTimeSensitivity] =
+      provider.generateStructured.mock.calls.map(([request]) => request);
+    expect(keyConfigurations.system).toContain("Mỗi phần tử được kiểm tra riêng.");
+    expect(keyConfigurations.system).toContain(
+      "với TỪNG keyConfigurations[i], viết 3 đoạn thực chất trong narrative, mỗi đoạn ít nhất 100 đơn vị",
+    );
+    expect(practicalDirection.system).toContain(
+      "với TỪNG practicalDirection[i], phân bổ nội dung thực chất cho recommendation, rationale và avoid; mỗi trường ít nhất 50 đơn vị",
+    );
+    expect(practicalDirection.system).toContain(
+      "practicalDirection[0]: hiện 3 âm tiết, cần bổ sung ít nhất 147 âm tiết",
+    );
+    expect(practicalDirection.system).toContain(
+      "practicalDirection[1]: hiện 3 âm tiết, cần bổ sung ít nhất 147 âm tiết",
+    );
+    expect(practicalDirection.system).toContain("đạt ít nhất 150 âm tiết cho từng item.");
+    expect(birthTimeSensitivity.system).toContain(
+      "với TỪNG mục stableFactors và sensitiveFactors, viết 4 đoạn thực chất trong narrative, mỗi đoạn ít nhất 100 đơn vị",
+    );
+    expect(birthTimeSensitivity.system).toContain(
+      "Tối thiểu 300 âm tiết; mục tiêu 400-600 âm tiết. Không kết thúc khi chưa đạt tối thiểu 400 âm tiết.",
+    );
+  });
+
   it("keeps V4.1.2 keyConfigurations title, order, and evidenceKeys identity contract", async () => {
     const provider = {
       generateStructured: vi.fn().mockResolvedValue({
