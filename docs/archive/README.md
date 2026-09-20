@@ -20,6 +20,7 @@ Read a file here only when the founder names that exact file and asks for it.
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` (v1.2) |
 | Navigation and per-discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` (v1.1) |
 | Which disciplines are in scope | `docs/11-discipline-expansion-specs.md` |
+| Index eligibility; what is deliberately noindex | `docs/23-index-eligibility-gate.md` |
 | Audience insight and content rules | `docs/20-deep-research-ta-social-listening-handoff.md` |
 | Branch and PR workflow | `docs/15-collaboration-branch-workflow.md` |
 | One-sentence concept and business model | `MASTER_CONCEPT.md` |

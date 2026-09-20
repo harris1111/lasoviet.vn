@@ -13,7 +13,7 @@ order:
 3. Approved plans and architecture records.
 4. Founder-approved experience sources: `docs/13-brand-experience-guideline.md`,
    `docs/14-sitemap-seo-wireframes.md`, `docs/19-sitemap-v2-discipline-pages.md`,
-   `docs/22-art-direction.md`,
+   `docs/22-art-direction.md`, `docs/23-index-eligibility-gate.md`,
    `docs/11-discipline-expansion-specs.md`,
    `docs/20-deep-research-ta-social-listening-handoff.md`, and
    `docs/15-collaboration-branch-workflow.md`.
@@ -34,6 +34,7 @@ business-model question, read only:
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` |
 | Navigation and discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` |
 | Disciplines in scope | `docs/11-discipline-expansion-specs.md` |
+| Whether a page may be indexed; what is deliberately noindex | `docs/23-index-eligibility-gate.md` — **read before proposing any new discipline work** |
 | Audience insight and content rules | `docs/20-deep-research-ta-social-listening-handoff.md` |
 | Public claim evidence | `config/claims.json`, `docs/claims-registry-audit.md`, `docs/compliance/` |
 

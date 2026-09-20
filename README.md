@@ -20,6 +20,7 @@ This file is a pointer index only. It states no decisions of its own.
 | Sitemap, SEO, wireframes | `docs/14-sitemap-seo-wireframes.md` |
 | Navigation and discipline URLs | `docs/19-sitemap-v2-discipline-pages.md` |
 | Disciplines in scope | `docs/11-discipline-expansion-specs.md` |
+| Điều kiện cho phép index | `docs/23-index-eligibility-gate.md` |
 | Audience insight, content rules | `docs/20-deep-research-ta-social-listening-handoff.md` |
 | Branch and PR workflow | `docs/15-collaboration-branch-workflow.md` |
 | Technical architecture | `docs/06-technical-architecture.md` |
