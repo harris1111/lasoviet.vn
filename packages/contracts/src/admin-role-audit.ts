@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { AdminAccessV1Schema, AdminRoleSchema } from "./admin-auth.js";
+import { AdminReportRecoveryReasonCodeSchema } from "./admin-report-recovery.js";
 
 const boundedId = z.string().trim().min(1).max(128);
 const correlationId = z.string().trim().regex(/^[A-Za-z0-9._:-]{1,128}$/);
@@ -13,6 +14,10 @@ export const RoleMutationReasonCodeSchema = z.enum([
   "security_incident",
 ]);
 export type RoleMutationReasonCode = z.infer<typeof RoleMutationReasonCodeSchema>;
+const AdminAuditReasonCodeSchema = z.union([
+  RoleMutationReasonCodeSchema,
+  AdminReportRecoveryReasonCodeSchema,
+]);
 
 export const AdminRoleMutationContextV1Schema = z.object({
   access: AdminAccessV1Schema,
@@ -94,13 +99,13 @@ export const AdminAuditSummaryV1Schema = z.object({
   traceId: correlationId,
   result: z.enum(["allowed", "denied"]),
   redactionLevel: z.literal("redacted"),
-  reasonCode: RoleMutationReasonCodeSchema.nullable(),
+  reasonCode: AdminAuditReasonCodeSchema.nullable(),
   idempotencyKey: boundedId.nullable(),
   beforeVersion: z.number().int().min(0).nullable(),
   afterVersion: z.number().int().min(0).nullable(),
   resultSummary: z.object({
     role: AdminRoleSchema.optional(),
-    outcome: z.enum(["allowed", "denied"]).optional(),
+    outcome: z.enum(["allowed", "denied", "failed"]).optional(),
     code: z.string().trim().min(1).max(128).optional(),
     count: z.number().int().min(0).max(100_000).optional(),
   }).strict(),

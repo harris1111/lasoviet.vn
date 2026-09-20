@@ -8,6 +8,9 @@ services:
   worker:
     image: ghcr.io/harris1111/lasoviet-worker:sha-${LASOVIET_RELEASE_SHA:?Set LASOVIET_RELEASE_SHA}
     build: !reset null
+  pdf-worker:
+    image: ghcr.io/harris1111/lasoviet-worker:sha-${LASOVIET_RELEASE_SHA:?Set LASOVIET_RELEASE_SHA}
+    build: !reset null
   web:
     image: ghcr.io/harris1111/lasoviet-web:sha-${LASOVIET_RELEASE_SHA:?Set LASOVIET_RELEASE_SHA}
     build: !reset null

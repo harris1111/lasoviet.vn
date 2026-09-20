@@ -55,6 +55,18 @@ export type {
   AdminRole,
   InternalAdminPreflightAuditV1,
 } from "./admin-auth.js";
+export {
+  AdminReportRecoveryCommandV1Schema,
+  AdminReportRecoveryContextV1Schema,
+  AdminReportRecoveryReasonCodeSchema,
+  AdminReportRecoverySuccessV1Schema,
+} from "./admin-report-recovery.js";
+export type {
+  AdminReportRecoveryCommandV1,
+  AdminReportRecoveryContextV1,
+  AdminReportRecoveryReasonCode,
+  AdminReportRecoverySuccessV1,
+} from "./admin-report-recovery.js";
 
 export {
   AdminAccountProjectionV1Schema,
@@ -123,6 +135,7 @@ export {
   AuthEmailRequestSchema,
   AuthEmailServiceClaimsSchema,
   canonicalizeAuthEmailRequest,
+  ReportFailedEmailRequestV1Schema,
   ReportReadyEmailRequestSchema,
   PersistedEmailDeliveryRequestSchema,
   canonicalizeEmailDeliveryRequest,
@@ -132,6 +145,7 @@ export type {
   AuthEmailDeliveryOutcome,
   AuthEmailRequest,
   AuthEmailServiceClaims,
+  ReportFailedEmailRequestV1,
   ReportReadyEmailRequest,
   PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
@@ -287,6 +301,61 @@ export {
   PaidTopicSelectionRequestV1Schema,
   PaidTopicSelectionViewV1Schema,
 } from "./free-identity-preview-v1.js";
+export {
+  FreeIdentityPreviewV2Schema,
+  PaidTopicSelectionViewV2Schema,
+} from "./free-identity-preview-v2.js";
+export type {
+  FreeIdentityPreviewV2,
+  PaidTopicSelectionViewV2,
+} from "./free-identity-preview-v2.js";
+export {
+  GeneratedPreviewRequestV1Schema,
+  GeneratedPreviewSafeProjectionV1Schema,
+  GeneratedPreviewStatusV1Schema,
+} from "./generated-preview-v1.js";
+export type {
+  GeneratedPreviewRequestV1,
+  GeneratedPreviewSafeProjectionV1,
+  GeneratedPreviewStatusV1,
+} from "./generated-preview-v1.js";
+export {
+  AccountLibraryItemV2Schema,
+  AccountLibraryV2Schema,
+  ReportFailedWalletSpendViewV2Schema,
+} from "./commerce-report-v2.js";
+export type {
+  AccountLibraryItemV2,
+  AccountLibraryV2,
+  ReportFailedWalletSpendViewV2,
+} from "./commerce-report-v2.js";
+export {
+  WalletBalanceV1Schema,
+  WalletCreditLotV1Schema,
+  WalletGrantV1Schema,
+  WalletHistoryItemV1Schema,
+  WalletHistoryV1Schema,
+  WalletPurchaseIntentV1Schema,
+  WalletRestorationV1Schema,
+  WalletSpendAllocationV1Schema,
+  WalletSpendV1Schema,
+  WalletTopUpCatalogV1,
+  WalletTopUpPackIdSchema,
+  WalletTransactionReceiptV1Schema,
+} from "./wallet-commerce-v1.js";
+export type {
+  WalletBalanceV1,
+  WalletCreditLotV1,
+  WalletGrantV1,
+  WalletHistoryItemV1,
+  WalletHistoryV1,
+  WalletPurchaseIntentV1,
+  WalletRestorationV1,
+  WalletSpendAllocationV1,
+  WalletSpendV1,
+  WalletTopUpPackId,
+  WalletTransactionReceiptV1,
+} from "./wallet-commerce-v1.js";
 export type {
   FreeIdentityPreviewV1,
   PaidTopicSelectionRequestV1,
@@ -297,6 +366,7 @@ export {
   AccountLibraryGroupV1Schema,
   AccountLibraryItemV1Schema,
   AccountLibraryV1Schema,
+  CommerceOrderKindSchema,
   CommerceSkuSchema,
   EntitlementStatusSchema,
   OrderHistoryItemV1Schema,
@@ -320,6 +390,10 @@ export {
   TIER_2_V4_SCOPE_SECTIONS,
   COMPREHENSIVE_REPORT_V4_TIER_1_LOCKED_SECTIONS,
   TIER_2_V4_ENTITLEMENT_SCOPE,
+  V4_1_SENSITIVITY_SCOPE_SECTIONS,
+  TIER_2_V4_1_SCOPE_SECTIONS,
+  COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS,
+  TIER_2_V4_1_ENTITLEMENT_SCOPE,
   resolveEntitlementScopeForSku,
 } from "./commerce.js";
 export type {
@@ -327,29 +401,53 @@ export type {
   AccountLibraryItemV1,
   AccountLibraryV1,
   CommerceSku,
+  CommerceOrderKind,
   EntitlementStatus,
   OrderHistoryItemV1,
   OrderHistoryV1,
   OrderStatus,
   PaymentSelfClaimRequestV1,
   PaymentSelfClaimSuccessV1,
+  EntitlementReportFamily,
+  EntitlementScopeOptions,
   PaymentClaimErrorCode,
   ComprehensiveReportSectionId,
   EntitlementScope,
 } from "./commerce.js";
 
 export {
+  ReportAssetFailureCodeSchema,
+  ReportAssetReplicaStatusSchema,
+  ReportAssetStatusSchema,
+  ReportAssetStoredV1Schema,
+  ReportPdfRenderJobV1Schema,
+  ReportPdfRenderVersionSchema,
+  ReportPdfRequestedV1Schema,
+} from "./report-assets.js";
+export type {
+  ReportAssetFailureCode,
+  ReportAssetReplicaStatus,
+  ReportAssetStatus,
+  ReportAssetStoredV1,
+  ReportPdfRenderJobV1,
+  ReportPdfRenderVersion,
+  ReportPdfRequestedV1,
+} from "./report-assets.js";
+
+export {
+  GeneratedPreviewGenerateJobV1Schema,
   ReportFulfillmentFailedV1Schema,
   ReportGenerateJobEnvelopeSchema,
   ReportGenerateJobEnvelopeV1Schema,
   ReportGenerateJobEnvelopeV2Schema,
   ReportGenerationRequestedV1Schema,
   ReportGenerationRequestedV2Schema,
-  ReportPdfRequestedV1Schema,
+  ReportPdfRenderJobV1Schema as ReportPdfRenderJobEnvelopeV1Schema,
   ReportQueueJobStatusSchema,
   ReportStatusSchema,
 } from "./jobs.js";
 export type {
+  GeneratedPreviewGenerateJobV1,
   QueueJob,
   QueueJobV1,
   ReportFulfillmentFailedV1,
@@ -358,7 +456,6 @@ export type {
   ReportGenerateJobEnvelopeV2,
   ReportGenerationRequestedV1,
   ReportGenerationRequestedV2,
-  ReportPdfRequestedV1,
   ReportQueueJobStatus,
   ReportStatus,
 } from "./jobs.js";
@@ -395,6 +492,12 @@ export {
   ComprehensiveReportPublicContentV2Schema,
   projectComprehensiveReportPublicContentV2,
   ReportComprehensiveV2ReadyViewV1Schema,
+  ComprehensiveReportBirthTimeSensitivityV3PublicSchema,
+  ComprehensiveReportTier1PublicContentV3Schema,
+  ComprehensiveReportTier2PublicContentV3Schema,
+  ComprehensiveReportPublicContentV3Schema,
+  projectComprehensiveReportPublicContentV3,
+  ReportComprehensiveV3ReadyViewV1Schema,
 } from "./identity-report-v1.js";
 export type {
   ReportPublicContentV1,
@@ -415,6 +518,12 @@ export type {
   ComprehensiveReportPublicContentV2,
   ComprehensiveReportViewContentV2,
   ReportComprehensiveV2ReadyViewV1,
+  ComprehensiveReportBirthTimeSensitivityV3Public,
+  ComprehensiveReportTier1PublicContentV3,
+  ComprehensiveReportTier2PublicContentV3,
+  ComprehensiveReportPublicContentV3,
+  ComprehensiveReportViewContentV3,
+  ReportComprehensiveV3ReadyViewV1,
 } from "./identity-report-v1.js";
 
 export {
@@ -476,6 +585,13 @@ export type {
   ZiweiComprehensiveReportAnnualSnapshotV2,
   ZiweiComprehensiveReportContentV2,
 } from "./ziwei-comprehensive-report-v2.js";
+
+export {
+  ZiweiComprehensiveReportContentV3Schema,
+} from "./ziwei-comprehensive-report-v4-1.js";
+export type {
+  ZiweiComprehensiveReportContentV3,
+} from "./ziwei-comprehensive-report-v4-1.js";
 
 export {
   ReportSourceSnapshotV1Schema,

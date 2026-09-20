@@ -4,7 +4,7 @@
 
 | ID | Date | Decision | Status | Implemented in |
 |---|---|---|---|---|
-| FD-086 | 2026-09-20 | Ratify the shipped lacquer palette as the product's **default theme**, and establish the colour contract that makes a second **light theme** buildable later. `apps/web/src/styles/tokens.css` holds primitive values; a semantic layer (`--surface-*`, `--text-*`, `--border-*`, `--accent-*`) is the only thing components may reference, and each theme supplies its own mapping of semantic names to primitives. This supersedes the `LOCKED` Paper/Ink/Cinnabar palette in `docs/13-brand-experience-guideline.md` §5.2 **as the default theme**, but that palette is retained as the approved starting point for the future light theme rather than discarded. The §5.8 line stating dark mode is out of MVP scope is superseded: the product ships dark-first and a light theme is planned. `docs/13` §5.3 typography, §5.4 grid/spacing/shape, §5.6 iconography, and §5.8 motion stay binding and already match the tokens. Four implementation rules bind from this date: components reference semantic tokens only, never primitives; every semantic token must be defined before use; no new bare hex outside the token files; and contrast is measured per theme, never carried between themes. The full measured two-theme system is `docs/24-light-theme-color-spec.md`. | Approved | `docs/13-brand-experience-guideline.md` §05, `docs/22-art-direction.md`, `apps/web/src/styles/tokens.css`, `apps/web/src/styles/discipline-pages-foundation.css`, `docs/24-light-theme-color-spec.md` |
+| FD-088 | 2026-09-20 | Ratify the shipped lacquer palette as the product's **default theme**, and establish the colour contract that makes a second **light theme** buildable later. `apps/web/src/styles/tokens.css` holds primitive values; a semantic layer (`--surface-*`, `--text-*`, `--border-*`, `--accent-*`) is the only thing components may reference, and each theme supplies its own mapping of semantic names to primitives. This supersedes the `LOCKED` Paper/Ink/Cinnabar palette in `docs/13-brand-experience-guideline.md` §5.2 **as the default theme**, but that palette is retained as the approved starting point for the future light theme rather than discarded. The §5.8 line stating dark mode is out of MVP scope is superseded: the product ships dark-first and a light theme is planned. `docs/13` §5.3 typography, §5.4 grid/spacing/shape, §5.6 iconography, and §5.8 motion stay binding and already match the tokens. Four implementation rules bind from this date: components reference semantic tokens only, never primitives; every semantic token must be defined before use; no new bare hex outside the token files; and contrast is measured per theme, never carried between themes. The full measured two-theme system is `docs/24-light-theme-color-spec.md`. | Approved | `docs/13-brand-experience-guideline.md` §05, `docs/22-art-direction.md`, `apps/web/src/styles/tokens.css`, `apps/web/src/styles/discipline-pages-foundation.css`, `docs/24-light-theme-color-spec.md` |
 | FD-084 | 2026-09-15 | An and Lãm have equal authority across all business, product, workflow, UI, technical, security, Git, infrastructure, deployment, production, migration, and release matters. A direct written instruction from either is binding without confirmation from the other; when explicit instructions conflict, the latest explicit instruction controls. Replace Gemini Flash high as bounded coder with a `cx/gpt-5.6-terra` medium bounded executor while retaining a separate `cx/gpt-5.6-terra` high session for independent milestone review. The former Flash scope, correction, stop, and side-effect limits transfer unchanged to Terra medium. Supersedes FD-031, FD-032, and FD-083 where they conflict. | Approved by direct owner instruction | `AGENTS.md`, all active Git worktrees |
 | FD-001 | 2026-08-31 | Use Superpowers only; no `/ck` or CK CLI | Approved | `AGENTS.md` |
 | FD-002 | 2026-08-31 | Sol orchestrates, Terra reviews, Luna implements | Approved | `AGENTS.md` |
@@ -785,6 +785,11 @@ Date: 2026-09-12
   (presented with precision-dependency notes). Raw birth date, time, and
   location must never be transmitted to external AI providers; only normalized
   chart facts and comparison outputs are sent.
+- Clarification (2026-09-16): The founder decided that `birthTimeSensitivity`
+  is a separate V4.1 implementation slice and an activation gate for LSV-15
+  sectioned paid generation. Existing V4 stored reports and current production
+  behavior remain unchanged and readable until the V4.1 slice is approved,
+  implemented, reviewed, and explicitly activated.
 - Structured personalized actions: The report concludes with 3 to 5
   personalized actions. Each action must contain exactly 4 fixed fields: What
   to do (`recommendation`), Why it fits this chart (`rationale`), What to
@@ -972,7 +977,39 @@ Date: 2026-09-14
   boundary, focused test scope, and current limited artifact branch in chat on
   2026-09-14.
 
-## FD-086 Two-Theme Colour Contract
+## FD-086 Terra Medium Implementation Route
+
+Date: 2026-09-16
+
+- The founder explicitly instructed Sol to stop using Gemini/Flash Executor
+  and use GPT 5.6 Terra with `medium` reasoning for bounded implementation.
+- A separate GPT 5.6 Terra session with `high` reasoning remains the mandatory
+  independent milestone reviewer. The implementor and reviewer sessions must
+  remain independent.
+- Flash Executor is paused from this decision onward and may be reactivated
+  only by another explicit founder instruction.
+- Existing scope, approval, review, merge, deployment, activation, and
+  external-side-effect gates remain unchanged.
+
+## FD-087 LSV-36 Private PDF Delivery And Immutable Storage Attempts
+
+Date: 2026-09-16
+
+- The founder approved the LSV-36 web BFF as the only browser-facing PDF
+  delivery path: after private API owner authorization, the BFF streams or
+  proxies the PDF server-side. Garage remains private with no host-published
+  port, and its internal signed URL is never returned to the browser.
+- The founder approved per-attempt immutable Garage object keys. PostgreSQL
+  atomically selects the winning stored key during fenced finalization; objects
+  written by losing or expired attempts remain orphans for later authorized
+  reconciliation and are never overwritten by a later attempt.
+- The founder approved Be Vietnam Pro under the SIL Open Font License 1.1 for
+  LSV-36 PDF output.
+- This decision does not authorize deployment, activation, use of credentials,
+  or external smoke. Each still requires separate founder authorization and
+  actual configured credentials.
+
+## FD-088 Two-Theme Colour Contract
 
 Date: 2026-09-20
 

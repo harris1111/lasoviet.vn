@@ -1,53 +1,47 @@
 import { createHash } from "node:crypto";
-import { existsSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, normalize, resolve, sep } from "node:path";
 import { and, eq, inArray } from "drizzle-orm";
 import {
-  IDENTITY_REPORT_SECTION_IDS,
   z,
 } from "@lasoviet/contracts";
+import { ziweiKnowledgeV4ValidationV1 } from "@lasoviet/config";
 import {
   knowledgeChunks,
+  knowledgeChunkProvenanceEdges,
   knowledgeDocuments,
   type Database,
 } from "@lasoviet/database";
+import {
+  computeChunkContentHash,
+  KnowledgeChunkManifestSchema,
+  KnowledgeChunkMetadataV1Schema,
+  KnowledgeEditorialRecordV1Schema,
+  type KnowledgeChunkManifest,
+  type KnowledgeChunkMetadataV1,
+  type KnowledgeEditorialRecordV1,
+} from "./knowledge-editorial-record.js";
+import { validateZiweiKnowledgeV4Record } from "./ziwei-knowledge-v4-validator.js";
+
+export {
+  computeChunkContentHash,
+  KNOWLEDGE_CHUNK_LANGUAGE_ORIGINS,
+  KNOWLEDGE_CHUNK_PRIORITIES,
+  KNOWLEDGE_CHUNK_SOURCE_TYPES,
+  KnowledgeChunkManifestSchema,
+  KnowledgeChunkMetadataV1Schema,
+  KnowledgeEditorialRecordV1Schema,
+} from "./knowledge-editorial-record.js";
+export type {
+  KnowledgeChunkManifest,
+  KnowledgeChunkMetadataV1,
+  KnowledgeEditorialRecordV1,
+  KnowledgeChunkLanguageOrigin,
+  KnowledgeChunkPriority,
+  KnowledgeChunkSourceType,
+} from "./knowledge-editorial-record.js";
 
 export const PERMITTED_USE_BASES = ["first_party", "licensed", "public_domain", "reference_rewrite"] as const;
-
-export const KNOWLEDGE_CHUNK_SOURCE_TYPES = ["modern", "classical", "matrix", "curated"] as const;
-export type KnowledgeChunkSourceType = (typeof KNOWLEDGE_CHUNK_SOURCE_TYPES)[number];
-
-export const KNOWLEDGE_CHUNK_LANGUAGE_ORIGINS = ["vi", "zh", "en"] as const;
-export type KnowledgeChunkLanguageOrigin = (typeof KNOWLEDGE_CHUNK_LANGUAGE_ORIGINS)[number];
-
-export const KNOWLEDGE_CHUNK_PRIORITIES = [1, 2, 3] as const;
-export type KnowledgeChunkPriority = (typeof KNOWLEDGE_CHUNK_PRIORITIES)[number];
-
-export type KnowledgeChunkMetadataV1 = {
-  topics: string[];
-  palaces: string[];
-  stars: string[];
-  brightness: string[];
-  transformations: string[];
-  relations: string[];
-  patterns: string[];
-  sourceType: "modern" | "classical" | "matrix" | "curated";
-  languageOrigin: "vi" | "zh" | "en";
-  priority: 1 | 2 | 3;
-};
-
-export const KnowledgeChunkMetadataV1Schema = z.object({
-  topics: z.array(z.string().trim()),
-  palaces: z.array(z.string().trim()),
-  stars: z.array(z.string().trim()),
-  brightness: z.array(z.string().trim()),
-  transformations: z.array(z.string().trim()),
-  relations: z.array(z.string().trim()),
-  patterns: z.array(z.string().trim()),
-  sourceType: z.enum(KNOWLEDGE_CHUNK_SOURCE_TYPES),
-  languageOrigin: z.enum(KNOWLEDGE_CHUNK_LANGUAGE_ORIGINS),
-  priority: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-}).strict();
 
 export function normalizeChunkMetadata(
   metadata: KnowledgeChunkMetadataV1 | undefined,
@@ -103,14 +97,6 @@ export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
 export const KNOWLEDGE_VERSION_PATTERN = /^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+\.v[0-9]+$/;
 
-export const KnowledgeChunkManifestSchema = z.object({
-  passageId: z.string().trim().min(1).max(120),
-  reportSections: z.array(z.enum(IDENTITY_REPORT_SECTION_IDS)).min(1),
-  content: z.string().trim().min(1).max(1_200),
-  contentHash: z.string().regex(/^[0-9a-f]{64}$/),
-  metadata: KnowledgeChunkMetadataV1Schema.optional(),
-}).strict();
-
 export const KnowledgeApprovalRecordSchema = z.object({
   status: z.enum(APPROVAL_STATUSES),
   approver: z.string().trim(),
@@ -130,16 +116,501 @@ export const KnowledgeManifestV1Schema = z.object({
   chunks: z.array(KnowledgeChunkManifestSchema).min(1),
 }).strict();
 
-export type KnowledgeChunkManifest = z.infer<typeof KnowledgeChunkManifestSchema>;
 export type KnowledgeManifestV1 = z.infer<typeof KnowledgeManifestV1Schema>;
 
-export function computeChunkContentHash(content: string): string {
-  return createHash("sha256").update(content, "utf8").digest("hex").toLowerCase();
+export const V3_DISPOSITION_CODES = [
+  "rewritten",
+  "merged",
+  "split",
+  "omitted_oral_filler",
+  "omitted_death_only",
+] as const;
+export type V3DispositionCode = (typeof V3_DISPOSITION_CODES)[number];
+
+const CANONICAL_V3_MANIFEST_PATH =
+  "content/knowledge/vi/ziwei/comprehensive-report.v3.json";
+
+export const KnowledgeProvenanceEdgeV1Schema = z.object({
+  outputKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v4"),
+  outputPassageId: z.string().trim().min(1).max(120),
+  sourceKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v3"),
+  sourcePassageId: z.string().trim().min(1).max(120),
+}).strict();
+export type KnowledgeProvenanceEdgeV1 = z.infer<typeof KnowledgeProvenanceEdgeV1Schema>;
+
+export const V3DispositionLedgerEntryV1Schema = z.object({
+  sourcePassageId: z.string().trim().min(1).max(120),
+  disposition: z.enum(V3_DISPOSITION_CODES),
+  outputPassageIds: z.array(z.string().trim().min(1).max(120)),
+}).strict().superRefine((entry, context) => {
+  const omitsSource = entry.disposition === "omitted_oral_filler" ||
+    entry.disposition === "omitted_death_only";
+  if (omitsSource !== (entry.outputPassageIds.length === 0)) {
+    context.addIssue({
+      code: "custom",
+      message: "Omitted sources must have no output passage IDs; emitted sources require output passage IDs",
+    });
+  }
+});
+export type V3DispositionLedgerEntryV1 = z.infer<typeof V3DispositionLedgerEntryV1Schema>;
+
+export const V3DispositionLedgerV1Schema = z.object({
+  ledgerSchemaVersion: z.literal("ziwei.v3-disposition-ledger.v1"),
+  sourceKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v3"),
+  outputKnowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v4"),
+  candidateHash: z.string().regex(/^[0-9a-f]{64}$/),
+  entries: z.array(V3DispositionLedgerEntryV1Schema).min(1),
+}).strict();
+export type V3DispositionLedgerV1 = z.infer<typeof V3DispositionLedgerV1Schema>;
+
+function compareCodePoints(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function normalizeNfc(value: string): string {
+  return value.normalize("NFC");
+}
+
+function canonicalizeStringSet(values: readonly string[]): string[] {
+  return values.map(normalizeNfc).sort(compareCodePoints);
+}
+
+export function canonicalizeV3DispositionLedgerPayload(
+  ledger: V3DispositionLedgerV1,
+) {
+  return {
+    ledgerSchemaVersion: ledger.ledgerSchemaVersion,
+    sourceKnowledgeVersion: ledger.sourceKnowledgeVersion,
+    outputKnowledgeVersion: ledger.outputKnowledgeVersion,
+    entries: ledger.entries
+      .map((entry) => ({
+        sourcePassageId: normalizeNfc(entry.sourcePassageId),
+        disposition: entry.disposition,
+        outputPassageIds: canonicalizeStringSet(entry.outputPassageIds),
+      }))
+      .sort((left, right) => compareCodePoints(
+        left.sourcePassageId,
+        right.sourcePassageId,
+      )),
+  };
+}
+
+export function computeDispositionLedgerPayloadHash(
+  ledger: V3DispositionLedgerV1,
+): string {
+  return computeChunkContentHash(JSON.stringify(
+    canonicalizeV3DispositionLedgerPayload(ledger),
+  ));
+}
+
+export const KnowledgeManifestV2Schema = KnowledgeManifestV1Schema.extend({
+  manifestSchemaVersion: z.literal("knowledge-manifest.v2"),
+  knowledgeVersion: z.literal("ziwei.comprehensive.knowledge.v4"),
+  candidateHash: z.string().regex(/^[0-9a-f]{64}$/),
+  assemblyVersion: z.string().trim().min(1).max(120),
+  provenanceSchemaVersion: z.literal("knowledge-provenance.v1"),
+  dispositionLedgerPath: z.string().trim().min(1),
+  dispositionLedgerHash: z.string().regex(/^[0-9a-f]{64}$/),
+  chunks: z.array(KnowledgeEditorialRecordV1Schema).min(1),
+}).strict();
+export type KnowledgeManifestV2 = z.infer<typeof KnowledgeManifestV2Schema>;
+
+export function canonicalizeKnowledgeEditorialChunks(
+  chunks: readonly KnowledgeEditorialRecordV1[],
+): KnowledgeEditorialRecordV1[] {
+  return chunks
+    .map((chunk) => ({
+      passageId: normalizeNfc(chunk.passageId),
+      reportSections: canonicalizeStringSet(chunk.reportSections) as KnowledgeEditorialRecordV1["reportSections"],
+      content: normalizeNfc(chunk.content),
+      contentHash: normalizeNfc(chunk.contentHash),
+      metadata: {
+        topics: canonicalizeStringSet(chunk.metadata.topics),
+        palaces: canonicalizeStringSet(chunk.metadata.palaces),
+        stars: canonicalizeStringSet(chunk.metadata.stars),
+        brightness: canonicalizeStringSet(chunk.metadata.brightness),
+        transformations: canonicalizeStringSet(chunk.metadata.transformations),
+        relations: canonicalizeStringSet(chunk.metadata.relations),
+        patterns: canonicalizeStringSet(chunk.metadata.patterns),
+        sourceType: chunk.metadata.sourceType,
+        languageOrigin: chunk.metadata.languageOrigin,
+        priority: chunk.metadata.priority,
+      },
+      sourcePassageIds: canonicalizeStringSet(chunk.sourcePassageIds),
+      dispositionRationaleCode: chunk.dispositionRationaleCode,
+    }))
+    .sort((left, right) => compareCodePoints(left.passageId, right.passageId));
+}
+
+export function canonicalizeKnowledgeProvenanceEdges(
+  edges: readonly KnowledgeProvenanceEdgeV1[],
+): KnowledgeProvenanceEdgeV1[] {
+  return edges
+    .map((edge) => ({
+      outputKnowledgeVersion: edge.outputKnowledgeVersion,
+      outputPassageId: normalizeNfc(edge.outputPassageId),
+      sourceKnowledgeVersion: edge.sourceKnowledgeVersion,
+      sourcePassageId: normalizeNfc(edge.sourcePassageId),
+    }))
+    .sort((left, right) => compareCodePoints(
+      JSON.stringify(left),
+      JSON.stringify(right),
+    ));
+}
+
+export function computeKnowledgeProvenanceEdgeId(
+  edge: KnowledgeProvenanceEdgeV1,
+): string {
+  const [canonicalEdge] = canonicalizeKnowledgeProvenanceEdges([edge]);
+  return `knowledge-provenance-edge:${computeChunkContentHash(
+    JSON.stringify(canonicalEdge),
+  )}`;
+}
+
+export function computeKnowledgeV4CandidateHash(input: {
+  chunks: readonly KnowledgeEditorialRecordV1[];
+  provenanceEdges: readonly KnowledgeProvenanceEdgeV1[];
+  dispositionLedgerHash: string;
+  assemblyVersion: string;
+}): string {
+  return computeChunkContentHash(JSON.stringify({
+    chunks: canonicalizeKnowledgeEditorialChunks(input.chunks),
+    provenanceEdges: canonicalizeKnowledgeProvenanceEdges(input.provenanceEdges),
+    dispositionLedgerHash: normalizeNfc(input.dispositionLedgerHash),
+    policyVersion: ziweiKnowledgeV4ValidationV1.version,
+    assemblerVersion: normalizeNfc(input.assemblyVersion),
+  }));
 }
 
 export function computeDocumentContentHash(chunks: Array<{ content: string }>): string {
   const concatenated = chunks.map((c) => c.content).join("\n\n");
   return createHash("sha256").update(concatenated, "utf8").digest("hex").toLowerCase();
+}
+
+type KnowledgeManifestV2ValidationResult =
+  | {
+      ok: true;
+      value: KnowledgeManifestV2;
+      ledger: V3DispositionLedgerV1;
+      provenanceEdges: KnowledgeProvenanceEdgeV1[];
+    }
+  | { ok: false; code: "KNOWLEDGE_METADATA_INVALID"; message: string };
+
+function resolveRepositoryFile(
+  sourcePath: string,
+  repositoryRoot: string,
+): { ok: true; path: string } | { ok: false; message: string } {
+  const normalizedSource = normalize(sourcePath);
+  if (
+    isAbsolute(sourcePath) ||
+    normalizedSource.startsWith("..") ||
+    sourcePath.includes("..")
+  ) {
+    return {
+      ok: false,
+      message: "Source path must be repository-relative and non-traversing",
+    };
+  }
+
+  const resolvedSourcePath = resolve(repositoryRoot, normalizedSource);
+  if (
+    !resolvedSourcePath.startsWith(repositoryRoot + sep) &&
+    resolvedSourcePath !== repositoryRoot
+  ) {
+    return {
+      ok: false,
+      message: "Source path escapes repository root boundary",
+    };
+  }
+  if (!existsSync(resolvedSourcePath)) {
+    return {
+      ok: false,
+      message: `Source file does not exist at ${sourcePath}`,
+    };
+  }
+
+  try {
+    const canonicalRepoRoot = realpathSync(repositoryRoot);
+    const canonicalSourcePath = realpathSync(resolvedSourcePath);
+    if (
+      canonicalSourcePath !== canonicalRepoRoot &&
+      !canonicalSourcePath.startsWith(canonicalRepoRoot + sep)
+    ) {
+      return {
+        ok: false,
+        message: "Source path escapes repository root boundary",
+      };
+    }
+  } catch {
+    return { ok: false, message: "Source path resolution failed" };
+  }
+
+  return { ok: true, path: resolvedSourcePath };
+}
+
+export function validateKnowledgeManifestV2(
+  input: unknown,
+  options?: { repositoryRoot?: string },
+): KnowledgeManifestV2ValidationResult {
+  const parsed = KnowledgeManifestV2Schema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: `Invalid V2 knowledge manifest schema: ${parsed.error.message}`,
+    };
+  }
+
+  const manifest = parsed.data;
+  const passageIds = new Set<string>();
+  for (const chunk of manifest.chunks) {
+    if (passageIds.has(chunk.passageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Duplicate passageId in manifest: ${chunk.passageId}`,
+      };
+    }
+    passageIds.add(chunk.passageId);
+    if (computeChunkContentHash(chunk.content) !== chunk.contentHash) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Content hash mismatch for chunk ${chunk.passageId}`,
+      };
+    }
+    const recordValidation = validateZiweiKnowledgeV4Record(chunk);
+    if (!recordValidation.ok) {
+      const issue = recordValidation.issues[0];
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `V4 chunk ${chunk.passageId} violates ${issue?.code ?? "V4_RECORD_INVALID"}`,
+      };
+    }
+  }
+  if (computeDocumentContentHash(manifest.chunks) !== manifest.contentHash) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Document content hash mismatch",
+    };
+  }
+
+  const repositoryRoot = options?.repositoryRoot
+    ? resolve(options.repositoryRoot)
+    : resolve(process.cwd());
+  const sourcePath = resolveRepositoryFile(manifest.sourcePath, repositoryRoot);
+  if (!sourcePath.ok) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: `Invalid V2 source path: ${sourcePath.message}`,
+    };
+  }
+  const ledgerPath = resolveRepositoryFile(
+    manifest.dispositionLedgerPath,
+    repositoryRoot,
+  );
+  if (!ledgerPath.ok) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: `Invalid disposition ledger path: ${ledgerPath.message}`,
+    };
+  }
+  const canonicalV3Path = resolveRepositoryFile(
+    CANONICAL_V3_MANIFEST_PATH,
+    repositoryRoot,
+  );
+  if (!canonicalV3Path.ok) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: `Invalid canonical V3 manifest path: ${canonicalV3Path.message}`,
+    };
+  }
+
+  let canonicalV3Manifest: KnowledgeManifestV1;
+  try {
+    const v3Validation = validateKnowledgeManifest(
+      JSON.parse(readFileSync(canonicalV3Path.path, "utf8")),
+      { repositoryRoot },
+    );
+    if (!v3Validation.ok) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: "Canonical V3 manifest is invalid",
+      };
+    }
+    canonicalV3Manifest = v3Validation.value;
+  } catch {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Canonical V3 manifest could not be read",
+    };
+  }
+  if (
+    canonicalV3Manifest.knowledgeVersion !==
+    "ziwei.comprehensive.knowledge.v3"
+  ) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Canonical V3 manifest has an unexpected knowledge version",
+    };
+  }
+  const canonicalV3PassageIds = new Set(
+    canonicalV3Manifest.chunks.map((chunk) => chunk.passageId),
+  );
+
+  let ledgerSource: string;
+  let ledger: V3DispositionLedgerV1;
+  try {
+    ledgerSource = readFileSync(ledgerPath.path, "utf8");
+    const parsedLedger = V3DispositionLedgerV1Schema.safeParse(
+      JSON.parse(ledgerSource),
+    );
+    if (!parsedLedger.success) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Invalid V3 disposition ledger schema: ${parsedLedger.error.message}`,
+      };
+    }
+    ledger = parsedLedger.data;
+  } catch {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Disposition ledger could not be read",
+    };
+  }
+
+  if (computeDispositionLedgerPayloadHash(ledger) !== manifest.dispositionLedgerHash) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Disposition ledger hash mismatch",
+    };
+  }
+  if (ledger.candidateHash !== manifest.candidateHash) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Disposition ledger candidate hash mismatch",
+    };
+  }
+
+  const outputPassagesBySource = new Map<string, Set<string>>();
+  const provenanceEdges: KnowledgeProvenanceEdgeV1[] = [];
+  for (const chunk of manifest.chunks) {
+    const sourcePassageIds = new Set<string>();
+    for (const sourcePassageId of chunk.sourcePassageIds) {
+      if (sourcePassageIds.has(sourcePassageId)) {
+        return {
+          ok: false,
+          code: "KNOWLEDGE_METADATA_INVALID",
+          message: `Duplicate source passage ID for chunk ${chunk.passageId}`,
+        };
+      }
+      sourcePassageIds.add(sourcePassageId);
+      outputPassagesBySource.set(
+        sourcePassageId,
+        new Set([
+          ...(outputPassagesBySource.get(sourcePassageId) ?? []),
+          chunk.passageId,
+        ]),
+      );
+      const edge = KnowledgeProvenanceEdgeV1Schema.safeParse({
+        outputKnowledgeVersion: manifest.knowledgeVersion,
+        outputPassageId: chunk.passageId,
+        sourceKnowledgeVersion: ledger.sourceKnowledgeVersion,
+        sourcePassageId,
+      });
+      if (!edge.success) {
+        return {
+          ok: false,
+          code: "KNOWLEDGE_METADATA_INVALID",
+          message: `Invalid provenance edge for chunk ${chunk.passageId}`,
+        };
+      }
+      provenanceEdges.push(edge.data);
+    }
+  }
+
+  const ledgerSources = new Set<string>();
+  for (const entry of ledger.entries) {
+    if (ledgerSources.has(entry.sourcePassageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Duplicate source passage ID in disposition ledger: ${entry.sourcePassageId}`,
+      };
+    }
+    ledgerSources.add(entry.sourcePassageId);
+    if (new Set(entry.outputPassageIds).size !== entry.outputPassageIds.length) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Duplicate output passage ID in disposition ledger: ${entry.sourcePassageId}`,
+      };
+    }
+    const expectedOutputPassageIds = outputPassagesBySource.get(entry.sourcePassageId) ?? new Set();
+    if (
+      expectedOutputPassageIds.size !== entry.outputPassageIds.length ||
+      entry.outputPassageIds.some((passageId) => !expectedOutputPassageIds.has(passageId))
+    ) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Disposition ledger does not reconcile source passage: ${entry.sourcePassageId}`,
+      };
+    }
+  }
+  for (const sourcePassageId of outputPassagesBySource.keys()) {
+    if (!ledgerSources.has(sourcePassageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: `Missing disposition ledger entry for source passage: ${sourcePassageId}`,
+      };
+    }
+  }
+  if (ledgerSources.size !== canonicalV3PassageIds.size) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Disposition ledger does not cover the canonical V3 passage set",
+    };
+  }
+  for (const sourcePassageId of canonicalV3PassageIds) {
+    if (!ledgerSources.has(sourcePassageId)) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: "Disposition ledger does not cover the canonical V3 passage set",
+      };
+    }
+  }
+
+  const expectedCandidateHash = computeKnowledgeV4CandidateHash({
+    chunks: manifest.chunks,
+    provenanceEdges,
+    dispositionLedgerHash: manifest.dispositionLedgerHash,
+    assemblyVersion: manifest.assemblyVersion,
+  });
+  if (manifest.candidateHash !== expectedCandidateHash) {
+    return {
+      ok: false,
+      code: "KNOWLEDGE_METADATA_INVALID",
+      message: "Candidate hash mismatch",
+    };
+  }
+
+  return { ok: true, value: manifest, ledger, provenanceEdges };
 }
 
 export type IngestKnowledgeSuccess = {
@@ -286,7 +757,9 @@ export function validateKnowledgeManifest(
 function verifyDeepImmutableMatch(
   doc: typeof knowledgeDocuments.$inferSelect,
   existingChunks: Array<typeof knowledgeChunks.$inferSelect>,
-  manifest: KnowledgeManifestV1,
+  manifest: KnowledgeManifestV1 | KnowledgeManifestV2,
+  existingEdges: Array<typeof knowledgeChunkProvenanceEdges.$inferSelect> = [],
+  provenanceEdges: KnowledgeProvenanceEdgeV1[] = [],
 ): boolean {
   // Check document attributes
   if (
@@ -354,7 +827,99 @@ function verifyDeepImmutableMatch(
     }
   }
 
+  if (manifest.knowledgeVersion === "ziwei.comprehensive.knowledge.v4") {
+    if (existingEdges.length !== provenanceEdges.length) {
+      return false;
+    }
+    const persistedEdges = new Set(
+      existingEdges.map(
+        (edge) => `${edge.outputKnowledgeVersion}:${edge.outputPassageId}:${edge.sourceKnowledgeVersion}:${edge.sourcePassageId}`,
+      ),
+    );
+    for (const edge of provenanceEdges) {
+      const matchingEdge = existingEdges.find(
+        (persisted) =>
+          persisted.outputKnowledgeVersion === edge.outputKnowledgeVersion &&
+          persisted.outputPassageId === edge.outputPassageId &&
+          persisted.sourceKnowledgeVersion === edge.sourceKnowledgeVersion &&
+          persisted.sourcePassageId === edge.sourcePassageId,
+      );
+      if (
+        !matchingEdge ||
+        matchingEdge.id !== computeKnowledgeProvenanceEdgeId(edge)
+      ) {
+        return false;
+      }
+      if (!persistedEdges.delete(
+        `${edge.outputKnowledgeVersion}:${edge.outputPassageId}:${edge.sourceKnowledgeVersion}:${edge.sourcePassageId}`,
+      )) {
+        return false;
+      }
+    }
+    if (persistedEdges.size !== 0) {
+      return false;
+    }
+  } else if (existingEdges.length !== 0 || provenanceEdges.length !== 0) {
+    return false;
+  }
+
   return true;
+}
+
+type ValidatedKnowledgeManifest =
+  | {
+      manifest: KnowledgeManifestV1;
+      provenanceEdges: [];
+    }
+  | {
+      manifest: KnowledgeManifestV2;
+      provenanceEdges: KnowledgeProvenanceEdgeV1[];
+    };
+
+function validateIngestibleKnowledgeManifest(
+  input: unknown,
+  options?: { repositoryRoot?: string },
+): { ok: true; value: ValidatedKnowledgeManifest } | { ok: false; code: IngestKnowledgeErrorCode; message: string } {
+  if (
+    typeof input === "object" &&
+    input !== null &&
+    "manifestSchemaVersion" in input
+  ) {
+    const validation = validateKnowledgeManifestV2(input, options);
+    if (!validation.ok) {
+      return validation;
+    }
+    if (
+      validation.value.approval.status !== "approved" ||
+      !validation.value.approval.approver.trim()
+    ) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_UNAPPROVED",
+        message: "Knowledge manifest is not approved or lacks an approver",
+      };
+    }
+    if (validation.provenanceEdges.length === 0) {
+      return {
+        ok: false,
+        code: "KNOWLEDGE_METADATA_INVALID",
+        message: "Approved V4 knowledge manifest must emit at least one provenance edge",
+      };
+    }
+    return {
+      ok: true,
+      value: {
+        manifest: validation.value,
+        provenanceEdges: validation.provenanceEdges,
+      },
+    };
+  }
+
+  const validation = validateKnowledgeManifest(input, options);
+  if (!validation.ok) {
+    return validation;
+  }
+  return { ok: true, value: { manifest: validation.value, provenanceEdges: [] } };
 }
 
 
@@ -375,7 +940,7 @@ export function createKnowledgeIngestionService(dependencies: {
 }) {
   return {
     async ingestKnowledge(input: unknown): Promise<IngestKnowledgeResult> {
-      const validation = validateKnowledgeManifest(input, {
+      const validation = validateIngestibleKnowledgeManifest(input, {
         repositoryRoot: dependencies.repositoryRoot,
       });
 
@@ -387,7 +952,7 @@ export function createKnowledgeIngestionService(dependencies: {
         };
       }
 
-      const manifest = validation.value;
+      const { manifest, provenanceEdges } = validation.value;
       const database = dependencies.database;
 
       // Check for existing document by (documentId, knowledgeVersion)
@@ -408,8 +973,28 @@ export function createKnowledgeIngestionService(dependencies: {
           .select()
           .from(knowledgeChunks)
           .where(eq(knowledgeChunks.documentId, doc.id));
+        const existingEdges = manifest.knowledgeVersion === "ziwei.comprehensive.knowledge.v4"
+          ? await database
+            .select()
+            .from(knowledgeChunkProvenanceEdges)
+            .where(
+              and(
+                eq(knowledgeChunkProvenanceEdges.outputKnowledgeVersion, manifest.knowledgeVersion),
+                inArray(
+                  knowledgeChunkProvenanceEdges.outputPassageId,
+                  manifest.chunks.map((chunk) => chunk.passageId),
+                ),
+              ),
+            )
+          : [];
 
-        const isMatch = verifyDeepImmutableMatch(doc, existingChunks, manifest);
+        const isMatch = verifyDeepImmutableMatch(
+          doc,
+          existingChunks,
+          manifest,
+          existingEdges,
+          provenanceEdges,
+        );
         if (isMatch) {
           return {
             ok: true,
@@ -461,6 +1046,37 @@ export function createKnowledgeIngestionService(dependencies: {
 
       try {
         return await database.transaction(async (tx) => {
+          if (manifest.knowledgeVersion === "ziwei.comprehensive.knowledge.v4") {
+            const sourcePassageIds = [...new Set(
+              provenanceEdges.map((edge) => edge.sourcePassageId),
+            )];
+            const sourceChunks = await tx
+              .select({
+                knowledgeVersion: knowledgeChunks.knowledgeVersion,
+                passageId: knowledgeChunks.passageId,
+              })
+              .from(knowledgeChunks)
+              .where(
+                and(
+                  eq(
+                    knowledgeChunks.knowledgeVersion,
+                    "ziwei.comprehensive.knowledge.v3",
+                  ),
+                  inArray(knowledgeChunks.passageId, sourcePassageIds),
+                ),
+              );
+            if (sourceChunks.length !== sourcePassageIds.length) {
+              return {
+                ok: false,
+                code: "KNOWLEDGE_METADATA_INVALID",
+                error: {
+                  code: "KNOWLEDGE_METADATA_INVALID",
+                  message: "V4 provenance edge references a missing V3 source passage",
+                },
+              };
+            }
+          }
+
           // Idempotent conflict-safe insert for document
           const insertedDocs = await tx
             .insert(knowledgeDocuments)
@@ -504,8 +1120,28 @@ export function createKnowledgeIngestionService(dependencies: {
               .select()
               .from(knowledgeChunks)
               .where(eq(knowledgeChunks.documentId, concurrentDoc.id));
+            const concurrentEdges = manifest.knowledgeVersion === "ziwei.comprehensive.knowledge.v4"
+              ? await tx
+                .select()
+                .from(knowledgeChunkProvenanceEdges)
+                .where(
+                  and(
+                    eq(knowledgeChunkProvenanceEdges.outputKnowledgeVersion, manifest.knowledgeVersion),
+                    inArray(
+                      knowledgeChunkProvenanceEdges.outputPassageId,
+                      manifest.chunks.map((chunk) => chunk.passageId),
+                    ),
+                  ),
+                )
+              : [];
 
-            const isMatch = verifyDeepImmutableMatch(concurrentDoc, concurrentChunks, manifest);
+            const isMatch = verifyDeepImmutableMatch(
+              concurrentDoc,
+              concurrentChunks,
+              manifest,
+              concurrentEdges,
+              provenanceEdges,
+            );
             if (isMatch) {
               return {
                 ok: true,
@@ -547,6 +1183,25 @@ export function createKnowledgeIngestionService(dependencies: {
 
           if (insertedChunks.length !== manifest.chunks.length) {
             throw new Error("KNOWLEDGE_METADATA_INVALID: Incomplete chunk persistence");
+          }
+
+          if (manifest.knowledgeVersion === "ziwei.comprehensive.knowledge.v4") {
+            const edgeRows = provenanceEdges.map((edge) => ({
+              id: computeKnowledgeProvenanceEdgeId(edge),
+              outputKnowledgeVersion: edge.outputKnowledgeVersion,
+              outputPassageId: edge.outputPassageId,
+              sourceKnowledgeVersion: edge.sourceKnowledgeVersion,
+              sourcePassageId: edge.sourcePassageId,
+            }));
+            const insertedEdges = await tx
+              .insert(knowledgeChunkProvenanceEdges)
+              .values(edgeRows)
+              .returning({
+                outputPassageId: knowledgeChunkProvenanceEdges.outputPassageId,
+              });
+            if (insertedEdges.length !== edgeRows.length) {
+              throw new Error("KNOWLEDGE_METADATA_INVALID: Incomplete provenance edge persistence");
+            }
           }
 
           return {

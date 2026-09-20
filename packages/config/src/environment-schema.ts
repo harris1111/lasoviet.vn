@@ -9,6 +9,7 @@ export type AiEnvironment =
       baseUrl: string;
       apiKey: string;
       model: string;
+      allowedResolvedModels: string[];
       timeoutMs: number;
       maxRetries: number;
       featureJsonSchema: boolean;
@@ -37,6 +38,18 @@ export type CloudS3Environment =
       bucket: string;
       accessKeyId: string;
       secretAccessKey: string;
+    };
+
+export type GarageEnvironment =
+  | { enabled: false }
+  | {
+      enabled: true;
+      endpoint: "http://garage:3900";
+      region: "lasoviet-private";
+      bucket: "lasoviet-report-assets";
+      accessKeyId: string;
+      secretAccessKey: string;
+      rpcSecret: string;
     };
 
 export type DisabledSePayEnvironment = {
@@ -73,6 +86,7 @@ export type AppEnvironment = {
   ai: AiEnvironment;
   smtp: SmtpEnvironment;
   cloudS3: CloudS3Environment;
+  garage: GarageEnvironment;
   sepay: SePayEnvironment;
   telegram?: {
     botToken: string;
@@ -81,6 +95,17 @@ export type AppEnvironment = {
 };
 
 const trimmedNonEmpty = z.string().trim().min(1);
+const uniqueTrimmedNonEmptyIds = z
+  .array(trimmedNonEmpty)
+  .min(1)
+  .superRefine((values, context) => {
+    if (new Set(values).size !== values.length) {
+      context.addIssue({
+        code: "custom",
+        message: "Expected unique resolved model IDs",
+      });
+    }
+  });
 const absoluteUrl = z.string().trim().pipe(z.url());
 const emailAddress = z.string().trim().pipe(z.email());
 const mailboxAddress = z
@@ -107,6 +132,7 @@ const enabledAi = z
     baseUrl: absoluteUrl,
     apiKey: trimmedNonEmpty,
     model: trimmedNonEmpty,
+    allowedResolvedModels: uniqueTrimmedNonEmptyIds,
     timeoutMs: z.number().int().positive(),
     maxRetries: z.number().int().nonnegative(),
     featureJsonSchema: z.boolean(),
@@ -159,6 +185,22 @@ const enabledCloudS3 = z
 export const CloudS3EnvironmentSchema: z.ZodType<CloudS3Environment> =
   z.discriminatedUnion("enabled", [disabledCloudS3, enabledCloudS3]);
 
+const disabledGarage = z.object({ enabled: z.literal(false) }).strict();
+const enabledGarage = z
+  .object({
+    enabled: z.literal(true),
+    endpoint: z.literal("http://garage:3900"),
+    region: z.literal("lasoviet-private"),
+    bucket: z.literal("lasoviet-report-assets"),
+    accessKeyId: trimmedNonEmpty,
+    secretAccessKey: trimmedNonEmpty,
+    rpcSecret: z.string().regex(/^[a-f0-9]{64}$/),
+  })
+  .strict();
+
+export const GarageEnvironmentSchema: z.ZodType<GarageEnvironment> =
+  z.discriminatedUnion("enabled", [disabledGarage, enabledGarage]);
+
 const disabledSePay = z.object({ environment: z.literal("disabled") }).strict();
 const activeSePay = z
   .object({
@@ -195,6 +237,7 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     ai: AiEnvironmentSchema,
     smtp: SmtpEnvironmentSchema,
     cloudS3: CloudS3EnvironmentSchema,
+    garage: GarageEnvironmentSchema,
     sepay: SePayEnvironmentSchema,
     telegram: z
       .object({

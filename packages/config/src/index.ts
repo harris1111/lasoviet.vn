@@ -2,6 +2,7 @@ export {
   AiEnvironmentSchema,
   AppEnvironmentSchema,
   CloudS3EnvironmentSchema,
+  GarageEnvironmentSchema,
   NodeEnvironmentSchema,
   SmtpEnvironmentSchema,
   SePayEnvironmentSchema,
@@ -10,6 +11,7 @@ export type {
   AiEnvironment,
   AppEnvironment,
   CloudS3Environment,
+  GarageEnvironment,
   NodeEnvironment,
   SmtpEnvironment,
   SePayEnvironment,
@@ -66,10 +68,22 @@ export type {
 export {
   normalizeZiweiQualityTerm,
   resolveZiweiReportQualityConfig,
+  resolveZiweiReportQualitySectionThreshold,
   validateZiweiReportQualityConfig,
   ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2Sensitivity,
 } from "./ziwei-report-quality.js";
 export type {
   ZiweiReportQualityConfig,
   ZiweiReportQualitySectionKind,
+  ZiweiReportQualitySectionThreshold,
 } from "./ziwei-report-quality.js";
+
+export {
+  normalizeZiweiKnowledgeV4Term,
+  validateZiweiKnowledgeV4ValidationConfig,
+  ziweiKnowledgeV4ValidationV1,
+} from "./ziwei-knowledge-v4-validation.js";
+export type {
+  ZiweiKnowledgeV4ValidationConfig,
+} from "./ziwei-knowledge-v4-validation.js";

@@ -3,11 +3,18 @@ import {
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
   ZiweiComprehensiveReportActionItemV2Schema,
   ZiweiComprehensiveReportAnnualSnapshotV2Schema,
+  ZiweiComprehensiveReportBirthTimeSensitivityV2Schema,
   ZiweiComprehensiveReportCurrentDecadalV2Schema,
   type ZiweiPalaceId,
   type ZiweiThematicSynthesisId,
   z,
 } from "@lasoviet/contracts";
+import {
+  REPORT_CONFIG_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const narrativeSchema = z.object({
   title: z.string().trim().min(1).max(120),
@@ -36,7 +43,13 @@ export const COMPREHENSIVE_REPORT_SECTION_KEYS = [
   "practicalDirection",
 ] as const;
 
-export type ComprehensiveReportSectionKey =
+export const COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1 = [
+  ...COMPREHENSIVE_REPORT_SECTION_KEYS.slice(0, -1),
+  "birthTimeSensitivity",
+  "practicalDirection",
+] as const;
+
+export type ComprehensiveReportSectionKeyV4 =
   | "overview"
   | "coreAxis"
   | "keyConfigurations"
@@ -46,6 +59,10 @@ export type ComprehensiveReportSectionKey =
   | "currentDecadal"
   | "annualSnapshot"
   | "practicalDirection";
+export type ComprehensiveReportSectionKeyV4_1 =
+  | ComprehensiveReportSectionKeyV4
+  | "birthTimeSensitivity";
+export type ComprehensiveReportSectionKey = ComprehensiveReportSectionKeyV4_1;
 
 export type ComprehensiveReportAcceptedSection =
   | { key: "overview" | "coreAxis" | "strengthsAndTensions"; value: z.infer<typeof narrativeSchema> }
@@ -54,6 +71,7 @@ export type ComprehensiveReportAcceptedSection =
   | { key: `thematic:${ZiweiThematicSynthesisId}`; value: z.infer<typeof thematicValueSchema> }
   | { key: "currentDecadal"; value: z.infer<typeof ZiweiComprehensiveReportCurrentDecadalV2Schema> }
   | { key: "annualSnapshot"; value: z.infer<typeof ZiweiComprehensiveReportAnnualSnapshotV2Schema> }
+  | { key: "birthTimeSensitivity"; value: z.infer<typeof ZiweiComprehensiveReportBirthTimeSensitivityV2Schema> }
   | { key: "practicalDirection"; value: z.infer<typeof practicalDirectionSchema> };
 
 export class ComprehensiveReportSectionV4Error extends Error {
@@ -65,6 +83,24 @@ export class ComprehensiveReportSectionV4Error extends Error {
 
 function fail(): never {
   throw new ComprehensiveReportSectionV4Error();
+}
+
+export function resolveComprehensiveReportSectionKeys(
+  reportConfigVersion: string,
+): readonly ComprehensiveReportSectionKey[] {
+  if (
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4 ||
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED
+  ) {
+    return COMPREHENSIVE_REPORT_SECTION_KEYS;
+  }
+  if (
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+  ) {
+    return COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1;
+  }
+  return fail();
 }
 
 function isPalaceKey(key: string): key is `palace:${ZiweiPalaceId}` {
@@ -79,6 +115,7 @@ function isThematicKey(key: string): key is `thematic:${ZiweiThematicSynthesisId
 
 export function parseComprehensiveReportAcceptedSection(
   source: unknown,
+  reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
 ): ComprehensiveReportAcceptedSection {
   const envelope = z.object({
     key: z.string(),
@@ -87,6 +124,9 @@ export function parseComprehensiveReportAcceptedSection(
   if (!envelope.success) fail();
 
   const { key, value } = envelope.data;
+  if (!resolveComprehensiveReportSectionKeys(reportConfigVersion).includes(key as ComprehensiveReportSectionKey)) {
+    return fail();
+  }
   if (key === "overview" || key === "coreAxis" || key === "strengthsAndTensions") {
     const parsed = narrativeSchema.safeParse(value);
     if (!parsed.success) fail();
@@ -117,6 +157,11 @@ export function parseComprehensiveReportAcceptedSection(
     if (!parsed.success) fail();
     return { key, value: parsed.data };
   }
+  if (key === "birthTimeSensitivity") {
+    const parsed = ZiweiComprehensiveReportBirthTimeSensitivityV2Schema.safeParse(value);
+    if (!parsed.success) fail();
+    return { key, value: parsed.data };
+  }
   if (key === "practicalDirection") {
     const parsed = practicalDirectionSchema.safeParse(value);
     if (!parsed.success) fail();
@@ -127,15 +172,17 @@ export function parseComprehensiveReportAcceptedSection(
 
 export function parseCompleteComprehensiveReportAcceptedSections(
   source: unknown,
+  reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
 ): readonly ComprehensiveReportAcceptedSection[] {
-  if (!Array.isArray(source) || source.length !== COMPREHENSIVE_REPORT_SECTION_KEYS.length) fail();
+  const sectionKeys = resolveComprehensiveReportSectionKeys(reportConfigVersion);
+  if (!Array.isArray(source) || source.length !== sectionKeys.length) fail();
   const byKey = new Map<string, ComprehensiveReportAcceptedSection>();
   for (const entry of source) {
-    const parsed = parseComprehensiveReportAcceptedSection(entry);
+    const parsed = parseComprehensiveReportAcceptedSection(entry, reportConfigVersion);
     if (byKey.has(parsed.key)) fail();
     byKey.set(parsed.key, parsed);
   }
-  return COMPREHENSIVE_REPORT_SECTION_KEYS.map((key) => {
+  return sectionKeys.map((key) => {
     const entry = byKey.get(key);
     return entry ?? fail();
   });

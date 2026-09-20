@@ -90,35 +90,103 @@ describe("createDatabaseReportVersionRepository - consumeRewriteBudget", () => {
   });
 });
 
-describe("createDatabaseReportVersionRepository - notification configuration", () => {
-  const database = {} as never;
-
-  it("accepts the canonical public HTTPS origin", () => {
-    expect(() =>
-      createDatabaseReportVersionRepository(database, repositoryOptions),
-    ).not.toThrow();
-  });
-
-  it.each([
-    ["HTTP", "http://lasoviet.net"],
-    ["private IP", "https://10.0.0.1"],
-    ["credentials", "https://user:password@lasoviet.net"],
-    ["internal hostname", "https://reports.internal"],
-  ])("rejects %s origin", (_name, betterAuthUrl) => {
-    expect(() =>
-      createDatabaseReportVersionRepository(database, {
-        betterAuthUrl,
-        recipientFingerprintSecret: "synthetic-secret",
+describe("createDatabaseReportVersionRepository - immutable PDF requests", () => {
+  it("persists and requests the exact V2 render version", async () => {
+    const selectResults = [
+      [],
+      [{ id: "job-1" }],
+    ];
+    const updateResults = [
+      [{ id: "reservation-1", stateVersion: 3 }],
+      [{ id: "reservation-1", stateVersion: 4 }],
+      [{ id: "reservation-1", stateVersion: 5 }],
+      [{ id: "attempt-1" }],
+      [{ id: "job-1" }],
+    ];
+    const reportVersionValues = vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{ reportVersionId: "report-version-1" }]),
+    });
+    const outboxValues = vi.fn().mockResolvedValue(undefined);
+    const insert = vi
+      .fn()
+      .mockReturnValueOnce({ values: reportVersionValues })
+      .mockReturnValueOnce({ values: vi.fn().mockResolvedValue(undefined) })
+      .mockReturnValueOnce({ values: outboxValues })
+    const select = vi.fn(() => {
+      const query = {
+        from: vi.fn(),
+        innerJoin: vi.fn(),
+        where: vi.fn(),
+        limit: vi.fn().mockImplementation(() => Promise.resolve(selectResults.shift())),
+      };
+      query.from.mockReturnValue(query);
+      query.innerJoin.mockReturnValue(query);
+      query.where.mockReturnValue(query);
+      return query;
+    });
+    const transaction = vi.fn(async (callback) =>
+      callback({
+        select,
+        update: vi.fn(() => ({
+          set: vi.fn(() => ({
+            where: vi.fn(() => ({
+              returning: vi.fn().mockImplementation(() => Promise.resolve(updateResults.shift())),
+            })),
+          })),
+        })),
+        insert,
       }),
-    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
-  });
+    );
+    const database = { transaction } as never;
+    const repo = createDatabaseReportVersionRepository(database, repositoryOptions);
 
-  it("rejects an empty recipient fingerprint secret", () => {
-    expect(() =>
-      createDatabaseReportVersionRepository(database, {
-        betterAuthUrl: "https://lasoviet.net",
-        recipientFingerprintSecret: "   ",
+    const result = await repo.commitImmutableVersion({
+      reportId: "report-1",
+      reportVersionId: "report-version-1",
+      entitlementId: "entitlement-1",
+      chartVersionId: "chart-version-1",
+      evidenceVersionId: "evidence-version-1",
+      knowledgeVersionId: "knowledge-version-1",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+      locale: "vi",
+      sku: "ZIWEI-COMPREHENSIVE-P1",
+      providerId: "provider-1",
+      modelId: "model-1",
+      structuredContent: {} as never,
+      htmlContent: "<html>immutable</html>",
+      jobId: "job-1",
+      workerId: "worker-1",
+      attemptNumber: 1,
+      traceId: "trace-1",
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      value: { reportVersionId: "report-version-1" },
+    });
+    expect(reportVersionValues).toHaveBeenCalledWith(
+      expect.objectContaining({ renderVersion: "identity-report-pdf.v2" }),
+    );
+    expect(insert.mock.results[1]?.value.values).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reportVersionId: "report-version-1",
+        renderVersion: "identity-report-pdf.v2",
+        status: "render_pending",
+        objectKey: expect.stringMatching(/^reports\/[^/]+\.pdf$/),
       }),
-    ).toThrow("REPORT_NOTIFICATION_CONFIG_INVALID");
+    );
+    expect(outboxValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: "report.pdf.requested.v1",
+        idempotencyKey: "pdf-request:report-version-1:identity-report-pdf.v2",
+        payload: expect.objectContaining({
+          renderVersion: "identity-report-pdf.v2",
+        }),
+      }),
+    );
+    expect(insert).toHaveBeenCalledTimes(3);
   });
 });

@@ -1,13 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
 import { ZIWEI_PALACE_IDS, ZIWEI_THEMATIC_SYNTHESIS_IDS } from "@lasoviet/contracts";
-import { ziweiComprehensiveReportQualityV1 } from "@lasoviet/config";
+import {
+  ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2Sensitivity,
+} from "@lasoviet/config";
 
 import {
   writeComprehensiveReportSectionV4,
 } from "./comprehensive-report-section-writer-v4.js";
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
-import { COMPREHENSIVE_REPORT_SECTION_KEYS } from "./comprehensive-report-section-v4.js";
-import { REPORT_PROMPT_VERSION_V4_0_1 } from "./identity-report-config.js";
+import {
+  COMPREHENSIVE_REPORT_SECTION_KEYS,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+} from "./comprehensive-report-section-v4.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const palaceIds = [...ZIWEI_PALACE_IDS];
 const branches = [
@@ -157,6 +170,14 @@ function outputFor(key: string): unknown {
   if (key === "keyConfigurations") return { key, value: [narrative] };
   if (key === "currentDecadal") return { key, value: { ...narrative, state: "active", index: 2, ageRange: [22, 31], yearRange: [2022, 2031] } };
   if (key === "annualSnapshot") return { key, value: { ...narrative, targetYear: 2026, asOfDate: "2026-09-12" } };
+  if (key === "birthTimeSensitivity") return {
+    key,
+    value: {
+      title: "Độ nhạy thời điểm sinh",
+      stableFactors: { ...narrative, title: "Yếu tố ổn định", evidenceKeys: ["sensitivity.stable.ziwei.fact.soul-palace"] },
+      sensitiveFactors: { ...narrative, title: "Yếu tố cần đối chiếu", evidenceKeys: ["sensitivity.sensitive.ziwei.fact.body-palace"] },
+    },
+  };
   if (key === "practicalDirection") return {
     key,
     value: Array.from({ length: 3 }, () => ({
@@ -196,6 +217,51 @@ describe("writeComprehensiveReportSectionV4", () => {
       expect(request.schema.safeParse(output).success).toBe(true);
       expect(request.schema.safeParse({ ...output, key: "overview" }).success).toBe(key === "overview");
     }
+  });
+
+  it("uses 3500 only for all four V4.1.1 thematic sections and preserves old budgets", async () => {
+    const reportFacts = facts();
+    reportFacts.sensitivity = {
+      stableFactKeys: [],
+      sensitiveFacts: [],
+    };
+    const provider = {
+      generateStructured: vi.fn().mockImplementation(async (request) => {
+        const key = JSON.parse(request.user).sectionKey;
+        return { ok: true, value: { value: outputFor(key), providerId: "mock", modelId: "model" } };
+      }),
+    };
+    for (const reportConfigVersion of [
+      REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    ] as const) {
+      for (const sectionKey of COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1) {
+        await writeComprehensiveReportSectionV4({
+          sectionKey,
+          facts: reportFacts,
+          knowledgePacks: [],
+          provider: provider as never,
+          promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+          reportConfigVersion,
+        });
+      }
+    }
+    const requests = provider.generateStructured.mock.calls.map((call) => call[0]);
+    const oldRequests = requests.slice(0, COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.length);
+    const newRequests = requests.slice(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.length);
+    for (const [index, key] of COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.entries()) {
+      if (key.startsWith("thematic:")) {
+        expect(oldRequests[index].maxOutputTokens).toBe(2500);
+        expect(newRequests[index].maxOutputTokens).toBe(3500);
+      } else {
+        expect(newRequests[index].maxOutputTokens).toBe(oldRequests[index].maxOutputTokens);
+      }
+    }
+    expect(oldRequests.find((request) =>
+      JSON.parse(request.user).sectionKey === "birthTimeSensitivity"
+    ).maxOutputTokens).toBe(
+      ziweiComprehensiveReportQualityV2Sensitivity.sections.birthTimeSensitivity.maxOutputTokens,
+    );
   });
 
   it("rejects mismatched key-specific IDs and does not invent fallback content", async () => {
@@ -318,6 +384,179 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(JSON.stringify(payload)).not.toContain("UNRELATED_PALACE");
   });
 
+  it("adds config-derived per-item requirements and structured rewrite findings only for the new prompt", async () => {
+    const priorSection = {
+      key: "keyConfigurations" as const,
+      value: Array.from({ length: 5 }, (_, index) => ({
+        title: `Configuration ${index}`,
+        narrative: "Short candidate.",
+        evidenceKeys: [`evidence-${index}`],
+      })),
+    };
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("keyConfigurations"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const shared = {
+      sectionKey: "keyConfigurations" as const,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    };
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+      rewrite: {
+        priorSection,
+        findings: Array.from({ length: 5 }, (_, index) => ({
+          itemKey: `keyConfigurations[${index}]`,
+          code: "MINIMUM_SYLLABLES",
+          note: `Expand item ${index}.`,
+        })),
+      },
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    });
+
+    const [initialRequest, rewriteRequest, oldRequest] =
+      provider.generateStructured.mock.calls.map(([request]) => request);
+    const initialPayload = JSON.parse(initialRequest.user);
+    const rewritePayload = JSON.parse(rewriteRequest.user);
+    const oldPayload = JSON.parse(oldRequest.user);
+    expect(initialPayload.keyConfigurationRequirements).toEqual({
+      perItem: true,
+      minimumSyllables: 250,
+      targetMinimumSyllables: 300,
+      targetMaximumSyllables: 400,
+    });
+    expect(rewritePayload.keyConfigurationRequirements).toEqual(
+      initialPayload.keyConfigurationRequirements,
+    );
+    expect(rewritePayload.rewrite).toMatchObject({
+      priorSection,
+      findings: Array.from({ length: 5 }, (_, index) => ({
+        itemKey: `keyConfigurations[${index}]`,
+        code: "MINIMUM_SYLLABLES",
+        note: `Expand item ${index}.`,
+      })),
+      itemKeys: Array.from({ length: 5 }, (_, index) => `keyConfigurations[${index}]`),
+      preserveItemCount: true,
+      preserveItemOrder: true,
+      preserveEvidenceKeys: true,
+    });
+    expect(initialRequest.system).toContain("tối thiểu 250 âm tiết");
+    expect(initialRequest.system).toContain("mục tiêu 300-400 âm tiết");
+    expect(rewriteRequest.system).toContain("sửa đầy đủ mọi finding theo đúng itemKey");
+    expect(oldPayload).not.toHaveProperty("keyConfigurationRequirements");
+    expect(oldRequest.system).not.toContain("tối thiểu 250 âm tiết");
+  });
+
+  it("sends the shared V4.1.2 acceptance contract for generic generation and item-addressed rewrites", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("coreAxis"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const priorSection = outputFor("coreAxis") as any;
+    await writeComprehensiveReportSectionV4({
+      sectionKey: "coreAxis",
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    });
+    await writeComprehensiveReportSectionV4({
+      sectionKey: "coreAxis",
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      rewrite: {
+        priorSection,
+        findings: [
+          { itemKey: "coreAxis", code: "DISCOURAGED_TERM", note: "Replace khí chất." },
+          { itemKey: "coreAxis", code: "EVIDENCE_ANCHORS", note: "Add chart anchors." },
+        ],
+      },
+    });
+    const [initial, rewrite] = provider.generateStructured.mock.calls.map(([request]) => ({
+      request,
+      payload: JSON.parse(request.user),
+    }));
+    expect(initial.payload.acceptanceContract).toMatchObject({
+      scope: "section-and-item-addressed",
+      suppliedFindings: expect.stringContaining("every supplied finding"),
+      properNameDensity: {
+        configuredProperNames: expect.arrayContaining(["Mệnh", "Tử Vi"]),
+        maximumPer100Syllables: 8,
+      },
+      evidence: {
+        preserveEvidenceBackedChartFacts: true,
+        preserveRequiredEvidenceKeys: true,
+      },
+      noNewQualityViolations: true,
+    });
+    expect(initial.payload.acceptanceContract.discouragedTerms).toEqual(
+      expect.arrayContaining(["khí chất", "an nhàn"]),
+    );
+    expect(rewrite.payload.rewrite.findings).toEqual([
+      { itemKey: "coreAxis", code: "DISCOURAGED_TERM", note: "Replace khí chất." },
+      { itemKey: "coreAxis", code: "EVIDENCE_ANCHORS", note: "Add chart anchors." },
+    ]);
+    expect(rewrite.request.system).toContain("configured discouraged term");
+    expect(rewrite.request.system).toContain("every supplied finding");
+  });
+
+  it("keeps V4.1.2 keyConfigurations title, order, and evidenceKeys identity contract", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("keyConfigurations"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const priorSection = {
+      key: "keyConfigurations" as const,
+      value: [
+        { title: "First", narrative: "Candidate", evidenceKeys: ["e1"] },
+        { title: "Second", narrative: "Candidate", evidenceKeys: ["e2"] },
+      ],
+    };
+    await writeComprehensiveReportSectionV4({
+      sectionKey: "keyConfigurations",
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      rewrite: {
+        priorSection,
+        findings: [{ itemKey: "keyConfigurations[1]", code: "EVIDENCE_ANCHORS", note: "Correct item." }],
+      },
+    });
+    const payload = JSON.parse(provider.generateStructured.mock.calls[0][0].user);
+    expect(payload.acceptanceContract.keyConfigurations).toEqual({
+      preserveExactTitleOrderEvidenceKeysIdentity: true,
+    });
+    expect(payload.rewrite).toMatchObject({
+      itemKeys: ["keyConfigurations[0]", "keyConfigurations[1]"],
+      preserveItemCount: true,
+      preserveItemOrder: true,
+      preserveEvidenceKeys: true,
+    });
+  });
+
   it("maps production V4 evidence items by source key without leaking raw, unrelated, or mismatched timing keys", async () => {
     const reportFacts = productionFacts();
     const provider = {
@@ -418,5 +657,52 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(JSON.stringify(contextual)).not.toContain("1990-01-01");
     expect(JSON.stringify(contextual)).not.toContain("08:30");
     expect(JSON.stringify(contextual)).not.toContain("Hanoi");
+  });
+
+  it("serializes V4.1 sensitivity from frozen normalized comparisons without raw birth PII", async () => {
+    const reportFacts = facts();
+    reportFacts.sensitivity = {
+      stableFactKeys: ["ziwei.fact.soul-palace"],
+      sensitiveFacts: [{
+        factKey: "ziwei.fact.body-palace",
+        variants: [
+          { position: "previous", valueIds: ["ziwei.palace.life"], evidenceKeys: [] },
+          { position: "selected", valueIds: ["ziwei.palace.career"], evidenceKeys: [] },
+          { position: "next", valueIds: ["ziwei.palace.wealth"], evidenceKeys: [] },
+        ],
+      }],
+    };
+    reportFacts.evidence.items.push(
+      { key: "sensitivity.stable.ziwei.fact.soul-palace", dimension: "sensitivity", sourceKeys: ["ziwei.fact.soul-palace"] },
+      { key: "sensitivity.sensitive.ziwei.fact.body-palace", dimension: "sensitivity", sourceKeys: ["ziwei.fact.body-palace"] },
+    );
+    reportFacts.evidenceKeys.push(
+      "sensitivity.stable.ziwei.fact.soul-palace",
+      "sensitivity.sensitive.ziwei.fact.body-palace",
+    );
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("birthTimeSensitivity"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const result = await writeComprehensiveReportSectionV4({
+      sectionKey: "birthTimeSensitivity",
+      facts: reportFacts,
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    });
+    expect(result.ok).toBe(true);
+    const payload = JSON.parse(provider.generateStructured.mock.calls[0][0].user);
+    expect(payload.allowedEvidenceKeys).toEqual([
+      "sensitivity.sensitive.ziwei.fact.body-palace",
+      "sensitivity.stable.ziwei.fact.soul-palace",
+    ]);
+    expect(payload.facts.sensitivity).not.toHaveProperty("selectedFrame");
+    expect(JSON.stringify(payload)).not.toContain("1990-01-01");
+    expect(JSON.stringify(payload)).not.toContain("08:30");
+    expect(JSON.stringify(payload)).not.toContain("Hanoi");
   });
 });

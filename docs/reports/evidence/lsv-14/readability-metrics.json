@@ -1,0 +1,1604 @@
+{
+  "generatedAt": "2026-09-14T18:04:07.188Z",
+  "baseCommit": "ca15ea361ee6abfe2ed84d01a0573b334e04af49",
+  "zoomMethod": "640x450 CSS viewport, equivalent to a 1280x900 desktop viewport at 200% browser zoom for reflow testing.",
+  "results": [
+    {
+      "name": "homepage",
+      "route": "/",
+      "resolvedPath": "/",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/homepage-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [
+          {
+            "selector": "div.table-responsive",
+            "overflowX": "auto",
+            "scrollWidth": 403,
+            "clientWidth": 288
+          }
+        ],
+        "pass": false
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 141,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".login-link",
+              ".hero-content > .eyebrow",
+              "h1",
+              ".gold-text",
+              ".hero-lead",
+              ".hero-copy",
+              ".birth-date-input-label:nth-child(1) > .birth-date-input-text",
+              ".day",
+              ".birth-date-input-label:nth-child(3) > .birth-date-input-text",
+              ".month",
+              ".birth-date-input-label:nth-child(5) > .birth-date-input-text",
+              ".year",
+              ".is-active",
+              ".hero-mode-btn[type=\"button\"]:nth-child(2)",
+              ".hero-mode-btn[type=\"button\"]:nth-child(3)",
+              "select",
+              "button[type=\"submit\"]",
+              ".hero-form-inputs > .button-secondary.button[href$=\"tu-vi\"]",
+              ".birth-note"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "span.gold-text",
+          "button.button",
+          "a.button",
+          "a.button"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "birth-wizard",
+      "route": "/tao-la-so/tu-vi",
+      "resolvedPath": "/tao-la-so/tu-vi",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/birth-wizard-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 1,
+            "targets": [
+              ".wizard-privacy"
+            ]
+          }
+        ],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 11,
+            "targets": [
+              ".wizard-mobile-progress-text",
+              "#wizard-step-title",
+              ".wizard-step-subtitle",
+              "label[for=\"displayName\"]",
+              "label[for=\"displayName\"] > span",
+              ".wizard-field-group:nth-child(4) > .wizard-field-label",
+              ".is-active > span",
+              ".wizard-choice-button:nth-child(2) > span",
+              "legend",
+              "#wizard-gender-help",
+              ".button"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "main.wizard-page",
+          "button.button.wizard-action-continue"
+        ],
+        "pass": false,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "chart-result",
+      "route": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff",
+      "resolvedPath": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/chart-result-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [
+          {
+            "selector": "div.ziwei-board-wrapper",
+            "overflowX": "auto",
+            "scrollWidth": 820,
+            "clientWidth": 320,
+            "allowedReason": "Excluded from LSV-14 under Kaneo ticket #8."
+          }
+        ],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 236,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".login-link",
+              ".result-hero > .eyebrow",
+              "h1",
+              ".result-hero > p:nth-child(3)",
+              ".result-summary-card:nth-child(1) > .result-summary-heading",
+              ".result-summary-card:nth-child(1) > dl > dt:nth-child(1)",
+              ".result-summary-card:nth-child(1) > dl > dd:nth-child(2)",
+              ".result-summary-card:nth-child(1) > dl > dt:nth-child(3)",
+              ".result-summary-card:nth-child(1) > dl > dd:nth-child(4)",
+              ".result-summary-card:nth-child(1) > dl > dt:nth-child(5)",
+              ".result-summary-card:nth-child(1) > dl > dd:nth-child(6)",
+              "dt:nth-child(7)",
+              "dd:nth-child(8)",
+              ".result-summary-card:nth-child(2) > .result-summary-heading",
+              ".result-summary-card:nth-child(2) > dl > dt:nth-child(1)",
+              ".result-summary-card:nth-child(2) > dl > dd:nth-child(2)",
+              ".result-summary-card:nth-child(2) > dl > dt:nth-child(3)",
+              ".result-summary-card:nth-child(2) > dl > dd:nth-child(4)",
+              ".result-summary-card:nth-child(2) > dl > dt:nth-child(5)"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "topic-selection",
+      "route": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff/chon-luan-giai",
+      "resolvedPath": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff/chon-luan-giai",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/topic-selection-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 33,
+            "targets": [
+              ".eyebrow",
+              "#topic-selector-heading",
+              ".topic-selector-context",
+              ".back-to-chart-link",
+              ".topic-status-tag",
+              "#ziwei-natal-excerpt > .topic-card-head > .topic-title-group > h3",
+              "#ziwei-natal-excerpt > .topic-card-head > .topic-pricing-block > .topic-price-val",
+              "#ziwei-natal-excerpt > .topic-card-head > .topic-pricing-block > .topic-price-note",
+              ".topic-upgrade-disclosure",
+              "#ziwei-natal-excerpt > .topic-summary-prose",
+              "#ziwei-natal-excerpt > ul > li:nth-child(1)",
+              "#ziwei-natal-excerpt > ul > li:nth-child(2)",
+              "#ziwei-natal-excerpt > ul > li:nth-child(3)",
+              "p[data-testid=\"topic-ziwei-natal-excerpt-fit\"]",
+              "#ziwei-natal-excerpt > .topic-actions-row > form > button",
+              "#ziwei-natal-excerpt > .topic-actions-row > .sample-report-link[href$=\"tu-vi\"]",
+              ".status-badge",
+              "#ziwei-comprehensive > .topic-card-head > .topic-title-group > h3",
+              "#ziwei-comprehensive > .topic-card-head > .topic-pricing-block > .topic-price-val",
+              "#ziwei-comprehensive > .topic-card-head > .topic-pricing-block > .topic-price-note"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "button.button.button-primary",
+          "button.button.button-primary"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "checkout",
+      "route": "/thanh-toan/40000000-0000-4000-8000-000000000006",
+      "resolvedPath": "/thanh-toan/40000000-0000-4000-8000-000000000006",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/checkout-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 11,
+            "targets": [
+              ".eyebrow",
+              "h1",
+              ".checkout-summary-main",
+              "strong",
+              "span:nth-child(2)",
+              "span:nth-child(3)",
+              "code",
+              ".checkout-summary-note",
+              ".button-primary",
+              "footer > p",
+              "p > a"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button.button-primary"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "paid-report-ready",
+      "route": "/bao-cao/70000000-0000-4000-8000-000000000001",
+      "resolvedPath": "/bao-cao/70000000-0000-4000-8000-000000000001",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 500,
+      "screenshot": "docs/reports/evidence/lsv-14/paid-report-ready-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [],
+        "texturedTextSurfaces": [],
+        "pass": true,
+        "manualReviewRequired": false
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Times New Roman\"",
+            "loaded": false,
+            "genericFallback": false
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "system-ui, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\"",
+            "loaded": false,
+            "genericFallback": false
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "",
+            "loaded": false,
+            "genericFallback": false
+          }
+        ],
+        "pass": false
+      },
+      "readingTypography": {
+        "expected": true,
+        "samples": [],
+        "pass": false
+      },
+      "renderPass": false,
+      "notes": [
+        "The reused WP-13 ready-report fixture predates the current V4 query contract and is expected to expose the stale-fixture blocker if it returns 500."
+      ]
+    },
+    {
+      "name": "account",
+      "route": "/tai-khoan",
+      "resolvedPath": "/tai-khoan",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/account-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [
+          {
+            "selector": "nav.account-nav-tabs",
+            "overflowX": "auto",
+            "scrollWidth": 613,
+            "clientWidth": 288
+          }
+        ],
+        "pass": false
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 63,
+            "targets": [
+              "p",
+              "h1",
+              ".account-user-email",
+              "button",
+              ".active",
+              "a[href$=\"ho-so-sinh\"]",
+              ".account-tab-link[href$=\"bao-cao\"]",
+              ".account-tab-link[href$=\"don-hang\"]",
+              "a[href$=\"quyen-rieng-tu\"]",
+              ".account-badge-highlight",
+              ".account-profile-name",
+              "h2",
+              ".account-meta-date",
+              ".button-primary",
+              ".account-stat-item:nth-child(1) > .account-stat-label",
+              ".account-stat-item:nth-child(1) > .account-stat-value",
+              ".account-stat-item:nth-child(2) > .account-stat-label",
+              ".account-stat-item:nth-child(2) > .account-stat-value",
+              ".account-stat-item:nth-child(3) > .account-stat-label",
+              ".account-stat-item:nth-child(3) > .account-stat-value"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button.button-primary",
+          "a.button.button-small",
+          "a.button.button-small"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "",
+            "loaded": false,
+            "genericFallback": false
+          }
+        ],
+        "pass": false
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "knowledge-article",
+      "route": "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
+      "resolvedPath": "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/knowledge-article-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 21,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".login-link",
+              ".eyebrow",
+              "h1",
+              ".content-summary",
+              "article > section > h2",
+              "section > p",
+              "footer > p",
+              "li:nth-child(1)",
+              "li:nth-child(2)",
+              "div > p",
+              "section:nth-child(2) > h2",
+              "section:nth-child(2) > a[href$=\"tu-vi\"]",
+              "section:nth-child(2) > a:nth-child(3)",
+              "section:nth-child(3) > h2",
+              "section:nth-child(3) > a:nth-child(2)",
+              "section:nth-child(3) > a[href$=\"tu-vi\"]",
+              ".footer-grid > section:nth-child(4) > h2",
+              "a[href$=\"phuong-phap\"]",
+              "a[href$=\"chinh-sach-bao-mat\"]"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": true,
+        "samples": [
+          {
+            "selector": "p.content-summary",
+            "fontSizePx": 17,
+            "lineHeightPx": 29.75,
+            "lineHeightRatio": 1.75,
+            "text": "Giải thích lá số Tử Vi, các thành phần chính và cách tách dữ liệu tính toán khỏi phần diễn giải."
+          },
+          {
+            "selector": "p",
+            "fontSizePx": 17,
+            "lineHeightPx": 29.75,
+            "lineHeightRatio": 1.75,
+            "text": "Nội dung được biên tập để làm rõ thuật ngữ, dữ liệu và giới hạn diễn giải. Đây không phải là kết luận tuyệt đối về một c"
+          }
+        ],
+        "pass": true
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "sample-report",
+      "route": "/bao-cao-mau/tu-vi",
+      "resolvedPath": "/bao-cao-mau/tu-vi",
+      "viewport": {
+        "name": "reflow-320",
+        "width": 320,
+        "height": 720
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/sample-report-reflow-320.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 105,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".login-link",
+              ".sample-hero > .eyebrow",
+              "#sample-hero-heading",
+              ".sample-hero-lead",
+              ".sample-badge-active",
+              ".sample-offer-info > h2",
+              ".sample-offer-meta > .topic-price",
+              ".sample-offer-cta > .button[href$=\"tu-vi\"]",
+              ".sample-tuvi-preview > .section-heading > .eyebrow",
+              "#sample-tuvi-heading",
+              ".sample-tuvi-preview > .section-heading > .section-lead",
+              ".sample-palace-card:nth-child(1) > .sample-palace-head > h3",
+              ".sample-palace-card:nth-child(1) > .sample-palace-head > .sample-palace-role",
+              ".sample-palace-card:nth-child(1) > .sample-palace-desc",
+              ".sample-palace-card:nth-child(2) > .sample-palace-head > h3",
+              ".sample-palace-card:nth-child(2) > .sample-palace-head > .sample-palace-role",
+              ".sample-palace-card:nth-child(2) > .sample-palace-desc",
+              ".sample-palace-card:nth-child(3) > .sample-palace-head > h3",
+              ".sample-palace-card:nth-child(3) > .sample-palace-head > .sample-palace-role"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button",
+          "a.button",
+          "a.button"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": true,
+        "samples": [],
+        "pass": false
+      },
+      "renderPass": true,
+      "notes": [
+        "Public sample report is recorded as a typography proxy while the private ready-report fixture is stale."
+      ]
+    },
+    {
+      "name": "homepage",
+      "route": "/",
+      "resolvedPath": "/",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/homepage-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 142,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".marquee-group:nth-child(1) > span:nth-child(2)",
+              ".login-link",
+              ".hero-content > .eyebrow",
+              "h1",
+              ".gold-text",
+              ".hero-lead",
+              ".hero-copy",
+              ".birth-date-input-label:nth-child(1) > .birth-date-input-text",
+              ".day",
+              ".birth-date-input-label:nth-child(3) > .birth-date-input-text",
+              ".month",
+              ".birth-date-input-label:nth-child(5) > .birth-date-input-text",
+              ".year",
+              ".is-active",
+              ".hero-mode-btn[type=\"button\"]:nth-child(2)",
+              ".hero-mode-btn[type=\"button\"]:nth-child(3)",
+              "select",
+              "button[type=\"submit\"]",
+              ".hero-form-inputs > .button-secondary.button[href$=\"tu-vi\"]"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "span.gold-text",
+          "button.button",
+          "a.button",
+          "a.button"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "birth-wizard",
+      "route": "/tao-la-so/tu-vi",
+      "resolvedPath": "/tao-la-so/tu-vi",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/birth-wizard-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 1,
+            "targets": [
+              ".wizard-privacy"
+            ]
+          }
+        ],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 11,
+            "targets": [
+              ".wizard-mobile-progress-text",
+              "#wizard-step-title",
+              ".wizard-step-subtitle",
+              "label[for=\"displayName\"]",
+              "label[for=\"displayName\"] > span",
+              ".wizard-field-group:nth-child(4) > .wizard-field-label",
+              ".is-active > span",
+              ".wizard-choice-button:nth-child(2) > span",
+              "legend",
+              "#wizard-gender-help",
+              ".button"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "main.wizard-page",
+          "button.button.wizard-action-continue"
+        ],
+        "pass": false,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "chart-result",
+      "route": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff",
+      "resolvedPath": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/chart-result-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [
+          {
+            "selector": "div.ziwei-board-wrapper",
+            "overflowX": "auto",
+            "scrollWidth": 820,
+            "clientWidth": 640,
+            "allowedReason": "Excluded from LSV-14 under Kaneo ticket #8."
+          }
+        ],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 237,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".marquee-group:nth-child(1) > span:nth-child(2)",
+              ".login-link",
+              ".result-hero > .eyebrow",
+              "h1",
+              ".result-hero > p:nth-child(3)",
+              ".result-summary-card:nth-child(1) > .result-summary-heading",
+              ".result-summary-card:nth-child(1) > dl > dt:nth-child(1)",
+              ".result-summary-card:nth-child(1) > dl > dd:nth-child(2)",
+              ".result-summary-card:nth-child(1) > dl > dt:nth-child(3)",
+              ".result-summary-card:nth-child(1) > dl > dd:nth-child(4)",
+              ".result-summary-card:nth-child(1) > dl > dt:nth-child(5)",
+              ".result-summary-card:nth-child(1) > dl > dd:nth-child(6)",
+              "dt:nth-child(7)",
+              "dd:nth-child(8)",
+              ".result-summary-card:nth-child(2) > .result-summary-heading",
+              ".result-summary-card:nth-child(2) > dl > dt:nth-child(1)",
+              ".result-summary-card:nth-child(2) > dl > dd:nth-child(2)",
+              ".result-summary-card:nth-child(2) > dl > dt:nth-child(3)",
+              ".result-summary-card:nth-child(2) > dl > dd:nth-child(4)"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "topic-selection",
+      "route": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff/chon-luan-giai",
+      "resolvedPath": "/la-so/e4deee99-0e39-445c-8c0c-e8ab829f5dff/chon-luan-giai",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/topic-selection-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 33,
+            "targets": [
+              ".eyebrow",
+              "#topic-selector-heading",
+              ".topic-selector-context",
+              ".back-to-chart-link",
+              ".topic-status-tag",
+              "#ziwei-natal-excerpt > .topic-card-head > .topic-title-group > h3",
+              "#ziwei-natal-excerpt > .topic-card-head > .topic-pricing-block > .topic-price-val",
+              "#ziwei-natal-excerpt > .topic-card-head > .topic-pricing-block > .topic-price-note",
+              ".topic-upgrade-disclosure",
+              "#ziwei-natal-excerpt > .topic-summary-prose",
+              "#ziwei-natal-excerpt > ul > li:nth-child(1)",
+              "#ziwei-natal-excerpt > ul > li:nth-child(2)",
+              "#ziwei-natal-excerpt > ul > li:nth-child(3)",
+              "p[data-testid=\"topic-ziwei-natal-excerpt-fit\"]",
+              "#ziwei-natal-excerpt > .topic-actions-row > form > button",
+              "#ziwei-natal-excerpt > .topic-actions-row > .sample-report-link[href$=\"tu-vi\"]",
+              ".status-badge",
+              "#ziwei-comprehensive > .topic-card-head > .topic-title-group > h3",
+              "#ziwei-comprehensive > .topic-card-head > .topic-pricing-block > .topic-price-val",
+              "#ziwei-comprehensive > .topic-card-head > .topic-pricing-block > .topic-price-note"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "button.button.button-primary",
+          "button.button.button-primary"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "checkout",
+      "route": "/thanh-toan/40000000-0000-4000-8000-000000000006",
+      "resolvedPath": "/thanh-toan/40000000-0000-4000-8000-000000000006",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/checkout-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 11,
+            "targets": [
+              ".eyebrow",
+              "h1",
+              ".checkout-summary-main",
+              "strong",
+              "span:nth-child(2)",
+              "span:nth-child(3)",
+              "code",
+              ".checkout-summary-note",
+              ".button-primary",
+              "footer > p",
+              "p > a"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button.button-primary"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "paid-report-ready",
+      "route": "/bao-cao/70000000-0000-4000-8000-000000000001",
+      "resolvedPath": "/bao-cao/70000000-0000-4000-8000-000000000001",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 500,
+      "screenshot": "docs/reports/evidence/lsv-14/paid-report-ready-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [],
+        "texturedTextSurfaces": [],
+        "pass": true,
+        "manualReviewRequired": false
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Times New Roman\"",
+            "loaded": false,
+            "genericFallback": false
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "system-ui, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\"",
+            "loaded": false,
+            "genericFallback": false
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "",
+            "loaded": false,
+            "genericFallback": false
+          }
+        ],
+        "pass": false
+      },
+      "readingTypography": {
+        "expected": true,
+        "samples": [],
+        "pass": false
+      },
+      "renderPass": false,
+      "notes": [
+        "The reused WP-13 ready-report fixture predates the current V4 query contract and is expected to expose the stale-fixture blocker if it returns 500."
+      ]
+    },
+    {
+      "name": "account",
+      "route": "/tai-khoan",
+      "resolvedPath": "/tai-khoan",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/account-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [
+          {
+            "selector": "nav.account-nav-tabs",
+            "overflowX": "auto",
+            "scrollWidth": 613,
+            "clientWidth": 608
+          }
+        ],
+        "pass": false
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 63,
+            "targets": [
+              "p",
+              "h1",
+              ".account-user-email",
+              "button",
+              ".active",
+              "a[href$=\"ho-so-sinh\"]",
+              ".account-tab-link[href$=\"bao-cao\"]",
+              ".account-tab-link[href$=\"don-hang\"]",
+              "a[href$=\"quyen-rieng-tu\"]",
+              ".account-badge-highlight",
+              ".account-profile-name",
+              "h2",
+              ".account-meta-date",
+              ".button-primary",
+              ".account-stat-item:nth-child(1) > .account-stat-label",
+              ".account-stat-item:nth-child(1) > .account-stat-value",
+              ".account-stat-item:nth-child(2) > .account-stat-label",
+              ".account-stat-item:nth-child(2) > .account-stat-value",
+              ".account-stat-item:nth-child(3) > .account-stat-label",
+              ".account-stat-item:nth-child(3) > .account-stat-value"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button.button-primary",
+          "a.button.button-small",
+          "a.button.button-small"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "",
+            "loaded": false,
+            "genericFallback": false
+          }
+        ],
+        "pass": false
+      },
+      "readingTypography": {
+        "expected": false,
+        "samples": [],
+        "pass": null
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "knowledge-article",
+      "route": "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
+      "resolvedPath": "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/knowledge-article-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 22,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".marquee-group:nth-child(1) > span:nth-child(2)",
+              ".login-link",
+              ".eyebrow",
+              "h1",
+              ".content-summary",
+              "article > section > h2",
+              "section > p",
+              "footer > p",
+              "li:nth-child(1)",
+              "li:nth-child(2)",
+              "div > p",
+              "section:nth-child(2) > h2",
+              "section:nth-child(2) > a[href$=\"tu-vi\"]",
+              "section:nth-child(2) > a:nth-child(3)",
+              "section:nth-child(3) > h2",
+              "section:nth-child(3) > a:nth-child(2)",
+              "section:nth-child(3) > a[href$=\"tu-vi\"]",
+              ".footer-grid > section:nth-child(4) > h2",
+              "a[href$=\"phuong-phap\"]"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": true,
+        "samples": [
+          {
+            "selector": "p.content-summary",
+            "fontSizePx": 17,
+            "lineHeightPx": 29.75,
+            "lineHeightRatio": 1.75,
+            "text": "Giải thích lá số Tử Vi, các thành phần chính và cách tách dữ liệu tính toán khỏi phần diễn giải."
+          },
+          {
+            "selector": "p",
+            "fontSizePx": 17,
+            "lineHeightPx": 29.75,
+            "lineHeightRatio": 1.75,
+            "text": "Nội dung được biên tập để làm rõ thuật ngữ, dữ liệu và giới hạn diễn giải. Đây không phải là kết luận tuyệt đối về một c"
+          }
+        ],
+        "pass": true
+      },
+      "renderPass": true,
+      "notes": []
+    },
+    {
+      "name": "sample-report",
+      "route": "/bao-cao-mau/tu-vi",
+      "resolvedPath": "/bao-cao-mau/tu-vi",
+      "viewport": {
+        "name": "zoom-200pct-equivalent",
+        "width": 640,
+        "height": 450
+      },
+      "status": 200,
+      "screenshot": "docs/reports/evidence/lsv-14/sample-report-zoom-200pct-equivalent.png",
+      "reflow": {
+        "documentPass": true,
+        "scrollWidth": 640,
+        "clientWidth": 640,
+        "scrollContainers": [],
+        "pass": true
+      },
+      "contrast": {
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 106,
+            "targets": [
+              ".marquee-group:nth-child(1) > span:nth-child(1)",
+              ".marquee-group:nth-child(1) > span:nth-child(2)",
+              ".login-link",
+              ".sample-hero > .eyebrow",
+              "#sample-hero-heading",
+              ".sample-hero-lead",
+              ".sample-badge-active",
+              ".sample-offer-info > h2",
+              ".sample-offer-meta > .topic-price",
+              ".sample-offer-cta > .button[href$=\"tu-vi\"]",
+              ".sample-tuvi-preview > .section-heading > .eyebrow",
+              "#sample-tuvi-heading",
+              ".sample-tuvi-preview > .section-heading > .section-lead",
+              ".sample-palace-card:nth-child(1) > .sample-palace-head > h3",
+              ".sample-palace-card:nth-child(1) > .sample-palace-head > .sample-palace-role",
+              ".sample-palace-card:nth-child(1) > .sample-palace-desc",
+              ".sample-palace-card:nth-child(2) > .sample-palace-head > h3",
+              ".sample-palace-card:nth-child(2) > .sample-palace-head > .sample-palace-role",
+              ".sample-palace-card:nth-child(2) > .sample-palace-desc",
+              ".sample-palace-card:nth-child(3) > .sample-palace-head > h3"
+            ]
+          }
+        ],
+        "texturedTextSurfaces": [
+          "a.button",
+          "a.button",
+          "a.button"
+        ],
+        "pass": true,
+        "manualReviewRequired": true
+      },
+      "fonts": {
+        "roles": [
+          {
+            "role": "ui",
+            "selector": "body",
+            "family": "\"Be Vietnam Pro\", \"Be Vietnam Pro Fallback\", system-ui, sans-serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "display",
+            "selector": "h1",
+            "family": "\"Source Serif 4\", \"Source Serif 4 Fallback\", Georgia, serif",
+            "loaded": true,
+            "genericFallback": true
+          },
+          {
+            "role": "mono",
+            "selector": ".eyebrow",
+            "family": "\"JetBrains Mono\", \"JetBrains Mono Fallback\", ui-monospace, monospace",
+            "loaded": true,
+            "genericFallback": true
+          }
+        ],
+        "pass": true
+      },
+      "readingTypography": {
+        "expected": true,
+        "samples": [],
+        "pass": false
+      },
+      "renderPass": true,
+      "notes": [
+        "Public sample report is recorded as a typography proxy while the private ready-report fixture is stale."
+      ]
+    }
+  ]
+}

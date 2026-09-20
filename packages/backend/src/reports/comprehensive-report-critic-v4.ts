@@ -1,11 +1,17 @@
-import { type AiCostRequestContext, z, type ZiweiComprehensiveReportContentV2, ReadingContextV1Schema, type ReadingContextV1 } from "@lasoviet/contracts";
+import { type AiCostRequestContext, z, type ZiweiComprehensiveReportContentV2, type ZiweiComprehensiveReportContentV3, ReadingContextV1Schema, type ReadingContextV1 } from "@lasoviet/contracts";
 
 import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
   type ComprehensiveReportSectionKey,
 } from "./comprehensive-report-section-v4.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const CriticSchema = z
   .object({
@@ -144,24 +150,59 @@ HƯỚNG DẪN THẨM ĐỊNH ĐẶC THÙ:
     };
   }
 
-  return { ok: true, value: critic };
+  return { ok: true, value: critic as unknown as ComprehensiveSectionedCriticV4Evaluation };
 }
 
 export async function critiqueComprehensiveZiweiReportSectionedV4(
-  report: ZiweiComprehensiveReportContentV2,
+  report: ZiweiComprehensiveReportContentV2 | ZiweiComprehensiveReportContentV3,
   facts: ComprehensiveZiweiFactsV4,
   provider: AiProvider,
   options?: {
     costContext?: AiCostRequestContext;
     readingContext?: ReadingContextV1 | null;
+    reportConfigVersion?:
+      | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
+      | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+      | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
   },
 ): Promise<ComprehensiveSectionedCriticV4Result> {
   const parsedReadingContext = ReadingContextV1Schema.safeParse(options?.readingContext ?? null);
   const readingContext = parsedReadingContext.success
     ? { lifeStage: parsedReadingContext.data.lifeStage ?? null, topConcern: parsedReadingContext.data.topConcern ?? null }
     : null;
+  const reportConfigVersion = options?.reportConfigVersion ?? REPORT_CONFIG_VERSION_V4_1_SECTIONED;
+  const allowedSectionKeys = reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED
+    ? COMPREHENSIVE_REPORT_SECTION_KEYS
+    : reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+        reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+      ? COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1
+      : null;
+  if (!allowedSectionKeys) {
+    return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+  }
+  const sectionedCriticSchema = CriticSchema.extend({
+    findings: z.array(z.object({
+      key: z.enum(allowedSectionKeys),
+      note: z.string().trim().min(1).max(300),
+    }).strict()).max(8),
+  }).strict();
+  const sensitivityFacts = "birthTimeSensitivity" in report
+    ? {
+        stableFactKeys: facts.sensitivity.stableFactKeys,
+        sensitiveFacts: facts.sensitivity.sensitiveFacts.map((fact) => ({
+          factKey: fact.factKey,
+          variants: fact.variants.map((variant) => ({
+            position: variant.position,
+            valueIds: variant.valueIds,
+          })),
+        })),
+        evidenceKeys: facts.evidenceKeys.filter((key) =>
+          key.startsWith("sensitivity.stable.") || key.startsWith("sensitivity.sensitive."),
+        ),
+      }
+    : undefined;
   const result = await provider.generateStructured({
-    schema: SectionedCriticSchema,
+    schema: sectionedCriticSchema,
     schemaName: "comprehensive_report_sectioned_critic_v4",
     system: `Bạn là chuyên gia thẩm định chất lượng toàn bộ báo cáo luận giải Tử Vi Đẩu Số V4 tại lasoviet.net.
 Đánh giá một báo cáo đã được lắp ghép hoàn chỉnh, chỉ dựa trên facts. Đầu ra JSON phải chứa đầy đủ tám điểm 1-5, notes và findings.
@@ -179,8 +220,9 @@ Nếu có điểm safety hoặc correctness dưới 4, đây là từ chối an 
         decadalCycle: facts.timing.decadal,
         annualSnapshot: facts.timing.annual,
         evidenceKeys: facts.evidenceKeys,
+        ...(sensitivityFacts ? { sensitivity: sensitivityFacts } : {}),
       },
-      allowedSectionKeys: COMPREHENSIVE_REPORT_SECTION_KEYS,
+      allowedSectionKeys,
       readingContext,
     }),
     use: "production_report_generation",
@@ -189,7 +231,7 @@ Nếu có điểm safety hoặc correctness dưới 4, đây là từ chối an 
     costContext: options?.costContext,
   });
   if (!result.ok) return result;
-  const parsed = SectionedCriticSchema.safeParse(result.value.value);
+  const parsed = sectionedCriticSchema.safeParse(result.value.value);
   if (!parsed.success) {
     return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
   }
@@ -224,5 +266,5 @@ Nếu có điểm safety hoặc correctness dưới 4, đây là từ chối an 
   if (critic.findings.length > 0) {
     return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false, notes: critic.notes } };
   }
-  return { ok: true, value: critic };
+  return { ok: true, value: critic as unknown as ComprehensiveSectionedCriticV4Evaluation };
 }

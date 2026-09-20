@@ -774,6 +774,148 @@ describe("knowledge retrieval service", () => {
     });
 
   describe("retrieveZiweiKnowledge PostgreSQL array binding regression", () => {
+    it("accepts the exact V4 comprehensive knowledge version", async () => {
+      const mockDb = {
+        execute: vi.fn().mockResolvedValue([]),
+      } as any;
+
+      const service = createKnowledgeRetrievalService({ database: mockDb });
+      await expect(service.retrieveZiweiKnowledge({
+        locale: "vi",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+        text: "menh than",
+        maxPassages: 2,
+        maxTotalChars: 1800,
+      })).resolves.toEqual([]);
+
+      expect(mockDb.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("uses Vietnamese FTS and deterministic metadata-first, content-hash-deduped V4 retrieval", async () => {
+      let capturedSql: any;
+      const metadata = {
+        topics: ["career"],
+        palaces: [],
+        stars: [],
+        brightness: [],
+        transformations: [],
+        relations: [],
+        patterns: [],
+        sourceType: "curated" as const,
+        languageOrigin: "vi" as const,
+        priority: 2 as const,
+      };
+      const mockDb = {
+        execute: vi.fn((sqlStatement) => {
+          capturedSql = sqlStatement;
+          return Promise.resolve([
+            {
+              id: "id-v4-b",
+              passage_id: "v4-b",
+              document_id: "doc-v4",
+              discipline: "ziwei",
+              locale: "vi",
+              report_sections: ["overall_interpretation"],
+              knowledge_version: "ziwei.comprehensive.knowledge.v4",
+              content: "Tử Vi cung Mệnh cần được xem trong toàn cục lá số.",
+              content_hash: "duplicate-hash",
+              source_attribution: "V4 editorial",
+              permitted_use: "reference_rewrite",
+              metadata,
+              rank: 0.5,
+            },
+            {
+              id: "id-v4-d",
+              passage_id: "v4-d",
+              document_id: "doc-v4",
+              discipline: "ziwei",
+              locale: "vi",
+              report_sections: ["overall_interpretation"],
+              knowledge_version: "ziwei.comprehensive.knowledge.v4",
+              content: "Tử Vi gợi ý một hướng phát triển nghề nghiệp có chủ đích.",
+              content_hash: "hash-d",
+              source_attribution: "V4 editorial",
+              permitted_use: "reference_rewrite",
+              metadata: { ...metadata, priority: 1 },
+              rank: 0.9,
+            },
+            {
+              id: "id-v4-a",
+              passage_id: "v4-a",
+              document_id: "doc-v4",
+              discipline: "ziwei",
+              locale: "vi",
+              report_sections: ["overall_interpretation"],
+              knowledge_version: "ziwei.comprehensive.knowledge.v4",
+              content: "Tử Vi tại Mệnh cần được xem cùng các cung liên hệ.",
+              content_hash: "duplicate-hash",
+              source_attribution: "V4 editorial",
+              permitted_use: "reference_rewrite",
+              metadata,
+              rank: 0.5,
+            },
+            {
+              id: "id-v4-c",
+              passage_id: "v4-c",
+              document_id: "doc-v4",
+              discipline: "ziwei",
+              locale: "vi",
+              report_sections: ["overall_interpretation"],
+              knowledge_version: "ziwei.comprehensive.knowledge.v4",
+              content: "Cung Mệnh là trục tham chiếu khi đọc định hướng chung.",
+              content_hash: "hash-c",
+              source_attribution: "V4 editorial",
+              permitted_use: "reference_rewrite",
+              metadata: {
+                ...metadata,
+                palaces: ["ziwei.palace.life"],
+                priority: 1,
+              },
+              rank: 0.01,
+            },
+          ]);
+        }),
+      } as any;
+
+      const service = createKnowledgeRetrievalService({ database: mockDb });
+      const passages = await service.retrieveZiweiKnowledge({
+        locale: "vi",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+        palaceIds: ["ziwei.palace.life"],
+        topics: ["career"],
+        text: "Tử Vi cung Mệnh",
+        maxPassages: 3,
+        maxTotalChars: 1_000,
+      });
+
+      expect(passages.map((passage) => passage.passageId)).toEqual([
+        "v4-c",
+        "v4-a",
+        "v4-d",
+      ]);
+
+      const compiled = new PgDialect().sqlToQuery(capturedSql);
+      expect(compiled.sql).toContain("to_tsvector('simple', c.content)");
+      expect(compiled.params).toContain("ziwei.comprehensive.knowledge.v4");
+      expect(compiled.params).not.toContain("ziwei.comprehensive.knowledge.v3");
+    });
+
+    it("rejects unsupported comprehensive knowledge versions", async () => {
+      const service = createKnowledgeRetrievalService({
+        database: { execute: vi.fn() } as any,
+      });
+
+      await expect(service.retrieveZiweiKnowledge({
+        locale: "vi",
+        knowledgeVersion: "ziwei.comprehensive.knowledge.v5" as never,
+        text: "menh than",
+        maxPassages: 2,
+        maxTotalChars: 1800,
+      })).rejects.toMatchObject({
+        code: "KNOWLEDGE_METADATA_INVALID",
+      });
+    });
+
     it("binds all non-empty metadata filter lists as valid PostgreSQL ARRAY[...]::text[] without record tuple casts", async () => {
       let capturedSql: any;
       const mockDb = {

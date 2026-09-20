@@ -11,6 +11,7 @@ import {
   reportReservations,
   reportSectionCheckpoints,
   reportSectionCheckpointRevisions,
+  reportSectionQualityCandidates,
   runMigrations,
 } from "@lasoviet/database";
 import { TIER_2_ENTITLEMENT_SCOPE } from "@lasoviet/contracts";
@@ -86,6 +87,37 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
     return createDatabaseReportSectionCheckpointRepository(database(), {
       now: () => frozenNow,
     });
+  }
+
+  let faultTriggerNumber = 0;
+  async function withSkippedWrite(
+    table: "report_section_checkpoints" | "report_section_quality_candidates",
+    operation: "INSERT" | "UPDATE",
+    run: () => Promise<void>,
+  ) {
+    faultTriggerNumber += 1;
+    const client = database().$client;
+    const functionName = `test_skip_quality_write_${faultTriggerNumber}`;
+    const triggerName = `test_skip_quality_write_trigger_${faultTriggerNumber}`;
+    try {
+      await client.unsafe(`
+        CREATE FUNCTION ${functionName}() RETURNS trigger
+        LANGUAGE plpgsql AS $$
+        BEGIN
+          RETURN NULL;
+        END
+        $$
+      `);
+      await client.unsafe(`
+        CREATE TRIGGER ${triggerName}
+        BEFORE ${operation} ON ${table}
+        FOR EACH ROW EXECUTE FUNCTION ${functionName}()
+      `);
+      await run();
+    } finally {
+      await client.unsafe(`DROP TRIGGER IF EXISTS ${triggerName} ON ${table}`);
+      await client.unsafe(`DROP FUNCTION IF EXISTS ${functionName}()`);
+    }
   }
 
   async function lease(
@@ -182,6 +214,39 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
       generationAttemptCap: 2,
       rewriteAttemptCap: 1,
     });
+  }
+
+  function qualityCandidateInput(
+    index: number,
+    job: { id: string; workerId: string },
+    checkpoint: { stateVersion: number; generationAttemptCount: number },
+  ) {
+    return {
+      ...lineage(index),
+      jobId: job.id,
+      workerId: job.workerId,
+      expectedStateVersion: checkpoint.stateVersion,
+      generationOrdinal: checkpoint.generationAttemptCount,
+      candidateContent: overview,
+      candidateHash: hash(overview),
+      candidateProviderId: "9router-an",
+      candidateModelId: "claude-sonnet-4-6",
+      findings: [{ itemKey: "overview", code: "MINIMUM_SYLLABLES" as const, note: "Requires more detail." }],
+      rewriteAttemptCap: 1,
+    };
+  }
+
+  async function prepareQualityCandidate(index: number, workerId = `quality-worker-${index}`) {
+    const report = lineage(index);
+    const job = await lease(report.reportVersionId, workerId);
+    const generated = await claim(index, job);
+    expect(generated.ok).toBe(true);
+    if (!generated.ok) throw new Error("quality candidate generation claim failed");
+    const input = qualityCandidateInput(index, job, generated.value.checkpoint);
+    const recorded = await repository().recordQualityCandidate(input);
+    expect(recorded.ok).toBe(true);
+    if (!recorded.ok) throw new Error("quality candidate record failed");
+    return { report, job, input, candidate: recorded.value.candidate };
   }
 
   it("reserves one generation attempt and makes duplicate owner claims idempotent", async () => {
@@ -855,6 +920,317 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
     }).where(eq(reportSectionCheckpointRevisions.id, claimed.value.revision.id));
     await expect(repository().listAccepted(report.reportVersionId)).resolves.toMatchObject({
       ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_CORRUPT" },
+    });
+  });
+
+  it("persists and resumes one deterministic quality candidate without another generation ordinal", async () => {
+    const report = lineage(20);
+    const job = await lease(report.reportVersionId, "quality-candidate-worker");
+    const generated = await claim(20, job);
+    expect(generated.ok).toBe(true);
+    if (!generated.ok) return;
+    const recorded = await repository().recordQualityCandidate({
+      ...report,
+      jobId: job.id,
+      workerId: job.workerId,
+      expectedStateVersion: generated.value.checkpoint.stateVersion,
+      generationOrdinal: generated.value.checkpoint.generationAttemptCount,
+      candidateContent: overview,
+      candidateHash: hash(overview),
+      candidateProviderId: "9router-an",
+      candidateModelId: "claude-sonnet-4-6",
+      findings: [{ itemKey: "overview", code: "MINIMUM_SYLLABLES", note: "Requires more detail." }],
+      rewriteAttemptCap: 1,
+    });
+    expect(recorded).toMatchObject({
+      ok: true,
+      value: { outcome: "recorded", candidate: { generationOrdinal: 1, rewriteOrdinal: 1, status: "pending" } },
+    });
+    await expect(repository().recordQualityCandidate({
+      ...report,
+      jobId: job.id,
+      workerId: job.workerId,
+      expectedStateVersion: generated.value.checkpoint.stateVersion,
+      generationOrdinal: generated.value.checkpoint.generationAttemptCount,
+      candidateContent: overview,
+      candidateHash: hash(overview),
+      candidateProviderId: "9router-an",
+      candidateModelId: "claude-sonnet-4-6",
+      findings: [{ itemKey: "overview", code: "MINIMUM_SYLLABLES", note: "Requires more detail." }],
+      rewriteAttemptCap: 1,
+    })).resolves.toMatchObject({ ok: true, value: { outcome: "replay", candidate: { rewriteOrdinal: 1 } } });
+    await expect(repository().recordQualityCandidate({
+      ...report,
+      jobId: job.id,
+      workerId: job.workerId,
+      expectedStateVersion: generated.value.checkpoint.stateVersion,
+      generationOrdinal: generated.value.checkpoint.generationAttemptCount,
+      candidateContent: { ...overview, title: "Mismatched candidate" },
+      candidateHash: hash({ ...overview, title: "Mismatched candidate" }),
+      candidateProviderId: "9router-an",
+      candidateModelId: "claude-sonnet-4-6",
+      findings: [{ itemKey: "overview", code: "MINIMUM_SYLLABLES", note: "Requires more detail." }],
+      rewriteAttemptCap: 1,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_VERSION_CONFLICT" } });
+    const [persisted] = await database().select().from(reportSectionQualityCandidates);
+    expect(persisted).toMatchObject({
+      generationOrdinal: 1,
+      rewriteOrdinal: 1,
+      status: "pending",
+      candidateHash: hash(overview),
+      terminalFindings: null,
+      acceptedContent: null,
+    });
+
+    const firstClaim = await repository().claimQualityRewrite({ ...report, jobId: job.id, workerId: job.workerId, attemptNumber: 1 });
+    const replay = await repository().claimQualityRewrite({ ...report, jobId: job.id, workerId: job.workerId, attemptNumber: 1 });
+    expect(firstClaim).toMatchObject({ ok: true, value: { outcome: "claimed", candidate: { rewriteOrdinal: 1, status: "generating" } } });
+    expect(replay).toMatchObject({ ok: true, value: { outcome: "in_progress", candidate: { rewriteOrdinal: 1, activeAttemptNumber: 1 } } });
+    if (!firstClaim.ok || !firstClaim.value.candidate) return;
+
+    await expect(repository().releaseQualityRewriteRetryableFailure({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteOrdinal: 1,
+      expectedStateVersion: firstClaim.value.candidate.stateVersion, failureCode: "AI_TIMEOUT",
+    })).resolves.toMatchObject({ ok: true, value: { status: "pending", rewriteOrdinal: 1 } });
+    const resumed = await repository().claimQualityRewrite({ ...report, jobId: job.id, workerId: job.workerId, attemptNumber: 2 });
+    expect(resumed).toMatchObject({ ok: true, value: { outcome: "claimed", candidate: { rewriteOrdinal: 1 } } });
+    if (!resumed.ok || !resumed.value.candidate) return;
+    const rewritten = { ...overview, title: "Quality rewrite" };
+    await expect(repository().markQualityRewritePassed({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteOrdinal: 1,
+      expectedStateVersion: resumed.value.candidate.stateVersion,
+      acceptedContent: rewritten, contentHash: hash(rewritten),
+      providerId: "9router-an", modelId: "claude-sonnet-4-6",
+    })).resolves.toMatchObject({ ok: true, value: { outcome: "passed", candidate: { status: "passed" } } });
+    await expect(repository().listAccepted(report.reportVersionId)).resolves.toMatchObject({
+      ok: true, value: [{ acceptedSection: { value: rewritten }, generationAttemptCount: 1, rewriteAttemptCount: 1 }],
+    });
+    await expect(repository().claimPassedRewrite({
+      ...report, jobId: job.id, workerId: job.workerId, rewriteAttemptCap: 1,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } });
+  });
+
+  it("fences quality rewrite epochs while allowing later attempts and a current new job takeover", async () => {
+    const prepared = await prepareQualityCandidate(21);
+    const first = await repository().claimQualityRewrite({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 1,
+    });
+    expect(first).toMatchObject({ ok: true, value: { outcome: "claimed", candidate: { rewriteOrdinal: 1, activeAttemptNumber: 1 } } });
+    await expect(repository().claimQualityRewrite({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 1,
+    })).resolves.toMatchObject({ ok: true, value: { outcome: "in_progress", candidate: { activeAttemptNumber: 1 } } });
+    await expect(repository().claimQualityRewrite({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 2,
+    })).resolves.toMatchObject({ ok: true, value: { outcome: "claimed", candidate: { rewriteOrdinal: 1, activeAttemptNumber: 2 } } });
+
+    await database().update(reportQueueJobs).set({ leasedUntil: new Date(frozenNow.getTime() - 1) }).where(eq(reportQueueJobs.id, prepared.job.id));
+    const nextJob = await lease(prepared.report.reportVersionId, "quality-current-new-job", false);
+    await handoffReservation(prepared.report.reportVersionId, prepared.job.id, nextJob.id);
+    await expect(repository().claimQualityRewrite({
+      ...prepared.report, jobId: nextJob.id, workerId: nextJob.workerId, attemptNumber: 1,
+    })).resolves.toMatchObject({ ok: true, value: { outcome: "claimed", candidate: { rewriteOrdinal: 1, activeAttemptNumber: 1 } } });
+    await expect(repository().claimQualityRewrite({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 3,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" } });
+  });
+
+  it("terminalizes the parent at the shared quality rewrite cap without inserting a candidate", async () => {
+    const report = lineage(22);
+    const job = await lease(report.reportVersionId, "quality-cap-worker");
+    const generated = await claim(22, job);
+    expect(generated.ok).toBe(true);
+    if (!generated.ok) return;
+    await database().update(reportSectionCheckpoints).set({ rewriteAttemptCount: 1 }).where(
+      eq(reportSectionCheckpoints.reportVersionId, report.reportVersionId),
+    );
+    await expect(repository().recordQualityCandidate(
+      qualityCandidateInput(22, job, generated.value.checkpoint),
+    )).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT" } });
+    const [parent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, report.reportVersionId),
+    );
+    expect(parent).toMatchObject({
+      status: "terminal_failure",
+      rewriteAttemptCount: 1,
+      failureCode: "REWRITE_ATTEMPT_LIMIT",
+    });
+    expect(await database().select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, parent.id),
+    )).toEqual([]);
+  });
+
+  it("rolls back the parent reservation when quality candidate insertion is skipped", async () => {
+    const report = lineage(23);
+    const job = await lease(report.reportVersionId, "quality-record-fault");
+    const generated = await claim(23, job);
+    expect(generated.ok).toBe(true);
+    if (!generated.ok) return;
+    const [beforeParent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, report.reportVersionId),
+    );
+    await withSkippedWrite("report_section_quality_candidates", "INSERT", async () => {
+      await expect(repository().recordQualityCandidate(
+        qualityCandidateInput(23, job, generated.value.checkpoint),
+      )).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" } });
+    });
+    const [afterParent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.id, beforeParent.id),
+    );
+    expect(afterParent).toEqual(beforeParent);
+    expect(await database().select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, beforeParent.id),
+    )).toEqual([]);
+  });
+
+  it("rolls back a quality claim when the candidate CAS is skipped", async () => {
+    const prepared = await prepareQualityCandidate(24, "quality-claim-fault");
+    const [beforeParent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, prepared.report.reportVersionId),
+    );
+    const [beforeCandidate] = await database().select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, beforeParent.id),
+    );
+    await withSkippedWrite("report_section_quality_candidates", "UPDATE", async () => {
+      await expect(repository().claimQualityRewrite({
+        ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 1,
+      })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" } });
+    });
+    const [afterParent] = await database().select().from(reportSectionCheckpoints).where(eq(reportSectionCheckpoints.id, beforeParent.id));
+    const [afterCandidate] = await database().select().from(reportSectionQualityCandidates).where(eq(reportSectionQualityCandidates.id, beforeCandidate.id));
+    expect(afterParent).toEqual(beforeParent);
+    expect(afterCandidate).toEqual(beforeCandidate);
+  });
+
+  it("rolls back a quality pass when the parent CAS is skipped", async () => {
+    const prepared = await prepareQualityCandidate(25, "quality-pass-fault");
+    const claimed = await repository().claimQualityRewrite({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 1,
+    });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok || !claimed.value.candidate) return;
+    const [beforeParent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, prepared.report.reportVersionId),
+    );
+    const [beforeCandidate] = await database().select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, beforeParent.id),
+    );
+    const rewritten = { ...overview, title: "Atomic pass" };
+    await withSkippedWrite("report_section_checkpoints", "UPDATE", async () => {
+      await expect(repository().markQualityRewritePassed({
+        ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId,
+        rewriteOrdinal: 1, expectedStateVersion: claimed.value.candidate!.stateVersion,
+        acceptedContent: rewritten, contentHash: hash(rewritten),
+        providerId: "9router-an", modelId: "claude-sonnet-4-6",
+      })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" } });
+    });
+    const [afterParent] = await database().select().from(reportSectionCheckpoints).where(eq(reportSectionCheckpoints.id, beforeParent.id));
+    const [afterCandidate] = await database().select().from(reportSectionQualityCandidates).where(eq(reportSectionQualityCandidates.id, beforeCandidate.id));
+    expect(afterParent).toEqual(beforeParent);
+    expect(afterCandidate).toEqual(beforeCandidate);
+  });
+
+  it.each([
+    ["release", 26],
+    ["terminal", 27],
+  ] as const)("rolls back a quality %s when the parent CAS is skipped", async (operation, index) => {
+    const prepared = await prepareQualityCandidate(index, `quality-${operation}-fault`);
+    const claimed = await repository().claimQualityRewrite({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 1,
+    });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok || !claimed.value.candidate) return;
+    const [beforeParent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, prepared.report.reportVersionId),
+    );
+    const [beforeCandidate] = await database().select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, beforeParent.id),
+    );
+    await withSkippedWrite("report_section_checkpoints", "UPDATE", async () => {
+      const mutate = operation === "release"
+        ? repository().releaseQualityRewriteRetryableFailure.bind(repository())
+        : repository().markQualityRewriteTerminalFailure.bind(repository());
+      await expect(mutate({
+        ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId,
+        rewriteOrdinal: 1, expectedStateVersion: claimed.value.candidate!.stateVersion,
+        failureCode: operation === "release" ? "AI_TIMEOUT" : "AI_OUTPUT_INVALID",
+      })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" } });
+    });
+    const [afterParent] = await database().select().from(reportSectionCheckpoints).where(eq(reportSectionCheckpoints.id, beforeParent.id));
+    const [afterCandidate] = await database().select().from(reportSectionQualityCandidates).where(eq(reportSectionQualityCandidates.id, beforeCandidate.id));
+    expect(afterParent).toEqual(beforeParent);
+    expect(afterCandidate).toEqual(beforeCandidate);
+  });
+
+  it("keeps runtime finding validation closed and leaves the generating parent unchanged", async () => {
+    const report = lineage(28);
+    const job = await lease(report.reportVersionId, "quality-runtime-shape");
+    const generated = await claim(28, job);
+    expect(generated.ok).toBe(true);
+    if (!generated.ok) return;
+    const input = qualityCandidateInput(28, job, generated.value.checkpoint);
+    await expect(repository().recordQualityCandidate({
+      ...input,
+      findings: [{ ...input.findings[0]!, extra: "forbidden" }] as any,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_INVALID" } });
+    await expect(repository().recordQualityCandidate({
+      ...input,
+      findings: [{ ...input.findings[0]!, code: "OPEN_CODE" }] as any,
+    })).resolves.toMatchObject({ ok: false, error: { code: "REPORT_SECTION_CHECKPOINT_INVALID" } });
+    await expect(repository().get(report.reportVersionId, report.sectionKey)).resolves.toMatchObject({
+      ok: true,
+      value: {
+        status: "generating",
+        generationAttemptCount: 1,
+        rewriteAttemptCount: 0,
+      },
+    });
+  });
+
+  it("terminalizes candidate and parent together after a claimed deterministic rewrite", async () => {
+    const prepared = await prepareQualityCandidate(29, "quality-terminal-success");
+    const claimed = await repository().claimQualityRewrite({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId, attemptNumber: 1,
+    });
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok || !claimed.value.candidate) return;
+    await expect(repository().markQualityRewriteTerminalFailure({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId,
+      rewriteOrdinal: 1, expectedStateVersion: claimed.value.candidate.stateVersion,
+      failureCode: "AI_OUTPUT_INVALID",
+      terminalFindings: [{
+        itemKey: "overview",
+        code: "OPEN_CODE",
+        note: "Must fail closed.",
+      }] as any,
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_SECTION_CHECKPOINT_INVALID" },
+    });
+    const terminalFindings = [{
+      itemKey: "overview",
+      code: "MINIMUM_SYLLABLES" as const,
+      note: "Requires more detail.",
+    }];
+    await expect(repository().markQualityRewriteTerminalFailure({
+      ...prepared.report, jobId: prepared.job.id, workerId: prepared.job.workerId,
+      rewriteOrdinal: 1, expectedStateVersion: claimed.value.candidate.stateVersion,
+      failureCode: "AI_OUTPUT_INVALID",
+      terminalFindings,
+    })).resolves.toMatchObject({ ok: true, value: { status: "terminal_failure", activeAttemptNumber: null } });
+    const [parent] = await database().select().from(reportSectionCheckpoints).where(
+      eq(reportSectionCheckpoints.reportVersionId, prepared.report.reportVersionId),
+    );
+    const [candidate] = await database().select().from(reportSectionQualityCandidates).where(
+      eq(reportSectionQualityCandidates.checkpointId, parent.id),
+    );
+    expect(parent).toMatchObject({ status: "terminal_failure", failureCode: "AI_OUTPUT_INVALID" });
+    expect(candidate).toMatchObject({
+      status: "terminal_failure",
+      activeJobId: null,
+      activeWorkerId: null,
+      activeAttemptNumber: null,
+      failureCode: "AI_OUTPUT_INVALID",
+      terminalFindings,
     });
   });
 });

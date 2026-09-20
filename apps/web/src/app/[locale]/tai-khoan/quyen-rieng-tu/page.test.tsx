@@ -8,6 +8,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { resolveVerifiedAccountActor } from "../../../../auth/resolve-current-actor";
 import { loadAccountPrivacy } from "../../../../features/account/account-center-data";
+import { formatConsentPurpose } from "./page";
 
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
@@ -63,7 +64,7 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/en/dang-nhap?callbackURL=%2Fen%2Ftai-khoan%2Fquyen-rieng-tu");
   });
 
-  it("renders read-only consent items, export link, and statutory retention text", async () => {
+  it("renders read-only consent items, an export button, and statutory retention text", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(mockActor);
     vi.mocked(loadAccountPrivacy).mockResolvedValue({
       ok: true,
@@ -89,11 +90,14 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain("Quyền riêng tư dữ liệu");
-    expect(html).toContain("Lập và lưu hồ sơ lá số");
+    expect(html).toContain("Trạng thái đồng ý được ghi nhận từ lần chấp thuận gần nhất và hiển thị dạng chỉ đọc.");
+    expect(html).not.toContain("công tắc");
+    expect(html).toContain("Xử lý hồ sơ lá số");
     expect(html).toContain("dieu-khoan-dich-vu");
     expect(html).toContain("2026-09-01");
     expect(html).toContain("Đang bật");
-    expect(html).toContain('href="/api/account/export"');
+    expect(html).not.toContain('href="/api/account/export"');
+    expect(html).toContain("Xuất dữ liệu (.json)");
     expect(html).toContain("Yêu cầu xoá dữ liệu");
     expect(html).toContain("Thời gian khôi phục 30 ngày");
     expect(html).toContain("Dữ liệu kế toán bắt buộc");
@@ -153,17 +157,9 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
       robots: { index: false, follow: false },
     });
   });
-  it("renders all four exact purpose labels in VI and EN without raw identifiers", async () => {
+  it("renders newer compact consent labels in VI and EN without raw identifiers", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(mockActor);
     const mockConsents = [
-      {
-        documentKey: "privacy",
-        documentVersion: "2026-09-14",
-        purpose: "birth_profile",
-        grantedAt: "2026-09-14T10:00:00.000Z",
-        revokedAt: null,
-        active: true,
-      },
       {
         documentKey: "privacy",
         documentVersion: "2026-09-14",
@@ -188,6 +184,14 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
         revokedAt: null,
         active: true,
       },
+      {
+        documentKey: "privacy",
+        documentVersion: "2026-09-14",
+        purpose: "service_operation",
+        grantedAt: "2026-09-14T10:00:00.000Z",
+        revokedAt: null,
+        active: true,
+      },
     ];
 
     vi.mocked(loadAccountPrivacy).mockResolvedValue({
@@ -204,12 +208,10 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
     const elementVi = await AccountPrivacyPage({ params: Promise.resolve({ locale: "vi" }) });
     const htmlVi = renderToStaticMarkup(elementVi);
 
-    expect(htmlVi).toContain("Lập và lưu hồ sơ lá số");
     expect(htmlVi).toContain("Phân tích việc sử dụng sản phẩm");
     expect(htmlVi).toContain("Cá nhân hoá nội dung");
     expect(htmlVi).toContain("Gợi ý dịch vụ và ưu đãi phù hợp");
-    expect(htmlVi).toContain("lịch sử sử dụng và hồ sơ hành vi tài khoản");
-    expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">birth_profile</h3>");
+    expect(htmlVi).toContain("Vận hành dịch vụ");
     expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">analytics</h3>");
     expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">personalization</h3>");
     expect(htmlVi).not.toContain("<h3 class=\"account-row-title\">offers</h3>");
@@ -218,12 +220,10 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
     const elementEn = await AccountPrivacyPage({ params: Promise.resolve({ locale: "en" }) });
     const htmlEn = renderToStaticMarkup(elementEn);
 
-    expect(htmlEn).toContain("Create and store birth profiles");
     expect(htmlEn).toContain("Product usage analytics");
     expect(htmlEn).toContain("Content personalization");
     expect(htmlEn).toContain("Relevant service and offer suggestions");
-    expect(htmlEn).toContain("usage history, and account behavior profile");
-    expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">birth_profile</h3>");
+    expect(htmlEn).toContain("Service operation");
     expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">analytics</h3>");
     expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">personalization</h3>");
     expect(htmlEn).not.toContain("<h3 class=\"account-row-title\">offers</h3>");
@@ -252,11 +252,85 @@ describe("AccountPrivacyPage (/tai-khoan/quyen-rieng-tu)", () => {
     const elementVi = await AccountPrivacyPage({ params: Promise.resolve({ locale: "vi" }) });
     const htmlVi = renderToStaticMarkup(elementVi);
     expect(htmlVi).not.toContain("internal_unknown_purpose");
-    expect(htmlVi).toContain("Mục đích xử lý dữ liệu");
+    expect(htmlVi).toContain("Mục đích sử dụng khác");
 
     const elementEn = await AccountPrivacyPage({ params: Promise.resolve({ locale: "en" }) });
     const htmlEn = renderToStaticMarkup(elementEn);
     expect(htmlEn).not.toContain("internal_unknown_purpose");
-    expect(htmlEn).toContain("Data processing purpose");
+    expect(htmlEn).toContain("Other data purpose");
+  });
+
+  it("localizes evidenced purposes and never leaks unknown technical keys", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(mockActor);
+    vi.mocked(loadAccountPrivacy).mockResolvedValue({
+      ok: true,
+      value: {
+        consents: [
+          {
+            documentKey: "privacy",
+            documentVersion: "v1",
+            purpose: "birth_profile",
+            grantedAt: "2026-09-08T10:00:00.000Z",
+            revokedAt: null,
+            active: true,
+          },
+          {
+            documentKey: "privacy",
+            documentVersion: "v1",
+            purpose: "birth-profile-calculation",
+            grantedAt: "2026-09-08T10:00:00.000Z",
+            revokedAt: null,
+            active: true,
+          },
+          {
+            documentKey: "privacy",
+            documentVersion: "v1",
+            purpose: "marketing_email",
+            grantedAt: "2026-09-08T10:00:00.000Z",
+            revokedAt: null,
+            active: true,
+          },
+          {
+            documentKey: "privacy",
+            documentVersion: "v1",
+            purpose: "unknown_technical_key_xyz",
+            grantedAt: "2026-09-08T10:00:00.000Z",
+            revokedAt: null,
+            active: true,
+          },
+        ],
+        deletionRequest: null,
+      },
+    });
+
+    const { default: AccountPrivacyPage } = await import("./page");
+    const htmlVi = renderToStaticMarkup(
+      await AccountPrivacyPage({ params: Promise.resolve({ locale: "vi" }) }),
+    );
+    expect(htmlVi).toContain("Xử lý hồ sơ lá số");
+    expect(htmlVi).toContain("Tính toán hồ sơ lá số");
+    expect(htmlVi).toContain("Email tiếp thị");
+    expect(htmlVi).toContain("Mục đích sử dụng khác");
+    expect(htmlVi).not.toContain("unknown_technical_key_xyz");
+
+    const htmlEn = renderToStaticMarkup(
+      await AccountPrivacyPage({ params: Promise.resolve({ locale: "en" }) }),
+    );
+    expect(htmlEn).toContain("Birth profile processing");
+    expect(htmlEn).toContain("Birth profile calculation");
+    expect(htmlEn).toContain("Marketing email");
+    expect(htmlEn).toContain("Other data purpose");
+    expect(htmlEn).not.toContain("unknown_technical_key_xyz");
+  });
+
+  it("maps all consent-purpose variants to localized labels", () => {
+    expect(formatConsentPurpose("birth_profile", "vi")).toBe("Xử lý hồ sơ lá số");
+    expect(formatConsentPurpose("birth-profile-calculation", "en")).toBe("Birth profile calculation");
+    expect(formatConsentPurpose("service_operation", "vi")).toBe("Vận hành dịch vụ");
+    expect(formatConsentPurpose("marketing", "en")).toBe("Marketing email");
+    expect(formatConsentPurpose("marketing_email", "vi")).toBe("Email tiếp thị");
+    expect(formatConsentPurpose("third_party_sharing", "en")).toBe("Third-party sharing");
+    expect(formatConsentPurpose("ai_training", "vi")).toBe("Huấn luyện mô hình AI");
+    expect(formatConsentPurpose("custom_telemetry_optin", "en")).toBe("Other data purpose");
   });
 });

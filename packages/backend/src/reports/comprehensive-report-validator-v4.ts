@@ -1,6 +1,8 @@
 import {
   ZiweiComprehensiveReportContentV2Schema,
+  ZiweiComprehensiveReportContentV3Schema,
   type ZiweiComprehensiveReportContentV2,
+  type ZiweiComprehensiveReportContentV3,
 } from "@lasoviet/contracts";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 
@@ -390,6 +392,18 @@ function sanitizeUnknownCandidate(candidate: unknown): void {
     if (typeof obj.annualSnapshot.title === "string") obj.annualSnapshot.title = sanitizeCanonicalIdentifiersInText(obj.annualSnapshot.title);
     if (typeof obj.annualSnapshot.narrative === "string") obj.annualSnapshot.narrative = sanitizeCanonicalIdentifiersInText(obj.annualSnapshot.narrative);
   }
+  if (obj.birthTimeSensitivity && typeof obj.birthTimeSensitivity === "object") {
+    if (typeof obj.birthTimeSensitivity.title === "string") {
+      obj.birthTimeSensitivity.title = sanitizeCanonicalIdentifiersInText(obj.birthTimeSensitivity.title);
+    }
+    for (const key of ["stableFactors", "sensitiveFactors"] as const) {
+      const factor = obj.birthTimeSensitivity[key];
+      if (factor && typeof factor === "object") {
+        if (typeof factor.title === "string") factor.title = sanitizeCanonicalIdentifiersInText(factor.title);
+        if (typeof factor.narrative === "string") factor.narrative = sanitizeCanonicalIdentifiersInText(factor.narrative);
+      }
+    }
+  }
   if (Array.isArray(obj.practicalDirection)) {
     for (const a of obj.practicalDirection) {
       if (a && typeof a === "object") {
@@ -439,6 +453,42 @@ function wordSimilarity(textA: string, textB: string): number {
   }
   const union = wordsA.size + wordsB.size - intersection;
   return union > 0 ? intersection / union : 0;
+}
+
+type CustomerTextBlock = { section: string; text: string };
+
+function validateCustomerTextBlocks(blocks: readonly CustomerTextBlock[], errors: string[]): void {
+  for (const block of blocks) {
+    for (const pattern of PROHIBITED_PATTERNS) {
+      if (pattern.regex.test(block.text)) {
+        errors.push(`${pattern.description} found in ${block.section}: "${block.text.slice(0, 80)}"`);
+      }
+    }
+    if (DEATH_CONTENT_PATTERN.test(block.text)) {
+      errors.push(`Prohibited death or lifespan content found in ${block.section}: "${block.text.slice(0, 80)}"`);
+    }
+    if (containsProhibitedFatalisticPrediction(block.text)) {
+      errors.push(`Prohibited fatalistic prediction found in ${block.section}: "${block.text.slice(0, 80)}"`);
+    }
+    const techMatches = block.text.match(TECHNICAL_IDENTIFIER_PATTERN);
+    if (techMatches) {
+      errors.push(`Raw technical identifier leaked in ${block.section}: ${techMatches.join(", ")}`);
+    }
+    if (HAN_IDEOGRAPH_PATTERN.test(block.text)) {
+      errors.push(`Han ideograph detected in ${block.section}`);
+    }
+    const enBrightnessMatches = block.text.match(ENGLISH_BRIGHTNESS_PATTERN);
+    if (enBrightnessMatches) {
+      const uniqueMatches = [...new Set(enBrightnessMatches.map((m) => m.toLowerCase()))];
+      errors.push(`English brightness descriptor detected in ${block.section}: ${uniqueMatches.join(", ")}`);
+    }
+    if (REPLACEMENT_CHARACTER_PATTERN.test(block.text)) {
+      errors.push(`Unicode replacement character detected in ${block.section}`);
+    }
+    if (MOJIBAKE_PATTERN.test(block.text) || MOJIBAKE_PATTERN.test(block.text.normalize("NFC"))) {
+      errors.push(`Encoding corruption detected in ${block.section}`);
+    }
+  }
 }
 
 export function validateComprehensiveZiweiReportV4(
@@ -541,13 +591,13 @@ export function validateComprehensiveZiweiReportV4(
   }
 
   // 3. Collect customer-visible model-owned text blocks
-  const modelOwnedTitleBlocks: Array<{ section: string; text: string }> = [
+  const modelOwnedTitleBlocks: CustomerTextBlock[] = [
     ...report.keyConfigurations.map((k, i) => ({ section: `keyConfigurations[${i}].title`, text: k.title })),
     { section: "currentDecadal.title", text: report.currentDecadal.title },
     { section: "annualSnapshot.title", text: report.annualSnapshot.title },
   ];
 
-  const narrativeBlocks: Array<{ section: string; text: string }> = [
+  const narrativeBlocks: CustomerTextBlock[] = [
     { section: "overview", text: report.overview.narrative },
     { section: "coreAxis", text: report.coreAxis.narrative },
     ...report.keyConfigurations.map((k, i) => ({ section: `keyConfigurations[${i}]`, text: k.narrative })),
@@ -563,47 +613,10 @@ export function validateComprehensiveZiweiReportV4(
     ]),
   ];
 
-  const customerTextBlocks: Array<{ section: string; text: string }> = [...modelOwnedTitleBlocks, ...narrativeBlocks];
+  const customerTextBlocks: CustomerTextBlock[] = [...modelOwnedTitleBlocks, ...narrativeBlocks];
 
   // 4. Prohibited phrases & raw technical identifiers check across customer-visible text
-  for (const block of customerTextBlocks) {
-    for (const pattern of PROHIBITED_PATTERNS) {
-      if (pattern.regex.test(block.text)) {
-        errors.push(`${pattern.description} found in ${block.section}: "${block.text.slice(0, 80)}"`);
-      }
-    }
-    if (DEATH_CONTENT_PATTERN.test(block.text)) {
-      errors.push(`Prohibited death or lifespan content found in ${block.section}: "${block.text.slice(0, 80)}"`);
-    }
-    if (containsProhibitedFatalisticPrediction(block.text)) {
-      errors.push(`Prohibited fatalistic prediction found in ${block.section}: "${block.text.slice(0, 80)}"`);
-    }
-
-    const techMatches = block.text.match(TECHNICAL_IDENTIFIER_PATTERN);
-    if (techMatches) {
-      errors.push(`Raw technical identifier leaked in ${block.section}: ${techMatches.join(", ")}`);
-    }
-
-    if (HAN_IDEOGRAPH_PATTERN.test(block.text)) {
-      errors.push(`Han ideograph detected in ${block.section}`);
-    }
-
-    const enBrightnessMatches = block.text.match(ENGLISH_BRIGHTNESS_PATTERN);
-    if (enBrightnessMatches) {
-      const uniqueMatches = [...new Set(enBrightnessMatches.map((m) => m.toLowerCase()))];
-      errors.push(
-        `English brightness descriptor detected in ${block.section}: ${uniqueMatches.join(", ")}`,
-      );
-    }
-
-    if (REPLACEMENT_CHARACTER_PATTERN.test(block.text)) {
-      errors.push(`Unicode replacement character detected in ${block.section}`);
-    }
-
-    if (MOJIBAKE_PATTERN.test(block.text) || MOJIBAKE_PATTERN.test(block.text.normalize("NFC"))) {
-      errors.push(`Encoding corruption detected in ${block.section}`);
-    }
-  }
+  validateCustomerTextBlocks(customerTextBlocks, errors);
 
   // 5. Duplicate and near-duplicate paragraph check
   for (let i = 0; i < narrativeBlocks.length; i++) {
@@ -647,4 +660,66 @@ export function validateComprehensiveZiweiReportV4(
   }
 
   return { ok: true };
+}
+
+export function validateComprehensiveZiweiReportV4_1(
+  candidate: unknown,
+  facts: ComprehensiveZiweiFactsV4,
+): ComprehensiveReportV4ValidationResult {
+  sanitizeUnknownCandidate(candidate);
+  const parsed = ZiweiComprehensiveReportContentV3Schema.safeParse(candidate);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      errors: parsed.error.issues.map((issue) => `[${issue.path.join(".")}]: ${issue.message}`),
+    };
+  }
+
+  const report: ZiweiComprehensiveReportContentV3 = parsed.data;
+  const { birthTimeSensitivity, ...v4Report } = report;
+  const baseResult = validateComprehensiveZiweiReportV4(v4Report, facts);
+  if (!baseResult.ok) return baseResult;
+
+  const allowedSensitivityKeys = new Set(
+    facts.evidenceKeys.filter((key) =>
+      key.startsWith("sensitivity.stable.") || key.startsWith("sensitivity.sensitive."),
+    ),
+  );
+  const sensitivityKeys = [
+    ...birthTimeSensitivity.stableFactors.evidenceKeys,
+    ...birthTimeSensitivity.sensitiveFactors.evidenceKeys,
+  ];
+  const errors: string[] = [];
+  if (birthTimeSensitivity.stableFactors.evidenceKeys.length === 0 ||
+      birthTimeSensitivity.sensitiveFactors.evidenceKeys.length === 0) {
+    errors.push("birthTimeSensitivity requires evidence for both factor narratives");
+  }
+  for (const key of sensitivityKeys) {
+    if (!allowedSensitivityKeys.has(key)) {
+      errors.push(`Unsupported sensitivity evidence key: ${key}`);
+    }
+  }
+  const text: CustomerTextBlock[] = [
+    { section: "birthTimeSensitivity.title", text: birthTimeSensitivity.title },
+    { section: "birthTimeSensitivity.stableFactors.title", text: birthTimeSensitivity.stableFactors.title },
+    { section: "birthTimeSensitivity.stableFactors.narrative", text: birthTimeSensitivity.stableFactors.narrative },
+    { section: "birthTimeSensitivity.sensitiveFactors.title", text: birthTimeSensitivity.sensitiveFactors.title },
+    { section: "birthTimeSensitivity.sensitiveFactors.narrative", text: birthTimeSensitivity.sensitiveFactors.narrative },
+  ];
+  validateCustomerTextBlocks(text, errors);
+  const rawText = text.map((block) => block.text).join(" ");
+  if (
+    /\b\d{1,2}:\d{2}\b/u.test(rawText) ||
+    /\b\d{4}-\d{2}-\d{2}\b/u.test(rawText) ||
+    /\b\d{1,2}\s*giờ(?:\s*\d{1,2})?(?:\s*phút)?\b/iu.test(rawText) ||
+    /\b(?:ngày\s*)?\d{1,2}\s+tháng\s+\d{1,2}(?:\s+năm\s+\d{4})?\b/iu.test(rawText)
+  ) {
+    errors.push("birthTimeSensitivity must not expose raw birth date or time");
+  }
+  if (
+    /\b(?:selected|previous|next)\s+frame\b|\b(?:selectedFrame|previousFrame|nextFrame|frameId|vendorTimeIndex|civilDateOffset|sourceSnapshot|providerId|modelId)\b|\bframe\s*(?:index|position)\b|\b(?:chỉ\s*số|vị\s*trí)\s+(?:khung|frame)\b/iu.test(rawText)
+  ) {
+    errors.push("birthTimeSensitivity must not expose raw frame or implementation metadata");
+  }
+  return errors.length === 0 ? { ok: true } : { ok: false, errors };
 }

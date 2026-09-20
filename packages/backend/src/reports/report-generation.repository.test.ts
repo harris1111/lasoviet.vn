@@ -4,8 +4,10 @@ import { createDatabaseReportGenerationSourceRepository } from "./report-generat
 import {
   REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
+  REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V1,
   REPORT_PROMPT_VERSION_V2,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
 import { buildZiweiIdentityEvidence } from "../evidence/ziwei-identity-rules.js";
 import { KnowledgeError, type KnowledgePassageV1 } from "../knowledge/knowledge-retrieval.service.js";
@@ -573,6 +575,124 @@ describe("createDatabaseReportGenerationSourceRepository - V4 source loading", (
     expect(retrieveZiweiKnowledgeSpy.mock.calls[0][0].knowledgeVersion).toBe("ziwei.comprehensive.knowledge.v3");
   });
 
+  it("loads frozen snapshot, builds sensitivity facts, and keeps V4 knowledge and reading context lineage for V4.1", async () => {
+    const chart = createSampleChart();
+    const evidenceResult = buildZiweiIdentityEvidence(chart, "chart-v1");
+    expect(evidenceResult.ok).toBe(true);
+    if (!evidenceResult.ok) return;
+
+    const mockDb = {
+      select: vi.fn().mockImplementation((fields) => ({
+        from: vi.fn().mockImplementation(() => ({
+          where: vi.fn().mockImplementation(() => {
+            if (fields && fields.normalizedOutput !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{ normalizedOutput: chart }]),
+              };
+            }
+            if (fields && fields.chartVersionId !== undefined) {
+              return {
+                limit: vi.fn().mockResolvedValue([{
+                  id: "evidence-v1",
+                  chartVersionId: evidenceResult.value.chartVersionId,
+                  capabilityId: evidenceResult.value.capabilityId,
+                  ruleVersion: evidenceResult.value.ruleVersion,
+                }]),
+              };
+            }
+            if (fields && fields.evidenceKey !== undefined) {
+              return {
+                orderBy: vi.fn().mockResolvedValue(
+                  evidenceResult.value.items.map((item) => ({
+                    evidenceKey: item.id,
+                    payload: item,
+                  })),
+                ),
+              };
+            }
+            return {
+              limit: vi.fn().mockResolvedValue([{
+                lifeStage: "early_career",
+                topConcern: "career",
+              }]),
+            };
+          }),
+        })),
+      })),
+    };
+
+    const dummyPassage: KnowledgePassageV1 = {
+      id: "row-v4-1",
+      passageId: "passage-v4-01",
+      documentId: "doc-v4",
+      discipline: "ziwei",
+      locale: "vi",
+      reportSections: ["identity_analysis"],
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
+      content: "Nội dung đoạn trích V4 cho toàn bộ lá số.",
+      contentHash: "hash-v4-01",
+      sourceAttribution: "Lá Số Việt",
+      permittedUse: "reference_rewrite",
+      metadata: {
+        topics: ["overview"],
+        palaces: ["ziwei.palace.life"],
+        stars: ["ziwei.star.ziwei"],
+        brightness: ["ziwei.brightness.prosperous"],
+        transformations: [],
+        relations: [],
+        patterns: [],
+        sourceType: "classical",
+        languageOrigin: "vi",
+        priority: 2,
+      },
+    };
+    const retrieveZiweiKnowledgeSpy = vi.fn().mockResolvedValue([dummyPassage]);
+    const repository = createDatabaseReportGenerationSourceRepository({
+      database: mockDb as never,
+      knowledgeRetrieval: {
+        retrieveKnowledge: vi.fn(),
+        retrieveZiweiKnowledge: retrieveZiweiKnowledgeSpy,
+      },
+      snapshotRepository: {
+        getByReportVersionId: vi.fn().mockResolvedValue(createSampleSnapshot()),
+        persist: vi.fn(),
+      } as never,
+    });
+
+    const result = await repository.loadSource({
+      reportVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      chartVersionId: "chart-v1",
+      evidenceVersionId: "evidence-v1",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      locale: "vi",
+      readingContextRevisionId: "context-1",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.comprehensiveFactsV4?.sensitivity.selectedFrame.frameId)
+      .toBe("ziwei.time-frame.horse");
+    expect(result.value.comprehensiveFactsV4?.sensitivity.previousFrame.frameId)
+      .toBe("ziwei.time-frame.snake");
+    expect(result.value.comprehensiveFactsV4?.sensitivity.nextFrame.frameId)
+      .toBe("ziwei.time-frame.goat");
+    expect(result.value.knowledgePacks).toHaveLength(19);
+    expect(retrieveZiweiKnowledgeSpy).toHaveBeenCalledTimes(19);
+    expect(retrieveZiweiKnowledgeSpy.mock.calls.every(
+      ([query]) => query.knowledgeVersion === REPORT_KNOWLEDGE_VERSION_V4,
+    )).toBe(true);
+    expect(result.value.knowledgePassages).toHaveLength(1);
+    expect(result.value.knowledgePassages[0]?.knowledgeVersion)
+      .toBe(REPORT_KNOWLEDGE_VERSION_V4);
+    expect(result.value.readingContext).toEqual({
+      version: 1,
+      lifeStage: "early_career",
+      topConcern: "career",
+    });
+  });
+
   it.each([
     [
       "loads a valid frozen ReadingContextV1 revision",
@@ -759,17 +879,9 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
     const limit = vi.fn().mockResolvedValue(row === undefined ? [] : [row]);
     const where = vi.fn().mockReturnValue({ limit });
     const leftJoin = vi.fn();
-    const from = vi.fn().mockReturnValue({
-      leftJoin: leftJoin.mockImplementation(() => ({
-        leftJoin: leftJoin.mockImplementation(() => ({
-          leftJoin: leftJoin.mockImplementation(() => ({
-            leftJoin: leftJoin.mockImplementation(() => ({
-              where,
-            })),
-          })),
-        })),
-      })),
-    });
+    const joins = { leftJoin, where };
+    leftJoin.mockImplementation(() => joins);
+    const from = vi.fn().mockReturnValue(joins);
     const select = vi.fn().mockReturnValue({ from });
     return { database: { select } as never, select, from, leftJoin, where, limit };
   }
@@ -791,15 +903,62 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
     return { result, mock };
   }
 
-  it("fails REPORT_PROFILE_PURGED when no scoped reservation/profile chain remains", async () => {
+  function validOrderAuthority(
+    context: {
+      reservationContextRevisionId: string | null;
+      revisionId: string | null;
+      revisionProfileId: string | null;
+    },
+  ) {
+    return {
+      ...context,
+      profileId: "profile-1",
+      profileOwnerId: "owner-1",
+      chartVersionChartId: "chart-1",
+      reservation: {
+        chartVersionId: "chart-version-1",
+        evidenceVersionId: "evidence-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      },
+      entitlement: {
+        id: "entitlement-1",
+        orderId: "order-1",
+        ledgerSpendId: null,
+        ownerId: "owner-1",
+        chartId: "chart-1",
+        sku: "ZIWEI-IDENTITY-P0",
+      },
+      order: {
+        id: "order-1",
+        kind: "content_purchase",
+        status: "paid",
+        ownerId: "owner-1",
+        chartId: "chart-1",
+        chartVersionId: "chart-version-1",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      },
+      spend: null,
+      wallet: null,
+      intent: null,
+      evidence: {
+        id: "evidence-1",
+        chartVersionId: "chart-version-1",
+        capabilityId: "ziwei.identity.p0",
+      },
+    };
+  }
+
+  it("fails REPORT_CONTEXT_MISMATCH when no scoped lifecycle record remains", async () => {
     const { result, mock } = await validate(undefined);
 
     expect(result).toMatchObject({
       ok: false,
-      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+      error: { code: "REPORT_CONTEXT_MISMATCH", retryable: false },
     });
     expect(mock.select).toHaveBeenCalledTimes(1);
-    expect(mock.leftJoin).toHaveBeenCalledTimes(4);
+    expect(mock.leftJoin).toHaveBeenCalledTimes(10);
     expect(mock.where).toHaveBeenCalledTimes(1);
     expect(mock.limit).toHaveBeenCalledWith(1);
     const containsValue = (
@@ -841,11 +1000,12 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
   it("allows an active or soft-archived profile when frozen null context matches", async () => {
     for (const deletedAt of [null, new Date("2026-09-15T00:00:00.000Z")]) {
       const { result } = await validate({
-        reservationContextRevisionId: null,
-        profileId: "profile-1",
+        ...validOrderAuthority({
+          reservationContextRevisionId: null,
+          revisionId: null,
+          revisionProfileId: null,
+        }),
         profileDeletedAt: deletedAt,
-        revisionId: null,
-        revisionProfileId: null,
       });
 
       expect(result).toEqual({
@@ -858,10 +1018,11 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
   it("allows an active frozen context revision only when it belongs to the joined profile", async () => {
     const { result } = await validate(
       {
-        reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
-        revisionId: "context-1",
-        revisionProfileId: "profile-1",
+        ...validOrderAuthority({
+          reservationContextRevisionId: "context-1",
+          revisionId: "context-1",
+          revisionProfileId: "profile-1",
+        }),
       },
       "context-1",
     );
@@ -875,32 +1036,29 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
   it.each([
     [
       "payload does not match the frozen reservation context",
-      {
+      validOrderAuthority({
         reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
         revisionId: "context-1",
         revisionProfileId: "profile-1",
-      },
+      }),
       "context-2",
     ],
     [
       "the frozen revision no longer exists",
-      {
+      validOrderAuthority({
         reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
         revisionId: null,
         revisionProfileId: null,
-      },
+      }),
       "context-1",
     ],
     [
       "the frozen revision belongs to another profile",
-      {
+      validOrderAuthority({
         reservationContextRevisionId: "context-1",
-        profileId: "profile-1",
         revisionId: "context-1",
         revisionProfileId: "profile-2",
-      },
+      }),
       "context-1",
     ],
   ])("fails REPORT_CONTEXT_MISMATCH when %s", async (_name, row, readingContextRevisionId) => {

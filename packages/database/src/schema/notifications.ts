@@ -14,6 +14,7 @@ export const notificationDeliveryKind = pgEnum("notification_delivery_kind", [
   "email_verification",
   "password_reset",
   "report_ready",
+  "report_failed",
 ]);
 
 export const notificationDeliveryStatus = pgEnum("notification_delivery_status", [

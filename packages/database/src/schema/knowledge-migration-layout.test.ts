@@ -67,4 +67,29 @@ describe("knowledge migration layout", () => {
     expect(packageIndex).toContain('knowledgeDocuments');
     expect(packageIndex).toContain('knowledgeChunks');
   });
+
+  it("keeps V4 provenance persistence additive in migration 0040", async () => {
+    const [migration, journal] = await Promise.all([
+      readFile(
+        new URL("0040_ziwei_knowledge_v4_provenance.sql", migrationRoot),
+        "utf8",
+      ),
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+    ]);
+
+    expect(migration).toContain('CREATE TABLE "knowledge_chunk_provenance_edges"');
+    expect(migration).toContain('"id" text PRIMARY KEY NOT NULL');
+    expect(migration).toContain(
+      'FOREIGN KEY ("output_knowledge_version","output_passage_id")',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("source_knowledge_version","source_passage_id")',
+    );
+    expect(migration).toContain(
+      "knowledge_chunk_provenance_edges_version_pair_valid",
+    );
+    expect(migration).not.toMatch(/\b(DROP|TRUNCATE|RENAME)\b/i);
+    expect(journal).toContain('"tag": "0040_ziwei_knowledge_v4_provenance"');
+    expect(journal).toContain('"idx": 40');
+  });
 });

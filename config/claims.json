@@ -168,7 +168,7 @@
           "sourcePath": "apps/web/src/app/[locale]/tai-khoan/quyen-rieng-tu/page.tsx",
           "state": "active",
           "sourceExcerpts": [
-            "Tải toàn bộ hồ sơ lá số, báo cáo đã mua, lịch sử sử dụng và hồ sơ hành vi tài khoản dưới dạng một file JSON.",
+            "Tải toàn bộ hồ sơ lá số, báo cáo đã mua và thông tin tài khoản dưới dạng một file JSON.",
             "Thời gian khôi phục 30 ngày"
           ]
         },

@@ -3,10 +3,16 @@ import { describe, expect, it } from "vitest";
 
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
   ComprehensiveReportSectionV4Error,
   parseCompleteComprehensiveReportAcceptedSections,
   parseComprehensiveReportAcceptedSection,
+  resolveComprehensiveReportSectionKeys,
 } from "./comprehensive-report-section-v4.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const narrative = (title = "Tiêu đề") => ({
   title,
@@ -98,5 +104,37 @@ describe("comprehensive report section V4 registry", () => {
       .toThrow(ComprehensiveReportSectionV4Error);
     expect(() => parseCompleteComprehensiveReportAcceptedSections([...complete, complete[0]]))
       .toThrow(ComprehensiveReportSectionV4Error);
+  });
+
+  it("uses the separate V4.1 registry and requires sensitivity between annual and practical sections", () => {
+    expect(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1).toHaveLength(24);
+    expect(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.indexOf("birthTimeSensitivity")).toBe(
+      COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.indexOf("annualSnapshot") + 1,
+    );
+    expect(resolveComprehensiveReportSectionKeys(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY))
+      .toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    expect(resolveComprehensiveReportSectionKeys(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY))
+      .toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+
+    const sections = completeSections();
+    sections.splice(-1, 0, {
+      key: "birthTimeSensitivity",
+      value: {
+        title: "Độ nhạy thời điểm sinh",
+        stableFactors: narrative("Yếu tố ổn định"),
+        sensitiveFactors: narrative("Yếu tố cần đối chiếu"),
+      },
+    });
+    expect(parseCompleteComprehensiveReportAcceptedSections(
+      sections,
+      REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    ).map((item) => item.key)).toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    expect(parseCompleteComprehensiveReportAcceptedSections(
+      sections,
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    ).map((item) => item.key)).toEqual(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+    expect(() => resolveComprehensiveReportSectionKeys("unknown")).toThrow(
+      ComprehensiveReportSectionV4Error,
+    );
   });
 });

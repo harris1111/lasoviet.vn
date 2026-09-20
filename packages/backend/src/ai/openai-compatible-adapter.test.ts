@@ -37,6 +37,7 @@ describe("OpenAI-compatible adapter", () => {
       baseUrl: "https://ai.synthetic.test/v1/",
       apiKey: "not-a-real-secret",
       modelId: "synthetic-model",
+      allowedResolvedModelIds: ["synthetic-model"],
       timeoutMs: 100,
       retryCount: 0,
       productionGate: createAiProductionGate("pending"),
@@ -57,6 +58,7 @@ describe("OpenAI-compatible adapter", () => {
       baseUrl: "https://ai.synthetic.test",
       apiKey: "not-a-real-secret",
       modelId: "synthetic-model",
+      allowedResolvedModelIds: ["synthetic-model"],
       timeoutMs: 100,
       retryCount: 0,
       productionGate: createAiProductionGate("approved"),
@@ -102,6 +104,7 @@ describe("OpenAI-compatible adapter", () => {
       baseUrl: "https://ai.synthetic.test",
       apiKey: "not-a-real-secret",
       modelId: "qwen-2.5-72b-instruct",
+      allowedResolvedModelIds: ["qwen-2.5-72b-instruct-raw"],
       timeoutMs: 100,
       retryCount: 0,
       productionGate: createAiProductionGate("approved"),
@@ -180,6 +183,7 @@ describe("OpenAI-compatible adapter", () => {
       baseUrl: "https://ai.synthetic.test",
       apiKey: "not-a-real-secret",
       modelId: "unapproved-model",
+      allowedResolvedModelIds: ["unapproved-model"],
       timeoutMs: 100,
       retryCount: 0,
       productionGate: createAiProductionGate("approved"),
@@ -220,6 +224,7 @@ describe("OpenAI-compatible adapter", () => {
       baseUrl: "https://ai.synthetic.test",
       apiKey: "not-a-real-secret",
       modelId: "synthetic-model",
+      allowedResolvedModelIds: ["synthetic-model"],
       timeoutMs: 100,
       retryCount: 1,
       productionGate: createAiProductionGate("approved"),
@@ -246,7 +251,141 @@ describe("OpenAI-compatible adapter", () => {
     expect(completeCalls).toHaveLength(2);
     expect(completeCalls[0].attemptId).toBe("att-1");
     expect(completeCalls[0].errorCode).toBe("AI_OUTPUT_INVALID");
+    expect(completeCalls[0].invalidOutputReason).toBe("schema_validation_failed");
     expect(completeCalls[1].attemptId).toBe("att-2");
     expect(completeCalls[1].errorCode).toBeUndefined();
   });
+
+  it("retries a null HTTP 200 payload after recording resolved_model_missing", async () => {
+    const completeCalls: CompleteAttemptInput[] = [];
+    const mockRecorder = {
+      beginAttempt: vi.fn().mockImplementation(async (input: BeginAttemptInput) => ({
+        ok: true,
+        value: { attemptId: `att-${input.attemptNumber}`, pricing: samplePricing },
+      })),
+      completeAttempt: vi.fn().mockImplementation(async (input: CompleteAttemptInput) => {
+        completeCalls.push(input);
+        return { ok: true, value: { outcomeId: input.attemptId, costStatus: "unknown" as const } };
+      }),
+    };
+    let attempt = 0;
+    const provider = createOpenAiCompatibleAdapter({
+      baseUrl: "https://ai.synthetic.test",
+      apiKey: "not-a-real-secret",
+      modelId: "synthetic-model",
+      allowedResolvedModelIds: ["synthetic-model"],
+      timeoutMs: 100,
+      retryCount: 1,
+      productionGate: createAiProductionGate("approved"),
+      costRecorder: mockRecorder,
+      fetchImpl: async () => {
+        attempt += 1;
+        return attempt === 1
+          ? jsonResponse(null)
+          : jsonResponse(responseBody("{\"value\":\"sentinel\"}"));
+      },
+    });
+
+    await expect(
+      provider.generateStructured({
+        ...request,
+        use: "production_report_generation",
+      }),
+    ).resolves.toMatchObject({ ok: true });
+    expect(completeCalls).toHaveLength(2);
+    expect(completeCalls[0]).toMatchObject({
+      attemptId: "att-0",
+      errorCode: "AI_OUTPUT_INVALID",
+      invalidOutputReason: "resolved_model_missing",
+    });
+    expect(completeCalls[1]).toMatchObject({
+      attemptId: "att-1",
+      errorCode: undefined,
+    });
+  });
+
+  it.each([
+    [
+      "response JSON parse failure",
+      async () => new Response("not-json", { status: 200 }),
+      "response_json_parse_failed",
+    ],
+    [
+      "missing message content",
+      async () => jsonResponse({ model: "synthetic-model", choices: [{}] }),
+      "message_content_missing_or_non_string",
+    ],
+    [
+      "leading prose",
+      async () => jsonResponse(responseBody("Here is the result: {\"value\":\"sentinel\"}")),
+      "content_not_json_object",
+    ],
+    [
+      "malformed JSON object",
+      async () => jsonResponse(responseBody("{\"value\":\"sentinel\"")),
+      "json_object_malformed",
+    ],
+    [
+      "schema validation failure",
+      async () => jsonResponse(responseBody("{\"value\":\"wrong_sentinel\"}")),
+      "schema_validation_failed",
+    ],
+    [
+      "missing resolved model",
+      async () => jsonResponse({ choices: [{ message: { content: "{\"value\":\"sentinel\"}" } }] }),
+      "resolved_model_missing",
+    ],
+    [
+      "disallowed resolved model",
+      async () =>
+        jsonResponse({
+          model: "unapproved-resolved-model",
+          choices: [{ message: { content: "{\"value\":\"sentinel\"}" } }],
+        }),
+      "resolved_model_disallowed",
+    ],
+  ] as const)(
+    "records bounded diagnostic for %s without persisting model content",
+    async (_name, fetchImpl, invalidOutputReason) => {
+      const completeCalls: CompleteAttemptInput[] = [];
+      const mockRecorder = {
+        beginAttempt: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { attemptId: "att-1", pricing: samplePricing },
+        }),
+        completeAttempt: vi.fn().mockImplementation(async (input: CompleteAttemptInput) => {
+          completeCalls.push(input);
+          return { ok: true, value: { outcomeId: "out-1", costStatus: "unknown" as const } };
+        }),
+      };
+      const provider = createOpenAiCompatibleAdapter({
+        baseUrl: "https://ai.synthetic.test",
+        apiKey: "not-a-real-secret",
+        modelId: "synthetic-model",
+        allowedResolvedModelIds: ["synthetic-model"],
+        timeoutMs: 100,
+        retryCount: 0,
+        productionGate: createAiProductionGate("approved"),
+        costRecorder: mockRecorder,
+        fetchImpl,
+      });
+
+      await expect(
+        provider.generateStructured({
+          ...request,
+          use: "production_report_generation",
+        }),
+      ).resolves.toMatchObject({
+        ok: false,
+        error: { code: "AI_OUTPUT_INVALID", retryable: false },
+      });
+      expect(completeCalls).toHaveLength(1);
+      expect(completeCalls[0]).toMatchObject({
+        errorCode: "AI_OUTPUT_INVALID",
+        invalidOutputReason,
+      });
+      expect(JSON.stringify(completeCalls)).not.toContain("wrong_sentinel");
+      expect(JSON.stringify(completeCalls)).not.toContain("Here is the result");
+    },
+  );
 });

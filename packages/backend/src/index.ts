@@ -273,6 +273,17 @@ export {
   createDatabaseRoleAssignmentRepository,
 } from "./admin-access/role-assignment.repository.js";
 export {
+  createReportRecoveryService,
+} from "./admin-access/report-recovery.service.js";
+export type {
+  ReportRecoveryCommand,
+  ReportRecoveryError,
+  ReportRecoveryRepository,
+} from "./admin-access/report-recovery.service.js";
+export {
+  createDatabaseReportRecoveryRepository,
+} from "./admin-access/report-recovery.repository.js";
+export {
   createAuditQueryService,
 } from "./admin-access/audit-query.service.js";
 export type { AuditQueryRepository } from "./admin-access/audit-query.service.js";
@@ -310,12 +321,32 @@ export {
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V1,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_CONFIG_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
+  REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
+  REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
   REPORT_TIMING_RULE_VERSION_V1,
   REPORT_SENSITIVITY_RULE_VERSION_V1,
   currentReportVersions,
   v4ReportVersions,
+  v4_0_1ReportVersions,
+  v4SectionedReportVersions,
+  v4_1SensitivityReportVersions,
+  v4_1_1SensitivityReportVersions,
+  v4_1_1KeyConfigSensitivityReportVersions,
+  v4_1_2SensitivityReportVersions,
+  resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   CURRENT_REPORT_KNOWLEDGE_VERSION,
   CURRENT_REPORT_PROMPT_VERSION,
@@ -337,6 +368,11 @@ export type {
   ReportVersionSelectionV2,
   ReportVersionSelectionV3,
   ReportVersionSelectionV4,
+  ReportVersionSelectionV4_0_1,
+  ReportVersionSelectionV4Sectioned,
+  ReportVersionSelectionV4_1Sensitivity,
+  ReportVersionSelectionV4_1_1Sensitivity,
+  ReportVersionSelectionV4_1_1KeyConfigSensitivity,
 } from "./reports/identity-report-config.js";
 
 export {
@@ -353,6 +389,9 @@ export {
 export type {
   IdentityReportVersionFamily,
 } from "./reports/identity-report-version-family.js";
+export {
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+} from "./reports/comprehensive-report-section-v4.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
 export type {
@@ -388,6 +427,12 @@ export type {
 export {
   createDatabaseReportSourceSnapshotRepository,
 } from "./reports/report-source-snapshot.repository.js";
+export {
+  createDatabaseReportSectionCheckpointRepository,
+} from "./reports/report-section-checkpoint.repository.js";
+export type {
+  ReportSectionCheckpointRepository,
+} from "./reports/report-section-checkpoint.repository.js";
 export type {
   ReportSnapshotCalculator,
   ReportSnapshotCalculatorInput,
@@ -484,6 +529,20 @@ export { createSePayGateway } from "./commerce/sepay-adapter.js";
 export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";
 export { createDatabaseCommerceRepository } from "./commerce/commerce.repository.js";
 export type { CommerceRepository, CommerceRepositoryOptions, OwnedOrderProjection } from "./commerce/commerce.repository.js";
+export {
+  createDatabaseWalletRepository,
+} from "./wallet/wallet.repository.js";
+export type {
+  TrustedGrantAuthority,
+  WalletRepository,
+  WalletRestorationCommand,
+  WalletResult,
+} from "./wallet/wallet.repository.js";
+export { createWalletService } from "./wallet/wallet.service.js";
+export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
+export type {
+  WalletUnlockService,
+} from "./commerce/wallet-unlock.service.js";
 export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
 export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJob, QueueJobV1, ReportGenerationRequestedV1, ReportGenerationRequestedV2 } from "./outbox/outbox.dispatcher.js";
 export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";
@@ -517,20 +576,73 @@ export {
 } from "./jobs/queue.registry.js";
 export type { RegisteredQueue, ResolveWorkerQueuesResult } from "./jobs/queue.registry.js";
 
+export { createPdfRenderer, loadBundledPdfFonts } from "./pdf/pdf-renderer.js";
+export type {
+  ChromiumBrowser,
+  ChromiumLauncher,
+  ChromiumPage,
+  PdfRenderFailureCode,
+  PdfRenderResult,
+} from "./pdf/pdf-renderer.js";
+export { createReportPrintHtml } from "./pdf/report-print-template.js";
+export { createAssetService } from "./storage/asset.service.js";
+export {
+  createGarageAdapter,
+  probeGarageReadiness,
+} from "./storage/garage-adapter.js";
+export type { GarageAdapterDependencies } from "./storage/garage-adapter.js";
+export {
+  createAssetDownloadService,
+  createDatabaseAssetDownloadRepository,
+} from "./storage/asset-download.service.js";
+export {
+  createDatabaseAssetRepository,
+} from "./storage/asset.repository.js";
+export type {
+  AssetRepositoryOptions,
+  PdfWorkItem,
+} from "./storage/asset.repository.js";
+export type {
+  AssetDownload,
+  AssetDownloadError,
+  AssetDownloadRepository,
+} from "./storage/asset-download.service.js";
+export type {
+  ObjectStore,
+  ObjectMetadata,
+  SignedDownload,
+} from "./storage/object-store.js";
+export { createSupportCaseRepository } from "./support/support-case.repository.js";
+export { createSupportCaseService } from "./support/support-case.service.js";
+
 export {
   completeReportGeneratingHandoff,
   parseReportGenerateJob,
   transitionReportToGenerating,
 } from "./reports/report-state.js";
 export type { ReportStateSnapshot, TransitionReportToGeneratingResult } from "./reports/report-state.js";
-export { createDatabaseReportQueueStore, createReportService } from "./reports/report.service.js";
-export type { ReportJobQueueStore } from "./reports/report.service.js";
+export {
+  createDatabaseReportQueueStore,
+  createReportService,
+  recoverTransientProviderFailureGenerationInTransaction,
+} from "./reports/report.service.js";
+export type {
+  ReportJobQueueStore,
+  TerminalRecoveryResult,
+} from "./reports/report.service.js";
 
 export {
   createKnowledgeIngestionService,
   validateKnowledgeManifest,
+  validateKnowledgeManifestV2,
+  canonicalizeKnowledgeEditorialChunks,
+  canonicalizeKnowledgeProvenanceEdges,
+  canonicalizeV3DispositionLedgerPayload,
   computeChunkContentHash,
+  computeDispositionLedgerPayloadHash,
   computeDocumentContentHash,
+  computeKnowledgeProvenanceEdgeId,
+  computeKnowledgeV4CandidateHash,
 } from "./knowledge/knowledge-ingestion.service.js";
 export type {
   ApprovalStatus,
@@ -539,6 +651,8 @@ export type {
   IngestKnowledgeSuccess,
   KnowledgeChunkManifest,
   KnowledgeManifestV1,
+  KnowledgeManifestV2,
+  KnowledgeProvenanceEdgeV1,
   PermittedUseBasis,
 } from "./knowledge/knowledge-ingestion.service.js";
 

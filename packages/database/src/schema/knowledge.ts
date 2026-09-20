@@ -20,6 +20,8 @@ export type KnowledgeChunkMetadataV1 = {
 
 import { sql } from "drizzle-orm";
 import {
+  check,
+  foreignKey,
   index,
   jsonb,
   pgTable,
@@ -87,5 +89,47 @@ export const knowledgeChunks = pgTable(
     ),
     index("knowledge_chunks_document_idx").on(table.documentId),
     index("knowledge_chunks_metadata_idx").using("gin", table.metadata),
+  ],
+);
+
+export const knowledgeChunkProvenanceEdges = pgTable(
+  "knowledge_chunk_provenance_edges",
+  {
+    id: text("id").primaryKey(),
+    outputKnowledgeVersion: text("output_knowledge_version").notNull(),
+    outputPassageId: text("output_passage_id").notNull(),
+    sourceKnowledgeVersion: text("source_knowledge_version").notNull(),
+    sourcePassageId: text("source_passage_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("knowledge_chunk_provenance_edges_identity_unique").on(
+      table.outputKnowledgeVersion,
+      table.outputPassageId,
+      table.sourceKnowledgeVersion,
+      table.sourcePassageId,
+    ),
+    index("knowledge_chunk_provenance_edges_output_idx").on(
+      table.outputKnowledgeVersion,
+      table.outputPassageId,
+    ),
+    index("knowledge_chunk_provenance_edges_source_idx").on(
+      table.sourceKnowledgeVersion,
+      table.sourcePassageId,
+    ),
+    foreignKey({
+      columns: [table.outputKnowledgeVersion, table.outputPassageId],
+      foreignColumns: [knowledgeChunks.knowledgeVersion, knowledgeChunks.passageId],
+      name: "knowledge_chunk_provenance_edges_output_chunk_fk",
+    }),
+    foreignKey({
+      columns: [table.sourceKnowledgeVersion, table.sourcePassageId],
+      foreignColumns: [knowledgeChunks.knowledgeVersion, knowledgeChunks.passageId],
+      name: "knowledge_chunk_provenance_edges_source_chunk_fk",
+    }),
+    check(
+      "knowledge_chunk_provenance_edges_version_pair_valid",
+      sql`${table.outputKnowledgeVersion} = 'ziwei.comprehensive.knowledge.v4' AND ${table.sourceKnowledgeVersion} = 'ziwei.comprehensive.knowledge.v3'`,
+    ),
   ],
 );

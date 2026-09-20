@@ -20,6 +20,7 @@ const completeAi = {
   AI_BASE_URL: "https://synthetic-ai-url-never-serialize.test",
   AI_API_KEY: "synthetic-ai-key-never-serialize",
   AI_MODEL: "synthetic-model",
+  AI_ALLOWED_RESOLVED_MODELS: "synthetic-model, synthetic-model-raw",
   AI_TIMEOUT: "2500",
   AI_MAX_RETRIES: "2",
   AI_FEATURE_JSON_SCHEMA: "true",
@@ -44,6 +45,17 @@ const completeS3 = {
   CLOUD_S3_SECRET_ACCESS_KEY: "synthetic-s3-secret-never-serialize",
 } as const;
 
+const completeGarage = {
+  GARAGE_PDF_ENABLED: "true",
+  GARAGE_ENDPOINT: "http://garage:3900",
+  GARAGE_REGION: "lasoviet-private",
+  GARAGE_BUCKET: "lasoviet-report-assets",
+  GARAGE_ACCESS_KEY_ID: "synthetic-garage-access-key",
+  GARAGE_SECRET_ACCESS_KEY: "synthetic-garage-secret-never-serialize",
+  GARAGE_RPC_SECRET:
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+} as const;
+
 const validNormalizedProduction = {
   nodeEnv: "production",
   internalActorSecret: "synthetic-actor-secret-never-serialize",
@@ -54,6 +66,7 @@ const validNormalizedProduction = {
     baseUrl: "https://synthetic-ai-url-never-serialize.test",
     apiKey: "synthetic-ai-key-never-serialize",
     model: "synthetic-model",
+    allowedResolvedModels: ["synthetic-model", "synthetic-model-raw"],
     timeoutMs: 2500,
     maxRetries: 2,
     featureJsonSchema: true,
@@ -76,6 +89,9 @@ const validNormalizedProduction = {
     bucket: "synthetic-bucket",
     accessKeyId: "synthetic-access-key",
     secretAccessKey: "synthetic-s3-secret-never-serialize",
+  },
+  garage: {
+    enabled: false,
   },
   sepay: {
     environment: "sandbox",
@@ -104,7 +120,7 @@ function expectInvalid(source: NodeJS.ProcessEnv, variable: string) {
 
 function expectPartial(
   source: NodeJS.ProcessEnv,
-  group: "ai" | "smtp" | "cloudS3" | "google" | "telegram",
+  group: "ai" | "smtp" | "cloudS3" | "garage" | "google" | "telegram",
   variable: string,
 ) {
   expect(loadEnvironment(source)).toEqual({
@@ -147,6 +163,7 @@ describe("environment loading", () => {
       expect(result.value.ai).toEqual({ enabled: false });
       expect(result.value.smtp).toEqual({ enabled: false });
       expect(result.value.cloudS3).toEqual({ enabled: false });
+      expect(result.value.garage).toEqual({ enabled: false });
     }
   });
 
@@ -255,6 +272,11 @@ describe("environment loading", () => {
     ["AI_BASE_URL", { ...productionBase, ...completeAi, AI_BASE_URL: "/relative" }, "AI_BASE_URL"],
     ["AI_API_KEY", { ...productionBase, ...completeAi, AI_API_KEY: " " }, "AI_API_KEY"],
     ["AI_MODEL", { ...productionBase, ...completeAi, AI_MODEL: " " }, "AI_MODEL"],
+    [
+      "AI_ALLOWED_RESOLVED_MODELS",
+      { ...productionBase, ...completeAi, AI_ALLOWED_RESOLVED_MODELS: " " },
+      "AI_ALLOWED_RESOLVED_MODELS",
+    ],
     ["AI_TIMEOUT", { ...productionBase, ...completeAi, AI_TIMEOUT: "2.5" }, "AI_TIMEOUT"],
     ["AI_MAX_RETRIES", { ...productionBase, ...completeAi, AI_MAX_RETRIES: "-1" }, "AI_MAX_RETRIES"],
     [
@@ -313,6 +335,41 @@ describe("environment loading", () => {
       { ...productionBase, ...completeS3, CLOUD_S3_SECRET_ACCESS_KEY: " " },
       "CLOUD_S3_SECRET_ACCESS_KEY",
     ],
+    [
+      "GARAGE_ENDPOINT",
+      { ...productionBase, ...completeGarage, GARAGE_ENDPOINT: "https://garage.example.test" },
+      "GARAGE_ENDPOINT",
+    ],
+    [
+      "GARAGE_REGION",
+      { ...productionBase, ...completeGarage, GARAGE_REGION: "other-region" },
+      "GARAGE_REGION",
+    ],
+    [
+      "GARAGE_BUCKET",
+      { ...productionBase, ...completeGarage, GARAGE_BUCKET: "other-bucket" },
+      "GARAGE_BUCKET",
+    ],
+    [
+      "GARAGE_ACCESS_KEY_ID",
+      { ...productionBase, ...completeGarage, GARAGE_ACCESS_KEY_ID: " " },
+      "GARAGE_ACCESS_KEY_ID",
+    ],
+    [
+      "GARAGE_SECRET_ACCESS_KEY",
+      { ...productionBase, ...completeGarage, GARAGE_SECRET_ACCESS_KEY: " " },
+      "GARAGE_SECRET_ACCESS_KEY",
+    ],
+    [
+      "GARAGE_RPC_SECRET",
+      { ...productionBase, ...completeGarage, GARAGE_RPC_SECRET: "not-a-hex-secret" },
+      "GARAGE_RPC_SECRET",
+    ],
+    [
+      "GARAGE_PDF_ENABLED",
+      { ...productionBase, GARAGE_PDF_ENABLED: "yes" },
+      "GARAGE_PDF_ENABLED",
+    ],
   ] as const)(
     "maps invalid provider field %s to its raw variable",
     (_name, source, variable) => {
@@ -328,6 +385,7 @@ describe("environment loading", () => {
         AI_BASE_URL: completeAi.AI_BASE_URL,
         AI_API_KEY: completeAi.AI_API_KEY,
         AI_MODEL: completeAi.AI_MODEL,
+        AI_ALLOWED_RESOLVED_MODELS: completeAi.AI_ALLOWED_RESOLVED_MODELS,
         AI_TIMEOUT: completeAi.AI_TIMEOUT,
         AI_MAX_RETRIES: completeAi.AI_MAX_RETRIES,
         AI_FEATURE_JSON_SCHEMA: completeAi.AI_FEATURE_JSON_SCHEMA,
@@ -356,6 +414,20 @@ describe("environment loading", () => {
     );
     expectPartial({ ...productionBase, CLOUD_S3_ENDPOINT: completeS3.CLOUD_S3_ENDPOINT }, "cloudS3", "CLOUD_S3_REGION");
     expectPartial(
+      { ...productionBase, GARAGE_PDF_ENABLED: "true" },
+      "garage",
+      "GARAGE_ENDPOINT",
+    );
+    expectPartial(
+      {
+        ...productionBase,
+        ...completeGarage,
+        GARAGE_SECRET_ACCESS_KEY: undefined,
+      },
+      "garage",
+      "GARAGE_SECRET_ACCESS_KEY",
+    );
+    expectPartial(
       { ...productionBase, GOOGLE_CLIENT_ID: "synthetic-google-client" },
       "google",
       "GOOGLE_CLIENT_SECRET",
@@ -382,6 +454,24 @@ describe("environment loading", () => {
     expect(result).toEqual({ ok: true, value: validNormalizedProduction });
   });
 
+  it("enables Garage only with its closed activation group", () => {
+    const result = loadEnvironment({
+      ...productionBase,
+      ...completeGarage,
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        garage: {
+          enabled: true,
+          endpoint: "http://garage:3900",
+          region: "lasoviet-private",
+          bucket: "lasoviet-report-assets",
+        },
+      },
+    });
+  });
+
   it("redacts all supplied concrete values from validation errors", () => {
     const result = loadEnvironment({
       ...productionBase,
@@ -404,6 +494,8 @@ describe("environment loading", () => {
       completeSmtp.SMTP_PASSWORD,
       completeS3.CLOUD_S3_ENDPOINT,
       completeS3.CLOUD_S3_SECRET_ACCESS_KEY,
+      completeGarage.GARAGE_SECRET_ACCESS_KEY,
+      completeGarage.GARAGE_RPC_SECRET,
     ]) {
       expect(serialized).not.toContain(value);
     }
@@ -439,6 +531,38 @@ describe("environment loading", () => {
         },
       },
     });
+  });
+
+  it("trims parsed resolved-model IDs and rejects empty or duplicate entries", () => {
+    const parsed = loadEnvironment({
+      ...productionBase,
+      ...completeAi,
+      AI_ALLOWED_RESOLVED_MODELS: " synthetic-model , synthetic-model-raw ",
+    });
+    expect(parsed).toMatchObject({
+      ok: true,
+      value: {
+        ai: {
+          allowedResolvedModels: ["synthetic-model", "synthetic-model-raw"],
+        },
+      },
+    });
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        AI_ALLOWED_RESOLVED_MODELS: "synthetic-model,,synthetic-model-raw",
+      },
+      "AI_ALLOWED_RESOLVED_MODELS",
+    );
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        AI_ALLOWED_RESOLVED_MODELS: "synthetic-model, synthetic-model",
+      },
+      "AI_ALLOWED_RESOLVED_MODELS",
+    );
   });
 
   it("normalizes complete telegram group to its typed shape and omits when absent", () => {

@@ -761,8 +761,8 @@ describe("immutable report version repository integration", () => {
 
     const allReservations = await database.select().from(reportReservations);
     const reservationRow = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
-    expect(reservationRow?.status).toBe("html_ready");
-    expect(reservationRow?.stateVersion).toBe(3);
+    expect(reservationRow?.status).toBe("pdf_pending");
+    expect(reservationRow?.stateVersion).toBe(4);
 
     const allAttempts = await database.select().from(reportGenerationAttempts);
     const attemptRow = allAttempts.find((a) => a.jobId === fixture.jobId);
@@ -791,20 +791,7 @@ describe("immutable report version repository integration", () => {
     const matchingNotification = allNotifications.filter(
       (n) => n.idempotencyKey === `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
     );
-    expect(matchingNotification.length).toBe(1);
-    expect(matchingNotification[0]?.kind).toBe("report_ready");
-    expect(matchingNotification[0]?.status).toBe("pending");
-    expect(matchingNotification[0]?.attemptCount).toBe(0);
-    expect(matchingNotification[0]?.recipientFingerprint).toBeDefined();
-    expect(matchingNotification[0]?.requestPayload).toEqual({
-      version: 1,
-      kind: "report_ready",
-      idempotencyKey: `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
-      recipient: `${fixture.userId}@example.test`,
-      locale: "vi",
-      actionUrl: `https://lasoviet.net/bao-cao/${fixture.reportId}`,
-      requestId: `trace-${fixture.jobId}`,
-    });
+    expect(matchingNotification).toHaveLength(0);
 
     await database.$client.end();
   });
@@ -910,7 +897,7 @@ describe("immutable report version repository integration", () => {
     const matchingNotifications = allNotifications.filter(
       (n) => n.idempotencyKey === `report-ready-email:${fixture.reportVersionId}:${fixture.userId}`,
     );
-    expect(matchingNotifications.length).toBe(1);
+    expect(matchingNotifications).toHaveLength(0);
 
     await database.$client.end();
   });
@@ -1759,7 +1746,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
 
     const allReservations = await database.select().from(reportReservations);
     const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
-    expect(reservation?.status).toBe("html_ready");
+    expect(reservation?.status).toBe("pdf_pending");
 
     const allAttempts = await database.select().from(reportGenerationAttempts);
     const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
@@ -2150,12 +2137,80 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     await database.$client.end();
   });
 
-  it("generation timeout on attempt 3 terminates with JOB_RETRY_EXHAUSTED via terminal failure transaction", async () => {
+  it("generation timeout on attempt 7 remains retryable and does not terminal-fail the reservation", async () => {
     const database = createDatabase(databaseUrl);
-    const fixture = await seedFullOrchestrationFixture(database, "gen-attempt3-timeout", {
+    const fixture = await seedFullOrchestrationFixture(database, "gen-attempt7-timeout", {
       jobLeaseStatus: "waiting",
       reservationStatus: "requested",
-      attemptCount: 2,
+      attemptCount: 6,
+    });
+    const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
+    const sourceRepository = createDatabaseReportGenerationSourceRepository({
+      database,
+      knowledgeRetrieval,
+    });
+    const versionRepository = createDatabaseReportVersionRepository(
+      database,
+      reportRepositoryOptions,
+    );
+    const gate = createAiProductionGate("approved");
+    const provider = createDeterministicMockProvider({
+      writerResponse: () => ({
+        ok: false as const,
+        error: { code: "AI_TIMEOUT" as const, retryable: true },
+      }),
+    });
+    const generationService = createReportGenerationService({
+      sourceRepository,
+      versionRepository,
+      gate,
+      provider,
+    });
+    const queueStore = createDatabaseReportQueueStore(database, fixture.workerId);
+    const reportService = createReportService(database);
+    const processor = createReportGenerateProcessor({
+      database,
+      reportService,
+      queueStore,
+      workerId: fixture.workerId,
+      generationService,
+    });
+
+    const result = await processor.processNext();
+    expect(result).toEqual({ processed: false });
+
+    const allJobs = await database.select().from(reportQueueJobs);
+    const job = allJobs.find((j) => j.id === fixture.jobId);
+    expect(job?.status).toBe("retryable_failure");
+    expect(job?.lastErrorCode).toBe("AI_TIMEOUT");
+    expect(job?.attemptCount).toBe(7);
+
+    const allReservations = await database.select().from(reportReservations);
+    const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
+    expect(reservation?.status).toBe("generating");
+
+    const allAttempts = await database.select().from(reportGenerationAttempts);
+    const attempt = allAttempts.find((a) => a.jobId === fixture.jobId);
+    expect(attempt?.status).toBe("failed");
+    expect(attempt?.errorCode).toBe("AI_TIMEOUT");
+
+    const allOutbox = await database.select().from(outbox);
+    const failedEvents = allOutbox.filter(
+      (event) =>
+        event.eventType === "report.fulfillment.failed.v1" &&
+        event.aggregateId === fixture.reportVersionId,
+    );
+    expect(failedEvents).toHaveLength(0);
+
+    await database.$client.end();
+  });
+
+  it("generation timeout on attempt 8 persists AI_TIMEOUT via terminal failure transaction", async () => {
+    const database = createDatabase(databaseUrl);
+    const fixture = await seedFullOrchestrationFixture(database, "gen-attempt8-timeout", {
+      jobLeaseStatus: "waiting",
+      reservationStatus: "requested",
+      attemptCount: 7,
     });
     const knowledgeRetrieval = createKnowledgeRetrievalService({ database });
     const sourceRepository = createDatabaseReportGenerationSourceRepository({
@@ -2195,13 +2250,13 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     const allJobs = await database.select().from(reportQueueJobs);
     const job = allJobs.find((j) => j.id === fixture.jobId);
     expect(job?.status).toBe("terminal_failure");
-    expect(job?.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
-    expect(job?.attemptCount).toBe(3);
+    expect(job?.lastErrorCode).toBe("AI_TIMEOUT");
+    expect(job?.attemptCount).toBe(8);
 
     const allReservations = await database.select().from(reportReservations);
     const reservation = allReservations.find((r) => r.reportVersionId === fixture.reportVersionId);
     expect(reservation?.status).toBe("terminal_failure");
-    expect(reservation?.lastErrorCode).toBe("JOB_RETRY_EXHAUSTED");
+    expect(reservation?.lastErrorCode).toBe("AI_TIMEOUT");
     expect(reservation?.stateVersion).toBe(3);
 
     const allOutbox = await database.select().from(outbox);
@@ -2210,7 +2265,7 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     expect(failedEvents[0].payload).toMatchObject({
       reportId: fixture.reportId,
       reportVersionId: fixture.reportVersionId,
-      errorCode: "JOB_RETRY_EXHAUSTED",
+      errorCode: "AI_TIMEOUT",
       failureStage: "generation",
     });
 
@@ -2715,15 +2770,31 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       publish: (job) => queuePublisher.publish(job),
     });
 
-    const dispatchResult = await dispatcher.dispatchOne();
-    expect(dispatchResult).toEqual({ dispatched: true });
+    let recoveryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const dispatchResult = await dispatcher.dispatchOne();
+      expect(dispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryDispatched).toBe(true);
 
     // Verify exactly one distinct waiting queue job created
     const allJobsAfterDispatch = await database.select().from(reportQueueJobs);
     const waitingRecoveryJobs = allJobsAfterDispatch.filter(
-      (j) =>
-        j.status === "waiting" &&
-        (j.payload as { reportVersionId?: string })?.reportVersionId === fixture.reportVersionId,
+      (j) => j.status === "waiting" && j.sourceEventId === outboxEvent.eventId,
     );
     expect(waitingRecoveryJobs).toHaveLength(1);
     const freshJob = waitingRecoveryJobs[0];
@@ -2756,8 +2827,26 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       .set({ status: "pending", processedAt: null, leasedBy: null, leasedUntil: null })
       .where(eq(outbox.id, outboxEvent.id));
 
-    const retryDispatchResult = await dispatcher.dispatchOne();
-    expect(retryDispatchResult).toEqual({ dispatched: true });
+    let recoveryRetryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const retryDispatchResult = await dispatcher.dispatchOne();
+      expect(retryDispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryRetryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryRetryDispatched).toBe(true);
 
     const allJobsAfterRetry = await database.select().from(reportQueueJobs);
     const jobsForFirstReport = allJobsAfterRetry.filter(
@@ -3230,18 +3319,20 @@ describe("report generation orchestration and worker integration (Slice B)", () 
 
     // Dispatch outbox recovery event using a scoped claim test-double returning only this recovery event
     const queuePublisher = createDatabaseReportQueuePublisher(database);
-    let recoveryClaimed = false;
     const dispatcher = createOutboxDispatcher({
       claim: async () => {
-        if (recoveryClaimed) return null;
-        recoveryClaimed = true;
+        const [currentOutboxEvent] = await database
+          .select()
+          .from(outbox)
+          .where(eq(outbox.id, outboxEvent.id));
+        if (currentOutboxEvent?.status !== "pending") return null;
         return {
-          id: outboxEvent.id,
-          eventId: outboxEvent.eventId,
-          traceId: outboxEvent.traceId,
-          idempotencyKey: outboxEvent.idempotencyKey,
-          eventType: outboxEvent.eventType,
-          payload: outboxEvent.payload,
+          id: currentOutboxEvent.id,
+          eventId: currentOutboxEvent.eventId,
+          traceId: currentOutboxEvent.traceId,
+          idempotencyKey: currentOutboxEvent.idempotencyKey,
+          eventType: currentOutboxEvent.eventType,
+          payload: currentOutboxEvent.payload,
         };
       },
       markProcessed: async (id) => {
@@ -3259,15 +3350,31 @@ describe("report generation orchestration and worker integration (Slice B)", () 
       publish: (job) => queuePublisher.publish(job),
     });
 
-    const dispatchResult = await dispatcher.dispatchOne();
-    expect(dispatchResult).toEqual({ dispatched: true });
+    let recoveryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const dispatchResult = await dispatcher.dispatchOne();
+      expect(dispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryDispatched).toBe(true);
 
     // Verify exactly one distinct waiting queue job created
     const allJobsAfterDispatch = await database.select().from(reportQueueJobs);
     const waitingRecoveryJobs = allJobsAfterDispatch.filter(
-      (j) =>
-        j.status === "waiting" &&
-        (j.payload as { reportVersionId?: string })?.reportVersionId === fixture.reportVersionId,
+      (j) => j.status === "waiting" && j.sourceEventId === outboxEvent.eventId,
     );
     expect(waitingRecoveryJobs).toHaveLength(1);
     const freshJob = waitingRecoveryJobs[0];
@@ -3285,6 +3392,38 @@ describe("report generation orchestration and worker integration (Slice B)", () 
     expect(originalJobAfterDispatch?.status).toBe("terminal_failure");
     expect(originalJobAfterDispatch?.lastErrorCode).toBe("AI_OUTPUT_INVALID");
     expect(originalJobAfterDispatch?.attemptCount).toBe(1);
+
+    await database
+      .update(outbox)
+      .set({ status: "pending", processedAt: null, leasedBy: null, leasedUntil: null })
+      .where(eq(outbox.id, outboxEvent.id));
+
+    let recoveryRetryDispatched = false;
+    for (let dispatchAttempt = 0; dispatchAttempt < 32; dispatchAttempt += 1) {
+      const retryDispatchResult = await dispatcher.dispatchOne();
+      expect(retryDispatchResult).toEqual({ dispatched: true });
+
+      const [currentOutboxEvent] = await database
+        .select()
+        .from(outbox)
+        .where(eq(outbox.id, outboxEvent.id));
+      const currentJobs = await database
+        .select()
+        .from(reportQueueJobs)
+        .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+
+      if (currentOutboxEvent?.status === "processed" && currentJobs.length === 1) {
+        recoveryRetryDispatched = true;
+        break;
+      }
+    }
+    expect(recoveryRetryDispatched).toBe(true);
+
+    const jobsAfterRetry = await database
+      .select()
+      .from(reportQueueJobs)
+      .where(eq(reportQueueJobs.sourceEventId, outboxEvent.eventId));
+    expect(jobsAfterRetry).toHaveLength(1);
 
     // Repeat call with stale expected version fails without duplicate outbox event
     const repeatStale = await reportService.recoverInvalidOutputGeneration({

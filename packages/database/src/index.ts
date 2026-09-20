@@ -17,6 +17,7 @@ export {
 export {
   adminAuditLogs,
   adminCapabilityPolicies,
+  adminReportRecoveryReceipts,
   adminRoleAssignments,
   adminRoleMutationRequests,
 } from "./schema/admin-access.js";
@@ -46,14 +47,31 @@ export {
   commerceUnmatchedPayments,
 } from "./schema/commerce.js";
 export {
+  walletAccounts,
+  walletCommandReceipts,
+  walletCreditLots,
+  walletLedgerEntries,
+  walletPurchaseIntents,
+  walletRestorationAllocations,
+  walletSpendAllocations,
+  walletTransactions,
+} from "./schema/wallet-commerce.js";
+export {
+  generatedPreviewRequests,
+  generatedPreviewSections,
+} from "./schema/generated-preview.js";
+export {
   reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,
   reportSectionCheckpoints,
   reportSectionCheckpointRevisions,
+  reportSectionQualityCandidates,
   reportSourceSnapshots,
   reportVersions,
 } from "./schema/reports.js";
+export { reportAssets } from "./schema/assets.js";
+export { supportCases } from "./schema/support-cases.js";
 export {
   deletionRequestStatus,
   deletionRequests,
@@ -69,6 +87,7 @@ export type { WorkflowEnvelopeV1 } from "./schema/outbox.js";
 
 export {
   knowledgeChunks,
+  knowledgeChunkProvenanceEdges,
   knowledgeDocuments,
 } from "./schema/knowledge.js";
 

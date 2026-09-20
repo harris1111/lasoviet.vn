@@ -1,12 +1,17 @@
-import { ziweiComprehensiveReportQualityV1 } from "@lasoviet/config";
+import { resolveZiweiReportQualityConfig } from "@lasoviet/config";
 
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
   isComprehensiveReportPalaceSection,
   parseComprehensiveReportAcceptedSection,
+  resolveComprehensiveReportSectionKeys,
   type ComprehensiveReportAcceptedSection,
 } from "./comprehensive-report-section-v4.js";
 import type { ZiweiComprehensiveReportContentV2 } from "@lasoviet/contracts";
+import {
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
+} from "./identity-report-config.js";
 
 export type ComprehensiveReportSectionDigestEntry = {
   key: string;
@@ -48,6 +53,16 @@ function sortedEvidenceKeys(value: { evidenceKeys: readonly string[] }): string[
 }
 
 function entryFor(section: ComprehensiveReportAcceptedSection): ComprehensiveReportSectionDigestEntry {
+  if (section.key === "birthTimeSensitivity") {
+    return {
+      key: section.key,
+      headline: boundedSnippet(section.value.title),
+      claim: boundedSnippet(firstSentence(section.value.stableFactors.narrative)),
+      evidenceKeys: [],
+      configurations: [],
+      actions: [],
+    };
+  }
   if (section.key === "keyConfigurations") {
     const configurations = section.value as ZiweiComprehensiveReportContentV2["keyConfigurations"];
     return {
@@ -127,15 +142,25 @@ function appendEvidenceKeysThatFit(
       });
       continue;
     }
+    if (section.key === "birthTimeSensitivity") {
+      for (const key of sortedEvidenceKeys(section.value.stableFactors)) addIfFits(entry.evidenceKeys, key);
+      for (const key of sortedEvidenceKeys(section.value.sensitiveFactors)) addIfFits(entry.evidenceKeys, key);
+      continue;
+    }
     for (const key of sortedEvidenceKeys(section.value)) {
       addIfFits(entry.evidenceKeys, key);
     }
   }
 }
 
-function boundedDigest(sections: readonly ComprehensiveReportAcceptedSection[]): ComprehensiveReportSectionDigest {
-  const maxEntries = ziweiComprehensiveReportQualityV1.digestMaxEntries;
-  const maxChars = ziweiComprehensiveReportQualityV1.digestMaxChars;
+function boundedDigest(
+  sections: readonly ComprehensiveReportAcceptedSection[],
+  reportConfigVersion: string,
+  qualityVersion: string,
+): ComprehensiveReportSectionDigest {
+  const quality = resolveZiweiReportQualityConfig(reportConfigVersion, qualityVersion);
+  const maxEntries = quality.digestMaxEntries;
+  const maxChars = quality.digestMaxChars;
   const mandatoryKeys = new Set(["keyConfigurations", "practicalDirection"]);
   const selected = new Map<string, ComprehensiveReportSectionDigestEntry>();
 
@@ -172,29 +197,33 @@ function boundedDigest(sections: readonly ComprehensiveReportAcceptedSection[]):
 
 export function buildComprehensiveReportSectionDigest(
   source: readonly unknown[],
+  reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  qualityVersion: string = REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
 ): ComprehensiveReportSectionDigest {
   const byKey = new Map<string, ComprehensiveReportAcceptedSection>();
   for (const entry of source) {
-    const parsed = parseComprehensiveReportAcceptedSection(entry);
+    const parsed = parseComprehensiveReportAcceptedSection(entry, reportConfigVersion);
     if (byKey.has(parsed.key)) {
       throw new Error("COMPREHENSIVE_REPORT_SECTION_DIGEST_INVALID");
     }
     byKey.set(parsed.key, parsed);
   }
   return boundedDigest(
-    COMPREHENSIVE_REPORT_SECTION_KEYS.flatMap((key) => {
+    resolveComprehensiveReportSectionKeys(reportConfigVersion).flatMap((key) => {
       const entry = byKey.get(key);
       return entry ? [entry] : [];
-    }),
+    }), reportConfigVersion, qualityVersion,
   );
 }
 
 export function buildComprehensiveReportPalaceSectionDigest(
   source: readonly unknown[],
+  reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  qualityVersion: string = REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
 ): ComprehensiveReportSectionDigest {
   const byKey = new Map<string, ComprehensiveReportAcceptedSection>();
   for (const entry of source) {
-    const parsed = parseComprehensiveReportAcceptedSection(entry);
+    const parsed = parseComprehensiveReportAcceptedSection(entry, reportConfigVersion);
     if (!isComprehensiveReportPalaceSection(parsed)) continue;
     if (byKey.has(parsed.key)) {
       throw new Error("COMPREHENSIVE_REPORT_SECTION_DIGEST_INVALID");
@@ -202,9 +231,9 @@ export function buildComprehensiveReportPalaceSectionDigest(
     byKey.set(parsed.key, parsed);
   }
   return boundedDigest(
-    COMPREHENSIVE_REPORT_SECTION_KEYS.flatMap((key) => {
+    resolveComprehensiveReportSectionKeys(reportConfigVersion).flatMap((key) => {
       const entry = byKey.get(key);
       return entry ? [entry] : [];
-    }),
+    }), reportConfigVersion, qualityVersion,
   );
 }

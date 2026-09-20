@@ -1,6 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMaintenanceRunner, createReportGenerateRunner } from "./worker.module.js";
-import { createAiProductionGate } from "@lasoviet/backend";
+import {
+  createMaintenanceRunner,
+  createPdfRenderRunner,
+  createReportGenerateRunner,
+} from "./worker.module.js";
+import {
+  createAiProductionGate,
+  createReportGenerationService,
+} from "@lasoviet/backend";
+
+vi.mock("@lasoviet/backend", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@lasoviet/backend")>();
+  return {
+    ...actual,
+    createReportGenerationService: vi.fn(actual.createReportGenerationService),
+  };
+});
+
+const mockedCreateReportGenerationService = vi.mocked(createReportGenerationService);
 
 describe("createReportGenerateRunner", () => {
   const originalEnv = { ...process.env };
@@ -39,11 +56,19 @@ describe("createReportGenerateRunner", () => {
     expect(result).toEqual({ processed: 0 });
   });
 
+  it("throws WORKER_CONFIG_INVALID for an allowlist-only partial AI group", () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
+
+    expect(() => createReportGenerateRunner()).toThrow("WORKER_CONFIG_INVALID");
+  });
+
   it("returns no-op runner when queue is present and AI is configured but AI_PRODUCTION_ENABLED is false", async () => {
     process.env.WORKER_QUEUES = "report.generate";
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -60,6 +85,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -77,6 +103,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "false";
@@ -91,6 +118,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -111,6 +139,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -132,6 +161,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = secretKey;
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "invalid-timeout";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -154,6 +184,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -176,6 +207,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -189,11 +221,41 @@ describe("createReportGenerateRunner", () => {
     expect(runner).toBeDefined();
     expect(typeof runner.runOnce).toBe("function");
   });
+
+  it("supplies a database section checkpoint repository to default active generation wiring", () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    process.env.AI_BASE_URL = "https://synthetic-ai.test";
+    process.env.AI_API_KEY = "test-key-never-leak";
+    process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
+    process.env.AI_TIMEOUT = "3000";
+    process.env.AI_MAX_RETRIES = "2";
+    process.env.AI_FEATURE_JSON_SCHEMA = "true";
+    process.env.AI_FEATURE_TOOL_CALLING = "false";
+    process.env.AI_PRODUCTION_ENABLED = "true";
+    process.env.DATABASE_URL = "https://synthetic-db.test/db";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
+
+    mockedCreateReportGenerationService.mockClear();
+    createReportGenerateRunner();
+
+    expect(mockedCreateReportGenerationService).toHaveBeenCalledTimes(1);
+    const [{ sectionCheckpointRepository }] =
+      mockedCreateReportGenerationService.mock.calls[0]!;
+    expect(sectionCheckpointRepository).toEqual(expect.objectContaining({
+      get: expect.any(Function),
+      listPassed: expect.any(Function),
+      claim: expect.any(Function),
+      markPassed: expect.any(Function),
+    }));
+  });
   it("initializes runner with injected alertDispatcher and telegramAlert options", () => {
     process.env.WORKER_QUEUES = "report.generate";
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -226,6 +288,7 @@ describe("createReportGenerateRunner", () => {
     process.env.AI_BASE_URL = "https://synthetic-ai.test";
     process.env.AI_API_KEY = "test-key-never-leak";
     process.env.AI_MODEL = "test-model";
+    process.env.AI_ALLOWED_RESOLVED_MODELS = "test-model";
     process.env.AI_TIMEOUT = "3000";
     process.env.AI_MAX_RETRIES = "2";
     process.env.AI_FEATURE_JSON_SCHEMA = "true";
@@ -299,6 +362,47 @@ describe("createMaintenanceRunner", () => {
   it("initializes runner successfully with analytics retention wired", () => {
     const runner = createMaintenanceRunner();
     expect(runner).toBeDefined();
+    expect(typeof runner.runOnce).toBe("function");
+  });
+});
+
+describe("createPdfRenderRunner", () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    process.env = {
+      NODE_ENV: "test",
+      SEPAY_ENV: "disabled",
+      WORKER_QUEUES: "pdf.render",
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it("is fail-closed when the isolated PDF queue is not configured", async () => {
+    process.env.WORKER_QUEUES = "report.generate";
+    await expect(createPdfRenderRunner().runOnce()).resolves.toEqual({ processed: 0 });
+  });
+
+  it("is fail-closed when Garage is disabled", async () => {
+    await expect(createPdfRenderRunner().runOnce()).resolves.toEqual({ processed: 0 });
+  });
+
+  it("wires a real Garage adapter by default when the PDF queue is enabled", () => {
+    process.env.GARAGE_PDF_ENABLED = "true";
+    process.env.GARAGE_ENDPOINT = "http://garage:3900";
+    process.env.GARAGE_REGION = "lasoviet-private";
+    process.env.GARAGE_BUCKET = "lasoviet-report-assets";
+    process.env.GARAGE_ACCESS_KEY_ID = "test-access-key";
+    process.env.GARAGE_SECRET_ACCESS_KEY = "test-secret-key";
+    process.env.GARAGE_RPC_SECRET = "a".repeat(64);
+    process.env.DATABASE_URL = "postgresql://lasoviet:lasoviet@localhost:5432/lasoviet_test";
+    process.env.BETTER_AUTH_URL = "https://lasoviet.net";
+    process.env.INTERNAL_ACTOR_SECRET = "test-internal-secret";
+
+    const runner = createPdfRenderRunner();
     expect(typeof runner.runOnce).toBe("function");
   });
 });

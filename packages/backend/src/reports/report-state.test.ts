@@ -276,5 +276,20 @@ describe("report worker state and queue contracts", () => {
       ...validFailed,
       unknownField: 123,
     }).success).toBe(false);
+
+    expect(ReportFulfillmentFailedV1Schema.safeParse({
+      ...validFailed,
+      failureStage: "validation",
+      supportCaseId: null,
+    }).success).toBe(true);
+    expect(ReportFulfillmentFailedV1Schema.safeParse({
+      ...validFailed,
+      failureStage: "pdf",
+    }).success).toBe(false);
+    expect(ReportFulfillmentFailedV1Schema.safeParse({
+      ...validFailed,
+      failureStage: "garage",
+      supportCaseId: "support-case-1",
+    }).success).toBe(true);
   });
 });

@@ -22,6 +22,7 @@ import {
   createDatabaseAdminAccessRepository,
   createDatabaseAdminAuditRepository,
   createDatabaseRoleAssignmentRepository,
+  createDatabaseReportRecoveryRepository,
   createDatabaseAdminOverviewRepository,
   createBirthProfileService,
   createConsentService,
@@ -39,6 +40,7 @@ import {
   createAdminBusinessMetricsService,
   createDatabaseAdminBusinessMetricsRepository,
   createRoleAssignmentService,
+  createReportRecoveryService,
   createEvidenceService,
   createReadingContextService,
   createZiweiCalculationService,
@@ -46,6 +48,9 @@ import {
   createDatabaseReportQueryRepository,
   createReportQueryService,
   createAccountCenterService,
+  createAssetDownloadService,
+  createDatabaseAssetDownloadRepository,
+  createGarageAdapter,
   type EmailProvider,
 } from "@lasoviet/backend";
 import { createDatabase } from "@lasoviet/database";
@@ -79,6 +84,10 @@ import {
   ADMIN_ROLE_ASSIGNMENT_SERVICE,
   AdminRoleAuditController,
 } from "./admin-access/admin-role-audit.controller.js";
+import {
+  ADMIN_REPORT_RECOVERY_SERVICE,
+  AdminReportRecoveryController,
+} from "./admin-access/admin-report-recovery.controller.js";
 import {
   ADMIN_OVERVIEW_SERVICE,
   AdminOverviewController,
@@ -138,6 +147,12 @@ import {
   ANALYTICS_SERVICE_SECRET,
   AnalyticsServiceGuard,
 } from "./analytics/analytics-service.guard.js";
+import {
+  ASSET_DOWNLOAD_DATABASE,
+  ASSET_DOWNLOAD_SERVICE,
+  ASSET_DOWNLOAD_SERVICE_SECRET,
+  AssetsController,
+} from "./assets/assets.controller.js";
 
 function applicationEnvironment() {
   const result = loadEnvironment(process.env);
@@ -196,11 +211,13 @@ function privacyDatabase() {
     ZiweiController,
     AdminAccessController,
     AdminRoleAuditController,
+    AdminReportRecoveryController,
     AdminOverviewController,
     AdminBusinessMetricsController,
     CommerceController,
     ReportsController,
     AccountCenterController,
+    AssetsController,
   ],
   providers: [
     AnalyticsServiceGuard,
@@ -305,6 +322,12 @@ function privacyDatabase() {
       provide: ADMIN_AUDIT_QUERY_SERVICE,
       useFactory: () => createAuditQueryService({
         repository: createDatabaseAuditQueryRepository(privacyDatabase()),
+      }),
+    },
+    {
+      provide: ADMIN_REPORT_RECOVERY_SERVICE,
+      useFactory: () => createReportRecoveryService({
+        repository: createDatabaseReportRecoveryRepository(privacyDatabase()),
       }),
     },
     {
@@ -494,6 +517,31 @@ function privacyDatabase() {
       },
     },
     { provide: ACCOUNT_CENTER_DATABASE, useFactory: privacyDatabase },
+    {
+      provide: ASSET_DOWNLOAD_SERVICE,
+      useFactory: () => {
+        const environment = applicationEnvironment();
+        const database = privacyDatabase();
+        return createAssetDownloadService({
+          repository: createDatabaseAssetDownloadRepository(database),
+          objectStore: {
+            async createSignedDownload(objectKey, options) {
+              if (!environment.garage.enabled) {
+                throw new Error("GARAGE_UNAVAILABLE");
+              }
+              return createGarageAdapter(environment.garage)
+                .createSignedDownload(objectKey, options);
+            },
+          },
+        });
+      },
+    },
+    {
+      provide: ASSET_DOWNLOAD_SERVICE_SECRET,
+      useFactory: () => applicationEnvironment().internalActorSecret
+        ?? (() => { throw new Error("API_ACTOR_SECRET_CONFIG_INVALID"); })(),
+    },
+    { provide: ASSET_DOWNLOAD_DATABASE, useFactory: privacyDatabase },
   ],
 })
 export class ApiModule {}

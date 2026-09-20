@@ -3,6 +3,13 @@ import { describe, expect, it } from "vitest";
 
 const migrationRoot = new URL("../../drizzle/", import.meta.url);
 
+type DrizzleSnapshot = {
+  tables: Record<string, {
+    columns: Record<string, unknown>;
+    checkConstraints: Record<string, { value: string }>;
+  }>;
+};
+
 describe("report generation migration layout", () => {
   it("keeps report generation outputs in migration 0014", async () => {
     const migration = await readFile(
@@ -72,6 +79,58 @@ describe("report generation migration layout", () => {
 
     expect(packageIndex).toContain("reportVersions");
     expect(packageIndex).toContain("reportGenerationAttempts");
+  });
+
+  it("keeps PDF asset and report failure delivery schema additive in migration 0033", async () => {
+    const [migration, journal, packageIndex, runtime, snapshot] = await Promise.all([
+      readFile(new URL("0033_report_assets_and_report_failure_delivery.sql", migrationRoot), "utf8"),
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+      readFile(new URL("../index.ts", import.meta.url), "utf8"),
+      readFile(new URL("../runtime.ts", import.meta.url), "utf8"),
+      readFile(new URL("meta/0033_snapshot.json", migrationRoot), "utf8"),
+    ]);
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_assets"');
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "support_cases"');
+    expect(migration).toContain("ADD VALUE IF NOT EXISTS 'report_failed'");
+    expect(migration).toContain('"report_assets_report_version_unique"');
+    expect(migration).toContain('"support_cases_report_version_stage_unique"');
+    expect(migration).toContain('"report_assets_status_bounded"');
+    expect(migration).toContain('"report_assets_replica_status_bounded"');
+    expect(migration).toContain('"support_cases_failure_stage_bounded"');
+    expect(migration).not.toContain("html_content");
+
+    expect(journal).toContain('"idx": 33');
+    expect(journal).toContain('"tag": "0033_report_assets_and_report_failure_delivery"');
+    expect(packageIndex).toContain("reportAssets");
+    expect(packageIndex).toContain("supportCases");
+    expect(runtime).toContain("reportAssets");
+    expect(runtime).toContain("supportCases");
+    const reportAssets = (JSON.parse(snapshot) as DrizzleSnapshot).tables["public.report_assets"];
+    expect(reportAssets?.columns).toHaveProperty("replica_status");
+    expect(reportAssets?.checkConstraints.report_assets_status_bounded?.value).toBe(
+      "\"report_assets\".\"status\" IN ('render_pending', 'rendering', 'rendered', 'storing', 'stored', 'store_retryable_failure', 'terminal_failure')",
+    );
+    expect(reportAssets?.checkConstraints.report_assets_status_bounded?.value).not.toContain(
+      "replica_disabled",
+    );
+    expect(reportAssets?.checkConstraints.report_assets_replica_status_bounded?.value).toBe(
+      "\"report_assets\".\"replica_status\" = 'replica_disabled'",
+    );
+  });
+
+  it("registers the 0034 and 0035 snapshots as one canonical continuation", async () => {
+    const [journal, walletSnapshot, previewSnapshot] = await Promise.all([
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+      readFile(new URL("meta/0034_snapshot.json", migrationRoot), "utf8"),
+      readFile(new URL("meta/0035_snapshot.json", migrationRoot), "utf8"),
+    ]);
+    const wallet = JSON.parse(walletSnapshot) as { id: string; prevId: string };
+    const preview = JSON.parse(previewSnapshot) as { prevId: string };
+    expect(journal).toContain('"tag": "0034_wallet_commerce_foundation"');
+    expect(journal).toContain('"tag": "0035_generated_preview_persistence"');
+    expect(wallet.prevId).toBe("afe69938-d462-4a00-82d3-00837218fa1f");
+    expect(preview.prevId).toBe(wallet.id);
   });
 
   it("keeps report timing lineage additive columns and checks in migration 0024", async () => {
@@ -300,5 +359,69 @@ describe("report generation migration layout", () => {
     expect(reportSectionCheckpointRevisions.checkpointId).toBeDefined();
     expect(reportSectionCheckpointRevisions.rewriteOrdinal).toBeDefined();
     expect(reportSectionCheckpointRevisions.acceptedContent).toBeDefined();
+  });
+
+  it("keeps quality candidates additive in migration 0041 with no raw provider artifacts", async () => {
+    const [migration, journal, packageIndex] = await Promise.all([
+      readFile(new URL("0041_report_section_quality_candidates.sql", migrationRoot), "utf8"),
+      readFile(new URL("meta/_journal.json", migrationRoot), "utf8"),
+      readFile(new URL("../index.ts", import.meta.url), "utf8"),
+    ]);
+    const { reportSectionQualityCandidates } = await import("./reports.js");
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "report_section_quality_candidates"');
+    expect(migration).toContain('CREATE OR REPLACE FUNCTION "report_section_quality_findings_valid"');
+    expect(migration).toContain("IMMUTABLE");
+    expect(migration).toContain('REFERENCES "report_section_checkpoints"("id") ON DELETE RESTRICT');
+    expect(migration).toContain('"checkpoint_id","rewrite_ordinal"');
+    expect(migration).toContain('"checkpoint_id","generation_ordinal"');
+    expect(migration).toContain('"report_section_quality_candidates_candidate_lineage"');
+    expect(migration).toContain('"report_section_quality_candidates_passed_lineage"');
+    expect(migration).toContain('"report_section_quality_candidates_findings_bounded"');
+    expect(migration).toContain('"active_attempt_number" integer');
+    expect(migration).toContain('"active_attempt_number" > 0');
+    expect(migration).not.toContain("raw_response");
+    expect(migration).not.toContain("raw_prompt");
+    expect(migration).not.toContain("DELETE FROM");
+    expect(journal).toContain('"idx": 41');
+    expect(journal).toContain('"tag": "0041_report_section_quality_candidates"');
+    expect(packageIndex).toContain("reportSectionQualityCandidates");
+    expect(reportSectionQualityCandidates.candidateContent).toBeDefined();
+    expect(reportSectionQualityCandidates.findings).toBeDefined();
+    expect(reportSectionQualityCandidates.activeAttemptNumber).toBeDefined();
+  });
+
+  it("keeps admin report recovery receipts bounded and registers migration 0032", async () => {
+    const migration = await readFile(
+      new URL("0032_admin_report_recovery.sql", migrationRoot),
+      "utf8",
+    );
+    const journal = JSON.parse(await readFile(
+      new URL("meta/_journal.json", migrationRoot),
+      "utf8",
+    )) as { entries: { idx: number; when: number; tag: string }[] };
+    const packageIndex = await readFile(new URL("../index.ts", import.meta.url), "utf8");
+    const { adminReportRecoveryReceipts } = await import("./admin-access.js");
+    const previous = journal.entries.find((entry) => entry.idx === 31);
+    const recovery = journal.entries.find((entry) => entry.idx === 32);
+
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "admin_report_recovery_receipts"');
+    expect(migration).toContain('"admin_report_recovery_receipts_actor_key_unique"');
+    expect(migration).toContain('"admin_report_recovery_receipts_operation_bounded"');
+    expect(migration).toContain('"admin_report_recovery_receipts_target_bounded"');
+    expect(migration).toContain('"admin_report_recovery_receipts_key_bounded"');
+    expect(migration).toContain('"admin_report_recovery_receipts_fingerprint_format"');
+    expect(migration).toContain('"admin_report_recovery_receipts_result_object"');
+    expect(migration).not.toContain("admin_capability_policies");
+    expect(recovery).toMatchObject({
+      idx: 32,
+      tag: "0032_admin_report_recovery",
+    });
+    expect(recovery!.when).toBeGreaterThan(previous!.when);
+    expect(packageIndex).toContain("adminReportRecoveryReceipts");
+    expect(adminReportRecoveryReceipts.actorId).toBeDefined();
+    expect(adminReportRecoveryReceipts.targetReportVersionId).toBeDefined();
+    expect(adminReportRecoveryReceipts.requestFingerprint).toBeDefined();
+    expect(adminReportRecoveryReceipts.result).toBeDefined();
   });
 });

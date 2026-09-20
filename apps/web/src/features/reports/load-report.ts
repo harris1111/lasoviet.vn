@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  ReportFailedWalletSpendViewV2Schema,
   ReportViewV1Schema,
   type ReportViewV1,
   type Result,
@@ -17,7 +18,8 @@ import {
 
 export type ReportLoaderError =
   | "REPORT_AUTH_REQUIRED"
-  | "REPORT_NOT_FOUND";
+  | "REPORT_NOT_FOUND"
+  | "REPORT_FAILED";
 
 export type ReportLoader = {
   loadReport(
@@ -97,6 +99,20 @@ export function createReportLoader(dependencies: {
       }
 
       const parsed = ReportViewV1Schema.safeParse(result.value);
+      const walletFailure = ReportFailedWalletSpendViewV2Schema.safeParse(result.value);
+      if (!parsed.success && !walletFailure.success) {
+        throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");
+      }
+      if (walletFailure.success) {
+        return {
+          ok: false,
+          error: {
+            code: "REPORT_FAILED",
+            messageKey: "reports.report_failed",
+            retryable: false,
+          },
+        };
+      }
       if (!parsed.success) {
         throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");
       }

@@ -25,11 +25,25 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
+  REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
+  REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
   REPORT_TIMING_RULE_VERSION_V1,
   REPORT_SENSITIVITY_RULE_VERSION_V1,
   v4ReportVersions,
   v4_0_1ReportVersions,
   v4SectionedReportVersions,
+  v4_1SensitivityReportVersions,
+  v4_1_1SensitivityReportVersions,
+  v4_1_1KeyConfigSensitivityReportVersions,
+  v4_1_2SensitivityReportVersions,
   resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   REPORT_CONFIG_VERSION_V1,
@@ -166,6 +180,16 @@ describe("identity report config", () => {
     expect(REPORT_CONFIG_VERSION_V4_1_SECTIONED).toBe("ziwei.comprehensive.report.v4.1-sectioned");
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V1).toBe("ziwei.comprehensive.quality.v1");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V2).toBe("ziwei-comprehensive.v2");
+    expect(REPORT_PROMPT_VERSION_V4_1_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1-sensitivity");
+    expect(REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1.1-sensitivity");
+    expect(REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY).toBe("ziwei.comprehensive.prompt.v4.1.2-sensitivity");
+    expect(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1-sectioned-sensitivity");
+    expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2-sensitivity");
+    expect(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity");
+    expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.1-sensitivity");
+    expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V3).toBe("ziwei-comprehensive.v3");
+    expect(REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY).toBe("ziwei-comprehensive-html.v2");
+    expect(REPORT_RENDER_VERSION_V4_1_SENSITIVITY).toBe("identity-report-pdf.v2");
     expect(REPORT_TIMING_RULE_VERSION_V1).toBe("ziwei.timing.v1");
     expect(REPORT_SENSITIVITY_RULE_VERSION_V1).toBe("ziwei.sensitivity.v1");
   });
@@ -226,6 +250,75 @@ describe("identity report config", () => {
       "REPORT_RUNTIME_POLICY_UNKNOWN_CONFIG",
     );
     expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+  });
+
+  it("provides the dormant V4.1 sensitivity tuple and matching runtime policy", () => {
+    expect(v4_1SensitivityReportVersions()).toEqual({
+      family: "v4_1",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+      qualityVersion: "ziwei.comprehensive.quality.v2-sensitivity",
+      contentVersion: "ziwei-comprehensive.v3",
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
+    expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY)).toEqual({
+      maximumWallClockMs: 3_600_000,
+    });
+    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+  });
+
+  it("provides the additive V4.1.1 sensitivity tuple without remapping V4.1", () => {
+    expect(v4_1SensitivityReportVersions().reportConfigVersion).toBe(
+      "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
+    );
+    expect(v4_1_1SensitivityReportVersions()).toEqual({
+      family: "v4_1",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+      qualityVersion: "ziwei.comprehensive.quality.v2.1-sensitivity",
+      contentVersion: "ziwei-comprehensive.v3",
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
+    expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY)).toEqual({
+      maximumWallClockMs: 3_600_000,
+    });
+    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+  });
+
+  it("adds the key-configuration prompt tuple without changing the durable V4.1.1 resolver", () => {
+    expect(v4_1_1SensitivityReportVersions().promptVersion).toBe(
+      REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    );
+    expect(v4_1_1KeyConfigSensitivityReportVersions()).toEqual({
+      family: "v4_1",
+      knowledgeVersion: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1.1-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+      qualityVersion: "ziwei.comprehensive.quality.v2.1-sensitivity",
+      contentVersion: "ziwei-comprehensive.v3",
+      templateVersion: "ziwei-comprehensive-html.v2",
+      renderVersion: "identity-report-pdf.v2",
+      timingRuleVersion: "ziwei.timing.v1",
+    });
+  });
+
+  it("adds the V4.1.2 acceptance tuple without changing historical V4.1.1 lineage", () => {
+    expect(v4_1_1SensitivityReportVersions().promptVersion).toBe(
+      REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    );
+    expect(v4_1_2SensitivityReportVersions()).toMatchObject({
+      family: "v4_1",
+      knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    });
   });
 
   it("deriveReportTimingLineage converts Date to Asia/Ho_Chi_Minh asOfDate and derives matching targetYear", () => {

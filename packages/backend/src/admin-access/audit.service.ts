@@ -36,12 +36,21 @@ const policyCodes = new Set([
   "ROLE_ASSIGNMENT_FORBIDDEN",
   "ROLE_ASSIGNMENT_CONFLICT",
   "ROLE_ASSIGNMENT_SELF_ESCALATION_DENIED",
+  "REPORT_RECOVERY_FORBIDDEN",
+  "REPORT_RECOVERY_CONFLICT",
+  "REPORT_NOT_FOUND",
+  "REPORT_VERSION_CONFLICT",
+  "REPORT_TIMING_LINEAGE_INVALID",
 ]);
 
 function redact(value: Record<string, unknown>): Record<string, unknown> {
   const summary: Record<string, unknown> = {};
   if (AdminRoleSchema.safeParse(value.role).success) summary.role = value.role;
-  if (value.outcome === "allowed" || value.outcome === "denied") {
+  if (
+    value.outcome === "allowed" ||
+    value.outcome === "denied" ||
+    value.outcome === "failed"
+  ) {
     summary.outcome = value.outcome;
   }
   if (typeof value.code === "string" && policyCodes.has(value.code)) {

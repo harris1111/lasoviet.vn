@@ -225,6 +225,83 @@
       "when": 1790553600000,
       "tag": "0031_report_reading_context_freeze",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790640000000,
+      "tag": "0032_admin_report_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1790726400000,
+      "tag": "0033_report_assets_and_report_failure_delivery",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1790812800000,
+      "tag": "0034_wallet_commerce_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1790812860000,
+      "tag": "0035_generated_preview_persistence",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1790812920000,
+      "tag": "0036_wallet_restoration_respend_reconciliation",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790812980000,
+      "tag": "0037_wallet_purchase_intent_locale",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1790813040000,
+      "tag": "0038_ai_output_diagnostics",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1790813100000,
+      "tag": "0039_ai_model_pricing_claude_sonnet_4_6",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790813160000,
+      "tag": "0040_ziwei_knowledge_v4_provenance",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790813220000,
+      "tag": "0041_report_section_quality_candidates",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790813280000,
+      "tag": "0042_report_section_quality_terminal_findings",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import {
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
   ZiweiComprehensiveReportActionItemV2Schema,
   ZiweiComprehensiveReportAnnualSnapshotV2Schema,
+  ZiweiComprehensiveReportBirthTimeSensitivityV2Schema,
   ZiweiComprehensiveReportCurrentDecadalV2Schema,
   type ZiweiPalaceId,
   type ZiweiThematicSynthesisId,
@@ -11,7 +12,12 @@ import {
   type ReadingContextV1,
   z,
 } from "@lasoviet/contracts";
-import { ziweiComprehensiveReportQualityV1 } from "@lasoviet/config";
+import {
+  resolveZiweiReportQualityConfig,
+  resolveZiweiReportQualitySectionThreshold,
+  ziweiComprehensiveReportQualityV1,
+  ziweiComprehensiveReportQualityV2Sensitivity,
+} from "@lasoviet/config";
 
 import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -19,12 +25,23 @@ import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
   parseComprehensiveReportAcceptedSection,
+  resolveComprehensiveReportSectionKeys,
   type ComprehensiveReportAcceptedSection,
   type ComprehensiveReportSectionKey,
 } from "./comprehensive-report-section-v4.js";
 import type { ComprehensiveReportSectionDigest } from "./comprehensive-report-section-digest-v4.js";
 import { BRIGHTNESS_LABELS_VI } from "./comprehensive-report-writer.js";
-import { REPORT_PROMPT_VERSION_V4_0_1 } from "./identity-report-config.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+} from "./identity-report-config.js";
 
 const narrativeSchema = z.object({
   title: z.string().trim().min(1).max(120),
@@ -39,7 +56,13 @@ const practicalDirectionSchema = z.array(ZiweiComprehensiveReportActionItemV2Sch
 
 export type ComprehensiveReportSectionWriterV4Rewrite = {
   priorSection: ComprehensiveReportAcceptedSection;
-  findings: readonly string[];
+  findings: readonly (string | ComprehensiveReportSectionWriterV4Finding)[];
+};
+
+export type ComprehensiveReportSectionWriterV4Finding = {
+  itemKey: string;
+  code: string;
+  note: string;
 };
 
 export type ComprehensiveReportSectionWriterV4Input = {
@@ -49,7 +72,15 @@ export type ComprehensiveReportSectionWriterV4Input = {
   priorSectionDigest?: ComprehensiveReportSectionDigest;
   rewrite?: ComprehensiveReportSectionWriterV4Rewrite;
   provider: AiProvider;
-  promptVersion: typeof REPORT_PROMPT_VERSION_V4_0_1;
+  promptVersion:
+    | typeof REPORT_PROMPT_VERSION_V4_0_1
+    | typeof REPORT_PROMPT_VERSION_V4_1_SENSITIVITY
+    | typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY
+    | typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY;
+  reportConfigVersion?:
+    | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
+    | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+    | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
   costContext?: AiCostRequestContext;
   readingContext?: ReadingContextV1 | null;
 };
@@ -59,7 +90,7 @@ export type ComprehensiveReportSectionWriterV4Result =
   | { ok: false; error: AiProviderError | { code: "AI_OUTPUT_INVALID"; retryable: false } };
 
 type SectionScope = {
-  kind: keyof typeof ziweiComprehensiveReportQualityV1.sections;
+  kind: keyof typeof ziweiComprehensiveReportQualityV2Sensitivity.sections;
   palaceIds: readonly ZiweiPalaceId[];
   packIds: readonly string[];
   includePatterns: boolean;
@@ -118,6 +149,8 @@ function scopeFor(key: ComprehensiveReportSectionKey, facts: ComprehensiveZiweiF
       };
     case "annualSnapshot":
       return { kind: "annualSnapshot", palaceIds: [facts.timing.annual.palaceId], packIds: [], includePatterns: false, includeTransformations: false, includeAllNatalConfigurations: false, includeDecadal: false, includeAnnual: true };
+    case "birthTimeSensitivity":
+      return { kind: "birthTimeSensitivity", palaceIds: [], packIds: [], includePatterns: false, includeTransformations: false, includeAllNatalConfigurations: false, includeDecadal: false, includeAnnual: false };
     case "practicalDirection":
       return { kind: "practicalAction", palaceIds: lifeAndBody, packIds: ["final_synthesis"], includePatterns: true, includeTransformations: true, includeAllNatalConfigurations: false, includeDecadal: true, includeAnnual: true };
   }
@@ -131,12 +164,74 @@ function schemaFor(key: ComprehensiveReportSectionKey): z.ZodType {
   else if (isThematicKey(key)) value = thematicValueSchema;
   else if (key === "currentDecadal") value = ZiweiComprehensiveReportCurrentDecadalV2Schema;
   else if (key === "annualSnapshot") value = ZiweiComprehensiveReportAnnualSnapshotV2Schema;
+  else if (key === "birthTimeSensitivity") value = ZiweiComprehensiveReportBirthTimeSensitivityV2Schema;
   else value = practicalDirectionSchema;
   return z.object({ key: z.literal(key), value }).strict();
 }
 
-function boundedFindings(findings: readonly string[]): string[] {
-  return findings.slice(0, 8).map((finding) => finding.trim().slice(0, 300));
+function boundedFindings(
+  findings: readonly (string | ComprehensiveReportSectionWriterV4Finding)[],
+): Array<string | ComprehensiveReportSectionWriterV4Finding> {
+  return findings.slice(0, 8).map((finding) =>
+    typeof finding === "string"
+      ? finding.trim().slice(0, 300)
+      : {
+          itemKey: finding.itemKey.trim().slice(0, 120),
+          code: finding.code,
+          note: finding.note.trim().slice(0, 300),
+        },
+  );
+}
+
+function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4Input) {
+  if (
+    !isKeyConfigurationContractPrompt(input.promptVersion) ||
+    input.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
+    input.sectionKey !== "keyConfigurations"
+  ) {
+    return null;
+  }
+  const threshold = resolveZiweiReportQualitySectionThreshold(
+    input.reportConfigVersion,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    "keyConfigurations",
+  );
+  return Object.freeze({
+    perItem: true as const,
+    minimumSyllables: threshold.minimumSyllables,
+    targetMinimumSyllables: threshold.targetMinimumSyllables,
+    targetMaximumSyllables: threshold.targetMaximumSyllables,
+  });
+}
+
+function isKeyConfigurationContractPrompt(promptVersion: ComprehensiveReportSectionWriterV4Input["promptVersion"]): boolean {
+  return promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
+    promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY;
+}
+
+function rewritePayload(input: ComprehensiveReportSectionWriterV4Input) {
+  if (!input.rewrite) return {};
+  const priorItems = input.rewrite.priorSection.key === "keyConfigurations"
+    ? input.rewrite.priorSection.value
+    : null;
+  const isKeyConfigurationContract =
+    isKeyConfigurationContractPrompt(input.promptVersion) &&
+    input.sectionKey === "keyConfigurations" &&
+    priorItems !== null;
+  return {
+    rewrite: {
+      priorSection: input.rewrite.priorSection,
+      findings: boundedFindings(input.rewrite.findings),
+      ...(isKeyConfigurationContract ? {
+        itemKeys: priorItems.map(
+          (_item, index) => `keyConfigurations[${index}]`,
+        ),
+        preserveItemCount: true,
+        preserveItemOrder: true,
+        preserveEvidenceKeys: true,
+      } : {}),
+    },
+  };
 }
 
 function natalSourceKeys(
@@ -244,6 +339,39 @@ function mappedEvidenceKeys(
 }
 
 function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: SectionScope) {
+  const requirements = keyConfigurationRequirements(input);
+  if (input.sectionKey === "birthTimeSensitivity") {
+    const allowedEvidenceKeys = input.facts.evidence.items
+      .filter((item) =>
+        input.facts.evidenceKeys.includes(item.key) &&
+        (item.key.startsWith("sensitivity.stable.") || item.key.startsWith("sensitivity.sensitive.")),
+      )
+      .map((item) => item.key)
+      .sort();
+    return {
+      sectionKey: input.sectionKey,
+      facts: {
+        sensitivity: {
+          stableFactKeys: [...input.facts.sensitivity.stableFactKeys],
+          sensitiveFacts: input.facts.sensitivity.sensitiveFacts.map((fact) => ({
+            factKey: fact.factKey,
+            variants: fact.variants.map((variant) => ({
+              position: variant.position,
+              valueIds: [...variant.valueIds],
+              evidenceKeys: variant.evidenceKeys.filter((key) => allowedEvidenceKeys.includes(key)),
+            })),
+          })),
+        },
+      },
+      allowedEvidenceKeys,
+      knowledgePacks: [],
+      readingContext: null,
+      personalizationGuidance: null,
+      ...(requirements ? { keyConfigurationRequirements: requirements } : {}),
+      ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
+      ...rewritePayload(input),
+    };
+  }
   const palaces = input.facts.natal.palaces.filter((palace) => scope.palaceIds.includes(palace.palaceId));
   const transformations = scope.includeTransformations
     ? scope.includeAllNatalConfigurations
@@ -313,13 +441,9 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
         : input.sectionKey === "practicalDirection"
           ? { useTopConcernForPracticalDirection: true }
           : null,
+    ...(requirements ? { keyConfigurationRequirements: requirements } : {}),
     ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
-    ...(input.rewrite ? {
-      rewrite: {
-        priorSection: input.rewrite.priorSection,
-        findings: boundedFindings(input.rewrite.findings),
-      },
-    } : {}),
+    ...rewritePayload(input),
   };
 }
 
@@ -329,31 +453,102 @@ Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tín
 Không bịa sự kiện tương lai cụ thể, không dùng khẳng định định mệnh về tai nạn, tử vong, phá sản hoặc phản bội.
 Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, và không lặp lại lời khuyên/cảnh báo.
  Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
- readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
+readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
+
+function acceptanceContract(input: ComprehensiveReportSectionWriterV4Input) {
+  if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
+  const quality = resolveZiweiReportQualityConfig(
+    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  );
+  return {
+    scope: "section-and-item-addressed",
+    suppliedFindings: "Correct every supplied finding for its exact section or itemKey.",
+    discouragedTerms: [...quality.discouragedTerms],
+    properNameDensity: {
+      configuredProperNames: [...quality.properNames],
+      maximumPer100Syllables: quality.maxProperNamesPer100Syllables,
+    },
+    evidence: {
+      useOnlyAllowedEvidenceKeys: true,
+      preserveEvidenceBackedChartFacts: true,
+      preserveRequiredEvidenceKeys: true,
+    },
+    noNewQualityViolations: true,
+    ...(input.sectionKey === "keyConfigurations" ? {
+      keyConfigurations: {
+        preserveExactTitleOrderEvidenceKeysIdentity: true,
+      },
+    } : {}),
+  } as const;
+}
 
 export async function writeComprehensiveReportSectionV4(
   input: ComprehensiveReportSectionWriterV4Input,
 ): Promise<ComprehensiveReportSectionWriterV4Result> {
-  if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_0_1) {
+  const reportConfigVersion = input.reportConfigVersion ?? REPORT_CONFIG_VERSION_V4_1_SECTIONED;
+  const isV4 = input.promptVersion === REPORT_PROMPT_VERSION_V4_0_1 &&
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED;
+  const isV4_1 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_SENSITIVITY &&
+    (
+      reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
+      reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+    );
+  const isV4_1_1 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY &&
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  const isV4_1_2 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
+    reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  if (!isV4 && !isV4_1 && !isV4_1_1 && !isV4_1_2) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_PROMPT_UNSUPPORTED");
+  }
+  if (!resolveComprehensiveReportSectionKeys(reportConfigVersion).includes(input.sectionKey)) {
+    throw new Error("COMPREHENSIVE_REPORT_SECTION_KEY_UNSUPPORTED");
   }
   if (input.rewrite && input.rewrite.priorSection.key !== input.sectionKey) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_REWRITE_KEY_MISMATCH");
   }
   const scope = scopeFor(input.sectionKey, input.facts);
+  const requirements = keyConfigurationRequirements({
+    ...input,
+    reportConfigVersion,
+  });
+  const contract = acceptanceContract({ ...input, reportConfigVersion });
+  const maxOutputTokens = isV4
+    ? ziweiComprehensiveReportQualityV1.sections[
+      scope.kind as keyof typeof ziweiComprehensiveReportQualityV1.sections
+    ].maxOutputTokens
+    : resolveZiweiReportQualitySectionThreshold(
+      reportConfigVersion,
+      reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+        ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY
+        : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+      scope.kind,
+    ).maxOutputTokens;
   const result = await input.provider.generateStructured({
     schema: schemaFor(input.sectionKey),
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
-    system: SECTION_SYSTEM_PROMPT,
-    user: JSON.stringify(scopedPayload(input, scope)),
+    system: contract
+      ? `${SECTION_SYSTEM_PROMPT}
+Acceptance contract: every supplied finding must be corrected at its exact section/item address; avoid every configured discouraged term; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
+Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
+      : requirements
+      ? `${SECTION_SYSTEM_PROMPT}
+Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
+Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.`
+      : SECTION_SYSTEM_PROMPT,
+    user: JSON.stringify({
+      ...scopedPayload(input, scope),
+      ...(contract ? { acceptanceContract: contract } : {}),
+    }),
     use: "production_report_generation",
     purpose: input.rewrite ? "rewrite" : "report",
-    maxOutputTokens: ziweiComprehensiveReportQualityV1.sections[scope.kind].maxOutputTokens,
+    maxOutputTokens,
     costContext: input.costContext,
   });
   if (!result.ok) return result;
   try {
-    const section = parseComprehensiveReportAcceptedSection(result.value.value);
+    const section = parseComprehensiveReportAcceptedSection(result.value.value, reportConfigVersion);
     if (section.key !== input.sectionKey) throw new Error("key mismatch");
     return { ok: true, value: { ...section, providerId: result.value.providerId, modelId: result.value.modelId } };
   } catch {

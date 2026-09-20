@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { AuthEmailRequest, ReportReadyEmailRequest, PersistedEmailDeliveryRequest } from "@lasoviet/contracts";
+import type {
+  AuthEmailRequest,
+  ReportFailedEmailRequestV1,
+  ReportReadyEmailRequest,
+  PersistedEmailDeliveryRequest,
+} from "@lasoviet/contracts";
 
 import type {
   AuthEmailDeliveryRecord,
@@ -143,6 +148,7 @@ class MemoryDeliveryStore implements AuthEmailDeliveryStore {
       .filter(
         (record) =>
           (record.status === "pending" && record.kind === "report_ready") ||
+          (record.status === "pending" && record.kind === "report_failed") ||
           (record.status === "failed_retryable" && record.attemptCount < 3),
       )
       .slice(0, limit)
@@ -273,6 +279,46 @@ describe("auth email delivery state machine", () => {
       status: "sent",
       attemptCount: 2,
     });
+  });
+
+  it("retries pending report_failed delivery without weakening report_ready replay safety", async () => {
+    const store = new MemoryDeliveryStore();
+    const calls = { count: 0 };
+    const reportFailed: ReportFailedEmailRequestV1 = {
+      version: 1,
+      kind: "report_failed",
+      idempotencyKey: "report-failed:version-1:owner-1:pdf",
+      recipient: "user@synthetic.test",
+      locale: "vi",
+      actionUrl: "https://lasoviet.net/support/report/case-1",
+      requestId: "report-failed-request-1",
+      reportId: "report-1",
+      reportVersionId: "version-1",
+      failureStage: "pdf",
+      supportCaseId: "case-1",
+    };
+    const service = createAuthEmailDeliveryService({
+      store,
+      provider: provider({ ok: true, providerMessageId: "report-failed-message" }, calls),
+      recipientFingerprintSecret: "synthetic-secret",
+      now: () => new Date("2026-09-16T00:00:00Z"),
+    });
+
+    await expect(service.send(reportFailed)).resolves.toMatchObject({ status: "sent" });
+    expect(calls.count).toBe(1);
+
+    const ready: ReportReadyEmailRequest = {
+      version: 1,
+      kind: "report_ready",
+      idempotencyKey: "report-ready:version-1:owner-1",
+      recipient: "user@synthetic.test",
+      locale: "vi",
+      actionUrl: "https://lasoviet.net/reports/report-1",
+      requestId: "report-ready-request-1",
+    };
+    await service.send(ready);
+    await service.send(ready);
+    expect(calls.count).toBe(2);
   });
 
   it("delivers report_ready notification with strict ASCII template and no report or chart data", async () => {

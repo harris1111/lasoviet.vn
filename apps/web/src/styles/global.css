@@ -1,4 +1,5 @@
 @import "./tokens.css";
+@import "./ui-core.css";
 @import "./homepage-foundation.css";
 @import "./homepage-content.css";
 @import "./homepage-conversion.css";
@@ -288,6 +289,16 @@ h1 { max-width: 700px; margin: 20px 0 0; font-size: 64px; line-height: 1.06; let
 .report-subcard-narrative { margin: 0; font-size: var(--reader-body-size, 17px); line-height: 1.8; color: var(--pearl-200); }
 .report-directions-list { margin: 16px 0 0; padding-left: 24px; color: var(--pearl-200); line-height: 1.8; font-size: var(--reader-body-size, 17px); }
 .report-directions-list li { margin-bottom: 12px; }
+.report-sensitivity-factors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.report-sensitivity-factor { padding: var(--space-5); border: 1px solid var(--lacquer-line); border-radius: var(--radius-card); background: var(--lacquer-700); }
+.report-sensitivity-factor-stable { border-left: 3px solid var(--jade-500); }
+.report-sensitivity-factor-sensitive { border-left: 3px solid var(--gold-500); }
+.report-sensitivity-factor-title { margin: 0 0 var(--space-3); color: var(--pearl-50); font: 400 20px/1.35 var(--font-display); }
+.report-sensitivity-factor p { margin: 0; color: var(--pearl-200); font-size: var(--reader-body-size, 17px); line-height: 1.8; }
+@media (max-width: 767px) {
+  .report-sensitivity-factors { grid-template-columns: minmax(0, 1fr); }
+  .report-sensitivity-factor { padding: var(--space-4); }
+}
 
 /* Hero BirthDateFields and time mode styles */
 .hero-birth-date-wrap .birth-date-inputs {

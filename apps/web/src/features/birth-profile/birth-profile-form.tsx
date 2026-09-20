@@ -86,8 +86,17 @@ import {
   consumeHomepageBirthPrefill,
   readBirthCache,
   saveBirthCache,
-  HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY,
 } from "./homepage-birth-prefill";
+import {
+  bindDraftPagehideFlush,
+  clearBirthProfileDraft,
+  createDraftAutosaveController,
+  isMeaningfulBirthProfileDraft,
+  readBirthProfileDraft,
+  saveBirthProfileDraft,
+  type BirthProfileDraftInput,
+  type DraftAutosaveController,
+} from "./birth-profile-draft";
 import {
   BirthWizardContextRail,
   BirthWizardHeader,
@@ -423,6 +432,17 @@ export function BirthProfileForm({
   const [savedUnknown, setSavedUnknown] = useState<{
     isBrowserPersisted: boolean;
   } | null>(null);
+  const isHydratedRef = useRef(false);
+  const autosaveRef = useRef<DraftAutosaveController<BirthProfileDraftInput> | null>(
+    null,
+  );
+  if (autosaveRef.current === null) {
+    autosaveRef.current = createDraftAutosaveController({
+      save: saveBirthProfileDraft,
+      clear: clearBirthProfileDraft,
+      isMeaningful: isMeaningfulBirthProfileDraft,
+    });
+  }
 
   const analyticsGateRef = useRef<WizardAnalyticsGate>(createWizardAnalyticsGate());
   useEffect(() => {
@@ -434,6 +454,30 @@ export function BirthProfileForm({
 
   useEffect(() => {
     let active = true;
+    const draft = readBirthProfileDraft();
+    if (draft && isMeaningfulBirthProfileDraft(draft)) {
+      queueMicrotask(() => {
+        if (!active) return;
+        setStep(draft.step);
+        setDisplayName(draft.displayName);
+        setForWhom(draft.forWhom);
+        setConsentOther(draft.consentOther);
+        setGender(draft.gender);
+        setCalendarType(draft.calendarType);
+        setIsLeapMonth(draft.isLeapMonth);
+        setDay(draft.day);
+        setMonth(draft.month);
+        setYear(draft.year);
+        setTimeState(draft.timeState);
+        setPlace(draft.place);
+        setHasReusedCache(true);
+        isHydratedRef.current = true;
+      });
+      return () => {
+        active = false;
+      };
+    }
+
     const cached = readBirthCache();
     if (cached) {
       queueMicrotask(() => {
@@ -466,6 +510,7 @@ export function BirthProfileForm({
           setPlace(cached.place);
         }
         setHasReusedCache(true);
+        isHydratedRef.current = true;
       });
     } else {
       const prefill = consumeHomepageBirthPrefill();
@@ -485,11 +530,55 @@ export function BirthProfileForm({
             setTimeState({ precision: "unknown" });
           }
           setHasReusedCache(true);
+          isHydratedRef.current = true;
         });
+      } else {
+        isHydratedRef.current = true;
       }
     }
     return () => {
       active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isHydratedRef.current) return;
+    autosaveRef.current?.schedule({
+      step,
+      displayName,
+      forWhom,
+      consentOther,
+      gender,
+      calendarType,
+      isLeapMonth,
+      day,
+      month,
+      year,
+      timeState,
+      place,
+    });
+  }, [
+    step,
+    displayName,
+    forWhom,
+    consentOther,
+    gender,
+    calendarType,
+    isLeapMonth,
+    day,
+    month,
+    year,
+    timeState,
+    place,
+  ]);
+
+  useEffect(() => {
+    const controller = autosaveRef.current;
+    if (!controller) return;
+    const unbindPagehide = bindDraftPagehideFlush(controller, window);
+    return () => {
+      unbindPagehide();
+      controller.dispose();
     };
   }, []);
 
@@ -644,8 +733,12 @@ export function BirthProfileForm({
   }
 
   function handleClearCache() {
+    autosaveRef.current?.cancelAndClear();
     clearBirthCache();
+    setStep(1);
     setDisplayName("");
+    setForWhom("self");
+    setConsentOther(false);
     setCalendarType("solar");
     setIsLeapMonth(false);
     setDay("");
@@ -654,11 +747,16 @@ export function BirthProfileForm({
     setTimeState({ precision: "exact_minute", hour: "", minute: "" });
     setPlace("");
     setGender(null);
+    setConsent(false);
+    setError(null);
+    setStep1Attempted(false);
+    setSavedUnknown(null);
     setHasReusedCache(false);
   }
 
   function handleExit() {
     if (pending) return;
+    autosaveRef.current?.cancelAndClear();
     setStep(1);
     setDisplayName("");
     setForWhom("self");
@@ -819,6 +917,7 @@ export function BirthProfileForm({
         void sendBrowserAnalyticsEvent(chartClaim.name, chartClaim.properties);
       }
 
+      autosaveRef.current?.cancelAndClear();
       navigating = true;
       const chartPath =
         locale === "en"

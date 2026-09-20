@@ -10,7 +10,13 @@ import {
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   v4SectionedReportVersions,
+  v4_1_1KeyConfigSensitivityReportVersions,
+  v4_1_2SensitivityReportVersions,
+  v4_1SensitivityReportVersions,
 } from "./identity-report-config.js";
 
 describe("resolveIdentityReportVersionFamily", () => {
@@ -79,6 +85,81 @@ describe("resolveIdentityReportVersionFamily", () => {
     ).toBe("v4");
   });
 
+  it("resolves V4.1 sensitivity prompt tuples with V4 knowledge", () => {
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBe("v4_1");
+
+    const sensitivity = v4_1SensitivityReportVersions();
+    expect(
+      resolveIdentityReportVersionFamily(
+        sensitivity.promptVersion,
+        sensitivity.knowledgeVersion,
+      ),
+    ).toBe("v4_1");
+
+    for (const knowledgeVersion of [
+      REPORT_KNOWLEDGE_VERSION_V1,
+      REPORT_KNOWLEDGE_VERSION_V2,
+      REPORT_KNOWLEDGE_VERSION_V3,
+    ]) {
+      expect(
+        resolveIdentityReportVersionFamily(
+          REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+          knowledgeVersion,
+        ),
+      ).toBeNull();
+    }
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBeNull();
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBe("v4_1");
+    const keyConfig = v4_1_1KeyConfigSensitivityReportVersions();
+    expect(
+      resolveIdentityReportVersionFamily(
+        keyConfig.promptVersion,
+        keyConfig.knowledgeVersion,
+      ),
+    ).toBe("v4_1");
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V3,
+      ),
+    ).toBeNull();
+
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V4,
+      ),
+    ).toBe("v4_1");
+    const v4_1_2 = v4_1_2SensitivityReportVersions();
+    expect(
+      resolveIdentityReportVersionFamily(
+        v4_1_2.promptVersion,
+        v4_1_2.knowledgeVersion,
+      ),
+    ).toBe("v4_1");
+    expect(
+      resolveIdentityReportVersionFamily(
+        REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+        REPORT_KNOWLEDGE_VERSION_V3,
+      ),
+    ).toBeNull();
+  });
   it("returns null for mismatched v1/v2 pairs", () => {
     expect(
       resolveIdentityReportVersionFamily(

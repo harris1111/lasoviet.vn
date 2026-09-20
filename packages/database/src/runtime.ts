@@ -14,6 +14,8 @@ export {
 } from "./schema/auth.js";
 export { birthProfiles } from "./schema/birth-profile.js";
 export { notificationDeliveries } from "./schema/notifications.js";
+export { reportAssets } from "./schema/assets.js";
+export { supportCases } from "./schema/support-cases.js";
 export {
   accountBehaviorProfiles,
   analyticsEvents,

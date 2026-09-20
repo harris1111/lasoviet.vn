@@ -10,18 +10,23 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-pdf-font-assets.mjs",
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1133.0",
+    "@aws-sdk/s3-request-presigner": "3.1133.0",
     "@lasoviet/config": "workspace:0.0.0",
     "@lasoviet/contracts": "workspace:0.0.0",
     "@lasoviet/database": "workspace:0.0.0",
     "@nestjs/common": "12.0.1",
     "drizzle-orm": "0.45.2",
-    "nodemailer": "9.1.0"
+    "nodemailer": "9.1.0",
+    "playwright-core": "1.62.1"
   },
   "devDependencies": {
     "@types/nodemailer": "8.0.1"

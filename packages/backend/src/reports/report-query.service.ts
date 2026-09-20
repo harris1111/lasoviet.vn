@@ -4,6 +4,7 @@ import {
   ReportPendingViewV1Schema,
   ReportReadyViewV1Schema,
   ReportFailedViewV1Schema,
+  ReportFailedWalletSpendViewV2Schema,
   ReportViewV1Schema,
   REPORT_PENDING_STATUSES,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
@@ -15,14 +16,18 @@ import {
   TIER_1_ENTITLEMENT_SCOPE,
   TIER_2_ENTITLEMENT_SCOPE,
   TIER_2_V4_ENTITLEMENT_SCOPE,
+  TIER_2_V4_1_ENTITLEMENT_SCOPE,
   ZiweiComprehensiveReportContentV2Schema,
+  ZiweiComprehensiveReportContentV3Schema,
   projectComprehensiveReportPublicContentV2,
+  projectComprehensiveReportPublicContentV3,
   EntitlementScopeSchema,
   type ComprehensiveReportSectionId,
   type CurrentActor,
   type EvidenceItemV1,
   type OrderStatus,
   type ReportViewV1,
+  type ReportFailedWalletSpendViewV2,
   type Result,
 } from "@lasoviet/contracts";
 
@@ -30,6 +35,16 @@ import type {
   AuthorizedReportQueryRecord,
   ReportQueryRepository,
 } from "./report-query.repository.js";
+import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_KNOWLEDGE_VERSION_V4,
+  REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
+  REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
+} from "./identity-report-config.js";
 import { resolveIdentityReportVersionFamily } from "./identity-report-version-family.js";
 
 export type {
@@ -41,6 +56,36 @@ export type ReportQueryError = "REPORT_NOT_FOUND" | "REPORT_FORBIDDEN";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const VALID_V4_1_PROMPT_CONFIG_TUPLES = [
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  },
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  },
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  },
+  {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  },
+] as const;
+
+function isValidV4_1PromptConfigTuple(
+  promptVersion: string,
+  reportConfigVersion: string,
+): boolean {
+  return VALID_V4_1_PROMPT_CONFIG_TUPLES.some(
+    (tuple) =>
+      tuple.promptVersion === promptVersion &&
+      tuple.reportConfigVersion === reportConfigVersion,
+  );
+}
+
 export class ReportQueryDataError extends Error {
   constructor(message = "REPORT_QUERY_DATA_INVALID") {
     super(message);
@@ -50,7 +95,7 @@ export class ReportQueryDataError extends Error {
 
 export function resolveEffectiveComprehensiveTier(
   effectiveSections: ReadonlySet<ComprehensiveReportSectionId>,
-  family: "v3" | "v4" = "v3",
+  family: "v3" | "v4" | "v4_1" = "v3",
 ): 1 | 2 | null {
   const hasTier1 = TIER_1_SCOPE_SECTIONS.every((s) => effectiveSections.has(s));
   if (!hasTier1) {
@@ -61,8 +106,15 @@ export function resolveEffectiveComprehensiveTier(
     "currentDecadal",
     "annualSnapshot",
   ];
+  const v4_1SensitivitySections: readonly ComprehensiveReportSectionId[] = [
+    ...TIER_2_SCOPE_SECTIONS,
+    ...v4TimingSections,
+    "birthTimeSensitivity",
+  ];
   const requiredTier2Sections =
-    family === "v4"
+    family === "v4_1"
+      ? v4_1SensitivitySections
+      : family === "v4"
       ? [...TIER_2_SCOPE_SECTIONS, ...v4TimingSections]
       : TIER_2_SCOPE_SECTIONS;
 
@@ -74,7 +126,7 @@ export type ReportQueryService = {
   getReport(
     actor: CurrentActor,
     reportId: string,
-  ): Promise<Result<ReportViewV1, ReportQueryError>>;
+  ): Promise<Result<ReportViewV1 | ReportFailedWalletSpendViewV2, ReportQueryError>>;
 };
 
 function notFound(): Result<never, ReportQueryError> {
@@ -126,7 +178,7 @@ export function createReportQueryService(options: {
         return notFound();
       }
 
-      const { reservation, order, version, evidenceItems } = record;
+      const { reservation, version, evidenceItems } = record;
 
       const allowedSkus: readonly string[] = [
         "ZIWEI-IDENTITY-P0",
@@ -159,9 +211,23 @@ export function createReportQueryService(options: {
 
       if (!version) {
         if (reservationFulfillmentStatus === "terminal_failure") {
-          if (order.status !== "paid" || order.paidAt === null) {
-            throw new ReportQueryDataError();
+          if (record.source === "ledger_spend") {
+            const supportReference = `RPT-${reservation.reportId.replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+            const walletFailed = ReportFailedWalletSpendViewV2Schema.safeParse({
+              version: 2,
+              purchaseSource: "wallet_spend",
+              reportId: reservation.reportId,
+              reportVersionId: reservation.reportVersionId,
+              errorCode: "REPORT_GENERATION_FAILED",
+              supportReference,
+            });
+            if (!walletFailed.success) {
+              throw new ReportQueryDataError();
+            }
+            return { ok: true, value: walletFailed.data };
           }
+          const { order } = record;
+          if (order.status !== "paid" || order.paidAt === null) throw new ReportQueryDataError();
 
           const paymentTime = order.paidAt.toISOString();
           const updateTime = reservation.updatedAt.toISOString();
@@ -236,6 +302,82 @@ export function createReportQueryService(options: {
         throw new ReportQueryDataError();
       }
 
+      if (family === "v4_1") {
+        if (
+          reservation.locale !== "vi" ||
+          version.locale !== "vi" ||
+          version.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
+          !isValidV4_1PromptConfigTuple(
+            version.promptVersion,
+            version.reportConfigVersion,
+          ) ||
+          version.templateVersion !== REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY ||
+          version.renderVersion !== REPORT_RENDER_VERSION_V4_1_SENSITIVITY
+        ) {
+          throw new ReportQueryDataError();
+        }
+
+        const parsedV4_1 = ZiweiComprehensiveReportContentV3Schema.safeParse(
+          version.structuredContent,
+        );
+        if (!parsedV4_1.success) {
+          throw new ReportQueryDataError();
+        }
+
+        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
+        if (activeEntitlements.length === 0) {
+          throw new ReportQueryDataError();
+        }
+
+        const effectiveSections = new Set<ComprehensiveReportSectionId>();
+        for (const entitlement of activeEntitlements) {
+          const parsedScope = EntitlementScopeSchema.safeParse(entitlement.scope);
+          if (!parsedScope.success) {
+            throw new ReportQueryDataError();
+          }
+          for (const section of parsedScope.data.sections) {
+            effectiveSections.add(section);
+          }
+        }
+
+        const effectiveTier = resolveEffectiveComprehensiveTier(
+          effectiveSections,
+          "v4_1",
+        );
+        if (
+          effectiveTier === null ||
+          (reservation.sku === "ZIWEI-IDENTITY-P0" && effectiveTier !== 2)
+        ) {
+          throw new ReportQueryDataError();
+        }
+
+        const publicContent = projectComprehensiveReportPublicContentV3(
+          parsedV4_1.data,
+          effectiveTier === 2
+            ? TIER_2_V4_1_ENTITLEMENT_SCOPE
+            : TIER_1_ENTITLEMENT_SCOPE,
+        );
+        const readyParse = ReportReadyViewV1Schema.safeParse({
+          version: 1,
+          state: "ready",
+          contentVersion: "ziwei-comprehensive.v3",
+          reportId: reservation.reportId,
+          reportVersionId: reservation.reportVersionId,
+          locale: "vi",
+          sku: reservation.sku,
+          fulfillmentStatus: reservationFulfillmentStatus,
+          content: publicContent,
+          lineage: {
+            supersedesReportVersionId: version.supersedesReportVersionId ?? null,
+          },
+        });
+        if (!readyParse.success) {
+          throw new ReportQueryDataError();
+        }
+
+        return { ok: true, value: readyParse.data };
+      }
+
       if (family === "v4") {
         if (reservation.locale !== "vi" || version.locale !== "vi") {
           throw new ReportQueryDataError();
@@ -246,22 +388,7 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const entitlementsList = record.entitlements && record.entitlements.length > 0
-          ? record.entitlements
-          : [
-              {
-                id: reservation.entitlementId,
-                orderId: order.id,
-                chartId: order.chartId,
-                sku: reservation.sku,
-                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" ? TIER_1_ENTITLEMENT_SCOPE : TIER_2_V4_ENTITLEMENT_SCOPE,
-                orderStatus: order.status as OrderStatus,
-              },
-            ];
-
-        const activeEntitlements = entitlementsList.filter(
-          (e) => e.orderStatus !== "refunded",
-        );
+        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
@@ -276,6 +403,10 @@ export function createReportQueryService(options: {
           for (const sec of parsedScope.data.sections) {
             effectiveSections.add(sec);
           }
+        }
+
+        if (effectiveSections.has("birthTimeSensitivity")) {
+          throw new ReportQueryDataError();
         }
 
         const effectiveTier = resolveEffectiveComprehensiveTier(effectiveSections, "v4");
@@ -322,22 +453,7 @@ export function createReportQueryService(options: {
         }
 
         // Calculate effective scope as union of all non-refunded entitlements for this owner and chart
-        const entitlementsList = record.entitlements && record.entitlements.length > 0
-          ? record.entitlements
-          : [
-              {
-                id: reservation.entitlementId,
-                orderId: order.id,
-                chartId: order.chartId,
-                sku: reservation.sku,
-                scope: reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" ? TIER_1_ENTITLEMENT_SCOPE : TIER_2_ENTITLEMENT_SCOPE,
-                orderStatus: order.status as OrderStatus,
-              },
-            ];
-
-        const activeEntitlements = entitlementsList.filter(
-          (e) => e.orderStatus !== "refunded",
-        );
+        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();

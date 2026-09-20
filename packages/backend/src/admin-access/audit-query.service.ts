@@ -26,7 +26,11 @@ function safeSummary(value: Record<string, unknown>) {
   const summary: Record<string, unknown> = {};
   if (value.role === "super_admin" || value.role === "operations"
     || value.role === "support" || value.role === "read_only") summary.role = value.role;
-  if (value.outcome === "allowed" || value.outcome === "denied") {
+  if (
+    value.outcome === "allowed" ||
+    value.outcome === "denied" ||
+    value.outcome === "failed"
+  ) {
     summary.outcome = value.outcome;
   }
   if (typeof value.code === "string" && /^[A-Z][A-Z0-9_]{1,127}$/.test(value.code)) {
