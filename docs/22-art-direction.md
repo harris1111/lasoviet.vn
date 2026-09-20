@@ -302,7 +302,7 @@ khóa · cân · check · mũi tên · cộng · chevron · menu · sao.
       bằng cách đánh dấu các mục đó là đã bị thay thế và trỏ về file này +
       `tokens.css`, thay vì viết lại nội dung trong `docs/13`.
 - [x] ~~Ghi entry decision log cho việc đổi `LOCKED` palette~~ — **xong
-      2026-09-20: `FD-086`.** Hệ sơn mài được phê chuẩn là **theme mặc định**;
+      2026-09-20: `FD-088`.** Hệ sơn mài được phê chuẩn là **theme mặc định**;
       bảng Giấy–Mực–Son giữ lại làm điểm xuất phát cho light theme. Hợp đồng
       token và số đo đầy đủ: `docs/24-light-theme-color-spec.md`.
 - [ ] Kiểm contrast thực tế sau khi ảnh thật vào chỗ (ảnh sáng hơn dự kiến sẽ phá contrast chữ hero).

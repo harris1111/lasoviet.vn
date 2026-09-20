@@ -8,6 +8,13 @@ assignee: An/Development
 related: docs/15-collaboration-branch-workflow.md
 ---
 
+> **Nguồn bằng chứng, không phải nguồn quyết định.** File này được
+> `apps/web/src/app/[locale]/thanh-toan/[orderId]/page.test.tsx:676` đọc trực
+> tiếp để kiểm chứng `status: resolved` và chuỗi bằng chứng LSV-6, nên nó phải
+> nằm nguyên ở `docs/`. Không dùng nó để suy ra quyết định sản phẩm — tracker
+> mới là nơi chốt. Xem `AGENTS.md` §1.1.
+
+
 # Audit: tạo tài khoản / đăng nhập Google giữa luồng lập lá số
 
 ## 1. Triệu chứng quan sát được

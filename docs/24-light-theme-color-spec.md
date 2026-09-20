@@ -8,7 +8,7 @@ depends_on:
   - docs/22-art-direction.md
   - docs/13-brand-experience-guideline.md §5.2
   - apps/web/src/styles/tokens.css
-decision_ref: FD-086
+decision_ref: FD-088
 ---
 
 # 24 — Light Theme Color Spec

@@ -45,10 +45,14 @@ business-model question, read only:
 holds superseded concept, brand, sitemap, roadmap, decision-log, and one-off
 handoff material retained only for traceability.
 
-`docs/04-phase-1-product-spec.md` and `docs/05-report-system.md` remain in
-`docs/` because `config/claims.json` and `content/public/sources.yml` cite them
-and `scripts/public-claim-check.mjs` validates those citations. Treat them as
-evidence sources, not as current decision sources; the tracker governs.
+`docs/04-phase-1-product-spec.md`, `docs/05-report-system.md`, and
+`docs/21-audit-tao-tai-khoan-luu-la-so-flow.md` remain in `docs/` because the
+build reads them: `config/claims.json` and `content/public/sources.yml` cite the
+first two and `scripts/public-claim-check.mjs` validates those citations, while
+`apps/web/src/app/[locale]/thanh-toan/[orderId]/page.test.tsx` reads the third.
+Treat all three as evidence sources, not as current decision sources; the
+tracker governs. Before moving any file out of `docs/`, grep `apps`, `packages`,
+`tests`, `scripts`, `config`, and `content` for its path.
 
 There is no second decision register. The former decision log (now `docs/archive/10-decision-log.md`) was
 archived on 2026-09-20. Blueprint v1.1 may supersede UX, route, and SEO material

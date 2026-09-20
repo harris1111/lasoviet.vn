@@ -26,10 +26,12 @@ Read a file here only when the founder names that exact file and asks for it.
 | Branch and PR workflow | `docs/15-collaboration-branch-workflow.md` |
 | One-sentence concept and business model | `MASTER_CONCEPT.md` |
 
-`docs/04-phase-1-product-spec.md` and `docs/05-report-system.md` are **evidence
-sources cited by `config/claims.json` and `content/public/sources.yml`**, and are
-validated by `scripts/public-claim-check.mjs`. They stay in `docs/` for that
-reason. Do not treat them as current decision sources; the tracker governs.
+`docs/04-phase-1-product-spec.md`, `docs/05-report-system.md`, and
+`docs/21-audit-tao-tai-khoan-luu-la-so-flow.md` are **evidence sources the build
+reads**: the first two through `config/claims.json` /
+`content/public/sources.yml` and `scripts/public-claim-check.mjs`, the third
+through `apps/web/src/app/[locale]/thanh-toan/[orderId]/page.test.tsx`. They
+stay in `docs/` for that reason. Do not treat them as current decision sources; the tracker governs.
 
 ## What was archived on 2026-09-20, and what replaced it
 
@@ -44,7 +46,6 @@ reason. Do not treat them as current decision sources; the tracker governs.
 | `16-claude-design-page-build-handoff.md` | Completed; the pages live in `content/public/{vi,en}/pages/` |
 | `17-chatgpt-image-prompt-handoff.md` | Completed alongside `16` |
 | `18-claude-design-logo-handoff.md` | Completed; the locked logo is in `brand/logo/` |
-| `21-audit-tao-tai-khoan-luu-la-so-flow.md` | Resolved; see `docs/superpowers/plans/2026-09-13-lsv-7-oauth-canonical-return.md` |
 | `2026-09-04-project-status-and-next-steps.md` | Superseded by the tracker and the current phase files |
 | `AGENT_HANDOFF.md`, `NEXT_AGENT_PROMPT.md` | Stale Phase 04 / Windows-worktree snapshots |
 | `README-concept-package-2026-08-31.md` | Root `README.md` (rewritten as a pointer index) |
