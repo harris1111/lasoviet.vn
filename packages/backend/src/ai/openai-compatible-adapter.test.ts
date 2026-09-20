@@ -4,6 +4,7 @@ import type { BeginAttemptInput, CompleteAttemptInput } from "./ai-cost.js";
 import {
   createAiProductionGate,
   createOpenAiCompatibleAdapter,
+  resolveOpenAiCompatibleProviderId,
 } from "./openai-compatible-adapter.js";
 
 const schema = z.object({ value: z.literal("sentinel") }).strict();
@@ -31,6 +32,11 @@ const samplePricing = {
 };
 
 describe("OpenAI-compatible adapter", () => {
+  it("resolves OpenRouter from its base URL and preserves the legacy fallback", () => {
+    expect(resolveOpenAiCompatibleProviderId("https://openrouter.ai/api/v1")).toBe("openrouter");
+    expect(resolveOpenAiCompatibleProviderId("https://ai.synthetic.test/v1")).toBe("9router-an");
+  });
+
   it("uses strict JSON schema output and validates a structured success", async () => {
     const calls: RequestInit[] = [];
     const provider = createOpenAiCompatibleAdapter({

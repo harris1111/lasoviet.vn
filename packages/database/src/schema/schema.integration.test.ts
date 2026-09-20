@@ -3120,13 +3120,6 @@ describe("database schema integration", () => {
     expect(new Set(timestamps).size).toBe(timestamps.length);
     expect(journal.entries.slice(-17)).toEqual([
       {
-        idx: 26,
-        version: "7",
-        when: 1789718400000,
-        tag: "0026_ai_usage_and_cost",
-        breakpoints: true,
-      },
-      {
         idx: 27,
         version: "7",
         when: 1789804800000,
@@ -3236,6 +3229,13 @@ describe("database schema integration", () => {
         version: "7",
         when: 1790813280000,
         tag: "0042_report_section_quality_terminal_findings",
+        breakpoints: true,
+      },
+      {
+        idx: 43,
+        version: "7",
+        when: 1790813340000,
+        tag: "0043_ai_model_pricing_openrouter_deepseek_flash",
         breakpoints: true,
       },
     ]);

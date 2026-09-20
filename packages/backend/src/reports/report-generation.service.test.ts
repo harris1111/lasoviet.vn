@@ -2470,6 +2470,43 @@ describe("createReportGenerationService V4 generation and critic", () => {
     );
   });
 
+  it("preserves AI_PROVIDER_NOT_APPROVED instead of relabeling it as unsupported", async () => {
+    const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
+    const sourceRepository = withSuccessfulLifecycle({ loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) });
+    const versionRepository = {
+      getImmutableVersion: vi.fn().mockResolvedValue(null),
+      startOrReuseAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      recordFailedAttempt: vi.fn().mockResolvedValue({ ok: true }),
+      commitImmutableVersion: vi.fn(),
+    };
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: false,
+        error: { code: "AI_PROVIDER_NOT_APPROVED", retryable: false },
+      }),
+    };
+    const service = createReportGenerationService({
+      sourceRepository: sourceRepository as any,
+      versionRepository: versionRepository as any,
+      gate: { allows: () => true } as any,
+      provider: provider as any,
+      sourceSnapshotPreparer: preparer as any,
+    });
+    const v4Job = createV2Job({
+      promptVersion: "ziwei.comprehensive.prompt.v4",
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V3,
+    });
+
+    const result = await service.generateReport({ job: v4Job, attemptNumber: 1, workerId: "worker-1" });
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "AI_PROVIDER_NOT_APPROVED", retryable: false },
+    });
+    expect(versionRepository.recordFailedAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ errorCode: "AI_PROVIDER_NOT_APPROVED" }),
+    );
+  });
+
   it("propagates cost context with report and critic purpose during V4 rewrite", async () => {
     const preparer = { prepare: vi.fn().mockResolvedValue({ ok: true, value: {} }) };
     const sourceRepository = withSuccessfulLifecycle({ loadSource: vi.fn().mockResolvedValue({ ok: true, value: mockV4Source }) });
@@ -3320,6 +3357,25 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.costContexts.filter((context) => context.purpose === "critic").map((context) => context.idempotencyKey)).toEqual([
       `${sectionedJob().payload.reportVersionId}:critic:1`,
     ]);
+  });
+
+  it("preserves AI_PROVIDER_NOT_APPROVED through the sectioned provider-error mapping", async () => {
+    const fixture = createSectionedService({
+      onSection: (key) => key === "overview"
+        ? { ok: false, error: { code: "AI_PROVIDER_NOT_APPROVED", retryable: false } }
+        : undefined,
+    });
+
+    const result = await fixture.service.generateReport({
+      job: sectionedJob(),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "AI_PROVIDER_NOT_APPROVED", retryable: false },
+    });
   });
 
   it("commits the exact V4.1 sensitivity tuple through checkpoints and V3 HTML", async () => {
