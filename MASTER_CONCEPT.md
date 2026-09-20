@@ -1,5 +1,12 @@
 # Master Concept — Lá Số Việt
 
+> **Status (2026-09-20):** current. This is the concept anchor only.
+> Binding decisions live in
+> `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`
+> (FD-001…FD-085). Where this file and the tracker differ, the tracker wins.
+> Brand/UX detail: `docs/13-brand-experience-guideline.md`.
+> Sitemap/SEO: `docs/14-sitemap-seo-wireframes.md` + `docs/19-sitemap-v2-discipline-pages.md`.
+
 ## 1. Concept một câu
 
 **Lá Số Việt là nền tảng lập và luận giải lá số dành cho người Việt, kết hợp các hệ thống Đông–Tây để giúp mỗi người hiểu bản thân, hoàn cảnh và lựa chọn bằng một bản giải thích có căn cứ, dễ đọc và có thể truy nguyên.**
@@ -134,4 +141,5 @@ Do not deploy duplicate public content across domains.
 - Tác động của evidence drawer, mẫu báo cáo và chính sách hoàn tiền đến conversion.
 - Repeat purchase và nhu cầu báo cáo cặp đôi.
 
-Ngưỡng quyết định và event tracking nằm trong `docs/09-roadmap-and-metrics.md`.
+Ngưỡng quyết định và event tracking: `config/analytics-events.json` và các phase file trong
+`docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/`.

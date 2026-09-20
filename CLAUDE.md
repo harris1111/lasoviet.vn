@@ -1,6 +1,6 @@
 # CLAUDE.md — Repo-specific instructions
 
-## Git workflow (chốt 2026-08-31, superseded cùng ngày bởi bản dưới đây khi nhập `AGENT_HANDOFF.md`)
+## Git workflow (chốt 2026-08-31, superseded cùng ngày bởi bản dưới đây)
 
 Nguồn sự thật đầy đủ: `docs/15-collaboration-branch-workflow.md`. Tóm tắt bắt buộc cho mọi phiên làm việc:
 
@@ -10,6 +10,12 @@ Nguồn sự thật đầy đủ: `docs/15-collaboration-branch-workflow.md`. T�
 - `AGENTS.md` controls source precedence. Blueprint v1.1 approval is binding
   through `FD-019`; approved technical decisions remain authoritative where
   older business material conflicts.
+- **Business/concept reading scope (chốt 2026-09-20).** For any business,
+  concept, brand, or business-model question read only: the founder-decision
+  tracker (`docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`,
+  the only binding register), `MASTER_CONCEPT.md`, `docs/11`, `docs/13`,
+  `docs/14`, `docs/19`, `docs/20`, `docs/15`. **Never read `docs/archive/`**
+  unless the founder names an exact file there. See `AGENTS.md` §1.1.
 - Vai trò: **Harris/Product** ("anh") — chốt concept, brand, sitemap, UX, acceptance criteria. **An/Development** — code, test, sửa theo review.
 - Hai branch làm việc cố định:
   - `product/experience-spec-v1` — owner Harris/Product; source of truth cho docs, decisions, acceptance criteria; nhánh integration trước release.

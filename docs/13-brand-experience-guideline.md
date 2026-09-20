@@ -794,9 +794,9 @@ Nguồn được dùng để khóa guideline gồm source of truth trong repo, n
 
 **S1** [<u>Lá Số Việt — MASTER_CONCEPT.md</u>](https://github.com/harris1111/lasoviet.vn/blob/master/MASTER_CONCEPT.md)
 
-**S2** [<u>Brand, Positioning & Trust — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/02-brand-and-positioning.md)
+**S2** [<u>Brand, Positioning & Trust — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/archive/02-brand-and-positioning.md)
 
-**S3** [<u>Evidence & Audience Insights — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/01-evidence-and-insights.md)
+**S3** [<u>Evidence & Audience Insights — repo</u>](https://github.com/harris1111/lasoviet.vn/blob/master/docs/archive/01-evidence-and-insights.md)
 
 **S4** [<u>CESifo Working Paper 11272 — Astrology and Matrimony in Vietnam (2024)</u>](https://www.ifo.de/en/cesifo/publications/2024/working-paper/astrology-and-matrimony-social-reinforcement-religious-beliefs)
 

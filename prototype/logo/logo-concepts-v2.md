@@ -61,7 +61,7 @@ không đổi cảm nhận đã quen với ai từng thấy bản dựng.
 1 nút tâm tô đặc son (hồ sơ sinh) nối bằng 3 đường mảnh tới 3 nút vệ tinh chỉ viền, không tô
 (ba hệ quy chiếu: Tử Vi, Bát Tự, Bản đồ sao) — dựng thẳng từ chính **supporting line đã chốt**
 ở `docs/13` §3.5: *"Một con người. Nhiều hệ quy chiếu. Một bản luận giải dễ hiểu."* Ba nút vệ
-tinh cố tình để rỗng, không hoà vào nhau — đúng câu ở `docs/02-brand-and-positioning.md`:
+tinh cố tình để rỗng, không hoà vào nhau — đúng câu ở `docs/archive/02-brand-and-positioning.md`:
 "mỗi hệ vẫn giữ phương pháp riêng."
 
 **Vai trò gợi ý:** mark ý niệm nhất trong 6 hướng — dùng cho hero/app icon nếu muốn logo *kể*
