@@ -64,6 +64,51 @@ describe("OpenAI-compatible adapter", () => {
     expect(body.messages[0]?.content).toContain('"value":{"type":"string","const":"sentinel"');
   });
 
+  it("aborts when response body consumption stalls beyond the configured timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      let requestSignal: AbortSignal | undefined;
+      const provider = createOpenAiCompatibleAdapter({
+        baseUrl: "https://ai.synthetic.test/v1",
+        apiKey: "not-a-real-secret",
+        modelId: "synthetic-model",
+        allowedResolvedModelIds: ["synthetic-model"],
+        timeoutMs: 100,
+        retryCount: 0,
+        productionGate: createAiProductionGate("pending"),
+        fetchImpl: async (_url, init) => {
+          requestSignal = init?.signal;
+          const body = new ReadableStream<Uint8Array>({
+            start(controller) {
+              requestSignal?.addEventListener(
+                "abort",
+                () => controller.error(new DOMException("The operation was aborted.", "AbortError")),
+                { once: true },
+              );
+            },
+          });
+          return new Response(body, {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
+        },
+      });
+
+      const resultPromise = provider.generateStructured(request);
+      await vi.advanceTimersByTimeAsync(99);
+      expect(requestSignal?.aborted).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(resultPromise).resolves.toMatchObject({
+        ok: false,
+        error: { code: "AI_TIMEOUT", retryable: true },
+      });
+      expect(requestSignal?.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("disables OpenRouter reasoning so the output budget remains available for JSON", async () => {
     let body: Record<string, unknown> | undefined;
     const provider = createOpenAiCompatibleAdapter({
