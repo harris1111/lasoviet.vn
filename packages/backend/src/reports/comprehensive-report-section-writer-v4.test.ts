@@ -6,6 +6,7 @@ import {
 } from "@lasoviet/config";
 
 import {
+  writeComprehensiveReportSectionGroupV4,
   writeComprehensiveReportSectionV4,
 } from "./comprehensive-report-section-writer-v4.js";
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -855,5 +856,90 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(JSON.stringify(payload)).not.toContain("1990-01-01");
     expect(JSON.stringify(payload)).not.toContain("08:30");
     expect(JSON.stringify(payload)).not.toContain("Hanoi");
+  });
+});
+
+describe("writeComprehensiveReportSectionGroupV4", () => {
+  const active = {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  } as const;
+
+  it("makes one exact grouped request and validates each returned section", async () => {
+    const sectionKeys = ["overview", "coreAxis", "keyConfigurations"] as const;
+    const provider = {
+      generateStructured: vi.fn().mockImplementation(async (request) => {
+        const payload = JSON.parse(request.user);
+        return {
+          ok: true,
+          value: {
+            value: { sections: payload.sectionKeys.map((key: string) => outputFor(key)) },
+            providerId: "group-provider",
+            modelId: "group-model",
+          },
+        };
+      }),
+    };
+
+    const result = await writeComprehensiveReportSectionGroupV4({
+      groupId: "G1",
+      sectionKeys,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      ...active,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        providerId: "group-provider",
+        modelId: "group-model",
+        sections: [{ key: "overview" }, { key: "coreAxis" }, { key: "keyConfigurations" }],
+      },
+    });
+    expect(provider.generateStructured).toHaveBeenCalledTimes(1);
+    const request = provider.generateStructured.mock.calls[0]![0];
+    expect(request.schemaName).toBe("ziwei_comprehensive_report_section_group_g1");
+    expect(request.maxOutputTokens).toBe(24_000);
+    expect(JSON.parse(request.user).sectionKeys).toEqual(sectionKeys);
+  });
+
+  it("rejects missing, reordered, and invalid grouped output without fallback sections", async () => {
+    const sectionKeys = ["overview", "coreAxis"] as const;
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: { sections: [outputFor("coreAxis")] },
+          providerId: "group-provider",
+          modelId: "group-model",
+        },
+      }),
+    };
+
+    const result = await writeComprehensiveReportSectionGroupV4({
+      groupId: "G3",
+      sectionKeys,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      ...active,
+    });
+
+    expect(result).toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(provider.generateStructured).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps historical tuples on the section-only writer contract", async () => {
+    await expect(writeComprehensiveReportSectionGroupV4({
+      groupId: "G1",
+      sectionKeys: ["overview"],
+      facts: facts(),
+      knowledgePacks: [],
+      provider: { generateStructured: vi.fn() } as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    })).rejects.toThrow("COMPREHENSIVE_REPORT_GROUP_PROMPT_UNSUPPORTED");
   });
 });

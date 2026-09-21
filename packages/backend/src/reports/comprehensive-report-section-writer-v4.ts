@@ -91,6 +91,34 @@ export type ComprehensiveReportSectionWriterV4Result =
   | { ok: true; value: ComprehensiveReportAcceptedSection & { providerId: string; modelId: string } }
   | { ok: false; error: AiProviderError | { code: "AI_OUTPUT_INVALID"; retryable: false } };
 
+export const COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS = Object.freeze({
+  G1: 24_000,
+  G2: 30_000,
+  G3: 14_000,
+} as const);
+
+export type ComprehensiveReportGenerationGroupId = keyof typeof COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS;
+
+export type ComprehensiveReportGroupedSectionWriterV4Input = Omit<
+  ComprehensiveReportSectionWriterV4Input,
+  "sectionKey" | "rewrite" | "priorSectionDigest"
+> & {
+  groupId: ComprehensiveReportGenerationGroupId;
+  sectionKeys: readonly ComprehensiveReportSectionKey[];
+  priorSectionDigest?: ComprehensiveReportSectionDigest;
+};
+
+export type ComprehensiveReportGroupedSectionWriterV4Result =
+  | {
+      ok: true;
+      value: {
+        sections: readonly (ComprehensiveReportAcceptedSection & { providerId: string; modelId: string })[];
+        providerId: string;
+        modelId: string;
+      };
+    }
+  | { ok: false; error: AiProviderError | { code: "AI_OUTPUT_INVALID"; retryable: false } };
+
 type SectionScope = {
   kind: keyof typeof ziweiComprehensiveReportQualityV2Sensitivity.sections;
   palaceIds: readonly ZiweiPalaceId[];
@@ -682,6 +710,115 @@ Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys c�
   } catch {
     return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
   }
+}
+
+const groupedOutputEntrySchema = z.object({
+  key: z.string(),
+  value: z.unknown(),
+}).strict();
+
+function groupedOutputSchema(sectionKeys: readonly ComprehensiveReportSectionKey[]) {
+  return z.object({
+    sections: z.array(groupedOutputEntrySchema).length(sectionKeys.length),
+  }).strict();
+}
+
+function isActiveGroupedTuple(input: ComprehensiveReportGroupedSectionWriterV4Input): boolean {
+  return input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
+    input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+}
+
+export async function writeComprehensiveReportSectionGroupV4(
+  input: ComprehensiveReportGroupedSectionWriterV4Input,
+): Promise<ComprehensiveReportGroupedSectionWriterV4Result> {
+  if (!isActiveGroupedTuple(input)) {
+    throw new Error("COMPREHENSIVE_REPORT_GROUP_PROMPT_UNSUPPORTED");
+  }
+  if (input.sectionKeys.length === 0 || new Set(input.sectionKeys).size !== input.sectionKeys.length) {
+    throw new Error("COMPREHENSIVE_REPORT_GROUP_SECTION_KEYS_INVALID");
+  }
+  const reportConfigVersion = REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  const scopePayloads = input.sectionKeys.map((sectionKey) => scopedPayload(
+    {
+      ...input,
+      sectionKey,
+      reportConfigVersion,
+    },
+    scopeFor(sectionKey, input.facts),
+  ));
+  const acceptanceContracts: Record<string, NonNullable<ReturnType<typeof acceptanceContract>>> = {};
+  for (const sectionKey of input.sectionKeys) {
+    const sectionInput = { ...input, sectionKey, reportConfigVersion };
+    const contract = acceptanceContract(sectionInput, scopeFor(sectionKey, input.facts).kind);
+    if (contract) acceptanceContracts[sectionKey] = contract;
+  }
+  const groupSchema = groupedOutputSchema(input.sectionKeys);
+  const acceptanceInstructions = input.sectionKeys.map((sectionKey) => {
+    const contract = acceptanceContracts[sectionKey];
+    if (!contract) return `[${sectionKey}] Không có acceptance contract bổ sung.`;
+    const sectionInput = {
+      ...input,
+      sectionKey,
+      reportConfigVersion,
+    } as ComprehensiveReportSectionWriterV4Input;
+    const requirements = keyConfigurationRequirements(sectionInput);
+    return `[${sectionKey}]
+Acceptance contract bắt buộc:
+${JSON.stringify(contract)}
+Acceptance contract: sửa mọi finding đúng section/itemKey; đạt khoảng âm tiết đã cấu hình; tránh mọi discouraged, death và certainty term, trừ Phu Thê và Tử Tức khi là tên cung trong ngữ cảnh cấu trúc lá số; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh; giữ facts có evidence và evidenceKeys bắt buộc; không tạo quality violation mới.
+${v4_1_2LengthInstruction(sectionInput, contract)}
+${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết. Giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i].` : ""}`;
+  }).join("\n\n");
+  const result = await input.provider.generateStructured({
+    schema: groupSchema,
+    schemaName: `ziwei_comprehensive_report_section_group_${input.groupId.toLowerCase()}`,
+    system: `${SECTION_SYSTEM_PROMPT}
+Đây là grouped generation cho đúng các section trong thứ tự được cung cấp. Chỉ trả JSON hợp lệ dạng {"sections":[{"key":string,"value":object}]}.
+Phải trả đủ đúng một entry cho mỗi sectionKey, giữ nguyên thứ tự, không thêm, thiếu, trùng, đổi key hoặc cắt ngắn bất kỳ section nào. Mỗi value phải giữ nguyên schema output của section tương ứng; mọi section sẽ được parse và validate độc lập.
+${JSON.stringify(input.sectionKeys)}
+${acceptanceInstructions}`,
+    user: JSON.stringify({
+      groupId: input.groupId,
+      sectionKeys: input.sectionKeys,
+      sections: scopePayloads,
+      acceptanceContracts,
+      ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
+    }),
+    use: "production_report_generation",
+    purpose: "report",
+    // Caps are per provider request and include the JSON envelope/array overhead.
+    maxOutputTokens: COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS[input.groupId],
+    costContext: input.costContext,
+  });
+  if (!result.ok) return result;
+  const parsed = groupSchema.safeParse(result.value.value);
+  if (!parsed.success) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+  const sections: Array<ComprehensiveReportAcceptedSection & { providerId: string; modelId: string }> = [];
+  try {
+    for (const [index, entry] of parsed.data.sections.entries()) {
+      if (entry.key !== input.sectionKeys[index]) throw new Error("group key mismatch");
+      const section = parseComprehensiveReportAcceptedSection(
+        entry,
+        reportConfigVersion,
+      );
+      if (section.key !== input.sectionKeys[index]) throw new Error("group section mismatch");
+      sections.push({
+        ...section,
+        providerId: result.value.providerId,
+        modelId: result.value.modelId,
+      });
+    }
+  } catch {
+    return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+  }
+  return {
+    ok: true,
+    value: {
+      sections,
+      providerId: result.value.providerId,
+      modelId: result.value.modelId,
+    },
+  };
 }
 
 export { COMPREHENSIVE_REPORT_SECTION_KEYS };

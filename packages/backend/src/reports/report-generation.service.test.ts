@@ -2966,7 +2966,17 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     const revisions = new Map<Key, any>();
     const revisionHistory = new Map<Key, any[]>();
     const qualityCandidates = new Map<Key, any>();
-    const calls = { claims: [] as Key[], rewrites: [] as Key[], passed: [] as Key[], releases: [] as Key[], terminals: [] as Key[], qualityRewrites: [] as Key[] };
+    const calls = {
+      claims: [] as Key[],
+      groupClaims: [] as Key[][],
+      rewrites: [] as Key[],
+      passed: [] as Key[],
+      groupPassed: [] as Key[][],
+      releases: [] as Key[],
+      groupReleases: [] as Key[][],
+      terminals: [] as Key[],
+      qualityRewrites: [] as Key[],
+    };
     const accepted = () => [...rows.values()]
       .sort((left, right) => left.sectionOrder - right.sectionOrder)
       .flatMap((base) => {
@@ -2979,6 +2989,28 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     return {
       calls, rows, revisions, qualityCandidates,
       listAccepted: vi.fn(async () => ({ ok: true, value: accepted() })),
+      claimGroup: vi.fn(async (input: any) => {
+        const keys = input.members.map((member: any) => member.sectionKey as Key);
+        calls.groupClaims.push(keys);
+        const currentRows = keys.map((key) => rows.get(key)).filter(Boolean);
+        if (currentRows.some((row: any) => row.status === "generating")) {
+          return { ok: true, value: { outcome: "in_progress", checkpoints: currentRows } };
+        }
+        const claimed = keys.map((key) => {
+          const current = rows.get(key);
+          if (current?.status === "passed") return current;
+          const next = {
+            ...(current ?? checkpoint(key)),
+            ...input.members.find((member: any) => member.sectionKey === key),
+            status: "generating",
+            stateVersion: (current?.stateVersion ?? 0) + 1,
+            generationAttemptCount: (current?.generationAttemptCount ?? 0) + 1,
+          };
+          rows.set(key, next);
+          return next;
+        });
+        return { ok: true, value: { outcome: "claimed", checkpoints: claimed } };
+      }),
       claim: vi.fn(async (input: any) => {
         calls.claims.push(input.sectionKey);
         const current = rows.get(input.sectionKey);
@@ -2996,11 +3028,47 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         rows.set(input.sectionKey, next);
         return { ok: true, value: { outcome: "passed", checkpoint: next } };
       }),
+      markGroupPassed: vi.fn(async (input: any) => {
+        const keys = input.members.map((member: any) => member.sectionKey as Key);
+        calls.groupPassed.push(keys);
+        const passed = input.members.map((member: any) => {
+          const current = rows.get(member.sectionKey);
+          const next = {
+            ...current,
+            status: "passed",
+            stateVersion: current.stateVersion + 1,
+            acceptedSection: { key: member.sectionKey, value: member.acceptedContent },
+            providerId: member.providerId,
+            modelId: member.modelId,
+            activeJobId: null,
+            activeWorkerId: null,
+          };
+          rows.set(member.sectionKey, next);
+          return next;
+        });
+        return { ok: true, value: { outcome: "passed", checkpoints: passed } };
+      }),
       releaseRetryableFailure: vi.fn(async (input: any) => {
         calls.releases.push(input.sectionKey);
         const current = rows.get(input.sectionKey);
         rows.set(input.sectionKey, { ...current, status: "pending", stateVersion: current.stateVersion + 1, failureCode: input.failureCode });
         return { ok: true, value: rows.get(input.sectionKey) };
+      }),
+      releaseGroupRetryableFailure: vi.fn(async (input: any) => {
+        const keys = input.members.map((member: any) => member.sectionKey as Key);
+        calls.groupReleases.push(keys);
+        for (const member of input.members) {
+          const current = rows.get(member.sectionKey);
+          rows.set(member.sectionKey, {
+            ...current,
+            status: "pending",
+            activeJobId: null,
+            activeWorkerId: null,
+            stateVersion: current.stateVersion + 1,
+            failureCode: member.failureCode,
+          });
+        }
+        return { ok: true, value: keys.map((key) => rows.get(key)) };
       }),
       markTerminalFailure: vi.fn(async (input: any) => {
         calls.terminals.push(input.sectionKey);
@@ -3217,6 +3285,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
   function createSectionedService(options: {
     initial?: readonly any[];
     onSection?: (key: Key, request: any) => any;
+    onGroup?: (groupId: string, request: any, attempt: number) => any;
     onCritic?: (request: any, pass: number) => any;
     guard?: { state(): "active" | "lease_lost" | "wall_clock_exhausted" };
     readingContext?: { version: 1; lifeStage?: any; topConcern?: any } | null;
@@ -3226,6 +3295,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     const starts: Key[] = [];
     const costContexts: any[] = [];
     let criticPass = 0;
+    let groupPass = 0;
     let inFlight = 0;
     let maxInFlight = 0;
     const lifecycle = vi.fn(async (input: {
@@ -3253,7 +3323,22 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
           criticPass += 1;
           return options.onCritic?.(request, criticPass) ?? { ok: true, value: { value: { correctness: 5, evidenceCoverage: 5, specificity: 5, languageClarity: 5, consistency: 5, actionability: 5, safety: 5, repetitionControl: 5, notes: [], findings: [] }, providerId: "critic-provider", modelId: "critic-model" } };
         }
-        const key = JSON.parse(request.user).sectionKey as Key;
+        const payload = JSON.parse(request.user);
+        if (request.schemaName.startsWith("ziwei_comprehensive_report_section_group_")) {
+          groupPass += 1;
+          const keys = payload.sectionKeys as Key[];
+          const overridden = options.onGroup?.(payload.groupId, request, groupPass);
+          if (overridden) return overridden;
+          return {
+            ok: true,
+            value: {
+              value: { sections: keys.map((key) => sectionFor(key)) },
+              providerId: "section-provider",
+              modelId: "section-model",
+            },
+          };
+        }
+        const key = payload.sectionKey as Key;
         starts.push(key);
         inFlight += 1;
         maxInFlight = Math.max(maxInFlight, inFlight);
@@ -3300,6 +3385,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       versionRepository,
       onReviewWarnings,
       starts,
+      groupStarts: provider.generateStructured.mock.calls,
       costContexts,
       lifecycle,
       maxInFlight: () => maxInFlight,
@@ -3469,15 +3555,63 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
 
     expectSectionedSuccess(result, fixture);
-    expect(fixture.repository.claim.mock.calls.every(([input]: [any]) =>
-      input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
-      input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
-      input.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
+    const groupedRequests = fixture.provider.generateStructured.mock.calls
+      .map(([request]: [any]) => request)
+      .filter((request: any) => request.schemaName.startsWith("ziwei_comprehensive_report_section_group_"));
+    expect(groupedRequests).toHaveLength(3);
+    expect(groupedRequests.map((request: any) => JSON.parse(request.user).groupId)).toEqual(["G1", "G2", "G3"]);
+    const allSectionKeys = COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1;
+    const palaceKeys = allSectionKeys.filter((key) => key.startsWith("palace:"));
+    const thematicKeys = allSectionKeys.filter((key) => key.startsWith("thematic:"));
+    expect(groupedRequests.map((request: any) => JSON.parse(request.user).sectionKeys)).toEqual([
+      ["overview", "coreAxis", "keyConfigurations", ...palaceKeys.slice(0, 6)],
+      [...palaceKeys.slice(6), ...thematicKeys],
+      ["strengthsAndTensions", "currentDecadal", "annualSnapshot", "birthTimeSensitivity", "practicalDirection"],
+    ]);
+    expect(fixture.costContexts.filter((context) => context.purpose === "critic")).toHaveLength(1);
+    expect(fixture.repository.claimGroup.mock.calls.every(([input]: [any]) =>
+      input.members.every((member: any) =>
+        member.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
+        member.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
+        member.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
+      )
     )).toBe(true);
     expect(fixture.versionRepository.commitImmutableVersion.mock.calls[0]![0]).toMatchObject({
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
       supersedesReportVersionId: "11111111-1111-4111-8111-111111111119",
+    });
+  });
+
+  it("retries a malformed group output with the next group attempt idempotency key", async () => {
+    const fixture = createSectionedService({
+      onGroup: (groupId, _request, attempt) => attempt === 1 && groupId === "G1"
+        ? { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }
+        : undefined,
+    });
+    const job = sectionedJob({
+      knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    });
+
+    const result = await fixture.service.generateReport({ job, attemptNumber: 1, workerId: "worker-1" });
+
+    expectSectionedSuccess(result, fixture);
+    const groupRequests = fixture.provider.generateStructured.mock.calls
+      .map(([request]: [any]) => request)
+      .filter((request: any) => request.schemaName === "ziwei_comprehensive_report_section_group_g1");
+    expect(groupRequests).toHaveLength(2);
+    expect(groupRequests.map((request: any) => request.costContext.idempotencyKey)).toEqual([
+      `${job.payload.reportVersionId}:G1:generation:1:critic:0`,
+      `${job.payload.reportVersionId}:G1:generation:2:critic:0`,
+    ]);
+    expect(fixture.repository.calls.groupReleases[0]).toHaveLength(
+      JSON.parse(groupRequests[0].user).sectionKeys.length,
+    );
+    expect(fixture.repository.rows.get("overview")).toMatchObject({
+      status: "passed",
+      generationAttemptCount: 2,
     });
   });
 
@@ -3592,12 +3726,12 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expectSectionedSuccess(first, fixture);
     const coreAxisRequests = fixture.provider.generateStructured.mock.calls
       .map(([request]: [any]) => request)
-      .filter((request: any) => JSON.parse(request.user).sectionKey === "coreAxis");
+      .filter((request: any) => JSON.parse(request.user).sectionKeys?.includes("coreAxis"));
     expect(coreAxisRequests).toHaveLength(1);
-    expect(JSON.parse(coreAxisRequests[0].user).rewrite).toBeUndefined();
+    expect(coreAxisRequests[0].schemaName).toBe("ziwei_comprehensive_report_section_group_g1");
     expect(coreAxisRequests[0].costContext).toMatchObject({
       purpose: "report",
-      idempotencyKey: `${job.payload.reportVersionId}:coreAxis:generation:1:critic:0`,
+      idempotencyKey: `${job.payload.reportVersionId}:G1:generation:1:critic:0`,
     });
     expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
     expect(fixture.repository.rows.get("coreAxis")).toMatchObject({
@@ -3605,7 +3739,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       generationAttemptCount: 1,
       rewriteAttemptCount: 0,
     });
-    expect(fixture.starts.filter((key) => key === "coreAxis")).toHaveLength(1);
+    expect(fixture.starts.filter((key) => key === "coreAxis")).toHaveLength(0);
     expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
   });
 
@@ -3648,9 +3782,9 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     })).resolves.toMatchObject({ ok: true });
     const coreAxisRequests = fixture.provider.generateStructured.mock.calls
       .map(([request]: [any]) => request)
-      .filter((request: any) => JSON.parse(request.user).sectionKey === "coreAxis");
+      .filter((request: any) => JSON.parse(request.user).sectionKeys?.includes("coreAxis"));
     expect(coreAxisRequests).toHaveLength(1);
-    expect(coreAxisRequests.filter((request: any) => request.costContext.purpose === "report")).toHaveLength(1);
+    expect(coreAxisRequests[0].costContext.purpose).toBe("report");
     expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
     expect(fixture.repository.claimQualityRewrite).not.toHaveBeenCalled();
     expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);

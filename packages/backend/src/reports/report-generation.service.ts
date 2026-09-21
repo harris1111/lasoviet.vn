@@ -12,6 +12,7 @@ import {
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
@@ -45,7 +46,10 @@ import {
   critiqueComprehensiveZiweiReportV4,
   type ComprehensiveSectionedReviewWarning,
 } from "./comprehensive-report-critic-v4.js";
-import { writeComprehensiveReportSectionV4 } from "./comprehensive-report-section-writer-v4.js";
+import {
+  writeComprehensiveReportSectionGroupV4,
+  writeComprehensiveReportSectionV4,
+} from "./comprehensive-report-section-writer-v4.js";
 import {
   assembleComprehensiveReportV4,
   assembleComprehensiveReportV4_1,
@@ -461,6 +465,210 @@ export function createReportGenerationService(
       }
       return sections;
     };
+    const groupedActiveTuple =
+      selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
+      selection.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
+      selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
+    const groupedGeneration = async (): Promise<ReportGenerationServiceResult | null> => {
+      if (!groupedActiveTuple) return null;
+      const palaceKeys = sectionKeys.filter((key) => key.startsWith("palace:"));
+      const thematicKeys = sectionKeys.filter((key) => key.startsWith("thematic:"));
+      const groups = [
+        { groupId: "G1" as const, keys: ["overview", "coreAxis", "keyConfigurations", ...palaceKeys.slice(0, 6)] as ComprehensiveReportSectionKey[] },
+        { groupId: "G2" as const, keys: [...palaceKeys.slice(6), ...thematicKeys] as ComprehensiveReportSectionKey[] },
+        { groupId: "G3" as const, keys: ["strengthsAndTensions", "currentDecadal", "annualSnapshot", "birthTimeSensitivity", "practicalDirection"] as ComprehensiveReportSectionKey[] },
+      ];
+      let digest: ReturnType<typeof buildComprehensiveReportSectionDigest> | undefined;
+      for (const group of groups) {
+        const current = await listAccepted();
+        if (!current.ok) return current;
+        const currentRows = current.value as readonly PersistedReportSectionCheckpoint[];
+        const passedKeys = new Set(currentRows.map((row) => row.sectionKey));
+        const remainingKeys = group.keys.filter((key) => !passedKeys.has(key));
+        if (remainingKeys.length === 0) {
+          digest = buildComprehensiveReportSectionDigest(
+            acceptedSections(currentRows),
+            selection.reportConfigVersion,
+            selection.qualityVersion,
+          );
+          continue;
+        }
+        const members = remainingKeys.map((sectionKey) => ({
+          ...lineageFor(sectionKey),
+          jobId,
+          workerId: input.workerId,
+        }));
+        let groupCompleted = false;
+        while (!groupCompleted) {
+          const claimed = await repository.claimGroup({
+            members,
+            generationAttemptCap: quality.generationAttemptCap,
+            rewriteAttemptCap: quality.sectionRewriteCap,
+          });
+          if (!claimed.ok) {
+            return {
+              ok: false,
+              error: {
+                code: claimed.error.code === "REPORT_SECTION_CHECKPOINT_LEASE_LOST"
+                  ? "REPORT_VERSION_CONFLICT"
+                  : claimed.error.code === "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT"
+                    ? "AI_OUTPUT_INVALID"
+                    : "REPORT_VERSION_CONFLICT",
+                retryable: false,
+              },
+            };
+          }
+          if (claimed.value.outcome === "terminal") {
+            return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+          }
+          if (claimed.value.outcome === "in_progress") {
+            return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+          }
+          if (claimed.value.outcome === "replay") {
+            digest = buildComprehensiveReportSectionDigest(
+              acceptedSections(claimed.value.checkpoints),
+              selection.reportConfigVersion,
+              selection.qualityVersion,
+            );
+            groupCompleted = true;
+            continue;
+          }
+          const generationAttempt = Math.max(
+            ...claimed.value.checkpoints
+              .filter((checkpoint) => checkpoint.status === "generating")
+              .map((checkpoint) => checkpoint.generationAttemptCount),
+          );
+          const beforeProvider = stopped();
+          if (beforeProvider) return beforeProvider;
+          const lifecycle = await lifecycleFence(input);
+          if (lifecycle) return lifecycle;
+          let written: Awaited<ReturnType<typeof writeComprehensiveReportSectionGroupV4>>;
+          try {
+            written = await writeComprehensiveReportSectionGroupV4({
+              groupId: group.groupId,
+              sectionKeys: remainingKeys,
+              facts: source.comprehensiveFactsV4!,
+              knowledgePacks: source.knowledgePacks!,
+              provider: dependencies.provider,
+              promptVersion: selection.promptVersion,
+              reportConfigVersion: selection.reportConfigVersion,
+              readingContext: source.readingContext,
+              ...(digest ? { priorSectionDigest: digest } : {}),
+              costContext: {
+                ...baseCostContext,
+                idempotencyKey: `${payload.reportVersionId}:${group.groupId}:generation:${generationAttempt}:critic:0`,
+                purpose: "report",
+              },
+            });
+          } catch {
+            written = { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+          }
+          const afterProvider = stopped();
+          if (afterProvider) return afterProvider;
+          if (!written.ok) {
+            const mapped = mapProviderError(written.error);
+            const released = await repository.releaseGroupRetryableFailure({
+              members: claimed.value.checkpoints
+                .filter((checkpoint) => checkpoint.status === "generating")
+                .map((checkpoint) => ({
+                  ...lineageFor(checkpoint.sectionKey),
+                  jobId,
+                  workerId: input.workerId,
+                  expectedStateVersion: checkpoint.stateVersion,
+                  failureCode: mapped.code,
+                })),
+            });
+            if (!released.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+            if (mapped.code === "AI_OUTPUT_INVALID" && generationAttempt < quality.generationAttemptCap) {
+              continue;
+            }
+            return { ok: false, error: mapped };
+          }
+          const returned = new Map(written.value.sections.map((section) => [section.key, section]));
+          if (
+            written.value.providerId !== written.value.sections[0]?.providerId ||
+            written.value.modelId !== written.value.sections[0]?.modelId ||
+            returned.size !== remainingKeys.length ||
+            remainingKeys.some((key) => !returned.has(key))
+          ) {
+            const released = await repository.releaseGroupRetryableFailure({
+              members: claimed.value.checkpoints.map((checkpoint) => ({
+                ...lineageFor(checkpoint.sectionKey),
+                jobId,
+                workerId: input.workerId,
+                expectedStateVersion: checkpoint.stateVersion,
+                failureCode: "AI_OUTPUT_INVALID",
+              })),
+            });
+            if (!released.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+            if (generationAttempt < quality.generationAttemptCap) continue;
+            return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+          }
+          const acceptedBeforePass = await listAccepted();
+          if (!acceptedBeforePass.ok) return acceptedBeforePass;
+          const acceptedRowsBeforePass = acceptedBeforePass.value as readonly PersistedReportSectionCheckpoint[];
+          const existingProviderIds = new Set(
+            acceptedRowsBeforePass
+              .map((row) => row.providerId?.trim())
+              .filter((value): value is string => Boolean(value)),
+          );
+          const existingModelIds = new Set(
+            acceptedRowsBeforePass
+              .map((row) => row.modelId?.trim())
+              .filter((value): value is string => Boolean(value)),
+          );
+          const lineageMismatch =
+            existingProviderIds.size > 1 ||
+            existingModelIds.size > 1 ||
+            (existingProviderIds.size === 1 && !existingProviderIds.has(written.value.providerId)) ||
+            (existingModelIds.size === 1 && !existingModelIds.has(written.value.modelId));
+          if (lineageMismatch) {
+            const released = await repository.releaseGroupRetryableFailure({
+              members: claimed.value.checkpoints
+                .filter((checkpoint) => checkpoint.status === "generating")
+                .map((checkpoint) => ({
+                  ...lineageFor(checkpoint.sectionKey),
+                  jobId,
+                  workerId: input.workerId,
+                  expectedStateVersion: checkpoint.stateVersion,
+                  failureCode: "AI_OUTPUT_INVALID",
+                })),
+            });
+            if (!released.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+            return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+          }
+          const stoppedBeforePass = stopped();
+          if (stoppedBeforePass) return stoppedBeforePass;
+          const marked = await repository.markGroupPassed({
+            members: remainingKeys.map((sectionKey) => {
+              const section = returned.get(sectionKey)!;
+              const checkpoint = claimed.value.checkpoints.find((row) => row.sectionKey === sectionKey)!;
+              return {
+                groupId: group.groupId,
+                ...lineageFor(sectionKey),
+                jobId,
+                workerId: input.workerId,
+                expectedStateVersion: checkpoint.stateVersion,
+                acceptedContent: section.value,
+                contentHash: stableHash(section.value),
+                providerId: written.value.providerId,
+                modelId: written.value.modelId,
+              };
+            }),
+          });
+          if (!marked.ok) return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+          const afterPass = await listAccepted();
+          if (!afterPass.ok) return afterPass;
+          digest = buildComprehensiveReportSectionDigest(
+            acceptedSections(afterPass.value as readonly PersistedReportSectionCheckpoint[]),
+            selection.reportConfigVersion,
+            selection.qualityVersion,
+          );
+          groupCompleted = true;
+        }
+      }
+      return null;
+    };
     const generateOne = async (
       sectionKey: ComprehensiveReportSectionKey,
       digest?: ReturnType<typeof buildComprehensiveReportSectionDigest>,
@@ -828,6 +1036,13 @@ export function createReportGenerationService(
     let listed = await listAccepted();
     if (!listed.ok) return listed;
     let rows = listed.value as readonly PersistedReportSectionCheckpoint[];
+    const groupedResult = await groupedGeneration();
+    if (groupedResult) return groupedResult;
+    if (groupedActiveTuple) {
+      listed = await listAccepted();
+      if (!listed.ok) return listed;
+      rows = listed.value as readonly PersistedReportSectionCheckpoint[];
+    }
     const existing = new Set(rows.map((row) => row.sectionKey));
     const sequentialBefore = ["overview", "coreAxis", "keyConfigurations"] as const;
     for (const key of sequentialBefore) {
