@@ -230,6 +230,12 @@ export function createReportGenerateRunner(options?: {
     provider,
     sourceSnapshotPreparer,
     sectionCheckpointRepository,
+    onReviewWarnings: ({ reportVersionId, warnings }) => {
+      console.warn("REPORT_REVIEW_WARNINGS", {
+        reportVersionId,
+        warnings: warnings.map(({ key, category }) => ({ key, category })),
+      });
+    },
   });
   const telegramAlert =
     options?.telegramAlert ??

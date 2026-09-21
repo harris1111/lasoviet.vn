@@ -10,6 +10,12 @@ export type ComprehensiveReportV4ValidationResult =
   | { ok: true; errors?: undefined }
   | { ok: false; errors: string[] };
 
+export type ComprehensiveReportContentPolicy = "enforce" | "ignore";
+
+export type ComprehensiveReportValidationOptions = {
+  contentPolicy?: ComprehensiveReportContentPolicy;
+};
+
 const PROHIBITED_PATTERNS = [
   {
     regex: /(?:^|[^\p{L}\p{N}])(?:AI|A\.I\.)(?:[^\p{L}\p{N}]|$)/u,
@@ -457,30 +463,36 @@ function wordSimilarity(textA: string, textB: string): number {
 
 type CustomerTextBlock = { section: string; text: string };
 
-function validateCustomerTextBlocks(blocks: readonly CustomerTextBlock[], errors: string[]): void {
+function validateCustomerTextBlocks(
+  blocks: readonly CustomerTextBlock[],
+  errors: string[],
+  contentPolicy: ComprehensiveReportContentPolicy,
+): void {
   for (const block of blocks) {
-    for (const pattern of PROHIBITED_PATTERNS) {
-      if (pattern.regex.test(block.text)) {
-        errors.push(`${pattern.description} found in ${block.section}: "${block.text.slice(0, 80)}"`);
+    if (contentPolicy === "enforce") {
+      for (const pattern of PROHIBITED_PATTERNS) {
+        if (pattern.regex.test(block.text)) {
+          errors.push(`${pattern.description} found in ${block.section}: "${block.text.slice(0, 80)}"`);
+        }
       }
-    }
-    if (DEATH_CONTENT_PATTERN.test(block.text)) {
-      errors.push(`Prohibited death or lifespan content found in ${block.section}: "${block.text.slice(0, 80)}"`);
-    }
-    if (containsProhibitedFatalisticPrediction(block.text)) {
-      errors.push(`Prohibited fatalistic prediction found in ${block.section}: "${block.text.slice(0, 80)}"`);
+      if (DEATH_CONTENT_PATTERN.test(block.text)) {
+        errors.push(`Prohibited death or lifespan content found in ${block.section}: "${block.text.slice(0, 80)}"`);
+      }
+      if (containsProhibitedFatalisticPrediction(block.text)) {
+        errors.push(`Prohibited fatalistic prediction found in ${block.section}: "${block.text.slice(0, 80)}"`);
+      }
+      if (HAN_IDEOGRAPH_PATTERN.test(block.text)) {
+        errors.push(`Han ideograph detected in ${block.section}`);
+      }
+      const enBrightnessMatches = block.text.match(ENGLISH_BRIGHTNESS_PATTERN);
+      if (enBrightnessMatches) {
+        const uniqueMatches = [...new Set(enBrightnessMatches.map((m) => m.toLowerCase()))];
+        errors.push(`English brightness descriptor detected in ${block.section}: ${uniqueMatches.join(", ")}`);
+      }
     }
     const techMatches = block.text.match(TECHNICAL_IDENTIFIER_PATTERN);
     if (techMatches) {
       errors.push(`Raw technical identifier leaked in ${block.section}: ${techMatches.join(", ")}`);
-    }
-    if (HAN_IDEOGRAPH_PATTERN.test(block.text)) {
-      errors.push(`Han ideograph detected in ${block.section}`);
-    }
-    const enBrightnessMatches = block.text.match(ENGLISH_BRIGHTNESS_PATTERN);
-    if (enBrightnessMatches) {
-      const uniqueMatches = [...new Set(enBrightnessMatches.map((m) => m.toLowerCase()))];
-      errors.push(`English brightness descriptor detected in ${block.section}: ${uniqueMatches.join(", ")}`);
     }
     if (REPLACEMENT_CHARACTER_PATTERN.test(block.text)) {
       errors.push(`Unicode replacement character detected in ${block.section}`);
@@ -494,7 +506,9 @@ function validateCustomerTextBlocks(blocks: readonly CustomerTextBlock[], errors
 export function validateComprehensiveZiweiReportV4(
   candidate: unknown,
   facts: ComprehensiveZiweiFactsV4,
+  options: ComprehensiveReportValidationOptions = {},
 ): ComprehensiveReportV4ValidationResult {
+  const contentPolicy = options.contentPolicy ?? "enforce";
   if (candidate && typeof candidate === "object" && "birthTimeSensitivity" in candidate) {
     return {
       ok: false,
@@ -616,39 +630,39 @@ export function validateComprehensiveZiweiReportV4(
   const customerTextBlocks: CustomerTextBlock[] = [...modelOwnedTitleBlocks, ...narrativeBlocks];
 
   // 4. Prohibited phrases & raw technical identifiers check across customer-visible text
-  validateCustomerTextBlocks(customerTextBlocks, errors);
+  validateCustomerTextBlocks(customerTextBlocks, errors, contentPolicy);
 
   // 5. Duplicate and near-duplicate paragraph check
-  for (let i = 0; i < narrativeBlocks.length; i++) {
-    for (let j = i + 1; j < narrativeBlocks.length; j++) {
-      const blockA = narrativeBlocks[i]!;
-      const blockB = narrativeBlocks[j]!;
-      const normA = normalizeText(blockA.text);
-      const normB = normalizeText(blockB.text);
-      if (normA.length > 25 && normB.length > 25) {
-        if (normA === normB) {
-          errors.push(`Duplicate narrative paragraph between ${blockA.section} and ${blockB.section}`);
-        } else if (normA.length > 40 && normB.length > 40) {
-          // Do not compare short practicalDirection recommendation/rationale/avoid fields cross-item
-          const isPracticalA = blockA.section.startsWith("practicalDirection");
-          const isPracticalB = blockB.section.startsWith("practicalDirection");
-          if (isPracticalA || isPracticalB) {
-            continue;
-          }
-
-          // Natural similarly structured no-major-star palace paragraphs from distinct palaces must not false-fail
-          const isPalaceA = blockA.section.startsWith("palaceReadings[");
-          const isPalaceB = blockB.section.startsWith("palaceReadings[");
-          if (isPalaceA && isPalaceB && blockA.section !== blockB.section) {
-            const hasNoMajorStarA = NO_MAJOR_STAR_PATTERN.test(blockA.text);
-            const hasNoMajorStarB = NO_MAJOR_STAR_PATTERN.test(blockB.text);
-            if (hasNoMajorStarA && hasNoMajorStarB) {
+  if (contentPolicy === "enforce") {
+    for (let i = 0; i < narrativeBlocks.length; i++) {
+      for (let j = i + 1; j < narrativeBlocks.length; j++) {
+        const blockA = narrativeBlocks[i]!;
+        const blockB = narrativeBlocks[j]!;
+        const normA = normalizeText(blockA.text);
+        const normB = normalizeText(blockB.text);
+        if (normA.length > 25 && normB.length > 25) {
+          if (normA === normB) {
+            errors.push(`Duplicate narrative paragraph between ${blockA.section} and ${blockB.section}`);
+          } else if (normA.length > 40 && normB.length > 40) {
+            const isPracticalA = blockA.section.startsWith("practicalDirection");
+            const isPracticalB = blockB.section.startsWith("practicalDirection");
+            if (isPracticalA || isPracticalB) {
               continue;
             }
-          }
 
-          if (wordSimilarity(normA, normB) >= 0.8) {
-            errors.push(`Near-duplicate narrative paragraph between ${blockA.section} and ${blockB.section}`);
+            const isPalaceA = blockA.section.startsWith("palaceReadings[");
+            const isPalaceB = blockB.section.startsWith("palaceReadings[");
+            if (isPalaceA && isPalaceB && blockA.section !== blockB.section) {
+              const hasNoMajorStarA = NO_MAJOR_STAR_PATTERN.test(blockA.text);
+              const hasNoMajorStarB = NO_MAJOR_STAR_PATTERN.test(blockB.text);
+              if (hasNoMajorStarA && hasNoMajorStarB) {
+                continue;
+              }
+            }
+
+            if (wordSimilarity(normA, normB) >= 0.8) {
+              errors.push(`Near-duplicate narrative paragraph between ${blockA.section} and ${blockB.section}`);
+            }
           }
         }
       }
@@ -665,6 +679,7 @@ export function validateComprehensiveZiweiReportV4(
 export function validateComprehensiveZiweiReportV4_1(
   candidate: unknown,
   facts: ComprehensiveZiweiFactsV4,
+  options: ComprehensiveReportValidationOptions = {},
 ): ComprehensiveReportV4ValidationResult {
   sanitizeUnknownCandidate(candidate);
   const parsed = ZiweiComprehensiveReportContentV3Schema.safeParse(candidate);
@@ -677,7 +692,7 @@ export function validateComprehensiveZiweiReportV4_1(
 
   const report: ZiweiComprehensiveReportContentV3 = parsed.data;
   const { birthTimeSensitivity, ...v4Report } = report;
-  const baseResult = validateComprehensiveZiweiReportV4(v4Report, facts);
+  const baseResult = validateComprehensiveZiweiReportV4(v4Report, facts, options);
   if (!baseResult.ok) return baseResult;
 
   const allowedSensitivityKeys = new Set(
@@ -706,7 +721,7 @@ export function validateComprehensiveZiweiReportV4_1(
     { section: "birthTimeSensitivity.sensitiveFactors.title", text: birthTimeSensitivity.sensitiveFactors.title },
     { section: "birthTimeSensitivity.sensitiveFactors.narrative", text: birthTimeSensitivity.sensitiveFactors.narrative },
   ];
-  validateCustomerTextBlocks(text, errors);
+  validateCustomerTextBlocks(text, errors, options.contentPolicy ?? "enforce");
   const rawText = text.map((block) => block.text).join(" ");
   if (
     /\b\d{1,2}:\d{2}\b/u.test(rawText) ||
