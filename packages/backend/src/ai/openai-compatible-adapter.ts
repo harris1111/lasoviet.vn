@@ -180,20 +180,44 @@ function parseContent<TSchema extends z.ZodType>(
   }
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
 async function fetchAttempt(
   fetchImpl: typeof fetch,
   url: string,
   init: RequestInit,
   timeoutMs: number,
-): Promise<Response | "timeout" | "network"> {
+): Promise<
+  | {
+      response: Response;
+      body: { ok: true; value: unknown } | { ok: false };
+    }
+  | "timeout"
+  | "network"
+> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetchImpl(url, { ...init, signal: controller.signal });
+    const response = await fetchImpl(url, { ...init, signal: controller.signal });
+    try {
+      const value = await response.json();
+      if (controller.signal.aborted) {
+        throw new DOMException("The operation was aborted.", "AbortError");
+      }
+      return {
+        response,
+        body: { ok: true, value },
+      };
+    } catch (error) {
+      if (controller.signal.aborted || isAbortError(error)) {
+        throw error;
+      }
+      return { response, body: { ok: false } };
+    }
   } catch (error) {
-    return error instanceof DOMException && error.name === "AbortError"
-      ? "timeout"
-      : "network";
+    return controller.signal.aborted || isAbortError(error) ? "timeout" : "network";
   } finally {
     clearTimeout(timer);
   }
@@ -312,39 +336,38 @@ export function createOpenAiCompatibleAdapter(
           return failure("AI_PROVIDER_REQUEST_FAILED", true);
         }
 
-        if (!result.ok) {
+        if (!result.response.ok) {
           let errorUsage = { tokensUnknown: true };
-          try {
-            const errJson = await result.clone().json();
-            errorUsage = extractUsage(errJson);
-          } catch {}
+          if (result.body.ok) {
+            errorUsage = extractUsage(result.body.value);
+          }
 
-          const errCode = isUnsupportedStatus(result.status)
+          const errCode = isUnsupportedStatus(result.response.status)
             ? "AI_CAPABILITY_UNSUPPORTED"
             : "AI_PROVIDER_REQUEST_FAILED";
 
           if (options.costRecorder && attemptId) {
             const compRes = await options.costRecorder.completeAttempt({
               attemptId,
-              httpStatus: result.status,
+              httpStatus: result.response.status,
               errorCode: errCode,
               ...errorUsage,
             });
             if (!compRes.ok) return failure("AI_COST_RECORDING_FAILED", compRes.error.retryable);
           }
-          if (isRetryableStatus(result.status) && attempt < options.retryCount) continue;
-          if (isUnsupportedStatus(result.status)) return failure("AI_CAPABILITY_UNSUPPORTED", false);
-          return failure("AI_PROVIDER_REQUEST_FAILED", isRetryableStatus(result.status));
+          if (isRetryableStatus(result.response.status) && attempt < options.retryCount) continue;
+          if (isUnsupportedStatus(result.response.status)) {
+            return failure("AI_CAPABILITY_UNSUPPORTED", false);
+          }
+          return failure("AI_PROVIDER_REQUEST_FAILED", isRetryableStatus(result.response.status));
         }
 
         let payload: unknown;
-        try {
-          payload = await result.json();
-        } catch {
+        if (!result.body.ok) {
           if (options.costRecorder && attemptId) {
             const compRes = await options.costRecorder.completeAttempt({
               attemptId,
-              httpStatus: result.status,
+              httpStatus: result.response.status,
               errorCode: "AI_OUTPUT_INVALID",
               invalidOutputReason: "response_json_parse_failed",
               tokensUnknown: true,
@@ -357,6 +380,7 @@ export function createOpenAiCompatibleAdapter(
           }
           return failure("AI_OUTPUT_INVALID", false);
         }
+        payload = result.body.value;
 
         const usage = extractUsage(payload);
         const payloadRecord =
@@ -386,7 +410,7 @@ export function createOpenAiCompatibleAdapter(
             const compRes = await options.costRecorder.completeAttempt({
               attemptId,
               responseModelId,
-              httpStatus: result.status,
+              httpStatus: result.response.status,
               errorCode: "AI_OUTPUT_INVALID",
               invalidOutputReason: reason,
               ...usage,
@@ -411,7 +435,7 @@ export function createOpenAiCompatibleAdapter(
           const compRes = await options.costRecorder.completeAttempt({
             attemptId,
             responseModelId,
-            httpStatus: result.status,
+            httpStatus: result.response.status,
             errorCode: undefined,
             ...usage,
           });
