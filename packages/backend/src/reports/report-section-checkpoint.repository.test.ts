@@ -216,6 +216,22 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
     });
   }
 
+  function groupClaimInput(index: number, job: { id: string; workerId: string }) {
+    return {
+      members: [lineage(index, "overview"), lineage(index, "coreAxis")].map((member) => ({
+        ...member,
+        jobId: job.id,
+        workerId: job.workerId,
+      })),
+      generationAttemptCap: 2,
+      rewriteAttemptCap: 1,
+    };
+  }
+
+  async function claimGroup(index: number, job: { id: string; workerId: string }) {
+    return repository().claimGroup(groupClaimInput(index, job));
+  }
+
   function qualityCandidateInput(
     index: number,
     job: { id: string; workerId: string },
@@ -256,6 +272,73 @@ describe("createDatabaseReportSectionCheckpointRepository", () => {
 
     expect(first).toMatchObject({ ok: true, value: { outcome: "claimed", checkpoint: { generationAttemptCount: 1, status: "generating", stateVersion: 2 } } });
     expect(duplicate).toMatchObject({ ok: true, value: { outcome: "claimed", checkpoint: { generationAttemptCount: 1, stateVersion: 2 } } });
+  });
+
+  it("returns in_progress for a live owner, then reclaims both stale group members after handoff without a third attempt", async () => {
+    const report = lineage(120).reportVersionId;
+    const firstJob = await lease(report, "group-worker-one");
+    const first = await claimGroup(120, firstJob);
+    expect(first).toMatchObject({ ok: true, value: { outcome: "claimed", checkpoints: [
+      { generationAttemptCount: 1 }, { generationAttemptCount: 1 },
+    ] } });
+
+    const nextJob = await lease(report, "group-worker-two", false);
+    await handoffReservation(report, firstJob.id, nextJob.id);
+    await expect(claimGroup(120, nextJob)).resolves.toMatchObject({
+      ok: true,
+      value: { outcome: "in_progress" },
+    });
+
+    await database().update(reportQueueJobs).set({ leasedUntil: new Date(frozenNow.getTime() - 1) }).where(eq(reportQueueJobs.id, firstJob.id));
+    await expect(claimGroup(120, nextJob)).resolves.toMatchObject({
+      ok: true,
+      value: { outcome: "claimed", checkpoints: [
+        { generationAttemptCount: 2, activeJobId: nextJob.id },
+        { generationAttemptCount: 2, activeJobId: nextJob.id },
+      ] },
+    });
+    await expect(claimGroup(120, nextJob)).resolves.toMatchObject({
+      ok: true,
+      value: { outcome: "in_progress" },
+    });
+  });
+
+  it("rolls back all group pass and release mutations when a later member conflicts", async () => {
+    const report = lineage(121).reportVersionId;
+    const job = await lease(report, "group-atomic");
+    const claimed = await claimGroup(121, job);
+    expect(claimed.ok).toBe(true);
+    if (!claimed.ok) return;
+    const members = claimed.value.checkpoints.map((checkpoint) => ({
+      ...lineage(121, checkpoint.sectionKey as "overview" | "coreAxis"),
+      groupId: "G1",
+      jobId: job.id,
+      workerId: job.workerId,
+      expectedStateVersion: checkpoint.stateVersion,
+      acceptedContent: overview,
+      contentHash: hash(overview),
+      providerId: "openai",
+      modelId: "gpt-5.6",
+    }));
+    const conflicted = members.map((member, index) => index === 1
+      ? { ...member, expectedStateVersion: member.expectedStateVersion + 1 }
+      : member);
+    await expect(repository().markGroupPassed({ members: conflicted })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" },
+    });
+    await expect(repository().releaseGroupRetryableFailure({
+      members: conflicted.map(({ groupId: _groupId, acceptedContent: _acceptedContent, contentHash: _contentHash, providerId: _providerId, modelId: _modelId, ...member }) => ({
+        ...member,
+        failureCode: "AI_OUTPUT_INVALID",
+      })),
+    })).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_SECTION_CHECKPOINT_LEASE_LOST" },
+    });
+    const rows = await database().select().from(reportSectionCheckpoints).where(eq(reportSectionCheckpoints.reportVersionId, report));
+    expect(rows).toHaveLength(2);
+    expect(rows.every((row) => row.status === "generating" && row.activeJobId === job.id)).toBe(true);
   });
 
   it("caps concurrent generation claims and records terminal failure without over-reserving", async () => {
