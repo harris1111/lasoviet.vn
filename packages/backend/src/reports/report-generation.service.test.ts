@@ -3743,6 +3743,48 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
   });
 
+  it("commits V2.3 when the final content validator reports a warning", async () => {
+    const fixture = createSectionedService({
+      onGroup: (groupId, request) => {
+        if (groupId !== "G1") return undefined;
+        const payload = JSON.parse(request.user);
+        const sections = (payload.sectionKeys as Key[]).map((key) => {
+          const section = sectionFor(key);
+          if (key !== "overview") return section;
+          return {
+            ...section,
+            value: {
+              ...(section.value as any),
+              evidenceKeys: ["unknown.advisory.key"],
+            },
+          };
+        });
+        return {
+          ok: true,
+          value: {
+            value: { sections },
+            providerId: "section-provider",
+            modelId: "section-model",
+          },
+        };
+      },
+    });
+    const job = keyConfigPromptJob({
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    });
+
+    const result = await fixture.service.generateReport({
+      job,
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expectSectionedSuccess(result, fixture);
+    expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+    expect(fixture.repository.claimQualityRewrite).not.toHaveBeenCalled();
+    expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
+  });
+
   it("commits V2.3 when the advisory reviewer response is malformed", async () => {
     const coreAxis = sectionFor("coreAxis");
     const coreAxisInitial = {
