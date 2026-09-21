@@ -1114,10 +1114,7 @@ export function createReportGenerationService(
     let validation = selection.family === "v4"
       ? validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!, validationOptions)
       : validateComprehensiveZiweiReportV4_1(report, source.comprehensiveFactsV4!, validationOptions);
-    if (!validation.ok) {
-      if (warningOnlyReview) {
-        return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
-      }
+    if (!validation.ok && !warningOnlyReview) {
       const keys = validatorKeys(validation.errors);
       if (!keys) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
       for (const key of keys) {
