@@ -712,14 +712,10 @@ Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys c�
   }
 }
 
-const groupedOutputEntrySchema = z.object({
-  key: z.string(),
-  value: z.unknown(),
-}).strict();
-
 function groupedOutputSchema(sectionKeys: readonly ComprehensiveReportSectionKey[]) {
+  const sectionSchemas = sectionKeys.map(schemaFor) as [z.ZodType, ...z.ZodType[]];
   return z.object({
-    sections: z.array(groupedOutputEntrySchema).length(sectionKeys.length),
+    sections: z.tuple(sectionSchemas),
   }).strict();
 }
 
@@ -795,7 +791,8 @@ ${acceptanceInstructions}`,
   if (!parsed.success) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
   const sections: Array<ComprehensiveReportAcceptedSection & { providerId: string; modelId: string }> = [];
   try {
-    for (const [index, entry] of parsed.data.sections.entries()) {
+    const parsedEntries = parsed.data.sections as readonly { key: ComprehensiveReportSectionKey; value: unknown }[];
+    for (const [index, entry] of parsedEntries.entries()) {
       if (entry.key !== input.sectionKeys[index]) throw new Error("group key mismatch");
       const section = parseComprehensiveReportAcceptedSection(
         entry,
