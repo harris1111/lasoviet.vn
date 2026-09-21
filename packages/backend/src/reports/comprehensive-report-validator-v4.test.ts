@@ -366,6 +366,17 @@ describe("validateComprehensiveZiweiReportV4", () => {
     expect(validateComprehensiveZiweiReportV4(englishReport, facts).ok).toBe(false);
   });
 
+  it("keeps technical validation while ignoring editorial content policy when requested", () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const editorial = createValidReport(facts);
+    editorial.overview.narrative = "Tôi là AI. Sao Tử Vi ở trạng thái prosperous. Bạn chắc chắn sẽ phá sản.";
+    expect(validateComprehensiveZiweiReportV4(editorial, facts, { contentPolicy: "ignore" }).ok).toBe(true);
+
+    const technical = createValidReport(facts);
+    technical.annualSnapshot.targetYear = 2027;
+    expect(validateComprehensiveZiweiReportV4(technical, facts, { contentPolicy: "ignore" }).ok).toBe(false);
+  });
+
   it("enforces 3-5 action items in practicalDirection", () => {
     const chart = createSampleChart();
     const snapshot = createSampleSnapshot();

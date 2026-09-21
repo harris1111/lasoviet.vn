@@ -4,7 +4,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
-  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   createBirthProfileService,
   createDatabaseBirthProfileRepository,
   createDatabaseWalletRepository,
@@ -155,7 +155,7 @@ export function passesFd082Evidence(evidence: Fd082Evidence): boolean {
       item.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
       item.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY ||
       item.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
-      item.qualityConfigVersion !== REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY ||
+      item.qualityConfigVersion !== REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY ||
       item.providerId !== EXPECTED_PROVIDER ||
       item.modelId !== EXPECTED_MODEL,
     ) ||

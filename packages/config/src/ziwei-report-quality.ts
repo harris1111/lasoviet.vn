@@ -85,11 +85,23 @@ const qualityV2_2SensitivitySchema = qualityBaseSchema.extend({
   }).strict(),
 });
 
+const qualityV2_3SensitivitySchema = qualityBaseSchema.omit({
+  properNames: true,
+  maxProperNamesPer100Syllables: true,
+}).extend({
+  version: z.literal("ziwei.comprehensive.quality.v2.3-sensitivity"),
+  reportConfigVersion: z.literal("ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity"),
+  sections: qualityBaseSchema.shape.sections.extend({
+    birthTimeSensitivity: sectionSchema,
+  }).strict(),
+});
+
 const qualitySchema = z.union([
   qualityV1Schema,
   qualityV2SensitivitySchema,
   qualityV2_1SensitivitySchema,
   qualityV2_2SensitivitySchema,
+  qualityV2_3SensitivitySchema,
 ]);
 
 export type ZiweiReportQualityConfigV1 = z.infer<typeof qualityV1Schema>;
@@ -102,11 +114,15 @@ export type ZiweiReportQualityConfigV2_1Sensitivity = z.infer<
 export type ZiweiReportQualityConfigV2_2Sensitivity = z.infer<
   typeof qualityV2_2SensitivitySchema
 >;
+export type ZiweiReportQualityConfigV2_3Sensitivity = z.infer<
+  typeof qualityV2_3SensitivitySchema
+>;
 export type ZiweiReportQualityConfig =
   | ZiweiReportQualityConfigV1
   | ZiweiReportQualityConfigV2Sensitivity
   | ZiweiReportQualityConfigV2_1Sensitivity
-  | ZiweiReportQualityConfigV2_2Sensitivity;
+  | ZiweiReportQualityConfigV2_2Sensitivity
+  | ZiweiReportQualityConfigV2_3Sensitivity;
 export type ZiweiReportQualitySectionKind = (typeof SECTION_KINDS)[number];
 export type ZiweiReportQualitySectionThreshold = z.infer<typeof sectionSchema>;
 
@@ -135,15 +151,16 @@ export function validateZiweiReportQualityConfig(source: unknown): ZiweiReportQu
   const parsed = qualitySchema.safeParse(source);
   if (!parsed.success) throw new Error("ZIWEI_REPORT_QUALITY_INVALID");
   const config = parsed.data;
-  for (const [name, terms] of Object.entries({
+  const vocabularyLists: Record<string, readonly string[]> = {
     discouragedTerms: config.discouragedTerms,
     deathTerms: config.deathTerms,
     certaintyPhrases: config.certaintyPhrases,
     misfortuneTerms: config.misfortuneTerms,
     adverseDatePatterns: config.adverseDatePatterns,
     preparationIndicators: config.preparationIndicators,
-    properNames: config.properNames,
-  })) assertUnique(name, terms);
+  };
+  if ("properNames" in config) vocabularyLists.properNames = config.properNames;
+  for (const [name, terms] of Object.entries(vocabularyLists)) assertUnique(name, terms);
   for (const pattern of config.adverseDatePatterns) {
     try { new RegExp(pattern, "iu"); } catch { throw new Error("ZIWEI_REPORT_QUALITY_INVALID"); }
   }
@@ -177,6 +194,12 @@ export function resolveZiweiReportQualityConfig(
     qualityVersion === ziweiComprehensiveReportQualityV2_2Sensitivity.version
   ) {
     return ziweiComprehensiveReportQualityV2_2Sensitivity;
+  }
+  if (
+    reportConfigVersion === ziweiComprehensiveReportQualityV2_3Sensitivity.reportConfigVersion &&
+    qualityVersion === ziweiComprehensiveReportQualityV2_3Sensitivity.version
+  ) {
+    return ziweiComprehensiveReportQualityV2_3Sensitivity;
   }
   throw new Error("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
 }
@@ -216,3 +239,7 @@ export const ziweiComprehensiveReportQualityV2_1Sensitivity = validateZiweiRepor
 export const ziweiComprehensiveReportQualityV2_2Sensitivity = validateZiweiReportQualityConfig(
   JSON.parse(readFileSync(configPath("ziwei-comprehensive-report-quality.v2.2-sensitivity.json"), "utf8")),
 ) as ZiweiReportQualityConfigV2_2Sensitivity;
+
+export const ziweiComprehensiveReportQualityV2_3Sensitivity = validateZiweiReportQualityConfig(
+  JSON.parse(readFileSync(configPath("ziwei-comprehensive-report-quality.v2.3-sensitivity.json"), "utf8")),
+) as ZiweiReportQualityConfigV2_3Sensitivity;

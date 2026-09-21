@@ -520,13 +520,15 @@ describe("writeComprehensiveReportSectionV4", () => {
         noEnglishBrightnessDescriptors: true,
         allowedBrightnessLabels: ["Miếu", "Vượng", "Đắc", "Bình", "Hãm", "Nhược"],
       },
-      properNameDensity: {
-        configuredProperNames: expect.arrayContaining(["Mệnh", "Tử Vi"]),
-        maximumPer100Syllables: 10,
-      },
       evidence: {
         preserveEvidenceBackedChartFacts: true,
         preserveRequiredEvidenceKeys: true,
+      },
+      contentBehavior: {
+        noFabricatedFactsOrFutureEvents: true,
+        warningsUsePracticalPreparationWithoutExplicitAdverseDates: true,
+        nonPalaceRequiresTwoDistinctEvidenceBackedFacts: true,
+        palaceRequiresTwoActualStarsOrAccurateNoMajorStarState: true,
       },
       noNewQualityViolations: true,
     });
@@ -539,8 +541,18 @@ describe("writeComprehensiveReportSectionV4", () => {
       "except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context",
     );
     expect(rewrite.request.system).toContain("Tên cung như Phu Thê và Tử Tức");
+    expect(rewrite.request.system).toContain("Acceptance contract JSON dưới đây là quy tắc bắt buộc");
+    expect(rewrite.request.system).toContain('"discouraged":[');
+    expect(rewrite.request.system).toContain('"khí chất"');
+    expect(rewrite.request.system).toContain('"death":[');
+    expect(rewrite.request.system).toContain('"certainty":[');
+    expect(rewrite.request.system).toContain("ít nhất hai fact khác nhau có evidence");
+    expect(rewrite.request.system).toContain("ít nhất hai sao thực có trong cung");
+    expect(rewrite.request.system).toContain("không đưa ngày bất lợi cụ thể");
     expect(rewrite.request.system).toContain("no Han/Nom ideograph");
     expect(rewrite.request.system).toContain("every supplied finding");
+    expect(rewrite.request.system).not.toContain("proper-name density");
+    expect(initial.payload.acceptanceContract).not.toHaveProperty("properNameDensity");
   });
 
   it("gives V4.1.2 overview generation and rewrite an explicit numeric length contract", async () => {

@@ -8,6 +8,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
 } from "./identity-report-config.js";
 
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -318,6 +319,37 @@ describe("comprehensive V4 section quality", () => {
       ),
       "PROPER_NAME_DENSITY",
     );
+  });
+
+  it("does not reject dense chart names in the active V2.3 lineage", () => {
+    const denseText = `${prose(610)} ${Array.from({ length: 400 }, () => "Tử Vi").join(" ")}`;
+    expect(
+      gate(
+        { text: denseText },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+      ),
+    ).toEqual({ ok: true, findings: [] });
+  });
+
+  it.each([
+    ["minimum length", prose(100), "MINIMUM_SYLLABLES"],
+    ["death claim", `${prose(610)} tử vong`, "DEATH_TERM"],
+    ["Han locale", `${prose(610)} 紫微`, "LOCALE_HAN"],
+    ["missing evidence anchors", prose(610, "sao Tử Vi"), "EVIDENCE_ANCHORS"],
+  ])("keeps the V2.3 %s gate", (_name, text, code) => {
+    expectFinding(gate(
+      {
+        text,
+        ...(code === "EVIDENCE_ANCHORS"
+          ? { evidenceKeys: [evidenceKeyFor("ziwei.star.ziwei")] }
+          : {}),
+      },
+      facts,
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+    ), code);
   });
 
   it.each([

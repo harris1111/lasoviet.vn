@@ -58,6 +58,7 @@ import {
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
 import {
@@ -3276,6 +3277,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       commitImmutableVersion: vi.fn().mockResolvedValue({ ok: true, value: { id: "committed" } }),
       consumeRewriteBudget: vi.fn(),
     };
+    const onReviewWarnings = vi.fn();
     const service = createReportGenerationService({
       sourceRepository: {
         loadSource: vi.fn().mockResolvedValue({
@@ -3289,8 +3291,20 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       sectionCheckpointRepository: repository,
       gate: { allows: () => true } as any,
       provider: provider as any,
+      onReviewWarnings,
     });
-    return { service, repository, provider, versionRepository, starts, costContexts, lifecycle, maxInFlight: () => maxInFlight, guard: options.guard };
+    return {
+      service,
+      repository,
+      provider,
+      versionRepository,
+      onReviewWarnings,
+      starts,
+      costContexts,
+      lifecycle,
+      maxInFlight: () => maxInFlight,
+      guard: options.guard,
+    };
   }
 
   const sectionedJob = (overrides: Record<string, unknown> = {}) => createV2Job({
@@ -3311,6 +3325,11 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
     reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
     qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  });
+  const warningOnlyCheckpoint = (key: Key, value = sectionFor(key).value) => ({
+    ...keyConfigCheckpoint(key, value),
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    qualityConfigVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   });
   const keyConfigurationItems = (seeds: readonly string[]) => seeds.map((seed, index) => ({
     title: `Configuration ${index}`,
@@ -3434,7 +3453,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
   });
 
-  it("routes the additive V4.1.2 prompt tuple with the V2.2 quality lineage", async () => {
+  it("routes the additive V4.1.2 prompt tuple with the V2.3 quality lineage", async () => {
     const fixture = createSectionedService();
     const job = sectionedJob({
       knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
@@ -3453,7 +3472,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.repository.claim.mock.calls.every(([input]: [any]) =>
       input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
       input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
-      input.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+      input.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
     )).toBe(true);
     expect(fixture.versionRepository.commitImmutableVersion.mock.calls[0]![0]).toMatchObject({
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
@@ -3462,43 +3481,21 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     });
   });
 
-  it("preserves structured V4.1.2 quality findings in the writer rewrite payload", async () => {
-    const rewritePayloads: any[] = [];
-    const shortItems = Array.from({ length: 5 }, (_, index) => ({
-      title: `Configuration ${index}`,
-      narrative: `cung Mệnh và sao Tử Vi. ${Array.from(
-        { length: 40 },
-        () => `năng lực thực tế ${index}`,
-      ).join(" ")} khí chất`,
-      evidenceKeys: ["unknown-evidence"],
-    }));
-    const validItems = shortItems.map((item, index) => ({
-      ...item,
-      narrative: longProse(["cung Mệnh", "sao Tử Vi"], `rewrite${index}`),
-      evidenceKeys: ["e-life", "e-star"],
-    }));
+  it("uses one advisory warning review for V2.3 without quality candidates or rewrites", async () => {
     const fixture = createSectionedService({
-      onSection: (key, request) => {
-        const payload = JSON.parse(request.user);
-        if (payload.rewrite) rewritePayloads.push(payload);
-        if (key === "keyConfigurations" && !payload.rewrite) {
+      onSection: (key) => {
+        if (key === "coreAxis") {
+          const section = sectionFor(key);
           return {
             ok: true,
             value: {
               value: {
-                key,
-                value: shortItems,
+                ...section,
+                value: {
+                  ...(section.value as any),
+                  narrative: `${(section.value as any).narrative} quý nhân đắc địa.`,
+                },
               },
-              providerId: "section-provider",
-              modelId: "section-model",
-            },
-          };
-        }
-        if (key === "keyConfigurations" && payload.rewrite) {
-          return {
-            ok: true,
-            value: {
-              value: { key, value: validItems },
               providerId: "section-provider",
               modelId: "section-model",
             },
@@ -3513,6 +3510,16 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
           },
         };
       },
+      onCritic: () => ({
+        ok: true,
+        value: {
+          value: {
+            warnings: [{ key: "coreAxis", category: "clarity", note: "Có thể viết gọn hơn." }],
+          },
+          providerId: "critic-provider",
+          modelId: "critic-model",
+        },
+      }),
     });
     const result = await fixture.service.generateReport({
       job: keyConfigPromptJob({
@@ -3522,24 +3529,19 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       workerId: "worker-1",
     });
 
-    expect(result.ok).toBe(false);
-    expect(rewritePayloads.length).toBeGreaterThan(0);
-    const recordInput = fixture.repository.recordQualityCandidate.mock.calls
-      .find(([input]: [any]) => input.sectionKey === "keyConfigurations")![0];
-    expect(recordInput.findings).toEqual(expect.arrayContaining([
-      expect.objectContaining({ itemKey: "keyConfigurations[0]", code: "DISCOURAGED_TERM" }),
-      expect.objectContaining({ itemKey: "keyConfigurations[0]", code: "EVIDENCE_ANCHORS" }),
-    ]));
-    expect(rewritePayloads[0]!.rewrite.findings).toEqual(recordInput.findings);
-    expect(rewritePayloads[0]!.rewrite.findings.every((finding: any) =>
-      typeof finding === "object" &&
-      typeof finding.itemKey === "string" &&
-      typeof finding.code === "string" &&
-      typeof finding.note === "string",
-    )).toBe(true);
+    expectSectionedSuccess(result, fixture);
+    expect(fixture.repository.claimQualityRewrite).not.toHaveBeenCalled();
+    expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
+    expect(fixture.repository.calls.rewrites).toEqual([]);
+    expect(fixture.costContexts.filter((context) => context.purpose === "critic")).toHaveLength(1);
+    expect(fixture.onReviewWarnings).toHaveBeenCalledWith({
+      reportVersionId: keyConfigPromptJob().payload.reportVersionId,
+      warnings: [{ key: "coreAxis", category: "clarity", note: "Có thể viết gọn hơn." }],
+    });
+    expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
   });
 
-  it("continues a post-rewrite new finding through a second quality rewrite without regeneration", async () => {
+  it("commits V2.3 when the advisory reviewer fails", async () => {
     const coreAxis = sectionFor("coreAxis");
     const coreAxisInitial = {
       ...coreAxis,
@@ -3555,20 +3557,13 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         narrative: `${(coreAxis.value as any).narrative} đắc địa`,
       },
     };
-    let qualityRewriteCount = 0;
     const fixture = createSectionedService({
-      onSection: (key, request) => {
+      onSection: (key) => {
         if (key === "coreAxis") {
-          const payload = JSON.parse(request.user);
-          if (payload.rewrite) qualityRewriteCount += 1;
           return {
             ok: true,
             value: {
-              value: !payload.rewrite
-                ? coreAxisInitial
-                : qualityRewriteCount === 1
-                  ? coreAxisRewrite
-                  : coreAxis,
+              value: coreAxisInitial,
               providerId: "section-provider",
               modelId: "section-model",
             },
@@ -3583,6 +3578,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
           },
         };
       },
+      onCritic: () => ({ ok: false, error: { code: "AI_TIMEOUT", retryable: true } }),
     });
     const job = keyConfigPromptJob({
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
@@ -3594,76 +3590,26 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       workerId: "worker-1",
     });
     expectSectionedSuccess(first, fixture);
-    const candidate = fixture.repository.qualityCandidates.get("coreAxis");
-    expect(candidate.findings).toEqual([{
-      itemKey: "coreAxis",
-      code: "DISCOURAGED_TERM",
-      note: "Contains prohibited term: đắc địa.",
-    }]);
     const coreAxisRequests = fixture.provider.generateStructured.mock.calls
       .map(([request]: [any]) => request)
       .filter((request: any) => JSON.parse(request.user).sectionKey === "coreAxis");
-    expect(coreAxisRequests).toHaveLength(3);
+    expect(coreAxisRequests).toHaveLength(1);
     expect(JSON.parse(coreAxisRequests[0].user).rewrite).toBeUndefined();
     expect(coreAxisRequests[0].costContext).toMatchObject({
       purpose: "report",
       idempotencyKey: `${job.payload.reportVersionId}:coreAxis:generation:1:critic:0`,
     });
-    expect(JSON.parse(coreAxisRequests[1].user).rewrite.findings).toEqual([{
-      itemKey: "coreAxis",
-      code: "DISCOURAGED_TERM",
-      note: "Contains prohibited term: quý nhân.",
-    }]);
-    expect(coreAxisRequests[1].costContext).toMatchObject({
-      purpose: "rewrite",
-      idempotencyKey: `${job.payload.reportVersionId}:coreAxis:quality-rewrite:1`,
-    });
-    expect(JSON.parse(coreAxisRequests[2].user).rewrite.findings).toEqual([{
-      itemKey: "coreAxis",
-      code: "DISCOURAGED_TERM",
-      note: "Contains prohibited term: đắc địa.",
-    }]);
-    expect(coreAxisRequests[2].costContext).toMatchObject({
-      purpose: "rewrite",
-      idempotencyKey: `${job.payload.reportVersionId}:coreAxis:quality-rewrite:2`,
-    });
-    expect(fixture.repository.qualityCandidates.get("coreAxis")).toMatchObject({
-      status: "passed",
-      rewriteOrdinal: 2,
-      generationOrdinal: 1,
-      acceptedSection: { key: "coreAxis", value: coreAxis.value },
-      terminalFindings: null,
-    });
-    expect(candidate.findings).toEqual([{
-      itemKey: "coreAxis",
-      code: "DISCOURAGED_TERM",
-      note: "Contains prohibited term: đắc địa.",
-    }]);
-    expect(fixture.repository.continueQualityRewrite).toHaveBeenCalledTimes(1);
-    expect(fixture.repository.continueQualityRewrite).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sectionKey: "coreAxis",
-        rewriteOrdinal: 1,
-        candidateContent: coreAxisRewrite.value,
-        findings: [{
-          itemKey: "coreAxis",
-          code: "DISCOURAGED_TERM",
-          note: "Contains prohibited term: đắc địa.",
-        }],
-      }),
-    );
-    expect(fixture.repository.markQualityRewriteTerminalFailure).not.toHaveBeenCalled();
-    expect(fixture.repository.markQualityRewritePassed).toHaveBeenCalledTimes(1);
+    expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
     expect(fixture.repository.rows.get("coreAxis")).toMatchObject({
       status: "passed",
       generationAttemptCount: 1,
-      rewriteAttemptCount: 2,
+      rewriteAttemptCount: 0,
     });
-    expect(fixture.starts.filter((key) => key === "coreAxis")).toHaveLength(3);
+    expect(fixture.starts.filter((key) => key === "coreAxis")).toHaveLength(1);
     expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
   });
 
-  it("terminalizes V2.1 quality rewrite after the second rewrite exhausts its cap", async () => {
+  it("commits V2.3 when the advisory reviewer response is malformed", async () => {
     const coreAxis = sectionFor("coreAxis");
     const coreAxisInitial = {
       ...coreAxis,
@@ -3672,28 +3618,24 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
         narrative: `${(coreAxis.value as any).narrative} quý nhân`,
       },
     };
-    const rewrittenWithNewFinding = {
-      ...coreAxis,
-      value: {
-        ...(coreAxis.value as any),
-        narrative: `${(coreAxis.value as any).narrative} đắc địa`,
-      },
-    };
     const fixture = createSectionedService({
-      onSection: (key, request) => {
+      onSection: (key) => {
         if (key !== "coreAxis") {
           return { ok: true, value: { value: sectionFor(key), providerId: "section-provider", modelId: "section-model" } };
         }
-        const payload = JSON.parse(request.user);
         return {
           ok: true,
           value: {
-            value: payload.rewrite ? rewrittenWithNewFinding : coreAxisInitial,
+            value: coreAxisInitial,
             providerId: "section-provider",
             modelId: "section-model",
           },
         };
       },
+      onCritic: () => ({
+        ok: true,
+        value: { value: { warnings: [{ key: "coreAxis", note: "" }] }, providerId: "critic-provider", modelId: "critic-model" },
+      }),
     });
     const job = keyConfigPromptJob({
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
@@ -3703,36 +3645,117 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       job,
       attemptNumber: 1,
       workerId: "worker-1",
-    })).resolves.toMatchObject({
-      ok: false,
-      error: { code: "AI_OUTPUT_INVALID", retryable: false },
-    });
+    })).resolves.toMatchObject({ ok: true });
     const coreAxisRequests = fixture.provider.generateStructured.mock.calls
       .map(([request]: [any]) => request)
       .filter((request: any) => JSON.parse(request.user).sectionKey === "coreAxis");
-    expect(coreAxisRequests).toHaveLength(3);
+    expect(coreAxisRequests).toHaveLength(1);
     expect(coreAxisRequests.filter((request: any) => request.costContext.purpose === "report")).toHaveLength(1);
-    expect(coreAxisRequests.filter((request: any) => request.costContext.purpose === "rewrite")).toHaveLength(2);
-    expect(fixture.repository.qualityCandidates.get("coreAxis")).toMatchObject({
-      status: "terminal_failure",
-      rewriteOrdinal: 2,
-      generationOrdinal: 1,
-      acceptedSection: null,
-      terminalFindings: [{
-        itemKey: "coreAxis",
-        code: "DISCOURAGED_TERM",
-        note: "Contains prohibited term: đắc địa.",
-      }],
+    expect(fixture.repository.recordQualityCandidate).not.toHaveBeenCalled();
+    expect(fixture.repository.claimQualityRewrite).not.toHaveBeenCalled();
+    expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("commits V2.3 when advisory review exhausts the wall clock", async () => {
+    let state: "active" | "wall_clock_exhausted" = "active";
+    const fixture = createSectionedService({
+      initial: COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.map((key) =>
+        warningOnlyCheckpoint(key),
+      ),
+      guard: { state: () => state },
+      onCritic: () => {
+        state = "wall_clock_exhausted";
+        return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
+      },
     });
-    expect(fixture.repository.markQualityRewriteTerminalFailure).toHaveBeenCalledTimes(1);
-    expect(fixture.repository.markQualityRewriteTerminalFailure).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sectionKey: "coreAxis",
-        rewriteOrdinal: 2,
-        failureCode: "AI_OUTPUT_INVALID",
+
+    const result = await fixture.service.generateReport({
+      job: keyConfigPromptJob({
+        promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       }),
-    );
-    expect(fixture.repository.markQualityRewritePassed).not.toHaveBeenCalled();
+      attemptNumber: 1,
+      workerId: "worker-1",
+      executionGuard: fixture.guard,
+    });
+
+    expectSectionedSuccess(result, fixture);
+    expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
+  });
+
+  it("lifecycle-fences V2.3 before advisory review", async () => {
+    const fixture = createSectionedService({
+      initial: COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.map((key) =>
+        warningOnlyCheckpoint(key),
+      ),
+      lifecycle: ["purged"],
+    });
+
+    const result = await fixture.service.generateReport({
+      job: keyConfigPromptJob({
+        promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_PROFILE_PURGED", retryable: false },
+    });
+    expect(fixture.costContexts.filter((context) => context.purpose === "critic")).toHaveLength(0);
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+  });
+
+  it("lifecycle-fences V2.3 again after advisory review", async () => {
+    const fixture = createSectionedService({
+      initial: COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.map((key) =>
+        warningOnlyCheckpoint(key),
+      ),
+      lifecycle: ["ok", "mismatch"],
+    });
+
+    const result = await fixture.service.generateReport({
+      job: keyConfigPromptJob({
+        promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_CONTEXT_MISMATCH", retryable: false },
+    });
+    expect(fixture.costContexts.filter((context) => context.purpose === "critic")).toHaveLength(1);
+    expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
+  });
+
+  it("blocks V2.3 commit when the lease is lost during advisory review", async () => {
+    let state: "active" | "lease_lost" = "active";
+    const fixture = createSectionedService({
+      initial: COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.map((key) =>
+        warningOnlyCheckpoint(key),
+      ),
+      guard: { state: () => state },
+      onCritic: () => {
+        state = "lease_lost";
+        return { ok: true, value: { value: { warnings: [] }, providerId: "critic-provider", modelId: "critic-model" } };
+      },
+    });
+
+    const result = await fixture.service.generateReport({
+      job: keyConfigPromptJob({
+        promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      }),
+      attemptNumber: 1,
+      workerId: "worker-1",
+      executionGuard: fixture.guard,
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "REPORT_VERSION_CONFLICT", retryable: false },
+    });
     expect(fixture.versionRepository.commitImmutableVersion).not.toHaveBeenCalled();
   });
 

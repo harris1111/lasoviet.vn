@@ -30,6 +30,7 @@ export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY = "ziwei.compre
 export const REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY = "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity" as const;
 export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY = "ziwei.comprehensive.quality.v2.1-sensitivity" as const;
 export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY = "ziwei.comprehensive.quality.v2.2-sensitivity" as const;
+export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY = "ziwei.comprehensive.quality.v2.3-sensitivity" as const;
 export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V3 = "ziwei-comprehensive.v3" as const;
 export const REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY = "ziwei-comprehensive-html.v2" as const;
 export const REPORT_RENDER_VERSION_V4_1_SENSITIVITY = "identity-report-pdf.v2" as const;
@@ -179,7 +180,7 @@ export type ReportVersionSelectionV4_1_2Sensitivity = Omit<
   "promptVersion" | "qualityVersion"
 > & {
   promptVersion: typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY;
-  qualityVersion: typeof REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY;
+  qualityVersion: typeof REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
 };
 
 export type ReportVersionSelection =
@@ -297,7 +298,7 @@ export function v4_1_2SensitivityReportVersions(
     knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
     promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
     reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+    qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
     templateVersion: REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
     renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY,

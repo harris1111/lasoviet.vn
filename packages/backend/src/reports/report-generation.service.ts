@@ -19,6 +19,7 @@ import {
   REPORT_KNOWLEDGE_VERSION_V3,
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
   v4SectionedReportVersions,
   v4_1_1KeyConfigSensitivityReportVersions,
@@ -39,8 +40,11 @@ import {
   validateComprehensiveZiweiReportV4,
   validateComprehensiveZiweiReportV4_1,
 } from "./comprehensive-report-validator-v4.js";
-import { critiqueComprehensiveZiweiReportV4 } from "./comprehensive-report-critic-v4.js";
-import { critiqueComprehensiveZiweiReportSectionedV4 } from "./comprehensive-report-critic-v4.js";
+import {
+  critiqueComprehensiveZiweiReportSectionedV4,
+  critiqueComprehensiveZiweiReportV4,
+  type ComprehensiveSectionedReviewWarning,
+} from "./comprehensive-report-critic-v4.js";
 import { writeComprehensiveReportSectionV4 } from "./comprehensive-report-section-writer-v4.js";
 import {
   assembleComprehensiveReportV4,
@@ -117,6 +121,10 @@ export type ReportGenerationServiceDependencies = {
   provider: AiProvider;
   sourceSnapshotPreparer?: ReportSourceSnapshotPreparationService;
   sectionCheckpointRepository?: ReportSectionCheckpointRepository;
+  onReviewWarnings?: (event: {
+    reportVersionId: string;
+    warnings: readonly ComprehensiveSectionedReviewWarning[];
+  }) => void;
 };
 
 function supersedesReportVersionId(
@@ -409,6 +417,8 @@ export function createReportGenerationService(
     const { payload } = input.job;
     const selection = resolveSectionedSelection(payload);
     if (!selection) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+    const warningOnlyReview =
+      selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
     const sectionKeys = resolveComprehensiveReportSectionKeys(selection.reportConfigVersion);
     const quality = selection.family === "v4"
       ? ziweiComprehensiveReportQualityV1
@@ -458,19 +468,21 @@ export function createReportGenerationService(
       while (true) {
         const stoppedResult = stopped();
         if (stoppedResult) return stoppedResult;
-        const qualityRewrite = await repository.claimQualityRewrite({
-          ...lineageFor(sectionKey),
-          jobId,
-          workerId: input.workerId,
-          attemptNumber: input.attemptNumber,
-        });
-        if (!qualityRewrite.ok || qualityRewrite.value.outcome === "terminal") {
+        const qualityRewrite = warningOnlyReview
+          ? null
+          : await repository.claimQualityRewrite({
+            ...lineageFor(sectionKey),
+            jobId,
+            workerId: input.workerId,
+            attemptNumber: input.attemptNumber,
+          });
+        if (qualityRewrite && (!qualityRewrite.ok || qualityRewrite.value.outcome === "terminal")) {
           return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
         }
-        if (qualityRewrite.value.outcome === "in_progress") {
+        if (qualityRewrite?.ok && qualityRewrite.value.outcome === "in_progress") {
           return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } };
         }
-        if (qualityRewrite.value.outcome === "claimed") {
+        if (qualityRewrite?.ok && qualityRewrite.value.outcome === "claimed") {
           const candidate = qualityRewrite.value.candidate!;
           const beforeQualityProvider = stopped();
           if (beforeQualityProvider) return beforeQualityProvider;
@@ -665,7 +677,9 @@ export function createReportGenerationService(
           return { ok: false, error: mapped };
         }
         const section: ComprehensiveReportAcceptedSection = { key: sectionKey as any, value: written.value.value as any };
-        const findings = sectionQualityFindings(section, source.comprehensiveFactsV4, selection.reportConfigVersion, selection.qualityVersion);
+        const findings = warningOnlyReview
+          ? []
+          : sectionQualityFindings(section, source.comprehensiveFactsV4, selection.reportConfigVersion, selection.qualityVersion);
         if (findings.length > 0) {
           const recorded = await repository.recordQualityCandidate({
             ...lineageFor(sectionKey), jobId, workerId: input.workerId,
@@ -881,10 +895,14 @@ export function createReportGenerationService(
         );
     } catch { return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } }; }
     if (stopped()) return stopped()!;
+    const validationOptions = warningOnlyReview ? { contentPolicy: "ignore" as const } : undefined;
     let validation = selection.family === "v4"
-      ? validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!)
-      : validateComprehensiveZiweiReportV4_1(report, source.comprehensiveFactsV4!);
+      ? validateComprehensiveZiweiReportV4(report, source.comprehensiveFactsV4!, validationOptions)
+      : validateComprehensiveZiweiReportV4_1(report, source.comprehensiveFactsV4!, validationOptions);
     if (!validation.ok) {
+      if (warningOnlyReview) {
+        return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+      }
       const keys = validatorKeys(validation.errors);
       if (!keys) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
       for (const key of keys) {
@@ -908,6 +926,26 @@ export function createReportGenerationService(
         : validateComprehensiveZiweiReportV4_1(report, source.comprehensiveFactsV4!);
       if (!validation.ok) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
     }
+    if (warningOnlyReview) {
+      const reviewLifecycle = await lifecycleFence(input);
+      if (reviewLifecycle) return reviewLifecycle;
+      try {
+        const review = await critiqueComprehensiveZiweiReportSectionedV4(report, source.comprehensiveFactsV4!, dependencies.provider, {
+          costContext: { ...baseCostContext, idempotencyKey: `${payload.reportVersionId}:critic:1`, purpose: "critic" },
+          readingContext: source.readingContext,
+          reportConfigVersion: selection.reportConfigVersion,
+          warningOnly: true,
+        });
+        if (review.ok && "warnings" in review.value && review.value.warnings.length > 0) {
+          dependencies.onReviewWarnings?.({
+            reportVersionId: payload.reportVersionId,
+            warnings: review.value.warnings,
+          });
+        }
+      } catch {
+        // Advisory review is intentionally best-effort.
+      }
+    } else {
     let critic;
     const firstCriticLifecycle = await lifecycleFence(input);
     if (firstCriticLifecycle) return firstCriticLifecycle;
@@ -953,8 +991,17 @@ export function createReportGenerationService(
       } catch { return { ok: false, error: { code: "AI_TIMEOUT", retryable: true } }; }
       if (!critic.ok) return { ok: false, error: mapProviderError(critic.error) };
     }
-    const stoppedBeforeCommit = stopped();
-    if (stoppedBeforeCommit) return stoppedBeforeCommit;
+    }
+    if (warningOnlyReview) {
+      const commitLifecycle = await lifecycleFence(input);
+      if (commitLifecycle) return commitLifecycle;
+      if (guardState(input) === "lease_lost") {
+        return { ok: false, error: { code: "REPORT_VERSION_CONFLICT", retryable: false } };
+      }
+    } else {
+      const stoppedBeforeCommit = stopped();
+      if (stoppedBeforeCommit) return stoppedBeforeCommit;
+    }
     const commit = await dependencies.versionRepository.commitImmutableVersion({
       reportId: payload.reportId, reportVersionId: payload.reportVersionId, entitlementId: payload.entitlementId,
       chartVersionId: payload.chartVersionId, evidenceVersionId: payload.evidenceVersionId,

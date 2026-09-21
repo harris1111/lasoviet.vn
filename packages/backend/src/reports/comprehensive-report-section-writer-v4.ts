@@ -40,7 +40,7 @@ import {
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
-  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
 } from "./identity-report-config.js";
@@ -196,7 +196,7 @@ function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4I
   const threshold = resolveZiweiReportQualitySectionThreshold(
     input.reportConfigVersion,
     input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
-      ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+      ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
       : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
     "keyConfigurations",
   );
@@ -452,12 +452,12 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
 }
 
 const SECTION_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số tại lasoviet.net.
-Viết đúng một phần báo cáo tiếng Việt bằng JSON theo schema được cung cấp, chỉ dựa trên facts, knowledgePacks và allowedEvidenceKeys.
-Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tính toán hoặc truy xuất. Không dùng khối tuyên bố miễn trừ trách nhiệm.
-Không bịa sự kiện tương lai cụ thể, không dùng khẳng định định mệnh về tai nạn, tử vong, phá sản hoặc phản bội.
-Tên cung như Phu Thê và Tử Tức được phép khi đang mô tả cấu trúc lá số một cách thực tế; hãy viết kèm ngữ cảnh cung, tam phương, đối cung hoặc xung chiếu, không dùng chúng như nhãn diễn giải rời.
-Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, và không lặp lại lời khuyên/cảnh báo.
- Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
+Chỉ trả đúng một JSON hợp lệ theo schema được cung cấp. Viết tiếng Việt, chỉ dùng facts, knowledgePacks và allowedEvidenceKeys; mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys.
+Không bịa fact hay sự kiện tương lai; không khẳng định chắc chắn tai nạn, tử vong, phá sản hoặc phản bội. Khi cần nêu cảnh báo, không đưa ngày bất lợi cụ thể và phải đặt trong khung chuẩn bị thực tế, có thể hành động.
+Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tính toán hoặc truy xuất; không dùng khối tuyên bố miễn trừ trách nhiệm. Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, không lặp lại lời khuyên/cảnh báo.
+Tên cung như Phu Thê và Tử Tức chỉ dùng khi mô tả cấu trúc lá số có ngữ cảnh cung, tam phương, đối cung hoặc xung chiếu; không dùng như nhãn diễn giải rời.
+Phần không phải cung phải dùng ít nhất hai fact khác nhau có evidence. Phần cung phải nêu ít nhất hai sao thực có trong cung, hoặc nói đúng trạng thái vô chính diệu/không có chính tinh khi facts thể hiện điều đó.
+Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
 readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
 
 function acceptanceContract(
@@ -467,11 +467,11 @@ function acceptanceContract(
   if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
   const quality = resolveZiweiReportQualityConfig(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   );
   const threshold = resolveZiweiReportQualitySectionThreshold(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
     sectionKind,
   );
   return {
@@ -502,14 +502,19 @@ function acceptanceContract(
       noEnglishBrightnessDescriptors: true,
       allowedBrightnessLabels: Object.values(BRIGHTNESS_LABELS_VI),
     },
-    properNameDensity: {
-      configuredProperNames: [...quality.properNames],
-      maximumPer100Syllables: quality.maxProperNamesPer100Syllables,
-    },
     evidence: {
       useOnlyAllowedEvidenceKeys: true,
       preserveEvidenceBackedChartFacts: true,
       preserveRequiredEvidenceKeys: true,
+    },
+    contentBehavior: {
+      noFabricatedFactsOrFutureEvents: true,
+      noDeterministicAdverseOutcomes: ["accident", "death", "bankruptcy", "betrayal"],
+      warningsUsePracticalPreparationWithoutExplicitAdverseDates: true,
+      nonPalaceRequiresTwoDistinctEvidenceBackedFacts: true,
+      palaceRequiresTwoActualStarsOrAccurateNoMajorStarState: true,
+      noAiOrProcessDisclosure: true,
+      noReflectionQuestionsNewIdentifiersOrRepeatedAdvice: true,
     },
     noNewQualityViolations: true,
     ...(input.sectionKey === "keyConfigurations" ? {
@@ -640,7 +645,7 @@ export async function writeComprehensiveReportSectionV4(
       reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
         ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY
         : input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
-          ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+          ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
           : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
       scope.kind,
     ).maxOutputTokens;
@@ -649,7 +654,9 @@ export async function writeComprehensiveReportSectionV4(
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
     system: contract
       ? `${SECTION_SYSTEM_PROMPT}
-Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term, except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context; emit no Han/Nom ideograph or English brightness descriptor; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+Acceptance contract JSON dưới đây là quy tắc bắt buộc cho response này:
+${JSON.stringify(contract)}
+Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term, except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context; emit no Han/Nom ideograph or English brightness descriptor; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
 ${v4_1_2LengthInstruction(input, contract)}
 ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`

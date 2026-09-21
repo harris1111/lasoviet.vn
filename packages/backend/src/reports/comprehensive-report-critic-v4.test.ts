@@ -379,6 +379,34 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
     expect(request.user).not.toContain("birthLocation");
   });
 
+  it("returns advisory warnings without scores when warning-only review is requested", async () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: {
+            warnings: [{ key: "overview", category: "clarity", note: "Rút gọn câu mở đầu." }],
+          },
+        },
+      }),
+    };
+    const result = await critiqueComprehensiveZiweiReportSectionedV4(
+      dummyReport as any,
+      facts,
+      provider as never,
+      { warningOnly: true },
+    );
+    expect(result).toEqual({
+      ok: true,
+      value: { warnings: [{ key: "overview", category: "clarity", note: "Rút gọn câu mở đầu." }] },
+    });
+    const request = provider.generateStructured.mock.calls[0][0];
+    expect(request.schema.safeParse({ warnings: [] }).success).toBe(true);
+    expect(request.schema.safeParse({ correctness: 5, warnings: [] }).success).toBe(false);
+    expect(request.system).toContain("không chấm điểm, không approve/reject");
+  });
+
   it.each([
     REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
