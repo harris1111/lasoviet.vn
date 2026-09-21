@@ -58,6 +58,7 @@ import {
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
 } from "./identity-report-config.js";
 import {
@@ -3453,7 +3454,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
     expect(fixture.repository.claim.mock.calls.every(([input]: [any]) =>
       input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
       input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
-      input.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+      input.qualityConfigVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
     )).toBe(true);
     expect(fixture.versionRepository.commitImmutableVersion.mock.calls[0]![0]).toMatchObject({
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,

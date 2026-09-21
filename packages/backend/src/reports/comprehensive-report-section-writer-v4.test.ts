@@ -520,10 +520,6 @@ describe("writeComprehensiveReportSectionV4", () => {
         noEnglishBrightnessDescriptors: true,
         allowedBrightnessLabels: ["Miếu", "Vượng", "Đắc", "Bình", "Hãm", "Nhược"],
       },
-      properNameDensity: {
-        configuredProperNames: expect.arrayContaining(["Mệnh", "Tử Vi"]),
-        maximumPer100Syllables: 10,
-      },
       evidence: {
         preserveEvidenceBackedChartFacts: true,
         preserveRequiredEvidenceKeys: true,
@@ -541,6 +537,8 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(rewrite.request.system).toContain("Tên cung như Phu Thê và Tử Tức");
     expect(rewrite.request.system).toContain("no Han/Nom ideograph");
     expect(rewrite.request.system).toContain("every supplied finding");
+    expect(rewrite.request.system).not.toContain("proper-name density");
+    expect(initial.payload.acceptanceContract).not.toHaveProperty("properNameDensity");
   });
 
   it("gives V4.1.2 overview generation and rewrite an explicit numeric length contract", async () => {

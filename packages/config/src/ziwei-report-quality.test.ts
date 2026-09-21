@@ -8,6 +8,7 @@ import {
   ziweiComprehensiveReportQualityV2_2Sensitivity,
   ziweiComprehensiveReportQualityV2_1Sensitivity,
   ziweiComprehensiveReportQualityV2Sensitivity,
+  ziweiComprehensiveReportQualityV2_3Sensitivity,
 } from "./ziwei-report-quality.js";
 
 function source() {
@@ -183,6 +184,19 @@ describe("ziwei comprehensive report quality config", () => {
         "coreAxis",
       ),
     ).toEqual(config.sections.coreAxis);
+  });
+
+  it("loads V2.3 as the active lineage with the density gate disabled in the validator", () => {
+    const config = ziweiComprehensiveReportQualityV2_3Sensitivity;
+    expect(config.version).toBe("ziwei.comprehensive.quality.v2.3-sensitivity");
+    expect(config.reportConfigVersion).toBe(
+      "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+    );
+    expect(config).not.toHaveProperty("properNames");
+    expect(config).not.toHaveProperty("maxProperNamesPer100Syllables");
+    expect(
+      resolveZiweiReportQualityConfig(config.reportConfigVersion, config.version),
+    ).toBe(config);
   });
 
   it("fails closed for unknown, remapped, or injected alternate configs", () => {

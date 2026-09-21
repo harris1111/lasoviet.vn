@@ -33,6 +33,7 @@ import {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
@@ -181,6 +182,7 @@ describe("identity report config", () => {
     expect(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity");
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.1-sensitivity");
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.2-sensitivity");
+    expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.3-sensitivity");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V3).toBe("ziwei-comprehensive.v3");
     expect(REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY).toBe("ziwei-comprehensive-html.v2");
     expect(REPORT_RENDER_VERSION_V4_1_SENSITIVITY).toBe("identity-report-pdf.v2");
@@ -313,7 +315,7 @@ describe("identity report config", () => {
       knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-      qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+      qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
     });
   });
 

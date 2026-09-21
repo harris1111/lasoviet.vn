@@ -40,7 +40,7 @@ import {
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
-  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
 } from "./identity-report-config.js";
@@ -196,7 +196,7 @@ function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4I
   const threshold = resolveZiweiReportQualitySectionThreshold(
     input.reportConfigVersion,
     input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
-      ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+      ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
       : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
     "keyConfigurations",
   );
@@ -467,11 +467,11 @@ function acceptanceContract(
   if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
   const quality = resolveZiweiReportQualityConfig(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   );
   const threshold = resolveZiweiReportQualitySectionThreshold(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
     sectionKind,
   );
   return {
@@ -501,10 +501,6 @@ function acceptanceContract(
       noNomIdeographs: true,
       noEnglishBrightnessDescriptors: true,
       allowedBrightnessLabels: Object.values(BRIGHTNESS_LABELS_VI),
-    },
-    properNameDensity: {
-      configuredProperNames: [...quality.properNames],
-      maximumPer100Syllables: quality.maxProperNamesPer100Syllables,
     },
     evidence: {
       useOnlyAllowedEvidenceKeys: true,
@@ -640,7 +636,7 @@ export async function writeComprehensiveReportSectionV4(
       reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
         ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY
         : input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
-          ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY
+          ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
           : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
       scope.kind,
     ).maxOutputTokens;
@@ -649,7 +645,7 @@ export async function writeComprehensiveReportSectionV4(
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
     system: contract
       ? `${SECTION_SYSTEM_PROMPT}
-Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term, except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context; emit no Han/Nom ideograph or English brightness descriptor; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term, except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context; emit no Han/Nom ideograph or English brightness descriptor; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
 ${v4_1_2LengthInstruction(input, contract)}
 ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
