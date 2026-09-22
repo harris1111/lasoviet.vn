@@ -1,0 +1,26 @@
+{
+  "email": {
+    "value": "support@lasoviet.net",
+    "visible": true
+  },
+  "phone": {
+    "value": "",
+    "visible": false
+  },
+  "zalo": {
+    "value": "",
+    "visible": false
+  },
+  "address": {
+    "value": "",
+    "visible": false
+  },
+  "legalEntity": {
+    "value": "",
+    "visible": false
+  },
+  "social": {
+    "value": "",
+    "visible": false
+  }
+}

@@ -328,6 +328,11 @@
       "ctaPrimary": "Lập lá số miễn phí ngay",
       "ctaSecondary": "Xem bản luận giải mẫu",
       "closing": "Hiểu mình để lựa chọn chủ động hơn."
+    },
+    "support": {
+      "title": "Cần đồng hành hoặc hỗ trợ?",
+      "description": "Đội ngũ Lá Số Việt sẵn sàng lắng nghe và giải đáp mọi thắc mắc qua email hỗ trợ riêng tư.",
+      "action": "Gửi email hỗ trợ"
     }
   }
 }
