@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tra cứu thần số học theo ngày sinh và họ tên - Lá Số Việt</title>
+<meta name="description" content="Tính số chủ đạo, số sứ mệnh, linh hồn, nhân cách và biểu đồ ngày sinh theo thần số học Pythagoras.">
+<meta name="robots" content="noindex, follow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<link rel="stylesheet" href="tool-page.css">
+<style>
+.inputs { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.inputs label { display: grid; gap: 8px; font-weight: 600; color: var(--text-heading); font-size: 15px; }
+@media (max-width: 720px) { .inputs { grid-template-columns: 1fr; } }
+.lp { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; margin: 22px 0; }
+.lp .num { width: 120px; height: 120px; border-radius: 999px; display: grid; place-items: center; font: 600 52px/1 var(--font-display); color: var(--gold-400); background: radial-gradient(circle at 35% 30%, #2E271E, #15120E 70%); box-shadow: inset 0 0 0 2px rgba(201,164,77,.7), inset 0 0 0 8px rgba(15,13,10,.9), inset 0 0 0 9px rgba(201,164,77,.25); }
+.lp .num small { font-size: 18px; color: var(--text-muted); }
+.lp h2 { font: 600 24px/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 6px; }
+.lp p { margin: 0; font-size: 16.5px; line-height: 1.65; }
+@media (max-width: 520px) { .lp { grid-template-columns: 1fr; justify-items: start; } }
+.others { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.others div { border: 1px solid var(--border-soft); border-radius: 12px; padding: 14px; background: var(--lacquer-900); }
+.others b { display: block; font: 600 30px/1 var(--font-display); color: var(--gold-400); margin: 6px 0; }
+.others span { font-size: 14px; color: var(--text-muted); }
+.others p { margin: 0; font-size: 14.5px; }
+@media (max-width: 600px) { .others { grid-template-columns: 1fr; } }
+.grid3 { display: grid; grid-template-columns: repeat(3, 72px); gap: 6px; margin: 12px 0; }
+.grid3 span { height: 64px; border-radius: 10px; border: 1px solid var(--border-soft); display: grid; place-items: center; font: 600 18px var(--font-ui); color: var(--text-heading); background: var(--lacquer-900); }
+.grid3 span.empty { color: var(--text-faint); font-weight: 400; }
+.grid3 span.hit { border-color: var(--gold-500); background: var(--gold-soft); color: var(--gold-400); }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="trang-chu.html#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html" aria-current="page">Công cụ miễn phí</a>
+      <a href="#">Kiến thức</a>
+      <a href="#ho-tro">Liên hệ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="link-quiet" href="#">Đăng nhập</a>
+      <a class="btn btn-primary" href="lap-la-so.html">Lập lá số</a>
+    </div>
+  </div>
+</header>
+<main class="container">
+  <nav class="crumbs" aria-label="Đường dẫn"><a href="trang-chu.html">Trang chủ</a> / <a href="cong-cu-mien-phi.html">Công cụ miễn phí</a> / Thần số học</nav>
+  <div class="tool-hero">
+    <span class="medallion lg"><svg aria-hidden="true"><use href="#i-than-so-hoc"/></svg></span>
+    <div><h1>Tra cứu thần số học</h1><p class="need">Cần nhập: <b>họ tên và ngày sinh</b></p></div>
+  </div>
+
+  <div class="tool-grid">
+    <section class="card" aria-labelledby="in-h">
+      <h2 class="panel-h" id="in-h">Nhập thông tin</h2>
+      <form class="inputs" id="f" onsubmit="return false">
+        <label for="name">Họ và tên khai sinh<span class="field"><input id="name" value="Trần Thị Mẫu" autocomplete="name"></span></label>
+        <label for="dob">Ngày sinh<span class="field"><input id="dob" type="date" value="1992-06-15"></span></label>
+        <button class="btn btn-primary btn-lg" id="go" type="submit">Tính</button>
+      </form>
+      <div class="lp" aria-live="polite">
+        <div class="num" id="lpNum">6</div>
+        <div><h2 id="lpTitle">Số chủ đạo</h2><p id="lpText"></p></div>
+      </div>
+      <div class="others">
+        <div><span>Số sứ mệnh</span><b id="n1">-</b><p id="t1"></p></div>
+        <div><span>Số linh hồn</span><b id="n2">-</b><p id="t2"></p></div>
+        <div><span>Số nhân cách</span><b id="n3">-</b><p id="t3"></p></div>
+      </div>
+    </section>
+    <section class="card" aria-labelledby="bc-h">
+      <h2 class="panel-h" id="bc-h">Biểu đồ ngày sinh</h2>
+      <p class="muted" style="margin:0">Mỗi chữ số trong ngày sinh đặt vào ô của nó. Ô trống là điều cần học thêm.</p>
+      <div class="grid3" id="grid3"></div>
+      <p style="margin:0;font-size:15px" id="arrow"></p>
+    </section>
+  </div>
+
+  <aside class="card bridge-card" aria-labelledby="bridge-h">
+    <div>
+      <p class="eyebrow" style="color:#EC8A74">Còn tùy lá số của bạn</p>
+      <h2 id="bridge-h">Con số nói về tính cách. Lá số cho biết năm nào bạn thuận.</h2>
+      <p>Thần số học dùng ngày sinh và tên. Lá số Tử Vi dùng thêm giờ sinh, nên cho biết từng giai đoạn mười năm và năm nay của riêng bạn.</p>
+    </div>
+    <div class="bridge-act"><a class="btn btn-primary btn-lg" href="lap-la-so.html">Lập lá số với ngày sinh này</a><span class="need">Lập lá số miễn phí, điền sẵn thông tin bạn vừa nhập.</span></div>
+  </aside>
+
+  <article class="explain">
+    <h2>Số chủ đạo được tính thế nào?</h2>
+    <p>Cộng tất cả chữ số của ngày, tháng, năm sinh, rồi cộng tiếp cho tới khi còn một chữ số. Nếu gặp 11, 22 hoặc 33 thì giữ nguyên, gọi là số bậc thầy. Ví dụ 15/06/1992: 1+5+0+6+1+9+9+2 = 33, rút gọn là 6.</p>
+    <p>Số sứ mệnh tính từ mọi chữ cái trong họ tên, số linh hồn từ các nguyên âm, số nhân cách từ các phụ âm, theo bảng A=1 đến I=9 rồi lặp lại.</p>
+  </article>
+
+  <section class="section" style="padding-top:8px">
+    <h2 class="rel-h">Công cụ khác</h2>
+    <div class="related"><a class="card" href="cong-cu-lich-am.html"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-lich-am-ngay-tot"/></svg></span>Lịch âm & ngày tốt</a><a class="card" href="cong-cu-boi-tinh-yeu.html"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-boi-tinh-yeu"/></svg></span>Bói tình yêu</a><a class="card" href="cong-cu-tu-vi-hom-nay.html"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-tu-vi-hom-nay"/></svg></span>Tử vi hôm nay</a></div>
+  </section>
+</main>
+<footer class="site-footer" id="ho-tro">
+  <div class="container">
+    <div class="foot-bottom" style="margin:0;border:0;padding:0"><span>© 2026 Lá Số Việt</span><span><a href="mailto:lasoviet.net@gmail.com" style="color:var(--text-faint)">lasoviet.net@gmail.com</a></span></div>
+  </div>
+</footer>
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
+<script>
+var MEAN = {1:"Người mở đường: tự lập, quyết đoán, thích đứng đầu.",2:"Người kết nối: nhạy cảm, khéo léo, làm tốt khi có người cùng.",3:"Người biểu đạt: vui, giỏi nói và viết, dễ tản mạn.",4:"Người xây nền: chắc chắn, kỷ luật, cần thời gian để tin.",5:"Người tự do: thích đổi mới, đi nhiều, khó chịu khi bị gò.",6:"Người chăm lo: có trách nhiệm với gia đình, hay ôm việc cho người khác.",7:"Người tìm hiểu: thích đào sâu, cần khoảng riêng, học qua trải nghiệm.",8:"Người làm chủ: giỏi tiền bạc và tổ chức, áp lực thành tích lớn.",9:"Người cho đi: bao dung, lý tưởng, dễ ôm chuyện của thiên hạ.",11:"Số bậc thầy 11: trực giác mạnh, truyền cảm hứng, dễ căng thẳng thần kinh.",22:"Số bậc thầy 22: dựng được việc lớn nếu đủ kiên nhẫn.",33:"Số bậc thầy 33: người dạy và chăm lo; cả đời học cách không ôm hết mọi việc."};
+function reduce(n){ while (n > 9 && n !== 11 && n !== 22 && n !== 33) n = String(n).split("").reduce(function(a,c){ return a + +c; }, 0); return n; }
+function letters(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toUpperCase().replace(/[^A-Z]/g, ""); }
+function val(ch){ return ((ch.charCodeAt(0) - 65) % 9) + 1; }
+function calc(){
+  var dob = document.getElementById("dob").value, name = document.getElementById("name").value;
+  var digits = dob.replace(/-/g, "").split("").map(Number);
+  var sum = digits.reduce(function(a,b){ return a + b; }, 0), lp = reduce(sum);
+  var master = (lp === 11 || lp === 22 || lp === 33);
+  document.getElementById("lpNum").innerHTML = master ? lp + '<small>/' + reduce(String(lp).split("").reduce(function(a,c){return a + +c;},0)) + '</small>' : lp;
+  document.getElementById("lpTitle").textContent = "Số chủ đạo " + lp;
+  document.getElementById("lpText").textContent = MEAN[lp];
+  var L = letters(name), V = "AEIOUY";
+  var all = reduce(L.split("").reduce(function(a,c){ return a + val(c); }, 0));
+  var soul = reduce(L.split("").filter(function(c){ return V.indexOf(c) > -1; }).reduce(function(a,c){ return a + val(c); }, 0));
+  var pers = reduce(L.split("").filter(function(c){ return V.indexOf(c) < 0; }).reduce(function(a,c){ return a + val(c); }, 0));
+  [[all,"n1","t1"],[soul,"n2","t2"],[pers,"n3","t3"]].forEach(function(r){ document.getElementById(r[1]).textContent = r[0]; document.getElementById(r[2]).textContent = MEAN[r[0]] || ""; });
+  var count = {}; digits.forEach(function(d){ if (d) count[d] = (count[d] || 0) + 1; });
+  var order = [3,6,9,2,5,8,1,4,7];
+  document.getElementById("grid3").innerHTML = order.map(function(n){ var c = count[n] || 0; return '<span class="' + (c ? "hit" : "empty") + '" aria-label="Số ' + n + ': ' + (c ? c + " lần" : "trống") + '">' + (c ? String(n).repeat(c) : n) + '</span>'; }).join("");
+  var empty = order.filter(function(n){ return !count[n]; });
+  document.getElementById("arrow").textContent = "Ô trống: " + empty.join(", ") + ".";
+}
+document.getElementById("go").addEventListener("click", calc); calc();
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Luận giải Bản mệnh của Mẫu - Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  .readbar { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; height: 3px; z-index: 60; background: transparent; }
+  .readbar i { display: block; height: 100%; width: 0; background: var(--gold-500); }
+  .r-head { padding-block: 28px 20px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; }
+  .r-head h1 { font: 600 clamp(28px, 3.6vw, 40px)/1.15 var(--font-display); color: var(--text-heading); margin: 0 0 6px; }
+  .r-head p { margin: 0; color: var(--text-muted); font-size: 15px; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tools .btn { height: 40px; padding: 0 16px; font-size: 15px; }
+  .tools .btn svg { width: 17px; height: 17px; }
+  @media (max-width: 720px) { .r-head { grid-template-columns: 1fr; } }
+
+  .resume { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 12px 16px; border-radius: 14px; border: 1px solid var(--border-soft); background: var(--surface-raised); margin-bottom: 24px; }
+  .resume p { margin: 0; font-size: 15px; }
+  .resume b { color: var(--text-heading); }
+
+  .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 40px; align-items: start; padding-bottom: 80px; }
+  .layout > * { min-width: 0; }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 88px); }
+  .toc .count { font-size: 14.5px; color: var(--text-muted); margin: 0 0 8px; }
+  .toc .count b { color: var(--text-heading); }
+  .toc .track { height: 4px; border-radius: 999px; background: var(--lacquer-900); margin-bottom: 14px; overflow: hidden; }
+  .toc .track i { display: block; height: 100%; width: 50%; background: var(--gold-500); }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .toc a { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; padding: 9px 10px; border-radius: 10px; color: var(--text-body); text-decoration: none; font-size: 15px; }
+  .toc a:hover { background: var(--surface-raised); }
+  .toc a[aria-current="true"] { background: var(--gold-soft); color: var(--gold-400); }
+  .toc .mk { width: 18px; height: 18px; border-radius: 999px; border: 1.5px solid var(--border-soft); display: grid; place-items: center; }
+  .toc .mk.done { background: #4F7A68; border-color: #4F7A68; }
+  .toc .mk.done svg { width: 12px; height: 12px; color: var(--pearl-50); }
+  .toc .mk.lock svg { width: 11px; height: 11px; color: var(--text-faint); }
+  .toc a.locked { color: var(--text-muted); }
+  .toc-btn { display: none; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { display: none; }
+    .toc-btn { display: inline-flex; }
+  }
+
+  article.read { max-width: 70ch; }
+  article.read section { padding-bottom: 36px; margin-bottom: 36px; border-bottom: 1px solid var(--border-hairline); scroll-margin-top: 90px; }
+  article.read h2 { font: 600 28px/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 6px; }
+  article.read .src { font-size: 14px; color: var(--text-muted); margin: 0 0 18px; }
+  article.read p { font-size: 18px; line-height: 1.75; margin: 0 0 16px; }
+  article.read h3 { font: 600 18px var(--font-ui); color: var(--gold-400); margin: 22px 0 8px; }
+  .star { color: var(--gold-400); border-bottom: 1px dotted var(--gold-600); cursor: help; }
+  .do { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .do li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; font-size: 17px; line-height: 1.6; }
+  .do li span { width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; background: var(--gold-soft); color: var(--gold-400); font: 600 13px var(--font-ui); }
+  .why { margin-top: 16px; border: 1px solid var(--border-soft); border-radius: 12px; padding: 0 16px; }
+  .why summary { cursor: pointer; list-style: none; padding: 12px 0; color: var(--gold-400); font-weight: 600; font-size: 15px; }
+  .why dl { margin: 0 0 14px; display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 15px; }
+  .why dt { color: var(--text-muted); } .why dd { margin: 0; }
+  @media (max-width: 520px) { .why dl { grid-template-columns: 1fr; } article.read p { font-size: 17px; } }
+
+  .upsell { border: 1px solid var(--gold-500); border-radius: 16px; padding: 22px; background: linear-gradient(160deg, rgba(201,164,77,.10), var(--surface-raised) 60%); display: grid; gap: 12px; margin-bottom: 36px; }
+  .upsell h2 { font: 600 22px/1.25 var(--font-display); color: var(--text-heading); margin: 0; }
+  .upsell p { margin: 0; font-size: 16px; }
+  .upsell .deadline { font-size: 14.5px; color: var(--text-muted); }
+  .upsell .deadline b { color: var(--gold-400); }
+  .upsell .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; max-height: 85vh; overflow: auto; background: var(--lacquer-800); border-top: 1px solid var(--border-soft); border-radius: 16px 16px 0 0; padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -12px 40px rgba(0,0,0,.5); }
+  .sheet .handle { width: 40px; height: 4px; border-radius: 999px; background: var(--border-soft); margin: 0 auto 12px; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 65; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+<div class="readbar" aria-hidden="true"><i id="rb"></i></div>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <div class="header-actions">
+      <a class="link-quiet" href="thu-vien.html">Thư viện của tôi</a>
+      <span class="tag tag-gold">60 Lá</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <p class="proto-note">Người đọc mẫu đã mua Bản mệnh (4 phần) hôm qua. Chữ là giọng văn tham khảo; bản thật sinh theo quy trình V4.</p>
+  <section class="r-head">
+    <div>
+      <h1>Luận giải Bản mệnh của Mẫu</h1>
+      <p>Nữ, sinh 15/06/1992 lúc 08:30 tại Hà Nội. Mua ngày 21/09/2026.</p>
+    </div>
+    <div class="tools">
+      <button type="button" class="btn btn-secondary toc-btn" id="openToc"><svg aria-hidden="true"><use href="#ui-menu"/></svg>Mục lục</button>
+      <a class="btn btn-secondary" href="#"><svg aria-hidden="true"><use href="#ui-download"/></svg>Tải PDF</a>
+      <a class="btn btn-secondary" href="#"><svg aria-hidden="true"><use href="#ui-share"/></svg>Chia sẻ</a>
+    </div>
+  </section>
+
+  <div class="resume" role="status">
+    <p>Bạn đang đọc dở <b>Điểm yếu cần giữ</b>.</p>
+    <a class="btn btn-primary" href="#diem-yeu" style="height:40px;font-size:15px">Đọc tiếp</a>
+  </div>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Mục lục" id="toc">
+      <p class="count">Đã đọc <b>2/4</b> phần</p>
+      <div class="track"><i></i></div>
+      <ol>
+        <li><a href="#tinh-cach"><span class="mk done"><svg aria-hidden="true"><use href="#ui-check"/></svg></span>Tính cách</a></li>
+        <li><a href="#diem-manh"><span class="mk done"><svg aria-hidden="true"><use href="#ui-check"/></svg></span>Điểm mạnh</a></li>
+        <li><a href="#diem-yeu" aria-current="true"><span class="mk"></span>Điểm yếu cần giữ</a></li>
+        <li><a href="#huong-di"><span class="mk"></span>Hướng đi hợp</a></li>
+        <li><a href="#nang-cap" class="locked"><span class="mk lock"><svg aria-hidden="true"><use href="#ui-lock"/></svg></span>Năm 2026 và đại vận</a></li>
+        <li><a href="#nang-cap" class="locked"><span class="mk lock"><svg aria-hidden="true"><use href="#ui-lock"/></svg></span>Tình duyên, tiền bạc…</a></li>
+      </ol>
+    </nav>
+
+    <article class="read" id="article">
+      <section id="tinh-cach">
+        <h2>Tính cách</h2>
+        <p class="src">Cung Mệnh tại Dần: <span class="star" title="Sao chủ về ham muốn, giao tiếp, trải nghiệm">Tham Lang</span> (Hãm), Thiên Mã</p>
+        <p>Bạn là người ham trải nghiệm, học nhanh và quen nhiều người. Ở chỗ đông người bạn tự nhiên có sức hút; ngồi một mình với một việc lặp lại thì chóng chán.</p>
+        <p><span class="star" title="Sao chủ về đi lại, thay đổi">Thiên Mã</span> đi cùng cho thấy cuộc sống của bạn nhiều chuyển động: đổi chỗ ở, đổi việc, đi xa. Đó là điểm mạnh khi có mục tiêu, và là điểm yếu khi đổi chỉ vì chán.</p>
+        <details class="why"><summary>Vì sao có nhận định này?</summary><dl><dt>Căn cứ</dt><dd>Tham Lang (Hãm) và Thiên Mã tọa Mệnh tại Dần</dd><dt>Giờ sinh</dt><dd>Không sát ranh giờ Thìn, độ tin cậy cao</dd></dl></details>
+      </section>
+
+      <section id="diem-manh">
+        <h2>Điểm mạnh</h2>
+        <p class="src">Tam hợp Mệnh, Quan Lộc, Tài Bạch</p>
+        <p>Làm việc được dưới áp lực, tự quyết nhanh, và biết biến quan hệ thành cơ hội. Thất Sát vượng ở Quan Lộc cho bạn sức bền trong công việc mà nhiều người không có.</p>
+        <h3>Dùng điểm mạnh này</h3>
+        <ul class="do"><li><span>1</span>Nhận những việc có mục tiêu rõ và thưởng theo kết quả.</li><li><span>2</span>Giữ một danh sách người quen có thể giới thiệu việc cho nhau.</li></ul>
+      </section>
+
+      <div class="upsell" id="nang-cap">
+        <h2>Năm 2026 của bạn có 2 tháng hạn</h2>
+        <p>Bản Toàn diện mở thêm 8 phần: công việc, tiền bạc, tình duyên, sức khoẻ, đại vận hiện tại, và từng tháng hạn năm nay kèm cách chuẩn bị.</p>
+        <p class="deadline">Bạn đã có Bản mệnh, nên nâng lên Toàn diện chỉ thêm <b>720 Lá</b> thay vì 960 Lá. Giá này áp dụng tới hết ngày <b>28/09/2026</b> (7 ngày sau khi mua).</p>
+        <div class="row"><a class="btn btn-primary" href="chon-luan-giai.html">Nâng lên Toàn diện</a><span class="need">Số dư: 60 Lá</span></div>
+      </div>
+
+      <section id="diem-yeu">
+        <h2>Điểm yếu cần giữ</h2>
+        <p class="src">Tham Lang hãm, Linh Tinh đồng cung, Hóa Kỵ ở Phu Thê</p>
+        <p>Dễ khởi đầu rực rỡ rồi bỏ dở khi việc thành đều đều. Linh Tinh làm bạn nóng lên nhanh và nói điều mình sẽ hối hận. Với người thân, chuyện tiền là chỗ hay va chạm nhất.</p>
+        <h3>Cách giữ</h3>
+        <ul class="do"><li><span>1</span>Trước khi bỏ một việc, viết ra ba lý do và đợi một tuần.</li><li><span>2</span>Chuyện tiền trong nhà, thống nhất bằng văn bản ai giữ khoản nào.</li></ul>
+      </section>
+
+      <section id="huong-di">
+        <h2>Hướng đi hợp</h2>
+        <p class="src">Quan Lộc tại Ngọ, Thiên Di tại Thân</p>
+        <p>Kinh doanh, bán hàng, truyền thông, và những việc cần đi lại nhiều. Nếu làm công ty, chọn vai trò được tự quyết một mảng thay vì làm theo quy trình cứng.</p>
+      </section>
+    </article>
+  </div>
+</main>
+
+<div id="tocSheet" hidden><div class="scrim" data-close></div><div class="sheet" role="dialog" aria-modal="true" aria-label="Mục lục"><div class="handle"></div><div id="sheetBody"></div><button type="button" class="btn btn-secondary" data-close style="width:100%;margin-top:12px">Đóng</button></div></div>
+
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
+<script>
+  var rb = document.getElementById("rb"), art = document.getElementById("article");
+  function onScroll(){ var r = art.getBoundingClientRect(); var p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight))); rb.style.width = (p * 100) + "%"; }
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+  var sheet = document.getElementById("tocSheet");
+  document.getElementById("openToc").addEventListener("click", function(){
+    document.getElementById("sheetBody").innerHTML = document.getElementById("toc").innerHTML; sheet.hidden = false;
+    sheet.querySelector("a").focus();
+  });
+  sheet.addEventListener("click", function(e){ if (e.target.closest("[data-close]") || e.target.closest("a")) sheet.hidden = true; });
+  addEventListener("keydown", function(e){ if (e.key === "Escape") sheet.hidden = true; });
+</script>
+</body>
+</html>

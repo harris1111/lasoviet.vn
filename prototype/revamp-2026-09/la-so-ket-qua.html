@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lá số Tử Vi của Mẫu — Lá Số Việt</title>
+<title>Lá số Tử Vi của Mẫu - Lá Số Việt</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
 <link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
@@ -164,7 +164,7 @@
   .privacy { border-top: 1px solid var(--border-hairline); padding-block: 24px; font-size: 14.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
 </style>
 </head>
-<body>
+<body class="has-bottom-bar">
 <script src="icons.js"></script>
 
 <header class="site-header">
@@ -177,7 +177,6 @@
       <a href="#ho-tro">Liên hệ</a>
     </nav>
     <div class="header-actions">
-      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
       <a class="link-quiet" href="#">Đăng nhập</a>
       <span class="tag tag-gold" title="Số dư Lá">0 Lá</span>
     </div>
@@ -292,7 +291,7 @@
           <div class="prow"><b>Lịch</b><span class="m">15/06/1992 dương lịch = 15/5 Nhâm Thân, giờ Thìn</span><span class="tag tag-quiet">Đã tính</span></div>
           <div class="prow"><b>Múi giờ</b><span class="m">Asia/Ho_Chi_Minh</span><span class="tag tag-quiet">Đã tính</span></div>
           <div class="prow"><b>Cục</b><span class="m">Mệnh Kiếm Phong Kim, Kim tứ cục</span><span class="tag tag-quiet">Đã tính</span></div>
-          <div class="prow"><b>Tứ Hóa</b><span class="m">Thiên Lương Lộc · Tử Vi Quyền · Tả Phù Khoa · Vũ Khúc Kỵ</span><span class="tag tag-quiet">Đã tính</span></div>
+          <div class="prow"><b>Tứ Hóa</b><span class="m">Thiên Lương Lộc, Tử Vi Quyền, Tả Phù Khoa, Vũ Khúc Kỵ</span><span class="tag tag-quiet">Đã tính</span></div>
           <div class="prow"><b>Độ nhạy giờ sinh</b><span class="m">Giờ sinh 08:30 nằm giữa giờ Thìn, không sát ranh</span><span class="tag tag-gold">Tin cậy cao</span></div>
         </div>
       </section>
@@ -419,7 +418,7 @@
   }).join("");
   document.getElementById("highlights").addEventListener("click", function(e){ var b = e.target.closest(".fb button"); if (!b) return; b.parentNode.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); });
 
-  // Year strip — illustrative until the yearly/monthly hạn rule set ships.
+  // Year strip - illustrative until the yearly/monthly hạn rule set ships.
   var M = ["n","g","n","n","w","n","g","n","n","w","g","n"];
   document.getElementById("months").innerHTML = M.map(function(s, i){
     var cls = s === "w" ? " warn" : s === "g" ? " good" : "";
@@ -434,7 +433,7 @@
     return '<div class="prow"><b>'+p.name+'</b><span class="m">'+(p.main.length?p.main.map(function(m){return m[0];}).join(", "):"Không có chính tinh")+' · '+p.about+'</span>'+st+'</div>';
   }).join("");
 
-  // Topics — "Công việc" first because of the wizard context answer (FD-078)
+  // Topics - "Công việc" first because of the wizard context answer (FD-078)
   var TP = [
     ["Công việc, sự nghiệp","Thất Sát ở Quan Lộc: hợp việc tự quyết, chịu áp lực tốt, nhưng dễ va với cấp trên…","Toàn diện"],
     ["Tiền bạc","Phá Quân ở Tài Bạch, cung Thân: kiếm mạnh, tiêu mạnh, cần một khoản giữ riêng…","Bản mệnh"],
@@ -459,5 +458,6 @@
   document.querySelectorAll("[data-open-tab]").forEach(function(a){ a.addEventListener("click", function(e){ e.preventDefault(); openTab(a.dataset.openTab, true); }); });
   var q = new URLSearchParams(location.search).get("tab"); if (q && document.getElementById("p-" + q)) openTab(q, false);
 </script>
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
 </body>
 </html>

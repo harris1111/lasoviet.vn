@@ -68,29 +68,30 @@ icons["xin-xam"] = ("Xin xăm", f'<g {G}><path d="M9 14.5h14l-1.3 12a1.8 1.8 0 0
 # 12. Sim phong thủy — phone with a trigram, red home dot
 icons["sim-phong-thuy"] = ("Sim phong thủy", f'<g {G}><rect x="10" y="4" width="12" height="24" rx="2.6"/><line x1="13.4" y1="11" x2="18.6" y2="11"/><line x1="13.4" y1="14.6" x2="15.2" y2="14.6"/><line x1="16.8" y1="14.6" x2="18.6" y2="14.6"/><line x1="13.4" y1="18.2" x2="18.6" y2="18.2"/></g><circle cx="16" cy="24.2" r="1.4" fill="{SON}"/>')
 
-# UI glyphs (24px grid, no seal). Messenger uses the official Meta logo image
-# (uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp), not a redrawn glyph.
-U = 'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"'
-ui = {
-  "ui-mail": '<g '+U+'><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6l8-6"/></g>',
-  "ui-calendar": '<g '+U+'><rect x="4" y="5" width="16" height="15" rx="2"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/></g>',
-  "ui-clock": '<g '+U+'><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g>',
-  "ui-user": '<g '+U+'><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4-5.3 7.5-5.3s6.3 1.7 7.5 5.3"/></g>',
-  "ui-gender": '<g '+U+'><circle cx="10" cy="14" r="5"/><path d="M13.6 10.4L19 5M15 5h4v4"/></g>',
-  "ui-arrow": '<g '+U+'><path d="M5 12h14M13 6l6 6l-6 6"/></g>',
-  "ui-chevron": '<g '+U+'><path d="M6 9l6 6l6-6"/></g>',
-  "ui-check": '<g '+U+'><path d="M5 12.5l4.5 4.5L19 7.5"/></g>',
-  "ui-lock": '<g '+U+'><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></g>',
-  "ui-search": '<g '+U+'><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></g>',
-  "ui-menu": '<g '+U+'><path d="M4 7h16M4 12h16M4 17h16"/></g>',
-  "ui-leaf": '<g '+U+'><path d="M5 19c0-8 5-13 14-14c-1 9-6 14-14 14z"/><path d="M5 19l7-7"/></g>',
+# UI glyphs: Phosphor Icons regular weight (MIT, vendored in ./phosphor with
+# its LICENSE). Only the brand tool icons above are drawn by hand (FD-094).
+# Messenger uses the official Meta logo image, not a glyph.
+PHOSPHOR = {
+  "ui-mail": "envelope-simple", "ui-calendar": "calendar-blank", "ui-clock": "clock",
+  "ui-user": "user", "ui-arrow": "arrow-right", "ui-back": "arrow-left",
+  "ui-chevron": "caret-down", "ui-check": "check", "ui-lock": "lock-simple",
+  "ui-search": "magnifying-glass", "ui-menu": "list", "ui-close": "x",
+  "ui-share": "share-network", "ui-download": "download-simple", "ui-edit": "pencil-simple",
+  "ui-bookmark": "bookmark-simple", "ui-bell": "bell", "ui-book": "book-open-text",
+  "ui-pin": "map-pin", "ui-history": "clock-counter-clockwise",
 }
+import re as _re
+ui = {}
+for key, name in PHOSPHOR.items():
+    svg = (pathlib.Path(__file__).parent / "phosphor" / f"{name}.svg").read_text(encoding="utf-8")
+    inner = _re.search(r"<svg[^>]*>(.*)</svg>", svg, _re.S).group(1)
+    ui[key] = inner
 
 symbols = ['<symbol id="logo" viewBox="0 0 100 100"><title>Lá Số Việt</title><g fill="none" stroke="#C9A44D" stroke-width="4.5" stroke-linecap="butt">    <path d="M89.27 42.37A40 40 0 1 1 10.73 42.37"/>    <path d="M28.51 16.26A40 40 0 0 1 71.49 16.26"/>    <path d="M25.21 38.25C28.45 43.06 36.58 58.47 45.51 76.79A5 5 0 0 0 54.49 76.79C63.42 58.47 71.55 43.06 74.79 38.25"/>  </g>  <g fill="#C9A44D" stroke="none">    <path d="M8.53 41.94C9.03 39.39 9.93 38.28 12.18 36.98C13.15 39.39 13.44 40.25 12.94 42.8Z"/>    <path d="M91.47 41.94C90.97 39.39 90.07 38.28 87.82 36.98C86.85 39.39 86.56 40.25 87.06 42.8Z"/>    <path d="M27.3 14.37C25.11 15.77 24.02 16.98 24.02 19.58C26.62 19.58 27.53 19.56 29.72 18.16Z"/>    <path d="M72.7 14.37C74.89 15.77 75.98 16.98 75.98 19.58C73.38 19.58 72.47 19.56 70.28 18.16Z"/>    <path d="M16.26 24.99C15.91 28.32 16.33 31.52 17.31 32.97C18.71 35.04 21.95 37.44 23.35 39.51L27.08 36.99C25.68 34.92 23.85 31.58 22.45 29.51C21.54 28.17 19.07 26.36 16.26 24.99Z"/>    <path d="M83.74 24.99C82.79 28.81 79.95 34.62 76.65 39.51L72.92 36.99C76.66 31.44 80.99 26.64 83.74 24.99Z"/>  </g>  <path fill="#CE5B45" stroke="none" d="M18.22 27.89C18.75 31.36 20.52 33.98 23.53 35.77C23 32.3 21.23 29.68 18.22 27.89Z"/></symbol>']
 for key, (title, body) in icons.items():
     symbols.append(f'<symbol id="i-{key}" viewBox="0 0 32 32"><title>{title}</title>{body}</symbol>')
 for key, body in ui.items():
-    symbols.append(f'<symbol id="{key}" viewBox="0 0 24 24">{body}</symbol>')
+    symbols.append(f'<symbol id="{key}" viewBox="0 0 256 256" fill="currentColor">{body}</symbol>')
 
 sprite = '<svg xmlns="http://www.w3.org/2000/svg" style="display:none">' + "".join(symbols) + "</svg>"
 here = pathlib.Path(__file__).parent
