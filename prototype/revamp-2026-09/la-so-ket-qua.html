@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lá số Tử Vi của Mẫu — Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  body { padding-bottom: 88px; }
+  @media (min-width: 981px) { body { padding-bottom: 0; } }
+
+  /* Compact hero */
+  .r-hero { padding-block: 28px 20px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: end; }
+  .r-hero h1 { font: 600 clamp(28px, 3.6vw, 40px)/1.15 var(--font-display); color: var(--text-heading); margin: 0 0 8px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 15px; color: var(--text-body); margin: 0; padding: 0; list-style: none; }
+  .facts li { display: inline-flex; gap: 6px; align-items: center; }
+  .facts b { color: var(--text-heading); font-weight: 500; }
+  .r-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .r-actions .btn { height: 40px; padding: 0 16px; font-size: 15px; }
+  .keep { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 14px 18px; border-radius: 14px; border: 1px dashed rgba(206,91,69,.55); background: var(--seal-soft); }
+  .keep p { margin: 0; font-size: 15px; }
+  .keep b { color: var(--text-heading); }
+  @media (max-width: 720px) { .r-hero { grid-template-columns: 1fr; } }
+
+  /* Tab bar */
+  .tabbar { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 68px); z-index: 30; background: rgba(15,13,10,.94); backdrop-filter: blur(8px); border-block: 1px solid var(--border-hairline); }
+  .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: none; height: 52px; padding: 0 18px; border: 0; background: transparent; color: var(--text-muted); font: 500 15px var(--font-ui); cursor: pointer; border-bottom: 2px solid transparent; display: inline-flex; align-items: center; gap: 8px; }
+  .tabs button[aria-selected="true"] { color: var(--text-heading); border-bottom-color: var(--son); font-weight: 600; }
+  .tabs .count { font: 600 12px/1 var(--font-ui); padding: 4px 7px; border-radius: 999px; background: var(--seal-soft); color: #EC8A74; }
+
+  /* Layout */
+  .r-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; padding-block: 24px 64px; }
+  .r-layout > * { min-width: 0; }
+  @media (max-width: 980px) { .r-layout { grid-template-columns: minmax(0, 1fr); } }
+  .panel-title { font: 600 24px/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 6px; }
+  .panel-sub { color: var(--text-muted); margin: 0 0 18px; font-size: 15px; }
+
+  /* Chart board */
+  .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(128px, auto)); gap: 4px; }
+  .palace { position: relative; text-align: left; background: var(--lacquer-900); border: 1px solid var(--border-soft); border-radius: 8px; padding: 8px 9px; color: var(--text-body); font: 400 12.5px/1.35 var(--font-ui); cursor: pointer; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .palace:hover { border-color: var(--gold-600); }
+  .palace[aria-pressed="true"] { border-color: var(--gold-400); box-shadow: 0 0 0 1px var(--gold-500) inset; }
+  .palace.is-tri { border-color: rgba(201,164,77,.55); border-style: dashed; }
+  .palace .br { font: 500 11px var(--font-mono); color: var(--text-faint); }
+  .palace .nm { font: 600 14px var(--font-ui); color: var(--text-heading); }
+  .palace .main { color: var(--gold-400); font-weight: 600; font-size: 13px; }
+  .palace .main small { color: var(--text-muted); font-weight: 400; }
+  .palace .minor { color: var(--text-muted); }
+  .palace .badges { position: absolute; top: 7px; right: 7px; display: flex; gap: 4px; }
+  .pill { font: 600 10.5px/1 var(--font-ui); padding: 3px 6px; border-radius: 999px; background: var(--gold-soft); color: var(--gold-400); }
+  .pill.seal { background: var(--son); color: var(--pearl-50); }
+  .hoa { display: inline-block; font: 600 10.5px/1 var(--font-ui); padding: 3px 5px; border-radius: 4px; margin-left: 4px; vertical-align: 1px; }
+  .hoa.loc { background: rgba(79,122,104,.3); color: #9FD1BA; } .hoa.quyen { background: rgba(206,91,69,.25); color: #F09C87; }
+  .hoa.khoa { background: rgba(88,120,170,.3); color: #A9C3EA; } .hoa.ky { background: rgba(120,90,160,.3); color: #C8B3EA; }
+  .center { grid-column: 2 / 4; grid-row: 2 / 4; border: 1px solid var(--border-hairline); border-radius: 8px; padding: 18px; display: grid; align-content: center; gap: 8px; background: radial-gradient(circle at 50% 40%, #221D16, #15120E 70%); }
+  .center h3 { font: 600 20px var(--font-display); color: var(--text-heading); margin: 0; }
+  .center dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
+  .center dt { color: var(--text-muted); } .center dd { margin: 0; color: var(--text-heading); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13.5px; color: var(--text-muted); margin-top: 12px; }
+  @media (max-width: 720px) {
+    .board { grid-template-rows: repeat(4, minmax(84px, auto)); gap: 3px; }
+    .palace { padding: 6px; font-size: 11.5px; }
+    .palace .minor { display: none; }
+    .palace .nm { font-size: 12.5px; }
+    .palace .main { font-size: 12px; }
+    .palace .badges, .palace .ts { display: none; }
+    .palace .nm { font-size: 12px; line-height: 1.2; }
+    .palace .main small { display: none; }
+    .palace .hoa { margin-left: 0; margin-top: 2px; }
+    .palace[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--son) inset; border-color: var(--son); }
+    .center { padding: 10px; gap: 4px; } .center dl { grid-template-columns: 1fr; font-size: 12px; gap: 0; } .center dt { display: none; } .center dd:nth-of-type(n+4) { display: none; } .center h3 { font-size: 15px; }
+  }
+  .detail { margin-top: 16px; }
+  .detail h3 { font: 600 20px var(--font-display); color: var(--text-heading); margin: 0 0 4px; }
+  .detail .rel { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+  .detail .rel div { border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; }
+  .detail .rel span { display: block; font: 500 11px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 4px; }
+  .detail .stars { display: flex; flex-wrap: wrap; gap: 6px; }
+  .detail .stars span { font-size: 13.5px; padding: 4px 9px; border-radius: 999px; background: var(--lacquer-900); border: 1px solid var(--border-soft); }
+  @media (max-width: 720px) { .detail .rel { grid-template-columns: 1fr; } }
+
+  /* Overview */
+  .hl { display: grid; gap: 12px; }
+  .hl article { display: grid; gap: 8px; }
+  .hl .k { font: 500 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent-gold); }
+  .hl h3 { font: 600 19px var(--font-ui); color: var(--text-heading); margin: 0; }
+  .hl p { margin: 0; font-size: 16.5px; line-height: 1.65; }
+  .why { border-top: 1px solid var(--border-hairline); padding-top: 10px; }
+  .why summary { cursor: pointer; color: var(--gold-400); font-weight: 600; font-size: 15px; list-style: none; }
+  .why dl { margin: 10px 0 0; display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 14.5px; }
+  .why dt { color: var(--text-muted); } .why dd { margin: 0; }
+  .fb { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; color: var(--text-muted); }
+  .fb button { height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-soft); background: transparent; color: var(--text-body); font: 500 14px var(--font-ui); cursor: pointer; }
+  .fb button[aria-pressed="true"] { border-color: var(--gold-500); color: var(--gold-400); background: var(--gold-soft); }
+
+  .locked { position: relative; overflow: hidden; }
+  .locked .blur { filter: blur(6px); user-select: none; pointer-events: none; color: var(--text-muted); font-size: 16px; line-height: 1.65; }
+  .locked .veil { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(180deg, rgba(34,29,22,.2), rgba(34,29,22,.92) 70%); padding: 20px; text-align: center; }
+  .locked .veil div { display: grid; gap: 10px; justify-items: center; max-width: 420px; }
+  .locked .veil p { margin: 0; color: var(--text-heading); font-weight: 600; }
+  .coverage { display: flex; align-items: center; gap: 12px; font-size: 14.5px; color: var(--text-muted); margin: 18px 0 0; }
+  .coverage .bar { flex: 1; height: 6px; border-radius: 999px; background: var(--lacquer-900); overflow: hidden; }
+  .coverage .bar i { display: block; height: 100%; width: 12%; background: var(--gold-500); }
+
+  /* Year */
+  .year-head { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; margin-bottom: 18px; }
+  .year-num { font: 600 52px/1 var(--font-display); color: var(--gold-400); }
+  .year-head p { margin: 0; }
+  .months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+  .month { height: 76px; border-radius: 10px; border: 1px solid var(--border-soft); background: var(--lacquer-900); display: grid; place-content: center; text-align: center; gap: 4px; font-size: 13px; }
+  .month b { font: 600 18px var(--font-ui); color: var(--text-heading); }
+  .month small { font-size: 11.5px; color: var(--text-faint); }
+  .month.warn { border-color: rgba(206,91,69,.7); background: rgba(206,91,69,.10); }
+  .month.warn b { filter: blur(4px); }
+  .month.good { border-color: rgba(79,122,104,.7); }
+  .month .dot { width: 8px; height: 8px; border-radius: 999px; margin: 0 auto; background: var(--border-soft); }
+  .month.warn .dot { background: var(--son); } .month.good .dot { background: #4F7A68; }
+  @media (max-width: 720px) { .months { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  .yr-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--text-muted); margin: 12px 0 18px; }
+  .yr-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin-right: 6px; vertical-align: -1px; }
+  .decade { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+
+  /* Palace list + topics */
+  .plist { display: grid; gap: 8px; }
+  .prow { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-soft); background: var(--lacquer-900); }
+  .prow b { color: var(--text-heading); }
+  .prow span.m { color: var(--text-body); font-size: 15px; }
+  @media (max-width: 600px) { .prow { grid-template-columns: 1fr auto; } .prow span.m { grid-column: 1 / -1; order: 3; } }
+  .topics { display: grid; gap: 10px; }
+  .topic { border: 1px solid var(--border-soft); border-radius: 14px; background: var(--lacquer-900); }
+  .topic summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 16px 18px; }
+  .topic summary .n { font: 600 14px var(--font-mono); color: var(--gold-500); }
+  .topic summary h3 { margin: 0; font: 600 17px var(--font-ui); color: var(--text-heading); }
+  .topic summary p { margin: 2px 0 0; font-size: 14.5px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .topic .body { padding: 0 18px 18px 58px; }
+  @media (max-width: 600px) { .topic .body { padding-left: 18px; } }
+
+  /* Right rail */
+  .rail { display: grid; gap: 12px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 136px); }
+  @media (max-width: 980px) { .rail { position: static; } }
+  .rail h2 { font: 600 13px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin: 4px 0 0; }
+  .offer { display: grid; gap: 8px; text-decoration: none; color: inherit; }
+  .offer .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .offer h3 { margin: 0; font: 600 17px var(--font-ui); color: var(--text-heading); }
+  .offer .price { font: 600 22px var(--font-display); color: var(--gold-400); }
+  .offer .price small { font: 500 13px var(--font-ui); color: var(--text-muted); }
+  .offer p { margin: 0; font-size: 14.5px; }
+  .offer.alert { border-color: rgba(206,91,69,.6); background: linear-gradient(160deg, rgba(206,91,69,.14), var(--surface-raised) 65%); }
+  .mini-links { display: grid; gap: 6px; }
+  .mini-links a { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-soft); color: var(--text-body); text-decoration: none; font-size: 15px; }
+  .mini-links svg { width: 18px; height: 18px; color: var(--gold-400); }
+
+  /* Mobile sticky buy bar */
+  .buybar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(15,13,10,.96); border-top: 1px solid var(--border-soft); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+  .buybar p { margin: 0; font-size: 14px; line-height: 1.3; }
+  .buybar b { color: #EC8A74; }
+  @media (min-width: 981px) { .buybar { display: none; } }
+
+  .privacy { border-top: 1px solid var(--border-hairline); padding-block: 24px; font-size: 14.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="trang-chu.html#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html">Công cụ miễn phí</a>
+      <a href="#">Kiến thức</a>
+      <a href="#ho-tro">Liên hệ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
+      <a class="link-quiet" href="#">Đăng nhập</a>
+      <span class="tag tag-gold" title="Số dư Lá">0 Lá</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <p class="proto-note">Bản mẫu: dữ liệu lá số lấy từ một lá số thử lập trên lasoviet.net ngày 22/9/2026. Phần "Năm nay" và "Hôm nay" dùng số minh hoạ, cần engine tính hạn theo năm và tháng (FD-089).</p>
+    <section class="r-hero">
+      <div>
+        <h1>Lá số của Mẫu</h1>
+        <ul class="facts">
+          <li>Nữ</li>
+          <li><b>15/06/1992</b> dương lịch</li>
+          <li>Giờ <b>08:30</b> (Thìn)</li>
+          <li>Hà Nội</li>
+          <li>Mệnh <b>Kiếm Phong Kim</b></li>
+        </ul>
+      </div>
+      <div class="r-actions">
+        <a class="btn btn-secondary" href="#">Sửa thông tin</a>
+        <a class="btn btn-secondary" href="#">Tải ảnh lá số</a>
+        <a class="btn btn-secondary" href="#">Chia sẻ</a>
+      </div>
+    </section>
+    <div class="keep">
+      <p><b>Lá số này tự xoá sau 24 giờ.</b> Lưu miễn phí để xem lại và nhận "Hôm nay của bạn" mỗi sáng.</p>
+      <a class="btn btn-primary" href="#">Lưu lá số</a>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="container">
+      <div class="tabs" role="tablist" aria-label="Các phần của lá số" id="tabs">
+        <button role="tab" aria-selected="true" aria-controls="p-la-so" id="t-la-so" data-tab="la-so">Lá số</button>
+        <button role="tab" aria-selected="false" aria-controls="p-tong-quan" id="t-tong-quan" data-tab="tong-quan">Tổng quan</button>
+        <button role="tab" aria-selected="false" aria-controls="p-nam-nay" id="t-nam-nay" data-tab="nam-nay">Năm nay <span class="count">2 tháng hạn</span></button>
+        <button role="tab" aria-selected="false" aria-controls="p-12-cung" id="t-12-cung" data-tab="12-cung">12 cung</button>
+        <button role="tab" aria-selected="false" aria-controls="p-chu-de" id="t-chu-de" data-tab="chu-de">Chủ đề</button>
+        <button role="tab" aria-selected="false" aria-controls="p-can-cu" id="t-can-cu" data-tab="can-cu">Căn cứ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container r-layout">
+    <div>
+      <!-- Tab: Lá số -->
+      <section class="card" role="tabpanel" id="p-la-so" aria-labelledby="t-la-so">
+        <div class="board" id="board"></div>
+        <div class="legend"><span><span class="pill">Tam hợp</span> cung hỗ trợ</span><span><span class="pill seal">Mệnh</span> cung đang xem</span><span>Chạm vào một cung để xem chi tiết</span></div>
+        <div class="detail" id="detail" aria-live="polite"></div>
+      </section>
+
+      <!-- Tab: Tổng quan -->
+      <section role="tabpanel" id="p-tong-quan" aria-labelledby="t-tong-quan" hidden>
+        <div class="card" style="margin-bottom:12px">
+          <h2 class="panel-title">Ba điểm nổi bật của bạn</h2>
+          <p class="panel-sub">Miễn phí. Mỗi điểm có nút "Vì sao?" để xem sao nào, cung nào dẫn tới.</p>
+          <p class="proto-note">Chữ mẫu theo giọng FD-089. Bản thật do AI viết từ lá số, qua bộ kiểm tra chất lượng FD-077.</p>
+          <div class="hl" id="highlights"></div>
+          <div class="coverage"><span>Bạn đã đọc 12% bản Toàn diện</span><span class="bar"><i></i></span></div>
+        </div>
+        <div class="card locked">
+          <div class="blur" aria-hidden="true">Cung Phu Thê có Vũ Khúc Hóa Kỵ đồng cung Thiên Phủ: chuyện tiền trong nhà dễ thành chuyện tình cảm. Giai đoạn 31 đến 40 tuổi là lúc…</div>
+          <div class="veil"><div><p>Còn 11 phần: tình duyên, công việc, tiền bạc, sức khoẻ, đại vận hiện tại…</p><a class="btn btn-primary" href="#">Mở Toàn diện · 960 Lá</a><a href="#" style="font-size:14.5px">Hoặc chỉ mở Bản mệnh · 240 Lá</a></div></div>
+        </div>
+      </section>
+
+      <!-- Tab: Năm nay -->
+      <section class="card" role="tabpanel" id="p-nam-nay" aria-labelledby="t-nam-nay" hidden>
+        <div class="year-head">
+          <span class="year-num">2026</span>
+          <div>
+            <h2 class="panel-title" style="margin:0">Năm Bính Ngọ của bạn</h2>
+            <p class="panel-sub" style="margin:4px 0 0">35 tuổi âm · lưu niên tại cung Quan Lộc</p>
+          </div>
+        </div>
+        <p style="font-size:17px;margin:0 0 14px">Năm nay có <b style="color:#EC8A74">2 tháng cần chú ý</b> và <b style="color:#9FD1BA">3 tháng thuận</b>. Tháng hạn rơi vào chuyện tiền bạc và giấy tờ.</p>
+        <div class="months" id="months"></div>
+        <div class="yr-legend"><span><i style="background:var(--son)"></i>Tháng hạn (mở để xem)</span><span><i style="background:#4F7A68"></i>Tháng thuận</span><span><i style="background:var(--border-soft)"></i>Bình thường</span></div>
+        <div class="card offer alert" style="box-shadow:none">
+          <div class="top"><h3>Tháng nào, chuyện gì, chuẩn bị ra sao</h3><span class="tag tag-seal">Toàn diện</span></div>
+          <p>Mở để biết đúng hai tháng hạn, việc nên tránh và cách chuẩn bị cho từng tháng.</p>
+          <a class="btn btn-seal" href="#">Mở Toàn diện · 960 Lá</a>
+        </div>
+        <div class="decade" style="margin-top:20px">
+          <span class="medallion"><svg aria-hidden="true" style="color:var(--gold-500)"><use href="#i-tu-vi-hom-nay"/></svg></span>
+          <div><b style="color:var(--text-heading)">Hôm nay của bạn</b><br><span style="font-size:15px">Ngày Kỷ Hợi chạm cung Tử Tức của bạn. Mở mỗi sáng trong gói Hội viên.</span></div>
+        </div>
+      </section>
+
+      <!-- Tab: 12 cung -->
+      <section class="card" role="tabpanel" id="p-12-cung" aria-labelledby="t-12-cung" hidden>
+        <h2 class="panel-title">12 cung</h2>
+        <p class="panel-sub">Chạm một cung để đọc. Cung Mệnh đã mở miễn phí.</p>
+        <div class="plist" id="plist"></div>
+      </section>
+
+      <!-- Tab: Chủ đề -->
+      <section class="card" role="tabpanel" id="p-chu-de" aria-labelledby="t-chu-de" hidden>
+        <h2 class="panel-title">Chủ đề</h2>
+        <p class="panel-sub">Đọc theo điều bạn đang bận tâm. Bạn chọn "Công việc, sự nghiệp" nên chủ đề này đứng đầu.</p>
+        <div class="topics" id="topics"></div>
+      </section>
+
+      <!-- Tab: Căn cứ -->
+      <section class="card" role="tabpanel" id="p-can-cu" aria-labelledby="t-can-cu" hidden>
+        <h2 class="panel-title">Căn cứ</h2>
+        <p class="panel-sub">Mọi nhận định đều đi từ các yếu tố dưới đây. Máy tính lá số trước, AI chỉ viết lại thành lời.</p>
+        <div class="plist">
+          <div class="prow"><b>Lịch</b><span class="m">15/06/1992 dương lịch = 15/5 Nhâm Thân, giờ Thìn</span><span class="tag tag-quiet">Đã tính</span></div>
+          <div class="prow"><b>Múi giờ</b><span class="m">Asia/Ho_Chi_Minh</span><span class="tag tag-quiet">Đã tính</span></div>
+          <div class="prow"><b>Cục</b><span class="m">Mệnh Kiếm Phong Kim, Kim tứ cục</span><span class="tag tag-quiet">Đã tính</span></div>
+          <div class="prow"><b>Tứ Hóa</b><span class="m">Thiên Lương Lộc · Tử Vi Quyền · Tả Phù Khoa · Vũ Khúc Kỵ</span><span class="tag tag-quiet">Đã tính</span></div>
+          <div class="prow"><b>Độ nhạy giờ sinh</b><span class="m">Giờ sinh 08:30 nằm giữa giờ Thìn, không sát ranh</span><span class="tag tag-gold">Tin cậy cao</span></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="rail" aria-label="Bước tiếp theo">
+      <h2>Bước tiếp theo</h2>
+      <a class="card offer alert" href="#" data-open-tab="nam-nay">
+        <div class="top"><h3>Năm 2026: 2 tháng hạn</h3><svg aria-hidden="true" style="width:18px;height:18px;color:#EC8A74"><use href="#ui-arrow"/></svg></div>
+        <p>Xem tháng nào và cách chuẩn bị.</p>
+      </a>
+      <a class="card offer is-featured" href="#">
+        <div class="top"><h3>Toàn diện</h3><span class="tag tag-gold">Gợi ý</span></div>
+        <span class="price">960 <small>Lá</small></span>
+        <p>Đủ 12 phần, đại vận hiện tại, từng tháng hạn năm nay. Giữ trọn đời, tải PDF.</p>
+      </a>
+      <a class="card offer" href="#">
+        <div class="top"><h3>Bản mệnh</h3></div>
+        <span class="price">240 <small>Lá</small></span>
+        <p>4 phần: tính cách, điểm mạnh, điểm yếu, hướng đi. Nâng lên Toàn diện trong 7 ngày chỉ 720 Lá.</p>
+      </a>
+      <a class="card offer" href="cong-cu-mien-phi.html#hoi-vien">
+        <div class="top"><h3>Hội viên</h3></div>
+        <span class="price">1.500 <small>Lá / tháng</small></span>
+        <p>Hôm nay của bạn mỗi sáng, nguyệt vận, giảm 20% khi mở báo cáo.</p>
+      </a>
+      <div class="mini-links">
+        <a href="#"><svg aria-hidden="true"><use href="#ui-search"/></svg>Xem bản luận giải mẫu</a>
+        <a href="#"><svg aria-hidden="true"><use href="#ui-user"/></svg>Lập lá số cho người thân</a>
+      </div>
+    </aside>
+  </div>
+
+  <div class="container privacy">
+    <span>Lá số riêng tư, không hiện trên Google.</span>
+    <a href="#" style="color:var(--text-muted)">Xoá dữ liệu lá số này</a>
+  </div>
+</main>
+
+<div class="buybar" role="region" aria-label="Mời mở luận giải">
+  <p>Năm nay có <b>2 tháng hạn</b><br>Xem tháng nào, chuẩn bị ra sao</p>
+  <a class="btn btn-primary" href="#" data-open-tab="nam-nay">Xem ngay</a>
+</div>
+
+<footer class="site-footer" id="ho-tro">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+        <div class="support-row">
+          <a class="support-pill" href="mailto:lasoviet.net@gmail.com"><svg aria-hidden="true"><use href="#ui-mail"/></svg>lasoviet.net@gmail.com</a>
+          <a class="support-pill" href="#" data-pending><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="20" height="20" alt="">Messenger</a>
+        </div>
+      </div>
+      <div><h3>Tử Vi</h3><ul><li><a href="trang-chu.html#lap-la-so">Lập lá số</a></li><li><a href="#">Bản luận giải mẫu</a></li><li><a href="cong-cu-mien-phi.html#hoi-vien">Hội viên</a></li></ul></div>
+      <div><h3>Công cụ miễn phí</h3><ul><li><a href="cong-cu-tu-vi-hom-nay.html">Tử vi hôm nay</a></li><li><a href="cong-cu-mien-phi.html">Tất cả công cụ</a></li></ul></div>
+      <div><h3>Hỗ trợ</h3><ul><li><a href="#">Câu hỏi thường gặp</a></li><li><a href="#">Quyền riêng tư</a></li></ul></div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Lá Số Việt</span><span>Nội dung mang tính tham khảo.</span></div>
+  </div>
+</footer>
+
+<script>
+  // Real chart data from the live test chart (15/06/1992 08:30, Nữ, Hà Nội).
+  // hoa: loc | quyen | khoa | ky
+  var P = {
+    "Tỵ":  { can:"Ất",   name:"Điền Trạch", main:[["Thiên Lương","Nhược","loc"]], minor:"Thiên Việt, Thiên Diêu, Thiên Vu, Thiên Đức, Phi Liêm, Kiếp Sát", ts:"Trường Sinh", about:"Nhà cửa, đất đai, tài sản tích luỹ." },
+    "Ngọ": { can:"Bính", name:"Quan Lộc",   main:[["Thất Sát","Vượng"]], minor:"Hữu Bật, Văn Xương, Hỏa Tinh, Thiên Thọ, Phong Cáo, Thiên Phúc, Âm Sát, Tấu Thư, Tai Sát, Điếu Khách", ts:"Dưỡng", about:"Công việc, sự nghiệp, vị trí xã hội." },
+    "Mùi": { can:"Đinh", name:"Nô Bộc",     main:[], minor:"Địa Không, Hồng Loan, Ân Quang, Thiên Nguyệt, Quả Tú, Thiên Thương, Tướng Quân, Thiên Sát, Bệnh Phù", ts:"Thai", about:"Bạn bè, đồng nghiệp, người làm cùng." },
+    "Thân":{ can:"Mậu",  name:"Thiên Di",   main:[["Liêm Trinh","Miếu"]], minor:"Tả Phù (Hóa Khoa), Văn Khúc, Tiểu Hao, Chỉ Bối, Tuế Kiện", ts:"Tuyệt", about:"Ra ngoài, đi xa, cách người khác nhìn bạn." },
+    "Dậu": { can:"Kỷ",   name:"Tật Ách",    main:[], minor:"Hàm Trì, Thiên Quý, Thiên Trù, Thiên Không, Phá Toái, Thiên Sứ, Thanh Long, Hối Khí", ts:"Mộ", about:"Sức khoẻ, những điều cần giữ gìn." },
+    "Tuất":{ can:"Canh", name:"Tài Bạch",   main:[["Phá Quân","Vượng"]], minor:"Đà La, Tam Thai, Thiên Tài, Đài Phụ, Thiên Quan, Tuần Không, Thiên Khốc, Lực Sỹ, Nguyệt Sát, Tang Môn", ts:"Tử", about:"Tiền bạc, cách kiếm và giữ tiền.", than:true },
+    "Hợi": { can:"Tân",  name:"Tử Tức",     main:[["Thiên Đồng","Miếu"]], minor:"Lộc Tồn, Cô Thần, Bác Sỹ, Vong Thần, Quán Tác", ts:"Bệnh", about:"Con cái, những điều bạn nuôi dưỡng." },
+    "Tý":  { can:"Nhâm", name:"Phu Thê",    main:[["Vũ Khúc","Vượng","ky"],["Thiên Phủ","Miếu"]], minor:"Kình Dương, Giải Thần, Long Trì, Quan Phủ, Tướng Tinh, Quan Phù", ts:"Suy", about:"Vợ chồng, người yêu, cách bạn gắn bó." },
+    "Sửu": { can:"Quý",  name:"Huynh Đệ",   main:[["Thái Dương","Nhược"],["Thái Âm","Miếu"]], minor:"Thiên Hỷ, Nguyệt Đức, Thiên Hình, Phục Binh, Phan Án, Tiểu Hao", ts:"Đế Vượng", about:"Anh chị em, người ngang hàng." },
+    "Dần": { can:"Nhâm", name:"Mệnh",       main:[["Tham Lang","Hãm"]], minor:"Thiên Mã, Linh Tinh, Phụng Các, Triệt Lộ, Thiên Hư, Niên Giải, Đại Hao, Tuế Dịch", ts:"Lâm Quan", about:"Tính cách nền, phong thái, hướng đi cả đời." },
+    "Mão": { can:"Quý",  name:"Phụ Mẫu",    main:[["Thiên Cơ","Vượng"],["Cự Môn","Miếu"]], minor:"Thiên Khôi, Địa Kiếp, Không Vong, Bệnh Phù, Tức Thần, Long Đức", ts:"Quan Đới", about:"Cha mẹ, cấp trên, giấy tờ." },
+    "Thìn":{ can:"Giáp", name:"Phúc Đức",   main:[["Tử Vi","Đắc","quyen"],["Thiên Tướng","Đắc"]], minor:"Bát Tọa, Hoa Cái, Phi Liêm, Hỷ Thần, Bạch Hổ", ts:"Mộc Dục", about:"Phúc phần, đời sống tinh thần, dòng họ." }
+  };
+  // Board positions: branch → [row, col]
+  var POS = { "Tỵ":[1,1],"Ngọ":[1,2],"Mùi":[1,3],"Thân":[1,4],"Thìn":[2,1],"Dậu":[2,4],"Mão":[3,1],"Tuất":[3,4],"Dần":[4,1],"Sửu":[4,2],"Tý":[4,3],"Hợi":[4,4] };
+  // Tam phương tứ chính for each branch: opposite + two trine
+  var ORDER = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
+  function rel(br){ var i = ORDER.indexOf(br); return { opp: ORDER[(i+6)%12], tri: [ORDER[(i+4)%12], ORDER[(i+8)%12]] }; }
+  var HOA = { loc:"Hóa Lộc", quyen:"Hóa Quyền", khoa:"Hóa Khoa", ky:"Hóa Kỵ" };
+  function mainHtml(p){
+    if (!p.main.length) return '<span class="minor"><i>Không có chính tinh</i></span>';
+    return p.main.map(function(m){ return '<span class="main">'+m[0]+' <small>('+m[1]+')</small>'+(m[2]?'<span class="hoa '+m[2]+'">'+HOA[m[2]].replace("Hóa ","")+'</span>':'')+'</span>'; }).join("");
+  }
+  var board = document.getElementById("board");
+  var sel = "Dần";
+  function renderBoard(){
+    var r = rel(sel), html = "";
+    ORDER.forEach(function(br){
+      var p = P[br], pos = POS[br];
+      var badges = "";
+      if (br === sel) badges += '<span class="pill seal">Đang xem</span>';
+      else if (r.tri.indexOf(br) > -1) badges += '<span class="pill">Tam hợp</span>';
+      else if (br === r.opp) badges += '<span class="pill">Đối cung</span>';
+      if (p.than) badges += '<span class="pill">Thân</span>';
+      html += '<button type="button" class="palace'+((r.tri.indexOf(br)>-1||br===r.opp)?' is-tri':'')+'" style="grid-row:'+pos[0]+';grid-column:'+pos[1]+'" aria-pressed="'+(br===sel)+'" data-br="'+br+'">'
+        + '<span class="badges">'+badges+'</span><span class="br">'+p.can+' '+br+'</span><span class="nm">'+p.name+'</span>'+mainHtml(p)+'<span class="minor">'+p.minor+'</span><span class="br ts" style="margin-top:auto">'+p.ts+'</span></button>';
+    });
+    html += '<div class="center"><h3>Mẫu · Nữ</h3><dl><dt>Dương lịch</dt><dd>15/06/1992</dd><dt>Âm lịch</dt><dd>15/5 Nhâm Thân</dd><dt>Giờ</dt><dd>Thìn (08:30)</dd><dt>Mệnh · Cục</dt><dd>Kiếm Phong Kim · Kim tứ cục</dd><dt>Thân</dt><dd>cư Tài Bạch</dd></dl></div>';
+    board.innerHTML = html;
+    var p = P[sel];
+    document.getElementById("detail").innerHTML = '<h3>Cung '+p.name+' ('+p.can+' '+sel+')</h3><p style="margin:0;color:var(--text-muted)">'+p.about+'</p>'
+      + '<div class="rel"><div><span>Chính tinh</span>'+(p.main.length?p.main.map(function(m){return m[0]+' ('+m[1]+')'+(m[2]?' · '+HOA[m[2]]:'');}).join(", "):"Không có")+'</div><div><span>Đối cung</span>Cung '+P[r.opp].name+' ('+r.opp+')</div><div><span>Tam hợp</span>Cung '+P[r.tri[0]].name+', Cung '+P[r.tri[1]].name+'</div></div>'
+      + '<div class="stars">'+p.minor.split(", ").map(function(s){return "<span>"+s+"</span>";}).join("")+'</div>';
+  }
+  board.addEventListener("click", function(e){ var b = e.target.closest(".palace"); if (!b) return; sel = b.dataset.br; renderBoard(); });
+  renderBoard();
+
+  // Highlights (voice sample, FD-089)
+  var HL = [
+    ["Cung Mệnh","Ham trải nghiệm, khó ngồi yên","Tham Lang ở Dần là người ham học, ham đi, quen nhiều người. Điểm yếu: dễ bỏ ngang khi việc thành lặp lại. Việc hợp là việc có người, có di chuyển: kinh doanh, bán hàng, truyền thông.","Tham Lang (Hãm) tọa Mệnh tại Dần; Thiên Mã đồng cung","Chính tinh thủ Mệnh và sao Mã","Không nhạy với giờ sinh trong khung giờ Thìn"],
+    ["Cung Thân","Cả đời xoay quanh chuyện tiền","Thân cư Tài Bạch với Phá Quân: kiếm được tiền nhưng tiêu cũng mạnh tay, thường phải phá đi làm lại vài lần mới giữ được. Nên tách một khoản không được đụng tới.","Cung Thân tại Tuất (Tài Bạch), Phá Quân (Vượng)","Vị trí cung Thân","Đổi nếu giờ sinh lệch sang giờ khác"],
+    ["Tứ Hóa","Tiền trong nhà dễ thành chuyện tình cảm","Vũ Khúc Hóa Kỵ nằm ở cung Phu Thê: tiền bạc là chỗ vợ chồng hay va nhau nhất. Nói rõ ai giữ tiền, ai chi khoản nào từ đầu sẽ đỡ nhiều.","Vũ Khúc Hóa Kỵ tại Phu Thê (Tý)","Tứ Hóa theo can năm Nhâm","Không nhạy với giờ sinh"]
+  ];
+  document.getElementById("highlights").innerHTML = HL.map(function(h, i){
+    return '<article class="card" style="box-shadow:none;background:var(--lacquer-900)"><span class="k">'+h[0]+'</span><h3>'+h[1]+'</h3><p>'+h[2]+'</p>'
+      + '<details class="why"'+(i===0?' open':'')+'><summary>Vì sao có nhận định này?</summary><dl><dt>Căn cứ</dt><dd>'+h[3]+'</dd><dt>Quy tắc</dt><dd>'+h[4]+'</dd><dt>Giờ sinh</dt><dd>'+h[5]+'</dd></dl></details>'
+      + '<div class="fb" role="group" aria-label="Nhận định này có đúng với bạn không?"><span>Đúng với bạn không?</span><button type="button" aria-pressed="false">Đúng</button><button type="button" aria-pressed="false">Một phần</button><button type="button" aria-pressed="false">Không đúng</button></div></article>';
+  }).join("");
+  document.getElementById("highlights").addEventListener("click", function(e){ var b = e.target.closest(".fb button"); if (!b) return; b.parentNode.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); });
+
+  // Year strip — illustrative until the yearly/monthly hạn rule set ships.
+  var M = ["n","g","n","n","w","n","g","n","n","w","g","n"];
+  document.getElementById("months").innerHTML = M.map(function(s, i){
+    var cls = s === "w" ? " warn" : s === "g" ? " good" : "";
+    var lbl = s === "w" ? "?" : (i + 1);
+    return '<div class="month'+cls+'" aria-label="'+(s === "w" ? "Tháng hạn, mở để xem" : "Tháng " + (i + 1))+'"><small>tháng</small><b>'+lbl+'</b><span class="dot"></span></div>';
+  }).join("");
+
+  // 12 palaces list
+  var LIST = ["Dần","Sửu","Tý","Hợi","Tuất","Dậu","Thân","Mùi","Ngọ","Tỵ","Thìn","Mão"];
+  document.getElementById("plist").innerHTML = LIST.map(function(br){
+    var p = P[br], st = br === "Dần" ? '<span class="tag tag-gold">Đã mở</span>' : (br === "Tý" || br === "Ngọ" || br === "Tuất") ? '<span class="tag tag-seal">Xem trước</span>' : '<span class="tag tag-quiet">Khoá</span>';
+    return '<div class="prow"><b>'+p.name+'</b><span class="m">'+(p.main.length?p.main.map(function(m){return m[0];}).join(", "):"Không có chính tinh")+' · '+p.about+'</span>'+st+'</div>';
+  }).join("");
+
+  // Topics — "Công việc" first because of the wizard context answer (FD-078)
+  var TP = [
+    ["Công việc, sự nghiệp","Thất Sát ở Quan Lộc: hợp việc tự quyết, chịu áp lực tốt, nhưng dễ va với cấp trên…","Toàn diện"],
+    ["Tiền bạc","Phá Quân ở Tài Bạch, cung Thân: kiếm mạnh, tiêu mạnh, cần một khoản giữ riêng…","Bản mệnh"],
+    ["Tình duyên, hôn nhân","Vũ Khúc Hóa Kỵ đồng cung Thiên Phủ ở Phu Thê…","Toàn diện"],
+    ["Sức khoẻ","Tật Ách không có chính tinh, mượn sao đối cung…","Toàn diện"],
+    ["Gia đạo, con cái","Thiên Đồng miếu ở Tử Tức cùng Lộc Tồn…","Toàn diện"],
+    ["Đại vận hiện tại","Mười năm đang đi qua và điều nó đòi hỏi ở bạn…","Toàn diện"]
+  ];
+  document.getElementById("topics").innerHTML = TP.map(function(t, i){
+    return '<details class="topic"><summary><span class="n">'+(i+1)+'</span><span><h3>'+t[0]+'</h3><p>'+t[1]+'</p></span><span class="tag '+(t[2]==="Bản mệnh"?"tag-gold":"tag-seal")+'">'+t[2]+'</span></summary>'
+      + '<div class="body locked"><div class="blur" aria-hidden="true">'+t[1]+' Đoạn này chỉ hiện đầy đủ sau khi mở, nội dung bị khoá không được gửi xuống máy của bạn.</div><div class="veil"><div><a class="btn btn-primary" href="#">Mở '+t[2]+' · '+(t[2]==="Bản mệnh"?"240":"960")+' Lá</a></div></div></div></details>';
+  }).join("");
+
+  // Tabs with ?tab= in the URL so refresh, back, and sign-in return keep the tab.
+  var tabs = document.getElementById("tabs");
+  function openTab(name, push){
+    tabs.querySelectorAll("[role=tab]").forEach(function(t){ var on = t.dataset.tab === name; t.setAttribute("aria-selected", on); document.getElementById(t.getAttribute("aria-controls")).hidden = !on; });
+    if (push) { try { history.replaceState(null, "", "?tab=" + name); } catch (e) {} }
+    window.scrollTo({ top: document.querySelector(".tabbar").offsetTop - 60, behavior: "smooth" });
+  }
+  tabs.addEventListener("click", function(e){ var t = e.target.closest("[role=tab]"); if (t) openTab(t.dataset.tab, true); });
+  document.querySelectorAll("[data-open-tab]").forEach(function(a){ a.addEventListener("click", function(e){ e.preventDefault(); openTab(a.dataset.openTab, true); }); });
+  var q = new URLSearchParams(location.search).get("tab"); if (q && document.getElementById("p-" + q)) openTab(q, false);
+</script>
+</body>
+</html>
