@@ -7,6 +7,9 @@ vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
+  redirect: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`);
+  }),
   usePathname: vi.fn(() => null),
   useRouter: vi.fn(() => ({
     push: vi.fn(),
@@ -301,3 +304,20 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     expect(html).not.toContain("Đăng nhập để lưu lại");
   });
 });
+
+  it("safely redirects non-canonical query params to canonical URL", async () => {
+    const chartId = "chart-test-123";
+    await expect(
+      ZiweiChartResultPage({
+        params: Promise.resolve({ chartId, locale: "vi" }),
+        searchParams: Promise.resolve({ tab: "invalid_tab" }),
+      }),
+    ).rejects.toThrow("NEXT_REDIRECT:/la-so/chart-test-123");
+
+    await expect(
+      ZiweiChartResultPage({
+        params: Promise.resolve({ chartId, locale: "vi" }),
+        searchParams: Promise.resolve({ tab: "topics", open: "career", unknown: "extra" }),
+      }),
+    ).rejects.toThrow("NEXT_REDIRECT");
+  });

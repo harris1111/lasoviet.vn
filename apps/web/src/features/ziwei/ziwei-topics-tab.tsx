@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ZIWEI_PALACE_IDS } from "@lasoviet/contracts";
@@ -32,13 +32,8 @@ export function ZiweiTopicsTab({
   const presentation = ziweiPresentation(locale);
   const isEn = locale === "en";
 
-  const [internalTopic, setInternalTopic] = useState<CanonicalTopicId | undefined>(
-    openTopicId as CanonicalTopicId | undefined,
-  );
-  const activeTopic =
-    openTopicId !== undefined
-      ? (openTopicId as CanonicalTopicId | undefined)
-      : internalTopic;
+  // Parent openTopicId is the SOLE source of truth
+  const activeTopic = openTopicId as CanonicalTopicId | undefined;
 
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -53,20 +48,21 @@ export function ZiweiTopicsTab({
       triggerRef.current = btnElement;
     }
     const next = activeTopic === topicId ? undefined : topicId;
-    setInternalTopic(next);
     onOpenTopic(next);
   }
 
   const handleCloseModal = useCallback(() => {
-    setInternalTopic(undefined);
     onOpenTopic(undefined);
     if (triggerRef.current) {
       triggerRef.current.focus();
-    } else {
-      const firstTopicBtn = document.querySelector<HTMLButtonElement>(".topic-inspect-btn");
-      firstTopicBtn?.focus();
+    } else if (activeTopic) {
+      // Focus the exact selected topic trigger for deep-link restoration
+      const triggerBtn = document.querySelector<HTMLButtonElement>(
+        `[data-topic-trigger="${activeTopic}"]`,
+      );
+      triggerBtn?.focus();
     }
-  }, [onOpenTopic]);
+  }, [activeTopic, onOpenTopic]);
 
   // Keyboard accessibility & focus trap for mobile dialog / bottom sheet
   useEffect(() => {
@@ -143,6 +139,7 @@ export function ZiweiTopicsTab({
                   <button
                     aria-expanded={isSelected}
                     className="button button-small button-pill topic-inspect-btn"
+                    data-topic-trigger={topicKey}
                     onClick={(e) => handleSelectTopic(topicKey, e.currentTarget)}
                     type="button"
                   >
@@ -151,7 +148,7 @@ export function ZiweiTopicsTab({
                 </div>
               </div>
 
-              {/* Desktop inline preview (rendered strictly on desktop viewports via CSS) */}
+              {/* Desktop inline preview (only rendered on desktop, hidden on mobile) */}
               {isSelected ? (
                 <div className="topic-desktop-inline-preview">
                   <div className="topic-preview-box">
@@ -172,7 +169,7 @@ export function ZiweiTopicsTab({
         })}
       </div>
 
-      {/* Mobile accessible dialog / bottom sheet */}
+      {/* Mobile accessible dialog / bottom sheet (strictly hidden on desktop) */}
       {activeTopic ? (
         <div
           aria-labelledby="mobile-sheet-title"

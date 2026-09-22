@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type {
@@ -52,23 +52,14 @@ export function ZiweiResultTabs({
   const t = useTranslations("ziwei");
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<ZiweiResultTab>(initialState.tab);
-  const [openId, setOpenId] = useState<string | undefined>(initialState.open);
+  // Controlled solely by parent initialState (derived from URL)
+  const activeTab = initialState.tab;
+  const openId = initialState.open;
 
   const tabListRef = useRef<HTMLDivElement>(null);
 
-  // Sync state if server initialState updates (e.g. Back/Forward button)
-  useEffect(() => {
-    queueMicrotask(() => {
-      setActiveTab(initialState.tab);
-      setOpenId(initialState.open);
-    });
-  }, [initialState.tab, initialState.open]);
-
-  // Use router.push on user interactions so browser history / Back / Forward updates state correctly
+  // Push canonical URL so browser Back/Forward updates state
   function handleTabChange(nextTab: ZiweiResultTab, nextOpen?: string) {
-    setActiveTab(nextTab);
-    setOpenId(nextOpen);
     const nextUrl = buildCanonicalTabUrl(basePath, {
       tab: nextTab,
       open: nextOpen,
@@ -223,6 +214,7 @@ export function ZiweiResultTabs({
               chartId={chartId}
               locale={locale}
               loadEvidence={loadEvidence}
+              onOpenEvidence={(evidenceSuffix) => handleTabChange("evidence", evidenceSuffix)}
               openEvidenceId={openId}
               preview={preview}
             />

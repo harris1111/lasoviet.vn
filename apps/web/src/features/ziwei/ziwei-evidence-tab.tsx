@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import type {
   NormalizedZiweiChartV1,
   ZiweiEvidenceViewV1,
@@ -13,6 +13,10 @@ import {
   ziweiPresentation,
   type ZiweiPresentationLocale,
 } from "./ziwei-presentation";
+import {
+  EVIDENCE_SUFFIX_TO_CANONICAL_ID,
+  type CanonicalEvidenceOpenId,
+} from "./ziwei-tabs-state";
 
 export type ZiweiEvidenceTabProps = {
   chart: NormalizedZiweiChartV1;
@@ -24,18 +28,8 @@ export type ZiweiEvidenceTabProps = {
   >;
   preview: FreeIdentityPreviewV1;
   openEvidenceId?: string;
-  onOpenEvidence?: (evidenceId?: string) => void;
+  onOpenEvidence: (evidenceSuffix?: string) => void;
 };
-
-// Map public URL suffix to canonical evidence ID
-export function resolveCanonicalEvidenceId(suffixId: string, preview: FreeIdentityPreviewV1): string {
-  // If suffix matches life-palace, body-palace, transformations directly or matches insight
-  const matched = preview.insights.find((ins) => {
-    const rawId = ins.evidence.evidenceId;
-    return rawId === suffixId || rawId.endsWith(`.${suffixId}`) || rawId.includes(suffixId);
-  });
-  return matched ? matched.evidence.evidenceId : (preview.insights[0]?.evidence.evidenceId || "ziwei.identity.soul");
-}
 
 export function ZiweiEvidenceTab({
   chart,
@@ -44,16 +38,13 @@ export function ZiweiEvidenceTab({
   loadEvidence,
   preview,
   openEvidenceId,
+  onOpenEvidence,
 }: ZiweiEvidenceTabProps) {
   const t = useTranslations("ziwei");
   const presentation = ziweiPresentation(locale);
 
-  // Derive exactly the 3 authorized references directly from preview.insights
+  // Exactly 3 authorized references directly from preview.insights
   const authorizedInsights = preview.insights.slice(0, 3);
-
-  // Support openEvidenceId hydration
-  const [internalEvidenceId, setInternalEvidenceId] = useState<string | undefined>(openEvidenceId);
-  const activeEvidenceId = openEvidenceId !== undefined ? openEvidenceId : internalEvidenceId;
 
   return (
     <div className="container ziwei-evidence-tab-content">
@@ -65,10 +56,19 @@ export function ZiweiEvidenceTab({
 
       <div className="evidence-cards-matrix">
         {authorizedInsights.map((insight, idx) => {
-          const canonicalEvidenceId = insight.evidence.evidenceId;
+          // Map to known suffix key
+          const suffixKey: CanonicalEvidenceOpenId =
+            idx === 0 ? "life-palace" : idx === 1 ? "body-palace" : "transformations";
+          const canonicalEvidenceId =
+            EVIDENCE_SUFFIX_TO_CANONICAL_ID[suffixKey] || insight.evidence.evidenceId;
+
+          const isCurrentlyOpen = openEvidenceId === suffixKey;
           const label = presentation.insight(insight.id);
-          const bound = insight.evidence.interpretationBounds?.join("; ") ||
-            (locale === "vi" ? "Chỉ dùng cho mục đích phản chiếu bản mệnh cá nhân." : "For personal reflective identity only.");
+          const bound =
+            insight.evidence.interpretationBounds?.join("; ") ||
+            (locale === "vi"
+              ? "Chỉ dùng cho mục đích phản chiếu bản mệnh cá nhân."
+              : "For personal reflective identity only.");
 
           return (
             <article className="evidence-matrix-card" key={insight.id}>
@@ -84,8 +84,12 @@ export function ZiweiEvidenceTab({
                   chart={chart}
                   chartId={chartId}
                   evidenceId={canonicalEvidenceId}
+                  isOpen={isCurrentlyOpen}
                   locale={locale}
                   loadEvidence={loadEvidence}
+                  onOpenChange={(open) => {
+                    onOpenEvidence(open ? suffixKey : undefined);
+                  }}
                 />
               </div>
             </article>

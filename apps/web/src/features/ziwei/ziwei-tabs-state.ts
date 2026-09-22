@@ -50,15 +50,28 @@ export const CANONICAL_EVIDENCE_OPEN_IDS = [
 
 export type CanonicalEvidenceOpenId = (typeof CANONICAL_EVIDENCE_OPEN_IDS)[number];
 
+// Bijective 1-to-1 exact closed mapping
+export const EVIDENCE_SUFFIX_TO_CANONICAL_ID: Record<CanonicalEvidenceOpenId, string> = {
+  "life-palace": "ziwei.identity.life-palace",
+  "body-palace": "ziwei.identity.body-palace",
+  transformations: "ziwei.identity.transformations",
+};
+
+export const CANONICAL_ID_TO_EVIDENCE_SUFFIX: Record<string, CanonicalEvidenceOpenId> = {
+  "ziwei.identity.life-palace": "life-palace",
+  "ziwei.identity.body-palace": "body-palace",
+  "ziwei.identity.transformations": "transformations",
+  "life-palace": "life-palace",
+  "body-palace": "body-palace",
+  transformations: "transformations",
+};
+
 export type ParsedResultTabState = {
   tab: ZiweiResultTab;
   open?: string;
 };
 
-export function parseResultTabState(searchParams?: {
-  tab?: string | string[];
-  open?: string | string[];
-}): ParsedResultTabState {
+export function parseResultTabState(searchParams?: Record<string, string | string[] | undefined>): ParsedResultTabState {
   const rawTab = Array.isArray(searchParams?.tab)
     ? searchParams?.tab[0]
     : searchParams?.tab;
@@ -100,4 +113,46 @@ export function buildCanonicalTabUrl(
   }
   const query = params.toString();
   return query ? `${basePath}?${query}` : basePath;
+}
+
+export function hasNonCanonicalQueryParams(
+  rawSearchParams: Record<string, string | string[] | undefined> | undefined,
+  canonicalState: ParsedResultTabState,
+): boolean {
+  if (!rawSearchParams) return false;
+  const keys = Object.keys(rawSearchParams);
+  if (keys.length === 0) return false;
+
+  const expectedParams = new URLSearchParams();
+  if (canonicalState.tab !== "chart") {
+    expectedParams.set("tab", canonicalState.tab);
+  }
+  if (canonicalState.open) {
+    expectedParams.set("open", canonicalState.open);
+  }
+
+  // Check if keys or values differ
+  const allowedKeys = new Set(Array.from(expectedParams.keys()));
+  for (const k of keys) {
+    if (!allowedKeys.has(k)) {
+      return true; // extraneous or invalid param present
+    }
+    const rawVal = Array.isArray(rawSearchParams[k])
+      ? rawSearchParams[k]![0]
+      : rawSearchParams[k];
+    if (rawVal !== expectedParams.get(k)) {
+      return true; // value changed or normalized
+    }
+  }
+
+  for (const [k, v] of expectedParams.entries()) {
+    const rawVal = Array.isArray(rawSearchParams[k])
+      ? rawSearchParams[k]![0]
+      : rawSearchParams[k];
+    if (rawVal !== v) {
+      return true;
+    }
+  }
+
+  return false;
 }

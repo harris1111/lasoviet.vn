@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import type { NormalizedZiweiChartV1 } from "@lasoviet/contracts";
 import { useTranslations } from "next-intl";
 
@@ -30,13 +30,11 @@ export function ZiweiPalacesTab({
   const isBodyPalace = (id: string) => id === chart.bodyPalaceId;
   const isPreviewEligible = (id: string) => isSoulPalace(id) || isBodyPalace(id);
 
-  // Controlled or synced open state
-  const [internalOpen, setInternalOpen] = useState<string | undefined>(openPalaceId);
-  const activePalaceSuffix = openPalaceId !== undefined ? openPalaceId : internalOpen;
+  // Parent openPalaceId is the SOLE source of truth
+  const activePalaceSuffix = openPalaceId;
 
   function handleSelectPalace(suffix: string) {
     const next = activePalaceSuffix === suffix ? undefined : suffix;
-    setInternalOpen(next);
     onOpenPalace(next);
   }
 

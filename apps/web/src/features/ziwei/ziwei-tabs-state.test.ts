@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   parseResultTabState,
   buildCanonicalTabUrl,
+  hasNonCanonicalQueryParams,
   CANONICAL_RESULT_TABS,
   CANONICAL_TAB_PALACE_IDS,
   CANONICAL_TOPIC_IDS,
   CANONICAL_EVIDENCE_OPEN_IDS,
+  EVIDENCE_SUFFIX_TO_CANONICAL_ID,
+  CANONICAL_ID_TO_EVIDENCE_SUFFIX,
 } from "./ziwei-tabs-state";
 
 describe("Ziwei result tabs state parsing & canonical URL building", () => {
@@ -64,5 +67,34 @@ describe("Ziwei result tabs state parsing & canonical URL building", () => {
     expect(buildCanonicalTabUrl("/la-so/123", { tab: "topics", open: "career" })).toBe(
       "/la-so/123?tab=topics&open=career",
     );
+  });
+
+  it("verifies exact bijective mapping between evidence suffix and canonical ID", () => {
+    expect(EVIDENCE_SUFFIX_TO_CANONICAL_ID["life-palace"]).toBe("ziwei.identity.life-palace");
+    expect(EVIDENCE_SUFFIX_TO_CANONICAL_ID["body-palace"]).toBe("ziwei.identity.body-palace");
+    expect(EVIDENCE_SUFFIX_TO_CANONICAL_ID["transformations"]).toBe("ziwei.identity.transformations");
+
+    expect(CANONICAL_ID_TO_EVIDENCE_SUFFIX["ziwei.identity.life-palace"]).toBe("life-palace");
+    expect(CANONICAL_ID_TO_EVIDENCE_SUFFIX["ziwei.identity.body-palace"]).toBe("body-palace");
+    expect(CANONICAL_ID_TO_EVIDENCE_SUFFIX["ziwei.identity.transformations"]).toBe("transformations");
+  });
+
+  it("detects non-canonical query params accurately", () => {
+    // Exact canonical: no divergence
+    expect(hasNonCanonicalQueryParams(undefined, { tab: "chart" })).toBe(false);
+    expect(hasNonCanonicalQueryParams({}, { tab: "chart" })).toBe(false);
+    expect(hasNonCanonicalQueryParams({ tab: "topics", open: "career" }, { tab: "topics", open: "career" })).toBe(false);
+
+    // Divergence: invalid tab
+    expect(hasNonCanonicalQueryParams({ tab: "invalid" }, { tab: "chart" })).toBe(true);
+
+    // Divergence: unknown extra param
+    expect(hasNonCanonicalQueryParams({ tab: "topics", open: "career", foo: "bar" }, { tab: "topics", open: "career" })).toBe(true);
+
+    // Divergence: redundant tab=chart
+    expect(hasNonCanonicalQueryParams({ tab: "chart" }, { tab: "chart" })).toBe(true);
+
+    // Divergence: open on chart tab
+    expect(hasNonCanonicalQueryParams({ open: "career" }, { tab: "chart" })).toBe(true);
   });
 });

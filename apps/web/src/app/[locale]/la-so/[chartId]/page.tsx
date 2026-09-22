@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
 import { SiteHeader } from "../../../../components/site-header";
@@ -14,6 +14,7 @@ import { ZiweiResultTabs } from "../../../../features/ziwei/ziwei-result-tabs";
 import {
   parseResultTabState,
   buildCanonicalTabUrl,
+  hasNonCanonicalQueryParams,
 } from "../../../../features/ziwei/ziwei-tabs-state";
 
 export const metadata: Metadata = {
@@ -35,11 +36,21 @@ export default async function ZiweiChartResultPage({
   searchParams,
 }: {
   params: Promise<{ chartId: string; locale: string }>;
-  searchParams?: Promise<{ tab?: string | string[]; open?: string | string[] }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { chartId, locale: requestedLocale } = await params;
   const rawSearchParams = searchParams ? await searchParams : undefined;
   const locale = requestedLocale === "en" ? "en" : "vi";
+
+  // Canonicalize tab and open state via allowlist
+  const tabState = parseResultTabState(rawSearchParams);
+  const currentChartPath = localizedChartPath(locale, chartId);
+  const canonicalChartUrl = buildCanonicalTabUrl(currentChartPath, tabState);
+
+  // If incoming query parameters differ from canonical URL, safely redirect to canonical URL
+  if (hasNonCanonicalQueryParams(rawSearchParams, tabState)) {
+    redirect(canonicalChartUrl);
+  }
 
   const [chartResult, previewResult, actor, t] = await Promise.all([
     loadZiweiChart.loadChart(chartId),
@@ -49,10 +60,6 @@ export default async function ZiweiChartResultPage({
   ]);
   if (!chartResult.ok || !previewResult.ok) notFound();
 
-  // Canonicalize tab and open state via allowlist
-  const tabState = parseResultTabState(rawSearchParams);
-  const currentChartPath = localizedChartPath(locale, chartId);
-  const canonicalChartUrl = buildCanonicalTabUrl(currentChartPath, tabState);
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
 
   const displayName = chartResult.value.birthSummary.displayName;

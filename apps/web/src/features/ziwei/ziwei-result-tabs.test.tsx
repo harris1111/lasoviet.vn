@@ -323,3 +323,46 @@ describe("Overview tab effective typography & styling contracts", () => {
     expect(resultsCss).toContain("line-height: 1.7");
   });
 });
+
+describe("Mobile tab edge fade & modal exclusivity contract", () => {
+  it("enforces mobile fade gradient and viewport exclusivity in discipline-pages-results.css", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const css = fs.readFileSync(
+      path.resolve(process.cwd(), "apps/web/src/styles/discipline-pages-results.css"),
+      "utf8",
+    );
+
+    // Tab edge fade gradient
+    expect(css).toContain("linear-gradient(to right, transparent, var(--lacquer-800))");
+
+    // Modal exclusivity
+    expect(css).toContain(".topic-mobile-sheet-overlay {\n    display: none !important;\n  }");
+    expect(css).toContain(".topic-desktop-inline-preview {\n    display: none !important;\n  }");
+  });
+});
+
+describe("Locked narrative sentinel non-leakage", () => {
+  it("verifies full locked plaintext, 'Đã đọc', or Lá currency never exists in static render or props", () => {
+    const html = renderToStaticMarkup(
+      createElement(ZiweiResultTabs, {
+        basePath: "/la-so/chart-test-123",
+        birthSummary: mockBirthSummary,
+        chart: mockChart,
+        chartId: "chart-test-123",
+        displayName: "Nguyen Van A",
+        initialState: { tab: "topics" },
+        locale: "vi",
+        loadEvidence: mockLoadEvidence,
+        preview: mockPreview,
+      }),
+    );
+
+    // Sentinel checks
+    expect(html).not.toContain("Đã đọc");
+    expect(html).not.toContain("0/12");
+    expect(html).not.toMatch(/\d+\s*Lá/);
+    expect(html).not.toContain("nạp Lá");
+    expect(html).not.toContain("khoá luận giải");
+  });
+});

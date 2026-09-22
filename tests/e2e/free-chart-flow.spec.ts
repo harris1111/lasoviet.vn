@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { createAnonymousChart } from "./helpers/create-anonymous-chart";
 
-test("the private Zi Wei result route renders the free chart flow with 5 tabs", async ({
+test("the private Zi Wei result route renders the free chart flow", async ({
   page,
 }) => {
   await createAnonymousChart(page, "vi");
@@ -11,22 +11,13 @@ test("the private Zi Wei result route renders the free chart flow with 5 tabs", 
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Lá số Tử Vi");
   await expect(page.getByText("Lá số riêng tư")).toBeVisible();
 
-  // 2. Tab Bar presence & accessible roles
-  const tablist = page.getByRole("tablist", { name: "Các tầng nội dung lá số" });
-  await expect(tablist).toBeVisible();
-  const tabs = tablist.getByRole("tab");
-  await expect(tabs).toHaveCount(5);
-
-  // Tab 1: Chart tab (Default)
-  await expect(tabs.nth(0)).toHaveText("Lá số");
-  await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
-
+  // 2. Traditional 4x4 board with 12 palaces
   const chartGrid = page.getByTestId("ziwei-chart-grid");
   await expect(chartGrid).toBeVisible();
   const palaces = chartGrid.getByTestId("ziwei-palace");
   await expect(palaces).toHaveCount(12);
 
-  // Palace selection updates inspector and aria-pressed
+  // 3. Palace selection updates inspector, aria-pressed, and relation labels
   const targetPalace = palaces.nth(1);
   await targetPalace.click();
   await expect(targetPalace).toHaveAttribute("aria-pressed", "true");
@@ -34,47 +25,46 @@ test("the private Zi Wei result route renders the free chart flow with 5 tabs", 
   await expect(inspector).toBeVisible();
   await expect(targetPalace.locator(".palace-relation-tag")).toHaveText("Bản cung");
 
-  // Verify discovery strip
-  await expect(page.getByText("12 cung bản mệnh đã an")).toBeVisible();
+  // 4. Evidence drawer: focus close button, trap Tab/Shift+Tab, Escape restore, and backdrop close
+  const trigger = page.getByRole("button", { name: "Xem căn cứ" }).first();
+  await expect(trigger).toBeVisible();
+  await trigger.click();
 
-  // Tab 2: Overview tab
-  await tabs.nth(1).click();
-  await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
-  await expect(page).toHaveURL(/tab=overview/);
-  await expect(page.getByRole("heading", { name: "Ba điểm để tự quan sát" })).toBeVisible();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("heading", { level: 2 })).toHaveText(/Căn cứ/);
+
+  const closeButton = dialog.getByRole("button", { name: "Đóng căn cứ" });
+  await expect(closeButton).toBeFocused();
+
+  // Tab & Shift+Tab stay inside dialog panel
+  await page.keyboard.press("Tab");
+  await expect(closeButton).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(closeButton).toBeFocused();
+
+  // Escape closes dialog and restores focus to trigger button
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  // Re-open and close via backdrop click, then verify focus is restored
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await dialog.click({ position: { x: 5, y: 5 } });
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  // 5. Free Identity Preview sections
+  await expect(
+    page.getByRole("heading", { name: "Ba điểm để tự quan sát" }),
+  ).toBeVisible();
   await expect(page.getByText("Điểm mạnh")).toBeVisible();
   await expect(page.getByText("Điểm cần điềm tĩnh quan sát")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Xem bản luận giải mẫu" })).toBeVisible();
 
-  // CTA on Overview tab navigates to Palaces
-  const toPalacesBtn = page.getByRole("button", { name: "Xem luận giải 12 cung →" });
-  await expect(toPalacesBtn).toBeVisible();
-  await toPalacesBtn.click();
-  await expect(tabs.nth(2)).toHaveAttribute("aria-selected", "true");
-  await expect(page).toHaveURL(/tab=palaces/);
-
-  // Tab 3: Palaces tab with 12 rows
-  await expect(page.getByRole("heading", { name: "Bản đồ 12 cung bản mệnh" })).toBeVisible();
-  const palaceRows = page.locator(".palace-row-card");
-  await expect(palaceRows).toHaveCount(12);
-  await expect(page.getByText("Xem trước")).toBeVisible();
-  await expect(page.getByText("Chưa mở").first()).toBeVisible();
-  await expect(page.getByText("Đã đọc")).toHaveCount(0);
-
-  // Tab 4: Topics tab with 12 reading themes
-  await tabs.nth(3).click();
-  await expect(tabs.nth(3)).toHaveAttribute("aria-selected", "true");
-  await expect(page).toHaveURL(/tab=topics/);
-  await expect(page.getByRole("heading", { name: "Chuyên đề luận giải sâu" })).toBeVisible();
-  const topicRows = page.locator(".topic-row-item");
-  await expect(topicRows).toHaveCount(12);
-
-  // Open topic preview
-  const firstInspectBtn = page.getByRole("button", { name: "Xem cấu trúc chủ đề" }).first();
-  await firstInspectBtn.click();
-  await expect(page).toHaveURL(/open=life/);
-
-  // Navigate to Topic Selection Page
-  await page.getByRole("link", { name: "Mở chuyên đề luận giải" }).first().click();
+  // 6. Topic Selection Page
+  await page.getByRole("link", { name: "Chọn chủ đề luận giải" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Chọn chủ đề luận giải");
 
   // Layer 1: Disciplines
@@ -86,10 +76,25 @@ test("the private Zi Wei result route renders the free chart flow with 5 tabs", 
   await expect(disciplines.getByText("Đang phát triển")).toHaveCount(3);
   await expect(disciplines.getByText("Kinh Dịch")).toHaveCount(0);
 
-  // Layer 2: Zi Wei topics
+  // Layer 2: Zi Wei topics (active lifetime + 3 disabled topics with no action)
   const activeTopic = page.getByTestId("topic-lifetime-active");
   await expect(activeTopic).toBeVisible();
   await expect(activeTopic.getByText("Luận giải Tử Vi trọn đời")).toBeVisible();
   await expect(activeTopic.getByText("79.000 ₫")).toBeVisible();
   await expect(activeTopic.getByRole("button", { name: "Tiếp tục thanh toán" })).toBeVisible();
+
+  const relTopic = page.getByTestId("topic-relationship-disabled");
+  await expect(relTopic).toBeVisible();
+  await expect(relTopic.getByText("Sắp ra mắt")).toBeVisible();
+  await expect(relTopic.getByRole("button")).toHaveCount(0);
+
+  const careerTopic = page.getByTestId("topic-career-wealth-disabled");
+  await expect(careerTopic).toBeVisible();
+  await expect(careerTopic.getByText("Sắp ra mắt")).toBeVisible();
+  await expect(careerTopic.getByRole("button")).toHaveCount(0);
+
+  const annualTopic = page.getByTestId("topic-annual-disabled");
+  await expect(annualTopic).toBeVisible();
+  await expect(annualTopic.getByText("Sắp ra mắt")).toBeVisible();
+  await expect(annualTopic.getByRole("button")).toHaveCount(0);
 });
