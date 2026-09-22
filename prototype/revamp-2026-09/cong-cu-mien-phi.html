@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Công cụ miễn phí: tử vi hôm nay, lịch âm, thần số học — Lá Số Việt</title>
+<meta name="description" content="12 công cụ miễn phí của Lá Số Việt: tử vi hôm nay 12 con giáp, lịch âm và ngày tốt, thần số học, bói tình yêu, giải mã giấc mơ, gieo quẻ, rút bài và nhiều hơn.">
+<meta name="robots" content="noindex, follow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  .hub-hero { padding-block: 56px 32px; }
+  .hub-hero h1 { font: 600 clamp(32px, 4.6vw, 52px)/1.1 var(--font-display); color: var(--text-heading); margin: 0 0 14px; text-wrap: balance; }
+  .hub-hero p.lede { font-size: 18px; color: var(--text-body); max-width: 600px; margin: 0; }
+  .hub-hero .wrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: end; }
+  .today-strip { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+  .today-strip .date { font: 600 44px/1 var(--font-display); color: var(--gold-400); font-variant-numeric: tabular-nums; }
+  .today-strip dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14.5px; }
+  .today-strip dt { color: var(--text-muted); }
+  .today-strip dd { margin: 0; color: var(--text-heading); }
+  @media (max-width: 860px) { .hub-hero .wrap { grid-template-columns: 1fr; } }
+
+  .filters { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; margin-bottom: 20px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
+  .filters::-webkit-scrollbar { display: none; }
+
+  .tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 980px) { .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .tools { grid-template-columns: 1fr; } }
+  .tool { display: grid; grid-template-columns: auto 1fr; gap: 16px; text-decoration: none; color: inherit; transition: border-color 120ms ease, background 120ms ease; }
+  .tool:hover { border-color: var(--gold-600); background: var(--surface-raised-2); }
+  .tool h3 { font: 600 19px/1.3 var(--font-ui); color: var(--text-heading); margin: 2px 0 6px; }
+  .tool p { margin: 0 0 12px; font-size: 15px; color: var(--text-body); }
+  .tool .foot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .tool .go { color: var(--gold-400); display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 15px; }
+  .tool .go svg { width: 16px; height: 16px; }
+  .tool .medallion { color: var(--gold-500); }
+  .tool[data-soon] { opacity: .8; }
+  .tool[data-soon] .go { color: var(--text-muted); }
+
+  .bridge { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; border-color: rgba(206,91,69,.5); background: linear-gradient(135deg, rgba(206,91,69,.10), rgba(34,29,22,1) 55%); }
+  .bridge h2 { font: 600 clamp(24px, 3vw, 32px)/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 10px; text-wrap: balance; }
+  .bridge p { margin: 0 0 8px; }
+  @media (max-width: 860px) { .bridge { grid-template-columns: 1fr; } }
+
+  .members { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 880px; margin: 0 auto; }
+  @media (max-width: 720px) { .members { grid-template-columns: 1fr; } .members .is-featured { order: -1; } }
+  .plan h3 { font: 600 20px/1.2 var(--font-ui); color: var(--text-heading); margin: 0; }
+  .plan .price { font: 600 40px/1 var(--font-display); color: var(--gold-400); margin: 14px 0 4px; font-variant-numeric: tabular-nums; }
+  .plan .price small { font: 500 16px var(--font-ui); color: var(--text-muted); }
+  .plan .sub { color: var(--text-muted); font-size: 14.5px; margin: 0 0 16px; }
+  .plan ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+  .plan li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 15px; }
+  .plan li svg { width: 20px; height: 20px; color: #7FB39C; }
+  .plan li.no svg { color: var(--text-faint); }
+  .plan .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+  .faq { max-width: 760px; margin: 0 auto; display: grid; gap: 10px; }
+  .faq details { background: var(--surface-raised); border: 1px solid var(--border-soft); border-radius: 16px; padding: 0 20px; }
+  .faq summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 600; color: var(--text-heading); display: flex; justify-content: space-between; gap: 16px; }
+  .faq summary::after { content: "+"; color: var(--gold-400); font-size: 22px; line-height: 1; }
+  .faq details[open] summary::after { content: "×"; }
+  .faq details p { margin: 0 0 18px; color: var(--text-body); }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="trang-chu.html#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html" aria-current="page">Công cụ miễn phí</a>
+      <a href="#">Kiến thức</a>
+      <a href="#ho-tro">Liên hệ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
+      <a class="link-quiet" href="#">Đăng nhập</a>
+      <a class="btn btn-primary" href="trang-chu.html#lap-la-so">Lập lá số</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hub-hero texture">
+    <div class="container wrap">
+      <div>
+        <p class="eyebrow">Công cụ miễn phí</p>
+        <h1>Tra nhanh hôm nay, ngày tốt, con số, giấc mơ</h1>
+        <p class="lede">Mười hai công cụ, không cần tài khoản. Mỗi công cụ ghi rõ bạn cần nhập gì.</p>
+      </div>
+      <div class="card today-strip" aria-label="Hôm nay">
+        <span class="date">22</span>
+        <dl>
+          <dt>Dương lịch</dt><dd>Thứ Ba, 22/9/2026</dd>
+          <dt>Âm lịch</dt><dd>12/8 Bính Ngọ · ngày Kỷ Hợi</dd>
+          <dt>Tiết khí</dt><dd>Bạch Lộ</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:40px">
+    <div class="container">
+      <div class="filters" role="toolbar" aria-label="Lọc theo nhu cầu" id="filters">
+        <button class="chip" aria-pressed="true" data-need="all">Tất cả</button>
+        <button class="chip" aria-pressed="false" data-need="today">Hôm nay</button>
+        <button class="chip" aria-pressed="false" data-need="love">Tình duyên</button>
+        <button class="chip" aria-pressed="false" data-need="days">Lịch & ngày tốt</button>
+        <button class="chip" aria-pressed="false" data-need="ask">Hỏi một việc</button>
+        <button class="chip" aria-pressed="false" data-need="numbers">Con số & mệnh</button>
+        <button class="chip" aria-pressed="false" data-need="signs">Giấc mơ & điềm</button>
+      </div>
+      <div class="tools" id="tools"></div>
+      <p class="proto-note">Prototype: "Sắp có" = đợt 3B, trang để noindex tới khi công cụ chạy thật (docs/23, FD-090).</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="card bridge">
+        <div>
+          <p class="eyebrow" style="color:#EC8A74">Còn tùy lá số của bạn</p>
+          <h2>Công cụ nói chung cho cả tuổi. Lá số nói riêng cho bạn.</h2>
+          <p>Hai người cùng tuổi Thân vẫn có hôm nay rất khác nhau. Lá số Tử Vi đủ giờ sinh cho biết năm nay của bạn có tháng nào cần chú ý.</p>
+          <p class="need">Miễn phí · Không cần tài khoản · Riêng tư theo mặc định</p>
+        </div>
+        <form class="form-grid" action="trang-chu.html#lap-la-so" aria-label="Lập lá số nhanh">
+          <div class="form-row-3">
+            <label class="field"><span class="sr-only">Ngày sinh</span><select id="bridge-day"><option>Ngày</option></select></label>
+            <label class="field"><span class="sr-only">Tháng sinh</span><select id="bridge-month"><option>Tháng</option></select></label>
+            <label class="field"><span class="sr-only">Năm sinh</span><select id="bridge-year"><option>Năm</option></select></label>
+          </div>
+          <label class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-clock"/></svg></span><span class="sr-only">Giờ sinh</span><select id="bridge-hour"><option>Giờ sinh (12 canh)</option><option>Không rõ giờ sinh</option></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+          <button class="btn btn-primary btn-lg" type="submit">Xem lá số của tôi <svg aria-hidden="true"><use href="#ui-arrow"/></svg></button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="section texture" id="hoi-vien">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Hội viên</p>
+        <h2>Mỗi ngày một bản tử vi theo lá số của bạn</h2>
+        <p>Trả bằng Lá trong ví. Không tự gia hạn.</p>
+      </div>
+      <div class="members">
+        <article class="card plan">
+          <div class="top"><h3>Hội viên tháng</h3></div>
+          <p class="price">1.500 <small>Lá</small></p>
+          <p class="sub">30 ngày</p>
+          <a class="btn btn-secondary btn-block-m" href="#">Mở Hội viên tháng</a>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Hôm nay của bạn, đối chiếu với lá số</li>
+            <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Luận giải từng tháng (nguyệt vận)</li>
+            <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Bản theo lá số của mọi công cụ</li>
+            <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Giảm 20% khi mở bản luận giải</li>
+            <li class="no"><svg aria-hidden="true"><use href="#ui-lock"/></svg>Bản Toàn diện mua riêng, giữ trọn đời</li>
+          </ul>
+        </article>
+        <article class="card plan is-featured">
+          <div class="top"><h3>Hội viên năm</h3><span class="tag tag-gold">Gợi ý</span></div>
+          <p class="price">8.000 <small>Lá</small></p>
+          <p class="sub">365 ngày · rẻ hơn 56% so với 12 lần gói tháng</p>
+          <a class="btn btn-primary btn-block-m" href="#">Mở Hội viên năm</a>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Mọi quyền lợi của gói tháng, trọn 12 tháng</li>
+            <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Luận giải 12 tháng của năm</li>
+            <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Giảm 20% khi mở bản luận giải</li>
+            <li class="no"><svg aria-hidden="true"><use href="#ui-lock"/></svg>Bản Toàn diện mua riêng, giữ trọn đời</li>
+          </ul>
+        </article>
+      </div>
+      <p class="proto-note" style="display:block;max-width:880px;margin:16px auto 0">FD-093. Không hiện tiền đồng ở đây (FD-065). Khi thiếu Lá, nút tự chọn gói nạp nhỏ nhất đủ tiền: tháng → Khám Phá 249k (3.000 Lá), năm → Tàng Thư 599k (8.000 Lá).</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head"><h2>Câu hỏi thường gặp</h2></div>
+      <div class="faq">
+        <details open><summary>Các công cụ này có mất phí không?</summary><p>Không. Mọi công cụ đều miễn phí và không cần tài khoản. Bản đối chiếu theo lá số riêng của bạn nằm trong gói Hội viên.</p></details>
+        <details><summary>Công cụ khác lá số Tử Vi ở đâu?</summary><p>Công cụ tính theo con giáp, ngày hoặc tên nên giống nhau cho nhiều người. Lá số dùng cả giờ sinh nên là của riêng bạn.</p></details>
+        <details><summary>Lá là gì, có hết hạn không?</summary><p>Lá là đơn vị dùng để mở nội dung trên Lá Số Việt. Lá đã nạp không hết hạn.</p></details>
+        <details><summary>Hội viên có tự gia hạn không?</summary><p>Không. Hết hạn thì gói dừng, bạn tự quyết có mở tiếp hay không.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer" id="ho-tro">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+        <p style="color:var(--text-muted);max-width:320px">Lập lá số Tử Vi và luận giải bằng tiếng Việt dễ hiểu.</p>
+        <div class="support-row">
+          <a class="support-pill" href="mailto:lasoviet.net@gmail.com"><svg aria-hidden="true"><use href="#ui-mail"/></svg>lasoviet.net@gmail.com</a>
+          <a class="support-pill" href="#" data-pending><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="20" height="20" alt="">Messenger</a>
+        </div>
+      </div>
+      <div><h3>Tử Vi</h3><ul><li><a href="trang-chu.html#lap-la-so">Lập lá số</a></li><li><a href="#">Bản luận giải mẫu</a></li><li><a href="#hoi-vien">Hội viên</a></li><li><a href="#">Nạp Lá</a></li></ul></div>
+      <div><h3>Công cụ miễn phí</h3><ul><li><a href="cong-cu-tu-vi-hom-nay.html">Tử vi hôm nay</a></li><li><a href="#">Lịch âm & ngày tốt</a></li><li><a href="#">Thần số học</a></li><li><a href="#">Bói tình yêu</a></li><li><a href="#">Giải mã giấc mơ</a></li></ul></div>
+      <div><h3>Hỗ trợ</h3><ul><li><a href="#">Câu hỏi thường gặp</a></li><li><a href="#">Điều khoản</a></li><li><a href="#">Quyền riêng tư</a></li><li><a href="#">Chính sách thanh toán</a></li></ul></div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Lá Số Việt</span><span>Nội dung mang tính tham khảo.</span></div>
+  </div>
+</footer>
+
+<script>
+  var TOOLS = [
+    {k:"tu-vi-hom-nay", name:"Tử vi hôm nay", d:"12 con giáp hôm nay: công việc, tiền bạc, tình cảm, việc nên và kiêng.", need:"Chỉ cần con giáp", tags:["today"], href:"cong-cu-tu-vi-hom-nay.html"},
+    {k:"lich-am-ngay-tot", name:"Lịch âm & ngày tốt", d:"Ngày âm, can chi, giờ hoàng đạo và ngày tốt cho cưới hỏi, khai trương, chuyển nhà.", need:"Không cần nhập gì", tags:["days","today"]},
+    {k:"than-so-hoc", name:"Thần số học", d:"Con số chủ đạo, chỉ số sứ mệnh, linh hồn và biểu đồ ngày sinh.", need:"Ngày sinh + họ tên", tags:["numbers"]},
+    {k:"boi-tinh-yeu", name:"Bói tình yêu", d:"Hai người hợp nhau ở đâu, dễ va chạm ở đâu, xem theo tên và ngày sinh.", need:"Tên + ngày sinh hai người", tags:["love"]},
+    {k:"giai-ma-giac-mo", name:"Giải mã giấc mơ", d:"Mơ thấy rắn, nước, tiền, người cũ… nghĩa dân gian và cách hiểu hôm nay.", need:"Điều bạn mơ thấy", tags:["signs"]},
+    {k:"gieo-que", name:"Gieo quẻ Kinh Dịch", d:"Hỏi một việc, gieo ba đồng xu sáu lần, đọc quẻ chủ và hào động.", need:"Một câu hỏi", tags:["ask"], soon:true},
+    {k:"rut-bai", name:"Rút bài mỗi ngày", d:"Rút một lá cho hôm nay, đọc nghĩa và điều nên để ý.", need:"Không cần nhập gì", tags:["today","ask"], soon:true},
+    {k:"hat-xi-may-mat", name:"Hắt xì hơi, máy mắt", d:"Tra điềm theo giờ: hắt xì hơi, máy mắt trái, máy mắt phải.", need:"Giờ hiện tại", tags:["signs"], soon:true},
+    {k:"con-so-may-man", name:"Con số may mắn", d:"Những con số hợp với ngày sinh của bạn, dùng khi chọn số nhà, số xe.", need:"Ngày sinh", tags:["numbers"], soon:true},
+    {k:"menh-ngu-hanh", name:"Tuổi gì, mệnh gì", d:"Năm sinh thuộc con giáp nào, mệnh gì, màu và hướng hợp.", need:"Năm sinh", tags:["numbers"], soon:true},
+    {k:"xin-xam", name:"Xin xăm", d:"Xin một quẻ xăm cho việc bạn đang nghĩ tới và đọc lời giải.", need:"Việc bạn muốn hỏi", tags:["ask"], soon:true},
+    {k:"sim-phong-thuy", name:"Sim phong thủy", d:"Chấm số điện thoại theo ngũ hành và quẻ, đối chiếu với năm sinh.", need:"Số điện thoại + năm sinh", tags:["numbers"], soon:true}
+  ];
+  function render(need){
+    var out = "";
+    TOOLS.forEach(function(t){
+      if (need !== "all" && t.tags.indexOf(need) < 0) return;
+      out += '<a class="card tool" href="'+(t.href||"#")+'"'+(t.soon?' data-soon':'')+'>'
+        + '<span class="medallion"><svg aria-hidden="true"><use href="#i-'+t.k+'"/></svg></span>'
+        + '<span><h3>'+t.name+'</h3><p>'+t.d+'</p>'
+        + '<span class="foot"><span class="need">Cần nhập: <b>'+t.need+'</b></span>'
+        + (t.soon ? '<span class="tag tag-quiet">Sắp có</span>' : '<span class="go">Dùng ngay<svg aria-hidden="true"><use href="#ui-arrow"/></svg></span>')
+        + '</span></span></a>';
+    });
+    document.getElementById("tools").innerHTML = out;
+  }
+  render("all");
+  document.getElementById("filters").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    this.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    render(b.dataset.need);
+  });
+</script>
+</body>
+</html>

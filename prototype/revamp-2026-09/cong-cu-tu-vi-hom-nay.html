@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tử vi hôm nay 12 con giáp — Lá Số Việt</title>
+<meta name="description" content="Tử vi hôm nay cho 12 con giáp: công việc, tiền bạc, tình cảm, việc nên làm và nên kiêng. Xem thêm bản theo lá số riêng của bạn.">
+<meta name="robots" content="noindex, follow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  .crumbs { font-size: 14px; color: var(--text-muted); padding-top: 24px; }
+  .crumbs a { color: var(--text-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--gold-400); }
+  .tool-hero { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; padding-block: 24px 28px; }
+  .tool-hero h1 { font: 600 clamp(30px, 4vw, 44px)/1.15 var(--font-display); color: var(--text-heading); margin: 0 0 8px; }
+  .tool-hero p { margin: 0; color: var(--text-body); }
+  .tool-hero .medallion { color: var(--gold-500); }
+  @media (max-width: 520px) { .tool-hero { grid-template-columns: 1fr; } }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+  .layout > * { min-width: 0; }
+  @media (max-width: 980px) { .layout { grid-template-columns: minmax(0, 1fr); } .bridge-card { position: static; } }
+
+  .zodiac { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 600px) { .zodiac { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .zodiac button { height: 64px; border-radius: 12px; border: 1px solid var(--border-soft); background: var(--lacquer-900); color: var(--text-body); font: 500 15px var(--font-ui); cursor: pointer; display: grid; place-content: center; gap: 2px; }
+  .zodiac button small { color: var(--text-faint); font-size: 12px; }
+  .zodiac button[aria-pressed="true"] { border-color: var(--gold-500); background: var(--gold-soft); color: var(--gold-400); }
+
+  .dayline { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14.5px; color: var(--text-muted); margin: 20px 0 16px; }
+  .dayline b { color: var(--text-heading); font-weight: 500; }
+  .result h2 { font: 600 28px/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 12px; }
+  .result .read { font-size: 17px; line-height: 1.7; max-width: var(--reading); }
+  .aspects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
+  @media (max-width: 720px) { .aspects { grid-template-columns: 1fr; } }
+  .aspect { border: 1px solid var(--border-soft); border-radius: 12px; padding: 16px; background: var(--lacquer-900); }
+  .aspect h3 { font: 600 15px var(--font-ui); color: var(--gold-400); margin: 0 0 6px; }
+  .aspect p { margin: 0; font-size: 15px; }
+  .dodont { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .dodont { grid-template-columns: 1fr; } }
+  .dodont ul { margin: 6px 0 0; padding-left: 18px; }
+  .dodont h3 { font: 600 15px var(--font-ui); margin: 0; }
+  .dodont .yes h3 { color: #7FB39C; } .dodont .no h3 { color: #EC8A74; }
+
+  .bridge-card { border-color: rgba(206,91,69,.55); background: linear-gradient(160deg, rgba(206,91,69,.12), var(--surface-raised) 60%); position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); }
+  .bridge-card h2 { font: 600 22px/1.25 var(--font-display); color: var(--text-heading); margin: 0 0 8px; }
+  .bridge-card p { margin: 0 0 14px; font-size: 15px; }
+  .locked { position: relative; border: 1px dashed var(--border-soft); border-radius: 12px; padding: 14px; margin: 0 0 16px; font-size: 15px; }
+  .locked .blur { filter: blur(5px); user-select: none; color: var(--text-muted); }
+  .locked .veil { position: absolute; inset: 0; display: grid; place-items: center; }
+  .locked .veil span { display: inline-flex; gap: 6px; align-items: center; background: var(--lacquer-900); border: 1px solid var(--border-soft); border-radius: 999px; padding: 6px 12px; font-size: 13.5px; color: var(--gold-400); }
+  .locked .veil svg { width: 16px; height: 16px; }
+
+  .other-days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .article { max-width: var(--reading); }
+  .article h2 { font: 600 26px/1.25 var(--font-display); color: var(--text-heading); margin: 0 0 12px; }
+  .article p { font-size: 17px; line-height: 1.7; margin: 0 0 14px; }
+  .related { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 720px) { .related { grid-template-columns: 1fr; } }
+  .related a { display: flex; gap: 12px; align-items: center; text-decoration: none; color: var(--text-heading); font-weight: 600; }
+  .related .medallion { color: var(--gold-500); }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="trang-chu.html#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html" aria-current="page">Công cụ miễn phí</a>
+      <a href="#">Kiến thức</a>
+      <a href="#ho-tro">Liên hệ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
+      <a class="link-quiet" href="#">Đăng nhập</a>
+      <a class="btn btn-primary" href="trang-chu.html#lap-la-so">Lập lá số</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <nav class="crumbs" aria-label="Đường dẫn"><a href="trang-chu.html">Trang chủ</a> / <a href="cong-cu-mien-phi.html">Công cụ miễn phí</a> / Tử vi hôm nay</nav>
+
+  <div class="tool-hero">
+    <span class="medallion lg"><svg aria-hidden="true"><use href="#i-tu-vi-hom-nay"/></svg></span>
+    <div>
+      <h1>Tử vi hôm nay 12 con giáp</h1>
+      <p><span class="need">Cần nhập: <b>chỉ cần con giáp</b></span></p>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr);gap:16px">
+      <section class="card" aria-labelledby="pick">
+        <h2 id="pick" class="sr-only">Chọn con giáp</h2>
+        <div class="zodiac" id="zodiac"></div>
+        <div class="dayline"><span>Hôm nay <b>Thứ Ba, 22/9/2026</b></span><span>Âm lịch <b>12/8 Bính Ngọ</b></span><span>Ngày <b>Kỷ Hợi</b></span><span>Tiết <b>Bạch Lộ</b></span></div>
+        <div class="other-days"><a class="chip" href="#">Hôm qua</a><a class="chip is-active" href="#" aria-current="page">Hôm nay</a><a class="chip" href="#">Ngày mai</a><a class="chip" href="#">Tuần này</a></div>
+      </section>
+
+      <section class="card result" aria-live="polite">
+        <p class="proto-note">Nội dung mẫu để duyệt giọng văn — bản thật sinh từ can chi của ngày và bảng quy tắc.</p>
+        <h2 id="r-title">Tuổi Thân hôm nay</h2>
+        <p class="read">Ngày Kỷ Hợi, Thân gặp Hợi là thế hại: việc đang trôi dễ vướng vì một người trung gian. Buổi sáng làm được việc, chiều nên chậm lại, tránh ký gì vội. Tiền vào có nhưng ra cũng nhanh, nhất là khoản chi cho người khác.</p>
+        <div class="aspects">
+          <div class="aspect"><h3>Công việc</h3><p>Dễ bị hiểu sai ý. Nói rõ bằng văn bản trước khi giao việc.</p></div>
+          <div class="aspect"><h3>Tiền bạc</h3><p>Hao nhẹ. Hoãn khoản cho vay hoặc góp vốn sang tuần sau.</p></div>
+          <div class="aspect"><h3>Tình cảm</h3><p>Người thân để ý chuyện nhỏ. Hỏi han một câu là êm.</p></div>
+        </div>
+        <div class="dodont">
+          <div class="yes"><h3>Nên</h3><ul><li>Chốt việc cũ</li><li>Gặp người lớn tuổi</li></ul></div>
+          <div class="no"><h3>Kiêng</h3><ul><li>Ký hợp đồng lớn</li><li>Cho vay tiền</li></ul></div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="card bridge-card" aria-labelledby="bridge-h">
+      <p class="eyebrow" style="color:#EC8A74">Còn tùy lá số của bạn</p>
+      <h2 id="bridge-h">Đây là tử vi chung cho mọi người tuổi Thân</h2>
+      <p>Hôm nay với lá số riêng của bạn có thể khác hẳn. Lá số đủ giờ sinh cho biết cung nào đang bị động tới.</p>
+      <div class="locked" aria-label="Bản theo lá số, đang khoá">
+        <div class="blur" aria-hidden="true">Hôm nay cung Tài Bạch của bạn gặp sao lưu nhật, khoản chi buổi chiều cần xem lại trước khi chuyển tiền cho người quen.</div>
+        <div class="veil"><span><svg aria-hidden="true"><use href="#ui-lock"/></svg>Hôm nay của bạn · Hội viên</span></div>
+      </div>
+      <form class="form-grid" action="trang-chu.html#lap-la-so">
+        <div class="form-row-3">
+          <label class="field"><span class="sr-only">Ngày sinh</span><select id="b-day"><option>Ngày</option></select></label>
+          <label class="field"><span class="sr-only">Tháng sinh</span><select id="b-month"><option>Tháng</option></select></label>
+          <label class="field"><span class="sr-only">Năm sinh</span><select id="b-year"><option>1992</option></select></label>
+        </div>
+        <label class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-clock"/></svg></span><span class="sr-only">Giờ sinh</span><select id="b-hour"><option>Giờ sinh (12 canh)</option><option>Không rõ giờ sinh</option></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+        <button class="btn btn-primary btn-lg" type="submit">Xem hôm nay theo lá số</button>
+        <a class="btn btn-secondary" href="#">Nhắc tôi mỗi sáng</a>
+      </form>
+      <p class="form-note">Năm sinh điền sẵn theo con giáp bạn chọn. Lập lá số miễn phí.</p>
+    </aside>
+  </div>
+
+  <section class="section">
+    <article class="article">
+      <h2>Tử vi hôm nay được tính thế nào?</h2>
+      <p>Mỗi ngày mang một cặp can chi. Tử vi hôm nay đối chiếu chi của ngày với chi năm sinh của bạn: hợp, xung, hình hay hại. Vì chỉ dùng năm sinh, kết quả giống nhau cho mọi người cùng tuổi.</p>
+      <p>Lá số Tử Vi dùng thêm ngày, tháng và giờ sinh nên cho biết hôm nay chạm tới cung nào của riêng bạn: công việc, tiền bạc hay gia đình.</p>
+    </article>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <h2 style="font:600 24px var(--font-display);color:var(--text-heading);margin:0 0 16px">Công cụ khác</h2>
+    <div class="related">
+      <a class="card" href="#"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-lich-am-ngay-tot"/></svg></span>Lịch âm & ngày tốt</a>
+      <a class="card" href="#"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-rut-bai"/></svg></span>Rút bài mỗi ngày</a>
+      <a class="card" href="#"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-menh-ngu-hanh"/></svg></span>Tuổi gì, mệnh gì</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer" id="ho-tro">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+        <p style="color:var(--text-muted);max-width:320px">Lập lá số Tử Vi và luận giải bằng tiếng Việt dễ hiểu.</p>
+        <div class="support-row">
+          <a class="support-pill" href="mailto:lasoviet.net@gmail.com"><svg aria-hidden="true"><use href="#ui-mail"/></svg>lasoviet.net@gmail.com</a>
+          <a class="support-pill" href="#" data-pending><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="20" height="20" alt="">Messenger</a>
+        </div>
+      </div>
+      <div><h3>Tử Vi</h3><ul><li><a href="trang-chu.html#lap-la-so">Lập lá số</a></li><li><a href="#">Bản luận giải mẫu</a></li><li><a href="cong-cu-mien-phi.html#hoi-vien">Hội viên</a></li></ul></div>
+      <div><h3>Công cụ miễn phí</h3><ul><li><a href="cong-cu-mien-phi.html">Tất cả công cụ</a></li><li><a href="#">Lịch âm & ngày tốt</a></li><li><a href="#">Thần số học</a></li></ul></div>
+      <div><h3>Hỗ trợ</h3><ul><li><a href="#">Câu hỏi thường gặp</a></li><li><a href="#">Điều khoản</a></li><li><a href="#">Quyền riêng tư</a></li></ul></div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Lá Số Việt</span><span>Nội dung mang tính tham khảo.</span></div>
+  </div>
+</footer>
+
+<script>
+  var Z = [["Tý","Chuột"],["Sửu","Trâu"],["Dần","Hổ"],["Mão","Mèo"],["Thìn","Rồng"],["Tỵ","Rắn"],["Ngọ","Ngựa"],["Mùi","Dê"],["Thân","Khỉ"],["Dậu","Gà"],["Tuất","Chó"],["Hợi","Heo"]];
+  var el = document.getElementById("zodiac");
+  el.innerHTML = Z.map(function(z){ return '<button type="button" aria-pressed="'+(z[0]==="Thân")+'" data-z="'+z[0]+'">'+z[0]+'<small>'+z[1]+'</small></button>'; }).join("");
+  el.addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    el.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x === b); });
+    document.getElementById("r-title").textContent = "Tuổi " + b.dataset.z + " hôm nay";
+    document.getElementById("bridge-h").textContent = "Đây là tử vi chung cho mọi người tuổi " + b.dataset.z;
+  });
+</script>
+</body>
+</html>

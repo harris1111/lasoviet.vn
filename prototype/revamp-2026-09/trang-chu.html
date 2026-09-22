@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lá Số Việt | Lập lá số Tử Vi miễn phí, luận giải dễ hiểu</title>
+<meta name="description" content="Lập lá số Tử Vi đủ 12 cung miễn phí, luận bằng tiếng Việt dễ hiểu: điểm mạnh, điểm yếu và những năm cần chú ý của riêng bạn.">
+<meta name="robots" content="noindex, follow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  /* 01 Hero */
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--border-hairline); }
+  .hero picture img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; opacity: .55; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15,13,10,.96) 0%, rgba(15,13,10,.82) 45%, rgba(15,13,10,.35) 100%); }
+  .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 48px; align-items: center; padding-block: 64px; }
+  .hero h1 { font: 600 clamp(34px, 5vw, 56px)/1.08 var(--font-display); color: var(--text-heading); margin: 0 0 16px; }
+  .hero h1 em { font-style: normal; color: var(--gold-400); display: block; }
+  .hero .sub { font-size: 18px; max-width: 520px; margin: 0 0 22px; color: var(--text-body); }
+  .trust { display: flex; flex-wrap: wrap; gap: 8px 18px; list-style: none; padding: 0; margin: 0; font-size: 14.5px; color: var(--text-muted); }
+  .trust li { display: inline-flex; align-items: center; gap: 6px; }
+  .trust svg { width: 16px; height: 16px; color: var(--gold-500); }
+  .form-card h2 { font: 600 24px/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 4px; }
+  .form-card .hint { color: var(--text-muted); font-size: 14.5px; margin: 0 0 16px; }
+  @media (max-width: 980px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 24px; padding-block: 24px 40px; }
+    .hero .form-card { order: -1; }
+    .hero::after { background: linear-gradient(180deg, rgba(15,13,10,.75), rgba(15,13,10,.95)); }
+  }
+
+  /* 02 Chips */
+  .chips-band { padding-block: 24px; border-bottom: 1px solid var(--border-hairline); overflow: hidden; }
+  .chip-row { display: flex; gap: 10px; width: max-content; animation: drift 60s linear infinite; }
+  .chip-row + .chip-row { margin-top: 10px; animation-direction: reverse; }
+  .chips-band:hover .chip-row { animation-play-state: paused; }
+  @keyframes drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* 03 Today */
+  .days { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 12px; align-items: stretch; }
+  .day { display: grid; gap: 6px; align-content: start; }
+  .day .when { font: 500 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+  .day .num { font: 600 40px/1 var(--font-display); color: var(--text-heading); font-variant-numeric: tabular-nums; }
+  .day.is-today { border-color: var(--gold-500); }
+  .day.is-today .num { color: var(--gold-400); font-size: 56px; }
+  .day dl { margin: 6px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14.5px; }
+  .day dt { color: var(--text-muted); } .day dd { margin: 0; color: var(--text-heading); }
+  .center-cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  @media (max-width: 720px) { .days { grid-template-columns: 1fr; } .day:not(.is-today) { display: none; } }
+
+  /* 04 Compare */
+  .compare { display: grid; grid-template-columns: 1fr 1fr 1.15fr; gap: 16px; align-items: stretch; }
+  .compare h3 { font: 600 19px var(--font-ui); color: var(--text-heading); margin: 0 0 14px; }
+  .compare ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .compare li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 15px; }
+  .compare li svg { width: 20px; height: 20px; }
+  .ok svg { color: #7FB39C; } .ko { color: var(--text-muted); }
+  .ko .x { width: 20px; height: 20px; display: grid; place-items: center; color: var(--text-faint); font-weight: 700; }
+  @media (max-width: 860px) { .compare { grid-template-columns: 1fr; } .compare .is-featured { order: -1; } }
+
+  /* 05 Proof */
+  .proof { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 1fr); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+  .proof figure { margin: 0; scroll-snap-align: start; padding: 0; overflow: hidden; }
+  .proof img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .proof figcaption { padding: 16px 18px 18px; }
+  .proof figcaption b { display: block; color: var(--text-heading); font-size: 16px; margin-bottom: 4px; }
+  .proof figcaption span { font-size: 14.5px; color: var(--text-muted); }
+  .proof .tag { margin: 12px 18px 0; }
+  @media (max-width: 720px) { .proof { grid-auto-columns: 86%; } }
+
+  /* 06 Matrix */
+  .matrix { max-width: 940px; margin: 0 auto; padding: 0; overflow: hidden; }
+  .m-row { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); align-items: center; border-bottom: 1px solid var(--border-hairline); }
+  .m-row:last-child { border-bottom: 0; }
+  .m-row > * { padding: 14px 16px; }
+  .m-head { background: var(--lacquer-900); font-weight: 600; color: var(--text-heading); }
+  .m-head > span:not(:first-child) { text-align: center; }
+  .m-head .hl { color: var(--gold-400); }
+  .m-label { font-size: 15px; }
+  .m-cell { text-align: center; }
+  .m-cell svg { width: 22px; height: 22px; color: #7FB39C; }
+  .m-cell .dash { color: var(--text-faint); }
+  .m-cell .part { font-size: 13.5px; color: var(--text-muted); }
+  @media (max-width: 640px) {
+    .m-head { display: none; }
+    .m-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .m-label { grid-column: 1 / -1; padding-bottom: 4px; font-weight: 600; color: var(--text-heading); }
+    .m-cell { padding-top: 4px; }
+    .m-cell::before { content: attr(data-col); display: block; font-size: 12px; color: var(--text-faint); margin-bottom: 4px; }
+  }
+
+  /* 07 Steps */
+  .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .step { padding: 0; overflow: hidden; }
+  .step img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+  .step div { padding: 18px 20px 22px; }
+  .step .n { font: 600 14px var(--font-mono); color: var(--gold-500); }
+  .step h3 { font: 600 19px var(--font-ui); color: var(--text-heading); margin: 6px 0; }
+  .step p { margin: 0; font-size: 15px; }
+  @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+
+  /* 08 Tools */
+  .tool-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .tool-tile { display: flex; gap: 14px; align-items: center; text-decoration: none; color: var(--text-heading); font-weight: 600; padding: 16px; }
+  .tool-tile small { display: block; font-weight: 400; color: var(--text-muted); font-size: 13.5px; margin-top: 2px; }
+  .tool-tile .medallion { color: var(--gold-500); }
+  .soon-line { text-align: center; color: var(--text-muted); font-size: 15px; margin: 20px 0 0; }
+  @media (max-width: 980px) { .tool-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .tool-tiles { grid-template-columns: 1fr; } }
+
+  /* 09 Knowledge */
+  .know { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+  .know .feat { padding: 0; overflow: hidden; text-decoration: none; color: inherit; }
+  .know .feat img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+  .know .feat div { padding: 20px; }
+  .know h3 { font: 600 22px/1.3 var(--font-display); color: var(--text-heading); margin: 0 0 8px; }
+  .know ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .know ol a { display: block; text-decoration: none; color: var(--text-heading); font-weight: 600; padding: 16px 18px; }
+  .know ol a span { display: block; font-weight: 400; color: var(--text-muted); font-size: 14.5px; margin-top: 4px; }
+  @media (max-width: 860px) { .know { grid-template-columns: 1fr; } }
+
+  /* 10 FAQ */
+  .faq { max-width: 760px; margin: 0 auto; display: grid; gap: 10px; }
+  .faq details { background: var(--surface-raised); border: 1px solid var(--border-soft); border-radius: 16px; padding: 0 20px; }
+  .faq summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 600; color: var(--text-heading); display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; }
+  .faq summary .i { color: var(--gold-500); font: 500 14px var(--font-mono); padding-top: 2px; }
+  .faq summary::after { content: "+"; color: var(--gold-400); font-size: 22px; line-height: 1; }
+  .faq details[open] summary::after { content: "×"; }
+  .faq details p { margin: 0 0 18px 36px; }
+
+  /* 11 Support */
+  .support { max-width: 940px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+  .support h2 { font: 600 24px/1.2 var(--font-display); color: var(--gold-400); margin: 0 0 6px; }
+  .support p { margin: 0; }
+  @media (max-width: 720px) { .support { grid-template-columns: 1fr; } }
+
+  /* 12 Final CTA */
+  .final { position: relative; overflow: hidden; }
+  .final picture img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .45; }
+  .final::after { content: ""; position: absolute; inset: 0; background: rgba(15,13,10,.72); }
+  .final .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 440px; gap: 48px; align-items: center; }
+  .final h2 { font: 600 clamp(28px, 4vw, 44px)/1.15 var(--font-display); color: var(--text-heading); margin: 0 0 12px; }
+  @media (max-width: 980px) { .final .wrap { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<!-- 00 Header -->
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html">Công cụ miễn phí</a>
+      <a href="#kien-thuc">Kiến thức</a>
+      <a href="#ho-tro">Liên hệ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
+      <a class="link-quiet" href="#">Đăng nhập</a>
+      <a class="btn btn-primary" href="#lap-la-so">Lập lá số<span class="hide-s"> miễn phí</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- 01 Hero -->
+  <section class="hero" id="lap-la-so">
+    <picture>
+      <source media="(max-width: 720px)" srcset="../homepage/uploads/menh-thu-khai-quang-hero-lasoviet-mobile.webp">
+      <img src="../homepage/uploads/menh-thu-khai-quang-hero-lasoviet-desktop.webp" alt="" fetchpriority="high">
+    </picture>
+    <div class="container wrap">
+      <div>
+        <h1>Lập lá số. <em>Hiểu vận mệnh.</em></h1>
+        <p class="sub">Lá số Tử Vi đủ 12 cung, luận bằng tiếng Việt dễ hiểu: điểm mạnh, điểm yếu và những năm cần chú ý của riêng bạn.</p>
+        <ul class="trust">
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Miễn phí, không cần tài khoản</li>
+          <li><svg aria-hidden="true"><use href="#ui-lock"/></svg>Riêng tư theo mặc định</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Không tự gia hạn</li>
+        </ul>
+      </div>
+      <form class="card form-card is-featured form-grid" action="#" aria-labelledby="form-h">
+        <div><h2 id="form-h">Lập lá số Tử Vi</h2><p class="hint">Nhập ngày giờ sinh, có kết quả ngay.</p></div>
+        <label class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-user"/></svg></span><span class="sr-only">Tên gọi</span><input id="h-name" placeholder="Tên gọi (không bắt buộc)" autocomplete="nickname"></label>
+        <div class="form-row-3">
+          <label class="field"><span class="sr-only">Ngày sinh</span><select id="h-day" data-fill="day"></select></label>
+          <label class="field"><span class="sr-only">Tháng sinh</span><select id="h-month" data-fill="month"></select></label>
+          <label class="field"><span class="sr-only">Năm sinh</span><select id="h-year" data-fill="year"></select></label>
+        </div>
+        <div class="seg" role="group" aria-label="Loại lịch"><button type="button" aria-pressed="true">Dương lịch</button><button type="button" aria-pressed="false">Âm lịch</button></div>
+        <label class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-clock"/></svg></span><span class="sr-only">Giờ sinh</span><select id="h-hour" data-fill="hour"></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+        <div class="seg" role="group" aria-label="Giới tính"><button type="button" aria-pressed="false">Nam</button><button type="button" aria-pressed="false">Nữ</button></div>
+        <button class="btn btn-primary btn-lg" type="submit">Xem lá số miễn phí <svg aria-hidden="true"><use href="#ui-arrow"/></svg></button>
+        <p class="form-note">Hoặc <a href="#">xem bản luận giải mẫu</a></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- 02 Topic chips -->
+  <section class="chips-band" aria-label="Bạn sẽ đọc được gì">
+    <div class="chip-row" id="row1"></div>
+    <div class="chip-row" id="row2"></div>
+  </section>
+
+  <!-- 03 Today -->
+  <section class="section" aria-labelledby="today-h">
+    <div class="container">
+      <div class="section-head"><h2 id="today-h">Hôm nay theo lịch âm</h2><p>Ngày chung cho mọi người. Lá số cho biết ngày này chạm tới cung nào của riêng bạn.</p></div>
+      <div class="days">
+        <article class="card day"><span class="when">Hôm qua</span><span class="num">21</span><dl><dt>Âm lịch</dt><dd>11/8 Bính Ngọ</dd><dt>Ngày</dt><dd>Mậu Tuất</dd></dl></article>
+        <article class="card day is-today"><span class="when">Hôm nay · Thứ Ba</span><span class="num">22</span><dl><dt>Âm lịch</dt><dd>12/8 Bính Ngọ</dd><dt>Ngày</dt><dd>Kỷ Hợi</dd><dt>Tiết khí</dt><dd>Bạch Lộ</dd><dt>Giờ tốt</dt><dd><a href="#">Xem 6 giờ hoàng đạo</a></dd></dl></article>
+        <article class="card day"><span class="when">Ngày mai</span><span class="num">23</span><dl><dt>Âm lịch</dt><dd>13/8 Bính Ngọ</dd><dt>Ngày</dt><dd>Canh Tý</dd></dl></article>
+      </div>
+      <div class="center-cta"><a class="btn btn-primary" href="#lap-la-so">Ngày này hợp với lá số bạn không?</a><a class="btn btn-secondary" href="cong-cu-mien-phi.html">Lịch cả tháng</a></div>
+    </div>
+  </section>
+
+  <!-- 04 Compare -->
+  <section class="section texture" aria-labelledby="cmp-h">
+    <div class="container">
+      <div class="section-head"><h2 id="cmp-h">Ba cách xem lá số</h2><p>Chọn cách cho bạn câu trả lời của riêng bạn.</p></div>
+      <div class="compare">
+        <article class="card"><h3>Tự đọc sách, bài viết</h3><ul><li class="ko"><span class="x">✕</span>Thuật ngữ khó, đọc xong vẫn chưa rõ</li><li class="ko"><span class="x">✕</span>Nói chung, không phải lá số của bạn</li><li class="ok"><svg aria-hidden="true"><use href="#ui-check"/></svg>Miễn phí</li></ul></article>
+        <article class="card"><h3>Hỏi thầy, hỏi AI chat</h3><ul><li class="ko"><span class="x">✕</span>Mỗi lần hỏi một khác</li><li class="ko"><span class="x">✕</span>Không xem được vì sao lại nói vậy</li><li class="ok"><svg aria-hidden="true"><use href="#ui-check"/></svg>Hỏi đáp trực tiếp</li></ul></article>
+        <article class="card is-featured"><h3>Lá Số Việt</h3><ul><li class="ok"><svg aria-hidden="true"><use href="#ui-check"/></svg>Lá số của chính bạn, đủ 12 cung</li><li class="ok"><svg aria-hidden="true"><use href="#ui-check"/></svg>Mỗi ý đều có nút "Vì sao?"</li><li class="ok"><svg aria-hidden="true"><use href="#ui-check"/></svg>Nói rõ năm nào, tháng nào cần chú ý</li></ul></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 Proof -->
+  <section class="section" aria-labelledby="proof-h">
+    <div class="container">
+      <div class="section-head"><h2 id="proof-h">Xem trước một lá số thật</h2><p>Bản mẫu ẩn danh, dựng bằng đúng các phần bạn sẽ nhận.</p></div>
+      <div class="proof" tabindex="0" aria-label="Các phần của lá số, trượt ngang">
+        <figure class="card"><img src="../homepage/uploads/an-dinh-la-so-tu-vi-12-cung-homepage.webp" alt="Lá số Tử Vi 12 cung bày trên nền sơn mài" loading="lazy"><span class="tag tag-gold">Bản mẫu</span><figcaption><b>Bản đồ 12 cung</b><span>Chạm vào từng cung để xem sao và ý nghĩa.</span></figcaption></figure>
+        <figure class="card"><img src="../homepage/uploads/cach-doc-moi-lien-he-giua-cac-cung-la-so-tu-vi-homepage.webp" alt="Sợi chỉ nối các cung trên lá số" loading="lazy"><span class="tag tag-gold">Bản mẫu</span><figcaption><b>Các cung nối với nhau</b><span>Tam hợp, xung chiếu: vì sao tiền bạc dính tới công việc.</span></figcaption></figure>
+        <figure class="card"><img src="../homepage/uploads/la-so-mien-phi-ba-diem-noi-bat-co-can-cu-homepage.webp" alt="Ba điểm nổi bật trên lá số kèm căn cứ" loading="lazy"><span class="tag tag-gold">Bản mẫu</span><figcaption><b>Một ý, kèm lý do</b><span>Mở "Vì sao?" để thấy sao nào, cung nào dẫn tới nhận định.</span></figcaption></figure>
+        <figure class="card"><img src="../homepage/uploads/tang-thu-chu-de-luan-giai-sau-background-homepage.webp" alt="Tàng thư các chủ đề luận giải" loading="lazy"><span class="tag tag-seal">Năm nay</span><figcaption><b>Dòng thời gian đại vận</b><span>Đánh dấu năm hạn và tháng cần chú ý, đúng theo lá số.</span></figcaption></figure>
+      </div>
+      <div class="center-cta"><a class="btn btn-primary" href="#lap-la-so">Xem lá số của bạn</a></div>
+    </div>
+  </section>
+
+  <!-- 06 Free vs paid -->
+  <section class="section texture" id="dich-vu" aria-labelledby="mx-h">
+    <div class="container">
+      <div class="section-head"><h2 id="mx-h">Bạn nhận được gì</h2><p>Bắt đầu miễn phí, mở thêm khi bạn muốn đọc sâu.</p></div>
+      <div class="card matrix" role="table" aria-label="So sánh các phần">
+        <div class="m-row m-head" role="row"><span role="columnheader">Phần</span><span role="columnheader">Miễn phí</span><span role="columnheader">Bản mệnh</span><span role="columnheader" class="hl">Toàn diện</span></div>
+        <div id="mx"></div>
+      </div>
+      <div class="center-cta"><a class="btn btn-secondary" href="#">Xem bản luận giải mẫu</a></div>
+    </div>
+  </section>
+
+  <!-- 07 How -->
+  <section class="section" aria-labelledby="how-h">
+    <div class="container">
+      <div class="section-head"><h2 id="how-h">Ba bước</h2></div>
+      <div class="steps">
+        <article class="card step"><img src="../homepage/uploads/lich-phap-can-chi-quy-doi-du-lieu-sinh-homepage.webp" alt="Bảng can chi quy đổi ngày giờ sinh" loading="lazy"><div><span class="n">1</span><h3>Nhập ngày giờ sinh</h3><p>Chưa rõ giờ? Lưu lại trước, bổ sung sau.</p></div></article>
+        <article class="card step"><img src="../homepage/uploads/an-dinh-la-so-tu-vi-12-cung-homepage.webp" alt="Lá số 12 cung được an định" loading="lazy"><div><span class="n">2</span><h3>Xem lá số miễn phí</h3><p>Đủ 12 cung, ba điểm nổi bật và lý do.</p></div></article>
+        <article class="card step"><img src="../homepage/uploads/chon-chu-de-luan-giai-sau-ho-so-tang-thu-homepage.webp" alt="Hồ sơ chủ đề luận giải" loading="lazy"><div><span class="n">3</span><h3>Mở phần muốn đọc sâu</h3><p>Tình duyên, công việc, năm nay, hoặc trọn bộ.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 Tools -->
+  <section class="section texture" aria-labelledby="tools-h">
+    <div class="container">
+      <div class="section-head"><h2 id="tools-h">Công cụ miễn phí</h2><p>Tra nhanh, không cần tài khoản.</p></div>
+      <div class="tool-tiles" id="tiles"></div>
+      <p class="soon-line">Sắp có: Bát Tự · Bản đồ sao · Kinh Dịch luận giải</p>
+      <div class="center-cta"><a class="btn btn-secondary" href="cong-cu-mien-phi.html">Xem tất cả công cụ</a></div>
+    </div>
+  </section>
+
+  <!-- 09 Knowledge -->
+  <section class="section" id="kien-thuc" aria-labelledby="kn-h">
+    <div class="container">
+      <div class="section-head"><h2 id="kn-h">Kiến thức Tử Vi</h2></div>
+      <div class="know">
+        <a class="card feat" href="#"><img src="../homepage/uploads/cau-truc-la-so-tu-vi-12-cung-la-gi-homepage.webp" alt="Cấu trúc lá số Tử Vi 12 cung" loading="lazy"><div><h3>Lá số Tử Vi là gì?</h3><p>12 cung, 14 chính tinh và cách một lá số được dựng từ ngày giờ sinh.</p></div></a>
+        <ol>
+          <li><a class="card" href="#">14 chính tinh trong Tử Vi<span>Tử Vi, Thiên Phủ, Thái Dương… mỗi sao nói gì về bạn.</span></a></li>
+          <li><a class="card" href="#">12 cung và việc mỗi cung trông coi<span>Mệnh, Tài Bạch, Quan Lộc, Phu Thê…</span></a></li>
+          <li><a class="card" href="#">Tử vi năm 2026 Bính Ngọ<span>Tuổi nào gặp hạn, tháng nào cần chú ý.</span></a></li>
+          <li><a class="card" href="#">Không nhớ giờ sinh thì sao?<span>Điều gì thay đổi và cách vẫn xem được.</span></a></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 FAQ -->
+  <section class="section texture" aria-labelledby="faq-h">
+    <div class="container">
+      <div class="section-head"><h2 id="faq-h">Câu hỏi thường gặp</h2></div>
+      <div class="faq" id="faq"></div>
+    </div>
+  </section>
+
+  <!-- 11 Support -->
+  <section class="section" id="ho-tro" aria-labelledby="sp-h">
+    <div class="container">
+      <div class="card support">
+        <div><h2 id="sp-h">Cần hỏi về lá số hay thanh toán?</h2><p>Nhắn Messenger hoặc gửi email, Lá Số Việt trả lời trong ngày làm việc.</p></div>
+        <div class="support-row" style="margin:0">
+          <a class="support-pill" href="#" data-pending><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="20" height="20" alt="">Nhắn Messenger</a>
+          <a class="support-pill" href="mailto:lasoviet.net@gmail.com"><svg aria-hidden="true"><use href="#ui-mail"/></svg>Gửi email</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 Final CTA -->
+  <section class="section final" aria-labelledby="fin-h">
+    <picture>
+      <source media="(max-width: 720px)" srcset="../homepage/uploads/nguong-mo-menh-thu-cta-background-lasoviet-mobile.webp">
+      <img src="../homepage/uploads/nguong-mo-menh-thu-cta-background-lasoviet-desktop.webp" alt="" loading="lazy">
+    </picture>
+    <div class="container wrap">
+      <div><h2 id="fin-h">Lá số của bạn chỉ cần vài giây.</h2><p style="font-size:18px;margin:0">Bắt đầu miễn phí. Đọc sâu khi bạn muốn.</p></div>
+      <form class="card form-card form-grid" action="#">
+        <div class="form-row-3">
+          <label class="field"><span class="sr-only">Ngày sinh</span><select id="f-day" data-fill="day"></select></label>
+          <label class="field"><span class="sr-only">Tháng sinh</span><select id="f-month" data-fill="month"></select></label>
+          <label class="field"><span class="sr-only">Năm sinh</span><select id="f-year" data-fill="year"></select></label>
+        </div>
+        <label class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-clock"/></svg></span><span class="sr-only">Giờ sinh</span><select id="f-hour" data-fill="hour"></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+        <button class="btn btn-primary btn-lg" type="submit">Xem lá số miễn phí</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+        <p style="color:var(--text-muted);max-width:320px">Lập lá số Tử Vi và luận giải bằng tiếng Việt dễ hiểu.</p>
+        <div class="support-row">
+          <a class="support-pill" href="mailto:lasoviet.net@gmail.com"><svg aria-hidden="true"><use href="#ui-mail"/></svg>lasoviet.net@gmail.com</a>
+          <a class="support-pill" href="#" data-pending><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="20" height="20" alt="">Messenger</a>
+        </div>
+      </div>
+      <div><h3>Tử Vi</h3><ul><li><a href="#lap-la-so">Lập lá số</a></li><li><a href="#">Bản luận giải mẫu</a></li><li><a href="cong-cu-mien-phi.html#hoi-vien">Hội viên</a></li><li><a href="#">Nạp Lá</a></li></ul></div>
+      <div><h3>Công cụ miễn phí</h3><ul><li><a href="cong-cu-tu-vi-hom-nay.html">Tử vi hôm nay</a></li><li><a href="#">Lịch âm & ngày tốt</a></li><li><a href="#">Thần số học</a></li><li><a href="#">Bói tình yêu</a></li><li><a href="#">Giải mã giấc mơ</a></li></ul></div>
+      <div><h3>Hỗ trợ</h3><ul><li><a href="#">Câu hỏi thường gặp</a></li><li><a href="#">Điều khoản</a></li><li><a href="#">Quyền riêng tư</a></li><li><a href="#">Chính sách thanh toán</a></li></ul></div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Lá Số Việt</span><span>Nội dung mang tính tham khảo.</span></div>
+  </div>
+</footer>
+
+<script>
+  // Form options: year 1920 → current, default 1990 (fixes the live list that runs back to year 1000).
+  var HOURS = ["Giờ sinh (12 canh)","Tý (23:00–00:59)","Sửu (01:00–02:59)","Dần (03:00–04:59)","Mão (05:00–06:59)","Thìn (07:00–08:59)","Tỵ (09:00–10:59)","Ngọ (11:00–12:59)","Mùi (13:00–14:59)","Thân (15:00–16:59)","Dậu (17:00–18:59)","Tuất (19:00–20:59)","Hợi (21:00–22:59)","Không rõ giờ sinh"];
+  document.querySelectorAll("select[data-fill]").forEach(function(s){
+    var t = s.dataset.fill, o = [];
+    if (t === "day") { o.push("<option>Ngày</option>"); for (var d = 1; d <= 31; d++) o.push("<option>"+d+"</option>"); }
+    if (t === "month") { o.push("<option>Tháng</option>"); for (var m = 1; m <= 12; m++) o.push("<option>"+m+"</option>"); }
+    if (t === "year") { o.push("<option>Năm</option>"); for (var y = 2026; y >= 1920; y--) o.push("<option"+(y===1990?" selected":"")+">"+y+"</option>"); }
+    if (t === "hour") HOURS.forEach(function(h){ o.push("<option>"+h+"</option>"); });
+    s.innerHTML = o.join("");
+  });
+  document.querySelectorAll(".seg").forEach(function(g){
+    g.addEventListener("click", function(e){ var b = e.target.closest("button"); if (!b) return; g.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); });
+  });
+
+  // 02 chips — real topic names of the reading; tapping scrolls to the form.
+  var R1 = ["Tính cách","Điểm mạnh, điểm yếu","Nghề hợp","Tiền bạc","Tình duyên","Gia đạo","Quý nhân"];
+  var R2 = ["Đại vận 10 năm","Năm nay","Tháng hạn","Sức khoẻ cần giữ","Con cái","Nhà cửa","Đi xa"];
+  function chips(list){ var h = list.concat(list).map(function(c){ return '<a class="chip" href="#lap-la-so">'+c+'</a>'; }).join(""); return h; }
+  document.getElementById("row1").innerHTML = chips(R1);
+  document.getElementById("row2").innerHTML = chips(R2);
+
+  // 06 matrix — no prices on the homepage (FD-069).
+  var CHECK = '<svg aria-hidden="true"><use href="#ui-check"/></svg><span class="sr-only">Có</span>', NO = '<span class="dash" aria-label="Không">—</span>';
+  var ROWS = [
+    ["Lá số 12 cung đầy đủ", CHECK, CHECK, CHECK],
+    ["3 điểm nổi bật, kèm lý do", CHECK, CHECK, CHECK],
+    ["Năm nay: số tháng cần chú ý", '<span class="part">Biết số tháng</span>', '<span class="part">Biết số tháng</span>', CHECK],
+    ["Từng tháng hạn và cách chuẩn bị", NO, NO, CHECK],
+    ["4 phần Bản mệnh", NO, CHECK, CHECK],
+    ["Đủ 12 phần, đại vận hiện tại", NO, NO, CHECK],
+    ["Lưu vào thư viện, tải PDF", NO, CHECK, CHECK]
+  ];
+  var COLS = ["Miễn phí","Bản mệnh","Toàn diện"];
+  document.getElementById("mx").innerHTML = ROWS.map(function(r){
+    return '<div class="m-row" role="row"><span class="m-label" role="rowheader">'+r[0]+'</span>' + [1,2,3].map(function(i){ return '<span class="m-cell" role="cell" data-col="'+COLS[i-1]+'">'+r[i]+'</span>'; }).join("") + '</div>';
+  }).join("");
+
+  // 08 tools
+  var T = [["tu-vi-hom-nay","Tử vi hôm nay","Chỉ cần con giáp","cong-cu-tu-vi-hom-nay.html"],["lich-am-ngay-tot","Lịch âm & ngày tốt","Không cần nhập gì"],["than-so-hoc","Thần số học","Ngày sinh + họ tên"],["boi-tinh-yeu","Bói tình yêu","Tên + ngày sinh"],["giai-ma-giac-mo","Giải mã giấc mơ","Điều bạn mơ thấy"],["gieo-que","Gieo quẻ","Một câu hỏi"],["rut-bai","Rút bài mỗi ngày","Không cần nhập gì"],["menh-ngu-hanh","Tuổi gì, mệnh gì","Năm sinh"]];
+  document.getElementById("tiles").innerHTML = T.map(function(t){ return '<a class="card tool-tile" href="'+(t[3]||"cong-cu-mien-phi.html")+'"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-'+t[0]+'"/></svg></span><span>'+t[1]+'<small>Cần nhập: '+t[2]+'</small></span></a>'; }).join("");
+
+  // 10 FAQ — first open
+  var F = [
+    ["Không rành Tử Vi có tự xem được không?","Được. Bạn chỉ cần ngày giờ sinh; lá số và lời luận viết bằng tiếng Việt thường ngày, thuật ngữ nào cũng được giải thích ngay chỗ đó."],
+    ["Có miễn phí không?","Lá số 12 cung, 3 điểm nổi bật và số tháng cần chú ý trong năm đều miễn phí. Phần đọc sâu mở bằng Lá."],
+    ["Không nhớ giờ sinh thì sao?","Lá số Tử Vi cần giờ sinh. Chọn \"Không rõ giờ sinh\" để lưu thông tin trước, hỏi lại người nhà rồi bổ sung giờ sau."],
+    ["Nhập sai thì sửa thế nào?","Bấm \"Sửa thông tin\" dưới lá số, lá số mới được dựng lại ngay."],
+    ["Lá là gì, có hết hạn không?","Lá là đơn vị để mở nội dung trên Lá Số Việt, nạp theo gói. Lá đã nạp không hết hạn."],
+    ["Mua xong xem lại ở đâu?","Trong Thư viện của tôi, xem lại bao nhiêu lần cũng được và tải PDF."],
+    ["Có tự gia hạn không?","Không. Bản luận giải là của bạn; gói Hội viên hết hạn thì dừng, không tự trừ Lá."],
+    ["Ngày giờ sinh của tôi được dùng làm gì?","Chỉ để lập lá số và viết lời luận cho bạn. Lá số riêng tư, không hiện trên Google, và bạn xoá được bất cứ lúc nào."]
+  ];
+  document.getElementById("faq").innerHTML = F.map(function(f, i){ return '<details'+(i===0?" open":"")+'><summary><span class="i">'+(i+1)+'</span><span>'+f[0]+'</span></summary><p>'+f[1]+'</p></details>'; }).join("");
+</script>
+</body>
+</html>
