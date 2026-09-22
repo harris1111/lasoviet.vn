@@ -373,7 +373,34 @@ describe("homepage content and structure requirements", () => {
     }
   });
 
-  it("enforces effective font-size >= 14px for hero reused wizard selectors under .home .hero-form-col", () => {
+  function parseCssRules(cssText: string): Array<{
+  selectors: string[];
+  declarations: Record<string, string>;
+  raw: string;
+}> {
+  const clean = cssText.replace(/\/\*[\s\S]*?\*\//g, "");
+  const ruleRegex = /([^{}]+)\{([^}]+)\}/g;
+  const rules: Array<{ selectors: string[]; declarations: Record<string, string>; raw: string }> = [];
+  let match: RegExpExecArray | null;
+  while ((match = ruleRegex.exec(clean)) !== null) {
+    const rawSelectors = match[1]!.trim();
+    const declarationsText = match[2]!.trim();
+    const selectors = rawSelectors.split(",").map((s) => s.trim().replace(/\s+/g, " ")).filter(Boolean);
+    const declarations: Record<string, string> = {};
+    for (const decl of declarationsText.split(";")) {
+      const idx = decl.indexOf(":");
+      if (idx !== -1) {
+        const prop = decl.slice(0, idx).trim().toLowerCase();
+        const val = decl.slice(idx + 1).trim();
+        declarations[prop] = val;
+      }
+    }
+    rules.push({ selectors, declarations, raw: match[0] });
+  }
+  return rules;
+}
+
+  it("enforces effective font-size >= 14px for hero reused wizard selectors under .home .hero-form-col with exact rule parsing", () => {
     const foundationCss = readFileSync(
       resolve(rootDir, "apps/web/src/styles/homepage-foundation.css"),
       "utf8",
@@ -392,10 +419,18 @@ describe("homepage content and structure requirements", () => {
       ".home .hero-form-col .wizard-precision-help",
     ];
 
+    const parsedRules = parseCssRules(foundationCss);
+    const matchingRule = parsedRules.find((rule) =>
+      rule.selectors.some((s) => s === ".home .hero-form-col .wizard-field-label"),
+    );
+
+    expect(matchingRule, "Expected dedicated .home .hero-form-col typography rule block").toBeDefined();
+    expect(matchingRule?.declarations["font-size"]).toBe("14px");
+
     for (const selector of requiredHeroSelectors) {
       expect(
-        foundationCss.includes(selector),
-        `homepage-foundation.css must include scoped override for ${selector}`,
-      ).toBe(true);
+        matchingRule?.selectors,
+        `Rule block must include selector: ${selector}`,
+      ).toContain(selector);
     }
   });
