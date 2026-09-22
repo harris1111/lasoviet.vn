@@ -68,3 +68,29 @@ test.describe("chart sign-in return and callback preservation", () => {
     await expect(page.getByTestId("ziwei-chart-grid")).toBeVisible();
   });
 });
+
+  test("preserves ?tab=&open= in header and privacy CTA callbacks", async ({
+    page,
+  }) => {
+    const chartUrl = await createAnonymousChart(page, "vi");
+    const chartUrlObj = new URL(chartUrl);
+    const chartPath = chartUrlObj.pathname;
+
+    // Navigate to a specific tab and open state
+    const targetUrl = `${chartPath}?tab=topics&open=career`;
+    await page.goto(targetUrl);
+    await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=topics&open=career`));
+
+    const expectedCallback = encodeURIComponent(`${chartPath}?tab=topics&open=career`);
+    const expectedSignInHref = `/dang-nhap?callbackURL=${expectedCallback}`;
+
+    // 1. Desktop header login link preserves exact query params in callback
+    const headerLoginLink = page.locator(".site-header .login-link");
+    await expect(headerLoginLink).toBeVisible();
+    await expect(headerLoginLink).toHaveAttribute("href", expectedSignInHref);
+
+    // 2. Privacy note CTA preserves exact query params in callback
+    const resultCta = page.getByRole("link", { name: "Đăng nhập để lưu lại" });
+    await expect(resultCta).toBeVisible();
+    await expect(resultCta).toHaveAttribute("href", expectedSignInHref);
+  });

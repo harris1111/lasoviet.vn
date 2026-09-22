@@ -90,8 +90,8 @@ export function buildSignInCallbackUrl(
     ) {
       return defaultPath;
     }
-    const cleanPathname = parsed.pathname;
-    return `${defaultPath}?callbackURL=${encodeURIComponent(cleanPathname)}`;
+    const cleanRelative = `${parsed.pathname}${parsed.search}`;
+    return `${defaultPath}?callbackURL=${encodeURIComponent(cleanRelative)}`;
   } catch {
     return defaultPath;
   }
@@ -100,6 +100,7 @@ export function buildSignInCallbackUrl(
 export type SiteHeaderSignInLinkProps = {
   locale: "en" | "vi";
   currentPath?: string;
+  signInReturnPath?: string;
   className?: string;
   style?: CSSProperties;
   account?: HeaderAccountUser | null;
@@ -109,6 +110,7 @@ export type SiteHeaderSignInLinkProps = {
 export function SiteHeaderSignInLink({
   locale,
   currentPath,
+  signInReturnPath,
   className,
   style,
   account,
@@ -218,7 +220,7 @@ export function SiteHeaderSignInLink({
     );
   }
 
-  const effectivePath = currentPath ?? (pathname ?? undefined);
+  const effectivePath = signInReturnPath ?? currentPath ?? (pathname ?? undefined);
   const href = buildSignInCallbackUrl(locale, effectivePath);
 
   return (

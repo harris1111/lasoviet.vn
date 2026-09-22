@@ -51,6 +51,7 @@ export type SiteHeaderProps = {
   locale: "en" | "vi";
   variant?: "default" | "discipline";
   currentPath?: string;
+  signInReturnPath?: string;
   contactPath?: string;
   accentColor?: string;
   account?: HeaderAccountUser | null;
@@ -59,7 +60,6 @@ export type SiteHeaderProps = {
 function route(locale: "en" | "vi", path: string) {
   return locale === "en" ? "/en" + path : path;
 }
-
 
 function renderHeaderIcon(name: "menu" | "chevron-right") {
   return React.createElement(
@@ -83,6 +83,7 @@ export function SiteHeader({
   locale,
   variant = "default",
   currentPath,
+  signInReturnPath,
   contactPath = "/lien-he",
   accentColor,
   account,
@@ -107,10 +108,6 @@ export function SiteHeader({
           active: currentPath === contactHref,
         },
       ]
-    : [];
-
-  const disciplineLinks = isDiscipline
-    ? getDisciplineNavLinks(locale, currentPath)
     : [];
 
   const localeSwitcherHref = isVietnamese
@@ -267,6 +264,7 @@ export function SiteHeader({
               className: "login-link",
               locale,
               currentPath,
+              signInReturnPath,
               account,
               style: { color: "var(--pearl-200)", textDecoration: "none", fontSize: "14.5px" },
             },
@@ -324,6 +322,7 @@ export function SiteHeader({
                   className: "mobile-login-link",
                   locale,
                   currentPath,
+                  signInReturnPath,
                   account,
                 },
                 isVietnamese ? "Đăng nhập" : "Sign in",
