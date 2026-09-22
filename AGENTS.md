@@ -57,6 +57,8 @@ Owner goals and decisions
 ## 4. Implementation Governance & Safety
 
 - **Scope & Dedicated Branches:** Every implementation task requires an explicit bounded brief and runs on a dedicated feature branch. Never commit or push directly to `master`.
+- **UI & i18n Parity:** When adding or changing user-facing strings in `apps/web/messages/`, always maintain matching key parity in both `vi/` and `en/` and verify with `pnpm i18n:check`.
+- **Fast Pre-Push Verification:** Run `pnpm i18n:check && pnpm lint && pnpm typecheck` locally before opening a pull request to ensure CI passes cleanly on the first run.
 - **Pre-implementation Verification:** Before implementing external package integrations whose exact-version behavior is unverified, verify task-relevant imports, configuration, and build scripts from local workspace facts; never rely on generic assumptions.
 - **Review Closure Gate:** Do not move a Kaneo task to `Done` until the approved implementation has been deployed to its target environment and deployment smoke evidence has been recorded in the task.
 - **Implementation & Testing Priorities:**
