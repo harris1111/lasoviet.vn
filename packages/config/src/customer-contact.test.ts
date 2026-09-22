@@ -1,3 +1,8 @@
+import { execFileSync } from "node:child_process";
+import { readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -5,6 +10,8 @@ import {
   customerContactConfig,
   validateCustomerContactConfig,
 } from "./customer-contact";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe("customerContactConfig", () => {
   it("loads valid customer contact config with email enabled and others disabled", () => {
@@ -44,5 +51,41 @@ describe("customerContactConfig", () => {
 
     const plainMailto = buildCustomerSupportMailto();
     expect(plainMailto).toBe("mailto:support@lasoviet.net");
+  });
+
+  it("verifies --check mode passes and is strictly non-mutating", () => {
+    const rootDir = resolve(__dirname, "../../..");
+    const scriptPath = resolve(__dirname, "../scripts/generate-customer-contact.mjs");
+    const generatedPath = resolve(__dirname, "customer-contact.generated.ts");
+
+    const beforeStat = statSync(generatedPath);
+    const beforeContent = readFileSync(generatedPath, "utf8");
+
+    // Check mode should succeed
+    const output = execFileSync(process.execPath, [scriptPath, "--check"], {
+      cwd: rootDir,
+      encoding: "utf8",
+    });
+    expect(output).toContain("Customer contact config is in sync.");
+
+    // Check mode must NOT mutate file
+    const afterStat = statSync(generatedPath);
+    const afterContent = readFileSync(generatedPath, "utf8");
+    expect(afterContent).toBe(beforeContent);
+    expect(afterStat.mtimeMs).toBe(beforeStat.mtimeMs);
+
+    // Check mode detects drift when file differs
+    try {
+      writeFileSync(generatedPath, "// drifted\n", "utf8");
+      expect(() => {
+        execFileSync(process.execPath, [scriptPath, "--check"], {
+          cwd: rootDir,
+          encoding: "utf8",
+          stdio: "pipe",
+        });
+      }).toThrow();
+    } finally {
+      writeFileSync(generatedPath, beforeContent, "utf8");
+    }
   });
 });

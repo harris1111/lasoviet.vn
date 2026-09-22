@@ -680,7 +680,13 @@ describe("VietQR checkout recovery views", () => {
     expect(html).toContain("This order has been refunded. Review details in order history.");
     expect(html).toContain("/tai-khoan/don-hang");
 
-    // Must NOT contain purchase-as-new button
+    // Exactly one support affordance via footer support link, none in recovery actions
+    expect(html).toContain("checkout-footer-support");
+    expect(html).toContain(statusRefunded.order.supportUrl!);
+    const supportOccurrences = html.split(statusRefunded.order.supportUrl!).length - 1;
+    expect(supportOccurrences).toBe(1);
+
+    // Must NOT contain purchase-as-new button or redundant action buttons
     expect(html).not.toContain("/tao-la-so");
     expect(html).not.toContain("Create a new chart");
     expect(html).not.toContain("Lập lá số");
