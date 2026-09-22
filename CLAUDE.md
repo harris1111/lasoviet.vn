@@ -29,6 +29,8 @@
 - Use active files in `docs/` and their stub pointers for current context and source of truth.
 
 ## Essential Commands
+- Fast pre-push check: `pnpm i18n:check && pnpm lint && pnpm typecheck`
+- i18n parity check: `pnpm i18n:check`
 - Run all tests: `pnpm test`
 - Package-specific tests: `pnpm --filter @lasoviet/backend test`
 - Typecheck: `pnpm typecheck`
