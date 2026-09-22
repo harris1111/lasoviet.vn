@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
@@ -32,6 +32,22 @@ import type { CustomerContactConfig } from "./customer-contact.js";
 
 export const customerContactConfig: CustomerContactConfig = Object.freeze(${JSON.stringify(validated, null, 2)});
 `;
+
+const isCheckMode = process.argv.includes("--check");
+
+if (isCheckMode) {
+  if (!existsSync(outputPath)) {
+    console.error("Generated customer contact file does not exist: " + outputPath);
+    process.exit(1);
+  }
+  const currentContent = readFileSync(outputPath, "utf8");
+  if (currentContent !== fileContent) {
+    console.error("Customer contact config drift detected. Run pnpm --filter @lasoviet/config build to regenerate.");
+    process.exit(1);
+  }
+  console.log("Customer contact config is in sync.");
+  process.exit(0);
+}
 
 writeFileSync(outputPath, fileContent, "utf8");
 console.log("Successfully generated packages/config/src/customer-contact.generated.ts");

@@ -803,7 +803,7 @@ export const ReportFailedViewV1Schema = z.object({
   invoiceNumber: z.string().trim().min(1),
   paymentReceivedAt: z.iso.datetime({ offset: true }),
   reportStatusUpdatedAt: z.iso.datetime({ offset: true }),
-  supportEmail: z.string().trim().email(),
+  supportEmail: z.union([z.literal("support@lasoviet.net"), z.literal("lasoviet.net@gmail.com")]),
   supportSubject: z.string().trim().min(1),
   supportReference: z.string().trim().min(1),
 }).strict();

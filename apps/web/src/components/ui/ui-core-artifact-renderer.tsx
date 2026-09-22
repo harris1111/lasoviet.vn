@@ -1,3 +1,4 @@
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import { Icon } from "../icon";
 import { BottomSheet } from "./bottom-sheet";
 import { CheckMatrix } from "./check-matrix";
@@ -99,7 +100,7 @@ export function UiCoreArtifactRenderer() {
         <section className="ui-artifact__span-all">
           <SupportCard
             description="Gửi câu hỏi để đội ngũ hỗ trợ phản hồi qua email."
-            email="support@lasoviet.net"
+            email={customerContactConfig.email.value}
             title="Cần hỗ trợ?"
           />
         </section>

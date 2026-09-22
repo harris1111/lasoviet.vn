@@ -644,7 +644,6 @@ export function VietQrCheckout({
     const newChartActionLabel = labels.newChartAction ?? (isVi ? "Lập lá số và tạo yêu cầu mới" : "Create a new chart and request");
     const returnToTopicSelectorLabel = labels.returnToTopicSelectorAction ?? (isVi ? "Quay lại chọn luận giải" : "Return to reading selection");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
-    const supportActionLabel = labels.supportAction ?? (isVi ? "Liên hệ hỗ trợ" : "Contact support");
     const newChartPath = isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi";
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
     const topicSelectorPath = status.order.chartId
@@ -707,7 +706,6 @@ export function VietQrCheckout({
     const refundedTitle = labels.refundedTitle ?? (isVi ? "Đơn hàng đã được hoàn tiền" : "Order refunded");
     const refundedDesc = labels.refundedDescription ?? (isVi ? "Đơn hàng này đã được xử lý hoàn tiền. Quý khách có thể kiểm tra chi tiết trong lịch sử đơn hàng." : "This order has been refunded. You can review the details in your order history.");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
-    const supportActionLabel = labels.supportAction ?? (isVi ? "Liên hệ hỗ trợ" : "Contact support");
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
 
     return (
@@ -723,9 +721,6 @@ export function VietQrCheckout({
             <h2>{refundedTitle}</h2>
             <p className="vietqr-recovery-description">{refundedDesc}</p>
             <div className="vietqr-recovery-actions">
-              <a href={status.order.supportUrl} className="button button-secondary">
-                {supportActionLabel}
-              </a>
               <Link href={ordersPath} className="button button-secondary">
                 {orderHistoryActionLabel}
               </Link>
