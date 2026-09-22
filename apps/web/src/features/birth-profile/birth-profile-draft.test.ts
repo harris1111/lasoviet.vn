@@ -215,6 +215,61 @@ describe("birth profile draft boundary", () => {
     expect(storage.getItem(BIRTH_PROFILE_DRAFT_STORAGE_KEY)).toBeNull();
   });
 
+  it("round-trips readingContext draft with selected choices and skip states", () => {
+    const storage = createMockStorage();
+    const readingContext = {
+      lifeStage: "early_career" as const,
+      topConcern: "career" as const,
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    };
+
+    saveBirthProfileDraft(
+      {
+        step: 3,
+        gender: "male",
+        day: "12",
+        month: "04",
+        year: "1994",
+        timeState: { precision: "exact_minute", hour: "09", minute: "30" },
+        readingContext,
+      },
+      { localStorage: storage, now: fixedNow },
+    );
+
+    expect(readBirthProfileDraft({ localStorage: storage, now: fixedNow })).toMatchObject({
+      step: 3,
+      readingContext: {
+        lifeStage: "early_career",
+        topConcern: "career",
+        skippedQuestions: { lifeStage: false, topConcern: false },
+      },
+    });
+
+    // Test with skip state
+    const skippedContext = {
+      skippedQuestions: { lifeStage: true, topConcern: true },
+    };
+    saveBirthProfileDraft(
+      {
+        step: 3,
+        gender: "male",
+        day: "12",
+        month: "04",
+        year: "1994",
+        timeState: { precision: "exact_minute", hour: "09", minute: "30" },
+        readingContext: skippedContext,
+      },
+      { localStorage: storage, now: fixedNow + 100 },
+    );
+
+    expect(readBirthProfileDraft({ localStorage: storage, now: fixedNow + 100 })).toMatchObject({
+      step: 3,
+      readingContext: {
+        skippedQuestions: { lifeStage: true, topConcern: true },
+      },
+    });
+  });
+
   it("never persists explicit consent even when it is passed at runtime", () => {
     const storage = createMockStorage();
     saveBirthProfileDraft(

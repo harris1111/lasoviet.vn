@@ -105,6 +105,9 @@ import {
 import { BirthWizardSubjectStep } from "./birth-wizard-subject-step";
 import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
 import { BirthWizardReviewStep } from "./birth-wizard-review-step";
+import { Icon } from "../../components/icon";
+import { useMobileKeyboardState } from "./use-mobile-keyboard-state";
+import type { WizardReadingContextDraft } from "./birth-wizard-state";
 import {
   canAdvanceStep1,
   canAdvanceStep2,
@@ -387,6 +390,7 @@ type BirthProfileFormProps = {
   submitBirthProfile(input: {
     profile: unknown;
     explicitConsent: boolean;
+    readingContext?: unknown;
   }): Promise<{
     ok: boolean;
     value?: {
@@ -425,6 +429,9 @@ export function BirthProfileForm({
   });
   const [place, setPlace] = useState("");
   const [consent, setConsent] = useState(false);
+  const [readingContext, setReadingContext] = useState<WizardReadingContextDraft>({
+    skippedQuestions: { lifeStage: false, topConcern: false },
+  });
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [step1Attempted, setStep1Attempted] = useState(false);
@@ -432,6 +439,7 @@ export function BirthProfileForm({
   const [savedUnknown, setSavedUnknown] = useState<{
     isBrowserPersisted: boolean;
   } | null>(null);
+  const isKeyboardOpen = useMobileKeyboardState();
   const isHydratedRef = useRef(false);
   const autosaveRef = useRef<DraftAutosaveController<BirthProfileDraftInput> | null>(
     null,
@@ -470,6 +478,9 @@ export function BirthProfileForm({
         setYear(draft.year);
         setTimeState(draft.timeState);
         setPlace(draft.place);
+        if (draft.readingContext) {
+          setReadingContext(draft.readingContext);
+        }
         setHasReusedCache(true);
         isHydratedRef.current = true;
       });
@@ -556,6 +567,7 @@ export function BirthProfileForm({
       year,
       timeState,
       place,
+      readingContext,
     });
   }, [
     step,
@@ -570,6 +582,7 @@ export function BirthProfileForm({
     year,
     timeState,
     place,
+    readingContext,
   ]);
 
   useEffect(() => {
@@ -750,6 +763,7 @@ export function BirthProfileForm({
     setConsent(false);
     setError(null);
     setStep1Attempted(false);
+    setReadingContext({ skippedQuestions: { lifeStage: false, topConcern: false } });
     setSavedUnknown(null);
     setHasReusedCache(false);
   }
@@ -773,6 +787,7 @@ export function BirthProfileForm({
     setError(null);
     setPending(false);
     setStep1Attempted(false);
+    setReadingContext({ skippedQuestions: { lifeStage: false, topConcern: false } });
     setSavedUnknown(null);
     setHasReusedCache(false);
 
@@ -853,9 +868,19 @@ export function BirthProfileForm({
         locale,
       });
 
+      const readingContextPayload =
+        readingContext.lifeStage || readingContext.topConcern
+          ? {
+              version: 1 as const,
+              ...(readingContext.lifeStage ? { lifeStage: readingContext.lifeStage } : {}),
+              ...(readingContext.topConcern ? { topConcern: readingContext.topConcern } : {}),
+            }
+          : undefined;
+
       const saved = await submitBirthProfile({
         profile,
         explicitConsent: consent,
+        readingContext: readingContextPayload,
       });
 
       const outcome = decideProfileSubmitOutcome(saved);
@@ -1179,6 +1204,31 @@ export function BirthProfileForm({
                 timezone="Asia/Ho_Chi_Minh"
                 timezoneLabel={t("review.timezone")}
                 title={t("review.stepTitle")}
+                readingContext={readingContext}
+                readingContextLabels={{
+                  title: t("readingContext.title"),
+                  subtitle: t("readingContext.subtitle"),
+                  skip: t("readingContext.skip"),
+                  lifeStageTitle: t("readingContext.lifeStageTitle"),
+                  topConcernTitle: t("readingContext.topConcernTitle"),
+                  lifeStage: {
+                    studying: t("readingContext.lifeStage.studying"),
+                    early_career: t("readingContext.lifeStage.early_career"),
+                    established_career: t("readingContext.lifeStage.established_career"),
+                    business_owner: t("readingContext.lifeStage.business_owner"),
+                    between_paths: t("readingContext.lifeStage.between_paths"),
+                    retired: t("readingContext.lifeStage.retired"),
+                  },
+                  topConcern: {
+                    career: t("readingContext.topConcern.career"),
+                    money: t("readingContext.topConcern.money"),
+                    love: t("readingContext.topConcern.love"),
+                    family: t("readingContext.topConcern.family"),
+                    wellbeing: t("readingContext.topConcern.wellbeing"),
+                    self_understanding: t("readingContext.topConcern.self_understanding"),
+                  },
+                }}
+                onReadingContextChange={setReadingContext}
               />
             ) : null}
 
@@ -1188,36 +1238,49 @@ export function BirthProfileForm({
               </p>
             ) : null}
 
-            <div className="wizard-actions">
-              {step > 1 ? (
-                <button
-                  className="button button-secondary wizard-action-back"
-                  disabled={pending}
-                  onClick={handleBack}
-                  type="button"
+            <div className="wizard-actions-footer">
+              <div className={`wizard-actions${isKeyboardOpen ? " is-keyboard-open" : ""}`}>
+                {step > 1 ? (
+                  <button
+                    className="button button-secondary wizard-action-back"
+                    disabled={pending}
+                    onClick={handleBack}
+                    type="button"
+                  >
+                    {t("back")}
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {step < 3 ? (
+                  <button
+                    className="button wizard-action-continue"
+                    onClick={handleContinue}
+                    type="button"
+                  >
+                    {t("continue")}
+                  </button>
+                ) : (
+                  <button
+                    className="button wizard-action-submit"
+                    disabled={submitGuard.buttonDisabled}
+                    type="submit"
+                  >
+                    {submitButtonLabel}
+                  </button>
+                )}
+              </div>
+              <div className="wizard-sample-link-wrap">
+                <Link
+                  className="wizard-sample-link"
+                  href={locale === "en" ? "/en/bao-cao-mau/tu-vi" : "/bao-cao-mau/tu-vi"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  {t("back")}
-                </button>
-              ) : (
-                <span />
-              )}
-              {step < 3 ? (
-                <button
-                  className="button wizard-action-continue"
-                  onClick={handleContinue}
-                  type="button"
-                >
-                  {t("continue")}
-                </button>
-              ) : (
-                <button
-                  className="button wizard-action-submit"
-                  disabled={submitGuard.buttonDisabled}
-                  type="submit"
-                >
-                  {submitButtonLabel}
-                </button>
-              )}
+                  <Icon name="arrow-right" />
+                  <span>{t("sampleReportLink")}</span>
+                </Link>
+              </div>
             </div>
           </>
         )}

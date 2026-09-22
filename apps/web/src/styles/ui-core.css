@@ -57,6 +57,22 @@
   font: 16px/1.5 var(--font-ui);
 }
 
+.ui-field-shell__input::placeholder {
+  color: var(--pearl-400);
+  font: 16px/1.5 var(--font-ui);
+}
+
+.ui-field-shell__select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--pearl-50);
+  font: 16px/1.5 var(--font-ui);
+  cursor: pointer;
+}
+
 .ui-field-shell__hint {
   margin: 0;
   color: var(--pearl-400);

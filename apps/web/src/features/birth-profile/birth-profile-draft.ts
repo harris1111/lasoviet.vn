@@ -4,6 +4,8 @@ import {
   canAdvanceStep1,
   canAdvanceStep2,
   validateWizardDate,
+  WizardReadingContextDraftSchema,
+  type WizardReadingContextDraft,
 } from "./birth-wizard-state";
 
 export const BIRTH_PROFILE_DRAFT_STORAGE_KEY = "lasoviet:birth-wizard-draft:v1";
@@ -23,6 +25,7 @@ export type BirthProfileDraftInput = {
   year?: string;
   timeState?: BirthTimeState;
   place?: string;
+  readingContext?: WizardReadingContextDraft;
 };
 
 export type ValidatedBirthProfileDraft = {
@@ -39,6 +42,7 @@ export type ValidatedBirthProfileDraft = {
   year: string;
   timeState: BirthTimeState;
   place: string;
+  readingContext?: WizardReadingContextDraft;
   createdAt: number;
   updatedAt: number;
 };
@@ -88,6 +92,7 @@ const DRAFT_KEYS = new Set([
   "year",
   "timeState",
   "place",
+  "readingContext",
   "createdAt",
   "updatedAt",
 ]);
@@ -158,7 +163,15 @@ export function isMeaningfulBirthProfileDraft(input: BirthProfileDraftInput): bo
     (timeState?.precision === "exact_minute" &&
       Boolean(timeState.hour.trim() || timeState.minute.trim()));
 
+  const hasReadingContext = Boolean(
+    input.readingContext?.lifeStage ||
+      input.readingContext?.topConcern ||
+      input.readingContext?.skippedQuestions?.lifeStage ||
+      input.readingContext?.skippedQuestions?.topConcern,
+  );
+
   return Boolean(
+    hasReadingContext ||
     input.displayName?.trim() ||
       input.forWhom === "other" ||
       input.consentOther ||
@@ -359,6 +372,16 @@ export function readBirthProfileDraft(options?: {
       return null;
     }
 
+    let readingContext: WizardReadingContextDraft | undefined;
+    if (data.readingContext !== undefined) {
+      const parsedContext = WizardReadingContextDraftSchema.safeParse(data.readingContext);
+      if (!parsedContext.success) {
+        removeDraft(storage);
+        return null;
+      }
+      readingContext = parsedContext.data;
+    }
+
     if (day && month && year) {
       const date = validateWizardDate(day, month, year, {
         referenceDate: new Date(now),
@@ -387,6 +410,7 @@ export function readBirthProfileDraft(options?: {
       year,
       timeState,
       place,
+      ...(readingContext !== undefined ? { readingContext } : {}),
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     };
@@ -422,6 +446,7 @@ export function saveBirthProfileDraft(
       ...(input.year === undefined ? {} : { year: input.year.slice(0, 4) }),
       ...(input.timeState === undefined ? {} : { timeState: input.timeState }),
       ...(input.place === undefined ? {} : { place: input.place.slice(0, 120) }),
+      ...(input.readingContext === undefined ? {} : { readingContext: input.readingContext }),
     };
     storage.setItem(BIRTH_PROFILE_DRAFT_STORAGE_KEY, JSON.stringify(payload));
     return true;
@@ -461,6 +486,7 @@ export function saveHomepageDraft(
     year: input.year,
     timeState,
     place: existing?.place ?? "",
+    ...(existing?.readingContext ? { readingContext: existing.readingContext } : {}),
   };
 
   merged.step = resolveRestorableWizardStep(merged, options?.now);

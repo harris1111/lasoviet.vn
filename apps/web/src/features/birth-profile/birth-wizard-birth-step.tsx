@@ -122,18 +122,22 @@ export function BirthWizardBirthStep({
         <span className="wizard-field-label">{dateLabel}</span>
         <BirthDateFields
           calendarButtonLabel={locale === "en" ? "Select date from calendar" : "Chọn ngày từ lịch"}
+          calendarLabel={calendarLabel}
           calendarType={calendarType}
           day={day}
           dayLabel={dayLabel}
           dayPlaceholder={dayLabel}
           error={dateError}
           locale={locale}
+          lunarLabel={lunarLabel}
           month={month}
           monthLabel={monthLabel}
           monthPlaceholder={monthLabel}
+          onCalendarTypeChange={onCalendarTypeChange}
           onDayChange={onDayChange}
           onMonthChange={onMonthChange}
           onYearChange={onYearChange}
+          solarLabel={solarLabel}
           year={year}
           yearLabel={yearLabel}
           yearPlaceholder={yearLabel}
@@ -170,9 +174,12 @@ export function BirthWizardBirthStep({
         <label className="wizard-field-label" htmlFor="birthPlace">
           {placeLabel}
         </label>
-        <div className="wizard-place-input-wrap">
-          <Icon name="map-pin" />
+        <div className="wizard-place-input-wrap ui-field-shell__control">
+          <span aria-hidden="true" className="ui-field-shell__icon">
+            <Icon name="map-pin" />
+          </span>
           <input
+            className="ui-field-shell__input"
             id="birthPlace"
             maxLength={120}
             name="birthPlace"
