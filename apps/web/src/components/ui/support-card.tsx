@@ -1,3 +1,4 @@
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import { Icon } from "../icon";
 import { UiCard } from "./ui-card";
 
@@ -14,11 +15,11 @@ export type SupportCardProps = {
 export function SupportCard({
   actionLabel = "Gửi email hỗ trợ",
   description,
-  email = "support@lasoviet.net",
+  email = customerContactConfig.email.value,
   href,
   subject,
   title,
-  visible = true,
+  visible = customerContactConfig.email.visible,
 }: SupportCardProps) {
   if (!visible) {
     return null;

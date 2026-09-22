@@ -1,5 +1,7 @@
-import { SupportCard } from "../../components/ui/support-card";
 "use client";
+
+import { SupportCard } from "../../components/ui/support-card";
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -270,12 +272,14 @@ export type VietQrCheckoutProps = {
   initialStatus: CheckoutStatus;
   labels: VietQrCheckoutLabels;
   selfClaim?: React.ReactNode;
+  supportEmail?: string;
 };
 
 export function VietQrCheckout({
   initialStatus,
   labels,
   selfClaim,
+  supportEmail = customerContactConfig.email.value,
 }: VietQrCheckoutProps) {
   const [status, setStatus] = useState(initialStatus);
   const [hasPollingError, setHasPollingError] = useState(false);
@@ -610,6 +614,7 @@ export function VietQrCheckout({
             </div>
           </div>
         </section>
+        {selfClaim}
         <div className="checkout-recovery-support" data-testid="checkout-expired-support">
           <SupportCard
             actionLabel={isVi ? "Gửi email hỗ trợ" : "Send support email"}
@@ -618,7 +623,7 @@ export function VietQrCheckout({
                 ? "Nếu bạn đã chuyển khoản nhưng đơn hàng đã hết hạn và đối chiếu chưa khớp, vui lòng gửi email kèm mã đơn để được hỗ trợ kiểm tra."
                 : "If you already transferred but this order expired and self-claim did not match, please email support with your order code."
             }
-            email="support@lasoviet.net"
+            email={supportEmail}
             subject={
               (status.order.paymentCode)
                 ? (isVi
@@ -629,8 +634,6 @@ export function VietQrCheckout({
             title={isVi ? "Cần hỗ trợ đơn hàng này?" : "Need support for this order?"}
           />
         </div>
-        {selfClaim}
-        {footerSupportBlock}
       </>
     );
   }
@@ -674,9 +677,6 @@ export function VietQrCheckout({
               <Link href={ordersPath} className="button button-secondary">
                 {orderHistoryActionLabel}
               </Link>
-              <a href={status.order.supportUrl} className="button button-secondary">
-                {supportActionLabel}
-              </a>
             </div>
           </div>
         </section>
@@ -688,7 +688,7 @@ export function VietQrCheckout({
                 ? "Giao dịch thanh toán chưa thành công. Bạn có thể gửi email để đội ngũ hỗ trợ kiểm tra trạng thái thanh toán."
                 : "Payment was not completed. You can send an email so our support team can verify the transaction status."
             }
-            email="support@lasoviet.net"
+            email={supportEmail}
             subject={
               (status.order.paymentCode)
                 ? (isVi
@@ -699,7 +699,6 @@ export function VietQrCheckout({
             title={isVi ? "Cần hỗ trợ đơn hàng này?" : "Need support for this order?"}
           />
         </div>
-        {footerSupportBlock}
       </>
     );
   }

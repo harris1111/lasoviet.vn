@@ -1,3 +1,4 @@
+import { customerContactConfig } from "@lasoviet/config";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -46,8 +47,8 @@ export default async function AccountOrdersPage({
       routeLocale === "vi"
         ? "Dịch vụ đơn hàng tạm thời không khả dụng. Vui lòng thử lại sau."
         : "Order history service is temporarily unavailable. Please try again later.";
-    return <OrderHistory locale={routeLocale} error={error} />;
+    return <OrderHistory locale={routeLocale} error={error} supportEmail={customerContactConfig.email.value} />;
   }
 
-  return <OrderHistory locale={routeLocale} orders={result.value} />;
+  return <OrderHistory locale={routeLocale} orders={result.value} supportEmail={customerContactConfig.email.value} />;
 }

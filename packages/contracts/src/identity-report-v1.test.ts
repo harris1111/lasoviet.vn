@@ -365,12 +365,20 @@ describe("report view v1 contract", () => {
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
       supportReference: "LSV-INV-001",
     };
+    // Backward compatible with canonical support address and legacy rolling email
     expect(ReportViewV1Schema.safeParse(failedWithSupport).success).toBe(true);
-
     expect(
       ReportViewV1Schema.safeParse({
         ...failedWithSupport,
-        supportEmail: "other@example.com",
+        supportEmail: "lasoviet.net@gmail.com",
+      }).success,
+    ).toBe(true);
+
+    // Invalid email format is rejected
+    expect(
+      ReportViewV1Schema.safeParse({
+        ...failedWithSupport,
+        supportEmail: "not-an-email",
       }).success,
     ).toBe(false);
 

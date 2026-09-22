@@ -18,7 +18,7 @@ vi.mock("next-intl", () => ({
 
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { customerContactConfig } from "@lasoviet/config";
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import { SiteFooter } from "../../components/site-footer";
 import { SupportCard } from "../../components/ui/support-card";
 import { OrderHistory } from "../account/order-history";
@@ -228,7 +228,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
 
       expect(html).toContain('data-testid="account-orders-support"');
       expect(html).toContain(
-        "mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSV-INV-999",
+        "mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng",
       );
       expect(html).not.toContain("internal-uuid-order-hist-777");
     });

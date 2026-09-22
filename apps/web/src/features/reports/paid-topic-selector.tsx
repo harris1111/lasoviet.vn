@@ -44,6 +44,7 @@ import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { resolveActiveSkuFromPublicOfferKey } from "../commerce/checkout-offer";
 import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tracker";
 import { CheckoutPurchaseForm } from "../commerce/checkout-purchase-form";
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import { SupportCard } from "../../components/ui/support-card";
 import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
 import {
@@ -58,6 +59,7 @@ export type PaidTopicSelectorProps = {
   ownershipByOfferKey?: Partial<Record<PublicOfferKey, OfferOwnershipState>>;
   orderHistory?: OrderHistoryItemV1[];
   now?: Date;
+  supportEmail?: string;
 };
 
 export function PaidTopicSelector({
@@ -67,6 +69,7 @@ export function PaidTopicSelector({
   ownershipByOfferKey,
   orderHistory,
   now,
+  supportEmail = customerContactConfig.email.value,
 }: PaidTopicSelectorProps) {
   const t = useTranslations("reports");
 
@@ -300,7 +303,7 @@ export function PaidTopicSelector({
                 ? "The Lá Số Việt team is ready to answer questions about packages and access via email."
                 : "Đội ngũ Lá Số Việt sẵn sàng giải đáp thắc mắc về các gói luận giải và quyền lợi qua email."
             }
-            email="support@lasoviet.net"
+            email={supportEmail}
             title={locale === "en" ? "Need help choosing a reading?" : "Cần hỗ trợ về gói luận giải?"}
           />
         </div>
