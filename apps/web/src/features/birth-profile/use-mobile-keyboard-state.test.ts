@@ -56,7 +56,7 @@ describe("isMobileKeyboardOpen", () => {
     ).toBe(true);
   });
 
-  it("falls back to focused editable element when visualViewport is unavailable", () => {
+  it("does NOT mark keyboard open merely from focus when visualViewport is unavailable", () => {
     const activeElement = { tagName: "INPUT" } as unknown as Element;
     expect(
       isMobileKeyboardOpen({
@@ -64,6 +64,13 @@ describe("isMobileKeyboardOpen", () => {
         windowInnerHeight: 0,
         visualViewport: null,
       }),
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      isMobileKeyboardOpen({
+        activeElement,
+        windowInnerHeight: 844,
+        visualViewport: null,
+      }),
+    ).toBe(false);
   });
 });

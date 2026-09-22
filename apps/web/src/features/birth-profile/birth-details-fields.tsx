@@ -67,6 +67,9 @@ export type BirthDetailsFieldsProps = {
   placePlaceholder?: string;
   timezoneText?: string;
   onPlaceChange?(value: string): void;
+
+  // Variant
+  variant?: "wizard" | "hero";
 };
 
 export function BirthDetailsFields({
@@ -111,9 +114,10 @@ export function BirthDetailsFields({
   placePlaceholder,
   timezoneText,
   onPlaceChange,
+  variant = "wizard",
 }: BirthDetailsFieldsProps) {
   return (
-    <div className="birth-details-fields">
+    <div className={`birth-details-fields birth-details-fields--${variant}`}>
       {onDisplayNameChange && nameLabel ? (
         <div className="wizard-field-group">
           <label className="wizard-field-label" htmlFor="birthDetailsDisplayName">
@@ -227,7 +231,7 @@ export function BirthDetailsFields({
 
       {onPlaceChange && placeLabel ? (
         <div className="wizard-field-group">
-          <label className="wizard-field-label" htmlFor="birthDetailsPlace">
+          <label className="wizard-field-label" htmlFor="birthPlace">
             {placeLabel}
           </label>
           <div className="ui-field-shell__control">
@@ -236,9 +240,9 @@ export function BirthDetailsFields({
             </span>
             <input
               className="ui-field-shell__input"
-              id="birthDetailsPlace"
+              id="birthPlace"
               maxLength={120}
-              name="place"
+              name="birthPlace"
               onChange={(event) => onPlaceChange(event.target.value)}
               placeholder={placePlaceholder}
               type="text"

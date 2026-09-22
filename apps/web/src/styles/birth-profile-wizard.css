@@ -1302,7 +1302,8 @@
 }
 
 .birth-date-calendar-select {
-  min-height: 36px;
+  min-height: var(--control-height, 44px);
+  min-width: 44px;
   padding: 0 28px 0 10px;
   border: 1px solid var(--lacquer-line);
   border-radius: var(--radius-control, 8px);
@@ -1631,8 +1632,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: var(--control-height, 44px);
+  min-width: 44px;
+  padding: 0 16px;
   background: transparent;
   border: 1px solid var(--lacquer-line);
   border-radius: var(--radius-control, 8px);
@@ -1736,4 +1738,49 @@
 .wizard-sample-link svg {
   width: 16px;
   height: 16px;
+}
+
+
+/* Inline date selects (>= 44px touch targets) */
+.birth-date-select-label {
+  display: flex;
+  align-items: center;
+}
+
+.birth-date-select {
+  min-height: var(--control-height, 44px);
+  min-width: 44px;
+  background-color: transparent;
+  border: none;
+  color: var(--pearl-50);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  padding: 0 16px 0 6px;
+  cursor: pointer;
+  outline: none;
+  background-position: right 2px center;
+}
+
+.birth-date-select:focus {
+  background: rgba(201, 164, 77, 0.12);
+  border-radius: var(--radius-control, 8px);
+}
+
+.birth-date-select--year {
+  min-width: 68px;
+}
+
+.birth-details-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.birth-details-fields--hero {
+  gap: var(--space-3);
+}
+
+.birth-details-fields--hero .wizard-field-group {
+  margin-bottom: var(--space-3);
 }

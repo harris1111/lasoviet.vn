@@ -1,3 +1,4 @@
+import type { ReadingContextV1 } from "@lasoviet/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -212,7 +213,7 @@ describe("BirthProfile server submission", () => {
         createBirthProfileSubmission(subject)({
           profile,
           explicitConsent: true,
-          readingContext: invalidContext,
+          readingContext: invalidContext as unknown as ReadingContextV1,
         }),
       ).resolves.toMatchObject({
         ok: false,

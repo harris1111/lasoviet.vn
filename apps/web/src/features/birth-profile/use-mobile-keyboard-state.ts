@@ -18,7 +18,6 @@ export function isMobileKeyboardOpen(options?: {
     activeEl &&
       (activeEl.tagName === "INPUT" ||
         activeEl.tagName === "TEXTAREA" ||
-        activeEl.tagName === "SELECT" ||
         (activeEl as HTMLElement).isContentEditable),
   );
 
@@ -44,7 +43,9 @@ export function isMobileKeyboardOpen(options?: {
     return innerHeight - vv.height > 120;
   }
 
-  return isEditableFocused;
+  // Fallback when visualViewport is unavailable: do NOT assume keyboard is open
+  // merely because an editable element has focus.
+  return false;
 }
 
 export function useMobileKeyboardState(): boolean {
