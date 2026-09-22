@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
@@ -11,6 +13,15 @@ type HomepageFinalCtaProps = {
 export function HomepageFinalCta({ locale }: HomepageFinalCtaProps) {
   const t = useTranslations("common");
 
+  function handleScrollToHeroForm() {
+    const form = document.getElementById("hero-form");
+    if (form) {
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+      const firstInput = form.querySelector<HTMLElement>("input, select, button");
+      firstInput?.focus();
+    }
+  }
+
   return (
     <div className="cta-inner">
       <ArtifactImage
@@ -23,10 +34,17 @@ export function HomepageFinalCta({ locale }: HomepageFinalCtaProps) {
         <h2>{t("home.finalCta.title")}</h2>
         <p>{t("home.finalCta.copy")}</p>
         <div className="cta-actions">
-          <Link className="button" href={localizedPath(locale, "/tao-la-so/tu-vi")}>
+          <button
+            type="button"
+            className="button button-pill"
+            onClick={handleScrollToHeroForm}
+          >
             {t("home.finalCta.ctaPrimary")}
-          </Link>
-          <Link className="button button-secondary" href={localizedPath(locale, "/bao-cao-mau/tu-vi")}>
+          </button>
+          <Link
+            className="button button-secondary button-pill"
+            href={localizedPath(locale, "/bao-cao-mau/tu-vi")}
+          >
             {t("home.finalCta.ctaSecondary")}
           </Link>
         </div>

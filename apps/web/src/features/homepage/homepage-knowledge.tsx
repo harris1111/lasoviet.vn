@@ -10,39 +10,95 @@ type HomepageKnowledgeProps = {
 
 export function HomepageKnowledge({ locale }: HomepageKnowledgeProps) {
   const t = useTranslations("common");
-  const items = [
-    {
-      key: "chart",
-      image: "cau-truc-la-so-tu-vi-12-cung-la-gi-homepage.webp",
-      href: "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
-    },
+
+  const featured = {
+    key: "chart",
+    image: "cau-truc-la-so-tu-vi-12-cung-la-gi-homepage.webp",
+    href: "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
+    title: t("home.knowledge.chart.title"),
+    copy: t("home.knowledge.chart.copy"),
+    category: t("home.knowledge.featuredCategory"),
+    byline: t("home.knowledge.byline"),
+  };
+
+  const compactList = [
     {
       key: "create",
-      image: "quy-trinh-lap-la-so-tu-vi-tu-lich-phap-homepage.webp",
       href: "/kien-thuc/tu-vi/cach-lap-la-so-tu-vi",
+      title: t("home.knowledge.create.title"),
+      copy: t("home.knowledge.create.copy"),
+      category: t("home.knowledge.createCategory"),
     },
     {
       key: "read",
-      image: "cach-doc-moi-lien-he-giua-cac-cung-la-so-tu-vi-homepage.webp",
       href: "/kien-thuc/tu-vi/cach-doc-la-so-tu-vi",
+      title: t("home.knowledge.read.title"),
+      copy: t("home.knowledge.read.copy"),
+      category: t("home.knowledge.readCategory"),
     },
-  ] as const;
+    {
+      key: "evidence",
+      href: "/phuong-phap/ai-va-can-cu",
+      title: t("home.knowledge.evidenceTitle"),
+      copy: t("home.knowledge.evidenceCopy"),
+      category: t("home.knowledge.evidenceCategory"),
+    },
+    {
+      key: "hub",
+      href: "/kien-thuc",
+      title: t("home.knowledge.libraryTitle"),
+      copy: t("home.knowledge.libraryCopy"),
+      category: t("home.knowledge.libraryCategory"),
+    },
+  ];
 
   return (
-    <div className="container">
-      <p className="eyebrow">{t("home.knowledge.eyebrow")}</p>
-      <h2>{t("home.knowledge.title")}</h2>
-      <div className="knowledge-grid">
-        {items.map((item) => (
-          <Link href={localizedPath(locale, item.href)} key={item.key}>
-            <ArtifactImage
-              alt={t(`home.knowledge.${item.key}.title`)}
-              desktop={imagePath(item.image)}
-            />
-            <h3>{t(`home.knowledge.${item.key}.title`)}</h3>
-            <p>{t(`home.knowledge.${item.key}.copy`)}</p>
+    <div className="container knowledge-section-wrap">
+      <div className="section-heading text-center">
+        <p className="eyebrow">{t("home.knowledge.eyebrow")}</p>
+        <h2>{t("home.knowledge.title")}</h2>
+        <p className="section-lead">{t("home.knowledge.lead")}</p>
+      </div>
+
+      <div className="knowledge-layout-grid">
+        {/* 1 Featured Article Card */}
+        <article className="knowledge-featured-card">
+          <Link href={localizedPath(locale, featured.href)} className="featured-card-link">
+            <figure className="featured-card-figure">
+              <ArtifactImage
+                alt={featured.title}
+                desktop={imagePath(featured.image)}
+              />
+            </figure>
+            <div className="featured-card-body">
+              <span className="knowledge-category-tag">{featured.category}</span>
+              <h3 className="featured-card-title">{featured.title}</h3>
+              <p className="featured-card-copy">{featured.copy}</p>
+              <div className="featured-card-meta">
+                <span className="featured-byline">{featured.byline}</span>
+                <span className="featured-read-link">
+                  {t("home.knowledge.readArticle")}
+                </span>
+              </div>
+            </div>
           </Link>
-        ))}
+        </article>
+
+        {/* 4 Compact List Items */}
+        <div className="knowledge-compact-list">
+          {compactList.map((item, index) => (
+            <article className="knowledge-compact-item" key={item.key}>
+              <Link href={localizedPath(locale, item.href)} className="compact-item-link">
+                <div className="compact-item-num">{String(index + 1).padStart(2, "0")}</div>
+                <div className="compact-item-content">
+                  <span className="knowledge-compact-tag">{item.category}</span>
+                  <h4 className="compact-item-title">{item.title}</h4>
+                  <p className="compact-item-copy">{item.copy}</p>
+                </div>
+              </Link>
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );
