@@ -1,3 +1,4 @@
+import { customerContactConfig } from "@lasoviet/config";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -85,6 +86,7 @@ export default async function PaidTopicSelectionPage({
           ownershipByOfferKey={ownershipByOfferKey}
           orderHistory={orderHistory}
           topics={topics.value}
+          supportEmail={customerContactConfig.email.value}
         />
       </div>
     </main>

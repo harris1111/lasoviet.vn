@@ -1,6 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { z } from "zod";
+import { customerContactConfig as generatedCustomerContactConfig } from "./customer-contact.generated.js";
 
 const contactChannelSchema = z.object({
   value: z.string().trim(),
@@ -30,17 +29,7 @@ export function validateCustomerContactConfig(source: unknown): CustomerContactC
   return parsed.data;
 }
 
-function runtimeConfigFile(name: string): string {
-  const workingDirectoryFile = resolve(process.cwd(), "config", name);
-  if (existsSync(workingDirectoryFile)) {
-    return workingDirectoryFile;
-  }
-  return resolve(process.cwd(), "..", "..", "config", name);
-}
-
-export const customerContactConfig: CustomerContactConfig = validateCustomerContactConfig(
-  JSON.parse(readFileSync(runtimeConfigFile("customer-contact.json"), "utf8")),
-);
+export const customerContactConfig: CustomerContactConfig = generatedCustomerContactConfig;
 
 export function buildCustomerSupportMailto(options?: {
   email?: string;

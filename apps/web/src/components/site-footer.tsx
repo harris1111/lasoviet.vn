@@ -1,4 +1,4 @@
-import { customerContactConfig } from "@lasoviet/config";
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import Image from "next/image";
 import Link from "next/link";
 
