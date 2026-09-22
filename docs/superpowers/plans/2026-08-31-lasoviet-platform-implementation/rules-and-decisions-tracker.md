@@ -4,6 +4,17 @@
 
 | ID | Date | Decision | Status | Implemented in |
 |---|---|---|---|---|
+| FD-098 | 2026-09-22 | The single customer support email is **lasoviet.net@gmail.com**, replacing support@lasoviet.net everywhere (UI, reports, policies, prototypes). The founder approved the revamp prototypes in `prototype/revamp-2026-09/` (homepage, free tools hub, tool page template, and the 12-icon set) as the binding UI source for the revamp; the sample reading text on the tool page is voice reference only | Approved | `config/customer-contact.json`; `prototype/revamp-2026-09/` |
+| FD-097 | 2026-09-22 | Simplify the branch workflow: every change starts on its own short-lived branch and opens a pull request straight into `master`; the founder or An approves and authorises the merge. The fixed `product/experience-spec-v1` and `feature/site-foundation` integration branches and the dedicated UI artifact branch (FD-024, FD-055) are retired. UI is still built against a founder-approved prototype, which now lives in `prototype/` on any branch | Approved | `CLAUDE.md`, `AGENTS.md` branch section, `docs/15-collaboration-branch-workflow.md` |
+| FD-096 | 2026-09-22 | No lawyer review of the FD-089 line. Strip old rules that slow down UX, UI, and page-content work from the business docs, keeping every rule that protects the quality of paid readings (FD-058, FD-072 to FD-077) and every backend, payment, privacy, and security rule. Page-level UI rules now come only from the FD-091 spec, `docs/22`, and `docs/24` | Approved | `docs/13`, `docs/14`, `docs/20` rewritten or trimmed on 2026-09-22 |
+| FD-095 | 2026-09-22 | Add Facebook Messenger through the Lá Số Việt fanpage as a customer support channel beside email, with an icon in the header or footer and on support cards. The founder supplies the fanpage link later; until then the channel stays hidden: the fanpage link goes into the `social` field of `config/customer-contact.json` (single contact source) with `visible: false` until then. Supersedes the 2026-09-13 "email only, no floating contact" rule in the AITuvi adaptation spec §4.7 for Messenger only; the rule that a floating button must never cover a primary CTA stays | Approved; link pending | `config/customer-contact.json` `social`; icon wiring pending An |
+| FD-094 | 2026-09-22 | Do not add "Tử vi hôm nay" to the main navigation; daily and other free or low-price tools live in the free tools hub (`/cong-cu-mien-phi`). Every hub tool gets its own icon drawn in the Lá Số Việt style, designed with the `design-taste-frontend` skill | Approved | Revamp plan; `prototype/cong-cu-mien-phi/` |
+| FD-093 | 2026-09-22 | Add a membership tier priced in `Lá` (FD-065 unchanged: no VND on content): **Hội viên tháng 1,500 Lá / 30 days** and **Hội viên năm 8,000 Lá / 365 days**, bought from the Lá balance, never auto-renewed. Includes: "Hôm nay của bạn" (daily reading against the chart), monthly reading (nguyệt vận), the paid version of every hub tool, and 20% off report unlocks. Excludes the Toàn diện report, which stays a separate lifetime purchase. The monthly price makes the 249k pack (3,000 Lá) the natural top-up; the yearly price equals the 599k pack exactly | Approved; inclusions and discount are a starting hypothesis | Revamp plan product ladder |
+| FD-092 | 2026-09-22 | Do not notify the Ministry of Industry and Trade (Bộ Công Thương) for the website at this stage and do not add a notification badge; other certifications will be added later. The legal-entity and address fields stay hidden | Approved | Revamp plan |
+| FD-091 | 2026-09-22 | Keep `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` **in full** as the binding page-level baseline (type scale, word budgets, section rhythm, components, homepage order, page specs, "do not copy" list) for the 2026-09-22 UI/content revamp. The revamp plan extends it and may add sections, but does not silently drop any of its rules. Where FD-089 now allows content the spec's §3.5 bans for fear reasons, FD-089 wins; the spec's legal bans (fake reference prices, fake testimonials, lottery wording, invented scores under FD-063) stay | Approved | Detail section below; revamp plan |
+| FD-090 | 2026-09-22 | Amend `docs/23-index-eligibility-gate.md` §0: a **free tools hub** of simple tools that need no complex calculation engine (static lookup tables, lunar-calendar conversion, random draw from a fixed deck, pure formulas) may be built now, alongside the Zi Wei flow. Each tool must carry a designed bridge into a paid Zi Wei offer. Engine disciplines (Bát Tự, Kinh Dịch readings, Chiêm Tinh, Thần Số Học paid) stay gated by `docs/23` unchanged, and a tool page is indexable only once it returns real computed results | Approved | Detail section below; `docs/23-index-eligibility-gate.md` §0 note |
+| FD-089 | 2026-09-22 | Content boundary reset for revenue: write readings the way traditional Tử Vi does, including bad news (hạn, bad stars, hard years, money loss, relationship trouble, legal trouble, accident risk) with traditional directness. Daily-return features (daily horoscope, reminders, streaks) are allowed. Paywall and upsell copy may name a misfortune period **only when the engine actually computed it for that chart**. Still banned, as the Vietnamese-law line: death, lifespan, and "khắc chết" content (FD-075 kept on this point); named-disease diagnosis (health warnings stay allowed in measured wording); selling rituals, "giải hạn", "hoá giải", or feng-shui objects; invented events or dates not produced by the engine; false scarcity, countdowns, fabricated reference prices, fake reviews or experts (FD-064, FD-071); lottery numbers. Supersedes the fear-based-claim clause of FD-064, the misfortune-framing parts of FD-075, and the matching FD-077 gate | Approved; prompt and validator changes pending An | Detail section below; `CLAUDE.md`, `MASTER_CONCEPT.md` §8, `docs/13` §4.5/§6.1/§7.4, `docs/20` §9/§11 notes |
+| FD-088 | 2026-09-20 | Ratify the shipped lacquer palette as the product's **default theme**, and establish the colour contract that makes a second **light theme** buildable later. `apps/web/src/styles/tokens.css` holds primitive values; a semantic layer (`--surface-*`, `--text-*`, `--border-*`, `--accent-*`) is the only thing components may reference, and each theme supplies its own mapping of semantic names to primitives. This supersedes the `LOCKED` Paper/Ink/Cinnabar palette in `docs/13-brand-experience-guideline.md` §5.2 **as the default theme**, but that palette is retained as the approved starting point for the future light theme rather than discarded. The §5.8 line stating dark mode is out of MVP scope is superseded: the product ships dark-first and a light theme is planned. `docs/13` §5.3 typography, §5.4 grid/spacing/shape, §5.6 iconography, and §5.8 motion stay binding and already match the tokens. Four implementation rules bind from this date: components reference semantic tokens only, never primitives; every semantic token must be defined before use; no new bare hex outside the token files; and contrast is measured per theme, never carried between themes. The full measured two-theme system is `docs/24-light-theme-color-spec.md`. | Approved | `docs/13-brand-experience-guideline.md` §05, `docs/22-art-direction.md`, `apps/web/src/styles/tokens.css`, `apps/web/src/styles/discipline-pages-foundation.css`, `docs/24-light-theme-color-spec.md` |
 | FD-084 | 2026-09-15 | An and Lãm have equal authority across all business, product, workflow, UI, technical, security, Git, infrastructure, deployment, production, migration, and release matters. A direct written instruction from either is binding without confirmation from the other; when explicit instructions conflict, the latest explicit instruction controls. Replace Gemini Flash high as bounded coder with a `cx/gpt-5.6-terra` medium bounded executor while retaining a separate `cx/gpt-5.6-terra` high session for independent milestone review. The former Flash scope, correction, stop, and side-effect limits transfer unchanged to Terra medium. Supersedes FD-031, FD-032, and FD-083 where they conflict. | Approved by direct owner instruction | `AGENTS.md`, all active Git worktrees |
 | FD-001 | 2026-08-31 | Use Superpowers only; no `/ck` or CK CLI | Approved | `AGENTS.md` |
 | FD-002 | 2026-08-31 | Sol orchestrates, Terra reviews, Luna implements | Approved | `AGENTS.md` |
@@ -28,7 +39,7 @@
 | FD-021 | 2026-09-01 | Review complete features, phases, or meaningful milestones instead of every small implementation task; keep focused core-flow verification | Approved | `AGENTS.md` |
 | FD-022 | 2026-09-01 | Use the founder-provided MXRouting SMTP connection for authentication and report email; port 587 requires reviewed STARTTLS behavior | Approved | Phase 01, Phase 05 |
 | FD-023 | 2026-09-01 | From P01-T02 onward, Terra medium directly implements, debugs, and runs focused tests; Sol xhigh orchestrates and reviews milestones; Luna is paused | Superseded by FD-032 | Historical P01-T02 through P05A work |
-| FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Approved | `AGENTS.md`, current implementation phases |
+| FD-024 | 2026-09-01 | Defer user-facing UI to a dedicated artifact branch and implement it only against the approved artifact; current branches focus on non-visual work | Superseded by FD-097 | `AGENTS.md`, current implementation phases |
 | FD-025 | 2026-09-02 | Promote `/du-bao-cung-hoang-dao` to the Gate 1 public `live_indexable` surface and keep `/horoscope` as an archived 301 redirect to it; other Horoscope routes remain reserved and visual rendering stays deferred by FD-024 | Approved | Phase 03 route registry, content metadata, and SEO contracts |
 | FD-026 | 2026-09-02 | Use the founder-operated OpenAI-compatible provider identity `9router-an` through raw `fetch`; implement the non-visual AI/report foundation before SePay, and block production report calls until provider privacy due diligence is complete and approved | Approved | Phase 04 AI provider, capability probe, report writer, validator, critic, and compliance gate |
 | FD-027 | 2026-09-02 | Approve Operations Dashboard V1 Option A as dedicated Phase 05A: private server-authorized `/admin/**`, database-backed RBAC/capabilities, redacted inspection, audited compensating domain commands, and no CMS; full CMS/back-office content editing is deferred | Approved | Admin dashboard spec, Phase 05A, Phases 04-06, contracts, risks, and release gates |
@@ -59,7 +70,7 @@
 | FD-052 | 2026-09-09 | Pseudonymous analytics session ID does not require periodic rotation; it only needs to be a value distinct from the account ID/internal primary key | Approved | Same round-2 doc |
 | FD-053 | 2026-09-09 | Third-party analytics/optimization tools may receive behavioral and commercial data freely, but must never receive name, exact birth date/time/place, free-text question content, or `chart_id`; deep joins with birth-chart data stay on self-hosted BI only | Approved | Same round-2 doc |
 | FD-054 | 2026-09-09 | Analytics dashboard and the legacy-to-new event mapping are jointly owned by Harris and An | Approved | Same round-2 doc |
-| FD-055 | 2026-09-09 | The approved UI artifact branch for WP-03/WP-06/WP-11/WP-13 (per FD-024) is `product/discipline-flagship-pages`; verified that `product/bg-texture-consistency` and `product/homepage-content-rewrite` are ancestors, so no preliminary merge is required | Approved | Same round-2 doc |
+| FD-055 | 2026-09-09 | The approved UI artifact branch for WP-03/WP-06/WP-11/WP-13 (per FD-024) is `product/discipline-flagship-pages`; verified that `product/bg-texture-consistency` and `product/homepage-content-rewrite` are ancestors, so no preliminary merge is required | Superseded by FD-097 | Same round-2 doc |
 | FD-056 | 2026-09-09 | Harris alone signs off on the cross-cutting visual QA pass (WP-13); An executes the checks and supplies pass/fail evidence with screenshots | Approved | Same round-2 doc |
 | FD-057 | 2026-09-11 | https://lasoviet.net supersedes lasoviet.vn as the sole canonical public domain for master brand, public SEO, web application, Better Auth, checkout, and customer support email; lasoviet.vn, lasoviet.cloud, and lasoviet.xyz serve as non-canonical redirect reserves once externally configured; the GitHub repository name and local filesystem paths remain lasoviet.vn | Approved | `AGENTS.md`, `config/domain-routing.json`, `config/sitemap.json`, documentation |
 | FD-058 | 2026-09-12 | Zi Wei comprehensive report V4 (`ZIWEI-IDENTITY-P0`, 79k) adds current decadal cycle, annual snapshot, three-frame birth-time sensitivity, and 3–5 structured actions; cancels `ZIWEI-YEAR-P0`; Knowledge Base V4 editorial rewrite (plain Vietnamese, school categorization, fatalistic-content quarantine) is a release prerequisite | Approved (table row added 2026-09-13; decision recorded 2026-09-12) | `docs/superpowers/plans/2026-09-12-ziwei-comprehensive-report-v4.md`; evidence section below |
@@ -68,7 +79,7 @@
 | FD-061 | 2026-09-13 | Purchased and promotional Lá do not expire in the first release; credits are non-transferable, non-withdrawable, and recorded in an append-only ledger with separate paid/promotional buckets, deterministic spend order, atomic entitlement grant, idempotency, and compensating restoration on failure | Approved | Same 2026-09-13 design spec |
 | FD-062 | 2026-09-13 | Map the current 19k/79k/60k Tier-1/Tier-2/upgrade values to 19/79/60 Lá and always offer exact-missing-amount top-up; individual-section, AI-answer, and multi-pack prices remain hypotheses until their separate release gates pass | Superseded by FD-066 (new Lá price list and pack ladder; exact top-up removed) | Same 2026-09-13 design spec |
 | FD-063 | 2026-09-13 | Use real chart structure, palace relationships, evidence counts/categories, reading coverage, entitlement state, and report facts as conversion and upsell surfaces; prohibit invented fortune/compatibility scores and keep predictive trend charts deferred until a reviewed time-based engine exists | Approved | Same 2026-09-13 design spec |
-| FD-064 | 2026-09-13 | Commercial and conversion decisions are optimized for maximum revenue. Persuasion techniques commonly classed as dark patterns (decoy tiers, anchoring, bonus framing, default pre-selection, curiosity gaps) are permitted when lawful under Vietnamese law. The legal boundary is binding: no fabricated reference/crossed-out prices, no false scarcity or countdowns, no misleading promotion terms, and no fear-based fortune claims that risk superstition-business sanctions. For commercial conversion decisions this overrides the "trust/safety wins" conflict rule; privacy (FD-053), payment integrity (FD-043), and entitlement correctness remain binding | Approved | This tracker; conflict rule amended 2026-09-13 in `CLAUDE.md`, `docs/15-collaboration-branch-workflow.md`, and `docs/13-brand-experience-guideline.md` |
+| FD-064 | 2026-09-13 | Commercial and conversion decisions are optimized for maximum revenue. Persuasion techniques commonly classed as dark patterns (decoy tiers, anchoring, bonus framing, default pre-selection, curiosity gaps) are permitted when lawful under Vietnamese law. The legal boundary is binding: no fabricated reference/crossed-out prices, no false scarcity or countdowns, no misleading promotion terms, and no fear-based fortune claims that risk superstition-business sanctions. For commercial conversion decisions this overrides the "trust/safety wins" conflict rule; privacy (FD-053), payment integrity (FD-043), and entitlement correctness remain binding | Approved; fear-based-claim clause superseded by FD-089 | This tracker; conflict rule amended 2026-09-13 in `CLAUDE.md`, `docs/15-collaboration-branch-workflow.md`, and `docs/13-brand-experience-guideline.md` |
 | FD-065 | 2026-09-13 | Two-layer pricing: `Lá` has no published exchange rate to VND. VND appears only on top-up packs, the payment order, and the invoice. Content, unlock, and upgrade prices are shown in `Lá` only, with no "tương đương X đồng" line. Lá is used to buy and view all services from one shared balance | Approved | 2026-09-13 design spec §18 |
 | FD-066 | 2026-09-13 | Top-up packs: Nhập Môn 29,000 VND → 300 Lá; Khởi Đọc 99,000 → 1,000 + 100 bonus = 1,100 Lá; Khám Phá 249,000 → 2,500 + 500 = 3,000 Lá; Tàng Thư 599,000 → 6,000 + 2,000 = 8,000 Lá. Content prices: Tier 1 240 Lá, Tier 2 960 Lá, Tier 1→Tier 2 upgrade within the FD-041 window 720 Lá; single palace 120 Lá remains a hypothesis. Exact-missing-amount top-up is removed; the primary insufficient-balance CTA is the smallest pack that covers the item. Supersedes FD-048 and FD-062 | Approved | 2026-09-13 design spec §18 |
 | FD-067 | 2026-09-13 | The invoice is issued immediately when a Lá top-up payment is confirmed, with the line item described as a `Lá` service credit, not as a report. Revenue is recognized when Lá is spent on content (deferred revenue until spend); bonus/promotional Lá is not revenue. Content unlocks paid with Lá issue no second invoice | Approved; finance/tax confirmation of the line-item wording still required before production | 2026-09-13 design spec §18 |
@@ -79,9 +90,9 @@
 | FD-072 | 2026-09-13 | Keep Zi Wei V4 active for new Vietnamese orders (no rollback to V3) and restore the V3 prompt rules the V4 prompt dropped: no reflective questions, no process narration, no repeated advice, no fabricated future events or dates, no invented identifiers, verbatim evidence keys, locale-integrity and brightness-label block; correct the prompt domain to lasoviet.net | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §2 |
 | FD-073 | 2026-09-13 | Generate the comprehensive report section by section (one call per palace/theme/section) with per-section token budgets and minimum lengths, independent retries, resumable persistence, and reuse of the same generator for FD-068 free previews | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §3 |
 | FD-074 | 2026-09-13 | The Knowledge Base V4 editorial rewrite follows the editorial ruleset draft (plain Vietnamese, proper-name whitelist, discouraged Sino-Vietnamese term list, mainstream school as base); the ruleset extends the founder's Kaneo #3 editorial input; the rewrite is the V4.1 fast-follow the founder deferred on Kaneo #3 | Approved; ruleset signed off by the founder 2026-09-13 (term table §3.3 and warning format §5) | `docs/superpowers/specs/2026-09-13-ziwei-knowledge-editorial-ruleset.md`; `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §4 |
-| FD-075 | 2026-09-13 | Remove all death, lifespan, and "khắc chết" content from the corpus and output; keep misfortune warnings (money, health, accidents, travel, legal, relationships, work) written as preparation guidance with concrete steps, without certainty language, adverse-event dates, named diseases, remedies/rituals, or use in paywall copy. Narrows FD-058's fatalistic-content quarantine and the 2026-09-12 Kaneo #3 editorial input that deleted serious illness, accidents, imprisonment, and disasters outright | Approved | Ruleset draft §4–§5; `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §5 |
+| FD-075 | 2026-09-13 | Remove all death, lifespan, and "khắc chết" content from the corpus and output; keep misfortune warnings (money, health, accidents, travel, legal, relationships, work) written as preparation guidance with concrete steps, without certainty language, adverse-event dates, named diseases, remedies/rituals, or use in paywall copy. Narrows FD-058's fatalistic-content quarantine and the 2026-09-12 Kaneo #3 editorial input that deleted serious illness, accidents, imprisonment, and disasters outright | Partially superseded by FD-089 (death/lifespan ban kept) | Ruleset draft §4–§5; `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §5 |
 | FD-076 | 2026-09-13 | Rewrite V4 prompts in everyday Vietnamese keeping only proper names; every claim pairs a real chart detail with a two-sided observation, a concrete everyday situation, and an actionable suggestion, using personal-sounding sentences anchored in the chart | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §6 |
-| FD-077 | 2026-09-13 | Add deterministic report quality gates: per-section minimum length, zero discouraged Sino-Vietnamese terms, proper-name density cap, zero death terms, misfortune-framing check, chart-anchoring check, plus existing Han/locale and repetition checks; failing sections are rewritten, never delivered below gate. Replaces the Kaneo #3 V4 launch rule "no V4 rewrite pass" (the AI critic pass stays), because stricter gates without rewrite would fail paid reports under FD-043 | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §8 |
+| FD-077 | 2026-09-13 | Add deterministic report quality gates: per-section minimum length, zero discouraged Sino-Vietnamese terms, proper-name density cap, zero death terms, misfortune-framing check, chart-anchoring check, plus existing Han/locale and repetition checks; failing sections are rewritten, never delivered below gate. Replaces the Kaneo #3 V4 launch rule "no V4 rewrite pass" (the AI critic pass stays), because stricter gates without rewrite would fail paid reports under FD-043 | Partially superseded by FD-089 (misfortune-framing gate removed; death-term gate kept) | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §8 |
 | FD-078 | 2026-09-13 | Add two optional single-choice reading-context questions to the birth wizard as a tappable list with a skip option (current life stage; top concern), stored as enum codes separate from the birth profile, used for examples, emphasis, and free-preview section choice, never for chart facts or prices, and never sent to third-party tools | Approved | `docs/superpowers/specs/2026-09-13-ziwei-v4-report-depth-and-personalization.md` §7 |
 | FD-080 | 2026-09-13 | No analytics consent UI of any kind (no banner, popup, checkbox, or consent step). Behavioral funnel measurement is first-party and anonymous by design so that it does not process personal data: no stored raw IP, no full user agent or fingerprinting, unique visitors counted with a daily-rotating salted hash whose salt is destroyed after 24 hours, per-visit random ID in `sessionStorage` only, and no link to account ID, birth profile, `chart_id`, or order ID. Account-linked business metrics come from transaction data. Disclosure is one privacy-policy paragraph only. Third-party ad pixels carrying identifiers require a separate founder decision. Supersedes FD-050 and the no-rotation session-ID clause of FD-052; FD-051 and FD-053 remain binding | Superseded by FD-081 | Kaneo LSV #10 (WP-10A), #11 (WP-10C), #12 (WP-10B) |
 | FD-081 | 2026-09-13 | Behavioral tracking is identified and account-linked to optimize upsell and revenue: first-party persistent `visitor_id` cookie, stored IP/user agent/referrer/UTM, and events linked to the account and birth profile once the visitor accepts the wizard consent or signs in, with prior visitor history merged into the customer profile. No new consent UI: the existing required wizard birth-data checkbox is re-worded to also cover analytics, personalization, and offers (versioned purposes), sign-in shows a one-line terms/privacy notice without a checkbox, and the privacy policy describes the data, purposes, and retention. Unlinked visitor IPs and events are deleted after 30 days without consent or sign-in; IP may be kept separately for fraud and abuse prevention. FD-053 third-party field limits remain binding; third-party ad pixels and marketing email rules require their own decisions. Supersedes FD-080 and FD-050 | Approved | Kaneo LSV #12 (WP-10B); UI tickets #19–#28 |
@@ -1007,3 +1018,154 @@ Date: 2026-09-16
 - This decision does not authorize deployment, activation, use of credentials,
   or external smoke. Each still requires separate founder authorization and
   actual configured credentials.
+
+## FD-088 Two-Theme Colour Contract
+
+Date: 2026-09-20
+
+- Trigger: the 2026-09-20 business-source consolidation found that
+  `docs/13-brand-experience-guideline.md` §5.2 carries a `LOCKED` Paper/Ink/
+  Cinnabar palette that no shipped component uses. `tokens.css` defines only
+  the lacquer scale. The change shipped with no founder decision authorising
+  it, which `AGENTS.md` forbids ("Never silently reverse, reinterpret, or
+  weaken a founder-confirmed decision"), and `docs/22` §6 had carried the
+  unresolved item since 2026-09-02.
+- The founder confirmed on 2026-09-20 that a light theme is planned. This
+  decision therefore ratifies the lacquer system as the default theme rather
+  than declaring a single permanent surface, and records the colour rules now
+  so the light theme has a contract to build against from the start.
+- The Paper/Ink/Cinnabar palette is **not discarded**. It is a coherent,
+  already-reasoned light system whose contrast ratios were measured against a
+  light surface, which is exactly the context a light theme needs. It is
+  retained in `docs/13` §5.2 as the approved starting point for that theme.
+- Audit evidence that a light theme is not currently possible without the
+  contract below:
+  - The semantic alias layer (`--surface-deep`, `--text-body`, `--accent-gold`
+    and others) is defined in `apps/web/src/styles/discipline-pages-foundation.css`,
+    scoped to discipline pages, not in the global `tokens.css`.
+  - **14 tokens are referenced but never defined anywhere, across 104 uses.**
+    Six of them carry no fallback either (`--pearl-100` 12 uses, `--pearl-300`
+    13 uses, `--pearl-500`, `--gold-300`, `--pearl-800`, `--lacquer-950`), so
+    the declaration is invalid at computed-value time and the text inherits its
+    parent's colour instead of the intended one. This is a live rendering bug
+    on the privacy policy page, `.palace-title`, `.report-fact-item dd`, and
+    the birth-profile wizard, not merely theming debt.
+  - `--accent-seal` falls back to *different* colours at different call sites:
+    `#CE5B45` (son) in three places and `#c9a44d` (gold) at
+    `good-days-preview.tsx:804`. One token name, two colours.
+  - 43 bare hex values across 7 `.tsx` files sit outside any token and would
+    not change when a theme switches. A further 319 hex values are `var()`
+    fallbacks, which are acceptable as a safety net but must not be relied on.
+  - Components also reference primitives directly (`var(--lacquer-800, ...)`),
+    which bypasses any theme layer by construction.
+- Binding rules from this date:
+  1. **Semantic-only.** Components reference semantic tokens
+     (`--surface-*`, `--text-*`, `--border-*`, `--accent-*`). Referencing a
+     primitive (`--lacquer-*`, `--gold-*`, `--pearl-*`, `--son`) directly from a
+     component is not allowed in new work.
+  2. **Define before use.** A semantic token must be defined in the global
+     token layer before any component references it. `--accent-seal` is the
+     existing violation and must be fixed.
+  3. **No new bare hex.** New components must not introduce hex literals
+     outside the token files. The existing 43 are technical debt to be paid
+     down, not a precedent.
+  4. **Contrast is per theme.** The lacquer theme was measured for the first
+     time on 2026-09-20 and mostly passes, with two exceptions now binding:
+     `--text-faint` reaches only 3.29:1 on canvas and 3.11:1 on panel, so it
+     must not carry meaningful text; and `--accent-seal` reaches 4.38:1 on
+     `--surface-panel`, so it must not be used for normal-size text there. The ratios recorded in §5.2 were measured
+     against Paper 100 and are valid only for the light theme. Ratios for the
+     lacquer theme must be measured against lacquer surfaces. This decision
+     does **not** assert that the shipped lacquer pairs currently pass
+     WCAG 2.2 AA; that is unverified and must be measured.
+- Scope boundary: colour, surface, and theming only. No change to typography,
+  spacing, iconography, motion, or any UX, privacy, payment, or content rule.
+- The full light-theme colour system is specified, measured, and build-ready in
+  `docs/24-light-theme-color-spec.md`. Every value there carries its WCAG 2.2 AA
+  ratio. The light theme reuses the `docs/13` §5.2 Paper/Ink palette almost
+  unchanged, which passes; the single exception is gold, since `--gold-500`
+  reaches only 2.10:1 on paper, so `--gold-800 #755718` is added for light-theme
+  text. The gold gradient CTA passes in both themes unchanged and stays a
+  shared brand anchor.
+- The light theme itself is **not** authorised for build by this decision. It
+  is planned; timing stays with the founder, and the Zi Wei flow remains the
+  current priority per `docs/23-index-eligibility-gate.md` §0.
+
+## FD-089 Content Boundary Reset For Revenue
+
+Date: 2026-09-22
+
+- Trigger: the founder's 2026-09-22 revamp interview. Both reference
+  competitors (aituvi.com, huyenmenh.com) run daily-return features and state
+  bad news plainly. The founder instructed: stop being overly gentle, write
+  bad and unlucky readings the way ordinary Tử Vi does, and allow everything
+  that Vietnamese law does not forbid, to maximise conversion and revenue. The
+  founder asked for the rules and docs to be changed to match.
+- Allowed from this date:
+  1. Traditional Tử Vi readings, including negative ones: hạn years and
+     months, bad stars, hard periods, money loss, relationship trouble,
+     family conflict, legal or paperwork trouble, travel and accident risk.
+     Traditional directness and certainty wording are allowed.
+  2. Health: measured warnings are allowed (for example "năm này nên chú ý
+     sức khoẻ, nghỉ ngơi và khám định kỳ"). Naming a specific disease as a
+     prediction stays banned.
+  3. Daily-return features: daily horoscope, "hôm nay của bạn", reminders,
+     streaks, and repeat-visit prompts. This removes `docs/13` §6.1 rule 15
+     ("No dependency loops").
+  4. Paywall and upsell copy may name a misfortune period (for example
+     "Năm 2027 có 2 tháng hạn — mở để xem cách chuẩn bị") **only when the
+     engine computed that period for this chart**.
+- Still banned — the Vietnamese-law line, which always beats revenue:
+  1. Death, lifespan, "thọ yểu", and "khắc chết" content. FD-075 stays binding
+     on this point.
+  2. Selling or recommending rituals, offerings, "giải hạn", "hoá giải",
+     "cải vận" packages, or feng-shui objects. Advice about behaviour and
+     preparation is fine.
+  3. Events, dates, or misfortunes not produced by the engine.
+  4. False scarcity, countdowns, fabricated reference or crossed-out prices,
+     misleading promotion terms, fake reviews, and fake experts or teams
+     (FD-064, FD-071).
+  5. Lottery or "lô đề" numbers in any form, including dream pages.
+- Legal context: fortune-telling can be treated as "hành nghề mê tín, dị
+  đoan", with administrative fines and, on repeat, criminal liability under
+  Criminal Code Article 320. The banned list above is the operating line. A
+  Vietnamese lawyer has not reviewed it.
+- Superseded: the fear-based-claim clause of FD-064; FD-075's bans on
+  certainty language, adverse-event dates, and paywall use of misfortune; the
+  FD-077 "misfortune-framing check" gate. FD-077's zero-death-terms gate stays.
+- Follow-up for An (not done by this decision): update the Zi Wei V4 prompts
+  and the FD-077 validator to the new boundary, keeping the death-term gate
+  and adding a "misfortune must cite an engine-computed period" check.
+
+## FD-090 Free Tools Hub Exception To The Index Gate
+
+Date: 2026-09-22
+
+- The founder asked for a free tools hub modelled on competitor practice and
+  on the repository keyword research (`data/lasoviet_research_master.xlsx`),
+  limited to tools that need no complex engine, each designed to lead into a
+  paid offer.
+- Scope of the exception: tools whose results come from static lookup tables,
+  lunar-calendar conversion, a random draw from a fixed deck, or a pure
+  formula. The specific tool list and order are set in the revamp plan and
+  confirmed by the founder.
+- Unchanged: Bát Tự, Kinh Dịch readings, Chiêm Tinh, and paid Thần Số Học stay
+  gated by `docs/23-index-eligibility-gate.md`. A tool page moves from
+  `live_noindex` to indexable only when it returns real computed results, never
+  as a "coming soon" shell.
+- Every tool result page must include a bridge into the Zi Wei funnel (for
+  example "Ngày tốt chung — nhưng có hợp lá số của bạn?") that carries the
+  tool context into the wizard.
+
+## FD-091 Keep The 2026-09-13 AITuvi Adaptation Spec In Full
+
+Date: 2026-09-22
+
+- The founder chose to keep
+  `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md`
+  whole, including its homepage order, rather than keep only its rules.
+- As of 2026-09-22 none of it had shipped: the live homepage is 20,284 px tall
+  at 390 px width (spec target ≤ 12,000 px), still has the marquee, and the
+  sample report still prints "79.000 ₫" against FD-065.
+- The revamp plan builds on this spec. FD-089 overrides its §3.5 only where
+  §3.5 banned content for fear reasons; its legal bans stay.

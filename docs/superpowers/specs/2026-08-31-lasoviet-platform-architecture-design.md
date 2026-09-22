@@ -84,6 +84,16 @@ the application.
 
 ## 4. Sources Inspected
 
+> **Note (2026-09-20):** this is a historical record of what was inspected on
+> 2026-08-31, not a reading list. Several entries below were archived during the
+> business-source consolidation and now live under `docs/archive/`:
+> `README.md` (as `docs/archive/README-concept-package-2026-08-31.md`),
+> `docs/01-evidence-and-insights.md`, `docs/02-brand-and-positioning.md`,
+> `docs/03-sitemap-and-seo.md`, `docs/07-content-and-growth.md`,
+> `docs/09-roadmap-and-metrics.md`, `docs/10-decision-log.md`, and
+> `AGENT_HANDOFF.md`. Do not read them. For current sources see `AGENTS.md`
+> §1.1.
+
 The design was produced after inspecting:
 
 - `README.md`

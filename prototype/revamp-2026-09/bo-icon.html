@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bộ icon công cụ — Lá Số Việt</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  .sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .sheet .card { display: grid; justify-items: center; gap: 14px; text-align: center; }
+  .sizes { display: flex; gap: 14px; align-items: center; color: var(--gold-500); }
+  .sizes svg:nth-child(1) { width: 20px; height: 20px; } .sizes svg:nth-child(2) { width: 24px; height: 24px; } .sizes svg:nth-child(3) { width: 32px; height: 32px; }
+  .name { font-weight: 600; color: var(--text-heading); }
+  code { font: 12px var(--font-mono); color: var(--text-muted); }
+  .rules { max-width: 760px; margin: 0 auto 40px; color: var(--text-body); }
+  .rules li { margin-bottom: 6px; }
+  .medallion { color: var(--gold-500); }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+<main class="section"><div class="container">
+  <div class="section-head"><p class="eyebrow">FD-094 · Bản nháp để anh duyệt</p><h2>Bộ icon công cụ miễn phí</h2><p>12 icon, mỗi icon một hiện vật của đúng môn đó, nét vàng và đúng một điểm son.</p></div>
+  <ul class="rules">
+    <li>Lưới 32px, nét 1,6px, đầu nét tròn; nét dùng màu chữ (<code>currentColor</code>) nên đổi được sang giao diện sáng.</li>
+    <li>Mỗi icon chỉ có một điểm đỏ son: chỗ "đang được chọn" (hào động, cung hôm nay, que xăm rút ra…).</li>
+    <li>Không dùng tim, sao năm cánh, quả cầu, mặt trăng tím — theo art direction docs/22.</li>
+    <li>Luôn đi kèm tên công cụ, không đứng một mình.</li>
+  </ul>
+  <div class="sheet" id="sheet"></div>
+</div></main>
+<script>
+  fetch('icons.json').catch(()=>null);
+  var names = {"tu-vi-hom-nay":"Tử vi hôm nay","lich-am-ngay-tot":"Lịch âm & ngày tốt","than-so-hoc":"Thần số học","boi-tinh-yeu":"Bói tình yêu","giai-ma-giac-mo":"Giải mã giấc mơ","gieo-que":"Gieo quẻ Kinh Dịch","rut-bai":"Rút bài mỗi ngày","hat-xi-may-mat":"Hắt xì hơi, máy mắt","con-so-may-man":"Con số may mắn","menh-ngu-hanh":"Tuổi gì, mệnh gì","xin-xam":"Xin xăm","sim-phong-thuy":"Sim phong thủy"};
+  var html = '';
+  for (var k in names) {
+    var u = '<use href="#i-'+k+'"/>';
+    html += '<div class="card"><span class="medallion lg"><svg aria-hidden="true">'+u+'</svg></span><span class="name">'+names[k]+'</span><span class="sizes"><svg aria-hidden="true">'+u+'</svg><svg aria-hidden="true">'+u+'</svg><svg aria-hidden="true">'+u+'</svg></span><code>i-'+k+'</code></div>';
+  }
+  document.getElementById('sheet').innerHTML = html;
+</script>
+</body>
+</html>

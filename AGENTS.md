@@ -15,7 +15,7 @@ Follow this precedence order:
 1. Explicit founder/owner decisions recorded in `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`.
 2. This repository policy (`AGENTS.md`).
 3. Approved plans and architecture records.
-4. Founder-approved experience sources: `docs/13-brand-experience-guideline.md`, `docs/14-sitemap-seo-wireframes.md`.
+4. Founder-approved experience sources: `docs/13-brand-experience-guideline.md`, `docs/14-sitemap-seo-wireframes.md`, the page spec `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` (FD-091), and the approved revamp prototypes in `prototype/revamp-2026-09/` (FD-098).
 5. Existing repository conventions.
 
 Blueprint v1.1 (`docs/14`) supersedes UX, route, and SEO material in older legacy documentation. The canonical route catalog is strictly maintained in `config/route-registry.yml`.
@@ -56,7 +56,8 @@ Owner goals and decisions
 
 ## 4. Implementation Governance & Safety
 
-- **Scope & Dedicated Branches:** Every implementation task requires an explicit bounded brief and runs on a dedicated feature branch. Never commit or push directly to `master`.
+- **Scope & Dedicated Branches:** Every implementation task requires an explicit bounded brief and runs on a dedicated short-lived branch that opens a pull request straight into `master` (FD-097). Never commit or push directly to `master`.
+- **Content Line:** The only content restriction for pages and readings is the FD-089 banned list (`docs/13` §4.5). Report-quality gates (FD-058, FD-072 to FD-077) stay binding.
 - **UI & i18n Parity:** When adding or changing user-facing strings in `apps/web/messages/`, always maintain matching key parity in both `vi/` and `en/` and verify with `pnpm i18n:check`.
 - **Fast Pre-Push Verification:** Run `pnpm i18n:check && pnpm lint && pnpm typecheck` locally before opening a pull request to ensure CI passes cleanly on the first run.
 - **Pre-implementation Verification:** Before implementing external package integrations whose exact-version behavior is unverified, verify task-relevant imports, configuration, and build scripts from local workspace facts; never rely on generic assumptions.

@@ -106,7 +106,7 @@ mục dưới đây):
 |---|---|---|
 | Bản hiện tại (code) | `prototype/homepage.html` | Base để sửa tiếp, không viết lại từ đầu |
 | Bản hiện tại (xem trực quan) | https://claude.ai/code/artifact/d07f7ed9-9ab9-425d-9888-8dfa38b284fd | Publish lại cùng file_path này sẽ update link, không tạo link mới |
-| Art direction + prompt ảnh | `prototype/art-direction.md` | 5 prompt sinh ảnh (Midjourney/Nano Banana/Flux) + ~25 keyword tìm ảnh thật + bộ lọc chọn ảnh. 4 ô ảnh trong trang đã đánh số Ảnh 01–04 khớp với prompt. |
+| Art direction + prompt ảnh | `docs/22-art-direction.md` | 5 prompt sinh ảnh (Midjourney/Nano Banana/Flux) + ~25 keyword tìm ảnh thật + bộ lọc chọn ảnh. 4 ô ảnh trong trang đã đánh số Ảnh 01–04 khớp với prompt. |
 | Brand guideline gốc (LOCKED, trừ palette/dark-mode) | `docs/13-brand-experience-guideline.md` | Đặc biệt: §4 tone-of-voice, §7 trust/privacy/safety, §8 component recipes |
 | Wireframe 9 loại trang (đã duyệt v1.1/FD-019) | `docs/14-sitemap-seo-wireframes.md` §6 | Trang chủ = §6.1. 8 trang còn lại chưa build, chờ trang chủ chốt xong |
 | Báo cáo research 3 site ref (CHANI/Astro·Charts/The Pattern) | `/private/tmp/claude-501/-Users-admin--Projects-lasoviet-vn/384f8a15-66d3-4bfc-bca3-e198f32e39ee/scratchpad/design-system-extraction.md` | File tạm — nếu cần giữ lâu dài, copy nội dung liên quan vào repo trước khi session hết hạn |
@@ -135,4 +135,4 @@ có thể dán sang trang SaaS khác mà không ai nhận ra khác biệt, chưa
 - [ ] Sau khi trang chủ chốt: nhân rộng hệ thống sang 8 loại trang còn lại trong
       `docs/14-sitemap-seo-wireframes.md` §6 (đã được founder chọn "toàn bộ 9 loại trang" cho đợt
       này).
-- [ ] Ảnh thật (AI-gen hoặc stock) theo `prototype/art-direction.md`, đưa vào 4 ô Ảnh 01-04.
+- [ ] Ảnh thật (AI-gen hoặc stock) theo `docs/22-art-direction.md`, đưa vào 4 ô Ảnh 01-04.

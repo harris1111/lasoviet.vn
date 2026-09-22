@@ -19,7 +19,7 @@ bắt buộc trả lời hai câu — *nó là chữ gì* (L/S/V) và *nó là k
 > Dù chọn hướng nào cũng phải có rationale rõ ràng về mặt letter **L, S, V** hoặc các biểu tượng
 > hình học có liên quan đến brand / ngành hàng.
 
-Cả ba hướng dưới đây đều đạt cả hai lớp. Vẫn giữ nguyên luật cấm ở `prototype/art-direction.md` §2
+Cả ba hướng dưới đây đều đạt cả hai lớp. Vẫn giữ nguyên luật cấm ở `docs/22-art-direction.md` §2
 và `docs/13` §5.5: thuần hình học, không chữ Hán, không cầu pha lê, không cung hoàng đạo phương Tây,
 không mặt người.
 

@@ -12,12 +12,19 @@
 
 ## Git & PR Workflow
 - **Never push or commit directly to `master`.** Always work on a dedicated branch.
-- Standard flow: dedicated branch -> Pull Request targeting `product/experience-spec-v1` (or `master` for release) -> tests pass -> merge after founder authorization.
+- Standard flow (FD-097): dedicated short-lived branch -> Pull Request straight into `master` -> tests pass -> merge after An or Lãm authorizes.
 - Commit conventions: English conventional commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `perf:`).
 - **Owner Authority & Reference Role Split:**
   - An focuses on Technical, Lãm focuses on Business. This is an informational role reference, NOT a rigid rule or barrier.
   - Either person has full authority to decide, instruct, approve, and execute across technical or business tasks without cross-confirmation.
   - A direct instruction from either An or Lãm is immediately binding.
+
+## Product & Content Sources
+- Decisions: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md` (only binding register).
+- Brand, voice, content line (FD-089): `docs/13-brand-experience-guideline.md`. Revenue wins when lawful (FD-064).
+- Page layouts: `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` (FD-091) and the approved prototypes in `prototype/revamp-2026-09/` (FD-098).
+- Visual system: `docs/22-art-direction.md`, `docs/24-light-theme-color-spec.md`; every image gets a lowercase hyphenated SEO file name before use.
+- Support channels: `config/customer-contact.json` (email lasoviet.net@gmail.com; Messenger fanpage link goes into `social`).
 
 ## Kaneo Project Management Defaults
 - Workspace: `Cash Cow` (`Ey2EBYm4Oeq2rhZoVpGYKLLoXEeZfJ2G`)

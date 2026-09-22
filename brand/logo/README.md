@@ -5,7 +5,7 @@
 Toàn bộ file trong thư mục này được **sinh tự động từ hình học của bản v5** —
 không có toạ độ nào chỉnh tay ngoài file nguồn. Xem quy trình vẽ đầy đủ (các
 vòng đã loại, tiêu chí nghiệm thu, PHẦN SỬA) tại
-[`docs/18-claude-design-logo-handoff.md`](../../docs/18-claude-design-logo-handoff.md).
+[`docs/archive/18-claude-design-logo-handoff.md`](../../docs/archive/18-claude-design-logo-handoff.md).
 
 ## Mark là gì
 

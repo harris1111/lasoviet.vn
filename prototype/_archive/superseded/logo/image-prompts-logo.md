@@ -1,7 +1,7 @@
 # Lá Số Việt — Prompt sinh ảnh logo (bản nâng cấp — mức craft cao nhất)
 
 > Trạng thái: **draft**, nhánh brainstorm logo — chưa duyệt, chưa vào `docs/13`.
-> Cùng hệ hình ảnh với `prototype/art-direction.md` (Tàng Thư Các Dát Vàng) nhưng viết lại
+> Cùng hệ hình ảnh với `docs/22-art-direction.md` (Tàng Thư Các Dát Vàng) nhưng viết lại
 > ở mức đặc tả vật liệu/kỹ thuật của một art director làm huy hiệu/huân chương thật, không
 > còn mô tả hình học chung chung. Icon dùng làm logo thật vẫn thuần hình học, không chữ Hán
 > — đã chốt với founder ở vòng trước.
