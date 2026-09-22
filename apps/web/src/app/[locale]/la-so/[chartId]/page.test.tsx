@@ -1,3 +1,4 @@
+import type { FreeIdentityPreviewV1 } from "@lasoviet/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -167,15 +168,96 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     },
   };
 
-  const mockPreviewSuccess = {
+  const mockPreviewSuccess: { ok: true; value: FreeIdentityPreviewV1 } = {
     ok: true,
     value: {
       version: 1,
       chartId,
       chartVersionId: "cv-1",
-      strengthInsight: { id: "strength", title: "Thế mạnh", explanation: "...", evidenceIds: [] },
-      tensionInsight: { id: "tension", title: "Điểm căng", explanation: "...", evidenceIds: [] },
-      paidPreview: { sku: "ZIWEI-IDENTITY-P0", sectionId: "personal_summary", coveragePercent: 12, evidence: [] },
+      capabilityId: "ziwei.identity.p0",
+      summaryVersion: "ziwei.identity.free.v1",
+      insights: [
+        {
+          id: "life-palace",
+          evidence: {
+            evidenceId: "ziwei.identity.life-palace",
+            factReferences: ["fact-life-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 1"],
+            limitations: ["Standard limitation 1"],
+          },
+        },
+        {
+          id: "body-palace",
+          evidence: {
+            evidenceId: "ziwei.identity.body-palace",
+            factReferences: ["fact-body-1"],
+            confidence: "moderate",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 2"],
+            limitations: ["Standard limitation 2"],
+          },
+        },
+        {
+          id: "transformations",
+          evidence: {
+            evidenceId: "ziwei.identity.transformations",
+            factReferences: ["fact-trans-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 3"],
+            limitations: ["Standard limitation 3"],
+          },
+        },
+      ],
+      strengthSignal: {
+        id: "strength",
+        evidence: {
+          evidenceId: "ziwei.identity.life-palace",
+          factReferences: ["fact-life-1"],
+          confidence: "high",
+          interpretationBoundCodes: ["reflective_identity_only"],
+          interpretationBounds: ["Authorized safe boundary 1"],
+          limitations: ["Standard limitation 1"],
+        },
+      },
+      tensionSignal: {
+        id: "tension",
+        evidence: [
+          {
+            evidenceId: "ziwei.identity.body-palace",
+            factReferences: ["fact-body-1"],
+            confidence: "moderate",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 2"],
+            limitations: ["Standard limitation 2"],
+          },
+          {
+            evidenceId: "ziwei.identity.transformations",
+            factReferences: ["fact-trans-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 3"],
+            limitations: ["Standard limitation 3"],
+          },
+        ],
+      },
+      paidPreview: {
+        sku: "ZIWEI-IDENTITY-P0",
+        sectionId: "personal_summary",
+        coveragePercent: 12,
+        evidence: [
+          {
+            evidenceId: "ziwei.identity.life-palace",
+            factReferences: ["fact-life-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 1"],
+            limitations: ["Standard limitation 1"],
+          },
+        ],
+      },
     },
   };
 
