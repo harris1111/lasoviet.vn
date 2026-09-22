@@ -31,5 +31,62 @@
     "error": "Your data could not be deleted right now. Please try again."
   },
   "personalizedTitle": "{name}'s Zi Wei Chart",
-  "personalizedHeroCopy": "The twelve palaces are calculated from {name}'s birth data. Each insight has evidence you can open and review."
+  "personalizedHeroCopy": "The twelve palaces are calculated from {name}'s birth data. Each insight has evidence you can open and review.",
+  "tabs": {
+    "ariaLabel": "Zi Wei reading layers",
+    "chart": "Chart",
+    "overview": "Overview",
+    "palaces": "12 Palaces",
+    "topics": "Topics",
+    "evidence": "Evidence"
+  },
+  "chartActions": {
+    "rebuildChart": "Rebuild chart",
+    "starLookup": "14 Principal Stars",
+    "downloadImage": "Download image",
+    "downloadDisabled": "Image download is coming soon",
+    "legend": {
+      "title": "Star Brightness:",
+      "exalted": "Exalted",
+      "prosperous": "Prosperous",
+      "favorable": "Favorable",
+      "neutral": "Neutral",
+      "unfavorable": "Unfavorable"
+    },
+    "discovery": {
+      "palacesCount": "12 calculated palaces",
+      "insightsCount": "3 core free highlights",
+      "evidenceCount": "3 available evidence references"
+    },
+    "downloadDisabledNote": "Image download is coming soon",
+    "discoveryAriaLabel": "Explore chart structure"
+  },
+  "overviewTab": {
+    "ctaPalaces": "View 12 palaces reading →"
+  },
+  "palacesTab": {
+    "title": "Twelve Palaces Matrix",
+    "subtitle": "Detailed calculation facts, principal stars, and cycle states across all twelve palaces.",
+    "previewState": "Preview",
+    "unopenedState": "Unopened",
+    "noMajorStars": "No principal stars",
+    "inspectAction": "View details",
+    "closeAction": "Close",
+    "cycleStateLabel": "Life Stage Cycle:",
+    "allStarsLabel": "All stars:"
+  },
+  "topicsTab": {
+    "title": "Thematic Reading Areas",
+    "subtitle": "Structural reading themes mapped directly to the 12 palace foundations.",
+    "openPreview": "Inspect outline",
+    "closePreview": "Close outline",
+    "previewTitle": "Structured Topic Preview",
+    "notice": "This preview outlines the structural focus of this palace domain. Full interpretation is generated in the personalized in-depth reading.",
+    "unlockCta": "Select a reading"
+  },
+  "evidenceTab": {
+    "title": "Interpretation Evidence",
+    "subtitle": "Calculated chart facts, interpretation bounds, and limitations backing your three free highlights.",
+    "sourceLabel": "Available evidence reference"
+  }
 }

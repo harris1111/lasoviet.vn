@@ -21,6 +21,8 @@ export type EvidenceDrawerProps = {
     | { ok: true; value: ZiweiEvidenceViewV1 }
     | { ok: false; error: { code: string } }
   >;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function EvidenceDrawer({
@@ -29,28 +31,31 @@ export function EvidenceDrawer({
   evidenceId,
   locale,
   loadEvidence,
+  isOpen,
+  onOpenChange,
 }: EvidenceDrawerProps) {
   const [evidence, setEvidence] = useState<ZiweiEvidenceViewV1["evidence"]>();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const presentation = ziweiPresentation(locale);
+
+  const isDrawerOpen = isOpen !== undefined ? isOpen : uncontrolledOpen;
 
   const triggerButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  async function showEvidence() {
+  async function fetchEvidence(targetId: string) {
     setError(false);
     setLoading(true);
     try {
-      const result = await loadEvidence(chartId, evidenceId);
+      const result = await loadEvidence(chartId, targetId);
       if (!result.ok) {
         setError(true);
         return;
       }
       setEvidence(result.value.evidence);
-      setOpen(true);
     } catch {
       setError(true);
     } finally {
@@ -58,14 +63,36 @@ export function EvidenceDrawer({
     }
   }
 
+  // Hydrate evidence if controlled open is true
+  useEffect(() => {
+    if (isOpen && !evidence && !loading) {
+      queueMicrotask(() => {
+        void fetchEvidence(evidenceId);
+      });
+    }
+  }, [isOpen, evidenceId, evidence, loading]);
+
+  async function showEvidence() {
+    if (onOpenChange) {
+      onOpenChange(true);
+    } else {
+      setUncontrolledOpen(true);
+    }
+    await fetchEvidence(evidenceId);
+  }
+
   function handleClose() {
-    setOpen(false);
+    if (onOpenChange) {
+      onOpenChange(false);
+    } else {
+      setUncontrolledOpen(false);
+    }
     triggerButtonRef.current?.focus();
   }
 
   // Accessible Escape key, focus initial close button, and trap Tab/Shift+Tab
   useEffect(() => {
-    if (!open) return;
+    if (!isDrawerOpen) return;
 
     closeButtonRef.current?.focus();
 
@@ -105,7 +132,7 @@ export function EvidenceDrawer({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open]);
+  }, [isDrawerOpen]);
 
   // Compute rich human-readable explanation if chart is available
   const explanation =
@@ -125,7 +152,7 @@ export function EvidenceDrawer({
         {loading ? (locale === "vi" ? "Đang tải..." : "Loading...") : presentation.chrome.evidenceOpen}
       </button>
       {error ? <p className="form-error" role="alert">{presentation.chrome.evidenceError}</p> : null}
-      {open && evidence ? (
+      {isDrawerOpen && evidence ? (
         <div
           aria-labelledby="evidence-drawer-title"
           aria-modal="true"

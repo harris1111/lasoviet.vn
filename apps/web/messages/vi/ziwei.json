@@ -31,5 +31,62 @@
     "error": "Không thể xóa dữ liệu lúc này. Vui lòng thử lại."
   },
   "personalizedTitle": "Lá số Tử Vi của {name}",
-  "personalizedHeroCopy": "12 cung được tính từ dữ liệu sinh của {name}. Mỗi nhận định có căn cứ để mở và tự kiểm tra."
+  "personalizedHeroCopy": "12 cung được tính từ dữ liệu sinh của {name}. Mỗi nhận định có căn cứ để mở và tự kiểm tra.",
+  "tabs": {
+    "ariaLabel": "Các tầng nội dung lá số",
+    "chart": "Lá số",
+    "overview": "Tổng quan",
+    "palaces": "12 cung",
+    "topics": "Chủ đề",
+    "evidence": "Căn cứ"
+  },
+  "chartActions": {
+    "rebuildChart": "Lập lại lá số",
+    "starLookup": "14 Chính Tinh",
+    "downloadImage": "Tải ảnh lá số",
+    "downloadDisabled": "Tính năng tải ảnh đang hoàn thiện",
+    "legend": {
+      "title": "Độ sáng sao:",
+      "exalted": "Miếu",
+      "prosperous": "Vượng",
+      "favorable": "Đắc",
+      "neutral": "Bình",
+      "unfavorable": "Hãm"
+    },
+    "discovery": {
+      "palacesCount": "12 cung bản mệnh đã an",
+      "insightsCount": "3 nhận định cốt lõi",
+      "evidenceCount": "3 căn cứ đối chiếu khả dụng"
+    },
+    "downloadDisabledNote": "Tính năng tải ảnh đang hoàn thiện",
+    "discoveryAriaLabel": "Khám phá cấu trúc lá số"
+  },
+  "overviewTab": {
+    "ctaPalaces": "Xem luận giải 12 cung →"
+  },
+  "palacesTab": {
+    "title": "Bản đồ 12 cung bản mệnh",
+    "subtitle": "Chi tiết dữ liệu an sao, chính tinh tọa thủ và vòng Trường Sinh trên từng cung vị.",
+    "previewState": "Xem trước",
+    "unopenedState": "Chưa mở",
+    "noMajorStars": "Vô chính diệu",
+    "inspectAction": "Xem chi tiết",
+    "closeAction": "Đóng",
+    "cycleStateLabel": "Vòng Trường Sinh:",
+    "allStarsLabel": "Toàn bộ sao:"
+  },
+  "topicsTab": {
+    "title": "Chuyên đề luận giải sâu",
+    "subtitle": "12 chủ đề luận giải có cấu trúc tương ứng với hệ thống 12 cung vị.",
+    "openPreview": "Xem cấu trúc chủ đề",
+    "closePreview": "Đóng xem trước",
+    "previewTitle": "Cấu trúc nội dung chủ đề",
+    "notice": "Khung xem trước này thể hiện phạm vi đối chiếu có cấu trúc của cung vị. Bản luận giải đầy đủ sẽ được phát triển trong báo cáo chuyên sâu.",
+    "unlockCta": "Mở chuyên đề luận giải"
+  },
+  "evidenceTab": {
+    "title": "Căn cứ diễn giải",
+    "subtitle": "Dữ liệu tính toán từ lá số, giới hạn diễn giải và các lưu ý đối chiếu cho 3 nhận định bản mệnh của bạn.",
+    "sourceLabel": "Căn cứ đối chiếu khả dụng"
+  }
 }

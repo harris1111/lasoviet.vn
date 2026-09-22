@@ -56,6 +56,7 @@ export function getAccountInitials(
 export function buildSignInCallbackUrl(
   locale: "en" | "vi",
   path?: string | null,
+  allowQuery = false,
 ): string {
   const prefix = locale === "en" ? "/en" : "";
   const defaultPath = `${prefix}/dang-nhap`;
@@ -90,8 +91,10 @@ export function buildSignInCallbackUrl(
     ) {
       return defaultPath;
     }
-    const cleanPathname = parsed.pathname;
-    return `${defaultPath}?callbackURL=${encodeURIComponent(cleanPathname)}`;
+    const cleanPath = allowQuery
+      ? `${parsed.pathname}${parsed.search}`
+      : parsed.pathname;
+    return `${defaultPath}?callbackURL=${encodeURIComponent(cleanPath)}`;
   } catch {
     return defaultPath;
   }
@@ -100,6 +103,7 @@ export function buildSignInCallbackUrl(
 export type SiteHeaderSignInLinkProps = {
   locale: "en" | "vi";
   currentPath?: string;
+  signInReturnPath?: string;
   className?: string;
   style?: CSSProperties;
   account?: HeaderAccountUser | null;
@@ -109,6 +113,7 @@ export type SiteHeaderSignInLinkProps = {
 export function SiteHeaderSignInLink({
   locale,
   currentPath,
+  signInReturnPath,
   className,
   style,
   account,
@@ -218,8 +223,10 @@ export function SiteHeaderSignInLink({
     );
   }
 
-  const effectivePath = currentPath ?? (pathname ?? undefined);
-  const href = buildSignInCallbackUrl(locale, effectivePath);
+  // If explicit signInReturnPath is provided, allow query parameters; otherwise strip query/hash
+  const href = signInReturnPath
+    ? buildSignInCallbackUrl(locale, signInReturnPath, true)
+    : buildSignInCallbackUrl(locale, currentPath ?? (pathname ?? undefined), false);
 
   return (
     <Link className={className} href={href} style={style}>

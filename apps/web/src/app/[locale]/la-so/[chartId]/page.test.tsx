@@ -1,3 +1,4 @@
+import type { FreeIdentityPreviewV1 } from "@lasoviet/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,7 +8,14 @@ vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
+  redirect: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`);
+  }),
   usePathname: vi.fn(() => null),
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+  })),
 }));
 
 const mockZiweiTranslations = {
@@ -44,6 +52,24 @@ const mockZiweiTranslations = {
     "deletion.error": "Error",
   },
 };
+
+vi.mock("next-intl", () => {
+  const viZiwei = require("../../../../../messages/vi/ziwei.json");
+  const viReports = require("../../../../../messages/vi/reports.json");
+  return {
+    useTranslations: (ns: string) => {
+      const msgs = ns === "reports" ? viReports : viZiwei;
+      return (key: string) => {
+        const parts = key.split(".");
+        let curr: any = msgs;
+        for (const p of parts) {
+          curr = curr?.[p];
+        }
+        return typeof curr === "string" ? curr : key;
+      };
+    },
+  };
+});
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async (namespace: string) => {
@@ -142,15 +168,96 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     },
   };
 
-  const mockPreviewSuccess = {
+  const mockPreviewSuccess: { ok: true; value: FreeIdentityPreviewV1 } = {
     ok: true,
     value: {
       version: 1,
       chartId,
       chartVersionId: "cv-1",
-      strengthInsight: { id: "strength", title: "Thế mạnh", explanation: "...", evidenceIds: [] },
-      tensionInsight: { id: "tension", title: "Điểm căng", explanation: "...", evidenceIds: [] },
-      paidPreview: { sku: "ZIWEI-IDENTITY-P0", sectionId: "personal_summary", coveragePercent: 12, evidence: [] },
+      capabilityId: "ziwei.identity.p0",
+      summaryVersion: "ziwei.identity.free.v1",
+      insights: [
+        {
+          id: "life-palace",
+          evidence: {
+            evidenceId: "ziwei.identity.life-palace",
+            factReferences: ["fact-life-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 1"],
+            limitations: ["Standard limitation 1"],
+          },
+        },
+        {
+          id: "body-palace",
+          evidence: {
+            evidenceId: "ziwei.identity.body-palace",
+            factReferences: ["fact-body-1"],
+            confidence: "moderate",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 2"],
+            limitations: ["Standard limitation 2"],
+          },
+        },
+        {
+          id: "transformations",
+          evidence: {
+            evidenceId: "ziwei.identity.transformations",
+            factReferences: ["fact-trans-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 3"],
+            limitations: ["Standard limitation 3"],
+          },
+        },
+      ],
+      strengthSignal: {
+        id: "strength",
+        evidence: {
+          evidenceId: "ziwei.identity.life-palace",
+          factReferences: ["fact-life-1"],
+          confidence: "high",
+          interpretationBoundCodes: ["reflective_identity_only"],
+          interpretationBounds: ["Authorized safe boundary 1"],
+          limitations: ["Standard limitation 1"],
+        },
+      },
+      tensionSignal: {
+        id: "tension",
+        evidence: [
+          {
+            evidenceId: "ziwei.identity.body-palace",
+            factReferences: ["fact-body-1"],
+            confidence: "moderate",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 2"],
+            limitations: ["Standard limitation 2"],
+          },
+          {
+            evidenceId: "ziwei.identity.transformations",
+            factReferences: ["fact-trans-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 3"],
+            limitations: ["Standard limitation 3"],
+          },
+        ],
+      },
+      paidPreview: {
+        sku: "ZIWEI-IDENTITY-P0",
+        sectionId: "personal_summary",
+        coveragePercent: 12,
+        evidence: [
+          {
+            evidenceId: "ziwei.identity.life-palace",
+            factReferences: ["fact-life-1"],
+            confidence: "high",
+            interpretationBoundCodes: ["reflective_identity_only"],
+            interpretationBounds: ["Authorized safe boundary 1"],
+            limitations: ["Standard limitation 1"],
+          },
+        ],
+      },
     },
   };
 
@@ -279,3 +386,20 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     expect(html).not.toContain("Đăng nhập để lưu lại");
   });
 });
+
+  it("safely redirects non-canonical query params to canonical URL", async () => {
+    const chartId = "chart-test-123";
+    await expect(
+      ZiweiChartResultPage({
+        params: Promise.resolve({ chartId, locale: "vi" }),
+        searchParams: Promise.resolve({ tab: "invalid_tab" }),
+      }),
+    ).rejects.toThrow("NEXT_REDIRECT:/la-so/chart-test-123");
+
+    await expect(
+      ZiweiChartResultPage({
+        params: Promise.resolve({ chartId, locale: "vi" }),
+        searchParams: Promise.resolve({ tab: "topics", open: "career", unknown: "extra" }),
+      }),
+    ).rejects.toThrow("NEXT_REDIRECT");
+  });
