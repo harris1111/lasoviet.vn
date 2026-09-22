@@ -68,6 +68,9 @@ export type BirthDetailsFieldsProps = {
   timezoneText?: string;
   onPlaceChange?(value: string): void;
 
+  // Reference year for year options
+  referenceYear?: number;
+
   // Variant
   variant?: "wizard" | "hero";
 };
@@ -114,6 +117,7 @@ export function BirthDetailsFields({
   placePlaceholder,
   timezoneText,
   onPlaceChange,
+  referenceYear,
   variant = "wizard",
 }: BirthDetailsFieldsProps) {
   return (
@@ -196,6 +200,7 @@ export function BirthDetailsFields({
           onDayChange={onDayChange}
           onMonthChange={onMonthChange}
           onYearChange={onYearChange}
+          referenceYear={referenceYear}
           solarLabel={solarLabel}
           year={year}
           yearLabel={yearLabel}

@@ -454,4 +454,43 @@ describe("draft autosave lifecycle", () => {
 
     expect(clear).toHaveBeenCalledOnce();
   });
+  it("preserves lunar calendar and leap month when autosaving homepage draft", () => {
+    const storage = createMockStorage();
+    saveHomepageDraft(
+      {
+        day: "15",
+        month: "08",
+        year: "1990",
+        calendarType: "lunar",
+        isLeapMonth: true,
+        timeMode: "branch_only",
+        branch: "wu",
+      },
+      { localStorage: storage, now: fixedNow },
+    );
+
+    const restored = readBirthProfileDraft({ localStorage: storage, now: fixedNow });
+    expect(restored).not.toBeNull();
+    expect(restored?.calendarType).toBe("lunar");
+    expect(restored?.isLeapMonth).toBe(true);
+    expect(restored?.timeState).toEqual({ precision: "branch_only", branch: "wu" });
+  });
+
+  it("preserves empty branch without coercing to zi in draft and homepage draft", () => {
+    const storage = createMockStorage();
+    saveHomepageDraft(
+      {
+        day: "12",
+        month: "04",
+        year: "1994",
+        timeMode: "branch_only",
+        branch: "",
+      },
+      { localStorage: storage, now: fixedNow },
+    );
+
+    const restored = readBirthProfileDraft({ localStorage: storage, now: fixedNow });
+    expect(restored).not.toBeNull();
+    expect(restored?.timeState).toEqual({ precision: "branch_only", branch: "" });
+  });
 });

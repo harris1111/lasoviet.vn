@@ -159,7 +159,7 @@ test("uses exact localized routes and keeps planned offers inert", async ({
     ).toBeVisible();
 
     // Closed time select shows unknown plus all 12 canonical branches
-    const timeSelect = heroForm.locator("select");
+    const timeSelect = heroForm.locator('select[name="birthBranch"]');
     await expect(timeSelect).toBeVisible();
     await expect(timeSelect.locator("option")).toHaveCount(13);
     const branchValues = await timeSelect

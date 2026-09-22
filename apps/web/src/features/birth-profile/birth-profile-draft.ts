@@ -51,6 +51,8 @@ export type HomepageDraftInput = {
   day: string;
   month: string;
   year: string;
+  calendarType?: "solar" | "lunar";
+  isLeapMonth?: boolean;
   timeMode: "branch_only" | "exact_minute" | "unknown";
   hour?: string;
   minute?: string;
@@ -124,8 +126,9 @@ function parseTimeState(value: unknown): BirthTimeState | null {
     return Object.keys(candidate).length === 1 ? { precision: "unknown" } : null;
   }
   if (candidate.precision === "branch_only") {
-    return Object.keys(candidate).length === 2 && isCanonicalBranchId(candidate.branch)
-      ? { precision: "branch_only", branch: candidate.branch }
+    return Object.keys(candidate).length === 2 &&
+      (candidate.branch === "" || isCanonicalBranchId(candidate.branch))
+      ? { precision: "branch_only", branch: candidate.branch as any }
       : null;
   }
   if (candidate.precision !== "exact_minute" || Object.keys(candidate).length !== 3) {
@@ -159,7 +162,7 @@ export function isMeaningfulBirthProfileDraft(input: BirthProfileDraftInput): bo
   const timeState = input.timeState;
   const hasMeaningfulTime =
     timeState?.precision === "unknown" ||
-    timeState?.precision === "branch_only" ||
+    (timeState?.precision === "branch_only" && Boolean(timeState.branch)) ||
     (timeState?.precision === "exact_minute" &&
       Boolean(timeState.hour.trim() || timeState.minute.trim()));
 
@@ -192,6 +195,8 @@ export function isMeaningfulHomepageDraft(input: HomepageDraftInput): boolean {
     input.day.trim() ||
       input.month.trim() ||
       input.year.trim() ||
+      input.calendarType === "lunar" ||
+      input.isLeapMonth ||
       input.timeMode !== "branch_only" ||
       input.branch ||
       input.hour?.trim() ||
@@ -469,8 +474,8 @@ export function saveHomepageDraft(
           hour: (input.hour ?? "").trim(),
           minute: (input.minute ?? "").trim(),
         }
-      : input.timeMode === "branch_only" && isCanonicalBranchId(input.branch)
-        ? { precision: "branch_only", branch: input.branch }
+      : input.timeMode === "branch_only"
+        ? { precision: "branch_only", branch: isCanonicalBranchId(input.branch) ? input.branch : "" }
         : { precision: "unknown" };
   const existing = readBirthProfileDraft(options);
   const merged: BirthProfileDraftInput = {
@@ -479,8 +484,8 @@ export function saveHomepageDraft(
     forWhom: existing?.forWhom ?? "self",
     consentOther: existing?.consentOther ?? false,
     gender: existing?.gender ?? null,
-    calendarType: "solar",
-    isLeapMonth: false,
+    calendarType: input.calendarType ?? existing?.calendarType ?? "solar",
+    isLeapMonth: input.calendarType === "lunar" ? Boolean(input.isLeapMonth) : false,
     day: input.day,
     month: input.month,
     year: input.year,

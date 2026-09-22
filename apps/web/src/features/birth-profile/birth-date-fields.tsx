@@ -6,8 +6,15 @@ import { isFutureSolarDate, isValidSolarDate } from "./homepage-birth-prefill";
 
 export const BIRTH_DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
 export const BIRTH_MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
-const currentYear = typeof window !== "undefined" ? new Date().getFullYear() : 2026;
-export const BIRTH_YEARS = Array.from({ length: 110 }, (_, i) => String(currentYear - i));
+export const DEFAULT_REFERENCE_YEAR = 2026;
+
+export function generateBirthYears(referenceYear: number = DEFAULT_REFERENCE_YEAR): string[] {
+  const minYear = 1000;
+  const count = Math.max(0, referenceYear - minYear + 1);
+  return Array.from({ length: count }, (_, i) => String(referenceYear - i));
+}
+
+export const BIRTH_YEARS = generateBirthYears(DEFAULT_REFERENCE_YEAR);
 
 export type BirthDateFieldsProps = {
   day: string;
@@ -32,6 +39,7 @@ export type BirthDateFieldsProps = {
   error?: string | null;
   className?: string;
   disabled?: boolean;
+  referenceYear?: number;
 };
 
 export function BirthDateFields({
@@ -57,7 +65,9 @@ export function BirthDateFields({
   error,
   className = "",
   disabled = false,
+  referenceYear = DEFAULT_REFERENCE_YEAR,
 }: BirthDateFieldsProps) {
+  const years = generateBirthYears(referenceYear);
   const pickerRef = useRef<HTMLInputElement>(null);
   const now = new Date();
   const maxDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -173,7 +183,7 @@ export function BirthDateFields({
             value={year}
           >
             <option value="">{yearPlaceholder}</option>
-            {BIRTH_YEARS.map((y) => (
+            {years.map((y) => (
               <option key={y} value={y}>
                 {y}
               </option>

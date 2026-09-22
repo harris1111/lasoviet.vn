@@ -48,6 +48,7 @@ export type BirthWizardBirthStepProps = {
   onYearChange(value: string): void;
   onTimeStateChange(value: BirthTimeState): void;
   onPlaceChange(value: string): void;
+  referenceYear?: number;
 };
 
 export function BirthWizardBirthStep({
@@ -83,6 +84,7 @@ export function BirthWizardBirthStep({
   onYearChange,
   onTimeStateChange,
   onPlaceChange,
+  referenceYear,
 }: BirthWizardBirthStepProps) {
   return (
     <section
@@ -119,6 +121,7 @@ export function BirthWizardBirthStep({
         place={place}
         placeLabel={placeLabel}
         placePlaceholder={placePlaceholder}
+        referenceYear={referenceYear}
         solarLabel={solarLabel}
         timeLabels={timeLabels}
         timeState={timeState}

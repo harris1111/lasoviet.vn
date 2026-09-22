@@ -10,7 +10,11 @@ import type { BirthTimeState } from "./birth-profile-input";
 import {
   getBranchOptionLabel,
   isValidSolarDate,
+  isCanonicalBranchId,
+  isFutureLunarYear,
 } from "./homepage-birth-prefill";
+
+export { isFutureLunarYear };
 
 export type WizardReadingContextDraft = {
   lifeStage?: LifeStageV1;
@@ -253,7 +257,7 @@ export function canAdvanceStep2(input: {
   }
 
   if (input.timeState.precision === "branch_only") {
-    return input.timeState.branch !== undefined;
+    return Boolean(input.timeState.branch && isCanonicalBranchId(input.timeState.branch));
   }
 
   if (input.timeState.precision === "exact_minute") {
@@ -313,7 +317,9 @@ export function formatReviewTimeSummary(
     return locale === "en" ? "Birth time unknown" : "Không rõ giờ sinh";
   }
   if (state.precision === "branch_only") {
-    return getBranchOptionLabel(state.branch, locale);
+    return state.branch && isCanonicalBranchId(state.branch)
+      ? getBranchOptionLabel(state.branch, locale)
+      : "—";
   }
   const h = state.hour.trim().padStart(2, "0");
   const m = state.minute.trim().padStart(2, "0");

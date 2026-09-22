@@ -34,9 +34,10 @@ import { imagePath, localizedPath } from "./homepage-utilities";
 
 type HomepageHeroProps = {
   locale: "en" | "vi";
+  referenceYear?: number;
 };
 
-export function HomepageHero({ locale }: HomepageHeroProps) {
+export function HomepageHero({ locale, referenceYear }: HomepageHeroProps) {
   const t = useTranslations("common");
   const tProfile = useTranslations("profile");
   const router = useRouter();
@@ -49,6 +50,7 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
   const [minute, setMinute] = useState("");
   const [branch, setBranch] = useState("");
   const [calendarType, setCalendarType] = useState<"solar" | "lunar">("solar");
+  const [isLeapMonth, setIsLeapMonth] = useState(false);
   const [hasReusedCache, setHasReusedCache] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isHydratedRef = useRef(false);
@@ -84,6 +86,9 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
         if (draft.calendarType) {
           setCalendarType(draft.calendarType);
         }
+        if (draft.isLeapMonth !== undefined) {
+          setIsLeapMonth(draft.isLeapMonth);
+        }
         if (draft.timeState.precision === "exact_minute") {
           setTimeMode("exact_minute");
           setHour(draft.timeState.hour);
@@ -110,6 +115,12 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
         setDay(parts.day);
         setMonth(parts.month);
         setYear(parts.year);
+        if (cached.calendarType) {
+          setCalendarType(cached.calendarType);
+        }
+        if (cached.isLeapMonth !== undefined) {
+          setIsLeapMonth(cached.isLeapMonth);
+        }
         if (cached.time.precision === "exact_minute") {
           setTimeMode("exact_minute");
           setHour(cached.time.hour);
@@ -137,12 +148,14 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
       day,
       month,
       year,
+      calendarType,
+      isLeapMonth,
       timeMode,
       hour,
       minute,
       branch,
     });
-  }, [day, month, year, timeMode, hour, minute, branch]);
+  }, [day, month, year, calendarType, isLeapMonth, timeMode, hour, minute, branch]);
 
   useEffect(() => {
     const controller = autosaveRef.current;
@@ -165,6 +178,7 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
     setBranch("");
     setTimeMode("branch_only");
     setCalendarType("solar");
+    setIsLeapMonth(false);
     setHasReusedCache(false);
   }
 
@@ -172,11 +186,9 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
   const timeState: BirthTimeState =
     timeMode === "exact_minute"
       ? { precision: "exact_minute", hour, minute }
-      : timeMode === "branch_only" && isCanonicalBranchId(branch)
-        ? { precision: "branch_only", branch }
-        : timeMode === "unknown"
-          ? { precision: "unknown" }
-          : { precision: "branch_only", branch: "zi" };
+      : timeMode === "branch_only"
+        ? { precision: "branch_only", branch: isCanonicalBranchId(branch) ? branch : "" }
+        : { precision: "unknown" };
 
   function handleTimeStateChange(newTimeState: BirthTimeState) {
     if (newTimeState.precision === "exact_minute") {
@@ -232,6 +244,8 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
     const saved = saveHomepageBirthPrefill({
       date: parsed.isoDate,
       time: timePayload,
+      calendarType,
+      isLeapMonth: calendarType === "lunar" ? isLeapMonth : false,
     });
 
     if (!saved) {
@@ -285,15 +299,26 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
               calendarType={calendarType}
               day={day}
               dayLabel={t("home.form.day")}
+              isLeapMonth={isLeapMonth}
+              leapMonthHelp={tProfile("birth.leapMonthHelp")}
+              leapMonthLabel={tProfile("birth.leapMonth")}
               locale={locale}
               lunarLabel={tProfile("birth.lunar")}
+              lunarNotice={tProfile("birth.lunarNotice")}
               month={month}
               monthLabel={t("home.form.month")}
-              onCalendarTypeChange={setCalendarType}
+              onCalendarTypeChange={(next) => {
+                setCalendarType(next);
+                if (next === "solar") {
+                  setIsLeapMonth(false);
+                }
+                if (error) setError(null);
+              }}
               onDayChange={(val) => {
                 setDay(val);
                 if (error) setError(null);
               }}
+              onIsLeapMonthChange={setIsLeapMonth}
               onMonthChange={(val) => {
                 setMonth(val);
                 if (error) setError(null);
@@ -303,6 +328,7 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
                 setYear(val);
                 if (error) setError(null);
               }}
+              referenceYear={referenceYear}
               solarLabel={tProfile("birth.solar")}
               timeLabels={{
                 hour: tProfile("birth.hour"),

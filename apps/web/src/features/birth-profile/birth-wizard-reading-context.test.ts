@@ -1,7 +1,9 @@
-import { createElement } from "react";
+import { createElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { ReadingContextV1 } from "@lasoviet/contracts";
+
+vi.mock("server-only", () => ({}));
 
 import viProfileMessages from "../../../messages/vi/profile.json";
 import {
@@ -12,9 +14,30 @@ import type { WizardReadingContextDraft } from "./birth-wizard-state";
 import {
   readBirthProfileDraft,
   saveBirthProfileDraft,
-  BIRTH_PROFILE_DRAFT_STORAGE_KEY,
 } from "./birth-profile-draft";
 import { BirthDateFields } from "./birth-date-fields";
+import { createBirthProfileSubmission } from "./save-birth-profile";
+
+function findElementInTree(
+  node: unknown,
+  predicate: (el: { type: unknown; props: Record<string, unknown> }) => boolean,
+): { type: unknown; props: Record<string, unknown> } | null {
+  if (!node || typeof node !== "object") return null;
+  const candidate = node as { type?: unknown; props?: Record<string, unknown> };
+  if (candidate.type && candidate.props && predicate(candidate as { type: unknown; props: Record<string, unknown> })) {
+    return candidate as { type: unknown; props: Record<string, unknown> };
+  }
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findElementInTree(child, predicate);
+      if (found) return found;
+    }
+  }
+  if (candidate.props && candidate.props.children) {
+    return findElementInTree(candidate.props.children, predicate);
+  }
+  return null;
+}
 
 function createMockStorage(initial?: Record<string, string>): Storage {
   const values = new Map(Object.entries(initial ?? {}));
@@ -48,125 +71,209 @@ const labels: ReadingContextLabels = {
   skip: viProfileMessages.readingContext.skip,
   lifeStageTitle: viProfileMessages.readingContext.lifeStageTitle,
   topConcernTitle: viProfileMessages.readingContext.topConcernTitle,
-  lifeStage: viProfileMessages.readingContext.lifeStage,
-  topConcern: viProfileMessages.readingContext.topConcern,
+  lifeStage: viProfileMessages.readingContext.lifeStage as Record<any, string>,
+  topConcern: viProfileMessages.readingContext.topConcern as Record<any, string>,
 };
 
-describe("FD-078 reading context single-select, replace, and skip interaction logic", () => {
-  it("selects, replaces, deselects, and skips lifeStage as single-select", () => {
+const defaultReviewProps = {
+  title: "Kiểm tra thông tin",
+  subtitle: "Rà soát lại toàn bộ thông tin",
+  subjectSectionTitle: "Người được lập",
+  birthSectionTitle: "Ngày, giờ sinh",
+  editLabel: "Sửa",
+  displayNameLabel: "Tên hiển thị",
+  forWhomLabel: "Người được lập",
+  dateLabel: "Ngày sinh",
+  timeLabel: "Giờ sinh",
+  genderLabel: "Giới tính",
+  timezoneLabel: "Múi giờ",
+  disclosure: "Thông tin của bạn được bảo mật tuyệt đối.",
+  guestNotice: "Hồ sơ khách sẽ tự xóa sau 24 giờ nếu chưa đăng nhập.",
+  consentLabel: "Tôi đồng ý",
+  duplicateNotice: "Đang xử lý...",
+  displayName: "Minh An",
+  forWhom: "Bản thân",
+  date: "12/04/1994",
+  time: "09:30",
+  gender: "Nam",
+  timezone: "Asia/Ho_Chi_Minh",
+  consent: false,
+  pending: false,
+  onEditSubject: () => {},
+  onEditBirth: () => {},
+  onConsentChange: () => {},
+  readingContextLabels: labels,
+};
+
+describe("FD-078 reading context component interaction & callbacks", () => {
+  it("handles lifeStage selection, single-select replacement, deselection, skip, and skip recovery", () => {
     let state: WizardReadingContextDraft = {
       skippedQuestions: { lifeStage: false, topConcern: false },
     };
-
-    function updateState(next: WizardReadingContextDraft) {
+    const onReadingContextChange = vi.fn((next: WizardReadingContextDraft) => {
       state = next;
-    }
+    });
 
-    // Initial render
-    const initialHtml = renderToStaticMarkup(
-      createElement(BirthWizardReviewStep, {
-        title: "Kiểm tra",
-        subtitle: "Rà soát",
-        subjectSectionTitle: "Người được lập",
-        birthSectionTitle: "Ngày, giờ",
-        editLabel: "Sửa",
-        displayNameLabel: "Tên",
-        forWhomLabel: "Đối tượng",
-        dateLabel: "Ngày",
-        timeLabel: "Giờ",
-        genderLabel: "Giới tính",
-        timezoneLabel: "Múi giờ",
-        disclosure: "Bảo mật",
-        guestNotice: "Khách",
-        consentLabel: "Đồng ý",
-        duplicateNotice: "Chờ",
-        displayName: "Minh An",
-        forWhom: "Bản thân",
-        date: "12/04/1994",
-        time: "09:30",
-        gender: "Nam",
-        timezone: "Asia/Ho_Chi_Minh",
-        consent: false,
-        pending: false,
-        onEditSubject: () => {},
-        onEditBirth: () => {},
-        onConsentChange: () => {},
-        readingContext: state,
-        readingContextLabels: labels,
-        onReadingContextChange: updateState,
-      }),
+    // 1. Initial render: no choice active, not skipped
+    let tree = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: state,
+      onReadingContextChange,
+    }) as ReactElement;
+
+    // Find studying button and click it
+    const studyingBtn = findElementInTree(
+      tree,
+      (el) => el.type === "button" && el.props.children === labels.lifeStage.studying,
     );
+    expect(studyingBtn).not.toBeNull();
+    expect(studyingBtn?.props["aria-pressed"]).toBe(false);
 
-    expect(initialHtml).toContain("reading-context-section");
-    expect(initialHtml).toContain(labels.lifeStage.early_career);
-
-    // 1. Select choice: "studying"
-    state = {
-      ...state,
+    (studyingBtn?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
       lifeStage: "studying",
-      skippedQuestions: { ...state.skippedQuestions, lifeStage: false },
-    };
-    expect(state.lifeStage).toBe("studying");
-    expect(state.skippedQuestions.lifeStage).toBe(false);
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    });
 
-    // 2. Replace choice: "early_career"
-    state = {
-      ...state,
+    // 2. Re-render with studying active -> clicking early_career replaces studying (single-select)
+    tree = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: state,
+      onReadingContextChange,
+    }) as ReactElement;
+
+    const earlyCareerBtn = findElementInTree(
+      tree,
+      (el) => el.type === "button" && el.props.children === labels.lifeStage.early_career,
+    );
+    expect(earlyCareerBtn).not.toBeNull();
+    (earlyCareerBtn?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
       lifeStage: "early_career",
-      skippedQuestions: { ...state.skippedQuestions, lifeStage: false },
-    };
-    expect(state.lifeStage).toBe("early_career");
-    expect(state.skippedQuestions.lifeStage).toBe(false);
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    });
 
-    // 3. Skip: clears choice and marks skipped
-    state = {
-      ...state,
+    // 3. Re-render with early_career active -> clicking early_career again deselects it
+    tree = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: state,
+      onReadingContextChange,
+    }) as ReactElement;
+
+    const activeEarlyCareerBtn = findElementInTree(
+      tree,
+      (el) => el.type === "button" && el.props.children === labels.lifeStage.early_career,
+    );
+    expect(activeEarlyCareerBtn?.props["aria-pressed"]).toBe(true);
+
+    (activeEarlyCareerBtn?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
       lifeStage: undefined,
-      skippedQuestions: { ...state.skippedQuestions, lifeStage: true },
-    };
-    expect(state.lifeStage).toBeUndefined();
-    expect(state.skippedQuestions.lifeStage).toBe(true);
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    });
 
-    // 4. Recover from skip: user selects "business_owner"
-    state = {
-      ...state,
+    // 4. Click skip button for lifeStage
+    tree = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: state,
+      onReadingContextChange,
+    }) as ReactElement;
+
+    const skipButtons = [
+      findElementInTree(
+        tree,
+        (el) => el.type === "button" && Boolean(el.props.className?.toString().includes("wizard-context-skip-btn")),
+      ),
+    ];
+    expect(skipButtons[0]).not.toBeNull();
+    (skipButtons[0]?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
+      lifeStage: undefined,
+      skippedQuestions: { lifeStage: true, topConcern: false },
+    });
+
+    // 5. Re-render with skip active -> selecting business_owner recovers from skip
+    tree = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: state,
+      onReadingContextChange,
+    }) as ReactElement;
+
+    const bizOwnerBtn = findElementInTree(
+      tree,
+      (el) => el.type === "button" && el.props.children === labels.lifeStage.business_owner,
+    );
+    expect(bizOwnerBtn).not.toBeNull();
+    (bizOwnerBtn?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
       lifeStage: "business_owner",
-      skippedQuestions: { ...state.skippedQuestions, lifeStage: false },
-    };
-    expect(state.lifeStage).toBe("business_owner");
-    expect(state.skippedQuestions.lifeStage).toBe(false);
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    });
   });
 
-  it("selects, replaces, and skips topConcern as single-select", () => {
+  it("handles topConcern selection, replacement, deselection, and skipping", () => {
     let state: WizardReadingContextDraft = {
       skippedQuestions: { lifeStage: false, topConcern: false },
     };
+    const onReadingContextChange = vi.fn((next: WizardReadingContextDraft) => {
+      state = next;
+    });
 
-    // 1. Select: "career"
-    state = {
-      ...state,
+    // 1. Initial render -> click career
+    let tree = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: state,
+      onReadingContextChange,
+    }) as ReactElement;
+
+    const careerBtn = findElementInTree(
+      tree,
+      (el) => el.type === "button" && el.props.children === labels.topConcern.career,
+    );
+    expect(careerBtn).not.toBeNull();
+    (careerBtn?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
       topConcern: "career",
-      skippedQuestions: { ...state.skippedQuestions, topConcern: false },
-    };
-    expect(state.topConcern).toBe("career");
-    expect(state.skippedQuestions.topConcern).toBe(false);
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    });
 
-    // 2. Replace: "money"
-    state = {
-      ...state,
+    // 2. Re-render -> replace with money
+    tree = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: state,
+      onReadingContextChange,
+    }) as ReactElement;
+
+    const moneyBtn = findElementInTree(
+      tree,
+      (el) => el.type === "button" && el.props.children === labels.topConcern.money,
+    );
+    expect(moneyBtn).not.toBeNull();
+    (moneyBtn?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
       topConcern: "money",
-      skippedQuestions: { ...state.skippedQuestions, topConcern: false },
-    };
-    expect(state.topConcern).toBe("money");
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    });
 
-    // 3. Skip: "topConcern"
-    state = {
-      ...state,
+    // 3. Skip topConcern
+    const allSkips: { props: Record<string, unknown> }[] = [];
+    function collectSkips(node: unknown) {
+      if (!node || typeof node !== "object") return;
+      const c = node as { type?: unknown; props?: Record<string, unknown> };
+      if (c.type === "button" && c.props?.className?.toString().includes("wizard-context-skip-btn")) {
+        allSkips.push(c as { props: Record<string, unknown> });
+      }
+      if (Array.isArray(node)) node.forEach(collectSkips);
+      if (c.props?.children) collectSkips(c.props.children);
+    }
+    collectSkips(tree);
+    expect(allSkips.length).toBe(2);
+    // Click the second skip button (for topConcern)
+    (allSkips[1]?.props.onClick as () => void)();
+    expect(onReadingContextChange).toHaveBeenCalledWith({
       topConcern: undefined,
-      skippedQuestions: { ...state.skippedQuestions, topConcern: true },
-    };
-    expect(state.topConcern).toBeUndefined();
-    expect(state.skippedQuestions.topConcern).toBe(true);
+      skippedQuestions: { lifeStage: false, topConcern: true },
+    });
   });
 });
 
@@ -226,58 +333,98 @@ describe("draft/OAuth continuation readingContext preservation", () => {
   });
 });
 
-describe("submission payload normalization for reading context", () => {
-  function normalizeReadingContextPayload(
-    readingContext: WizardReadingContextDraft,
-  ): ReadingContextV1 | undefined {
-    if (readingContext.lifeStage || readingContext.topConcern) {
-      return {
-        version: 1,
-        ...(readingContext.lifeStage ? { lifeStage: readingContext.lifeStage } : {}),
-        ...(readingContext.topConcern ? { topConcern: readingContext.topConcern } : {}),
-      };
-    }
-    return undefined;
+describe("submission & action boundary for reading context", () => {
+  const profile = {
+    version: 1,
+    calendar: { kind: "solar" as const, date: "1990-01-01" },
+    time: { precision: "unknown" as const },
+    timezone: { offsetMinutes: 420 },
+    consentVersion: "2026-09-14",
+  };
+
+  function mockSubmissionDeps() {
+    const request = vi.fn();
+    return {
+      resolveCurrentActor: vi.fn().mockResolvedValue({
+        kind: "account",
+        userId: "account-1",
+        sessionId: "session-1",
+        requestId: "server-request-id",
+      }),
+      privateApiClient: vi.fn().mockReturnValue({ request }),
+      getVisitorId: vi.fn().mockResolvedValue("123e4567-e89b-12d3-a456-426614174000"),
+      request,
+    };
   }
 
-  it("omits readingContext when both questions are skipped", () => {
-    const allSkipped: WizardReadingContextDraft = {
-      skippedQuestions: { lifeStage: true, topConcern: true },
-    };
-    expect(normalizeReadingContextPayload(allSkipped)).toBeUndefined();
+  it("submits unwrapped body without readingContext when readingContext is undefined (all skipped)", async () => {
+    const deps = mockSubmissionDeps();
+    deps.request
+      .mockResolvedValueOnce({ ok: true, value: { id: "consent-1" } })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          profileId: "profile-1",
+          revisionId: "revision-1",
+          ziweiEligibility: { version: 1, eligible: false, reason: "TIME_UNKNOWN" },
+        },
+      })
+      .mockResolvedValueOnce({ ok: true, value: undefined });
+
+    const submit = createBirthProfileSubmission(deps);
+    const result = await submit({
+      profile,
+      explicitConsent: true,
+      readingContext: undefined,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(deps.request.mock.calls[1]).toEqual([
+      "/birth-profiles",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(profile),
+      },
+    ]);
   });
 
-  it("omits readingContext when neither question is answered or skipped", () => {
-    const empty: WizardReadingContextDraft = {
-      skippedQuestions: { lifeStage: false, topConcern: false },
-    };
-    expect(normalizeReadingContextPayload(empty)).toBeUndefined();
-  });
+  it("submits wrapped body with readingContext when readingContext is provided", async () => {
+    const deps = mockSubmissionDeps();
+    deps.request
+      .mockResolvedValueOnce({ ok: true, value: { id: "consent-1" } })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          profileId: "profile-1",
+          revisionId: "revision-1",
+          ziweiEligibility: { version: 1, eligible: false, reason: "TIME_UNKNOWN" },
+        },
+      })
+      .mockResolvedValueOnce({ ok: true, value: undefined });
 
-  it("produces exact ReadingContextV1 when one question is selected and other is skipped", () => {
-    const partial: WizardReadingContextDraft = {
-      lifeStage: "early_career",
-      skippedQuestions: { lifeStage: false, topConcern: true },
-    };
-    const payload = normalizeReadingContextPayload(partial);
-    expect(payload).toEqual({
+    const readingContextPayload: ReadingContextV1 = {
       version: 1,
       lifeStage: "early_career",
-    });
-  });
-
-  it("produces exact ReadingContextV1 when both questions are selected", () => {
-    const complete: WizardReadingContextDraft = {
-      lifeStage: "business_owner",
       topConcern: "money",
-      skippedQuestions: { lifeStage: false, topConcern: false },
     };
-    const payload = normalizeReadingContextPayload(complete);
-    expect(payload).toEqual({
-      version: 1,
-      lifeStage: "business_owner",
-      topConcern: "money",
+
+    const submit = createBirthProfileSubmission(deps);
+    const result = await submit({
+      profile,
+      explicitConsent: true,
+      readingContext: readingContextPayload,
     });
+
+    expect(result.ok).toBe(true);
+    expect(deps.request.mock.calls[1]).toEqual([
+      "/birth-profiles",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ profile, readingContext: readingContextPayload }),
+      },
+    ]);
   });
 });
 

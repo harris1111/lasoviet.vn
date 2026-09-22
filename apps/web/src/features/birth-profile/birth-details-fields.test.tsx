@@ -120,4 +120,70 @@ describe("BirthDetailsFields presenter", () => {
 
     expect(html).toContain("birth-date-calendar-select");
   });
+  it("renders explicit placeholder for empty branch state without selecting Tý", () => {
+    const html = renderToStaticMarkup(
+      createElement(BirthDetailsFields, {
+        day: "12",
+        month: "04",
+        year: "1994",
+        timeState: { precision: "branch_only", branch: "" },
+        timeLabels: defaultTimeLabels,
+        onDayChange: () => {},
+        onMonthChange: () => {},
+        onYearChange: () => {},
+        onTimeStateChange: () => {},
+      }),
+    );
+
+    expect(html).toContain("wizard-branch-select");
+    expect(html).toMatch(/<option (selected="" )?value=""( selected="")?>Chọn giờ sinh \(12 Địa Chi\)<\/option>/);
+    // The select does not default to selecting zi
+    expect(html).not.toMatch(/<option selected="" value="zi">/);
+  });
+
+  it("offers full validation-compatible past range 1000..referenceYear for years", () => {
+    const html = renderToStaticMarkup(
+      createElement(BirthDetailsFields, {
+        day: "12",
+        month: "04",
+        year: "1994",
+        referenceYear: 2026,
+        timeState: { precision: "unknown" },
+        timeLabels: defaultTimeLabels,
+        onDayChange: () => {},
+        onMonthChange: () => {},
+        onYearChange: () => {},
+        onTimeStateChange: () => {},
+      }),
+    );
+
+    expect(html).toContain('<option value="2026">2026</option>');
+    expect(html).toMatch(/<option (selected="" )?value="1994"( selected="")?>1994<\/option>/);
+    expect(html).toContain('<option value="1000">1000</option>');
+    // Future year 2027 should NOT be present
+    expect(html).not.toContain('<option value="2027">2027</option>');
+  });
+
+  it("renders lunar leap month checkbox when calendarType is lunar", () => {
+    const html = renderToStaticMarkup(
+      createElement(BirthDetailsFields, {
+        day: "12",
+        month: "04",
+        year: "1994",
+        calendarType: "lunar",
+        isLeapMonth: true,
+        leapMonthLabel: "Tháng nhuận",
+        timeState: { precision: "unknown" },
+        timeLabels: defaultTimeLabels,
+        onDayChange: () => {},
+        onMonthChange: () => {},
+        onYearChange: () => {},
+        onTimeStateChange: () => {},
+      }),
+    );
+
+    expect(html).toContain('name="isLeapMonth"');
+    expect(html).toContain('checked=""');
+    expect(html).toContain("Tháng nhuận");
+  });
 });
