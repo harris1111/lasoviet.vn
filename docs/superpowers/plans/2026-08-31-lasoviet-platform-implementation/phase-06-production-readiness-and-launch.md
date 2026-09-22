@@ -18,6 +18,8 @@ backup/restore, operational smoke, and internal report review.
 **Task Contracts:** Task N maps to `P06-T0N` in
 `task-contracts-and-test-vectors.md`.
 
+**Implementation Status:** Completed. Docker Compose topology, loopback web port publishing with host Nginx, deployment scripts, canonical domain migration to `https://lasoviet.net` (FD-057), and accessibility reflow validation (LSV-14) are live on production.
+
 ## Global Constraints
 
 - Repository automation does not modify Nginx, Cloudflare, DNS, or production.
@@ -52,7 +54,7 @@ backup/restore, operational smoke, and internal report review.
 - Produces a selected-once, externally persisted, validated `WEB_HOST_PORT`.
 - Produces explicit restart and capped Docker log-retention configuration.
 
-- [ ] **Step 1: Write failing Compose assertions**
+- [x] **Step 1: Write failing Compose assertions**
 
 Assert web loopback binding, port range, no host ports for private services,
 persistent volumes, health checks, one-shot migration, and no Nginx service or
@@ -63,17 +65,17 @@ Write port tests proving first selection, external-file persistence, restart
 reuse, occupied-port rejection, repository-path rejection, missing
 `DEPLOY_ENV_FILE`, and unresolved `WEB_HOST_PORT`.
 
-- [ ] **Step 2: Run deployment tests**
+- [x] **Step 2: Run deployment tests**
 
 Run:
 `pnpm vitest run tests/deployment/compose-config.test.ts tests/deployment/web-host-port.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement multi-stage images and Compose**
+- [x] **Step 3: Implement multi-stage images and Compose**
 
 Images run non-root where supported and contain only runtime files.
 
-- [ ] **Step 4: Implement operator-run port selection**
+- [x] **Step 4: Implement operator-run port selection**
 
 `select-web-host-port.mjs` writes only to an explicit path outside the
 repository. It reuses an existing valid value and never edits Nginx. A later
@@ -83,7 +85,7 @@ Run:
 `node scripts/select-web-host-port.mjs --output "$DEPLOY_ENV_FILE"`
 Expected: the external file contains one reusable valid `WEB_HOST_PORT`.
 
-- [ ] **Step 5: Validate configuration**
+- [x] **Step 5: Validate configuration**
 
 Run:
 ```bash
@@ -92,13 +94,13 @@ docker compose --env-file "$DEPLOY_ENV_FILE" -f docker-compose.yml -f docker-com
 ```
 Expected: valid config with only loopback web publication.
 
-- [ ] **Step 6: Build images**
+- [x] **Step 6: Build images**
 
 Run:
 `docker compose --env-file "$DEPLOY_ENV_FILE" -f docker-compose.yml -f docker-compose.production.yml build`
 Expected: PASS.
 
-- [ ] **Step 7: Update deployment plan and commit**
+- [x] **Step 7: Update deployment plan and commit**
 
 ```bash
 git add apps/*/Dockerfile docker-compose*.yml .env.example scripts tests/deployment docs/runbooks docs/superpowers/plans
@@ -120,33 +122,33 @@ git commit -m "build: add production Compose topology"
 - Produces complete profile/report/asset purge with retained transaction
   projection.
 
-- [ ] **Step 1: Write failing security tests**
+- [x] **Step 1: Write failing security tests**
 
 Cover auth brute force, birth-form abuse, checkout abuse, webhook exemption
 with signature enforcement, owner authorization, ID enumeration, CSRF/session
 behavior, noindex, and secret/log redaction.
 
-- [ ] **Step 2: Write failing purge tests**
+- [x] **Step 2: Write failing purge tests**
 
 Cover 30-day eligibility, session revocation, profile/chart/evidence/report
 deletion, Garage/cloud tombstones, anonymized analytics, and retained minimal
 transaction record.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `pnpm vitest run tests/security tests/privacy`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement reviewed controls**
+- [x] **Step 4: Implement reviewed controls**
 
 Do not add broad security middleware that breaks SePay raw-body verification.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `pnpm vitest run tests/security tests/privacy`
 Expected: PASS.
 
-- [ ] **Step 6: Update risk/rule trackers and commit**
+- [x] **Step 6: Update risk/rule trackers and commit**
 
 ```bash
 git add apps/api/src/security packages/backend/src/privacy apps/worker/src/processors tests/security tests/privacy docs/superpowers/plans
@@ -180,20 +182,20 @@ git commit -m "feat: enforce production privacy and security controls"
 - Produces encrypted PostgreSQL and Garage backup manifests and isolated
   restore evidence.
 
-- [ ] **Step 1: Write failing metrics, capacity, and backup tests**
+- [x] **Step 1: Write failing metrics, capacity, and backup tests**
 
 Assert expected metric names and absence of high-cardinality PII labels.
 Assert the capacity check rejects missing inventory or insufficient headroom;
 backup manifests reject missing encryption, checksum, retention, or offsite
 destination fields.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run:
 `pnpm vitest run tests/operations/metrics-contract.test.ts tests/operations/backup-and-capacity-contract.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement metrics and runbooks**
+- [x] **Step 3: Implement metrics and runbooks**
 
 Backup scripts must fail loudly, produce checksums, and avoid embedding
 credentials. Garage backup copies immutable objects through S3 to a separate
@@ -203,25 +205,25 @@ directory, cluster layout, node IDs and node keys, bucket/key policies, and
 required recovery config into the offsite set. Rclone configuration and
 secrets stay outside Git.
 
-- [ ] **Step 4: Validate VPS and backup inputs**
+- [x] **Step 4: Validate VPS and backup inputs**
 
 Sol obtains VPS CPU/RAM/disk inventory and an offsite backup destination.
 Require measured staging peak plus 30% RAM and disk headroom; unresolved
 capacity or backup destination blocks deployment.
 
-- [ ] **Step 5: Perform clean PostgreSQL and Garage restore drills**
+- [x] **Step 5: Perform clean PostgreSQL and Garage restore drills**
 
 Restore into separate disposable PostgreSQL and Garage targets. Recreate
 Garage from the copied metadata/configuration artifacts, restore objects, and
 compare every object checksum to the PostgreSQL asset manifest.
 
-- [ ] **Step 6: Run tests**
+- [x] **Step 6: Run tests**
 
 Run:
 `pnpm vitest run tests/operations/metrics-contract.test.ts tests/operations/backup-and-capacity-contract.test.ts`
 Expected: PASS.
 
-- [ ] **Step 7: Update trackers and commit**
+- [x] **Step 7: Update trackers and commit**
 
 ```bash
 git add packages/observability apps/api/src/metrics scripts docs/runbooks tests/operations docs/superpowers/plans
@@ -241,7 +243,7 @@ git commit -m "ops: add metrics backup and incident runbooks"
 **Interfaces:**
 - Produces machine-readable release evidence for the complete user flow.
 
-- [ ] **Step 1: Write the full paid-flow E2E**
+- [x] **Step 1: Write the full paid-flow E2E**
 
 ```text
 landing
@@ -261,12 +263,12 @@ landing
 -> email
 ```
 
-- [ ] **Step 2: Add degraded-mode E2E**
+- [x] **Step 2: Add degraded-mode E2E**
 
 Cover AI unavailable, Redis unavailable/recovered, Garage unavailable,
 optional cloud unavailable, repeated webhook, and SMTP unavailable.
 
-- [ ] **Step 3: Add admin incident E2E**
+- [x] **Step 3: Add admin incident E2E**
 
 Cover non-admin denial, `/admin/**` noindex and sitemap exclusion, a redacted
 failed-report inspection, support-case creation, policy-checked regeneration,
@@ -275,7 +277,7 @@ redacted audit trail. Assert the console cannot reveal secrets, signed URLs,
 raw birth/chart payloads, report bodies, direct queue controls, or provider
 payment mutations.
 
-- [ ] **Step 4: Start the production-like stack**
+- [x] **Step 4: Start the production-like stack**
 
 Run:
 
@@ -285,12 +287,12 @@ docker compose --env-file "$DEPLOY_ENV_FILE" -f docker-compose.yml -f docker-com
 
 Expected: all required readiness checks pass.
 
-- [ ] **Step 5: Run E2E and smoke**
+- [x] **Step 5: Run E2E and smoke**
 
 Run: `pnpm playwright test tests/e2e/full-paid-flow.spec.ts tests/e2e/degraded-services.spec.ts tests/e2e/account-lifecycle.spec.ts tests/e2e/admin-incident-workflow.spec.ts tests/e2e/admin-non-admin-denial.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add tests/e2e scripts/run-release-smoke.mjs docs/superpowers/plans
@@ -314,7 +316,7 @@ git commit -m "test: verify the complete paid report flow"
 - Produces a release verdict that requires approved AI due diligence and
   written legal/accounting confirmation.
 
-- [ ] **Step 1: Write the failing release-evidence gate**
+- [x] **Step 1: Write the failing release-evidence gate**
 
 Assert release is blocked when the AI provider due-diligence record,
 refund/regeneration wording approval, transaction-retention approval, or
@@ -323,45 +325,45 @@ blocked when Phase 05A RBAC-matrix, noindex/sitemap, PII-redaction,
 audit-completeness, idempotency, immutable-record, or queue/outbox-mediation
 evidence is missing.
 
-- [ ] **Step 2: Generate twenty controlled internal reports**
+- [x] **Step 2: Generate twenty controlled internal reports**
 
 Use approved fixtures and test profiles. Do not use private production user
 data.
 
-- [ ] **Step 3: Review every report**
+- [x] **Step 3: Review every report**
 
 Score chart correctness, evidence coverage, specificity, Vietnamese clarity,
 internal consistency, actionability, safety/non-fatalism, and repetition.
 
-- [ ] **Step 4: Enforce release thresholds**
+- [x] **Step 4: Enforce release thresholds**
 
 Require correctness and safety at least 4/5 for every report, 100% approved P0
 fixtures, and no open severity-1 calculation/payment/authorization/privacy
 issue.
 
-- [ ] **Step 5: Verify public support material**
+- [x] **Step 5: Verify public support material**
 
 Confirm sample report, methodology, privacy, terms, refund/regeneration, and
 support workflow are ready.
 
-- [ ] **Step 6: Record legal and accounting release evidence**
+- [x] **Step 6: Record legal and accounting release evidence**
 
 The record identifies reviewer/role/date, approved public refund and
 regeneration wording, transaction and payment-event retention periods,
 tax/receipt handling, SePay settlement/reconciliation responsibility, and any
 launch conditions. An unresolved item blocks public payment activation.
 
-- [ ] **Step 7: Run the release-evidence test**
+- [x] **Step 7: Run the release-evidence test**
 
 Run: `pnpm vitest run tests/release/release-evidence-gate.test.ts`
 Expected: PASS only with complete signed evidence.
 
-- [ ] **Step 8: Terra release review**
+- [x] **Step 8: Terra release review**
 
 Terra reviews tests, runbooks, QA log, risks, and unresolved findings. Sol
 escalates any release blocker to the founder.
 
-- [ ] **Step 9: Commit release evidence**
+- [x] **Step 9: Commit release evidence**
 
 ```bash
 git add docs/qa docs/compliance docs/release tests/release docs/superpowers/plans
@@ -387,7 +389,7 @@ git commit -m "test: record P0 release evidence"
 - Produces no automated DNS, Nginx, Cloudflare, or Search Console ownership
   mutation.
 
-- [ ] **Step 1: Write failing release-indexability tests**
+- [x] **Step 1: Write failing release-indexability tests**
 
 Assert every `live_indexable` route returns 200, self-canonicalizes, has valid
 VI/EN alternates, appears once in the correct child sitemap and index, and has
@@ -395,7 +397,7 @@ content/schema agreement. Include `/kien-thuc` and `/kien-thuc/tu-vi`. Assert
 every private or `live_noindex` route is absent from sitemaps and emits noindex
 plus server-side access control.
 
-- [ ] **Step 2: Run the production-like SEO test**
+- [x] **Step 2: Run the production-like SEO test**
 
 Run:
 
@@ -406,14 +408,14 @@ pnpm playwright test tests/e2e/production-public-surface.spec.ts
 
 Expected: FAIL until release-ready route states and production responses agree.
 
-- [ ] **Step 3: Promote only release-ready Gate 1 routes**
+- [x] **Step 3: Promote only release-ready Gate 1 routes**
 
 Change a route to `live_indexable` only when its page, reviewed content,
 canonical, schema, navigation links, owner, and readiness evidence pass.
 Keep every later commercial or expansion route `reserved`. Do not publish
 placeholder or roadmap pages.
 
-- [ ] **Step 4: Verify production HTTP, performance, and crawl controls**
+- [x] **Step 4: Verify production HTTP, performance, and crawl controls**
 
 Run:
 
@@ -426,14 +428,14 @@ Verify real mobile LCP/INP/CLS budgets where traffic data exists, or record
 controlled lab evidence before launch. Verify private PDFs use
 `X-Robots-Tag: noindex, noarchive`.
 
-- [ ] **Step 5: Complete founder-owned indexing handoff**
+- [x] **Step 5: Complete founder-owned indexing handoff**
 
 Document sitemap submission, Search Console ownership, URL inspection for
 priority routes, and monitoring responsibilities. The founder performs or
 explicitly authorizes external-account changes; repository automation does not
 claim ownership or submit credentials.
 
-- [ ] **Step 6: Commit the public release evidence**
+- [x] **Step 6: Commit the public release evidence**
 
 ```bash
 git add config/route-registry.yml scripts/verify-public-surface.mjs tests/seo tests/e2e docs/release docs/runbooks docs/superpowers/plans

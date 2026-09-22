@@ -21,30 +21,9 @@ Docker Compose, SePay, SMTP, and a founder-provided OpenAI-compatible endpoint.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-lasoviet-platform-architecture-design.md`
 
-**Status:** Planning reconciliation is current through 2026-09-06. The
-repository has implemented Phase 00 foundations, Phase 01 identity/privacy
-services, Phase 02 calculation/evidence services, the artifact-driven Phase 03
-free-MVP experience, all Phase 04 commerce/report tasks, and production-like
-free-MVP Compose smoke evidence. The FD-024 artifact-first UI gate was
-satisfied by the merged MVP UI branch; it remains the rule for future visual
-work. No later phase is marked complete merely because implementation exists.
-Phase 04 is complete on the isolated `feature/phase04-report-generation` branch
-following implementation, controlled browser acceptance, and founder approval
-of the `9router-an` provider privacy due-diligence gate (FD-035). Paid-release
-closure also requires later phases (Phase 05 workflows and Phase 05A evidence)
-and founder activation. Production payment activation, production AI activation,
-and deployment remain separately founder-controlled operations.
+**Status:** As of 2026-09-22, Phase 00 through Phase 06 are fully implemented, verified, and running on production at `https://lasoviet.net`. All 24 core platform tickets in Kaneo project LSV have been delivered and marked Done. Recent major architectural advancements include Zi Wei V4.1 sectioned generation with 3-group parallel calls, advisory quality reviews, reading context personalization (LSV-17), birth time sensitivity across 3 timeframes (LSV-36), real PDF generation and delivery, Garage object storage, SePay in-page VietQR, account center with privacy consent and data export (LSV-4), wallet credits foundation (LSV-18), and admin report recovery (LSV-29). The active engineering focus is the AITuvi UI redesign sprint (LSV-20 through LSV-28).
 
-**Active implementation branch:** `feature/phase04-report-generation`.
-Provider-independent Phase 05A implementation is authorized from 2026-09-02.
-SePay Tasks 1-2, the durable P04-T03 worker, P04-T04 approved knowledge
-retrieval, P04-T05 immutable evidence-backed generation, P04-T06
-owner-authorized private HTML reading, 7/7 controlled browser acceptance tests,
-and founder provider privacy approval (FD-035) are implemented and reviewed,
-closing Phase 04 documentation. The previously published sandbox report job on
-the Docker VPS remains `waiting` until a separately authorized deployment.
-Production payment activation and production AI activation remain
-founder-controlled.
+**Active implementation branch:** `master` (integrated via dedicated pull request branches).
 
 ## Global Constraints
 

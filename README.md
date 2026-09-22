@@ -18,7 +18,11 @@ Canonical public domain: `lasoviet.net` (supersedes `lasoviet.vn` per FD-057; `.
 
 ## Cấu trúc gói
 
-- `MASTER_CONCEPT.md`: bản tóm tắt điều hành và concept tổng thể.
+- `MASTER_CONCEPT.md`: bản tóm tắt điều hành và concept tổng thể (superseded baseline).
+- `AGENTS.md`: repository policy, role routing, invariants và archive boundary.
+- `CLAUDE.md`: hướng dẫn kiến trúc, monorepo commands và Kaneo workflow.
+- `config/route-registry.yml`: nguồn sự thật duy nhất cho toàn bộ routes, navigation và canonical URLs.
+- `docs/_archive/`: thư mục lưu trữ tài liệu đã hoàn thành (`completed/`) hoặc outdate (`superseded/`). AI không tự ý đọc vùng này trừ khi được yêu cầu.
 - `docs/01-evidence-and-insights.md`: bằng chứng, insight và giới hạn suy luận.
 - `docs/02-brand-and-positioning.md`: định vị, thông điệp, nguyên tắc tâm lý và niềm tin.
 - `docs/03-sitemap-and-seo.md`: kiến trúc thông tin, URL và chiến lược SEO.
@@ -28,16 +32,14 @@ Canonical public domain: `lasoviet.net` (supersedes `lasoviet.vn` per FD-057; `.
 - `docs/07-content-and-growth.md`: content engine, funnel và kế hoạch kiểm chứng.
 - `docs/08-domain-and-infrastructure.md`: vai trò ba tên miền và DNS/Cloudflare.
 - `docs/09-roadmap-and-metrics.md`: roadmap, KPI, analytics và thí nghiệm.
-- `docs/10-decision-log.md`: các quyết định đã chốt, lý do và điều kiện xem xét lại.
+- `docs/10-decision-log.md`: bản tóm tắt business lịch sử (superseded bởi `rules-and-decisions-tracker.md`).
 - `docs/11-discipline-expansion-specs.md`: 12 bộ môn chọn build theo batch/engine, đối chiếu coverage workbook.
 - `docs/12-creative-platform-concepts.md`: brainstorm platform sáng tạo (marketing big idea), chưa chốt.
 - `docs/13-brand-experience-guideline.md`: hiến pháp thương hiệu và trải nghiệm — source of truth, v1.0 approved.
 - `docs/14-sitemap-seo-wireframes.md`: sitemap Đông–Tây, SEO architecture, route states, wireframes — source of truth, v1.1 approved through binding decision `FD-019` on 2026-08-31.
-- `docs/15-collaboration-branch-workflow.md`: quy trình branch/merge giữa Harris (Product) và An (Development) — source of truth.
+- `docs/15-collaboration-branch-workflow.md`: quy trình branch ban đầu (superseded bởi `AGENTS.md`).
 - `docs/reference/`: tài liệu đầu vào/trình bày (DOCX/PDF guideline, phân tích UX/IA gốc) — không ghi đè các file source of truth ở trên nếu có xung đột.
 - `docs/visualizations/`: HTML visualization sitemap/wireframe để tham khảo kiến trúc, không phải asset frontend production.
-- `AGENT_HANDOFF.md`: context cô đọng cho agent/dev tiếp theo — trạng thái dự án, decision hierarchy, guardrails.
-- `NEXT_AGENT_PROMPT.md`: prompt khởi động sẵn dùng cho agent tiếp theo.
 - `tools/build_brand_guideline.py`: script tạo lại bản DOCX của brand guideline.
 - `config/`: cấu hình JSON để đội dev có thể dùng làm seed/spec.
 - `data/lasoviet_research_master.xlsx`: workbook chứng cứ đã khử trùng.
@@ -45,12 +47,11 @@ Canonical public domain: `lasoviet.net` (supersedes `lasoviet.vn` per FD-057; `.
 
 ## Thứ tự đọc khuyến nghị
 
-1. `MASTER_CONCEPT.md`
-2. `docs/04-phase-1-product-spec.md`
-3. `docs/03-sitemap-and-seo.md`
-4. `docs/05-report-system.md`
-5. `docs/06-technical-architecture.md`
-6. Workbook trong `data/` để audit bằng chứng.
+1. `AGENTS.md` và `CLAUDE.md` (quy tắc điều hành & ngữ cảnh repo).
+2. `docs/13-brand-experience-guideline.md` và `docs/14-sitemap-seo-wireframes.md` (thương hiệu & sitemap source of truth).
+3. `config/route-registry.yml` và `config/product-catalog.json` (route & pricing catalog).
+4. `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md` (sổ quyết định chính thức).
+5. Workbook trong `data/` để audit bằng chứng.
 
 ## Nguyên tắc sử dụng
 

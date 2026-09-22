@@ -1,5 +1,12 @@
 # Lasoviet Repository Policy
 
+## 0. Owner Authority & Reference Role Split (Updated 2026-09-22)
+
+- **No Rigid Authority Barrier:** There is no restrictive permission wall or approval silo between An and Lãm.
+- **Reference Roles Only:** As an operational reference (not a rigid rule), An focuses on Technical areas and Lãm focuses on Business/Product.
+- **Interchangeable Execution:** Either owner has full authority to decide, instruct, authorize, implement, or review tasks across any technical or business domain without requiring separate cross-confirmation or waiting for handoff.
+- A direct instruction from either An or Lãm is immediately binding. When explicit instructions conflict, the latest explicit instruction controls.
+
 ## 1. Scope And Precedence
 
 This file applies to the entire `lasoviet.vn` repository.
@@ -25,6 +32,13 @@ founder-decision tracker, or approved technical architecture constraints.
 Never silently reverse, reinterpret, or weaken a founder-confirmed decision.
 When sources conflict, stop the affected decision, preserve the conflict in the
 planning record, and ask the founder through Sol.
+
+### Archive Directory Boundary (Hard Rule)
+
+- Any file located inside `docs/_archive/` or `prototype/_archive/` is archived material (either completed historical records or superseded baselines).
+- AI agents MUST NOT read, inspect, search, grep, or cite files in `docs/_archive/` or `prototype/_archive/` unless the user explicitly names the archived file and requests reading it in their prompt.
+- Never use archived files as active implementation context, current source of truth, or prompt input.
+- When referencing historical documents that have been archived, refer to the active stub file in `docs/` and its specified current replacement source.
 
 ## 2. Language And Communication
 
