@@ -407,7 +407,7 @@ export function DisciplineFooter({ locale, disciplineTitle }: DisciplineFooterPr
             "div",
             { className: "discipline-footer-links" },
             React.createElement(Link, { href: isVi ? "/dieu-khoan" : "/en/dieu-khoan" }, isVi ? "\u0110i\u1EC1u kho\u1EA3n s\u1EED d\u1EE5ng" : "Terms of use"),
-            React.createElement(Link, { href: isVi ? "/quyen-rieng-tu" : "/en/quyen-rieng-tu" }, isVi ? "Quy\u1EC1n ri\u00EAng t\u01B0" : "Privacy"),
+            React.createElement(Link, { href: isVi ? "/chinh-sach-bao-mat" : "/en/chinh-sach-bao-mat" }, isVi ? "Quy\u1EC1n ri\u00EAng t\u01B0" : "Privacy"),
           ),
         ),
       ),

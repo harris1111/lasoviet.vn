@@ -44,6 +44,7 @@ import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { resolveActiveSkuFromPublicOfferKey } from "../commerce/checkout-offer";
 import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tracker";
 import { CheckoutPurchaseForm } from "../commerce/checkout-purchase-form";
+import { SupportCard } from "../../components/ui/support-card";
 import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
 import {
   buildSafeOfferPresentations,
@@ -290,6 +291,18 @@ export function PaidTopicSelector({
               {t("selection.helpLink")}
             </Link>
           </p>
+        </div>
+        <div className="topic-selector-support" data-testid="topic-support-card">
+          <SupportCard
+            actionLabel={locale === "en" ? "Send support email" : "Gửi email hỗ trợ"}
+            description={
+              locale === "en"
+                ? "The Lá Số Việt team is ready to answer questions about packages and access via email."
+                : "Đội ngũ Lá Số Việt sẵn sàng giải đáp thắc mắc về các gói luận giải và quyền lợi qua email."
+            }
+            email="support@lasoviet.net"
+            title={locale === "en" ? "Need help choosing a reading?" : "Cần hỗ trợ về gói luận giải?"}
+          />
         </div>
       </div>
     </section>

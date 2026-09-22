@@ -87,3 +87,14 @@ export {
 export type {
   ZiweiKnowledgeV4ValidationConfig,
 } from "./ziwei-knowledge-v4-validation.js";
+
+export {
+  buildCustomerSupportMailto,
+  customerContactConfig,
+  customerContactConfigSchema,
+  validateCustomerContactConfig,
+} from "./customer-contact.js";
+export type {
+  ContactChannelConfig,
+  CustomerContactConfig,
+} from "./customer-contact.js";

@@ -11,6 +11,7 @@ import { HomepageChatbotComparison } from "../../features/homepage/homepage-chat
 import { HomepageEvidence } from "../../features/homepage/homepage-evidence";
 import { HomepageFaq } from "../../features/homepage/homepage-faq";
 import { HomepageFinalCta } from "../../features/homepage/homepage-final-cta";
+import { HomepageSupport } from "../../features/homepage/homepage-support";
 import { HomepageFreeValue } from "../../features/homepage/homepage-free-value";
 import { HomepageHero } from "../../features/homepage/homepage-hero";
 import { HomepageKnowledge } from "../../features/homepage/homepage-knowledge";
@@ -55,6 +56,7 @@ export default async function Page({ params }: PageProps) {
         <section className="section section-deep" data-home-block="knowledge" id="kien-thuc"><HomepageKnowledge locale={locale} /></section>
         <section className="section" data-home-block="faq"><HomepageFaq /></section>
         <section data-home-block="about-excerpt"><HomepageAboutExcerpt locale={locale} /></section>
+        <section className="container home-support-section" data-home-block="support"><HomepageSupport /></section>
         <section className="cta" data-home-block="final-cta"><HomepageFinalCta locale={locale} /></section>
       </main>
       <SiteFooter locale={locale} />
