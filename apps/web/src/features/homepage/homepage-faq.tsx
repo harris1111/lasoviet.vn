@@ -5,7 +5,7 @@ export function HomepageFaq() {
   const keys = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8"] as const;
 
   return (
-    <div className="container faq-section-wrap" id="faq">
+    <div className="container faq-section-wrap">
       <div className="section-heading text-center">
         <p className="eyebrow">{t("home.faq.eyebrow")}</p>
         <h2>{t("home.faq.title")}</h2>

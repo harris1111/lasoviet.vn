@@ -1,60 +1,42 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { localizedPath } from "./homepage-utilities";
 
 type HomepageEvidenceProps = {
   locale?: "en" | "vi";
 };
 
-export function HomepageEvidence({ locale = "vi" }: HomepageEvidenceProps) {
+export function HomepageEvidence({ locale: _locale }: HomepageEvidenceProps) {
   const t = useTranslations("common");
 
   const cards = [
     {
       id: "chart-structure",
-      badgeVi: "Đồ hình chuẩn xác",
-      badgeEn: "Accurate chart structure",
-      titleVi: "Cấu trúc 12 cung an sao",
-      titleEn: "12-palace astrological chart",
-      descVi: "Phân bổ chính tinh, phụ tinh và ngũ hành nạp âm trực tiếp trên đồ hình truyền thống.",
-      descEn: "Major stars, auxiliary stars, and elements arranged on the classical 12-palace grid.",
-      metaVi: "12 cung vị · 108 sao",
-      metaEn: "12 palaces · 108 stars",
+      badge: t("home.evidence.card1.badge"),
+      title: t("home.evidence.card1.title"),
+      desc: t("home.evidence.card1.desc"),
+      meta: t("home.evidence.card1.meta"),
     },
     {
       id: "palace-relations",
-      badgeVi: "Tương tác cung vị",
-      badgeEn: "Palace interaction network",
-      titleVi: "Mối liên hệ xung chiếu & tam hợp",
-      titleEn: "Opposing and trine relations",
-      descVi: "Đối chiếu thế đứng giữa Mệnh, Tài, Quan và các cung xung hợp để làm rõ thế vượng suy.",
-      descEn: "Examines life, wealth, career, and opposing palaces to assess strength and alignment.",
-      metaVi: "Tam hợp · Xung chiếu · Nhị hợp",
-      metaEn: "Trine · Opposing · Hexagram harmony",
+      badge: t("home.evidence.card2.badge"),
+      title: t("home.evidence.card2.title"),
+      desc: t("home.evidence.card2.desc"),
+      meta: t("home.evidence.card2.meta"),
     },
     {
       id: "evidence-source",
-      badgeVi: "Quy tắc minh bạch",
-      badgeEn: "Verifiable rules",
-      titleVi: "Căn cứ an định & cổ thư đối chiếu",
-      titleEn: "Star calculation rules and sources",
-      descVi: "Mỗi luận điểm đều có thể mở xem căn cứ tính toán, vị trí sao và quy tắc luận giải minh bạch.",
-      descEn: "Every insight lets you inspect underlying star placements and documented rules.",
-      metaVi: "Không phán đoán trừu tượng",
-      metaEn: "Zero abstract speculation",
+      badge: t("home.evidence.card3.badge"),
+      title: t("home.evidence.card3.title"),
+      desc: t("home.evidence.card3.desc"),
+      meta: t("home.evidence.card3.meta"),
     },
     {
       id: "reading-progress",
-      badgeVi: "Lộ trình đọc hiểu",
-      badgeEn: "Reading trajectory",
-      titleVi: "Tiến trình luận giải theo chủ đề",
-      titleEn: "Topic-by-topic interpretation",
-      descVi: "Từ tổng quan bản mệnh đến chi tiết từng đại vận, đánh dấu phần đã đọc và lưu giữ lâu dài.",
-      descEn: "From lifetime overview to detailed 10-year periods, tracking reading progress.",
-      metaVi: "Lưu giữ an toàn trong thư viện",
-      metaEn: "Safely preserved in your library",
+      badge: t("home.evidence.card4.badge"),
+      title: t("home.evidence.card4.title"),
+      desc: t("home.evidence.card4.desc"),
+      meta: t("home.evidence.card4.meta"),
     },
   ];
 
@@ -71,29 +53,29 @@ export function HomepageEvidence({ locale = "vi" }: HomepageEvidenceProps) {
       <div className="section-heading text-center">
         <p className="eyebrow">{t("home.evidence.eyebrow")}</p>
         <h2>{t("home.evidence.title")}</h2>
-        <p className="section-lead">{t("home.evidence.copy")}</p>
+        <p className="section-lead">{t("home.evidence.lead")}</p>
       </div>
 
       <div
         className="evidence-carousel"
         role="region"
-        aria-label={locale === "en" ? "Evidence sample carousel" : "Bản chứng thực đồ hình và căn cứ"}
+        aria-label={t("home.evidence.carouselAriaLabel")}
         tabIndex={0}
       >
         {cards.map((card) => (
           <article className="evidence-slide-card" key={card.id}>
             <div className="evidence-card-badge">
-              {locale === "en" ? card.badgeEn : card.badgeVi}
+              {card.badge}
             </div>
             <h3 className="evidence-card-title">
-              {locale === "en" ? card.titleEn : card.titleVi}
+              {card.title}
             </h3>
             <p className="evidence-card-desc">
-              {locale === "en" ? card.descEn : card.descVi}
+              {card.desc}
             </p>
             <div className="evidence-card-meta">
               <span className="evidence-meta-pill">
-                {locale === "en" ? card.metaEn : card.metaVi}
+                {card.meta}
               </span>
             </div>
           </article>
@@ -106,7 +88,7 @@ export function HomepageEvidence({ locale = "vi" }: HomepageEvidenceProps) {
           className="button button-pill"
           onClick={handleScrollToForm}
         >
-          {locale === "en" ? "Build your chart" : "Xem lá số của bạn"}
+          {t("home.evidence.cta")}
         </button>
       </div>
     </div>

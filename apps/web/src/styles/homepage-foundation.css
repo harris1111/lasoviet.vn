@@ -24,7 +24,7 @@
   border-radius: 4px;
   background: var(--lacquer-800);
   color: var(--pearl-600);
-  font: 11px/1.4 var(--font-mono);
+  font: 14px/1.4 var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -308,7 +308,7 @@
   background: var(--lacquer-700, #26211A);
   border: 1px solid var(--lacquer-line, #3A3227);
   color: var(--pearl-200, #DCD4C3);
-  font-size: 13.5px;
+  font-size: 14px;
   text-decoration: none;
   transition: border-color 0.2s, color 0.2s;
 }
@@ -371,7 +371,7 @@
   border-radius: 4px;
   background: var(--gold-500);
   color: var(--lacquer-950, #0E0C0A);
-  font-size: 11.5px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -497,7 +497,7 @@
 
 .evidence-card-badge {
   color: var(--gold-400);
-  font-size: 12px;
+  font-size: 14px;
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -529,7 +529,7 @@
   background: var(--lacquer-800);
   border: 1px solid var(--lacquer-line);
   color: var(--pearl-200);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .evidence-carousel-action {
@@ -653,7 +653,7 @@
     background: rgba(201, 164, 77, 0.08);
   }
   .matrix-badge-label {
-    font-size: 11px;
+    font-size: 14px;
     color: var(--pearl-400);
   }
   .matrix-badge-highlight .matrix-badge-label {
@@ -727,7 +727,7 @@
 
 .knowledge-category-tag {
   color: var(--gold-400);
-  font-size: 12px;
+  font-size: 14px;
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -754,7 +754,7 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .featured-byline {
@@ -809,7 +809,7 @@
 }
 
 .knowledge-compact-tag {
-  font-size: 11px;
+  font-size: 14px;
   color: var(--gold-600);
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
@@ -825,7 +825,7 @@
 
 .compact-item-copy {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--pearl-400);
   line-height: 1.5;
 }
@@ -913,4 +913,19 @@
 .button-pill {
   border-radius: 9999px !important;
   min-height: 44px;
+}
+
+/* Explicitly enforce touch target >= 44px on all hero form interactive controls */
+.hero-form-inputs .ui-field-shell__control select,
+.hero-form-inputs .birth-date-inputs select,
+.hero-form-inputs .wizard-branch-select,
+.hero-form-inputs .birth-date-calendar-button,
+.hero-form-inputs .wizard-mode-button,
+.hero-form-inputs .button,
+.hero-form-inputs .button-secondary {
+  min-height: 44px !important;
+}
+
+.hero-form-inputs .ui-field-shell__control {
+  min-height: 56px !important;
 }

@@ -18,7 +18,7 @@ export function HomepageKnowledge({ locale }: HomepageKnowledgeProps) {
     href: "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
     title: t("home.knowledge.chart.title"),
     copy: t("home.knowledge.chart.copy"),
-    category: isEn ? "Core Knowledge" : "Kiến thức nền tảng",
+    category: t("home.knowledge.featuredCategory"),
     byline: isEn ? "Edited by Lá Số Việt" : "Lá Số Việt biên tập",
   };
 
@@ -28,32 +28,28 @@ export function HomepageKnowledge({ locale }: HomepageKnowledgeProps) {
       href: "/kien-thuc/tu-vi/cach-lap-la-so-tu-vi",
       title: t("home.knowledge.create.title"),
       copy: t("home.knowledge.create.copy"),
-      category: isEn ? "Methodology" : "Phương pháp lập",
+      category: t("home.knowledge.createCategory"),
     },
     {
       key: "read",
       href: "/kien-thuc/tu-vi/cach-doc-la-so-tu-vi",
       title: t("home.knowledge.read.title"),
       copy: t("home.knowledge.read.copy"),
-      category: isEn ? "Reading Guide" : "Hướng dẫn đọc",
+      category: t("home.knowledge.readCategory"),
     },
     {
       key: "evidence",
-      href: "/phuong-phap/can-cu-ai",
-      title: isEn ? "Evidence & Calculation Rules" : "Căn cứ khoa học và quy tắc an sao",
-      copy: isEn
-        ? "How calculations remain strictly grounded in verified classical rules without arbitrary drift."
-        : "Nguyên tắc tính toán minh bạch dựa trên cổ thư và quy tắc an sao hệ thống.",
-      category: isEn ? "Evidence" : "Căn cứ",
+      href: "/phuong-phap/ai-va-can-cu",
+      title: t("home.knowledge.evidenceTitle"),
+      copy: t("home.knowledge.evidenceCopy"),
+      category: t("home.knowledge.evidenceCategory"),
     },
     {
       key: "hub",
       href: "/kien-thuc",
-      title: isEn ? "Knowledge Library Overview" : "Thư viện kiến thức Tử Vi Đẩu Số",
-      copy: isEn
-        ? "Explore complete articles, star meanings, palace dynamics, and foundational concepts."
-        : "Tra cứu toàn bộ chuyên đề sao, cung vị và các phương pháp giải đoán cổ điển.",
-      category: isEn ? "Library" : "Thư viện",
+      title: t("home.knowledge.libraryTitle"),
+      copy: t("home.knowledge.libraryCopy"),
+      category: t("home.knowledge.libraryCategory"),
     },
   ];
 
@@ -86,7 +82,7 @@ export function HomepageKnowledge({ locale }: HomepageKnowledgeProps) {
               <div className="featured-card-meta">
                 <span className="featured-byline">{featured.byline}</span>
                 <span className="featured-read-link">
-                  {isEn ? "Read article →" : "Đọc bài viết →"}
+                  {t("home.knowledge.readArticle")}
                 </span>
               </div>
             </div>

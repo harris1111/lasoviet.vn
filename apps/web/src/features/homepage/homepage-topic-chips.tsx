@@ -70,7 +70,6 @@ export function HomepageTopicChips({ locale }: HomepageTopicChipsProps) {
               type="button"
               className="topic-chip-pill"
               onClick={handleScrollToHeroForm}
-              data-analytics-intent="scroll_to_form"
               data-chip-name={item}
             >
               <span className="topic-chip-dot" aria-hidden="true" />
@@ -86,7 +85,6 @@ export function HomepageTopicChips({ locale }: HomepageTopicChipsProps) {
               type="button"
               className="topic-chip-pill"
               onClick={handleScrollToHeroForm}
-              data-analytics-intent="scroll_to_form"
               data-chip-name={item}
             >
               <span className="topic-chip-dot topic-chip-dot-alt" aria-hidden="true" />

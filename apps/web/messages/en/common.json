@@ -236,17 +236,35 @@
       }
     },
     "evidence": {
-      "eyebrow": "Transparency",
-      "title": "Evidence sits beside each insight",
-      "copy": "Important insights can be opened to review related data, rules, and limitations in context.",
-      "claim": "This period may bring more pressure around work responsibilities.",
-      "action": "Why is this insight made?",
-      "source": "Evidence used",
-      "sourceCopy": "A work-period reading compared with the principal star in the Life Palace.",
-      "confidence": "Confidence",
-      "confidenceCopy": "Moderate - sensitive to birth time.",
-      "observe": "What you can observe",
-      "observeCopy": "Compare it with workload or new responsibilities over the next one to two months."
+      "eyebrow": "Visual proof",
+      "title": "Real structures and transparent rules",
+      "lead": "Direct representations of the 12-palace grid, palace interaction network, calculation rules, and reading trajectory.",
+      "card1": {
+        "badge": "Accurate chart structure",
+        "title": "12-palace astrological chart",
+        "desc": "Major stars, auxiliary stars, and elements arranged directly on the traditional 12-palace grid.",
+        "meta": "12 palaces · 108 stars"
+      },
+      "card2": {
+        "badge": "Palace interaction network",
+        "title": "Opposing and trine relations",
+        "desc": "Examines life, wealth, career, and opposing palaces to clarify alignment and natural strengths.",
+        "meta": "Trine · Opposing · Hexagram harmony"
+      },
+      "card3": {
+        "badge": "Verifiable rules",
+        "title": "Star calculation rules and sources",
+        "desc": "Important insights let you inspect underlying star placements, classical rules, and clear boundaries.",
+        "meta": "Zero abstract speculation"
+      },
+      "card4": {
+        "badge": "Reading trajectory",
+        "title": "Topic-by-topic interpretation",
+        "desc": "From destiny overview to detailed 10-year periods, tracking reading progress safely in your library.",
+        "meta": "Safely preserved in your library"
+      },
+      "cta": "Build your chart",
+      "carouselAriaLabel": "Evidence sample carousel"
     },
     "valueLadder": {
       "eyebrow": "How we interpret",
@@ -294,7 +312,17 @@
       "read": {
         "title": "How to read a Zi Wei chart",
         "copy": "Start with the Life Palace, then expand into related palaces."
-      }
+      },
+      "featuredCategory": "Core Knowledge",
+      "readArticle": "Read article →",
+      "createCategory": "Methodology",
+      "readCategory": "Reading Guide",
+      "evidenceCategory": "Evidence",
+      "evidenceTitle": "Evidence & Calculation Rules",
+      "evidenceCopy": "How calculations remain strictly grounded in verified classical rules without arbitrary drift.",
+      "libraryCategory": "Library",
+      "libraryTitle": "Knowledge Library Overview",
+      "libraryCopy": "Explore complete articles, star meanings, palace dynamics, and foundational concepts."
     },
     "faq": {
       "eyebrow": "Frequently asked questions",
@@ -470,7 +498,9 @@
         "free": true,
         "standard": true,
         "comprehensive": true
-      }
+      },
+      "yes": "Yes",
+      "no": "No"
     }
   }
 }

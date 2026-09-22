@@ -16,7 +16,7 @@ function collectStrings(value: unknown): string[] {
 }
 
 describe("homepage content and structure requirements", () => {
-  it("orchestrates the 10 primary data-home-block sections in page.tsx matching AITuvi §4.1 order", () => {
+  it("orchestrates exactly 10 primary data-home-block sections inside <main> matching AITuvi §4.1 order", () => {
     const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
     const pageSource = readFileSync(pagePath, "utf8");
 
@@ -26,7 +26,6 @@ describe("homepage content and structure requirements", () => {
     );
 
     expect(blockMatches).toEqual([
-      "header",
       "hero",
       "topic-chips",
       "comparison",
@@ -100,11 +99,12 @@ describe("homepage content and structure requirements", () => {
     }
   });
 
-  it("enforces canonical CTAs, required anchors, and forbids bare hash or forbidden script", () => {
+  it("enforces canonical CTAs, required anchors including restored #dich-vu, and forbids bare hash or forbidden script", () => {
     const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
     const pageSource = readFileSync(pagePath, "utf8");
 
     const requiredAnchors = [
+      "#dich-vu",
       "#he-quy-chieu",
       "#luan-giai",
       "#kien-thuc",
@@ -119,6 +119,10 @@ describe("homepage content and structure requirements", () => {
         `page.tsx must contain anchor ${anchor}`,
       ).toBe(true);
     }
+
+    // Ensure only one id="faq" anchor across page and components
+    const faqMatches = Array.from(pageSource.matchAll(/id="faq"/g));
+    expect(faqMatches).toHaveLength(1);
 
     expect(pageSource).not.toContain('href="#"');
     expect(pageSource).not.toContain("support.js");
@@ -162,8 +166,8 @@ describe("homepage content and structure requirements", () => {
     const enHomeCopy = collectStrings(en.home).join("\n");
 
     // Must not contain numeric prices with currency or Lá amounts
-    expect(viHomeCopy).not.toMatch(/\d[\d.,]*\s*(?:₫|đ\b|VND|Lá\b)/i);
-    expect(enHomeCopy).not.toMatch(/\d[\d.,]*\s*(?:VND|USD|\$|Lá\b|La\b)/i);
+    expect(viHomeCopy).not.toMatch(/\d[\d.,]*\s*(?:₫|đ(?!\p{L})|VND|(?:Lá|La)(?!\p{L}))/iu);
+    expect(enHomeCopy).not.toMatch(/\d[\d.,]*\s*(?:VND|USD|\$|(?:Lá|La)(?!\p{L}))/iu);
   });
 
   it("enforces 8 numbered FAQ items with non-empty questions and answers", () => {
@@ -306,5 +310,31 @@ describe("homepage content and structure requirements", () => {
     // Touch targets >= 44px
     expect(foundationCss).toMatch(/min-height:\s*44px/);
     expect(foundationCss).toContain("@media (prefers-reduced-motion: reduce)");
+  });
+
+  it("enforces all font sizes in homepage-foundation.css are >= 14px (no px size below 14)", () => {
+    const foundationCss = readFileSync(
+      resolve(rootDir, "apps/web/src/styles/homepage-foundation.css"),
+      "utf8",
+    );
+    // Strip comments to ensure no false positives from comment strings
+    const cleanCss = foundationCss.replace(/\/\*[\s\S]*?\*\//g, "");
+    const matches = [...cleanCss.matchAll(/font(?:-size)?:\s*([^;]+);/g)];
+    const pxSizesBelow14: Array<{ declaration: string; pxValue: number }> = [];
+
+    for (const match of matches) {
+      const valueStr = match[1];
+      const pxMatches = valueStr.match(/(\d+(?:\.\d+)?)\s*px/g);
+      if (pxMatches) {
+        for (const p of pxMatches) {
+          const num = parseFloat(p);
+          if (num < 14) {
+            pxSizesBelow14.push({ declaration: match[0], pxValue: num });
+          }
+        }
+      }
+    }
+
+    expect(pxSizesBelow14, "No px font-size declaration below 14px in homepage-foundation.css").toEqual([]);
   });
 });

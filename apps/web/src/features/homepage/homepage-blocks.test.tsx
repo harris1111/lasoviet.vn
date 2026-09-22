@@ -13,7 +13,6 @@ import { HomepageFinalCta } from "./homepage-final-cta";
 // Mock next-intl
 vi.mock("next-intl", () => {
   const viMessages = require("../../../messages/vi/common.json");
-  const enMessages = require("../../../messages/en/common.json");
 
   return {
     useTranslations: (namespace: string) => {
@@ -30,7 +29,7 @@ vi.mock("next-intl", () => {
 });
 
 describe("homepage newly structured components", () => {
-  it("renders HomepageTopicChips with 2 chip rows and 'Cũng có' links", () => {
+  it("renders HomepageTopicChips with 2 chip rows, 'Cũng có' links, and no invented analytics attribute", () => {
     const html = renderToStaticMarkup(createElement(HomepageTopicChips, { locale: "vi" }));
     expect(html).toContain("topic-chips-viewport");
     expect(html).toContain("topic-chips-row-forward");
@@ -41,7 +40,7 @@ describe("homepage newly structured components", () => {
     expect(html).toContain('href="/chiem-tinh"');
     expect(html).toContain('href="/than-so-hoc"');
     expect(html).toContain('href="/kinh-dich"');
-    expect(html).toContain('data-analytics-intent="scroll_to_form"');
+    expect(html).not.toContain("data-analytics-intent");
   });
 
   it("renders HomepageComparison with LSV featured first and mobile details accordion", () => {
@@ -58,7 +57,7 @@ describe("homepage newly structured components", () => {
     expect(html).toContain("comp-item-negative");
   });
 
-  it("renders HomepageEvidence scroll-snap carousel with real static representations", () => {
+  it("renders HomepageEvidence scroll-snap carousel with real static representations and localized keys", () => {
     const html = renderToStaticMarkup(createElement(HomepageEvidence, { locale: "vi" }));
     expect(html).toContain("evidence-carousel");
     expect(html).toContain("evidence-slide-card");
@@ -69,7 +68,7 @@ describe("homepage newly structured components", () => {
     expect(html).toContain("Xem lá số của bạn");
   });
 
-  it("renders HomepageCapabilityMatrix without price amounts and with stacked mobile tiers", () => {
+  it("renders HomepageCapabilityMatrix without price amounts and with localized aria-labels", () => {
     const html = renderToStaticMarkup(createElement(HomepageCapabilityMatrix));
     expect(html).toContain("capability-table");
     expect(html).toContain("matrix-mobile-cards");
@@ -77,11 +76,12 @@ describe("homepage newly structured components", () => {
     expect(html).toContain("Miễn phí");
     expect(html).toContain("Bản mệnh");
     expect(html).toContain("Toàn diện");
+    expect(html).toContain('aria-label="Có"');
     // Ensure no price marks
-    expect(html).not.toMatch(/\d[\d.,]*\s*(?:₫|đ\b|VND|Lá\b)/i);
+    expect(html).not.toMatch(/\d[\d.,]*\s*(?:₫|đ(?!\p{L})|VND|(?:Lá|La)(?!\p{L}))/iu);
   });
 
-  it("renders HomepageKnowledge with 1 featured card (byline 'Lá Số Việt biên tập') + 4 compact list items", () => {
+  it("renders HomepageKnowledge with 1 featured card (byline 'Lá Số Việt biên tập') + 4 compact list items with canonical path", () => {
     const html = renderToStaticMarkup(createElement(HomepageKnowledge, { locale: "vi" }));
     expect(html).toContain("knowledge-featured-card");
     expect(html).toContain("knowledge-compact-list");
@@ -89,13 +89,14 @@ describe("homepage newly structured components", () => {
     expect(html).toContain('href="/kien-thuc/tu-vi/la-so-tu-vi-la-gi"');
     expect(html).toContain('href="/kien-thuc/tu-vi/cach-lap-la-so-tu-vi"');
     expect(html).toContain('href="/kien-thuc/tu-vi/cach-doc-la-so-tu-vi"');
-    expect(html).toContain('href="/phuong-phap/can-cu-ai"');
+    expect(html).toContain('href="/phuong-phap/ai-va-can-cu"');
     expect(html).toContain('href="/kien-thuc"');
   });
 
-  it("renders HomepageFaq with 8 numbered details items and the first one open", () => {
+  it("renders HomepageFaq with 8 numbered details items, the first one open, and no id='faq' on the container", () => {
     const html = renderToStaticMarkup(createElement(HomepageFaq));
     expect(html).toContain("faq-accordion-list");
+    expect(html).not.toContain('id="faq"');
     const detailsCount = (html.match(/<details/g) || []).length;
     expect(detailsCount).toBe(8);
     // First item open

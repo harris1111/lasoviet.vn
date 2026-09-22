@@ -236,17 +236,35 @@
       }
     },
     "evidence": {
-      "eyebrow": "Minh bạch",
-      "title": "Căn cứ nằm ngay cạnh nhận định",
-      "copy": "Nhận định quan trọng có thể mở ra để xem dữ liệu, quy tắc và giới hạn liên quan ngay tại chỗ.",
-      "claim": "Giai đoạn này có thể tăng áp lực về vai trò trong công việc.",
-      "action": "Vì sao có nhận định này?",
-      "source": "Căn cứ được sử dụng",
-      "sourceCopy": "Vận hạn tại Cung Quan Lộc, đối chiếu với chính tinh thủ mệnh.",
-      "confidence": "Mức độ tin cậy",
-      "confidenceCopy": "Trung bình - nhạy với giờ sinh.",
-      "observe": "Điều bạn có thể quan sát",
-      "observeCopy": "Đối chiếu với khối lượng công việc hoặc trách nhiệm mới trong 1-2 tháng tới."
+      "eyebrow": "Minh chứng trực quan",
+      "title": "Căn cứ an định và quy tắc minh bạch",
+      "lead": "Minh họa trực quan cấu trúc 12 cung, mạng lưới tương tác cung vị, quy tắc tính toán và tiến trình luận giải.",
+      "card1": {
+        "badge": "Đồ hình chuẩn xác",
+        "title": "Cấu trúc 12 cung an sao",
+        "desc": "Phân bổ chính tinh, phụ tinh và ngũ hành nạp âm trực tiếp trên đồ hình truyền thống.",
+        "meta": "12 cung vị · 108 sao"
+      },
+      "card2": {
+        "badge": "Tương tác cung vị",
+        "title": "Mối liên hệ xung chiếu & tam hợp",
+        "desc": "Đối chiếu thế đứng giữa Mệnh, Tài, Quan và các cung xung hợp để làm rõ thế vượng suy.",
+        "meta": "Tam hợp · Xung chiếu · Nhị hợp"
+      },
+      "card3": {
+        "badge": "Quy tắc minh bạch",
+        "title": "Căn cứ an định & cổ thư đối chiếu",
+        "desc": "Các nhận định quan trọng đều có thể mở xem căn cứ tính toán, vị trí sao và quy tắc luận giải minh bạch.",
+        "meta": "Không phán đoán trừu tượng"
+      },
+      "card4": {
+        "badge": "Lộ trình đọc hiểu",
+        "title": "Tiến trình luận giải theo chủ đề",
+        "desc": "Từ tổng quan bản mệnh đến chi tiết từng đại vận, đánh dấu phần đã đọc và lưu giữ lâu dài trong thư viện.",
+        "meta": "Lưu giữ an toàn trong thư viện"
+      },
+      "cta": "Xem lá số của bạn",
+      "carouselAriaLabel": "Bản chứng thực đồ hình và căn cứ"
     },
     "valueLadder": {
       "eyebrow": "Cách chúng tôi luận giải",
@@ -294,7 +312,17 @@
       "read": {
         "title": "Cách đọc lá số Tử Vi",
         "copy": "Bắt đầu từ Cung Mệnh, sau đó mở rộng sang các cung liên quan."
-      }
+      },
+      "featuredCategory": "Kiến thức nền tảng",
+      "readArticle": "Đọc bài viết →",
+      "createCategory": "Phương pháp lập",
+      "readCategory": "Hướng dẫn đọc",
+      "evidenceCategory": "Căn cứ",
+      "evidenceTitle": "Căn cứ khoa học và quy tắc an sao",
+      "evidenceCopy": "Nguyên tắc tính toán minh bạch dựa trên cổ thư và quy tắc an sao hệ thống.",
+      "libraryCategory": "Thư viện",
+      "libraryTitle": "Thư viện kiến thức Tử Vi Đẩu Số",
+      "libraryCopy": "Tra cứu toàn bộ chuyên đề sao, cung vị và các phương pháp giải đoán cổ điển."
     },
     "faq": {
       "eyebrow": "Câu hỏi thường gặp",
@@ -470,7 +498,9 @@
         "free": true,
         "standard": true,
         "comprehensive": true
-      }
+      },
+      "yes": "Có",
+      "no": "Không"
     }
   }
 }

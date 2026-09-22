@@ -34,12 +34,12 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div className="home">
-      <div data-home-block="header"><SiteHeader locale={locale} /></div>
+      <SiteHeader locale={locale} />
       <main aria-label={t("app.name")}>
         <section className="hero" data-home-block="hero" id="hero-section">
           <HomepageHero locale={locale} referenceYear={referenceYear} />
         </section>
-        <section className="section section-topic-chips" data-home-block="topic-chips">
+        <section className="section section-topic-chips" data-home-block="topic-chips" id="dich-vu">
           <HomepageTopicChips locale={locale} />
         </section>
         <section className="section section-comparison" data-home-block="comparison" id="he-quy-chieu">

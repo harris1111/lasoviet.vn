@@ -12,6 +12,9 @@ export function HomepageCapabilityMatrix() {
     { key: "row6", free: true, standard: true, comprehensive: true },
   ] as const;
 
+  const yesLabel = t("home.capabilityMatrix.yes");
+  const noLabel = t("home.capabilityMatrix.no");
+
   return (
     <div className="container capability-matrix-wrap">
       <div className="section-heading text-center">
@@ -46,17 +49,17 @@ export function HomepageCapabilityMatrix() {
                   {t(`home.capabilityMatrix.${row.key}.feature`)}
                 </th>
                 <td className="matrix-cell">
-                  <span className={row.free ? "matrix-check" : "matrix-dash"} aria-label={row.free ? "Có" : "Không"}>
+                  <span className={row.free ? "matrix-check" : "matrix-dash"} aria-label={row.free ? yesLabel : noLabel}>
                     {row.free ? "✓" : "—"}
                   </span>
                 </td>
                 <td className="matrix-cell">
-                  <span className={row.standard ? "matrix-check" : "matrix-dash"} aria-label={row.standard ? "Có" : "Không"}>
+                  <span className={row.standard ? "matrix-check" : "matrix-dash"} aria-label={row.standard ? yesLabel : noLabel}>
                     {row.standard ? "✓" : "—"}
                   </span>
                 </td>
                 <td className="matrix-cell matrix-cell-highlight">
-                  <span className={row.comprehensive ? "matrix-check matrix-check-gold" : "matrix-dash"} aria-label={row.comprehensive ? "Có" : "Không"}>
+                  <span className={row.comprehensive ? "matrix-check matrix-check-gold" : "matrix-dash"} aria-label={row.comprehensive ? yesLabel : noLabel}>
                     {row.comprehensive ? "✓" : "—"}
                   </span>
                 </td>
@@ -76,15 +79,15 @@ export function HomepageCapabilityMatrix() {
             <div className="matrix-mobile-tiers">
               <div className={`matrix-badge-item ${row.free ? "matrix-badge-active" : "matrix-badge-inactive"}`}>
                 <span className="matrix-badge-label">{t("home.capabilityMatrix.colFree")}</span>
-                <span className="matrix-badge-mark">{row.free ? "✓" : "—"}</span>
+                <span className="matrix-badge-mark" aria-label={row.free ? yesLabel : noLabel}>{row.free ? "✓" : "—"}</span>
               </div>
               <div className={`matrix-badge-item ${row.standard ? "matrix-badge-active" : "matrix-badge-inactive"}`}>
                 <span className="matrix-badge-label">{t("home.capabilityMatrix.colStandard")}</span>
-                <span className="matrix-badge-mark">{row.standard ? "✓" : "—"}</span>
+                <span className="matrix-badge-mark" aria-label={row.standard ? yesLabel : noLabel}>{row.standard ? "✓" : "—"}</span>
               </div>
               <div className={`matrix-badge-item matrix-badge-highlight ${row.comprehensive ? "matrix-badge-active" : "matrix-badge-inactive"}`}>
                 <span className="matrix-badge-label">{t("home.capabilityMatrix.colComprehensive")}</span>
-                <span className="matrix-badge-mark">{row.comprehensive ? "✓" : "—"}</span>
+                <span className="matrix-badge-mark" aria-label={row.comprehensive ? yesLabel : noLabel}>{row.comprehensive ? "✓" : "—"}</span>
               </div>
             </div>
           </div>
