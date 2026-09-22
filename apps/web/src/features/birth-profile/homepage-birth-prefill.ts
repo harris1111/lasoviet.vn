@@ -502,7 +502,18 @@ export function readBirthCache(options?: {
               const y = Number.parseInt(yStr, 10);
               const m = Number.parseInt(mStr, 10);
               const d = Number.parseInt(dStr, 10);
-              if (isValidSolarDate(y, m, d) && !isFutureSolarDate(y, m, d, now)) {
+              const calendarType =
+                parsedV1.calendarType === "solar" || parsedV1.calendarType === "lunar"
+                  ? parsedV1.calendarType
+                  : undefined;
+              const isLeapMonth =
+                typeof parsedV1.isLeapMonth === "boolean" ? parsedV1.isLeapMonth : undefined;
+              const effectiveCalendarType = calendarType ?? "solar";
+              const isDateValid =
+                effectiveCalendarType === "solar"
+                  ? isValidSolarDate(y, m, d) && !isFutureSolarDate(y, m, d, now)
+                  : isValidLunarDate(y, m, d) && !isFutureLunarYear(yStr, now);
+              if (isDateValid) {
                 let validTime: ReusableBirthTime | null = null;
                 if (
                   parsedV1.time &&
@@ -524,6 +535,8 @@ export function readBirthCache(options?: {
                     version: BIRTH_CACHE_VERSION_V2,
                     date: `${y.toString().padStart(4, "0")}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
                     time: validTime,
+                    ...(calendarType ? { calendarType } : {}),
+                    ...(calendarType === "lunar" && isLeapMonth !== undefined ? { isLeapMonth } : {}),
                     createdAt: parsedV1.createdAt,
                   };
                   if (local) {
@@ -617,11 +630,18 @@ export function saveHomepageBirthPrefill(
         version: BIRTH_CACHE_VERSION_V2,
         date: input.date,
         time: input.time,
+        ...(input.calendarType ? { calendarType: input.calendarType } : {}),
+        ...(input.calendarType === "lunar" && input.isLeapMonth !== undefined
+          ? { isLeapMonth: Boolean(input.isLeapMonth) }
+          : {}),
         ...(input.gender === "male" || input.gender === "female"
           ? { gender: input.gender }
           : {}),
         ...(typeof input.place === "string" && input.place.trim()
           ? { place: input.place.trim().slice(0, 120) }
+          : {}),
+        ...(typeof input.displayName === "string" && input.displayName.trim()
+          ? { displayName: input.displayName.trim().slice(0, 80) }
           : {}),
         createdAt: now,
       };

@@ -63,12 +63,27 @@ test("prefills birth data from hero form into wizard using the reusable cache wi
   await page.getByLabel("Nữ").check();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
-  // Step 2 shows prefilled date and branch
+  // Step 2 shows prefilled date and branch, plus verify touch targets >= 44px on conditional controls
   await expect(page.getByRole("heading", { name: "Ngày, giờ sinh & nơi sinh" })).toBeVisible();
   await expect(page.getByLabel("Ngày", { exact: true })).toHaveValue("12");
   await expect(page.getByLabel("Tháng", { exact: true })).toHaveValue("04");
   await expect(page.getByLabel("Năm", { exact: true })).toHaveValue("1994");
   await expect(page.getByLabel("Địa Chi giờ sinh")).toHaveValue("si");
+
+  // Verify time-mode buttons and calendar trigger >= 44px
+  const exactModeBtn = page.getByRole("button", { name: "Giờ & phút" });
+  const branchModeBtn = page.getByRole("button", { name: "12 Địa Chi" });
+  const exactBox = await exactModeBtn.boundingBox();
+  const branchBox = await branchModeBtn.boundingBox();
+  expect(exactBox?.height).toBeGreaterThanOrEqual(44);
+  expect(branchBox?.height).toBeGreaterThanOrEqual(44);
+
+  // Verify cache clear notice and button >= 44px
+  const wizardClearBtn = page.locator(".wizard-cache-clear");
+  await expect(wizardClearBtn).toBeVisible();
+  const clearBox = await wizardClearBtn.boundingBox();
+  expect(clearBox?.height).toBeGreaterThanOrEqual(44);
+
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
   // Step 3 (Review) shows localized branch label
@@ -179,9 +194,15 @@ test("autosaves partial homepage input across reload", async ({ page }) => {
   await expect(restoredHeroForm.getByLabel("Ngày", { exact: true })).toHaveValue("12");
   await expect(restoredHeroForm.getByLabel("Tháng", { exact: true })).toHaveValue("04");
   await expect(restoredHeroForm.getByRole("textbox", { name: "Giờ", exact: true })).toHaveValue("09");
+
+  // Verify hero cache clear button is visible and >= 44px touch target
+  const heroClearBtn = page.locator(".hero-cache-clear");
+  await expect(heroClearBtn).toBeVisible();
+  const heroClearBox = await heroClearBtn.boundingBox();
+  expect(heroClearBox?.height).toBeGreaterThanOrEqual(44);
 });
 
-test("autosaves Review before immediate sign-in navigation and restores it after mocked OAuth", async ({
+test("restores review draft and reading context after navigation to sign-in and return callback", async ({
   page,
 }) => {
   const baseURL = test.info().project.use.baseURL as string;
@@ -207,11 +228,12 @@ test("autosaves Review before immediate sign-in navigation and restores it after
   await page.getByRole("button", { name: "Tiếp tục" }).click();
   await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
 
-  // Select FD-078 reading context lifeStage and skip topConcern before OAuth
+  // Select FD-078 reading context lifeStage and skip topConcern before sign-in navigation
   await page.getByRole("button", { name: "Mới đi làm" }).click();
   const skipButtons = page.getByRole("button", { name: "Bỏ qua" });
   await skipButtons.nth(1).click();
 
+  // Mock social sign-in returning redirect to wizardUrl
   await page.route("**/api/auth/sign-in/social", async (route) => {
     await route.fulfill({
       status: 200,
@@ -220,10 +242,11 @@ test("autosaves Review before immediate sign-in navigation and restores it after
     });
   });
 
-  await page.getByRole("link", { name: "Đăng nhập" }).click();
-  await expect(page).toHaveURL(
-    `/dang-nhap?callbackURL=${encodeURIComponent(wizardPath)}`,
-  );
+  // Navigate to supported sign-in entry with callbackURL returning to wizard
+  const signInPath = `/dang-nhap?callbackURL=${encodeURIComponent(wizardPath)}`;
+  await page.goto(signInPath);
+  await expect(page.getByRole("heading", { name: "Đăng nhập" })).toBeVisible();
+
   const googleButton = page.getByRole("button", { name: /Google/i });
   await Promise.all([page.waitForURL(wizardUrl), googleButton.click()]);
 

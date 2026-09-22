@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { BirthDetailsFields } from "./birth-details-fields";
+import { generateBirthYears } from "./birth-date-fields";
 
 describe("BirthDetailsFields presenter", () => {
   const defaultTimeLabels = {
@@ -185,5 +186,45 @@ describe("BirthDetailsFields presenter", () => {
     expect(html).toContain('name="isLeapMonth"');
     expect(html).toContain('checked=""');
     expect(html).toContain("Tháng nhuận");
+  });
+
+  it("handles year rollover 2026 -> 2027 via fake clock without freezing current year", () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2027-01-15T00:00:00Z"));
+      expect(new Date().getFullYear()).toBe(2027);
+
+      // 1. Initial server referenceYear 2026 matches SSR
+      const serverYears = generateBirthYears(2026);
+      expect(serverYears[0]).toBe("2026");
+      expect(serverYears).not.toContain("2027");
+
+      // 2. Rollover dynamically expands range to 2027 after hydration / effectiveYear update
+      const rolledOverYears = generateBirthYears(new Date().getFullYear());
+      expect(rolledOverYears[0]).toBe("2027");
+      expect(rolledOverYears[1]).toBe("2026");
+      expect(rolledOverYears[rolledOverYears.length - 1]).toBe("1000");
+
+      // 3. Render presenter directly with 2027 referenceYear
+      const html = renderToStaticMarkup(
+        createElement(BirthDetailsFields, {
+          day: "12",
+          month: "04",
+          year: "1994",
+          referenceYear: new Date().getFullYear(),
+          timeState: { precision: "unknown" },
+          timeLabels: defaultTimeLabels,
+          onDayChange: () => {},
+          onMonthChange: () => {},
+          onYearChange: () => {},
+          onTimeStateChange: () => {},
+        }),
+      );
+      expect(html).toContain('<option value="2027">2027</option>');
+      expect(html).toContain('<option value="2026">2026</option>');
+      expect(html).toContain('<option value="1000">1000</option>');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

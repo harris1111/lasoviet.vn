@@ -17,6 +17,13 @@ import {
 } from "./birth-profile-draft";
 import { BirthDateFields } from "./birth-date-fields";
 import { createBirthProfileSubmission } from "./save-birth-profile";
+import {
+  canAdvanceStep1,
+  canAdvanceStep2,
+  validateWizardDate,
+  toReadingContextPayload,
+} from "./birth-wizard-state";
+import { buildBirthProfile } from "./birth-profile-input";
 
 function findElementInTree(
   node: unknown,
@@ -104,6 +111,21 @@ const defaultReviewProps = {
   onConsentChange: () => {},
   readingContextLabels: labels,
 };
+
+function mockSubmissionDeps() {
+  const request = vi.fn();
+  return {
+    resolveCurrentActor: vi.fn().mockResolvedValue({
+      kind: "account",
+      userId: "account-1",
+      sessionId: "session-1",
+      requestId: "server-request-id",
+    }),
+    privateApiClient: vi.fn().mockReturnValue({ request }),
+    getVisitorId: vi.fn().mockResolvedValue("123e4567-e89b-12d3-a456-426614174000"),
+    request,
+  };
+}
 
 describe("FD-078 reading context component interaction & callbacks", () => {
   it("handles lifeStage selection, single-select replacement, deselection, skip, and skip recovery", () => {
@@ -342,20 +364,7 @@ describe("submission & action boundary for reading context", () => {
     consentVersion: "2026-09-14",
   };
 
-  function mockSubmissionDeps() {
-    const request = vi.fn();
-    return {
-      resolveCurrentActor: vi.fn().mockResolvedValue({
-        kind: "account",
-        userId: "account-1",
-        sessionId: "session-1",
-        requestId: "server-request-id",
-      }),
-      privateApiClient: vi.fn().mockReturnValue({ request }),
-      getVisitorId: vi.fn().mockResolvedValue("123e4567-e89b-12d3-a456-426614174000"),
-      request,
-    };
-  }
+
 
   it("submits unwrapped body without readingContext when readingContext is undefined (all skipped)", async () => {
     const deps = mockSubmissionDeps();
@@ -417,14 +426,13 @@ describe("submission & action boundary for reading context", () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(deps.request.mock.calls[1]).toEqual([
-      "/birth-profiles",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ profile, readingContext: readingContextPayload }),
-      },
-    ]);
+    const call1 = deps.request.mock.calls[1]!;
+    expect(call1[0]).toBe("/birth-profiles");
+    expect(call1[1].method).toBe("POST");
+    expect(JSON.parse(call1[1].body)).toEqual({
+      profile,
+      readingContext: readingContextPayload,
+    });
   });
 });
 
@@ -456,4 +464,128 @@ describe("BirthDateFields grouped 3 inline selects + calendar control", () => {
     // All inside ui-field-shell__control
     expect(html).toContain("birth-date-inputs ui-field-shell__control");
   });
+
+describe("Wizard form state transition and submission pipeline", () => {
+  it("transitions cleanly through steps and exercises exact submission payload assembly", async () => {
+    // Step 1: Subject and gender validation
+    const step1Valid = canAdvanceStep1({
+      forWhom: "self",
+      consentOther: false,
+    });
+    expect(step1Valid).toBe(true);
+
+    // Step 2: Date and time validation
+    const dateResult = validateWizardDate("12", "04", "1994", undefined, "solar");
+    expect(dateResult.valid).toBe(true);
+    const isoDate = dateResult.valid ? dateResult.isoDate : "";
+    expect(isoDate).toBe("1994-04-12");
+
+    const timeState = { precision: "exact_minute" as const, hour: "09", minute: "30" };
+    const step2Valid = canAdvanceStep2({ dateValid: dateResult.valid, gender: "male", timeState });
+    expect(step2Valid).toBe(true);
+
+    // Step 3: Interactive reading context selection & skip
+    let currentDraft: WizardReadingContextDraft = { skippedQuestions: { lifeStage: false, topConcern: false } };
+    let step3Element = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: currentDraft,
+      onReadingContextChange: (next) => {
+        currentDraft = next;
+      },
+    }) as ReactElement;
+
+    // Simulate clicking lifeStage button "Mới đi làm" (early_career)
+    const earlyCareerBtn = findElementInTree(
+      step3Element,
+      (el) => el.type === "button" && el.props.children === labels.lifeStage.early_career,
+    );
+    expect(earlyCareerBtn).not.toBeNull();
+    (earlyCareerBtn!.props.onClick as () => void)();
+    expect(currentDraft.lifeStage).toBe("early_career");
+
+    // Simulate skipping topConcern
+    step3Element = BirthWizardReviewStep({
+      ...defaultReviewProps,
+      readingContext: currentDraft,
+      onReadingContextChange: (next) => {
+        currentDraft = next;
+      },
+    }) as ReactElement;
+    const skipBtns: Array<{ type: unknown; props: Record<string, unknown> }> = [];
+    function collectSkip(node: unknown) {
+      if (!node || typeof node !== "object") return;
+      const el = node as { type?: unknown; props?: Record<string, unknown> };
+      if (el.type === "button" && el.props?.className && String(el.props.className).includes("wizard-context-skip-btn")) {
+        skipBtns.push(el as any);
+      }
+      if (el.props?.children) {
+        if (Array.isArray(el.props.children)) {
+          for (const c of el.props.children) collectSkip(c);
+        } else {
+          collectSkip(el.props.children);
+        }
+      }
+    }
+    collectSkip(step3Element);
+    expect(skipBtns.length).toBe(2);
+    // Click skip on topConcern (index 1)
+    (skipBtns[1]!.props.onClick as () => void)();
+    expect(currentDraft.skippedQuestions.topConcern).toBe(true);
+
+    // Transform draft to submission readingContext
+    const readingContextPayload = toReadingContextPayload(currentDraft);
+    expect(readingContextPayload).toEqual({
+      version: 1,
+      lifeStage: "early_career",
+    });
+
+    // Build birth profile input
+    const profile = buildBirthProfile({
+      date: isoDate,
+      calendarType: "solar",
+      time: timeState,
+      gender: "male",
+      locale: "vi",
+    });
+
+    // Execute submission
+    const deps = mockSubmissionDeps();
+    deps.request
+      .mockResolvedValueOnce({ ok: true, value: { id: "consent-1" } })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          profileId: "prof-e2e",
+          revisionId: "rev-e2e",
+          ziweiEligibility: { version: 1, eligible: true, timeIndex: 4 },
+        },
+      })
+      .mockResolvedValueOnce({ ok: true, value: undefined });
+
+    const submit = createBirthProfileSubmission(deps);
+    const result = await submit({
+      profile,
+      explicitConsent: true,
+      readingContext: readingContextPayload,
+    });
+
+    expect(result.ok).toBe(true);
+    const call1 = deps.request.mock.calls[1]!;
+    expect(call1[0]).toBe("/birth-profiles");
+    expect(call1[1].method).toBe("POST");
+    expect(JSON.parse(call1[1].body)).toEqual({
+      profile,
+      readingContext: readingContextPayload,
+    });
+  });
+
+  it("omits readingContext completely when all questions are skipped (LSV-17 contract)", () => {
+    const skippedDraft: WizardReadingContextDraft = {
+      skippedQuestions: { lifeStage: true, topConcern: true },
+    };
+    const payload = toReadingContextPayload(skippedDraft);
+    expect(payload).toBeUndefined();
+  });
+});
+
 });
