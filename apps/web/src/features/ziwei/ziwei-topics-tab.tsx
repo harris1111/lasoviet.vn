@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ZIWEI_PALACE_IDS } from "@lasoviet/contracts";
@@ -34,11 +35,13 @@ export function ZiweiTopicsTab({
 
   // Check if viewport is mobile (<= 768px)
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const mql = window.matchMedia("(max-width: 768px)");
     queueMicrotask(() => {
       setIsMobile(mql.matches);
+      setMounted(true);
     });
 
     function onChange(e: MediaQueryListEvent) {
@@ -54,7 +57,6 @@ export function ZiweiTopicsTab({
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const sheetPanelRef = useRef<HTMLDivElement>(null);
-  const tabContentRef = useRef<HTMLDivElement>(null);
 
   const unlockSelectionHref = isEn
     ? `/en/la-so/${chartId}/chon-luan-giai`
@@ -70,49 +72,62 @@ export function ZiweiTopicsTab({
 
   const handleCloseModal = useCallback(() => {
     onOpenTopic(undefined);
-    if (triggerRef.current) {
-      triggerRef.current.focus();
-    } else if (activeTopic) {
-      // Focus the exact selected topic trigger for deep-link restoration
-      const triggerBtn = document.querySelector<HTMLButtonElement>(
-        `[data-topic-trigger="${activeTopic}"]`,
-      );
-      triggerBtn?.focus();
-    }
-  }, [activeTopic, onOpenTopic]);
+  }, [onOpenTopic]);
 
-  // Keyboard accessibility, background inert isolation & focus trap for mobile dialog / bottom sheet
+  // Focus restore strictly after inert cleanup and modal unmount (close button, Escape, backdrop, browser Back)
+  const prevActiveTopicRef = useRef<CanonicalTopicId | undefined>(activeTopic);
   useEffect(() => {
-    if (!activeTopic || !isMobile) return;
+    const prevTopic = prevActiveTopicRef.current;
+    prevActiveTopicRef.current = activeTopic;
 
-    // Isolate sibling elements without aria-hiding the ancestor containing the dialog
-    // Background siblings to isolate: header, result-hero, result-tab-bar-container, paid-cta, footer
-    const isolatedElements: Array<{ el: HTMLElement; prevAriaHidden: string | null; prevInert: boolean }> = [];
+    if (prevTopic && !activeTopic && isMobile) {
+      const targetTopic = prevTopic;
+      const raf = requestAnimationFrame(() => {
+        if (triggerRef.current && document.body.contains(triggerRef.current)) {
+          triggerRef.current.focus();
+        } else {
+          const triggerBtn = document.querySelector<HTMLButtonElement>(
+            `[data-topic-trigger="${targetTopic}"]`,
+          );
+          triggerBtn?.focus();
+        }
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [activeTopic, isMobile]);
 
-    const candidates = [
-      document.querySelector("header"),
-      document.querySelector(".result-hero"),
-      document.querySelector(".result-tab-bar-container"),
-      document.querySelector(".result-paid-report-cta"),
-      document.querySelector(".result-page-footer-container"),
-      document.querySelector("footer"),
-      document.querySelector(".topics-list-container"),
-      document.querySelector(".ziwei-topics-tab-content > .section-heading"),
-    ];
+  // Background isolation & focus trap for mobile dialog / bottom sheet (portal sibling to main)
+  useEffect(() => {
+    if (!activeTopic || !isMobile || !mounted) return;
 
-    candidates.forEach((node) => {
-      if (node && node instanceof HTMLElement) {
-        isolatedElements.push({
-          el: node,
-          prevAriaHidden: node.getAttribute("aria-hidden"),
-          prevInert: (node as any).inert ?? false,
-        });
-        node.setAttribute("aria-hidden", "true");
-        (node as any).inert = true;
-      }
+    // Isolate all sibling root landmarks & body children (header, main, footer) using inert and aria-hidden
+    const backgroundElements: Array<{ el: HTMLElement; prevAriaHidden: string | null; prevInert: boolean }> = [];
+
+    const rootLandmarks = new Set<HTMLElement>();
+    document.querySelectorAll<HTMLElement>("header, main, footer, [role='banner'], [role='main'], [role='contentinfo']").forEach((el) => {
+      rootLandmarks.add(el);
+    });
+    if (typeof document !== "undefined" && document.body) {
+      Array.from(document.body.children).forEach((child) => {
+        if (child instanceof HTMLElement && !child.classList.contains("topic-mobile-sheet-overlay")) {
+          rootLandmarks.add(child);
+        }
+      });
+    }
+
+    rootLandmarks.forEach((node) => {
+      backgroundElements.push({
+        el: node,
+        prevAriaHidden: node.getAttribute("aria-hidden"),
+        prevInert: (node as any).inert ?? false,
+      });
+      node.setAttribute("aria-hidden", "true");
+      (node as any).inert = true;
     });
 
-    closeBtnRef.current?.focus();
+    const rafId = requestAnimationFrame(() => {
+      closeBtnRef.current?.focus();
+    });
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -146,8 +161,9 @@ export function ZiweiTopicsTab({
 
     document.addEventListener("keydown", onKeyDown);
     return () => {
+      cancelAnimationFrame(rafId);
       document.removeEventListener("keydown", onKeyDown);
-      isolatedElements.forEach(({ el, prevAriaHidden, prevInert }) => {
+      backgroundElements.forEach(({ el, prevAriaHidden, prevInert }) => {
         if (prevAriaHidden === null) {
           el.removeAttribute("aria-hidden");
         } else {
@@ -156,10 +172,66 @@ export function ZiweiTopicsTab({
         (el as any).inert = prevInert;
       });
     };
-  }, [activeTopic, isMobile, handleCloseModal]);
+  }, [activeTopic, isMobile, mounted, handleCloseModal]);
+
+  const modalDialog =
+    activeTopic && isMobile && mounted
+      ? createPortal(
+          <div
+            aria-labelledby="mobile-sheet-title"
+            aria-modal="true"
+            className="topic-mobile-sheet-overlay"
+            onClick={handleCloseModal}
+            role="dialog"
+          >
+            <div
+              className="topic-mobile-sheet"
+              onClick={(e) => e.stopPropagation()}
+              ref={sheetPanelRef}
+            >
+              <div className="sheet-drag-handle" aria-hidden="true" />
+              <div className="sheet-header">
+                <h3 id="mobile-sheet-title">
+                  {presentation.palace(
+                    ZIWEI_PALACE_IDS[CANONICAL_TOPIC_IDS.indexOf(activeTopic)]!,
+                  )}
+                </h3>
+                <button
+                  aria-label={t("topicsTab.closePreview")}
+                  className="sheet-close-btn"
+                  onClick={handleCloseModal}
+                  ref={closeBtnRef}
+                  type="button"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="sheet-body">
+                <p className="sheet-domain-prose">
+                  {
+                    getPalaceLifeArea(
+                      ZIWEI_PALACE_IDS[CANONICAL_TOPIC_IDS.indexOf(activeTopic)]!,
+                      locale,
+                    ).domain
+                  }
+                </p>
+                <div className="sheet-notice-card">
+                  <p>{t("topicsTab.notice")}</p>
+                </div>
+                <div className="sheet-cta-wrap">
+                  <Link className="button button-pill full-width" href={unlockSelectionHref}>
+                    {t("topicsTab.unlockCta")}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
-    <div className="container ziwei-topics-tab-content" ref={tabContentRef}>
+    <div className="container ziwei-topics-tab-content">
       <div className="section-heading">
         <p className="eyebrow">{t("topicsTab.title")}</p>
         <h2>{t("topicsTab.title")}</h2>
@@ -202,7 +274,7 @@ export function ZiweiTopicsTab({
                 </div>
               </div>
 
-              {/* Desktop inline preview (rendered strictly on desktop and when active) */}
+              {/* Desktop inline preview (strictly non-portal, rendered only on desktop when active) */}
               {isSelected && !isMobile ? (
                 <div className="topic-desktop-inline-preview">
                   <div className="topic-preview-box">
@@ -223,58 +295,8 @@ export function ZiweiTopicsTab({
         })}
       </div>
 
-      {/* Mobile accessible dialog / bottom sheet (rendered strictly on mobile) */}
-      {activeTopic && isMobile ? (
-        <div
-          aria-labelledby="mobile-sheet-title"
-          aria-modal="true"
-          className="topic-mobile-sheet-overlay"
-          onClick={handleCloseModal}
-          role="dialog"
-        >
-          <div
-            className="topic-mobile-sheet"
-            onClick={(e) => e.stopPropagation()}
-            ref={sheetPanelRef}
-          >
-            <div className="sheet-drag-handle" aria-hidden="true" />
-            <div className="sheet-header">
-              <h3 id="mobile-sheet-title">
-                {presentation.palace(
-                  ZIWEI_PALACE_IDS[CANONICAL_TOPIC_IDS.indexOf(activeTopic)]!,
-                )}
-              </h3>
-              <button
-                aria-label={t("topicsTab.closePreview")}
-                className="sheet-close-btn"
-                onClick={handleCloseModal}
-                ref={closeBtnRef}
-                type="button"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="sheet-body">
-              <p className="sheet-domain-prose">
-                {
-                  getPalaceLifeArea(
-                    ZIWEI_PALACE_IDS[CANONICAL_TOPIC_IDS.indexOf(activeTopic)]!,
-                    locale,
-                  ).domain
-                }
-              </p>
-              <div className="sheet-notice-card">
-                <p>{t("topicsTab.notice")}</p>
-              </div>
-              <div className="sheet-cta-wrap">
-                <Link className="button button-pill full-width" href={unlockSelectionHref}>
-                  {t("topicsTab.unlockCta")}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {/* Render mobile dialog via portal into document.body */}
+      {modalDialog}
     </div>
   );
 }

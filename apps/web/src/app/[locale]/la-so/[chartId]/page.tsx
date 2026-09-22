@@ -11,6 +11,7 @@ import { freeIdentityPreviewLoader } from "../../../../features/reports/load-fre
 import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import { ZiweiResultTabs } from "../../../../features/ziwei/ziwei-result-tabs";
+import { projectFreeIdentityPreview } from "../../../../features/ziwei/ziwei-free-preview-projection";
 import {
   parseResultTabState,
   buildCanonicalTabUrl,
@@ -61,6 +62,9 @@ export default async function ZiweiChartResultPage({
     redirect(canonicalChartUrl);
   }
 
+  // 3. Project preview data through strict production boundary to prevent arbitrary/locked narrative in RSC props
+  const safePreview = projectFreeIdentityPreview(previewResult.value);
+
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
 
   const displayName = chartResult.value.birthSummary.displayName;
@@ -95,7 +99,7 @@ export default async function ZiweiChartResultPage({
           initialState={tabState}
           locale={locale}
           loadEvidence={loadZiweiEvidence}
-          preview={previewResult.value}
+          preview={safePreview}
         />
 
         <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
