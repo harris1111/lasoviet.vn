@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "../../components/icon";
 import {
   CANONICAL_BRANCH_IDS,
   getBranchOptionLabel,
@@ -42,7 +43,6 @@ export function TimePrecisionFields({
   onTimeUnknownChange,
   onTimeStateChange,
 }: TimePrecisionFieldsProps) {
-  // Resolve effective state between new discriminated timeState and legacy props
   const currentPrecision: "exact_minute" | "branch_only" | "unknown" =
     timeState !== undefined
       ? timeState.precision
@@ -126,14 +126,14 @@ export function TimePrecisionFields({
 
   return (
     <fieldset className="wizard-fieldset wizard-time-fieldset">
-      <legend>{labels.title}</legend>
+      <legend className="wizard-field-label">{labels.title}</legend>
       <label className="wizard-check wizard-unknown-time">
         <input
           checked={currentPrecision === "unknown"}
           onChange={(event) => handleUnknownToggle(event.target.checked)}
           type="checkbox"
         />
-        {labels.unknown}
+        <span>{labels.unknown}</span>
       </label>
 
       {currentPrecision === "unknown" ? (
@@ -149,7 +149,7 @@ export function TimePrecisionFields({
               onClick={() => handleSwitchMode("exact_minute")}
               type="button"
             >
-              {labels.exactMode ?? "Giờ & phút"}
+              {labels.exactMode ?? (locale === "en" ? "Exact time" : "Giờ & phút")}
             </button>
             <button
               aria-pressed={currentPrecision === "branch_only"}
@@ -159,33 +159,38 @@ export function TimePrecisionFields({
               onClick={() => handleSwitchMode("branch_only")}
               type="button"
             >
-              {labels.branchMode ?? "12 Địa Chi"}
+              {labels.branchMode ?? (locale === "en" ? "12 Branches" : "12 Địa Chi")}
             </button>
           </div>
 
           {currentPrecision === "exact_minute" ? (
-            <div className="wizard-time-inputs">
+            <div className="wizard-time-inputs ui-field-shell__control">
+              <span aria-hidden="true" className="ui-field-shell__icon">
+                <Icon name="clock" />
+              </span>
               <label className="wizard-time-input-label">
-                {labels.hour}
+                <span className="sr-only">{labels.hour}</span>
                 <input
                   aria-label={labels.hour}
-                  className="wizard-time-input"
+                  className="wizard-time-input ui-field-shell__input"
                   inputMode="numeric"
                   maxLength={2}
                   onChange={(event) => handleHourChange(event.target.value)}
+                  placeholder="09"
                   required
                   value={effectiveHour}
                 />
               </label>
-              <span aria-hidden="true">:</span>
+              <span aria-hidden="true" className="wizard-time-colon">:</span>
               <label className="wizard-time-input-label">
-                {labels.minute}
+                <span className="sr-only">{labels.minute}</span>
                 <input
                   aria-label={labels.minute}
-                  className="wizard-time-input"
+                  className="wizard-time-input ui-field-shell__input"
                   inputMode="numeric"
                   maxLength={2}
                   onChange={(event) => handleMinuteChange(event.target.value)}
+                  placeholder="30"
                   required
                   value={effectiveMinute}
                 />
@@ -194,21 +199,26 @@ export function TimePrecisionFields({
           ) : (
             <div className="wizard-branch-input">
               <label className="wizard-branch-label">
-                {labels.branch ?? labels.title}
-                <select
-                  aria-label={labels.branch ?? labels.title}
-                  className="wizard-branch-select"
-                  onChange={(event) =>
-                    handleBranchChange(event.target.value as CanonicalBranchId)
-                  }
-                  value={effectiveBranch}
-                >
-                  {CANONICAL_BRANCH_IDS.map((id) => (
-                    <option key={id} value={id}>
-                      {getBranchOptionLabel(id, locale)}
-                    </option>
-                  ))}
-                </select>
+                <span className="sr-only">{labels.branch ?? labels.title}</span>
+                <div className="ui-field-shell__control">
+                  <span aria-hidden="true" className="ui-field-shell__icon">
+                    <Icon name="orbit" />
+                  </span>
+                  <select
+                    aria-label={labels.branch ?? labels.title}
+                    className="wizard-branch-select ui-field-shell__select"
+                    onChange={(event) =>
+                      handleBranchChange(event.target.value as CanonicalBranchId)
+                    }
+                    value={effectiveBranch}
+                  >
+                    {CANONICAL_BRANCH_IDS.map((id) => (
+                      <option key={id} value={id}>
+                        {getBranchOptionLabel(id, locale)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </label>
               <p className="wizard-help">{labels.branchHelp}</p>
             </div>

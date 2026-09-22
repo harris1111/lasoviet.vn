@@ -148,5 +148,29 @@
     "step2": "Birth date and time calculate the chart. Birth place is on-screen context only and does not affect calculation (standard UTC+7).",
     "step3": "Carefully review details before creating the chart. Guest data expires after 24 hours with no permanent persistence promise.",
     "caption": "Archival birth registry cards used as reference context."
+  },
+  "sampleReportLink": "View sample Zi Wei report",
+  "readingContext": {
+    "title": "Areas of focus (optional)",
+    "subtitle": "Choose to tailor the reading to your most pressing current concerns.",
+    "skip": "Skip",
+    "lifeStageTitle": "Currently you are…",
+    "topConcernTitle": "Your top concern right now",
+    "lifeStage": {
+      "studying": "Studying / Student",
+      "early_career": "Early career (< 3 years)",
+      "established_career": "Established career",
+      "business_owner": "Business owner / Entrepreneur",
+      "between_paths": "In transition / Seeking new path",
+      "retired": "Retired"
+    },
+    "topConcern": {
+      "career": "Career & work",
+      "money": "Finances & wealth",
+      "love": "Love & marriage",
+      "family": "Family & children",
+      "wellbeing": "Health & wellbeing",
+      "self_understanding": "Self understanding & personal growth"
+    }
   }
 }

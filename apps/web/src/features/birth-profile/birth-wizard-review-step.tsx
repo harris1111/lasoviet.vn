@@ -1,6 +1,36 @@
-﻿"use client";
+"use client";
 
+import type { LifeStageV1, TopConcernV1 } from "@lasoviet/contracts";
 import { Icon } from "../../components/icon";
+import type { WizardReadingContextDraft } from "./birth-wizard-state";
+
+export const LIFE_STAGE_OPTIONS: readonly LifeStageV1[] = [
+  "studying",
+  "early_career",
+  "established_career",
+  "business_owner",
+  "between_paths",
+  "retired",
+];
+
+export const TOP_CONCERN_OPTIONS: readonly TopConcernV1[] = [
+  "career",
+  "money",
+  "love",
+  "family",
+  "wellbeing",
+  "self_understanding",
+];
+
+export type ReadingContextLabels = {
+  title: string;
+  subtitle: string;
+  skip: string;
+  lifeStageTitle: string;
+  topConcernTitle: string;
+  lifeStage: Record<LifeStageV1, string>;
+  topConcern: Record<TopConcernV1, string>;
+};
 
 export type BirthWizardReviewStepProps = {
   disabled?: boolean;
@@ -37,6 +67,11 @@ export type BirthWizardReviewStepProps = {
   onEditSubject(): void;
   onEditBirth(): void;
   onConsentChange(value: boolean): void;
+
+  // Reading context (FD-078)
+  readingContext?: WizardReadingContextDraft;
+  readingContextLabels?: ReadingContextLabels;
+  onReadingContextChange?(value: WizardReadingContextDraft): void;
 };
 
 export function BirthWizardReviewStep({
@@ -69,7 +104,74 @@ export function BirthWizardReviewStep({
   onEditSubject,
   onEditBirth,
   onConsentChange,
+  readingContext,
+  readingContextLabels,
+  onReadingContextChange,
 }: BirthWizardReviewStepProps) {
+  function handleSelectLifeStage(stage: LifeStageV1) {
+    if (!onReadingContextChange) return;
+    const current = readingContext ?? {
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    };
+    if (current.lifeStage === stage) {
+      onReadingContextChange({
+        ...current,
+        lifeStage: undefined,
+        skippedQuestions: { ...current.skippedQuestions, lifeStage: false },
+      });
+    } else {
+      onReadingContextChange({
+        ...current,
+        lifeStage: stage,
+        skippedQuestions: { ...current.skippedQuestions, lifeStage: false },
+      });
+    }
+  }
+
+  function handleSkipLifeStage() {
+    if (!onReadingContextChange) return;
+    const current = readingContext ?? {
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    };
+    onReadingContextChange({
+      ...current,
+      lifeStage: undefined,
+      skippedQuestions: { ...current.skippedQuestions, lifeStage: true },
+    });
+  }
+
+  function handleSelectTopConcern(concern: TopConcernV1) {
+    if (!onReadingContextChange) return;
+    const current = readingContext ?? {
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    };
+    if (current.topConcern === concern) {
+      onReadingContextChange({
+        ...current,
+        topConcern: undefined,
+        skippedQuestions: { ...current.skippedQuestions, topConcern: false },
+      });
+    } else {
+      onReadingContextChange({
+        ...current,
+        topConcern: concern,
+        skippedQuestions: { ...current.skippedQuestions, topConcern: false },
+      });
+    }
+  }
+
+  function handleSkipTopConcern() {
+    if (!onReadingContextChange) return;
+    const current = readingContext ?? {
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    };
+    onReadingContextChange({
+      ...current,
+      topConcern: undefined,
+      skippedQuestions: { ...current.skippedQuestions, topConcern: true },
+    });
+  }
+
   return (
     <section
       aria-labelledby="wizard-step-title"
@@ -131,6 +233,89 @@ export function BirthWizardReviewStep({
           <dd>{timezone}</dd>
         </dl>
       </div>
+
+      {readingContextLabels && onReadingContextChange ? (
+        <div className="wizard-context-section" data-testid="reading-context-section">
+          <h2 className="wizard-context-heading">{readingContextLabels.title}</h2>
+          <p className="wizard-context-sub">{readingContextLabels.subtitle}</p>
+
+          <div className="wizard-context-group">
+            <div className="wizard-context-group-header">
+              <span className="wizard-context-question-title">
+                {readingContextLabels.lifeStageTitle}
+              </span>
+              <button
+                aria-pressed={Boolean(readingContext?.skippedQuestions.lifeStage)}
+                className={`wizard-context-skip-btn${
+                  readingContext?.skippedQuestions.lifeStage ? " is-active" : ""
+                }`}
+                disabled={disabled || pending}
+                onClick={handleSkipLifeStage}
+                type="button"
+              >
+                {readingContextLabels.skip}
+              </button>
+            </div>
+            <div className="wizard-context-choices">
+              {LIFE_STAGE_OPTIONS.map((stage) => {
+                const isSelected = readingContext?.lifeStage === stage;
+                return (
+                  <button
+                    aria-pressed={isSelected}
+                    className={`wizard-context-choice-btn${
+                      isSelected ? " is-active" : ""
+                    }`}
+                    disabled={disabled || pending}
+                    key={stage}
+                    onClick={() => handleSelectLifeStage(stage)}
+                    type="button"
+                  >
+                    {readingContextLabels.lifeStage[stage]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="wizard-context-group">
+            <div className="wizard-context-group-header">
+              <span className="wizard-context-question-title">
+                {readingContextLabels.topConcernTitle}
+              </span>
+              <button
+                aria-pressed={Boolean(readingContext?.skippedQuestions.topConcern)}
+                className={`wizard-context-skip-btn${
+                  readingContext?.skippedQuestions.topConcern ? " is-active" : ""
+                }`}
+                disabled={disabled || pending}
+                onClick={handleSkipTopConcern}
+                type="button"
+              >
+                {readingContextLabels.skip}
+              </button>
+            </div>
+            <div className="wizard-context-choices">
+              {TOP_CONCERN_OPTIONS.map((concern) => {
+                const isSelected = readingContext?.topConcern === concern;
+                return (
+                  <button
+                    aria-pressed={isSelected}
+                    className={`wizard-context-choice-btn${
+                      isSelected ? " is-active" : ""
+                    }`}
+                    disabled={disabled || pending}
+                    key={concern}
+                    onClick={() => handleSelectTopConcern(concern)}
+                    type="button"
+                  >
+                    {readingContextLabels.topConcern[concern]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="wizard-disclosure">
         <Icon name="shield-lock" />

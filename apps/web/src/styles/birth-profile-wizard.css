@@ -1,3 +1,74 @@
+
+/* Field Shell and Select Chevron */
+.ui-field-shell__control {
+  display: flex;
+  min-height: var(--field-height, 56px);
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-field, 12px);
+  background: var(--lacquer-800);
+  color: var(--pearl-50);
+  box-sizing: border-box;
+}
+
+.ui-field-shell__control:focus-within {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px rgba(201, 164, 77, 0.18);
+}
+
+.ui-field-shell__icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border-radius: var(--radius-control, 8px);
+  background: var(--gold-soft);
+  color: var(--gold-500);
+}
+
+.ui-field-shell__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ui-field-shell__input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--pearl-50);
+  font: 16px/1.5 var(--font-ui);
+}
+
+.ui-field-shell__input::placeholder,
+.ui-field-shell input::placeholder,
+.wizard-field-group input::placeholder,
+.birth-date-input::placeholder {
+  color: var(--pearl-400);
+  font-size: 16px;
+  font-family: var(--font-ui);
+}
+
+.ui-field-shell__select,
+.wizard-branch-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c9a44d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+  border: 0;
+  outline: 0;
+  color: var(--pearl-50);
+  font: 15px/1.5 var(--font-ui);
+  cursor: pointer;
+}
+
 /* Birth Profile Wizard — Lacquer / Gold / Pearl Visual System */
 
 .wizard-page {
@@ -369,9 +440,16 @@
 
 /* Choice Rows (Self / Other, Calendar type) */
 .wizard-choice-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+@media (min-width: 360px) {
+  .wizard-choice-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .wizard-choice-button {
@@ -526,9 +604,16 @@
 
 .wizard-segmented-control {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-2);
-  max-width: 320px;
+  max-width: 360px;
+  width: 100%;
+}
+
+@media (min-width: 360px) {
+  .wizard-segmented-control {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .wizard-segment {
@@ -1133,9 +1218,17 @@
     right: 0;
     margin-top: 0;
     padding: 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
     background: var(--lacquer-800);
     border-top: 1px solid var(--lacquer-line);
     z-index: 40;
+  }
+
+  .wizard-actions.is-keyboard-open {
+    position: static;
+    padding: 16px 0;
+    background: transparent;
+    border-top: none;
   }
 
   .wizard-actions .button {
@@ -1185,6 +1278,38 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: var(--field-height, 56px);
+  border-radius: var(--radius-field, 12px);
+  background: var(--lacquer-800);
+  border: 1px solid var(--lacquer-line);
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
+}
+
+.birth-date-inputs:focus-within {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px rgba(201, 164, 77, 0.18);
+}
+
+.birth-date-leading-icon {
+  flex: 0 0 36px;
+}
+
+.birth-date-calendar-select-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.birth-date-calendar-select {
+  min-height: 36px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-control, 8px);
+  background-color: var(--lacquer-700);
+  background-position: right 8px center;
+  font-size: 13.5px;
+  color: var(--gold-400);
 }
 
 .birth-date-input-label {
@@ -1454,4 +1579,161 @@
 .wizard-action-return-home:hover {
   border-color: var(--pearl-400);
   color: var(--pearl-50);
+}
+
+
+/* FD-078 Reading Context Section */
+.wizard-context-section {
+  margin-bottom: var(--space-5);
+  padding: 22px 24px;
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-card, 16px);
+  background: var(--lacquer-700);
+}
+
+.wizard-context-heading {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--pearl-50);
+  letter-spacing: 0;
+}
+
+.wizard-context-sub {
+  margin: 0 0 var(--space-4);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--pearl-400);
+}
+
+.wizard-context-group {
+  margin-bottom: var(--space-4);
+}
+
+.wizard-context-group:last-child {
+  margin-bottom: 0;
+}
+
+.wizard-context-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.wizard-context-question-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pearl-200);
+}
+
+.wizard-context-skip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-control, 8px);
+  color: var(--pearl-400);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--motion-feedback) ease;
+}
+
+.wizard-context-skip-btn:hover {
+  border-color: var(--pearl-200);
+  color: var(--pearl-50);
+}
+
+.wizard-context-skip-btn.is-active,
+.wizard-context-skip-btn[aria-pressed="true"] {
+  background: rgba(201, 164, 77, 0.12);
+  border-color: var(--gold-500);
+  color: var(--gold-400);
+  font-weight: 600;
+}
+
+.wizard-context-choices {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+@media (min-width: 360px) {
+  .wizard-context-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.wizard-context-choice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height, 44px);
+  padding: 8px 14px;
+  background: var(--lacquer-800);
+  border: 1px solid var(--lacquer-line);
+  border-radius: var(--radius-control, 8px);
+  color: var(--pearl-200);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--motion-feedback) ease;
+}
+
+.wizard-context-choice-btn:hover {
+  border-color: var(--gold-600);
+  color: var(--pearl-50);
+}
+
+.wizard-context-choice-btn.is-active,
+.wizard-context-choice-btn[aria-pressed="true"] {
+  background: rgba(201, 164, 77, 0.14);
+  border-color: var(--gold-500);
+  color: var(--gold-400);
+  font-weight: 600;
+}
+
+/* Sample Report Helper Link */
+.wizard-actions-footer {
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-sample-link-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-3);
+}
+
+.wizard-sample-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height, 44px);
+  padding: 0 var(--space-3);
+  color: var(--gold-400);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--radius-control, 8px);
+  transition: color var(--motion-feedback) ease;
+}
+
+.wizard-sample-link:hover {
+  color: var(--gold-300);
+  text-decoration: underline;
+}
+
+.wizard-sample-link svg {
+  width: 16px;
+  height: 16px;
 }

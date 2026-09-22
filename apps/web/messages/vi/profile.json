@@ -148,5 +148,29 @@
     "step2": "Ngày và giờ sinh là dữ liệu cốt lõi dùng để tính toán và an sao lá số. Nơi sinh chỉ là ngữ cảnh hiển thị trên màn hình, không ảnh hưởng đến thuật toán tính toán (chuẩn UTC+7).",
     "step3": "Kiểm tra kỹ các thông số trước khi lập lá số. Dữ liệu tạm thời của khách sẽ hết hạn sau 24 giờ mà không có cam kết lưu trữ vĩnh viễn.",
     "caption": "Tư liệu thẻ đăng ký nơi sinh dùng làm ngữ cảnh tham chiếu đối chiếu."
+  },
+  "sampleReportLink": "Xem báo cáo mẫu Tử Vi",
+  "readingContext": {
+    "title": "Ngữ cảnh quan tâm (tùy chọn)",
+    "subtitle": "Chọn để bản luận giải tập trung vào mối bận tâm lớn nhất của bạn lúc này.",
+    "skip": "Bỏ qua",
+    "lifeStageTitle": "Hiện tại bạn đang…",
+    "topConcernTitle": "Điều bạn quan tâm nhất lúc này",
+    "lifeStage": {
+      "studying": "Đang đi học",
+      "early_career": "Mới đi làm (dưới 3 năm)",
+      "established_career": "Đi làm lâu năm",
+      "business_owner": "Tự kinh doanh, làm chủ",
+      "between_paths": "Đang nghỉ hoặc tìm hướng đi mới",
+      "retired": "Đã nghỉ hưu"
+    },
+    "topConcern": {
+      "career": "Công việc, sự nghiệp",
+      "money": "Tiền bạc",
+      "love": "Tình cảm, hôn nhân",
+      "family": "Gia đình, con cái",
+      "wellbeing": "Sức khỏe, tinh thần",
+      "self_understanding": "Hiểu rõ bản thân"
+    }
   }
 }
