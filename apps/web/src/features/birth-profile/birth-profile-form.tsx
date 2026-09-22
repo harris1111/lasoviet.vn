@@ -107,6 +107,7 @@ import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
 import { BirthWizardReviewStep } from "./birth-wizard-review-step";
 import { Icon } from "../../components/icon";
 import { useMobileKeyboardState } from "./use-mobile-keyboard-state";
+import type { ReadingContextV1 } from "@lasoviet/contracts";
 import type { WizardReadingContextDraft } from "./birth-wizard-state";
 import {
   canAdvanceStep1,
@@ -390,7 +391,7 @@ type BirthProfileFormProps = {
   submitBirthProfile(input: {
     profile: unknown;
     explicitConsent: boolean;
-    readingContext?: unknown;
+    readingContext?: ReadingContextV1;
   }): Promise<{
     ok: boolean;
     value?: {
@@ -868,7 +869,7 @@ export function BirthProfileForm({
         locale,
       });
 
-      const readingContextPayload =
+      const readingContextPayload: ReadingContextV1 | undefined =
         readingContext.lifeStage || readingContext.topConcern
           ? {
               version: 1 as const,
