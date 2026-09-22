@@ -4,8 +4,25 @@ import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const configPath = resolve(__dirname, "../../../config/customer-contact.json");
-const outputPath = resolve(__dirname, "../src/customer-contact.generated.ts");
+
+function getArg(flag) {
+  const idx = process.argv.indexOf(flag);
+  if (idx !== -1 && idx + 1 < process.argv.length) {
+    return process.argv[idx + 1];
+  }
+  return null;
+}
+
+const configArg = getArg("--config");
+const outputArg = getArg("--output");
+
+const configPath = configArg
+  ? resolve(process.cwd(), configArg)
+  : resolve(__dirname, "../../../config/customer-contact.json");
+
+const outputPath = outputArg
+  ? resolve(process.cwd(), outputArg)
+  : resolve(__dirname, "../src/customer-contact.generated.ts");
 
 const contactChannelSchema = z.object({
   value: z.string().trim(),

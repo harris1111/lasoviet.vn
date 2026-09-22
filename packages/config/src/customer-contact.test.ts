@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
@@ -53,7 +54,7 @@ describe("customerContactConfig", () => {
     expect(plainMailto).toBe("mailto:support@lasoviet.net");
   });
 
-  it("verifies --check mode passes and is strictly non-mutating", () => {
+  it("verifies --check mode passes on tracked file without mutation", () => {
     const rootDir = resolve(__dirname, "../../..");
     const scriptPath = resolve(__dirname, "../scripts/generate-customer-contact.mjs");
     const generatedPath = resolve(__dirname, "customer-contact.generated.ts");
@@ -61,31 +62,68 @@ describe("customerContactConfig", () => {
     const beforeStat = statSync(generatedPath);
     const beforeContent = readFileSync(generatedPath, "utf8");
 
-    // Check mode should succeed
+    // Check mode should succeed on tracked file
     const output = execFileSync(process.execPath, [scriptPath, "--check"], {
       cwd: rootDir,
       encoding: "utf8",
     });
     expect(output).toContain("Customer contact config is in sync.");
 
-    // Check mode must NOT mutate file
+    // Check mode must NOT mutate tracked file
     const afterStat = statSync(generatedPath);
     const afterContent = readFileSync(generatedPath, "utf8");
     expect(afterContent).toBe(beforeContent);
     expect(afterStat.mtimeMs).toBe(beforeStat.mtimeMs);
+  });
 
-    // Check mode detects drift when file differs
+  it("verifies --check mode detects drift and rejects in an isolated temp directory without touching tracked files", () => {
+    const rootDir = resolve(__dirname, "../../..");
+    const scriptPath = resolve(__dirname, "../scripts/generate-customer-contact.mjs");
+    const originalConfigPath = resolve(__dirname, "../../../config/customer-contact.json");
+
+    const tempDir = mkdtempSync(join(tmpdir(), "contact-drift-test-"));
     try {
-      writeFileSync(generatedPath, "// drifted\n", "utf8");
+      const tempConfig = join(tempDir, "customer-contact.json");
+      const tempOutput = join(tempDir, "customer-contact.generated.ts");
+
+      copyFileSync(originalConfigPath, tempConfig);
+
+      // First generate into temp output
+      execFileSync(
+        process.execPath,
+        [scriptPath, "--config", tempConfig, "--output", tempOutput],
+        { cwd: rootDir, encoding: "utf8" },
+      );
+
+      // Check mode succeeds when in sync
+      const okOutput = execFileSync(
+        process.execPath,
+        [scriptPath, "--config", tempConfig, "--output", tempOutput, "--check"],
+        { cwd: rootDir, encoding: "utf8" },
+      );
+      expect(okOutput).toContain("Customer contact config is in sync.");
+
+      // Drift output: tamper with tempOutput
+      writeFileSync(tempOutput, "// drifted\n", "utf8");
       expect(() => {
-        execFileSync(process.execPath, [scriptPath, "--check"], {
-          cwd: rootDir,
-          encoding: "utf8",
-          stdio: "pipe",
-        });
+        execFileSync(
+          process.execPath,
+          [scriptPath, "--config", tempConfig, "--output", tempOutput, "--check"],
+          { cwd: rootDir, encoding: "utf8", stdio: "pipe" },
+        );
+      }).toThrow();
+
+      // Missing output file also triggers failure
+      rmSync(tempOutput);
+      expect(() => {
+        execFileSync(
+          process.execPath,
+          [scriptPath, "--config", tempConfig, "--output", tempOutput, "--check"],
+          { cwd: rootDir, encoding: "utf8", stdio: "pipe" },
+        );
       }).toThrow();
     } finally {
-      writeFileSync(generatedPath, beforeContent, "utf8");
+      rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });
