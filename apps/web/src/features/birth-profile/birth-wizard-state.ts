@@ -3,6 +3,7 @@ import {
   type LifeStageV1,
   TopConcernV1Schema,
   type TopConcernV1,
+  type ReadingContextV1,
 } from "@lasoviet/contracts";
 import { z } from "zod";
 
@@ -10,7 +11,11 @@ import type { BirthTimeState } from "./birth-profile-input";
 import {
   getBranchOptionLabel,
   isValidSolarDate,
+  isCanonicalBranchId,
+  isFutureLunarYear,
 } from "./homepage-birth-prefill";
+
+export { isFutureLunarYear };
 
 export type WizardReadingContextDraft = {
   lifeStage?: LifeStageV1;
@@ -253,7 +258,7 @@ export function canAdvanceStep2(input: {
   }
 
   if (input.timeState.precision === "branch_only") {
-    return input.timeState.branch !== undefined;
+    return Boolean(input.timeState.branch && isCanonicalBranchId(input.timeState.branch));
   }
 
   if (input.timeState.precision === "exact_minute") {
@@ -313,7 +318,9 @@ export function formatReviewTimeSummary(
     return locale === "en" ? "Birth time unknown" : "Không rõ giờ sinh";
   }
   if (state.precision === "branch_only") {
-    return getBranchOptionLabel(state.branch, locale);
+    return state.branch && isCanonicalBranchId(state.branch)
+      ? getBranchOptionLabel(state.branch, locale)
+      : "—";
   }
   const h = state.hour.trim().padStart(2, "0");
   const m = state.minute.trim().padStart(2, "0");
@@ -342,4 +349,16 @@ export function formatDateSummary(
     return formatted;
   }
   return "—";
+}
+
+export function toReadingContextPayload(
+  draft?: WizardReadingContextDraft,
+): ReadingContextV1 | undefined {
+  if (!draft) return undefined;
+  if (!draft.lifeStage && !draft.topConcern) return undefined;
+  return {
+    version: 1,
+    ...(draft.lifeStage ? { lifeStage: draft.lifeStage } : {}),
+    ...(draft.topConcern ? { topConcern: draft.topConcern } : {}),
+  };
 }

@@ -74,15 +74,21 @@ export function BirthWizardSubjectStep({
         <label className="wizard-field-label" htmlFor="displayName">
           {nameLabel} <span>{nameOptional}</span>
         </label>
-        <input
-          id="displayName"
-          maxLength={80}
-          name="displayName"
-          onChange={(event) => onDisplayNameChange(event.target.value)}
-          placeholder={namePlaceholder}
-          type="text"
-          value={displayName}
-        />
+        <div className="ui-field-shell__control">
+          <span aria-hidden="true" className="ui-field-shell__icon">
+            <Icon name="user" />
+          </span>
+          <input
+            className="ui-field-shell__input"
+            id="displayName"
+            maxLength={80}
+            name="displayName"
+            onChange={(event) => onDisplayNameChange(event.target.value)}
+            placeholder={namePlaceholder}
+            type="text"
+            value={displayName}
+          />
+        </div>
       </div>
 
       <div className="wizard-field-group">

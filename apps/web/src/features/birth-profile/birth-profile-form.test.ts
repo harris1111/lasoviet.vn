@@ -1282,3 +1282,69 @@ describe("wizard review step consent wording and single checkbox", () => {
     expect(html).toContain(match![3]);
   });
 });
+
+
+describe("FD-078 reading context in review step", () => {
+  const sampleContextLabels = {
+    title: viProfileMessages.readingContext.title,
+    subtitle: viProfileMessages.readingContext.subtitle,
+    skip: viProfileMessages.readingContext.skip,
+    lifeStageTitle: viProfileMessages.readingContext.lifeStageTitle,
+    topConcernTitle: viProfileMessages.readingContext.topConcernTitle,
+    lifeStage: viProfileMessages.readingContext.lifeStage,
+    topConcern: viProfileMessages.readingContext.topConcern,
+  };
+
+  it("renders FD-078 reading context section with single-select choice buttons and skip actions", () => {
+    const html = renderToStaticMarkup(
+      createElement(BirthWizardReviewStep, {
+        title: "Kiểm tra thông tin",
+        subtitle: "Rà soát lại toàn bộ thông tin",
+        subjectSectionTitle: "Người được lập",
+        birthSectionTitle: "Ngày, giờ sinh",
+        editLabel: "Sửa",
+        displayNameLabel: "Tên hiển thị",
+        forWhomLabel: "Người được lập",
+        dateLabel: "Ngày sinh",
+        timeLabel: "Giờ sinh",
+        genderLabel: "Giới tính",
+        timezoneLabel: "Múi giờ",
+        disclosure: "Thông tin...",
+        guestNotice: "Khách...",
+        consentLabel: "Tôi đồng ý",
+        duplicateNotice: "Đang xử lý...",
+        displayName: "Minh An",
+        forWhom: "Bản thân",
+        date: "12/04/1994",
+        time: "09:30",
+        gender: "Nam",
+        timezone: "Asia/Ho_Chi_Minh",
+        consent: false,
+        pending: false,
+        onEditSubject: () => {},
+        onEditBirth: () => {},
+        onConsentChange: () => {},
+        readingContext: {
+          lifeStage: "early_career",
+          skippedQuestions: { lifeStage: false, topConcern: true },
+        },
+        readingContextLabels: sampleContextLabels,
+        onReadingContextChange: () => {},
+      }),
+    );
+
+    expect(html).toContain("reading-context-section");
+    expect(html).toContain(viProfileMessages.readingContext.title);
+    expect(html).toContain(viProfileMessages.readingContext.lifeStage.early_career);
+    expect(html).toContain(viProfileMessages.readingContext.topConcern.career);
+    expect(html).toContain("wizard-context-choices");
+    expect(html).toContain("wizard-context-skip-btn");
+  });
+});
+
+describe("sample-report helper link and field shells", () => {
+  it("verifies sample report helper link label exists in profile messages for VI and EN", () => {
+    expect(viProfileMessages.sampleReportLink).toBe("Xem báo cáo mẫu Tử Vi");
+    expect(enProfileMessages.sampleReportLink).toBe("View sample Zi Wei report");
+  });
+});

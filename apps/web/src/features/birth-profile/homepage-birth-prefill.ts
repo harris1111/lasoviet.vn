@@ -129,6 +129,34 @@ export function isFutureSolarDate(
   return inputUtc > refLimit;
 }
 
+export function isValidLunarDate(
+  year: number,
+  month: number,
+  day: number,
+): boolean {
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    year < 1000 ||
+    year > 9999 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 30
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function isFutureLunarYear(year: string, now: number): boolean {
+  if (!/^\d{4}$/.test(year)) return false;
+  const reference = new Date(now);
+  const referenceYear = Math.max(reference.getFullYear(), reference.getUTCFullYear());
+  return Number.parseInt(year, 10) > referenceYear;
+}
+
 export function parseAndValidateDateParts(
   dayStr: string,
   monthStr: string,
@@ -197,6 +225,8 @@ export type ReusableBirthProfileV2 = {
   gender?: "male" | "female";
   place?: string;
   displayName?: string;
+  calendarType?: "solar" | "lunar";
+  isLeapMonth?: boolean;
   createdAt: number;
 };
 
@@ -206,6 +236,8 @@ export type HomepageBirthPrefill = {
   time:
     | { precision: "branch_only"; branch: CanonicalBranchId }
     | { precision: "unknown" };
+  calendarType?: "solar" | "lunar";
+  isLeapMonth?: boolean;
   createdAt: number;
 };
 
@@ -253,9 +285,34 @@ function readValidV2BirthCache(
     const y = Number.parseInt(yStr, 10);
     const m = Number.parseInt(mStr, 10);
     const d = Number.parseInt(dStr, 10);
-    if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) {
+
+    const calendarType =
+      parsed.calendarType === "solar" || parsed.calendarType === "lunar"
+        ? parsed.calendarType
+        : undefined;
+    if (parsed.calendarType !== undefined && !calendarType) {
       local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
       return null;
+    }
+
+    const isLeapMonth =
+      typeof parsed.isLeapMonth === "boolean" ? parsed.isLeapMonth : undefined;
+    if (parsed.isLeapMonth !== undefined && typeof parsed.isLeapMonth !== "boolean") {
+      local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+      return null;
+    }
+
+    const effectiveCalendarType = calendarType ?? "solar";
+    if (effectiveCalendarType === "solar") {
+      if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) {
+        local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+        return null;
+      }
+    } else {
+      if (!isValidLunarDate(y, m, d) || isFutureLunarYear(yStr, now)) {
+        local.removeItem(BIRTH_CACHE_STORAGE_KEY_V2);
+        return null;
+      }
     }
 
     if (!isValidReusableTime(parsed.time)) {
@@ -303,6 +360,8 @@ function readValidV2BirthCache(
       version: BIRTH_CACHE_VERSION_V2,
       date: `${y.toString().padStart(4, "0")}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
       time: normalizedTime,
+      ...(calendarType ? { calendarType } : {}),
+      ...(calendarType === "lunar" && isLeapMonth !== undefined ? { isLeapMonth } : {}),
       ...(gender ? { gender } : {}),
       ...(place ? { place } : {}),
       ...(displayName ? { displayName } : {}),
@@ -320,6 +379,8 @@ export function saveBirthCache(
     gender?: "male" | "female" | null;
     place?: string;
     displayName?: string;
+    calendarType?: "solar" | "lunar";
+    isLeapMonth?: boolean;
   },
   options?: {
     localStorage?: Storage;
@@ -343,7 +404,13 @@ export function saveBirthCache(
     const y = Number.parseInt(yStr, 10);
     const m = Number.parseInt(mStr, 10);
     const d = Number.parseInt(dStr, 10);
-    if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) return false;
+    const effectiveCalendarType = input.calendarType ?? "solar";
+    if (effectiveCalendarType === "solar") {
+      if (!isValidSolarDate(y, m, d) || isFutureSolarDate(y, m, d, now)) return false;
+      if (input.isLeapMonth) return false;
+    } else {
+      if (!isValidLunarDate(y, m, d) || isFutureLunarYear(yStr, now)) return false;
+    }
 
     if (!isValidReusableTime(input.time)) return false;
 
@@ -375,6 +442,10 @@ export function saveBirthCache(
       version: BIRTH_CACHE_VERSION_V2,
       date: input.date,
       time: normalizedTime,
+      ...(input.calendarType ? { calendarType: input.calendarType } : {}),
+      ...(input.calendarType === "lunar" && input.isLeapMonth !== undefined
+        ? { isLeapMonth: Boolean(input.isLeapMonth) }
+        : {}),
       ...(validGender ? { gender: validGender } : {}),
       ...(trimmedPlace ? { place: trimmedPlace } : {}),
       ...(trimmedDisplayName ? { displayName: trimmedDisplayName } : {}),
@@ -431,7 +502,18 @@ export function readBirthCache(options?: {
               const y = Number.parseInt(yStr, 10);
               const m = Number.parseInt(mStr, 10);
               const d = Number.parseInt(dStr, 10);
-              if (isValidSolarDate(y, m, d) && !isFutureSolarDate(y, m, d, now)) {
+              const calendarType =
+                parsedV1.calendarType === "solar" || parsedV1.calendarType === "lunar"
+                  ? parsedV1.calendarType
+                  : undefined;
+              const isLeapMonth =
+                typeof parsedV1.isLeapMonth === "boolean" ? parsedV1.isLeapMonth : undefined;
+              const effectiveCalendarType = calendarType ?? "solar";
+              const isDateValid =
+                effectiveCalendarType === "solar"
+                  ? isValidSolarDate(y, m, d) && !isFutureSolarDate(y, m, d, now)
+                  : isValidLunarDate(y, m, d) && !isFutureLunarYear(yStr, now);
+              if (isDateValid) {
                 let validTime: ReusableBirthTime | null = null;
                 if (
                   parsedV1.time &&
@@ -453,6 +535,8 @@ export function readBirthCache(options?: {
                     version: BIRTH_CACHE_VERSION_V2,
                     date: `${y.toString().padStart(4, "0")}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
                     time: validTime,
+                    ...(calendarType ? { calendarType } : {}),
+                    ...(calendarType === "lunar" && isLeapMonth !== undefined ? { isLeapMonth } : {}),
                     createdAt: parsedV1.createdAt,
                   };
                   if (local) {
@@ -504,6 +588,8 @@ export function saveHomepageBirthPrefill(
     gender?: "male" | "female" | null;
     place?: string;
     displayName?: string;
+    calendarType?: "solar" | "lunar";
+    isLeapMonth?: boolean;
   },
   storageOrOptions?:
     | Storage
@@ -530,6 +616,10 @@ export function saveHomepageBirthPrefill(
           input.time.precision === "branch_only"
             ? input.time
             : { precision: "unknown" },
+        ...(input.calendarType ? { calendarType: input.calendarType } : {}),
+        ...(input.calendarType === "lunar" && input.isLeapMonth !== undefined
+          ? { isLeapMonth: Boolean(input.isLeapMonth) }
+          : {}),
         createdAt: now,
       };
       legacyStorage.setItem(
@@ -540,11 +630,18 @@ export function saveHomepageBirthPrefill(
         version: BIRTH_CACHE_VERSION_V2,
         date: input.date,
         time: input.time,
+        ...(input.calendarType ? { calendarType: input.calendarType } : {}),
+        ...(input.calendarType === "lunar" && input.isLeapMonth !== undefined
+          ? { isLeapMonth: Boolean(input.isLeapMonth) }
+          : {}),
         ...(input.gender === "male" || input.gender === "female"
           ? { gender: input.gender }
           : {}),
         ...(typeof input.place === "string" && input.place.trim()
           ? { place: input.place.trim().slice(0, 120) }
+          : {}),
+        ...(typeof input.displayName === "string" && input.displayName.trim()
+          ? { displayName: input.displayName.trim().slice(0, 80) }
           : {}),
         createdAt: now,
       };
@@ -576,6 +673,10 @@ export function saveHomepageBirthPrefill(
           input.time.precision === "branch_only"
             ? input.time
             : { precision: "unknown" },
+        ...(input.calendarType ? { calendarType: input.calendarType } : {}),
+        ...(input.calendarType === "lunar" && input.isLeapMonth !== undefined
+          ? { isLeapMonth: Boolean(input.isLeapMonth) }
+          : {}),
         createdAt: now,
       };
       session.setItem(
@@ -635,8 +736,23 @@ export function consumeHomepageBirthPrefill(
     const y = Number.parseInt(yStr, 10);
     const m = Number.parseInt(mStr, 10);
     const d = Number.parseInt(dStr, 10);
-    if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d) || !isValidSolarDate(y, m, d)) {
-      return null;
+
+    const calendarType =
+      parsed.calendarType === "solar" || parsed.calendarType === "lunar"
+        ? parsed.calendarType
+        : undefined;
+    const isLeapMonth =
+      typeof parsed.isLeapMonth === "boolean" ? parsed.isLeapMonth : undefined;
+
+    const effectiveCalendarType = calendarType ?? "solar";
+    if (effectiveCalendarType === "solar") {
+      if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d) || !isValidSolarDate(y, m, d)) {
+        return null;
+      }
+    } else {
+      if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d) || !isValidLunarDate(y, m, d) || isFutureLunarYear(yStr, now)) {
+        return null;
+      }
     }
     const canonicalIsoDate = `${y.toString().padStart(4, "0")}-${m
       .toString()
@@ -654,6 +770,8 @@ export function consumeHomepageBirthPrefill(
           precision: "branch_only",
           branch: b,
         },
+        ...(calendarType ? { calendarType } : {}),
+        ...(calendarType === "lunar" && isLeapMonth !== undefined ? { isLeapMonth } : {}),
         createdAt: parsed.createdAt,
       };
     }
@@ -663,6 +781,8 @@ export function consumeHomepageBirthPrefill(
         version: HOMEPAGE_BIRTH_PREFILL_VERSION,
         date: canonicalIsoDate,
         time: { precision: "unknown" },
+        ...(calendarType ? { calendarType } : {}),
+        ...(calendarType === "lunar" && isLeapMonth !== undefined ? { isLeapMonth } : {}),
         createdAt: parsed.createdAt,
       };
     }

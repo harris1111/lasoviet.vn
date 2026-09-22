@@ -8,6 +8,7 @@ import { calculateZiweiChart } from "../../../../features/ziwei/calculate-ziwei-
 export default async function ZiweiBirthProfilePage() {
   const locale = (await getLocale()) as "en" | "vi";
   const t = await getTranslations("profile");
+  const referenceYear = new Date().getFullYear();
   return (
     <main className="wizard-page">
       <div className="wizard-privacy">
@@ -17,6 +18,7 @@ export default async function ZiweiBirthProfilePage() {
       <BirthProfileForm
         calculateZiweiChart={calculateZiweiChart}
         locale={locale}
+        referenceYear={referenceYear}
         submitBirthProfile={submitBirthProfile}
       />
     </main>

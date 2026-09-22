@@ -1,19 +1,17 @@
 "use client";
 
-import { Icon } from "../../components/icon";
-import { BirthDateFields } from "./birth-date-fields";
+import { BirthDetailsFields } from "./birth-details-fields";
 import type { BirthTimeState } from "./birth-profile-input";
-import { TimePrecisionFields } from "./time-precision-fields";
 
 export type BirthWizardBirthStepProps = {
-  locale: 'en' | 'vi';
+  locale: "en" | "vi";
   title: string;
   subtitle: string;
   calendarLabel: string;
   solarLabel: string;
   lunarLabel: string;
   lunarNotice: string;
-  calendarType?: 'solar' | 'lunar';
+  calendarType?: "solar" | "lunar";
   isLeapMonth?: boolean;
   leapMonthLabel?: string;
   leapMonthHelp?: string;
@@ -43,13 +41,14 @@ export type BirthWizardBirthStepProps = {
   timeState: BirthTimeState;
   place: string;
 
-  onCalendarTypeChange?(value: 'solar' | 'lunar'): void;
+  onCalendarTypeChange?(value: "solar" | "lunar"): void;
   onIsLeapMonthChange?(value: boolean): void;
   onDayChange(value: string): void;
   onMonthChange(value: string): void;
   onYearChange(value: string): void;
   onTimeStateChange(value: BirthTimeState): void;
   onPlaceChange(value: string): void;
+  referenceYear?: number;
 };
 
 export function BirthWizardBirthStep({
@@ -85,6 +84,7 @@ export function BirthWizardBirthStep({
   onYearChange,
   onTimeStateChange,
   onPlaceChange,
+  referenceYear,
 }: BirthWizardBirthStepProps) {
   return (
     <section
@@ -96,94 +96,40 @@ export function BirthWizardBirthStep({
       </h1>
       <p className="wizard-step-subtitle">{subtitle}</p>
 
-      <div className="wizard-field-group">
-        <span className="wizard-field-label">{calendarLabel}</span>
-        <div className="wizard-choice-row">
-          <button
-            aria-pressed={calendarType === "solar"}
-            className={`wizard-choice-button ${calendarType === "solar" ? "is-active" : ""}`}
-            onClick={() => onCalendarTypeChange?.("solar")}
-            type="button"
-          >
-            <span>{solarLabel}</span>
-          </button>
-          <button
-            aria-pressed={calendarType === "lunar"}
-            className={`wizard-choice-button ${calendarType === "lunar" ? "is-active" : ""}`}
-            onClick={() => onCalendarTypeChange?.("lunar")}
-            type="button"
-          >
-            <span>{lunarLabel}</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="wizard-field-group">
-        <span className="wizard-field-label">{dateLabel}</span>
-        <BirthDateFields
-          calendarButtonLabel={locale === "en" ? "Select date from calendar" : "Chọn ngày từ lịch"}
-          calendarType={calendarType}
-          day={day}
-          dayLabel={dayLabel}
-          dayPlaceholder={dayLabel}
-          error={dateError}
-          locale={locale}
-          month={month}
-          monthLabel={monthLabel}
-          monthPlaceholder={monthLabel}
-          onDayChange={onDayChange}
-          onMonthChange={onMonthChange}
-          onYearChange={onYearChange}
-          year={year}
-          yearLabel={yearLabel}
-          yearPlaceholder={yearLabel}
-        />
-        {calendarType === "lunar" ? (
-          <div className="wizard-lunar-options">
-            <label className="wizard-check">
-              <input
-                checked={isLeapMonth}
-                name="isLeapMonth"
-                onChange={(event) => onIsLeapMonthChange?.(event.target.checked)}
-                type="checkbox"
-              />
-              <span>{leapMonthLabel ?? (locale === "en" ? "Leap month" : "Tháng nhuận")}</span>
-            </label>
-            {leapMonthHelp ? (
-              <p className="wizard-help">{leapMonthHelp}</p>
-            ) : null}
-            {lunarNotice ? (
-              <p className="wizard-help">{lunarNotice}</p>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-
-      <TimePrecisionFields
-        labels={timeLabels}
+      <BirthDetailsFields
+        calendarLabel={calendarLabel}
+        calendarType={calendarType}
+        dateError={dateError}
+        dateLabel={dateLabel}
+        day={day}
+        dayLabel={dayLabel}
+        isLeapMonth={isLeapMonth}
+        leapMonthHelp={leapMonthHelp}
+        leapMonthLabel={leapMonthLabel}
         locale={locale}
+        lunarLabel={lunarLabel}
+        lunarNotice={lunarNotice}
+        month={month}
+        monthLabel={monthLabel}
+        onCalendarTypeChange={onCalendarTypeChange}
+        onDayChange={onDayChange}
+        onIsLeapMonthChange={onIsLeapMonthChange}
+        onMonthChange={onMonthChange}
+        onPlaceChange={onPlaceChange}
         onTimeStateChange={onTimeStateChange}
+        onYearChange={onYearChange}
+        place={place}
+        placeLabel={placeLabel}
+        placePlaceholder={placePlaceholder}
+        referenceYear={referenceYear}
+        solarLabel={solarLabel}
+        timeLabels={timeLabels}
         timeState={timeState}
+        timezoneText={timezoneText}
+        variant="wizard"
+        year={year}
+        yearLabel={yearLabel}
       />
-
-      <div className="wizard-field-group">
-        <label className="wizard-field-label" htmlFor="birthPlace">
-          {placeLabel}
-        </label>
-        <div className="wizard-place-input-wrap">
-          <Icon name="map-pin" />
-          <input
-            id="birthPlace"
-            maxLength={120}
-            name="birthPlace"
-            onChange={(event) => onPlaceChange(event.target.value)}
-            placeholder={placePlaceholder}
-            type="text"
-            value={place}
-          />
-        </div>
-        <p className="wizard-help">{timezoneText}</p>
-      </div>
     </section>
   );
 }

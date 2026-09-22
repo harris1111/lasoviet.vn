@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { ArtifactImage } from "../../components/artifact-image";
-import { BirthDateFields } from "../birth-profile/birth-date-fields";
+import { BirthDetailsFields } from "../birth-profile/birth-details-fields";
+import type { BirthTimeState } from "../birth-profile/birth-profile-input";
+import { validateWizardDate } from "../birth-profile/birth-wizard-state";
 import {
   clearBirthCache,
   CANONICAL_BRANCH_IDS,
@@ -32,9 +34,10 @@ import { imagePath, localizedPath } from "./homepage-utilities";
 
 type HomepageHeroProps = {
   locale: "en" | "vi";
+  referenceYear?: number;
 };
 
-export function HomepageHero({ locale }: HomepageHeroProps) {
+export function HomepageHero({ locale, referenceYear }: HomepageHeroProps) {
   const t = useTranslations("common");
   const tProfile = useTranslations("profile");
   const router = useRouter();
@@ -46,6 +49,8 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("");
   const [branch, setBranch] = useState("");
+  const [calendarType, setCalendarType] = useState<"solar" | "lunar">("solar");
+  const [isLeapMonth, setIsLeapMonth] = useState(false);
   const [hasReusedCache, setHasReusedCache] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isHydratedRef = useRef(false);
@@ -78,6 +83,12 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
         setDay(draft.day);
         setMonth(draft.month);
         setYear(draft.year);
+        if (draft.calendarType) {
+          setCalendarType(draft.calendarType);
+        }
+        if (draft.isLeapMonth !== undefined) {
+          setIsLeapMonth(draft.isLeapMonth);
+        }
         if (draft.timeState.precision === "exact_minute") {
           setTimeMode("exact_minute");
           setHour(draft.timeState.hour);
@@ -104,6 +115,12 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
         setDay(parts.day);
         setMonth(parts.month);
         setYear(parts.year);
+        if (cached.calendarType) {
+          setCalendarType(cached.calendarType);
+        }
+        if (cached.isLeapMonth !== undefined) {
+          setIsLeapMonth(cached.isLeapMonth);
+        }
         if (cached.time.precision === "exact_minute") {
           setTimeMode("exact_minute");
           setHour(cached.time.hour);
@@ -131,12 +148,14 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
       day,
       month,
       year,
+      calendarType,
+      isLeapMonth,
       timeMode,
       hour,
       minute,
       branch,
     });
-  }, [day, month, year, timeMode, hour, minute, branch]);
+  }, [day, month, year, calendarType, isLeapMonth, timeMode, hour, minute, branch]);
 
   useEffect(() => {
     const controller = autosaveRef.current;
@@ -158,14 +177,37 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
     setMinute("");
     setBranch("");
     setTimeMode("branch_only");
+    setCalendarType("solar");
+    setIsLeapMonth(false);
     setHasReusedCache(false);
+  }
+
+
+  const timeState: BirthTimeState =
+    timeMode === "exact_minute"
+      ? { precision: "exact_minute", hour, minute }
+      : timeMode === "branch_only"
+        ? { precision: "branch_only", branch: isCanonicalBranchId(branch) ? branch : "" }
+        : { precision: "unknown" };
+
+  function handleTimeStateChange(newTimeState: BirthTimeState) {
+    if (newTimeState.precision === "exact_minute") {
+      setTimeMode("exact_minute");
+      setHour(newTimeState.hour);
+      setMinute(newTimeState.minute);
+    } else if (newTimeState.precision === "branch_only") {
+      setTimeMode("branch_only");
+      setBranch(newTimeState.branch);
+    } else {
+      setTimeMode("unknown");
+    }
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
-    const parsed = parseAndValidateDateParts(day, month, year);
+    const parsed = validateWizardDate(day, month, year, undefined, calendarType);
     if (!parsed.valid) {
       setError(tProfile("heroForm.invalidDate"));
       return;
@@ -202,6 +244,8 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
     const saved = saveHomepageBirthPrefill({
       date: parsed.isoDate,
       time: timePayload,
+      calendarType,
+      isLeapMonth: calendarType === "lunar" ? isLeapMonth : false,
     });
 
     if (!saved) {
@@ -250,123 +294,58 @@ export function HomepageHero({ locale }: HomepageHeroProps) {
           ) : null}
 
           <div className="hero-form-inputs">
-            <BirthDateFields
-              calendarButtonLabel={locale === "en" ? "Select date from calendar" : "Chọn ngày từ lịch"}
-              className="hero-birth-date-wrap"
+            <BirthDetailsFields
+              calendarLabel={tProfile("birth.calendarType")}
+              calendarType={calendarType}
               day={day}
               dayLabel={t("home.form.day")}
-              dayPlaceholder="12"
+              isLeapMonth={isLeapMonth}
+              leapMonthHelp={tProfile("birth.leapMonthHelp")}
+              leapMonthLabel={tProfile("birth.leapMonth")}
               locale={locale}
+              lunarLabel={tProfile("birth.lunar")}
+              lunarNotice={tProfile("birth.lunarNotice")}
               month={month}
               monthLabel={t("home.form.month")}
-              monthPlaceholder="04"
+              onCalendarTypeChange={(next) => {
+                setCalendarType(next);
+                if (next === "solar") {
+                  setIsLeapMonth(false);
+                }
+                if (error) setError(null);
+              }}
               onDayChange={(val) => {
                 setDay(val);
                 if (error) setError(null);
               }}
+              onIsLeapMonthChange={setIsLeapMonth}
               onMonthChange={(val) => {
                 setMonth(val);
                 if (error) setError(null);
               }}
+              onTimeStateChange={handleTimeStateChange}
               onYearChange={(val) => {
                 setYear(val);
                 if (error) setError(null);
               }}
+              referenceYear={referenceYear}
+              solarLabel={tProfile("birth.solar")}
+              timeLabels={{
+                hour: tProfile("birth.hour"),
+                minute: tProfile("birth.minute"),
+                title: t("home.form.hour"),
+                unknown: tProfile("birth.unknown"),
+                unknownHelp: tProfile("birth.unknownHelp"),
+                exactMode: tProfile("birth.exactMode"),
+                branchMode: tProfile("birth.branchMode"),
+                branch: tProfile("birth.branch"),
+                branchHelp: tProfile("birth.branchHelp"),
+              }}
+              timeState={timeState}
+              variant="hero"
               year={year}
               yearLabel={t("home.form.year")}
-              yearPlaceholder="1994"
             />
-
-            <div className="hero-time-section">
-              <div aria-label={t("home.form.hour")} className="hero-time-modes" role="group">
-                <button
-                  aria-pressed={timeMode === "branch_only"}
-                  className={`hero-mode-btn${timeMode === "branch_only" ? " is-active" : ""}`}
-                  onClick={() => setTimeMode("branch_only")}
-                  type="button"
-                >
-                  {locale === "en" ? "12 Branches" : "12 Địa Chi"}
-                </button>
-                <button
-                  aria-pressed={timeMode === "exact_minute"}
-                  className={`hero-mode-btn${timeMode === "exact_minute" ? " is-active" : ""}`}
-                  onClick={() => setTimeMode("exact_minute")}
-                  type="button"
-                >
-                  {locale === "en" ? "Exact time" : "Giờ & phút"}
-                </button>
-                <button
-                  aria-pressed={timeMode === "unknown"}
-                  className={`hero-mode-btn${timeMode === "unknown" ? " is-active" : ""}`}
-                  onClick={() => setTimeMode("unknown")}
-                  type="button"
-                >
-                  {t("home.form.unknownHour")}
-                </button>
-              </div>
-
-              {timeMode === "branch_only" ? (
-                <label className="hero-form-time">
-                  <span className="sr-only">{t("home.form.hour")}</span>
-                  <select
-                    aria-label={t("home.form.hour")}
-                    onChange={(event) => setBranch(event.target.value)}
-                    value={branch}
-                  >
-                    <option value="">{t("home.form.unknownHour")}</option>
-                    {CANONICAL_BRANCH_IDS.map((id) => (
-                      <option key={id} value={id}>
-                        {getBranchOptionLabel(id, locale)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-
-              {timeMode === "exact_minute" ? (
-                <div className="hero-exact-time">
-                  <label className="hero-exact-input-wrap">
-                    <span className="sr-only">{locale === "en" ? "Hour" : "Giờ"}</span>
-                    <input
-                      aria-label={locale === "en" ? "Hour" : "Giờ"}
-                      className="hero-time-input"
-                      inputMode="numeric"
-                      maxLength={2}
-                      onChange={(e) => {
-                        setHour(e.target.value);
-                        if (error) setError(null);
-                      }}
-                      placeholder="09"
-                      type="text"
-                      value={hour}
-                    />
-                  </label>
-                  <span aria-hidden="true" className="hero-time-colon">:</span>
-                  <label className="hero-exact-input-wrap">
-                    <span className="sr-only">{locale === "en" ? "Minute" : "Phút"}</span>
-                    <input
-                      aria-label={locale === "en" ? "Minute" : "Phút"}
-                      className="hero-time-input"
-                      inputMode="numeric"
-                      maxLength={2}
-                      onChange={(e) => {
-                        setMinute(e.target.value);
-                        if (error) setError(null);
-                      }}
-                      placeholder="30"
-                      type="text"
-                      value={minute}
-                    />
-                  </label>
-                </div>
-              ) : null}
-
-              {timeMode === "unknown" ? (
-                <div className="hero-unknown-indicator">
-                  <span>{locale === "en" ? "Birth time unknown" : "Chưa rõ giờ sinh"}</span>
-                </div>
-              ) : null}
-            </div>
 
             <button className="button" type="submit">
               {t("home.hero.ctaPrimary")}

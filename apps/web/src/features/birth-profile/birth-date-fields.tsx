@@ -1,8 +1,20 @@
 "use client";
 
-import { useRef, type ChangeEvent } from "react";
+import { useRef, useState, useEffect, type ChangeEvent } from "react";
 import { Icon } from "../../components/icon";
 import { isFutureSolarDate, isValidSolarDate } from "./homepage-birth-prefill";
+
+export const BIRTH_DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
+export const BIRTH_MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
+export const DEFAULT_REFERENCE_YEAR = 2026;
+
+export function generateBirthYears(referenceYear: number = DEFAULT_REFERENCE_YEAR): string[] {
+  const minYear = 1000;
+  const count = Math.max(0, referenceYear - minYear + 1);
+  return Array.from({ length: count }, (_, i) => String(referenceYear - i));
+}
+
+export const BIRTH_YEARS = generateBirthYears(DEFAULT_REFERENCE_YEAR);
 
 export type BirthDateFieldsProps = {
   day: string;
@@ -12,10 +24,14 @@ export type BirthDateFieldsProps = {
   onMonthChange(value: string): void;
   onYearChange(value: string): void;
   calendarType?: "solar" | "lunar";
+  onCalendarTypeChange?(value: "solar" | "lunar"): void;
   locale?: "en" | "vi";
   dayLabel?: string;
   monthLabel?: string;
   yearLabel?: string;
+  calendarLabel?: string;
+  solarLabel?: string;
+  lunarLabel?: string;
   calendarButtonLabel?: string;
   dayPlaceholder?: string;
   monthPlaceholder?: string;
@@ -23,6 +39,7 @@ export type BirthDateFieldsProps = {
   error?: string | null;
   className?: string;
   disabled?: boolean;
+  referenceYear?: number;
 };
 
 export function BirthDateFields({
@@ -33,18 +50,33 @@ export function BirthDateFields({
   onMonthChange,
   onYearChange,
   calendarType = "solar",
+  onCalendarTypeChange,
   locale = "vi",
   dayLabel = locale === "en" ? "Day" : "Ngày",
   monthLabel = locale === "en" ? "Month" : "Tháng",
   yearLabel = locale === "en" ? "Year" : "Năm",
+  calendarLabel = locale === "en" ? "Calendar" : "Hệ lịch",
+  solarLabel = locale === "en" ? "Solar" : "Dương lịch",
+  lunarLabel = locale === "en" ? "Lunar" : "Âm lịch",
   calendarButtonLabel = locale === "en" ? "Select date from calendar" : "Chọn ngày từ lịch",
-  dayPlaceholder = "12",
-  monthPlaceholder = "04",
-  yearPlaceholder = "1994",
+  dayPlaceholder = dayLabel,
+  monthPlaceholder = monthLabel,
+  yearPlaceholder = yearLabel,
   error,
   className = "",
   disabled = false,
+  referenceYear = DEFAULT_REFERENCE_YEAR,
 }: BirthDateFieldsProps) {
+  const [effectiveYear, setEffectiveYear] = useState(referenceYear);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      const browserCurrentYear = new Date().getFullYear();
+      setEffectiveYear((prev) => (prev !== browserCurrentYear ? browserCurrentYear : prev));
+    });
+  }, []);
+
+  const years = generateBirthYears(effectiveYear);
   const pickerRef = useRef<HTMLInputElement>(null);
   const now = new Date();
   const maxDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -94,56 +126,95 @@ export function BirthDateFields({
     }
   }
 
+  const normalizedDay = day ? day.padStart(2, "0") : "";
+  const normalizedMonth = month ? month.padStart(2, "0") : "";
+
   return (
     <div className={`birth-date-fields ${className}`}>
-      <div className="birth-date-inputs">
-        <label className="birth-date-input-label">
-          <span className="birth-date-input-text">{dayLabel}</span>
-          <input
+      <div className="birth-date-inputs ui-field-shell__control">
+        <span aria-hidden="true" className="ui-field-shell__icon birth-date-leading-icon">
+          <Icon name="calendar-day" />
+        </span>
+
+        {/* Inline Day Select */}
+        <label className="birth-date-select-label">
+          <span className="sr-only">{dayLabel}</span>
+          <select
             aria-label={dayLabel}
-            className="birth-date-input day"
+            className="birth-date-select birth-date-select--day ui-field-shell__select"
             disabled={disabled}
-            inputMode="numeric"
-            maxLength={2}
+            name="birthDay"
             onChange={(e) => onDayChange(e.target.value)}
-            pattern="[0-9]*"
-            placeholder={dayPlaceholder}
-            type="text"
-            value={day}
-          />
+            value={normalizedDay}
+          >
+            <option value="">{dayPlaceholder}</option>
+            {BIRTH_DAYS.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
         </label>
+
         <span aria-hidden="true" className="birth-date-separator">/</span>
-        <label className="birth-date-input-label">
-          <span className="birth-date-input-text">{monthLabel}</span>
-          <input
+
+        {/* Inline Month Select */}
+        <label className="birth-date-select-label">
+          <span className="sr-only">{monthLabel}</span>
+          <select
             aria-label={monthLabel}
-            className="birth-date-input month"
+            className="birth-date-select birth-date-select--month ui-field-shell__select"
             disabled={disabled}
-            inputMode="numeric"
-            maxLength={2}
+            name="birthMonth"
             onChange={(e) => onMonthChange(e.target.value)}
-            pattern="[0-9]*"
-            placeholder={monthPlaceholder}
-            type="text"
-            value={month}
-          />
+            value={normalizedMonth}
+          >
+            <option value="">{monthPlaceholder}</option>
+            {BIRTH_MONTHS.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
         </label>
+
         <span aria-hidden="true" className="birth-date-separator">/</span>
-        <label className="birth-date-input-label">
-          <span className="birth-date-input-text">{yearLabel}</span>
-          <input
+
+        {/* Inline Year Select */}
+        <label className="birth-date-select-label">
+          <span className="sr-only">{yearLabel}</span>
+          <select
             aria-label={yearLabel}
-            className="birth-date-input year"
+            className="birth-date-select birth-date-select--year ui-field-shell__select"
             disabled={disabled}
-            inputMode="numeric"
-            maxLength={4}
+            name="birthYear"
             onChange={(e) => onYearChange(e.target.value)}
-            pattern="[0-9]*"
-            placeholder={yearPlaceholder}
-            type="text"
             value={year}
-          />
+          >
+            <option value="">{yearPlaceholder}</option>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
         </label>
+
+        {/* Solar/Lunar control in the same shell */}
+        <div className="birth-date-calendar-select-wrap">
+          <select
+            aria-label={calendarLabel}
+            className="birth-date-calendar-select ui-field-shell__select"
+            disabled={disabled}
+            name="calendarType"
+            onChange={(e) => onCalendarTypeChange?.(e.target.value as "solar" | "lunar")}
+            value={calendarType}
+          >
+            <option value="solar">{solarLabel}</option>
+            <option value="lunar">{lunarLabel}</option>
+          </select>
+        </div>
+
         {calendarType === "solar" ? (
           <div className="birth-date-picker-wrap">
             <button
@@ -170,6 +241,7 @@ export function BirthDateFields({
           </div>
         ) : null}
       </div>
+
       {error ? (
         <p className="form-error" role="alert">
           {error}

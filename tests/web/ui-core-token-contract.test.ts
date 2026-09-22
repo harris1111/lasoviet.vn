@@ -43,4 +43,33 @@ describe("UI core token contract", () => {
     expect(fontSizes.length).toBeGreaterThan(0);
     expect(Math.min(...fontSizes)).toBeGreaterThanOrEqual(14);
   });
+
+  it("enforces touch target >= 44px across all wizard and hero controls", async () => {
+    const wizardCss = await readFile("apps/web/src/styles/birth-profile-wizard.css", "utf8");
+    const globalCss = await readFile("apps/web/src/styles/global.css", "utf8");
+
+    // Wizard mode buttons (exact time vs branch)
+    expect(wizardCss).toMatch(/\.wizard-mode-button\s*\{[^}]*min-height:\s*var\(--control-height,\s*44px\)/s);
+    expect(wizardCss).toMatch(/\.wizard-mode-button\s*\{[^}]*min-width:\s*44px/s);
+
+    // Wizard cache clear
+    expect(wizardCss).toMatch(/\.wizard-cache-clear\s*\{[^}]*min-height:\s*var\(--control-height,\s*44px\)/s);
+    expect(wizardCss).toMatch(/\.wizard-cache-clear\s*\{[^}]*min-width:\s*44px/s);
+
+    // Hero cache clear
+    expect(globalCss).toMatch(/\.hero-cache-clear\s*\{[^}]*min-height:\s*44px/s);
+    expect(globalCss).toMatch(/\.hero-cache-clear\s*\{[^}]*min-width:\s*44px/s);
+
+    // Hero time mode buttons
+    expect(globalCss).toMatch(/\.hero-mode-btn\s*\{[^}]*min-height:\s*44px/s);
+    expect(globalCss).toMatch(/\.hero-mode-btn\s*\{[^}]*min-width:\s*44px/s);
+
+    // Calendar native trigger button
+    expect(wizardCss).toMatch(/\.birth-date-calendar-button\s*\{[^}]*min-height:\s*44px/s);
+    expect(wizardCss).toMatch(/\.birth-date-calendar-button\s*\{[^}]*min-width:\s*44px/s);
+
+    // Context skip button
+    expect(wizardCss).toMatch(/\.wizard-context-skip-btn\s*\{[^}]*min-height:\s*var\(--control-height,\s*44px\)/s);
+    expect(wizardCss).toMatch(/\.wizard-context-skip-btn\s*\{[^}]*min-width:\s*44px/s);
+  });
 });
