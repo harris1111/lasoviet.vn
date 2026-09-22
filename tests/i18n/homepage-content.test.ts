@@ -16,7 +16,7 @@ function collectStrings(value: unknown): string[] {
 }
 
 describe("homepage content and structure requirements", () => {
-  it("orchestrates the 17 ordered data-home-block sections in page.tsx", () => {
+  it("orchestrates the 18 ordered data-home-block sections in page.tsx", () => {
     const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
     const pageSource = readFileSync(pagePath, "utf8");
 
@@ -42,6 +42,7 @@ describe("homepage content and structure requirements", () => {
       "knowledge",
       "faq",
       "about-excerpt",
+      "support",
       "final-cta",
     ]);
   });

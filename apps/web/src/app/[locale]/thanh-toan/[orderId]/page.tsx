@@ -1,3 +1,4 @@
+import { customerContactConfig } from "@lasoviet/config";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -65,6 +66,7 @@ export default async function CheckoutPage({
         <h1>{order.creditApplied > 0 ? t("checkout.upgrade_title") : `${t("checkout.eyebrow")} · ${order.productTitle}`}</h1>
         <VietQrCheckout
           initialStatus={parsed.value}
+          supportEmail={customerContactConfig.email.value}
           labels={{
             instructionsTitle: t("checkout.instructions_title"),
             bankCode: t("checkout.bank_code"),

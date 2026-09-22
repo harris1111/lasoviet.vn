@@ -1,3 +1,4 @@
+import { customerContactConfig } from "@lasoviet/config";
 import {
   EvidenceItemV1Schema,
   IdentityReportV1Schema,
@@ -247,7 +248,7 @@ export function createReportQueryService(options: {
             invoiceNumber: order.invoiceNumber,
             paymentReceivedAt: paymentTime,
             reportStatusUpdatedAt: updateTime,
-            supportEmail: "lasoviet.net@gmail.com",
+            supportEmail: customerContactConfig.email.value,
             supportSubject,
             supportReference: order.invoiceNumber,
           });

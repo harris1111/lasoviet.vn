@@ -12,14 +12,18 @@
     "./load-environment": {
       "types": "./dist/load-environment.d.ts",
       "import": "./dist/load-environment.js"
+    },
+    "./customer-contact": {
+      "types": "./dist/customer-contact.d.ts",
+      "import": "./dist/customer-contact.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.typecheck.json --noEmit"
+    "build": "node scripts/generate-customer-contact.mjs && tsc -p tsconfig.json",
+    "typecheck": "node scripts/generate-customer-contact.mjs --check && tsc -p tsconfig.typecheck.json --noEmit"
   },
   "dependencies": {
     "@lasoviet/contracts": "workspace:0.0.0",

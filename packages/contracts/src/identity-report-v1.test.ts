@@ -342,7 +342,7 @@ describe("report view v1 contract", () => {
       invoiceNumber: "LSV-INV-001",
       paymentReceivedAt: "2026-09-08T00:00:00.000Z",
       reportStatusUpdatedAt: "2026-09-08T00:05:00.000Z",
-      supportEmail: "lasoviet.net@gmail.com",
+      supportEmail: "support@lasoviet.net",
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
       supportReference: "LSV-INV-001",
     };
@@ -361,16 +361,30 @@ describe("report view v1 contract", () => {
       invoiceNumber: "LSV-INV-001",
       paymentReceivedAt: "2026-09-08T00:00:00.000Z",
       reportStatusUpdatedAt: "2026-09-08T00:05:00.000Z",
-      supportEmail: "lasoviet.net@gmail.com",
+      supportEmail: "support@lasoviet.net",
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng LSV-INV-001",
       supportReference: "LSV-INV-001",
     };
+    // Bounded compatibility: accepts canonical support address and legacy rolling email
     expect(ReportViewV1Schema.safeParse(failedWithSupport).success).toBe(true);
+    expect(
+      ReportViewV1Schema.safeParse({
+        ...failedWithSupport,
+        supportEmail: "lasoviet.net@gmail.com",
+      }).success,
+    ).toBe(true);
 
+    // Rejects non-allowlisted emails and malformed strings
     expect(
       ReportViewV1Schema.safeParse({
         ...failedWithSupport,
         supportEmail: "other@example.com",
+      }).success,
+    ).toBe(false);
+    expect(
+      ReportViewV1Schema.safeParse({
+        ...failedWithSupport,
+        supportEmail: "not-an-email",
       }).success,
     ).toBe(false);
 

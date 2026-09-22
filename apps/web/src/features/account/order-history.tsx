@@ -1,3 +1,5 @@
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
+import { SupportCard } from "../../components/ui/support-card";
 import type { OrderHistoryV1 } from "@lasoviet/contracts";
 import Link from "next/link";
 import React from "react";
@@ -14,6 +16,7 @@ export interface OrderHistoryProps {
   orders?: OrderHistoryV1 | null;
   history?: OrderHistoryV1 | null;
   error?: string | null;
+  supportEmail?: string;
 }
 
 export function OrderHistory({
@@ -21,6 +24,7 @@ export function OrderHistory({
   orders,
   history,
   error,
+  supportEmail = customerContactConfig.email.value,
 }: OrderHistoryProps) {
   const isVi = locale === "vi";
   const createChartPath = isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi";
@@ -135,6 +139,19 @@ export function OrderHistory({
               })}
             </div>
           </section>
+          <div className="account-orders-support" data-testid="account-orders-support">
+            <SupportCard
+              actionLabel={isVi ? "Gửi email hỗ trợ" : "Send support email"}
+              description={
+                isVi
+                  ? "Đội ngũ Lá Số Việt sẵn sàng giải đáp thắc mắc về đơn hàng, hoá đơn và quyền truy cập báo cáo qua email."
+                  : "The Lá Số Việt team is ready to answer questions about orders, invoices, and report access via email."
+              }
+              email={supportEmail}
+              subject={isVi ? "[Lá Số Việt] Hỗ trợ đơn hàng" : "[La So Viet] Order support request"}
+              title={isVi ? "Cần hỗ trợ về đơn hàng?" : "Need help with an order?"}
+            />
+          </div>
         </div>
       )}
     </AccountPageShell>

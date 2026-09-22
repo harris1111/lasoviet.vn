@@ -1,5 +1,8 @@
 "use client";
 
+import { SupportCard } from "../../components/ui/support-card";
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
@@ -269,12 +272,14 @@ export type VietQrCheckoutProps = {
   initialStatus: CheckoutStatus;
   labels: VietQrCheckoutLabels;
   selfClaim?: React.ReactNode;
+  supportEmail?: string;
 };
 
 export function VietQrCheckout({
   initialStatus,
   labels,
   selfClaim,
+  supportEmail = customerContactConfig.email.value,
 }: VietQrCheckoutProps) {
   const [status, setStatus] = useState(initialStatus);
   const [hasPollingError, setHasPollingError] = useState(false);
@@ -610,7 +615,25 @@ export function VietQrCheckout({
           </div>
         </section>
         {selfClaim}
-        {footerSupportBlock}
+        <div className="checkout-recovery-support" data-testid="checkout-expired-support">
+          <SupportCard
+            actionLabel={isVi ? "Gửi email hỗ trợ" : "Send support email"}
+            description={
+              isVi
+                ? "Nếu bạn đã chuyển khoản nhưng đơn hàng đã hết hạn và đối chiếu chưa khớp, vui lòng gửi email kèm mã đơn để được hỗ trợ kiểm tra."
+                : "If you already transferred but this order expired and self-claim did not match, please email support with your order code."
+            }
+            email={supportEmail}
+            subject={
+              (status.order.paymentCode)
+                ? (isVi
+                    ? `[Lá Số Việt] Hỗ trợ đơn hàng ${status.order.paymentCode}`
+                    : `[La So Viet] Support for order ${status.order.paymentCode}`)
+                : (isVi ? "[Lá Số Việt] Hỗ trợ đơn hàng" : "[La So Viet] Order support request")
+            }
+            title={isVi ? "Cần hỗ trợ đơn hàng này?" : "Need support for this order?"}
+          />
+        </div>
       </>
     );
   }
@@ -621,7 +644,6 @@ export function VietQrCheckout({
     const newChartActionLabel = labels.newChartAction ?? (isVi ? "Lập lá số và tạo yêu cầu mới" : "Create a new chart and request");
     const returnToTopicSelectorLabel = labels.returnToTopicSelectorAction ?? (isVi ? "Quay lại chọn luận giải" : "Return to reading selection");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
-    const supportActionLabel = labels.supportAction ?? (isVi ? "Liên hệ hỗ trợ" : "Contact support");
     const newChartPath = isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi";
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
     const topicSelectorPath = status.order.chartId
@@ -654,13 +676,28 @@ export function VietQrCheckout({
               <Link href={ordersPath} className="button button-secondary">
                 {orderHistoryActionLabel}
               </Link>
-              <a href={status.order.supportUrl} className="button button-secondary">
-                {supportActionLabel}
-              </a>
             </div>
           </div>
         </section>
-        {footerSupportBlock}
+        <div className="checkout-recovery-support" data-testid="checkout-failed-support">
+          <SupportCard
+            actionLabel={isVi ? "Gửi email hỗ trợ" : "Send support email"}
+            description={
+              isVi
+                ? "Giao dịch thanh toán chưa thành công. Bạn có thể gửi email để đội ngũ hỗ trợ kiểm tra trạng thái thanh toán."
+                : "Payment was not completed. You can send an email so our support team can verify the transaction status."
+            }
+            email={supportEmail}
+            subject={
+              (status.order.paymentCode)
+                ? (isVi
+                    ? `[Lá Số Việt] Hỗ trợ đơn hàng ${status.order.paymentCode}`
+                    : `[La So Viet] Support for order ${status.order.paymentCode}`)
+                : (isVi ? "[Lá Số Việt] Hỗ trợ đơn hàng" : "[La So Viet] Order support request")
+            }
+            title={isVi ? "Cần hỗ trợ đơn hàng này?" : "Need support for this order?"}
+          />
+        </div>
       </>
     );
   }
@@ -669,7 +706,6 @@ export function VietQrCheckout({
     const refundedTitle = labels.refundedTitle ?? (isVi ? "Đơn hàng đã được hoàn tiền" : "Order refunded");
     const refundedDesc = labels.refundedDescription ?? (isVi ? "Đơn hàng này đã được xử lý hoàn tiền. Quý khách có thể kiểm tra chi tiết trong lịch sử đơn hàng." : "This order has been refunded. You can review the details in your order history.");
     const orderHistoryActionLabel = labels.orderHistoryAction ?? (isVi ? "Xem lịch sử đơn hàng" : "View order history");
-    const supportActionLabel = labels.supportAction ?? (isVi ? "Liên hệ hỗ trợ" : "Contact support");
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
 
     return (
@@ -685,9 +721,6 @@ export function VietQrCheckout({
             <h2>{refundedTitle}</h2>
             <p className="vietqr-recovery-description">{refundedDesc}</p>
             <div className="vietqr-recovery-actions">
-              <a href={status.order.supportUrl} className="button button-secondary">
-                {supportActionLabel}
-              </a>
               <Link href={ordersPath} className="button button-secondary">
                 {orderHistoryActionLabel}
               </Link>

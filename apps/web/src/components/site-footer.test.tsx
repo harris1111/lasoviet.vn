@@ -4,20 +4,45 @@ import { describe, expect, it } from "vitest";
 import { SiteFooter } from "./site-footer";
 
 describe("SiteFooter", () => {
-  it("links to the terms page in Vietnamese", () => {
+  it("links to terms, privacy, and payment policies in Vietnamese with exact paths", () => {
     const html = renderToStaticMarkup(<SiteFooter locale="vi" />);
     expect(html).toContain('href="/dieu-khoan"');
     expect(html).toContain("Điều khoản");
+
+    expect(html).toContain('href="/chinh-sach-bao-mat"');
+    expect(html).toContain("Quyền riêng tư");
+
+    expect(html).toContain('href="/dieu-khoan#thanh-toan"');
+    expect(html).toContain("Chính sách thanh toán");
   });
 
-  it("links to the terms page in English with the locale prefix", () => {
+  it("links to terms, privacy, and payment policies in English with the /en prefix parity", () => {
     const html = renderToStaticMarkup(<SiteFooter locale="en" />);
     expect(html).toContain('href="/en/dieu-khoan"');
     expect(html).toContain("Terms");
+
+    expect(html).toContain('href="/en/chinh-sach-bao-mat"');
+    expect(html).toContain("Privacy");
+
+    expect(html).toContain('href="/en/dieu-khoan#thanh-toan"');
+    expect(html).toContain("Payment policy");
   });
 
-  it("still links to the privacy policy", () => {
-    const html = renderToStaticMarkup(<SiteFooter locale="vi" />);
-    expect(html).toContain('href="/chinh-sach-bao-mat"');
+  it("renders configured support email when visible in both locales", () => {
+    const htmlVi = renderToStaticMarkup(<SiteFooter locale="vi" />);
+    expect(htmlVi).toContain("mailto:support@lasoviet.net");
+    expect(htmlVi).toContain("support@lasoviet.net");
+
+    const htmlEn = renderToStaticMarkup(<SiteFooter locale="en" />);
+    expect(htmlEn).toContain("mailto:support@lasoviet.net");
+    expect(htmlEn).toContain("support@lasoviet.net");
+  });
+
+  it("never leaks forbidden customer-facing copy such as Zalo, phone, address, legal entity, or social", () => {
+    const htmlVi = renderToStaticMarkup(<SiteFooter locale="vi" />);
+    expect(htmlVi).not.toMatch(/zalo|hotline|điện thoại|địa chỉ|facebook|tiktok|instagram|youtube/i);
+
+    const htmlEn = renderToStaticMarkup(<SiteFooter locale="en" />);
+    expect(htmlEn).not.toMatch(/zalo|hotline|phone|telephone|street address|facebook|tiktok|instagram|youtube/i);
   });
 });

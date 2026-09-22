@@ -639,7 +639,8 @@ describe("VietQR checkout recovery views", () => {
     expect(html).toContain("Payment was not completed");
     expect(html).toContain("Payment failed. Do not attempt another transfer for this order.");
     expect(html).toContain("/tai-khoan/don-hang");
-    expect(html).toContain("/lien-he?order=LSV-order-1");
+    expect(html).toContain("data-testid=\"checkout-failed-support\"");
+    expect(html).toContain("mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSVK7M2P9QXJ");
 
     // No QR or self-claim
     expect(html).not.toContain("https://vietqr.app");
@@ -679,7 +680,13 @@ describe("VietQR checkout recovery views", () => {
     expect(html).toContain("This order has been refunded. Review details in order history.");
     expect(html).toContain("/tai-khoan/don-hang");
 
-    // Must NOT contain purchase-as-new button
+    // Exactly one support affordance via footer support link, none in recovery actions
+    expect(html).toContain("checkout-footer-support");
+    expect(html).toContain(statusRefunded.order.supportUrl!);
+    const supportOccurrences = html.split(statusRefunded.order.supportUrl!).length - 1;
+    expect(supportOccurrences).toBe(1);
+
+    // Must NOT contain purchase-as-new button or redundant action buttons
     expect(html).not.toContain("/tao-la-so");
     expect(html).not.toContain("Create a new chart");
     expect(html).not.toContain("Lập lá số");
@@ -773,7 +780,8 @@ describe("VietQR checkout recovery views", () => {
     expect(html).toContain("Quay lại chọn luận giải");
     // Order history & support
     expect(html).toContain("/tai-khoan/don-hang");
-    expect(html).toContain("/lien-he?order=LSV-order-failed");
+    expect(html).toContain("data-testid=\"checkout-failed-support\"");
+    expect(html).toContain("mailto:support@lasoviet.net");
     // Hidden QR
     expect(html).not.toContain("https://vietqr.app");
   });
