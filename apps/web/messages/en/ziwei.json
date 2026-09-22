@@ -42,7 +42,7 @@
   },
   "chartActions": {
     "rebuildChart": "Rebuild chart",
-    "starLookup": "Star glossary",
+    "starLookup": "14 Principal Stars",
     "downloadImage": "Download image",
     "downloadDisabled": "Image download is coming soon",
     "legend": {
@@ -57,7 +57,9 @@
       "palacesCount": "12 calculated palaces",
       "insightsCount": "3 core free highlights",
       "evidenceCount": "3 verified evidence sources"
-    }
+    },
+    "downloadDisabledNote": "Image download is coming soon",
+    "discoveryAriaLabel": "Explore chart structure"
   },
   "overviewTab": {
     "ctaPalaces": "View 12 palaces reading →"
@@ -69,7 +71,9 @@
     "unopenedState": "Unopened",
     "noMajorStars": "No principal stars",
     "inspectAction": "View details",
-    "closeAction": "Close"
+    "closeAction": "Close",
+    "cycleStateLabel": "Life Stage Cycle:",
+    "allStarsLabel": "All stars:"
   },
   "topicsTab": {
     "title": "Thematic Reading Areas",
@@ -81,7 +85,8 @@
     "unlockCta": "Select a reading"
   },
   "evidenceTab": {
-    "title": "Verified Evidence & Rules",
-    "subtitle": "Inspect the exact astronomical data and classical rules backing your free chart highlights."
+    "title": "Transparent Calculation Evidence",
+    "subtitle": "Inspect the underlying star placements and classical calculation rules backing your three free highlights.",
+    "sourceLabel": "Verified evidence"
   }
 }

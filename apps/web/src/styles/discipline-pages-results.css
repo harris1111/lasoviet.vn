@@ -1079,3 +1079,40 @@
     display: none;
   }
 }
+
+/* Reading surface typography 17px/1.7/max720 for Overview Tab */
+.reading-overview-container {
+  max-width: 720px !important;
+  margin: 0 auto;
+}
+
+.reading-overview-container .identity-insight-card,
+.reading-overview-container .signal-card {
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
+
+.reading-overview-container .identity-preview-subtitle {
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
+
+.reading-overview-container .insight-card-prose,
+.reading-overview-container .signal-prose {
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
+
+/* Disabled download pill container and note */
+.chart-pill-disabled-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.chart-pill-note {
+  font-size: 12px;
+  color: var(--pearl-500);
+  font-family: var(--font-mono);
+}

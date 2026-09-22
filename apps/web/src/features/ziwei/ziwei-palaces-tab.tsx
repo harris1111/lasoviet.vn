@@ -25,16 +25,18 @@ export function ZiweiPalacesTab({
   const t = useTranslations("ziwei");
   const presentation = ziweiPresentation(locale);
 
-  // Normalize 12 palaces in canonical order or chart order
   const palaces = chart.palaces;
+  const isSoulPalace = (id: string) => id === chart.soulPalaceId;
+  const isBodyPalace = (id: string) => id === chart.bodyPalaceId;
+  const isPreviewEligible = (id: string) => isSoulPalace(id) || isBodyPalace(id);
 
-  const [activePalaceSuffix, setActivePalaceSuffix] = useState<string | undefined>(
-    openPalaceId,
-  );
+  // Controlled or synced open state
+  const [internalOpen, setInternalOpen] = useState<string | undefined>(openPalaceId);
+  const activePalaceSuffix = openPalaceId !== undefined ? openPalaceId : internalOpen;
 
   function handleSelectPalace(suffix: string) {
     const next = activePalaceSuffix === suffix ? undefined : suffix;
-    setActivePalaceSuffix(next);
+    setInternalOpen(next);
     onOpenPalace(next);
   }
 
@@ -51,13 +53,14 @@ export function ZiweiPalacesTab({
           const suffixId = palace.id.split(".").pop()!;
           const isOpen = activePalaceSuffix === suffixId;
           const majorStars = palace.stars.filter(
-            (s) => (s as any).category === "major" || (s as any).type === "major" || (s as any).type === "principal" || Boolean(s.brightness),
+            (s) => s.category === "major",
           );
           const branchName = presentation.branch(palace.earthlyBranchId);
           const stemName = palace.heavenlyStemId ? presentation.stem(palace.heavenlyStemId) : "";
           const cycleStateName = palace.cycleStateId ? presentation.cycleState(palace.cycleStateId) : "";
-          const isSoul = palace.id === chart.soulPalaceId;
-          const isBody = palace.id === chart.bodyPalaceId;
+          const isSoul = isSoulPalace(palace.id);
+          const isBody = isBodyPalace(palace.id);
+          const isPreview = isPreviewEligible(palace.id);
 
           return (
             <article
@@ -104,9 +107,9 @@ export function ZiweiPalacesTab({
                 </div>
 
                 <div className="palace-row-right">
-                  {/* Status marker: Only provable 'preview' or 'unopened'; never 'read' */}
-                  <span className={`palace-status-badge ${isSoul ? "badge-preview" : "badge-unopened"}`}>
-                    {isSoul ? t("palacesTab.previewState") : t("palacesTab.unopenedState")}
+                  {/* Status marker: 'Preview' for Life and Body palaces, 'Unopened' for all others; never 'read' */}
+                  <span className={`palace-status-badge ${isPreview ? "badge-preview" : "badge-unopened"}`}>
+                    {isPreview ? t("palacesTab.previewState") : t("palacesTab.unopenedState")}
                   </span>
                   <button
                     aria-expanded={isOpen}
@@ -137,11 +140,11 @@ export function ZiweiPalacesTab({
                       </span>
                     </div>
                     <div className="fact-item">
-                      <span className="fact-label">Vòng Trường Sinh:</span>
+                      <span className="fact-label">{t("palacesTab.cycleStateLabel")}</span>
                       <span className="fact-val">{cycleStateName}</span>
                     </div>
                     <div className="fact-item">
-                      <span className="fact-label">Toàn bộ sao:</span>
+                      <span className="fact-label">{t("palacesTab.allStarsLabel")}</span>
                       <span className="fact-val">
                         {palace.stars.map((s) => presentation.star(s.id)).join(", ")}
                       </span>

@@ -29,8 +29,8 @@ export function ZiweiChartTab({
 
   const wizardPath = isEn ? "/en/tao-la-so/tu-vi" : "/tao-la-so/tu-vi";
   const starGlossaryPath = isEn
-    ? "/en/kien-thuc/tu-vi/12-cung-trong-la-so-tu-vi"
-    : "/kien-thuc/tu-vi/12-cung-trong-la-so-tu-vi";
+    ? "/en/kien-thuc/tu-vi/14-chinh-tinh"
+    : "/kien-thuc/tu-vi/14-chinh-tinh";
 
   return (
     <div className="ziwei-chart-tab-content">
@@ -62,16 +62,21 @@ export function ZiweiChartTab({
             <span aria-hidden="true" className="chart-pill-icon">📖</span>
             <span>{t("chartActions.starLookup")}</span>
           </Link>
-          <button
-            className="chart-pill-btn chart-pill-disabled"
-            disabled
-            type="button"
-            title={t("chartActions.downloadDisabled")}
-            aria-disabled="true"
-          >
-            <span aria-hidden="true" className="chart-pill-icon">⬇</span>
-            <span>{t("chartActions.downloadImage")}</span>
-          </button>
+          <div className="chart-pill-disabled-wrap">
+            <button
+              aria-describedby="download-disabled-note"
+              aria-disabled="true"
+              className="chart-pill-btn chart-pill-disabled"
+              disabled
+              type="button"
+            >
+              <span aria-hidden="true" className="chart-pill-icon">⬇</span>
+              <span>{t("chartActions.downloadImage")}</span>
+            </button>
+            <span className="chart-pill-note" id="download-disabled-note">
+              {t("chartActions.downloadDisabledNote")}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -115,7 +120,7 @@ export function ZiweiChartTab({
 
       {/* 5. Factual exploration / discovery strip (PR spec §6.2) */}
       <div className="container chart-discovery-strip-wrap">
-        <div className="chart-discovery-strip" aria-label="Khám phá cấu trúc lá số">
+        <div className="chart-discovery-strip" aria-label={t("chartActions.discoveryAriaLabel")}>
           <div className="discovery-stat-item">
             <span className="discovery-stat-num">12</span>
             <span className="discovery-stat-label">{t("chartActions.discovery.palacesCount")}</span>

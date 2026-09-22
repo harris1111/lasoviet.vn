@@ -42,7 +42,7 @@
   },
   "chartActions": {
     "rebuildChart": "Lập lại lá số",
-    "starLookup": "Tra cứu sao",
+    "starLookup": "14 Chính Tinh",
     "downloadImage": "Tải ảnh lá số",
     "downloadDisabled": "Tính năng tải ảnh đang hoàn thiện",
     "legend": {
@@ -57,7 +57,9 @@
       "palacesCount": "12 cung bản mệnh đã an",
       "insightsCount": "3 nhận định cốt lõi",
       "evidenceCount": "3 căn cứ đối chiếu minh bạch"
-    }
+    },
+    "downloadDisabledNote": "Tính năng tải ảnh đang hoàn thiện",
+    "discoveryAriaLabel": "Khám phá cấu trúc lá số"
   },
   "overviewTab": {
     "ctaPalaces": "Xem luận giải 12 cung →"
@@ -69,7 +71,9 @@
     "unopenedState": "Chưa mở",
     "noMajorStars": "Vô chính diệu",
     "inspectAction": "Xem chi tiết",
-    "closeAction": "Đóng"
+    "closeAction": "Đóng",
+    "cycleStateLabel": "Vòng Trường Sinh:",
+    "allStarsLabel": "Toàn bộ sao:"
   },
   "topicsTab": {
     "title": "Chuyên đề luận giải sâu",
@@ -81,7 +85,8 @@
     "unlockCta": "Mở chuyên đề luận giải"
   },
   "evidenceTab": {
-    "title": "Minh chứng căn cứ & quy tắc an sao",
-    "subtitle": "Tra cứu dữ liệu an sao và quy tắc cổ thư xác thực cho 3 nhận định bản mệnh của bạn."
+    "title": "Căn cứ an định và quy tắc minh bạch",
+    "subtitle": "Tra cứu dữ liệu an sao và quy tắc an định minh bạch đối chiếu cho 3 nhận định bản mệnh của bạn.",
+    "sourceLabel": "Căn cứ đối chiếu"
   }
 }

@@ -65,6 +65,7 @@ export function ZiweiResultTabs({
     });
   }, [initialState.tab, initialState.open]);
 
+  // Use router.push on user interactions so browser history / Back / Forward updates state correctly
   function handleTabChange(nextTab: ZiweiResultTab, nextOpen?: string) {
     setActiveTab(nextTab);
     setOpenId(nextOpen);
@@ -72,7 +73,7 @@ export function ZiweiResultTabs({
       tab: nextTab,
       open: nextOpen,
     });
-    router.replace(nextUrl, { scroll: false });
+    router.push(nextUrl, { scroll: false });
   }
 
   // Keyboard navigation: ArrowLeft, ArrowRight, Home, End
@@ -223,6 +224,7 @@ export function ZiweiResultTabs({
               locale={locale}
               loadEvidence={loadEvidence}
               openEvidenceId={openId}
+              preview={preview}
             />
           </div>
         )}

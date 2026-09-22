@@ -30,8 +30,8 @@ vi.mock("next-intl", () => {
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    replace: vi.fn(),
     push: vi.fn(),
+    replace: vi.fn(),
   }),
 }));
 
@@ -58,11 +58,6 @@ const palaceIds = [
   "ziwei.palace.parents",
 ] as const;
 
-const branchIds = [
-  "yin", "mao", "chen", "si", "wu", "wei",
-  "shen", "you", "xu", "hai", "zi", "chou"
-] as const;
-
 const branchMapping = [
   "ziwei.branch.tiger", "ziwei.branch.rabbit", "ziwei.branch.dragon",
   "ziwei.branch.snake", "ziwei.branch.horse", "ziwei.branch.goat",
@@ -70,17 +65,19 @@ const branchMapping = [
   "ziwei.branch.pig", "ziwei.branch.rat", "ziwei.branch.ox"
 ] as const;
 
-const mockChart: any = {
+const mockChart = {
   version: 1,
   systemId: "ziwei",
   provenance: {
     ruleSetId: "test-rule-set",
     calculatedAt: "2026-09-22T00:00:00Z",
     engineVersion: "1.0.0",
-  } as any,
+  },
   soulPalaceId: "ziwei.palace.life",
   bodyPalaceId: "ziwei.palace.career",
-    transformations: [
+  horoscopeCapabilities: { canGenerateHoroscope: true },
+  warnings: [],
+  transformations: [
     { id: "ziwei.transformation.prosperity", starId: "ziwei.star.lianzhen" },
     { id: "ziwei.transformation.power", starId: "ziwei.star.pojun" },
     { id: "ziwei.transformation.fame", starId: "ziwei.star.wuqu" },
@@ -92,66 +89,66 @@ const mockChart: any = {
     heavenlyStemId: "ziwei.stem.jia",
     cycleStateId: "changsheng",
     stars: [
-      { id: "ziwei.star.ziwei", brightness: "ziwei.brightness.exalted" },
-      { id: "ziwei.star.tianfu", brightness: "ziwei.brightness.prosperous" },
+      { id: "ziwei.star.ziwei", category: "major", brightness: "ziwei.brightness.exalted" },
+      { id: "ziwei.star.tianfu", category: "major", brightness: "ziwei.brightness.prosperous" },
     ],
   })),
-};
+} as unknown as NormalizedZiweiChartV1;
 
 const mockPreview = {
-    version: 1,
-    chartId: "chart-test-123",
-    chartVersionId: "chart-version-1",
-    capabilityId: "ziwei.identity.p0",
-    summaryVersion: "ziwei.identity.free.v1",
-    insights: [
-      {
-        id: "life-palace",
-        evidence: {
-          evidenceId: "life-palace",
-          factReferences: [],
-          confidence: "high",
-          interpretationBoundCodes: ["reflective_identity_only"],
-          interpretationBounds: [],
-          limitations: [],
-        },
+  version: 1,
+  chartId: "chart-test-123",
+  chartVersionId: "chart-version-1",
+  capabilityId: "ziwei.identity.p0",
+  summaryVersion: "ziwei.identity.free.v1",
+  insights: [
+    {
+      id: "life-palace",
+      evidence: {
+        evidenceId: "ziwei.identity.life-palace",
+        factReferences: [],
+        confidence: "high",
+        interpretationBoundCodes: ["reflective_identity_only"],
+        interpretationBounds: ["Chỉ dùng cho mục đích tự phản chiếu."],
+        limitations: [],
       },
-      {
-        id: "body-palace",
-        evidence: {
-          evidenceId: "body-palace",
-          factReferences: [],
-          confidence: "high",
-          interpretationBoundCodes: ["reflective_identity_only"],
-          interpretationBounds: [],
-          limitations: [],
-        },
-      },
-      {
-        id: "transformations",
-        evidence: {
-          evidenceId: "transformations",
-          factReferences: [],
-          confidence: "high",
-          interpretationBoundCodes: ["reflective_identity_only"],
-          interpretationBounds: [],
-          limitations: [],
-        },
-      },
-    ],
-    paidPreview: {
-      sku: "ZIWEI-IDENTITY-P0",
-      sectionId: "personal_summary",
-      coveragePercent: 12,
-      evidence: [],
     },
-  } as unknown as FreeIdentityPreviewV1;
+    {
+      id: "body-palace",
+      evidence: {
+        evidenceId: "ziwei.identity.body-palace",
+        factReferences: [],
+        confidence: "high",
+        interpretationBoundCodes: ["reflective_identity_only"],
+        interpretationBounds: ["Chỉ dùng cho mục đích tự phản chiếu."],
+        limitations: [],
+      },
+    },
+    {
+      id: "transformations",
+      evidence: {
+        evidenceId: "ziwei.identity.transformations",
+        factReferences: [],
+        confidence: "high",
+        interpretationBoundCodes: ["reflective_identity_only"],
+        interpretationBounds: ["Chỉ dùng cho mục đích tự phản chiếu."],
+        limitations: [],
+      },
+    },
+  ],
+  paidPreview: {
+    sku: "ZIWEI-IDENTITY-P0",
+    sectionId: "personal_summary",
+    coveragePercent: 12,
+    evidence: [],
+  },
+} as unknown as FreeIdentityPreviewV1;
 
 const mockLoadEvidence = vi.fn().mockResolvedValue({
   ok: true,
   value: {
     evidence: {
-      id: "life-palace",
+      id: "ziwei.identity.life-palace",
       factReferences: ["fact-1"],
     },
   },
@@ -189,11 +186,12 @@ describe("ZiweiResultTabs UI Shell component", () => {
     expect(html).toContain("12 cung bản mệnh đã an");
     expect(html).toContain("03");
 
-    // Action pills row present
+    // Action pills row present with exact canonical star lookup href
     expect(html).toContain("Lập lại lá số");
-    expect(html).toContain("Tra cứu sao");
+    expect(html).toContain('href="/kien-thuc/tu-vi/14-chinh-tinh"');
     expect(html).toContain("Tải ảnh lá số");
     expect(html).toContain('aria-disabled="true"');
+    expect(html).toContain('id="download-disabled-note"');
   });
 
   it("renders Overview tab with FreeIdentityPreview and CTA switching to Palaces", () => {
@@ -214,9 +212,10 @@ describe("ZiweiResultTabs UI Shell component", () => {
     expect(html).toContain('id="tab-overview"');
     expect(html).toContain('id="panel-overview" role="tabpanel"');
     expect(html).toContain("Xem luận giải 12 cung →");
+    expect(html).toContain("reading-overview-container");
   });
 
-  it("renders Palaces tab with exactly 12 palace rows, honest preview/unopened markers, and never 'Đã đọc'", () => {
+  it("renders Palaces tab with exactly 12 palace rows, preview on Life and Body, unopened elsewhere, and never 'Đã đọc'", () => {
     const html = renderToStaticMarkup(
       createElement(ZiweiResultTabs, {
         basePath: "/la-so/chart-test-123",
@@ -238,14 +237,18 @@ describe("ZiweiResultTabs UI Shell component", () => {
     const palaceItems = html.match(/class="palace-row-card/g) || [];
     expect(palaceItems).toHaveLength(12);
 
-    // Honesty invariants: only Xem trước (preview) or Chưa mở (unopened); never Đã đọc
-    expect(html).toContain("Xem trước");
-    expect(html).toContain("Chưa mở");
+    // Life and Body palaces get preview marker
+    const previewBadges = html.match(/badge-preview/g) || [];
+    expect(previewBadges).toHaveLength(2);
+
+    const unopenedBadges = html.match(/badge-unopened/g) || [];
+    expect(unopenedBadges).toHaveLength(10);
+
     expect(html).not.toContain("Đã đọc");
     expect(html).not.toContain("0/12");
   });
 
-  it("renders Topics tab with exactly 12 structural reading themes and CTA to topic selection without pricing/Lá", () => {
+  it("renders Topics tab with exactly 12 structural reading themes from getPalaceLifeArea without pricing/Lá", () => {
     const html = renderToStaticMarkup(
       createElement(ZiweiResultTabs, {
         basePath: "/la-so/chart-test-123",
@@ -267,13 +270,17 @@ describe("ZiweiResultTabs UI Shell component", () => {
     const topicItems = html.match(/class="topic-row-item/g) || [];
     expect(topicItems).toHaveLength(12);
 
+    // Assert domain text comes from canonical getPalaceLifeArea
+    expect(html).toContain("Bản mệnh, tính cách nền tảng, phong thái");
+    expect(html).toContain("Sự nghiệp, phong cách làm việc");
+
     // Assert no price, no Lá, no entitlement or ownership claims
     expect(html).not.toMatch(/\d[\d.,]*\s*(?:₫|đ(?!\p{L})|VND|(?:Lá|La)(?!\p{L}))/iu);
     expect(html).not.toContain("Đã mở");
     expect(html).not.toContain("0/12");
   });
 
-  it("renders Evidence tab exposing exactly 3 authorized free references without hidden narrative", () => {
+  it("renders Evidence tab deriving exactly 3 authorized references directly from preview.insights with canonical ID calling", () => {
     const html = renderToStaticMarkup(
       createElement(ZiweiResultTabs, {
         basePath: "/la-so/chart-test-123",
@@ -290,13 +297,29 @@ describe("ZiweiResultTabs UI Shell component", () => {
 
     expect(html).toContain('id="tab-evidence"');
     expect(html).toContain('id="panel-evidence" role="tabpanel"');
-    expect(html).toContain("Minh chứng căn cứ &amp; quy tắc an sao");
+    expect(html).toContain("Căn cứ an định và quy tắc minh bạch");
 
     const evidenceCards = html.match(/class="evidence-matrix-card/g) || [];
     expect(evidenceCards).toHaveLength(3);
 
-    expect(html).toContain("Căn cứ Cung Mệnh");
-    expect(html).toContain("Căn cứ Cung Thân");
-    expect(html).toContain("Căn cứ Tứ Hóa");
+    // No unsupported marketing claims
+    expect(html).not.toContain("astronomical");
+    expect(html).not.toContain("căn cứ xác thực");
+  });
+});
+
+describe("Overview tab effective typography & styling contracts", () => {
+  it("enforces reading surface typography max-width 720px, font-size 17px, line-height 1.7", () => {
+    const fs = require("fs");
+    const path = require("path");
+    const resultsCss = fs.readFileSync(
+      path.resolve(process.cwd(), "apps/web/src/styles/discipline-pages-results.css"),
+      "utf8",
+    );
+
+    expect(resultsCss).toContain(".reading-overview-container");
+    expect(resultsCss).toContain("max-width: 720px");
+    expect(resultsCss).toContain("font-size: 17px");
+    expect(resultsCss).toContain("line-height: 1.7");
   });
 });

@@ -8,6 +8,10 @@ vi.mock("next/navigation", () => ({
     throw new Error("NEXT_NOT_FOUND");
   }),
   usePathname: vi.fn(() => null),
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+  })),
 }));
 
 const mockZiweiTranslations = {
@@ -44,6 +48,24 @@ const mockZiweiTranslations = {
     "deletion.error": "Error",
   },
 };
+
+vi.mock("next-intl", () => {
+  const viZiwei = require("../../../../../messages/vi/ziwei.json");
+  const viReports = require("../../../../../messages/vi/reports.json");
+  return {
+    useTranslations: (ns: string) => {
+      const msgs = ns === "reports" ? viReports : viZiwei;
+      return (key: string) => {
+        const parts = key.split(".");
+        let curr: any = msgs;
+        for (const p of parts) {
+          curr = curr?.[p];
+        }
+        return typeof curr === "string" ? curr : key;
+      };
+    },
+  };
+});
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async (namespace: string) => {

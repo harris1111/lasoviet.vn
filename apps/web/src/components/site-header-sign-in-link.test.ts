@@ -2,14 +2,24 @@ import { describe, expect, it } from "vitest";
 import { buildSignInCallbackUrl } from "./site-header-sign-in-link";
 
 describe("buildSignInCallbackUrl and header return path contract", () => {
-  it("preserves canonical search query params including ?tab= and open=", () => {
+  it("preserves canonical search query params including ?tab= and open= when explicit allowQuery is true", () => {
     expect(
-      buildSignInCallbackUrl("vi", "/la-so/chart-123?tab=topics&open=career"),
+      buildSignInCallbackUrl("vi", "/la-so/chart-123?tab=topics&open=career", true),
     ).toBe("/dang-nhap?callbackURL=%2Fla-so%2Fchart-123%3Ftab%3Dtopics%26open%3Dcareer");
 
     expect(
-      buildSignInCallbackUrl("en", "/en/la-so/chart-123?tab=palaces&open=wealth"),
+      buildSignInCallbackUrl("en", "/en/la-so/chart-123?tab=palaces&open=wealth", true),
     ).toBe("/en/dang-nhap?callbackURL=%2Fen%2Fla-so%2Fchart-123%3Ftab%3Dpalaces%26open%3Dwealth");
+  });
+
+  it("strips query params and hash when allowQuery is false (default currentPath fallback)", () => {
+    expect(
+      buildSignInCallbackUrl("vi", "/la-so/chart-123?tab=topics&open=career", false),
+    ).toBe("/dang-nhap?callbackURL=%2Fla-so%2Fchart-123");
+
+    expect(
+      buildSignInCallbackUrl("vi", "/la-so/chart-123#some-hash"),
+    ).toBe("/dang-nhap?callbackURL=%2Fla-so%2Fchart-123");
   });
 
   it("handles path-only without query params", () => {
