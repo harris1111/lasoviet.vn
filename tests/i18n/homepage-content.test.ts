@@ -16,7 +16,7 @@ function collectStrings(value: unknown): string[] {
 }
 
 describe("homepage content and structure requirements", () => {
-  it("orchestrates the 18 ordered data-home-block sections in page.tsx", () => {
+  it("orchestrates the 10 primary data-home-block sections in page.tsx matching AITuvi §4.1 order", () => {
     const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
     const pageSource = readFileSync(pagePath, "utf8");
 
@@ -28,20 +28,13 @@ describe("homepage content and structure requirements", () => {
     expect(blockMatches).toEqual([
       "header",
       "hero",
-      "trust-strip",
-      "problem",
-      "lenses",
-      "chatbot-comparison",
-      "category-comparison",
-      "about-method",
-      "process",
-      "free-value",
+      "topic-chips",
+      "comparison",
       "evidence",
-      "value-ladder",
-      "trust-specs",
+      "capability-matrix",
+      "process",
       "knowledge",
       "faq",
-      "about-excerpt",
       "support",
       "final-cta",
     ]);
@@ -116,6 +109,8 @@ describe("homepage content and structure requirements", () => {
       "#luan-giai",
       "#kien-thuc",
       "#phuong-phap",
+      "#can-cu",
+      "#faq",
     ];
 
     for (const anchor of requiredAnchors) {
@@ -138,20 +133,14 @@ describe("homepage content and structure requirements", () => {
 
     const requiredBlocks = [
       "hero",
-      "trustStrip",
-      "problem",
-      "lenses",
-      "chatbotComparison",
-      "categoryComparison",
-      "aboutMethod",
-      "process",
-      "freeValue",
+      "topicChips",
+      "comparison",
       "evidence",
-      "valueLadder",
-      "trustSpecs",
+      "capabilityMatrix",
+      "process",
       "knowledge",
       "faq",
-      "aboutExcerpt",
+      "support",
       "finalCta",
     ];
 
@@ -161,83 +150,87 @@ describe("homepage content and structure requirements", () => {
     }
   });
 
-  it("enforces planned non-link states for other disciplines, and no pricing shown on the homepage", () => {
+  it("enforces no price amounts (neither VND nor Lá) displayed on homepage", () => {
     const viPath = resolve(rootDir, "apps/web/messages/vi/common.json");
     const enPath = resolve(rootDir, "apps/web/messages/en/common.json");
 
     const vi = JSON.parse(readFileSync(viPath, "utf8"));
     const en = JSON.parse(readFileSync(enPath, "utf8"));
 
-    expect(vi.home?.lenses?.batTu?.status).toBe("Sắp ra mắt");
-    expect(vi.home?.lenses?.astrology?.status).toBe("Sắp ra mắt");
-    expect(vi.home?.lenses?.numerology?.status).toBe("Sắp ra mắt");
-    expect(en.home?.lenses?.batTu?.status).toBe("Planned");
-    expect(en.home?.lenses?.astrology?.status).toBe("Planned");
-    expect(en.home?.lenses?.numerology?.status).toBe("Planned");
+    // Check complete home copy for VI and EN
+    const viHomeCopy = collectStrings(vi.home).join("\n");
+    const enHomeCopy = collectStrings(en.home).join("\n");
 
-    // Product decision (2026-09-09): the homepage no longer shows tier pricing at all —
-    // pricing lives on the sample/commercial pages only. See docs/superpowers/specs/
-    // 2026-09-09-content-ux-polish/vi/brand.home.md for the reconciliation with the
-    // two-tier ladder (FD-036…FD-048).
-    expect(vi.home?.valueLadder?.tier1).toBeUndefined();
-    expect(en.home?.valueLadder?.tier1).toBeUndefined();
-    expect(vi.home?.valueLadder).toMatchObject({
-      eyebrow: expect.any(String),
-      title: expect.any(String),
-      bodyIntro: expect.any(String),
-      bodyOffer: expect.any(String),
-      methodNote: expect.any(String),
-      cta: expect.any(String),
-    });
-    const viLadderCopy = collectStrings(vi.home.valueLadder).join("\n");
-    const enLadderCopy = collectStrings(en.home.valueLadder).join("\n");
-    expect(viLadderCopy).not.toMatch(/\d[\d.,]*\s*(?:₫|đ\b)/i);
-    expect(enLadderCopy).not.toMatch(/\d[\d.,]*\s*(?:VND|USD|\$)/i);
+    // Must not contain numeric prices with currency or Lá amounts
+    expect(viHomeCopy).not.toMatch(/\d[\d.,]*\s*(?:₫|đ\b|VND|Lá\b)/i);
+    expect(enHomeCopy).not.toMatch(/\d[\d.,]*\s*(?:VND|USD|\$|Lá\b|La\b)/i);
   });
 
-  it("matches exact prototype copy and metadata references for hero and trust strip", () => {
+  it("enforces 8 numbered FAQ items with non-empty questions and answers", () => {
     const viPath = resolve(rootDir, "apps/web/messages/vi/common.json");
-    const vi = JSON.parse(readFileSync(viPath, "utf8"));
+    const enPath = resolve(rootDir, "apps/web/messages/en/common.json");
 
-    // Prototype baseline updated 2026-09-09: voice/positioning rewrite, see
-    // docs/superpowers/specs/2026-09-09-content-ux-polish/voice-and-positioning.md.
-    expect(vi.home.hero).toMatchObject({
-      eyebrow: "Thư viện huyền học Việt · Mỗi câu hỏi, một cách tra cứu riêng",
-      lead:
-        "Đọc một lá số mà thấy toàn thuật ngữ lạ, vẫn không rõ nó đang nói gì về mình? Lá Số Việt dựng lá số Tử Vi miễn phí, rồi mở từng nhận định bằng đúng một câu hỏi: vì sao lại như vậy.",
-      copy:
-        "Không phán một câu rồi để bạn tự đoán. Không hứa biết trước tương lai. Những nhận định quan trọng đều có thể mở ra xem — dữ liệu nào, quy tắc nào, giới hạn ở đâu — để quyết định cuối cùng vẫn là của bạn.",
-      microcopy:
-        "Miễn phí ngay lập tức · Riêng tư theo mặc định · Không cần đăng ký tài khoản.",
-      metaRoute: "Từ dữ liệu sinh đến bản đồ 12 cung",
-      metaDetail: "Lá số đầy đủ được tính ở bước tiếp theo.",
-      ctaPrimary: "Lập lá số miễn phí",
-      ctaSecondary: "Xem bản luận giải mẫu",
-    });
+    const vi = JSON.parse(readFileSync(viPath, "utf8")).home.faq;
+    const en = JSON.parse(readFileSync(enPath, "utf8")).home.faq;
 
-    expect(vi.home.trustStrip).toEqual({
-      item1: {
-        title: "Gốc rễ hơn nghìn năm",
-        copy: "Tử Vi Đẩu Số là hệ thống cổ học được đúc kết qua nhiều thế kỷ, từ tri thức tinh túy của các bậc tiền nhân — Lá Số Việt kế thừa nền tảng đó bằng một cách tính nhất quán, minh bạch.",
-      },
-      item2: {
-        title: "Tường minh căn cứ",
-        copy: "Mỗi nhận định gắn với dữ liệu và quy tắc công bố.",
-      },
-      item3: {
-        title: "Riêng tư theo mặc định",
-        copy: "Lá số của bạn không hiển thị công khai. Dữ liệu khách chưa liên kết tài khoản được xóa trong 24 giờ.",
-      },
-      item4: {
-        title: "Không ép gia hạn",
-        copy: "Báo cáo là thanh toán một lần.",
-      },
-    });
+    const faqKeys = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8"] as const;
+    expect(Object.keys(vi).filter((k) => k.startsWith("q"))).toHaveLength(8);
+    expect(Object.keys(en).filter((k) => k.startsWith("q"))).toHaveLength(8);
 
-    const heroSourcePath = resolve(rootDir, "apps/web/src/features/homepage/homepage-hero.tsx");
-    const heroSource = readFileSync(heroSourcePath, "utf8");
-    expect(heroSource).toContain("home.hero.metaRoute");
-    expect(heroSource).toContain("home.hero.metaDetail");
+    for (const k of faqKeys) {
+      expect(vi[k]?.question?.length).toBeGreaterThan(10);
+      expect(vi[k]?.answer?.length).toBeGreaterThan(15);
+      expect(en[k]?.question?.length).toBeGreaterThan(10);
+      expect(en[k]?.answer?.length).toBeGreaterThan(15);
+    }
+  });
+
+  it("enforces process steps copy <= 20 words each (AITuvi §4.1 budget)", () => {
+    const viPath = resolve(rootDir, "apps/web/messages/vi/common.json");
+    const enPath = resolve(rootDir, "apps/web/messages/en/common.json");
+
+    const viProcess = JSON.parse(readFileSync(viPath, "utf8")).home.process;
+    const enProcess = JSON.parse(readFileSync(enPath, "utf8")).home.process;
+
+    for (const step of ["one", "two", "three"] as const) {
+      const viWords = viProcess[step].copy.trim().split(/\s+/).length;
+      const enWords = enProcess[step].copy.trim().split(/\s+/).length;
+      expect(viWords, `VI process.${step}.copy word count`).toBeLessThanOrEqual(20);
+      expect(enWords, `EN process.${step}.copy word count`).toBeLessThanOrEqual(20);
+    }
+  });
+
+  it("enforces homepage word budget above FAQ <= 1400 words", () => {
+    const viPath = resolve(rootDir, "apps/web/messages/vi/common.json");
+    const enPath = resolve(rootDir, "apps/web/messages/en/common.json");
+
+    const vi = JSON.parse(readFileSync(viPath, "utf8")).home;
+    const en = JSON.parse(readFileSync(enPath, "utf8")).home;
+
+    const preFaqBlocks = [
+      "hero",
+      "topicChips",
+      "comparison",
+      "evidence",
+      "capabilityMatrix",
+      "process",
+      "knowledge",
+    ];
+
+    const viPreFaqWords = preFaqBlocks
+      .flatMap((b) => collectStrings(vi[b]))
+      .join(" ")
+      .trim()
+      .split(/\s+/).length;
+
+    const enPreFaqWords = preFaqBlocks
+      .flatMap((b) => collectStrings(en[b]))
+      .join(" ")
+      .trim()
+      .split(/\s+/).length;
+
+    expect(viPreFaqWords, "VI words above FAQ").toBeLessThanOrEqual(1400);
+    expect(enPreFaqWords, "EN words above FAQ").toBeLessThanOrEqual(1400);
   });
 
   it("rejects unsupported claims across the complete VI and EN home trees", () => {
@@ -263,6 +256,8 @@ describe("homepage content and structure requirements", () => {
       /absolute privacy/i,
       /mọi (?:kết luận|nhận định)/i,
       /every (?:important )?(?:conclusion|insight)/i,
+      /chuyên gia/i,
+      /đội ngũ xem xét/i,
     ];
 
     for (const locale of ["vi", "en"]) {
@@ -274,5 +269,42 @@ describe("homepage content and structure requirements", () => {
         expect(copy, `${locale} home copy must not match ${claim}`).not.toMatch(claim);
       }
     }
+  });
+
+  it("verifies removed blocks are no longer imported in page.tsx", () => {
+    const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
+    const pageSource = readFileSync(pagePath, "utf8");
+
+    const removedComponents = [
+      "HomepageTrustStrip",
+      "HomepageProblem",
+      "HomepageLenses",
+      "HomepageChatbotComparison",
+      "HomepageCategoryComparison",
+      "HomepageMethod",
+      "HomepageFreeValue",
+      "HomepageValueLadder",
+      "HomepageTrustSpecs",
+      "HomepageAboutExcerpt",
+    ];
+
+    for (const comp of removedComponents) {
+      expect(pageSource).not.toContain(comp);
+    }
+  });
+
+  it("enforces mobile order form-first and touch target constraints in CSS", () => {
+    const foundationCss = readFileSync(
+      resolve(rootDir, "apps/web/src/styles/homepage-foundation.css"),
+      "utf8",
+    );
+
+    // Form first on mobile
+    expect(foundationCss).toContain("order: 1; /* Form first on mobile */");
+    expect(foundationCss).toContain("order: 2; /* H1 & intro below on mobile */");
+
+    // Touch targets >= 44px
+    expect(foundationCss).toMatch(/min-height:\s*44px/);
+    expect(foundationCss).toContain("@media (prefers-reduced-motion: reduce)");
   });
 });

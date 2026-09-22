@@ -11,10 +11,7 @@ import type { BirthTimeState } from "../birth-profile/birth-profile-input";
 import { validateWizardDate } from "../birth-profile/birth-wizard-state";
 import {
   clearBirthCache,
-  CANONICAL_BRANCH_IDS,
-  getBranchOptionLabel,
   isCanonicalBranchId,
-  parseAndValidateDateParts,
   readBirthCache,
   saveHomepageBirthPrefill,
   type ReusableBirthTime,
@@ -182,7 +179,6 @@ export function HomepageHero({ locale, referenceYear }: HomepageHeroProps) {
     setHasReusedCache(false);
   }
 
-
   const timeState: BirthTimeState =
     timeMode === "exact_minute"
       ? { precision: "exact_minute", hour, minute }
@@ -265,106 +261,112 @@ export function HomepageHero({ locale, referenceYear }: HomepageHeroProps) {
         mobile={imagePath("menh-thu-khai-quang-hero-lasoviet-mobile.webp")}
       />
       <div className="container hero-content">
-        <p className="eyebrow">{t("home.hero.eyebrow")}</p>
-        <h1>
-          {t("app.taglinePrefix")}{" "}
-          <br />
-          <span className="gold-text">{t("app.taglineHighlight")}</span>
-        </h1>
-        <p className="hero-lead">{t("home.hero.lead")}</p>
-        <p className="hero-copy">{t("home.hero.copy")}</p>
+        {/* Column 1 on Desktop; Column 2 on Mobile */}
+        <div className="hero-text-col">
+          <p className="eyebrow">{t("home.hero.eyebrow")}</p>
+          <h1>
+            {t("app.taglinePrefix")}{" "}
+            <br />
+            <span className="gold-text">{t("app.taglineHighlight")}</span>
+          </h1>
+          <p className="hero-lead">{t("home.hero.lead")}</p>
+          <p className="hero-copy">{t("home.hero.copy")}</p>
+        </div>
 
-        <form
-          className="birth-cta"
-          id="hero-form"
-          noValidate
-          onSubmit={handleSubmit}
-        >
-          {hasReusedCache ? (
-            <div className="hero-cache-notice">
-              <span>{locale === "en" ? "Prefilled from saved birth details." : "Đã điền từ thông tin sinh đã lưu."}</span>
-              <button
-                className="hero-cache-clear"
-                onClick={handleClearCache}
-                type="button"
-              >
-                {locale === "en" ? "Clear saved info" : "Xóa thông tin đã lưu"}
+        {/* Column 2 on Desktop; Column 1 (Form first) on Mobile */}
+        <div className="hero-form-col">
+          <form
+            className="birth-cta"
+            id="hero-form"
+            noValidate
+            onSubmit={handleSubmit}
+          >
+            {hasReusedCache ? (
+              <div className="hero-cache-notice">
+                <span>{locale === "en" ? "Prefilled from saved birth details." : "Đã điền từ thông tin sinh đã lưu."}</span>
+                <button
+                  className="hero-cache-clear"
+                  onClick={handleClearCache}
+                  type="button"
+                >
+                  {locale === "en" ? "Clear saved info" : "Xóa thông tin đã lưu"}
+                </button>
+              </div>
+            ) : null}
+
+            <div className="hero-form-inputs">
+              <BirthDetailsFields
+                calendarLabel={tProfile("birth.calendarType")}
+                calendarType={calendarType}
+                day={day}
+                dayLabel={t("home.form.day")}
+                isLeapMonth={isLeapMonth}
+                leapMonthHelp={tProfile("birth.leapMonthHelp")}
+                leapMonthLabel={tProfile("birth.leapMonth")}
+                locale={locale}
+                lunarLabel={tProfile("birth.lunar")}
+                lunarNotice={tProfile("birth.lunarNotice")}
+                month={month}
+                monthLabel={t("home.form.month")}
+                onCalendarTypeChange={(next) => {
+                  setCalendarType(next);
+                  if (next === "solar") {
+                    setIsLeapMonth(false);
+                  }
+                  if (error) setError(null);
+                }}
+                onDayChange={(val) => {
+                  setDay(val);
+                  if (error) setError(null);
+                }}
+                onIsLeapMonthChange={setIsLeapMonth}
+                onMonthChange={(val) => {
+                  setMonth(val);
+                  if (error) setError(null);
+                }}
+                onTimeStateChange={handleTimeStateChange}
+                onYearChange={(val) => {
+                  setYear(val);
+                  if (error) setError(null);
+                }}
+                referenceYear={referenceYear}
+                solarLabel={tProfile("birth.solar")}
+                timeLabels={{
+                  hour: tProfile("birth.hour"),
+                  minute: tProfile("birth.minute"),
+                  title: t("home.form.hour"),
+                  unknown: tProfile("birth.unknown"),
+                  unknownHelp: tProfile("birth.unknownHelp"),
+                  exactMode: tProfile("birth.exactMode"),
+                  branchMode: tProfile("birth.branchMode"),
+                  branch: tProfile("birth.branch"),
+                  branchHelp: tProfile("birth.branchHelp"),
+                }}
+                timeState={timeState}
+                variant="hero"
+                year={year}
+                yearLabel={t("home.form.year")}
+              />
+
+              <button className="button button-pill" type="submit">
+                {t("home.hero.ctaPrimary")}
               </button>
+              <Link className="button button-secondary button-pill" href={localizedPath(locale, "/bao-cao-mau/tu-vi")}>
+                {t("home.hero.ctaSecondary")}
+              </Link>
             </div>
-          ) : null}
-
-          <div className="hero-form-inputs">
-            <BirthDetailsFields
-              calendarLabel={tProfile("birth.calendarType")}
-              calendarType={calendarType}
-              day={day}
-              dayLabel={t("home.form.day")}
-              isLeapMonth={isLeapMonth}
-              leapMonthHelp={tProfile("birth.leapMonthHelp")}
-              leapMonthLabel={tProfile("birth.leapMonth")}
-              locale={locale}
-              lunarLabel={tProfile("birth.lunar")}
-              lunarNotice={tProfile("birth.lunarNotice")}
-              month={month}
-              monthLabel={t("home.form.month")}
-              onCalendarTypeChange={(next) => {
-                setCalendarType(next);
-                if (next === "solar") {
-                  setIsLeapMonth(false);
-                }
-                if (error) setError(null);
-              }}
-              onDayChange={(val) => {
-                setDay(val);
-                if (error) setError(null);
-              }}
-              onIsLeapMonthChange={setIsLeapMonth}
-              onMonthChange={(val) => {
-                setMonth(val);
-                if (error) setError(null);
-              }}
-              onTimeStateChange={handleTimeStateChange}
-              onYearChange={(val) => {
-                setYear(val);
-                if (error) setError(null);
-              }}
-              referenceYear={referenceYear}
-              solarLabel={tProfile("birth.solar")}
-              timeLabels={{
-                hour: tProfile("birth.hour"),
-                minute: tProfile("birth.minute"),
-                title: t("home.form.hour"),
-                unknown: tProfile("birth.unknown"),
-                unknownHelp: tProfile("birth.unknownHelp"),
-                exactMode: tProfile("birth.exactMode"),
-                branchMode: tProfile("birth.branchMode"),
-                branch: tProfile("birth.branch"),
-                branchHelp: tProfile("birth.branchHelp"),
-              }}
-              timeState={timeState}
-              variant="hero"
-              year={year}
-              yearLabel={t("home.form.year")}
-            />
-
-            <button className="button" type="submit">
-              {t("home.hero.ctaPrimary")}
-            </button>
-            <Link className="button button-secondary" href={localizedPath(locale, "/bao-cao-mau/tu-vi")}>
-              {t("home.hero.ctaSecondary")}
-            </Link>
-          </div>
-          {error ? (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className="hero-form-meta">
-            <p className="birth-note">{t("home.hero.microcopy")}</p>
-            <span className="hero-meta-route">{t("home.hero.metaRoute")}</span>
-            <span className="hero-meta-detail">{t("home.hero.metaDetail")}</span>
-          </div>
-        </form>
+            {error ? (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <div className="hero-form-meta">
+              <p className="birth-note">{t("home.hero.microcopy")}</p>
+              <span className="hero-meta-route">{t("home.hero.metaRoute")}</span>
+              <span className="hero-meta-detail">{t("home.hero.metaDetail")}</span>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

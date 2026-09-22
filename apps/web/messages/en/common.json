@@ -185,7 +185,7 @@
       "eyebrow": "How it works",
       "one": {
         "title": "Enter birth data",
-        "copy": "You can save birth data when the time is unknown, but a Zi Wei chart cannot be calculated until the birth time is within the supported input boundary."
+        "copy": "Save birth data with exact time, a 12-branch range, or record an unknown birth time."
       },
       "two": {
         "title": "View the free chart",
@@ -193,7 +193,7 @@
       },
       "three": {
         "title": "Choose a deeper reading",
-        "copy": "Review the table of contents, sample report, and price before deciding whether to go deeper."
+        "copy": "Review the table of contents, sample report, and section details before deciding to unlock."
       },
       "meta": {
         "calendar": "Birth date",
@@ -298,21 +298,38 @@
     },
     "faq": {
       "eyebrow": "Frequently asked questions",
-      "ai": {
+      "title": "Common questions about Lá Số Việt",
+      "q1": {
         "question": "Does Lá Số Việt use AI?",
-        "answer": "Yes. AI helps organize and interpret within the available evidence; it does not replace the underlying calculation data and rules."
+        "answer": "Yes. AI helps structure and clarify prose strictly within computed evidence rules without replacing astronomical calculations."
       },
-      "time": {
+      "q2": {
         "question": "What if I do not know my exact birth time?",
-        "answer": "You can save your birth data even without knowing the exact time. If you know a rough birth-hour range (by the 12 Earthly Branches) or the exact time, a Zi Wei chart can still be built. If the time is completely unknown, we say plainly what can't be calculated instead of picking a time for you."
+        "answer": "You can still generate a chart using a 12 Earthly Branches interval. When time is completely unknown, limitations are explicitly stated."
       },
-      "payment": {
+      "q3": {
         "question": "Do paid reports renew automatically?",
-        "answer": "No. The displayed price is a one-time payment with no automatic renewal."
+        "answer": "No. All in-depth reports are one-time payments tailored to your selection, with zero recurring charges or subscriptions."
       },
-      "privacy": {
-        "question": "How is my birth data used?",
-        "answer": "In the current flow, birth data is used to create the chart and interpretation. Charts are private by default, and available controls let you view, correct, or delete data."
+      "q4": {
+        "question": "How is my birth data protected?",
+        "answer": "Your birth details are private by default. Guest session data is permanently removed after 24 hours unless linked to an account."
+      },
+      "q5": {
+        "question": "What is included in the free chart?",
+        "answer": "You receive the complete 12-palace astrological chart, three core destiny highlights, and verifiable evidence sources."
+      },
+      "q6": {
+        "question": "Does the reading cite evidence sources?",
+        "answer": "Yes. Key findings directly reference star placements, interacting palaces, and transparent classical interpretation rules."
+      },
+      "q7": {
+        "question": "Who edits the interpretations?",
+        "answer": "All interpretations are edited by Lá Số Việt using exact astrological algorithms and curated traditional scholarship."
+      },
+      "q8": {
+        "question": "Can I revisit my chart later?",
+        "answer": "Yes. By saving your data or signing in, your generated chart and unlocked readings remain securely accessible in your library."
       }
     },
     "aboutExcerpt": {
@@ -333,6 +350,127 @@
       "title": "Need guidance or support?",
       "description": "The Lá Số Việt team is ready to listen and answer your questions via private email support.",
       "action": "Send support email"
+    },
+    "topicChips": {
+      "eyebrow": "Reading index",
+      "title": "12 palaces and foundational themes",
+      "lead": "Each life question maps directly to specific palaces and clear cross-references.",
+      "row1": [
+        "Life",
+        "Parents",
+        "Fortune",
+        "Property",
+        "Career",
+        "Friends",
+        "Travel",
+        "Health",
+        "Wealth",
+        "Children",
+        "Marriage",
+        "Siblings"
+      ],
+      "row2": [
+        "Destiny overview",
+        "Five elements balance",
+        "Life-wealth-career trinity",
+        "10-year major periods",
+        "Annual trends",
+        "Key transition turning points",
+        "Wealth opportunities",
+        "Career path",
+        "Marriage and family"
+      ],
+      "alsoHave": "Also available",
+      "alsoHaveItems": [
+        {
+          "label": "BaZi",
+          "href": "/en/bat-tu"
+        },
+        {
+          "label": "Astrology",
+          "href": "/en/chiem-tinh"
+        },
+        {
+          "label": "Numerology",
+          "href": "/en/than-so-hoc"
+        },
+        {
+          "label": "I Ching",
+          "href": "/en/kinh-dich"
+        }
+      ]
+    },
+    "comparison": {
+      "eyebrow": "Comparison",
+      "title": "Three approaches to reading your chart",
+      "subtitle": "Comparing fragmented self-study, conversational reading, and Lá Số Việt.",
+      "lasoviet": {
+        "badge": "Featured approach",
+        "title": "Lá Số Việt",
+        "subtitle": "Precise calculations coupled with transparent evidence",
+        "bullet1": "Precise 12-palace star charting with accessible explanations",
+        "bullet2": "Key insights connect directly to stars, palaces, and rules.",
+        "bullet3": "Private by default with zero unwanted renewals or data selling"
+      },
+      "selfStudy": {
+        "title": "Books & online articles",
+        "subtitle": "Scattered research across disconnected sources",
+        "bullet1": "Dense archaic terminology lacking unified modern clarity",
+        "bullet2": "Requires manual piecing together across conflicting schools",
+        "bullet3": "Prone to anxiety when encountering contradictory interpretations"
+      },
+      "aiChat": {
+        "title": "Consultants & AI chatbots",
+        "subtitle": "Freeform conversational advice",
+        "bullet1": "Vulnerable to speculative guesses lacking underlying chart rules",
+        "bullet2": "Unpredictable costs or difficult to audit and verify later",
+        "bullet3": "Hard to verify how personal birth information is stored"
+      },
+      "mobileAccordionTitle": "View other approaches"
+    },
+    "capabilityMatrix": {
+      "eyebrow": "System capabilities",
+      "title": "What you receive at each tier",
+      "subtitle": "Every deliverable is clear and transparent before you start.",
+      "colFree": "Free",
+      "colStandard": "Core Destiny",
+      "colComprehensive": "Comprehensive",
+      "row1": {
+        "feature": "Full 12-palace chart calculation and diagram",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row2": {
+        "feature": "3 core personality and destiny highlights",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row3": {
+        "feature": "Star placement evidence and calculation rules",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row4": {
+        "feature": "4 core topics: Destiny, Career, Wealth, Fortune",
+        "free": false,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row5": {
+        "feature": "Complete 12-palace reading and major 10-year periods",
+        "free": false,
+        "standard": false,
+        "comprehensive": true
+      },
+      "row6": {
+        "feature": "Secure cloud saving and permanent library access",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      }
     }
   }
 }
