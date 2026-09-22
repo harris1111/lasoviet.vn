@@ -54,6 +54,7 @@ export function ZiweiTopicsTab({
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const sheetPanelRef = useRef<HTMLDivElement>(null);
+  const tabContentRef = useRef<HTMLDivElement>(null);
 
   const unlockSelectionHref = isEn
     ? `/en/la-so/${chartId}/chon-luan-giai`
@@ -84,11 +85,32 @@ export function ZiweiTopicsTab({
   useEffect(() => {
     if (!activeTopic || !isMobile) return;
 
-    // Isolate background siblings with inert
-    const mainElement = document.querySelector("main");
-    const headerElement = document.querySelector("header");
-    if (mainElement) mainElement.setAttribute("aria-hidden", "true");
-    if (headerElement) headerElement.setAttribute("aria-hidden", "true");
+    // Isolate sibling elements without aria-hiding the ancestor containing the dialog
+    // Background siblings to isolate: header, result-hero, result-tab-bar-container, paid-cta, footer
+    const isolatedElements: Array<{ el: HTMLElement; prevAriaHidden: string | null; prevInert: boolean }> = [];
+
+    const candidates = [
+      document.querySelector("header"),
+      document.querySelector(".result-hero"),
+      document.querySelector(".result-tab-bar-container"),
+      document.querySelector(".result-paid-report-cta"),
+      document.querySelector(".result-page-footer-container"),
+      document.querySelector("footer"),
+      document.querySelector(".topics-list-container"),
+      document.querySelector(".ziwei-topics-tab-content > .section-heading"),
+    ];
+
+    candidates.forEach((node) => {
+      if (node && node instanceof HTMLElement) {
+        isolatedElements.push({
+          el: node,
+          prevAriaHidden: node.getAttribute("aria-hidden"),
+          prevInert: (node as any).inert ?? false,
+        });
+        node.setAttribute("aria-hidden", "true");
+        (node as any).inert = true;
+      }
+    });
 
     closeBtnRef.current?.focus();
 
@@ -125,13 +147,19 @@ export function ZiweiTopicsTab({
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      if (mainElement) mainElement.removeAttribute("aria-hidden");
-      if (headerElement) headerElement.removeAttribute("aria-hidden");
+      isolatedElements.forEach(({ el, prevAriaHidden, prevInert }) => {
+        if (prevAriaHidden === null) {
+          el.removeAttribute("aria-hidden");
+        } else {
+          el.setAttribute("aria-hidden", prevAriaHidden);
+        }
+        (el as any).inert = prevInert;
+      });
     };
   }, [activeTopic, isMobile, handleCloseModal]);
 
   return (
-    <div className="container ziwei-topics-tab-content">
+    <div className="container ziwei-topics-tab-content" ref={tabContentRef}>
       <div className="section-heading">
         <p className="eyebrow">{t("topicsTab.title")}</p>
         <h2>{t("topicsTab.title")}</h2>

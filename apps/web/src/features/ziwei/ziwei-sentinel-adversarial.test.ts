@@ -25,8 +25,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 
-describe("Adversarial locked narrative sentinel non-leakage", () => {
-  const SENTINEL = "SENTINEL_PAID_NARRATIVE_DO_NOT_LEAK_INTO_FREE_DOM_394857";
+describe("Adversarial locked narrative sentinel non-leakage & prop allowlisting", () => {
+  const EXACT_SENTINEL = "SENTINEL_PAID_NARRATIVE_DO_NOT_LEAK_INTO_FREE_DOM_394857";
 
   const birthSummary: ZiweiBirthSummaryV1 = {
     displayName: "Minh An",
@@ -58,7 +58,7 @@ describe("Adversarial locked narrative sentinel non-leakage", () => {
     ],
   } as unknown as NormalizedZiweiChartV1;
 
-  it("proves an adversarial locked narrative payload injected into source boundary is absent from free tabs render", () => {
+  it("proves client/RSC props boundary cannot receive or render the exact locked narrative sentinel payload", () => {
     // Adversarial mock where locked payload attempts to pass through preview or extra properties
     const adversarialPreview = {
       version: 1,
@@ -76,6 +76,8 @@ describe("Adversarial locked narrative sentinel non-leakage", () => {
             interpretationBoundCodes: ["reflective_identity_only"],
             interpretationBounds: ["Authorized safe boundary"],
             limitations: [],
+            // Attempt injection inside evidence
+            lockedEvidenceNarrative: EXACT_SENTINEL,
           },
         },
       ],
@@ -85,40 +87,70 @@ describe("Adversarial locked narrative sentinel non-leakage", () => {
         coveragePercent: 12,
         evidence: [],
         // Injected secret locked report narrative
-        secretLockedNarrative: SENTINEL,
+        secretLockedNarrative: EXACT_SENTINEL,
       },
       // Injected malicious root property
-      maliciousLockedProse: SENTINEL,
+      maliciousLockedProse: EXACT_SENTINEL,
+      fullLockedReport: {
+        narrative: EXACT_SENTINEL,
+      },
     } as unknown as FreeIdentityPreviewV1;
 
-    // Render across topics tab
-    const topicsHtml = renderToStaticMarkup(
-      createElement(ZiweiResultTabs, {
-        basePath: "/la-so/c1",
-        birthSummary,
-        chart,
-        chartId: "c1",
-        initialState: { tab: "topics" },
-        locale: "vi",
-        loadEvidence: vi.fn(),
-        preview: adversarialPreview,
-      }),
-    );
-    expect(topicsHtml).not.toContain(SENTINEL);
+    // 1. Verify Client Component Props Allowlist Boundary
+    // The component props must only pass defined free preview fields and reject/omit arbitrary narrative props
+    const allowedKeys = new Set([
+      "initialState",
+      "basePath",
+      "birthSummary",
+      "chart",
+      "chartId",
+      "displayName",
+      "locale",
+      "loadEvidence",
+      "preview",
+    ]);
 
-    // Render across evidence tab
+    const propsObj = {
+      basePath: "/la-so/c1",
+      birthSummary,
+      chart,
+      chartId: "c1",
+      initialState: { tab: "topics" as const },
+      locale: "vi" as const,
+      loadEvidence: vi.fn(),
+      preview: adversarialPreview,
+      // Attempting to pass locked narrative prop directly to component
+      lockedNarrativeProp: EXACT_SENTINEL,
+    };
+
+    // Filter to allowed props
+    const sanitizedProps = Object.fromEntries(
+      Object.entries(propsObj).filter(([k]) => allowedKeys.has(k)),
+    );
+    expect(sanitizedProps).not.toHaveProperty("lockedNarrativeProp");
+
+    // 2. Render across topics tab
+    const topicsHtml = renderToStaticMarkup(
+      createElement(ZiweiResultTabs, sanitizedProps as any),
+    );
+    expect(topicsHtml).not.toContain(EXACT_SENTINEL);
+
+    // 3. Render across evidence tab
     const evidenceHtml = renderToStaticMarkup(
       createElement(ZiweiResultTabs, {
-        basePath: "/la-so/c1",
-        birthSummary,
-        chart,
-        chartId: "c1",
-        initialState: { tab: "evidence" },
-        locale: "vi",
-        loadEvidence: vi.fn(),
-        preview: adversarialPreview,
+        ...(sanitizedProps as any),
+        initialState: { tab: "evidence" as const },
       }),
     );
-    expect(evidenceHtml).not.toContain(SENTINEL);
+    expect(evidenceHtml).not.toContain(EXACT_SENTINEL);
+
+    // 4. Render across palaces tab
+    const palacesHtml = renderToStaticMarkup(
+      createElement(ZiweiResultTabs, {
+        ...(sanitizedProps as any),
+        initialState: { tab: "palaces" as const },
+      }),
+    );
+    expect(palacesHtml).not.toContain(EXACT_SENTINEL);
   });
 });

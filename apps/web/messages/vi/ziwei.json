@@ -56,7 +56,7 @@
     "discovery": {
       "palacesCount": "12 cung bản mệnh đã an",
       "insightsCount": "3 nhận định cốt lõi",
-      "evidenceCount": "3 căn cứ đối chiếu minh bạch"
+      "evidenceCount": "3 căn cứ đối chiếu khả dụng"
     },
     "downloadDisabledNote": "Tính năng tải ảnh đang hoàn thiện",
     "discoveryAriaLabel": "Khám phá cấu trúc lá số"
@@ -87,6 +87,6 @@
   "evidenceTab": {
     "title": "Căn cứ diễn giải",
     "subtitle": "Dữ liệu tính toán từ lá số, giới hạn diễn giải và các lưu ý đối chiếu cho 3 nhận định bản mệnh của bạn.",
-    "sourceLabel": "Căn cứ đối chiếu"
+    "sourceLabel": "Căn cứ đối chiếu khả dụng"
   }
 }
