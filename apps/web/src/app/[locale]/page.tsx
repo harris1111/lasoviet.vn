@@ -37,11 +37,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations("common");
+  const referenceYear = new Date().getFullYear();
   return (
     <div className="home">
       <div data-home-block="header"><SiteHeader locale={locale} /></div>
       <main aria-label={t("app.name")}>
-        <section className="hero" data-home-block="hero"><HomepageHero locale={locale} /></section>
+        <section className="hero" data-home-block="hero"><HomepageHero locale={locale} referenceYear={referenceYear} /></section>
         <section data-home-block="trust-strip"><HomepageTrustStrip /></section>
         <section data-home-block="problem"><HomepageProblem /></section>
         <section data-home-block="lenses" id="he-quy-chieu"><HomepageLenses locale={locale} /></section>

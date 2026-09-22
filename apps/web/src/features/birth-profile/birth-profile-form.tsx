@@ -84,8 +84,10 @@ import {
 import {
   clearBirthCache,
   consumeHomepageBirthPrefill,
+  isCanonicalBranchId,
   readBirthCache,
   saveBirthCache,
+  type ReusableBirthTime,
 } from "./homepage-birth-prefill";
 import {
   bindDraftPagehideFlush,
@@ -388,6 +390,7 @@ export function UnknownTimeSavedPresenter({
 
 type BirthProfileFormProps = {
   locale: "en" | "vi";
+  referenceYear?: number;
   submitBirthProfile(input: {
     profile: unknown;
     explicitConsent: boolean;
@@ -410,6 +413,7 @@ export function BirthProfileForm({
   locale,
   submitBirthProfile,
   calculateZiweiChart,
+  referenceYear,
 }: BirthProfileFormProps) {
   const t = useTranslations("profile" as never);
   const router = useRouter();
@@ -521,6 +525,12 @@ export function BirthProfileForm({
         if (cached.place) {
           setPlace(cached.place);
         }
+        if (cached.calendarType) {
+          setCalendarType(cached.calendarType);
+        }
+        if (cached.isLeapMonth !== undefined) {
+          setIsLeapMonth(cached.isLeapMonth);
+        }
         setHasReusedCache(true);
         isHydratedRef.current = true;
       });
@@ -533,6 +543,12 @@ export function BirthProfileForm({
           setDay(parts.day);
           setMonth(parts.month);
           setYear(parts.year);
+          if (prefill.calendarType) {
+            setCalendarType(prefill.calendarType);
+          }
+          if (prefill.isLeapMonth !== undefined) {
+            setIsLeapMonth(prefill.isLeapMonth);
+          }
           if (prefill.time.precision === "branch_only") {
             setTimeState({
               precision: "branch_only",
@@ -900,16 +916,28 @@ export function BirthProfileForm({
       }
 
       let cacheSaved = false;
-      if (forWhom === "self" && calendarType === "solar") {
-        cacheSaved = Boolean(
-          saveBirthCache({
-            displayName: displayName.trim() ? displayName.trim() : undefined,
-            date: dateResult.isoDate,
-            time: timeState,
-            gender,
-            place: place.trim() ? place.trim() : undefined,
-          }),
-        );
+      if (forWhom === "self") {
+        let reusableTime: ReusableBirthTime | null = null;
+        if (timeState.precision === "exact_minute") {
+          reusableTime = timeState;
+        } else if (timeState.precision === "unknown") {
+          reusableTime = { precision: "unknown" };
+        } else if (timeState.precision === "branch_only" && isCanonicalBranchId(timeState.branch)) {
+          reusableTime = { precision: "branch_only", branch: timeState.branch };
+        }
+        if (reusableTime) {
+          cacheSaved = Boolean(
+            saveBirthCache({
+              displayName: displayName.trim() ? displayName.trim() : undefined,
+              date: dateResult.isoDate,
+              time: reusableTime,
+              gender,
+              place: place.trim() ? place.trim() : undefined,
+              calendarType,
+              isLeapMonth: calendarType === "lunar" ? isLeapMonth : false,
+            }),
+          );
+        }
       }
 
       if (outcome.kind === "SHOW_UNKNOWN_TIME_SAVED") {
@@ -1137,6 +1165,7 @@ export function BirthProfileForm({
                 timeState={timeState}
                 timezoneText={t("birth.timezone")}
                 title={t("birth.stepTitle")}
+                referenceYear={referenceYear}
                 year={year}
                 yearLabel={t("birth.yearLabel")}
               />

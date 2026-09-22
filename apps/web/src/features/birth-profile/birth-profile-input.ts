@@ -2,7 +2,7 @@ import type { CanonicalBranchId } from "./homepage-birth-prefill";
 
 export type BirthTimeState =
   | { precision: "exact_minute"; hour: string; minute: string }
-  | { precision: "branch_only"; branch: CanonicalBranchId }
+  | { precision: "branch_only"; branch: CanonicalBranchId | "" }
   | { precision: "unknown" };
 
 export type BirthCalendarType = "solar" | "lunar";
@@ -32,7 +32,10 @@ export function buildBirthProfile(input: BirthProfileInput) {
     if (input.time.precision === "unknown") {
       time = { precision: "unknown" };
     } else if (input.time.precision === "branch_only") {
-      time = { precision: "branch_only", branch: input.time.branch };
+      time = {
+        precision: "branch_only",
+        branch: input.time.branch ? input.time.branch : "zi",
+      };
     } else {
       time = {
         precision: "exact_minute",

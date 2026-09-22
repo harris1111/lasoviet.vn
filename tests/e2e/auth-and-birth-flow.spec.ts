@@ -50,7 +50,7 @@ test("prefills birth data from hero form into wizard using the reusable cache wi
   await heroForm.getByLabel("Ngày", { exact: true }).selectOption("12");
   await heroForm.getByLabel("Tháng", { exact: true }).selectOption("04");
   await heroForm.getByLabel("Năm", { exact: true }).selectOption("1994");
-  await heroForm.locator("select").selectOption("si");
+  await heroForm.locator('select[name="birthBranch"]').selectOption("si");
 
   await heroForm.getByRole("button", { name: "Lập lá số miễn phí" }).click();
 
@@ -132,7 +132,7 @@ test("prefills birth data with unknown time from hero form and respects honest e
   await heroForm.getByLabel("Ngày", { exact: true }).selectOption("12");
   await heroForm.getByLabel("Tháng", { exact: true }).selectOption("04");
   await heroForm.getByLabel("Năm", { exact: true }).selectOption("1994");
-  await heroForm.locator("select").selectOption("");
+  await heroForm.locator('select[name="birthBranch"]').selectOption("");
 
   await heroForm.getByRole("button", { name: "Lập lá số miễn phí" }).click();
 
@@ -207,6 +207,11 @@ test("autosaves Review before immediate sign-in navigation and restores it after
   await page.getByRole("button", { name: "Tiếp tục" }).click();
   await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
 
+  // Select FD-078 reading context lifeStage and skip topConcern before OAuth
+  await page.getByRole("button", { name: "Mới đi làm" }).click();
+  const skipButtons = page.getByRole("button", { name: "Bỏ qua" });
+  await skipButtons.nth(1).click();
+
   await page.route("**/api/auth/sign-in/social", async (route) => {
     await route.fulfill({
       status: 200,
@@ -225,5 +230,7 @@ test("autosaves Review before immediate sign-in navigation and restores it after
   await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
   await expect(page.getByText("12/04/1994")).toBeVisible();
   await expect(page.getByText("09:30")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mới đi làm" })).toHaveAttribute("aria-pressed", "true");
+  await expect(skipButtons.nth(1)).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("checkbox")).not.toBeChecked();
 });

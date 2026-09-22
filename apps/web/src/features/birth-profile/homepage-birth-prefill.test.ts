@@ -527,4 +527,67 @@ describe("V2 reusable 24-hour birth cache", () => {
     expect(readBirthCache({ localStorage: localCorrupt, now: fixedNow })).toBeNull();
     expect(localCorrupt.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
   });
+  it("stores and reads lunar birth details in V2 birth cache losslessly", () => {
+    const local = createMockStorage();
+    const saved = saveBirthCache(
+      {
+        date: "1994-02-30", // Impossible in solar, valid in lunar
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "lunar",
+        isLeapMonth: true,
+      },
+      { localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(true);
+    const read = readBirthCache({ localStorage: local, now: fixedNow + 1000 });
+    expect(read).toEqual({
+      version: BIRTH_CACHE_VERSION_V2,
+      date: "1994-02-30",
+      time: { precision: "branch_only", branch: "si" },
+      calendarType: "lunar",
+      isLeapMonth: true,
+      createdAt: fixedNow,
+    });
+  });
+
+  it("preserves lunar calendar and leap month in homepage birth prefill without coercion", () => {
+    const session = createMockStorage();
+    const local = createMockStorage();
+    const saved = saveHomepageBirthPrefill(
+      {
+        date: "1994-02-30",
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "lunar",
+        isLeapMonth: true,
+      },
+      { sessionStorage: session, localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(true);
+    const consumed = consumeHomepageBirthPrefill(session, fixedNow + 1000);
+    expect(consumed).toEqual({
+      version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+      date: "1994-02-30",
+      time: { precision: "branch_only", branch: "si" },
+      calendarType: "lunar",
+      isLeapMonth: true,
+      createdAt: fixedNow,
+    });
+  });
+
+  it("rejects leap month on solar calendar in cache saving", () => {
+    const local = createMockStorage();
+    const saved = saveBirthCache(
+      {
+        date: "1994-04-12",
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "solar",
+        isLeapMonth: true,
+      },
+      { localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(false);
+  });
 });

@@ -4,6 +4,7 @@ import { Icon } from "../../components/icon";
 import {
   CANONICAL_BRANCH_IDS,
   getBranchOptionLabel,
+  isCanonicalBranchId,
   type CanonicalBranchId,
 } from "./homepage-birth-prefill";
 import type { BirthTimeState } from "./birth-profile-input";
@@ -23,6 +24,7 @@ type TimePrecisionFieldsProps = {
     exactMode?: string;
     branchMode?: string;
     branch?: string;
+    branchPlaceholder?: string;
     branchHelp?: string;
   };
   onHourChange?(value: string): void;
@@ -54,8 +56,8 @@ export function TimePrecisionFields({
     timeState?.precision === "exact_minute" ? timeState.hour : hour;
   const effectiveMinute =
     timeState?.precision === "exact_minute" ? timeState.minute : minute;
-  const effectiveBranch: CanonicalBranchId =
-    timeState?.precision === "branch_only" ? timeState.branch : "zi";
+  const effectiveBranch: CanonicalBranchId | "" =
+    timeState?.precision === "branch_only" ? (timeState.branch ?? "") : "";
 
   function handleUnknownToggle(checked: boolean) {
     if (checked) {
@@ -87,13 +89,13 @@ export function TimePrecisionFields({
     } else {
       onTimeStateChange?.({
         precision: "branch_only",
-        branch: effectiveBranch,
+        branch: effectiveBranch && isCanonicalBranchId(effectiveBranch) ? effectiveBranch : "",
       });
       onTimeUnknownChange?.(false);
     }
   }
 
-  function handleBranchChange(newBranch: CanonicalBranchId) {
+  function handleBranchChange(newBranch: CanonicalBranchId | "") {
     if (onTimeStateChange) {
       onTimeStateChange({
         precision: "branch_only",
@@ -207,11 +209,15 @@ export function TimePrecisionFields({
                   <select
                     aria-label={labels.branch ?? labels.title}
                     className="wizard-branch-select ui-field-shell__select"
+                    name="birthBranch"
                     onChange={(event) =>
-                      handleBranchChange(event.target.value as CanonicalBranchId)
+                      handleBranchChange(event.target.value as CanonicalBranchId | "")
                     }
                     value={effectiveBranch}
                   >
+                    <option value="">
+                      {labels.branchPlaceholder ?? (locale === "en" ? "Select birth hour (12 Branches)" : "Chọn giờ sinh (12 Địa Chi)")}
+                    </option>
                     {CANONICAL_BRANCH_IDS.map((id) => (
                       <option key={id} value={id}>
                         {getBranchOptionLabel(id, locale)}
