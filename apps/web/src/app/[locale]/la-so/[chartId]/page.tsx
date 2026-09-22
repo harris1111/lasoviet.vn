@@ -42,7 +42,16 @@ export default async function ZiweiChartResultPage({
   const rawSearchParams = searchParams ? await searchParams : undefined;
   const locale = requestedLocale === "en" ? "en" : "vi";
 
-  // Canonicalize tab and open state via allowlist
+  // 1. Authorize actor and load chart/preview FIRST to preserve private route 404/auth boundary
+  const [chartResult, previewResult, actor, t] = await Promise.all([
+    loadZiweiChart.loadChart(chartId),
+    freeIdentityPreviewLoader.loadPreview(chartId),
+    resolveCurrentActor(),
+    getTranslations("ziwei"),
+  ]);
+  if (!chartResult.ok || !previewResult.ok) notFound();
+
+  // 2. Canonicalize query params ONLY AFTER authorized chart loaders pass
   const tabState = parseResultTabState(rawSearchParams);
   const currentChartPath = localizedChartPath(locale, chartId);
   const canonicalChartUrl = buildCanonicalTabUrl(currentChartPath, tabState);
@@ -51,14 +60,6 @@ export default async function ZiweiChartResultPage({
   if (hasNonCanonicalQueryParams(rawSearchParams, tabState)) {
     redirect(canonicalChartUrl);
   }
-
-  const [chartResult, previewResult, actor, t] = await Promise.all([
-    loadZiweiChart.loadChart(chartId),
-    freeIdentityPreviewLoader.loadPreview(chartId),
-    resolveCurrentActor(),
-    getTranslations("ziwei"),
-  ]);
-  if (!chartResult.ok || !previewResult.ok) notFound();
 
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
 

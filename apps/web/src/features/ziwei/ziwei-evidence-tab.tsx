@@ -14,6 +14,7 @@ import {
   type ZiweiPresentationLocale,
 } from "./ziwei-presentation";
 import {
+  CANONICAL_ID_TO_EVIDENCE_SUFFIX,
   EVIDENCE_SUFFIX_TO_CANONICAL_ID,
   type CanonicalEvidenceOpenId,
 } from "./ziwei-tabs-state";
@@ -43,8 +44,20 @@ export function ZiweiEvidenceTab({
   const t = useTranslations("ziwei");
   const presentation = ziweiPresentation(locale);
 
-  // Exactly 3 authorized references directly from preview.insights
-  const authorizedInsights = preview.insights.slice(0, 3);
+  // Map each actual insight.evidence.evidenceId through exact closed allowlist
+  // Fail closed: filter out any insight whose evidenceId is not allowed/mapped
+  const validEvidenceItems = preview.insights
+    .map((insight) => {
+      const canonicalId = insight.evidence.evidenceId;
+      const suffix = CANONICAL_ID_TO_EVIDENCE_SUFFIX[canonicalId];
+      if (!suffix) return null;
+      return {
+        insight,
+        suffix,
+        canonicalId: EVIDENCE_SUFFIX_TO_CANONICAL_ID[suffix],
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
   return (
     <div className="container ziwei-evidence-tab-content">
@@ -55,14 +68,9 @@ export function ZiweiEvidenceTab({
       </div>
 
       <div className="evidence-cards-matrix">
-        {authorizedInsights.map((insight, idx) => {
-          // Map to known suffix key
-          const suffixKey: CanonicalEvidenceOpenId =
-            idx === 0 ? "life-palace" : idx === 1 ? "body-palace" : "transformations";
-          const canonicalEvidenceId =
-            EVIDENCE_SUFFIX_TO_CANONICAL_ID[suffixKey] || insight.evidence.evidenceId;
-
-          const isCurrentlyOpen = openEvidenceId === suffixKey;
+        {validEvidenceItems.map((item, idx) => {
+          const { insight, suffix, canonicalId } = item;
+          const isCurrentlyOpen = openEvidenceId === suffix;
           const label = presentation.insight(insight.id);
           const bound =
             insight.evidence.interpretationBounds?.join("; ") ||
@@ -83,12 +91,12 @@ export function ZiweiEvidenceTab({
                 <EvidenceDrawer
                   chart={chart}
                   chartId={chartId}
-                  evidenceId={canonicalEvidenceId}
+                  evidenceId={canonicalId}
                   isOpen={isCurrentlyOpen}
                   locale={locale}
                   loadEvidence={loadEvidence}
                   onOpenChange={(open) => {
-                    onOpenEvidence(open ? suffixKey : undefined);
+                    onOpenEvidence(open ? suffix : undefined);
                   }}
                 />
               </div>

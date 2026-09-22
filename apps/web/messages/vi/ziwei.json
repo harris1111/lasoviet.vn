@@ -85,8 +85,8 @@
     "unlockCta": "Mở chuyên đề luận giải"
   },
   "evidenceTab": {
-    "title": "Căn cứ an định và quy tắc minh bạch",
-    "subtitle": "Tra cứu dữ liệu an sao và quy tắc an định minh bạch đối chiếu cho 3 nhận định bản mệnh của bạn.",
+    "title": "Căn cứ diễn giải",
+    "subtitle": "Dữ liệu tính toán từ lá số, giới hạn diễn giải và các lưu ý đối chiếu cho 3 nhận định bản mệnh của bạn.",
     "sourceLabel": "Căn cứ đối chiếu"
   }
 }

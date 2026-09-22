@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ZIWEI_PALACE_IDS } from "@lasoviet/contracts";
@@ -31,6 +31,22 @@ export function ZiweiTopicsTab({
   const t = useTranslations("ziwei");
   const presentation = ziweiPresentation(locale);
   const isEn = locale === "en";
+
+  // Check if viewport is mobile (<= 768px)
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 768px)");
+    queueMicrotask(() => {
+      setIsMobile(mql.matches);
+    });
+
+    function onChange(e: MediaQueryListEvent) {
+      setIsMobile(e.matches);
+    }
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
 
   // Parent openTopicId is the SOLE source of truth
   const activeTopic = openTopicId as CanonicalTopicId | undefined;
@@ -64,9 +80,15 @@ export function ZiweiTopicsTab({
     }
   }, [activeTopic, onOpenTopic]);
 
-  // Keyboard accessibility & focus trap for mobile dialog / bottom sheet
+  // Keyboard accessibility, background inert isolation & focus trap for mobile dialog / bottom sheet
   useEffect(() => {
-    if (!activeTopic) return;
+    if (!activeTopic || !isMobile) return;
+
+    // Isolate background siblings with inert
+    const mainElement = document.querySelector("main");
+    const headerElement = document.querySelector("header");
+    if (mainElement) mainElement.setAttribute("aria-hidden", "true");
+    if (headerElement) headerElement.setAttribute("aria-hidden", "true");
 
     closeBtnRef.current?.focus();
 
@@ -87,12 +109,12 @@ export function ZiweiTopicsTab({
         const last = focusable[focusable.length - 1]!;
 
         if (e.shiftKey) {
-          if (document.activeElement === first) {
+          if (document.activeElement === first || !sheetPanelRef.current.contains(document.activeElement)) {
             e.preventDefault();
             last.focus();
           }
         } else {
-          if (document.activeElement === last) {
+          if (document.activeElement === last || !sheetPanelRef.current.contains(document.activeElement)) {
             e.preventDefault();
             first.focus();
           }
@@ -101,8 +123,12 @@ export function ZiweiTopicsTab({
     }
 
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [activeTopic, handleCloseModal]);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      if (mainElement) mainElement.removeAttribute("aria-hidden");
+      if (headerElement) headerElement.removeAttribute("aria-hidden");
+    };
+  }, [activeTopic, isMobile, handleCloseModal]);
 
   return (
     <div className="container ziwei-topics-tab-content">
@@ -148,8 +174,8 @@ export function ZiweiTopicsTab({
                 </div>
               </div>
 
-              {/* Desktop inline preview (only rendered on desktop, hidden on mobile) */}
-              {isSelected ? (
+              {/* Desktop inline preview (rendered strictly on desktop and when active) */}
+              {isSelected && !isMobile ? (
                 <div className="topic-desktop-inline-preview">
                   <div className="topic-preview-box">
                     <h4>
@@ -169,8 +195,8 @@ export function ZiweiTopicsTab({
         })}
       </div>
 
-      {/* Mobile accessible dialog / bottom sheet (strictly hidden on desktop) */}
-      {activeTopic ? (
+      {/* Mobile accessible dialog / bottom sheet (rendered strictly on mobile) */}
+      {activeTopic && isMobile ? (
         <div
           aria-labelledby="mobile-sheet-title"
           aria-modal="true"

@@ -85,8 +85,8 @@
     "unlockCta": "Select a reading"
   },
   "evidenceTab": {
-    "title": "Transparent Calculation Evidence",
-    "subtitle": "Inspect the underlying star placements and classical calculation rules backing your three free highlights.",
-    "sourceLabel": "Verified evidence"
+    "title": "Interpretation Evidence",
+    "subtitle": "Calculated chart facts, interpretation bounds, and limitations backing your three free highlights.",
+    "sourceLabel": "Available evidence reference"
   }
 }

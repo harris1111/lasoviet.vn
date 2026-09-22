@@ -297,7 +297,7 @@ describe("ZiweiResultTabs UI Shell component", () => {
 
     expect(html).toContain('id="tab-evidence"');
     expect(html).toContain('id="panel-evidence" role="tabpanel"');
-    expect(html).toContain("Căn cứ an định và quy tắc minh bạch");
+    expect(html).toContain("Căn cứ diễn giải");
 
     const evidenceCards = html.match(/class="evidence-matrix-card/g) || [];
     expect(evidenceCards).toHaveLength(3);
