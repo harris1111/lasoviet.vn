@@ -739,7 +739,11 @@
 }
 
 .wizard-mode-button {
-  min-height: 38px;
+  min-height: var(--control-height, 44px);
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 14px;
   background: transparent;
   border: 1px solid var(--lacquer-line);
@@ -1419,12 +1423,16 @@
 .wizard-cache-clear {
   background: transparent;
   border: none;
-  padding: 0;
+  padding: 0 8px;
   color: var(--gold-400);
   font-size: 12.5px;
   cursor: pointer;
   text-decoration: underline;
-  min-height: 32px;
+  min-height: var(--control-height, 44px);
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wizard-cache-clear:hover {

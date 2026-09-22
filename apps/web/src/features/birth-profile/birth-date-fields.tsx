@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ChangeEvent } from "react";
+import { useRef, useState, useEffect, type ChangeEvent } from "react";
 import { Icon } from "../../components/icon";
 import { isFutureSolarDate, isValidSolarDate } from "./homepage-birth-prefill";
 
@@ -67,7 +67,16 @@ export function BirthDateFields({
   disabled = false,
   referenceYear = DEFAULT_REFERENCE_YEAR,
 }: BirthDateFieldsProps) {
-  const years = generateBirthYears(referenceYear);
+  const [effectiveYear, setEffectiveYear] = useState(referenceYear);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      const browserCurrentYear = new Date().getFullYear();
+      setEffectiveYear((prev) => (prev !== browserCurrentYear ? browserCurrentYear : prev));
+    });
+  }, []);
+
+  const years = generateBirthYears(effectiveYear);
   const pickerRef = useRef<HTMLInputElement>(null);
   const now = new Date();
   const maxDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;

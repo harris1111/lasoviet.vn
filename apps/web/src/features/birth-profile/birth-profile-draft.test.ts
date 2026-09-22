@@ -476,7 +476,7 @@ describe("draft autosave lifecycle", () => {
     expect(restored?.timeState).toEqual({ precision: "branch_only", branch: "wu" });
   });
 
-  it("preserves empty branch without coercing to zi in draft and homepage draft", () => {
+  it("normalizes homepage autosave empty branch to unknown exactly like submit so draft precedence cannot corrupt visible/submit state", () => {
     const storage = createMockStorage();
     saveHomepageDraft(
       {
@@ -491,6 +491,9 @@ describe("draft autosave lifecycle", () => {
 
     const restored = readBirthProfileDraft({ localStorage: storage, now: fixedNow });
     expect(restored).not.toBeNull();
-    expect(restored?.timeState).toEqual({ precision: "branch_only", branch: "" });
+    expect(restored?.timeState).toEqual({ precision: "unknown" });
+    expect(restored?.day).toBe("12");
+    expect(restored?.month).toBe("04");
+    expect(restored?.year).toBe("1994");
   });
 });

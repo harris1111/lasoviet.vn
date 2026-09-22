@@ -114,6 +114,7 @@ import type { WizardReadingContextDraft } from "./birth-wizard-state";
 import {
   canAdvanceStep1,
   canAdvanceStep2,
+  toReadingContextPayload,
   canSubmitWizard,
   formatDateSummary,
   formatReviewTimeSummary,
@@ -885,14 +886,7 @@ export function BirthProfileForm({
         locale,
       });
 
-      const readingContextPayload: ReadingContextV1 | undefined =
-        readingContext.lifeStage || readingContext.topConcern
-          ? {
-              version: 1 as const,
-              ...(readingContext.lifeStage ? { lifeStage: readingContext.lifeStage } : {}),
-              ...(readingContext.topConcern ? { topConcern: readingContext.topConcern } : {}),
-            }
-          : undefined;
+      const readingContextPayload = toReadingContextPayload(readingContext);
 
       const saved = await submitBirthProfile({
         profile,

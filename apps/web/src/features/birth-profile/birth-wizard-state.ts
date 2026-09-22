@@ -3,6 +3,7 @@ import {
   type LifeStageV1,
   TopConcernV1Schema,
   type TopConcernV1,
+  type ReadingContextV1,
 } from "@lasoviet/contracts";
 import { z } from "zod";
 
@@ -348,4 +349,16 @@ export function formatDateSummary(
     return formatted;
   }
   return "—";
+}
+
+export function toReadingContextPayload(
+  draft?: WizardReadingContextDraft,
+): ReadingContextV1 | undefined {
+  if (!draft) return undefined;
+  if (!draft.lifeStage && !draft.topConcern) return undefined;
+  return {
+    version: 1,
+    ...(draft.lifeStage ? { lifeStage: draft.lifeStage } : {}),
+    ...(draft.topConcern ? { topConcern: draft.topConcern } : {}),
+  };
 }
