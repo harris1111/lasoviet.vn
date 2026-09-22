@@ -15,22 +15,7 @@ depends_on:
 
 # Lá Số Việt — Sitemap, SEO & Wireframe Blueprint v1.2
 
-> **2026-09-13 amendment:** FD-059 through FD-063 replace the former no-blur
-> rule in the paid-preview and checkout wireframes with secure progressive
-> reveal, `Lá` credits, dual Lá/VND display, and evidence-backed conversion
-> visuals. The complete binding design is
-> `docs/superpowers/specs/2026-09-13-progressive-reveal-la-credits-and-conversion-ui-design.md`.
-
-> **Cập nhật 2026-09-04:** §2 (Navigation, mega-menu model) và khung sitemap ở
-> §3.1 đã được thay thế bởi `docs/19-sitemap-v2-discipline-pages.md` — nav
-> phẳng, mỗi bộ môn flagship có 1 trang riêng, tiện ích miễn phí gộp vào
-> `/cong-cu-mien-phi`. Trong §3.4.2–3.4.3, slug chính chuyển từ
-> `/gieo-que-kinh-dich` → `/kinh-dich` và `/ban-do-sao` → `/chiem-tinh` (dùng
-> làm URL flagship); các bảng route con (kiến thức/luận giải theo bộ môn),
-> §3.2–3.3 route registry, §3.5 entity pages, route-status system (§3.4.6) và
-> mọi phần khác của tài liệu này (wireframe, SEO template, technical SEO,
-> structured data) **không** bị thay thế — `docs/19` tái sử dụng nguyên các
-> route con này bên dưới từng trang flagship.
+> Navigation and discipline URLs: `docs/19`. Page layouts: the FD-091 spec. Index eligibility: `docs/23`. This file keeps route registry, SEO templates, structured data, and technical SEO.
 
 > **Mục tiêu:** tạo một kiến trúc website có khả năng cạnh tranh nhóm đầu tìm kiếm tại Việt Nam, dễ vận hành dài hạn, thân thiện với người dùng và thể hiện đúng định vị “thư viện tri thức Việt đương đại”.
 
@@ -43,10 +28,6 @@ Không sitemap, agency hay kỹ thuật nào có thể **đảm bảo** vị tr�
 3. Trải nghiệm calculator và nội dung tạo giá trị độc lập tốt hơn mặt bằng hiện tại.
 4. Niềm tin, phương pháp, nguồn và privacy là một phần của sản phẩm — không phải trang pháp lý bị giấu ở footer.
 5. Đội ngũ có thể xuất bản, review, đo lường và bảo trì nội dung mà không làm sitemap vỡ dần theo thời gian.
-
-### Quyết định chiến lược
-
-> **Không cạnh tranh bằng số lượng bài “tử vi hôm nay” hoặc nội dung AI hàng loạt. Lá Số Việt cạnh tranh bằng calculator Tử Vi tốt nhất, phương pháp minh bạch nhất, nội dung nền tảng có cấu trúc nhất và trải nghiệm luận giải đáng tin nhất ở Việt Nam.**
 
 ### Ba intent phải sở hữu trước
 
@@ -77,42 +58,13 @@ Website gồm hai không gian tách biệt nhưng liên tục về trải nghi�
 4. **Evidence tại thời điểm nghi ngờ.** Nút “Vì sao có nhận định này?” nằm cạnh claim.
 5. **Uncertainty phải nhìn thấy.** Không rõ giờ sinh, timezone hoặc giới hạn phương pháp không bị xử lý âm thầm.
 6. **Public content được render từ server; private data không đi vào index.**
-7. **Conversion không thắng trust, privacy hoặc safety.**
+7. **Doanh thu thắng khi hợp pháp (FD-064); privacy, payment integrity và nội dung khoá luôn giữ.**
 
 ---
 
-# 2. Navigation được đề xuất
+# 2. Navigation
 
-## 2.1 Desktop header
-
-`Logo | Lập lá số | Luận giải | Kiến thức | Phương pháp | Tài khoản | [Lập lá số miễn phí]`
-
-### Lý do
-
-- **Lập lá số** rõ nghĩa và gần với hành vi tìm kiếm hơn “Xem lá số”.
-- Loại **Khám phá** khỏi P0 vì mơ hồ. Khi có đủ utility thật, có thể test nhãn **Công cụ**.
-- **Phương pháp** được đưa lên top-level vì đây là khác biệt chiến lược, không phải thông tin phụ.
-- **Về Lá Số Việt**, hỗ trợ, liên hệ và policy ở footer/overflow; không cạnh tranh không gian với hành động chính.
-- Chỉ hiển thị sản phẩm đã hoạt động; không trình bày roadmap như tính năng live.
-
-### Mega menu “Lập lá số” khi P1 mở
-
-| Đông phương | Tây phương | Tiện ích |
-|---|---|---|
-| Tử Vi | Bản đồ sao | 12 con giáp |
-| Bát Tự | Horoscope/Cung hoàng đạo | Lịch âm |
-| Kinh Dịch | Thần số học | Ngày tốt |
-|  | Tarot | Phong thủy tính toán |
-
-Mỗi item có trạng thái `Đang khả dụng` hoặc `Đang nghiên cứu`. Item chưa hoạt động không giả làm CTA; khi danh sách chưa đủ lớn, menu chỉ hiển thị những hệ live và link `Xem các hệ quy chiếu`.
-
-## 2.2 Mobile header
-
-`Logo | [Lập miễn phí] | Menu`
-
-- CTA đáy chỉ xuất hiện sau khi hero rời viewport.
-- CTA sticky phải tự ẩn khi form, checkout hoặc bàn phím đang mở.
-- Menu full-height, không dùng carousel ngang cho navigation cốt lõi.
+Public header and menus: `docs/19` §1. The main nav does not include daily tools; they live in `/cong-cu-mien-phi` (FD-094).
 
 ## 2.3 Private product navigation
 
@@ -403,193 +355,11 @@ flowchart LR
 
 ---
 
-# 6. Wireframe hệ thống
+# 6–7. Wireframes and design system
 
-## 6.1 Homepage
-
-### Desktop hierarchy
-
-| Thứ tự | Block | Quyết định |
-|---|---|---|
-| 1 | Global header | Một CTA Cinnabar; menu gọn |
-| 2 | Hero 7/5 | Copy trái; quick-start form/sample chart phải |
-| 3 | Trust strip | Miễn phí trước; có căn cứ; riêng tư; không auto-renew |
-| 4 | “Bạn nhận được gì?” | Chart + 3 insight + evidence |
-| 5 | “Cách hoạt động” | 3 bước, không animation thần bí |
-| 6 | Evidence demo | Claim và drawer mở mẫu |
-| 7 | Report topics | Deliverable, sample, giá; không “VIP” |
-| 8 | Methodology/AI/privacy | Ba trust blocks |
-| 9 | Knowledge entry | Các bài bắt đầu từ đây |
-| 10 | FAQ + footer | Policy và support rõ |
-
-### Hero copy
-
-- Eyebrow: `Nền tảng lập và luận giải Tử Vi`
-- H1 canonical: `Lập lá số. Hiểu vận mệnh.`
-- Supporting: `Một con người. Nhiều hệ quy chiếu. Một bản luận giải dễ hiểu.`
-- Subhead: `Xem lá số Tử Vi miễn phí và khám phá những điểm nổi bật bằng lời giải thích rõ ràng, gắn với căn cứ trên chính lá số của bạn.`
-- Primary CTA: `Lập lá số miễn phí`
-- Secondary: `Xem báo cáo mẫu`
-
-### Mobile
-
-- Copy trước, form một cột ngay sau hero.
-- Không đưa preview chart lên trước CTA nếu làm chậm LCP.
-- Trust microcopy nằm sát CTA: “Không cần tài khoản để thử”.
-- Không dùng horizontal carousel cho topic hoặc trust.
-
-## 6.2 Calculator landing — `/la-so-tu-vi`
-
-| Thứ tự | Block |
-|---|---|
-| 1 | Breadcrumb, H1 exact-intent, subhead và CTA/form |
-| 2 | Kết quả miễn phí nhận được |
-| 3 | Interactive/sample chart + narrative list tương đương |
-| 4 | Ngày, giờ, nơi sinh cần để làm gì |
-| 5 | Unknown-time mode |
-| 6 | Cách tính/rule set/engine version |
-| 7 | Giới hạn và safety |
-| 8 | Knowledge cluster + FAQ + CTA cuối |
-
-Landing phải trả lời đủ intent trong HTML server-rendered; form/chart hydrate sau. Nội dung SEO không được nằm chỉ trong canvas hoặc JavaScript.
-
-## 6.3 Form tạo lá số
-
-### Ba bước
-
-1. **Người được lập** — tên hiển thị optional, bản thân/người khác.
-2. **Ngày, giờ, nơi sinh** — dương lịch mặc định, unknown-time riêng, timezone confirm.
-3. **Kiểm tra và quyền riêng tư** — summary, sửa từng nhóm, chế độ tạm thời/lưu.
-
-| Vùng | Desktop | Mobile |
-|---|---|---|
-| Header | Logo, thoát/xóa tạm, trợ giúp | Back, Bước x/3, trợ giúp |
-| Progress | Stepper có label | Text + progress bar |
-| Form | 7 cột + rail giải thích 4 cột | Một cột, explanation inline |
-| Actions | Back tertiary + Continue primary | Sticky khi keyboard đóng |
-| Review | Summary card, sửa theo section | Summary stack |
-
-### States bắt buộc
-
-Empty, focus, valid, error cụ thể, địa danh trùng tên, không rõ giờ, lunar conversion review, loading thật, network fail giữ dữ liệu an toàn, engine fail, duplicate submit idempotent.
-
-## 6.4 Free result
-
-### Desktop
-
-- Header riêng tư + trạng thái lưu.
-- Birth summary + `Sửa dữ liệu` + uncertainty badge.
-- Rail TOC 2 cột; chart 6 cột; “Ba điểm nổi bật” 4 cột.
-- Mỗi insight: claim → điều kiện → điều quan sát → “Vì sao?”.
-- Một thế mạnh và một điểm căng thẳng; không màu hóa tốt/xấu.
-- Topic deep-dive chỉ xuất hiện sau free value.
-
-### Mobile
-
-- Narrative là mặc định; segmented control `Tóm tắt / Lá số`.
-- Chart hỗ trợ tap, pan/zoom và reset; luôn có list view tương đương.
-- Evidence mở inline/bottom sheet và trả focus đúng claim.
-
-### Evidence drawer
-
-- yếu tố dễ hiểu;
-- vị trí trên chart;
-- rule ngắn;
-- yếu tố hỗ trợ/xung đột;
-- confidence/giới hạn;
-- ảnh hưởng của giờ sinh;
-- điều người dùng có thể quan sát.
-
-## 6.5 Paid topic landing
-
-| Thứ tự | Block |
-|---|---|
-| 1 | Topic-specific H1 and `phù hợp khi` framing |
-| 2 | Select an existing birth profile or create a new chart |
-| 3 | Real deliverable: contents, 5–7 points, length, ETA, and format |
-| 4 | One complete useful excerpt followed by a secure blur/fade representation; protected plaintext is absent from unauthorized client payloads |
-| 5 | Honest `Có gì / Không có gì` comparison |
-| 6 | Final Lá price, one-time ownership, support, and regeneration terms (no VND equivalent — FD-065) |
-| 7 | FAQ/policy and one contextual CTA |
-
-## 6.6 Checkout phù hợp Việt Nam
-
-- Show the order summary before payment controls on mobile.
-- Keep report name, applicable birth profile, Lá amount, and `Thanh toán một lần` visible. VND appears only on the top-up pack step (FD-065).
-- Show only payment methods the provider actually supports.
-- QR shows the correct recipient and amount, with download/open-bank-app actions when supported.
-- Required terms and optional marketing consent remain separate; marketing defaults off.
-- Preserve the unlock intent in the CTA: `Mở báo cáo — 960 Lá`; with insufficient balance, pre-select the smallest covering pack, e.g. `Nhận 1.100 Lá — 99.000đ và mở báo cáo` (FD-066).
-
-States: creating order, pending, confirmed success, failed, expired QR, paid-but-not-returned và report-generation progress. Không xác nhận “thành công” chỉ vì client quay lại từ app ngân hàng.
-
-## 6.7 Report reader
-
-| Vùng | Desktop | Mobile |
-|---|---|---|
-| Header | Tên report, lưu, tải, share | Back, title rút gọn, menu |
-| TOC | Rail trái 3 cột | Bottom sheet |
-| Reading | 680–760px, typography editorial | Một cột, body khoảng 18px |
-| Evidence | Context rail | Inline/bottom sheet |
-| Section end | Điều quan sát + câu hỏi phản tư | Stack |
-| Footer | Method/version/date/limits | Same |
-
-Reader có font size, resume location, print/PDF accessible. Share mặc định ẩn tên, ngày, giờ và nơi sinh; người dùng preview và revoke được.
-
-## 6.8 Knowledge hub và article
-
-### Hub
-
-- H1, search theo câu hỏi tự nhiên khi thư viện đủ lớn.
-- Topic theo nhu cầu trước, phương pháp sau.
-- “Bắt đầu từ đây”, không infinite scroll ở MVP.
-- Glossary và methodology là utility, không lẫn editorial.
-
-### Article
-
-1. Breadcrumb, H1, dek, author/reviewer thật, ngày review.
-2. Summary và TOC.
-3. Claim → nguồn/căn cứ → ví dụ → giới hạn.
-4. Inline glossary và chart minh họa có caption/alt.
-5. Tối đa hai CTA contextual trong body.
-6. Sources, methodology, related articles, CTA cuối.
-
-## 6.9 Account và privacy
-
-- Dashboard mở bằng profiles/reports hiện có; không có “vận xấu hôm nay”.
-- Consent tách theo tạo chart, lưu profile, marketing, analytics và AI improvement.
-- Export, delete và revoke share có thể tự thao tác.
-- Data deletion mô tả phạm vi, thời gian và dữ liệu phải giữ theo nghĩa vụ giao dịch.
-
----
-
-# 7. Design system áp dụng
-
-## 7.1 Visual
-
-- Creative North Star: **Thư viện tri thức Việt đương đại**.
-- Paper 50/100 cho surface; Ink 900 cho cấu trúc; Cinnabar tối đa khoảng 5–10% diện tích.
-- Source Serif 4 cho display/editorial; Be Vietnam Pro cho UI/body, sau readability test trên Android phổ biến.
-- Khoảng trắng và typography là nhận diện chính.
-- Không dùng vũ trụ tím, sao bay, shimmer mạnh, parallax, quả cầu, vàng kim giả hoặc stock “thầy bói”.
-
-## 7.2 Layout
-
-- Desktop container tối đa 1200px; narrative 680–760px.
-- Grid: mobile 4 cột, tablet 8, desktop 12.
-- Spacing scale: 4, 8, 12, 16, 24, 32, 48, 64, 96.
-- Touch target sản phẩm tối thiểu 44×44px.
-- Border trước shadow; không card-in-card quá hai cấp.
-
-## 7.3 Accessibility release gate
-
-- WCAG 2.2 AA.
-- Text thường ≥4.5:1; large text/UI ≥3:1.
-- Keyboard đầy đủ, focus không bị che.
-- Reflow 320px và zoom 200%.
-- Chart không chỉ mã hóa bằng màu; có list/table view.
-- Tooltip hoạt động bằng focus và tap.
-- Reduced motion; không autoplay âm thanh.
+Removed on 2026-09-22 (FD-096). Page layouts, components, and type scale now come only from
+`docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` (FD-091) and the
+2026-09-22 revamp plan; colour and imagery from `docs/22` and `docs/24`.
 
 ---
 
@@ -798,24 +568,11 @@ Không index:
 - kết quả theo từng ngày/giờ sinh;
 - tổ hợp `năm × giới × cung × chủ đề`;
 - public URL chứa PII;
-- hàng nghìn bài “tuổi X năm Y”;
 - entity page chỉ thay tên;
-- AI “tử vi hôm nay” thiếu utility;
 - tag có 1–2 bài;
 - search results;
-- comparison khi method chưa thật sự sẵn sàng.
 
-## Quality gate 10 điểm
-
-Chấm 0–2 cho mỗi tiêu chí:
-
-1. Intent độc lập.
-2. Dữ liệu/tool/phương pháp riêng.
-3. Nội dung biên tập không lặp.
-4. Ví dụ/hình minh họa riêng.
-5. Owner và lịch review.
-
-Chỉ index từ **8/10**, và không tiêu chí method/safety nào bằng 0. Đây là operating hypothesis, cần hiệu chỉnh bằng Search Console.
+A page is indexable when it returns real results or real content (`docs/23`).
 
 ---
 
@@ -850,114 +607,3 @@ Không gửi tên, ngày/giờ/nơi sinh, chart JSON, report text, email hoặc 
 - Chart → paid topic selected.
 - Checkout completion và revenue/valid chart.
 - Refund, regeneration, complaint và deletion guardrails.
-
----
-
-# 15. Release roadmap
-
-## Gate 0 — Nền móng
-
-- Route registry và URL owners.
-- CMS types/taxonomy/workflow.
-- Noindex/canonical matrix.
-- Event dictionary và forbidden properties.
-- Performance budget/CI.
-
-## Gate 1 — Public skeleton
-
-- Homepage, `/la-so-tu-vi`, commercial hub, sample, methodology, source, privacy, terms.
-- 10 bài nền tảng đầu tiên.
-- Organization/Breadcrumb/Article schema.
-- Sitemap, robots, redirects, Search Console.
-
-## Gate 2 — Product loop
-
-- Form 3 bước, unknown-time, chart result, evidence drawer.
-- Topic landing, VietQR checkout, report reader.
-- Privacy/export/delete.
-- End-to-end analytics và guardrails.
-
-## Gate 3 — Topical authority
-
-- 25–35 URL P0 đạt quality gate.
-- Mở 12 cung/14 chính tinh từng đợt theo internal-link utility.
-- Dùng Search Console/support log để quyết định content tiếp theo.
-
-## Gate 4 — Expansion
-
-- Mở Bát Tự và Kinh Dịch theo engine/evidence gate.
-- Mở Bản đồ sao theo ephemeris/license/methodology gate.
-- Mở Thần số học như free acquisition; paid report chỉ sau WTP gate.
-- Mở Cung hoàng đạo evergreen trước Horoscope theo thời gian.
-- Mở Tarot như free content/tool; không dùng habit loop gây lệ thuộc.
-- Mở utility Việt Nam theo demand và topical-authority gate.
-
----
-
-# 16. Decision register
-
-## Đề xuất khóa
-
-- `/la-so-tu-vi` là entry SEO/product P0.
-- Knowledge / Calculator / Commercial tách URL.
-- Public library và private reading room tách index/access.
-- Một intent có một owner URL.
-- Method-first acquisition, evidence-first conversion.
-- Hero canonical và không đặt AI trong hero.
-- Không mass-generate trang theo dữ liệu sinh/năm/con giáp.
-- Engine–evidence–AI tách lớp.
-- Toàn bộ IA Đông–Tây được đăng ký từ đầu; trạng thái route quyết định việc deploy/index.
-- Không fake expert/review/scarcity.
-- Trust, privacy, safety và WCAG là release gate.
-- `ZIWEI-IDENTITY-P0` is the only first purchasable SKU. Other Zi Wei
-  commercial routes remain `reserved` until Phase 07 decisions and release
-  gates pass.
-
-## Standard hệ thống
-
-- Navigation: Lập lá số / Luận giải / Kiến thức / Phương pháp; mega menu P1 nhóm Đông phương / Tây phương / Tiện ích.
-- Route registry là nguồn chuẩn sitemap.
-- Gate 1 launches the core public surface and ten reviewed foundation
-  articles. Gate 3 expands P0 toward 25–35 indexable URLs only after each route
-  passes the quality gate.
-- Content workflow có method/SEO/safety review.
-- Schema sinh từ template, không nhập tay.
-- Paper–Ink–Cinnabar; Source Serif 4 + Be Vietnam Pro.
-
-## Hypothesis cần test
-
-- Quick-start form so với CTA dẫn sang form.
-- Label “Công cụ” khi mở utility.
-- Narrative-first hay chart-first trên mobile result.
-- Inline form hay link CTA từ knowledge article.
-- Mức evidence mặc định mở/đóng.
-- Thứ tự topic commercial.
-- Cluster mở rộng đầu tiên sau Tử Vi.
-
----
-
-# 17. Nguồn chính
-
-- [Google SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide)
-- [Google Search Essentials](https://developers.google.com/search/docs/essentials)
-- [Google — How Search Works](https://developers.google.com/search/docs/fundamentals/how-search-works)
-- [Google — Helpful, reliable, people-first content](https://developers.google.com/search/docs/fundamentals/creating-helpful-content)
-- [Google spam policies — scaled content abuse](https://developers.google.com/search/docs/essentials/spam-policies)
-- [Google guidance on generative AI content](https://developers.google.com/search/docs/fundamentals/using-gen-ai-content)
-- [Google link best practices](https://developers.google.com/search/docs/crawling-indexing/links-crawlable)
-- [Google JavaScript SEO basics](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics)
-- [Google structured data introduction](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)
-- [Google sitemap guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)
-- [Google page experience](https://developers.google.com/search/docs/appearance/page-experience)
-- [web.dev — Core Web Vitals](https://web.dev/articles/vitals)
-- [Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15](https://vanban.chinhphu.vn/?classid=1&docid=214590&pageid=27160&typegroupid=3)
-
-## Snapshot đối thủ tham khảo — 31.08.2026
-
-- [tuvi.vn — calculator landing](https://tuvi.vn/lap-la-so-tu-vi)
-- [Tử Vi Cổ Học](https://tuvi.cohoc.net/index.html)
-- [Tử Vi Việt Nam](https://tuvivietnam.vn/lasotuvi/)
-- [Lịch Ngày Tốt — lá số](https://lichngaytot.com/la-so-tu-vi.html)
-- [AItuvi](https://aituvi.com/)
-
-Snapshot SERP thay đổi theo thời điểm, vị trí, thiết bị và lịch sử tìm kiếm. Các site trên dùng để quan sát cấu trúc cạnh tranh, không phải xác nhận chất lượng hoặc endorsement.

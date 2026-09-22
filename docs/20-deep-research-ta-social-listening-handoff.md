@@ -109,7 +109,7 @@ Họ có thể rất tin, nửa tin nửa ngờ hoặc công khai hoài nghi. Đ
 
 - Người dùng thường tìm vào lúc cần một chút hy vọng hoặc muốn biết liệu “còn chuyện xấu nào nữa không”.
 - Job cảm xúc là containment: biến một nỗi lo không hình dạng thành vài điều có thể theo dõi.
-- Ngôn ngữ “đại hạn”, “tai họa”, “giải hạn” có sức hút ngắn hạn nhưng đẩy sản phẩm vào cùng vùng nghĩa với lừa đảo và fear-selling.
+- Naming a real hạn from the chart pulls strongly; selling "giải hạn" stays banned (FD-089).
 
 #### E. Một câu hỏi ngay lúc này
 
@@ -147,7 +147,7 @@ Người dùng hỏi “có đúng không?”, rồi ngay sau đó hỏi “lá 
 2. Nhận định có thể biểu hiện theo những cách nào.
 3. Điều gì người dùng có thể quan sát hoặc chủ động.
 
-**Không dùng:** “số đã định”, “không thể tránh”, “chắc chắn xảy ra”.
+Word choice: `docs/13` §4.3.
 
 ---
 
@@ -309,7 +309,7 @@ Bộ Công an cũng cảnh báo nhu cầu cầu an/cầu tài đầu năm bị l
 | 7 | “Hệ nào phù hợp với câu hỏi của tôi?” | Chọn sai phương pháp và lãng phí tiền | Mỗi hệ dùng dữ liệu gì, nhìn phạm vi nào, không làm được gì? | Decision guide theo job; chỉ hiển thị service live |
 | 8 | “Tại sao chỗ này nói khác chỗ kia?” | Không có chuẩn nào để tin | Khác trường phái/rule/version hay khác diễn giải? | Method disclosure; comparison; changelog |
 | 9 | “Báo cáo dài có thật sự sâu?” | Trả tiền cho filler/template | Chiều sâu nằm ở synthesis và khả năng ứng dụng nào? | Annotated sample; concise summary; follow-up scope |
-| 10 | “Có đang dọa tôi để bán giải pháp không?” | Bị thao túng khi dễ tổn thương | Sản phẩm không bán giải hạn, không scarcity, không upsell bằng sợ hãi | Guardrail visible; pricing stable; escalation policy |
+| 10 | “Có đang dọa tôi để bán giải pháp không?” | Bị thao túng khi dễ tổn thương | Không bán giải hạn, không scarcity giả; hạn nêu ra đều có thật trên lá số | Guardrail visible; pricing stable; escalation policy |
 
 ---
 
@@ -407,162 +407,21 @@ Chỉ nói một dịch vụ đang có khi đã qua quality gate; không dùng r
 - “Chỉ muốn biết điểm mạnh/yếu.”
 - “Không dùng để quyết định thay mình.”
 
-### Cụm từ content nên ưu tiên
-
-- “Điều đáng quan sát”
-- “Trong khung phương pháp này”
-- “Căn cứ được sử dụng”
-- “Mức độ nhạy với giờ sinh”
-- “Có thể biểu hiện theo…”
-- “Điều bạn có thể chủ động”
-- “Khi nào nhận định này có thể không phù hợp”
-- “Không đủ dữ liệu để kết luận”
-
-### Cụm từ cấm/không nên dùng
-
-- “Định sẵn”, “chắc chắn”, “không thể tránh”
-- “Đại họa”, “nghiệp”, “khắc chết”, “mất lộc”
-- “Mua ngay để hóa giải”, “bỏ lỡ là muộn”
-- “Chính xác 99%”, “AI tiên tri”, “khoa học chứng minh Tử Vi đúng”
-- “Cứu hôn nhân”, “đổi vận”, “chắc chắn giàu”
+Word choice and the banned list: `docs/13` §4.3 and §4.5 (FD-089).
 
 ---
 
-## 9. Message house cho agent viết content
+## 9. Message house (lean, 2026-09-22)
 
-### Core promise
+**Core promise:** Lá số của chính bạn, nói rõ điều tốt và điều xấu, kèm cách chuẩn bị.
 
-> **Hiểu mình có căn cứ — để nhìn rõ hơn, không để một lời luận giải quyết định thay bạn.**
+1. **Đây thật sự là lá số của bạn.** Proof: input summary, the chart, the "Vì sao?" reason.
+2. **Nói thẳng, có căn cứ.** Proof: hạn and bad stars named from the chart, never invented (FD-089).
+3. **Biết phải làm gì.** Every problem comes with preparation; the detailed plan is paid.
+4. **Xem giá trị trước khi trả.** Proof: free chart, free highlights, real sample report.
+5. **Riêng tư.** Proof: private by default, delete anytime, reports not indexed.
 
-### Pillar 1 — Đây thật sự là kết quả của bạn
-
-**Người dùng cần tin:** output không phải template.
-
-**Có thể nói:**
-
-- Được lập từ dữ liệu bạn cung cấp và rule set có phiên bản.
-- Nhận định quan trọng mở được căn cứ.
-- Có điều kiện, mức độ tin cậy và giới hạn.
-
-**Phải chứng minh bằng:** input summary, evidence drawer, version, sample thật.
-
-### Pillar 2 — Bạn biết hệ thống đã làm gì
-
-**Người dùng cần tin:** không có một “hộp đen AI” đóng vai thầy.
-
-**Có thể nói:**
-
-- Engine lập chart; AI hỗ trợ tổ chức/diễn giải.
-- Người dùng có thể sửa dữ liệu và xem tác động.
-- Khi chưa đủ căn cứ, hệ thống nói rõ.
-
-**Phải chứng minh bằng:** method page, source-of-truth, changelog, correction flow.
-
-### Pillar 3 — Kết quả giúp bạn quan sát, không phán bạn
-
-**Người dùng cần cảm thấy:** được tôn trọng và còn agency.
-
-**Có thể nói:**
-
-- Đây là một góc nhìn để đối chiếu.
-- Mỗi insight kết thúc bằng điều có thể quan sát/chủ động.
-- Không bán nỗi sợ hoặc “giải hạn”.
-
-**Phải chứng minh bằng:** copy thực trong report, safety handling, không có doom labels.
-
-### Pillar 4 — Xem giá trị trước khi trả tiền
-
-**Người dùng cần tin:** không bait-and-switch.
-
-**Có thể nói:**
-
-- Bắt đầu không cần tài khoản.
-- Free output cụ thể.
-- Report mẫu, mục lục, giá VNĐ và thanh toán một lần được nêu trước.
-
-**Phải chứng minh bằng:** usable free result, sample URL thật, checkout minh bạch.
-
-### Pillar 5 — Riêng tư không phải lời hứa mơ hồ
-
-**Người dùng cần tin:** dữ liệu thân mật không bị phơi bày hoặc tận dụng ngầm.
-
-**Có thể nói:**
-
-- Private theo mặc định.
-- Người dùng kiểm tra, sửa, xóa hoặc export.
-- Không index chart/report cá nhân.
-
-**Phải chứng minh bằng:** policy dễ đọc, setting, delete/export, share card ẩn dữ liệu.
-
----
-
-## 10. Content requirements — áp dụng cho mọi trang, không phải homepage flow
-
-### Mỗi claim lớn cần đủ 4 lớp
-
-| Lớp | Câu hỏi cần trả lời | Ví dụ dạng thông tin |
-|---|---|---|
-| **Claim** | Điều gì đang được nói? | “Giai đoạn này có thể tăng áp lực vai trò.” |
-| **Basis** | Vì sao xuất hiện? | Yếu tố/rule/cung/vận liên quan |
-| **Limit** | Khi nào yếu đi hoặc sai? | Nhạy với giờ sinh; dữ liệu chưa đủ |
-| **Agency** | Người dùng làm gì với nó? | Quan sát trách nhiệm mới; đối chiếu 1–2 tháng |
-
-### Mỗi offer trả phí cần đủ 7 câu trả lời
-
-1. Dành cho câu hỏi nào?  
-2. Người dùng nhận chính xác những gì?  
-3. Sample thật ở đâu?  
-4. Chiều sâu khác free ở chỗ nào?  
-5. Giá cuối và hình thức thanh toán?  
-6. Nếu sửa dữ liệu/giờ sinh thì sao?  
-7. Có follow-up, refund hoặc tạo lại không?
-
-### Mỗi trang phương pháp/hệ thống cần đủ 5 câu trả lời
-
-1. Input nào được dùng?  
-2. Calculation/rule set nào tạo cấu trúc?  
-3. AI hoặc con người tham gia ở đâu?  
-4. Những giới hạn quan trọng nhất?  
-5. Không nên dùng kết quả cho quyết định nào?
-
-### Mỗi insight nhạy cảm cần safety check
-
-- Có biến khả năng thành certainty không?
-- Có thể làm người dùng sợ để mua thêm không?
-- Có đưa chỉ dẫn sức khỏe/tài chính/pháp lý thay chuyên gia không?
-- Có thể bị gia đình/đối tác dùng để gây áp lực không?
-- Có cho người dùng một cách kiểm tra và một vùng chủ động không?
-
----
-
-## 11. Claims agent được dùng, cần qualify và không được dùng
-
-### Có thể dùng nếu product thực sự đáp ứng
-
-- “Mỗi nhận định quan trọng đều mở được căn cứ.”
-- “Lá số và báo cáo riêng tư theo mặc định.”
-- “Không cần tài khoản để bắt đầu.”
-- “Thanh toán một lần; không tự động gia hạn.”
-- “AI hỗ trợ diễn giải; không thay thế engine và rule set.”
-- “Bạn có thể sửa/xóa dữ liệu.”
-
-### Chỉ dùng khi có giải thích/qualifier
-
-- “Cá nhân hóa” → phải nói dựa trên dữ liệu/yếu tố nào.
-- “Có căn cứ” → phải mở được căn cứ, không chỉ dẫn tới trang dài.
-- “Chính xác” → chỉ nói accuracy của calculation đã test, không nói future prediction accuracy.
-- “Nhiều hệ quy chiếu” → chỉ hệ live; nêu khác biệt và giới hạn từng hệ.
-- “Riêng tư” → phải nêu default, retention, delete/share behavior.
-- “Chuyên sâu” → phải cho annotated sample và outcome khác free.
-
-### Không được dùng
-
-- Tuyên bố prediction accuracy 90–100%.
-- “Khoa học chứng minh” Tử Vi/Tarot/Thần số học đúng.
-- Fake testimonial, fake authority, fake follower/rating.
-- Countdown, scarcity hoặc “ưu đãi giải hạn” dựa trên nỗi sợ.
-- Chẩn đoán sức khỏe/tâm lý; dự đoán tử vong; quyết định đầu tư/pháp lý.
-- Verdict hợp–khắc dùng như kết luận nên cưới/chia tay/sinh con.
+Content rules end here. The only content line is `docs/13` §4.5. Report quality rules live in the Zi Wei V4 spec and FD-072 to FD-077.
 
 ---
 
@@ -578,72 +437,6 @@ Chỉ nói một dịch vụ đang có khi đã qua quality gate; không dùng r
 | Không biết chọn hệ | “Câu hỏi này hợp với góc nhìn nào?” | Decision guide theo job/input/horizon | Chọn trải nghiệm đang live |
 | Cân nhắc trả tiền | “Chiều sâu thật sự gồm gì?” | Report spread + TOC + follow-up scope | Xem mẫu/giá |
 | Lo dữ liệu | “Ngày giờ sinh được dùng và giữ thế nào?” | Privacy summary + controls | Xem/xóa dữ liệu |
-
----
-
-## 13. Những khoảng trống research còn lại
-
-Deep research này đủ để định hướng messaging và tránh sai lầm lớn, nhưng chưa thay thế nghiên cứu người dùng trực tiếp.
-
-### Cần phỏng vấn 18–24 người theo JTBD
-
-Chia theo moment, không theo “believer/non-believer” đơn giản:
-
-- 4–6 người vừa dùng một công cụ miễn phí.
-- 4–6 người từng trả tiền cho reader/app/report.
-- 4–6 người dừng giữa funnel hoặc thấy output chung chung.
-- 4–6 người từng lo lắng sau một kết quả tiêu cực/không nhất quán.
-
-### Câu hỏi quan trọng
-
-- Chuyện gì xảy ra ngay trước lần gần nhất bạn đi xem?
-- Bạn kỳ vọng nhận được điều gì mà Google/bạn bè/chuyên gia chưa cho bạn?
-- Bạn kiểm tra “uy tín” bằng cách nào?
-- Phần nào khiến bạn thấy đang nói đúng về mình? Phần nào thấy chung chung?
-- Khi hai nơi nói khác nhau, bạn làm gì tiếp?
-- Một report trả phí đáng tiền hơn free ở điểm nào?
-- Điều gì làm bạn sợ hoặc thấy bị thao túng?
-- Bạn hiểu vai trò AI thế nào; thông tin nào khiến bạn an tâm hơn?
-- Nếu không nhớ giờ sinh, bạn muốn hệ thống xử lý ra sao?
-
-### Cần đo trên sản phẩm
-
-- Tỷ lệ mở evidence và effect lên CTA.
-- Free-result completion → sample view → paid intent.
-- Drop-off ở giờ sinh và privacy explanation.
-- Phản hồi “đúng / một phần / không đúng” theo loại insight.
-- Tác động của confidence/limit disclosure lên trust, không chỉ conversion.
-- Tỷ lệ sửa input/re-run và nguyên nhân.
-- WTP, refund expectation và giá trị follow-up.
-
----
-
-## 14. Brief giao việc cho content agent tiếp theo
-
-### Nhiệm vụ
-
-Viết content dựa trên các tension và proof requirement trong tài liệu này. Không viết từ giả định “người dùng thích huyền học”; viết cho một người đang bất định, tò mò nhưng cảnh giác.
-
-### Bắt buộc
-
-- Giữ hero headline đã chốt: **“Lập lá số. Hiểu vận mệnh.”** nếu làm homepage.
-- Giải nghĩa “hiểu vận mệnh” bằng agency, không bằng prediction certainty.
-- Gọi đúng tên phương pháp ở acquisition/SEO; concept đa hệ chỉ thể hiện service đã live.
-- Mỗi section/claim phải ghi rõ pain hoặc objection nào nó xử lý.
-- Mỗi lời hứa trust phải gắn một proof/UX cụ thể.
-- Dùng “bạn”; giọng điềm tĩnh, sáng rõ, tôn trọng.
-- Tách calculation, rule/evidence và AI.
-- Không tạo testimonial, thống kê, authority hoặc claim độ chính xác.
-- Không tái sử dụng homepage flow đã bị founder từ chối.
-
-### Tiêu chí đánh giá một bản content tốt
-
-1. Người hoài nghi đọc vẫn thấy được tôn trọng.  
-2. Người đang lo đọc xong không lo hơn.  
-3. Người mới hiểu mình nhận gì trước và sau khi trả tiền.  
-4. “Có căn cứ” được nhìn thấy bằng proof, không chỉ lặp lại bằng lời.  
-5. Multi-method giúp chọn đúng góc nhìn, không làm tăng cognitive load.  
-6. Không câu nào ngầm tước quyền quyết định của người dùng.
 
 ---
 
@@ -688,4 +481,4 @@ Viết content dựa trên các tension và proof requirement trong tài liệu 
 
 ## 16. One-line handoff
 
-> **Đừng viết cho người muốn được phán. Hãy viết cho người đang cần một cách hiểu đủ riêng, đủ rõ và đủ trung thực để họ tự quyết định bước tiếp theo.**
+> **Viết cho người đang bất an về một việc cụ thể: cho họ thấy lá số của chính họ, nói thẳng điều tốt và điều xấu, rồi chỉ cách chuẩn bị.**

@@ -22,6 +22,12 @@ Nếu bạn là agent và đang định đề xuất build một bộ môn mới
 hay bật index cho trang của nó: **đừng.** Tài liệu này tồn tại để bạn không
 phải hỏi lại, và để không ai vô tình bật index sớm.
 
+**Exception (FD-090, 2026-09-22):** a free tools hub of simple tools that need
+no complex engine — static lookup tables, lunar-calendar conversion, a random
+draw from a fixed deck, or a pure formula — may be built now. Each tool result
+must bridge into the paid Zi Wei funnel. A tool page becomes indexable only
+once it returns real computed results. Engine disciplines stay gated as above.
+
 ## 1. Vì sao có tài liệu này
 
 12 trang bộ môn và tiện ích đang ở trạng thái `live_noindex` trong

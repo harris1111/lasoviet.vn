@@ -267,8 +267,7 @@ nền sáng hay tối, nút hành động vẫn là vàng dát trên nền tối
 
 - **Không cho phép build ngay.** Thời điểm do founder quyết. Ưu tiên hiện tại
   vẫn là luồng Tử Vi (`docs/23` §0).
-- Không đổi typography, spacing, icon, motion — `docs/13` §5.3, §5.4, §5.6,
-  §5.8 vẫn nguyên hiệu lực.
+- Không đổi typography, icon, motion (`docs/13` §5.3, §5.6, §5.8) hay layout/spacing (spec FD-091).
 - Không quyết art direction ảnh cho theme sáng. Ảnh hiện tại chụp trên nền sơn
   mài sẫm; theme sáng cần hướng ảnh riêng, **không suy ra bằng cách đảo màu**.
   Việc đó thuộc `docs/22`, làm khi founder mở light theme.

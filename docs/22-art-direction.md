@@ -22,8 +22,8 @@ supersedes:
 > `tokens.css` là *nguồn giá trị*. Khi hai bên lệch nhau, `tokens.css` thắng.
 >
 > **Sơn mài là theme mặc định, không phải theme duy nhất.** Founder đã chốt
-> (2026-09-20) sẽ build thêm một **light theme**, lấy bảng Giấy–Mực–Son ở
-> `docs/13` §5.2 làm điểm xuất phát. Art direction trong file này — nền sẫm,
+> (2026-09-20) sẽ build thêm một **light theme**, lấy bảng Giấy–Mực–Son trong
+> `docs/24` làm điểm xuất phát. Art direction trong file này — nền sẫm,
 > một nguồn sáng xiên, vàng bắt rìa — mô tả **theme sơn mài**. Khi light theme
 > được build, nó cần art direction riêng, không suy ra bằng cách đảo màu.
 >
@@ -31,9 +31,8 @@ supersedes:
 > `docs/24-light-theme-color-spec.md`.
 >
 > `docs/13` vẫn quản: chiến lược thương hiệu, khách hàng, giọng và messaging,
-> **typography (§5.3)**, **grid/spacing/shape (§5.4)**, iconography (§5.6),
-> nguyên tắc data-viz (§5.7), **motion (§5.8)**, nguyên tắc UX, trust/privacy,
-> và component/copy recipes.
+> **typography (§5.3)**, iconography (§5.6),
+> **motion (§5.8)**, voice, and the banned list. Layout and components: spec FD-091.
 >
 > §0 (quy tắc đặt tên file ảnh SEO) là **bắt buộc**, áp dụng cho mọi ảnh, mọi
 > trang, không có ngoại lệ.

@@ -477,11 +477,11 @@ rule instead of adding another version.
   2026-08-31.
 - Start every change on a dedicated branch before editing or committing. Never
   commit new work directly on `master`, and never push directly to `master`.
-- Integrate changes only through this sequence: push the branch, create a pull
-  request targeting the integration branch named by the approved workflow,
-  complete any founder-requested review, then merge through the pull request.
-  Feature implementation targets `product/experience-spec-v1`; the accepted
-  product integration branch targets `master` only for release.
+- Integrate changes only through this sequence (FD-097, 2026-09-22): push the
+  branch, open a pull request straight into `master`, complete any
+  founder-requested review, then merge through the pull request. The former
+  `product/experience-spec-v1` and `feature/site-foundation` integration
+  branches are retired.
 - A separate review between pull request creation and merge is optional and
   runs only when the founder requests it for that pull request. This does not
   waive any review already required by an approved planning or implementation
@@ -491,15 +491,12 @@ rule instead of adding another version.
   it on a dedicated branch before pushing and restore local `master` to the
   integrated remote state afterward.
 
-### UI Artifact Branch Workflow
+### UI Prototype Rule
 
-- This subsection records a founder-approved repository invariant dated
-  2026-09-01.
-- Do not implement user-facing visual UI in non-UI implementation branches.
-  Pages, forms, components, layouts, navigation presentation, styles, and
-  visual interaction states wait for the dedicated UI artifact branch.
-- The approved artifact on that branch is the binding UI implementation source.
-  Do not invent or pre-empt its visual design in backend, data, auth, engine, or
+- Build user-facing UI against a founder-approved prototype in `prototype/`
+  (FD-097 retires the dedicated UI artifact branch of FD-024 and FD-055; any
+  branch may carry UI work).
+- Do not invent visual design inside backend, data, auth, engine, or
   infrastructure tasks.
 - Server-side Next.js BFF/routes, APIs, contracts, localized message data, and
   headless HTTP/session tests remain allowed when they do not introduce visual

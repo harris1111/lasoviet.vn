@@ -225,10 +225,7 @@ Unchanged from v1.0 — founder-approved, no revision needed this round.
 
 Current visual system of record is `docs/22-art-direction.md` ("Tàng thư dát
 vàng" — dark lacquer, gold leaf, cinnabar, museum-artifact macro photography),
-which supersedes the bright Paper-Ink-Cinnabar system described in
-`docs/13-brand-experience-guideline.md`. `docs/13` §5.2/5.5/5.8 still need a
-formal update to match (tracked as an open item in `art-direction.md` §6,
-unchanged by this doc).
+which is the default theme (FD-088); the light palette lives in `docs/24`.
 
 ### 6.1 Constants across every page (what keeps it one brand)
 
@@ -342,8 +339,6 @@ place rather than layered):
 - New page builds for `/bat-tu`, `/kinh-dich`, `/chiem-tinh`, `/than-so-hoc`,
   `/cong-cu-mien-phi` and its seven children — not started; needs its own
   implementation plan (`writing-plans` skill) once this spec is reviewed
-- `docs/13-brand-experience-guideline.md` §5.2/5.5/5.8 still needs to be
-  reconciled to the sơn mài system (pre-existing open item, not new)
 - When this reaches the Sol/Terra/Luna implementation pipeline, a
   corresponding `FD-0xx` entry should be added to
   `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`

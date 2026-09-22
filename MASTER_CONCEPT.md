@@ -113,7 +113,7 @@ Không có đội ngũ chuyên gia phía sau thì không được dùng ảnh, c
 - bảo mật dữ liệu sinh;
 - tuyên bố giới hạn: nội dung phục vụ tự chiêm nghiệm, không thay thế tư vấn y tế, pháp lý, tài chính hoặc sức khỏe tâm thần.
 
-Không đưa dự đoán chắc chắn về tử vong, bệnh nặng, tai nạn, phản bội hoặc phá sản. Không dùng nỗi sợ để upsell.
+Readings may state bad news the way traditional Tử Vi does, and upsell copy may name a misfortune period the engine actually computed (FD-089). Banned: death and lifespan content, named-disease predictions, selling rituals/"giải hạn"/objects, and invented events or dates.
 
 ## 9. Domain Roles
 
