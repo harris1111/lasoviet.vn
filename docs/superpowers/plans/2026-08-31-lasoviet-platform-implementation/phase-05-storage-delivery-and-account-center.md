@@ -19,6 +19,8 @@ SMTP, Next.js account UI.
 `task-contracts-and-test-vectors.md`. Asynchronous edges are normative in
 `workflow-event-contracts.md`.
 
+**Implementation Status:** Completed and deployed to production. PDF rendering, Garage S3 object store, signed asset downloads, transactional emails, and owner Account Center (`/tai-khoan`) are fully functional and tested.
+
 ## Global Constraints
 
 - Buckets are private.
@@ -46,27 +48,27 @@ SMTP, Next.js account UI.
 - Temporary artifact paths remain worker-local and never enter an outbox or
   queue payload.
 
-- [ ] **Step 1: Write failing PDF tests**
+- [x] **Step 1: Write failing PDF tests**
 
 Assert valid PDF signature, Vietnamese font rendering, page content, no
 private navigation, stable metadata, and temporary-file cleanup.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/pdf`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement print template and Chromium renderer**
+- [x] **Step 3: Implement print template and Chromium renderer**
 
 Render from immutable report content, not by scraping an authenticated browser
 page.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/pdf`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/pdf packages/database docs/superpowers/plans
@@ -94,31 +96,31 @@ git commit -m "feat: render versioned report PDFs"
   exhaustion.
 - Produces owner-authorized download ingress.
 
-- [ ] **Step 1: Write failing object lifecycle tests**
+- [x] **Step 1: Write failing object lifecycle tests**
 
 Cover opaque keys, checksum metadata, wrong owner, expired URL, object missing,
 Garage outage, post-upload PostgreSQL commit failure, idempotent adoption of
 an existing matching object, checksum conflict, orphan reconciliation, and
 HTML report availability during PDF failure.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run tests/storage && pnpm playwright test tests/e2e/private-download.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement Garage adapter**
+- [x] **Step 3: Implement Garage adapter**
 
 Use S3-compatible APIs and private buckets. Signed URLs are short-lived and
 never logged. The PDF processor renders and uploads in one job, verifies
 checksum/metadata, removes the local temporary file, then commits asset
 `stored`, report `complete`, and `report.asset.stored.v1`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pnpm vitest run tests/storage && pnpm playwright test tests/e2e/private-download.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add packages/backend/src/storage apps/worker/src/processors apps/api/src/assets apps/web/src/app/api/downloads tests/storage tests/e2e docs/superpowers/plans
@@ -142,31 +144,31 @@ git commit -m "feat: store and authorize private report assets"
   `workflow-event-contracts.md`.
 - Produces idempotent upload and tombstone deletion jobs.
 
-- [ ] **Step 1: Write failing disabled/degraded tests**
+- [x] **Step 1: Write failing disabled/degraded tests**
 
 Cover no config, healthy upload, duplicate upload, checksum mismatch, cloud
 outage, retry, Garage success with cloud failure, deletion retry, and
 reconciliation.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run tests/storage/replication.integration.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement one-way replication**
+- [x] **Step 3: Implement one-way replication**
 
 No cloud-to-Garage path exists. Deduplicate repeated operational errors.
 
-- [ ] **Step 4: Implement deletion tombstones and reconciliation**
+- [x] **Step 4: Implement deletion tombstones and reconciliation**
 
 Unresolved deletion failures remain visible until cleared.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `pnpm vitest run tests/storage/replication.integration.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Update risk/rule trackers and commit**
+- [x] **Step 6: Update risk/rule trackers and commit**
 
 ```bash
 git add packages/backend/src/storage apps/worker/src/processors tests/storage docs/superpowers/plans
@@ -187,35 +189,35 @@ git commit -m "feat: replicate and delete cloud report assets"
 - Consumes `email.report-ready.v1` and `email.report-failed.v1`.
 - Produces localized report-ready and generation-failed support messages.
 
-- [ ] **Step 1: Verify the Phase 01 SMTP contract and production inputs**
+- [x] **Step 1: Verify the Phase 01 SMTP contract and production inputs**
 
 Reuse the tested `EmailProvider` and SMTP adapter from Phase 01. Confirm the
 host, port, username, secret, verified sender domain/address, and TLS
 requirements remain valid. Secrets stay outside Git.
 
-- [ ] **Step 2: Write failing email tests**
+- [x] **Step 2: Write failing email tests**
 
 Cover localized subject/body, no report content in email, retryable SMTP
 failure, permanent address failure, duplicate job, and safe download link.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 `pnpm vitest run packages/backend/src/notifications tests/jobs/report-delivery-workflow.integration.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement report templates and worker job**
+- [x] **Step 4: Implement report templates and worker job**
 
 The message links to the authenticated report page; it does not attach the
 private PDF by default.
 
-- [ ] **Step 5: Run tests and i18n parity**
+- [x] **Step 5: Run tests and i18n parity**
 
 Run:
 `pnpm i18n:check && pnpm vitest run packages/backend/src/notifications tests/jobs/report-delivery-workflow.integration.test.ts`
 Expected: PASS.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add packages/backend/src/notifications apps/worker/src/processors apps/web/messages tests/jobs docs/superpowers/plans
@@ -244,32 +246,32 @@ git commit -m "feat: send transactional report email"
 - Produces owner-authorized account, profile, report, order, and privacy
   summaries. It does not expose staff support or recovery commands.
 
-- [ ] **Step 1: Write failing account-center E2E**
+- [x] **Step 1: Write failing account-center E2E**
 
 Cover unauthenticated account-page denial, `live_noindex` registry state,
 noindex and sitemap exclusion on every account route, profile/report/order
 ownership, owner-only privacy export/delete entry points, safe account
 summaries, and cross-owner denial.
 
-- [ ] **Step 2: Run E2E**
+- [x] **Step 2: Run E2E**
 
 Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the account center**
+- [x] **Step 3: Implement the account center**
 
 Every `/tai-khoan/**` page resolves the server session before data access and
 uses owner-authorized API queries. The account center contains no staff role,
 support, refund, regeneration, queue, or direct report-mutation control.
 
-- [ ] **Step 4: Run E2E**
+- [x] **Step 4: Run E2E**
 
 Run:
 `pnpm vitest run tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/account-center.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add config/route-registry.yml packages/backend/src/accounts apps/web/src/app tests/seo/private-route-state.test.ts tests/e2e docs/superpowers/plans

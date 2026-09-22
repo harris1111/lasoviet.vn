@@ -26,6 +26,13 @@ Never silently reverse, reinterpret, or weaken a founder-confirmed decision.
 When sources conflict, stop the affected decision, preserve the conflict in the
 planning record, and ask the founder through Sol.
 
+### Archive Directory Boundary (Hard Rule)
+
+- Any file located inside `docs/_archive/` or `prototype/_archive/` is archived material (either completed historical records or superseded baselines).
+- AI agents MUST NOT read, inspect, search, grep, or cite files in `docs/_archive/` or `prototype/_archive/` unless the user explicitly names the archived file and requests reading it in their prompt.
+- Never use archived files as active implementation context, current source of truth, or prompt input.
+- When referencing historical documents that have been archived, refer to the active stub file in `docs/` and its specified current replacement source.
+
 ## 2. Language And Communication
 
 - Communicate directly with the founder in Vietnamese.

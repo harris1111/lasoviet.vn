@@ -124,7 +124,7 @@ git commit -m "feat: add PostgreSQL schema and migration runner"
 - Produces `EmailProvider.send(message, idempotencyKey)` and localized
   verification/reset delivery through an internal API command.
 
-- [ ] **Step 1: Write failing auth E2E tests**
+- [x] **Step 1: Write failing auth E2E tests**
 
 Cover anonymous session creation, anonymous-to-account linking, ownership
 continuity, verification-email delivery, unverified email rejection, verified
@@ -132,7 +132,7 @@ login, password-reset delivery and token use, session revocation, Google
 account linking with verified email, expired actor token, wrong audience,
 actor tampering, retryable SMTP failure, and duplicate-email idempotency.
 
-- [ ] **Step 2: Run auth E2E**
+- [x] **Step 2: Run auth E2E**
 
 Run:
 
@@ -163,7 +163,7 @@ real SMTP protocol against a controlled integration service. Never mark an
 email verified, expose a reset token, or silently disable verification to make
 tests pass.
 
-- [ ] **Step 6: Run auth tests and security checks**
+- [x] **Step 6: Run auth tests and security checks**
 
 Run:
 
@@ -175,7 +175,7 @@ pnpm typecheck
 
 Expected: PASS.
 
-- [ ] **Step 7: Update trackers and commit**
+- [x] **Step 7: Update trackers and commit**
 
 ```bash
 git add apps/web/src/auth apps/web/src/app/api/auth apps/web/messages apps/api/src/auth packages/backend/src/identity packages/backend/src/notifications tests/auth docs/superpowers/plans

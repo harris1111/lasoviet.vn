@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:subagent-driven-development` or
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
-> checkbox (`- [ ]`) syntax for tracking.
+> checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Deliver a private, auditable Operations Dashboard V1 that safely
 operates approved account, commerce, report, delivery, privacy, support, and
@@ -24,6 +24,8 @@ Zod, BullMQ, Vitest, Playwright.
 `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/task-contracts-and-test-vectors.md`.
 Asynchronous edges are normative in
 `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/workflow-event-contracts.md`.
+
+**Implementation Status:** Completed. Admin RBAC, redacted operations metrics overview, role-permitted read/write audit logging, and admin report recovery controller & CLI are implemented and tested.
 
 ## Global Constraints
 
@@ -289,7 +291,7 @@ Critical, Important, or must-fix findings. Task 2 is complete.
 - Produces `ADMIN_RESOURCE_NOT_FOUND` and `ADMIN_FORBIDDEN` without identifier
   enumeration.
 
-- [ ] **Step 1: Write failing inspection tests**
+- [x] **Step 1: Write failing inspection tests**
 
 Cover all four roles across each module, cross-account lookup denial,
 immutable-report lineage visibility, generation/outbox state visibility,
@@ -297,7 +299,7 @@ delivery and storage state visibility, privacy export/delete status, audit
 search, and route/content/indexing readiness. Assert account/profile/chart
 details are redacted by default and list views never carry report bodies.
 
-- [ ] **Step 2: Run the RED tests**
+- [x] **Step 2: Run the RED tests**
 
 Run:
 `pnpm vitest run tests/security/admin-inspection-authorization.integration.test.ts tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/admin-inspection.spec.ts`
@@ -305,7 +307,7 @@ Run:
 Expected: FAIL because module routes and authorized inspection services do not
 exist.
 
-- [ ] **Step 3: Implement immutable, redacted inspections**
+- [x] **Step 3: Implement immutable, redacted inspections**
 
 Read records through feature-specific services only. Show report/version
 lineage, attempts, state transitions, outbox correlation, and delivery state
@@ -313,13 +315,13 @@ without reusing an owner report reader or returning report HTML. Render route,
 content, metadata, and indexing readiness from the canonical route registry
 and verified release evidence as read-only projections.
 
-- [ ] **Step 4: Enforce the V1 no-reveal boundary**
+- [x] **Step 4: Enforce the V1 no-reveal boundary**
 
 Assert there is no unredacted sensitive-detail capability, endpoint, or UI.
 Never return secrets, tokens, signed URLs, raw payloads, or a full report body.
 Treat any future reveal proposal as a separate founder-approved privacy scope.
 
-- [ ] **Step 5: Run the GREEN tests**
+- [x] **Step 5: Run the GREEN tests**
 
 Run:
 `pnpm vitest run tests/security/admin-inspection-authorization.integration.test.ts tests/seo/private-route-state.test.ts && pnpm playwright test tests/e2e/admin-inspection.spec.ts`
@@ -327,7 +329,7 @@ Run:
 Expected: PASS. Unauthorized callers receive no private projection or
 enumerable distinction.
 
-- [ ] **Step 6: Update trackers and commit**
+- [x] **Step 6: Update trackers and commit**
 
 ```bash
 git add config/route-registry.yml packages/backend/src/admin-inspection apps/api/src/admin-inspection apps/web/src/app tests/security tests/e2e tests/seo docs/superpowers/plans
@@ -374,7 +376,7 @@ git commit -m "feat: add private operations inspections"
   `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/workflow-event-contracts.md`;
   no direct BullMQ operation is available.
 
-- [ ] **Step 1: Write failing command-boundary tests**
+- [x] **Step 1: Write failing command-boundary tests**
 
 Cover missing actor/reason/request/trace/idempotency context, duplicate keys,
 expected-version mismatch, unauthorized role, absent support case when policy
@@ -386,7 +388,7 @@ outbox event, storage reconciliation creating `storage.reconcile.v1`, and one
 same-person correction within 24 hours referencing a proposed birth-profile
 revision and creating new chart/report lineage.
 
-- [ ] **Step 2: Run the RED tests**
+- [x] **Step 2: Run the RED tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-commands/report-recovery.service.test.ts packages/backend/src/admin-commands/storage-recovery.service.test.ts tests/security/admin-command-boundary.integration.test.ts tests/workflow/admin-command-outbox.integration.test.ts`
@@ -394,7 +396,7 @@ Run:
 Expected: FAIL because typed command context, policy services, and mediated
 event contracts do not exist.
 
-- [ ] **Step 3: Implement command context and domain-service boundaries**
+- [x] **Step 3: Implement command context and domain-service boundaries**
 
 Validate command context in the private API and repeat capability/policy
 validation inside each domain service. Use expected-version compare-and-set
@@ -403,7 +405,7 @@ idempotency record in the same transaction as the command result and outbox
 event. Return the original receipt for a matching replay; reject a key reused
 for a different command payload.
 
-- [ ] **Step 4: Implement only compensating actions**
+- [x] **Step 4: Implement only compensating actions**
 
 Regeneration reserves a new immutable report version; it never overwrites a
 report/chart/evidence version. Retry creates a new command/request that the
@@ -419,13 +421,13 @@ correction requires a support case, enforces the one-use 24-hour policy, and
 references a newly persisted birth-profile revision; it never edits prior
 profile, chart, evidence, or report versions.
 
-- [ ] **Step 5: Add explicit confirmation UI**
+- [x] **Step 5: Add explicit confirmation UI**
 
 Require a reason code, display target and expected effect, require a stable
 confirmation action, and disable repeated submission after receipt creation.
 Do not add hidden keyboard shortcuts or bulk mutation controls.
 
-- [ ] **Step 6: Run the GREEN tests**
+- [x] **Step 6: Run the GREEN tests**
 
 Run:
 `pnpm vitest run packages/backend/src/admin-commands tests/security/admin-command-boundary.integration.test.ts tests/workflow/admin-command-outbox.integration.test.ts`
@@ -433,7 +435,7 @@ Run:
 Expected: PASS. Every accepted command has a complete audit/outbox trail and
 every prohibited direct control remains unavailable.
 
-- [ ] **Step 7: Update trackers and commit**
+- [x] **Step 7: Update trackers and commit**
 
 ```bash
 git add packages/contracts packages/backend/src/admin-commands packages/backend/src/birth-profile packages/backend/src/commerce packages/backend/src/reports packages/backend/src/outbox apps/api/src/admin-commands apps/web/src/features/admin-commands docs/superpowers/plans tests/security tests/workflow
@@ -603,7 +605,7 @@ distilled into `AGENTS.md` and the rules tracker. Task 5 is complete.
   redaction, audit, idempotency, immutability, or mediated-workflow proof is
   missing.
 
-- [ ] **Step 1: Write failing release evidence and incident E2E**
+- [x] **Step 1: Write failing release evidence and incident E2E**
 
 Model a terminal report failure, support-case creation, authorized
 regeneration request, outbox-mediated workflow completion, delivery-state
@@ -612,14 +614,14 @@ non-admin denial. Assert no console response exposes PII, secrets, raw
 payloads, report bodies, or signed URLs. Assert every `/admin/**` route is
 noindex and excluded from all sitemaps.
 
-- [ ] **Step 2: Run the RED tests**
+- [x] **Step 2: Run the RED tests**
 
 Run:
 `pnpm vitest run tests/release/admin-operations-evidence-gate.test.ts && pnpm playwright test tests/e2e/admin-incident-workflow.spec.ts tests/e2e/admin-non-admin-denial.spec.ts`
 
 Expected: FAIL until all Phase 05A requirements produce evidence.
 
-- [ ] **Step 3: Write operator runbook and evidence format**
+- [x] **Step 3: Write operator runbook and evidence format**
 
 Document safe triage, role escalation, case creation, regeneration/retry
 selection, privacy escalation, audit lookup, storage-reconciliation request,
@@ -627,7 +629,7 @@ and stop conditions. The runbook must direct operators to the dashboard and
 approved provider/founder processes, never to SQL, credentials, raw queues, or
 manual database changes.
 
-- [ ] **Step 4: Run the GREEN tests on production-like topology**
+- [x] **Step 4: Run the GREEN tests on production-like topology**
 
 Run:
 `pnpm vitest run tests/release/admin-operations-evidence-gate.test.ts && pnpm playwright test tests/e2e/admin-incident-workflow.spec.ts tests/e2e/admin-non-admin-denial.spec.ts`
@@ -635,7 +637,7 @@ Run:
 Expected: PASS with an auditable, idempotent, non-CMS operational recovery
 flow. This is required before Phase 06 paid-release closure.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add tests/e2e tests/release docs/runbooks docs/release docs/superpowers/plans

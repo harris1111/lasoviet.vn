@@ -19,6 +19,8 @@ remain in the API.
 **Task Contracts:** Task N maps to `P03-T0N` in
 `task-contracts-and-test-vectors.md`.
 
+**Implementation Status:** Completed and deployed to production. Free chart calculation, 12-palace responsive grid, summary teaser, and discipline flagship pages are live on `https://lasoviet.net`.
+
 ## Global Constraints
 
 - Build the usable product flow, not a marketing-only landing page.
@@ -54,30 +56,30 @@ remain in the API.
   index, and section sitemap responses.
 - Produces `privateApiClient(actor, requestId)`.
 
-- [ ] **Step 1: Write failing route and bundle tests**
+- [x] **Step 1: Write failing route and bundle tests**
 
 Assert VI/EN routes, one canonical YAML route source, a valid sitemap index and
 section children, private/reserved exclusion, robots-to-sitemap agreement, and
 no browser bundle reference to an API hostname.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run:
 `pnpm vitest run packages/config/src/route-registry.test.ts tests/seo/crawl-controls.test.ts tests/web/no-public-api-reference.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement layouts and private server client**
+- [x] **Step 3: Implement layouts and private server client**
 
 The home route shows the actual Zi Wei entry flow in the first viewport.
 `robots.ts` and every sitemap response consume the typed YAML registry and
 cannot publish private, reserved, preview, or archived routes.
 
-- [ ] **Step 4: Build both locales**
+- [x] **Step 4: Build both locales**
 
 Run: `pnpm i18n:check && pnpm --filter @lasoviet/web build`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add config/route-registry.yml packages/config/src/route-registry.ts apps/web/src/api apps/web/src/app apps/web/src/seo tests/seo tests/web docs/superpowers/plans
@@ -111,31 +113,31 @@ git commit -m "feat: add localized web and BFF routing"
 - Produces a temporary anonymous or account-owned profile revision and typed
   eligibility response.
 
-- [ ] **Step 1: Write failing Playwright tests**
+- [x] **Step 1: Write failing Playwright tests**
 
 Cover guest anonymous-session creation, exact time, traditional branch, unknown
 time, crossing range, consent required, validation messages, locale switch,
 refresh persistence, account linking without duplicate data, immediate guest
 deletion, and denial after the 24-hour expiry boundary.
 
-- [ ] **Step 2: Run E2E**
+- [x] **Step 2: Run E2E**
 
 Run: `pnpm playwright test tests/e2e/birth-profile-flow.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement accessible form controls**
+- [x] **Step 3: Implement accessible form controls**
 
 Create or resolve the Better Auth anonymous actor before the first persisted
 submission. Use date/time inputs, location controls only where needed,
 radio/segmented precision selection, and explicit consent checkbox. Do not
 invent exact minute values or require registration before the free chart.
 
-- [ ] **Step 4: Run mobile and desktop E2E**
+- [x] **Step 4: Run mobile and desktop E2E**
 
 Run: `pnpm playwright test tests/e2e/birth-profile-flow.spec.ts --project=chromium`
 Expected: PASS at mobile and desktop viewports.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add apps/web/src/features/birth-profile apps/web/messages tests/e2e docs/superpowers/plans
@@ -169,27 +171,27 @@ git commit -m "feat: add birth profile and consent flow"
 - Produces actor-authorized responsive chart UI for account and unexpired
   anonymous owners.
 
-- [ ] **Step 1: Write failing chart E2E**
+- [x] **Step 1: Write failing chart E2E**
 
 Assert 12 palaces, metadata, rule set, limitations, evidence opening, mobile
 layout, desktop scanning, and no sequential-ID access.
 
-- [ ] **Step 2: Run E2E**
+- [x] **Step 2: Run E2E**
 
 Run: `pnpm playwright test tests/e2e/free-chart.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement server page and focused client interactions**
+- [x] **Step 3: Implement server page and focused client interactions**
 
 Keep chart data fetching server-side. Evidence drawer receives only the
 selected evidence payload.
 
-- [ ] **Step 4: Run accessibility and visual smoke**
+- [x] **Step 4: Run accessibility and visual smoke**
 
 Run: `pnpm playwright test tests/e2e/free-chart.spec.ts`
 Expected: PASS without overlap at approved viewports.
 
-- [ ] **Step 5: Update docs/rules and commit**
+- [x] **Step 5: Update docs/rules and commit**
 
 ```bash
 git add apps/web/src/features/ziwei apps/web/src/features/evidence apps/web/src/app apps/web/messages tests/e2e docs/superpowers/plans
@@ -228,30 +230,30 @@ git commit -m "feat: render free Zi Wei chart"
   `ZIWEI-IDENTITY-P0` purchasable.
 - Produces privacy-safe event contracts.
 
-- [ ] **Step 1: Write failing content and privacy tests**
+- [x] **Step 1: Write failing content and privacy tests**
 
 Assert every insight has evidence, no blur overlay exists, the topic-selection
 page is actor-authorized/noindex, reserved SKUs cannot render or be selected,
 and analytics rejects name, birth data, chart JSON, evidence text, and report
 content.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run: `pnpm vitest run packages/backend/src/analytics && pnpm playwright test tests/e2e/free-preview.spec.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement preview selection from deterministic evidence**
+- [x] **Step 3: Implement preview selection from deterministic evidence**
 
 The preview is not generated as unrelated generic marketing copy. The topic
 selector consumes the server-authoritative product catalog and exposes only
 the identity offer while later Zi Wei SKUs remain reserved.
 
-- [ ] **Step 4: Run tests and i18n parity**
+- [x] **Step 4: Run tests and i18n parity**
 
 Run: `pnpm i18n:check && pnpm vitest run packages/backend/src/analytics && pnpm playwright test tests/e2e/free-preview.spec.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update trackers and commit**
+- [x] **Step 5: Update trackers and commit**
 
 ```bash
 git add apps/web/src/features/reports packages/contracts packages/backend/src/analytics apps/web/messages tests docs/superpowers/plans
@@ -292,7 +294,7 @@ git commit -m "feat: add evidence-backed free preview"
 - Produces not-found or redirect behavior for `reserved`, `preview_noindex`,
   and `archived` routes without leaking roadmap content.
 
-- [ ] **Step 1: Write failing public-route and SEO tests**
+- [x] **Step 1: Write failing public-route and SEO tests**
 
 ```ts
 expect(await metadataFor("/la-so-tu-vi", "vi")).toMatchObject({
@@ -307,7 +309,7 @@ Cover real `<a href>` navigation, Vietnamese root canonicals, `/en` alternates,
 private-route noindex, reserved-route exclusion, schema/content agreement,
 mobile header behavior, and no client-only SEO copy.
 
-- [ ] **Step 2: Run focused tests**
+- [x] **Step 2: Run focused tests**
 
 Run:
 
@@ -318,7 +320,7 @@ pnpm playwright test tests/e2e/public-surface.spec.ts
 
 Expected: FAIL before the renderer and route-state behavior exist.
 
-- [ ] **Step 3: Implement the server-rendered public surface**
+- [x] **Step 3: Implement the server-rendered public surface**
 
 Use route-specific product pages where interaction requires them and the
 registry-backed content renderer for editorial/trust routes. The first viewport
@@ -327,7 +329,7 @@ Paper/Ink/Cinnabar tokens, Source Serif 4 for editorial display, Be Vietnam Pro
 for UI/data, Lucide icons, 44px controls, visible focus, reduced motion, and no
 card nesting.
 
-- [ ] **Step 4: Verify metadata, accessibility, and performance budgets**
+- [x] **Step 4: Verify metadata, accessibility, and performance budgets**
 
 Run:
 
@@ -340,7 +342,7 @@ pnpm --filter @lasoviet/web build
 Expected: PASS with no public route overlap and no reserved route in sitemap or
 navigation.
 
-- [ ] **Step 5: Update tracking and commit**
+- [x] **Step 5: Update tracking and commit**
 
 ```bash
 git add apps/web/src/features/content apps/web/src/seo apps/web/src/app tests/seo tests/e2e docs/superpowers/plans
@@ -434,14 +436,14 @@ git commit -m "feat: render canonical public experience"
 - Produces source/reviewer references, contextual internal links, content-risk
   tags, and `lastReviewed` metadata.
 
-- [ ] **Step 1: Write failing completeness and quality tests**
+- [x] **Step 1: Write failing completeness and quality tests**
 
 Assert every Gate 1 route has VI/EN content, one intent owner, reviewed sources,
 no incomplete placeholder markers, no unsupported expert identity, no fear/scarcity
 copy, no thin synonym pages, and contextual links to methodology, calculator,
 and related content.
 
-- [ ] **Step 2: Run the content gate**
+- [x] **Step 2: Run the content gate**
 
 Run:
 
@@ -452,7 +454,7 @@ node scripts/check-public-content.mjs
 
 Expected: FAIL before the content records exist.
 
-- [ ] **Step 3: Write the core public and trust content**
+- [x] **Step 3: Write the core public and trust content**
 
 Derive copy from the approved brand guideline and Blueprint v1.1. The identity
 commercial page alone may present a purchasable offer. Relationship, career,
@@ -460,13 +462,13 @@ and annual topics remain absent from navigation and render no indexable page.
 The sample is anonymized, contains real structure/evidence examples, and never
 uses fake testimonials.
 
-- [ ] **Step 4: Write and review the ten foundation articles**
+- [x] **Step 4: Write and review the ten foundation articles**
 
 Each article has a unique intent, plain-language summary, independent example
 or figure specification, method limits, source references, author/reviewer
 records, and two to four related links. Do not mass-generate entity variants.
 
-- [ ] **Step 5: Run content, link, SEO, and web verification**
+- [x] **Step 5: Run content, link, SEO, and web verification**
 
 Run:
 
@@ -480,7 +482,7 @@ pnpm --filter @lasoviet/web build
 Expected: PASS with all Gate 1 routes server-rendered and ten reviewed
 foundation articles available in both locales.
 
-- [ ] **Step 6: Update tracking and commit**
+- [x] **Step 6: Update tracking and commit**
 
 ```bash
 git add content/public tests/content tests/e2e docs/superpowers/plans
