@@ -19,9 +19,9 @@ test("opens the canonical birth wizard and advances through its exact-time steps
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
   await expect(page.getByRole("heading", { name: "Ngày, giờ sinh & nơi sinh" })).toBeVisible();
-  await page.getByRole("textbox", { name: "Ngày", exact: true }).fill("01");
-  await page.getByRole("textbox", { name: "Tháng", exact: true }).fill("01");
-  await page.getByRole("textbox", { name: "Năm", exact: true }).fill("1990");
+  await page.getByLabel("Ngày", { exact: true }).selectOption("01");
+  await page.getByLabel("Tháng", { exact: true }).selectOption("01");
+  await page.getByLabel("Năm", { exact: true }).selectOption("1990");
   await page.getByLabel("Giờ", { exact: true }).fill("09");
   await page.getByLabel("Phút", { exact: true }).fill("30");
   await page.getByRole("button", { name: "Tiếp tục" }).click();
@@ -47,10 +47,10 @@ test("prefills birth data from hero form into wizard using the reusable cache wi
   await page.goto("/");
 
   const heroForm = page.locator("#hero-form");
-  await heroForm.locator('input[placeholder="12"]').fill("12");
-  await heroForm.locator('input[placeholder="04"]').fill("04");
-  await heroForm.locator('input[placeholder="1994"]').fill("1994");
-  await heroForm.locator("select").selectOption("si");
+  await heroForm.getByLabel("Ngày", { exact: true }).selectOption("12");
+  await heroForm.getByLabel("Tháng", { exact: true }).selectOption("04");
+  await heroForm.getByLabel("Năm", { exact: true }).selectOption("1994");
+  await heroForm.locator('select[name="birthBranch"]').selectOption("si");
 
   await heroForm.getByRole("button", { name: "Lập lá số miễn phí" }).click();
 
@@ -63,12 +63,27 @@ test("prefills birth data from hero form into wizard using the reusable cache wi
   await page.getByLabel("Nữ").check();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
-  // Step 2 shows prefilled date and branch
+  // Step 2 shows prefilled date and branch, plus verify touch targets >= 44px on conditional controls
   await expect(page.getByRole("heading", { name: "Ngày, giờ sinh & nơi sinh" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Ngày", exact: true })).toHaveValue("12");
-  await expect(page.getByRole("textbox", { name: "Tháng", exact: true })).toHaveValue("04");
-  await expect(page.getByRole("textbox", { name: "Năm", exact: true })).toHaveValue("1994");
+  await expect(page.getByLabel("Ngày", { exact: true })).toHaveValue("12");
+  await expect(page.getByLabel("Tháng", { exact: true })).toHaveValue("04");
+  await expect(page.getByLabel("Năm", { exact: true })).toHaveValue("1994");
   await expect(page.getByLabel("Địa Chi giờ sinh")).toHaveValue("si");
+
+  // Verify time-mode buttons and calendar trigger >= 44px
+  const exactModeBtn = page.getByRole("button", { name: "Giờ & phút" });
+  const branchModeBtn = page.getByRole("button", { name: "12 Địa Chi" });
+  const exactBox = await exactModeBtn.boundingBox();
+  const branchBox = await branchModeBtn.boundingBox();
+  expect(exactBox?.height).toBeGreaterThanOrEqual(44);
+  expect(branchBox?.height).toBeGreaterThanOrEqual(44);
+
+  // Verify cache clear notice and button >= 44px
+  const wizardClearBtn = page.locator(".wizard-cache-clear");
+  await expect(wizardClearBtn).toBeVisible();
+  const clearBox = await wizardClearBtn.boundingBox();
+  expect(clearBox?.height).toBeGreaterThanOrEqual(44);
+
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
   // Step 3 (Review) shows localized branch label
@@ -93,9 +108,9 @@ test("preserves exact birth hour and minute from homepage cache into the wizard"
   await page.goto("/");
 
   const heroForm = page.locator("#hero-form");
-  await heroForm.getByRole("textbox", { name: "Ngày", exact: true }).fill("12");
-  await heroForm.getByRole("textbox", { name: "Tháng", exact: true }).fill("04");
-  await heroForm.getByRole("textbox", { name: "Năm", exact: true }).fill("1994");
+  await heroForm.getByLabel("Ngày", { exact: true }).selectOption("12");
+  await heroForm.getByLabel("Tháng", { exact: true }).selectOption("04");
+  await heroForm.getByLabel("Năm", { exact: true }).selectOption("1994");
   await heroForm.getByRole("button", { name: "Giờ & phút" }).click();
   await heroForm.getByRole("textbox", { name: "Giờ", exact: true }).fill("09");
   await heroForm.getByRole("textbox", { name: "Phút", exact: true }).fill("05");
@@ -107,9 +122,9 @@ test("preserves exact birth hour and minute from homepage cache into the wizard"
   await page.getByLabel("Nam").check();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
-  await expect(page.getByRole("textbox", { name: "Ngày", exact: true })).toHaveValue("12");
-  await expect(page.getByRole("textbox", { name: "Tháng", exact: true })).toHaveValue("04");
-  await expect(page.getByRole("textbox", { name: "Năm", exact: true })).toHaveValue("1994");
+  await expect(page.getByLabel("Ngày", { exact: true })).toHaveValue("12");
+  await expect(page.getByLabel("Tháng", { exact: true })).toHaveValue("04");
+  await expect(page.getByLabel("Năm", { exact: true })).toHaveValue("1994");
   await expect(page.getByRole("textbox", { name: "Giờ", exact: true })).toHaveValue("09");
   await expect(page.getByRole("textbox", { name: "Phút", exact: true })).toHaveValue("05");
 });
@@ -129,10 +144,10 @@ test("prefills birth data with unknown time from hero form and respects honest e
   await page.goto("/");
 
   const heroForm = page.locator("#hero-form");
-  await heroForm.locator('input[placeholder="12"]').fill("12");
-  await heroForm.locator('input[placeholder="04"]').fill("04");
-  await heroForm.locator('input[placeholder="1994"]').fill("1994");
-  await heroForm.locator("select").selectOption("");
+  await heroForm.getByLabel("Ngày", { exact: true }).selectOption("12");
+  await heroForm.getByLabel("Tháng", { exact: true }).selectOption("04");
+  await heroForm.getByLabel("Năm", { exact: true }).selectOption("1994");
+  await heroForm.locator('select[name="birthBranch"]').selectOption("");
 
   await heroForm.getByRole("button", { name: "Lập lá số miễn phí" }).click();
 
@@ -144,9 +159,9 @@ test("prefills birth data with unknown time from hero form and respects honest e
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
   await expect(page.getByRole("heading", { name: "Ngày, giờ sinh & nơi sinh" })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Ngày", exact: true })).toHaveValue("12");
-  await expect(page.getByRole("textbox", { name: "Tháng", exact: true })).toHaveValue("04");
-  await expect(page.getByRole("textbox", { name: "Năm", exact: true })).toHaveValue("1994");
+  await expect(page.getByLabel("Ngày", { exact: true })).toHaveValue("12");
+  await expect(page.getByLabel("Tháng", { exact: true })).toHaveValue("04");
+  await expect(page.getByLabel("Năm", { exact: true })).toHaveValue("1994");
   await expect(page.getByLabel("Không rõ giờ sinh")).toBeChecked();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
@@ -168,20 +183,26 @@ test("autosaves partial homepage input across reload", async ({ page }) => {
   await page.goto("/");
 
   const heroForm = page.locator("#hero-form");
-  await heroForm.getByRole("textbox", { name: "Ngày", exact: true }).fill("12");
-  await heroForm.getByRole("textbox", { name: "Tháng", exact: true }).fill("04");
+  await heroForm.getByLabel("Ngày", { exact: true }).selectOption("12");
+  await heroForm.getByLabel("Tháng", { exact: true }).selectOption("04");
   await heroForm.getByRole("button", { name: "Giờ & phút" }).click();
   await heroForm.getByRole("textbox", { name: "Giờ", exact: true }).fill("09");
 
   await page.reload();
 
   const restoredHeroForm = page.locator("#hero-form");
-  await expect(restoredHeroForm.getByRole("textbox", { name: "Ngày", exact: true })).toHaveValue("12");
-  await expect(restoredHeroForm.getByRole("textbox", { name: "Tháng", exact: true })).toHaveValue("04");
+  await expect(restoredHeroForm.getByLabel("Ngày", { exact: true })).toHaveValue("12");
+  await expect(restoredHeroForm.getByLabel("Tháng", { exact: true })).toHaveValue("04");
   await expect(restoredHeroForm.getByRole("textbox", { name: "Giờ", exact: true })).toHaveValue("09");
+
+  // Verify hero cache clear button is visible and >= 44px touch target
+  const heroClearBtn = page.locator(".hero-cache-clear");
+  await expect(heroClearBtn).toBeVisible();
+  const heroClearBox = await heroClearBtn.boundingBox();
+  expect(heroClearBox?.height).toBeGreaterThanOrEqual(44);
 });
 
-test("autosaves Review before immediate sign-in navigation and restores it after mocked OAuth", async ({
+test("restores review draft and reading context after navigation to sign-in and return callback", async ({
   page,
 }) => {
   const baseURL = test.info().project.use.baseURL as string;
@@ -199,14 +220,20 @@ test("autosaves Review before immediate sign-in navigation and restores it after
   await page.goto(wizardPath);
   await page.getByLabel("Nam").check();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
-  await page.getByRole("textbox", { name: "Ngày", exact: true }).fill("12");
-  await page.getByRole("textbox", { name: "Tháng", exact: true }).fill("04");
-  await page.getByRole("textbox", { name: "Năm", exact: true }).fill("1994");
+  await page.getByLabel("Ngày", { exact: true }).selectOption("12");
+  await page.getByLabel("Tháng", { exact: true }).selectOption("04");
+  await page.getByLabel("Năm", { exact: true }).selectOption("1994");
   await page.getByLabel("Giờ", { exact: true }).fill("09");
   await page.getByLabel("Phút", { exact: true }).fill("30");
   await page.getByRole("button", { name: "Tiếp tục" }).click();
   await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
 
+  // Select FD-078 reading context lifeStage and skip topConcern before sign-in navigation
+  await page.getByRole("button", { name: "Mới đi làm" }).click();
+  const skipButtons = page.getByRole("button", { name: "Bỏ qua" });
+  await skipButtons.nth(1).click();
+
+  // Mock social sign-in returning redirect to wizardUrl
   await page.route("**/api/auth/sign-in/social", async (route) => {
     await route.fulfill({
       status: 200,
@@ -215,15 +242,18 @@ test("autosaves Review before immediate sign-in navigation and restores it after
     });
   });
 
-  await page.getByRole("link", { name: "Đăng nhập" }).click();
-  await expect(page).toHaveURL(
-    `/dang-nhap?callbackURL=${encodeURIComponent(wizardPath)}`,
-  );
+  // Navigate to supported sign-in entry with callbackURL returning to wizard
+  const signInPath = `/dang-nhap?callbackURL=${encodeURIComponent(wizardPath)}`;
+  await page.goto(signInPath);
+  await expect(page.getByRole("heading", { name: "Đăng nhập" })).toBeVisible();
+
   const googleButton = page.getByRole("button", { name: /Google/i });
   await Promise.all([page.waitForURL(wizardUrl), googleButton.click()]);
 
   await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư" })).toBeVisible();
   await expect(page.getByText("12/04/1994")).toBeVisible();
   await expect(page.getByText("09:30")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mới đi làm" })).toHaveAttribute("aria-pressed", "true");
+  await expect(skipButtons.nth(1)).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("checkbox")).not.toBeChecked();
 });

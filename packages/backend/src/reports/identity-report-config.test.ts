@@ -32,6 +32,8 @@ import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
@@ -76,17 +78,9 @@ describe("identity report config", () => {
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V1).toBe("ziwei-comprehensive.v1");
   });
 
-  it("currentReportVersions returns V4 for Vietnamese and V2 for English", () => {
+  it("currentReportVersions returns exact V4.1.2 sensitivity tuple for Vietnamese and V2 for English", () => {
     const viVersions = currentReportVersions("vi");
-    expect(viVersions).toEqual({
-      family: "v4",
-      knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
-      promptVersion: "ziwei.comprehensive.prompt.v4",
-      reportConfigVersion: "ziwei.comprehensive.report.v4",
-      templateVersion: "ziwei-comprehensive-html.v1",
-      contentVersion: "ziwei-comprehensive.v2",
-      timingRuleVersion: "ziwei.timing.v1",
-    });
+    expect(viVersions).toEqual(v4_1_2SensitivityReportVersions("vi"));
 
     const enVersions = currentReportVersions("en");
     expect(enVersions).toEqual({
@@ -187,6 +181,8 @@ describe("identity report config", () => {
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2-sensitivity");
     expect(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY).toBe("ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity");
     expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.1-sensitivity");
+    expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.2-sensitivity");
+    expect(REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY).toBe("ziwei.comprehensive.quality.v2.3-sensitivity");
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V3).toBe("ziwei-comprehensive.v3");
     expect(REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY).toBe("ziwei-comprehensive-html.v2");
     expect(REPORT_RENDER_VERSION_V4_1_SENSITIVITY).toBe("identity-report-pdf.v2");
@@ -206,8 +202,8 @@ describe("identity report config", () => {
       timingRuleVersion: "ziwei.timing.v1",
     });
 
-    // Verify currentReportVersions matches v4ReportVersions for Vietnamese
-    expect(currentReportVersions("vi")).toEqual(v4);
+    // Vietnamese comprehensive reports use the current V4.1.2 sensitivity selection.
+    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
 
     // Regression check: legacy V3 constants remain available for existing reports
     expect(REPORT_KNOWLEDGE_VERSION_V3).toBe("ziwei.comprehensive.knowledge.v3");
@@ -228,11 +224,13 @@ describe("identity report config", () => {
       timingRuleVersion: "ziwei.timing.v1",
     });
 
-    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
-    expect(currentReportVersions("vi").promptVersion).toBe(REPORT_PROMPT_VERSION_V4);
+    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
+    expect(currentReportVersions("vi").promptVersion).toBe(
+      REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    );
   });
 
-  it("provides an inactive sectioned V4 selection and a closed runtime policy without changing paid selection", () => {
+  it("provides the active sectioned V4 selection and its closed runtime policy", () => {
     expect(v4SectionedReportVersions()).toEqual({
       family: "v4",
       knowledgeVersion: "ziwei.comprehensive.knowledge.v3",
@@ -249,7 +247,7 @@ describe("identity report config", () => {
     expect(() => resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4)).toThrow(
       "REPORT_RUNTIME_POLICY_UNKNOWN_CONFIG",
     );
-    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
   });
 
   it("provides the dormant V4.1 sensitivity tuple and matching runtime policy", () => {
@@ -267,7 +265,7 @@ describe("identity report config", () => {
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY)).toEqual({
       maximumWallClockMs: 3_600_000,
     });
-    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
   });
 
   it("provides the additive V4.1.1 sensitivity tuple without remapping V4.1", () => {
@@ -288,7 +286,7 @@ describe("identity report config", () => {
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY)).toEqual({
       maximumWallClockMs: 3_600_000,
     });
-    expect(currentReportVersions("vi")).toEqual(v4ReportVersions("vi"));
+    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
   });
 
   it("adds the key-configuration prompt tuple without changing the durable V4.1.1 resolver", () => {
@@ -317,7 +315,7 @@ describe("identity report config", () => {
       knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
       promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
       reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-      qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+      qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
     });
   });
 

@@ -28,6 +28,7 @@ const secret = new TextEncoder().encode(serviceSecret);
 const resolveAdminAccess = vi.fn();
 const recoverTransientFailure = vi.fn();
 const recoverInvalidOutputFailure = vi.fn();
+const restartInvalidOutputWithCurrentVersion = vi.fn();
 const appendAdminAudit = vi.fn();
 
 async function actorToken(): Promise<string> {
@@ -54,7 +55,11 @@ Module({
     { provide: ADMIN_ACCESS_SERVICE, useValue: { resolveAdminAccess } },
     {
       provide: ADMIN_REPORT_RECOVERY_SERVICE,
-      useValue: { recoverTransientFailure, recoverInvalidOutputFailure },
+      useValue: {
+        recoverTransientFailure,
+        recoverInvalidOutputFailure,
+        restartInvalidOutputWithCurrentVersion,
+      },
     },
     { provide: ADMIN_AUDIT_SERVICE, useValue: { appendAdminAudit } },
     { provide: ADMIN_ACCESS_SERVICE_SECRET, useValue: serviceSecret },
@@ -83,6 +88,7 @@ describe("AdminReportRecoveryController HTTP boundary", () => {
     resolveAdminAccess.mockReset();
     recoverTransientFailure.mockReset();
     recoverInvalidOutputFailure.mockReset();
+    restartInvalidOutputWithCurrentVersion.mockReset();
     appendAdminAudit.mockReset();
     appendAdminAudit.mockResolvedValue("audit-1");
     resolveAdminAccess.mockResolvedValue({
@@ -259,6 +265,42 @@ describe("AdminReportRecoveryController HTTP boundary", () => {
       }),
     );
     expect(recoverTransientFailure).not.toHaveBeenCalled();
+  });
+
+  it("uses the current-lineage restart endpoint and returns the supersession result", async () => {
+    restartInvalidOutputWithCurrentVersion.mockResolvedValue({
+      ok: true,
+      value: {
+        reportVersionId: "00000000-0000-0000-0000-000000000002",
+        supersedesReportVersionId: "00000000-0000-0000-0000-000000000001",
+        stateVersion: 4,
+        replayed: false,
+      },
+    });
+
+    const response = await request({
+      expectedStateVersion: 3,
+      idempotencyKey: "restart-invalid-output-current-1",
+      reasonCode: "incident_recovery",
+    }, `Bearer ${await actorToken()}`, "restart-invalid-output-current");
+
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({
+      reportVersionId: "00000000-0000-0000-0000-000000000002",
+      supersedesReportVersionId: "00000000-0000-0000-0000-000000000001",
+      stateVersion: 4,
+      replayed: false,
+    });
+    expect(restartInvalidOutputWithCurrentVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        idempotencyKey: "restart-invalid-output-current-1",
+        reasonCode: "incident_recovery",
+      }),
+      expect.objectContaining({
+        idempotencyKey: "restart-invalid-output-current-1",
+        reasonCode: "incident_recovery",
+      }),
+    );
   });
 
   it.each([

@@ -5,7 +5,7 @@ status: founder-approved
 date: 2026-09-20
 scope: điều kiện để một trang bộ môn chuyển từ noindex sang indexable
 depends_on:
-  - docs/20-deep-research-ta-social-listening-handoff.md
+  - docs/13-brand-experience-guideline.md
   - docs/14-sitemap-seo-wireframes.md
   - config/route-registry.yml
 ---
@@ -105,10 +105,9 @@ Một trang bộ môn chỉ được chuyển `live_noindex` → `live_indexable
 2. **Không còn bất kỳ nội dung "sắp ra mắt" nào trên trang.** Không nhãn, không
    hồ sơ mẫu thay cho kết quả thật, không CTA dẫn sang bộ môn khác vì bộ môn
    này chưa chạy.
-3. **Nội dung đạt cổng biên tập.** Theo luật viết trong
-   `docs/20-deep-research-ta-social-listening-handoff.md`: nói được căn cứ của
-   từng nhận định, không hù doạ, không hứa chắc chắn về tương lai, không văn
-   chung chung đúng với mọi người.
+3. **Nội dung đạt cổng biên tập.** Không phạm danh sách cấm ở `docs/13` §4.5
+   (FD-089), nói được căn cứ của từng nhận định, không văn chung chung đúng với
+   mọi người.
 4. **Mọi tuyên bố công khai có bằng chứng.** Nếu trang phát biểu điều gì về
    phương pháp, độ chính xác, quyền riêng tư, giá hay hoàn tiền, tuyên bố đó
    phải nằm trong `config/claims.json` với `sourceExcerpts` thật và
@@ -123,7 +122,7 @@ Một trang bộ môn chỉ được chuyển `live_noindex` → `live_indexable
 route vào sitemap.
 
 Đây là **thay đổi có ảnh hưởng SEO trên toàn domain**, thuộc nhóm phải có cả
-Harris và An cùng review theo `docs/15-collaboration-branch-workflow.md`. Ghi
+Harris và An cùng review qua PR vào `master` (FD-097). Ghi
 rõ trong PR: đã đạt điều kiện nào, bằng chứng ở đâu.
 
 ## 5. Thứ tự khi đến lúc mở rộng

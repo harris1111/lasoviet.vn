@@ -4,6 +4,7 @@ import type { BeginAttemptInput, CompleteAttemptInput } from "./ai-cost.js";
 import {
   createAiProductionGate,
   createOpenAiCompatibleAdapter,
+  resolveOpenAiCompatibleProviderId,
 } from "./openai-compatible-adapter.js";
 
 const schema = z.object({ value: z.literal("sentinel") }).strict();
@@ -31,6 +32,11 @@ const samplePricing = {
 };
 
 describe("OpenAI-compatible adapter", () => {
+  it("resolves OpenRouter from its base URL and preserves the legacy fallback", () => {
+    expect(resolveOpenAiCompatibleProviderId("https://openrouter.ai/api/v1")).toBe("openrouter");
+    expect(resolveOpenAiCompatibleProviderId("https://ai.synthetic.test/v1")).toBe("9router-an");
+  });
+
   it("uses strict JSON schema output and validates a structured success", async () => {
     const calls: RequestInit[] = [];
     const provider = createOpenAiCompatibleAdapter({
@@ -50,6 +56,82 @@ describe("OpenAI-compatible adapter", () => {
       ok: true,
       value: { value: { value: "sentinel" }, providerId: "9router-an", modelId: "synthetic-model" },
     });
+
+    const body = JSON.parse(String(calls[0]?.body)) as {
+      messages: Array<{ role: string; content: string }>;
+    };
+    expect(body.messages[0]?.content).toContain("Authoritative output contract");
+    expect(body.messages[0]?.content).toContain('"value":{"type":"string","const":"sentinel"');
+  });
+
+  it("aborts when response body consumption stalls beyond the configured timeout", async () => {
+    vi.useFakeTimers();
+    try {
+      let requestSignal: AbortSignal | undefined;
+      const provider = createOpenAiCompatibleAdapter({
+        baseUrl: "https://ai.synthetic.test/v1",
+        apiKey: "not-a-real-secret",
+        modelId: "synthetic-model",
+        allowedResolvedModelIds: ["synthetic-model"],
+        timeoutMs: 100,
+        retryCount: 0,
+        productionGate: createAiProductionGate("pending"),
+        fetchImpl: async (_url, init) => {
+          requestSignal = init?.signal;
+          const body = new ReadableStream<Uint8Array>({
+            start(controller) {
+              requestSignal?.addEventListener(
+                "abort",
+                () => controller.error(new DOMException("The operation was aborted.", "AbortError")),
+                { once: true },
+              );
+            },
+          });
+          return new Response(body, {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
+        },
+      });
+
+      const resultPromise = provider.generateStructured(request);
+      await vi.advanceTimersByTimeAsync(99);
+      expect(requestSignal?.aborted).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(resultPromise).resolves.toMatchObject({
+        ok: false,
+        error: { code: "AI_TIMEOUT", retryable: true },
+      });
+      expect(requestSignal?.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("disables OpenRouter reasoning so the output budget remains available for JSON", async () => {
+    let body: Record<string, unknown> | undefined;
+    const provider = createOpenAiCompatibleAdapter({
+      baseUrl: "https://openrouter.ai/api/v1",
+      apiKey: "not-a-real-secret",
+      modelId: "~deepseek/deepseek-flash-latest",
+      allowedResolvedModelIds: ["deepseek/deepseek-v4.1-flash"],
+      timeoutMs: 100,
+      retryCount: 0,
+      productionGate: createAiProductionGate("pending"),
+      fetchImpl: async (_url, init) => {
+        body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return jsonResponse({
+          model: "deepseek/deepseek-v4.1-flash",
+          choices: [{ message: { content: "{\"value\":\"sentinel\"}" } }],
+        });
+      },
+    });
+
+    await expect(provider.generateStructured(request)).resolves.toMatchObject({
+      ok: true,
+    });
+    expect(body?.reasoning).toEqual({ effort: "none" });
   });
 
   it("requires a cost recorder for production report generation and fails closed before fetch", async () => {

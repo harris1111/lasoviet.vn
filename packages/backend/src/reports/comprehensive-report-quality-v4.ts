@@ -9,6 +9,7 @@ import {
 import { normalizeComprehensiveReportModelProse } from "./comprehensive-report-writer.js";
 import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "./comprehensive-report-validator-v4.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
+import { REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY } from "./identity-report-config.js";
 
 export type ComprehensiveReportQualitySectionV4 = {
   key: string;
@@ -110,7 +111,10 @@ function referencedEvidenceFactIds(
 
 function properNamesInFacts(
   facts: ComprehensiveZiweiFactsV4,
-  config: ZiweiReportQualityConfig,
+  config: ZiweiReportQualityConfig & {
+    properNames: readonly string[];
+    maxProperNamesPer100Syllables: number;
+  },
 ): Set<string> {
   const names = new Set(config.properNames);
   const actualStarIds = new Set(
@@ -130,17 +134,27 @@ function properNamesInFacts(
   return names;
 }
 
+const PALACE_NAME_CONTEXT_PATTERNS = [
+  /\bcung\s*$/iu,
+  /\btam phương\b[^.!?;:\n]{0,64}\b(?:gồm|là|có)\s*$/iu,
+  /\btam hợp\s*$/iu,
+  /\bđối cung\s*$/iu,
+  /\bxung chiếu(?:\s+(?:đến|tới|với))?\s*$/iu,
+  /\b(?:chiếu về|liên cung)\s*$/iu,
+];
+
 function hasDiscouragedTerm(text: string, term: string): boolean {
   const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu");
   const normalizedTerm = term.normalize("NFC").toLocaleLowerCase("vi-VN");
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(text)) !== null) {
-    if (
-      (normalizedTerm === "phu thê" || normalizedTerm === "tử tức") &&
-      /cung\s+$/iu.test(text.slice(0, match.index))
-    ) {
-      continue;
+    if (normalizedTerm === "phu thê" || normalizedTerm === "tử tức") {
+      const contextStart = Math.max(0, match.index - 96);
+      const context = text.slice(contextStart, match.index);
+      if (PALACE_NAME_CONTEXT_PATTERNS.some((contextPattern) => contextPattern.test(context))) {
+        continue;
+      }
     }
     return true;
   }
@@ -198,8 +212,13 @@ export function validateComprehensiveReportSectionQualityV4(
   }
   if (HAN_IDEOGRAPH_PATTERN.test(rawText)) add("LOCALE_HAN", "Contains a Han ideograph.");
   if (ENGLISH_BRIGHTNESS_PATTERN.test(text)) add("ENGLISH_BRIGHTNESS", "Contains an English brightness descriptor.");
-  const density = [...properNamesInFacts(facts, config)].reduce((count, term) => count + (text.match(new RegExp(`(?<![\\p{L}\\p{N}])${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "giu"))?.length ?? 0), 0) / Math.max(syllables, 1) * 100;
-  if (density > config.maxProperNamesPer100Syllables) add("PROPER_NAME_DENSITY", `Proper-name density ${density.toFixed(2)} exceeds ${config.maxProperNamesPer100Syllables}.`);
+  if (qualityVersion !== REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY) {
+    if (!("properNames" in config) || !("maxProperNamesPer100Syllables" in config)) {
+      throw new Error("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
+    }
+    const density = [...properNamesInFacts(facts, config)].reduce((count, term) => count + (text.match(new RegExp(`(?<![\\p{L}\\p{N}])${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "giu"))?.length ?? 0), 0) / Math.max(syllables, 1) * 100;
+    if (density > config.maxProperNamesPer100Syllables) add("PROPER_NAME_DENSITY", `Proper-name density ${density.toFixed(2)} exceeds ${config.maxProperNamesPer100Syllables}.`);
+  }
   if (config.misfortuneTerms.some((term) => wholeWord(text, term))) {
     if (config.adverseDatePatterns.some((pattern) => new RegExp(pattern, "iu").test(text))) add("ADVERSE_DATE", "Contains an explicit adverse day or month.");
     const preparations = config.preparationIndicators.filter((term) => wholeWord(text, term));

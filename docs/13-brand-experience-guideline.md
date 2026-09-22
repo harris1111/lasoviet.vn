@@ -22,7 +22,7 @@ Where to look for everything else:
 | Page layouts, type scale, components, word budgets | `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` (FD-091) |
 | Colour, surfaces, imagery, image file names | `docs/22-art-direction.md`, `docs/24-light-theme-color-spec.md`, `apps/web/src/styles/tokens.css` |
 | Sitemap and technical SEO | `docs/14`, `docs/19`, `docs/23` |
-| Audience insight | `docs/20` |
+| Revamp UI source (approved) | `prototype/revamp-2026-09/` (FD-098) |
 
 ## 1. Brand
 
@@ -47,8 +47,7 @@ Where to look for everything else:
 
 People arrive during uncertainty about something concrete — work, money, love,
 family, or a hard year — and search by method name ("tử vi", "lá số tử vi").
-Entry points should name the method and the need; see `docs/20` for the
-research.
+Entry points should name the method and the need.
 
 | Need | What to give |
 |---|---|

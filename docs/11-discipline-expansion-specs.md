@@ -6,7 +6,7 @@ Nguồn: `data/divination_repo_coverage.xlsx` (27 bộ môn, coverage repo/licen
 
 Từ 27 bộ môn trong workbook coverage, tài liệu này chọn ra **12 bộ môn** thực sự phù hợp và phổ biến với thị trường Việt Nam, tổ chức theo **Batch** (nhóm theo engine sẵn có, không phải thuần theo volume) để tối đa hoá đòn bẩy kỹ thuật: tích hợp một engine MIT (`Brhiza/mingyu`) một lần có thể mở khóa nhiều bộ môn cùng lúc.
 
-Không đổi các quyết định đã "Chốt" trong `docs/archive/10-decision-log.md` (Tử Vi = P0, Bát Tự/Bản đồ sao = P1, Kinh Dịch sau, không bán vật phẩm phong thủy Phase 1). Tài liệu này **bổ sung** phạm vi cho các bộ môn chưa có quyết định, và nêu 2 đề xuất xét lại có căn cứ dữ liệu (đánh dấu rõ, cần founder confirm — xem §7).
+Không đổi các quyết định đã "Chốt" trong `docs/_archive/superseded/10-decision-log.md` (Tử Vi = P0, Bát Tự/Bản đồ sao = P1, Kinh Dịch sau, không bán vật phẩm phong thủy Phase 1). Tài liệu này **bổ sung** phạm vi cho các bộ môn chưa có quyết định, và nêu 2 đề xuất xét lại có căn cứ dữ liệu (đánh dấu rõ, cần founder confirm — xem §7).
 
 ## 2. Tại sao 12/27 bộ môn
 
@@ -107,9 +107,9 @@ Không loại vĩnh viễn — nếu Search Console sau launch phát hiện cụ
 ## 6. Việc cần cập nhật ở các file khác trong repo
 
 - `config/discipline-roadmap.json` — cập nhật theo bảng batch ở §3 (đã cập nhật trong commit này).
-- `docs/archive/03-sitemap-and-seo.md` — thêm các trang mới: `/luan-giai-bat-tu`, `/kien-thuc/phong-thuy`, `/phong-thuy/huong-nha`, `/giai-ma-giac-mo`, `/boi-bai`; điều chỉnh phase của `/than-so-hoc`, `/12-con-giap`, `/ngay-tot` từ "sau P0" thành Batch 1 (đã cập nhật trong commit này).
-- `docs/archive/10-decision-log.md` — thêm các quyết định mới D-017 → D-021 (đã cập nhật trong commit này).
-- `docs/archive/07-content-and-growth.md` và `config/product-catalog.json` — **chưa cập nhật trong lượt này**; cần content/growth team bổ sung content pillar cho Thần Số Học/12 Con Giáp/Giấc Mơ/Phong Thủy, và chỉ thêm SKU Bát Tự vào `product-catalog.json` khi giá đã được quyết định (hiện vẫn là hypothesis theo `docs/05 §7`). Không block việc An tích hợp phần calculator/content.
+- `docs/_archive/superseded/03-sitemap-and-seo.md` — thêm các trang mới: `/luan-giai-bat-tu`, `/kien-thuc/phong-thuy`, `/phong-thuy/huong-nha`, `/giai-ma-giac-mo`, `/boi-bai`; điều chỉnh phase của `/than-so-hoc`, `/12-con-giap`, `/ngay-tot` từ "sau P0" thành Batch 1 (đã cập nhật trong commit này).
+- `docs/_archive/superseded/10-decision-log.md` — thêm các quyết định mới D-017 → D-021 (đã cập nhật trong commit này).
+- `docs/_archive/superseded/07-content-and-growth.md` và `config/product-catalog.json` — **chưa cập nhật trong lượt này**; cần content/growth team bổ sung content pillar cho Thần Số Học/12 Con Giáp/Giấc Mơ/Phong Thủy, và chỉ thêm SKU Bát Tự vào `product-catalog.json` khi giá đã được quyết định (hiện vẫn là hypothesis theo `docs/05 §7`). Không block việc An tích hợp phần calculator/content.
 
 ## 7. Quyết định mới cần founder confirm
 

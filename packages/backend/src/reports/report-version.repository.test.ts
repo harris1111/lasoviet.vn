@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { describe, expect, it, vi } from "vitest";
 import { createDatabaseReportVersionRepository } from "./report-version.repository.js";
 
@@ -161,6 +163,7 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
       workerId: "worker-1",
       attemptNumber: 1,
       traceId: "trace-1",
+      supersedesReportVersionId: "00000000-0000-4000-8000-000000000001",
     });
 
     expect(result).toEqual({
@@ -168,7 +171,10 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
       value: { reportVersionId: "report-version-1" },
     });
     expect(reportVersionValues).toHaveBeenCalledWith(
-      expect.objectContaining({ renderVersion: "identity-report-pdf.v2" }),
+      expect.objectContaining({
+        renderVersion: "identity-report-pdf.v2",
+        supersedesReportVersionId: "00000000-0000-4000-8000-000000000001",
+      }),
     );
     expect(insert.mock.results[1]?.value.values).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -188,5 +194,144 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
       }),
     );
     expect(insert).toHaveBeenCalledTimes(3);
+  });
+
+  it("treats supersession lineage as part of immutable replay equality", async () => {
+    const htmlContent = "<html>immutable replay</html>";
+    const input = {
+      reportId: "report-1",
+      reportVersionId: "report-version-1",
+      entitlementId: "entitlement-1",
+      chartVersionId: "chart-version-1",
+      evidenceVersionId: "evidence-version-1",
+      knowledgeVersionId: "knowledge-version-1",
+      promptVersion: "prompt-version-1",
+      reportConfigVersion: "report-config-version-1",
+      templateVersion: "template-version-1",
+      renderVersion: "identity-report-pdf.v2" as const,
+      locale: "vi" as const,
+      sku: "ZIWEI-COMPREHENSIVE-P1",
+      providerId: "provider-1",
+      modelId: "model-1",
+      structuredContent: {} as never,
+      htmlContent,
+      jobId: "job-1",
+      workerId: "worker-1",
+      attemptNumber: 1,
+      traceId: "trace-1",
+      supersedesReportVersionId: "00000000-0000-4000-8000-000000000001",
+    };
+    const existing = {
+      ...input,
+      id: "stored-version-1",
+      contentHash: createHash("sha256").update(Buffer.from(htmlContent, "utf8")).digest("hex"),
+      pdfAssetId: "pdf-asset-1",
+      supersedesReportVersionId: input.supersedesReportVersionId,
+      createdAt: new Date("2026-09-20T00:00:00.000Z"),
+    };
+
+    function repositoryFor(stored: typeof existing) {
+      const selectResults = [[stored], [{ status: "processed", leasedBy: null, leasedUntil: null }]];
+      const select = vi.fn(() => {
+        const query = {
+          from: vi.fn(),
+          where: vi.fn(),
+          limit: vi.fn().mockImplementation(() => Promise.resolve(selectResults.shift())),
+        };
+        query.from.mockReturnValue(query);
+        query.where.mockReturnValue(query);
+        return query;
+      });
+      return createDatabaseReportVersionRepository({
+        transaction: vi.fn(async (callback) => callback({ select })),
+      } as never, repositoryOptions);
+    }
+
+    await expect(
+      repositoryFor(existing).commitImmutableVersion(input),
+    ).resolves.toEqual({ ok: true, value: existing });
+    await expect(
+      repositoryFor(existing).commitImmutableVersion({
+        ...input,
+        supersedesReportVersionId: "00000000-0000-4000-8000-000000000002",
+      }),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "REPORT_VERSION_CONFLICT" },
+    });
+  });
+
+  it("persists null supersession lineage for normal immutable versions", async () => {
+    const selectResults = [
+      [],
+      [{ id: "job-1" }],
+    ];
+    const updateResults = [
+      [{ id: "reservation-1", stateVersion: 3 }],
+      [{ id: "reservation-1", stateVersion: 4 }],
+      [{ id: "reservation-1", stateVersion: 5 }],
+      [{ id: "attempt-1" }],
+      [{ id: "job-1" }],
+    ];
+    const reportVersionValues = vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{ reportVersionId: "report-version-normal" }]),
+    });
+    const insert = vi
+      .fn()
+      .mockReturnValueOnce({ values: reportVersionValues })
+      .mockReturnValueOnce({ values: vi.fn().mockResolvedValue(undefined) })
+      .mockReturnValueOnce({ values: vi.fn().mockResolvedValue(undefined) });
+    const select = vi.fn(() => {
+      const query = {
+        from: vi.fn(),
+        innerJoin: vi.fn(),
+        where: vi.fn(),
+        limit: vi.fn().mockImplementation(() => Promise.resolve(selectResults.shift())),
+      };
+      query.from.mockReturnValue(query);
+      query.innerJoin.mockReturnValue(query);
+      query.where.mockReturnValue(query);
+      return query;
+    });
+    const repo = createDatabaseReportVersionRepository({
+      transaction: vi.fn(async (callback) => callback({
+        select,
+        update: vi.fn(() => ({
+          set: vi.fn(() => ({
+            where: vi.fn(() => ({
+              returning: vi.fn().mockImplementation(() => Promise.resolve(updateResults.shift())),
+            })),
+          })),
+        })),
+        insert,
+      })),
+    } as never, repositoryOptions);
+
+    await repo.commitImmutableVersion({
+      reportId: "report-normal",
+      reportVersionId: "report-version-normal",
+      entitlementId: "entitlement-normal",
+      chartVersionId: "chart-normal",
+      evidenceVersionId: "evidence-normal",
+      knowledgeVersionId: "knowledge-normal",
+      promptVersion: "prompt-normal",
+      reportConfigVersion: "config-normal",
+      templateVersion: "template-normal",
+      renderVersion: "identity-report-pdf.v2",
+      locale: "vi",
+      sku: "ZIWEI-COMPREHENSIVE-P1",
+      providerId: "provider-normal",
+      modelId: "model-normal",
+      structuredContent: {} as never,
+      htmlContent: "<html>normal</html>",
+      jobId: "job-1",
+      workerId: "worker-1",
+      attemptNumber: 1,
+      traceId: "trace-normal",
+    });
+
+    expect(reportVersionValues).toHaveBeenCalledWith(
+      expect.objectContaining({ supersedesReportVersionId: null }),
+    );
   });
 });

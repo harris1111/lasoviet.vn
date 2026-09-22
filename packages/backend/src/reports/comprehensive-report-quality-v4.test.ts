@@ -4,6 +4,12 @@ import {
   type ReportSourceSnapshotV1,
   type ZiweiPalaceId,
 } from "@lasoviet/contracts";
+import {
+  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+} from "./identity-report-config.js";
 
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
@@ -183,14 +189,19 @@ function prose(words: number, suffix = "cung Mệnh sao Tử Vi sao Thiên Phủ
   return `${Array.from({ length: words }, () => "nội dung").join(" ")} ${suffix}`;
 }
 
-function gate(overrides: Record<string, unknown> = {}, customFacts = facts) {
+function gate(
+  overrides: Record<string, unknown> = {},
+  customFacts = facts,
+  reportConfigVersion?: string,
+  qualityVersion?: string,
+) {
   return validateComprehensiveReportSectionQualityV4({
     key: "overview",
     kind: "overview",
     text: prose(610),
     evidenceKeys: [evidenceKeyFor("ziwei.star.ziwei"), evidenceKeyFor("ziwei.star.tianfu")],
     ...overrides,
-  } as never, customFacts);
+  } as never, customFacts, reportConfigVersion, qualityVersion);
 }
 
 function expectFinding(result: ReturnType<typeof gate>, code: string): void {
@@ -248,10 +259,24 @@ describe("comprehensive V4 section quality", () => {
     expectFinding(gate({ text: `${prose(610)} ${term}` }), "CERTAINTY");
   });
 
-  it("permits Phu Thê and Tử Tức only as immediate palace proper names", () => {
-    expect(gate({ text: `${prose(610)} cung Phu Thê và cung Tử Tức` }).ok).toBe(true);
-    expectFinding(gate({ text: `${prose(610)} Phu Thê` }), "DISCOURAGED_TERM");
-    expectFinding(gate({ text: `${prose(610)} Tử Tức` }), "DISCOURAGED_TERM");
+  it.each([
+    "cung Phu Thê và cung Tử Tức",
+    "tam phương của cung Thiên Di gồm Phu Thê và Phúc Đức",
+    "đối cung Phu Thê có liên hệ với trục Mệnh",
+    "xung chiếu đến Tử Tức cần được đọc cùng các sao liên quan",
+  ])("permits %s as a contextual palace name", (palaceReference) => {
+    expect(gate({ text: `${prose(610)} ${palaceReference}` }).ok).toBe(true);
+  });
+
+  it.each([
+    "Phu Thê",
+    "Tử Tức",
+    "mối quan hệ Phu Thê được nhắc đến trong lời khuyên",
+    "trục Mệnh cần cân nhắc mối quan hệ Phu Thê",
+    "đối với Tử Tức, hãy chuẩn bị phương án phù hợp",
+    "cung này được khuyên nên tránh Phu Thê",
+  ])("rejects ambiguous discouraged palace phrase: %s", (phrase) => {
+    expectFinding(gate({ text: `${prose(610)} ${phrase}` }), "DISCOURAGED_TERM");
   });
 
   it("enforces proper-name density and allows qualified preparation framing", () => {
@@ -262,6 +287,69 @@ describe("comprehensive V4 section quality", () => {
     expect(gate({
       text: `${prose(610)} tai nạn có thể xảy ra; hãy giữ quỹ dự phòng và đọc kỹ hợp đồng trước việc lớn.`,
     }).ok).toBe(true);
+  });
+
+  it("uses the V2.2 density allowance without removing the density gate", () => {
+    const moderatelyDense = `${prose(610)} ${Array.from({ length: 130 }, () => "Tử Vi").join(" ")}`;
+    expectFinding(
+      gate(
+        { text: moderatelyDense },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+      ),
+      "PROPER_NAME_DENSITY",
+    );
+    expect(
+      gate(
+        { text: moderatelyDense },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+      ).ok,
+    ).toBe(true);
+
+    const excessive = `${prose(610)} ${Array.from({ length: 160 }, () => "Tử Vi").join(" ")}`;
+    expectFinding(
+      gate(
+        { text: excessive },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+      ),
+      "PROPER_NAME_DENSITY",
+    );
+  });
+
+  it("does not reject dense chart names in the active V2.3 lineage", () => {
+    const denseText = `${prose(610)} ${Array.from({ length: 400 }, () => "Tử Vi").join(" ")}`;
+    expect(
+      gate(
+        { text: denseText },
+        facts,
+        REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+        REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+      ),
+    ).toEqual({ ok: true, findings: [] });
+  });
+
+  it.each([
+    ["minimum length", prose(100), "MINIMUM_SYLLABLES"],
+    ["death claim", `${prose(610)} tử vong`, "DEATH_TERM"],
+    ["Han locale", `${prose(610)} 紫微`, "LOCALE_HAN"],
+    ["missing evidence anchors", prose(610, "sao Tử Vi"), "EVIDENCE_ANCHORS"],
+  ])("keeps the V2.3 %s gate", (_name, text, code) => {
+    expectFinding(gate(
+      {
+        text,
+        ...(code === "EVIDENCE_ANCHORS"
+          ? { evidenceKeys: [evidenceKeyFor("ziwei.star.ziwei")] }
+          : {}),
+      },
+      facts,
+      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+    ), code);
   });
 
   it.each([

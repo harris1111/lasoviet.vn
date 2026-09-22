@@ -102,6 +102,25 @@ export type ReleaseReportSectionCheckpointInput = ReportSectionCheckpointLineage
   failureCode: string;
 };
 
+export type ClaimReportSectionCheckpointGroupInput = {
+  members: readonly (ReportSectionCheckpointLineage & {
+    jobId: string;
+    workerId: string;
+  })[];
+  generationAttemptCap: number;
+  rewriteAttemptCap: number;
+};
+
+export type MarkPassedReportSectionCheckpointGroupInput = {
+  members: readonly (MarkPassedReportSectionCheckpointInput & {
+    groupId: string;
+  })[];
+};
+
+export type ReleaseReportSectionCheckpointGroupInput = {
+  members: readonly ReleaseReportSectionCheckpointInput[];
+};
+
 export type ClaimPassedReportSectionRewriteInput = ReportSectionCheckpointLineage & {
   jobId: string;
   workerId: string;
@@ -141,15 +160,30 @@ export type ReportSectionCheckpointRepository = {
     { outcome: "claimed" | "replay" | "terminal"; checkpoint: PersistedReportSectionCheckpoint },
     Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT">
   >>;
+  claimGroup(
+    input: ClaimReportSectionCheckpointGroupInput,
+  ): Promise<Result<
+    { outcome: "claimed" | "replay" | "in_progress" | "terminal"; checkpoints: readonly PersistedReportSectionCheckpoint[] },
+    Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT">
+  >>;
   markPassed(
     input: MarkPassedReportSectionCheckpointInput,
   ): Promise<Result<
     { outcome: "passed" | "replay"; checkpoint: PersistedReportSectionCheckpoint },
     Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT" | "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT">
   >>;
+  markGroupPassed(
+    input: MarkPassedReportSectionCheckpointGroupInput,
+  ): Promise<Result<
+    { outcome: "passed" | "replay"; checkpoints: readonly PersistedReportSectionCheckpoint[] },
+    Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT" | "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT">
+  >>;
   releaseRetryableFailure(
     input: ReleaseReportSectionCheckpointInput,
   ): Promise<Result<PersistedReportSectionCheckpoint, Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT" | "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT">>>;
+  releaseGroupRetryableFailure(
+    input: ReleaseReportSectionCheckpointGroupInput,
+  ): Promise<Result<readonly PersistedReportSectionCheckpoint[], Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT" | "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT">>>;
   markTerminalFailure(
     input: ReleaseReportSectionCheckpointInput,
   ): Promise<Result<PersistedReportSectionCheckpoint, Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT" | "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT">>>;
@@ -188,6 +222,9 @@ export type ReportSectionCheckpointRepository = {
   ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>>;
   markQualityRewriteTerminalFailure(
     input: TerminalReportSectionQualityCandidateInput,
+  ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>>;
+  continueQualityRewrite(
+    input: ContinueReportSectionQualityRewriteInput,
   ): Promise<Result<PersistedReportSectionQualityCandidate, ReportSectionCheckpointError>>;
   markQualityRewritePassed(
     input: MarkPassedReportSectionQualityCandidateInput,
@@ -274,6 +311,16 @@ export type TerminalReportSectionQualityCandidateInput =
     terminalFindings?: readonly ReportSectionQualityFinding[];
   };
 
+export type ContinueReportSectionQualityRewriteInput =
+  Omit<MutateReportSectionQualityCandidateInput, "failureCode"> & {
+    candidateContent: unknown;
+    candidateHash: string;
+    candidateProviderId: string;
+    candidateModelId: string;
+    findings: readonly ReportSectionQualityFinding[];
+    rewriteAttemptCap: number;
+  };
+
 export type MarkPassedReportSectionQualityCandidateInput =
   Omit<MutateReportSectionQualityCandidateInput, "failureCode"> & {
     acceptedContent: unknown;
@@ -302,6 +349,17 @@ class QualityCandidateTransactionAbort extends Error {
 
 function abortQualityCandidateTransaction(code: ReportSectionCheckpointError): never {
   throw new QualityCandidateTransactionAbort(code);
+}
+
+class GroupTransactionAbort extends Error {
+  constructor(readonly code: MutatingError) {
+    super(code);
+    this.name = "GroupTransactionAbort";
+  }
+}
+
+function abortGroupTransaction(code: MutatingError): never {
+  throw new GroupTransactionAbort(code);
 }
 
 function nonBlank(value: unknown): value is string {
@@ -642,6 +700,39 @@ export function createDatabaseReportSectionCheckpointRepository(
     }
   }
 
+  async function groupTransaction<T, TError extends MutatingError>(
+    operation: (transaction: Database) => Promise<Result<T, TError>>,
+  ): Promise<Result<T, TError>> {
+    try {
+      return await database.transaction(operation);
+    } catch (error) {
+      if (error instanceof GroupTransactionAbort) {
+        return failure(error.code) as Result<T, TError>;
+      }
+      throw error;
+    }
+  }
+
+  async function liveCheckpointOwner(
+    transaction: Database,
+    jobId: string | null,
+    workerId: string | null,
+    current: Date,
+  ): Promise<boolean> {
+    if (!jobId || !workerId) return false;
+    const [job] = await transaction
+      .select({ id: reportQueueJobs.id })
+      .from(reportQueueJobs)
+      .where(and(
+        eq(reportQueueJobs.id, jobId),
+        eq(reportQueueJobs.status, "leased"),
+        eq(reportQueueJobs.leasedBy, workerId),
+        gt(reportQueueJobs.leasedUntil, current),
+      ))
+      .limit(1);
+    return Boolean(job);
+  }
+
   return {
     async get(reportVersionId, sectionKey) {
       if (!nonBlank(reportVersionId)) {
@@ -703,6 +794,111 @@ export function createDatabaseReportSectionCheckpointRepository(
       } catch {
         return failure("REPORT_SECTION_CHECKPOINT_CORRUPT");
       }
+    },
+
+    async claimGroup(input) {
+      const members = input.members;
+      if (
+        members.length === 0 ||
+        new Set(members.map((member) => `${member.reportVersionId}:${member.sectionKey}`)).size !== members.length ||
+        !members.every((member) =>
+          validLineage(member) &&
+          nonBlank(member.jobId) &&
+          nonBlank(member.workerId),
+        ) ||
+        !Number.isInteger(input.generationAttemptCap) ||
+        input.generationAttemptCap < 1 ||
+        !Number.isInteger(input.rewriteAttemptCap) ||
+        input.rewriteAttemptCap < 0
+      ) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      const [first] = members;
+      if (!first) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      return groupTransaction<{
+        outcome: "claimed" | "replay" | "in_progress" | "terminal";
+        checkpoints: readonly PersistedReportSectionCheckpoint[];
+      }, Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT">>(async (transaction) => {
+        const current = now();
+        if (!await lockActiveReservationLease(transaction, first.reportVersionId, first.jobId, first.workerId, current, true)) {
+          abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        }
+        const rows: CheckpointRow[] = [];
+        for (const member of members) {
+          if (
+            member.reportVersionId !== first.reportVersionId ||
+            member.jobId !== first.jobId ||
+            member.workerId !== first.workerId
+          ) abortGroupTransaction("REPORT_SECTION_CHECKPOINT_INVALID");
+          await transaction.insert(reportSectionCheckpoints).values({
+            reportVersionId: member.reportVersionId,
+            sectionKey: member.sectionKey,
+            sectionOrder: member.sectionOrder,
+            promptVersion: member.promptVersion,
+            knowledgeVersionId: member.knowledgeVersionId,
+            reportConfigVersion: member.reportConfigVersion,
+            qualityConfigVersion: member.qualityConfigVersion,
+            createdAt: current,
+            updatedAt: current,
+          }).onConflictDoNothing();
+          const [row] = await transaction.select().from(reportSectionCheckpoints).where(and(
+            eq(reportSectionCheckpoints.reportVersionId, member.reportVersionId),
+            eq(reportSectionCheckpoints.sectionKey, member.sectionKey),
+          )).for("update").limit(1);
+          if (!row || !lineageMatches(row, member)) abortGroupTransaction("REPORT_VERSION_CONFLICT");
+          rows.push(row);
+        }
+        if (rows.some((row) => row.status === "terminal_failure")) {
+          return {
+            ok: true,
+            value: { outcome: "terminal" as const, checkpoints: rows.map(mapRow) },
+          };
+        }
+        if (rows.every((row) => row.status === "passed")) {
+          return {
+            ok: true,
+            value: { outcome: "replay" as const, checkpoints: rows.map(mapRow) },
+          };
+        }
+        const generating = rows.filter((row) => row.status === "generating");
+        if (generating.length > 0) {
+          const foreignLive = await Promise.all(generating
+            .filter((row) => row.activeJobId !== first.jobId || row.activeWorkerId !== first.workerId)
+            .map((row) => liveCheckpointOwner(transaction, row.activeJobId, row.activeWorkerId, current)));
+          if (
+            generating.some((row) => row.activeJobId === first.jobId && row.activeWorkerId === first.workerId) ||
+            foreignLive.some(Boolean)
+          ) {
+            return {
+              ok: true,
+              value: { outcome: "in_progress" as const, checkpoints: rows.map(mapRow) },
+            };
+          }
+        }
+        const limited = rows.some((row) => row.status !== "passed" && row.generationAttemptCount >= input.generationAttemptCap);
+        if (limited) abortGroupTransaction("REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT");
+        const claimed: CheckpointRow[] = [];
+        for (const row of rows) {
+          if (row.status === "passed") {
+            claimed.push(row);
+            continue;
+          }
+          const [updated] = await transaction.update(reportSectionCheckpoints).set({
+            status: "generating",
+            activeJobId: first.jobId,
+            activeWorkerId: first.workerId,
+            failureCode: null,
+            generationAttemptCount: sql`${reportSectionCheckpoints.generationAttemptCount} + 1`,
+            stateVersion: sql`${reportSectionCheckpoints.stateVersion} + 1`,
+            updatedAt: current,
+          }).where(and(
+            eq(reportSectionCheckpoints.id, row.id),
+            eq(reportSectionCheckpoints.stateVersion, row.stateVersion),
+            sql`${reportSectionCheckpoints.status} IN ('pending', 'generating')`,
+          )).returning();
+          if (!updated) abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+          claimed.push(updated);
+        }
+        return { ok: true, value: { outcome: "claimed" as const, checkpoints: claimed.map(mapRow) } };
+      });
     },
 
     async claim(input) {
@@ -867,8 +1063,167 @@ export function createDatabaseReportSectionCheckpointRepository(
       });
     },
 
+    async markGroupPassed(input) {
+      const members = input.members;
+      if (
+        members.length === 0 ||
+        new Set(members.map((member) => `${member.reportVersionId}:${member.sectionKey}`)).size !== members.length ||
+        !members.every((member) =>
+          validLineage(member) &&
+          nonBlank(member.jobId) &&
+          nonBlank(member.workerId) &&
+          Number.isInteger(member.expectedStateVersion) &&
+          member.expectedStateVersion > 0 &&
+          nonBlank(member.providerId) &&
+          nonBlank(member.modelId) &&
+          /^[a-f0-9]{64}$/u.test(member.contentHash),
+        )
+      ) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      const [first] = members;
+      if (!first) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      if (members.some((member) =>
+        member.providerId !== first!.providerId ||
+        member.modelId !== first!.modelId ||
+        member.jobId !== first!.jobId ||
+        member.workerId !== first!.workerId ||
+        member.reportVersionId !== first!.reportVersionId
+      )) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      const parsed = new Map<string, ComprehensiveReportAcceptedSection>();
+      for (const member of members) {
+        try {
+          const section = parseComprehensiveReportAcceptedSection({
+            key: member.sectionKey,
+            value: member.acceptedContent,
+          }, member.reportConfigVersion);
+          if (contentHash(section.value) !== member.contentHash) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+          parsed.set(member.sectionKey, section);
+        } catch {
+          return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+        }
+      }
+      return groupTransaction<{
+        outcome: "passed" | "replay";
+        checkpoints: readonly PersistedReportSectionCheckpoint[];
+      }, Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT" | "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT">>(async (transaction) => {
+        const current = now();
+        if (!await lockActiveReservationLease(transaction, first.reportVersionId, first.jobId, first.workerId, current, true)) {
+          abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        }
+        const rows: CheckpointRow[] = [];
+        for (const member of members) {
+          const [row] = await transaction.select().from(reportSectionCheckpoints).where(and(
+            eq(reportSectionCheckpoints.reportVersionId, member.reportVersionId),
+            eq(reportSectionCheckpoints.sectionKey, member.sectionKey),
+          )).for("update").limit(1);
+          if (!row || !lineageMatches(row, member)) abortGroupTransaction("REPORT_VERSION_CONFLICT");
+          rows.push(row);
+        }
+        if (rows.every((row) => row.status === "passed")) {
+          return { ok: true, value: { outcome: "replay" as const, checkpoints: rows.map(mapRow) } };
+        }
+        if (rows.some((row, index) =>
+          row.status !== "generating" ||
+          row.stateVersion !== members[index]!.expectedStateVersion ||
+          row.activeJobId !== first.jobId ||
+          row.activeWorkerId !== first.workerId,
+        )) abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        const updated: CheckpointRow[] = [];
+        for (const [index, row] of rows.entries()) {
+          const member = members[index]!;
+          const section = parsed.get(member.sectionKey)!;
+          const [passed] = await transaction.update(reportSectionCheckpoints).set({
+            status: "passed",
+            activeJobId: null,
+            activeWorkerId: null,
+            acceptedContent: section.value as Record<string, unknown>,
+            contentHash: member.contentHash,
+            providerId: member.providerId,
+            modelId: member.modelId,
+            failureCode: null,
+            stateVersion: sql`${reportSectionCheckpoints.stateVersion} + 1`,
+            updatedAt: current,
+          }).where(and(
+            eq(reportSectionCheckpoints.id, row.id),
+            eq(reportSectionCheckpoints.stateVersion, member.expectedStateVersion),
+            eq(reportSectionCheckpoints.status, "generating"),
+            eq(reportSectionCheckpoints.activeJobId, first.jobId),
+            eq(reportSectionCheckpoints.activeWorkerId, first.workerId),
+          )).returning();
+          if (!passed) abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+          updated.push(passed);
+        }
+        return { ok: true, value: { outcome: "passed" as const, checkpoints: updated.map(mapRow) } };
+      });
+    },
+
     async releaseRetryableFailure(input) {
       return mutateFailure(input, "pending");
+    },
+
+    async releaseGroupRetryableFailure(input) {
+      const members = input.members;
+      if (
+        members.length === 0 ||
+        new Set(members.map((member) => `${member.reportVersionId}:${member.sectionKey}`)).size !== members.length ||
+        !members.every((member) =>
+          validLineage(member) &&
+          nonBlank(member.jobId) &&
+          nonBlank(member.workerId) &&
+          Number.isInteger(member.expectedStateVersion) &&
+          member.expectedStateVersion > 0 &&
+          failureCode(member.failureCode),
+        )
+      ) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      const [first] = members;
+      if (!first) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      if (members.some((member) =>
+        member.reportVersionId !== first!.reportVersionId ||
+        member.jobId !== first!.jobId ||
+        member.workerId !== first!.workerId
+      )) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      return groupTransaction<
+        readonly PersistedReportSectionCheckpoint[],
+        Exclude<ReportSectionCheckpointError, "REPORT_SECTION_CHECKPOINT_CORRUPT" | "REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT">
+      >(async (transaction) => {
+        const current = now();
+        if (!await lockActiveReservationLease(transaction, first.reportVersionId, first.jobId, first.workerId, current, true)) {
+          abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        }
+        const released: CheckpointRow[] = [];
+        for (const member of members) {
+          const [row] = await transaction.select().from(reportSectionCheckpoints).where(and(
+            eq(reportSectionCheckpoints.reportVersionId, member.reportVersionId),
+            eq(reportSectionCheckpoints.sectionKey, member.sectionKey),
+          )).for("update").limit(1);
+          if (!row || !lineageMatches(row, member)) abortGroupTransaction("REPORT_VERSION_CONFLICT");
+          if (
+            row.status !== "generating" ||
+            row.stateVersion !== member.expectedStateVersion ||
+            row.activeJobId !== first.jobId ||
+            row.activeWorkerId !== first.workerId
+          ) abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        }
+        for (const member of members) {
+          const [updated] = await transaction.update(reportSectionCheckpoints).set({
+            status: "pending",
+            activeJobId: null,
+            activeWorkerId: null,
+            failureCode: member.failureCode,
+            stateVersion: sql`${reportSectionCheckpoints.stateVersion} + 1`,
+            updatedAt: current,
+          }).where(and(
+            eq(reportSectionCheckpoints.reportVersionId, member.reportVersionId),
+            eq(reportSectionCheckpoints.sectionKey, member.sectionKey),
+            eq(reportSectionCheckpoints.stateVersion, member.expectedStateVersion),
+            eq(reportSectionCheckpoints.status, "generating"),
+            eq(reportSectionCheckpoints.activeJobId, first.jobId),
+            eq(reportSectionCheckpoints.activeWorkerId, first.workerId),
+          )).returning();
+          if (!updated) abortGroupTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+          released.push(updated);
+        }
+        return { ok: true, value: released.map(mapRow) };
+      });
     },
 
     async markTerminalFailure(input) {
@@ -1130,6 +1485,119 @@ export function createDatabaseReportSectionCheckpointRepository(
 
     async markQualityRewriteTerminalFailure(input) {
       return mutateQualityCandidate(input, "terminal_failure");
+    },
+
+    async continueQualityRewrite(input) {
+      if (
+        !validLineage(input) || !nonBlank(input.jobId) || !nonBlank(input.workerId) ||
+        !Number.isInteger(input.rewriteOrdinal) || input.rewriteOrdinal < 1 ||
+        !Number.isInteger(input.expectedStateVersion) || input.expectedStateVersion < 1 ||
+        !nonBlank(input.candidateProviderId) || !nonBlank(input.candidateModelId) ||
+        !/^[a-f0-9]{64}$/.test(input.candidateHash) || !validQualityFindings(input.findings) ||
+        !Number.isInteger(input.rewriteAttemptCap) || input.rewriteAttemptCap < 1
+      ) return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      let candidateContent: ComprehensiveReportAcceptedSection;
+      try {
+        candidateContent = parseComprehensiveReportAcceptedSection({
+          key: input.sectionKey,
+          value: input.candidateContent,
+        }, input.reportConfigVersion);
+      } catch {
+        return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      }
+      if (contentHash(candidateContent.value) !== input.candidateHash) {
+        return failure("REPORT_SECTION_CHECKPOINT_INVALID");
+      }
+      return qualityCandidateTransaction<PersistedReportSectionQualityCandidate>(async (transaction) => {
+        const current = now();
+        if (!await lockActiveReservationLease(
+          transaction,
+          input.reportVersionId,
+          input.jobId,
+          input.workerId,
+          current,
+          true,
+        )) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        const [parent] = await transaction.select().from(reportSectionCheckpoints).where(and(
+          eq(reportSectionCheckpoints.reportVersionId, input.reportVersionId),
+          eq(reportSectionCheckpoints.sectionKey, input.sectionKey),
+        )).for("update").limit(1);
+        if (!parent || !lineageMatches(parent, input)) return failure("REPORT_VERSION_CONFLICT");
+        if (
+          parent.status !== "generating" ||
+          parent.activeJobId !== input.jobId ||
+          parent.activeWorkerId !== input.workerId ||
+          parent.rewriteAttemptCount !== input.rewriteOrdinal
+        ) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        const [candidate] = await transaction.select().from(reportSectionQualityCandidates).where(and(
+          eq(reportSectionQualityCandidates.checkpointId, parent.id),
+          eq(reportSectionQualityCandidates.rewriteOrdinal, input.rewriteOrdinal),
+        )).for("update").limit(1);
+        if (!candidate) return failure("REPORT_VERSION_CONFLICT");
+        if (
+          candidate.status !== "generating" ||
+          candidate.stateVersion !== input.expectedStateVersion ||
+          candidate.activeJobId !== input.jobId ||
+          candidate.activeWorkerId !== input.workerId ||
+          candidate.activeJobId !== parent.activeJobId ||
+          candidate.activeWorkerId !== parent.activeWorkerId
+        ) return failure("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        if (parent.rewriteAttemptCount >= input.rewriteAttemptCap) {
+          return failure("REPORT_SECTION_CHECKPOINT_ATTEMPT_LIMIT");
+        }
+        const nextRewriteOrdinal = parent.rewriteAttemptCount + 1;
+        const [continuedCandidate] = await transaction.update(reportSectionQualityCandidates).set({
+          rewriteOrdinal: nextRewriteOrdinal,
+          candidateContent: candidateContent.value as Record<string, unknown>,
+          candidateHash: input.candidateHash,
+          candidateProviderId: input.candidateProviderId,
+          candidateModelId: input.candidateModelId,
+          findings: input.findings as ReportSectionQualityFinding[],
+          terminalFindings: null,
+          acceptedContent: null,
+          contentHash: null,
+          providerId: null,
+          modelId: null,
+          status: "pending",
+          activeJobId: null,
+          activeWorkerId: null,
+          activeAttemptNumber: null,
+          failureCode: "QUALITY_GATE_REWRITE_PENDING",
+          stateVersion: sql`${reportSectionQualityCandidates.stateVersion} + 1`,
+          updatedAt: current,
+        }).where(and(
+          eq(reportSectionQualityCandidates.id, candidate.id),
+          eq(reportSectionQualityCandidates.stateVersion, input.expectedStateVersion),
+          eq(reportSectionQualityCandidates.status, "generating"),
+          eq(reportSectionQualityCandidates.activeJobId, input.jobId),
+          eq(reportSectionQualityCandidates.activeWorkerId, input.workerId),
+        )).returning();
+        if (!continuedCandidate) abortQualityCandidateTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        const [continuedParent] = await transaction.update(reportSectionCheckpoints).set({
+          status: "pending",
+          activeJobId: null,
+          activeWorkerId: null,
+          rewriteAttemptCount: nextRewriteOrdinal,
+          failureCode: "QUALITY_GATE_REWRITE_PENDING",
+          stateVersion: sql`${reportSectionCheckpoints.stateVersion} + 1`,
+          updatedAt: current,
+        }).where(and(
+          eq(reportSectionCheckpoints.id, parent.id),
+          eq(reportSectionCheckpoints.stateVersion, parent.stateVersion),
+          eq(reportSectionCheckpoints.status, "generating"),
+          eq(reportSectionCheckpoints.activeJobId, input.jobId),
+          eq(reportSectionCheckpoints.activeWorkerId, input.workerId),
+        )).returning();
+        if (!continuedParent) abortQualityCandidateTransaction("REPORT_SECTION_CHECKPOINT_LEASE_LOST");
+        return {
+          ok: true,
+          value: mapQualityCandidateRow(
+            continuedCandidate,
+            input.sectionKey,
+            input.reportConfigVersion,
+          ),
+        };
+      });
     },
 
     async markQualityRewritePassed(input) {

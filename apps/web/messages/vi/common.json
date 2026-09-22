@@ -185,7 +185,7 @@
       "eyebrow": "Cách hoạt động",
       "one": {
         "title": "Nhập dữ liệu sinh",
-        "copy": "Bạn có thể lưu dữ liệu sinh khi chưa rõ giờ, nhưng chưa thể lập lá số Tử Vi cho đến khi có giờ sinh thuộc phạm vi hỗ trợ."
+        "copy": "Lưu dữ liệu sinh theo giờ chính xác, theo 12 Địa Chi, hoặc ghi nhận khi chưa rõ giờ sinh."
       },
       "two": {
         "title": "Xem lá số miễn phí",
@@ -193,7 +193,7 @@
       },
       "three": {
         "title": "Chọn chủ đề luận giải sâu",
-        "copy": "Xem mục lục, báo cáo mẫu và giá trước khi quyết định - nếu bạn muốn đi sâu hơn."
+        "copy": "Xem trước cấu trúc mục lục, báo cáo mẫu và chi tiết nội dung trước khi quyết định mở khóa."
       },
       "meta": {
         "calendar": "Ngày sinh",
@@ -236,17 +236,35 @@
       }
     },
     "evidence": {
-      "eyebrow": "Minh bạch",
-      "title": "Căn cứ nằm ngay cạnh nhận định",
-      "copy": "Nhận định quan trọng có thể mở ra để xem dữ liệu, quy tắc và giới hạn liên quan ngay tại chỗ.",
-      "claim": "Giai đoạn này có thể tăng áp lực về vai trò trong công việc.",
-      "action": "Vì sao có nhận định này?",
-      "source": "Căn cứ được sử dụng",
-      "sourceCopy": "Vận hạn tại Cung Quan Lộc, đối chiếu với chính tinh thủ mệnh.",
-      "confidence": "Mức độ tin cậy",
-      "confidenceCopy": "Trung bình - nhạy với giờ sinh.",
-      "observe": "Điều bạn có thể quan sát",
-      "observeCopy": "Đối chiếu với khối lượng công việc hoặc trách nhiệm mới trong 1-2 tháng tới."
+      "eyebrow": "Minh chứng trực quan",
+      "title": "Căn cứ an định và quy tắc minh bạch",
+      "lead": "Minh họa trực quan cấu trúc 12 cung, mạng lưới tương tác cung vị, quy tắc tính toán và tiến trình luận giải.",
+      "card1": {
+        "badge": "Đồ hình chuẩn xác",
+        "title": "Cấu trúc 12 cung an sao",
+        "desc": "Phân bổ chính tinh, phụ tinh và ngũ hành nạp âm trực tiếp trên đồ hình truyền thống.",
+        "meta": "12 cung vị · 108 sao"
+      },
+      "card2": {
+        "badge": "Tương tác cung vị",
+        "title": "Mối liên hệ xung chiếu & tam hợp",
+        "desc": "Đối chiếu thế đứng giữa Mệnh, Tài, Quan và các cung xung hợp để làm rõ thế vượng suy.",
+        "meta": "Tam hợp · Xung chiếu · Nhị hợp"
+      },
+      "card3": {
+        "badge": "Quy tắc minh bạch",
+        "title": "Căn cứ an định & cổ thư đối chiếu",
+        "desc": "Các nhận định quan trọng đều có thể mở xem căn cứ tính toán, vị trí sao và quy tắc luận giải minh bạch.",
+        "meta": "Không phán đoán trừu tượng"
+      },
+      "card4": {
+        "badge": "Lộ trình đọc hiểu",
+        "title": "Tiến trình luận giải theo chủ đề",
+        "desc": "Từ tổng quan bản mệnh đến chi tiết từng đại vận, đánh dấu phần đã đọc và lưu giữ lâu dài trong thư viện.",
+        "meta": "Lưu giữ an toàn trong thư viện"
+      },
+      "cta": "Xem lá số của bạn",
+      "carouselAriaLabel": "Bản chứng thực đồ hình và căn cứ"
     },
     "valueLadder": {
       "eyebrow": "Cách chúng tôi luận giải",
@@ -294,25 +312,54 @@
       "read": {
         "title": "Cách đọc lá số Tử Vi",
         "copy": "Bắt đầu từ Cung Mệnh, sau đó mở rộng sang các cung liên quan."
-      }
+      },
+      "featuredCategory": "Kiến thức nền tảng",
+      "readArticle": "Đọc bài viết →",
+      "createCategory": "Phương pháp lập",
+      "readCategory": "Hướng dẫn đọc",
+      "evidenceCategory": "Căn cứ",
+      "evidenceTitle": "Căn cứ khoa học và quy tắc an sao",
+      "evidenceCopy": "Nguyên tắc tính toán minh bạch dựa trên cổ thư và quy tắc an sao hệ thống.",
+      "libraryCategory": "Thư viện",
+      "libraryTitle": "Thư viện kiến thức Tử Vi Đẩu Số",
+      "libraryCopy": "Tra cứu toàn bộ chuyên đề sao, cung vị và các phương pháp giải đoán cổ điển.",
+      "lead": "Nền tảng cốt lõi, phương pháp an sao và các nguyên tắc đối chiếu do Lá Số Việt biên tập.",
+      "byline": "Lá Số Việt biên tập"
     },
     "faq": {
       "eyebrow": "Câu hỏi thường gặp",
-      "ai": {
+      "title": "Giải đáp thắc mắc về Lá Số Việt",
+      "q1": {
         "question": "Lá Số Việt có dùng AI không?",
-        "answer": "Có. AI hỗ trợ tổ chức và diễn giải trong giới hạn căn cứ đã cấp - không thay thế dữ liệu và quy tắc tính toán."
+        "answer": "Có. AI hỗ trợ tổ chức ngôn ngữ và trình bày mạch lạc trong giới hạn căn cứ đã cấp — không thay thế dữ liệu và quy tắc an sao."
       },
-      "time": {
+      "q2": {
         "question": "Tôi không nhớ chính xác giờ sinh thì sao?",
-        "answer": "Bạn có thể lưu dữ liệu sinh ngay cả khi chưa rõ giờ. Nếu biết khoảng giờ sinh (theo 12 Địa Chi) hoặc giờ chính xác, lá số Tử Vi vẫn lập được. Nếu hoàn toàn không rõ giờ sinh, chúng tôi sẽ nói rõ phần chưa tính được thay vì tự chọn giờ thay bạn."
+        "answer": "Bạn vẫn lập được lá số nếu biết khoảng giờ sinh theo 12 Địa Chi. Nếu hoàn toàn chưa rõ giờ, hệ thống nói rõ phần chưa tính được."
       },
-      "payment": {
+      "q3": {
         "question": "Báo cáo trả phí có tự động gia hạn không?",
-        "answer": "Không. Giá hiển thị là giá thanh toán một lần, không tự động gia hạn."
+        "answer": "Không. Mọi báo cáo chuyên sâu đều thanh toán một lần theo nhu cầu của bạn, không có bất kỳ khoản phí định kỳ nào."
       },
-      "privacy": {
-        "question": "Dữ liệu sinh của tôi được dùng như thế nào?",
-        "answer": "Trong luồng hiện tại, dữ liệu sinh được dùng để lập lá số và tạo phần diễn giải. Lá số riêng tư theo mặc định; bạn có thể xem, sửa hoặc xóa dữ liệu bằng các kiểm soát được cung cấp."
+      "q4": {
+        "question": "Dữ liệu sinh của tôi được bảo mật thế nào?",
+        "answer": "Dữ liệu sinh của bạn hoàn toàn riêng tư theo mặc định. Với tài khoản khách, dữ liệu tự động xóa trong 24 giờ nếu không liên kết."
+      },
+      "q5": {
+        "question": "Lá số miễn phí gồm những thông tin gì?",
+        "answer": "Bạn nhận trọn vẹn bản đồ 12 cung an sao chuẩn xác, ba nhận định then chốt và căn cứ dữ liệu đối chiếu minh bạch."
+      },
+      "q6": {
+        "question": "Bản luận giải có trích dẫn căn cứ không?",
+        "answer": "Có. Mỗi luận điểm quan trọng đều gắn với vị trí sao, cung đối chiếu và quy tắc cổ thư được trích dẫn công khai."
+      },
+      "q7": {
+        "question": "Nội dung luận giải do ai biên soạn?",
+        "answer": "Toàn bộ nội dung do Lá Số Việt biên tập dựa trên thuật toán an sao chính xác và hệ thống quy tắc luận giải tinh tuyển."
+      },
+      "q8": {
+        "question": "Tôi có thể xem lại lá số sau này không?",
+        "answer": "Có. Khi lưu thông tin hoặc đăng nhập tài khoản, lá số và các phần luận giải đã mở được lưu giữ an toàn trong thư viện."
       }
     },
     "aboutExcerpt": {
@@ -328,6 +375,134 @@
       "ctaPrimary": "Lập lá số miễn phí ngay",
       "ctaSecondary": "Xem bản luận giải mẫu",
       "closing": "Hiểu mình để lựa chọn chủ động hơn."
+    },
+    "support": {
+      "title": "Cần đồng hành hoặc hỗ trợ?",
+      "description": "Đội ngũ Lá Số Việt sẵn sàng lắng nghe và giải đáp mọi thắc mắc qua email hỗ trợ riêng tư.",
+      "action": "Gửi email hỗ trợ"
+    },
+    "topicChips": {
+      "eyebrow": "Mục lục luận giải",
+      "title": "12 cung bản mệnh và các chủ đề then chốt",
+      "lead": "Mỗi câu hỏi về bản mệnh đều có cung vị và liên kết đối chiếu rõ ràng.",
+      "row1": [
+        "Mệnh",
+        "Phụ Mẫu",
+        "Phúc Đức",
+        "Điền Trạch",
+        "Quan Lộc",
+        "Nô Bộc",
+        "Thiên Di",
+        "Tật Ách",
+        "Tài Bạch",
+        "Tử Tức",
+        "Phu Thê",
+        "Huynh Đệ"
+      ],
+      "row2": [
+        "Tổng quan bản mệnh",
+        "Năng lượng ngũ hành",
+        "Tam hợp mệnh - tài - quan",
+        "Đại vận 10 năm",
+        "Lưu niên từng năm",
+        "Nút thắt chuyển biến",
+        "Cơ hội tài lộc",
+        "Định hướng sự nghiệp",
+        "Hôn nhân và gia đạo"
+      ],
+      "alsoHave": "Cũng có",
+      "alsoHaveItems": [
+        {
+          "label": "Bát Tự",
+          "href": "/bat-tu"
+        },
+        {
+          "label": "Bản đồ sao",
+          "href": "/chiem-tinh"
+        },
+        {
+          "label": "Thần Số Học",
+          "href": "/than-so-hoc"
+        },
+        {
+          "label": "Kinh Dịch",
+          "href": "/kinh-dich"
+        }
+      ]
+    },
+    "comparison": {
+      "eyebrow": "Góc nhìn đối chiếu",
+      "title": "Ba cách tiếp cận khi tìm hiểu lá số",
+      "subtitle": "So sánh phương pháp tự đọc, trao đổi tư vấn truyền thống và giải pháp từ Lá Số Việt.",
+      "lasoviet": {
+        "badge": "Giải pháp toàn diện",
+        "title": "Lá Số Việt",
+        "subtitle": "Tính toán chuẩn xác kết hợp giải trình minh bạch",
+        "bullet1": "An sao 12 cung chuẩn xác kèm giải thích thuật ngữ dễ hiểu",
+        "bullet2": "Từng nhận định gắn liền căn cứ, vị trí sao và quy tắc mở rộng.",
+        "bullet3": "Riêng tư theo mặc định, không ép chia sẻ hay gia hạn tự động"
+      },
+      "selfStudy": {
+        "title": "Tự đọc sách & bài viết",
+        "subtitle": "Tra cứu rời rạc từ nhiều nguồn tài liệu",
+        "bullet1": "Thuật ngữ Hán Việt phức tạp, thiếu tính hệ thống thống nhất",
+        "bullet2": "Phải tự ráp nối dữ liệu giữa nhiều tài liệu và trường phái",
+        "bullet3": "Dễ gây hoang mang khi gặp các nhận định mâu thuẫn nhau"
+      },
+      "aiChat": {
+        "title": "Hỏi thầy hoặc AI chat",
+        "subtitle": "Tư vấn đối thoại trực tiếp",
+        "bullet1": "Dễ phát sinh suy đoán khi thiếu căn cứ và quy tắc an sao nền",
+        "bullet2": "Chi phí dao động lớn hoặc kết quả khó đối chiếu lại sau này",
+        "bullet3": "Khó kiểm soát bảo mật thông tin ngày giờ sinh cá nhân"
+      },
+      "mobileAccordionTitle": "Xem thêm các cách tiếp cận khác"
+    },
+    "capabilityMatrix": {
+      "eyebrow": "Khả năng hệ thống",
+      "title": "Nội dung nhận được ở từng cấp độ",
+      "subtitle": "Mọi thông tin đều công khai và minh bạch trước khi bạn bắt đầu.",
+      "colFree": "Miễn phí",
+      "colStandard": "Bản mệnh",
+      "colComprehensive": "Toàn diện",
+      "row1": {
+        "feature": "An sao 12 cung và lập đồ hình lá số",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row2": {
+        "feature": "Ba nhận định then chốt và phân tích tính cách",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row3": {
+        "feature": "Minh chứng căn cứ và quy tắc an sao",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row4": {
+        "feature": "4 chuyên đề cốt lõi: Mệnh, Quan, Tài, Phúc",
+        "free": false,
+        "standard": true,
+        "comprehensive": true
+      },
+      "row5": {
+        "feature": "Toàn bộ 12 cung luận giải và đại vận chuyên sâu",
+        "free": false,
+        "standard": false,
+        "comprehensive": true
+      },
+      "row6": {
+        "feature": "Lưu giữ hồ sơ và đọc lại trong thư viện cá nhân",
+        "free": true,
+        "standard": true,
+        "comprehensive": true
+      },
+      "yes": "Có",
+      "no": "Không"
     }
   }
 }

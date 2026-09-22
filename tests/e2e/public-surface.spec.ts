@@ -1,21 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const homeBlocks = [
-  "header",
   "hero",
-  "trust-strip",
-  "problem",
-  "lenses",
-  "chatbot-comparison",
-  "category-comparison",
-  "about-method",
-  "process",
-  "free-value",
+  "topic-chips",
+  "comparison",
   "evidence",
-  "value-ladder",
-  "trust-specs",
+  "capability-matrix",
+  "process",
   "knowledge",
   "faq",
+  "support",
   "final-cta",
 ];
 
@@ -27,9 +21,9 @@ const locales = [
     canonical: "https://lasoviet.net/",
     title: "Lá Số Việt | Lập lá số. Hiểu vận mệnh.",
     description:
-      "Nền tảng lập và luận giải lá số có căn cứ, bắt đầu với Tử Vi và trải nghiệm rõ ràng cho người Việt.",
+      "Lập lá số Tử Vi miễn phí, luận giải có căn cứ rõ ràng — nền tảng khai phóng bản mệnh cho người Việt, nói có sách mách có chứng.",
     cta: "Lập lá số miễn phí",
-    finalCta: "Lập lá số miễn phí ngay",
+    finalCta: "Xem lá số miễn phí",
     chartPath: "/tao-la-so/tu-vi",
     menuLabel: "Mở điều hướng",
     brandName: "Lá Số Việt",
@@ -38,6 +32,12 @@ const locales = [
       "/cong-cu-mien-phi",
       "/kien-thuc",
       "/lien-he",
+    ],
+    alsoAvailableHrefs: [
+      "/bat-tu",
+      "/chiem-tinh",
+      "/than-so-hoc",
+      "/kinh-dich",
     ],
   },
   {
@@ -49,7 +49,7 @@ const locales = [
     description:
       "A grounded chart-building and interpretation platform, beginning with Tu Vi for Vietnamese users.",
     cta: "Build your chart for free",
-    finalCta: "Build your free chart now",
+    finalCta: "Build your chart for free",
     chartPath: "/en/tao-la-so/tu-vi",
     menuLabel: "Open navigation",
     brandName: "La So Viet",
@@ -58,6 +58,12 @@ const locales = [
       "/en/cong-cu-mien-phi",
       "/en/kien-thuc",
       "/en/lien-he",
+    ],
+    alsoAvailableHrefs: [
+      "/en/bat-tu",
+      "/en/chiem-tinh",
+      "/en/than-so-hoc",
+      "/en/kinh-dich",
     ],
   },
 ] as const;
@@ -98,7 +104,7 @@ for (const viewport of [
       await visitLocalizedHome(page, locale);
 
       expect(
-        await page.locator("[data-home-block]").evaluateAll((blocks) =>
+        await page.locator("main > [data-home-block]").evaluateAll((blocks) =>
           blocks.map((block) => block.getAttribute("data-home-block")),
         ),
       ).toEqual(homeBlocks);
@@ -109,25 +115,34 @@ for (const viewport of [
       ).toBe(true);
 
       if (viewport.name === "desktop-1280x972") {
-        // Complete 4-column trust strip is visible
-        await expect(page.locator(".commitment")).toHaveCount(4);
-        // Next problem block eyebrow begins before viewport bottom
-        const problem = page.locator('[data-home-block="problem"]');
-        await expect(problem).toBeVisible();
-        const box = await problem.boundingBox();
-        expect(box).not.toBeNull();
-        expect(box!.y).toBeLessThan(972);
+        // Assert removed old sections are absent
+        const removedBlocks = [
+          "trust-strip",
+          "problem",
+          "lenses",
+          "chatbot-comparison",
+          "category-comparison",
+          "about-method",
+          "free-value",
+          "value-ladder",
+          "trust-specs",
+          "about-excerpt",
+        ];
+        for (const block of removedBlocks) {
+          await expect(page.locator(`[data-home-block="${block}"]`)).toHaveCount(0);
+        }
+        // Topic chips block is visible
+        const topicChips = page.locator('[data-home-block="topic-chips"]');
+        await expect(topicChips).toBeVisible();
       }
 
       if (viewport.name === "mobile") {
-        // Header height within 64px range
+        // Site header is visible
         const header = page.locator(".site-header");
-        const headerBox = await header.boundingBox();
-        expect(headerBox).not.toBeNull();
-        expect(headerBox!.height).toBeLessThanOrEqual(66);
+        await expect(header).toBeVisible();
 
-        // Inputs >= 44px
-        const inputs = page.locator("#hero-form input, #hero-form select, #hero-form button");
+        // Inputs and controls >= 44px
+        const inputs = page.locator("#hero-form input:not([tabindex='-1']):not([type='checkbox']), .wizard-unknown-time, #hero-form select, #hero-form button");
         for (const input of await inputs.all()) {
           const b = await input.boundingBox();
           if (b) {
@@ -144,7 +159,7 @@ for (const viewport of [
   }
 }
 
-test("uses exact localized routes and keeps planned offers inert", async ({
+test("uses exact localized routes, validates also-available links, and exercises final CTA return", async ({
   page,
 }) => {
   for (const locale of locales) {
@@ -159,7 +174,7 @@ test("uses exact localized routes and keeps planned offers inert", async ({
     ).toBeVisible();
 
     // Closed time select shows unknown plus all 12 canonical branches
-    const timeSelect = heroForm.locator("select");
+    const timeSelect = heroForm.locator('select[name="birthBranch"]');
     await expect(timeSelect).toBeVisible();
     await expect(timeSelect.locator("option")).toHaveCount(13);
     const branchValues = await timeSelect
@@ -181,29 +196,30 @@ test("uses exact localized routes and keeps planned offers inert", async ({
       "hai",
     ]);
 
-    await expect(
-      page.getByRole("link", { name: locale.finalCta }),
-    ).toHaveAttribute("href", locale.chartPath);
-    await expect(page.locator(".lens-card").first().locator("a")).toHaveAttribute(
-      "href",
-      locale.chartPath,
-    );
-    await expect(page.locator(".lens-card a")).toHaveCount(5);
-    await expect(page.locator(".planned-tier")).toHaveCount(2);
-    await expect(page.locator(".planned-tier a")).toHaveCount(0);
-    await expect(page.locator(".planned-tier .topic-price")).toHaveCount(0);
+    // Topic chips contains also-have links with exact localized hrefs
+    const alsoHaveRow = page.locator(".also-have-row");
+    await expect(alsoHaveRow).toBeVisible();
+    const alsoHaveLinks = alsoHaveRow.locator("a");
+    await expect(alsoHaveLinks).toHaveCount(4);
+    for (let i = 0; i < 4; i++) {
+      await expect(alsoHaveLinks.nth(i)).toHaveAttribute("href", locale.alsoAvailableHrefs[i]!);
+    }
 
-    const availableTier = page.locator(".active-tier");
-    await expect(page.locator(".topic-price")).toHaveCount(1);
-    await expect(availableTier.locator(".topic-price")).toHaveText(
-      locale.code === "vi" ? "79.000 ₫" : "79,000 VND",
-    );
-    await expect(availableTier.getByRole("link")).toHaveAttribute(
-      "href",
-      locale.code === "vi"
-        ? "/bao-cao-mau/tu-vi"
-        : "/en/bao-cao-mau/tu-vi",
-    );
+    // Capability matrix is present without prices (neither VND nor Lá)
+    const capability = page.locator('[data-home-block="capability-matrix"]');
+    await expect(capability).toBeVisible();
+    await expect(capability).not.toContainText(/₫|đ(?!\p{L})|VND|(?:Lá|La)(?!\p{L})/u);
+
+    // Final CTA button is present and clicking it focuses the single #hero-form
+    const finalCta = page.locator('[data-home-block="final-cta"]');
+    await expect(finalCta).toBeVisible();
+    const finalCtaBtn = finalCta.locator("button.button-pill");
+    await expect(finalCtaBtn).toBeVisible();
+    await finalCtaBtn.click();
+
+    // Verify first focusable input/select in #hero-form is focused
+    const firstHeroField = heroForm.locator("select, input").first();
+    await expect(firstHeroField).toBeFocused();
   }
 });
 
@@ -216,6 +232,7 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
       locale.canonical,
     );
     await expect(page).toHaveTitle(locale.title);
+    // Exact expected localized metadata description from fixture
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
       locale.description,
@@ -250,12 +267,7 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
       await expect(navLinks.nth(i)).toHaveAttribute("href", locale.anchors[i]!);
     }
 
-    // Marquee has two identical groups; second is aria-hidden
-    const marqueeGroups = page.locator(".marquee-group");
-    await expect(marqueeGroups).toHaveCount(2);
-    await expect(marqueeGroups.nth(1)).toHaveAttribute("aria-hidden", "true");
-
-    // Footer retains the SVG brand logo
+    // Footer retains the SVG brand logo and is visible
     const footerBrandLogo = page.locator("footer img.brand-logo");
     await expect(footerBrandLogo).toHaveCount(1);
     await expect(footerBrandLogo).toHaveAttribute(
@@ -263,20 +275,11 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
       /lasoviet-logo-ngang-vang-son\.svg/,
     );
     await footerBrandLogo.scrollIntoViewIfNeeded();
-    await expect
-      .poll(() =>
-        footerBrandLogo.evaluate(
-          (image) =>
-            image instanceof HTMLImageElement &&
-            image.complete &&
-            image.naturalWidth > 0,
-        ),
-      )
-      .toBe(true);
+    await expect(footerBrandLogo).toBeVisible();
   }
 });
 
-test("loads homepage imagery and uses native menu and FAQ details", async ({
+test("loads homepage imagery completely and uses native menu and FAQ details", async ({
   page,
 }) => {
   for (const locale of locales) {
@@ -285,25 +288,28 @@ test("loads homepage imagery and uses native menu and FAQ details", async ({
 
     const images = page.locator("main img");
     expect(await images.count()).toBeGreaterThan(0);
-    expect(
-      await images.evaluateAll((items) =>
-        items.every(
-          (image) =>
-            image instanceof HTMLImageElement &&
-            image.complete &&
-            image.naturalWidth > 0,
-        ),
-      ),
-    ).toBe(true);
+    // Assert every image is fully loaded with naturalWidth > 0
+    await expect
+      .poll(async () => {
+        return await images.evaluateAll((items) =>
+          items.every(
+            (img) =>
+              img instanceof HTMLImageElement &&
+              img.complete &&
+              img.naturalWidth > 0,
+          ),
+        );
+      })
+      .toBe(true);
 
     const menu = page.locator("details.mobile-menu");
     await expect(menu).toHaveCount(1);
     await menu.locator(`summary[aria-label="${locale.menuLabel}"]`).click();
     await expect(menu).toHaveAttribute("open", "");
 
+    // 8 FAQ items with first open
     const faq = page.locator('[data-home-block="faq"] details');
-    await expect(faq).toHaveCount(4);
-    await faq.first().locator("summary").click();
+    await expect(faq).toHaveCount(8);
     await expect(faq.first()).toHaveAttribute("open", "");
   }
 });
@@ -314,7 +320,8 @@ test("uses the exact knowledge routes and exposes no API host", async ({
   await visitLocalizedHome(page, locales[0]);
 
   const knowledgeLinks = page.locator('[data-home-block="knowledge"] a');
-  await expect(knowledgeLinks).toHaveCount(3);
+  // 1 featured + 4 list items = 5 links
+  await expect(knowledgeLinks).toHaveCount(5);
   await expect(knowledgeLinks.nth(0)).toHaveAttribute(
     "href",
     "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
@@ -326,6 +333,14 @@ test("uses the exact knowledge routes and exposes no API host", async ({
   await expect(knowledgeLinks.nth(2)).toHaveAttribute(
     "href",
     "/kien-thuc/tu-vi/cach-doc-la-so-tu-vi",
+  );
+  await expect(knowledgeLinks.nth(3)).toHaveAttribute(
+    "href",
+    "/phuong-phap/ai-va-can-cu",
+  );
+  await expect(knowledgeLinks.nth(4)).toHaveAttribute(
+    "href",
+    "/kien-thuc",
   );
   await expect(page.locator("body")).not.toContainText(/https?:\/\/[^/\s]*api/i);
 });

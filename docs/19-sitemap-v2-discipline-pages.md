@@ -5,7 +5,7 @@ status: founder-approved
 date: 2026-09-05
 approved_by: Founder (Harris/Product), via brainstorming session in-chat (revised 2026-09-05 after nav-clutter and shared-profile feedback)
 supersedes:
-  - "docs/archive/03-sitemap-and-seo.md §1 (Navigation), and the top-level route grouping in §2 (calculator/commercial/knowledge presented as separate nav-level sections)"
+  - "docs/_archive/superseded/03-sitemap-and-seo.md §1 (Navigation), and the top-level route grouping in §2 (calculator/commercial/knowledge presented as separate nav-level sections)"
   - "docs/14-sitemap-seo-wireframes.md §2 (Navigation, mega-menu model) and the sitemap-diagram framing in §3.1; the specific primary-entry slugs '/gieo-que-kinh-dich' and '/ban-do-sao' in §3.4.2–3.4.3 are replaced by '/kinh-dich' and '/chiem-tinh' as flagship URLs; '/la-so-tu-vi' is proposed for rename to '/tu-vi' (§2, not yet executed). §3.2–3.3 route registry (including the private `/tao-la-so/**` and `/la-so/{opaque_id}` wizard/result routes, reused as-is by §3 below), §3.4's per-discipline knowledge/commercial child-route tables, §3.5 entity-page gating, and the route-status system (§3.4.6) are NOT superseded."
 depends_on:
   - docs/11-discipline-expansion-specs.md
@@ -174,7 +174,7 @@ Each of the four birth-profile flagship pages should surface, once a profile
 exists, direct links to view the *other* birth-profile disciplines' reading
 from the same profile ("Bạn cũng có lá số Bát Tự từ hồ sơ này") — this is the
 "một hồ sơ, nhiều lăng kính" mechanism already written into the homepage
-content (`docs/archive/homepage-content-proposal-v5-2026-09-04.md` Block 5, archived), now wired through to the actual
+content (`docs/_archive/superseded/homepage-content-proposal-v5-2026-09-04.md` Block 5, archived), now wired through to the actual
 discipline pages instead of stopping at homepage teaser cards.
 
 ## 4. Per-discipline flagship page anatomy
@@ -324,9 +324,9 @@ place rather than layered):
 
 ## 8. Follow-up actions (not executed by this document)
 
-- Decision-log entries D-023–D-028 in `docs/archive/10-decision-log.md` (done
+- Decision-log entries D-023–D-028 in `docs/_archive/superseded/10-decision-log.md` (done
   alongside this doc)
-- Superseded-pointer banners in `docs/archive/03-sitemap-and-seo.md` and
+- Superseded-pointer banners in `docs/_archive/superseded/03-sitemap-and-seo.md` and
   `docs/14-sitemap-seo-wireframes.md` (done alongside v1.0, still accurate)
 - Rename `/la-so-tu-vi` → `/tu-vi` and update its internal links
   (`homepage.html`, `kien-thuc-tu-vi/*`,

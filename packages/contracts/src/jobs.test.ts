@@ -90,6 +90,14 @@ describe("ReportGenerationRequested contracts", () => {
       expect(ReportGenerationRequestedV1Schema.safeParse(payload).success).toBe(false);
     });
 
+    it("rejects supersession lineage", () => {
+      const payload = {
+        ...createValidV1Payload(),
+        supersedesReportVersionId: "old-report-version-1",
+      };
+      expect(ReportGenerationRequestedV1Schema.safeParse(payload).success).toBe(false);
+    });
+
     it("rejects unknown extra fields", () => {
       const payload = { ...createValidV1Payload(), extraField: "invalid" };
       const parsed = ReportGenerationRequestedV1Schema.safeParse(payload);
@@ -137,6 +145,24 @@ describe("ReportGenerationRequested contracts", () => {
     it("rejects invalid readingContextRevisionId values", () => {
       for (const readingContextRevisionId of ["", "   ", 123, {}, []]) {
         const payload = { ...createValidV2Payload(), readingContextRevisionId };
+        expect(ReportGenerationRequestedV2Schema.safeParse(payload).success).toBe(false);
+      }
+    });
+
+    it("accepts and trims bounded supersession lineage", () => {
+      const parsed = ReportGenerationRequestedV2Schema.safeParse({
+        ...createValidV2Payload(),
+        supersedesReportVersionId: "  old-report-version-1  ",
+      });
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.supersedesReportVersionId).toBe("old-report-version-1");
+      }
+    });
+
+    it("rejects invalid supersession lineage", () => {
+      for (const supersedesReportVersionId of ["", "   ", "x".repeat(129), 123, {}, []]) {
+        const payload = { ...createValidV2Payload(), supersedesReportVersionId };
         expect(ReportGenerationRequestedV2Schema.safeParse(payload).success).toBe(false);
       }
     });

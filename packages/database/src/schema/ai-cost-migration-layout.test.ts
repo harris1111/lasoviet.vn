@@ -138,4 +138,31 @@ describe("ai cost and usage migration layout", () => {
     expect(snapshot).toContain('"public.ai_model_pricing"');
     expect(snapshot).toContain('"invalid_output_reason"');
   });
+
+  it("adds the verified OpenRouter DeepSeek Flash pricing record in data-only migration 0043", async () => {
+    const rawMigration = await readFile(
+      new URL("0043_ai_model_pricing_openrouter_deepseek_flash.sql", migrationRoot),
+      "utf8",
+    );
+    const migration = normalizeNewlines(rawMigration);
+    const rawJournal = await readFile(new URL("meta/_journal.json", migrationRoot), "utf8");
+    const journal = normalizeNewlines(rawJournal);
+
+    expect(migration).toContain('INSERT INTO "ai_model_pricing"');
+    expect(migration).toContain("'openrouter-deepseek-flash-v1-20260920'");
+    expect(migration).toContain("'openrouter'");
+    expect(migration).toContain("'~deepseek/deepseek-flash-latest'");
+    expect(migration).toContain('"resolved_model_id":"deepseek/deepseek-v4.1-flash"');
+    expect(migration).toContain("3394");
+    expect(migration).toContain("13577");
+    expect(migration).toContain("68");
+    expect(migration).toContain("'2026-09-20T00:00:00Z'");
+    expect(migration).toContain("'https://openrouter.ai/api/v1/models'");
+    expect(migration).toContain("'Vietcombank USD sell'");
+    expect(migration).toContain("26110");
+    expect(migration).toContain("'active'");
+    expect(migration).not.toMatch(/\b(?:UPDATE|DELETE|UPSERT|ALTER|CREATE|DROP)\b/i);
+    expect(journal).toContain('"tag": "0043_ai_model_pricing_openrouter_deepseek_flash"');
+    expect(journal).toContain('"idx": 43');
+  });
 });

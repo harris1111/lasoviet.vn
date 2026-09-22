@@ -49,7 +49,7 @@ describe("admin report recovery contracts", () => {
     }).success).toBe(false);
   });
 
-  it("requires a strict trusted command context and strict success response", () => {
+  it("requires a strict trusted command context and validates additive supersession success", () => {
     const context = {
       access: {
         actorId: "actor-1",
@@ -72,6 +72,14 @@ describe("admin report recovery contracts", () => {
       stateVersion: 4,
       replayed: false,
     }).success).toBe(true);
+    expect(AdminReportRecoverySuccessV1Schema.parse({
+      reportVersionId: "00000000-0000-0000-0000-000000000002",
+      supersedesReportVersionId: command.reportVersionId,
+      stateVersion: 4,
+      replayed: false,
+    })).toMatchObject({
+      supersedesReportVersionId: command.reportVersionId,
+    });
     expect(AdminReportRecoverySuccessV1Schema.safeParse({
       reportVersionId: command.reportVersionId,
       stateVersion: 4,

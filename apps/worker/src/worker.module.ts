@@ -25,6 +25,7 @@ import {
   createReportSourceSnapshotPreparationService,
   createKnowledgeRetrievalService,
   createOpenAiCompatibleAdapter,
+  resolveOpenAiCompatibleProviderId,
   createReportService,
   createAdminAccessService,
   createDatabaseAdminAccessRepository,
@@ -145,14 +146,6 @@ export function createReportGenerateRunner(options?: {
     };
   }
 
-  if (options?.gate !== undefined && !options.gate.allows("production_report_generation")) {
-    return {
-      async runOnce() {
-        return { processed: 0 };
-      },
-    };
-  }
-
   if (!hasAnyAiConfig(process.env)) {
     return { async runOnce() { return { processed: 0 }; } };
   }
@@ -216,6 +209,7 @@ export function createReportGenerateRunner(options?: {
           apiKey: environment.value.ai.apiKey,
           modelId: environment.value.ai.model,
           allowedResolvedModelIds: environment.value.ai.allowedResolvedModels,
+          providerId: resolveOpenAiCompatibleProviderId(environment.value.ai.baseUrl),
           timeoutMs: environment.value.ai.timeoutMs,
           retryCount: environment.value.ai.maxRetries,
           productionGate: gate,
@@ -236,6 +230,12 @@ export function createReportGenerateRunner(options?: {
     provider,
     sourceSnapshotPreparer,
     sectionCheckpointRepository,
+    onReviewWarnings: ({ reportVersionId, warnings }) => {
+      console.warn("REPORT_REVIEW_WARNINGS", {
+        reportVersionId,
+        warnings: warnings.map(({ key, category }) => ({ key, category })),
+      });
+    },
   });
   const telegramAlert =
     options?.telegramAlert ??

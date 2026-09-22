@@ -12,6 +12,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@lasoviet/contracts": resolve(root, "packages/contracts/src/index.ts"),
+      "@lasoviet/config/customer-contact": resolve(
+        root,
+        "packages/config/src/customer-contact.ts",
+      ),
       "@lasoviet/config/load-environment": resolve(
         root,
         "packages/config/src/load-environment.ts",

@@ -30,6 +30,7 @@ import {
   type ComprehensiveReportSectionKey,
 } from "./comprehensive-report-section-v4.js";
 import type { ComprehensiveReportSectionDigest } from "./comprehensive-report-section-digest-v4.js";
+import { countVietnameseSyllables } from "./comprehensive-report-quality-v4.js";
 import { BRIGHTNESS_LABELS_VI } from "./comprehensive-report-writer.js";
 import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
@@ -39,6 +40,7 @@ import {
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
 } from "./identity-report-config.js";
@@ -87,6 +89,34 @@ export type ComprehensiveReportSectionWriterV4Input = {
 
 export type ComprehensiveReportSectionWriterV4Result =
   | { ok: true; value: ComprehensiveReportAcceptedSection & { providerId: string; modelId: string } }
+  | { ok: false; error: AiProviderError | { code: "AI_OUTPUT_INVALID"; retryable: false } };
+
+export const COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS = Object.freeze({
+  G1: 24_000,
+  G2: 30_000,
+  G3: 14_000,
+} as const);
+
+export type ComprehensiveReportGenerationGroupId = keyof typeof COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS;
+
+export type ComprehensiveReportGroupedSectionWriterV4Input = Omit<
+  ComprehensiveReportSectionWriterV4Input,
+  "sectionKey" | "rewrite" | "priorSectionDigest"
+> & {
+  groupId: ComprehensiveReportGenerationGroupId;
+  sectionKeys: readonly ComprehensiveReportSectionKey[];
+  priorSectionDigest?: ComprehensiveReportSectionDigest;
+};
+
+export type ComprehensiveReportGroupedSectionWriterV4Result =
+  | {
+      ok: true;
+      value: {
+        sections: readonly (ComprehensiveReportAcceptedSection & { providerId: string; modelId: string })[];
+        providerId: string;
+        modelId: string;
+      };
+    }
   | { ok: false; error: AiProviderError | { code: "AI_OUTPUT_INVALID"; retryable: false } };
 
 type SectionScope = {
@@ -193,7 +223,9 @@ function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4I
   }
   const threshold = resolveZiweiReportQualitySectionThreshold(
     input.reportConfigVersion,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+      ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
+      : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
     "keyConfigurations",
   );
   return Object.freeze({
@@ -448,31 +480,69 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
 }
 
 const SECTION_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số tại lasoviet.net.
-Viết đúng một phần báo cáo tiếng Việt bằng JSON theo schema được cung cấp, chỉ dựa trên facts, knowledgePacks và allowedEvidenceKeys.
-Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tính toán hoặc truy xuất. Không dùng khối tuyên bố miễn trừ trách nhiệm.
-Không bịa sự kiện tương lai cụ thể, không dùng khẳng định định mệnh về tai nạn, tử vong, phá sản hoặc phản bội.
-Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, và không lặp lại lời khuyên/cảnh báo.
- Mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys. Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
+Chỉ trả đúng một JSON hợp lệ theo schema được cung cấp. Viết tiếng Việt, chỉ dùng facts, knowledgePacks và allowedEvidenceKeys; mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys.
+Không bịa fact hay sự kiện tương lai; không khẳng định chắc chắn tai nạn, tử vong, phá sản hoặc phản bội. Khi cần nêu cảnh báo, không đưa ngày bất lợi cụ thể và phải đặt trong khung chuẩn bị thực tế, có thể hành động.
+Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tính toán hoặc truy xuất; không dùng khối tuyên bố miễn trừ trách nhiệm. Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, không lặp lại lời khuyên/cảnh báo.
+Tên cung như Phu Thê và Tử Tức chỉ dùng khi mô tả cấu trúc lá số có ngữ cảnh cung, tam phương, đối cung hoặc xung chiếu; không dùng như nhãn diễn giải rời.
+Phần không phải cung phải dùng ít nhất hai fact khác nhau có evidence. Phần cung phải nêu ít nhất hai sao thực có trong cung, hoặc nói đúng trạng thái vô chính diệu/không có chính tinh khi facts thể hiện điều đó.
+Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
 readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
 
-function acceptanceContract(input: ComprehensiveReportSectionWriterV4Input) {
+function acceptanceContract(
+  input: ComprehensiveReportSectionWriterV4Input,
+  sectionKind: SectionScope["kind"],
+) {
   if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
   const quality = resolveZiweiReportQualityConfig(
     REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+  );
+  const threshold = resolveZiweiReportQualitySectionThreshold(
+    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+    sectionKind,
   );
   return {
     scope: "section-and-item-addressed",
     suppliedFindings: "Correct every supplied finding for its exact section or itemKey.",
-    discouragedTerms: [...quality.discouragedTerms],
-    properNameDensity: {
-      configuredProperNames: [...quality.properNames],
-      maximumPer100Syllables: quality.maxProperNamesPer100Syllables,
+    sectionLength: {
+      appliesPerItem:
+        input.sectionKey === "keyConfigurations" ||
+        input.sectionKey === "practicalDirection" ||
+        input.sectionKey === "birthTimeSensitivity",
+      minimumSyllables: threshold.minimumSyllables,
+      targetMinimumSyllables: threshold.targetMinimumSyllables,
+      targetMaximumSyllables: threshold.targetMaximumSyllables,
+    },
+    forbiddenTerms: {
+      discouraged: [...quality.discouragedTerms],
+      contextualPalaceNameExceptions: {
+        terms: ["Phu Thê", "Tử Tức"],
+        rule: "Allow only explicit palace-name references in chart-structure context; reject ambiguous interpretive usage.",
+      },
+      death: [...quality.deathTerms],
+      certainty: [...quality.certaintyPhrases],
+    },
+    localeIntegrity: {
+      language: "vi",
+      noHanIdeographs: true,
+      noNomIdeographs: true,
+      noEnglishBrightnessDescriptors: true,
+      allowedBrightnessLabels: Object.values(BRIGHTNESS_LABELS_VI),
     },
     evidence: {
       useOnlyAllowedEvidenceKeys: true,
       preserveEvidenceBackedChartFacts: true,
       preserveRequiredEvidenceKeys: true,
+    },
+    contentBehavior: {
+      noFabricatedFactsOrFutureEvents: true,
+      noDeterministicAdverseOutcomes: ["accident", "death", "bankruptcy", "betrayal"],
+      warningsUsePracticalPreparationWithoutExplicitAdverseDates: true,
+      nonPalaceRequiresTwoDistinctEvidenceBackedFacts: true,
+      palaceRequiresTwoActualStarsOrAccurateNoMajorStarState: true,
+      noAiOrProcessDisclosure: true,
+      noReflectionQuestionsNewIdentifiersOrRepeatedAdvice: true,
     },
     noNewQualityViolations: true,
     ...(input.sectionKey === "keyConfigurations" ? {
@@ -481,6 +551,84 @@ function acceptanceContract(input: ComprehensiveReportSectionWriterV4Input) {
       },
     } : {}),
   } as const;
+}
+
+function appliesLengthPerItem(sectionKey: ComprehensiveReportSectionKey): boolean {
+  return sectionKey === "keyConfigurations" ||
+    sectionKey === "practicalDirection" ||
+    sectionKey === "birthTimeSensitivity";
+}
+
+function measuredSectionLengths(section: ComprehensiveReportAcceptedSection): Array<{
+  itemKey: string;
+  syllables: number;
+}> {
+  if (section.key === "birthTimeSensitivity") {
+    return [
+      {
+        itemKey: "birthTimeSensitivity.stableFactors",
+        syllables: countVietnameseSyllables(
+          `${section.value.stableFactors.title} ${section.value.stableFactors.narrative}`,
+        ),
+      },
+      {
+        itemKey: "birthTimeSensitivity.sensitiveFactors",
+        syllables: countVietnameseSyllables(
+          `${section.value.sensitiveFactors.title} ${section.value.sensitiveFactors.narrative}`,
+        ),
+      },
+    ];
+  }
+  if (Array.isArray(section.value)) {
+    return section.value.map((item, index) => ({
+      itemKey: `${section.key}[${index}]`,
+      syllables: countVietnameseSyllables(
+        "recommendation" in item
+          ? `${item.recommendation} ${item.rationale} ${item.avoid}`
+          : `${item.title} ${item.narrative}`,
+      ),
+    }));
+  }
+  return [{
+    itemKey: section.key,
+    syllables: countVietnameseSyllables(`${section.value.title} ${section.value.narrative}`),
+  }];
+}
+
+function v4_1_2LengthInstruction(
+  input: ComprehensiveReportSectionWriterV4Input,
+  contract: NonNullable<ReturnType<typeof acceptanceContract>>,
+): string {
+  const { minimumSyllables, targetMinimumSyllables, targetMaximumSyllables } = contract.sectionLength;
+  const perItem = appliesLengthPerItem(input.sectionKey);
+  const paragraphCount = targetMinimumSyllables >= 700 ? 5 : targetMinimumSyllables >= 400 ? 4 : 3;
+  const minimumPerParagraph = Math.ceil(targetMinimumSyllables / paragraphCount);
+  const base = `Yêu cầu độ dài bắt buộc: hệ thống đếm mỗi đơn vị đã chuẩn hóa và được ngăn cách bởi whitespace là 1 âm tiết. ${perItem ? "Mỗi phần tử được kiểm tra riêng." : "Toàn bộ phần này được kiểm tra."} Tối thiểu ${minimumSyllables} âm tiết; mục tiêu ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết. Không kết thúc khi chưa đạt tối thiểu ${targetMinimumSyllables} âm tiết.`;
+  const deliveryPlan = !perItem
+    ? `Kế hoạch triển khai: viết ${paragraphCount} đoạn văn thực chất, mỗi đoạn ít nhất ${minimumPerParagraph} đơn vị, để tổng phần nằm trong ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết và trong giới hạn schema.`
+    : input.sectionKey === "practicalDirection"
+      ? `Kế hoạch triển khai: với TỪNG practicalDirection[i], phân bổ nội dung thực chất cho recommendation, rationale và avoid; mỗi trường ít nhất ${Math.ceil(targetMinimumSyllables / 3)} đơn vị để mỗi item đạt ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết, không vượt giới hạn schema.`
+      : input.sectionKey === "birthTimeSensitivity"
+        ? `Kế hoạch triển khai: với TỪNG mục stableFactors và sensitiveFactors, viết ${paragraphCount} đoạn thực chất trong narrative, mỗi đoạn ít nhất ${minimumPerParagraph} đơn vị, để mỗi mục đạt ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết và trong giới hạn schema.`
+        : `Kế hoạch triển khai: với TỪNG keyConfigurations[i], viết ${paragraphCount} đoạn thực chất trong narrative, mỗi đoạn ít nhất ${minimumPerParagraph} đơn vị, để mỗi item đạt ${targetMinimumSyllables}-${targetMaximumSyllables} âm tiết và trong giới hạn schema.`;
+  if (!input.rewrite) return `${base}\n${deliveryPlan}`;
+
+  const measurements = measuredSectionLengths(input.rewrite.priorSection);
+  const measuredPriorLength = measurements
+    .map(({ itemKey, syllables }) =>
+      `${itemKey}: hiện ${syllables} âm tiết, cần bổ sung ít nhất ${Math.max(0, targetMinimumSyllables - syllables)} âm tiết`,
+    )
+    .join("; ");
+  const hasMinimumSyllablesFinding = input.rewrite.findings.some((finding) =>
+    typeof finding !== "string" && finding.code === "MINIMUM_SYLLABLES",
+  );
+  const rewriteInstruction = hasMinimumSyllablesFinding
+    ? `Có finding MINIMUM_SYLLABLES: giữ nguyên mọi nội dung hợp lệ, không tóm tắt hoặc nén nội dung, và bổ sung văn xuôi tiếng Việt có thực chất theo số lượng nêu trên để đạt ít nhất ${targetMinimumSyllables} âm tiết cho ${perItem ? "từng item" : "phần này"}.`
+    : `Khi rewrite, giữ nguyên nội dung hợp lệ và mở rộng theo số lượng nêu trên khi cần để đạt ít nhất ${targetMinimumSyllables} âm tiết cho ${perItem ? "từng item" : "phần này"}.`;
+  return `${base}
+${deliveryPlan}
+Độ dài prior section theo cách đếm trên: ${measuredPriorLength}.
+${rewriteInstruction}`;
 }
 
 export async function writeComprehensiveReportSectionV4(
@@ -512,7 +660,10 @@ export async function writeComprehensiveReportSectionV4(
     ...input,
     reportConfigVersion,
   });
-  const contract = acceptanceContract({ ...input, reportConfigVersion });
+  const contract = acceptanceContract(
+    { ...input, reportConfigVersion },
+    scope.kind,
+  );
   const maxOutputTokens = isV4
     ? ziweiComprehensiveReportQualityV1.sections[
       scope.kind as keyof typeof ziweiComprehensiveReportQualityV1.sections
@@ -521,7 +672,9 @@ export async function writeComprehensiveReportSectionV4(
       reportConfigVersion,
       reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
         ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY
-        : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+        : input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+          ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
+          : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
       scope.kind,
     ).maxOutputTokens;
   const result = await input.provider.generateStructured({
@@ -529,7 +682,10 @@ export async function writeComprehensiveReportSectionV4(
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
     system: contract
       ? `${SECTION_SYSTEM_PROMPT}
-Acceptance contract: every supplied finding must be corrected at its exact section/item address; avoid every configured discouraged term; satisfy configured proper-name density; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+Acceptance contract JSON dưới đây là quy tắc bắt buộc cho response này:
+${JSON.stringify(contract)}
+Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term, except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context; emit no Han/Nom ideograph or English brightness descriptor; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
+${v4_1_2LengthInstruction(input, contract)}
 ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
       : requirements
@@ -554,6 +710,112 @@ Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys c�
   } catch {
     return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
   }
+}
+
+function groupedOutputSchema(sectionKeys: readonly ComprehensiveReportSectionKey[]) {
+  const sectionSchemas = sectionKeys.map(schemaFor) as [z.ZodType, ...z.ZodType[]];
+  return z.object({
+    sections: z.tuple(sectionSchemas),
+  }).strict();
+}
+
+function isActiveGroupedTuple(input: ComprehensiveReportGroupedSectionWriterV4Input): boolean {
+  return input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
+    input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+}
+
+export async function writeComprehensiveReportSectionGroupV4(
+  input: ComprehensiveReportGroupedSectionWriterV4Input,
+): Promise<ComprehensiveReportGroupedSectionWriterV4Result> {
+  if (!isActiveGroupedTuple(input)) {
+    throw new Error("COMPREHENSIVE_REPORT_GROUP_PROMPT_UNSUPPORTED");
+  }
+  if (input.sectionKeys.length === 0 || new Set(input.sectionKeys).size !== input.sectionKeys.length) {
+    throw new Error("COMPREHENSIVE_REPORT_GROUP_SECTION_KEYS_INVALID");
+  }
+  const reportConfigVersion = REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  const scopePayloads = input.sectionKeys.map((sectionKey) => scopedPayload(
+    {
+      ...input,
+      sectionKey,
+      reportConfigVersion,
+    },
+    scopeFor(sectionKey, input.facts),
+  ));
+  const acceptanceContracts: Record<string, NonNullable<ReturnType<typeof acceptanceContract>>> = {};
+  for (const sectionKey of input.sectionKeys) {
+    const sectionInput = { ...input, sectionKey, reportConfigVersion };
+    const contract = acceptanceContract(sectionInput, scopeFor(sectionKey, input.facts).kind);
+    if (contract) acceptanceContracts[sectionKey] = contract;
+  }
+  const groupSchema = groupedOutputSchema(input.sectionKeys);
+  const acceptanceInstructions = input.sectionKeys.map((sectionKey) => {
+    const contract = acceptanceContracts[sectionKey];
+    if (!contract) return `[${sectionKey}] Không có acceptance contract bổ sung.`;
+    const sectionInput = {
+      ...input,
+      sectionKey,
+      reportConfigVersion,
+    } as ComprehensiveReportSectionWriterV4Input;
+    const requirements = keyConfigurationRequirements(sectionInput);
+    return `[${sectionKey}]
+Acceptance contract bắt buộc:
+${JSON.stringify(contract)}
+Acceptance contract: sửa mọi finding đúng section/itemKey; đạt khoảng âm tiết đã cấu hình; tránh mọi discouraged, death và certainty term, trừ Phu Thê và Tử Tức khi là tên cung trong ngữ cảnh cấu trúc lá số; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh; giữ facts có evidence và evidenceKeys bắt buộc; không tạo quality violation mới.
+${v4_1_2LengthInstruction(sectionInput, contract)}
+${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết. Giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i].` : ""}`;
+  }).join("\n\n");
+  const result = await input.provider.generateStructured({
+    schema: groupSchema,
+    schemaName: `ziwei_comprehensive_report_section_group_${input.groupId.toLowerCase()}`,
+    system: `${SECTION_SYSTEM_PROMPT}
+Đây là grouped generation cho đúng các section trong thứ tự được cung cấp. Chỉ trả JSON hợp lệ dạng {"sections":[{"key":string,"value":object}]}.
+Phải trả đủ đúng một entry cho mỗi sectionKey, giữ nguyên thứ tự, không thêm, thiếu, trùng, đổi key hoặc cắt ngắn bất kỳ section nào. Mỗi value phải giữ nguyên schema output của section tương ứng; mọi section sẽ được parse và validate độc lập.
+${JSON.stringify(input.sectionKeys)}
+${acceptanceInstructions}`,
+    user: JSON.stringify({
+      groupId: input.groupId,
+      sectionKeys: input.sectionKeys,
+      sections: scopePayloads,
+      acceptanceContracts,
+      ...(input.priorSectionDigest ? { priorSectionDigest: input.priorSectionDigest } : {}),
+    }),
+    use: "production_report_generation",
+    purpose: "report",
+    // Caps are per provider request and include the JSON envelope/array overhead.
+    maxOutputTokens: COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS[input.groupId],
+    costContext: input.costContext,
+  });
+  if (!result.ok) return result;
+  const parsed = groupSchema.safeParse(result.value.value);
+  if (!parsed.success) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+  const sections: Array<ComprehensiveReportAcceptedSection & { providerId: string; modelId: string }> = [];
+  try {
+    const parsedEntries = parsed.data.sections as readonly { key: ComprehensiveReportSectionKey; value: unknown }[];
+    for (const [index, entry] of parsedEntries.entries()) {
+      if (entry.key !== input.sectionKeys[index]) throw new Error("group key mismatch");
+      const section = parseComprehensiveReportAcceptedSection(
+        entry,
+        reportConfigVersion,
+      );
+      if (section.key !== input.sectionKeys[index]) throw new Error("group section mismatch");
+      sections.push({
+        ...section,
+        providerId: result.value.providerId,
+        modelId: result.value.modelId,
+      });
+    }
+  } catch {
+    return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+  }
+  return {
+    ok: true,
+    value: {
+      sections,
+      providerId: result.value.providerId,
+      modelId: result.value.modelId,
+    },
+  };
 }
 
 export { COMPREHENSIVE_REPORT_SECTION_KEYS };

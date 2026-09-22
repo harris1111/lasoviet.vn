@@ -1,9 +1,12 @@
-import { createHash } from "node:crypto";
-import { and, eq, gt, inArray, lte, or, sql } from "drizzle-orm";
+import { createHash, randomUUID } from "node:crypto";
+import { and, eq, gt, inArray, lte, ne, or, sql } from "drizzle-orm";
 import {
   enqueueOutbox,
   OutboxError,
   reportQueueJobs,
+  reportSectionCheckpointRevisions,
+  reportSectionCheckpoints,
+  reportSectionQualityCandidates,
   reportReservations,
   reportVersions,
   commerceAlertDeliveries,
@@ -17,6 +20,10 @@ import type {
   ReportGenerationRequestedV2,
 } from "@lasoviet/contracts";
 
+import {
+  deriveReportTimingLineage,
+  v4_1_2SensitivityReportVersions,
+} from "./identity-report-config.js";
 import {
   transitionReportToGenerating,
   type ReportStateSnapshot,
@@ -269,6 +276,51 @@ type TerminalRecoveryParams = {
   now?: Date;
 };
 
+async function resetIncompleteSectionCheckpoints(
+  transaction: Database,
+  reportVersionId: string,
+  current: Date,
+): Promise<void> {
+  const incomplete = await transaction
+    .select({ id: reportSectionCheckpoints.id })
+    .from(reportSectionCheckpoints)
+    .where(and(
+      eq(reportSectionCheckpoints.reportVersionId, reportVersionId),
+      ne(reportSectionCheckpoints.status, "passed"),
+    ))
+    .for("update");
+
+  const checkpointIds = incomplete.map((row) => row.id);
+  if (checkpointIds.length === 0) return;
+
+  // Failed section attempts are scoped to one recovery cycle. Keep passed
+  // sections for replay, but remove incomplete child state so the new cycle
+  // receives a fresh generation/rewrite budget without unique-key collisions.
+  await transaction
+    .delete(reportSectionCheckpointRevisions)
+    .where(inArray(reportSectionCheckpointRevisions.checkpointId, checkpointIds));
+  await transaction
+    .delete(reportSectionQualityCandidates)
+    .where(inArray(reportSectionQualityCandidates.checkpointId, checkpointIds));
+  await transaction
+    .update(reportSectionCheckpoints)
+    .set({
+      status: "pending",
+      stateVersion: sql`${reportSectionCheckpoints.stateVersion} + 1`,
+      generationAttemptCount: 0,
+      rewriteAttemptCount: 0,
+      activeJobId: null,
+      activeWorkerId: null,
+      acceptedContent: null,
+      contentHash: null,
+      providerId: null,
+      modelId: null,
+      failureCode: null,
+      updatedAt: current,
+    })
+    .where(inArray(reportSectionCheckpoints.id, checkpointIds));
+}
+
 export type TerminalRecoveryResult =
   | { ok: true; stateVersion: number }
   | {
@@ -366,6 +418,14 @@ async function executeTerminalRecoveryInTransaction(
 
   if (!updatedReservation) {
     return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+  }
+
+  if (params.recoveryKind === "invalid_output") {
+    await resetIncompleteSectionCheckpoints(
+      transaction,
+      params.reportVersionId,
+      current,
+    );
   }
 
   const tokenInput =
@@ -497,6 +557,146 @@ export async function recoverInvalidOutputGenerationInTransaction(
     allowedErrorCodes: ["AI_OUTPUT_INVALID", "REPORT_SAFETY_REJECTED"],
     recoveryKind: "invalid_output",
   });
+}
+
+export type RestartInvalidOutputWithCurrentVersionResult =
+  | { ok: true; reportVersionId: string; stateVersion: number }
+  | {
+      ok: false;
+      code:
+        | "REPORT_NOT_FOUND"
+        | "WORKFLOW_STATE_CONFLICT"
+        | "REPORT_VERSION_CONFLICT"
+        | "RECOVERY_ID_INVALID";
+    };
+
+export async function restartInvalidOutputWithCurrentVersionInTransaction(
+  transaction: Database,
+  params: {
+    reportVersionId: string;
+    expectedStateVersion: number;
+    recoveryId: string;
+    now?: Date;
+  },
+): Promise<RestartInvalidOutputWithCurrentVersionResult> {
+  const trimmedRecoveryId = params.recoveryId?.trim();
+  if (!trimmedRecoveryId) {
+    return { ok: false, code: "RECOVERY_ID_INVALID" };
+  }
+
+  const [reservation] = await transaction
+    .select()
+    .from(reportReservations)
+    .where(eq(reportReservations.reportVersionId, params.reportVersionId))
+    .for("update");
+  if (!reservation) {
+    return { ok: false, code: "REPORT_NOT_FOUND" };
+  }
+
+  const [existingVersion] = await transaction
+    .select({ id: reportVersions.id })
+    .from(reportVersions)
+    .where(eq(reportVersions.reportVersionId, params.reportVersionId))
+    .limit(1);
+  if (existingVersion) {
+    return { ok: false, code: "REPORT_VERSION_CONFLICT" };
+  }
+
+  if (
+    reservation.status !== "terminal_failure" ||
+    !["AI_OUTPUT_INVALID", "REPORT_SAFETY_REJECTED"].includes(
+      reservation.lastErrorCode ?? "",
+    ) ||
+    reservation.stateVersion !== params.expectedStateVersion ||
+    reservation.locale !== "vi"
+  ) {
+    return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+  }
+
+  const current = params.now ?? new Date();
+  const versions = v4_1_2SensitivityReportVersions("vi");
+  const timingLineage = deriveReportTimingLineage(current, {
+    timingRuleVersion: versions.timingRuleVersion,
+  });
+  const nextReportVersionId = randomUUID();
+  const nextStateVersion = reservation.stateVersion + 1;
+
+  const [updatedReservation] = await transaction
+    .update(reportReservations)
+    .set({
+      reportVersionId: nextReportVersionId,
+      knowledgeVersionId: versions.knowledgeVersion,
+      promptVersion: versions.promptVersion,
+      reportConfigVersion: versions.reportConfigVersion,
+      status: "requested",
+      stateVersion: nextStateVersion,
+      attemptCount: 0,
+      activeJobId: null,
+      lastErrorCode: null,
+      nextAttemptAt: null,
+      rewriteConsumedAt: null,
+      asOfDate: timingLineage.asOfDate,
+      targetYear: timingLineage.targetYear,
+      timingRuleVersion: timingLineage.timingRuleVersion,
+      sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
+      updatedAt: current,
+    })
+    .where(and(
+      eq(reportReservations.id, reservation.id),
+      eq(reportReservations.reportVersionId, params.reportVersionId),
+      eq(reportReservations.status, "terminal_failure"),
+      inArray(reportReservations.lastErrorCode, [
+        "AI_OUTPUT_INVALID",
+        "REPORT_SAFETY_REJECTED",
+      ]),
+      eq(reportReservations.stateVersion, params.expectedStateVersion),
+      eq(reportReservations.locale, "vi"),
+    ))
+    .returning();
+  if (!updatedReservation) {
+    return { ok: false, code: "WORKFLOW_STATE_CONFLICT" };
+  }
+
+  const recoveryToken = createHash("sha256")
+    .update(`invalid_output_current::${params.reportVersionId}::${trimmedRecoveryId}`)
+    .digest("hex");
+  const payload: ReportGenerationRequestedV2 = {
+    reportId: updatedReservation.reportId,
+    reportVersionId: nextReportVersionId,
+    entitlementId: updatedReservation.entitlementId,
+    chartVersionId: updatedReservation.chartVersionId,
+    evidenceVersionId: updatedReservation.evidenceVersionId,
+    knowledgeVersionId: versions.knowledgeVersion,
+    promptVersion: versions.promptVersion,
+    reportConfigVersion: versions.reportConfigVersion,
+    locale: "vi",
+    sku: updatedReservation.sku,
+    asOfDate: timingLineage.asOfDate,
+    targetYear: timingLineage.targetYear,
+    timingRuleVersion: timingLineage.timingRuleVersion,
+    sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
+    readingContextRevisionId: updatedReservation.readingContextRevisionId ?? null,
+    supersedesReportVersionId: params.reportVersionId,
+  };
+
+  await enqueueOutbox(transaction, {
+    schemaVersion: 1,
+    type: "report.generation.requested.v2",
+    eventId: `evt-restart-invalid-output-current-${recoveryToken}`,
+    occurredAt: current.toISOString(),
+    traceId: `trace-restart-invalid-output-current-${recoveryToken}`,
+    actorId: null,
+    aggregateType: "report",
+    aggregateId: nextReportVersionId,
+    idempotencyKey: `report-restart-invalid-output-current:${recoveryToken}`,
+    payload,
+  });
+
+  return {
+    ok: true,
+    reportVersionId: nextReportVersionId,
+    stateVersion: nextStateVersion,
+  };
 }
 
 export function createReportService(database: Database) {

@@ -66,7 +66,8 @@ import { generatedPreviewRequests, generatedPreviewSections } from "./generated-
 
 describe("database schema integration", () => {
   const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
-  const currentMigrationTimestamp = 1790813280000;
+  const openRouterPricingVersion = "openrouter-deepseek-flash-v1-20260920";
+  const currentMigrationTimestamp = 1790813340000;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
@@ -86,6 +87,31 @@ describe("database schema integration", () => {
       await client`
         DELETE FROM ai_model_pricing
         WHERE pricing_version = ${claudePricingVersion}
+      `;
+    } finally {
+      if (triggerDisabled) {
+        await client`
+          ALTER TABLE ai_model_pricing
+          ENABLE TRIGGER prevent_mutation_ai_model_pricing
+        `;
+      }
+    }
+  }
+
+  async function removeOpenRouterPricingForRewind(
+    client: ReturnType<typeof postgres>,
+  ): Promise<void> {
+    let triggerDisabled = false;
+
+    try {
+      await client`
+        ALTER TABLE ai_model_pricing
+        DISABLE TRIGGER prevent_mutation_ai_model_pricing
+      `;
+      triggerDisabled = true;
+      await client`
+        DELETE FROM ai_model_pricing
+        WHERE pricing_version = ${openRouterPricingVersion}
       `;
     } finally {
       if (triggerDisabled) {
@@ -148,9 +174,10 @@ describe("database schema integration", () => {
         ALTER TABLE report_section_quality_candidates
         DROP COLUMN terminal_findings
       `;
+      await removeOpenRouterPricingForRewind(client);
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at = 1790813280000
+        WHERE created_at IN (1790813280000, 1790813340000)
       `;
       await client`
         INSERT INTO report_section_checkpoints (
@@ -481,11 +508,20 @@ describe("database schema integration", () => {
         )
       `;
       await removeClaudePricingForRewind(client);
+      await removeOpenRouterPricingForRewind(client);
       await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790812980000, 1790813040000, 1790813100000, 1790813160000, 1790813220000, 1790813280000)
+        WHERE created_at IN (
+          1790812980000,
+          1790813040000,
+          1790813100000,
+          1790813160000,
+          1790813220000,
+          1790813280000,
+          1790813340000
+        )
       `;
       await client`
         INSERT INTO wallet_purchase_intents (
@@ -3120,13 +3156,6 @@ describe("database schema integration", () => {
     expect(new Set(timestamps).size).toBe(timestamps.length);
     expect(journal.entries.slice(-17)).toEqual([
       {
-        idx: 26,
-        version: "7",
-        when: 1789718400000,
-        tag: "0026_ai_usage_and_cost",
-        breakpoints: true,
-      },
-      {
         idx: 27,
         version: "7",
         when: 1789804800000,
@@ -3236,6 +3265,13 @@ describe("database schema integration", () => {
         version: "7",
         when: 1790813280000,
         tag: "0042_report_section_quality_terminal_findings",
+        breakpoints: true,
+      },
+      {
+        idx: 43,
+        version: "7",
+        when: 1790813340000,
+        tag: "0043_ai_model_pricing_openrouter_deepseek_flash",
         breakpoints: true,
       },
     ]);
@@ -3554,6 +3590,7 @@ describe("database schema integration", () => {
       DROP COLUMN IF EXISTS invalid_output_reason
     `;
     await removeClaudePricingForRewind(client);
+    await removeOpenRouterPricingForRewind(client);
     await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
@@ -3570,7 +3607,8 @@ describe("database schema integration", () => {
         1790813100000,
         1790813160000,
         1790813220000,
-        1790813280000
+        1790813280000,
+        1790813340000
       )
     `;
 
@@ -3602,7 +3640,8 @@ describe("database schema integration", () => {
         1790813100000,
         1790813160000,
         1790813220000,
-        1790813280000
+        1790813280000,
+        1790813340000
       )
       ORDER BY created_at ASC
     `;
@@ -3620,6 +3659,7 @@ describe("database schema integration", () => {
       1790813160000,
       1790813220000,
       1790813280000,
+      1790813340000,
     ]);
     await expectCurrentClaudePricingAndJournal(client);
 

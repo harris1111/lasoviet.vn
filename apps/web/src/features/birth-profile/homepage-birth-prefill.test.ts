@@ -527,4 +527,166 @@ describe("V2 reusable 24-hour birth cache", () => {
     expect(readBirthCache({ localStorage: localCorrupt, now: fixedNow })).toBeNull();
     expect(localCorrupt.removeItem).toHaveBeenCalledWith(BIRTH_CACHE_STORAGE_KEY_V2);
   });
+  it("stores and reads lunar birth details in V2 birth cache losslessly", () => {
+    const local = createMockStorage();
+    const saved = saveBirthCache(
+      {
+        date: "1994-02-30", // Impossible in solar, valid in lunar
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "lunar",
+        isLeapMonth: true,
+      },
+      { localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(true);
+    const read = readBirthCache({ localStorage: local, now: fixedNow + 1000 });
+    expect(read).toEqual({
+      version: BIRTH_CACHE_VERSION_V2,
+      date: "1994-02-30",
+      time: { precision: "branch_only", branch: "si" },
+      calendarType: "lunar",
+      isLeapMonth: true,
+      createdAt: fixedNow,
+    });
+  });
+
+  it("preserves lunar calendar and leap month in homepage birth prefill without coercion", () => {
+    const session = createMockStorage();
+    const local = createMockStorage();
+    const saved = saveHomepageBirthPrefill(
+      {
+        date: "1994-02-30",
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "lunar",
+        isLeapMonth: true,
+      },
+      { sessionStorage: session, localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(true);
+    const consumed = consumeHomepageBirthPrefill(session, fixedNow + 1000);
+    expect(consumed).toEqual({
+      version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+      date: "1994-02-30",
+      time: { precision: "branch_only", branch: "si" },
+      calendarType: "lunar",
+      isLeapMonth: true,
+      createdAt: fixedNow,
+    });
+  });
+
+  it("rejects leap month on solar calendar in cache saving", () => {
+    const local = createMockStorage();
+    const saved = saveBirthCache(
+      {
+        date: "1994-04-12",
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "solar",
+        isLeapMonth: true,
+      },
+      { localStorage: local, now: fixedNow },
+    );
+
+    expect(saved).toBe(false);
+  });
+  it("persists calendarType and isLeapMonth when using legacy Storage overload in saveHomepageBirthPrefill", () => {
+    const legacyStorage = createMockStorage();
+    const saved = saveHomepageBirthPrefill(
+      {
+        date: "1994-02-30",
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "lunar",
+        isLeapMonth: true,
+        displayName: "An",
+      },
+      legacyStorage,
+      fixedNow,
+    );
+
+    expect(saved).toBe(true);
+
+    const v2Raw = legacyStorage.getItem(BIRTH_CACHE_STORAGE_KEY_V2);
+    expect(v2Raw).not.toBeNull();
+    const v2Parsed = JSON.parse(v2Raw!);
+    expect(v2Parsed).toEqual({
+      version: BIRTH_CACHE_VERSION_V2,
+      date: "1994-02-30",
+      time: { precision: "branch_only", branch: "si" },
+      calendarType: "lunar",
+      isLeapMonth: true,
+      displayName: "An",
+      createdAt: fixedNow,
+    });
+
+    const v1Raw = legacyStorage.getItem(HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY);
+    expect(v1Raw).not.toBeNull();
+    const v1Parsed = JSON.parse(v1Raw!);
+    expect(v1Parsed).toEqual({
+      version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+      date: "1994-02-30",
+      time: { precision: "branch_only", branch: "si" },
+      calendarType: "lunar",
+      isLeapMonth: true,
+      createdAt: fixedNow,
+    });
+  });
+
+  it("migrates legacy lunar V1 record with leap month from sessionStorage into V2 birth cache", () => {
+    const session = createMockStorage({
+      [HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY]: JSON.stringify({
+        version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+        date: "1994-02-30",
+        time: { precision: "branch_only", branch: "si" },
+        calendarType: "lunar",
+        isLeapMonth: true,
+        createdAt: fixedNow,
+      }),
+    });
+    const local = createMockStorage();
+
+    const migrated = readBirthCache({
+      sessionStorage: session,
+      localStorage: local,
+      now: fixedNow + 1000,
+    });
+
+    expect(migrated).toEqual({
+      version: BIRTH_CACHE_VERSION_V2,
+      date: "1994-02-30",
+      time: { precision: "branch_only", branch: "si" },
+      calendarType: "lunar",
+      isLeapMonth: true,
+      createdAt: fixedNow,
+    });
+    expect(local.setItem).toHaveBeenCalledWith(
+      BIRTH_CACHE_STORAGE_KEY_V2,
+      JSON.stringify(migrated),
+    );
+  });
+
+  it("migrates legacy solar V1 record lacking calendarType without error (backward compatibility)", () => {
+    const session = createMockStorage({
+      [HOMEPAGE_BIRTH_PREFILL_STORAGE_KEY]: JSON.stringify({
+        version: HOMEPAGE_BIRTH_PREFILL_VERSION,
+        date: "1994-04-12",
+        time: { precision: "branch_only", branch: "si" },
+        createdAt: fixedNow,
+      }),
+    });
+    const local = createMockStorage();
+
+    const migrated = readBirthCache({
+      sessionStorage: session,
+      localStorage: local,
+      now: fixedNow + 1000,
+    });
+
+    expect(migrated).toEqual({
+      version: BIRTH_CACHE_VERSION_V2,
+      date: "1994-04-12",
+      time: { precision: "branch_only", branch: "si" },
+      createdAt: fixedNow,
+    });
+  });
 });

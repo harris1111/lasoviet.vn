@@ -188,4 +188,58 @@ export class AdminReportRecoveryController {
     }
     return result.value;
   }
+
+  @Post(":reportVersionId/restart-invalid-output-current")
+  @HttpCode(200)
+  async restartInvalidOutputCurrent(
+    @Headers("authorization") authorization: string | undefined,
+    @Headers("x-request-id") requestId: string | undefined,
+    @Param("reportVersionId") reportVersionId: string,
+    @Body() body: unknown,
+  ) {
+    const authorized = await this.authorized(authorization, requestId);
+    const bodyRecord = typeof body === "object" && body !== null && !Array.isArray(body)
+      ? body
+      : {};
+    const command = AdminReportRecoveryCommandV1Schema.safeParse({
+      ...bodyRecord,
+      reportVersionId,
+    });
+    if (!command.success) {
+      await this.audit.appendAdminAudit({
+        actorId: authorized.access.actorId,
+        roleAssignmentId: authorized.access.roleAssignmentId,
+        capability: "admin.reports.regenerate",
+        operation: "admin.report.recovery.invalid_output_current.malformed_input",
+        target: {
+          type: "report_version",
+          id: auditTargetId(reportVersionId),
+        },
+        requestId: authorized.requestId,
+        traceId: authorized.traceId,
+        policyResult: "denied",
+        redactionLevel: "redacted",
+        resultSummary: {
+          outcome: "denied",
+          code: "REPORT_RECOVERY_CONFLICT",
+        },
+      });
+      throw new BadRequestException({ code: "REPORT_RECOVERY_CONFLICT" });
+    }
+    const result = await this.recovery.restartInvalidOutputWithCurrentVersion(
+      {
+        ...authorized,
+        idempotencyKey: command.data.idempotencyKey,
+        reasonCode: command.data.reasonCode,
+      },
+      command.data,
+    );
+    if (!result.ok) {
+      if (result.error.code === "REPORT_RECOVERY_FORBIDDEN") {
+        throw new NotFoundException();
+      }
+      throw new BadRequestException({ code: result.error.code });
+    }
+    return result.value;
+  }
 }

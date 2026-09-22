@@ -36,6 +36,7 @@ export type AdminReportRecoveryContextV1 = z.infer<
 
 export const AdminReportRecoverySuccessV1Schema = z.object({
   reportVersionId: boundedId,
+  supersedesReportVersionId: boundedId.optional(),
   stateVersion: z.number().int().min(1).max(1_000_001),
   replayed: z.boolean(),
 }).strict();

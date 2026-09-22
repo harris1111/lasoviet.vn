@@ -24,7 +24,7 @@
   "minimumPalaceStars": 2,
   "minimumEvidenceAnchors": 2,
   "generationAttemptCap": 3,
-  "sectionRewriteCap": 1,
+  "sectionRewriteCap": 2,
   "providerConcurrency": 2,
   "digestMaxEntries": 32,
   "digestMaxChars": 8000,

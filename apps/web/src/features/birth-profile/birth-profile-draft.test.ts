@@ -215,6 +215,61 @@ describe("birth profile draft boundary", () => {
     expect(storage.getItem(BIRTH_PROFILE_DRAFT_STORAGE_KEY)).toBeNull();
   });
 
+  it("round-trips readingContext draft with selected choices and skip states", () => {
+    const storage = createMockStorage();
+    const readingContext = {
+      lifeStage: "early_career" as const,
+      topConcern: "career" as const,
+      skippedQuestions: { lifeStage: false, topConcern: false },
+    };
+
+    saveBirthProfileDraft(
+      {
+        step: 3,
+        gender: "male",
+        day: "12",
+        month: "04",
+        year: "1994",
+        timeState: { precision: "exact_minute", hour: "09", minute: "30" },
+        readingContext,
+      },
+      { localStorage: storage, now: fixedNow },
+    );
+
+    expect(readBirthProfileDraft({ localStorage: storage, now: fixedNow })).toMatchObject({
+      step: 3,
+      readingContext: {
+        lifeStage: "early_career",
+        topConcern: "career",
+        skippedQuestions: { lifeStage: false, topConcern: false },
+      },
+    });
+
+    // Test with skip state
+    const skippedContext = {
+      skippedQuestions: { lifeStage: true, topConcern: true },
+    };
+    saveBirthProfileDraft(
+      {
+        step: 3,
+        gender: "male",
+        day: "12",
+        month: "04",
+        year: "1994",
+        timeState: { precision: "exact_minute", hour: "09", minute: "30" },
+        readingContext: skippedContext,
+      },
+      { localStorage: storage, now: fixedNow + 100 },
+    );
+
+    expect(readBirthProfileDraft({ localStorage: storage, now: fixedNow + 100 })).toMatchObject({
+      step: 3,
+      readingContext: {
+        skippedQuestions: { lifeStage: true, topConcern: true },
+      },
+    });
+  });
+
   it("never persists explicit consent even when it is passed at runtime", () => {
     const storage = createMockStorage();
     saveBirthProfileDraft(
@@ -398,5 +453,47 @@ describe("draft autosave lifecycle", () => {
     controller.schedule("");
 
     expect(clear).toHaveBeenCalledOnce();
+  });
+  it("preserves lunar calendar and leap month when autosaving homepage draft", () => {
+    const storage = createMockStorage();
+    saveHomepageDraft(
+      {
+        day: "15",
+        month: "08",
+        year: "1990",
+        calendarType: "lunar",
+        isLeapMonth: true,
+        timeMode: "branch_only",
+        branch: "wu",
+      },
+      { localStorage: storage, now: fixedNow },
+    );
+
+    const restored = readBirthProfileDraft({ localStorage: storage, now: fixedNow });
+    expect(restored).not.toBeNull();
+    expect(restored?.calendarType).toBe("lunar");
+    expect(restored?.isLeapMonth).toBe(true);
+    expect(restored?.timeState).toEqual({ precision: "branch_only", branch: "wu" });
+  });
+
+  it("normalizes homepage autosave empty branch to unknown exactly like submit so draft precedence cannot corrupt visible/submit state", () => {
+    const storage = createMockStorage();
+    saveHomepageDraft(
+      {
+        day: "12",
+        month: "04",
+        year: "1994",
+        timeMode: "branch_only",
+        branch: "",
+      },
+      { localStorage: storage, now: fixedNow },
+    );
+
+    const restored = readBirthProfileDraft({ localStorage: storage, now: fixedNow });
+    expect(restored).not.toBeNull();
+    expect(restored?.timeState).toEqual({ precision: "unknown" });
+    expect(restored?.day).toBe("12");
+    expect(restored?.month).toBe("04");
+    expect(restored?.year).toBe("1994");
   });
 });

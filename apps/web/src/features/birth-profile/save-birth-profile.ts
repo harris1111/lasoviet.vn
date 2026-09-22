@@ -4,6 +4,7 @@ import {
   BirthProfileV1Schema,
   type CurrentActor,
   ReadingContextV1Schema,
+  type ReadingContextV1,
   type Result,
   ZiweiEligibilityV1Schema,
   type ZiweiEligibilityV1,
@@ -156,7 +157,7 @@ export function createBirthProfileSubmission(
   return async (input: {
     profile: unknown;
     explicitConsent: boolean;
-    readingContext?: unknown;
+    readingContext?: ReadingContextV1;
   }): Promise<Result<BirthProfileSubmissionValue, BirthProfileSubmissionError>> => {
     if (input.explicitConsent !== true) {
       return failure("CONSENT_REQUIRED");

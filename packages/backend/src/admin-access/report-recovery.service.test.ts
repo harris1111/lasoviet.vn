@@ -36,6 +36,7 @@ describe("report recovery service", () => {
       repository: {
         recoverTransientFailure,
         recoverInvalidOutputFailure: vi.fn(),
+        restartInvalidOutputWithCurrentVersion: vi.fn(),
       },
     });
 
@@ -62,6 +63,7 @@ describe("report recovery service", () => {
       repository: {
         recoverTransientFailure,
         recoverInvalidOutputFailure: vi.fn(),
+        restartInvalidOutputWithCurrentVersion: vi.fn(),
       },
     });
 
@@ -83,6 +85,7 @@ describe("report recovery service", () => {
       repository: {
         recoverTransientFailure,
         recoverInvalidOutputFailure: vi.fn(),
+        restartInvalidOutputWithCurrentVersion: vi.fn(),
       },
     });
 
@@ -138,6 +141,7 @@ describe("report recovery service", () => {
       repository: {
         recoverTransientFailure: vi.fn(),
         recoverInvalidOutputFailure,
+        restartInvalidOutputWithCurrentVersion: vi.fn(),
       },
     });
 
@@ -148,6 +152,42 @@ describe("report recovery service", () => {
       ),
     ).resolves.toMatchObject({ ok: true });
     expect(recoverInvalidOutputFailure).toHaveBeenCalledWith({
+      context: { ...context, reasonCode: "incident_recovery" },
+      reportVersionId: command.reportVersionId,
+      expectedStateVersion: 3,
+    });
+  });
+
+  it("passes current-lineage restart to its distinct transactional repository operation", async () => {
+    const restartInvalidOutputWithCurrentVersion = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        reportVersionId: "00000000-0000-0000-0000-000000000002",
+        supersedesReportVersionId: command.reportVersionId,
+        stateVersion: 4,
+        replayed: false,
+      },
+    });
+    const service = createReportRecoveryService({
+      repository: {
+        recoverTransientFailure: vi.fn(),
+        recoverInvalidOutputFailure: vi.fn(),
+        restartInvalidOutputWithCurrentVersion,
+      },
+    });
+
+    await expect(
+      service.restartInvalidOutputWithCurrentVersion(
+        { ...context, reasonCode: "incident_recovery" },
+        { ...command, reasonCode: "incident_recovery" },
+      ),
+    ).resolves.toMatchObject({
+      ok: true,
+      value: {
+        supersedesReportVersionId: command.reportVersionId,
+      },
+    });
+    expect(restartInvalidOutputWithCurrentVersion).toHaveBeenCalledWith({
       context: { ...context, reasonCode: "incident_recovery" },
       reportVersionId: command.reportVersionId,
       expectedStateVersion: 3,

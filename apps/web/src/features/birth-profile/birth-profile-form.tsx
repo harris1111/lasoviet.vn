@@ -84,8 +84,10 @@ import {
 import {
   clearBirthCache,
   consumeHomepageBirthPrefill,
+  isCanonicalBranchId,
   readBirthCache,
   saveBirthCache,
+  type ReusableBirthTime,
 } from "./homepage-birth-prefill";
 import {
   bindDraftPagehideFlush,
@@ -105,9 +107,14 @@ import {
 import { BirthWizardSubjectStep } from "./birth-wizard-subject-step";
 import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
 import { BirthWizardReviewStep } from "./birth-wizard-review-step";
+import { Icon } from "../../components/icon";
+import { useMobileKeyboardState } from "./use-mobile-keyboard-state";
+import type { ReadingContextV1 } from "@lasoviet/contracts";
+import type { WizardReadingContextDraft } from "./birth-wizard-state";
 import {
   canAdvanceStep1,
   canAdvanceStep2,
+  toReadingContextPayload,
   canSubmitWizard,
   formatDateSummary,
   formatReviewTimeSummary,
@@ -384,9 +391,11 @@ export function UnknownTimeSavedPresenter({
 
 type BirthProfileFormProps = {
   locale: "en" | "vi";
+  referenceYear?: number;
   submitBirthProfile(input: {
     profile: unknown;
     explicitConsent: boolean;
+    readingContext?: ReadingContextV1;
   }): Promise<{
     ok: boolean;
     value?: {
@@ -405,6 +414,7 @@ export function BirthProfileForm({
   locale,
   submitBirthProfile,
   calculateZiweiChart,
+  referenceYear,
 }: BirthProfileFormProps) {
   const t = useTranslations("profile" as never);
   const router = useRouter();
@@ -425,6 +435,9 @@ export function BirthProfileForm({
   });
   const [place, setPlace] = useState("");
   const [consent, setConsent] = useState(false);
+  const [readingContext, setReadingContext] = useState<WizardReadingContextDraft>({
+    skippedQuestions: { lifeStage: false, topConcern: false },
+  });
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [step1Attempted, setStep1Attempted] = useState(false);
@@ -432,6 +445,7 @@ export function BirthProfileForm({
   const [savedUnknown, setSavedUnknown] = useState<{
     isBrowserPersisted: boolean;
   } | null>(null);
+  const isKeyboardOpen = useMobileKeyboardState();
   const isHydratedRef = useRef(false);
   const autosaveRef = useRef<DraftAutosaveController<BirthProfileDraftInput> | null>(
     null,
@@ -470,6 +484,9 @@ export function BirthProfileForm({
         setYear(draft.year);
         setTimeState(draft.timeState);
         setPlace(draft.place);
+        if (draft.readingContext) {
+          setReadingContext(draft.readingContext);
+        }
         setHasReusedCache(true);
         isHydratedRef.current = true;
       });
@@ -509,6 +526,12 @@ export function BirthProfileForm({
         if (cached.place) {
           setPlace(cached.place);
         }
+        if (cached.calendarType) {
+          setCalendarType(cached.calendarType);
+        }
+        if (cached.isLeapMonth !== undefined) {
+          setIsLeapMonth(cached.isLeapMonth);
+        }
         setHasReusedCache(true);
         isHydratedRef.current = true;
       });
@@ -521,6 +544,12 @@ export function BirthProfileForm({
           setDay(parts.day);
           setMonth(parts.month);
           setYear(parts.year);
+          if (prefill.calendarType) {
+            setCalendarType(prefill.calendarType);
+          }
+          if (prefill.isLeapMonth !== undefined) {
+            setIsLeapMonth(prefill.isLeapMonth);
+          }
           if (prefill.time.precision === "branch_only") {
             setTimeState({
               precision: "branch_only",
@@ -556,6 +585,7 @@ export function BirthProfileForm({
       year,
       timeState,
       place,
+      readingContext,
     });
   }, [
     step,
@@ -570,6 +600,7 @@ export function BirthProfileForm({
     year,
     timeState,
     place,
+    readingContext,
   ]);
 
   useEffect(() => {
@@ -750,6 +781,7 @@ export function BirthProfileForm({
     setConsent(false);
     setError(null);
     setStep1Attempted(false);
+    setReadingContext({ skippedQuestions: { lifeStage: false, topConcern: false } });
     setSavedUnknown(null);
     setHasReusedCache(false);
   }
@@ -773,6 +805,7 @@ export function BirthProfileForm({
     setError(null);
     setPending(false);
     setStep1Attempted(false);
+    setReadingContext({ skippedQuestions: { lifeStage: false, topConcern: false } });
     setSavedUnknown(null);
     setHasReusedCache(false);
 
@@ -853,9 +886,12 @@ export function BirthProfileForm({
         locale,
       });
 
+      const readingContextPayload = toReadingContextPayload(readingContext);
+
       const saved = await submitBirthProfile({
         profile,
         explicitConsent: consent,
+        readingContext: readingContextPayload,
       });
 
       const outcome = decideProfileSubmitOutcome(saved);
@@ -874,16 +910,28 @@ export function BirthProfileForm({
       }
 
       let cacheSaved = false;
-      if (forWhom === "self" && calendarType === "solar") {
-        cacheSaved = Boolean(
-          saveBirthCache({
-            displayName: displayName.trim() ? displayName.trim() : undefined,
-            date: dateResult.isoDate,
-            time: timeState,
-            gender,
-            place: place.trim() ? place.trim() : undefined,
-          }),
-        );
+      if (forWhom === "self") {
+        let reusableTime: ReusableBirthTime | null = null;
+        if (timeState.precision === "exact_minute") {
+          reusableTime = timeState;
+        } else if (timeState.precision === "unknown") {
+          reusableTime = { precision: "unknown" };
+        } else if (timeState.precision === "branch_only" && isCanonicalBranchId(timeState.branch)) {
+          reusableTime = { precision: "branch_only", branch: timeState.branch };
+        }
+        if (reusableTime) {
+          cacheSaved = Boolean(
+            saveBirthCache({
+              displayName: displayName.trim() ? displayName.trim() : undefined,
+              date: dateResult.isoDate,
+              time: reusableTime,
+              gender,
+              place: place.trim() ? place.trim() : undefined,
+              calendarType,
+              isLeapMonth: calendarType === "lunar" ? isLeapMonth : false,
+            }),
+          );
+        }
       }
 
       if (outcome.kind === "SHOW_UNKNOWN_TIME_SAVED") {
@@ -1111,6 +1159,7 @@ export function BirthProfileForm({
                 timeState={timeState}
                 timezoneText={t("birth.timezone")}
                 title={t("birth.stepTitle")}
+                referenceYear={referenceYear}
                 year={year}
                 yearLabel={t("birth.yearLabel")}
               />
@@ -1179,6 +1228,31 @@ export function BirthProfileForm({
                 timezone="Asia/Ho_Chi_Minh"
                 timezoneLabel={t("review.timezone")}
                 title={t("review.stepTitle")}
+                readingContext={readingContext}
+                readingContextLabels={{
+                  title: t("readingContext.title"),
+                  subtitle: t("readingContext.subtitle"),
+                  skip: t("readingContext.skip"),
+                  lifeStageTitle: t("readingContext.lifeStageTitle"),
+                  topConcernTitle: t("readingContext.topConcernTitle"),
+                  lifeStage: {
+                    studying: t("readingContext.lifeStage.studying"),
+                    early_career: t("readingContext.lifeStage.early_career"),
+                    established_career: t("readingContext.lifeStage.established_career"),
+                    business_owner: t("readingContext.lifeStage.business_owner"),
+                    between_paths: t("readingContext.lifeStage.between_paths"),
+                    retired: t("readingContext.lifeStage.retired"),
+                  },
+                  topConcern: {
+                    career: t("readingContext.topConcern.career"),
+                    money: t("readingContext.topConcern.money"),
+                    love: t("readingContext.topConcern.love"),
+                    family: t("readingContext.topConcern.family"),
+                    wellbeing: t("readingContext.topConcern.wellbeing"),
+                    self_understanding: t("readingContext.topConcern.self_understanding"),
+                  },
+                }}
+                onReadingContextChange={setReadingContext}
               />
             ) : null}
 
@@ -1188,36 +1262,49 @@ export function BirthProfileForm({
               </p>
             ) : null}
 
-            <div className="wizard-actions">
-              {step > 1 ? (
-                <button
-                  className="button button-secondary wizard-action-back"
-                  disabled={pending}
-                  onClick={handleBack}
-                  type="button"
+            <div className="wizard-actions-footer">
+              <div className={`wizard-actions${isKeyboardOpen ? " is-keyboard-open" : ""}`}>
+                {step > 1 ? (
+                  <button
+                    className="button button-secondary wizard-action-back"
+                    disabled={pending}
+                    onClick={handleBack}
+                    type="button"
+                  >
+                    {t("back")}
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {step < 3 ? (
+                  <button
+                    className="button wizard-action-continue"
+                    onClick={handleContinue}
+                    type="button"
+                  >
+                    {t("continue")}
+                  </button>
+                ) : (
+                  <button
+                    className="button wizard-action-submit"
+                    disabled={submitGuard.buttonDisabled}
+                    type="submit"
+                  >
+                    {submitButtonLabel}
+                  </button>
+                )}
+              </div>
+              <div className="wizard-sample-link-wrap">
+                <Link
+                  className="wizard-sample-link"
+                  href={locale === "en" ? "/en/bao-cao-mau/tu-vi" : "/bao-cao-mau/tu-vi"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  {t("back")}
-                </button>
-              ) : (
-                <span />
-              )}
-              {step < 3 ? (
-                <button
-                  className="button wizard-action-continue"
-                  onClick={handleContinue}
-                  type="button"
-                >
-                  {t("continue")}
-                </button>
-              ) : (
-                <button
-                  className="button wizard-action-submit"
-                  disabled={submitGuard.buttonDisabled}
-                  type="submit"
-                >
-                  {submitButtonLabel}
-                </button>
-              )}
+                  <Icon name="arrow-right" />
+                  <span>{t("sampleReportLink")}</span>
+                </Link>
+              </div>
             </div>
           </>
         )}

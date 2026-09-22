@@ -224,7 +224,10 @@ export type {
   AiStructuredOutputValue,
   GenerateStructuredRequest,
 } from "./ai/ai-provider.js";
-export { createOpenAiCompatibleAdapter } from "./ai/openai-compatible-adapter.js";
+export {
+  createOpenAiCompatibleAdapter,
+  resolveOpenAiCompatibleProviderId,
+} from "./ai/openai-compatible-adapter.js";
 export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adapter.js";
 export { runAiCapabilityProbe } from "./ai/capability-probe.js";
 export type { AiCapabilityResult } from "./ai/capability-probe.js";
@@ -333,6 +336,8 @@ export {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,

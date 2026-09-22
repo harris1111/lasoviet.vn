@@ -6,6 +6,7 @@ import {
 } from "@lasoviet/config";
 
 import {
+  writeComprehensiveReportSectionGroupV4,
   writeComprehensiveReportSectionV4,
 } from "./comprehensive-report-section-writer-v4.js";
 import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -498,25 +499,176 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(initial.payload.acceptanceContract).toMatchObject({
       scope: "section-and-item-addressed",
       suppliedFindings: expect.stringContaining("every supplied finding"),
-      properNameDensity: {
-        configuredProperNames: expect.arrayContaining(["Mệnh", "Tử Vi"]),
-        maximumPer100Syllables: 8,
+      sectionLength: {
+        appliesPerItem: false,
+        minimumSyllables: 600,
+        targetMinimumSyllables: 700,
+        targetMaximumSyllables: 900,
+      },
+      forbiddenTerms: {
+        discouraged: expect.arrayContaining(["khí chất", "an nhàn"]),
+        contextualPalaceNameExceptions: {
+          terms: ["Phu Thê", "Tử Tức"],
+          rule: expect.stringContaining("explicit palace-name references"),
+        },
+        death: expect.arrayContaining(["tử vong", "sát phu"]),
+        certainty: expect.arrayContaining(["chắc chắn", "không tránh khỏi"]),
+      },
+      localeIntegrity: {
+        language: "vi",
+        noHanIdeographs: true,
+        noNomIdeographs: true,
+        noEnglishBrightnessDescriptors: true,
+        allowedBrightnessLabels: ["Miếu", "Vượng", "Đắc", "Bình", "Hãm", "Nhược"],
       },
       evidence: {
         preserveEvidenceBackedChartFacts: true,
         preserveRequiredEvidenceKeys: true,
       },
+      contentBehavior: {
+        noFabricatedFactsOrFutureEvents: true,
+        warningsUsePracticalPreparationWithoutExplicitAdverseDates: true,
+        nonPalaceRequiresTwoDistinctEvidenceBackedFacts: true,
+        palaceRequiresTwoActualStarsOrAccurateNoMajorStarState: true,
+      },
       noNewQualityViolations: true,
     });
-    expect(initial.payload.acceptanceContract.discouragedTerms).toEqual(
-      expect.arrayContaining(["khí chất", "an nhàn"]),
-    );
     expect(rewrite.payload.rewrite.findings).toEqual([
       { itemKey: "coreAxis", code: "DISCOURAGED_TERM", note: "Replace khí chất." },
       { itemKey: "coreAxis", code: "EVIDENCE_ANCHORS", note: "Add chart anchors." },
     ]);
-    expect(rewrite.request.system).toContain("configured discouraged term");
+    expect(rewrite.request.system).toContain("configured per-section or per-item syllable range");
+    expect(rewrite.request.system).toContain(
+      "except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context",
+    );
+    expect(rewrite.request.system).toContain("Tên cung như Phu Thê và Tử Tức");
+    expect(rewrite.request.system).toContain("Acceptance contract JSON dưới đây là quy tắc bắt buộc");
+    expect(rewrite.request.system).toContain('"discouraged":[');
+    expect(rewrite.request.system).toContain('"khí chất"');
+    expect(rewrite.request.system).toContain('"death":[');
+    expect(rewrite.request.system).toContain('"certainty":[');
+    expect(rewrite.request.system).toContain("ít nhất hai fact khác nhau có evidence");
+    expect(rewrite.request.system).toContain("ít nhất hai sao thực có trong cung");
+    expect(rewrite.request.system).toContain("không đưa ngày bất lợi cụ thể");
+    expect(rewrite.request.system).toContain("no Han/Nom ideograph");
     expect(rewrite.request.system).toContain("every supplied finding");
+    expect(rewrite.request.system).not.toContain("proper-name density");
+    expect(initial.payload.acceptanceContract).not.toHaveProperty("properNameDensity");
+  });
+
+  it("gives V4.1.2 overview generation and rewrite an explicit numeric length contract", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { value: outputFor("overview"), providerId: "mock", modelId: "model" },
+      }),
+    };
+    const shared = {
+      sectionKey: "overview" as const,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    };
+    await writeComprehensiveReportSectionV4(shared);
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      rewrite: {
+        priorSection: {
+          key: "overview",
+          value: {
+            title: "Một",
+            narrative: "hai   \nba",
+            evidenceKeys: ["natal.ziwei.palace.life"],
+          },
+        },
+        findings: [{ itemKey: "overview", code: "MINIMUM_SYLLABLES", note: "Expand." }],
+      },
+    });
+
+    const [generation, rewrite] = provider.generateStructured.mock.calls.map(([request]) => request);
+    expect(generation.system).toContain(
+      "hệ thống đếm mỗi đơn vị đã chuẩn hóa và được ngăn cách bởi whitespace là 1 âm tiết.",
+    );
+    expect(generation.system).toContain(
+      "Tối thiểu 600 âm tiết; mục tiêu 700-900 âm tiết. Không kết thúc khi chưa đạt tối thiểu 700 âm tiết.",
+    );
+    expect(generation.system).toContain(
+      "Kế hoạch triển khai: viết 5 đoạn văn thực chất, mỗi đoạn ít nhất 140 đơn vị",
+    );
+    expect(rewrite.system).toContain(
+      "Độ dài prior section theo cách đếm trên: overview: hiện 3 âm tiết, cần bổ sung ít nhất 697 âm tiết.",
+    );
+    expect(rewrite.system).toContain(
+      "Có finding MINIMUM_SYLLABLES: giữ nguyên mọi nội dung hợp lệ, không tóm tắt hoặc nén nội dung",
+    );
+    expect(rewrite.system).toContain("đạt ít nhất 700 âm tiết cho phần này.");
+  });
+
+  it("gives V4.1.2 item-addressed sections deterministic per-item length plans", async () => {
+    const provider = {
+      generateStructured: vi.fn().mockImplementation(async (request) => {
+        const key = JSON.parse(request.user).sectionKey;
+        return { ok: true, value: { value: outputFor(key), providerId: "mock", modelId: "model" } };
+      }),
+    };
+    const shared = {
+      knowledgePacks: [],
+      provider: provider as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    };
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      sectionKey: "keyConfigurations",
+      facts: facts(),
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      sectionKey: "practicalDirection",
+      facts: facts(),
+      rewrite: {
+        priorSection: {
+          key: "practicalDirection",
+          value: Array.from({ length: 3 }, () => ({
+            recommendation: "một",
+            rationale: "hai   ",
+            avoid: "\nba",
+            evidenceKeys: ["natal.ziwei.palace.life"],
+          })),
+        },
+        findings: [{ itemKey: "practicalDirection[0]", code: "MINIMUM_SYLLABLES", note: "Expand." }],
+      },
+    });
+    await writeComprehensiveReportSectionV4({
+      ...shared,
+      sectionKey: "birthTimeSensitivity",
+      facts: productionFacts(),
+    });
+
+    const [keyConfigurations, practicalDirection, birthTimeSensitivity] =
+      provider.generateStructured.mock.calls.map(([request]) => request);
+    expect(keyConfigurations.system).toContain("Mỗi phần tử được kiểm tra riêng.");
+    expect(keyConfigurations.system).toContain(
+      "với TỪNG keyConfigurations[i], viết 3 đoạn thực chất trong narrative, mỗi đoạn ít nhất 100 đơn vị",
+    );
+    expect(practicalDirection.system).toContain(
+      "với TỪNG practicalDirection[i], phân bổ nội dung thực chất cho recommendation, rationale và avoid; mỗi trường ít nhất 50 đơn vị",
+    );
+    expect(practicalDirection.system).toContain(
+      "practicalDirection[0]: hiện 3 âm tiết, cần bổ sung ít nhất 147 âm tiết",
+    );
+    expect(practicalDirection.system).toContain(
+      "practicalDirection[1]: hiện 3 âm tiết, cần bổ sung ít nhất 147 âm tiết",
+    );
+    expect(practicalDirection.system).toContain("đạt ít nhất 150 âm tiết cho từng item.");
+    expect(birthTimeSensitivity.system).toContain(
+      "với TỪNG mục stableFactors và sensitiveFactors, viết 4 đoạn thực chất trong narrative, mỗi đoạn ít nhất 100 đơn vị",
+    );
+    expect(birthTimeSensitivity.system).toContain(
+      "Tối thiểu 300 âm tiết; mục tiêu 400-600 âm tiết. Không kết thúc khi chưa đạt tối thiểu 400 âm tiết.",
+    );
   });
 
   it("keeps V4.1.2 keyConfigurations title, order, and evidenceKeys identity contract", async () => {
@@ -704,5 +856,90 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(JSON.stringify(payload)).not.toContain("1990-01-01");
     expect(JSON.stringify(payload)).not.toContain("08:30");
     expect(JSON.stringify(payload)).not.toContain("Hanoi");
+  });
+});
+
+describe("writeComprehensiveReportSectionGroupV4", () => {
+  const active = {
+    promptVersion: REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  } as const;
+
+  it("makes one exact grouped request and validates each returned section", async () => {
+    const sectionKeys = ["overview", "coreAxis", "keyConfigurations"] as const;
+    const provider = {
+      generateStructured: vi.fn().mockImplementation(async (request) => {
+        const payload = JSON.parse(request.user);
+        return {
+          ok: true,
+          value: {
+            value: { sections: payload.sectionKeys.map((key: string) => outputFor(key)) },
+            providerId: "group-provider",
+            modelId: "group-model",
+          },
+        };
+      }),
+    };
+
+    const result = await writeComprehensiveReportSectionGroupV4({
+      groupId: "G1",
+      sectionKeys,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      ...active,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        providerId: "group-provider",
+        modelId: "group-model",
+        sections: [{ key: "overview" }, { key: "coreAxis" }, { key: "keyConfigurations" }],
+      },
+    });
+    expect(provider.generateStructured).toHaveBeenCalledTimes(1);
+    const request = provider.generateStructured.mock.calls[0]![0];
+    expect(request.schemaName).toBe("ziwei_comprehensive_report_section_group_g1");
+    expect(request.maxOutputTokens).toBe(24_000);
+    expect(JSON.parse(request.user).sectionKeys).toEqual(sectionKeys);
+  });
+
+  it("rejects missing, reordered, and invalid grouped output without fallback sections", async () => {
+    const sectionKeys = ["overview", "coreAxis"] as const;
+    const provider = {
+      generateStructured: vi.fn().mockResolvedValue({
+        ok: true,
+        value: {
+          value: { sections: [outputFor("coreAxis")] },
+          providerId: "group-provider",
+          modelId: "group-model",
+        },
+      }),
+    };
+
+    const result = await writeComprehensiveReportSectionGroupV4({
+      groupId: "G3",
+      sectionKeys,
+      facts: facts(),
+      knowledgePacks: [],
+      provider: provider as never,
+      ...active,
+    });
+
+    expect(result).toEqual({ ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } });
+    expect(provider.generateStructured).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps historical tuples on the section-only writer contract", async () => {
+    await expect(writeComprehensiveReportSectionGroupV4({
+      groupId: "G1",
+      sectionKeys: ["overview"],
+      facts: facts(),
+      knowledgePacks: [],
+      provider: { generateStructured: vi.fn() } as never,
+      promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
+      reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+    })).rejects.toThrow("COMPREHENSIVE_REPORT_GROUP_PROMPT_UNSUPPORTED");
   });
 });

@@ -1,25 +1,46 @@
-# CLAUDE.md — Repo-specific instructions
+# CLAUDE.md — Repository Guidance
 
-## Git workflow (FD-097, 2026-09-22)
+## Architecture & Monorepo
+- **Workspace:** pnpm 11 monorepo with strict dependency builds.
+- **Applications:**
+  - `apps/web`: Next.js 16 (App Router, Tailwind CSS, next-intl for VI/EN).
+  - `apps/api`: Fastify / Node API server with Better Auth, PostgreSQL (Drizzle ORM), Redis, and SePay webhook handling.
+  - `apps/worker`: BullMQ worker for asynchronous report generation, PDF rendering, and outbox event dispatch.
+- **Packages:** `packages/contracts`, `packages/backend`, `packages/config`, `packages/database`, `packages/engine-adapters`, `packages/observability`, `packages/test-fixtures`.
+- **Primary Canonical Domain:** `https://lasoviet.net` (FD-057).
+- **Route Catalog:** Sole source of truth is `config/route-registry.yml`.
 
-Nguồn sự thật đầy đủ: `docs/15-collaboration-branch-workflow.md`. Tóm tắt bắt buộc cho mọi phiên làm việc:
+## Git & PR Workflow
+- **Never push or commit directly to `master`.** Always work on a dedicated branch.
+- Standard flow (FD-097): dedicated short-lived branch -> Pull Request straight into `master` -> tests pass -> merge after An or Lãm authorizes.
+- Commit conventions: English conventional commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `perf:`).
+- **Owner Authority & Reference Role Split:**
+  - An focuses on Technical, Lãm focuses on Business. This is an informational role reference, NOT a rigid rule or barrier.
+  - Either person has full authority to decide, instruct, approve, and execute across technical or business tasks without cross-confirmation.
+  - A direct instruction from either An or Lãm is immediately binding.
 
-- **Không bao giờ commit hoặc push trực tiếp vào `master`.** Mọi thay đổi vào
-  `master` phải qua Pull Request và được founder cho phép merge; vòng review PR
-  riêng chỉ chạy khi founder yêu cầu hoặc plan bắt buộc.
-- `AGENTS.md` controls source precedence. Blueprint v1.1 approval is binding
-  through `FD-019`; approved technical decisions remain authoritative where
-  older business material conflicts.
-- **Business/concept reading scope (chốt 2026-09-20).** For any business,
-  concept, brand, or business-model question read only: the founder-decision
-  tracker (`docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md`,
-  the only binding register), `MASTER_CONCEPT.md`, `docs/11`, `docs/13`,
-  `docs/14`, `docs/19`, `docs/20`, `docs/22` (art direction), `docs/23` (điều kiện index), `docs/24` (token màu + light theme), `docs/15`, và spec trang `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` (FD-091). **Never read `docs/archive/`**
-  unless the founder names an exact file there. See `AGENTS.md` §1.1.
-- Vai trò: **Harris/Product** ("anh") — chốt concept, brand, sitemap, UX, acceptance criteria. **An/Development** — code, test, sửa theo review. FD-084: An và Lãm quyền ngang nhau.
-- Flow (FD-097, 2026-09-22): mỗi việc một nhánh ngắn → PR thẳng vào `master` → anh hoặc An duyệt và cho phép merge. Không còn hai nhánh cố định `product/experience-spec-v1` / `feature/site-foundation`.
-- Ownership khi conflict: brand/copy/sitemap/user flow/acceptance criteria → Harris quyết; implementation/framework/component/test strategy → An quyết; URL/data contract/privacy/analytics/accessibility → cả hai cùng review; conflict giữa doanh thu/conversion và trust/safety → doanh thu thắng nếu hợp pháp (FD-064: được dùng dark pattern/chiêu trò hợp pháp); các giới hạn sau vẫn luôn thắng doanh thu: pháp luật Việt Nam theo FD-089 (không giá gốc gạch ngang bịa, không khan hiếm/đếm ngược giả, không nói về chết/tuổi thọ, không bán giải hạn/hoá giải/vật phẩm, không bịa hạn mà engine không tính ra; nói điều xấu theo tử vi truyền thống và nêu hạn có thật để mời mua là được phép), quyền riêng tư (FD-053), toàn vẹn thanh toán và tự phục hồi (FD-043), bảo mật nội dung khoá (FD-059), quyền sở hữu nội dung đã mua.
-- Commit convention: `docs:`, `feat:`, `fix:`, `test:`, `refactor:` — nhỏ, một mục đích, không trộn thay đổi scope với refactor không liên quan.
-- A separate PR review cycle is optional and runs only when the founder asks
-  for it. Explicit merge authorization and plan-required Terra reviews remain
-  mandatory.
+## Product & Content Sources
+- Decisions: `docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md` (only binding register).
+- Brand, voice, content line (FD-089): `docs/13-brand-experience-guideline.md`. Revenue wins when lawful (FD-064).
+- Page layouts: `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` (FD-091) and the approved prototypes in `prototype/revamp-2026-09/` (FD-098).
+- Visual system: `docs/22-art-direction.md`, `docs/24-light-theme-color-spec.md`; every image gets a lowercase hyphenated SEO file name before use.
+- Support channels: `config/customer-contact.json` (email lasoviet.net@gmail.com; Messenger fanpage link goes into `social`).
+
+## Kaneo Project Management Defaults
+- Workspace: `Cash Cow` (`Ey2EBYm4Oeq2rhZoVpGYKLLoXEeZfJ2G`)
+- Project: `La so viet` (`rcaikczb8v3h693a37g0zlzl`)
+- Use Kaneo API/tools for task resolution, comments, and status updates. Never move tasks to `Done` without verified deployment/smoke evidence.
+
+## Archive Directory Boundary (Hard Rule)
+- **Do not read or scan files in `docs/_archive/` or `prototype/_archive/`** unless explicitly requested by name by the user.
+- Use active files in `docs/` and their stub pointers for current context and source of truth.
+
+## Essential Commands
+- Fast pre-push check: `pnpm i18n:check && pnpm lint && pnpm typecheck`
+- i18n parity check: `pnpm i18n:check`
+- Run all tests: `pnpm test`
+- Package-specific tests: `pnpm --filter @lasoviet/backend test`
+- Typecheck: `pnpm typecheck`
+- Production build: `pnpm build`
+- Public claim verification: `node scripts/public-claim-check.mjs`
+- Check public content: `node scripts/check-public-content.mjs`

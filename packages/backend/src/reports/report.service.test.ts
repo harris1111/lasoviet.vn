@@ -11,15 +11,18 @@ import {
   createDatabaseReportQueueStore,
   createReportService,
   recoverInvalidOutputGenerationInTransaction,
+  restartInvalidOutputWithCurrentVersionInTransaction,
 } from "./report.service.js";
 
 describe("createReportService terminal recovery", () => {
   function createMockTx(options: {
     reservation: Record<string, unknown> | null;
     existingVersion?: Record<string, unknown> | null;
+    incompleteCheckpoints?: Array<Record<string, unknown>>;
   }) {
     let selectCallCount = 0;
     const insertedValues: Array<Record<string, unknown>> = [];
+    const updatedValues: Array<Record<string, unknown>> = [];
 
     const tx = {
       select: vi.fn(() => ({
@@ -32,15 +35,26 @@ describe("createReportService terminal recovery", () => {
                 for: vi.fn().mockResolvedValue(options.reservation ? [options.reservation] : []),
               };
             }
-            // existingVersion query with limit(1)
+            if (selectCallCount === 2) {
+              // existingVersion query with limit(1)
+              return {
+                limit: vi.fn().mockResolvedValue(options.existingVersion ? [options.existingVersion] : []),
+              };
+            }
+            // incomplete section checkpoints query with for("update")
             return {
-              limit: vi.fn().mockResolvedValue(options.existingVersion ? [options.existingVersion] : []),
+              for: vi.fn().mockResolvedValue(options.incompleteCheckpoints ?? []),
             };
           }),
         })),
       })),
+      delete: vi.fn(() => ({
+        where: vi.fn().mockResolvedValue([]),
+      })),
       update: vi.fn(() => ({
-        set: vi.fn(() => ({
+        set: vi.fn((values: Record<string, unknown>) => {
+          updatedValues.push(values);
+          return {
           where: vi.fn(() => ({
             returning: vi.fn().mockResolvedValue([
               {
@@ -50,7 +64,8 @@ describe("createReportService terminal recovery", () => {
               },
             ]),
           })),
-        })),
+          };
+        }),
       })),
       insert: vi.fn(() => ({
         values: vi.fn((vals: Record<string, unknown>) => {
@@ -64,7 +79,7 @@ describe("createReportService terminal recovery", () => {
       })),
     };
 
-    return { tx, insertedValues };
+    return { tx, insertedValues, updatedValues };
   }
 
   it("reconstructs V2 payload and event report.generation.requested.v2 when all 4 timing fields are non-null", async () => {
@@ -178,6 +193,144 @@ describe("createReportService terminal recovery", () => {
       reportConfigVersion: "config-3",
       locale: "vi",
       sku: "ZIWEI-IDENTITY-P0",
+    });
+  });
+
+  it("resets incomplete section checkpoints before requeueing invalid output recovery", async () => {
+    const mockReservation = {
+      id: "res-reset",
+      reportId: "report-reset",
+      reportVersionId: "version-reset",
+      entitlementId: "entitlement-reset",
+      chartVersionId: "chart-1",
+      evidenceVersionId: "evidence-1",
+      knowledgeVersionId: "knowledge-4",
+      promptVersion: "prompt-4",
+      reportConfigVersion: "config-4",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      status: "terminal_failure",
+      lastErrorCode: "AI_OUTPUT_INVALID",
+      stateVersion: 3,
+      asOfDate: null,
+      targetYear: null,
+      timingRuleVersion: null,
+      sensitivityRuleVersion: null,
+    };
+    const { tx, updatedValues } = createMockTx({
+      reservation: mockReservation,
+      incompleteCheckpoints: [{ id: "checkpoint-reset" }],
+    });
+
+    const result = await recoverInvalidOutputGenerationInTransaction(tx as never, {
+      reportVersionId: "version-reset",
+      expectedStateVersion: 3,
+      recoveryId: "recovery-reset",
+    });
+
+    expect(result).toEqual({ ok: true, stateVersion: 4 });
+    expect(tx.delete).toHaveBeenCalledTimes(2);
+    expect(tx.update).toHaveBeenCalledTimes(2);
+    expect(updatedValues[1]).toMatchObject({
+      status: "pending",
+      generationAttemptCount: 0,
+      rewriteAttemptCount: 0,
+      activeJobId: null,
+      activeWorkerId: null,
+      acceptedContent: null,
+      contentHash: null,
+      providerId: null,
+      modelId: null,
+      failureCode: null,
+    });
+  });
+
+  it("supersedes invalid-output recovery onto current Vietnamese lineage without touching old checkpoints", async () => {
+    const oldReportVersionId = "00000000-0000-0000-0000-000000000001";
+    const mockReservation = {
+      id: "res-supersede",
+      reportId: "report-supersede",
+      reportVersionId: oldReportVersionId,
+      entitlementId: "entitlement-supersede",
+      chartVersionId: "chart-supersede",
+      evidenceVersionId: "evidence-supersede",
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v3",
+      promptVersion: "ziwei.comprehensive.prompt.v4.0.1",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned",
+      locale: "vi",
+      sku: "ZIWEI-IDENTITY-P0",
+      status: "terminal_failure",
+      lastErrorCode: "AI_OUTPUT_INVALID",
+      stateVersion: 3,
+      attemptCount: 6,
+      activeJobId: "old-job",
+      rewriteConsumedAt: new Date("2026-09-20T00:00:00.000Z"),
+      asOfDate: "2026-09-20",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+      readingContextRevisionId: "reading-context-1",
+    };
+    const { tx, insertedValues, updatedValues } = createMockTx({
+      reservation: mockReservation,
+      incompleteCheckpoints: [{ id: "old-checkpoint" }],
+    });
+    const now = new Date("2026-12-31T20:00:00.000Z");
+
+    const result = await restartInvalidOutputWithCurrentVersionInTransaction(tx as never, {
+      reportVersionId: oldReportVersionId,
+      expectedStateVersion: 3,
+      recoveryId: "supersede-1",
+      now,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      stateVersion: 4,
+    });
+    if (!result.ok) throw new Error("expected restart success");
+    expect(result.reportVersionId).not.toBe(oldReportVersionId);
+    expect(tx.delete).not.toHaveBeenCalled();
+    expect(tx.update).toHaveBeenCalledTimes(1);
+    expect(updatedValues[0]).toMatchObject({
+      reportVersionId: result.reportVersionId,
+      knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+      promptVersion: "ziwei.comprehensive.prompt.v4.1.2-sensitivity",
+      reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+      status: "requested",
+      stateVersion: 4,
+      attemptCount: 0,
+      activeJobId: null,
+      lastErrorCode: null,
+      nextAttemptAt: null,
+      rewriteConsumedAt: null,
+      asOfDate: "2027-01-01",
+      targetYear: 2027,
+      timingRuleVersion: "ziwei.timing.v1",
+      sensitivityRuleVersion: "ziwei.sensitivity.v1",
+    });
+    expect(insertedValues).toHaveLength(1);
+    expect(insertedValues[0]).toMatchObject({
+      eventType: "report.generation.requested.v2",
+      aggregateId: result.reportVersionId,
+      payload: {
+        reportId: mockReservation.reportId,
+        reportVersionId: result.reportVersionId,
+        entitlementId: mockReservation.entitlementId,
+        chartVersionId: mockReservation.chartVersionId,
+        evidenceVersionId: mockReservation.evidenceVersionId,
+        knowledgeVersionId: "ziwei.comprehensive.knowledge.v4",
+        promptVersion: "ziwei.comprehensive.prompt.v4.1.2-sensitivity",
+        reportConfigVersion: "ziwei.comprehensive.report.v4.1.1-sectioned-sensitivity",
+        locale: "vi",
+        sku: mockReservation.sku,
+        asOfDate: "2027-01-01",
+        targetYear: 2027,
+        timingRuleVersion: "ziwei.timing.v1",
+        sensitivityRuleVersion: "ziwei.sensitivity.v1",
+        readingContextRevisionId: "reading-context-1",
+        supersedesReportVersionId: oldReportVersionId,
+      },
     });
   });
 

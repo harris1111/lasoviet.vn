@@ -36,6 +36,7 @@ export type CommitImmutableVersionInput = {
   workerId: string;
   attemptNumber: number;
   traceId: string;
+  supersedesReportVersionId?: string | null;
 };
 
 export type StartOrReuseAttemptInput = {
@@ -144,6 +145,7 @@ export function createDatabaseReportVersionRepository(
 
           const [existing] = await tx.select().from(reportVersions).where(eq(reportVersions.reportVersionId, input.reportVersionId)).limit(1);
           if (existing) {
+            const supersedesReportVersionId = input.supersedesReportVersionId ?? null;
             const matches =
               existing.reportId === input.reportId &&
               existing.entitlementId === input.entitlementId &&
@@ -158,7 +160,8 @@ export function createDatabaseReportVersionRepository(
               existing.providerId === input.providerId &&
               existing.modelId === input.modelId &&
               existing.contentHash === computedHash &&
-              existing.renderVersion === input.renderVersion;
+              existing.renderVersion === input.renderVersion &&
+              existing.supersedesReportVersionId === supersedesReportVersionId;
             if (!matches || !isDeepStrictEqual(existing.structuredContent, input.structuredContent)) {
               throw new ConflictError();
             }
@@ -238,6 +241,7 @@ export function createDatabaseReportVersionRepository(
               contentHash: computedHash,
               pdfAssetId,
               renderVersion: input.renderVersion,
+              supersedesReportVersionId: input.supersedesReportVersionId ?? null,
               createdAt: now,
             })
             .returning();
