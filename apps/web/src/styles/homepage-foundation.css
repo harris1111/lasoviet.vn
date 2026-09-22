@@ -979,3 +979,17 @@
 .home .cta-closing {
   font-size: 14px;
 }
+
+/* Homepage hero-scoped typography overrides for reused BirthDetailsFields elements */
+.home .hero-form-col .wizard-field-label,
+.home .hero-form-col .wizard-fieldset legend,
+.home .hero-form-col .wizard-help,
+.home .hero-form-col .wizard-mode-button,
+.home .hero-form-col .wizard-check,
+.home .hero-form-col .hero-cache-notice,
+.home .hero-form-col .hero-cache-clear,
+.home .hero-form-col .wizard-cache-notice,
+.home .hero-form-col .wizard-cache-clear,
+.home .hero-form-col .wizard-precision-help {
+  font-size: 14px;
+}

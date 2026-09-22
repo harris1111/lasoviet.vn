@@ -86,7 +86,7 @@ async function visitLocalizedHome(
     },
   ]);
   await page.setExtraHTTPHeaders({
-    "AcceptLanguage": locale.acceptLanguage,
+    "Accept-Language": locale.acceptLanguage,
   });
   await page.goto(target.toString());
 }

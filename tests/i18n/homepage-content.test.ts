@@ -372,3 +372,30 @@ describe("homepage content and structure requirements", () => {
       ).toBe(true);
     }
   });
+
+  it("enforces effective font-size >= 14px for hero reused wizard selectors under .home .hero-form-col", () => {
+    const foundationCss = readFileSync(
+      resolve(rootDir, "apps/web/src/styles/homepage-foundation.css"),
+      "utf8",
+    );
+
+    const requiredHeroSelectors = [
+      ".home .hero-form-col .wizard-field-label",
+      ".home .hero-form-col .wizard-fieldset legend",
+      ".home .hero-form-col .wizard-help",
+      ".home .hero-form-col .wizard-mode-button",
+      ".home .hero-form-col .wizard-check",
+      ".home .hero-form-col .hero-cache-notice",
+      ".home .hero-form-col .hero-cache-clear",
+      ".home .hero-form-col .wizard-cache-notice",
+      ".home .hero-form-col .wizard-cache-clear",
+      ".home .hero-form-col .wizard-precision-help",
+    ];
+
+    for (const selector of requiredHeroSelectors) {
+      expect(
+        foundationCss.includes(selector),
+        `homepage-foundation.css must include scoped override for ${selector}`,
+      ).toBe(true);
+    }
+  });
