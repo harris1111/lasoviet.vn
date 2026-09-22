@@ -64,6 +64,7 @@ export default async function ZiweiChartResultPage({
 
   // 3. Project preview data through strict production boundary to prevent arbitrary/locked narrative in RSC props
   const safePreview = projectFreeIdentityPreview(previewResult.value);
+  if (!safePreview) notFound();
 
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
 

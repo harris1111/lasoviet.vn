@@ -7,75 +7,105 @@ import type { FreeIdentityPreviewV1 } from "@lasoviet/contracts";
 
 const EXACT_SENTINEL = "SENTINEL_PAID_NARRATIVE_DO_NOT_LEAK_INTO_FREE_DOM_394857";
 
-const rawAdversarialPreview = {
+// Valid baseline conforming strictly to FreeIdentityPreviewV1Schema + injected unknown fields
+const validAdversarialPreview = {
   version: 1,
   chartId: "c1",
   chartVersionId: "cv1",
   capabilityId: "ziwei.identity.p0",
   summaryVersion: "ziwei.identity.free.v1",
-  strengthSignal: {
-    id: "strength",
-    evidence: {
-      evidenceId: "ziwei.identity.strength",
-      factReferences: ["f1"],
-      confidence: "high" as const,
-      interpretationBoundCodes: ["reflective_identity_only" as const],
-      interpretationBounds: ["Bound"],
-      limitations: ["Limit"],
-      leakSignal: EXACT_SENTINEL,
-    },
-  },
-  tensionSignal: {
-    id: "tension",
-    evidence: [
-      {
-        evidenceId: "ziwei.identity.tension-1",
-        factReferences: ["f1"],
-        confidence: "high" as const,
-        interpretationBoundCodes: ["reflective_identity_only" as const],
-        interpretationBounds: ["Bound"],
-        limitations: ["Limit"],
-        leakSignal: EXACT_SENTINEL,
-      },
-      {
-        evidenceId: "ziwei.identity.tension-2",
-        factReferences: ["f2"],
-        confidence: "high" as const,
-        interpretationBoundCodes: ["reflective_identity_only" as const],
-        interpretationBounds: ["Bound"],
-        limitations: ["Limit"],
-        leakSignal: EXACT_SENTINEL,
-      },
-    ],
-  },
   insights: [
     {
       id: "life-palace",
       evidence: {
         evidenceId: "ziwei.identity.life-palace",
-        factReferences: ["fact-1"],
+        factReferences: ["fact-life-1"],
         confidence: "high" as const,
         interpretationBoundCodes: ["reflective_identity_only" as const],
-        interpretationBounds: ["Authorized safe boundary"],
-        limitations: ["Standard limitations"],
+        interpretationBounds: ["Authorized safe boundary 1"],
+        limitations: ["Standard limitation 1"],
+        // Injected unknown fields
         lockedEvidenceNarrative: EXACT_SENTINEL,
         leak1: EXACT_SENTINEL,
       },
       insightNarrative: EXACT_SENTINEL,
     },
+    {
+      id: "body-palace",
+      evidence: {
+        evidenceId: "ziwei.identity.body-palace",
+        factReferences: ["fact-body-1"],
+        confidence: "moderate" as const,
+        interpretationBoundCodes: ["reflective_identity_only" as const],
+        interpretationBounds: ["Authorized safe boundary 2"],
+        limitations: ["Standard limitation 2"],
+        leak2: EXACT_SENTINEL,
+      },
+      bodyNarrative: EXACT_SENTINEL,
+    },
+    {
+      id: "transformations",
+      evidence: {
+        evidenceId: "ziwei.identity.transformations",
+        factReferences: ["fact-trans-1"],
+        confidence: "high" as const,
+        interpretationBoundCodes: ["reflective_identity_only" as const],
+        interpretationBounds: ["Authorized safe boundary 3"],
+        limitations: ["Standard limitation 3"],
+        leak3: EXACT_SENTINEL,
+      },
+      transNarrative: EXACT_SENTINEL,
+    },
   ],
+  strengthSignal: {
+    id: "strength",
+    evidence: {
+      evidenceId: "ziwei.identity.life-palace",
+      factReferences: ["fact-life-1"],
+      confidence: "high" as const,
+      interpretationBoundCodes: ["reflective_identity_only" as const],
+      interpretationBounds: ["Authorized safe boundary 1"],
+      limitations: ["Standard limitation 1"],
+      leakSignal: EXACT_SENTINEL,
+    },
+    strengthProse: EXACT_SENTINEL,
+  },
+  tensionSignal: {
+    id: "tension",
+    evidence: [
+      {
+        evidenceId: "ziwei.identity.body-palace",
+        factReferences: ["fact-body-1"],
+        confidence: "moderate" as const,
+        interpretationBoundCodes: ["reflective_identity_only" as const],
+        interpretationBounds: ["Authorized safe boundary 2"],
+        limitations: ["Standard limitation 2"],
+        leakSignal: EXACT_SENTINEL,
+      },
+      {
+        evidenceId: "ziwei.identity.transformations",
+        factReferences: ["fact-trans-1"],
+        confidence: "high" as const,
+        interpretationBoundCodes: ["reflective_identity_only" as const],
+        interpretationBounds: ["Authorized safe boundary 3"],
+        limitations: ["Standard limitation 3"],
+        leakSignal: EXACT_SENTINEL,
+      },
+    ],
+    tensionProse: EXACT_SENTINEL,
+  },
   paidPreview: {
     sku: "ZIWEI-IDENTITY-P0" as const,
     sectionId: "personal_summary" as const,
     coveragePercent: 12,
     evidence: [
       {
-        evidenceId: "ev-paid",
-        factReferences: [],
+        evidenceId: "ziwei.identity.life-palace",
+        factReferences: ["fact-life-1"],
         confidence: "high" as const,
         interpretationBoundCodes: ["reflective_identity_only" as const],
-        interpretationBounds: [],
-        limitations: [],
+        interpretationBounds: ["Authorized safe boundary 1"],
+        limitations: ["Standard limitation 1"],
         paidSecret: EXACT_SENTINEL,
       },
     ],
@@ -84,6 +114,7 @@ const rawAdversarialPreview = {
       narrative: EXACT_SENTINEL,
     },
   },
+  // Injected malicious root properties
   maliciousLockedProse: EXACT_SENTINEL,
   unauthorizedReportBody: {
     career: EXACT_SENTINEL,
@@ -130,12 +161,11 @@ vi.mock("../../auth/resolve-current-actor", () => ({
   resolveCurrentActor: async () => ({ kind: "anonymous", sessionId: "anon-1" }),
 }));
 
+let currentMockPreviewResult: any = { ok: true, value: validAdversarialPreview };
+
 vi.mock("../reports/load-free-identity-preview", () => ({
   freeIdentityPreviewLoader: {
-    loadPreview: async () => ({
-      ok: true,
-      value: rawAdversarialPreview,
-    }),
+    loadPreview: async () => currentMockPreviewResult,
   },
 }));
 
@@ -187,16 +217,16 @@ function findElementInTree(node: any, targetComponent: any): any {
 }
 
 describe("Production projection boundary & locked narrative sentinel non-leakage", () => {
-  it("proves the production projector completely strips the exact locked sentinel from arbitrary root and nested locations", () => {
-    // Execute production projector directly
-    const projected = projectFreeIdentityPreview(rawAdversarialPreview);
+  it("proves the production projector strips unknown/sentinel fields from valid baseline and validates cleanly", () => {
+    const projected = projectFreeIdentityPreview(validAdversarialPreview);
+    expect(projected).not.toBeNull();
 
-    // 1. Assert projected structure contains only known free-preview keys
+    // 1. Assert projected structure conforms strictly to FreeIdentityPreviewV1
     expect(projected).toHaveProperty("version", 1);
     expect(projected).toHaveProperty("chartId", "c1");
     expect(projected).toHaveProperty("capabilityId", "ziwei.identity.p0");
     expect(projected).toHaveProperty("summaryVersion", "ziwei.identity.free.v1");
-    expect(projected.insights).toHaveLength(1);
+    expect(projected!.insights).toHaveLength(3);
 
     // 2. Stringify projected client-prop payload and prove exact sentinel is completely absent
     const serialized = JSON.stringify(projected);
@@ -204,10 +234,10 @@ describe("Production projection boundary & locked narrative sentinel non-leakage
 
     // 3. Deep key inspection: no unexpected properties present on root or nested objects
     const expectedRootKeys = ["version", "chartId", "chartVersionId", "capabilityId", "summaryVersion", "insights", "strengthSignal", "tensionSignal", "paidPreview"];
-    expect(Object.keys(projected)).toEqual(expectedRootKeys);
+    expect(Object.keys(projected!)).toEqual(expectedRootKeys);
 
     const expectedInsightKeys = ["id", "evidence"];
-    expect(Object.keys(projected.insights[0]!)).toEqual(expectedInsightKeys);
+    expect(Object.keys(projected!.insights[0]!)).toEqual(expectedInsightKeys);
 
     const expectedEvidenceKeys = [
       "evidenceId",
@@ -217,32 +247,60 @@ describe("Production projection boundary & locked narrative sentinel non-leakage
       "interpretationBounds",
       "limitations",
     ];
-    expect(Object.keys(projected.insights[0]!.evidence)).toEqual(expectedEvidenceKeys);
+    expect(Object.keys(projected!.insights[0]!.evidence)).toEqual(expectedEvidenceKeys);
 
     const expectedPaidKeys = ["sku", "sectionId", "coveragePercent", "evidence"];
-    expect(Object.keys(projected.paidPreview)).toEqual(expectedPaidKeys);
+    expect(Object.keys(projected!.paidPreview)).toEqual(expectedPaidKeys);
+  });
+
+  it("proves the production projector rejects malformed payloads and returns null (fail closed)", () => {
+    // 1. Null or non-object
+    expect(projectFreeIdentityPreview(null)).toBeNull();
+    expect(projectFreeIdentityPreview(undefined)).toBeNull();
+    expect(projectFreeIdentityPreview("not-an-object")).toBeNull();
+
+    // 2. Missing insights or wrong length
+    expect(projectFreeIdentityPreview({ ...validAdversarialPreview, insights: [] })).toBeNull();
+    expect(
+      projectFreeIdentityPreview({
+        ...validAdversarialPreview,
+        insights: (validAdversarialPreview as any).insights.slice(0, 2),
+      }),
+    ).toBeNull();
+
+    // 3. Invalid confidence (no default fallback allowed)
+    const invalidConfidence = JSON.parse(JSON.stringify(validAdversarialPreview));
+    invalidConfidence.insights[0].evidence.confidence = "unsupported_confidence";
+    expect(projectFreeIdentityPreview(invalidConfidence)).toBeNull();
+
+    // 4. Missing required section (e.g. no paidPreview)
+    const missingPaid = { ...validAdversarialPreview };
+    delete (missingPaid as any).paidPreview;
+    expect(projectFreeIdentityPreview(missingPaid)).toBeNull();
+
+    // 5. Fact mismatch between repeated evidence and insight
+    const mismatchedFacts = JSON.parse(JSON.stringify(validAdversarialPreview));
+    mismatchedFacts.strengthSignal.evidence.factReferences = ["different-fact"];
+    expect(projectFreeIdentityPreview(mismatchedFacts)).toBeNull();
   });
 
   it("proves page composition executes the production projector and client props passed to ZiweiResultTabs never leak the sentinel", async () => {
-    // Render the server component page directly
+    currentMockPreviewResult = { ok: true, value: validAdversarialPreview };
+
     const pageElement = await ZiweiChartResultPage({
       params: Promise.resolve({ chartId: "c1", locale: "vi" }),
       searchParams: Promise.resolve({}),
     });
 
-    // Locate the ZiweiResultTabs client component element within the server component composition tree
     const tabsElement = findElementInTree(pageElement, ZiweiResultTabs);
     expect(tabsElement).not.toBeNull();
 
-    // Verify props passed to the client component boundary
     const clientProps = tabsElement.props;
     expect(clientProps).toHaveProperty("preview");
 
-    // Stringify client component props (equivalent to RSC serialization to browser)
     const serializedClientProps = JSON.stringify(clientProps);
     expect(serializedClientProps).not.toContain(EXACT_SENTINEL);
 
-    // Also stringify the entire page JSX tree to guarantee no leak elsewhere in RSC payload
     const safeStringify = (obj: any) =>
       JSON.stringify(obj, (key, value) => {
         if (typeof value === "function" || key === "_owner" || key === "type") return undefined;
@@ -251,11 +309,21 @@ describe("Production projection boundary & locked narrative sentinel non-leakage
     const serializedPageTree = safeStringify(pageElement);
     expect(serializedPageTree).not.toContain(EXACT_SENTINEL);
 
-    // Ensure safe preview was properly projected
     expect(clientProps.preview).toHaveProperty("capabilityId", "ziwei.identity.p0");
-    expect(clientProps.preview).toHaveProperty("insights");
+    expect(clientProps.preview.insights).toHaveLength(3);
     expect(clientProps.preview.insights[0].evidence).not.toHaveProperty("lockedEvidenceNarrative");
     expect(clientProps.preview.insights[0].evidence).not.toHaveProperty("leak1");
     expect(clientProps.preview.paidPreview).not.toHaveProperty("secretLockedNarrative");
+  });
+
+  it("proves page composition fails closed with notFound when preview is malformed", async () => {
+    currentMockPreviewResult = { ok: true, value: { version: 1, malformed: true } };
+
+    await expect(
+      ZiweiChartResultPage({
+        params: Promise.resolve({ chartId: "c1", locale: "vi" }),
+        searchParams: Promise.resolve({}),
+      }),
+    ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });

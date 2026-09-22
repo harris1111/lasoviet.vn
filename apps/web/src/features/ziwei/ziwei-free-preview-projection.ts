@@ -1,81 +1,98 @@
-import type {
-  FreeIdentityPreviewV1,
+import {
+  FreeIdentityPreviewV1Schema,
+  type FreeIdentityPreviewV1,
 } from "@lasoviet/contracts";
 
-type EvidenceReference = FreeIdentityPreviewV1["insights"][number]["evidence"];
-type EvidenceInterpretationBoundCode = EvidenceReference["interpretationBoundCodes"][number];
-
-function projectEvidence(
-  ev: Partial<EvidenceReference> & Record<string, unknown>,
-): EvidenceReference {
-  const confidence = ev?.confidence === "moderate" ? "moderate" : "high";
-  const interpretationBoundCodes: EvidenceInterpretationBoundCode[] =
-    Array.isArray(ev?.interpretationBoundCodes) && ev.interpretationBoundCodes.length > 0
-      ? (ev.interpretationBoundCodes.filter((code): code is EvidenceInterpretationBoundCode =>
-          typeof code === "string",
-        ))
-      : ["reflective_identity_only"];
+function projectEvidence(ev: unknown) {
+  if (!ev || typeof ev !== "object") return undefined;
+  const rec = ev as Record<string, unknown>;
 
   return {
-    evidenceId: String(ev?.evidenceId ?? ""),
-    factReferences: Array.isArray(ev?.factReferences)
-      ? ev.factReferences.map(String)
-      : [],
-    confidence,
-    interpretationBoundCodes,
-    interpretationBounds: Array.isArray(ev?.interpretationBounds)
-      ? ev.interpretationBounds.map(String)
-      : [],
-    limitations: Array.isArray(ev?.limitations)
-      ? ev.limitations.map(String)
-      : [],
+    evidenceId: rec.evidenceId,
+    factReferences: rec.factReferences,
+    confidence: rec.confidence,
+    interpretationBoundCodes: rec.interpretationBoundCodes,
+    interpretationBounds: rec.interpretationBounds,
+    limitations: rec.limitations,
   };
 }
 
 export function projectFreeIdentityPreview(
-  rawPreview: FreeIdentityPreviewV1,
-): FreeIdentityPreviewV1 {
-  const insights = Array.isArray(rawPreview?.insights)
-    ? rawPreview.insights.map((insight) => ({
-        id: String(insight?.id ?? ""),
-        evidence: projectEvidence((insight?.evidence ?? {}) as Record<string, unknown>),
-      }))
-    : [];
+  rawPreview: unknown,
+): FreeIdentityPreviewV1 | null {
+  if (!rawPreview || typeof rawPreview !== "object") {
+    return null;
+  }
 
-  const paidEvidence = Array.isArray(rawPreview?.paidPreview?.evidence)
-    ? rawPreview.paidPreview.evidence.map((ev) =>
-        projectEvidence((ev ?? {}) as Record<string, unknown>),
+  const raw = rawPreview as Record<string, unknown>;
+
+  const rawInsights = Array.isArray(raw.insights)
+    ? raw.insights.map((insight) => {
+        if (!insight || typeof insight !== "object") return undefined;
+        const rec = insight as Record<string, unknown>;
+        return {
+          id: rec.id,
+          evidence: projectEvidence(rec.evidence),
+        };
+      })
+    : undefined;
+
+  const rawStrengthEvidence = projectEvidence(
+    (raw.strengthSignal as Record<string, unknown> | undefined)?.evidence,
+  );
+
+  const rawTensionEvidence = Array.isArray(
+    (raw.tensionSignal as Record<string, unknown> | undefined)?.evidence,
+  )
+    ? ((raw.tensionSignal as Record<string, unknown>).evidence as unknown[]).map(
+        projectEvidence,
       )
-    : [];
+    : undefined;
 
-  const tensionEvidence = Array.isArray(rawPreview?.tensionSignal?.evidence)
-    ? rawPreview.tensionSignal.evidence.map((ev) =>
-        projectEvidence((ev ?? {}) as Record<string, unknown>),
+  const rawPaidEvidence = Array.isArray(
+    (raw.paidPreview as Record<string, unknown> | undefined)?.evidence,
+  )
+    ? ((raw.paidPreview as Record<string, unknown>).evidence as unknown[]).map(
+        projectEvidence,
       )
-    : [];
+    : undefined;
 
-  return {
-    version: 1,
-    chartId: String(rawPreview?.chartId ?? ""),
-    chartVersionId: String(rawPreview?.chartVersionId ?? ""),
-    capabilityId: "ziwei.identity.p0",
-    summaryVersion: "ziwei.identity.free.v1",
-    insights: insights as FreeIdentityPreviewV1["insights"],
-    strengthSignal: {
-      id: String(rawPreview?.strengthSignal?.id ?? "strength"),
-      evidence: projectEvidence(
-        (rawPreview?.strengthSignal?.evidence ?? {}) as Record<string, unknown>,
-      ),
-    },
-    tensionSignal: {
-      id: String(rawPreview?.tensionSignal?.id ?? "tension"),
-      evidence: tensionEvidence as [EvidenceReference, ...EvidenceReference[]],
-    },
-    paidPreview: {
-      sku: "ZIWEI-IDENTITY-P0",
-      sectionId: "personal_summary",
-      coveragePercent: 12,
-      evidence: paidEvidence as [EvidenceReference, ...EvidenceReference[]],
-    },
+  const candidate = {
+    version: raw.version,
+    chartId: raw.chartId,
+    chartVersionId: raw.chartVersionId,
+    capabilityId: raw.capabilityId,
+    summaryVersion: raw.summaryVersion,
+    insights: rawInsights,
+    strengthSignal:
+      raw.strengthSignal && typeof raw.strengthSignal === "object"
+        ? {
+            id: (raw.strengthSignal as Record<string, unknown>).id,
+            evidence: rawStrengthEvidence,
+          }
+        : undefined,
+    tensionSignal:
+      raw.tensionSignal && typeof raw.tensionSignal === "object"
+        ? {
+            id: (raw.tensionSignal as Record<string, unknown>).id,
+            evidence: rawTensionEvidence,
+          }
+        : undefined,
+    paidPreview:
+      raw.paidPreview && typeof raw.paidPreview === "object"
+        ? {
+            sku: (raw.paidPreview as Record<string, unknown>).sku,
+            sectionId: (raw.paidPreview as Record<string, unknown>).sectionId,
+            coveragePercent: (raw.paidPreview as Record<string, unknown>).coveragePercent,
+            evidence: rawPaidEvidence,
+          }
+        : undefined,
   };
+
+  const parsed = FreeIdentityPreviewV1Schema.safeParse(candidate);
+  if (!parsed.success) {
+    return null;
+  }
+
+  return parsed.data;
 }
