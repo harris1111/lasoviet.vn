@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bản luận giải mẫu Tử Vi — Lá Số Việt</title>
+<meta name="description" content="Xem trước một bản luận giải Tử Vi thật của Lá Số Việt: tổng quan, công việc, tiền bạc, năm nay, kèm căn cứ cho từng ý.">
+<meta name="robots" content="noindex, follow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  .s-hero { padding-block: 40px 24px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; }
+  .s-hero h1 { font: 600 clamp(30px, 4vw, 46px)/1.12 var(--font-display); color: var(--text-heading); margin: 0 0 10px; }
+  .s-hero p { margin: 0; max-width: 620px; font-size: 17px; }
+  .stamp { display: inline-grid; place-items: center; width: 92px; height: 92px; border-radius: 12px; border: 2px solid var(--son); color: var(--son); font: 700 16px/1.1 var(--font-display); text-align: center; transform: rotate(-6deg); }
+  @media (max-width: 720px) { .s-hero { grid-template-columns: 1fr; } .stamp { display: none; } }
+
+  .s-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; align-items: start; padding-bottom: 48px; }
+  .s-layout > * { min-width: 0; }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 88px); display: grid; gap: 4px; }
+  .toc a { display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 10px; color: var(--text-body); text-decoration: none; font-size: 15px; }
+  .toc a:hover { background: var(--surface-raised); }
+  .toc a .st { font-size: 12px; color: var(--text-faint); }
+  .toc a .st.open { color: #9FD1BA; }
+  .toc p { font: 500 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px 12px; }
+  @media (max-width: 900px) { .s-layout { grid-template-columns: 1fr; } .toc { position: static; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; } .toc p { display: none; } }
+
+  .reader { display: grid; gap: 16px; }
+  .reader section { scroll-margin-top: 90px; }
+  .reader h2 { font: 600 26px/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 4px; }
+  .reader .src { font-size: 14px; color: var(--text-muted); margin: 0 0 14px; }
+  .reader p.read { font-size: 17.5px; line-height: 1.75; margin: 0 0 14px; max-width: var(--reading); }
+  .reader h3 { font: 600 18px var(--font-ui); color: var(--gold-400); margin: 18px 0 6px; }
+  .do { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; max-width: var(--reading); }
+  .do li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; font-size: 16.5px; }
+  .do li span { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; background: var(--gold-soft); color: var(--gold-400); font: 600 13px var(--font-ui); }
+  .why { border-top: 1px solid var(--border-hairline); margin-top: 14px; padding-top: 10px; }
+  .why summary { cursor: pointer; color: var(--gold-400); font-weight: 600; font-size: 15px; list-style: none; }
+  .why dl { margin: 10px 0 0; display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 14.5px; }
+  .why dt { color: var(--text-muted); } .why dd { margin: 0; }
+  @media (max-width: 520px) { .why dl { grid-template-columns: 1fr; } }
+
+  .months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin: 12px 0; }
+  .month { height: 64px; border-radius: 10px; border: 1px solid var(--border-soft); background: var(--lacquer-900); display: grid; place-content: center; text-align: center; font: 600 16px var(--font-ui); color: var(--text-heading); }
+  .month small { display: block; font: 400 11px var(--font-ui); color: var(--text-faint); }
+  .month.warn { border-color: rgba(206,91,69,.75); background: rgba(206,91,69,.12); }
+  .month.good { border-color: rgba(79,122,104,.75); }
+  @media (max-width: 720px) { .months { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  .month-card { border: 1px solid rgba(206,91,69,.5); border-radius: 14px; padding: 16px 18px; background: rgba(206,91,69,.06); }
+  .month-card h3 { color: #F09C87; margin-top: 0; }
+
+  .locked { position: relative; overflow: hidden; }
+  .locked .blur { filter: blur(6px); user-select: none; pointer-events: none; font-size: 17px; line-height: 1.7; color: var(--text-muted); }
+  .locked .veil { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; background: linear-gradient(180deg, rgba(34,29,22,.15), rgba(34,29,22,.94) 65%); }
+  .locked .veil p { margin: 0 0 10px; color: var(--text-heading); font-weight: 600; }
+
+  .end-cta { text-align: center; display: grid; gap: 14px; justify-items: center; padding: 40px 24px; }
+  .end-cta h2 { font: 600 clamp(26px, 3.4vw, 36px)/1.2 var(--font-display); color: var(--text-heading); margin: 0; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="trang-chu.html#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html">Công cụ miễn phí</a>
+      <a href="#">Kiến thức</a>
+      <a href="#ho-tro">Liên hệ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
+      <a class="btn btn-primary" href="trang-chu.html#lap-la-so">Lập lá số<span class="hide-s"> của bạn</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <p class="proto-note">Bản mẫu thay cho trang /bao-cao-mau/tu-vi hiện tại (bỏ dòng "79.000 ₫", trái FD-065). Lá số mẫu ẩn danh; chữ là giọng văn tham khảo, bản thật do AI viết theo quy trình V4.</p>
+  <section class="s-hero">
+    <div>
+      <p class="eyebrow">Bản luận giải mẫu · Toàn diện</p>
+      <h1>Một bản luận giải thật trông như thế này</h1>
+      <p>Lá số mẫu: nữ, sinh 15/06/1992 lúc 08:30 tại Hà Nội. Bốn phần dưới đây mở đầy đủ để bạn đọc thử; các phần còn lại hiện đoạn đầu.</p>
+    </div>
+    <span class="stamp">BẢN<br>MẪU</span>
+  </section>
+
+  <div class="s-layout">
+    <nav class="toc" aria-label="Mục lục">
+      <p>Mục lục · 12 phần</p>
+      <a href="#tong-quan">Tổng quan <span class="st open">Mở</span></a>
+      <a href="#cong-viec">Công việc <span class="st open">Mở</span></a>
+      <a href="#tien-bac">Tiền bạc <span class="st open">Mở</span></a>
+      <a href="#nam-nay">Năm 2026 <span class="st open">Mở</span></a>
+      <a href="#tinh-duyen">Tình duyên <span class="st">Đoạn đầu</span></a>
+      <a href="#dai-van">Đại vận hiện tại <span class="st">Đoạn đầu</span></a>
+      <a href="#con-lai">6 phần khác <span class="st">Đoạn đầu</span></a>
+    </nav>
+
+    <div class="reader">
+      <section class="card" id="tong-quan">
+        <h2>Tổng quan</h2>
+        <p class="src">Cung Mệnh tại Dần · Tham Lang (Hãm) · Thân cư Tài Bạch</p>
+        <p class="read">Người ham trải nghiệm, học nhanh, quen nhiều người, và khó ngồi yên với một việc lặp lại. Tham Lang đóng ở Mệnh cho sức hút và khả năng xoay xở, nhưng vì sao ở thế hãm nên cái được thường phải đổi bằng vài lần làm lại từ đầu.</p>
+        <p class="read">Thân cư Tài Bạch: từ khoảng ba mươi tuổi, chuyện tiền bạc trở thành trục của cuộc đời. Bạn đo mình bằng khả năng tự đứng trên chân mình về tài chính.</p>
+        <details class="why"><summary>Vì sao có nhận định này?</summary><dl><dt>Căn cứ</dt><dd>Tham Lang (Hãm) tọa Mệnh tại Dần; Thiên Mã đồng cung; cung Thân tại Tuất (Tài Bạch)</dd><dt>Giờ sinh</dt><dd>08:30 nằm giữa giờ Thìn, không sát ranh</dd></dl></details>
+      </section>
+
+      <section class="card" id="cong-viec">
+        <h2>Công việc, sự nghiệp</h2>
+        <p class="src">Cung Quan Lộc tại Ngọ · Thất Sát (Vượng), Văn Xương, Hữu Bật, Hỏa Tinh · lưu niên 2026 đóng tại đây</p>
+        <p class="read">Thất Sát vượng ở Quan Lộc là người làm việc kiểu tự quyết, chịu áp lực tốt và không thích bị cầm tay chỉ việc. Có Văn Xương và Hữu Bật đi cùng nên ngoài sức mạnh còn có chữ nghĩa và người đỡ. Hợp với vai trò tự chịu trách nhiệm: quản lý một mảng, kinh doanh riêng, bán hàng theo chỉ tiêu.</p>
+        <p class="read">Điểm yếu là Hỏa Tinh: nóng, dễ va với cấp trên, dễ nghỉ việc trong lúc bực. Năm 2026 lưu niên đóng đúng cung này nên chuyện công việc là chủ đề chính của cả năm, có đổi vị trí hoặc đổi môi trường.</p>
+        <h3>Việc nên làm</h3>
+        <ul class="do"><li><span>1</span>Chọn việc có quyền tự quyết và thưởng theo kết quả.</li><li><span>2</span>Trước khi xin nghỉ, chờ hết một tuần rồi mới quyết.</li><li><span>3</span>Năm 2026, ghi lại mọi thoả thuận miệng với sếp bằng tin nhắn.</li></ul>
+        <details class="why"><summary>Vì sao có nhận định này?</summary><dl><dt>Căn cứ</dt><dd>Thất Sát (Vượng) tại Ngọ; Văn Xương, Hữu Bật, Hỏa Tinh đồng cung; tam hợp Mệnh (Dần) và Tài Bạch (Tuất)</dd><dt>Năm 2026</dt><dd>Lưu Thái Tuế tại Ngọ</dd></dl></details>
+      </section>
+
+      <section class="card" id="tien-bac">
+        <h2>Tiền bạc</h2>
+        <p class="src">Cung Tài Bạch tại Tuất · Phá Quân (Vượng), Đà La, Tuần Không · cung Thân</p>
+        <p class="read">Phá Quân vượng ở Tài Bạch: kiếm được tiền lớn nhưng tiêu cũng mạnh tay, tiền đến theo đợt chứ không đều. Đà La và Tuần Không làm tiền hay kẹt ở chỗ người khác: cho vay khó đòi, góp vốn chậm về.</p>
+        <p class="read">Vì cung Thân cũng nằm ở đây, những lần hao tài là những lần bạn nhớ lâu nhất. Người có lá số này thường giữ được tiền từ khi tách riêng một khoản không được đụng tới.</p>
+        <h3>Việc nên làm</h3>
+        <ul class="do"><li><span>1</span>Mở một tài khoản riêng, chuyển tự động 20% mỗi lần nhận tiền.</li><li><span>2</span>Không cho vay khoản bạn không chịu mất được.</li><li><span>3</span>Góp vốn thì làm giấy tờ, dù là người quen.</li></ul>
+        <details class="why"><summary>Vì sao có nhận định này?</summary><dl><dt>Căn cứ</dt><dd>Phá Quân (Vượng) tại Tuất; Đà La, Tuần Không đồng cung; Thân cư Tài Bạch</dd></dl></details>
+      </section>
+
+      <section class="card" id="nam-nay">
+        <h2>Năm 2026 Bính Ngọ</h2>
+        <p class="src">35 tuổi âm · lưu niên tại Quan Lộc</p>
+        <p class="proto-note">Ví dụ minh hoạ bố cục. Tháng hạn thật chỉ hiện khi engine tính ra (FD-089).</p>
+        <div class="months">
+          <div class="month"><small>tháng</small>1</div><div class="month good"><small>tháng</small>2</div><div class="month"><small>tháng</small>3</div><div class="month"><small>tháng</small>4</div><div class="month warn"><small>tháng</small>5</div><div class="month"><small>tháng</small>6</div>
+          <div class="month good"><small>tháng</small>7</div><div class="month"><small>tháng</small>8</div><div class="month"><small>tháng</small>9</div><div class="month warn"><small>tháng</small>10</div><div class="month good"><small>tháng</small>11</div><div class="month"><small>tháng</small>12</div>
+        </div>
+        <div class="month-card">
+          <h3>Tháng 5 âm lịch: hạn tiền bạc</h3>
+          <p class="read" style="margin:0 0 8px">Tháng dễ hao vì người quen hỏi vay hoặc rủ góp vốn. Khoản chi lớn bất ngờ cho nhà cửa.</p>
+          <ul class="do"><li><span>1</span>Hoãn mọi khoản cho vay sang sau tháng 6.</li><li><span>2</span>Để sẵn một khoản dự phòng bằng hai tháng chi tiêu.</li></ul>
+        </div>
+      </section>
+
+      <section class="card locked" id="tinh-duyen">
+        <h2>Tình duyên, hôn nhân</h2>
+        <p class="src">Cung Phu Thê tại Tý · Vũ Khúc (Vượng) Hóa Kỵ, Thiên Phủ (Miếu)</p>
+        <div class="blur" aria-hidden="true">Vũ Khúc Hóa Kỵ ở Phu Thê: tiền bạc là chỗ vợ chồng va nhau nhiều nhất. Người bạn đời thường giỏi giữ tiền, cứng tính…</div>
+        <div class="veil"><div><p>Đoạn đầu của phần Tình duyên</p><a class="btn btn-primary" href="trang-chu.html#lap-la-so">Lập lá số của bạn để đọc</a></div></div>
+      </section>
+
+      <section class="card locked" id="dai-van">
+        <h2>Đại vận hiện tại</h2>
+        <div class="blur" aria-hidden="true">Mười năm bạn đang đi qua đặt trọng tâm vào công việc và vị trí xã hội, với hai giai đoạn cần chú ý…</div>
+        <div class="veil"><div><p>Đoạn đầu của phần Đại vận</p><a class="btn btn-primary" href="trang-chu.html#lap-la-so">Lập lá số của bạn để đọc</a></div></div>
+      </section>
+
+      <section class="card" id="con-lai">
+        <h2>6 phần khác trong bản Toàn diện</h2>
+        <p class="read" style="margin:0">Sức khoẻ · Gia đạo, con cái · Anh chị em · Bạn bè, đồng nghiệp · Nhà cửa · Phúc đức</p>
+      </section>
+
+      <section class="card end-cta">
+        <h2>Bản của bạn sẽ viết từ lá số của chính bạn</h2>
+        <p style="margin:0;max-width:520px">Lập lá số miễn phí trước. Đọc sâu khi bạn muốn.</p>
+        <a class="btn btn-primary btn-lg" href="trang-chu.html#lap-la-so">Lập lá số miễn phí</a>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer" id="ho-tro">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+        <div class="support-row">
+          <a class="support-pill" href="mailto:lasoviet.net@gmail.com"><svg aria-hidden="true"><use href="#ui-mail"/></svg>lasoviet.net@gmail.com</a>
+          <a class="support-pill" href="#" data-pending><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="20" height="20" alt="">Messenger</a>
+        </div>
+      </div>
+      <div><h3>Tử Vi</h3><ul><li><a href="trang-chu.html#lap-la-so">Lập lá số</a></li><li><a href="bao-cao-mau.html">Bản luận giải mẫu</a></li><li><a href="cong-cu-mien-phi.html#hoi-vien">Hội viên</a></li></ul></div>
+      <div><h3>Công cụ miễn phí</h3><ul><li><a href="cong-cu-tu-vi-hom-nay.html">Tử vi hôm nay</a></li><li><a href="cong-cu-mien-phi.html">Tất cả công cụ</a></li></ul></div>
+      <div><h3>Hỗ trợ</h3><ul><li><a href="#">Câu hỏi thường gặp</a></li><li><a href="#">Quyền riêng tư</a></li></ul></div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Lá Số Việt</span><span>Nội dung mang tính tham khảo.</span></div>
+  </div>
+</footer>
+</body>
+</html>

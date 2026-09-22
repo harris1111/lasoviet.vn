@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chọn luận giải — Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  body { padding-bottom: 104px; }
+  .c-head { padding-block: 28px 8px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; }
+  .c-head h1 { font: 600 clamp(28px, 3.6vw, 40px)/1.15 var(--font-display); color: var(--text-heading); margin: 0 0 6px; }
+  .c-head p { margin: 0; color: var(--text-muted); }
+  .balance { display: inline-flex; gap: 10px; align-items: center; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--border-soft); background: var(--surface-raised); font-size: 15px; }
+  .balance b { font: 600 20px var(--font-display); color: var(--gold-400); }
+  @media (max-width: 640px) { .c-head { grid-template-columns: 1fr; } }
+
+  .seg3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 5px; border-radius: 999px; background: var(--lacquer-900); border: 1px solid var(--border-soft); max-width: 560px; margin: 24px 0; }
+  .seg3 button { height: 44px; border: 0; border-radius: 999px; background: transparent; color: var(--text-body); font: 600 15px var(--font-ui); cursor: pointer; }
+  .seg3 button[aria-selected="true"] { background: var(--gold-soft); color: var(--gold-400); box-shadow: inset 0 0 0 1px var(--gold-600); }
+
+  .offers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .packs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 980px) { .packs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 720px) { .offers, .packs { grid-template-columns: 1fr; } .is-featured { order: -1; } }
+
+  .offer { display: grid; gap: 10px; align-content: start; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+  .offer[aria-pressed="true"] { border-color: var(--gold-400); box-shadow: var(--shadow-card), 0 0 0 2px var(--gold-500); }
+  .offer .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .offer .medallion { color: var(--gold-500); }
+  .offer h2, .offer h3 { margin: 0; font: 600 20px var(--font-ui); color: var(--text-heading); }
+  .offer .price { font: 600 40px/1 var(--font-display); color: var(--gold-400); font-variant-numeric: tabular-nums; }
+  .offer .price small { font: 500 16px var(--font-ui); color: var(--text-muted); }
+  .offer .desc { margin: 0; font-size: 15px; }
+  .offer ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+  .offer li { display: grid; grid-template-columns: 20px 1fr; gap: 8px; font-size: 15px; }
+  .offer li svg { width: 18px; height: 18px; color: #7FB39C; margin-top: 2px; }
+  .offer li.no { color: var(--text-muted); } .offer li.no svg { color: var(--text-faint); }
+  .radio { width: 22px; height: 22px; border-radius: 999px; border: 2px solid var(--border-soft); display: grid; place-items: center; flex: none; }
+  .offer[aria-pressed="true"] .radio { border-color: var(--gold-400); }
+  .offer[aria-pressed="true"] .radio::after { content: ""; width: 10px; height: 10px; border-radius: 999px; background: var(--gold-400); }
+  .upgrade { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--gold-soft); font-size: 14.5px; }
+
+  .pack .vnd { font: 600 30px/1 var(--font-display); color: var(--text-heading); font-variant-numeric: tabular-nums; }
+  .pack .la { font-size: 16px; }
+  .pack .la b { color: var(--gold-400); }
+  .pack .bonus { font: 600 14px var(--font-ui); color: #9FD1BA; }
+  .pack .per { font-size: 13.5px; color: var(--text-faint); }
+
+  .benefits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; margin-top: 24px; }
+  .benefits div { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: 15px; }
+  .benefits svg { width: 20px; height: 20px; color: var(--gold-400); margin-top: 2px; }
+  .benefits b { color: var(--text-heading); display: block; }
+  @media (max-width: 640px) { .benefits { grid-template-columns: 1fr; } }
+
+  .faq { display: grid; gap: 10px; margin-top: 24px; max-width: 760px; }
+  .faq details { background: var(--surface-raised); border: 1px solid var(--border-soft); border-radius: 14px; padding: 0 18px; }
+  .faq summary { cursor: pointer; list-style: none; padding: 16px 0; font-weight: 600; color: var(--text-heading); display: flex; justify-content: space-between; gap: 12px; }
+  .faq summary::after { content: "+"; color: var(--gold-400); font-size: 20px; line-height: 1; }
+  .faq details[open] summary::after { content: "×"; }
+  .faq p { margin: 0 0 16px; }
+
+  .support { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; margin-top: 24px; }
+  .support h2 { font: 600 20px var(--font-display); color: var(--gold-400); margin: 0 0 4px; }
+  .support p { margin: 0; font-size: 15px; }
+  @media (max-width: 640px) { .support { grid-template-columns: 1fr; } }
+
+  .paybar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: rgba(15,13,10,.97); border-top: 1px solid var(--border-soft); padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .paybar .container { display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+  .paybar .sum { font-size: 15px; line-height: 1.35; min-width: 0; }
+  .paybar .sum b { color: var(--text-heading); }
+  .paybar .sum .short { color: #EC8A74; }
+  .paybar .btn { flex: none; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <div class="header-actions">
+      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
+      <a class="btn btn-secondary" href="la-so-ket-qua.html" style="height:40px;padding:0 16px;font-size:15px">Về lá số</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <p class="proto-note">Giá theo FD-066 và FD-093. Tiền đồng chỉ hiện ở tab Nạp Lá (FD-065). Số dư mẫu: 0 Lá.</p>
+  <section class="c-head">
+    <div>
+      <h1>Mở luận giải cho lá số của Mẫu</h1>
+      <p>Mở một lần, giữ trọn đời. Không tự gia hạn.</p>
+    </div>
+    <span class="balance">Số dư <b id="bal">0</b> Lá</span>
+  </section>
+
+  <div class="seg3" role="tablist" aria-label="Loại" id="seg">
+    <button role="tab" aria-selected="true" data-p="luan-giai">Luận giải</button>
+    <button role="tab" aria-selected="false" data-p="hoi-vien">Hội viên</button>
+    <button role="tab" aria-selected="false" data-p="nap-la">Nạp Lá</button>
+  </div>
+
+  <!-- Luận giải -->
+  <section id="luan-giai" aria-label="Luận giải">
+    <div class="offers" id="offers">
+      <button type="button" class="card offer" aria-pressed="false" data-item="Bản mệnh" data-price="240">
+        <span class="top"><span class="medallion"><svg aria-hidden="true"><use href="#i-menh-ngu-hanh"/></svg></span><span class="radio" aria-hidden="true"></span></span>
+        <h2>Bản mệnh</h2>
+        <span class="price">240 <small>Lá</small></span>
+        <p class="desc">Hiểu mình trước: tính cách, điểm mạnh, điểm yếu, hướng đi.</p>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>4 phần luận giải từ lá số của bạn</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Mỗi ý có nút "Vì sao?"</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Lưu thư viện, tải PDF</li>
+          <li class="no"><svg aria-hidden="true"><use href="#ui-lock"/></svg>Chưa có năm nay và đại vận</li>
+        </ul>
+        <span class="upgrade">Nâng lên Toàn diện trong 7 ngày chỉ thêm <b>&nbsp;720 Lá</b></span>
+      </button>
+      <button type="button" class="card offer is-featured" aria-pressed="true" data-item="Toàn diện" data-price="960">
+        <span class="top"><span class="medallion"><svg aria-hidden="true"><use href="#i-tu-vi-hom-nay"/></svg></span><span style="display:flex;gap:8px;align-items:center"><span class="tag tag-gold">Gợi ý</span><span class="radio" aria-hidden="true"></span></span></span>
+        <h2>Toàn diện</h2>
+        <span class="price">960 <small>Lá</small></span>
+        <p class="desc">Trọn lá số: 12 phần, đại vận hiện tại, từng tháng hạn năm nay.</p>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Tất cả của Bản mệnh</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Công việc, tiền bạc, tình duyên, sức khoẻ, gia đạo</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Đại vận 10 năm bạn đang đi qua</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Năm 2026: 2 tháng hạn, việc nên tránh, cách chuẩn bị</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Lưu thư viện, tải PDF</li>
+        </ul>
+      </button>
+    </div>
+  </section>
+
+  <!-- Hội viên -->
+  <section id="hoi-vien" aria-label="Hội viên" hidden>
+    <div class="offers">
+      <button type="button" class="card offer" aria-pressed="false" data-item="Hội viên tháng" data-price="1500">
+        <span class="top"><h2>Hội viên tháng</h2><span class="radio" aria-hidden="true"></span></span>
+        <span class="price">1.500 <small>Lá · 30 ngày</small></span>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Hôm nay của bạn, mỗi sáng</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Nguyệt vận từng tháng</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Bản theo lá số của mọi công cụ</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Giảm 20% khi mở luận giải</li>
+          <li class="no"><svg aria-hidden="true"><use href="#ui-lock"/></svg>Bản Toàn diện mua riêng</li>
+        </ul>
+      </button>
+      <button type="button" class="card offer is-featured" aria-pressed="false" data-item="Hội viên năm" data-price="8000">
+        <span class="top"><span style="display:flex;gap:8px;align-items:center"><h2>Hội viên năm</h2><span class="tag tag-gold">Gợi ý</span></span><span class="radio" aria-hidden="true"></span></span>
+        <span class="price">8.000 <small>Lá · 365 ngày</small></span>
+        <p class="desc">Rẻ hơn 56% so với 12 lần gói tháng.</p>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Mọi quyền lợi gói tháng, trọn năm</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Nguyệt vận đủ 12 tháng</li>
+          <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Giảm 20% khi mở luận giải</li>
+        </ul>
+      </button>
+    </div>
+  </section>
+
+  <!-- Nạp Lá -->
+  <section id="nap-la" aria-label="Nạp Lá" hidden>
+    <div class="packs" id="packs"></div>
+    <p style="color:var(--text-muted);font-size:14.5px;margin:14px 0 0">Thanh toán bằng chuyển khoản VietQR. Lá vào ví ngay khi nhận tiền, không cần chờ duyệt. Lá đã nạp không hết hạn.</p>
+  </section>
+
+  <div class="benefits">
+    <div><svg aria-hidden="true"><use href="#ui-check"/></svg><span><b>Giữ trọn đời</b>Mở rồi là của bạn, xem lại bao nhiêu lần cũng được.</span></div>
+    <div><svg aria-hidden="true"><use href="#ui-lock"/></svg><span><b>Riêng tư</b>Bản luận giải không hiện trên Google.</span></div>
+    <div><svg aria-hidden="true"><use href="#ui-check"/></svg><span><b>Không tự gia hạn</b>Không trừ Lá khi bạn chưa bấm mua.</span></div>
+    <div><svg aria-hidden="true"><use href="#ui-mail"/></svg><span><b>Hỗ trợ khi gặp lỗi</b>Nhắn Messenger hoặc email nếu thanh toán gặp lỗi.</span></div>
+  </div>
+
+  <div class="faq">
+    <details open><summary>Bản mệnh và Toàn diện khác nhau thế nào?</summary><p>Bản mệnh nói về con người bạn. Toàn diện thêm công việc, tiền bạc, tình duyên, sức khoẻ, đại vận và từng tháng hạn năm nay.</p></details>
+    <details><summary>Lá là gì?</summary><p>Lá là đơn vị để mở nội dung trên Lá Số Việt. Bạn nạp Lá một lần rồi dùng cho mọi thứ: luận giải, hội viên, lá số người thân.</p></details>
+    <details><summary>Nhập sai ngày giờ sinh thì sao?</summary><p>Sửa thông tin trước khi mở. Nếu đã mở rồi mới phát hiện sai, gửi email để được tạo lại theo chính sách.</p></details>
+  </div>
+
+  <div class="card support">
+    <div><h2>Cần hỏi trước khi mua?</h2><p>Lá Số Việt trả lời qua Messenger hoặc email trong ngày làm việc.</p></div>
+    <div class="support-row" style="margin:0">
+      <a class="support-pill" href="#" data-pending><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="20" height="20" alt="">Messenger</a>
+      <a class="support-pill" href="mailto:lasoviet.net@gmail.com?subject=H%E1%BB%8Fi%20v%E1%BB%81%20lu%E1%BA%ADn%20gi%E1%BA%A3i"><svg aria-hidden="true"><use href="#ui-mail"/></svg>Email</a>
+    </div>
+  </div>
+  <div style="height:48px"></div>
+</main>
+
+<div class="paybar" role="region" aria-label="Đơn đang chọn">
+  <div class="container">
+    <div class="sum" id="sum"></div>
+    <a class="btn btn-primary btn-lg" href="#" id="payBtn">Nạp và mở</a>
+  </div>
+</div>
+
+<script>
+  var BAL = 0;
+  // FD-066 packs. Bonus is a real, stated amount — no crossed-out prices.
+  var PACKS = [
+    { name:"Nhập Môn", vnd:29000,  base:300,  bonus:0 },
+    { name:"Khởi Đọc", vnd:99000,  base:1000, bonus:100 },
+    { name:"Khám Phá", vnd:249000, base:2500, bonus:500, tag:"Gợi ý" },
+    { name:"Tàng Thư", vnd:599000, base:6000, bonus:2000 }
+  ];
+  function vnd(n){ return n.toLocaleString("vi-VN") + "đ"; }
+  function la(n){ return n.toLocaleString("vi-VN"); }
+  var packSel = 2;
+  function renderPacks(){
+    document.getElementById("packs").innerHTML = PACKS.map(function(p, i){
+      var total = p.base + p.bonus;
+      return '<button type="button" class="card offer pack'+(p.tag?' is-featured':'')+'" aria-pressed="'+(i===packSel)+'" data-pack="'+i+'">'
+        + '<span class="top"><h3>'+p.name+'</h3><span style="display:flex;gap:8px;align-items:center">'+(p.tag?'<span class="tag tag-gold">'+p.tag+'</span>':'')+'<span class="radio" aria-hidden="true"></span></span></span>'
+        + '<span class="vnd">'+vnd(p.vnd)+'</span>'
+        + '<span class="la">Nhận <b>'+la(total)+' Lá</b></span>'
+        + (p.bonus ? '<span class="bonus">+'+la(p.bonus)+' Lá tặng</span>' : '<span class="per">Dùng thử</span>')
+        + '</button>';
+    }).join("");
+  }
+  renderPacks();
+
+  // FD-066: when the balance is short, pre-select the smallest pack that covers the item.
+  function smallestCover(price){ for (var i = 0; i < PACKS.length; i++) if (PACKS[i].base + PACKS[i].bonus >= price - BAL) return i; return PACKS.length - 1; }
+  var item = { name:"Toàn diện", price:960 }, mode = "item";
+  function renderSum(){
+    var s = document.getElementById("sum"), b = document.getElementById("payBtn");
+    if (mode === "pack") {
+      var p = PACKS[packSel];
+      s.innerHTML = 'Gói <b>'+p.name+'</b> · '+vnd(p.vnd)+'<br>Nhận '+la(p.base+p.bonus)+' Lá';
+      b.textContent = "Nạp " + vnd(p.vnd);
+      return;
+    }
+    if (BAL >= item.price) { s.innerHTML = '<b>'+item.name+'</b> · '+la(item.price)+' Lá'; b.textContent = "Mở ngay"; return; }
+    var k = smallestCover(item.price), p = PACKS[k];
+    s.innerHTML = '<b>'+item.name+'</b> · '+la(item.price)+' Lá<br><span class="short">Thiếu '+la(item.price - BAL)+' Lá</span> · gói '+p.name+' '+vnd(p.vnd);
+    b.textContent = window.innerWidth < 520 ? "Nạp và mở" : "Nạp " + vnd(p.vnd) + " và mở";
+  }
+  renderSum();
+
+  document.querySelectorAll(".offers").forEach(function(g){
+    g.addEventListener("click", function(e){
+      var o = e.target.closest(".offer"); if (!o) return;
+      document.querySelectorAll(".offers .offer").forEach(function(x){ x.setAttribute("aria-pressed", x === o); });
+      item = { name:o.dataset.item, price:+o.dataset.price }; mode = "item"; renderSum();
+    });
+  });
+  document.getElementById("packs").addEventListener("click", function(e){
+    var o = e.target.closest(".pack"); if (!o) return;
+    packSel = +o.dataset.pack; mode = "pack"; renderPacks(); renderSum();
+  });
+  document.getElementById("seg").addEventListener("click", function(e){
+    var t = e.target.closest("[role=tab]"); if (!t) return;
+    this.querySelectorAll("[role=tab]").forEach(function(x){ x.setAttribute("aria-selected", x === t); document.getElementById(x.dataset.p).hidden = x !== t; });
+    if (t.dataset.p === "nap-la") { mode = "pack"; } else { mode = "item"; var on = document.querySelector("#"+t.dataset.p+" .offer[aria-pressed=true]") || document.querySelector("#"+t.dataset.p+" .is-featured"); if (on) { on.click(); } }
+    renderSum();
+  });
+</script>
+</body>
+</html>
