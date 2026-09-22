@@ -9,13 +9,15 @@
   },
   "scripts": {
     "build": "corepack pnpm@11.25.0 -r --if-present run build",
-    "typecheck": "corepack pnpm@11.25.0 --filter \"{packages/**}\" -r --if-present run build && corepack pnpm@11.25.0 -r --if-present run typecheck",
-    "test": "vitest run",
+    "typecheck": "corepack pnpm@11.25.0 run config:contact:check && corepack pnpm@11.25.0 --filter \"{packages/**}\" -r --if-present run build && corepack pnpm@11.25.0 -r --if-present run typecheck",
+    "test": "vitest run && corepack pnpm@11.25.0 run test:scripts",
     "lint": "eslint .",
     "i18n:check": "node scripts/check-i18n-parity.mjs",
     "content:check": "corepack pnpm@11.25.0 --filter @lasoviet/config... run build && node scripts/check-public-content.mjs",
     "check": "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run build && corepack pnpm@11.25.0 run test",
-    "test:scripts": "node --test scripts/assemble-ziwei-knowledge-v4.test.mjs scripts/select-ziwei-knowledge-v4-sample.test.mjs scripts/validate-ziwei-knowledge-v4.test.mjs"
+    "test:scripts": "node --test scripts/assemble-ziwei-knowledge-v4.test.mjs scripts/select-ziwei-knowledge-v4-sample.test.mjs scripts/validate-ziwei-knowledge-v4.test.mjs",
+    "config:contact:check": "node packages/config/scripts/generate-customer-contact.mjs --check",
+    "test:unit": "vitest run"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
