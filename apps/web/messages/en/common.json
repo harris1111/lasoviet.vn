@@ -328,6 +328,11 @@
       "ctaPrimary": "Build your free chart now",
       "ctaSecondary": "View sample reading",
       "closing": "Understand yourself to make more deliberate choices."
+    },
+    "support": {
+      "title": "Need guidance or support?",
+      "description": "The Lá Số Việt team is ready to listen and answer your questions via private email support.",
+      "action": "Send support email"
     }
   }
 }

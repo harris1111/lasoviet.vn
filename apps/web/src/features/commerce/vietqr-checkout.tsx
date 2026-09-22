@@ -1,3 +1,4 @@
+import { SupportCard } from "../../components/ui/support-card";
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -609,6 +610,25 @@ export function VietQrCheckout({
             </div>
           </div>
         </section>
+        <div className="checkout-recovery-support" data-testid="checkout-expired-support">
+          <SupportCard
+            actionLabel={isVi ? "Gửi email hỗ trợ" : "Send support email"}
+            description={
+              isVi
+                ? "Nếu bạn đã chuyển khoản nhưng đơn hàng đã hết hạn và đối chiếu chưa khớp, vui lòng gửi email kèm mã đơn để được hỗ trợ kiểm tra."
+                : "If you already transferred but this order expired and self-claim did not match, please email support with your order code."
+            }
+            email="support@lasoviet.net"
+            subject={
+              (status.order.paymentCode)
+                ? (isVi
+                    ? `[Lá Số Việt] Hỗ trợ đơn hàng ${status.order.paymentCode}`
+                    : `[La So Viet] Support for order ${status.order.paymentCode}`)
+                : (isVi ? "[Lá Số Việt] Hỗ trợ đơn hàng" : "[La So Viet] Order support request")
+            }
+            title={isVi ? "Cần hỗ trợ đơn hàng này?" : "Need support for this order?"}
+          />
+        </div>
         {selfClaim}
         {footerSupportBlock}
       </>
@@ -660,6 +680,25 @@ export function VietQrCheckout({
             </div>
           </div>
         </section>
+        <div className="checkout-recovery-support" data-testid="checkout-failed-support">
+          <SupportCard
+            actionLabel={isVi ? "Gửi email hỗ trợ" : "Send support email"}
+            description={
+              isVi
+                ? "Giao dịch thanh toán chưa thành công. Bạn có thể gửi email để đội ngũ hỗ trợ kiểm tra trạng thái thanh toán."
+                : "Payment was not completed. You can send an email so our support team can verify the transaction status."
+            }
+            email="support@lasoviet.net"
+            subject={
+              (status.order.paymentCode)
+                ? (isVi
+                    ? `[Lá Số Việt] Hỗ trợ đơn hàng ${status.order.paymentCode}`
+                    : `[La So Viet] Support for order ${status.order.paymentCode}`)
+                : (isVi ? "[Lá Số Việt] Hỗ trợ đơn hàng" : "[La So Viet] Order support request")
+            }
+            title={isVi ? "Cần hỗ trợ đơn hàng này?" : "Need support for this order?"}
+          />
+        </div>
         {footerSupportBlock}
       </>
     );
