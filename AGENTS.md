@@ -1,5 +1,12 @@
 # Lasoviet Repository Policy
 
+## 0. Owner Authority & Reference Role Split (Updated 2026-09-22)
+
+- **No Rigid Authority Barrier:** There is no restrictive permission wall or approval silo between An and Lãm.
+- **Reference Roles Only:** As an operational reference (not a rigid rule), An focuses on Technical areas and Lãm focuses on Business/Product.
+- **Interchangeable Execution:** Either owner has full authority to decide, instruct, authorize, implement, or review tasks across any technical or business domain without requiring separate cross-confirmation or waiting for handoff.
+- A direct instruction from either An or Lãm is immediately binding. When explicit instructions conflict, the latest explicit instruction controls.
+
 ## 1. Scope And Precedence
 
 This file applies to the entire `lasoviet.vn` repository.

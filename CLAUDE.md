@@ -14,7 +14,10 @@
 - **Never push or commit directly to `master`.** Always work on a dedicated branch.
 - Standard flow: dedicated branch -> Pull Request targeting `product/experience-spec-v1` (or `master` for release) -> tests pass -> merge after founder authorization.
 - Commit conventions: English conventional commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `perf:`).
-- Both An and Lãm have equal owner authority across technical and product domains per `AGENTS.md`.
+- **Owner Authority & Reference Role Split:**
+  - An focuses on Technical, Lãm focuses on Business. This is an informational role reference, NOT a rigid rule or barrier.
+  - Either person has full authority to decide, instruct, approve, and execute across technical or business tasks without cross-confirmation.
+  - A direct instruction from either An or Lãm is immediately binding.
 
 ## Kaneo Project Management Defaults
 - Workspace: `Cash Cow` (`Ey2EBYm4Oeq2rhZoVpGYKLLoXEeZfJ2G`)
