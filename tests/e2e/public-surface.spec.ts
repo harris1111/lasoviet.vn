@@ -21,7 +21,7 @@ const locales = [
     canonical: "https://lasoviet.net/",
     title: "Lá Số Việt | Lập lá số. Hiểu vận mệnh.",
     description:
-      "Nền tảng lập và luận giải lá số có căn cứ, bắt đầu với Tử Vi và trải nghiệm rõ ràng cho người Việt.",
+      "Lập lá số Tử Vi miễn phí, luận giải có căn cứ rõ ràng — nền tảng khai phóng bản mệnh cho người Việt, nói có sách mách có chứng.",
     cta: "Lập lá số miễn phí",
     finalCta: "Xem lá số miễn phí",
     chartPath: "/tao-la-so/tu-vi",
@@ -32,6 +32,12 @@ const locales = [
       "/cong-cu-mien-phi",
       "/kien-thuc",
       "/lien-he",
+    ],
+    alsoAvailableHrefs: [
+      "/bat-tu",
+      "/chiem-tinh",
+      "/than-so-hoc",
+      "/kinh-dich",
     ],
   },
   {
@@ -52,6 +58,12 @@ const locales = [
       "/en/cong-cu-mien-phi",
       "/en/kien-thuc",
       "/en/lien-he",
+    ],
+    alsoAvailableHrefs: [
+      "/en/bat-tu",
+      "/en/chiem-tinh",
+      "/en/than-so-hoc",
+      "/en/kinh-dich",
     ],
   },
 ] as const;
@@ -74,7 +86,7 @@ async function visitLocalizedHome(
     },
   ]);
   await page.setExtraHTTPHeaders({
-    "Accept-Language": locale.acceptLanguage,
+    "AcceptLanguage": locale.acceptLanguage,
   });
   await page.goto(target.toString());
 }
@@ -129,7 +141,7 @@ for (const viewport of [
         const header = page.locator(".site-header");
         await expect(header).toBeVisible();
 
-        // Inputs >= 44px
+        // Inputs and controls >= 44px
         const inputs = page.locator("#hero-form input:not([tabindex='-1']):not([type='checkbox']), .wizard-unknown-time, #hero-form select, #hero-form button");
         for (const input of await inputs.all()) {
           const b = await input.boundingBox();
@@ -147,7 +159,7 @@ for (const viewport of [
   }
 }
 
-test("uses exact localized routes and keeps planned offers inert", async ({
+test("uses exact localized routes, validates also-available links, and exercises final CTA return", async ({
   page,
 }) => {
   for (const locale of locales) {
@@ -184,19 +196,30 @@ test("uses exact localized routes and keeps planned offers inert", async ({
       "hai",
     ]);
 
-    // Topic chips contains also-have links to other disciplines
+    // Topic chips contains also-have links with exact localized hrefs
     const alsoHaveRow = page.locator(".also-have-row");
     await expect(alsoHaveRow).toBeVisible();
-    await expect(alsoHaveRow.locator("a")).toHaveCount(4);
+    const alsoHaveLinks = alsoHaveRow.locator("a");
+    await expect(alsoHaveLinks).toHaveCount(4);
+    for (let i = 0; i < 4; i++) {
+      await expect(alsoHaveLinks.nth(i)).toHaveAttribute("href", locale.alsoAvailableHrefs[i]!);
+    }
 
     // Capability matrix is present without prices (neither VND nor Lá)
     const capability = page.locator('[data-home-block="capability-matrix"]');
     await expect(capability).toBeVisible();
     await expect(capability).not.toContainText(/₫|đ(?!\p{L})|VND|(?:Lá|La)(?!\p{L})/u);
 
-    // Final CTA button is present
+    // Final CTA button is present and clicking it focuses the single #hero-form
     const finalCta = page.locator('[data-home-block="final-cta"]');
     await expect(finalCta).toBeVisible();
+    const finalCtaBtn = finalCta.locator("button.button-pill");
+    await expect(finalCtaBtn).toBeVisible();
+    await finalCtaBtn.click();
+
+    // Verify first focusable input/select in #hero-form is focused
+    const firstHeroField = heroForm.locator("select, input").first();
+    await expect(firstHeroField).toBeFocused();
   }
 });
 
@@ -209,9 +232,10 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
       locale.canonical,
     );
     await expect(page).toHaveTitle(locale.title);
+    // Exact expected localized metadata description from fixture
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
-      /.+/,
+      locale.description,
     );
     await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
       "href",
@@ -243,7 +267,7 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
       await expect(navLinks.nth(i)).toHaveAttribute("href", locale.anchors[i]!);
     }
 
-    // Footer retains the SVG brand logo
+    // Footer retains the SVG brand logo and is visible
     const footerBrandLogo = page.locator("footer img.brand-logo");
     await expect(footerBrandLogo).toHaveCount(1);
     await expect(footerBrandLogo).toHaveAttribute(
@@ -255,7 +279,7 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
   }
 });
 
-test("loads homepage imagery and uses native menu and FAQ details", async ({
+test("loads homepage imagery completely and uses native menu and FAQ details", async ({
   page,
 }) => {
   for (const locale of locales) {
@@ -264,6 +288,19 @@ test("loads homepage imagery and uses native menu and FAQ details", async ({
 
     const images = page.locator("main img");
     expect(await images.count()).toBeGreaterThan(0);
+    // Assert every image is fully loaded with naturalWidth > 0
+    await expect
+      .poll(async () => {
+        return await images.evaluateAll((items) =>
+          items.every(
+            (img) =>
+              img instanceof HTMLImageElement &&
+              img.complete &&
+              img.naturalWidth > 0,
+          ),
+        );
+      })
+      .toBe(true);
 
     const menu = page.locator("details.mobile-menu");
     await expect(menu).toHaveCount(1);

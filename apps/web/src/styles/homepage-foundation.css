@@ -929,3 +929,53 @@
 .hero-form-inputs .ui-field-shell__control {
   min-height: 56px !important;
 }
+
+/* Homepage-scoped typography overrides to guarantee effective font-size >= 14px */
+.home .eyebrow {
+  font-size: 14px;
+}
+.home .hero-form-inputs label {
+  font-size: 14px;
+}
+.home .hero-meta-route {
+  font-size: 14px;
+}
+.home .hero-meta-detail {
+  font-size: 14px;
+}
+.home .birth-note {
+  font-size: 14px;
+}
+.home .process-meta {
+  font-size: 14px;
+}
+.home .process-figure figcaption {
+  font-size: 14px;
+}
+.home .featured-byline {
+  font-size: 14px;
+}
+.home .comp-badge {
+  font-size: 14px;
+}
+.home .also-have-chip {
+  font-size: 14px;
+}
+.home .matrix-badge-label {
+  font-size: 14px;
+}
+.home .knowledge-category-tag {
+  font-size: 14px;
+}
+.home .knowledge-compact-tag {
+  font-size: 14px;
+}
+.home .evidence-meta-pill {
+  font-size: 14px;
+}
+.home .evidence-card-badge {
+  font-size: 14px;
+}
+.home .cta-closing {
+  font-size: 14px;
+}

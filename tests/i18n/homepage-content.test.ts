@@ -338,3 +338,37 @@ describe("homepage content and structure requirements", () => {
     expect(pxSizesBelow14, "No px font-size declaration below 14px in homepage-foundation.css").toEqual([]);
   });
 });
+
+  it("enforces effective font-size >= 14px across all homepage stylesheets and scoped overrides", () => {
+    const foundationCss = readFileSync(
+      resolve(rootDir, "apps/web/src/styles/homepage-foundation.css"),
+      "utf8",
+    );
+
+    // Assert that homepage typography scoped overrides exist for all potentially small selectors
+    const required14pxSelectors = [
+      ".home .eyebrow",
+      ".home .hero-form-inputs label",
+      ".home .hero-meta-route",
+      ".home .hero-meta-detail",
+      ".home .birth-note",
+      ".home .process-meta",
+      ".home .process-figure figcaption",
+      ".home .featured-byline",
+      ".home .comp-badge",
+      ".home .also-have-chip",
+      ".home .matrix-badge-label",
+      ".home .knowledge-category-tag",
+      ".home .knowledge-compact-tag",
+      ".home .evidence-meta-pill",
+      ".home .evidence-card-badge",
+      ".home .cta-closing",
+    ];
+
+    for (const selector of required14pxSelectors) {
+      expect(
+        foundationCss.includes(`${selector} {\n  font-size: 14px;\n}`),
+        `homepage-foundation.css must enforce font-size: 14px on ${selector}`,
+      ).toBe(true);
+    }
+  });

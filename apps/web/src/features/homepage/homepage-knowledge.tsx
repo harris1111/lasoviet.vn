@@ -10,7 +10,6 @@ type HomepageKnowledgeProps = {
 
 export function HomepageKnowledge({ locale }: HomepageKnowledgeProps) {
   const t = useTranslations("common");
-  const isEn = locale === "en";
 
   const featured = {
     key: "chart",
@@ -19,7 +18,7 @@ export function HomepageKnowledge({ locale }: HomepageKnowledgeProps) {
     title: t("home.knowledge.chart.title"),
     copy: t("home.knowledge.chart.copy"),
     category: t("home.knowledge.featuredCategory"),
-    byline: isEn ? "Edited by Lá Số Việt" : "Lá Số Việt biên tập",
+    byline: t("home.knowledge.byline"),
   };
 
   const compactList = [
@@ -58,11 +57,7 @@ export function HomepageKnowledge({ locale }: HomepageKnowledgeProps) {
       <div className="section-heading text-center">
         <p className="eyebrow">{t("home.knowledge.eyebrow")}</p>
         <h2>{t("home.knowledge.title")}</h2>
-        <p className="section-lead">
-          {isEn
-            ? "Essential foundations, calculation methods, and transparent rules edited by Lá Số Việt."
-            : "Nền tảng cốt lõi, phương pháp an sao và các nguyên tắc đối chiếu do Lá Số Việt biên tập."}
-        </p>
+        <p className="section-lead">{t("home.knowledge.lead")}</p>
       </div>
 
       <div className="knowledge-layout-grid">
