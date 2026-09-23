@@ -300,8 +300,8 @@ export function PaidTopicSelector({
             actionLabel={locale === "en" ? "Send support email" : "Gửi email hỗ trợ"}
             description={
               locale === "en"
-                ? "The Lá Số Việt team is ready to answer questions about packages and access via email."
-                : "Đội ngũ Lá Số Việt sẵn sàng giải đáp thắc mắc về các gói luận giải và quyền lợi qua email."
+                ? "Send Lá Số Việt an email about questions on packages and access."
+                : "Gửi email cho Lá Số Việt để được giải đáp thắc mắc về các gói luận giải và quyền lợi."
             }
             email={supportEmail}
             title={locale === "en" ? "Need help choosing a reading?" : "Cần hỗ trợ về gói luận giải?"}

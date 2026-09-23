@@ -6,10 +6,10 @@ vi.mock("next-intl", () => ({
     const map: Record<string, string> = {
       "selection.title": "Chọn luận giải",
       "selection.supportTitle": "Cần hỗ trợ về gói luận giải?",
-      "selection.supportDescription": "Đội ngũ Lá Số Việt sẵn sàng giải đáp thắc mắc về các gói luận giải và quyền lợi qua email.",
+      "selection.supportDescription": "Gửi email cho Lá Số Việt để được giải đáp thắc mắc về các gói luận giải và quyền lợi.",
       "selection.supportAction": "Gửi email hỗ trợ",
       "home.support.title": "Cần đồng hành hoặc hỗ trợ?",
-      "home.support.description": "Đội ngũ Lá Số Việt sẵn sàng lắng nghe và giải đáp mọi thắc mắc qua email hỗ trợ riêng tư.",
+      "home.support.description": "Gửi email cho Lá Số Việt để được giải đáp mọi thắc mắc, riêng tư và bảo mật.",
       "home.support.action": "Gửi email hỗ trợ",
     };
     return map[key] ?? key;

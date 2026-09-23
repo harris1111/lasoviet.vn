@@ -131,7 +131,6 @@ export function SampleReportPage({ content, locale }: SampleReportPageProps) {
             <span className="sample-badge-active">{isVi ? "Báo cáo có sẵn ngay" : "Available now"}</span>
             <h2>{isVi ? "Luận giải Tử Vi trọn đời" : "Comprehensive Zi Wei Report"}</h2>
             <p className="sample-offer-meta">
-              <span className="topic-price">{isVi ? "79.000 ₫" : "79,000 VND"}</span>
               <span className="topic-once">{isVi ? "Thanh toán một lần · Không tự động gia hạn" : "One-time payment · No automatic renewal"}</span>
             </p>
           </div>
@@ -254,7 +253,6 @@ export function SampleReportPage({ content, locale }: SampleReportPageProps) {
             <div className="sample-status-header">
               <span className="sample-badge-available">{isVi ? "Đang mở chính thức" : "Officially available"}</span>
               <h3>{isVi ? "Tử Vi Đẩu Số" : "Zi Wei Dou Shu"}</h3>
-              <p className="topic-price">{isVi ? "79.000 ₫" : "79,000 VND"}</p>
               <span className="topic-once">{isVi ? "Thanh toán một lần" : "One-time payment"}</span>
             </div>
             <ul className="sample-feature-list">

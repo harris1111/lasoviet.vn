@@ -114,8 +114,11 @@ describe("SampleReportPage component", () => {
     expect(text).toContain("Bản luận giải mẫu");
     expect(text).toContain("Báo cáo mẫu Tử Vi");
 
-    // Primary product signal with exact price
-    expect(text).toContain("79.000 ₫");
+    // Primary product signal. Price is intentionally absent: FD-065 prices
+    // content in `Lá` only, and VND appears only on top-up packs, the
+    // payment order, and the invoice, never on a content/marketing page.
+    expect(text).not.toContain("₫");
+    expect(text).not.toContain("VND");
     expect(text).toContain("Thanh toán một lần");
 
     // Direct chart CTA in hero
@@ -164,7 +167,7 @@ describe("SampleReportPage component", () => {
     expect(text).toContain("Bắt đầu với lá số của chính bạn");
   });
 
-  it("renders sample report page in English with localized content and prices", () => {
+  it("renders sample report page in English with localized content and no price", () => {
     const page = SampleReportPage({
       content: mockContentEn,
       locale: "en",
@@ -177,8 +180,10 @@ describe("SampleReportPage component", () => {
     expect(text).toContain("Sample Report");
     expect(text).toContain("Tu Vi sample report");
 
-    // Primary product signal with English price format
-    expect(text).toContain("79,000 VND");
+    // Primary product signal. Price is intentionally absent (FD-065): see
+    // the Vietnamese test above for the rule.
+    expect(text).not.toContain("₫");
+    expect(text).not.toContain("VND");
     expect(text).toContain("One-time payment");
 
     // Direct chart CTA in hero with /en route

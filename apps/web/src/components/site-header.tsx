@@ -117,82 +117,9 @@ export function SiteHeader({
   return React.createElement(
     React.Fragment,
     null,
-    !isDiscipline &&
-      React.createElement(
-        "div",
-        {
-          className: "marquee",
-          "aria-label": isVietnamese ? "Cam kết dịch vụ" : "Service commitments",
-        },
-        React.createElement(
-          "div",
-          { className: "marquee-track" },
-          React.createElement(
-            "div",
-            { className: "marquee-group" },
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Lập lá số Tử Vi miễn phí - không cần tài khoản"
-                : "Free chart creation - no account required",
-            ),
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Căn cứ có thể mở cạnh nhận định"
-                : "Evidence can be opened beside insights",
-            ),
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Lá số của bạn riêng tư theo mặc định"
-                : "Your chart is private by default",
-            ),
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Thanh toán một lần - không tự động gia hạn"
-                : "One-time payment - no automatic renewal",
-            ),
-          ),
-          React.createElement(
-            "div",
-            { className: "marquee-group", "aria-hidden": "true" },
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Lập lá số Tử Vi miễn phí - không cần tài khoản"
-                : "Free chart creation - no account required",
-            ),
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Căn cứ có thể mở cạnh nhận định"
-                : "Evidence can be opened beside insights",
-            ),
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Lá số của bạn riêng tư theo mặc định"
-                : "Your chart is private by default",
-            ),
-            React.createElement(
-              "span",
-              null,
-              isVietnamese
-                ? "Thanh toán một lần - không tự động gia hạn"
-                : "One-time payment - no automatic renewal",
-            ),
-          ),
-        ),
-      ),
+    // The scrolling trust-commitment marquee was removed here (revamp wave 1a,
+    // FD-091 spec: "bỏ dải chữ chạy"). The same four commitments now live as
+    // static trust-strip copy inside the homepage hero.
     React.createElement(
       "header",
       { className: "site-header" + (isDiscipline ? " site-header-discipline" : "") },

@@ -144,8 +144,8 @@ export function OrderHistory({
               actionLabel={isVi ? "Gửi email hỗ trợ" : "Send support email"}
               description={
                 isVi
-                  ? "Đội ngũ Lá Số Việt sẵn sàng giải đáp thắc mắc về đơn hàng, hoá đơn và quyền truy cập báo cáo qua email."
-                  : "The Lá Số Việt team is ready to answer questions about orders, invoices, and report access via email."
+                  ? "Gửi email cho Lá Số Việt để được giải đáp thắc mắc về đơn hàng, hoá đơn và quyền truy cập báo cáo."
+                  : "Send Lá Số Việt an email about questions on orders, invoices, or report access."
               }
               email={supportEmail}
               subject={isVi ? "[Lá Số Việt] Hỗ trợ đơn hàng" : "[La So Viet] Order support request"}
