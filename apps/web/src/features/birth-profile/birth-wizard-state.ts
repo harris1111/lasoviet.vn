@@ -13,6 +13,7 @@ import {
   isValidSolarDate,
   isCanonicalBranchId,
   isFutureLunarYear,
+  MIN_BIRTH_YEAR,
 } from "./homepage-birth-prefill";
 
 export { isFutureLunarYear };
@@ -141,7 +142,7 @@ export function isValidLunarDate(
     !Number.isInteger(year) ||
     !Number.isInteger(month) ||
     !Number.isInteger(day) ||
-    year < 1000 ||
+    year < MIN_BIRTH_YEAR ||
     year > 9999 ||
     month < 1 ||
     month > 12 ||
@@ -200,7 +201,7 @@ export function validateWizardDate(
     if (d < 1 || d > 31 || m < 1 || m > 12) {
       return { valid: false, error: "INVALID_FORMAT" };
     }
-    if (y < 1000 || y > 9999 || d > 30) {
+    if (y < MIN_BIRTH_YEAR || y > 9999 || d > 30) {
       return { valid: false, error: "IMPOSSIBLE_DATE" };
     }
     const isoDate = `${y.toString().padStart(4, "0")}-${m

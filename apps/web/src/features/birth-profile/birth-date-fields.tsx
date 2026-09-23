@@ -2,15 +2,14 @@
 
 import { useRef, useState, useEffect, type ChangeEvent } from "react";
 import { Icon } from "../../components/icon";
-import { isFutureSolarDate, isValidSolarDate } from "./homepage-birth-prefill";
+import { isFutureSolarDate, isValidSolarDate, MIN_BIRTH_YEAR } from "./homepage-birth-prefill";
 
 export const BIRTH_DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
 export const BIRTH_MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
 export const DEFAULT_REFERENCE_YEAR = 2026;
 
 export function generateBirthYears(referenceYear: number = DEFAULT_REFERENCE_YEAR): string[] {
-  const minYear = 1000;
-  const count = Math.max(0, referenceYear - minYear + 1);
+  const count = Math.max(0, referenceYear - MIN_BIRTH_YEAR + 1);
   return Array.from({ length: count }, (_, i) => String(referenceYear - i));
 }
 

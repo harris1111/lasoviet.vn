@@ -142,7 +142,7 @@ describe("BirthDetailsFields presenter", () => {
     expect(html).not.toMatch(/<option selected="" value="zi">/);
   });
 
-  it("offers full validation-compatible past range 1000..referenceYear for years", () => {
+  it("offers full validation-compatible past range 1920..referenceYear for years", () => {
     const html = renderToStaticMarkup(
       createElement(BirthDetailsFields, {
         day: "12",
@@ -160,7 +160,7 @@ describe("BirthDetailsFields presenter", () => {
 
     expect(html).toContain('<option value="2026">2026</option>');
     expect(html).toMatch(/<option (selected="" )?value="1994"( selected="")?>1994<\/option>/);
-    expect(html).toContain('<option value="1000">1000</option>');
+    expect(html).toContain('<option value="1920">1920</option>');
     // Future year 2027 should NOT be present
     expect(html).not.toContain('<option value="2027">2027</option>');
   });
@@ -203,7 +203,7 @@ describe("BirthDetailsFields presenter", () => {
       const rolledOverYears = generateBirthYears(new Date().getFullYear());
       expect(rolledOverYears[0]).toBe("2027");
       expect(rolledOverYears[1]).toBe("2026");
-      expect(rolledOverYears[rolledOverYears.length - 1]).toBe("1000");
+      expect(rolledOverYears[rolledOverYears.length - 1]).toBe("1920");
 
       // 3. Render presenter directly with 2027 referenceYear
       const html = renderToStaticMarkup(
@@ -222,7 +222,7 @@ describe("BirthDetailsFields presenter", () => {
       );
       expect(html).toContain('<option value="2027">2027</option>');
       expect(html).toContain('<option value="2026">2026</option>');
-      expect(html).toContain('<option value="1000">1000</option>');
+      expect(html).toContain('<option value="1920">1920</option>');
     } finally {
       vi.useRealTimers();
     }

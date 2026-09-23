@@ -7,6 +7,12 @@ export const BIRTH_CACHE_VERSION = BIRTH_CACHE_VERSION_V2;
 export const PREFILL_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const BIRTH_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+// Lower bound for a birth year, both in the year picker and in date
+// validation (solar and lunar). Replaces the previous 1000 floor, which
+// produced a 1,000+ row year dropdown with no realistic living user below
+// it. 1920 comfortably covers every living user and their parents.
+export const MIN_BIRTH_YEAR = 1920;
+
 export const CANONICAL_BRANCH_IDS = [
   "zi",
   "chou",
@@ -84,7 +90,7 @@ export function isValidSolarDate(
     !Number.isInteger(year) ||
     !Number.isInteger(month) ||
     !Number.isInteger(day) ||
-    year < 1000 ||
+    year < MIN_BIRTH_YEAR ||
     year > 9999 ||
     month < 1 ||
     month > 12 ||
@@ -138,7 +144,7 @@ export function isValidLunarDate(
     !Number.isInteger(year) ||
     !Number.isInteger(month) ||
     !Number.isInteger(day) ||
-    year < 1000 ||
+    year < MIN_BIRTH_YEAR ||
     year > 9999 ||
     month < 1 ||
     month > 12 ||

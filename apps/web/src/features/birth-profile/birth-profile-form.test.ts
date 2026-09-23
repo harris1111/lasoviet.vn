@@ -217,9 +217,14 @@ describe("wizard state helpers (TDD)", () => {
       valid: true,
       isoDate: "2024-02-29",
     });
-    expect(validateWizardDate("1", "1", "1899")).toEqual({
+    expect(validateWizardDate("1", "1", "1920")).toEqual({
       valid: true,
-      isoDate: "1899-01-01",
+      isoDate: "1920-01-01",
+    });
+    // 1899 is below MIN_BIRTH_YEAR (1920) and must be rejected, not padded.
+    expect(validateWizardDate("1", "1", "1899")).toEqual({
+      valid: false,
+      error: "IMPOSSIBLE_DATE",
     });
   });
 
@@ -265,7 +270,7 @@ describe("wizard state helpers (TDD)", () => {
     });
   });
 
-  it("validates lunar dates including day 30 across months, with semantic bounds 1000..9999 and no Gregorian future rejection", () => {
+  it("validates lunar dates including day 30 across months, with semantic bounds 1920..9999 and no Gregorian future rejection", () => {
     expect(validateWizardDate("30", "2", "2024", undefined, "lunar")).toEqual({
       valid: true,
       isoDate: "2024-02-30",
@@ -278,9 +283,13 @@ describe("wizard state helpers (TDD)", () => {
       isoDate: "2024-02-30",
     });
 
-    expect(validateWizardDate("1", "1", "1000", undefined, "lunar")).toEqual({
+    expect(validateWizardDate("1", "1", "1920", undefined, "lunar")).toEqual({
       valid: true,
-      isoDate: "1000-01-01",
+      isoDate: "1920-01-01",
+    });
+    expect(validateWizardDate("1", "1", "1919", undefined, "lunar")).toEqual({
+      valid: false,
+      error: "IMPOSSIBLE_DATE",
     });
     expect(validateWizardDate("30", "12", "9999", undefined, "lunar")).toEqual({
       valid: true,
