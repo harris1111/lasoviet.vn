@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bói tình yêu theo tuổi và ngày sinh - Lá Số Việt</title>
+<meta name="description" content="Xem hai người hợp nhau ở đâu, dễ va chạm ở đâu theo tuổi và ngũ hành năm sinh.">
+<meta name="robots" content="noindex, follow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<link rel="stylesheet" href="tool-page.css">
+<style>
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 14px; align-items: end; }
+.pair .who { display: grid; gap: 10px; }
+.pair label { display: grid; gap: 8px; font-weight: 600; color: var(--text-heading); font-size: 15px; }
+.pair .amp { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; color: var(--gold-400); border: 1px solid var(--border-soft); margin-bottom: 6px; }
+.pair .amp svg { width: 26px; height: 26px; }
+@media (max-width: 720px) { .pair { grid-template-columns: 1fr; } .pair .amp { justify-self: center; margin: 0; } }
+.people { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0 16px; }
+.person { border: 1px solid var(--border-soft); border-radius: 14px; padding: 14px 16px; background: var(--lacquer-900); }
+.person b { color: var(--text-heading); display: block; font-size: 17px; }
+.person span { font-size: 14.5px; color: var(--text-muted); }
+@media (max-width: 520px) { .people { grid-template-columns: 1fr; } }
+.rels { display: grid; gap: 12px; }
+.rel { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; align-items: start; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border-soft); }
+.rel .k { font-weight: 600; color: var(--text-heading); }
+.rel .tag { margin-top: 6px; }
+.rel p { margin: 0; font-size: 16px; line-height: 1.6; }
+@media (max-width: 600px) { .rel { grid-template-columns: 1fr; } }
+.sum { font-size: 17.5px; line-height: 1.7; margin: 18px 0 0; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="trang-chu.html#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html" aria-current="page">Công cụ miễn phí</a>
+      <a href="#">Kiến thức</a>
+      <a href="#ho-tro">Liên hệ</a>
+    </nav>
+    <div class="header-actions">
+      <a class="link-quiet" href="#">Đăng nhập</a>
+      <a class="btn btn-primary" href="lap-la-so.html">Lập lá số</a>
+    </div>
+  </div>
+</header>
+<main class="container">
+  <nav class="crumbs" aria-label="Đường dẫn"><a href="trang-chu.html">Trang chủ</a> / <a href="cong-cu-mien-phi.html">Công cụ miễn phí</a> / Bói tình yêu</nav>
+  <div class="tool-hero">
+    <span class="medallion lg"><svg aria-hidden="true"><use href="#i-boi-tinh-yeu"/></svg></span>
+    <div><h1>Bói tình yêu theo tuổi</h1><p class="need">Cần nhập: <b>tên và năm sinh của hai người</b></p></div>
+  </div>
+
+  <section class="card" aria-labelledby="in-h">
+    <h2 class="panel-h" id="in-h">Hai người</h2>
+    <form class="pair" onsubmit="return false">
+      <div class="who">
+        <label for="a">Tên người thứ nhất<span class="field"><input id="a" value="Mẫu"></span></label>
+        <label for="ay">Năm sinh<span class="field"><input id="ay" type="number" inputmode="numeric" min="1920" max="2026" value="1992"></span></label>
+      </div>
+      <span class="amp" aria-hidden="true"><svg><use href="#i-boi-tinh-yeu"/></svg></span>
+      <div class="who">
+        <label for="b">Tên người thứ hai<span class="field"><input id="b" value="Quân"></span></label>
+        <label for="by">Năm sinh<span class="field"><input id="by" type="number" inputmode="numeric" min="1920" max="2026" value="1990"></span></label>
+      </div>
+    </form>
+    <p class="muted" style="margin:12px 0 0;font-size:14.5px">Sinh trước Tết âm lịch thì nhập năm âm lịch trước đó.</p>
+    <div style="margin-top:16px"><button class="btn btn-primary btn-lg" id="go" type="button">Xem hợp nhau ở đâu</button></div>
+    <div aria-live="polite" id="out"></div>
+  </section>
+
+  <aside class="card bridge-card" aria-labelledby="bridge-h">
+    <div>
+      <p class="eyebrow" style="color:#EC8A74">Còn tùy lá số của bạn</p>
+      <h2 id="bridge-h">Tuổi hợp chỉ là một lớp. Cung Phu Thê nói phần còn lại.</h2>
+      <p>Tuổi và ngũ hành năm sinh giống nhau cho hàng triệu người. Cung Phu Thê trong lá số của bạn cho biết kiểu người bạn gắn bó và chỗ hai người dễ va nhau.</p>
+    </div>
+    <div class="bridge-act"><a class="btn btn-primary btn-lg" href="lap-la-so.html">Xem cung Phu Thê của tôi</a><span class="need">Lập lá số miễn phí, điền sẵn thông tin bạn vừa nhập.</span></div>
+  </aside>
+
+  <article class="explain">
+    <h2>Xem tuổi hợp dựa vào đâu?</h2>
+    <p>Hai lớp: con giáp (tam hợp, lục hợp, lục xung, lục hại) và ngũ hành nạp âm của năm sinh (tương sinh, tương khắc). Đây là cách xem tuổi phổ biến trong dân gian, dùng để hiểu nhau hơn, không phải để quyết định chuyện cưới hỏi.</p>
+  </article>
+
+  <section class="section" style="padding-top:8px">
+    <h2 class="rel-h">Công cụ khác</h2>
+    <div class="related"><a class="card" href="cong-cu-than-so-hoc.html"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-than-so-hoc"/></svg></span>Thần số học</a><a class="card" href="cong-cu-lich-am.html"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-lich-am-ngay-tot"/></svg></span>Lịch âm & ngày tốt</a><a class="card" href="cong-cu-giai-ma-giac-mo.html"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-giai-ma-giac-mo"/></svg></span>Giải mã giấc mơ</a></div>
+  </section>
+</main>
+<footer class="site-footer" id="ho-tro">
+  <div class="container">
+    <div class="foot-bottom" style="margin:0;border:0;padding:0"><span>© 2026 Lá Số Việt</span><span><a href="mailto:lasoviet.net@gmail.com" style="color:var(--text-faint)">lasoviet.net@gmail.com</a></span></div>
+  </div>
+</footer>
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
+<script>
+var CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
+var CHI = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
+var NAPAM = [["Hải Trung Kim","Kim"],["Lư Trung Hỏa","Hỏa"],["Đại Lâm Mộc","Mộc"],["Lộ Bàng Thổ","Thổ"],["Kiếm Phong Kim","Kim"],["Sơn Đầu Hỏa","Hỏa"],["Giản Hạ Thủy","Thủy"],["Thành Đầu Thổ","Thổ"],["Bạch Lạp Kim","Kim"],["Dương Liễu Mộc","Mộc"],["Tuyền Trung Thủy","Thủy"],["Ốc Thượng Thổ","Thổ"],["Tích Lịch Hỏa","Hỏa"],["Tùng Bách Mộc","Mộc"],["Trường Lưu Thủy","Thủy"],["Sa Trung Kim","Kim"],["Sơn Hạ Hỏa","Hỏa"],["Bình Địa Mộc","Mộc"],["Bích Thượng Thổ","Thổ"],["Kim Bạch Kim","Kim"],["Phú Đăng Hỏa","Hỏa"],["Thiên Hà Thủy","Thủy"],["Đại Trạch Thổ","Thổ"],["Thoa Xuyến Kim","Kim"],["Tang Đố Mộc","Mộc"],["Đại Khê Thủy","Thủy"],["Sa Trung Thổ","Thổ"],["Thiên Thượng Hỏa","Hỏa"],["Thạch Lựu Mộc","Mộc"],["Đại Hải Thủy","Thủy"]];
+var SINH = {"Mộc":"Hỏa","Hỏa":"Thổ","Thổ":"Kim","Kim":"Thủy","Thủy":"Mộc"};
+var KHAC = {"Mộc":"Thổ","Thổ":"Thủy","Thủy":"Hỏa","Hỏa":"Kim","Kim":"Mộc"};
+var TAMHOP = [[8,0,4],[2,6,10],[5,9,1],[11,3,7]];
+var LUCHOP = [[0,1],[2,11],[3,10],[4,9],[5,8],[6,7]];
+var XUNG = [[0,6],[1,7],[2,8],[3,9],[4,10],[5,11]];
+var HAI = [[0,7],[1,6],[2,5],[3,4],[8,11],[9,10]];
+function info(y){ var i = ((y - 4) % 60 + 60) % 60; return { can: CAN[i % 10], chi: CHI[i % 12], ci: i % 12, na: NAPAM[Math.floor(i / 2)] }; }
+function inPairs(list, a, b){ return list.some(function(p){ return (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a); }); }
+function run(){
+  var A = document.getElementById("a").value || "Người thứ nhất", B = document.getElementById("b").value || "Người thứ hai";
+  var a = info(+document.getElementById("ay").value), b = info(+document.getElementById("by").value);
+  var zk, zt, zd;
+  if (a.ci === b.ci) { zk = "Cùng con giáp"; zt = "tag-gold"; zd = "Hiểu nhau nhanh vì giống nhau, nhưng cũng dễ cùng nóng một lúc."; }
+  else if (TAMHOP.some(function(g){ return g.indexOf(a.ci) > -1 && g.indexOf(b.ci) > -1; })) { zk = "Tam hợp"; zt = "tag-gold"; zd = "Hai tuổi cùng nhóm tam hợp: dễ cùng chí hướng, làm việc chung thuận."; }
+  else if (inPairs(LUCHOP, a.ci, b.ci)) { zk = "Lục hợp"; zt = "tag-gold"; zd = "Cặp lục hợp: hút nhau tự nhiên, dễ nhường nhau trong chuyện nhỏ."; }
+  else if (inPairs(XUNG, a.ci, b.ci)) { zk = "Lục xung"; zt = "tag-seal"; zd = "Cặp xung: tính cách ngược chiều, hay tranh luận. Cần thống nhất trước những việc lớn."; }
+  else if (inPairs(HAI, a.ci, b.ci)) { zk = "Lục hại"; zt = "tag-seal"; zd = "Cặp hại: dễ hiểu lầm vì người thứ ba hoặc chuyện tiền. Nói thẳng sớm sẽ đỡ."; }
+  else { zk = "Bình thường"; zt = "tag-quiet"; zd = "Hai con giáp không hợp không xung. Hợp hay không tùy cách hai người sống với nhau."; }
+  var ea = a.na[1], eb = b.na[1], ek, et, ed;
+  if (ea === eb) { ek = "Bình hòa"; et = "tag-quiet"; ed = "Cùng hành " + ea + ": giống nhau về cách nghĩ, cần người chịu nhường."; }
+  else if (SINH[eb] === ea) { ek = "Tương sinh"; et = "tag-gold"; ed = B + " (" + eb + ") sinh " + A + " (" + ea + "): " + B + " hay là người nâng đỡ, lo toan cho " + A + "."; }
+  else if (SINH[ea] === eb) { ek = "Tương sinh"; et = "tag-gold"; ed = A + " (" + ea + ") sinh " + B + " (" + eb + "): " + A + " hay là người nâng đỡ, lo toan cho " + B + "."; }
+  else if (KHAC[ea] === eb) { ek = "Tương khắc"; et = "tag-seal"; ed = A + " (" + ea + ") khắc " + B + " (" + eb + "): " + A + " dễ lấn lướt. Để " + B + " có tiếng nói trong việc chung."; }
+  else { ek = "Tương khắc"; et = "tag-seal"; ed = B + " (" + eb + ") khắc " + A + " (" + ea + "): " + B + " dễ lấn lướt. Để " + A + " có tiếng nói trong việc chung."; }
+  document.getElementById("out").innerHTML =
+    '<div class="people"><div class="person"><b>' + A + '</b><span>' + a.can + ' ' + a.chi + ', mệnh ' + a.na[0] + '</span></div><div class="person"><b>' + B + '</b><span>' + b.can + ' ' + b.chi + ', mệnh ' + b.na[0] + '</span></div></div>'
+    + '<div class="rels"><div class="rel"><div><span class="k">Con giáp</span><br><span class="tag ' + zt + '">' + zk + '</span></div><p>' + a.chi + ' và ' + b.chi + '. ' + zd + '</p></div>'
+    + '<div class="rel"><div><span class="k">Ngũ hành</span><br><span class="tag ' + et + '">' + ek + '</span></div><p>' + ed + '</p></div></div>';
+}
+document.getElementById("go").addEventListener("click", run); run();
+</script>
+</body>
+</html>

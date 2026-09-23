@@ -1,4 +1,4 @@
-/* Lá Số Việt — revamp 2026-09 prototype styles.
+/* Lá Số Việt - revamp 2026-09 prototype styles.
    Tokens: ../_shared/.../tokens/*.css (lacquer theme). New semantic tokens
    below make the lacquer theme "brighter" (founder 2026-09-22) and are
    proposed for apps/web/src/styles/tokens.css. Components follow the
@@ -26,6 +26,7 @@ body {
   font: 400 16px/1.55 var(--font-ui); -webkit-font-smoothing: antialiased;
 }
 img { max-width: 100%; display: block; }
+[hidden] { display: none !important; }
 a { color: var(--gold-400); }
 :focus-visible { outline: 2px solid var(--gold-400); outline-offset: 3px; border-radius: 6px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -127,3 +128,17 @@ a { color: var(--gold-400); }
 
 /* Prototype annotations (not part of the product UI) */
 .proto-note { font: 500 12px/1.4 var(--font-mono); color: #EC8A74; border: 1px dashed rgba(206,91,69,.5); border-radius: 8px; padding: 6px 10px; display: inline-block; margin: 8px 0; }
+
+/* Messenger bubble (FD-099): fixed bottom-right, official Meta logo.
+   Pages with a fixed bottom bar set --bottom-bar on body so the bubble
+   sits above it and never covers a primary CTA. */
+body { --bottom-bar: 0px; }
+.msgr-bubble { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + var(--bottom-bar) + env(safe-area-inset-bottom, 0px)); z-index: 50; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.msgr-bubble img { width: 56px; height: 56px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,.45), 0 0 0 3px rgba(15,13,10,.9); transition: transform 180ms ease; }
+.msgr-bubble:hover img, .msgr-bubble:focus-visible img { transform: translateY(-2px); }
+.msgr-bubble:active img { transform: scale(.96); }
+.msgr-bubble .label { order: -1; background: var(--lacquer-900); color: var(--text-heading); border: 1px solid var(--border-soft); border-radius: 999px; padding: 8px 14px; font-size: 14px; white-space: nowrap; opacity: 0; transform: translateX(6px); transition: opacity 180ms ease, transform 180ms ease; pointer-events: none; }
+.msgr-bubble:hover .label, .msgr-bubble:focus-visible .label { opacity: 1; transform: none; }
+@media (max-width: 980px) { body.has-bottom-bar { --bottom-bar: 84px; } .msgr-bubble img { width: 52px; height: 52px; } .msgr-bubble .label { display: none; } }
+/* Pages whose fixed bottom bar also shows on desktop. */
+body.has-bottom-bar-all { --bottom-bar: 84px; }

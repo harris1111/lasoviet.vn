@@ -157,7 +157,6 @@
       <a href="#ho-tro">Liên hệ</a>
     </nav>
     <div class="header-actions">
-      <a class="icon-btn msgr" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger (đang chờ link fanpage)"><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="24" height="24" alt=""></a>
       <a class="link-quiet" href="#">Đăng nhập</a>
       <a class="btn btn-primary" href="#lap-la-so">Lập lá số<span class="hide-s"> miễn phí</span></a>
     </div>
@@ -181,7 +180,7 @@
           <li><svg aria-hidden="true"><use href="#ui-check"/></svg>Không tự gia hạn</li>
         </ul>
       </div>
-      <form class="card form-card is-featured form-grid" action="#" aria-labelledby="form-h">
+      <form class="card form-card is-featured form-grid" action="lap-la-so.html" aria-labelledby="form-h">
         <div><h2 id="form-h">Lập lá số Tử Vi</h2><p class="hint">Nhập ngày giờ sinh, có kết quả ngay.</p></div>
         <label class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-user"/></svg></span><span class="sr-only">Tên gọi</span><input id="h-name" placeholder="Tên gọi (không bắt buộc)" autocomplete="nickname"></label>
         <div class="form-row-3">
@@ -272,7 +271,7 @@
     <div class="container">
       <div class="section-head"><h2 id="tools-h">Công cụ miễn phí</h2><p>Tra nhanh, không cần tài khoản.</p></div>
       <div class="tool-tiles" id="tiles"></div>
-      <p class="soon-line">Sắp có: Bát Tự · Bản đồ sao · Kinh Dịch luận giải</p>
+      <p class="soon-line">Sắp có: Bát Tự, Bản đồ sao, Kinh Dịch luận giải</p>
       <div class="center-cta"><a class="btn btn-secondary" href="cong-cu-mien-phi.html">Xem tất cả công cụ</a></div>
     </div>
   </section>
@@ -356,7 +355,7 @@
 
 <script>
   // Form options: year 1920 → current, default 1990 (fixes the live list that runs back to year 1000).
-  var HOURS = ["Giờ sinh (12 canh)","Tý (23:00–00:59)","Sửu (01:00–02:59)","Dần (03:00–04:59)","Mão (05:00–06:59)","Thìn (07:00–08:59)","Tỵ (09:00–10:59)","Ngọ (11:00–12:59)","Mùi (13:00–14:59)","Thân (15:00–16:59)","Dậu (17:00–18:59)","Tuất (19:00–20:59)","Hợi (21:00–22:59)","Không rõ giờ sinh"];
+  var HOURS = ["Giờ sinh (12 canh)","Tý (23:00-00:59)","Sửu (01:00-02:59)","Dần (03:00-04:59)","Mão (05:00-06:59)","Thìn (07:00-08:59)","Tỵ (09:00-10:59)","Ngọ (11:00-12:59)","Mùi (13:00-14:59)","Thân (15:00-16:59)","Dậu (17:00-18:59)","Tuất (19:00-20:59)","Hợi (21:00-22:59)","Không rõ giờ sinh"];
   document.querySelectorAll("select[data-fill]").forEach(function(s){
     var t = s.dataset.fill, o = [];
     if (t === "day") { o.push("<option>Ngày</option>"); for (var d = 1; d <= 31; d++) o.push("<option>"+d+"</option>"); }
@@ -369,15 +368,15 @@
     g.addEventListener("click", function(e){ var b = e.target.closest("button"); if (!b) return; g.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x === b); }); });
   });
 
-  // 02 chips — real topic names of the reading; tapping scrolls to the form.
+  // 02 chips - real topic names of the reading; tapping scrolls to the form.
   var R1 = ["Tính cách","Điểm mạnh, điểm yếu","Nghề hợp","Tiền bạc","Tình duyên","Gia đạo","Quý nhân"];
   var R2 = ["Đại vận 10 năm","Năm nay","Tháng hạn","Sức khoẻ cần giữ","Con cái","Nhà cửa","Đi xa"];
   function chips(list){ var h = list.concat(list).map(function(c){ return '<a class="chip" href="#lap-la-so">'+c+'</a>'; }).join(""); return h; }
   document.getElementById("row1").innerHTML = chips(R1);
   document.getElementById("row2").innerHTML = chips(R2);
 
-  // 06 matrix — no prices on the homepage (FD-069).
-  var CHECK = '<svg aria-hidden="true"><use href="#ui-check"/></svg><span class="sr-only">Có</span>', NO = '<span class="dash" aria-label="Không">—</span>';
+  // 06 matrix - no prices on the homepage (FD-069).
+  var CHECK = '<svg aria-hidden="true"><use href="#ui-check"/></svg><span class="sr-only">Có</span>', NO = '<span class="dash" aria-label="Không">-</span>';
   var ROWS = [
     ["Lá số 12 cung đầy đủ", CHECK, CHECK, CHECK],
     ["3 điểm nổi bật, kèm lý do", CHECK, CHECK, CHECK],
@@ -393,10 +392,10 @@
   }).join("");
 
   // 08 tools
-  var T = [["tu-vi-hom-nay","Tử vi hôm nay","Chỉ cần con giáp","cong-cu-tu-vi-hom-nay.html"],["lich-am-ngay-tot","Lịch âm & ngày tốt","Không cần nhập gì"],["than-so-hoc","Thần số học","Ngày sinh + họ tên"],["boi-tinh-yeu","Bói tình yêu","Tên + ngày sinh"],["giai-ma-giac-mo","Giải mã giấc mơ","Điều bạn mơ thấy"],["gieo-que","Gieo quẻ","Một câu hỏi"],["rut-bai","Rút bài mỗi ngày","Không cần nhập gì"],["menh-ngu-hanh","Tuổi gì, mệnh gì","Năm sinh"]];
+  var T = [["tu-vi-hom-nay","Tử vi hôm nay","Chỉ cần con giáp","cong-cu-tu-vi-hom-nay.html"],["lich-am-ngay-tot","Lịch âm & ngày tốt","Không cần nhập gì","cong-cu-lich-am.html"],["than-so-hoc","Thần số học","Ngày sinh + họ tên","cong-cu-than-so-hoc.html"],["boi-tinh-yeu","Bói tình yêu","Tên + ngày sinh","cong-cu-boi-tinh-yeu.html"],["giai-ma-giac-mo","Giải mã giấc mơ","Điều bạn mơ thấy","cong-cu-giai-ma-giac-mo.html"],["gieo-que","Gieo quẻ","Một câu hỏi"],["rut-bai","Rút bài mỗi ngày","Không cần nhập gì"],["menh-ngu-hanh","Tuổi gì, mệnh gì","Năm sinh"]];
   document.getElementById("tiles").innerHTML = T.map(function(t){ return '<a class="card tool-tile" href="'+(t[3]||"cong-cu-mien-phi.html")+'"><span class="medallion sm"><svg aria-hidden="true"><use href="#i-'+t[0]+'"/></svg></span><span>'+t[1]+'<small>Cần nhập: '+t[2]+'</small></span></a>'; }).join("");
 
-  // 10 FAQ — first open
+  // 10 FAQ - first open
   var F = [
     ["Không rành Tử Vi có tự xem được không?","Được. Bạn chỉ cần ngày giờ sinh; lá số và lời luận viết bằng tiếng Việt thường ngày, thuật ngữ nào cũng được giải thích ngay chỗ đó."],
     ["Có miễn phí không?","Lá số 12 cung, 3 điểm nổi bật và số tháng cần chú ý trong năm đều miễn phí. Phần đọc sâu mở bằng Lá."],
@@ -409,5 +408,6 @@
   ];
   document.getElementById("faq").innerHTML = F.map(function(f, i){ return '<details'+(i===0?" open":"")+'><summary><span class="i">'+(i+1)+'</span><span>'+f[0]+'</span></summary><p>'+f[1]+'</p></details>'; }).join("");
 </script>
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
 </body>
 </html>

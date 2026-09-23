@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thư viện của tôi - Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  .lib-head { padding-block: 28px 20px; display: flex; flex-wrap: wrap; gap: 16px; align-items: end; justify-content: space-between; }
+  .lib-head h1 { font: 600 clamp(28px, 3.6vw, 40px)/1.15 var(--font-display); color: var(--text-heading); margin: 0 0 4px; }
+  .lib-head p { margin: 0; color: var(--text-muted); }
+  .lib { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; padding-bottom: 72px; }
+  .lib > * { min-width: 0; }
+  @media (max-width: 980px) { .lib { grid-template-columns: 1fr; } .rail { order: -1; } }
+  h2.h { font: 600 22px/1.2 var(--font-display); color: var(--text-heading); margin: 0 0 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  h2.h a { font: 500 15px var(--font-ui); color: var(--gold-400); }
+  .stack { display: grid; gap: 24px; }
+
+  .today { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: start; }
+  .today .medallion { color: var(--gold-500); }
+  .today h3 { margin: 0 0 4px; font: 600 19px var(--font-ui); color: var(--text-heading); }
+  .today .pub { font-size: 15px; margin: 0 0 12px; }
+  .today .pub b { color: var(--text-heading); font-weight: 500; }
+  .locked { position: relative; border-radius: 12px; border: 1px dashed var(--border-soft); padding: 14px; overflow: hidden; }
+  .locked .blur { filter: blur(5px); user-select: none; color: var(--text-muted); font-size: 16px; line-height: 1.6; }
+  .locked .veil { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(180deg, rgba(34,29,22,.1), rgba(34,29,22,.9) 70%); }
+  @media (max-width: 520px) { .today { grid-template-columns: 1fr; } }
+
+  .rows { display: grid; gap: 8px; }
+  .row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border-soft); background: var(--surface-raised); }
+  .mono { width: 48px; height: 48px; border-radius: 999px; display: grid; place-items: center; font: 600 18px var(--font-display); color: var(--gold-400); background: radial-gradient(circle at 35% 30%, #2E271E, #17130F 70%); box-shadow: inset 0 0 0 1px rgba(201,164,77,.5); }
+  .row b { color: var(--text-heading); display: block; font-size: 16px; }
+  .row span.meta { font-size: 14px; color: var(--text-muted); }
+  .row .acts { display: flex; gap: 8px; }
+  .row .acts .btn { height: 40px; padding: 0 14px; font-size: 14.5px; }
+  .prog { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-muted); margin-top: 6px; }
+  .prog i { display: block; width: 120px; height: 4px; border-radius: 999px; background: var(--lacquer-900); overflow: hidden; }
+  .prog i b { display: block; height: 100%; background: var(--gold-500); }
+  @media (max-width: 600px) { .row { grid-template-columns: 44px minmax(0, 1fr); } .row .acts { grid-column: 1 / -1; } .row .acts .btn { flex: 1; } }
+  .empty-add { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 14px; border: 1px dashed var(--border-soft); color: var(--text-body); text-decoration: none; font-weight: 500; }
+  .empty-add span.plus { width: 48px; height: 48px; border-radius: 999px; border: 1px dashed var(--gold-600); display: grid; place-items: center; color: var(--gold-400); font-size: 22px; }
+
+  .rail { display: grid; gap: 16px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); }
+  @media (max-width: 980px) { .rail { position: static; } }
+  .bal .n { font: 600 44px/1 var(--font-display); color: var(--gold-400); font-variant-numeric: tabular-nums; }
+  .bal .n small { font: 500 16px var(--font-ui); color: var(--text-muted); }
+  .bal p { margin: 8px 0 14px; font-size: 14.5px; color: var(--text-muted); }
+  .ledger { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 14.5px; }
+  .ledger li { display: flex; justify-content: space-between; gap: 12px; }
+  .ledger .plus { color: #9FD1BA; font-variant-numeric: tabular-nums; } .ledger .minus { color: var(--text-body); font-variant-numeric: tabular-nums; }
+  .ledger time { display: block; font-size: 13px; color: var(--text-faint); }
+  .member h3 { margin: 0 0 6px; font: 600 18px var(--font-ui); color: var(--text-heading); }
+  .member p { margin: 0 0 12px; font-size: 14.5px; }
+  .links { display: grid; gap: 2px; }
+  .links a { display: flex; justify-content: space-between; padding: 12px 4px; color: var(--text-body); text-decoration: none; border-bottom: 1px solid var(--border-hairline); font-size: 15px; }
+  .links a:last-child { border-bottom: 0; }
+  .links a.danger { color: #F09C87; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <nav class="nav" aria-label="Chính">
+      <a href="trang-chu.html#dich-vu">Dịch vụ</a>
+      <a href="cong-cu-mien-phi.html">Công cụ miễn phí</a>
+      <a href="#">Kiến thức</a>
+    </nav>
+    <div class="header-actions">
+      <a class="link-quiet" href="thu-vien.html" aria-current="page">Thư viện của tôi</a>
+      <span class="tag tag-gold">60 Lá</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <p class="proto-note">Tài khoản mẫu: đã lưu 3 lá số, đã mua Bản mệnh, chưa là hội viên.</p>
+  <section class="lib-head">
+    <div><h1>Chào Mẫu</h1><p>Lá số, bản luận giải và số dư của bạn ở đây.</p></div>
+    <a class="btn btn-primary" href="lap-la-so.html">Lập lá số mới</a>
+  </section>
+
+  <div class="lib">
+    <div class="stack">
+      <section class="card today" aria-labelledby="td-h">
+        <span class="medallion lg"><svg aria-hidden="true"><use href="#i-tu-vi-hom-nay"/></svg></span>
+        <div>
+          <h3 id="td-h">Hôm nay của bạn, thứ Ba 22/9</h3>
+          <p class="pub">Ngày <b>Kỷ Hợi</b>, 12/8 Bính Ngọ, hắc đạo. Giờ tốt: Sửu, Thìn, Ngọ, Mùi, Tuất, Hợi.</p>
+          <div class="locked">
+            <div class="blur" aria-hidden="true">Ngày Hợi chạm cung Tử Tức của bạn: chuyện con cái hoặc một dự án bạn đang nuôi cần để tâm. Buổi chiều nên hoãn việc ký tiền.</div>
+            <div class="veil"><a class="btn btn-primary" href="cong-cu-mien-phi.html#hoi-vien">Mở với Hội viên</a></div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="ls-h">
+        <h2 class="h" id="ls-h">Lá số đã lưu <a href="lap-la-so.html">Thêm</a></h2>
+        <div class="rows">
+          <div class="row"><span class="mono" aria-hidden="true">M</span><span><b>Mẫu</b><span class="meta">Bản thân, nữ, 15/06/1992 08:30</span></span><span class="acts"><a class="btn btn-secondary" href="la-so-ket-qua.html">Xem lá số</a><a class="btn btn-primary" href="doc-bao-cao.html">Đọc luận giải</a></span></div>
+          <div class="row"><span class="mono" aria-hidden="true">H</span><span><b>Mẹ Hạnh</b><span class="meta">Người thân, nữ, 03/11/1965 05:10</span></span><span class="acts"><a class="btn btn-secondary" href="la-so-ket-qua.html">Xem lá số</a><a class="btn btn-secondary" href="chon-luan-giai.html">Mở luận giải</a></span></div>
+          <div class="row"><span class="mono" aria-hidden="true">Q</span><span><b>Anh Quân</b><span class="meta">Người thân, nam, 27/02/1990, chưa rõ giờ</span></span><span class="acts"><a class="btn btn-secondary" href="lap-la-so.html">Bổ sung giờ sinh</a></span></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="rp-h">
+        <h2 class="h" id="rp-h">Bản luận giải của tôi</h2>
+        <div class="rows">
+          <div class="row"><span class="medallion sm" style="color:var(--gold-500)"><svg aria-hidden="true"><use href="#i-menh-ngu-hanh"/></svg></span><span><b>Bản mệnh của Mẫu</b><span class="meta">Mua 21/09/2026, giữ trọn đời</span><span class="prog"><i><b style="width:50%"></b></i>Đã đọc 2/4 phần</span></span><span class="acts"><a class="btn btn-primary" href="doc-bao-cao.html">Đọc tiếp</a><a class="btn btn-secondary" href="#">PDF</a></span></div>
+          <a class="empty-add" href="chon-luan-giai.html"><span class="plus" aria-hidden="true">+</span>Nâng lên Toàn diện chỉ 720 Lá, tới hết 28/09</a>
+        </div>
+      </section>
+    </div>
+
+    <aside class="rail" aria-label="Tài khoản">
+      <section class="card bal" aria-labelledby="bal-h">
+        <h2 class="h" id="bal-h" style="font-size:18px;margin-bottom:10px">Số dư</h2>
+        <div class="n">60 <small>Lá</small></div>
+        <p>Lá không hết hạn.</p>
+        <a class="btn btn-primary" href="chon-luan-giai.html" style="width:100%">Nạp Lá</a>
+        <ul class="ledger" style="margin-top:16px">
+          <li><span>Mở Bản mệnh<time>21/09/2026</time></span><span class="minus">-240</span></li>
+          <li><span>Nạp gói Nhập Môn<time>21/09/2026</time></span><span class="plus">+300</span></li>
+        </ul>
+      </section>
+      <section class="card member" aria-labelledby="mb-h">
+        <h3 id="mb-h">Hội viên</h3>
+        <p>Hôm nay của bạn mỗi sáng, nguyệt vận, giảm 20% khi mở luận giải.</p>
+        <a class="btn btn-secondary" href="cong-cu-mien-phi.html#hoi-vien" style="width:100%">Xem gói Hội viên</a>
+      </section>
+      <nav class="card links" aria-label="Cài đặt">
+        <a href="#">Thông tin tài khoản <svg aria-hidden="true" style="width:16px;height:16px"><use href="#ui-arrow"/></svg></a>
+        <a href="#">Nhắc tôi mỗi sáng <svg aria-hidden="true" style="width:16px;height:16px"><use href="#ui-bell"/></svg></a>
+        <a href="#">Lịch sử thanh toán <svg aria-hidden="true" style="width:16px;height:16px"><use href="#ui-history"/></svg></a>
+        <a href="#" class="danger">Xoá dữ liệu của tôi</a>
+      </nav>
+    </aside>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="foot-bottom" style="margin:0;border:0;padding:0"><span>© 2026 Lá Số Việt</span><span><a href="mailto:lasoviet.net@gmail.com" style="color:var(--text-faint)">lasoviet.net@gmail.com</a></span></div>
+  </div>
+</footer>
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
+</body>
+</html>
