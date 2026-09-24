@@ -389,3 +389,68 @@ test("homepage hand-off opens wizard step 1 so the chart can be made for someone
   await expect(page.getByRole("button", { name: /Lập cho người khác/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /Lập cho bản thân/ })).toBeVisible();
 });
+
+test("hero story book reflects the form and carries the chosen topic into the wizard", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await visitLocalizedHome(page, locales[0]);
+  const paper = page.locator(".hv3-folio-paper");
+  await expect(paper).toContainText("Một câu chuyện riêng");
+
+  await page.fill("#hv3-day", "12");
+  await page.getByLabel("Tháng", { exact: true }).fill("4");
+  await page.getByLabel("Năm", { exact: true }).fill("1994");
+  await page.fill("#hv3-hour", "7");
+  await page.fill("#hv3-minute", "05");
+  await page.getByLabel("Tên lá số", { exact: false }).fill("Minh An");
+  await expect(paper).toContainText("Chuyện của Minh An");
+  await expect(paper).toContainText("07:05");
+  await expect(page.locator(".hv3-folio-date")).toHaveText("12.04.1994");
+
+  const lenses = page.locator(".hv3-folio-lenses button");
+  await expect(lenses).toHaveCount(3);
+  for (const lens of await lenses.all()) {
+    expect(await lens.evaluate((el) => (el as HTMLElement).offsetHeight)).toBeGreaterThanOrEqual(44);
+  }
+  await lenses.nth(1).click();
+  await expect(lenses.nth(1)).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "Nữ" }).click();
+  await page.getByRole("button", { name: locales[0].cta }).click();
+  await page.waitForURL(/tao-la-so\/tu-vi/);
+  const draft = await page.evaluate(() => localStorage.getItem("lasoviet:birth-wizard-draft:v1"));
+  expect(draft).toContain('"topConcern":"career"');
+  expect(draft).toContain('"precision":"exact_minute","hour":"07","minute":"05"');
+});
+
+test("comparison shows one strength and five limits per option, as buttons on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await visitLocalizedHome(page, locales[0]);
+  const block = page.locator('[data-home-block="comparison"]');
+  await expect(block.locator("table")).toBeHidden();
+  const buttons = block.locator(".hv3-tabs button");
+  await expect(buttons).toHaveCount(4);
+  await expect(block.locator('[role="tab"]')).toHaveCount(0);
+  await expect(buttons.first()).toHaveAttribute("aria-pressed", "true");
+  await expect(block.locator(".hv3-cmp-card")).toHaveCount(6);
+  await expect(block.locator(".hv3-cmp-fix")).toHaveCount(0);
+
+  await buttons.nth(2).click();
+  await expect(buttons.nth(2)).toHaveAttribute("aria-pressed", "true");
+  await expect(block.locator(".hv3-cmp-fix")).toHaveCount(5);
+  await expect(block.locator(".hv3-cmp-fix").first()).toContainText("Lá Số Việt:");
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(block.locator("table")).toBeVisible();
+  await expect(block.locator("table tbody tr")).toHaveCount(6);
+  await expect(block.locator('table th[scope="col"]')).toHaveCount(4);
+});
+
+test("Khác biệt shows four advantages and the mobile CTA background", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await visitLocalizedHome(page, locales[0]);
+  await expect(page.locator('[data-home-block="usp"] .hv3-usp-card')).toHaveCount(4);
+  await page.locator("#cta-cuoi").scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => page.locator("#cta-cuoi img").evaluate((el) => (el as HTMLImageElement).currentSrc))
+    .toContain("lsv-h04-cta-mobile");
+});

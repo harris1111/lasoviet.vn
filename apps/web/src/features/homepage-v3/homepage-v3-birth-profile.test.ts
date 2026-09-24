@@ -103,4 +103,15 @@ describe("homepage v3 birth profile adapter", () => {
     expect(toHomepageV3Draft({ ...base, year: "1920" })).not.toBeNull();
     expect(toHomepageV3Draft(base, new Date(1990, 0, 1))).toBeNull();
   });
+
+  it("carries the hero topic into the wizard reading context and omits it when not chosen", () => {
+    expect(toHomepageV3Draft(base)?.readingContext).toBeUndefined();
+    for (const topConcern of ["self_understanding", "career", "love"] as const) {
+      expect(toHomepageV3Draft({ ...base, topConcern })?.readingContext).toEqual({
+        topConcern,
+        skippedQuestions: { lifeStage: false, topConcern: false },
+      });
+    }
+    expect(toHomepageV3Draft({ ...base, topConcern: null })?.readingContext).toBeUndefined();
+  });
 });
