@@ -60,10 +60,10 @@ export default async function LocaleLayout({
     >
       <head>
         <script
-          // Applies the saved theme before first paint; only light-ready pages act on it (FD-102).
+          // Applies the saved theme before first paint; preloads only the active hero image (FD-102).
           dangerouslySetInnerHTML={{
             __html:
-              'try{var t=localStorage.getItem("lasoviet:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}',
+              'try{var t=localStorage.getItem("lasoviet:theme");var theme=(t==="light"||t==="dark")?t:"dark";if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;var p=location.pathname;if(p==="/"||p==="/vi"||p==="/en"||p==="/vi/"||p==="/en/"){var isDesktop=window.innerWidth>768;var isHiDPI=(window.devicePixelRatio||1)>1.2;var suffix=(isDesktop&&isHiDPI)?".webp":"-700.webp";var f="/images/lasoviet/v3/"+(theme==="light"?"lsv-hero-open-light":"lsv-hero-open-dark")+suffix;var l=document.createElement("link");l.rel="preload";l.as="image";l.href=f;l.fetchPriority="high";document.head.appendChild(l);}}catch(e){}',
           }}
         />
       </head>

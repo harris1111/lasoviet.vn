@@ -176,7 +176,7 @@ html[data-theme="light"] .hv3 {
 }
 
 /* Ticker: two lanes, pause on hover/focus, static list under reduced motion. */
-.hv3-ticker-region { overflow: hidden; background: var(--surface); border-block: 1px solid var(--hair); padding: 22px 0; display: flex; flex-direction: column; gap: 12px; }
+.hv3-ticker-region { overflow: hidden; background: var(--surface); border-block: 1px solid var(--hair); padding: 22px 0; display: flex; flex-direction: column; gap: 12px; content-visibility: auto; contain-intrinsic-size: auto 150px; }
 .hv3-ticker { display: flex; width: max-content; animation: hv3-ticker 38s linear infinite; will-change: transform; }
 .hv3-ticker-reverse { animation-direction: reverse; animation-duration: 46s; }
 .hv3-ticker:hover, .hv3-ticker:focus-within { animation-play-state: paused; }

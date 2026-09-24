@@ -67,7 +67,16 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
           <a href={localizedPath(locale, "/tu-vi")} className="hv3-disc hv3-disc-flagship" data-tone="0">
             <span className="hv3-disc-art">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${TUVI_ART}`} alt="" width={1122} height={1402} loading="lazy" decoding="async" />
+              <img
+                src={`${HOMEPAGE_V3_IMAGE_ROOT}/${TUVI_ART}`}
+                srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-discipline-tu-vi-560.webp 560w, ${HOMEPAGE_V3_IMAGE_ROOT}/${TUVI_ART} 1122w`}
+                sizes="(max-width: 768px) 50vw, 280px"
+                alt=""
+                width={1122}
+                height={1402}
+                loading="lazy"
+                decoding="async"
+              />
             </span>
             <span className="hv3-disc-body">
               <span aria-hidden="true" className="hv3-mask hv3-mask-accent" style={{ maskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/lsv-i-tu-vi.svg)`, WebkitMaskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/lsv-i-tu-vi.svg)` }} />
@@ -82,7 +91,16 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
             <a href={localizedPath(locale, item.href)} className="hv3-disc" data-tone={item.tone}>
               <span className="hv3-disc-art">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.art}`} alt="" width={1122} height={1402} loading="lazy" decoding="async" />
+                <img
+                  src={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.art}`}
+                  srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.art.replace(".webp", "-560.webp")} 560w, ${HOMEPAGE_V3_IMAGE_ROOT}/${item.art} 1122w`}
+                  sizes="(max-width: 768px) 50vw, 280px"
+                  alt=""
+                  width={1122}
+                  height={1402}
+                  loading="lazy"
+                  decoding="async"
+                />
               </span>
               <span className="hv3-disc-body">
                 <span aria-hidden="true" className="hv3-mask" style={{ maskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon})`, WebkitMaskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon})` }} />
