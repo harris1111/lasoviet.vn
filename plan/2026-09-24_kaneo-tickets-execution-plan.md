@@ -87,46 +87,41 @@
 
 ### Cấp độ 2: Dễ — Reusable UI Components
 
-#### 3. Ticket #24: UI-06 Trang bản luận giải mẫu (`/bao-cao-mau/tu-vi`)
+#### 3. Ticket #24: UI-06 Trang bản luận giải mẫu (`/bao-cao-mau/tu-vi`) [DONE]
 - **Độ khó:** 2/5 (Dễ).
-- **Phạm vi code:**
-  - Gỡ bỏ layout cũ và dòng in "79.000 ₫ · Thanh toán một lần".
-  - Tái sử dụng component `ZiweiResultTabs` (từ UI-04 / #22) để dựng trang bản mẫu dựa trên fixture lá số mẫu tĩnh (ẩn danh).
-  - Cấu hình mở sẵn: Tab Lá số, Tab Tổng quan đầy đủ, Tab Chủ đề mở 2 chủ đề mẫu, các chủ đề còn lại khóa an toàn.
-  - Cập nhật CTA thành "Lập lá số của bạn".
-- **Kiểm thử:** E2E render test cho `/bao-cao-mau/tu-vi`.
+- **Trạng thái:** Đã hoàn thành, CI pass, merge PR #176, deploy live trên container và test smoke thành công. Task #24 đã chuyển `done` trên Kaneo.
 
-#### 4. Ticket #27: UI-09 Công cụ miễn phí: banner cross-sell trong kết quả tiện ích
+#### 4. Ticket #27: UI-09 Công cụ miễn phí: banner cross-sell trong kết quả tiện ích [DONE]
 - **Độ khó:** 2/5 (Dễ).
-- **Phạm vi code:**
-  - Tạo component `FreeToolCrossSellBanner` (khung sơn mài, câu hỏi gợi mở, CTA pill dẫn về `/tao-la-so/tu-vi?from=[tool-slug]`).
-  - Gắn vào phía dưới khối kết quả của các công cụ miễn phí đang live.
-- **Kiểm thử:** Component test + i18n check.
+- **Trạng thái:** Đã hoàn thành, CI pass, merge PR #178 & #180, deploy live trên container và test smoke thành công. Task #27 đã chuyển `done` trên Kaneo.
 
 ---
 
-### Cấp độ 3: Trung bình — Content, Prompt & Policy Update (FD-089)
+### Cấp độ 3: Trung bình — Content, Prompt & Policy Update (FD-089, Claims)
 
-#### 5. Ticket #38: Update Zi Wei V4 prompts and report validator to the FD-089 content line
+#### 5. Ticket #38: Update Zi Wei V4 prompts and report validator to the FD-089 content line [DONE]
 - **Độ khó:** 3/5 (Trung bình).
-- **Phạm vi code:**
-  - Cập nhật `packages/backend/src/reports/comprehensive-report-writer-v4.ts`: điều chỉnh system prompt theo FD-089, nói thẳng thắn về hạn, tháng xấu, sự cố tiền bạc, tình cảm, pháp lý theo đúng kết quả tính toán của engine.
-  - Cập nhật `packages/backend/src/reports/comprehensive-report-validator-v4.ts`: bỏ cổng kiểm tra "misfortune-framing" cũ; giữ nguyên cổng chặn từ ngữ chết chóc (FD-075); bổ sung rule xác thực thời kỳ hạn được nêu phải có trong evidence do engine tính.
-  - Cập nhật fixtures và tests tương ứng.
-- **Kiểm thử:** `vitest run packages/backend/src/reports/comprehensive-report-validator-v4.test.ts`.
+- **Trạng thái:** Đã hoàn thành, CI pass, merge PR #181, deploy live trên container và test smoke thành công (`scripts/verify-task38.mjs`). Task #38 đã chuyển `done` trên Kaneo.
 
-#### 6. Ticket #28: UI-10 Thư viện kiến thức (`/kien-thuc`)
+#### 6. Ticket #43: Homepage V4: verify product claims against real features before promoting them [IN PROGRESS]
+- **Độ khó:** 2.5/5 (Trung bình).
+- **Phạm vi:**
+  - Đối chiếu 5 tuyên bố trên Homepage V4 với tính năng thực tế trên production.
+  - Căn chỉnh copy `apps/web/messages/vi/homepage-v3.json` và `en/homepage-v3.json` trung thực với thực tế triển khai.
+  - Chạy xác thực `scripts/public-claim-check.mjs` và bộ test liên quan.
+
+#### 7. Ticket #28: UI-10 Thư viện kiến thức (`/kien-thuc`)
 - **Độ khó:** 3/5 (Trung bình).
 - **Phạm vi code:**
   - Dựng trang Hub kiến thức theo prototype `prototype/revamp-2026-09/thu-vien.html`: breadcrumb, nhóm chủ đề (Hiểu mình, Quan hệ, Công việc, Học đọc lá số...), lưới bài viết với card ảnh 16:9.
   - Byline "Lá Số Việt biên tập", hiển thị đầy đủ thân bài MDX.
 - **Kiểm thử:** Render test + responsive test 320px/390px/1440px.
 
-#### 7. Ticket #29: Nghiệm thu đóng ticket sự cố LSV-ee72fd8e
+#### 8. Ticket #29: Nghiệm thu đóng ticket sự cố LSV-ee72fd8e
 - **Độ khó:** 3/5 (Chủ yếu là đối soát evidence & đóng ticket).
 - **Phạm vi:**
   - Đối soát DB: xác nhận đơn `LSV-ee72fd8e` đã ở trạng thái `complete`.
-  - Cập nhật trạng thái closure gate: định hướng nội dung mới theo FD-089 (#38) thay thế gate cũ, cho phép đóng ticket này sau khi deploy bản fix prompt/validator #38.
+  - Cập nhật trạng thái closure gate: phụ thuộc shared FD-082 gate 20 real sectioned runs liên tiếp thành công. Giữ `in-progress`.
 
 ---
 

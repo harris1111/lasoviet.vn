@@ -281,7 +281,7 @@
       },
       "depth": {
         "k": "Đi sâu theo ý mình",
-        "lsv": "Chọn cung, chủ đề hoặc thời vận; thấy số Lá trước khi mở.",
+        "lsv": "Chọn gói luận giải hoặc phần bạn muốn đọc; thấy rõ chi phí và quyền lợi trước khi mở.",
         "web": "Thường đi theo bài hoặc gói đã đóng sẵn.",
         "ai": "Hỏi thêm rất dễ, nhưng bạn tự kiểm tính nhất quán của từng lượt.",
         "thay": "Muốn hỏi thêm thường phải chờ một buổi khác và thêm chi phí."
@@ -306,7 +306,7 @@
     },
     "n4": {
       "title": "Đi sâu theo nhịp của mình.",
-      "body": "Công việc, tình cảm hay một giai đoạn sắp tới: chọn phần muốn đọc và xem số Lá trước khi mở."
+      "body": "Công việc, tình cảm hay một giai đoạn sắp tới: chọn phần luận giải phù hợp và thấy rõ chi phí trước khi mở."
     }
   },
   "value": {
@@ -338,7 +338,7 @@
       },
       "q2": {
         "q": "Đọc miễn phí được tới đâu?",
-        "a": "Bạn xem lá số 12 cung và hai nhận định đầu tiên: một về bản thân, một về điều bạn chọn quan tâm. Không cần tài khoản."
+        "a": "Bạn xem lá số 12 cung và các nhận định đầu tiên về bản thân, định hướng hành động. Không cần tài khoản."
       },
       "q3": {
         "q": "Lá dùng để làm gì?",
