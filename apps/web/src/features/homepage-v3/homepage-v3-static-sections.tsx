@@ -15,7 +15,16 @@ export function HomepageV3Story() {
         <picture className="hv3-story-art">
           <source media="(max-width: 699px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk-mobile.webp`} />
           { }
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" />
+          <img
+            src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk.webp`}
+            srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk-768.webp 768w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk.webp 1536w`}
+            sizes="(max-width: 1024px) 100vw, 800px"
+            alt=""
+            width={1536}
+            height={1024}
+            loading="lazy"
+            decoding="async"
+          />
         </picture>
         <div className="hv3-story-copy">
           <h2 className="hv3-h2">{t("title")}</h2>
@@ -83,7 +92,17 @@ export function HomepageV3Usp() {
       <div className="hv3-usp-grid">
         <article className="hv3-usp-card hv3-usp-art hv3-usp-dark" data-reveal style={{ "--i": 0 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          <img
+            src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu.webp`}
+            srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu-768.webp 768w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu.webp 1536w`}
+            sizes="(max-width: 768px) 100vw, 500px"
+            alt=""
+            width={1536}
+            height={1024}
+            loading="lazy"
+            decoding="async"
+            className="hv3-usp-photo"
+          />
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-archive-icon.svg", 54)}
@@ -93,7 +112,17 @@ export function HomepageV3Usp() {
         </article>
         <article className="hv3-usp-card hv3-usp-art hv3-usp-paper" data-reveal style={{ "--i": 1 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          <img
+            src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan.webp`}
+            srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan-768.webp 768w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan.webp 1536w`}
+            sizes="(max-width: 768px) 100vw, 500px"
+            alt=""
+            width={1536}
+            height={1024}
+            loading="lazy"
+            decoding="async"
+            className="hv3-usp-photo"
+          />
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-personal-icon.svg", 54)}
@@ -168,7 +197,16 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
           <picture className="hv3-about-art">
             <source media="(max-width: 699px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light-mobile.webp`} />
             { }
-            <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" />
+            <img
+              src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light.webp`}
+              srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light-768.webp 768w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light.webp 1536w`}
+              sizes="(max-width: 1024px) 100vw, 800px"
+              alt=""
+              width={1536}
+              height={1024}
+              loading="lazy"
+              decoding="async"
+            />
           </picture>
           <div className="hv3-about-body">
             {/* eslint-disable-next-line @next/next/no-img-element */}

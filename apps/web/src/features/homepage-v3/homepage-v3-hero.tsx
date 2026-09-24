@@ -47,6 +47,24 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
   const router = useRouter();
   const [values, setValues] = useState<HomepageV3BirthValues>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    }
+    return "dark";
+  });
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const next = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+      setTheme(next);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   // Restore a draft saved by this form or by the wizard so the exact minute survives a round trip.
   useEffect(() => {
@@ -246,9 +264,19 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
       <div className="hv3-hero-art">
         <div className="hv3-folio" role="group" aria-label={t("chartAria")}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-dark.webp`} alt="" width={1402} height={1122} className="hv3-folio-img hv3-folio-dark" fetchPriority="high" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-light.webp`} alt="" width={1402} height={1122} className="hv3-folio-img hv3-folio-light" />
+          <img
+            key={theme}
+            src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-${theme}.webp`}
+            srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-${theme}-700.webp 700w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-${theme}.webp 1402w`}
+            sizes="(max-width: 768px) 350px, 700px"
+            alt=""
+            width={1402}
+            height={1122}
+            className="hv3-folio-img"
+            fetchPriority="high"
+            decoding="async"
+            suppressHydrationWarning
+          />
           <span className="hv3-folio-date" aria-hidden="true">{folioDate}</span>
           <span className="hv3-folio-dial" aria-hidden="true" style={{ transform: `rotate(${lensIndex * 36 + (values.calendarType === "lunar" ? 14 : 0)}deg)`, opacity: values.timeUnknown ? 0.45 : 0.8 }} />
           <div className="hv3-folio-path" aria-hidden="true" />
