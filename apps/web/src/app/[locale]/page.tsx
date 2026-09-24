@@ -5,16 +5,19 @@ import { getTranslations } from "next-intl/server";
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { loadPublicContentRepository } from "../../features/content/public-content-repository";
-import { HomepageHero } from "../../features/homepage/homepage-hero";
-import { HomepageTopicChips } from "../../features/homepage/homepage-topic-chips";
-import { HomepageComparison } from "../../features/homepage/homepage-comparison";
-import { HomepageEvidence } from "../../features/homepage/homepage-evidence";
-import { HomepageCapabilityMatrix } from "../../features/homepage/homepage-capability-matrix";
-import { HomepageProcess } from "../../features/homepage/homepage-process";
-import { HomepageKnowledge } from "../../features/homepage/homepage-knowledge";
-import { HomepageFaq } from "../../features/homepage/homepage-faq";
-import { HomepageSupport } from "../../features/homepage/homepage-support";
-import { HomepageFinalCta } from "../../features/homepage/homepage-final-cta";
+import { HomepageV3Compare } from "../../features/homepage-v3/homepage-v3-compare";
+import { HomepageV3Explore } from "../../features/homepage-v3/homepage-v3-explore";
+import { HomepageV3Faq } from "../../features/homepage-v3/homepage-v3-faq";
+import { HomepageV3Hero } from "../../features/homepage-v3/homepage-v3-hero";
+import { HomepageV3Needs } from "../../features/homepage-v3/homepage-v3-needs";
+import { HomepageV3Reveal } from "../../features/homepage-v3/homepage-v3-reveal";
+import {
+  HomepageV3About,
+  HomepageV3Story,
+  HomepageV3Ticker,
+  HomepageV3Usp,
+  HomepageV3Value,
+} from "../../features/homepage-v3/homepage-v3-static-sections";
 import { buildPublicMetadata } from "../../seo/public-metadata";
 
 type PageProps = { params: Promise<{ locale: "en" | "vi" }> };
@@ -30,43 +33,47 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { locale } = await params;
   const t = await getTranslations("common");
-  const referenceYear = new Date().getFullYear();
 
   return (
     <div className="home">
       <SiteHeader locale={locale} />
-      <main aria-label={t("app.name")}>
-        <section className="hero" data-home-block="hero" id="hero-section">
-          <HomepageHero locale={locale} referenceYear={referenceYear} />
-        </section>
-        <section className="section section-topic-chips" data-home-block="topic-chips" id="dich-vu">
-          <HomepageTopicChips locale={locale} />
-        </section>
-        <section className="section section-comparison" data-home-block="comparison" id="he-quy-chieu">
-          <HomepageComparison />
-        </section>
-        <section className="section section-evidence" data-home-block="evidence" id="can-cu">
-          <HomepageEvidence locale={locale} />
-        </section>
-        <section className="section section-capability" data-home-block="capability-matrix" id="luan-giai">
-          <HomepageCapabilityMatrix />
-        </section>
-        <section className="section section-deep section-process" data-home-block="process" id="phuong-phap">
-          <HomepageProcess />
-        </section>
-        <section className="section section-deep section-knowledge" data-home-block="knowledge" id="kien-thuc">
-          <HomepageKnowledge locale={locale} />
-        </section>
-        <section className="section section-faq" data-home-block="faq" id="faq">
-          <HomepageFaq />
-        </section>
-        <section className="container home-support-section" data-home-block="support">
-          <HomepageSupport />
-        </section>
-        <section className="cta" data-home-block="final-cta">
-          <HomepageFinalCta locale={locale} />
-        </section>
-      </main>
+      <div className="hv3" data-light-ready>
+        <HomepageV3Reveal />
+        <main aria-label={t("app.name")}>
+          <section className="hv3-section hv3-hero" data-home-block="hero" id="lap-la-so">
+            <HomepageV3Hero locale={locale} />
+          </section>
+          <section className="hv3-section hv3-story-section" data-home-block="story">
+            <HomepageV3Story />
+          </section>
+          <HomepageV3Ticker />
+          <section className="hv3-section hv3-surface" data-home-block="explore" id="la-so-mau">
+            <HomepageV3Explore locale={locale} />
+          </section>
+          <section className="hv3-section" data-home-block="needs" id="dich-vu">
+            <div id="nhu-cau">
+              <HomepageV3Needs locale={locale} />
+            </div>
+          </section>
+          <section className="hv3-section hv3-ruled" data-home-block="comparison" id="so-sanh">
+            <HomepageV3Compare />
+          </section>
+          <section className="hv3-section hv3-inverse hv3-usp" data-home-block="usp">
+            <HomepageV3Usp />
+          </section>
+          <section className="hv3-section" data-home-block="value" id="gia-tri">
+            <HomepageV3Value locale={locale} />
+          </section>
+          <section className="hv3-section hv3-ruled" data-home-block="faq" id="faq">
+            <div id="cau-hoi">
+              <HomepageV3Faq locale={locale} />
+            </div>
+          </section>
+          <section className="hv3-section hv3-lacquer" data-home-block="about">
+            <HomepageV3About locale={locale} />
+          </section>
+        </main>
+      </div>
       <SiteFooter locale={locale} />
     </div>
   );

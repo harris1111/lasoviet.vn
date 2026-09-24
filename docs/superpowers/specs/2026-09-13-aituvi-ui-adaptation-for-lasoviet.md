@@ -114,38 +114,14 @@ Vertical padding: 88px desktop, 56px mobile. Container max 1200px; reading 720px
 
 ## 4. Page specs
 
-### 4.1 Homepage `/` (ticket: Homepage restructure)
+### 4.1 Homepage `/` (superseded by FD-100)
 
-Order (AITuvi `home` screenshots):
+The homepage order, sections, and copy now live in
+`docs/superpowers/specs/2026-09-23-homepage-content-spec.md` (Homepage V3). This
+spec keeps only the acceptance bar below.
 
-1. **Hero** — desktop: 2 columns, left = H1 + ≤ 25-word subline; right = form card
-   ("Lập lá số Tử Vi", fields: họ tên, ngày/tháng/năm + âm/dương, giờ sinh,
-   giới tính; primary pill "Xem lá số miễn phí"; text link "Xem bản luận giải mẫu").
-   Mobile: **form card first**, H1 below. No marquee.
-2. **Topic chip rows** — the real section names of the reading (12 cung names +
-   report themes). Tapping any chip scrolls to the form.
-3. **Three-column comparison** — "Tự đọc sách/bài viết" / "Hỏi thầy, hỏi AI chat" /
-   "Lá Số Việt" (highlighted card). 3 bullets each, ✕ vs ✓. Replaces the current table.
-   Mobile: LSV card first, the other two collapsed into one accordion.
-4. **Visual proof carousel** — cards showing real anonymized sample artifacts:
-   12-palace chart, palace relationship map, evidence matrix, reading coverage
-   (PR spec §6). One CTA "Xem lá số của bạn". Mobile: one card per view with 24px peek.
-5. **Free vs paid matrix** — columns "Miễn phí" / "Bản mệnh" / "Toàn diện". Rows
-   with icons (an sao 12 cung, 3 điểm nổi bật, căn cứ, 4 phần Bản mệnh, 12 phần toàn
-   diện, lưu thư viện). **No price** (FD-069). Mobile: rows stacked; each row shows
-   three labeled mini-badges; all three columns always visible, no horizontal scroll.
-6. **How it works** — 3 steps (keep current photos, shorter text ≤ 20 words each).
-7. **Knowledge** — 1 featured article card + 4 compact list items.
-8. **FAQ** — 8 numbered accordion items, first open.
-9. **Support card** (email).
-10. **Final CTA** — repeat the form card on the lacquer texture background.
-
-Remove from homepage: marquee, "Năm lăng kính" long cards (replace with a compact
-chip row "Cũng có: Bát Tự · Bản đồ sao · Thần Số Học · Kinh Dịch"), the long
-"cuộc trò chuyện vs quy trình" section, trust-strip paragraphs longer than 12 words.
-
-**Done when:** first mobile screen shows the form's first 3 fields; mobile height
-≤ 12,000px; all text ≥ 14px; Lighthouse accessibility ≥ 95; no horizontal scroll at 320px.
+**Done when:** mobile height ≤ 12,000px; all text ≥ 14px; Lighthouse accessibility
+≥ 95; no horizontal scroll at 320px.
 
 ### 4.2 Birth wizard `/tao-la-so/tu-vi` and hero form
 

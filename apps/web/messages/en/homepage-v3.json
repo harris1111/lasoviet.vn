@@ -1,0 +1,340 @@
+{
+  "hero": {
+    "h1a": "Build your chart.",
+    "h1b": "Understand your fate.",
+    "sub": "Work, love or yourself: start from your own chart.",
+    "formLabel": "Create a chart",
+    "dateLabel": "Date of birth",
+    "calendarLabel": "Calendar",
+    "solar": "Solar",
+    "lunar": "Lunar",
+    "day": "Day",
+    "month": "Month",
+    "year": "Year",
+    "leap": "Leap month",
+    "timeLabel": "Birth time",
+    "modeExact": "Exact time",
+    "modeBranch": "Time range",
+    "hourSr": "Birth hour, 00 to 23",
+    "minuteSr": "Birth minute, 00 to 59",
+    "branchSr": "Birth time range",
+    "branchPlaceholder": "Choose a time range",
+    "unknown": "I don't know my birth time",
+    "genderLabel": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "nameLabel": "Chart name",
+    "nameOptional": "(optional)",
+    "namePlaceholder": "e.g. Minh An",
+    "submit": "Build your chart for free",
+    "errors": {
+      "dateEmpty": "Enter the full day, month and year (4-digit year).",
+      "dateImpossible": "This date does not exist on the calendar. Check the day, month and year.",
+      "dateFuture": "Birth date cannot be in the future.",
+      "dateRange": "Birth year must be between 1920 and this year.",
+      "time": "Enter an hour from 00 to 23 and minutes from 00 to 59.",
+      "branch": "Choose a birth time range.",
+      "gender": "Choose Male or Female.",
+      "storage": "Your browser could not save the details. Enable site storage and try again."
+    },
+    "chartAria": "Twelve-branch chart diagram"
+  },
+  "story": {
+    "title": "Some questions keep following you.",
+    "body": "They surface at midnight, on the way home, or in the middle of a meeting. At those moments, a deep enough point of view can help us take the next step more clearly.",
+    "q1": "Should I change jobs?",
+    "q2": "Why does my love life keep repeating itself?",
+    "q3": "What am I missing about myself?"
+  },
+  "ticker": {
+    "label": "Things you can explore",
+    "a1": "Which work suits me?",
+    "a2": "Why does the past repeat?",
+    "a3": "What does my Life palace say?",
+    "a4": "When should I change direction?",
+    "b1": "Career palace",
+    "b2": "Spouse palace",
+    "b3": "Wealth palace",
+    "b4": "Explore by what you need"
+  },
+  "explore": {
+    "eyebrow": "Explore the 12 palaces",
+    "title": "One chart, many things to read.",
+    "lead": "Start from the Life palace. Tap Career, Wealth or Spouse to see connections that rarely show when you read one box at a time.",
+    "shortcutsLabel": "Palaces usually read first",
+    "mobileHint": "Tap the grid to open the other 8 palaces.",
+    "chartLabel": "12 palaces",
+    "palaceAria": "{name} palace, {branch}",
+    "reading": "Reading",
+    "palacePrefix": "Palace of",
+    "trine": "Trine",
+    "opposite": "Opposite",
+    "cycles": "Beyond the 12 palaces there is a rhythm in time: a ten-year cycle for each decade, an annual cycle for each year.",
+    "cta": "Create my chart",
+    "sample": "See a full sample chart →"
+  },
+  "palaces": {
+    "menh": {
+      "name": "Life",
+      "title": "Your core self",
+      "desc": "Temperament, footing, and how you react when things go off course. Every other palace is read from here."
+    },
+    "huynh": {
+      "name": "Siblings",
+      "title": "Brothers and sisters",
+      "desc": "The people who grew up beside you, and how you lift or clash with one another."
+    },
+    "phuthe": {
+      "name": "Spouse",
+      "title": "Romance",
+      "desc": "The kind of person you want to stay with, and the differences you need to learn to hear."
+    },
+    "tutuc": {
+      "name": "Children",
+      "title": "Children",
+      "desc": "Your bond with children and how you care for the next generation."
+    },
+    "taibach": {
+      "name": "Wealth",
+      "title": "Money",
+      "desc": "Where money comes to you from, and why it sometimes leaves faster than you expect."
+    },
+    "tatach": {
+      "name": "Health",
+      "title": "Health",
+      "desc": "The places your body tends to speak up, so you know when to rest. Not a substitute for medical advice."
+    },
+    "thiendi": {
+      "name": "Travel",
+      "title": "Moving away",
+      "desc": "How you change when you leave the familiar: a new job, a new city, a new road."
+    },
+    "nobo": {
+      "name": "Friends",
+      "title": "Friends and partners",
+      "desc": "Who stands with you when things get hard, and which relationships take more than they give."
+    },
+    "quanloc": {
+      "name": "Career",
+      "title": "Work",
+      "desc": "The setting where you do your best: structure, stability, or the freedom to decide."
+    },
+    "dientrach": {
+      "name": "Property",
+      "title": "Home",
+      "desc": "Settling down, building assets, and the place where you truly feel at home."
+    },
+    "phucduc": {
+      "name": "Fortune",
+      "title": "Inner life",
+      "desc": "What keeps you calm, and the family roots behind you."
+    },
+    "phumau": {
+      "name": "Parents",
+      "title": "Parents",
+      "desc": "The tie to your parents and what you carry from the home you grew up in."
+    }
+  },
+  "needs": {
+    "title": "What do you most want to understand?",
+    "lead": "A career crossroads. A relationship hard to name. Or yourself, after a long road.",
+    "groupLabel": "What you want to understand",
+    "items": {
+      "self": {
+        "title": "Understand myself",
+        "question": "Where am I strong? Why do I keep hesitating over big things?",
+        "path": "Read from the Life palace: your character, your footing, and habits you never had a name for.",
+        "cta": "Start from the Life palace",
+        "c1": "Life",
+        "c2": "Body palace"
+      },
+      "work": {
+        "title": "Work and money",
+        "question": "Should I quit now? Push hard, or hold onto savings and wait?",
+        "path": "The Career palace shows how you work, the Wealth palace shows cash flow, and the ten-year cycles show the rhythm of each stage.",
+        "cta": "See work on the chart",
+        "secondary": "Or explore BaZi",
+        "c1": "Career",
+        "c2": "Wealth",
+        "c3": "Ten-year cycles"
+      },
+      "love": {
+        "title": "Relationships",
+        "question": "Why does the same story keep repeating? What kind of person truly suits me?",
+        "path": "The Spouse palace speaks of the person you bond with easily. Read it with the Life palace to see why.",
+        "cta": "See relationships",
+        "secondary": "Or explore Astrology",
+        "c1": "Spouse",
+        "c2": "Life"
+      },
+      "decision": {
+        "title": "A decision in front of me",
+        "question": "Sign this contract, accept this trip, or wait a little longer?",
+        "path": "For one specific question, the I Ching gives a hexagram to weigh whether to move ahead or pause.",
+        "cta": "Explore the I Ching",
+        "c1": "I Ching"
+      }
+    },
+    "lensTitle": "Each lens, a different view.",
+    "lensLead": "Zi Wei starts from your own chart. To widen your view, explore the other disciplines.",
+    "disciplines": {
+      "tuvi": {
+        "name": "Zi Wei Dou Shu",
+        "desc": "A twelve-palace map built from your birth date and time.",
+        "cta": "Create my chart"
+      },
+      "batu": {
+        "name": "BaZi",
+        "desc": "Four pillars of year, month, day and hour, and the balance of the five elements.",
+        "cta": "Explore BaZi"
+      },
+      "chiemtinh": {
+        "name": "Astrology",
+        "desc": "Where the planets stood when you were born, read through 12 signs and 12 houses.",
+        "cta": "Explore Astrology"
+      },
+      "kinhdich": {
+        "name": "I Ching",
+        "desc": "One question, one hexagram, and a hint whether to move or pause.",
+        "cta": "Explore the I Ching"
+      },
+      "thansohoc": {
+        "name": "Numerology",
+        "desc": "Numbers drawn from your name and birth date, and your personal-year rhythm.",
+        "cta": "Explore Numerology"
+      }
+    }
+  },
+  "compare": {
+    "title": "Do you want an answer, or something to see for yourself?",
+    "lead": "Every way of looking has something worth choosing. The difference is what you keep after the answer.",
+    "tableLabel": "Comparing four ways to find an answer",
+    "tabsLabel": "Criteria",
+    "colLsv": "Lá Số Việt",
+    "colWeb": "General horoscope sites",
+    "colAi": "Asking an AI",
+    "colThay": "Meeting a master",
+    "cta": "Start with my chart →",
+    "rows": {
+      "strength": {
+        "k": "Strengths",
+        "lsv": "A chart you can explore, return to, and keep reading.",
+        "web": "Very fast; many pages offer free lookups.",
+        "ai": "Flexible: ask in your own words.",
+        "thay": "Live conversation, and you can dig deeper on the spot."
+      },
+      "own": {
+        "k": "What is personal?",
+        "lsv": "Starts from your birth date and time; you choose what to understand first.",
+        "web": "Usually returns a ready-made reading; little room to follow your own concern.",
+        "ai": "Answers exactly what you ask, but without reliable chart data the answer can drift.",
+        "thay": "Can be very personal with a careful reader; quality depends on the person."
+      },
+      "basis": {
+        "k": "Basis",
+        "lsv": "Tap an insight to trace it back to the palace and stars behind it.",
+        "web": "Many readings give conclusions but make it hard to see the links between palaces.",
+        "ai": "Very fluent; not every sentence points to its basis on the chart.",
+        "thay": "Can explain in person; afterwards you usually have to write it down yourself to check."
+      },
+      "revisit": {
+        "k": "Reading again",
+        "lsv": "Your chart and the sections you opened stay in your account.",
+        "web": "Some sites let you save; finding each part again varies.",
+        "ai": "Search through chat history; easy to mix up between sessions.",
+        "thay": "Memory, a recording, or notes, depending on the session."
+      },
+      "depth": {
+        "k": "Going deeper",
+        "lsv": "Start free; pick the palace, topic or time period to open next.",
+        "web": "Usually by article or ready-made package.",
+        "ai": "Follow up instantly, but you must check the answers yourself.",
+        "thay": "Follow up instantly if the session still has time."
+      },
+      "cost": {
+        "k": "Cost",
+        "lsv": "See the Lá needed before opening each part.",
+        "web": "Many pages are free; details may sit in a separate plan.",
+        "ai": "Depends on the tool plan you use.",
+        "thay": "Usually paid per session, at each person's rate."
+      }
+    }
+  },
+  "usp": {
+    "title": "Not just a verdict.",
+    "lead": "Tap a palace to see how it connects. Read an insight to see where it starts. When you want to go further, you choose the parts worth reading.",
+    "n1": {
+      "title": "See the connections",
+      "body": "Pick a palace and its trine and opposite palaces light up together. You see why money is tied to how you work.",
+      "link": "Try tapping a palace →"
+    },
+    "n2": {
+      "title": "Trace it to the basis",
+      "body": "Beside each insight is where it starts on the chart: which palace, which star. You can follow it yourself instead of trusting a vague line."
+    },
+    "n3": {
+      "title": "Read deeper by what you need",
+      "body": "To go further, you pick the part worth reading and see the Lá cost before opening it."
+    },
+    "cardTitle": "About work",
+    "cardPalace": "Career palace",
+    "cardBasis": "See basis",
+    "step1": "About yourself",
+    "step2": "About what you choose",
+    "step3": "Read deeper",
+    "step3tag": "Open with Lá"
+  },
+  "value": {
+    "title": "Read a little first. Go deeper when you want.",
+    "lead": "Begin with the chart and the first things you notice about yourself. To keep it and read on, save your chart. Deeper readings open with Lá, following what you care about.",
+    "s1": {
+      "title": "Start free",
+      "body": "The 12-palace chart and the first things about you, no account needed."
+    },
+    "s2": {
+      "title": "Save your chart",
+      "body": "Sign in to keep your chart, reopen it any time and read the summary."
+    },
+    "s3": {
+      "title": "Pick a deeper part",
+      "body": "Open with Lá, exactly the part you care about. The Lá cost is shown before you agree."
+    },
+    "packsTitle": "Lá packs",
+    "packsNote": "Each price shows both Lá and money. Pay via VietQR.",
+    "packBonus": "{base} Lá + {bonus} bonus Lá"
+  },
+  "faq": {
+    "title": "What you may want to know before starting.",
+    "more": "More questions →",
+    "items": {
+      "q1": {
+        "q": "What if I don't remember my birth time?",
+        "a": "You can still begin. Tick “I don't know my birth time”. In the next step, Lá Số Việt explains how birth time matters and lets you add it once you have asked your family."
+      },
+      "q2": {
+        "q": "How far does free reading go?",
+        "a": "You see the 12-palace chart and the first two insights: one about yourself, one about what you choose to care about. No account needed."
+      },
+      "q3": {
+        "q": "What is Lá used for?",
+        "a": "Lá opens the deeper reading sections. Each pack states its Lá and its price, paid via VietQR."
+      },
+      "q4": {
+        "q": "Where can I find my chart again?",
+        "a": "Sign in to save it. Your chart and the sections you opened live under Account."
+      },
+      "q5": {
+        "q": "How is my birth data stored?",
+        "a": "How data is stored, used and deleted is described in the",
+        "linkLabel": "Privacy Policy."
+      }
+    }
+  },
+  "about": {
+    "title": "Lá Số Việt began with a simple question: how do you understand a chart, instead of just hearing a verdict?",
+    "body": "We place old knowledge into a closer way of reading: a chart to look at, a basis to trace, and quiet space to understand yourself.",
+    "link": "About Lá Số Việt →",
+    "ctaTitle": "Where does your story begin?",
+    "cta": "Create my chart"
+  }
+}

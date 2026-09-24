@@ -58,6 +58,15 @@ export default async function LocaleLayout({
       lang={locale}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          // Applies the saved theme before first paint; only light-ready pages act on it (FD-102).
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var t=localStorage.getItem("lasoviet:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}',
+          }}
+        />
+      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <AnalyticsCollector />
