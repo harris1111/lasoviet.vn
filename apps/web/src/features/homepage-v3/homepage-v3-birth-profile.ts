@@ -47,7 +47,8 @@ export function toHomepageV3Draft(values: HomepageV3BirthValues, now: Date = new
   const timeState = getTimeState(values);
   if (!timeState || !values.gender || !hasValidBirthDate(values, now)) return null;
   return {
-    step: 3,
+    // Land on step 1 so the visitor can still choose "for someone else" before reviewing.
+    step: 1,
     displayName: values.displayName.trim().slice(0, 80),
     forWhom: "self",
     consentOther: false,

@@ -352,3 +352,40 @@ test("header theme toggle switches header, footer and page together and persists
   await expect(page.locator("header.site-header")).toHaveCSS("background-color", darkBg);
   await expect(page.locator("header .theme-toggle")).toBeHidden();
 });
+
+test("footer links to product, discipline, knowledge and support pages", async ({ page }) => {
+  await visitLocalizedHome(page, locales[0]);
+  const footer = page.locator("footer.site-footer");
+  for (const href of [
+    "/tao-la-so/tu-vi",
+    "/bao-cao-mau/tu-vi",
+    "/bat-tu",
+    "/chiem-tinh",
+    "/kinh-dich",
+    "/than-so-hoc",
+    "/cong-cu-mien-phi",
+    "/kien-thuc",
+    "/cau-hoi-thuong-gap",
+    "/lien-he",
+    "/dieu-khoan",
+    "/chinh-sach-bao-mat",
+  ]) {
+    await expect(footer.locator(`a[href="${href}"]`).first()).toBeAttached();
+  }
+  await page.goto("/en");
+  await expect(page.locator('footer.site-footer a[href="/en/bat-tu"]')).toBeAttached();
+});
+
+test("homepage hand-off opens wizard step 1 so the chart can be made for someone else", async ({ page }) => {
+  await visitLocalizedHome(page, locales[0]);
+  await page.fill("#hv3-day", "25");
+  await page.getByLabel("Tháng", { exact: true }).fill("7");
+  await page.getByLabel("Năm", { exact: true }).fill("1993");
+  await page.fill("#hv3-hour", "6");
+  await page.fill("#hv3-minute", "40");
+  await page.getByRole("button", { name: "Nam" }).click();
+  await page.getByRole("button", { name: locales[0].cta }).click();
+  await page.waitForURL(/tao-la-so\/tu-vi/);
+  await expect(page.getByRole("button", { name: /Lập cho người khác/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Lập cho bản thân/ })).toBeVisible();
+});

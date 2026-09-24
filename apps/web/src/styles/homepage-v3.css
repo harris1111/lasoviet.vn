@@ -420,3 +420,17 @@ html[data-theme="light"]:has([data-light-ready]) .theme-toggle { color: #1d1812;
   .site-header .mobile-menu nav a { display: flex; min-height: 52px; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--lacquer-line); color: var(--pearl-200); }
   .site-header .mobile-menu nav .button { margin: 16px; border: 0; color: var(--lacquer-900); }
 }
+
+/* Footer: link columns (brand, Zi Wei, disciplines, knowledge, support). */
+.site-footer .footer-grid { display: grid; grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); gap: 40px 32px; align-items: start; }
+.site-footer .footer-brand p { max-width: 280px; margin: 16px 0 12px; color: var(--pearl-400); font: 15px/1.6 var(--font-ui); }
+.site-footer .footer-support-email { display: inline-block; font-size: 14px; word-break: break-all; }
+.site-footer .footer-group h2 { margin: 0 0 14px; color: var(--pearl-400); font: 600 12px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.site-footer .footer-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.site-footer .footer-group a { display: inline-flex; align-items: center; min-height: 32px; color: var(--pearl-200); font-size: 14px; text-decoration: none; }
+.site-footer .footer-group a:hover { color: var(--gold-400); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 1023px) { .site-footer .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .site-footer .footer-brand { grid-column: 1 / -1; } }
+@media (max-width: 519px) { .site-footer .footer-grid { grid-template-columns: 1fr; } .site-footer .footer-group a { min-height: 44px; } }
+html[data-theme="light"]:has([data-light-ready]) .site-footer .footer-group a { color: #3d3428; }
+html[data-theme="light"]:has([data-light-ready]) .site-footer .footer-group a:hover { color: #a8402d; }
+html[data-theme="light"]:has([data-light-ready]) .site-footer .footer-group h2, html[data-theme="light"]:has([data-light-ready]) .site-footer .footer-brand p { color: #6b604f; }
