@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
+import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+
 export type ZodiacPreviewProps = {
   locale: "vi" | "en";
   className?: string;
@@ -530,6 +532,10 @@ export function ZodiacPreview({ locale, className }: ZodiacPreviewProps) {
                   );
                 })}
               </div>
+            </div>
+
+            <div style={{ marginTop: "44px" }}>
+              <FreeToolCrossSellBanner locale={locale} tool="zodiac" />
             </div>
           </div>
         </section>

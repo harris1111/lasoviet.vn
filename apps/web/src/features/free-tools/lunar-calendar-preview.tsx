@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
+import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+
 export type LunarCalendarPreviewProps = {
   locale: "vi" | "en";
   className?: string;
@@ -696,6 +698,10 @@ export function LunarCalendarPreview({ locale, className }: LunarCalendarPreview
                     : "Illustrating 12-hour table structure only — real auspicious hour formulas will publish alongside conversion algorithms at launch."}
                 </p>
               </div>
+            </div>
+
+            <div style={{ marginTop: "56px" }}>
+              <FreeToolCrossSellBanner locale={locale} tool="lunar-calendar" />
             </div>
           </div>
         </section>

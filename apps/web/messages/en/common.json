@@ -504,5 +504,49 @@
       "yes": "Yes",
       "no": "No"
     }
+  },
+  "freeToolsCrossSell": {
+    "goodDays": {
+      "eyebrow": "Personal Chart Alignment",
+      "question": "An auspicious day overall, but does it harmonize with your chart?",
+      "explanation": "Your personal chart reveals specific hours and directions that align with your unique timing and priorities.",
+      "cta": "Check against your chart"
+    },
+    "zodiac": {
+      "eyebrow": "Destiny Depth",
+      "question": "Sharing the same zodiac sign, yet why are two life paths so distinct?",
+      "explanation": "Birth year gives the animal sign, but your full birth hour and date map the complete twelve palaces.",
+      "cta": "Build your personal chart"
+    },
+    "lunarCalendar": {
+      "eyebrow": "Personal Planetary Cycle",
+      "question": "Checked the lunar calendar, but have you seen your personal planetary cycle?",
+      "explanation": "Your Zi Wei chart weaves stems and branches with your exact birth time to illuminate your current life phase.",
+      "cta": "Explore your chart"
+    },
+    "dreamSymbols": {
+      "eyebrow": "Mind & Transit",
+      "question": "What does this dream symbol reflect in your mind and birth chart?",
+      "explanation": "Dreams mirror subconscious transitions; cross-referencing your Destiny and Wellness palaces brings deeper clarity.",
+      "cta": "Reflect on your chart"
+    },
+    "tarot": {
+      "eyebrow": "Long-Term Perspective",
+      "question": "Cards offer immediate perspective, but what does your long-term landscape show?",
+      "explanation": "Tarot captures current energy; your Zi Wei chart reveals foundational cycles and major life milestones.",
+      "cta": "View long-term chart"
+    },
+    "fengShui": {
+      "eyebrow": "Space & Destiny",
+      "question": "A favorable orientation, but does it harmonize with the homeowner's chart?",
+      "explanation": "Living space harmony flourishes when aligned with your personal Property palace and life timing.",
+      "cta": "Inspect Property palace"
+    },
+    "palmistry": {
+      "eyebrow": "Palmistry & Natal Baseline",
+      "question": "Palm lines show physical traits, but where lies your foundational chart?",
+      "explanation": "Palm signs shift with habits and thought; your Zi Wei chart provides the anchor for conscious direction.",
+      "cta": "View your natal chart"
+    }
   }
 }

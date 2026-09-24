@@ -5,10 +5,15 @@ import { BirthProfileForm } from "../../../../features/birth-profile/birth-profi
 import { submitBirthProfile } from "../../../../features/birth-profile/birth-profile-actions";
 import { calculateZiweiChart } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 
-export default async function ZiweiBirthProfilePage() {
+type ZiweiBirthProfilePageProps = {
+  searchParams?: Promise<{ from?: string }>;
+};
+
+export default async function ZiweiBirthProfilePage(props: ZiweiBirthProfilePageProps) {
   const locale = (await getLocale()) as "en" | "vi";
   const t = await getTranslations("profile");
   const referenceYear = new Date().getFullYear();
+  const searchParams = props.searchParams ? await props.searchParams : undefined;
   return (
     <main className="wizard-page">
       <div className="wizard-privacy">
@@ -17,6 +22,7 @@ export default async function ZiweiBirthProfilePage() {
       </div>
       <BirthProfileForm
         calculateZiweiChart={calculateZiweiChart}
+        fromSource={searchParams?.from}
         locale={locale}
         referenceYear={referenceYear}
         submitBirthProfile={submitBirthProfile}

@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
+import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+
 export type DreamSymbolPreviewProps = {
   locale: "vi" | "en";
   className?: string;
@@ -550,6 +552,10 @@ export function DreamSymbolPreview({ locale, className }: DreamSymbolPreviewProp
                   </p>
                 </div>
               ))}
+            </div>
+
+            <div style={{ marginTop: "56px" }}>
+              <FreeToolCrossSellBanner locale={locale} tool="dream-symbols" />
             </div>
           </div>
         </section>

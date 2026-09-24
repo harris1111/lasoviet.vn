@@ -109,7 +109,7 @@ import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
 import { BirthWizardReviewStep } from "./birth-wizard-review-step";
 import { Icon } from "../../components/icon";
 import { useMobileKeyboardState } from "./use-mobile-keyboard-state";
-import type { ReadingContextV1 } from "@lasoviet/contracts";
+import type { ReadingContextV1, TopConcernV1 } from "@lasoviet/contracts";
 import type { WizardReadingContextDraft } from "./birth-wizard-state";
 import {
   canAdvanceStep1,
@@ -219,12 +219,41 @@ export const DEFAULT_UNKNOWN_TIME_SAVED_LABELS: Record<
 };
 
 
-export function buildWizardStartEvent(locale: "en" | "vi") {
+export function mapToolToTopConcern(from?: string): TopConcernV1 | undefined {
+  if (!from) return undefined;
+  switch (from) {
+    case "xem-ngay":
+    case "good-days":
+      return "career";
+    case "12-con-giap":
+    case "zodiac":
+      return "self_understanding";
+    case "lich-am":
+    case "lunar-calendar":
+      return "wellbeing";
+    case "giai-mong":
+    case "dream-symbols":
+      return "wellbeing";
+    case "tarot":
+      return "career";
+    case "phong-thuy":
+    case "feng-shui":
+    case "huong-nha":
+      return "family";
+    case "xem-chi-tay":
+    case "palmistry":
+      return "self_understanding";
+    default:
+      return undefined;
+  }
+}
+
+export function buildWizardStartEvent(locale: "en" | "vi", entryPoint: string = "wizard_route") {
   return {
     name: "wizard_start" as const,
     properties: {
       locale,
-      entry_point: "wizard_route" as const,
+      entry_point: entryPoint,
       step: 1 as const,
     },
   };
@@ -293,10 +322,11 @@ export function createWizardAnalyticsGate(): WizardAnalyticsGate {
 export function claimWizardStart(
   gate: WizardAnalyticsGate,
   locale: "en" | "vi",
+  entryPoint: string = "wizard_route",
 ): ReturnType<typeof buildWizardStartEvent> | null {
   if (gate.hasStarted) return null;
   gate.hasStarted = true;
-  return buildWizardStartEvent(locale);
+  return buildWizardStartEvent(locale, entryPoint);
 }
 
 export function claimWizardStep3Complete(
@@ -392,6 +422,7 @@ export function UnknownTimeSavedPresenter({
 type BirthProfileFormProps = {
   locale: "en" | "vi";
   referenceYear?: number;
+  fromSource?: string;
   submitBirthProfile(input: {
     profile: unknown;
     explicitConsent: boolean;
@@ -415,6 +446,7 @@ export function BirthProfileForm({
   submitBirthProfile,
   calculateZiweiChart,
   referenceYear,
+  fromSource,
 }: BirthProfileFormProps) {
   const t = useTranslations("profile" as never);
   const router = useRouter();
@@ -435,8 +467,10 @@ export function BirthProfileForm({
   });
   const [place, setPlace] = useState("");
   const [consent, setConsent] = useState(false);
+  const suggestedConcern = mapToolToTopConcern(fromSource);
   const [readingContext, setReadingContext] = useState<WizardReadingContextDraft>({
     skippedQuestions: { lifeStage: false, topConcern: false },
+    ...(suggestedConcern ? { topConcern: suggestedConcern } : {}),
   });
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -459,12 +493,13 @@ export function BirthProfileForm({
   }
 
   const analyticsGateRef = useRef<WizardAnalyticsGate>(createWizardAnalyticsGate());
+  const entryPoint = fromSource ? `tool_${fromSource}` : "wizard_route";
   useEffect(() => {
-    const claim = claimWizardStart(analyticsGateRef.current, locale);
+    const claim = claimWizardStart(analyticsGateRef.current, locale, entryPoint);
     if (claim) {
       void sendBrowserAnalyticsEvent(claim.name, claim.properties);
     }
-  }, [locale]);
+  }, [locale, entryPoint]);
 
   useEffect(() => {
     let active = true;

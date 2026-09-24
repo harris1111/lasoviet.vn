@@ -15,6 +15,7 @@ import {
   resolveUnknownTimePersistence,
   UnknownTimeSavedPresenter,
   buildWizardStartEvent,
+  mapToolToTopConcern,
   buildWizardStepCompleteEvent,
   buildChartSuccessEvent,
   createWizardAnalyticsGate,
@@ -1079,6 +1080,14 @@ describe("birth profile wizard analytics helpers and gates", () => {
         step: 1,
       },
     });
+    expect(buildWizardStartEvent("vi", "tool_xem-ngay")).toEqual({
+      name: "wizard_start",
+      properties: {
+        locale: "vi",
+        entry_point: "tool_xem-ngay",
+        step: 1,
+      },
+    });
   });
 
   it("builds exact wizard_step_complete payloads for steps 1, 2, and 3", () => {
@@ -1136,6 +1145,19 @@ describe("birth profile wizard analytics helpers and gates", () => {
     expect(event.properties).not.toHaveProperty("birthDate");
     expect(event.properties).not.toHaveProperty("displayName");
     expect(event.properties).not.toHaveProperty("placeLabel");
+  });
+
+  it("maps free tool query param to relevant top concern", () => {
+    expect(mapToolToTopConcern(undefined)).toBeUndefined();
+    expect(mapToolToTopConcern("xem-ngay")).toBe("career");
+    expect(mapToolToTopConcern("good-days")).toBe("career");
+    expect(mapToolToTopConcern("12-con-giap")).toBe("self_understanding");
+    expect(mapToolToTopConcern("zodiac")).toBe("self_understanding");
+    expect(mapToolToTopConcern("lich-am")).toBe("wellbeing");
+    expect(mapToolToTopConcern("giai-mong")).toBe("wellbeing");
+    expect(mapToolToTopConcern("tarot")).toBe("career");
+    expect(mapToolToTopConcern("phong-thuy")).toBe("family");
+    expect(mapToolToTopConcern("xem-chi-tay")).toBe("self_understanding");
   });
 
   it("gate allows wizard_start only once and rejects repeated claims", () => {
