@@ -504,5 +504,49 @@
       "yes": "Có",
       "no": "Không"
     }
+  },
+  "freeToolsCrossSell": {
+    "goodDays": {
+      "eyebrow": "Đối chiếu lá số cá nhân",
+      "question": "Ngày tốt chung, nhưng có thuận với bản mệnh của bạn?",
+      "explanation": "Khung giờ và phương vị trên lá số cá nhân giúp bạn chủ động chọn thời điểm phù hợp nhất cho công việc.",
+      "cta": "Kiểm tra lá số của bạn"
+    },
+    "zodiac": {
+      "eyebrow": "Chiều sâu bản mệnh",
+      "question": "Cùng một con giáp, vì sao mỗi người lại có vận trình khác biệt?",
+      "explanation": "Năm sinh chỉ mở ra Địa Chi; chính giờ, ngày và tháng sinh mới định hình mười hai cung số trọn vẹn.",
+      "cta": "Lập lá số cá nhân"
+    },
+    "lunarCalendar": {
+      "eyebrow": "Nhịp vận cá nhân",
+      "question": "Tra ngày lịch âm xong, bạn đã nắm nhịp vận hành của riêng mình?",
+      "explanation": "Lá số Tử Vi kết hợp can chi ngày giờ để soi chiếu đại vận và tiểu hạn thực tế của bạn.",
+      "cta": "Khám phá lá số của bạn"
+    },
+    "dreamSymbols": {
+      "eyebrow": "Tâm trí & Vận trình",
+      "question": "Biểu tượng giấc mơ phản ánh điều gì trong tâm trí và lá số?",
+      "explanation": "Giấc mộng thường báo hiệu tâm trạng hay biến chuyển; đối chiếu với cung Mệnh và Tật Ách để thấu tỏ hơn.",
+      "cta": "Soi chiếu trên lá số"
+    },
+    "tarot": {
+      "eyebrow": "Tầm nhìn dài hạn",
+      "question": "Quẻ bài gợi mở câu hỏi, nhưng bức tranh dài hạn của bạn ra sao?",
+      "explanation": "Tarot phản ánh năng lượng hiện tại; lá số Tử Vi cho thấy quy luật vận hạn và các cột mốc quan trọng.",
+      "cta": "Xem lá số dài hạn"
+    },
+    "fengShui": {
+      "eyebrow": "Không gian & Bản mệnh",
+      "question": "Hướng nhà hợp hướng, nhưng có thuận với bản mệnh gia chủ?",
+      "explanation": "Phong thuỷ nhà ở đạt hiệu quả tốt nhất khi kết hợp hài hoà với cung Điền Trạch trên lá số cá nhân.",
+      "cta": "Kiểm tra cung Điền Trạch"
+    },
+    "palmistry": {
+      "eyebrow": "Tướng pháp & Mệnh lý",
+      "question": "Chỉ tay phản ánh nét tướng, còn gốc số của bạn nằm ở đâu?",
+      "explanation": "Tướng tay chuyển biến theo tâm và hành vi; lá số Tử Vi giữ vai trò toạ độ gốc giúp định hướng vững vàng.",
+      "cta": "Xem toạ độ lá số"
+    }
   }
 }

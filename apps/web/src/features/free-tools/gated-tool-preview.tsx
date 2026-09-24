@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 
+import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+
 export type GatedToolKind = "huong-nha" | "xem-chi-tay";
 
 export type GatedToolPreviewProps = {
@@ -214,25 +216,8 @@ export function GatedToolPreview({ kind, locale, className }: GatedToolPreviewPr
           <span>[ {isVi ? "Tính năng chưa mở" : "Feature unavailable"} ]</span>
         </div>
 
-        <div style={{ marginTop: "32px" }}>
-          <Link
-            href={content.ctaHref}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "44px",
-              padding: "0 24px",
-              borderRadius: "4px",
-              background: "linear-gradient(103deg, #9A7730 0%, #F2DCA0 34%, #C9A44D 58%, #A8842F 100%)",
-              color: "#0F0D0A",
-              fontWeight: 600,
-              fontSize: "14.5px",
-              textDecoration: "none",
-            }}
-          >
-            {content.ctaText}
-          </Link>
+        <div style={{ marginTop: "48px", textAlign: "left" }}>
+          <FreeToolCrossSellBanner locale={locale} tool={kind} />
         </div>
       </main>
 

@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
+import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+
 export type FengShuiPreviewProps = {
   locale: "vi" | "en";
   className?: string;
@@ -757,6 +759,10 @@ export function FengShuiPreview({ locale, className }: FengShuiPreviewProps) {
                     : "Each orientation lists its illustrative classification and rule code — no composite score, and zero suggestions to purchase remedies."}
                 </p>
               </div>
+            </div>
+
+            <div style={{ marginTop: "56px" }}>
+              <FreeToolCrossSellBanner locale={locale} tool="feng-shui" />
             </div>
           </div>
         </section>

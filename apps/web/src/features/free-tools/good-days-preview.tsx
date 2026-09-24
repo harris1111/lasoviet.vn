@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
+import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+
 export type GoodDaysPreviewProps = {
   locale: "vi" | "en";
   className?: string;
@@ -854,6 +856,10 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
                   : "No dates selected for comparison — click \"+ Compare\" on up to 3 rows in the table above."}
               </p>
             )}
+
+            <div style={{ marginTop: "56px" }}>
+              <FreeToolCrossSellBanner locale={locale} tool="good-days" />
+            </div>
           </div>
         </section>
 

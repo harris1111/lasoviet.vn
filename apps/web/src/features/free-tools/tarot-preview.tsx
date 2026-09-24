@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 
+import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+
 export type TarotPreviewProps = {
   locale: "vi" | "en";
   className?: string;
@@ -568,6 +570,10 @@ export function TarotPreview({ locale, className }: TarotPreviewProps) {
                 </span>
                 <span>{isVi ? "Vì sao có nhận định này?" : "Why this assessment?"}</span>
               </button>
+            </div>
+
+            <div style={{ marginTop: "56px" }}>
+              <FreeToolCrossSellBanner locale={locale} tool="tarot" />
             </div>
           </div>
         </section>
