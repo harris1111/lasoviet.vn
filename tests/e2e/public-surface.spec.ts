@@ -2,15 +2,14 @@ import { expect, test, type Page } from "@playwright/test";
 
 const homeBlocks = [
   "hero",
-  "topic-chips",
+  "story",
+  "explore",
+  "needs",
   "comparison",
-  "evidence",
-  "capability-matrix",
-  "process",
-  "knowledge",
+  "usp",
+  "value",
   "faq",
-  "support",
-  "final-cta",
+  "about",
 ];
 
 const locales = [
@@ -23,7 +22,7 @@ const locales = [
     description:
       "Lập lá số Tử Vi miễn phí, luận giải có căn cứ rõ ràng — nền tảng khai phóng bản mệnh cho người Việt, nói có sách mách có chứng.",
     cta: "Lập lá số miễn phí",
-    finalCta: "Xem lá số miễn phí",
+    finalCta: "Lập lá số của tôi",
     chartPath: "/tao-la-so/tu-vi",
     menuLabel: "Mở điều hướng",
     brandName: "Lá Số Việt",
@@ -49,7 +48,7 @@ const locales = [
     description:
       "A grounded chart-building and interpretation platform, beginning with Tu Vi for Vietnamese users.",
     cta: "Build your chart for free",
-    finalCta: "Build your chart for free",
+    finalCta: "Create my chart",
     chartPath: "/en/tao-la-so/tu-vi",
     menuLabel: "Open navigation",
     brandName: "La So Viet",
@@ -115,25 +114,20 @@ for (const viewport of [
       ).toBe(true);
 
       if (viewport.name === "desktop-1280x972") {
-        // Assert removed old sections are absent
+        // Old homepage blocks are gone
         const removedBlocks = [
-          "trust-strip",
-          "problem",
-          "lenses",
-          "chatbot-comparison",
-          "category-comparison",
-          "about-method",
-          "free-value",
-          "value-ladder",
-          "trust-specs",
-          "about-excerpt",
+          "topic-chips",
+          "evidence",
+          "capability-matrix",
+          "process",
+          "knowledge",
+          "support",
+          "final-cta",
         ];
         for (const block of removedBlocks) {
           await expect(page.locator(`[data-home-block="${block}"]`)).toHaveCount(0);
         }
-        // Topic chips block is visible
-        const topicChips = page.locator('[data-home-block="topic-chips"]');
-        await expect(topicChips).toBeVisible();
+        await expect(page.locator('[data-home-block="needs"]')).toBeVisible();
       }
 
       if (viewport.name === "mobile") {
@@ -142,7 +136,7 @@ for (const viewport of [
         await expect(header).toBeVisible();
 
         // Inputs and controls >= 44px
-        const inputs = page.locator("#hero-form input:not([tabindex='-1']):not([type='checkbox']), .wizard-unknown-time, #hero-form select, #hero-form button");
+        const inputs = page.locator(".hv3-form input:not([type='checkbox']), .hv3-form select, .hv3-form button");
         for (const input of await inputs.all()) {
           const b = await input.boundingBox();
           if (b) {
@@ -166,17 +160,14 @@ test("uses exact localized routes, validates also-available links, and exercises
     await visitLocalizedHome(page, locale);
 
     // Hero form presence
-    const heroForm = page.locator("#hero-form");
+    const heroForm = page.locator(".hv3-form");
     await expect(heroForm).toBeVisible();
     await expect(heroForm.getByRole("button", { name: locale.cta })).toBeVisible();
-    await expect(
-      heroForm.locator(`a[href="${locale.code === "vi" ? "/bao-cao-mau/tu-vi" : "/en/bao-cao-mau/tu-vi"}"]`),
-    ).toBeVisible();
 
-    // Closed time select shows unknown plus all 12 canonical branches
-    const timeSelect = heroForm.locator('select[name="birthBranch"]');
+    // Switching to a time range shows the 12 canonical branches
+    await heroForm.locator(".hv3-seg").nth(1).locator("button").nth(1).click();
+    const timeSelect = heroForm.locator("#hv3-branch");
     await expect(timeSelect).toBeVisible();
-    await expect(timeSelect.locator("option")).toHaveCount(13);
     const branchValues = await timeSelect
       .locator("option")
       .evaluateAll((options) => options.map((opt) => (opt as HTMLOptionElement).value));
@@ -196,30 +187,21 @@ test("uses exact localized routes, validates also-available links, and exercises
       "hai",
     ]);
 
-    // Topic chips contains also-have links with exact localized hrefs
-    const alsoHaveRow = page.locator(".also-have-row");
-    await expect(alsoHaveRow).toBeVisible();
-    const alsoHaveLinks = alsoHaveRow.locator("a");
-    await expect(alsoHaveLinks).toHaveCount(4);
-    for (let i = 0; i < 4; i++) {
-      await expect(alsoHaveLinks.nth(i)).toHaveAttribute("href", locale.alsoAvailableHrefs[i]!);
+    // Discipline cards link to the exact localized routes
+    const needs = page.locator('[data-home-block="needs"]');
+    for (const href of locale.alsoAvailableHrefs) {
+      await expect(needs.locator(`a[href="${href}"]`).first()).toBeAttached();
     }
 
-    // Capability matrix is present without prices (neither VND nor Lá)
-    const capability = page.locator('[data-home-block="capability-matrix"]');
-    await expect(capability).toBeVisible();
-    await expect(capability).not.toContainText(/₫|đ(?!\p{L})|VND|(?:Lá|La)(?!\p{L})/u);
+    // Comparison table renders with real table semantics on desktop
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(page.locator('[data-home-block="comparison"] table')).toBeVisible();
 
-    // Final CTA button is present and clicking it focuses the single #hero-form
-    const finalCta = page.locator('[data-home-block="final-cta"]');
-    await expect(finalCta).toBeVisible();
-    const finalCtaBtn = finalCta.locator("button.button-pill");
-    await expect(finalCtaBtn).toBeVisible();
+    // Final CTA scrolls back to the hero form and focuses its first field
+    const finalCtaBtn = page.locator('[data-home-block="about"] a.hv3-btn');
+    await expect(finalCtaBtn).toHaveText(locale.finalCta);
     await finalCtaBtn.click();
-
-    // Verify first focusable input/select in #hero-form is focused
-    const firstHeroField = heroForm.locator("select, input").first();
-    await expect(firstHeroField).toBeFocused();
+    await expect(page.locator("#hv3-day")).toBeFocused();
   }
 });
 
@@ -279,68 +261,64 @@ test("publishes localized metadata and brand assets", async ({ page }) => {
   }
 });
 
-test("loads homepage imagery completely and uses native menu and FAQ details", async ({
+test("loads visible homepage imagery completely and uses native menu and FAQ accordion", async ({
   page,
 }) => {
   for (const locale of locales) {
     await page.setViewportSize({ width: 320, height: 720 });
     await visitLocalizedHome(page, locale);
 
+    // Lazy images load on scroll, so walk down the page first.
+    await page.evaluate(async () => {
+      for (let y = 0; y < document.body.scrollHeight; y += 600) {
+        window.scrollTo(0, y);
+        await new Promise((resolve) => setTimeout(resolve, 60));
+      }
+    });
+
     const images = page.locator("main img");
     expect(await images.count()).toBeGreaterThan(0);
-    // Assert every image is fully loaded with naturalWidth > 0
+    // Every rendered (not display:none) image is fully loaded with naturalWidth > 0
     await expect
       .poll(async () => {
         return await images.evaluateAll((items) =>
-          items.every(
-            (img) =>
-              img instanceof HTMLImageElement &&
-              img.complete &&
-              img.naturalWidth > 0,
-          ),
+          items
+            .filter((img) => img.getClientRects().length > 0)
+            .every(
+              (img) =>
+                img instanceof HTMLImageElement &&
+                img.complete &&
+                img.naturalWidth > 0,
+            ),
         );
       })
       .toBe(true);
 
+    await page.evaluate(() => window.scrollTo(0, 0));
     const menu = page.locator("details.mobile-menu");
     await expect(menu).toHaveCount(1);
     await menu.locator(`summary[aria-label="${locale.menuLabel}"]`).click();
     await expect(menu).toHaveAttribute("open", "");
 
-    // 8 FAQ items with first open
-    const faq = page.locator('[data-home-block="faq"] details');
-    await expect(faq).toHaveCount(8);
-    await expect(faq.first()).toHaveAttribute("open", "");
+    // 5 FAQ items with only the first expanded
+    const faqButtons = page.locator('[data-home-block="faq"] button[aria-expanded]');
+    await expect(faqButtons).toHaveCount(5);
+    await expect(faqButtons.first()).toHaveAttribute("aria-expanded", "true");
+    await expect(faqButtons.nth(1)).toHaveAttribute("aria-expanded", "false");
+    await faqButtons.nth(1).click();
+    await expect(faqButtons.nth(1)).toHaveAttribute("aria-expanded", "true");
   }
 });
 
-test("uses the exact knowledge routes and exposes no API host", async ({
+test("links the privacy policy from the FAQ and exposes no API host", async ({
   page,
 }) => {
   await visitLocalizedHome(page, locales[0]);
 
-  const knowledgeLinks = page.locator('[data-home-block="knowledge"] a');
-  // 1 featured + 4 list items = 5 links
-  await expect(knowledgeLinks).toHaveCount(5);
-  await expect(knowledgeLinks.nth(0)).toHaveAttribute(
-    "href",
-    "/kien-thuc/tu-vi/la-so-tu-vi-la-gi",
-  );
-  await expect(knowledgeLinks.nth(1)).toHaveAttribute(
-    "href",
-    "/kien-thuc/tu-vi/cach-lap-la-so-tu-vi",
-  );
-  await expect(knowledgeLinks.nth(2)).toHaveAttribute(
-    "href",
-    "/kien-thuc/tu-vi/cach-doc-la-so-tu-vi",
-  );
-  await expect(knowledgeLinks.nth(3)).toHaveAttribute(
-    "href",
-    "/phuong-phap/ai-va-can-cu",
-  );
-  await expect(knowledgeLinks.nth(4)).toHaveAttribute(
-    "href",
-    "/kien-thuc",
-  );
+  const faqButtons = page.locator('[data-home-block="faq"] button[aria-expanded]');
+  await faqButtons.nth(4).click();
+  await expect(
+    page.locator('[data-home-block="faq"] a[href="/chinh-sach-bao-mat"]'),
+  ).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/https?:\/\/[^/\s]*api/i);
 });
