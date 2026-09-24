@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 
 import { localizedPath } from "../homepage/homepage-utilities";
@@ -69,61 +70,48 @@ export function HomepageV3Ticker() {
 
 export function HomepageV3Usp() {
   const t = useTranslations("homepage-v3.usp");
+  const icon = (name: string, size: number) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${name}`} alt="" width={size} height={size} loading="lazy" className="hv3-usp-icon" />
+  );
   return (
     <div className="hv3-container">
-      <div className="hv3-head">
-        <h2 className="hv3-h2">{t("title")}</h2>
-        <p className="hv3-lead">{t("lead")}</p>
+      <div className="hv3-usp-head">
+        <h2 className="hv3-h2 hv3-h2-xl">{t("title")}</h2>
+        <p className="hv3-usp-lead">{t("lead")}</p>
       </div>
-      <div className="hv3-usp-list">
-        <div className="hv3-usp-row">
-          <div className="hv3-usp-copy">
-            <p className="hv3-mono-num">01</p>
-            <h3 className="hv3-h3">{t("n1.title")}</h3>
+      <div className="hv3-usp-grid">
+        <article className="hv3-usp-card hv3-usp-art hv3-usp-dark" data-reveal style={{ "--i": 0 } as CSSProperties}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          <div className="hv3-usp-scrim" />
+          <div className="hv3-usp-body">
+            {icon("lsv-usp-archive-icon.svg", 54)}
+            <h3>{t("n1.title")}</h3>
             <p>{t("n1.body")}</p>
-            <a href="#la-so-mau" className="hv3-link">{t("n1.link")}</a>
           </div>
-          <svg aria-hidden="true" focusable="false" viewBox="0 0 300 300" className="hv3-usp-diagram">
-            <rect x="1" y="1" width="298" height="298" fill="none" stroke="#5A4A33" />
-            <path d="M75 0V300M150 0V75M150 225V300M225 0V300M0 75H300M0 150H75M225 150H300M0 225H300" stroke="#3A3227" fill="none" />
-            <rect x="75" y="75" width="150" height="150" fill="none" stroke="#5A4A33" />
-            <path d="M37 262L112 37L262 187Z" fill="rgba(206,91,69,.1)" stroke="#CE5B45" strokeWidth="2" />
-            <path d="M37 262L262 37" stroke="#C9A44D" strokeWidth="2" strokeDasharray="6 5" />
-            <circle cx="37" cy="262" r="7" fill="#CE5B45" />
-            <circle cx="112" cy="37" r="7" fill="#CE5B45" />
-            <circle cx="262" cy="187" r="7" fill="#CE5B45" />
-            <circle cx="262" cy="37" r="7" fill="#C9A44D" />
-          </svg>
-        </div>
-        <div className="hv3-usp-row hv3-usp-row-reverse">
-          <div aria-hidden="true" className="hv3-usp-card">
-            <span className="hv3-usp-card-title">{t("cardTitle")}</span>
-            <span className="hv3-bar" style={{ width: "92%" }} />
-            <span className="hv3-bar" style={{ width: "78%" }} />
-            <span className="hv3-bar" style={{ width: "84%" }} />
-            <span className="hv3-usp-card-foot">
-              <span><i />{t("cardPalace")}</span>
-              <span className="hv3-usp-card-tag">{t("cardBasis")}</span>
-            </span>
-          </div>
-          <div className="hv3-usp-copy">
-            <p className="hv3-mono-num">02</p>
-            <h3 className="hv3-h3">{t("n2.title")}</h3>
+        </article>
+        <article className="hv3-usp-card hv3-usp-art hv3-usp-paper" data-reveal style={{ "--i": 1 } as CSSProperties}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          <div className="hv3-usp-scrim" />
+          <div className="hv3-usp-body">
+            {icon("lsv-usp-personal-icon.svg", 54)}
+            <h3>{t("n2.title")}</h3>
             <p>{t("n2.body")}</p>
           </div>
-        </div>
-        <div className="hv3-usp-row">
-          <div className="hv3-usp-copy">
-            <p className="hv3-mono-num">03</p>
-            <h3 className="hv3-h3">{t("n3.title")}</h3>
-            <p>{t("n3.body")}</p>
-          </div>
-          <div aria-hidden="true" className="hv3-usp-steps">
-            <div><b>✓</b><span>{t("step1")}</span></div>
-            <div><b>✓</b><span>{t("step2")}</span></div>
-            <div className="hv3-usp-step-open"><b /><span>{t("step3")}</span><em>{t("step3tag")}</em></div>
-          </div>
-        </div>
+        </article>
+        <article className="hv3-usp-card hv3-usp-ink" data-reveal style={{ "--i": 2 } as CSSProperties}>
+          {icon("lsv-usp-links-icon.svg", 62)}
+          <h3>{t("n3.title")}</h3>
+          <p>{t("n3.body")}</p>
+          <a href="#la-so-mau" className="hv3-link">{t("n3.link")}</a>
+        </article>
+        <article className="hv3-usp-card hv3-usp-son" data-reveal style={{ "--i": 3 } as CSSProperties}>
+          {icon("lsv-usp-depth-icon.svg", 62)}
+          <h3>{t("n4.title")}</h3>
+          <p>{t("n4.body")}</p>
+        </article>
       </div>
     </div>
   );
@@ -192,8 +180,11 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
         </div>
       </div>
       <div id="cta-cuoi" className="hv3-final-cta">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-h04-cta.webp`} alt="" width={2048} height={768} loading="lazy" className="hv3-final-cta-bg" />
+        <picture className="hv3-final-cta-bg">
+          <source media="(max-width: 767px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-h04-cta-mobile.webp`} />
+          { }
+          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-h04-cta.webp`} alt="" width={2048} height={768} loading="lazy" decoding="async" />
+        </picture>
         <div className="hv3-final-cta-inner">
           <p>{t("ctaTitle")}</p>
           <HomepageV3GoWizard className="hv3-btn hv3-btn-lg">{t("cta")}</HomepageV3GoWizard>

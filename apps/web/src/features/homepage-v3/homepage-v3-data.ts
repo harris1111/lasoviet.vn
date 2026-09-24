@@ -73,7 +73,14 @@ export const DISCIPLINES = [
 
 export const TUVI_ART = "lsv-discipline-tu-vi.webp";
 
-export const COMPARE_ROW_IDS = ["strength", "own", "basis", "revisit", "depth", "cost"] as const;
+export const COMPARE_ROW_IDS = ["strength", "own", "basis", "links", "return", "depth"] as const;
+
+/** Hero paper topics, mapped to the wizard's top concern values. */
+export const HERO_LENSES = [
+  { id: "self", concern: "self_understanding" },
+  { id: "career", concern: "career" },
+  { id: "love", concern: "love" },
+] as const;
 export const FAQ_IDS = ["q1", "q2", "q3", "q4", "q5"] as const;
 
 /** Lá top-up packs per FD-066. Hidden on the homepage unless enabled (FD-069). */

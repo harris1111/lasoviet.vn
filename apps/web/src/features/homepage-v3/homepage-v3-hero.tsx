@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -8,18 +8,13 @@ import { validateWizardDate } from "../birth-profile/birth-wizard-state";
 import { saveBirthProfileDraft, readBirthProfileDraft } from "../birth-profile/birth-profile-draft";
 import {
   CANONICAL_BRANCH_IDS,
+  getBranchDisplayName,
   getBranchOptionLabel,
   saveHomepageBirthPrefill,
   type CanonicalBranchId,
 } from "../birth-profile/homepage-birth-prefill";
 import { localizedPath } from "../homepage/homepage-utilities";
-import {
-  BRANCH_GLYPHS,
-  BRANCH_GRID,
-  BRANCH_INDEX,
-  HOMEPAGE_V3_IMAGE_ROOT,
-  branchIndexForHour,
-} from "./homepage-v3-data";
+import { HERO_LENSES, HOMEPAGE_V3_IMAGE_ROOT } from "./homepage-v3-data";
 import {
   toHomepageV3Draft,
   toHomepageV3Prefill,
@@ -28,10 +23,6 @@ import {
 
 type Locale = "en" | "vi";
 type Errors = Partial<Record<"date" | "time" | "gender" | "storage", string>>;
-
-const GRID = { x0: 8.7, x1: 91.2, y0: 8.7, y1: 91.1 };
-const CELL_W = (GRID.x1 - GRID.x0) / 4;
-const CELL_H = (GRID.y1 - GRID.y0) / 4;
 
 const INITIAL: HomepageV3BirthValues = {
   displayName: "",
@@ -46,18 +37,10 @@ const INITIAL: HomepageV3BirthValues = {
   minute: "",
   branch: "",
   timeUnknown: false,
+  topConcern: null,
 };
 
 const digits = (value: string, max: number) => value.replace(/\D/g, "").slice(0, max);
-
-function tickStyle(branch: CanonicalBranchId, on: boolean) {
-  const [row, col] = BRANCH_GRID[branch];
-  const thick = on ? 3 : 2;
-  if (row === 1) return { left: `${GRID.x0 + (col - 0.5) * CELL_W - 3}%`, width: "6%", top: `${GRID.y0 - 2}%`, height: thick };
-  if (row === 4) return { left: `${GRID.x0 + (col - 0.5) * CELL_W - 3}%`, width: "6%", top: `${GRID.y1 + 1.6}%`, height: thick };
-  if (col === 1) return { top: `${GRID.y0 + (row - 0.5) * CELL_H - 3}%`, height: "6%", left: `${GRID.x0 - 2}%`, width: thick };
-  return { top: `${GRID.y0 + (row - 0.5) * CELL_H - 3}%`, height: "6%", left: `${GRID.x1 + 1.6}%`, width: thick };
-}
 
 export function HomepageV3Hero({ locale }: { locale: Locale }) {
   const t = useTranslations("homepage-v3.hero");
@@ -83,6 +66,8 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
         minute: draft.timeState.precision === "exact_minute" ? draft.timeState.minute : "",
         branch: draft.timeState.precision === "branch_only" ? draft.timeState.branch : "",
         timeUnknown: draft.timeState.precision === "unknown",
+        topConcern:
+          HERO_LENSES.find((lens) => lens.concern === draft.readingContext?.topConcern)?.concern ?? null,
       });
     });
   }, []);
@@ -90,6 +75,10 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
   function patch(next: Partial<HomepageV3BirthValues>) {
     setValues((current) => ({ ...current, ...next }));
     setErrors({});
+  }
+
+  function patchKeepErrors(next: Partial<HomepageV3BirthValues>) {
+    setValues((current) => ({ ...current, ...next }));
   }
 
   function validate(now: Date): Errors {
@@ -147,13 +136,26 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
     router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
   }
 
-  const exactHour = /^\d{1,2}$/.test(values.hour) && Number(values.hour) < 24 ? Number(values.hour) : -1;
-  const activeBranch =
-    values.timeUnknown || (values.timeMode === "exact_minute" ? exactHour < 0 : !values.branch)
-      ? -1
-      : values.timeMode === "exact_minute"
-        ? branchIndexForHour(exactHour)
-        : BRANCH_INDEX[values.branch as CanonicalBranchId];
+  const lensIndex = Math.max(0, HERO_LENSES.findIndex((lens) => lens.concern === values.topConcern));
+  const dateReady =
+    /^\d{1,2}$/.test(values.day) && Number(values.day) >= 1 && Number(values.day) <= 31 &&
+    /^\d{1,2}$/.test(values.month) && Number(values.month) >= 1 && Number(values.month) <= 12 &&
+    /^\d{4}$/.test(values.year);
+  const folioDate = dateReady
+    ? `${values.day.padStart(2, "0")}.${values.month.padStart(2, "0")}.${values.year}`
+    : t("folioDateEmpty");
+  const folioTitle = values.displayName.trim()
+    ? t("folioTitleNamed", { name: values.displayName.trim().slice(0, 32) })
+    : t("folioTitleAnon");
+  const exactReady =
+    /^\d{1,2}$/.test(values.hour) && Number(values.hour) < 24 && /^\d{1,2}$/.test(values.minute) && Number(values.minute) < 60;
+  const folioTime = values.timeUnknown
+    ? t("folioTimeUnknown")
+    : values.timeMode === "branch_only" && values.branch
+      ? t("folioTimeBranch", { name: getBranchDisplayName(values.branch, locale) })
+      : values.timeMode === "exact_minute" && exactReady
+        ? `${values.hour.padStart(2, "0")}:${values.minute.padStart(2, "0")}`
+        : t("folioTimeEmpty");
   const timeDisabled = values.timeUnknown;
 
   return (
@@ -242,34 +244,26 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
       </div>
 
       <div className="hv3-hero-art">
-        <div className="hv3-folio" role="img" aria-label={t("chartAria")}>
+        <div className="hv3-folio" role="group" aria-label={t("chartAria")}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-folio-dark.webp`} alt="" width={1022} height={970} className="hv3-folio-img hv3-folio-dark" fetchPriority="high" />
+          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-dark.webp`} alt="" width={1402} height={1122} className="hv3-folio-img hv3-folio-dark" fetchPriority="high" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-folio-light.webp`} alt="" width={1022} height={970} className="hv3-folio-img hv3-folio-light" />
-          <div className="hv3-folio-plane">
-            {CANONICAL_BRANCH_IDS.map((id) => {
-              const [row, col] = BRANCH_GRID[id];
-              return (
-                <span key={id} className="hv3-folio-glyph" style={{ gridRow: row, gridColumn: col }}>
-                  <span lang="zh-Hant">{BRANCH_GLYPHS[id]}</span>
-                </span>
-              );
-            })}
-            <span className="hv3-folio-core">
-              <span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lasoviet-logomark-vang-son.svg`} alt="" width={96} height={96} />
-              </span>
-            </span>
-            <svg viewBox="0 0 400 400" preserveAspectRatio="none" className="hv3-folio-lines" aria-hidden="true" focusable="false">
-              <path d="M0 0H400V400H0Z M100 0V400 M300 0V400 M200 0V100 M200 300V400 M0 100H400 M0 300H400 M0 200H100 M300 200H400 M100 100H300V300H100Z" fill="none" vectorEffect="non-scaling-stroke" />
-            </svg>
+          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-light.webp`} alt="" width={1402} height={1122} className="hv3-folio-img hv3-folio-light" />
+          <span className="hv3-folio-date" aria-hidden="true">{folioDate}</span>
+          <span className="hv3-folio-dial" aria-hidden="true" style={{ transform: `rotate(${lensIndex * 36 + (values.calendarType === "lunar" ? 14 : 0)}deg)`, opacity: values.timeUnknown ? 0.45 : 0.8 }} />
+          <div className="hv3-folio-path" aria-hidden="true" />
+          <div className="hv3-folio-paper" style={{ "--lens-angle": `${lensIndex * 58}deg` } as CSSProperties}>
+            <span className="hv3-folio-title">{folioTitle}</span>
+            <span className="hv3-folio-detail" aria-live="polite">{folioTime}</span>
+            <div className="hv3-folio-lenses" role="group" aria-label={t("lensesLabel")}>
+              {HERO_LENSES.map((lens) => (
+                <button key={lens.id} type="button" aria-pressed={values.topConcern === lens.concern} onClick={() => patchKeepErrors({ topConcern: values.topConcern === lens.concern ? null : lens.concern })}>
+                  {t(`lens.${lens.id}.label`)}
+                </button>
+              ))}
+            </div>
+            <span className="hv3-folio-sub">{t(`lens.${HERO_LENSES[lensIndex]?.id ?? "self"}.prompt`)}</span>
           </div>
-          {CANONICAL_BRANCH_IDS.map((id) => {
-            const on = BRANCH_INDEX[id] === activeBranch;
-            return <span key={id} data-on={on} className="hv3-tick" style={tickStyle(id, on)} />;
-          })}
         </div>
       </div>
     </div>

@@ -37,7 +37,28 @@
       "gender": "Chọn Nam hoặc Nữ.",
       "storage": "Trình duyệt không lưu được thông tin. Hãy bật lưu trữ trang web rồi thử lại."
     },
-    "chartAria": "Đồ hình 12 cung địa chi"
+    "chartAria": "Mệnh thư tương tác cùng thông tin ngày giờ sinh",
+    "folioTitleNamed": "Chuyện của {name}",
+    "folioTitleAnon": "Một câu chuyện riêng",
+    "folioDateEmpty": "Ngày sinh của bạn",
+    "folioTimeEmpty": "Mỗi câu chuyện có một thời khắc bắt đầu",
+    "folioTimeUnknown": "Bạn có thể bổ sung giờ sinh sau",
+    "folioTimeBranch": "Giờ {name}",
+    "lensesLabel": "Điều bạn muốn khám phá",
+    "lens": {
+      "self": {
+        "label": "Bản thân",
+        "prompt": "Nhìn lại điều làm nên cách bạn bước qua mỗi đổi thay."
+      },
+      "career": {
+        "label": "Công việc",
+        "prompt": "Điều gì trong công việc khiến bạn muốn tìm một lối khác?"
+      },
+      "love": {
+        "label": "Tình cảm",
+        "prompt": "Có mối quan hệ nào bạn muốn hiểu cho rõ hơn?"
+      }
+    }
   },
   "story": {
     "title": "Có những câu hỏi cứ theo mình mãi.",
@@ -206,83 +227,87 @@
     }
   },
   "compare": {
-    "title": "Bạn muốn một câu trả lời. Hay một điều để tự mình nhìn ra?",
-    "lead": "Mỗi cách xem có điều đáng chọn. Khác biệt nằm ở chỗ: sau câu trả lời, bạn còn giữ lại được gì?",
-    "tableLabel": "So sánh bốn cách tìm câu trả lời",
-    "tabsLabel": "Tiêu chí",
+    "title": "Câu trả lời có thể đến rất nhanh. Điều gì còn ở lại?",
+    "lead": "Một cách cho bạn tốc độ. Một cách cho bạn cuộc trò chuyện. Lá Số Việt cho bạn một lá số để trở lại, đối chiếu và đọc tiếp.",
+    "tableLabel": "Một điểm đáng chọn và năm giới hạn của mỗi cách tìm câu trả lời",
+    "groupLabel": "Cách bạn đang cân nhắc",
     "colLsv": "Lá Số Việt",
     "colWeb": "Trang tử vi phổ thông",
     "colAi": "Hỏi AI",
     "colThay": "Gặp thầy",
+    "tabLsv": "Lá Số Việt",
+    "tabWeb": "Trang tử vi",
+    "tabAi": "Hỏi AI",
+    "tabThay": "Gặp thầy",
+    "cardTitle": "{name} có gì đáng chọn?",
+    "fixLabel": "Lá Số Việt:",
+    "ctaDesktop": "Lập lá số của tôi →",
     "cta": "Bắt đầu với lá số của tôi →",
     "rows": {
       "strength": {
-        "k": "Điểm mạnh",
-        "lsv": "Một lá số để bạn tự khám phá, trở lại và đọc tiếp.",
-        "web": "Xem rất nhanh; nhiều trang cho tra cứu miễn phí.",
-        "ai": "Hỏi linh hoạt theo cách nói của mình.",
-        "thay": "Được trò chuyện trực tiếp, hỏi sâu ngay lúc đó."
+        "k": "Điểm đáng chọn",
+        "lsv": "Một lá số để khám phá, giữ lại và đọc tiếp.",
+        "web": "Tra rất nhanh; nhiều nơi có phần miễn phí.",
+        "ai": "Hỏi bằng lời của mình, trả lời tức thì.",
+        "thay": "Đối thoại trực tiếp, hỏi tiếp ngay tại chỗ."
       },
       "own": {
-        "k": "Có gì riêng?",
-        "lsv": "Bắt đầu từ ngày giờ sinh, chọn điều bạn muốn hiểu trước.",
-        "web": "Thường trả một bản luận giải sẵn; ít chỗ để đi theo mối bận tâm của mình.",
-        "ai": "Nói chuyện đúng điều bạn hỏi, nhưng nếu không có dữ liệu lá số đáng tin, câu trả lời có thể lệch.",
-        "thay": "Có thể rất riêng nếu gặp người xem kỹ; chất lượng phụ thuộc từng người."
+        "k": "Riêng cho mình",
+        "lsv": "Bắt đầu từ ngày giờ sinh và điều bạn đang quan tâm.",
+        "web": "Một bản luận sẵn khó theo sát câu hỏi riêng.",
+        "ai": "Câu trả lời dựa nhiều vào thông tin bạn tự kể trong prompt.",
+        "thay": "Độ sâu phụ thuộc người xem và thời lượng buổi gặp."
       },
       "basis": {
-        "k": "Căn cứ",
-        "lsv": "Chạm vào nhận định để lần về cung và sao liên quan.",
-        "web": "Nhiều bài luận giải có kết luận nhưng khó nhìn ra mối nối giữa các cung.",
-        "ai": "Viết rất mạch lạc; không phải câu nào cũng chỉ ra căn cứ trên lá số.",
-        "thay": "Có thể giải thích trực tiếp; sau buổi gặp, thường cần tự ghi lại để đối chiếu."
+        "k": "Căn cứ trên lá số",
+        "lsv": "Đi từ nhận định về cung, sao và mối liên hệ liên quan.",
+        "web": "Kết luận có sẵn đôi khi thiếu đường dẫn về cung, sao.",
+        "ai": "Lời văn có thể thuyết phục dù chưa kiểm được dữ liệu lá số.",
+        "thay": "Lời giải có thể rất sâu, nhưng cần ghi lại để đối chiếu."
       },
-      "revisit": {
-        "k": "Đọc lại",
-        "lsv": "Giữ lá số và những phần đã mở trong tài khoản.",
-        "web": "Có trang lưu được; cách tìm lại từng phần không giống nhau.",
-        "ai": "Tìm trong lịch sử chat; dễ lẫn giữa các phiên hỏi.",
-        "thay": "Nhớ, ghi âm hoặc chép lại tùy buổi xem."
+      "links": {
+        "k": "Thấy mối liên hệ",
+        "lsv": "Chạm một cung để nhìn tam hợp, đối cung cùng lúc.",
+        "web": "Nhiều đoạn văn rời khiến bạn phải tự ghép các mối nối.",
+        "ai": "Mỗi lượt hỏi có thể tách khỏi tổng thể mười hai cung.",
+        "thay": "Mối liên hệ được nói bằng lời, khó xem lại thành một bức tranh."
+      },
+      "return": {
+        "k": "Trở lại lúc cần",
+        "lsv": "Giữ lá số và phần đã mở để trở lại đúng chỗ.",
+        "web": "Khó tìm lại chính đoạn từng khiến bạn suy nghĩ.",
+        "ai": "Cuộc trò chuyện dài khiến thông tin quan trọng dễ trôi.",
+        "thay": "Khi buổi xem kết thúc, bạn phải dựa vào trí nhớ hoặc ghi chép."
       },
       "depth": {
-        "k": "Đi sâu",
-        "lsv": "Bắt đầu miễn phí; chọn cung, chủ đề hay thời vận muốn mở tiếp.",
-        "web": "Thường xem theo bài hoặc gói có sẵn.",
-        "ai": "Hỏi tiếp được ngay, nhưng cần tự kiểm tra câu trả lời.",
-        "thay": "Hỏi tiếp được ngay nếu còn thời gian trong buổi gặp."
-      },
-      "cost": {
-        "k": "Chi phí",
-        "lsv": "Thấy số Lá cần dùng trước khi mở từng phần.",
-        "web": "Nhiều trang miễn phí; phần chi tiết có thể nằm trong gói riêng.",
-        "ai": "Tùy gói công cụ đang dùng.",
-        "thay": "Thường trả theo buổi và mức giá từng người."
+        "k": "Đi sâu theo ý mình",
+        "lsv": "Chọn cung, chủ đề hoặc thời vận; thấy số Lá trước khi mở.",
+        "web": "Thường đi theo bài hoặc gói đã đóng sẵn.",
+        "ai": "Hỏi thêm rất dễ, nhưng bạn tự kiểm tính nhất quán của từng lượt.",
+        "thay": "Muốn hỏi thêm thường phải chờ một buổi khác và thêm chi phí."
       }
     }
   },
   "usp": {
-    "title": "Không dừng ở một lời phán.",
-    "lead": "Chạm vào một cung để thấy mối liên hệ. Đọc một nhận định để biết nó bắt đầu từ đâu. Khi muốn đi xa hơn, bạn chọn phần đáng đọc với mình.",
+    "title": "Càng nhìn kỹ, càng thấy chuyện của mình.",
+    "lead": "Một lá số không nên kết thúc ở vài dòng phán đoán. Mở từng lớp, hiểu từng mối nối, rồi quay lại khi bạn cần.",
     "n1": {
-      "title": "Thấy những mối nối",
-      "body": "Chọn một cung, các cung tam hợp và đối cung cùng sáng lên. Bạn hiểu vì sao chuyện tiền bạc lại dính tới cách bạn làm việc.",
-      "link": "Thử chạm một cung →"
+      "title": "Từ tàng thư kim cổ.",
+      "body": "Tri thức Tử Vi được sắp xếp để mỗi nhận định có chỗ bắt đầu, thay vì đứng lẻ loi thành một câu kết."
     },
     "n2": {
-      "title": "Tìm về căn cứ",
-      "body": "Cạnh mỗi nhận định là chỗ nó bắt đầu trên lá số: cung nào, sao nào. Bạn tự lần theo được, không phải tin một câu nói chung chung."
+      "title": "Bắt đầu từ bạn.",
+      "body": "Ngày giờ sinh mở ra lá số. Điều bạn đang bận tâm quyết định nơi câu chuyện bắt đầu."
     },
     "n3": {
-      "title": "Đọc sâu theo điều bạn cần",
-      "body": "Muốn đi xa hơn, bạn chọn đúng phần đáng đọc với mình và thấy số Lá trước khi mở."
+      "title": "Thấy các mối nối.",
+      "body": "Chọn một cung để thấy tam hợp, đối cung và phần đời đang liên hệ. Mười hai cung kể cùng một câu chuyện.",
+      "link": "Chạm thử vào lá số →"
     },
-    "cardTitle": "Về công việc",
-    "cardPalace": "Cung Quan Lộc",
-    "cardBasis": "Xem căn cứ",
-    "step1": "Về bản thân",
-    "step2": "Về điều bạn chọn",
-    "step3": "Đọc sâu hơn",
-    "step3tag": "Mở bằng Lá"
+    "n4": {
+      "title": "Đi sâu theo nhịp của mình.",
+      "body": "Công việc, tình cảm hay một giai đoạn sắp tới: chọn phần muốn đọc và xem số Lá trước khi mở."
+    }
   },
   "value": {
     "title": "Đọc trước một chút. Đi sâu khi bạn muốn.",

@@ -16,7 +16,12 @@ export type HomepageV3BirthValues = {
   minute: string;
   branch: CanonicalBranchId | "";
   timeUnknown: boolean;
+  /** Topic picked on the hero paper; becomes the wizard's "top concern". Null means the visitor did not choose. */
+  topConcern?: HomepageV3Interest | null;
 };
+
+export type HomepageV3Interest = "self_understanding" | "career" | "love";
+const INTERESTS: readonly string[] = ["self_understanding", "career", "love"];
 
 const BRANCHES: readonly string[] = [
   "zi", "chou", "yin", "mao", "chen", "si", "wu", "wei", "shen", "you", "xu", "hai",
@@ -59,6 +64,14 @@ export function toHomepageV3Draft(values: HomepageV3BirthValues, now: Date = new
     month: values.month.trim(),
     year: values.year.trim(),
     timeState,
+    ...(values.topConcern && INTERESTS.includes(values.topConcern)
+      ? {
+          readingContext: {
+            topConcern: values.topConcern,
+            skippedQuestions: { lifeStage: false, topConcern: false },
+          },
+        }
+      : {}),
   };
 }
 

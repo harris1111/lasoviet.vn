@@ -37,7 +37,28 @@
       "gender": "Choose Male or Female.",
       "storage": "Your browser could not save the details. Enable site storage and try again."
     },
-    "chartAria": "Twelve-branch chart diagram"
+    "chartAria": "Interactive story book with your birth date and time",
+    "folioTitleNamed": "{name}'s story",
+    "folioTitleAnon": "A story of your own",
+    "folioDateEmpty": "Your birth date",
+    "folioTimeEmpty": "Every story has a moment it begins",
+    "folioTimeUnknown": "You can add your birth time later",
+    "folioTimeBranch": "Hour of {name}",
+    "lensesLabel": "What you want to explore",
+    "lens": {
+      "self": {
+        "label": "Yourself",
+        "prompt": "Look back at what shapes how you walk through every change."
+      },
+      "career": {
+        "label": "Work",
+        "prompt": "What about your work makes you want to find another way?"
+      },
+      "love": {
+        "label": "Love",
+        "prompt": "Is there a relationship you want to understand better?"
+      }
+    }
   },
   "story": {
     "title": "Some questions keep following you.",
@@ -206,83 +227,87 @@
     }
   },
   "compare": {
-    "title": "Do you want an answer, or something to see for yourself?",
-    "lead": "Every way of looking has something worth choosing. The difference is what you keep after the answer.",
-    "tableLabel": "Comparing four ways to find an answer",
-    "tabsLabel": "Criteria",
+    "title": "An answer can come very fast. What stays with you?",
+    "lead": "One way gives you speed. Another gives you a conversation. Lá Số Việt gives you a chart to return to, compare and keep reading.",
+    "tableLabel": "One strength and five limits of each way of finding an answer",
+    "groupLabel": "The way you are weighing",
     "colLsv": "Lá Số Việt",
     "colWeb": "General horoscope sites",
     "colAi": "Asking an AI",
     "colThay": "Meeting a master",
+    "tabLsv": "Lá Số Việt",
+    "tabWeb": "Horoscope sites",
+    "tabAi": "Asking an AI",
+    "tabThay": "Meeting a master",
+    "cardTitle": "What is worth choosing about {name}?",
+    "fixLabel": "Lá Số Việt:",
+    "ctaDesktop": "Create my chart →",
     "cta": "Start with my chart →",
     "rows": {
       "strength": {
-        "k": "Strengths",
-        "lsv": "A chart you can explore, return to, and keep reading.",
-        "web": "Very fast; many pages offer free lookups.",
-        "ai": "Flexible: ask in your own words.",
-        "thay": "Live conversation, and you can dig deeper on the spot."
+        "k": "Worth choosing",
+        "lsv": "A chart to explore, keep and keep reading.",
+        "web": "Very quick lookups; many places have a free part.",
+        "ai": "Ask in your own words and get an instant reply.",
+        "thay": "A live conversation, and you can ask on the spot."
       },
       "own": {
-        "k": "What is personal?",
-        "lsv": "Starts from your birth date and time; you choose what to understand first.",
-        "web": "Usually returns a ready-made reading; little room to follow your own concern.",
-        "ai": "Answers exactly what you ask, but without reliable chart data the answer can drift.",
-        "thay": "Can be very personal with a careful reader; quality depends on the person."
+        "k": "Personal to you",
+        "lsv": "Starts from your birth date and time and what you care about.",
+        "web": "A ready-made reading struggles to follow your own question.",
+        "ai": "The answer leans on what you tell it in the prompt.",
+        "thay": "Depth depends on the reader and the length of the session."
       },
       "basis": {
-        "k": "Basis",
-        "lsv": "Tap an insight to trace it back to the palace and stars behind it.",
-        "web": "Many readings give conclusions but make it hard to see the links between palaces.",
-        "ai": "Very fluent; not every sentence points to its basis on the chart.",
-        "thay": "Can explain in person; afterwards you usually have to write it down yourself to check."
+        "k": "Basis on the chart",
+        "lsv": "Goes from an insight to the palace, stars and links behind it.",
+        "web": "Ready-made conclusions sometimes lack a path back to the palace and stars.",
+        "ai": "The prose can persuade even when the chart data is not checked.",
+        "thay": "The explanation can be very deep, but you must write it down to compare."
       },
-      "revisit": {
-        "k": "Reading again",
-        "lsv": "Your chart and the sections you opened stay in your account.",
-        "web": "Some sites let you save; finding each part again varies.",
-        "ai": "Search through chat history; easy to mix up between sessions.",
-        "thay": "Memory, a recording, or notes, depending on the session."
+      "links": {
+        "k": "Seeing the links",
+        "lsv": "Tap a palace to see its trine and opposite palaces at once.",
+        "web": "Many separate paragraphs leave you to piece the links together.",
+        "ai": "Each question can drift away from the whole twelve-palace picture.",
+        "thay": "The links are spoken aloud, hard to review as one picture."
+      },
+      "return": {
+        "k": "Coming back when needed",
+        "lsv": "Keeps your chart and the parts you opened so you return to the right place.",
+        "web": "Hard to find again the passage that made you think.",
+        "ai": "In a long conversation the important parts drift away.",
+        "thay": "When the session ends you rely on memory or notes."
       },
       "depth": {
-        "k": "Going deeper",
-        "lsv": "Start free; pick the palace, topic or time period to open next.",
-        "web": "Usually by article or ready-made package.",
-        "ai": "Follow up instantly, but you must check the answers yourself.",
-        "thay": "Follow up instantly if the session still has time."
-      },
-      "cost": {
-        "k": "Cost",
-        "lsv": "See the Lá needed before opening each part.",
-        "web": "Many pages are free; details may sit in a separate plan.",
-        "ai": "Depends on the tool plan you use.",
-        "thay": "Usually paid per session, at each person's rate."
+        "k": "Going deeper your way",
+        "lsv": "Pick a palace, topic or time period; see the Lá cost before opening.",
+        "web": "Usually by article or a ready-made package.",
+        "ai": "Asking more is easy, but you check each turn for consistency yourself.",
+        "thay": "Asking more usually means another session and more cost."
       }
     }
   },
   "usp": {
-    "title": "Not just a verdict.",
-    "lead": "Tap a palace to see how it connects. Read an insight to see where it starts. When you want to go further, you choose the parts worth reading.",
+    "title": "The closer you look, the more you see your own story.",
+    "lead": "A chart should not end in a few lines of verdict. Open it layer by layer, understand each link, and come back when you need to.",
     "n1": {
-      "title": "See the connections",
-      "body": "Pick a palace and its trine and opposite palaces light up together. You see why money is tied to how you work.",
-      "link": "Try tapping a palace →"
+      "title": "From the old archives.",
+      "body": "Zi Wei knowledge is arranged so every insight has a place to start, instead of standing alone as a closing line."
     },
     "n2": {
-      "title": "Trace it to the basis",
-      "body": "Beside each insight is where it starts on the chart: which palace, which star. You can follow it yourself instead of trusting a vague line."
+      "title": "Starting from you.",
+      "body": "Your birth date and time open the chart. What is on your mind decides where the story begins."
     },
     "n3": {
-      "title": "Read deeper by what you need",
-      "body": "To go further, you pick the part worth reading and see the Lá cost before opening it."
+      "title": "Seeing the links.",
+      "body": "Pick a palace to see its trine, opposite and the parts of life it touches. Twelve palaces tell one story.",
+      "link": "Try touching a chart →"
     },
-    "cardTitle": "About work",
-    "cardPalace": "Career palace",
-    "cardBasis": "See basis",
-    "step1": "About yourself",
-    "step2": "About what you choose",
-    "step3": "Read deeper",
-    "step3tag": "Open with Lá"
+    "n4": {
+      "title": "Going deeper at your own pace.",
+      "body": "Work, love or a coming stretch of life: pick the part you want to read and see the Lá cost before opening."
+    }
   },
   "value": {
     "title": "Read a little first. Go deeper when you want.",
