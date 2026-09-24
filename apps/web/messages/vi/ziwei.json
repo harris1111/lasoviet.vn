@@ -88,5 +88,29 @@
     "title": "Căn cứ diễn giải",
     "subtitle": "Dữ liệu tính toán từ lá số, giới hạn diễn giải và các lưu ý đối chiếu cho 3 nhận định bản mệnh của bạn.",
     "sourceLabel": "Căn cứ đối chiếu khả dụng"
+  },
+  "sample": {
+    "stamp": "BẢN MẪU",
+    "badge": "Bản mẫu",
+    "tabBadge": "Mẫu",
+    "bannerText": "Đây là bản luận giải mẫu minh họa cấu trúc thực tế. Lập lá số của bạn để đọc bản luận giải cá nhân.",
+    "bannerCta": "Lập lá số của bạn",
+    "byline": "Lá Số Việt biên tập",
+    "unlockedTag": "Mở",
+    "lockedTag": "Đoạn đầu",
+    "lockedNotice": "Đoạn đầu bản mẫu · Lập lá số của bạn để đọc trọn vẹn bản luận giải.",
+    "unlockCta": "Lập lá số của bạn để đọc",
+    "endCtaHeading": "Bản luận giải của bạn sẽ được viết từ chính lá số của bạn",
+    "endCtaLead": "Lập lá số Tử Vi miễn phí trước. Đọc sâu khi bạn muốn.",
+    "endCtaButton": "Lập lá số của bạn",
+    "whyTitle": "Vì sao có nhận định này?",
+    "basisTitle": "Căn cứ",
+    "actionsTitle": "Việc nên làm",
+    "heroEyebrow": "Bản luận giải mẫu · Toàn diện",
+    "heroTitle": "Một bản luận giải thật trông như thế này",
+    "heroLead": "Lá số mẫu: Nữ, sinh 15/06/1992 lúc 08:30 (Dương lịch) tại Hà Nội. Bốn phần dưới đây mở đầy đủ để bạn đọc thử; các phần còn lại hiện đoạn đầu.",
+    "mobileBottomTitle": "Lá số mẫu Tử Vi",
+    "mobileBottomSubtitle": "Nữ · 15/06/1992",
+    "mobileBottomCta": "Lập lá số của bạn"
   }
 }
