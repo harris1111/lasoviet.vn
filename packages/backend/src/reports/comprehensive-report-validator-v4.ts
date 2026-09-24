@@ -5,6 +5,7 @@ import {
   type ZiweiComprehensiveReportContentV3,
 } from "@lasoviet/contracts";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
+import { findUncomputedMisfortunePeriods } from "./comprehensive-report-quality-v4.js";
 
 export type ComprehensiveReportV4ValidationResult =
   | { ok: true; errors?: undefined }
@@ -51,66 +52,8 @@ const PROHIBITED_PATTERNS = [
   },
 ];
 
-const PROHIBITED_OUTCOME_PATTERN =
-  /(?<![\p{L}\p{N}])(?:tai nạn|tai nan|tử vong|tu vong|phá sản|pha san|phản bội|phan boi)(?![\p{L}\p{N}])/giu;
-
-const CERTAINTY_TOKEN_PATTERN =
-  /(?<![\p{L}\p{N}])(?:chắc chắn|chac chan)(?![\p{L}\p{N}])/giu;
-
-const INEVITABLE_PATTERN =
-  /(?<![\p{L}\p{N}])(?:không|khong)\s+(?:tránh|tranh)\s+(?:khỏi|khoi)(?![\p{L}\p{N}])/iu;
-
 const DEATH_CONTENT_PATTERN =
   /(?<![\p{L}\p{N}])(?:chết|chet|tử\s+vong|tu\s+vong|mất\s+mạng|mat\s+mang|qua\s+đời|qua\s+doi|yểu\s+mệnh|yeu\s+menh|đoản\s+thọ|doan\s+tho|chết\s+non|chet\s+non|tuổi\s+thọ|tuoi\s+tho|sống\s+được\s+bao\s+lâu|song\s+duoc\s+bao\s+lau|bao\s+nhiêu\s+tuổi\s+thì\s+mất|bao\s+nhieu\s+tuoi\s+thi\s+mat|khắc\s+chết|khac\s+chet|sát\s+phu|sat\s+phu|sát\s+thê|sat\s+the)(?![\p{L}\p{N}])/iu;
-
-const FRAMING_LEAD_PATTERN =
-  /(?:nguy\s+cơ|nguy\s+co|rủi\s+ro|rui\s+ro|khả\s+năng|kha\s+nang|có\s+thể|co\s+the|để\s+tránh|de\s+tranh|tránh|tranh|phòng\s+ngừa|phòng\s+tránh|phòng|phong|hạn\s+chế|han\s+che|ngăn\s+ngừa|ngan\s+ngua|đề\s+phòng|de\s+phong)\s+(?:(?:tối\s+đa|nguy\s+cơ|rủi\s+ro|khả\s+năng|việc|dễ|có\s+thể|sẽ|bị|gặp|phải|dẫn\s+đến|dẫn\s+tới|đối\s+mặt\s+với|xảy\s+ra|xuất\s+hiện)\s+)*$/iu;
-
-function containsProhibitedFatalisticPrediction(text: string): boolean {
-  const sentences = text.split(/[.!?;\n]+/u);
-  for (const sentence of sentences) {
-    PROHIBITED_OUTCOME_PATTERN.lastIndex = 0;
-    if (!PROHIBITED_OUTCOME_PATTERN.test(sentence)) {
-      continue;
-    }
-
-    // Explicit "không tránh khỏi" asserts outcome as inevitable independently of certainty
-    if (INEVITABLE_PATTERN.test(sentence)) {
-      return true;
-    }
-
-    CERTAINTY_TOKEN_PATTERN.lastIndex = 0;
-    let hasUnnegatedCertainty = false;
-    let cMatch: RegExpExecArray | null;
-    while ((cMatch = CERTAINTY_TOKEN_PATTERN.exec(sentence)) !== null) {
-      const before = sentence.slice(0, cMatch.index).trimEnd();
-      if (!/(?:không|chưa)\s*$/iu.test(before)) {
-        hasUnnegatedCertainty = true;
-        break;
-      }
-    }
-    if (!hasUnnegatedCertainty) {
-      continue;
-    }
-
-    // Check every bad-outcome occurrence: if any outcome lacks risk/possibility/prevention framing, it is rejected
-    PROHIBITED_OUTCOME_PATTERN.lastIndex = 0;
-    let oMatch: RegExpExecArray | null;
-    let hasUnframedOutcome = false;
-    while ((oMatch = PROHIBITED_OUTCOME_PATTERN.exec(sentence)) !== null) {
-      const precedingText = sentence.slice(0, oMatch.index);
-      if (!FRAMING_LEAD_PATTERN.test(precedingText)) {
-        hasUnframedOutcome = true;
-        break;
-      }
-    }
-
-    if (hasUnframedOutcome) {
-      return true;
-    }
-  }
-  return false;
-}
 export const KNOWN_CANONICAL_IDENTIFIERS_VI: Record<string, string> = {
   // Palaces
   "ziwei.palace.life": "cung Mệnh",
@@ -467,6 +410,7 @@ function validateCustomerTextBlocks(
   blocks: readonly CustomerTextBlock[],
   errors: string[],
   contentPolicy: ComprehensiveReportContentPolicy,
+  facts?: ComprehensiveZiweiFactsV4,
 ): void {
   for (const block of blocks) {
     if (contentPolicy === "enforce") {
@@ -478,8 +422,13 @@ function validateCustomerTextBlocks(
       if (DEATH_CONTENT_PATTERN.test(block.text)) {
         errors.push(`Prohibited death or lifespan content found in ${block.section}: "${block.text.slice(0, 80)}"`);
       }
-      if (containsProhibitedFatalisticPrediction(block.text)) {
-        errors.push(`Prohibited fatalistic prediction found in ${block.section}: "${block.text.slice(0, 80)}"`);
+      if (facts) {
+        const uncomputedPeriods = findUncomputedMisfortunePeriods(block.text, facts);
+        if (uncomputedPeriods.length > 0) {
+          errors.push(
+            `Named misfortune period cites uncomputed period in ${block.section}: "${uncomputedPeriods.join(", ")}"`,
+          );
+        }
       }
       if (HAN_IDEOGRAPH_PATTERN.test(block.text)) {
         errors.push(`Han ideograph detected in ${block.section}`);
@@ -630,7 +579,7 @@ export function validateComprehensiveZiweiReportV4(
   const customerTextBlocks: CustomerTextBlock[] = [...modelOwnedTitleBlocks, ...narrativeBlocks];
 
   // 4. Prohibited phrases & raw technical identifiers check across customer-visible text
-  validateCustomerTextBlocks(customerTextBlocks, errors, contentPolicy);
+  validateCustomerTextBlocks(customerTextBlocks, errors, contentPolicy, facts);
 
   // 5. Duplicate and near-duplicate paragraph check
   if (contentPolicy === "enforce") {
@@ -721,7 +670,7 @@ export function validateComprehensiveZiweiReportV4_1(
     { section: "birthTimeSensitivity.sensitiveFactors.title", text: birthTimeSensitivity.sensitiveFactors.title },
     { section: "birthTimeSensitivity.sensitiveFactors.narrative", text: birthTimeSensitivity.sensitiveFactors.narrative },
   ];
-  validateCustomerTextBlocks(text, errors, options.contentPolicy ?? "enforce");
+  validateCustomerTextBlocks(text, errors, options.contentPolicy ?? "enforce", facts);
   const rawText = text.map((block) => block.text).join(" ");
   if (
     /\b\d{1,2}:\d{2}\b/u.test(rawText) ||

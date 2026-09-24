@@ -549,7 +549,7 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(rewrite.request.system).toContain('"certainty":[');
     expect(rewrite.request.system).toContain("ít nhất hai fact khác nhau có evidence");
     expect(rewrite.request.system).toContain("ít nhất hai sao thực có trong cung");
-    expect(rewrite.request.system).toContain("không đưa ngày bất lợi cụ thể");
+    expect(rewrite.request.system).toContain("không đưa mốc thời gian hạn không do facts tính ra");
     expect(rewrite.request.system).toContain("no Han/Nom ideograph");
     expect(rewrite.request.system).toContain("every supplied finding");
     expect(rewrite.request.system).not.toContain("proper-name density");
