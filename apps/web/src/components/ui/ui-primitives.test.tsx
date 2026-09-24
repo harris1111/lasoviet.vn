@@ -45,12 +45,12 @@ describe("static UI primitives", () => {
     const html = renderToStaticMarkup(
       <SupportCard
         description="Một dòng hỗ trợ."
-        email="support@lasoviet.net"
+        email="lasoviet.net@gmail.com"
         title="Cần hỗ trợ?"
       />,
     );
 
-    expect(html).toContain("mailto:support@lasoviet.net");
+    expect(html).toContain("mailto:lasoviet.net@gmail.com");
     expect(html).toContain("Gửi email hỗ trợ");
     expect(html).not.toMatch(/zalo|điện thoại|địa chỉ/i);
     expect(html).toContain("ui-button");

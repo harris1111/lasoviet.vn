@@ -1683,7 +1683,7 @@ describe("report query integration test with real database", () => {
       expect(serviceResult4.value.state).toBe("failed");
       expect(serviceResult4.value.reportId).toBe(reportDId);
       expect((serviceResult4.value as any).invoiceNumber).toBe(invoiceNumberD);
-      expect((serviceResult4.value as any).supportEmail).toBe("support@lasoviet.net");
+      expect((serviceResult4.value as any).supportEmail).toBe("lasoviet.net@gmail.com");
       expect((serviceResult4.value as any).supportSubject).toBe(`[Lá Số Việt] Hỗ trợ báo cáo đơn hàng ${invoiceNumberD}`);
       expect((serviceResult4.value as any).supportReference).toBe(invoiceNumberD);
       expect((serviceResult4.value as any).paymentReceivedAt).toBe(paidAtD.toISOString());

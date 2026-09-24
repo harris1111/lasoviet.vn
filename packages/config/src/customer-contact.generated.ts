@@ -3,7 +3,7 @@ import type { CustomerContactConfig } from "./customer-contact.js";
 
 export const customerContactConfig: CustomerContactConfig = Object.freeze({
   "email": {
-    "value": "support@lasoviet.net",
+    "value": "lasoviet.net@gmail.com",
     "visible": true
   },
   "phone": {

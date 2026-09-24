@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 
 import { routing } from "../../i18n/routing";
 import { AnalyticsCollector } from "../../features/analytics/analytics-collector";
+import { MessengerBubble } from "../../components/ui/messenger-bubble";
 import "../../styles/global.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -61,6 +62,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <AnalyticsCollector />
           {children}
+          <MessengerBubble locale={locale as "vi" | "en"} />
         </NextIntlClientProvider>
       </body>
     </html>

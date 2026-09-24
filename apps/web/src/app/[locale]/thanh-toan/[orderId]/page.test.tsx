@@ -505,7 +505,7 @@ describe("checkout page", () => {
     expect(html).toContain("/tao-la-so/tu-vi");
     expect(html).toContain("/la-so/chart-1/chon-luan-giai");
     expect(html).toContain('data-testid="checkout-failed-support"');
-    expect(html).toContain('mailto:support@lasoviet.net');
+    expect(html).toContain('mailto:lasoviet.net@gmail.com');
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).not.toContain("https://vietqr.app");
     expect(html).not.toContain("payment-self-claim-section");

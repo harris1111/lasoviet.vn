@@ -526,7 +526,7 @@ describe("report query service", () => {
       invoiceNumber: "INV-SAMPLE-001",
       paymentReceivedAt: "2026-09-04T17:01:00.000Z",
       reportStatusUpdatedAt: "2026-09-04T17:00:00.000Z",
-      supportEmail: "support@lasoviet.net",
+      supportEmail: "lasoviet.net@gmail.com",
       supportSubject: "[Lá Số Việt] Hỗ trợ báo cáo đơn hàng INV-SAMPLE-001",
       supportReference: "INV-SAMPLE-001",
     });
