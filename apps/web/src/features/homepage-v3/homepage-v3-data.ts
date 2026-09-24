@@ -65,11 +65,13 @@ export const NEEDS = [
 ] as const;
 
 export const DISCIPLINES = [
-  { id: "batu", href: "/bat-tu", icon: "lsv-i-bat-tu.svg", tone: 1 },
-  { id: "chiemtinh", href: "/chiem-tinh", icon: "lsv-i-chiem-tinh.svg", tone: 2 },
-  { id: "kinhdich", href: "/kinh-dich", icon: "lsv-i-kinh-dich.svg", tone: 3 },
-  { id: "thansohoc", href: "/than-so-hoc", icon: "lsv-i-than-so.svg", tone: 4 },
+  { id: "batu", href: "/bat-tu", icon: "lsv-i-bat-tu.svg", art: "lsv-discipline-bat-tu.webp", tone: 1 },
+  { id: "chiemtinh", href: "/chiem-tinh", icon: "lsv-i-chiem-tinh.svg", art: "lsv-discipline-chiem-tinh.webp", tone: 2 },
+  { id: "kinhdich", href: "/kinh-dich", icon: "lsv-i-kinh-dich.svg", art: "lsv-discipline-kinh-dich.webp", tone: 3 },
+  { id: "thansohoc", href: "/than-so-hoc", icon: "lsv-i-than-so.svg", art: "lsv-discipline-than-so.webp", tone: 4 },
 ] as const;
+
+export const TUVI_ART = "lsv-discipline-tu-vi.webp";
 
 export const COMPARE_ROW_IDS = ["strength", "own", "basis", "revisit", "depth", "cost"] as const;
 export const FAQ_IDS = ["q1", "q2", "q3", "q4", "q5"] as const;

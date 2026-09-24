@@ -10,6 +10,7 @@ import { HomepageV3Explore } from "../../features/homepage-v3/homepage-v3-explor
 import { HomepageV3Faq } from "../../features/homepage-v3/homepage-v3-faq";
 import { HomepageV3Hero } from "../../features/homepage-v3/homepage-v3-hero";
 import { HomepageV3Needs } from "../../features/homepage-v3/homepage-v3-needs";
+import { HomepageV3Reveal } from "../../features/homepage-v3/homepage-v3-reveal";
 import {
   HomepageV3About,
   HomepageV3Story,
@@ -37,6 +38,7 @@ export default async function Page({ params }: PageProps) {
     <div className="home">
       <SiteHeader locale={locale} />
       <div className="hv3" data-light-ready>
+        <HomepageV3Reveal />
         <main aria-label={t("app.name")}>
           <section className="hv3-section hv3-hero" data-home-block="hero" id="lap-la-so">
             <HomepageV3Hero locale={locale} />
@@ -60,7 +62,7 @@ export default async function Page({ params }: PageProps) {
             <HomepageV3Usp />
           </section>
           <section className="hv3-section" data-home-block="value" id="gia-tri">
-            <HomepageV3Value locale={locale} showPacks />
+            <HomepageV3Value locale={locale} />
           </section>
           <section className="hv3-section hv3-ruled" data-home-block="faq" id="faq">
             <div id="cau-hoi">

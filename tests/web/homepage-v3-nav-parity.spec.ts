@@ -7,7 +7,7 @@ type Link = { label: string; target: string };
 
 async function headerSnapshot(page: import("@playwright/test").Page, baseUrl: string, mobile: boolean) {
   await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 });
-  const response = await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+  const response = await page.goto(baseUrl, { waitUntil: "load" });
   expect(response?.ok(), `${baseUrl} must load`).toBeTruthy();
   const header = page.locator("header").first();
   if (mobile) {

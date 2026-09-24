@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 
 import { localizedPath } from "../homepage/homepage-utilities";
 import { HomepageV3GoWizard } from "./homepage-v3-go-wizard";
-import { DISCIPLINES, HOMEPAGE_V3_IMAGE_ROOT, NEEDS } from "./homepage-v3-data";
+import { DISCIPLINES, HOMEPAGE_V3_IMAGE_ROOT, NEEDS, TUVI_ART } from "./homepage-v3-data";
 
 export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
   const t = useTranslations("homepage-v3.needs");
@@ -63,21 +63,35 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
         <p className="hv3-lead">{t("lensLead")}</p>
       </div>
       <div className="hv3-disciplines">
-        <a href={localizedPath(locale, "/tu-vi")} className="hv3-disc-flagship">
-          <span className="hv3-disc-flagship-text">
-            <span aria-hidden="true" className="hv3-mask hv3-mask-accent" style={{ maskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/lsv-i-tu-vi.svg)`, WebkitMaskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/lsv-i-tu-vi.svg)` }} />
-            <span className="hv3-disc-name hv3-disc-name-lg">{t("disciplines.tuvi.name")}</span>
-            <span className="hv3-muted">{t("disciplines.tuvi.desc")}</span>
-          </span>
-          <span className="hv3-btn">{t("disciplines.tuvi.cta")}</span>
-        </a>
-        {DISCIPLINES.map((item) => (
-          <a key={item.id} href={localizedPath(locale, item.href)} className="hv3-disc" data-tone={item.tone}>
-            <span aria-hidden="true" className="hv3-mask" style={{ maskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon})`, WebkitMaskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon})` }} />
-            <span className="hv3-disc-name">{t(`disciplines.${item.id}.name`)}</span>
-            <span className="hv3-muted">{t(`disciplines.${item.id}.desc`)}</span>
-            <span className="hv3-disc-cta">{t(`disciplines.${item.id}.cta`)} →</span>
+        <div data-reveal style={{ "--i": 0 } as CSSProperties} className="hv3-disc-slot hv3-disc-slot-flagship">
+          <a href={localizedPath(locale, "/tu-vi")} className="hv3-disc hv3-disc-flagship" data-tone="0">
+            <span className="hv3-disc-art">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${TUVI_ART}`} alt="" width={1122} height={1402} loading="lazy" decoding="async" />
+            </span>
+            <span className="hv3-disc-body">
+              <span aria-hidden="true" className="hv3-mask hv3-mask-accent" style={{ maskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/lsv-i-tu-vi.svg)`, WebkitMaskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/lsv-i-tu-vi.svg)` }} />
+              <span className="hv3-disc-name hv3-disc-name-lg">{t("disciplines.tuvi.name")}</span>
+              <span className="hv3-muted">{t("disciplines.tuvi.desc")}</span>
+              <span className="hv3-btn hv3-disc-flagship-cta">{t("disciplines.tuvi.cta")}</span>
+            </span>
           </a>
+        </div>
+        {DISCIPLINES.map((item, index) => (
+          <div key={item.id} data-reveal style={{ "--i": index + 1 } as CSSProperties} className="hv3-disc-slot">
+            <a href={localizedPath(locale, item.href)} className="hv3-disc" data-tone={item.tone}>
+              <span className="hv3-disc-art">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.art}`} alt="" width={1122} height={1402} loading="lazy" decoding="async" />
+              </span>
+              <span className="hv3-disc-body">
+                <span aria-hidden="true" className="hv3-mask" style={{ maskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon})`, WebkitMaskImage: `url(${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon})` }} />
+                <span className="hv3-disc-name">{t(`disciplines.${item.id}.name`)}</span>
+                <span className="hv3-muted">{t(`disciplines.${item.id}.desc`)}</span>
+                <span className="hv3-disc-cta">{t(`disciplines.${item.id}.cta`)} →</span>
+              </span>
+            </a>
+          </div>
         ))}
       </div>
     </div>

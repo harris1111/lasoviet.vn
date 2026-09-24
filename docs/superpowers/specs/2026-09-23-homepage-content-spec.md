@@ -27,7 +27,7 @@
 - **Giá trị xem & Tiền tệ:**
   - Người dùng xem được trọn vẹn lá số 12 cung và **2 nhận định trọng tâm hữu ích trước khi đăng nhập** (1 về bản thân, 1 theo chủ đề họ chọn sau khi rời homepage).
   - Đăng nhập mở thêm bản tóm lược ban đầu.
-  - Sử dụng **Lá** để mở luận giải sâu. Khi mua gói Lá, **bắt buộc hiển thị song song số Lá và số tiền VNĐ thật** (ví dụ: `1.100 Lá · 99.000 đ`), không tạo tỷ giá ảo.
+  - Sử dụng **Lá** để mở luận giải sâu. Trang chủ không hiện giá. Ở nơi có bán gói Lá (trang chọn luận giải, thanh toán), **bắt buộc hiển thị song song số Lá và số tiền VNĐ thật** (ví dụ: `1.100 Lá · 99.000 đ`), không tạo tỷ giá ảo.
 - **Điều hướng & Bộ môn:**
   - Section Nhu cầu và Section Các bộ môn đặt cạnh nhau.
   - Bộ môn **Tử Vi** đã có engine hoạt động: dùng CTA `Lập lá số Tử Vi`.
@@ -198,7 +198,7 @@
    - Đọc chi tiết từng đại vận 10 năm, diễn biến tiểu hạn từng năm, phối chiếu tương tác giữa các cung và lời khuyên chuẩn bị thiết thực.
    - Dùng **Lá** để mở đúng phần bạn muốn đọc, không ép mua cả gói nếu bạn chỉ quan tâm một khía cạnh.
 
-#### Các gói Lá minh bạch (Song song Lá và VNĐ):
+#### Các gói Lá (KHÔNG hiển thị trên trang chủ — FD-069/FD-101; dùng ở trang chọn luận giải và trang thương mại):
 - **Gói Nhập Môn:** `300 Lá` — `29.000 đ`
 - **Gói Khởi Đọc:** `1.100 Lá` (1.000 + 100 tặng) — `99.000 đ`
 - **Gói Khám Phá:** `3.000 Lá` (2.500 + 500 tặng) — `249.000 đ`
@@ -248,7 +248,7 @@
 - **Section 3 (Lá số mẫu):** Hiển thị 4 cung tiêu biểu (Mệnh, Quan, Tài, Phối) dạng thẻ trượt ngang (swipe cards).
 - **Section 4 (Nhu cầu & Bộ môn):** 4 thẻ nhu cầu dạng nút bấm to; danh sách 5 bộ môn xếp dọc với nhãn rõ: `Tử Vi (Sẵn sàng)` và `Bát Tự / Chiêm Tinh / Kinh Dịch (Tìm hiểu)`.
 - **Section 5 (So sánh):** 3 thẻ dọc độc lập làm nổi bật 3 điểm: Chuẩn an sao, Căn cứ luận giải, Không bán đồ phong thủy.
-- **Section 7 (Gói Lá):** Thẻ ngang trượt nhẹ, nổi bật gói `1.100 Lá · 99.000 đ`.
+- **Section 7 (Giá trị):** Chỉ 3 nấc (miễn phí → lưu lá số → đọc sâu bằng Lá), không hiện bảng giá (FD-069).
 
 ---
 
@@ -277,7 +277,7 @@
 | **4. Nhu cầu & Bộ môn** | 4 thẻ nhu cầu bo góc; icon Lucide nét vẽ mảnh 1.75px. | Bấm thẻ nhu cầu hoặc bấm "Tìm hiểu" các bộ môn. | Hover card nhấc lên 2px; badge trạng thái hiển thị tinh tế. |
 | **5. So sánh** | Desktop: Bảng 4 cột; Mobile: 3 thẻ dọc độc lập. | Chạm xem chi tiết từng tiêu chí trên mobile. | Accordion mở mượt mà 180ms. |
 | **6. USP có căn cứ** | 3 biểu tượng: Đồng hồ thiên văn, Thước đo ngọc, Cán cân. | Đọc lướt 3 cột. | Staggered fade-in (100ms). |
-| **7. Gói Lá & Giá** | Thẻ gói Lá màu giấy ngà viền son; số Lá và VNĐ to rõ. | Chọn gói Lá; đọc hướng dẫn VietQR. | Gói Khởi Đọc có viền son nổi bật; phản hồi nút 120ms. |
+| **7. Giá trị** | Đường 3 nấc; không có thẻ gói Lá (FD-069). | Đọc tiến trình từ xem miễn phí tới đọc sâu. | Không có |
 | **8. FAQ** | Accordion phẳng tối giản. | Chạm để mở/đóng câu trả lời. | Mở 180ms, tương phản văn bản đạt chuẩn WCAG AA (>4.5:1). |
 | **9. About & Final CTA** | Họa tiết triện son đỏ "Hiểu mình có căn cứ". | Bấm nút "Lập lá số của bạn ngay". | Smooth scroll cuộn mượt mà lên Form Hero ở đầu trang. |
 

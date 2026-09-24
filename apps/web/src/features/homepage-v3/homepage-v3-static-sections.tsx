@@ -9,15 +9,22 @@ type Locale = "en" | "vi";
 export function HomepageV3Story() {
   const t = useTranslations("homepage-v3.story");
   return (
-    <div className="hv3-container hv3-story">
-      <div className="hv3-story-copy">
-        <h2 className="hv3-h2">{t("title")}</h2>
-        <p className="hv3-lead">{t("body")}</p>
-      </div>
-      <div className="hv3-questions">
-        <p>{t("q1")}</p>
-        <p>{t("q2")}</p>
-        <p className="hv3-accent">{t("q3")}</p>
+    <div className="hv3-container hv3-art-container">
+      <div className="hv3-story-panel" data-reveal>
+        <picture className="hv3-story-art">
+          <source media="(max-width: 699px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk-mobile.webp`} />
+          { }
+          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" />
+        </picture>
+        <div className="hv3-story-copy">
+          <h2 className="hv3-h2">{t("title")}</h2>
+          <p className="hv3-story-body">{t("body")}</p>
+          <div className="hv3-questions">
+            <p>{t("q1")}</p>
+            <p>{t("q2")}</p>
+            <p className="hv3-q-accent">{t("q3")}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -168,13 +175,20 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
   const t = useTranslations("homepage-v3.about");
   return (
     <>
-      <div className="hv3-container hv3-about">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-v02-seal-geometry.svg`} alt="" width={72} height={72} loading="lazy" />
-        <div className="hv3-about-copy">
-          <h2 className="hv3-h2 hv3-h2-sm">{t("title")}</h2>
-          <p>{t("body")}</p>
-          <a href={localizedPath(locale, "/ve-la-so-viet")} className="hv3-link">{t("link")}</a>
+      <div className="hv3-container hv3-art-container">
+        <div className="hv3-about-panel" data-reveal>
+          <picture className="hv3-about-art">
+            <source media="(max-width: 699px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light-mobile.webp`} />
+            { }
+            <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light.webp`} alt="" width={1536} height={1024} loading="lazy" decoding="async" />
+          </picture>
+          <div className="hv3-about-body">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-v02-seal-geometry.svg`} alt="" width={56} height={56} loading="lazy" className="hv3-about-seal" />
+            <h2 className="hv3-h2 hv3-h2-sm">{t("title")}</h2>
+            <p>{t("body")}</p>
+            <a href={localizedPath(locale, "/ve-la-so-viet")} className="hv3-link">{t("link")}</a>
+          </div>
         </div>
       </div>
       <div id="cta-cuoi" className="hv3-final-cta">
