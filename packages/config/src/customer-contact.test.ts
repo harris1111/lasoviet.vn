@@ -16,7 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe("customerContactConfig", () => {
   it("loads valid customer contact config with email enabled and others disabled", () => {
-    expect(customerContactConfig.email.value).toBe("support@lasoviet.net");
+    expect(customerContactConfig.email.value).toBe("lasoviet.net@gmail.com");
     expect(customerContactConfig.email.visible).toBe(true);
     expect(customerContactConfig.phone.visible).toBe(false);
     expect(customerContactConfig.zalo.visible).toBe(false);
@@ -39,7 +39,7 @@ describe("customerContactConfig", () => {
       locale: "vi",
     });
     expect(viMailto).toBe(
-      "mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSV-INV-2026-001",
+      "mailto:lasoviet.net@gmail.com?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSV-INV-2026-001",
     );
 
     const enMailto = buildCustomerSupportMailto({
@@ -47,11 +47,11 @@ describe("customerContactConfig", () => {
       locale: "en",
     });
     expect(enMailto).toBe(
-      "mailto:support@lasoviet.net?subject=%5BLa%20So%20Viet%5D%20Support%20for%20order%20LSV-INV-2026-001",
+      "mailto:lasoviet.net@gmail.com?subject=%5BLa%20So%20Viet%5D%20Support%20for%20order%20LSV-INV-2026-001",
     );
 
     const plainMailto = buildCustomerSupportMailto();
-    expect(plainMailto).toBe("mailto:support@lasoviet.net");
+    expect(plainMailto).toBe("mailto:lasoviet.net@gmail.com");
   });
 
   it("verifies --check mode passes on tracked file without mutation", () => {

@@ -29,7 +29,7 @@ import { PaidTopicSelector } from "../reports/paid-topic-selector";
 describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
   describe("Contact display flags", () => {
     it("has typed customer-contact config with email visible and others disabled", () => {
-      expect(customerContactConfig.email.value).toBe("support@lasoviet.net");
+      expect(customerContactConfig.email.value).toBe("lasoviet.net@gmail.com");
       expect(customerContactConfig.email.visible).toBe(true);
       expect(customerContactConfig.phone.visible).toBe(false);
       expect(customerContactConfig.zalo.visible).toBe(false);
@@ -46,7 +46,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
           visible={true}
         />,
       );
-      expect(visibleHtml).toContain("mailto:support@lasoviet.net");
+      expect(visibleHtml).toContain("mailto:lasoviet.net@gmail.com");
 
       const hiddenHtml = renderToStaticMarkup(
         <SupportCard
@@ -65,22 +65,22 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
       expect(viHtml).toContain('href="/dieu-khoan"');
       expect(viHtml).toContain('href="/chinh-sach-bao-mat"');
       expect(viHtml).toContain('href="/dieu-khoan#thanh-toan"');
-      expect(viHtml).toContain("mailto:support@lasoviet.net");
-      expect(viHtml).toContain("support@lasoviet.net");
+      expect(viHtml).toContain("mailto:lasoviet.net@gmail.com");
+      expect(viHtml).toContain("lasoviet.net@gmail.com");
 
       const enHtml = renderToStaticMarkup(<SiteFooter locale="en" />);
       expect(enHtml).toContain('href="/en/dieu-khoan"');
       expect(enHtml).toContain('href="/en/chinh-sach-bao-mat"');
       expect(enHtml).toContain('href="/en/dieu-khoan#thanh-toan"');
-      expect(enHtml).toContain("mailto:support@lasoviet.net");
-      expect(enHtml).toContain("support@lasoviet.net");
+      expect(enHtml).toContain("mailto:lasoviet.net@gmail.com");
+      expect(enHtml).toContain("lasoviet.net@gmail.com");
     });
   });
 
   describe("Support card placement on required surfaces", () => {
     it("renders support card on homepage before final CTA", () => {
       const html = renderToStaticMarkup(<HomepageSupport />);
-      expect(html).toContain("mailto:support@lasoviet.net");
+      expect(html).toContain("mailto:lasoviet.net@gmail.com");
       expect(html).toContain("Cần đồng hành hoặc hỗ trợ?");
       expect(html).toContain("Gửi email hỗ trợ");
     });
@@ -107,7 +107,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
       );
 
       expect(html).toContain('data-testid="topic-support-card"');
-      expect(html).toContain("mailto:support@lasoviet.net");
+      expect(html).toContain("mailto:lasoviet.net@gmail.com");
       expect(html).toContain("Cần hỗ trợ về gói luận giải?");
     });
 
@@ -146,7 +146,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
 
       expect(html).toContain('data-testid="checkout-expired-support"');
       expect(html).toContain(
-        "mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSVEXPIREDCODE",
+        "mailto:lasoviet.net@gmail.com?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSVEXPIREDCODE",
       );
       expect(html).not.toContain("internal-uuid-order-expired-999");
     });
@@ -186,7 +186,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
 
       expect(html).toContain('data-testid="checkout-failed-support"');
       expect(html).toContain(
-        "mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSVFAILEDCODE",
+        "mailto:lasoviet.net@gmail.com?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSVFAILEDCODE",
       );
       expect(html).not.toContain("internal-uuid-order-failed-888");
     });
@@ -228,7 +228,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
 
       expect(html).toContain('data-testid="account-orders-support"');
       expect(html).toContain(
-        "mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng",
+        "mailto:lasoviet.net@gmail.com?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng",
       );
       expect(html).not.toContain("internal-uuid-order-hist-777");
     });

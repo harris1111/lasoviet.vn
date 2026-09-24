@@ -640,7 +640,7 @@ describe("VietQR checkout recovery views", () => {
     expect(html).toContain("Payment failed. Do not attempt another transfer for this order.");
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).toContain("data-testid=\"checkout-failed-support\"");
-    expect(html).toContain("mailto:support@lasoviet.net?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSVK7M2P9QXJ");
+    expect(html).toContain("mailto:lasoviet.net@gmail.com?subject=%5BL%C3%A1%20S%E1%BB%91%20Vi%E1%BB%87t%5D%20H%E1%BB%97%20tr%E1%BB%A3%20%C4%91%C6%A1n%20h%C3%A0ng%20LSVK7M2P9QXJ");
 
     // No QR or self-claim
     expect(html).not.toContain("https://vietqr.app");
@@ -781,7 +781,7 @@ describe("VietQR checkout recovery views", () => {
     // Order history & support
     expect(html).toContain("/tai-khoan/don-hang");
     expect(html).toContain("data-testid=\"checkout-failed-support\"");
-    expect(html).toContain("mailto:support@lasoviet.net");
+    expect(html).toContain("mailto:lasoviet.net@gmail.com");
     // Hidden QR
     expect(html).not.toContain("https://vietqr.app");
   });

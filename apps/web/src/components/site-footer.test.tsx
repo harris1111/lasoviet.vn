@@ -30,12 +30,12 @@ describe("SiteFooter", () => {
 
   it("renders configured support email when visible in both locales", () => {
     const htmlVi = renderToStaticMarkup(<SiteFooter locale="vi" />);
-    expect(htmlVi).toContain("mailto:support@lasoviet.net");
-    expect(htmlVi).toContain("support@lasoviet.net");
+    expect(htmlVi).toContain("mailto:lasoviet.net@gmail.com");
+    expect(htmlVi).toContain("lasoviet.net@gmail.com");
 
     const htmlEn = renderToStaticMarkup(<SiteFooter locale="en" />);
-    expect(htmlEn).toContain("mailto:support@lasoviet.net");
-    expect(htmlEn).toContain("support@lasoviet.net");
+    expect(htmlEn).toContain("mailto:lasoviet.net@gmail.com");
+    expect(htmlEn).toContain("lasoviet.net@gmail.com");
   });
 
   it("never leaks forbidden customer-facing copy such as Zalo, phone, address, legal entity, or social", () => {
