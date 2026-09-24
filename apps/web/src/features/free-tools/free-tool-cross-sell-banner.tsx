@@ -56,7 +56,7 @@ export function FreeToolCrossSellBanner({
   customExplanation,
   customCta,
 }: FreeToolCrossSellBannerProps) {
-  const t = useTranslations("freeToolsCrossSell");
+  const t = useTranslations("common.freeToolsCrossSell");
   const meta = TOOL_META_MAP[tool] ?? { i18nKey: "goodDays", fromSlug: "xem-ngay" };
   const fromSlug = customFromSlug ?? meta.fromSlug;
   const i18nKey = meta.i18nKey;

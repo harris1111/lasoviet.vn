@@ -57,14 +57,15 @@ const mockTranslations: Record<string, Record<string, string>> = {
 };
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => {
-    const parts = key.split(".");
+  useTranslations: (ns?: string) => (key: string) => {
+    const fullKey = ns ? `${ns}.${key}` : key;
+    const parts = fullKey.replace(/^common\.freeToolsCrossSell\./, "").split(".");
     const toolKey = parts[0];
     const field = parts[1];
     if (toolKey && field && mockTranslations[toolKey]) {
-      return mockTranslations[toolKey][field] ?? key;
+      return mockTranslations[toolKey][field] ?? fullKey;
     }
-    return key;
+    return fullKey;
   },
 }));
 
