@@ -74,7 +74,7 @@ describe("ZiweiResultSummary", () => {
     );
 
     // Birth details
-    expect(html).toContain("1990-05-15");
+    expect(html).toContain("15/05/1990");
     expect(html).toContain("Dương lịch");
     expect(html).toContain("06:30");
     expect(html).toContain("Chính xác theo phút");

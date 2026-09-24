@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { ziweiPresentation } from "./ziwei-presentation";
+import { formatDisplayDate, ziweiPresentation } from "./ziwei-presentation";
 
 describe("localized Zi Wei presentation", () => {
   it("presents canonical chart and evidence identifiers without exposing raw IDs", () => {
@@ -129,17 +129,15 @@ describe("Zi Wei presentation exhaustive star, stem, and cycle mappings", () => 
   // 3. tiande (adjective) vs tiande-dec (suiqian 12)
   // 4. longde (adjective) vs longde-dec (suiqian 12)
   // 5. jiesha (adjective) vs jiesha-dec (jiangqian 12)
-  // 6. dahao (adjective / suiqian) vs dahao-dec (boshi 12)
-  // 7. feilian (adjective) vs feilian-dec (boshi 12)
-  // 8. xiaohao (boshi 12) vs xiaohao-sq (suiqian 12)
-  // 9. bingfu (boshi 12) vs bingfu-sq (suiqian 12)
+  // 6. feilian (adjective) vs feilian-dec (boshi 12)
+  // 7. xiaohao (boshi 12) vs xiaohao-sq (suiqian 12)
+  // 8. bingfu (boshi 12) vs bingfu-sq (suiqian 12)
   const allowedDuplicateAliases = new Set([
     "ziwei.star.xianchi-dec",
     "ziwei.star.huagai-dec",
     "ziwei.star.tiande-dec",
     "ziwei.star.longde-dec",
     "ziwei.star.jiesha-dec",
-    "ziwei.star.dahao-dec",
     "ziwei.star.feilian-dec",
     "ziwei.star.xiaohao-sq",
     "ziwei.star.bingfu-sq",
@@ -287,5 +285,28 @@ describe("Zi Wei presentation exhaustive star, stem, and cycle mappings", () => 
     // Must never contain misleading star names
     expect(viNonStrict.star("ziwei.star.unknown_star")).not.toContain("Tử Vi");
     expect(enNonStrict.star("ziwei.star.unknown_star")).not.toContain("Zi Wei");
+  });
+
+  it("distinguishes annual and decadal (Bác Sĩ) Đại Hao in Vietnamese and English", () => {
+    const vi = ziweiPresentation("vi");
+    const en = ziweiPresentation("en");
+
+    expect(vi.star("ziwei.star.dahao")).toBe("Đại Hao");
+    expect(vi.star("ziwei.star.dahao-dec")).toBe("Đại Hao (Bác Sĩ)");
+
+    expect(en.star("ziwei.star.dahao")).toBe("Da Hao");
+    expect(en.star("ziwei.star.dahao-dec")).toBe("Da Hao (Boshi)");
+  });
+
+  it("formats birth date as DD/MM/YYYY for Vietnamese users and preserves ISO for English", () => {
+    const vi = ziweiPresentation("vi");
+    const en = ziweiPresentation("en");
+
+    expect(vi.formatDate("1992-06-15")).toBe("15/06/1992");
+    expect(vi.formatDate("1990-05-08")).toBe("08/05/1990");
+    expect(en.formatDate("1992-06-15")).toBe("1992-06-15");
+    expect(formatDisplayDate("1992-06-15", "vi")).toBe("15/06/1992");
+    expect(formatDisplayDate("1992-06-15", "en")).toBe("1992-06-15");
+    expect(formatDisplayDate("unknown-date", "vi")).toBe("unknown-date");
   });
 });

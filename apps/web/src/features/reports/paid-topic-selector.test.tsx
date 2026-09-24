@@ -145,7 +145,7 @@ describe("PaidTopicSelector", () => {
     );
 
     expect(html).toContain("Luận giải cho lá số của Minh An");
-    expect(html).toContain("Lá số ngày 1994-04-12");
+    expect(html).toContain("Lá số ngày 12/04/1994");
     expect(html).toContain("← Xem lại lá số");
   });
 

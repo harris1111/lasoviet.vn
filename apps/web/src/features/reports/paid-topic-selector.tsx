@@ -46,7 +46,7 @@ import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tra
 import { CheckoutPurchaseForm } from "../commerce/checkout-purchase-form";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import { SupportCard } from "../../components/ui/support-card";
-import type { ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
+import { formatDisplayDate, type ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
 import {
   buildSafeOfferPresentations,
   type OfferOwnershipState,
@@ -109,7 +109,7 @@ export function PaidTopicSelector({
         <h1 id="topic-selector-heading">{pageTitle}</h1>
         <p className="topic-selector-context">
           {birthSummary?.normalizedCalendar?.date
-            ? t("selection.contextWithDate", { date: birthSummary.normalizedCalendar.date })
+            ? t("selection.contextWithDate", { date: formatDisplayDate(birthSummary.normalizedCalendar.date, locale) })
             : t("selection.context")}{" "}
           ·{" "}
           <Link href={chartHref} className="back-to-chart-link">
