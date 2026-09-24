@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type {
@@ -22,6 +23,7 @@ import { ZiweiPalacesTab } from "./ziwei-palaces-tab";
 import { ZiweiTopicsTab } from "./ziwei-topics-tab";
 import { ZiweiEvidenceTab } from "./ziwei-evidence-tab";
 import type { ZiweiPresentationLocale } from "./ziwei-presentation";
+import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 
 export type ZiweiResultTabsProps = {
   initialState: ParsedResultTabState;
@@ -36,6 +38,7 @@ export type ZiweiResultTabsProps = {
     | { ok: false; error: { code: string } }
   >;
   preview: FreeIdentityPreviewV1;
+  isSample?: boolean;
 };
 
 export function ZiweiResultTabs({
@@ -48,6 +51,7 @@ export function ZiweiResultTabs({
   locale,
   loadEvidence,
   preview,
+  isSample,
 }: ZiweiResultTabsProps) {
   const t = useTranslations("ziwei");
   const router = useRouter();
@@ -60,6 +64,13 @@ export function ZiweiResultTabs({
 
   // Push canonical URL so browser Back/Forward updates state
   function handleTabChange(nextTab: ZiweiResultTab, nextOpen?: string) {
+    if (isSample) {
+      void sendBrowserAnalyticsEvent("report_section_read", {
+        sku: "ZIWEI-SAMPLE",
+        section_id: nextTab,
+        read_depth_percent: 100,
+      });
+    }
     const nextUrl = buildCanonicalTabUrl(basePath, {
       tab: nextTab,
       open: nextOpen,
@@ -94,6 +105,27 @@ export function ZiweiResultTabs({
 
   return (
     <div className="ziwei-result-tabs-shell">
+      {/* Sample Banner if isSample */}
+      {isSample && (
+        <div className="sample-result-banner container">
+          <div className="sample-banner-badge">{t("sample.badge")}</div>
+          <p className="sample-banner-text">{t("sample.bannerText")}</p>
+          <Link
+            className="button button-small button-pill sample-banner-cta"
+            href={locale === "en" ? "/en/tao-la-so/tu-vi" : "/tao-la-so/tu-vi"}
+            onClick={() => {
+              void sendBrowserAnalyticsEvent("wizard_start", {
+                locale,
+                entry_point: "sample_banner_cta",
+                step: "entry",
+              });
+            }}
+          >
+            {t("sample.bannerCta")}
+          </Link>
+        </div>
+      )}
+
       {/* 1. Sticky Layer Tab Bar with fade edge & horizontal scroll */}
       <div className="result-tab-bar-container">
         <div
@@ -121,7 +153,10 @@ export function ZiweiResultTabs({
                 tabIndex={isSelected ? 0 : -1}
                 type="button"
               >
-                {tabLabel}
+                <span>{tabLabel}</span>
+                {isSample && (
+                  <span className="sample-tab-tag">{t("sample.tabBadge")}</span>
+                )}
               </button>
             );
           })}
@@ -194,6 +229,7 @@ export function ZiweiResultTabs({
           >
             <ZiweiTopicsTab
               chartId={chartId}
+              isSample={isSample}
               locale={locale}
               onOpenTopic={(topicId) => handleTabChange("topics", topicId)}
               openTopicId={openId}

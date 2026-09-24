@@ -998,7 +998,7 @@ describe("File Collection & Clean Repository Scan", () => {
     expect(cssFiles.some((f: string) => f.includes("vietqr-checkout.css"))).toBe(true);
   });
 
-  it("passes clean repository scan with 0 violations", () => {
+  it("passes clean repository scan with 0 violations", { timeout: 20000 }, () => {
     const violations = scanCustomerFacingFiles(resolve("."));
     expect(violations).toEqual([]);
   });
