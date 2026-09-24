@@ -45,6 +45,135 @@ export type ComprehensiveReportQualityResultV4 =
   | { ok: true; findings: [] }
   | { ok: false; findings: ComprehensiveReportQualityFindingV4[] };
 
+const TRADITIONAL_MISFORTUNE_PATTERN =
+  /(?:(?<!(?:thời|kỳ|giới)\s+)(?<![\p{L}\p{N}])hạn(?!\s+(?:chế|mức))(?![\p{L}\p{N}])|(?<![\p{L}\p{N}])(?:tai\s+nạn|tai\s+nan|phá\s+sản|pha\s+san|kiện\s+tụng|kien\s+tung|đổ\s+vỡ|do\s+vo|hao\s+hụt\s+tiền|hao\s+hut\s+tien|hao\s+tài|hao\s+tai|tai\s+ách|tai\s+ach|tai\s+ương|tai\s+uong|vận\s+hạn|van\s+han|năm\s+hạn|nam\s+han|tháng\s+hạn|thang\s+han|gặp\s+hạn|gap\s+han|mắc\s+hạn|mac\s+han|trắc\s+trở|trac\s+tro)(?![\p{L}\p{N}]))/iu;
+
+export function findUncomputedMisfortunePeriods(
+  text: string,
+  facts: ComprehensiveZiweiFactsV4,
+  config?: {
+    misfortuneTerms?: readonly string[];
+    adverseDatePatterns?: readonly string[];
+  },
+): string[] {
+  const uncomputed: string[] = [];
+  const sentences = text.split(/[.!?;\n]+/u);
+
+  for (const sentence of sentences) {
+    const hasConfigMisfortune =
+      config?.misfortuneTerms?.some((term) => wholeWord(sentence, term)) ?? false;
+    const hasMisfortune = hasConfigMisfortune || TRADITIONAL_MISFORTUNE_PATTERN.test(sentence);
+    if (!hasMisfortune) continue;
+
+    // 1. Explicit adverse date patterns from config if configured
+    let capturedDayDate = false;
+    if (config?.adverseDatePatterns) {
+      for (const pattern of config.adverseDatePatterns) {
+        const match = sentence.match(new RegExp(pattern, "iu"));
+        if (match) {
+          uncomputed.push(match[0].trim());
+          capturedDayDate = true;
+          break;
+        }
+      }
+    }
+
+    // 2. Explicit day/date pattern (e.g. ngày 12 tháng 3, 12/3)
+    if (!capturedDayDate) {
+      const dayDateMatch = sentence.match(
+        /(?<![\p{L}\p{N}])(?:ngày\s+\d{1,2}(?:\s+tháng\s+\d{1,2})?|\d{1,2}\/\d{1,2})(?![\p{L}\p{N}])/iu,
+      );
+      if (dayDateMatch) {
+        uncomputed.push(dayDateMatch[0].trim());
+        capturedDayDate = true;
+      }
+    }
+
+    // 3. Explicit calendar month (e.g. tháng 3, tháng 12) - engine never computes calendar months for misfortune
+    if (!capturedDayDate) {
+      const monthMatch = sentence.match(
+        /(?<![\p{L}\p{N}])tháng\s+([1-9]|1[0-2])(?![\p{L}\p{N}])/iu,
+      );
+      if (monthMatch) {
+        uncomputed.push(monthMatch[0].trim());
+      }
+    }
+
+    // 4. Year range (e.g. 2024-2033 or năm 2024 - 2033)
+    const yearRangeRegex =
+      /(?<![\p{L}\p{N}])(?:năm\s+)?([12]\d{3})\s*[-–—]\s*([12]\d{3})(?![\p{L}\p{N}])/giu;
+    let yrMatch: RegExpExecArray | null;
+    const coveredYearRanges: Array<[number, number]> = [];
+    while ((yrMatch = yearRangeRegex.exec(sentence)) !== null) {
+      const start = parseInt(yrMatch[1]!, 10);
+      const end = parseInt(yrMatch[2]!, 10);
+      coveredYearRanges.push([yrMatch.index, yrMatch.index + yrMatch[0].length]);
+      const valid =
+        facts.timing.decadal.state === "active" &&
+        start >= facts.timing.decadal.yearRange[0] &&
+        end <= facts.timing.decadal.yearRange[1];
+      if (!valid) uncomputed.push(yrMatch[0].trim());
+    }
+
+    // 5. Specific year (e.g. năm 2026, 2038)
+    const yearRegex = /(?<![\p{L}\p{N}])(?:năm\s+)?([12]\d{3})(?![\p{L}\p{N}])/giu;
+    let yMatch: RegExpExecArray | null;
+    while ((yMatch = yearRegex.exec(sentence)) !== null) {
+      if (coveredYearRanges.some(([s, e]) => yMatch!.index >= s && yMatch!.index < e)) continue;
+      const year = parseInt(yMatch[1]!, 10);
+      const isTarget = year === facts.timing.annual.targetYear;
+      const isDecadal =
+        facts.timing.decadal.state === "active" &&
+        year >= facts.timing.decadal.yearRange[0] &&
+        year <= facts.timing.decadal.yearRange[1];
+      const isNotStarted =
+        facts.timing.decadal.state === "not_started" &&
+        year === facts.timing.decadal.firstCycleStartYear;
+      if (!isTarget && !isDecadal && !isNotStarted) {
+        uncomputed.push(yMatch[0].trim());
+      }
+    }
+
+    // 6. Age range (e.g. tuổi 33-42, 33-42 tuổi)
+    const ageRangeRegex =
+      /(?<![\p{L}\p{N}])(?:(?:độ\s+)?tuổi\s+)?(\d{1,2})\s*[-–—]\s*(\d{1,2})\s*(?:tuổi)?(?![\p{L}\p{N}])/giu;
+    let arMatch: RegExpExecArray | null;
+    const coveredAgeRanges: Array<[number, number]> = [];
+    while ((arMatch = ageRangeRegex.exec(sentence)) !== null) {
+      const start = parseInt(arMatch[1]!, 10);
+      const end = parseInt(arMatch[2]!, 10);
+      if (start >= 10 && end > start) {
+        coveredAgeRanges.push([arMatch.index, arMatch.index + arMatch[0].length]);
+        const valid =
+          facts.timing.decadal.state === "active" &&
+          start >= facts.timing.decadal.ageRange[0] &&
+          end <= facts.timing.decadal.ageRange[1];
+        if (!valid) uncomputed.push(arMatch[0].trim());
+      }
+    }
+
+    // 7. Specific age (e.g. tuổi 35, 60 tuổi)
+    const ageRegex = /(?<![\p{L}\p{N}])(?:tuổi\s+(\d{1,2})|(\d{1,2})\s*tuổi)(?![\p{L}\p{N}])/giu;
+    let aMatch: RegExpExecArray | null;
+    while ((aMatch = ageRegex.exec(sentence)) !== null) {
+      if (coveredAgeRanges.some(([s, e]) => aMatch!.index >= s && aMatch!.index < e)) continue;
+      const age = parseInt(aMatch[1] || aMatch[2]!, 10);
+      const isDecadal =
+        facts.timing.decadal.state === "active" &&
+        age >= facts.timing.decadal.ageRange[0] &&
+        age <= facts.timing.decadal.ageRange[1];
+      const isNotStarted =
+        facts.timing.decadal.state === "not_started" &&
+        age === facts.timing.decadal.firstCycleStartAge;
+      if (!isDecadal && !isNotStarted) {
+        uncomputed.push(aMatch[0].trim());
+      }
+    }
+  }
+
+  return [...new Set(uncomputed)];
+}
+
 const MAX_SECTION_KEY_CHARS = 96;
 const HAN_IDEOGRAPH_PATTERN = /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{Script=Han})/u;
 const ENGLISH_BRIGHTNESS_PATTERN =
@@ -219,10 +348,9 @@ export function validateComprehensiveReportSectionQualityV4(
     const density = [...properNamesInFacts(facts, config)].reduce((count, term) => count + (text.match(new RegExp(`(?<![\\p{L}\\p{N}])${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "giu"))?.length ?? 0), 0) / Math.max(syllables, 1) * 100;
     if (density > config.maxProperNamesPer100Syllables) add("PROPER_NAME_DENSITY", `Proper-name density ${density.toFixed(2)} exceeds ${config.maxProperNamesPer100Syllables}.`);
   }
-  if (config.misfortuneTerms.some((term) => wholeWord(text, term))) {
-    if (config.adverseDatePatterns.some((pattern) => new RegExp(pattern, "iu").test(text))) add("ADVERSE_DATE", "Contains an explicit adverse day or month.");
-    const preparations = config.preparationIndicators.filter((term) => wholeWord(text, term));
-    if (preparations.length < 2) add("PREPARATION_FRAMING", "A warning requires two concrete preparation indicators.");
+  const uncomputedPeriods = findUncomputedMisfortunePeriods(text, facts, config);
+  if (uncomputedPeriods.length > 0) {
+    add("ADVERSE_DATE", `Contains an uncomputed misfortune period: ${uncomputedPeriods.join(", ")}.`);
   }
   if (section.kind === "palace") {
     const palace = facts.natal.palaces.find((item) => item.palaceId === section.palaceId);

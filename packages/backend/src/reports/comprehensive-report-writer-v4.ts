@@ -63,13 +63,17 @@ YÊU CẦU NỘI DUNG VÀ VĂN PHONG:
 5. Vận hạn hiện hành: Luận giải thấu đáo đại vận hiện hành (hoặc giai đoạn tiền đại vận nếu chưa khởi) và lưu niên năm đánh giá.
 6. Hành động thực tế: Đưa ra chính xác từ 3 đến 5 hành động cụ thể có cấu trúc đầy đủ (khuyến nghị, lý do, điều nên tránh, căn cứ evidenceKeys).
 7. Lời khuyên chuyên môn trong ngữ cảnh: Khi đề cập đến sức khỏe, pháp lý, giấy tờ thủ tục, khoản tiền lớn hoặc đầu tư, nên khuyên người đọc một cách tự nhiên trong mạch văn tham khảo ý kiến bác sĩ, luật sư hoặc chuyên gia có chuyên môn phù hợp.
+8. Luận giải trực diện theo Tử Vi truyền thống: Trình bày thẳng thắn cả vận hạn, năm khó, sao xấu, hao tài, trắc trở tình cảm, nguy cơ đi lại và sự cố theo phong cách truyền thống, không né tránh hay làm giảm nhẹ gượng ép; mọi cảnh báo vận hạn phải bám sát mốc thời gian đã được tính toán trong facts.
 
 ${COMPREHENSIVE_REPORT_V4_JSON_CONTRACT_INSTRUCTION}
 
 CẤM TUYỆT ĐỐI CÁC ĐIỀU SAU:
 - KHÔNG nhắc đến AI, trí tuệ nhân tạo, mô hình ngôn ngữ, prompt, dữ liệu đầu vào hay hệ thống kỹ thuật.
 - KHÔNG đưa vào các khối văn bản hoặc nhãn tuyên bố miễn trừ trách nhiệm đứng riêng (như "Tuyên bố miễn trừ trách nhiệm", "Miễn trừ trách nhiệm", "Disclaimer"). Lời khuyên tham vấn chuyên gia chỉ được xuất hiện tự nhiên trong dòng chảy phân tích.
-- KHÔNG đưa ra các dự đoán định mệnh mang tính khẳng định chắc chắn về tai nạn, tử vong, phá sản hoặc phản bội trong cùng câu.
+- KHÔNG đề cập đến cái chết, tuổi thọ, thọ yểu hoặc "khắc chết", "sát phu", "sát thê" dưới mọi hình thức (tuân thủ nghiêm ngặt quy định pháp luật và FD-075 / FD-089).
+- KHÔNG chẩn đoán bệnh cụ thể hoặc dự đoán mắc bệnh cụ thể (cảnh báo sức khoẻ có chừng mực như nhắc nhở chú ý sức khoẻ, nghỉ ngơi, khám định kỳ được phép).
+- KHÔNG giới thiệu, gợi ý hay bán các nghi lễ, cúng bái, bùa chú, "giải hạn", "hoá giải", gói "cải vận", hoặc vật phẩm phong thuỷ.
+- KHÔNG tự bịa đặt sự kiện, ngày tháng hoặc mốc thời gian hạn không do facts tính ra cho lá số này.
 - KHÔNG sử dụng nhãn độ tin cậy, mức độ chắc chắn, giới hạn phương pháp hoặc văn phong phòng thủ.
 - KHÔNG tạo trường birthTimeSensitivity.`;
 

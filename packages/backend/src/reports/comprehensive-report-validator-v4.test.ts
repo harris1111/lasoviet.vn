@@ -388,7 +388,7 @@ describe("validateComprehensiveZiweiReportV4", () => {
   });
 
   describe("Kaneo LSV-29 regression cases & safety boundary", () => {
-    it("case 1: passes fatalistic false positive when bad outcome is framed as risk/possibility/prevention target", () => {
+    it("permits direct traditional misfortune wording per FD-089", () => {
       const chart = createSampleChart();
       const snapshot = createSampleSnapshot();
       const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
@@ -399,6 +399,18 @@ describe("validateComprehensiveZiweiReportV4", () => {
         "Bạn nên chắc chắn tham khảo ý kiến luật sư trước khi ký hợp đồng lớn để tránh nguy cơ phá sản.",
         "Bạn nên chắc chắn kiểm tra để tránh phá sản.",
         "Bạn cần chắc chắn chuẩn bị kỹ càng để hạn chế rủi ro phá sản.",
+        // Direct traditional misfortune statements permitted under FD-089
+        "Bạn chắc chắn không tránh khỏi phá sản.",
+        "Bạn chắc chắn không tránh khỏi nguy cơ phá sản.",
+        "Dù đã cố gắng, bạn chắc chắn không tránh khỏi rủi ro phá sản.",
+        "Bạn chắc chắn sẽ gặp một tai nạn nghiêm trọng.",
+        "Chắc chắn rồi bạn sẽ phá sản.",
+        "Bạn chắc chắn rằng sẽ phá sản.",
+        "Bạn sẽ phá sản, không tránh khỏi.",
+        "Bạn không tránh khỏi nguy cơ phá sản.",
+        "Năm 2026 bạn gặp hạn hao tài, trắc trở sự nghiệp.",
+        "Giai đoạn 2022-2031 có nguy cơ kiện tụng.",
+        "Ở tuổi 25 bạn có thể gặp biến cố tài chính.",
       ];
 
       for (const text of approvedPassCases) {
@@ -409,59 +421,37 @@ describe("validateComprehensiveZiweiReportV4", () => {
       }
     });
 
-    it('case 1-override: explicit "không tránh khỏi" overrides prevention wording and remains rejected', () => {
+    it("strictly rejects named misfortune periods citing uncomputed engine periods per FD-089", () => {
       const chart = createSampleChart();
       const snapshot = createSampleSnapshot();
       const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
 
-      const overrideFailCases = [
-        "Bạn chắc chắn không tránh khỏi phá sản.",
-        "Bạn chắc chắn không tránh khỏi nguy cơ phá sản.",
-        "Dù đã cố gắng, bạn chắc chắn không tránh khỏi rủi ro phá sản.",
+      const uncomputedPeriodFailCases = [
+        "Năm 2045 bạn sẽ phá sản.",
+        "Ngày 12 tháng 3 sẽ gặp tai nạn.",
+        "Tháng 8 có hạn kiện tụng lớn.",
+        "Ở tuổi 65 bạn sẽ phá sản.",
+        "Giai đoạn 2038-2047 bạn gặp vận hạn lớn.",
       ];
 
-      for (const text of overrideFailCases) {
+      for (const text of uncomputedPeriodFailCases) {
         const report = createValidReport(facts);
         report.overview.narrative = text;
         const result = validateComprehensiveZiweiReportV4(report, facts);
         expect(result.ok).toBe(false);
-        expect(result.errors?.some((e) => e.includes("fatalistic"))).toBe(true);
+        expect(result.errors?.some((e) => e.includes("cites uncomputed period"))).toBe(true);
       }
     });
 
-    it("case 1b: strictly rejects all 4 Terra-specified fatalistic certainty variants occurring in the same sentence", () => {
-      const chart = createSampleChart();
-      const snapshot = createSampleSnapshot();
-      const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
-
-      const requiredFailCases = [
-        "Bạn chắc chắn sẽ gặp một tai nạn nghiêm trọng.",
-        "Chắc chắn rồi bạn sẽ phá sản.",
-        "Bạn chắc chắn rằng sẽ phá sản.",
-        "Bạn chắc chắn không tránh khỏi phá sản.",
-      ];
-
-      for (const text of requiredFailCases) {
-        const report = createValidReport(facts);
-        report.overview.narrative = text;
-        const result = validateComprehensiveZiweiReportV4(report, facts);
-        expect(result.ok).toBe(false);
-        expect(result.errors?.some((e) => e.includes("fatalistic"))).toBe(true);
-      }
-    });
-
-    it("case 1c: strictly enforces FD-075 death-content gate and certainty-independent inevitability", () => {
+    it("strictly enforces FD-075/FD-089 death-content gate", () => {
       const chart = createSampleChart();
       const snapshot = createSampleSnapshot();
       const facts = buildComprehensiveZiweiFactsV4(chart, snapshot);
 
       const tableTestCases = [
-        // 1. Inevitability examples without "chắc chắn"
-        { text: "Bạn sẽ phá sản, không tránh khỏi.", errorMatcher: "fatalistic" },
-        { text: "Bạn không tránh khỏi nguy cơ phá sản.", errorMatcher: "fatalistic" },
-        // 2. Death-content gate: "Bạn sẽ tử vong."
+        // 1. Death-content gate: "Bạn sẽ tử vong."
         { text: "Bạn sẽ tử vong.", errorMatcher: "death or lifespan" },
-        // 3. Representative lifespan terms
+        // 2. Representative lifespan terms
         { text: "Lá số cho biết tuổi thọ của bạn.", errorMatcher: "death or lifespan" },
         { text: "Khó có thể biết bạn sống được bao lâu.", errorMatcher: "death or lifespan" },
         { text: "Bao nhiêu tuổi thì mất là do định mệnh.", errorMatcher: "death or lifespan" },
@@ -472,10 +462,10 @@ describe("validateComprehensiveZiweiReportV4", () => {
         { text: "Bạn sẽ mất mạng vì tai nạn.", errorMatcher: "death or lifespan" },
         { text: "Khắc chết người thân.", errorMatcher: "death or lifespan" },
         { text: "Bạn sẽ chết.", errorMatcher: "death or lifespan" },
-        // 4. Sát phu / sát thê terms
+        // 3. Sát phu / sát thê terms
         { text: "Cung Phu Thê phạm cách sát phu.", errorMatcher: "death or lifespan" },
         { text: "Lá số có dấu hiệu sát thê.", errorMatcher: "death or lifespan" },
-        // 5. Unaccented variants
+        // 4. Unaccented variants
         { text: "Ban se tu vong.", errorMatcher: "death or lifespan" },
         { text: "Diem bao sat phu.", errorMatcher: "death or lifespan" },
         { text: "Pham cach sat the.", errorMatcher: "death or lifespan" },
@@ -651,14 +641,13 @@ describe("validateComprehensiveZiweiReportV4_1", () => {
     expect(validateComprehensiveZiweiReportV4_1(sample.report, sample.facts).ok).toBe(false);
   });
 
-  it("rejects fatalistic frame metadata and raw Vietnamese birth time", () => {
+  it("rejects raw frame metadata and raw Vietnamese birth time", () => {
     const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
     const sample = createSensitivityReport(facts);
     sample.report.birthTimeSensitivity.sensitiveFactors.narrative =
-      "selected frame index 6 cho thấy bạn chắc chắn sẽ phá sản lúc 8 giờ 30.";
+      "selected frame index 6 cho thấy bạn có thể gặp hạn lúc 8 giờ 30.";
     const result = validateComprehensiveZiweiReportV4_1(sample.report, sample.facts);
     expect(result.ok).toBe(false);
-    expect(result.errors?.some((error) => error.includes("fatalistic"))).toBe(true);
     expect(result.errors?.some((error) => error.includes("raw birth date or time"))).toBe(true);
     expect(result.errors?.some((error) => error.includes("raw frame"))).toBe(true);
   });

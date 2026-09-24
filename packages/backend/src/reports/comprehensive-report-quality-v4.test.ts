@@ -225,9 +225,22 @@ describe("comprehensive V4 section quality", () => {
     ["death terms", `${prose(610)} tử vong`, "DEATH_TERM"],
     ["English brightness", `${prose(610)} prosperous`, "ENGLISH_BRIGHTNESS"],
     ["adverse date", `${prose(610)} tai nạn ngày 12 tháng 3, quỹ dự phòng và đọc kỹ hợp đồng`, "ADVERSE_DATE"],
-    ["missing warning preparation", `${prose(610)} tai nạn và quỹ dự phòng`, "PREPARATION_FRAMING"],
+    ["uncomputed year", `${prose(610)} tai nạn vào năm 2045`, "ADVERSE_DATE"],
+    ["uncomputed month", `${prose(610)} trắc trở vào tháng 8`, "ADVERSE_DATE"],
+    ["uncomputed age", `${prose(610)} phá sản ở tuổi 65`, "ADVERSE_DATE"],
   ])("rejects %s per section", (_name, text, code) => {
     expectFinding(gate({ text }), code);
+  });
+
+  it("permits direct traditional misfortune wording and engine-computed periods per FD-089", () => {
+    // Direct misfortune without 2 preparation indicators passes (FD-089 supersedes preparation framing)
+    expect(gate({ text: `${prose(610)} tai nạn và quỹ dự phòng` }).ok).toBe(true);
+    // Computed annual year passes
+    expect(gate({ text: `${prose(610)} năm 2026 bạn gặp hạn hao tài, trắc trở sự nghiệp.` }).ok).toBe(true);
+    // Computed decadal year range passes
+    expect(gate({ text: `${prose(610)} đại vận 2022-2031 có nguy cơ kiện tụng.` }).ok).toBe(true);
+    // Computed decadal age passes
+    expect(gate({ text: `${prose(610)} ở độ tuổi 25 có thể gặp biến cố tài chính.` }).ok).toBe(true);
   });
 
   it("detects Han ideographs from raw text even though normalized syllables exclude them", () => {

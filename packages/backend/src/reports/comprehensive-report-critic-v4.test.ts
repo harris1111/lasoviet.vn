@@ -340,7 +340,8 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
     expect(callArgs.system).toContain("lasoviet.net");
     expect(callArgs.system).not.toContain("lasoviet.vn");
     expect(callArgs.system).toContain("KHÔNG trừ điểm đối với các lời khuyên tham vấn bác sĩ, luật sư hoặc chuyên gia");
-    expect(callArgs.system).toContain("khẳng định định mệnh chắc chắn");
+    expect(callArgs.system).toContain('đề cập đến cái chết, tuổi thọ hay "khắc chết"');
+    expect(callArgs.system).toContain("bịa đặt sự kiện hoặc mốc thời gian hạn không có trong facts");
   });
 
   it("makes one PII-free whole-report call and passes with empty findings", async () => {
