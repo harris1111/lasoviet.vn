@@ -29,6 +29,7 @@ type PublicContentPageProps = {
   repository: PublicContentRepository;
   route: RouteDefinitionV1;
   routes: readonly RouteDefinitionV1[];
+  searchParams?: Record<string, string | string[] | undefined>;
 };
 
 function GenericContentPage({ content, locale }: Pick<PublicContentPageProps, "content" | "locale">) {
@@ -372,7 +373,14 @@ export function PublicContentPage(props: PublicContentPageProps) {
     }
     switch (props.route.template) {
       case "sample-report":
-        return <SampleReportPage content={props.content} locale={props.locale} route={props.route} />;
+        return (
+          <SampleReportPage
+            content={props.content}
+            locale={props.locale}
+            route={props.route}
+            searchParams={props.searchParams}
+          />
+        );
       case "calculator-landing":
         return <CalculatorLanding content={props.content} locale={props.locale} />;
       case "commercial-hub":

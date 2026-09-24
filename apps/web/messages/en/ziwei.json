@@ -88,5 +88,29 @@
     "title": "Interpretation Evidence",
     "subtitle": "Calculated chart facts, interpretation bounds, and limitations backing your three free highlights.",
     "sourceLabel": "Available evidence reference"
+  },
+  "sample": {
+    "stamp": "SAMPLE",
+    "badge": "Sample",
+    "tabBadge": "Sample",
+    "bannerText": "This is an illustrative sample report. Generate your own chart for your personalized reading.",
+    "bannerCta": "Create your chart",
+    "byline": "Edited by Lá Số Việt",
+    "unlockedTag": "Open",
+    "lockedTag": "Excerpt",
+    "lockedNotice": "Sample excerpt · Create your own chart to read the full personal reading.",
+    "unlockCta": "Create your chart to read",
+    "endCtaHeading": "Your reading will be written from your own chart",
+    "endCtaLead": "Create your free Zi Wei chart first. Read deeper whenever you want.",
+    "endCtaButton": "Create your chart",
+    "whyTitle": "Why this interpretation?",
+    "basisTitle": "Evidence",
+    "actionsTitle": "Recommended actions",
+    "heroEyebrow": "Sample Report · Comprehensive",
+    "heroTitle": "What a real report looks like",
+    "heroLead": "Sample chart: Female, born 15/06/1992 at 08:30 (Solar) in Hanoi. Four sections below are fully open for preview; remaining sections show excerpts.",
+    "mobileBottomTitle": "Sample Zi Wei Chart",
+    "mobileBottomSubtitle": "Female · 15/06/1992",
+    "mobileBottomCta": "Create your chart"
   }
 }

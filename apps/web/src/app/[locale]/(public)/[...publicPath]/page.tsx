@@ -9,6 +9,7 @@ import { buildPublicMetadata } from "../../../../seo/public-metadata";
 
 type PageProps = {
   params: Promise<{ locale: "en" | "vi"; publicPath: string[] }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 function resolve(locale: "en" | "vi", publicPath: string[]) {
@@ -26,8 +27,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return buildPublicMetadata(result.route, result.content);
 }
 
-export default async function PublicRoutePage({ params }: PageProps) {
+export default async function PublicRoutePage({ params, searchParams }: PageProps) {
   const { locale, publicPath } = await params;
+  const rawSearchParams = searchParams ? await searchParams : undefined;
   const result = resolve(locale, publicPath);
 
   if (result.kind === "redirect") permanentRedirect(result.target);
@@ -40,6 +42,7 @@ export default async function PublicRoutePage({ params }: PageProps) {
       repository={loadPublicContentRepository(routeRegistry)}
       route={result.route}
       routes={routeRegistry}
+      searchParams={rawSearchParams}
     />
   );
 }

@@ -15,12 +15,19 @@ import {
   type CanonicalTopicId,
 } from "./ziwei-tabs-state";
 import { getPalaceLifeArea } from "./ziwei-chart-relations";
+import {
+  sampleTopicsVi,
+  sampleTopicsEn,
+  type SampleTopicDetail,
+} from "../content/sample-topics-data";
+import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 
 export type ZiweiTopicsTabProps = {
   chartId: string;
   locale: ZiweiPresentationLocale;
   openTopicId?: string;
   onOpenTopic: (topicId?: string) => void;
+  isSample?: boolean;
 };
 
 export function ZiweiTopicsTab({
@@ -28,6 +35,7 @@ export function ZiweiTopicsTab({
   locale,
   openTopicId,
   onOpenTopic,
+  isSample,
 }: ZiweiTopicsTabProps) {
   const t = useTranslations("ziwei");
   const presentation = ziweiPresentation(locale);
@@ -58,15 +66,28 @@ export function ZiweiTopicsTab({
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const sheetPanelRef = useRef<HTMLDivElement>(null);
 
-  const unlockSelectionHref = isEn
-    ? `/en/la-so/${chartId}/chon-luan-giai`
-    : `/la-so/${chartId}/chon-luan-giai`;
+  const unlockSelectionHref = isSample
+    ? isEn
+      ? "/en/tao-la-so/tu-vi"
+      : "/tao-la-so/tu-vi"
+    : isEn
+      ? `/en/la-so/${chartId}/chon-luan-giai`
+      : `/la-so/${chartId}/chon-luan-giai`;
 
   function handleSelectTopic(topicId: CanonicalTopicId, btnElement?: HTMLButtonElement) {
     if (btnElement) {
       triggerRef.current = btnElement;
     }
     const next = activeTopic === topicId ? undefined : topicId;
+    if (isSample && next === topicId) {
+      const sampleItem = (isEn ? sampleTopicsEn : sampleTopicsVi)[topicId];
+      if (sampleItem && !sampleItem.isOpen) {
+        void sendBrowserAnalyticsEvent("locked_preview_view", {
+          section_id: topicId,
+          sku: "ZIWEI-SAMPLE",
+        });
+      }
+    }
     onOpenTopic(next);
   }
 
@@ -174,6 +195,11 @@ export function ZiweiTopicsTab({
     };
   }, [activeTopic, isMobile, mounted, handleCloseModal]);
 
+  const activeSampleDetail =
+    isSample && activeTopic
+      ? (isEn ? sampleTopicsEn : sampleTopicsVi)[activeTopic]
+      : undefined;
+
   const modalDialog =
     activeTopic && isMobile && mounted
       ? createPortal(
@@ -207,22 +233,92 @@ export function ZiweiTopicsTab({
                 </button>
               </div>
               <div className="sheet-body">
-                <p className="sheet-domain-prose">
-                  {
-                    getPalaceLifeArea(
-                      ZIWEI_PALACE_IDS[CANONICAL_TOPIC_IDS.indexOf(activeTopic)]!,
-                      locale,
-                    ).domain
-                  }
-                </p>
-                <div className="sheet-notice-card">
-                  <p>{t("topicsTab.notice")}</p>
-                </div>
-                <div className="sheet-cta-wrap">
-                  <Link className="button button-pill full-width" href={unlockSelectionHref}>
-                    {t("topicsTab.unlockCta")}
-                  </Link>
-                </div>
+                {isSample && activeSampleDetail ? (
+                  activeSampleDetail.isOpen ? (
+                    <div className="topic-sample-full-reading">
+                      <p className="sample-topic-source">{activeSampleDetail.source}</p>
+                      <div className="sample-topic-prose">
+                        {activeSampleDetail.prose.map((p, i) => (
+                          <p key={i} className="sample-reading-p">
+                            {p}
+                          </p>
+                        ))}
+                      </div>
+                      {activeSampleDetail.actions && activeSampleDetail.actions.length > 0 && (
+                        <div className="sample-topic-actions">
+                          <h4>{t("sample.actionsTitle")}</h4>
+                          <ul className="sample-actions-list">
+                            {activeSampleDetail.actions.map((act, i) => (
+                              <li key={i}>
+                                <span className="sample-act-num">{i + 1}</span>
+                                <span className="sample-act-text">{act}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {activeSampleDetail.evidenceDetails &&
+                        activeSampleDetail.evidenceDetails.length > 0 && (
+                          <details className="sample-why-details">
+                            <summary>{t("sample.whyTitle")}</summary>
+                            <dl>
+                              {activeSampleDetail.evidenceDetails.map((ev, i) => (
+                                <div key={i} className="sample-why-row">
+                                  <dt>{ev.label}</dt>
+                                  <dd>{ev.value}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </details>
+                        )}
+                      <div className="sample-byline-tag">
+                        {activeSampleDetail.byline || t("sample.byline")}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="topic-sample-locked-reading">
+                      <p className="sample-topic-source">{activeSampleDetail.source}</p>
+                      <p className="sample-locked-excerpt">
+                        {activeSampleDetail.lockedExcerpt}
+                      </p>
+                      <div className="sample-locked-veil">
+                        <p className="sample-locked-notice">{t("sample.lockedNotice")}</p>
+                        <Link
+                          className="button button-primary button-pill full-width"
+                          href={unlockSelectionHref}
+                          onClick={() => {
+                            void sendBrowserAnalyticsEvent("wizard_start", {
+                              locale,
+                              entry_point: "sample_topic_sheet_cta",
+                              step: "entry",
+                            });
+                          }}
+                        >
+                          {t("sample.unlockCta")}
+                        </Link>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <>
+                    <p className="sheet-domain-prose">
+                      {
+                        getPalaceLifeArea(
+                          ZIWEI_PALACE_IDS[CANONICAL_TOPIC_IDS.indexOf(activeTopic)]!,
+                          locale,
+                        ).domain
+                      }
+                    </p>
+                    <div className="sheet-notice-card">
+                      <p>{t("topicsTab.notice")}</p>
+                    </div>
+                    <div className="sheet-cta-wrap">
+                      <Link className="button button-pill full-width" href={unlockSelectionHref}>
+                        {t("topicsTab.unlockCta")}
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>,
@@ -246,6 +342,9 @@ export function ZiweiTopicsTab({
           const lifeArea = getPalaceLifeArea(palaceFullId, locale);
           const domainTeaser = lifeArea.domain;
           const isSelected = activeTopic === topicKey;
+          const sampleDetail: SampleTopicDetail | undefined = isSample
+            ? (isEn ? sampleTopicsEn : sampleTopicsVi)[topicKey]
+            : undefined;
 
           return (
             <article
@@ -258,7 +357,18 @@ export function ZiweiTopicsTab({
                   <span>{String(index + 1).padStart(2, "0")}</span>
                 </div>
                 <div className="topic-row-body">
-                  <h3 className="topic-row-title">{palaceName}</h3>
+                  <div className="topic-row-title-wrap">
+                    <h3 className="topic-row-title">{palaceName}</h3>
+                    {isSample && sampleDetail && (
+                      <span
+                        className={`topic-status-tag ${
+                          sampleDetail.isOpen ? "is-open" : "is-locked"
+                        }`}
+                      >
+                        {sampleDetail.isOpen ? t("sample.unlockedTag") : t("sample.lockedTag")}
+                      </span>
+                    )}
+                  </div>
                   <p className="topic-row-teaser">{domainTeaser}</p>
                 </div>
                 <div className="topic-row-actions">
@@ -277,17 +387,85 @@ export function ZiweiTopicsTab({
               {/* Desktop inline preview (strictly non-portal, rendered only on desktop when active) */}
               {isSelected && !isMobile ? (
                 <div className="topic-desktop-inline-preview">
-                  <div className="topic-preview-box">
-                    <h4>
-                      {t("topicsTab.previewTitle")}: {palaceName}
-                    </h4>
-                    <p className="topic-preview-notice">{t("topicsTab.notice")}</p>
-                    <div className="topic-preview-actions">
-                      <Link className="button button-pill" href={unlockSelectionHref}>
-                        {t("topicsTab.unlockCta")}
-                      </Link>
+                  {isSample && sampleDetail ? (
+                    sampleDetail.isOpen ? (
+                      <div className="topic-sample-full-reading">
+                        <p className="sample-topic-source">{sampleDetail.source}</p>
+                        <div className="sample-topic-prose">
+                          {sampleDetail.prose.map((p, i) => (
+                            <p key={i} className="sample-reading-p">
+                              {p}
+                            </p>
+                          ))}
+                        </div>
+                        {sampleDetail.actions && sampleDetail.actions.length > 0 && (
+                          <div className="sample-topic-actions">
+                            <h4>{t("sample.actionsTitle")}</h4>
+                            <ul className="sample-actions-list">
+                              {sampleDetail.actions.map((act, i) => (
+                                <li key={i}>
+                                  <span className="sample-act-num">{i + 1}</span>
+                                  <span className="sample-act-text">{act}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {sampleDetail.evidenceDetails &&
+                          sampleDetail.evidenceDetails.length > 0 && (
+                            <details className="sample-why-details">
+                              <summary>{t("sample.whyTitle")}</summary>
+                              <dl>
+                                {sampleDetail.evidenceDetails.map((ev, i) => (
+                                  <div key={i} className="sample-why-row">
+                                    <dt>{ev.label}</dt>
+                                    <dd>{ev.value}</dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            </details>
+                          )}
+                        <div className="sample-byline-tag">
+                          {sampleDetail.byline || t("sample.byline")}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="topic-sample-locked-reading">
+                        <p className="sample-topic-source">{sampleDetail.source}</p>
+                        <p className="sample-locked-excerpt">
+                          {sampleDetail.lockedExcerpt}
+                        </p>
+                        <div className="sample-locked-veil">
+                          <p className="sample-locked-notice">{t("sample.lockedNotice")}</p>
+                          <Link
+                            className="button button-primary button-pill"
+                            href={unlockSelectionHref}
+                            onClick={() => {
+                              void sendBrowserAnalyticsEvent("wizard_start", {
+                                locale,
+                                entry_point: "sample_topic_desktop_cta",
+                                step: "entry",
+                              });
+                            }}
+                          >
+                            {t("sample.unlockCta")}
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="topic-preview-box">
+                      <h4>
+                        {t("topicsTab.previewTitle")}: {palaceName}
+                      </h4>
+                      <p className="topic-preview-notice">{t("topicsTab.notice")}</p>
+                      <div className="topic-preview-actions">
+                        <Link className="button button-pill" href={unlockSelectionHref}>
+                          {t("topicsTab.unlockCta")}
+                        </Link>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ) : null}
             </article>
