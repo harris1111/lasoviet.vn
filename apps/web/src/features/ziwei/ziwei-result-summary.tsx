@@ -124,7 +124,7 @@ export function ZiweiResultSummary({
           ) : null}
           <dt>{labels.birthDate}</dt>
           <dd>
-            {birthSummary.normalizedCalendar.date} · {calendarLabel}
+            {presentation.formatDate(birthSummary.normalizedCalendar.date)} · {calendarLabel}
           </dd>
           <dt>{labels.birthTime}</dt>
           <dd>{timeLabel}</dd>

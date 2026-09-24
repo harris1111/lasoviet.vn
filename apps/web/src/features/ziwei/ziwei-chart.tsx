@@ -46,7 +46,7 @@ export function ZiweiChart({
     : presentation.chrome.chartAria;
 
   const centerDate = birthSummary
-    ? `${birthSummary.normalizedCalendar.date} · ${presentation.calendarKind(birthSummary.normalizedCalendar.kind)}`
+    ? `${presentation.formatDate(birthSummary.normalizedCalendar.date)} · ${presentation.calendarKind(birthSummary.normalizedCalendar.kind)}`
     : "";
 
   const centerTime = birthSummary

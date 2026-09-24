@@ -97,7 +97,7 @@ const stars: LocalizedMap = {
     boshi: "Bo Shi", lishi: "Li Shi", qinglong: "Qing Long",
     xiaohao: "Xiao Hao", jiangjun: "Jiang Jun", zhoushu: "Zhou Shu",
     "feilian-dec": "Fei Lian", xishen: "Xi Shen", bingfu: "Bing Fu",
-    "dahao-dec": "Da Hao", fubing: "Fu Bing", guanfu: "Guan Fu",
+    "dahao-dec": "Da Hao (Boshi)", fubing: "Fu Bing", guanfu: "Guan Fu",
 
     // Jiangqian 12
     jiangxing: "Jiang Xing", panan: "Pan An", suiyi: "Sui Yi",
@@ -143,11 +143,11 @@ const stars: LocalizedMap = {
     tianxu: "Thiên Hư", tianshi: "Thiên Sứ", tianshang: "Thiên Thương",
     nianjie: "Niên Giải",
 
-    // Vòng Bác Sỹ 12
-    boshi: "Bác Sỹ", lishi: "Lực Sỹ", qinglong: "Thanh Long",
+    // Vòng Bác Sĩ 12
+    boshi: "Bác Sĩ", lishi: "Lực Sĩ", qinglong: "Thanh Long",
     xiaohao: "Tiểu Hao", jiangjun: "Tướng Quân", zhoushu: "Tấu Thư",
     "feilian-dec": "Phi Liêm", xishen: "Hỷ Thần", bingfu: "Bệnh Phù",
-    "dahao-dec": "Đại Hao", fubing: "Phục Binh", guanfu: "Quan Phủ",
+    "dahao-dec": "Đại Hao (Bác Sĩ)", fubing: "Phục Binh", guanfu: "Quan Phủ",
 
     // Vòng Tướng Tinh 12
     jiangxing: "Tướng Tinh", panan: "Phan Án", suiyi: "Tuế Dịch",
@@ -309,6 +309,20 @@ export type ZiweiPresentationOptions = {
   strict?: boolean;
 };
 
+export function formatDisplayDate(dateIso: string, locale: "en" | "vi" = "vi"): string {
+  if (!dateIso) return dateIso;
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(dateIso.trim());
+  if (!match || !match[1] || !match[2] || !match[3]) {
+    return dateIso;
+  }
+  const y = match[1];
+  const m = match[2];
+  const d = match[3];
+  return locale === "vi"
+    ? `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`
+    : `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+}
+
 export function ziweiPresentation(
   locale: ZiweiPresentationLocale,
   options?: ZiweiPresentationOptions,
@@ -380,6 +394,7 @@ export function ziweiPresentation(
     calendarKind: (value: string) => mapped(
       calendarKinds, locale, value, { en: "Calendar", vi: "Lịch" },
     ),
+    formatDate: (dateIso: string) => formatDisplayDate(dateIso, locale),
     timePrecision: (value: string) => mapped(
       timePrecisions, locale, value, { en: "Time precision", vi: "Độ chính xác giờ" },
     ),
