@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { HeaderAccountUser } from "./site-header-sign-in-link";
 import { SiteHeaderSignInLink } from "./site-header-sign-in-link";
+import { ThemeToggle } from "./theme-toggle";
 export type { HeaderAccountUser };
 
 export type DisciplineNavLink = {
@@ -141,6 +142,14 @@ export function SiteHeader({
             src: "/brand/lasoviet-logo-ngang-vang-son.svg",
             width: 160,
           }),
+          React.createElement(Image, {
+            alt: "",
+            "aria-hidden": true,
+            className: "brand-logo-light",
+            height: 28,
+            src: "/brand/lasoviet-logo-ngang-dao-muc.svg",
+            width: 160,
+          }),
           React.createElement(
             "span",
             { className: "sr-only" },
@@ -185,6 +194,7 @@ export function SiteHeader({
             { className: "locale-link", href: localeSwitcherHref },
             isVietnamese ? "English" : "Tiếng Việt",
           ),
+          React.createElement(ThemeToggle, { locale }),
           React.createElement(
             SiteHeaderSignInLink,
             {

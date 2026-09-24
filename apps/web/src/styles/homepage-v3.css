@@ -27,7 +27,7 @@
   transition: background-color 240ms ease, color 240ms ease;
 }
 
-.hv3[data-theme="light"] {
+html[data-theme="light"] .hv3 {
   --page: #f6f0e4; --surface: #efe7d7; --raised: #fffcf5; --inset: #ffffff;
   --text: #1d1812; --muted: #4f4538; --subtle: #6b604f;
   --hair: #ddd2bc; --hair2: #cdbb98; --focus: #a8402d;
@@ -335,11 +335,28 @@
   .hv3-cell { padding: 6px; }
 }
 
-/* Theme toggle (bottom-left; Messenger bubble owns bottom-right). */
-.hv3-theme-toggle { position: fixed; left: 16px; bottom: 16px; z-index: 30; width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--hair2); background: var(--raised); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow); }
-.hv3-sun { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px var(--raised), 0 0 0 4.5px currentColor; }
-.hv3-moon { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset -5px -2px 0 0 currentColor; transform: rotate(-20deg); }
-
 @media (prefers-reduced-motion: reduce) {
   .hv3 *, .hv3 *::before, .hv3 *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Site chrome: header and footer follow the theme on light-ready pages (FD-102). */
+.brand-logo-light { display: none; height: auto; max-height: 28px; width: auto; }
+.theme-toggle { display: none; width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--lacquer-line); background: transparent; color: var(--pearl-200); align-items: center; justify-content: center; cursor: pointer; }
+html:has([data-light-ready]) .theme-toggle { display: inline-flex; }
+.theme-icon-sun { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px transparent, 0 0 0 4.5px currentColor; }
+.theme-icon-moon { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset -5px -2px 0 0 currentColor; transform: rotate(-20deg); }
+html[data-theme="light"]:has([data-light-ready]) { color-scheme: light; background: #f6f0e4; }
+html[data-theme="light"]:has([data-light-ready]) body { background: #f6f0e4; color: #1d1812; }
+html[data-theme="light"]:has([data-light-ready]) .site-header { background: rgba(246, 240, 228, 0.92); border-bottom-color: #ddd2bc; }
+html[data-theme="light"]:has([data-light-ready]) .site-header .brand { color: #1d1812; }
+html[data-theme="light"]:has([data-light-ready]) .desktop-nav a, html[data-theme="light"]:has([data-light-ready]) .locale-link, html[data-theme="light"]:has([data-light-ready]) .login-link, html[data-theme="light"]:has([data-light-ready]) .site-header .desktop-nav a:hover { color: #1d1812 !important; }
+html[data-theme="light"]:has([data-light-ready]) .site-header .brand-logo, html[data-theme="light"]:has([data-light-ready]) .site-footer .brand-logo { display: none; }
+html[data-theme="light"]:has([data-light-ready]) .site-header .brand-logo-light, html[data-theme="light"]:has([data-light-ready]) .site-footer .brand-logo-light { display: block; }
+html[data-theme="light"]:has([data-light-ready]) .mobile-menu summary { color: #1d1812; border-color: #cdbb98; }
+html[data-theme="light"]:has([data-light-ready]) .mobile-menu[open] nav { background: #fffcf5; border-color: #ddd2bc; }
+html[data-theme="light"]:has([data-light-ready]) .mobile-menu nav a { color: #1d1812; border-bottom-color: #ddd2bc; }
+html[data-theme="light"]:has([data-light-ready]) .site-footer { background: #efe7d7; border-top-color: #ddd2bc; }
+html[data-theme="light"]:has([data-light-ready]) .footer-policy-links a, html[data-theme="light"]:has([data-light-ready]) .footer-support-email { color: #4f4538; }
+html[data-theme="light"]:has([data-light-ready]) .footer-policy-links a:hover { color: #a8402d; }
+html[data-theme="light"]:has([data-light-ready]) .site-footer .copyright { color: #6b604f; border-top-color: #ddd2bc; }
+html[data-theme="light"]:has([data-light-ready]) .theme-toggle { color: #1d1812; border-color: #cdbb98; }

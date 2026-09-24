@@ -1,8 +1,4 @@
 {
-  "theme": {
-    "toDark": "Switch to dark theme",
-    "toLight": "Switch to light theme"
-  },
   "hero": {
     "h1a": "Build your chart.",
     "h1b": "Understand your fate.",

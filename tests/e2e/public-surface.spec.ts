@@ -322,3 +322,33 @@ test("links the privacy policy from the FAQ and exposes no API host", async ({
   ).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/https?:\/\/[^/\s]*api/i);
 });
+
+test("header theme toggle switches header, footer and page together and persists", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await visitLocalizedHome(page, locales[0]);
+
+  const toggle = page.locator("header .theme-toggle");
+  await expect(toggle).toBeVisible();
+  const headerBg = () =>
+    page
+      .locator("header.site-header")
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+  const darkBg = await headerBg();
+
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator(".hv3")).toHaveCSS("background-color", "rgb(246, 240, 228)");
+  expect(await headerBg()).not.toBe(darkBg);
+  await expect(page.locator("footer.site-footer")).toHaveCSS("background-color", "rgb(239, 231, 215)");
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("header .theme-toggle")).toHaveAttribute("aria-label", /tối/);
+
+  // A page that is not light-ready keeps the dark chrome and hides the toggle.
+  await page.goto("/lien-he");
+  await expect(page.locator("header.site-header")).toHaveCSS("background-color", darkBg);
+  await expect(page.locator("header .theme-toggle")).toBeHidden();
+});

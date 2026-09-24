@@ -29,6 +29,14 @@ export function SiteFooter({ locale }: SiteFooterProps) {
             src="/brand/lasoviet-logo-ngang-vang-son.svg"
             width={148}
           />
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="brand-logo-light"
+            height={26}
+            src="/brand/lasoviet-logo-ngang-dao-muc.svg"
+            width={148}
+          />
         </div>
         <nav
           aria-label={vi ? "Chính sách và hỗ trợ" : "Policies and support"}

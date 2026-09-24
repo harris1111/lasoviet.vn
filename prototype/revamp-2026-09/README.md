@@ -5,7 +5,7 @@ directly in a browser. Static HTML, no build step.
 
 | File | What it is |
 |---|---|
-| `trang-chu.html` | Revamped homepage, 12 sections in the order of the revamp plan (FD-091 spec §4.1 plus "Hôm nay" and the tools row) |
+| `trang-chu.html` | **Superseded by Homepage V3 (FD-100).** Kept only as the visual reference for the free-tools row and "Hôm nay" ideas |
 | `cong-cu-mien-phi.html` | Free tools hub (FD-090, FD-094) with need filters, 12 tools, bridge to the chart, membership (FD-093) |
 | `cong-cu-tu-vi-hom-nay.html` | Template for one tool page: input → result → cinnabar "Còn tùy lá số của bạn" bridge → daily reminder |
 | `la-so-ket-qua.html` | Free result page: sticky tabs (Lá số · Tổng quan · Năm nay · 12 cung · Chủ đề · Căn cứ, state in `?tab=`), right-rail next steps, tap-to-inspect 12-palace board, "Năm nay" teaser with masked hạn months, save-chart banner, mobile buy bar. Uses the real chart of a test profile created on the live site on 2026-09-22 |

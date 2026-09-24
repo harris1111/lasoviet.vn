@@ -1,8 +1,4 @@
 {
-  "theme": {
-    "toDark": "Chuyển sang giao diện tối",
-    "toLight": "Chuyển sang giao diện sáng"
-  },
   "hero": {
     "h1a": "Lập lá số.",
     "h1b": "Hiểu vận mệnh.",
