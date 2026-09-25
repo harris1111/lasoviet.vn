@@ -1,9 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 
 import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+import {
+  getGoodDaysForActivity,
+  GOOD_DAY_ACTIVITIES,
+  type GoodDayActivity,
+  type GoodDayItem,
+} from "./lunar-calendar-engine";
 
 export type GoodDaysPreviewProps = {
   locale: "vi" | "en";
@@ -15,30 +21,6 @@ type FreeResultItem = {
   icon: string;
   title: string;
   body: string;
-  bordered?: boolean;
-};
-
-type RuleTag = {
-  text: string;
-  color: string;
-};
-
-type CandidateDay = {
-  id: string;
-  label: string;
-  lunar: string;
-  canchi: string;
-  status: string;
-  statusColor: string;
-  reason: string;
-  tamNuong: string;
-  tuoiNote: string;
-  ruleTags: readonly RuleTag[];
-};
-
-type CompareRow = {
-  label: string;
-  values: string[];
 };
 
 type GlossaryItem = {
@@ -58,150 +40,109 @@ type FaqItemData = {
 };
 
 const FREE_RESULTS_VI: readonly FreeResultItem[] = [
-  { num: "01", icon: "calendar-day", title: "Ngày ứng viên có lý do rõ", body: "Mỗi ngày đề xuất kèm đúng quy tắc đã dùng — Hoàng Đạo/Hắc Đạo, Tam Nương, hợp/xung tuổi." },
-  { num: "02", icon: "compass", title: "Bộ lọc theo loại việc", body: "Cưới hỏi, khai trương, xuất hành, động thổ... mỗi loại việc có bộ quy tắc riêng." },
-  { num: "03", icon: "scroll", title: "Xem dạng lịch hoặc danh sách", body: "Chuyển đổi giữa lưới tháng và danh sách theo trình tự thời gian." },
-  { num: "04", icon: "book-open", title: "So sánh tối đa 3 ngày", body: "Đặt cạnh nhau các tiêu chí của từng ngày để tự cân nhắc." },
-  { num: "05", icon: "help-circle", title: "Ngày loại trừ có giải thích", body: "Ngày không phù hợp cũng nêu rõ lý do, không chỉ đơn giản là ẩn đi." },
-  { num: "06", icon: "shield-lock", title: "Không chấm điểm tổng hợp", body: "Không có điểm số \"tốt/xấu\" duy nhất cho một ngày.", bordered: false }
+  { num: "01", icon: "calendar-day", title: "Ngày ứng viên có lý do rõ", body: "Mỗi ngày đề xuất nêu đúng quy tắc đã dùng — Hoàng Đạo, sao trực nhật, tiết khí và các khung giờ tốt." },
+  { num: "02", icon: "compass", title: "Bộ lọc theo loại việc", body: "Cưới hỏi, khai trương, xuất hành, động thổ, ký kết, chuyển nhà... mỗi việc có tiêu chí sao phù hợp." },
+  { num: "03", icon: "scroll", title: "Khung giờ hoàng đạo chi tiết", body: "Hiển thị đầy đủ 6 khung giờ hoàng đạo trong ngày để chọn thời điểm tiến hành thuận lợi." },
+  { num: "04", icon: "book-open", title: "So sánh tối đa 3 ngày", body: "Đặt cạnh nhau các tiêu chí của từng ngày để tự đối chiếu và cân nhắc thời gian." },
+  { num: "05", icon: "shield-lock", title: "Không chấm điểm gộp", body: "Không bịa đặt điểm số '95/100' hay hứa hẹn may rủi tuyệt đối; chỉ nêu căn cứ lịch pháp thực tế." },
+  { num: "06", icon: "help-circle", title: "Cầu nối lá số cá nhân", body: "Chuyển nhanh ngày đã chọn sang đối chiếu với các cung trên lá số Tử Vi của bạn." },
 ];
 
 const FREE_RESULTS_EN: readonly FreeResultItem[] = [
-  { num: "01", icon: "calendar-day", title: "Candidate dates with transparent reasons", body: "Each recommended date includes the exact rule applied — Auspicious/Inauspicious cycle, Tam Nuong, and birth year compatibility." },
-  { num: "02", icon: "compass", title: "Activity-specific filtering", body: "Weddings, grand openings, departures, groundbreaking... each activity applies a dedicated rule set." },
-  { num: "03", icon: "scroll", title: "Calendar grid or chronological list", body: "Switch seamlessly between monthly overview and chronological list views." },
-  { num: "04", icon: "book-open", title: "Compare up to 3 candidate dates", body: "Evaluate key criteria side-by-side to make deliberate personal choices." },
-  { num: "05", icon: "help-circle", title: "Excluded dates with clear explanations", body: "Unsuitable dates clearly state why they were excluded rather than disappearing silently." },
-  { num: "06", icon: "shield-lock", title: "No composite fortune score", body: "No single aggregate \"good/bad\" score is ever assigned to a date.", bordered: false }
-];
-
-const CANDIDATE_DAYS_VI: readonly CandidateDay[] = [
-  { id: "d1", label: "Ngày ứng viên 1", lunar: "12/2 ÂL", canchi: "Giáp Tý", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Không rơi vào Tam Nương; hợp tuổi Tý, Ngọ.", tamNuong: "Không", tuoiNote: "Không có", ruleTags: [{ text: "HD-01 Đạt", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Đạt", color: "var(--teal, #6E9C97)" }] },
-  { id: "d2", label: "Ngày ứng viên 2", lunar: "15/2 ÂL", canchi: "Bính Dần", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Ngày Hoàng Đạo; cần lưu ý nếu gia chủ tuổi Thân.", tamNuong: "Không", tuoiNote: "Tuổi Thân nên cân nhắc", ruleTags: [{ text: "HD-01 Đạt", color: "var(--teal, #6E9C97)" }, { text: "XT-02 Cảnh báo", color: "var(--gold-500, #C9A44D)" }] },
-  { id: "d3", label: "Ngày ứng viên 3", lunar: "18/2 ÂL", canchi: "Kỷ Tỵ", status: "Hắc Đạo", statusColor: "var(--son, #CE5B45)", reason: "Rơi vào Tam Nương — loại khỏi danh sách đề xuất.", tamNuong: "Có — loại trừ", tuoiNote: "Không đánh giá (đã loại)", ruleTags: [{ text: "TN-00 Không đạt", color: "var(--son, #CE5B45)" }] },
-  { id: "d4", label: "Ngày ứng viên 4", lunar: "20/2 ÂL", canchi: "Canh Ngọ", status: "Hoàng Đạo", statusColor: "var(--teal, #6E9C97)", reason: "Ngày Hoàng Đạo; không xung khắc với các tuổi phổ biến.", tamNuong: "Không", tuoiNote: "Không có", ruleTags: [{ text: "HD-01 Đạt", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Đạt", color: "var(--teal, #6E9C97)" }] }
-];
-
-const CANDIDATE_DAYS_EN: readonly CandidateDay[] = [
-  { id: "d1", label: "Candidate date 1", lunar: "12/2 Lunar", canchi: "Giap Ty", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Not falling on Tam Nuong; favorable for Rat and Horse years.", tamNuong: "None", tuoiNote: "None", ruleTags: [{ text: "HD-01 Pass", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Pass", color: "var(--teal, #6E9C97)" }] },
-  { id: "d2", label: "Candidate date 2", lunar: "15/2 Lunar", canchi: "Binh Dan", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Auspicious day; caution recommended if homeowner was born in Monkey year.", tamNuong: "None", tuoiNote: "Monkey year should consider", ruleTags: [{ text: "HD-01 Pass", color: "var(--teal, #6E9C97)" }, { text: "XT-02 Caution", color: "var(--gold-500, #C9A44D)" }] },
-  { id: "d3", label: "Candidate date 3", lunar: "18/2 Lunar", canchi: "Ky Ty", status: "Inauspicious", statusColor: "var(--son, #CE5B45)", reason: "Falls on Tam Nuong — excluded from recommendation list.", tamNuong: "Yes — excluded", tuoiNote: "Not evaluated (excluded)", ruleTags: [{ text: "TN-00 Fail", color: "var(--son, #CE5B45)" }] },
-  { id: "d4", label: "Candidate date 4", lunar: "20/2 Lunar", canchi: "Canh Ngo", status: "Auspicious", statusColor: "var(--teal, #6E9C97)", reason: "Auspicious day; no severe clashes with common birth years.", tamNuong: "None", tuoiNote: "None", ruleTags: [{ text: "HD-01 Pass", color: "var(--teal, #6E9C97)" }, { text: "TN-00 Pass", color: "var(--teal, #6E9C97)" }] }
+  { num: "01", icon: "calendar-day", title: "Candidate dates with transparent reasons", body: "Each recommended date discloses the applied rules — Hoàng Đạo duty deity, solar terms, and favorable hours." },
+  { num: "02", icon: "compass", title: "Activity-specific filters", body: "Weddings, openings, travel, groundbreaking, contracts, moving... tailored deity requirements." },
+  { num: "03", icon: "scroll", title: "Detailed auspicious hours", body: "Displays the 6 auspicious two-hour blocks of the day for timely execution." },
+  { num: "04", icon: "book-open", title: "Compare up to 3 dates", body: "Place candidate dates side by side to compare criteria directly." },
+  { num: "05", icon: "shield-lock", title: "No composite fortune score", body: "No fabricated percentage scores or guaranteed luck promises; pure astronomical facts." },
+  { num: "06", icon: "help-circle", title: "Bridge to personal chart", body: "Seamlessly cross-reference chosen dates with the palaces of your natal Zi Wei chart." },
 ];
 
 const GLOSSARY_ITEMS_VI: readonly GlossaryItem[] = [
-  { icon: "compass", term: "Ngày Hoàng Đạo / Hắc Đạo", body: "Hệ 12 trực gán cho từng ngày theo chu kỳ cố định, chia ngày thành nhóm \"Hoàng Đạo\" (thường được chọn) và \"Hắc Đạo\" (thường tránh) tuỳ việc." },
-  { icon: "calendar-day", term: "Tam Nương", body: "Các ngày âm lịch cố định trong tháng (mùng 3, 7, 13, 18, 22, 27) theo quan niệm dân gian nên tránh khởi sự việc lớn." },
-  { icon: "scroll", term: "Can chi ngày", body: "Mỗi ngày được gán một cặp Thiên Can – Địa Chi theo chu kỳ 60 ngày, dùng để đối chiếu hợp/xung với tuổi gia chủ." },
-  { icon: "help-circle", term: "Giờ Hoàng Đạo", body: "Trong một ngày, một số khung giờ được xem là thuận lợi hơn theo cùng hệ quy tắc Hoàng Đạo/Hắc Đạo áp dụng cho ngày." }
+  { icon: "calendar-day", term: "Sao Hoàng Đạo", body: "Sáu sao tốt (Thanh Long, Minh Đường, Kim Quỹ, Thiên Đức, Ngọc Đường, Tư Mệnh) đem lại vượng khí cho ngày." },
+  { icon: "compass", term: "Can Chi Ngày", body: "Cặp Can Chi của ngày kết hợp với ngũ hành giúp xác định tính chất thời điểm." },
+  { icon: "book-open", term: "Tiết Khí", body: "Các mốc thiên văn trong năm chỉ rõ thời điểm khí trời chuyển dịch, có ảnh hưởng lớn tới việc khởi sự." },
+  { icon: "scroll", term: "Giờ Hoàng Đạo", body: "Khoảng thời gian 2 giờ đồng hồ trong ngày có trường năng lượng tốt để tiến hành các nghi lễ hoặc giao dịch." },
 ];
 
 const GLOSSARY_ITEMS_EN: readonly GlossaryItem[] = [
-  { icon: "compass", term: "Auspicious / Inauspicious Days", body: "The 12 duty officers cycle assigns each day as Auspicious (favored) or Inauspicious (avoided) depending on the activity type." },
-  { icon: "calendar-day", term: "Tam Nuong Taboo Days", body: "Specific lunar dates each month (3rd, 7th, 13th, 18th, 22nd, 27th) traditionally avoided when initiating major milestones." },
-  { icon: "scroll", term: "Day Stem-Branch (Can Chi)", body: "Every day carries a pair of Heavenly Stem and Earthly Branch in a 60-day cycle to cross-reference harmony or clash with the owner." },
-  { icon: "help-circle", term: "Auspicious Hours", body: "Within any day, specific two-hour windows are regarded as more favorable under the same twelve-officer framework." }
+  { icon: "calendar-day", term: "Auspicious Stars", body: "Six benevolent deities (Thanh Long, Minh Đường, Kim Quỹ, Thiên Đức, Ngọc Đường, Tư Mệnh) blessing the date." },
+  { icon: "compass", term: "Daily Stem & Branch", body: "The cyclical combination reflecting daily cosmic elements and energetic qualities." },
+  { icon: "book-open", term: "Solar Terms", body: "Astronomical solar coordinates indicating seasonal climatic and energetic transitions." },
+  { icon: "scroll", term: "Auspicious Hours", body: "Two-hour windows during the day favorable for ceremonies, departures, or signings." },
 ];
 
 const METHOD_ROWS_VI: readonly MethodRow[] = [
-  { label: "Phương pháp", value: "Quy tắc lịch vạn niên cổ truyền (Hoàng Đạo/Hắc Đạo, Tam Nương, hợp/xung Can Chi) — không quy đổi thành điểm số tổng hợp." },
-  { label: "Phạm vi hỗ trợ", value: "Ban đầu tập trung các việc phổ biến: cưới hỏi, khai trương, xuất hành, động thổ." },
-  { label: "Vai trò của AI", value: "Diễn giải và trình bày kết quả rule-based bằng tiếng Việt — không tự đặt ra quy tắc chọn ngày." }
+  { label: "Thuật toán lọc", value: "Quy tắc lịch pháp cổ truyền: lọc theo ngày Hoàng Đạo, sao trực nhật theo tính chất từng loại việc." },
+  { label: "Múi giờ chuẩn", value: "GMT+7 (Asia/Ho_Chi_Minh) cho tất cả các phép tính ngày và giờ." },
+  { label: "Nguyên tắc đạo đức", value: "Không chấm điểm may rủi bịa đặt; không khẳng định 'chắc chắn thành công'; kết quả mang tính định hướng thời điểm." },
+  { label: "Giới hạn tự nhiên", value: "Ngày tốt theo lịch áp dụng cho số đông; sự phù hợp sâu sắc cần đối chiếu thêm cung số trên lá số Tử Vi." },
 ];
 
 const METHOD_ROWS_EN: readonly MethodRow[] = [
-  { label: "Methodology", value: "Traditional perpetual calendar rules (Auspicious/Inauspicious, Tam Nuong, Stem-Branch compatibility) without composite numerical scoring." },
-  { label: "Supported scope", value: "Initial release focuses on common milestones: weddings, business openings, travels, groundbreaking." },
-  { label: "Role of AI", value: "Explaining and formatting rule-based results in natural language — never inventing date selection rules." }
+  { label: "Filtering Method", value: "Traditional astronomical rules: filtering via Hoàng Đạo days, duty deities tailored to activity nature." },
+  { label: "Timezone", value: "GMT+7 (Asia/Ho_Chi_Minh) for all date and hour computations." },
+  { label: "Ethics Baseline", value: "No fabricated luck scores; no guarantee promises; objective temporal guidance only." },
+  { label: "Boundary", value: "Auspicious calendar days apply broadly; personal synergy requires individual Zi Wei analysis." },
 ];
 
-const LIMIT_ITEMS_VI: readonly string[] = [
-  "Kết quả diễn đạt là \"phù hợp hơn trong bộ quy tắc này\", không phải \"chắc chắn tốt\" hay \"đảm bảo may mắn\".",
-  "Các trường phái xem ngày khác nhau có thể xếp hạng khác nhau cho cùng một ngày — Lá Số Việt công khai rõ bộ quy tắc đang dùng.",
-  "Không thay thế tư vấn từ người có chuyên môn cho các quyết định quan trọng, tốn kém hoặc liên quan pháp lý.",
-  "Ví dụ ở trên dùng tên ngày minh hoạ, không phải kết quả quy đổi từ lịch thật."
+const FAQ_ITEMS_VI: readonly FaqItemData[] = [
+  { q: "Xem Ngày Tốt khác Lịch Âm ở điểm nào?", a: "Lịch Âm tra cứu toàn diện từng ngày. Xem Ngày Tốt giúp bạn lọc nhanh các ngày cát lợi phù hợp nhất cho một mục đích cụ thể (cưới hỏi, khai trương, xuất hành, động thổ...)." },
+  { q: "Làm sao để biết ngày tốt có hợp với tuổi của tôi không?", a: "Ngày hoàng đạo là ngày tốt chung cho thiên thời. Để biết ngày có xung khắc với tuổi hay chạm vào cung xấu trên lá số của bạn hay không, bạn nên bấm xem ngày đó theo lá số Tử Vi cá nhân." },
+  { q: "Tại sao công cụ không cho điểm số ví dụ '90/100'?", a: "Lá Số Việt tuân thủ nguyên tắc minh bạch: vận khí không thể quy về một con số đơn lẻ bịa đặt. Chúng tôi cung cấp chính xác các căn cứ (Hoàng Đạo, Sao, Giờ) để bạn tự cân nhắc." },
+  { q: "Có cần chọn đúng giờ hoàng đạo trong ngày tốt không?", a: "Nên ưu tiên tiến hành các việc trọng đại (lễ cưới, ký kết, mở hàng) vào khung giờ hoàng đạo để thêm phần thuận lợi." },
 ];
 
-const LIMIT_ITEMS_EN: readonly string[] = [
-  "Results are phrased as \"more suitable under this rule set\", never \"guaranteed success\" or \"ensured good fortune\".",
-  "Different almanac schools may evaluate the same date differently — La So Viet explicitly documents the active rule set.",
-  "This tool never replaces professional human consultation for major, expensive, or legally binding decisions.",
-  "The examples above use illustrative date names, not real converted calendar data."
+const FAQ_ITEMS_EN: readonly FaqItemData[] = [
+  { q: "How does Good Days differ from Lunar Calendar?", a: "Lunar Calendar displays all days broadly. Good Days filters candidate auspicious dates specifically matched to a milestone activity." },
+  { q: "How can I tell if a good day suits my individual age?", a: "Auspicious days represent favorable cosmic climate generally. Checking personal alignment requires verifying your Zi Wei natal chart." },
+  { q: "Why doesn't the tool provide a composite score like '90/100'?", a: "La So Viet avoids arbitrary metrics. We provide clear, verifiable traditional criteria (deity, term, hours) for informed decisions." },
+  { q: "Should important tasks be scheduled during auspicious hours?", a: "Yes, aligning major milestones with the day's favorable two-hour windows enhances smooth execution." },
 ];
 
-const FAQ_DATA_VI: readonly FaqItemData[] = [
-  { q: "Xem Ngày Tốt có chấm điểm may rủi tổng hợp không?", a: "Không. Mỗi ngày được đánh giá theo từng quy tắc riêng (Hoàng Đạo/Hắc Đạo, Tam Nương, hợp/xung tuổi) và hiển thị rõ lý do — không gộp thành một điểm số duy nhất." },
-  { q: "Ngày được đề xuất có đảm bảo kết quả tốt cho việc đó không?", a: "Không. Kết quả chỉ cho biết một ngày \"phù hợp hơn\" trong bộ quy tắc đang dùng, không phải lời đảm bảo về kết quả thực tế của việc bạn làm vào ngày đó." },
-  { q: "Tôi có thể so sánh nhiều ngày cùng lúc không?", a: "Có, tối đa 3 ngày cùng lúc để bạn tự cân nhắc theo bảng so sánh." },
-  { q: "Khi nào Xem Ngày Tốt ra mắt?", a: "Chưa có ngày cụ thể. Đây là một trong các công cụ được ưu tiên xây dựng sớm vì không cần hồ sơ sinh đầy đủ." },
-  { q: "Ví dụ ở trên có phải ngày thật không?", a: "Không. Đây là ví dụ minh hoạ cách hiển thị kết quả, không phải kết quả quy đổi từ lịch thật." }
-];
-
-const FAQ_DATA_EN: readonly FaqItemData[] = [
-  { q: "Does the Good Days tool give a composite fortune score?", a: "No. Each day is evaluated by explicit individual rules (Auspicious/Inauspicious, Tam Nuong, age compatibility) with stated reasons — never blended into a single score." },
-  { q: "Does a recommended day guarantee positive outcomes?", a: "No. The result only indicates a day is \"more suitable\" under the active rule set, not a guarantee of practical outcomes." },
-  { q: "Can I compare multiple candidate dates at once?", a: "Yes, up to 3 dates simultaneously to deliberate using side-by-side comparison." },
-  { q: "When will the Good Days tool launch?", a: "No firm release date has been set. It is prioritized early because it does not require a full birth profile." },
-  { q: "Are the sample dates real calendar dates?", a: "No. These are illustrative examples demonstrating presentation format, not live calendar calculations." }
-];
-
-function renderSvgIcon(name: string, size = 18, color = "currentColor") {
+function renderSvgIcon(name: string, size = 20, color = "var(--teal, #6E9C97)") {
   switch (name) {
-    case "chevron-right":
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 5.5l6.5 6.5L9 18.5" />
-        </svg>
-      );
     case "calendar-day":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
-          <path d="M8.5 3.5v4M15.5 3.5v4M4 10.5h16M11.4 14.8h1.4" />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
       );
     case "compass":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="8.2" />
-          <path d="M15 9l-2.1 5.2-5.2 2.1 2.1-5.2L15 9z" />
-          <circle cx="12" cy="12" r="0.8" fill={color} />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fillOpacity="0.15" />
         </svg>
       );
     case "scroll":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M7 4h11.5v13a3 3 0 0 0 3 3H8a3 3 0 0 1-3-3V6" />
-          <path d="M9.5 8.4h6.5M9.5 12.2h6.5" />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4" />
+          <path d="M19 17V5a2 2 0 0 0-2-2H4" />
         </svg>
       );
     case "book-open":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M12 6.6C10.5 5.1 8.4 4.5 5 4.5v13c3.4 0 5.5.6 7 2 1.5-1.4 3.6-2 7-2v-13c-3.4 0-5.5.6-7 2.1z" />
-          <path d="M12 6.6v12.9" />
-        </svg>
-      );
-    case "help-circle":
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="8.2" />
-          <path d="M9.7 9.6a2.4 2.4 0 1 1 3.3 2.2c-.7.3-1 .9-1 1.6v.3" />
-          <circle cx="12" cy="16.8" r="0.5" fill={color} />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
         </svg>
       );
     case "shield-lock":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M12 3l7.5 3v5.6c0 4.4-3.2 7.1-7.5 8.4-4.3-1.3-7.5-4-7.5-8.4V6L12 3z" />
-          <path d="M10 12.6h4v3h-4z" />
-          <path d="M10.9 12.6v-1.2a1.1 1.1 0 0 1 2.2 0v1.2" />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>
       );
-    case "chevron-down":
+    case "help-circle":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M5.5 9l6.5 6.5L18.5 9" />
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       );
     default:
@@ -211,175 +152,121 @@ function renderSvgIcon(name: string, size = 18, color = "currentColor") {
 
 export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
   const isVi = locale === "vi";
-  const [insightStamped, setInsightStamped] = useState(false);
-  const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({ 0: true });
 
-  const [compareIds, setCompareIds] = useState<string[]>(["d1", "d2", "d4"]);
-  const toggleCompare = (id: string) => {
+  // Date selection state
+  const today = useMemo(() => new Date(), []);
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1);
+  const [selectedActivity, setSelectedActivity] = useState<GoodDayActivity>("wedding");
+  const [compareIds, setCompareIds] = useState<number[]>([]);
+  const [activeDayNum, setActiveDayNum] = useState<number | null>(null);
+
+  // Compute candidate days
+  const candidateDays = useMemo<GoodDayItem[]>(() => {
+    return getGoodDaysForActivity(selectedYear, selectedMonth, selectedActivity, locale);
+  }, [selectedYear, selectedMonth, selectedActivity, locale]);
+
+  function handlePrevMonth() {
+    if (selectedMonth === 1) {
+      setSelectedYear((y) => y - 1);
+      setSelectedMonth(12);
+    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+    setCompareIds([]);
+    setActiveDayNum(null);
+  }
+
+  function handleNextMonth() {
+    if (selectedMonth === 12) {
+      setSelectedYear((y) => y + 1);
+      setSelectedMonth(1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+    setCompareIds([]);
+    setActiveDayNum(null);
+  }
+
+  function toggleCompare(dayOfMonth: number) {
     setCompareIds((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((x) => x !== id);
+      if (prev.includes(dayOfMonth)) {
+        return prev.filter((id) => id !== dayOfMonth);
       }
       if (prev.length >= 3) return prev;
-      return [...prev, id];
+      return [...prev, dayOfMonth];
     });
-  };
+  }
+
+  // Active inspected day
+  const inspectedDay = useMemo<GoodDayItem | null>(() => {
+    if (activeDayNum !== null) {
+      return candidateDays.find((d) => d.dayOfMonth === activeDayNum) ?? null;
+    }
+    return candidateDays[0] ?? null;
+  }, [candidateDays, activeDayNum]);
+
+  // Compared days list
+  const comparedDays = useMemo<GoodDayItem[]>(() => {
+    return candidateDays.filter((d) => compareIds.includes(d.dayOfMonth));
+  }, [candidateDays, compareIds]);
+
+  const activeActivityMeta = useMemo(() => {
+    return (
+      GOOD_DAY_ACTIVITIES.find((a) => a.id === selectedActivity) ??
+      GOOD_DAY_ACTIVITIES[0]!
+    );
+  }, [selectedActivity]);
 
   const freeResults = isVi ? FREE_RESULTS_VI : FREE_RESULTS_EN;
-  const candidateDays = isVi ? CANDIDATE_DAYS_VI : CANDIDATE_DAYS_EN;
-  const selectedCandidates = candidateDays.filter((d) => compareIds.includes(d.id));
-  const compareCols = selectedCandidates.map((d) => d.label);
-  const compareCount = selectedCandidates.length;
-  const hasComparison = compareCount > 0;
-  const compareRows: readonly CompareRow[] = isVi
-    ? [
-        { label: "Can chi ngày", values: selectedCandidates.map((d) => d.canchi) },
-        { label: "Hoàng/Hắc Đạo", values: selectedCandidates.map((d) => d.status) },
-        { label: "Tam Nương", values: selectedCandidates.map((d) => d.tamNuong) },
-        { label: "Lưu ý tuổi", values: selectedCandidates.map((d) => d.tuoiNote) },
-      ]
-    : [
-        { label: "Day sexagenary stem-branch", values: selectedCandidates.map((d) => d.canchi) },
-        { label: "Auspicious / Inauspicious", values: selectedCandidates.map((d) => d.status) },
-        { label: "Tam Nuong taboo", values: selectedCandidates.map((d) => d.tamNuong) },
-        { label: "Birth year note", values: selectedCandidates.map((d) => d.tuoiNote) },
-      ];
   const glossaryItems = isVi ? GLOSSARY_ITEMS_VI : GLOSSARY_ITEMS_EN;
   const methodRows = isVi ? METHOD_ROWS_VI : METHOD_ROWS_EN;
-  const limitItems = isVi ? LIMIT_ITEMS_VI : LIMIT_ITEMS_EN;
-  const faqs = isVi ? FAQ_DATA_VI : FAQ_DATA_EN;
-
-  const toggleFaq = (idx: number) => {
-    setFaqOpen((prev) => ({ ...prev, [idx]: !prev[idx] }));
-  };
+  const faqItems = isVi ? FAQ_ITEMS_VI : FAQ_ITEMS_EN;
 
   return (
     <div
       className={className}
-      data-screen-label="ngay-tot"
       style={{
-        fontFamily: "var(--font-ui)",
-        color: "var(--text-body)",
-        minHeight: "100vh",
-        background: "var(--surface-canvas)",
+        background: "var(--surface-base, #15120E)",
+        color: "var(--text-body, #DCD4C3)",
+        fontFamily: "var(--font-ui, system-ui, -apple-system, sans-serif)",
       }}
     >
-      {/* Header */}
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 40,
-          background: "var(--surface-deep)",
-          borderBottom: "1px solid var(--border-hairline)",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "0 clamp(20px, 5vw, 32px)",
-            height: "72px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "24px",
-          }}
-        >
-          <Link
-            href={isVi ? "/" : "/en"}
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "22px",
-              color: "var(--text-heading)",
-              textDecoration: "none",
-              letterSpacing: "0.01em",
-            }}
-          >
-            {isVi ? "Lá Số Việt" : "La So Viet"}
-          </Link>
-          <nav style={{ display: "flex", gap: "24px", fontSize: "14px", flexWrap: "wrap" }}>
-            <Link href={isVi ? "/" : "/en"} style={{ color: "var(--text-body)", textDecoration: "none" }}>
-              {isVi ? "Trang chủ" : "Home"}
-            </Link>
-            <Link href={isVi ? "/tu-vi" : "/en/tu-vi"} style={{ color: "var(--text-body)", textDecoration: "none" }}>
-              {isVi ? "Tử Vi" : "Zi Wei"}
-            </Link>
-            <Link href={isVi ? "/kien-thuc" : "/en/kien-thuc"} style={{ color: "var(--text-body)", textDecoration: "none" }}>
-              {isVi ? "Kiến thức" : "Knowledge"}
-            </Link>
-            <Link
-              href={isVi ? "/cong-cu-mien-phi" : "/en/cong-cu-mien-phi"}
-              style={{
-                color: "var(--teal, #6E9C97)",
-                textDecoration: "none",
-                borderBottom: "1px solid var(--teal, #6E9C97)",
-                paddingBottom: "2px",
-              }}
-            >
-              {isVi ? "Công cụ miễn phí" : "Free tools"}
-            </Link>
-          </nav>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <Link
-              href={isVi ? "/dang-nhap" : "/en/dang-nhap"}
-              style={{ color: "var(--text-body)", textDecoration: "none", fontSize: "14px" }}
-            >
-              {isVi ? "Đăng nhập" : "Sign in"}
-            </Link>
-            <Link
-              href={isVi ? "/tu-vi" : "/en/tu-vi"}
-              className="button button-small"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "40px",
-                padding: "0 20px",
-                borderRadius: "var(--radius-sm, 4px)",
-                fontFamily: "var(--font-ui)",
-                fontWeight: 600,
-                fontSize: "14px",
-                textDecoration: "none",
-                background: "var(--gold-gradient, linear-gradient(103deg, #9a7730, #f2dca0 34%, #c9a44d 58%, #a8842f))",
-                color: "var(--surface-deep, #15120e)",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              {isVi ? "Lập lá số Tử Vi" : "Build Zi Wei chart"}
-            </Link>
-          </div>
-        </div>
-      </header>
-
       <main>
         {/* 01 HERO */}
         <section
-          style={{ padding: "clamp(48px, 8vw, 88px) 0 clamp(48px, 7vw, 72px)" }}
+          style={{
+            position: "relative",
+            padding: "clamp(56px, 9vw, 96px) 0 clamp(48px, 7vw, 80px)",
+            borderBottom: "1px solid var(--border-hairline, #3A3227)",
+          }}
           data-screen-label="01-hero"
         >
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
             <nav
-              aria-label="Breadcrumb"
+              aria-label={isVi ? "Đường dẫn" : "Breadcrumb"}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                fontSize: "13.5px",
-                color: "var(--text-faint)",
+                fontSize: "12px",
+                fontFamily: "var(--font-mono, monospace)",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "var(--text-faint, #6E6656)",
                 marginBottom: "32px",
+                flexWrap: "wrap",
               }}
             >
-              <Link href={isVi ? "/" : "/en"} style={{ color: "var(--text-faint)", textDecoration: "none" }}>
+              <Link href={isVi ? "/" : "/en"} style={{ color: "var(--text-faint, #6E6656)", textDecoration: "none" }}>
                 {isVi ? "Trang chủ" : "Home"}
               </Link>
-              {renderSvgIcon("chevron-right", 14, "var(--text-faint)")}
-              <Link href={isVi ? "/cong-cu-mien-phi" : "/en/cong-cu-mien-phi"} style={{ color: "var(--text-faint)", textDecoration: "none" }}>
+              <span style={{ color: "var(--text-faint, #6E6656)" }}>/</span>
+              <Link href={isVi ? "/cong-cu-mien-phi" : "/en/cong-cu-mien-phi"} style={{ color: "var(--text-faint, #6E6656)", textDecoration: "none" }}>
                 {isVi ? "Công cụ miễn phí" : "Free tools"}
               </Link>
-              {renderSvgIcon("chevron-right", 14, "var(--text-faint)")}
-              <span style={{ color: "var(--text-muted)" }}>
+              <span style={{ color: "var(--text-faint, #6E6656)" }}>/</span>
+              <span style={{ color: "var(--text-muted, #A79E8B)" }}>
                 {isVi ? "Xem Ngày Tốt" : "Good Days"}
               </span>
             </nav>
@@ -389,7 +276,7 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                fontFamily: "var(--font-mono)",
+                fontFamily: "var(--font-mono, monospace)",
                 fontSize: "11.5px",
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
@@ -400,17 +287,17 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
                 background: "var(--teal-tint, rgba(85, 119, 115, 0.16))",
               }}
             >
-              {isVi ? "Sắp ra mắt" : "Coming soon"}
+              {isVi ? "Đang hoạt động" : "Active tool"}
             </div>
 
             <h1
               style={{
                 margin: "20px 0 0",
-                fontFamily: "var(--font-display)",
+                fontFamily: "var(--font-display, Georgia, serif)",
                 fontWeight: 400,
                 fontSize: "clamp(32px, 4.2vw, 44px)",
                 lineHeight: 1.15,
-                color: "var(--text-heading)",
+                color: "var(--text-heading, #F6F1E6)",
               }}
             >
               {isVi ? "Xem Ngày Tốt" : "Good Days Selection"}
@@ -419,20 +306,20 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
             <p
               style={{
                 margin: "20px 0 0",
-                maxWidth: "600px",
-                fontSize: "18px",
+                maxWidth: "640px",
+                fontSize: "17.5px",
                 lineHeight: 1.6,
-                color: "var(--text-body)",
+                color: "var(--text-body, #DCD4C3)",
               }}
             >
               {isVi
-                ? "Chọn loại việc (cưới hỏi, khai trương, xuất hành...) và một khoảng thời gian, nhận về danh sách ngày kèm đúng lý do — Hoàng Đạo/Hắc Đạo, Tam Nương, hợp/xung tuổi — thay vì một điểm số \"tốt/xấu\" gộp chung."
-                : "Select your activity (wedding, grand opening, departure...) and a timeframe to receive candidate dates with clear rationale — Auspicious/Inauspicious duty officers, Tam Nuong, and birth year compatibility — instead of an arbitrary composite fortune score."}
+                ? "Lọc danh sách ngày hoàng đạo phù hợp theo từng loại việc cụ thể (cưới hỏi, khai trương, xuất hành, động thổ, ký kết, chuyển nhà), nêu đúng lý do và khung giờ hoàng đạo, không chấm điểm may rủi tổng hợp."
+                : "Filter auspicious dates tailored for specific milestone activities (wedding, opening, travel, groundbreaking, contracts, moving) with transparent reasons and favorable hours."}
             </p>
 
             <div style={{ marginTop: "32px", display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
-              <Link
-                href={isVi ? "/tu-vi" : "/en/tu-vi"}
+              <a
+                href="#bo-loc-ngay"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -440,281 +327,262 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
                   minHeight: "48px",
                   padding: "0 24px",
                   borderRadius: "var(--radius-sm, 4px)",
-                  fontFamily: "var(--font-ui)",
+                  background: "linear-gradient(103deg, #9A7730 0%, #F2DCA0 34%, #C9A44D 58%, #A8842F 100%)",
+                  color: "#0F0D0A",
                   fontWeight: 600,
-                  fontSize: "15px",
+                  fontSize: "14.5px",
                   textDecoration: "none",
-                  background: "var(--gold-gradient, linear-gradient(103deg, #9a7730, #f2dca0 34%, #c9a44d 58%, #a8842f))",
-                  color: "var(--surface-deep, #15120e)",
-                  border: "none",
-                  cursor: "pointer",
                 }}
               >
-                {isVi ? "Lập lá số Tử Vi miễn phí" : "Create free Zi Wei chart"}
-              </Link>
-              <a
-                href="#vi-du"
+                {isVi ? "Tra cứu ngày tốt ngay" : "Filter good days now"}
+              </a>
+              <Link
+                href={isVi ? "/lich-am" : "/en/lich-am"}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "8px",
-                  fontSize: "14.5px",
-                  color: "var(--text-body)",
+                  gap: "6px",
+                  minHeight: "48px",
+                  padding: "0 20px",
+                  borderRadius: "var(--radius-sm, 4px)",
+                  border: "1px solid var(--border-hairline, #3A3227)",
+                  fontSize: "14px",
+                  color: "var(--text-body, #DCD4C3)",
                   textDecoration: "none",
                 }}
               >
-                {isVi ? "Xem ví dụ minh hoạ" : "View illustrative example"}
-                {renderSvgIcon("chevron-right", 16, "currentColor")}
-              </a>
+                {isVi ? "Xem toàn bộ lịch âm tháng" : "View full monthly lunar calendar"}
+              </Link>
             </div>
           </div>
         </section>
 
-        {/* 02 NHẬN ĐƯỢC GÌ */}
+        {/* 02 TÍNH NĂNG */}
         <section
           style={{
             padding: "clamp(48px, 8vw, 88px) 0",
-            background: "var(--surface-deep)",
-            borderTop: "1px solid var(--border-hairline)",
-            borderBottom: "1px solid var(--border-hairline)",
+            background: "var(--surface-deep, #0F0D0A)",
+            borderBottom: "1px solid var(--border-hairline, #3A3227)",
           }}
-          data-screen-label="02-nhan-duoc-gi"
+          data-screen-label="02-tinh-nang"
         >
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11.5px",
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: "var(--teal, #6E9C97)",
-              }}
-            >
-              {isVi ? "02 · Khi ra mắt" : "02 · Upon release"}
+            <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--teal, #6E9C97)" }}>
+              {isVi ? "02 · Minh bạch căn cứ" : "02 · Transparent rationale"}
             </div>
-            <h2
-              style={{
-                margin: "14px 0 0",
-                fontFamily: "var(--font-display)",
-                fontWeight: 400,
-                fontSize: "clamp(26px, 3.2vw, 34px)",
-                color: "var(--text-heading)",
-                maxWidth: "640px",
-              }}
-            >
-              {isVi ? "Bạn sẽ nhận được gì" : "What you will receive"}
+            <h2 style={{ margin: "14px 0 0", fontFamily: "var(--font-display, Georgia, serif)", fontWeight: 400, fontSize: "clamp(26px, 3.2vw, 34px)", color: "var(--text-heading, #F6F1E6)", maxWidth: "640px" }}>
+              {isVi ? "Quy tắc rõ ràng, không điểm số ảo" : "Explicit rules, zero artificial ratings"}
             </h2>
-
-            <div
-              style={{
-                marginTop: "40px",
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                borderTop: "1px solid var(--border-hairline)",
-              }}
-            >
+            <div style={{ marginTop: "40px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1px", background: "var(--border-hairline, #3A3227)", border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-lg, 12px)", overflow: "hidden" }}>
               {freeResults.map((item) => (
-                <div
-                  key={item.num}
-                  style={{
-                    padding: "28px",
-                    borderRight: item.bordered !== false ? "1px solid var(--border-hairline)" : "none",
-                    borderBottom: "1px solid var(--border-hairline)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {renderSvgIcon(item.icon, 20, "var(--accent-gold, #c9a44d)")}
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "11px",
-                        letterSpacing: "0.14em",
-                        color: "var(--gold-600, #a8842f)",
-                      }}
-                    >
-                      {item.num}
-                    </span>
+                <div key={item.num} style={{ background: "var(--surface-panel, #1C1813)", padding: "26px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    {renderSvgIcon(item.icon)}
+                    <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11px", letterSpacing: "0.08em", color: "var(--text-faint, #6E6656)" }}>{item.num}</span>
                   </div>
-                  <div
-                    style={{
-                      marginTop: "10px",
-                      fontFamily: "var(--font-display)",
-                      fontSize: "18px",
-                      color: "var(--text-heading)",
-                    }}
-                  >
-                    {item.title}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: "8px",
-                      fontSize: "13.5px",
-                      lineHeight: 1.6,
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    {item.body}
-                  </div>
+                  <div style={{ marginTop: "6px", fontFamily: "var(--font-display, Georgia, serif)", fontSize: "17px", color: "var(--text-heading, #F6F1E6)" }}>{item.title}</div>
+                  <p style={{ margin: 0, fontSize: "13.5px", lineHeight: 1.6, color: "var(--text-body, #DCD4C3)" }}>{item.body}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* 03 VÍ DỤ */}
-        <section id="vi-du" style={{ padding: "clamp(56px, 9vw, 96px) 0" }} data-screen-label="03-vi-du">
+        {/* 03 BỘ LỌC VÀ DANH SÁCH NGÀY ỨNG VIÊN */}
+        <section id="bo-loc-ngay" style={{ padding: "clamp(56px, 9vw, 96px) 0" }} data-screen-label="03-bo-loc">
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11.5px",
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: "var(--teal, #6E9C97)",
-              }}
-            >
-              {isVi ? "03 · Ví dụ minh hoạ" : "03 · Illustrative example"}
+            <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--teal, #6E9C97)" }}>
+              {isVi ? "03 · Chọn việc & xem ngày" : "03 · Select activity & view dates"}
             </div>
-            <h2
-              style={{
-                margin: "14px 0 0",
-                fontFamily: "var(--font-display)",
-                fontWeight: 400,
-                fontSize: "clamp(26px, 3.2vw, 34px)",
-                color: "var(--text-heading)",
-                maxWidth: "680px",
-              }}
-            >
-              {isVi ? "Danh sách ngày ứng viên trông như thế nào" : "What the candidate date list looks like"}
+            <h2 style={{ margin: "14px 0 0", fontFamily: "var(--font-display, Georgia, serif)", fontWeight: 400, fontSize: "clamp(26px, 3.2vw, 34px)", color: "var(--text-heading, #F6F1E6)", maxWidth: "680px" }}>
+              {isVi ? "Danh sách ngày hoàng đạo phù hợp" : "Eligible auspicious candidate dates"}
             </h2>
-            <p
-              style={{
-                margin: "16px 0 0",
-                maxWidth: "680px",
-                fontSize: "16px",
-                lineHeight: 1.65,
-                color: "var(--text-muted)",
-              }}
-            >
-              {isVi
-                ? "Ví dụ dưới đây minh hoạ cho việc \"cưới hỏi\" — tên ngày và lý do là minh hoạ, không phải kết quả tính từ lịch thật."
-                : "The example below illustrates dates for a \"wedding\" milestone — date labels and reasons are illustrative samples, not live calendar calculations."}
-            </p>
 
-            <div
-              style={{
-                marginTop: "24px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                fontSize: "13px",
-                color: "var(--text-muted)",
-                background: "var(--surface-panel)",
-                border: "1px solid var(--border-hairline)",
-                borderRadius: "var(--radius-pill, 9999px)",
-                padding: "8px 16px",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10.5px",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--teal, #6E9C97)",
-                }}
-              >
-                {isVi ? "Đang xem việc" : "Viewing activity"}
+            {/* Activity selection chips */}
+            <div style={{ marginTop: "28px" }}>
+              <span style={{ display: "block", fontSize: "13.5px", color: "var(--text-faint, #6E6656)", marginBottom: "12px", fontFamily: "var(--font-mono, monospace)", textTransform: "uppercase" }}>
+                {isVi ? "1. Chọn loại công việc cần xem" : "1. Select milestone activity"}
               </span>
-              <span style={{ color: "var(--text-heading)" }}>
-                {isVi ? "Cưới hỏi" : "Wedding"}
-              </span>
-              <span style={{ color: "var(--text-faint)" }}>
-                {isVi
-                  ? "· Đổi loại việc/khoảng ngày sẽ hoạt động khi ra mắt"
-                  : "· Changing activity/date range will be active at launch"}
-              </span>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {GOOD_DAY_ACTIVITIES.map((act) => {
+                  const isActive = act.id === selectedActivity;
+                  return (
+                    <button
+                      key={act.id}
+                      type="button"
+                      aria-pressed={isActive}
+                      onClick={() => {
+                        setSelectedActivity(act.id);
+                        setCompareIds([]);
+                      }}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: "var(--radius-pill, 9999px)",
+                        border: isActive ? "1px solid var(--gold-400, #D4AF37)" : "1px solid var(--border-hairline, #3A3227)",
+                        background: isActive ? "rgba(201,164,77,0.18)" : "var(--surface-panel, #1C1813)",
+                        color: isActive ? "var(--gold-400, #D4AF37)" : "var(--text-body, #DCD4C3)",
+                        fontWeight: isActive ? 600 : 400,
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {isVi ? act.nameVi : act.nameEn}
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ margin: "8px 0 0", fontSize: "13px", color: "var(--text-muted, #A79E8B)" }}>
+                {isVi ? activeActivityMeta.descVi : activeActivityMeta.nameEn}
+              </p>
             </div>
 
-            <p style={{ margin: "28px 0 0", fontSize: "13px", color: "var(--text-faint)" }}>
-              {isVi
-                ? 'Chọn tối đa 3 ngày (nút "+ So sánh") để đưa vào bảng so sánh bên dưới.'
-                : 'Select up to 3 dates (via "+ Compare" button) to evaluate in the comparison table below.'}
-            </p>
+            {/* Month & Year switcher */}
+            <div style={{ marginTop: "24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap", borderTop: "1px solid var(--border-hairline, #3A3227)", paddingTop: "20px" }}>
+              <div>
+                <span style={{ display: "block", fontSize: "13.5px", color: "var(--text-faint, #6E6656)", marginBottom: "6px", fontFamily: "var(--font-mono, monospace)", textTransform: "uppercase" }}>
+                  {isVi ? "2. Khoảng thời gian tra cứu" : "2. Timeframe"}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <button
+                    type="button"
+                    aria-label={isVi ? "Tháng trước" : "Previous month"}
+                    onClick={handlePrevMonth}
+                    style={{
+                      background: "var(--surface-panel, #1C1813)",
+                      border: "1px solid var(--border-hairline, #3A3227)",
+                      borderRadius: "var(--radius-sm, 4px)",
+                      color: "var(--text-heading, #F6F1E6)",
+                      width: "34px",
+                      height: "34px",
+                      display: "grid",
+                      placeItems: "center",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                  >
+                    ‹
+                  </button>
+                  <span style={{ fontFamily: "var(--font-display, Georgia, serif)", fontSize: "17px", color: "var(--text-heading, #F6F1E6)", minWidth: "130px", textAlign: "center" }}>
+                    {isVi ? `Tháng ${selectedMonth} / ${selectedYear}` : `${selectedMonth} / ${selectedYear}`}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={isVi ? "Tháng sau" : "Next month"}
+                    onClick={handleNextMonth}
+                    style={{
+                      background: "var(--surface-panel, #1C1813)",
+                      border: "1px solid var(--border-hairline, #3A3227)",
+                      borderRadius: "var(--radius-sm, 4px)",
+                      color: "var(--text-heading, #F6F1E6)",
+                      width: "34px",
+                      height: "34px",
+                      display: "grid",
+                      placeItems: "center",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
 
-            <div style={{ marginTop: "12px", overflowX: "auto" }}>
+              <div style={{ fontSize: "13.5px", color: "var(--text-muted, #A79E8B)" }}>
+                {isVi
+                  ? `Tìm thấy ${candidateDays.length} ngày hoàng đạo phù hợp trong tháng`
+                  : `Found ${candidateDays.length} auspicious candidate dates`}
+              </div>
+            </div>
+
+            {/* Candidate table */}
+            <div style={{ marginTop: "24px", overflowX: "auto" }}>
               <table style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse", fontSize: "13.5px" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px 10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>
-                      {isVi ? "Ngày" : "Date"}
+                  <tr style={{ borderBottom: "1px solid var(--border-hairline, #3A3227)", background: "var(--surface-deep, #0F0D0A)" }}>
+                    <th scope="col" style={{ textAlign: "left", padding: "12px 14px", color: "var(--text-faint, #6E6656)", fontFamily: "var(--font-mono, monospace)", fontSize: "11px", textTransform: "uppercase" }}>
+                      {isVi ? "Ngày dương" : "Solar date"}
                     </th>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      {isVi ? "Âm lịch" : "Lunar"}
+                    <th scope="col" style={{ textAlign: "left", padding: "12px 14px", color: "var(--text-faint, #6E6656)", fontFamily: "var(--font-mono, monospace)", fontSize: "11px", textTransform: "uppercase" }}>
+                      {isVi ? "Âm lịch" : "Lunar date"}
                     </th>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      {isVi ? "Can chi ngày" : "Stem-Branch"}
+                    <th scope="col" style={{ textAlign: "left", padding: "12px 14px", color: "var(--text-faint, #6E6656)", fontFamily: "var(--font-mono, monospace)", fontSize: "11px", textTransform: "uppercase" }}>
+                      {isVi ? "Can Chi ngày" : "Daily Can Chi"}
                     </th>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      {isVi ? "Hoàng/Hắc Đạo" : "Officer"}
+                    <th scope="col" style={{ textAlign: "left", padding: "12px 14px", color: "var(--text-faint, #6E6656)", fontFamily: "var(--font-mono, monospace)", fontSize: "11px", textTransform: "uppercase" }}>
+                      {isVi ? "Sao trực nhật" : "Auspicious Star"}
                     </th>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      {isVi ? "Lý do" : "Reason"}
+                    <th scope="col" style={{ textAlign: "left", padding: "12px 14px", color: "var(--text-faint, #6E6656)", fontFamily: "var(--font-mono, monospace)", fontSize: "11px", textTransform: "uppercase" }}>
+                      {isVi ? "Căn cứ phù hợp" : "Rationale"}
                     </th>
-                    <th scope="col" style={{ textAlign: "left", padding: "10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    <th scope="col" style={{ textAlign: "center", padding: "12px 14px", color: "var(--text-faint, #6E6656)", fontFamily: "var(--font-mono, monospace)", fontSize: "11px", textTransform: "uppercase" }}>
                       {isVi ? "So sánh" : "Compare"}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {candidateDays.map((d) => {
-                    const selected = compareIds.includes(d.id);
-                    const disabled = !selected && compareIds.length >= 3;
+                    const isSelectedCompare = compareIds.includes(d.dayOfMonth);
+                    const isInspected = inspectedDay?.dayOfMonth === d.dayOfMonth;
                     return (
-                      <tr key={d.id} style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                        <td style={{ padding: "12px 12px 12px 0", color: "var(--text-heading)", whiteSpace: "nowrap", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>{d.label}</td>
-                        <td style={{ padding: "12px", color: "var(--text-body)", whiteSpace: "nowrap" }}>{d.lunar}</td>
-                        <td style={{ padding: "12px", color: "var(--text-body)", whiteSpace: "nowrap" }}>{d.canchi}</td>
-                        <td style={{ padding: "12px", color: d.statusColor, whiteSpace: "nowrap" }}>{d.status}</td>
-                        <td style={{ padding: "12px", color: "var(--text-body)" }}>
-                          {d.reason}
-                          <div style={{ marginTop: "6px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                            {d.ruleTags.map((rt, idx) => (
+                      <tr
+                        key={d.dayOfMonth}
+                        onClick={() => setActiveDayNum(d.dayOfMonth)}
+                        style={{
+                          borderBottom: "1px solid var(--border-hairline, #3A3227)",
+                          background: isInspected ? "rgba(201, 164, 77, 0.12)" : "transparent",
+                          cursor: "pointer",
+                          transition: "background 0.15s ease",
+                        }}
+                      >
+                        <td style={{ padding: "14px", color: "var(--text-heading, #F6F1E6)", fontWeight: 600 }}>
+                          {d.dayOfWeekName}, {d.dayOfMonth}/{selectedMonth}
+                        </td>
+                        <td style={{ padding: "14px", color: "var(--text-body, #DCD4C3)" }}>
+                          {d.lunarDateFormatted}
+                        </td>
+                        <td style={{ padding: "14px", color: "var(--text-body, #DCD4C3)" }}>
+                          {d.dayCanChi}
+                        </td>
+                        <td style={{ padding: "14px", color: "var(--gold-400, #D4AF37)", fontWeight: 500 }}>
+                          {d.starName}
+                        </td>
+                        <td style={{ padding: "14px" }}>
+                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            {d.reasons.map((r, i) => (
                               <span
-                                key={idx}
+                                key={i}
                                 style={{
-                                  fontFamily: "var(--font-mono)",
-                                  fontSize: "9.5px",
-                                  padding: "2px 6px",
+                                  fontSize: "11.5px",
+                                  padding: "2px 8px",
                                   borderRadius: "var(--radius-sm, 3px)",
-                                  background: "var(--surface-panel)",
-                                  border: "1px solid var(--border-hairline)",
-                                  color: rt.color,
+                                  background: "var(--surface-panel, #1C1813)",
+                                  border: "1px solid var(--border-hairline, #3A3227)",
+                                  color: "var(--text-body, #DCD4C3)",
                                 }}
                               >
-                                {rt.text}
+                                {r}
                               </span>
                             ))}
                           </div>
                         </td>
-                        <td style={{ padding: "12px 0" }}>
+                        <td style={{ padding: "14px", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
-                            aria-pressed={selected}
-                            disabled={disabled}
-                            onClick={() => toggleCompare(d.id)}
+                            aria-pressed={isSelectedCompare}
+                            onClick={() => toggleCompare(d.dayOfMonth)}
                             style={{
-                              fontFamily: "var(--font-mono)",
+                              fontFamily: "var(--font-mono, monospace)",
                               fontSize: "11px",
-                              padding: "6px 10px",
-                              borderRadius: "var(--radius-sm, 3px)",
-                              cursor: disabled ? "not-allowed" : "pointer",
-                              background: selected ? "var(--teal-tint, rgba(110,156,151,0.16))" : "transparent",
-                              border: `1px solid ${selected ? "var(--teal, #6E9C97)" : "var(--border-hairline)"}`,
-                              color: selected ? "var(--teal, #6E9C97)" : "var(--text-faint)",
+                              padding: "4px 10px",
+                              borderRadius: "var(--radius-pill, 9999px)",
+                              border: isSelectedCompare ? "1px solid var(--gold-400, #D4AF37)" : "1px solid var(--border-hairline, #3A3227)",
+                              background: isSelectedCompare ? "rgba(201,164,77,0.2)" : "transparent",
+                              color: isSelectedCompare ? "var(--gold-400, #D4AF37)" : "var(--text-muted, #A79E8B)",
+                              cursor: "pointer",
                             }}
                           >
-                            {selected ? (isVi ? "Đã chọn ✕" : "Selected ✕") : (isVi ? "+ So sánh" : "+ Compare")}
+                            {isSelectedCompare ? (isVi ? "✓ Đã chọn" : "✓ Added") : (isVi ? "+ So sánh" : "+ Compare")}
                           </button>
                         </td>
                       </tr>
@@ -724,137 +592,154 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
               </table>
             </div>
 
-            {/* InsightCard */}
-            <div style={{ marginTop: "40px" }}>
+            {/* Inspected day detail banner & bridge */}
+            {inspectedDay && (
               <div
                 style={{
-                  position: "relative",
-                  background: "var(--surface-panel)",
-                  border: "1px solid var(--border-hairline)",
+                  marginTop: "32px",
+                  background: "var(--surface-panel, #1C1813)",
+                  border: "1px solid var(--border-hairline, #3A3227)",
                   borderRadius: "var(--radius-md, 8px)",
-                  padding: "24px 26px",
-                  boxShadow: "0 24px 60px rgba(0,0,0,0.55)",
+                  padding: "24px",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: "24px",
+                  alignItems: "center",
                 }}
               >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "24px",
-                    left: "-1px",
-                    width: "2px",
-                    height: "34px",
-                    background: "var(--accent-gold, #c9a44d)",
-                  }}
-                />
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "11px",
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    color: "var(--text-faint)",
-                  }}
-                >
-                  {isVi ? "Ngày ứng viên 1" : "Candidate date 1"}
+                <div>
+                  <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", textTransform: "uppercase", color: "var(--teal, #6E9C97)" }}>
+                    {isVi ? "Chi tiết ngày đang xem" : "Inspected day"}
+                  </span>
+                  <h3 style={{ margin: "6px 0 4px", fontFamily: "var(--font-display, Georgia, serif)", fontSize: "22px", color: "var(--gold-400, #D4AF37)" }}>
+                    {inspectedDay.dayOfWeekName}, {inspectedDay.solarDateString}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "14px", color: "var(--text-body, #DCD4C3)" }}>
+                    {isVi
+                      ? `Tức ngày ${inspectedDay.lunarDateFormatted} · Ngày ${inspectedDay.dayCanChi} (Hoàng Đạo: ${inspectedDay.starName})`
+                      : `Lunar ${inspectedDay.lunarDateFormatted} · ${inspectedDay.dayCanChi} (Auspicious: ${inspectedDay.starName})`}
+                  </p>
+                  <div style={{ marginTop: "12px", display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={{ fontSize: "12.5px", color: "var(--text-faint, #6E6656)" }}>{isVi ? "Giờ tốt:" : "Good hours:"}</span>
+                    {inspectedDay.goodHours.map((h, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: "12px",
+                          padding: "2px 8px",
+                          borderRadius: "var(--radius-pill, 9999px)",
+                          background: "rgba(201,164,77,0.12)",
+                          color: "var(--gold-400, #D4AF37)",
+                          border: "1px solid rgba(201,164,77,0.3)",
+                        }}
+                      >
+                        {h}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div
-                  style={{
-                    marginTop: "12px",
-                    fontFamily: "var(--font-display)",
-                    fontSize: "18px",
-                    lineHeight: 1.45,
-                    color: "var(--text-heading)",
-                  }}
-                >
-                  {isVi
-                    ? "Phù hợp hơn trong bộ quy tắc này: Ngày Hoàng Đạo, không rơi vào Tam Nương."
-                    : "More suitable under this rule set: Auspicious day, not falling on Tam Nuong taboo."}
-                </div>
-                <div
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "13.5px",
-                    lineHeight: 1.6,
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  {isVi
-                    ? "Đây là cách diễn đạt bắt buộc tại Lá Số Việt — không dùng \"chắc chắn tốt\" hay \"đảm bảo may mắn\" cho bất kỳ ngày nào."
-                    : "This phrasing is mandatory across La So Viet — never promising \"guaranteed good\" or \"ensured fortune\" for any date."}
-                </div>
-                <div style={{ marginTop: "18px" }}>
-                  <button
-                    type="button"
-                    onClick={() => setInsightStamped((s) => !s)}
+
+                <div style={{ borderLeft: "1px solid var(--border-hairline, #3A3227)", paddingLeft: "24px" }}>
+                  <p style={{ margin: "0 0 12px", fontSize: "13.5px", color: "var(--text-muted, #A79E8B)", lineHeight: 1.5 }}>
+                    {isVi
+                      ? "Ngày hoàng đạo tốt cho thiên thời chung. Để biết ngày này có trợ lực hay xung kỵ với bản mệnh của bạn:"
+                      : "Auspicious days benefit general circumstances. To evaluate harmony with your natal chart:"}
+                  </p>
+                  <Link
+                    href={
+                      isVi
+                        ? `/tao-la-so/tu-vi?birthDay=${inspectedDay.dayOfMonth}&birthMonth=${selectedMonth}&birthYear=${selectedYear}`
+                        : `/en/tao-la-so/tu-vi?birthDay=${inspectedDay.dayOfMonth}&birthMonth=${selectedMonth}&birthYear=${selectedYear}`
+                    }
                     style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      fontSize: "13px",
-                      color: "var(--accent-gold, #c9a44d)",
-                      fontFamily: "var(--font-ui)",
+                      display: "inline-block",
+                      padding: "10px 20px",
+                      borderRadius: "var(--radius-sm, 4px)",
+                      background: "linear-gradient(103deg, #9A7730 0%, #F2DCA0 34%, #C9A44D 58%, #A8842F 100%)",
+                      color: "#0F0D0A",
+                      fontWeight: 600,
+                      fontSize: "13.5px",
+                      textDecoration: "none",
                     }}
                   >
-                    <span
-                      style={{
-                        width: "18px",
-                        height: "18px",
-                        border: "1.5px solid var(--accent-seal, #c9a44d)",
-                        borderRadius: "var(--radius-sm, 3px)",
-                        display: "inline-block",
-                        transform: insightStamped ? "scale(0.88) rotate(-3deg)" : "scale(1)",
-                        opacity: insightStamped ? 0.6 : 1,
-                        transition: "transform 220ms ease, opacity 220ms ease",
-                      }}
-                    />
-                    <span>{isVi ? "Vì sao có nhận định này?" : "Why this assessment?"}</span>
-                  </button>
+                    {isVi ? "Xem ngày này trên lá số của bạn" : "Check date against your chart"}
+                  </Link>
                 </div>
               </div>
-            </div>
+            )}
 
-            <h3 style={{ margin: "56px 0 16px", fontFamily: "var(--font-display)", fontSize: "19px", color: "var(--text-heading)" }}>
-              {isVi ? `So sánh ${compareCount} ngày đã chọn` : `Compare ${compareCount} selected dates`}
-            </h3>
-            {hasComparison ? (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", minWidth: "640px", borderCollapse: "collapse", fontSize: "13.5px" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                      <th scope="col" style={{ textAlign: "left", padding: "10px 12px 10px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>
-                        {isVi ? "Tiêu chí" : "Criteria"}
-                      </th>
-                      {compareCols.map((c) => (
-                        <th key={c} scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                          {c}
+            {/* Comparison Table (when 2 or 3 days selected) */}
+            {comparedDays.length > 0 && (
+              <div style={{ marginTop: "48px", borderTop: "1px solid var(--border-hairline, #3A3227)", paddingTop: "32px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                  <h3 style={{ margin: 0, fontFamily: "var(--font-display, Georgia, serif)", fontSize: "20px", color: "var(--text-heading, #F6F1E6)" }}>
+                    {isVi ? `Bảng đối chiếu ${comparedDays.length} ngày đã chọn` : `Side-by-side comparison (${comparedDays.length} dates)`}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setCompareIds([])}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-faint, #6E6656)",
+                      fontSize: "12px",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {isVi ? "Xoá so sánh" : "Clear comparison"}
+                  </button>
+                </div>
+
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", minWidth: "600px", borderCollapse: "collapse", fontSize: "13.5px" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid var(--border-hairline, #3A3227)" }}>
+                        <th scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--text-faint, #6E6656)", fontFamily: "var(--font-mono, monospace)", fontSize: "11px", textTransform: "uppercase" }}>
+                          {isVi ? "Tiêu chí" : "Criteria"}
                         </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {compareRows.map((r) => (
-                      <tr key={r.label} style={{ borderBottom: "1px solid var(--border-hairline)" }}>
-                        <td style={{ padding: "12px 12px 12px 0", color: "var(--text-faint)", fontFamily: "var(--font-mono)", fontSize: "11.5px", textTransform: "uppercase", position: "sticky", left: 0, background: "var(--surface-canvas)" }}>
-                          {r.label}
-                        </td>
-                        {r.values.map((v, i) => (
-                          <td key={i} style={{ padding: "12px", color: "var(--text-body)" }}>{v}</td>
+                        {comparedDays.map((d) => (
+                          <th key={d.dayOfMonth} scope="col" style={{ textAlign: "left", padding: "10px 12px", color: "var(--gold-400, #D4AF37)", fontFamily: "var(--font-display, Georgia, serif)", fontSize: "15px" }}>
+                            {d.dayOfWeekName}, {d.dayOfMonth}/{selectedMonth}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      <tr style={{ borderBottom: "1px solid var(--border-hairline, #3A3227)" }}>
+                        <td style={{ padding: "12px", color: "var(--text-faint, #6E6656)" }}>{isVi ? "Âm lịch" : "Lunar date"}</td>
+                        {comparedDays.map((d) => (
+                          <td key={d.dayOfMonth} style={{ padding: "12px", color: "var(--text-body, #DCD4C3)" }}>{d.lunarDateFormatted}</td>
+                        ))}
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid var(--border-hairline, #3A3227)" }}>
+                        <td style={{ padding: "12px", color: "var(--text-faint, #6E6656)" }}>{isVi ? "Can Chi" : "Can Chi"}</td>
+                        {comparedDays.map((d) => (
+                          <td key={d.dayOfMonth} style={{ padding: "12px", color: "var(--text-body, #DCD4C3)" }}>{d.dayCanChi}</td>
+                        ))}
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid var(--border-hairline, #3A3227)" }}>
+                        <td style={{ padding: "12px", color: "var(--text-faint, #6E6656)" }}>{isVi ? "Sao trực" : "Star"}</td>
+                        {comparedDays.map((d) => (
+                          <td key={d.dayOfMonth} style={{ padding: "12px", color: "var(--gold-400, #D4AF37)" }}>{d.starName} (Hoàng Đạo)</td>
+                        ))}
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid var(--border-hairline, #3A3227)" }}>
+                        <td style={{ padding: "12px", color: "var(--text-faint, #6E6656)" }}>{isVi ? "Tiết khí" : "Solar term"}</td>
+                        {comparedDays.map((d) => (
+                          <td key={d.dayOfMonth} style={{ padding: "12px", color: "var(--text-body, #DCD4C3)" }}>{d.solarTerm || "—"}</td>
+                        ))}
+                      </tr>
+                      <tr style={{ borderBottom: "1px solid var(--border-hairline, #3A3227)" }}>
+                        <td style={{ padding: "12px", color: "var(--text-faint, #6E6656)" }}>{isVi ? "Giờ tốt" : "Good hours"}</td>
+                        {comparedDays.map((d) => (
+                          <td key={d.dayOfMonth} style={{ padding: "12px", color: "var(--text-body, #DCD4C3)" }}>{d.goodHours.join(", ")}</td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            ) : (
-              <p style={{ margin: 0, fontSize: "14px", color: "var(--text-faint)", borderTop: "1px solid var(--border-hairline)", paddingTop: "20px" }}>
-                {isVi
-                  ? "Chưa chọn ngày nào để so sánh — bấm \"+ So sánh\" trên tối đa 3 dòng trong bảng ở trên."
-                  : "No dates selected for comparison — click \"+ Compare\" on up to 3 rows in the table above."}
-              </p>
             )}
 
             <div style={{ marginTop: "56px" }}>
@@ -864,343 +749,60 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
         </section>
 
         {/* 04 THUẬT NGỮ */}
-        <section
-          style={{
-            padding: "clamp(48px, 8vw, 88px) 0",
-            background: "var(--surface-deep)",
-            borderTop: "1px solid var(--border-hairline)",
-            borderBottom: "1px solid var(--border-hairline)",
-          }}
-          data-screen-label="04-thuat-ngu"
-        >
+        <section style={{ padding: "clamp(48px, 8vw, 88px) 0", background: "var(--surface-deep, #0F0D0A)", borderTop: "1px solid var(--border-hairline, #3A3227)", borderBottom: "1px solid var(--border-hairline, #3A3227)" }} data-screen-label="04-thuat-ngu">
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11.5px",
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: "var(--teal, #6E9C97)",
-              }}
-            >
-              {isVi ? "04 · Thuật ngữ cốt lõi" : "04 · Core terminology"}
-            </div>
-            <h2
-              style={{
-                margin: "14px 0 0",
-                fontFamily: "var(--font-display)",
-                fontWeight: 400,
-                fontSize: "clamp(26px, 3.2vw, 34px)",
-                color: "var(--text-heading)",
-                maxWidth: "640px",
-              }}
-            >
-              {isVi ? "Đọc kết quả mà không bị ngợp thuật ngữ" : "Read results without terminology overload"}
+            <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--teal, #6E9C97)" }}>{isVi ? "04 · Thuật ngữ cốt lõi" : "04 · Core terminology"}</div>
+            <h2 style={{ margin: "14px 0 0", fontFamily: "var(--font-display, Georgia, serif)", fontWeight: 400, fontSize: "clamp(26px, 3.2vw, 34px)", color: "var(--text-heading, #F6F1E6)", maxWidth: "640px" }}>
+              {isVi ? "Hiểu đúng các khái niệm chọn ngày" : "Key concepts for date selection"}
             </h2>
-
-            <div
-              style={{
-                marginTop: "40px",
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: "1px",
-                background: "var(--border-hairline)",
-                border: "1px solid var(--border-hairline)",
-                borderRadius: "var(--radius-lg, 8px)",
-                overflow: "hidden",
-              }}
-            >
-              {glossaryItems.map((g) => (
-                <div key={g.term} style={{ background: "var(--surface-panel)", padding: "26px" }}>
-                  {renderSvgIcon(g.icon, 22, "var(--teal, #6E9C97)")}
-                  <div
-                    style={{
-                      marginTop: "14px",
-                      fontFamily: "var(--font-display)",
-                      fontSize: "17px",
-                      color: "var(--text-heading)",
-                    }}
-                  >
-                    {g.term}
-                  </div>
-                  <p style={{ margin: "8px 0 0", fontSize: "13.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
-                    {g.body}
-                  </p>
+            <div style={{ marginTop: "36px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1px", background: "var(--border-hairline, #3A3227)", border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-lg, 12px)", overflow: "hidden" }}>
+              {glossaryItems.map((g, idx) => (
+                <div key={idx} style={{ background: "var(--surface-panel, #1C1813)", padding: "26px" }}>
+                  {renderSvgIcon(g.icon)}
+                  <div style={{ marginTop: "14px", fontFamily: "var(--font-display, Georgia, serif)", fontSize: "17px", color: "var(--text-heading, #F6F1E6)" }}>{g.term}</div>
+                  <p style={{ margin: "8px 0 0", fontSize: "13.5px", lineHeight: 1.6, color: "var(--text-body, #DCD4C3)" }}>{g.body}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* 05 PHƯƠNG PHÁP & GIỚI HẠN */}
-        <section style={{ padding: "clamp(56px, 9vw, 96px) 0" }} data-screen-label="05-phuong-phap-gioi-han">
+        {/* 05 PHƯƠNG PHÁP & MINH BẠCH */}
+        <section style={{ padding: "clamp(56px, 9vw, 96px) 0" }} data-screen-label="05-phuong-phap-minh-bach">
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11.5px",
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: "var(--teal, #6E9C97)",
-              }}
-            >
-              {isVi ? "05 · Minh bạch phương pháp" : "05 · Method transparency"}
-            </div>
-            <h2
-              style={{
-                margin: "14px 0 0",
-                fontFamily: "var(--font-display)",
-                fontWeight: 400,
-                fontSize: "clamp(26px, 3.2vw, 34px)",
-                color: "var(--text-heading)",
-                maxWidth: "680px",
-              }}
-            >
-              {isVi ? "Quy tắc và giới hạn" : "Rules and limitations"}
+            <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--teal, #6E9C97)" }}>{isVi ? "05 · Minh bạch phương pháp" : "05 · Transparent methodology"}</div>
+            <h2 style={{ margin: "14px 0 0", fontFamily: "var(--font-display, Georgia, serif)", fontWeight: 400, fontSize: "clamp(26px, 3.2vw, 34px)", color: "var(--text-heading, #F6F1E6)", maxWidth: "680px" }}>
+              {isVi ? "Cơ sở lọc ngày và giới hạn" : "Date filtering basis and limitations"}
             </h2>
-
             <div style={{ marginTop: "36px", maxWidth: "760px" }}>
-              {methodRows.map((m) => (
-                <div
-                  key={m.label}
-                  style={{
-                    display: "flex",
-                    gap: "24px",
-                    padding: "18px 0",
-                    borderTop: "1px solid var(--border-hairline)",
-                    alignItems: "baseline",
-                  }}
-                >
-                  <span
-                    style={{
-                      flex: "none",
-                      width: "180px",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "12px",
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    {m.label}
-                  </span>
-                  <span style={{ fontSize: "15px", lineHeight: 1.6, color: "var(--text-body)" }}>{m.value}</span>
+              {methodRows.map((m, idx) => (
+                <div key={idx} style={{ display: "flex", gap: "24px", padding: "18px 0", borderTop: "1px solid var(--border-hairline, #3A3227)", alignItems: "baseline" }}>
+                  <span style={{ flex: "none", width: "180px", fontFamily: "var(--font-mono, monospace)", fontSize: "12px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted, #A79E8B)" }}>{m.label}</span>
+                  <span style={{ fontSize: "15px", lineHeight: 1.6, color: "var(--text-body, #DCD4C3)" }}>{m.value}</span>
                 </div>
               ))}
             </div>
-
-            <ul
-              style={{
-                margin: "32px 0 0",
-                padding: 0,
-                listStyle: "none",
-                display: "grid",
-                gap: "14px",
-                maxWidth: "760px",
-                borderTop: "1px solid var(--border-hairline)",
-                paddingTop: "24px",
-              }}
-            >
-              {limitItems.map((li, idx) => (
-                <li key={idx} style={{ display: "flex", gap: "12px", fontSize: "14.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
-                  <span style={{ flex: "none", marginTop: "3px" }}>
-                    {renderSvgIcon("chevron-right", 16, "var(--text-faint)")}
-                  </span>
-                  <span>{li}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </section>
 
-        {/* 06 FAQ + CTA */}
-        <section
-          style={{
-            padding: "clamp(56px, 9vw, 96px) 0",
-            background: "var(--surface-deep)",
-            borderTop: "1px solid var(--border-hairline)",
-          }}
-          data-screen-label="06-faq-cta"
-        >
+        {/* 06 FAQ */}
+        <section style={{ padding: "clamp(48px, 8vw, 88px) 0", background: "var(--surface-deep, #0F0D0A)", borderTop: "1px solid var(--border-hairline, #3A3227)" }} data-screen-label="06-faq">
           <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 clamp(20px, 5vw, 32px)" }}>
-            <h2
-              style={{
-                margin: 0,
-                fontFamily: "var(--font-display)",
-                fontWeight: 400,
-                fontSize: "clamp(26px, 3.2vw, 34px)",
-                color: "var(--text-heading)",
-              }}
-            >
+            <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--teal, #6E9C97)" }}>{isVi ? "06 · Hỏi đáp" : "06 · FAQ"}</div>
+            <h2 style={{ margin: "14px 0 0", fontFamily: "var(--font-display, Georgia, serif)", fontWeight: 400, fontSize: "clamp(26px, 3.2vw, 34px)", color: "var(--text-heading, #F6F1E6)", maxWidth: "640px" }}>
               {isVi ? "Câu hỏi thường gặp" : "Frequently asked questions"}
             </h2>
-
-            <div style={{ marginTop: "24px", maxWidth: "760px" }}>
-              {faqs.map((f, i) => {
-                const isOpen = !!faqOpen[i];
-                const num = String(i + 1).padStart(2, "0");
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      borderBottom: "1px solid var(--border-hairline)",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleFaq(i)}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "20px 0",
-                        background: "none",
-                        border: "none",
-                        color: "inherit",
-                        fontFamily: "inherit",
-                        fontSize: "inherit",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        gap: "16px",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                        <span
-                          style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "12px",
-                            color: "var(--text-faint)",
-                          }}
-                        >
-                          {num}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: "16px",
-                            color: "var(--text-heading)",
-                            fontWeight: 500,
-                          }}
-                        >
-                          {f.q}
-                        </span>
-                      </div>
-                      <span
-                        style={{
-                          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                          transition: "transform 180ms ease",
-                          display: "inline-flex",
-                        }}
-                      >
-                        {renderSvgIcon("chevron-down", 18, "var(--text-faint)")}
-                      </span>
-                    </button>
-                    {isOpen && (
-                      <div
-                        style={{
-                          padding: "0 0 20px 32px",
-                          fontSize: "14.5px",
-                          lineHeight: 1.65,
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        {f.a}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div
-              style={{
-                marginTop: "72px",
-                padding: "48px",
-                background: "var(--surface-panel)",
-                border: "1px solid var(--border-hairline)",
-                borderRadius: "var(--radius-lg, 8px)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "32px",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ maxWidth: "520px" }}>
-                <h2
-                  style={{
-                    margin: 0,
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 400,
-                    fontSize: "clamp(22px, 2.6vw, 28px)",
-                    color: "var(--text-heading)",
-                  }}
-                >
-                  {isVi ? "Trong lúc chờ, xem lá số Tử Vi miễn phí" : "While waiting, create a free Zi Wei chart"}
-                </h2>
-                <p style={{ margin: "10px 0 0", fontSize: "14.5px", lineHeight: 1.6, color: "var(--text-muted)" }}>
-                  {isVi ? "Miễn phí, không cần tài khoản." : "Free, no account required."}
-                </p>
-              </div>
-              <Link
-                href={isVi ? "/tu-vi" : "/en/tu-vi"}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "48px",
-                  padding: "0 24px",
-                  borderRadius: "var(--radius-sm, 4px)",
-                  fontFamily: "var(--font-ui)",
-                  fontWeight: 600,
-                  fontSize: "15px",
-                  textDecoration: "none",
-                  background: "var(--gold-gradient, linear-gradient(103deg, #9a7730, #f2dca0 34%, #c9a44d 58%, #a8842f))",
-                  color: "var(--surface-deep, #15120e)",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {isVi ? "Lập lá số Tử Vi miễn phí" : "Create free Zi Wei chart"}
-              </Link>
+            <div style={{ marginTop: "40px", maxWidth: "760px", display: "grid", gap: "16px" }}>
+              {faqItems.map((f, idx) => (
+                <div key={idx} style={{ background: "var(--surface-panel, #1C1813)", border: "1px solid var(--border-hairline, #3A3227)", borderRadius: "var(--radius-md, 8px)", padding: "24px" }}>
+                  <h3 style={{ margin: 0, fontFamily: "var(--font-display, Georgia, serif)", fontSize: "17px", color: "var(--text-heading, #F6F1E6)" }}>{f.q}</h3>
+                  <p style={{ margin: "12px 0 0", fontSize: "14px", lineHeight: 1.6, color: "var(--text-body, #DCD4C3)" }}>{f.a}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
       </main>
-
-      <footer
-        style={{
-          borderTop: "1px solid var(--border-hairline)",
-          padding: "48px 0 32px",
-        }}
-        data-screen-label="footer"
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "0 clamp(20px, 5vw, 32px)",
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "12px",
-          }}
-        >
-          <span style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>
-            {isVi
-              ? "© 2026 Lá Số Việt. Nội dung tham khảo văn hoá, không thay thế tư vấn chuyên môn."
-              : "© 2026 La So Viet. Cultural reference content, not a substitute for professional consultation."}
-          </span>
-          <Link
-            href={isVi ? "/cong-cu-mien-phi" : "/en/cong-cu-mien-phi"}
-            style={{ fontSize: "12.5px", color: "var(--text-faint)", textDecoration: "none" }}
-          >
-            {isVi ? "← Tất cả công cụ miễn phí" : "← All free tools"}
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 }
-
-export default GoodDaysPreview;

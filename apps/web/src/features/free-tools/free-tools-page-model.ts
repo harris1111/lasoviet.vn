@@ -21,7 +21,10 @@ export type FreeToolKey =
   | "dream-symbols"
   | "tarot"
   | "lunar-calendar"
-  | "palmistry";
+  | "palmistry"
+  | "numerology"
+  | "love-compatibility"
+  | "daily-horoscope";
 
 export type ToolStatusKind = "preview" | "waiting" | "experimental";
 

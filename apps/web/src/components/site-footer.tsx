@@ -35,6 +35,10 @@ function footerGroups(vi: boolean): FooterGroup[] {
         [vi ? "Kinh Dịch" : "I Ching", "/kinh-dich"],
         [vi ? "Thần Số Học" : "Numerology", "/than-so-hoc"],
         [vi ? "Công cụ miễn phí" : "Free tools", "/cong-cu-mien-phi"],
+        [vi ? "Lịch Âm" : "Lunar Calendar", "/lich-am"],
+        [vi ? "Xem Ngày Tốt" : "Good Days", "/ngay-tot"],
+        [vi ? "Tra cứu Thần Số Học" : "Numerology Lookup", "/tra-cuu-than-so-hoc"],
+        [vi ? "Bói Tình Yêu" : "Love Compatibility", "/boi-tinh-yeu"],
       ],
     },
     {
