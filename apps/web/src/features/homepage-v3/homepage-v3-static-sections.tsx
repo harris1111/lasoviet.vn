@@ -82,8 +82,8 @@ export function HomepageV3Usp() {
         <h2 className="hv3-h2 hv3-h2-xl">{t("title")}</h2>
         <p className="hv3-usp-lead">{t("lead")}</p>
       </div>
-      <div className="hv3-usp-grid">
-        <article className="hv3-usp-card hv3-usp-art hv3-usp-dark" data-reveal style={{ "--i": 0 } as CSSProperties}>
+      <div className="hv3-usp-grid" role="region" aria-label={t("title")}>
+        <article className="hv3-usp-card hv3-usp-art hv3-usp-dark" aria-labelledby="hv3-usp-n1-title" data-reveal style={{ "--i": 0 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu.webp`}
@@ -99,11 +99,11 @@ export function HomepageV3Usp() {
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-archive-icon.svg", 54)}
-            <h3>{t("n1.title")}</h3>
+            <h3 id="hv3-usp-n1-title">{t("n1.title")}</h3>
             <p>{t("n1.body")}</p>
           </div>
         </article>
-        <article className="hv3-usp-card hv3-usp-art hv3-usp-paper" data-reveal style={{ "--i": 1 } as CSSProperties}>
+        <article className="hv3-usp-card hv3-usp-art hv3-usp-paper" aria-labelledby="hv3-usp-n2-title" data-reveal style={{ "--i": 1 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan.webp`}
@@ -119,19 +119,19 @@ export function HomepageV3Usp() {
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-personal-icon.svg", 54)}
-            <h3>{t("n2.title")}</h3>
+            <h3 id="hv3-usp-n2-title">{t("n2.title")}</h3>
             <p>{t("n2.body")}</p>
           </div>
         </article>
-        <article className="hv3-usp-card hv3-usp-ink" data-reveal style={{ "--i": 2 } as CSSProperties}>
+        <article className="hv3-usp-card hv3-usp-ink" aria-labelledby="hv3-usp-n3-title" data-reveal style={{ "--i": 2 } as CSSProperties}>
           {icon("lsv-usp-links-icon.svg", 62)}
-          <h3>{t("n3.title")}</h3>
+          <h3 id="hv3-usp-n3-title">{t("n3.title")}</h3>
           <p>{t("n3.body")}</p>
           <a href="#la-so-mau" className="hv3-link">{t("n3.link")}</a>
         </article>
-        <article className="hv3-usp-card hv3-usp-son" data-reveal style={{ "--i": 3 } as CSSProperties}>
+        <article className="hv3-usp-card hv3-usp-son" aria-labelledby="hv3-usp-n4-title" data-reveal style={{ "--i": 3 } as CSSProperties}>
           {icon("lsv-usp-depth-icon.svg", 62)}
-          <h3>{t("n4.title")}</h3>
+          <h3 id="hv3-usp-n4-title">{t("n4.title")}</h3>
           <p>{t("n4.body")}</p>
         </article>
       </div>

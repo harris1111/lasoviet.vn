@@ -202,7 +202,7 @@ html[data-theme="light"] .hv3-chart { --paint: url("/images/lasoviet/v10/la-so-t
   .hv3-story-panel { min-height: 560px; justify-content: center; }
   .hv3-story-art { position: absolute; inset: 0; height: auto; }
   .hv3-story-art img { object-position: 78% 50%; }
-  .hv3-story-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15, 13, 10, 0.92) 0%, rgba(15, 13, 10, 0.78) 34%, rgba(15, 13, 10, 0) 68%); }
+  .hv3-story-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15, 13, 10, 0.96) 0%, rgba(15, 13, 10, 0.92) 48%, rgba(15, 13, 10, 0.75) 64%, rgba(15, 13, 10, 0) 85%); }
   .hv3-story-copy { width: min(58%, 600px); padding: clamp(36px, 5vw, 64px); }
 }
 
@@ -378,13 +378,13 @@ html[data-theme="light"] .hv3-chart { --paint: url("/images/lasoviet/v10/la-so-t
 .hv3-usp-body { position: absolute; left: 0; right: 0; bottom: 0; padding: clamp(22px, 3.2vw, 38px); }
 .hv3-usp-dark { border-color: #685439; background: #19130e; color: #f6f1e6; }
 .hv3-usp-dark .hv3-usp-photo { opacity: 0.84; }
-.hv3-usp-dark .hv3-usp-scrim { background: linear-gradient(0deg, #100e0b 3%, rgba(16, 14, 11, 0.38) 65%, transparent); }
+.hv3-usp-dark .hv3-usp-scrim { background: linear-gradient(0deg, #100e0b 0%, rgba(16, 14, 11, 0.94) 45%, rgba(16, 14, 11, 0.6) 80%, transparent 100%); }
 .hv3-usp-dark p { color: #f3e8d3; }
 .hv3-usp-paper { border-color: #c4a879; background: #d8c6a8; color: #2b2017; }
 .hv3-usp-paper .hv3-usp-photo { opacity: 0.9; }
-.hv3-usp-paper .hv3-usp-scrim { background: linear-gradient(0deg, #f2e3cb 1%, rgba(242, 227, 203, 0.52) 61%, transparent); }
+.hv3-usp-paper .hv3-usp-scrim { background: linear-gradient(0deg, #f2e3cb 0%, rgba(242, 227, 203, 0.96) 50%, rgba(242, 227, 203, 0.72) 85%, transparent 100%); }
 .hv3-usp-paper .hv3-usp-icon { filter: brightness(0.54) saturate(1.2); }
-.hv3-usp-paper p { color: #473326; }
+.hv3-usp-paper p { color: #3a281c; }
 .hv3-usp-ink { border-color: #52513b; background: radial-gradient(circle at 88% 20%, rgba(103, 121, 79, 0.21), transparent 44%), #1b2119; color: #f6f1e6; }
 .hv3-usp-ink h3, .hv3-usp-son h3 { margin-top: 32px; }
 .hv3-usp-ink p { color: #cfcfc1; line-height: 1.65; }
@@ -498,7 +498,7 @@ html[data-theme="light"] .hv3-tt-overlay { background: rgba(46, 38, 31, 0.55); }
   .hv3-about-panel { min-height: 520px; justify-content: center; }
   .hv3-about-art { position: absolute; inset: 0; height: auto; }
   .hv3-about-art img { object-position: 50% 50%; }
-  .hv3-about-art::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 54% 72% at 46% 50%, rgba(246, 240, 228, 0.94), rgba(246, 240, 228, 0.7) 60%, rgba(246, 240, 228, 0) 100%); }
+  .hv3-about-art::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 65% 80% at 46% 50%, rgba(246, 240, 228, 0.98), rgba(246, 240, 228, 0.88) 60%, rgba(246, 240, 228, 0) 100%); }
   .hv3-about-body { width: min(60%, 640px); margin-left: clamp(24px, 15%, 200px); padding: clamp(36px, 5vw, 64px) 0; }
 }
 .hv3-final-cta { position: relative; overflow: hidden; isolation: isolate; background: #0f0d0a; }
@@ -554,6 +554,12 @@ html[data-theme="light"]:has([data-light-ready]) .footer-policy-links a, html[da
 html[data-theme="light"]:has([data-light-ready]) .footer-policy-links a:hover { color: #a8402d; }
 html[data-theme="light"]:has([data-light-ready]) .site-footer .copyright { color: #6b604f; border-top-color: #ddd2bc; }
 html[data-theme="light"]:has([data-light-ready]) .theme-toggle { color: #1d1812; border-color: #cdbb98; }
+
+/* Focus rings on interactive elements */
+.site-header a:focus-visible, .site-header button:focus-visible, .site-header summary:focus-visible, .theme-toggle:focus-visible { outline: 2px solid var(--focus, #e9c987); outline-offset: 2px; }
+html[data-theme="light"]:has([data-light-ready]) .site-header a:focus-visible, html[data-theme="light"]:has([data-light-ready]) .site-header button:focus-visible, html[data-theme="light"]:has([data-light-ready]) .site-header summary:focus-visible, html[data-theme="light"]:has([data-light-ready]) .theme-toggle:focus-visible { outline-color: #a8402d; }
+.hv3-story-panel :focus-visible, .hv3-usp-dark :focus-visible, .hv3-usp-ink :focus-visible, .hv3-usp-son :focus-visible, .hv3-final-cta :focus-visible, .hv3-inverse :focus-visible, .hv3-lacquer :focus-visible { outline-color: #e9c987 !important; }
+.hv3-about-panel :focus-visible, .hv3-usp-paper :focus-visible { outline-color: #a8402d !important; }
 
 /* Entrance: one-shot, staggered, only when motion is allowed and JS is running. */
 @media (prefers-reduced-motion: no-preference) {

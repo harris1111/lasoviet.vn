@@ -6,6 +6,7 @@ import { SiteHeader } from "../../components/site-header";
 import { buildStructuredData, StructuredDataError } from "../../seo/structured-data";
 import { getDisciplinePageProvider } from "../discipline-pages/discipline-page-provider";
 import { DisciplinePageShell } from "../discipline-pages/discipline-page-shell";
+import { DailyHoroscopePreview } from "../free-tools/daily-horoscope-preview";
 import { DreamSymbolPreview } from "../free-tools/dream-symbol-preview";
 import { FengShuiPreview } from "../free-tools/feng-shui-preview";
 import { FreeToolsHub } from "../free-tools/free-tools-hub";
@@ -13,7 +14,9 @@ import type { FreeToolKey } from "../free-tools/free-tools-page-model";
 import { getFreeToolsPageProvider } from "../free-tools/free-tools-page-provider";
 import { GatedToolPreview, type GatedToolKind } from "../free-tools/gated-tool-preview";
 import { GoodDaysPreview } from "../free-tools/good-days-preview";
+import { LoveCompatibilityPreview } from "../free-tools/love-compatibility-preview";
 import { LunarCalendarPreview } from "../free-tools/lunar-calendar-preview";
+import { NumerologyPreview } from "../free-tools/numerology-preview";
 import { TarotPreview } from "../free-tools/tarot-preview";
 import { ZodiacPreview } from "../free-tools/zodiac-preview";
 import { CommercialTopicPage } from "./commercial-topic-page";
@@ -276,6 +279,12 @@ function UtilityToolDispatcher({
       return <TarotPreview locale={locale} />;
     case "lunar-calendar":
       return <LunarCalendarPreview locale={locale} />;
+    case "numerology":
+      return <NumerologyPreview locale={locale} />;
+    case "love-compatibility":
+      return <LoveCompatibilityPreview locale={locale} />;
+    case "daily-horoscope":
+      return <DailyHoroscopePreview locale={locale} />;
     default:
       return null;
   }
