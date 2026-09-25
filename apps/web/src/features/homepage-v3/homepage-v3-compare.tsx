@@ -24,22 +24,22 @@ export function HomepageV3Compare() {
         <p className="hv3-lead">{t("lead")}</p>
       </div>
 
-      <table className="hv3-compare-table">
+      <table className="hv3-compare-table" role="table">
         <caption className="hv3-sr">{t("tableLabel")}</caption>
-        <thead>
-          <tr>
-            <td />
+        <thead role="rowgroup">
+          <tr role="row">
+            <td role="cell" />
             {COLUMNS.map((column) => (
-              <th key={column} scope="col" data-col={column}>{t(COLUMN_TITLE[column])}</th>
+              <th key={column} role="columnheader" scope="col" data-col={column}>{t(COLUMN_TITLE[column])}</th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody role="rowgroup">
           {COMPARE_ROW_IDS.map((id) => (
-            <tr key={id}>
-              <th scope="row">{t(`rows.${id}.k`)}</th>
+            <tr key={id} role="row">
+              <th role="rowheader" scope="row">{t(`rows.${id}.k`)}</th>
               {COLUMNS.map((column) => (
-                <td key={column} data-col={column}>
+                <td key={column} role="cell" data-col={column}>
                   <span aria-hidden="true" className="hv3-cmp-mark" data-strength={id === strengthRow} data-lsv={column === "lsv"}>
                     {column === "lsv" ? "✓" : id === strengthRow ? "✦" : "−"}
                   </span>
@@ -49,11 +49,11 @@ export function HomepageV3Compare() {
             </tr>
           ))}
         </tbody>
-        <tfoot>
-          <tr>
-            <td />
-            <td data-col="lsv"><HomepageV3GoWizard className="hv3-link">{t("ctaDesktop")}</HomepageV3GoWizard></td>
-            <td /><td /><td />
+        <tfoot role="rowgroup">
+          <tr role="row">
+            <td role="cell" />
+            <td role="cell" data-col="lsv"><HomepageV3GoWizard className="hv3-link">{t("ctaDesktop")}</HomepageV3GoWizard></td>
+            <td role="cell" /><td role="cell" /><td role="cell" />
           </tr>
         </tfoot>
       </table>

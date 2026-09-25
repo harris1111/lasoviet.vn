@@ -196,9 +196,69 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
               </div>
             </div>
             <div className="hv3-date-grid">
-              <input id="hv3-day" aria-label={t("day")} aria-invalid={Boolean(errors.date)} inputMode="numeric" autoComplete="off" maxLength={2} placeholder={t("day")} value={values.day} onChange={(e) => patch({ day: digits(e.target.value, 2) })} className="hv3-input hv3-center" />
-              <input aria-label={t("month")} aria-invalid={Boolean(errors.date)} inputMode="numeric" autoComplete="off" maxLength={2} placeholder={t("month")} value={values.month} onChange={(e) => patch({ month: digits(e.target.value, 2) })} className="hv3-input hv3-center" />
-              <input aria-label={t("year")} aria-invalid={Boolean(errors.date)} inputMode="numeric" autoComplete="off" maxLength={4} placeholder={t("year")} value={values.year} onChange={(e) => patch({ year: digits(e.target.value, 4) })} className="hv3-input hv3-center" />
+              <input
+                id="hv3-day"
+                aria-label={t("day")}
+                aria-invalid={Boolean(errors.date)}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="off"
+                maxLength={2}
+                placeholder={t("day")}
+                value={values.day}
+                onChange={(e) => {
+                  const val = digits(e.target.value, 2);
+                  patch({ day: val });
+                  if (val.length === 2) {
+                    const monthInput = document.getElementById("hv3-month");
+                    monthInput?.focus();
+                  }
+                }}
+                className="hv3-input hv3-center"
+              />
+              <input
+                id="hv3-month"
+                aria-label={t("month")}
+                aria-invalid={Boolean(errors.date)}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="off"
+                maxLength={2}
+                placeholder={t("month")}
+                value={values.month}
+                onChange={(e) => {
+                  const val = digits(e.target.value, 2);
+                  patch({ month: val });
+                  if (val.length === 2) {
+                    const yearInput = document.getElementById("hv3-year");
+                    yearInput?.focus();
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace" && !values.month) {
+                    document.getElementById("hv3-day")?.focus();
+                  }
+                }}
+                className="hv3-input hv3-center"
+              />
+              <input
+                id="hv3-year"
+                aria-label={t("year")}
+                aria-invalid={Boolean(errors.date)}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="off"
+                maxLength={4}
+                placeholder={t("year")}
+                value={values.year}
+                onChange={(e) => patch({ year: digits(e.target.value, 4) })}
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace" && !values.year) {
+                    document.getElementById("hv3-month")?.focus();
+                  }
+                }}
+                className="hv3-input hv3-center"
+              />
             </div>
             {values.calendarType === "lunar" ? (
               <label className="hv3-check">
@@ -218,10 +278,45 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
             {values.timeMode === "exact_minute" ? (
               <div className="hv3-time-row">
                 <label htmlFor="hv3-hour" className="hv3-sr">{t("hourSr")}</label>
-                <input id="hv3-hour" inputMode="numeric" autoComplete="off" maxLength={2} placeholder="HH" disabled={timeDisabled} aria-invalid={Boolean(errors.time)} value={values.hour} onChange={(e) => patch({ hour: digits(e.target.value, 2) })} className="hv3-input hv3-center hv3-time-input" />
+                <input
+                  id="hv3-hour"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  maxLength={2}
+                  placeholder="HH"
+                  disabled={timeDisabled}
+                  aria-invalid={Boolean(errors.time)}
+                  value={values.hour}
+                  onChange={(e) => {
+                    const val = digits(e.target.value, 2);
+                    patch({ hour: val });
+                    if (val.length === 2) {
+                      document.getElementById("hv3-minute")?.focus();
+                    }
+                  }}
+                  className="hv3-input hv3-center hv3-time-input"
+                />
                 <span aria-hidden="true" className="hv3-colon">:</span>
                 <label htmlFor="hv3-minute" className="hv3-sr">{t("minuteSr")}</label>
-                <input id="hv3-minute" inputMode="numeric" autoComplete="off" maxLength={2} placeholder="MM" disabled={timeDisabled} aria-invalid={Boolean(errors.time)} value={values.minute} onChange={(e) => patch({ minute: digits(e.target.value, 2) })} className="hv3-input hv3-center hv3-time-input" />
+                <input
+                  id="hv3-minute"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  maxLength={2}
+                  placeholder="MM"
+                  disabled={timeDisabled}
+                  aria-invalid={Boolean(errors.time)}
+                  value={values.minute}
+                  onChange={(e) => patch({ minute: digits(e.target.value, 2) })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Backspace" && !values.minute) {
+                      document.getElementById("hv3-hour")?.focus();
+                    }
+                  }}
+                  className="hv3-input hv3-center hv3-time-input"
+                />
               </div>
             ) : (
               <>
@@ -282,7 +377,7 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
           <div className="hv3-folio-path" aria-hidden="true" />
           <div className="hv3-folio-paper" style={{ "--lens-angle": `${lensIndex * 58}deg` } as CSSProperties}>
             <span className="hv3-folio-title">{folioTitle}</span>
-            <span className="hv3-folio-detail" aria-live="polite">{folioTime}</span>
+            <span className="hv3-folio-detail" aria-live="polite" aria-atomic="true">{folioTime}</span>
             <div className="hv3-folio-lenses" role="group" aria-label={t("lensesLabel")}>
               {HERO_LENSES.map((lens) => (
                 <button key={lens.id} type="button" aria-pressed={values.topConcern === lens.concern} onClick={() => patchKeepErrors({ topConcern: values.topConcern === lens.concern ? null : lens.concern })}>
