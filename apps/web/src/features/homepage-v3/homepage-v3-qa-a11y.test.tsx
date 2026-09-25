@@ -89,10 +89,13 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
   });
 
   it("Requirement 3: VoiceOver and TalkBack semantics — live region, table semantics, hero art group, and USP cards", () => {
-    // 3a. Hero art group and atomic live region for time
+    // 3a. Hero chart is one labelled image; the date/name/branch text overlaid on it is decorative (aria-hidden)
+    // and there is no live region, so nothing is announced on every keystroke.
     const heroHtml = renderToStaticMarkup(createElement(HomepageV3Hero, { locale: "vi" }));
-    expect(heroHtml).toContain('role="group" aria-label="Mệnh thư tương tác cùng thông tin ngày giờ sinh"');
-    expect(heroHtml).toContain('class="hv3-folio-detail" aria-live="polite" aria-atomic="true"');
+    expect(heroHtml).toContain('role="img" aria-label="Lá số của bạn"');
+    expect(heroHtml).toContain('class="hv3-chart-center" aria-hidden="true"');
+    expect(heroHtml).not.toContain("aria-live");
+    expect(heroHtml).not.toContain("hv3-folio");
 
     // 3b. Comparison table semantics on desktop
     const compareHtml = renderToStaticMarkup(createElement(HomepageV3Compare));
@@ -131,14 +134,15 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
 
     // Focus rings
     expect(css).toContain(".site-header a:focus-visible");
-    expect(css).toContain(".hv3-folio-lenses button:focus-visible");
+    expect(css).toContain(".hv3 :focus-visible");
+    expect(css).toContain(".hv3-chart-toggle");
     expect(css).toContain(".hv3-story-panel :focus-visible");
     expect(css).toContain(".hv3-about-panel :focus-visible");
 
     // 1 & 5. 320px containment and reduced motion
     expect(css).toContain("@media (max-width: 767px)");
-    expect(css).toContain(".hv3-folio-lenses button { flex: 1 1 0; min-width: 0; min-height: 38px; font-size: clamp(9px, 2.6vw, 12px)");
+    expect(css).toContain(".hv3-hero-inner { flex-direction: column; flex-wrap: nowrap;");
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
-    expect(css).toContain(".hv3-ticker { animation: none;");
+    expect(css).toContain(".hv3-marquee-track { animation: none;");
   });
 });

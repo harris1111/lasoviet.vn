@@ -36,29 +36,16 @@
       "branch": "Choose a birth time range.",
       "gender": "Choose Male or Female.",
       "storage": "Your browser could not save the details. Enable site storage and try again."
-    },
-    "chartAria": "Interactive story book with your birth date and time",
-    "folioTitleNamed": "{name}'s story",
-    "folioTitleAnon": "A story of your own",
-    "folioDateEmpty": "Your birth date",
-    "folioTimeEmpty": "Every story has a moment it begins",
-    "folioTimeUnknown": "You can add your birth time later",
-    "folioTimeBranch": "Hour of {name}",
-    "lensesLabel": "What you want to explore",
-    "lens": {
-      "self": {
-        "label": "Yourself",
-        "prompt": "Look back at what shapes how you walk through every change."
-      },
-      "career": {
-        "label": "Work",
-        "prompt": "What about your work makes you want to find another way?"
-      },
-      "love": {
-        "label": "Love",
-        "prompt": "Is there a relationship you want to understand better?"
-      }
     }
+  },
+  "heroChart": {
+    "chartAria": "Your chart",
+    "birthHour": "birth hour",
+    "lunar": "(lunar)",
+    "lunarLeap": "(lunar, leap)",
+    "hourOf": "hour of {name}",
+    "open": "See your chart take shape",
+    "close": "Collapse chart"
   },
   "story": {
     "title": "Some questions keep following you.",
@@ -287,6 +274,33 @@
         "thay": "Asking more usually means another session and more cost."
       }
     }
+  },
+  "testimonials": {
+    "eyebrow": "Reader notes",
+    "titleA": "What stays with you",
+    "titleB": "after a chart.",
+    "lead": "Everyone arrives with a different question. This is what they took away after reading.",
+    "readFull": "Read in full ↗",
+    "readFullAria": "Read the full note from {name}",
+    "more": "More views from readers ↓",
+    "less": "Show fewer notes ↑",
+    "start": "Start with your own chart ↗",
+    "filterLabel": "Filter reader notes",
+    "filterAll": "All",
+    "group": {
+      "self": "Understanding yourself",
+      "work": "Work and timing",
+      "method": "How it is read",
+      "reading": "The reading experience"
+    },
+    "label13": "Relief when reading for my children",
+    "label12": "Palaces read together",
+    "label09": "Deep, yet easy to follow",
+    "label01": "Clear reasoning",
+    "prev": "Previous note",
+    "next": "Next note",
+    "close": "Close",
+    "dialogEyebrow": "Reader note"
   },
   "usp": {
     "title": "The closer you look, the more you see your own story.",

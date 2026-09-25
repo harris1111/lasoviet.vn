@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 
 import { localizedPath } from "../homepage/homepage-utilities";
 import { HomepageV3GoWizard } from "./homepage-v3-go-wizard";
+import { HomepageV3Marquee } from "./homepage-v3-marquee";
 import { HOMEPAGE_V3_IMAGE_ROOT, LA_PACKS } from "./homepage-v3-data";
 
 type Locale = "en" | "vi";
@@ -56,18 +57,10 @@ const TICKER_B = [
 export function HomepageV3Ticker() {
   const t = useTranslations("homepage-v3.ticker");
   const lane = (items: ReadonlyArray<{ key: string; href: string }>, reverse: boolean) => (
-    <div className={reverse ? "hv3-ticker hv3-ticker-reverse" : "hv3-ticker"}>
-      <div className="hv3-ticker-group">
-        {items.map((item) => (
-          <a key={item.key} href={item.href}>{t(item.key)} ↗</a>
-        ))}
-      </div>
-      <div className="hv3-ticker-group" aria-hidden="true">
-        {items.map((item) => (
-          <span key={item.key}>{t(item.key)} ↗</span>
-        ))}
-      </div>
-    </div>
+    <HomepageV3Marquee
+      reverse={reverse}
+      items={items.map((item) => ({ text: `${t(item.key)} ↗`, href: item.href }))}
+    />
   );
   return (
     <div aria-label={t("label")} role="region" className="hv3-ticker-region">
@@ -218,11 +211,7 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
         </div>
       </div>
       <div id="cta-cuoi" className="hv3-final-cta">
-        <picture className="hv3-final-cta-bg">
-          <source media="(max-width: 767px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-h04-cta-mobile.webp`} />
-          { }
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-h04-cta.webp`} alt="" width={2048} height={768} loading="lazy" decoding="async" />
-        </picture>
+        <div className="hv3-final-cta-bg" aria-hidden="true" />
         <div className="hv3-final-cta-inner">
           <p>{t("ctaTitle")}</p>
           <HomepageV3GoWizard className="hv3-btn hv3-btn-lg">{t("cta")}</HomepageV3GoWizard>

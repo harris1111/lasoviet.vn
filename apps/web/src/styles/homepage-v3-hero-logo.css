@@ -1,0 +1,61 @@
+.lsv-hero-center-logo {
+  --logo-ink: #c9a44d;
+  --ring: .18;
+  --crown: 0;
+  --vee: 0;
+  --detail-opacity: 0;
+  display: grid;
+  place-items: center;
+  width: clamp(52px, 42%, 116px);
+  aspect-ratio: 1;
+  margin: auto;
+  color: var(--logo-ink);
+  pointer-events: none;
+  user-select: none;
+  isolation: isolate;
+}
+.lsv-hero-center-logo[data-logo-stage="date"] {
+  --ring: .66;
+  --crown: .32;
+}
+.lsv-hero-center-logo[data-logo-stage="time"] {
+  --ring: 1;
+  --crown: 1;
+  --vee: .72;
+}
+.lsv-hero-center-logo[data-logo-stage="complete"] {
+  --ring: 1;
+  --crown: 1;
+  --vee: 1;
+  --detail-opacity: 1;
+}
+.lsv-hero-center-logo__svg { width: 100%; height: 100%; overflow: visible; }
+.lsv-hero-center-logo__ghost { opacity: .13; }
+.lsv-hero-center-logo__line { opacity: .86; }
+.lsv-hero-center-logo__ring,
+.lsv-hero-center-logo__crown,
+.lsv-hero-center-logo__v {
+  stroke-dasharray: 1;
+  transition: stroke-dashoffset 560ms cubic-bezier(.2,.7,.2,1);
+}
+.lsv-hero-center-logo__ring { stroke-dashoffset: calc(1 - var(--ring)); }
+.lsv-hero-center-logo__crown { stroke-dashoffset: calc(1 - var(--crown)); }
+.lsv-hero-center-logo__v { stroke-dashoffset: calc(1 - var(--vee)); }
+.lsv-hero-center-logo__details,
+.lsv-hero-center-logo__cinnabar {
+  opacity: var(--detail-opacity);
+  transition: opacity 440ms ease;
+}
+.lsv-hero-center-logo[data-logo-stage="complete"] .lsv-hero-center-logo__svg {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--logo-ink), transparent 66%));
+}
+/* Set this on the real light-theme chart container; do not invert the SVG. */
+[data-theme="light"] .lsv-hero-center-logo,
+.theme-light .lsv-hero-center-logo { --logo-ink: #78551d; }
+@media (prefers-reduced-motion: reduce) {
+  .lsv-hero-center-logo__ring,
+  .lsv-hero-center-logo__crown,
+  .lsv-hero-center-logo__v,
+  .lsv-hero-center-logo__details,
+  .lsv-hero-center-logo__cinnabar { transition: none; }
+}
