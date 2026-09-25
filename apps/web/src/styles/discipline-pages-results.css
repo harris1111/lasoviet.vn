@@ -1813,4 +1813,35 @@
   place-content: center;
 }
 
+/* ==========================================================================
+   Light Theme Discipline Results Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] .discipline-result-frame {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .discipline-disclosure-badge,
+html[data-theme="light"] .discipline-backend-provenance {
+  background: var(--paper-100);
+  border-color: var(--paper-300);
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .decade.today-forecast-card {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .chart-pill-btn {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .chart-pill-btn:hover:not(:disabled) {
+  background: var(--paper-200);
+  color: var(--ink-900);
+}
+
 

@@ -18,7 +18,7 @@ export default async function TopUpPage({
   const locale = requestedLocale === "en" ? "en" : "vi";
 
   return (
-    <main className="topic-page">
+    <main className="topic-page" data-light-ready>
       <div className="container">
         <PaidTopicSelector
           locale={locale}

@@ -133,6 +133,179 @@ h1 { max-width: 700px; margin: 20px 0 0; font-size: 64px; line-height: 1.06; let
 .report-progress-spinner { width: 32px; height: 32px; border: 3px solid var(--lacquer-line); border-top-color: var(--gold-500); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
 .report-progress-notice { margin: 16px 0 20px; padding: 14px 16px; border: 1px solid var(--lacquer-line); border-radius: var(--radius-small); background: var(--lacquer-800); text-align: left; }
 .notice-highlight { color: var(--gold-400); font-weight: 600; font-size: 14px; margin: 0 0 6px; }
+
+/* ==========================================================================
+   Light Theme System Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="light"]:has([data-light-ready]) {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"]:has([data-light-ready]) body {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .result-page,
+html[data-theme="light"] .topic-page,
+html[data-theme="light"] .content-page,
+html[data-theme="light"] .sample-report-page,
+html[data-theme="light"] .vietqr-checkout-page,
+html[data-theme="light"] .account-desk-page,
+html[data-theme="light"] .admin-overview {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .button-secondary {
+  border: 1px solid var(--paper-300);
+  background: var(--paper-50);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .button-secondary:hover {
+  border-color: var(--gold-800);
+  color: var(--gold-800);
+}
+
+html[data-theme="light"] .result-paid-report-cta,
+html[data-theme="light"] .result-summary-card,
+html[data-theme="light"] .paid-topic-offer,
+html[data-theme="light"] .discipline-card,
+html[data-theme="light"] .topic-card,
+html[data-theme="light"] .identity-insight-card,
+html[data-theme="light"] .signal-card,
+html[data-theme="light"] .content-list article,
+html[data-theme="light"] .commercial-offer,
+html[data-theme="light"] .report-progress-card {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .topic-card-active,
+html[data-theme="light"] .discipline-card.status-available {
+  border-color: var(--gold-800);
+  background: #fffcf7;
+}
+
+html[data-theme="light"] .ziwei-traditional-board {
+  background: var(--paper-200);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .ziwei-palace {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .ziwei-palace:hover {
+  background: #ffffff;
+  border-color: var(--gold-800);
+}
+
+html[data-theme="light"] .ziwei-palace.is-selected {
+  border-color: #b8472f;
+  background: #fbe6dd;
+  box-shadow: inset 0 0 0 1px #b8472f;
+}
+
+html[data-theme="light"] .ziwei-palace.relation-opposite {
+  border-color: #8a6a26;
+  background: #f6eedb;
+}
+
+html[data-theme="light"] .ziwei-palace.relation-trine {
+  border-color: #d08a74;
+  background: #f8ede4;
+}
+
+html[data-theme="light"] .palace-title,
+html[data-theme="light"] .inspector-title,
+html[data-theme="light"] .relation-palace-name,
+html[data-theme="light"] .topic-title-group h3,
+html[data-theme="light"] .insight-card-title,
+html[data-theme="light"] .signal-card h3,
+html[data-theme="light"] .content-article h1,
+html[data-theme="light"] .content-article h2,
+html[data-theme="light"] .content-hero h1,
+html[data-theme="light"] .result-hero h1,
+html[data-theme="light"] .paid-topic-selector h1,
+html[data-theme="light"] .account-title {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .major-row .star-name {
+  color: #8f3423;
+  font-weight: 600;
+}
+
+html[data-theme="light"] .star-brightness,
+html[data-theme="light"] .center-birth-data,
+html[data-theme="light"] .inspector-domain,
+html[data-theme="light"] .inspector-footnote,
+html[data-theme="light"] .card-desc,
+html[data-theme="light"] .topic-price-note,
+html[data-theme="light"] .topic-summary-prose,
+html[data-theme="light"] .identity-preview-subtitle,
+html[data-theme="light"] .insight-card-prose,
+html[data-theme="light"] .signal-prose,
+html[data-theme="light"] .result-paid-report-body,
+html[data-theme="light"] .result-privacy-note,
+html[data-theme="light"] .content-summary,
+html[data-theme="light"] .content-article p,
+html[data-theme="light"] .content-article footer {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .center-birth-card,
+html[data-theme="light"] .inspector-card,
+html[data-theme="light"] .report-progress-notice {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .inspector-chip {
+  background: var(--paper-100);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .tag-opposite {
+  background: #f6eedb;
+  color: #755718;
+  border-color: #8a6a26;
+}
+
+html[data-theme="light"] .tag-trine {
+  background: #f8ede4;
+  color: #8f3423;
+  border-color: #d08a74;
+}
+
+html[data-theme="light"] .result-tab-bar-container {
+  background: var(--paper-100);
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .result-tab-button {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .result-tab-button:hover {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .result-tab-button.is-active {
+  color: #8f3423;
+  border-bottom-color: #8f3423;
+}
 .report-progress-notice .report-progress-message { margin-bottom: 0; font-size: 14px; }
 .report-failed-facts { margin: 20px 0; border-top: 1px solid var(--lacquer-line); border-bottom: 1px solid var(--lacquer-line); text-align: left; }
 .report-fact-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }

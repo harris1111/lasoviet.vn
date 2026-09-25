@@ -86,7 +86,7 @@ export function ReportProgress({ locale, view }: ReportProgressProps) {
     const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
 
     return (
-      <main className="topic-page report-recovery-page">
+      <main className="topic-page report-recovery-page" data-light-ready>
         <section className="container paid-topic-selector">
           <div role="alert" className="report-progress-card report-progress-failed">
             <p className="eyebrow">{t("progress.failed_eyebrow")}</p>
@@ -146,7 +146,7 @@ export function ReportProgress({ locale, view }: ReportProgressProps) {
   const libraryPath = isVi ? "/tai-khoan/bao-cao" : "/en/tai-khoan/bao-cao";
 
   return (
-    <main className="topic-page report-progress-page">
+    <main className="topic-page report-progress-page" data-light-ready>
       <section className="container paid-topic-selector">
         <div role="status" aria-live="polite" className="report-progress-card report-progress-pending">
           <p className="eyebrow">{t("progress.pending_eyebrow")}</p>

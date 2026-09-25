@@ -83,7 +83,7 @@ export function ZiweiAnnualTab({
           {t("annual.legendWarn")}
         </span>
         <span>
-          <i style={{ background: "#4F7A68" }} />
+          <i style={{ background: "var(--discipline-jade, #4F7A68)" }} />
           {t("annual.legendGood")}
         </span>
         <span>

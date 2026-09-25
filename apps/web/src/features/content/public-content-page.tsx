@@ -313,7 +313,7 @@ export function PublicContentPage(props: PublicContentPageProps) {
     });
     if (disciplineModel) {
       return (
-        <div className="public-content">
+        <div className="public-content" data-light-ready>
           <DisciplinePageShell model={disciplineModel} />
           <StructuredData content={props.content} route={props.route} />
         </div>
@@ -328,7 +328,7 @@ export function PublicContentPage(props: PublicContentPageProps) {
     });
     if (freeToolsModel && freeToolsModel.kind === "hub") {
       return (
-        <div className="public-content">
+        <div className="public-content" data-light-ready>
           <FreeToolsHub model={freeToolsModel} />
           <StructuredData content={props.content} route={props.route} />
         </div>
@@ -343,7 +343,7 @@ export function PublicContentPage(props: PublicContentPageProps) {
     });
     if (freeToolsModel && freeToolsModel.kind === "utility-preview") {
       return (
-        <div className="public-content">
+        <div className="public-content" data-light-ready>
           <UtilityToolDispatcher toolKey={freeToolsModel.toolKey} locale={props.locale} />
           <StructuredData content={props.content} route={props.route} />
         </div>
@@ -359,7 +359,7 @@ export function PublicContentPage(props: PublicContentPageProps) {
     if (freeToolsModel) {
       if (freeToolsModel.kind === "flagship-preview") {
         return (
-          <div className="public-content">
+          <div className="public-content" data-light-ready>
             <FengShuiPreview locale={props.locale} />
             <StructuredData content={props.content} route={props.route} />
           </div>
@@ -367,7 +367,7 @@ export function PublicContentPage(props: PublicContentPageProps) {
       }
       if (freeToolsModel.kind === "gated-preview") {
         return (
-          <div className="public-content">
+          <div className="public-content" data-light-ready>
             <GatedToolPreview kind="xem-chi-tay" locale={props.locale} />
             <StructuredData content={props.content} route={props.route} />
           </div>
@@ -462,7 +462,7 @@ export function PublicContentPage(props: PublicContentPageProps) {
   const currentPath = props.locale === "en" ? `/en${props.route.path}` : props.route.path;
 
   return (
-    <div className="public-content">
+    <div className="public-content" data-light-ready>
       <SiteHeader locale={props.locale} currentPath={currentPath} />
       {template}
       <SiteFooter locale={props.locale} />

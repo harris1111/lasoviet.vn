@@ -270,7 +270,7 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
   }, [report.provenance.createdAt, locale]);
 
   return (
-    <div className={`report-reader-root ${FONT_CLASSES[fontIdx]}`}>
+    <div className={`report-reader-root ${FONT_CLASSES[fontIdx]}`} data-light-ready>
       <a href="#main" className="skip-link">
         {t("reader.skip_to_main")}
       </a>

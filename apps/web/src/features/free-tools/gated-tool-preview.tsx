@@ -117,13 +117,13 @@ export function GatedToolPreview({ kind, locale, className }: GatedToolPreviewPr
           {isVi ? "Lá Số Việt" : "La So Viet"}
         </Link>
         <nav style={{ display: "flex", gap: "24px", fontSize: "14px", flexWrap: "wrap" }}>
-          <Link href={homeHref} style={{ color: "#DCD4C3", textDecoration: "none" }}>
+          <Link href={homeHref} style={{ color: "var(--text-body, #DCD4C3)", textDecoration: "none" }}>
             {isVi ? "Trang chủ" : "Home"}
           </Link>
-          <Link href={tuviHref} style={{ color: "#DCD4C3", textDecoration: "none" }}>
+          <Link href={tuviHref} style={{ color: "var(--text-body, #DCD4C3)", textDecoration: "none" }}>
             {isVi ? "Tử Vi" : "Zi Wei"}
           </Link>
-          <Link href={kienthucHref} style={{ color: "#DCD4C3", textDecoration: "none" }}>
+          <Link href={kienthucHref} style={{ color: "var(--text-body, #DCD4C3)", textDecoration: "none" }}>
             {isVi ? "Kiến thức" : "Knowledge"}
           </Link>
           <Link

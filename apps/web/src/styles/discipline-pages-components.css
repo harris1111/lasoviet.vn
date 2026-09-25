@@ -556,3 +556,41 @@
   }
 }
 
+/* ==========================================================================
+   Light Theme Discipline Components Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] .discipline-calculator-card {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .discipline-framework-card {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .discipline-faq-item {
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .discipline-faq-question {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .discipline-faq-answer {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .tool-cross-sell-banner {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .tool-cross-sell-title {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .tool-cross-sell-explanation {
+  color: var(--ink-600);
+}
+

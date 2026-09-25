@@ -91,7 +91,7 @@ export function KnowledgeArticle({
     : [];
 
   return (
-    <main className="content-page">
+    <main className="content-page" data-light-ready>
       <article className="knowledge-article-page container">
         {/* Breadcrumb Navigation */}
         <Breadcrumb items={breadcrumbs} locale={locale} />

@@ -511,3 +511,83 @@
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   Light Theme Pricing & Top-Up Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] .pricing-page-container {
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .c-head h1,
+html[data-theme="light"] .pack-title,
+html[data-theme="light"] .membership-name,
+html[data-theme="light"] .faq-box summary {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .c-head p,
+html[data-theme="light"] .pack-la-sub,
+html[data-theme="light"] .membership-period,
+html[data-theme="light"] .faq-box p {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .balance-pill {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .balance-pill b {
+  color: var(--gold-800);
+}
+
+html[data-theme="light"] .seg3 {
+  background: var(--paper-200);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .seg3-btn {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .seg3-btn[aria-selected="true"] {
+  background: var(--paper-50);
+  color: var(--ink-900);
+  box-shadow: 0 1px 3px rgba(20, 38, 61, 0.1);
+}
+
+html[data-theme="light"] .pack-card,
+html[data-theme="light"] .membership-card,
+html[data-theme="light"] .faq-box {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .pack-card.pack-card-featured,
+html[data-theme="light"] .membership-card.membership-card-popular {
+  border-color: var(--gold-800);
+  background: #fffcf7;
+}
+
+html[data-theme="light"] .pack-price,
+html[data-theme="light"] .membership-price {
+  color: var(--gold-800);
+}
+
+html[data-theme="light"] .pack-la b,
+html[data-theme="light"] .membership-hero-la {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .dialog-sheet {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .paybar {
+  background: var(--paper-50);
+  border-top-color: var(--paper-300);
+}

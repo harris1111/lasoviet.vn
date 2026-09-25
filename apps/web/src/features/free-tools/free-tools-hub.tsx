@@ -103,6 +103,7 @@ export function FreeToolsHub({ model }: FreeToolsHubProps) {
     <div
       className="free-tools-hub-root"
       data-screen-label="cong-cu-mien-phi"
+      data-light-ready
       style={{
         fontFamily: "var(--font-ui)",
         color: "var(--text-body)",
