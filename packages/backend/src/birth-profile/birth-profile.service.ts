@@ -162,7 +162,7 @@ function timeLimitations(input: BirthProfileV1): string[] {
         ? ["TIME_RANGE_WITHIN_SINGLE_BRANCH"]
         : ["TIME_RANGE_CROSSES_BRANCHES"];
     case "unknown":
-      return ["TIME_UNKNOWN"];
+      return ["TIME_UNKNOWN", "BIRTH_TIME_UNKNOWN_PROVISIONAL"];
     case "exact_minute":
       return [];
   }
@@ -257,7 +257,12 @@ function ziweiEligibility(
 ): ZiweiEligibilityV1 {
   const result = resolveZiweiTimeIndex(normalized);
   if (result.ok) {
-    return { version: 1, eligible: true, timeIndex: result.value };
+    return {
+      version: 1,
+      eligible: true,
+      timeIndex: result.value,
+      ...(result.provisional ? { provisional: true } : {}),
+    };
   }
   if (
     result.error.code === "TIME_UNKNOWN" ||

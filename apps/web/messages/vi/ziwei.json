@@ -112,5 +112,12 @@
     "mobileBottomTitle": "Lá số mẫu Tử Vi",
     "mobileBottomSubtitle": "Nữ · 15/06/1992",
     "mobileBottomCta": "Lập lá số của bạn"
+  },
+  "provisional": {
+    "badge": "Lá số tạm tính",
+    "bannerTitle": "Lá số tạm tính (Chưa rõ giờ sinh)",
+    "bannerDescription": "Lá số được an theo mốc tham chiếu giờ Ngọ (11:00 - 13:00). Các vị trí Cung Mệnh, Cung Thân, 12 cung vị và Đại Vận phụ thuộc vào giờ sinh nên chỉ mang tính tham khảo tạm tính. Bạn có thể bổ sung giờ sinh bất kỳ lúc nào để lá số đạt độ chính xác đầy đủ.",
+    "actionAddTime": "Bổ sung giờ sinh",
+    "insightsDisclaimer": "Lưu ý: Nhận định dưới đây mang tính chất tham chiếu tạm tính do chưa rõ giờ sinh chính xác."
   }
 }

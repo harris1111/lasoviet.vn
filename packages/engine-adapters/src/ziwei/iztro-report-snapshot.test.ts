@@ -458,7 +458,7 @@ describe("calculateIztroReportSnapshot", () => {
     }
   });
 
-  it("rejects profiles with unknown time precision", async () => {
+  it("accepts profiles with unknown time precision and generates provisional snapshot (FD-103)", async () => {
     const profile = createProfile({ timePrecision: "unknown" });
     const result = await calculateIztroReportSnapshot({
       chartVersionId: "chart-unknown-time",
@@ -467,9 +467,10 @@ describe("calculateIztroReportSnapshot", () => {
       targetYear: 2026,
     });
 
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.error.code).toBe("ENGINE_INPUT_INVALID");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.chartVersionId).toBe("chart-unknown-time");
+    expect(result.value.sensitivity.sensitiveFacts.length).toBeGreaterThan(0);
   });
 
   it("rejects unsupported engine configuration", async () => {

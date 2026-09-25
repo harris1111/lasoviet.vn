@@ -1051,6 +1051,19 @@ describe("WP-11 unknown birth time UX flow (TDD focused acceptance)", () => {
       revisionId: "rev-branch-789",
     });
 
+    // Provisional unknown time (FD-103) is eligible and leads to calculation
+    const provisionalSaveResult = {
+      ok: true,
+      value: {
+        revisionId: "rev-provisional-999",
+        ziweiEligibility: { eligible: true, provisional: true },
+      },
+    };
+    expect(decideProfileSubmitOutcome(provisionalSaveResult)).toEqual({
+      kind: "CALCULATE_CHART",
+      revisionId: "rev-provisional-999",
+    });
+
     // Failed save returns error and does NOT transition to saved state or calculation
     const failedSaveResult = {
       ok: false,

@@ -109,7 +109,8 @@ export function iztroTimeIndex(
     case "range":
       return exactMinuteIndex(profile.normalizedTime.startLocalTime);
     case "unknown":
-      return undefined;
+      // FD-103: Documented fallback midday hour index 6 (11:00-13:00, Giờ Ngọ)
+      return 6;
   }
 }
 
@@ -183,6 +184,13 @@ export class IztroAdapter implements ZiweiEngine {
       return { result: failure("ENGINE_UNAVAILABLE"), rawSnapshot: null };
     }
     try {
+      const isProvisional = profile.normalizedTime.precision === "unknown";
+      const limitations = [
+        "IZTRO_NO_NATIVE_LOCATION_INPUT",
+        "IZTRO_NO_NATIVE_TIMEZONE_INPUT",
+        "IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION",
+        ...(isProvisional ? ["BIRTH_TIME_UNKNOWN_PROVISIONAL"] : []),
+      ];
       const provenance: CalculationProvenanceV1 = {
         version: 1,
         engineId: "ziwei.iztro",
@@ -195,11 +203,7 @@ export class IztroAdapter implements ZiweiEngine {
         configHash: hash(config),
         rawSnapshotHash: hash(rawSnapshot),
         calculatedAt: new Date().toISOString().replace("Z", "+00:00"),
-        limitations: [
-          "IZTRO_NO_NATIVE_LOCATION_INPUT",
-          "IZTRO_NO_NATIVE_TIMEZONE_INPUT",
-          "IZTRO_NO_TRUE_SOLAR_TIME_CORRECTION",
-        ],
+        limitations,
       };
       const output = this.normalize(
         rawSnapshot as unknown as RawIztroAstrolabe,

@@ -342,6 +342,56 @@ describe("Mobile tab edge fade & modal exclusivity contract", () => {
   });
 });
 
+describe("Provisional chart banner contract (FD-103)", () => {
+  it("renders provisional banner when chart is provisional or birth time precision is unknown", () => {
+    const provisionalSummary: ZiweiBirthSummaryV1 = {
+      ...mockBirthSummary,
+      normalizedTime: { precision: "unknown" },
+    };
+    const provisionalChart: NormalizedZiweiChartV1 = {
+      ...mockChart,
+      provisional: true,
+      timePrecision: "unknown",
+    };
+
+    const html = renderToStaticMarkup(
+      createElement(ZiweiResultTabs, {
+        basePath: "/la-so/chart-provisional-123",
+        birthSummary: provisionalSummary,
+        chart: provisionalChart,
+        chartId: "chart-provisional-123",
+        displayName: "Nguyen Van A",
+        initialState: { tab: "chart" },
+        locale: "vi",
+        loadEvidence: mockLoadEvidence,
+        preview: mockPreview,
+      }),
+    );
+
+    expect(html).toContain("provisional-result-banner");
+    expect(html).toContain("Lá số tạm tính");
+    expect(html).toContain("Bổ sung giờ sinh");
+  });
+
+  it("does not render provisional banner for exact-minute charts", () => {
+    const html = renderToStaticMarkup(
+      createElement(ZiweiResultTabs, {
+        basePath: "/la-so/chart-exact-123",
+        birthSummary: mockBirthSummary,
+        chart: mockChart,
+        chartId: "chart-exact-123",
+        displayName: "Nguyen Van A",
+        initialState: { tab: "chart" },
+        locale: "vi",
+        loadEvidence: mockLoadEvidence,
+        preview: mockPreview,
+      }),
+    );
+
+    expect(html).not.toContain("provisional-result-banner");
+  });
+});
+
 describe("Locked narrative sentinel non-leakage", () => {
   it("verifies full locked plaintext, 'Đã đọc', or Lá currency never exists in static render or props", () => {
     const html = renderToStaticMarkup(

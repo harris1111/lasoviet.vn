@@ -241,7 +241,7 @@ describe("BirthProfile service", () => {
     });
   });
 
-  it("returns an ineligible Zi Wei state for an unknown birth time", async () => {
+  it("returns a provisional Zi Wei state for an unknown birth time (FD-103)", async () => {
     const service = createBirthProfileService({
       repository: {
         async create() {
@@ -287,8 +287,9 @@ describe("BirthProfile service", () => {
         profileId: "profile-unknown",
         ziweiEligibility: {
           version: 1,
-          eligible: false,
-          reason: "TIME_UNKNOWN",
+          eligible: true,
+          timeIndex: 6,
+          provisional: true,
         },
       },
     });

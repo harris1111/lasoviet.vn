@@ -129,6 +129,8 @@ export type NormalizedZiweiChartV1 = {
   provenance: CalculationProvenanceV1;
   relationships?: Array<z.infer<typeof chartRelationshipSchema>>;
   patterns?: Array<z.infer<typeof chartPatternSchema>>;
+  provisional?: boolean;
+  timePrecision?: "exact_minute" | "branch_only" | "range" | "unknown";
 };
 
 export const NormalizedZiweiChartV1Schema: z.ZodType<
@@ -146,6 +148,10 @@ export const NormalizedZiweiChartV1Schema: z.ZodType<
     provenance: CalculationProvenanceV1Schema,
     relationships: z.array(chartRelationshipSchema).optional(),
     patterns: z.array(chartPatternSchema).optional(),
+    provisional: z.boolean().optional(),
+    timePrecision: z
+      .enum(["exact_minute", "branch_only", "range", "unknown"])
+      .optional(),
   })
   .strict()
   .superRefine((chart, context) => {

@@ -1280,6 +1280,65 @@
   }
 }
 
+/* Provisional Chart Banner inside Tabs Shell */
+.provisional-result-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  margin-block: 14px 18px;
+  border-radius: 8px;
+  background: rgba(224, 159, 62, 0.08);
+  border: 1px solid rgba(224, 159, 62, 0.3);
+}
+
+.provisional-banner-badge {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--gold-500, #d4a359);
+  color: var(--lacquer-950, #1a0f0a);
+  font: 700 12px / 1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.provisional-banner-content {
+  flex: 1;
+}
+
+.provisional-banner-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pearl-100, #f7f3ec);
+  margin-bottom: 2px;
+}
+
+.provisional-banner-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--pearl-200, #e6ded3);
+  line-height: 1.5;
+}
+
+.provisional-banner-cta {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .provisional-result-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .provisional-banner-cta {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 /* Sample Tab Tag */
 .sample-tab-tag {
   display: inline-block;
