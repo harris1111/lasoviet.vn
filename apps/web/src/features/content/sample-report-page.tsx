@@ -59,7 +59,7 @@ export function SampleReportPage({
   }
 
   return (
-    <main className="sample-report-page">
+    <main className="sample-report-page" data-light-ready>
       {/* 1. Hero section: Real anonymized sample chart presentation with "BẢN MẪU" stamp */}
       <section aria-labelledby="sample-hero-heading" className="sample-hero container">
         <div className="sample-hero-content">

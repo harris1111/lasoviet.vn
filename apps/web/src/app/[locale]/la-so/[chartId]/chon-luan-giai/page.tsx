@@ -78,7 +78,7 @@ export default async function PaidTopicSelectionPage({
   }
 
   return (
-    <main className="topic-page">
+    <main className="topic-page" data-light-ready>
       <div className="container">
         <PaidTopicSelector
           birthSummary={chartResult.value.birthSummary}

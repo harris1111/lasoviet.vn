@@ -610,7 +610,7 @@ export function LunarCalendarPreview({ locale, className }: LunarCalendarPreview
 
                         <div style={{ marginTop: "4px", fontSize: "10px", color: d.isHoangDao ? "var(--gold-400, #D4AF37)" : "var(--text-faint, #6E6656)" }}>
                           {d.solarTerm ? (
-                            <span style={{ color: "#9FD1BA" }}>{d.solarTerm}</span>
+                            <span style={{ color: "var(--status-success, #6FBF96)" }}>{d.solarTerm}</span>
                           ) : d.isHoangDao ? (
                             "Hoàng Đạo"
                           ) : null}
@@ -680,7 +680,7 @@ export function LunarCalendarPreview({ locale, className }: LunarCalendarPreview
                   <dd style={{ margin: 0, color: "var(--text-heading, #F6F1E6)" }}>{activeDay.lunarYearName}</dd>
 
                   <dt style={{ color: "var(--text-faint, #6E6656)" }}>{isVi ? "Tiết khí" : "Solar term"}</dt>
-                  <dd style={{ margin: 0, color: activeDay.solarTerm ? "#9FD1BA" : "var(--text-muted, #A79E8B)" }}>
+                  <dd style={{ margin: 0, color: activeDay.solarTerm ? "var(--status-success, #6FBF96)" : "var(--text-muted, #A79E8B)" }}>
                     {activeDay.solarTerm || (isVi ? "Không rơi đúng tiết khí" : "No term change")}
                   </dd>
                 </dl>

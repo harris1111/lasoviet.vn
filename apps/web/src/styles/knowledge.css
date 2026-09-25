@@ -583,3 +583,73 @@
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   Light Theme Knowledge Hub Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] .knowledge-hub,
+html[data-theme="light"] .knowledge-article-page {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .knowledge-hub-hero {
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .knowledge-hub-hero h1,
+html[data-theme="light"] .knowledge-cluster-heading,
+html[data-theme="light"] .knowledge-featured-body h2,
+html[data-theme="light"] .knowledge-card h3,
+html[data-theme="light"] .knowledge-compact-title,
+html[data-theme="light"] .knowledge-article-title,
+html[data-theme="light"] .knowledge-article-prose h2,
+html[data-theme="light"] .knowledge-article-prose h3 {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .knowledge-hub-hero p,
+html[data-theme="light"] .knowledge-cluster-desc,
+html[data-theme="light"] .knowledge-featured-body p,
+html[data-theme="light"] .knowledge-card p,
+html[data-theme="light"] .knowledge-article-lead,
+html[data-theme="light"] .knowledge-breadcrumb-link {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .knowledge-card,
+html[data-theme="light"] .knowledge-featured-card,
+html[data-theme="light"] .knowledge-compact-item,
+html[data-theme="light"] .knowledge-article-cta {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .knowledge-card:hover,
+html[data-theme="light"] .knowledge-featured-card:hover,
+html[data-theme="light"] .knowledge-compact-item:hover {
+  background: #ffffff;
+  border-color: var(--gold-800);
+}
+
+html[data-theme="light"] .knowledge-breadcrumb-current {
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .knowledge-breadcrumb-separator {
+  color: var(--paper-300);
+}
+
+html[data-theme="light"] .knowledge-article-prose {
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .knowledge-article-prose p {
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .knowledge-article-prose blockquote {
+  border-left-color: var(--gold-800);
+  background: var(--paper-50);
+  color: var(--ink-800);
+}

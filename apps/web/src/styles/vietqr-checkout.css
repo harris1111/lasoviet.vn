@@ -353,3 +353,50 @@
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   Light Theme VietQR Checkout Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] .vietqr-checkout-page {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .vietqr-checkout {
+  border-top-color: var(--paper-300);
+}
+
+html[data-theme="light"] .vietqr-instructions h2,
+html[data-theme="light"] .vietqr-details dd {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .vietqr-details dt,
+html[data-theme="light"] .vietqr-figure figcaption {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .vietqr-details > div {
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .vietqr-copy-button {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .vietqr-copy-button:hover {
+  background: var(--paper-200);
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .vietqr-checkout-recovery {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .vietqr-checkout-recovery h2 {
+  color: var(--ink-900);
+}

@@ -83,6 +83,13 @@
   flex-direction: column;
 }
 
+html[data-theme="light"] .wizard-page {
+  background-color: var(--paper-100);
+  background-image: linear-gradient(rgba(247, 241, 229, 0.94), rgba(247, 241, 229, 0.94)),
+    url("/images/lasoviet/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp");
+  color: var(--ink-800);
+}
+
 .wizard-privacy {
   display: flex;
   align-items: center;
@@ -138,6 +145,18 @@
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+}
+
+.wizard-logo .brand-logo-light {
+  display: none;
+}
+
+html[data-theme="light"] .wizard-logo .brand-logo {
+  display: none;
+}
+
+html[data-theme="light"] .wizard-logo .brand-logo-light {
+  display: block;
 }
 
 .wizard-logo img {

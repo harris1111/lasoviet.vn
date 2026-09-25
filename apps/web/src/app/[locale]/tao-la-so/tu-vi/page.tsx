@@ -15,7 +15,7 @@ export default async function ZiweiBirthProfilePage(props: ZiweiBirthProfilePage
   const referenceYear = new Date().getFullYear();
   const searchParams = props.searchParams ? await props.searchParams : undefined;
   return (
-    <main className="wizard-page">
+    <main className="wizard-page" data-light-ready>
       <div className="wizard-privacy">
         <Icon name="shield-lock" />
         {t("nav.privacy")}

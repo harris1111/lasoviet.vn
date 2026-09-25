@@ -373,7 +373,7 @@ export function LoveCompatibilityPreview({ locale, className }: LoveCompatibilit
           }}
         >
           <div>
-            <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#EC8A74" }}>
+            <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11.5px", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--accent-seal, #CE5B45)" }}>
               {isVi ? "Còn tùy lá số của bạn" : "Depends on your personal chart"}
             </span>
             <h2 style={{ margin: "8px 0 10px", fontFamily: "var(--font-display, Georgia, serif)", fontSize: "22px", color: "var(--text-heading, #F6F1E6)", lineHeight: 1.3 }}>

@@ -467,3 +467,152 @@
   background: rgba(255, 255, 255, 0.05);
   color: var(--pearl-50);
 }
+
+/* ==========================================================================
+   Light Theme Reader Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] .report-reader-root {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .report-reader-header {
+  background: var(--paper-50);
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .report-header-title {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-header-eyebrow {
+  color: var(--gold-800);
+}
+
+html[data-theme="light"] .report-font-btn {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .report-font-btn:hover:not(:disabled) {
+  background: var(--paper-200);
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-font-label {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .report-head {
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .report-head h1 {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-head p {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .report-tool-btn {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .report-tool-btn:hover {
+  background: var(--paper-200);
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-toc-sidebar {
+  border-right-color: var(--paper-300);
+}
+
+html[data-theme="light"] .report-toc-count {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .report-toc-count b {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-toc-track {
+  background: var(--paper-200);
+}
+
+html[data-theme="light"] .report-toc-btn {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .report-toc-btn:hover {
+  background: var(--paper-200);
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-toc-btn[aria-current="true"] {
+  background: rgba(117, 87, 24, 0.12);
+  color: var(--gold-800);
+  font-weight: 600;
+}
+
+html[data-theme="light"] .report-lead-card {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .report-lead-card p {
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .report-article-read h2,
+html[data-theme="light"] .report-article-read .report-section-title {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-article-read h3 {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-article-read p {
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .report-article-read blockquote {
+  border-left-color: var(--gold-800);
+  background: var(--paper-50);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .report-marginalia {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .report-marginalia-title {
+  color: var(--gold-800);
+}
+
+html[data-theme="light"] .report-marginalia-text {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .report-bottom-sheet {
+  background: var(--paper-50);
+  border-top-color: var(--paper-300);
+}
+
+html[data-theme="light"] .report-sheet-header h3 {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .report-sheet-close {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .report-sheet-close:hover {
+  background: var(--paper-200);
+  color: var(--ink-900);
+}

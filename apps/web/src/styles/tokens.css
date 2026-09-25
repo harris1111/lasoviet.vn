@@ -1,18 +1,75 @@
 :root {
+  /* Primitive colors: Lacquer (Dark surfaces) */
+  --lacquer-950: #080706;
   --lacquer-900: #0f0d0a;
   --lacquer-800: #15120e;
   --lacquer-700: #1c1813;
   --lacquer-line: #3a3227;
+
+  /* Primitive colors: Paper (Light surfaces — docs/13 §5.2) */
+  --paper-50:  #fffdf7;
+  --paper-100: #f7f1e5;
+  --paper-200: #eee5d6;
+  --paper-300: #d7cdbd;
+  --control-border: #958a7c;
+
+  /* Primitive colors: Gold */
+  --gold-300: #f8ebc6;
   --gold-400: #f2dca0;
   --gold-500: #c9a44d;
   --gold-600: #a8842f;
   --gold-700: #9a7730;
+  --gold-800: #755718;
+
+  /* Primitive colors: Son & Cinnabar */
   --son: #ce5b45;
-  --jade-500: #4f7a68;
-  --pearl-50: #f6f1e6;
+  --son-deep: #6b211a;
+  --cinnabar-700: #a63d2f;
+
+  /* Primitive colors: Pearl (Text on dark) */
+  --pearl-50:  #f6f1e6;
+  --pearl-100: #eae4d5;
   --pearl-200: #dcd4c3;
+  --pearl-300: #c5bca8;
   --pearl-400: #a79e8b;
+  --pearl-500: #8a8270;
   --pearl-600: #6e6656;
+  --pearl-800: #4a4438;
+
+  /* Primitive colors: Ink (Text on light — docs/13 §5.2) */
+  --ink-900: #14263d;
+  --ink-800: #263445;
+  --ink-600: #5e6873;
+  --ink-400: #7a8592;
+
+  /* Primitive colors: Discipline accents */
+  --jade-500: #4f7a68;
+  --jade: #4f7a68;
+  --jade-deep: #33463d;
+  --jade-tint: rgba(79, 122, 104, 0.14);
+
+  --bronze: #8a7450;
+  --bronze-deep: #46392a;
+  --bronze-tint: rgba(138, 116, 80, 0.16);
+
+  --mineral: #6e93ac;
+  --mineral-deep: #2e4356;
+  --mineral-tint: rgba(79, 112, 138, 0.18);
+
+  --indigo: #7a82a0;
+  --indigo-deep: #363b4c;
+  --indigo-tint: rgba(89, 97, 127, 0.18);
+  --ochre: #b08a4a;
+
+  --teal: #6e9c97;
+  --teal-deep: #33504c;
+  --teal-tint: rgba(110, 156, 151, 0.16);
+
+  --oxblood: #9b6358;
+  --oxblood-deep: #4a2e29;
+  --oxblood-tint: rgba(155, 99, 88, 0.18);
+
+  /* Component gradients and shadows (dark default) */
   --gold-gradient: linear-gradient(103deg, var(--gold-700), var(--gold-400) 34%, var(--gold-500) 58%, var(--gold-600));
   --gold-soft: rgba(201, 164, 77, 0.14);
   --surface-raised: #221d16;
@@ -54,6 +111,158 @@
   --motion-feedback: 120ms;
   --motion-standard: 180ms;
   --motion-panel: 240ms;
+}
+
+/* ==========================================================================
+   2. SEMANTIC LAYER — DARK (DEFAULT LACQUER)
+   ========================================================================== */
+:root,
+:root[data-theme="lacquer"],
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+  --surface-deep:    var(--lacquer-900);
+  --surface-canvas:  var(--lacquer-800);
+  --surface-panel:   var(--lacquer-700);
+  --border-hairline: var(--lacquer-line);
+  --border-control:  var(--pearl-600);
+
+  --text-heading: var(--pearl-50);
+  --text-body:    var(--pearl-200);
+  --text-muted:   var(--pearl-400);
+  --text-faint:   var(--pearl-600);
+
+  --accent-gold: var(--gold-500);
+  --accent-seal: var(--son);
+
+  --status-link:    #7fb2d8;
+  --status-success: #6fbf96;
+  --status-warning: #e0ae52;
+  --status-error:   #e8798a;
+
+  --cta-fg: var(--lacquer-900);
+
+  --discipline-jade: var(--jade);
+  --discipline-jade-deep: var(--jade-deep);
+  --discipline-jade-tint: var(--jade-tint);
+  --discipline-bronze: var(--bronze);
+  --discipline-bronze-deep: var(--bronze-deep);
+  --discipline-bronze-tint: var(--bronze-tint);
+  --discipline-mineral: var(--mineral);
+  --discipline-mineral-deep: var(--mineral-deep);
+  --discipline-mineral-tint: var(--mineral-tint);
+  --discipline-indigo: var(--indigo);
+  --discipline-indigo-deep: var(--indigo-deep);
+  --discipline-indigo-tint: var(--indigo-tint);
+  --discipline-ochre: var(--ochre);
+  --discipline-teal: var(--teal);
+  --discipline-teal-deep: var(--teal-deep);
+  --discipline-teal-tint: var(--teal-tint);
+  --discipline-oxblood: var(--oxblood);
+  --discipline-oxblood-deep: var(--oxblood-deep);
+  --discipline-oxblood-tint: var(--oxblood-tint);
+}
+
+/* ==========================================================================
+   3. SEMANTIC LAYER — LIGHT (PAPER — FD-088 / docs/24)
+   ========================================================================== */
+:root[data-theme="paper"],
+:root[data-theme="light"],
+html[data-theme="light"] {
+  --surface-deep:    var(--paper-200);
+  --surface-canvas:  var(--paper-100);
+  --surface-panel:   var(--paper-50);
+  --border-hairline: var(--paper-300);
+  --border-control:  var(--control-border);
+
+  --text-heading: var(--ink-900);
+  --text-body:    var(--ink-800);
+  --text-muted:   var(--ink-600);
+  --text-faint:   var(--ink-400);
+
+  --accent-gold: var(--gold-800);
+  --accent-seal: var(--cinnabar-700);
+
+  --status-link:    #174f7a;
+  --status-success: #2f6f57;
+  --status-warning: #8a5a12;
+  --status-error:   #8f2737;
+
+  --cta-fg: var(--lacquer-900);
+
+  --discipline-jade: #2f5446;
+  --discipline-jade-deep: #1c362c;
+  --discipline-jade-tint: rgba(47, 84, 70, 0.10);
+  --discipline-bronze: #5c4a2e;
+  --discipline-bronze-deep: #3b2f1c;
+  --discipline-bronze-tint: rgba(92, 74, 46, 0.10);
+  --discipline-mineral: #33566b;
+  --discipline-mineral-deep: #1e3543;
+  --discipline-mineral-tint: rgba(51, 86, 107, 0.10);
+  --discipline-indigo: #454b63;
+  --discipline-indigo-deep: #2a2e3f;
+  --discipline-indigo-tint: rgba(69, 75, 99, 0.10);
+  --discipline-ochre: #6e5214;
+  --discipline-teal: #33504c;
+  --discipline-teal-deep: #1c3330;
+  --discipline-teal-tint: rgba(51, 80, 76, 0.10);
+  --discipline-oxblood: #6e3a32;
+  --discipline-oxblood-deep: #47221c;
+  --discipline-oxblood-tint: rgba(110, 58, 50, 0.10);
+
+  /* Light theme component surfaces & shadows */
+  --surface-raised: var(--paper-50);
+  --surface-raised-2: var(--paper-200);
+  --border-soft: var(--paper-300);
+  --gold-soft: rgba(117, 87, 24, 0.12);
+  --shadow-card: 0 1px 3px rgba(20, 38, 61, 0.08), 0 8px 24px rgba(20, 38, 61, 0.06);
+  --surface-shadow: 0 4px 16px rgba(20, 38, 61, 0.08);
+
+  /* Mappings so existing styles using raw primitive tokens adapt smoothly to light theme */
+  --lacquer-950: var(--paper-300);
+  --lacquer-900: var(--paper-200);
+  --lacquer-800: var(--paper-100);
+  --lacquer-700: var(--paper-50);
+  --lacquer-line: var(--paper-300);
+
+  --pearl-50:  var(--ink-900);
+  --pearl-100: var(--ink-900);
+  --pearl-200: var(--ink-800);
+  --pearl-300: var(--ink-600);
+  --pearl-400: var(--ink-600);
+  --pearl-500: var(--ink-400);
+  --pearl-600: var(--ink-400);
+  --pearl-800: var(--paper-300);
+
+  --gold-300: var(--gold-800);
+  --gold-400: var(--gold-800);
+  --gold-500: var(--gold-800);
+  --gold-600: var(--gold-800);
+  --gold-700: var(--gold-800);
+
+  --teal: var(--discipline-teal);
+  --teal-deep: var(--discipline-teal-deep);
+  --teal-tint: var(--discipline-teal-tint);
+
+  --oxblood: var(--discipline-oxblood);
+  --oxblood-deep: var(--discipline-oxblood-deep);
+  --oxblood-tint: var(--discipline-oxblood-tint);
+
+  --jade: var(--discipline-jade);
+  --jade-deep: var(--discipline-jade-deep);
+  --jade-tint: var(--discipline-jade-tint);
+
+  --bronze: var(--discipline-bronze);
+  --bronze-deep: var(--discipline-bronze-deep);
+  --bronze-tint: var(--discipline-bronze-tint);
+
+  --mineral: var(--discipline-mineral);
+  --mineral-deep: var(--discipline-mineral-deep);
+  --mineral-tint: var(--discipline-mineral-tint);
+
+  --indigo: var(--discipline-indigo);
+  --indigo-deep: var(--discipline-indigo-deep);
+  --indigo-tint: var(--discipline-indigo-tint);
+  --ochre: var(--discipline-ochre);
 }
 
 :focus-visible {

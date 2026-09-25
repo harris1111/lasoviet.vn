@@ -1,34 +1,5 @@
 /* Discipline Pages — Foundation Tokens and Layout */
 :root {
-  /* Discipline specific color accents */
-  --jade: #4F7A68;
-  --jade-deep: #33463D;
-  --jade-tint: rgba(79, 122, 104, 0.14);
-
-  --bronze: #8A7450;
-  --bronze-deep: #46392A;
-  --bronze-tint: rgba(138, 116, 80, 0.16);
-
-  --mineral: #6E93AC;
-  --mineral-deep: #2E4356;
-  --mineral-tint: rgba(79, 112, 138, 0.18);
-
-  --indigo: #7A82A0;
-  --indigo-deep: #363B4C;
-  --indigo-tint: rgba(89, 97, 127, 0.18);
-  --ochre: #B08A4A;
-
-  /* Common semantic aliases */
-  --surface-canvas: var(--lacquer-800, #15120E);
-  --surface-deep: var(--lacquer-900, #0F0D0A);
-  --surface-panel: var(--lacquer-700, #1C1813);
-  --border-hairline: var(--lacquer-line, #3A3227);
-  --text-heading: var(--pearl-50, #F6F1E6);
-  --text-body: var(--pearl-200, #DCD4C3);
-  --text-muted: var(--pearl-400, #A79E8B);
-  --text-faint: var(--pearl-600, #6E6656);
-  --accent-gold: var(--gold-500, #C9A44D);
-
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -36,21 +7,24 @@
 }
 
 [data-discipline="bat-tu"] {
-  --discipline-accent: var(--jade);
-  --discipline-accent-deep: var(--jade-deep);
-  --discipline-accent-tint: var(--jade-tint);
+  --discipline-accent: var(--discipline-jade, #4F7A68);
+  --discipline-accent-deep: var(--discipline-jade-deep, #33463D);
+  --discipline-accent-tint: var(--discipline-jade-tint, rgba(79, 122, 104, 0.14));
 }
 
 [data-discipline="kinh-dich"] {
-  --discipline-accent: var(--bronze);
-  --discipline-accent-deep: var(--bronze-deep);
-  --discipline-accent-tint: var(--bronze-tint);
+  --discipline-accent: var(--discipline-bronze, #8A7450);
+  --discipline-accent-deep: var(--discipline-bronze-deep, #46392A);
+  --discipline-accent-tint: var(--discipline-bronze-tint, rgba(138, 116, 80, 0.16));
 }
 
 [data-discipline="chiem-tinh"] {
-  --discipline-accent: var(--mineral);
-  --discipline-accent-deep: var(--mineral-deep);
-  --discipline-accent-tint: var(--mineral-tint);
+  --discipline-accent: var(--discipline-mineral, #6E93AC);
+  --discipline-accent-deep: var(--discipline-mineral-deep, #2E4356);
+  --discipline-accent-tint: var(--discipline-mineral-tint, rgba(79, 112, 138, 0.18));
+}
+
+html:not([data-theme="light"]) [data-discipline="chiem-tinh"] {
   --surface-canvas: #0A121D;
   --surface-deep: #0E1826;
   --surface-panel: #131F30;
@@ -58,9 +32,9 @@
 }
 
 [data-discipline="than-so-hoc"] {
-  --discipline-accent: var(--indigo);
-  --discipline-accent-deep: var(--indigo-deep);
-  --discipline-accent-tint: var(--indigo-tint);
+  --discipline-accent: var(--discipline-indigo, #7A82A0);
+  --discipline-accent-deep: var(--discipline-indigo-deep, #363B4C);
+  --discipline-accent-tint: var(--discipline-indigo-tint, rgba(89, 97, 127, 0.18));
 }
 
 .discipline-page-root {
@@ -76,6 +50,14 @@
 [data-discipline="chiem-tinh"].discipline-page-root {
   background-image: linear-gradient(rgba(10, 18, 29, 0.94), rgba(10, 18, 29, 0.94)),
     url("/images/lasoviet/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp");
+}
+
+html[data-theme="light"] .discipline-page-root,
+html[data-theme="light"] [data-discipline="chiem-tinh"].discipline-page-root {
+  background-color: var(--surface-canvas);
+  background-image: linear-gradient(rgba(247, 241, 229, 0.94), rgba(247, 241, 229, 0.94)),
+    url("/images/lasoviet/van-son-mai-hinh-hoc-la-so-seamless-homepage.webp");
+  color: var(--text-body);
 }
 
 .discipline-container {

@@ -45,17 +45,13 @@ export function DisciplinePageShell({ model, children }: DisciplinePageShellProp
       className: "discipline-page-root",
       "data-discipline": key,
       "data-screen-label": theme.screenLabel,
-      style: {
-        "--discipline-accent": theme.accentColor,
-        "--discipline-accent-deep": theme.accentDeep,
-        "--discipline-accent-tint": theme.accentTint,
-      } as React.CSSProperties,
+      "data-light-ready": true,
     },
     React.createElement(SiteHeader, {
       locale,
       variant: "discipline",
       currentPath,
-      accentColor: theme.accentColor,
+      accentColor: "var(--discipline-accent)",
     }),
     content.marquee && content.marquee.length > 0 &&
       React.createElement(

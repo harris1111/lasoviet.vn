@@ -60,7 +60,7 @@ export default async function CheckoutPage({
   const t = await getTranslations({ locale: order.locale, namespace: "reports" });
 
   return (
-    <main className="topic-page vietqr-checkout-page">
+    <main className="topic-page vietqr-checkout-page" data-light-ready>
       <section className="container">
         <p className="eyebrow">{t("checkout.eyebrow")}</p>
         <h1>{order.creditApplied > 0 ? t("checkout.upgrade_title") : `${t("checkout.eyebrow")} · ${order.productTitle}`}</h1>

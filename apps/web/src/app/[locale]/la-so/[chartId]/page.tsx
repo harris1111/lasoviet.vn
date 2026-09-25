@@ -84,7 +84,7 @@ export default async function ZiweiChartResultPage({
         locale={locale}
         signInReturnPath={canonicalChartUrl}
       />
-      <main className="result-page">
+      <main className="result-page" data-light-ready>
         <section className="result-hero container">
           <p className="eyebrow">{t("private")}</p>
           <h1>{heroTitle}</h1>

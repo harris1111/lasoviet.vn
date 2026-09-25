@@ -609,3 +609,63 @@
   font-size: 13.5px;
   line-height: 1.6;
 }
+
+/* ==========================================================================
+   Light Theme Account Overrides (FD-088 / docs/24 / Kaneo Task #48)
+   ========================================================================== */
+html[data-theme="light"] .account-desk-page {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .account-shell-header {
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .account-eyebrow {
+  color: var(--gold-800);
+}
+
+html[data-theme="light"] .account-title,
+html[data-theme="light"] .account-overview-card h3,
+html[data-theme="light"] .account-section-title,
+html[data-theme="light"] .account-card h2,
+html[data-theme="light"] .account-card h3 {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .account-overview-card,
+html[data-theme="light"] .account-card,
+html[data-theme="light"] .account-chart-item,
+html[data-theme="light"] .account-order-row,
+html[data-theme="light"] .account-privacy-card {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+}
+
+html[data-theme="light"] .account-tab-link {
+  color: var(--ink-600);
+}
+
+html[data-theme="light"] .account-tab-link:hover {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .account-tab-link.active {
+  color: var(--ink-900);
+  border-bottom-color: var(--gold-800);
+}
+
+html[data-theme="light"] .account-table th {
+  color: var(--ink-600);
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .account-table td {
+  color: var(--ink-800);
+  border-bottom-color: var(--paper-300);
+}
+
+html[data-theme="light"] .account-user-email {
+  color: var(--ink-600);
+}

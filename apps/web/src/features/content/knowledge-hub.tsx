@@ -74,7 +74,7 @@ export function KnowledgeHub({ content, locale, repository, routes, route }: Kno
   const bylineLabel = locale === "vi" ? "Lá Số Việt biên tập" : "Edited by La So Viet";
 
   return (
-    <main className="knowledge-hub container">
+    <main className="knowledge-hub container" data-light-ready>
       {/* Breadcrumb Navigation */}
       <Breadcrumb items={breadcrumbs} locale={locale} />
 
