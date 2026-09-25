@@ -44,9 +44,10 @@ export default async function ZiweiChartResultPage({
   const locale = requestedLocale === "en" ? "en" : "vi";
 
   // 1. Authorize actor and load chart/preview FIRST to preserve private route 404/auth boundary
-  const [chartResult, previewResult, actor, t] = await Promise.all([
+  const [chartResult, previewResult, horoscopeResult, actor, t] = await Promise.all([
     loadZiweiChart.loadChart(chartId),
     freeIdentityPreviewLoader.loadPreview(chartId),
+    loadZiweiChart.loadHoroscope(chartId).catch(() => ({ ok: false as const })),
     resolveCurrentActor(),
     getTranslations("ziwei"),
   ]);
@@ -97,6 +98,7 @@ export default async function ZiweiChartResultPage({
           chart={chartResult.value.chart}
           chartId={chartId}
           displayName={displayName}
+          horoscope={horoscopeResult.ok ? horoscopeResult.value : undefined}
           initialState={tabState}
           locale={locale}
           loadEvidence={loadZiweiEvidence}

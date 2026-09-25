@@ -738,3 +738,19 @@ export type {
   AdminBusinessMetricsSourceAvailabilityV1,
   AdminBusinessMetricsV1,
 } from "./admin-business-metrics.js";
+
+export {
+  ZiweiMonthMarkerSchema,
+  ZiweiMonthlyHanV1Schema,
+  ZiweiYearlyHanV1Schema,
+  ZiweiDailyHoroscopeV1Schema,
+  ZiweiHoroscopeResultV1Schema,
+} from "./ziwei-horoscope-v1.js";
+export type {
+  ZiweiMonthMarker,
+  ZiweiMonthlyHanV1,
+  ZiweiYearlyHanV1,
+  ZiweiDailyHoroscopeV1,
+  ZiweiHoroscopeResultV1,
+} from "./ziwei-horoscope-v1.js";
+

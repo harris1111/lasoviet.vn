@@ -7,6 +7,8 @@ import {
   type ZiweiChartViewV1,
   ZiweiEvidenceViewV1Schema,
   type ZiweiEvidenceViewV1,
+  ZiweiHoroscopeResultV1Schema,
+  type ZiweiHoroscopeResultV1,
 } from "@lasoviet/contracts";
 import { z } from "zod";
 
@@ -151,6 +153,30 @@ export function createZiweiChartLoader(
           "EVIDENCE_NOT_FOUND",
           "ANONYMOUS_EXPIRED",
         ]);
+    },
+
+    async loadHoroscope(
+      chartId: string,
+      asOfDate?: string,
+    ): Promise<Result<ZiweiHoroscopeResultV1, ChartLoaderError>> {
+      let actor: CurrentActor;
+      try {
+        actor = await dependencies.resolveCurrentActor();
+      } catch (error) {
+        return actorError<ChartLoaderError>(error);
+      }
+      const query = asOfDate ? `?asOfDate=${encodeURIComponent(asOfDate)}` : "";
+      const response = parseResponse(
+        await dependencies
+          .privateApiClient(actor, actor.requestId)
+          .request<unknown>(
+            `/ziwei/charts/${encodeURIComponent(chartId)}/horoscope${query}`,
+          ),
+        ZiweiHoroscopeResultV1Schema,
+      );
+      return response.ok
+        ? response
+        : readError(response.error.code, ["CHART_NOT_FOUND", "ANONYMOUS_EXPIRED"]);
     },
   };
 }

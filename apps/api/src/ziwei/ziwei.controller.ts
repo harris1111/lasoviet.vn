@@ -8,6 +8,7 @@ import {
   Body,
   Param,
   Post,
+  Query,
   UnauthorizedException,
 } from "@nestjs/common";
 
@@ -128,6 +129,19 @@ export class ZiweiController {
       await this.actor(authorization),
       chartId,
       request,
+    );
+  }
+
+  @Get("charts/:chartId/horoscope")
+  async horoscope(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+    @Query("asOfDate") asOfDate?: string,
+  ) {
+    return this.queryService.readHoroscope(
+      await this.actor(authorization),
+      chartId,
+      asOfDate ? { asOfDate } : undefined,
     );
   }
 }

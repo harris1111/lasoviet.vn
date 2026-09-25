@@ -232,6 +232,9 @@ importers:
       iztro:
         specifier: 2.6.0
         version: 2.6.0
+      lunar-typescript:
+        specifier: 1.8.6
+        version: 1.8.6
 
   packages/observability:
     dependencies:

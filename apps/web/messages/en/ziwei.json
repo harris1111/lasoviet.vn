@@ -36,9 +36,24 @@
     "ariaLabel": "Zi Wei reading layers",
     "chart": "Chart",
     "overview": "Overview",
+    "nam-nay": "This Year",
     "palaces": "12 Palaces",
     "topics": "Topics",
-    "evidence": "Evidence"
+    "evidence": "Evidence",
+    "hanCountSuffix": "caution months"
+  },
+  "annual": {
+    "title": "Your Year {lunarYear}",
+    "sub": "{age} lunar age · yearly transit in {palace} palace",
+    "monthPrefix": "month",
+    "legendWarn": "Caution month (unlock to view)",
+    "legendGood": "Favorable month",
+    "legendNeutral": "Balanced",
+    "offerTitle": "Which months, what issues, how to prepare",
+    "offerTag": "Comprehensive",
+    "offerDesc": "Unlock to see exact caution months, actions to avoid, and personalized preparation.",
+    "offerCta": "Unlock Comprehensive · 960 Lá",
+    "todayTitle": "Your Day Today"
   },
   "chartActions": {
     "rebuildChart": "Rebuild chart",

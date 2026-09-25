@@ -44,7 +44,8 @@ function hash(value: unknown): string {
 }
 
 export function iztroGender(profile: NormalizedBirthProfileV1): "male" | "female" | undefined {
-  switch (profile.originalInput.gender) {
+  const rawGender = profile.originalInput?.gender ?? (profile as { gender?: unknown }).gender;
+  switch (rawGender) {
     case "male":
     case "Nam":
     case "男":

@@ -36,9 +36,24 @@
     "ariaLabel": "Các tầng nội dung lá số",
     "chart": "Lá số",
     "overview": "Tổng quan",
+    "nam-nay": "Năm nay",
     "palaces": "12 cung",
     "topics": "Chủ đề",
-    "evidence": "Căn cứ"
+    "evidence": "Căn cứ",
+    "hanCountSuffix": "tháng hạn"
+  },
+  "annual": {
+    "title": "Năm {lunarYear} của bạn",
+    "sub": "{age} tuổi âm · lưu niên tại cung {palace}",
+    "monthPrefix": "tháng",
+    "legendWarn": "Tháng hạn (mở để xem)",
+    "legendGood": "Tháng thuận",
+    "legendNeutral": "Bình thường",
+    "offerTitle": "Tháng nào, chuyện gì, chuẩn bị ra sao",
+    "offerTag": "Toàn diện",
+    "offerDesc": "Mở để biết đúng các tháng hạn, việc nên tránh và cách chuẩn bị cho từng tháng.",
+    "offerCta": "Mở Toàn diện · 960 Lá",
+    "todayTitle": "Hôm nay của bạn"
   },
   "chartActions": {
     "rebuildChart": "Lập lại lá số",

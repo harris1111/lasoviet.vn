@@ -59,13 +59,19 @@ vi.mock("next-intl", () => {
   return {
     useTranslations: (ns: string) => {
       const msgs = ns === "reports" ? viReports : viZiwei;
-      return (key: string) => {
+      return (key: string, values?: Record<string, unknown>) => {
         const parts = key.split(".");
         let curr: any = msgs;
         for (const p of parts) {
           curr = curr?.[p];
         }
-        return typeof curr === "string" ? curr : key;
+        let val = typeof curr === "string" ? curr : key;
+        if (values) {
+          for (const [k, v] of Object.entries(values)) {
+            val = val.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+          }
+        }
+        return val;
       };
     },
   };
@@ -93,6 +99,7 @@ vi.mock("../../../../auth/resolve-current-actor", () => ({
 vi.mock("../../../../features/ziwei/load-ziwei-chart", () => ({
   loadZiweiChart: {
     loadChart: vi.fn(),
+    loadHoroscope: vi.fn().mockResolvedValue({ ok: false }),
   },
 }));
 
@@ -264,6 +271,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(loadZiweiChart.loadChart).mockResolvedValue(mockChartSuccess as never);
+    vi.mocked(loadZiweiChart.loadHoroscope).mockResolvedValue({ ok: false } as never);
     vi.mocked(freeIdentityPreviewLoader.loadPreview).mockResolvedValue(mockPreviewSuccess as never);
     vi.mocked(resolveCurrentActor).mockResolvedValue({ kind: "account", userId: "u1" } as never);
   });
@@ -402,4 +410,70 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
         searchParams: Promise.resolve({ tab: "topics", open: "career", unknown: "extra" }),
       }),
     ).rejects.toThrow("NEXT_REDIRECT");
+  });
+
+  it("renders 'Năm nay' tab with caution months badge and tab panel when horoscope is available", async () => {
+    const chartId = "chart-test-123";
+    const mockHoroscope = {
+      version: 1,
+      chartId,
+      chartVersionId: "cv-1",
+      asOfDate: "2026-09-22",
+      isUnlocked: false,
+      yearly: {
+        targetYear: 2026,
+        lunarYear: "Bính Ngọ",
+        lunarAge: 35,
+        annualPalaceId: "ziwei.palace.career",
+        annualPalaceName: "Quan Lộc",
+        annualBranch: "Ngọ",
+        annualStem: "Bính",
+        hanMonthCount: 2,
+        favorableMonthCount: 3,
+        neutralMonthCount: 7,
+        focusAreas: ["tiền bạc"],
+        summary: "Năm nay có 2 tháng cần chú ý và 3 tháng thuận.",
+        months: Array.from({ length: 12 }, (_, i) => ({
+          monthIndex: i + 1,
+          marker: i === 2 || i === 6 ? "warn" : "neutral",
+          isLocked: i === 2 || i === 6,
+          monthNumberDisplay: i === 2 || i === 6 ? "?" : String(i + 1),
+          label: i === 2 || i === 6 ? "Tháng hạn, mở để xem" : `Tháng ${i + 1}`,
+          evidenceKeys: [],
+        })),
+        evidenceKeys: [],
+      },
+      daily: {
+        solarDate: "2026-09-22",
+        solarDateFormatted: "Thứ Ba, 22/9/2026",
+        lunarDateFormatted: "12/8 Bính Ngọ",
+        dayStemBranch: "Kỷ Hợi",
+        solarTerm: "Bạch Lộ",
+        touchedPalaceId: "ziwei.palace.children",
+        touchedPalaceName: "Tử Tức",
+        headline: "Ngày Kỷ Hợi chạm cung Tử Tức của bạn. Mở mỗi sáng trong gói Hội viên.",
+        evidenceKeys: [],
+      },
+    };
+
+    vi.mocked(loadZiweiChart.loadHoroscope).mockResolvedValue({
+      ok: true,
+      value: mockHoroscope,
+    } as never);
+
+    const page = await ZiweiChartResultPage({
+      params: Promise.resolve({ chartId, locale: "vi" }),
+      searchParams: Promise.resolve({ tab: "nam-nay" }),
+    });
+    const html = renderToStaticMarkup(page);
+
+    // Tab button with count badge
+    expect(html).toContain("2 tháng hạn");
+    expect(html).toContain("Năm nay");
+
+    // Annual tab panel
+    expect(html).toContain("Năm Bính Ngọ của bạn");
+    expect(html).toContain("35 tuổi âm · lưu niên tại cung Quan Lộc");
+    expect(html).toContain("Năm nay có 2 tháng cần chú ý và 3 tháng thuận.");
+    expect(html).toContain("Ngày Kỷ Hợi chạm cung Tử Tức của bạn. Mở mỗi sáng trong gói Hội viên.");
   });

@@ -7,6 +7,7 @@ import { loadEnvironment } from "@lasoviet/config";
 import {
   IztroAdapter,
   iztroDefaultConfig,
+  calculateZiweiHoroscope,
 } from "@lasoviet/engine-adapters";
 import {
   createAuthEmailDeliveryService,
@@ -482,6 +483,7 @@ function privacyDatabase() {
       useFactory: () =>
         createZiweiQueryService({
           repository: createDatabaseZiweiQueryRepository(privacyDatabase()),
+          calculateHoroscope: calculateZiweiHoroscope,
         }),
     },
     { provide: REPORT_QUERY_DATABASE, useFactory: privacyDatabase },
