@@ -170,7 +170,7 @@ function parseBodyBlocks(body: string): ContentBlock[] {
   return blocks;
 }
 
-function renderContentBlocks(
+export function renderContentBlocks(
   body: string,
   locale: "en" | "vi",
   routes: readonly RouteDefinitionV1[],
@@ -390,7 +390,16 @@ export function PublicContentPage(props: PublicContentPageProps) {
       case "knowledge-hub":
         return <KnowledgeHub {...props} />;
       case "knowledge-article":
-        return <KnowledgeArticle content={props.content} locale={props.locale} />;
+        return (
+          <KnowledgeArticle
+            content={props.content}
+            locale={props.locale}
+            repository={props.repository}
+            route={props.route}
+            routes={props.routes}
+            contentBlocksRenderer={renderContentBlocks}
+          />
+        );
       case "policy-page":
         return (
           <RichContentPage

@@ -266,7 +266,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích một lá số đã chuẩn hóa dựa trên ranh giới triển khai đã được version hóa. Hợp đồng biểu đồ yêu cầu đúng mười hai cung có mã duy nhất, mã cung Mệnh, mã cung Thân, transformations, warnings và provenance. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nDùng fixture chuyển đổi dương âm: đầu ra ghi mười hai cung và mã địa chi rõ ràng. Người đọc kiểm tra các mã đó như trường dữ liệu, không xem chúng là kết luận về một người.\n\n## Đặc tả hình\n\nHình 1: Sơ đồ hợp đồng liệt kê mười hai mã cung, mã cung Mệnh, mã cung Thân, transformations, warnings và provenance. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.calculation), [bài liên quan thứ hai](route:knowledge.tu-vi.palaces)."
   },
   {
     "routeId": "knowledge.tu-vi.definition",
@@ -283,7 +284,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains a normalized chart from the versioned implementation boundary. the chart contract requires exactly twelve uniquely identified palaces, a life palace identifier, a body palace identifier, transformations, warnings, and provenance. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nUse the reviewed solar-lunar fixture: its output records twelve palaces and explicit branch identifiers. Inspect those identifiers as fields, not as a statement about a person.\n\n## Figure specification\n\nFigure 1: a contract diagram listing twelve palace identifiers, the selected life and body identifiers, transformations, warnings, and provenance. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.calculation), [second related article](route:knowledge.tu-vi.palaces)."
   },
   {
     "routeId": "knowledge.tu-vi.calculation",
@@ -301,7 +303,8 @@
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích quy trình lập lá số dựa trên ranh giới triển khai đã được version hóa. Adapter nhận lịch và thời gian đã chuẩn hóa rồi ánh xạ trường iztro thô sang mã canonical. Phương pháp công khai được ghim ở iztro 2.6.0 và ziwei.default. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nỞ 23:30, fixture cuối giờ Tý dùng timeIndex 12; fixture đầu giờ Tý lúc 00:30 dùng timeIndex 0. Ví dụ chứng minh cách xử lý đầu vào, không tạo dự báo cá nhân.\n\n## Đặc tả hình\n\nHình 2: Bảng hai dòng so sánh giờ đầu Tý và cuối Tý, chỉ số adapter và limitation được ghi lại. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.reading), [bài liên quan thứ hai](route:knowledge.tu-vi.stars)."
   },
   {
     "routeId": "knowledge.tu-vi.calculation",
@@ -319,7 +322,8 @@
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains chart construction from the versioned implementation boundary. the adapter receives normalized calendar and time input, then maps raw iztro fields into canonical identifiers. The public method is pinned to iztro 2.6.0 and ziwei.default. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nAt 23:30 the late-Zi fixture uses adapter timeIndex 12, while the early-Zi fixture at 00:30 uses timeIndex 0. The example demonstrates input handling rather than a personal forecast.\n\n## Figure specification\n\nFigure 2: a two-row fixture table comparing early-Zi and late-Zi input times, adapter indices, and recorded limitations. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.reading), [second related article](route:knowledge.tu-vi.stars)."
   },
   {
     "routeId": "knowledge.tu-vi.reading",
@@ -336,7 +340,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích cách kiểm tra đầu ra dựa trên ranh giới triển khai đã được version hóa. Cách đọc thận trọng bắt đầu bằng provenance, precision, warnings và các trường thực sự có mặt. Sau đó người đọc mới xem mã cung hoặc mã transformation. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nMột biểu đồ branch_only giữ limitation tương ứng. Người đọc có thể so sánh limitation này với mã cung hiển thị để không coi kết quả là chắc chắn tới từng phút.\n\n## Đặc tả hình\n\nHình 3: Checklist theo thứ tự provenance, precision, warnings, mã cung, transformations và evidence key. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.palaces), [bài liên quan thứ hai](route:knowledge.tu-vi.foundations)."
   },
   {
     "routeId": "knowledge.tu-vi.reading",
@@ -353,7 +358,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains reading an output from the versioned implementation boundary. a careful reading begins by checking provenance, time precision, warnings, and which fields are actually present. Only then can a reader inspect a palace or transformation identifier. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nA chart with branch_only precision retains that limitation. The reader can compare the limitation with the displayed palace identifiers and avoid treating the result as minute-level certainty.\n\n## Figure specification\n\nFigure 3: a reading checklist ordered as provenance, precision, warnings, palace identifiers, transformations, and evidence keys. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.palaces), [second related article](route:knowledge.tu-vi.foundations)."
   },
   {
     "routeId": "knowledge.tu-vi.palaces",
@@ -370,7 +376,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích mười hai cung dựa trên ranh giới triển khai đã được version hóa. Hợp đồng định nghĩa mười hai mã cung canonical và yêu cầu mỗi mã chỉ xuất hiện một lần. Nó không gán ý nghĩa tính cách truyền thống cho các mã này. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nFixture manifest kiểm tra palaceCount bằng 12. Một bước kiểm tra hữu ích là đếm các cung đã chuẩn hóa rồi xác nhận soulPalaceId và bodyPalaceId đều trỏ tới một cung trong danh sách.\n\n## Đặc tả hình\n\nHình 4: Lưới mười hai vị trí chỉ ghi mã cung canonical cùng mũi tên từ soulPalaceId và bodyPalaceId. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.stars), [bài liên quan thứ hai](route:knowledge.tu-vi.cycles)."
   },
   {
     "routeId": "knowledge.tu-vi.palaces",
@@ -387,7 +394,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains twelve palaces from the versioned implementation boundary. the contract defines twelve canonical palace identifiers and requires each identifier to be unique in a normalized chart. It does not attach a traditional personality meaning to the identifiers. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nThe fixture manifest checks palaceCount equals 12. A useful inspection is to count the normalized palace entries and confirm that soulPalaceId and bodyPalaceId point to entries in that list.\n\n## Figure specification\n\nFigure 4: a twelve-slot grid labelled only with canonical palace identifiers and arrows from soulPalaceId and bodyPalaceId. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.stars), [second related article](route:knowledge.tu-vi.cycles)."
   },
   {
     "routeId": "knowledge.tu-vi.stars",
@@ -404,7 +412,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích các mã sao chính dựa trên ranh giới triển khai đã được version hóa. Lớp mapping chuyển tên sao iztro đã nhận diện thành mã ziwei.star và ghi brightness theo enum. Đây là ánh xạ tương thích dữ liệu, không phải tuyên bố công khai về ý nghĩa một sao. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nFixture ranh giới tiết khí ghi mã sao chính trong một cung đã nêu. Ví dụ hỗ trợ kiểm tra đầu ra mapping, không suy ra đặc điểm hay sự kiện.\n\n## Đặc tả hình\n\nHình 5: Bảng ánh xạ gồm trường sao thô, mã sao canonical và một giá trị brightness được hỗ trợ. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.foundations), [bài liên quan thứ hai](route:knowledge.tu-vi.birth-time)."
   },
   {
     "routeId": "knowledge.tu-vi.stars",
@@ -421,7 +430,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains principal stars from the versioned implementation boundary. the mapping layer converts recognized raw iztro star names into canonical ziwei.star identifiers and records a brightness enum. This is an interoperability mapping, not a published claim about what a star means. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nThe solar-term fixture records a principal star identifier in a named palace. The example supports checking mapping output, not inferring a trait or an event.\n\n## Figure specification\n\nFigure 5: a mapping table with raw star field, canonical star identifier, and one of the supported brightness values. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.foundations), [second related article](route:knowledge.tu-vi.birth-time)."
   },
   {
     "routeId": "knowledge.tu-vi.foundations",
@@ -438,7 +448,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích trường cung Mệnh, cung Thân và transformations dựa trên ranh giới triển khai đã được version hóa. Hợp đồng chuẩn hóa lưu soulPalaceId và bodyPalaceId là mã phải trỏ tới cung hiện có. Transformations là mảng riêng gồm mã sao và mã biến hóa. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nTrong fixture tháng nhuận, mã cung Mệnh và cung Thân trỏ tới các địa chi khác nhau. Ví dụ chỉ cho thấy các trường có thể khác nhau, không gán ý nghĩa cá nhân.\n\n## Đặc tả hình\n\nHình 6: Sơ đồ trường dữ liệu cho soulPalaceId, bodyPalaceId, transformations và các mã cung hoặc sao được tham chiếu. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.cycles), [bài liên quan thứ hai](route:knowledge.tu-vi.accuracy)."
   },
   {
     "routeId": "knowledge.tu-vi.foundations",
@@ -455,7 +466,8 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains life, body, and configuration fields from the versioned implementation boundary. the normalized contract stores soulPalaceId and bodyPalaceId as identifiers that must resolve to existing palace entries. Transformations are a separate array of star and transformation identifiers. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nIn the leap-month fixture, life and body identifiers point to different recorded branches. The example shows that the fields can differ without assigning either field a personal meaning.\n\n## Figure specification\n\nFigure 6: a field map showing soulPalaceId, bodyPalaceId, transformations, and their referenced palace or star identifiers. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.cycles), [second related article](route:knowledge.tu-vi.accuracy)."
   },
   {
     "routeId": "knowledge.tu-vi.cycles",
@@ -473,7 +485,8 @@
       "time_sensitive_interpretation"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích các chu kỳ lớn và nhỏ dựa trên ranh giới triển khai đã được version hóa. Hợp đồng hiện có thể liệt kê capability theo thập niên, năm, tháng và ngày với cờ supported. Bản thân hợp đồng không công bố dự báo theo ngày hay lịch kết quả. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nNgười xem có thể kiểm tra capability có được đánh dấu hỗ trợ rồi đọc provenance và limitations trước khi dùng một khoảng thời gian. Điều này khác với việc khẳng định điều gì sẽ xảy ra.\n\n## Đặc tả hình\n\nHình 7: Ma trận capability với bốn mã chu kỳ, cờ supported, provenance và ghi chú limitation. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.birth-time), [bài liên quan thứ hai](route:knowledge.tu-vi.schools)."
   },
   {
     "routeId": "knowledge.tu-vi.cycles",
@@ -491,7 +504,8 @@
       "time_sensitive_interpretation"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains major and minor periods from the versioned implementation boundary. the current contract can list horoscope capabilities as decadal, annual, monthly, and daily with supported flags. It does not itself publish a dated prediction or a schedule of outcomes. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nA viewer can inspect whether a capability is marked supported and then read provenance and limitations before using a time window. That is different from asserting what will happen in a period.\n\n## Figure specification\n\nFigure 7: a capability matrix with four period identifiers, supported flags, provenance, and a limitation note. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.birth-time), [second related article](route:knowledge.tu-vi.schools)."
   },
   {
     "routeId": "knowledge.tu-vi.birth-time",
@@ -509,7 +523,8 @@
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích giờ sinh dựa trên ranh giới triển khai đã được version hóa. BirthProfile phân biệt exact_minute, branch_only, range và unknown. Adapter chỉ chạy với đầu vào đủ điều kiện đã chuẩn hóa và giữ lại limitations. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nFixture unknown-time không đủ điều kiện trước khi tính; fixture branch-only vẫn tính nhưng ghi TIME_BRANCH_ONLY. So sánh này giải thích vì sao giờ thiếu không bị đổi thành một phút giả định.\n\n## Đặc tả hình\n\nHình 8: Luồng quyết định cho unknown dừng lại, branch_only giữ limitation và exact_minute giữ local time. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.accuracy), [bài liên quan thứ hai](route:knowledge.tu-vi.definition)."
   },
   {
     "routeId": "knowledge.tu-vi.birth-time",
@@ -527,7 +542,8 @@
       "birth_data_sensitivity"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains birth time from the versioned implementation boundary. the birth profile distinguishes exact_minute, branch_only, range, and unknown precision. The adapter only runs for eligible normalized input and preserves limitations. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nThe unknown-time fixture is ineligible before calculation, while the branch-only fixture calculates with TIME_BRANCH_ONLY. This contrast explains why missing time is not silently converted into an exact minute.\n\n## Figure specification\n\nFigure 8: a decision flow showing unknown input stopping, branch-only input retaining a limitation, and exact-minute input carrying its local time. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.accuracy), [second related article](route:knowledge.tu-vi.definition)."
   },
   {
     "routeId": "knowledge.tu-vi.accuracy",
@@ -545,7 +561,8 @@
       "epistemic_limits"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích độ chính xác và giới hạn dựa trên ranh giới triển khai đã được version hóa. Độ chính xác không phải một điểm số duy nhất trong triển khai. Repository tách precision đầu vào, rule set, provenance, trạng thái review fixture, warnings và khác biệt phương pháp đã ghi. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nFixture khác biệt múi giờ giữ IANA provenance nhưng nêu iztro không có đầu vào múi giờ riêng. Đây là limitation cần hiện cùng đầu ra.\n\n## Đặc tả hình\n\nHình 9: Khung evidence hiển thị precision đầu vào, ruleSetId, provenance múi giờ, warnings và trạng thái review fixture. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.schools), [bài liên quan thứ hai](route:knowledge.tu-vi.calculation)."
   },
   {
     "routeId": "knowledge.tu-vi.accuracy",
@@ -563,7 +580,8 @@
       "epistemic_limits"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains accuracy and limits from the versioned implementation boundary. accuracy is not a single score in the implementation. The repository separately records input precision, rule set, provenance, fixture review status, warnings, and documented method differences. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nThe timezone-difference fixture retains IANA provenance while noting that iztro has no native timezone input. The example demonstrates a limitation that must remain visible beside output.\n\n## Figure specification\n\nFigure 9: an evidence panel mock with input precision, ruleSetId, timezone provenance, warnings, and fixture review state. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.schools), [second related article](route:knowledge.tu-vi.calculation)."
   },
   {
     "routeId": "knowledge.tu-vi.schools",
@@ -581,7 +599,8 @@
       "method_variation"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## Bài này giải thích\n\nBài này giải thích khác biệt phương pháp dựa trên ranh giới triển khai đã được version hóa. Triển khai được duyệt chọn ziwei.default và ghi các phương pháp tham chiếu có thể không tương thích ở từng ranh giới. Nó không chọn trường phái bằng mô tả hoặc bỏ phiếu số đông. Nó không thêm diễn giải truyền thống không có trong nguồn repository.\n\n## Ví dụ độc lập\n\nGhi chú nguồn tin cậy nói công cụ đối chiếu không giải quyết late-Zi, tiết khí, múi giờ, giờ mặt trời thật, tháng nhuận hay toàn bộ vị trí sao. Ví dụ là sổ đăng ký ranh giới, không phải xếp hạng truyền thống.\n\n## Đặc tả hình\n\nHình 10: Sổ ranh giới liệt kê sự kiện có thể đối chiếu, không tương thích phương pháp và lý do giới hạn. Hình là sơ đồ giải thích, không phải lá số cá nhân được tạo ra và không phải chỉ dẫn để quyết định.\n\n## Giới hạn\n\nỨng dụng hiện dùng iztro 2.6.0 với ziwei.default, giữ độ chính xác đầu vào và cảnh báo. Hệ thống không xác nhận độc lập hiệu chỉnh giờ mặt trời thật, mọi khác biệt trường phái, hoặc ý nghĩa truyền thống nằm ngoài các trường đã ánh xạ.\n\n## Tiếp tục\n\n[Lập lá số Tử Vi](route:calculator.tu-vi), [khu kiến thức Tử Vi](route:knowledge.tu-vi), [bài liên quan thứ nhất](route:knowledge.tu-vi.definition), [bài liên quan thứ hai](route:knowledge.tu-vi.reading)."
   },
   {
     "routeId": "knowledge.tu-vi.schools",
@@ -599,7 +618,8 @@
       "method_variation"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-01",
+    "body": "## What this page can establish\n\nThis article explains method variation from the versioned implementation boundary. the approved implementation selects ziwei.default and describes other reference methods as potentially incompatible for specific boundaries. It does not choose between schools through prose or majority voting. It does not add traditional interpretation that is absent from the repository sources.\n\n## Independent example\n\nThe trusted-source note says a comparison tool cannot settle late-Zi, solar-term, timezone, true-solar-time, leap-month, or complete star placement differences. The example is a boundary register, not a ranking of traditions.\n\n## Figure specification\n\nFigure 10: a boundary register listing comparable facts, method-incompatible facts, and the reason each comparison is limited. The figure is an explanatory diagram, not a generated natal chart and not an instruction to make a personal decision.\n\n## Limits\n\nThe current application uses iztro 2.6.0 with ziwei.default, preserves input precision and warnings, and records documented gaps. It does not independently validate true-solar-time correction, every school variation, or traditional meanings outside the mapped fields.\n\n## Continue\n\n[Build a Tu Vi chart](route:calculator.tu-vi), [Tu Vi knowledge hub](route:knowledge.tu-vi), [first related article](route:knowledge.tu-vi.definition), [second related article](route:knowledge.tu-vi.reading)."
   },
   {
     "routeId": "methodology.root",
