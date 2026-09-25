@@ -359,6 +359,7 @@ test("footer links to product, discipline, knowledge and support pages", async (
   for (const href of [
     "/tao-la-so/tu-vi",
     "/bao-cao-mau/tu-vi",
+    "/nap-la",
     "/bat-tu",
     "/chiem-tinh",
     "/kinh-dich",
@@ -374,6 +375,7 @@ test("footer links to product, discipline, knowledge and support pages", async (
   }
   await page.goto("/en");
   await expect(page.locator('footer.site-footer a[href="/en/bat-tu"]')).toBeAttached();
+  await expect(page.locator('footer.site-footer a[href="/en/nap-la"]')).toBeAttached();
 });
 
 test("homepage hand-off opens wizard step 1 so the chart can be made for someone else", async ({ page }) => {

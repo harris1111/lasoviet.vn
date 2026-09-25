@@ -141,6 +141,16 @@ export async function createCheckoutOrder(
   redirect(`${prefix}/thanh-toan/${encodeURIComponent(checkoutStatus.order.id)}`);
 }
 
+export async function createCheckoutOrderFormAction(
+  formData: FormData,
+): Promise<void> {
+  "use server";
+  const chartId = String(formData.get("chartId") ?? "");
+  const locale = String(formData.get("locale") ?? "vi");
+  const offerKey = String(formData.get("offerKey") ?? DEFAULT_PUBLIC_OFFER_KEY);
+  await createCheckoutOrder(chartId, locale, offerKey);
+}
+
 export async function createCheckoutOrderAction(
   arg1: string | CheckoutPurchaseState,
   arg2?: string | FormData,
