@@ -300,7 +300,10 @@
     "prev": "Lời trước",
     "next": "Lời tiếp theo",
     "close": "Đóng",
-    "dialogEyebrow": "Lời người đọc"
+    "dialogEyebrow": "Lời người đọc",
+    "pause": "Tạm dừng",
+    "play": "Tiếp tục",
+    "rotationLabel": "Lời người đọc, tự đổi sau vài giây"
   },
   "usp": {
     "title": "Càng nhìn kỹ, càng thấy chuyện của mình.",

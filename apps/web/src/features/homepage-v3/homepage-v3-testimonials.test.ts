@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  FEATURED_TESTIMONIAL,
-  SECONDARY_TESTIMONIALS,
+  EXCERPT_MAX,
+  ROTATION_QUEUE,
   TESTIMONIALS,
   TESTIMONIAL_GROUPS,
   TESTIMONIAL_LABELS,
@@ -38,10 +38,23 @@ describe("testimonials data", () => {
     expect(testimonialById("06")?.header).toContain("F&B");
   });
 
-  it("opens with 13, then 12, 09, 01", () => {
-    expect(testimonialById(FEATURED_TESTIMONIAL)?.name).toBe("Lê Thị Kim Oanh");
-    expect(SECONDARY_TESTIMONIALS.map((id) => testimonialById(id)?.name)).toEqual(["Đỗ Mỹ Hạnh", "Bùi Phương Linh", "Hoàng Tuấn Anh"]);
-    expect(Object.keys(TESTIMONIAL_LABELS).sort()).toEqual(["01", "09", "12", "13"]);
+  it("keeps every card excerpt short enough for equal cards", () => {
+    for (const item of TESTIMONIALS) expect(item.excerpt.length, item.id).toBeLessThanOrEqual(EXCERPT_MAX);
+  });
+
+  it("never puts the unverifiable figures on a card", () => {
+    for (const item of TESTIMONIALS) expect(item.excerpt).not.toMatch(/80–90%|triệt để/);
+  });
+
+  it("rotation queue lists all 15 ids once, opening with 13, 12, 09, 01", () => {
+    expect([...ROTATION_QUEUE].sort()).toEqual(TESTIMONIALS.map((item) => item.id).sort());
+    expect(ROTATION_QUEUE.slice(0, 4)).toEqual(["13", "12", "09", "01"]);
+    expect(testimonialById("13")?.name).toBe("Lê Thị Kim Oanh");
+  });
+
+  it("first six cards cover all four groups", () => {
+    const groups = new Set(ROTATION_QUEUE.slice(0, 6).map((id) => testimonialById(id)?.group));
+    expect(groups.size).toBe(4);
   });
 
   it("builds a two-letter monogram", () => {
