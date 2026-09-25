@@ -213,6 +213,18 @@
     "close_toc": "Đóng mục lục",
     "dialog_aria": "Cửa sổ căn cứ luận giải",
     "frontispiece_alt": "Bìa báo cáo luận giải Tử Vi — ảnh vật phẩm sơn mài",
-    "no_evidence_for_section": "Phần này không có căn cứ lá số riêng."
+    "no_evidence_for_section": "Phần này không có căn cứ lá số riêng.",
+    "resume_reading_title": "Bạn đang đọc dở {section}.",
+    "resume_reading_action": "Đọc tiếp",
+    "read_progress_count": "Đã đọc {read}/{total} phần",
+    "print_pdf": "Tải PDF",
+    "share": "Chia sẻ",
+    "share_copied": "Đã chép liên kết báo cáo!",
+    "upgrade_title": "Mở trọn cấu trúc lá số với 8 phần còn lại",
+    "upgrade_desc": "Bản Toàn diện mở rộng 12 cung chi tiết, các cấu trúc sao nổi bật, 4 lĩnh vực đời sống và các mốc vận hạn quan trọng.",
+    "upgrade_price_notice": "Bạn đã có Bản mệnh, nâng lên Toàn diện chỉ thêm 720 Lá thay vì 960 Lá trong 7 ngày kể từ khi thanh toán.",
+    "upgrade_cta": "Mở 8 phần còn lại — 720 Lá",
+    "unlocked_map_title": "4 phần đã mở",
+    "locked_map_title": "8 phần đang khóa"
   }
 }

@@ -11,6 +11,7 @@
 @import "./discipline-pages-components.css";
 @import "./discipline-pages-results.css";
 @import "./pricing-and-topup.css";
+@import "./report-reader.css";
 
 * { box-sizing: border-box; }
 html { background: var(--lacquer-800); color-scheme: dark; }

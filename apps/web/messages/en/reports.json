@@ -213,6 +213,18 @@
     "close_toc": "Close table of contents",
     "dialog_aria": "Evidence dialog",
     "frontispiece_alt": "Zi Wei interpretation report cover — lacquer artwork",
-    "no_evidence_for_section": "No report-bound evidence for this section."
+    "no_evidence_for_section": "No report-bound evidence for this section.",
+    "resume_reading_title": "You were reading {section}.",
+    "resume_reading_action": "Continue reading",
+    "read_progress_count": "{read}/{total} sections read",
+    "print_pdf": "Download PDF",
+    "share": "Share",
+    "share_copied": "Report link copied!",
+    "upgrade_title": "Unlock the complete chart structure — 8 remaining sections",
+    "upgrade_desc": "The Comprehensive report expands all 12 palaces in detail, key star configurations, 4 life domains, and significant decadal/annual milestones.",
+    "upgrade_price_notice": "You already own the Natal Excerpt. Upgrade to Comprehensive for only 720 Lá instead of 960 Lá within 7 days from payment.",
+    "upgrade_cta": "Unlock 8 remaining sections — 720 Lá",
+    "unlocked_map_title": "4 unlocked sections",
+    "locked_map_title": "8 locked sections"
   }
 }
