@@ -239,8 +239,8 @@ export function buildSafeOfferPresentations(
       }
     } else if (offerKey === "ziwei-natal-excerpt") {
       upgradeDisclosure = {
-        vi: "Nếu sau đó bạn muốn đọc bản toàn diện, 19.000 ₫ này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.",
-        en: "If you later wish to read the comprehensive report, this 19,000 VND will be credited directly toward the upgrade fee within 7 days from payment.",
+        vi: "Nếu sau đó bạn muốn đọc bản toàn diện, 240 Lá này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.",
+        en: "If you later wish to read the comprehensive report, this 240 Lá will be credited directly toward the upgrade fee within 7 days from payment.",
       };
     }
 
