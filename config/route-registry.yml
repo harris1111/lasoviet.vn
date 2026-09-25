@@ -852,6 +852,14 @@ routes:
     discipline: tu-vi
 
   - <<: *private_defaults
+    id: commerce.topup
+    path: /nap-la
+    intent: commerce.topup
+    template: topup
+    owner: commerce
+    schema_types: [WebPage]
+
+  - <<: *private_defaults
     id: private.report
     path: "/bao-cao/{opaque_id}"
     intent: private.report

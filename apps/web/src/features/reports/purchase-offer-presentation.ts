@@ -25,6 +25,12 @@ export type UpgradeCreditPresentation = {
 export type SafeOfferPresentation = {
   offerKey: PublicOfferKey;
   anchorId: string;
+  laPrice: number;
+  upgradeLaPrice?: number;
+  shortTitle: {
+    vi: string;
+    en: string;
+  };
   title: {
     vi: string;
     en: string;
@@ -246,9 +252,22 @@ export function buildSafeOfferPresentations(
       };
     }
 
+    const laPrice =
+      offerKey === "ziwei-natal-excerpt"
+        ? 240
+        : upgradeCredit !== null
+          ? 720
+          : 960;
+
     presentations.push({
       offerKey,
       anchorId: offerKey,
+      laPrice,
+      upgradeLaPrice: 720,
+      shortTitle:
+        offerKey === "ziwei-natal-excerpt"
+          ? { vi: "Bản mệnh", en: "Core Destiny" }
+          : { vi: "Toàn diện", en: "Comprehensive" },
       title: content.title,
       summary: content.summary,
       deliverables: content.deliverables,

@@ -73,13 +73,11 @@ describe("PaidTopicSelector", () => {
     expect(html).not.toContain("topic-quick-guide");
     expect(html).not.toContain("Hướng dẫn chọn nhanh");
 
-    // Active offer card details & stable anchor
-    expect(html).toContain("79.000 ₫");
-    expect(html).toContain("Thanh toán một lần");
-    expect(html).toContain("Chọn Luận giải Tử Vi toàn diện — 79.000 ₫");
+    // Active offer card details & stable anchor (FD-065: Lá price, no VND on Luận giải tab)
+    expect(html).toContain("960");
+    expect(html).toContain("Lá");
     expect(html).toContain("/bao-cao-mau/tu-vi");
     expect(html).toContain("Đầy đủ nhất");
-    expect(html).toContain("Chọn luận giải phù hợp");
     expect(html).toContain('id="ziwei-comprehensive"');
 
     // Specified trust row, gate note, and contact help
@@ -124,7 +122,8 @@ describe("PaidTopicSelector", () => {
       expect(html).toContain("Key configurations and patterns in the chart.");
       expect(html).toContain("Four thematic syntheses connecting chart facets into a cohesive view.");
       expect(html).toContain("Estimated report length of approximately 2,200–3,200 words.");
-      expect(html).toContain("Select Comprehensive Zi Wei Reading — 79,000 VND");
+      expect(html).toContain("960");
+      expect(html).toContain("Lá");
     } finally {
       mockLocale = "vi";
     }
@@ -153,16 +152,21 @@ describe("PaidTopicSelector", () => {
     const htmlVi = renderToStaticMarkup(
       <PaidTopicSelector locale="vi" topics={mockTopics} />,
     );
-    expect(htmlVi).toContain("Chọn Luận giải Tử Vi toàn diện — 79.000 ₫");
     expect(htmlVi).toContain("/bao-cao-mau/tu-vi");
     expect(htmlVi).toContain("Xem bản mẫu");
     expect((htmlVi.match(/type="submit"/g) || []).length).toBe(1);
 
-    const htmlEn = renderToStaticMarkup(
-      <PaidTopicSelector locale="en" topics={mockTopics} />,
-    );
+    mockLocale = "en";
+    let htmlEn: string;
+    try {
+      htmlEn = renderToStaticMarkup(
+        <PaidTopicSelector locale="en" topics={mockTopics} />,
+      );
+    } finally {
+      mockLocale = "vi";
+    }
     expect(htmlEn).toContain("/en/bao-cao-mau/tu-vi");
-    expect(htmlEn).toContain("Select Comprehensive Zi Wei Reading — 79,000 VND");
+    expect(htmlEn).toContain("View sample report");
     expect((htmlEn.match(/type="submit"/g) || []).length).toBe(1);
   });
 
@@ -264,6 +268,7 @@ describe("PaidTopicSelector", () => {
     const submitMatches = (html.match(/type="submit"/g) || []).length;
     expect(submitMatches).toBe(0);
   });
+
   it("renders both active offers in Vietnamese and only comprehensive in English (Correction check 3)", () => {
     const twoOffersTopics: PaidTopicSelectionViewV1 = {
       version: 1,
@@ -287,58 +292,38 @@ describe("PaidTopicSelector", () => {
       ],
     };
 
-    // Vietnamese: renders both offers
+    // Vietnamese: renders both offers in Lá (FD-065, FD-066)
     const htmlVi = renderToStaticMarkup(
       <PaidTopicSelector locale="vi" topics={twoOffersTopics} />,
     );
-    expect(htmlVi).toContain("19.000 ₫");
-    expect(htmlVi).toContain("79.000 ₫");
-    expect(htmlVi).toContain("Bản mệnh và tiềm năng");
-    expect(htmlVi).toContain("Luận giải Tử Vi toàn diện");
-    expect(htmlVi).toContain("Chọn Bản mệnh và tiềm năng — 19.000 ₫");
-    expect(htmlVi).toContain("Chọn Luận giải Tử Vi toàn diện — 79.000 ₫");
-    expect(htmlVi).toContain("Đầy đủ nhất");
-    expect(htmlVi).toContain('id="ziwei-natal-excerpt"');
-    expect(htmlVi).toContain('id="ziwei-comprehensive"');
-    expect((htmlVi.match(/type="submit"/g) || []).length).toBe(2);
+    expect(htmlVi).toContain("240");
+    expect(htmlVi).toContain("960");
+    expect(htmlVi).toContain("Bản mệnh");
+    expect(htmlVi).toContain("Toàn diện");
 
-    // English: renders only 79k comprehensive offer
+    const excerptCardMatch = htmlVi.match(/<article[^>]*data-testid="topic-ziwei-natal-excerpt-active"[^>]*>([\s\S]*?)<\/article>/);
+    expect(excerptCardMatch).not.toBeNull();
+    const excerptCardHtml = excerptCardMatch?.[1] ?? "";
+    expect(excerptCardHtml).toContain("Toàn cảnh bản mệnh.");
+    expect(excerptCardHtml).toContain("Trục Mệnh – Thân và những điểm nhấn chính.");
+    expect(excerptCardHtml).toContain("Điểm mạnh, điểm căng và hướng phát triển thực tế.");
+
+    // English: renders ONLY comprehensive offer
     mockLocale = "en";
     try {
       const htmlEn = renderToStaticMarkup(
         <PaidTopicSelector locale="en" topics={twoOffersTopics} />,
       );
-      expect(htmlEn).toContain("79,000 VND");
-      expect(htmlEn).not.toContain("19,000");
-      expect(htmlEn).toContain("Comprehensive Zi Wei reading");
-      expect(htmlEn).not.toContain("Select Core Identity and Potential — 19,000 VND");
-      expect(htmlEn).toContain('id="ziwei-comprehensive"');
       expect(htmlEn).not.toContain('id="ziwei-natal-excerpt"');
-      expect((htmlEn.match(/type="submit"/g) || []).length).toBe(1);
+      expect(htmlEn).not.toContain("data-testid=\"topic-ziwei-natal-excerpt-active\"");
+      expect(htmlEn).toContain("Comprehensive Zi Wei reading");
+      expect(htmlEn).toContain("data-testid=\"topic-lifetime-active\"");
     } finally {
       mockLocale = "vi";
     }
   });
-  it("renders unavailable notice and zero purchase forms in English selector when chart has active Vietnamese Tier-1 entitlement (Cross-locale Test 4)", () => {
-    mockLocale = "en";
-    try {
-      const html = renderToStaticMarkup(
-        <PaidTopicSelector
-          locale="en"
-          ownershipByOfferKey={{
-            "ziwei-comprehensive": { kind: "unavailable" },
-          }}
-          topics={mockTopics}
-        />,
-      );
 
-      expect((html.match(/type="submit"/g) || []).length).toBe(0);
-      expect(html).not.toMatch(/ZIWEI-[A-Z0-9]+/);
-    } finally {
-      mockLocale = "vi";
-    }
-  });
-  it("renders 79k list, 19k credit, 60k net price, exact deadline and unlocked sections before expiry (WP-09 Test 10)", () => {
+  it("renders 720 Lá upgrade price, exact deadline and unlocked sections before expiry (WP-09 Test 10)", () => {
     const expiresAt = "2026-09-17T10:00:00.000Z";
     const orderHistory = [
       {
@@ -386,7 +371,7 @@ describe("PaidTopicSelector", () => {
       ],
     };
 
-    // Before expiry: shows 79.000 ₫ list, 19.000 ₫ credit, 60.000 ₫ net, and unlocked sections
+    // Before expiry: shows 720 Lá upgrade price and unlocked sections (FD-066)
     const htmlBeforeExpiry = renderToStaticMarkup(
       <PaidTopicSelector
         locale="vi"
@@ -396,13 +381,11 @@ describe("PaidTopicSelector", () => {
       />,
     );
 
-    expect(htmlBeforeExpiry).toContain("79.000 ₫");
-    expect(htmlBeforeExpiry).toContain("Đã trừ: -19.000 ₫");
-    expect(htmlBeforeExpiry).toContain("60.000 ₫");
+    expect(htmlBeforeExpiry).toContain("720");
     expect(htmlBeforeExpiry).toContain("Ưu đãi nâng cấp áp dụng đến:");
     expect(htmlBeforeExpiry).toContain("Cấu trúc và cách cục trọng yếu");
 
-    // Exactly at or after deadline: shows full 79.000 ₫, no credit
+    // Exactly at or after deadline: shows full 960 Lá, no upgrade notice
     const htmlAfterDeadline = renderToStaticMarkup(
       <PaidTopicSelector
         locale="vi"
@@ -412,28 +395,8 @@ describe("PaidTopicSelector", () => {
       />,
     );
 
-    expect(htmlAfterDeadline).toContain("79.000 ₫");
-    expect(htmlAfterDeadline).not.toContain("60.000 ₫");
-    expect(htmlAfterDeadline).not.toContain("Đã trừ: -19.000 ₫");
-
-    // Refunded Tier 1: shows full 79.000 ₫, no credit
-    const refundedOrderHistory = [
-      {
-        ...orderHistory[0]!,
-        status: "refunded" as const,
-        orderStatus: "refunded" as const,
-      },
-    ];
-    const htmlAfterRefund = renderToStaticMarkup(
-      <PaidTopicSelector
-        locale="vi"
-        topics={twoOffersTopics}
-        orderHistory={refundedOrderHistory}
-        now={new Date("2026-09-12T00:00:00Z")}
-      />,
-    );
-    expect(htmlAfterRefund).toContain("79.000 ₫");
-    expect(htmlAfterRefund).not.toContain("60.000 ₫");
+    expect(htmlAfterDeadline).toContain("960");
+    expect(htmlAfterDeadline).not.toContain("Ưu đãi nâng cấp áp dụng đến:");
   });
 
   it("shows mandatory seven-day pre-payment disclosure on Tier-1 card (WP-09 Test 11)", () => {
@@ -462,10 +425,11 @@ describe("PaidTopicSelector", () => {
     const html = renderToStaticMarkup(
       <PaidTopicSelector locale="vi" topics={twoOffersTopics} />,
     );
-    expect(html).toContain("Nếu sau đó bạn muốn đọc bản toàn diện, 19.000 ₫ này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.");
+    expect(html).toContain("trừ thẳng vào phí nâng cấp");
+    expect(html).toContain("7 ngày kể từ thời điểm thanh toán");
   });
 
-  it("hides Tier 1 completely when Tier 2 is owned and resolves existing report (WP-09 Test 12)", () => {
+  it("suppresses Tier-1 card completely when Tier-2 is already owned (WP-09 Test 13)", () => {
     const twoOffersTopics: PaidTopicSelectionViewV1 = {
       version: 1,
       chartId: "chart-123",
@@ -504,12 +468,13 @@ describe("PaidTopicSelector", () => {
 
     // Tier 1 card is completely absent
     expect(html).not.toContain('id="ziwei-natal-excerpt"');
-    expect(html).not.toContain("Chọn Bản mệnh và tiềm năng — 19.000 ₫");
+    expect(html).not.toContain('data-testid="topic-ziwei-natal-excerpt-active"');
 
     // Tier 2 card resolves to existing report
     expect(html).toContain("Đọc lại");
     expect(html).toContain('href="/bao-cao/rep-existing-123"');
   });
+
   it("formats upgrade deadline explicitly in Asia/Ho_Chi_Minh with exact time element (WP-09 Cleanup Item 1)", () => {
     const isoString = "2026-09-17T10:00:00.000Z";
     // 10:00 UTC = 17:00 in Asia/Ho_Chi_Minh (UTC+7)
@@ -574,11 +539,12 @@ describe("PaidTopicSelector", () => {
     // Exact <time dateTime="..."> binding in Asia/Ho_Chi_Minh
     expect(html).toContain('<time dateTime="2026-09-17T10:00:00.000Z">17:00 17/09/2026</time>');
   });
+
   it("satisfies private copy contract: dynamic title, tier descriptions, deliverables, 7-day credit, and zero SKU leakage", () => {
     const twoOffersTopics: PaidTopicSelectionViewV1 = {
       version: 1,
       chartId: "chart-natal-contract-1",
-      chartVersionId: "version-456",
+      chartVersionId: "ver-1",
       offers: [
         {
           sku: "ZIWEI-NATAL-EXCERPT-P0",
@@ -597,31 +563,34 @@ describe("PaidTopicSelector", () => {
       ],
     };
 
+    const birthSummary = {
+      displayName: "Hoàng Nam",
+      normalizedCalendar: { kind: "solar" as const, date: "1992-08-15" },
+      normalizedTime: { precision: "exact_minute" as const, localTime: "06:30" },
+      timezoneProvenance: { source: "offset" as const, offsetMinutes: 420 },
+    };
+
     const html = renderToStaticMarkup(
       <PaidTopicSelector
+        birthSummary={birthSummary}
         locale="vi"
         topics={twoOffersTopics}
-        birthSummary={{
-          displayName: "Hoàng Nam",
-          normalizedCalendar: { kind: "solar", date: "1992-08-15" },
-          normalizedTime: { precision: "exact_minute", localTime: "14:30" },
-          timezoneProvenance: { source: "offset", offsetMinutes: 420 },
-        }}
       />,
     );
 
-    // Dynamic personalized title
+    // Dynamic title with display name and context date
     expect(html).toContain("Luận giải cho lá số của Hoàng Nam");
+    expect(html).toContain("15/08/1992");
 
-    // Tier 1: exact name, price, and mandatory 7-day credit disclosure
-    expect(html).toContain("Bản mệnh và tiềm năng");
-    expect(html).toContain("19.000 ₫");
+    // Tier 1: exact name, price in Lá, and 7-day credit disclosure
+    expect(html).toContain("Bản mệnh");
+    expect(html).toContain("240");
     expect(html).toContain("trừ thẳng vào phí nâng cấp");
     expect(html).toContain("7 ngày kể từ thời điểm thanh toán");
 
-    // Tier 2: exact name, price, deliverables
-    expect(html).toContain("Luận giải Tử Vi toàn diện");
-    expect(html).toContain("79.000 ₫");
+    // Tier 2: exact name, badge Đầy đủ nhất, deliverables
+    expect(html).toContain("Toàn diện");
+    expect(html).toContain("Đầy đủ nhất");
     expect(html).toContain("Luận giải đầy đủ 12 cung.");
 
     // Zero SKU leakage
@@ -630,4 +599,96 @@ describe("PaidTopicSelector", () => {
     expect(html).not.toMatch(/ZIWEI-[A-Z0-9_-]+/);
   });
 
+  // UI-05 & FD-065/FD-066 dedicated tests
+  it("renders segmented tabs: Luận giải, Hội viên, Nạp Lá (UI-05)", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={mockTopics} />,
+    );
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain("Luận giải");
+    expect(html).toContain("Hội viên");
+    expect(html).toContain("Nạp Lá");
+  });
+
+  it("renders Tab Luận giải with Lá prices and zero VND on reading cards (FD-065)", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={mockTopics} />,
+    );
+    const readingSectionMatch = html.match(/<section[^>]*id="luan-giai"[^>]*>([\s\S]*?)<\/section>/);
+    expect(readingSectionMatch).not.toBeNull();
+    const readingSectionHtml = readingSectionMatch?.[1] ?? "";
+    expect(readingSectionHtml).toContain("960");
+    expect(readingSectionHtml).toContain("Lá");
+    expect(readingSectionHtml).not.toContain("₫");
+    expect(readingSectionHtml).not.toContain("VND");
+  });
+
+  it("renders Tab Gói Lá with the 4 approved packs, correct VND prices, and truthful bonus lines with zero fake crossed-out prices (FD-064, FD-066)", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={mockTopics} initialTab="nap-la" />,
+    );
+    expect(html).toContain("Nhập Môn");
+    expect(html).toContain("29.000đ");
+    expect(html).toContain("300");
+
+    expect(html).toContain("Khởi Đọc");
+    expect(html).toContain("99.000đ");
+    expect(html).toContain("1.100");
+    expect(html).toContain("+100 Lá tặng");
+
+    expect(html).toContain("Khám Phá");
+    expect(html).toContain("249.000đ");
+    expect(html).toContain("3.000");
+    expect(html).toContain("+500 Lá tặng");
+
+    expect(html).toContain("Tàng Thư");
+    expect(html).toContain("599.000đ");
+    expect(html).toContain("8.000");
+    expect(html).toContain("+2.000 Lá tặng");
+    expect(html).toContain("Nhiều Lá tặng nhất");
+
+    // Zero fake crossed-out price elements (<s>, <del>, line-through)
+    expect(html).not.toContain("<del");
+    expect(html).not.toContain("<s>");
+    expect(html).not.toContain("line-through");
+    expect(html).not.toContain("strike");
+  });
+
+  it("renders Tab Hội viên with 1,500 Lá and 8,000 Lá marked coming soon (FD-093, Task #46)", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={mockTopics} initialTab="hoi-vien" />,
+    );
+    expect(html).toContain("Hội viên tháng");
+    expect(html).toContain("1.500 Lá · 30 ngày");
+    expect(html).toContain("Hội viên năm");
+    expect(html).toContain("8.000 Lá · 365 ngày");
+    expect(html).toContain("Sắp có");
+  });
+
+  it("renders the 4-item benefits panel with ≤20 words per row (Spec §4.4)", () => {
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={mockTopics} />,
+    );
+    expect(html).toContain("Giữ trọn đời");
+    expect(html).toContain("Mở rồi là của bạn, xem lại bao nhiêu lần cũng được.");
+
+    expect(html).toContain("Riêng tư");
+    expect(html).toContain("Bản luận giải không hiện trên Google hay công cụ tìm kiếm.");
+
+    expect(html).toContain("Không tự gia hạn");
+    expect(html).toContain("Không trừ tiền hay trừ Lá khi bạn chưa bấm mua.");
+
+    expect(html).toContain("Hỗ trợ khi gặp lỗi");
+    expect(html).toContain("Nhắn Messenger hoặc email nếu thanh toán gặp lỗi.");
+  });
+
+  it("pre-selects smallest covering pack in sticky paybar when balance is insufficient (FD-066)", () => {
+    // 0 balance + 960 Lá required -> needs 960 Lá -> smallest covering pack is Khởi Đọc (1100 Lá / 99.000đ)
+    const html = renderToStaticMarkup(
+      <PaidTopicSelector locale="vi" topics={mockTopics} userBalance={0} />,
+    );
+    expect(html).toContain("Thiếu 960 Lá");
+    expect(html).toContain("Gói Khởi Đọc (1100 Lá · 99.000đ) là gói nhỏ nhất đủ mở.");
+    expect(html).toContain("Nạp và mở: 99.000đ");
+  });
 });

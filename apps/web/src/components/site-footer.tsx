@@ -22,6 +22,7 @@ function footerGroups(vi: boolean): FooterGroup[] {
       links: [
         [vi ? "Lập lá số Tử Vi" : "Build a Zi Wei chart", "/tao-la-so/tu-vi"],
         [vi ? "Bản luận giải mẫu" : "Sample reading", "/bao-cao-mau/tu-vi"],
+        [vi ? "Nạp Lá" : "Top up Lá", "/nap-la"],
         [vi ? "Tử Vi Đẩu Số" : "About Zi Wei", "/tu-vi"],
         [vi ? "Phương pháp" : "Method", "/phuong-phap"],
       ],
