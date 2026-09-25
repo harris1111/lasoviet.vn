@@ -147,6 +147,10 @@
   - Contract bảo vệ: trang miễn phí chỉ hiển thị số lượng tháng hạn (count), chi tiết lời khuyên giữ ở server cho tới khi mở khóa (FD-059).
 - **Kiểm thử:** Fixture test kiểm chứng tính toán với các lá số mẫu chuẩn.
 
+#### 9. Ticket #39: Engine: yearly, monthly and daily hạn rules for "Năm nay" and "Hôm nay của bạn" [DONE]
+- **Độ khó:** 4.5/5 (Thuật toán Thiên văn & Tử Vi + Bảo mật hạn).
+- **Trạng thái:** Đã hoàn thành, CI pass, merge PR #190 vào master, deploy live SHA `c934b973ee57a10e95ce027e11bd59544f36c942`, chạy smoke test `scripts/verify-task39.mjs` thành công trên cả container local và domain canonical `https://lasoviet.net`. Task #39 đã chuyển `done` trên Kaneo.
+
 #### 10. Ticket #23: UI-05 Trang chọn luận giải & gói Lá (`/la-so/[chartId]/chon-luan-giai`) [DONE]
 - **Độ khó:** 5/5 (Khó - Tích hợp thương mại).
 - **Trạng thái:** Đã hoàn thành, CI pass, merge PR #185 & PR #186, deploy live trên container và test smoke thành công (`scripts/verify-task23-46.mjs`). Task #23 đã chuyển `done` trên Kaneo.
@@ -155,14 +159,9 @@
 - **Độ khó:** 4.5/5 (Kiến trúc + UI).
 - **Trạng thái:** Đã hoàn thành spec kiến trúc (`docs/superpowers/specs/2026-09-25-membership-architecture-design.md`), UI preview tab Hội viên, trang `/nap-la`, merge PR #185 & PR #186, deploy live trên container và test smoke thành công (`scripts/verify-task23-46.mjs`). Task #46 đã chuyển `done` trên Kaneo.
 
-#### 11. Ticket #25: UI-07 Trình đọc báo cáo trả phí (`/bao-cao/[reportId]`)
+#### 11. Ticket #25: UI-07 Trình đọc báo cáo trả phí (`/bao-cao/[reportId]`) [DONE]
 - **Độ khó:** 5/5 (Khó - Quản lý trạng thái đọc & Upsell).
-- **Phạm vi code:**
-  - Dựng giao diện đọc theo prototype `prototype/revamp-2026-09/doc-bao-cao.html`.
-  - Mục lục dính (desktop) / bottom sheet mục lục (mobile).
-  - Lưu tiến độ đọc ("Bạn đã đọc 2/4 phần") và chip "Đọc tiếp" bám theo tài khoản.
-  - Khối nâng cấp (720 Lá) xuất hiện tự nhiên sau khi đọc xong ít nhất 1 phần.
-- **Kiểm thử:** E2E test đọc báo cáo và ghi nhận tiến độ.
+- **Trạng thái:** Đã hoàn thành, CI pass, merge PR #188, deploy live SHA `0e0336d3f2b7393cdf805fbb28bee335fcbef474`, smoke test `scripts/verify-task25.mjs` thành công. Task #25 đã chuyển `done` trên Kaneo.
 
 #### 12. Ticket #41: Build the revamp UI in apps/web from the approved prototypes
 - **Độ khó:** Meta-Ticket / Epic.
