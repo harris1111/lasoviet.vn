@@ -598,7 +598,7 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
 
 export function ReportReader({ locale, report }: ReportReaderProps) {
   if (report.contentVersion === "ziwei-comprehensive.v1") {
-    return <ComprehensiveReportReader locale="vi" report={report} />;
+    return <ComprehensiveReportReader locale={locale} report={report} />;
   }
 
   if (report.contentVersion === "ziwei-comprehensive.v2") {
@@ -612,7 +612,7 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
     }
     return (
       <ComprehensiveReportReader
-        locale="vi"
+        locale={locale}
         report={parsed.data as ReportComprehensiveV3ReadyViewV1}
       />
     );

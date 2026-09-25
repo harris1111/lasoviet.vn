@@ -192,4 +192,46 @@ describe("ComprehensiveReportReader", () => {
     expect(html).toContain("Sự Nghiệp Và Tài Lộc");
     expect(html).toContain("Nội Tâm Và Sức Khỏe Tinh Thần");
   });
+
+  it("displays human-readable reading progress count in the TOC sidebar (Task #25)", () => {
+    const htmlTier1 = renderToStaticMarkup(
+      <ComprehensiveReportReader locale="vi" report={tier1Report} />,
+    );
+    expect(htmlTier1).toContain("Đã đọc 1/4 phần");
+    expect(htmlTier1).toContain('class="report-toc-track"');
+
+    const htmlTier2 = renderToStaticMarkup(
+      <ComprehensiveReportReader locale="vi" report={tier2Report} />,
+    );
+    expect(htmlTier2).toContain("Đã đọc 1/7 phần");
+  });
+
+  it("displays top progress readbar, action tools, and locked TOC items for Tier-1 (Task #25)", () => {
+    const html = renderToStaticMarkup(
+      <ComprehensiveReportReader locale="vi" report={tier1Report} />,
+    );
+
+    // Top readbar exists
+    expect(html).toContain('class="reader-readbar"');
+
+    // Action tools exist (PDF / print, share, TOC trigger)
+    expect(html).toContain("Tải PDF");
+    expect(html).toContain("Chia sẻ");
+    expect(html).toContain("Mục lục");
+
+    // Locked items in TOC have lock class and do not expose protected numerals
+    expect(html).toContain('class="report-toc-mk lock"');
+    expect(html).toContain("12 cung chi tiết");
+    expect(html).toContain("Đại vận &amp; các năm hạn");
+  });
+
+  it("renders mobile bottom sheet TOC structure (Task #25)", () => {
+    const html = renderToStaticMarkup(
+      <ComprehensiveReportReader locale="vi" report={tier1Report} />,
+    );
+
+    // Mobile sheet trigger exists
+    expect(html).toContain('class="report-tool-btn report-mobile-toc-trigger"');
+    expect(html).toContain('class="report-toc-sidebar report-toc-rail"');
+  });
 });
