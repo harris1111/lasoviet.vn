@@ -121,39 +121,70 @@ html[data-theme="light"] .hv3 {
 .hv3-cta:hover { background: var(--action-h); }
 .hv3-cta:active { transform: scale(0.99); }
 
-/* Hero art: an open story book photo. Paper text, date, topics and dial are live HTML over it. */
-.hv3-hero-art { flex: 1 1 440px; min-width: 0; max-width: 620px; margin: 0 auto; }
-.hv3-folio { position: relative; width: 100%; aspect-ratio: 1402 / 1122; overflow: hidden; isolation: isolate; border-radius: 8px; background: #16120d; box-shadow: var(--art-shadow); }
-.hv3-folio-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; transition: opacity 320ms ease; }
-.hv3-folio-dark { opacity: var(--art-dark); }
-.hv3-folio-light { opacity: var(--art-light); }
-.hv3-folio-date { position: absolute; left: 8%; top: 10%; width: 18%; text-align: center; color: #3a291c; font: 600 clamp(10px, 1.15vw, 14px) / 1.2 var(--font-ui); transform: rotate(5deg); font-variant-numeric: tabular-nums; }
-.hv3-folio-dial { position: absolute; left: 85.5%; top: 78%; width: 4%; height: 8%; transform-origin: 50% 50%; border-radius: 99px; background: #4c2f14; box-shadow: 0 0 1px 1px rgba(255, 237, 183, 0.55); transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 300ms; }
-.hv3-folio-path { position: absolute; inset: 13% 15% 10% 18%; pointer-events: none; opacity: 0.42; background: radial-gradient(circle at 50% 56%, rgba(190, 127, 49, 0.28), transparent 39%); }
-.hv3-folio-paper { position: absolute; left: 25%; top: 20%; width: 57%; height: 58%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #3b281b; text-align: center; animation: hv3-page-open 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.hv3-folio-paper::before { content: ""; position: absolute; inset: 1% 11%; border: 1px solid rgba(124, 77, 37, 0.24); border-radius: 50%; background: radial-gradient(circle, transparent 42%, rgba(166, 118, 55, 0.08) 42.3%, transparent 43%), conic-gradient(from 14deg, transparent 0 19%, rgba(177, 91, 59, 0.48) 19% 21%, transparent 21% 53%, rgba(141, 105, 45, 0.4) 53% 54%, transparent 54% 100%); transform: rotate(var(--lens-angle, 0deg)); transition: transform 550ms cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
-.hv3-folio-paper > * { position: relative; }
-.hv3-folio-title { font-family: var(--font-display); font-size: clamp(18px, 2.1vw, 32px); line-height: 1.15; font-weight: 600; text-wrap: balance; max-width: 17ch; }
-.hv3-folio-detail { font-size: clamp(11px, 1.1vw, 15px); font-weight: 600; color: #735336; font-variant-numeric: tabular-nums; min-height: 1.5em; }
-.hv3-folio-lenses { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 96%; }
-.hv3-folio-lenses button { border: 1px solid rgba(100, 64, 31, 0.42); border-radius: 99px; background: rgba(255, 248, 232, 0.82); color: #4c301c; padding: 7px 10px; min-height: 44px; font: 600 clamp(10px, 1vw, 13px) / 1.15 var(--font-ui); cursor: pointer; transition: transform 200ms, border-color 200ms, background 200ms; }
-.hv3-folio-lenses button[aria-pressed="true"] { background: #713621; border-color: #713621; color: #fff4dc; }
-.hv3-folio-lenses button:hover { transform: translateY(-2px); }
-.hv3-folio-lenses button:focus-visible { outline-color: #713621; }
-.hv3-folio-sub { max-width: 26ch; font-size: clamp(10px, 1.05vw, 14px); line-height: 1.35; color: #614832; min-height: 2.7em; text-wrap: balance; }
-@keyframes hv3-page-open { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: none; } }
+/* Hero chart: painted art plus the live 12-branch chart, revealed by wizard stage (see homepage-v3-hero-stage.ts).
+   Desktop: right column. Mobile: a strip between the intro and the form that the visitor can expand. */
+.hv3 { --hc-ln-a: #a48a56; --hc-ln-b: #dcc48a; --hc-lbl: #f3e8cf; --hc-inner: #1d1813; --hc-hl: #dcc48a; --hc-hl-ink: #f3b49f; --hc-center-ink: #f6eddb; }
+html[data-theme="light"] .hv3 { --hc-ln-a: #9a7750; --hc-ln-b: #594023; --hc-lbl: #3a2c1e; --hc-inner: #f3ead9; --hc-hl: #8d5a2b; --hc-hl-ink: #8d3423; --hc-center-ink: #2b241d; }
+.hv3-chart { --paint: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-dark-desktop.webp"); --reveal: 0% 0%; --reveal-pos: 30% 62%; --paint-pos: 18% 50%; flex: 1 1 520px; min-width: 0; max-width: 620px; height: 500px; position: relative; margin-left: -8px; }
+html[data-theme="light"] .hv3-chart { --paint: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-light-desktop.webp"); }
+.hv3-chart[data-stage="1"] { --reveal: 90% 110%; }
+.hv3-chart[data-stage="2"] { --reveal: 150% 170%; }
+.hv3-chart[data-stage="3"] { --reveal: 260% 280%; }
+.hv3-chart-paint { position: absolute; inset: 0; -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 94%, transparent), linear-gradient(to bottom, transparent, #000 8%, #000 90%, transparent); -webkit-mask-composite: source-in; mask-image: linear-gradient(to right, transparent, #000 12%, #000 94%, transparent), linear-gradient(to bottom, transparent, #000 8%, #000 90%, transparent); mask-composite: intersect; }
+.hv3-chart-dim, .hv3-chart-reveal { position: absolute; inset: 0; background: var(--paint) var(--paint-pos) / cover no-repeat; }
+.hv3-chart-dim { opacity: 0.72; filter: saturate(0.75); }
+.hv3-chart-reveal { -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent); mask-image: radial-gradient(closest-side, #000 55%, transparent); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: var(--reveal-pos); mask-position: var(--reveal-pos); -webkit-mask-size: var(--reveal); mask-size: var(--reveal); }
+.hv3-chart[data-live="true"] .hv3-chart-reveal { transition: mask-size 600ms cubic-bezier(0.2, 0.65, 0.1, 1), -webkit-mask-size 600ms cubic-bezier(0.2, 0.65, 0.1, 1); }
+.hv3-chart-fade, .hv3-chart-side, .hv3-chart-toggle { display: none; }
+.hv3-chart-face { position: absolute; right: 3%; top: 50%; width: min(410px, 70%); aspect-ratio: 1; transform: translateY(-50%); }
+.hv3-chart-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.hv3-chart-cell { fill: var(--hc-hl); fill-opacity: 0; }
+.hv3-chart-cell[data-on="true"] { fill-opacity: 0.16; }
+.hv3-chart-grid { stroke-dasharray: 54 16 22 10; }
+.hv3-chart:not([data-stage="0"]) .hv3-chart-grid { stroke-dasharray: 400 0; }
+.hv3-chart[data-live="true"] .hv3-chart-grid { transition: stroke-dasharray 600ms ease; }
+.hv3-chart[data-live="true"] .hv3-chart-cell { transition: fill-opacity 300ms ease; }
+.hv3-chart-label { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; }
+.hv3-chart-branch { font-size: 12.5px; font-weight: 600; letter-spacing: 0.11em; color: var(--hc-lbl); opacity: 0.5; }
+.hv3-chart[data-dated="true"] .hv3-chart-branch { opacity: 0.9; }
+.hv3-chart-label[data-on="true"] .hv3-chart-branch { color: var(--hc-hl-ink); }
+.hv3-chart-hour { font-size: 10px; letter-spacing: 0.05em; color: var(--hc-hl-ink); opacity: 0; }
+.hv3-chart-label[data-on="true"] .hv3-chart-hour { opacity: 1; }
+.hv3-chart[data-live="true"] .hv3-chart-branch, .hv3-chart[data-live="true"] .hv3-chart-hour { transition: opacity 300ms ease, color 300ms ease; }
+.hv3-chart-center { position: absolute; left: 26.5%; right: 26.5%; top: 26.5%; bottom: 26.5%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; }
+.hv3-chart-center .lsv-hero-center-logo { flex: none; margin: 0; width: clamp(52px, 42%, 84px); }
+.hv3-chart-date { min-height: 2.7em; font-family: var(--font-display); font-size: 14px; line-height: 1.35; color: var(--hc-center-ink); text-wrap: balance; }
+.hv3-chart-name { min-height: 1.4em; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-style: italic; font-size: 15px; line-height: 1.4; color: var(--hc-center-ink); }
 @media (max-width: 767px) {
-  .hv3-folio { max-width: 540px; margin: auto; }
-  .hv3-folio-paper { left: 25%; top: 19%; width: 58%; height: 59%; gap: 4px; }
-  .hv3-folio-title { font-size: clamp(14px, 4vw, 27px); max-width: 14ch; }
-  .hv3-folio-detail { font-size: clamp(11px, 3.1vw, 14px); }
-  .hv3-folio-sub { font-size: clamp(10px, 2.7vw, 13px); }
-  .hv3-folio-date { font-size: clamp(9px, 2.4vw, 12px); }
-  .hv3-folio-lenses { flex-wrap: nowrap; gap: 4px; width: 100%; max-width: none; }
-  .hv3-folio-lenses button { flex: 1 1 0; min-width: 0; font-size: clamp(9.5px, 2.7vw, 13px); padding: 0 2px; }
+  .hv3-hero-inner { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 0; }
+  .hv3-hero-copy { display: contents; }
+  .hv3-hero-copy > * { max-width: 540px; }
+  .hv3-hero-copy > .hv3-h1 { order: 1; }
+  .hv3-hero-copy > .hv3-sub { order: 2; }
+  .hv3-chart { order: 3; --paint: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-dark-mobile.webp"); --paint-pos: 10% 62%; --reveal-pos: 22% 60%; flex: none; max-width: none; height: 176px; margin: 16px calc(-1 * clamp(16px, 4vw, 48px)) 0; overflow: hidden; }
+  .hv3-hero-copy > .hv3-form { order: 4; }
+  html[data-theme="light"] .hv3-chart { --paint: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-light-mobile.webp"); }
+  .hv3-chart[data-live="true"] { transition: height 420ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+  .hv3-chart[data-open="true"] { --paint-pos: 30% 50%; --reveal-pos: 40% 55%; height: min(438px, 112vw); }
+  .hv3-chart-paint { -webkit-mask-image: none; mask-image: none; }
+  .hv3-chart-fade { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, var(--page) 0%, transparent 16%, transparent 84%, var(--page) 100%); }
+  .hv3-chart-face { display: none; }
+  .hv3-chart[data-open="true"] .hv3-chart-face { display: block; left: 50%; right: auto; width: min(80%, 310px); transform: translate(-50%, -50%); }
+  .hv3-chart-branch { font-size: 11px; }
+  .hv3-chart-hour { font-size: 9px; }
+  .hv3-chart-center { left: 28%; right: 28%; top: 28%; bottom: 28%; gap: 3px; }
+  .hv3-chart-center .lsv-hero-center-logo { width: clamp(44px, 40%, 64px); }
+  .hv3-chart-center .hv3-chart-date { font-size: 12px; min-height: 2.7em; }
+  .hv3-chart-center .hv3-chart-name { font-size: 13px; }
+  .hv3-chart-side { display: flex; position: absolute; right: clamp(16px, 4vw, 48px); top: 50%; transform: translateY(-50%); max-width: 58%; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+  .hv3-chart-side .hv3-chart-date { min-height: 0; font-size: 17px; }
+  .hv3-chart-side .hv3-chart-name { min-height: 0; font-size: 15px; }
+  .hv3-chart[data-open="true"] .hv3-chart-side { display: none; }
+  .hv3-chart-toggle { display: inline-flex; align-items: center; position: absolute; left: clamp(16px, 4vw, 48px); bottom: 12px; min-height: 44px; padding: 0 14px; border: 1px solid var(--hair2); border-radius: 999px; background: var(--page); color: var(--text); font-size: 13px; cursor: pointer; }
 }
-@media (max-width: 420px) { .hv3-folio-sub { display: none; } .hv3-folio-paper { gap: 3px; } }
-@media (prefers-reduced-motion: reduce) { .hv3-folio-paper { animation: none; } .hv3-folio-dial, .hv3-folio-img, .hv3-folio-lenses button, .hv3-folio-paper::before { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hv3-chart, .hv3-chart * { transition: none !important; }
+}
 
 /* Story: dusk art panel, text on the empty left, same layout in both themes. */
 .hv3-art-container { padding-block: clamp(40px, 6vw, 80px); }

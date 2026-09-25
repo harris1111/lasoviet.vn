@@ -36,29 +36,16 @@
       "branch": "Choose a birth time range.",
       "gender": "Choose Male or Female.",
       "storage": "Your browser could not save the details. Enable site storage and try again."
-    },
-    "chartAria": "Interactive story book with your birth date and time",
-    "folioTitleNamed": "{name}'s story",
-    "folioTitleAnon": "A story of your own",
-    "folioDateEmpty": "Your birth date",
-    "folioTimeEmpty": "Every story has a moment it begins",
-    "folioTimeUnknown": "You can add your birth time later",
-    "folioTimeBranch": "Hour of {name}",
-    "lensesLabel": "What you want to explore",
-    "lens": {
-      "self": {
-        "label": "Yourself",
-        "prompt": "Look back at what shapes how you walk through every change."
-      },
-      "career": {
-        "label": "Work",
-        "prompt": "What about your work makes you want to find another way?"
-      },
-      "love": {
-        "label": "Love",
-        "prompt": "Is there a relationship you want to understand better?"
-      }
     }
+  },
+  "heroChart": {
+    "chartAria": "Your chart",
+    "birthHour": "birth hour",
+    "lunar": "(lunar)",
+    "lunarLeap": "(lunar, leap)",
+    "hourOf": "hour of {name}",
+    "open": "See your chart take shape",
+    "close": "Collapse chart"
   },
   "story": {
     "title": "Some questions keep following you.",

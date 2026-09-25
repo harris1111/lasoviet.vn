@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -8,13 +8,14 @@ import { validateWizardDate } from "../birth-profile/birth-wizard-state";
 import { saveBirthProfileDraft, readBirthProfileDraft } from "../birth-profile/birth-profile-draft";
 import {
   CANONICAL_BRANCH_IDS,
-  getBranchDisplayName,
   getBranchOptionLabel,
   saveHomepageBirthPrefill,
   type CanonicalBranchId,
 } from "../birth-profile/homepage-birth-prefill";
 import { localizedPath } from "../homepage/homepage-utilities";
-import { HERO_LENSES, HOMEPAGE_V3_IMAGE_ROOT } from "./homepage-v3-data";
+import { HERO_LENSES } from "./homepage-v3-data";
+import { HomepageV3HeroChart } from "./homepage-v3-hero-chart";
+import { deriveHeroStage } from "./homepage-v3-hero-stage";
 import {
   toHomepageV3Draft,
   toHomepageV3Prefill,
@@ -47,24 +48,6 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
   const router = useRouter();
   const [values, setValues] = useState<HomepageV3BirthValues>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.dataset.theme === "light" ? "light" : "dark";
-    }
-    return "dark";
-  });
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const next = document.documentElement.dataset.theme === "light" ? "light" : "dark";
-      setTheme(next);
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   // Restore a draft saved by this form or by the wizard so the exact minute survives a round trip.
   useEffect(() => {
@@ -93,10 +76,6 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
   function patch(next: Partial<HomepageV3BirthValues>) {
     setValues((current) => ({ ...current, ...next }));
     setErrors({});
-  }
-
-  function patchKeepErrors(next: Partial<HomepageV3BirthValues>) {
-    setValues((current) => ({ ...current, ...next }));
   }
 
   function validate(now: Date): Errors {
@@ -154,26 +133,7 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
     router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
   }
 
-  const lensIndex = Math.max(0, HERO_LENSES.findIndex((lens) => lens.concern === values.topConcern));
-  const dateReady =
-    /^\d{1,2}$/.test(values.day) && Number(values.day) >= 1 && Number(values.day) <= 31 &&
-    /^\d{1,2}$/.test(values.month) && Number(values.month) >= 1 && Number(values.month) <= 12 &&
-    /^\d{4}$/.test(values.year);
-  const folioDate = dateReady
-    ? `${values.day.padStart(2, "0")}.${values.month.padStart(2, "0")}.${values.year}`
-    : t("folioDateEmpty");
-  const folioTitle = values.displayName.trim()
-    ? t("folioTitleNamed", { name: values.displayName.trim().slice(0, 32) })
-    : t("folioTitleAnon");
-  const exactReady =
-    /^\d{1,2}$/.test(values.hour) && Number(values.hour) < 24 && /^\d{1,2}$/.test(values.minute) && Number(values.minute) < 60;
-  const folioTime = values.timeUnknown
-    ? t("folioTimeUnknown")
-    : values.timeMode === "branch_only" && values.branch
-      ? t("folioTimeBranch", { name: getBranchDisplayName(values.branch, locale) })
-      : values.timeMode === "exact_minute" && exactReady
-        ? `${values.hour.padStart(2, "0")}:${values.minute.padStart(2, "0")}`
-        : t("folioTimeEmpty");
+  const hero = deriveHeroStage(values, new Date());
   const timeDisabled = values.timeUnknown;
 
   return (
@@ -261,39 +221,7 @@ export function HomepageV3Hero({ locale }: { locale: Locale }) {
         </form>
       </div>
 
-      <div className="hv3-hero-art">
-        <div className="hv3-folio" role="group" aria-label={t("chartAria")}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            key={theme}
-            src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-${theme}.webp`}
-            srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-${theme}-700.webp 700w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-hero-open-${theme}.webp 1402w`}
-            sizes="(max-width: 768px) 350px, 700px"
-            alt=""
-            width={1402}
-            height={1122}
-            className="hv3-folio-img"
-            fetchPriority="high"
-            decoding="async"
-            suppressHydrationWarning
-          />
-          <span className="hv3-folio-date" aria-hidden="true">{folioDate}</span>
-          <span className="hv3-folio-dial" aria-hidden="true" style={{ transform: `rotate(${lensIndex * 36 + (values.calendarType === "lunar" ? 14 : 0)}deg)`, opacity: values.timeUnknown ? 0.45 : 0.8 }} />
-          <div className="hv3-folio-path" aria-hidden="true" />
-          <div className="hv3-folio-paper" style={{ "--lens-angle": `${lensIndex * 58}deg` } as CSSProperties}>
-            <span className="hv3-folio-title">{folioTitle}</span>
-            <span className="hv3-folio-detail" aria-live="polite">{folioTime}</span>
-            <div className="hv3-folio-lenses" role="group" aria-label={t("lensesLabel")}>
-              {HERO_LENSES.map((lens) => (
-                <button key={lens.id} type="button" aria-pressed={values.topConcern === lens.concern} onClick={() => patchKeepErrors({ topConcern: values.topConcern === lens.concern ? null : lens.concern })}>
-                  {t(`lens.${lens.id}.label`)}
-                </button>
-              ))}
-            </div>
-            <span className="hv3-folio-sub">{t(`lens.${HERO_LENSES[lensIndex]?.id ?? "self"}.prompt`)}</span>
-          </div>
-        </div>
-      </div>
+      <HomepageV3HeroChart hero={hero} locale={locale} />
     </div>
   );
 }

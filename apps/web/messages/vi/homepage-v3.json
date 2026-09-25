@@ -36,29 +36,16 @@
       "branch": "Chọn một khoảng giờ sinh.",
       "gender": "Chọn Nam hoặc Nữ.",
       "storage": "Trình duyệt không lưu được thông tin. Hãy bật lưu trữ trang web rồi thử lại."
-    },
-    "chartAria": "Mệnh thư tương tác cùng thông tin ngày giờ sinh",
-    "folioTitleNamed": "Chuyện của {name}",
-    "folioTitleAnon": "Một câu chuyện riêng",
-    "folioDateEmpty": "Ngày sinh của bạn",
-    "folioTimeEmpty": "Mỗi câu chuyện có một thời khắc bắt đầu",
-    "folioTimeUnknown": "Bạn có thể bổ sung giờ sinh sau",
-    "folioTimeBranch": "Giờ {name}",
-    "lensesLabel": "Điều bạn muốn khám phá",
-    "lens": {
-      "self": {
-        "label": "Bản thân",
-        "prompt": "Nhìn lại điều làm nên cách bạn bước qua mỗi đổi thay."
-      },
-      "career": {
-        "label": "Công việc",
-        "prompt": "Điều gì trong công việc khiến bạn muốn tìm một lối khác?"
-      },
-      "love": {
-        "label": "Tình cảm",
-        "prompt": "Có mối quan hệ nào bạn muốn hiểu cho rõ hơn?"
-      }
     }
+  },
+  "heroChart": {
+    "chartAria": "Lá số của bạn",
+    "birthHour": "giờ sinh",
+    "lunar": "(âm)",
+    "lunarLeap": "(âm, nhuận)",
+    "hourOf": "giờ {name}",
+    "open": "Xem lá số đang hình thành",
+    "close": "Thu gọn lá số"
   },
   "story": {
     "title": "Có những câu hỏi cứ theo mình mãi.",
