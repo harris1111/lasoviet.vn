@@ -44,22 +44,27 @@ describe("Homepage V3 Performance & Responsive Assets (Task #44)", () => {
     }
   });
 
-  it("ensures hero component loads only one theme image at a time with responsive srcset", () => {
-    const heroCode = fs.readFileSync(
-      path.resolve(process.cwd(), "apps/web/src/features/homepage-v3/homepage-v3-hero.tsx"),
+  it("paints the hero art from CSS so only the active theme and viewport image is requested", () => {
+    const cssCode = fs.readFileSync(
+      path.resolve(process.cwd(), "apps/web/src/styles/homepage-v3.css"),
+      "utf8",
+    );
+    const chartCode = fs.readFileSync(
+      path.resolve(process.cwd(), "apps/web/src/features/homepage-v3/homepage-v3-hero-chart.tsx"),
       "utf8",
     );
 
-    // Must NOT contain the old dual simultaneous img tags
-    expect(heroCode).not.toContain('className="hv3-folio-img hv3-folio-dark"');
-    expect(heroCode).not.toContain('className="hv3-folio-img hv3-folio-light"');
-
-    // Must dynamically render active theme's image with key and srcset
-    expect(heroCode).toContain("lsv-hero-open-${theme}.webp");
-    expect(heroCode).toContain("lsv-hero-open-${theme}-700.webp 700w");
+    // No <img> pair rendered from React state: hydration cannot leave the wrong theme's art in place.
+    expect(chartCode).not.toContain("<img");
+    for (const theme of ["dark", "light"]) {
+      for (const viewport of ["desktop", "mobile"]) {
+        expect(cssCode).toContain(`la-so-tu-vi-tranh-son-hero-${theme}-${viewport}.webp`);
+      }
+    }
+    expect(cssCode).toContain('html[data-theme="light"] .hv3-chart');
   });
 
-  it("ensures layout preloads active theme hero image before paint", () => {
+  it("ensures layout preloads the active theme and viewport hero image before paint", () => {
     const layoutCode = fs.readFileSync(
       path.resolve(process.cwd(), "apps/web/src/app/[locale]/layout.tsx"),
       "utf8",
@@ -67,8 +72,8 @@ describe("Homepage V3 Performance & Responsive Assets (Task #44)", () => {
 
     expect(layoutCode).toContain('rel="preload"');
     expect(layoutCode).toContain('as="image"');
-    expect(layoutCode).toContain("lsv-hero-open-light");
-    expect(layoutCode).toContain("lsv-hero-open-dark");
+    expect(layoutCode).toContain("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-");
+    expect(layoutCode).toContain('"-mobile":"-desktop"');
   });
 
   it("ensures ticker has off-screen content-visibility optimization", () => {
