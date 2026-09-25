@@ -357,10 +357,16 @@ html[data-theme="light"] .hv3-chart { --paint: url("/images/lasoviet/v10/la-so-t
 }
 
 /* USP: four advantages, four visual languages (photo, photo, ink green, cinnabar). */
-.hv3-usp { background: #121510; border-color: #3a3227; }
+.hv3-usp { position: relative; overflow: hidden; isolation: isolate; background: #121510; border-color: #3a3227; }
+/* V10 paint behind the heading: right-hand side on desktop, a strip above the copy on mobile. Always the dark art, this section stays dark in both themes. */
+.hv3-usp::before { content: ""; position: absolute; z-index: -1; inset: 0 0 auto 0; height: 300px; background: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-tang-thu-dark-mobile.webp") right top / cover no-repeat; -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent); mask-image: linear-gradient(to bottom, #000 60%, transparent); }
+@media (max-width: 767px) { .hv3-usp .hv3-usp-head { padding-top: 140px; } }
+@media (min-width: 768px) {
+  .hv3-usp::before { inset: 0; height: auto; background-image: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-tang-thu-dark-desktop.webp"); background-position: right center; -webkit-mask-image: linear-gradient(to right, transparent 30%, #000 55%); mask-image: linear-gradient(to right, transparent 30%, #000 55%); }
+}
 .hv3-usp-head { display: flex; flex-wrap: wrap; gap: 20px 50px; align-items: flex-end; justify-content: space-between; }
-.hv3-h2-xl { max-width: 15ch; font-size: clamp(34px, 4.5vw, 60px); line-height: 1.08; color: #f6f1e6; }
-.hv3-usp-lead { margin: 0; max-width: 42ch; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.65; color: #cfc5b1; }
+.hv3-h2-xl { text-shadow: 0 2px 18px rgba(10, 9, 7, 0.7); max-width: 15ch; font-size: clamp(34px, 4.5vw, 60px); line-height: 1.08; color: #f6f1e6; }
+.hv3-usp-lead { text-shadow: 0 1px 14px rgba(10, 9, 7, 0.95), 0 0 3px rgba(10, 9, 7, 0.8); margin: 0; max-width: 42ch; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.65; color: #cfc5b1; }
 .hv3-usp-grid { margin-top: clamp(32px, 5vw, 64px); display: grid; grid-template-columns: 1fr; gap: 16px; }
 .hv3-usp-card { position: relative; min-height: 320px; overflow: hidden; border: 1px solid; border-radius: 20px; padding: clamp(22px, 3.2vw, 38px); }
 .hv3-usp-card h3 { margin: 6px 0 8px; font-family: var(--font-display); font-size: clamp(25px, 2.6vw, 34px); line-height: 1.15; font-weight: 600; color: inherit; }
@@ -437,8 +443,25 @@ html[data-theme="light"] .hv3-chart { --paint: url("/images/lasoviet/v10/la-so-t
   .hv3-about-art::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 54% 72% at 46% 50%, rgba(246, 240, 228, 0.94), rgba(246, 240, 228, 0.7) 60%, rgba(246, 240, 228, 0) 100%); }
   .hv3-about-body { width: min(60%, 640px); margin-left: clamp(24px, 15%, 200px); padding: clamp(36px, 5vw, 64px) 0; }
 }
-.hv3-final-cta { position: relative; overflow: hidden; }
-.hv3-final-cta-bg, .hv3-final-cta-bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.hv3-final-cta { position: relative; overflow: hidden; isolation: isolate; background: #0f0d0a; }
+html[data-theme="light"] .hv3-final-cta { background: var(--surface); color: var(--text); }
+/* V10 paint. Dark desktop: one wide raster. Light and mobile: painted edges either side of the text. */
+.hv3-final-cta-bg { position: absolute; inset: 0; background: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-cta-dark-desktop.webp") center / cover no-repeat; }
+html[data-theme="light"] .hv3-final-cta-bg { background: none; }
+.hv3-final-cta-bg::before, .hv3-final-cta-bg::after { content: ""; position: absolute; top: 0; bottom: 0; width: 19%; display: none; background-repeat: no-repeat; }
+.hv3-final-cta-bg::before { left: 0; -webkit-mask-image: linear-gradient(to right, #000 0 72%, transparent); mask-image: linear-gradient(to right, #000 0 72%, transparent); }
+.hv3-final-cta-bg::after { right: 0; -webkit-mask-image: linear-gradient(to left, #000 0 72%, transparent); mask-image: linear-gradient(to left, #000 0 72%, transparent); }
+html[data-theme="light"] .hv3-final-cta-bg::before, html[data-theme="light"] .hv3-final-cta-bg::after { display: block; }
+html[data-theme="light"] .hv3-final-cta-bg::before { background-image: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-light-desktop.webp"); background-position: left center; background-size: cover; }
+html[data-theme="light"] .hv3-final-cta-bg::after { background-image: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-tang-thu-light-desktop.webp"); background-position: right center; background-size: cover; }
+@media (max-width: 767px) {
+  .hv3-final-cta-bg { background: none; }
+  .hv3-final-cta-bg::before, .hv3-final-cta-bg::after { display: block; width: 13%; background-image: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-cta-dark-desktop.webp"); background-size: auto 100%; }
+  .hv3-final-cta-bg::before { background-position: left center; -webkit-mask-image: linear-gradient(to right, #000 0 64%, transparent); mask-image: linear-gradient(to right, #000 0 64%, transparent); }
+  .hv3-final-cta-bg::after { background-position: right center; -webkit-mask-image: linear-gradient(to left, #000 0 64%, transparent); mask-image: linear-gradient(to left, #000 0 64%, transparent); }
+  html[data-theme="light"] .hv3-final-cta-bg::before { background-image: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-light-mobile.webp"); background-size: cover; }
+  html[data-theme="light"] .hv3-final-cta-bg::after { background-image: url("/images/lasoviet/v10/la-so-tu-vi-tranh-son-tang-thu-light-mobile.webp"); background-size: cover; }
+}
 .hv3-final-cta-inner { position: relative; max-width: 760px; margin: 0 auto; padding: clamp(72px, 10vw, 150px) clamp(16px, 4vw, 48px); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 24px; }
 .hv3-final-cta-inner p { margin: 0; font-family: var(--font-display); font-size: clamp(28px, 3.4vw, 44px); line-height: 1.2; text-wrap: balance; }
 

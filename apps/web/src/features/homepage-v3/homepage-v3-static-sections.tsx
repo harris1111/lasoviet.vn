@@ -211,11 +211,7 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
         </div>
       </div>
       <div id="cta-cuoi" className="hv3-final-cta">
-        <picture className="hv3-final-cta-bg">
-          <source media="(max-width: 767px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-h04-cta-mobile.webp`} />
-          { }
-          <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-h04-cta.webp`} alt="" width={2048} height={768} loading="lazy" decoding="async" />
-        </picture>
+        <div className="hv3-final-cta-bg" aria-hidden="true" />
         <div className="hv3-final-cta-inner">
           <p>{t("ctaTitle")}</p>
           <HomepageV3GoWizard className="hv3-btn hv3-btn-lg">{t("cta")}</HomepageV3GoWizard>
