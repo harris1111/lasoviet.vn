@@ -300,7 +300,10 @@
     "prev": "Previous note",
     "next": "Next note",
     "close": "Close",
-    "dialogEyebrow": "Reader note"
+    "dialogEyebrow": "Reader note",
+    "pause": "Pause",
+    "play": "Play",
+    "rotationLabel": "Reader notes, changing every few seconds"
   },
   "usp": {
     "title": "The closer you look, the more you see your own story.",

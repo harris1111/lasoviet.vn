@@ -1,0 +1,51 @@
+/* Homepage motion (see homepage-v3-motion.tsx). Quiet by design: short, small, no bounce.
+   Everything moves through transform-family properties or opacity, never layout. */
+.hv3 { --hv3-ease: cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+/* Reading progress, above the sticky header. */
+.hv3-progress { position: fixed; z-index: 30; top: 0; left: 0; right: 0; height: 2px; background: var(--ornament); transform-origin: 0 50%; scale: var(--hv3-progress, 0) 1; pointer-events: none; }
+
+/* Testimonial rotation: the old quote leaves, the new one enters; the card frame never moves. */
+.hv3-tt-body[data-phase="out"] { opacity: 0; translate: 0 -6px; filter: blur(2px); transition: opacity 260ms ease, translate 260ms ease, filter 260ms ease; }
+.hv3-tt-body[data-phase="in"] { animation: hv3-tt-enter 420ms var(--hv3-ease) both; }
+@keyframes hv3-tt-enter { from { opacity: 0; translate: 0 8px; filter: blur(2px); } to { opacity: 1; translate: 0 0; filter: none; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Section headings come into focus: a short blur-to-sharp rise. (No clip-path: it hides the element from IntersectionObserver.) */
+  .hv3[data-reveal-ready] [data-reveal="title"] { transition: opacity 650ms var(--hv3-ease), transform 650ms var(--hv3-ease), filter 650ms var(--hv3-ease); }
+  .hv3[data-reveal-ready] [data-reveal="title"]:not([data-in]) { opacity: 0; transform: translateY(12px); filter: blur(6px); }
+
+  /* Filtered reader notes fade in one after another. */
+  .hv3-tt-list .hv3-tt-card { animation: hv3-tt-enter 320ms var(--hv3-ease) both; animation-delay: calc(min(var(--i, 0), 8) * 40ms); }
+
+  /* Scroll parallax: art drifts a little slower than the text. Layers are oversized so no edge shows. */
+  .hv3-chart-dim, .hv3-chart-reveal { inset: -16px 0; translate: 0 var(--hv3-py, 0px); }
+  .hv3-story-art img { scale: 1.08; translate: 0 var(--hv3-py, 0px); }
+  .hv3-usp::before { translate: 0 var(--hv3-py, 0px); }
+  @media (min-width: 768px) { .hv3-usp::before { inset: -24px 0; } }
+  .hv3-final-cta-bg { inset: -12px 0; translate: 0 var(--hv3-py, 0px); }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  /* Cards: a soft gold light follows the pointer, and the card lifts 3px. */
+  .hv3 :is([data-glow], .hv3-usp-card, .hv3-need, .hv3-need-detail) { transition: translate 400ms var(--hv3-ease), border-color 400ms ease, box-shadow 400ms ease; }
+  .hv3 :is([data-glow], .hv3-usp-card, .hv3-need, .hv3-need-detail)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 400ms ease; background: radial-gradient(260px circle at var(--hv3-mx, 50%) var(--hv3-my, 50%), color-mix(in srgb, var(--ornament) 16%, transparent), transparent 70%); }
+  .hv3 :is([data-glow], .hv3-usp-card, .hv3-need, .hv3-need-detail)[data-hover] { translate: 0 -3px; border-color: color-mix(in srgb, var(--ornament) 55%, var(--hair)); box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.6); }
+  .hv3 :is([data-glow], .hv3-usp-card, .hv3-need, .hv3-need-detail)[data-hover]::after { opacity: 1; }
+  .hv3-need, .hv3-need-detail { position: relative; }
+
+  /* Hero chart tilts up to 3° toward the pointer and settles back on leave. */
+  .hv3-chart-face { transition: transform 500ms var(--hv3-ease); }
+  .hv3-chart-face[data-hover] { transition-duration: 160ms; }
+  @media (min-width: 768px) {
+    .hv3-chart-face { transform: translateY(-50%) perspective(900px) rotateX(var(--hv3-rx, 0deg)) rotateY(var(--hv3-ry, 0deg)); }
+  }
+
+  /* Primary buttons lean a few px toward the pointer. */
+  .hv3 :is(.hv3-cta, .hv3-final-cta .hv3-btn) { translate: var(--hv3-tx, 0px) var(--hv3-ty, 0px); transition: translate 400ms var(--hv3-ease), background-color 180ms ease, transform 120ms ease; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hv3-progress { display: none; }
+  .hv3-tt-body[data-phase] { animation: none; transition: none; opacity: 1; translate: none; filter: none; }
+}
