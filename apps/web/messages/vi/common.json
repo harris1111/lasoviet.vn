@@ -547,6 +547,24 @@
       "question": "Chỉ tay phản ánh nét tướng, còn gốc số của bạn nằm ở đâu?",
       "explanation": "Tướng tay chuyển biến theo tâm và hành vi; lá số Tử Vi giữ vai trò toạ độ gốc giúp định hướng vững vàng.",
       "cta": "Xem toạ độ lá số"
+    },
+    "numerology": {
+      "eyebrow": "Tính cách & Thời điểm",
+      "question": "Con số chỉ ra tính cách, còn năm nào là thời điểm bạn thuận lợi?",
+      "explanation": "Thần số học dùng ngày sinh và tên; lá số Tử Vi có thêm giờ sinh để mở ra chu kỳ mười năm và vận hạn năm nay của bạn.",
+      "cta": "Lập lá số với ngày sinh này"
+    },
+    "loveCompatibility": {
+      "eyebrow": "Hôn nhân & Phu Thê",
+      "question": "Tuổi hợp chỉ là một lớp, cung Phu Thê của bạn nói điều gì?",
+      "explanation": "Năm sinh giống nhau cho hàng triệu người; cung Phu Thê trên lá số của riêng bạn mới hé lộ mẫu người gắn bó và cách dung hòa.",
+      "cta": "Xem cung Phu Thê của bạn"
+    },
+    "dailyHoroscope": {
+      "eyebrow": "Thiên thời & Cung hạn",
+      "question": "Con giáp cho biết xu hướng chung, hôm nay chạm đến cung nào của bạn?",
+      "explanation": "Lá số Tử Vi đối chiếu ngày giờ cụ thể để chỉ rõ các cung Tài Bạch, Quan Lộc hay Tật Ách đang chuyển biến thế nào.",
+      "cta": "Xem hôm nay theo lá số"
     }
   }
 }

@@ -1402,5 +1402,107 @@
     ],
     "status": "published",
     "lastReviewed": "2026-09-05"
+  },
+  {
+    "routeId": "utility.numerology",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Tra cứu Thần Số Học — Lá Số Việt",
+    "summary": "Tính số chủ đạo, số sứ mệnh, số linh hồn, số nhân cách và biểu đồ ngày sinh theo hệ Pythagoras.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-24"
+  },
+  {
+    "routeId": "utility.numerology",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Numerology Lookup — La So Viet",
+    "summary": "Calculate Life Path, Destiny, Soul Urge, Personality, and 3x3 Birth Chart Grid under Pythagorean numerology.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-24"
+  },
+  {
+    "routeId": "utility.love-compatibility",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Bói Tình Yêu Theo Tuổi — Lá Số Việt",
+    "summary": "Xem hai người hòa hợp ở đâu, dễ va chạm ở đâu theo con giáp và ngũ hành năm sinh không chấm điểm may rủi ảo.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-24"
+  },
+  {
+    "routeId": "utility.love-compatibility",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Love Compatibility by Zodiac Age — La So Viet",
+    "summary": "Analyze harmony and friction through traditional animal branches and five elements without arbitrary percentages.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-24"
+  },
+  {
+    "routeId": "utility.daily-horoscope",
+    "locale": "vi",
+    "contentType": "ToolLanding",
+    "title": "Tử Vi Hôm Nay 12 Con Giáp — Sắp ra mắt · Lá Số Việt",
+    "summary": "Dự báo định hướng công việc, tài chính, tình cảm cho 12 con giáp theo can chi ngày. Bản sâu sắc nhất nằm ở cung số riêng trên lá số của bạn.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-24"
+  },
+  {
+    "routeId": "utility.daily-horoscope",
+    "locale": "en",
+    "contentType": "ToolLanding",
+    "title": "Daily Horoscope 12 Zodiacs — Coming Soon · La So Viet",
+    "summary": "General temporal tendencies across work, finances, and relationships. Deep personalized insights require your individual natal chart.",
+    "reviewer": "content-team",
+    "sourceReferences": [
+      "docs/13-brand-experience-guideline.md",
+      "docs/14-sitemap-seo-wireframes.md"
+    ],
+    "riskTags": [
+      "uncertainty_disclosure"
+    ],
+    "status": "published",
+    "lastReviewed": "2026-09-24"
   }
 ]

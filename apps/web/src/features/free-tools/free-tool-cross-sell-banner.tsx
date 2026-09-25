@@ -13,7 +13,10 @@ export type FreeToolCrossSellKey =
   | "dream-symbols"
   | "tarot"
   | "feng-shui"
-  | "palmistry";
+  | "palmistry"
+  | "numerology"
+  | "love-compatibility"
+  | "daily-horoscope";
 
 export type FreeToolCrossSellBannerProps = {
   tool: FreeToolCrossSellKey | (string & {});
@@ -26,7 +29,17 @@ export type FreeToolCrossSellBannerProps = {
 };
 
 type ToolMeta = {
-  i18nKey: "goodDays" | "zodiac" | "lunarCalendar" | "dreamSymbols" | "tarot" | "fengShui" | "palmistry";
+  i18nKey:
+    | "goodDays"
+    | "zodiac"
+    | "lunarCalendar"
+    | "dreamSymbols"
+    | "tarot"
+    | "fengShui"
+    | "palmistry"
+    | "numerology"
+    | "loveCompatibility"
+    | "dailyHoroscope";
   fromSlug: string;
 };
 
@@ -45,6 +58,12 @@ const TOOL_META_MAP: Record<string, ToolMeta> = {
   "phong-thuy": { i18nKey: "fengShui", fromSlug: "phong-thuy" },
   "palmistry": { i18nKey: "palmistry", fromSlug: "xem-chi-tay" },
   "xem-chi-tay": { i18nKey: "palmistry", fromSlug: "xem-chi-tay" },
+  "numerology": { i18nKey: "numerology", fromSlug: "than-so-hoc" },
+  "than-so-hoc": { i18nKey: "numerology", fromSlug: "than-so-hoc" },
+  "love-compatibility": { i18nKey: "loveCompatibility", fromSlug: "boi-tinh-yeu" },
+  "boi-tinh-yeu": { i18nKey: "loveCompatibility", fromSlug: "boi-tinh-yeu" },
+  "daily-horoscope": { i18nKey: "dailyHoroscope", fromSlug: "tu-vi-hom-nay" },
+  "tu-vi-hom-nay": { i18nKey: "dailyHoroscope", fromSlug: "tu-vi-hom-nay" },
 };
 
 export function FreeToolCrossSellBanner({

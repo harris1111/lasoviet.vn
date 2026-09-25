@@ -547,6 +547,24 @@
       "question": "Palm lines show physical traits, but where lies your foundational chart?",
       "explanation": "Palm signs shift with habits and thought; your Zi Wei chart provides the anchor for conscious direction.",
       "cta": "View your natal chart"
+    },
+    "numerology": {
+      "eyebrow": "Personality & Timing",
+      "question": "Numbers show personality, but which years bring your favorable windows?",
+      "explanation": "Numerology uses birth date and name; your Zi Wei chart incorporates your exact birth hour to map ten-year and annual timing.",
+      "cta": "Build chart with this date"
+    },
+    "loveCompatibility": {
+      "eyebrow": "Marriage & Partnership",
+      "question": "Yearly age is one layer, but what does your Marriage Palace disclose?",
+      "explanation": "Birth years are shared by millions; your individual Marriage Palace reveals specific relationship patterns and harmony keys.",
+      "cta": "Inspect Marriage Palace"
+    },
+    "dailyHoroscope": {
+      "eyebrow": "Transit & Daily Palaces",
+      "question": "Zodiac signs show broad trends, but which palace does today activate?",
+      "explanation": "A Zi Wei chart analyzes precise coordinates to clarify which life areas are receiving circulating planetary influence today.",
+      "cta": "View today via your chart"
     }
   }
 }

@@ -20,6 +20,9 @@ describe("free tools page contract", () => {
     "/giai-ma-giac-mo",
     "/boi-bai",
     "/lich-am",
+    "/tra-cuu-than-so-hoc",
+    "/boi-tinh-yeu",
+    "/tu-vi-hom-nay",
   ] as const;
 
   it("resolves the hub kind for /cong-cu-mien-phi across vi and en", () => {

@@ -741,6 +741,30 @@ routes:
     discipline: palmistry
     owner: product-content
 
+  - <<: *preview_defaults
+    id: utility.numerology
+    path: /tra-cuu-than-so-hoc
+    intent: utility.numerology
+    template: utility-preview
+    discipline: numerology
+    owner: product-content
+
+  - <<: *preview_defaults
+    id: utility.love-compatibility
+    path: /boi-tinh-yeu
+    intent: utility.love-compatibility
+    template: utility-preview
+    discipline: love-compatibility
+    owner: product-content
+
+  - <<: *preview_defaults
+    id: utility.daily-horoscope
+    path: /tu-vi-hom-nay
+    intent: utility.daily-horoscope
+    template: utility-preview
+    discipline: horoscope
+    owner: product-content
+
   - <<: *reserved_defaults
     id: knowledge.feng-shui
     path: /kien-thuc/phong-thuy/{slug}
