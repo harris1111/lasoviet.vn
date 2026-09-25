@@ -147,15 +147,13 @@
   - Contract bảo vệ: trang miễn phí chỉ hiển thị số lượng tháng hạn (count), chi tiết lời khuyên giữ ở server cho tới khi mở khóa (FD-059).
 - **Kiểm thử:** Fixture test kiểm chứng tính toán với các lá số mẫu chuẩn.
 
-#### 10. Ticket #23: UI-05 Trang chọn luận giải & gói Lá (`/la-so/[chartId]/chon-luan-giai`)
+#### 10. Ticket #23: UI-05 Trang chọn luận giải & gói Lá (`/la-so/[chartId]/chon-luan-giai`) [DONE]
 - **Độ khó:** 5/5 (Khó - Tích hợp thương mại).
-- **Phạm vi code:**
-  - Dựng giao diện theo prototype `prototype/revamp-2026-09/chon-luan-giai.html`:
-    - Tab 1: Luận giải (giá hiển thị bằng Lá: Bản mệnh 240 Lá, Toàn diện 960 Lá, Nâng cấp 720 Lá).
-    - Tab 2: Gói Lá (giá VND: 29k, 99k, 249k, 599k).
-  - Bottom sheet khi số dư Lá không đủ, tự động chọn gói nhỏ nhất đủ bù phần thiếu (FD-066).
-  - Panel quyền lợi và FAQ theo tab.
-- **Kiểm thử:** E2E test cho luồng chọn gói, tab switching, mobile 390px.
+- **Trạng thái:** Đã hoàn thành, CI pass, merge PR #185 & PR #186, deploy live trên container và test smoke thành công (`scripts/verify-task23-46.mjs`). Task #23 đã chuyển `done` trên Kaneo.
+
+#### 13. Ticket #46: Nạp Lá + Hội viên: build the top-up page and membership [DONE]
+- **Độ khó:** 4.5/5 (Kiến trúc + UI).
+- **Trạng thái:** Đã hoàn thành spec kiến trúc (`docs/superpowers/specs/2026-09-25-membership-architecture-design.md`), UI preview tab Hội viên, trang `/nap-la`, merge PR #185 & PR #186, deploy live trên container và test smoke thành công (`scripts/verify-task23-46.mjs`). Task #46 đã chuyển `done` trên Kaneo.
 
 #### 11. Ticket #25: UI-07 Trình đọc báo cáo trả phí (`/bao-cao/[reportId]`)
 - **Độ khó:** 5/5 (Khó - Quản lý trạng thái đọc & Upsell).

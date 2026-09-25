@@ -104,12 +104,6 @@ async function main() {
 
   // Check no VND in #luan-giai
   const luanGiaiText = await page.$eval("#luan-giai", (el) => el.textContent || "");
-  console.log("Debugging luanGiaiText lines with VND/đ:");
-  for (const line of luanGiaiText.split("\n")) {
-    if (line.includes("₫") || line.includes("VND") || line.includes(".000đ")) {
-      console.log("Found line:", line.trim());
-    }
-  }
   if (luanGiaiText.includes("₫") || luanGiaiText.includes("VND") || luanGiaiText.includes(".000đ")) {
     throw new Error("Found VND on Luận giải tab violating FD-065!");
   }
