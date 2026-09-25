@@ -191,6 +191,7 @@ vi.mock("./load-ziwei-chart", () => ({
         },
       },
     }),
+    loadHoroscope: async () => ({ ok: false }),
   },
 }));
 

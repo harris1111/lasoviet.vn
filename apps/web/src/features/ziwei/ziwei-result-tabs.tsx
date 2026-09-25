@@ -9,6 +9,7 @@ import type {
   NormalizedZiweiChartV1,
   ZiweiBirthSummaryV1,
   ZiweiEvidenceViewV1,
+  ZiweiHoroscopeResultV1,
 } from "@lasoviet/contracts";
 
 import {
@@ -22,6 +23,7 @@ import { ZiweiOverviewTab } from "./ziwei-overview-tab";
 import { ZiweiPalacesTab } from "./ziwei-palaces-tab";
 import { ZiweiTopicsTab } from "./ziwei-topics-tab";
 import { ZiweiEvidenceTab } from "./ziwei-evidence-tab";
+import { ZiweiAnnualTab } from "./ziwei-annual-tab";
 import type { ZiweiPresentationLocale } from "./ziwei-presentation";
 import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 
@@ -39,6 +41,7 @@ export type ZiweiResultTabsProps = {
   >;
   preview: FreeIdentityPreviewV1;
   isSample?: boolean;
+  horoscope?: ZiweiHoroscopeResultV1;
 };
 
 export function ZiweiResultTabs({
@@ -52,6 +55,7 @@ export function ZiweiResultTabs({
   loadEvidence,
   preview,
   isSample,
+  horoscope,
 }: ZiweiResultTabsProps) {
   const t = useTranslations("ziwei");
   const router = useRouter();
@@ -175,6 +179,19 @@ export function ZiweiResultTabs({
                 type="button"
               >
                 <span>{tabLabel}</span>
+                {tabKey === "nam-nay" && horoscope && (
+                  <span
+                    className="tab-count count"
+                    style={{
+                      marginLeft: "6px",
+                      fontSize: "12px",
+                      color: "var(--son, #ec8a74)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {horoscope.yearly.hanMonthCount} {t("tabs.hanCountSuffix")}
+                  </span>
+                )}
                 {isSample && (
                   <span className="sample-tab-tag">{t("sample.tabBadge")}</span>
                 )}
@@ -220,6 +237,25 @@ export function ZiweiResultTabs({
               onNavigateToPalaces={() => handleTabChange("palaces", undefined)}
               preview={preview}
             />
+          </div>
+        )}
+
+        {activeTab === "nam-nay" && (
+          <div
+            aria-labelledby="tab-nam-nay"
+            className="ui-tab-panel result-tab-panel"
+            id="panel-nam-nay"
+            role="tabpanel"
+            tabIndex={0}
+          >
+            {horoscope ? (
+              <ZiweiAnnualTab
+                chartId={chartId}
+                horoscope={horoscope}
+                locale={locale}
+                onSelectToanDien={() => handleTabChange("topics", "career")}
+              />
+            ) : null}
           </div>
         )}
 

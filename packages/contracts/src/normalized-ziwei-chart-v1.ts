@@ -35,7 +35,7 @@ const branchIds = [
   "ziwei.branch.pig",
 ] as const;
 
-const PalaceIdSchema = z.enum(palaceIds);
+export const PalaceIdSchema = z.enum(palaceIds);
 const canonicalStarId = z.string().regex(/^ziwei\.star\.[a-z0-9-]+$/);
 const canonicalWarningCode = z.string().regex(/^ziwei\.warning\.[a-z0-9-]+$/);
 

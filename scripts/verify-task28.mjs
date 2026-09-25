@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { chromium } from "@playwright/test";
 
 const BASE_URL = process.env.TEST_BASE_URL || "http://127.0.0.1:63423";
 
@@ -11,7 +11,7 @@ async function run() {
     // 1. Test /kien-thuc (Knowledge Root Hub)
     console.log("\n[Test 1] Testing Knowledge Root Hub at /kien-thuc...");
     const page = await context.newPage();
-    const resRoot = await page.goto(`${BASE_URL}/kien-thuc`, { waitUntil: "networkidle" });
+    const resRoot = await page.goto(`${BASE_URL}/kien-thuc`, { waitUntil: "domcontentloaded" });
     console.log("HTTP Status /kien-thuc:", resRoot.status());
     if (resRoot.status() !== 200) {
       throw new Error(`Expected HTTP 200 for /kien-thuc, got ${resRoot.status()}`);
@@ -40,7 +40,7 @@ async function run() {
 
     // 2. Test /kien-thuc/tu-vi (Pillar Hub)
     console.log("\n[Test 2] Testing Tu Vi Pillar Hub at /kien-thuc/tu-vi...");
-    const resPillar = await page.goto(`${BASE_URL}/kien-thuc/tu-vi`, { waitUntil: "networkidle" });
+    const resPillar = await page.goto(`${BASE_URL}/kien-thuc/tu-vi`, { waitUntil: "domcontentloaded" });
     console.log("HTTP Status /kien-thuc/tu-vi:", resPillar.status());
     if (resPillar.status() !== 200) {
       throw new Error(`Expected HTTP 200 for /kien-thuc/tu-vi, got ${resPillar.status()}`);
@@ -48,7 +48,7 @@ async function run() {
 
     // 3. Test /kien-thuc/tu-vi/la-so-tu-vi-la-gi (Single Article Detail)
     console.log("\n[Test 3] Testing Knowledge Article Detail at /kien-thuc/tu-vi/la-so-tu-vi-la-gi...");
-    const resArticle = await page.goto(`${BASE_URL}/kien-thuc/tu-vi/la-so-tu-vi-la-gi`, { waitUntil: "networkidle" });
+    const resArticle = await page.goto(`${BASE_URL}/kien-thuc/tu-vi/la-so-tu-vi-la-gi`, { waitUntil: "domcontentloaded" });
     console.log("HTTP Status Article:", resArticle.status());
     if (resArticle.status() !== 200) {
       throw new Error(`Expected HTTP 200 for article, got ${resArticle.status()}`);
@@ -86,7 +86,7 @@ async function run() {
 
     // 5. Test English locale /en/kien-thuc
     console.log("\n[Test 5] Testing English locale /en/kien-thuc...");
-    const resEn = await page.goto(`${BASE_URL}/en/kien-thuc`, { waitUntil: "networkidle" });
+    const resEn = await page.goto(`${BASE_URL}/en/kien-thuc`, { waitUntil: "domcontentloaded" });
     console.log("HTTP Status /en/kien-thuc:", resEn.status());
     if (resEn.status() !== 200) {
       throw new Error(`Expected HTTP 200 for /en/kien-thuc, got ${resEn.status()}`);

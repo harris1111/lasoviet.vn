@@ -343,4 +343,55 @@ describe("Zi Wei query service", () => {
       new ZiweiQueryDataError(),
     );
   });
+
+  it("reads authorized horoscope using calculateHoroscope dependency", async () => {
+    const mockCalculate = vi.fn().mockReturnValue({
+      version: 1,
+      chartId: "chart-1",
+      chartVersionId: "chart-version-1",
+      asOfDate: "2026-09-22",
+      isUnlocked: false,
+      yearly: {
+        targetYear: 2026,
+        lunarYear: "Bính Ngọ",
+        lunarAge: 35,
+        annualPalaceId: "ziwei.palace.career",
+        annualPalaceName: "Quan Lộc",
+        annualBranch: "Ngọ",
+        annualStem: "Bính",
+        hanMonthCount: 2,
+        favorableMonthCount: 3,
+        neutralMonthCount: 7,
+        focusAreas: ["tiền bạc"],
+        summary: "Năm nay có 2 tháng cần chú ý và 3 tháng thuận.",
+        months: [],
+        evidenceKeys: [],
+      },
+      daily: {
+        solarDate: "2026-09-22",
+        solarDateFormatted: "Thứ Ba, 22/9/2026",
+        lunarDateFormatted: "12/8 Bính Ngọ",
+        dayStemBranch: "Kỷ Hợi",
+        solarTerm: "Bạch Lộ",
+        touchedPalaceId: "ziwei.palace.children",
+        touchedPalaceName: "Tử Tức",
+        headline: "Ngày Kỷ Hợi chạm cung Tử Tức của bạn.",
+        evidenceKeys: [],
+      },
+    });
+
+    const service = createZiweiQueryService({
+      repository: repository({ readAuthorizedChart: vi.fn().mockResolvedValue(record()) }),
+      now: () => now,
+      calculateHoroscope: mockCalculate,
+    });
+
+    const res = await service.readHoroscope(account, "chart-1", { asOfDate: "2026-09-22" });
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.value.yearly.annualPalaceName).toBe("Quan Lộc");
+      expect(res.value.daily.dayStemBranch).toBe("Kỷ Hợi");
+    }
+    expect(mockCalculate).toHaveBeenCalledTimes(1);
+  });
 });

@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@lasoviet/contracts": "workspace:0.0.0",
-    "iztro": "2.6.0"
+    "iztro": "2.6.0",
+    "lunar-typescript": "1.8.6"
   }
 }

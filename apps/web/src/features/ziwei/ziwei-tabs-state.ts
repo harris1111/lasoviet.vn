@@ -1,6 +1,7 @@
 export const CANONICAL_RESULT_TABS = [
   "chart",
   "overview",
+  "nam-nay",
   "palaces",
   "topics",
   "evidence",
@@ -73,9 +74,14 @@ export function parseResultTabState(searchParams?: Record<string, string | strin
   const rawTab = typeof searchParams?.tab === "string" ? searchParams.tab : undefined;
   const rawOpen = typeof searchParams?.open === "string" ? searchParams.open : undefined;
 
+  let resolvedTab = rawTab;
+  if (resolvedTab === "annual") {
+    resolvedTab = "nam-nay";
+  }
+
   const tab: ZiweiResultTab =
-    rawTab && (CANONICAL_RESULT_TABS as readonly string[]).includes(rawTab)
-      ? (rawTab as ZiweiResultTab)
+    resolvedTab && (CANONICAL_RESULT_TABS as readonly string[]).includes(resolvedTab)
+      ? (resolvedTab as ZiweiResultTab)
       : "chart";
 
   let open: string | undefined = undefined;

@@ -17,3 +17,9 @@ export {
 export type {
   CalculateIztroReportSnapshotInput,
 } from "./ziwei/iztro-report-snapshot.js";
+export {
+  calculateZiweiHoroscope,
+} from "./ziwei/iztro-horoscope.js";
+export type {
+  CalculateHoroscopeOptions,
+} from "./ziwei/iztro-horoscope.js";

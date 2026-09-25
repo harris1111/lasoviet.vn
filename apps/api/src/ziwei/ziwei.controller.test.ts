@@ -59,6 +59,7 @@ const readEvidence = vi.fn().mockResolvedValue({
 const readPreview = vi.fn().mockResolvedValue({ ok: true, value: { version: 1 } });
 const listTopics = vi.fn().mockResolvedValue({ ok: true, value: { version: 1 } });
 const selectTopic = vi.fn().mockResolvedValue({ ok: true, value: { version: 1 } });
+const readHoroscope = vi.fn().mockResolvedValue({ ok: true, value: { version: 1 } });
 
 async function actorToken(): Promise<string> {
   return new SignJWT({
@@ -84,7 +85,7 @@ Module({
     { provide: ZIWEI_CALCULATION_SERVICE, useValue: { calculate, readChart, readEvidence } },
     { provide: ZIWEI_CALCULATION_SERVICE_SECRET, useValue: serviceSecret },
     { provide: ZIWEI_CALCULATION_DATABASE, useValue: undefined },
-    { provide: ZIWEI_QUERY_SERVICE, useValue: { readChart, readEvidence, readPreview, listTopics, selectTopic } },
+    { provide: ZIWEI_QUERY_SERVICE, useValue: { readChart, readEvidence, readPreview, listTopics, selectTopic, readHoroscope } },
   ],
 })(ZiweiHttpTestModule);
 
@@ -187,6 +188,23 @@ describe("Zi Wei private HTTP flow", () => {
       expect.objectContaining({ kind: "account", userId: "verified-account" }),
       "chart-1",
       { sku: "ZIWEI-IDENTITY-P0", userId: "untrusted-account" },
+    );
+  });
+
+  it("derives horoscope actor and query params from request", async () => {
+    readHoroscope.mockClear();
+    const authorization = `Bearer ${await actorToken()}`;
+
+    await app.getHttpAdapter().getInstance().inject({
+      method: "GET",
+      url: "/ziwei/charts/chart-1/horoscope?asOfDate=2026-09-22",
+      headers: { authorization },
+    });
+
+    expect(readHoroscope).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "account", userId: "verified-account" }),
+      "chart-1",
+      { asOfDate: "2026-09-22" },
     );
   });
 });

@@ -13,6 +13,7 @@ import {
   ZiweiEvidenceViewV1Schema,
   type ZiweiChartViewV1,
   type ZiweiEvidenceViewV1,
+  type ZiweiHoroscopeResultV1,
 } from "@lasoviet/contracts";
 import { productCatalog } from "@lasoviet/config";
 
@@ -33,6 +34,16 @@ export type ZiweiQueryError =
 export type ZiweiQueryServiceOptions = {
   repository: ZiweiQueryRepository;
   now?: () => Date;
+  calculateHoroscope?: (
+    profile: import("@lasoviet/contracts").NormalizedBirthProfileV1,
+    options?: {
+      chartId?: string;
+      chartVersionId?: string;
+      asOfDate?: string;
+      targetYear?: number;
+      isUnlocked?: boolean;
+    },
+  ) => ZiweiHoroscopeResultV1;
 };
 
 export class ZiweiQueryDataError extends Error {
@@ -269,6 +280,35 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
       }
       const view = topicView(record.chartId, record.chartVersionId);
       return { ok: true, value: view };
+    },
+
+    async readHoroscope(
+      actor: CurrentActor,
+      chartId: string,
+      horoscopeOptions?: { asOfDate?: string; targetYear?: number },
+    ): Promise<Result<ZiweiHoroscopeResultV1, ZiweiQueryError>> {
+      const record = await authorizedRecord(actor, chartId);
+      if ("ok" in record) {
+        return record;
+      }
+      const normalizedProfile = NormalizedBirthProfileV1Schema.safeParse({
+        ...(record.normalizedInput ?? {}),
+        originalInput: record.originalInput,
+      });
+      if (!normalizedProfile.success) {
+        throw new ZiweiQueryDataError();
+      }
+      if (!options.calculateHoroscope) {
+        throw new ZiweiQueryDataError();
+      }
+      const result = options.calculateHoroscope(normalizedProfile.data, {
+        chartId: record.chartId,
+        chartVersionId: record.chartVersionId,
+        asOfDate: horoscopeOptions?.asOfDate,
+        targetYear: horoscopeOptions?.targetYear,
+        isUnlocked: false,
+      });
+      return { ok: true, value: result };
     },
   };
 }
