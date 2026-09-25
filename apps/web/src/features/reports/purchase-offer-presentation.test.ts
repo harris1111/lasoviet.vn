@@ -600,7 +600,7 @@ describe("purchase-offer-presentation", () => {
         locale: "vi",
       });
       const tier1 = presentations.find((p) => p.offerKey === "ziwei-natal-excerpt");
-      expect(tier1?.upgradeDisclosure?.vi).toBe("Nếu sau đó bạn muốn đọc bản toàn diện, 19.000 ₫ này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.");
+      expect(tier1?.upgradeDisclosure?.vi).toBe("Nếu sau đó bạn muốn đọc bản toàn diện, 240 Lá này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.");
     });
 
     it("hides Tier 1 completely when Tier 2 is owned (WP-09 Test 12)", () => {
