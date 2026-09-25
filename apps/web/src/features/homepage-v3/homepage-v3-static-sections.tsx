@@ -13,7 +13,7 @@ export function HomepageV3Story() {
   return (
     <div className="hv3-container hv3-art-container">
       <div className="hv3-story-panel" data-reveal>
-        <picture className="hv3-story-art">
+        <picture className="hv3-story-art" data-parallax="20">
           <source media="(max-width: 699px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk-mobile.webp`} />
           { }
           <img
@@ -211,7 +211,7 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
         </div>
       </div>
       <div id="cta-cuoi" className="hv3-final-cta">
-        <div className="hv3-final-cta-bg" aria-hidden="true" />
+        <div className="hv3-final-cta-bg" aria-hidden="true" data-parallax="12" />
         <div className="hv3-final-cta-inner">
           <p>{t("ctaTitle")}</p>
           <HomepageV3GoWizard className="hv3-btn hv3-btn-lg">{t("cta")}</HomepageV3GoWizard>

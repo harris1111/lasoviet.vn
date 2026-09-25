@@ -84,4 +84,24 @@ describe("Homepage V3 Performance & Responsive Assets (Task #44)", () => {
 
     expect(cssCode).toContain("content-visibility: auto;");
   });
+  it("keeps homepage motion cheap and optional", () => {
+    const motionCode = fs.readFileSync(
+      path.resolve(process.cwd(), "apps/web/src/features/homepage-v3/homepage-v3-motion.tsx"),
+      "utf8",
+    );
+    const motionCss = fs.readFileSync(
+      path.resolve(process.cwd(), "apps/web/src/styles/homepage-v3-motion.css"),
+      "utf8",
+    );
+
+    // One passive scroll listener, batched to animation frames.
+    expect(motionCode).toContain('addEventListener("scroll", schedule, { passive: true })');
+    expect(motionCode).toContain("requestAnimationFrame");
+    // Reduced motion: the script only reveals content; CSS keeps every effect behind no-preference.
+    expect(motionCode).toContain("prefers-reduced-motion: reduce");
+    expect(motionCss).toContain("@media (prefers-reduced-motion: no-preference)");
+    expect(motionCss).toContain("(hover: hover) and (pointer: fine)");
+    // Title reveal must not use clip-path: it hides the heading from IntersectionObserver.
+    expect(motionCss).not.toMatch(/data-reveal="title"\][^{]*\{[^}]*clip-path/);
+  });
 });

@@ -66,7 +66,7 @@ export function HomepageV3HeroChart({ hero, locale }: { hero: HeroStage; locale:
       data-dated={Boolean(date)}
       style={{ "--hc-branch": branchIndex ?? -1 } as CSSProperties}
     >
-      <div className="hv3-chart-paint" aria-hidden="true">
+      <div className="hv3-chart-paint" aria-hidden="true" data-parallax="16">
         <div className="hv3-chart-dim" />
         <div className="hv3-chart-reveal" />
         <div className="hv3-chart-fade" />

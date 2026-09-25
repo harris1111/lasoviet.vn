@@ -426,7 +426,8 @@ html[data-theme="light"] .hv3-chart { --paint: url("/images/lasoviet/v10/la-so-t
 .hv3-tt-actions-left { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; }
 .hv3-tt-more { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--link); font-size: 15px; text-decoration: underline; text-underline-offset: 5px; cursor: pointer; }
 .hv3-tt-pause { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--hair2); border-radius: 999px; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; }
-.hv3-tt-pause span { font-size: 10px; letter-spacing: -0.1em; }
+.hv3-tt-pause-icon { width: 9px; height: 10px; border-inline: 3px solid currentColor; }
+.hv3-tt-pause-icon[data-paused="true"] { border: 0; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
 .hv3 .hv3-tt-start { color: var(--muted); font-size: 14px; }
 .hv3-tt-extra { margin-top: 36px; }
 .hv3-tt-filters { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 20px; scrollbar-width: thin; }

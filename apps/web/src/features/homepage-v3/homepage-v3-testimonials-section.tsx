@@ -200,7 +200,7 @@ export function HomepageV3Testimonials() {
     return (
       <article
         key={variant === "slot" ? `slot-${index}` : `${variant}-${item.id}`}
-        className={`hv3-tt-card hv3-tt-${variant}`}
+        className={`hv3-tt-card hv3-tt-card-${variant}`}
         data-reveal={variant === "slot" ? "" : undefined}
         data-glow={variant === "list" ? undefined : ""}
         style={{ "--i": index } as CSSProperties}
@@ -280,7 +280,7 @@ export function HomepageV3Testimonials() {
           </button>
           {showPause ? (
             <button type="button" className="hv3-tt-pause" aria-pressed={paused} onClick={() => setPaused((current) => !current)}>
-              <span aria-hidden="true">{paused ? "▶" : "❙❙"}</span>
+              <span aria-hidden="true" className="hv3-tt-pause-icon" data-paused={paused} />
               {paused ? t("play") : t("pause")}
             </button>
           ) : null}
