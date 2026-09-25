@@ -1,15 +1,29 @@
 {
   "input": {
     "version": 1,
-    "calendar": { "kind": "solar", "date": "1990-01-01" },
-    "time": { "precision": "unknown" },
-    "timezone": { "offsetMinutes": 420 },
+    "calendar": {
+      "kind": "solar",
+      "date": "1990-01-01"
+    },
+    "time": {
+      "precision": "unknown"
+    },
+    "timezone": {
+      "offsetMinutes": 420
+    },
     "consentVersion": "2026-09-01"
   },
   "expected": {
     "normalized": {
-      "limitations": ["TIME_UNKNOWN"]
+      "limitations": [
+        "TIME_UNKNOWN",
+        "BIRTH_TIME_UNKNOWN_PROVISIONAL"
+      ]
     },
-    "eligibility": { "ok": false, "code": "TIME_UNKNOWN" }
+    "eligibility": {
+      "ok": true,
+      "value": 6,
+      "provisional": true
+    }
   }
 }

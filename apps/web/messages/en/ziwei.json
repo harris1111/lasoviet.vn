@@ -112,5 +112,12 @@
     "mobileBottomTitle": "Sample Zi Wei Chart",
     "mobileBottomSubtitle": "Female · 15/06/1992",
     "mobileBottomCta": "Create your chart"
+  },
+  "provisional": {
+    "badge": "Provisional Chart",
+    "bannerTitle": "Provisional Chart (Birth time unknown)",
+    "bannerDescription": "This chart is calculated using the mid-day hour (11:00 - 13:00) as a reference baseline. Life Palace, Body Palace, individual palaces, and decadal cycles are provisional estimates. You can add your exact birth hour anytime to view a fully accurate chart.",
+    "actionAddTime": "Add birth hour",
+    "insightsDisclaimer": "Note: The following insights are provisional reference estimates because exact birth time is unknown."
   }
 }

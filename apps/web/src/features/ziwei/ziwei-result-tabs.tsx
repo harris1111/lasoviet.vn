@@ -103,6 +103,10 @@ export function ZiweiResultTabs({
     buttons?.[nextIndex]?.focus();
   }
 
+  const isProvisional = Boolean(
+    chart.provisional || birthSummary.normalizedTime.precision === "unknown",
+  );
+
   return (
     <div className="ziwei-result-tabs-shell">
       {/* Sample Banner if isSample */}
@@ -122,6 +126,23 @@ export function ZiweiResultTabs({
             }}
           >
             {t("sample.bannerCta")}
+          </Link>
+        </div>
+      )}
+
+      {/* Provisional Banner if birth time is unknown or chart flagged provisional */}
+      {isProvisional && (
+        <div className="provisional-result-banner container" role="status">
+          <div className="provisional-banner-badge">{t("provisional.badge")}</div>
+          <div className="provisional-banner-content">
+            <strong className="provisional-banner-title">{t("provisional.bannerTitle")}</strong>
+            <p className="provisional-banner-text">{t("provisional.bannerDescription")}</p>
+          </div>
+          <Link
+            className="button button-small button-pill provisional-banner-cta"
+            href={locale === "en" ? "/en/tao-la-so/tu-vi" : "/tao-la-so/tu-vi"}
+          >
+            {t("provisional.actionAddTime")}
           </Link>
         </div>
       )}

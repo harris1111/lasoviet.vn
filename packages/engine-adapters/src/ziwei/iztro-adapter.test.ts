@@ -288,4 +288,37 @@ describe("IztroAdapter", () => {
       rawSnapshot: null,
     });
   });
+
+  it("calculates a provisional chart when birth time is unknown (FD-103)", async () => {
+    const unknownProfile: NormalizedBirthProfileV1 = {
+      ...profile,
+      originalInput: {
+        ...profile.originalInput,
+        time: { precision: "unknown" },
+      },
+      normalizedTime: { precision: "unknown" },
+      limitations: ["TIME_UNKNOWN", "BIRTH_TIME_UNKNOWN_PROVISIONAL"],
+    };
+
+    const adapter = new IztroAdapter();
+    const calculation = await adapter.calculateWithPrivateSnapshot(
+      { birthProfile: unknownProfile },
+      iztroDefaultConfig,
+    );
+
+    expect(calculation.result.ok).toBe(true);
+    if (!calculation.result.ok) return;
+
+    expect(calculation.result.output.provisional).toBe(true);
+    expect(calculation.result.output.timePrecision).toBe("unknown");
+    expect(calculation.result.output.palaces).toHaveLength(12);
+    expect(calculation.result.provenance.limitations).toContain(
+      "BIRTH_TIME_UNKNOWN_PROVISIONAL",
+    );
+    expect(
+      calculation.result.output.warnings.some(
+        (w) => w.code === "ziwei.warning.birth-time-unknown-provisional",
+      ),
+    ).toBe(true);
+  });
 });

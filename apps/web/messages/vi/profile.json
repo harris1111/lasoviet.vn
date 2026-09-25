@@ -27,8 +27,8 @@
     "date": "Ngày sinh dương lịch",
     "time": "Giờ sinh",
     "timezone": "Múi giờ: UTC+7 (Giờ Việt Nam)",
-    "unknown": "Không rõ giờ sinh",
-    "unknownHelp": "Bạn vẫn có thể lưu hồ sơ, nhưng chưa thể tính lá số Tử Vi chính xác.",
+    "unknown": "Tôi không biết giờ sinh",
+    "unknownHelp": "Bạn có thể lập lá số tạm tính (giờ sinh có thể ảnh hưởng tới độ chính xác của các cung và đại vận). Bạn có thể bổ sung khi biết rõ hơn, hoặc tiếp tục ngay.",
     "hour": "Giờ",
     "minute": "Phút",
     "exactMode": "Giờ & phút chính xác",
@@ -114,8 +114,8 @@
   "continue": "Tiếp tục",
   "submit": "Lập lá số",
   "submitting": "Đang lập lá số...",
-  "saveProfile": "Lưu hồ sơ",
-  "savingProfile": "Đang lưu hồ sơ...",
+  "saveProfile": "Lập lá số tạm tính (tiếp tục với giờ chưa rõ)",
+  "savingProfile": "Đang lập lá số tạm tính...",
   "unknownTimeSaved": {
     "title": "Đã lưu hồ sơ sinh",
     "savedConfirmation": "Thông tin sinh của bạn đã được lưu an toàn trên trình duyệt.",
@@ -131,7 +131,7 @@
   "errors": {
     "profile": "Không thể lưu thông tin sinh. Hãy kiểm tra lại và thử lại.",
     "gender": "Hãy chọn giới tính dùng để lập lá số.",
-    "timeUnknown": "Cần giờ sinh chính xác để lập lá số Tử Vi. Bạn có thể quay lại bổ sung khi biết giờ sinh.",
+    "timeUnknown": "Giờ sinh chưa rõ sẽ dùng lá số tạm tính. Bạn có thể cập nhật sau khi biết rõ hơn.",
     "calculation": "Chưa thể lập lá số lúc này. Hãy thử lại sau."
   },
   "nav": {

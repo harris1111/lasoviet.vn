@@ -96,6 +96,25 @@ export function ZiweiChart({
           <div className="ziwei-board-center" style={{ gridArea: "2 / 2 / 4 / 4" }}>
             <div className="center-header">
               <h2 className="center-title">{centerTitle}</h2>
+              {chart.provisional || birthSummary?.normalizedTime.precision === "unknown" ? (
+                <span
+                  className="provisional-chart-tag"
+                  style={{
+                    display: "inline-block",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                    background: "var(--gold-500, #d4a359)",
+                    color: "var(--lacquer-950, #1a0f0a)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    margin: "4px 0",
+                  }}
+                >
+                  {locale === "vi" ? "Lá số tạm tính" : "Provisional Chart"}
+                </span>
+              ) : null}
               {centerDate ? (
                 <p className="center-birth-data">
                   <span>{centerDate}</span>

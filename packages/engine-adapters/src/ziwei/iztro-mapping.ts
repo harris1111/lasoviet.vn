@@ -307,7 +307,7 @@ function transformation(value: string | undefined) {
 }
 
 function warningCodes(profile: NormalizedBirthProfileV1) {
-  return [
+  const codes = [
     {
       code: "ziwei.warning.no-true-solar-time-correction",
       severity: "limitation" as const,
@@ -317,6 +317,16 @@ function warningCodes(profile: NormalizedBirthProfileV1) {
       severity: "limitation" as const,
     })),
   ];
+  if (
+    profile.normalizedTime.precision === "unknown" &&
+    !codes.some((c) => c.code === "ziwei.warning.birth-time-unknown-provisional")
+  ) {
+    codes.push({
+      code: "ziwei.warning.birth-time-unknown-provisional",
+      severity: "limitation" as const,
+    });
+  }
+  return codes;
 }
 
 export function normalizeIztroAstrolabe(
@@ -439,6 +449,7 @@ export function normalizeIztroAstrolabe(
   if (soulPalaceId === undefined || bodyPalaceId === undefined) {
     throw new Error("IZTRO_MAPPING_INVALID");
   }
+  const isProvisional = profile.normalizedTime.precision === "unknown";
   return {
     version: 1,
     systemId: "ziwei",
@@ -454,6 +465,8 @@ export function normalizeIztroAstrolabe(
     ],
     warnings: warningCodes(profile),
     provenance,
+    ...(isProvisional ? { provisional: true } : {}),
+    timePrecision: profile.normalizedTime.precision,
   };
 }
 

@@ -27,8 +27,8 @@
     "date": "Solar birth date",
     "time": "Birth time",
     "timezone": "Timezone: UTC+7 (Vietnam time)",
-    "unknown": "Birth time unknown",
-    "unknownHelp": "You can still save the profile, but an exact Zi Wei chart cannot be calculated yet.",
+    "unknown": "I don't know my birth time",
+    "unknownHelp": "You can create a provisional chart (birth time may affect palace accuracy and decadal periods). You can update it when known, or continue now.",
     "hour": "Hour",
     "minute": "Minute",
     "exactMode": "Exact hour & minute",
@@ -114,8 +114,8 @@
   "continue": "Continue",
   "submit": "Create chart",
   "submitting": "Creating chart...",
-  "saveProfile": "Save profile",
-  "savingProfile": "Saving profile...",
+  "saveProfile": "Create provisional chart (continue with unknown time)",
+  "savingProfile": "Creating provisional chart...",
   "unknownTimeSaved": {
     "title": "Birth profile saved",
     "savedConfirmation": "Your birth details have been securely saved in your browser.",
@@ -131,7 +131,7 @@
   "errors": {
     "profile": "We could not save the birth information. Check it and try again.",
     "gender": "Select the gender used to create the chart.",
-    "timeUnknown": "An exact birth time is needed to create a Zi Wei chart. Return when you can add it.",
+    "timeUnknown": "Unknown birth time will use a provisional chart. You can update it when known.",
     "calculation": "We could not create the chart right now. Please try again."
   },
   "nav": {

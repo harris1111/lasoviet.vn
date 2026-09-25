@@ -50,6 +50,10 @@ export function ZiweiResultSummary({
     ? `${calendarType} (${locale === "vi" ? "Tháng nhuận" : "Leap month"})`
     : calendarType;
 
+  const isProvisional = Boolean(
+    chart.provisional || birthSummary.normalizedTime.precision === "unknown",
+  );
+
   const timeValue =
     birthSummary.normalizedTime.precision === "exact_minute"
       ? birthSummary.normalizedTime.localTime
@@ -57,9 +61,12 @@ export function ZiweiResultSummary({
         ? presentation.branch(birthSummary.normalizedTime.branch)
         : birthSummary.normalizedTime.precision === "range"
           ? `${birthSummary.normalizedTime.startLocalTime} - ${birthSummary.normalizedTime.endLocalTime}`
-          : presentation.timePrecision("unknown");
+          : (locale === "vi" ? "Ước tính theo giờ Ngọ (11:00 - 13:00)" : "Estimated mid-day (11:00 - 13:00)");
 
-  const timeLabel = `${timeValue} (${presentation.timePrecision(birthSummary.normalizedTime.precision)})`;
+  const timeLabel =
+    birthSummary.normalizedTime.precision === "unknown"
+      ? `${timeValue} · ${presentation.timePrecision("unknown")}`
+      : `${timeValue} (${presentation.timePrecision(birthSummary.normalizedTime.precision)})`;
 
   const lifeStarsLabel =
     lifePalace && lifePalace.stars.length > 0
@@ -71,14 +78,20 @@ export function ZiweiResultSummary({
           .join(", ")
       : presentation.chrome.noStars;
 
-  const lifeBranchLabel = lifePalace
+  const rawLifeBranchLabel = lifePalace
     ? presentation.branch(lifePalace.earthlyBranchId)
     : "";
+  const lifeBranchLabel = isProvisional && rawLifeBranchLabel
+    ? `${rawLifeBranchLabel} (${locale === "vi" ? "Tạm tính" : "Provisional"})`
+    : rawLifeBranchLabel;
 
   const bodyPlacementLabel = presentation.palace(chart.bodyPalaceId);
-  const bodyBranchLabel = bodyPalace
+  const rawBodyBranchLabel = bodyPalace
     ? presentation.branch(bodyPalace.earthlyBranchId)
     : "";
+  const bodyBranchLabel = isProvisional && rawBodyBranchLabel
+    ? `${rawBodyBranchLabel} (${locale === "vi" ? "Tạm tính" : "Provisional"})`
+    : rawBodyBranchLabel;
 
   const labels = {
     vi: {

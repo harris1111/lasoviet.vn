@@ -108,6 +108,7 @@ export const ZiweiEligibilityV1Schema = z.discriminatedUnion("eligible", [
       version: z.literal(1),
       eligible: z.literal(true),
       timeIndex: z.number().int().min(0).max(11),
+      provisional: z.boolean().optional(),
     })
     .strict(),
   z

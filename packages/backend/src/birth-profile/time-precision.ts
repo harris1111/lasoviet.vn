@@ -63,7 +63,11 @@ function indexFor(time: BirthTimeInput): number | TimePrecisionError {
 
 export function resolveZiweiTimeIndex(
   profile: NormalizedBirthProfileV1,
-): Result<number, TimePrecisionError> {
+): Result<number, TimePrecisionError> & { provisional?: boolean } {
+  if (profile.normalizedTime.precision === "unknown") {
+    // FD-103: Midday fallback index 6 (11:00-13:00, Giờ Ngọ) marked provisional
+    return { ok: true, value: 6, provisional: true };
+  }
   const index = indexFor(profile.normalizedTime);
   return typeof index === "number" ? { ok: true, value: index } : error(index);
 }

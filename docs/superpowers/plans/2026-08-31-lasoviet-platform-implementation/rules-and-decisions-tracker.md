@@ -1173,3 +1173,15 @@ Date: 2026-09-22
   sample report still prints "79.000 ₫" against FD-065.
 - The revamp plan builds on this spec. FD-089 overrides its §3.5 only where
   §3.5 banned content for fear reasons; its legal bans stay.
+
+## FD-103 Provisional Zi Wei Chart Fallback For Unknown Birth Time
+
+Date: 2026-09-24
+
+- **Context:** The homepage and wizard allow users to indicate an unknown birth hour ("Tôi không biết giờ sinh"). Previously, the engine rejected calculation with `ENGINE_INPUT_INVALID` / `TIME_UNKNOWN`, completely blocking chart viewing and report purchases.
+- **Fallback Hour Index:** When birth hour precision is `unknown`, calculation proceeds with the documented fallback hour index 6 (Giờ Ngọ / Wu, mid-day 11:00–13:00, the astronomical midpoint of the day).
+- **Provisional Flagging & Limitations:** The chart snapshot must carry `provisional: true` and `timePrecision: "unknown"`. Provenance must record `BIRTH_TIME_UNKNOWN_PROVISIONAL` in `limitations`, and warnings must include `ziwei.warning.birth-time-unknown-provisional`.
+- **Eligibility:** `ZiweiEligibilityV1` returns `eligible: true, timeIndex: 6, provisional: true` so the wizard does not block calculation or purchases.
+- **UX & Honesty:** Provisional charts must be prominently labeled "Lá số tạm tính" / "Provisional chart". Hour-dependent claims (Mệnh position, Thân, Đại Vận start, moving palaces) must be framed as provisional reference estimates rather than established facts (following FD-089).
+- **Recalculation & Immutability:** When the user later provides their exact or branch birth hour, a new revision and chart are generated; existing provisional charts and paid report snapshots remain permanently immutable in history.
+

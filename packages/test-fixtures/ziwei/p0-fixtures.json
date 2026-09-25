@@ -201,17 +201,29 @@
     },
     {
       "id": "unknown-time",
-      "boundaryClass": "unknown_time_rejection",
+      "boundaryClass": "provisional_unknown_time",
       "birthProfileFixture": "tests/fixtures/birth-profile/unknown-time.json",
       "inputOverrides": { "gender": "male" },
       "expected": {
-        "result": "ineligible",
-        "timeError": "TIME_UNKNOWN"
+        "result": "calculated",
+        "normalizedPrecision": "unknown",
+        "limitation": "BIRTH_TIME_UNKNOWN_PROVISIONAL",
+        "palaceCount": 12,
+        "adapterTimeIndex": 6,
+        "normalizedFacts": {
+          "soulPalaceEarthlyBranchId": "ziwei.branch.goat",
+          "bodyPalaceEarthlyBranchId": "ziwei.branch.goat",
+          "principalStar": {
+            "palaceId": "ziwei.palace.life",
+            "starId": "ziwei.star.tianliang"
+          }
+        },
+        "referenceMethod": "method-incompatible"
       },
       "precision": "unknown",
-      "source": "Phase 01 unknown-time eligibility fixture",
-      "reviewStatus": "reviewed",
-      "differences": "The fixture runner rejects before an iztro calculation; no chart fact is expected."
+      "source": "FD-103 provisional unknown-time calculation fixture",
+      "reviewStatus": "reviewed-with-limitations",
+      "differences": "Calculated with fallback midday hour index 6 (Wu / Ngo) and marked provisional."
     },
     {
       "id": "branch-only-precision",

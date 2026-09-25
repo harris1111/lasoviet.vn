@@ -191,13 +191,19 @@ export function buildFreeInsights(
         : `Situated at ${lifeBranchName} with ${lifeStarsText}, offering ${subjectName} a foundational orientation toward ${starInsight} in supportive contexts.`;
   }
 
+  const lifeDisclaimer = chart.provisional
+    ? (locale === "vi"
+        ? "(Ước tính tạm tính do chưa rõ giờ sinh) "
+        : "(Provisional estimate due to unknown birth time) ")
+    : "";
+
   const lifeItem: FreeInsightItem = {
     id: "life-palace",
     evidenceId: "ziwei.identity.life-palace",
     numeral: "01",
     title: locale === "vi" ? "Khí chất & Bản mệnh cốt lõi" : "Core Identity & Demeanor",
     tagline: locale === "vi" ? "Cung Mệnh" : "Life Palace",
-    description: lifeDescription,
+    description: `${lifeDisclaimer}${lifeDescription}`,
     starsSummary: lifeStarsText,
     locationSummary: `${presentation.palace(chart.soulPalaceId)} (${lifeBranchName})`,
   };
@@ -205,8 +211,13 @@ export function buildFreeInsights(
   // 2. Body Palace (Cung Thân)
   const bodyPalaceName = presentation.palace(chart.bodyPalaceId);
   const bodyBranchName = presentation.branch(bodyPalace?.earthlyBranchId ?? "");
+  const bodyDisclaimer = chart.provisional
+    ? (locale === "vi"
+        ? "(Vị trí ước tính tạm tính do chưa rõ giờ sinh) "
+        : "(Provisional position estimate due to unknown birth time) ")
+    : "";
   const bodyDescription =
-    `${getBodyPlacementDescription(chart.bodyPalaceId, locale)} (${bodyPalaceName} tại ${bodyBranchName}).`;
+    `${bodyDisclaimer}${getBodyPlacementDescription(chart.bodyPalaceId, locale)} (${bodyPalaceName} tại ${bodyBranchName}).`;
 
   const bodyItem: FreeInsightItem = {
     id: "body-palace",

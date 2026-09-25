@@ -112,14 +112,12 @@ describe("Ziwei calculation service", () => {
     });
   });
 
-  it.each([
-    { precision: "unknown" as const },
-    {
+  it("rejects multi-branch range before creating a calculation run", async () => {
+    const time = {
       precision: "range" as const,
       startLocalTime: "10:30",
       endLocalTime: "11:30",
-    },
-  ])("rejects ineligible time before creating a calculation run", async (time) => {
+    };
     const create = async () => {
       throw new Error("calculation run must not be created");
     };
@@ -128,7 +126,7 @@ describe("Ziwei calculation service", () => {
         async readAuthorizedRevision() {
           return {
             profileId: "profile-1",
-            revisionId: "revision-unknown",
+            revisionId: "revision-ineligible",
             normalized: {
               ...profile,
               normalizedTime: time,
@@ -141,10 +139,65 @@ describe("Ziwei calculation service", () => {
       engine: { async calculateWithPrivateSnapshot() { return { result: { ok: true, output: chart, provenance: chart.provenance, warnings: [] }, rawSnapshot: {} }; } },
     });
 
-    await expect(service.calculate(actor, "revision-unknown")).resolves.toMatchObject({
+    await expect(service.calculate(actor, "revision-ineligible")).resolves.toMatchObject({
       ok: false,
       error: { code: "ZIWEI_TIME_INELIGIBLE" },
     });
+  });
+
+  it("calculates a provisional chart when birth time is unknown (FD-103)", async () => {
+    let createdRecord = false;
+    const service = createZiweiCalculationService({
+      repository: {
+        async readAuthorizedRevision() {
+          return {
+            profileId: "profile-1",
+            revisionId: "revision-unknown",
+            normalized: {
+              ...profile,
+              normalizedTime: { precision: "unknown" as const },
+              limitations: ["TIME_UNKNOWN", "BIRTH_TIME_UNKNOWN_PROVISIONAL"],
+            },
+          };
+        },
+        async create(input) {
+          createdRecord = true;
+          return {
+            chartId: "chart-provisional-1",
+            chartVersionId: "chart-ver-provisional-1",
+            reused: false,
+          };
+        },
+      },
+      evidenceService: { async buildAndPersist() { return { ok: true as const, value: { evidenceSetId: "evidence-prov-1", reused: false } }; } },
+      engine: {
+        async calculateWithPrivateSnapshot() {
+          return {
+            result: {
+              ok: true,
+              output: { ...chart, provisional: true, timePrecision: "unknown" as const },
+              provenance: {
+                ...chart.provenance,
+                limitations: ["BIRTH_TIME_UNKNOWN_PROVISIONAL"],
+              },
+              warnings: [],
+            },
+            rawSnapshot: {},
+          };
+        },
+      },
+    });
+
+    const result = await service.calculate(actor, "revision-unknown");
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        chartId: "chart-provisional-1",
+        chartVersionId: "chart-ver-provisional-1",
+        reused: false,
+      },
+    });
+    expect(createdRecord).toBe(true);
   });
 
   it("does not disclose a revision that the resolved actor does not own", async () => {
