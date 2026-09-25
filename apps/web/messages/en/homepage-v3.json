@@ -275,6 +275,33 @@
       }
     }
   },
+  "testimonials": {
+    "eyebrow": "Reader notes",
+    "titleA": "What stays with you",
+    "titleB": "after a chart.",
+    "lead": "Everyone arrives with a different question. This is what they took away after reading.",
+    "readFull": "Read in full ↗",
+    "readFullAria": "Read the full note from {name}",
+    "more": "More views from readers ↓",
+    "less": "Show fewer notes ↑",
+    "start": "Start with your own chart ↗",
+    "filterLabel": "Filter reader notes",
+    "filterAll": "All",
+    "group": {
+      "self": "Understanding yourself",
+      "work": "Work and timing",
+      "method": "How it is read",
+      "reading": "The reading experience"
+    },
+    "label13": "Relief when reading for my children",
+    "label12": "Palaces read together",
+    "label09": "Deep, yet easy to follow",
+    "label01": "Clear reasoning",
+    "prev": "Previous note",
+    "next": "Next note",
+    "close": "Close",
+    "dialogEyebrow": "Reader note"
+  },
   "usp": {
     "title": "The closer you look, the more you see your own story.",
     "lead": "A chart should not end in a few lines of verdict. Open it layer by layer, understand each link, and come back when you need to.",

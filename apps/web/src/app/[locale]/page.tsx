@@ -11,6 +11,7 @@ import { HomepageV3Faq } from "../../features/homepage-v3/homepage-v3-faq";
 import { HomepageV3Hero } from "../../features/homepage-v3/homepage-v3-hero";
 import { HomepageV3Needs } from "../../features/homepage-v3/homepage-v3-needs";
 import { HomepageV3Reveal } from "../../features/homepage-v3/homepage-v3-reveal";
+import { HomepageV3Testimonials } from "../../features/homepage-v3/homepage-v3-testimonials-section";
 import {
   HomepageV3About,
   HomepageV3Story,
@@ -57,6 +58,9 @@ export default async function Page({ params }: PageProps) {
           </section>
           <section className="hv3-section hv3-ruled" data-home-block="comparison" id="so-sanh">
             <HomepageV3Compare />
+          </section>
+          <section className="hv3-section" data-home-block="testimonials" id="loi-nguoi-doc">
+            <HomepageV3Testimonials />
           </section>
           <section className="hv3-section hv3-inverse hv3-usp" data-home-block="usp">
             <HomepageV3Usp />

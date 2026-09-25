@@ -275,6 +275,33 @@
       }
     }
   },
+  "testimonials": {
+    "eyebrow": "Lời người đọc",
+    "titleA": "Điều đọng lại",
+    "titleB": "sau một lá số.",
+    "lead": "Mỗi người đến với một câu hỏi khác nhau. Đây là điều họ mang theo sau khi đọc.",
+    "readFull": "Đọc đầy đủ ↗",
+    "readFullAria": "Đọc đầy đủ lời của {name}",
+    "more": "Thêm góc nhìn từ người đọc ↓",
+    "less": "Thu gọn lời người đọc ↑",
+    "start": "Bắt đầu với lá số của bạn ↗",
+    "filterLabel": "Lọc lời người đọc",
+    "filterAll": "Tất cả",
+    "group": {
+      "self": "Hiểu mình",
+      "work": "Công việc và thời vận",
+      "method": "Cách luận giải",
+      "reading": "Cách đọc và cảm nhận"
+    },
+    "label13": "Nhẹ lòng khi xem cho con",
+    "label12": "Liên kết nhiều cung",
+    "label09": "Đọc sâu dễ theo",
+    "label01": "Lập luận rõ",
+    "prev": "Lời trước",
+    "next": "Lời tiếp theo",
+    "close": "Đóng",
+    "dialogEyebrow": "Lời người đọc"
+  },
   "usp": {
     "title": "Càng nhìn kỹ, càng thấy chuyện của mình.",
     "lead": "Một lá số không nên kết thúc ở vài dòng phán đoán. Mở từng lớp, hiểu từng mối nối, rồi quay lại khi bạn cần.",
