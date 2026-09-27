@@ -95,6 +95,11 @@ export function WalletUnlockDialog({
         ]);
         if (!active) return;
         if (!intentResponse.ok || !balanceResponse.ok) {
+          if (intentResponse.status === 401 || balanceResponse.status === 401) {
+            const prefix = locale === "en" ? "/en" : "";
+            window.location.href = `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(window.location.href)}`;
+            return;
+          }
           setState({ step: "error", message: labels.genericError });
           return;
         }
