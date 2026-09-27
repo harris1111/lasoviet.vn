@@ -11,7 +11,7 @@
   --rs: 1;
   --gold-text: var(--gold-400);
   --gold-line: var(--gold-500);
-  --cell-bg: var(--lacquer-900);
+  --cell-bg: rgba(15, 13, 10, .80);
   --cell-lit: rgba(206, 91, 69, .16);
   --ok: #6fbf96; --no: #e8798a;
   --hoa-loc-bg: rgba(79,122,104,.3);  --hoa-loc: #9fd1ba;
@@ -30,7 +30,7 @@
   --gold-soft: rgba(117,87,24,.10); --seal-soft: rgba(166,61,47,.10);
   --shadow-card: 0 1px 2px rgba(20,38,61,.06), 0 8px 24px rgba(20,38,61,.07);
   --gold-text: var(--gold-800); --gold-line: var(--gold-700);
-  --cell-bg: var(--paper-50); --cell-lit: rgba(166,61,47,.08);
+  --cell-bg: rgba(255, 253, 247, .76); --cell-lit: rgba(166,61,47,.08);
   --ok: #2f6f57; --no: #8f2737;
   --hoa-loc-bg: rgba(47,111,87,.12);  --hoa-loc: #2f6f57;
   --hoa-quyen-bg: rgba(166,61,47,.10); --hoa-quyen: #a63d2f;
@@ -98,7 +98,12 @@ button { font: inherit; color: inherit; }
 /* Chart board (shared by hero, rail, mini, sheet) */
 .chart { position: relative; }
 /* ---- Lá số: bố cục theo tờ lá số in truyền thống ---- */
-.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(150px, auto)); gap: 2px; position: relative; background: var(--border-hairline); border: 1px solid var(--border-hairline); border-radius: 10px; overflow: hidden; }
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(150px, auto)); gap: 2px; position: relative; border: 1px solid var(--border-hairline); border-radius: 10px; overflow: hidden;
+  background-color: var(--border-hairline);
+  background-image: url("uploads/nen-la-so-son-mai-lien-mach-lasoviet.webp");
+  background-size: 300px 300px; background-repeat: repeat; }
+:root[data-theme="light"] .board { background-image: url("uploads/nen-la-so-giay-co-lien-mach-lasoviet.webp"); }
+
 .cell { position: relative; z-index: 1; text-align: left; background: var(--cell-bg); border: 0; border-radius: 0; padding: 7px 8px 6px; font: 400 11.5px/1.35 var(--font-ui); color: var(--text-body); cursor: pointer; display: grid; grid-template-rows: auto 1fr auto; gap: 5px; min-width: 0; transition: background 140ms ease, box-shadow 140ms ease; }
 .cell:hover { background: var(--surface-raised); }
 .cell.is-sel { background: var(--cell-lit); box-shadow: 0 0 0 2px var(--accent-seal) inset; }
@@ -146,7 +151,14 @@ button { font: inherit; color: inherit; }
 .pill.seal { background: var(--accent-seal); color: #f6f1e6; }
 
 .center { grid-column: 2 / 4; grid-row: 2 / 4; z-index: 3; border: 0; box-shadow: 0 0 0 1px var(--border-hairline) inset; padding: 16px; display: grid; align-content: center; justify-items: center; gap: 6px; position: relative; background: radial-gradient(circle at 50% 42%, var(--surface-raised), var(--cell-bg) 74%); }
-.c-seal { position: absolute; width: 54%; height: 54%; color: var(--gold-line); opacity: .07; pointer-events: none; }
+.center::before { content: ""; position: absolute; inset: -14%; pointer-events: none;
+  background: url("uploads/hoa-van-la-kinh-trung-tam-la-so-lasoviet.svg") no-repeat center / contain;
+  opacity: .30; }
+:root[data-theme="light"] .center::before { opacity: .38; }
+.c-seal { position: absolute; right: 12px; bottom: 12px; width: 62px; height: 62px; pointer-events: none;
+  background: url("uploads/dau-trien-la-so-viet-son-do.webp") no-repeat center / contain; opacity: .9; }
+.center > *:not(.c-seal) { position: relative; z-index: 1; }
+@media (max-width: 640px) { .c-seal { width: 40px; height: 40px; right: 6px; bottom: 6px; } }
 .c-brand { margin: 0; font: 600 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-text); }
 .center h3 { font: 600 17px var(--font-display); color: var(--text-heading); margin: 0 0 4px; }
 .center dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-size: 12.5px; position: relative; }

@@ -64,6 +64,50 @@ Rule of thumb: if a sentence has three abstract nouns and no person doing anythi
 
 Reference output for all of this: `prototype/revamp-2026-09/doc-bao-cao-tuong-tac-palaces.js`, the Mệnh and Phu Thê palaces. That is the target, not an approximation of it.
 
+## 2c. Vocabulary: natural Vietnamese, Hán Việt on a short leash
+
+Founder instruction, 2026-09-28: *"có thể dùng từ hán việt nhưng cần tiết chế, chỉ dùng những từ thật sự phổ biến trong tiếng việt."*
+
+The examples he caught are the template for the whole class of fault: `mặt sau` where Vietnamese says **`mặt trái`**, `người dưới tay` where Vietnamese says **`người cấp dưới`**. Neither is a hard word. Both are a writer assembling a phrase instead of using the phrase that already exists.
+
+### 2c.1 The test
+
+> Would a Vietnamese news reader say this sentence out loud without stumbling?
+
+If the phrase has to be worked out by the reader, it fails, however simple the individual words are.
+
+### 2c.2 Hán Việt that stays
+
+These are common in everyday Vietnamese and appear in every competitor's readings (checked 2026-09-28 against `tracuutuvi.com`, `thanglongdaoquan.vn`, `aituvi.com`). They read as normal speech, not as jargon:
+
+`đương số` · `tính tình` · `tướng mạo` · `cá tính` · `ôn hòa` · `chính trực` · `nhân hậu` · `trung hậu` · `khiêm tốn` · `hòa nhã` · `cẩn trọng` · `quyết đoán` · `trách nhiệm` · `nguyên tắc` · `uy tín` · `cấp trên` · `cấp dưới` · `sự nghiệp` · `tài lộc` · `vận hạn` · `phúc đức` · `tích lũy` · `dự phòng` · `thẩm mỹ` · `tự lập`
+
+Plus the Tử Vi proper names and chart terms, which are names, not vocabulary: star names, palace names, `tứ hóa`, `tam hợp`, `đại vận`, `lưu niên`, `vô chính diệu`, `miếu vượng đắc bình hãm`.
+
+### 2c.3 Four kinds of word that are banned
+
+**Archaic Hán Việt.** Real words, but nobody under sixty uses them: `kho lẫm`, `khí chất`, `bản mệnh`, `phú quý`, `hiển đạt`, `công danh`, `hao tán`. Already partly covered by the 43-entry `discouragedTerms` list; that list stands and this rule extends it.
+
+**Compounds the writer invented.** The phrase does not exist in Vietnamese; it was assembled on the spot. Caught so far: `mặt sau` (→ `mặt trái`), `người dưới tay` (→ `người cấp dưới`), `cửa lộc` (→ `nơi sinh lộc`), `chỗ tựa bên dưới` (→ `nền tảng`), `chỗ lùi` (→ `đường lui`), `sức vóc` (→ `thực lực`), `xô lệch` (→ `chệch hướng`).
+
+**Technology metaphors.** Instantly reads as machine-written in a Tử Vi reading: `chế độ`, `bật chế độ`, `nạp lại năng lượng`, `hệ thống`, `cơ chế`, `kích hoạt`, `tối ưu`, `vận hành`. Say what the person actually does instead.
+
+**Modern slang.** `gu`, `lệch pha`, `toang`, `flex`, `chill`. The register is an experienced practitioner, not a group chat.
+
+### 2c.4 What competitors show, and where we differ
+
+The classic Vietnamese sites (`tracuutuvi.com`, `thanglongdaoquan.vn`) write in a catalogue register: *"Chủ về đương số là người trung hậu, uy nghi, thông minh"*. Dense Hán Việt, short, no explanation. A reader who already knows Tử Vi can use it; a beginner cannot.
+
+AiTuvi sits closer to where we want to be: *"Với bản chất ôn hòa, tốt bụng và giàu nhiệt huyết cống hiến, đương số thường chọn con đường văn cách, đi lên từ sự ổn định và những bước tiến chắc chắn, bài bản."* Full sentences, a controlled set of familiar Hán Việt, and a person doing something in every clause.
+
+Our target is one step further again: AiTuvi's flow, our translate-on-arrival rule (§3.1), and no term left unexplained. The competitors are the floor for register, not the ceiling.
+
+### 2c.5 Gate
+
+A banned-phrase list in the quality config, checked against the narrative of every section, seeded with every phrase in §2c.3 and grown each time the founder catches a new one. A hit fails the section.
+
+Each phrase the founder flags is worth more than a general instruction, because it turns into a check the model cannot argue with. Add every one of them.
+
 ## 3. Star and palace names
 
 Star names stay (founder decision, 2026-09-28: they carry the sense of real expertise that part of the audience pays for). What changes is how they appear.

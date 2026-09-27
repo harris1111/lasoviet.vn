@@ -83,7 +83,7 @@
     if (variant === "compact") return '<div class="center"><h3>' + P[sel].name + '</h3></div>';
     var m = C.meta;
     return '<div class="center">'
-      + '<svg class="c-seal" aria-hidden="true"><use href="#logo"/></svg>'
+      + '<span class="c-seal" aria-hidden="true"></span>'
       + '<p class="c-brand">Lá Số Việt</p><h3>Lá số Tử Vi</h3>'
       + '<dl><dt>Năm sinh</dt><dd>' + m.year + '</dd><dt>Giới tính</dt><dd>' + m.gender + '</dd>'
       + '<dt>Mệnh</dt><dd>' + m.menh + '</dd><dt>Cục</dt><dd>' + m.cuc + '</dd>'
