@@ -1,7 +1,7 @@
 {
   "auth_required": "Yêu cầu đăng nhập để xem báo cáo.",
   "report_not_found": "Không tìm thấy báo cáo.",
-  "identity": "Luận giải Tử Vi toàn diện",
+  "identity": "Tử Vi trọn đời",
   "paymentDeferred": "SePay sẽ được mở ở bước tiếp theo.",
   "preview": {
     "eyebrow": "Xem trước miễn phí",
@@ -21,7 +21,7 @@
     "available": "Chủ đề đang mở",
     "comingSoon": "Sắp ra mắt",
     "inDevelopment": "Đang phát triển",
-    "lifetimeOfferTitle": "Luận giải Tử Vi toàn diện",
+    "lifetimeOfferTitle": "Tử Vi trọn đời",
     "oneTime": "Thanh toán một lần · Không tự động gia hạn",
     "continuePayment": "Tiếp tục thanh toán",
     "viewSample": "Xem bản mẫu",
@@ -47,7 +47,7 @@
     "quickGuideExcerptNeed": "Hiểu mình trước và bắt đầu từ phần cốt lõi",
     "quickGuideExcerptTarget": "Bản mệnh và tiềm năng",
     "quickGuideComprehensiveNeed": "Đọc đầy đủ 12 cung và các mối liên hệ",
-    "quickGuideComprehensiveTarget": "Luận giải Tử Vi toàn diện",
+    "quickGuideComprehensiveTarget": "Tử Vi trọn đời",
     "trustLine": "Thanh toán một lần, không tự động gia hạn. Sau khi mua, bạn có thể đọc lại luận giải không giới hạn.",
     "ethicsLine": "Luận giải giúp bạn nhìn rõ các khuynh hướng và lựa chọn. Nó không thay bạn quyết định, cũng không biến những khả năng trong lá số thành lời phán định cứng.",
     "tabReadings": "Luận giải",
@@ -94,7 +94,7 @@
   },
   "checkout": {
     "eyebrow": "Thanh toán",
-    "title": "Luận giải Tử Vi toàn diện",
+    "title": "Tử Vi trọn đời",
     "action": "Đi tới SePay",
     "instructions_title": "Thông tin chuyển khoản",
     "bank_code": "Ngân hàng",

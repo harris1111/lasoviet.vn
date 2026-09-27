@@ -100,7 +100,6 @@ describe("PaidTopicSelector", () => {
     expect(activeCardMatch).not.toBeNull();
     const activeCardHtml = activeCardMatch?.[1] ?? "";
     expect(activeCardHtml).not.toContain("vận trình thời gian");
-    expect(activeCardHtml).not.toContain("trọn đời");
     expect(activeCardHtml).not.toContain("đại vận");
     expect(activeCardHtml).not.toContain("lưu niên");
     expect(activeCardHtml).not.toContain("dự báo");
@@ -120,7 +119,7 @@ describe("PaidTopicSelector", () => {
       const html = renderToStaticMarkup(
         <PaidTopicSelector locale="en" topics={mockTopics} />,
       );
-      expect(html).toContain("Comprehensive Zi Wei reading");
+      expect(html).toContain("Lifetime Zi Wei reading");
       expect(html).toContain("Full interpretation of all 12 palaces.");
       expect(html).toContain("Key configurations and patterns in the chart.");
       expect(html).toContain("Four thematic syntheses connecting chart facets into a cohesive view.");
@@ -319,7 +318,7 @@ describe("PaidTopicSelector", () => {
       );
       expect(htmlEn).not.toContain('id="ziwei-natal-excerpt"');
       expect(htmlEn).not.toContain("data-testid=\"topic-ziwei-natal-excerpt-active\"");
-      expect(htmlEn).toContain("Comprehensive Zi Wei reading");
+      expect(htmlEn).toContain("Lifetime Zi Wei reading");
       expect(htmlEn).toContain("data-testid=\"topic-lifetime-active\"");
     } finally {
       mockLocale = "vi";

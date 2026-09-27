@@ -84,13 +84,83 @@ describe("SePay controller HTTP contract", () => {
       expect(result).toEqual({
         ok: true,
         value: {
-          id: "intent-1", sku: "ZIWEI-IDENTITY-P0", productTitle: "Comprehensive Zi Wei reading", locale: "en", amountLa: 720,
+          id: "intent-1", sku: "ZIWEI-IDENTITY-P0", productTitle: "Lifetime Zi Wei reading", locale: "en", amountLa: 720,
           status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
         },
       });
       expect(JSON.stringify(result)).not.toContain("chart-1");
       expect(JSON.stringify(result)).not.toContain("private-chart-version");
       expect(JSON.stringify(result)).not.toMatch(/provider|invoice|allocation|receipt/i);
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("projects zero-cost rollover and single-palace intents cleanly and rejects reserved or generic SKUs", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createWalletPurchaseIntent: vi.fn().mockImplementation((_actor, req) => {
+        if (req.sku === "ZIWEI-IDENTITY-P0") {
+          return Promise.resolve({
+            ok: true,
+            value: {
+              id: "intent-zero", sku: "ZIWEI-IDENTITY-P0", chartVersionId: "chart-v1",
+              locale: "vi", amountLa: 0, status: "pending", stateVersion: 1,
+              createdAt: "2026-09-17T00:00:00.000Z",
+            },
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          value: {
+            id: "intent-palace", sku: req.sku, chartVersionId: "chart-v1",
+            locale: "vi", amountLa: 120, status: "pending", stateVersion: 1,
+            createdAt: "2026-09-17T00:00:00.000Z",
+          },
+        });
+      }),
+    } as never);
+
+    try {
+      // 1. Zero-cost rollover projection
+      const zeroResult = await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-IDENTITY-P0", locale: "vi",
+      });
+      expect(zeroResult).toEqual({
+        ok: true,
+        value: {
+          id: "intent-zero", sku: "ZIWEI-IDENTITY-P0", productTitle: "Tử Vi trọn đời", locale: "vi", amountLa: 0,
+          status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      });
+
+      // 2. Canonical single palace projection
+      const palaceResult = await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi",
+      });
+      expect(palaceResult).toEqual({
+        ok: true,
+        value: {
+          id: "intent-palace", sku: "ZIWEI-PALACE-LIFE-P0", productTitle: "Cung Mệnh", locale: "vi", amountLa: 120,
+          status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      });
+
+      // 3. Reserved SKUs are rejected with BadRequestException
+      for (const reservedSku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-TODAY-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) {
+        await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
+          chartId: "chart-1", chartVersionId: "version-1", sku: reservedSku, locale: "vi",
+        })).rejects.toBeInstanceOf(BadRequestException);
+      }
+
+      // 4. Generic palace SKU is rejected with BadRequestException
+      await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-PALACE-P0", locale: "vi",
+      })).rejects.toBeInstanceOf(BadRequestException);
     } finally {
       authSpy.mockRestore();
       repoSpy.mockRestore();
@@ -129,7 +199,7 @@ describe("SePay controller HTTP contract", () => {
           items: [{
             id: "wh_0123456789abcdef0123456789abcdef", category: "spend", laDelta: -240,
             resultingPurchasedLa: 40, resultingPromotionalLa: 60,
-            productTitle: "Luận giải Tử Vi toàn diện", occurredAt: "2026-09-17T00:00:00.000Z",
+            productTitle: "Tử Vi trọn đời", occurredAt: "2026-09-17T00:00:00.000Z",
           }],
         },
       }),
@@ -182,7 +252,7 @@ describe("SePay controller HTTP contract", () => {
           {
             source: "ledger_spend", id: "entitlement-wallet", entitlementId: "entitlement-wallet", orderId: null,
             profileId: null, profileDisplayName: null,
-            productTitle: "Comprehensive Zi Wei reading", entitlementStatus: "active", reportId: "report-1",
+            productTitle: "Lifetime Zi Wei reading", entitlementStatus: "active", reportId: "report-1",
             readUrl: null, reportStatus: "requested", locale: "en", createdAt: "2026-09-17T00:00:00.000Z",
             purchasedAt: "2026-09-17T00:00:00.000Z",
           },
@@ -431,7 +501,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -512,7 +582,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -914,7 +984,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -987,7 +1057,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -1146,7 +1216,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
