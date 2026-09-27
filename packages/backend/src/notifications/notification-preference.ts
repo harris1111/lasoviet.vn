@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import {
   UnsubscribeTokenClaimsSchema,
@@ -263,10 +263,11 @@ export function createDatabaseNotificationPreferenceStore(
           .select({ revokedAt: consents.revokedAt })
           .from(consents)
           .where(and(eq(consents.userId, userId), eq(consents.purpose, "offers")))
-          .orderBy(consents.grantedAt)
+          .orderBy(desc(consents.grantedAt))
           .limit(1);
 
-        if (offersConsent && offersConsent.revokedAt !== null) {
+        // Promotional mail is opt-in: missing or revoked consent must block delivery.
+        if (offersConsent?.revokedAt !== null || offersConsent === undefined) {
           return false;
         }
       }

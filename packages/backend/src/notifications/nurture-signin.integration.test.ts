@@ -6,6 +6,7 @@ import {
   birthProfileRevisions,
   calculationRuns,
   commerceOrders,
+  consents,
   createDatabase,
   notificationDeliveries,
   notificationPreferences,
@@ -175,6 +176,17 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
       updatedAt: new Date(),
     });
 
+    await database.insert(consents).values({
+      id: "consent-pref-user-1",
+      userId,
+      anonymousActorId: null,
+      documentKey: "privacy",
+      documentVersion: "v1",
+      purpose: "offers",
+      grantedAt: new Date(),
+      revokedAt: null,
+    });
+
     const store = createDatabaseNotificationPreferenceStore(database, tokenSecret);
 
     const initialPrefs = await store.getPreferences(userId);
@@ -213,6 +225,16 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
       updatedAt: nowRef,
     });
     await createChartFixture(eligibleUserId, chartId);
+    await database.insert(consents).values({
+      id: "consent-eligible-1",
+      userId: eligibleUserId,
+      anonymousActorId: null,
+      documentKey: "privacy",
+      documentVersion: "v1",
+      purpose: "offers",
+      grantedAt: nowRef,
+      revokedAt: null,
+    });
 
     const store = createDatabaseNotificationPreferenceStore(database, tokenSecret, getNow);
     const service = createVerifiedSignInNurtureService({
