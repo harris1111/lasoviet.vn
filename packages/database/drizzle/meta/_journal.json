@@ -309,6 +309,13 @@
       "when": 1790813340000,
       "tag": "0043_ai_model_pricing_openrouter_deepseek_flash",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790813400000,
+      "tag": "0044_wallet_catalog_rollover_pricing",
+      "breakpoints": true
     }
   ]
 }

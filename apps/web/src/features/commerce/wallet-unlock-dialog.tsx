@@ -3,9 +3,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
+import type { LaSku } from "@lasoviet/contracts";
 import { resolveWalletUnlockLoadedState } from "./wallet-unlock-dialog-state";
 
-export type WalletUnlockDialogSku = "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
+export type WalletUnlockDialogSku = LaSku | "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
 
 export type WalletUnlockDialogLabels = {
   title: string;

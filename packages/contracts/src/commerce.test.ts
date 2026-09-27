@@ -29,6 +29,35 @@ import {
 } from "./commerce.js";
 
 describe("commerce contracts", () => {
+  it("resolves entitlement scope for single palace SKUs and topic SKUs", () => {
+    expect(resolveEntitlementScopeForSku("ZIWEI-PALACE-LIFE-P0")).toEqual({
+      sections: [],
+      palaces: ["ziwei.palace.life"],
+    });
+    expect(resolveEntitlementScopeForSku("ZIWEI-PALACE-WEALTH-P0")).toEqual({
+      sections: [],
+      palaces: ["ziwei.palace.wealth"],
+    });
+    expect(resolveEntitlementScopeForSku("ZIWEI-PALACE-P0", { palaceId: "ziwei.palace.spouse" })).toEqual({
+      sections: [],
+      palaces: ["ziwei.palace.spouse"],
+    });
+    expect(resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toEqual({
+      sections: ["thematicSynthesis"],
+    });
+    expect(resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toEqual({
+      sections: ["thematicSynthesis"],
+    });
+    expect(resolveEntitlementScopeForSku("ZIWEI-TODAY-P0")).toEqual({
+      sections: ["annualSnapshot"],
+    });
+    expect(resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toEqual({
+      sections: ["annualSnapshot"],
+    });
+    expect(resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toEqual({
+      sections: ["annualSnapshot"],
+    });
+  });
   it("adds strict order kinds without changing the V1 SKU contract", () => {
     expect(CommerceOrderKindSchema.safeParse("content_purchase").success).toBe(true);
     expect(CommerceOrderKindSchema.safeParse("wallet_topup").success).toBe(true);
@@ -36,8 +65,8 @@ describe("commerce contracts", () => {
   });
 
   it("resolves product titles according to locale", () => {
-    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Luận giải Tử Vi toàn diện");
-    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Comprehensive Zi Wei reading");
+    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "vi")).toBe("Tử Vi trọn đời");
+    expect(resolveProductTitle("ZIWEI-IDENTITY-P0", "en")).toBe("Lifetime Zi Wei reading");
     expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "vi")).toBe("Bản mệnh và tiềm năng");
     expect(resolveProductTitle("ZIWEI-NATAL-EXCERPT-P0", "en")).toBe("Core identity and potential");
   });

@@ -67,7 +67,7 @@ import { generatedPreviewRequests, generatedPreviewSections } from "./generated-
 describe("database schema integration", () => {
   const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
   const openRouterPricingVersion = "openrouter-deepseek-flash-v1-20260920";
-  const currentMigrationTimestamp = 1790813340000;
+  const currentMigrationTimestamp = 1790813400000;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
@@ -177,7 +177,7 @@ describe("database schema integration", () => {
       await removeOpenRouterPricingForRewind(client);
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790813280000, 1790813340000)
+        WHERE created_at IN (1790813280000, 1790813340000, 1790813400000)
       `;
       await client`
         INSERT INTO report_section_checkpoints (
@@ -520,7 +520,8 @@ describe("database schema integration", () => {
           1790813160000,
           1790813220000,
           1790813280000,
-          1790813340000
+          1790813340000,
+          1790813400000
         )
       `;
       await client`
@@ -568,6 +569,52 @@ describe("database schema integration", () => {
         ) VALUES (
           '10000000-0000-4000-8000-000000000044', ${ownerId}, 'wallet-0037-excerpt-chart',
           'wallet-0037-excerpt-version', 'ZIWEI-NATAL-EXCERPT-P0', 'en', 240, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+
+      // Migration 0044: new SKUs and rollover prices
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000045', ${ownerId}, 'wallet-0044-palace-chart',
+          'wallet-0044-palace-version', 'ZIWEI-PALACE-LIFE-P0', 'vi', 120, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000046', ${ownerId}, 'wallet-0044-palace-chart-2',
+          'wallet-0044-palace-version-2', 'ZIWEI-PALACE-LIFE-P0', 'vi', 240, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000047', ${ownerId}, 'wallet-0044-rollover-chart',
+          'wallet-0044-rollover-version', 'ZIWEI-IDENTITY-P0', 'vi', 840, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000048', ${ownerId}, 'wallet-0044-zero-chart',
+          'wallet-0044-zero-version', 'ZIWEI-IDENTITY-P0', 'vi', 0, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000049', ${ownerId}, 'wallet-0044-invalid-chart',
+          'wallet-0044-invalid-version', 'ZIWEI-IDENTITY-P0', 'vi', 961, 'pending', 1
         )
       `).rejects.toBeDefined();
     } finally {
@@ -3154,7 +3201,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-17)).toEqual([
+    expect(journal.entries.slice(-18)).toEqual([
       {
         idx: 27,
         version: "7",
@@ -3272,6 +3319,13 @@ describe("database schema integration", () => {
         version: "7",
         when: 1790813340000,
         tag: "0043_ai_model_pricing_openrouter_deepseek_flash",
+        breakpoints: true,
+      },
+      {
+        idx: 44,
+        version: "7",
+        when: 1790813400000,
+        tag: "0044_wallet_catalog_rollover_pricing",
         breakpoints: true,
       },
     ]);
@@ -3608,7 +3662,8 @@ describe("database schema integration", () => {
         1790813160000,
         1790813220000,
         1790813280000,
-        1790813340000
+        1790813340000,
+        1790813400000
       )
     `;
 

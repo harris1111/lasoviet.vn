@@ -107,7 +107,19 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
   uniqueIndex("wallet_purchase_intents_owner_chart_sku_pending_unique").on(table.ownerId, table.chartId, table.sku).where(sql`${table.status} = 'pending'`),
-  check("wallet_purchase_intents_valid", sql`((${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} = 240) OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (720, 960))) AND ${table.status} IN ('pending', 'completed', 'cancelled', 'expired') AND ${table.stateVersion} > 0`),
+  check("wallet_purchase_intents_valid", sql`(
+    (${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} = 240)
+    OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} >= 0 AND ${table.priceLa} <= 960)
+    OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
+    OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
+    OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
+    OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 300)
+    OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
+    OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1300)
+    OR (${table.sku} IN ('MEMBERSHIP-MONTHLY-P0', 'MEMBERSHIP-MONTHLY-1500') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1500)
+    OR (${table.sku} IN ('MEMBERSHIP-YEARLY-P0', 'MEMBERSHIP-YEARLY-8000') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 8000)
+    OR ((${table.sku} = 'ZIWEI-PALACE-P0' OR ${table.sku} LIKE 'ZIWEI-PALACE-%) AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 120)
+  ) AND ${table.status} IN ('pending', 'completed', 'cancelled', 'expired') AND ${table.stateVersion} > 0`),
 ]);
 
 export const walletCommandReceipts = pgTable("wallet_command_receipts", {

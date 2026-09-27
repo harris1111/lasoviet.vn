@@ -2,9 +2,13 @@ import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 import {
+  calculateRolloverCredit,
+  findLaProduct,
+  getLaPrice,
+  isQualifyingRolloverSku,
   resolveEntitlementScopeForSku,
-  type CommerceSku,
   type CurrentActor,
+  type QualifyingSpend,
   type WalletBalanceV1,
   type WalletPurchaseIntentV1,
   WalletPurchaseIntentV1Schema,
@@ -39,13 +43,9 @@ import {
   type ReportVersionResolver,
 } from "../reports/identity-report-config.js";
 
-type WalletSku = "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
-type WalletLocale = "vi" | "en";
-const supportedSku = (value: string): value is WalletSku =>
-  value === "ZIWEI-NATAL-EXCERPT-P0" || value === "ZIWEI-IDENTITY-P0";
-const supportedLocale = (value: string): value is WalletLocale => value === "vi" || value === "en";
+const supportedSku = (value: string): boolean => findLaProduct(value) !== undefined;
+const supportedLocale = (value: string): value is "vi" | "en" => value === "vi" || value === "en";
 const nonEmptyId = (value: string) => value.trim().length > 0;
-const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
 
 type UnlockContinuation = {
   entitlementId: string;
@@ -179,47 +179,85 @@ async function evidenceFor(database: Database, chartVersionId: string) {
   return evidence;
 }
 
-async function tierOneTimestamp(database: Database, ownerId: string, chartId: string) {
-  const [orderBacked] = await database.select({ timestamp: commerceOrders.paidAt })
+async function qualifyingRolloverSpends(
+  database: Database,
+  ownerId: string,
+  chartId: string,
+): Promise<QualifyingSpend[]> {
+  const orderRows = await database
+    .select({
+      sku: commerceEntitlements.sku,
+      paidAt: commerceOrders.paidAt,
+    })
     .from(commerceEntitlements)
-    .innerJoin(commerceOrders, and(
-      eq(commerceOrders.id, commerceEntitlements.orderId),
-      eq(commerceOrders.ownerId, ownerId),
-      eq(commerceOrders.kind, "content_purchase"),
-      eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
-      eq(commerceOrders.status, "paid"),
-    ))
-    .where(and(
-      eq(commerceEntitlements.ownerId, ownerId),
-      eq(commerceEntitlements.chartId, chartId),
-      eq(commerceEntitlements.sku, "ZIWEI-NATAL-EXCERPT-P0"),
-    ))
-    .orderBy(desc(commerceOrders.paidAt))
-    .limit(1);
-  if (orderBacked?.timestamp) return orderBacked.timestamp;
+    .innerJoin(
+      commerceOrders,
+      and(
+        eq(commerceOrders.id, commerceEntitlements.orderId),
+        eq(commerceOrders.ownerId, ownerId),
+        eq(commerceOrders.kind, "content_purchase"),
+        eq(commerceOrders.status, "paid"),
+      ),
+    )
+    .where(
+      and(
+        eq(commerceEntitlements.ownerId, ownerId),
+        eq(commerceEntitlements.chartId, chartId),
+      ),
+    );
 
-  const [walletBacked] = await database.select({ timestamp: walletTransactions.createdAt })
+  const orderSpends: QualifyingSpend[] = [];
+  for (const row of orderRows) {
+    if (isQualifyingRolloverSku(row.sku) && row.paidAt) {
+      const priceLa = getLaPrice(row.sku) ?? 240;
+      orderSpends.push({ amountLa: priceLa, spentAt: row.paidAt });
+    }
+  }
+
+  const walletRows = await database
+    .select({
+      sku: commerceEntitlements.sku,
+      priceLa: walletPurchaseIntents.priceLa,
+      createdAt: walletTransactions.createdAt,
+    })
     .from(commerceEntitlements)
-    .innerJoin(walletTransactions, and(
-      eq(walletTransactions.id, commerceEntitlements.ledgerSpendId),
-      eq(walletTransactions.kind, "spend"),
-      activeSpendCondition(),
-    ))
-    .where(and(
-      eq(commerceEntitlements.ownerId, ownerId),
-      eq(commerceEntitlements.chartId, chartId),
-      eq(commerceEntitlements.sku, "ZIWEI-NATAL-EXCERPT-P0"),
-    ))
-    .orderBy(desc(walletTransactions.createdAt))
-    .limit(1);
-  return walletBacked?.timestamp;
+    .innerJoin(
+      walletTransactions,
+      and(
+        eq(walletTransactions.id, commerceEntitlements.ledgerSpendId),
+        eq(walletTransactions.kind, "spend"),
+        activeSpendCondition(),
+      ),
+    )
+    .innerJoin(
+      walletPurchaseIntents,
+      eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
+    )
+    .where(
+      and(
+        eq(commerceEntitlements.ownerId, ownerId),
+        eq(commerceEntitlements.chartId, chartId),
+      ),
+    );
+
+  const walletSpends: QualifyingSpend[] = [];
+  for (const row of walletRows) {
+    if (isQualifyingRolloverSku(row.sku)) {
+      walletSpends.push({
+        amountLa: row.priceLa ?? getLaPrice(row.sku) ?? 120,
+        spentAt: row.createdAt,
+      });
+    }
+  }
+
+  return [...orderSpends, ...walletSpends];
 }
 
 async function price(
   database: Database,
   ownerId: string,
   chartId: string,
-  sku: WalletSku,
+  sku: string,
   now: Date,
 ) {
   const [sameSku] = await database.select({ id: commerceEntitlements.id })
@@ -239,17 +277,25 @@ async function price(
     ))
     .limit(1);
   if (sameSku !== undefined) return failed("WALLET_ENTITLEMENT_EXISTS");
-  if (sku === "ZIWEI-NATAL-EXCERPT-P0") return { ok: true as const, amountLa: 240 as const };
-  const tierOneAt = await tierOneTimestamp(database, ownerId, chartId);
-  return tierOneAt !== undefined && now.getTime() < tierOneAt.getTime() + sevenDaysMs
-    ? { ok: true as const, amountLa: 720 as const }
-    : { ok: true as const, amountLa: 960 as const };
+
+  if (sku === "ZIWEI-IDENTITY-P0") {
+    const spends = await qualifyingRolloverSpends(database, ownerId, chartId);
+    const rollover = calculateRolloverCredit({ spends, now });
+    return { ok: true as const, amountLa: rollover.effectivePriceLa };
+  }
+
+  const product = findLaProduct(sku);
+  if (!product) return failed("WALLET_INTENT_INVALID");
+  return { ok: true as const, amountLa: product.priceLa };
 }
 
 function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
-  return supportedSku(intent.sku) && supportedLocale(intent.locale) &&
-    (intent.sku !== "ZIWEI-NATAL-EXCERPT-P0" || (intent.locale === "vi" && intent.priceLa === 240)) &&
-    (intent.sku !== "ZIWEI-IDENTITY-P0" || (intent.priceLa === 720 || intent.priceLa === 960));
+  const product = findLaProduct(intent.sku);
+  if (!product || !supportedLocale(intent.locale) || !product.locales.includes(intent.locale)) return false;
+  if (intent.sku === "ZIWEI-IDENTITY-P0") {
+    return intent.priceLa >= 0 && intent.priceLa <= 960;
+  }
+  return intent.priceLa === product.priceLa;
 }
 
 function hasUnlockOutboxLineage(
@@ -296,8 +342,14 @@ export function createWalletUnlockService(
     async createPurchaseIntent(actor: CurrentActor, request: WalletPurchaseIntentRequest) {
       if (!await verifiedAccount(database, actor)) return failed(actor.kind === "account" ? "WALLET_ACCOUNT_INELIGIBLE" : "WALLET_ACCOUNT_REQUIRED");
       if (actor.kind !== "account") return failed("WALLET_ACCOUNT_REQUIRED");
-      if (!supportedSku(request.sku) || !supportedLocale(request.locale) || !nonEmptyId(request.chartId) || !nonEmptyId(request.chartVersionId) ||
-        (request.sku === "ZIWEI-NATAL-EXCERPT-P0" && request.locale !== "vi")) {
+      const product = findLaProduct(request.sku);
+      if (
+        !product ||
+        !supportedLocale(request.locale) ||
+        !product.locales.includes(request.locale) ||
+        !nonEmptyId(request.chartId) ||
+        !nonEmptyId(request.chartVersionId)
+      ) {
         return failed("WALLET_INTENT_INVALID");
       }
       const sku = request.sku;
@@ -404,14 +456,12 @@ export function createWalletUnlockService(
             lockedIntent.priceLa !== metadata.intent.amountLa) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
-          if (!supportedSku(lockedIntent.sku) || !supportedLocale(lockedIntent.locale)) {
+          const product = findLaProduct(lockedIntent.sku);
+          if (!product || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const sku = lockedIntent.sku;
           const locale = lockedIntent.locale;
-          if (sku === "ZIWEI-NATAL-EXCERPT-P0" && locale !== "vi") {
-            return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
-          }
           if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
@@ -433,7 +483,7 @@ export function createWalletUnlockService(
             chartId: lockedIntent.chartId,
             sku,
             ownerId: actor.userId,
-            scope: resolveEntitlementScopeForSku(sku as CommerceSku, reportVersions.family),
+            scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
             createdAt: currentNow,
           }).returning();
           if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");

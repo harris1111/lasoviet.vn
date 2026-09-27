@@ -1,7 +1,7 @@
 {
   "auth_required": "Sign in required to view report.",
   "report_not_found": "Report not found.",
-  "identity": "Comprehensive Zi Wei reading",
+  "identity": "Lifetime Zi Wei reading",
   "paymentDeferred": "SePay will open in the next step.",
   "preview": {
     "eyebrow": "Free preview",
@@ -21,7 +21,7 @@
     "available": "Available topic",
     "comingSoon": "Coming soon",
     "inDevelopment": "In development",
-    "lifetimeOfferTitle": "Comprehensive Zi Wei reading",
+    "lifetimeOfferTitle": "Lifetime Zi Wei reading",
     "oneTime": "One-time payment · No automatic renewal",
     "continuePayment": "Continue to payment",
     "viewSample": "View sample report",
@@ -47,7 +47,7 @@
     "quickGuideExcerptNeed": "Understand yourself first and start from the core foundation",
     "quickGuideExcerptTarget": "Core Identity and Potential",
     "quickGuideComprehensiveNeed": "Read all 12 palaces and comprehensive connections",
-    "quickGuideComprehensiveTarget": "Comprehensive Zi Wei reading",
+    "quickGuideComprehensiveTarget": "Lifetime Zi Wei reading",
     "trustLine": "One-time payment, no automatic renewal. After purchase, you can revisit your reading without limitation.",
     "ethicsLine": "The reading illuminates inclinations and life possibilities. It does not decide for you, nor does it convert natal potentials into rigid pronouncements.",
     "tabReadings": "Readings",
@@ -94,7 +94,7 @@
   },
   "checkout": {
     "eyebrow": "Payment",
-    "title": "Comprehensive Zi Wei reading",
+    "title": "Lifetime Zi Wei reading",
     "action": "Continue to SePay",
     "instructions_title": "Bank transfer details",
     "bank_code": "Bank",

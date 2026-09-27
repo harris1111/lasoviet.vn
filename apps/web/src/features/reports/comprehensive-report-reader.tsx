@@ -337,7 +337,7 @@ export function ComprehensiveReportReader({
     const url = window.location.href;
     const title = report.sku === "ZIWEI-NATAL-EXCERPT-P0"
       ? "Luận giải Bản mệnh Tử Vi — Lá Số Việt"
-      : "Luận giải Tử Vi toàn diện — Lá Số Việt";
+      : "Tử Vi trọn đời — Lá Số Việt";
 
     if (navigator.share) {
       try {

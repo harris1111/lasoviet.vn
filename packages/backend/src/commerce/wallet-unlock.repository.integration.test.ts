@@ -163,6 +163,31 @@ describe("wallet unlock repository integration", () => {
     return { userId, chartId, chartVersionId, evidenceId, actor: actor(userId) };
   }
 
+  async function insertPaidPalace(owner: Awaited<ReturnType<typeof ownerFixture>>, sku: string, paidAt: Date) {
+    const orderId = randomUUID();
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: `LSV-${orderId}`,
+      ownerId: owner.userId,
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      kind: "content_purchase",
+      sku,
+      amount: 19_000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+      paidAt,
+    });
+    await database.insert(commerceEntitlements).values({
+      orderId,
+      ledgerSpendId: null,
+      chartId: owner.chartId,
+      sku,
+      ownerId: owner.userId,
+      scope: { sections: [], palaces: ["ziwei.palace.life"] },
+    });
+  }
   async function insertPaidTierOne(owner: Awaited<ReturnType<typeof ownerFixture>>, paidAt: Date) {
     const orderId = randomUUID();
     await database.insert(commerceOrders).values({
@@ -242,6 +267,86 @@ describe("wallet unlock repository integration", () => {
     expect(tierTwoConflict).toEqual({ ok: false, code: "WALLET_INTENT_VERSION_CONFLICT" });
     expect(upgrade).toMatchObject({ ok: true, value: { amountLa: 720 }, reused: false });
     expect(expiredUpgrade).toMatchObject({ ok: true, value: { amountLa: 960 }, reused: false });
+  });
+
+  it("applies dynamic 7-day rollover discount from single palace and excerpt spends into Tử Vi trọn đời (960 base)", async () => {
+    const audit = await ownerFixture("Audit dynamic rollover");
+    const user1 = await ownerFixture("User 1 palace rollover");
+    const user2 = await ownerFixture("User 2 palaces rollover");
+    const userExpired = await ownerFixture("User expired palace rollover");
+    const { service } = walletPorts(audit.userId);
+
+    // user1 paid for 1 palace 2 days ago: discount 120 -> 840 Lá
+    await insertPaidPalace(user1, "ZIWEI-PALACE-LIFE-P0", new Date(frozenNow.getTime() - 2 * 24 * 60 * 60 * 1000));
+    const intent1 = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(intent1).toMatchObject({ ok: true, value: { amountLa: 840, locale: "vi" }, reused: false });
+
+    // user2 paid for 1 palace 3 days ago and Bản mệnh 1 day ago: discount 120 + 240 = 360 -> 600 Lá
+    await insertPaidPalace(user2, "ZIWEI-PALACE-LIFE-P0", new Date(frozenNow.getTime() - 3 * 24 * 60 * 60 * 1000));
+    await insertPaidTierOne(user2, new Date(frozenNow.getTime() - 1 * 24 * 60 * 60 * 1000));
+    const intent2 = await service.createPurchaseIntent(user2.actor, {
+      chartId: user2.chartId,
+      chartVersionId: user2.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(intent2).toMatchObject({ ok: true, value: { amountLa: 600, locale: "vi" }, reused: false });
+
+    // userExpired paid for 1 palace 8 days ago: expired -> base 960 Lá
+    await insertPaidPalace(userExpired, "ZIWEI-PALACE-LIFE-P0", new Date(frozenNow.getTime() - 8 * 24 * 60 * 60 * 1000));
+    const intentExpired = await service.createPurchaseIntent(userExpired.actor, {
+      chartId: userExpired.chartId,
+      chartVersionId: userExpired.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(intentExpired).toMatchObject({ ok: true, value: { amountLa: 960, locale: "vi" }, reused: false });
+
+    // Verify all new SKUs can create purchase intents with canonical catalog prices
+    const palaceIntent = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-PALACE-WEALTH-P0",
+      locale: "vi",
+    });
+    expect(palaceIntent).toMatchObject({ ok: true, value: { amountLa: 120, locale: "vi" }, reused: false });
+
+    const todayIntent = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-TODAY-P0",
+      locale: "vi",
+    });
+    expect(todayIntent).toMatchObject({ ok: true, value: { amountLa: 60, locale: "vi" }, reused: false });
+
+    const monthlyIntent = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-MONTHLY-P0",
+      locale: "vi",
+    });
+    expect(monthlyIntent).toMatchObject({ ok: true, value: { amountLa: 300, locale: "vi" }, reused: false });
+
+    const year2026Intent = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-YEAR-2026-P0",
+      locale: "vi",
+    });
+    expect(year2026Intent).toMatchObject({ ok: true, value: { amountLa: 480, locale: "vi" }, reused: false });
+
+    const comboIntent = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-COMBO-2026-P0",
+      locale: "vi",
+    });
+    expect(comboIntent).toMatchObject({ ok: true, value: { amountLa: 1300, locale: "vi" }, reused: false });
   });
 
   it("atomically unlocks exactly once under matching concurrent retries and keeps customer ownership isolated", async () => {
