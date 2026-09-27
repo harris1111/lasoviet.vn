@@ -45,9 +45,9 @@ export function createWalletService(repository: WalletRepository) {
       }
       return repository.spend(command);
     },
-    restore(command: WalletRestorationCommand) {
-      if (!WalletRestorationV1Schema.safeParse(command.restoration).success) return invalid();
-      if (command.actor.kind !== "account" || command.restoration.actorId !== command.actor.userId) return invalid();
+    restore(command: WalletRestorationCommand): Promise<WalletResult<WalletTransactionReceiptV1>> | WalletResult<WalletTransactionReceiptV1> {
+      if (!WalletRestorationV1Schema.safeParse(command.restoration).success) return invalid<WalletTransactionReceiptV1>();
+      if (command.actor.kind !== "account" || command.restoration.actorId !== command.actor.userId) return invalid<WalletTransactionReceiptV1>();
       return repository.restore(command);
     },
   };

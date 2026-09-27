@@ -102,3 +102,8 @@ export {
   analyticsFraudIpRecords,
   analyticsVisitors,
 } from "./schema/analytics.js";
+
+export {
+  partFeedbacks,
+  guaranteeClaims,
+} from "./schema/feedback-guarantee.js";

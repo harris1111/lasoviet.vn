@@ -756,3 +756,24 @@ export type {
   ZiweiHoroscopeResultV1,
 } from "./ziwei-horoscope-v1.js";
 
+
+export {
+  PartFeedbackRatingSchema,
+  PartFeedbackCreateV1Schema,
+  PartFeedbackV1Schema,
+  RelatedPalaceSuggestionV1Schema,
+  PartFeedbackResultV1Schema,
+  GuaranteeClaimRequestV1Schema,
+  GuaranteeClaimResultV1Schema,
+  GuaranteeErrorCodeSchema,
+} from "./guarantee-feedback-v1.js";
+export type {
+  PartFeedbackRating,
+  PartFeedbackCreateV1,
+  PartFeedbackV1,
+  RelatedPalaceSuggestionV1,
+  PartFeedbackResultV1,
+  GuaranteeClaimRequestV1,
+  GuaranteeClaimResultV1,
+  GuaranteeErrorCode,
+} from "./guarantee-feedback-v1.js";

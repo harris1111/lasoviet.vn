@@ -709,6 +709,7 @@ const baseReportReadyViewV1Schema = z.object({
   lineage: z.object({
     supersedesReportVersionId: z.string().trim().min(1).nullable(),
   }).strict(),
+  chartId: z.string().trim().min(1).optional(),
 });
 
 export const ReportLegacyReadyViewV1Schema = baseReportReadyViewV1Schema.extend({

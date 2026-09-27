@@ -368,6 +368,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
           },
@@ -431,6 +432,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
           },
@@ -492,6 +494,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
           },
