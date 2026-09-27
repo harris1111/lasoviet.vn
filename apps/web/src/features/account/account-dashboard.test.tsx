@@ -3,6 +3,7 @@ import type {
   AccountLibraryV1,
   OrderHistoryItemV1,
   OrderHistoryV1,
+  WalletBalanceV1,
 } from "@lasoviet/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -153,6 +154,40 @@ describe("AccountDashboard", () => {
     expect(html).toContain("15");
     expect(html).toContain("Tổng số báo cáo");
     expect(html).toContain("Tổng số đơn hàng");
+  });
+
+  it("renders the Lá balance and a top-up link when a wallet balance is provided (FD-105 1.1)", () => {
+    const walletBalance: WalletBalanceV1 = {
+      version: 1,
+      totalLa: 1_240,
+      purchasedLa: 1_000,
+      promotionalLa: 240,
+      updatedAt: "2026-09-27T10:00:00.000+07:00",
+    };
+
+    const html = renderToStaticMarkup(
+      <AccountDashboard
+        locale="vi"
+        library={{ version: 1, totalCount: 1, groups: [], items: [createMockReport()], latestReadableReport: null }}
+        orders={{ version: 1, totalCount: 1, orders: [createMockOrder()], items: [] }}
+        walletBalance={walletBalance}
+      />,
+    );
+    expect(html).toContain("Số dư Lá");
+    expect(html).toContain("1.240");
+    expect(html).toContain("Nạp thêm Lá");
+    expect(html).toContain("/nap-la");
+  });
+
+  it("does not render a Lá balance row when the wallet balance failed to load", () => {
+    const html = renderToStaticMarkup(
+      <AccountDashboard
+        locale="vi"
+        library={{ version: 1, totalCount: 1, groups: [], items: [createMockReport()], latestReadableReport: null }}
+        orders={{ version: 1, totalCount: 1, orders: [createMockOrder()], items: [] }}
+      />,
+    );
+    expect(html).not.toContain("Số dư Lá");
   });
 
   it("caps recent reports and orders at 3 rows each", () => {

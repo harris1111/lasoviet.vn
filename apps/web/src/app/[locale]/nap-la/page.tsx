@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
 import { customerContactConfig } from "@lasoviet/config";
+
+import type { CurrentActor } from "@lasoviet/contracts";
+import {
+  resolveVerifiedAccountActor,
+  VerifiedAccountResolutionError,
+} from "../../../auth/resolve-current-actor";
+import { accountDataLoader } from "../../../features/account/account-data-loader";
 import { PaidTopicSelector } from "../../../features/reports/paid-topic-selector";
 
 export const metadata: Metadata = {
@@ -17,6 +24,25 @@ export default async function TopUpPage({
   const { locale: requestedLocale } = await params;
   const locale = requestedLocale === "en" ? "en" : "vi";
 
+  let actor: Extract<CurrentActor, { kind: "account" }> | null = null;
+  try {
+    actor = await resolveVerifiedAccountActor();
+  } catch (error) {
+    if (error instanceof VerifiedAccountResolutionError) {
+      actor = null;
+    } else {
+      throw error;
+    }
+  }
+
+  let userBalance = 0;
+  if (actor !== null) {
+    const balanceResult = await accountDataLoader.loadWalletBalance(actor);
+    if (balanceResult.ok) {
+      userBalance = balanceResult.value.totalLa;
+    }
+  }
+
   return (
     <main className="topic-page" data-light-ready>
       <div className="container">
@@ -24,6 +50,7 @@ export default async function TopUpPage({
           locale={locale}
           initialTab="nap-la"
           supportEmail={customerContactConfig.email.value}
+          userBalance={userBalance}
         />
       </div>
     </main>

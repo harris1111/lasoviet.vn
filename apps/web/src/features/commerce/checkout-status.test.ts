@@ -4,6 +4,7 @@ import { parseCheckoutStatus } from "./checkout-status.js";
 const validCheckoutStatus = {
   order: {
     id: "order-1",
+    kind: "content_purchase" as const,
     status: "pending",
     amount: 79000,
     currency: "VND",
@@ -14,6 +15,7 @@ const validCheckoutStatus = {
     createdAt: "2026-09-05T00:00:00.000Z",
     creditApplied: 0,
     creditExpiresAt: null,
+    creditedLa: null,
     supportUrl: "/lien-he?order=LSV-order-1",
   },
   paymentInstructions: {
@@ -187,6 +189,7 @@ describe("parseCheckoutStatus", () => {
     const extendedStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase" as const,
         status: "pending" as const,
         amount: 60000,
         currency: "VND" as const,
@@ -197,6 +200,7 @@ describe("parseCheckoutStatus", () => {
         createdAt: "2026-09-10T10:00:00.000Z",
         creditApplied: 19000,
         creditExpiresAt: "2026-09-17T10:00:00.000Z",
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSVK7M2P9QXJ",
       },
       paymentInstructions: {

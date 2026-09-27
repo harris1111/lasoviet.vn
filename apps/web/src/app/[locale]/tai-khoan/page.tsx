@@ -5,6 +5,7 @@ import { resolveVerifiedAccountActor } from "../../../auth/resolve-current-actor
 import {
   loadAccountLibrary,
   loadOrderHistory,
+  loadWalletBalance,
 } from "../../../features/account/account-data-loader";
 import { loadAccountOverview } from "../../../features/account/account-center-data";
 import { AccountDashboard } from "../../../features/account/account-dashboard";
@@ -43,10 +44,11 @@ export default async function AccountPage({
     redirect(localizedSignInPath(routeLocale, currentPath));
   }
 
-  const [libraryResult, ordersResult, overviewResult] = await Promise.all([
+  const [libraryResult, ordersResult, overviewResult, walletBalanceResult] = await Promise.all([
     loadAccountLibrary(actor),
     loadOrderHistory(actor),
     loadAccountOverview(actor),
+    loadWalletBalance(actor),
   ]);
 
   let errorMessage: string | undefined;
@@ -83,6 +85,7 @@ export default async function AccountPage({
       library={libraryResult.ok ? libraryResult.value : undefined}
       orders={ordersResult.ok ? ordersResult.value : undefined}
       overview={overviewResult.ok ? overviewResult.value : undefined}
+      walletBalance={walletBalanceResult.ok ? walletBalanceResult.value : undefined}
       userEmail={overviewResult.ok ? overviewResult.value.account.email : undefined}
       error={errorMessage}
     />

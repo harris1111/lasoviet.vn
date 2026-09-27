@@ -472,7 +472,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(found?.supportUrl).not.toContain(orderId);
   });
 
-  it("keeps directly inserted wallet top-up orders out of all legacy V1 reads and payment paths", async () => {
+  it("keeps wallet top-up orders out of content reads and settles them only through the wallet (FD-105 1.1)", async () => {
     const owner = await createOwnerFixture({ displayName: "Wallet Top-up Legacy Isolation" });
     const repo = createDatabaseCommerceRepository(database);
     const topUpOrderId = randomUUID();
@@ -514,7 +514,11 @@ describe("commerce repository - library and order history (WP-03)", () => {
       amount: 29_000,
       currency: "VND",
       traceId: "wallet-topup-legacy-isolation",
-    })).resolves.toEqual({ ok: false, code: "ORDER_NOT_FOUND" });
+    })).resolves.toEqual({ ok: true, replayed: false });
+
+    const [wallet] = await database.select().from(walletAccounts)
+      .where(eq(walletAccounts.ownerId, owner.userId));
+    expect(wallet).toMatchObject({ purchasedBalance: 300, promotionalBalance: 0 });
 
     const formatLocalMinute = (date: Date) => {
       const pad = (value: number) => String(value).padStart(2, "0");
@@ -551,11 +555,11 @@ describe("commerce repository - library and order history (WP-03)", () => {
           .where(eq(commerceUnmatchedPayments.providerEventId, unmatchedPaymentId)),
       ]);
 
-    expect(paymentEvents).toEqual([]);
+    expect(paymentEvents).toHaveLength(1);
     expect(entitlements).toEqual([]);
     expect(reservations).toEqual([]);
     expect(outboxEvents).toEqual([]);
-    expect(topUpOrder[0]?.status).toBe("pending");
+    expect(topUpOrder[0]?.status).toBe("paid");
     expect(unmatchedPayment[0]?.claimedAt).toBeNull();
     expect(unmatchedPayment[0]?.claimedByOrderId).toBeNull();
   });

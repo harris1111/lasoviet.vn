@@ -281,13 +281,23 @@ export const PaymentSelfClaimRequestV1Schema = z
   .strict();
 export type PaymentSelfClaimRequestV1 = z.infer<typeof PaymentSelfClaimRequestV1Schema>;
 
-export const PaymentSelfClaimSuccessV1Schema = z
-  .object({
-    status: z.literal("claimed"),
-    orderId: z.string().trim().min(1),
-    reportId: z.string().trim().min(1),
-  })
-  .strict();
+export const PaymentSelfClaimSuccessV1Schema = z.union([
+  z
+    .object({
+      status: z.literal("claimed"),
+      orderId: z.string().trim().min(1),
+      reportId: z.string().trim().min(1),
+    })
+    .strict(),
+  z
+    .object({
+      status: z.literal("claimed"),
+      kind: z.literal("wallet_topup"),
+      orderId: z.string().trim().min(1),
+      creditedLa: z.number().int().positive(),
+    })
+    .strict(),
+]);
 export type PaymentSelfClaimSuccessV1 = z.infer<typeof PaymentSelfClaimSuccessV1Schema>;
 
 export const PAYMENT_CLAIM_ERROR_CODES = [

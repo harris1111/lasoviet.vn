@@ -8,6 +8,7 @@ import type {
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 
 import { createCheckoutOrderFormAction } from "../commerce/create-checkout-order";
+import { createTopUpOrderFormAction } from "../commerce/create-topup-order";
 import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { resolveActiveSkuFromPublicOfferKey } from "../commerce/checkout-offer";
 import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tracker";
@@ -706,20 +707,24 @@ export function PaidTopicSelector({
             )}
 
             {activeTab === "nap-la" && (
-              topics?.chartId ? (
-                <form action={createCheckoutOrderFormAction}>
-                  <input type="hidden" name="chartId" value={topics.chartId} />
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="offerKey" value={selectedReading} />
-                  <button type="submit" className="button button-primary btn btn-primary btn-lg">
-                    {t("selection.topupPack", { vnd: activePack.vndFormatted[locale] })}
-                  </button>
-                </form>
-              ) : (
-                <Link href={chartHref} className="button button-primary btn btn-primary btn-lg">
+              <form action={createTopUpOrderFormAction}>
+                <input type="hidden" name="packId" value={activePack.id} />
+                <input type="hidden" name="locale" value={locale} />
+                {topics?.chartId && (
+                  <input
+                    type="hidden"
+                    name="returnPath"
+                    value={
+                      locale === "en"
+                        ? `/en/la-so/${topics.chartId}/chon-luan-giai`
+                        : `/la-so/${topics.chartId}/chon-luan-giai`
+                    }
+                  />
+                )}
+                <button type="submit" className="button button-primary btn btn-primary btn-lg">
                   {t("selection.topupPack", { vnd: activePack.vndFormatted[locale] })}
-                </Link>
-              )
+                </button>
+              </form>
             )}
 
             {activeTab === "hoi-vien" && (

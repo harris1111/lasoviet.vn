@@ -14,6 +14,7 @@ import { resolveVerifiedAccountActor } from "../../../auth/resolve-current-actor
 import {
   loadAccountLibrary,
   loadOrderHistory,
+  loadWalletBalance,
 } from "../../../features/account/account-data-loader";
 import { loadAccountOverview } from "../../../features/account/account-center-data";
 
@@ -33,6 +34,7 @@ vi.mock("../../../auth/resolve-current-actor", () => ({
 vi.mock("../../../features/account/account-data-loader", () => ({
   loadAccountLibrary: vi.fn(),
   loadOrderHistory: vi.fn(),
+  loadWalletBalance: vi.fn(),
 }));
 
 vi.mock("../../../features/account/account-center-data", () => ({
@@ -122,6 +124,10 @@ const mockOrders: OrderHistoryV1 = {
 describe("AccountPage (/tai-khoan)", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(loadWalletBalance).mockResolvedValue({
+      ok: true,
+      value: { version: 1, totalLa: 0, purchasedLa: 0, promotionalLa: 0, updatedAt: "2026-09-27T10:00:00.000+07:00" },
+    });
     vi.mocked(loadAccountOverview).mockResolvedValue({
       ok: true,
       value: {

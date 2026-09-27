@@ -315,6 +315,7 @@ describe("SePay controller HTTP contract", () => {
       readOrderProjection: vi.fn().mockResolvedValue({
         order: {
           id: "order-excerpt-1",
+          kind: "content_purchase",
           status: "pending",
           amount: 19000,
           currency: "VND",
@@ -426,6 +427,7 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-1",
+            kind: "content_purchase",
             status: "pending",
             amount: 79000,
             currency: "VND",
@@ -436,6 +438,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: {
@@ -505,6 +508,7 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-paid-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
@@ -515,6 +519,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-paid-1",
           },
           paymentInstructions: {
@@ -581,6 +586,7 @@ describe("SePay controller HTTP contract", () => {
       createOrder: vi.fn(),
       readOrder: vi.fn(),
       readOrderProjection: vi.fn().mockResolvedValue(null),
+      readTopUpOrderProjection: vi.fn().mockResolvedValue(null),
       recordPaid: vi.fn(),
     } as never);
 
@@ -643,6 +649,7 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-excerpt-test",
+            kind: "content_purchase",
             status: "pending",
             amount: 19000,
             currency: "VND",
@@ -653,6 +660,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-10T10:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-INV-EXCERPT-001",
           },
           paymentInstructions: expect.any(Object),
@@ -902,6 +910,7 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
@@ -912,6 +921,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: null,
@@ -973,6 +983,7 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-paid-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
@@ -983,6 +994,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-paid-1",
           },
           paymentInstructions: null,
@@ -1130,6 +1142,7 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
@@ -1140,6 +1153,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: null,

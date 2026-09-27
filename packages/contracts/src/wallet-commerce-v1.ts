@@ -22,6 +22,12 @@ export const WalletTopUpPackIdSchema = z.enum([
 ]);
 export type WalletTopUpPackId = z.infer<typeof WalletTopUpPackIdSchema>;
 
+export const WalletTopUpOrderCreateV1Schema = z.object({
+  packId: WalletTopUpPackIdSchema,
+  locale: z.enum(["vi", "en"]),
+}).strict();
+export type WalletTopUpOrderCreateV1 = z.infer<typeof WalletTopUpOrderCreateV1Schema>;
+
 export const WalletBalanceV1Schema = z.object({
   version: z.literal(1),
   totalLa: amount,
