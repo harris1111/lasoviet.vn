@@ -44,7 +44,6 @@ describe("Lá product catalog contracts", () => {
 
     expect(getLaPrice("ZIWEI-PALACE-LIFE-P0")).toBe(120);
     expect(getLaPrice("ZIWEI-PALACE-CAREER-P0")).toBe(120);
-    expect(getLaPrice("ZIWEI-PALACE-P0")).toBe(120);
     expect(getLaPrice("ZIWEI-NATAL-EXCERPT-P0")).toBe(240);
     expect(getLaPrice("ZIWEI-TODAY-P0")).toBe(60);
     expect(getLaPrice("ZIWEI-MONTHLY-P0")).toBe(300);
@@ -86,13 +85,12 @@ describe("Lá product catalog contracts", () => {
       expect(getLaPrice(sku)).toBe(120);
     }
 
-    expect(isSinglePalaceSku("ZIWEI-PALACE-P0")).toBe(true);
-    expect(isQualifyingRolloverSku("ZIWEI-PALACE-P0")).toBe(true);
+    expect(isSinglePalaceSku("ZIWEI-PALACE-P0")).toBe(false);
+    expect(isQualifyingRolloverSku("ZIWEI-PALACE-P0")).toBe(false);
   });
 
   it("marks only single palaces and natal excerpt as qualifying for rollover", () => {
     expect(isQualifyingRolloverSku("ZIWEI-NATAL-EXCERPT-P0")).toBe(true);
-    expect(isQualifyingRolloverSku("ZIWEI-PALACE-P0")).toBe(true);
     expect(isQualifyingRolloverSku("ZIWEI-PALACE-LIFE-P0")).toBe(true);
 
     expect(isQualifyingRolloverSku("ZIWEI-IDENTITY-P0")).toBe(false);

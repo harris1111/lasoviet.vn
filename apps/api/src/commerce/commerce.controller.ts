@@ -11,6 +11,9 @@ import {
 } from "@lasoviet/backend";
 import {
   AccountLibraryV2Schema,
+  findLaProduct,
+  LIFETIME_BASE_PRICE_LA,
+  type LaSku,
   CommerceSkuSchema,
   PaymentSelfClaimRequestV1Schema,
   resolveProductTitle,
@@ -55,16 +58,22 @@ function equal(a: string | undefined, b: string): boolean {
 function walletIntentRequest(body: unknown) {
   if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
   const value = body as Record<string, unknown>;
-  if (Object.keys(value).length !== 4 ||
+  if (
+    Object.keys(value).length !== 4 ||
     typeof value.chartId !== "string" || value.chartId.trim().length === 0 ||
     typeof value.chartVersionId !== "string" || value.chartVersionId.trim().length === 0 ||
-    (value.sku !== "ZIWEI-NATAL-EXCERPT-P0" && value.sku !== "ZIWEI-IDENTITY-P0") ||
-    (value.locale !== "vi" && value.locale !== "en")) return null;
-  return value as {
-    chartId: string;
-    chartVersionId: string;
-    sku: "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
-    locale: "vi" | "en";
+    typeof value.sku !== "string" ||
+    (value.locale !== "vi" && value.locale !== "en")
+  ) return null;
+  const product = findLaProduct(value.sku);
+  if (!product || product.availability !== "active" || !product.locales.includes(value.locale as "vi" | "en")) {
+    return null;
+  }
+  return {
+    chartId: value.chartId.trim(),
+    chartVersionId: value.chartVersionId.trim(),
+    sku: product.sku as LaSku,
+    locale: value.locale as "vi" | "en",
   };
 }
 
@@ -93,17 +102,28 @@ function customerWalletIntent(value: {
   stateVersion: number;
   createdAt: string;
 }) {
-  if (value.id.trim().length === 0 ||
-    (value.sku !== "ZIWEI-NATAL-EXCERPT-P0" && value.sku !== "ZIWEI-IDENTITY-P0") ||
+  if (
+    value.id.trim().length === 0 ||
     (value.locale !== "vi" && value.locale !== "en") ||
-    (value.amountLa !== 240 && value.amountLa !== 720 && value.amountLa !== 960) ||
     !["pending", "completed", "cancelled", "expired"].includes(value.status) ||
     !Number.isInteger(value.stateVersion) || value.stateVersion <= 0 ||
-    Number.isNaN(Date.parse(value.createdAt))) throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+    Number.isNaN(Date.parse(value.createdAt))
+  ) {
+    throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+  }
+  const product = findLaProduct(value.sku);
+  if (!product) throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+  if (value.sku === "ZIWEI-IDENTITY-P0") {
+    if (value.amountLa < 0 || value.amountLa > LIFETIME_BASE_PRICE_LA) {
+      throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+    }
+  } else if (value.amountLa !== product.priceLa) {
+    throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+  }
   return {
     id: value.id,
     sku: value.sku,
-    productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale),
+    productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale as "vi" | "en"),
     locale: value.locale,
     amountLa: value.amountLa,
     status: value.status,

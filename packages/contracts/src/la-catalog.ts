@@ -94,15 +94,6 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     availability: "reserved",
   },
   {
-    sku: "ZIWEI-PALACE-P0",
-    priceLa: SINGLE_PALACE_BASE_PRICE_LA,
-    name: { vi: "Luận giải một cung", en: "Single palace reading" },
-    locales: ["vi", "en"],
-    category: "palace",
-    qualifiesForRollover: true,
-    availability: "active",
-  },
-  {
     sku: "ZIWEI-PALACE-LIFE-P0",
     priceLa: SINGLE_PALACE_BASE_PRICE_LA,
     name: { vi: "Cung Mệnh", en: "Life Palace" },
@@ -229,7 +220,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "forecast",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
   {
     sku: "ZIWEI-MONTHLY-P0",
@@ -238,7 +229,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "forecast",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
   {
     sku: "ZIWEI-YEAR-2026-P0",
@@ -247,7 +238,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "forecast",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
   {
     sku: "ZIWEI-COMBO-2026-P0",
@@ -256,7 +247,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "combo",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
   {
     sku: "MEMBERSHIP-MONTHLY-P0",
@@ -265,7 +256,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "membership",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
   {
     sku: "MEMBERSHIP-YEARLY-P0",
@@ -274,7 +265,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "membership",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
   {
     sku: "MEMBERSHIP-MONTHLY-1500",
@@ -283,7 +274,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "membership",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
   {
     sku: "MEMBERSHIP-YEARLY-8000",
@@ -292,7 +283,7 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi", "en"],
     category: "membership",
     qualifiesForRollover: false,
-    availability: "active",
+    availability: "reserved",
   },
 ] as const;
 
@@ -313,7 +304,7 @@ export function isQualifyingRolloverSku(sku: string): boolean {
 }
 
 export function isSinglePalaceSku(sku: string): boolean {
-  return sku === "ZIWEI-PALACE-P0" || sku.startsWith("ZIWEI-PALACE-");
+  return sku in REVERSE_PALACE_SKU_MAP;
 }
 
 export function getPalaceIdFromSku(sku: string): ZiweiPalaceId | undefined {
@@ -331,7 +322,6 @@ export const LaSkuSchema = z.enum([
   "ZIWEI-NATAL-EXCERPT-P0",
   "ZIWEI-RELATIONSHIP-P0",
   "ZIWEI-CAREER-P0",
-  "ZIWEI-PALACE-P0",
   "ZIWEI-PALACE-LIFE-P0",
   "ZIWEI-PALACE-SIBLINGS-P0",
   "ZIWEI-PALACE-SPOUSE-P0",

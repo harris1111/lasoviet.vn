@@ -29,34 +29,27 @@ import {
 } from "./commerce.js";
 
 describe("commerce contracts", () => {
-  it("resolves entitlement scope for single palace SKUs and topic SKUs", () => {
-    expect(resolveEntitlementScopeForSku("ZIWEI-PALACE-LIFE-P0")).toEqual({
+  it("resolves entitlement scope for canonical single palace SKUs and fails closed for reserved products", () => {
+    const lifeScope = resolveEntitlementScopeForSku("ZIWEI-PALACE-LIFE-P0");
+    expect(lifeScope).toEqual({
       sections: [],
       palaces: ["ziwei.palace.life"],
     });
-    expect(resolveEntitlementScopeForSku("ZIWEI-PALACE-WEALTH-P0")).toEqual({
+    expect(EntitlementScopeSchema.safeParse(lifeScope).success).toBe(true);
+
+    const wealthScope = resolveEntitlementScopeForSku("ZIWEI-PALACE-WEALTH-P0");
+    expect(wealthScope).toEqual({
       sections: [],
       palaces: ["ziwei.palace.wealth"],
     });
-    expect(resolveEntitlementScopeForSku("ZIWEI-PALACE-P0", { palaceId: "ziwei.palace.spouse" })).toEqual({
-      sections: [],
-      palaces: ["ziwei.palace.spouse"],
-    });
-    expect(resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toEqual({
-      sections: ["thematicSynthesis"],
-    });
-    expect(resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toEqual({
-      sections: ["thematicSynthesis"],
-    });
-    expect(resolveEntitlementScopeForSku("ZIWEI-TODAY-P0")).toEqual({
-      sections: ["annualSnapshot"],
-    });
-    expect(resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toEqual({
-      sections: ["annualSnapshot"],
-    });
-    expect(resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toEqual({
-      sections: ["annualSnapshot"],
-    });
+    expect(EntitlementScopeSchema.safeParse(wealthScope).success).toBe(true);
+
+    expect(() => resolveEntitlementScopeForSku("ZIWEI-PALACE-UNKNOWN" as any)).toThrow();
+    expect(() => resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toThrow();
+    expect(() => resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toThrow();
+    expect(() => resolveEntitlementScopeForSku("ZIWEI-TODAY-P0")).toThrow();
+    expect(() => resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toThrow();
+    expect(() => resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toThrow();
   });
   it("adds strict order kinds without changing the V1 SKU contract", () => {
     expect(CommerceOrderKindSchema.safeParse("content_purchase").success).toBe(true);

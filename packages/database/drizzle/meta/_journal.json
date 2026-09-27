@@ -314,7 +314,14 @@
       "idx": 44,
       "version": "7",
       "when": 1790813400000,
-      "tag": "0044_wallet_catalog_rollover_pricing",
+      "tag": "0044_ai_model_pricing_9router_gemini_flash",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1790813460000,
+      "tag": "0045_wallet_catalog_rollover_pricing",
       "breakpoints": true
     }
   ]

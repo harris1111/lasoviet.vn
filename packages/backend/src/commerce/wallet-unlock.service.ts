@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
 import {
   calculateRolloverCredit,
   findLaProduct,
@@ -11,14 +11,16 @@ import {
   type QualifyingSpend,
   type WalletBalanceV1,
   type WalletPurchaseIntentV1,
+  type WalletTransactionReceiptV1,
+  WalletTransactionReceiptV1Schema,
   WalletPurchaseIntentV1Schema,
 } from "@lasoviet/contracts";
 import {
+  auditLogs,
   authUsers,
   birthProfileReadingContexts,
   birthProfiles,
   commerceEntitlements,
-  commerceOrders,
   enqueueOutbox,
   evidenceSets,
   reportReservations,
@@ -35,6 +37,7 @@ import {
 import type { WalletService } from "../wallet/wallet.service.js";
 import {
   abortWalletSpendContinuation,
+  walletFingerprint,
   type WalletResultCodec,
 } from "../wallet/wallet.repository.js";
 import {
@@ -43,7 +46,6 @@ import {
   type ReportVersionResolver,
 } from "../reports/identity-report-config.js";
 
-const supportedSku = (value: string): boolean => findLaProduct(value) !== undefined;
 const supportedLocale = (value: string): value is "vi" | "en" => value === "vi" || value === "en";
 const nonEmptyId = (value: string) => value.trim().length > 0;
 
@@ -80,19 +82,17 @@ export type WalletUnlockServiceError =
   | "WALLET_EVIDENCE_MISSING"
   | "WALLET_INTENT_INVALID"
   | "WALLET_INTENT_VERSION_CONFLICT"
-  | "WALLET_ENTITLEMENT_EXISTS"
-  | "WALLET_UPGRADE_INELIGIBLE"
-  | "WALLET_IDEMPOTENCY_KEY_REUSED"
-  | "WALLET_INSUFFICIENT_BALANCE"
   | "WALLET_VERSION_CONFLICT"
-  | "WALLET_RECONCILIATION_FAILED"
-  | "WALLET_INVALID_COMMAND";
+  | "WALLET_INSUFFICIENT_BALANCE"
+  | "WALLET_ENTITLEMENT_EXISTS"
+  | "WALLET_IDEMPOTENCY_KEY_REUSED"
+  | "WALLET_RECONCILIATION_FAILED";
 
 export type WalletPurchaseIntentRequest = {
   chartId: string;
   chartVersionId: string;
   sku: string;
-  locale: string;
+  locale: "vi" | "en";
 };
 
 export type WalletUnlockRequest = {
@@ -102,18 +102,22 @@ export type WalletUnlockRequest = {
   idempotencyKey: string;
 };
 
-export type WalletUnlockResult = {
+export type WalletUnlockOutcome = {
   intent: WalletPurchaseIntentV1;
   balance: WalletBalanceV1;
   reportId: string;
 };
 
-function failed(code: WalletUnlockServiceError) {
-  return { ok: false as const, code };
+type WalletResult<T> =
+  | { ok: true; value: T; reused?: boolean }
+  | { ok: false; code: WalletUnlockServiceError };
+
+function failed<T>(code: WalletUnlockServiceError): WalletResult<T> {
+  return { ok: false, code };
 }
 
 function projectIntent(row: typeof walletPurchaseIntents.$inferSelect): WalletPurchaseIntentV1 {
-  const result = WalletPurchaseIntentV1Schema.safeParse({
+  return WalletPurchaseIntentV1Schema.parse({
     id: row.id,
     sku: row.sku,
     chartVersionId: row.chartVersionId,
@@ -123,47 +127,62 @@ function projectIntent(row: typeof walletPurchaseIntents.$inferSelect): WalletPu
     stateVersion: row.stateVersion,
     createdAt: row.createdAt.toISOString(),
   });
-  if (!result.success) throw new Error("WALLET_INTENT_PROJECTION_INVALID");
-  return result.data;
 }
 
-async function verifiedAccount(database: Database, actor: CurrentActor, lock = false) {
+function storedReplay(value: unknown): { receipt: WalletTransactionReceiptV1; continuation: unknown } | undefined {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const candidate = value as Record<string, unknown>;
+  const parsed = WalletTransactionReceiptV1Schema.safeParse(candidate.receipt);
+  if (!parsed.success || !("continuation" in candidate)) return undefined;
+  return { receipt: parsed.data, continuation: candidate.continuation };
+}
+
+async function writeAudit(
+  db: Database,
+  actorId: string,
+  action: "wallet.spend",
+  walletId: string,
+  reasonCode: string,
+  requestId: string,
+  traceId: string,
+  metadata: Record<string, unknown>,
+  now: Date,
+): Promise<void> {
+  await db.insert(auditLogs).values({
+    actorId,
+    action,
+    targetType: "wallet_account",
+    targetId: walletId,
+    reasonCode,
+    requestId,
+    metadata: {
+      ...metadata,
+      traceId,
+    },
+    createdAt: now,
+  });
+}
+
+async function verifiedAccount(database: Database, actor: CurrentActor, forUpdate = false) {
   if (actor.kind !== "account") return false;
-  let query = database.select({
-    emailVerified: authUsers.emailVerified,
-    isAnonymous: authUsers.isAnonymous,
-  }).from(authUsers).where(eq(authUsers.id, actor.userId)).limit(1);
-  if (lock) query = query.for("update") as typeof query;
-  const [account] = await query;
-  return account !== undefined && account.emailVerified && !account.isAnonymous;
+  const query = database.select({ id: authUsers.id, emailVerified: authUsers.emailVerified })
+    .from(authUsers)
+    .where(eq(authUsers.id, actor.userId))
+    .limit(1);
+  const [user] = forUpdate ? await query.for("update") : await query;
+  return user?.emailVerified === true;
 }
 
-function activeSpendCondition() {
-  return sql`not exists (
-    select 1
-    from wallet_transactions as wallet_restoration
-    where wallet_restoration.reversal_of_transaction_id = ${walletTransactions.id}
-  )`;
-}
-
-async function ownedChart(
-  database: Database,
-  ownerId: string,
-  chartId: string,
-  chartVersionId: string,
-) {
+async function ownedChart(database: Database, ownerId: string, chartId: string, chartVersionId: string) {
   const [chart] = await database.select({ id: ziweiCharts.id })
     .from(ziweiCharts)
-    .innerJoin(birthProfiles, and(
-      eq(birthProfiles.id, ziweiCharts.profileId),
-      eq(birthProfiles.userId, ownerId),
-      isNull(birthProfiles.deletedAt),
-    ))
-    .innerJoin(ziweiChartVersions, and(
+    .innerJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
+    .innerJoin(ziweiChartVersions, eq(ziweiChartVersions.chartId, ziweiCharts.id))
+    .where(and(
+      eq(ziweiCharts.id, chartId),
       eq(ziweiChartVersions.id, chartVersionId),
-      eq(ziweiChartVersions.chartId, ziweiCharts.id),
+      eq(birthProfiles.userId, ownerId),
     ))
-    .where(eq(ziweiCharts.id, chartId))
     .limit(1);
   return chart;
 }
@@ -179,41 +198,23 @@ async function evidenceFor(database: Database, chartVersionId: string) {
   return evidence;
 }
 
+function activeSpendCondition(db: Database) {
+  return notExists(
+    db
+      .select({ id: walletTransactions.id })
+      .from(walletTransactions)
+      .where(and(
+        eq(walletTransactions.kind, "restoration"),
+        eq(walletTransactions.reversalOfTransactionId, commerceEntitlements.ledgerSpendId),
+      )),
+  );
+}
+
 async function qualifyingRolloverSpends(
   database: Database,
   ownerId: string,
   chartId: string,
 ): Promise<QualifyingSpend[]> {
-  const orderRows = await database
-    .select({
-      sku: commerceEntitlements.sku,
-      paidAt: commerceOrders.paidAt,
-    })
-    .from(commerceEntitlements)
-    .innerJoin(
-      commerceOrders,
-      and(
-        eq(commerceOrders.id, commerceEntitlements.orderId),
-        eq(commerceOrders.ownerId, ownerId),
-        eq(commerceOrders.kind, "content_purchase"),
-        eq(commerceOrders.status, "paid"),
-      ),
-    )
-    .where(
-      and(
-        eq(commerceEntitlements.ownerId, ownerId),
-        eq(commerceEntitlements.chartId, chartId),
-      ),
-    );
-
-  const orderSpends: QualifyingSpend[] = [];
-  for (const row of orderRows) {
-    if (isQualifyingRolloverSku(row.sku) && row.paidAt) {
-      const priceLa = getLaPrice(row.sku) ?? 240;
-      orderSpends.push({ amountLa: priceLa, spentAt: row.paidAt });
-    }
-  }
-
   const walletRows = await database
     .select({
       sku: commerceEntitlements.sku,
@@ -226,7 +227,7 @@ async function qualifyingRolloverSpends(
       and(
         eq(walletTransactions.id, commerceEntitlements.ledgerSpendId),
         eq(walletTransactions.kind, "spend"),
-        activeSpendCondition(),
+        activeSpendCondition(database),
       ),
     )
     .innerJoin(
@@ -250,8 +251,12 @@ async function qualifyingRolloverSpends(
     }
   }
 
-  return [...orderSpends, ...walletSpends];
+  return walletSpends;
 }
+
+type PriceResult =
+  | { ok: true; amountLa: number }
+  | { ok: false; code: WalletUnlockServiceError };
 
 async function price(
   database: Database,
@@ -259,7 +264,10 @@ async function price(
   chartId: string,
   sku: string,
   now: Date,
-) {
+): Promise<PriceResult> {
+  const product = findLaProduct(sku);
+  if (!product || product.availability !== "active") return { ok: false, code: "WALLET_INTENT_INVALID" };
+
   const [sameSku] = await database.select({ id: commerceEntitlements.id })
     .from(commerceEntitlements)
     .leftJoin(walletTransactions, eq(walletTransactions.id, commerceEntitlements.ledgerSpendId))
@@ -271,12 +279,12 @@ async function price(
         isNotNull(commerceEntitlements.orderId),
         and(
           eq(walletTransactions.kind, "spend"),
-          activeSpendCondition(),
+          activeSpendCondition(database),
         ),
       ),
     ))
     .limit(1);
-  if (sameSku !== undefined) return failed("WALLET_ENTITLEMENT_EXISTS");
+  if (sameSku !== undefined) return { ok: false, code: "WALLET_ENTITLEMENT_EXISTS" };
 
   if (sku === "ZIWEI-IDENTITY-P0") {
     const spends = await qualifyingRolloverSpends(database, ownerId, chartId);
@@ -284,14 +292,12 @@ async function price(
     return { ok: true as const, amountLa: rollover.effectivePriceLa };
   }
 
-  const product = findLaProduct(sku);
-  if (!product) return failed("WALLET_INTENT_INVALID");
   return { ok: true as const, amountLa: product.priceLa };
 }
 
 function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
   const product = findLaProduct(intent.sku);
-  if (!product || !supportedLocale(intent.locale) || !product.locales.includes(intent.locale)) return false;
+  if (!product || product.availability !== "active" || !supportedLocale(intent.locale) || !product.locales.includes(intent.locale)) return false;
   if (intent.sku === "ZIWEI-IDENTITY-P0") {
     return intent.priceLa >= 0 && intent.priceLa <= 960;
   }
@@ -330,6 +336,81 @@ function hasUnlockOutboxLineage(
     value.readingContextRevisionId === reservation.readingContextRevisionId;
 }
 
+async function verifyLineageAndRespond(
+  db: Database,
+  ownerId: string,
+  transactionId: string,
+  commandId: string,
+  balance: WalletBalanceV1,
+  continuation: UnlockContinuation,
+): Promise<WalletResult<{ intent: WalletPurchaseIntentV1; balance: WalletBalanceV1; reportId: string }>> {
+  const [lineage] = await db.select({
+    spend: walletTransactions,
+    wallet: walletAccounts,
+    intent: walletPurchaseIntents,
+    entitlement: commerceEntitlements,
+    reservation: reportReservations,
+    evidence: evidenceSets,
+    event: outbox,
+  }).from(walletTransactions)
+    .innerJoin(walletAccounts, eq(walletAccounts.id, walletTransactions.walletId))
+    .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
+    .innerJoin(commerceEntitlements, eq(commerceEntitlements.ledgerSpendId, walletTransactions.id))
+    .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+    .innerJoin(evidenceSets, eq(evidenceSets.id, reportReservations.evidenceVersionId))
+    .innerJoin(outbox, eq(outbox.id, continuation.outboxId))
+    .where(and(
+      eq(walletTransactions.id, transactionId),
+      eq(walletTransactions.kind, "spend"),
+      eq(walletAccounts.ownerId, ownerId),
+      eq(walletPurchaseIntents.id, continuation.intentId),
+      eq(walletPurchaseIntents.ownerId, ownerId),
+      eq(commerceEntitlements.id, continuation.entitlementId),
+      eq(commerceEntitlements.ownerId, ownerId),
+      isNull(commerceEntitlements.orderId),
+      eq(reportReservations.id, continuation.reservationId),
+      eq(reportReservations.reportId, continuation.reportId),
+      eq(reportReservations.reportVersionId, continuation.reportVersionId),
+      activeSpendCondition(db),
+    ))
+    .limit(1);
+
+  if (lineage === undefined ||
+    commandId !== lineage.spend.idempotencyKey ||
+    lineage.spend.purchaseIntentId !== lineage.intent.id ||
+    lineage.intent.status !== "completed" ||
+    lineage.intent.stateVersion !== continuation.intentStateVersion ||
+    !validIntentTerms(lineage.intent) ||
+    lineage.entitlement.ledgerSpendId !== lineage.spend.id ||
+    lineage.entitlement.chartId !== lineage.intent.chartId ||
+    lineage.entitlement.sku !== lineage.intent.sku ||
+    lineage.reservation.entitlementId !== lineage.entitlement.id ||
+    lineage.reservation.chartVersionId !== lineage.intent.chartVersionId ||
+    lineage.reservation.evidenceVersionId !== lineage.evidence.id ||
+    lineage.evidence.chartVersionId !== lineage.intent.chartVersionId ||
+    lineage.evidence.capabilityId !== "ziwei.identity.p0" ||
+    lineage.reservation.sku !== lineage.intent.sku ||
+    lineage.reservation.locale !== lineage.intent.locale ||
+    lineage.event.aggregateType !== "report" ||
+    lineage.event.aggregateId !== lineage.reservation.reportId ||
+    lineage.event.eventType !== (lineage.reservation.asOfDate === null
+      ? "report.generation.requested.v1"
+      : "report.generation.requested.v2") ||
+    !hasUnlockOutboxLineage(lineage.event.payload, lineage.reservation, lineage.entitlement)
+  ) {
+    return failed("WALLET_RECONCILIATION_FAILED");
+  }
+
+  return {
+    ok: true as const,
+    value: {
+      intent: projectIntent(lineage.intent),
+      balance,
+      reportId: continuation.reportId,
+    },
+  };
+}
+
 export function createWalletUnlockService(
   database: Database,
   wallet: WalletService,
@@ -339,12 +420,14 @@ export function createWalletUnlockService(
   const reportVersionResolver = options.reportVersionResolver ?? currentReportVersions;
 
   return {
-    async createPurchaseIntent(actor: CurrentActor, request: WalletPurchaseIntentRequest) {
+    async createPurchaseIntent(actor: CurrentActor, request: WalletPurchaseIntentRequest): Promise<WalletResult<WalletPurchaseIntentV1>> {
       if (!await verifiedAccount(database, actor)) return failed(actor.kind === "account" ? "WALLET_ACCOUNT_INELIGIBLE" : "WALLET_ACCOUNT_REQUIRED");
       if (actor.kind !== "account") return failed("WALLET_ACCOUNT_REQUIRED");
+      const ownerId = actor.userId;
       const product = findLaProduct(request.sku);
       if (
         !product ||
+        product.availability !== "active" ||
         !supportedLocale(request.locale) ||
         !product.locales.includes(request.locale) ||
         !nonEmptyId(request.chartId) ||
@@ -357,14 +440,14 @@ export function createWalletUnlockService(
 
       return database.transaction(async (transaction) => {
         if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
-        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`wallet-intent:${actor.userId}:${request.chartId}:${sku}`}))`);
-        if (await ownedChart(transaction, actor.userId, request.chartId, request.chartVersionId) === undefined) return failed("WALLET_CHART_NOT_FOUND");
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`wallet-intent:${ownerId}:${request.chartId}:${sku}`}))`);
+        if (await ownedChart(transaction, ownerId, request.chartId, request.chartVersionId) === undefined) return failed("WALLET_CHART_NOT_FOUND");
         if (await evidenceFor(transaction, request.chartVersionId) === undefined) return failed("WALLET_EVIDENCE_MISSING");
-        const selectedPrice = await price(transaction, actor.userId, request.chartId, sku, now());
+        const selectedPrice = await price(transaction, ownerId, request.chartId, sku, now());
         if (!selectedPrice.ok) return selectedPrice;
         const [pending] = await transaction.select().from(walletPurchaseIntents)
           .where(and(
-            eq(walletPurchaseIntents.ownerId, actor.userId),
+            eq(walletPurchaseIntents.ownerId, ownerId),
             eq(walletPurchaseIntents.chartId, request.chartId),
             eq(walletPurchaseIntents.sku, sku),
             eq(walletPurchaseIntents.status, "pending"),
@@ -372,10 +455,25 @@ export function createWalletUnlockService(
           .limit(1)
           .for("update");
         if (pending !== undefined) {
-          if (pending.chartVersionId !== request.chartVersionId || pending.locale !== locale || pending.priceLa !== selectedPrice.amountLa) {
+          if (
+            pending.chartVersionId === request.chartVersionId &&
+            pending.locale === locale &&
+            pending.priceLa === selectedPrice.amountLa
+          ) {
+            return { ok: true as const, value: projectIntent(pending), reused: true };
+          }
+          if (pending.chartVersionId !== request.chartVersionId || pending.locale !== locale) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
-          return { ok: true as const, value: projectIntent(pending), reused: true };
+          // The terms changed (price changed due to rollover or expiry).
+          // Concurrency-safe cancel the stale pending intent to avoid permanent pending-row lockout.
+          await transaction.update(walletPurchaseIntents).set({
+            status: "cancelled",
+            stateVersion: pending.stateVersion + 1,
+          }).where(and(
+            eq(walletPurchaseIntents.id, pending.id),
+            eq(walletPurchaseIntents.status, "pending"),
+          ));
         }
         const [created] = await transaction.insert(walletPurchaseIntents).values({
           ownerId: actor.userId,
@@ -391,7 +489,7 @@ export function createWalletUnlockService(
       });
     },
 
-    async unlock(actor: CurrentActor, request: WalletUnlockRequest) {
+    async unlock(actor: CurrentActor, request: WalletUnlockRequest): Promise<WalletResult<WalletUnlockOutcome>> {
       if (actor.kind !== "account" || !nonEmptyId(request.purchaseIntentId) ||
         !Number.isInteger(request.expectedIntentVersion) || request.expectedIntentVersion < 1 ||
         !Number.isInteger(request.expectedWalletVersion) || request.expectedWalletVersion < 1 ||
@@ -404,11 +502,14 @@ export function createWalletUnlockService(
       if (intent === undefined) {
         return failed("WALLET_INTENT_VERSION_CONFLICT");
       }
-      if (intent.status === "pending" && intent.stateVersion !== request.expectedIntentVersion) {
-        return failed("WALLET_INTENT_VERSION_CONFLICT");
-      }
+
       if (intent.status === "completed") {
-        const [receipt] = await database.select({ id: walletCommandReceipts.id })
+        const [receipt] = await database.select({
+          id: walletCommandReceipts.id,
+          transactionId: walletCommandReceipts.transactionId,
+          fingerprint: walletCommandReceipts.fingerprint,
+          result: walletCommandReceipts.result,
+        })
           .from(walletAccounts)
           .innerJoin(walletCommandReceipts, eq(walletCommandReceipts.walletId, walletAccounts.id))
           .where(and(
@@ -417,8 +518,265 @@ export function createWalletUnlockService(
           ))
           .limit(1);
         if (receipt === undefined) return failed("WALLET_INTENT_VERSION_CONFLICT");
+
+        if (intent.priceLa === 0) {
+          const continuationOperation = `wallet.report.unlock.v1.intent-v${request.expectedIntentVersion}`;
+          const fingerprint = walletFingerprint({
+            operation: continuationOperation,
+            ownerId: actor.userId,
+            actorId: actor.userId,
+            purchaseIntentId: intent.id,
+            amountLa: 0,
+            expectedWalletVersion: request.expectedWalletVersion,
+            reasonCode: "wallet.report.unlock",
+            idempotencyKey: request.idempotencyKey,
+          });
+          if (receipt.fingerprint !== fingerprint) {
+            return failed("WALLET_IDEMPOTENCY_KEY_REUSED");
+          }
+          const stored = storedReplay(receipt.result);
+          if (stored === undefined) return failed("WALLET_RECONCILIATION_FAILED");
+          return verifyLineageAndRespond(
+            database,
+            actor.userId,
+            receipt.transactionId,
+            request.idempotencyKey,
+            stored.receipt.balance,
+            stored.continuation as UnlockContinuation,
+          );
+        }
       } else if (intent.status !== "pending") {
         return failed("WALLET_INTENT_VERSION_CONFLICT");
+      }
+
+      if (intent.status === "pending" && intent.stateVersion !== request.expectedIntentVersion) {
+        return failed("WALLET_INTENT_VERSION_CONFLICT");
+      }
+
+      // Dedicated zero-cost unlock path when effective price is 0 (100% rollover credit)
+      if (intent.priceLa === 0) {
+        return database.transaction(async (transaction) => {
+          const currentNow = now();
+          const [initialIntent] = await transaction.select().from(walletPurchaseIntents)
+            .where(and(eq(walletPurchaseIntents.id, intent.id), eq(walletPurchaseIntents.ownerId, actor.userId)))
+            .limit(1)
+            .for("update");
+          if (
+            initialIntent === undefined ||
+            initialIntent.status !== "pending" ||
+            initialIntent.stateVersion !== request.expectedIntentVersion ||
+            initialIntent.priceLa !== 0
+          ) {
+            return failed("WALLET_INTENT_VERSION_CONFLICT");
+          }
+          const chartLockKey = `commerce:chart:${initialIntent.chartId}`;
+          await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${chartLockKey}))`);
+          const [lockedIntent] = await transaction.select().from(walletPurchaseIntents)
+            .where(and(eq(walletPurchaseIntents.id, intent.id), eq(walletPurchaseIntents.ownerId, actor.userId)))
+            .limit(1)
+            .for("update");
+          if (
+            lockedIntent === undefined ||
+            lockedIntent.status !== "pending" ||
+            lockedIntent.stateVersion !== request.expectedIntentVersion ||
+            lockedIntent.priceLa !== 0
+          ) {
+            return failed("WALLET_INTENT_VERSION_CONFLICT");
+          }
+          const product = findLaProduct(lockedIntent.sku);
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+            return failed("WALLET_INTENT_INVALID");
+          }
+          const sku = lockedIntent.sku;
+          const locale = lockedIntent.locale;
+          if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
+            return failed("WALLET_INTENT_INVALID");
+          }
+          const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
+          if (evidence === undefined) return failed("WALLET_INTENT_INVALID");
+
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow);
+          if (!selectedPrice.ok || selectedPrice.amountLa !== 0) {
+            return failed("WALLET_INTENT_VERSION_CONFLICT");
+          }
+
+          const [walletAccount] = await transaction.select().from(walletAccounts)
+            .where(eq(walletAccounts.ownerId, actor.userId))
+            .limit(1)
+            .for("update");
+          if (walletAccount === undefined || walletAccount.stateVersion !== request.expectedWalletVersion) {
+            return failed("WALLET_VERSION_CONFLICT");
+          }
+
+          const continuationOperation = `wallet.report.unlock.v1.intent-v${request.expectedIntentVersion}`;
+          const fingerprint = walletFingerprint({
+            operation: continuationOperation,
+            ownerId: actor.userId,
+            actorId: actor.userId,
+            purchaseIntentId: lockedIntent.id,
+            amountLa: 0,
+            expectedWalletVersion: request.expectedWalletVersion,
+            reasonCode: "wallet.report.unlock",
+            idempotencyKey: request.idempotencyKey,
+          });
+
+          const [zeroTx] = await transaction.insert(walletTransactions).values({
+            walletId: walletAccount.id,
+            kind: "spend",
+            idempotencyKey: request.idempotencyKey,
+            fingerprint,
+            purchaseIntentId: lockedIntent.id,
+            topUpOrderId: null,
+            reversalOfTransactionId: null,
+            createdAt: currentNow,
+          }).returning();
+          if (zeroTx === undefined) throw new Error("WALLET_TRANSACTION_CREATE_FAILED");
+
+          const reportVersions = reportVersionResolver(locale);
+          const [readingContext] = await transaction.select({ revisionId: birthProfileReadingContexts.currentRevisionId })
+            .from(ziweiCharts)
+            .leftJoin(birthProfileReadingContexts, eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId))
+            .where(eq(ziweiCharts.id, lockedIntent.chartId))
+            .limit(1);
+
+          const [entitlement] = await transaction.insert(commerceEntitlements).values({
+            orderId: null,
+            ledgerSpendId: zeroTx.id,
+            chartId: lockedIntent.chartId,
+            sku,
+            ownerId: actor.userId,
+            scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
+            createdAt: currentNow,
+          }).returning();
+          if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
+
+          const timing = reportVersions.family === "v4" || reportVersions.family === "v4_1"
+            ? deriveReportTimingLineage(currentNow, { timingRuleVersion: reportVersions.timingRuleVersion })
+            : null;
+
+          const [reservation] = await transaction.insert(reportReservations).values({
+            reportId: randomUUID(),
+            reportVersionId: randomUUID(),
+            entitlementId: entitlement.id,
+            chartVersionId: lockedIntent.chartVersionId,
+            evidenceVersionId: evidence.id,
+            knowledgeVersionId: reportVersions.knowledgeVersion,
+            promptVersion: reportVersions.promptVersion,
+            reportConfigVersion: reportVersions.reportConfigVersion,
+            locale,
+            sku,
+            asOfDate: timing?.asOfDate,
+            targetYear: timing?.targetYear,
+            timingRuleVersion: timing?.timingRuleVersion,
+            sensitivityRuleVersion: timing?.sensitivityRuleVersion,
+            readingContextRevisionId: readingContext?.revisionId ?? null,
+            createdAt: currentNow,
+            updatedAt: currentNow,
+          }).returning();
+          if (reservation === undefined) throw new Error("WALLET_RESERVATION_CREATE_FAILED");
+
+          const event = await enqueueOutbox(transaction, {
+            schemaVersion: 1,
+            type: timing === null ? "report.generation.requested.v1" : "report.generation.requested.v2",
+            eventId: randomUUID(),
+            occurredAt: currentNow.toISOString(),
+            traceId: actor.requestId,
+            actorId: actor.userId,
+            aggregateType: "report",
+            aggregateId: reservation.reportId,
+            idempotencyKey: "report-request:" + reservation.reportVersionId,
+            payload: {
+              reportId: reservation.reportId,
+              reportVersionId: reservation.reportVersionId,
+              entitlementId: entitlement.id,
+              chartVersionId: reservation.chartVersionId,
+              evidenceVersionId: reservation.evidenceVersionId,
+              knowledgeVersionId: reservation.knowledgeVersionId,
+              promptVersion: reservation.promptVersion,
+              reportConfigVersion: reservation.reportConfigVersion,
+              locale,
+              sku,
+              ...(timing === null ? {} : {
+                asOfDate: timing.asOfDate,
+                targetYear: timing.targetYear,
+                timingRuleVersion: timing.timingRuleVersion,
+                sensitivityRuleVersion: timing.sensitivityRuleVersion,
+                readingContextRevisionId: reservation.readingContextRevisionId,
+              }),
+            },
+          });
+          if (event === undefined) throw new Error("WALLET_OUTBOX_CREATE_FAILED");
+
+          const [completed] = await transaction.update(walletPurchaseIntents).set({
+            status: "completed",
+            stateVersion: lockedIntent.stateVersion + 1,
+            completedAt: currentNow,
+          }).where(and(
+            eq(walletPurchaseIntents.id, lockedIntent.id),
+            eq(walletPurchaseIntents.status, "pending"),
+            eq(walletPurchaseIntents.stateVersion, lockedIntent.stateVersion),
+          )).returning();
+          if (completed === undefined) throw new Error("WALLET_INTENT_COMPLETE_FAILED");
+
+          const continuation: UnlockContinuation = {
+            entitlementId: entitlement.id,
+            reservationId: reservation.id,
+            reportId: reservation.reportId,
+            reportVersionId: reservation.reportVersionId,
+            outboxId: event.id,
+            intentId: completed.id,
+            intentStateVersion: completed.stateVersion,
+          };
+
+          const currentBalance = await wallet.readBalance(actor);
+          if (!currentBalance.ok) throw new Error("WALLET_BALANCE_READ_FAILED");
+
+          const commandReceipt: WalletTransactionReceiptV1 = {
+            version: 1,
+            commandId: request.idempotencyKey,
+            transactionId: zeroTx.id,
+            status: "completed",
+            balance: currentBalance.value,
+            completedAt: currentNow.toISOString(),
+          };
+
+          await transaction.insert(walletCommandReceipts).values({
+            walletId: walletAccount.id,
+            idempotencyKey: request.idempotencyKey,
+            fingerprint,
+            transactionId: zeroTx.id,
+            result: { receipt: commandReceipt, continuation },
+            createdAt: currentNow,
+          });
+
+          await writeAudit(
+            transaction,
+            actor.userId,
+            "wallet.spend",
+            walletAccount.id,
+            "wallet.report.unlock",
+            actor.requestId,
+            actor.requestId,
+            {
+              intentId: lockedIntent.id,
+              sku,
+              chartId: lockedIntent.chartId,
+              priceLa: 0,
+              entitlementId: entitlement.id,
+              reportId: reservation.reportId,
+            },
+            currentNow,
+          );
+
+          return verifyLineageAndRespond(
+            transaction,
+            actor.userId,
+            zeroTx.id,
+            request.idempotencyKey,
+            currentBalance.value,
+            continuation,
+          );
+        });
       }
 
       const result = await wallet.spend<UnlockContinuation>({
@@ -457,7 +815,7 @@ export function createWalletUnlockService(
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const sku = lockedIntent.sku;
@@ -565,69 +923,14 @@ export function createWalletUnlockService(
       if (!result.ok) return failed(result.error.code as WalletUnlockServiceError);
       const continuation = result.value.continuation;
       if (continuation === undefined) return failed("WALLET_RECONCILIATION_FAILED");
-      const [lineage] = await database.select({
-        spend: walletTransactions,
-        wallet: walletAccounts,
-        intent: walletPurchaseIntents,
-        entitlement: commerceEntitlements,
-        reservation: reportReservations,
-        evidence: evidenceSets,
-        event: outbox,
-      }).from(walletTransactions)
-        .innerJoin(walletAccounts, eq(walletAccounts.id, walletTransactions.walletId))
-        .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
-        .innerJoin(commerceEntitlements, eq(commerceEntitlements.ledgerSpendId, walletTransactions.id))
-        .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
-        .innerJoin(evidenceSets, eq(evidenceSets.id, reportReservations.evidenceVersionId))
-        .innerJoin(outbox, eq(outbox.id, continuation.outboxId))
-        .where(and(
-          eq(walletTransactions.id, result.value.transactionId),
-          eq(walletTransactions.kind, "spend"),
-          eq(walletAccounts.ownerId, actor.userId),
-          eq(walletPurchaseIntents.id, continuation.intentId),
-          eq(walletPurchaseIntents.ownerId, actor.userId),
-          eq(commerceEntitlements.id, continuation.entitlementId),
-          eq(commerceEntitlements.ownerId, actor.userId),
-          isNull(commerceEntitlements.orderId),
-          eq(reportReservations.id, continuation.reservationId),
-          eq(reportReservations.reportId, continuation.reportId),
-          eq(reportReservations.reportVersionId, continuation.reportVersionId),
-          activeSpendCondition(),
-        ))
-        .limit(1);
-      if (lineage === undefined ||
-        result.value.commandId !== request.idempotencyKey ||
-        lineage.spend.purchaseIntentId !== lineage.intent.id ||
-        lineage.intent.status !== "completed" ||
-        lineage.intent.stateVersion !== continuation.intentStateVersion ||
-        !validIntentTerms(lineage.intent) ||
-        lineage.entitlement.ledgerSpendId !== lineage.spend.id ||
-        lineage.entitlement.chartId !== lineage.intent.chartId ||
-        lineage.entitlement.sku !== lineage.intent.sku ||
-        lineage.reservation.entitlementId !== lineage.entitlement.id ||
-        lineage.reservation.chartVersionId !== lineage.intent.chartVersionId ||
-        lineage.reservation.evidenceVersionId !== lineage.evidence.id ||
-        lineage.evidence.chartVersionId !== lineage.intent.chartVersionId ||
-        lineage.evidence.capabilityId !== "ziwei.identity.p0" ||
-        lineage.reservation.sku !== lineage.intent.sku ||
-        lineage.reservation.locale !== lineage.intent.locale ||
-        lineage.event.aggregateType !== "report" ||
-        lineage.event.aggregateId !== lineage.reservation.reportId ||
-        lineage.event.eventType !== (lineage.reservation.asOfDate === null
-          ? "report.generation.requested.v1"
-          : "report.generation.requested.v2") ||
-        !hasUnlockOutboxLineage(lineage.event.payload, lineage.reservation, lineage.entitlement)
-      ) {
-        return failed("WALLET_RECONCILIATION_FAILED");
-      }
-      return {
-        ok: true as const,
-        value: {
-          intent: projectIntent(lineage.intent),
-          balance: result.value.balance,
-          reportId: continuation.reportId,
-        },
-      };
+      return verifyLineageAndRespond(
+        database,
+        actor.userId,
+        result.value.transactionId,
+        request.idempotencyKey,
+        result.value.balance,
+        continuation,
+      );
     },
   };
 }

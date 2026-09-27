@@ -161,16 +161,6 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
   }).strict(),
   z.object({
     id: id,
-    sku: z.literal("ZIWEI-PALACE-P0"),
-    chartVersionId: id,
-    locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
-    status: z.enum(["pending", "completed", "cancelled", "expired"]),
-    stateVersion: z.number().int().positive(),
-    createdAt: timestamp,
-  }).strict(),
-  z.object({
-    id: id,
     sku: z.literal("ZIWEI-PALACE-LIFE-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),

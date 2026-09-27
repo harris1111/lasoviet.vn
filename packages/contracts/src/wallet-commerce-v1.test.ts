@@ -139,7 +139,8 @@ describe("wallet commerce V1 contracts", () => {
     };
 
     // Single palaces (120)
-    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-P0", locale: "vi", amountLa: 120 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-P0", locale: "vi", amountLa: 120 }).success).toBe(false);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi", amountLa: 120 }).success).toBe(true);
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi", amountLa: 120 }).success).toBe(true);
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi", amountLa: 240 }).success).toBe(false);
 

@@ -141,9 +141,12 @@ export function resolveEntitlementScopeForSku(
 
   if (isSinglePalaceSku(sku)) {
     const palaceId = getPalaceIdFromSku(sku) ?? optionPalaceId;
+    if (!palaceId) {
+      throw new Error(`Single palace SKU ${sku} must resolve to a valid palace ID`);
+    }
     return {
       sections: [],
-      palaces: palaceId ? [palaceId] : [],
+      palaces: [palaceId],
     };
   }
 
@@ -153,17 +156,8 @@ export function resolveEntitlementScopeForSku(
     case "ZIWEI-IDENTITY-P0":
       if (family === "v4_1") return TIER_2_V4_1_ENTITLEMENT_SCOPE;
       return family === "v4" ? TIER_2_V4_ENTITLEMENT_SCOPE : TIER_2_ENTITLEMENT_SCOPE;
-    case "ZIWEI-RELATIONSHIP-P0":
-    case "ZIWEI-CAREER-P0":
-      return { sections: ["thematicSynthesis"] };
-    case "ZIWEI-TODAY-P0":
-    case "ZIWEI-MONTHLY-P0":
-    case "ZIWEI-YEAR-2026-P0":
-      return { sections: ["annualSnapshot"] };
-    case "ZIWEI-COMBO-2026-P0":
-      return family === "v4_1" ? TIER_2_V4_1_ENTITLEMENT_SCOPE : TIER_2_V4_ENTITLEMENT_SCOPE;
     default:
-      return TIER_1_ENTITLEMENT_SCOPE;
+      throw new Error(`No entitlement scope handler implemented for SKU: ${sku}`);
   }
 }
 
@@ -183,10 +177,6 @@ export const PRODUCT_DISPLAY_NAMES: Record<string, Record<"vi" | "en", string>> 
   "ZIWEI-CAREER-P0": {
     vi: "Công việc và tài lộc",
     en: "Career and wealth",
-  },
-  "ZIWEI-PALACE-P0": {
-    vi: "Luận giải một cung",
-    en: "Single palace reading",
   },
   "ZIWEI-PALACE-LIFE-P0": {
     vi: "Cung Mệnh",
