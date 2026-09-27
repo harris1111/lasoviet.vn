@@ -14,6 +14,7 @@
 @import "./discipline-pages-results.css";
 @import "./pricing-and-topup.css";
 @import "./report-reader.css";
+@import "./report-reader-structure.css";
 @import "./knowledge.css";
 
 * { box-sizing: border-box; }
