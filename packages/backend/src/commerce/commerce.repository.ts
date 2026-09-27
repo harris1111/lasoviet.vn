@@ -55,6 +55,13 @@ import {
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createWalletService } from "../wallet/wallet.service.js";
 import { createWalletUnlockService } from "./wallet-unlock.service.js";
+import {
+  grantWalletTopUpCredit,
+  isWalletTopUpOrder,
+  walletTopUpCreditedLa,
+  walletTopUpPack,
+  type WalletTopUpOrder,
+} from "./wallet-topup.js";
 
 type Sku = keyof typeof PRODUCT_CATALOG;
 type OrderRecord = typeof commerceOrders.$inferSelect;
@@ -77,6 +84,11 @@ export type CommerceRepositoryOptions = {
 export type OwnedOrderProjection = {
   order: ContentPurchaseOrder;
   reportId: string | null;
+};
+
+export type OwnedTopUpOrderProjection = {
+  order: WalletTopUpOrder;
+  creditedLa: number | null;
 };
 
 function ownerFilter(actor: CurrentActor, now: Date) {
@@ -167,6 +179,245 @@ export function createDatabaseCommerceRepository(
       }
     }
     return isContentPurchaseOrder(order) ? order : null;
+  }
+
+  async function eligibleContentClaimOrders(transaction: Database, ownerId: string, amount: number, currentNow: Date) {
+    const candidateOrders = await transaction
+      .select()
+      .from(commerceOrders)
+      .where(
+        and(
+          eq(commerceOrders.ownerId, ownerId),
+          eq(commerceOrders.amount, amount),
+          eq(commerceOrders.currency, "VND"),
+          eq(commerceOrders.kind, "content_purchase"),
+          or(
+            eq(commerceOrders.status, "pending"),
+            eq(commerceOrders.status, "expired"),
+          ),
+        ),
+      );
+
+    const eligibleOrders: ContentPurchaseOrder[] = [];
+    for (const order of candidateOrders) {
+      if (!isContentPurchaseOrder(order)) {
+        continue;
+      }
+      if (order.creditApplied > 0) {
+        if (
+          order.creditExpiresAt === null ||
+          currentNow.getTime() >= order.creditExpiresAt.getTime() ||
+          order.creditedFromOrderId === null
+        ) {
+          continue;
+        }
+        const [sourceOrder] = await transaction
+          .select({ id: commerceOrders.id })
+          .from(commerceOrders)
+          .innerJoin(
+            commerceEntitlements,
+            eq(commerceEntitlements.orderId, commerceOrders.id),
+          )
+          .where(
+            and(
+              eq(commerceOrders.id, order.creditedFromOrderId),
+              eq(commerceOrders.ownerId, ownerId),
+              eq(commerceOrders.chartId, order.chartId),
+              eq(commerceOrders.kind, "content_purchase"),
+              eq(commerceOrders.locale, order.locale),
+              eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
+              eq(commerceOrders.status, "paid"),
+              isNotNull(commerceOrders.paidAt),
+              isNotNull(commerceOrders.creditExpiresAt),
+              eq(commerceOrders.creditExpiresAt, order.creditExpiresAt),
+              gte(commerceOrders.amount, order.creditApplied),
+            ),
+          )
+          .limit(1);
+        if (sourceOrder === undefined) {
+          continue;
+        }
+      }
+      const [existingEntitlement] = await transaction
+        .select({ id: commerceEntitlements.id })
+        .from(commerceEntitlements)
+        .where(
+          and(
+            eq(commerceEntitlements.chartId, order.chartId),
+            eq(commerceEntitlements.sku, order.sku),
+          ),
+        )
+        .limit(1);
+      if (existingEntitlement === undefined) {
+        eligibleOrders.push(order);
+      }
+    }
+
+    return eligibleOrders;
+  }
+
+  async function eligibleTopUpClaimOrders(transaction: Database, ownerId: string, amount: number) {
+    const candidates = await transaction.select().from(commerceOrders)
+      .where(and(
+        eq(commerceOrders.ownerId, ownerId),
+        eq(commerceOrders.amount, amount),
+        eq(commerceOrders.currency, "VND"),
+        eq(commerceOrders.kind, "wallet_topup"),
+        or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
+      ));
+    const eligible: WalletTopUpOrder[] = [];
+    for (const order of candidates) {
+      if (!isWalletTopUpOrder(order)) continue;
+      const [grant] = await transaction.select({ id: walletTransactions.id }).from(walletTransactions)
+        .where(eq(walletTransactions.topUpOrderId, order.id)).limit(1);
+      if (grant === undefined) eligible.push(order);
+    }
+    return eligible;
+  }
+
+  /**
+   * Marks a top-up order paid, records the provider event, and credits the
+   * pack's Lá in the same transaction. Payment on an expired top-up order is
+   * still accepted (R-PAY-4): the customer transferred against a code we issued.
+   */
+  async function settleTopUpPayment(
+    transaction: Database,
+    orderId: string,
+    input: {
+      providerEventId: string;
+      amount: number;
+      currency: string;
+      matchMethod: "invoice_number" | "payment_code" | "self_claim";
+      traceId: string;
+      now: Date;
+    },
+  ): Promise<{ ok: true; replayed: boolean } | { ok: false; code: string }> {
+    const lockKey = `commerce:topup-order:${orderId}`;
+    await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
+    const [order] = await transaction.select().from(commerceOrders)
+      .where(and(eq(commerceOrders.id, orderId), eq(commerceOrders.kind, "wallet_topup")))
+      .limit(1)
+      .for("update");
+    if (order === undefined || !isWalletTopUpOrder(order)) return { ok: false, code: "ORDER_NOT_FOUND" };
+    if (order.amount !== input.amount || order.currency !== input.currency) {
+      return { ok: false, code: "PAYMENT_AMOUNT_MISMATCH" };
+    }
+    const [prior] = await transaction.select().from(commercePaymentEvents)
+      .where(eq(commercePaymentEvents.providerEventId, input.providerEventId)).limit(1);
+    if (prior !== undefined) {
+      return prior.orderId === order.id ? { ok: true, replayed: true } : { ok: false, code: "PAYMENT_EVENT_CONFLICT" };
+    }
+    if (order.status !== "pending" && order.status !== "expired") {
+      return { ok: false, code: "PAYMENT_STATE_CONFLICT" };
+    }
+    const [paidOrder] = await transaction.update(commerceOrders)
+      .set({ status: "paid", paidAt: input.now })
+      .where(and(
+        eq(commerceOrders.id, order.id),
+        eq(commerceOrders.kind, "wallet_topup"),
+        or(eq(commerceOrders.status, "pending"), eq(commerceOrders.status, "expired")),
+      ))
+      .returning();
+    if (paidOrder === undefined || !isWalletTopUpOrder(paidOrder)) return { ok: false, code: "PAYMENT_STATE_CONFLICT" };
+    const [event] = await transaction.insert(commercePaymentEvents).values({
+      orderId: paidOrder.id,
+      providerEventId: input.providerEventId,
+      amount: input.amount,
+      currency: input.currency,
+      status: "ORDER_PAID",
+      matchMethod: input.matchMethod,
+      createdAt: input.now,
+    }).onConflictDoNothing().returning();
+    if (event === undefined) throw new Error("PAYMENT_EVENT_CONFLICT");
+    await grantWalletTopUpCredit(transaction, paidOrder, {
+      now: getNow,
+      requestId: input.providerEventId,
+      traceId: input.traceId,
+    });
+    await options.beforePaymentCommit?.();
+    return { ok: true, replayed: false };
+  }
+
+  async function claimTopUpPayment(
+    transaction: Database,
+    actor: Extract<CurrentActor, { kind: "account" }>,
+    input: { amount: number },
+    claimTime: ParsedClaimTime,
+    paymentId: string,
+    orderId: string,
+    currentNow: Date,
+  ) {
+    const notFound = async () => {
+      await transaction.insert(auditLogs).values({
+        actorId: actor.userId,
+        action: "commerce.payment_self_claim.requested",
+        targetType: "commerce_payment_claim",
+        targetId: "unresolved",
+        reasonCode: "PAYMENT_CLAIM_NOT_FOUND",
+        requestId: actor.requestId,
+        metadata: { outcome: "PAYMENT_CLAIM_NOT_FOUND", claimedAmount: input.amount },
+        createdAt: currentNow,
+      });
+      return { ok: false as const, code: "PAYMENT_CLAIM_NOT_FOUND" as const };
+    };
+
+    const [payment] = await transaction.select().from(commerceUnmatchedPayments)
+      .where(eq(commerceUnmatchedPayments.id, paymentId)).limit(1);
+    if (payment === undefined) return notFound();
+    const providerLockKey = `provider_event:${payment.providerEventId}`;
+    await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+    await options.beforeClaimLockedRequery?.();
+    await transaction.execute(sql`LOCK TABLE commerce_unmatched_payments IN SHARE ROW EXCLUSIVE MODE`);
+    await transaction.execute(sql`LOCK TABLE commerce_orders IN SHARE ROW EXCLUSIVE MODE`);
+
+    const lockedPayments = await transaction.select().from(commerceUnmatchedPayments)
+      .where(and(
+        eq(commerceUnmatchedPayments.amount, input.amount),
+        isNull(commerceUnmatchedPayments.claimedAt),
+        isNull(commerceUnmatchedPayments.claimedByOrderId),
+        gte(commerceUnmatchedPayments.receivedAt, claimTime.windowStart),
+        lte(commerceUnmatchedPayments.receivedAt, claimTime.windowEnd),
+      ));
+    const lockedContent = await eligibleContentClaimOrders(transaction, actor.userId, input.amount, currentNow);
+    const lockedTopUps = await eligibleTopUpClaimOrders(transaction, actor.userId, input.amount);
+    if (
+      lockedPayments.length !== 1 || lockedPayments[0]!.id !== paymentId ||
+      lockedContent.length !== 0 || lockedTopUps.length !== 1 || lockedTopUps[0]!.id !== orderId
+    ) {
+      return notFound();
+    }
+
+    await transaction.update(commerceUnmatchedPayments)
+      .set({ claimedByOrderId: orderId, claimedAt: currentNow })
+      .where(eq(commerceUnmatchedPayments.id, paymentId));
+    const settled = await settleTopUpPayment(transaction, orderId, {
+      providerEventId: payment.providerEventId,
+      amount: payment.amount,
+      currency: "VND",
+      matchMethod: "self_claim",
+      traceId: actor.requestId,
+      now: currentNow,
+    });
+    if (!settled.ok || settled.replayed) throw new Error("TOP_UP_CLAIM_SETTLEMENT_FAILED");
+    await transaction.insert(auditLogs).values({
+      actorId: actor.userId,
+      action: "commerce.payment_self_claim.requested",
+      targetType: "commerce_payment_claim",
+      targetId: orderId,
+      reasonCode: "claimed",
+      requestId: actor.requestId,
+      metadata: { outcome: "claimed", claimedAmount: input.amount, orderKind: "wallet_topup" },
+      createdAt: currentNow,
+    });
+    return {
+      ok: true as const,
+      value: {
+        status: "claimed" as const,
+        kind: "wallet_topup" as const,
+        orderId,
+        creditedLa: walletTopUpCreditedLa(lockedTopUps[0]!.sku),
+      },
+    };
   }
 
   async function readAccountLibrary(actor: CurrentActor): Promise<AccountLibraryV1> {
@@ -813,6 +1064,108 @@ export function createDatabaseCommerceRepository(
       return walletUnlock.unlock(actor, input);
     },
     readAccountLibraryV2,
+
+    async createTopUpOrder(actor: CurrentActor, packId: string, locale: string) {
+      const pack = walletTopUpPack(packId);
+      if (pack === undefined) return { ok: false as const, code: "TOP_UP_PACK_UNSUPPORTED" };
+      const selectedLocale = checkoutLocale(locale);
+      if (selectedLocale === null) return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
+      const accountError = await checkoutAccount(database, actor);
+      if (accountError !== null) return { ok: false as const, code: accountError };
+      if (actor.kind !== "account") throw new Error("CHECKOUT_ACTOR_INVALID");
+
+      return database.transaction(async (transaction) => {
+        const circuitLockKey = "commerce:reconciliation_circuit";
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${circuitLockKey}))`);
+        const [circuitState] = await transaction
+          .select({ circuitStatus: commerceReconciliationState.circuitStatus })
+          .from(commerceReconciliationState)
+          .where(eq(commerceReconciliationState.id, "singleton"))
+          .limit(1);
+        if (circuitState?.circuitStatus === "open") {
+          return { ok: false as const, code: "CHECKOUT_PAYMENTS_PAUSED" };
+        }
+
+        const ownerLockKey = `commerce:topup:${actor.userId}`;
+        await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${ownerLockKey}))`);
+
+        const currentNow = getNow();
+        const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
+        const pendingOrders = await transaction.select().from(commerceOrders)
+          .where(and(
+            eq(commerceOrders.ownerId, actor.userId),
+            eq(commerceOrders.kind, "wallet_topup"),
+            eq(commerceOrders.sku, pack.id),
+            eq(commerceOrders.status, "pending"),
+          ))
+          .orderBy(desc(commerceOrders.createdAt))
+          .for("update");
+        for (const pending of pendingOrders) {
+          if (!isWalletTopUpOrder(pending)) continue;
+          if (pending.createdAt.getTime() > cutoff.getTime() && pending.locale === selectedLocale) {
+            return { ok: true as const, value: pending, reused: true };
+          }
+          await transaction.update(commerceOrders)
+            .set({ status: "expired" })
+            .where(and(eq(commerceOrders.id, pending.id), eq(commerceOrders.status, "pending")));
+        }
+
+        const id = randomUUID();
+        for (let attempt = 1; attempt <= 5; attempt++) {
+          const [created] = await transaction.insert(commerceOrders).values({
+            id,
+            paymentCode: paymentCodeFactory(),
+            invoiceNumber: "LSV-" + id,
+            kind: "wallet_topup",
+            chartId: null,
+            chartVersionId: null,
+            ownerId: actor.userId,
+            sku: pack.id,
+            amount: pack.vndAmount,
+            currency: "VND",
+            locale: selectedLocale,
+            status: "pending",
+            createdAt: currentNow,
+          }).onConflictDoNothing({ target: commerceOrders.paymentCode }).returning();
+          if (created !== undefined) {
+            if (!isWalletTopUpOrder(created)) throw new Error("TOP_UP_ORDER_SHAPE_INVALID");
+            return { ok: true as const, value: created, reused: false };
+          }
+        }
+        throw new Error("PAYMENT_CODE_GENERATION_EXHAUSTED");
+      });
+    },
+
+    async readTopUpOrderProjection(actor: CurrentActor, orderId: string): Promise<OwnedTopUpOrderProjection | null> {
+      if (await checkoutAccount(database, actor) !== null || actor.kind !== "account") return null;
+      let [order] = await database.select().from(commerceOrders)
+        .where(and(
+          eq(commerceOrders.id, orderId),
+          eq(commerceOrders.ownerId, actor.userId),
+          eq(commerceOrders.kind, "wallet_topup"),
+        )).limit(1);
+      if (order === undefined || !isWalletTopUpOrder(order)) return null;
+      const cutoff = new Date(getNow().getTime() - orderTtlSeconds * 1000);
+      if (order.status === "pending" && order.createdAt.getTime() <= cutoff.getTime()) {
+        const [expired] = await database.update(commerceOrders)
+          .set({ status: "expired" })
+          .where(and(eq(commerceOrders.id, order.id), eq(commerceOrders.status, "pending")))
+          .returning();
+        if (expired !== undefined) order = expired;
+        else [order] = await database.select().from(commerceOrders).where(eq(commerceOrders.id, orderId)).limit(1);
+      }
+      if (order === undefined || !isWalletTopUpOrder(order)) return null;
+      const [grant] = await database.select({ id: walletTransactions.id })
+        .from(walletTransactions)
+        .where(eq(walletTransactions.topUpOrderId, order.id))
+        .limit(1);
+      const pack = walletTopUpPack(order.sku);
+      return {
+        order,
+        creditedLa: grant !== undefined && pack !== undefined ? pack.purchasedLa + pack.promotionalLa : null,
+      };
+    },
+
     async createOrder(actor: CurrentActor, chartId: string, sku: string, locale: string) {
       if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
       const selectedLocale = checkoutLocale(locale);
@@ -1100,6 +1453,21 @@ export function createDatabaseCommerceRepository(
             .where(eq(commerceUnmatchedPayments.providerEventId, input.providerEventId)).limit(1);
           if (priorUnmatched !== undefined) {
             return { ok: true as const, replayed: true };
+          }
+
+          const [anyKindTarget] = await transaction.select({ id: commerceOrders.id, kind: commerceOrders.kind })
+            .from(commerceOrders)
+            .where(lookupPredicate)
+            .limit(1);
+          if (anyKindTarget?.kind === "wallet_topup") {
+            return await settleTopUpPayment(transaction, anyKindTarget.id, {
+              providerEventId: input.providerEventId,
+              amount: input.amount,
+              currency: input.currency,
+              matchMethod,
+              traceId: input.traceId,
+              now: currentNow,
+            });
           }
 
           const [target] = await transaction.select().from(commerceOrders)
@@ -1474,11 +1842,18 @@ export function createDatabaseCommerceRepository(
     ): Promise<
       | {
           ok: true;
-          value: {
-            status: "claimed";
-            orderId: string;
-            reportId: string;
-          };
+          value:
+            | {
+                status: "claimed";
+                orderId: string;
+                reportId: string;
+              }
+            | {
+                status: "claimed";
+                kind: "wallet_topup";
+                orderId: string;
+                creditedLa: number;
+              };
         }
       | {
           ok: false;
@@ -1570,78 +1945,11 @@ export function createDatabaseCommerceRepository(
             ),
           );
 
-        const candidateOrders = await transaction
-          .select()
-          .from(commerceOrders)
-          .where(
-            and(
-              eq(commerceOrders.ownerId, actor.userId),
-              eq(commerceOrders.amount, input.amount),
-              eq(commerceOrders.currency, "VND"),
-              eq(commerceOrders.kind, "content_purchase"),
-              or(
-                eq(commerceOrders.status, "pending"),
-                eq(commerceOrders.status, "expired"),
-              ),
-            ),
-          );
+        const eligibleOrders = await eligibleContentClaimOrders(transaction, actor.userId, input.amount, currentNow);
 
-        const eligibleOrders: typeof candidateOrders = [];
-        for (const order of candidateOrders) {
-          if (!isContentPurchaseOrder(order)) {
-            continue;
-          }
-          if (order.creditApplied > 0) {
-            if (
-              order.creditExpiresAt === null ||
-              currentNow.getTime() >= order.creditExpiresAt.getTime() ||
-              order.creditedFromOrderId === null
-            ) {
-              continue;
-            }
-            const [sourceOrder] = await transaction
-              .select({ id: commerceOrders.id })
-              .from(commerceOrders)
-              .innerJoin(
-                commerceEntitlements,
-                eq(commerceEntitlements.orderId, commerceOrders.id),
-              )
-              .where(
-                and(
-                  eq(commerceOrders.id, order.creditedFromOrderId),
-                  eq(commerceOrders.ownerId, actor.userId),
-                  eq(commerceOrders.chartId, order.chartId),
-                  eq(commerceOrders.kind, "content_purchase"),
-                  eq(commerceOrders.locale, order.locale),
-                  eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
-                  eq(commerceOrders.status, "paid"),
-                  isNotNull(commerceOrders.paidAt),
-                  isNotNull(commerceOrders.creditExpiresAt),
-                  eq(commerceOrders.creditExpiresAt, order.creditExpiresAt),
-                  gte(commerceOrders.amount, order.creditApplied),
-                ),
-              )
-              .limit(1);
-            if (sourceOrder === undefined) {
-              continue;
-            }
-          }
-          const [existingEntitlement] = await transaction
-            .select({ id: commerceEntitlements.id })
-            .from(commerceEntitlements)
-            .where(
-              and(
-                eq(commerceEntitlements.chartId, order.chartId),
-                eq(commerceEntitlements.sku, order.sku),
-              ),
-            )
-            .limit(1);
-          if (existingEntitlement === undefined) {
-            eligibleOrders.push(order);
-          }
-        }
+        const eligibleTopUps = await eligibleTopUpClaimOrders(transaction, actor.userId, input.amount);
 
-        if (candidatePayments.length !== 1 || eligibleOrders.length !== 1) {
+        if (candidatePayments.length !== 1 || eligibleOrders.length + eligibleTopUps.length !== 1) {
           await transaction.insert(auditLogs).values({
             actorId: actor.userId,
             action: "commerce.payment_self_claim.requested",
@@ -1659,6 +1967,10 @@ export function createDatabaseCommerceRepository(
         }
 
         const selectedPayment = candidatePayments[0]!;
+        const selectedTopUp = eligibleTopUps[0];
+        if (selectedTopUp !== undefined) {
+          return await claimTopUpPayment(transaction, actor, input, claimTime, selectedPayment.id, selectedTopUp.id, currentNow);
+        }
         const selectedOrder = eligibleOrders[0]!;
 
         // 2. Provider-event advisory lock
@@ -1690,81 +2002,15 @@ export function createDatabaseCommerceRepository(
             ),
           );
 
-        const lockedCandidateOrders = await transaction
-          .select()
-          .from(commerceOrders)
-          .where(
-            and(
-              eq(commerceOrders.ownerId, actor.userId),
-              eq(commerceOrders.amount, input.amount),
-              eq(commerceOrders.currency, "VND"),
-              eq(commerceOrders.kind, "content_purchase"),
-              or(
-                eq(commerceOrders.status, "pending"),
-                eq(commerceOrders.status, "expired"),
-              ),
-            ),
-          );
+        const lockedEligibleOrders = await eligibleContentClaimOrders(transaction, actor.userId, input.amount, currentNow);
 
-        const lockedEligibleOrders: typeof lockedCandidateOrders = [];
-        for (const order of lockedCandidateOrders) {
-          if (!isContentPurchaseOrder(order)) {
-            continue;
-          }
-          if (order.creditApplied > 0) {
-            if (
-              order.creditExpiresAt === null ||
-              currentNow.getTime() >= order.creditExpiresAt.getTime() ||
-              order.creditedFromOrderId === null
-            ) {
-              continue;
-            }
-            const [sourceOrder] = await transaction
-              .select({ id: commerceOrders.id })
-              .from(commerceOrders)
-              .innerJoin(
-                commerceEntitlements,
-                eq(commerceEntitlements.orderId, commerceOrders.id),
-              )
-              .where(
-                and(
-                  eq(commerceOrders.id, order.creditedFromOrderId),
-                  eq(commerceOrders.ownerId, actor.userId),
-                  eq(commerceOrders.chartId, order.chartId),
-                  eq(commerceOrders.kind, "content_purchase"),
-                  eq(commerceOrders.locale, order.locale),
-                  eq(commerceOrders.sku, "ZIWEI-NATAL-EXCERPT-P0"),
-                  eq(commerceOrders.status, "paid"),
-                  isNotNull(commerceOrders.paidAt),
-                  isNotNull(commerceOrders.creditExpiresAt),
-                  eq(commerceOrders.creditExpiresAt, order.creditExpiresAt),
-                  gte(commerceOrders.amount, order.creditApplied),
-                ),
-              )
-              .limit(1);
-            if (sourceOrder === undefined) {
-              continue;
-            }
-          }
-          const [existingEntitlement] = await transaction
-            .select({ id: commerceEntitlements.id })
-            .from(commerceEntitlements)
-            .where(
-              and(
-                eq(commerceEntitlements.chartId, order.chartId),
-                eq(commerceEntitlements.sku, order.sku),
-              ),
-            )
-            .limit(1);
-          if (existingEntitlement === undefined) {
-            lockedEligibleOrders.push(order);
-          }
-        }
+        const lockedEligibleTopUps = await eligibleTopUpClaimOrders(transaction, actor.userId, input.amount);
 
         // Require exactly the same one payment and one order
         if (
           lockedCandidatePayments.length !== 1 ||
           lockedEligibleOrders.length !== 1 ||
+          lockedEligibleTopUps.length !== 0 ||
           lockedCandidatePayments[0]!.id !== selectedPayment.id ||
           lockedEligibleOrders[0]!.id !== selectedOrder.id
         ) {

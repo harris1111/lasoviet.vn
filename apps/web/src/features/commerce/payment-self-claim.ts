@@ -168,7 +168,13 @@ export async function submitPaymentSelfClaim(
     return { status: "service_unavailable", code: "service_unavailable" };
   }
 
-  redirect(
-    `${prefix}/bao-cao/${encodeURIComponent(parsedSuccess.data.reportId)}`,
-  );
+  if ("reportId" in parsedSuccess.data) {
+    redirect(
+      `${prefix}/bao-cao/${encodeURIComponent(parsedSuccess.data.reportId)}`,
+    );
+  } else {
+    redirect(
+      `${prefix}/thanh-toan/${encodeURIComponent(parsedSuccess.data.orderId)}`,
+    );
+  }
 }

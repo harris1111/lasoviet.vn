@@ -2,7 +2,13 @@ import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/b
 import { timingSafeEqual } from "node:crypto";
 
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
-import { createDatabaseCommerceRepository, createSePayGateway, createSePayWebhookService } from "@lasoviet/backend";
+import {
+  createDatabaseCommerceRepository,
+  createSePayGateway,
+  createSePayWebhookService,
+  walletTopUpPackTitle,
+  type WalletTopUpOrder,
+} from "@lasoviet/backend";
 import {
   AccountLibraryV2Schema,
   CommerceSkuSchema,
@@ -10,6 +16,7 @@ import {
   resolveProductTitle,
   WalletBalanceV1Schema,
   WalletHistoryV1Schema,
+  WalletTopUpOrderCreateV1Schema,
   type CommerceSku,
   type CurrentActor,
 } from "@lasoviet/contracts";
@@ -186,6 +193,7 @@ export class CommerceController {
 
     return {
       id: order.id,
+      kind: "content_purchase" as const,
       status: order.status,
       amount: order.amount,
       currency: order.currency,
@@ -196,6 +204,30 @@ export class CommerceController {
       createdAt: order.createdAt.toISOString(),
       creditApplied: order.creditApplied ?? 0,
       creditExpiresAt: order.creditExpiresAt ? order.creditExpiresAt.toISOString() : null,
+      creditedLa: null,
+      supportUrl,
+    };
+  }
+
+  private buildCustomerSafeTopUpOrder(order: WalletTopUpOrder, creditedLa: number | null) {
+    const orderLocale = (order.locale === "en" ? "en" : "vi") as "vi" | "en";
+    const supportUrl = orderLocale === "en"
+      ? `/en/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`
+      : `/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`;
+    return {
+      id: order.id,
+      kind: "wallet_topup" as const,
+      status: order.status,
+      amount: order.amount,
+      currency: order.currency,
+      locale: order.locale,
+      productTitle: walletTopUpPackTitle(order.sku, orderLocale),
+      paymentCode: order.paymentCode,
+      chartId: null,
+      createdAt: order.createdAt.toISOString(),
+      creditApplied: 0,
+      creditExpiresAt: null,
+      creditedLa,
       supportUrl,
     };
   }
@@ -352,6 +384,40 @@ export class CommerceController {
     };
   }
 
+  @Post("wallet/top-up-orders")
+  @HttpCode(HttpStatus.OK)
+  async createTopUpOrder(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const parsed = WalletTopUpOrderCreateV1Schema.safeParse(body);
+    if (!parsed.success) throw new BadRequestException({ code: "TOP_UP_ORDER_INVALID" });
+    const actor = await this.actor(authorization);
+    // With payments disabled nothing may confirm a top-up, and auto-paying
+    // one would mint Lá for free, so top-ups are refused outright.
+    if (this.sepayEnvironment === "disabled") {
+      throw new ServiceUnavailableException({ code: "TOP_UP_UNAVAILABLE" });
+    }
+    const repository = this.repository();
+    const result = await repository.createTopUpOrder(actor, parsed.data.packId, parsed.data.locale);
+    if (!result.ok) {
+      if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") throw new UnauthorizedException({ code: result.code });
+      if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") throw new ForbiddenException({ code: result.code });
+      if (result.code === "CHECKOUT_PAYMENTS_PAUSED") throw new ServiceUnavailableException({ code: result.code });
+      return { ok: false, error: { code: result.code } };
+    }
+    const projection = await repository.readTopUpOrderProjection(actor, result.value.id);
+    if (projection === null) return { ok: false, error: { code: "TOP_UP_ORDER_CREATE_FAILED" } };
+    return {
+      ok: true,
+      value: {
+        order: this.buildCustomerSafeTopUpOrder(projection.order, projection.creditedLa),
+        paymentInstructions: this.buildPaymentInstructions(projection.order),
+        reportId: null,
+      },
+    };
+  }
+
   @Get("account/library-v2")
   async libraryV2(@Headers("authorization") authorization: string | undefined) {
     const value = await this.repository().readAccountLibraryV2(await this.actor(authorization));
@@ -360,19 +426,33 @@ export class CommerceController {
 
   @Get("orders/:orderId")
   async read(@Headers("authorization") authorization: string | undefined, @Param("orderId") orderId: string) {
-    const projection = await this.repository().readOrderProjection(await this.actor(authorization), orderId);
-    return projection === null
-      ? { ok: false, error: { code: "ORDER_NOT_FOUND" } }
-      : {
-          ok: true,
-          value: {
-            order: this.buildCustomerSafeOrder(projection.order),
-            paymentInstructions: this.sepayEnvironment === "disabled"
-              ? null
-              : this.buildPaymentInstructions(projection.order),
-            reportId: projection.reportId,
-          },
-        };
+    const actor = await this.actor(authorization);
+    const repository = this.repository();
+    const projection = await repository.readOrderProjection(actor, orderId);
+    if (projection === null) {
+      const topUp = await repository.readTopUpOrderProjection(actor, orderId);
+      if (topUp === null) return { ok: false, error: { code: "ORDER_NOT_FOUND" } };
+      return {
+        ok: true,
+        value: {
+          order: this.buildCustomerSafeTopUpOrder(topUp.order, topUp.creditedLa),
+          paymentInstructions: this.sepayEnvironment === "disabled" || topUp.order.status !== "pending"
+            ? null
+            : this.buildPaymentInstructions(topUp.order),
+          reportId: null,
+        },
+      };
+    }
+    return {
+      ok: true,
+      value: {
+        order: this.buildCustomerSafeOrder(projection.order),
+        paymentInstructions: this.sepayEnvironment === "disabled"
+          ? null
+          : this.buildPaymentInstructions(projection.order),
+        reportId: projection.reportId,
+      },
+    };
   }
 
   @Post("payments/self-claim")

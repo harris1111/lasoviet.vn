@@ -2,6 +2,7 @@ import type {
   AccountLibraryV1,
   AccountOverviewProjectionV1,
   OrderHistoryV1,
+  WalletBalanceV1,
 } from "@lasoviet/contracts";
 import Link from "next/link";
 import React from "react";
@@ -19,6 +20,7 @@ export interface AccountDashboardProps {
   library?: AccountLibraryV1 | null;
   orders?: OrderHistoryV1 | null;
   overview?: AccountOverviewProjectionV1 | null;
+  walletBalance?: WalletBalanceV1 | null;
   userEmail?: string | null;
   error?: string | null;
 }
@@ -43,6 +45,7 @@ export function AccountDashboard({
   library,
   orders,
   overview,
+  walletBalance,
   userEmail,
   error,
 }: AccountDashboardProps) {
@@ -50,6 +53,7 @@ export function AccountDashboard({
   const wizardPath = isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi";
   const reportsPath = isVi ? "/tai-khoan/bao-cao" : "/en/tai-khoan/bao-cao";
   const ordersPath = isVi ? "/tai-khoan/don-hang" : "/en/tai-khoan/don-hang";
+  const topUpPath = isVi ? "/nap-la" : "/en/nap-la";
 
   const totalReports = library?.totalCount ?? 0;
   const totalOrders = orders?.totalCount ?? 0;
@@ -194,6 +198,19 @@ export function AccountDashboard({
                 {ordersUnavailable ? "—" : totalOrders}
               </span>
             </div>
+            {walletBalance && (
+              <div className="account-stat-item account-stat-item-wallet">
+                <span className="account-stat-label">
+                  {isVi ? "Số dư Lá" : "Lá balance"}
+                </span>
+                <span className="account-stat-value">
+                  {walletBalance.totalLa.toLocaleString(isVi ? "vi-VN" : "en-US")}
+                </span>
+                <Link href={topUpPath} className="account-stat-action">
+                  {isVi ? "Nạp thêm Lá" : "Top up Lá"}
+                </Link>
+              </div>
+            )}
             {overview && (
               <>
                 <div className="account-stat-item">

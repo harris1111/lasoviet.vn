@@ -55,6 +55,10 @@ vi.mock("../../../../../features/account/account-data-loader", () => ({
       ok: true,
       value: { version: 1, orders: [], items: [], totalCount: 0 },
     }),
+    loadWalletBalance: vi.fn().mockResolvedValue({
+      ok: true,
+      value: { version: 1, totalLa: 0, purchasedLa: 0, promotionalLa: 0, updatedAt: "2026-09-27T10:00:00.000+07:00" },
+    }),
   },
 }));
 

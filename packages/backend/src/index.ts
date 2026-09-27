@@ -544,6 +544,12 @@ export type {
   WalletResult,
 } from "./wallet/wallet.repository.js";
 export { createWalletService } from "./wallet/wallet.service.js";
+export {
+  isWalletTopUpOrder,
+  walletTopUpCreditedLa,
+  walletTopUpPackTitle,
+  type WalletTopUpOrder,
+} from "./commerce/wallet-topup.js";
 export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
 export type {
   WalletUnlockService,
