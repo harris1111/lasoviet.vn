@@ -89,6 +89,51 @@ Old (v3 content) reports: items 2, 4, 5, star chips, triad diagram, paragraph sp
 - Print/PDF: all expanded, chart printed once at top, timeline printed, no sticky elements.
 - Light theme per `docs/24` when the report page is converted.
 
+## 7b. Round 2 (FD-105, FD-106, founder review 2026-09-28 against AiTuvi)
+
+Added after the founder compared the prototype with AiTuvi's free flow. These change waves 2 and 3; wave 1 as shipped in PR #201 is unaffected.
+
+### 7b.1 Chart drawn as a real lá số sheet (FD-106a)
+
+The wave-1 mini chart reads as a technical diagram. Every chart surface (hero, rail, palace card thumbnail, mobile sheet) uses the traditional printed cell instead:
+
+| Slot | Content | Source |
+|---|---|---|
+| Top line left | Heavenly stem + earthly branch | `chartSnapshot.palaces[].heavenlyStemId`, `earthlyBranchId` |
+| Top line right | Decadal age range for that palace | `chartSnapshot.decadal.cycles` |
+| Second line | Palace name, centred, caps | `palaceId` |
+| Middle | Chính tinh, brightness, tứ hóa, centred | `stars[kind=main]` |
+| Below | Phụ tinh in two columns | `stars[kind=aux]` |
+| Bottom line | Mệnh / Thân / đại vận / lưu niên markers, vòng trường sinh, cycle years | `isLife`, `isBody`, decadal, annual, **`cycleStateId` (new)** |
+| Centre block | LSV logomark watermark, wordmark, year of birth, gender, mệnh, cục, thân cư, năm xem | `chartSnapshot` + report meta |
+
+**Contract change:** `ReportChartPalaceV1` gains an optional `cycleStateId` (`ziwei.cycle.*`), already present on the normalized chart and currently dropped.
+
+Star names are coloured by ngũ hành from a lookup table. Stars whose element is not well attested stay the default text colour; a wrong colour is worse than no colour, because a knowledgeable reader spots it instantly. The table needs An and the founder to review before it ships. Reference implementation: `prototype/revamp-2026-09/doc-bao-cao-tuong-tac-elements.js`.
+
+Birth date, birth time and birth place never appear, unlike AiTuvi's chart.
+
+### 7b.2 Palace strength score (FD-105)
+
+A deterministic 0 to 100 per palace, computed on the web from `chartSnapshot` alone (pure function, no new backend data). Shown three ways: a badge on each palace card with a plain-language band label, a twelve-axis chart above the palace section, and a "Điểm này tính thế nào" box that prints the whole formula. Reference implementation and weights: `prototype/revamp-2026-09/doc-bao-cao-tuong-tac-score.js`.
+
+Constraints that keep this inside FD-105: deterministic, reproducible from the same chart, every contribution traceable to a real star, formula published in the UI, and never described as a rating of the person's life or luck.
+
+### 7b.3 All eight decadal cycles (FD-106b)
+
+Wave 1 already derives the full cycle list. Round 2 gives each cycle content:
+
+- Current cycle: unchanged depth, full reading.
+- Other seven: a 120 to 200 syllable teaser each, as new writer sections.
+- The timeline lists every cycle with its teaser and a link: the current cycle links to its full reading, the others to the palace the cycle passes through.
+- A "Dải này nói gì về bạn?" box above the list explains how to read the timeline and states plainly that it does not rank cycles good or bad. Pattern borrowed from AiTuvi's "Biểu đồ của bạn nói gì", which is the clearest thing on their page.
+
+### 7b.4 Beginner-first writing and the storytelling overview (FD-106c, FD-106d)
+
+Full rules: `docs/superpowers/specs/2026-09-28-report-writing-rules-beginner-first.md`. The two load-bearing changes are that a star name must be translated into ordinary language the moment it appears, capped at one per 80 syllables, and that `minimumPalaceStars` moves from counting names in the prose to counting stars in the section's evidence refs, so the chips and the "Vì sao" box carry the proof instead of the sentences.
+
+Section length targets are unchanged. The overview gains a fixed five-beat arc at the same length.
+
 ## 8. Metrics
 
 Baseline from existing `useReportReaderAnalytics` (active section + scroll %) before wave 1.
