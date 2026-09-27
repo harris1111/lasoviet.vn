@@ -9,6 +9,8 @@ import {
   createAiProductionGate,
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
+  createDatabaseNotificationPreferenceStore,
+  createVerifiedSignInNurtureService,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseAiCostService,
@@ -70,10 +72,15 @@ export function createMaintenanceRunner() {
         tlsRequired: environment.value.smtp.tlsRequired,
       })
     : { async send() { return { ok: false as const, code: "SMTP_CONFIG_INVALID" as const }; } };
+  const preferenceStore = createDatabaseNotificationPreferenceStore(
+    database,
+    environment.value.internalActorSecret ?? "",
+  );
   const email = createAuthEmailDeliveryService({
     store: createDatabaseAuthEmailDeliveryStore(database),
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
+    preferenceChecker: preferenceStore,
   });
   const telegramAlert = createTelegramAlertProvider({
     botToken: environment.value.telegram?.botToken,
@@ -85,6 +92,12 @@ export function createMaintenanceRunner() {
     adminAccessService: createAdminAccessService({
       repository: createDatabaseAdminAccessRepository(database),
     }),
+  });
+  const nurtureNotification = createVerifiedSignInNurtureService({
+    database,
+    preferenceStore,
+    tokenSecret: environment.value.internalActorSecret ?? "",
+    canonicalOrigin: environment.value.betterAuthUrl,
   });
 
   return createPhaseOneMaintenanceRunner({
@@ -102,6 +115,7 @@ export function createMaintenanceRunner() {
     analyticsRetention: createAnalyticsRetentionService({
       repository: createDatabaseAnalyticsRepository(database),
     }),
+    nurtureNotification,
   });
 }
 

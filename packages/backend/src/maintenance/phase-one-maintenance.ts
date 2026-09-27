@@ -22,6 +22,14 @@ export type AnalyticsMaintenance = {
   }>;
 };
 
+export type NurtureMaintenance = {
+  scanAndEnqueue(limit: number): Promise<{
+    scanned: number;
+    enqueued: number;
+    skipped: number;
+  }>;
+};
+
 export type PhaseOneMaintenanceRunner = {
   runOnce(): Promise<{
     accountPurges: number;
@@ -38,6 +46,11 @@ export type PhaseOneMaintenanceRunner = {
       scrubbedIpEvents: number;
       deletedFraudRecords: number;
     };
+    nurture?: {
+      scanned: number;
+      enqueued: number;
+      skipped: number;
+    };
   }>;
 };
 
@@ -47,6 +60,7 @@ export function createPhaseOneMaintenanceRunner(options: {
   retryAuthEmail: (limit: number) => Promise<number>;
   reconciliation?: ReconciliationMaintenance;
   analyticsRetention?: AnalyticsMaintenance;
+  nurtureNotification?: NurtureMaintenance;
   batchSize?: number;
   now?: () => Date;
 }): PhaseOneMaintenanceRunner {
@@ -68,6 +82,11 @@ export function createPhaseOneMaintenanceRunner(options: {
       scrubbedIpEvents: number;
       deletedFraudRecords: number;
     };
+    nurture?: {
+      scanned: number;
+      enqueued: number;
+      skipped: number;
+    };
   }> | undefined;
 
   return {
@@ -82,8 +101,9 @@ export function createPhaseOneMaintenanceRunner(options: {
         options.retryAuthEmail(batchSize),
         options.reconciliation ? options.reconciliation.runMaintenance() : Promise.resolve(undefined),
         options.analyticsRetention ? options.analyticsRetention.purgeExpired(now, batchSize) : Promise.resolve(undefined),
+        options.nurtureNotification ? options.nurtureNotification.scanAndEnqueue(batchSize) : Promise.resolve(undefined),
       ])
-        .then(([accountPurges, anonymousPurges, retries, reconciliation, analytics]) => {
+        .then(([accountPurges, anonymousPurges, retries, reconciliation, analytics, nurture]) => {
           const res: {
             accountPurges: number;
             anonymousPurges: number;
@@ -99,6 +119,11 @@ export function createPhaseOneMaintenanceRunner(options: {
               scrubbedIpEvents: number;
               deletedFraudRecords: number;
             };
+            nurture?: {
+              scanned: number;
+              enqueued: number;
+              skipped: number;
+            };
           } = {
             accountPurges: accountPurges.length,
             anonymousPurges: anonymousPurges.length,
@@ -109,6 +134,9 @@ export function createPhaseOneMaintenanceRunner(options: {
           }
           if (analytics !== undefined) {
             res.analytics = analytics;
+          }
+          if (nurture !== undefined) {
+            res.nurture = nurture;
           }
           return res;
         })

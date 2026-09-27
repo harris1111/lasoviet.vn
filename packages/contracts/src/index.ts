@@ -137,6 +137,11 @@ export {
   canonicalizeAuthEmailRequest,
   ReportFailedEmailRequestV1Schema,
   ReportReadyEmailRequestSchema,
+  NurtureVerifiedSignInEmailRequestSchema,
+  HanMonthReminderEmailRequestSchema,
+  DelayedUnlockCompletedEmailRequestSchema,
+  NotificationPreferencesV1Schema,
+  UnsubscribeTokenClaimsSchema,
   PersistedEmailDeliveryRequestSchema,
   canonicalizeEmailDeliveryRequest,
 } from "./auth-email.js";
@@ -147,6 +152,11 @@ export type {
   AuthEmailServiceClaims,
   ReportFailedEmailRequestV1,
   ReportReadyEmailRequest,
+  NurtureVerifiedSignInEmailRequest,
+  HanMonthReminderEmailRequest,
+  DelayedUnlockCompletedEmailRequest,
+  NotificationPreferencesV1,
+  UnsubscribeTokenClaims,
   PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
 
