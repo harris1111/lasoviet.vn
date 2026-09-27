@@ -23,6 +23,47 @@ Two things the current rules already get right and must not be lost:
 
 Test it like this: read a section aloud to someone who does not know Tử Vi and ask them to say back what it meant. If they repeat star names instead of meaning, the section fails.
 
+## 2b. Voice: an expert talking to you, in real Vietnamese
+
+Founder instruction, 2026-09-28, binding on every word of every reading:
+
+> Toàn bộ ngôn ngữ của phần luận giải **bắt buộc** phải viết theo giọng tâm tình của chuyên gia, tiếng Việt tự nhiên, không dùng các cụm ghép lại trông như dịch thuật và ngôn ngữ AI.
+
+Reference for the voice: **Vũ Tài Lục, *Tử Vi Đẩu Số Toàn Thư***. What to take from it, and what not to.
+
+**Take:** continuous prose in long connected sentences; concrete life consequences chained one after another; the writer addressing the reader directly and allowing himself an aside, a caveat, or a plain "I want you to notice this"; the confidence to say what a star does *not* mean.
+
+**Do not take:** its content. The book is full of material FD-089 bans outright (lifespan, `chết non`, `tàn tật`, moral judgement of women). We copy the voice, never the claims.
+
+### 2b.1 No machine sub-headings
+
+Detail paragraphs are **flowing prose with no sub-headings**. The AI habit of labelling every paragraph is the single most obvious tell, and the founder named it directly.
+
+Banned as sub-headings or as sentence openers. These are labels a machine writes, not Vietnamese a person speaks:
+
+`Chỗ dễ va chạm` · `Chỗ đang mắc` · `Chỗ khiến bạn mệt` · `Chỗ phải giữ` · `Chỗ sinh lộc` · `Hai lực kéo` · `Cách dùng cả hai` · `Nơi bạn phát huy` · `Điều cần giữ` · `Loại việc hợp` · `Đường thăng tiến` · `Cách giữ tiền` · `Nhịp làm và nghỉ` · `Giao tiếp bên ngoài` · `Nếp sống hằng ngày` · `Với người xung quanh` · `Người quanh bạn` · `Điều chặng này mang lại` · `Tiền bạc và sức lực` · `Giữ gắn bó` · `Giữ sức lâu dài`
+
+The pattern, not just this list, is banned: a two to four word noun phrase used as a heading over a paragraph. A heading is allowed only where the content really is a set of separate items, such as the four tứ hóa or the twelve palace cards. Inside one section's narrative, never.
+
+The summary layer (conclusion plus three key points) already gives the reader structure. Detail is prose.
+
+### 2b.2 Sentences that read like translation
+
+Also banned: noun stacks assembled instead of written. `mức độ thận trọng`, `xu hướng hành động chặt chẽ`, `khả năng ứng phó linh hoạt`, `tinh thần trách nhiệm cao`, `phương thức tiếp cận thực tế`, `yếu tố quan trọng`, `nền tảng vững chắc`.
+
+Rewrite them as something a person does: not `củng cố thêm mức độ thận trọng khi đứng trước các quyết định quan trọng`, but `bạn cân nhắc lâu, nhưng đã nói là làm`.
+
+Rule of thumb: if a sentence has three abstract nouns and no person doing anything, rewrite it.
+
+### 2b.3 Things the voice is allowed to do
+
+- Address the reader: `tôi muốn bạn để ý`, `xin nói rõ ngay`, `nếu bạn nghĩ lại những lần khó khăn đã qua`.
+- Rule out a wrong reading before it forms: `sao này không báo bệnh tật gì`, `tôi không nói bạn sẽ mất nhà, xin đừng hiểu như vậy`.
+- Use an everyday scene: tiền chợ, một buổi họp với đối tác lạ, một lần cho người nhà mượn tiền.
+- Point at something the reader can check: `có lẽ bạn chưa để ý`, `nếu bạn để ý, những khoản chi bạn tiếc nhất thường rơi vào lúc đang căng thẳng`.
+
+Reference output for all of this: `prototype/revamp-2026-09/doc-bao-cao-tuong-tac-palaces.js`, the Mệnh and Phu Thê palaces. That is the target, not an approximation of it.
+
 ## 3. Star and palace names
 
 Star names stay (founder decision, 2026-09-28: they carry the sense of real expertise that part of the audience pays for). What changes is how they appear.
@@ -87,6 +128,7 @@ Three beats: what this area looks like for this person → where it gets hard �
 | `minimumEvidenceAnchors` | Same | Same move |
 | Star density | Does not exist | New: reject above 1 star name per 80 syllables |
 | Translate on arrival | Does not exist | New: every star name in the narrative must have an explanatory clause within the same or next sentence. Detectable by checking that a star mention is not immediately followed or preceded by another star mention with no intervening clause |
+| Machine sub-headings | Does not exist | New: reject any narrative paragraph preceded by a 2 to 4 word noun-phrase heading, and reject the banned list in §2b.1 anywhere in the text |
 | Arc check (overview only) | Does not exist | New: five sub-headed paragraphs present, first paragraph does not start with a star name |
 | Section length | 700 to 900 overview, 550 to 750 palace | Unchanged |
 | `discouragedTerms`, death terms, certainty phrases, locale integrity | As configured | Unchanged |

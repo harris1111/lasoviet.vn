@@ -144,10 +144,14 @@
   function layered(o, key, flat) {
     var h = '<p class="concl">' + o.conclusion + '</p>' + pointsHtml(o.points);
     if (o.detail && o.detail.length) {
-      var body = o.detail.map(function (d) { return '<h3>' + d[0] + '</h3><p>' + d[1] + '</p>'; }).join("");
+      // Đoạn chi tiết viết thành văn xuôi liền mạch. Chỉ đặt tiêu đề nhỏ khi
+      // phần đó thật sự là danh sách các mục tách bạch, không phải một mạch kể.
+      var body = o.detail.map(function (d) {
+        return typeof d === "string" ? '<p>' + d + '</p>' : '<h3>' + d[0] + '</h3><p>' + d[1] + '</p>';
+      }).join("");
       if (flat) h += '<div class="detail">' + body + '</div>';
       else {
-        var words = o.detail.map(function (d) { return d[1]; }).join(" ").split(/\s+/).length;
+        var words = o.detail.map(function (d) { return typeof d === "string" ? d : d[1]; }).join(" ").split(/\s+/).length;
         var min = Math.max(1, Math.round(words / 180));
         h += '<button type="button" class="more" aria-expanded="false" aria-controls="d-' + key + '" data-more><span>Đọc chi tiết</span> <small>' + o.detail.length + ' đoạn, khoảng ' + min + ' phút</small>' + ic("ui-chevron") + '</button>'
           + '<div class="detail" id="d-' + key + '" hidden>' + body + '</div>';
@@ -169,7 +173,7 @@
       return '<p>' + p + '</p>';
     }).join("") + '</div>';
   }
-  function joined(o) { return (o.points || []).concat((o.detail || []).map(function (d) { return d[1]; })).join(" "); }
+  function joined(o) { return (o.points || []).concat((o.detail || []).map(function (d) { return typeof d === "string" ? d : d[1]; })).join(" "); }
   function legacyText(key, o) { return LSV.LEGACY[key] || joined(o); }
 
   /* ---------- Độ mạnh cấu trúc ---------- */
