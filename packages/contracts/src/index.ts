@@ -300,6 +300,10 @@ export {
   FreeIdentityPreviewV1Schema,
   PaidTopicSelectionRequestV1Schema,
   PaidTopicSelectionViewV1Schema,
+  LockedPartPreviewSchema,
+  InsightDetailSchema,
+  PalaceTitleLineSchema,
+  BanMenhPreviewSchema,
 } from "./free-identity-preview-v1.js";
 export {
   FreeIdentityPreviewV2Schema,
@@ -362,6 +366,10 @@ export type {
   FreeIdentityPreviewV1,
   PaidTopicSelectionRequestV1,
   PaidTopicSelectionViewV1,
+  LockedPartPreview,
+  InsightDetail,
+  PalaceTitleLine,
+  BanMenhPreview,
 } from "./free-identity-preview-v1.js";
 
 export {

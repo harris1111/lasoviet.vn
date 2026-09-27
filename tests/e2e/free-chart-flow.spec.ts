@@ -57,7 +57,7 @@ test("the private Zi Wei result route renders the free chart flow", async ({
 
   // 5. Free Identity Preview sections
   await expect(
-    page.getByRole("heading", { name: "Ba điểm để tự quan sát" }),
+    page.getByRole("heading", { name: /Ba điểm để tự quan sát|Lá số Tử Vi của bạn, và 2 điều lá số nói riêng về bạn/ }),
   ).toBeVisible();
   await expect(page.getByText("Điểm mạnh")).toBeVisible();
   await expect(page.getByText("Điểm cần điềm tĩnh quan sát")).toBeVisible();

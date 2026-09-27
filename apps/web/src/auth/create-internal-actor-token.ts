@@ -32,6 +32,7 @@ export async function createInternalActorToken(
           aud: INTERNAL_ACTOR_AUDIENCE,
           exp,
           requestId,
+          ...(actor.emailVerified !== undefined ? { emailVerified: actor.emailVerified } : {}),
         }
       : {
           version: 1 as const,

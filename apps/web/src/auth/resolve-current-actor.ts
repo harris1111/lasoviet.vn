@@ -131,6 +131,7 @@ export function createCurrentActorResolver(options: CurrentActorResolverOptions)
         userId: session.user.id,
         sessionId: session.session.id,
         requestId: createRequestId(),
+        emailVerified: session.user.emailVerified === true,
       };
     }
     const actor = await liveAnonymousActor(options.findLiveAnonymousActor, {
@@ -165,6 +166,7 @@ export function createVerifiedAccountResolver(options: Pick<
       userId: session.user.id,
       sessionId: session.session.id,
       requestId: createRequestId(),
+      emailVerified: true,
     };
   };
 }

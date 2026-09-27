@@ -2,6 +2,7 @@ import {
   EvidenceItemV1Schema,
   NormalizedBirthProfileV1Schema,
   NormalizedZiweiChartV1Schema,
+  type NormalizedZiweiChartV1,
   PaidTopicSelectionRequestV1Schema,
   PaidTopicSelectionViewV1Schema,
   type CurrentActor,
@@ -19,6 +20,7 @@ import { productCatalog } from "@lasoviet/config";
 
 import {
   buildFreeIdentityPreview,
+  buildGuardedFreeIdentityPreview,
 } from "../reports/free-identity-preview.js";
 import type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
 
@@ -241,10 +243,17 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
       if ("ok" in record) {
         return record;
       }
-      return buildFreeIdentityPreview({
+      const isVerified = actor.kind === "account" && actor.emailVerified === true;
+      const actorKind = isVerified ? ("verified" as const) : ("guest" as const);
+
+      return buildGuardedFreeIdentityPreview({
         chartId: record.chartId,
         chartVersionId: record.chartVersionId,
         evidence: record.items.map((item) => item.payload),
+        actorKind,
+        topConcern: record.topConcern,
+        chart: record.normalizedOutput as unknown as NormalizedZiweiChartV1,
+        displayName: (record.originalInput as Record<string, unknown>)?.displayName as string | undefined,
       });
     },
 
