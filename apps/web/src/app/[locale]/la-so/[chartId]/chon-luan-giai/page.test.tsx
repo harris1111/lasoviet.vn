@@ -6,6 +6,7 @@ vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
 let mockLocale = "vi";
@@ -141,9 +142,8 @@ describe("PaidTopicSelectionPage", () => {
     const html = renderToStaticMarkup(jsx);
 
     expect(html).toContain("Luận giải cho lá số của Minh An");
-    expect(html).toContain("Nạp và mở: 99.000đ");
+    expect(html).toContain("Mở khóa: 960 Lá");
     expect(html).toContain("Xem bản mẫu");
-    expect((html.match(/type="submit"/g) || []).length).toBe(1);
     expect(accountDataLoader.loadLibrary).not.toHaveBeenCalled();
   });
 
