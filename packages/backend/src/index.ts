@@ -737,3 +737,11 @@ export {
 export type {
   AdminBusinessMetricsRepository,
 } from "./admin-business-metrics/business-metrics.repository.js";
+
+export {
+  TimeLimitedEntitlementService,
+} from "./commerce/time-limited-entitlement.service.js";
+export type {
+  CreateLifetimeBonusEntitlementInput,
+  AssertDailyReadingAccessResult,
+} from "./commerce/time-limited-entitlement.service.js";

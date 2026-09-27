@@ -756,3 +756,36 @@ export type {
   ZiweiHoroscopeResultV1,
 } from "./ziwei-horoscope-v1.js";
 
+
+export {
+  DailyAspectKeySchema,
+  PersonalDailyReadingAspectSchema,
+  PersonalDailyReadingActionPlanSchema,
+  PersonalDailyReadingQualityGateSchema,
+  PersonalDailyReadingV1Schema,
+} from "./personal-daily-reading-v1.js";
+export type {
+  DailyAspectKey,
+  PersonalDailyReadingAspect,
+  PersonalDailyReadingActionPlan,
+  PersonalDailyReadingQualityGate,
+  PersonalDailyReadingV1,
+} from "./personal-daily-reading-v1.js";
+
+export {
+  TimeLimitedEntitlementSourceSchema,
+  TimeLimitedEntitlementV1Schema,
+  DailyReadingAccessStatusSchema,
+  DailyReadingAccessEvaluationV1Schema,
+  DAILY_READING_CATALOG_BLOCKER_MESSAGE,
+  calculateBonusExpiry,
+  isTimeLimitedEntitlementActive,
+  getTimeLimitedEntitlementRemainingMs,
+  evaluateDailyReadingAccess,
+} from "./time-limited-entitlement-v1.js";
+export type {
+  TimeLimitedEntitlementSource,
+  TimeLimitedEntitlementV1,
+  DailyReadingAccessStatus,
+  DailyReadingAccessEvaluationV1,
+} from "./time-limited-entitlement-v1.js";
