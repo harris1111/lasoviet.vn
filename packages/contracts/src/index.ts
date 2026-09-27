@@ -754,3 +754,14 @@ export type {
   ZiweiHoroscopeResultV1,
 } from "./ziwei-horoscope-v1.js";
 
+
+export {
+  ReportChartPalaceV1Schema,
+  ReportChartSnapshotV1Schema,
+  ReportChartStarV1Schema,
+  ReportDecadalCycleV1Schema,
+  type ReportChartPalaceV1,
+  type ReportChartSnapshotV1,
+  type ReportChartStarV1,
+  type ReportDecadalCycleV1,
+} from "./report-chart-snapshot-v1.js";
