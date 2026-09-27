@@ -2,6 +2,7 @@
 (function () {
   var C = LSV.CHART, P = C.palaces, PT = LSV.PORTRAIT, R = LSV.PALACE_READINGS;
   var curDec = C.decadal[C.currentDecadal];
+  var SC = LSV.computeScores(C);
   var FS = [[0.92, "Nhỏ"], [1, "Vừa"], [1.1, "Lớn"]];
   var state = { mode: "new", sel: "Thìn", open: {}, read: {}, active: null, fs: 1, opener: null };
   LSV.PALACE_ORDER.slice(0, 2).forEach(function (b) { state.open[b] = true; });
@@ -171,6 +172,45 @@
   function joined(o) { return (o.points || []).concat((o.detail || []).map(function (d) { return d[1]; })).join(" "); }
   function legacyText(key, o) { return LSV.LEGACY[key] || joined(o); }
 
+  /* ---------- Độ mạnh cấu trúc ---------- */
+  function radarHtml() {
+    var size = 320, c = size / 2, r = 116, brs = LSV.PALACE_ORDER;
+    function pt(i, v) {
+      var a = (-90 + i * 30) * Math.PI / 180, d = (v / 100) * r;
+      return [(c + d * Math.cos(a)).toFixed(1), (c + d * Math.sin(a)).toFixed(1)];
+    }
+    var rings = [20, 40, 60, 80, 100].map(function (v) {
+      return '<polygon class="rd-ring" points="' + brs.map(function (_, i) { return pt(i, v).join(","); }).join(" ") + '"/>';
+    }).join("");
+    var axes = brs.map(function (_, i) {
+      var e = pt(i, 100);
+      return '<line class="rd-axis" x1="' + c + '" y1="' + c + '" x2="' + e[0] + '" y2="' + e[1] + '"/>';
+    }).join("");
+    var shape = brs.map(function (br, i) { return pt(i, SC[br].score).join(","); }).join(" ");
+    var dots = brs.map(function (br, i) {
+      var q = pt(i, SC[br].score);
+      return '<circle class="rd-dot" cx="' + q[0] + '" cy="' + q[1] + '" r="3"><title>' + P[br].name + ": " + SC[br].score + '</title></circle>';
+    }).join("");
+    var labels = brs.map(function (br, i) {
+      var a = (-90 + i * 30) * Math.PI / 180, d = r + 24;
+      var x = c + d * Math.cos(a), y = c + d * Math.sin(a);
+      var anchor = Math.abs(x - c) < 6 ? "middle" : (x > c ? "start" : "end");
+      return '<text class="rd-lb" x="' + x.toFixed(1) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="' + anchor + '">' + P[br].name + '</text>';
+    }).join("");
+    return '<figure class="radar"><svg viewBox="-34 -6 ' + (size + 68) + ' ' + (size + 12) + '" role="img" aria-label="Độ mạnh cấu trúc của mười hai cung">'
+      + rings + axes + '<polygon class="rd-shape" points="' + shape + '"/>' + dots + labels + '</svg>'
+      + '<figcaption>Mỗi đỉnh là một cung. Càng xa tâm, bộ sao của cung đó càng thiên về hỗ trợ.</figcaption></figure>';
+  }
+  function scoreBadge(br) {
+    var d = SC[br], b = LSV.scoreBand(d.score);
+    return '<span class="sc sc-' + b.key + '" title="' + b.label + '">' + d.score + '</span>';
+  }
+  function scoreNote() {
+    return '<details class="how"><summary>Điểm này tính thế nào?</summary>'
+      + '<p>Điểm đo bộ sao của cung, không đo tốt xấu của cuộc đời bạn. Cùng một lá số thì lúc nào tính cũng ra đúng con số đó.</p>'
+      + '<dl>' + LSV.SCORE_EXPLAIN.map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + x[1] + '</dd>'; }).join("") + '</dl></details>';
+  }
+
   /* ---------- Chapters ---------- */
   function head(ch) {
     var thumb = ch.br ? '<button type="button" class="thumb-btn" data-go-br="' + ch.br + '" aria-label="Mở cung ' + P[ch.br].name + '">' + chartHtml("thumb", ch.br) + '<span class="thumb-cap">Cung ' + P[ch.br].name + '</span></button>' : "";
@@ -190,7 +230,8 @@
     var body = chips(p.main.map(function (m) { return m; }).concat(p.aux)) + (lt ? legacyHtml(lt) : layered(rd, "p-" + p.id, true)) + whyHtml(palaceBasis(br));
     return '<article class="pcard' + (open ? ' open' : '') + (br === state.sel ? ' is-sel' : '') + '" id="p-' + p.id + '" data-br="' + br + '">'
       + '<div class="pc-head">' + chartHtml("thumb", br)
-      + '<div><h3><button type="button" class="pc-btn" aria-expanded="' + open + '" aria-controls="pb-' + p.id + '" data-pc="' + br + '">' + p.name + '<small>' + p.can + ' ' + br + '</small></button></h3>'
+      + '<div><h3><button type="button" class="pc-btn" aria-expanded="' + open + '" aria-controls="pb-' + p.id + '" data-pc="' + br + '">' + p.name + '<small>' + p.can + ' ' + br + '</small></button>' + scoreBadge(br) + '</h3>'
+      + '<p class="pc-band">' + LSV.scoreBand(SC[br].score).label + '</p>'
       + '<p class="pc-c">' + (lt ? firstSentence(lt) : rd.conclusion) + '</p>'
       + (tg.length ? '<div class="pc-tags">' + tg.map(function (t) { return '<span class="pill">' + t + '</span>'; }).join("") + '</div>' : '') + '</div>'
       + ic("ui-chevron") + '</div>'
@@ -211,7 +252,8 @@
         h += hoaMap(ch) + (L ? legacyHtml(legacyText(ch.id, ch)) + whyHtml(ch.basis) : layered(ch, ch.id)); break;
       case "palaces":
         var all = LSV.PALACE_ORDER.every(function (b) { return state.open[b]; });
-        h += '<div class="pc-tools"><p>Bấm vào một cung, hoặc một ô trên lá số, để mở cung đó.</p><button type="button" class="more" id="pcAll" aria-pressed="' + all + '">' + (all ? "Thu gọn tất cả" : "Mở tất cả 12 cung") + '</button></div>'
+        h += radarHtml() + scoreNote()
+          + '<div class="pc-tools"><p>Bấm vào một cung, hoặc một ô trên lá số, để mở cung đó.</p><button type="button" class="more" id="pcAll" aria-pressed="' + all + '">' + (all ? "Thu gọn tất cả" : "Mở tất cả 12 cung") + '</button></div>'
           + '<div class="pc-list">' + LSV.PALACE_ORDER.map(palaceCard).join("") + '</div>'; break;
       case "themes":
         h += '<div class="theme-grid">' + ch.themes.map(function (t) {
@@ -248,13 +290,27 @@
   }
   function renderTimeline() {
     var pct = ((C.targetYear - curDec.years[0] + 0.5) / 10 * 100).toFixed(1);
-    $("#tl").innerHTML = C.decadal.map(function (d, i) {
+    var strip = C.decadal.map(function (d, i) {
       var now = i === C.currentDecadal, past = i < C.currentDecadal;
       return '<div role="listitem"><button type="button" class="seg-c' + (now ? ' now' : '') + (past ? ' past' : '') + '" data-tl="' + i + '" aria-label="Chặng ' + d.age[0] + ' đến ' + d.age[1] + ' tuổi, năm ' + d.years[0] + ' đến ' + d.years[1] + ', cung ' + P[d.br].name + (now ? ', chặng hiện tại' : '') + '">'
+        + (now ? '<span class="pill seal now-tag">Hiện tại, năm ' + C.targetYear + '</span>' : '')
         + '<span class="age">' + d.age[0] + '-' + d.age[1] + ' tuổi</span><span class="pal">' + P[d.br].name + ' (' + d.br + ')</span><span class="yrs">' + d.years[0] + '-' + d.years[1] + '</span>'
-        + '<span class="bar">' + (now ? '<i style="left:' + pct + '%"></i>' : '') + '</span>'
-        + (now ? '<span class="pill seal now-tag">Hiện tại, năm 2026</span>' : '') + '</button></div>';
+        + '<span class="bar">' + (now ? '<i style="left:' + pct + '%"></i>' : '') + '</span></button></div>';
     }).join("");
+    var list = C.decadal.map(function (d, i) {
+      var now = i === C.currentDecadal;
+      return '<article class="dv-row' + (now ? ' now' : '') + '">'
+        + '<h3>' + d.age[0] + '-' + d.age[1] + ' tuổi <small>' + d.years[0] + '-' + d.years[1] + ' · cung ' + P[d.br].name + '</small>'
+        + (now ? ' <span class="pill seal">Đang sống</span>' : '') + '</h3>'
+        + '<p>' + d.teaser + '</p>'
+        + '<div class="dv-act">'
+        + (now
+            ? '<button type="button" class="btn btn-primary" data-go="dai-van">Đọc đầy đủ chặng này</button>'
+            : '<button type="button" class="btn btn-secondary" data-go-br="' + d.br + '">Đọc cung ' + P[d.br].name + '</button>')
+        + '</div></article>';
+    }).join("");
+    $("#tl").innerHTML = strip;
+    $("#tlList").innerHTML = list;
   }
   function tocHtml() {
     return LSV.CHAPTERS.map(function (ch) {

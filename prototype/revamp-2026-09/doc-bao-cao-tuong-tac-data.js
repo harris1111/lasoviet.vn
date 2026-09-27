@@ -25,15 +25,25 @@ LSV.CHART = {
     "Tỵ":   { can:"Đinh", name:"Phụ Mẫu",    id:"phu-mau",   main:[["Thái Âm","Hãm","khoa"]], aux:["Thiên Việt","Ân Quang","Thiên Giải","Bạch Hổ"] }
   },
   // Engine decadal list (iztro decadalList), Thổ ngũ cục, nghịch hành from Mệnh.
+  // Mỗi chặng có một đoạn tóm tắt ngắn. Riêng chặng đang sống có phần
+  // luận giải đầy đủ ở dưới bài.
   decadal: [
-    { age:[5,14],  years:[1997,2006], br:"Thìn" },
-    { age:[15,24], years:[2007,2016], br:"Mão" },
-    { age:[25,34], years:[2017,2026], br:"Dần" },
-    { age:[35,44], years:[2027,2036], br:"Sửu" },
-    { age:[45,54], years:[2037,2046], br:"Tý" },
-    { age:[55,64], years:[2047,2056], br:"Hợi" },
-    { age:[65,74], years:[2057,2066], br:"Tuất" },
-    { age:[75,84], years:[2067,2076], br:"Dậu" }
+    { age:[5,14],  years:[1997,2006], br:"Thìn",
+      teaser:"Chặng đi qua chính cung Mệnh. Đây là quãng hình thành nếp sống: học cách giữ lời, giữ đồ, giữ trật tự cho việc của mình. Những thói quen hình thành ở đây theo bạn rất lâu." },
+    { age:[15,24], years:[2007,2016], br:"Mão",
+      teaser:"Chặng đi qua cung Huynh Đệ, nơi quan hệ bạn bè và anh em nổi lên. Đây là quãng bạn học cách làm việc cùng người khác, và cũng là quãng dễ va chạm nhất về chuyện tiền chung." },
+    { age:[25,34], years:[2017,2026], br:"Dần",
+      teaser:"Chặng đang sống. Trọng tâm là người đồng hành: bạn đời, đối tác, người cùng làm. Cơ hội đến qua họ, và vướng mắc cũng vậy.", full:true },
+    { age:[35,44], years:[2027,2036], br:"Sửu",
+      teaser:"Chặng sắp tới, đi qua cung Tử Tức. Con cái, người cấp dưới và những thứ bạn gây dựng sẽ chiếm phần lớn tâm trí. Bộ sao ở đây mạnh và cứng, nên đối thoại quan trọng hơn ra lệnh." },
+    { age:[45,54], years:[2037,2046], br:"Tý",
+      teaser:"Chặng đi qua cung Tài Bạch, nơi có Tử Vi và Lộc Tồn. Đây thường là quãng tài chính ổn định nhất, đổi lại trách nhiệm cũng nặng nhất." },
+    { age:[55,64], years:[2047,2056], br:"Hợi",
+      teaser:"Chặng đi qua cung Tật Ách. Sức khoẻ và nhịp sống trở thành việc phải chăm, không còn là thứ để sau. Đi lại nhiều thì cần chuẩn bị kỹ hơn trước." },
+    { age:[65,74], years:[2057,2066], br:"Tuất",
+      teaser:"Chặng đi qua cung Thiên Di, cũng là cung Thân của bạn. Quãng này bạn vẫn hướng ra ngoài: gặp gỡ, đi lại, giữ vai trò trong cộng đồng." },
+    { age:[75,84], years:[2067,2076], br:"Dậu",
+      teaser:"Chặng đi qua cung Nô Bộc. Bạn bè, người quanh mình và những mối quan hệ giữ được lâu là chỗ dựa chính của quãng này." }
   ],
   currentDecadal: 2,
   targetYear: 2026,
@@ -63,19 +73,26 @@ LSV.CHAPTERS = [
   { id:"tong-quan", kind:"std", toc:"Tổng quan lá số", title:"Tổng quan lá số", br:"Thìn",
     facts:"Cung Mệnh tại <b>Bính Thìn</b>. Thân cư <b>Thiên Di</b> tại Tuất.",
     stars:[["Liêm Trinh","Bình"],["Thiên Phủ","Miếu"],"Âm Sát","Bệnh Phù","Thiên Sát","Long Đức"],
-    conclusion:"Lá số nghiêng về giữ nền: bạn làm chắc trước, mở rộng sau, và hiếm khi đặt cược thứ mình đã có.",
+    conclusion:"Bạn là người xây nền: làm chắc trước, mở rộng sau, và hiếm khi đặt cược thứ mình đã có.",
     points:[
-      "Liêm Trinh và Thiên Phủ ở Mệnh cho bạn nguyên tắc rõ và khả năng quản tiền, quản việc.",
-      "Âm Sát, Bệnh Phù đi cùng khiến bạn cân nhắc lâu, có lúc thành do dự.",
-      "Phần quyết đoán nằm ở cung Thân, nên bạn mạnh nhất khi ra ngoài làm việc với người khác."
+      "Nền tính cách của bạn là giữ và quản: giữ lời, giữ tiền, giữ trật tự cho việc mình làm.",
+      "Cái giá phải trả là chậm quyết, nhất là khi thông tin chưa đủ rõ.",
+      "Nhưng khi bước ra khỏi vùng quen, bạn lại là người quyết nhanh và dám nhận việc khó."
     ],
     detail:[
-      ["Cách bạn làm việc","Bạn thích kế hoạch có lộ trình, có người chịu trách nhiệm cho từng phần. Trước khi bắt tay, bạn thường rà chi tiết và tính trước chỗ có thể hỏng. Nhờ vậy việc bạn làm ít khi phải làm lại."],
-      ["Chỗ dễ vướng","Cùng thói quen đó, khi thông tin chưa đủ, bạn dễ chần chừ và lo xa. Có những cơ hội cần trả lời trong vài ngày, không đợi được đến lúc mọi thứ rõ ràng."],
-      ["Khi bước ra ngoài","Thân cư Thiên Di với Thất Sát sáng cho thấy ngoài xã hội bạn khác hẳn: nói thẳng, quyết nhanh, dám nhận việc khó. Hai mặt này không mâu thuẫn, chỉ cần biết lúc nào dùng mặt nào."]
+      ["Con người bạn, nhìn từ xa",
+       "Lá số của bạn mở đầu bằng một cặp sao mà người xưa coi là bộ đôi giữ nhà. Nói cho dễ hiểu: một ngôi lo phần kho, một ngôi lo phần luật. Ngôi lo kho là Thiên Phủ, và nó ở vị trí sáng nhất trong lá số bạn. Nó khiến bạn có phản xạ tích luỹ, dự phòng, và rất không thích cảm giác tay trắng. Ngôi lo luật là Liêm Trinh. Nó khiến bạn coi trọng việc đúng quy trình, đúng cam kết, và khó chịu khi thấy ai đó làm ăn tuỳ tiện. Một người mang cả kho lẫn luật trong tính cách nền thì hiếm khi làm gì bốc đồng. Bạn cân nhắc lâu, nhưng đã nói là làm."],
+      ["Cách bạn đi qua công việc",
+       "Điều đó hiện ra rõ nhất ở cách bạn nhận một việc mới. Bạn không hỏi có hay không, bạn hỏi làm thế nào. Ai chịu trách nhiệm phần nào, tiền lấy từ đâu, hỏng thì lùi về đâu. Người làm cùng bạn thường thấy yên tâm, vì việc bạn làm ít khi phải làm lại. Đổi lại, bạn hay ôm việc. Thấy một chỗ chưa chắc, phản xạ đầu tiên của bạn là tự làm cho chắc, chứ không phải giao đi và chấp nhận rủi ro."],
+      ["Chỗ khiến bạn mệt",
+       "Cũng chính sự cẩn thận đó, khi thông tin chưa đủ thì bạn dừng lại. Có những cơ hội chỉ mở trong vài ngày và không đợi tới lúc mọi thứ rõ ràng. Hai ngôi sao đứng cùng cung Mệnh nói đúng chuyện này. Âm Sát là những khó chịu không được nói ra, thứ bạn giữ trong lòng thay vì nói thẳng. Bệnh Phù là lời nhắc rằng cơ thể sẽ lên tiếng khi bạn kéo dài quá tải. Cả hai đều không nói về bệnh tật hay tai hoạ. Chúng nói về một thói quen: bạn ôm nhiều, nói ít, và thường nhận ra mình mệt sau khi đã mệt từ lâu."],
+      ["Con người thứ hai của bạn",
+       "Lá số này còn một mặt nữa, nằm ở phía đối diện. Chỗ thể hiện bạn khi bước ra ngoài xã hội có Thất Sát, ngôi sao của hành động dứt khoát, và nó cũng ở vị trí sáng. Người quen bạn ở nhà sẽ hơi ngạc nhiên khi thấy bạn trong một cuộc họp với đối tác lạ. Ở đó bạn nói thẳng, quyết nhanh, không ngại va chạm. Hai mặt này không mâu thuẫn nhau. Chúng là hai chế độ, và cuộc sống dễ chịu nhất khi bạn biết lúc nào nên bật chế độ nào."],
+      ["Cuộc đời này hợp với cách sống nào",
+       "Tựu trung, lá số của bạn hợp với những việc có nền để xây và có đích để đo. Bạn không hợp môi trường mà mọi thứ đổi mỗi tuần và không ai chịu trách nhiệm gì. Bạn cũng không hợp vai trò chỉ ngồi chờ lệnh. Chỗ bạn phát huy nhất là nơi cho bạn tự dựng phương án rồi tự quyết khâu làm. Càng có thước đo rõ ràng, bạn càng đi xa."]
     ],
-    guide:{ do:["Chia việc lớn thành từng chặng, mỗi chặng có tiêu chí xong rõ ràng.","Đặt hạn chót cho việc cân nhắc, quá hạn thì quyết theo thông tin đang có."], avoid:["Đợi đủ mọi dữ kiện rồi mới hành động.","Giữ bất đồng trong lòng thay vì nói ra sớm."] },
-    basis:"Cung Mệnh tại Bính Thìn: Liêm Trinh (Bình), Thiên Phủ (Miếu), Âm Sát, Bệnh Phù, Thiên Sát, Long Đức. Thân cư Thiên Di tại Tuất." },
+    guide:{ do:["Chia việc lớn thành từng chặng, mỗi chặng có tiêu chí xong rõ ràng.","Đặt hạn chót cho việc cân nhắc; quá hạn thì quyết theo thông tin đang có."], avoid:["Đợi đủ mọi dữ kiện rồi mới hành động.","Giữ bất đồng trong lòng thay vì nói ra sớm."] },
+    basis:"Cung Mệnh tại Bính Thìn: Liêm Trinh (Bình), Thiên Phủ (Miếu), Âm Sát, Bệnh Phù, Thiên Sát, Long Đức. Thân cư Thiên Di tại Tuất với Thất Sát (Miếu)." },
 
   { id:"truc-menh-than", kind:"std", toc:"Mệnh, Thân và động lực cốt lõi", title:"Mệnh, Thân và động lực cốt lõi", br:"Tuất",
     facts:"Mệnh <b>Thìn</b> đối Thiên Di <b>Tuất</b>, cung Thân nằm ở Thiên Di.",

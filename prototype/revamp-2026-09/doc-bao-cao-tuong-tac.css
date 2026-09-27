@@ -377,3 +377,45 @@ button { font: inherit; color: inherit; }
   body { background: #fff; color: #222; }
   .chap { break-inside: avoid-page; }
 }
+
+/* ---- Độ mạnh cấu trúc: biểu đồ 12 cung, điểm từng cung ---- */
+.radar { margin: 6px 0 12px; display: grid; justify-items: center; gap: 8px; }
+.radar svg { width: min(100%, 420px); height: auto; overflow: visible; }
+.rd-ring { fill: none; stroke: var(--border-hairline); stroke-width: 1; }
+.rd-axis { stroke: var(--border-hairline); stroke-width: 1; }
+.rd-shape { fill: var(--gold-soft); stroke: var(--gold-line); stroke-width: 1.5; }
+.rd-dot { fill: var(--accent-seal); }
+.rd-lb { fill: var(--text-muted); font: 500 11px var(--font-ui); }
+.radar figcaption { margin: 0; font-size: 13px; color: var(--text-muted); text-align: center; max-width: 46ch; }
+
+.sc { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 7px; margin-left: 10px; border-radius: 999px; font: 600 13.5px/1 var(--font-mono); vertical-align: 2px; }
+.sc-manh { background: rgba(79,122,104,.28); color: #9fd1ba; }
+.sc-thuan { background: rgba(79,122,104,.16); color: #8fbfa5; }
+.sc-can { background: var(--gold-soft); color: var(--gold-text); }
+.sc-canh { background: rgba(224,174,82,.18); color: #e0ae52; }
+.sc-kho { background: var(--seal-soft); color: #ec8a74; }
+:root[data-theme="light"] .sc-manh { background: rgba(47,111,87,.14); color: #2f6f57; }
+:root[data-theme="light"] .sc-thuan { background: rgba(47,111,87,.10); color: #2f6f57; }
+:root[data-theme="light"] .sc-canh { background: rgba(138,90,18,.14); color: #8a5a12; }
+:root[data-theme="light"] .sc-kho { background: rgba(166,61,47,.12); color: var(--cinnabar-700); }
+.pc-band { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+
+.how { margin: 0 0 18px; border: 1px solid var(--border-soft); border-radius: 12px; padding: 0 14px; font-size: 14.5px; }
+.how summary { cursor: pointer; padding: 11px 0; color: var(--gold-text); font-weight: 600; list-style: none; }
+.how summary::-webkit-details-marker { display: none; }
+.how p { margin: 0 0 12px; line-height: 1.55; }
+.how dl { margin: 0 0 14px; display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 6px 14px; }
+.how dt { color: var(--text-heading); font-weight: 500; }
+.how dd { margin: 0; color: var(--text-body); }
+@media (max-width: 560px) { .how dl { grid-template-columns: 1fr; gap: 2px; } .how dd { margin-bottom: 8px; } }
+
+/* ---- Danh sách các chặng đại vận ---- */
+.tl-how { margin: 14px 0 16px; }
+.dv-list { display: grid; gap: 10px; }
+.dv-row { border: 1px solid var(--border-soft); border-radius: var(--radius-card); background: var(--surface-raised); padding: 14px 16px; display: grid; gap: 8px; }
+.dv-row.now { border-color: var(--gold-line); box-shadow: 0 0 0 1px var(--gold-line) inset; }
+.dv-row h3 { margin: 0; font: 600 17px/1.3 var(--font-display); color: var(--text-heading); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.dv-row h3 small { font: 500 12.5px var(--font-mono); color: var(--text-muted); }
+.dv-row p { margin: 0; font-size: calc(15.5px * var(--rs)); line-height: 1.6; }
+.dv-act { display: flex; flex-wrap: wrap; gap: 8px; }
+.dv-act .btn { height: 40px; padding: 0 16px; font-size: 14.5px; }
