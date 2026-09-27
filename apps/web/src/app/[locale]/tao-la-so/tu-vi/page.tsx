@@ -4,9 +4,13 @@ import { Icon } from "../../../../components/icon";
 import { BirthProfileForm } from "../../../../features/birth-profile/birth-profile-form";
 import { submitBirthProfile } from "../../../../features/birth-profile/birth-profile-actions";
 import { calculateZiweiChart } from "../../../../features/ziwei/calculate-ziwei-chart-action";
+import {
+  parseToolBirthPrefill,
+  type ToolBirthPrefillSearchParams,
+} from "../../../../features/birth-profile/tool-birth-prefill";
 
 type ZiweiBirthProfilePageProps = {
-  searchParams?: Promise<{ from?: string }>;
+  searchParams?: Promise<{ from?: string } & ToolBirthPrefillSearchParams>;
 };
 
 export default async function ZiweiBirthProfilePage(props: ZiweiBirthProfilePageProps) {
@@ -26,6 +30,7 @@ export default async function ZiweiBirthProfilePage(props: ZiweiBirthProfilePage
         locale={locale}
         referenceYear={referenceYear}
         submitBirthProfile={submitBirthProfile}
+        toolPrefill={parseToolBirthPrefill(searchParams, referenceYear)}
       />
     </main>
   );
