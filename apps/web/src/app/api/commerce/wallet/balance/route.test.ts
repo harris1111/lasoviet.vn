@@ -37,6 +37,7 @@ const actor = {
 
 const validBalance = {
   version: 1,
+  stateVersion: 1,
   totalLa: 240,
   purchasedLa: 180,
   promotionalLa: 60,

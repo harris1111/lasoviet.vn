@@ -50,18 +50,6 @@ export type WalletUnlockDialogProps = {
   labels: WalletUnlockDialogLabels;
 };
 
-/**
- * `WalletBalanceV1` (packages/contracts/src/wallet-commerce-v1.ts) does not
- * expose the wallet's `stateVersion`, which `wallet/unlock` requires as
- * `expectedWalletVersion` for optimistic concurrency. Until that field is
- * added (see PR description / Kaneo #51), this dialog cannot pass the real
- * version and every confirm will fail with `WALLET_VERSION_CONFLICT` for any
- * wallet that has already received a grant or spend (which every verified
- * account has, via the FD-105 1.6 welcome grant). This is a backend
- * follow-up, not something fixable from the client.
- */
-const PLACEHOLDER_WALLET_VERSION = 1;
-
 function randomId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
@@ -115,9 +103,9 @@ export function WalletUnlockDialog({
           amountLa: number;
           stateVersion: number;
         };
-        const balance = (await balanceResponse.json()) as { totalLa: number };
+        const balance = (await balanceResponse.json()) as { totalLa: number; stateVersion: number };
         if (!active) return;
-        setState(resolveWalletUnlockLoadedState(intent, balance, PLACEHOLDER_WALLET_VERSION));
+        setState(resolveWalletUnlockLoadedState(intent, balance, balance.stateVersion));
       } catch {
         if (active) setState({ step: "error", message: labels.genericError });
       }
