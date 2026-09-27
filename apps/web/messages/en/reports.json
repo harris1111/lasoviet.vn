@@ -225,6 +225,17 @@
     "upgrade_price_notice": "You already own the Natal Excerpt. Upgrade to Comprehensive for only 720 Lá instead of 960 Lá within 7 days from payment.",
     "upgrade_cta": "Unlock 8 remaining sections — 720 Lá",
     "unlocked_map_title": "4 unlocked sections",
-    "locked_map_title": "8 locked sections"
+    "locked_map_title": "8 locked sections",
+    "action_why": "Why:",
+    "action_avoid": "Avoid:",
+    "palaces_expand_all": "Open all 12 palaces",
+    "palaces_collapse_all": "Collapse all",
+    "stars_label": "Stars in this palace",
+    "no_main_star": "No main star",
+    "timeline_title": "Decadal cycles",
+    "timeline_note": "Each cycle spans 10 years by lunar age. Only the current cycle has its own reading.",
+    "timeline_current": "Current",
+    "timeline_age": "Age {from}-{to}",
+    "chart_thumb_label": "Position of {palace} on the chart"
   }
 }
