@@ -84,11 +84,10 @@ describe("SePay controller HTTP contract", () => {
       expect(result).toEqual({
         ok: true,
         value: {
-          id: "intent-1", productTitle: "Comprehensive Zi Wei reading", locale: "en", amountLa: 720,
+          id: "intent-1", sku: "ZIWEI-IDENTITY-P0", productTitle: "Comprehensive Zi Wei reading", locale: "en", amountLa: 720,
           status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
         },
       });
-      expect(JSON.stringify(result)).not.toContain("ZIWEI-");
       expect(JSON.stringify(result)).not.toContain("chart-1");
       expect(JSON.stringify(result)).not.toContain("private-chart-version");
       expect(JSON.stringify(result)).not.toMatch(/provider|invoice|allocation|receipt/i);
@@ -119,7 +118,7 @@ describe("SePay controller HTTP contract", () => {
       kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
     });
     const balance = {
-      version: 1 as const, totalLa: 100, purchasedLa: 40, promotionalLa: 60, updatedAt: "2026-09-17T00:00:00.000Z",
+      version: 1 as const, stateVersion: 1, totalLa: 100, purchasedLa: 40, promotionalLa: 60, updatedAt: "2026-09-17T00:00:00.000Z",
     };
     const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
       readWalletBalance: vi.fn().mockResolvedValue({ ok: true, value: balance }),
@@ -164,7 +163,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-17T00:00:00.000Z",
           },
           balance: {
-            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+            version: 1, stateVersion: 2, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
           },
           reportId: "report-1",
           receipt: "private-receipt",
@@ -198,16 +197,16 @@ describe("SePay controller HTTP contract", () => {
         ok: true,
         value: {
           intent: {
-            id: "intent-1", productTitle: "Bản mệnh và tiềm năng", locale: "vi", amountLa: 240,
+            id: "intent-1", sku: "ZIWEI-NATAL-EXCERPT-P0", productTitle: "Bản mệnh và tiềm năng", locale: "vi", amountLa: 240,
             status: "completed", stateVersion: 2, createdAt: "2026-09-17T00:00:00.000Z",
           },
           balance: {
-            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+            version: 1, stateVersion: 2, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
           },
           reportId: "report-1",
         },
       });
-      expect(JSON.stringify(unlocked)).not.toMatch(/ZIWEI-|private-version|private-receipt|invoice|allocation|chart-1|chart-2|provider/i);
+      expect(JSON.stringify(unlocked)).not.toMatch(/private-version|private-receipt|invoice|allocation|chart-1|chart-2|provider/i);
       await expect(controller().libraryV2("Bearer valid-token")).resolves.toMatchObject({
         ok: true,
         value: { version: 2, totalCount: 2, items: [{ source: "order" }, { source: "ledger_spend", orderId: null }] },

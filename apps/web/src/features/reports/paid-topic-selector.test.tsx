@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 import { renderToStaticMarkup } from "react-dom/server";
 import type { PaidTopicSelectionViewV1 } from "@lasoviet/contracts";
 
@@ -106,9 +109,9 @@ describe("PaidTopicSelector", () => {
     expect(html).not.toContain("ZIWEI-IDENTITY-P0");
     expect(html).not.toMatch(/ZIWEI-[A-Z]+/);
 
-    // Exactly one active purchase submit button for this single-offer view
-    const submitMatches = (html.match(/type="submit"/g) || []).length;
-    expect(submitMatches).toBe(1);
+    // Exactly one active purchase CTA button for this single-offer view (opens the Lá unlock dialog)
+    const ctaMatches = (html.match(/Mở khóa: 960 Lá/g) || []).length;
+    expect(ctaMatches).toBe(1);
   });
 
   it("renders English offer title and equivalent scope without promising V3 delivery", () => {
@@ -154,7 +157,7 @@ describe("PaidTopicSelector", () => {
     );
     expect(htmlVi).toContain("/bao-cao-mau/tu-vi");
     expect(htmlVi).toContain("Xem bản mẫu");
-    expect((htmlVi.match(/type="submit"/g) || []).length).toBe(1);
+    expect((htmlVi.match(/Mở khóa: 960 Lá/g) || []).length).toBe(1);
 
     mockLocale = "en";
     let htmlEn: string;
@@ -167,7 +170,7 @@ describe("PaidTopicSelector", () => {
     }
     expect(htmlEn).toContain("/en/bao-cao-mau/tu-vi");
     expect(htmlEn).toContain("View sample report");
-    expect((htmlEn.match(/type="submit"/g) || []).length).toBe(1);
+    expect((htmlEn.match(/Unlock: 960 Lá/g) || []).length).toBe(1);
   });
 
   it("renders generic heading when birthSummary is omitted or has no displayName", () => {
@@ -689,6 +692,9 @@ describe("PaidTopicSelector", () => {
     );
     expect(html).toContain("Thiếu 960 Lá");
     expect(html).toContain("Gói Khởi Đọc (1100 Lá · 99.000đ) là gói nhỏ nhất đủ mở.");
-    expect(html).toContain("Nạp và mở: 99.000đ");
+    // The unlock button itself always reads "Mở khóa: N Lá"; the short-balance
+    // sheet with the covering pack now lives inside the confirm dialog
+    // (FD-105 package 1.2), which opens on click rather than server-rendering.
+    expect(html).toContain("Mở khóa: 960 Lá");
   });
 });

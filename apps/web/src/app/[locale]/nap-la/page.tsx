@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { customerContactConfig } from "@lasoviet/config";
 
 import type { CurrentActor } from "@lasoviet/contracts";
+import { WalletTopUpPackIdSchema } from "@lasoviet/contracts";
 import {
   resolveVerifiedAccountActor,
   VerifiedAccountResolutionError,
@@ -18,11 +19,16 @@ export const dynamic = "force-dynamic";
 
 export default async function TopUpPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ pack?: string }>;
 }) {
   const { locale: requestedLocale } = await params;
   const locale = requestedLocale === "en" ? "en" : "vi";
+  const requestedPack = (await searchParams)?.pack;
+  const parsedPack = WalletTopUpPackIdSchema.safeParse(requestedPack);
+  const initialPackId = parsedPack.success ? parsedPack.data : undefined;
 
   let actor: Extract<CurrentActor, { kind: "account" }> | null = null;
   try {
@@ -49,6 +55,7 @@ export default async function TopUpPage({
         <PaidTopicSelector
           locale={locale}
           initialTab="nap-la"
+          initialPackId={initialPackId}
           supportEmail={customerContactConfig.email.value}
           userBalance={userBalance}
         />

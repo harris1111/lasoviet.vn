@@ -102,6 +102,7 @@ function customerWalletIntent(value: {
     Number.isNaN(Date.parse(value.createdAt))) throw new Error("WALLET_INTENT_PROJECTION_INVALID");
   return {
     id: value.id,
+    sku: value.sku,
     productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale),
     locale: value.locale,
     amountLa: value.amountLa,
