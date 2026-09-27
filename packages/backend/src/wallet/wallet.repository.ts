@@ -146,6 +146,7 @@ function canonicalize(value: unknown): unknown {
 function balance(wallet: typeof walletAccounts.$inferSelect): WalletBalanceV1 {
   return {
     version: 1,
+    stateVersion: wallet.stateVersion,
     purchasedLa: wallet.purchasedBalance,
     promotionalLa: wallet.promotionalBalance,
     totalLa: wallet.purchasedBalance + wallet.promotionalBalance,
@@ -156,6 +157,7 @@ function balance(wallet: typeof walletAccounts.$inferSelect): WalletBalanceV1 {
 function zeroBalance(now: Date): WalletBalanceV1 {
   return {
     version: 1,
+    stateVersion: 1,
     purchasedLa: 0,
     promotionalLa: 0,
     totalLa: 0,

@@ -23,12 +23,36 @@ describe("wallet commerce V1 contracts", () => {
 
   it("requires nonnegative reconciled buckets and an exact total", () => {
     const balance = {
-      version: 1, totalLa: 300, purchasedLa: 240, promotionalLa: 60,
+      version: 1, stateVersion: 1, totalLa: 300, purchasedLa: 240, promotionalLa: 60,
       updatedAt: "2026-09-17T00:00:00.000Z",
     };
     expect(WalletBalanceV1Schema.safeParse(balance).success).toBe(true);
     expect(WalletBalanceV1Schema.safeParse({ ...balance, totalLa: 299 }).success).toBe(false);
     expect(WalletBalanceV1Schema.safeParse({ ...balance, extra: "sensitive" }).success).toBe(false);
+  });
+
+  it("requires a positive integer stateVersion and validates zero balance with stateVersion 1", () => {
+    const zeroBalance = {
+      version: 1,
+      stateVersion: 1,
+      totalLa: 0,
+      purchasedLa: 0,
+      promotionalLa: 0,
+      updatedAt: "2026-09-17T00:00:00.000Z",
+    };
+    expect(WalletBalanceV1Schema.safeParse(zeroBalance).success).toBe(true);
+
+    // Existing wallet with incremented stateVersion is valid
+    expect(WalletBalanceV1Schema.safeParse({ ...zeroBalance, stateVersion: 5 }).success).toBe(true);
+
+    // stateVersion must be a positive integer (> 0)
+    expect(WalletBalanceV1Schema.safeParse({ ...zeroBalance, stateVersion: 0 }).success).toBe(false);
+    expect(WalletBalanceV1Schema.safeParse({ ...zeroBalance, stateVersion: -1 }).success).toBe(false);
+    expect(WalletBalanceV1Schema.safeParse({ ...zeroBalance, stateVersion: 1.5 }).success).toBe(false);
+
+    // Missing stateVersion is rejected
+    const { stateVersion: _, ...withoutStateVersion } = zeroBalance;
+    expect(WalletBalanceV1Schema.safeParse(withoutStateVersion).success).toBe(false);
   });
 
   it("requires non-expiring lots and bucket-specific revenue allocations", () => {
