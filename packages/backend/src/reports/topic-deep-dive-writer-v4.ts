@@ -382,7 +382,7 @@ export async function generateZiweiTopicDeepDiveWithQualityLoopV4(
     });
 
     if (!rewritten.ok) {
-      break;
+      return rewritten;
     }
 
     currentContent = rewritten.value.content;
