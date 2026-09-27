@@ -6,6 +6,7 @@
 **Supersedes:** The VND-only clause of FD-036 and the wallet deferral in FD-039.
 **Preserves:** FD-007, FD-029, FD-037, FD-038, FD-040 through FD-058, immutable commerce records, payment self-recovery, privacy boundaries, and the prohibition on fear-based conversion.
 **Amended 2026-09-13 (round 2):** FD-064 through FD-068 override parts of §2.4, §3, §4, §7, §11, and §13. Read §18 first; where §18 conflicts with an earlier section, §18 wins.
+**Amended 2026-09-27:** FD-105 sets the full Lá item list, rollover, guarantee, and welcome grant (`docs/superpowers/specs/2026-09-27-la-ladder-funnel-design.md`). Price examples in §4, §5.4, §6.9, §7, and §11 now use FD-066 and FD-105 values.
 
 ## 1. Executive Decision
 
@@ -123,17 +124,16 @@ The chart, free insights, evidence, and limitations remain readable before the f
 |---|---|
 | Name | `Lá` |
 | Definition | An internal service credit used to open content in Lá Số Việt |
-| Nominal reference | `1 Lá = 1,000 VND` |
-| Display | Product UI may lead with Lá, but every paywall, top-up confirmation, and payment order shows the VND equivalent |
+| Exchange rate | None published (FD-065) |
+| Display | Content prices in Lá only; VND appears only on top-up packs, the payment order, and the invoice (FD-065) |
 
 Approved customer-facing examples:
 
 - `Số dư: 43 Lá`
-- `Mở phần này — 9 Lá`
-- `Tương đương 9.000đ`
-- `Bạn còn thiếu 12 Lá`
-- `Nạp đúng 12 Lá — 12.000đ`
-- `Đã hoàn lại 9 Lá vào số dư`
+- `Mở – 120 Lá`
+- `Bạn còn thiếu 60 Lá`
+- `Nhập Môn · 300 Lá — 29.000đ`
+- `Đã hoàn lại 120 Lá vào số dư`
 - `Nội dung đã mở · đọc lại không tốn Lá`
 
 ### 4.2 Brand expression
@@ -158,16 +158,16 @@ Approved customer-facing examples:
 
 | Product action | Lá price | VND reference | Status |
 |---|---:|---:|---|
-| Tier 1 — Bản mệnh và tiềm năng | 19 Lá | 19,000 VND | Approved mapping |
-| Tier 2 — Luận giải Tử Vi toàn diện | 79 Lá | 79,000 VND | Approved mapping |
-| Tier 1 → Tier 2 within seven days | 60 Lá | 60,000 VND | Approved mapping; FD-041 still applies |
-| One individual palace reading | 9 Lá | 9,000 VND | Hypothesis; not launch-authorized |
-| One related three-palace collection | 19 Lá | 19,000 VND | Hypothesis; not launch-authorized |
+| Tier 1 — Bản mệnh | 240 Lá | — | Approved (FD-066) |
+| Tier 2 — Tử Vi trọn đời | 960 Lá | — | Approved (FD-066; name FD-105) |
+| Tier 1 → Tier 2 within seven days | 720 Lá | — | Approved; FD-105 rollover generalises it |
+| One individual palace reading | 120 Lá | — | Approved (FD-105) |
+| Other FD-105 items | 60 to 1,300 Lá | — | See the 2026-09-27 funnel spec §5 |
 | One contextual AI answer | 5–8 Lá test band | 5,000–8,000 VND | Deferred under FD-037 |
 
 ### 4.5 Top-up ladder
 
-The paywall always offers an exact-missing-amount path. Packs are optional merchandising, not a forced minimum deposit.
+Superseded by FD-066: there is no exact-missing-amount top-up. The insufficient-balance sheet pre-selects the smallest pack that covers the item and shows the next pack with its bonus. Current packs are in §18. The table below is the rejected 2026-09-13 round-1 proposal, kept only as history.
 
 | Option | Customer pays | Base Lá | Bonus Lá | Total Lá | Effective VND/Lá | Intended role | Status |
 |---|---:|---:|---:|---:|---:|---|---|
@@ -219,7 +219,7 @@ Base Lá from a pack enters the `purchased` bucket; bonus Lá enters the `promot
 3. Locked Tier 2 sections show title, role, evidence count where real, and a clipped excerpt.
 4. The first upgrade CTA appears after meaningful Tier 1 reading progress, not before the first section.
 5. The final upgrade CTA appears at the end of the reader.
-6. Within the FD-041 window, copy states that 19 Lá has been credited and only 60 Lá remains.
+6. Within the FD-041 window, copy states that 240 Lá has been credited and only 720 Lá remains.
 7. Upgrade unlock is immediate because the comprehensive report already exists under the current one-generation architecture.
 
 ## 6. Conversion-Oriented Information and Visualization System
@@ -341,15 +341,15 @@ Until then, the UI may show only natal structure, reading coverage, and evidence
 
 | Surface and trigger | Curiosity/value payload | Primary CTA | Revenue role | Release state |
 |---|---|---|---|---|
-| Free result, after three insights and one evidence interaction | Exploration strip, 12-palace depth, topic map | `Đọc Bản mệnh — 19 Lá` | First paid conversion | Approved design |
+| Free result, after three insights and one evidence interaction | Exploration strip, 12-palace depth, topic map | `Đọc Bản mệnh — 240 Lá` | First paid conversion | Approved design |
 | Selected locked topic | Complete excerpt, relationship/evidence context, secure fade | `Mở phần này — N Lá` or the relevant report CTA | Contextual conversion | Individual SKU deferred; report CTA approved |
-| Insufficient balance | Current balance, required amount, residual balance after each option | `Nạp đúng N Lá — N.000đ` | Payment completion | Approved behavior |
-| Same insufficient-balance sheet | What the recommended 100-Lá pack can open and remaining balance | `Nhận 100 Lá — 89.000đ` | Average order value | Pricing hypothesis |
-| Tier 1 reader, after meaningful reading progress | `4/12`, eight named remaining sections, one real excerpt, 19-Lá credit | `Mở 8 phần còn lại — 60 Lá` | Tier 2 upsell | Approved within FD-041 window |
-| Paid-topic landing page | Real table of contents, sample, report facts, one-time ownership | `Mở báo cáo — 79 Lá · 79.000đ` | Direct Tier 2 conversion | Approved design |
+| Insufficient balance | Current balance, required amount, residual balance after each option | Smallest covering pack pre-selected, e.g. `Nhập Môn · 300 Lá — 29.000đ` | Payment completion | Approved behavior (FD-066) |
+| Same insufficient-balance sheet | What the next pack can open and remaining balance | `Khởi Đọc · 1.100 Lá — 99.000đ` | Average order value | Approved (FD-066) |
+| Tier 1 reader, after meaningful reading progress | `4/12`, eight named remaining sections, one real excerpt, 240-Lá credit | `Mở 8 phần còn lại — 720 Lá` | Tier 2 upsell | Approved within FD-041 window |
+| Paid-topic landing page | Real table of contents, sample, report facts, one-time ownership | `Mở Tử Vi trọn đời — 960 Lá` | Direct Tier 2 conversion | Approved design |
 | Balance/history page | Current balance, immutable entries, examples of usable products | `Nạp thêm Lá` | Voluntary repeat funding | Design only; no interruption or fake urgency |
 | Contextual AI, after quota exhaustion | Retained question, disclosed answer scope and cost | `Mở khóa câu trả lời — N Lá` | Future usage revenue | Deferred under FD-037 |
-| Daily/annual trend surface | Reviewed time-series interpretation and real allowance | Separate future CTA | Future retention/subscription | Deferred; no engine yet |
+| Daily/annual trend surface | Reviewed time-series interpretation and real allowance | `Mở Hôm nay – 60 Lá`, membership | Retention/subscription | Engine merged (#190); items per FD-105 |
 
 ## 7. Core User Flows
 
@@ -358,11 +358,11 @@ Until then, the UI may show only natal structure, reading coverage, and evidence
 1. Anonymous user reads the complete free result.
 2. User selects a locked topic or report preview.
 3. The UI stores a short-lived `unlock_intent` containing only safe identifiers.
-4. The preview sheet shows `19 Lá · 19.000đ` or the applicable price.
+4. The confirm dialog shows the Lá price and current balance (no VND, FD-065).
 5. The user chooses `Mở phần này`.
 6. Existing FD-029 behavior requires verified authentication before order creation.
 7. After verification, the user returns to the same chart, topic, and offer.
-8. If the user has insufficient balance, exact top-up is the primary payment path.
+8. If the user has insufficient balance, the smallest covering pack is pre-selected (FD-066).
 9. Valid provider notification credits the wallet and atomically completes the intended spend/unlock.
 10. The user returns to the previously selected section in open state.
 
@@ -370,15 +370,15 @@ Until then, the UI may show only natal structure, reading coverage, and evidence
 
 The sheet states:
 
-> `Bạn cần 19 Lá để mở phần này. Số dư hiện tại là 7 Lá.`
+> `Bạn cần 120 Lá để mở phần này. Số dư hiện tại là 60 Lá.`
 
 Actions:
 
-- Primary: `Nạp đúng 12 Lá — 12.000đ`.
-- Secondary: `Nhận 100 Lá — 89.000đ`.
+- Primary (pre-selected): `Nhập Môn · 300 Lá — 29.000đ`.
+- Secondary: `Khởi Đọc · 1.000 + 100 Lá tặng — 99.000đ`.
 - Tertiary text link: `Xem các gói Lá`.
 
-The pack option must explain the residual balance: `Sau khi mở, bạn còn 81 Lá để dùng cho lá số này hoặc hồ sơ khác.`
+The pack option must explain the residual balance: `Sau khi mở, bạn còn 240 Lá, đủ mở thêm 2 cung.`
 
 ### 7.3 Tier 1 reader → Tier 2 upsell
 
@@ -387,11 +387,11 @@ The in-reader upgrade module includes:
 - actual reading progress;
 - a visual map of four open and eight locked sections;
 - one real locked excerpt from the currently most relevant next section;
-- original Tier 2 price: 79 Lá;
-- applied credit: 19 Lá;
-- amount due: 60 Lá;
+- original Tier 2 price: 960 Lá;
+- applied credit: 240 Lá (plus single palaces under the FD-105 rollover);
+- amount due: 720 Lá or less;
 - exact FD-041 deadline;
-- `Mở 8 phần còn lại — 60 Lá` CTA.
+- `Mở 8 phần còn lại — 720 Lá` CTA.
 
 ### 7.4 Individual section merchandising — later gated phase
 
@@ -497,14 +497,14 @@ Example:
 
 > `Bạn vừa thấy xu hướng này ở Cung Mệnh. Riêng Cung Mệnh chưa đủ để biết Cung Thân làm nó mạnh thêm hay cân bằng lại. Phần Bản mệnh nối hai trục này cùng các điểm hỗ trợ và căng thẳng.`
 
-- CTA: `Đọc Bản mệnh — 19 Lá`
-- Support: `19.000đ · thanh toán một lần · lưu trong thư viện`
+- CTA: `Đọc Bản mệnh — 240 Lá`
+- Support: `Trả một lần · lưu trong thư viện`
 
 ### 11.2 Generated locked preview
 
 > `Phần này đã được tạo cùng bản luận giải của bạn. Bạn đang đọc 4/12 phần.`
 
-CTA: `Mở 8 phần còn lại — 60 Lá`
+CTA: `Mở 8 phần còn lại — 720 Lá`
 
 ### 11.3 Prohibited copy
 

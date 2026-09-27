@@ -4,6 +4,7 @@
 
 | ID | Date | Decision | Status | Implemented in |
 |---|---|---|---|---|
+| FD-105 | 2026-09-27 | Adopt the "Bậc thang Lá" funnel as the customer journey for every entry point: a free magnet offer (full 12-palace chart, first insight for guests, second insight and the Bản mệnh opening after sign-in), secure progressive reveal with blur at the point of curiosity (FD-059 unchanged: no locked plaintext reaches an unauthorised client), a confirm dialog showing price and balance before every Lá spend, and a closed loop where every exit has a return path. Content prices in Lá (FD-065 unchanged): single palace 120; Hôm nay của bạn 60; Tháng này của bạn 300; Tình duyên và hôn nhân 480; Công việc và tài lộc 480; Vận hạn năm 2026 480; Hợp đôi (two charts) 600; Tử Vi trọn đời 960; combo Tử Vi trọn đời + Vận hạn năm 2026 1,300. Rollover: all Lá spent on single palaces and Bản mệnh for the same chart within 7 days of the first such spend is credited against Tử Vi trọn đời (extends FD-041). The customer-facing name of `ZIWEI-IDENTITY-P0` becomes "Tử Vi trọn đời" (SKU id unchanged, FD-042). Welcome grant: 60 promotional Lá once per verified account. Tử Vi trọn đời includes 7 days of Hôm nay của bạn. Lá-back guarantee: once per account, items under 500 Lá, customer marks the unlocked part "Không đúng" within 24 hours of the unlock, the Lá is restored and the part locks again. The main funnel and the time-based products run as two parallel tracks. Supersedes the "single palace 120 Lá remains a hypothesis" clause of FD-066 | Approved | `docs/superpowers/specs/2026-09-27-la-ladder-funnel-design.md`; `docs/superpowers/plans/2026-09-27-la-ladder-funnel-implementation.md` |
 | FD-102 | 2026-09-24 | The header supports a light/dark toggle. Theme is stored site-wide (`lasoviet:theme`, applied to `<html data-theme>` before paint); the header and footer are theme-aware everywhere through tokens, and the toggle appears on pages that are light-ready (the homepage first). Other pages join as they are converted per `docs/24-light-theme-color-spec.md` (FD-088); a page that is not light-ready always renders dark | Approved | `apps/web/src/components/site-header.tsx`, `apps/web/src/styles/homepage-v3.css` |
 | FD-101 | 2026-09-24 | The homepage stays free of prices (FD-069 stands): the Gói Lá section is not shown. The Lá top-up pack figures in the 2026-09-23 homepage content spec were wrong and are replaced by the FD-066 values (Nhập Môn 29,000 đ → 300 Lá; Khởi Đọc 99,000 → 1,100; Khám Phá 249,000 → 3,000; Tàng Thư 599,000 → 8,000) for use on the topic-selection and commercial pages. The hidden `showPacks` code path in the homepage stays off | Approved | `apps/web/src/features/homepage-v3/homepage-v3-static-sections.tsx` |
 | FD-100 | 2026-09-24 | Homepage V3 (`docs/superpowers/specs/2026-09-23-homepage-content-spec.md` plus the V3 handoff: HH:MM / time-range / unknown birth time, 12-palace explorer, four-way comparison, light and dark) replaces the homepage prototype `prototype/revamp-2026-09/trang-chu.html` approved in FD-098 and the homepage order in `docs/superpowers/specs/2026-09-13-aituvi-ui-adaptation-for-lasoviet.md` §4.1. The rest of FD-098 and FD-091 stands. Navigation stays identical to the live site (shared `SiteHeader`/`SiteFooter`) | Approved | `apps/web/src/app/[locale]/page.tsx`, `apps/web/src/features/homepage-v3/` |
@@ -1185,3 +1186,32 @@ Date: 2026-09-24
 - **UX & Honesty:** Provisional charts must be prominently labeled "Lá số tạm tính" / "Provisional chart". Hour-dependent claims (Mệnh position, Thân, Đại Vận start, moving palaces) must be framed as provisional reference estimates rather than established facts (following FD-089).
 - **Recalculation & Immutability:** When the user later provides their exact or branch birth hour, a new revision and chart are generated; existing provisional charts and paid report snapshots remain permanently immutable in history.
 
+
+## FD-105 Bậc Thang Lá Funnel, Prices, And Guarantees
+
+Date: 2026-09-27
+
+- **Context:** The founder reviewed the "Bậc thang Lá" customer-journey proposal
+  (funnel, magnet offer, AITuvi-style reveal and blur, Hormozi money model,
+  Lá-only pricing, closed loop) and approved all of it in one interview on
+  2026-09-27. Keyword demand behind the product list comes from
+  `data/lasoviet_research_master.xlsx` (Google Keyword Planner, Vietnam,
+  2025-08 to 2026-07); demand is not proof of willingness to pay.
+- **Prices:** listed in the table row. VND still appears only on top-up packs,
+  the payment order, and the invoice (FD-065). Pack values stay FD-066.
+- **Rollover:** extends FD-041 from Bản mệnh to single palaces for the same
+  chart; the 7-day window starts at the first qualifying spend.
+- **Guarantee:** the Lá-back restore uses the existing wallet compensating
+  restore; the restored part locks again so the guarantee cannot be used to
+  read content for free.
+- **Gifts:** 60 promotional Lá at the first verified sign-in (not revenue,
+  FD-067); 7 days of Hôm nay của bạn with Tử Vi trọn đời. The founder did not
+  approve a 12-month summary gift for membership.
+- **Unknown birth time:** follows FD-103 (provisional chart, purchases allowed,
+  hour-dependent claims framed as provisional). The older FD-007 exit path in
+  the proposal is superseded.
+- **Sequencing:** main funnel (Track 1) and time-based products plus
+  membership (Track 2) run in parallel. The year, month, and day hạn engine is
+  already merged (#190), so Track 2 does not wait for an engine.
+- **Interaction with FD-104:** the interactive reader is owned by FD-104; the
+  in-reader upsell module of this funnel ships inside FD-104's waves.
