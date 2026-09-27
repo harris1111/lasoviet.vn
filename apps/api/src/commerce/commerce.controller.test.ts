@@ -119,7 +119,7 @@ describe("SePay controller HTTP contract", () => {
       kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
     });
     const balance = {
-      version: 1 as const, totalLa: 100, purchasedLa: 40, promotionalLa: 60, updatedAt: "2026-09-17T00:00:00.000Z",
+      version: 1 as const, stateVersion: 1, totalLa: 100, purchasedLa: 40, promotionalLa: 60, updatedAt: "2026-09-17T00:00:00.000Z",
     };
     const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
       readWalletBalance: vi.fn().mockResolvedValue({ ok: true, value: balance }),
@@ -164,7 +164,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-17T00:00:00.000Z",
           },
           balance: {
-            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+            version: 1, stateVersion: 2, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
           },
           reportId: "report-1",
           receipt: "private-receipt",
@@ -202,7 +202,7 @@ describe("SePay controller HTTP contract", () => {
             status: "completed", stateVersion: 2, createdAt: "2026-09-17T00:00:00.000Z",
           },
           balance: {
-            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+            version: 1, stateVersion: 2, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
           },
           reportId: "report-1",
         },

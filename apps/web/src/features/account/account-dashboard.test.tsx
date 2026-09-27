@@ -159,6 +159,7 @@ describe("AccountDashboard", () => {
   it("renders the Lá balance and a top-up link when a wallet balance is provided (FD-105 1.1)", () => {
     const walletBalance: WalletBalanceV1 = {
       version: 1,
+      stateVersion: 1,
       totalLa: 1_240,
       purchasedLa: 1_000,
       promotionalLa: 240,

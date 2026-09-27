@@ -30,6 +30,7 @@ export type WalletTopUpOrderCreateV1 = z.infer<typeof WalletTopUpOrderCreateV1Sc
 
 export const WalletBalanceV1Schema = z.object({
   version: z.literal(1),
+  stateVersion: z.number().int().positive(),
   totalLa: amount,
   purchasedLa: amount,
   promotionalLa: amount,
