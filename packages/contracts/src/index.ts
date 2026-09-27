@@ -114,6 +114,7 @@ export {
 export type {
   CanonicalAnalyticsEventName,
   AnalyticsEventV1,
+  AnalyticsPropertyValue,
 } from "./analytics-event-v1.js";
 
 export {
