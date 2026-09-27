@@ -14,47 +14,95 @@
   function isLegacy() { return state.mode === "legacy"; }
 
   /* ---------- Chart ---------- */
+  // Layout follows a traditional printed lá số: stem-branch and palace name
+  // on the top row, chính tinh in the middle with brightness, phụ tinh in two
+  // columns, and vòng trường sinh along the bottom. Star colour follows ngũ
+  // hành (LSV.STAR_ELEMENT); stars we are not sure about stay neutral.
+  var BRIGHT_SHORT = { "Miếu": "M", "Vượng": "V", "Đắc": "Đ", "Bình": "B", "Hãm": "H", "Nhược": "N" };
+  var decByBranch = {};
+  C.decadal.forEach(function (d) { decByBranch[d.br] = d; });
+
   function mainText(p) { return p.main.length ? p.main.map(function (m) { return m[0]; }).join(", ") : "Vô chính diệu"; }
+  function elClass(name) { var e = LSV.starElement(name); return e ? " el-" + e : ""; }
   function cellLabel(br) {
-    var p = P[br];
-    return "Cung " + p.name + ", " + p.can + " " + br + ". " + (p.main.length ? p.main.map(function (m) { return m[0] + " " + m[1] + (m[2] ? " Hóa " + LSV.HOA_LABEL[m[2]] : ""); }).join(", ") : "Không có chính tinh");
+    var p = P[br], d = decByBranch[br];
+    return "Cung " + p.name + ", " + p.can + " " + br
+      + (p.menh ? ", cung Mệnh" : "") + (p.than ? ", cung Thân" : "")
+      + ". " + (p.main.length
+        ? p.main.map(function (m) { return m[0] + " " + m[1] + (m[2] ? " Hóa " + LSV.HOA_LABEL[m[2]] : ""); }).join(", ")
+        : "Không có chính tinh")
+      + (d ? ". Đại vận " + d.age[0] + " đến " + d.age[1] + " tuổi" : "");
   }
-  function tags(br, sel) {
+  function starMark(br) {
     var p = P[br], t = [];
-    if (br === sel) t.push('<span class="pill seal">Đang xem</span>');
-    if (p.menh) t.push('<span class="pill">Mệnh</span>');
-    if (p.than) t.push('<span class="pill">Thân</span>');
-    if (br === curDec.br) t.push('<span class="pill">Đại vận</span>');
-    if (br === C.annualBr) t.push('<span class="pill">2026</span>');
-    return t.slice(0, 1).join("");
+    if (p.menh) t.push('<em class="mk-menh">Mệnh</em>');
+    if (p.than) t.push('<em class="mk-than">Thân</em>');
+    if (br === curDec.br) t.push('<em class="mk-dv">Đại vận</em>');
+    if (br === C.annualBr) t.push('<em class="mk-ln">' + C.targetYear + '</em>');
+    return t.join("");
   }
-  function mainHtml(p, compact) {
-    if (!p.main.length) return '<span class="mn none">Vô chính diệu</span>';
-    if (compact) return '<span class="mn">' + mainText(p) + '</span>';
-    return p.main.map(function (m) {
-      return '<span class="mn">' + m[0] + ' <small>' + m[1] + '</small>' + (m[2] ? ' <span class="hoa ' + m[2] + '">' + LSV.HOA_LABEL[m[2]] + '</span>' : '') + '</span>';
-    }).join("");
+  function mainHtml(p, variant) {
+    if (!p.main.length) return '<span class="c-main"><b class="none">Vô chính diệu</b></span>';
+    if (variant === "compact") return '<span class="c-main"><b>' + mainText(p) + '</b></span>';
+    return '<span class="c-main">' + p.main.map(function (m) {
+      return '<b class="' + elClass(m[0]).slice(1) + '">' + m[0]
+        + ' <i>' + (BRIGHT_SHORT[m[1]] || m[1]) + '</i>'
+        + (m[2] ? ' <em class="hoa ' + m[2] + '">' + LSV.HOA_LABEL[m[2]] + '</em>' : '') + '</b>';
+    }).join("") + '</span>';
+  }
+  function auxHtml(p) {
+    if (!p.aux.length) return "";
+    var half = Math.ceil(p.aux.length / 2);
+    function col(list) {
+      return '<span class="c-col">' + list.map(function (n) {
+        return '<span class="' + elClass(n).slice(1) + '">' + n + '</span>';
+      }).join("") + '</span>';
+    }
+    return '<span class="c-aux">' + col(p.aux.slice(0, half)) + col(p.aux.slice(half)) + '</span>';
+  }
+  function cellHtml(br, sel, variant, r) {
+    var p = P[br], pos = C.pos[br], d = decByBranch[br];
+    var cls = "cell" + (br === sel ? " is-sel" : "") + ((r.tri.indexOf(br) > -1 || br === r.opp) ? " is-rel" : "");
+    var style = "grid-row:" + pos[0] + ";grid-column:" + pos[1];
+    if (variant === "thumb") {
+      return '<span class="' + cls + '" style="' + style + '" data-br="' + br + '"></span>';
+    }
+    var top = '<span class="c-top"><span class="c-sd">' + p.can + ' ' + br + '</span>'
+      + '<span class="c-age">' + (d ? d.age[0] + "-" + d.age[1] : "") + '</span>'
+      + '<span class="c-nm">' + p.name + '</span></span>';
+    var bottom = '<span class="c-bot"><span class="c-mark">' + starMark(br) + '</span>'
+      + '<span class="c-cyc">' + (LSV.CYCLE_STATE[br] || "") + '</span>'
+      + '<span class="c-yrs">' + (d ? d.years[0] + "-" + d.years[1] : "") + '</span></span>';
+    return '<button type="button" class="' + cls + '" style="' + style + '" data-br="' + br + '"'
+      + ' aria-pressed="' + (br === sel) + '" aria-label="' + cellLabel(br) + '">'
+      + top + mainHtml(p, variant) + (variant === "full" ? auxHtml(p) : "") + bottom + '</button>';
+  }
+  function centerHtml(variant, sel) {
+    if (variant === "thumb") return '<span class="center"></span>';
+    if (variant === "compact") return '<div class="center"><h3>' + P[sel].name + '</h3></div>';
+    var m = C.meta;
+    return '<div class="center">'
+      + '<svg class="c-seal" aria-hidden="true"><use href="#logo"/></svg>'
+      + '<p class="c-brand">Lá Số Việt</p><h3>Lá số Tử Vi</h3>'
+      + '<dl><dt>Năm sinh</dt><dd>' + m.year + '</dd><dt>Giới tính</dt><dd>' + m.gender + '</dd>'
+      + '<dt>Mệnh</dt><dd>' + m.menh + '</dd><dt>Cục</dt><dd>' + m.cuc + '</dd>'
+      + '<dt>Thân cư</dt><dd>' + m.than + '</dd><dt>Năm xem</dt><dd>' + m.view + '</dd></dl>'
+      + '<p class="c-note">Không hiện ngày giờ sinh.</p></div>';
   }
   function chartHtml(variant, sel) {
-    var r = rel(sel), h = '<div class="board' + (variant !== "full" ? " " + variant : "") + '" data-sel="' + sel + '">';
-    C.order.forEach(function (br) {
-      var p = P[br], pos = C.pos[br];
-      var cls = "cell" + (br === sel ? " is-sel" : "") + ((r.tri.indexOf(br) > -1 || br === r.opp) ? " is-rel" : "");
-      var style = "grid-row:" + pos[0] + ";grid-column:" + pos[1];
-      if (variant === "thumb") { h += '<span class="' + cls + '" style="' + style + '" data-br="' + br + '"></span>'; return; }
-      h += '<button type="button" class="' + cls + '" style="' + style + '" data-br="' + br + '" aria-pressed="' + (br === sel) + '" aria-label="' + cellLabel(br) + '">'
-        + '<span class="tags">' + tags(br, sel) + '</span><span class="br">' + p.can + ' ' + br + '</span><span class="nm">' + p.name + '</span>'
-        + mainHtml(p, variant === "compact") + (variant === "full" ? '<span class="ax">' + p.aux.join(", ") + '</span>' : '') + '</button>';
-    });
+    var r = rel(sel);
+    var h = '<div class="board' + (variant !== "full" ? " " + variant : "") + '" data-sel="' + sel + '">';
+    C.order.forEach(function (br) { h += cellHtml(br, sel, variant, r); });
+    h += centerHtml(variant, sel) + '<svg class="lines" aria-hidden="true"></svg></div>';
     if (variant === "full") {
-      var m = C.meta;
-      h += '<div class="center"><h3>Lá số của bạn</h3><dl><dt>Năm sinh</dt><dd>' + m.year + '</dd><dt>Giới tính</dt><dd>' + m.gender + '</dd><dt>Mệnh</dt><dd>' + m.menh + '</dd><dt>Cục</dt><dd>' + m.cuc + '</dd><dt>Thân cư</dt><dd>' + m.than + '</dd><dt>Năm xem</dt><dd>' + m.view + '</dd></dl></div>';
-    } else if (variant === "compact") {
-      h += '<div class="center"><h3>' + P[sel].name + '</h3></div>';
-    } else {
-      h += '<span class="center"></span>';
+      h += '<div class="board-key"><span class="bk-grp"><b>Độ sáng</b> M Miếu · V Vượng · Đ Đắc · B Bình · H Hãm</span>'
+        + '<span class="bk-grp"><b>Ngũ hành</b>'
+        + ["kim", "moc", "thuy", "hoa", "tho"].map(function (e) {
+            return '<span class="bk-el el-' + e + '">' + LSV.ELEMENT_LABEL[e] + '</span>';
+          }).join("")
+        + '</span></div>';
     }
-    return h + '<svg class="lines" aria-hidden="true"></svg></div>';
+    return h;
   }
   function drawLines(board) {
     var sel = board.dataset.sel, r = rel(sel), svg = $(".lines", board), b = board.getBoundingClientRect();
