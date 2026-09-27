@@ -42,6 +42,43 @@ package 1.12 ships inside its waves.
 
 Wave 1 alone makes the funnel work end to end with existing products.
 
+## Status (updated 2026-09-27, end of the founder+Claude session)
+
+| Package | Status | PR | Notes |
+|---|---|---|---|
+| 1.1 Nạp Lá money path | In review | [#202](https://github.com/harris1111/lasoviet.vn/pull/202) | Terra gate. Blocks 1.2 and everything Lá-priced. |
+| 1.2 Unlock confirm dialog | In review (partial) | [#204](https://github.com/harris1111/lasoviet.vn/pull/204), on top of #202 | UI/UX complete and tested. **Blocked**: `WalletBalanceV1` has no `stateVersion`, so `wallet/unlock`'s `expectedWalletVersion` cannot be supplied correctly yet — every confirm fails `WALLET_VERSION_CONFLICT` until An adds that field (small, additive; see PR body and Kaneo #51 comment). Residual-balance suggestion (spec §5.1) not yet built. |
+| 1.3 Catalog, prices, rollover, rename | Not started | — | Backend/pricing. Blocks 1.5, 1.8 (partially), 1.9, 2.1–2.5. Do this next; see Kaneo #52 for the exact anchors and the rollover-arithmetic design note. |
+| 1.4 Magnet offer + secure reveal | Not started | — | Mostly wiring an already-written AI preview builder that nothing calls yet (`buildGuardedFreeIdentityPreview`). See Kaneo #53. |
+| 1.5 Single palace unlock | Not started | — | Depends on 1.3. |
+| 1.6 Welcome grant (60 Lá) | In review | [#203](https://github.com/harris1111/lasoviet.vn/pull/203) | |
+| 1.7 Tool→wizard birth-data bug fix | In review | [#200](https://github.com/harris1111/lasoviet.vn/pull/200) | |
+| 1.8 Missing analytics events | Not started | — | See Kaneo #57. |
+| 1.9 Topic deep dives (content) | Not started | — | Heaviest content ticket; needs its own 20-generation QA pass and likely a founder content review. Depends on 1.3. |
+| 1.10 Part feedback + Lá-back guarantee | Not started | — | Depends on 1.2 and 1.1 (both in review). |
+| 1.11 Reminder/nurture emails | Not started | — | Low priority, no urgency. |
+| 1.12 In-reader upsell module | Deliberately not started | — | Waiting on FD-104 (interactive reader), being built in a separate session in parallel, to avoid merge conflicts in `comprehensive-report-reader.tsx`. |
+| 2.1 Hôm nay của bạn | Not started | — | Depends on 1.3. Engine already merged (#190) — this is a content-writer + time-limited-entitlement ticket, not an engine ticket. |
+| 2.2 Tháng này / Vận hạn năm 2026 | Not started | — | Depends on 1.3, after 2.1 for the entitlement-expiry plumbing. |
+| 2.3 Membership | Not started | — | Depends on 1.3. Spec already exists; UI (`MEMBERSHIP_TIERS`) already exists client-side with `comingSoon: true`. Watch the "no stacking with rollover" pricing rule. |
+| 2.4 Combo | Not started | — | Depends on 1.3 and 2.2. Quick once both exist. |
+| 2.5 Hợp đôi | Not started | — | Last. Depends on 1.3 and OD-005 consent. |
+
+**Every "Not started" package above already has a detailed handoff comment on
+its Kaneo ticket** (exact files, what already exists to reuse, what's
+genuinely missing, and suggested order), written 2026-09-27 during this
+session's audit. Read the ticket comment before starting a package — it
+usually saves a full re-audit.
+
+**Next session should, in order:**
+1. Confirm #202 and #203 merged; if not, chase review first (they block
+   almost everything else).
+2. Give An the `WalletBalanceV1.stateVersion` fix from #204's blocking note
+   — small, but nothing in 1.2/1.10 works end-to-end without it.
+3. Do 1.3 (catalog/prices/rollover) — the next real bottleneck; 1.5, 1.9,
+   2.1–2.5 all wait on it.
+4. Re-check FD-104 (interactive reader) status before starting 1.12.
+
 ## Global rules for every package
 
 - Contracts first (`packages/contracts`), then database migration, then
