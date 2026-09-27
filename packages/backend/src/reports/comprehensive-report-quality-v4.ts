@@ -175,8 +175,8 @@ export function findUncomputedMisfortunePeriods(
 }
 
 const MAX_SECTION_KEY_CHARS = 96;
-const HAN_IDEOGRAPH_PATTERN = /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{Script=Han})/u;
-const ENGLISH_BRIGHTNESS_PATTERN =
+export const HAN_IDEOGRAPH_PATTERN = /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{Script=Han})/u;
+export const ENGLISH_BRIGHTNESS_PATTERN =
   /(?<![\p{L}\p{N}])(exalted|prosperous|favorable|neutral|unfavorable|weak)(?![\p{L}\p{N}])/iu;
 const CANONICAL_ID_PATTERN = /ziwei\.[a-z0-9_.-]*[a-z0-9_]/giu;
 const KNOWN_MAJOR_STAR_IDS = new Set([
@@ -197,7 +197,7 @@ const KNOWN_MAJOR_STAR_IDS = new Set([
   "ziwei.star.pojun",
 ]);
 
-function wholeWord(text: string, term: string): boolean {
+export function wholeWord(text: string, term: string): boolean {
   const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "iu").test(text.normalize("NFC"));
 }
@@ -207,12 +207,12 @@ export function countVietnameseSyllables(text: string): number {
   return normalized === "" ? 0 : normalized.split(/\s+/u).length;
 }
 
-function displayFact(key: string): string | undefined {
+export function displayFact(key: string): string | undefined {
   const label = KNOWN_CANONICAL_IDENTIFIERS_VI[key.toLowerCase()];
   return label?.replace(/^sao\s+/u, "");
 }
 
-function canonicalIdsFrom(value: string): string[] {
+export function canonicalIdsFrom(value: string): string[] {
   const normalized = value.toLowerCase();
   if (KNOWN_CANONICAL_IDENTIFIERS_VI[normalized]) {
     return [normalized];
@@ -221,7 +221,7 @@ function canonicalIdsFrom(value: string): string[] {
     .filter((id) => KNOWN_CANONICAL_IDENTIFIERS_VI[id] !== undefined);
 }
 
-function referencedEvidenceFactIds(
+export function referencedEvidenceFactIds(
   evidenceKeys: readonly string[],
   facts: ComprehensiveZiweiFactsV4,
 ): Set<string> {
@@ -263,7 +263,7 @@ function properNamesInFacts(
   return names;
 }
 
-const PALACE_NAME_CONTEXT_PATTERNS = [
+export const PALACE_NAME_CONTEXT_PATTERNS = [
   /\bcung\s*$/iu,
   /\btam phương\b[^.!?;:\n]{0,64}\b(?:gồm|là|có)\s*$/iu,
   /\btam hợp\s*$/iu,
@@ -272,7 +272,7 @@ const PALACE_NAME_CONTEXT_PATTERNS = [
   /\b(?:chiếu về|liên cung)\s*$/iu,
 ];
 
-function hasDiscouragedTerm(text: string, term: string): boolean {
+export function hasDiscouragedTerm(text: string, term: string): boolean {
   const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu");
   const normalizedTerm = term.normalize("NFC").toLocaleLowerCase("vi-VN");
@@ -290,7 +290,7 @@ function hasDiscouragedTerm(text: string, term: string): boolean {
   return false;
 }
 
-function hasTrueNoMajorStarState(
+export function hasTrueNoMajorStarState(
   stars: ComprehensiveZiweiFactsV4["natal"]["palaces"][number]["stars"],
 ): boolean {
   return stars.every((star) => {

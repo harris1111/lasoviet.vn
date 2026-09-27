@@ -756,3 +756,31 @@ export type {
   ZiweiHoroscopeResultV1,
 } from "./ziwei-horoscope-v1.js";
 
+
+export {
+  ZIWEI_TOPIC_DEEP_DIVE_IDS,
+  ZIWEI_TOPIC_SKU_MAP,
+  CANONICAL_TOPIC_DEEP_DIVE_TITLES_VI,
+  CANONICAL_TOPIC_DEEP_DIVE_TITLES_EN,
+  TOPIC_PALACE_SCOPES,
+  ZiweiTopicDeepDiveIdSchema,
+  ZiweiTopicOverviewSchema,
+  ZiweiTopicPalaceAnchorSchema,
+  ZiweiTopicThematicDimensionSchema,
+  ZiweiTopicDecadalTimingActiveSchema,
+  ZiweiTopicDecadalTimingNotStartedSchema,
+  ZiweiTopicDecadalTimingSchema,
+  ZiweiTopicActionItemSchema,
+  ZiweiTopicDeepDiveContentV1Schema,
+} from "./ziwei-topic-deep-dive-v1.js";
+export type {
+  ZiweiTopicDeepDiveId,
+  ZiweiTopicOverview,
+  ZiweiTopicPalaceAnchor,
+  ZiweiTopicThematicDimension,
+  ZiweiTopicDecadalTimingActive,
+  ZiweiTopicDecadalTimingNotStarted,
+  ZiweiTopicDecadalTiming,
+  ZiweiTopicActionItem,
+  ZiweiTopicDeepDiveContentV1,
+} from "./ziwei-topic-deep-dive-v1.js";
