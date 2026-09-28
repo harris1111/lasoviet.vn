@@ -124,8 +124,11 @@
   }
 
   /* ---------- Small builders ---------- */
-  function secHead(id, eyebrow, title, sub) {
-    return (eyebrow ? '<p class="eyebrow">' + eyebrow + '</p>' : '') + '<h2 id="' + id + '">' + title + '</h2>' + (sub ? '<p class="fr-sub">' + sub + '</p>' : '');
+  // Editorial spine: 03 ——————— MIỄN PHÍ. The numeral gives the long scroll
+  // something to hold on to, the same device the paid reader uses.
+  function secHead(id, num, label, title, sub) {
+    return '<p class="fr-eyebrow">' + (num ? '<b>' + num + '</b>' : '') + '<i></i>' + (label ? '<span>' + label + '</span>' : '') + '</p>'
+      + '<h2 id="' + id + '">' + title + '</h2>' + (sub ? '<p class="fr-sub">' + sub + '</p>' : '');
   }
   function why(t) { return '<details class="why"><summary>Vì sao có nhận định này?</summary><p>Căn cứ trên lá số: ' + t + '</p></details>'; }
   function feedback(key) {
@@ -135,11 +138,15 @@
           return '<button type="button" data-fb="' + key + ':' + o[0] + '" aria-pressed="' + (v === o[0]) + '">' + o[1] + '</button>';
         }).join("") + '</div>';
   }
-  function blurLines(n) {
+  // Placeholder bars are generated from a length hint. No locked text is in
+  // the payload, so this is a picture of writing, not the writing.
+  function blurLines(n, note) {
     var w = [96, 88, 92, 70, 94, 83, 90, 60];
     var h = '<div class="fr-blur" aria-hidden="true">';
     for (var i = 0; i < n; i++) h += '<i style="width:' + w[i % w.length] + '%"></i>';
-    return h + '</div>';
+    h += '</div>';
+    if (note) h += '<p class="fr-lockchip">' + ic("ui-lock") + note + '</p>';
+    return h;
   }
   function excerpt(br) {
     // Server-side clip in production: first sentence plus the start of the next, cut mid-thought.
@@ -175,37 +182,45 @@
     });
   }
   function renderInsight() {
-    $("#s-insight").innerHTML = secHead("insightTitle", "Điều thứ nhất, miễn phí", "Điều đầu tiên lá số nói về bạn")
-      + '<article class="fr-card fr-insight"><p class="concl">' + INSIGHT1.title + '</p>'
+    $("#s-insight").innerHTML = secHead("insightTitle", "02", "Miễn phí, đọc trọn vẹn", "Điều đầu tiên lá số nói về bạn")
+      + '<div class="fr-letter"><p class="fr-lead">' + INSIGHT1.title + '</p>'
       + INSIGHT1.body.map(function (p) { return "<p>" + p + "</p>"; }).join("")
-      + why(INSIGHT1.why) + feedback("i1") + '</article>';
+      + why(INSIGHT1.why) + feedback("i1") + '</div>';
   }
   function renderScores() {
     var s = SC[STRONG].score, w = SC[WEAK].score;
-    $("#s-scores").innerHTML = secHead("scoresTitle", "Miễn phí", "Mười hai cung của bạn mạnh yếu ra sao", "Mỗi cung được chấm theo bộ sao đang đóng trong đó và các cung chiếu tới.")
+    $("#s-scores").innerHTML = secHead("scoresTitle", "03", "Miễn phí", "Mười hai cung của bạn mạnh yếu ra sao", "Mỗi cung được chấm theo bộ sao đang đóng trong đó và các cung chiếu tới. Cùng một lá số thì lúc nào tính cũng ra đúng con số đó.")
       + radarHtml()
       + '<div class="fr-extremes">'
-      + '<button type="button" class="fr-ext is-strong" data-palace="' + STRONG + '"><small>Mạnh nhất</small><b>Cung ' + P[STRONG].name + ' ' + badge(STRONG) + '</b><span>' + band(STRONG).label + '</span></button>'
-      + '<button type="button" class="fr-ext is-weak" data-palace="' + WEAK + '"><small>Cần để ý nhất</small><b>Cung ' + P[WEAK].name + ' ' + badge(WEAK) + '</b><span>' + band(WEAK).label + '</span></button>'
+      + '<button type="button" class="fr-ext is-strong" data-palace="' + STRONG + '"><small>Mạnh nhất</small><b>' + P[STRONG].name + ' ' + badge(STRONG) + '</b><span>' + band(STRONG).label + '</span></button>'
+      + '<button type="button" class="fr-ext is-weak" data-palace="' + WEAK + '"><small>Cần để ý nhất</small><b>' + P[WEAK].name + ' ' + badge(WEAK) + '</b><span>' + band(WEAK).label + '</span></button>'
       + '</div>'
-      + '<div class="fr-hook"><p><b>Vì sao cung ' + P[WEAK].name + ' của bạn chỉ ' + w + ' điểm?</b> Hai sao mạnh và cứng đang đóng ở đây, không có chính tinh giữ nhịp. Phần luận giải cung ' + P[WEAK].name + ' nói rõ chuyện này ảnh hưởng tới con cái và người cấp dưới của bạn ra sao, kèm việc nên làm.</p>'
+      + '<div class="fr-seal-card"><q>Vì sao cung ' + P[WEAK].name + ' của bạn chỉ ' + w + ' điểm?</q>'
+      + '<p>Hai sao mạnh và cứng đang đóng ở đây, lại không có chính tinh giữ nhịp. Phần luận giải cung ' + P[WEAK].name + ' nói rõ chuyện này ảnh hưởng tới con cái và người cấp dưới của bạn ra sao, kèm việc nên làm.</p>'
       + '<button type="button" class="btn btn-primary" data-palace="' + WEAK + '">Xem cung ' + P[WEAK].name + '</button></div>'
-      + '<details class="how"><summary>Điểm này tính thế nào?</summary><p>Điểm đo bộ sao của cung, cùng một lá số thì lúc nào tính cũng ra đúng con số đó. Cung ' + P[STRONG].name + ' được ' + s + ' điểm, cung ' + P[WEAK].name + ' được ' + w + ' điểm.</p><dl>'
+      + '<details class="how"><summary>Điểm này tính thế nào?</summary><p>Điểm đo bộ sao của cung, không đo tốt xấu của cuộc đời bạn. Cung ' + P[STRONG].name + ' được ' + s + ' điểm, cung ' + P[WEAK].name + ' được ' + w + ' điểm.</p><dl>'
       + LSV.SCORE_EXPLAIN.map(function (x) { return "<dt>" + x[0] + "</dt><dd>" + x[1] + "</dd>"; }).join("") + '</dl></details>';
   }
   function radarHtml() {
-    var size = 320, c = size / 2, r = 112, brs = LSV.PALACE_ORDER;
+    var size = 320, c = size / 2, r = 108, brs = LSV.PALACE_ORDER;
     function pt(i, v) { var a = (-90 + i * 30) * Math.PI / 180, d = (v / 100) * r; return [(c + d * Math.cos(a)).toFixed(1), (c + d * Math.sin(a)).toFixed(1)]; }
     var rings = [25, 50, 75, 100].map(function (v) { return '<polygon class="rd-ring" points="' + brs.map(function (_, i) { return pt(i, v).join(","); }).join(" ") + '"/>'; }).join("");
     var axes = brs.map(function (_, i) { var e = pt(i, 100); return '<line class="rd-axis" x1="' + c + '" y1="' + c + '" x2="' + e[0] + '" y2="' + e[1] + '"/>'; }).join("");
     var shape = brs.map(function (br, i) { return pt(i, SC[br].score).join(","); }).join(" ");
-    var dots = brs.map(function (br, i) { var q = pt(i, SC[br].score); return '<circle class="rd-dot' + (br === WEAK ? " is-weak" : br === STRONG ? " is-strong" : "") + '" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (br === WEAK || br === STRONG ? 5 : 3) + '"/>'; }).join("");
-    var labels = brs.map(function (br, i) {
-      var a = (-90 + i * 30) * Math.PI / 180, d = r + 22, x = c + d * Math.cos(a), y = c + d * Math.sin(a);
-      var anchor = Math.abs(x - c) < 6 ? "middle" : (x > c ? "start" : "end");
-      return '<text class="rd-lb" x="' + x.toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="' + anchor + '">' + P[br].name + ' ' + SC[br].score + '</text>';
+    var dots = brs.map(function (br, i) {
+      var q = pt(i, SC[br].score), k = br === STRONG ? " is-strong" : br === WEAK ? " is-weak" : "";
+      return '<circle class="rd-dot' + k + '" cx="' + q[0] + '" cy="' + q[1] + '" r="' + (k ? 5.5 : 3.2) + '"/>';
     }).join("");
-    return '<figure class="radar fr-radar"><svg viewBox="-60 -8 ' + (size + 120) + ' ' + (size + 16) + '" role="img" aria-label="Điểm cấu trúc của 12 cung">'
+    var labels = brs.map(function (br, i) {
+      var a = (-90 + i * 30) * Math.PI / 180, d = r + 26, x = c + d * Math.cos(a), y = c + d * Math.sin(a);
+      var anchor = Math.abs(x - c) < 8 ? "middle" : (x > c ? "start" : "end");
+      var k = br === STRONG ? " is-strong" : br === WEAK ? " is-weak" : "";
+      return '<text class="rd-lb' + k + '" x="' + x.toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="' + anchor + '">' + P[br].name + ' <tspan>' + SC[br].score + '</tspan></text>';
+    }).join("");
+    return '<figure class="radar fr-radar"><svg viewBox="-74 -14 ' + (size + 148) + ' ' + (size + 28) + '" role="img" aria-label="Điểm cấu trúc của 12 cung">'
+      + '<defs><radialGradient id="frShapeFill" cx="50%" cy="50%" r="50%">'
+      + '<stop offset="0%" stop-color="rgba(201,164,77,.42)"/><stop offset="100%" stop-color="rgba(201,164,77,.10)"/>'
+      + '</radialGradient></defs>'
       + rings + axes + '<polygon class="rd-shape" points="' + shape + '"/>' + dots + labels + '</svg></figure>';
   }
   function renderYear() {
@@ -214,6 +229,7 @@
       var han = YEAR.hanMonths.indexOf(m) > -1, thuan = YEAR.thuanMonths.indexOf(m) > -1;
       var shown = state.vanhan || state.trondoi || (state.signed && m === YEAR.nearest);
       if (han && shown) months += '<li class="m-han"><b>T' + m + '</b><span>Cần chú ý</span></li>';
+      else if (han) months += '<li class="m-plain"><b>T' + m + '</b>' + ic("ui-lock") + '</li>';
       else if (thuan) months += '<li class="m-thuan"><b>T' + m + '</b><span>Thuận</span></li>';
       else months += '<li class="m-plain"><b>T' + m + '</b><span>&nbsp;</span></li>';
     }
@@ -223,7 +239,7 @@
       : "";
     var nearestNote = state.signed && !(state.vanhan || state.trondoi)
       ? '<p class="fr-year-near"><b>Tháng ' + YEAR.nearest + ' âm lịch</b> là tháng cần chú ý gần nhất của bạn. Chuyện nổi lên trong tháng này và cách chuẩn bị nằm trong phần Vận hạn năm 2026.</p>' : "";
-    $("#s-year").innerHTML = secHead("yearTitle", "Năm " + C.targetYear, "Năm Bính Ngọ của bạn", "34 tuổi âm · lưu niên đi qua cung " + P[C.annualBr].name + ".")
+    $("#s-year").innerHTML = secHead("yearTitle", "04", "Năm " + C.targetYear, "Năm Bính Ngọ của bạn", "34 tuổi âm · lưu niên đi qua cung " + P[C.annualBr].name + ".")
       + '<p class="fr-year-sum">Năm nay có <b>' + YEAR.han + ' tháng cần chú ý</b> và <b>' + YEAR.thuan + ' tháng thuận</b>.</p>'
       + '<ol class="fr-months" aria-label="12 tháng âm lịch năm ' + C.targetYear + '">' + months + '</ol>'
       + nearestNote + locked
@@ -234,9 +250,9 @@
     var s = $("#s-save");
     s.hidden = state.signed;
     if (state.signed) { s.innerHTML = ""; return; }
-    s.innerHTML = '<div class="fr-card fr-save">' + secHead("saveTitle", "", "Lá số còn điều thứ hai muốn nói với bạn")
+    s.innerHTML = '<div class="fr-panel fr-save">' + secHead("saveTitle", "05", "", "Lá số còn điều thứ hai muốn nói với bạn")
       + '<p>Điều thứ hai được chọn theo chuyện bạn đang bận tâm nhất. Lưu lá số miễn phí để đọc, và nhận <b>60 Lá tặng</b> để mở phần đầu tiên.</p>'
-      + blurLines(3)
+      + blurLines(3, "Điều thứ hai đang khoá")
       + '<button type="button" class="btn btn-primary fr-wide" data-save>' + '<span class="g-dot" aria-hidden="true">G</span>Lưu lá số và đọc tiếp</button>'
       + '<p class="fr-fine">Chưa lưu thì lá số tự xoá sau 24 giờ.</p></div>';
   }
@@ -247,16 +263,16 @@
     var bm = state.banmenh || state.trondoi;
     var menh = R["Thìn"];
     var hom = state.homnay
-      ? '<div class="fr-card fr-today"><p class="eyebrow">Hôm nay của bạn</p><p>Ngày Kỷ Hợi chạm vào cung Tử Tức của bạn. Hôm nay hợp để nói chuyện với người nhỏ tuổi hơn bằng câu hỏi, không hợp để ra quyết định thay họ. Việc giấy tờ nên để buổi sáng.</p></div>'
+      ? '<div class="fr-panel fr-today"><p class="fr-kicker">Hôm nay của bạn</p><p>Ngày Kỷ Hợi chạm vào cung Tử Tức của bạn. Hôm nay hợp để nói chuyện với người nhỏ tuổi hơn bằng câu hỏi, không hợp để ra quyết định thay họ. Việc giấy tờ nên để buổi sáng.</p></div>'
       : (state.balance >= PRICE.homnay
         ? '<div class="fr-balance-hook"><p>Bạn đang có <b>' + fmt(state.balance) + ' Lá</b>. Vừa đủ để mở <b>Hôm nay của bạn</b>: hôm nay lá số của bạn gặp ngày gì, nên làm gì, nên tránh gì.</p><button type="button" class="btn btn-secondary" data-buy="homnay">Mở Hôm nay · ' + PRICE.homnay + ' Lá</button></div>' : "");
-    s.innerHTML = secHead("memberTitle", "Điều thứ hai, theo điều bạn quan tâm: " + INSIGHT2.concern, INSIGHT2.title)
-      + '<article class="fr-card fr-insight">' + INSIGHT2.body.map(function (p) { return "<p>" + p + "</p>"; }).join("") + why(INSIGHT2.why) + feedback("i2") + '</article>'
+    s.innerHTML = secHead("memberTitle", "05", "Điều thứ hai, theo điều bạn quan tâm: " + INSIGHT2.concern, INSIGHT2.title)
+      + '<div class="fr-letter">' + INSIGHT2.body.map(function (p) { return "<p>" + p + "</p>"; }).join("") + why(INSIGHT2.why) + feedback("i2") + '</div>'
       + hom
-      + '<article class="fr-card fr-banmenh"><p class="eyebrow">Bản mệnh · 4 phần</p><h3>Con người bạn, đọc từ cung Mệnh và cung Thân</h3>'
+      + '<article class="fr-panel fr-banmenh"><p class="fr-kicker">Bản mệnh · 4 phần</p><h3>Con người bạn, đọc từ cung Mệnh và cung Thân</h3>'
       + (bm
         ? '<p class="concl">' + menh.conclusion + '</p>' + menh.detail.map(function (p) { return "<p>" + p + "</p>"; }).join("")
-        : '<p>' + menh.detail[0] + '</p><p>' + menh.detail[1].split(" ").slice(0, 14).join(" ") + '…</p>' + blurLines(6)
+        : '<p>' + menh.detail[0] + '</p><p>' + menh.detail[1].split(" ").slice(0, 14).join(" ") + '…</p>' + blurLines(6, "Còn 4 phần đang khoá")
           + '<p class="fr-counts">Còn 4 phần: tính cách, điểm mạnh, điểm yếu, hướng đi · khoảng 2.400 chữ</p>'
           + '<button type="button" class="btn btn-primary fr-wide" data-buy="banmenh">Mở Bản mệnh · ' + PRICE.banmenh + ' Lá</button>')
       + '</article>';
@@ -264,22 +280,23 @@
   function renderPalaces() {
     var n = openCount();
     var order = ["Thân", "Tý", "Tuất"].concat(LSV.PALACE_ORDER.filter(function (b) { return ["Thân", "Tý", "Tuất"].indexOf(b) < 0; }));
-    $("#s-palaces").innerHTML = secHead("palacesTitle", "12 cung", "Đọc tiếp theo điều bạn quan tâm", "Các cung liên quan tới công việc đứng đầu vì bạn chọn “Công việc, sự nghiệp”.")
+    $("#s-palaces").innerHTML = secHead("palacesTitle", "06", "12 cung", "Đọc tiếp theo điều bạn quan tâm", "Các cung liên quan tới công việc đứng đầu vì bạn chọn “Công việc, sự nghiệp”.")
       + '<div class="fr-progress"><span>Bạn đã mở <b>' + n + '/12</b> cung</span><i><b style="width:' + (n / 12 * 100) + '%"></b></i></div>'
       + '<ul class="fr-plist">' + order.map(function (br) {
           var st = palaceState(br);
           return '<li><button type="button" class="fr-prow" data-palace="' + br + '">'
-            + '<span class="fr-pname">' + P[br].name + ' ' + badge(br) + '</span>'
+            + '<span class="fr-seal-score sc-' + band(br).key + '">' + SC[br].score + '</span>'
+            + '<span class="fr-ptop"><span class="fr-pname">' + P[br].name + '</span>'
+            + '<span class="fr-pstate st-' + st[0] + '">' + (st[0] === "read" ? ic("ui-check") : st[0] === "new" ? ic("ui-lock") : "") + st[1] + '</span></span>'
             + '<span class="fr-pline">' + R[br].conclusion + '</span>'
-            + '<span class="fr-pstate st-' + st[0] + '">' + (st[0] === "read" ? ic("ui-check") : st[0] === "new" ? ic("ui-lock") : "") + st[1] + '</span>'
             + '</button></li>';
         }).join("") + '</ul>';
   }
   function renderTopics() {
-    $("#s-topics").innerHTML = secHead("topicsTitle", "Chủ đề", "Đọc theo điều bạn đang bận tâm")
+    $("#s-topics").innerHTML = secHead("topicsTitle", "07", "Chủ đề", "Đọc theo điều bạn đang bận tâm")
       + '<div class="fr-topics">' + TOPICS.map(function (t) {
           var done = state.topics[t.id] || (t.id === "van-han" && (state.vanhan || state.trondoi));
-          return '<article class="fr-card fr-topic' + (t.match ? " is-match" : "") + '">'
+          return '<article class="fr-panel fr-topic' + (t.match ? " is-match" : "") + '">'
             + (t.match ? '<span class="pill">Theo điều bạn chọn</span>' : "")
             + '<h3>' + t.name + '</h3><p>' + t.teaser + '</p>'
             + '<p class="fr-rel">' + t.rel.map(function (b) { return '<button type="button" data-palace="' + b + '">Cung ' + P[b].name + '</button>'; }).join("") + '</p>'
@@ -291,10 +308,10 @@
   function ladderHtml(idSuffix) {
     var price = trondoiPrice();
     if (state.trondoi) {
-      return '<div class="fr-card fr-ladder"><h2 id="ladderTitle' + idSuffix + '">Bạn đã mở Tử Vi trọn đời</h2><p>Đủ 12 cung, 8 chặng đại vận, từng tháng năm nay. 7 ngày Hôm nay của bạn bắt đầu từ sáng mai.</p>'
+      return '<div class="fr-panel fr-ladder"><h2 id="ladderTitle' + idSuffix + '">Bạn đã mở Tử Vi trọn đời</h2><p>Đủ 12 cung, 8 chặng đại vận, từng tháng năm nay. 7 ngày Hôm nay của bạn bắt đầu từ sáng mai.</p>'
         + '<a class="btn btn-primary fr-wide" href="doc-bao-cao-tuong-tac.html">Đọc báo cáo</a></div>';
     }
-    return '<div class="fr-ladder">' + '<h2 id="ladderTitle' + idSuffix + '">Đọc trọn lá số của bạn</h2>'
+    return '<div class="fr-ladder">' + secHead("ladderTitle" + idSuffix, "08", "Các gói", "Đọc trọn lá số của bạn")
       + '<article class="fr-offer is-anchor"><span class="pill seal">Gợi ý</span><h3>Tử Vi trọn đời</h3>'
       + '<p class="fr-price">' + (price < PRICE.trondoi ? '<s>' + fmt(PRICE.trondoi) + '</s> ' : '') + '<b>' + fmt(price) + ' Lá</b></p>'
       + (state.spentNatal ? '<p class="fr-roll">Bạn đã dùng ' + state.spentNatal + ' Lá cho lá số này trong 7 ngày, được trừ lại.</p>' : '')
@@ -322,13 +339,24 @@
       + '<dl>' + rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd><dd class="ok">' + r[2] + '</dd></div>'; }).join("") + '</dl></details>';
   }
   function renderSticky() {
-    var s = $("#sticky"), h;
-    if (!state.signed) h = '<button type="button" class="btn btn-primary" data-save><span class="g-dot" aria-hidden="true">G</span>Lưu lá số · nhận 60 Lá</button>';
-    else if (state.trondoi) h = '<a class="btn btn-primary" href="doc-bao-cao-tuong-tac.html">Đọc báo cáo Tử Vi trọn đời</a>';
-    else if (state.lastPalace && !isOpen(state.lastPalace)) h = '<button type="button" class="btn btn-primary" data-buy="palace:' + state.lastPalace + '">Mở cung ' + P[state.lastPalace].name + ' · ' + PRICE.palace + ' Lá</button>';
-    else if (state.balance >= PRICE.homnay && !state.homnay) h = '<button type="button" class="btn btn-primary" data-buy="homnay">Mở Hôm nay của bạn · ' + PRICE.homnay + ' Lá</button>';
-    else h = '<button type="button" class="btn btn-primary" data-go="s-ladder">Đọc trọn lá số · ' + fmt(trondoiPrice()) + ' Lá</button>';
-    s.innerHTML = h;
+    var s = $("#sticky"), h, note;
+    if (!state.signed) {
+      h = '<button type="button" class="btn btn-primary" data-save><span class="g-dot" aria-hidden="true">G</span>Lưu lá số · nhận 60 Lá</button>';
+      note = "Miễn phí. Chưa lưu thì lá số tự xoá sau 24 giờ.";
+    } else if (state.trondoi) {
+      h = '<a class="btn btn-primary" href="doc-bao-cao-tuong-tac.html">Đọc báo cáo Tử Vi trọn đời</a>';
+      note = "Báo cáo lưu trọn đời trong thư viện của bạn.";
+    } else if (state.lastPalace && !isOpen(state.lastPalace)) {
+      h = '<button type="button" class="btn btn-primary" data-buy="palace:' + state.lastPalace + '">Mở cung ' + P[state.lastPalace].name + ' · ' + PRICE.palace + ' Lá</button>';
+      note = "Bạn đang có " + fmt(state.balance) + " Lá.";
+    } else if (state.balance >= PRICE.homnay && !state.homnay) {
+      h = '<button type="button" class="btn btn-primary" data-buy="homnay">Mở Hôm nay của bạn · ' + PRICE.homnay + ' Lá</button>';
+      note = "Bạn đang có " + fmt(state.balance) + " Lá, vừa đủ.";
+    } else {
+      h = '<button type="button" class="btn btn-primary" data-go="s-ladder">Đọc trọn lá số · ' + fmt(trondoiPrice()) + ' Lá</button>';
+      note = state.spentNatal ? "Đã trừ " + fmt(state.spentNatal) + " Lá bạn dùng cho lá số này." : "Đủ 12 cung, 8 chặng đại vận, từng tháng năm nay.";
+    }
+    s.innerHTML = h + '<p class="fr-sticky-note">' + note + '</p>';
   }
   function renderAll() {
     renderTop(); renderTabs(); renderChart(); renderInsight(); renderScores(); renderYear();
@@ -350,7 +378,7 @@
         + (rd.guide ? '<div class="guide"><div class="g-do"><h4>' + ic("ui-check") + 'Nên làm</h4><ul>' + rd.guide.do.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ul></div><div class="g-no"><h4>' + ic("ui-close") + 'Nên tránh</h4><ul>' + rd.guide.avoid.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ul></div></div>' : "")
         + feedback("p-" + br);
     } else {
-      h += '<p class="fr-ps-p">' + excerpt(br) + '</p>' + blurLines(7)
+      h += '<p class="fr-ps-p">' + excerpt(br) + '</p>' + blurLines(7, "Phần còn lại đang khoá")
         + '<p class="fr-counts">' + rd.points.length + ' ý chính · ' + (p.main.length + p.aux.length) + ' căn cứ · khoảng ' + fmt(Math.round(wordCount(br) / 10) * 10) + ' chữ · có Nên làm, Nên tránh</p>'
         + '<button type="button" class="btn btn-primary fr-wide" data-buy="palace:' + br + '">Mở cung ' + p.name + ' · ' + PRICE.palace + ' Lá</button>'
         + (BANMENH_PALACES.indexOf(br) > -1 && !state.banmenh ? '<button type="button" class="btn btn-secondary fr-wide" data-buy="banmenh">Hoặc mở Bản mệnh · ' + PRICE.banmenh + ' Lá (có cung này)</button>' : '')
