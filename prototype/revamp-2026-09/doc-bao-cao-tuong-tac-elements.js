@@ -53,6 +53,11 @@ LSV.STAR_ELEMENT = {
   "Thiên Không": "hoa", "Tuần Không": "tho", "Triệt Lộ": "kim", "Phá Toái": "hoa",
   "Âm Sát": "hoa", "Cô Thần": "hoa", "Quả Tú": "hoa", "Thiên Thương": "thuy",
   "Thiên Sứ": "thuy", "Giải Thần": "moc", "Thiên Quan": "hoa", "Thiên Trù": "tho",
+
+  // --- Bốn sao suy ra từ vị trí trong vòng sao (2026-09-28) ---
+  // Tuế Kiện là Thái Tuế; Hối Khí ở vị trí Thiếu Dương; Tuế Dịch ở vị trí
+  // Dịch Mã, trùng Thiên Mã; Niên Giải là Giải Thần theo cách gọi Việt.
+  "Tuế Kiện": "hoa", "Hối Khí": "hoa", "Tuế Dịch": "hoa", "Niên Giải": "moc",
 };
 
 LSV.ELEMENT_LABEL = { kim: "Kim", moc: "Mộc", thuy: "Thủy", hoa: "Hỏa", tho: "Thổ" };
