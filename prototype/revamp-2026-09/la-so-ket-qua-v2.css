@@ -48,13 +48,15 @@
    layout, so on phones both wrappers dissolve and the beats are re-ordered
    into the spec's scroll order: chart, insight, scores, year, gate, palaces,
    topics, ladder, basis. */
-.fr-layout { display: grid; gap: 0; }
+/* minmax(0,1fr) plus min-width:0 on every item: grid items default to
+   min-width:auto (min-content), which lets the chart board widen the page. */
+.fr-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.fr-layout > *, .fr-sec, .chart, .board { min-width: 0; }
 .fr-side, .fr-main { display: contents; }
 .fr-chart-sec { order: 0; }
-#s-insight { order: 1; } #s-scores { order: 2; } #s-year { order: 3; }
-#s-save { order: 4; } #s-member { order: 5; } #s-palaces { order: 6; }
-#s-topics { order: 7; } #s-ladder { order: 8; } #s-basis { order: 9; }
-.fr-side-ladder { display: none; }
+#s-insight { order: 1; } #s-save { order: 2; } #s-member { order: 3; }
+#s-palace-free { order: 4; } #s-scores { order: 5; } #s-year { order: 6; }
+#s-palaces { order: 7; } #s-topics { order: 8; } #s-end { order: 9; } #s-basis { order: 10; }
 
 /* Section spine: 01 ——————— MIỄN PHÍ */
 .fr-sec { position: relative; padding: var(--fr-gap) 0 calc(var(--fr-gap) - 6px); scroll-margin-top: 76px; }
@@ -62,7 +64,10 @@
 .fr-eyebrow { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; }
 .fr-eyebrow b { font: 600 13px/1 var(--font-mono); letter-spacing: .1em; color: var(--gold-text); font-variant-numeric: tabular-nums; }
 .fr-eyebrow i { flex: 1; height: 1px; background: var(--gold-edge); }
-.fr-eyebrow span { font: 500 11px/1 var(--font-mono); letter-spacing: .15em; text-transform: uppercase; color: var(--text-faint); white-space: nowrap; }
+/* The label may shrink and ellipsise; it must never widen the page. */
+.fr-eyebrow span { font: 500 11px/1 var(--font-mono); letter-spacing: .15em; text-transform: uppercase; color: var(--text-faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 55%; }
+.fr-eyebrow i { min-width: 12px; }
 .fr-sec h2 { font: 600 clamp(23px, 6.2vw, 27px)/1.22 var(--font-display); color: var(--text-heading); margin: 0 0 8px; text-wrap: balance; max-width: 20ch; }
 .fr-sec h3 { font: 600 18px/1.3 var(--font-display); color: var(--text-heading); margin: 0 0 6px; }
 .fr-sub { margin: 0 0 16px; color: var(--text-muted); font-size: 15px; line-height: 1.55; max-width: 34em; }
@@ -317,25 +322,47 @@ body.sheet-open .fr-sticky { display: none; }
   .fr-tabs .count { font: 600 11px var(--font-ui); padding: 3px 7px; border-radius: 999px; background: var(--seal-soft); color: var(--accent-seal); box-shadow: inset 0 0 0 1px rgba(206,91,69,.3); }
 
   .fr-layout { grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr); gap: 44px; align-items: start; padding-top: 28px; }
-  .fr-side { display: grid; gap: 30px; align-content: start; }
+  /* The chart follows the reading instead of leaving a void under itself. */
+  .fr-side { display: grid; gap: 30px; align-content: start; position: sticky; top: 132px; }
   .fr-main { display: block; min-width: 0; }
   .fr-sec { padding: 0 0 30px; }
   .fr-sec + .fr-sec { border-top: 0; }
   .fr-chart-sec { padding: 0; }
-  .fr-side-ladder { display: block; padding: 0; }
-  .fr-side-ladder .fr-offer ul { display: none; }
-  .fr-side-ladder .fr-offer.is-anchor { padding: 17px 16px 15px; }
-  .fr-side-ladder .fr-offer.is-anchor h3 { font-size: 19px; }
-  .fr-side-ladder .fr-offer.is-anchor .fr-price { font-size: 25px; }
-  .fr-side-ladder h2 { font-size: 20px; }
   .fr-main > .fr-sec { display: none; }
   .fr-main > .fr-sec.on { display: block; }
   .fr-main > .fr-sec.on[hidden] { display: none; }
-  .fr-main > #s-ladder { display: none !important; }
-  .fr-sticky { display: none; }
+    .fr-sticky { display: none; }
   .fr-toast { left: auto; right: 24px; bottom: 24px; max-width: 420px; }
   .board { grid-template-rows: repeat(4, minmax(128px, auto)); }
   .fr-page { padding-bottom: 56px; }
   .fr-extremes { gap: 12px; }
 }
 @media (min-width: 1280px) { .fr-layout { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); } }
+
+/* ---------------- 09: the one moment the page asks ---------------- */
+.fr-end { position: relative; overflow: hidden; margin-top: 8px; padding: 26px 18px 22px; border-radius: var(--radius-card);
+  box-shadow: inset 0 0 0 1.5px var(--gold-line), 0 16px 40px rgba(0,0,0,.30);
+  background: linear-gradient(168deg, rgba(201,164,77,.17), var(--surface-raised) 60%); }
+.fr-end::after { content: ""; position: absolute; right: -34px; bottom: -38px; width: 168px; height: 168px; pointer-events: none; opacity: .10;
+  background: url("uploads/dau-trien-la-so-viet-son-do.webp") no-repeat center / contain; }
+.fr-end > * { position: relative; z-index: 1; }
+.fr-end-mark { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 14px; padding: 8px 14px; border-radius: 999px;
+  background: rgba(79,122,104,.20); box-shadow: inset 0 0 0 1px rgba(111,191,150,.45); color: var(--ok); font: 600 13.5px var(--font-ui); }
+:root[data-theme="light"] .fr-end-mark { background: rgba(47,111,87,.12); }
+.fr-end-mark svg { width: 15px; height: 15px; }
+.fr-end h2 { font-size: clamp(22px, 5.8vw, 26px); max-width: 18ch; margin-bottom: 12px; }
+.fr-end-body { margin: 0 0 18px; font-size: 16.5px; line-height: 1.75; color: var(--text-body); max-width: 36em; }
+.fr-end-map { margin: 0 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fr-end-map > div { padding: 12px 14px; border-radius: 12px; background: rgba(0,0,0,.20); box-shadow: inset 0 0 0 1px var(--border-hairline); }
+:root[data-theme="light"] .fr-end-map > div { background: rgba(255,253,247,.5); }
+.fr-end-map dt { font: 600 19px/1.1 var(--font-display); color: var(--gold-text); }
+.fr-end-map dd { margin: 3px 0 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.4; }
+.fr-door { width: 100%; height: 54px; font-size: 16.5px; }
+.fr-ps-note { margin: 10px 0 0; font-size: 14px; color: var(--text-muted); font-style: italic; }
+#ofBody code { font: 500 13px var(--font-mono); color: var(--gold-text); }
+
+@media (min-width: 1024px) {
+  .fr-end-map { grid-template-columns: repeat(4, 1fr); }
+  .fr-end { padding: 30px 26px 26px; }
+  .fr-door { width: auto; padding: 0 32px; }
+}

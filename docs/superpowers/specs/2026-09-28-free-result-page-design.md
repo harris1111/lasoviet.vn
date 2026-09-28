@@ -1,12 +1,12 @@
 # Free Result Page ("Lá số của bạn") — Mobile-First Design Spec
 
 **Date:** 2026-09-28
-**Status:** Direction approved by the founder 2026-09-28 (mobile scroll + desktop tabs, free scores, FD-108). Clickable prototype approved to start; no production UI code until the founder signs off the prototype (§10).
+**Status:** Rebuilt 2026-09-28 after the founder's design review. FD-109 replaces the beat order and the whole selling model of the first draft: read first, ask once, one door. No production UI code until the founder signs off the prototype (§10).
 **Owner:** An (implementation). Lãm/Harris (acceptance, FD-056 visual sign-off).
 **Page:** `/la-so/[chartId]` (`apps/web/src/app/[locale]/la-so/[chartId]/page.tsx`, `apps/web/src/features/ziwei/`).
 **Governing rules, in order of precedence:**
 1. FD-105 "Bậc thang Lá" funnel: `docs/superpowers/specs/2026-09-27-la-ladder-funnel-design.md` §2 value equation, §3 magnet offer, §4 secure reveal, §5.1 residual balance hooks, §8 closed-loop exits.
-2. FD-107 published-formula scores (`apps/web/src/features/reports/report-palace-score.ts`), FD-106a chart as a real lá số (`report-chart-visuals.tsx`).
+2. FD-109 read-first architecture (§1b below), FD-107 published-formula scores (`apps/web/src/features/reports/report-palace-score.ts`), FD-106a chart as a real lá số (`report-chart-visuals.tsx`).
 3. FD-108 (2026-09-28): progressive reveal and secure blur stay; the page must give enough real value to convince; anything the engine generates that is not illegal is valid, and every choice maximizes the business goal. The 13/09 self-imposed rules "curiosity yes, deception no" and "every visual metric must be true" are dropped.
 4. FD-068 real free text, FD-078 concern, FD-089 content bans, FD-103 provisional chart, FD-064/FD-065/FD-069 pricing display.
 5. Progressive reveal spec 2026-09-13 §3.2 (blur is presentation only, locked text never sent to the browser) and §3.4 (free value before the first paid CTA).
@@ -18,13 +18,45 @@
 
 ## 1. The one principle
 
-> Give the customer enough real value that they think "đúng là mình", then show them exactly where the rest is, priced, one tap away.
+> Give the customer a complete, satisfying free reading. Let it end. Then, once,
+> show them how small what they read was against what exists, and open one door.
 
-Two failure modes to avoid:
-- **Giving too little:** a chart plus generic text. The customer never believes the paid text will be about them (low perceived likelihood, FD-105 §2.1).
-- **Giving too much:** every question answered for free. No curiosity left at the moment of the ask.
+The first draft failed on the second half. It gave reasonable free content but
+put a price on every screen: an offer rail pinned to all six tabs, a purchase
+button on every topic card, a sticky CTA from the first second. The founder's
+verdict on 2026-09-28: *"chưa cho cảm giác sau khi đọc xong 1 kết quả luận giải
+free và cảm thấy muốn trả tiền."*
 
-"Vừa đủ" is defined operationally in §3: the customer gets **one complete personal reading, the full structure of their chart with numbers, and the headline of every locked part**. They do not get the explanation of why a palace is strong or weak, the month names of their hạn, or the advice.
+### 1b. Why an always-present offer cannot work (FD-109)
+
+Wanting to pay is the end of an emotional sequence: anticipation → reading →
+satisfaction → the reading stops → wanting more. A page that asks continuously
+never lets the reader reach satisfaction, so it never produces the want.
+
+Three independent sources agree, and the first draft contradicted all three:
+
+| Source | Rule | First draft |
+|---|---|---|
+| Our 2026-09-13 reveal spec §3.4 | Free content is fully readable **before** the first paid CTA | Offer rail on every tab from the first screen |
+| Same spec §6.7 | "Do not render twelve equally loud purchase buttons. The remaining locked cards function as the visible content map" | A price button on every topic and palace |
+| Same spec §6.9, §8.1 | The CTA comes **after** the free reading and one evidence interaction; the sticky appears only after the first paid-preview interaction | Both present immediately |
+| AiTuvi benchmark (screenshots 2026-09-13) | ~15 free paragraphs with no purchase button; one quiet inline text link; topic list with no prices and no buttons | Opposite on both counts |
+
+There is also a structural duplication: `/la-so/{id}/chon-luan-giai` already
+exists in `config/route-registry.yml` and already has an approved prototype with
+all four offers. The first draft rebuilt that page inside the free result page.
+
+### 1c. The rule that replaces it
+
+1. **No price, offer card or purchase button in the page body.** Not on palace
+   rows, not on topic cards, not in the rail.
+2. **The free reading ends.** A completion marker states it plainly.
+3. **One bridge**, immediately after: what you read, against what exists.
+4. **One door**, to the existing offer page. The preview sheet's only action is
+   that same door.
+5. **The money ask unlocks on engagement**, not on arrival: the sticky bar stays
+   hidden until the reader reaches the completion block or opens a locked
+   preview. The free sign-in gate is not a money ask and may appear earlier.
 
 ## 2. What costs us nothing to give, and what costs AI
 
@@ -43,72 +75,53 @@ Two failure modes to avoid:
 
 The structural layer (chart, scores, counts) is the cheapest persuasion we own: it is specific to the person and costs no AI. The page leans on it. Free palace scores confirmed by the founder 2026-09-28.
 
-## 3. Page order, top to bottom (mobile)
+## 3. Page order (FD-109)
 
-Each block is one "beat". The number in brackets is the target height at 390 px wide, so the whole give-before-ask part stays within about four screens.
+Numbers are the on-page numeral spine. On mobile this is the scroll order; on
+desktop the same blocks sit under the six tabs (§7).
 
-### Beat 1 — "Đây là lá số của bạn" [1 screen]
-- Name, gender, solar date, hour label (or "Giờ tạm tính" badge for FD-103), mệnh/cục.
-- The chart as a real lá số sheet (reuse `ReportChart` variant `compact` from `report-chart-visuals.tsx`), full width, never blurred.
-- Tap a palace → bottom sheet for that palace (§5).
-- Actions row: Lưu lá số (guest) · Tải ảnh · Chia sẻ. Guest line: "Lá số này tự xoá sau 24 giờ." (true, FD-020).
+| # | Block | Free? |
+|---|---|---|
+| 01 | **Lá số** — the 12-palace sheet, never blurred, each cell carrying its score | free |
+| 02 | **Điều đầu tiên lá số nói về bạn** — insight 1, complete, with "Vì sao?" and feedback | free |
+| 05 | **Lưu lá số** (guest) → **Điều thứ hai** (signed in), chosen by the FD-078 concern, plus the Bản mệnh opening and its blur | free; gated by sign-in, not money |
+| 06 | **One palace, read in full** — the concern-matched palace: conclusion, key points, full prose, Nên làm / Nên tránh, "Vì sao?", feedback | free; the largest gift |
+| 03 | **Mười hai cung mạnh yếu** — radar, strongest and weakest palace, "Điểm này tính thế nào" | free |
+| 04 | **Năm {year}** — count of hạn and thuận months; month names masked, nearest one named after sign-in | free, partial |
+| 07 | **Mười một cung còn lại** — content map: name, score, one real line, state chip. No price, no button | map |
+| 08 | **Chủ đề** — content map, same rule | map |
+| 09 | **Bạn đã đọc xong phần miễn phí** → bridge → **one door** | the only ask |
+| — | **Căn cứ**, collapsed | free |
 
-### Beat 2 — "Điều đầu tiên lá số nói về bạn" [1 screen]
-- Insight 1, complete, 120–180 syllables, written to the beginner-first rules (`docs/superpowers/specs/2026-09-28-report-writing-rules-beginner-first.md`).
-- "Vì sao có nhận định này?" disclosure: the stars and palaces it comes from.
-- Feedback row: Đúng · Một phần · Không đúng (FD-105 §4.7; feeds the "Đúng rate on insight 1" metric).
-- **No price in this beat.** This is the gift.
+Block 06 is the change that makes the page work. Before it, the reader has
+opinions about themselves; after it they have held a finished piece of the
+product in their hands and know precisely what the other eleven are.
 
-### Beat 3 — "Mười hai cung của bạn mạnh yếu ra sao" [1 screen] — new
-- Radar of the 12 palace scores (`ReportPalaceRadar`) with band labels; below it two lines, computed:
-  - "Mạnh nhất: cung {X} ({score}, {band})."
-  - "Cần để ý nhất: cung {Y} ({score}, {band})."
-- "Điểm này tính thế nào?" opens `ReportScoreExplainer` (FD-107 requires it next to any score).
-- One curiosity line, true and specific: "Vì sao cung {Y} của bạn chỉ {score}? Phần luận giải cung {Y} nói rõ, kèm việc nên làm." → button "Xem cung {Y}" opens that palace's sheet (§5).
-- Rationale: the number is free and true; the *why* is the paid part. This is the natural curiosity gap.
+### 3b. Block 09, in full
 
-### Beat 4 — "Năm {year} của bạn" [0.5 screen]
-- "Năm nay có {N} tháng cần chú ý và {M} tháng thuận." (engine counts only).
-- 12-month strip: hạn months shown as masked cells for guests; signed-in customers see the **nearest** hạn month named (FD-105 §3 layer 1), the rest masked.
-- Ask: "Tháng nào, chuyện gì, chuẩn bị ra sao" → Vận hạn năm 2026 (480 Lá) when that SKU is live; until then Tử Vi trọn đời.
+1. Completion chip: `✓ Bạn đã đọc xong phần miễn phí`.
+2. Heading that reframes, not repeats: *Những gì bạn vừa đọc là một phần mười
+   hai lá số này.*
+3. One paragraph naming what was read and what exists, in the same voice as the
+   reading.
+4. A four-cell map of true counts: parts read free · 11 palaces unopened ·
+   8 decadal cycles · N hạn months not yet named.
+5. One button: `Xem các gói luận giải` → `/la-so/{id}/chon-luan-giai`.
+6. One line of terms: paid once in Lá, read forever in the library.
 
-### Beat 5 — Save gate (guest only) [0.3 screen]
-- "Lưu lá số để đọc điều thứ hai lá số nói riêng về bạn" + "và nhận 60 Lá tặng" (welcome grant, FD-105 §9) + the 24-hour truth.
-- Google one tap. After sign-in the page returns to this exact scroll position and Beat 6 appears in place.
+Nothing else on the page carries a price.
 
-### Beat 6 — Signed-in layer (FD-105 layer 1) [1 screen]
-- Insight 2, chosen by the FD-078 concern, complete, with "Vì sao?" and feedback.
-- Bản mệnh opening paragraph, then secure blur bars (#208), then "Mở Bản mệnh · 240 Lá". The opening must not repeat insight 1 (both come from the Mệnh palace); choose the Bản mệnh paragraph that starts where insight 1 stops. The prototype still shows the overlap.
-- Balance chip: "Bạn đang có 60 Lá" → the item that uses it exactly: "Hôm nay của bạn · 60 Lá" (residual-balance hook, FD-105 §5.1). If the balance is spent, this chip disappears.
+## 4. The ask: one door, and it unlocks on engagement
 
-### Beat 7 — "Đọc tiếp theo điều bạn quan tâm" [scroll]
-- The 12 palaces as a vertical list (not a grid on mobile). Each row: palace name, score badge, the real one-line title, state (Đã đọc · Xem trước · Chưa mở).
-- Concern-matched palaces first (FD-078).
-- Tap → palace sheet (§5).
-- Progress line, true: "Bạn đã đọc {k}/12 cung" (goal-gradient, 13/09 spec §6.5).
-
-### Beat 8 — "Bước tiếp theo" (the ladder) [1 screen]
-Order follows FD-105 §2.2 (anchor first):
-1. **Tử Vi trọn đời · 960 Lá** — "Gợi ý". One sentence of what is inside (12 cung, đại vận hiện tại + 7 chặng, từng tháng hạn năm nay, đọc lại trọn đời, PDF, 7 ngày Hôm nay). If rollover credit exists: "Bạn đã dùng {x} Lá cho lá số này, chỉ còn {960−x} Lá" (true, FD-105 §5 rollover).
-2. **Bản mệnh · 240 Lá** — entry option, "nâng lên Tử Vi trọn đời trong 7 ngày được trừ lại".
-3. **Mở từng cung · 120 Lá** — shown only when package 1.5 is live.
-4. Hội viên — one line, link only.
-- Secondary links: Xem bản luận giải mẫu · Lập lá số cho người thân.
-
-### Beat 9 — Căn cứ (collapsed by default)
-Calendar conversion, timezone, cục, tứ hóa, birth-time sensitivity. Trust content, not a sales surface.
-
-## 4. The ask: one primary action per screen
-
-- **Sticky bottom bar (mobile only), exactly one action**, changing with context:
-  | Customer state | Sticky action |
-  |---|---|
-  | Guest, before Beat 5 | "Lưu lá số · nhận 60 Lá" |
-  | Signed in, balance ≥ 60, no purchase | "Mở Hôm nay của bạn · 60 Lá" |
-  | Signed in, a palace sheet was opened | "Mở cung {X} · 120 Lá" (or Bản mệnh until 1.5 ships) |
-  | Otherwise | "Xem các gói luận giải" → Beat 8 |
-- Lá only, never VND next to content (FD-065). The bar never covers text: page bottom padding = bar height.
-- Every "Mở" goes through the #202 confirm dialog; short balance goes to the top-up sheet with the unlock intent kept (FD-105 §6).
+- **In the body:** nothing. No price, no offer card, no purchase button.
+- **At block 09:** the single door.
+- **Mobile sticky bar:** hidden on arrival. It appears only when the reader
+  reaches block 09 (observed) or opens a locked preview. Before that the only
+  sticky content is the free save gate for guests, which costs nothing.
+- Lá only, never VND beside content (FD-065). The bar carries one context line
+  above the button so it is never a naked CTA.
+- Every unlock still runs through the existing confirm dialog and short-balance
+  top-up sheet — but those live behind the door, on the offer page, not here.
 
 ## 5. Palace bottom sheet (mobile) / side panel (≥ 1024 px)
 
@@ -119,7 +132,7 @@ Opened from the chart, the radar line, or the palace list.
 3. **Free:** the first 1–2 real sentences, server-clipped, ending mid-thought (FD-105 §4.2).
 4. Counts, true: "{n} ý chính · {m} căn cứ · khoảng {w} chữ".
 5. Blur bars from a length hint (no locked text in the payload, #208).
-6. One action: "Mở cung này · 120 Lá" (after 1.5) or "Mở Bản mệnh · 240 Lá" if the palace is in Bản mệnh's scope, else "Mở Tử Vi trọn đời · 960 Lá".
+6. One action, and it is the same single door: `Xem các gói luận giải`. The sheet never becomes a second checkout (FD-109c). A line states the reading is written to the same depth as the palace the reader just read in full.
 7. Close returns focus to the element that opened it.
 
 Mệnh palace: the first two paragraphs are free for signed-in customers (it is the Bản mệnh opening), so every signed-in customer reads one palace deeply before being asked.

@@ -39,6 +39,10 @@
 
   var ranked = LSV.PALACE_ORDER.slice().sort(function (a, b) { return SC[b].score - SC[a].score; });
   var STRONG = ranked[0], WEAK = ranked[ranked.length - 1];
+  // FD-109: one palace is read in full, free. It is the concern-matched one,
+  // which here is also the strongest — the reader gets a complete, favourable
+  // reading and learns exactly what a paid palace reading looks like.
+  var FREE_PALACE = STRONG;
 
   /* ---------- Content written for this page (beginner-first voice) ---------- */
   var INSIGHT1 = {
@@ -129,6 +133,12 @@
   function secHead(id, num, label, title, sub) {
     return '<p class="fr-eyebrow">' + (num ? '<b>' + num + '</b>' : '') + '<i></i>' + (label ? '<span>' + label + '</span>' : '') + '</p>'
       + '<h2 id="' + id + '">' + title + '</h2>' + (sub ? '<p class="fr-sub">' + sub + '</p>' : '');
+  }
+  function palaceBasis(br) {
+    var p = P[br];
+    return "Cung " + p.name + " tại " + p.can + " " + br + ": "
+      + (p.main.length ? p.main.map(function (m) { return m[0] + " (" + m[1] + ")" + (m[2] ? " Hóa " + LSV.HOA_LABEL[m[2]] : ""); }).join(", ") : "không có chính tinh")
+      + ". Phụ tinh: " + p.aux.join(", ") + ".";
   }
   function why(t) { return '<details class="why"><summary>Vì sao có nhận định này?</summary><p>Căn cứ trên lá số: ' + t + '</p></details>'; }
   function feedback(key) {
@@ -266,7 +276,7 @@
       ? '<div class="fr-panel fr-today"><p class="fr-kicker">Hôm nay của bạn</p><p>Ngày Kỷ Hợi chạm vào cung Tử Tức của bạn. Hôm nay hợp để nói chuyện với người nhỏ tuổi hơn bằng câu hỏi, không hợp để ra quyết định thay họ. Việc giấy tờ nên để buổi sáng.</p></div>'
       : (state.balance >= PRICE.homnay
         ? '<div class="fr-balance-hook"><p>Bạn đang có <b>' + fmt(state.balance) + ' Lá</b>. Vừa đủ để mở <b>Hôm nay của bạn</b>: hôm nay lá số của bạn gặp ngày gì, nên làm gì, nên tránh gì.</p><button type="button" class="btn btn-secondary" data-buy="homnay">Mở Hôm nay · ' + PRICE.homnay + ' Lá</button></div>' : "");
-    s.innerHTML = secHead("memberTitle", "05", "Điều thứ hai, theo điều bạn quan tâm: " + INSIGHT2.concern, INSIGHT2.title)
+    s.innerHTML = secHead("memberTitle", "05", "Theo điều bạn quan tâm", INSIGHT2.title)
       + '<div class="fr-letter">' + INSIGHT2.body.map(function (p) { return "<p>" + p + "</p>"; }).join("") + why(INSIGHT2.why) + feedback("i2") + '</div>'
       + hom
       + '<article class="fr-panel fr-banmenh"><p class="fr-kicker">Bản mệnh · 4 phần</p><h3>Con người bạn, đọc từ cung Mệnh và cung Thân</h3>'
@@ -277,55 +287,86 @@
           + '<button type="button" class="btn btn-primary fr-wide" data-buy="banmenh">Mở Bản mệnh · ' + PRICE.banmenh + ' Lá</button>')
       + '</article>';
   }
+  // 04 — the big gift: one palace read in full, exactly as a paid one reads.
+  function renderPalaceFree() {
+    var br = FREE_PALACE, rd = R[br], p = P[br];
+    $("#s-palace-free").innerHTML = secHead("palaceFreeTitle", "06", "Miễn phí, đọc trọn vẹn", "Cung " + p.name + ", đọc đầy đủ", "Đây là cung mạnh nhất lá số bạn, và cũng là cung hợp với điều bạn đang bận tâm. Phần dưới là trọn vẹn một cung, đúng như cách mười một cung còn lại được viết.")
+      + '<div class="fr-letter"><p class="fr-lead">' + rd.conclusion + '</p>'
+      + '<ol class="points">' + rd.points.map(function (t, i) { return '<li><span aria-hidden="true">' + (i + 1) + '</span><div>' + t + '</div></li>'; }).join("") + '</ol>'
+      + rd.detail.map(function (d) { return "<p>" + d + "</p>"; }).join("")
+      + (rd.guide ? '<div class="guide"><div class="g-do"><h4>' + ic("ui-check") + 'Nên làm</h4><ul>' + rd.guide.do.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ul></div><div class="g-no"><h4>' + ic("ui-close") + 'Nên tránh</h4><ul>' + rd.guide.avoid.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ul></div></div>' : "")
+      + why(palaceBasis(br)) + feedback("pf") + '</div>';
+  }
+
+  // 07 — the content map. No prices, no buttons on the rows (spec 13/09 §6.7,
+  // and the way AiTuvi lists its topics). Tapping opens the preview sheet.
   function renderPalaces() {
-    var n = openCount();
-    var order = ["Thân", "Tý", "Tuất"].concat(LSV.PALACE_ORDER.filter(function (b) { return ["Thân", "Tý", "Tuất"].indexOf(b) < 0; }));
-    $("#s-palaces").innerHTML = secHead("palacesTitle", "06", "12 cung", "Đọc tiếp theo điều bạn quan tâm", "Các cung liên quan tới công việc đứng đầu vì bạn chọn “Công việc, sự nghiệp”.")
-      + '<div class="fr-progress"><span>Bạn đã mở <b>' + n + '/12</b> cung</span><i><b style="width:' + (n / 12 * 100) + '%"></b></i></div>'
+    var order = LSV.PALACE_ORDER.filter(function (b) { return b !== FREE_PALACE; });
+    $("#s-palaces").innerHTML = secHead("palacesTitle", "07", "12 cung", "Mười một cung còn lại", "Bạn vừa đọc trọn cung " + P[FREE_PALACE].name + ". Mười một cung dưới đây được viết cùng độ sâu như vậy.")
       + '<ul class="fr-plist">' + order.map(function (br) {
           var st = palaceState(br);
           return '<li><button type="button" class="fr-prow" data-palace="' + br + '">'
             + '<span class="fr-seal-score sc-' + band(br).key + '">' + SC[br].score + '</span>'
             + '<span class="fr-ptop"><span class="fr-pname">' + P[br].name + '</span>'
-            + '<span class="fr-pstate st-' + st[0] + '">' + (st[0] === "read" ? ic("ui-check") : st[0] === "new" ? ic("ui-lock") : "") + st[1] + '</span></span>'
+            + '<span class="fr-pstate st-' + st[0] + '">' + (st[0] === "read" ? ic("ui-check") : "") + st[1] + '</span></span>'
             + '<span class="fr-pline">' + R[br].conclusion + '</span>'
             + '</button></li>';
         }).join("") + '</ul>';
   }
+
   function renderTopics() {
-    $("#s-topics").innerHTML = secHead("topicsTitle", "07", "Chủ đề", "Đọc theo điều bạn đang bận tâm")
+    $("#s-topics").innerHTML = secHead("topicsTitle", "08", "Chủ đề", "Đọc theo điều bạn đang bận tâm", "Mỗi chủ đề gộp nhiều cung lại để trả lời một câu hỏi của đời sống.")
       + '<div class="fr-topics">' + TOPICS.map(function (t) {
           var done = state.topics[t.id] || (t.id === "van-han" && (state.vanhan || state.trondoi));
           return '<article class="fr-panel fr-topic' + (t.match ? " is-match" : "") + '">'
             + (t.match ? '<span class="pill">Theo điều bạn chọn</span>' : "")
             + '<h3>' + t.name + '</h3><p>' + t.teaser + '</p>'
             + '<p class="fr-rel">' + t.rel.map(function (b) { return '<button type="button" data-palace="' + b + '">Cung ' + P[b].name + '</button>'; }).join("") + '</p>'
-            + (done ? '<p class="fr-done">' + ic("ui-check") + 'Đã mở</p>'
-              : '<button type="button" class="btn btn-secondary" data-buy="topic:' + t.id + '">Mở · ' + t.price + ' Lá</button>')
+            + (done ? '<p class="fr-done">' + ic("ui-check") + 'Đã mở</p>' : '<p class="fr-lockchip">' + ic("ui-lock") + 'Chưa mở</p>')
             + '</article>';
         }).join("") + '</div>';
   }
-  function ladderHtml(idSuffix) {
-    var price = trondoiPrice();
-    if (state.trondoi) {
-      return '<div class="fr-panel fr-ladder"><h2 id="ladderTitle' + idSuffix + '">Bạn đã mở Tử Vi trọn đời</h2><p>Đủ 12 cung, 8 chặng đại vận, từng tháng năm nay. 7 ngày Hôm nay của bạn bắt đầu từ sáng mai.</p>'
-        + '<a class="btn btn-primary fr-wide" href="doc-bao-cao-tuong-tac.html">Đọc báo cáo</a></div>';
-    }
-    return '<div class="fr-ladder">' + secHead("ladderTitle" + idSuffix, "08", "Các gói", "Đọc trọn lá số của bạn")
-      + '<article class="fr-offer is-anchor"><span class="pill seal">Gợi ý</span><h3>Tử Vi trọn đời</h3>'
-      + '<p class="fr-price">' + (price < PRICE.trondoi ? '<s>' + fmt(PRICE.trondoi) + '</s> ' : '') + '<b>' + fmt(price) + ' Lá</b></p>'
-      + (state.spentNatal ? '<p class="fr-roll">Bạn đã dùng ' + state.spentNatal + ' Lá cho lá số này trong 7 ngày, được trừ lại.</p>' : '')
-      + '<ul><li>Đủ 12 cung và các chủ đề đời sống</li><li>Chặng đại vận đang sống, đọc đầy đủ, và 7 chặng còn lại</li><li>Từng tháng cần chú ý năm 2026</li><li>Đọc lại trọn đời, tải PDF</li><li>Tặng 7 ngày Hôm nay của bạn</li></ul>'
-      + '<button type="button" class="btn btn-primary fr-wide" data-buy="trondoi">Mở Tử Vi trọn đời · ' + fmt(price) + ' Lá</button></article>'
-      + (state.banmenh ? "" : '<article class="fr-offer"><h3>Bản mệnh</h3><p class="fr-price"><b>' + PRICE.banmenh + ' Lá</b></p><p>4 phần về con người bạn. Nâng lên Tử Vi trọn đời trong 7 ngày được trừ lại ' + PRICE.banmenh + ' Lá.</p><button type="button" class="btn btn-secondary fr-wide" data-buy="banmenh">Mở Bản mệnh</button></article>')
-      + '<article class="fr-offer is-slim"><h3>Mở từng cung</h3><p class="fr-price"><b>' + PRICE.palace + ' Lá</b> mỗi cung</p><p>Chạm một cung trên lá số để mở riêng cung đó.</p></article>'
-      + '<p class="fr-member">Hội viên: Hôm nay của bạn mỗi sáng và giảm 20% khi mở luận giải. <a href="#">Xem Hội viên</a></p>'
+
+  // 09 — the one moment the page asks. Completion, then the bridge, then one door.
+  function renderEnd() {
+    var freeRead = 3 + (state.signed ? 1 : 0);
+    $("#s-end").innerHTML = '<div class="fr-end">'
+      + '<p class="fr-end-mark">' + ic("ui-check") + 'Bạn đã đọc xong phần miễn phí</p>'
+      + '<h2 id="endTitle">Những gì bạn vừa đọc là một phần mười hai lá số này</h2>'
+      + '<p class="fr-end-body">Bạn vừa đọc trọn cung ' + P[FREE_PALACE].name + ', ' + (state.signed ? "hai" : "một") + ' điều lá số nói riêng về bạn, và biết năm nay có ' + YEAR.han + ' tháng cần chú ý. Mười một cung còn lại, ' + YEAR.han + ' tháng đó rơi vào chuyện gì, tám chặng mười năm của đời bạn và các chủ đề đời sống đều đã được viết sẵn cho lá số này, cùng một người viết, cùng độ sâu.</p>'
+      + '<dl class="fr-end-map">'
+      + '<div><dt>' + freeRead + ' phần</dt><dd>bạn đã đọc miễn phí</dd></div>'
+      + '<div><dt>11 cung</dt><dd>chưa mở</dd></div>'
+      + '<div><dt>8 chặng</dt><dd>đại vận, mỗi chặng 10 năm</dd></div>'
+      + '<div><dt>' + YEAR.han + ' tháng</dt><dd>cần chú ý, chưa rõ tháng nào</dd></div>'
+      + '</dl>'
+      + '<button type="button" class="btn btn-primary fr-door" data-door>Xem các gói luận giải</button>'
+      + '<p class="fr-fine">Trả một lần bằng Lá, đọc lại trọn đời trong thư viện của bạn.</p>'
       + '</div>';
   }
-  function renderLadder() {
-    $("#s-ladder").innerHTML = ladderHtml("");
-    $("#s-ladder-side").innerHTML = ladderHtml("Side");
+
+  // The door opens this. On the real site it is the existing page
+  // /la-so/{id}/chon-luan-giai, already in the route registry.
+  function offerBody() {
+    var price = trondoiPrice();
+    if (state.trondoi) {
+      return '<p class="fr-sub">Bạn đã mở Tử Vi trọn đời. Báo cáo lưu trọn đời trong thư viện.</p>'
+        + '<a class="btn btn-primary fr-wide" href="doc-bao-cao-tuong-tac.html">Đọc báo cáo</a>';
+    }
+    return '<p class="fr-sub">Trên bản thật đây là một trang riêng: <code>/la-so/…/chon-luan-giai</code>. Trang mẫu mở ra ở đây để anh bấm thử liền mạch.</p>'
+      + '<div class="fr-ladder">'
+      + '<article class="fr-offer is-anchor"><span class="pill seal">Gợi ý</span><h3>Tử Vi trọn đời</h3>'
+      + '<p class="fr-price">' + (price < PRICE.trondoi ? '<s>' + fmt(PRICE.trondoi) + '</s> ' : '') + fmt(price) + ' Lá</p>'
+      + (state.spentNatal ? '<p class="fr-roll">Đã trừ ' + state.spentNatal + ' Lá bạn dùng cho lá số này trong 7 ngày.</p>' : '')
+      + '<ul><li>Đủ 12 cung và các chủ đề đời sống</li><li>Chặng đại vận đang sống, đọc đầy đủ, và 7 chặng còn lại</li><li>Từng tháng cần chú ý năm 2026</li><li>Đọc lại trọn đời, tải PDF</li><li>Tặng 7 ngày Hôm nay của bạn</li></ul>'
+      + '<button type="button" class="btn btn-primary fr-wide" data-buy="trondoi">Mở Tử Vi trọn đời · ' + fmt(price) + ' Lá</button></article>'
+      + (state.banmenh ? "" : '<article class="fr-offer"><h3>Bản mệnh</h3><p class="fr-price">' + PRICE.banmenh + ' Lá</p><p>4 phần về con người bạn. Nâng lên Tử Vi trọn đời trong 7 ngày được trừ lại ' + PRICE.banmenh + ' Lá.</p><button type="button" class="btn btn-secondary fr-wide" data-buy="banmenh">Mở Bản mệnh</button></article>')
+      + '<article class="fr-offer is-slim"><h3>Mở từng cung</h3><p class="fr-price">' + PRICE.palace + ' Lá</p><p>Chạm một cung trên lá số để mở riêng cung đó.</p></article>'
+      + '<p class="fr-member">Hội viên: Hôm nay của bạn mỗi sáng và giảm 20% khi mở luận giải.</p>'
+      + '</div>';
   }
+  function openDoor(opener) { $("#ofBody").innerHTML = offerBody(); openSheet("offerSheet", opener); }
+
   function renderBasis() {
     var rows = [
       ["Lịch", "Năm Quý Dậu 1993, đổi sang âm lịch", "Đã tính"],
@@ -338,6 +379,9 @@
     $("#s-basis").innerHTML = '<details class="fr-basis"><summary><h2 id="basisTitle">Căn cứ</h2><span>Mọi nhận định trên trang đi từ các yếu tố này. Máy tính lá số trước, rồi mới viết thành lời.</span></summary>'
       + '<dl>' + rows.map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd><dd class="ok">' + r[2] + '</dd></div>'; }).join("") + '</dl></details>';
   }
+  // Spec 13/09 §8.1: the money ask appears only after the reader has reached the
+  // end of the free reading or opened a locked preview. Before that the only
+  // sticky action is the free save gate, which costs nothing.
   function renderSticky() {
     var s = $("#sticky"), h, note;
     if (!state.signed) {
@@ -346,21 +390,19 @@
     } else if (state.trondoi) {
       h = '<a class="btn btn-primary" href="doc-bao-cao-tuong-tac.html">Đọc báo cáo Tử Vi trọn đời</a>';
       note = "Báo cáo lưu trọn đời trong thư viện của bạn.";
-    } else if (state.lastPalace && !isOpen(state.lastPalace)) {
-      h = '<button type="button" class="btn btn-primary" data-buy="palace:' + state.lastPalace + '">Mở cung ' + P[state.lastPalace].name + ' · ' + PRICE.palace + ' Lá</button>';
-      note = "Bạn đang có " + fmt(state.balance) + " Lá.";
-    } else if (state.balance >= PRICE.homnay && !state.homnay) {
-      h = '<button type="button" class="btn btn-primary" data-buy="homnay">Mở Hôm nay của bạn · ' + PRICE.homnay + ' Lá</button>';
-      note = "Bạn đang có " + fmt(state.balance) + " Lá, vừa đủ.";
+    } else if (state.reachedEnd) {
+      h = '<button type="button" class="btn btn-primary" data-door>Xem các gói luận giải</button>';
+      note = "Mười một cung còn lại, 8 chặng đại vận, từng tháng năm nay.";
     } else {
-      h = '<button type="button" class="btn btn-primary" data-go="s-ladder">Đọc trọn lá số · ' + fmt(trondoiPrice()) + ' Lá</button>';
-      note = state.spentNatal ? "Đã trừ " + fmt(state.spentNatal) + " Lá bạn dùng cho lá số này." : "Đủ 12 cung, 8 chặng đại vận, từng tháng năm nay.";
+      s.hidden = true; s.innerHTML = ""; return;
     }
+    s.hidden = false;
     s.innerHTML = h + '<p class="fr-sticky-note">' + note + '</p>';
   }
+
   function renderAll() {
     renderTop(); renderTabs(); renderChart(); renderInsight(); renderScores(); renderYear();
-    renderSave(); renderMember(); renderPalaces(); renderTopics(); renderLadder(); renderBasis(); renderSticky();
+    renderSave(); renderMember(); renderPalaceFree(); renderPalaces(); renderTopics(); renderEnd(); renderBasis(); renderSticky();
   }
 
   /* ---------- Palace sheet ---------- */
@@ -378,16 +420,17 @@
         + (rd.guide ? '<div class="guide"><div class="g-do"><h4>' + ic("ui-check") + 'Nên làm</h4><ul>' + rd.guide.do.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ul></div><div class="g-no"><h4>' + ic("ui-close") + 'Nên tránh</h4><ul>' + rd.guide.avoid.map(function (t) { return "<li>" + t + "</li>"; }).join("") + '</ul></div></div>' : "")
         + feedback("p-" + br);
     } else {
+      // One door: the sheet shows what is there and sends the reader to the
+      // offer page, it does not become a second checkout (founder, 2026-09-28).
       h += '<p class="fr-ps-p">' + excerpt(br) + '</p>' + blurLines(7, "Phần còn lại đang khoá")
         + '<p class="fr-counts">' + rd.points.length + ' ý chính · ' + (p.main.length + p.aux.length) + ' căn cứ · khoảng ' + fmt(Math.round(wordCount(br) / 10) * 10) + ' chữ · có Nên làm, Nên tránh</p>'
-        + '<button type="button" class="btn btn-primary fr-wide" data-buy="palace:' + br + '">Mở cung ' + p.name + ' · ' + PRICE.palace + ' Lá</button>'
-        + (BANMENH_PALACES.indexOf(br) > -1 && !state.banmenh ? '<button type="button" class="btn btn-secondary fr-wide" data-buy="banmenh">Hoặc mở Bản mệnh · ' + PRICE.banmenh + ' Lá (có cung này)</button>' : '')
-        + '<p class="fr-fine">Mở cung rồi mà trong 7 ngày nâng lên Tử Vi trọn đời thì số Lá này được trừ lại.</p>';
+        + '<p class="fr-ps-note">Viết cùng độ sâu như cung ' + P[FREE_PALACE].name + ' bạn vừa đọc.</p>'
+        + '<button type="button" class="btn btn-primary fr-wide" data-door>Xem các gói luận giải</button>';
     }
     return h;
   }
   function openPalace(br, opener) {
-    state.sel = br; state.previewed[br] = true; state.lastPalace = br;
+    state.sel = br; state.previewed[br] = true; state.lastPalace = br; state.reachedEnd = true;
     $("#psTitle").textContent = "Cung " + P[br].name;
     $("#psBody").innerHTML = palaceBody(br);
     openSheet("palaceSheet", opener);
@@ -510,6 +553,7 @@
     if ((el = t.closest("[data-tab-btn]"))) return setTab(el.dataset.tabBtn);
     if ((el = t.closest("#chartMain .cell"))) return openPalace(el.dataset.br, el);
     if ((el = t.closest("[data-palace]"))) { closeSheets(true); return openPalace(el.dataset.palace, el); }
+    if ((el = t.closest("[data-door]"))) return openDoor(el);
     if ((el = t.closest("[data-save]"))) return openSheet("saveSheet", el);
     if (t.closest("#doSignIn")) return signIn();
     if ((el = t.closest("[data-buy]"))) return buy(el.dataset.buy, el);
@@ -527,6 +571,16 @@
     if (open && e.key === "Escape") { e.preventDefault(); closeSheets(); }
   });
   addEventListener("resize", function () { requestAnimationFrame(function () { drawLines($("#chartMain .board")); }); });
+
+  // The end block entering the viewport is what turns the money ask on.
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !state.reachedEnd) { state.reachedEnd = true; renderSticky(); }
+      });
+    }, { rootMargin: "0px 0px -20% 0px" });
+    io.observe($("#s-end"));
+  }
 
   setTheme(document.documentElement.dataset.theme || "dark");
   renderAll();

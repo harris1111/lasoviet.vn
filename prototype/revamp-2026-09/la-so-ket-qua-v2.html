@@ -57,23 +57,23 @@
   </nav>
 
   <div class="fr-layout">
-    <aside class="fr-side" aria-label="Lá số và các gói">
+    <aside class="fr-side" aria-label="Lá số">
       <section class="fr-sec fr-chart-sec" id="s-chart" aria-label="Lá số 12 cung">
         <div class="chart" id="chartMain"></div>
         <p class="fr-hint">Chạm một cung để xem cung đó nói gì về bạn.</p>
       </section>
-      <section class="fr-sec fr-side-ladder" id="s-ladder-side" aria-labelledby="ladderSideTitle"></section>
     </aside>
 
     <div class="fr-main" id="frMain">
       <section class="fr-sec" data-tab="tong-quan" id="s-insight" aria-labelledby="insightTitle"></section>
-      <section class="fr-sec" data-tab="la-so" id="s-scores" aria-labelledby="scoresTitle"></section>
-      <section class="fr-sec" data-tab="nam-nay" id="s-year" aria-labelledby="yearTitle"></section>
       <section class="fr-sec" data-tab="tong-quan" id="s-save" aria-labelledby="saveTitle"></section>
       <section class="fr-sec" data-tab="tong-quan" id="s-member" aria-labelledby="memberTitle"></section>
+      <section class="fr-sec" data-tab="tong-quan" id="s-palace-free" aria-labelledby="palaceFreeTitle"></section>
+      <section class="fr-sec" data-tab="la-so" id="s-scores" aria-labelledby="scoresTitle"></section>
+      <section class="fr-sec" data-tab="nam-nay" id="s-year" aria-labelledby="yearTitle"></section>
       <section class="fr-sec" data-tab="12-cung" id="s-palaces" aria-labelledby="palacesTitle"></section>
       <section class="fr-sec" data-tab="chu-de" id="s-topics" aria-labelledby="topicsTitle"></section>
-      <section class="fr-sec fr-main-ladder" data-tab="all-mobile" id="s-ladder" aria-labelledby="ladderTitle"></section>
+      <section class="fr-sec" data-tab="chu-de" id="s-end" aria-labelledby="endTitle"></section>
       <section class="fr-sec" data-tab="can-cu" id="s-basis" aria-labelledby="basisTitle"></section>
     </div>
   </div>
@@ -93,6 +93,16 @@
     <div class="handle"></div>
     <div class="sheet-top"><b id="psTitle">Cung</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
     <div id="psBody"></div>
+  </div>
+</div>
+
+<!-- The single door: stands in for /la-so/{id}/chon-luan-giai -->
+<div class="sheet-wrap" id="offerSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ofTitle">
+    <div class="handle"></div>
+    <div class="sheet-top"><b id="ofTitle">Mở luận giải cho lá số của bạn</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div id="ofBody"></div>
   </div>
 </div>
 
