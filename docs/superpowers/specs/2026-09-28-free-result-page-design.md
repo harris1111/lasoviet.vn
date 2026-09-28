@@ -78,7 +78,7 @@ Each block is one "beat". The number in brackets is the target height at 390 px 
 
 ### Beat 6 — Signed-in layer (FD-105 layer 1) [1 screen]
 - Insight 2, chosen by the FD-078 concern, complete, with "Vì sao?" and feedback.
-- Bản mệnh opening paragraph, then secure blur bars (#208), then "Mở Bản mệnh · 240 Lá".
+- Bản mệnh opening paragraph, then secure blur bars (#208), then "Mở Bản mệnh · 240 Lá". The opening must not repeat insight 1 (both come from the Mệnh palace); choose the Bản mệnh paragraph that starts where insight 1 stops. The prototype still shows the overlap.
 - Balance chip: "Bạn đang có 60 Lá" → the item that uses it exactly: "Hôm nay của bạn · 60 Lá" (residual-balance hook, FD-105 §5.1). If the balance is spent, this chip disappears.
 
 ### Beat 7 — "Đọc tiếp theo điều bạn quan tâm" [scroll]
@@ -151,7 +151,7 @@ Mệnh palace: the first two paragraphs are free for signed-in customers (it is 
 | Chủ đề | Concern-ordered topic cards (existing `ziwei-topics-tab.tsx`) |
 | Căn cứ | Beat 9 |
 
-Beat 8 (the ladder) sits in the right rail on every tab.
+Beat 8 (the ladder) sits under the chart in the left column on every tab, in a compact form (no bullet list).
 
 **Content parity is mandatory.** Every block that exists on mobile exists on desktop and vice versa, fed by the same data and components; only the arrangement differs. The Chủ đề topic cards appear on mobile as a section after Beat 7. Tab URLs (`?tab=12-cung`) keep working on mobile as scroll anchors, so shared links and analytics resolve on both. A Playwright test renders both widths and asserts the same set of block ids.
 
@@ -176,7 +176,7 @@ Beat 8 (the ladder) sits in the right rail on every tab.
 
 ## 10. Delivery sequence
 
-1. **Clickable prototype** `prototype/revamp-2026-09/la-so-ket-qua-v2.html` at 390 px, then desktop, with the real sample chart used by the reader prototype. Founder approves (FD-056). *UI work: founder notified before it starts.*
+1. **Clickable prototype** `prototype/revamp-2026-09/la-so-ket-qua-v2.html` (phone frame: `la-so-ket-qua-v2-dien-thoai.html`), built 2026-09-28 with the real sample chart used by the reader prototype. Founder approves (FD-056). Started with the founder's go-ahead.
 2. Kaneo ticket for An with this spec, the prototype, and the dependency list:
    - #208 (package 1.4) merged — required.
    - #203 welcome grant (1.6) — required for Beats 5–6.
