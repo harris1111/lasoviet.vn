@@ -130,7 +130,7 @@ Wave 1 already derives the full cycle list. Round 2 gives each cycle content:
 
 ### 7b.4 Beginner-first writing and the storytelling overview (FD-106c, FD-106d)
 
-Full rules: `docs/superpowers/specs/2026-09-28-report-writing-rules-beginner-first.md`. The two load-bearing changes are that a star name must be translated into ordinary language the moment it appears, capped at one per 80 syllables, and that `minimumPalaceStars` moves from counting names in the prose to counting stars in the section's evidence refs, so the chips and the "Vì sao" box carry the proof instead of the sentences.
+Full rules: `docs/superpowers/specs/2026-09-28-report-writing-rules-beginner-first.md`. The two load-bearing changes are that a star name must be translated into ordinary language the moment it appears, capped at one and a half distinct names per 80 syllables (calibrated on the approved texts), and that `minimumPalaceStars` moves from counting names in the prose to counting stars in the section's evidence refs, so the chips and the "Vì sao" box carry the proof instead of the sentences.
 
 Section length targets are unchanged. The overview gains a fixed five-beat arc at the same length.
 

@@ -119,7 +119,7 @@ Star names stay (founder decision, 2026-09-28: they carry the sense of real expe
 
 **Rule 3.2 — Meaning before mechanism.** Every claim leads with the everyday observation and follows with the chart basis. This restates FD-076's intent; the difference now is that it is enforced (§6).
 
-**Rule 3.3 — Density cap.** At most **one star name per 80 syllables** of narrative, counted per section. A 700-syllable overview may name at most 9 stars. Repeats of the same star do not count again.
+**Rule 3.3 — Density cap.** At most **one and a half distinct star names per 80 syllables** of narrative, counted per section, rounded up. A 700-syllable overview may name at most 14 stars. Repeats of the same star do not count again, and "Tử Vi" as the name of the discipline (Tử Vi Đẩu Số, trong Tử Vi) does not count. Calibrated 2026-09-28 on the twelve approved palace texts: the densest, Tử Tức, names 7 in 388 syllables (1.44 per 80), and passes because every name is explained on arrival. The count is a backstop; Rule 3.1 is the real defence.
 
 **Rule 3.4 — Brightness in words, not labels.** Write `ở vị trí sáng nhất`, not `ở trạng thái Miếu`. The exact label already appears on the star chip beside the text.
 
@@ -153,6 +153,8 @@ Five beats, in order, at the current 700 to 900 syllables:
 | 4. Con người thứ hai của bạn | The Mệnh/Thân tension, or whatever second mode the chart shows | A contrast the reader can recognise |
 | 5. Cuộc đời này hợp với cách sống nào | What environment suits them | A closing judgement, not a summary |
 
+The beat names above are internal labels for writers and reviewers only. They are never printed: the overview is five paragraphs of flowing prose with no sub-headings (§2b.1), separated by a blank line.
+
 Beat 1 must not open with a star name as the grammatical subject. Open with the person or the pattern, translated.
 
 ### 5.2 Palaces and themes
@@ -170,10 +172,10 @@ Three beats: what this area looks like for this person → where it gets hard �
 |---|---|---|
 | `minimumPalaceStars` | Counts star names in the narrative | Counts distinct stars in the section's evidence refs |
 | `minimumEvidenceAnchors` | Same | Same move |
-| Star density | Does not exist | New: reject above 1 star name per 80 syllables |
-| Translate on arrival | Does not exist | New: every star name in the narrative must have an explanatory clause within the same or next sentence. Detectable by checking that a star mention is not immediately followed or preceded by another star mention with no intervening clause |
-| Machine sub-headings | Does not exist | New: reject any narrative paragraph preceded by a 2 to 4 word noun-phrase heading, and reject the banned list in §2b.1 anywhere in the text |
-| Arc check (overview only) | Does not exist | New: five sub-headed paragraphs present, first paragraph does not start with a star name |
+| Star density | Does not exist | New: reject above 1.5 distinct star names per 80 syllables (§3.3) |
+| Translate on arrival | Does not exist | New: every star name in the narrative must have an explanatory clause within the same or next sentence. Checked by the AI critic as an advisory `beginner` warning (a pattern check cannot tell an explanation from a list); the founder reads those warnings in the release gate (§8) |
+| Machine sub-headings | Does not exist | New: reject any narrative paragraph preceded by a 2 to 4 word noun-phrase heading, and reject the §2b.1 list at the start of a line or sentence (the approved texts use some of these words mid-sentence, correctly). The §2b.2 and §2c.3 lists are rejected anywhere |
+| Arc check (overview only) | Does not exist | New: five paragraphs present (flowing prose, no sub-headings, per §2b.1), first paragraph does not start with a star name |
 | Section length | 700 to 900 overview, 550 to 750 palace | Unchanged |
 | `discouragedTerms`, death terms, certainty phrases, locale integrity | As configured | Unchanged |
 | Decadal teaser length | Does not exist | New: 120 to 200 syllables per non-current cycle |
