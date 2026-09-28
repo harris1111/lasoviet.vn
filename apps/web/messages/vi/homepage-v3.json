@@ -214,64 +214,64 @@
     }
   },
   "compare": {
-    "title": "Câu trả lời có thể đến rất nhanh. Điều gì còn ở lại?",
-    "lead": "Một cách cho bạn tốc độ. Một cách cho bạn cuộc trò chuyện. Lá Số Việt cho bạn một lá số để trở lại, đối chiếu và đọc tiếp.",
-    "tableLabel": "Một điểm đáng chọn và năm giới hạn của mỗi cách tìm câu trả lời",
+    "title": "Tốc độ hay cuộc trò chuyện? Điều gì sẽ thực sự ở lại cùng bạn?",
+    "lead": "Trang tử vi phổ thông cho sự nhanh chóng. Hỏi đáp AI cho sự linh hoạt. Gặp thầy cho sự lắng nghe. Lá Số Việt trao bạn một bản đồ vận mệnh chuẩn xác, có căn cứ cổ thư và đồng hành trọn đời.",
+    "tableLabel": "Một điểm đáng chọn và các giới hạn thực tế của mỗi cách tìm câu trả lời",
     "groupLabel": "Cách bạn đang cân nhắc",
     "colLsv": "Lá Số Việt",
     "colWeb": "Trang tử vi phổ thông",
-    "colAi": "Hỏi AI",
-    "colThay": "Gặp thầy",
+    "colAi": "Hỏi đáp AI",
+    "colThay": "Gặp thầy tử vi",
     "tabLsv": "Lá Số Việt",
     "tabWeb": "Trang tử vi",
-    "tabAi": "Hỏi AI",
+    "tabAi": "Hỏi đáp AI",
     "tabThay": "Gặp thầy",
-    "cardTitle": "{name} có gì đáng chọn?",
-    "fixLabel": "Lá Số Việt:",
-    "ctaDesktop": "Lập lá số của tôi →",
+    "cardTitle": "{name} có gì đáng để bạn lựa chọn?",
+    "fixLabel": "Tại Lá Số Việt:",
+    "ctaDesktop": "Khai mở lá số của tôi →",
     "cta": "Bắt đầu với lá số của tôi →",
     "rows": {
       "strength": {
-        "k": "Điểm đáng chọn",
-        "lsv": "Một lá số để khám phá, giữ lại và đọc tiếp.",
-        "web": "Tra rất nhanh; nhiều nơi có phần miễn phí.",
-        "ai": "Hỏi bằng lời của mình, trả lời tức thì.",
-        "thay": "Đối thoại trực tiếp, hỏi tiếp ngay tại chỗ."
+        "k": "Điểm đáng chọn nhất",
+        "lsv": "Bản đồ vận mệnh chuẩn xác, cá nhân hóa sâu sắc và lưu trữ đồng hành trọn đời.",
+        "web": "Tra cứu miễn phí, trả kết quả lá số thô và bài đọc tự động tức thì.",
+        "ai": "Trò chuyện linh hoạt 24/7 bằng lời văn tự nhiên, phản hồi ngay tức thì.",
+        "thay": "Đối thoại 1-1 trực tiếp, được lắng nghe và an ủi cảm xúc tại chỗ."
       },
       "own": {
-        "k": "Riêng cho mình",
-        "lsv": "Bắt đầu từ ngày giờ sinh và điều bạn đang quan tâm.",
-        "web": "Một bản luận sẵn khó theo sát câu hỏi riêng.",
-        "ai": "Câu trả lời dựa nhiều vào thông tin bạn tự kể trong prompt.",
-        "thay": "Độ sâu phụ thuộc người xem và thời lượng buổi gặp."
+        "k": "Độ cá nhân hóa",
+        "lsv": "An sao chuẩn từng phút sinh; bóc tách đúng trăn trở bạn đang bận tâm.",
+        "web": "Văn mẫu đóng sẵn; hai người cùng sao nhận bài đọc giống hệt nhau.",
+        "ai": "Phụ thuộc câu lệnh tự nhập; dễ bị định kiến người dùng dẫn dắt.",
+        "thay": "Phụ thuộc lớn vào kinh nghiệm, tâm trạng và cảm quan cá nhân của thầy."
       },
       "basis": {
-        "k": "Căn cứ trên lá số",
-        "lsv": "Đi từ nhận định về cung, sao và mối liên hệ liên quan.",
-        "web": "Kết luận có sẵn đôi khi thiếu đường dẫn về cung, sao.",
-        "ai": "Lời văn có thể thuyết phục dù chưa kiểm được dữ liệu lá số.",
-        "thay": "Lời giải có thể rất sâu, nhưng cần ghi lại để đối chiếu."
+        "k": "Căn cứ học thuật",
+        "lsv": "Minh bạch tuyệt đối. Mọi luận giải đều gắn đường dẫn đối chiếu sao và cung.",
+        "web": "Dữ liệu đại trà chưa kiểm chứng; buông lời phán mơ hồ gây hoang hoảng.",
+        "ai": "Dễ bị 'ảo giác' an sai vị trí sao nhưng vẫn trả lời rất tự tin.",
+        "thay": "Truyền miệng thiếu cơ sở logic chuẩn hóa; khó kiểm chứng tính đúng sai."
       },
       "links": {
-        "k": "Thấy mối liên hệ",
-        "lsv": "Chạm một cung để nhìn tam hợp, đối cung cùng lúc.",
-        "web": "Nhiều đoạn văn rời khiến bạn phải tự ghép các mối nối.",
-        "ai": "Mỗi lượt hỏi có thể tách khỏi tổng thể mười hai cung.",
-        "thay": "Mối liên hệ được nói bằng lời, khó xem lại thành một bức tranh."
+        "k": "Nhìn nhận toàn diện",
+        "lsv": "Đồ hình tương tác trực quan: chạm một cung để thấy trọn vẹn Tam hợp, Xung chiếu.",
+        "web": "Nội dung cắt vụn; các cung phán mâu thuẫn buộc bạn tự chắp vá.",
+        "ai": "Mỗi lần hỏi là một lát cắt rời rạc, mất đi tính nhất quán toàn cục.",
+        "thay": "Lời phán thoảng qua, khó hình dung rõ bức tranh tổng thể mười hai cung."
       },
       "return": {
-        "k": "Trở lại lúc cần",
-        "lsv": "Giữ lá số và phần đã mở để trở lại đúng chỗ.",
-        "web": "Khó tìm lại chính đoạn từng khiến bạn suy nghĩ.",
-        "ai": "Cuộc trò chuyện dài khiến thông tin quan trọng dễ trôi.",
-        "thay": "Khi buổi xem kết thúc, bạn phải dựa vào trí nhớ hoặc ghi chép."
+        "k": "Tính nhất quán & Khách quan",
+        "lsv": "Khách quan & Nhất quán tuyệt đối; chuẩn hóa dữ liệu, loại bỏ hoàn toàn cảm tính.",
+        "web": "Thông tin thiếu ổn định; các bài tra cứu mâu thuẫn nhau giữa các lần đọc.",
+        "ai": "Thiếu tính nhất quán; mỗi lượt hỏi lại cho ra một kết quả mâu thuẫn.",
+        "thay": "Thiếu tính đồng nhất; cùng lá số nhưng mỗi thầy phán một kiểu khác nhau."
       },
       "depth": {
-        "k": "Đi sâu theo ý mình",
-        "lsv": "Chọn gói luận giải hoặc phần bạn muốn đọc; thấy rõ chi phí và quyền lợi trước khi mở.",
-        "web": "Thường đi theo bài hoặc gói đã đóng sẵn.",
-        "ai": "Hỏi thêm rất dễ, nhưng bạn tự kiểm tính nhất quán của từng lượt.",
-        "thay": "Muốn hỏi thêm thường phải chờ một buổi khác và thêm chi phí."
+        "k": "Chi phí & Trải nghiệm",
+        "lsv": "Xem miễn phí nền tảng; chủ động mở sâu đúng phần bạn cần với chi phí minh bạch.",
+        "web": "Giao diện tràn ngập quảng cáo; bài viết đóng gói cứng nhắc, thừa thãi.",
+        "ai": "Tốn phí thuê bao tháng; người dùng phải tự gánh rủi ro tự kiểm chứng.",
+        "thay": "Chi phí đắt đỏ từ trăm nghìn đến tiền triệu; khó đặt lịch để hỏi thêm."
       }
     }
   },
@@ -373,10 +373,10 @@
     }
   },
   "about": {
-    "title": "Lá Số Việt bắt đầu từ một câu hỏi giản dị: làm sao để hiểu một lá số, thay vì chỉ nghe một lời phán?",
-    "body": "Chúng tôi đặt những tri thức xưa vào một cách đọc gần gũi hơn: có lá số để nhìn, có căn cứ để lần theo, có khoảng lặng để tự hiểu mình.",
-    "link": "Tìm hiểu Lá Số Việt →",
-    "ctaTitle": "Câu chuyện của bạn bắt đầu từ đâu?",
-    "cta": "Lập lá số của tôi"
+    "title": "Đơn giản hóa tinh hoa huyền học Đông Tây, đưa tri thức đúc kết ngàn năm đến gần hơn với người Việt.",
+    "body": "Lá Số Việt hội tụ tinh hoa các bộ môn thuật số kim cổ—từ Tử Vi, Bát Tự đến Chiêm Tinh, Kinh Dịch và Thần Số Học. Bằng ngôn ngữ tiếng Việt thuần túy, dễ hiểu và có căn cứ minh bạch, Lá Số Việt giúp bạn thấu hiểu sâu sắc chính mình, nhìn rõ những cột mốc vận hạn để luôn có sự chuẩn bị chủ động và vững vàng nhất cho cuộc sống.",
+    "link": "Tìm hiểu thêm về Lá Số Việt →",
+    "ctaTitle": "Chặng đường phía trước của bạn đã sẵn sàng được soi tỏ.",
+    "cta": "Khai mở lá số của bạn ngay"
   }
 }
