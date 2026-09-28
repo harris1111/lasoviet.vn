@@ -238,6 +238,17 @@
     "upgrade_price_notice": "Bạn đã có Bản mệnh, nâng lên Toàn diện chỉ thêm 720 Lá thay vì 960 Lá trong 7 ngày kể từ khi thanh toán.",
     "upgrade_cta": "Mở 8 phần còn lại — 720 Lá",
     "unlocked_map_title": "4 phần đã mở",
-    "locked_map_title": "8 phần đang khóa"
+    "locked_map_title": "8 phần đang khóa",
+    "action_why": "Vì sao:",
+    "action_avoid": "Nên tránh:",
+    "palaces_expand_all": "Mở tất cả 12 cung",
+    "palaces_collapse_all": "Thu gọn tất cả",
+    "stars_label": "Sao trong cung",
+    "no_main_star": "Vô chính diệu",
+    "timeline_title": "Các chặng đại vận",
+    "timeline_note": "Mỗi chặng 10 năm, tính theo tuổi âm. Chỉ chặng hiện tại có phần luận giải riêng.",
+    "timeline_current": "Hiện tại",
+    "timeline_age": "{from}-{to} tuổi",
+    "chart_thumb_label": "Vị trí {palace} trên lá số"
   }
 }

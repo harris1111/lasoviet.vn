@@ -1862,6 +1862,36 @@ describe("report query service", () => {
       expect(JSON.stringify(sensitivity)).not.toContain("sensitivity.sensitive");
     });
 
+    it("attaches chartSnapshot: null when chart inputs are missing (FD-104)", async () => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue(v4_1Record()),
+      };
+      const result = await createReportQueryService({ repository }).getReport(
+        accountActor,
+        "834e9e89-19cb-44a6-bc59-ba7741374553",
+      );
+      expect(result.ok).toBe(true);
+      if (!result.ok || result.value.state !== "ready") return;
+      expect((result.value as { chartSnapshot?: unknown }).chartSnapshot).toBeNull();
+    });
+
+    it("never fails the report when stored chart data is invalid (FD-104)", async () => {
+      const repository: ReportQueryRepository = {
+        readAuthorizedReport: vi.fn().mockResolvedValue({
+          ...v4_1Record(),
+          chartNormalizedOutput: { broken: true },
+          sourceSnapshot: { also: "broken" },
+        }),
+      };
+      const result = await createReportQueryService({ repository }).getReport(
+        accountActor,
+        "834e9e89-19cb-44a6-bc59-ba7741374553",
+      );
+      expect(result.ok).toBe(true);
+      if (!result.ok || result.value.state !== "ready") return;
+      expect((result.value as { chartSnapshot?: unknown }).chartSnapshot).toBeNull();
+    });
+
     it("reads completed V4.1.1 content without weakening other lineage checks", async () => {
       const repository: ReportQueryRepository = {
         readAuthorizedReport: vi.fn().mockResolvedValue(v4_1Record({
