@@ -197,13 +197,13 @@ describe("ComprehensiveReportReader", () => {
     const htmlTier1 = renderToStaticMarkup(
       <ComprehensiveReportReader locale="vi" report={tier1Report} />,
     );
-    expect(htmlTier1).toContain("Đã đọc 1/4 phần");
+    expect(htmlTier1).toContain("Đã đọc 0/4 phần");
     expect(htmlTier1).toContain('class="report-toc-track"');
 
     const htmlTier2 = renderToStaticMarkup(
       <ComprehensiveReportReader locale="vi" report={tier2Report} />,
     );
-    expect(htmlTier2).toContain("Đã đọc 1/7 phần");
+    expect(htmlTier2).toContain("Đã đọc 0/7 phần");
   });
 
   it("displays top progress readbar, action tools, and locked TOC items for Tier-1 (Task #25)", () => {

@@ -7,7 +7,9 @@ import type {
 } from "@lasoviet/contracts";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 
-import { createCheckoutOrderFormAction } from "../commerce/create-checkout-order";
+import { createTopUpOrderFormAction } from "../commerce/create-topup-order";
+import { WalletUnlockButton } from "../commerce/wallet-unlock-button";
+import type { WalletUnlockDialogSku } from "../commerce/wallet-unlock-dialog";
 import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { resolveActiveSkuFromPublicOfferKey } from "../commerce/checkout-offer";
 import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tracker";
@@ -67,6 +69,7 @@ export type PaidTopicSelectorProps = {
   now?: Date;
   supportEmail?: string;
   initialTab?: "luan-giai" | "hoi-vien" | "nap-la";
+  initialPackId?: "LA-ENTRY-300" | "LA-START-1100" | "LA-DISCOVER-3000" | "LA-LIBRARY-8000";
   userBalance?: number;
 };
 
@@ -79,6 +82,7 @@ export function PaidTopicSelector({
   now,
   supportEmail = customerContactConfig.email.value,
   initialTab,
+  initialPackId,
   userBalance = 0,
 }: PaidTopicSelectorProps) {
   const t = useTranslations("reports");
@@ -86,7 +90,7 @@ export function PaidTopicSelector({
   const activeTab: "luan-giai" | "hoi-vien" | "nap-la" =
     initialTab ?? (topics ? "luan-giai" : "nap-la");
   const selectedReading: PublicOfferKey = "ziwei-comprehensive";
-  const selectedPackId = "LA-DISCOVER-3000";
+  const selectedPackId = initialPackId ?? "LA-DISCOVER-3000";
   const selectedMembershipId = "membership-yearly";
 
   const balance = userBalance;
@@ -687,17 +691,30 @@ export function PaidTopicSelector({
                 <button type="button" className="button button-disabled btn" disabled>
                   {t("selection.unavailableTitle")}
                 </button>
-              ) : topics?.chartId ? (
-                <form action={createCheckoutOrderFormAction}>
-                  <input type="hidden" name="chartId" value={topics.chartId} />
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="offerKey" value={activeOffer.offerKey} />
-                  <button type="submit" className="button button-primary btn btn-primary btn-lg">
-                    {laGap > 0
-                      ? `${t("selection.topupAndUnlock")}: ${coveringPack.vndFormatted[locale]}`
-                      : `${t("selection.unlock")}: ${neededLa} Lá`}
-                  </button>
-                </form>
+              ) : topics?.chartId && resolveActiveSkuFromPublicOfferKey(activeOffer.offerKey) ? (
+                <WalletUnlockButton
+                  buttonLabel={`${t("selection.unlock")}: ${neededLa} Lá`}
+                  chartId={topics.chartId}
+                  chartVersionId={topics.chartVersionId}
+                  itemName={activeOffer.shortTitle[locale]}
+                  labels={{
+                    title: t("selection.unlockDialogTitle"),
+                    itemLabel: t("selection.unlockDialogItemLabel"),
+                    priceLabel: t("selection.unlockDialogPriceLabel"),
+                    balanceLabel: t("selection.unlockDialogBalanceLabel"),
+                    balanceAfterLabel: t("selection.unlockDialogBalanceAfterLabel"),
+                    confirm: t("selection.unlockDialogConfirm"),
+                    confirming: t("selection.unlockDialogConfirming"),
+                    cancel: t("selection.unlockDialogCancel"),
+                    shortBalanceTitle: t("selection.unlockDialogShortBalanceTitle"),
+                    shortBalanceBody: (gap, bal) => t("selection.unlockDialogShortBalanceBody", { gap, balance: bal }),
+                    topUpAction: (pack, vnd) => t("selection.unlockDialogTopupAction", { pack, vnd }),
+                    topUpNote: t("selection.unlockDialogTopupNote"),
+                    genericError: t("selection.unlockDialogGenericError"),
+                  }}
+                  locale={locale}
+                  sku={resolveActiveSkuFromPublicOfferKey(activeOffer.offerKey) as WalletUnlockDialogSku}
+                />
               ) : (
                 <Link href={chartHref} className="button button-primary btn btn-primary btn-lg">
                   {locale === "en" ? "Create chart to unlock" : "Lập lá số để mở luận giải"}
@@ -706,20 +723,24 @@ export function PaidTopicSelector({
             )}
 
             {activeTab === "nap-la" && (
-              topics?.chartId ? (
-                <form action={createCheckoutOrderFormAction}>
-                  <input type="hidden" name="chartId" value={topics.chartId} />
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="offerKey" value={selectedReading} />
-                  <button type="submit" className="button button-primary btn btn-primary btn-lg">
-                    {t("selection.topupPack", { vnd: activePack.vndFormatted[locale] })}
-                  </button>
-                </form>
-              ) : (
-                <Link href={chartHref} className="button button-primary btn btn-primary btn-lg">
+              <form action={createTopUpOrderFormAction}>
+                <input type="hidden" name="packId" value={activePack.id} />
+                <input type="hidden" name="locale" value={locale} />
+                {topics?.chartId && (
+                  <input
+                    type="hidden"
+                    name="returnPath"
+                    value={
+                      locale === "en"
+                        ? `/en/la-so/${topics.chartId}/chon-luan-giai`
+                        : `/la-so/${topics.chartId}/chon-luan-giai`
+                    }
+                  />
+                )}
+                <button type="submit" className="button button-primary btn btn-primary btn-lg">
                   {t("selection.topupPack", { vnd: activePack.vndFormatted[locale] })}
-                </Link>
-              )
+                </button>
+              </form>
             )}
 
             {activeTab === "hoi-vien" && (

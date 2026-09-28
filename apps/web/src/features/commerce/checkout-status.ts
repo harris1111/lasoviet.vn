@@ -27,16 +27,18 @@ export type PaymentInstructions = z.infer<typeof PaymentInstructionsSchema>;
 export const CheckoutOrderSummarySchema = z
   .object({
     id: z.string().trim().min(1),
+    kind: z.enum(["content_purchase", "wallet_topup"]),
     status: z.enum(["pending", "paid", "expired", "failed", "refunded"]),
     amount: z.number().int().positive(),
     currency: z.literal("VND"),
     locale: z.enum(["vi", "en"]),
     productTitle: z.string().trim().min(1),
     paymentCode: z.string().trim().min(1),
-    chartId: z.string().trim().min(1),
+    chartId: z.string().trim().min(1).nullable(),
     createdAt: z.string().datetime({ offset: true }),
     creditApplied: z.number().int().nonnegative(),
     creditExpiresAt: z.string().datetime({ offset: true }).nullable(),
+    creditedLa: z.number().int().positive().nullable(),
     supportUrl: z.string().trim().min(1),
   })
   .strict();

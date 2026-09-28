@@ -3,10 +3,12 @@ import "server-only";
 import {
   AccountLibraryV1Schema,
   OrderHistoryV1Schema,
+  WalletBalanceV1Schema,
   type AccountLibraryV1,
   type CurrentActor,
   type OrderHistoryV1,
   type Result,
+  type WalletBalanceV1,
 } from "@lasoviet/contracts";
 
 import {
@@ -73,6 +75,70 @@ export function createAccountDataLoader(
       }
 
       const parsed = AccountLibraryV1Schema.safeParse(res.value);
+      if (!parsed.success) {
+        return {
+          ok: false,
+          error: {
+            code: "COMMERCE_PROJECTION_INVALID",
+            messageKey: "account.projection_invalid",
+            retryable: false,
+          },
+        };
+      }
+
+      return {
+        ok: true,
+        value: parsed.data,
+      };
+    },
+
+    async loadWalletBalance(
+      actor: CurrentActor,
+    ): Promise<Result<WalletBalanceV1, AccountDataLoaderErrorCode>> {
+      let response: unknown;
+      try {
+        response = await dependencies
+          .privateApiClient(actor, actor.requestId)
+          .request<unknown>("/commerce/wallet/balance");
+      } catch {
+        return {
+          ok: false,
+          error: {
+            code: "COMMERCE_UNAVAILABLE",
+            messageKey: "account.service_unavailable",
+            retryable: true,
+          },
+        };
+      }
+
+      if (
+        typeof response !== "object" ||
+        response === null ||
+        !("ok" in response)
+      ) {
+        return {
+          ok: false,
+          error: {
+            code: "COMMERCE_PROJECTION_INVALID",
+            messageKey: "account.projection_invalid",
+            retryable: false,
+          },
+        };
+      }
+
+      const res = response as { ok: boolean; value?: unknown };
+      if (!res.ok) {
+        return {
+          ok: false,
+          error: {
+            code: "COMMERCE_UNAVAILABLE",
+            messageKey: "account.service_unavailable",
+            retryable: true,
+          },
+        };
+      }
+
+      const parsed = WalletBalanceV1Schema.safeParse(res.value);
       if (!parsed.success) {
         return {
           ok: false,
@@ -170,4 +236,11 @@ export async function loadOrderHistory(
   dependencies?: AccountDataLoaderDependencies,
 ): Promise<Result<OrderHistoryV1, AccountDataLoaderErrorCode>> {
   return (dependencies ? createAccountDataLoader(dependencies) : accountDataLoader).loadOrders(actor);
+}
+
+export async function loadWalletBalance(
+  actor: CurrentActor,
+  dependencies?: AccountDataLoaderDependencies,
+): Promise<Result<WalletBalanceV1, AccountDataLoaderErrorCode>> {
+  return (dependencies ? createAccountDataLoader(dependencies) : accountDataLoader).loadWalletBalance(actor);
 }

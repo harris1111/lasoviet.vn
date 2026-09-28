@@ -84,14 +84,83 @@ describe("SePay controller HTTP contract", () => {
       expect(result).toEqual({
         ok: true,
         value: {
-          id: "intent-1", productTitle: "Comprehensive Zi Wei reading", locale: "en", amountLa: 720,
+          id: "intent-1", sku: "ZIWEI-IDENTITY-P0", productTitle: "Lifetime Zi Wei reading", locale: "en", amountLa: 720,
           status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
         },
       });
-      expect(JSON.stringify(result)).not.toContain("ZIWEI-");
       expect(JSON.stringify(result)).not.toContain("chart-1");
       expect(JSON.stringify(result)).not.toContain("private-chart-version");
       expect(JSON.stringify(result)).not.toMatch(/provider|invoice|allocation|receipt/i);
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("projects zero-cost rollover and single-palace intents cleanly and rejects reserved or generic SKUs", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createWalletPurchaseIntent: vi.fn().mockImplementation((_actor, req) => {
+        if (req.sku === "ZIWEI-IDENTITY-P0") {
+          return Promise.resolve({
+            ok: true,
+            value: {
+              id: "intent-zero", sku: "ZIWEI-IDENTITY-P0", chartVersionId: "chart-v1",
+              locale: "vi", amountLa: 0, status: "pending", stateVersion: 1,
+              createdAt: "2026-09-17T00:00:00.000Z",
+            },
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          value: {
+            id: "intent-palace", sku: req.sku, chartVersionId: "chart-v1",
+            locale: "vi", amountLa: 120, status: "pending", stateVersion: 1,
+            createdAt: "2026-09-17T00:00:00.000Z",
+          },
+        });
+      }),
+    } as never);
+
+    try {
+      // 1. Zero-cost rollover projection
+      const zeroResult = await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-IDENTITY-P0", locale: "vi",
+      });
+      expect(zeroResult).toEqual({
+        ok: true,
+        value: {
+          id: "intent-zero", sku: "ZIWEI-IDENTITY-P0", productTitle: "Tử Vi trọn đời", locale: "vi", amountLa: 0,
+          status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      });
+
+      // 2. Canonical single palace projection
+      const palaceResult = await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi",
+      });
+      expect(palaceResult).toEqual({
+        ok: true,
+        value: {
+          id: "intent-palace", sku: "ZIWEI-PALACE-LIFE-P0", productTitle: "Cung Mệnh", locale: "vi", amountLa: 120,
+          status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      });
+
+      // 3. Reserved SKUs are rejected with BadRequestException
+      for (const reservedSku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-TODAY-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) {
+        await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
+          chartId: "chart-1", chartVersionId: "version-1", sku: reservedSku, locale: "vi",
+        })).rejects.toBeInstanceOf(BadRequestException);
+      }
+
+      // 4. Generic palace SKU is rejected with BadRequestException
+      await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-PALACE-P0", locale: "vi",
+      })).rejects.toBeInstanceOf(BadRequestException);
     } finally {
       authSpy.mockRestore();
       repoSpy.mockRestore();
@@ -119,7 +188,7 @@ describe("SePay controller HTTP contract", () => {
       kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
     });
     const balance = {
-      version: 1 as const, totalLa: 100, purchasedLa: 40, promotionalLa: 60, updatedAt: "2026-09-17T00:00:00.000Z",
+      version: 1 as const, stateVersion: 1, totalLa: 100, purchasedLa: 40, promotionalLa: 60, updatedAt: "2026-09-17T00:00:00.000Z",
     };
     const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
       readWalletBalance: vi.fn().mockResolvedValue({ ok: true, value: balance }),
@@ -130,7 +199,7 @@ describe("SePay controller HTTP contract", () => {
           items: [{
             id: "wh_0123456789abcdef0123456789abcdef", category: "spend", laDelta: -240,
             resultingPurchasedLa: 40, resultingPromotionalLa: 60,
-            productTitle: "Luận giải Tử Vi toàn diện", occurredAt: "2026-09-17T00:00:00.000Z",
+            productTitle: "Tử Vi trọn đời", occurredAt: "2026-09-17T00:00:00.000Z",
           }],
         },
       }),
@@ -164,7 +233,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-17T00:00:00.000Z",
           },
           balance: {
-            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+            version: 1, stateVersion: 2, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
           },
           reportId: "report-1",
           receipt: "private-receipt",
@@ -183,7 +252,7 @@ describe("SePay controller HTTP contract", () => {
           {
             source: "ledger_spend", id: "entitlement-wallet", entitlementId: "entitlement-wallet", orderId: null,
             profileId: null, profileDisplayName: null,
-            productTitle: "Comprehensive Zi Wei reading", entitlementStatus: "active", reportId: "report-1",
+            productTitle: "Lifetime Zi Wei reading", entitlementStatus: "active", reportId: "report-1",
             readUrl: null, reportStatus: "requested", locale: "en", createdAt: "2026-09-17T00:00:00.000Z",
             purchasedAt: "2026-09-17T00:00:00.000Z",
           },
@@ -198,16 +267,16 @@ describe("SePay controller HTTP contract", () => {
         ok: true,
         value: {
           intent: {
-            id: "intent-1", productTitle: "Bản mệnh và tiềm năng", locale: "vi", amountLa: 240,
+            id: "intent-1", sku: "ZIWEI-NATAL-EXCERPT-P0", productTitle: "Bản mệnh và tiềm năng", locale: "vi", amountLa: 240,
             status: "completed", stateVersion: 2, createdAt: "2026-09-17T00:00:00.000Z",
           },
           balance: {
-            version: 1, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
+            version: 1, stateVersion: 2, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
           },
           reportId: "report-1",
         },
       });
-      expect(JSON.stringify(unlocked)).not.toMatch(/ZIWEI-|private-version|private-receipt|invoice|allocation|chart-1|chart-2|provider/i);
+      expect(JSON.stringify(unlocked)).not.toMatch(/private-version|private-receipt|invoice|allocation|chart-1|chart-2|provider/i);
       await expect(controller().libraryV2("Bearer valid-token")).resolves.toMatchObject({
         ok: true,
         value: { version: 2, totalCount: 2, items: [{ source: "order" }, { source: "ledger_spend", orderId: null }] },
@@ -315,6 +384,7 @@ describe("SePay controller HTTP contract", () => {
       readOrderProjection: vi.fn().mockResolvedValue({
         order: {
           id: "order-excerpt-1",
+          kind: "content_purchase",
           status: "pending",
           amount: 19000,
           currency: "VND",
@@ -426,16 +496,18 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-1",
+            kind: "content_purchase",
             status: "pending",
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: {
@@ -505,16 +577,18 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-paid-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-paid-1",
           },
           paymentInstructions: {
@@ -581,6 +655,7 @@ describe("SePay controller HTTP contract", () => {
       createOrder: vi.fn(),
       readOrder: vi.fn(),
       readOrderProjection: vi.fn().mockResolvedValue(null),
+      readTopUpOrderProjection: vi.fn().mockResolvedValue(null),
       recordPaid: vi.fn(),
     } as never);
 
@@ -643,6 +718,7 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-excerpt-test",
+            kind: "content_purchase",
             status: "pending",
             amount: 19000,
             currency: "VND",
@@ -653,6 +729,7 @@ describe("SePay controller HTTP contract", () => {
             createdAt: "2026-09-10T10:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-INV-EXCERPT-001",
           },
           paymentInstructions: expect.any(Object),
@@ -902,16 +979,18 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: null,
@@ -973,16 +1052,18 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-paid-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-paid-1",
           },
           paymentInstructions: null,
@@ -1130,16 +1211,18 @@ describe("SePay controller HTTP contract", () => {
         value: {
           order: {
             id: "order-1",
+            kind: "content_purchase",
             status: "paid",
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: null,

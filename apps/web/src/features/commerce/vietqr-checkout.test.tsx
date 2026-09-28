@@ -17,6 +17,7 @@ function checkoutStatus(
   return {
     order: {
       id: "order-1",
+      kind: "content_purchase",
       status,
       amount: 79_000,
       currency: "VND",
@@ -27,6 +28,7 @@ function checkoutStatus(
       createdAt: "2026-09-05T00:00:00.000Z",
       creditApplied: 0,
       creditExpiresAt: null,
+      creditedLa: null,
       supportUrl: locale === "en" ? "/en/lien-he?order=LSV-order-1" : "/lien-he?order=LSV-order-1",
     },
     paymentInstructions: {
@@ -508,6 +510,7 @@ describe("VietQR checkout recovery views", () => {
     const statusPaidNoReport: CheckoutStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase",
         status: "paid",
         amount: 79_000,
         currency: "VND",
@@ -518,6 +521,7 @@ describe("VietQR checkout recovery views", () => {
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
@@ -547,6 +551,7 @@ describe("VietQR checkout recovery views", () => {
     const statusExpired: CheckoutStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase",
         status: "expired",
         amount: 79_000,
         currency: "VND",
@@ -557,6 +562,7 @@ describe("VietQR checkout recovery views", () => {
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
@@ -585,6 +591,7 @@ describe("VietQR checkout recovery views", () => {
     const statusExpiredEn: CheckoutStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase",
         status: "expired",
         amount: 79_000,
         currency: "VND",
@@ -595,6 +602,7 @@ describe("VietQR checkout recovery views", () => {
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/en/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
@@ -612,6 +620,7 @@ describe("VietQR checkout recovery views", () => {
     const statusFailed: CheckoutStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase",
         status: "failed",
         amount: 79_000,
         currency: "VND",
@@ -622,6 +631,7 @@ describe("VietQR checkout recovery views", () => {
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
@@ -652,6 +662,7 @@ describe("VietQR checkout recovery views", () => {
     const statusRefunded: CheckoutStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase",
         status: "refunded",
         amount: 79_000,
         currency: "VND",
@@ -662,6 +673,7 @@ describe("VietQR checkout recovery views", () => {
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,
@@ -742,6 +754,7 @@ describe("VietQR checkout recovery views", () => {
     const statusFailed: CheckoutStatus = {
       order: {
         id: "order-failed-actions",
+        kind: "content_purchase",
         status: "failed",
         amount: 79_000,
         currency: "VND",
@@ -752,6 +765,7 @@ describe("VietQR checkout recovery views", () => {
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-failed",
       },
       paymentInstructions: {
@@ -801,6 +815,7 @@ describe("VietQR checkout recovery views", () => {
     const expiredWithStale: CheckoutStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase",
         status: "expired",
         amount: 79_000,
         currency: "VND",
@@ -811,6 +826,7 @@ describe("VietQR checkout recovery views", () => {
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: staleInstructions,
@@ -828,6 +844,7 @@ describe("VietQR checkout recovery views", () => {
       const state: CheckoutStatus = {
         order: {
           id: "order-1",
+          kind: "content_purchase",
           status,
           amount: 79_000,
           currency: "VND",
@@ -838,6 +855,7 @@ describe("VietQR checkout recovery views", () => {
           createdAt: "2026-09-05T00:00:00.000Z",
           creditApplied: 0,
           creditExpiresAt: null,
+          creditedLa: null,
           supportUrl: "/lien-he?order=LSV-order-1",
         },
         paymentInstructions: status === "pending" ? {
@@ -899,6 +917,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
     const status: CheckoutStatus = {
       order: {
         id: "order-summary-1",
+        kind: "content_purchase",
         status: "pending",
         amount: 79000,
         currency: "VND",
@@ -909,6 +928,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: {
@@ -941,6 +961,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
     const status: CheckoutStatus = {
       order: {
         id: "order-upgrade-1",
+        kind: "content_purchase",
         status: "pending",
         amount: 60000,
         currency: "VND",
@@ -951,6 +972,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
         createdAt: "2026-09-10T10:00:00.000Z",
         creditApplied: 19000,
         creditExpiresAt: upgradeDeadline,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: {
@@ -985,6 +1007,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
     const status: CheckoutStatus = {
       order: {
         id: "order-1",
+        kind: "content_purchase",
         status: "pending",
         amount: 79000,
         currency: "VND",
@@ -995,6 +1018,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: {
@@ -1023,6 +1047,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
     const status: CheckoutStatus = {
       order: {
         id: "order-expired-1",
+        kind: "content_purchase",
         status: "expired",
         amount: 79000,
         currency: "VND",
@@ -1033,6 +1058,7 @@ describe("VietQR checkout dynamic order summary, upgrade credit, and actual expi
         createdAt: "2026-09-05T00:00:00.000Z",
         creditApplied: 0,
         creditExpiresAt: null,
+        creditedLa: null,
         supportUrl: "/lien-he?order=LSV-order-1",
       },
       paymentInstructions: null,

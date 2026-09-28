@@ -44,6 +44,7 @@ const actor = {
 const validCheckoutStatus = {
   order: {
     id: "order-1",
+    kind: "content_purchase",
     status: "pending",
     amount: 79000,
     currency: "VND",
@@ -54,6 +55,7 @@ const validCheckoutStatus = {
     createdAt: "2026-09-05T00:00:00.000Z",
     creditApplied: 0,
     creditExpiresAt: null,
+    creditedLa: null,
     supportUrl: "/lien-he?order=LSV-order-1",
   },
   paymentInstructions: {

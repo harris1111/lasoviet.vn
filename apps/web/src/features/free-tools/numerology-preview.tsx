@@ -378,8 +378,8 @@ export function NumerologyPreview({ locale, className }: NumerologyPreviewProps)
             <Link
               href={
                 isVi
-                  ? `/tao-la-so/tu-vi?name=${encodeURIComponent(fullName)}&birthDay=${dateParts.day}&birthMonth=${dateParts.month}&birthYear=${dateParts.year}`
-                  : `/en/tao-la-so/tu-vi?name=${encodeURIComponent(fullName)}&birthDay=${dateParts.day}&birthMonth=${dateParts.month}&birthYear=${dateParts.year}`
+                  ? `/tao-la-so/tu-vi?from=than-so-hoc&name=${encodeURIComponent(fullName)}&birthDay=${dateParts.day}&birthMonth=${dateParts.month}&birthYear=${dateParts.year}`
+                  : `/en/tao-la-so/tu-vi?from=than-so-hoc&name=${encodeURIComponent(fullName)}&birthDay=${dateParts.day}&birthMonth=${dateParts.month}&birthYear=${dateParts.year}`
               }
               style={{
                 display: "inline-block",

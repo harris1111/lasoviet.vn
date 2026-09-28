@@ -12,6 +12,7 @@ import {
   createAccountDataLoader,
   loadAccountLibrary,
   loadOrderHistory,
+  loadWalletBalance,
 } from "./account-data-loader";
 
 const mockActor: CurrentActor = {
@@ -186,6 +187,98 @@ describe("account-data-loader", () => {
       ok: true,
       value: validHistory,
     });
+  });
+
+  it("calls only /commerce/wallet/balance with server-derived actor and validates schema", async () => {
+    const validBalance = {
+      version: 1,
+      stateVersion: 1,
+      totalLa: 360,
+      purchasedLa: 300,
+      promotionalLa: 60,
+      updatedAt: "2026-09-27T10:00:00.000+07:00",
+    };
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: validBalance,
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createAccountDataLoader({ privateApiClient });
+
+    const result = await loader.loadWalletBalance(mockActor);
+
+    expect(privateApiClient).toHaveBeenCalledTimes(1);
+    expect(privateApiClient).toHaveBeenCalledWith(mockActor, mockActor.requestId);
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledWith("/commerce/wallet/balance");
+    expect(result).toEqual({
+      ok: true,
+      value: validBalance,
+    });
+  });
+
+  it("returns bounded COMMERCE_PROJECTION_INVALID error when the wallet balance stateVersion is missing or non-positive", async () => {
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        version: 1,
+        stateVersion: 0,
+        totalLa: 360,
+        purchasedLa: 300,
+        promotionalLa: 60,
+        updatedAt: "2026-09-27T10:00:00.000+07:00",
+      },
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createAccountDataLoader({ privateApiClient });
+
+    const result = await loader.loadWalletBalance(mockActor);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("COMMERCE_PROJECTION_INVALID");
+    }
+  });
+
+  it("returns bounded COMMERCE_PROJECTION_INVALID error when the wallet balance bucket sum is inconsistent", async () => {
+    const request = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        version: 1,
+        stateVersion: 1,
+        totalLa: 999,
+        purchasedLa: 300,
+        promotionalLa: 60,
+        updatedAt: "2026-09-27T10:00:00.000+07:00",
+      },
+    });
+    const privateApiClient = vi.fn().mockReturnValue({ request });
+    const loader = createAccountDataLoader({ privateApiClient });
+
+    const result = await loader.loadWalletBalance(mockActor);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("COMMERCE_PROJECTION_INVALID");
+    }
+  });
+
+  it("works with the helper function loadWalletBalance", async () => {
+    const validBalance = {
+      version: 1,
+      stateVersion: 1,
+      totalLa: 0,
+      purchasedLa: 0,
+      promotionalLa: 0,
+      updatedAt: "2026-09-27T10:00:00.000+07:00",
+    };
+    const privateApiClient = vi.fn().mockReturnValue({
+      request: vi.fn().mockResolvedValue({ ok: true, value: validBalance }),
+    });
+
+    const result = await loadWalletBalance(mockActor, { privateApiClient });
+
+    expect(result).toEqual({ ok: true, value: validBalance });
   });
 
   it("returns bounded local error on private API failure without leaking provider text", async () => {
