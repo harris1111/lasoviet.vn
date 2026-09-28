@@ -11,7 +11,15 @@ import type {
 
 import { ArtifactImage } from "../../components/artifact-image";
 import { useReportReaderAnalytics } from "./report-analytics";
-import { ReportDecadalTimeline, ReportMiniChart, ReportStarChips } from "./report-chart-visuals";
+import {
+  ReportChart,
+  ReportDecadalTimeline,
+  ReportPalaceRadar,
+  ReportScoreBadge,
+  ReportScoreExplainer,
+  ReportStarChips,
+} from "./report-chart-visuals";
+import { computePalaceScores } from "./report-palace-score";
 import { ReportNarrative } from "./report-narrative";
 import { splitLeadSentence, splitNarrative } from "./report-paragraphs";
 import { resolveActiveSectionIndex } from "./report-reading-position";
@@ -81,6 +89,19 @@ export function ComprehensiveReportReader({
   );
   const decadalPalace = snapshotPalace(currentCycle?.palaceId);
   const annualPalace = snapshotPalace(chartSnapshot?.annual.palaceId);
+  const palaceScores = chartSnapshot ? computePalaceScores(chartSnapshot) : null;
+  // Lá số ở đầu bài và ở cột đọc đều sáng theo cung người đọc đang chọn.
+  const [selectedPalaceId, setSelectedPalaceId] = useState<string>(
+    () => chartSnapshot?.palaces.find((p) => p.isLife)?.palaceId ?? "ziwei.palace.life",
+  );
+  const openPalaceById = (palaceId: string) => {
+    setSelectedPalaceId(palaceId);
+    setPalaceOpen(palaceId, true);
+    const el = document.getElementById(`palace-${palaceId.replace("ziwei.palace.", "")}`);
+    if (el) {
+      el.scrollIntoView({ block: "start" });
+    }
+  };
 
   const [openPalaces, setOpenPalaces] = useState<Set<string>>(
     () =>
@@ -646,6 +667,18 @@ export function ComprehensiveReportReader({
               />
             </div>
 
+            {chartSnapshot && (
+              <div className="report-hero-chart">
+                <ReportChart
+                  snapshot={chartSnapshot}
+                  selectedPalaceId={selectedPalaceId}
+                  t={t}
+                  meta={{ targetYear: chartSnapshot.annual.targetYear }}
+                  onSelect={openPalaceById}
+                />
+              </div>
+            )}
+
             <div className="report-intro-meta">
               <p className="eyebrow">
                 {isTier2 ? "BÁO CÁO LUẬN GIẢI TOÀN DIỆN · TỬ VI ĐẨU SỐ" : "BẢN MỆNH VÀ TIỀM NĂNG · TỬ VI ĐẨU SỐ"}
@@ -718,6 +751,12 @@ export function ComprehensiveReportReader({
                       <span className="report-section-numeral">04</span>
                       <h3 className="report-section-title">Luận Giải Chi Tiết Mười Hai Cung</h3>
                     </div>
+                    {chartSnapshot && palaceScores && (
+                      <>
+                        <ReportPalaceRadar snapshot={chartSnapshot} scores={palaceScores} t={t} />
+                        <ReportScoreExplainer t={t} />
+                      </>
+                    )}
                     <div className="report-palace-tools">
                       <button
                         type="button"
@@ -741,9 +780,24 @@ export function ComprehensiveReportReader({
                           >
                             <summary className="report-palace-summary">
                               {chartSnapshot && (
-                                <ReportMiniChart snapshot={chartSnapshot} palaceId={palace.palaceId} t={t} />
+                                <ReportChart
+                                  snapshot={chartSnapshot}
+                                  selectedPalaceId={palace.palaceId}
+                                  variant="thumb"
+                                  t={t}
+                                />
                               )}
-                              <span className="report-subcard-title">{palace.title}</span>
+                              <span className="report-subcard-title">
+                                {palace.title}
+                                {palaceScores?.get(palace.palaceId) && (
+                                  <ReportScoreBadge score={palaceScores.get(palace.palaceId)!} t={t} />
+                                )}
+                              </span>
+                              {palaceScores?.get(palace.palaceId) && (
+                                <span className="report-band">
+                                  {t(`reader.score_band_${palaceScores.get(palace.palaceId)!.band}`)}
+                                </span>
+                              )}
                               <span className="report-palace-lead">
                                 {splitLeadSentence(splitNarrative(palace.narrative)[0] ?? "").lead}
                               </span>
@@ -845,7 +899,13 @@ export function ComprehensiveReportReader({
                       <span className="report-section-numeral">07</span>
                       <h3 className="report-section-title">{v4_1Content.currentDecadal.title}</h3>
                     </div>
-                    {chartSnapshot && <ReportDecadalTimeline snapshot={chartSnapshot} t={t} />}
+                    {chartSnapshot && (
+                      <ReportDecadalTimeline
+                        snapshot={chartSnapshot}
+                        t={t}
+                        onOpenPalace={openPalaceById}
+                      />
+                    )}
                     {decadalPalace && <ReportStarChips palace={decadalPalace} t={t} />}
                     <ReportNarrative className="report-section-narrative" text={v4_1Content.currentDecadal.narrative} />
                   </section>

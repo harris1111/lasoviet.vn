@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { ReportChartSnapshotV1 } from "@lasoviet/contracts";
 import { ZIWEI_PALACE_IDS } from "@lasoviet/contracts";
 
-import { ReportDecadalTimeline, ReportMiniChart, ReportStarChips } from "./report-chart-visuals";
+import { ReportChart, ReportDecadalTimeline, ReportStarChips } from "./report-chart-visuals";
 
 const RING = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"];
 
@@ -43,11 +43,23 @@ describe("report chart visuals", () => {
     expect(html).toContain("Vô chính diệu");
   });
 
-  it("lights the palace and marks its triad and opposite on the mini chart", () => {
-    const html = renderToStaticMarkup(<ReportMiniChart snapshot={snapshot} palaceId="ziwei.palace.life" t={t} />);
-    expect(html.match(/report-mini-cell/g)).toHaveLength(12);
-    expect(html.match(/is-lit/g)).toHaveLength(1);
-    expect(html.match(/is-related/g)).toHaveLength(3);
+  it("lights the palace and marks its triad and opposite on the thumbnail chart", () => {
+    const html = renderToStaticMarkup(
+      <ReportChart snapshot={snapshot} selectedPalaceId="ziwei.palace.life" variant="thumb" t={t} />,
+    );
+    expect(html.match(/class="cell/g)).toHaveLength(12);
+    expect(html.match(/is-sel/g)).toHaveLength(1);
+    expect(html.match(/is-rel/g)).toHaveLength(3);
+  });
+
+  it("draws a full chart cell with stem, palace name, brightness and vong truong sinh", () => {
+    const html = renderToStaticMarkup(
+      <ReportChart snapshot={snapshot} selectedPalaceId="ziwei.palace.life" t={t} />,
+    );
+    expect(html).toContain("Phu Thê");
+    expect(html).toContain("Phá Quân");
+    expect(html).toContain("el-thuy");
+    expect(html).toContain("Miếu");
   });
 
   it("renders every cycle and marks the current one without good/bad styling", () => {
