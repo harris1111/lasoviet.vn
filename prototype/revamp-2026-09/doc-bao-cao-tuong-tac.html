@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Báo cáo luận giải toàn diện - Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<link rel="stylesheet" href="doc-bao-cao-tuong-tac.css">
+<script>
+  try { var t = localStorage.getItem("lasoviet:theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<script src="icons.js"></script>
+<div class="readbar" aria-hidden="true"><i id="rb"></i></div>
+<a class="sr-only" href="#article">Bỏ qua, tới nội dung báo cáo</a>
+
+<header class="site-header rd-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html" aria-label="Lá Số Việt, trang chủ"><svg aria-hidden="true"><use href="#logo"/></svg><span class="brand-word">Lá Số Việt</span></a>
+    <div class="rd-title"><b>Báo cáo luận giải toàn diện</b><span>Tử Vi Đẩu Số, lưu trọn đời trong thư viện</span></div>
+    <div class="rd-tools">
+      <div class="fsz" role="group" aria-label="Cỡ chữ">
+        <button type="button" id="fszDown" aria-label="Giảm cỡ chữ">A-</button><span id="fszLabel">Vừa</span><button type="button" id="fszUp" aria-label="Tăng cỡ chữ">A+</button>
+      </div>
+      <div class="seg theme hide-m" role="group" aria-label="Giao diện">
+        <button type="button" data-theme-btn="dark">Tối</button><button type="button" data-theme-btn="light">Sáng</button>
+      </div>
+      <button type="button" class="icon-btn hide-m" id="printBtn" aria-label="Tải PDF"><svg aria-hidden="true"><use href="#ui-download"/></svg></button>
+      <button type="button" class="icon-btn hide-m" data-open="shareSheet" aria-label="Tạo thẻ chia sẻ"><svg aria-hidden="true"><use href="#ui-share"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<div class="container proto-bar">
+  <span class="proto-note">Mẫu thử FD-104. Lá số lấy từ báo cáo thật trong ảnh chụp (Mệnh Bính Thìn, Thân cư Thiên Di, Thổ ngũ cục, đại vận 25-34 tại Dần). Phụ tinh ở các cung ảnh không chụp tới và chữ khuôn mới là minh hoạ giọng văn.</span>
+  <div class="seg" role="group" aria-label="Chế độ xem mẫu">
+    <button type="button" data-mode="new" aria-pressed="true">Báo cáo mới</button>
+    <button type="button" data-mode="legacy" aria-pressed="false">Báo cáo đã bán</button>
+  </div>
+</div>
+
+<main>
+  <section class="container hero" aria-label="Chân dung một trang">
+    <div id="heroCopy"></div>
+    <div>
+      <div class="chart" id="heroChart"></div>
+      <div class="legend" aria-hidden="true"><span><i class="l-sel"></i>Cung đang xem</span><span><i class="l-rel"></i>Tam hợp, đối cung</span><span><span class="pill">Đại vận</span> chặng hiện tại</span><span><span class="pill">2026</span> lưu niên</span></div>
+      <div class="sel-card" id="selCard" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="container tl-wrap" aria-labelledby="tlTitle">
+    <div class="tl-head">
+      <h2 id="tlTitle">Các chặng đại vận</h2>
+      <p>Mỗi chặng 10 năm, tính theo tuổi âm. Bấm một chặng để đọc cung mà chặng đó đi qua.</p>
+    </div>
+    <div class="tl" id="tl" role="list"></div>
+    <details class="how tl-how" open>
+      <summary>Dải này nói gì về bạn?</summary>
+      <p>Cuộc đời trong Tử Vi được chia thành những chặng mười năm, mỗi chặng đi qua một cung khác nhau trên lá số. Chặng nào đi qua cung nào thì việc của cung đó nổi lên rõ hơn trong mười năm ấy. Dải này không nói chặng nào tốt chặng nào xấu. Nó chỉ cho bạn biết trọng tâm của từng quãng đời, để chuẩn bị trước thay vì bị bất ngờ.</p>
+    </details>
+    <div class="dv-list" id="tlList"></div>
+    <p class="tl-note">Mỗi chặng có một đoạn tóm tắt. Riêng chặng đang sống có phần luận giải đầy đủ ở dưới bài.</p>
+  </section>
+
+  <div class="container rd-layout">
+    <aside class="rail" aria-label="Lá số và mục lục">
+      <div class="chart" id="railChart"></div>
+      <div>
+        <p class="rail-count" id="railCount"></p>
+        <div class="rail-track"><i id="railTrack"></i></div>
+        <ol class="toc-list" id="toc"></ol>
+      </div>
+    </aside>
+    <article class="rd-article" id="article"></article>
+  </div>
+
+  <div class="container end">
+    <p>Hết báo cáo. Báo cáo được lưu trọn đời trong thư viện của bạn.</p>
+    <div class="row">
+      <a class="btn btn-secondary" href="thu-vien.html"><svg aria-hidden="true"><use href="#ui-book"/></svg>Về thư viện</a>
+      <button type="button" class="btn btn-secondary" id="printBtn2"><svg aria-hidden="true"><use href="#ui-download"/></svg>Tải PDF</button>
+    </div>
+  </div>
+</main>
+
+<nav class="bbar" aria-label="Điều hướng báo cáo">
+  <button type="button" class="btn btn-secondary" data-open="chartSheet">Xem lá số</button>
+  <button type="button" class="btn btn-secondary" data-open="tocSheet"><svg aria-hidden="true"><use href="#ui-menu"/></svg>Mục lục</button>
+  <span class="pct" id="bbarPct" aria-label="Tiến độ đọc">0%</span>
+</nav>
+
+<div class="sheet-wrap" id="chartSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Lá số">
+    <div class="handle"></div>
+    <div class="sheet-top"><b>Lá số của bạn</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div class="chart" id="sheetChart"></div>
+    <p class="legend">Chạm một cung để đọc cung đó.</p>
+  </div>
+</div>
+
+<div class="sheet-wrap" id="tocSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Mục lục">
+    <div class="handle"></div>
+    <div class="sheet-top"><b>Mục lục</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <ol class="toc-list" id="tocSheetList"></ol>
+  </div>
+</div>
+
+<div class="sheet-wrap" id="shareSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Thẻ chia sẻ">
+    <div class="handle"></div>
+    <div class="sheet-top"><b>Thẻ chia sẻ</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div class="share-card" id="shareCard"></div>
+    <p class="legend">Thẻ chỉ có phần chân dung, không có ngày giờ sinh.</p>
+    <div class="hero-cta" style="margin-top:12px"><button type="button" class="btn btn-primary" disabled>Tải ảnh</button><button type="button" class="btn btn-secondary" id="copyLink">Sao chép liên kết</button></div>
+  </div>
+</div>
+
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
+
+<script src="doc-bao-cao-tuong-tac-elements.js"></script>
+<script src="doc-bao-cao-tuong-tac-data.js"></script>
+<script src="doc-bao-cao-tuong-tac-score.js"></script>
+<script src="doc-bao-cao-tuong-tac-palaces.js"></script>
+<script src="doc-bao-cao-tuong-tac-legacy.js"></script>
+<script src="doc-bao-cao-tuong-tac.js"></script>
+</body>
+</html>
