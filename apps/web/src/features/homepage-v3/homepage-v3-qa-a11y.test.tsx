@@ -92,7 +92,7 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
     // 3a. Hero chart is one labelled image; the date/name/branch text overlaid on it is decorative (aria-hidden)
     // and there is no live region, so nothing is announced on every keystroke.
     const heroHtml = renderToStaticMarkup(createElement(HomepageV3Hero, { locale: "vi" }));
-    expect(heroHtml).toContain('role="img" aria-label="Lá số của bạn"');
+    expect(heroHtml).toContain('role="img" aria-label="Đồ hình lá số của bạn"');
     expect(heroHtml).toContain('class="hv3-chart-center" aria-hidden="true"');
     expect(heroHtml).not.toContain("aria-live");
     expect(heroHtml).not.toContain("hv3-folio");

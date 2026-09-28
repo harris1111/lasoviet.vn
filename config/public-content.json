@@ -3,8 +3,8 @@
     "routeId": "brand.home",
     "locale": "vi",
     "contentType": "SeoMetadata",
-    "title": "Lá Số Việt | Lập lá số. Hiểu vận mệnh.",
-    "summary": "Lập lá số Tử Vi miễn phí, luận giải có căn cứ rõ ràng — nền tảng khai phóng bản mệnh cho người Việt, nói có sách mách có chứng.",
+    "title": "Lá Số Việt | Soi rõ căn duyên. Vững bước thời vận.",
+    "summary": "Lập lá số Tử Vi chuẩn xác, thấu tỏ căn cơ và nhịp thời vận bằng lời luận giải sáng rõ, thuần Việt. Một khoảng lặng soi mình, nói có sách mách có chứng.",
     "reviewer": "content-team",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
@@ -14,14 +14,14 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-10"
+    "lastReviewed": "2026-09-28"
   },
   {
     "routeId": "brand.home",
     "locale": "en",
     "contentType": "SeoMetadata",
-    "title": "La So Viet | Build your chart. Understand your path.",
-    "summary": "A grounded chart-building and interpretation platform, beginning with Tu Vi for Vietnamese users.",
+    "title": "La So Viet | See Your Roots Clearly. Move Forward with Confidence.",
+    "summary": "Build an accurate Zi Wei chart and read it in clear, grounded interpretations that reveal your character and the rhythm of your fortune. A quiet moment to look inward, backed by cited sources at every step.",
     "reviewer": "content-team",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
@@ -31,7 +31,7 @@
       "uncertainty_disclosure"
     ],
     "status": "published",
-    "lastReviewed": "2026-09-01"
+    "lastReviewed": "2026-09-28"
   },
   {
     "routeId": "calculator.tu-vi",

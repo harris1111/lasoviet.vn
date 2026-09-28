@@ -210,7 +210,7 @@ export function SiteHeader({
           React.createElement(
             Link,
             { className: "button button-small", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
-            isVietnamese ? "Lập lá số Tử Vi" : "Build Zi Wei chart",
+            isVietnamese ? "Lập lá số ngay" : "Build my chart",
           ),
           React.createElement(
             "details",
@@ -268,7 +268,7 @@ export function SiteHeader({
               React.createElement(
                 Link,
                 { className: "button", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
-                isVietnamese ? "Lập lá số Tử Vi" : "Build Zi Wei chart",
+                isVietnamese ? "Lập lá số ngay" : "Build my chart",
               ),
             ),
           ),
