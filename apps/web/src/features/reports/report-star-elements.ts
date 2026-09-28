@@ -4,10 +4,18 @@
 // trường phái đều thống nhất. Vòng Bác Sĩ, vòng Thái Tuế, vòng Tướng Tinh
 // và các sao phổ biến khác lấy theo cách ghi chung của sách Việt.
 //
-// Sao nào không có trong bảng này thì lá số để màu chữ thường. Đây là chủ ý:
-// tô sai một sao thì người biết Tử Vi nhìn ra ngay, và mất lòng tin vào cả
-// bản báo cáo. Hiện còn bốn sao chưa đủ chắc chắn nên cố tình bỏ trống:
-// Niên Giải, Tuế Dịch, Tuế Kiện, Hối Khí.
+// Bốn sao dưới đây không có trong bảng gốc, được suy ra từ vị trí của chúng
+// trong vòng sao, vì các sao cùng một vị trí trong vòng luôn mang cùng hành:
+//   Tuế Kiện: sao đầu vòng Thái Tuế, chính là Thái Tuế        -> Hỏa
+//   Hối Khí:  sao thứ hai vòng Thái Tuế, vị trí Thiếu Dương    -> Hỏa
+//   Tuế Dịch: sao thứ ba vòng Tướng Tinh, vị trí Dịch Mã       -> Hỏa
+//   Niên Giải: sao giải an theo năm, trường phái Việt gọi là
+//              Giải Thần                                       -> Mộc
+// Đối chiếu: vòng Thái Tuế trong bảng (Tang Môn Mộc, Quan Phù Hỏa, Bạch Hổ
+// Kim, Điếu Khách Hỏa, Long Đức Thủy) khớp với cách xếp trên.
+//
+// Sao nào không có trong bảng thì lá số để màu chữ thường, vì tô sai một sao
+// thì người biết Tử Vi nhìn ra ngay và mất lòng tin vào cả bản báo cáo.
 //
 // An và founder cần soát lại bảng này trước khi bật cho khách trả phí.
 
@@ -22,6 +30,10 @@ export const ZIWEI_ELEMENT_LABELS_VI: Record<ZiweiElement, string> = {
 };
 
 const STAR_ELEMENTS: Record<string, ZiweiElement> = {
+  "ziwei.star.suijian": "hoa",
+  "ziwei.star.huiqi": "hoa",
+  "ziwei.star.suiyi": "hoa",
+  "ziwei.star.nianjie": "moc",
   "ziwei.star.baihu": "kim",
   "ziwei.star.bazuo": "tho",
   "ziwei.star.bingfu": "tho",
