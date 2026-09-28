@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xem trang kết quả trong khung điện thoại - Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; min-height: 100vh; background: #0f0d0a; color: #d9cfbf; font: 15px/1.5 system-ui, sans-serif; display: grid; justify-items: center; gap: 16px; padding: 20px 16px 40px; box-sizing: border-box; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+  .bar button, .bar a { height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #4a4034; background: transparent; color: #e2c47a; font: 500 14px system-ui, sans-serif; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+  .bar button[aria-pressed="true"] { background: rgba(201,164,77,.14); border-color: #c9a44d; }
+  .phone { width: calc(var(--w) + 24px); border-radius: 44px; padding: 12px; background: #1c1812; box-shadow: 0 0 0 1px #4a4034, 0 30px 80px rgba(0,0,0,.6); }
+  .phone iframe { display: block; width: var(--w); height: min(844px, calc(100vh - 140px)); border: 0; border-radius: 32px; background: #15120e; }
+  p { margin: 0; color: #9d927f; font-size: 13.5px; text-align: center; max-width: 520px; }
+</style>
+</head>
+<body>
+  <div class="bar" role="group" aria-label="Cỡ màn hình">
+    <button type="button" data-w="360">360 px</button>
+    <button type="button" data-w="390" aria-pressed="true">390 px (iPhone)</button>
+    <button type="button" data-w="430">430 px</button>
+    <a href="la-so-ket-qua-v2.html">Mở bản máy tính</a>
+  </div>
+  <div class="phone" id="phone" style="--w:390px"><iframe src="la-so-ket-qua-v2.html" title="Trang kết quả lá số, khung điện thoại"></iframe></div>
+  <p>Cuộn bên trong khung để xem cả trang. Dải điều khiển mẫu thử (khách hoặc đã đăng nhập, tối hoặc sáng) nằm ở đầu trang trong khung.</p>
+  <script>
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-w]"); if (!b) return;
+      document.getElementById("phone").style.setProperty("--w", b.dataset.w + "px");
+      document.querySelectorAll("[data-w]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); });
+    });
+  </script>
+</body>
+</html>
