@@ -89,7 +89,7 @@ Old (v3 content) reports: items 2, 4, 5, star chips, triad diagram, paragraph sp
 - Print/PDF: all expanded, chart printed once at top, timeline printed, no sticky elements.
 - Light theme per `docs/24` when the report page is converted.
 
-## 7b. Round 2 (FD-105, FD-106, founder review 2026-09-28 against AiTuvi)
+## 7b. Round 2 (FD-106, FD-107, founder review 2026-09-28 against AiTuvi)
 
 Added after the founder compared the prototype with AiTuvi's free flow. These change waves 2 and 3; wave 1 as shipped in PR #201 is unaffected.
 
@@ -113,11 +113,11 @@ Star names are coloured by ngũ hành from a lookup table. Stars whose element i
 
 Birth date, birth time and birth place never appear, unlike AiTuvi's chart.
 
-### 7b.2 Palace strength score (FD-105)
+### 7b.2 Palace strength score (FD-107)
 
 A deterministic 0 to 100 per palace, computed on the web from `chartSnapshot` alone (pure function, no new backend data). Shown three ways: a badge on each palace card with a plain-language band label, a twelve-axis chart above the palace section, and a "Điểm này tính thế nào" box that prints the whole formula. Reference implementation and weights: `prototype/revamp-2026-09/doc-bao-cao-tuong-tac-score.js`.
 
-Constraints that keep this inside FD-105: deterministic, reproducible from the same chart, every contribution traceable to a real star, formula published in the UI, and never described as a rating of the person's life or luck.
+Constraints that keep this inside FD-107: deterministic, reproducible from the same chart, every contribution traceable to a real star, formula published in the UI, and never described as a rating of the person's life or luck.
 
 ### 7b.3 All eight decadal cycles (FD-106b)
 

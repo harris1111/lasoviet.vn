@@ -87,7 +87,7 @@
 | Tình cảm, hôn nhân | "Chuyện này là sao?" | Bị phán một câu xui | Đọc cung Phu Thê thẳng thắn, kèm việc nên làm |
 | Công việc, tiền bạc | "Nên chú ý gì?" | Muốn được bảo đảm kết quả | Giai đoạn thuận hay khó cho tiền và việc |
 | Năm nay | "Tháng nào có hạn, chuẩn bị ra sao?" | Ngày xấu nghe như chắc chắn xảy ra | Tháng có hạn do máy tính ra, kèm cách chuẩn bị |
-| Không nhớ giờ sinh | "Có dùng được không?" | Nhập sai, mất tiền oan | Giải thích phần nào vẫn dùng được; không bán luận giải Tử Vi khi thiếu giờ |
+| Không nhớ giờ sinh | "Có dùng được không?" | Nhập sai, mất tiền oan | Lá số tạm tính theo giờ Ngọ, ghi rõ "tạm tính"; vẫn mua được, phần phụ thuộc giờ nói rõ là ước tính (FD-103) |
 | Mua online | "Trả tiền rồi có nhận được không?" | Người bán lạ, xác nhận chậm | Báo cáo mẫu đúng sản phẩm, giá rõ, trạng thái đơn rõ, có đường tự xử lý |
 
 **Hai nỗi đau thị trường mình đang đánh vào** (bộ luật nội dung, mục 5):
@@ -115,7 +115,7 @@ Nguồn: brand guideline §6.2 (bản 22/09), cộng với các quyết định 
 
 **Các hành trình phụ bắt buộc phải có lối ra:**
 
-- **Không rõ giờ sinh:** vẫn xem được phần dùng được, không có nút mua Tử Vi, hướng dẫn tìm lại giờ sinh.
+- **Không rõ giờ sinh:** lá số tạm tính có nhãn rõ, vẫn mua được; khi bổ sung giờ thì tạo lá số mới, báo cáo cũ giữ nguyên (FD-103).
 - **Đã chuyển tiền mà chưa thấy báo cáo:** tra theo mã đơn và tự nhận giao dịch. Không bao giờ bảo khách chuyển lại.
 - **Đã trả tiền nhưng báo cáo lỗi:** báo rõ đã nhận tiền, kèm mã đơn và nút hỗ trợ điền sẵn mã đơn.
 - **Hỗ trợ:** email lasoviet.net@gmail.com; Messenger sẽ hiện khi anh gửi link fanpage (FD-095, FD-099).
@@ -146,7 +146,7 @@ Nguồn: brand guideline §6.2 (bản 22/09), cộng với các quyết định 
 
 | # | Chỗ lệch | Tài liệu cũ nói | Quyết định mới hơn | Đề xuất |
 |---|---|---|---|---|
-| 1 | Khách được xem mấy nhận định miễn phí trước khi đăng nhập? | Brand guideline §6.4 và spec ladder: **3** | Spec trang chủ 23/09: **2** (1 về bản thân, 1 theo chủ đề) | Anh chốt một con số |
+| 1 | Khách được xem mấy nhận định miễn phí trước khi đăng nhập? | Brand guideline §6.4 và spec ladder: **3** | Spec trang chủ 23/09: **2** (1 về bản thân, 1 theo chủ đề) | **Đã chốt 27/09 (FD-105):** khách chưa đăng nhập đọc nhận định 1, đăng nhập mở nhận định 2 |
 | 2 | Chọn giờ sinh | Spec trang chủ 23/09: dropdown 12 khung giờ | FD-100: giờ phút chính xác, khoảng giờ, hoặc không rõ | Sửa spec trang chủ theo FD-100 |
 | 3 | Cổng "chống dark pattern" trong tài liệu hành trình 31/08 (`docs/reference/vp-design-…` §1.7, §4 hành trình E, §9) | Cấm lời chứng thực, cấm chọn sẵn, cấm streak, cấm nhắc hạn để bán, cấm "vận xấu hôm nay" | FD-064, FD-089, FD-093 cho phép; lệnh cấm lời chứng thực bỏ ngày 26/09 | Xoá các mục đó, giữ phần sitemap và khung sườn |
 | 4 | Lời chứng thực của khách | `voice-and-positioning.md`: cấm | Bỏ cấm ngày 26/09 | Sửa dòng đó (lời chứng thực phải là thật) |

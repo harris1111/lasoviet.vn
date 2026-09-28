@@ -1,6 +1,6 @@
 import type { ReportChartPalaceV1, ReportChartSnapshotV1 } from "@lasoviet/contracts";
 
-// "Độ mạnh cấu trúc" của từng cung (FD-105).
+// "Độ mạnh cấu trúc" của từng cung (FD-107).
 //
 // Đây không phải điểm tốt xấu của một đời người. Nó đo đúng một việc: bộ sao
 // trong cung này, cộng phần các cung chiếu tới, đang hỗ trợ hay đang cản.

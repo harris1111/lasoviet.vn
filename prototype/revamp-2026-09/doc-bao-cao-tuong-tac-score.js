@@ -1,4 +1,4 @@
-// "Độ mạnh cấu trúc" của từng cung (FD-105).
+// "Độ mạnh cấu trúc" của từng cung (FD-107).
 //
 // Đây KHÔNG phải điểm tốt xấu của cuộc đời. Nó chỉ đo một việc: bộ sao
 // trong cung này, cộng các cung chiếu tới, đang hỗ trợ hay đang cản.

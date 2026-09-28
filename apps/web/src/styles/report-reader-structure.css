@@ -122,7 +122,7 @@ button.cell:hover { background: var(--surface-panel); }
   .board-key { font-size: 11px; gap: 6px 14px; }
 }
 
-/* ---- Biểu đồ mười hai cung và điểm từng cung (FD-105) ---- */
+/* ---- Biểu đồ mười hai cung và điểm từng cung (FD-107) ---- */
 .report-radar { margin: 6px 0 12px; display: grid; justify-items: center; gap: 8px; }
 .report-radar svg { width: min(100%, 420px); height: auto; overflow: visible; }
 .rd-ring, .rd-axis { fill: none; stroke: var(--border-hairline); stroke-width: 1; }

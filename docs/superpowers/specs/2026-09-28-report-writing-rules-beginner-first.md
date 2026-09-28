@@ -192,4 +192,4 @@ Unchanged from FD-082: **20 consecutive generations passing every gate** before 
 
 ## 9. Out of scope
 
-Rewriting already-sold reports (FD-104: UI upgrade only). Scores are covered by FD-105 and `doc-bao-cao-tuong-tac-score.js`, not here. The free chart result page is a separate project the founder deferred until the paid report is done.
+Rewriting already-sold reports (FD-104: UI upgrade only). Scores are covered by FD-107 and `doc-bao-cao-tuong-tac-score.js`, not here. The free chart result page is a separate project the founder deferred until the paid report is done.

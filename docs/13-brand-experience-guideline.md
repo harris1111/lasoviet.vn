@@ -92,9 +92,10 @@ and upsell copy that names a real hạn (FD-089).
 
 ### 8.5 Product names
 
-Luận giải Bản mệnh · Luận giải Toàn diện · Hội viên tháng · Hội viên năm ·
-Gói Lá: Nhập Môn, Khởi Đọc, Khám Phá, Tàng Thư. Prices follow FD-065, FD-066,
-and FD-093.
+Bản mệnh · Tử Vi trọn đời · Một cung · Hôm nay của bạn · Tháng này của bạn ·
+Tình duyên và hôn nhân · Công việc và tài lộc · Vận hạn năm 2026 · Hợp đôi ·
+Hội viên tháng · Hội viên năm · Gói Lá: Nhập Môn, Khởi Đọc, Khám Phá, Tàng Thư.
+Prices follow FD-065, FD-066, FD-093, and FD-105.
 
 ## 5. Visual essentials
 
@@ -134,9 +135,11 @@ signal.
 
 ### 6.2 Funnel
 
-Search or need → method page or free tool → birth input → free chart →
-free highlights and "năm nay" teaser → choose a reading or membership → pay
-with Lá → read → save and return daily.
+Search or need → method page or free tool → birth input → free chart and
+insight 1 → sign in for insight 2 and 60 welcome Lá → open a blurred part with
+Lá → top up if short → read → upsell (rollover to Tử Vi trọn đời) → return
+daily (Hôm nay, membership). Full design: FD-105 and
+`docs/superpowers/specs/2026-09-27-la-ladder-funnel-design.md`.
 
 ### 6.3 Birth form
 
@@ -147,11 +150,13 @@ with Lá → read → save and return daily.
 
 ### 6.4 Free result
 
-- Full chart, three highlights, one open reason ("Vì sao?"), and real
-  personalised excerpts (FD-068).
-- Locked content uses secure progressive reveal (FD-059): no locked plaintext
-  reaches an unauthorised client.
-- "Đúng / Một phần / Không đúng" feedback on highlights.
+- Full chart, never blurred. Guests read insight 1 with its reason
+  ("Vì sao?") and one real title line per palace; signing in adds insight 2
+  (by the reader's top concern) and the opening of Bản mệnh (FD-105, FD-068).
+- Locked content uses secure progressive reveal (FD-059): a real title, 1–2
+  clipped sentences, blurred placeholder lines, and one "Mở – N Lá" action.
+  No locked plaintext reaches an unauthorised client.
+- "Đúng / Một phần / Không đúng" feedback on every free and paid part.
 
 ### 6.6 Paywall
 
