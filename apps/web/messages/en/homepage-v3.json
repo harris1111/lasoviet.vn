@@ -214,10 +214,10 @@
     }
   },
   "compare": {
-    "title": "An answer can come very fast. What stays with you?",
-    "lead": "One way gives you speed. Another gives you a conversation. Lá Số Việt gives you a chart to return to, compare and keep reading.",
-    "tableLabel": "One strength and five limits of each way of finding an answer",
-    "groupLabel": "The way you are weighing",
+    "title": "Speed or a conversation? What will truly stay with you?",
+    "lead": "General horoscope sites offer speed. AI chatbots offer flexibility. Meeting a master offers a listening ear. Lá Số Việt provides an accurate, grounded destiny map that stays with you for life.",
+    "tableLabel": "One key advantage and practical limits of each approach",
+    "groupLabel": "The options you are considering",
     "colLsv": "Lá Số Việt",
     "colWeb": "General horoscope sites",
     "colAi": "Asking an AI",
@@ -226,52 +226,52 @@
     "tabWeb": "Horoscope sites",
     "tabAi": "Asking an AI",
     "tabThay": "Meeting a master",
-    "cardTitle": "What is worth choosing about {name}?",
-    "fixLabel": "Lá Số Việt:",
+    "cardTitle": "What makes {name} worth choosing?",
+    "fixLabel": "At Lá Số Việt:",
     "ctaDesktop": "Create my chart →",
     "cta": "Start with my chart →",
     "rows": {
       "strength": {
-        "k": "Worth choosing",
-        "lsv": "A chart to explore, keep and keep reading.",
-        "web": "Very quick lookups; many places have a free part.",
-        "ai": "Ask in your own words and get an instant reply.",
-        "thay": "A live conversation, and you can ask on the spot."
+        "k": "Key advantage",
+        "lsv": "Accurate destiny map, deeply personalized and permanently stored for life.",
+        "web": "Free lookup, returning a raw chart and automated reading instantly.",
+        "ai": "Flexible 24/7 Q&A in natural prose, responding instantly to any prompt.",
+        "thay": "Live 1-on-1 dialogue, offering immediate listening and emotional relief."
       },
       "own": {
-        "k": "Personal to you",
-        "lsv": "Starts from your birth date and time and what you care about.",
-        "web": "A ready-made reading struggles to follow your own question.",
-        "ai": "The answer leans on what you tell it in the prompt.",
-        "thay": "Depth depends on the reader and the length of the session."
+        "k": "Personalization",
+        "lsv": "Exact calculation down to the minute; unravels your exact current focus.",
+        "web": "Template text; different people with the same stars get identical readings.",
+        "ai": "Relies entirely on user prompts; easily biased by user framing.",
+        "thay": "Heavily depends on the individual reader's subjective mood and bias."
       },
       "basis": {
-        "k": "Basis on the chart",
-        "lsv": "Goes from an insight to the palace, stars and links behind it.",
-        "web": "Ready-made conclusions sometimes lack a path back to the palace and stars.",
-        "ai": "The prose can persuade even when the chart data is not checked.",
-        "thay": "The explanation can be very deep, but you must write it down to compare."
+        "k": "Academic basis",
+        "lsv": "100% transparent logic. Every insight links back to its exact palace and star.",
+        "web": "Unverified generic data; drops vague predictions causing unnecessary anxiety.",
+        "ai": "Prone to AI hallucinations—misplacing stars while sounding confident.",
+        "thay": "Spoken advice lacks standardized logic, making verification difficult."
       },
       "links": {
-        "k": "Seeing the links",
-        "lsv": "Tap a palace to see its trine and opposite palaces at once.",
-        "web": "Many separate paragraphs leave you to piece the links together.",
-        "ai": "Each question can drift away from the whole twelve-palace picture.",
-        "thay": "The links are spoken aloud, hard to review as one picture."
+        "k": "Holistic picture",
+        "lsv": "Interactive chart: tap a palace to see trine and opposite links instantly.",
+        "web": "Fragmented claims; contradictory statements force you to guess.",
+        "ai": "Isolated prompts drift away from overall 12-palace consistency.",
+        "thay": "Spoken words fade quickly, making complex palace links hard to visualize."
       },
       "return": {
-        "k": "Coming back when needed",
-        "lsv": "Keeps your chart and the parts you opened so you return to the right place.",
-        "web": "Hard to find again the passage that made you think.",
-        "ai": "In a long conversation the important parts drift away.",
-        "thay": "When the session ends you rely on memory or notes."
+        "k": "Consistency & Objectivity",
+        "lsv": "100% objective and consistent; standardized data eliminates all personal bias.",
+        "web": "Unstable info; lookups yield conflicting readings across different visits.",
+        "ai": "Lacks consistency; asking again yields conflicting and shifting responses.",
+        "thay": "Lacks uniformity; different masters give contradictory readings for the same chart."
       },
       "depth": {
-        "k": "Going deeper your way",
-        "lsv": "Pick the right reading package or section; see the clear cost and deliverables before opening.",
-        "web": "Usually by article or a ready-made package.",
-        "ai": "Asking more is easy, but you check each turn for consistency yourself.",
-        "thay": "Asking more usually means another session and more cost."
+        "k": "Cost & Ethics",
+        "lsv": "Free base access; open deeper sections as needed with clear upfront pricing.",
+        "web": "Cluttered with popup ads; rigid one-size-fits-all paid articles.",
+        "ai": "Monthly subscriptions required; you absorb the risk of accuracy.",
+        "thay": "Costly session fees ($20-$100+); appointment queues limit follow-ups."
       }
     }
   },
@@ -373,10 +373,10 @@
     }
   },
   "about": {
-    "title": "Lá Số Việt began with a simple question: how do you understand a chart, instead of just hearing a verdict?",
-    "body": "We place old knowledge into a closer way of reading: a chart to look at, a basis to trace, and quiet space to understand yourself.",
-    "link": "About Lá Số Việt →",
-    "ctaTitle": "Where does your story begin?",
-    "cta": "Create my chart"
+    "title": "Simplifying Eastern and Western esoteric wisdom, bringing ancient knowledge closer to Vietnamese users.",
+    "body": "Lá Số Việt unifies classic disciplines—from Ziwei and BaZi to Astrology, I Ching, and Numerology. Delivered in clear, accessible Vietnamese with transparent logic, Lá Số Việt helps you deeply understand yourself and prepare proactively for every life milestone.",
+    "link": "Learn more about Lá Số Việt →",
+    "ctaTitle": "Your journey ahead is ready to be illuminated.",
+    "cta": "Create your chart now"
   }
 }
