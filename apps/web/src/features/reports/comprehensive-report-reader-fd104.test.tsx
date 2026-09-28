@@ -134,14 +134,14 @@ describe("ComprehensiveReportReader FD-104 wave 1", () => {
 
   it("renders no chart visuals when the report has no chart snapshot", () => {
     const html = renderToStaticMarkup(<ComprehensiveReportReader report={v3Report(false)} />);
-    expect(html).not.toContain("report-mini-chart");
+    expect(html).not.toContain('class="board');
     expect(html).not.toContain("report-timeline");
     expect(html).not.toContain("report-chips");
   });
 
   it("renders star chips, mini charts and the decadal timeline from the snapshot", () => {
     const html = renderToStaticMarkup(<ComprehensiveReportReader report={v3Report(true)} />);
-    expect(html.match(/class="report-mini-chart"/g)).toHaveLength(12);
+    expect(html.match(/class="board thumb"/g)).toHaveLength(12);
     expect(html).toContain("Liêm Trinh");
     expect(html).toContain("Miếu");
     expect(html).toContain("Các chặng đại vận");

@@ -1,3 +1,6 @@
+/* Token riêng cho lá số. Ô cung hơi trong để nền vân lộ qua. */
+:root { --chart-cell-bg: rgba(15, 13, 10, .80); --chart-cell-lit: rgba(206, 91, 69, .16); --chart-mark-soft: rgba(201, 164, 77, .14); }
+
 /* FD-104 wave 1: structure and chart visuals for the comprehensive report reader.
    Visual source: prototype/revamp-2026-09/doc-bao-cao-tuong-tac.css */
 
@@ -37,12 +40,124 @@
 .report-hoa-fame { background: rgba(88, 120, 170, .3); color: #a9c3ea; }
 .report-hoa-obstacle { background: rgba(120, 90, 160, .3); color: #c8b3ea; }
 
-/* Mini chart */
-.report-mini-chart { display: grid; grid-template-columns: repeat(4, 22px); grid-template-rows: repeat(4, 16px); gap: 2px; flex: none; }
-.report-mini-cell { border: 1px solid var(--border-hairline); border-radius: 3px; background: var(--surface-deep); }
-.report-mini-cell.is-lit { border-color: var(--accent-seal); background: rgba(206, 91, 69, .22); }
-.report-mini-cell.is-related { border: 1px dashed var(--accent-gold); }
-.report-mini-center { grid-row: 2 / 4; grid-column: 2 / 4; }
+/* ---- Lá số: bố cục theo tờ lá số in truyền thống (FD-106a) ---- */
+.report-chart { display: grid; gap: 10px; }
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(150px, auto)); gap: 2px; position: relative; border: 1px solid var(--border-hairline); border-radius: 10px; overflow: hidden;
+  background-color: var(--border-hairline);
+  background-image: url("/images/lasoviet/nen-la-so-son-mai-lien-mach-lasoviet.webp");
+  background-size: 300px 300px; background-repeat: repeat; }
+.cell { position: relative; z-index: 1; text-align: left; background: var(--chart-cell-bg); border: 0; padding: 7px 8px 6px; font: 400 11.5px/1.35 var(--font-ui); color: var(--text-body); display: grid; grid-template-rows: auto 1fr auto; gap: 5px; min-width: 0; }
+button.cell { cursor: pointer; transition: background 140ms ease, box-shadow 140ms ease; }
+button.cell:hover { background: var(--surface-panel); }
+.cell.is-sel { background: var(--chart-cell-lit); box-shadow: 0 0 0 2px var(--accent-seal) inset; }
+.cell.is-rel { box-shadow: 0 0 0 1px var(--accent-gold) inset; }
+
+.c-top { display: grid; grid-template-columns: auto auto; justify-content: space-between; align-items: baseline; gap: 2px 6px; }
+.c-sd { font: 500 10px var(--font-mono); color: var(--text-faint); white-space: nowrap; }
+.c-nm { grid-column: 1 / -1; font: 600 12.5px/1.15 var(--font-ui); color: var(--text-heading); text-align: center; text-transform: uppercase; text-wrap: balance; }
+.c-age { font: 500 10px var(--font-mono); color: var(--accent-gold); white-space: nowrap; }
+
+.c-main { display: grid; gap: 1px; justify-items: center; text-align: center; }
+.c-main b { font: 600 13px/1.25 var(--font-ui); color: var(--text-heading); }
+.c-main b i { font-style: normal; font-weight: 500; font-size: 10.5px; opacity: .75; }
+.c-main b.none { font-weight: 400; font-style: italic; font-size: 12px; color: var(--text-muted); }
+
+.c-aux { display: grid; grid-template-columns: 1fr 1fr; gap: 0 7px; align-content: start; font-size: 10px; line-height: 1.38; overflow: hidden; }
+.c-col { display: grid; align-content: start; min-width: 0; }
+.c-col span { color: var(--text-muted); overflow-wrap: anywhere; }
+
+.c-bot { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 6px; border-top: 1px solid var(--border-hairline); padding-top: 4px; }
+.c-mark { display: flex; gap: 3px; }
+.c-mark em { font: 600 9.5px/1 var(--font-ui); font-style: normal; padding: 2px 4px; border-radius: 3px; white-space: nowrap; }
+.mk-menh { background: var(--accent-seal); color: #f6f1e6; }
+.mk-than { background: var(--chart-mark-soft); color: var(--accent-gold); box-shadow: 0 0 0 1px var(--accent-gold) inset; }
+.mk-dv { background: rgba(88,120,170,.28); color: #a9c3ea; }
+.mk-ln { background: rgba(79,122,104,.3); color: #9fd1ba; }
+.c-cyc { font-size: 10px; color: var(--text-muted); text-align: center; white-space: nowrap; }
+.c-yrs { font: 500 9.5px var(--font-mono); color: var(--text-faint); white-space: nowrap; }
+
+/* Màu ngũ hành cho tên sao. Sao chưa chắc ngũ hành thì để màu chữ thường. */
+.el-kim { color: #cfcabf; } .el-moc { color: #86cba3; } .el-thuy { color: #93bce4; }
+.el-hoa { color: #ec9078; } .el-tho { color: #e2b765; }
+.c-col .el-kim, .c-col .el-moc, .c-col .el-thuy, .c-col .el-hoa, .c-col .el-tho { opacity: .82; }
+
+.center { grid-column: 2 / 4; grid-row: 2 / 4; z-index: 3; box-shadow: 0 0 0 1px var(--border-hairline) inset; padding: 16px; display: grid; align-content: center; justify-items: center; gap: 6px; position: relative; background: radial-gradient(circle at 50% 42%, var(--surface-panel), var(--chart-cell-bg) 74%); }
+.center::before { content: ""; position: absolute; inset: -14%; pointer-events: none;
+  background: url("/images/lasoviet/hoa-van-la-kinh-trung-tam-la-so-lasoviet.svg") no-repeat center / contain;
+  opacity: .30; }
+.center > *:not(.c-seal) { position: relative; z-index: 1; }
+.c-seal { position: absolute; right: 12px; bottom: 12px; width: 62px; height: 62px; pointer-events: none;
+  background: url("/images/lasoviet/dau-trien-la-so-viet-son-do.webp") no-repeat center / contain; opacity: .9; }
+.c-brand { margin: 0; font: 600 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent-gold); }
+.center h3 { font: 600 17px var(--font-display); color: var(--text-heading); margin: 0 0 4px; }
+.center dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-size: 12.5px; }
+.center dt { color: var(--text-muted); } .center dd { margin: 0; color: var(--text-heading); }
+.c-note { margin: 6px 0 0; font-size: 10.5px; color: var(--text-faint); }
+
+.board-key { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 12px; color: var(--text-muted); }
+.bk-grp { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bk-grp b { color: var(--text-body); font-weight: 500; }
+.bk-el { font-weight: 600; }
+
+/* Bản thu nhỏ đặt ở đầu mỗi cung */
+.board.thumb { grid-template-rows: repeat(4, 22px); gap: 2px; width: 120px; border: 0; background: none; border-radius: 0; overflow: visible; }
+.board.thumb .cell { padding: 0; border-radius: 4px; box-shadow: 0 0 0 1px var(--border-hairline) inset; background: var(--surface-deep); }
+.board.thumb .cell.is-sel { box-shadow: 0 0 0 1.5px var(--accent-seal) inset; background: var(--chart-cell-lit); }
+.board.thumb .cell.is-rel { box-shadow: 0 0 0 1px var(--accent-gold) inset; }
+.board.thumb .center { padding: 0; border-radius: 4px; box-shadow: none; background: none; }
+.board.thumb .center::before, .board.thumb .center > * { display: none; }
+
+@media (max-width: 640px) {
+  .board { grid-template-rows: repeat(4, minmax(96px, auto)); gap: 1px; }
+  .cell { padding: 4px 5px; gap: 3px; }
+  .c-aux, .c-yrs, .c-sd { display: none; }
+  .c-nm { font-size: 11px; } .c-age { font-size: 9px; }
+  .c-main b { font-size: 11.5px; } .c-main b i { display: none; }
+  .c-bot { padding-top: 3px; grid-template-columns: auto minmax(0, 1fr); }
+  .c-cyc { font-size: 9.5px; } .c-mark em { font-size: 8.5px; padding: 1px 3px; }
+  .center { padding: 8px; } .center dl { grid-template-columns: 1fr; font-size: 11px; gap: 0; }
+  .center dt { display: none; } .center dd:nth-of-type(n+4) { display: none; }
+  .center h3 { font-size: 13px; } .c-brand { font-size: 9px; } .c-note { display: none; }
+  .c-seal { width: 40px; height: 40px; right: 6px; bottom: 6px; }
+  .board-key { font-size: 11px; gap: 6px 14px; }
+}
+
+/* ---- Biểu đồ mười hai cung và điểm từng cung (FD-105) ---- */
+.report-radar { margin: 6px 0 12px; display: grid; justify-items: center; gap: 8px; }
+.report-radar svg { width: min(100%, 420px); height: auto; overflow: visible; }
+.rd-ring, .rd-axis { fill: none; stroke: var(--border-hairline); stroke-width: 1; }
+.rd-shape { fill: var(--chart-mark-soft); stroke: var(--accent-gold); stroke-width: 1.5; }
+.rd-dot { fill: var(--accent-seal); }
+.rd-lb { fill: var(--text-muted); font: 500 11px var(--font-ui); }
+.report-radar figcaption { margin: 0; font-size: 13px; color: var(--text-muted); text-align: center; max-width: 46ch; }
+
+.report-sc { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 7px; margin-left: 10px; border-radius: 999px; font: 600 13.5px/1 var(--font-mono); vertical-align: 2px; }
+.report-sc-manh { background: rgba(79,122,104,.28); color: #9fd1ba; }
+.report-sc-thuan { background: rgba(79,122,104,.16); color: #8fbfa5; }
+.report-sc-can { background: var(--chart-mark-soft); color: var(--accent-gold); }
+.report-sc-canh { background: rgba(224,174,82,.18); color: #e0ae52; }
+.report-sc-kho { background: rgba(206,91,69,.16); color: #ec8a74; }
+.report-band { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+
+.report-how { margin: 0 0 18px; border: 1px solid var(--border-hairline); border-radius: 12px; padding: 0 14px; font-size: 14.5px; }
+.report-how summary { cursor: pointer; padding: 11px 0; color: var(--accent-gold); font-weight: 600; list-style: none; }
+.report-how summary::-webkit-details-marker { display: none; }
+.report-how p { margin: 0 0 12px; line-height: 1.55; }
+.report-how dl { margin: 0 0 14px; display: grid; gap: 6px 14px; }
+.report-how dl > div { display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 6px 14px; }
+.report-how dt { color: var(--text-heading); font-weight: 500; }
+.report-how dd { margin: 0; color: var(--text-body); }
+@media (max-width: 560px) { .report-how dl > div { grid-template-columns: 1fr; gap: 2px; } .report-how dd { margin-bottom: 8px; } }
+
+/* ---- Danh sách các chặng đại vận (FD-106b) ---- */
+.report-cycle-list { display: grid; gap: 10px; margin: 14px 0 0; }
+.report-cycle-row { border: 1px solid var(--border-hairline); border-radius: 16px; background: var(--surface-panel); padding: 14px 16px; display: grid; gap: 8px; }
+.report-cycle-row.is-current { border-color: var(--accent-gold); box-shadow: 0 0 0 1px var(--accent-gold) inset; }
+.report-cycle-row h5 { margin: 0; font: 600 17px/1.3 var(--font-display); color: var(--text-heading); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.report-cycle-row h5 small { font: 500 12.5px var(--font-mono); color: var(--text-muted); }
+.report-cycle-row p { margin: 0; line-height: 1.6; }
+.report-cycle-cta { justify-self: start; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border-hairline); background: transparent; color: var(--accent-gold); font: 600 14.5px var(--font-ui); cursor: pointer; }
+.report-cycle-cta.is-primary { background: var(--gradient-gold); border-color: transparent; color: var(--cta-fg); }
 
 /* Decadal timeline: position styling only, never good/bad (FD-063). */
 .report-timeline { margin: 8px 0 24px; }
@@ -66,3 +181,5 @@
   .report-palace-tools { display: none; }
   .report-palace-card .report-palace-lead { display: none; }
 }
+
+.report-hero-chart { margin: 0 0 40px; }

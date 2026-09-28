@@ -23,6 +23,7 @@ export const ReportChartPalaceV1Schema = z
     palaceId: PalaceId,
     earthlyBranchId: z.string().regex(/^ziwei\.branch\.[a-z]+$/),
     heavenlyStemId: z.string().regex(/^ziwei\.stem\.[a-z0-9-]+$/).optional(),
+    cycleStateId: z.string().regex(/^ziwei\.cycle\.[a-z0-9-]+$/).optional(),
     isLife: z.boolean(),
     isBody: z.boolean(),
     triadPalaceIds: z.tuple([PalaceId, PalaceId]),

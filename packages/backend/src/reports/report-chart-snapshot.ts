@@ -66,11 +66,16 @@ export function buildReportChartSnapshot(
   timing: ChartSnapshotTimingInput,
 ): ReportChartSnapshotV1 {
   const facts = buildComprehensiveZiweiFacts(chart);
+  // Vòng trường sinh nằm trên lá số gốc nhưng trước nay bị cắt bỏ khi chiếu ra.
+  const cycleStateByPalace = new Map(
+    chart.palaces.flatMap((p) => (p.cycleStateId ? [[p.id, p.cycleStateId] as const] : [])),
+  );
   const transformationByStar = new Map(chart.transformations.map((t) => [t.starId, t.id]));
   const palaces = facts.palaces.map((p) => ({
     palaceId: p.palaceId,
     earthlyBranchId: p.earthlyBranchId,
     ...(p.heavenlyStemId ? { heavenlyStemId: p.heavenlyStemId } : {}),
+    ...(cycleStateByPalace.get(p.palaceId) ? { cycleStateId: cycleStateByPalace.get(p.palaceId)! } : {}),
     isLife: p.isLifePalace,
     isBody: p.isBodyPalace,
     triadPalaceIds: [p.triadPalaceIds[0]!, p.triadPalaceIds[1]!] as [ZiweiPalaceId, ZiweiPalaceId],
