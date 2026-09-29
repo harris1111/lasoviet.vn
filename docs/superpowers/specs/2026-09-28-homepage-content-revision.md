@@ -46,7 +46,7 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
 {
   "h1a": "Lập lá số.",
   "h1b": "Hiểu vận mệnh.",
-  "sub": "Ngã rẽ sự nghiệp, gút thắt tình cảm hay khoảng lặng nội tâm: Mọi câu trả lời đều bắt đầu từ tấm bản đồ của chính bạn.",
+  "sub": "Ngã rẽ sự nghiệp, nút thắt tình cảm hay khoảng lặng nội tâm: Mọi câu trả lời đều bắt đầu từ tấm bản đồ của chính bạn.",
   "formLabel": "Khởi tạo lá số của bạn",
   "dateLabel": "Ngày tháng năm sinh",
   "calendarLabel": "Loại lịch",
@@ -106,11 +106,12 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
 
 ```json
 {
-  "title": "Có những câu hỏi, càng đi lâu ta lại càng trăn trở.",
-  "body": "Chúng ghé lại vào những canh khuya mất ngủ, chen vào dòng người tan tầm vội vã, hay dấy lên ngay giữa một buổi họp tưởng chừng bình yên. Giữa những ngổn ngang đó, điều bạn cần không phải một lời phán xét hay hứa hẹn viển vông—mà là một góc nhìn đủ tĩnh, đủ sâu để thấy rõ căn nguyên và tự tin bước tiếp.",
+  "title": "Có những câu hỏi cứ khiến ta trăn trở mãi không thôi...",
+  "body": "Chúng ghé lại vào những đêm khuya mất ngủ, chen vào dòng người tan tầm vội vã, hay dấy lên ngay giữa một buổi họp tưởng chừng bình yên. Giữa những ngổn ngang đó, điều bạn cần không phải một lời phán xét hay hứa hẹn viển vông—mà là một góc nhìn đủ sâu sắc để thấy rõ căn nguyên và tự tin bước tiếp.",
   "q1": "Bao giờ thì thời vận mỉm cười với sự nỗ lực của mình?",
-  "q2": "Vì sao cứ lặp lại một vết thương trong chuyện tình cảm?",
-  "q3": "Mình thực sự sinh ra để làm gì giữa cuộc đời này?"
+  "q2": "Vì sao mình cứ lặp đi lặp lại một sai lầm trong chuyện tình cảm?",
+  "q3": "Công việc đang làm liệu có phù hợp với mình không?",
+  "q4": "Mình thực sự sinh ra để làm gì giữa cuộc đời này?"
 }
 ```
 
@@ -124,12 +125,12 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
 {
   "label": "Từng mảnh ghép cuộc đời đang chờ bạn mở lối",
   "a1": "Đâu là mảnh đất dụng võ cho tài năng của bạn?",
-  "a2": "Gút thắt tình duyên: Bắt đầu từ đâu để hóa giải?",
-  "a3": "Cung Mệnh: Căn nguyên tính cách và khí chất gốc",
+  "a2": "Nút thắt tình duyên: Bắt đầu từ đâu để hóa giải?",
+  "a3": "Căn nguyên tính cách và khí chất gốc",
   "a4": "Thuận thời thì tiến, nghịch cảnh liệu nên lui?",
-  "b1": "Quan Lộc: Đường công danh & thế đứng sự nghiệp",
-  "b2": "Phu Thê: Gương soi nhân duyên & bến đỗ cuộc đời",
-  "b3": "Tài Bạch: Dòng chảy tiền tài & cách giữ của bền lâu",
+  "b1": "Đường công danh & nền tảng sự nghiệp",
+  "b2": "Nhân duyên & bến đỗ cuộc đời",
+  "b3": "Dòng chảy tiền tài & cách giữ của bền lâu",
   "b4": "Chọn đúng trăn trở để tìm lời giải đáp ↗"
 }
 ```
@@ -181,7 +182,7 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
   "tutuc": {
     "name": "Tử Tức",
     "title": "Con cái & Sự tiếp nối",
-    "desc": "Duyên phận với thế hệ sau, cách bạn truyền trao yêu thương và gieo mầm hy vọng cho tương lai."
+    "desc": "Duyên phận với thế hệ sau, cách bạn trao truyền yêu thương và gieo mầm hy vọng cho tương lai."
   },
   "taibach": {
     "name": "Tài Bạch",
@@ -190,7 +191,7 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
   },
   "tatach": {
     "name": "Tật Ách",
-    "title": "Thân thể & Điểm báo sức khỏe",
+    "title": "Thân thể & Điềm báo sức khỏe",
     "desc": "Nơi cơ thể âm thầm gửi tín hiệu để bạn biết khi nào nên dừng lại dưỡng sức. Giữ gìn thân tâm luôn là gốc rễ của vạn sự."
   },
   "thiendi": {
@@ -513,7 +514,7 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
 
 ```json
 {
-  "title": "Đơn giản hóa tinh hoa huyền học Đông Tây, đưa tri thức đúc kết ngàn năm đến gần hơn với người Việt.",
+  "title": "Đơn giản hóa tinh hoa huyền học Đông Tây, đưa tri thức cổ học đúc kết ngàn năm đến gần hơn với người Việt.",
   "body": "Lá Số Việt hội tụ tinh hoa các bộ môn thuật số kim cổ—từ Tử Vi, Bát Tự đến Chiêm Tinh, Kinh Dịch và Thần Số Học. Bằng ngôn ngữ tiếng Việt thuần túy, dễ hiểu và có căn cứ minh bạch, Lá Số Việt giúp bạn thấu hiểu sâu sắc chính mình, nhìn rõ những cột mốc vận hạn để luôn có sự chuẩn bị chủ động và vững vàng nhất cho cuộc sống.",
   "link": "Tìm hiểu thêm về Lá Số Việt →",
   "ctaTitle": "Chặng đường phía trước của bạn đã sẵn sàng được soi tỏ.",

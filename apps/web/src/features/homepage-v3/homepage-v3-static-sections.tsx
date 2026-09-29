@@ -33,7 +33,8 @@ export function HomepageV3Story() {
           <div className="hv3-questions">
             <p>{t("q1")}</p>
             <p>{t("q2")}</p>
-            <p className="hv3-q-accent">{t("q3")}</p>
+            <p>{t("q3")}</p>
+            <p className="hv3-q-accent">{t("q4")}</p>
           </div>
         </div>
       </div>

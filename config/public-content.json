@@ -777,8 +777,8 @@
     "routeId": "brand.about",
     "locale": "vi",
     "contentType": "SeoMetadata",
-    "title": "Về Lá Số Việt",
-    "summary": "Sứ mệnh trả lại sự tôn nghiêm cho huyền học cổ xưa: minh bạch căn cứ, không phán xét, và lộ trình mở rộng từ Tử Vi đến các lăng kính khác.",
+    "title": "Về Lá Số Việt — Đơn giản hóa tinh hoa huyền học Đông Tây",
+    "summary": "Lá Số Việt đơn giản hóa tri thức huyền học ngàn năm Đông Tây thành hệ thống luận giải tiếng Việt chuẩn xác, có căn cứ và minh bạch. Giúp người Việt thấu hiểu chính mình và chủ động làm chủ cuộc sống.",
     "reviewer": "brand-reviewer",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",
@@ -796,8 +796,8 @@
     "routeId": "brand.about",
     "locale": "en",
     "contentType": "SeoMetadata",
-    "title": "About La So Viet",
-    "summary": "Our positioning, transparency principles, and goal of building a chart platform for Vietnamese users.",
+    "title": "About La So Viet — Simplifying Eastern & Western metaphysics",
+    "summary": "La So Viet simplifies a thousand years of Eastern and Western metaphysical knowledge into an accurate, well-referenced, and transparent Vietnamese interpretation system, helping readers understand themselves and take charge of life.",
     "reviewer": "brand-reviewer",
     "sourceReferences": [
       "docs/13-brand-experience-guideline.md",

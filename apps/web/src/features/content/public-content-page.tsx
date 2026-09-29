@@ -19,6 +19,7 @@ import { LunarCalendarPreview } from "../free-tools/lunar-calendar-preview";
 import { NumerologyPreview } from "../free-tools/numerology-preview";
 import { TarotPreview } from "../free-tools/tarot-preview";
 import { ZodiacPreview } from "../free-tools/zodiac-preview";
+import { BrandAboutPage } from "./brand-about-page";
 import { CommercialTopicPage } from "./commercial-topic-page";
 import { PrivacyPolicyPage } from "./privacy-policy-page";
 import { SampleReportPage } from "./sample-report-page";
@@ -418,6 +419,8 @@ export function PublicContentPage(props: PublicContentPageProps) {
             routes={props.routes}
           />
         );
+      case "about-page-designed":
+        return <BrandAboutPage locale={props.locale} />;
       case "about-page":
         return (
           <RichContentPage

@@ -48,21 +48,22 @@
     "close": "Collapse the chart"
   },
   "story": {
-    "title": "Some questions only grow heavier the longer we carry them.",
-    "body": "They visit in the sleepless hours of the night, slip in with the crowd on the way home, or surface in the middle of what seemed like a calm meeting. In the middle of all that, what you need is not a verdict or an empty promise—it is a view still and deep enough to see the real cause and step forward with confidence.",
+    "title": "Some questions just won't stop nagging at you...",
+    "body": "They visit in the sleepless hours of the night, slip in with the crowd on the way home, or surface in the middle of what seemed like a calm meeting. In the middle of all that, what you need is not a verdict or an empty promise—it is a view deep enough to see the real cause and step forward with confidence.",
     "q1": "When will fortune finally meet my effort?",
-    "q2": "Why does my love life keep repeating the same wound?",
-    "q3": "What was I really put on this earth to do?"
+    "q2": "Why do I keep repeating the same mistake in love?",
+    "q3": "Is the work I'm doing right now actually right for me?",
+    "q4": "What was I really put on this earth to do?"
   },
   "ticker": {
     "label": "Every piece of your life is waiting to be opened",
     "a1": "Where is the ground where your talent can truly stand?",
     "a2": "A tangled relationship: where do you even start untying it?",
-    "a3": "The Life palace: the root of your character and temperament",
+    "a3": "The root of your character and temperament",
     "a4": "When fortune favors you, press on; in hard times, should you retreat?",
-    "b1": "Career palace: your path and standing in work",
-    "b2": "Spouse palace: the mirror of love and where you'll land",
-    "b3": "Wealth palace: the flow of money and how to keep it",
+    "b1": "Your path and standing in work",
+    "b2": "The mirror of love and where you'll land",
+    "b3": "The flow of money and how to keep it",
     "b4": "Pick the question that matters most to find your answer ↗"
   },
   "explore": {
