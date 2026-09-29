@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
+import { LsvIcon } from "../../components/lsv-icon";
 import { HomepageV3GoWizard } from "./homepage-v3-go-wizard";
 import { COMPARE_ROW_IDS } from "./homepage-v3-data";
 
@@ -14,6 +15,7 @@ const TAB_TITLE = { lsv: "tabLsv", web: "tabWeb", ai: "tabAi", thay: "tabThay" }
 /** One strength and five limits per way of finding an answer; the first row is the strength. */
 export function HomepageV3Compare() {
   const t = useTranslations("homepage-v3.compare");
+  const locale = useLocale();
   const [active, setActive] = useState<Column>("lsv");
   const [strengthRow, ...limitRows] = COMPARE_ROW_IDS;
 
@@ -23,6 +25,16 @@ export function HomepageV3Compare() {
         <h2 className="hv3-h2">{t("title")}</h2>
         <p className="hv3-lead">{t("lead")}</p>
       </div>
+
+      <div className="hv3-compare-points" aria-label={locale === "vi" ? "Ba điểm để đối chiếu" : "Three ways to compare"}>
+        {(locale === "vi"
+          ? ["Đọc trên chính lá số", "Thấy quan hệ giữa các cung", "Chọn phần muốn đọc sâu"]
+          : ["Read your own chart", "See palace relationships", "Choose what to explore deeper"]
+        ).map((point, index) => <span key={point}><LsvIcon name={(["chart-palaces", "related-palaces", "reading-depth"] as const)[index] ?? "chart-palaces"} size={40} />{point}</span>)}
+      </div>
+
+      <details className="hv3-compare-details">
+        <summary>{locale === "vi" ? "Xem bảng so sánh đầy đủ" : "View the full comparison"}</summary>
 
       <table className="hv3-compare-table" role="table">
         <caption className="hv3-sr">{t("tableLabel")}</caption>
@@ -83,6 +95,7 @@ export function HomepageV3Compare() {
         </div>
         <HomepageV3GoWizard className="hv3-link">{t("cta")}</HomepageV3GoWizard>
       </div>
+      </details>
     </div>
   );
 }

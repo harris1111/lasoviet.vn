@@ -27,6 +27,7 @@ vi.mock("next-intl", () => {
   );
 
   return {
+    useLocale: () => "vi",
     useTranslations: (ns: string) => {
       const section = ns.replace("homepage-v3.", "");
       const msgs = viMessages[section] ?? {};
@@ -79,6 +80,7 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
 
   it("Requirement 2: Keyboard and ARIA state in FAQ, comparison tabs, and theme toggle controls", () => {
     const compareHtml = renderToStaticMarkup(createElement(HomepageV3Compare));
+    expect(compareHtml).toContain("<details class=\"hv3-compare-details\">");
     expect(compareHtml).toContain('role="group"');
     expect(compareHtml).toContain('aria-pressed="true"');
     expect(compareHtml).toContain('aria-pressed="false"');
