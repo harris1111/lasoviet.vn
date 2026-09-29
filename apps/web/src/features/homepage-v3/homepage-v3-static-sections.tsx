@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 
+import { HomepageV3ValueDiagram } from "./homepage-v3-value-diagram";
 import { localizedPath } from "../homepage/homepage-utilities";
 import { HomepageV3GoWizard } from "./homepage-v3-go-wizard";
 import { HomepageV3Marquee } from "./homepage-v3-marquee";
@@ -124,16 +125,26 @@ export function HomepageV3Usp() {
             <p>{t("n2.body")}</p>
           </div>
         </article>
-        <article className="hv3-usp-card hv3-usp-ink" aria-labelledby="hv3-usp-n3-title" data-reveal style={{ "--i": 2 } as CSSProperties}>
-          {icon("lsv-usp-links-icon.svg", 62)}
-          <h3 id="hv3-usp-n3-title">{t("n3.title")}</h3>
-          <p>{t("n3.body")}</p>
-          <a href="#la-so-mau" className="hv3-link">{t("n3.link")}</a>
+        <article className="hv3-usp-card hv3-usp-art hv3-usp-ink" aria-labelledby="hv3-usp-n3-title" data-reveal style={{ "--i": 2 } as CSSProperties}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/lasoviet/v11/giay-do-lien-ket-can-cu-homepage.webp" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          <div className="hv3-usp-scrim" />
+          <div className="hv3-usp-body">
+            {icon("lsv-usp-links-icon.svg", 62)}
+            <h3 id="hv3-usp-n3-title">{t("n3.title")}</h3>
+            <p>{t("n3.body")}</p>
+            <a href="#la-so-mau" className="hv3-link">{t("n3.link")}</a>
+          </div>
         </article>
-        <article className="hv3-usp-card hv3-usp-son" aria-labelledby="hv3-usp-n4-title" data-reveal style={{ "--i": 3 } as CSSProperties}>
-          {icon("lsv-usp-depth-icon.svg", 62)}
-          <h3 id="hv3-usp-n4-title">{t("n4.title")}</h3>
-          <p>{t("n4.body")}</p>
+        <article className="hv3-usp-card hv3-usp-art hv3-usp-son" aria-labelledby="hv3-usp-n4-title" data-reveal style={{ "--i": 3 } as CSSProperties}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/lasoviet/v11/lop-son-mai-luan-giai-chuyen-sau-homepage.webp" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          <div className="hv3-usp-scrim" />
+          <div className="hv3-usp-body">
+            {icon("lsv-usp-depth-icon.svg", 62)}
+            <h3 id="hv3-usp-n4-title">{t("n4.title")}</h3>
+            <p>{t("n4.body")}</p>
+          </div>
         </article>
       </div>
     </div>
@@ -154,6 +165,7 @@ export function HomepageV3Value({ locale, showPacks = false }: { locale: Locale;
       <ol className="hv3-steps">
         {steps.map((key, index) => (
           <li key={key} data-step={index + 1}>
+            <div className="hv3-step-visual" data-step={index + 1} aria-hidden="true"><HomepageV3ValueDiagram step={index + 1} /></div>
             <span aria-hidden="true" className="hv3-step-dot" />
             <h3 className="hv3-h3">{t(`${key}.title`)}</h3>
             <p>{t(`${key}.body`)}</p>
@@ -204,7 +216,7 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
           </picture>
           <div className="hv3-about-body">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-v02-seal-geometry.svg`} alt="" width={56} height={56} loading="lazy" className="hv3-about-seal" />
+            <img src="/brand/lasoviet-logomark-co-nho-vang-son.svg" alt="" width={56} height={56} loading="lazy" className="hv3-about-seal" />
             <h2 className="hv3-h2 hv3-h2-sm">{t("title")}</h2>
             <p>{t("body")}</p>
             <a href={localizedPath(locale, "/ve-la-so-viet")} className="hv3-link">{t("link")}</a>
