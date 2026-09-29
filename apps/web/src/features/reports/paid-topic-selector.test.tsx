@@ -36,6 +36,28 @@ vi.mock("next-intl", async () => {
 
 import { PaidTopicSelector, formatUpgradeDeadline } from "./paid-topic-selector";
 
+function findElementInTree(
+  node: unknown,
+  predicate: (el: { type: unknown; props: Record<string, unknown> }) => boolean,
+): { type: unknown; props: Record<string, unknown> } | null {
+  if (!node || typeof node !== "object") return null;
+  const candidate = node as { type?: unknown; props?: Record<string, unknown> };
+  if (candidate.type && candidate.props && predicate(candidate as { type: unknown; props: Record<string, unknown> })) {
+    return candidate as { type: unknown; props: Record<string, unknown> };
+  }
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findElementInTree(child, predicate);
+      if (found) return found;
+    }
+  }
+  if (candidate.props && candidate.props.children) {
+    return findElementInTree(candidate.props.children, predicate);
+  }
+  return null;
+}
+
+
 const mockTopics: PaidTopicSelectionViewV1 = {
   version: 1,
   chartId: "chart-123",
@@ -695,5 +717,44 @@ describe("PaidTopicSelector", () => {
     // sheet with the covering pack now lives inside the confirm dialog
     // (FD-105 package 1.2), which opens on click rather than server-rendering.
     expect(html).toContain("Mở khóa: 960 Lá");
+  });
+
+  it("passes only serializable string labels across the client WalletUnlockButton boundary in both vi and en", () => {
+    const checkBoundaryProps = (locale: "vi" | "en") => {
+      mockLocale = locale;
+      const elementTree = PaidTopicSelector({ locale, topics: mockTopics });
+      const unlockButton = findElementInTree(
+        elementTree,
+        (el) =>
+          typeof el.type === "function" &&
+          (el.type.name === "WalletUnlockButton" ||
+            (Boolean(el.props?.sku) && Boolean(el.props?.labels))),
+      );
+
+      expect(unlockButton).not.toBeNull();
+      const labels = unlockButton!.props.labels as Record<string, unknown>;
+      expect(typeof labels).toBe("object");
+      expect(labels).not.toBeNull();
+
+      const entries = Object.entries(labels);
+      expect(entries.length).toBeGreaterThan(0);
+
+      // Verify no functions cross the client boundary: every label must be a non-empty string
+      for (const [key, value] of entries) {
+        expect(typeof value, `label ${key} should be a string, not function`).toBe("string");
+        expect((value as string).length).toBeGreaterThan(0);
+      }
+
+      // Explicitly check that deprecated client boundary functions are absent
+      expect("shortBalanceBody" in labels).toBe(false);
+      expect("topUpAction" in labels).toBe(false);
+    };
+
+    try {
+      checkBoundaryProps("vi");
+      checkBoundaryProps("en");
+    } finally {
+      mockLocale = "vi";
+    }
   });
 });
