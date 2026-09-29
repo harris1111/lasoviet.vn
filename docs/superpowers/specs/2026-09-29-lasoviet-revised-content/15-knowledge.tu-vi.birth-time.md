@@ -41,7 +41,7 @@
 - **Body (3 Mức độ):**
   1. **Mức 1 - Giờ sinh chính xác (Độ phút):** Có giấy khai sinh hoặc ghi chép gia đình chính xác (VD: 8h15 sáng). Lá số được an chuẩn 100%.
   2. **Mức 2 - Thuộc khoảng Canh giờ (2 tiếng):** Nhớ sinh vào canh giờ Mão (5h - 7h) hay canh giờ Thìn (7h - 9h). Đủ điều kiện lập lá số chuẩn ngạch.
-  3. **Mức 3 - Chỉ nhớ Buổi (Lá số tạm tính):** Chỉ nhớ sinh buổi sáng, trưa, hay tối. Hệ thống xuất lá số tạm tính và liệt kê 2-3 lá số ứng viên tương ứng để bạn tự đối chiếu tính cách.
+  3. **Mức 3 - Chỉ nhớ Buổi (Lá số tạm tính):** Chỉ nhớ sinh buổi sáng, trưa, hay tối. Hệ thống xuất 01 lá số tạm tính có nhãn cảnh báo rõ ràng (theo FD-103) để bạn đọc trước các thông tin nền và cập nhật khi biết chuẩn giờ sinh.
 - **Visual:** Card so sánh 3 mức độ có badge nhãn minh bạch. Alt: "Bảng so sánh 3 mức giờ sinh Tử Vi".
 
 ---
