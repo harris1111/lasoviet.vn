@@ -78,13 +78,13 @@
 - **Eyebrow (Chơi chữ - Nhịp cắt):** Chi phí một lần. Giá trị trọn đời.
 - **H2 (Headline sáng tạo - Nhịp ngắn):** Niêm yết giá Lá rõ ràng. Không phí ngầm.
 - **Body:**
-  - **Giá gói Tử Vi Trọn Đời:** **150 Lá** *(Tương đương gói nạp cơ bản, thanh toán VietQR tự động)*.
+  - **Giá gói Tử Vi Trọn Đời:** **960 Lá** *(SKU ZIWEI-IDENTITY-P0 theo FD-105; cửa sổ nâng cấp mở rộng 720 Lá khi có ưu đãi điều kiện)*.
   - **Xác nhận trước khi trừ:** Khi bạn bấm mở bài, màn hình sẽ hiển thị số Lá hiện có và số Lá cần dùng. Chỉ khi bạn bấm "Xác nhận mở", hệ thống mới trừ Lá.
-  - **Quyền lợi mở lại:** Mở 1 lần, lưu vĩnh viễn trong tài khoản. Đọc lại trên mọi thiết bị mà không bao giờ mất thêm Lá.
-- **Visual:** Card Bảng giá Lá nổi bật, có nút "Nạp Lá nhanh qua VietQR" và hình minh họa đồng Lá mạ vàng tinh tế. Alt: "Giá gói Tử Vi Trọn Đời 150 Lá".
-- **390px:** Card giá đặt ở vị trí dễ quan sát, chữ số 150 Lá to rõ 32px.
+  - **Quyền lợi mở lại:** Mở 1 lần, lưu trữ trong tài khoản cá nhân. Đọc lại trên mọi thiết bị theo điều khoản dịch vụ mà không mất thêm Lá.
+- **Visual:** Card Bảng giá Lá nổi bật, có nút "Nạp Lá nhanh qua VietQR" và hình minh họa đồng Lá mạ vàng tinh tế. Alt: "Giá gói Tử Vi Trọn Đời niêm yết theo Lá".
+- **390px:** Card giá đặt ở vị trí dễ quan sát, hiển thị số Lá và nút xác nhận mở bài.
 - **1440px:** Card giá nổi trung tâm có viền phát sáng nhẹ.
-- **Claim ledger:** "Giá 150 Lá niêm yết" → Verified (`ZIWEI-IDENTITY-P0`).
+- **Claim ledger:** "Giá 960 Lá niêm yết theo FD-105 catalog" → Verified (`ZIWEI-IDENTITY-P0`).
 
 ---
 
@@ -92,11 +92,11 @@
 - **H2 (Headline sáng tạo - Đối ý):** Câu hỏi thường gặp về gói Tử Vi Trọn Đời.
 - **FAQ Items:**
   1. *Q: Nếu tôi không nhớ chính xác giờ sinh thì báo cáo này có chuẩn không?*
-     *A:* Bạn vẫn có thể xem được báo cáo theo dạng "Lá số tạm tính". Những phần luận giải dựa trên Giờ sinh sẽ được gắn nhãn chú ý để bạn đối chiếu lại sau.
+     *A:* Bạn vẫn có thể xem được báo cáo theo dạng "Lá số tạm tính" (FD-103). Những phần luận giải dựa trên Giờ sinh sẽ được gắn nhãn chú ý để bạn đối chiếu lại sau.
   2. *Q: Tôi có thể in bản báo cáo này ra giấy hoặc xuất file PDF được không?*
      *A:* Có. Giao diện báo cáo hỗ trợ chế độ in (Print-friendly) và xuất PDF sắc nét để bạn dễ dàng lưu trữ cá nhân hoặc đọc trên giấy.
   3. *Q: Nếu sau khi nạp Lá mà hệ thống bị lỗi không mở được bài thì sao?*
-     *A:* Đừng lo lắng! Mọi giao dịch trừ Lá đều có nhật ký lưu lại. Nếu gặp lỗi kết nối, bạn chỉ cần tải lại trang hoặc liên hệ hỗ trợ qua email `lasoviet.net@gmail.com` để được hoàn Lá ngay lập tức.
+     *A:* Đừng lo lắng! Mọi giao dịch trừ Lá đều có nhật ký lưu lại. Nếu gặp lỗi kết nối, bạn chỉ cần tải lại trang hoặc liên hệ hỗ trợ qua email `lasoviet.net@gmail.com` để được hỗ trợ đối soát ngay.
 - **Visual:** Accordion FAQ mạch lạc.
 
 ---
@@ -112,13 +112,9 @@
 ## SEO + Metadata + Schema
 
 - **SEO Title:** Tử Vi Trọn Đời — Luận Giải Bản Mệnh & Vận Trình Chi Tiết | Lá Số Việt
-- **Meta Description:** Báo cáo Tử Vi Trọn Đời phân tích toàn diện Cung Mệnh, 12 cung chức năng và lộ trình Đại vận 10 năm. Ngôn ngữ minh bạch, có căn cứ nút "Vì sao?", giá 150 Lá rõ ràng.
+- **Meta Description:** Báo cáo Tử Vi Trọn Đời phân tích toàn diện Cung Mệnh, 12 cung chức năng và lộ trình Đại vận 10 năm. Ngôn ngữ minh bạch, có căn cứ nút "Vì sao?", niêm yết giá Lá rõ ràng.
 - **Canonical URL:** `https://lasoviet.net/luan-giai-tu-vi/tong-quan-ban-menh`
-- **Product Schema JSON-LD:**
-  - Name: "Tử Vi Trọn Đời"
-  - SKU: "ZIWEI-IDENTITY-P0"
-  - Currency: "LEAF"
-  - Price: "150"
+- **Product Schema Notes:** Dữ liệu giá hiển thị theo số Lá niêm yết tại catalog `ZIWEI-IDENTITY-P0` (960 Lá).
 - **Internal Links:**
   - `/luan-giai-tu-vi` (Danh mục bài luận giải)
   - `/bao-cao-mau/tu-vi` (Báo cáo luận giải mẫu)

@@ -101,7 +101,7 @@
   1. *Q: Mua bài luận giải rồi có bị mất khi đổi thiết bị không?*
      *A:* Không. Toàn bộ các bài luận giải bạn đã mở bằng Lá đều được lưu vĩnh viễn trong mục "Tài khoản của tôi". Bạn có thể mở lại trên bất kỳ điện thoại hay máy tính nào.
   2. *Q: Tôi nạp Lá qua kênh nào và có bị tính phí ẩn không?*
-     *A:* Bạn nạp Lá qua chuyển khoản ngân hàng VietQR tự động. Số tiền VNĐ và số Lá nhận được hiển thị chính xác 1:1, tuyệt đối không có phí duy trì hay chi phí ngầm.
+     *A:* Bạn nạp Lá qua chuyển khoản ngân hàng VietQR tự động. Số Lá nhận được theo đúng các gói nạp hiển thị minh bạch trước khi thanh toán, tuyệt đối không có phí duy trì hay chi phí ngầm.
 - **Visual:** Accordion FAQ gọn gàng.
 
 ---
