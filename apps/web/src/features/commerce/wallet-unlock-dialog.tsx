@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
 import type { LaSku } from "@lasoviet/contracts";
@@ -18,8 +19,6 @@ export type WalletUnlockDialogLabels = {
   confirming: string;
   cancel: string;
   shortBalanceTitle: string;
-  shortBalanceBody: (gap: number, balance: number) => string;
-  topUpAction: (pack: string, vnd: string) => string;
   topUpNote: string;
   genericError: string;
 };
@@ -75,6 +74,7 @@ export function WalletUnlockDialog({
   itemName,
   labels,
 }: WalletUnlockDialogProps) {
+  const t = useTranslations("reports");
   const [state, setState] = useState<DialogState>({ step: "loading" });
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -244,9 +244,12 @@ export function WalletUnlockDialog({
         {shortBalance && (
           <div className="wallet-unlock-dialog-short-balance">
             <h3>{labels.shortBalanceTitle}</h3>
-            <p>{labels.shortBalanceBody(gap, shortBalance.balance)}</p>
+            <p>{t("selection.unlockDialogShortBalanceBody", { gap, balance: shortBalance.balance })}</p>
             <a className="button button-primary" href={topUpHref}>
-              {labels.topUpAction(coveringPack.name[locale], coveringPack.vndFormatted[locale])}
+              {t("selection.unlockDialogTopupAction", {
+                pack: coveringPack.name[locale],
+                vnd: coveringPack.vndFormatted[locale],
+              })}
             </a>
             <p className="wallet-unlock-dialog-topup-note">{labels.topUpNote}</p>
             <button className="button button-secondary" onClick={() => onOpenChange(false)} type="button">
