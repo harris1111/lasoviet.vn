@@ -45,6 +45,58 @@ describe("AdminBusinessMetricsRepository integration", () => {
 
   const validContentHash = "a".repeat(64);
 
+
+  it("proves disabled-autopay:topup providerEventId is excluded from revenue and real paid metrics", async () => {
+    const repository = createDatabaseAdminBusinessMetricsRepository(database);
+    // Captured test clock and isolated date 2026-09-29 distinct from existing 2026-09-10..14 fixtures
+    const testNow = new Date("2026-09-29T10:00:00.000Z");
+    const day29PaidAt = new Date("2026-09-29T03:00:00.000Z");
+
+    const topUpOrderId = randomUUID();
+    await database.insert(commerceOrders).values({
+      id: topUpOrderId,
+      paymentCode: testPaymentCode(256),
+      invoiceNumber: "INV-TOPUP-888",
+      chartId: null,
+      chartVersionId: null,
+      ownerId: "owner-topup-excluded",
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "paid",
+      createdAt: new Date("2026-09-29T02:50:00.000Z"),
+      paidAt: day29PaidAt,
+    });
+    await database.insert(commercePaymentEvents).values({
+      id: randomUUID(),
+      orderId: topUpOrderId,
+      providerEventId: "disabled-autopay:topup:" + topUpOrderId,
+      amount: 99000,
+      currency: "VND",
+      status: "ORDER_PAID",
+      matchMethod: "invoice_number",
+      createdAt: day29PaidAt,
+    });
+
+    const metrics = await repository.readMetrics({
+      fromDate: "2026-09-29",
+      toDate: "2026-09-29",
+      now: testNow,
+    });
+
+    expect(metrics).toHaveLength(1);
+    const day29 = metrics[0];
+    expect(day29).toBeDefined();
+    expect(day29?.date).toBe("2026-09-29");
+    expect(day29?.disabledAutopayOrdersExcluded).toBe(1);
+    expect(day29?.realPaidOrders).toBe(0);
+    expect(day29?.cashCollectedVnd).toBe(0);
+    expect(day29?.recognizedDirectRevenueVnd).toBe(0);
+  });
+
+
   it("proves upgrade correctness, disabled-autopay exclusion, lineage-matching reportsReady, and null qrExpiry/reportFailures", async () => {
     const repository = createDatabaseAdminBusinessMetricsRepository(database);
 
