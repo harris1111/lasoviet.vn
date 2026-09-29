@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "eyebrow": "Standardized metaphysics knowledge for Vietnamese readers",
+    "title": "Bringing a thousand years of metaphysical knowledge closer to Vietnamese people.",
+    "lead": "La So Viet does not begin from vague psychology or fixed pronouncements about fate. We built a standardized knowledge platform that gathers the finest Eastern and Western divinatory disciplines, explained in plain, well-referenced, transparent Vietnamese — giving you the key to understand yourself and take charge of every turning point in life."
+  },
+  "mission": {
+    "eyebrow": "Mission",
+    "title": "Three things we do every day.",
+    "items": {
+      "m1": {
+        "title": "Simplify & standardize",
+        "body": "Simplify a thousand years of Eastern and Western metaphysical knowledge into a structured, accurate, and accessible digital interpretation system."
+      },
+      "m2": {
+        "title": "Plain, well-referenced Vietnamese",
+        "body": "Turn complex classical terminology into clear, modern language; every reading links back to a specific reference — nothing is claimed without a source."
+      },
+      "m3": {
+        "title": "Understanding that leads to action",
+        "body": "Help Vietnamese readers see their strengths, weaknesses, and turning points in full, so they can prepare actively and stand steady through life."
+      }
+    }
+  },
+  "vision": {
+    "eyebrow": "Vision",
+    "body": "To become the leading digital knowledge and interpretation platform for Vietnamese metaphysics, setting a new standard of transparency, academic rigor, and ethics in self-discovery and fortune reading."
+  },
+  "values": {
+    "eyebrow": "5 core values",
+    "title": "What keeps every reading trustworthy.",
+    "items": {
+      "v1": {
+        "title": "Grounded & academic",
+        "body": "Every reading comes from precise star-placement algorithms, hexagram casting, and astronomical calculation. No emotional guesswork, no vague claims without a classical basis."
+      },
+      "v2": {
+        "title": "Objective & consistent",
+        "body": "Data is standardized through a dedicated computation model, removing subjective psychology and inconsistency between lookups."
+      },
+      "v3": {
+        "title": "Transparent & respectful",
+        "body": "No fear-mongering about fate, no exploiting anxiety to push superstitious rituals. Costs are public and clear from the start."
+      },
+      "v4": {
+        "title": "Deeply personalized",
+        "body": "No generic templated readings. Every chart is broken down against your exact birth date and time and your real, current concern."
+      },
+      "v5": {
+        "title": "Visual & empowering",
+        "body": "Turns complex diagrams into an intuitive, interactive interface; turns anxiety into a foothold for confident action."
+      }
+    }
+  },
+  "disciplines": {
+    "eyebrow": "5 elite divinatory disciplines",
+    "title": "One lens is never enough.",
+    "lead": "La So Viet is not confined to a single discipline. We bring together humanity's finest divinatory frameworks for the most complete, multi-angle view.",
+    "items": {
+      "tuvi": {
+        "name": "Ziwei Doushu (Purple Star Astrology)",
+        "desc": "A 12-palace destiny map that reveals core character, wealth, career, and the shifting decade cycles of your life.",
+        "cta": "Build your chart now"
+      },
+      "batu": {
+        "name": "BaZi (Four Pillars)",
+        "desc": "Four pillars of Year, Month, Day, and Hour, reading the balance of the Five Elements and your rhythm of fortune over time.",
+        "cta": "Explore BaZi"
+      },
+      "chiemtinh": {
+        "name": "Western Astrology",
+        "desc": "A 12-house chart and planetary positions at the moment of birth, decoding deep psychological structure and inner drives.",
+        "cta": "Explore Astrology"
+      },
+      "kinhdich": {
+        "name": "I Ching",
+        "desc": "A philosophical consultation tool for the moment, suggesting when to act and when to hold before an important decision.",
+        "cta": "Explore I Ching"
+      },
+      "thansohoc": {
+        "name": "Numerology",
+        "desc": "The vibrational frequency of your name and birth date, shaping life lessons and the rhythm of your personal year cycles.",
+        "cta": "Explore Numerology"
+      }
+    }
+  },
+  "commitments": {
+    "eyebrow": "4 golden commitments",
+    "title": "What we will never trade away.",
+    "items": {
+      "c1": {
+        "title": "Academic grounding, always",
+        "body": "Every claim points to the principle behind it; nothing is judged on guesswork."
+      },
+      "c2": {
+        "title": "Permanent privacy",
+        "body": "Birth date, time, and personal data are fully protected; anonymous user data is automatically purged after 24 hours."
+      },
+      "c3": {
+        "title": "Ethical experience",
+        "body": "No fear tactics, no fake countdown timers, no inflated top-up exchange rates, no hidden fees."
+      },
+      "c4": {
+        "title": "Companionship, not dependence",
+        "body": "A calm perspective that helps you understand yourself, instead of building dependence or fear of fate."
+      }
+    }
+  },
+  "closing": {
+    "quote": "Fate is not a sentence handed down in advance — it is a map with many paths. La So Viet is here to help you light that map.",
+    "ctaTitle": "Your road ahead is ready to be seen clearly.",
+    "cta": "Build your chart now"
+  }
+}
