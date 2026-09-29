@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
@@ -129,15 +130,27 @@ export function WalletUnlockDialog({
 
   useEffect(() => {
     if (!open) return;
+    const triggerElement = typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
+    const previousOverflow = typeof document !== "undefined" ? document.body.style.overflow : "";
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "hidden";
+    }
     dialogRef.current?.focus();
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onOpenChange(false);
     }
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = previousOverflow;
+        document.removeEventListener("keydown", onKeyDown);
+      }
+      triggerElement?.focus();
+    };
   }, [open, onOpenChange]);
 
   if (!open) return null;
+  if (typeof document === "undefined" || !document.body) return null;
 
   async function confirm() {
     if (state.step !== "confirm") return;
@@ -180,18 +193,18 @@ export function WalletUnlockDialog({
     ? `/en/nap-la?pack=${coveringPack.id}`
     : `/nap-la?pack=${coveringPack.id}`;
 
-  return (
+  const dialogContent = (
     <div
-      aria-modal="true"
       className="wallet-unlock-dialog-overlay"
       onClick={() => onOpenChange(false)}
-      role="dialog"
     >
       <div
         aria-labelledby={titleId}
+        aria-modal="true"
         className="wallet-unlock-dialog"
         onClick={(event) => event.stopPropagation()}
         ref={dialogRef}
+        role="dialog"
         tabIndex={-1}
       >
         <h2 id={titleId}>{labels.title}</h2>
@@ -260,4 +273,6 @@ export function WalletUnlockDialog({
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 }
