@@ -2,9 +2,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import type { PublicContentV1, RouteDefinitionV1 } from "@lasoviet/contracts";
+import { productCatalog } from "@lasoviet/config";
 
 import { PublicContentPage } from "./public-content-page";
 import { createPublicContentRepository } from "./public-content-repository";
+import { buildStructuredData } from "../../seo/structured-data";
 
 function buildRoute(overrides: Partial<RouteDefinitionV1>): RouteDefinitionV1 {
   return {
@@ -62,6 +64,29 @@ const privacyContent: PublicContentV1 = {
 };
 
 describe("PublicContentPage policy-page template", () => {
+  it("does not expose the legacy VND offer as the Vietnamese wallet price", () => {
+    const identityRoute = buildRoute({ id: "commercial.tu-vi.identity", template: "commercial-page", sku: "ZIWEI-IDENTITY-P0", schemaTypes: ["Product", "BreadcrumbList"] });
+    const structured = buildStructuredData(identityRoute, { locale: "vi", title: "Tổng quan bản mệnh", summary: "Bài đọc có căn cứ" }, productCatalog);
+    expect(structured[0]).toMatchObject({ "@type": "Product", sku: "ZIWEI-IDENTITY-P0" });
+    expect(structured[0]).not.toHaveProperty("offers");
+  });
+
+  it("renders the revised Vietnamese calculator landing with an explanatory chart and working CTA", () => {
+    const calculatorContent = { ...privacyContent, routeId: "calculator.tu-vi", title: "Một lá số bắt đầu từ đúng giờ sinh." };
+    const html = renderToStaticMarkup(
+      <PublicContentPage
+        content={calculatorContent}
+        locale="vi"
+        repository={createPublicContentRepository([calculatorContent], routes)}
+        route={calculatorRoute}
+        routes={routes}
+      />,
+    );
+    expect(html).toContain("Một lá số bắt đầu từ đúng giờ sinh.");
+    expect(html).toContain("Sơ đồ minh họa 12 cung");
+    expect(html).toContain('href="/tao-la-so/tu-vi"');
+  });
+
   it("renders the full body content, not just the title and summary", () => {
     const html = renderToStaticMarkup(
       <PublicContentPage

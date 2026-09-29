@@ -25,6 +25,7 @@ import { PrivacyPolicyPage } from "./privacy-policy-page";
 import { SampleReportPage } from "./sample-report-page";
 import { KnowledgeArticle } from "./knowledge-article";
 import { KnowledgeHub } from "./knowledge-hub";
+import { STATIC_STORIES, StaticEditorialPage } from "./static-editorial";
 import type { PublicContentRepository } from "./public-content-repository";
 
 type PublicContentPageProps = {
@@ -247,6 +248,23 @@ function RichContentPage({
   );
 }
 
+function TermsEditorialPage({
+  content,
+  locale,
+  routes,
+}: Pick<PublicContentPageProps, "content" | "locale" | "routes">) {
+  return <main className="policy-editorial">
+    <header className="policy-editorial__hero container">
+      <div><p className="static-editorial__eyebrow">{locale === "vi" ? "QUYỀN VÀ TRÁCH NHIỆM" : "TERMS OF USE"}</p><h1>{content.title}</h1></div>
+      <p>{content.summary}</p>
+    </header>
+    <div className="policy-editorial__layout container">
+      <aside><span>01 / 01</span><p>{locale === "vi" ? "Đọc trước khi sử dụng dịch vụ và giữ lại để đối chiếu khi cần." : "Read before using the service and return here when needed."}</p></aside>
+      <article>{renderContentBlocks(content.body ?? "", locale, routes)}</article>
+    </div>
+  </main>;
+}
+
 function CalculatorLanding({ content, locale }: Pick<PublicContentPageProps, "content" | "locale">) {
   return (
     <main className="content-page">
@@ -380,6 +398,12 @@ export function PublicContentPage(props: PublicContentPageProps) {
   const template = (() => {
     if (props.route.id === "trust.privacy") {
       return <PrivacyPolicyPage content={props.content} locale={props.locale} />;
+    }
+    if (props.route.id === "trust.terms") {
+      return <TermsEditorialPage content={props.content} locale={props.locale} routes={props.routes} />;
+    }
+    if (props.locale === "vi" && props.content.routeId === props.route.id && props.content.title === STATIC_STORIES[props.route.id]?.headline) {
+      return <StaticEditorialPage routeId={props.route.id} locale={props.locale} />;
     }
     switch (props.route.template) {
       case "sample-report":

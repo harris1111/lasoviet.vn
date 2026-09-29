@@ -18,6 +18,7 @@
 @import "./report-reader.css";
 @import "./report-reader-structure.css";
 @import "./knowledge.css";
+@import "./static-editorial.css";
 @import "./brand-about.css";
 
 * { box-sizing: border-box; }
