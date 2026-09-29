@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import { BirthDateFields } from "./birth-date-fields";
 import type { BirthTimeState } from "./birth-profile-input";
 import { TimePrecisionFields } from "./time-precision-fields";
@@ -129,7 +129,7 @@ export function BirthDetailsFields({
           </label>
           <div className="ui-field-shell__control">
             <span aria-hidden="true" className="ui-field-shell__icon">
-              <Icon name="user" />
+              <LsvIcon name="ui-user" size={20} />
             </span>
             <input
               className="ui-field-shell__input"
@@ -241,7 +241,7 @@ export function BirthDetailsFields({
           </label>
           <div className="ui-field-shell__control">
             <span aria-hidden="true" className="ui-field-shell__icon">
-              <Icon name="map-pin" />
+              <LsvIcon name="ui-pin" size={20} />
             </span>
             <input
               className="ui-field-shell__input"

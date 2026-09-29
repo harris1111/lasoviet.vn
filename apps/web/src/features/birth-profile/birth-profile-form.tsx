@@ -107,7 +107,7 @@ import {
 import { BirthWizardSubjectStep } from "./birth-wizard-subject-step";
 import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
 import { BirthWizardReviewStep } from "./birth-wizard-review-step";
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import { useMobileKeyboardState } from "./use-mobile-keyboard-state";
 import type { ReadingContextV1, TopConcernV1 } from "@lasoviet/contracts";
 import type { WizardReadingContextDraft } from "./birth-wizard-state";
@@ -1365,7 +1365,7 @@ export function BirthProfileForm({
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Icon name="arrow-right" />
+                  <LsvIcon name="ui-arrow" size={20} />
                   <span>{t("sampleReportLink")}</span>
                 </Link>
               </div>
