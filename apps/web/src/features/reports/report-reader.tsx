@@ -1,5 +1,7 @@
 "use client";
 
+import { TopicReportReader } from "./topic-report-reader";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
@@ -597,6 +599,7 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
 }
 
 export function ReportReader({ locale, report }: ReportReaderProps) {
+  if (report.contentVersion === "ziwei.topic-deep-dive.v1") return <TopicReportReader report={report} />;
   if (report.contentVersion === "ziwei-comprehensive.v1") {
     return <ComprehensiveReportReader locale={locale} report={report} />;
   }

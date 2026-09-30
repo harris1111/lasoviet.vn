@@ -25,6 +25,45 @@ export { createSmtpEmailAdapter } from "./notifications/smtp-email-adapter.js";
 export type { SmtpEmailSettings } from "./notifications/smtp-email-adapter.js";
 
 export {
+  createDatabaseNotificationPreferenceStore,
+  fingerprintEmail,
+  generateUnsubscribeToken,
+  verifyUnsubscribeToken,
+} from "./notifications/notification-preference.js";
+export type { NotificationPreferenceStore } from "./notifications/notification-preference.js";
+
+export {
+  PALACE_TITLES_EN,
+  PALACE_TITLES_VI,
+  createVerifiedSignInNurtureService,
+} from "./notifications/nurture-signin.service.js";
+export type {
+  NurtureScanResult,
+  VerifiedSignInNurtureService,
+  VerifiedSignInNurtureServiceOptions,
+} from "./notifications/nurture-signin.service.js";
+
+export {
+  HAN_MONTH_REMINDER_BLOCKERS,
+  computeEngineHanMonths,
+  createBlockedHanMonthReminderAdapter,
+} from "./notifications/han-month-reminder.js";
+export type {
+  BlockedHanMonthReminderResult,
+  ComputedHanMonth,
+  HanMonthReminderScheduler,
+} from "./notifications/han-month-reminder.js";
+
+export {
+  DEFERRED_DELAYED_UNLOCK_DESCRIPTION,
+  createDeferredDelayedUnlockAdapter,
+} from "./notifications/delayed-unlock-notification.js";
+export type {
+  DeferredDelayedUnlockNotificationResult,
+  DelayedUnlockNotificationHandler,
+} from "./notifications/delayed-unlock-notification.js";
+
+export {
   createDatabaseConsentRepository,
 } from "./consent/consent.repository.js";
 export type {
@@ -550,6 +589,14 @@ export {
   walletTopUpPackTitle,
   type WalletTopUpOrder,
 } from "./commerce/wallet-topup.js";
+export {
+  createGuaranteeFeedbackService,
+  resolveRelatedPalaceSuggestion,
+} from "./commerce/guarantee-feedback.service.js";
+export type {
+  GuaranteeFeedbackService,
+  GuaranteeFeedbackServiceOptions,
+} from "./commerce/guarantee-feedback.service.js";
 export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
 export type {
   WalletUnlockService,
@@ -739,3 +786,27 @@ export type {
 } from "./admin-business-metrics/business-metrics.repository.js";
 
 export { PERIOD_READING_TUPLE, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
+export {
+  DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG,
+  TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES,
+  validateZiweiTopicDeepDiveQualityV4,
+} from "./reports/topic-deep-dive-quality-v4.js";
+export type {
+  TopicDeepDiveQualityConfig,
+  TopicDeepDiveQualityFinding,
+  TopicDeepDiveQualityFindingCode,
+  TopicDeepDiveQualityResult,
+} from "./reports/topic-deep-dive-quality-v4.js";
+
+export {
+  REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1,
+  REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1,
+  REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1,
+  writeZiweiTopicDeepDiveV4,
+  generateZiweiTopicDeepDiveWithQualityLoopV4,
+} from "./reports/topic-deep-dive-writer-v4.js";
+export type {
+  ZiweiTopicDeepDiveWriterInput,
+  ZiweiTopicDeepDiveWriterResult,
+  ZiweiTopicDeepDiveWriterRewrite,
+} from "./reports/topic-deep-dive-writer-v4.js";

@@ -1,3 +1,4 @@
+import { topicIdForSku, topicReportVersions } from "../reports/topic-report-config.js";
 import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
@@ -430,6 +431,7 @@ export function createWalletUnlockService(
         product.availability !== "active" ||
         !supportedLocale(request.locale) ||
         !product.locales.includes(request.locale) ||
+        (topicIdForSku(request.sku) !== null && request.locale !== "vi") ||
         !nonEmptyId(request.chartId) ||
         !nonEmptyId(request.chartVersionId)
       ) {
@@ -584,7 +586,7 @@ export function createWalletUnlockService(
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || (topicIdForSku(lockedIntent.sku) !== null && lockedIntent.locale !== "vi")) {
             return failed("WALLET_INTENT_INVALID");
           }
           const sku = lockedIntent.sku;
@@ -632,7 +634,7 @@ export function createWalletUnlockService(
           }).returning();
           if (zeroTx === undefined) throw new Error("WALLET_TRANSACTION_CREATE_FAILED");
 
-          const reportVersions = reportVersionResolver(locale);
+          const reportVersions = topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);
           const [readingContext] = await transaction.select({ revisionId: birthProfileReadingContexts.currentRevisionId })
             .from(ziweiCharts)
             .leftJoin(birthProfileReadingContexts, eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId))
@@ -815,7 +817,7 @@ export function createWalletUnlockService(
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || (topicIdForSku(lockedIntent.sku) !== null && lockedIntent.locale !== "vi")) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const sku = lockedIntent.sku;
@@ -829,7 +831,7 @@ export function createWalletUnlockService(
           if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
-          const reportVersions = reportVersionResolver(locale);
+          const reportVersions = topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);
           const [readingContext] = await transaction.select({ revisionId: birthProfileReadingContexts.currentRevisionId })
             .from(ziweiCharts)
             .leftJoin(birthProfileReadingContexts, eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId))

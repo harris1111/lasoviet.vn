@@ -20,6 +20,7 @@ import {
   ReportStarChips,
 } from "./report-chart-visuals";
 import { computePalaceScores } from "./report-palace-score";
+import { PartFeedback } from "./part-feedback";
 import { ReportNarrative } from "./report-narrative";
 import { splitLeadSentence, splitNarrative } from "./report-paragraphs";
 import { resolveActiveSectionIndex } from "./report-reading-position";
@@ -48,6 +49,9 @@ export function ComprehensiveReportReader({
   report,
 }: ComprehensiveReportReaderProps) {
   const t = useTranslations("reports");
+  const feedback = (partId: string) => report.chartId
+    ? <PartFeedback locale={locale} chartId={report.chartId} reportId={report.reportId} partId={partId} paid />
+    : null;
 
   const [fontIdx, setFontIdx] = useState<number>(1);
   const [activeSectionIdx, setActiveSectionIdx] = useState<number>(0);
@@ -702,6 +706,7 @@ export function ComprehensiveReportReader({
                 </div>
                 {lifePalace && <ReportStarChips palace={lifePalace} t={t} />}
                 <ReportNarrative className="report-section-narrative" text={report.content.overview.narrative} />
+                {feedback("overview")}
               </section>
 
               {/* 2. Core Axis */}
@@ -716,6 +721,7 @@ export function ComprehensiveReportReader({
                 </div>
                 {bodyPalace && <ReportStarChips palace={bodyPalace} t={t} />}
                 <ReportNarrative className="report-section-narrative" text={report.content.coreAxis.narrative} />
+                {feedback("coreAxis")}
               </section>
 
               {/* Tier-2 only sections */}
@@ -736,6 +742,7 @@ export function ComprehensiveReportReader({
                         <article key={index} className="report-subcard">
                           <h4 className="report-subcard-title">{config.title}</h4>
                           <ReportNarrative className="report-subcard-narrative" text={config.narrative} />
+                          {feedback(`keyConfigurations.${index}`)}
                         </article>
                       ))}
                     </div>
@@ -808,6 +815,7 @@ export function ComprehensiveReportReader({
                               text={palace.narrative}
                               lead={false}
                             />
+                            {feedback(palace.palaceId)}
                           </details>
                         );
                       })}
@@ -829,6 +837,7 @@ export function ComprehensiveReportReader({
                         <article key={theme.id} id={`theme-${theme.id}`} className="report-subcard">
                           <h4 className="report-subcard-title">{theme.title}</h4>
                           <ReportNarrative className="report-subcard-narrative" text={theme.narrative} />
+                          {feedback(theme.id)}
                         </article>
                       ))}
                     </div>
@@ -847,6 +856,7 @@ export function ComprehensiveReportReader({
                   <h3 className="report-section-title">{report.content.strengthsAndTensions.title}</h3>
                 </div>
                 <ReportNarrative className="report-section-narrative" text={report.content.strengthsAndTensions.narrative} />
+                {feedback("strengthsAndTensions")}
               </section>
 
               {/* Tier 1 In-Reader Upgrade Box: Only rendered after reading meaningful content */}
@@ -908,6 +918,7 @@ export function ComprehensiveReportReader({
                     )}
                     {decadalPalace && <ReportStarChips palace={decadalPalace} t={t} />}
                     <ReportNarrative className="report-section-narrative" text={v4_1Content.currentDecadal.narrative} />
+                    {feedback("currentDecadal")}
                   </section>
 
                   <section
@@ -921,6 +932,7 @@ export function ComprehensiveReportReader({
                     </div>
                     {annualPalace && <ReportStarChips palace={annualPalace} t={t} />}
                     <ReportNarrative className="report-section-narrative" text={v4_1Content.annualSnapshot.narrative} />
+                    {feedback("annualSnapshot")}
                   </section>
 
                   <section
@@ -944,6 +956,7 @@ export function ComprehensiveReportReader({
                           {v4_1Content.birthTimeSensitivity.sensitiveFactors.title}
                         </h4>
                         <ReportNarrative lead={false} text={v4_1Content.birthTimeSensitivity.sensitiveFactors.narrative} />
+                        {feedback("birthTimeSensitivity")}
                       </article>
                     </div>
                   </section>
@@ -983,6 +996,7 @@ export function ComprehensiveReportReader({
                     ))}
                   </ul>
                 )}
+                {feedback("practicalDirection")}
               </section>
             </div>
 

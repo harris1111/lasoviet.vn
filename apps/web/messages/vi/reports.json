@@ -288,5 +288,30 @@
     "timeline_living": "Đang sống",
     "timeline_read_full": "Đọc đầy đủ chặng này",
     "timeline_read_palace": "Đọc cung {palace}"
+  },
+  "topicReader": {
+    "eyebrow": "Luận giải chuyên sâu",
+    "navigation": "Điều hướng bài luận",
+    "library": "Về thư viện của bạn",
+    "print": "In bài luận",
+    "actions": "Hành động thực tế",
+    "avoid": "Nên tránh:"
+  },
+  "feedback": {
+    "question": "Phần này có đúng với bạn không?",
+    "accurate": "Đúng",
+    "partially_accurate": "Một phần",
+    "inaccurate": "Không đúng",
+    "thanks": "Cảm ơn bạn đã phản hồi.",
+    "saving": "Đang lưu…",
+    "error": "Chưa thể xử lý. Bạn vui lòng thử lại.",
+    "signIn": "Vui lòng đăng nhập tài khoản đã xác minh để yêu cầu hoàn Lá.",
+    "alreadyClaimed": "Bạn đã sử dụng quyền hoàn Lá một lần cho tài khoản này.",
+    "expired": "Thời hạn yêu cầu hoàn Lá 24 giờ đã kết thúc.",
+    "priceLimit": "Quyền hoàn Lá áp dụng cho phần có giá dưới 500 Lá.",
+    "conditions": "Hoàn Lá một lần cho mỗi tài khoản, với phần mua dưới 500 Lá trong vòng 24 giờ. Phần được hoàn sẽ khóa lại.",
+    "claim": "Yêu cầu hoàn Lá và khóa lại phần này",
+    "restored": "Đã hoàn {amount} Lá. Phần đọc đã được khóa lại.",
+    "related": "Thử đọc thêm {palace}"
   }
 }

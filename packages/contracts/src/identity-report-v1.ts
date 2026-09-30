@@ -1,3 +1,4 @@
+import { ZiweiTopicDeepDivePublicContentV1Schema } from "./ziwei-topic-deep-dive-v1.js";
 import { z } from "zod";
 import { ReportChartSnapshotV1Schema } from "./report-chart-snapshot-v1.js";
 import {
@@ -182,13 +183,15 @@ export const ReportSafeProvenanceV1Schema = z.object({
 }).strict();
 export type ReportSafeProvenanceV1 = z.infer<typeof ReportSafeProvenanceV1Schema>;
 
+export const PaidReportSkuSchema = z.union([CommerceSkuSchema, z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0"])]);
+
 export const ReportPendingViewV1Schema = z.object({
   version: z.literal(1),
   state: z.literal("pending"),
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: CommerceSkuSchema,
+  sku: PaidReportSkuSchema,
   fulfillmentStatus: z.enum(REPORT_PENDING_STATUSES),
   refreshAfterMs: z.literal(5000),
 }).strict();
@@ -710,6 +713,7 @@ const baseReportReadyViewV1Schema = z.object({
   lineage: z.object({
     supersedesReportVersionId: z.string().trim().min(1).nullable(),
   }).strict(),
+  chartId: z.string().trim().min(1).optional(),
 });
 
 export const ReportLegacyReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
@@ -783,13 +787,23 @@ export type ReportComprehensiveV3ReadyViewV1 = z.infer<
   typeof ReportComprehensiveV3ReadyViewV1Schema
 >;
 
+export const ReportTopicReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei.topic-deep-dive.v1"),
+  locale: z.literal("vi"),
+  sku: z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0"]),
+  content: ZiweiTopicDeepDivePublicContentV1Schema,
+}).strict();
+export type ReportTopicReadyViewV1 = z.infer<typeof ReportTopicReadyViewV1Schema>;
+
 export const ReportReadyViewV1Schema = z.discriminatedUnion("contentVersion", [
+  ReportTopicReadyViewV1Schema,
   ReportLegacyReadyViewV1Schema,
   ReportComprehensiveReadyViewV1Schema,
   ReportComprehensiveV2ReadyViewV1Schema,
   ReportComprehensiveV3ReadyViewV1Schema,
 ]);
 export type ReportReadyViewV1 =
+  | ReportTopicReadyViewV1
   | ReportLegacyReadyViewV1
   | ReportComprehensiveReadyViewV1
   | ReportComprehensiveV2ReadyViewV1
@@ -801,7 +815,7 @@ export const ReportFailedViewV1Schema = z.object({
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: CommerceSkuSchema,
+  sku: PaidReportSkuSchema,
   fulfillmentStatus: z.literal("terminal_failure"),
   invoiceNumber: z.string().trim().min(1),
   paymentReceivedAt: z.iso.datetime({ offset: true }),

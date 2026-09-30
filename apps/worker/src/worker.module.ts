@@ -9,6 +9,7 @@ import {
   createAiProductionGate,
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
+  createDatabaseNotificationPreferenceStore,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseAiCostService,
@@ -56,7 +57,12 @@ export class WorkerModule {}
 
 export function createMaintenanceRunner() {
   const environment = loadEnvironment(process.env);
-  if (!environment.ok || environment.value.databaseUrl === undefined) {
+  if (
+    !environment.ok ||
+    environment.value.databaseUrl === undefined ||
+    environment.value.internalActorSecret === undefined ||
+    environment.value.internalActorSecret.trim() === ""
+  ) {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
@@ -70,10 +76,15 @@ export function createMaintenanceRunner() {
         tlsRequired: environment.value.smtp.tlsRequired,
       })
     : { async send() { return { ok: false as const, code: "SMTP_CONFIG_INVALID" as const }; } };
+  const preferenceStore = createDatabaseNotificationPreferenceStore(
+    database,
+    environment.value.internalActorSecret ?? "",
+  );
   const email = createAuthEmailDeliveryService({
     store: createDatabaseAuthEmailDeliveryStore(database),
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
+    preferenceChecker: preferenceStore,
   });
   const telegramAlert = createTelegramAlertProvider({
     botToken: environment.value.telegram?.botToken,
@@ -86,7 +97,6 @@ export function createMaintenanceRunner() {
       repository: createDatabaseAdminAccessRepository(database),
     }),
   });
-
   return createPhaseOneMaintenanceRunner({
     accountDeletion: createAccountDeletionService({
       repository: createDatabaseDeletionRepository(database),

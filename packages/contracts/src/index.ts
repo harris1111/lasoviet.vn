@@ -137,6 +137,11 @@ export {
   canonicalizeAuthEmailRequest,
   ReportFailedEmailRequestV1Schema,
   ReportReadyEmailRequestSchema,
+  NurtureVerifiedSignInEmailRequestSchema,
+  HanMonthReminderEmailRequestSchema,
+  DelayedUnlockCompletedEmailRequestSchema,
+  NotificationPreferencesV1Schema,
+  UnsubscribeTokenClaimsSchema,
   PersistedEmailDeliveryRequestSchema,
   canonicalizeEmailDeliveryRequest,
 } from "./auth-email.js";
@@ -147,6 +152,11 @@ export type {
   AuthEmailServiceClaims,
   ReportFailedEmailRequestV1,
   ReportReadyEmailRequest,
+  NurtureVerifiedSignInEmailRequest,
+  HanMonthReminderEmailRequest,
+  DelayedUnlockCompletedEmailRequest,
+  NotificationPreferencesV1,
+  UnsubscribeTokenClaims,
   PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
 
@@ -793,6 +803,54 @@ export type {
 
 
 export {
+  ZIWEI_TOPIC_DEEP_DIVE_IDS,
+  ZIWEI_TOPIC_SKU_MAP,
+  CANONICAL_TOPIC_DEEP_DIVE_TITLES_VI,
+  CANONICAL_TOPIC_DEEP_DIVE_TITLES_EN,
+  TOPIC_PALACE_SCOPES,
+  ZiweiTopicDeepDiveIdSchema,
+  ZiweiTopicOverviewSchema,
+  ZiweiTopicPalaceAnchorSchema,
+  ZiweiTopicThematicDimensionSchema,
+  ZiweiTopicDecadalTimingActiveSchema,
+  ZiweiTopicDecadalTimingNotStartedSchema,
+  ZiweiTopicDecadalTimingSchema,
+  ZiweiTopicActionItemSchema,
+  ZiweiTopicDeepDiveContentV1Schema,
+} from "./ziwei-topic-deep-dive-v1.js";
+export type {
+  ZiweiTopicDeepDiveId,
+  ZiweiTopicOverview,
+  ZiweiTopicPalaceAnchor,
+  ZiweiTopicThematicDimension,
+  ZiweiTopicDecadalTimingActive,
+  ZiweiTopicDecadalTimingNotStarted,
+  ZiweiTopicDecadalTiming,
+  ZiweiTopicActionItem,
+  ZiweiTopicDeepDiveContentV1,
+} from "./ziwei-topic-deep-dive-v1.js";
+
+export {
+  PartFeedbackRatingSchema,
+  PartFeedbackCreateV1Schema,
+  PartFeedbackV1Schema,
+  RelatedPalaceSuggestionV1Schema,
+  PartFeedbackResultV1Schema,
+  GuaranteeClaimRequestV1Schema,
+  GuaranteeClaimResultV1Schema,
+  GuaranteeErrorCodeSchema,
+} from "./guarantee-feedback-v1.js";
+export type {
+  PartFeedbackRating,
+  PartFeedbackCreateV1,
+  PartFeedbackV1,
+  RelatedPalaceSuggestionV1,
+  PartFeedbackResultV1,
+  GuaranteeClaimRequestV1,
+  GuaranteeClaimResultV1,
+  GuaranteeErrorCode,
+} from "./guarantee-feedback-v1.js";
+export {
   ReportChartPalaceV1Schema,
   ReportChartSnapshotV1Schema,
   ReportChartStarV1Schema,
@@ -804,3 +862,5 @@ export {
 } from "./report-chart-snapshot-v1.js";
 
 export { ZiweiPeriodFactV1Schema, ZiweiPeriodReadingFactsV1Schema, ZiweiPeriodReadingContentV1Schema, type ZiweiPeriodReadingFactsV1, type ZiweiPeriodReadingContentV1 } from "./ziwei-period-reading-v1.js";
+export { ZiweiTopicDeepDivePublicContentV1Schema, projectTopicDeepDivePublicContent, type ZiweiTopicDeepDivePublicContentV1 } from "./ziwei-topic-deep-dive-v1.js";
+export { ReportTopicReadyViewV1Schema, PaidReportSkuSchema, type ReportTopicReadyViewV1 } from "./identity-report-v1.js";
