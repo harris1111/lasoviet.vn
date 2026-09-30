@@ -29,6 +29,8 @@ import {
 } from "@lasoviet/database";
 import {
   TIER_1_ENTITLEMENT_SCOPE,
+  getPalaceIdFromSku,
+  isSinglePalaceSku,
   type CurrentActor,
   type WalletGrantV1,
 } from "@lasoviet/contracts";
@@ -85,17 +87,18 @@ describe("wallet unlock repository integration", () => {
     };
   }
 
-  function walletPorts(auditActorId: string, options: { reportVersionResolver?: Parameters<typeof createWalletUnlockService>[2]["reportVersionResolver"] } = {}) {
+  function walletPorts(auditActorId: string, options: { reportVersionResolver?: Parameters<typeof createWalletUnlockService>[2]["reportVersionResolver"]; now?: () => Date } = {}) {
     const authority = { token: {}, actorId: auditActorId };
+    const nowFn = options.now ?? (() => frozenNow);
     const repository = createDatabaseWalletRepository(database, {
-      now: () => frozenNow,
+      now: nowFn,
       trustedGrantAuthority: authority,
     });
     return {
       authority,
       repository,
       service: createWalletUnlockService(database, createWalletService(repository), {
-        now: () => frozenNow,
+        now: nowFn,
         reportVersionResolver: options.reportVersionResolver,
       }),
     };
@@ -163,6 +166,31 @@ describe("wallet unlock repository integration", () => {
     return { userId, chartId, chartVersionId, evidenceId, actor: actor(userId) };
   }
 
+  async function insertPaidPalace(owner: Awaited<ReturnType<typeof ownerFixture>>, sku: string, paidAt: Date) {
+    const orderId = randomUUID();
+    await database.insert(commerceOrders).values({
+      id: orderId,
+      invoiceNumber: `LSV-${orderId}`,
+      ownerId: owner.userId,
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      kind: "content_purchase",
+      sku,
+      amount: 19_000,
+      currency: "VND",
+      locale: "vi",
+      status: "paid",
+      paidAt,
+    });
+    await database.insert(commerceEntitlements).values({
+      orderId,
+      ledgerSpendId: null,
+      chartId: owner.chartId,
+      sku,
+      ownerId: owner.userId,
+      scope: { sections: [], palaces: ["ziwei.palace.life"] },
+    });
+  }
   async function insertPaidTierOne(owner: Awaited<ReturnType<typeof ownerFixture>>, paidAt: Date) {
     const orderId = randomUUID();
     await database.insert(commerceOrders).values({
@@ -189,6 +217,69 @@ describe("wallet unlock repository integration", () => {
     });
   }
 
+  async function insertWalletSpend(
+    owner: Awaited<ReturnType<typeof ownerFixture>>,
+    sku: string,
+    amountLa: number,
+    spentAt: Date,
+  ) {
+    const intentId = randomUUID();
+    await database.insert(walletPurchaseIntents).values({
+      id: intentId,
+      ownerId: owner.userId,
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      sku,
+      locale: "vi",
+      priceLa: amountLa,
+      status: "pending",
+      stateVersion: 1,
+      createdAt: spentAt,
+    });
+    const { authority, repository } = walletPorts(owner.userId, { now: () => spentAt });
+    const funded = await repository.grant({
+      targetOwnerId: owner.userId,
+      grant: grant(owner.userId, `grant-${randomUUID()}`, amountLa),
+      topUpOrderId: null,
+      trustedGrantToken: authority.token,
+    });
+    if (!funded.ok) throw new Error(`grant failed in insertWalletSpend: ${funded.error.code}`);
+    const [account] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    const spendResult = await repository.spend({
+      actor: owner.actor,
+      spend: {
+        kind: "spend",
+        actorId: owner.userId,
+        reasonCode: "wallet.report.unlock",
+        requestId: randomUUID(),
+        traceId: randomUUID(),
+        idempotencyKey: `spend-${randomUUID()}`,
+        purchaseIntentId: intentId,
+        amountLa,
+        expectedWalletVersion: account!.stateVersion,
+      },
+    });
+    if (!spendResult.ok) {
+      throw new Error(`Failed to insert wallet spend: ${JSON.stringify(spendResult)}`);
+    }
+    await database.update(walletPurchaseIntents).set({
+      status: "completed",
+      stateVersion: 2,
+      completedAt: spentAt,
+    }).where(eq(walletPurchaseIntents.id, intentId));
+    const spendId = spendResult.value.transactionId;
+    const palaceId = isSinglePalaceSku(sku) ? getPalaceIdFromSku(sku) : undefined;
+    await database.insert(commerceEntitlements).values({
+      orderId: null,
+      ledgerSpendId: spendId,
+      chartId: owner.chartId,
+      sku,
+      ownerId: owner.userId,
+      scope: palaceId ? { sections: [], palaces: [palaceId] } : TIER_1_ENTITLEMENT_SCOPE,
+      createdAt: spentAt,
+    });
+  }
+
   it("uses exact 240, 720, and 960 Lá pricing, preserves pending reuse, and closes FD-041 at +7 days", async () => {
     const audit = await ownerFixture("Audit pricing");
     const base = await ownerFixture("Base pricing");
@@ -196,8 +287,8 @@ describe("wallet unlock repository integration", () => {
     const boundary = await ownerFixture("Boundary");
     const { service } = walletPorts(audit.userId);
 
-    await insertPaidTierOne(withinWindow, new Date(frozenNow.getTime() - (7 * 24 * 60 * 60 * 1_000) + 1));
-    await insertPaidTierOne(boundary, new Date(frozenNow.getTime() - (7 * 24 * 60 * 60 * 1_000)));
+    await insertWalletSpend(withinWindow, "ZIWEI-NATAL-EXCERPT-P0", 240, new Date(frozenNow.getTime() - (7 * 24 * 60 * 60 * 1_000) + 1));
+    await insertWalletSpend(boundary, "ZIWEI-NATAL-EXCERPT-P0", 240, new Date(frozenNow.getTime() - (7 * 24 * 60 * 60 * 1_000)));
 
     const tierOne = await service.createPurchaseIntent(base.actor, {
       chartId: base.chartId,
@@ -242,6 +333,97 @@ describe("wallet unlock repository integration", () => {
     expect(tierTwoConflict).toEqual({ ok: false, code: "WALLET_INTENT_VERSION_CONFLICT" });
     expect(upgrade).toMatchObject({ ok: true, value: { amountLa: 720 }, reused: false });
     expect(expiredUpgrade).toMatchObject({ ok: true, value: { amountLa: 960 }, reused: false });
+  });
+
+  it("applies dynamic 7-day rollover discount from single palace and excerpt spends into Tử Vi trọn đời (960 base)", async () => {
+    const audit = await ownerFixture("Audit dynamic rollover");
+    const user1 = await ownerFixture("User 1 palace rollover");
+    const user2 = await ownerFixture("User 2 palaces rollover");
+    const userExpired = await ownerFixture("User expired palace rollover");
+    const { service } = walletPorts(audit.userId);
+
+    // user1 paid for 1 palace 2 days ago via wallet: discount 120 -> 840 Lá
+    await insertWalletSpend(user1, "ZIWEI-PALACE-LIFE-P0", 120, new Date(frozenNow.getTime() - 2 * 24 * 60 * 60 * 1000));
+    const intent1 = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(intent1).toMatchObject({ ok: true, value: { amountLa: 840, locale: "vi" }, reused: false });
+
+    // user2 paid for 1 palace 3 days ago and Bản mệnh 1 day ago via wallet: discount 120 + 240 = 360 -> 600 Lá
+    await insertWalletSpend(user2, "ZIWEI-PALACE-LIFE-P0", 120, new Date(frozenNow.getTime() - 3 * 24 * 60 * 60 * 1000));
+    await insertWalletSpend(user2, "ZIWEI-NATAL-EXCERPT-P0", 240, new Date(frozenNow.getTime() - 1 * 24 * 60 * 60 * 1000));
+    const intent2 = await service.createPurchaseIntent(user2.actor, {
+      chartId: user2.chartId,
+      chartVersionId: user2.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(intent2).toMatchObject({ ok: true, value: { amountLa: 600, locale: "vi" }, reused: false });
+
+    // userExpired paid for 1 palace 8 days ago via wallet: expired -> base 960 Lá
+    await insertWalletSpend(userExpired, "ZIWEI-PALACE-LIFE-P0", 120, new Date(frozenNow.getTime() - 8 * 24 * 60 * 60 * 1000));
+    const intentExpired = await service.createPurchaseIntent(userExpired.actor, {
+      chartId: userExpired.chartId,
+      chartVersionId: userExpired.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(intentExpired).toMatchObject({ ok: true, value: { amountLa: 960, locale: "vi" }, reused: false });
+
+    // Verify all new SKUs can create purchase intents with canonical catalog prices
+    const palaceIntent = await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-PALACE-WEALTH-P0",
+      locale: "vi",
+    });
+    expect(palaceIntent).toMatchObject({ ok: true, value: { amountLa: 120, locale: "vi" }, reused: false });
+
+    // Reserved products fail closed until their writer tickets ship
+    expect(await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-TODAY-P0",
+      locale: "vi",
+    })).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
+
+    expect(await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-MONTHLY-P0",
+      locale: "vi",
+    })).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
+
+    expect(await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-YEAR-2026-P0",
+      locale: "vi",
+    })).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
+
+    expect(await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-COMBO-2026-P0",
+      locale: "vi",
+    })).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
+
+    expect(await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-RELATIONSHIP-P0",
+      locale: "vi",
+    })).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
+
+    expect(await service.createPurchaseIntent(user1.actor, {
+      chartId: user1.chartId,
+      chartVersionId: user1.chartVersionId,
+      sku: "ZIWEI-PALACE-P0", // generic palace removed
+      locale: "vi",
+    })).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
   });
 
   it("atomically unlocks exactly once under matching concurrent retries and keeps customer ownership isolated", async () => {
@@ -645,4 +827,170 @@ describe("wallet unlock repository integration", () => {
       .toHaveLength(0);
     expect(await database.select().from(outbox).where(eq(outbox.traceId, owner.actor.requestId))).toHaveLength(0);
   });
+
+  it("only qualifies real Lá wallet spends for the exact same chart and ignores legacy VND orders", async () => {
+    const audit = await ownerFixture("Audit qualification test");
+    const { service } = walletPorts(audit.userId);
+
+    // User A: has a legacy VND order for Bản mệnh
+    const userA = await ownerFixture("User A legacy VND");
+    await insertPaidTierOne(userA, new Date(frozenNow.getTime() - 1000));
+    const intentA = await service.createPurchaseIntent(userA.actor, {
+      chartId: userA.chartId,
+      chartVersionId: userA.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    // Legacy VND order does NOT discount Lá price: stays at 960
+    expect(intentA).toMatchObject({ ok: true, value: { amountLa: 960 } });
+
+    // User B: has real Lá wallet spend on chart 1, but checks chart 2
+    const userB = await ownerFixture("User B multi chart");
+    const chart2 = await ownerFixture("User B chart 2");
+    await insertWalletSpend(
+      { ...userB, chartId: chart2.chartId, chartVersionId: chart2.chartVersionId },
+      "ZIWEI-PALACE-LIFE-P0",
+      120,
+      new Date(frozenNow.getTime() - 1000),
+    );
+    const intentB = await service.createPurchaseIntent(userB.actor, {
+      chartId: userB.chartId,
+      chartVersionId: userB.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    // Spend on chart 2 does NOT discount chart 1: stays at 960
+    expect(intentB).toMatchObject({ ok: true, value: { amountLa: 960 } });
+  });
+
+  it("replaces stale pending intent on price change and expiry without permanent lockout", async () => {
+    const audit = await ownerFixture("Audit stale intent test");
+    const owner = await ownerFixture("Stale intent owner");
+    const { service } = walletPorts(audit.userId);
+
+    // 1. Initial pending intent at 960 Lá
+    const initialIntent = await service.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(initialIntent).toMatchObject({ ok: true, value: { amountLa: 960 }, reused: false });
+
+    // 2. User spends 120 Lá on a single palace
+    await insertWalletSpend(owner, "ZIWEI-PALACE-LIFE-P0", 120, new Date(frozenNow.getTime() - 1000));
+
+    // 3. User requests intent again: old 960 intent is cancelled and new 840 intent returned
+    const updatedIntent = await service.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(updatedIntent).toMatchObject({ ok: true, value: { amountLa: 840 }, reused: false });
+    expect(updatedIntent.value.id).not.toBe(initialIntent.value.id);
+
+    const [cancelledInitial] = await database.select().from(walletPurchaseIntents)
+      .where(eq(walletPurchaseIntents.id, initialIntent.value.id));
+    expect(cancelledInitial?.status).toBe("cancelled");
+
+    // 4. Stale intent replacement on 7-day expiry
+    const eightDaysLater = new Date(frozenNow.getTime() + 8 * 24 * 60 * 60 * 1000);
+    const { service: laterService } = walletPorts(audit.userId, { now: () => eightDaysLater });
+    const expiredReplaceIntent = await laterService.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(expiredReplaceIntent).toMatchObject({ ok: true, value: { amountLa: 960 }, reused: false });
+    expect(expiredReplaceIntent.value.id).not.toBe(updatedIntent.value.id);
+
+    const [cancelled840] = await database.select().from(walletPurchaseIntents)
+      .where(eq(walletPurchaseIntents.id, updatedIntent.value.id));
+    expect(cancelled840?.status).toBe("cancelled");
+  });
+
+  it("handles dedicated zero-cost completion path without passing 0 into spend schema or debiting balance", async () => {
+    const audit = await ownerFixture("Audit zero unlock test");
+    const zeroOwner = await ownerFixture("Zero rollover owner");
+    const { authority: zeroAuth, service: zeroService, repository: zeroRepo } = walletPorts(audit.userId);
+
+    // Give owner 500 Lá to verify balance is not touched
+    const funded = await zeroRepo.grant({
+      targetOwnerId: zeroOwner.userId,
+      grant: grant(audit.userId, "grant-zero-balance", 500),
+      topUpOrderId: null,
+      trustedGrantToken: zeroAuth.token,
+    });
+    if (!funded.ok) throw new Error(`grant failed: ${funded.error.code}`);
+
+    // Spend 8 single palaces within 7-day window (8 * 120 = 960 Lá)
+    const palaceSkus = [
+      "ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-SIBLINGS-P0", "ZIWEI-PALACE-SPOUSE-P0",
+      "ZIWEI-PALACE-CHILDREN-P0", "ZIWEI-PALACE-WEALTH-P0", "ZIWEI-PALACE-HEALTH-P0",
+      "ZIWEI-PALACE-TRAVEL-P0", "ZIWEI-PALACE-FRIENDS-P0",
+    ];
+    for (const pSku of palaceSkus) {
+      await insertWalletSpend(zeroOwner, pSku, 120, new Date(frozenNow.getTime() - 1000));
+    }
+
+    // Purchase intent has priceLa = 0
+    const zeroIntent = await zeroService.createPurchaseIntent(zeroOwner.actor, {
+      chartId: zeroOwner.chartId,
+      chartVersionId: zeroOwner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
+    expect(zeroIntent).toMatchObject({ ok: true, value: { amountLa: 0 }, reused: false });
+
+    // Unlock at 0 Lá
+    const [zeroAccount] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, zeroOwner.userId));
+    const unlockResult = await zeroService.unlock(zeroOwner.actor, {
+      purchaseIntentId: zeroIntent.value.id,
+      expectedIntentVersion: zeroIntent.value.stateVersion,
+      expectedWalletVersion: zeroAccount!.stateVersion,
+      idempotencyKey: "zero-cost-unlock-key-1",
+    });
+    expect(unlockResult.ok).toBe(true);
+    if (!unlockResult.ok) throw new Error("Expected zero unlock to succeed");
+    expect(unlockResult.value.intent.amountLa).toBe(0);
+    expect(unlockResult.value.balance.totalLa).toBe(500); // 0 Lá debited!
+
+    // Verify entitlement created with valid non-null ledgerSpendId
+    const [entitlement] = await database.select().from(commerceEntitlements)
+      .where(and(
+        eq(commerceEntitlements.ownerId, zeroOwner.userId),
+        eq(commerceEntitlements.chartId, zeroOwner.chartId),
+        eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"),
+      ));
+    expect(entitlement).toBeDefined();
+    expect(entitlement?.orderId).toBeNull();
+    expect(entitlement?.ledgerSpendId).not.toBeNull();
+
+    // Verify report reservation created
+    const [reservation] = await database.select().from(reportReservations)
+      .where(eq(reportReservations.entitlementId, entitlement!.id));
+    expect(reservation).toBeDefined();
+    expect(reservation?.reportId).toBe(unlockResult.value.reportId);
+
+    // Verify idempotency replay succeeds
+    const replayResult = await zeroService.unlock(zeroOwner.actor, {
+      purchaseIntentId: zeroIntent.value.id,
+      expectedIntentVersion: zeroIntent.value.stateVersion,
+      expectedWalletVersion: zeroAccount!.stateVersion,
+      idempotencyKey: "zero-cost-unlock-key-1",
+    });
+    expect(replayResult.ok).toBe(true);
+
+    // Verify wallet history does not crash and does not contain 0-delta entries
+    const history = await zeroRepo.readHistory(zeroOwner.actor);
+    expect(history.ok).toBe(true);
+    if (history.ok) {
+      for (const item of history.value.items) {
+        expect(item.laDelta).not.toBe(0);
+      }
+    }
+  });
+
 });

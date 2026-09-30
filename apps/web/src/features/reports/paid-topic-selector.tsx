@@ -707,8 +707,6 @@ export function PaidTopicSelector({
                     confirming: t("selection.unlockDialogConfirming"),
                     cancel: t("selection.unlockDialogCancel"),
                     shortBalanceTitle: t("selection.unlockDialogShortBalanceTitle"),
-                    shortBalanceBody: (gap, bal) => t("selection.unlockDialogShortBalanceBody", { gap, balance: bal }),
-                    topUpAction: (pack, vnd) => t("selection.unlockDialogTopupAction", { pack, vnd }),
                     topUpNote: t("selection.unlockDialogTopupNote"),
                     genericError: t("selection.unlockDialogGenericError"),
                   }}

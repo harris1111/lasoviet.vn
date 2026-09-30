@@ -36,7 +36,7 @@ describe("BirthDetailsFields presenter", () => {
     expect(html).toContain("ui-field-shell__icon");
     expect(html).toContain("birth-date-leading-icon");
     expect(html).toContain("ui-field-shell__icon");
-    expect(html).toContain("class=\"icon\"");
+    expect(html).toContain("<svg viewBox=\"0 0 256 256\"");
   });
 
   it("renders 12 branches mode with select chevron shell", () => {

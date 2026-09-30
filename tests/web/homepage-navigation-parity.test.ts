@@ -99,7 +99,7 @@ describe("homepage and navigation prototype parity", () => {
     // CTA button preserves chart flow
     const ctas = links.filter((l) => l.className?.includes("button") && l.href === "/tao-la-so/tu-vi");
     expect(ctas.length).toBeGreaterThanOrEqual(1);
-    expect(ctas[0]?.text).toBe("Lập lá số Tử Vi");
+    expect(ctas[0]?.text).toBe("Lập lá số ngay");
   });
 
   it("renders homepage default header with prototype links, login, and chart CTA in EN", () => {
@@ -129,7 +129,7 @@ describe("homepage and navigation prototype parity", () => {
     // CTA button preserves chart flow
     const ctas = links.filter((l) => l.className?.includes("button") && l.href === "/en/tao-la-so/tu-vi");
     expect(ctas.length).toBeGreaterThanOrEqual(1);
-    expect(ctas[0]?.text).toBe("Build Zi Wei chart");
+    expect(ctas[0]?.text).toBe("Build my chart");
   });
 
   it("renders discipline variant header with prototype contact link and login route", () => {

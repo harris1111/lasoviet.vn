@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
+import type { LaSku } from "@lasoviet/contracts";
 import { resolveWalletUnlockLoadedState } from "./wallet-unlock-dialog-state";
 
-export type WalletUnlockDialogSku = "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
+export type WalletUnlockDialogSku = LaSku | "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
 
 export type WalletUnlockDialogLabels = {
   title: string;
@@ -17,8 +20,6 @@ export type WalletUnlockDialogLabels = {
   confirming: string;
   cancel: string;
   shortBalanceTitle: string;
-  shortBalanceBody: (gap: number, balance: number) => string;
-  topUpAction: (pack: string, vnd: string) => string;
   topUpNote: string;
   genericError: string;
 };
@@ -74,6 +75,7 @@ export function WalletUnlockDialog({
   itemName,
   labels,
 }: WalletUnlockDialogProps) {
+  const t = useTranslations("reports");
   const [state, setState] = useState<DialogState>({ step: "loading" });
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -128,15 +130,27 @@ export function WalletUnlockDialog({
 
   useEffect(() => {
     if (!open) return;
+    const triggerElement = typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
+    const previousOverflow = typeof document !== "undefined" ? document.body.style.overflow : "";
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "hidden";
+    }
     dialogRef.current?.focus();
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onOpenChange(false);
     }
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = previousOverflow;
+        document.removeEventListener("keydown", onKeyDown);
+      }
+      triggerElement?.focus();
+    };
   }, [open, onOpenChange]);
 
   if (!open) return null;
+  if (typeof document === "undefined" || !document.body) return null;
 
   async function confirm() {
     if (state.step !== "confirm") return;
@@ -179,18 +193,18 @@ export function WalletUnlockDialog({
     ? `/en/nap-la?pack=${coveringPack.id}`
     : `/nap-la?pack=${coveringPack.id}`;
 
-  return (
+  const dialogContent = (
     <div
-      aria-modal="true"
       className="wallet-unlock-dialog-overlay"
       onClick={() => onOpenChange(false)}
-      role="dialog"
     >
       <div
         aria-labelledby={titleId}
+        aria-modal="true"
         className="wallet-unlock-dialog"
         onClick={(event) => event.stopPropagation()}
         ref={dialogRef}
+        role="dialog"
         tabIndex={-1}
       >
         <h2 id={titleId}>{labels.title}</h2>
@@ -243,9 +257,12 @@ export function WalletUnlockDialog({
         {shortBalance && (
           <div className="wallet-unlock-dialog-short-balance">
             <h3>{labels.shortBalanceTitle}</h3>
-            <p>{labels.shortBalanceBody(gap, shortBalance.balance)}</p>
+            <p>{t("selection.unlockDialogShortBalanceBody", { gap, balance: shortBalance.balance })}</p>
             <a className="button button-primary" href={topUpHref}>
-              {labels.topUpAction(coveringPack.name[locale], coveringPack.vndFormatted[locale])}
+              {t("selection.unlockDialogTopupAction", {
+                pack: coveringPack.name[locale],
+                vnd: coveringPack.vndFormatted[locale],
+              })}
             </a>
             <p className="wallet-unlock-dialog-topup-note">{labels.topUpNote}</p>
             <button className="button button-secondary" onClick={() => onOpenChange(false)} type="button">
@@ -256,4 +273,6 @@ export function WalletUnlockDialog({
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 }

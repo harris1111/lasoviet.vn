@@ -107,10 +107,11 @@ import {
 import { BirthWizardSubjectStep } from "./birth-wizard-subject-step";
 import { BirthWizardBirthStep } from "./birth-wizard-birth-step";
 import { BirthWizardReviewStep } from "./birth-wizard-review-step";
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import { useMobileKeyboardState } from "./use-mobile-keyboard-state";
 import type { ReadingContextV1, TopConcernV1 } from "@lasoviet/contracts";
 import type { WizardReadingContextDraft } from "./birth-wizard-state";
+import { hasToolBirthPrefill, type ToolBirthPrefill } from "./tool-birth-prefill";
 import {
   canAdvanceStep1,
   canAdvanceStep2,
@@ -244,7 +245,12 @@ export function mapToolToTopConcern(from?: string): TopConcernV1 | undefined {
       return "family";
     case "xem-chi-tay":
     case "palmistry":
+    case "than-so-hoc":
+    case "numerology":
       return "self_understanding";
+    case "boi-tinh-yeu":
+    case "love-compatibility":
+      return "love";
     default:
       return undefined;
   }
@@ -425,6 +431,7 @@ type BirthProfileFormProps = {
   locale: "en" | "vi";
   referenceYear?: number;
   fromSource?: string;
+  toolPrefill?: ToolBirthPrefill;
   submitBirthProfile(input: {
     profile: unknown;
     explicitConsent: boolean;
@@ -449,6 +456,7 @@ export function BirthProfileForm({
   calculateZiweiChart,
   referenceYear,
   fromSource,
+  toolPrefill,
 }: BirthProfileFormProps) {
   const t = useTranslations("profile" as never);
   const router = useRouter();
@@ -605,6 +613,27 @@ export function BirthProfileForm({
     return () => {
       active = false;
     };
+  }, []);
+
+  // Birth details passed by a free tool are the customer's newest input, so
+  // they are applied after any saved draft, cache, or homepage prefill.
+  useEffect(() => {
+    if (!hasToolBirthPrefill(toolPrefill)) return;
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      if (toolPrefill.displayName !== undefined) setDisplayName(toolPrefill.displayName);
+      if (toolPrefill.day !== undefined) setDay(toolPrefill.day);
+      if (toolPrefill.month !== undefined) setMonth(toolPrefill.month);
+      if (toolPrefill.year !== undefined) setYear(toolPrefill.year);
+      setHasReusedCache(true);
+      isHydratedRef.current = true;
+    });
+    return () => {
+      active = false;
+    };
+    // Applied once on mount; later edits by the customer must win.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1338,7 +1367,7 @@ export function BirthProfileForm({
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Icon name="arrow-right" />
+                  <LsvIcon name="ui-arrow" size={20} />
                   <span>{t("sampleReportLink")}</span>
                 </Link>
               </div>
