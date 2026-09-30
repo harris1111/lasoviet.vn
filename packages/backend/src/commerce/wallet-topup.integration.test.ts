@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 
 import { and, eq } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   authUsers,
@@ -67,6 +67,14 @@ function validV3StructuredContent() {
     ],
   };
 }
+const monthlyCatalogGate = vi.hoisted(() => ({ enabled: false }));
+vi.mock("@lasoviet/contracts", async importOriginal => {
+  const actual = await importOriginal<typeof import("@lasoviet/contracts")>();
+  return { ...actual, findLaProduct: (sku: string) => {
+    const product = actual.findLaProduct(sku);
+    return monthlyCatalogGate.enabled && product && sku === "ZIWEI-MONTHLY-P0" ? { ...product, availability: "active" } : product;
+  }};
+});
 
 describe("wallet top-up money path (FD-105 package 1.1)", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>> | undefined;
@@ -263,6 +271,32 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     const wallet = await walletOf(actor.userId);
     expect(wallet?.purchasedBalance).toBe(300);
     expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(0);
+  });
+
+  it.each([false, true])("forwards the monthly resolver and preserves top-up credit across a changed lunar period (%s)", async (changedPeriod) => {
+    monthlyCatalogGate.enabled = true;
+    try {
+      const actor = await createAccount();
+      const chart = await chartFixture(actor);
+      let currentPeriod = "2026-08-regular";
+      const repository = createDatabaseCommerceRepository(database, { now: () => frozenNow, resolveMonthlyPeriodKey: () => currentPeriod });
+      const intent = await repository.createWalletPurchaseIntent(actor, { chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku: "ZIWEI-MONTHLY-P0", locale: "vi" });
+      if (!intent.ok) throw new Error(intent.code);
+      const continuation = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, confirmedPriceLa: intent.value.amountLa, returnTab: "palaces" as const };
+      const created = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+      if (!created.ok) throw new Error(created.code);
+      if (changedPeriod) currentPeriod = "2026-09-regular";
+      expect(await repository.recordPaid({ invoiceNumber: created.value.invoiceNumber, providerEventId: `monthly-${randomUUID()}`, amount: 29000, currency: "VND", traceId: "monthly-continuation" })).toMatchObject({ ok: true });
+      expect((await repository.readTopUpOrderProjection(actor, created.value.id))?.continuation?.status).toBe(changedPeriod ? "blocked" : "completed");
+      const wallet = await walletOf(actor.userId);
+      expect(wallet?.purchasedBalance).toBe(changedPeriod ? 300 : 0);
+      expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(changedPeriod ? 0 : 1);
+      const entitlements = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.ownerId, actor.userId));
+      expect(entitlements).toHaveLength(changedPeriod ? 0 : 1);
+      if (!changedPeriod) expect(entitlements[0]?.periodKey).toBe("2026-08-regular");
+    } finally {
+      monthlyCatalogGate.enabled = false;
+    }
   });
 
   it("rolls back both top-up credit and continuation spend when settlement commit fails", async () => {
