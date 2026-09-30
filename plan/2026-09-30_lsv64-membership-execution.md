@@ -35,6 +35,6 @@ Release remains gated by independent review, real target deployment, and smoke e
 
 ## Integration evidence
 
-Includes the shared natal reservation authority from PR #228, explicit top-up continuation from PR #230, and monthly/yearly report delivery from PR #232. Dedicated period/topic reports do not use the natal cache. The monthly resolver is forwarded through authenticated top-up settlement; a changed lunar period preserves the credited balance and blocks the stale continuation. Migration entries 0046–0052 remain contiguous.
+Includes the shared natal reservation authority from PR #227, explicit top-up continuation from PR #230, and monthly/yearly report delivery from PR #232. Dedicated period/topic reports do not use the natal cache. The monthly resolver is forwarded through authenticated top-up settlement; a changed lunar period preserves the credited balance and blocks the stale continuation. Migration entries 0046–0052 remain contiguous.
 
 Frozen-clock wallet integration: 25 tests passed, including concurrent included-monthly replay without debit, exact membership expiry denying generation/read access, standalone paid repurchase, free claims not consuming the guarantee, and discounted paid reports retaining access after membership expiry. Top-up integration: 18 tests passed, including the unchanged and changed lunar-period settlement cases.
