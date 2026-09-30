@@ -35,7 +35,7 @@ export function calculatePeriodReadingFacts(input: {
     const palaceId = palace && palaceIds[palace.name];
     if (!palaceId) throw new Error("PERIOD_ENGINE_UNMAPPED");
     const id = `${targetYear}-${String(period.month).padStart(2, "0")}-${period.isLeapMonth ? "leap" : "regular"}-${period.part}`;
-    const mappedStars = palace.majorStars.map(star => {
+    const mappedStars = [...palace.majorStars, ...palace.minorStars].map(star => {
       const id = starIds[star.name];
       if (!id) throw new Error("PERIOD_ENGINE_UNMAPPED");
       return { id, isObstacle: star.name === period.mutagen[3] };
