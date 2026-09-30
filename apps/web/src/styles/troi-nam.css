@@ -41,22 +41,29 @@
 
 /*
  * The photo plate is full-bleed to the viewport (see `.tn-hero-media`), but the
- * copy and form must not stretch with it: on an ultra-wide monitor a bare
- * `padding-inline` still lets the grid track fill the remaining track width,
- * pinning the form to the true edge of a 2000px+ window. Capping this inner
+ * copy, form and chart must not stretch with it: on an ultra-wide monitor a bare
+ * `padding-inline` still lets the flex row fill the remaining track width,
+ * pinning content to the true edge of a 2000px+ window. Capping this inner
  * wrapper keeps the same layout as at 1440px and just adds letterboxing
  * outside it on wider screens.
  */
 .tn-hero-content {
   max-width: 1760px;
   margin-inline: auto;
-  height: 100%;
   min-height: 100svh;
-  display: grid;
-  align-content: end;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
   padding-block: clamp(5rem, 4rem + 6vw, 7rem) clamp(2rem, 1.5rem + 3vw, 4rem);
   padding-inline: var(--tn-gutter);
+}
+
+.tn-hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 1rem + 2vw, 2rem);
+  min-width: 0;
 }
 
 /*
@@ -122,7 +129,7 @@
 
 .tn-hero-sub {
   margin: clamp(0.75rem, 0.5rem + 1vw, 1.25rem) 0 0;
-  max-width: 24ch;
+  max-width: 36ch;
   font-family: var(--font-display);
   font-size: clamp(1.125rem, 1rem + 0.7vw, 1.625rem);
   line-height: 1.35;
@@ -135,9 +142,12 @@
  * segmented pills, tabular time inputs. Scoping this wrapper as `.hv3` gives it
  * that card's own tokens and styling verbatim — Trời Nam does not restyle it.
  * `margin-top` on `.hv3-form` is reset because that spacing assumes it sits
- * below a headline in the same column; here it is the whole grid cell.
+ * below a headline in the same column; here it is the whole grid cell. The
+ * card itself stays full width of the left column; only the field grid inside
+ * (`.hv3-date-grid`, `.hv3-row`) is widened at desktop, below.
  */
 .tn-hero-form.hv3 {
+  width: 100%;
   background: none;
 }
 
@@ -145,12 +155,40 @@
   margin-top: 0;
 }
 
+/* The reveal chart is the unmodified v3 component: a fixed 500px-tall painted
+   lacquer panel with its own reveal mask. It sits in its own slot, never
+   stretched or restyled, matching how it renders on the live homepage. */
+.tn-hero-chart-slot {
+  display: none;
+}
+
 @media (min-width: 880px) {
   .tn-hero-content {
-    align-content: center;
+    flex-direction: row;
     align-items: center;
-    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
-    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    gap: clamp(2rem, 1rem + 4vw, 4rem);
+  }
+
+  .tn-hero-left {
+    flex: 1 1 480px;
+    max-width: 640px;
+  }
+
+  .tn-hero-chart-slot {
+    display: block;
+    flex: 1 1 480px;
+    max-width: 620px;
+    min-width: 0;
+  }
+
+  /* Widen the wizard's own field rows now that the card is not squeezed into
+     a 420px sidebar. The card's padding, radius and colors stay untouched. */
+  .tn-hero-form .hv3-date-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tn-hero-form .hv3-row {
+    flex-wrap: nowrap;
   }
 
   .tn-hero-plate {
@@ -159,7 +197,7 @@
 
   .tn-hero-scrim {
     background:
-      linear-gradient(90deg, rgb(8 7 6 / 0.92) 0%, rgb(8 7 6 / 0.62) 46%, rgb(8 7 6 / 0.15) 78%),
+      linear-gradient(90deg, rgb(8 7 6 / 0.85) 0%, rgb(8 7 6 / 0.55) 46%, rgb(8 7 6 / 0.2) 78%),
       linear-gradient(180deg, rgb(8 7 6 / 0.45) 0%, rgb(8 7 6 / 0) 35%);
   }
 }
@@ -177,15 +215,13 @@
 .tn .tn-ticker.hv3,
 .tn .tn-explore.hv3 {
   position: relative;
-  max-width: var(--tn-max);
-  margin-inline: auto;
+  width: 100%;
   background: var(--tn-ink);
   color: var(--tn-text);
   font-size: var(--tn-body);
 }
 
-.tn .tn-story .hv3-container,
-.tn .tn-explore .hv3-container {
+.tn .tn-story .hv3-container {
   position: relative;
   max-width: var(--tn-max);
   padding: 0;
@@ -500,8 +536,7 @@
 .tn .tn-needs.hv3,
 .tn .tn-compare.hv3 {
   position: relative;
-  max-width: var(--tn-max);
-  margin-inline: auto;
+  width: 100%;
   background: var(--tn-ink);
   color: var(--tn-text);
   font-size: var(--tn-body);
@@ -848,18 +883,12 @@
 /* Append only. Original v3 components, reader data and avatar rendering stay intact. */
 .tn .tn-testimonials.hv3,
 .tn .tn-usp.hv3 {
-  max-width: var(--tn-max);
-  margin-inline: auto;
+  width: 100%;
   background: var(--tn-ink);
   color: var(--tn-text);
   font-size: var(--tn-body);
 }
 
-.tn .tn-testimonials .hv3-container,
-.tn .tn-usp .hv3-container {
-  max-width: var(--tn-max);
-  padding: 0;
-}
 
 .tn .tn-testimonials .hv3-h2,
 .tn .tn-usp .hv3-h2 {
@@ -1119,19 +1148,12 @@
 .tn .tn-value.hv3,
 .tn .tn-faq.hv3,
 .tn .tn-about.hv3 {
-  max-width: var(--tn-max);
-  margin-inline: auto;
+  width: 100%;
   background: var(--tn-ink);
   color: var(--tn-text);
   font-size: var(--tn-body);
 }
 
-.tn .tn-value .hv3-container,
-.tn .tn-faq .hv3-container,
-.tn .tn-about .hv3-container {
-  max-width: var(--tn-max);
-  padding: 0;
-}
 
 .tn .tn-value .hv3-h2,
 .tn .tn-faq .hv3-h2,

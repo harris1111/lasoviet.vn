@@ -6,6 +6,7 @@ import {
   HomepageV3BirthForm,
   useHomepageV3BirthForm,
 } from "../homepage-v3/homepage-v3-birth-form";
+import { HomepageV3HeroChart } from "../homepage-v3/homepage-v3-hero-chart";
 import { troiNamAsset } from "./troi-nam-assets";
 
 const MOBILE = "(max-width: 879px)";
@@ -35,16 +36,24 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
       <div className="tn-hero-scrim" aria-hidden="true" />
 
       <div className="tn-hero-content">
-        <div className="tn-hero-copy">
-          <h1 className="tn-hero-title">
-            <span>{t("hero.h1a")}</span>
-            <span>{t("hero.h1b")}</span>
-          </h1>
-          <p className="tn-hero-sub">{t("hero.sub")}</p>
+        <div className="tn-hero-left">
+          <div className="tn-hero-copy">
+            <h1 className="tn-hero-title">
+              <span>{t("hero.h1a")}</span>
+              <span>{t("hero.h1b")}</span>
+            </h1>
+            <p className="tn-hero-sub">{t("hero.sub")}</p>
+          </div>
+
+          <div className="hv3 tn-hero-form">
+            <HomepageV3BirthForm state={state} />
+          </div>
         </div>
 
-        <div className="hv3 tn-hero-form">
-          <HomepageV3BirthForm state={state} />
+        {/* Reused verbatim from the live homepage: the chart reveals as the same
+            birth-form values are typed, so it must read `state.hero`, not a copy. */}
+        <div className="tn-hero-chart-slot">
+          <HomepageV3HeroChart hero={state.hero} locale={locale} />
         </div>
       </div>
     </section>

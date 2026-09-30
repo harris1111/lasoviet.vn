@@ -43,7 +43,7 @@ export default async function Page({ params }: PageProps) {
           <TroiNamNeeds locale={locale} />
         </section>
         <section className="tn-section" data-troi-nam-block="compare">
-          <TroiNamCompare />
+          <TroiNamCompare locale={locale} />
         </section>
         <section className="tn-section" data-troi-nam-block="testimonials">
           <TroiNamTestimonials />
