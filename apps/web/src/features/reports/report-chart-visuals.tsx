@@ -1,4 +1,6 @@
 import type * as React from "react";
+import { useEffect, useRef, useState } from "react";
+import { nextChartPalace, reportChartPosition } from "./report-chart-navigation";
 
 import type { ReportChartPalaceV1, ReportChartSnapshotV1 } from "@lasoviet/contracts";
 
@@ -10,14 +12,6 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 
 // Non-strict: an unknown star id inside a paid report must never throw.
 const vi = ziweiPresentation("vi", { strict: false });
-
-// Board positions (row, column) by earthly branch, the traditional four by four
-// layout with the twelve palaces around an open centre.
-const BRANCH_POSITION: Record<string, [number, number]> = {
-  snake: [1, 1], horse: [1, 2], goat: [1, 3], monkey: [1, 4],
-  dragon: [2, 1], rooster: [2, 4], rabbit: [3, 1], dog: [3, 4],
-  tiger: [4, 1], ox: [4, 2], rat: [4, 3], pig: [4, 4],
-};
 
 const BRIGHTNESS_SHORT: Record<string, string> = {
   "ziwei.brightness.exalted": "M",
@@ -128,6 +122,37 @@ export function ReportChart({
   meta,
   onSelect,
 }: ReportChartProps) {
+  const boardRef = useRef<HTMLDivElement>(null);
+  const cellRefs = useRef(new Map<string, HTMLElement>());
+  const [centres, setCentres] = useState<Record<string, [number, number]>>({});
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const measure = () => {
+      const bounds = board.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      const next: Record<string, [number, number]> = {};
+      for (const [id, element] of cellRefs.current) {
+        const cell = element.getBoundingClientRect();
+        next[id] = [100 * (cell.left - bounds.left + cell.width / 2) / bounds.width, 100 * (cell.top - bounds.top + cell.height / 2) / bounds.height];
+      }
+      setCentres((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(board);
+    return () => observer.disconnect();
+  }, [snapshot]);
+  const refFor = (id: string) => (node: HTMLElement | null) => {
+    if (node) cellRefs.current.set(id, node);
+    else cellRefs.current.delete(id);
+  };
+  const centreFor = (id: string): readonly [number, number] | undefined => {
+    if (centres[id]) return centres[id];
+    const palace = snapshot.palaces.find((item) => item.palaceId === id);
+    const position = palace && reportChartPosition(palace.earthlyBranchId);
+    return position ? [(position[1] - 0.5) * 25, (position[0] - 0.5) * 25] : undefined;
+  };
   const selected = snapshot.palaces.find((p) => p.palaceId === selectedPalaceId);
   const related = new Set<string>(
     selected ? [...selected.triadPalaceIds, selected.oppositePalaceId] : [],
@@ -136,14 +161,14 @@ export function ReportChart({
   const currentCycle = snapshot.decadal.cycles.find((c) => c.ordinal === snapshot.decadal.currentOrdinal);
 
   const cells = snapshot.palaces.map((palace) => {
-    const [row, column] = BRANCH_POSITION[lastSegment(palace.earthlyBranchId)] ?? [1, 1];
+    const [row, column] = reportChartPosition(palace.earthlyBranchId) ?? [1, 1];
     const isSelected = palace.palaceId === selectedPalaceId;
     const className = `cell${isSelected ? " is-sel" : ""}${related.has(palace.palaceId) ? " is-rel" : ""}`;
     const style = { gridRow: row, gridColumn: column };
     const cycle = cycleByPalace.get(palace.palaceId);
 
     if (variant === "thumb") {
-      return <span key={palace.palaceId} className={className} style={style} />;
+      return <span ref={refFor(palace.palaceId)} key={palace.palaceId} className={className} style={style} />;
     }
 
     const marks = (
@@ -177,15 +202,26 @@ export function ReportChart({
 
     if (!onSelect) {
       return (
-        <span key={palace.palaceId} className={className} style={style}>
+        <span ref={refFor(palace.palaceId)} key={palace.palaceId} className={className} style={style}>
           {body}
         </span>
       );
     }
     return (
       <button
+        ref={refFor(palace.palaceId)}
         key={palace.palaceId}
         type="button"
+        tabIndex={isSelected ? 0 : -1}
+        onKeyDown={(event) => {
+          const nextId = nextChartPalace(snapshot.palaces, palace.palaceId, event.key);
+          const next = nextId ? cellRefs.current.get(nextId) : null;
+          if (!next) return;
+          event.preventDefault();
+          event.currentTarget.tabIndex = -1;
+          next.tabIndex = 0;
+          next.focus();
+        }}
         className={className}
         style={style}
         aria-pressed={isSelected}
@@ -251,12 +287,21 @@ export function ReportChart({
     );
   }
 
+  const origin = selected && centreFor(selected.palaceId);
+  const triad = selected?.triadPalaceIds.map(centreFor);
+  const opposite = selected && centreFor(selected.oppositePalaceId);
   const boardClass = `board${variant === "full" ? "" : ` ${variant}`}`;
   return (
     <div className="report-chart">
-      <div className={boardClass} role={onSelect ? undefined : "img"} aria-label={onSelect ? undefined : t("reader.chart_title")}>
+      <div ref={boardRef} className={boardClass} role={onSelect ? undefined : "img"} aria-label={onSelect ? undefined : t("reader.chart_title")}>
         {cells}
         {centre}
+        {origin && triad?.every(Boolean) && opposite && (
+          <svg className="report-chart-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <polygon points={[origin, ...triad].map((point) => point!.join(",")).join(" ")} />
+            <line x1={origin[0]} y1={origin[1]} x2={opposite[0]} y2={opposite[1]} />
+          </svg>
+        )}
       </div>
       {variant === "full" && (
         <div className="board-key">

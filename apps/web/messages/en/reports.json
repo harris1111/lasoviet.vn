@@ -287,7 +287,12 @@
     "timeline_how_body": "Zi Wei divides a life into ten year cycles, each passing through a different palace. Whatever that palace governs comes to the front during those ten years. The strip does not rank cycles as good or bad. It shows where the weight of each stretch of life falls, so you can prepare instead of being surprised.",
     "timeline_living": "Living now",
     "timeline_read_full": "Read this cycle in full",
-    "timeline_read_palace": "Read the {palace} palace"
+    "timeline_read_palace": "Read the {palace} palace",
+    "open_chart": "View chart",
+    "close_chart": "Close chart",
+    "chart_navigation": "Chart navigation",
+    "chart_navigation_help": "Choose a palace to read its chapter. Use arrow keys to move and Enter to open.",
+    "read_progress": "Reading progress"
   },
   "readerUpgrade": {
     "title": "Continue with your complete lifetime reading",

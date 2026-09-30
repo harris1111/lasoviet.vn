@@ -287,7 +287,12 @@
     "timeline_how_body": "Cuộc đời trong Tử Vi được chia thành những chặng mười năm, mỗi chặng đi qua một cung khác nhau trên lá số. Chặng nào đi qua cung nào thì việc của cung đó nổi lên rõ hơn trong mười năm ấy. Dải này không nói chặng nào tốt chặng nào xấu. Nó chỉ cho bạn biết trọng tâm của từng quãng đời, để chuẩn bị trước thay vì bị bất ngờ.",
     "timeline_living": "Đang sống",
     "timeline_read_full": "Đọc đầy đủ chặng này",
-    "timeline_read_palace": "Đọc cung {palace}"
+    "timeline_read_palace": "Đọc cung {palace}",
+    "open_chart": "Xem lá số",
+    "close_chart": "Đóng lá số",
+    "chart_navigation": "Điều hướng bằng lá số",
+    "chart_navigation_help": "Chạm một cung để đọc phần luận giải. Dùng phím mũi tên để di chuyển, Enter để mở.",
+    "read_progress": "Tiến độ đọc"
   },
   "readerUpgrade": {
     "title": "Đọc tiếp Tử Vi trọn đời",
