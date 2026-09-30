@@ -416,6 +416,24 @@
   scroll-margin-top: var(--tn-section-y);
 }
 
+/*
+ * Decorative "twelve-cung" ring shown before the real grid resolves into
+ * view on scroll-in — plain geometry (12 evenly spaced ticks), never real
+ * palace/star data (see troi-nam-explore.tsx). `--tn-ring` and
+ * `--tn-grid-reveal` default to the safe static state — ring off, grid
+ * fully visible — without JS or under prefers-reduced-motion.
+ */
+.tn .tn-explore .hv3-chart-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='none' stroke='%23f2dca0' stroke-width='0.5' opacity='0.55'/><g fill='%23f2dca0'><circle cx='50.0' cy='4.0' r='1.6'/><circle cx='73.0' cy='10.2' r='1.6'/><circle cx='89.8' cy='27.0' r='1.6'/><circle cx='96.0' cy='50.0' r='1.6'/><circle cx='89.8' cy='73.0' r='1.6'/><circle cx='73.0' cy='89.8' r='1.6'/><circle cx='50.0' cy='96.0' r='1.6'/><circle cx='27.0' cy='89.8' r='1.6'/><circle cx='10.2' cy='73.0' r='1.6'/><circle cx='4.0' cy='50.0' r='1.6'/><circle cx='10.2' cy='27.0' r='1.6'/><circle cx='27.0' cy='10.2' r='1.6'/></g></svg>");
+  background-size: 100% 100%;
+  opacity: var(--tn-ring, 0);
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
 /* Reset the hero's shared .hv3-chart height, margins, order and clipping. */
 .tn .tn-explore .hv3-chart {
   width: 100%;
@@ -427,6 +445,9 @@
   order: initial;
   overflow: visible;
   aspect-ratio: 1;
+  opacity: var(--tn-grid-reveal, 1);
+  transform: scale(calc(0.94 + 0.06 * var(--tn-grid-reveal, 1)));
+  transition: opacity 200ms ease, transform 200ms ease;
 }
 
 .tn .tn-explore .hv3-cell {

@@ -6,7 +6,8 @@ export function clampProgress(value: number): number {
   return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
 }
 
-function phase(progress: number, start: number, end: number): number {
+/** Cubic ease, 0 before `start`, 1 after `end`. Shared by every phase/reveal in this file. */
+export function smoothstep(progress: number, start: number, end: number): number {
   const value = clampProgress((progress - start) / (end - start));
   return value * value * (3 - 2 * value);
 }
@@ -15,9 +16,9 @@ function phase(progress: number, start: number, end: number): number {
 export function scenePhases(value: number): ScenePhases {
   const progress = clampProgress(value);
   return {
-    dusk: phase(progress, 0.25, 0.5),
-    night: phase(progress, 0.5, 0.75),
-    chart: phase(progress, 0.75, 1),
+    dusk: smoothstep(progress, 0.25, 0.5),
+    night: smoothstep(progress, 0.5, 0.75),
+    chart: smoothstep(progress, 0.75, 1),
   };
 }
 
