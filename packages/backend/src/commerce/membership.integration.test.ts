@@ -58,6 +58,8 @@ describe("membership wallet and expiry integration", () => {
     expect(bought.result).toMatchObject({ ok: true, value: { balance: { totalLa: 18_500 } } });
     expect(await owner.service.purchase(owner.actor, bought.command)).toEqual(bought.result);
     expect(await owner.service.purchase(owner.actor, { ...bought.command, expectedIntentVersion: 2 })).toMatchObject({ ok: false });
+    expect(await owner.service.read(owner.actor)).toMatchObject({ ok: true, value: { benefits: { daily: true, monthly: true, paidTools: false } } });
+    expect(await createMembershipService(db, owner.wallet, { now }).read(owner.actor)).toMatchObject({ ok: true, value: { benefits: { monthly: false } } });
     const first = await readActiveMembership(db, owner.id, time);
     expect(first?.expiresAt).toEqual(new Date("2026-10-30T03:00:00Z"));
     const renewal = await owner.buy("MEMBERSHIP-YEARLY-P0");
@@ -65,6 +67,7 @@ describe("membership wallet and expiry integration", () => {
     expect(await owner.service.read(owner.actor)).toMatchObject({ ok: true, value: { active: true, expiresAt: "2027-10-30T03:00:00.000Z", automaticRenewal: false } });
     time = new Date("2027-10-30T03:00:00Z");
     expect(await readActiveMembership(db, owner.id, time)).toBeNull();
+    expect(await owner.service.read(owner.actor)).toMatchObject({ ok: true, value: { benefits: { daily: false, monthly: false, paidTools: false } } });
     expect(await owner.wallet.readBalance(owner.actor)).toMatchObject({ ok: true, value: { totalLa: 10_500 } });
   });
   it("rejects reserved catalog, cross-account purchases and insufficient balance without subscription", async () => {

@@ -330,6 +330,7 @@
     "activeUntil": "Hội viên có hiệu lực đến {date}.",
     "inactive": "Hội viên chưa hoạt động.",
     "manualRenewal": "Gia hạn thủ công cộng thêm thời gian còn lại. Không tự động gia hạn hay trừ Lá.",
+    "benefitsMonthlyEnabled": "Nguyệt vận được bao gồm trong thời gian hội viên còn hiệu lực. Bản cá nhân của công cụ: sắp có. Bản Toàn diện mua riêng. Ưu đãi 20% được so với giá sau khấu trừ, chọn giá thấp hơn và không cộng dồn.",
     "benefitsPending": "Nguyệt vận và bản cá nhân của công cụ: sắp có. Bản Toàn diện mua riêng. Ưu đãi 20% được so với giá sau khấu trừ, chọn giá thấp hơn và không cộng dồn.",
     "signIn": "Đăng nhập để xem hội viên",
     "renew": "Gia hạn {days} ngày · {price} Lá",
