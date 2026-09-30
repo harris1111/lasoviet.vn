@@ -269,6 +269,7 @@ export type PersonalDailyReadingWriterOptions = {
   chartId?: string;
   chartVersionId?: string;
   asOfDate?: string; // YYYY-MM-DD
+  now?: () => Date;
 };
 
 /**
@@ -349,7 +350,8 @@ export function writePersonalDailyReading(
   birthProfile: NormalizedBirthProfileV1,
   options: PersonalDailyReadingWriterOptions = {},
 ): PersonalDailyReadingV1 {
-  const asOfDate = options.asOfDate || new Date().toISOString().slice(0, 10);
+  const generatedAt = (options.now ?? (() => new Date()))();
+  const asOfDate = options.asOfDate || generatedAt.toISOString().slice(0, 10);
   const chartId = options.chartId || "transient-chart";
   const chartVersionId = options.chartVersionId || "transient-version";
 
@@ -549,7 +551,7 @@ export function writePersonalDailyReading(
     evidenceKeys: uniqueEvidenceKeys,
     qualityGate: {
       passed: true,
-      checkedAt: new Date().toISOString(),
+      checkedAt: generatedAt.toISOString(),
       rulesChecked: [
         "FD089_NO_DEATH_LIFESPAN",
         "FD089_NO_RITUALS_AMULETS",

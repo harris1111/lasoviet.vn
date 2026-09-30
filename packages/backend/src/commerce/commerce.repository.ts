@@ -1,3 +1,5 @@
+import type { DailyReadingWriter } from "./daily-wallet-unlock.service.js";
+import { calculateBonusExpiry } from "@lasoviet/contracts";
 import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
@@ -73,6 +75,7 @@ export type ContentPurchaseOrder = OrderRecord & {
 type CheckoutLocale = "vi" | "en";
 
 export type CommerceRepositoryOptions = {
+  dailyReadingWriter?: DailyReadingWriter;
   now?: () => Date;
   orderTtlSeconds?: number;
   beforePaymentCommit?: () => Promise<void>;
@@ -133,6 +136,7 @@ export function createDatabaseCommerceRepository(
   const walletUnlock = createWalletUnlockService(database, walletService, {
     now: getNow,
     reportVersionResolver,
+    dailyReadingWriter: options.dailyReadingWriter,
   });
 
   async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<ContentPurchaseOrder | null> {
@@ -1652,6 +1656,7 @@ export function createDatabaseCommerceRepository(
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
           orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
           scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku, reportVersions.family),
+          dailyBonusExpiresAt: paidOrder.sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
           createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
@@ -2203,6 +2208,7 @@ export function createDatabaseCommerceRepository(
             sku: paidOrder.sku,
             ownerId: paidOrder.ownerId,
             scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku, reportVersions.family),
+            dailyBonusExpiresAt: paidOrder.sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
             createdAt: currentNow,
           })
           .returning();

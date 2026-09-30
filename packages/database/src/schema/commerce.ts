@@ -76,6 +76,8 @@ export const commerceEntitlements = pgTable("commerce_entitlements", {
   sku: text("sku").notNull(),
   ownerId: text("owner_id").notNull(),
   scope: jsonb("scope").$type<EntitlementScope>().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }),
+  dailyBonusExpiresAt: timestamp("daily_bonus_expires_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex("commerce_entitlements_order_unique").on(table.orderId),

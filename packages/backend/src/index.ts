@@ -745,3 +745,5 @@ export type {
   CreateLifetimeBonusEntitlementInput,
   AssertDailyReadingAccessResult,
 } from "./commerce/time-limited-entitlement.service.js";
+
+export { createPersonalDailyReadingService, createDatabaseDailyReadingAccess, type DailyReadingService, type DailyReadingGrant } from "./commerce/personal-daily-reading.service.js";

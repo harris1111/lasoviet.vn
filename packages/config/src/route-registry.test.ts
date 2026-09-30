@@ -220,3 +220,16 @@ describe("route registry", () => {
     });
   });
 });
+
+it("keeps the authenticated daily reading API private and out of search indexes", () => {
+  expect(routeRegistry.find((route) => route.id === "api.ziwei.personal-daily-reading")).toMatchObject({
+    path: "/ziwei/charts/{chartId}/daily-reading", status: "live_noindex", private: true,
+    robots: "noindex,nofollow", sitemap: false, purchasable: false,
+  });
+});
+
+it("excludes the browser daily reading proxy from robots and sitemaps", () => {
+  expect(routeRegistry.find((route) => route.id === "api.web.personal-daily-reading")).toMatchObject({
+    status: "live_noindex", private: true, robots: "noindex,nofollow", sitemap: false, purchasable: false,
+  });
+});

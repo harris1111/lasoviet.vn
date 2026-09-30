@@ -1,3 +1,4 @@
+import { PersonalDailyReadingPanel } from "../../../../features/ziwei/personal-daily-reading-panel";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -104,6 +105,8 @@ export default async function ZiweiChartResultPage({
           loadEvidence={loadZiweiEvidence}
           preview={safePreview}
         />
+
+        {actor.kind === "account" && <PersonalDailyReadingPanel chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale} />}
 
         <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
           <div className="result-paid-report-head">

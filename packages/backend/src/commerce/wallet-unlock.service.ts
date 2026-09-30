@@ -1,3 +1,5 @@
+import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } from "./daily-wallet-unlock.service.js";
+import { calculateBonusExpiry } from "@lasoviet/contracts";
 import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
@@ -108,7 +110,7 @@ export type WalletUnlockOutcome = {
   reportId: string;
 };
 
-type WalletResult<T> =
+export type WalletResult<T> =
   | { ok: true; value: T; reused?: boolean }
   | { ok: false; code: WalletUnlockServiceError };
 
@@ -414,13 +416,15 @@ async function verifyLineageAndRespond(
 export function createWalletUnlockService(
   database: Database,
   wallet: WalletService,
-  options: { now?: () => Date; reportVersionResolver?: ReportVersionResolver } = {},
+  options: { now?: () => Date; reportVersionResolver?: ReportVersionResolver; dailyReadingWriter?: DailyReadingWriter } = {},
 ) {
   const now = options.now ?? (() => new Date());
   const reportVersionResolver = options.reportVersionResolver ?? currentReportVersions;
+  const daily = createDailyWalletUnlockService(database, wallet, { now, writer: options.dailyReadingWriter });
 
   return {
     async createPurchaseIntent(actor: CurrentActor, request: WalletPurchaseIntentRequest): Promise<WalletResult<WalletPurchaseIntentV1>> {
+      if (request.sku === DAILY_SKU) return daily.createPurchaseIntent(actor, request);
       if (!await verifiedAccount(database, actor)) return failed(actor.kind === "account" ? "WALLET_ACCOUNT_INELIGIBLE" : "WALLET_ACCOUNT_REQUIRED");
       if (actor.kind !== "account") return failed("WALLET_ACCOUNT_REQUIRED");
       const ownerId = actor.userId;
@@ -502,6 +506,8 @@ export function createWalletUnlockService(
       if (intent === undefined) {
         return failed("WALLET_INTENT_VERSION_CONFLICT");
       }
+
+      if (intent.sku === DAILY_SKU) return daily.unlock(actor, request);
 
       if (intent.status === "completed") {
         const [receipt] = await database.select({
@@ -646,6 +652,7 @@ export function createWalletUnlockService(
             sku,
             ownerId: actor.userId,
             scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
+            dailyBonusExpiresAt: sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
             createdAt: currentNow,
           }).returning();
           if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
@@ -842,6 +849,7 @@ export function createWalletUnlockService(
             sku,
             ownerId: actor.userId,
             scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
+            dailyBonusExpiresAt: sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
             createdAt: currentNow,
           }).returning();
           if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");

@@ -1,5 +1,7 @@
 import { sql } from "drizzle-orm";
 import { check, foreignKey, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import type { PersonalDailyReadingV1 } from "@lasoviet/contracts";
+import { ziweiCharts, ziweiChartVersions } from "./birth-profile.js";
 import { authUsers } from "./auth.js";
 import { commerceOrders } from "./commerce.js";
 
@@ -131,3 +133,20 @@ export const walletCommandReceipts = pgTable("wallet_command_receipts", {
   result: jsonb("result").$type<Record<string, unknown>>().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("wallet_command_receipts_wallet_key_unique").on(table.walletId, table.idempotencyKey)]);
+
+// A daily unlock is an entitlement to one persisted chart/day reading, independent of natal reports.
+export const dailyReadingUnlocks = pgTable("daily_reading_unlocks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ownerId: text("owner_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+  chartId: text("chart_id").notNull().references(() => ziweiCharts.id, { onDelete: "cascade" }),
+  chartVersionId: text("chart_version_id").notNull().references(() => ziweiChartVersions.id, { onDelete: "cascade" }),
+  readingDate: text("reading_date").notNull(),
+  ledgerSpendId: uuid("ledger_spend_id").notNull().references(() => walletTransactions.id),
+  content: jsonb("content").$type<PersonalDailyReadingV1>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+}, (table) => [
+  uniqueIndex("daily_reading_unlocks_spend_unique").on(table.ledgerSpendId),
+  index("daily_reading_unlocks_owner_chart_date_idx").on(table.ownerId, table.chartId, table.readingDate),
+  check("daily_reading_unlocks_date_valid", sql`${table.readingDate} ~ '^\\d{4}-\\d{2}-\\d{2}$' AND ${table.expiresAt} > ${table.createdAt}`),
+]);

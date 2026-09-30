@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull, or, sql } from "drizzle-orm";
 
 import type { EntitlementScope } from "@lasoviet/contracts";
 import {
@@ -26,6 +26,9 @@ export type AuthorizedReportEntitlement = {
   sku: string;
   scope: EntitlementScope;
   active: true;
+  expiresAt?: Date | null;
+  dailyBonusExpiresAt?: Date | null;
+  grantedAt?: Date;
   source: "order" | "ledger_spend";
 };
 
@@ -59,7 +62,7 @@ function hasExclusiveAuthority(entitlement: typeof commerceEntitlements.$inferSe
 function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
   return (
     (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
-    (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
+    (sku === "ZIWEI-IDENTITY-P0" && Number.isSafeInteger(priceLa) && priceLa >= 0 && priceLa <= 960)
   );
 }
 
@@ -72,7 +75,10 @@ export type ReportQueryRepository = {
 
 export function createDatabaseReportQueryRepository(
   database: Database,
+  now: () => Date = () => new Date(),
 ): ReportQueryRepository {
+  const activeExpiry = () => or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, now()));
+
   async function isActiveSpend(spendId: string, expectedPriceLa: number) {
     const [restoration] = await database
       .select({ id: walletTransactions.id })
@@ -107,6 +113,7 @@ export function createDatabaseReportQueryRepository(
   }) {
     const predicates = [
       eq(commerceEntitlements.ownerId, input.ownerId),
+      activeExpiry(),
       isNull(commerceEntitlements.orderId),
       isNotNull(commerceEntitlements.ledgerSpendId),
     ];
@@ -288,6 +295,7 @@ export function createDatabaseReportQueryRepository(
       .where(
         and(
           eq(commerceEntitlements.ownerId, ownerId),
+          activeExpiry(),
           eq(commerceEntitlements.chartId, chartId),
           isNotNull(commerceEntitlements.orderId),
           isNull(commerceEntitlements.ledgerSpendId),
@@ -300,6 +308,7 @@ export function createDatabaseReportQueryRepository(
       .where(
         and(
           eq(commerceEntitlements.ownerId, ownerId),
+          activeExpiry(),
           eq(commerceEntitlements.chartId, chartId),
           isNull(commerceEntitlements.orderId),
           isNotNull(commerceEntitlements.ledgerSpendId),
@@ -318,6 +327,9 @@ export function createDatabaseReportQueryRepository(
         chartId: record.entitlement.chartId,
         sku: record.entitlement.sku,
         scope: record.entitlement.scope,
+        expiresAt: record.entitlement.expiresAt,
+        dailyBonusExpiresAt: record.entitlement.dailyBonusExpiresAt,
+        grantedAt: record.entitlement.createdAt,
         active: true as const,
         source: "ledger_spend" as const,
       }));
@@ -344,6 +356,9 @@ export function createDatabaseReportQueryRepository(
           chartId: entitlement.chartId,
           sku: entitlement.sku,
           scope: entitlement.scope,
+          expiresAt: entitlement.expiresAt,
+          dailyBonusExpiresAt: entitlement.dailyBonusExpiresAt,
+          grantedAt: entitlement.createdAt,
           active: true as const,
           source: "order" as const,
         })),
@@ -373,6 +388,7 @@ export function createDatabaseReportQueryRepository(
           and(
             eq(commerceEntitlements.id, reportReservations.entitlementId),
             eq(commerceEntitlements.ownerId, ownerId),
+          activeExpiry(),
           ),
         )
         .innerJoin(

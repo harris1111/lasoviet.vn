@@ -155,6 +155,7 @@ function forbidden(): Result<never, ReportQueryError> {
 
 export function createReportQueryService(options: {
   repository: ReportQueryRepository;
+  now?: () => Date;
 }): ReportQueryService {
   return {
     async getReport(actor, reportId) {
@@ -180,6 +181,12 @@ export function createReportQueryService(options: {
         return notFound();
       }
 
+      const currentTime = (options.now ?? (() => new Date()))().getTime();
+      const activeEntitlements = record.entitlements.filter((entitlement) =>
+        entitlement.active && (!entitlement.expiresAt || entitlement.expiresAt.getTime() > currentTime),
+      );
+      const primaryEntitlement = record.entitlements.find((entitlement) => entitlement.id === record.reservation.entitlementId);
+      if (primaryEntitlement?.expiresAt && primaryEntitlement.expiresAt.getTime() <= currentTime) return notFound();
       const { reservation, version, evidenceItems } = record;
 
       const allowedSkus: readonly string[] = [
@@ -326,7 +333,6 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
         }
@@ -395,7 +401,6 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
@@ -465,7 +470,6 @@ export function createReportQueryService(options: {
         }
 
         // Calculate effective scope as union of all non-refunded entitlements for this owner and chart
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();

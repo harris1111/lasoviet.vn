@@ -968,3 +968,17 @@ routes:
     intent: redirect.legacy-tarot
     template: redirect
     redirect: { disposition: "301", target: /boi-bai }
+
+  - <<: *private_defaults
+    id: api.ziwei.personal-daily-reading
+    path: /ziwei/charts/{chartId}/daily-reading
+    intent: api.ziwei.personal-daily-reading
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.web.personal-daily-reading
+    path: /api/ziwei/charts/{chartId}/daily-reading
+    intent: api.web.personal-daily-reading
+    template: private-api
+    owner: engineering

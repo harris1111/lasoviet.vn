@@ -1,3 +1,4 @@
+import { writePersonalDailyReading } from "@lasoviet/engine-adapters";
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
@@ -159,6 +160,7 @@ export class CommerceController {
 
   private repository() {
     return createDatabaseCommerceRepository(this.database, {
+      dailyReadingWriter: writePersonalDailyReading,
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
     });
   }

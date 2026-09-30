@@ -1,8 +1,11 @@
+import { createDailyWalletUnlockService, readPurchasedDailyReading } from "./daily-wallet-unlock.service.js";
+import { writePersonalDailyReading } from "../../../engine-adapters/src/ziwei/personal-daily-reading-writer.js";
+import { findLaProduct } from "@lasoviet/contracts";
 import { randomUUID } from "node:crypto";
 
 import { and, eq, sql } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   auditLogs,
@@ -11,6 +14,7 @@ import {
   birthProfiles,
   calculationRuns,
   commerceEntitlements,
+  dailyReadingUnlocks,
   commerceOrders,
   createDatabase,
   evidenceSets,
@@ -965,6 +969,8 @@ describe("wallet unlock repository integration", () => {
         eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"),
       ));
     expect(entitlement).toBeDefined();
+    expect(entitlement?.dailyBonusExpiresAt).toEqual(new Date(frozenNow.getTime() + 7 * 24 * 60 * 60 * 1000));
+    expect(entitlement?.expiresAt).toBeNull();
     expect(entitlement?.orderId).toBeNull();
     expect(entitlement?.ledgerSpendId).not.toBeNull();
 
@@ -991,6 +997,64 @@ describe("wallet unlock repository integration", () => {
         expect(item.laDelta).not.toBe(0);
       }
     }
+  });
+
+  it("atomically buys a daily reading once, replays without generation, and allows the next Vietnam day", async () => {
+    const owner = await ownerFixture("Daily reading owner");
+    const [chart] = await database.select().from(ziweiCharts).where(eq(ziweiCharts.id, owner.chartId));
+    await database.update(birthProfileRevisions).set({
+      originalInput: { version: 1, calendar: { kind: "solar", date: "2000-01-01" }, time: { precision: "exact_minute", localTime: "12:00" }, timezone: { offsetMinutes: 420 }, consentVersion: "1.0", gender: "female" },
+      normalizedInput: { version: 1, normalizedCalendar: { kind: "solar", date: "2000-01-01" }, normalizedTime: { precision: "exact_minute", localTime: "12:00" }, timezoneProvenance: { source: "offset", offsetMinutes: 420 }, normalizationWarnings: [], limitations: [] },
+    }).where(eq(birthProfileRevisions.id, chart!.profileRevisionId));
+    let current = new Date("2026-09-20T16:59:00Z");
+    const ports = walletPorts(owner.userId, { now: () => current });
+    const funded = await ports.repository.grant({ targetOwnerId: owner.userId, grant: grant(owner.userId, "daily-credit", 180), topUpOrderId: null, trustedGrantToken: ports.authority.token });
+    if (!funded.ok) throw new Error("DAILY_TEST_CREDIT_FAILED");
+    const writer = vi.fn(writePersonalDailyReading);
+    const daily = createDailyWalletUnlockService(database, createWalletService(ports.repository), {
+      writer, now: () => current,
+      catalog: (sku) => { const item = findLaProduct(sku); return item ? { ...item, availability: "active" } : undefined; },
+    });
+    const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-TODAY-P0", locale: "vi" };
+    const reserved = createDailyWalletUnlockService(database, createWalletService(ports.repository), { writer, now: () => current });
+    expect(await reserved.createPurchaseIntent(owner.actor, request)).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
+    const intent = await daily.createPurchaseIntent(owner.actor, request);
+    if (!intent.ok) throw new Error(intent.code);
+    const command = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: "daily-buy-1" };
+    const unlocked = await daily.unlock(owner.actor, command);
+    expect(unlocked).toMatchObject({ ok: true, value: { balance: { totalLa: 120 } } });
+    expect(await daily.unlock(owner.actor, command)).toEqual(unlocked);
+    expect(await daily.unlock(owner.actor, { ...command, expectedIntentVersion: command.expectedIntentVersion + 1 }))
+      .toEqual({ ok: false, code: "WALLET_IDEMPOTENCY_KEY_REUSED" });
+    expect(writer).toHaveBeenCalledOnce();
+    expect(await daily.createPurchaseIntent(owner.actor, request)).toEqual({ ok: false, code: "WALLET_ENTITLEMENT_EXISTS" });
+    expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-20", current)).not.toBeNull();
+    expect(await readPurchasedDailyReading(database, "another-owner", owner.chartId, "2026-09-20", current)).toBeNull();
+    expect(await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId))).toHaveLength(0);
+    current = new Date("2026-09-20T17:00:00Z");
+    expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-20", current)).toBeNull();
+    const nextIntent = await daily.createPurchaseIntent(owner.actor, request);
+    if (!nextIntent.ok || !unlocked.ok) throw new Error("DAILY_NEXT_INTENT_FAILED");
+    const nextCommand = { ...command, purchaseIntentId: nextIntent.value.id, expectedWalletVersion: unlocked.value.balance.stateVersion, idempotencyKey: "daily-buy-2" };
+    writer.mockImplementationOnce((profile, options) => {
+      const reading = writePersonalDailyReading(profile, options);
+      return { ...reading, qualityGate: { ...reading.qualityGate, passed: false } };
+    });
+    expect(await daily.unlock(owner.actor, nextCommand)).toEqual({ ok: false, code: "WALLET_INTENT_VERSION_CONFLICT" });
+    expect(await ports.repository.readBalance(owner.actor)).toMatchObject({ ok: true, value: { totalLa: 120 } });
+    expect(await daily.unlock(owner.actor, nextCommand)).toMatchObject({ ok: true, value: { balance: { totalLa: 60 } } });
+    const readings = await database.select().from(dailyReadingUnlocks).where(eq(dailyReadingUnlocks.ownerId, owner.userId));
+    expect(readings.map((r) => r.readingDate).sort()).toEqual(["2026-09-20", "2026-09-21"]);
+    expect(writer).toHaveBeenCalledTimes(3);
+    const latest = readings.find((r) => r.readingDate === "2026-09-21")!;
+    const balance = await ports.repository.readBalance(owner.actor);
+    if (!balance.ok) throw new Error("DAILY_BALANCE_FAILED");
+    const restored = await ports.repository.restore({ actor: owner.actor, restoration: {
+      kind: "restoration", actorId: owner.userId, reasonCode: "test.daily.restore", requestId: "daily-restore", traceId: "daily-restore", idempotencyKey: "daily-restore",
+      originalSpendId: latest.ledgerSpendId, expectedWalletVersion: balance.value.stateVersion,
+    } });
+    expect(restored.ok).toBe(true);
+    expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-21", current)).toBeNull();
   });
 
 });
