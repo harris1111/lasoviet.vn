@@ -331,6 +331,9 @@ export {
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
@@ -351,6 +354,7 @@ export {
   v4_1_1SensitivityReportVersions,
   v4_1_1KeyConfigSensitivityReportVersions,
   v4_1_2SensitivityReportVersions,
+  v4_2BeginnerReportVersions,
   resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   CURRENT_REPORT_KNOWLEDGE_VERSION,
@@ -396,6 +400,8 @@ export type {
 } from "./reports/identity-report-version-family.js";
 export {
   COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_2,
+  resolveComprehensiveReportSectionKeys,
 } from "./reports/comprehensive-report-section-v4.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";

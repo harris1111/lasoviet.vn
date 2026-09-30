@@ -81,6 +81,22 @@ export function ComprehensiveReportReader({
 
   const chartSnapshot =
     "chartSnapshot" in report && report.chartSnapshot ? report.chartSnapshot : null;
+  const teasers = useMemo(() => {
+    const list = v4_1Content?.decadalTeasers;
+    if (!v4_1Content || !list?.length) return undefined;
+    const map = new Map(list.map((item) => [item.ordinal, item.narrative]));
+    const current = chartSnapshot?.decadal.currentOrdinal;
+    if (current != null && v4_1Content.currentDecadal.state === "active") {
+      const firstParagraph = v4_1Content.currentDecadal.narrative.split(/\n\s*\n/u)[0] ?? "";
+      map.set(current, (firstParagraph.match(/[^.!?]+[.!?]+|[^.!?]+$/gu) ?? [firstParagraph]).slice(0, 2).join("").trim());
+    }
+    return map;
+  }, [v4_1Content, chartSnapshot]);
+  const openCurrentDecadal = () => {
+    const section = document.getElementById("section-current-decadal");
+    section?.focus({ preventScroll: true });
+    section?.scrollIntoView({ block: "start" });
+  };
   const snapshotPalace = (palaceId: string | undefined) =>
     chartSnapshot && palaceId
       ? chartSnapshot.palaces.find((p) => p.palaceId === palaceId) ?? null
@@ -894,6 +910,7 @@ export function ComprehensiveReportReader({
                 <>
                   <section
                     id="section-current-decadal"
+                    tabIndex={-1}
                     data-report-section
                     className="report-section-block"
                   >
@@ -903,6 +920,8 @@ export function ComprehensiveReportReader({
                     </div>
                     {chartSnapshot && (
                       <ReportDecadalTimeline
+                        teasers={teasers}
+                        onOpenCurrent={openCurrentDecadal}
                         snapshot={chartSnapshot}
                         t={t}
                         onOpenPalace={openPalaceById}

@@ -572,6 +572,14 @@ export type ComprehensiveReportTier1PublicContentV3 = z.infer<
   typeof ComprehensiveReportTier1PublicContentV3Schema
 >;
 
+const ComprehensiveReportDecadalTeaserPublicSchema = z.object({
+  ordinal: z.number().int().min(0).max(11),
+  palaceId: z.enum(ZIWEI_PALACE_IDS),
+  ageRange: z.tuple([z.number().int(), z.number().int()]),
+  yearRange: z.tuple([z.number().int(), z.number().int()]),
+  narrative: z.string().trim().min(1).max(2_000),
+}).strict();
+
 export const ComprehensiveReportTier2PublicContentV3Schema = z
   .object({
     overview: ComprehensiveReportOverviewSectionSchema,
@@ -583,6 +591,7 @@ export const ComprehensiveReportTier2PublicContentV3Schema = z
     currentDecadal: ComprehensiveReportCurrentDecadalV2PublicSchema,
     annualSnapshot: ComprehensiveReportAnnualSnapshotV2PublicSchema,
     birthTimeSensitivity: ComprehensiveReportBirthTimeSensitivityV3PublicSchema,
+    decadalTeasers: z.array(ComprehensiveReportDecadalTeaserPublicSchema).max(7).optional(),
     practicalDirection: z.array(ComprehensiveReportActionItemV2PublicSchema).min(3).max(5),
   })
   .strict();
@@ -685,6 +694,10 @@ export function projectComprehensiveReportPublicContentV3(
       asOfDate: stored.annualSnapshot.asOfDate,
       narrative: stored.annualSnapshot.narrative,
     },
+    ...(stored.decadalTeasers?.length ? { decadalTeasers: stored.decadalTeasers.map((item) => ({
+      ordinal: item.ordinal, palaceId: item.palaceId, ageRange: item.ageRange,
+      yearRange: item.yearRange, narrative: item.narrative,
+    })) } : {}),
     birthTimeSensitivity: {
       title: stored.birthTimeSensitivity.title,
       stableFactors: {

@@ -1,10 +1,6 @@
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 import {
-  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
-  REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_KNOWLEDGE_VERSION_V4,
-  REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
-  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   createBirthProfileService,
   createDatabaseBirthProfileRepository,
   createDatabaseWalletRepository,
@@ -14,6 +10,8 @@ import {
   createWalletUnlockService,
   createZiweiCalculationService,
   v4_1_2SensitivityReportVersions,
+  v4_2BeginnerReportVersions,
+  resolveComprehensiveReportSectionKeys,
 } from "@lasoviet/backend";
 import type { CurrentActor } from "@lasoviet/contracts";
 import {
@@ -42,7 +40,10 @@ const REQUESTED_MODEL = "ag/claude-sonnet-4-6";
 const EXPECTED_MODEL = "claude-sonnet-4-6";
 const MAX_RUNS = 20;
 
+export type Fd082GateTuple = ReturnType<typeof v4_1_2SensitivityReportVersions> | ReturnType<typeof v4_2BeginnerReportVersions>;
+
 export type Fd082GateArguments = {
+  tuple?: "v4.1.2" | "v4.2-beginner";
   ownerId: string;
   campaignId: string;
   runs: number;
@@ -123,7 +124,7 @@ function boundedInteger(value: string, min: number, max: number): number {
 
 export function parseFd082GateArguments(argumentsList: readonly string[]): Fd082GateArguments {
   const names = new Set(argumentsList.map((argument) => argument.slice(0, argument.indexOf("="))));
-  const allowed = new Set(["--owner-id", "--campaign-id", "--runs", "--poll-ms", "--timeout-ms"]);
+  const allowed = new Set(["--owner-id", "--campaign-id", "--runs", "--poll-ms", "--timeout-ms", "--tuple"]);
   if (
     argumentsList.some((argument) => !argument.includes("=")) ||
     [...names].some((name) => !allowed.has(name)) ||
@@ -131,7 +132,10 @@ export function parseFd082GateArguments(argumentsList: readonly string[]): Fd082
     !names.has("--campaign-id") ||
     !names.has("--runs")
   ) fail("FD082_GATE_INVALID_INPUT");
+  const tuple = names.has("--tuple") ? requiredValue(argumentsList, "tuple") : "v4.1.2";
+  if (tuple !== "v4.1.2" && tuple !== "v4.2-beginner") fail("FD082_GATE_INVALID_INPUT");
   return {
+    ...(names.has("--tuple") ? { tuple: tuple as "v4.1.2" | "v4.2-beginner" } : {}),
     ownerId: requiredValue(argumentsList, "owner-id"),
     campaignId: requiredValue(argumentsList, "campaign-id"),
     runs: boundedInteger(requiredValue(argumentsList, "runs"), 1, MAX_RUNS),
@@ -140,29 +144,29 @@ export function parseFd082GateArguments(argumentsList: readonly string[]): Fd082
   };
 }
 
-export function passesFd082Evidence(evidence: Fd082Evidence): boolean {
-  const expectedKeys = new Set(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1);
+export function passesFd082Evidence(evidence: Fd082Evidence, tuple: Fd082GateTuple = v4_1_2SensitivityReportVersions()): boolean {
+  const expectedKeys = new Set<string>(resolveComprehensiveReportSectionKeys(tuple.reportConfigVersion));
   if (
     evidence.reservation?.status !== "complete" ||
     evidence.reservation.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
-    evidence.reservation.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY ||
-    evidence.reservation.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
+    evidence.reservation.promptVersion !== tuple.promptVersion ||
+    evidence.reservation.reportConfigVersion !== tuple.reportConfigVersion ||
     evidence.checkpoints.length !== expectedKeys.size ||
     new Set(evidence.checkpoints.map((item) => item.sectionKey)).size !== expectedKeys.size ||
     evidence.checkpoints.some((item) =>
-      !expectedKeys.has(item.sectionKey as typeof COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1[number]) ||
+      !expectedKeys.has(item.sectionKey) ||
       item.status !== "passed" ||
       item.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
-      item.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY ||
-      item.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
-      item.qualityConfigVersion !== REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY ||
+      item.promptVersion !== tuple.promptVersion ||
+      item.reportConfigVersion !== tuple.reportConfigVersion ||
+      item.qualityConfigVersion !== tuple.qualityVersion ||
       item.providerId !== EXPECTED_PROVIDER ||
       item.modelId !== EXPECTED_MODEL,
     ) ||
     evidence.immutable === null ||
     evidence.immutable.knowledgeVersionId !== REPORT_KNOWLEDGE_VERSION_V4 ||
-    evidence.immutable.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY ||
-    evidence.immutable.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
+    evidence.immutable.promptVersion !== tuple.promptVersion ||
+    evidence.immutable.reportConfigVersion !== tuple.reportConfigVersion ||
     evidence.immutable.providerId !== EXPECTED_PROVIDER ||
     evidence.immutable.modelId !== EXPECTED_MODEL ||
     !/^[a-f0-9]{64}$/u.test(evidence.immutable.contentHash) ||
@@ -330,7 +334,7 @@ export async function runFd082GateSequence(
       await ports.wait(input.pollMs);
       evidence = await ports.readEvidence(run, reportVersionId);
     }
-    if (!passesFd082Evidence(evidence)) {
+    if (!passesFd082Evidence(evidence, input.tuple === "v4.2-beginner" ? v4_2BeginnerReportVersions() : v4_1_2SensitivityReportVersions())) {
       await ports.restore(
         run,
         reportVersionId,
@@ -348,7 +352,7 @@ export async function runFd082Gate(database: Database, input: Fd082GateArguments
   const authority = await ownerActor(database, input.ownerId, `fd082:${input.campaignId}`);
   const wallet = createWalletService(createDatabaseWalletRepository(database));
   const unlock = createWalletUnlockService(database, wallet, {
-    reportVersionResolver: v4_1_2SensitivityReportVersions,
+    reportVersionResolver: input.tuple === "v4.2-beginner" ? v4_2BeginnerReportVersions : v4_1_2SensitivityReportVersions,
   });
   const profiles = createBirthProfileService({ repository: createDatabaseBirthProfileRepository(database) });
   const calculate = createZiweiCalculationService({

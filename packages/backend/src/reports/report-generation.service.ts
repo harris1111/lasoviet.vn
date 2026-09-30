@@ -23,6 +23,10 @@ import {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
   v4SectionedReportVersions,
+  v4_2BeginnerReportVersions,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER,
   v4_1_1KeyConfigSensitivityReportVersions,
   v4_1_2SensitivityReportVersions,
   v4_1_1SensitivityReportVersions,
@@ -224,6 +228,8 @@ export function createReportGenerationService(
     promptVersion: string;
     reportConfigVersion: string;
   }) {
+    const beginner = v4_2BeginnerReportVersions();
+    if (payload.knowledgeVersionId === beginner.knowledgeVersion && payload.promptVersion === beginner.promptVersion && payload.reportConfigVersion === beginner.reportConfigVersion) return beginner;
     const v4 = v4SectionedReportVersions();
     if (
       payload.knowledgeVersionId === v4.knowledgeVersion &&
@@ -267,7 +273,8 @@ export function createReportGenerationService(
     return null;
   }
 
-  function qualityInputs(section: ComprehensiveReportAcceptedSection) {
+  function qualityInputs(section: ComprehensiveReportAcceptedSection, qualityVersion: string) {
+    const beginner = qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER;
     const kind = section.key.startsWith("palace:")
       ? "palace"
       : section.key.startsWith("thematic:")
@@ -283,14 +290,16 @@ export function createReportGenerationService(
           key: section.key,
           itemKey: `${section.key}.stableFactors`,
           kind,
-          text: `${section.value.stableFactors.title} ${section.value.stableFactors.narrative}`,
+          text: beginner ? section.value.stableFactors.narrative : `${section.value.stableFactors.title} ${section.value.stableFactors.narrative}`,
+          ...(beginner ? { title: section.value.stableFactors.title } : {}),
           evidenceKeys: section.value.stableFactors.evidenceKeys,
         },
         {
           key: section.key,
           itemKey: `${section.key}.sensitiveFactors`,
           kind,
-          text: `${section.value.sensitiveFactors.title} ${section.value.sensitiveFactors.narrative}`,
+          text: beginner ? section.value.sensitiveFactors.narrative : `${section.value.sensitiveFactors.title} ${section.value.sensitiveFactors.narrative}`,
+          ...(beginner ? { title: section.value.sensitiveFactors.title } : {}),
           evidenceKeys: section.value.sensitiveFactors.evidenceKeys,
         },
       ] as unknown as Array<Parameters<typeof validateComprehensiveReportSectionQualityV4>[0] & { itemKey: string }>;
@@ -302,7 +311,8 @@ export function createReportGenerationService(
       kind,
       text: typeof entry === "object" && "recommendation" in entry
         ? `${entry.recommendation} ${entry.rationale} ${entry.avoid}`
-        : `${entry.title} ${entry.narrative}`,
+        : beginner ? entry.narrative : `${entry.title} ${entry.narrative}`,
+      ...(beginner && entry.title ? { title: entry.title } : {}),
       evidenceKeys: entry.evidenceKeys ?? [],
       ...(section.key.startsWith("palace:") ? { palaceId: section.key.slice("palace:".length) } : {}),
     } as Parameters<typeof validateComprehensiveReportSectionQualityV4>[0] & { itemKey: string }));
@@ -314,7 +324,7 @@ export function createReportGenerationService(
     reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
     qualityVersion: string = REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   ): readonly ReportSectionQualityFinding[] {
-    return qualityInputs(section).flatMap((quality) => {
+    return qualityInputs(section, qualityVersion).flatMap((quality) => {
       const result = validateComprehensiveReportSectionQualityV4(quality, facts!, reportConfigVersion, qualityVersion);
       return result.ok
         ? []
@@ -344,6 +354,7 @@ export function createReportGenerationService(
       ![
         REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
         REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+        REPORT_PROMPT_VERSION_V4_2_BEGINNER,
       ].includes(promptVersion as typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY | typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) ||
       candidate.key !== "keyConfigurations" ||
       rewritten.key !== "keyConfigurations"
@@ -422,7 +433,7 @@ export function createReportGenerationService(
     const selection = resolveSectionedSelection(payload);
     if (!selection) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
     const warningOnlyReview =
-      selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
+      (selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY || selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER);
     const sectionKeys = resolveComprehensiveReportSectionKeys(selection.reportConfigVersion);
     const quality = selection.family === "v4"
       ? ziweiComprehensiveReportQualityV1
@@ -465,7 +476,7 @@ export function createReportGenerationService(
       }
       return sections;
     };
-    const groupedActiveTuple =
+    const groupedActiveTuple = (selection.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER && selection.reportConfigVersion === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER && selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER) ||
       selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
       selection.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
       selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
@@ -476,7 +487,7 @@ export function createReportGenerationService(
       const groups = [
         { groupId: "G1" as const, keys: ["overview", "coreAxis", "keyConfigurations", ...palaceKeys.slice(0, 6)] as ComprehensiveReportSectionKey[] },
         { groupId: "G2" as const, keys: [...palaceKeys.slice(6), ...thematicKeys] as ComprehensiveReportSectionKey[] },
-        { groupId: "G3" as const, keys: ["strengthsAndTensions", "currentDecadal", "annualSnapshot", "birthTimeSensitivity", "practicalDirection"] as ComprehensiveReportSectionKey[] },
+        { groupId: "G3" as const, keys: ["strengthsAndTensions", "currentDecadal", ...(selection.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER ? ["decadalTeasers"] : []), "annualSnapshot", "birthTimeSensitivity", "practicalDirection"] as ComprehensiveReportSectionKey[] },
       ];
       let digest: ReturnType<typeof buildComprehensiveReportSectionDigest> | undefined;
       for (const group of groups) {
@@ -710,7 +721,7 @@ export function createReportGenerationService(
               rewrite: {
                 priorSection: candidate.candidateSection,
                 findings: selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
-                  selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+                  (selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY || selection.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER)
                   ? candidate.findings
                   : candidate.findings.map((finding) =>
                       `${finding.itemKey} ${finding.code}: ${finding.note}`.slice(0, 300),

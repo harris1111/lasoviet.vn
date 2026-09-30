@@ -149,3 +149,19 @@ describe("ComprehensiveReportReader FD-104 wave 1", () => {
     expect(html).toContain('aria-current="true"');
   });
 });
+
+it("shows past and future teasers and an accessible link to the full current cycle", () => {
+  const report = v3Report(true);
+  if (!("currentDecadal" in report.content)) throw new Error("Expected Tier 2 content");
+  report.content.decadalTeasers = [0, 3].map((ordinal) => ({
+    ...chartSnapshot.decadal.cycles[ordinal]!,
+    narrative: ordinal === 0 ? "Chặng đầu đời đi qua cung Mệnh." : "Chặng sau đi qua cung Tử Tức.",
+  }));
+  const html = renderToStaticMarkup(<ComprehensiveReportReader report={report} />);
+  expect(html).toContain("Chặng đầu đời đi qua cung Mệnh.");
+  expect(html).toContain("Chặng sau đi qua cung Tử Tức.");
+  expect(html).toContain("report-cycle-list");
+  expect(html).toContain('id="section-current-decadal" tabindex="-1"');
+  expect(html).toContain("report-cycle-cta is-primary");
+  expect(renderToStaticMarkup(<ComprehensiveReportReader report={v3Report(true)} />)).not.toContain("report-cycle-list");
+});

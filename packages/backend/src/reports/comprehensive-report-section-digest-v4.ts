@@ -63,6 +63,9 @@ function entryFor(section: ComprehensiveReportAcceptedSection): ComprehensiveRep
       actions: [],
     };
   }
+  if (section.key === "decadalTeasers") {
+    return { key: section.key, headline: "decadalTeasers", claim: boundedSnippet(section.value.map((item) => firstSentence(item.narrative)).join(" ")), evidenceKeys: [], configurations: [], actions: [] };
+  }
   if (section.key === "keyConfigurations") {
     const configurations = section.value as ZiweiComprehensiveReportContentV2["keyConfigurations"];
     return {
@@ -126,6 +129,10 @@ function appendEvidenceKeysThatFit(
       if (serializedLength(entries) > maxChars) keys.pop();
     };
 
+    if (section.key === "decadalTeasers") {
+      for (const item of section.value) for (const key of sortedEvidenceKeys(item)) addIfFits(entry.evidenceKeys, key);
+      continue;
+    }
     if (section.key === "keyConfigurations") {
       section.value.forEach((item, index) => {
         for (const key of sortedEvidenceKeys(item)) {

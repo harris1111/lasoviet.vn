@@ -221,3 +221,38 @@ describe("comprehensive report V4 assembler", () => {
     )).toThrow("COMPREHENSIVE_REPORT_SECTION_INVALID");
   });
 });
+
+import { buildFacts } from "./comprehensive-report-test-facts.js";
+import { teaserCyclesFor } from "./comprehensive-report-decadal-teasers.js";
+import { REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER } from "./identity-report-config.js";
+import { projectComprehensiveReportPublicContentV3, ZiweiComprehensiveReportContentV3Schema } from "@lasoviet/contracts";
+
+function beginnerFacts() {
+  const value = buildFacts();
+  if (value.timing.decadal.state !== "active") throw new Error("Expected active timing");
+  value.timing.decadal.earthlyBranchId = "ziwei.branch.dragon";
+  value.sourceSnapshot.asOfDate = "2026-09-15";
+  return value;
+}
+
+describe("beginner teaser assembly and disclosure", () => {
+  it("freezes cycle metadata and discloses prose only to Tier 2", () => {
+    const chartFacts = beginnerFacts();
+    const cycles = teaserCyclesFor(chartFacts);
+    const teasers = cycles.map((cycle) => ({ ordinal: cycle.ordinal, narrative: "Chặng này cần kiên nhẫn.", evidenceKeys }));
+    const report = assembleComprehensiveReportV4_1([...acceptedSensitivitySections(), { key: "decadalTeasers", value: teasers }], chartFacts, REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER);
+    expect(report.decadalTeasers).toEqual(cycles.map((cycle) => ({ ...cycle, narrative: "Chặng này cần kiên nhẫn.", evidenceKeys })));
+    const publicContent = projectComprehensiveReportPublicContentV3(report, null);
+    expect("decadalTeasers" in publicContent && publicContent.decadalTeasers?.length).toBe(7);
+    expect(JSON.stringify(publicContent)).not.toContain("evidenceKeys");
+    expect("decadalTeasers" in projectComprehensiveReportPublicContentV3(report, ["overview"])).toBe(false);
+    expect(ZiweiComprehensiveReportContentV3Schema.safeParse({ ...report, decadalTeasers: [...report.decadalTeasers!, report.decadalTeasers![0]] }).success).toBe(false);
+  });
+  it("rejects missing, duplicate, reordered or forged teaser ordinals", () => {
+    const chartFacts = beginnerFacts();
+    const items = teaserCyclesFor(chartFacts).map((cycle) => ({ ordinal: cycle.ordinal, narrative: "Chặng này cần kiên nhẫn.", evidenceKeys }));
+    for (const value of [items.slice(1), [...items].reverse(), items.map((item) => ({ ...item, ordinal: 0 }))]) {
+      expect(() => assembleComprehensiveReportV4_1([...acceptedSensitivitySections(), { key: "decadalTeasers", value }], chartFacts, REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER)).toThrow();
+    }
+  });
+});

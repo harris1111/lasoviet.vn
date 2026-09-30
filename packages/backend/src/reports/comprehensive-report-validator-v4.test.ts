@@ -1,3 +1,4 @@
+import { teaserCyclesFor } from "./comprehensive-report-decadal-teasers.js";
 import { describe, expect, it } from "vitest";
 import {
   ZIWEI_PALACE_IDS,
@@ -627,6 +628,26 @@ describe("validateComprehensiveZiweiReportV4_1", () => {
       },
     };
   }
+
+  it("checks teaser metadata, evidence and private birth information before publication", () => {
+    const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+    if (facts.timing.decadal.state !== "active") throw new Error("Expected active timing");
+    facts.timing.decadal.earthlyBranchId = "ziwei.branch.dragon";
+    const sample = createSensitivityReport(facts);
+    const cycles = teaserCyclesFor(facts);
+    expect(cycles).toHaveLength(7);
+    const report = { ...sample.report, decadalTeasers: cycles.map((cycle) => ({ ...cycle,
+      narrative: "Chặng này bạn nên để ý những việc đã nhận và giữ lời hẹn.", evidenceKeys: [facts.evidenceKeys[0]!] })) };
+    expect(validateComprehensiveZiweiReportV4_1(report, sample.facts).ok).toBe(true);
+    for (const patch of [
+      { ordinal: 11 }, { palaceId: "ziwei.palace.parents" }, { evidenceKeys: ["unknown"] },
+      { narrative: "Bạn sinh lúc 8 giờ 30." }, { narrative: "Bạn sinh ngày 2000-01-01." },
+    ]) {
+      const changed = structuredClone(report);
+      Object.assign(changed.decadalTeasers[0]!, patch);
+      expect(validateComprehensiveZiweiReportV4_1(changed, sample.facts).ok).toBe(false);
+    }
+  });
 
   it("accepts customer-safe sensitivity prose", () => {
     const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
